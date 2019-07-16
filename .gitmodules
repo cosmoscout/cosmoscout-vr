@@ -58,3 +58,6 @@
 [submodule "plugins/csp-anchor-labels"]
 	path = plugins/csp-anchor-labels
 	url = ../csp-anchor-labels.git
+[submodule "plugins/csp-atmospheres"]
+	path = plugins/csp-atmospheres
+	url = ../csp-atmospheres.git
