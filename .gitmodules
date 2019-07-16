@@ -30,31 +30,31 @@
 	url = ../vista.git
 [submodule "plugins/csp-trajectories"]
 	path = plugins/csp-trajectories
-	url = git@github.com:cosmoscout/csp-trajectories.git
+	url = ../csp-trajectories.git
 [submodule "plugins/csp-stars"]
 	path = plugins/csp-stars
-	url = git@github.com:cosmoscout/csp-stars.git
+	url = ../csp-stars.git
 [submodule "plugins/csp-simple-bodies"]
 	path = plugins/csp-simple-bodies
-	url = git@github.com:cosmoscout/csp-simple-bodies.git
+	url = ../csp-simple-bodies.git
 [submodule "plugins/csp-sharad"]
 	path = plugins/csp-sharad
-	url = git@github.com:cosmoscout/csp-sharad.git
+	url = ../csp-sharad.git
 [submodule "plugins/csp-satellites"]
 	path = plugins/csp-satellites
-	url = git@github.com:cosmoscout/csp-satellites.git
+	url = ../csp-satellites.git
 [submodule "plugins/csp-rings"]
 	path = plugins/csp-rings
-	url = git@github.com:cosmoscout/csp-rings.git
+	url = ../csp-rings.git
 [submodule "plugins/csp-lod-bodies"]
 	path = plugins/csp-lod-bodies
-	url = git@github.com:cosmoscout/csp-lod-bodies.git
+	url = ../csp-lod-bodies.git
 [submodule "plugins/csp-fly-to-locations"]
 	path = plugins/csp-fly-to-locations
-	url = git@github.com:cosmoscout/csp-fly-to-locations.git
+	url = ../csp-fly-to-locations.git
 [submodule "plugins/csp-measurement-tools"]
 	path = plugins/csp-measurement-tools
-	url = git@github.com:cosmoscout/csp-measurement-tools.git
+	url = ../csp-measurement-tools.git
 [submodule "plugins/csp-anchor-labels"]
 	path = plugins/csp-anchor-labels
-	url = git@github.com:cosmoscout/csp-anchor-labels.git
+	url = ../csp-anchor-labels.git
