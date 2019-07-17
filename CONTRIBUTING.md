@@ -35,6 +35,7 @@ It's a great idea to start the commit message with an applicable emoji. This doe
 * :green_heart: `:green_heart:` when fixing the CI build
 * :arrow_up_small: `:arrow_up_small:` when adding / upgrading dependencies
 * :arrow_down_small: `:arrow_down_small:` when removing / downgrading dependencies
+* :twisted_rightwards_arrows: `:twisted_rightwards_arrows:` when merging branches
 * :fire: `:fire:` when removing files
 * :truck: `:truck:` when moving / renaming files or namespaces
 
@@ -44,7 +45,7 @@ A good way to enforce this on your side is to use a `commit-hook`. To do this, p
 #!/bin/bash
 
 # regex to validate in commit msg
-commit_regex='(:(tada|wrench|hammer|sparkles|art|rocket|memo|beetle|green_heart|arrow_up_small|arrow_down_small|fire|truck):(.+))'
+commit_regex='(:(tada|wrench|hammer|sparkles|art|rocket|memo|beetle|green_heart|arrow_up_small|arrow_down_small|twisted_rightwards_arrows|fire|truck):(.+))'
 error_msg="Aborting commit. Your commit message is missing an emoji as described in CONTRIBUTING.md"
 
 if ! grep -xqE "$commit_regex" "$1"; then
