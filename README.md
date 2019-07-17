@@ -2,7 +2,7 @@
   <img src ="resources/logo/large.svg" />
 </p>
 
-CosmoScout VR is a virtual 3D-universe which lets you explore, analyze and present huge planetary datasets and large simulation data in real-time.
+CosmoScout VR is a modular virtual universe which lets you explore, analyze and present huge planetary datasets and large simulation data in real-time.
 
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 ![c++17](https://img.shields.io/badge/C++-17-orange.svg)
@@ -14,6 +14,45 @@ CosmoScout VR is a virtual 3D-universe which lets you explore, analyze and prese
 CosmoScout uses C++17 and OpenGL. It can be build on Linux (GCC) and Windows (MSVC). Nearly all dependencies are included as [git submodules](externals), please refer to the section [Build Instructions](#build-instructions) in order to get started.
 
 We try to add as many comments to the source code as possible. The number of source code lines and comment lines above is computed with the script [cloc.sh](cloc.sh). This script only counts *real comments*. Any dumb comments (such as copy-right headers or stuff like `/////////`) are not included in this number.
+
+# Features
+
+Below is a rough sketch of the possibilities you have with CosmoScout VR. While this list is far from complete it provides a good overview of the current feature set.
+
+- [ ] Solar System Simulation
+  - [X] Positioning of celestial bodies and space crafts based on [SPICE](https://naif.jpl.nasa.gov/naif)
+  - [X] Rendering of highly detailed level-of-detail planets based on WebMapServices (with [csp-lod-bodies](https://github.com/cosmoscout/csp-lod-bodies))
+  - [X] Rendering of configurable atmospheres (Mie- and Rayleigh-scattering) around planets (with [csp-atmospheres](https://github.com/cosmoscout/csp-atmospheres))
+  - [X] Physically based rendering of 3D satellites (with [csp-satellites](https://github.com/cosmoscout/csp-satellites))
+  - [X] Rendering of Tycho, Tycho2 and Hipparcos star catalogues (with [csp-stars](https://github.com/cosmoscout/csp-stars))
+  - [X] Rendering of orbits and trajectories based on SPICE (with [csp-trajectories](https://github.com/cosmoscout/csp-trajectories))
+  - [ ] Rendering of shadows
+  - [ ] HDR-Rendering
+- [ ] Flexible User Interface
+  - [X] Completely written in JavaScript with help of the [Chromium Embedded Framework](https://bitbucket.org/chromiumembedded/cef/src)
+  - [X] Main UI be drawn in screen- or world-space
+  - [X] Web pages can be placed on planetary surfaces
+  - [X] Interaction works both, in VR and on Desktop
+  - [ ] Clear API between C++ and JavaScript 
+- [ ] Cross-Platform
+  - [X] Runs on Linux
+  - [X] Runs on Windows
+  - [ ] Runs on MacOS
+- [ ] System Architecture
+  - [X] Plugin-based - most functionality is loaded at run-time
+  - [ ] Network synchronization of multiple instances
+- [ ] Hardware device support - CosmoScout VR basically supports everything which is supported by [ViSTA](https://github.com/cosmoscout/vista) and [VRPN](https://github.com/vrpn/vrpn). The devices below are actively supported (or planned to be supported).
+  - [X] Mouse
+  - [X] Keyboard
+  - [X] HTC-Vive
+  - [X] ART-Tracking systems
+  - [X] 3D-Connexion Space Navigator
+  - [X] Multi-screen systems like tiled displays or CAVE's
+  - [X] Multi-screen systems on distributed rendering clusters
+  - [X] Side-by-side stereo systems
+  - [X] Quad-buffer stereo systems
+  - [X] Anaglyph stereo systems
+  - [ ] Game Pads like the X-Box controller
 
 # Getting Started
 
