@@ -60,17 +60,17 @@ CosmoScout VR can be extended via plugins. In fact, without any plugins, CosmoSc
 
 Official Plugins | Description | Screenshot
 :----|:-----------------|:----------
-[csp-anchor-labels](https://github.com/cosmoscout/csp-anchor-labels) | Draws a clickable label at each celestial anchor. | ![screenshot](resources/screenshots/csp-anchor-labels.jpg)
-[csp-atmospheres](https://github.com/cosmoscout/csp-atmospheres) | Draws atmospheres around celestial bodies. | ![screenshot](resources/screenshots/csp-atmospheres.jpg)
-[csp-fly-to-locations](https://github.com/cosmoscout/csp-fly-to-locations) | Adds several quick travel targets to the sidebar. | ![screenshot](resources/screenshots/csp-fly-to-locations.jpg)
-[csp-lod-bodies](https://github.com/cosmoscout/csp-lod-bodies) | Draws WMS based level-of-detail planets and moons. | ![screenshot](resources/screenshots/csp-lod-bodies.jpg)
-[csp-measurement-tools](https://github.com/cosmoscout/csp-measurement-tools) | Provides several tools for terrain measurements. | ![screenshot](resources/screenshots/csp-measurement-tools.jpg)
-[csp-rings](https://github.com/cosmoscout/csp-rings) |  Draws simple rings around celestial bodies. | ![screenshot](resources/screenshots/csp-rings.jpg)
-[csp-satellites](https://github.com/cosmoscout/csp-satellites) | Draws GTLF models at positions based on SPICE data. | ![screenshot](resources/screenshots/csp-satellites.jpg)
-[csp-sharad](https://github.com/cosmoscout/csp-sharad) | Renders radar datasets acquired by the Mars Reconnaissance Orbiter. | ![screenshot](resources/screenshots/csp-sharad.jpg)
-[csp-simple-bodies](https://github.com/cosmoscout/csp-simple-bodies) | Renders simple spherical celestial bodies. | ![screenshot](resources/screenshots/csp-simple-bodies.jpg)
-[csp-stars](https://github.com/cosmoscout/csp-stars) | Draws 3D-stars loaded from catalogues. | ![screenshot](resources/screenshots/csp-stars.jpg)
-[csp-trajectories](https://github.com/cosmoscout/csp-trajectories) | Draws trajectories of celestial bodies and spacecrafts based on SPICE. | ![screenshot](resources/screenshots/csp-trajectories.jpg)
+[csp-anchor-labels](https://github.com/cosmoscout/csp-anchor-labels) | Draws a click-able label at each celestial anchor. When activated, the user automatically travels to the according body. The size and overlapping-behavior of the labels can be adjusted. | ![screenshot](resources/screenshots/csp-anchor-labels.jpg)
+[csp-atmospheres](https://github.com/cosmoscout/csp-atmospheres) | Draws atmospheres around celestial bodies. It calculates single Mie- and Rayleigh scattering via raycasting in real-time. | ![screenshot](resources/screenshots/csp-atmospheres.jpg)
+[csp-fly-to-locations](https://github.com/cosmoscout/csp-fly-to-locations) | Adds several quick travel targets to the sidebar. It supports shortcuts to celestial bodies and to specific geographic locations on those bodies. | ![screenshot](resources/screenshots/csp-fly-to-locations.jpg)
+[csp-lod-bodies](https://github.com/cosmoscout/csp-lod-bodies) | Draws level-of-detail planets and moons. This plugin supports the visualization of entire planets in a 1:1 scale. The data is streamed via Web-Map-Services (WMS) over the internet. A dedicated MapServer is required to use this plugin. | ![screenshot](resources/screenshots/csp-lod-bodies.jpg)
+[csp-measurement-tools](https://github.com/cosmoscout/csp-measurement-tools) | Provides several tools for terrain measurements. For example, it supports the measurement of distances, height profiles, volumes or areas. | ![screenshot](resources/screenshots/csp-measurement-tools.jpg)
+[csp-rings](https://github.com/cosmoscout/csp-rings) |  Draws simple rings around celestial bodies. The rings can be configured with a inner and a outer radius and a texture. | ![screenshot](resources/screenshots/csp-rings.jpg)
+[csp-satellites](https://github.com/cosmoscout/csp-satellites) | Draws GTLF models at positions based on SPICE data. It uses physically based rendering for surface shading. | ![screenshot](resources/screenshots/csp-satellites.jpg)
+[csp-sharad](https://github.com/cosmoscout/csp-sharad) | Renders radar datasets acquired by the Mars Reconnaissance Orbiter. The SHARAD profiles are rendered inside of Mars, the Martian surface is made translucent in front of the profiles. | ![screenshot](resources/screenshots/csp-sharad.jpg)
+[csp-simple-bodies](https://github.com/cosmoscout/csp-simple-bodies) | Renders simple spherical celestial bodies. The bodies are drawn as an ellipsoid with an equirectangular texture. | ![screenshot](resources/screenshots/csp-simple-bodies.jpg)
+[csp-stars](https://github.com/cosmoscout/csp-stars) | Draws 3D-stars loaded from catalogues. For now, it supports the Tycho, the Tycho2 and the Hipparcos catalogue. | ![screenshot](resources/screenshots/csp-stars.jpg)
+[csp-trajectories](https://github.com/cosmoscout/csp-trajectories) | Draws trajectories of celestial bodies and spacecrafts based on SPICE. The color, length, number of samples and reference frame can be configured. | ![screenshot](resources/screenshots/csp-trajectories.jpg)
 
 # Getting Started
 
