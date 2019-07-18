@@ -2,13 +2,13 @@
 
 We are happy to receive contributions to CosmoScout VR in the form of **merge requests** via Github. Feel free to fork the repository, implement your changes and create a merge request to the `develop` branch.
 
-**Bugs** should be reported via Github issues.
+**Bugs** should be reported via [Github issues](https://github.com/cosmoscout/cosmoscout-vr/issues).
 
 The `master` branch should always contain stable code. New features and bug fixes are implemented in `feature/*` branches and are merged to `develop` once they are finished. When a new milestone is reached, the content of `develop` will be merged to `master`.
 
 ## Some Coding Guidelines
 
-* Each header file should contain an include guard. For CosmoScout VR classes the naming scheme should be `VP_{NAMESPACE}_{FILNAME}_HPP` and for plugins it should be `VPP_{PLUGIN}_{FILNAME}_HPP`.
+* Each header file should contain an include guard. For CosmoScout VR classes the naming scheme should be `CS_{NAMESPACE}_{FILNAME}_HPP` and for plugins it should be `CSP_{PLUGIN}_{FILNAME}_HPP`.
 * Class names should be written in CamelCase (e.g. `MyClass`).
 * Class methods should be written in small camelCase (e.g. `doSomething()`). 
 * Class members should start with a small `m` and continue in CamelCase (e.g. `mMyClassMember`). 
