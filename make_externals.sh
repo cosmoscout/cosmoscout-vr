@@ -7,7 +7,6 @@
 # ------------------------------------------------------------------------------------------------ #
 
 # ------------------------------------------------------------------------------------------------ #
-# usage: ./make_externals.sh [path_to_build_directory] [path_to_install_directory]                 #
 # Make sure to run "git submodule update --init" before executing this script!                     #
 # ------------------------------------------------------------------------------------------------ #
 
@@ -23,11 +22,11 @@ EXTERNALS_DIR="$( cd "$( dirname "$0" )" && pwd )/externals"
 # Get the current directory - this is the default location for the build and install directory.
 CURRENT_DIR="$(pwd)"
 
-# The build directory can be passed as first parameter.
-BUILD_DIR="${1:-$CURRENT_DIR/build/linux-externals}"
+# The build directory.
+BUILD_DIR="$CURRENT_DIR/build/linux-externals"
 
-# The install directory can be passed as second parameter.
-INSTALL_DIR="${2:-$CURRENT_DIR/install/linux-externals}"
+# The install directory.
+INSTALL_DIR="$CURRENT_DIR/install/linux-externals"
 
 # Create some default installation directories.
 cmake -E make_directory "$INSTALL_DIR/lib"
