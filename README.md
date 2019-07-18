@@ -54,6 +54,24 @@ Below is a rough sketch of the possibilities you have with CosmoScout VR. While 
   - [X] Anaglyph stereo systems
   - [ ] Game Pads like the X-Box controller
 
+## Plugins for CosmoScout VR
+
+CosmoScout VR can be extended via plugins. In fact, without any plugins, CosmoScout VR is just a black and empty universe. Here is a list of available plugins.
+
+Official Plugins | Description | Screenshot
+:----|:-----------------|:----------
+[csp-anchor-labels](https://github.com/cosmoscout/csp-anchor-labels) | Draws a clickable label at each celestial anchor. | ![screenshot](resources/screenshots/csp-anchor-labels.jpg)
+[csp-atmospheres](https://github.com/cosmoscout/csp-atmospheres) | Draws atmospheres around celestial bodies. | ![screenshot](resources/screenshots/csp-atmospheres.jpg)
+[csp-fly-to-locations](https://github.com/cosmoscout/csp-fly-to-locations) | Adds several quick travel targets to the sidebar. | ![screenshot](resources/screenshots/csp-fly-to-locations.jpg)
+[csp-lod-bodies](https://github.com/cosmoscout/csp-lod-bodies) | Draws WMS based level-of-detail planets and moons. | ![screenshot](resources/screenshots/csp-lod-bodies.jpg)
+[csp-measurement-tools](https://github.com/cosmoscout/csp-measurement-tools) | Provides several tools for terrain measurements. | ![screenshot](resources/screenshots/csp-measurement-tools.jpg)
+[csp-rings](https://github.com/cosmoscout/csp-rings) |  Draws simple rings around celestial bodies. | ![screenshot](resources/screenshots/csp-rings.jpg)
+[csp-satellites](https://github.com/cosmoscout/csp-satellites) | Draws GTLF models at positions based on SPICE data. | ![screenshot](resources/screenshots/csp-satellites.jpg)
+[csp-sharad](https://github.com/cosmoscout/csp-sharad) | Renders radar datasets acquired by the Mars Reconnaissance Orbiter. | ![screenshot](resources/screenshots/csp-sharad.jpg)
+[csp-simple-bodies](https://github.com/cosmoscout/csp-simple-bodies) | Renders simple spherical celestial bodies. | ![screenshot](resources/screenshots/csp-simple-bodies.jpg)
+[csp-stars](https://github.com/cosmoscout/csp-stars) | Draws 3D-stars loaded from catalogues. | ![screenshot](resources/screenshots/csp-stars.jpg)
+[csp-trajectories](https://github.com/cosmoscout/csp-trajectories) | Draws trajectories of celestial bodies and spacecrafts based on SPICE. | ![screenshot](resources/screenshots/csp-trajectories.jpg)
+
 # Getting Started
 
 We are happy to receive contributions to CosmoScout VR in the form of **merge requests** via Github. Feel free to fork the repository, implement your changes and create a merge request to the `develop` branch.
