@@ -36,15 +36,16 @@ matrix:
       before_script:
         - CC=clang-6.0
         - CXX=clang++-6.0
-        - CXXFLAGS=-Wno-everything
     - name: Windows MSVC
       env: LABEL=WindowsMSVC
       os: windows
 script:
-  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then
+  - |
+    if [ "$TRAVIS_OS_NAME" == "linux" ]; then
       ./make_externals.sh
     fi
-  - if [ "$TRAVIS_OS_NAME" == "windows" ]; then
+  - |
+    if [ "$TRAVIS_OS_NAME" == "windows" ]; then
       make_externals.bat
     fi
 notifications:
