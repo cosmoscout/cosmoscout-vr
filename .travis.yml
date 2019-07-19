@@ -36,10 +36,11 @@ matrix:
       before_script:
         - CC=clang-6.0
         - CXX=clang++-6.0
-  allow_failures:
     - name: Windows MSVC
       env: LABEL=WindowsMSVC
       os: windows
+  allow_failures:
+    - os: windows
 script:
   - |
     if [ "$TRAVIS_OS_NAME" == "linux" ]; then
