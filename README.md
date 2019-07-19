@@ -4,6 +4,7 @@
 
 CosmoScout VR is a modular virtual universe which lets you explore, analyze and present huge planetary datasets and large simulation data in real-time.
 
+[![Build Status](https://travis-ci.com/cosmoscout/cosmoscout-vr.svg?branch=master)](https://travis-ci.com/cosmoscout/cosmoscout-vr/branches)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 ![c++17](https://img.shields.io/badge/C++-17-orange.svg)
 [![source loc](https://img.shields.io/badge/source_loc-9.4k-green.svg)](cloc.sh)
@@ -81,6 +82,11 @@ We are happy to receive contributions to CosmoScout VR in the form of **merge re
 Further information on how to contribute can be found in [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Build Instructions
+
+Branch | Travis Build Status
+-------|--------------------
+master | ![linux](https://img.icons8.com/material/20/000000/linux.png) [![ubuntu clang](https://badges.herokuapp.com/travis/cosmoscout/cosmoscout-vr?branch=master&label=clang&env=LABEL=LinuxClang)](https://travis-ci.com/cosmoscout/cosmoscout-vr/branches) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ![linux](https://img.icons8.com/material/20/000000/linux.png) [![ubuntu gcc](https://badges.herokuapp.com/travis/cosmoscout/cosmoscout-vr?branch=master&label=gcc&env=LABEL=LinuxGCC)](https://travis-ci.com/cosmoscout/cosmoscout-vr/branches) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ![windows](https://img.icons8.com/ios/20/000000/windows8-filled.png) [![msvc](https://badges.herokuapp.com/travis/cosmoscout/cosmoscout-vr?branch=master&label=msvc&env=LABEL=WindowsMSVC)](https://travis-ci.com/cosmoscout/cosmoscout-vr/branches)
+develop | ![linux](https://img.icons8.com/material/20/000000/linux.png) [![ubuntu clang](https://badges.herokuapp.com/travis/cosmoscout/cosmoscout-vr?branch=develop&label=clang&env=LABEL=LinuxClang)](https://travis-ci.com/cosmoscout/cosmoscout-vr/branches) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ![linux](https://img.icons8.com/material/20/000000/linux.png) [![ubuntu gcc](https://badges.herokuapp.com/travis/cosmoscout/cosmoscout-vr?branch=develop&label=gcc&env=LABEL=LinuxGCC)](https://travis-ci.com/cosmoscout/cosmoscout-vr/branches) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ![windows](https://img.icons8.com/ios/20/000000/windows8-filled.png) [![msvc](https://badges.herokuapp.com/travis/cosmoscout/cosmoscout-vr?branch=develop&label=msvc&env=LABEL=WindowsMSVC)](https://travis-ci.com/cosmoscout/cosmoscout-vr/branches)
 
 This software can be build in debug and release mode on Linux and Windows. Below you find the generic build instructions. Most dependencies are included as [git submodules](externals). You will only need a copy of [CMake](https://cmake.org/) (version 3.12 or greater), [Boost](https://www.boost.org/) (version 1.69 or greater) and a recent C++ compiler (GCC 8 or MSVC 19). For the compilation of the externals [Python](https://www.python.org/) is also required.
 
@@ -187,6 +193,10 @@ The list below contains all dependencies of CosmoScout VR. Besides Boost, all of
 | [GDAL](https://trac.osgeo.org/gdal) | Dependency of the Mapserver. Only required by the `csp-lod-bodies` plugin. | [X11/MIT](https://trac.osgeo.org/gdal/wiki/FAQGeneral#WhatlicensedoesGDALOGRuse) |
 | [Mapserver](http://mapserver.org) | Used to provide map data over the internat. Only required by the `csp-lod-bodies` plugin. | [MIT](http://mapserver.org/copyright.html) |
 | [proj.4](https://proj.org) | The `csp-lod-bodies` requires a [special version](https://github.com/cosmoscout/proj.4) of this library to be used by the Mapserver. | [MIT](https://proj.org/about.html) |
+
+# Credits
+
+The icons and badges in this README.md are from [icons8.com](https://icons8.com) and [shields.io](https://shields.io).
 
 # MIT License
 

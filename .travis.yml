@@ -1,0 +1,59 @@
+language: cpp
+addons:
+  apt:
+    packages:
+      - g++-7
+      - clang-6.0
+      - libc++-dev
+      - libgl1-mesa-dev
+      - libglu1-mesa-dev
+      - libx11-dev
+      - libxi-dev
+    sources:
+      - ubuntu-toolchain-r-test
+      - llvm-toolchain-xenial-6.0
+cache:
+  directories:
+  - build/linux-externals
+  - build/windows-externals
+  - install/linux-externals
+  - install/windows-externals
+matrix:
+  include:
+    - name: Linux GCC
+      env: LABEL=LinuxGCC
+      os: linux
+      dist: xenial
+      sudo: required
+      before_script:
+        - CC=gcc-7
+        - CXX=g++-7
+    - name: Linux Clang
+      env: LABEL=LinuxClang
+      os: linux
+      dist: xenial
+      sudo: required
+      before_script:
+        - CC=clang-6.0
+        - CXX=clang++-6.0
+  - allow_failures:
+    - name: Windows MSVC
+      env: LABEL=WindowsMSVC
+      os: windows
+script:
+  - |
+    if [ "$TRAVIS_OS_NAME" == "linux" ]; then
+      ./make_externals.sh
+    fi
+  - |
+    if [ "$TRAVIS_OS_NAME" == "windows" ]; then
+      cmd "/C make_externals.bat"
+    fi
+notifications:
+  webhooks:
+    urls:
+      - https://webhooks.gitter.im/e/4ff52b66ca51dd75a045
+    on_success: change
+    on_failure: always
+    on_start: never
+

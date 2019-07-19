@@ -44,7 +44,7 @@ cmake -E make_directory "$BUILD_DIR/glew/extracted" && cd "$BUILD_DIR/glew"
 wget -nc https://netix.dl.sourceforge.net/project/glew/glew/2.1.0/glew-2.1.0.tgz
 
 cd "$BUILD_DIR/glew/extracted"
-cmake -E tar xzfv ../glew-2.1.0.tgz
+cmake -E tar xzf ../glew-2.1.0.tgz
 cd ..
 
 cmake -G "Eclipse CDT4 - Unix Makefiles" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
@@ -60,7 +60,7 @@ echo ""
 
 cmake -E make_directory "$BUILD_DIR/freeglut" && cd "$BUILD_DIR/freeglut"
 cmake -G "Eclipse CDT4 - Unix Makefiles" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
-      -DCMAKE_INSTALL_LIBDIR=lib \
+      -DFREEGLUT_BUILD_DEMOS=Off -DCMAKE_INSTALL_LIBDIR=lib \
       -DCMAKE_BUILD_TYPE=Release "$EXTERNALS_DIR/freeglut/freeglut/freeglut"
 cmake --build . --target install --parallel 8
 
@@ -155,7 +155,7 @@ echo ""
 cmake -E make_directory "$BUILD_DIR/opensg-1.8" && cd "$BUILD_DIR/opensg-1.8"
 cmake -G "Eclipse CDT4 - Unix Makefiles" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
       -DGLUT_INCLUDE_DIR="$INSTALL_DIR/include" -DGLUT_LIBRARY="$INSTALL_DIR/lib/libglut.so" \
-      -DCMAKE_BUILD_TYPE=Release "$EXTERNALS_DIR/opensg-1.8"
+      -DOPENSG_BUILD_TESTS=Off -DCMAKE_BUILD_TYPE=Release "$EXTERNALS_DIR/opensg-1.8"
 cmake --build . --target install --parallel 8
 
 # vista -------------------------------------------------------------------------------------------
@@ -167,7 +167,8 @@ echo ""
 cmake -E make_directory "$BUILD_DIR/vista" && cd "$BUILD_DIR/vista"
 cmake -G "Eclipse CDT4 - Unix Makefiles" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
       -DCMAKE_CXX_FLAGS="-std=c++11" -DVISTADRIVERS_BUILD_3DCSPACENAVIGATOR=On \
-      -DCMAKE_BUILD_TYPE=Release -DOPENSG_ROOT_DIR="$INSTALL_DIR" "$EXTERNALS_DIR/vista"
+      -DVISTADEMO_ENABLED=Off -DCMAKE_BUILD_TYPE=Release -DOPENSG_ROOT_DIR="$INSTALL_DIR" \
+      "$EXTERNALS_DIR/vista"
 cmake --build . --target install --parallel 8
 
 # cspice -------------------------------------------------------------------------------------------
@@ -180,7 +181,7 @@ cmake -E make_directory "$BUILD_DIR/cspice/extracted" && cd "$BUILD_DIR/cspice"
 wget -nc http://naif.jpl.nasa.gov/pub/naif/toolkit//C/PC_Linux_GCC_64bit/packages/cspice.tar.Z
 
 cd "$BUILD_DIR/cspice/extracted"
-cmake -E tar xzfv ../cspice.tar.Z
+cmake -E tar xzf ../cspice.tar.Z
 
 cmake -E copy_directory "$BUILD_DIR/cspice/extracted/cspice/include" "$INSTALL_DIR/include/cspice"
 cmake -E copy "$BUILD_DIR/cspice/extracted/cspice/lib/cspice.a" "$INSTALL_DIR/lib"
@@ -197,11 +198,12 @@ cmake -E make_directory "$BUILD_DIR/cef/extracted" && cd "$BUILD_DIR/cef"
 wget -nc http://opensource.spotify.com/cefbuilds/$CEF_VERSION.tar.bz2
 
 cd "$BUILD_DIR/cef/extracted"
-cmake -E tar xfvj ../$CEF_VERSION.tar.bz2
+cmake -E tar xfj ../$CEF_VERSION.tar.bz2
 rm -rf $CEF_VERSION/tests # we dont want the example applications
 cd ..
 
 cmake -G "Eclipse CDT4 - Unix Makefiles" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
+      -DCEF_COMPILER_FLAGS="-Wno-undefined-var-template" \
       -DCMAKE_BUILD_TYPE=Release "$BUILD_DIR/cef/extracted/$CEF_VERSION"
 cmake --build . --parallel 8
 
