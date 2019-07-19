@@ -14,7 +14,10 @@ addons:
       - llvm-toolchain-xenial-6.0
 cache:
   directories:
-  - externals
+  - build/linux-externals
+  - build/windows-externals
+  - install/linux-externals
+  - install/windows-externals
 matrix:
   include:
     - name: Linux GCC
@@ -38,8 +41,12 @@ matrix:
       env: LABEL=WindowsMSVC
       os: windows
 script:
-  - if [ "$TRAVIS_OS_NAME" == "linux" ];   then ./make_externals.sh ..; fi
-  - if [ "$TRAVIS_OS_NAME" == "windows" ]; then make_externals.bat ..; fi
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then
+      ./make_externals.sh
+    fi
+  - if [ "$TRAVIS_OS_NAME" == "windows" ]; then
+      make_externals.bat
+    fi
 notifications:
   webhooks:
     urls:
