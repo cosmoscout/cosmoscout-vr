@@ -203,6 +203,7 @@ rm -rf $CEF_VERSION/tests # we dont want the example applications
 cd ..
 
 cmake -G "Eclipse CDT4 - Unix Makefiles" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
+      -DCEF_COMPILER_FLAGS="-Wno-undefined-var-template" \
       -DCMAKE_BUILD_TYPE=Release "$BUILD_DIR/cef/extracted/$CEF_VERSION"
 cmake --build . --parallel 8
 
