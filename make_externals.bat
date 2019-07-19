@@ -41,7 +41,7 @@ cmake -E make_directory "%BUILD_DIR%/glew/extracted" && cd "%BUILD_DIR%/glew"
 powershell.exe -command Invoke-WebRequest -Uri https://netix.dl.sourceforge.net/project/glew/glew/2.1.0/glew-2.1.0.zip -OutFile glew-2.1.0.zip
 
 cd "%BUILD_DIR%/glew/extracted"
-cmake -E tar xfvj ../glew-2.1.0.zip
+cmake -E tar xfj ../glew-2.1.0.zip
 cd ..
 
 cmake -G "Visual Studio 15 Win64" -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
@@ -57,7 +57,7 @@ echo.
 
 cmake -E make_directory "%BUILD_DIR%/freeglut" && cd "%BUILD_DIR%/freeglut"
 cmake -G "Visual Studio 15 Win64" -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
-      -DCMAKE_INSTALL_LIBDIR=lib^
+      -DFREEGLUT_BUILD_DEMOS=Off -DCMAKE_INSTALL_LIBDIR=lib^
       "%EXTERNALS_DIR%/freeglut/freeglut/freeglut" || exit /b
 cmake --build . --config Release --target install --parallel 8 || exit /b
 
@@ -151,7 +151,7 @@ echo.
 cmake -E make_directory "%BUILD_DIR%/opensg-1.8" && cd "%BUILD_DIR%/opensg-1.8"
 cmake -G "Visual Studio 15 Win64" -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
       -DGLUT_INCLUDE_DIR="%INSTALL_DIR%/include" -DGLUT_LIBRARY="%INSTALL_DIR%/lib/freeglut.lib"^
-      "%EXTERNALS_DIR%/opensg-1.8"
+      -DOPENSG_BUILD_TESTS=Off "%EXTERNALS_DIR%/opensg-1.8"
 cmake --build . --config Release --target install --parallel 8 || exit /b
 
 rem vista ------------------------------------------------------------------------------------------
@@ -168,7 +168,7 @@ rem       -DVISTACORELIBS_USE_VIVE=On -DVISTADRIVERS_BUILD_VIVE=On -DOPENVR_ROOT
 rem       -DVISTADRIVERS_BUILD_3DCSPACENAVIGATOR=On^
 rem       -DCMAKE_CXX_FLAGS="-std=c++11" "%EXTERNALS_DIR%/vista" || exit /b
 
-cmake -G "Visual Studio 15 Win64" -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
+cmake -G "Visual Studio 15 Win64" -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%" -DVISTADEMO_ENABLED=Off^
       -DCMAKE_CXX_FLAGS="-std=c++11" "%EXTERNALS_DIR%/vista" || exit /b
 
 cmake --build . --config Release --target install --parallel 8 || exit /b
@@ -183,7 +183,7 @@ cmake -E make_directory "%BUILD_DIR%/cspice/extracted" && cd "%BUILD_DIR%/cspice
 powershell.exe -command $AllProtocols = [System.Net.SecurityProtocolType]'Tls11,Tls12'; [System.Net.ServicePointManager]::SecurityProtocol = $AllProtocols; Invoke-WebRequest -Uri https://naif.jpl.nasa.gov/pub/naif/toolkit//C/PC_Windows_VisualC_64bit/packages/cspice.zip -OutFile cspice.zip
 
 cd "%BUILD_DIR%/cspice/extracted"
-cmake -E tar xfvj ../cspice.zip
+cmake -E tar xfj ../cspice.zip
 cd cspice
 
 echo project(cspice C) > "CMakeLists.txt"
@@ -208,7 +208,7 @@ echo.
 cmake -E make_directory "%BUILD_DIR%/cef/bzip2" && cd "%BUILD_DIR%/cef"
 powershell.exe -command Invoke-WebRequest -Uri https://kent.dl.sourceforge.net/project/gnuwin32/bzip2/1.0.5/bzip2-1.0.5-bin.zip -OutFile bzip2.zip
 cd "%BUILD_DIR%/cef/bzip2"
-cmake -E tar xfvj ../bzip2.zip
+cmake -E tar xfj ../bzip2.zip
 cd ..
 
 echo.
@@ -222,7 +222,7 @@ powershell.exe -command Invoke-WebRequest -Uri http://opensource.spotify.com/cef
 
 cd "%BUILD_DIR%/cef/extracted"
 "%BUILD_DIR%/cef/bzip2/bin/bunzip2.exe" -v ../cef.tar.bz2
-cmake -E tar xfvj ../cef.tar
+cmake -E tar xfj ../cef.tar
 
 rem We dont want the example applications.
 rmdir %CEF_VERSION%\tests /s /q
