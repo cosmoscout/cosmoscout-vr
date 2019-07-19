@@ -36,7 +36,7 @@ matrix:
       before_script:
         - CC=clang-6.0
         - CXX=clang++-6.0
-  - allow_failures:
+  allow_failures:
     - name: Windows MSVC
       env: LABEL=WindowsMSVC
       os: windows
