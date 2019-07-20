@@ -152,7 +152,19 @@ start.bat
 
 ## Using the application
 
-There is a more in-depth tutorial available in [the doc folder](doc/intro.html). Once cloned, open this file in your web-browser to get started!
+**Navigation:** There are several ways for interacting with the planet. Currently mouse, keyboard and space navigator are supported. More input devices can be added via VRPN. The mouse navigation is still in development - while it is already quite useful, the user experience may be improved.
+
+<p align="center"> 
+  <img src ="resources/mouse_controls.svg" />
+</p>
+
+**Keyboard Shortcuts:** The most important one is `Alt-Enter` which will toggle full-screen mode. `W`, `A`, `S`, `D` will move the virtual camera; `Q` and `E` can be used to control the roll; `R` and `F` can be used to control the altitude. All other shortcuts can be shown by pressing `?`. They will be printed to the console window.</p>
+
+**User Interface:** When you start CosmoScout VR, you will see several user interface elements. The top bar shows information regarding your current camera position, the position of the mouse pointer on the planets surface and the current simulation time (UTC). In addition, there are some buttons controlling the simulation time.
+
+On the left hand side is the main menu. Here you can select which datasets are shown, manipulate the surface visualization, add annotations, fly to pre-defined locations and perform various other tasks.
+
+More in-depth information and some tutorials will be provided soon.
 
 
 # Complete List of Dependencies
