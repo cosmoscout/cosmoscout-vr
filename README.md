@@ -12,7 +12,7 @@ CosmoScout VR is a modular virtual universe which lets you explore, analyze and 
 [![comments](https://img.shields.io/badge/comments-2.6k-yellow.svg)](cloc.sh)
 [![gitter](https://badges.gitter.im/cosmoscout/cosmoscout.svg)](https://gitter.im/cosmoscout/community)
 
-CosmoScout uses C++17 and OpenGL. It can be build on Linux (GCC) and Windows (MSVC). Nearly all dependencies are included as [git submodules](externals), please refer to the section [Build Instructions](#build-instructions) in order to get started.
+CosmoScout uses C++17 and OpenGL. It can be build on Linux (gcc or clang) and Windows (msvc). Nearly all dependencies are included as [git submodules](externals), please refer to the section [Build Instructions](#build-instructions) in order to get started.
 
 We try to add as many comments to the source code as possible. The number of source code lines and comment lines above is computed with the script [cloc.sh](cloc.sh). This script only counts *real comments*. Any dumb comments (such as copy-right headers or stuff like `/////////`) are not included in this number.
 
@@ -83,12 +83,14 @@ Further information on how to contribute can be found in [CONTRIBUTING.md](CONTR
 
 ## Build Instructions
 
+CosmoScout VR can be build in debug and release mode on Linux and Windows. Travis CI is used for continuous integration.
+
 Branch | Travis Build Status
 -------|--------------------
 master | ![linux](https://img.icons8.com/material/20/000000/linux.png) [![ubuntu clang](https://badges.herokuapp.com/travis.com/cosmoscout/cosmoscout-vr?branch=master&label=clang&env=LABEL=LinuxClang)](https://travis-ci.com/cosmoscout/cosmoscout-vr/branches) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ![linux](https://img.icons8.com/material/20/000000/linux.png) [![ubuntu gcc](https://badges.herokuapp.com/travis.com/cosmoscout/cosmoscout-vr?branch=master&label=gcc&env=LABEL=LinuxGCC)](https://travis-ci.com/cosmoscout/cosmoscout-vr/branches) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ![windows](https://img.icons8.com/ios/20/000000/windows8-filled.png) [![msvc](https://badges.herokuapp.com/travis.com/cosmoscout/cosmoscout-vr?branch=master&label=msvc&env=LABEL=WindowsMSVC)](https://travis-ci.com/cosmoscout/cosmoscout-vr/branches)
 develop | ![linux](https://img.icons8.com/material/20/000000/linux.png) [![ubuntu clang](https://badges.herokuapp.com/travis.com/cosmoscout/cosmoscout-vr?branch=develop&label=clang&env=LABEL=LinuxClang)](https://travis-ci.com/cosmoscout/cosmoscout-vr/branches) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ![linux](https://img.icons8.com/material/20/000000/linux.png) [![ubuntu gcc](https://badges.herokuapp.com/travis.com/cosmoscout/cosmoscout-vr?branch=develop&label=gcc&env=LABEL=LinuxGCC)](https://travis-ci.com/cosmoscout/cosmoscout-vr/branches) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ![windows](https://img.icons8.com/ios/20/000000/windows8-filled.png) [![msvc](https://badges.herokuapp.com/travis.com/cosmoscout/cosmoscout-vr?branch=develop&label=msvc&env=LABEL=WindowsMSVC)](https://travis-ci.com/cosmoscout/cosmoscout-vr/branches)
 
-This software can be build in debug and release mode on Linux and Windows. Below you find the generic build instructions. Most dependencies are included as [git submodules](externals). You will only need a copy of [CMake](https://cmake.org/) (version 3.12 or greater), [Boost](https://www.boost.org/) (version 1.69 or greater) and a recent C++ compiler (GCC 8 or MSVC 19). For the compilation of the externals [Python](https://www.python.org/) is also required.
+Below you find the generic build instructions. Most dependencies are included as [git submodules](externals). You will only need a copy of [CMake](https://cmake.org/) (version 3.12 or greater), [Boost](https://www.boost.org/) (version 1.69 or greater) and a recent C++ compiler (gcc 8, clang 5 or msvc 19). For the compilation of the externals [Python](https://www.python.org/) is also required.
 
 ### Linux
 
@@ -97,27 +99,26 @@ On Linux, one can either use the provided shell scripts ([make_release.sh](make_
 In any way, first you have to compile the dependencies. This step only has to be done once.
 
 ```shell
-mkdir cosmoscout
-cd cosmoscout
-git clone git@github.com:cosmoscout/cosmoscout-vr.git src
-cd src
+git clone git@github.com:cosmoscout/cosmoscout-vr.git
+cd cosmoscout-vr
 git submodule update --init
-cd ..
-src/make_externals.sh
+make_externals.sh
 ```
 
-This will clone the repository to `cosmoscout/src` configure and build all externals in `cosmoscout/build/linux-externals` and will install them to `cosmoscout/install/linux-externals`. You can delete the directories in `cosmoscout/build` and `cosmoscout/install` at any time in order to force a reconfiguration or re-installation. Now you can compile CosmoScout VR:
+This will clone the repository to `cosmoscout-vr` configure and build all externals in `cosmoscout-vr/build/linux-externals` and will install them to `cosmoscout-vr/install/linux-externals`. Now you can compile CosmoScout VR:
 
 ```shell
-src/make_release.sh
+make_release.sh
 ```
 
-This will configure and build CosmoScout VR in `cosmoscout/build/linux-release` and will install it to `cosmoscout/install/linux-release`. You can delete the directories in `cosmoscout/build` and `cosmoscout/install` at any time in order to force a reconfiguration or re-installation. The application can be executed with:
+This will configure and build CosmoScout VR in `cosmoscout-vr/build/linux-release` and will install it to `cosmoscout-vr/install/linux-release`. The application can be executed with:
 
 ```shell
 cd install/linux-release/bin
 ./start.sh
 ```
+
+If you wich, you can delete the directories `build` and `install` at any time in order to force a complete reconfiguration or re-installation.
 
 For **manual compilation** follow the steps outlined in [make_release.sh](make_release.sh) or [make_debug.sh](make_debug.sh).
 
@@ -128,27 +129,26 @@ For Windows, there are batch scripts ([make_release.bat](make_release.bat) and [
 First you have to compile the dependencies. This step only has to be done once. Run the commands below from the Visual Studio Developer Command Line:
 
 ```batch
-mkdir cosmoscout
-cd cosmoscout
-git clone git@github.com:cosmoscout/cosmoscout-vr.git src
-cd src
+git clone git@github.com:cosmoscout/cosmoscout-vr.git
+cd cosmoscout-vr
 git submodule update --init
-cd ..
-src\make_externals.bat
+make_externals.bat
 ```
 
-This will clone the repository to `cosmoscout\src` configure and build all externals in `cosmoscout\build\windows-externals` and will install them to `cosmoscout\install\windows-externals`. You can delete the directories in `cosmoscout\build` and `cosmoscout\install` at any time in order to force a reconfiguration or re-installation. Now you can compile CosmoScout VR:
+This will clone the repository to `cosmoscout-vr` configure and build all externals in `cosmoscout-vr\build\windows-externals` and will install them to `cosmoscout-vr\install\windows-externals`. Now you can compile CosmoScout VR:
 
 ```batch
-src\make_release.bat
+make_release.bat
 ```
 
-This will configure and build CosmoScout VR in `cosmoscout\build\windows-release` and will install it to `cosmoscout\install\windows-release`. You can delete the directories in `cosmoscout\build` and `cosmoscout\install` at any time in order to force a reconfiguration or re-installation. The application can be executed with:
+This will configure and build CosmoScout VR in `cosmoscout-vr\build\windows-release` and will install it to `cosmoscout-vr\install\windows-release`. The application can be executed with:
 
 ```batch
 cd install\windows-release\bin
 start.bat
 ```
+
+If you wich, you can delete the directories `build` and `install` at any time in order to force a complete reconfiguration or re-installation.
 
 ## Using the application
 
