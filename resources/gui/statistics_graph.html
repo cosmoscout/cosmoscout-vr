@@ -1,0 +1,218 @@
+﻿<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        
+
+        <script type="text/javascript" src="third-party/js/jquery-2.2.3.min.js"></script>
+        <script type="text/javascript" src="third-party/js/d3.min.js"></script>
+
+        <style>
+            body {
+                font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+                margin: 0;
+            }
+
+            .graph .axis {
+                stroke-width: 1;
+            }
+
+            .graph .series {
+                opacity: 0.7;
+                stroke: none;
+            }
+
+            .graph .axis .tick text {
+                fill: white;
+                font-size: 0.7em;
+            }
+
+            .graph .axis .domain {
+                fill: none;
+                stroke: none;
+            }
+        </style>
+    </head>
+    <body style="overflow: hidden">
+        <div class="graph"></div>
+
+        <script type="text/javascript">
+            var graph = null;
+            var line = null;
+            var layers = [];
+
+            var length = 250;
+
+            var testest = false;
+            
+            function add_values(newValues)
+            {
+                // first shift all by one
+                for (var i = layers.length - 1; i >= 0; i--) {
+                    var tmp = layers[i];
+                    tmp.values.push({"y":0});
+                    tmp.values.shift();
+                    tmp.age = tmp.age + 1;
+                }
+
+                // remove all which have not been updated
+                layers = layers.filter(function(elem){
+                    return elem.age < length;
+                });
+
+                // then add new values
+                for (var key in newValues) {
+                    if (!newValues.hasOwnProperty(key)) continue;
+
+                    // check if we already know the key
+                    var haveKey = false;
+                    for (var i = layers.length - 1; i >= 0; i--) {
+                        if (layers[i].name === key) {
+                            haveKey = true;
+                            break;
+                        }
+                    }
+
+                    // if not, add it and fill the values array with zeros
+                    if (!haveKey)
+                    {
+                        layers.push({"name": key, "age":0, "values": new Array(length).fill(null).map(function() {return {"y":0};})});
+                    }
+                }
+
+                // now set the new value
+                for (var i = layers.length - 1; i >= 0; i--) {
+                    if (newValues.hasOwnProperty(layers[i].name)) {
+                        layers[i].values[layers[i].values.length - 1].y = newValues[layers[i].name] * 0.000001;
+                        layers[i].age = 0;
+                    } else {
+                        layers[i].values[layers[i].values.length - 1].y = 0;
+                    }
+                }
+            }
+
+            function add_data_test()
+            {
+                if (testest)
+                {
+                    var values = {};
+                    for (var i = 0; i<100; ++i)
+                    {
+                        values["foo"+i] = 10 + Math.random() * 5;
+                    }
+                    add_values(values);
+                } else {
+                    var values = {};
+                    for (var i = 0; i<15; ++i)
+                    {
+                        values["foo"+i] = 10 + Math.random() * 5;
+                    }
+                    add_values(values);
+                }
+
+                update_chart();
+            }
+            
+            function add_data(data)
+            {
+                add_values(JSON.parse(data));
+                update_chart();
+            }
+
+            var height = 100;
+            var width = 500;
+            var margin_left = 0;
+            var margin_bottom = 15;
+            var margin_right = 40;
+            var margin_top = 10;
+
+            function init_graph() {
+
+                var chart_container = d3.select("div");
+
+                graph = chart_container.append("svg")
+                    .attr("width", width + margin_left + margin_right)
+                    .attr("height", height + margin_bottom + margin_top)
+                    .attr("transform", "translate(" + margin_left + "," + margin_top + ")");
+
+                // define the y scale --------------------------------------------------------------
+                graph.yScale = d3.scale.linear()
+                    .domain([0, 1])
+                    .range([height, 0]);
+
+                graph.yAxis = d3.svg.axis()
+                    .innerTickSize(width + 4)
+                    .ticks(3)
+                    .orient("right")
+                    .scale(graph.yScale)
+                    .tickFormat(function(d) {
+                        return d + " ms";
+                    });
+
+                graph.append("g")
+                    .attr("class", "yaxis axis")
+                    .call(graph.yAxis);
+
+                // define the x axis ---------------------------------------------------------------
+                graph.xScale = d3.scale.linear()
+                    .domain([0, length])
+                    .range([0, width]);
+
+                // define the z axis ---------------------------------------------------------------
+                graph.zScale = d3.scale.category20c();
+            }
+
+            function update_chart() {
+                var maxY = d3.max(layers, function (c) { 
+                    return d3.max(c.values, function (d) { return d.y0 + d.y; });
+                });
+
+                console.log(layers.length)
+
+                graph.yScale.domain([0, maxY]);
+
+                graph.select(".yaxis")
+                    .call(graph.yAxis);
+
+                var stack = d3.layout.stack()
+                    .values(function(d) { return d.values; })
+                    .x(function(d, i) { return i; });
+
+                var area = d3.svg.area()
+                    .x(function (s, i) { return graph.xScale(i); })
+                    .y0(function (s) { return graph.yScale(s.y0); })
+                    .y1(function (s) { return graph.yScale(s.y0 + s.y); });
+
+                var selection = graph.selectAll(".series")
+                    .data(stack(layers))
+                    .attr("d", function (d) { return area(d.values); })
+                    .enter().append("path")
+                        .attr("class", "series")
+                        .style("fill", function (d) { return graph.zScale(d.name); })
+                        // .append("title")
+                        //     .text(function(d) { return d.name; });
+            }
+
+
+            // entry point ---------------------------------------------------------
+            $(document).ready(function () {
+                init_graph();
+
+                  // add_data_test();
+                  // add_data_test();
+                  // add_data_test();
+                  // add_data_test();
+                  // testest  = true;
+                  // add_data_test();
+                  // add_data_test();
+                  // add_data_test();
+                  // testest  = false;
+                  // add_data_test();
+                  // add_data_test();
+                window.setInterval(function(){
+                  add_data_test();
+                }, 1);
+            });
+        </script>
+    </body>
+</html>

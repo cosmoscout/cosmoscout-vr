@@ -1,0 +1,75 @@
+<module>
+  <nodespace>
+  </nodespace>
+  <graph>
+    <!-- data source... flystick -->
+      <node name="flystick_source" type="DriverSensor">
+         <param name="type" value="STICK"/>
+         <param name="sensor_index" value="0"/>
+         <param name="driver" value="VIVEDRIVER"/>
+      </node>
+
+    <node name="flystick" type="HistoryProject">
+    </node>
+
+    <node name="project_mode" type="ConstantValue[int]">
+      <param name="value" value="0"/>
+    </node>  
+
+    <node name="scale_pos" type="Multiply[float,VistaVector3D]" />
+    <node name="translate_pos_tracker" type="Add[VistaVector3D]" />
+    
+    <node name="tracker_offset" type="ConstantValue[VistaVector3D]">
+      <param name="value" value="0,0,0"/>
+    </node>
+
+    <node name="scale_factor" type="ConstantValue[float]">
+      <param name="value" value="1.0" />
+    </node>
+
+    <node name="intention_transform" type="SetTransform">
+      <param name="object" value="SELECTION_NODE"/>
+    </node>
+    
+    <node name="navigation" type="GetTransform">
+      <param name="object" value="CAM:MAIN"/>
+    </node>
+
+    <node name="pointer_matrix" type="MatrixCompose"/>
+
+    <!-- Button Handling -->
+    <node name="button_01"    tag="button_01"    type="EventSource"/>
+    <node name="button_02"    tag="button_02"    type="EventSource"/>
+    <node name="button_change_detect_01" type="ChangeDetect[bool]"/>
+    <node name="button_change_detect_02" type="ChangeDetect[bool]"/>
+    
+  </graph>
+  <edges>
+
+  <!--  history projection -->
+  <edge fromnode="flystick_source"       tonode="flystick"              fromport="history"     toport="history"/>
+  <edge fromnode="project_mode"          tonode="flystick"              fromport="value"       toport="sampling_mode"/>
+  
+  <!--  position transformation -->
+  <edge fromnode="flystick"              tonode="translate_pos_tracker" fromport="POSITION"    toport="first"/>
+  <edge fromnode="tracker_offset"        tonode="translate_pos_tracker" fromport="value"       toport="second"/>
+
+  <edge fromnode="scale_factor"          tonode="scale_pos"             fromport="value"       toport="first"/>
+  <edge fromnode="translate_pos_tracker" tonode="scale_pos"             fromport="out"         toport="second"/>
+
+  <!--  compose matrix -->
+  <edge fromnode="scale_pos"             tonode="pointer_matrix"        fromport="out"         toport="translation"/>
+  <edge fromnode="flystick"              tonode="pointer_matrix"        fromport="ORIENTATION" toport="orientation"/>
+  
+  <!--  send to intention action object -->
+  <edge fromnode="pointer_matrix"        tonode="intention_transform"   fromport="out"         toport="in"/>
+
+  <!-- Button Handling -->
+  <edge fromnode="flystick" tonode="button_change_detect_01" fromport="TRACKPAD_PRESSED" toport="in"/>
+  <edge fromnode="button_change_detect_01" tonode="button_01" fromport="out" toport="value"/>
+
+  <edge fromnode="flystick" tonode="button_change_detect_02" fromport="GRIP_PRESSED" toport="in"/>
+  <edge fromnode="button_change_detect_02" tonode="button_02" fromport="out" toport="value"/>
+
+  </edges>
+</module>

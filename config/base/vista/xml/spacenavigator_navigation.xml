@@ -1,0 +1,54 @@
+<!-- ///////////////////////////////////////////////////////////////////////////////////////////////
+//                               This file is part of CosmoScout VR                               //
+//      and may be used under the terms of the MIT license. See the LICENSE file for details.     //
+//                        Copyright: (c) 2019 German Aerospace Center (DLR)                       //
+//////////////////////////////////////////////////////////////////////////////////////////////// -->
+
+<?xml version="1.0" encoding="utf-8"?>
+<module>
+    <nodespace></nodespace>
+    <graph>
+
+     	<!-- time input -->
+        <node name="timer" type="Timer" />
+
+    	<!-- spacenavigator input -->
+        <node name="spacenavigator" type="DriverSensor">
+            <param name="sensor_index" value="0" />
+            <param name="driver" value="SPACENAVIGATOR" />
+        </node>
+        <node name="project_spacenav" type="HistoryProject">
+            <param name="project">POSITION, ORIENTATION</param>
+        </node>
+        <node name="sampling_mode" type="ConstantValue[int]">
+            <param name="value" value="0" />
+        </node>
+
+        <!-- magic scaling number is 1/350, which is the range of vlues given by the space navigator -->
+        <node name="scale_factor" type="ConstantValue[float]">
+            <param name="value" value="0.002857143" />
+        </node>
+        <node name="scale_translation" type="Multiply[float,VistaVector3D]" />
+
+        <!-- observer output -->
+        <node name="observer" type="ObserverNavigationNode">
+            <param name="max_linear_speed" value="10, 10, 20" />
+            <param name="max_angular_speed" value="1" />
+            <param name="angular_deceleration" value="0" />
+            <param name="linear_deceleration" value="0" />
+            <param name="prevent_navigation_when_hovered_gui" value="false" />
+        </node>
+
+    </graph>
+    <edges>
+
+        <edge fromnode="spacenavigator" tonode="project_spacenav" fromport="history" toport="history" />
+        <edge fromnode="sampling_mode" tonode="project_spacenav" fromport="value" toport="sampling_mode" />
+        <edge fromnode="scale_factor" tonode="scale_translation" fromport="value" toport="first" />
+        <edge fromnode="project_spacenav" tonode="scale_translation" fromport="POSITION" toport="second" />
+        <edge fromnode="scale_translation" tonode="observer" fromport="out" toport="translation" />
+        <edge fromnode="project_spacenav" tonode="observer" fromport="ORIENTATION" toport="rotation" />
+        <edge fromnode="timer" tonode="observer" fromport="time" toport="time" />
+        
+    </edges>
+</module>

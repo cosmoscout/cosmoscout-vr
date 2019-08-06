@@ -1,0 +1,37 @@
+@font-face {
+    font-family: 'Ubuntu';
+    src: url('../third-party/fonts/Ubuntu-L.ttf') format('truetype');
+}
+
+body {
+    font-family: 'Ubuntu' !important;
+    color: #ddf;
+    background: #000;
+    position: absolute;
+    overflow: hidden;
+    height: 100%;
+    width: 100%;
+    opacity: 0;
+    transition: opacity 1.5s;
+}
+
+.loading {
+    opacity: 1;
+}
+
+#logo {
+    width: 500px;
+    height: 700px;
+    margin: auto;
+    text-align: center;
+    margin: auto;
+    font-size: 40pt;
+    position: absolute;
+    top: 0; left: 0; bottom: 0; right: 0;
+}
+
+p {
+    margin: 0;
+    font-size: 20pt;
+}
+

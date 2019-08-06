@@ -1,0 +1,109 @@
+#calendar {
+    opacity: 0;
+    transition: opacity 0.4s;
+    position: relative;
+    top: 0;
+    
+}
+
+#calendar.visible {
+    opacity: 1;
+}
+
+.datepicker {
+    background-color: rgba(20, 20, 20, 0.5);
+    border-bottom: 3px solid #ccf;
+}
+
+
+.datepicker .disabled {
+    pointer-events: none;
+    opacity: 0.2;
+}
+
+.datepicker table tr th,
+.datepicker table tr td {
+    text-align: center;
+    padding: 10px 5px;
+}
+
+.datepicker .datepicker-switch,
+.datepicker .dow {
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.4), 0 0 10px #aaf;
+    color: #fff;
+    text-transform: uppercase;
+}
+
+.datepicker .datepicker-switch {
+    font-size: 1.8rem;
+}
+
+.datepicker .datepicker-switch,
+.datepicker .prev,
+.datepicker .next,
+.datepicker .day { 
+    position: relative;
+}
+
+.datepicker .day,
+.datepicker .month,
+.datepicker .year,
+.datepicker .decade,
+.datepicker .century { 
+    font-weight: bold;
+}
+
+.datepicker .datepicker-switch:hover,
+.datepicker .prev:hover,
+.datepicker .next:hover,
+.datepicker .year:hover,
+.datepicker .decade:hover,
+.datepicker .century:hover,
+.datepicker .month:hover,
+.datepicker .day:hover { 
+    background-color: rgba(230, 230, 255, 0.1);
+}
+
+.datepicker .datepicker-switch:active,
+.datepicker .prev:active,
+.datepicker .next:active,
+.datepicker .year:active,
+.datepicker .decade:active,
+.datepicker .century:active,
+.datepicker .month:active,
+.datepicker .day:active { 
+    top: 1px;
+}
+
+.datepicker .month.active, 
+.datepicker .year.active, 
+.datepicker .decade.active, 
+.datepicker .century.active, 
+.datepicker .today { 
+    border: 1px dashed rgba(230, 230, 255, 0.3);
+}
+
+.datepicker .month.focused, 
+.datepicker .year.focused, 
+.datepicker .decade.focused, 
+.datepicker .century.focused, 
+.datepicker .day.active { 
+    background-color: rgba(230, 230, 255, 0.2);
+}
+
+.datepicker .active:hover { 
+    background-color: rgba(230, 230, 255, 0.3);
+}
+
+.datepicker thead { 
+    border-bottom: 1px dashed rgba(230, 230, 255, 0.3);
+}
+
+.datepicker .year,
+.datepicker .decade,
+.datepicker .century,
+.datepicker .month {
+    width: 25%;
+    padding: 37px 0;
+    display: inline-block;
+}

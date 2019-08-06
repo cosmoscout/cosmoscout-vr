@@ -1,0 +1,513 @@
+{
+  "startDate": "today",
+  "observer": {
+    "center": "Earth",
+    "frame": "IAU_Earth",
+    "distance": 10000000.0,
+    "longitude": 11.281067,
+    "latitude": 48.086709
+  },
+  "spiceKernel": "../share/config/spice/simple.txt",
+  "widgetScale": 0.8,
+  "enableMouseRay": false,
+  "anchors": {
+    "Sun": {
+      "center": "Sun",
+      "frame": "IAU_Sun",
+      "startExistence": "1950-01-02 00:00:00.000",
+      "endExistence": "2049-12-31 00:00:00.000"
+    },
+    "Mercury": {
+      "center": "Mercury",
+      "frame": "IAU_Mercury",
+      "startExistence": "1950-01-02 00:00:00.000",
+      "endExistence": "2049-12-31 00:00:00.000"
+    },
+    "Venus": {
+      "center": "Venus",
+      "frame": "IAU_Venus",
+      "startExistence": "1950-01-02 00:00:00.000",
+      "endExistence": "2049-12-31 00:00:00.000"
+    },
+    "Earth": {
+      "center": "Earth",
+      "frame": "IAU_Earth",
+      "startExistence": "1950-01-02 00:00:00.000",
+      "endExistence": "2049-12-31 00:00:00.000"
+    },
+    "Moon": {
+      "center": "Moon",
+      "frame": "IAU_Moon",
+      "startExistence": "1950-01-02 00:00:00.000",
+      "endExistence": "2049-12-31 00:00:00.000"
+    },
+    "Mars": {
+      "center": "Mars",
+      "frame": "IAU_Mars",
+      "startExistence": "1950-01-02 00:00:00.000",
+      "endExistence": "2049-12-31 00:00:00.000"
+    },
+    "Jupiter": {
+      "center": "Jupiter",
+      "frame": "IAU_Jupiter",
+      "startExistence": "1950-01-02 00:00:00.000",
+      "endExistence": "2049-12-31 00:00:00.000"
+    },
+    "Saturn": {
+      "center": "Saturn",
+      "frame": "IAU_Saturn",
+      "startExistence": "1950-01-02 00:00:00.000",
+      "endExistence": "2049-12-31 00:00:00.000"
+    },
+    "Uranus": {
+      "center": "Uranus",
+      "frame": "IAU_Uranus",
+      "startExistence": "1950-01-02 00:00:00.000",
+      "endExistence": "2049-12-31 00:00:00.000"
+    },
+    "Neptune": {
+      "center": "Neptune",
+      "frame": "IAU_Neptune",
+      "startExistence": "1950-01-02 00:00:00.000",
+      "endExistence": "2049-12-31 00:00:00.000"
+    },
+    "Ceres": {
+      "center": "Ceres",
+      "frame": "IAU_Ceres",
+      "startExistence": "1950-01-02 00:00:00.000",
+      "endExistence": "2049-12-31 00:00:00.000"
+    },
+    "Vesta": {
+      "center": "Vesta",
+      "frame": "IAU_Vesta",
+      "startExistence": "1950-01-02 00:00:00.000",
+      "endExistence": "2049-12-31 00:00:00.000"
+    }
+  },
+  "plugins": {
+    "csp-stars": {
+      "backgroundColor1": [
+        0.5,
+        0.8,
+        1.0,
+        0.3
+      ],
+      "backgroundColor2": [
+        0.5,
+        1.0,
+        0.8,
+        0.3
+      ],
+      "backgroundTexture1": "../share/resources/textures/celestial_grid.png",
+      "backgroundTexture2": "../share/resources/textures/constellation_figures.png",
+      "maxMagnitude": 15.0,
+      "maxOpacity": 1.0,
+      "maxSize": 3.0,
+      "minMagnitude": -15.0,
+      "minOpacity": 0.5,
+      "minSize": 0.1,
+      "scalingExponent": 3.0,
+      "starTexture": "../share/resources/textures/star.png",
+      "hipparcosCatalog": "../share/resources/data/stars/hip_main.dat",
+      "tycho2Catalog": "../share/resources/data/stars/tyc2_main.dat"
+    },
+    "csp-atmospheres": {
+      "atmospheres": {
+        "Mars": {
+          "atmosphereHeight": 0.03,
+          "mieAnisotropy": 0.76,
+          "mieHeight": 0.00144509,
+          "mieScatteringB": 52.66,
+          "mieScatteringG": 52.66,
+          "mieScatteringR": 52.66,
+          "rayleighAnisotropy": 0,
+          "rayleighHeight": 0.00317919,
+          "rayleighScatteringB": 19.89,
+          "rayleighScatteringG": 46.71,
+          "rayleighScatteringR": 69.2,
+          "sunIntensity": 12
+        },
+        "Earth": {
+          "atmosphereHeight": 0.015,
+          "mieAnisotropy": 0.76,
+          "mieHeight": 0.000188679,
+          "mieScatteringB": 133.56,
+          "mieScatteringG": 133.56,
+          "mieScatteringR": 133.56,
+          "rayleighAnisotropy": 0,
+          "rayleighHeight": 0.001257862,
+          "rayleighScatteringB": 210.516,
+          "rayleighScatteringG": 85.86,
+          "rayleighScatteringR": 36.89,
+          "sunIntensity": 15,
+          "cloudHeight": 0.001,
+          "cloudTexture": "../share/resources/textures/earth-clouds.jpg"
+        }
+      }
+    },
+    "csp-simple-planets": {
+      "planets": {
+        "Sun": {
+          "texture": "../share/resources/textures/sun.jpg"
+        },
+        "Mercury": {
+          "texture": "../share/resources/textures/mercury.jpg"
+        },
+        "Venus": {
+          "texture": "../share/resources/textures/venus.jpg"
+        },
+        "Earth": {
+          "texture": "../share/resources/textures/earth.jpg"
+        },
+        "Moon": {
+          "texture": "../share/resources/textures/moon.jpg"
+        },
+        "Mars": {
+          "texture": "../share/resources/textures/mars.jpg"
+        },
+        "Jupiter": {
+          "texture": "../share/resources/textures/jupiter.jpg"
+        },
+        "Saturn": {
+          "texture": "../share/resources/textures/saturn.jpg"
+        },
+        "Uranus": {
+          "texture": "../share/resources/textures/uranus.jpg"
+        },
+        "Neptune": {
+          "texture": "../share/resources/textures/neptune.jpg"
+        }
+      }
+    },
+    "csp-rings": {
+      "rings": {
+        "Saturn": {
+          "texture": "../share/resources/textures/saturn-rings.png",
+          "innerRadius": 67000000,
+          "outerRadius": 140210000
+        }
+      }
+    },
+    "csp-anchor-labels": {
+      "defaultEnabled": true,
+      "enableDepthOverlap": true,
+      "ignoreOverlapThreshold": 0.1,
+      "labelScale": 1.2,
+      "depthScale": 1.0,
+      "labelOffset": 0.2
+    },
+    "csp-trajectories": {
+      "trajectories": {
+        "Sun": {
+          "color": [
+            1,
+            1,
+            1
+          ],
+          "drawFlare": true
+        },
+        "Mercury": {
+          "color": [
+            0.7,
+            0.6,
+            0.3
+          ],
+          "trail": {
+            "length": 87.9,
+            "samples": 1000,
+            "parentCenter": "Solar System Barycenter",
+            "parentFrame": "J2000"
+          },
+          "drawDot": true
+        },
+        "Venus": {
+          "color": [
+            0.8,
+            0.8,
+            0.6
+          ],
+          "trail": {
+            "length": 224.5,
+            "samples": 1000,
+            "parentCenter": "Solar System Barycenter",
+            "parentFrame": "J2000"
+          },
+          "drawDot": true
+        },
+        "Earth": {
+          "color": [
+            0.5,
+            1.0,
+            0.4
+          ],
+          "trail": {
+            "length": 365.0,
+            "samples": 5000,
+            "parentCenter": "Solar System Barycenter",
+            "parentFrame": "J2000"
+          },
+          "drawDot": true
+        },
+        "Moon": {
+          "color": [
+            0.8,
+            0.8,
+            0.8
+          ],
+          "trail": {
+            "length": 28.0,
+            "samples": 1000,
+            "parentCenter": "Earth",
+            "parentFrame": "J2000"
+          },
+          "drawDot": true
+        },
+        "Mars": {
+          "color": [
+            1.0,
+            0.4,
+            0.3
+          ],
+          "trail": {
+            "length": 686.0,
+            "samples": 5000,
+            "parentCenter": "Solar System Barycenter",
+            "parentFrame": "J2000"
+          },
+          "drawDot": true
+        },
+        "Jupiter": {
+          "color": [
+            1.0,
+            0.7,
+            0.5
+          ],
+          "trail": {
+            "length": 4330,
+            "samples": 1000,
+            "parentCenter": "Solar System Barycenter",
+            "parentFrame": "J2000"
+          },
+          "drawDot": true
+        },
+        "Saturn": {
+          "color": [
+            1.0,
+            0.9,
+            0.3
+          ],
+          "trail": {
+            "length": 10749,
+            "samples": 1000,
+            "parentCenter": "Solar System Barycenter",
+            "parentFrame": "J2000"
+          },
+          "drawDot": true
+        },
+        "Uranus": {
+          "color": [
+            0.5,
+            0.8,
+            1.0
+          ],
+          "trail": {
+            "length": 17885,
+            "samples": 1000,
+            "parentCenter": "Solar System Barycenter",
+            "parentFrame": "J2000"
+          },
+          "drawDot": true
+        },
+        "Neptune": {
+          "color": [
+            0.2,
+            0.2,
+            0.5
+          ],
+          "trail": {
+            "length": 17885,
+            "samples": 1000,
+            "parentCenter": "Solar System Barycenter",
+            "parentFrame": "J2000"
+          },
+          "drawDot": true
+        }
+      }
+    },
+    "csp-fly-to-locations": {
+      "targets": {
+        "Mercury": {
+          "icon": "mercury.png"
+        },
+        "Venus": {
+          "icon": "venus.png"
+        },
+        "Earth": {
+          "icon": "earth.png",
+          "locations": {
+            "Africa": {
+              "group": "Continents",
+              "latitude": 2.0,
+              "longitude": 16.0,
+              "extent": 10000000
+            },
+            "Asia": {
+              "group": "Continents",
+              "latitude": 56.0,
+              "longitude": 104.0,
+              "extent": 10000000
+            },
+            "Australia": {
+              "group": "Continents",
+              "latitude": -24.0,
+              "longitude": 135.0,
+              "extent": 10000000
+            },
+            "Braunschweig": {
+              "group": "Cities",
+              "latitude": 52.26,
+              "longitude": 10.53,
+              "extent": 10000
+            },
+            "Europe": {
+              "group": "Continents",
+              "latitude": 51.0,
+              "longitude": 10.0,
+              "extent": 10000000
+            },
+            "New York": {
+              "group": "Cities",
+              "latitude": 40.7,
+              "longitude": -73.99,
+              "extent": 30000
+            },
+            "North America": {
+              "group": "Continents",
+              "latitude": 39.78,
+              "longitude": -100.0,
+              "extent": 10000000
+            },
+            "South America": {
+              "group": "Continents",
+              "latitude": -10.3,
+              "longitude": -53.2,
+              "extent": 10000000
+            }
+          }
+        },
+        "Moon": {
+          "icon": "moon.png",
+          "locations": {
+            "Apollo 11": {
+              "group": "Landings",
+              "latitude": 0.675,
+              "longitude": 23.475,
+              "extent": 250
+            },
+            "Apollo 15": {
+              "group": "Landings",
+              "latitude": 26.133,
+              "longitude": 3.635,
+              "extent": 250
+            },
+            "Apollo 16": {
+              "group": "Landings",
+              "latitude": -8.975,
+              "longitude": 15.5,
+              "extent": 250
+            },
+            "Apollo 17": {
+              "group": "Landings",
+              "latitude": 20.192,
+              "longitude": 30.774,
+              "extent": 250
+            }
+          }
+        },
+        "Mars": {
+          "icon": "mars.png",
+          "locations": {
+            "Adams": {
+              "group": "Craters",
+              "latitude": 30.91,
+              "longitude": 163.1,
+              "extent": 200000
+            },
+            "Ares Vallis": {
+              "group": "Canyons",
+              "latitude": 10.29,
+              "longitude": 334.2,
+              "extent": 100000
+            },
+            "Bond": {
+              "group": "Craters",
+              "latitude": -32.79,
+              "longitude": 324.06,
+              "extent": 200000
+            },
+            "Caxias": {
+              "group": "Craters",
+              "latitude": -28.95,
+              "longitude": 259.32,
+              "extent": 300000
+            },
+            "Ceraunius Tholus": {
+              "group": "Volcanoes",
+              "latitude": 23,
+              "longitude": 263.0,
+              "extent": 300000
+            },
+            "Gale": {
+              "group": "Craters",
+              "latitude": -5.4,
+              "longitude": 137.8,
+              "extent": 300000
+            },
+            "Curiosity": {
+              "group": "Rover",
+              "latitude": -4.63,
+              "longitude": 137.3528,
+              "extent": 100
+            },
+            "Hadriacus Mons": {
+              "group": "Volcanoes",
+              "latitude": -30,
+              "longitude": 92.0,
+              "extent": 500000
+            },
+            "Marikh Vallis": {
+              "group": "Canyons",
+              "latitude": -19.25,
+              "longitude": 3.9,
+              "extent": 1000000
+            },
+            "Olympus Mons": {
+              "group": "Volcanoes",
+              "latitude": 18,
+              "longitude": 226.0,
+              "extent": 800000
+            },
+            "Valles Marineris": {
+              "group": "Canyons",
+              "latitude": -10,
+              "longitude": 290.0,
+              "extent": 2000000
+            }
+          }
+        },
+        "Jupiter": {
+          "icon": "jupiter.png"
+        },
+        "Saturn": {
+          "icon": "saturn.png"
+        },
+        "Uranus": {
+          "icon": "uranus.png"
+        },
+        "Neptune": {
+          "icon": "neptune.png"
+        }
+      }
+    }
+  }
+}

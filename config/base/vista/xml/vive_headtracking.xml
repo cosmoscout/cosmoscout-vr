@@ -1,0 +1,93 @@
+<module>
+    <nodespace>
+    </nodespace>
+    <graph>
+        <node name="head_source" type="DriverSensor">
+         <param name="type" value="HEAD"/>
+         <param name="sensor_index" value="1"/>
+         <param name="driver" value="VIVEDRIVER"/>
+      </node>
+
+        <node name="head" type="HistoryProject">
+            <param name="project">POSITION, ORIENTATION</param>
+        </node>
+        <!-- this will give the sampling mode to the history project
+             node, a value of "0" means "LAZY" while a value of "1"
+             means "HOT". There is no other sampling value currently -->
+        <node name="project_mode" type="ConstantValue[int]">
+            <param name="value" value="0"/>
+        </node>
+
+        <!-- time input -->
+        <node name="timer" type="Timer" />
+
+        <node name="scale_pos" type="Multiply[float,VistaVector3D]" />
+        <node name="scale_pos_delay" type="Delay[VistaVector3D]" />
+        <node name="scale_pos_diff" type="Substract[VistaVector3D]" />
+
+        <!-- <node name="compose_translation" type="MatrixCompose" /> -->
+        <!-- <node name="compose_rotation" type="MatrixCompose" /> -->
+        <!-- <node name="compose_transform" type="Multiply[VistaTransformMatrix]" /> -->
+
+        <node name="invert_translation" type="Negate[VistaVector3D]" />
+        <node name="compose_translation" type="MatrixCompose" />
+
+        <node name="scale_factor" type="ConstantValue[float]">
+            <param name="value" value="1.0" />
+        </node>
+
+        <node name="set_platform_transform" type="SetTransform">
+            <param name="object" value="CAM:MAIN" />
+        </node>
+
+
+        <!-- observer output -->
+        <node name="observer" type="ObserverNavigationNode">
+            <param name="max_linear_speed" value="1, 1, 1" />
+        </node>
+
+        <node name="set_user_transform" type="ViewerSink">
+            <param name="displaysystem" value="MAIN"/>
+        </node>
+
+    </graph>
+
+    <edges>
+        <!-- history projection -->
+        <edge fromnode="project_mode" tonode="head" fromport="value" toport="sampling_mode"/>
+        <edge fromnode="head_source" tonode="head" fromport="history" toport="history"/>
+
+        <!-- position transformation -->
+        <edge fromnode="scale_factor"   tonode="scale_pos" fromport="value"    toport="first" />
+        <edge fromnode="head"           tonode="scale_pos" fromport="POSITION" toport="second" />
+
+        <edge fromnode="scale_pos"      tonode="invert_translation" fromport="out" toport="in" />
+        <edge fromnode="invert_translation"      tonode="compose_translation" fromport="out" toport="translation" />
+        <edge fromnode="compose_translation"      tonode="set_platform_transform" fromport="out" toport="in" />
+
+        <edge fromnode="scale_pos" tonode="scale_pos_delay" fromport="out" toport="in"/>
+        <edge fromnode="scale_pos" tonode="scale_pos_diff" fromport="out" toport="first"/>
+        <edge fromnode="scale_pos_delay" tonode="scale_pos_diff" fromport="out" toport="second"/>
+
+        <!-- connect to the viewer sink -->
+        <edge fromnode="timer"          tonode="observer" fromport="time" toport="time" />
+        <edge fromnode="scale_pos_diff" tonode="observer" fromport="out" toport="offset"/>
+
+
+
+        <!-- <edge fromnode="scale_pos"      tonode="compose_translation" fromport="out" toport="translation"/> -->
+        <!-- <edge fromnode="head"           tonode="compose_rotation" fromport="ORIENTATION" toport="orientation"/> -->
+
+        <!-- <edge fromnode="compose_rotation"      tonode="compose_transform" fromport="out" toport="second"/> -->
+        <!-- <edge fromnode="compose_translation"      tonode="compose_transform" fromport="out" toport="first"/> -->
+
+        <!-- <edge fromnode="compose_transform" tonode="invert_transform" fromport="out" toport="in"/> -->
+        <!-- <edge fromnode="invert_transform"  tonode="set_platform_transform" fromport="out" toport="in"/> -->
+
+        <!-- <edge fromnode="compose_transform" tonode="set_user_transform" fromport="out" toport="in"/> -->
+
+        <!-- <edge fromnode="scale_pos" tonode="set_user_transform" fromport="out"         toport="position"/> -->
+        <!-- <edge fromnode="head"      tonode="set_user_transform" fromport="ORIENTATION" toport="orientation"/> -->
+    </edges>
+
+</module>

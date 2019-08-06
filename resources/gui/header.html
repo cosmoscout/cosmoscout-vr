@@ -1,0 +1,262 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="utf-8">
+
+    <link type="text/css" rel="stylesheet" href="third-party/css/materialize.min.css" />
+    <link type="text/css" rel="stylesheet" href="css/gui.css">
+    <link type="text/css" rel="stylesheet" href="css/header.css">
+
+    <script type="text/javascript" src="third-party/js/jquery-2.2.3.min.js"></script>
+    <script type="text/javascript" src="third-party/js/materialize.min.js"></script>
+    <script type="text/javascript" src="third-party/js/fuzzyset.js"></script>
+
+    <script type="text/javascript" src="../locations/mars.js"></script>
+    <script type="text/javascript" src="../locations/moon.js"></script>
+
+    <script type="text/javascript">
+
+        // API calls, all relative to focused planet / moon --------------------
+        function set_fps(fps) {}
+        function set_north_direction(angle) {}
+        function set_user_position(long, lat, height) {}
+        function set_pointer_position(hits, long, lat, height) {}
+        function set_date(date) {}
+        function set_speed(speed) {}
+        function set_master(name, is_me, online) {}
+        function set_active_planet(center, frame) {}
+
+        // private methods used in this file only ------------------------------
+
+        function format_number(number) {
+            if      (Math.abs(number) < 10)   return number.toFixed(2);
+            else if (Math.abs(number) < 100)  return number.toFixed(1);
+            else                              return number.toFixed(0)
+        }
+
+        function format_height(height) {
+            if      (Math.abs(height) < 0.1)          return format_number(height*1000) + ' mm';
+            else if (Math.abs(height) < 1)            return format_number(height*100) + ' cm';
+            else if (Math.abs(height) < 1e4)          return format_number(height) + ' m';
+            else if (Math.abs(height) < 1e7)          return format_number(height/1e3) + ' km';
+            else if (Math.abs(height) < 1e10)         return format_number(height/1e6) + ' Tsd km';
+            else if (Math.abs(height/1.496e11) < 1e4) return format_number(height/1.496e11) + ' AU';
+            else if (Math.abs(height/9.461e15) < 1e3) return format_number(height/9.461e15) + ' ly';
+            else if (Math.abs(height/3.086e16) < 1e3) return format_number(height/3.086e16) + ' pc';
+            
+            return format_number(height/3.086e19) + ' kpc';
+        }
+
+        function format_speed(speed) {
+            if      (Math.abs(speed * 3.6) < 500)     return format_number(speed * 3.6) + ' km/h';
+            else if (Math.abs(speed) < 1e3)           return format_number(speed) + ' m/s';
+            else if (Math.abs(speed) < 1e7)           return format_number(speed/1e3) + ' km/s';
+            else if (Math.abs(speed) < 1e8)           return format_number(speed/1e6) + ' Tsd km/s';
+            else if (Math.abs(speed/2.998e8) < 1e3)   return format_number(speed/2.998e8) + ' SoL';
+            else if (Math.abs(speed/1.496e11) < 1e3)  return format_number(speed/1.496e11) + ' AU/s';
+            else if (Math.abs(speed/9.461e15) < 1e3)  return format_number(speed/9.461e15) + ' ly/s';
+            else if (Math.abs(speed/3.086e16) < 1e3)  return format_number(speed/3.086e16) + ' pc/s';
+            
+            return format_number(speed/3.086e19) + ' kpc/s';
+        }
+
+
+        function format_latitude(lat) {
+            if (lat < 0)
+                return (-lat).toFixed(2) + "° S ";
+            else
+                return (lat).toFixed(2) + "° N ";
+        }
+
+        function format_longitude(long) {
+            if (long < 0)
+                return (-long).toFixed(2) + "° W ";
+            else
+                return (long).toFixed(2) + "° E ";
+        }
+
+        var time_speed   = 1.0;
+        function set_time_speed(speed) {
+            $("#play-pause-icon").text("pause");
+            if (speed == 0.0) {
+                $("#play-pause-icon").text("play_arrow");
+                window.call_native("print_notification", "Pause", "Time is paused.", "pause");
+            } else if (speed == 1.0) {
+                window.call_native("print_notification", "Speed: Realtime", "Time runs in realtime.", "play_arrow");
+            } else if (speed > time_speed) {
+                window.call_native("print_notification", "Speed: " + speed + "x", "Time speed increased.", "fast_forward");
+            } else if (speed < time_speed) {
+                window.call_native("print_notification", "Speed: " + speed + "x", "Time speed decreased.", "fast_rewind");
+            }
+
+            time_speed = speed;
+
+            var text = speed + "x";
+            if (speed == "1")
+                text = "realtime";
+            if (speed == "0")
+                text = "paused";
+            $("#placeholder-7").text(text);
+        }
+
+        // overridden API calls ------------------------------------------------
+
+        function set_pointer_position(hits, long, lat, height) {
+            if (hits) {
+            $("#placeholder-6").text(format_longitude(long) + format_latitude(lat) + "(" +format_height(height) + ")");
+            } else {
+                $("#placeholder-6").text(" - ");
+            }
+        }
+
+        function set_user_position(long, lat, height) {
+            $("#placeholder-5").text(format_longitude(long) + format_latitude(lat) + "(" +format_height(height) + ")");
+        }
+
+        function set_speed(speed) {
+            $("#placeholder-8").text(format_speed(speed));
+        }
+
+        var activePlanetCenter = "";
+        var activePlanetFrame = "";
+        function set_active_planet(center, frame) {
+            activePlanetCenter = center;
+            activePlanetFrame = frame;
+        }
+
+        function set_date(date) {
+            $("#placeholder-4").text(date);
+        }
+
+        function set_fps(fps) {
+            // $("#placeholder-1").text(Math.floor(fps));
+        }
+
+        function set_north_direction(angle) {
+            $("#compass-arrow").css("transform", "rotateZ(" + angle + "rad)");
+        }
+
+        function setHeader(xhr) {
+            xhr.setRequestHeader('Access-Control-Allow-Origin', '*');
+        }
+
+        function geo_code(query, callback) {
+            var planet = activePlanetCenter.toLowerCase();
+
+            if (planet === "earth")
+            {
+                $.ajax({
+                    url: "https://nominatim.openstreetmap.org/search?q="+ encodeURIComponent(query) +"&format=json&limit=1",
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function(data) {
+                        if (data.length === 0)
+                        {
+                            window.call_native("print_notification", "Error", "Location not found!", "error");
+                            return;
+                        }
+
+                        var bounds = data[0].boundingbox;
+                        var lat = bounds[1] - bounds[0];
+                        var lon = bounds[3] - bounds[2];
+
+                        var location = {
+                            "latitude":  parseFloat(data[0].lat),
+                            "longitude": parseFloat(data[0].lon),
+                            "height":    Math.max(lat, lon) * 111 * 1000,
+                            "name":      data[0].display_name
+                        };
+
+                        callback(location);
+                    },
+                    error: function() {
+                        console.log("Error requesting Data from openstreetmap");
+                    },
+                    beforeSend: setHeader
+                });
+            } else {
+                if (!locations[planet]) {
+                    window.call_native("print_notification", "Error", "No location for " +planet + "!", "error");
+                    return;
+                }
+
+                var fuzzyset = FuzzySet(Object.keys(locations[planet]));
+                var name = fuzzyset.get(query)[0][1];
+                var location = locations[planet][name];
+                var height = location[0] == 0 ? 10000 : location[0]*2000;
+
+                var location = {
+                    "latitude":  location[1],
+                    "longitude": location[2],
+                    "height":    height,
+                    "name":      name
+                };
+
+                callback(location);
+            }
+        }
+
+        // entry point ---------------------------------------------------------
+        $(document).ready(function () {
+            $('.tooltipped').tooltip({'enterDelay':500, 'margin':-8});
+            $('#query').on('keypress', function(event){
+                if (event.key === 'Enter') {
+                    flyToLocation();
+                }
+            });
+            $('#fly-to').click(function() {
+                flyToLocation();
+            });
+
+            function flyToLocation() {
+                var query = $('#query').val();
+                geo_code(query, function(location){
+                    window.call_native("fly_to", activePlanetCenter, activePlanetFrame, location.longitude, location.latitude, location.height);
+                    window.call_native("print_notification", "Travelling", "to " + location.name, "send");
+                });
+            }
+        });
+    </script>
+
+</head>
+<body>
+
+    <div id="header">
+        <span class="item">
+            <a class="waves-effect waves-light btn light-glass tooltipped" data-position='bottom' data-tooltip='Turn north up' onclick="window.call_native('navigate_north_up')"><span id="compass-arrow"></span></a>
+            <a class="waves-effect waves-light btn light-glass tooltipped" data-position='bottom' data-tooltip='Fix horizon' onclick="window.call_native('navigate_fix_horizon')"><i class="material-icons">terrain</i></a>
+            <a class="waves-effect waves-light btn light-glass tooltipped" data-position='bottom' data-tooltip='Launch to orbit' onclick="window.call_native('navigate_to_orbit')"><i class="material-icons">flight_takeoff</i></a>
+            <a class="waves-effect waves-light btn light-glass tooltipped" data-position='bottom' data-tooltip='Land on surface' onclick="window.call_native('navigate_to_surface')"><i class="material-icons">flight_land</i></a>
+        </span>
+        <span class="item">
+            <i class="material-icons">accessibility</i> <span id="placeholder-5" style="min-width: 190px">0° 0° 0m</span>
+        </span>
+        <span class="item">
+            <i class="material-icons">av_timer</i> <span id="placeholder-8" style="min-width: 120px">0 km/h</span>
+        </span>
+        <span class="item">
+            <i class="material-icons">mouse</i> <span id="placeholder-6" style="min-width: 190px"> - </span>
+        </span>
+        <span class="item waves-effect waves-light light-glass" onclick="window.call_native('show_date_dialog')">
+            <i class="material-icons">access_time</i> <span style="min-width: 190px"><span id="placeholder-4">01.01.1971 13:45</span> [<span id="placeholder-7">realtime</span>]</span>
+        </span>
+        <span class="item">
+            <a class="waves-effect waves-light btn light-glass tooltipped" data-position='bottom' data-tooltip='Decrease time by one day' onclick="window.call_native('add_hours', -24)"><i class="material-icons">remove_circle_outline</i></a>
+            <a class="waves-effect waves-light btn light-glass tooltipped" data-position='bottom' data-tooltip='Decrease time by one hour' onclick="window.call_native('add_hours', -1)"><i class="material-icons">remove</i></a>
+            <a class='waves-effect waves-light btn light-glass tooltipped' data-position='bottom' data-tooltip='Decrease time speed' onclick='window.call_native("decrease_time_speed")'><i class='material-icons'>fast_rewind</i></a>
+            <a id="play-paues-button" class="waves-effect waves-light btn light-glass tooltipped" data-position='bottom' data-tooltip='Reset time' onclick="window.call_native('reset_time')"><i class="material-icons">restore</i></a>
+            <a id="play-paues-button" class="waves-effect waves-light btn light-glass tooltipped" data-position='bottom' data-tooltip='Toggle pause' onclick="window.call_native('toggle_time_stop')"><i id="play-pause-icon" class="material-icons">pause</i></a>
+            <a class="waves-effect waves-light btn light-glass tooltipped" data-position='bottom' data-tooltip='Increase time speed' onclick="window.call_native('increase_time_speed')"><i class="material-icons">fast_forward</i></a>
+            <a class="waves-effect waves-light btn light-glass tooltipped" data-position='bottom' data-tooltip='Increase time by one hour' onclick="window.call_native('add_hours', 1)"><i class="material-icons">add</i></a>
+            <a class="waves-effect waves-light btn light-glass tooltipped" data-position='bottom' data-tooltip='Increase time by one day' onclick="window.call_native('add_hours', 24)"><i class="material-icons">add_circle_outline</i></a>
+        </span>
+        <span class="item">
+            <input id='query' placeholder='Goto Location...' type='text' class='text-input' value='' style="width: auto" />
+            <a id='fly-to' class="waves-effect waves-light btn light-glass tooltipped" data-position='bottom' data-tooltip='Goto Location'><i class="material-icons">send</i></a>
+        </span>
+    </div>
+
+
+</body>
+</html>
