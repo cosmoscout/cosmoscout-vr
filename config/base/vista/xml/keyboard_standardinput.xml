@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- $Id: keyboard_standardinput.xml 23950 2011-10-29 17:21:19Z dr165799 $ -->
+<module>
+	<nodespace>
+	</nodespace>
+	<graph>
+		<!-- data source... a keyboard -->
+		<node name="keyboard" type="DriverSensor">
+			<param name="sensor_index" value="0"/>
+			<param name="driver" value="KEYBOARD"/>
+		</node>
+
+		<node name="triggerlist" type="Aggregate[int]">
+			<param name="in" value="KEY"/>
+		</node>
+		<node name="modderlist" type="Aggregate[int]">
+			<param name="in" value="MODIFIER"/>
+		</node>
+
+		<node name="apply" type="SystemTriggerControl"/>
+	</graph>
+	<edges>
+		<!-- connect hid -> overlay -->
+		<edge fromnode="keyboard" tonode="triggerlist" fromport="history" toport="history"/>
+		<edge fromnode="keyboard" tonode="modderlist" fromport="history" toport="history"/>
+		<edge fromnode="triggerlist" tonode="apply" fromport="values" toport="triggerlist"/>
+		<edge fromnode="modderlist" tonode="apply" fromport="values" toport="modlist"/>
+	</edges>
+</module>

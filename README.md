@@ -90,7 +90,7 @@ Branch | Travis Build Status
 master | ![linux](https://img.icons8.com/material/20/000000/linux.png) [![ubuntu clang](https://badges.herokuapp.com/travis.com/cosmoscout/cosmoscout-vr?branch=master&label=clang&env=LABEL=LinuxClang)](https://travis-ci.com/cosmoscout/cosmoscout-vr/branches) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ![linux](https://img.icons8.com/material/20/000000/linux.png) [![ubuntu gcc](https://badges.herokuapp.com/travis.com/cosmoscout/cosmoscout-vr?branch=master&label=gcc&env=LABEL=LinuxGCC)](https://travis-ci.com/cosmoscout/cosmoscout-vr/branches) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ![windows](https://img.icons8.com/ios/20/000000/windows8-filled.png) [![msvc](https://badges.herokuapp.com/travis.com/cosmoscout/cosmoscout-vr?branch=master&label=msvc&env=LABEL=WindowsMSVC)](https://travis-ci.com/cosmoscout/cosmoscout-vr/branches)
 develop | ![linux](https://img.icons8.com/material/20/000000/linux.png) [![ubuntu clang](https://badges.herokuapp.com/travis.com/cosmoscout/cosmoscout-vr?branch=develop&label=clang&env=LABEL=LinuxClang)](https://travis-ci.com/cosmoscout/cosmoscout-vr/branches) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ![linux](https://img.icons8.com/material/20/000000/linux.png) [![ubuntu gcc](https://badges.herokuapp.com/travis.com/cosmoscout/cosmoscout-vr?branch=develop&label=gcc&env=LABEL=LinuxGCC)](https://travis-ci.com/cosmoscout/cosmoscout-vr/branches) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ![windows](https://img.icons8.com/ios/20/000000/windows8-filled.png) [![msvc](https://badges.herokuapp.com/travis.com/cosmoscout/cosmoscout-vr?branch=develop&label=msvc&env=LABEL=WindowsMSVC)](https://travis-ci.com/cosmoscout/cosmoscout-vr/branches)
 
-Below you find the generic build instructions. Most dependencies are included as [git submodules](externals). You will only need a copy of [CMake](https://cmake.org/) (version 3.12 or greater), [Boost](https://www.boost.org/) (version 1.69 or greater) and a recent C++ compiler (gcc 8, clang 5 or msvc 19). For the compilation of the externals [Python](https://www.python.org/) is also required.
+Below you find the generic build instructions. Most dependencies are included as [git submodules](externals). **You will only need a copy of [CMake](https://cmake.org/) (version 3.12 or greater), [Boost](https://www.boost.org/) (version 1.69 or greater) and a recent C++ compiler (gcc 8, clang 5 or msvc 19). For the compilation of the externals [Python](https://www.python.org/) is also required.**
 
 ### Linux
 
@@ -102,13 +102,19 @@ In any way, first you have to compile the dependencies. This step only has to be
 git clone git@github.com:cosmoscout/cosmoscout-vr.git
 cd cosmoscout-vr
 git submodule update --init
-make_externals.sh
+./make_externals.sh
 ```
 
-This will clone the repository to `cosmoscout-vr` configure and build all externals in `cosmoscout-vr/build/linux-externals` and will install them to `cosmoscout-vr/install/linux-externals`. Now you can compile CosmoScout VR:
+This will clone the repository to `cosmoscout-vr` configure and build all externals in `cosmoscout-vr/build/linux-externals` and will install them to `cosmoscout-vr/install/linux-externals`. For a minimal setup you will need some data sets which are not included in this git repository. Run this script to download the data to `cosmoscout-vr/data`:
 
 ```shell
-make_release.sh
+./get_example_data.sh
+```
+
+Now you can compile CosmoScout VR:
+
+```shell
+./make_release.sh
 ```
 
 This will configure and build CosmoScout VR in `cosmoscout-vr/build/linux-release` and will install it to `cosmoscout-vr/install/linux-release`. The application can be executed with:
@@ -135,9 +141,16 @@ git submodule update --init
 make_externals.bat
 ```
 
-This will clone the repository to `cosmoscout-vr` configure and build all externals in `cosmoscout-vr\build\windows-externals` and will install them to `cosmoscout-vr\install\windows-externals`. Now you can compile CosmoScout VR:
+This will clone the repository to `cosmoscout-vr` configure and build all externals in `cosmoscout-vr\build\windows-externals` and will install them to `cosmoscout-vr\install\windows-externals`. For a minimal setup you will need some data sets which are not included in this git repository. Run this script to download the data to `cosmoscout-vr\data`:
 
 ```batch
+get_example_data.bat
+```
+
+Now you can compile CosmoScout VR. On Linux, boost is usually found automatically by CMake, on Windows you have to provide the `BOOST_ROOT` path. **Replace the path in the command below to match your setup!**
+
+```batch
+set BOOST_ROOT=C:\local\boost_1_69_0
 make_release.bat
 ```
 
@@ -164,7 +177,7 @@ If you wich, you can delete the directories `build` and `install` at any time in
 
 On the left hand side is the main menu. Here you can select which datasets are shown, manipulate the surface visualization, add annotations, fly to pre-defined locations and perform various other tasks.
 
-More in-depth information and some tutorials will be provided soon.
+**More in-depth information and some tutorials will be provided soon.**
 
 
 # Complete List of Dependencies

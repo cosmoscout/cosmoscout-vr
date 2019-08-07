@@ -1,0 +1,111 @@
+<!-- ///////////////////////////////////////////////////////////////////////////////////////////////
+//                               This file is part of CosmoScout VR                               //
+//      and may be used under the terms of the MIT license. See the LICENSE file for details.     //
+//                        Copyright: (c) 2019 German Aerospace Center (DLR)                       //
+//////////////////////////////////////////////////////////////////////////////////////////////// -->
+
+<?xml version="1.0" encoding="utf-8"?>
+<module>
+    <nodespace>
+    </nodespace>
+    <graph>
+
+        <!-- mouse input -->
+        <node name="mouse" type="DriverSensor">
+            <param name="sensor_index" value="0"/>
+            <param name="driver" value="MOUSE"/>
+        </node>
+        <!-- project the necessary information from the mouse history -->
+        <!-- in this demo, we are not interested in the mouse history,
+                 but only in the last value (LAZYSAMPLING), but for demonstration
+                 purposes, we simply extract every attribute we can get from
+                 the mouse driver -->
+        <node name="project_mouse" type="HistoryProject">
+            <param name="project">POSITION, WHEEL_STATE, RIGHT_BUTTON, MIDDLE_BUTTON, X_POS, Y_POS</param>
+        </node>
+        <!-- this will give the sampling mode to the history project
+                 node, a value of "0" means "LAZY" while a value of "1"
+                 means "HOT". There is no other sampling value currently -->
+        <node name="project_mode" type="ConstantValue[int]">
+            <param name="value" value="0"/>
+        </node>
+
+        <!-- time input -->
+        <node name="timer" type="Timer" />
+
+        <!-- get normalize source -->
+        <node name="normwindow" type="WindowSource">
+            <param name="value" value="MAIN_WINDOW"/>
+        </node>
+        <!-- the window spits out ints as attribs, we need floats for the normalize node -->
+        <node name="conv_w" type="TypeConvert[int,float]"/>
+        <node name="conv_h" type="TypeConvert[int,float]"/>
+        <!-- all these params are optional and can also be set by an inport -->
+        <node name="normalize" type="3DNormalize">
+            <param name="min_x" value="-1"/>
+            <param name="min_y" value="-1"/>
+            <param name="min_z" value="0"/>
+            <param name="target_w" value="2"/>
+            <param name="target_h" value="2"/>
+            <param name="target_d" value="0"/>
+            <param name="flip_y" value="1"/>
+        </node>
+        <!-- setup the operations of the graph -->
+        <node name="position_to_norm" type="Multiply[VistaTransformMatrix,VistaVector3D]"/>
+
+        <node name="value-0" type="ConstantValue[float]">
+            <param name="value" value="0.0"/>
+        </node>
+
+        <node name="true" type="ConstantValue[bool]">
+            <param name="value" value="true"/>
+        </node>
+
+        <node name="force_evaluation_pos" type="Sampler"/>
+
+        <!-- pan nodes -->
+        <node name="pan_condition" type="ConditionalRoute"/>
+        <node name="pan_diff_coords" type="Substract[VistaVector3D]"/>
+        <node name="pan_button_invert" type="Invert[bool]"/>
+        <node name="pan_condition_la" type="LatestUpdate[bool]"/>
+
+        <!-- observer output -->
+        <node name="observer" type="ObserverNavigationNode">
+            <param name="max_linear_speed" value="30, 30, 30" />
+        </node>
+
+        <!-- Debugging -->
+        <!-- <node name="debug_text" type="SimpleText"/> -->
+
+    </graph>
+    <edges>
+
+        <!-- hardware stuff -->
+        <edge fromnode="mouse" tonode="project_mouse" fromport="history" toport="history"/>
+        <edge fromnode="project_mode" tonode="project_mouse" fromport="value" toport="sampling_mode"/>
+
+        <!-- normalize mouse position -->
+        <edge fromnode="normwindow" tonode="conv_w" fromport="win_w" toport="in"/>
+        <edge fromnode="normwindow" tonode="conv_h" fromport="win_h" toport="in"/>
+        <edge fromnode="conv_w" tonode="normalize" fromport="out" toport="source_w"/>
+        <edge fromnode="conv_h" tonode="normalize" fromport="out" toport="source_h"/>
+        <edge fromnode="value-0" tonode="normalize" fromport="value" toport="source_d"/>
+        <edge fromnode="normalize"     tonode="position_to_norm" fromport="transform" toport="first"/>
+        <edge fromnode="project_mouse" tonode="force_evaluation_pos" fromport="POSITION"  toport="POSITION"/>
+        <edge fromnode="timer" tonode="force_evaluation_pos" fromport="time"  toport="time"/>
+        <edge fromnode="force_evaluation_pos" tonode="position_to_norm" fromport="POSITION"  toport="second"/>
+
+        <!-- panning -->
+        <edge fromnode="project_mouse" tonode="pan_button_invert" fromport="MIDDLE_BUTTON" toport="in"/>
+        <edge fromnode="true" tonode="pan_condition_la" fromport="value" toport="in_0"/>
+        <edge fromnode="pan_button_invert" tonode="pan_condition_la" fromport="out" toport="in_1"/>
+        <edge fromnode="pan_condition_la" tonode="pan_condition" fromport="out" toport="trigger"/>
+        <edge fromnode="position_to_norm" tonode="pan_condition" fromport="out" toport="coords"/>
+        <edge fromnode="position_to_norm" tonode="pan_diff_coords" fromport="out" toport="first"/>
+        <edge fromnode="pan_condition" tonode="pan_diff_coords" fromport="coords" toport="second"/>
+        <edge fromnode="pan_diff_coords" tonode="observer" fromport="out" toport="translation"/>
+
+        <!-- time -->
+        <edge fromnode="timer" tonode="observer" fromport="time"  toport="time"/>
+    </edges>
+</module>

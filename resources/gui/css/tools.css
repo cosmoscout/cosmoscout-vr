@@ -1,0 +1,44 @@
+.btn {
+  width: 100%;
+  line-height: 49px;
+  height: 53px;
+  margin-top: 5px;
+}
+
+i {
+  font-size: inherit;
+  top: 3px;
+  position: relative;
+}
+
+.btn i {
+  font-size: 42px;
+}
+
+.mark {
+    position: absolute;
+    top: 0;
+    width: 100%;
+    padding-bottom: 30px;
+}
+
+.mark .banner {
+    background-color: rgba(20, 20, 20, 0.5);
+    border-bottom: 5px solid #ccf;
+    margin: 10px 10px 0 10px;
+    padding: 10px;
+}
+
+.triangle {
+    width: 0;
+    height: 0;
+    margin: auto;
+    border-style: solid;
+    border-width: 20px 10px 0 10px;
+    border-color: #ccf transparent transparent transparent;
+}
+
+.mark.minimized {
+    opacity: 0;
+    top: 150px
+}

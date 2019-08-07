@@ -1,0 +1,38 @@
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//                               This file is part of CosmoScout VR                               //
+//      and may be used under the terms of the MIT license. See the LICENSE file for details.     //
+//                        Copyright: (c) 2019 German Aerospace Center (DLR)                       //
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#include "ScopedTimer.hpp"
+
+#include <chrono>
+#include <iostream>
+
+namespace cs::gui::detail {
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+ScopedTimer::ScopedTimer(std::string const& name)
+    : mName(name)
+    , mStartTime(GetNow()) {
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+ScopedTimer::~ScopedTimer() {
+  double now = GetNow();
+  std::cout << mName << ": " << now - mStartTime << " ms " << std::endl;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+double ScopedTimer::GetNow() {
+  auto time        = std::chrono::system_clock::now();
+  auto since_epoch = time.time_since_epoch();
+  return std::chrono::duration_cast<std::chrono::microseconds>(since_epoch).count() * 0.001;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+} // namespace cs::gui::detail

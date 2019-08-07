@@ -1,0 +1,129 @@
+<!-- ///////////////////////////////////////////////////////////////////////////////////////////////
+//                               This file is part of CosmoScout VR                               //
+//      and may be used under the terms of the MIT license. See the LICENSE file for details.     //
+//                        Copyright: (c) 2019 German Aerospace Center (DLR)                       //
+//////////////////////////////////////////////////////////////////////////////////////////////// -->
+
+<?xml version="1.0" encoding="utf-8"?>
+<module>
+    <nodespace> </nodespace>
+    <graph>
+
+        <!-- time input -->
+        <node name="timer" type="Timer" />
+        
+        <!-- key input -->
+        <node name="key_forwards_l" type="KeyCallback">
+            <param name="key" value="w"/>
+            <param name="description" value="move viewer position forwards"/>
+        </node>
+        <node name="key_backwards_l" type="KeyCallback">
+            <param name="key" value="s"/>
+            <param name="description" value="move viewer position backwards"/>
+        </node>
+        <node name="key_left_l" type="KeyCallback">
+            <param name="key" value="a"/>
+            <param name="description" value="move viewer position left"/>
+        </node>
+        <node name="key_right_l" type="KeyCallback">
+            <param name="key" value="d"/>
+            <param name="description" value="move viewer position right"/>
+        </node>
+        <node name="key_up_l" type="KeyCallback">
+            <param name="key" value="r"/>
+            <param name="description" value="move viewer position up"/>
+        </node>
+        <node name="key_down_l" type="KeyCallback">
+            <param name="key" value="f"/>
+            <param name="description" value="move viewer position down"/>
+        </node>
+        <node name="key_roll_left_l" type="KeyCallback">
+            <param name="key" value="q"/>
+            <param name="description" value="roll viewer to the left"/>
+        </node>
+        <node name="key_roll_right_l" type="KeyCallback">
+            <param name="key" value="e"/>
+            <param name="description" value="roll viewer to the right"/>
+        </node>
+
+        <node name="key_forwards_la"   type="LatestUpdate[bool]"/>
+        <node name="key_backwards_la"  type="LatestUpdate[bool]"/>
+        <node name="key_left_la"       type="LatestUpdate[bool]"/>
+        <node name="key_right_la"      type="LatestUpdate[bool]"/>
+        <node name="key_up_la"         type="LatestUpdate[bool]"/>
+        <node name="key_down_la"       type="LatestUpdate[bool]"/>
+        <node name="key_roll_left_la"  type="LatestUpdate[bool]"/>
+        <node name="key_roll_right_la" type="LatestUpdate[bool]"/>
+
+        <!-- bool to float -->
+        <node name="convert_forwards"   type="TypeConvert[bool,float]" />
+        <node name="convert_backwards"  type="TypeConvert[bool,float]" />
+        <node name="convert_left"       type="TypeConvert[bool,float]" />
+        <node name="convert_right"      type="TypeConvert[bool,float]" />
+        <node name="convert_up"         type="TypeConvert[bool,float]" />
+        <node name="convert_down"       type="TypeConvert[bool,float]" />
+        <node name="convert_roll_left"  type="TypeConvert[bool,float]" />
+        <node name="convert_roll_right" type="TypeConvert[bool,float]" />
+
+        <node name="forward_movement"  type="Substract[float]" />
+        <node name="side_movement"     type="Substract[float]" />
+        <node name="vertical_movement" type="Substract[float]" />
+        <node name="roll_movement"     type="Substract[float]" />
+
+        <node name="rotation_axis" type="ConstantValue[VistaVector3D]">
+            <param name="value" value="0,0,-1,0"/>
+        </node>
+
+        <node name="movement" type="Compose3DVector" />
+        <node name="rotation" type="AxisRotate" />
+
+        <!-- observer output -->
+        <node name="observer" type="ObserverNavigationNode">
+            <param name="max_linear_speed" value="5, 5, 5" />
+            <param name="max_angular_speed"  value="1" />
+        </node>
+
+    </graph>
+
+    <edges>
+        <edge fromnode="key_forwards_l" tonode="key_forwards_la" fromport="state" toport="in_1" />
+        <edge fromnode="key_backwards_l" tonode="key_backwards_la" fromport="state" toport="in_1" />
+        <edge fromnode="key_left_l" tonode="key_left_la" fromport="state" toport="in_1" />
+        <edge fromnode="key_right_l" tonode="key_right_la" fromport="state" toport="in_1" />
+        <edge fromnode="key_up_l" tonode="key_up_la" fromport="state" toport="in_1" />
+        <edge fromnode="key_down_l" tonode="key_down_la" fromport="state" toport="in_1" />
+        <edge fromnode="key_roll_left_l" tonode="key_roll_left_la" fromport="state" toport="in_1" />
+        <edge fromnode="key_roll_right_l" tonode="key_roll_right_la" fromport="state" toport="in_1" />
+
+        <edge fromnode="key_forwards_la" tonode="convert_forwards" fromport="out" toport="in" />
+        <edge fromnode="key_backwards_la" tonode="convert_backwards" fromport="out" toport="in" />
+        <edge fromnode="key_left_la" tonode="convert_left" fromport="out" toport="in" />
+        <edge fromnode="key_right_la" tonode="convert_right" fromport="out" toport="in" />
+        <edge fromnode="key_up_la" tonode="convert_up" fromport="out" toport="in" />
+        <edge fromnode="key_down_la" tonode="convert_down" fromport="out" toport="in" />
+        <edge fromnode="key_roll_left_la" tonode="convert_roll_left" fromport="out" toport="in" />
+        <edge fromnode="key_roll_right_la" tonode="convert_roll_right" fromport="out" toport="in" />
+
+        <edge fromnode="convert_backwards" tonode="forward_movement" fromport="out" toport="first" />
+        <edge fromnode="convert_forwards" tonode="forward_movement" fromport="out" toport="second" />
+        <edge fromnode="convert_right" tonode="side_movement" fromport="out" toport="first" />
+        <edge fromnode="convert_left" tonode="side_movement" fromport="out" toport="second" />
+        <edge fromnode="convert_up" tonode="vertical_movement" fromport="out" toport="first" />
+        <edge fromnode="convert_down" tonode="vertical_movement" fromport="out" toport="second" />
+        <edge fromnode="convert_roll_right" tonode="roll_movement" fromport="out" toport="first" />
+        <edge fromnode="convert_roll_left" tonode="roll_movement" fromport="out" toport="second" />
+
+        <edge fromnode="side_movement" tonode="movement" fromport="out" toport="x" />
+        <edge fromnode="vertical_movement" tonode="movement" fromport="out" toport="y" />
+        <edge fromnode="forward_movement" tonode="movement" fromport="out" toport="z" />
+
+        <edge fromnode="roll_movement" tonode="rotation" fromport="out" toport="angle" />
+        <edge fromnode="rotation_axis" tonode="rotation" fromport="value" toport="axis" />
+
+        <edge fromnode="movement" tonode="observer" fromport="out" toport="translation" />
+        <edge fromnode="rotation" tonode="observer" fromport="out" toport="rotation" />
+        <edge fromnode="timer" tonode="observer" fromport="time" toport="time" />
+        
+    </edges>
+
+</module>

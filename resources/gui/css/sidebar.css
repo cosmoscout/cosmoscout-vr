@@ -1,0 +1,173 @@
+.side-bar {
+    width: 465px;
+    position: absolute;
+    height: 100%;
+    overflow-x: hidden;
+    overflow-y: scroll;
+    padding-top: 80px;
+}
+
+.side-bar::-webkit-scrollbar { 
+    display: none; 
+}
+
+.side-bar.right {
+    right: 0px;
+}
+
+.side-bar .collapsible-tabs > li {
+    transition: width 0.4s ease, width 0.4s ease;
+    width: 55px;
+}
+
+.side-bar .collapsible-tabs > li:hover {
+    width: 450px;
+}
+
+.side-bar .collapsible-tabs > li.active {
+    width: 450px;
+}
+
+.collapsible {
+    border: none;
+    box-shadow: none;
+}
+
+/* Sidebar Tabs ------------------------------------------------------------- */
+
+.tab-header,
+.tab-body {
+    background: none;
+    border: none;
+    outline: none;
+}
+
+.tab-body {
+    padding: 10px 3px 3px 3px;
+}
+
+.tab-header {
+    color: #fff;
+    display: block;
+    font-size: 1.8rem;
+    line-height: 3.4rem;
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.4), 0 0 10px #aaf;
+    white-space: nowrap;
+    overflow: hidden;
+    text-align: center;
+    padding: 3px;
+}
+
+.tab-header .header-name {
+    opacity: 0;
+    text-transform: uppercase;
+    transition: opacity 0.2s linear;
+}
+
+.tab-header:hover .header-name,
+.collapsible-tabs > li.active .tab-header .header-name {
+    opacity: 1;
+    transition: opacity 0.2s linear;
+    transition-delay: 0.2s;
+}
+
+.tab-header:active {
+    top: 1px;
+}
+
+.tab-header:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.tab-header i {
+    position: absolute;
+    left: 9px;
+    font-size: 35px;
+    top: 10px;
+}
+
+.tab-body p {
+    padding: 0;
+}
+
+.collapsible-tabs {
+    border: none;
+    box-shadow: none;
+}
+
+.help .container .collapsible-tabs {
+    background-color: rgba(200, 200, 255, 0.1);
+}
+
+.right .collapsible-tabs > li {
+    background: linear-gradient(to right, rgba(20, 20, 20, 0.8), rgba(20, 20, 20, 0.4));
+}
+
+.left .collapsible-tabs > li {
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.collapsible-tabs > li {
+    transition: border 0.3s ease-out;
+    margin-bottom: 5px;
+    box-shadow: none;
+    border-bottom: 1px solid rgba(0, 0, 0, 0);
+}
+
+.collapsible-tabs > li {
+    border-top: 2px solid #ccf;
+}
+
+/* Setting Sections --------------------------------------------------------- */
+
+.settings-section {
+    width: 100%;
+    background: transparent;
+    border: none;
+    margin: 3px 0;
+    padding: 10px;
+    text-transform: uppercase;
+    color: #fff;
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.4), 0 0 10px #aaf;
+}
+
+.settings-section:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+#settings-list .caret-icon {
+    position: absolute;
+    right: 0;
+    transform: rotate(0deg);
+    transition: 100ms transform;
+}
+
+#settings-list > li.active .caret-icon {
+    transform: rotate(-90deg);
+}
+
+#settings-list > li {
+    border-style: dashed;
+    border-width: 1px 0 0 0;
+    border-color: rgba(230, 230, 255, 0.4);
+}
+
+
+.settings-body {
+    border: none;
+    padding: 0;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.settings-accordion {
+    margin-bottom: 0;
+}
+
+#settings-list {
+    border: none;
+}
+
+#general-settings-tab {
+    margin: 0;
+}

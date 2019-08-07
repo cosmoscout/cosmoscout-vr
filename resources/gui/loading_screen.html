@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="utf-8">
+
+    <style>
+        @font-face {
+            font-family: 'AlegreyaSansSC';
+            src: url('third-party/fonts/AlegreyaSansSC-Regular.ttf') format('truetype');
+        }
+
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'AlegreyaSansSC' !important;
+            color: #fff;
+            text-shadow: 0 0 3vmin rgba(255, 255, 255, 0.5), 0 0 1vmin rgba(255, 255, 255, 0.5);
+        }
+
+        #background {
+            position: absolute;
+            width: 100vw;
+            height: 100vh;
+            background: url(img/splash_bg.jpg) center center;
+            background-size: cover;
+            box-shadow: inset 0 0 50vmin black, inset 0 0 10vmin black;
+            background-color: black;
+        }
+
+        #logo {
+            opacity: 0;
+            transition: opacity 1.5s;
+        }
+
+        #image {
+            position: absolute;
+            left: calc(50vw - 40vmin);
+            top: calc(50vh - 43vmin);
+            width: 80vmin;
+            height: 80vmin;
+            background: url(img/splash_logo.png) center center;
+            background-size: contain;
+        }
+
+        #upper {
+            font-size: 12vmin;
+            line-height: 11vmin;
+        }
+
+        #lower {
+            font-size: 2.2vmin;
+            text-transform: uppercase;
+            letter-spacing: 0.8vmin;
+        }
+
+        #text {
+            position: absolute;
+            left: calc(50vw - 40vmin);
+            top: calc(50vh + 10vmin);
+            width: 80vmin;
+            height: 20vmin;
+            text-align: center;
+        }
+
+        #version {
+            position: absolute;
+            right: 20px;
+            bottom: 10px;
+        }
+
+        .visible {
+            opacity: 1 !important;
+        }
+    </style>
+
+    <script type="text/javascript">
+        function set_loading(enable) {
+            if (enable) {
+                document.getElementById("logo").className = "visible";
+            } else {
+                document.getElementById("logo").className = "";
+            }
+        }
+
+        function set_status(text) {
+            document.getElementById("lower").textContent = text;
+        }
+    </script>
+
+</head>
+
+<body>
+    <div id="background"></div>
+    <div id="logo">
+        <div id="image"></div>
+        <div id="text">
+            <div id="upper">CosmoScout VR</div>
+            <div id="lower">loading core engine ...</div>
+        </div>
+        <div id="version">v1.0.0</div>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,65 @@
+body {
+    overflow: hidden;
+}
+
+#version {
+    font-size: 9px;
+    top: 3px;
+    right: 5px;
+    flex-grow: 3;
+    text-align: right;
+}
+
+#header {
+    position: absolute;
+    left: 0;
+    right: 0;
+    overflow: hidden;
+    font-size: 0.9rem;
+    background-color: rgba(20, 20, 20, 0.5);
+    border-bottom: 2px solid #ccf;
+    display: flex;
+    justify-content: space-between;
+}
+
+#header i {
+    font-size: 1.2rem;
+    top: 4px;
+    position: relative;
+    margin-right: 2px;
+}
+
+#header .item {
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    line-height: 35px;
+    height: 35px;
+    vertical-align: bottom;
+    flex-grow: 1;
+}
+
+#header .item span {
+    display: inline-block;
+}
+
+#header .btn {
+    padding: 4px 4px 0 4px;
+    line-height: 35px;
+    border-radius: 0;
+    color: #ddf
+}
+
+#header .btn i {
+    line-height: 35px;
+    font-size: 1.5rem;
+    top: -4px;
+    margin: 0;
+}
+
+#compass-arrow {
+    background-image: url("../img/compass.png");
+    width: 25px;
+    height: 25px;
+    background-size: contain;
+    display: inline-block;
+}

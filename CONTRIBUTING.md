@@ -6,6 +6,10 @@ We are happy to receive contributions to CosmoScout VR in the form of **merge re
 
 The `master` branch should always contain stable code. New features and bug fixes are implemented in `feature/*` branches and are merged to `develop` once they are finished. When a new milestone is reached, the content of `develop` will be merged to `master`.
 
+## DLR Individual Contributor License Agreement
+
+Before we can accept your merge request, you have to print, sign, scan and send the [DLR Individual Contributor License Agreement](CLA.md) via e-mail to cosmoscout@dlr.de.
+
 ## Some Coding Guidelines
 
 * Each header file should contain an include guard. For CosmoScout VR classes the naming scheme should be `CS_{NAMESPACE}_{FILNAME}_HPP` and for plugins it should be `CSP_{PLUGIN}_{FILNAME}_HPP`.
@@ -15,10 +19,6 @@ The `master` branch should always contain stable code. New features and bug fixe
 * Apply clang-format before you create a merge request (either setup your IDE to do this or use the `clang-format.sh` script)
 * Never use `using namespace`.
 * Use features of modern C++11 / C++14 / C++17 (e.g. range-based for-loops, std::optional, std::variant, ...)!
-
-## DLR Individual Contributor License Agreement
-
-Before we can accept your merge request, you have to print, sign, scan and send the [DLR Individual Contributor License Agreement](CLA.md) via e-mail to cosmoscout@dlr.de.
 
 ## Git Commit Messages
 

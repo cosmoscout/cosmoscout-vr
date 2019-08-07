@@ -1,0 +1,27 @@
+<!-- ///////////////////////////////////////////////////////////////////////////////////////////////
+//                               This file is part of CosmoScout VR                               //
+//      and may be used under the terms of the MIT license. See the LICENSE file for details.     //
+//                        Copyright: (c) 2019 German Aerospace Center (DLR)                       //
+//////////////////////////////////////////////////////////////////////////////////////////////// -->
+
+<?xml version="1.0" encoding="utf-8"?>
+<module>
+	<nodespace></nodespace>
+	<graph>
+		<node name="timer" type="Timer" />
+		<node name="scenescale" type="AutoSceneScaleNode">
+			<param name="min_scale"             value="1" />
+			<param name="max_scale"             value="100000000000000000" />
+			<param name="close_visual_distance" value="1.5" />
+			<param name="far_visual_distance"   value="0.7" />
+			<param name="close_real_distance"   value="1.5" />
+			<param name="far_real_distance"     value="5000000" />
+			<param name="lock_weight"           value="0.1" />
+			<param name="track_weight"          value="0.0002" />
+			<param name="min_object_size"       value="100000.0" />
+		</node>
+	</graph>
+	<edges>
+		<edge fromnode="timer" tonode="scenescale" fromport="time" toport="time" />
+	</edges>
+</module>

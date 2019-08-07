@@ -1,3 +1,11 @@
 /build
 /install
+/data
+/config/*
+!/config/base
+!/config/CMakeLists.txt
+
 *.sublime*
+.vscode
+
+*.nfs*

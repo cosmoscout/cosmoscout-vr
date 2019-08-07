@@ -1,0 +1,9 @@
+\begindata
+
+KERNELS_TO_LOAD = (
+  '..\share\resources\data\spice\naif0011.tls',
+  '..\share\resources\data\spice\pck00010.tpc',
+  '..\share\resources\data\spice\cg_1950_2050_v01.bsp'
+)
+
+\begintext
