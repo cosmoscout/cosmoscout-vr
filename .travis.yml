@@ -13,11 +13,10 @@ addons:
       - ubuntu-toolchain-r-test
       - llvm-toolchain-xenial-6.0
 cache:
+  ccache: true
   directories:
   - build/linux-externals
   - build/windows-externals
-  - install/linux-externals
-  - install/windows-externals
 matrix:
   include:
     - name: Linux GCC
@@ -39,12 +38,6 @@ matrix:
     - name: Windows MSVC
       env: LABEL=WindowsMSVC
       os: windows
-    - name: OS X
-      env: LABEL=OSX
-      os: osx
-      osx_image: xcode10.1
-      before_script:
-        - MACOSX_DEPLOYMENT_TARGET=10.14
   allow_failures:
     - os: windows
 script:
@@ -52,7 +45,7 @@ script:
     if [ "$TRAVIS_OS_NAME" == "windows" ]; then
       cmd "/C make_externals.bat"
     else
-      ./make_externals.sh
+      ./make_externals.sh --with-ccache
     fi
 notifications:
   webhooks:
