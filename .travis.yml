@@ -44,8 +44,10 @@ script:
   - |
     if [ "$TRAVIS_OS_NAME" == "windows" ]; then
       cmd "/C make_externals.bat"
+      cmd "/C make_release.bat"
     else
       ./make_externals.sh --with-ccache
+      ./make_release.sh --with-ccache
     fi
 notifications:
   webhooks:
