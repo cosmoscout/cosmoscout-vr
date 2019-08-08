@@ -1,16 +1,18 @@
-# Contributing
+# Contributing to CosmoScout VR
 
-We are happy to receive contributions to CosmoScout VR in the form of **merge requests** via Github. Feel free to fork the repository, implement your changes and create a merge request to the `develop` branch.
+Whenever you encounter a :beetle: **bug** or have :tada: **feature request**, report this via [Github issues](https://github.com/cosmoscout/cosmoscout-vr/issues).
 
-**Bugs** should be reported via [Github issues](https://github.com/cosmoscout/cosmoscout-vr/issues).
+We are happy to receive contributions to CosmoScout VR in the form of **pull requests** via Github. Feel free to fork the repository, implement your changes and create a merge request to the `develop` branch.
 
-The `master` branch should always contain stable code. New features and bug fixes are implemented in `feature/*` branches and are merged to `develop` once they are finished. When a new milestone is reached, the content of `develop` will be merged to `master`.
+Since CosmoScout VR uses plenty of git submodules, forking is not straight-forward. There is a [forking guide](#forking-cosmoscout-vr) available to get you started!
 
 ## DLR Individual Contributor License Agreement
 
 Before we can accept your merge request, you have to print, sign, scan and send the [DLR Individual Contributor License Agreement](CLA.md) via e-mail to cosmoscout@dlr.de.
 
 ## Some Coding Guidelines
+
+The development of CosmoScout VR follows a simplified version of **git-flow**: The `master` branch always contains stable code. New features and bug fixes are implemented in `feature/*` branches and are merged to `develop` once they are finished. When a new milestone is reached, the content of `develop` will be merged to `master` and a tag is created.
 
 * Each header file should contain an include guard. For CosmoScout VR classes the naming scheme should be `CS_{NAMESPACE}_{FILNAME}_HPP` and for plugins it should be `CSP_{PLUGIN}_{FILNAME}_HPP`.
 * Class names should be written in CamelCase (e.g. `MyClass`).
@@ -20,7 +22,7 @@ Before we can accept your merge request, you have to print, sign, scan and send 
 * Never use `using namespace`.
 * Use features of modern C++11 / C++14 / C++17 (e.g. range-based for-loops, std::optional, std::variant, ...)!
 
-## Git Commit Messages
+### Git Commit Messages
 
 Commits should start with a Capital letter and should be written in present tense (e.g. __:tada: Add cool new feature__ instead of __:tada: Added cool new feature__).
 It's a great idea to start the commit message with an applicable emoji. This does not only look great but also makes you rethink what to add to a commit.
@@ -59,3 +61,112 @@ And make sure that it is executable:
 ``` bash
 chmod +x .git/hooks/commit-msg
 ```
+
+# Forking CosmoScout VR
+
+Depending on what you're planning to implement, you have several options here:
+
+1. **Fix or implement something in the core engine:** In this case you have to fork only the [main repository of CosmoScout VR](https://github.com/cosmoscout/cosmoscout-vr). All plugin submodules will point to the repositories in the [CosmoScout organization](https://github.com/cosmoscout).
+1. **Fix or implement something in an existing plugin:** In this case you have to fork only the corresponding plugin. You can still use the [main repository of CosmoScout VR](https://github.com/cosmoscout/cosmoscout-vr).
+1. **Fix or implement something in an existing plugin which requires changes in the core engine:** In this case you have to do both, 1 and 2.
+1. **Create a new plugin:** In this case you do not have to fork anything, except if your new plugin requires some changes to the core engine. Then you would go for option 1.
+
+## 1. Forking only the main repository
+
+This is pretty straight-forward. Just click the **Fork** button on the top right of this page. Then clone the forked repository, perform your changes, push to a feature branch and create a pull request to CosmoScout's develop branch.
+
+``` bash
+git clone git@github.com:<your user name>/cosmoscout-vr.git
+cd cosmoscout-vr
+git remote add upstream git@github.com:cosmoscout/cosmoscout-vr.git
+git checkout develop
+git submodule update --init
+git checkout -b feature/your-new-feature
+
+# ... do and commit your changes!
+
+git push origin feature/your-new-feature
+```
+
+When there were changes in CosmoScout's develop branch, you will need to merge those to your fork before creating a pull request:
+
+``` bash
+git fetch upstream
+git merge upstream/develop
+```
+
+Then you can create a pull request on GitHub to CosmoScout's develop branch.
+
+## 2. Forking only a plugin
+
+In this case, you have to clone CosmoScout's [main repository](https://github.com/cosmoscout/cosmoscout-vr) and fork the plugin you want to modify. Once all plugin submodules have been checked out, you can add your forked plugin as a second remote to the plugin submodule.
+
+``` bash
+git clone git@github.com:cosmoscout/cosmoscout-vr.git
+cd cosmoscout-vr
+git checkout develop
+git submodule update --init
+cd plugins/csp-whatever
+git remote add myfork git@github.com:<your user name>/csp-whatever.git 
+git checkout -b feature/your-new-feature
+
+# ... do and commit your changes!
+
+git push -u myfork feature/your-new-feature
+```
+
+When there were changes in the plugin's develop branch, you will need to merge those to your fork before creating a pull request:
+
+``` bash
+cd plugins/csp-whatever
+git fetch origin
+git merge origin/develop
+```
+
+Then you can create a pull request on GitHub to CosmoScout's develop branch.
+
+## 3. Forking the main repository and a plugin
+
+This basically combines both approaches above. First you have to clone the main repository and the plugin you want to modify. Then clone your forked repository and add a second remote to the plugin submodule pointing to your forked plugin repository.
+
+``` bash
+git clone git@github.com:<your user name>/cosmoscout-vr.git
+cd cosmoscout-vr
+git remote add upstream git@github.com:cosmoscout/cosmoscout-vr.git
+git checkout develop
+git submodule update --init
+git checkout -b feature/your-new-feature
+
+cd plugins/csp-whatever
+git remote add myfork git@github.com:<your user name>/csp-whatever.git 
+git checkout -b feature/your-new-feature
+
+# ... do and commit your changes, in both, plugin and main repository
+# in your plugin you can push with
+
+git push -u myfork feature/your-new-feature
+
+# in your main repository you can push with
+git push origin feature/your-new-feature
+```
+
+Merging upstream develop changes to your main repository fork is done like this:
+
+``` bash
+git fetch upstream
+git merge upstream/develop
+```
+
+Merging upstream develop changes to your plugin repository fork is done like this:
+
+``` bash
+cd plugins/csp-whatever
+git fetch origin
+git merge origin/develop
+```
+
+Once you are satisfied, you can create pull requests for both, your modified plugin and the main repository on GitHub.
+
+## 4. Creating a new plugin
+
+From a git-perspective, this is pretty straight-forward. Just create a git repository, name it `csp-<whatever>` and clone it to the `plugins/` directory of CosmoScout VR. For the beginning, you can copy the contents of another similar plugin to that directory. You will only need to add one line to the file `plugins/CMakeLists.txt` in order to include your new plugin to the built process.  
