@@ -51,7 +51,7 @@ cmake -E make_directory "$BUILD_DIR/glew/extracted" && cd "$BUILD_DIR/glew"
 wget -nc https://netcologne.dl.sourceforge.net/project/glew/glew/2.1.0/glew-2.1.0.tgz
 
 cd "$BUILD_DIR/glew/extracted"
-cmake -E tar xzfv ../glew-2.1.0.tgz
+cmake -E tar xzf ../glew-2.1.0.tgz
 cd ..
 
 cmake -G "Eclipse CDT4 - Unix Makefiles" $CCACHE_FLAGS -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
@@ -188,7 +188,7 @@ cmake -E make_directory "$BUILD_DIR/cspice/extracted" && cd "$BUILD_DIR/cspice"
 wget -nc http://naif.jpl.nasa.gov/pub/naif/toolkit//C/PC_Linux_GCC_64bit/packages/cspice.tar.Z
 
 cd "$BUILD_DIR/cspice/extracted"
-cmake -E tar xzfv ../cspice.tar.Z
+cmake -E tar xzf ../cspice.tar.Z
 
 cmake -E copy_directory "$BUILD_DIR/cspice/extracted/cspice/include" "$INSTALL_DIR/include/cspice"
 cmake -E copy "$BUILD_DIR/cspice/extracted/cspice/lib/cspice.a" "$INSTALL_DIR/lib"
@@ -205,11 +205,12 @@ cmake -E make_directory "$BUILD_DIR/cef/extracted" && cd "$BUILD_DIR/cef"
 wget -nc http://opensource.spotify.com/cefbuilds/$CEF_VERSION.tar.bz2
 
 cd "$BUILD_DIR/cef/extracted"
-cmake -E tar xfvj ../$CEF_VERSION.tar.bz2
+cmake -E tar xfj ../$CEF_VERSION.tar.bz2
 rm -rf $CEF_VERSION/tests # we dont want the example applications
 cd ..
 
 cmake -G "Eclipse CDT4 - Unix Makefiles" $CCACHE_FLAGS -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
+      -DCEF_COMPILER_FLAGS="-Wno-undefined-var-template" \
       -DCMAKE_BUILD_TYPE=Release "$BUILD_DIR/cef/extracted/$CEF_VERSION"
 cmake --build . --parallel 8
 
