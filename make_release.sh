@@ -27,6 +27,8 @@ INSTALL_DIR="$CURRENT_DIR/install/linux-release"
 # This directory should be the one used as install directory for make_externals.sh.
 EXTERNALS_INSTALL_DIR="$CURRENT_DIR/install/linux-externals"
 
+# The optional parameter --with-ccache enables the ccache support of CMake.
+# ccache must be installed on your system.
 if [[ $* == *--with-ccache* ]]
 then
     CCACHE_FLAGS="-DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache"

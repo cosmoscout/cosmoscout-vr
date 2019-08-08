@@ -34,6 +34,8 @@ cmake -E make_directory "$INSTALL_DIR/share"
 cmake -E make_directory "$INSTALL_DIR/bin"
 cmake -E make_directory "$INSTALL_DIR/include"
 
+# The optional parameter --with-ccache enables the ccache support of CMake.
+# ccache must be installed on your system.
 if [[ $* == *--with-ccache* ]]
 then
     CCACHE_FLAGS="-DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache"
