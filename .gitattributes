@@ -1,2 +1,3 @@
 resources/gui/third-party/* linguist-vendored
-resources/locations/* linguist-vendored
+resources/gui/js/moon.js linguist-vendored
+resources/gui/js/mars.js linguist-vendored
