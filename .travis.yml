@@ -1,6 +1,7 @@
 language: cpp
 addons:
   apt:
+    update: true
     packages:
       - g++-7
       - clang-6.0
@@ -9,21 +10,21 @@ addons:
       - libglu1-mesa-dev
       - libx11-dev
       - libxi-dev
+      - libgconf-2-4
+      - libboost1.70-dev
     sources:
-      - ubuntu-toolchain-r-test
-      - llvm-toolchain-xenial-6.0
+      - sourceline: 'ppa:mhier/libboost-latest'
 cache:
+  ccache: true
   directories:
   - build/linux-externals
   - build/windows-externals
-  - install/linux-externals
-  - install/windows-externals
 matrix:
   include:
     - name: Linux GCC
       env: LABEL=LinuxGCC
       os: linux
-      dist: xenial
+      dist: bionic
       sudo: required
       before_script:
         - CC=gcc-7
@@ -31,7 +32,7 @@ matrix:
     - name: Linux Clang
       env: LABEL=LinuxClang
       os: linux
-      dist: xenial
+      dist: bionic
       sudo: required
       before_script:
         - CC=clang-6.0
@@ -43,12 +44,12 @@ matrix:
     - os: windows
 script:
   - |
-    if [ "$TRAVIS_OS_NAME" == "linux" ]; then
-      ./make_externals.sh
-    fi
-  - |
     if [ "$TRAVIS_OS_NAME" == "windows" ]; then
       cmd "/C make_externals.bat"
+      cmd "/C make_release.bat"
+    else
+      ./make_externals.sh --with-ccache
+      ./make_release.sh --with-ccache
     fi
 notifications:
   webhooks:

@@ -27,6 +27,15 @@ INSTALL_DIR="$CURRENT_DIR/install/linux-release"
 # This directory should be the one used as install directory for make_externals.sh.
 EXTERNALS_INSTALL_DIR="$CURRENT_DIR/install/linux-externals"
 
+# The optional parameter --with-ccache enables the ccache support of CMake.
+# ccache must be installed on your system.
+if [[ $* == *--with-ccache* ]]
+then
+    CCACHE_FLAGS="-DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache"
+else
+    CCACHE_FLAGS=""
+fi
+
 # create build directory if neccessary -------------------------------------------------------------
 
 if [ ! -d "$BUILD_DIR" ]; then
@@ -36,7 +45,7 @@ fi
 # configure, compile & install ---------------------------------------------------------------------
 
 cd "$BUILD_DIR"
-cmake -G "Eclipse CDT4 - Unix Makefiles" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
+cmake -G "Eclipse CDT4 - Unix Makefiles" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" $CCACHE_FLAGS \
       -DCMAKE_BUILD_TYPE=Release -DCOSMOSCOUT_EXTERNALS_DIR="$EXTERNALS_INSTALL_DIR" \
       -DCMAKE_EXPORT_COMPILE_COMMANDS=On "$CMAKE_DIR"
 
