@@ -10,6 +10,7 @@ addons:
       - libglu1-mesa-dev
       - libx11-dev
       - libxi-dev
+      - libgconf-2-4
       - libboost1.70-dev
     sources:
       - sourceline: 'ppa:mhier/libboost-latest'
