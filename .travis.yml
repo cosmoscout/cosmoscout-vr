@@ -26,7 +26,7 @@ jobs:
       script: 
         - ./clang-format.sh
         - DIFF=$(git diff)
-        - if [ ! -z "$DIFF" ]; then exit 1; fi
+        - if [ ! -z "$DIFF" ]; then echo $DIFF && exit 1; fi
     - stage: build
       name: Linux GCC
       env: LABEL=LinuxGCC
