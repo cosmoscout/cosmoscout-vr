@@ -3,8 +3,6 @@ addons:
   apt:
     update: true
     packages:
-      - g++-7
-      - clang-6.0
       - libc++-dev
       - libgl1-mesa-dev
       - libglu1-mesa-dev
