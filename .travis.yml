@@ -26,8 +26,9 @@ jobs:
       os: linux
       dist: bionic
       script: 
-        - whereis clang-format
-        - whereis clang-format-6
+        - ./clang-format.sh
+        - DIFF=$(git diff)
+        - if [ ! -z "$DIFF" ]; then exit 1; fi
     - stage: build
       name: Linux GCC
       env: LABEL=LinuxGCC
