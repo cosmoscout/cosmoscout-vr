@@ -18,6 +18,10 @@ We try to add as many comments to the source code as possible. The number of sou
 
 # Features
 
+<p align="center"> 
+  <img src ="resources/screenshots/mars.jpg" />
+</p>
+
 **CosmoScout VR is research software which is still under heavy development and changes on a daily basis. Many features are badly documented, it will crash without warning and may do other unexpected things. We are working hard on improving the user experience - please [report all issues and suggestions](https://github.com/cosmoscout/cosmoscout-vr/issues) you have!**
 
 Below is a rough sketch of the possibilities you have with CosmoScout VR. While this list is far from complete it provides a good overview of the current feature set.
@@ -59,6 +63,11 @@ Below is a rough sketch of the possibilities you have with CosmoScout VR. While 
 
 ## Plugins for CosmoScout VR
 
+<p align="center"> 
+  <img src ="resources/screenshots/light-shafts.jpg" />
+</p>
+
+
 CosmoScout VR can be extended via plugins. In fact, without any plugins, CosmoScout VR is just a black and empty universe. Here is a list of available plugins.
 
 Official Plugins | Description | Screenshot
@@ -77,20 +86,26 @@ Official Plugins | Description | Screenshot
 
 # Getting Started
 
+<p align="center"> 
+  <img src ="resources/screenshots/stars.jpg" />
+</p>
+
 We are happy to receive contributions to CosmoScout VR in the form of **merge requests** via Github. Feel free to fork the repository, implement your changes and create a merge request to the `develop` branch.
 
 Further information on how to contribute can be found in [CONTRIBUTING.md](CONTRIBUTING.md).
 
-## Build Instructions
+## Continuous Integration
 
-CosmoScout VR can be build in debug and release mode on Linux and Windows. Travis CI is used for continuous integration.
+Travis CI is used for continuous integration. All pull requests and pushes to `master` and `develop` are built automatically. If you want to test a specific commit on any other branch, add **`[run-ci]`** to your commit message.
 
 Branch | Travis Build Status
 -------|--------------------
 master | ![linux](https://img.icons8.com/material/20/000000/linux.png) [![ubuntu clang](https://badges.herokuapp.com/travis.com/cosmoscout/cosmoscout-vr?branch=master&label=clang&env=LABEL=LinuxClang)](https://travis-ci.com/cosmoscout/cosmoscout-vr/branches) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ![linux](https://img.icons8.com/material/20/000000/linux.png) [![ubuntu gcc](https://badges.herokuapp.com/travis.com/cosmoscout/cosmoscout-vr?branch=master&label=gcc&env=LABEL=LinuxGCC)](https://travis-ci.com/cosmoscout/cosmoscout-vr/branches) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ![windows](https://img.icons8.com/ios/20/000000/windows8-filled.png) [![msvc](https://badges.herokuapp.com/travis.com/cosmoscout/cosmoscout-vr?branch=master&label=msvc&env=LABEL=WindowsMSVC)](https://travis-ci.com/cosmoscout/cosmoscout-vr/branches)
 develop | ![linux](https://img.icons8.com/material/20/000000/linux.png) [![ubuntu clang](https://badges.herokuapp.com/travis.com/cosmoscout/cosmoscout-vr?branch=develop&label=clang&env=LABEL=LinuxClang)](https://travis-ci.com/cosmoscout/cosmoscout-vr/branches) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ![linux](https://img.icons8.com/material/20/000000/linux.png) [![ubuntu gcc](https://badges.herokuapp.com/travis.com/cosmoscout/cosmoscout-vr?branch=develop&label=gcc&env=LABEL=LinuxGCC)](https://travis-ci.com/cosmoscout/cosmoscout-vr/branches) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ![windows](https://img.icons8.com/ios/20/000000/windows8-filled.png) [![msvc](https://badges.herokuapp.com/travis.com/cosmoscout/cosmoscout-vr?branch=develop&label=msvc&env=LABEL=WindowsMSVC)](https://travis-ci.com/cosmoscout/cosmoscout-vr/branches)
 
-Below you find the generic build instructions. Most dependencies are included as [git submodules](externals). **You will only need a copy of [CMake](https://cmake.org/) (version 3.12 or greater), [Boost](https://www.boost.org/) (version 1.69 or greater) and a recent C++ compiler (gcc 8, clang 5 or msvc 19). For the compilation of the externals [Python](https://www.python.org/) is also required.**
+## Build Instructions
+
+CosmoScout VR can be build in debug and release mode on Linux and Windows. Most dependencies are included as [git submodules](externals). **You will only need a copy of [CMake](https://cmake.org/) (version 3.12 or greater), [Boost](https://www.boost.org/) (version 1.69 or greater) and a recent C++ compiler (gcc 8, clang 5 or msvc 19). For the compilation of the externals [Python](https://www.python.org/) is also required.**
 
 ### Linux
 
