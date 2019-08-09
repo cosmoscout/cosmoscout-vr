@@ -34,8 +34,8 @@ jobs:
       dist: bionic
       sudo: required
       before_script:
-        - CC=gcc-7
-        - CXX=g++-7
+        - CC=gcc
+        - CXX=g++
       script:
         - ./make_externals.sh --with-ccache
         - ./make_release.sh --with-ccache
@@ -45,8 +45,8 @@ jobs:
       dist: bionic
       sudo: required
       before_script:
-        - CC=clang-6.0
-        - CXX=clang++-6.0
+        - CC=clang
+        - CXX=clang++
       script:
         - ./make_externals.sh --with-ccache
         - ./make_release.sh --with-ccache
