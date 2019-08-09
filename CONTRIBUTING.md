@@ -127,7 +127,7 @@ Then you can create a pull request on GitHub to CosmoScout's develop branch.
 
 ## 3. Forking the main repository and a plugin
 
-This basically combines both approaches above. First you have to clone the main repository and the plugin you want to modify. Then clone your forked repository and add a second remote to the plugin submodule pointing to your forked plugin repository.
+This basically combines both approaches above. First you have to fork the main repository and the plugin you want to modify. Then clone your forked repository and add a second remote to the plugin submodule pointing to your forked plugin repository.
 
 ``` bash
 git clone git@github.com:<your user name>/cosmoscout-vr.git
