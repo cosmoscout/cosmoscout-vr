@@ -1,10 +1,9 @@
 language: cpp
+if: (type = push AND branch IN (master, develop)) OR (type = pull_request) OR (commit_message =~ .*\[run-ci\].*)
 addons:
   apt:
     update: true
     packages:
-      - g++-7
-      - clang-6.0
       - libc++-dev
       - libgl1-mesa-dev
       - libglu1-mesa-dev
@@ -19,38 +18,49 @@ cache:
   directories:
   - build/linux-externals
   - build/windows-externals
-matrix:
+jobs:
   include:
-    - name: Linux GCC
+    - stage: test
+      name: "Check Clang-Format"
+      os: linux
+      dist: bionic
+      script: 
+        - ./clang-format.sh
+        - DIFF=$(git diff)
+        - if [ ! -z "$DIFF" ]; then echo $DIFF && exit 1; fi
+    - stage: build
+      name: Linux GCC
       env: LABEL=LinuxGCC
       os: linux
       dist: bionic
       sudo: required
       before_script:
-        - CC=gcc-7
-        - CXX=g++-7
+        - CC=gcc
+        - CXX=g++
+      script:
+        - ./make_externals.sh --with-ccache
+        - ./make_release.sh --with-ccache
     - name: Linux Clang
       env: LABEL=LinuxClang
       os: linux
       dist: bionic
       sudo: required
       before_script:
-        - CC=clang-6.0
-        - CXX=clang++-6.0
+        - CC=clang
+        - CXX=clang++
+      script:
+        - ./make_externals.sh --with-ccache
+        - ./make_release.sh --with-ccache
     - name: Windows MSVC
       env: LABEL=WindowsMSVC
       os: windows
+      script:
+        - exit 1
+        - # As windows builds take too long, we abort them for now
+        - # cmd "/C make_externals.bat"
+        - # cmd "/C make_release.bat"
   allow_failures:
     - os: windows
-script:
-  - |
-    if [ "$TRAVIS_OS_NAME" == "windows" ]; then
-      cmd "/C make_externals.bat"
-      cmd "/C make_release.bat"
-    else
-      ./make_externals.sh --with-ccache
-      ./make_release.sh --with-ccache
-    fi
 notifications:
   webhooks:
     urls:
