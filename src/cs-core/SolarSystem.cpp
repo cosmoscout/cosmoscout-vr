@@ -26,8 +26,7 @@ namespace cs::core {
 
 SolarSystem::SolarSystem(std::shared_ptr<TimeControl> const& pTimeControl)
     : mTimeControl(pTimeControl)
-    , mSun(std::make_shared<scene::CelestialObject>("Sun", "IAU_Sun")) 
-  {
+    , mSun(std::make_shared<scene::CelestialObject>("Sun", "IAU_Sun")) {
 
   pObserverCenter.onChange().connect([this](std::string const& center) {
     mObserver.changeOrigin(center, mObserver.getFrameName(), mTimeControl->pSimulationTime.get());
