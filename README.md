@@ -18,6 +18,10 @@ We try to add as many comments to the source code as possible. The number of sou
 
 # Features
 
+<p align="center"> 
+  <img src ="resources/screenshots/mars.jpg" />
+</p>
+
 **CosmoScout VR is research software which is still under heavy development and changes on a daily basis. Many features are badly documented, it will crash without warning and may do other unexpected things. We are working hard on improving the user experience - please [report all issues and suggestions](https://github.com/cosmoscout/cosmoscout-vr/issues) you have!**
 
 Below is a rough sketch of the possibilities you have with CosmoScout VR. While this list is far from complete it provides a good overview of the current feature set.
@@ -59,6 +63,11 @@ Below is a rough sketch of the possibilities you have with CosmoScout VR. While 
 
 ## Plugins for CosmoScout VR
 
+<p align="center"> 
+  <img src ="resources/screenshots/light-shafts.jpg" />
+</p>
+
+
 CosmoScout VR can be extended via plugins. In fact, without any plugins, CosmoScout VR is just a black and empty universe. Here is a list of available plugins.
 
 Official Plugins | Description | Screenshot
@@ -76,6 +85,10 @@ Official Plugins | Description | Screenshot
 [csp-trajectories](https://github.com/cosmoscout/csp-trajectories) | Draws trajectories of celestial bodies and spacecrafts based on SPICE. The color, length, number of samples and reference frame can be configured. | ![screenshot](resources/screenshots/csp-trajectories.jpg)
 
 # Getting Started
+
+<p align="center"> 
+  <img src ="resources/screenshots/stars.jpg" />
+</p>
 
 We are happy to receive contributions to CosmoScout VR in the form of **merge requests** via Github. Feel free to fork the repository, implement your changes and create a merge request to the `develop` branch.
 
