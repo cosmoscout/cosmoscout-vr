@@ -1,5 +1,5 @@
 language: cpp
-if: (type = push AND branch IN (master, develop)) OR (type = pull_request) OR (commit_message =~ .*\\[run-ci\\].*)
+if: (type = push AND branch IN (master, develop)) OR (type = pull_request) OR (commit_message =~ .*\[run-ci\].*)
 addons:
   apt:
     update: true
