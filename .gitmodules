@@ -3,61 +3,61 @@
 	url = https://gitlab.com/libtiff/libtiff.git
 [submodule "externals/opensg-1.8"]
 	path = externals/opensg-1.8
-	url = ../opensg-1.8.git
+	url = ../../cosmoscout/opensg-1.8.git
 [submodule "externals/c-ares"]
 	path = externals/c-ares
-	url = ../c-ares.git
+	url = ../../cosmoscout/c-ares.git
 [submodule "externals/curl"]
 	path = externals/curl
-	url = ../curl.git
+	url = ../../cosmoscout/curl.git
 [submodule "externals/curlpp"]
 	path = externals/curlpp
-	url = ../curlpp.git
+	url = ../../cosmoscout/curlpp.git
 [submodule "externals/freeglut"]
 	path = externals/freeglut
-	url = ../freeglut.git
+	url = ../../cosmoscout/freeglut.git
 [submodule "externals/gli"]
 	path = externals/gli
-	url = ../gli.git
+	url = ../../cosmoscout/gli.git
 [submodule "externals/glm"]
 	path = externals/glm
-	url = ../glm.git
+	url = ../../cosmoscout/glm.git
 [submodule "externals/tinygltf"]
 	path = externals/tinygltf
-	url = ../tinygltf.git
+	url = ../../cosmoscout/tinygltf.git
 [submodule "externals/vista"]
 	path = externals/vista
-	url = ../vista.git
+	url = ../../cosmoscout/vista.git
 [submodule "plugins/csp-trajectories"]
 	path = plugins/csp-trajectories
-	url = ../csp-trajectories.git
+	url = ../../cosmoscout/csp-trajectories.git
 [submodule "plugins/csp-stars"]
 	path = plugins/csp-stars
-	url = ../csp-stars.git
+	url = ../../cosmoscout/csp-stars.git
 [submodule "plugins/csp-simple-bodies"]
 	path = plugins/csp-simple-bodies
-	url = ../csp-simple-bodies.git
+	url = ../../cosmoscout/csp-simple-bodies.git
 [submodule "plugins/csp-sharad"]
 	path = plugins/csp-sharad
-	url = ../csp-sharad.git
+	url = ../../cosmoscout/csp-sharad.git
 [submodule "plugins/csp-satellites"]
 	path = plugins/csp-satellites
-	url = ../csp-satellites.git
+	url = ../../cosmoscout/csp-satellites.git
 [submodule "plugins/csp-rings"]
 	path = plugins/csp-rings
-	url = ../csp-rings.git
+	url = ../../cosmoscout/csp-rings.git
 [submodule "plugins/csp-lod-bodies"]
 	path = plugins/csp-lod-bodies
-	url = ../csp-lod-bodies.git
+	url = ../../cosmoscout/csp-lod-bodies.git
 [submodule "plugins/csp-fly-to-locations"]
 	path = plugins/csp-fly-to-locations
-	url = ../csp-fly-to-locations.git
+	url = ../../cosmoscout/csp-fly-to-locations.git
 [submodule "plugins/csp-measurement-tools"]
 	path = plugins/csp-measurement-tools
-	url = ../csp-measurement-tools.git
+	url = ../../cosmoscout/csp-measurement-tools.git
 [submodule "plugins/csp-anchor-labels"]
 	path = plugins/csp-anchor-labels
-	url = ../csp-anchor-labels.git
+	url = ../../cosmoscout/csp-anchor-labels.git
 [submodule "plugins/csp-atmospheres"]
 	path = plugins/csp-atmospheres
-	url = ../csp-atmospheres.git
+	url = ../../cosmoscout/csp-atmospheres.git
