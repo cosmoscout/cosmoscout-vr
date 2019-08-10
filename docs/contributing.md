@@ -1,3 +1,7 @@
+<p align="center"> 
+  <img src ="img/stars.jpg" />
+</p>
+
 # Contributing to CosmoScout VR
 
 Whenever you encounter a :beetle: **bug** or have :tada: **feature request**, report this via [Github issues](https://github.com/cosmoscout/cosmoscout-vr/issues).
