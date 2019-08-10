@@ -2,19 +2,18 @@
   <img src ="resources/logo/large.svg" />
 </p>
 
-CosmoScout VR is a modular virtual universe which lets you explore, analyze and present huge planetary datasets and large simulation data in real-time.
+CosmoScout VR is a modular virtual universe developed at the German Aerospace Center (DLR). It lets you explore, analyze and present huge planetary data sets and large simulation data in real-time.
 
 [![Build Status](https://travis-ci.com/cosmoscout/cosmoscout-vr.svg?branch=master)](https://travis-ci.com/cosmoscout/cosmoscout-vr/branches)
+[![magazine](https://img.shields.io/badge/info-DLR_magazine-purple.svg)](https://dlr.de/dlr/portaldata/1/resources/documents/dlr_magazin_161_EN/DLR-Magazin_161-GB/?page=18)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 ![c++17](https://img.shields.io/badge/C++-17-orange.svg)
-[![source loc](https://img.shields.io/badge/source_loc-9.4k-green.svg)](cloc.sh)
-[![plugin loc](https://img.shields.io/badge/plugin_loc-12.7k-green.svg)](cloc.sh)
-[![comments](https://img.shields.io/badge/comments-2.6k-yellow.svg)](cloc.sh)
+[![source loc](https://img.shields.io/badge/source_loc-10.0k-green.svg)](cloc.sh)
+[![plugin loc](https://img.shields.io/badge/plugin_loc-14.1k-green.svg)](cloc.sh)
+[![comments](https://img.shields.io/badge/comments-2.7k-yellow.svg)](cloc.sh)
 [![gitter](https://badges.gitter.im/cosmoscout/cosmoscout.svg)](https://gitter.im/cosmoscout/community)
 
-CosmoScout uses C++17 and OpenGL. It can be build on Linux (gcc or clang) and Windows (msvc). Nearly all dependencies are included as [git submodules](externals), please refer to the section [Build Instructions](#build-instructions) in order to get started.
-
-We try to add as many comments to the source code as possible. The number of source code lines and comment lines above is computed with the script [cloc.sh](cloc.sh). This script only counts *real comments*. Any dumb comments (such as copy-right headers or stuff like `/////////`) are not included in this number.
+The software can be build on Linux (gcc or clang) and Windows (msvc). Nearly all dependencies are included as [git submodules](externals), please refer to the section [Build Instructions](#build-instructions) in order to get started.
 
 # Features
 
@@ -63,11 +62,6 @@ Below is a rough sketch of the possibilities you have with CosmoScout VR. While 
 
 ## Plugins for CosmoScout VR
 
-<p align="center"> 
-  <img src ="resources/screenshots/light-shafts.jpg" />
-</p>
-
-
 CosmoScout VR can be extended via plugins. In fact, without any plugins, CosmoScout VR is just a black and empty universe. Here is a list of available plugins.
 
 Official Plugins | Description | Screenshot
@@ -87,25 +81,14 @@ Official Plugins | Description | Screenshot
 # Getting Started
 
 <p align="center"> 
-  <img src ="resources/screenshots/stars.jpg" />
+  <img src ="resources/screenshots/light-shafts.jpg" />
 </p>
 
-We are happy to receive contributions to CosmoScout VR in the form of **merge requests** via Github. Feel free to fork the repository, implement your changes and create a merge request to the `develop` branch.
-
-Further information on how to contribute can be found in [CONTRIBUTING.md](CONTRIBUTING.md).
-
-## Continuous Integration
-
-Travis CI is used for continuous integration. All pull requests and pushes to `master` and `develop` are built automatically. If you want to test a specific commit on any other branch, add **`[run-ci]`** to your commit message.
-
-Branch | Travis Build Status
--------|--------------------
-master | ![linux](https://img.icons8.com/material/20/000000/linux.png) [![ubuntu clang](https://badges.herokuapp.com/travis.com/cosmoscout/cosmoscout-vr?branch=master&label=clang&env=LABEL=LinuxClang)](https://travis-ci.com/cosmoscout/cosmoscout-vr/branches) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ![linux](https://img.icons8.com/material/20/000000/linux.png) [![ubuntu gcc](https://badges.herokuapp.com/travis.com/cosmoscout/cosmoscout-vr?branch=master&label=gcc&env=LABEL=LinuxGCC)](https://travis-ci.com/cosmoscout/cosmoscout-vr/branches) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ![windows](https://img.icons8.com/ios/20/000000/windows8-filled.png) [![msvc](https://badges.herokuapp.com/travis.com/cosmoscout/cosmoscout-vr?branch=master&label=msvc&env=LABEL=WindowsMSVC)](https://travis-ci.com/cosmoscout/cosmoscout-vr/branches)
-develop | ![linux](https://img.icons8.com/material/20/000000/linux.png) [![ubuntu clang](https://badges.herokuapp.com/travis.com/cosmoscout/cosmoscout-vr?branch=develop&label=clang&env=LABEL=LinuxClang)](https://travis-ci.com/cosmoscout/cosmoscout-vr/branches) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ![linux](https://img.icons8.com/material/20/000000/linux.png) [![ubuntu gcc](https://badges.herokuapp.com/travis.com/cosmoscout/cosmoscout-vr?branch=develop&label=gcc&env=LABEL=LinuxGCC)](https://travis-ci.com/cosmoscout/cosmoscout-vr/branches) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ![windows](https://img.icons8.com/ios/20/000000/windows8-filled.png) [![msvc](https://badges.herokuapp.com/travis.com/cosmoscout/cosmoscout-vr?branch=develop&label=msvc&env=LABEL=WindowsMSVC)](https://travis-ci.com/cosmoscout/cosmoscout-vr/branches)
+For now, no binary packages of CosmoScout VR are provided. If you want to test or use the software, you have to compile it yourself. Since most of the dependencies are included, this process should be quite easy.
 
 ## Build Instructions
 
-CosmoScout VR can be build in debug and release mode on Linux and Windows. Most dependencies are included as [git submodules](externals). **You will only need a copy of [CMake](https://cmake.org/) (version 3.12 or greater), [Boost](https://www.boost.org/) (version 1.69 or greater) and a recent C++ compiler (gcc 8, clang 5 or msvc 19). For the compilation of the externals [Python](https://www.python.org/) is also required.**
+CosmoScout VR can be build in debug and release mode on Linux and Windows. Most dependencies are included as [git submodules](externals). **You will only need a copy of [CMake](https://cmake.org/) (version 3.12 or greater), [Boost](https://www.boost.org/) (version 1.69 or greater) and a recent C++ compiler (gcc 7, clang 5 or msvc 19). For the compilation of the externals [Python](https://www.python.org/) is also required.**
 
 ### Linux
 
@@ -139,7 +122,7 @@ cd install/linux-release/bin
 ./start.sh
 ```
 
-If you wich, you can delete the directories `build` and `install` at any time in order to force a complete reconfiguration or re-installation.
+If you which, you can delete the directories `build` and `install` at any time in order to force a complete reconfiguration or re-installation.
 
 For **manual compilation** follow the steps outlined in [make_release.sh](make_release.sh) or [make_debug.sh](make_debug.sh).
 
@@ -176,9 +159,11 @@ cd install\windows-release\bin
 start.bat
 ```
 
-If you wich, you can delete the directories `build` and `install` at any time in order to force a complete reconfiguration or re-installation.
+If you which, you can delete the directories `build` and `install` at any time in order to force a complete reconfiguration or re-installation.
 
-## Using the application
+## Using the Application
+
+The software is configured with a JSON file [config/base/scene/simple_desktop.json](config/base/scene/simple_desktop.json). **The default configuration only contains a few data sets with very low resolution**. More in-depth information and some tutorials will be provided soon.
 
 **Navigation:** There are several ways for interacting with the planet. Currently mouse, keyboard and space navigator are supported. More input devices can be added via VRPN. The mouse navigation is still in development - while it is already quite useful, the user experience may be improved.
 
@@ -190,12 +175,23 @@ If you wich, you can delete the directories `build` and `install` at any time in
 
 **User Interface:** When you start CosmoScout VR, you will see several user interface elements. The top bar shows information regarding your current camera position, the position of the mouse pointer on the planets surface and the current simulation time (UTC). In addition, there are some buttons controlling the simulation time.
 
-On the left hand side is the main menu. Here you can select which datasets are shown, manipulate the surface visualization, add annotations, fly to pre-defined locations and perform various other tasks.
+On the left hand side is the main menu. Here you can select which data sets are shown, manipulate the surface visualization, add annotations, fly to pre-defined locations and perform various other tasks.
 
-**More in-depth information and some tutorials will be provided soon.**
+## Contributing to the Project
 
+We are happy to receive contributions to CosmoScout VR in the form of **pull requests** via Github. Feel free to fork the repository, implement your changes and create a merge request to the `develop` branch.
 
-# Complete List of Dependencies
+Further information on how to contribute can be found in [CONTRIBUTING.md](CONTRIBUTING.md).
+
+# Credits
+
+<p align="center"> 
+  <img src ="resources/screenshots/stars.jpg" />
+</p>
+
+Some badges in this README.md are from [shields.io](https://shields.io).
+
+## Complete List of Dependencies
 
 The list below contains all dependencies of CosmoScout VR. Besides Boost, all of them are included either as [git submodules](externals) or directly in the source tree. Some of the dependencies are only required by some plugins.
 
@@ -234,11 +230,7 @@ The list below contains all dependencies of CosmoScout VR. Besides Boost, all of
 | [Mapserver](http://mapserver.org) | Used to provide map data over the internet. Only required by the `csp-lod-bodies` plugin. | [MIT](http://mapserver.org/copyright.html) |
 | [proj.4](https://proj.org) | The `csp-lod-bodies` requires a [special version](https://github.com/cosmoscout/proj.4) of this library to be used by the Mapserver. | [MIT](https://proj.org/about.html) |
 
-# Credits
-
-The icons and badges in this README.md are from [icons8.com](https://icons8.com) and [shields.io](https://shields.io).
-
-# MIT License
+# License
 
 Copyright (c) 2019 German Aerospace Center (DLR)
 

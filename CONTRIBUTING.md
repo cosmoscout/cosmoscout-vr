@@ -10,9 +10,13 @@ Since CosmoScout VR uses plenty of git submodules, forking is not straight-forwa
 
 Before we can accept your merge request, you have to print, sign, scan and send the [DLR Individual Contributor License Agreement](CLA.md) via e-mail to cosmoscout@dlr.de.
 
-## Some Coding Guidelines
+## Branching Guidelines
 
 The development of CosmoScout VR follows a simplified version of **git-flow**: The `master` branch always contains stable code. New features and bug fixes are implemented in `feature/*` branches and are merged to `develop` once they are finished. When a new milestone is reached, the content of `develop` will be merged to `master` and a tag is created.
+
+Travis CI is used for continuous integration. All pull requests and pushes to `master` and `develop` are built automatically. If you want to test a specific commit on any other branch, add **`[run-ci]`** to your commit message.
+
+## Coding Guidelines
 
 * Each header file should contain an include guard. For CosmoScout VR classes the naming scheme should be `CS_{NAMESPACE}_{FILNAME}_HPP` and for plugins it should be `CSP_{PLUGIN}_{FILNAME}_HPP`.
 * Class names should be written in CamelCase (e.g. `MyClass`).
@@ -169,4 +173,4 @@ Once you are satisfied, you can create pull requests for both, your modified plu
 
 ## 4. Creating a new plugin
 
-From a git-perspective, this is pretty straight-forward. Just create a git repository, name it `csp-<whatever>` and clone it to the `plugins/` directory of CosmoScout VR. For the beginning, you can copy the contents of another similar plugin to that directory. You will only need to add one line to the file `plugins/CMakeLists.txt` in order to include your new plugin to the built process.  
+From a git-perspective, this is pretty straight-forward. Just create a git repository, name it `csp-<whatever>` and clone it to the `plugins/` directory of CosmoScout VR. For the beginning, you can copy the contents of another similar plugin to that directory. You will only need to add one line to the file `plugins/CMakeLists.txt` in order to include your new plugin to the built process.
