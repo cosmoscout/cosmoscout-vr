@@ -17,3 +17,5 @@ The software is configured with a JSON file [config/base/scene/simple_desktop.js
 **User Interface:** When you start CosmoScout VR, you will see several user interface elements. The top bar shows information regarding your current camera position, the position of the mouse pointer on the planets surface and the current simulation time (UTC). In addition, there are some buttons controlling the simulation time.
 
 On the left hand side is the main menu. Here you can select which data sets are shown, manipulate the surface visualization, add annotations, fly to pre-defined locations and perform various other tasks.
+
+<p align="center"><a href="installing.md">&lsaquo; Installing CosmoScout VR</a>  <img src ="img/nav-hr.svg"/> <a href="contributing.md">Contributing to CosmoScout VR &rsaquo;</a></p>

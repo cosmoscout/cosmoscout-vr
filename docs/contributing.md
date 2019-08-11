@@ -178,3 +178,5 @@ Once you are satisfied, you can create pull requests for both, your modified plu
 ## 4. Creating a new plugin
 
 From a git-perspective, this is pretty straight-forward. Just create a git repository, name it `csp-<whatever>` and clone it to the `plugins/` directory of CosmoScout VR. For the beginning, you can copy the contents of another similar plugin to that directory. You will only need to add one line to the file `plugins/CMakeLists.txt` in order to include your new plugin to the built process.
+
+<p align="center"><a href="using.md">&lsaquo; Using CosmoScout VR</a>  <img src ="img/nav-hr.svg"/> <a href="dependencies.md">Dependencies of CosmoScout VR &rsaquo;</a></p>

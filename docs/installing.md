@@ -77,4 +77,4 @@ start.bat
 
 If you which, you can delete the directories `build` and `install` at any time in order to force a complete reconfiguration or re-installation.
 
-<p align="center"><a href="../../README.md">&lsaquo; Back to README.md</a>  <img src ="img/hr.svg"/> <a href="../USING.md">Continue to using.md &rsaquo;</a></p>
+<p align="center"><a href="../README.md">&lsaquo; Back to README.md</a>  <img src ="img/nav-hr.svg"/> <a href="using.md">Using CosmoScout VR &rsaquo;</a></p>

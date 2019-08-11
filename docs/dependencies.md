@@ -40,3 +40,5 @@ The list below contains all dependencies of CosmoScout VR. Besides Boost, all of
 | [GDAL](https://trac.osgeo.org/gdal) | Dependency of the Mapserver. Only required by the `csp-lod-bodies` plugin. | [X11/MIT](https://trac.osgeo.org/gdal/wiki/FAQGeneral#WhatlicensedoesGDALOGRuse) |
 | [Mapserver](http://mapserver.org) | Used to provide map data over the internet. Only required by the `csp-lod-bodies` plugin. | [MIT](http://mapserver.org/copyright.html) |
 | [proj.4](https://proj.org) | The `csp-lod-bodies` requires a [special version](https://github.com/cosmoscout/proj.4) of this library to be used by the Mapserver. | [MIT](https://proj.org/about.html) |
+
+<p align="center"><a href="../README.md">&lsaquo; Back to README.md</a>  <img src ="img/nav-hr.svg"/> <a href="installing.md">Installing CosmoScout VR &rsaquo;</a></p>
