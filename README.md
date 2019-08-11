@@ -17,8 +17,6 @@ CosmoScout VR is a modular virtual universe developed at the German Aerospace Ce
 
 The software can be build on Linux (gcc or clang) and Windows (msvc). Nearly all dependencies are included as [git submodules](externals), please refer to the section [Build Instructions](#build-instructions) in order to get started.
 
-**CosmoScout VR is research software which is still under heavy development and changes on a daily basis. Many features are badly documented, it will crash without warning and may do other unexpected things. We are working hard on improving the user experience - please [report all issues and suggestions](https://github.com/cosmoscout/cosmoscout-vr/issues) you have!**
-
 # Features
 
 <p align="center"> 
@@ -62,7 +60,7 @@ Below is a rough sketch of the possibilities you have with CosmoScout VR. While 
   - [X] Anaglyph stereo systems
   - [ ] Game Pads like the X-Box controller
 
-## Plugins for CosmoScout VR
+# Plugins for CosmoScout VR
 
 CosmoScout VR can be extended via plugins. In fact, without any plugins, CosmoScout VR is just a black and empty universe. Here is a list of available plugins.
 
@@ -86,20 +84,23 @@ Official Plugins | Description | Screenshot
   <img src ="docs/img/light-shafts.jpg" />
 </p>
 
+**CosmoScout VR is research software which is still under heavy development and changes on a daily basis. Many features are badly documented, it will crash without warning and may do other unexpected things. We are working hard on improving the user experience - please [report all issues and suggestions](https://github.com/cosmoscout/cosmoscout-vr/issues) you have!**
+
+## Build Instructions
+
 For now, no binary packages of CosmoScout VR are provided. If you want to test or use the software, you have to compile it yourself. Since most of the dependencies are included, this process should be quite easy.
 
-Complete guides on how to compile the software can be found in [installing.md](docs/installing.md).
+A complete guide on **how to compile** the software can be found [here](docs/installing.md).
 
 ## Using the Software
 
-There are plenty of configuration options available. While there is still a lot of documentation missing, you can already get started by reading this document: [using.md](docs/using.md).
-
+There are plenty of configuration options available. While there is still a lot of documentation missing, you can already get started by reading [this document](docs/using.md).
 
 ## Contributing to the Project
 
-We are happy to receive contributions to CosmoScout VR in the form of **pull requests** via Github. Feel free to fork the repository, implement your changes and create a pull request to the `develop` branch.
+We are happy to receive contributions to CosmoScout VR in the form of pull requests via Github. Feel free to fork the repository, implement your changes and create a pull request to the `develop` branch.
 
-Further information on how to contribute can be found in [contributing.md](docs/contributing.md).
+Further information on **how to contribute** can be found [here](docs/contributing.md).
 
 # License
 
