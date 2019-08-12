@@ -4,11 +4,14 @@
 
 # Contributing to CosmoScout VR
 
-Whenever you encounter a :beetle: **bug** or have :tada: **feature request**, report this via [Github issues](https://github.com/cosmoscout/cosmoscout-vr/issues).
+Whenever you encounter a :beetle: **bug** or have :tada: **feature request**, 
+report this via [Github issues](https://github.com/cosmoscout/cosmoscout-vr/issues).
 
-We are happy to receive contributions to CosmoScout VR in the form of **pull requests** via Github. Feel free to fork the repository, implement your changes and create a merge request to the `develop` branch.
+We are happy to receive contributions to CosmoScout VR in the form of **pull requests** via Github.
+Feel free to fork the repository, implement your changes and create a merge request to the `develop` branch.
 
-Since CosmoScout VR uses plenty of git submodules, forking is not straight-forward. There is a [forking guide](#forking-cosmoscout-vr) available to get you started!
+Since CosmoScout VR uses plenty of git submodules, forking is not straight-forward.
+There is a [forking guide](#forking-cosmoscout-vr) available to get you started!
 
 ## DLR Individual Contributor License Agreement
 
@@ -16,9 +19,12 @@ Before we can accept your merge request, you have to print, sign, scan and send 
 
 ## Branching Guidelines
 
-The development of CosmoScout VR follows a simplified version of **git-flow**: The `master` branch always contains stable code. New features and bug fixes are implemented in `feature/*` branches and are merged to `develop` once they are finished. When a new milestone is reached, the content of `develop` will be merged to `master` and a tag is created.
+The development of CosmoScout VR follows a simplified version of **git-flow**: The `master` branch always contains stable code.
+New features and bug fixes are implemented in `feature/*` branches and are merged to `develop` once they are finished.
+When a new milestone is reached, the content of `develop` will be merged to `master` and a tag is created.
 
-Travis CI is used for continuous integration. All pull requests and pushes to `master` and `develop` are built automatically. If you want to test a specific commit on any other branch, add **`[run-ci]`** to your commit message.
+Travis CI is used for continuous integration. All pull requests and pushes to `master` and `develop` are built automatically.
+If you want to test a specific commit on any other branch, add **`[run-ci]`** to your commit message.
 
 ## Coding Guidelines
 

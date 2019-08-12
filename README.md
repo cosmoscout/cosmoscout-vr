@@ -2,7 +2,8 @@
   <img src ="resources/logo/large.svg" />
 </p>
 
-CosmoScout VR is a modular virtual universe developed at the German Aerospace Center (DLR). It lets you explore, analyze and present huge planetary data sets and large simulation data in real-time.
+CosmoScout VR is a modular virtual universe developed at the German Aerospace Center (DLR).
+It lets you explore, analyze and present huge planetary data sets and large simulation data in real-time.
 
 [![Build Status](https://travis-ci.com/cosmoscout/cosmoscout-vr.svg?branch=master)](https://travis-ci.com/cosmoscout/cosmoscout-vr/branches)
 [![magazine](https://img.shields.io/badge/info-DLR_magazine-purple.svg)](https://dlr.de/dlr/portaldata/1/resources/documents/dlr_magazin_161_EN/DLR-Magazin_161-GB/?page=18)
@@ -14,7 +15,8 @@ CosmoScout VR is a modular virtual universe developed at the German Aerospace Ce
 [![gitter](https://badges.gitter.im/cosmoscout/cosmoscout.svg)](https://gitter.im/cosmoscout/community)
 
 
-The software can be build on Linux (gcc or clang) and Windows (msvc). Nearly all dependencies are included as [git submodules](externals), please refer to the [**documentation**](docs) in order to get started.
+The software can be build on Linux (gcc or clang) and Windows (msvc).
+Nearly all dependencies are included as [git submodules](externals), please refer to the [**documentation**](docs) in order to get started.
 
 # Features
 
@@ -22,7 +24,8 @@ The software can be build on Linux (gcc or clang) and Windows (msvc). Nearly all
   <img src ="docs/img/mars.jpg" />
 </p>
 
-Below is a rough sketch of the possibilities you have with CosmoScout VR. While this list is far from complete it provides a good overview of the current feature set.
+Below is a rough sketch of the possibilities you have with CosmoScout VR.
+While this list is far from complete it provides a good overview of the current feature set.
 
 - [ ] Solar System Simulation
   - [X] Positioning of celestial bodies and space crafts based on [SPICE](https://naif.jpl.nasa.gov/naif)
@@ -61,7 +64,8 @@ Below is a rough sketch of the possibilities you have with CosmoScout VR. While 
 
 # Plugins for CosmoScout VR
 
-CosmoScout VR can be extended via plugins. In fact, without any plugins, CosmoScout VR is just a black and empty universe. Here is a list of available plugins.
+CosmoScout VR can be extended via plugins.
+In fact, without any plugins, CosmoScout VR is just a black and empty universe. Here is a list of available plugins.
 
 Official Plugins | Description | Screenshot
 :----|:-----------------|:----------
@@ -83,7 +87,9 @@ Official Plugins | Description | Screenshot
   <img src ="docs/img/light-shafts.jpg" />
 </p>
 
-**CosmoScout VR is research software which is still under heavy development and changes on a daily basis. Many features are badly documented, it will crash without warning and may do other unexpected things. We are working hard on improving the user experience - please [report all issues and suggestions](https://github.com/cosmoscout/cosmoscout-vr/issues) you have!**
+**CosmoScout VR is research software which is still under heavy development and changes on a daily basis.
+Many features are badly documented, it will crash without warning and may do other unexpected things.
+We are working hard on improving the user experience - please [report all issues and suggestions](https://github.com/cosmoscout/cosmoscout-vr/issues) you have!**
 
 There are several guides in the **[`docs`](docs)** directory to get you started!
 
