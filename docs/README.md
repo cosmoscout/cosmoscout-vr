@@ -11,7 +11,7 @@ This document will give you an overview of the software. There are guides on how
 ### Getting Started
 * [Build Instructions](install.md)
 * [User Interface](using.md)
-* [Configuring CosmoScout VR](install.md)
+* [Configuring CosmoScout VR](configuring.md)
 
 ### Next Steps
 * [Contributing to the Project](contributing.md)
