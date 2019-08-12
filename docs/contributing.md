@@ -1,10 +1,17 @@
+<p align="center"> 
+  <img src ="img/banner-stars.jpg" />
+</p>
+
 # Contributing to CosmoScout VR
 
-Whenever you encounter a :beetle: **bug** or have :tada: **feature request**, report this via [Github issues](https://github.com/cosmoscout/cosmoscout-vr/issues).
+Whenever you encounter a :beetle: **bug** or have :tada: **feature request**, 
+report this via [Github issues](https://github.com/cosmoscout/cosmoscout-vr/issues).
 
-We are happy to receive contributions to CosmoScout VR in the form of **pull requests** via Github. Feel free to fork the repository, implement your changes and create a merge request to the `develop` branch.
+We are happy to receive contributions to CosmoScout VR in the form of **pull requests** via Github.
+Feel free to fork the repository, implement your changes and create a merge request to the `develop` branch.
 
-Since CosmoScout VR uses plenty of git submodules, forking is not straight-forward. There is a [forking guide](#forking-cosmoscout-vr) available to get you started!
+Since CosmoScout VR uses plenty of git submodules, forking is not straight-forward.
+There is a [forking guide](#forking-cosmoscout-vr) available to get you started!
 
 ## DLR Individual Contributor License Agreement
 
@@ -12,9 +19,12 @@ Before we can accept your merge request, you have to print, sign, scan and send 
 
 ## Branching Guidelines
 
-The development of CosmoScout VR follows a simplified version of **git-flow**: The `master` branch always contains stable code. New features and bug fixes are implemented in `feature/*` branches and are merged to `develop` once they are finished. When a new milestone is reached, the content of `develop` will be merged to `master` and a tag is created.
+The development of CosmoScout VR follows a simplified version of **git-flow**: The `master` branch always contains stable code.
+New features and bug fixes are implemented in `feature/*` branches and are merged to `develop` once they are finished.
+When a new milestone is reached, the content of `develop` will be merged to `master` and a tag is created.
 
-Travis CI is used for continuous integration. All pull requests and pushes to `master` and `develop` are built automatically. If you want to test a specific commit on any other branch, add **`[run-ci]`** to your commit message.
+Travis CI is used for continuous integration. All pull requests and pushes to `master` and `develop` are built automatically.
+If you want to test a specific commit on any other branch, add **`[run-ci]`** to your commit message.
 
 ## Coding Guidelines
 
@@ -174,3 +184,12 @@ Once you are satisfied, you can create pull requests for both, your modified plu
 ## 4. Creating a new plugin
 
 From a git-perspective, this is pretty straight-forward. Just create a git repository, name it `csp-<whatever>` and clone it to the `plugins/` directory of CosmoScout VR. For the beginning, you can copy the contents of another similar plugin to that directory. You will only need to add one line to the file `plugins/CMakeLists.txt` in order to include your new plugin to the built process.
+
+<p align="center">
+  <a href="configuring.md">&lsaquo; Configuring CosmoScout VR</a>
+  <img src ="img/nav-vspace.svg"/>
+  <a href="README.md">&#8962; Help Index</a>
+  <img src ="img/nav-vspace.svg"/>
+</p>
+
+<p align="center"><img src ="img/hr.svg"/></p>
