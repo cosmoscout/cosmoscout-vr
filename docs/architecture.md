@@ -11,7 +11,7 @@ More fine-grained information on the architecture of specific plugins will be av
   <img src ="img/architecture.svg" />
 </p>
 
-As a user, you will get in touch with the `cosmoscout` executable and the individual plugin libraries. While the plugins may link to some special-purpose third-party libraries, all of the link against the CosmoScout VR core libraries.
+As a user, you will get in touch with the `cosmoscout` executable and the individual plugin libraries. While the plugins may link to some special-purpose third-party libraries, all of them link against the CosmoScout VR core libraries.
 
 There are five core libraries: [`cs-core`](../src/cs-core) contains all the application logic and links against [`cs-graphics`](../src/cs-graphics), [`cs-gui`](../src/cs-gui) and [`cs-scene`](../src/cs-scene).
 All of them use some utility functionality from [`cs-utils`](../src/cs-utils).
