@@ -41,4 +41,12 @@ The list below contains all dependencies of CosmoScout VR. Besides Boost, all of
 | [Mapserver](http://mapserver.org) | Used to provide map data over the internet. Only required by the `csp-lod-bodies` plugin. | [MIT](http://mapserver.org/copyright.html) |
 | [proj.4](https://proj.org) | The `csp-lod-bodies` requires a [special version](https://github.com/cosmoscout/proj.4) of this library to be used by the Mapserver. | [MIT](https://proj.org/about.html) |
 
+<p align="center">
+  <a href="architecture.md">&lsaquo; Architecture</a>
+  <img src ="img/nav-vspace.svg"/>
+  <a href="README.md">&#8962; Help Index</a>
+  <img src ="img/nav-vspace.svg"/>
+  <a href="install.md">Build Instructions &rsaquo;</a>
+</p>
+
 <p align="center"><img src ="img/hr.svg"/></p>

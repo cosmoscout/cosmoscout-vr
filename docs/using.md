@@ -2,9 +2,7 @@
   <img src ="img/light-shafts.jpg" />
 </p>
 
-# Using CosmoScout VR
-
-The software is configured with a JSON file [config/base/scene/simple_desktop.json](config/base/scene/simple_desktop.json). **The default configuration only contains a few data sets with very low resolution**. More in-depth information and some tutorials will be provided soon.
+# User Interface of CosmoScout VR
 
 **Navigation:** There are several ways for interacting with the scene. Currently mouse, keyboard and space navigator are supported. More input devices can be added via VRPN. The mouse navigation is still in development - while it is already quite useful, the user experience may be improved.
 
@@ -18,4 +16,12 @@ The software is configured with a JSON file [config/base/scene/simple_desktop.js
 
 On the left hand side is the main menu. Here you can select which data sets are shown, manipulate the surface visualization, add annotations, fly to pre-defined locations and perform various other tasks.
 
-<p align="center"><a href="installing.md">&lsaquo; Installing CosmoScout VR</a>  <img src ="img/nav-hr.svg"/> <a href="contributing.md">Contributing to CosmoScout VR &rsaquo;</a></p>
+<p align="center">
+  <a href="install.md">&lsaquo; Build Instructions</a>
+  <img src ="img/nav-vspace.svg"/>
+  <a href="README.md">&#8962; Help Index</a>
+  <img src ="img/nav-vspace.svg"/>
+  <a href="configuring.md">Configuring CosmoScout VR &rsaquo;</a>
+</p>
+
+<p align="center"><img src ="img/hr.svg"/></p>

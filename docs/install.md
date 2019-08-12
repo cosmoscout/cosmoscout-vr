@@ -4,6 +4,8 @@
 
 # Build Instructions
 
+For now, no binary packages of CosmoScout VR are provided. If you want to test or use the software, you have to compile it yourself.
+
 CosmoScout VR can be build in debug and release mode on Linux and Windows. Most dependencies are included as [git submodules](externals). **You will only need a copy of [CMake](https://cmake.org/) (version 3.12 or greater), [Boost](https://www.boost.org/) (version 1.69 or greater) and a recent C++ compiler (gcc 7, clang 5 or msvc 19). For the compilation of the externals [Python](https://www.python.org/) is also required.**
 
 ## Linux
@@ -77,4 +79,12 @@ start.bat
 
 If you which, you can delete the directories `build` and `install` at any time in order to force a complete reconfiguration or re-installation.
 
-<p align="center"><a href="../README.md">&lsaquo; Back to README.md</a>  <img src ="img/nav-hr.svg"/> <a href="using.md">Using CosmoScout VR &rsaquo;</a></p>
+<p align="center">
+  <a href="dependencies.md">&lsaquo; Dependencies</a>
+  <img src ="img/nav-vspace.svg"/>
+  <a href="README.md">&#8962; Help Index</a>
+  <img src ="img/nav-vspace.svg"/>
+  <a href="using.md">User Interface &rsaquo;</a>
+</p>
+
+<p align="center"><img src ="img/hr.svg"/></p>
