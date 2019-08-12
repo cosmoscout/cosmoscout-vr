@@ -21,7 +21,7 @@ Nearly all dependencies are included as [git submodules](externals), please refe
 # Features
 
 <p align="center"> 
-  <img src ="docs/img/mars.jpg" />
+  <img src ="docs/img/banner-mars.jpg" />
 </p>
 
 Below is a rough sketch of the possibilities you have with CosmoScout VR.
@@ -84,7 +84,7 @@ Official Plugins | Description | Screenshot
 # Getting Started
 
 <p align="center"> 
-  <img src ="docs/img/light-shafts.jpg" />
+  <img src ="docs/img/banner-light-shafts.jpg" />
 </p>
 
 **CosmoScout VR is research software which is still under heavy development and changes on a daily basis.

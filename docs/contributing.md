@@ -1,5 +1,5 @@
 <p align="center"> 
-  <img src ="img/stars.jpg" />
+  <img src ="img/banner-stars.jpg" />
 </p>
 
 # Contributing to CosmoScout VR

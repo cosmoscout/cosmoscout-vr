@@ -1,5 +1,5 @@
 <p align="center"> 
-  <img src ="img/light-shafts.jpg" />
+  <img src ="img/banner-light-shafts.jpg" />
 </p>
 
 # Configuring CosmoScout VR

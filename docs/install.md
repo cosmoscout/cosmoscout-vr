@@ -1,5 +1,5 @@
 <p align="center"> 
-  <img src ="img/mars.jpg" />
+  <img src ="img/banner-earth.jpg" />
 </p>
 
 # Build Instructions
