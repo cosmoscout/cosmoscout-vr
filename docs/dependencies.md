@@ -4,7 +4,7 @@
 
 # Complete List of Dependencies
 
-The list below contains all dependencies of CosmoScout VR. Besides Boost, all of them are included either as [git submodules](externals) or directly in the source tree. Some of the dependencies are only required by some plugins.
+The list below contains all dependencies of CosmoScout VR. Besides Boost, all of them are included either as [git submodules](../externals) or directly in the source tree. Some of the dependencies are only required by some plugins.
 
 | Engine Dependencies | Description | License |
 |:---|:---|:---|

@@ -4,7 +4,7 @@
 
 # Configuring CosmoScout VR
 
-The software is configured with a JSON file [config/base/scene/simple_desktop.json](config/base/scene/simple_desktop.json). **The default configuration only contains a few data sets with very low resolution**. More in-depth information and some tutorials will be provided soon.
+The software is configured with a JSON file [config/base/scene/simple_desktop.json](../config/base/scene/simple_desktop.json). **The default configuration only contains a few data sets with very low resolution**. More in-depth information and some tutorials will be provided soon.
 
 <p align="center">
   <a href="using.md">&lsaquo; User Interface</a>
