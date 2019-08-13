@@ -3,31 +3,31 @@
 	url = https://gitlab.com/libtiff/libtiff.git
 [submodule "externals/opensg-1.8"]
 	path = externals/opensg-1.8
-	url = ../../cosmoscout/opensg-1.8.git
+	url = https://github.com/cosmoscout/opensg-1.8.git
 [submodule "externals/c-ares"]
 	path = externals/c-ares
-	url = ../../cosmoscout/c-ares.git
+	url = https://github.com/cosmoscout/c-ares.git
 [submodule "externals/curl"]
 	path = externals/curl
-	url = ../../cosmoscout/curl.git
+	url = https://github.com/cosmoscout/curl.git
 [submodule "externals/curlpp"]
 	path = externals/curlpp
-	url = ../../cosmoscout/curlpp.git
+	url = https://github.com/cosmoscout/curlpp.git
 [submodule "externals/freeglut"]
 	path = externals/freeglut
-	url = ../../cosmoscout/freeglut.git
+	url = https://github.com/cosmoscout/freeglut.git
 [submodule "externals/gli"]
 	path = externals/gli
-	url = ../../cosmoscout/gli.git
+	url = https://github.com/cosmoscout/gli.git
 [submodule "externals/glm"]
 	path = externals/glm
-	url = ../../cosmoscout/glm.git
+	url = https://github.com/cosmoscout/glm.git
 [submodule "externals/tinygltf"]
 	path = externals/tinygltf
-	url = ../../cosmoscout/tinygltf.git
+	url = https://github.com/cosmoscout/tinygltf.git
 [submodule "externals/vista"]
 	path = externals/vista
-	url = ../../cosmoscout/vista.git
+	url = https://github.com/cosmoscout/vista.git
 [submodule "plugins/csp-trajectories"]
 	path = plugins/csp-trajectories
 	url = ../../cosmoscout/csp-trajectories.git
