@@ -6,8 +6,6 @@ rem      and may be used under the terms of the MIT license. See the LICENSE fil
 rem                         Copyright: (c) 2019 German Aerospace Center (DLR)                      #
 rem ---------------------------------------------------------------------------------------------- #
 
-set BOOST_ROOT=T:\modulesystem\tools\boost\boost-1.69.0\install\win7.x86_64.msvc15.all
-
 rem create some required variables -----------------------------------------------------------------
 
 rem This directory should contain the top-level CMakeLists.txt - it is assumed to reside in the same
@@ -17,10 +15,10 @@ set CMAKE_DIR=%~dp0
 rem Get the current directory - this is the default location for the build and install directory.
 set CURRENT_DIR=%cd%
 
-rem The build directory can be passed as first parameter.
+rem The build directory.
 set BUILD_DIR=%CURRENT_DIR%\build\windows-debug
 
-rem The install directory can be passed as second parameter.
+rem The install directory.
 set INSTALL_DIR=%CURRENT_DIR%\install\windows-debug
 
 rem This directory should be the one used as install directory for make_externals.sh.
