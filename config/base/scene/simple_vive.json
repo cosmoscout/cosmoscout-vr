@@ -10,6 +10,7 @@
   "spiceKernel": "../share/config/spice/simple.txt",
   "widgetScale": 1.0,
   "enableMouseRay": true,
+  "enableSensorSizeControl": false,
   "gui": {
     "heightMeter": 1.8,
     "heightPixel": 1200,

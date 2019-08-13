@@ -39,6 +39,14 @@ class CS_CORE_EXPORT SolarSystem {
   /// The current speed of the observer in m/s in relation to his current SPICE reference frame.
   utils::Property<float> pCurrentObserverSpeed;
 
+  /// Luminous power of the sun (in lumens) scaled to match the current observer scale.
+  /// In order to get an illuminance value i (in lux), calculate the distance to the sun
+  /// d = length(p-pSunPosition) and calculate then i = pSunLuminousPower / (d*d*4*PI)
+  utils::Property<float> pSunLuminousPower = 1.f;
+
+  /// Current position of the sun, realtive to the observer.
+  utils::Property<glm::dvec3> pSunPosition = glm::dvec3(0.f);
+
   SolarSystem(std::shared_ptr<TimeControl> const& pTimeControl);
   ~SolarSystem() = default;
 

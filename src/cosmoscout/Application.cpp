@@ -154,6 +154,10 @@ bool Application::Init(VistaSystem* pVistaSystem) {
   registerHeaderBarCallbacks();
   registerCalendarCallbacks();
 
+  if (!mSettings->mEnableSensorSizeControl) {
+    mGuiManager->getSideBar()->callJavascript("hide", "#enableSensorSizeControl");
+  }
+
   // open plugins ----------------------------------------------------------------------------------
   for (auto const& plugin : mSettings->mPlugins) {
     try {
@@ -389,6 +393,7 @@ void Application::registerHeaderBarCallbacks() {
   mGuiManager->getHeaderBar()->registerCallback<double>("add_hours", ([&](double amount) {
     mTimeControl->setTime(mTimeControl->pSimulationTime.get() + 60.0 * 60.0 * amount);
   }));
+
   mGuiManager->getHeaderBar()->registerCallback(
       "increase_time_speed", ([&]() { mTimeControl->increaseTimeSpeed(); }));
 
@@ -409,9 +414,6 @@ void Application::registerHeaderBarCallbacks() {
 
   mGuiManager->getSideBar()->registerCallback<double>("set_lighting_quality",
       ([this](const int value) { mGraphicsEngine->pLightingQuality = value; }));
-
-  mGuiManager->getSideBar()->registerCallback<double>(
-      "set_ambient_light", ([this](double value) { mGraphicsEngine->pAmbientBrightness = value; }));
 
   mGuiManager->getSideBar()->registerCallback<double>("set_shadowmap_resolution",
       ([this](const int val) { mGraphicsEngine->pShadowMapResolution = val; }));
@@ -456,6 +458,71 @@ void Application::registerHeaderBarCallbacks() {
 
   mGuiManager->getSideBar()->registerCallback<double>(
       "set_widget_scale", ([this](double value) { mGraphicsEngine->pWidgetScale = value; }));
+
+  // camera settings -------------------------------------------------------------------------------
+
+  mGuiManager->getSideBar()->registerCallback<double>(
+      "set_sensor_diagonal", ([this](double val) { mGraphicsEngine->pSensorDiagonal = val; }));
+
+  mGuiManager->getSideBar()->registerCallback<double>(
+      "set_focal_length", ([this](double val) { mGraphicsEngine->pFocalLength = val; }));
+
+  mGuiManager->getSideBar()->registerCallback<bool>(
+      "set_enable_hdr", ([this](bool val) { mGraphicsEngine->pEnableHDR = val; }));
+
+  mGuiManager->getSideBar()->registerCallback<bool>("set_enable_auto_exposure",
+      ([this](bool val) { mGraphicsEngine->pEnableAutoExposure = val; }));
+
+  mGuiManager->getSideBar()->registerCallback<double>("set_exposure_compensation",
+      ([this](double val) { mGraphicsEngine->pExposureCompensation = val; }));
+
+  mGuiManager->getSideBar()->registerCallback<double>("set_exposure", ([this](double val) {
+    if (!mGraphicsEngine->pEnableAutoExposure.get()) {
+      mGraphicsEngine->pExposure = val;
+    }
+  }));
+
+  mGuiManager->getSideBar()->registerCallback<double>("set_exposure_adaption_speed",
+      ([this](double val) { mGraphicsEngine->pExposureAdaptionSpeed = val; }));
+
+  mGraphicsEngine->pExposure.onChange().connect([this](float value) {
+    if (mGraphicsEngine->pEnableAutoExposure.get()) {
+      mGuiManager->getSideBar()->callJavascript("set_slider_value", "set_exposure", value);
+    }
+  });
+
+  mGuiManager->getSideBar()->registerCallback("set_exposure_metering_mode_0", ([this]() {
+    mGraphicsEngine->pExposureMeteringMode = cs::graphics::ExposureMeteringMode::AVERAGE;
+  }));
+
+  // mGuiManager->getSideBar()->registerCallback("set_exposure_metering_mode_1", ([this]()
+  // {
+  //     mGraphicsEngine->pExposureMeteringMode = VistaDeferredPBR::ExposureMeteringMode::MEDIAN;
+  // }));
+
+  // mGuiManager->getSideBar()->registerCallback("set_exposure_metering_mode_2", ([this]()
+  // {
+  //     mGraphicsEngine->pExposureMeteringMode =
+  //     VistaDeferredPBR::ExposureMeteringMode::WEIGHTED_AVERAGE;
+  // }));
+
+  mGuiManager->getSideBar()->registerCallback<double>(
+      "set_ambient_light", ([this](double val) { mGraphicsEngine->pAmbientBrightness = val; }));
+
+  mGuiManager->getSideBar()->registerCallback<double>(
+      "set_glow_intensity", ([this](double val) { mGraphicsEngine->pGlowIntensity = val; }));
+
+  mGuiManager->getSideBar()->registerCallback<double, double>(
+      "set_exposure_range", ([this](double val, double handle) {
+        glm::vec2 range = mGraphicsEngine->pAutoExposureRange.get();
+
+        if (handle == 0.0)
+          range.x = val;
+        else
+          range.y = val;
+
+        mGraphicsEngine->pAutoExposureRange = range;
+      }));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -607,7 +674,7 @@ void Application::FrameUpdate() {
 
   {
     auto sunTransform = mSolarSystem->getSun()->getWorldTransform();
-    mGraphicsEngine->setSunDirection(glm::normalize(sunTransform[3].xyz()));
+    mGraphicsEngine->update(glm::normalize(sunTransform[3].xyz()));
   }
 
   {

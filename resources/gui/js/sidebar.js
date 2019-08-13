@@ -93,11 +93,11 @@ function beauty_print_number(value) {
 }
 
 function set_map_data_copyright(text) {
-    $("#img-data-copyright").tooltip({"html": "© " + text, "position": "top", "margin": -5});
+    $("#img-data-copyright").tooltip({ "html": "© " + text, "position": "top", "margin": -5 });
 }
 
 function set_elevation_data_copyright(text) {
-    $("#dem-data-copyright").tooltip({"html": "© " + text, "position": "bottom", "margin": -5});
+    $("#dem-data-copyright").tooltip({ "html": "© " + text, "position": "bottom", "margin": -5 });
 }
 
 function init() {
@@ -115,7 +115,7 @@ function init() {
         window.call_native(this.id, this.checked);
     });
 
-    $('.tooltipped').tooltip({'enterDelay': 500, 'margin': -8});
+    $('.tooltipped').tooltip({ 'enterDelay': 500, 'margin': -8 });
 
     $('.simple-value-radio').change(function () {
         if (this.checked) {
@@ -130,7 +130,7 @@ function init_slider(id, min, max, step, start) {
         start: start,
         connect: (start.length == 1 ? "lower" : true),
         step: step,
-        range: {'min': min, 'max': max},
+        range: { 'min': min, 'max': max },
         format: {
             to: function (value) {
                 return beauty_print_number(value);
@@ -157,15 +157,13 @@ $(document).ready(function () {
         start: 2048,
         connect: "lower",
         snap: true,
-        range: {'min': 256, '25%': 512, '50%': 1024, '75%': 2048, 'max': 4096},
+        range: { 'min': 256, '25%': 512, '50%': 1024, '75%': 2048, 'max': 4096 },
         format: wNumb({})
     });
 
     slider.noUiSlider.on('slide', function (values, handle, unencoded) {
         window.call_native("set_shadowmap_resolution", unencoded, 0);
     });
-
-    init_slider("set_ambient_light", 0.0, 1.0, 0.01, [0.5]);
 
     // Performance
     init_slider("set_lighting_quality", 1.0, 3.0, 1.0, [2]);
@@ -175,6 +173,16 @@ $(document).ready(function () {
     init_slider("set_shadowmap_range", 0.0, 500.0, 1.0, [0, 100]);
     init_slider("set_shadowmap_extension", -500.0, 500.0, 10.0, [-100, 100]);
     init_slider("set_shadowmap_split_distribution", 0.5, 5.0, 0.1, [1]);
+
+    // Camera
+    init_slider("set_exposure", -30, 30, 0.5, [0]);
+    init_slider("set_sensor_diagonal", 10.0, 70, 1, [42]);
+    init_slider("set_focal_length", 10.0, 500, 1, [24]);
+    init_slider("set_exposure_compensation", -10, 10, 0.5, [0]);
+    init_slider("set_exposure_adaption_speed", 0, 20, 0.1, [3]);
+    init_slider("set_ambient_light", 0.0, 0.5, 0.001, [0.01]);
+    init_slider("set_exposure_range", -30.0, 30, 0.1, [-15, 8]);
+    init_slider("set_glow_intensity", 0.0, 1, 0.01, [0.5]);
 
     $(document).on('click', '.item-create-button', function () {
         $(this).addClass('active');

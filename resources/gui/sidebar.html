@@ -1,15 +1,16 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
+
 <head>
     <title>Sidebar</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta charset="utf-8">
 
     <!-- Styles-->
-    <link type="text/css" rel="stylesheet" href="third-party/css/materialize.min.css"/>
-    <link type="text/css" rel="stylesheet" href="third-party/css/nouislider.css"/>
-    <link type="text/css" rel="stylesheet" href="css/gui.css"/>
-    <link type="text/css" rel="stylesheet" href="css/sidebar.css"/>
+    <link type="text/css" rel="stylesheet" href="third-party/css/materialize.min.css" />
+    <link type="text/css" rel="stylesheet" href="third-party/css/nouislider.css" />
+    <link type="text/css" rel="stylesheet" href="css/gui.css" />
+    <link type="text/css" rel="stylesheet" href="css/sidebar.css" />
 
     <!-- Third Party-->
     <script type="text/javascript" src="third-party/js/d3.min.js"></script>
@@ -22,158 +23,296 @@
 </head>
 
 <body>
-<div id="left-side-bar" class="side-bar left">
-    <ul id="tab-list" class="collapsible collapsible-tabs" data-collapsible="accordion">
-                <li id="general-settings-tab" class="bevel sidebar-tab">
-            <div class="collapsible-header tab-header waves-effect waves-light">
-                <i class="material-icons">settings</i><span class="header-name">Advanced Settings</span>
-            </div>
-            <div class="collapsible-body tab-body">
-                <ul id="settings-list" class="collapsible expandable settings-accordion">
-                    <li>
-                        <div class="collapsible-header settings-section waves-effect waves-light">
-                            <i class="material-icons">trending_up</i><span>Graphics</span><i class="material-icons caret-icon">keyboard_arrow_left</i>
-                        </div>
-
-                        <div class="collapsible-body settings-body">
-
-                            <div class="row">
-                                <div class="col s5">
-                                    <label>
-                                        <input class="filled-in simple-value-checkbox" type="checkbox"
-                                                id="set_enable_vsync"
-                                                checked/>
-                                        <span>VSync</span>
-                                    </label>
-                                </div>
-                                <div class="col s7">
-                                    <label>
-                                        <input class="filled-in simple-value-checkbox" type="checkbox"
-                                                id="set_enable_timer_queries"/>
-                                        <span>Display Timings</span>
-                                    </label>
-                                </div>
+    <div id="left-side-bar" class="side-bar left">
+        <ul id="tab-list" class="collapsible collapsible-tabs" data-collapsible="accordion">
+            <li id="general-settings-tab" class="bevel sidebar-tab">
+                <div class="collapsible-header tab-header waves-effect waves-light">
+                    <i class="material-icons">settings</i><span class="header-name">Advanced Settings</span>
+                </div>
+                <div class="collapsible-body tab-body">
+                    <ul id="settings-list" class="collapsible expandable settings-accordion">
+                        <li>
+                            <div class="collapsible-header settings-section waves-effect waves-light">
+                                <i class="material-icons">camera</i><span>Camera Settings</span><i
+                                    class="material-icons caret-icon">keyboard_arrow_left</i>
                             </div>
 
-                            <div class="strike">
-                                <span>Lighting</span>
-                            </div>
+                            <div class="collapsible-body settings-body">
+                                <div id="enableSensorSizeControl">
+                                    <div class="strike">
+                                        <span>Optics</span>
+                                    </div>
 
-                            <div class="row">
-                                <div class="col s7 offset-s5">
-                                    <label>
-                                        <input class="filled-in simple-value-checkbox" type="checkbox" id="set_enable_lighting"/>
-                                        <span>Enable</span>
-                                    </label>
+                                    <div class="row">
+                                        <div class="col s6">
+                                            Sensor Diagonal
+                                        </div>
+                                        <div class="col s6">
+                                            <div id="set_sensor_diagonal">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col s6">
+                                            Focal Length
+                                        </div>
+                                        <div class="col s6">
+                                            <div id="set_focal_length">
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="row">
-                                <div class="col s5">
-                                    Quality
+
+                                <div class="strike">
+                                    <span>Exposure</span>
                                 </div>
-                                <div class="col s7">
-                                    <div id="set_lighting_quality"></div>
+
+                                <div class="row">
+                                    <div class="col s6">
+                                        <label>
+                                            <input class="filled-in simple-value-checkbox" type="checkbox"
+                                                id="set_enable_hdr" checked />
+                                            <span>HDR Rendering</span>
+                                        </label>
+                                    </div>
+                                    <div class="col s6">
+                                        <label>
+                                            <input class="filled-in simple-value-checkbox" type="checkbox"
+                                                id="set_enable_auto_exposure" checked />
+                                            <span>Auto exposure</span>
+                                        </label>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="row">
-                                <div class="col s5">
-                                    Ambient Light
+
+                                <div class="row">
+                                    <div class="col s6">
+                                        Exposure (EV)
+                                    </div>
+                                    <div class="col s6">
+                                        <div id="set_exposure" class="unresponsive">
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="col s7">
-                                    <div id="set_ambient_light">
+
+                                <div class="row">
+                                    <div class="col s6">
+                                        Auto-Exposure Range (EV)
+                                    </div>
+                                    <div class="col s6">
+                                        <div id="set_exposure_range">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col s6">
+                                        Compensation (EV)
+                                    </div>
+                                    <div class="col s6">
+                                        <div id="set_exposure_compensation">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col s6">
+                                        Adaption Speed
+                                    </div>
+                                    <div class="col s6">
+                                        <div id="set_exposure_adaption_speed">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col s6">
+                                        Metering Mode
+                                    </div>
+                                    <div class="col s6">
+                                        <label>
+                                            <input class="filled-in simple-value-radio" name="exposure_metering"
+                                                type="radio" id="set_exposure_metering_mode_0" checked />
+                                            <span>Average</span>
+                                        </label>
+                                    </div>
+                                    <!--  <div class="col offset-s6">
+                                        <label>
+                                            <input class="filled-in simple-value-radio" name="exposure_metering" type="radio" id="set_exposure_metering_mode_1"/>
+                                            <span>Median</span>
+                                        </label>
+                                    </div>
+                                    <div class="col s6 offset-s6">
+                                        <label>
+                                            <input class="filled-in simple-value-radio" name="exposure_metering"   type="radio" id="set_exposure_metering_mode_2"/>
+                                            <span>Weighted Average</<span>
+                                        </label>
+                                    </div> -->
+                                </div>
+
+                                <div class="row">
+                                    <div class="col s6">
+                                        Ambient Light
+                                    </div>
+                                    <div class="col s6">
+                                        <div id="set_ambient_light">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="strike">
+                                    <span>Effects</span>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col s6">
+                                        Glow Intensity
+                                    </div>
+                                    <div class="col s6">
+                                        <div id="set_glow_intensity">
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-
-                            <div class="strike">
-                                <span>Shadows</span>
+                        </li>
+                        <li>
+                            <div class="collapsible-header settings-section waves-effect waves-light">
+                                <i class="material-icons">trending_up</i><span>Graphics</span><i
+                                    class="material-icons caret-icon">keyboard_arrow_left</i>
                             </div>
 
-                            <div class="row">
-                                <div class="col s7 offset-s5">
-                                    <label>
-                                        <input class="filled-in simple-value-checkbox" type="checkbox" id="set_enable_shadows"/>
-                                        <span>Enable</span>
-                                    </label>
-                                </div>
-                            </div>
+                            <div class="collapsible-body settings-body">
 
-                            <div class="row">
-                                <div class="col s5">
-                                    Shadowmap Size
+                                <div class="row">
+                                    <div class="col s5">
+                                        <label>
+                                            <input class="filled-in simple-value-checkbox" type="checkbox"
+                                                id="set_enable_vsync" checked />
+                                            <span>VSync</span>
+                                        </label>
+                                    </div>
+                                    <div class="col s7">
+                                        <label>
+                                            <input class="filled-in simple-value-checkbox" type="checkbox"
+                                                id="set_enable_timer_queries" />
+                                            <span>Display Timings</span>
+                                        </label>
+                                    </div>
                                 </div>
-                                <div class="col s7">
-                                    <div id="set_shadowmap_resolution"></div>
-                                </div>
-                            </div>
 
-                            <div class="row">
-                                <div class="col s5">
-                                    Cascades
+                                <div class="strike">
+                                    <span>Lighting</span>
                                 </div>
-                                <div class="col s7">
-                                    <div id="set_shadowmap_cascades"></div>
-                                </div>
-                            </div>
 
-                            <div class="row">
-                                <div class="col s5">
-                                    Cascade Distribution
+                                <div class="row">
+                                    <div class="col s7 offset-s5">
+                                        <label>
+                                            <input class="filled-in simple-value-checkbox" type="checkbox"
+                                                id="set_enable_lighting" />
+                                            <span>Enable</span>
+                                        </label>
+                                    </div>
                                 </div>
-                                <div class="col s7">
-                                    <div id="set_shadowmap_split_distribution"></div>
+                                <div class="row">
+                                    <div class="col s5">
+                                        Quality
+                                    </div>
+                                    <div class="col s7">
+                                        <div id="set_lighting_quality"></div>
+                                    </div>
                                 </div>
-                            </div>
 
-                            <div class="row">
-                                <div class="col s5">
-                                    Bias
+                                <div class="strike">
+                                    <span>Shadows</span>
                                 </div>
-                                <div class="col s7">
-                                    <div id="set_shadowmap_bias"></div>
-                                </div>
-                            </div>
 
-                            <div class="row">
-                                <div class="col s5">
-                                    Depth Range
+                                <div class="row">
+                                    <div class="col s7 offset-s5">
+                                        <label>
+                                            <input class="filled-in simple-value-checkbox" type="checkbox"
+                                                id="set_enable_shadows" />
+                                            <span>Enable</span>
+                                        </label>
+                                    </div>
                                 </div>
-                                <div class="col s7">
-                                    <div id="set_shadowmap_range"></div>
-                                </div>
-                            </div>
 
-                            <div class="row">
-                                <div class="col s5">
-                                    Sunspace Extension
+                                <div class="row">
+                                    <div class="col s5">
+                                        Shadowmap Size
+                                    </div>
+                                    <div class="col s7">
+                                        <div id="set_shadowmap_resolution"></div>
+                                    </div>
                                 </div>
-                                <div class="col s7">
-                                    <div id="set_shadowmap_extension"></div>
-                                </div>
-                            </div>
 
-                            <div class="row">
-                                <div class="col s7 offset-s5">
-                                    <label>
-                                        <input class="filled-in simple-value-checkbox" type="checkbox"
-                                               id="set_enable_cascades_debug"/>
-                                        <span>Show Shadow LOD</span>
-                                    </label>
+                                <div class="row">
+                                    <div class="col s5">
+                                        Cascades
+                                    </div>
+                                    <div class="col s7">
+                                        <div id="set_shadowmap_cascades"></div>
+                                    </div>
                                 </div>
-                                <div class="col s7 offset-s5">
-                                    <label>
-                                        <input class="filled-in simple-value-checkbox" type="checkbox"
-                                               id="set_enable_shadow_freeze"/>
-                                        <span>Freeze Shadow LOD</span>
-                                    </label>
+
+                                <div class="row">
+                                    <div class="col s5">
+                                        Cascade Distribution
+                                    </div>
+                                    <div class="col s7">
+                                        <div id="set_shadowmap_split_distribution"></div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col s5">
+                                        Bias
+                                    </div>
+                                    <div class="col s7">
+                                        <div id="set_shadowmap_bias"></div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col s5">
+                                        Depth Range
+                                    </div>
+                                    <div class="col s7">
+                                        <div id="set_shadowmap_range"></div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col s5">
+                                        Sunspace Extension
+                                    </div>
+                                    <div class="col s7">
+                                        <div id="set_shadowmap_extension"></div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col s7 offset-s5">
+                                        <label>
+                                            <input class="filled-in simple-value-checkbox" type="checkbox"
+                                                id="set_enable_cascades_debug" />
+                                            <span>Show Shadow LOD</span>
+                                        </label>
+                                    </div>
+                                    <div class="col s7 offset-s5">
+                                        <label>
+                                            <input class="filled-in simple-value-checkbox" type="checkbox"
+                                                id="set_enable_shadow_freeze" />
+                                            <span>Freeze Shadow LOD</span>
+                                        </label>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </li>
-                </ul>
-            </div>
-        </li>
-    </ul>
-</div>
+                        </li>
+                    </ul>
+                </div>
+            </li>
+        </ul>
+    </div>
 </body>
+
 </html>

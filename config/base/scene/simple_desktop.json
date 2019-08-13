@@ -10,6 +10,7 @@
   "spiceKernel": "../share/config/spice/simple.txt",
   "widgetScale": 0.8,
   "enableMouseRay": false,
+  "enableSensorSizeControl": true,
   "anchors": {
     "Sun": {
       "center": "Sun",

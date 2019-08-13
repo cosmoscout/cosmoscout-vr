@@ -142,6 +142,16 @@ void SolarSystem::update() {
   for (auto const& object : mAnchors) {
     object->update(simulationTime, mObserver);
   }
+
+  pSunPosition = mSun->getWorldTransform()[3].xyz();
+
+  double sunIlluminanceAtEarth = 1.1e5;    // in lux
+  double distEarthSun          = 1.496e11; // in meters
+  double sunLuminousPower =
+      4 * glm::pi<double>() * distEarthSun * distEarthSun * sunIlluminanceAtEarth; // in lumens
+
+  double sceneScale = 1.0 / mObserver.getAnchorScale();
+  pSunLuminousPower = sunLuminousPower * sceneScale * sceneScale;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

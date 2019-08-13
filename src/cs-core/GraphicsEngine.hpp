@@ -7,12 +7,18 @@
 #ifndef CS_CORE_GRAPHICS_GraphicsEngine_HPP
 #define CS_CORE_GRAPHICS_GraphicsEngine_HPP
 
+#include "../cs-graphics/HDRBuffer.hpp"
 #include "../cs-graphics/Shadows.hpp"
 #include "../cs-utils/Property.hpp"
 #include "Settings.hpp"
 
 #include <glm/glm.hpp>
 #include <memory>
+
+namespace cs::graphics {
+class ClearHDRBufferNode;
+class ToneMappingNode;
+} // namespace cs::graphics
 
 namespace cs::core {
 
@@ -25,8 +31,8 @@ class CS_CORE_EXPORT GraphicsEngine {
   utils::Property<float>     pWidgetScale                = 1.f;
   utils::Property<float>     pApproximateSceneBrightness = 1.f;
   utils::Property<bool>      pEnableLighting             = false;
+  utils::Property<bool>      pEnableHDR                  = true;
   utils::Property<int>       pLightingQuality            = 2;
-  utils::Property<float>     pAmbientBrightness          = 0.5f;
   utils::Property<bool>      pEnableShadows              = false;
   utils::Property<bool>      pEnableShadowsDebug         = false;
   utils::Property<bool>      pEnableShadowsFreeze        = false;
@@ -36,6 +42,17 @@ class CS_CORE_EXPORT GraphicsEngine {
   utils::Property<glm::vec2> pShadowMapRange             = glm::vec2(0.f, 100.f);
   utils::Property<glm::vec2> pShadowMapExtension         = glm::vec2(-100.f, 100.f);
   utils::Property<float>     pShadowMapSplitDistribution = 1.f;
+  utils::Property<bool>      pEnableAutoExposure         = true;
+  utils::Property<float>     pExposure                   = 0.f;                    // in EV
+  utils::Property<glm::vec2> pAutoExposureRange          = glm::vec2(-15.f, 8.0f); // in EV
+  utils::Property<float>     pExposureCompensation       = 0.f;                    // in EV
+  utils::Property<float>     pExposureAdaptionSpeed      = 3.f;
+  utils::Property<float>     pSensorDiagonal             = 42.f; // in millimeters
+  utils::Property<float>     pFocalLength                = 24.f; // in millimeters
+  utils::Property<float>     pAmbientBrightness          = 0.01f;
+  utils::Property<float>     pGlowIntensity              = 0.5f;
+  utils::Property<graphics::ExposureMeteringMode> pExposureMeteringMode =
+      graphics::ExposureMeteringMode::AVERAGE;
 
   GraphicsEngine(std::shared_ptr<const Settings> const& settings);
 
@@ -44,14 +61,19 @@ class CS_CORE_EXPORT GraphicsEngine {
   void unregisterCaster(graphics::ShadowCaster* caster);
 
   /// The light direction in world space.
-  void setSunDirection(glm::vec3 const& direction);
+  void update(glm::vec3 const& sunDirection);
 
-  graphics::ShadowMap const* getShadowMap() const;
+  std::shared_ptr<graphics::ShadowMap> getShadowMap() const;
+  std::shared_ptr<graphics::HDRBuffer> getHDRBuffer() const;
 
  private:
   void calculateCascades();
 
-  graphics::ShadowMap mShadowMap;
+  std::shared_ptr<const core::Settings>         mSettings;
+  std::shared_ptr<graphics::ShadowMap>          mShadowMap;
+  std::shared_ptr<graphics::HDRBuffer>          mHDRBuffer;
+  std::shared_ptr<graphics::ClearHDRBufferNode> mClearNode;
+  std::shared_ptr<graphics::ToneMappingNode>    mToneMappingNode;
 };
 
 } // namespace cs::core

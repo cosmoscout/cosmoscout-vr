@@ -56,10 +56,11 @@ void from_json(const nlohmann::json& j, Settings& o) {
     o.mGui = iter->get<std::optional<Settings::Gui>>();
   }
 
-  o.mWidgetScale    = j.at("widgetScale").get<float>();
-  o.mEnableMouseRay = j.at("enableMouseRay").get<bool>();
-  o.mAnchors        = j.at("anchors").get<std::map<std::string, Settings::Anchor>>();
-  o.mPlugins        = j.at("plugins").get<std::map<std::string, nlohmann::json>>();
+  o.mWidgetScale             = j.at("widgetScale").get<float>();
+  o.mEnableSensorSizeControl = j.at("enableSensorSizeControl").get<bool>();
+  o.mEnableMouseRay          = j.at("enableMouseRay").get<bool>();
+  o.mAnchors                 = j.at("anchors").get<std::map<std::string, Settings::Anchor>>();
+  o.mPlugins                 = j.at("plugins").get<std::map<std::string, nlohmann::json>>();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
