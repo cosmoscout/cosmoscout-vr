@@ -78,6 +78,8 @@ chmod +x .git/hooks/commit-msg
 
 # Forking CosmoScout VR
 
+> :warning: _**Warning:** The guides below are only for forking the project on GitHub. If you plan to mirror the repository to some other hosting environment (e.g. GitLab), you will have to mirror all plugins since the plugin submodules are included with relative paths (see [.gitmodules](../.gitmodules))._
+
 Depending on what you're planning to implement, you have several options here:
 
 1. **Fix or implement something in the core engine:** In this case you have to fork only the [main repository of CosmoScout VR](https://github.com/cosmoscout/cosmoscout-vr). All plugin submodules will point to the repositories in the [CosmoScout organization](https://github.com/cosmoscout).
