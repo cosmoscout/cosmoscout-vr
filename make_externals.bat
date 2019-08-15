@@ -19,10 +19,10 @@ set EXTERNALS_DIR=%~dp0\externals
 rem Get the current directory - this is the default location for the build and install directory.
 set CURRENT_DIR=%cd%
 
-rem The build directory can be passed as first parameter.
+rem The build directory.
 set BUILD_DIR=%CURRENT_DIR%\build\windows-externals
 
-rem The install directory can be passed as second parameter.
+rem The install directory.
 set INSTALL_DIR=%CURRENT_DIR%\install\windows-externals
 
 rem Create some default installation directories.

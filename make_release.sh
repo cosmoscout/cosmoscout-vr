@@ -18,10 +18,10 @@ CMAKE_DIR="$( cd "$( dirname "$0" )" && pwd )"
 # Get the current directory - this is the default location for the build and install directory.
 CURRENT_DIR="$(pwd)"
 
-# The build directory can be passed as first parameter.
+# The build directory.
 BUILD_DIR="$CURRENT_DIR/build/linux-release"
 
-# The install directory can be passed as second parameter.
+# The install directory.
 INSTALL_DIR="$CURRENT_DIR/install/linux-release"
 
 # This directory should be the one used as install directory for make_externals.sh.

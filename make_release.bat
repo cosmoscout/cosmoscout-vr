@@ -15,10 +15,10 @@ set CMAKE_DIR=%~dp0
 rem Get the current directory - this is the default location for the build and install directory.
 set CURRENT_DIR=%cd%
 
-rem The build directory can be passed as first parameter.
+rem The build directory.
 set BUILD_DIR=%CURRENT_DIR%\build\windows-release
 
-rem The install directory can be passed as second parameter.
+rem The install directory.
 set INSTALL_DIR=%CURRENT_DIR%\install\windows-release
 
 rem This directory should be the one used as install directory for make_externals.sh.

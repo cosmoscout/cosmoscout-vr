@@ -6,10 +6,6 @@
 #                         Copyright: (c) 2019 German Aerospace Center (DLR)                        #
 # ------------------------------------------------------------------------------------------------ #
 
-# ------------------------------------------------------------------------------------------------ #
-# usage: ./make_debug.sh [build_directory] [install_directory] [externals_install_directory]     #
-# ------------------------------------------------------------------------------------------------ #
-
 # Exit on error.
 set -e
 
@@ -22,14 +18,23 @@ CMAKE_DIR="$( cd "$( dirname "$0" )" && pwd )"
 # Get the current directory - this is the default location for the build and install directory.
 CURRENT_DIR="$(pwd)"
 
-# The build directory can be passed as first parameter.
-BUILD_DIR="${1:-$CURRENT_DIR/build/linux-debug}"
+# The build directory.
+BUILD_DIR="$CURRENT_DIR/build/linux-debug"
 
-# The install directory can be passed as second parameter.
-INSTALL_DIR="${2:-$CURRENT_DIR/install/linux-debug}"
+# The install directory.
+INSTALL_DIR="$CURRENT_DIR/install/linux-debug"
 
 # This directory should be the one used as install directory for make_externals.sh.
-EXTERNALS_INSTALL_DIR="${3:-$CURRENT_DIR/install/linux-externals}"
+EXTERNALS_INSTALL_DIR="$CURRENT_DIR/install/linux-externals"
+
+# The optional parameter --with-ccache enables the ccache support of CMake.
+# ccache must be installed on your system.
+if [[ $* == *--with-ccache* ]]
+then
+    CCACHE_FLAGS="-DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache"
+else
+    CCACHE_FLAGS=""
+fi
 
 # create build directory if neccessary -------------------------------------------------------------
 
@@ -40,7 +45,7 @@ fi
 # configure, compile & install ---------------------------------------------------------------------
 
 cd "$BUILD_DIR"
-cmake -G "Eclipse CDT4 - Unix Makefiles" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
+cmake -G "Eclipse CDT4 - Unix Makefiles" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" $CCACHE_FLAGS \
       -DCMAKE_BUILD_TYPE=Debug -DCOSMOSCOUT_EXTERNALS_DIR="$EXTERNALS_INSTALL_DIR" \
       -DCMAKE_EXPORT_COMPILE_COMMANDS=On "$CMAKE_DIR"
 
