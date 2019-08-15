@@ -329,10 +329,10 @@ void GuiManager::hideLoadingScreen() {
       mGlobalGuiArea->removeItem(mLoadingScreen);
     } else {
       mLocalGuiArea->removeItem(mLoadingScreen);
-
-      // All plugins finished loading -> init their custom components.
-      mSideBar->callJavascript("init");
     }
+
+    // All plugins finished loading -> init their custom components.
+    mSideBar->callJavascript("init");
 
     mInputManager->pHoveredGuiNode = nullptr;
 
