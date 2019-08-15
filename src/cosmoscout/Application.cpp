@@ -495,17 +495,6 @@ void Application::registerHeaderBarCallbacks() {
     mGraphicsEngine->pExposureMeteringMode = cs::graphics::ExposureMeteringMode::AVERAGE;
   }));
 
-  // mGuiManager->getSideBar()->registerCallback("set_exposure_metering_mode_1", ([this]()
-  // {
-  //     mGraphicsEngine->pExposureMeteringMode = VistaDeferredPBR::ExposureMeteringMode::MEDIAN;
-  // }));
-
-  // mGuiManager->getSideBar()->registerCallback("set_exposure_metering_mode_2", ([this]()
-  // {
-  //     mGraphicsEngine->pExposureMeteringMode =
-  //     VistaDeferredPBR::ExposureMeteringMode::WEIGHTED_AVERAGE;
-  // }));
-
   mGuiManager->getSideBar()->registerCallback<double>(
       "set_ambient_light", ([this](double val) { mGraphicsEngine->pAmbientBrightness = val; }));
 

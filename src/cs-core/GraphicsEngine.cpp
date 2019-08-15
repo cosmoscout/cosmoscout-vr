@@ -26,6 +26,7 @@ namespace cs::core {
 GraphicsEngine::GraphicsEngine(std::shared_ptr<const core::Settings> const& settings)
     : mSettings(settings)
     , mShadowMap(std::make_shared<graphics::ShadowMap>()) {
+
   auto pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
 
   pWidgetScale = settings->mWidgetScale;
@@ -53,6 +54,7 @@ GraphicsEngine::GraphicsEngine(std::shared_ptr<const core::Settings> const& sett
   pShadowMapSplitDistribution.onChange().connect([this](float) { calculateCascades(); });
 
   pShadowMapRange.onChange().connect([this](glm::vec2) { calculateCascades(); });
+
   pShadowMapExtension.onChange().connect([this](glm::vec2) { calculateCascades(); });
 
   // setup hdr buffer ------------------------------------------------------------------------------
@@ -70,13 +72,17 @@ GraphicsEngine::GraphicsEngine(std::shared_ptr<const core::Settings> const& sett
       toneMappingGLNode, static_cast<int>(utils::DrawOrder::eToneMapping));
 
   pGlowIntensity.onChange().connect([this](float val) { mToneMappingNode->setGlowIntensity(val); });
+
   pExposureMeteringMode.onChange().connect([this](graphics::ExposureMeteringMode val) {
     mToneMappingNode->setExposureMeteringMode(val);
   });
+
   pExposureCompensation.onChange().connect(
       [this](float val) { mToneMappingNode->setExposureCompensation(val); });
+
   pExposureAdaptionSpeed.onChange().connect(
       [this](float val) { mToneMappingNode->setExposureAdaptionSpeed(val); });
+
   pAutoExposureRange.onChange().connect([this](glm::vec2 val) {
     mToneMappingNode->setMinAutoExposure(val[0]);
     mToneMappingNode->setMaxAutoExposure(val[1]);
@@ -95,6 +101,32 @@ GraphicsEngine::GraphicsEngine(std::shared_ptr<const core::Settings> const& sett
       mToneMappingNode->setExposure(value);
     }
   });
+
+  pHeightScale.touch();
+  pWidgetScale.touch();
+  pApproximateSceneBrightness.touch();
+  pEnableLighting.touch();
+  pLightingQuality.touch();
+  pEnableShadows.touch();
+  pEnableShadowsDebug.touch();
+  pEnableShadowsFreeze.touch();
+  pShadowMapResolution.touch();
+  pShadowMapCascades.touch();
+  pShadowMapBias.touch();
+  pShadowMapRange.touch();
+  pShadowMapExtension.touch();
+  pShadowMapSplitDistribution.touch();
+  pEnableAutoExposure.touch();
+  pExposure.touch();
+  pAutoExposureRange.touch();
+  pExposureCompensation.touch();
+  pExposureAdaptionSpeed.touch();
+  pSensorDiagonal.touch();
+  pFocalLength.touch();
+  pAmbientBrightness.touch();
+  pGlowIntensity.touch();
+  pExposureMeteringMode.touch();
+  pEnableHDR.touch();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
