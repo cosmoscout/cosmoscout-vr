@@ -48,7 +48,7 @@ cd install/linux-release/bin
 ./start.sh
 ```
 
-> :information_source: _**Tip:** If you wish, you can delete the directories `build` and `install` at any time in order to force a complete reconfiguration or re-installation._
+:information_source: _**Tip:** If you wish, you can delete the directories `build` and `install` at any time in order to force a complete reconfiguration or re-installation._
 
 For **manual compilation** follow the steps outlined in [make_release.sh](../make_release.sh) or [make_debug.sh](../make_debug.sh).
 
@@ -92,7 +92,7 @@ cd install\windows-release\bin
 start.bat
 ```
 
-> :information_source: _**Tip:** If you wish, you can delete the directories `build` and `install` at any time in order to force a complete reconfiguration or re-installation._
+:information_source: _**Tip:** If you wish, you can delete the directories `build` and `install` at any time in order to force a complete reconfiguration or re-installation._
 
 <p align="center">
   <a href="dependencies.md">&lsaquo; Dependencies</a>

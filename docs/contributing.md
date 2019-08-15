@@ -78,7 +78,7 @@ chmod +x .git/hooks/commit-msg
 
 # Forking CosmoScout VR
 
-> :warning: _**Warning:** The guides below are only for forking the project on GitHub. If you plan to mirror the repository to some other hosting environment (e.g. GitLab), you will have to mirror all plugins since the plugin submodules are included with relative paths (see [.gitmodules](../.gitmodules))._
+:warning: _**Warning:** The guides below are only for forking the project on GitHub. If you plan to mirror the repository to some other hosting environment (e.g. GitLab), you will have to mirror all plugins since the plugin submodules are included with relative paths (see [.gitmodules](../.gitmodules))._
 
 Depending on what you're planning to implement, you have several options here:
 
