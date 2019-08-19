@@ -15,14 +15,14 @@ i {
   font-size: 42px;
 }
 
-.mark {
+.deletable-mark {
     position: absolute;
     top: 0;
     width: 100%;
     padding-bottom: 30px;
 }
 
-.mark .banner {
+.deletable-mark .banner {
     background-color: rgba(20, 20, 20, 0.5);
     border-bottom: 5px solid #ccf;
     margin: 10px 10px 0 10px;
@@ -38,7 +38,7 @@ i {
     border-color: #ccf transparent transparent transparent;
 }
 
-.mark.minimized {
+.deletable-mark.minimized {
     opacity: 0;
     top: 150px
 }

@@ -8,11 +8,23 @@
 @font-face {
     font-family: 'Material Icons';
     src: url('../third-party/fonts/MaterialIcons-Regular.woff') format('woff');
-    ;
+;
+}
+
+* {
+    border-radius: 0 !important;
+}
+
+:focus {
+    outline: none !important;
+}
+
+.debug {
+    background: black;
 }
 
 .material-icons {
-    font-family: 'Material Icons';
+    font-family: 'Material Icons', sans-serif;
     font-weight: normal;
     font-style: normal;
     font-size: 24px; /* Preferred icon size */
@@ -27,11 +39,12 @@
 /* Basic Containers --------------------------------------------------------- */
 
 body {
-    font-family: 'Ubuntu' !important;
+    font-family: 'Ubuntu', sans-serif !important;
     color: #ddf;
     font-size: 1.2rem;
     -webkit-user-select: none !important;
     -webkit-font-smoothing: antialiased;
+    background: transparent;
 }
 
 .hidden {
@@ -43,14 +56,14 @@ body {
 }
 
 xmp, code, pre {
-    background-color: rgba(0,0,0,0.4);
+    background-color: rgba(0, 0, 0, 0.4);
     padding: 5px;
     border-radius: 3px;
     overflow: auto;
 }
 
 .important {
-    background-color: rgba(200,200,255,0.2);
+    background-color: rgba(200, 200, 255, 0.2);
     padding: 5px;
     border-radius: 3px;
 
@@ -62,12 +75,12 @@ strong {
 }
 
 .row {
-    margin-bottom: 2px;
-    padding: 0px 0.25rem;
+    margin: 0 0 2px;
+    padding: 0 0.25rem;
 }
 
 .row .col {
-    padding: 0px 0.2rem;
+    padding: 0 0.2rem;
 }
 
 .text-right {
@@ -89,13 +102,15 @@ input[type="search"]:not(.browser-default),
 textarea.materialize-textarea,
 .select-wrapper input.select-dropdown,
 .select-wrapper input.select-dropdown:focus {
+    border: none;
     border-bottom: 2px solid #ccf;
+    color: #ccf;
     margin: 0 0 5px 0;
     height: auto;
     line-height: 1.5;
-    font-size: 1.2rem;
+    background: transparent;
+    width: 100%;
 }
-
 
 
 input:focus:not([type]):not([readonly]),
@@ -266,6 +281,34 @@ input, textarea {
     box-shadow: none;
 }
 
+.ripple {
+    position: relative;
+    overflow: hidden;
+    transform: translate3d(0, 0, 0);
+}
+
+.ripple:after {
+    content: "";
+    display: block;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    background-image: radial-gradient(circle, #fff 10%, transparent 10.01%);
+    background-repeat: no-repeat;
+    background-position: 50%;
+    transform: scale(10, 10);
+    opacity: 0;
+    transition: transform .5s, opacity 1s;
+}
+
+.ripple:active:after {
+    transform: scale(0, 0);
+    opacity: .3;
+    transition: 0s;
+}
 
 /* Tooltips ----------------------------------------------------------------- */
 
@@ -309,89 +352,99 @@ input, textarea {
     height: 3px;
 }
 
-/* Radio & Chack Boxes ------------------------------------------------------ */
+/* Radio & Check Boxes ------------------------------------------------------ */
 
-.radio-button + div,
-.radio-button + span {
-    border-top: 1px solid transparent;
+/* Check Boxes -------------------------------------------------------------- */
+
+input[type=checkbox] {
+    /* to hide the checkbox itself */
+    display: none;
 }
 
-.radio-button:checked + div,
-.radio-button:checked + span {
-    color: #fff;
-    background-color: rgba(230, 230, 255, 0.4);
+label input[type=checkbox] + i::before {
+    display: inline-block;
+    position: absolute;
+    left: 0;
+    top: 0;
+    margin: 2px 0 4px 0;
+    content: "check_box_outline_blank";
+}
+
+label.checklabel span {
+    padding-left: 35px;
+}
+
+label input[type=checkbox]:checked + i::before {
+    color: white;
+    content: "check_box";
+}
+
+label.checklabel {
+    position: relative;
+    margin-bottom: 0;
+}
+
+label.checklabel:hover {
+    color: white;
     text-shadow: 0 0 3px rgba(255, 255, 255, 0.4), 0 0 10px rgba(255, 255, 255, 0.4);
-    border-top: 1px dashed #ccf;
-    border-left: 1px dashed #ccf;
-    border-right: 1px dashed #ccf;
+    cursor: pointer;
 }
 
-label span {
-    transition: none !important;
-}
-
-label span:hover {
-    color: #fff !important;
-    text-shadow: 0 0 3px rgba(255, 255, 255, 0.4), 0 0 10px rgba(255, 255, 255, 0.4);
-}
-
-label span:active {
+label.checklabel:active {
     top: 1px;
 }
 
-[type="radio"]:not(:checked) + span, 
-[type="radio"]:checked + span,
-[type="checkbox"] + span:not(.lever) {
-    font-size: 1.2rem;
-    color: #ddf;
+
+/* Radio Buttons ------------------------------------------------------------ */
+
+input[type=radio] {
+    /* to hide the radio button itself */
+    display: none;
 }
 
-.unresponsive [type="radio"]:not(:checked) + span,
-.unresponsive [type="radio"]:checked + span,
-.unresponsive [type="checkbox"] + span {
-    color: rgb(167, 167, 167);
-}
-
-.filled-in[type="checkbox"]:not(:checked) + span:not(.lever)::after,
-[type="radio"]:not(:checked) + span:before,
-[type="radio"]:not(:checked) + span:after {
+input[type=radio] + span::before {
+    display: inline-block;
+    background: transparent;
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    margin: 6px 4px;
+    width: 16px;
+    height: 16px;
+    vertical-align: sub;
     border: 2px solid #ccf;
+    border-radius: 50%;
 }
 
-.unresponsive [type="checkbox"].filled-in:not(:checked) + span:after,
-.unresponsive [type="radio"]:not(:checked) + span:before,
-.unresponsive [type="radio"]:not(:checked) + span:after {
-    border: 2px solid rgb(167, 167, 167);
+input[type=radio] + span {
+    padding-left: 39px;
 }
 
-.filled-in[type="checkbox"]:checked + span:not(.lever)::after,
-[type="radio"]:checked + span:not(.lever)::after {
-    border: 2px solid #fff;
-    background-color: #fff;
+input[type=radio]:checked + span::before {
+    background: white;
+    border: 2px solid transparent;
 }
 
-.unresponsive.filled-in[type="checkbox"]:checked + span:not(.lever)::after,
-.unresponsive [type="radio"]:checked + span:after {
-    border: 2px solid rgb(167, 167, 167);
-    background-color: rgb(167, 167, 167);
+label.radiolabel {
+    position: relative;
+    margin-bottom: 0;
 }
 
-.filled-in[type="checkbox"]:checked + span:not(.lever)::before {
-    border-right: 2px solid #333;
-    border-bottom: 2px solid #333;
-}
-
-.toggle-button.active {
-    color: #fff;
-    background-color: rgba(230, 230, 255, 0.4);
+label.radiolabel:hover {
+    color: white;
     text-shadow: 0 0 3px rgba(255, 255, 255, 0.4), 0 0 10px rgba(255, 255, 255, 0.4);
-    border: 1px dashed #ccf;
+    cursor: pointer;
+}
+
+label.radiolabel:active {
+    top: 1px;
 }
 
 /* Utilities ---------------------------------------------------------------- */
 
 hr {
-    margin-top: 0px;
+    margin-top: 0;
     margin-bottom: 10px;
     border: 0;
     border-top: 1px dashed rgba(230, 230, 255, 0.3);
@@ -409,11 +462,9 @@ hr {
 .unresponsive .noUi-connect,
 .unresponsive .noUi-target .range-label {
     background-color: rgb(167, 167, 167);
-    ;
 }
 
 .noUi-target .range-label {
-    transform: scale(.5);
     height: auto;
     width: auto;
     left: 50%;
@@ -426,9 +477,12 @@ hr {
 }
 
 .noUi-target .noUi-active .range-label {
-    border-radius: 15px;
     transform: translate(-50%, -40px);
-    border-radius: 50%;
+    border-radius: 50% !important;
+}
+
+.noUi-target .range-label {
+    border-radius: 50% !important;
 }
 
 .range-label span {
@@ -438,8 +492,8 @@ hr {
     position: relative;
     white-space: nowrap;
     top: -1px;
-    left: 0px;
-    border-radius: 50%;
+    left: 0;
+    border-radius: 50% !important;
     padding: 2px;
 }
 
@@ -455,13 +509,98 @@ hr {
     box-shadow: none;
 }
 
+/* Collapsibles ------------------------------------------------------------- */
+
+.collapsible-header,
+.collapsible-body {
+    background: none;
+    border: none;
+    outline: none;
+}
+
+.collapsible-body {
+    padding: 10px 3px 3px 3px;
+}
+
+.collapsible-header {
+    color: #fff;
+    display: block;
+    font-size: 1.8rem;
+    line-height: 3.4rem;
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.4), 0 0 10px #aaf;
+    white-space: nowrap;
+    overflow: hidden;
+    text-align: center;
+    padding: 3px;
+}
+
+.collapsible-header .header-name {
+    opacity: 0;
+    text-transform: uppercase;
+    transition: opacity 0.2s linear;
+}
+
+.collapsible-header:hover .header-name,
+.collapsible > li.active .collapsible-header .header-name {
+    opacity: 1;
+    transition: opacity 0.2s linear;
+    transition-delay: 0.2s;
+}
+
+.collapsible-header:active {
+    top: 1px;
+}
+
+.collapsible-header:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.collapsible-header i {
+    position: absolute;
+    left: 9px;
+    font-size: 35px;
+    top: 10px;
+}
+
+.collapsible-body p {
+    padding: 0;
+}
+
+.collapsible {
+    border: none;
+    box-shadow: none;
+}
+
+.help .container .collapsible {
+    background-color: rgba(200, 200, 255, 0.1);
+}
+
+.right .collapsible > li {
+    background: linear-gradient(to right, rgba(20, 20, 20, 0.8), rgba(20, 20, 20, 0.4));
+}
+
+.left .collapsible > li {
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.collapsible > li {
+    transition: border 0.3s ease-out;
+    margin-bottom: 5px;
+    box-shadow: none;
+    border-bottom: 1px solid rgba(0, 0, 0, 0);
+}
+
+.collapsible > li {
+    border-top: 2px solid #ccf;
+}
+
 /* Strike ------------------------------------------------------------------- */
 
 .strike {
     display: block;
     text-align: center;
     overflow: hidden;
-    white-space: nowrap; 
+    white-space: nowrap;
     margin: 25px 0 10px 0px;
 }
 
@@ -484,7 +623,7 @@ hr {
     top: 50%;
     width: 9999px;
     height: 1px;
-    background-image: linear-gradient(to right, rgba(230, 230, 255, 0.5) 3px, transparent 3px); 
+    background-image: linear-gradient(to right, rgba(230, 230, 255, 0.5) 3px, transparent 3px);
     background-size: 6px;
     background-repeat: repeat-x;
 }
@@ -525,59 +664,96 @@ input.color-picker {
 
 /* Dropdowns ---------------------------------------------------------------- */
 
-.dropdown-content {
-    background-color: rgba(20, 20, 20, 1);
-    border: 1px solid #ccf;
-    margin-bottom: 5px;
+.bootstrap-select:not([class*=col-]):not([class*=form-control]):not(.input-group-btn) {
+    width: 100%;
+}
+
+.btn-light:not(:disabled):not(.disabled).active, .btn-light:not(:disabled):not(.disabled):active, .show>.btn-light.dropdown-toggle {
+    background-color: transparent;
+    color: white;
+    text-shadow: 0 0 3px rgba(255, 255, 255, 0.4), 0 0 10px rgba(255, 255, 255, 0.4) !important;
+}
+
+.dropdown-toggle {
+    background: transparent;
+    color: #ccf;
+    border: none;
+    border-bottom: 2px solid #ccf;
+}
+
+.dropdown-toggle.show {
+    background-color: transparent !important;
+    color: white !important;
+    text-shadow: 0 0 3px rgba(255, 255, 255, 0.4), 0 0 10px rgba(255, 255, 255, 0.4) !important;
+}
+
+.show>.btn-light.dropdown-toggle:focus,
+.dropdown-toggle:hover {
+    color: white;
+    text-shadow: 0 0 3px rgba(255, 255, 255, 0.4), 0 0 10px rgba(255, 255, 255, 0.4);
+    background: transparent;
     box-shadow: none;
 }
 
-.dropdown-content li,
-.dropdown-content li > span,
-.dropdown-content li > a {
+.dropdown-menu {
+    background: black;
+    border: 1px solid #ccf
+}
+
+.dropdown-item,
+.dropdown-option {
+    background: black;
     color: #ccf;
-    min-height: 20px;
-    line-height: 0.5rem;
 }
 
-.dropdown-content li:hover,
-.dropdown-content li.active {
-    background-color: rgba(255, 255, 255, 0.1);
-    text-shadow: 0 0 3px rgba(255, 255, 255, 0.2), 0 0 10px rgba(255, 255, 255, 0.2);
-    color: white;
-}
-
-.dropdown-content li.selected,
-.dropdown-content li.active.selected {
-    background-color: rgba(255, 255, 255, 0.2);
-    text-shadow: 0 0 3px rgba(255, 255, 255, 0.2), 0 0 10px rgba(255, 255, 255, 0.2);
-    color: white;
-}
-
-.select-wrapper .caret{
-    fill: white;
-    top: 3px;
-}
-
-.unresponsive .select-wrapper span.caret {
-    color: gray;
-}
-
-input.select-dropdown {
-    color: inherit;
-}
-input.select-dropdown:hover {
-    color: #fff;
+.dropdown-item:hover,
+.dropdown-item:focus,
+.dropdown-option:focus,
+.dropdown-option:hover {
+    background: black;
+    color: #ccf;
     text-shadow: 0 0 3px rgba(255, 255, 255, 0.4), 0 0 10px rgba(255, 255, 255, 0.4);
+    outline: none;
 }
 
-.select-dropdown li.optgroup:hover,
-.select-dropdown li.optgroup > span {
-    color: #aac;
-    background-color: transparent;
-    text-shadow: none;
+.bootstrap-select .dropdown-toggle:focus, .bootstrap-select>select.mobile-device:focus+.dropdown-toggle {
+    outline: none !important;
+    box-shadow: none;
 }
 
-.select-dropdown li.optgroup {
-    border-top: 1px dashed #ccf;
+.dropdown-item.active,
+.dropdown-option:active {
+    background-color: black;
+    text-shadow: 0 0 3px rgba(255, 255, 255, 0.4), 0 0 10px rgba(255, 255, 255, 0.4);
+    color: white;
+}
+
+/* Nav Tabs --------------------------------------------------------------*/
+
+.nav.nav-tabs {
+    margin: 0;
+}
+
+.nav-tabs .nav-item {
+    text-align: center;
+    color: #ccf;
+    padding: 2px;
+    border: none;
+    font-size: 1rem;
+}
+
+.nav-tabs .nav-link:hover {
+    border: none;
+    text-shadow: 0 0 3px rgba(255, 255, 255, 0.4), 0 0 10px rgba(255, 255, 255, 0.4);
+    color: white;
+}
+
+.nav-tabs .nav-link.active {
+    color: #ccf;
+    background-color: rgba(255, 255, 255, 0.2);
+    border: none;
+}
+
+.tab-content {
+    margin: 10px;
 }
