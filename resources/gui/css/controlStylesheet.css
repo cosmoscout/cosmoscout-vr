@@ -1,0 +1,136 @@
+.divContainer {
+    position: absolute;
+    bottom: -120px;
+    left: 0px;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    transition: bottom 1s;
+    transition-timing-function: ease-out;
+}
+
+.divContainer.visible{
+    bottom: 0px;
+}
+
+#control {
+    z-index: 2;
+    margin: auto;
+    width: auto;
+}
+
+#timeForm {
+    border-radius: 10px;
+    width: 400px;
+    height: 80px;
+    padding: 2px;
+    background-color: rgba(20, 20, 20, 0.5);
+    transform: translateY(18%);
+    z-index: 3;
+    overflow: hidden;
+    transition: transform 1s, border-radius 1s;
+    transition-timing-function: ease-out;
+}
+
+#timeForm.calendar-active {
+    transform: translateY(-353px);
+    border-radius: 10px 10px 0 0;
+}
+
+#dateLabel {
+    color: #ddf;
+    font-size: 15px;
+    height: 20px;
+    width: 180px;
+}
+
+#btnCalendar {
+    width: 20px;
+    height: 20px;
+    transform: translate(350px,-22px);
+    border-style: solid;
+    border-width: 1px;
+    border-color: black;
+    margin: 2px 2px 2px 2px;
+    background-color: black;
+    border-radius: 3px;
+}
+
+.dateRow {
+    width: 100%;
+    height: 20px;
+}
+
+#calendarContainer{
+    position: absolute;
+    left: 50%;
+}
+
+#calendar {
+    pointer-events: none;
+    z-index: -1;
+    position: relative;
+    left: -50%;
+    width: 800px;
+    height: 363px;
+    bottom: 100px;
+    transition: transform 1s, opacity 1s;
+    transition-timing-function: ease-out;
+}
+
+#calendar.visible{
+    z-index: 10;
+    pointer-events: all;
+    transform: translateY(-363px);
+}
+
+#vizualization {
+    z-index: 2;
+}
+
+#range {
+    margin: 5px 20px 35px 20px;
+}
+
+table {
+    border-collapse: unset;
+    table-layout: fixed;
+}
+
+td {
+    padding: 10px 10px;
+    text-align: center;
+}
+
+.noUi-pips {
+    z-index: 1;
+    pointer-events: none
+}
+
+.btnDiv {
+    width: 50px;
+    height: 100%;
+    background-color: rgba(20, 20, 20, 0.5);
+    padding: 10px 10px;
+    border: 1px;
+    border-style: solid;
+    border-radius: 15px;
+    transform: translateY(50%);
+    transition: background-color 0.5s;
+}
+
+.btnDiv:hover {
+    background-color: rgba(100, 100, 100, 0.5);
+}
+
+.btnDiv.dirJump {
+    width: 100px;
+}
+
+#btnLock {
+    transition: background-color 1s;
+}
+
+#btnLock.locked {
+    background-color: rgba(255, 0, 0, 0.712);
+}

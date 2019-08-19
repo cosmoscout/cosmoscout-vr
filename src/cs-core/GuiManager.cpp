@@ -82,7 +82,8 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
   mNotifications = new gui::GuiItem("file://../share/resources/gui/notifications.html");
   mLogo          = new gui::GuiItem("file://../share/resources/gui/logo.html");
   mStatistics    = new gui::GuiItem("file://../share/resources/gui/statistics.html");
-
+  mTimeNavigationBar = new gui::GuiItem("file://../share/resources/gui/timenavigation.html");
+  
   mLoadingScreen->setIsInteractive(false);
 
   // Add global gui items to mGlobalGuiArea if available, else use the mLocalGuiArea.
@@ -92,6 +93,7 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
     mGlobalGuiArea->addItem(mSideBar);
     mGlobalGuiArea->addItem(mHeaderBar);
     mGlobalGuiArea->addItem(mCalendar);
+    mGlobalGuiArea->addItem(mTimeNavigationBar);
     mGlobalGuiArea->addItem(mLoadingScreen);
   } else {
     mLocalGuiArea->addItem(mLogo);
@@ -99,6 +101,7 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
     mLocalGuiArea->addItem(mSideBar);
     mLocalGuiArea->addItem(mHeaderBar);
     mLocalGuiArea->addItem(mCalendar);
+    mLocalGuiArea->addItem(mTimeNavigationBar);
     mLocalGuiArea->addItem(mLoadingScreen);
   }
 
@@ -127,6 +130,13 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
   mHeaderBar->setRelPositionY(0);
   mHeaderBar->setOffsetY(40);
   mHeaderBar->setCursorChangeCallback([this](gui::Cursor c) { setCursor(c); });
+
+  mTimeNavigationBar->setRelSizeX(1.f);
+  mTimeNavigationBar->setSizeY(220);
+  mTimeNavigationBar->setRelPositionX(0.5);
+  mTimeNavigationBar->setRelPositionY(1.0);
+  mTimeNavigationBar->setOffsetY(-110);
+  mTimeNavigationBar->setCursorChangeCallback([this](gui::Cursor c) { setCursor(c); });
 
   mNotifications->setSizeX(420);
   mNotifications->setSizeY(320);
@@ -167,6 +177,7 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
 
   mSideBar->waitForFinishedLoading();
   mHeaderBar->waitForFinishedLoading();
+  mTimeNavigationBar->waitForFinishedLoading();
   mNotifications->waitForFinishedLoading();
   mLoadingScreen->waitForFinishedLoading();
 

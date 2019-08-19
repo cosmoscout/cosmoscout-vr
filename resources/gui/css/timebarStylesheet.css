@@ -1,0 +1,70 @@
+body{
+    font-family: "Times New Roman", Times, serif;
+    color: #ddf;
+    font-size: 15px;
+    -webkit-user-select: none !important;
+    -webkit-font-smoothing: antialiased;
+  }
+
+
+  .vis-timeline {
+    background: rgb(110, 110, 110);
+  }
+
+  .vis-time-axis .vis-text {
+    padding: 1px;
+    color: #ddf;
+  }
+
+  .vis-item {
+    border-color: rgba(20, 20, 20, 0.308);
+    background-color: rgba(20, 20, 20, 0.247);
+    color: #ddf;
+    border-radius: 10px;
+  }
+
+  .vis-item.vis-box {
+    border-radius: 10px;
+  }
+
+  .vis-item.vis-range {
+    border-radius: 10px;
+  }
+
+  .vis-item,
+  .vis-item.vis-line {
+    border-width: 3px;
+    border-radius: 10px;
+  }
+
+  .vis-item.vis-dot {
+    border-width: 0;
+    border-radius: 0;
+  }
+
+  .vis-item.vis-selected {
+    border-color: rgba(70, 70, 70, 0.308);
+    background-color: rgba(70, 70, 70, .247);
+  }
+
+
+  .vis-panel.vis-bottom {
+    height: 40px !important;
+    top: 50px !important;
+  }
+
+  .vis-text.vis-major {
+    top: 17px !important;
+  }
+
+  .vis-panel.vis-background.vis-horizontal,
+  .vis-panel.vis-center,
+  .vis-panel.vis-left,
+  .vis-panel.vis-right,
+  .vis-grid.vis-minor {
+    height: 71px !important;
+  }
+
+  .vis-group {
+    top: 10px;
+  }

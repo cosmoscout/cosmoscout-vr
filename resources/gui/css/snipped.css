@@ -1,0 +1,10 @@
+
+#snippet {
+    background-color: rgb(110, 110, 110);
+    border-style: solid;
+    border: 1px;
+    border-bottom-left-radius:50%;
+    border-bottom-right-radius:50%;
+    border-color: aqua;
+    pointer-events: none;
+}

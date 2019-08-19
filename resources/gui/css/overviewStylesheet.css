@@ -1,0 +1,67 @@
+
+#overview .vis-timeline {
+  border: 0px solid #bfbfbf;
+  background: rgba(20, 20, 20, 0.4);
+}
+
+#overview .vis-custom-time {
+  background-color: rgba(0, 110, 255, 0);
+  width: 2px;
+  cursor: move;
+  z-index: 1;
+  pointer-events: none;;
+}
+
+
+
+#overview .vis-item,
+#overview .vis-item.vis-line {
+  border-width: 3px;
+  border-radius: 10px;
+}
+
+#overview .vis-item.vis-dot {
+  border-width: 0;
+  border-radius: 0;
+}
+
+#overview .vis-item.vis-box,
+#overview .vis-item.vis-range {
+  height: 18px !important;
+  top: -10px !important;
+}
+
+#overview .vis-panel.vis-bottom {
+  height: 40px !important;
+  top: -2px !important;
+}
+
+#overview .vis-item.vis-box {
+  width: 18px !important;
+}
+
+#overview .vis-item-content {
+  visibility: hidden;
+}
+
+#overview .vis-text.vis-major {
+  top: 17px !important;
+  font-size: 11px;
+}
+
+#overview .vis-panel.vis-background.vis-horizontal,
+#overview .vis-panel.vis-center,
+#overview .vis-panel.vis-left,
+#overview .vis-panel.vis-right,
+#overview .vis-grid.vis-minor {
+  height: 20px !important;
+}
+
+#overview .vis-group {
+  top: 10px;
+}
+
+#overview .vis-content {
+  top: 0px !important;
+}
+

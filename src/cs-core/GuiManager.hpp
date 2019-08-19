@@ -149,6 +149,8 @@ class CS_CORE_EXPORT GuiManager {
   gui::GuiItem* mNotifications = nullptr;
   gui::GuiItem* mLogo          = nullptr;
   gui::GuiItem* mStatistics    = nullptr;
+  gui::GuiItem* mTimeNavigationBar = nullptr;
+
 
   VistaTransformNode* mGlobalGuiTransform  = nullptr;
   VistaTransformNode* mLocalGuiTransform   = nullptr;
