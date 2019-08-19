@@ -149,6 +149,10 @@ function init_slider(id, min, max, step, start) {
     });
 }
 
+function set_scene_luminance(value) {
+    $("#scene-luminance").text(beauty_print_number(parseFloat(value)));
+}
+
 $(document).ready(function () {
     //init();
 

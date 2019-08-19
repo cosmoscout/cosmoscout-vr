@@ -104,7 +104,6 @@ GraphicsEngine::GraphicsEngine(std::shared_ptr<const core::Settings> const& sett
 
   pHeightScale.touch();
   pWidgetScale.touch();
-  pApproximateSceneBrightness.touch();
   pEnableLighting.touch();
   pLightingQuality.touch();
   pEnableShadows.touch();
@@ -167,6 +166,10 @@ void GraphicsEngine::update(glm::vec3 const& sunDirection) {
   // update exposure
   if (pEnableAutoExposure.get()) {
     pExposure = mToneMappingNode->getExposure();
+  }
+
+  if (pEnableHDR.get()) {
+    pAverageLuminance = mToneMappingNode->getLastAverageLuminance();
   }
 }
 

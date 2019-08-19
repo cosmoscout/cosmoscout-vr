@@ -491,12 +491,16 @@ void Application::registerHeaderBarCallbacks() {
     }
   });
 
+  mGraphicsEngine->pAverageLuminance.onChange().connect([this](float value) {
+    mGuiManager->getSideBar()->callJavascript("set_scene_luminance", value);
+  });
+
   mGuiManager->getSideBar()->registerCallback("set_exposure_metering_mode_0", ([this]() {
     mGraphicsEngine->pExposureMeteringMode = cs::graphics::ExposureMeteringMode::AVERAGE;
   }));
 
-  mGuiManager->getSideBar()->registerCallback<double>(
-      "set_ambient_light", ([this](double val) { mGraphicsEngine->pAmbientBrightness = std::pow(val, 10.0); }));
+  mGuiManager->getSideBar()->registerCallback<double>("set_ambient_light",
+      ([this](double val) { mGraphicsEngine->pAmbientBrightness = std::pow(val, 10.0); }));
 
   mGuiManager->getSideBar()->registerCallback<double>(
       "set_glow_intensity", ([this](double val) { mGraphicsEngine->pGlowIntensity = val; }));

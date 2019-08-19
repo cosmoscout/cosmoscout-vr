@@ -343,6 +343,13 @@ float ToneMappingNode::getGlowIntensity() const {
   return mGlowIntensity;
 }
 
+float ToneMappingNode::getLastAverageLuminance() const {
+  if (mGlobalLuminaceData.mPixelCount > 0 && mGlobalLuminaceData.mTotalLuminance > 0) {
+    return mGlobalLuminaceData.mTotalLuminance / mGlobalLuminaceData.mPixelCount;
+  }
+  return 0;
+}
+
 bool ToneMappingNode::ToneMappingNode::Do() {
   if (mEnableAutoExposure) {
     mHDRBuffer->calculateLuminance(mExposureMeteringMode);
@@ -359,10 +366,9 @@ bool ToneMappingNode::ToneMappingNode::Do() {
     // Time-dependent visual adaptation for fast realistic image display
     // https://dl.acm.org/citation.cfm?id=344810
     if (mGlobalLuminaceData.mPixelCount > 0 && mGlobalLuminaceData.mTotalLuminance > 0) {
-      float frameTime = GetVistaSystem()->GetFrameLoop()->GetAverageLoopTime();
-      mAutoExposure += (std::log2(1.f / (mGlobalLuminaceData.mTotalLuminance /
-                                            mGlobalLuminaceData.mPixelCount)) -
-                           mAutoExposure) *
+      float frameTime        = GetVistaSystem()->GetFrameLoop()->GetAverageLoopTime();
+      float averageLuminance = getLastAverageLuminance();
+      mAutoExposure += (std::log2(1.f / averageLuminance) - mAutoExposure) *
                        (1.f - std::exp(-mExposureAdaptionSpeed * frameTime));
     }
   }

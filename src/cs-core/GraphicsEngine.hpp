@@ -29,7 +29,6 @@ class CS_CORE_EXPORT GraphicsEngine {
  public:
   utils::Property<float>     pHeightScale                = 1.f;
   utils::Property<float>     pWidgetScale                = 1.f;
-  utils::Property<float>     pApproximateSceneBrightness = 1.f;
   utils::Property<bool>      pEnableLighting             = true;
   utils::Property<bool>      pEnableHDR                  = true;
   utils::Property<int>       pLightingQuality            = 2;
@@ -53,6 +52,9 @@ class CS_CORE_EXPORT GraphicsEngine {
   utils::Property<float>     pGlowIntensity              = 0.1f;
   utils::Property<graphics::ExposureMeteringMode> pExposureMeteringMode =
       graphics::ExposureMeteringMode::AVERAGE;
+
+  utils::Property<float> pApproximateSceneBrightness = 1.f;
+  utils::Property<float> pAverageLuminance           = 1.f;
 
   GraphicsEngine(std::shared_ptr<const Settings> const& settings);
 

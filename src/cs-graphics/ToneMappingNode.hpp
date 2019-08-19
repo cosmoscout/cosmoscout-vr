@@ -50,6 +50,8 @@ class CS_GRAPHICS_EXPORT ToneMappingNode : public IVistaOpenGLDraw, public Vista
   void  setGlowIntensity(float intensity);
   float getGlowIntensity() const;
 
+  float getLastAverageLuminance() const;
+
   virtual bool Do() override;
   virtual bool GetBoundingBox(VistaBoundingBox& bb) override;
 
