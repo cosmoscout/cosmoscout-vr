@@ -132,10 +132,10 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
   mHeaderBar->setCursorChangeCallback([this](gui::Cursor c) { setCursor(c); });
 
   mTimeNavigationBar->setRelSizeX(1.f);
-  mTimeNavigationBar->setSizeY(220);
+  mTimeNavigationBar->setSizeY(644);
   mTimeNavigationBar->setRelPositionX(0.5);
   mTimeNavigationBar->setRelPositionY(1.0);
-  mTimeNavigationBar->setOffsetY(-110);
+  mTimeNavigationBar->setOffsetY(-322);
   mTimeNavigationBar->setCursorChangeCallback([this](gui::Cursor c) { setCursor(c); });
 
   mNotifications->setSizeX(420);
