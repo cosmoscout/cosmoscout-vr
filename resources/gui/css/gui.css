@@ -752,8 +752,32 @@ input.color-picker {
     color: #ccf;
     background-color: rgba(255, 255, 255, 0.2);
     border: none;
+    border-bottom: 2px solid #ccf;
 }
 
 .tab-content {
     margin: 10px;
+}
+
+/* Tooltips --------------------------------------------------------------------------------------------------------- */
+
+.bs-tooltip-auto[x-placement^=top] .arrow::before, .bs-tooltip-top .arrow::before {
+    border-top-color: #ccf !important;
+}
+
+.bs-tooltip-auto[x-placement^=right] .arrow::before, .bs-tooltip-right .arrow::before {
+    border-right-color: #ccf !important;
+}
+
+.bs-tooltip-auto[x-placement^=bottom] .arrow::before, .bs-tooltip-bottom .arrow::before {
+    border-bottom-color: #ccf !important;
+}
+
+.bs-tooltip-auto[x-placement^=left] .arrow::before, .bs-tooltip-left .arrow::before {
+    border-left-color: #ccf !important;
+}
+
+.tooltip .tooltip-inner {
+    outline: 1px solid #ccf;
+    font-size: 1rem;
 }
