@@ -180,8 +180,8 @@ $(document).ready(function () {
     init_slider("set_focal_length", 10.0, 500, 1, [24]);
     init_slider("set_exposure_compensation", -10, 10, 0.5, [0]);
     init_slider("set_exposure_adaption_speed", 0, 20, 0.1, [3]);
-    init_slider("set_ambient_light", 0.0, 1.0, 0.001, [0.01]);
-    init_slider("set_exposure_range", -30.0, 30, 0.1, [-15, 8]);
+    init_slider("set_ambient_light", 0.0, 1.0, 0.001, [0.25]);
+    init_slider("set_exposure_range", -30.0, 30, 0.1, [-15, 1.5]);
     init_slider("set_glow_intensity", 0.0, 1, 0.01, [0.1]);
 
     $(document).on('click', '.item-create-button', function () {

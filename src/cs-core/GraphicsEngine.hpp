@@ -30,7 +30,7 @@ class CS_CORE_EXPORT GraphicsEngine {
   utils::Property<float>     pHeightScale                = 1.f;
   utils::Property<float>     pWidgetScale                = 1.f;
   utils::Property<float>     pApproximateSceneBrightness = 1.f;
-  utils::Property<bool>      pEnableLighting             = false;
+  utils::Property<bool>      pEnableLighting             = true;
   utils::Property<bool>      pEnableHDR                  = true;
   utils::Property<int>       pLightingQuality            = 2;
   utils::Property<bool>      pEnableShadows              = false;
@@ -44,12 +44,12 @@ class CS_CORE_EXPORT GraphicsEngine {
   utils::Property<float>     pShadowMapSplitDistribution = 1.f;
   utils::Property<bool>      pEnableAutoExposure         = true;
   utils::Property<float>     pExposure                   = 0.f;                    // in EV
-  utils::Property<glm::vec2> pAutoExposureRange          = glm::vec2(-15.f, 8.0f); // in EV
+  utils::Property<glm::vec2> pAutoExposureRange          = glm::vec2(-15.f, 1.5f); // in EV
   utils::Property<float>     pExposureCompensation       = 0.f;                    // in EV
   utils::Property<float>     pExposureAdaptionSpeed      = 3.f;
   utils::Property<float>     pSensorDiagonal             = 42.f; // in millimeters
   utils::Property<float>     pFocalLength                = 24.f; // in millimeters
-  utils::Property<float>     pAmbientBrightness          = 0.01f;
+  utils::Property<float>     pAmbientBrightness          = std::pow(0.25f, 10.f);
   utils::Property<float>     pGlowIntensity              = 0.1f;
   utils::Property<graphics::ExposureMeteringMode> pExposureMeteringMode =
       graphics::ExposureMeteringMode::AVERAGE;

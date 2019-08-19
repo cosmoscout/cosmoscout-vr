@@ -496,7 +496,7 @@ void Application::registerHeaderBarCallbacks() {
   }));
 
   mGuiManager->getSideBar()->registerCallback<double>(
-      "set_ambient_light", ([this](double val) { mGraphicsEngine->pAmbientBrightness = val; }));
+      "set_ambient_light", ([this](double val) { mGraphicsEngine->pAmbientBrightness = std::pow(val, 10.0); }));
 
   mGuiManager->getSideBar()->registerCallback<double>(
       "set_glow_intensity", ([this](double val) { mGraphicsEngine->pGlowIntensity = val; }));
