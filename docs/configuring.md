@@ -139,7 +139,7 @@ The [`CMakeLists.txt`](../config/CMakeLists.txt) in `cosmoscout-vr/config` autom
 So you can install any scripts / configs / data files you like as part of CosmoScout's build process!
 
 <p align="center">
-  <a href="using.md">&lsaquo; User Interface</a>
+  <a href="using.md">&lsaquo; Using CosmoScout VR</a>
   <img src ="img/nav-vspace.svg"/>
   <a href="README.md">&#8962; Help Index</a>
   <img src ="img/nav-vspace.svg"/>

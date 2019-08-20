@@ -101,7 +101,7 @@ start.bat
   <img src ="img/nav-vspace.svg"/>
   <a href="README.md">&#8962; Help Index</a>
   <img src ="img/nav-vspace.svg"/>
-  <a href="using.md">User Interface &rsaquo;</a>
+  <a href="using.md">Using CosmoScout VR &rsaquo;</a>
 </p>
 
 <p align="center"><img src ="img/hr.svg"/></p>
