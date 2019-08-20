@@ -115,6 +115,9 @@ class CS_CORE_EXPORT GuiManager {
   /// Returns the header bar GuiItem. The header bar is at the top of the screen.
   gui::GuiItem* getHeaderBar() const;
 
+  /// Returns the time navigation bar GuiItem. The time navigation bar bar is at the bottom of the screen.
+  gui::GuiItem* getTimeNavigationBar() const;
+
   /// Returns the statistics GuiItem. The statistics are at the right of the screen, when enabled.
   gui::GuiItem* getStatistics() const;
 

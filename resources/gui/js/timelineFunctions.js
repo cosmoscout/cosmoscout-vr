@@ -336,6 +336,7 @@ function setTimeToDate(date) {
 }
 
 function plusOneHour() {
+    window.call_native("add_hours", 1);
     centerTime.setHours( centerTime.getHours() + 1 );
     timeline.moveTo(centerTime, animationFalse);
     timeline.setCustomTime(centerTime, timeId);
@@ -343,6 +344,7 @@ function plusOneHour() {
     document.getElementById("dateLabel").innerText = formatDateReadable(centerTime);
 }
 function minusOneHour() {
+    window.call_native("add_hours", -1);
     centerTime.setHours( centerTime.getHours() - 1 );
     timeline.moveTo(centerTime, animationFalse);
     timeline.setCustomTime(centerTime, timeId);
@@ -351,14 +353,16 @@ function minusOneHour() {
 }
 
 function plusOneDay() {
-    centerTime.setDate( centerTime.getDate() + 1 );
+    window.call_native("add_hours", 24);
+    centerTime.setHours( centerTime.getHours() + 24 );
     timeline.moveTo(centerTime, animationFalse);
     timeline.setCustomTime(centerTime, timeId);
     setOverviewTimes();
     document.getElementById("dateLabel").innerText = formatDateReadable(centerTime);
 }
 function minusOneDay() {
-    centerTime.setDate( centerTime.getDate() - 1 );
+    window.call_native("add_hours", -24);
+    centerTime.setHours( centerTime.getHours() - 24 );
     timeline.moveTo(centerTime, animationFalse);
     timeline.setCustomTime(centerTime, timeId);
     setOverviewTimes();
@@ -366,14 +370,16 @@ function minusOneDay() {
 }
 
 function plusOneMonth() {
-    centerTime.setMonth( centerTime.getMonth() + 1 );
+    window.call_native("add_hours", 730);
+    centerTime.setHours( centerTime.getHours() + 730 );
     timeline.moveTo(centerTime, animationFalse);
     timeline.setCustomTime(centerTime, timeId);
     setOverviewTimes();
     document.getElementById("dateLabel").innerText = formatDateReadable(centerTime);
 }
 function minusOneMonth() {
-    centerTime.setMonth( centerTime.getMonth() - 1 );
+    window.call_native("add_hours", -730);
+    centerTime.setHours( centerTime.getHours() - 730 );
     timeline.moveTo(centerTime, animationFalse);
     timeline.setCustomTime(centerTime, timeId);
     setOverviewTimes();
@@ -381,14 +387,16 @@ function minusOneMonth() {
 }
 
 function plusOneYear() {
-    centerTime.setFullYear( centerTime.getFullYear() + 1 );
+    window.call_native("add_hours", 8760);
+    centerTime.setHours( centerTime.getHours() + 8760 );
     timeline.moveTo(centerTime, animationFalse);
     timeline.setCustomTime(centerTime, timeId);
     setOverviewTimes();
     document.getElementById("dateLabel").innerText = formatDateReadable(centerTime);
 }
 function minusOneYear() {
-    centerTime.setFullYear( centerTime.getFullYear() - 1 );
+    window.call_native("add_hours", -8760);
+    centerTime.setHours( centerTime.getHours() - 8760 );
     timeline.moveTo(centerTime, animationFalse);
     timeline.setCustomTime(centerTime, timeId);
     setOverviewTimes();
