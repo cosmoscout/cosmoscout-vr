@@ -398,6 +398,9 @@ void Application::registerHeaderBarCallbacks() {
   mGuiManager->getTimeNavigationBar()->registerCallback<double>("add_hours", ([&](double amount) {
     mTimeControl->setTime(mTimeControl->pSimulationTime.get() + 60.0 * 60.0 * amount);
   }));
+  mGuiManager->getTimeNavigationBar()->registerCallback<double>("set_time_speed", ([&](double speed) {
+    mTimeControl->setTimeSpeed((float)speed);}));
+
   mGuiManager->getSideBar()->registerCallback<bool>(
       "set_enable_shadows", ([this](bool enable) { mGraphicsEngine->pEnableShadows = enable; }));
 

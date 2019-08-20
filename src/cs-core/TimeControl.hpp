@@ -50,6 +50,10 @@ class CS_CORE_EXPORT TimeControl {
   /// Half the passage of time. No need to hurry.
   void decreaseTimeSpeed();
 
+  /// Set the time speed to a specific value
+  /// @param The new time speed
+  void setTimeSpeed(float speed);
+
  private:
   double mLastUpdate;
 

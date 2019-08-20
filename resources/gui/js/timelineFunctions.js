@@ -1,6 +1,7 @@
 
 var play = true;
 
+let monthInSec = 2628000;
 let dayInSec = 86400;
 let hourInSec =  3600;
 let minuteInSec = 60;
@@ -42,6 +43,8 @@ let monthSpeed = 43800;
 let startOfDay = 0;
 let middleOfDay = 12;
 let endOfDay = 24;
+
+var currentSpeed;
 
 // Create a DataSet (allows two way data-binding)
 var items;
@@ -142,7 +145,7 @@ noUiSlider.create(range, {
     
 });
 
-
+range.noUiSlider.on('update', rangeUpdateCallback);
 
 var items = new vis.DataSet([
     {id: 1, content: 'item 1', start: new Date('1960-04-20')},
@@ -440,8 +443,7 @@ function decreaseCenterTime(days, hours, minutes, seconds, milliSec) {
   
   function makeTimeStep() {
     return new Promise(resolve => {
-    let speedOpt = range.noUiSlider.get();
-    switch(parseInt(speedOpt)) {
+    switch(parseInt(currentSpeed)) {
         case monthBack:
             moveCustomTime(monthSpeed, false);
             timeline.setOptions(playingOpt);
@@ -500,6 +502,42 @@ function decreaseCenterTime(days, hours, minutes, seconds, milliSec) {
   async function startTimeSteps() {
     await makeTimeStep();
   }
+
+
+function rangeUpdateCallback(values, handle, unencoded, tap, positions) {
+    currentSpeed = range.noUiSlider.get();
+    switch(parseInt(currentSpeed)) {
+        case monthBack:
+            window.call_native("set_time_speed", -monthInSec);
+          break;
+        case dayBack:
+            window.call_native("set_time_speed", -dayInSec);
+          break;
+        case hourBack:
+            window.call_native("set_time_speed", -hourInSec);
+          break;
+        case secBack:
+            window.call_native("set_time_speed", secBack);
+            break;
+        case paus:
+            window.call_native("set_time_speed", 0);
+         break; 
+        case secForw:
+            window.call_native("set_time_speed", secForw);
+            break;
+        case hourForw:
+            window.call_native("set_time_speed", hourInSec);
+          break;
+        case dayForw:
+            window.call_native("set_time_speed", dayInSec);
+          break;
+        case monthForw:
+            window.call_native("set_time_speed", monthInSec);
+            break;       
+        default:
+          // code block
+      } 
+}
 
 function showToday() {
     date = new Date(timeline.getCurrentTime().getTime());
