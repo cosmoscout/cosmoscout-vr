@@ -20,7 +20,7 @@
 }
 
 #timeForm {
-    border-radius: 10px;
+    border-radius: 10px 10px 0 0;
     width: 400px;
     height: 80px;
     padding: 2px;
@@ -28,13 +28,12 @@
     transform: translateY(18%);
     z-index: 3;
     overflow: hidden;
-    transition: transform 1s, border-radius 1s;
+    transition: transform 1s;
     transition-timing-function: ease-out;
 }
 
 #timeForm.calendar-active {
     transform: translateY(-353px);
-    border-radius: 10px 10px 0 0;
 }
 
 #dateLabel {
@@ -98,7 +97,7 @@ table {
 }
 
 td {
-    padding: 10px 10px;
+    padding: 0px 0px;
     text-align: center;
 }
 
@@ -112,9 +111,6 @@ td {
     height: 100%;
     background-color: rgba(20, 20, 20, 0.5);
     padding: 10px 10px;
-    border: 1px;
-    border-style: solid;
-    border-radius: 15px;
     transform: translateY(50%);
     transition: background-color 0.5s;
 }
@@ -124,10 +120,12 @@ td {
 }
 
 .btnDiv.dirJump {
+    border-radius: 10px 0 0 0;
     width: 100px;
 }
 
 #btnLock {
+    border-radius: 0px 10px 0 0;
     transition: background-color 1s;
 }
 
