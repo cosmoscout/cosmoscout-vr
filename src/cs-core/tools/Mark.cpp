@@ -52,6 +52,7 @@ const std::string Mark::SHADER_FRAG = R"(
 
 uniform vec3 uHoverSelectActive;
 uniform float uFarClip;
+uniform vec3 uColor;
 
 in vec3 vPosition;
 
@@ -59,10 +60,10 @@ layout(location = 0) out vec3 oColor;
 
 void main()
 {
-    oColor = vec3(0.75, 0.75, 1.0);
-    if (uHoverSelectActive.x > 0) oColor = mix(oColor, vec3(0, 1, 0), 0.5);
-    if (uHoverSelectActive.y > 0) oColor = mix(oColor, vec3(0, 0, 1), 0.8);
-    if (uHoverSelectActive.z > 0) oColor = mix(oColor, vec3(1, 1, 1), 1.0);
+    oColor = uColor;
+    if (uHoverSelectActive.x > 0) oColor = mix(oColor, vec3(1, 1, 1), 0.2);
+    if (uHoverSelectActive.y > 0) oColor = mix(oColor, vec3(1, 1, 1), 0.5);
+    if (uHoverSelectActive.z > 0) oColor = mix(oColor, vec3(1, 1, 1), 0.8);
 
     // linearize depth value
     gl_FragDepth = length(vPosition) / uFarClip;
@@ -170,6 +171,8 @@ bool Mark::Do() {
       pSelected.get() ? 1.f : 0.f, pActive.get() ? 1.f : 0.f);
   mShader->SetUniform(
       mShader->GetUniformLocation("uFarClip"), cs::utils::getCurrentFarClipDistance());
+  mShader->SetUniform(
+      mShader->GetUniformLocation("uColor"), pColor.get().x, pColor.get().y, pColor.get().z);
 
   glDrawElements(GL_TRIANGLES, (GLsizei)mIndexCount, GL_UNSIGNED_INT, nullptr);
   mVAO->Release();
