@@ -271,7 +271,7 @@ function applyEvent() {
 function onUpdateCallback(item, callback) {
     play = false;
     timeline.setOptions(whileEditingOpt);
-    document.getElementById("headlineForm").innerText = "Update Event";
+    document.getElementById("headlineForm").innerText = "Update";
     document.getElementById("myForm").style.display = "block";
     document.getElementById("eventName").value = item.content;
     document.getElementById("eventStartDate").value = getFormattedDate(item.start);
@@ -289,7 +289,7 @@ function onUpdateCallback(item, callback) {
 function onAddCallback(item, callback) {
     play = false;
     timeline.setOptions(whileEditingOpt);
-    document.getElementById("headlineForm").innerText = "Add Event";
+    document.getElementById("headlineForm").innerText = "Add";
     document.getElementById("eventName").value = "";
     document.getElementById("myForm").style.display = "block";
     document.getElementById("eventStartDate").value = getFormattedDate(item.start);
