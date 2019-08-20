@@ -25,7 +25,7 @@
     height: 80px;
     padding: 2px;
     background-color: rgba(20, 20, 20, 0.5);
-    transform: translateY(18%);
+    transform: translateY(14px);
     z-index: 3;
     overflow: hidden;
     transition: transform 1s;
@@ -33,7 +33,7 @@
 }
 
 #timeForm.calendar-active {
-    transform: translateY(-353px);
+    transform: translateY(-359px);
 }
 
 #dateLabel {
@@ -70,8 +70,8 @@
     z-index: -1;
     position: relative;
     left: -50%;
-    width: 800px;
-    height: 363px;
+    width: 500px;
+    height: 382px;
     bottom: 100px;
     transition: transform 1s, opacity 1s;
     transition-timing-function: ease-out;
@@ -80,7 +80,7 @@
 #calendar.visible{
     z-index: 10;
     pointer-events: all;
-    transform: translateY(-363px);
+    transform: translateY(-359px);
 }
 
 #vizualization {
