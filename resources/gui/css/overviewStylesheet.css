@@ -12,7 +12,9 @@
   pointer-events: none;;
 }
 
-
+#overview .vis-item {
+  background-color: rgb(25, 0, 255);
+}
 
 #overview .vis-item,
 #overview .vis-item.vis-line {
