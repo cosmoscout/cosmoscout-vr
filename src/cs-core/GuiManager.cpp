@@ -235,6 +235,7 @@ GuiManager::~GuiManager() {
   delete mLogo;
   delete mGlobalGuiArea;
   delete mViewportUpdater;
+  delete mTimeNavigationBar;
 
   mInputManager->unregisterSelectable(mLocalGuiOpenGLnode);
 
