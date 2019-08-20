@@ -12,6 +12,8 @@ Most dependencies are included as [git submodules](../externals).
 **You will only need a copy of [CMake](https://cmake.org/) (version 3.12 or greater), [Boost](https://www.boost.org/) (version 1.69 or greater) and a recent C++ compiler (gcc 7, clang 5 or msvc 19).
 For the compilation of the externals [Python](https://www.python.org/) is also required.**
 
+:warning: _**Warning:** The [default configuration](../config/base/scene/simple_desktop.jso) only contains a few data sets with very low resolution. Please read the [Configuring Guide](configuring.md) and the documentation of the [individual plugins](../README.md#Plugins-for-CosmoScout-VR) for including new data sets._
+
 ## Linux
 
 On Linux, one can either use the provided shell scripts ([make_release.sh](../make_release.sh) and [make_debug.sh](../make_debug.sh)) or build the software manually using CMake. 
