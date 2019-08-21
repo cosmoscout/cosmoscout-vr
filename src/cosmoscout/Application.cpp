@@ -116,6 +116,7 @@ bool Application::Init(VistaSystem* pVistaSystem) {
     sstr.imbue(std::locale(std::locale::classic(), facet));
     sstr << cs::utils::convert::toBoostTime(val);
     mGuiManager->getHeaderBar()->callJavascript("set_date", sstr.str());
+    mGuiManager->getTimeNavigationBar()->callJavascript("set_date", sstr.str());
   });
 
   mTimeControl->pTimeSpeed.onChange().connect(
@@ -398,6 +399,11 @@ void Application::registerHeaderBarCallbacks() {
   mGuiManager->getTimeNavigationBar()->registerCallback<double>("add_hours", ([&](double amount) {
     mTimeControl->setTime(mTimeControl->pSimulationTime.get() + 60.0 * 60.0 * amount);
   }));
+  mGuiManager->getTimeNavigationBar()->registerCallback<std::string>(
+      "set_date", ([this](std::string const& date) {
+        mTimeControl->setTime(
+            cs::utils::convert::toSpiceTime(boost::posix_time::time_from_string(date)));
+      }));
   mGuiManager->getTimeNavigationBar()->registerCallback<double>("set_time_speed", ([&](double speed) {
     mTimeControl->setTimeSpeed((float)speed);}));
 

@@ -35,7 +35,7 @@ let maxRangeFactor = 60000;
 let minRangeFactor = 500;
 
 let redrawRate = 16.666666;
-let secSpeed = 0.01666666;
+let secSpeed = 0;
 let hourSpeed = 60;
 let daySpeed = 1440;
 let monthSpeed = 43800;
@@ -162,7 +162,6 @@ timeline.on('select', onSelect);
 timeline.moveTo(centerTime, animationFalse);
 timeline.addCustomTime(centerTime, timeId);
 timeline.on('click', onClickCallback);
-timeline.on('timechanged', timeChangedCallback);
 timeline.on('changed', timelineChangeCallback);
 timeline.on('mouseDown', mouseDownCallback);
 timeline.on('mouseUp', mouseUpCallback);
@@ -193,13 +192,6 @@ function mouseUpCallback(properties) {
         range.noUiSlider.set(parseInt(lastPlayValue));
     }
     mouseOnTimelineDown = false;
-}
-
-function timeChangedCallback(properties) {
-    centerTime = new Date(properties.time.getTime());
-    document.getElementById("dateLabel").innerText = formatDateReadable(centerTime);
-    timeline.moveTo(centerTime, animationFalse);
-    setOverviewTimes();
 }
 
 function timelineChangeCallback() {
@@ -235,10 +227,7 @@ function onSelect (properties) {
     mouseOverDisabled = true;
     for(var item in items._data) {
         if(items._data[item].id == properties.items) {
-            centerTime = new Date(items._data[item].start.getTime());
-            timeline.setCustomTime(centerTime, timeId);
-            document.getElementById("dateLabel").innerText = formatDateReadable(centerTime);
-            timeline.moveTo(centerTime, animationFalse);
+            window.call_native("set_date", formatDateCosmo(new Date(items._data[item].start.getTime())));
             setOverviewTimes();
         }
     }
@@ -306,10 +295,7 @@ function onAddCallback(item, callback) {
 
 function generalOnClick(properties) {
     if(properties.what != "item") {
-        centerTime = new Date(properties.time.getTime());
-        timeline.setCustomTime(centerTime, timeId);
-        document.getElementById("dateLabel").innerText = formatDateReadable(centerTime);
-        timeline.moveTo(centerTime, animationFalse);
+        window.call_native("set_date", formatDateCosmo(new Date(properties.time.getTime())));
         setOverviewTimes();
     }
 }
@@ -324,9 +310,8 @@ function onOverviewClick (properties){
 
 
 function setTimeToDate(date) {
-    centerTime = new Date(date.getTime());
-    centerTime.setHours(middleOfDay);
-    timeline.setCustomTime(centerTime, timeId);
+    date.setHours(middleOfDay);
+    window.call_native("set_date", formatDateCosmo(new Date(date.getTime())));
     var startDate = new Date(date.getTime());
     var endDate = new Date(date.getTime());
     startDate.setHours(startOfDay);
@@ -334,76 +319,36 @@ function setTimeToDate(date) {
     play = false;
     range.noUiSlider.set(0);
     timeline.setWindow(startDate, endDate, animationFalse);
-    document.getElementById("dateLabel").innerText = formatDateReadable(centerTime);
     setOverviewTimes();
 }
 
 function plusOneHour() {
     window.call_native("add_hours", 1);
-    centerTime.setHours( centerTime.getHours() + 1 );
-    timeline.moveTo(centerTime, animationFalse);
-    timeline.setCustomTime(centerTime, timeId);
-    setOverviewTimes();
-    document.getElementById("dateLabel").innerText = formatDateReadable(centerTime);
 }
 function minusOneHour() {
     window.call_native("add_hours", -1);
-    centerTime.setHours( centerTime.getHours() - 1 );
-    timeline.moveTo(centerTime, animationFalse);
-    timeline.setCustomTime(centerTime, timeId);
-    setOverviewTimes();
-    document.getElementById("dateLabel").innerText = formatDateReadable(centerTime);
 }
 
 function plusOneDay() {
     window.call_native("add_hours", 24);
-    centerTime.setHours( centerTime.getHours() + 24 );
-    timeline.moveTo(centerTime, animationFalse);
-    timeline.setCustomTime(centerTime, timeId);
-    setOverviewTimes();
-    document.getElementById("dateLabel").innerText = formatDateReadable(centerTime);
+    
 }
 function minusOneDay() {
     window.call_native("add_hours", -24);
-    centerTime.setHours( centerTime.getHours() - 24 );
-    timeline.moveTo(centerTime, animationFalse);
-    timeline.setCustomTime(centerTime, timeId);
-    setOverviewTimes();
-    document.getElementById("dateLabel").innerText = formatDateReadable(centerTime);
 }
 
 function plusOneMonth() {
     window.call_native("add_hours", 730);
-    centerTime.setHours( centerTime.getHours() + 730 );
-    timeline.moveTo(centerTime, animationFalse);
-    timeline.setCustomTime(centerTime, timeId);
-    setOverviewTimes();
-    document.getElementById("dateLabel").innerText = formatDateReadable(centerTime);
 }
 function minusOneMonth() {
     window.call_native("add_hours", -730);
-    centerTime.setHours( centerTime.getHours() - 730 );
-    timeline.moveTo(centerTime, animationFalse);
-    timeline.setCustomTime(centerTime, timeId);
-    setOverviewTimes();
-    document.getElementById("dateLabel").innerText = formatDateReadable(centerTime);
 }
 
 function plusOneYear() {
     window.call_native("add_hours", 8760);
-    centerTime.setHours( centerTime.getHours() + 8760 );
-    timeline.moveTo(centerTime, animationFalse);
-    timeline.setCustomTime(centerTime, timeId);
-    setOverviewTimes();
-    document.getElementById("dateLabel").innerText = formatDateReadable(centerTime);
 }
 function minusOneYear() {
     window.call_native("add_hours", -8760);
-    centerTime.setHours( centerTime.getHours() - 8760 );
-    timeline.moveTo(centerTime, animationFalse);
-    timeline.setCustomTime(centerTime, timeId);
-    setOverviewTimes();
-    document.getElementById("dateLabel").innerText = formatDateReadable(centerTime);
 }
 
 function increaseCenterTime(days, hours, minutes, seconds, milliSec) {
@@ -420,7 +365,7 @@ function decreaseCenterTime(days, hours, minutes, seconds, milliSec) {
     document.getElementById("dateLabel").innerText = formatDateReadable(centerTime);
 }
 
-  function moveCustomTime(seconds, forward) {
+function moveCustomTime(seconds, forward) {
     play = true;
     var converted = convertSeconds(seconds);
     if(forward) {
@@ -428,7 +373,12 @@ function decreaseCenterTime(days, hours, minutes, seconds, milliSec) {
     } else {
         decreaseCenterTime(converted.days, converted.hours, converted.minutes, converted.seconds, converted.milliSec);
     }
-    var step = convertSeconds(seconds * timelineRangeFactor);
+    var step;
+    if(seconds == secSpeed) {
+        step = convertSeconds(seconds * realTimeRange);
+    } else {
+        step = convertSeconds(seconds * timelineRangeFactor);
+    }
     var startDate = new Date(centerTime.getTime());
     var endDate = new Date(centerTime.getTime());
     startDate = decreaseDate(startDate, step.days, step.hours, step.minutes, step.seconds, step.milliSec);
@@ -439,9 +389,17 @@ function decreaseCenterTime(days, hours, minutes, seconds, milliSec) {
     } else {
         timeline.setWindow(startDate, endDate, animationFalse);
     }
-  }
+}
   
-  function makeTimeStep() {
+function set_date(date) {
+    centerTime = new Date(date);
+    timeline.moveTo(centerTime, animationFalse);
+    timeline.setCustomTime(centerTime, timeId);
+    setOverviewTimes();
+    document.getElementById("dateLabel").innerText = formatDateReadable(centerTime);
+}
+
+function makeTimeStep() {
     return new Promise(resolve => {
     switch(parseInt(currentSpeed)) {
         case monthBack:
@@ -491,7 +449,8 @@ function decreaseCenterTime(days, hours, minutes, seconds, milliSec) {
             break;       
         default:
           // code block
-      } 
+    }
+
     setTimeout(function() {
         resolve(10);
         makeTimeStep();
@@ -541,8 +500,7 @@ function rangeUpdateCallback(values, handle, unencoded, tap, positions) {
 
 function showToday() {
     date = new Date(timeline.getCurrentTime().getTime());
-    centerTime = new Date(date.getTime());
-    timeline.setCustomTime(centerTime, timeId);
+    window.call_native("set_date", formatDateCosmo(new Date(date.getTime())));
     var startDate = new Date(date.getTime());
     var endDate = new Date(date.getTime());
     startDate.setHours(startOfDay);
@@ -550,7 +508,6 @@ function showToday() {
     play = false;
     range.noUiSlider.set(0);
     timeline.setWindow(startDate, endDate, animationFalse);
-    document.getElementById("dateLabel").innerText = formatDateReadable(centerTime);
     setOverviewTimes();
 }
 

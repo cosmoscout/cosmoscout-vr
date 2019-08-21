@@ -2,11 +2,9 @@ function formatDateReadable(date) {
     var retVal = date.toDateString();
     var hours = date.getHours().toString();
     var minutes = date.getMinutes().toString();
-    var seconds = date.getSeconds().toString();
     hours = hours.length > 1 ? hours : '0' + hours;
     minutes = minutes.length > 1 ? minutes : '0' + minutes;
-    seconds = seconds.length > 1 ? seconds : '0' + seconds;
-    retVal += " " + hours + ":" + minutes + ":" + seconds;
+    retVal += " " + hours + ":" + minutes;
     return retVal;
 }
 
@@ -17,6 +15,20 @@ function getFormattedDate(date) {
     month = month.length > 1 ? month : '0' + month;
     day = day.length > 1 ? day : '0' + day;
     return year + '-' + month + '-' + day;
+}
+
+function formatDateCosmo (date) {
+    var retVal = getFormattedDate(date);
+    var hours = date.getHours().toString();
+    var minutes = date.getMinutes().toString();
+    var seconds = date.getSeconds().toString();
+    var milliSec = date.getMilliseconds().toString();
+    while(milliSec.length < 3) {
+        milliSec = '0' + milliSec;
+    }
+    seconds = seconds.length > 1 ? seconds : '0' + seconds;
+    retVal = retVal + " " + hours + ":" + minutes + ":" + seconds + "." + milliSec;
+    return retVal;
 }
 
 function convertSeconds(given_seconds) {
