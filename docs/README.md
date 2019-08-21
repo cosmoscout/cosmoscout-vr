@@ -12,7 +12,7 @@ Specific configuration options are documented in the repositories of the [indivi
 
 ### Getting Started
 * [Build Instructions](install.md)
-* [User Interface](using.md)
+* [Using CosmoScout VR](using.md)
 * [Configuring CosmoScout VR](configuring.md)
 
 ### Next Steps
