@@ -48,6 +48,8 @@ void from_json(const nlohmann::json& j, Settings::Observer& o) {
 
 void from_json(const nlohmann::json& j, Settings& o) {
   o.mStartDate   = j.at("startDate").get<std::string>();
+  o.mMinDate     = j.at("minDate").get<std::string>();
+  o.mMaxDate     = j.at("maxDate").get<std::string>();
   o.mObserver    = j.at("observer").get<Settings::Observer>();
   o.mSpiceKernel = j.at("spiceKernel").get<std::string>();
 
@@ -60,6 +62,7 @@ void from_json(const nlohmann::json& j, Settings& o) {
   o.mEnableMouseRay = j.at("enableMouseRay").get<bool>();
   o.mAnchors        = j.at("anchors").get<std::map<std::string, Settings::Anchor>>();
   o.mPlugins        = j.at("plugins").get<std::map<std::string, nlohmann::json>>();
+  
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -224,6 +224,9 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
 
   mFrameTimings->pEnableMeasurements.onChange().connect(
       [this](bool enable) { mStatistics->setIsEnabled(enable); });
+
+  //Set settings for the time Navigation
+  mTimeNavigationBar->callJavascript("setTimelineRange", settings->mMinDate, settings->mMaxDate);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

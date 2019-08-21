@@ -82,6 +82,10 @@ class CS_CORE_EXPORT Settings {
   /// Defines the initial simulation time.
   std::string mStartDate;
 
+  /// Defines the min and max Date on the timebar
+  std::string mMinDate;
+  std::string mMaxDate;
+
   /// Defines the initial observer location.
   Observer mObserver;
 

@@ -180,6 +180,14 @@ document.getElementById("dateLabel").innerText = formatDateReadable(centerTime);
 startTimeSteps();
 
 
+function setTimelineRange(min, max) {
+    var rangeOpt = {
+        min: min,
+        max: max
+    }
+    timeline.setOptions(rangeOpt);
+}
+
 function mouseDownCallback(properties) {
     mouseOnTimelineDown = true;
     lastPlayValue = range.noUiSlider.get();
