@@ -9,7 +9,13 @@ body{
 
 
   .vis-timeline {
-    background: rgb(110, 110, 110);
+    background: rgba(20, 20, 20, 0.5);
+    border-width: 0px;
+  }
+
+  #visualization .vis-timeline {
+    border-top-width: 1px;
+    border-top-color: #ddf;
   }
 
   .vis-time-axis {
@@ -23,7 +29,7 @@ body{
 
   .vis-item {
     border-color: rgba(20, 20, 20, 0.308);
-    background-color: rgba(20, 20, 20, 0.247);
+    background-color: rgba(0, 132, 255, 0.781);
     color: #ddf;
     border-radius: 10px;
   }

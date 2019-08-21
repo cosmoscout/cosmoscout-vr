@@ -1,5 +1,4 @@
 let minWidth = 70;
-let offset = 3;
 
 function drawDiv() {
   
@@ -11,9 +10,9 @@ function drawDiv() {
     var divElement = document.getElementById("snippet");
     divElement.style.position = "absolute";
     divElement.style.left = leftRect.right + 'px';
-    divElement.style.top = (leftRect.top - offset) + 'px';
+    divElement.style.top = leftRect.top + 'px';
 
-    let height = leftRect.bottom - leftRect.top + offset;
+    let height = leftRect.bottom - leftRect.top;
     let width = rightRect.right - leftRect.left;
 
     if(width < minWidth) {

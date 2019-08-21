@@ -22,10 +22,9 @@
 #timeForm {
     border-radius: 10px 10px 0 0;
     width: 400px;
-    height: 80px;
+    height: 66px;
     padding: 2px;
     background-color: rgba(20, 20, 20, 0.5);
-    transform: translateY(14px);
     z-index: 3;
     overflow: hidden;
     transition: transform 1s;
@@ -111,7 +110,7 @@ td {
     height: 100%;
     background-color: rgba(20, 20, 20, 0.5);
     padding: 10px 10px;
-    transform: translateY(50%);
+    transform: translateY(30%);
     transition: background-color 0.5s;
 }
 
