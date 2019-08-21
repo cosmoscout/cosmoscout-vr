@@ -88,7 +88,7 @@ void MultiPointTool::addPoint() {
 
 void MultiPointTool::update() {
   bool anyPointSelected = false;
-  int index = 0;
+  int  index            = 0;
 
   // update all points and remove them if required
   for (auto mark = mPoints.begin(); mark != mPoints.end();) {

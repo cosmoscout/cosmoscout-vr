@@ -47,8 +47,8 @@ class CS_CORE_EXPORT MultiPointTool : public Tool {
  protected:
   /// Derived classes should implement these - they will be called after the corresponding event
   /// happened.
-  virtual void onPointMoved()   = 0;
-  virtual void onPointAdded()   = 0;
+  virtual void onPointMoved()            = 0;
+  virtual void onPointAdded()            = 0;
   virtual void onPointRemoved(int index) = 0;
 
   /// A derived class may call this in order to add a new point at the current pointer position.
