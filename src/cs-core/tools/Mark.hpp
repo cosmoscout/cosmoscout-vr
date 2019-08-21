@@ -43,6 +43,7 @@ class CS_CORE_EXPORT Mark : public IVistaOpenGLDraw, public Tool {
   cs::utils::Property<bool>       pHovered  = false;
   cs::utils::Property<bool>       pSelected = false;
   cs::utils::Property<bool>       pActive   = false;
+  cs::utils::Property<glm::vec3>  pColor    = glm::vec3(0.75, 0.75, 1.0);
 
   Mark(std::shared_ptr<InputManager> const&  pInputManager,
       std::shared_ptr<SolarSystem> const&    pSolarSystem,
