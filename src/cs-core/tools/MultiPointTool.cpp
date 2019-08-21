@@ -44,7 +44,7 @@ MultiPointTool::MultiPointTool(std::shared_ptr<InputManager> const& pInputManage
     if (pAddPointMode.get() && !pressed) {
       pAddPointMode = false;
       mPoints.pop_back();
-      onPointRemoved();
+      onPointRemoved(mPoints.size());
     }
   });
 }
@@ -88,16 +88,18 @@ void MultiPointTool::addPoint() {
 
 void MultiPointTool::update() {
   bool anyPointSelected = false;
+  int index = 0;
 
   // update all points and remove them if required
   for (auto mark = mPoints.begin(); mark != mPoints.end();) {
     if ((*mark)->pShouldDelete.get()) {
       mark = mPoints.erase(mark);
-      onPointRemoved();
+      onPointRemoved(index);
     } else {
       anyPointSelected |= (*mark)->pSelected.get();
       (*mark)->update();
       ++mark;
+      ++index;
     }
   }
 
