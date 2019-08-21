@@ -12,6 +12,10 @@ body{
     background: rgb(110, 110, 110);
   }
 
+  .vis-time-axis {
+    pointer-events: none;
+  }
+
   .vis-time-axis .vis-text {
     padding: 1px;
     color: #ddf;
