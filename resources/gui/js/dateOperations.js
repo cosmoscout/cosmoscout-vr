@@ -26,6 +26,8 @@ function formatDateCosmo (date) {
     while(milliSec.length < 3) {
         milliSec = '0' + milliSec;
     }
+    hours = hours.length > 1 ? hours : '0' + hours;
+    minutes = minutes.length > 1 ? minutes : '0' + minutes;
     seconds = seconds.length > 1 ? seconds : '0' + seconds;
     retVal = retVal + " " + hours + ":" + minutes + ":" + seconds + "." + milliSec;
     return retVal;
