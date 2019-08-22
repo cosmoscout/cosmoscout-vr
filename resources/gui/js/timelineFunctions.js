@@ -20,6 +20,8 @@ var firstTime = true;
 let zoomPercentage = 0.5;
 var timelineZoomBlocked = true;
 
+var firstSliderValue = true;
+
 let paus = 0;
 let secForw = 1;
 let hourForw = 2;
@@ -472,6 +474,10 @@ function makeTimeStep() {
 
 function rangeUpdateCallback(values, handle, unencoded, tap, positions) {
     currentSpeed = range.noUiSlider.get();
+    if(firstSliderValue) {
+        firstSliderValue = false;
+        return;
+    }
     switch(parseInt(currentSpeed)) {
         case monthBack:
             window.call_native("set_time_speed", -monthInSec);
