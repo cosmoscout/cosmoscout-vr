@@ -227,6 +227,23 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
 
   //Set settings for the time Navigation
   mTimeNavigationBar->callJavascript("setTimelineRange", settings->mMinDate, settings->mMaxDate);
+
+  std::string code = "set_items(\"[";
+  for (int i = 0; i < settings->mEvents.size(); i++)
+  {
+    code += "{\\\"start\\\": ";
+    code +=  "\\\"" + settings->mEvents.at(i).mStart + "\\\",";
+    code += "\\\"id\\\": ";
+    code +=  "\\\"" + settings->mEvents.at(i).mId + "\\\",";
+    code += "\\\"content\\\": ";
+    code +=  "\\\"" + settings->mEvents.at(i).mContent + "\\\"";
+    code += "}";
+    if(i != settings->mEvents.size()-1) {
+      code += ",";
+    }
+  }
+  code += "]\")";
+  mTimeNavigationBar->executeJavascript(code);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

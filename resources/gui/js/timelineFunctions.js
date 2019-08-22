@@ -147,14 +147,7 @@ noUiSlider.create(range, {
 
 range.noUiSlider.on('update', rangeUpdateCallback);
 
-var items = new vis.DataSet([
-    {id: 1, content: 'item 1', start: new Date('1960-04-20')},
-    {id: 2, content: 'item 2', start: new Date('1977-04-14')},
-    {id: 3, content: 'item 3', start: new Date('1983-04-18')},
-    {id: 4, content: 'item 4', start: new Date('1990-04-16'), end: new Date('1990-04-19')},
-    {id: 5, content: 'item 5', start: new Date('2000-04-25')},
-    {id: 6, content: 'item 6', start: new Date('2018-04-27')}
-  ]);
+var items = new vis.DataSet();
 // Create a Timeline
 timeline = new vis.Timeline(container, items, options);
 centerTime = timeline.getCurrentTime();
@@ -241,6 +234,15 @@ function onSelect (properties) {
     }
 }
 
+function set_items(events) {
+    var data = JSON.parse(events);
+    for(item in data) {
+        data[item].start = new Date(data[item].start);
+    }
+    items.clear();
+    items.add(data);
+}
+
 function saveItems() {
     var data = items.get({
         type: {
@@ -248,7 +250,6 @@ function saveItems() {
           end: 'ISODate'
         }
     });
-    console.log(JSON.stringify(data, null, 2));
 }
 
 function applyEvent() {  

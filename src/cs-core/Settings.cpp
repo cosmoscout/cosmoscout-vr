@@ -46,6 +46,22 @@ void from_json(const nlohmann::json& j, Settings::Observer& o) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void from_json(const nlohmann::json& j, Settings::Event& o) {
+  o.mStart    = j.at("start").get<std::string>();
+  o.mContent     = j.at("content").get<std::string>();
+  o.mId = j.at("id").get<std::string>();
+  auto iter = j.find("end");
+  if (iter != j.end()) {
+    o.mEnd = iter->get<std::optional<std::string>>();
+  }
+  iter = j.find("style");
+  if (iter != j.end()) {
+    o.mStyle = iter->get<std::optional<std::string>>();
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void from_json(const nlohmann::json& j, Settings& o) {
   o.mStartDate   = j.at("startDate").get<std::string>();
   o.mMinDate     = j.at("minDate").get<std::string>();
@@ -62,7 +78,7 @@ void from_json(const nlohmann::json& j, Settings& o) {
   o.mEnableMouseRay = j.at("enableMouseRay").get<bool>();
   o.mAnchors        = j.at("anchors").get<std::map<std::string, Settings::Anchor>>();
   o.mPlugins        = j.at("plugins").get<std::map<std::string, nlohmann::json>>();
-  
+  o.mEvents         = j.at("events").get<std::vector<Settings::Event>>();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

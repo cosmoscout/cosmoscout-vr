@@ -79,6 +79,14 @@ class CS_CORE_EXPORT Settings {
     double      mDistance;
   };
 
+  struct Event {
+    std::string mStart;
+    std::optional<std::string> mEnd;
+    std::string mContent;
+    std::string mId;
+    std::optional<std::string> mStyle;
+  };
+
   /// Defines the initial simulation time.
   std::string mStartDate;
 
@@ -106,6 +114,9 @@ class CS_CORE_EXPORT Settings {
   /// required at the start of each configuration file. The name of each Anchor is then later used
   /// to reference the respective SPICE frame.
   std::map<std::string, Anchor> mAnchors;
+
+  /// Events to show on the timenavigation bar
+  std::vector<Event> mEvents;
 
   /// A map with configuration options for each plugin. The JSON object is not parsed, this is done
   /// by the plugins themselves.
