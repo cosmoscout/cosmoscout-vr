@@ -237,6 +237,14 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
     code +=  "\\\"" + settings->mEvents.at(i).mId + "\\\",";
     code += "\\\"content\\\": ";
     code +=  "\\\"" + settings->mEvents.at(i).mContent + "\\\"";
+    if(settings->mEvents.at(i).mEnd.has_value()) {
+      code += ", \\\"end\\\": ";
+      code +=  "\\\"" + settings->mEvents.at(i).mEnd.value() + "\\\"";
+    }
+    if(settings->mEvents.at(i).mStyle.has_value()) {
+      code += ", \\\"style\\\": ";
+      code +=  "\\\"" + settings->mEvents.at(i).mStyle.value() + "\\\"";
+    }
     code += "}";
     if(i != settings->mEvents.size()-1) {
       code += ",";
