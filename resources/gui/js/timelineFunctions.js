@@ -305,7 +305,7 @@ function onAddCallback(item, callback) {
 
 
 function generalOnClick(properties) {
-    if(properties.what != "item") {
+    if(properties.what != "item" && properties.what != null) {
         window.call_native("set_date", formatDateCosmo(new Date(properties.time.getTime())));
         setOverviewTimes();
     }
