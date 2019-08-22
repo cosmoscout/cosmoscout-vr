@@ -383,6 +383,8 @@ function moveCustomTime(seconds, forward) {
         decreaseCenterTime(converted.days, converted.hours, converted.minutes, converted.seconds, converted.milliSec);
     }
     var step;
+    if(seconds == secSpeed)
+        seconds++;
     step = convertSeconds(seconds * timelineRangeFactor);
     var startDate = new Date(centerTime.getTime());
     var endDate = new Date(centerTime.getTime());

@@ -112,7 +112,7 @@ bool Application::Init(VistaSystem* pVistaSystem) {
   mTimeControl->pSimulationTime.onChange().connect([this](double val) {
     std::stringstream sstr;
     auto              facet = new boost::posix_time::time_facet();
-    facet->format("%d-%b-%Y %H:%M");
+    facet->format("%d-%b-%Y %H:%M:%S");
     sstr.imbue(std::locale(std::locale::classic(), facet));
     sstr << cs::utils::convert::toBoostTime(val);
     mGuiManager->getHeaderBar()->callJavascript("set_date", sstr.str());
