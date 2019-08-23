@@ -55,6 +55,10 @@ var timeline;
 var overviewTimeLine;
 var centerTime;
 
+var click;
+var mouseDownLeftTime;
+var inRangeChange = false;
+
 // DOM element where the Timeline will be attached
 var container = document.getElementById('visualization');
 var overviewContainer = document.getElementById('overview');
@@ -160,6 +164,7 @@ timeline.on('click', onClickCallback);
 timeline.on('changed', timelineChangeCallback);
 timeline.on('mouseDown', mouseDownCallback);
 timeline.on('mouseUp', mouseUpCallback);
+timeline.on('rangechange', rangechangeCallback);
 
 //create overview timeline
 overviewTimeLine = new vis.Timeline(overviewContainer, items, overviewOptions);
@@ -188,6 +193,8 @@ function mouseDownCallback(properties) {
     lastPlayValue = range.noUiSlider.get();
     range.noUiSlider.set(paus);
     timeline.setOptions(pausOpt);
+    click = true;
+    mouseDownLeftTime = timeline.getWindow().start;
 }
 
 function mouseUpCallback(properties) {
@@ -195,6 +202,7 @@ function mouseUpCallback(properties) {
         range.noUiSlider.set(parseInt(lastPlayValue));
     }
     mouseOnTimelineDown = false;
+    inRangeChange = false;
 }
 
 function timelineChangeCallback() {
@@ -207,6 +215,21 @@ function timelineChangeCallback() {
 function overviewChangeCallback() {
     if(drawDivCallback != null) {
         drawDivCallback();
+    }
+}
+
+function rangechangeCallback(properties) {
+    if(properties.byUser) {
+        inRangeChange = true;
+        click = false;
+        var dif = mouseDownLeftTime.getTime() - properties.start.getTime();
+        var secondsDif = dif / 1000;
+        var step = convertSeconds(secondsDif);
+        var date = new Date(centerTime.getTime());
+        date = decreaseDate(date, step.days, step.hours, step.minutes, step.seconds, step.milliSec);
+        set_date_local(date);
+        mouseDownLeftTime = new Date(properties.start.getTime());
+        window.call_native("set_date", formatDateCosmo(date));
     }
 }
 
@@ -319,7 +342,7 @@ function onAddCallback(item, callback) {
 
 
 function generalOnClick(properties) {
-    if(properties.what != "item" && properties.time != null) {
+    if(properties.what != "item" && properties.time != null && click) {
         window.call_native("set_date", formatDateCosmo(new Date(properties.time.getTime())));
         setOverviewTimes();
     }
@@ -415,6 +438,17 @@ function moveCustomTime(seconds, forward) {
 }
   
 function set_date(date) {
+    if(inRangeChange) {
+        return;
+    }
+    centerTime = new Date(date);
+    timeline.moveTo(centerTime, animationFalse);
+    timeline.setCustomTime(centerTime, timeId);
+    setOverviewTimes();
+    document.getElementById("dateLabel").innerText = formatDateReadable(centerTime);
+}
+
+function set_date_local(date) {
     centerTime = new Date(date);
     timeline.moveTo(centerTime, animationFalse);
     timeline.setCustomTime(centerTime, timeId);
