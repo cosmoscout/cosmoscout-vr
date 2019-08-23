@@ -33,7 +33,14 @@ void TimeControl::update() {
       mAnimationInProgress = false;
     }
   } else {
-    pSimulationTime = pSimulationTime.get() + (now - mLastUpdate) * pTimeSpeed.get();
+    double newSimulationTime = pSimulationTime.get() + (now - mLastUpdate) * pTimeSpeed.get();
+    double maxDate = cs::utils::convert::toSpiceTime(boost::posix_time::time_from_string(mSettings->mMaxDate));
+    double minDate = cs::utils::convert::toSpiceTime(boost::posix_time::time_from_string(mSettings->mMinDate));
+    if(maxDate < newSimulationTime || minDate > newSimulationTime) {
+      setTimeSpeed(0);
+    } else {
+      pSimulationTime = newSimulationTime;
+    }
   }
 
   mLastUpdate = now;
