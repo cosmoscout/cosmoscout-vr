@@ -18,7 +18,7 @@ body{
     border-top-color: #ddf;
   }
 
-  .vis-time-axis {
+  #visualization .vis-time-axis {
     pointer-events: none;
   }
 
