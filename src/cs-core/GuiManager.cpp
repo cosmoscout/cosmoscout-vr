@@ -228,30 +228,12 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
   //Set settings for the time Navigation
   mTimeNavigationBar->callJavascript("setTimelineRange", settings->mMinDate, settings->mMaxDate);
 
-  std::string code = "set_items(\"[";
   for (int i = 0; i < settings->mEvents.size(); i++)
   {
-    code += "{\\\"start\\\": ";
-    code +=  "\\\"" + settings->mEvents.at(i).mStart + "\\\",";
-    code += "\\\"id\\\": ";
-    code +=  "\\\"" + settings->mEvents.at(i).mId + "\\\",";
-    code += "\\\"content\\\": ";
-    code +=  "\\\"" + settings->mEvents.at(i).mContent + "\\\"";
-    if(settings->mEvents.at(i).mEnd.has_value()) {
-      code += ", \\\"end\\\": ";
-      code +=  "\\\"" + settings->mEvents.at(i).mEnd.value() + "\\\"";
-    }
-    if(settings->mEvents.at(i).mStyle.has_value()) {
-      code += ", \\\"style\\\": ";
-      code +=  "\\\"" + settings->mEvents.at(i).mStyle.value() + "\\\"";
-    }
-    code += "}";
-    if(i != settings->mEvents.size()-1) {
-      code += ",";
-    }
+    addEventToTimenavigationBar(settings->mEvents.at(i).mStart, settings->mEvents.at(i).mEnd, 
+    settings->mEvents.at(i).mId, settings->mEvents.at(i).mContent, settings->mEvents.at(i).mStyle);
   }
-  code += "]\")";
-  mTimeNavigationBar->executeJavascript(code);
+  
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -480,6 +462,10 @@ void GuiManager::addScriptToSideBar(std::string const& src) {
 void GuiManager::addScriptToSideBarFromJS(std::string const& jsFile) {
   std::string content = utils::loadFileContentsToString(jsFile);
   addScriptToSideBar(content);
+}
+
+void GuiManager::addEventToTimenavigationBar(std::string start, std::optional<std::string> end, std::string id, std::string content, std::optional<std::string> style) {
+  mTimeNavigationBar->callJavascript("add_item", start, end.value_or(""), id, content, style.value_or(""));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -105,6 +105,11 @@ class CS_CORE_EXPORT GuiManager {
   /// @param jsFile The javascript file that contains the source code.
   void addScriptToSideBarFromJS(std::string const& jsFile);
 
+  /// Adds an event item to the timenavigation
+  ///
+  /// @param evt The event to add.
+  void addEventToTimenavigationBar(std::string start, std::optional<std::string> end, std::string id, std::string content, std::optional<std::string> style);
+
   /// Returns the side bar GuiItem. The side bar is located at the left side of the screen.
   gui::GuiItem* getSideBar() const;
 

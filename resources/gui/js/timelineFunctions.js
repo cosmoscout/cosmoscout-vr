@@ -245,6 +245,20 @@ function set_items(events) {
     items.add(data);
 }
 
+function add_item(start, end, content, id, style) {
+    var data = new Object();
+    data.start = new Date(start);
+    data.content = content;
+    data.id = id;
+    if(end != "") {
+        data.end = end;
+    }
+    if(style != "") {
+        data.style = style;
+    }
+    items.update(data);
+}
+
 function saveItems() {
     var data = items.get({
         type: {
