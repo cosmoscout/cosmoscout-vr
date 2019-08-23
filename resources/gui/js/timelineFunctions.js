@@ -342,13 +342,16 @@ function onAddCallback(item, callback) {
 
 
 function generalOnClick(properties) {
-    if(properties.what != "item" && properties.time != null && click) {
+    if(properties.what != "item" && properties.time != null) {
         window.call_native("set_date", formatDateCosmo(new Date(properties.time.getTime())));
         setOverviewTimes();
     }
 }
 
 function onClickCallback(properties) {
+    if(!click) {
+        return;
+    }
     generalOnClick(properties);
 }
 
