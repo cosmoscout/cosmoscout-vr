@@ -404,6 +404,11 @@ void Application::registerHeaderBarCallbacks() {
         mTimeControl->setTime(
             cs::utils::convert::toSpiceTime(boost::posix_time::time_from_string(date)));
       }));
+  mGuiManager->getTimeNavigationBar()->registerCallback<std::string>(
+      "set_date_direct", ([this](std::string const& date) {
+        mTimeControl->setTimeWithoutAnimation(
+            cs::utils::convert::toSpiceTime(boost::posix_time::time_from_string(date)));
+      }));
   mGuiManager->getTimeNavigationBar()->registerCallback<double>("set_time_speed", ([&](double speed) {
     mTimeControl->setTimeSpeed((float)speed);}));
 

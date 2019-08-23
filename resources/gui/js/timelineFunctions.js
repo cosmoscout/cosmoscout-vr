@@ -229,7 +229,7 @@ function rangechangeCallback(properties) {
         date = decreaseDate(date, step.days, step.hours, step.minutes, step.seconds, step.milliSec);
         set_date_local(date);
         mouseDownLeftTime = new Date(properties.start.getTime());
-        window.call_native("set_date", formatDateCosmo(date));
+        window.call_native("set_date_direct", formatDateCosmo(date));
     }
 }
 

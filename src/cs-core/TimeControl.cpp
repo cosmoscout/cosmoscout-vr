@@ -64,6 +64,14 @@ void TimeControl::setTime(double tTime) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void TimeControl::setTimeWithoutAnimation(double tTime) {
+  double now = utils::convert::toSpiceTime(boost::posix_time::microsec_clock::universal_time());
+  double step = std::abs(pSimulationTime.get() - tTime) / 60 / 60;
+  pSimulationTime = tTime;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void TimeControl::resetTime() {
   std::string startDate = mSettings->mStartDate;
 
