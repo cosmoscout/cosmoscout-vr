@@ -1,7 +1,7 @@
 ﻿<!DOCTYPE html>
 <html>
+
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta charset="utf-8">
 
     <link type="text/css" rel="stylesheet" href="third-party/css/bootstrap.min.css" />
@@ -18,17 +18,20 @@
         }
 
         $(document).ready(function () {
-            $('[data-toggle="tooltip"]').tooltip({delay: 500, placement: "auto", html: false});
+            $('[data-toggle="tooltip"]').tooltip({ delay: 500, placement: "auto", html: false });
         })
     </script>
 
 </head>
+
 <body style="overflow: hidden">
     <div class="deletable-mark minimized">
         <div>
-            <a class="waves-effect waves-light btn glass" data-toggle='tooltip' title='Delete' onclick="window.call_native('delete_me')"><i class=" material-icons">delete_forever</i></a>
+            <a class="waves-effect waves-light btn glass" data-toggle='tooltip' title='Delete'
+                onclick="window.call_native('delete_me')"><i class=" material-icons">delete_forever</i></a>
         </div>
         <div class="triangle"></div>
     </div>
 </body>
+
 </html>

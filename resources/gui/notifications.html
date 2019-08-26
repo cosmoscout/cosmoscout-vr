@@ -1,65 +1,66 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <meta charset="utf-8">
+    <meta charset="utf-8">
 
-  <link type="text/css" rel="stylesheet" href="third-party/css/bootstrap.min.css"/>
-  <link type="text/css" rel="stylesheet" href="third-party/css/nouislider.css"/>
-  <link type="text/css" rel="stylesheet" href="css/gui.css">
-  <link type="text/css" rel="stylesheet" href="css/notifications.css">
+    <link type="text/css" rel="stylesheet" href="third-party/css/bootstrap.min.css" />
+    <link type="text/css" rel="stylesheet" href="css/gui.css">
+    <link type="text/css" rel="stylesheet" href="css/notifications.css">
 
-  <script type="text/javascript" src="third-party/js/jquery-2.2.3.min.js"></script>
-  <script type="text/javascript" src="third-party/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="third-party/js/jquery-2.2.3.min.js"></script>
+    <script type="text/javascript" src="third-party/js/bootstrap.min.js"></script>
 
-  <script type="text/javascript">
+    <script type="text/javascript">
 
-    function print_notification(title, content, icon, flyto) {
-      $("#notifications").prepend(
-        "<div class='notification row'>" +
-          "<div class='col-2'>" +
-            "<i class='material-icons'>" + icon + "</i>" +
-          "</div>" +
-          "<div class='col-10'>" +
-            "<div class='notification-title'>" + title + "</div>" +
-            "<div>" +  content + "</div>" +
-          "</div>" +
-        "</div>"
-      );
+        function print_notification(title, content, icon, flyto) {
+            $("#notifications").prepend(
+                "<div class='notification row'>" +
+                "<div class='col-2'>" +
+                "<i class='material-icons'>" + icon + "</i>" +
+                "</div>" +
+                "<div class='col-10'>" +
+                "<div class='notification-title'>" + title + "</div>" +
+                "<div>" + content + "</div>" +
+                "</div>" +
+                "</div>"
+            );
 
-      if (flyto) {
-        $(".notification").first().addClass("clickable");
-        $(".notification").first().click(function() {
-          window.call_native("fly_to", flyto);
+            if (flyto) {
+                $(".notification").first().addClass("clickable");
+                $(".notification").first().click(function () {
+                    window.call_native("fly_to", flyto);
+                });
+            }
+
+            $(".notification").first().css("transform");
+            $(".notification").first().addClass("show");
+            $(".notification").first().delay(8000).queue(function (next) {
+                $(this).addClass("fadeout");
+                next();
+            });
+
+            $(".notification")
+                .not(":nth-child(1)")
+                .not(":nth-child(2)")
+                .not(":nth-child(3)")
+                .not(":nth-child(4)")
+                .not(":nth-child(5)")
+                .remove();
+        }
+
+        $(document).ready(function () {
+            $("body").addClass("loaded");
         });
-      }
 
-      $(".notification").first().css("transform");
-      $(".notification").first().addClass("show");
-      $(".notification").first().delay(8000).queue(function(next){
-        $(this).addClass("fadeout");
-        next();
-      });
-
-      $(".notification")
-        .not(":nth-child(1)")
-        .not(":nth-child(2)")
-        .not(":nth-child(3)")
-        .not(":nth-child(4)")
-        .not(":nth-child(5)")
-        .remove();
-    }
-
-    $(document).ready(function () {
-      $("body").addClass("loaded");
-    });
-
-  </script>
+    </script>
 
 </head>
+
 <body>
 
-<div id="notifications"></div>
+    <div id="notifications"></div>
 
 </body>
+
 </html>

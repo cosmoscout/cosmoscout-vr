@@ -1,16 +1,15 @@
 ﻿<!DOCTYPE html>
-<html lang="en">
+<html>
+
 <head>
-    <title>Sidebar</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <meta charset="utf-8">
 
     <!-- Styles-->
-    <link type="text/css" rel="stylesheet" href="third-party/css/bootstrap.min.css"/>
-    <link type="text/css" rel="stylesheet" href="third-party/css/bootstrap-select.min.css"/>
-    <link type="text/css" rel="stylesheet" href="third-party/css/nouislider.css"/>
-    <link type="text/css" rel="stylesheet" href="css/gui.css"/>
-    <link type="text/css" rel="stylesheet" href="css/sidebar.css"/>
+    <link type="text/css" rel="stylesheet" href="third-party/css/bootstrap.min.css" />
+    <link type="text/css" rel="stylesheet" href="third-party/css/bootstrap-select.min.css" />
+    <link type="text/css" rel="stylesheet" href="third-party/css/nouislider.css" />
+    <link type="text/css" rel="stylesheet" href="css/gui.css" />
+    <link type="text/css" rel="stylesheet" href="css/sidebar.css" />
 
     <!-- Third Party-->
     <script type="text/javascript" src="third-party/js/d3.min.js"></script>
@@ -24,156 +23,158 @@
 </head>
 
 <body>
-<div id="left-side-bar" class="side-bar left">
-    <div class="accordion" id="sidebar-accordion">
-        <div class="card sidebar-tab">
-            <div class="card-header collapsed tab ripple" id="heading-GeneralSettings"
-                 data-toggle="collapse" data-target="#collapse-GeneralSettings" aria-expanded="false"
-                 aria-controls="collapse-GeneralSettings" type="button">
-                <i class="material-icons">settings</i>
-                <span class="header-name">Advanced Settings</span>
-            </div>
-            <div class="card-body collapse" id="collapse-GeneralSettings" aria-labelledby="heading-GeneralSettings"
-                 data-parent="#sidebar-accordion">
-                <div class="accordion" id="settings-accordion">
-                    <div class="card settings-section">
-                        <div class="card-header collapsed ripple" id="headingSettings-Graphics"
-                             data-toggle="collapse" data-target="#collapseSettings-Graphics" aria-expanded="false"
-                             aria-controls="collapseSettings-Graphics" type="button">
-                            <i class="material-icons">trending_up</i><span>Graphics</span><i class="material-icons caret-icon">keyboard_arrow_left</i>
-                        </div>
-                        <div class="card-body collapse" id="collapseSettings-Graphics"
-                             aria-labelledby="headingSettings-Graphics" data-parent="#settings-accordion">
-                            <div class="row">
-                                <div class="col-5">
-                                    <label class="checklabel">
-                                        <input type="checkbox" id="set_enable_vsync" checked/>
-                                        <i class="material-icons"></i>
-                                        <span>VSync</span>
-                                    </label>
-                                </div>
-                                <div class="col-7">
-                                    <label class="checklabel">
-                                        <input type="checkbox" id="set_enable_timer_queries"/>
-                                        <i class="material-icons"></i>
-                                        <span>Display Timing</span>
-                                    </label>
-                                </div>
+    <div id="left-side-bar" class="side-bar left">
+        <div class="accordion" id="sidebar-accordion">
+            <div class="card sidebar-tab">
+                <div class="card-header collapsed tab ripple" id="heading-GeneralSettings" data-toggle="collapse"
+                    data-target="#collapse-GeneralSettings" aria-expanded="false"
+                    aria-controls="collapse-GeneralSettings" type="button">
+                    <i class="material-icons">settings</i>
+                    <span class="header-name">Advanced Settings</span>
+                </div>
+                <div class="card-body collapse" id="collapse-GeneralSettings" aria-labelledby="heading-GeneralSettings"
+                    data-parent="#sidebar-accordion">
+                    <div class="accordion" id="settings-accordion">
+                        <div class="card settings-section">
+                            <div class="card-header collapsed ripple" id="headingSettings-Graphics"
+                                data-toggle="collapse" data-target="#collapseSettings-Graphics" aria-expanded="false"
+                                aria-controls="collapseSettings-Graphics" type="button">
+                                <i class="material-icons">trending_up</i><span>Graphics</span><i
+                                    class="material-icons caret-icon">keyboard_arrow_left</i>
                             </div>
-
-                            <div class="strike">
-                                <span>Lighting</span>
-                            </div>
-
-                            <div class="row">
-                                <div class="col-7 offset-5">
-                                    <label class="checklabel">
-                                        <input type="checkbox" id="set_enable_lighting"/>
-                                        <i class="material-icons"></i>
-                                        <span>Enable</span>
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-5">
-                                    Quality
-                                </div>
-                                <div class="col-7">
-                                    <div id="set_lighting_quality"></div>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-5">
-                                    Ambient Light
-                                </div>
-                                <div class="col-7">
-                                    <div id="set_ambient_light">
+                            <div class="card-body collapse" id="collapseSettings-Graphics"
+                                aria-labelledby="headingSettings-Graphics" data-parent="#settings-accordion">
+                                <div class="row">
+                                    <div class="col-5">
+                                        <label class="checklabel">
+                                            <input type="checkbox" id="set_enable_vsync" checked />
+                                            <i class="material-icons"></i>
+                                            <span>VSync</span>
+                                        </label>
+                                    </div>
+                                    <div class="col-7">
+                                        <label class="checklabel">
+                                            <input type="checkbox" id="set_enable_timer_queries" />
+                                            <i class="material-icons"></i>
+                                            <span>Display Timing</span>
+                                        </label>
                                     </div>
                                 </div>
-                            </div>
 
-                            <div class="strike">
-                                <span>Shadows</span>
-                            </div>
+                                <div class="strike">
+                                    <span>Lighting</span>
+                                </div>
 
-                            <div class="row">
-                                <div class="col-7 offset-5">
-                                    <label class="checklabel">
-                                        <input type="checkbox" id="set_enable_shadows"/>
-                                        <i class="material-icons"></i>
-                                        <span>Enable</span>
-                                    </label>
+                                <div class="row">
+                                    <div class="col-7 offset-5">
+                                        <label class="checklabel">
+                                            <input type="checkbox" id="set_enable_lighting" />
+                                            <i class="material-icons"></i>
+                                            <span>Enable</span>
+                                        </label>
+                                    </div>
                                 </div>
-                            </div>
+                                <div class="row">
+                                    <div class="col-5">
+                                        Quality
+                                    </div>
+                                    <div class="col-7">
+                                        <div id="set_lighting_quality"></div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-5">
+                                        Ambient Light
+                                    </div>
+                                    <div class="col-7">
+                                        <div id="set_ambient_light">
+                                        </div>
+                                    </div>
+                                </div>
 
-                            <div class="row">
-                                <div class="col-5">
-                                    Shadowmap Size
+                                <div class="strike">
+                                    <span>Shadows</span>
                                 </div>
-                                <div class="col-7">
-                                    <div id="set_shadowmap_resolution"></div>
-                                </div>
-                            </div>
 
-                            <div class="row">
-                                <div class="col-5">
-                                    Cascades
+                                <div class="row">
+                                    <div class="col-7 offset-5">
+                                        <label class="checklabel">
+                                            <input type="checkbox" id="set_enable_shadows" />
+                                            <i class="material-icons"></i>
+                                            <span>Enable</span>
+                                        </label>
+                                    </div>
                                 </div>
-                                <div class="col-7">
-                                    <div id="set_shadowmap_cascades"></div>
-                                </div>
-                            </div>
 
-                            <div class="row">
-                                <div class="col-5">
-                                    Cascade Distribution
+                                <div class="row">
+                                    <div class="col-5">
+                                        Shadowmap Size
+                                    </div>
+                                    <div class="col-7">
+                                        <div id="set_shadowmap_resolution"></div>
+                                    </div>
                                 </div>
-                                <div class="col-7">
-                                    <div id="set_shadowmap_split_distribution"></div>
-                                </div>
-                            </div>
 
-                            <div class="row">
-                                <div class="col-5">
-                                    Bias
+                                <div class="row">
+                                    <div class="col-5">
+                                        Cascades
+                                    </div>
+                                    <div class="col-7">
+                                        <div id="set_shadowmap_cascades"></div>
+                                    </div>
                                 </div>
-                                <div class="col-7">
-                                    <div id="set_shadowmap_bias"></div>
-                                </div>
-                            </div>
 
-                            <div class="row">
-                                <div class="col-5">
-                                    Depth Range
+                                <div class="row">
+                                    <div class="col-5">
+                                        Cascade Distribution
+                                    </div>
+                                    <div class="col-7">
+                                        <div id="set_shadowmap_split_distribution"></div>
+                                    </div>
                                 </div>
-                                <div class="col-7">
-                                    <div id="set_shadowmap_range"></div>
-                                </div>
-                            </div>
 
-                            <div class="row">
-                                <div class="col-5">
-                                    Sunspace Extension
+                                <div class="row">
+                                    <div class="col-5">
+                                        Bias
+                                    </div>
+                                    <div class="col-7">
+                                        <div id="set_shadowmap_bias"></div>
+                                    </div>
                                 </div>
-                                <div class="col-7">
-                                    <div id="set_shadowmap_extension"></div>
-                                </div>
-                            </div>
 
-                            <div class="row">
-                                <div class="col-7 offset-5">
-                                    <label class="checklabel">
-                                        <input type="checkbox" id="set_enable_cascades_debug"/>
-                                        <i class="material-icons"></i>
-                                        <span>Show Shadow LOD</span>
-                                    </label>
+                                <div class="row">
+                                    <div class="col-5">
+                                        Depth Range
+                                    </div>
+                                    <div class="col-7">
+                                        <div id="set_shadowmap_range"></div>
+                                    </div>
                                 </div>
-                                <div class="col-7 offset-5">
-                                    <label class="checklabel">
-                                        <input type="checkbox" id="set_enable_shadow_freeze"/>
-                                        <i class="material-icons"></i>
-                                        <span>Freeze Shadow LOD</span>
-                                    </label>
+
+                                <div class="row">
+                                    <div class="col-5">
+                                        Sunspace Extension
+                                    </div>
+                                    <div class="col-7">
+                                        <div id="set_shadowmap_extension"></div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-7 offset-5">
+                                        <label class="checklabel">
+                                            <input type="checkbox" id="set_enable_cascades_debug" />
+                                            <i class="material-icons"></i>
+                                            <span>Show Shadow LOD</span>
+                                        </label>
+                                    </div>
+                                    <div class="col-7 offset-5">
+                                        <label class="checklabel">
+                                            <input type="checkbox" id="set_enable_shadow_freeze" />
+                                            <i class="material-icons"></i>
+                                            <span>Freeze Shadow LOD</span>
+                                        </label>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -182,6 +183,6 @@
             </div>
         </div>
     </div>
-</div>
 </body>
+
 </html>

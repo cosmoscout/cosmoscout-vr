@@ -1,10 +1,10 @@
 ﻿<!DOCTYPE html>
 <html>
+
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <meta charset="utf-8">
 
-    <link type="text/css" rel="stylesheet" href="third-party/css/bootstrap.min.css"/>
+    <link type="text/css" rel="stylesheet" href="third-party/css/bootstrap.min.css" />
     <link type="text/css" rel="stylesheet" href="css/gui.css">
     <link type="text/css" rel="stylesheet" href="css/header.css">
 
@@ -213,7 +213,7 @@
 
         // entry point ---------------------------------------------------------
         $(document).ready(function () {
-            $('[data-toggle="tooltip"]').tooltip({delay: 500, placement: "top", html: false});
+            $('[data-toggle="tooltip"]').tooltip({ delay: 500, placement: "top", html: false });
 
             $('#query').on('keypress', function (event) {
                 if (event.key === 'Enter') {
@@ -237,107 +237,99 @@
     </script>
 
 </head>
+
 <body>
 
-<div id="header">
-    <div class="item col-5">
-        <span class="item col-3">
-            <a class="btn light-glass ripple" data-toggle="tooltip"
-               title='Turn north up' onclick="window.call_native('navigate_north_up')">
-                <span id="compass-arrow"></span>
-            </a>
-            <a class="btn light-glass ripple" data-toggle="tooltip"
-               title='Fix horizon' onclick="window.call_native('navigate_fix_horizon')">
-                <i class="material-icons">terrain</i>
-            </a>
-            <a class="btn light-glass ripple" data-toggle="tooltip"
-               title='Launch to orbit' onclick="window.call_native('navigate_to_orbit')">
-                <i class="material-icons">flight_takeoff</i>
-            </a>
-            <a class="btn light-glass ripple" data-toggle="tooltip"
-               title='Land on surface' onclick="window.call_native('navigate_to_surface')">
-                <i class="material-icons">flight_land</i>
-            </a>
-        </span>
-        <span class="item col-2">
-            <i class="material-icons">av_timer</i>
-            <span id="placeholder-8" style="min-width: 120px">0 km/h</span>
-        </span>
-        <span class="item col-4">
-            <i class="material-icons">accessibility</i>
-            <span id="placeholder-5" style="min-width: 190px">0° 0° 0m</span>
-        </span>
-        <span class="item col-3">
+    <div id="header">
+        <div class="item col-5">
+            <span class="item col-3">
+                <a class="btn light-glass ripple" data-toggle="tooltip" title='Turn north up'
+                    onclick="window.call_native('navigate_north_up')">
+                    <span id="compass-arrow"></span>
+                </a>
+                <a class="btn light-glass ripple" data-toggle="tooltip" title='Fix horizon'
+                    onclick="window.call_native('navigate_fix_horizon')">
+                    <i class="material-icons">terrain</i>
+                </a>
+                <a class="btn light-glass ripple" data-toggle="tooltip" title='Launch to orbit'
+                    onclick="window.call_native('navigate_to_orbit')">
+                    <i class="material-icons">flight_takeoff</i>
+                </a>
+                <a class="btn light-glass ripple" data-toggle="tooltip" title='Land on surface'
+                    onclick="window.call_native('navigate_to_surface')">
+                    <i class="material-icons">flight_land</i>
+                </a>
+            </span>
+            <span class="item col-2">
+                <i class="material-icons">av_timer</i>
+                <span id="placeholder-8" style="min-width: 120px">0 km/h</span>
+            </span>
+            <span class="item col-4">
+                <i class="material-icons">accessibility</i>
+                <span id="placeholder-5" style="min-width: 190px">0° 0° 0m</span>
+            </span>
+            <span class="item col-3">
                 <i class="material-icons">mouse</i>
-            <span id="placeholder-6" style="min-width: 190px"> - </span>
-        </span>
+                <span id="placeholder-6" style="min-width: 190px"> - </span>
+            </span>
+        </div>
+        <div class="item col-7">
+            <span id="time-nav" class="item light-glass ripple col-4" onclick="window.call_native('show_date_dialog')">
+                <i class="material-icons">access_time</i>
+                <span style="min-width: 190px"><span id="placeholder-4">01.01.1971 13:45</span>
+                    [<span id="placeholder-7">realtime</span>]
+                </span>
+            </span>
+            <span class="item col-4">
+                <a class="btn light-glass ripple" data-toggle="tooltip" title='Decrease time by one day'
+                    onclick="window.call_native('add_hours', -24)">
+                    <i class="material-icons">remove_circle_outline</i>
+                </a>
+
+                <a class="btn light-glass ripple" data-toggle="tooltip" title='Decrease time by one hour'
+                    onclick="window.call_native('add_hours', -1)">
+                    <i class="material-icons">remove</i>
+                </a>
+
+                <a class='btn light-glass ripple' data-toggle="tooltip" title='Decrease time speed'
+                    onclick='window.call_native("decrease_time_speed")'>
+                    <i class='material-icons'>fast_rewind</i>
+                </a>
+
+                <a id="play-paues-button" class="btn light-glass ripple" data-toggle="tooltip" title='Reset time'
+                    onclick="window.call_native('reset_time')">
+                    <i class="material-icons">restore</i>
+                </a>
+
+                <a id="play-paues-button" class="btn light-glass ripple" data-toggle="tooltip" title='Toggle pause'
+                    onclick="window.call_native('toggle_time_stop')">
+                    <i id="play-pause-icon" class="material-icons">pause</i>
+                </a>
+
+                <a class="btn light-glass ripple" data-toggle="tooltip" title='Increase time speed'
+                    onclick="window.call_native('increase_time_speed')">
+                    <i class="material-icons">fast_forward</i>
+                </a>
+
+                <a class="btn light-glass ripple" data-toggle="tooltip" title='Increase time by one hour'
+                    onclick="window.call_native('add_hours', 1)">
+                    <i class="material-icons">add</i>
+                </a>
+
+                <a class="btn light-glass ripple" data-toggle="tooltip" title='Increase time by one day'
+                    onclick="window.call_native('add_hours', 24)">
+                    <i class="material-icons">add_circle_outline</i>
+                </a>
+            </span>
+            <span class="item col-4">
+                <input id='query' placeholder='Goto Location...' type='text' class='text-input' value=''
+                    style="width: auto" />
+                <a id='fly-to' class="btn light-glass ripple" data-toggle="tooltip" title='Goto Location'>
+                    <i class="material-icons">send</i>
+                </a>
+            </span>
+        </div>
     </div>
-    <div class="item col-7">
-        <span id="time-nav" class="item light-glass ripple col-4"
-          onclick="window.call_native('show_date_dialog')">
-        <i class="material-icons">access_time</i>
-        <span style="min-width: 190px"><span id="placeholder-4">01.01.1971 13:45</span>
-            [<span id="placeholder-7">realtime</span>]
-        </span>
-    </span>
-        <span class="item col-4">
-            <a class="btn light-glass ripple" data-toggle="tooltip"
-               title='Decrease time by one day'
-               onclick="window.call_native('add_hours', -24)">
-                <i class="material-icons">remove_circle_outline</i>
-            </a>
-
-            <a class="btn light-glass ripple" data-toggle="tooltip"
-               title='Decrease time by one hour'
-               onclick="window.call_native('add_hours', -1)">
-                <i class="material-icons">remove</i>
-            </a>
-
-            <a class='btn light-glass ripple' data-toggle="tooltip"
-               title='Decrease time speed'
-               onclick='window.call_native("decrease_time_speed")'>
-                <i class='material-icons'>fast_rewind</i>
-            </a>
-
-            <a id="play-paues-button" class="btn light-glass ripple"
-              data-toggle="tooltip" title='Reset time'
-               onclick="window.call_native('reset_time')">
-                <i class="material-icons">restore</i>
-            </a>
-
-            <a id="play-paues-button" class="btn light-glass ripple"
-              data-toggle="tooltip" title='Toggle pause'
-               onclick="window.call_native('toggle_time_stop')">
-                <i id="play-pause-icon" class="material-icons">pause</i>
-            </a>
-
-            <a class="btn light-glass ripple" data-toggle="tooltip"
-               title='Increase time speed'
-               onclick="window.call_native('increase_time_speed')">
-                <i class="material-icons">fast_forward</i>
-            </a>
-
-            <a class="btn light-glass ripple" data-toggle="tooltip"
-               title='Increase time by one hour'
-               onclick="window.call_native('add_hours', 1)">
-                <i class="material-icons">add</i>
-            </a>
-
-            <a class="btn light-glass ripple" data-toggle="tooltip"
-               title='Increase time by one day'
-               onclick="window.call_native('add_hours', 24)">
-                <i class="material-icons">add_circle_outline</i>
-            </a>
-        </span>
-        <span class="item col-4">
-            <input id='query' placeholder='Goto Location...' type='text' class='text-input'
-                   value='' style="width: auto"/>
-            <a id='fly-to' class="btn light-glass ripple"
-              data-toggle="tooltip" title='Goto Location'>
-                <i class="material-icons">send</i>
-            </a>
-        </span>
-    </div>
-</div>
 </body>
+
 </html>
