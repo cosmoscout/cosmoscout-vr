@@ -268,7 +268,7 @@ function set_items(events) {
     items.add(data);
 }
 
-function add_item(start, end, content, id, style) {
+function add_item(start, end, id, content, style) {
     var data = new Object();
     data.start = new Date(start);
     data.content = content;
