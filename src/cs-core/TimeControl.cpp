@@ -72,7 +72,6 @@ void TimeControl::setTime(double tTime) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void TimeControl::setTimeWithoutAnimation(double tTime) {
-  double now = utils::convert::toSpiceTime(boost::posix_time::microsec_clock::universal_time());
   pSimulationTime = tTime;
 }
 
