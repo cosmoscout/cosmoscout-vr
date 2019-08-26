@@ -16,6 +16,7 @@
 #include <optional>
 #include <string>
 #include <vector>
+#include <exception>
 
 namespace nlohmann {
 
@@ -45,6 +46,35 @@ struct adl_serializer<std::optional<T>> {
 } // namespace nlohmann
 
 namespace cs::core {
+
+class CS_CORE_EXPORT SettingsSectionException : public std::exception {
+  const std::string completeMessage;
+
+ public:
+  const std::string sectionName;
+  const std::string message;
+
+  SettingsSectionException(std::string sectionName, std::string message)
+      : sectionName(std::move(sectionName))
+      , message(std::move(message))
+      , completeMessage(message + ", in section '" + sectionName + "'.") {
+  }
+
+  [[nodiscard]] const char* what() const noexcept override {
+    return completeMessage.c_str();
+  }
+};
+
+void CS_CORE_EXPORT parseSettingsSection(std::string const& sectionName, const std::function<void()>& f);
+
+template <typename T>
+T CS_CORE_EXPORT parseProperty(std::string const& propertyName, nlohmann::json const& j) {
+  try {
+    return j.at(propertyName).get<T>();
+  } catch (nlohmann::json::exception const& e) {
+    throw std::runtime_error("Error while trying to parse property '" + propertyName + "': " + std::string(e.what()));
+  }
+}
 
 /// Most of CosmoScout VR's configuration is done with one huge JSON file. This contains some global
 /// options and settings for each plugin. The available global options are defined below, the

@@ -9,6 +9,8 @@
 
 #include "cs_utils_export.hpp"
 
+#include "../cs-core/Settings.hpp"
+
 #include <boost/date_time/gregorian/gregorian.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 
@@ -78,6 +80,9 @@ CS_UTILS_EXPORT glm::dvec3 lngLatToNormal(glm::dvec2 const& lngLat, double radiu
 
 /// Returns the geodetic coordinates (lng, lat) for a given normal vector.
 CS_UTILS_EXPORT glm::dvec2 normalToLngLat(glm::dvec3 const& normal, double radiusE, double radiusP);
+
+/// Parse the time of existence from the settings section of an anchor.
+CS_UTILS_EXPORT std::pair<double, double> getExistenceFromSettings(std::pair<std::string, core::Settings::Anchor> anchor);
 
 /// Convert boost::posix_time::ptime to spice time, which is defined by the
 /// Barycentric Dynamical Time.
