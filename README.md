@@ -87,9 +87,9 @@ Official Plugins | Description | Screenshot
   <img src ="docs/img/banner-light-shafts.jpg" />
 </p>
 
-**CosmoScout VR is research software which is still under heavy development and changes on a daily basis.
+:warning: _**Warning:** CosmoScout VR is research software which is still under heavy development and changes on a daily basis.
 Many features are badly documented, it will crash without warning and may do other unexpected things.
-We are working hard on improving the user experience - please [report all issues and suggestions](https://github.com/cosmoscout/cosmoscout-vr/issues) you have!**
+We are working hard on improving the user experience - please [report all issues and suggestions](https://github.com/cosmoscout/cosmoscout-vr/issues) you have!_
 
 There are several guides in the **[`docs`](docs)** directory to get you started!
 
