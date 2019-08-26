@@ -522,6 +522,11 @@ function makeTimeStep() {
     await makeTimeStep();
   }
 
+function set_time_speed(speed) {
+    if(speed == paus) {
+        range.noUiSlider.set(paus);
+    }
+}
 
 function rangeUpdateCallback(values, handle, unencoded, tap, positions) {
     currentSpeed = range.noUiSlider.get();

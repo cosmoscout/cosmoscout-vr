@@ -121,6 +121,8 @@ bool Application::Init(VistaSystem* pVistaSystem) {
 
   mTimeControl->pTimeSpeed.onChange().connect(
       [this](float val) { mGuiManager->getHeaderBar()->callJavascript("set_time_speed", val); });
+  mTimeControl->pTimeSpeed.onChange().connect(
+      [this](float val) { mGuiManager->getTimeNavigationBar()->callJavascript("set_time_speed", val); });
 
   // set mouse pointer -----------------------------------------------------------------------------
   auto windowingToolkit = dynamic_cast<VistaGlutWindowingToolkit*>(
