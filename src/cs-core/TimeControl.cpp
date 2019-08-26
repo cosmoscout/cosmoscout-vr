@@ -72,7 +72,13 @@ void TimeControl::setTime(double tTime) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void TimeControl::setTimeWithoutAnimation(double tTime) {
-  pSimulationTime = tTime;
+  double maxDate = cs::utils::convert::toSpiceTime(boost::posix_time::time_from_string(mSettings->mMaxDate));
+  double minDate = cs::utils::convert::toSpiceTime(boost::posix_time::time_from_string(mSettings->mMinDate));
+  if(maxDate < tTime || minDate > tTime) {
+    setTimeSpeed(0);
+  } else {
+    pSimulationTime = tTime;
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
