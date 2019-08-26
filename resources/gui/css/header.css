@@ -3,14 +3,6 @@ body {
     -webkit-font-smoothing: antialiased;
 }
 
-#version {
-    font-size: 9px;
-    top: 3px;
-    right: 5px;
-    flex-grow: 3;
-    text-align: right;
-}
-
 #header {
     position: absolute;
     left: 0;
@@ -79,8 +71,6 @@ body {
 
 #header .btn {
     padding: 4px 4px 0 4px;
-    line-height: 35px;
-    border-radius: 0;
     color: #ddf
 }
 

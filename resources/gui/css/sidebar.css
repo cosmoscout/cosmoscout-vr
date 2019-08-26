@@ -19,29 +19,33 @@
     color: #fff;
     background-color: rgba(0, 0, 0, 0.5);
     display: block;
-    font-size: 1.7rem;
-    line-height: 3.2rem;
-    transition: width 0.4s ease, width 0.4s ease;
+    font-size: 2rem;
+    line-height: 2.5rem;
+    transition: width 0.3s ease, background 0.1s linear;
     width: 55px;
     height: 55px;
     overflow: hidden;
     white-space: nowrap;
     text-shadow: 0 0 5px rgba(255, 255, 255, 0.4), 0 0 10px #aaf;
     text-align: center;
-    border: none;
     padding: 3px;
-    margin: -1px 0;
-    border-top: 3px solid #ccf !important;
+    border-top: 2px solid #ccf !important;
+    position: relative;
+}
+
+.side-bar .tab:active {
+    top: 1px;
 }
 
 .side-bar .tab .header-name {
-    text-transform: uppercase;
+    font-family: 'AlegreyaSansSC';
     opacity: 0;
-    transition: opacity 0.3s linear;
+    transition: opacity 0.1s linear;
     overflow-x: hidden;
     text-overflow: clip;
     white-space: nowrap;
 }
+
 
 .side-bar .tab:not(.collapsed),
 .side-bar .tab:hover {
@@ -49,12 +53,14 @@
 }
 
 .side-bar .tab:hover {
-    background-color: rgba(255, 255, 255, 0.2);
+    background-color: rgba(50, 50, 50, 0.5);
 }
 
 .side-bar .tab:not(.collapsed) .header-name,
 .side-bar .tab:hover .header-name {
     opacity: 1;
+    transition: opacity 0.2s linear;
+    transition-delay: 0.1s;
 }
 
 .side-bar .card-header i {
@@ -75,44 +81,54 @@
 
 .side-bar .card {
     background: transparent;
-    margin-bottom: 5px;
-    border-radius: 0;
+    padding: 5px 0;
+    margin: 0;
     box-shadow: none;
-    border-bottom: 1px solid rgba(0, 0, 0, 0);
+    border: none;
+    border-radius: 0;
 }
 
-.sidebar-tab {
+.accordion>.card .card-header  {
+    margin: 0;
     border: none;
+}
+
+.side-bar *[type=button] {
+    -webkit-appearance: none;
 }
 
 /* Setting Sections --------------------------------------------------------- */
 
 .settings-section .card-header {
+    font-family: 'AlegreyaSansSC';
     width: 100%;
+    font-size: 1.5rem;
     background: transparent;
     border: none;
-    margin: 3px 0;
-    text-transform: uppercase;
+    margin: 0;
     color: #fff;
     text-shadow: 0 0 5px rgba(255, 255, 255, 0.4), 0 0 10px #aaf;
+    position: relative;
+    width: 100%;
+    transition: 100ms background;
+    padding: 0.5rem 1.7rem;
+}
+
+.settings-section .card-header:active {
+    top: 1px;
 }
 
 .settings-section .card-header i {
     width: 2rem;
     font-size: 1.6rem;
     display: inline-block;
-    margin-right: 1rem;
-    top: 15px;
+    line-height: 2rem;
 }
 
 .settings-section .card-header span {
     text-align: center;
     display: inline-block;
-    padding-left: 30px;
-}
-
-.settings-section .card-header {
-    width: 100%;
+    padding-left: 25px;
 }
 
 .settings-section .card-body {
@@ -121,7 +137,7 @@
 }
 
 .settings-section .card-header:hover {
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.1);
 }
 
 .settings-section .card-header .caret-icon {
@@ -136,23 +152,13 @@
     transform: rotate(-90deg);
 }
 
-.settings-section {
+.side-bar .card.settings-section {
     border-style: dashed;
     border-width: 1px 0 0 0;
-    border-color: rgba(230, 230, 255, 0.4);
+    border-color: rgba(255, 255, 255, 0.4);
 }
 
-.settings-body {
-    border: none;
-    padding: 0;
-    margin-top: 10px;
-    margin-bottom: 10px;
-}
 
 .settings-accordion {
     margin-bottom: 0;
-}
-
-.side-bar *[type=button] {
-    -webkit-appearance: none;
 }

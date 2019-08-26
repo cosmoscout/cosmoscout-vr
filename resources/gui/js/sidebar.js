@@ -2,13 +2,12 @@ function addPluginTab(pluginName, iconName, content) {
     const id = pluginName.split(' ').join('-');
     $("#sidebar-accordion .sidebar-tab:last").before(`
     <div class="card sidebar-tab">
-        <div class="card-header collapsed tab ripple" id="heading-${id}" data-toggle="collapse" 
+        <div class="card-header collapsed tab" id="heading-${id}" data-toggle="collapse" 
         data-target="#collapse-${id}" aria-expanded="false" aria-controls="collapse-${id}" type="button">
             <i class="material-icons">${iconName}</i><span class="header-name">${id}</span>
         </div>
         <div class="card-body collapse" id="collapse-${id}" aria-labelledby="heading-${id}"
              data-parent="#sidebar-accordion">
-            <hr/>
             ${content}
         </div>
     </div>
@@ -19,7 +18,7 @@ function addSettingsSection(sectionName, icon, content) {
     const id = sectionName.split(' ').join('-');
     $("#settings-accordion").append(`
     <div class="card settings-section">
-        <div class="card-header collapsed ripple" id="headingSettings-${id}"
+        <div class="card-header collapsed" id="headingSettings-${id}"
              data-toggle="collapse" data-target="#collapseSettings-${id}" aria-expanded="false"
              aria-controls="collapseSettings-${id}" type="button">
             <i class="material-icons">${icon}</i>
@@ -113,7 +112,7 @@ function init() {
         window.call_native(this.id, this.checked);
     });
 
-    $('[data-toggle="tooltip"]').tooltip({delay: 500, placement: "auto", html: false});
+    $('[data-toggle="tooltip"]').tooltip({ delay: 500, placement: "auto", html: false });
 
     $('.radiolabel input').change(function () {
         if (this.checked) {
@@ -128,7 +127,7 @@ function init_slider(id, min, max, step, start) {
         start: start,
         connect: (start.length == 1 ? "lower" : true),
         step: step,
-        range: {'min': min, 'max': max},
+        range: { 'min': min, 'max': max },
         format: {
             to: function (value) {
                 return beauty_print_number(value);
@@ -155,7 +154,7 @@ $(document).ready(function () {
         start: 2048,
         connect: "lower",
         snap: true,
-        range: {'min': 256, '25%': 512, '50%': 1024, '75%': 2048, 'max': 4096},
+        range: { 'min': 256, '25%': 512, '50%': 1024, '75%': 2048, 'max': 4096 },
         format: wNumb({})
     });
 

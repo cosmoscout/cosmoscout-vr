@@ -243,19 +243,19 @@
     <div id="header">
         <div class="item col-5">
             <span class="item col-3">
-                <a class="btn light-glass ripple" data-toggle="tooltip" title='Turn north up'
+                <a class="btn light-glass" data-toggle="tooltip" title='Turn north up'
                     onclick="window.call_native('navigate_north_up')">
                     <span id="compass-arrow"></span>
                 </a>
-                <a class="btn light-glass ripple" data-toggle="tooltip" title='Fix horizon'
+                <a class="btn light-glass" data-toggle="tooltip" title='Fix horizon'
                     onclick="window.call_native('navigate_fix_horizon')">
                     <i class="material-icons">terrain</i>
                 </a>
-                <a class="btn light-glass ripple" data-toggle="tooltip" title='Launch to orbit'
+                <a class="btn light-glass" data-toggle="tooltip" title='Launch to orbit'
                     onclick="window.call_native('navigate_to_orbit')">
                     <i class="material-icons">flight_takeoff</i>
                 </a>
-                <a class="btn light-glass ripple" data-toggle="tooltip" title='Land on surface'
+                <a class="btn light-glass" data-toggle="tooltip" title='Land on surface'
                     onclick="window.call_native('navigate_to_surface')">
                     <i class="material-icons">flight_land</i>
                 </a>
@@ -274,49 +274,49 @@
             </span>
         </div>
         <div class="item col-7">
-            <span id="time-nav" class="item light-glass ripple col-4" onclick="window.call_native('show_date_dialog')">
+            <span id="time-nav" class="item light-glass col-4" onclick="window.call_native('show_date_dialog')">
                 <i class="material-icons">access_time</i>
                 <span style="min-width: 190px"><span id="placeholder-4">01.01.1971 13:45</span>
                     [<span id="placeholder-7">realtime</span>]
                 </span>
             </span>
             <span class="item col-4">
-                <a class="btn light-glass ripple" data-toggle="tooltip" title='Decrease time by one day'
+                <a class="btn light-glass" data-toggle="tooltip" title='Go back one day'
                     onclick="window.call_native('add_hours', -24)">
                     <i class="material-icons">remove_circle_outline</i>
                 </a>
 
-                <a class="btn light-glass ripple" data-toggle="tooltip" title='Decrease time by one hour'
+                <a class="btn light-glass" data-toggle="tooltip" title='Go back one hour'
                     onclick="window.call_native('add_hours', -1)">
                     <i class="material-icons">remove</i>
                 </a>
 
-                <a class='btn light-glass ripple' data-toggle="tooltip" title='Decrease time speed'
+                <a class='btn light-glass' data-toggle="tooltip" title='Decrease time speed'
                     onclick='window.call_native("decrease_time_speed")'>
                     <i class='material-icons'>fast_rewind</i>
                 </a>
 
-                <a id="play-paues-button" class="btn light-glass ripple" data-toggle="tooltip" title='Reset time'
+                <a id="play-paues-button" class="btn light-glass" data-toggle="tooltip" title='Reset time'
                     onclick="window.call_native('reset_time')">
                     <i class="material-icons">restore</i>
                 </a>
 
-                <a id="play-paues-button" class="btn light-glass ripple" data-toggle="tooltip" title='Toggle pause'
+                <a id="play-paues-button" class="btn light-glass" data-toggle="tooltip" title='Toggle pause'
                     onclick="window.call_native('toggle_time_stop')">
                     <i id="play-pause-icon" class="material-icons">pause</i>
                 </a>
 
-                <a class="btn light-glass ripple" data-toggle="tooltip" title='Increase time speed'
+                <a class="btn light-glass" data-toggle="tooltip" title='Increase time speed'
                     onclick="window.call_native('increase_time_speed')">
                     <i class="material-icons">fast_forward</i>
                 </a>
 
-                <a class="btn light-glass ripple" data-toggle="tooltip" title='Increase time by one hour'
+                <a class="btn light-glass" data-toggle="tooltip" title='Add one hour'
                     onclick="window.call_native('add_hours', 1)">
                     <i class="material-icons">add</i>
                 </a>
 
-                <a class="btn light-glass ripple" data-toggle="tooltip" title='Increase time by one day'
+                <a class="btn light-glass" data-toggle="tooltip" title='Add one day'
                     onclick="window.call_native('add_hours', 24)">
                     <i class="material-icons">add_circle_outline</i>
                 </a>
@@ -324,7 +324,7 @@
             <span class="item col-4">
                 <input id='query' placeholder='Goto Location...' type='text' class='text-input' value=''
                     style="width: auto" />
-                <a id='fly-to' class="btn light-glass ripple" data-toggle="tooltip" title='Goto Location'>
+                <a id='fly-to' class="btn light-glass" data-toggle="tooltip" title='Goto Location'>
                     <i class="material-icons">send</i>
                 </a>
             </span>
