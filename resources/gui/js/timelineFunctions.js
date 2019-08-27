@@ -279,7 +279,14 @@ function add_item(start, end, id, content, style) {
     if(style != "") {
         data.style = style;
     }
+    item = document.createElement('div');
+    item.setAttribute('class', 'tooltipped');
+    item.setAttribute('data-position', 'bottom');
+    item.setAttribute('data-tooltip', content);
+    item.appendChild(document.createTextNode(content));
+    data.content = item;
     items.update(data);
+    $('.tooltipped').tooltip({'enterDelay':500, 'margin':-8});
 }
 
 function saveItems() {
