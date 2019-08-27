@@ -85,6 +85,7 @@ class CS_CORE_EXPORT Settings {
     std::string mContent;
     std::string mId;
     std::optional<std::string> mStyle;
+    std::string mDescription;
   };
 
   /// Defines the initial simulation time.

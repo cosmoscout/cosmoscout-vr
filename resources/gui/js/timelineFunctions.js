@@ -268,7 +268,7 @@ function set_items(events) {
     items.add(data);
 }
 
-function add_item(start, end, id, content, style) {
+function add_item(start, end, id, content, style, description) {
     var data = new Object();
     data.start = new Date(start);
     data.id = id;
@@ -281,7 +281,7 @@ function add_item(start, end, id, content, style) {
     item = document.createElement('div');
     item.setAttribute('class', 'tooltipped');
     item.setAttribute('data-position', 'bottom');
-    item.setAttribute('data-tooltip', content);
+    item.setAttribute('data-tooltip', description);
     item.appendChild(document.createTextNode(content));
     data.content = item;
     data.className = 'tooltipped overview';

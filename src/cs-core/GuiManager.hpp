@@ -108,7 +108,8 @@ class CS_CORE_EXPORT GuiManager {
   /// Adds an event item to the timenavigation
   ///
   /// @param evt The event to add.
-  void addEventToTimenavigationBar(std::string start, std::optional<std::string> end, std::string id, std::string content, std::optional<std::string> style);
+  void addEventToTimenavigationBar(std::string start, std::optional<std::string> end
+    , std::string id, std::string content, std::optional<std::string> style, std::string description);
 
   /// Returns the side bar GuiItem. The side bar is located at the left side of the screen.
   gui::GuiItem* getSideBar() const;

@@ -58,6 +58,7 @@ void from_json(const nlohmann::json& j, Settings::Event& o) {
   if (iter != j.end()) {
     o.mStyle = iter->get<std::optional<std::string>>();
   }
+  o.mDescription = j.at("description").get<std::string>();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

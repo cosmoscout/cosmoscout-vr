@@ -231,7 +231,7 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
   for (int i = 0; i < settings->mEvents.size(); i++)
   {
     addEventToTimenavigationBar(settings->mEvents.at(i).mStart, settings->mEvents.at(i).mEnd, 
-    settings->mEvents.at(i).mId, settings->mEvents.at(i).mContent, settings->mEvents.at(i).mStyle);
+    settings->mEvents.at(i).mId, settings->mEvents.at(i).mContent, settings->mEvents.at(i).mStyle, settings->mEvents.at(i).mDescription);
   }
   
 }
@@ -464,8 +464,8 @@ void GuiManager::addScriptToSideBarFromJS(std::string const& jsFile) {
   addScriptToSideBar(content);
 }
 
-void GuiManager::addEventToTimenavigationBar(std::string start, std::optional<std::string> end, std::string id, std::string content, std::optional<std::string> style) {
-  mTimeNavigationBar->callJavascript("add_item", start, end.value_or(""), id, content, style.value_or(""));
+void GuiManager::addEventToTimenavigationBar(std::string start, std::optional<std::string> end, std::string id, std::string content, std::optional<std::string> style, std::string description) {
+  mTimeNavigationBar->callJavascript("add_item", start, end.value_or(""), id, content, style.value_or(""), description);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
