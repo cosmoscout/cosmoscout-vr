@@ -46,12 +46,6 @@
     width: 20px;
     height: 20px;
     transform: translate(350px,-22px);
-    border-style: solid;
-    border-width: 1px;
-    border-color: black;
-    margin: 2px 2px 2px 2px;
-    background-color: black;
-    border-radius: 3px;
 }
 
 .dateRow {
