@@ -403,17 +403,21 @@ function minusOneDay() {
 }
 
 function plusOneMonth() {
-    window.call_native("add_hours", 730);
+    centerTime.setMonth(centerTime.getMonth() + 1);
+    window.call_native("set_date", formatDateCosmo(new Date(centerTime.getTime())));
 }
 function minusOneMonth() {
-    window.call_native("add_hours", -730);
+    centerTime.setMonth(centerTime.getMonth() - 1);
+    window.call_native("set_date", formatDateCosmo(new Date(centerTime.getTime())));
 }
 
 function plusOneYear() {
-    window.call_native("add_hours", 8760);
+    centerTime.setFullYear(centerTime.getFullYear() + 1);
+    window.call_native("set_date", formatDateCosmo(new Date(centerTime.getTime())));
 }
 function minusOneYear() {
-    window.call_native("add_hours", -8760);
+    centerTime.setFullYear(centerTime.getFullYear() - 1);
+    window.call_native("set_date", formatDateCosmo(new Date(centerTime.getTime())));
 }
 
 function increaseCenterTime(days, hours, minutes, seconds, milliSec) {
