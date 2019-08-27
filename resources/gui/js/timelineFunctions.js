@@ -585,19 +585,6 @@ function rangeUpdateCallback(values, handle, unencoded, tap, positions) {
       } 
 }
 
-function showToday() {
-    date = new Date(timeline.getCurrentTime().getTime());
-    window.call_native("set_date", formatDateCosmo(new Date(date.getTime())));
-    var startDate = new Date(date.getTime());
-    var endDate = new Date(date.getTime());
-    startDate.setHours(startOfDay);
-    endDate.setHours(endOfDay);
-    play = false;
-    range.noUiSlider.set(0);
-    timeline.setWindow(startDate, endDate, animationFalse);
-    setOverviewTimes();
-}
-
 function manuelZoomTimeline(event) {
     if(timelineZoomBlocked) {
         if(event.deltaY < 0) {
@@ -645,8 +632,6 @@ document.getElementById("minusOneYear").onclick = minusOneYear;
 
 document.getElementById("btnCancel").onclick = closeForm;
 document.getElementById("btnApply").onclick = applyEvent;
-
-document.getElementById("btnToday").onclick = showToday;
 
 
 //Prevents scrolling on page

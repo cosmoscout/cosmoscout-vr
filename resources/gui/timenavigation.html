@@ -41,11 +41,11 @@
   <div id="divContainer" class="divContainer">
     <table id="control">
         <tr>
-            <td><div class="btnDiv dirJump" id="btnToday">Today</div> </td>
-            <td><div class="btnDiv distJump" id="minusOneYear">-Y</div> </td>
-            <td><div class="btnDiv distJump" id="minusOneMonth">-M</div> </td>
-            <td><div class="btnDiv distJump" id="minusOneDay">-D</div> </td>
-            <td><div class="btnDiv distJump" id="minusOneHour">-H</div> </td>
+            <td><div class="btnDiv tooltipped" data-position='top' data-tooltip='Reset time' id="btnReset" onclick="window.call_native('reset_time')"><i class="material-icons">restore</i></div> </td>
+            <td><div class="btnDiv distJump tooltipped" data-position='top' data-tooltip='Decrease time by one hour' id="minusOneYear"><i class="material-icons">skip_previous</i></div> </td>
+            <td><div class="btnDiv distJump tooltipped" data-position='top' data-tooltip='Decrease time by one hour' id="minusOneMonth"><i class="material-icons">remove_circle</i></div> </td>
+            <td><div class="btnDiv distJump tooltipped" data-position='top' data-tooltip='Decrease time by one hour' id="minusOneDay"><i class="material-icons">remove_circle_outline</i></div> </td>
+            <td><div class="btnDiv distJump tooltipped" data-position='top' data-tooltip='Decrease time by one hour' id="minusOneHour"><i class="material-icons">remove</i></div> </td>
             <td>
                 <div class="timeForm" id="timeForm">
                   <div class="dateRow">
@@ -55,11 +55,11 @@
                     <div id="range"></div>
                 </div>
             </td>
-            <td><div class="btnDiv distJump" id="plusOneHour">+H</div> </td>
-            <td><div class="btnDiv distJump" id="plusOneDay">+D</div> </td>
-            <td><div class="btnDiv distJump" id="plusOneMonth">+M</div> </td>
-            <td><div class="btnDiv distJump" id="plusOneYear">+Y</div> </td>
-            <td><div class="btnDiv dirJump" id="btnLock">Lock</div> </td>
+            <td><div class="btnDiv distJump tooltipped" data-position='top' data-tooltip='Increase time by one hour' id="plusOneHour"><i class="material-icons">add</i></div> </td>
+            <td><div class="btnDiv distJump tooltipped" data-position='top' data-tooltip='Increase time by one day' id="plusOneDay"><i class="material-icons">add_circle_outline</i></div> </td>
+            <td><div class="btnDiv distJump tooltipped" data-position='top' data-tooltip='Increase time by one month' id="plusOneMonth"><i class="material-icons">add_circle</i></div> </td>
+            <td><div class="btnDiv distJump tooltipped" data-position='top' data-tooltip='Increase time by one year' id="plusOneYear"><i class="material-icons">skip_next</i></div> </td>
+            <td><div class="btnDiv" id="btnLock"><i class="material-icons">lock_outline</i></div> </td>
         </tr>
       </table>
       <div id="calendarContainer">
