@@ -1,29 +1,31 @@
 ﻿<!DOCTYPE html>
 <html>
+
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta charset="utf-8">
 
-    <link type="text/css" rel="stylesheet" href="third-party/css/materialize.min.css" />
+    <link type="text/css" rel="stylesheet" href="third-party/css/bootstrap.min.css" />
     <link type="text/css" rel="stylesheet" href="css/gui.css">
     <link type="text/css" rel="stylesheet" href="css/tools.css">
 
     <script type="text/javascript" src="third-party/js/jquery-2.2.3.min.js"></script>
+    <script type="text/javascript" src="third-party/js/bootstrap.bundle.min.js"></script>
 
     <script type="text/javascript">
         function set_minimized(minimize) {
-            if (minimize) $('.mark').addClass('minimized');
-            else $('.mark').removeClass('minimized');
+            if (minimize) $('.deletable-mark').addClass('minimized');
+            else $('.deletable-mark').removeClass('minimized');
         }
     </script>
 
 </head>
+
 <body style="overflow: hidden">
-    <div class="mark minimized">
-        <div class="banner">
-            <a class="waves-effect waves-light btn glass tooltipped" data-position='bottom' data-delay='50' data-tooltip='Delete' onclick="window.call_native('delete_me')"><i class=" material-icons">delete_forever</i></a>
-        </div>
+    <div class="deletable-mark minimized">
+        <a class="btn glass block" onclick="window.call_native('delete_me')"><i
+                class="material-icons">delete_forever</i></a>
         <div class="triangle"></div>
     </div>
 </body>
+
 </html>
