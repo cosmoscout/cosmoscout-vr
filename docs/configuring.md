@@ -28,7 +28,7 @@ In the following, the individual parameters are explained and the required steps
     "latitude": 48.086709
   },
   "spiceKernel": "../share/config/spice/simple.txt",
-  "widgetScale": 0.8,
+  "widgetScale": 0.6,
   "enableMouseRay": false,
   "anchors": {},
   "plugins": {}
