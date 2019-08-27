@@ -15,10 +15,6 @@
     src: url('../third-party/fonts/AlegreyaSansSC-Regular.ttf') format('truetype');
 }
 
-:focus {
-    outline: none !important;
-}
-
 .debug {
     background: black;
 }
@@ -41,7 +37,7 @@
 body {
     font-family: 'Ubuntu', sans-serif !important;
     color: #ddf;
-    font-size: 1.2rem;
+    font-size: 1rem;
     -webkit-user-select: none !important;
     -webkit-font-smoothing: antialiased;
     background: transparent;
@@ -194,6 +190,7 @@ input, textarea {
 }
 
 /* Scroll box --------------------------------------------------------------- */
+
 .scroll-box {
     /*background-color: rgba(230, 230, 255, 0.1);*/
     -webkit-mask-image: -webkit-linear-gradient(rgba(255, 255, 255, 0) 0, rgba(255, 255, 255, 1) 20px, rgba(255, 255, 255, 1) 40%, rgba(255, 255, 255, 0) 49%), -webkit-linear-gradient(bottom, rgba(255, 255, 255, 0) 0, rgba(255, 255, 255, 1) 20px, rgba(255, 255, 255, 1) 49%, rgba(255, 255, 255, 0) 49%), -webkit-linear-gradient(rgba(255, 255, 255, 0) 30%, rgba(255, 255, 255, 1) 40%, rgba(255, 255, 255, 1) 60%, rgba(255, 255, 255, 0) 70%);
@@ -226,8 +223,9 @@ input, textarea {
 }
 
 /* Buttons ------------------------------------------------------------------ */
+
 .btn {
-    margin-bottom: 5px;
+    margin-bottom: 2px;
     position: relative;
     padding: 0;
     color: #fff;
@@ -264,6 +262,7 @@ input, textarea {
     background-color: rgba(230, 230, 255, 0.3);
     border-bottom: 2px solid #fff;
     box-shadow: none;
+    color: #fff;
 }
 
 .btn.light-glass {
@@ -341,8 +340,6 @@ input, textarea {
 .tab-content {
     margin: 10px;
 }
-
-/* Radio & Check Boxes ------------------------------------------------------ */
 
 /* Check Boxes -------------------------------------------------------------- */
 
@@ -429,6 +426,14 @@ label.radiolabel:hover {
 
 label.radiolabel:active {
     top: 1px;
+}
+
+input[type=checkbox]:checked + div.btn {
+    background-color: rgba(230, 230, 255, 0.5);
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.4), 0 0 10px #aaf;
+    border-top: 1px dashed rgba(230, 230, 255, 0.5);
+    border-right: 1px dashed rgba(230, 230, 255, 0.5);
+    border-left: 1px dashed rgba(230, 230, 255, 0.5);
 }
 
 /* Utilities ---------------------------------------------------------------- */
@@ -627,30 +632,6 @@ hr {
 .strike > *:after {
     left: 100%;
     margin-left: 15px;
-}
-
-/* Color Picker ------------------------------------------------------------- */
-
-.cp-app {
-    border-radius: 0 !important;
-    z-index: 100;
-}
-
-input.color-picker {
-    text-indent: 100%;
-    white-space: nowrap;
-    overflow: hidden;
-    color: transparent;
-}
-
-/* Progress bars ------------------------------------------------------------ */
-
-.progress {
-    background-color: #aab;
-}
-
-.progress .indeterminate {
-    background-color: #fff;
 }
 
 /* Dropdowns ---------------------------------------------------------------- */
