@@ -271,7 +271,6 @@ function set_items(events) {
 function add_item(start, end, id, content, style) {
     var data = new Object();
     data.start = new Date(start);
-    data.content = content;
     data.id = id;
     if(end != "") {
         data.end = end;
@@ -285,7 +284,15 @@ function add_item(start, end, id, content, style) {
     item.setAttribute('data-tooltip', content);
     item.appendChild(document.createTextNode(content));
     data.content = item;
+    data.className = 'tooltipped overview';
     items.update(data);
+    var events = document.getElementsByClassName('tooltipped')
+    for(var i=0; i<events.length; i++) {
+        if(events[i].textContent == content && $(events[i]).hasClass("overview")) {
+            events[i].setAttribute('data-position', 'top');
+            events[i].setAttribute('data-tooltip', content);
+        }
+    }
     $('.tooltipped').tooltip({'enterDelay':500, 'margin':-8});
 }
 
