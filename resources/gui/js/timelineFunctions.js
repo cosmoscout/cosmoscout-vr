@@ -420,28 +420,10 @@ function minusOneYear() {
     window.call_native("set_date", formatDateCosmo(new Date(centerTime.getTime())));
 }
 
-function increaseCenterTime(days, hours, minutes, seconds, milliSec) {
-    centerTime = increaseDate(centerTime, days, hours, minutes, seconds, milliSec);
-    timeline.setCustomTime(centerTime, timeId);
-    setOverviewTimes();
-    document.getElementById("dateLabel").innerText = formatDateReadable(centerTime);
-}
 
-function decreaseCenterTime(days, hours, minutes, seconds, milliSec) {
-    centerTime = decreaseDate(centerTime, days, hours, minutes, seconds, milliSec);
-    timeline.setCustomTime(centerTime, timeId);
-    setOverviewTimes();
-    document.getElementById("dateLabel").innerText = formatDateReadable(centerTime);
-}
 
-function moveCustomTime(seconds, forward) {
+function moveWindow(seconds) {
     play = true;
-    var converted = convertSeconds(seconds);
-    if(forward) {
-        increaseCenterTime(converted.days, converted.hours, converted.minutes, converted.seconds, converted.milliSec);
-    } else {
-        decreaseCenterTime(converted.days, converted.hours, converted.minutes, converted.seconds, converted.milliSec);
-    }
     var step;
     if(seconds == secSpeed)
         seconds++;
@@ -450,12 +432,7 @@ function moveCustomTime(seconds, forward) {
     var endDate = new Date(centerTime.getTime());
     startDate = decreaseDate(startDate, step.days, step.hours, step.minutes, step.seconds, step.milliSec);
     endDate = increaseDate(endDate, step.days, step.hours, step.minutes, step.seconds, step.milliSec);
-    if(firstTime) {
-        firstTime = false;
-        timeline.setWindow(startDate, endDate);
-    } else {
-        timeline.setWindow(startDate, endDate, animationFalse);
-    }
+    timeline.setWindow(startDate, endDate, animationFalse);
 }
   
 function set_date(date) {
@@ -481,22 +458,22 @@ function makeTimeStep() {
     return new Promise(resolve => {
     switch(parseInt(currentSpeed)) {
         case monthBack:
-            moveCustomTime(monthSpeed, false);
+            moveWindow(monthSpeed);
             timeline.setOptions(playingOpt);
             timelineZoomBlocked = true;
           break;
         case dayBack:
-            moveCustomTime(daySpeed, false);
+            moveWindow(daySpeed);
             timeline.setOptions(playingOpt);
             timelineZoomBlocked = true;
           break;
         case hourBack:
-            moveCustomTime(hourSpeed, false);
+            moveWindow(hourSpeed);
             timeline.setOptions(playingOpt);
             timelineZoomBlocked = true;
           break;
         case secBack:
-            moveCustomTime(secSpeed, false);
+            moveWindow(secSpeed);
             timeline.setOptions(playingOpt);
             timelineZoomBlocked = true;
             break;
@@ -506,22 +483,22 @@ function makeTimeStep() {
             timelineZoomBlocked = false;
          break; 
         case secForw:
-            moveCustomTime(secSpeed, true);
+            moveWindow(secSpeed);
             timeline.setOptions(playingOpt);
             timelineZoomBlocked = true;
             break;
         case hourForw:
-            moveCustomTime(hourSpeed, true);
+            moveWindow(hourSpeed);
             timeline.setOptions(playingOpt);
             timelineZoomBlocked = true;
           break;
         case dayForw:
-            moveCustomTime(daySpeed, true);
+            moveWindow(daySpeed);
             timeline.setOptions(playingOpt);
             timelineZoomBlocked = true;
           break;
         case monthForw:
-            moveCustomTime(monthSpeed, true)
+            moveWindow(monthSpeed)
             timeline.setOptions(playingOpt);
             timelineZoomBlocked = true;
             break;       
