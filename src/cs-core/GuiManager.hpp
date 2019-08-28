@@ -107,7 +107,12 @@ class CS_CORE_EXPORT GuiManager {
 
   /// Adds an event item to the timenavigation
   ///
-  /// @param evt The event to add.
+  /// @param start The start date of the event.
+  /// @param end The optional end date of the event.
+  /// @param id The id of the event.
+  /// @param content The name or content of the event.
+  /// @param style The optional css of the event.
+  /// @param description The description of the event.
   void addEventToTimenavigationBar(std::string start, std::optional<std::string> end
     , std::string id, std::string content, std::optional<std::string> style, std::string description);
 
