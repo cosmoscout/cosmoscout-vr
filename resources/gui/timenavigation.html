@@ -31,10 +31,13 @@
 </head>
 <body>
 
-
-  
   <div id="divContainer" class="divContainer">
-    <table id="control">
+      <div id="overview"></div>
+      <div id="visualization"></div>
+      <div id="calendarContainer">
+        <div id="calendar"></div>
+      </div>
+      <table id="control">
         <tr>
             <td><div class="btnDiv tooltipped" data-position='top' data-tooltip='Reset time' id="btnReset" onclick="window.call_native('reset_time')"><i class="material-icons">restore</i></div> </td>
             <td><div class="btnDiv distJump tooltipped" data-position='top' data-tooltip='Decrease time by one year' id="minusOneYear"><i class="material-icons">skip_previous</i></div> </td>
@@ -57,15 +60,9 @@
             <td><div class="btnDiv" id="btnLock"><i class="material-icons">lock_outline</i></div> </td>
         </tr>
       </table>
-      <div id="calendarContainer">
-        <div id="calendar"></div>
-      </div>
-      <div id="visualization"></div>
-      <div id="overview"></div>
-    </div>
-
+  </div>
   <div id="snippet" class="snippet"></div>
-
+  
   <script src="js/dateOperations.js"></script>
   <script src="js/timelineFunctions.js"></script>
   <script src="js/rangeDiv.js"></script>
