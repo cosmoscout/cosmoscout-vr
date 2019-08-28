@@ -11,8 +11,6 @@ let timeId = 0;
 let leftTimeId = 'leftTime';
 let rightTimeId = 'rightTime';
 
-var parHolder = new Object();
-
 var drawDivCallback = null;
 
 var firstTime = true;
@@ -73,16 +71,7 @@ var options = {
     zoomable: false,
     moveable: false,
     showCurrentTime: false,
-    editable: {
-        add: true,         // add new items by double tapping
-        updateTime: true,  // drag items horizontally
-        updateGroup: false, // drag items from one group to another
-        remove: true,       // delete an item by tapping the delete button top right
-        overrideItems: false  // allow these options to override item.editable
-    },
-    onAdd: onAddCallback,
-    onUpdate: onUpdateCallback,
-    
+    editable: false
 };
 
 var playingOpt = {
@@ -108,20 +97,6 @@ var overviewOptions = {
 var animationFalse = {
     animation: false
 };
-
-var whileEditingOpt = {
-    editable: false
-}
-
-var editingDoneOpt = {
-    editable: {
-        add: true,         // add new items by double tapping
-        updateTime: true,  // drag items horizontally
-        updateGroup: false, // drag items from one group to another
-        remove: true,       // delete an item by tapping the delete button top right
-        overrideItems: false  // allow these options to override item.editable
-    }
-}
 
 var lastPlayValue = secForw;
 var mouseOnTimelineDown = false;
@@ -243,12 +218,6 @@ function setOverviewTimes() {
     overviewChangeCallback();
 }
 
-function closeForm() {
-    parHolder.callback(null); // cancel item creation
-    document.getElementById("myForm").style.display = "none";
-    timeline.setOptions(editingDoneOpt);
-}
-
 function onSelect (properties) {
     mouseOverDisabled = true;
     for(var item in items._data) {
@@ -295,65 +264,6 @@ function add_item(start, end, id, content, style, description) {
     }
     $('.tooltipped').tooltip({'enterDelay':500, 'margin':-8});
 }
-
-function saveItems() {
-    var data = items.get({
-        type: {
-          start: 'ISODate',
-          end: 'ISODate'
-        }
-    });
-}
-
-function applyEvent() {  
-    if (document.getElementById("eventName").value != ""
-    && document.getElementById("eventStartDate").value != "") {
-        parHolder.item.style = "background-color: " + document.getElementById("eventColor").value;
-        parHolder.item.content = document.getElementById("eventName").value;
-        parHolder.item.start = new Date(document.getElementById("eventStartDate").value);
-        if(document.getElementById("eventEndDate").value != "") {
-            parHolder.item.end = new Date(document.getElementById("eventEndDate").value);
-            
-        }
-        parHolder.callback(parHolder.item); // send back adjusted new item
-        document.getElementById("myForm").style.display = "none";
-        timeline.setOptions(editingDoneOpt);
-        saveItems();
-    }
-}
-
-function onUpdateCallback(item, callback) {
-    play = false;
-    timeline.setOptions(whileEditingOpt);
-    document.getElementById("headlineForm").innerText = "Update";
-    document.getElementById("myForm").style.display = "block";
-    document.getElementById("eventName").value = item.content;
-    document.getElementById("eventStartDate").value = getFormattedDate(item.start);
-    if(item.end) {
-        document.getElementById("eventEndDate").value = getFormattedDate(item.end);
-    } else {
-        document.getElementById("eventEndDate").value = "";
-    }
-    parHolder.item = item;
-    parHolder.callback = callback;
-    play = false;
-    range.noUiSlider.set(paus);
-}
-
-function onAddCallback(item, callback) {
-    play = false;
-    timeline.setOptions(whileEditingOpt);
-    document.getElementById("headlineForm").innerText = "Add";
-    document.getElementById("eventName").value = "";
-    document.getElementById("myForm").style.display = "block";
-    document.getElementById("eventStartDate").value = getFormattedDate(item.start);
-    document.getElementById("eventEndDate").value = "";
-    parHolder.item = item;
-    parHolder.callback = callback;
-    play = false;
-    range.noUiSlider.set(paus);
-}
-
 
 function generalOnClick(properties) {
     if(properties.what != "item" && properties.time != null) {
@@ -606,6 +516,3 @@ document.getElementById("minusOneMonth").onclick = minusOneMonth;
 
 document.getElementById("plusOneYear").onclick = plusOneYear;
 document.getElementById("minusOneYear").onclick = minusOneYear;
-
-document.getElementById("btnCancel").onclick = closeForm;
-document.getElementById("btnApply").onclick = applyEvent;

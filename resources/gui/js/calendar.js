@@ -1,11 +1,5 @@
 var calenderVisible = false;
 
-let newCenterTimeId = 0;
-let newStartDateId = 1;
-let newEndDateId = 2;
-
-var state;
-
 function set_visible(visible) {
     if (visible) {
         $('#calendar').addClass('visible');
@@ -26,34 +20,6 @@ function toggle_visible() {
     }
 }
 
-function enterNewCenterTime() {
-    if(calenderVisible && state == newCenterTimeId) {
-        toggle_visible();
-    } else if(!calenderVisible) {
-        state = newCenterTimeId;
-        toggle_visible();
-    }
-}
-
-function enterStartDate() {
-    if(state == newStartDateId) {
-        toggle_visible();
-    }else {
-        state = newStartDateId;
-        calenderVisible = true;
-        set_visible(true);
-    }
-}
-
-function enterEndDate() {
-    if(state == newEndDateId) {
-        toggle_visible();
-    }else {
-        state = newEndDateId;
-        calenderVisible = true;
-        set_visible(true);
-    }
-}
 
 function changeDateCallback(e) {
     toggle_visible();
@@ -84,7 +50,5 @@ $(document).ready(function () {
     }).on("changeDate", changeDateCallback);
 });
 
-document.getElementById("btnCalendar").onclick = enterNewCenterTime;
-document.getElementById("dateLabel").onclick = enterNewCenterTime;
-document.getElementById("eventStartDate").onclick = enterStartDate;
-document.getElementById("eventEndDate").onclick = enterEndDate;
+document.getElementById("btnCalendar").onclick = toggle_visible;
+document.getElementById("dateLabel").onclick = toggle_visible;

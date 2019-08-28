@@ -23,15 +23,10 @@
   <link href="css/formStylesheet.css" rel="stylesheet" type="text/css" />
   <link href="css/controlStylesheet.css" rel="stylesheet" type="text/css" />
 
-
-  <link href="third-party/css/color-picker.min.css" rel="stylesheet">
-
   <link href="css/snipped.css" rel="stylesheet">
 
   <script src="third-party/js/vis-timeline-graph2d.min.js"></script>
   <script src="third-party/js/nouislider.min.js"></script>
-
-  <script src="third-party/js/color-picker.min.js"></script>
 
 </head>
 <body>
@@ -69,34 +64,12 @@
       <div id="overview"></div>
     </div>
 
-
-  <div class="form-popup" id="myForm">
-    <div class="form-container">
-      <h1 id="headlineForm">Customize Event</h1>
-
-      <label for="name"><b>Name</b></label>
-      <input type="text" placeholder="Enter Event Name" name="name" id="eventName">
-
-      <label for="color"><b>Color</b></label>
-      <input type="colorPicker" name="color" id="eventColor">
-
-      <label for="date"><b>Start date</b></label>
-      <input type="text" name="date" id="eventStartDate">
-      <label for="date"><b>End date</b></label>
-      <input type="text" name="date" id="eventEndDate">
-
-      <button type="button" class="btn" id="btnApply">Apply</button>
-      <button type="button" class="btn cancel" id="btnCancel">Close</button>
-    </div>
-  </div>
-
   <div id="snippet" class="snippet"></div>
 
   <script src="js/dateOperations.js"></script>
   <script src="js/timelineFunctions.js"></script>
   <script src="js/rangeDiv.js"></script>
   <script src="js/calendar.js"></script>
-  <script src="js/colorPicker.js"></script>
   <script src="js/fade.js"></script>
 
 </body>
