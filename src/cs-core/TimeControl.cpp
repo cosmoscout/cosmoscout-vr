@@ -53,7 +53,11 @@ void TimeControl::setTime(double tTime) {
 
   double step = std::abs(pSimulationTime.get() - tTime) / 60 / 60;
 
-  if (step > 48) {
+  double maxDate = cs::utils::convert::toSpiceTime(boost::posix_time::time_from_string(mSettings->mMaxDate));
+  double minDate = cs::utils::convert::toSpiceTime(boost::posix_time::time_from_string(mSettings->mMinDate));
+  if(maxDate < tTime || minDate > tTime) {
+    setTimeSpeed(0);
+  }else if (step > 48) {
     // Make no animation for very large time changes.
     pSimulationTime = tTime;
   } else {
