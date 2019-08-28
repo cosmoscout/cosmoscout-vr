@@ -78,7 +78,7 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
   mLoadingScreen = new gui::GuiItem("file://../share/resources/gui/loading_screen.html");
   mCalendar      = new gui::GuiItem("file://../share/resources/gui/calendar.html");
   mSideBar       = new gui::GuiItem("file://../share/resources/gui/sidebar.html");
-  mHeaderBar     = new gui::GuiItem("file://../share/resources/gui/header.html");
+  mFooterBar     = new gui::GuiItem("file://../share/resources/gui/footer.html");
   mNotifications = new gui::GuiItem("file://../share/resources/gui/notifications.html");
   mLogo          = new gui::GuiItem("file://../share/resources/gui/logo.html");
   mStatistics    = new gui::GuiItem("file://../share/resources/gui/statistics.html");
@@ -91,7 +91,7 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
     mGlobalGuiArea->addItem(mLogo);
     mGlobalGuiArea->addItem(mNotifications);
     mGlobalGuiArea->addItem(mSideBar);
-    mGlobalGuiArea->addItem(mHeaderBar);
+    mGlobalGuiArea->addItem(mFooterBar);
     mGlobalGuiArea->addItem(mCalendar);
     mGlobalGuiArea->addItem(mTimeNavigationBar);
     mGlobalGuiArea->addItem(mLoadingScreen);
@@ -99,7 +99,7 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
     mLocalGuiArea->addItem(mLogo);
     mLocalGuiArea->addItem(mNotifications);
     mLocalGuiArea->addItem(mSideBar);
-    mLocalGuiArea->addItem(mHeaderBar);
+    mLocalGuiArea->addItem(mFooterBar);
     mLocalGuiArea->addItem(mCalendar);
     mLocalGuiArea->addItem(mTimeNavigationBar);
     mLocalGuiArea->addItem(mLoadingScreen);
@@ -124,18 +124,17 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
   mSideBar->setRelOffsetY(-0.5f);
   mSideBar->setCursorChangeCallback([this](gui::Cursor c) { setCursor(c); });
 
-  mHeaderBar->setRelSizeX(1.f);
-  mHeaderBar->setSizeY(80);
-  mHeaderBar->setRelPositionX(0.5);
-  mHeaderBar->setRelPositionY(0);
-  mHeaderBar->setOffsetY(40);
-  mHeaderBar->setCursorChangeCallback([this](gui::Cursor c) { setCursor(c); });
+  mFooterBar->setRelSizeX(1.f);
+  mFooterBar->setSizeY(80);
+  mFooterBar->setRelPositionX(0.5);
+  mFooterBar->setRelPositionY(1.f);
+  mFooterBar->setCursorChangeCallback([this](gui::Cursor c) { setCursor(c); });
 
   mTimeNavigationBar->setRelSizeX(1.f);
   mTimeNavigationBar->setSizeY(644);
   mTimeNavigationBar->setRelPositionX(0.5);
-  mTimeNavigationBar->setRelPositionY(1.0);
-  mTimeNavigationBar->setOffsetY(-322);
+  mTimeNavigationBar->setRelPositionY(0);
+  mTimeNavigationBar->setOffsetY(322);
   mTimeNavigationBar->setCursorChangeCallback([this](gui::Cursor c) { setCursor(c); });
 
   mNotifications->setSizeX(420);
@@ -176,7 +175,7 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
   mInputManager->registerSelectable(mLocalGuiArea);
 
   mSideBar->waitForFinishedLoading();
-  mHeaderBar->waitForFinishedLoading();
+  mFooterBar->waitForFinishedLoading();
   mTimeNavigationBar->waitForFinishedLoading();
   mNotifications->waitForFinishedLoading();
   mLoadingScreen->waitForFinishedLoading();
@@ -185,12 +184,12 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
 
   // Register callbacks for notifications area.
 
-  mHeaderBar->registerCallback<std::string, std::string, std::string>("print_notification",
+  mFooterBar->registerCallback<std::string, std::string, std::string>("print_notification",
       ([this](std::string const& title, std::string const& content, std::string const& icon) {
         showNotification(title, content, icon);
       }));
 
-  mHeaderBar->registerCallback("show_date_dialog", ([this]() {
+  mFooterBar->registerCallback("show_date_dialog", ([this]() {
     if (mCalendar->getIsInteractive()) {
       mCalendar->callJavascript("set_visible", false);
       mCalendar->setIsInteractive(false);
@@ -240,7 +239,7 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
 
 GuiManager::~GuiManager() {
   delete mSideBar;
-  delete mHeaderBar;
+  delete mFooterBar;
   delete mNotifications;
   delete mLogo;
   delete mGlobalGuiArea;
@@ -315,8 +314,8 @@ gui::GuiItem* GuiManager::getCalendar() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-gui::GuiItem* GuiManager::getHeaderBar() const {
-  return mHeaderBar;
+gui::GuiItem* GuiManager::getFooterBar() const {
+  return mFooterBar;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -428,7 +427,7 @@ void GuiManager::update() {
 
   // Set fps.
   float fFrameRate(GetVistaSystem()->GetFrameLoop()->GetFrameRate());
-  mHeaderBar->callJavascript("set_fps", fFrameRate);
+  mFooterBar->callJavascript("set_fps", fFrameRate);
 
   // Update entire gui.
   gui::update();

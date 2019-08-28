@@ -124,7 +124,7 @@ class CS_CORE_EXPORT GuiManager {
   gui::GuiItem* getCalendar() const;
 
   /// Returns the header bar GuiItem. The header bar is at the top of the screen.
-  gui::GuiItem* getHeaderBar() const;
+  gui::GuiItem* getFooterBar() const;
 
   /// Returns the time navigation bar GuiItem. The time navigation bar bar is at the bottom of the screen.
   gui::GuiItem* getTimeNavigationBar() const;
@@ -159,7 +159,7 @@ class CS_CORE_EXPORT GuiManager {
   gui::GuiItem* mLoadingScreen = nullptr;
   gui::GuiItem* mCalendar      = nullptr;
   gui::GuiItem* mSideBar       = nullptr;
-  gui::GuiItem* mHeaderBar     = nullptr;
+  gui::GuiItem* mFooterBar     = nullptr;
   gui::GuiItem* mNotifications = nullptr;
   gui::GuiItem* mLogo          = nullptr;
   gui::GuiItem* mStatistics    = nullptr;
