@@ -31,6 +31,7 @@
 #overview .vis-item.vis-range {
   height: 18px !important;
   top: -10px !important;
+  min-width: 18px !important;
 }
 
 #overview .vis-panel.vis-bottom {

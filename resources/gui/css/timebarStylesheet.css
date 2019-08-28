@@ -9,13 +9,13 @@ body{
 
 
   .vis-timeline {
-    background: rgba(20, 20, 20, 0.5);
     border-width: 0px;
+    background-image: linear-gradient(0deg, rgb(20, 20, 20) 0%, rgba(20, 20, 20, 0.5) 100%)
   }
 
   #visualization .vis-timeline {
-    border-top-width: 1px;
-    border-top-color: #ddf;
+    border-width: 3px;
+    border-color: #ddf;
   }
 
   #visualization .vis-time-axis {
@@ -61,7 +61,7 @@ body{
 
   .vis-panel.vis-bottom {
     height: 40px !important;
-    top: 50px !important;
+    top: 47px !important;
   }
 
   .vis-text.vis-major {
