@@ -79,3 +79,30 @@ body{
   .vis-group {
     top: 10px;
   }
+
+  #visualization .vis-custom-time {
+    background-color: #ddf;
+    width: 3px;
+    cursor: inherit;
+    z-index: 1;
+  }
+
+  #visualization .vis-custom-time:before,
+  #visualization .vis-custom-time:after {
+    content:  '';
+    background-color: #ddf;
+    width: 11px;
+    height: 10px;
+    position:absolute;
+    left: -4px;
+  }
+
+  #visualization .vis-custom-time::before {
+    top:-3px;
+    border-radius: 0 0 5px 5px;
+  }
+
+  #visualization .vis-custom-time::after {
+    bottom:-3px;
+    border-radius: 5px 5px 0 0;
+  }
