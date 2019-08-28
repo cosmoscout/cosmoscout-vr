@@ -79,7 +79,7 @@ $(document).ready(function () {
         todayHighlight: true,
         maxViewMode: 3,
         format: "yyyy-mm-dd",
-        startDate: "1950-01-01",
+        startDate: "1950-01-02",
         endDate: "2049-12-31",
     }).on("changeDate", changeDateCallback);
 });
