@@ -6,7 +6,7 @@
 
     <link type="text/css" rel="stylesheet" href="third-party/css/materialize.min.css" />
     <link type="text/css" rel="stylesheet" href="css/gui.css">
-    <link type="text/css" rel="stylesheet" href="css/header.css">
+    <link type="text/css" rel="stylesheet" href="css/footer.css">
 
     <script type="text/javascript" src="third-party/js/jquery-2.2.3.min.js"></script>
     <script type="text/javascript" src="third-party/js/materialize.min.js"></script>
@@ -148,10 +148,6 @@
             // $("#placeholder-1").text(Math.floor(fps));
         }
 
-        function set_north_direction(angle) {
-            $("#compass-arrow").css("transform", "rotateZ(" + angle + "rad)");
-        }
-
         function setHeader(xhr) {
             xhr.setRequestHeader('Access-Control-Allow-Origin', '*');
         }
@@ -237,38 +233,11 @@
 </head>
 <body>
 
-    <div id="header">
-        <span class="item">
-            <a class="waves-effect waves-light btn light-glass tooltipped" data-position='bottom' data-tooltip='Turn north up' onclick="window.call_native('navigate_north_up')"><span id="compass-arrow"></span></a>
-            <a class="waves-effect waves-light btn light-glass tooltipped" data-position='bottom' data-tooltip='Fix horizon' onclick="window.call_native('navigate_fix_horizon')"><i class="material-icons">terrain</i></a>
-            <a class="waves-effect waves-light btn light-glass tooltipped" data-position='bottom' data-tooltip='Launch to orbit' onclick="window.call_native('navigate_to_orbit')"><i class="material-icons">flight_takeoff</i></a>
-            <a class="waves-effect waves-light btn light-glass tooltipped" data-position='bottom' data-tooltip='Land on surface' onclick="window.call_native('navigate_to_surface')"><i class="material-icons">flight_land</i></a>
-        </span>
-        <span class="item">
-            <i class="material-icons">accessibility</i> <span id="placeholder-5" style="min-width: 190px">0° 0° 0m</span>
-        </span>
+    <div id="footer">
         <span class="item">
             <i class="material-icons">av_timer</i> <span id="placeholder-8" style="min-width: 120px">0 km/h</span>
-        </span>
-        <span class="item">
+            <i class="material-icons">accessibility</i> <span id="placeholder-5" style="min-width: 190px">0° 0° 0m</span>
             <i class="material-icons">mouse</i> <span id="placeholder-6" style="min-width: 190px"> - </span>
-        </span>
-        <span class="item waves-effect waves-light light-glass" onclick="window.call_native('show_date_dialog')">
-            <i class="material-icons">access_time</i> <span style="min-width: 190px"><span id="placeholder-4">01.01.1971 13:45</span> [<span id="placeholder-7">realtime</span>]</span>
-        </span>
-        <span class="item">
-            <a class="waves-effect waves-light btn light-glass tooltipped" data-position='bottom' data-tooltip='Decrease time by one day' onclick="window.call_native('add_hours', -24)"><i class="material-icons">remove_circle_outline</i></a>
-            <a class="waves-effect waves-light btn light-glass tooltipped" data-position='bottom' data-tooltip='Decrease time by one hour' onclick="window.call_native('add_hours', -1)"><i class="material-icons">remove</i></a>
-            <a class='waves-effect waves-light btn light-glass tooltipped' data-position='bottom' data-tooltip='Decrease time speed' onclick='window.call_native("decrease_time_speed")'><i class='material-icons'>fast_rewind</i></a>
-            <a id="play-paues-button" class="waves-effect waves-light btn light-glass tooltipped" data-position='bottom' data-tooltip='Reset time' onclick="window.call_native('reset_time')"><i class="material-icons">restore</i></a>
-            <a id="play-paues-button" class="waves-effect waves-light btn light-glass tooltipped" data-position='bottom' data-tooltip='Toggle pause' onclick="window.call_native('toggle_time_stop')"><i id="play-pause-icon" class="material-icons">pause</i></a>
-            <a class="waves-effect waves-light btn light-glass tooltipped" data-position='bottom' data-tooltip='Increase time speed' onclick="window.call_native('increase_time_speed')"><i class="material-icons">fast_forward</i></a>
-            <a class="waves-effect waves-light btn light-glass tooltipped" data-position='bottom' data-tooltip='Increase time by one hour' onclick="window.call_native('add_hours', 1)"><i class="material-icons">add</i></a>
-            <a class="waves-effect waves-light btn light-glass tooltipped" data-position='bottom' data-tooltip='Increase time by one day' onclick="window.call_native('add_hours', 24)"><i class="material-icons">add_circle_outline</i></a>
-        </span>
-        <span class="item">
-            <input id='query' placeholder='Goto Location...' type='text' class='text-input' value='' style="width: auto" />
-            <a id='fly-to' class="waves-effect waves-light btn light-glass tooltipped" data-position='bottom' data-tooltip='Goto Location'><i class="material-icons">send</i></a>
         </span>
     </div>
 

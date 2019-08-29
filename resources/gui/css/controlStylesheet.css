@@ -13,6 +13,15 @@
     top: 0px;
 }
 
+#compass-arrow {
+    background-image: url("../img/compass.png");
+    width: 25px;
+    height: 25px;
+    background-size: contain;
+    display: inline-block;
+}
+
+
 #control {
     z-index: 2;
     margin: auto;

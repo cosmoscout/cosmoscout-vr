@@ -264,7 +264,7 @@ void Application::registerHeaderBarCallbacks() {
             cs::utils::convert::toRadians(glm::dvec2(longitude, latitude)), height, 5.0);
       });
 
-  mGuiManager->getFooterBar()->registerCallback("navigate_north_up", [this]() {
+  mGuiManager->getTimeNavigationBar()->registerCallback("navigate_north_up", [this]() {
     auto observerPos = mSolarSystem->getObserver().getAnchorPosition();
 
     glm::dvec3 y = glm::vec3(0, -1, 0);
@@ -282,7 +282,7 @@ void Application::registerHeaderBarCallbacks() {
         mSolarSystem->getObserver().getFrameName(), observerPos, rotation, 1.0);
   });
 
-  mGuiManager->getFooterBar()->registerCallback("navigate_fix_horizon", [this]() {
+  mGuiManager->getTimeNavigationBar()->registerCallback("navigate_fix_horizon", [this]() {
     auto radii = cs::core::SolarSystem::getRadii(mSolarSystem->getObserver().getCenterName());
 
     if (radii[0] == 0.0) {
@@ -311,7 +311,7 @@ void Application::registerHeaderBarCallbacks() {
         mSolarSystem->getObserver().getFrameName(), observerPos, rotation, 1.0);
   });
 
-  mGuiManager->getFooterBar()->registerCallback("navigate_to_surface", [this]() {
+  mGuiManager->getTimeNavigationBar()->registerCallback("navigate_to_surface", [this]() {
     auto radii = cs::core::SolarSystem::getRadii(mSolarSystem->getObserver().getCenterName());
 
     if (radii[0] == 0.0 || radii[2] == 0.0) {
@@ -353,7 +353,7 @@ void Application::registerHeaderBarCallbacks() {
         mSolarSystem->getObserver().getFrameName(), observerPos, rotation, 3.0);
   });
 
-  mGuiManager->getFooterBar()->registerCallback("navigate_to_orbit", [this]() {
+  mGuiManager->getTimeNavigationBar()->registerCallback("navigate_to_orbit", [this]() {
     auto observerRot = mSolarSystem->getObserver().getAnchorRotation();
     auto radii       = cs::core::SolarSystem::getRadii(mSolarSystem->getObserver().getCenterName());
 
@@ -670,7 +670,7 @@ void Application::FrameUpdate() {
         angle = -angle;
       }
 
-      mGuiManager->getFooterBar()->callJavascript("set_north_direction", angle);
+      mGuiManager->getTimeNavigationBar()->callJavascript("set_north_direction", angle);
     }
 
     mGuiManager->update();

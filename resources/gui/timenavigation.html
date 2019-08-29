@@ -28,6 +28,11 @@
   <script src="third-party/js/vis-timeline-graph2d.min.js"></script>
   <script src="third-party/js/nouislider.min.js"></script>
 
+  <script type="text/javascript">
+    function set_north_direction(angle) {
+            $("#compass-arrow").css("transform", "rotateZ(" + angle + "rad)");
+    }
+  </script>
 </head>
 <body>
 
@@ -39,6 +44,14 @@
       </div>
       <table id="control">
         <tr>
+            <td>
+                <span class="item">
+                    <a class="waves-effect waves-light btn light-glass tooltipped" data-position='bottom' data-tooltip='Turn north up' onclick="window.call_native('navigate_north_up')"><span id="compass-arrow"></span></a>
+                    <a class="waves-effect waves-light btn light-glass tooltipped" data-position='bottom' data-tooltip='Fix horizon' onclick="window.call_native('navigate_fix_horizon')"><i class="material-icons">terrain</i></a>
+                    <a class="waves-effect waves-light btn light-glass tooltipped" data-position='bottom' data-tooltip='Launch to orbit' onclick="window.call_native('navigate_to_orbit')"><i class="material-icons">flight_takeoff</i></a>
+                    <a class="waves-effect waves-light btn light-glass tooltipped" data-position='bottom' data-tooltip='Land on surface' onclick="window.call_native('navigate_to_surface')"><i class="material-icons">flight_land</i></a>
+                </span>
+            </td>
             <td><div class="btnDiv tooltipped" data-position='top' data-tooltip='Reset time' id="btnReset" onclick="window.call_native('reset_time')"><i class="material-icons">restore</i></div> </td>
             <td><div class="btnDiv distJump tooltipped" data-position='top' data-tooltip='Decrease time by one year' id="minusOneYear"><i class="material-icons">skip_previous</i></div> </td>
             <td><div class="btnDiv distJump tooltipped" data-position='top' data-tooltip='Decrease time by one month' id="minusOneMonth"><i class="material-icons">remove_circle</i></div> </td>
