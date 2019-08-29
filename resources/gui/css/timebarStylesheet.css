@@ -16,6 +16,7 @@ body{
   #visualization .vis-timeline {
     border-width: 2px 0 2px 0;
     border-color: #ddf;
+    overflow: visible !important;
   }
 
   #visualization .vis-time-axis {
@@ -97,10 +98,14 @@ body{
 
   #visualization .vis-custom-time {
     background-color: #ddf;
-    width: 2px;
+    width: 1px;
     cursor: inherit;
-    visibility: hidden;
     pointer-events: none;
+    border-width: 4px;
+    border-radius: 10px;
+    border-style: solid;
+    height: 1px !important;
+    top: -4px !important;
   }
 
   .vis-minor.vis-text {
