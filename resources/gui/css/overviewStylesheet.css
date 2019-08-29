@@ -12,13 +12,18 @@
   pointer-events: none;;
 }
 
+#overview .vis-time-axis.vis-background {
+  height: 5px;
+  top: 26px;
+}
+
 #overview .vis-item {
-  background-color: rgb(25, 0, 255);
+  background-color: rgba(0, 0, 0, 0.705);
 }
 
 #overview .vis-item,
 #overview .vis-item.vis-line {
-  border-width: 3px;
+  border-width: 2px;
   border-radius: 10px;
 }
 
@@ -29,9 +34,9 @@
 
 #overview .vis-item.vis-box,
 #overview .vis-item.vis-range {
-  height: 18px !important;
-  top: -10px !important;
-  min-width: 18px !important;
+  height: 12px !important;
+  top: 13px !important;
+  min-width: 12px !important;
 }
 
 #overview .vis-panel.vis-bottom {
@@ -39,8 +44,15 @@
   top: -2px !important;
 }
 
+#overview .vis-panel.vis-center {
+  border-style: dashed;
+  overflow: visible;
+  z-index: 1;
+}
+
+
 #overview .vis-item.vis-box {
-  width: 18px !important;
+  width: 12px !important;
 }
 
 #overview .vis-item-content {
@@ -57,7 +69,7 @@
 #overview .vis-panel.vis-left,
 #overview .vis-panel.vis-right,
 #overview .vis-grid.vis-minor {
-  height: 20px !important;
+  height: 30px !important;
 }
 
 #overview .vis-group {
@@ -68,3 +80,17 @@
   top: 0px !important;
 }
 
+#overview .vis-minor.vis-text {
+  text-align: center;
+  transform: translate(-50%);
+  z-index: 1;
+  top: 12px !important;
+  font-size: 10px;
+}
+
+#overview .vis-grid.vis-vertical.vis-minor {
+  width: 1px !important;
+  border-width: 5px !important;
+  border-radius: 100% !important;
+  z-index: 1;
+}

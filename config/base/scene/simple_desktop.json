@@ -14,38 +14,51 @@
       "id": "1",
       "content": "item 1",
       "start": "1955-01-01T01:00:00",
-      "description": "Description item 1"
+      "description": "Description item 1",
+      "style": "border-color: yellow"
     },
     {
       "id": "2",
       "content": "item 2",
       "start": "1960-01-01T02:00:00",
-      "description": "Description item 2"
+      "description": "Description item 2",
+      "style": "border-color: orange"
     },
     {
       "id": "3",
       "content": "item 3",
       "start": "1980-01-01T03:00:00",
-      "description": "Description item 3"
+      "description": "Description item 3",
+      "style": "border-color: green"
     },
     {
       "id": "4",
       "content": "item 4",
       "start": "1974-01-01T04:00:00",
-      "end": "1974-05-01T04:30:00",
-      "description": "Description item 4"
+      "end": "1976-05-01T04:30:00",
+      "description": "Description item 4",
+      "style": "border-color: yellow"
     },
     {
       "id": "5",
       "content": "item 5",
       "start": "2014-01-01T05:00:00",
-      "description": "Description item 5"
+      "description": "Description item 5",
+      "style": "border-color: green"
     },
     {
       "id": "6",
       "content": "item 6",
       "start": "2030-01-01T06:00:00",
-      "description": "Description item 6"
+      "description": "Description item 6",
+      "style": "border-color: yellow"
+    },
+    {
+      "id": "7",
+      "content": "item 7",
+      "start": "1995-01-01T06:00:00",
+      "description": "Description item 7",
+      "style": "border-color: pink"
     }
   ],
   "spiceKernel": "../share/config/spice/simple.txt",

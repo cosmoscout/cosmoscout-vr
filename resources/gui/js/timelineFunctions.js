@@ -83,8 +83,8 @@ var pausOpt = {
 }
 
 var overviewOptions = {
-    minHeight: 30,
-    maxHeight: 30,
+    minHeight: 40,
+    maxHeight: 40,
     stack: false,
     max: new Date(2030, 12),
     min: new Date(1950,1),
