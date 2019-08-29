@@ -42,37 +42,27 @@
       <div id="calendarContainer">
         <div id="calendar"></div>
       </div>
-      <table id="control">
-        <tr>
-            <td>
-                <span class="item">
-                    <a class="waves-effect waves-light btn light-glass tooltipped" data-position='bottom' data-tooltip='Turn north up' onclick="window.call_native('navigate_north_up')"><span id="compass-arrow"></span></a>
-                    <a class="waves-effect waves-light btn light-glass tooltipped" data-position='bottom' data-tooltip='Fix horizon' onclick="window.call_native('navigate_fix_horizon')"><i class="material-icons">terrain</i></a>
-                    <a class="waves-effect waves-light btn light-glass tooltipped" data-position='bottom' data-tooltip='Launch to orbit' onclick="window.call_native('navigate_to_orbit')"><i class="material-icons">flight_takeoff</i></a>
-                    <a class="waves-effect waves-light btn light-glass tooltipped" data-position='bottom' data-tooltip='Land on surface' onclick="window.call_native('navigate_to_surface')"><i class="material-icons">flight_land</i></a>
-                </span>
-            </td>
-            <td><div class="btnDiv tooltipped" data-position='top' data-tooltip='Reset time' id="btnReset" onclick="window.call_native('reset_time')"><i class="material-icons">restore</i></div> </td>
-            <td><div class="btnDiv distJump tooltipped" data-position='top' data-tooltip='Decrease time by one year' id="minusOneYear"><i class="material-icons">skip_previous</i></div> </td>
-            <td><div class="btnDiv distJump tooltipped" data-position='top' data-tooltip='Decrease time by one month' id="minusOneMonth"><i class="material-icons">remove_circle</i></div> </td>
-            <td><div class="btnDiv distJump tooltipped" data-position='top' data-tooltip='Decrease time by one day' id="minusOneDay"><i class="material-icons">remove_circle_outline</i></div> </td>
-            <td><div class="btnDiv distJump tooltipped" data-position='top' data-tooltip='Decrease time by one hour' id="minusOneHour"><i class="material-icons">remove</i></div> </td>
-            <td>
-                <div class="timeForm" id="timeForm">
-                  <div class="dateRow">
-                    <label for="name" id="dateLabel"><b>Date and time</b></label>
-                    <div id="btnCalendar"><i class="material-icons">date_range</i></div> 
-                  </div>
-                    <div id="range"></div>
-                </div>
-            </td>
-            <td><div class="btnDiv distJump tooltipped" data-position='top' data-tooltip='Increase time by one hour' id="plusOneHour"><i class="material-icons">add</i></div> </td>
-            <td><div class="btnDiv distJump tooltipped" data-position='top' data-tooltip='Increase time by one day' id="plusOneDay"><i class="material-icons">add_circle_outline</i></div> </td>
-            <td><div class="btnDiv distJump tooltipped" data-position='top' data-tooltip='Increase time by one month' id="plusOneMonth"><i class="material-icons">add_circle</i></div> </td>
-            <td><div class="btnDiv distJump tooltipped" data-position='top' data-tooltip='Increase time by one year' id="plusOneYear"><i class="material-icons">skip_next</i></div> </td>
-            <td><div class="btnDiv" id="btnLock"><i class="material-icons">lock_outline</i></div> </td>
-        </tr>
-      </table>
+
+      <span class="item">
+          <a class="waves-effect waves-light btn light-glass tooltipped" data-position='bottom' data-tooltip='Turn north up' onclick="window.call_native('navigate_north_up')"><span id="compass-arrow"></span></a>
+          <a class="waves-effect waves-light btn light-glass tooltipped" data-position='bottom' data-tooltip='Fix horizon' onclick="window.call_native('navigate_fix_horizon')"><i class="material-icons">terrain</i></a>
+          <a class="waves-effect waves-light btn light-glass tooltipped" data-position='bottom' data-tooltip='Launch to orbit' onclick="window.call_native('navigate_to_orbit')"><i class="material-icons">flight_takeoff</i></a>
+          <a class="waves-effect waves-light btn light-glass tooltipped" data-position='bottom' data-tooltip='Land on surface' onclick="window.call_native('navigate_to_surface')"><i class="material-icons">flight_land</i></a>
+      </span>
+
+      <span class="item" id="speedControl">
+        <div id="range"></div>
+      </span>
+
+      <span class="item" id="timeControl">
+          <a class="waves-effect waves-light btn light-glass" id="btnCalendar"></a><i class="material-icons">date_range</i></a>
+          <span id="dateLabel" style="min-width: 120px">29.12.1997</span>
+          <a class="waves-effect waves-light btn light-glass"></a><i class="material-icons">pause</i></a>
+      </span>
+
+      <span class="item" id="lockControl">
+        <a class="waves-effect waves-light btn light-glass" id="btnLock"><i class="material-icons">lock_outline</i></div>
+      </span>
   </div>
   <div id="snippet" class="snippet"></div>
   

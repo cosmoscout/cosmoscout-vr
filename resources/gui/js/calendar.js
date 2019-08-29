@@ -7,7 +7,6 @@ function set_visible(visible) {
     else {
         $('#calendar').removeClass('visible');
     }
-    document.getElementById('timeForm').classList.toggle('calendar-active');
 }
 
 function toggle_visible() {

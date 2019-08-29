@@ -20,53 +20,6 @@
     background-size: contain;
     display: inline-block;
 }
-
-
-#control {
-    z-index: 2;
-    margin: auto;
-    width: auto;
-}
-
-#timeForm {
-    border-radius: 10px 10px 0 0;
-    width: 400px;
-    height: 66px;
-    padding: 2px;
-    background-color: rgba(20, 20, 20, 0.5);
-    z-index: 3;
-    overflow: hidden;
-    transition: transform 1s;
-    transition-timing-function: ease-out;
-}
-
-#timeForm.calendar-active {
-    transform: translateY(359px);
-}
-
-#dateLabel {
-    color: #ddf;
-    font-size: 15px;
-    height: 20px;
-    width: 180px;
-}
-
-#btnCalendar {
-    width: 20px;
-    height: 20px;
-    transform: translate(350px,-22px);
-}
-
-.dateRow {
-    width: 100%;
-    height: 20px;
-}
-
-#calendarContainer{
-    position: absolute;
-    left: 50%;
-}
-
 #calendar {
     pointer-events: none;
     z-index: -1;
@@ -74,7 +27,7 @@
     left: -50%;
     width: 500px;
     height: 382px;
-    top: 100px;
+    top: 200px;
     transition: transform 1s, opacity 1s;
     transition-timing-function: ease-out;
 }
@@ -82,58 +35,70 @@
 #calendar.visible{
     z-index: 10;
     pointer-events: all;
-    transform: translateY(-359px);
 }
 
 #vizualization {
     z-index: 2;
 }
 
-#range {
-    margin: 5px 20px 35px 20px;
+i {
+    font-size: 1.2rem;
+    top: 4px;
+    position: relative;
+    margin-right: 2px;
 }
 
-table {
-    border-collapse: unset;
-    table-layout: fixed;
+.item {
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    line-height: 35px;
+    height: 35px;
+    vertical-align: bottom;
+    flex-grow: 1;
+    margin-left: 5px;
+    position: absolute;
+    top: 67px;
 }
 
-td {
-    padding: 0px 0px;
+.item span {
+    display: inline-block;
+}
+
+.btn {
+    padding: 4px 4px 0 4px;
+    line-height: 35px;
+    border-radius: 0;
+    color: #ddf
+}
+
+#timeControl {
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgb(20, 20, 20);
+    top: 63px;
+    border-radius: 0 0 50px 50px;
+    width: 250px;
     text-align: center;
 }
 
-.noUi-pips {
-    z-index: 1;
-    pointer-events: none
+#speedControl {
+    left: 50%;
+    width: 500px;
+    transform: translateX(-50%);
 }
 
-.btnDiv {
-    width: 50px;
-    height: 40px;
-    background-color: rgba(20, 20, 20, 0.5);
-    padding: 10px 10px;
-    transform: translateY(32%);
-    transition: background-color 0.5s;
+#lockControl{
+    right: 20px;
+    background-color: #ddf;
+    border-radius: 0 0 3px 3px;
+    top: 65px;
+    height: 18px;
+    width: 18px;
 }
 
-.btnDiv i {
-    font-size: 1.5rem;
-}
-
-.btnDiv:hover {
-    background-color: rgba(100, 100, 100, 0.5);
-}
-
-#btnReset {
-    border-radius: 10px 0 0 0;
-}
-
-#btnLock {
-    border-radius: 0px 10px 0 0;
-    transition: background-color 1s;
-}
-
-#btnLock.locked {
-    background-color: rgba(255, 0, 0, 0.712);
+#lockControl i {
+    color: rgb(20, 20, 20);
+    top: -12px;
+    margin-left: -2px;
+    font-size: 14px;
 }
