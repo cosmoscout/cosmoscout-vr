@@ -121,7 +121,7 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
   mSideBar->setRelPositionY(1.f);
   mSideBar->setRelPositionX(0.f);
   mSideBar->setOffsetX(250);
-  mSideBar->setRelOffsetY(-0.5f);
+  mSideBar->setRelOffsetY(-0.45f);
   mSideBar->setCursorChangeCallback([this](gui::Cursor c) { setCursor(c); });
 
   mFooterBar->setRelSizeX(1.f);
@@ -142,7 +142,7 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
   mNotifications->setRelPositionY(0.f);
   mNotifications->setRelPositionX(1.f);
   mNotifications->setOffsetX(-210);
-  mNotifications->setOffsetY(200);
+  mNotifications->setOffsetY(250);
   mNotifications->setIsInteractive(false);
 
   mLogo->setSizeX(120);
