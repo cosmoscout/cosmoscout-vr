@@ -10,11 +10,11 @@ body{
 
   .vis-timeline {
     border-width: 0px;
-    background-image: linear-gradient(0deg, rgb(20, 20, 20) 0%, rgba(20, 20, 20, 0.5) 100%)
+    background-color: rgb(20, 20, 20);
   }
 
   #visualization .vis-timeline {
-    border-width: 3px;
+    border-width: 2px 0 2px 0;
     border-color: #ddf;
   }
 
@@ -29,7 +29,7 @@ body{
 
   .vis-item {
     border-color: rgba(20, 20, 20, 0.308);
-    background-color: rgba(0, 132, 255, 0.781);
+    background-color: rgba(20, 20, 20, 0.5);
     color: #ddf;
     border-radius: 10px;
   }
@@ -44,7 +44,7 @@ body{
 
   .vis-item,
   .vis-item.vis-line {
-    border-width: 3px;
+    border-width: 2px;
     border-radius: 10px;
   }
 
@@ -58,14 +58,29 @@ body{
     background-color: rgba(70, 70, 70, .247);
   }
 
+  .vis-item.vis-box,
+  .vis-item.vis-range {
+    height: 13px !important;
+    min-width: 13px !important;
+    top: 4px !important
+  }
+
+  .vis-item.vis-box {
+    width: 13px !important;
+  }
+
+  .vis-item-content {
+    visibility: hidden;
+  }
+
 
   .vis-panel.vis-bottom {
     height: 40px !important;
-    top: 47px !important;
+    top: -10px !important;
   }
-
   .vis-text.vis-major {
     top: 17px !important;
+    visibility: hidden;
   }
 
   .vis-panel.vis-background.vis-horizontal,
@@ -73,37 +88,35 @@ body{
   .vis-panel.vis-left,
   .vis-panel.vis-right,
   .vis-grid.vis-minor {
-    height: 71px !important;
+    height: 25px !important;
   }
 
   .vis-group {
-    top: 10px;
+    top: 0px;
   }
 
   #visualization .vis-custom-time {
     background-color: #ddf;
-    width: 3px;
+    width: 2px;
     cursor: inherit;
-    z-index: 1;
+    visibility: hidden;
     pointer-events: none;
   }
 
-  #visualization .vis-custom-time:before,
-  #visualization .vis-custom-time:after {
-    content:  '';
-    background-color: #ddf;
-    width: 11px;
-    height: 10px;
-    position:absolute;
-    left: -4px;
+  .vis-minor.vis-text {
+    text-align: center;
+    z-index: 1;
+    top: 12px !important;
+    font-size: 10px;
   }
 
-  #visualization .vis-custom-time::before {
-    top:-3px;
-    border-radius: 0 0 5px 5px;
+  .vis-content {
+    top: 0px !important;
   }
 
-  #visualization .vis-custom-time::after {
-    bottom:-3px;
-    border-radius: 5px 5px 0 0;
+  .vis-grid.vis-vertical.vis-minor {
+    border-color: #ddf;
+    height: 14px !important;
+    top: 4px !important;
+    border-width: 2px;
   }

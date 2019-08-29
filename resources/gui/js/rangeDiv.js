@@ -1,5 +1,5 @@
 let minWidth = 70;
-let offset = 10;
+let offset = 8;
 let shorten = 5;
 
 function drawDiv() {

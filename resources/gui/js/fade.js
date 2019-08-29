@@ -21,5 +21,5 @@ function mouseLeaveCallback (evt) {
 
 document.getElementById("btnLock").onclick = toggleLock;
 
-document.getElementById("timeForm").onmouseenter = mouseEnterCallback;
+document.getElementById("visualization").onmouseenter = mouseEnterCallback;
 document.getElementById("divContainer").onmouseleave = mouseLeaveCallback;

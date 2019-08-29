@@ -59,6 +59,13 @@
       "start": "1995-01-01T06:00:00",
       "description": "Description item 7",
       "style": "border-color: pink"
+    },
+    {
+      "id": "8",
+      "content": "item 8",
+      "start": "2020-01-01T06:00:00",
+      "description": "Description item 8",
+      "style": "border-color: orange"
     }
   ],
   "spiceKernel": "../share/config/spice/simple.txt",
