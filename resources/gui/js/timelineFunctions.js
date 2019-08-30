@@ -450,6 +450,14 @@ function togglePaus() {
     }
 }
 
+function decreaseSpeed() {
+    range.noUiSlider.set(currentSpeed-1);
+}
+
+function increaseSpeed() {
+    range.noUiSlider.set(currentSpeed-(-1));
+}
+
 function rangeUpdateCallback(values, handle, unencoded, tap, positions) {
     currentSpeed = range.noUiSlider.get();
     if(firstSliderValue) {
@@ -547,3 +555,5 @@ document.getElementById("btnIncreaseYear").onclick = plusOneYear;
 document.getElementById("btnDecreaseYear").onclick = minusOneYear;
 
 document.getElementById("btnPaus").onclick = togglePaus;
+document.getElementById("btnDecreaseSpeed").onclick = decreaseSpeed;
+document.getElementById("btnIncreaseSpeed").onclick = increaseSpeed;
