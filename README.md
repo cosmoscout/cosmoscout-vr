@@ -26,6 +26,7 @@ Nearly all dependencies are included as [git submodules](externals), please refe
 
 Below is a rough sketch of the possibilities you have with CosmoScout VR.
 While this list is far from complete it provides a good overview of the current feature set.
+You can also read the [**changelog**](docs/changelog.md) to lear what's new in the current version.
 
 - [ ] Solar System Simulation
   - [X] Positioning of celestial bodies and space crafts based on [SPICE](https://naif.jpl.nasa.gov/naif)
