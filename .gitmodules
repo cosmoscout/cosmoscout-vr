@@ -28,6 +28,9 @@
 [submodule "externals/vista"]
 	path = externals/vista
 	url = https://github.com/cosmoscout/vista.git
+[submodule "externals/git-archive-all.sh"]
+	path = externals/git-archive-all.sh
+	url = https://github.com/cosmoscout/git-archive-all.sh
 [submodule "plugins/csp-trajectories"]
 	path = plugins/csp-trajectories
 	url = ../../cosmoscout/csp-trajectories.git
