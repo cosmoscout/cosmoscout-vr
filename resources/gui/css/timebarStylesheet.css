@@ -28,71 +28,71 @@ body{
     color: #ddf;
   }
 
-  .vis-item {
+  #visualization .vis-item {
     border-color: rgba(20, 20, 20, 0.308);
     background-color: rgba(20, 20, 20, 0.5);
     color: #ddf;
     border-radius: 10px;
   }
 
-  .vis-item.vis-box {
+  #visualization .vis-item.vis-box {
     border-radius: 10px;
   }
 
-  .vis-item.vis-range {
+  #visualization .vis-item.vis-range {
     border-radius: 10px;
   }
 
-  .vis-item,
-  .vis-item.vis-line {
+  #visualization .vis-item,
+  #visualization .vis-item.vis-line {
     border-width: 2px;
     border-radius: 10px;
   }
 
-  .vis-item.vis-dot {
+  #visualization .vis-item.vis-dot {
     border-width: 0;
     border-radius: 0;
   }
 
-  .vis-item.vis-selected {
+  #visualization .vis-item.vis-selected {
     border-color: rgba(70, 70, 70, 0.308);
     background-color: rgba(70, 70, 70, .247);
   }
 
-  .vis-item.vis-box,
+  #visualization .vis-item.vis-box,
   .vis-item.vis-range {
     height: 13px !important;
     min-width: 13px !important;
     top: 4px !important
   }
 
-  .vis-item.vis-box {
+  #visualization .vis-item.vis-box {
     width: 13px !important;
   }
 
-  .vis-item-content {
+  #visualization .vis-item-content {
     visibility: hidden;
   }
 
 
-  .vis-panel.vis-bottom {
+  #visualization .vis-panel.vis-bottom {
     height: 40px !important;
     top: -10px !important;
   }
-  .vis-text.vis-major {
+  #visualization .vis-text.vis-major {
     top: 17px !important;
     visibility: hidden;
   }
 
-  .vis-panel.vis-background.vis-horizontal,
-  .vis-panel.vis-center,
-  .vis-panel.vis-left,
-  .vis-panel.vis-right,
-  .vis-grid.vis-minor {
+  #visualization .vis-panel.vis-background.vis-horizontal,
+  #visualization .vis-panel.vis-center,
+  #visualization .vis-panel.vis-left,
+  #visualization .vis-panel.vis-right,
+  #visualization .vis-grid.vis-minor {
     height: 25px !important;
   }
 
-  .vis-group {
+  #visualization .vis-group {
     top: 0px;
   }
 
@@ -108,18 +108,18 @@ body{
     top: -4px !important;
   }
 
-  .vis-minor.vis-text {
+  #visualization .vis-minor.vis-text {
     text-align: center;
     z-index: 1;
     top: 12px !important;
     font-size: 10px;
   }
 
-  .vis-content {
+  #visualization .vis-content {
     top: 0px !important;
   }
 
-  .vis-grid.vis-vertical.vis-minor {
+  #visualization .vis-grid.vis-vertical.vis-minor {
     border-color: #ddf;
     height: 14px !important;
     top: 4px !important;

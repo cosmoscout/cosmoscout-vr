@@ -504,15 +504,3 @@ function manuelZoomOverview(event) {
 
 container.addEventListener("wheel", manuelZoomTimeline, true);
 overviewContainer.addEventListener("wheel", manuelZoomOverview, true);
-
-document.getElementById("plusOneHour").onclick = plusOneHour;
-document.getElementById("minusOneHour").onclick = minusOneHour;
-
-document.getElementById("plusOneDay").onclick = plusOneDay;
-document.getElementById("minusOneDay").onclick = minusOneDay;
-
-document.getElementById("plusOneMonth").onclick = plusOneMonth;
-document.getElementById("minusOneMonth").onclick = minusOneMonth;
-
-document.getElementById("plusOneYear").onclick = plusOneYear;
-document.getElementById("minusOneYear").onclick = minusOneYear;
