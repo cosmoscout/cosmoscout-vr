@@ -119,9 +119,15 @@ body{
     top: 0px !important;
   }
 
+  #visualization .vis-grid.vis-vertical.vis-major,
   #visualization .vis-grid.vis-vertical.vis-minor {
     border-color: #ddf;
     height: 14px !important;
     top: 4px !important;
     border-width: 2px;
+  }
+
+  #visualization .vis-grid.vis-vertical.vis-major{
+    height: 18px !important;
+    top: 2px !important;
   }
