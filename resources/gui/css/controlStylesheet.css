@@ -77,8 +77,39 @@ i {
     background-color: rgb(20, 20, 20);
     top: 63px;
     border-radius: 0 0 50px 50px;
-    width: 250px;
+    border-bottom-color: #ddf;
+    border-bottom-width: 2px;
+    border-bottom-style: solid;
+    width: 300px;
     text-align: center;
+    height: 40px;
+}
+
+#btnCalendar {
+    background-color: #ddf;
+    border-radius: 0 50px 0 50px;
+    width: 60px;
+    height: 40px;
+    left: -26px;
+}
+
+#btnPaus {
+    background-color: #ddf;
+    border-radius: 50px 0 50px 0;
+    width: 60px;
+    height: 40px;
+    right: -27px;
+}
+
+#btnPaus i,
+#btnCalendar i {
+    color: rgb(20, 20, 20);
+    font-size: 24px;
+    top: -2px;
+}
+
+#dateLabel {
+    font-size: 20px;
 }
 
 #speedControl {

@@ -1,11 +1,14 @@
 function formatDateReadable(date) {
-    var retVal = date.toDateString();
+    var year = date.getFullYear();
+    var month = (date.getMonth() + 1).toString();
+    var day = date.getDate().toString();
     var hours = date.getHours().toString();
     var minutes = date.getMinutes().toString();
+    month = month.length > 1 ? month : '0' + month;
+    day = day.length > 1 ? day : '0' + day;
     hours = hours.length > 1 ? hours : '0' + hours;
     minutes = minutes.length > 1 ? minutes : '0' + minutes;
-    retVal += " " + hours + ":" + minutes;
-    return retVal;
+    return day + '.' + month + '.' + year + " " + hours + ":" + minutes;
 }
 
 function getFormattedDate(date) {
