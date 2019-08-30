@@ -441,6 +441,15 @@ function set_time_speed(speed) {
     }
 }
 
+function togglePaus() {
+    if(play) {
+        lastPlayValue = range.noUiSlider.get();;
+        range.noUiSlider.set(paus);
+    } else {
+        range.noUiSlider.set(parseInt(lastPlayValue));
+    }
+}
+
 function rangeUpdateCallback(values, handle, unencoded, tap, positions) {
     currentSpeed = range.noUiSlider.get();
     if(firstSliderValue) {
@@ -450,30 +459,39 @@ function rangeUpdateCallback(values, handle, unencoded, tap, positions) {
     switch(parseInt(currentSpeed)) {
         case monthBack:
             window.call_native("set_time_speed", -monthInSec);
+            document.getElementById("btnPaus").innerHTML = '<i class="material-icons">pause</i>';
           break;
         case dayBack:
             window.call_native("set_time_speed", -dayInSec);
+            document.getElementById("btnPaus").innerHTML = '<i class="material-icons">pause</i>';
           break;
         case hourBack:
             window.call_native("set_time_speed", -hourInSec);
+            document.getElementById("btnPaus").innerHTML = '<i class="material-icons">pause</i>';
           break;
         case secBack:
             window.call_native("set_time_speed", secBack);
+            document.getElementById("btnPaus").innerHTML = '<i class="material-icons">pause</i>';
             break;
         case paus:
             window.call_native("set_time_speed", 0);
+            document.getElementById("btnPaus").innerHTML = '<i class="material-icons">play_arrow</i>';
          break; 
         case secForw:
             window.call_native("set_time_speed", secForw);
+            document.getElementById("btnPaus").innerHTML = '<i class="material-icons">pause</i>';
             break;
         case hourForw:
             window.call_native("set_time_speed", hourInSec);
+            document.getElementById("btnPaus").innerHTML = '<i class="material-icons">pause</i>';
           break;
         case dayForw:
             window.call_native("set_time_speed", dayInSec);
+            document.getElementById("btnPaus").innerHTML = '<i class="material-icons">pause</i>';
           break;
         case monthForw:
             window.call_native("set_time_speed", monthInSec);
+            document.getElementById("btnPaus").innerHTML = '<i class="material-icons">pause</i>';
             break;       
         default:
           // code block
@@ -527,3 +545,5 @@ document.getElementById("btnDecreaseMonth").onclick = minusOneMonth;
 
 document.getElementById("btnIncreaseYear").onclick = plusOneYear;
 document.getElementById("btnDecreaseYear").onclick = minusOneYear;
+
+document.getElementById("btnPaus").onclick = togglePaus;
