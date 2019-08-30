@@ -133,3 +133,15 @@ i {
     margin-left: -2px;
     font-size: 14px;
 }
+
+#decreaseControl {
+    left: 50%;
+    transform: translateX(-50%);
+    top: 43px;
+}
+
+#increaseControl {
+    left: 50%;
+    transform: translateX(-50%);
+    top: 70px;
+}

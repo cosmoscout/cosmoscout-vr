@@ -297,6 +297,14 @@ function setTimeToDate(date) {
     setOverviewTimes();
 }
 
+function plusOneMinute() {
+    window.call_native("add_hours", 0.01666666666666);
+}
+
+function minusOneMinute() {
+    window.call_native("add_hours", -0.01666666666666);
+}
+
 function plusOneHour() {
     window.call_native("add_hours", 1);
 }
@@ -504,3 +512,18 @@ function manuelZoomOverview(event) {
 
 container.addEventListener("wheel", manuelZoomTimeline, true);
 overviewContainer.addEventListener("wheel", manuelZoomOverview, true);
+
+document.getElementById("btnIncreaseMinute").onclick = plusOneMinute;
+document.getElementById("btnDecreaseMinute").onclick = minusOneMinute;
+
+document.getElementById("btnIncreaseHour").onclick = plusOneHour;
+document.getElementById("btnDecreaseHour").onclick = minusOneHour;
+
+document.getElementById("btnIncreaseDay").onclick = plusOneDay;
+document.getElementById("btnDecreaseDay").onclick = minusOneDay;
+
+document.getElementById("btnIncreaseMonth").onclick = plusOneMonth;
+document.getElementById("btnDecreaseMonth").onclick = minusOneMonth;
+
+document.getElementById("btnIncreaseYear").onclick = plusOneYear;
+document.getElementById("btnDecreaseYear").onclick = minusOneYear;
