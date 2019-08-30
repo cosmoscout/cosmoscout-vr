@@ -22,19 +22,7 @@ function toggle_visible() {
 
 function changeDateCallback(e) {
     toggle_visible();
-    switch(state) {
-        case newCenterTimeId:
-            setTimeToDate(e.date);
-          break;
-        case newStartDateId:
-            document.getElementById("eventStartDate").value = e.format();
-          break;
-        case newEndDateId:
-            document.getElementById("eventEndDate").value = e.format();
-          break; 
-        default:
-          // code block
-      } 
+    setTimeToDate(e.date);
 }
 
 // entry point ---------------------------------------------------------

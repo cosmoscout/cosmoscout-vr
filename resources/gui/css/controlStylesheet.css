@@ -23,12 +23,13 @@
 #calendar {
     pointer-events: none;
     z-index: -1;
-    position: relative;
-    left: -50%;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
     width: 500px;
     height: 382px;
-    top: 200px;
-    transition: transform 1s, opacity 1s;
+    top: 150px;
+    transition: opacity 1s;
     transition-timing-function: ease-out;
 }
 
