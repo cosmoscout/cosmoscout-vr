@@ -44,7 +44,7 @@ Some of the dependencies are only required by some plugins.
 | [proj.4](https://proj.org) | The `csp-lod-bodies` requires a [special version](https://github.com/cosmoscout/proj.4) of this library to be used by the Mapserver. | [MIT](https://proj.org/about.html) |
 
 <p align="center">
-  <a href="architecture.md">&lsaquo; Architecture</a>
+  <a href="architecture.md">&lsaquo; Software Architecture</a>
   <img src ="img/nav-vspace.svg"/>
   <a href="README.md">&#8962; Help Index</a>
   <img src ="img/nav-vspace.svg"/>
