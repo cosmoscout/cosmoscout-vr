@@ -6,14 +6,13 @@ CosmoScout VR is a modular virtual universe developed at the German Aerospace Ce
 It lets you explore, analyze and present huge planetary data sets and large simulation data in real-time.
 
 [![Build Status](https://travis-ci.com/cosmoscout/cosmoscout-vr.svg?branch=master)](https://travis-ci.com/cosmoscout/cosmoscout-vr/branches)
-[![magazine](https://img.shields.io/badge/info-DLR_magazine-purple.svg)](https://dlr.de/dlr/portaldata/1/resources/documents/dlr_magazin_161_EN/DLR-Magazin_161-GB/?page=18)
-[![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3381953.svg)](https://doi.org/10.5281/zenodo.3381953)
+[![license](https://img.shields.io/badge/license-MIT-purple.svg)](LICENSE)
 ![c++17](https://img.shields.io/badge/C++-17-orange.svg)
 [![source loc](https://img.shields.io/badge/source_loc-10.0k-green.svg)](cloc.sh)
 [![plugin loc](https://img.shields.io/badge/plugin_loc-14.1k-green.svg)](cloc.sh)
 [![comments](https://img.shields.io/badge/comments-2.7k-yellow.svg)](cloc.sh)
 [![gitter](https://badges.gitter.im/cosmoscout/cosmoscout.svg)](https://gitter.im/cosmoscout/community)
-
 
 The software can be build on Linux (gcc or clang) and Windows (msvc).
 Nearly all dependencies are included as [git submodules](externals), please refer to the [**documentation**](docs) in order to get started.
@@ -26,7 +25,7 @@ Nearly all dependencies are included as [git submodules](externals), please refe
 
 Below is a rough sketch of the possibilities you have with CosmoScout VR.
 While this list is far from complete it provides a good overview of the current feature set.
-You can also read the [**changelog**](docs/changelog.md) to lear what's new in the current version.
+You can also read the [**changelog**](docs/changelog.md) to lear what's new in the current version. There is also an [**interesting article in the DLR magazine**](https://dlr.de/dlr/portaldata/1/resources/documents/dlr_magazin_161_EN/DLR-Magazin_161-GB/?page=18) which provides some insight into the ideas behind CosmoScout VR. 
 
 - [ ] Solar System Simulation
   - [X] Positioning of celestial bodies and space crafts based on [SPICE](https://naif.jpl.nasa.gov/naif)
@@ -93,6 +92,14 @@ Many features are badly documented, it will crash without warning and may do oth
 We are working hard on improving the user experience - please [report all issues and suggestions](https://github.com/cosmoscout/cosmoscout-vr/issues) you have!_
 
 There are several guides in the **[`docs`](docs)** directory to get you started!
+
+# How to cite CosmoScout VR
+
+If you use CosmoScout VR in your scientific work, please use the DOI of the version you are currently using.
+The DOI of each release is shown on the [releases page](https://github.com/cosmoscout/cosmoscout-vr/releases).
+With the link below you can export a citation in many different formats.
+
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3381953.svg)](https://doi.org/10.5281/zenodo.3381953)
 
 # License
 

@@ -9,9 +9,9 @@
 * Initial publication under the MIT license on Github.
 
 <p align="center">
-  <img src ="img/nav-vspace.svg"/>
   <a href="README.md">&#8962; Help Index</a>
   <img src ="img/nav-vspace.svg"/>
+  <a href="citation.md">How to cite CosmoScout VR &rsaquo;</a>
 </p>
 
 <p align="center"><img src ="img/hr.svg"/></p>

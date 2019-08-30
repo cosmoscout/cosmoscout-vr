@@ -8,6 +8,7 @@ Specific configuration options are documented in the repositories of the [indivi
 
 ### General Information
 * [Changelog](changelog.md)
+* [How to cite CosmoScout VR](citation.md)
 * [Software Architecture](architecture.md)
 * [Complete List of Dependencies](dependencies.md)
 
