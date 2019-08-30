@@ -146,3 +146,20 @@ i {
     transform: translateX(-50%);
     top: 70px;
 }
+
+#decreaseControl i,
+#increaseControl i {
+    color: rgb(50, 50, 50);
+    transition: color 0.2s, font-size 0.2s;
+}
+
+#decreaseControl.mouseNear i,
+#increaseControl.mouseNear i {
+    color: #ddf;
+}
+
+#decreaseControl.mouseOver i,
+#increaseControl.mouseOver i {
+    color: #ddf;
+    font-size: 22px;
+}
