@@ -124,15 +124,15 @@ i {
     background-color: #ddf;
     border-radius: 0 0 3px 3px;
     top: 65px;
-    height: 18px;
-    width: 18px;
+    height: 30px;
+    width: 32px;
 }
 
 #lockControl i {
     color: rgb(20, 20, 20);
-    top: -12px;
+    top: -7px;
     margin-left: -2px;
-    font-size: 14px;
+    font-size: 28px;
 }
 
 #decreaseControl {

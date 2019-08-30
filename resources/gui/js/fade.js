@@ -4,6 +4,12 @@ function toggleLock() {
     document.getElementById('divContainer').classList.toggle('locked');
     document.getElementById('btnLock').classList.toggle('locked');
     locked = !locked;
+    if(locked) {
+         document.getElementById("btnLock").innerHTML = '<i class="material-icons">lock</i>';
+    }
+    else {
+        document.getElementById("btnLock").innerHTML = '<i class="material-icons">lock_open</i>';
+    }
 }
 
 
