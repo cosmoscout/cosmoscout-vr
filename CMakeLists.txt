@@ -32,7 +32,7 @@ include(GenerateExportHeader)
 set(Boost_REALPATH ON)
 set(Boost_USE_MULTITHREADED ON)
 set(Boost_USE_STATIC_LIBS OFF)
-find_package(Boost REQUIRED COMPONENTS chrono date_time filesystem)
+find_package(Boost REQUIRED COMPONENTS system chrono date_time filesystem)
 find_package(OpenGL REQUIRED)
 
 # You have to provide the directory where the externals got installed to. The scripts make_*.sh and
