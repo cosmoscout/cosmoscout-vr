@@ -492,6 +492,7 @@ function rangeUpdateCallback(values, handle, unencoded, tap, positions) {
         case paus:
             window.call_native("set_time_speed", 0);
             document.getElementById("btnPaus").innerHTML = '<i class="material-icons">play_arrow</i>';
+            document.getElementsByClassName("range-label")[0].innerHTML = '<i class="material-icons">pause</i>';
          break; 
         case secForw:
             window.call_native("set_time_speed", secForw);
