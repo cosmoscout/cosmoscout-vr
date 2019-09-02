@@ -140,19 +140,27 @@ i {
 #decreaseControl {
     left: 50%;
     transform: translateX(-50%);
-    top: 43px;
+    top: 48px;
+    height: 16px;
 }
 
 #increaseControl {
     left: 50%;
     transform: translateX(-50%);
-    top: 70px;
+    top: 75px;
+}
+
+#decreaseControl a,
+#increaseControl a {
+    height: 16px;
 }
 
 #decreaseControl i,
 #increaseControl i {
     color: rgb(50, 50, 50);
     transition: color 0.2s, font-size 0.2s;
+    line-height: 1;
+    top: -4px;
 }
 
 #decreaseControl.mouseNear i,
