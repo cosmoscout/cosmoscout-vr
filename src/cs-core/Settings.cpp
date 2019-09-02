@@ -11,8 +11,7 @@
 
 namespace cs::core {
 
-void CS_CORE_EXPORT parseSection(
-    std::string const& sectionName, const std::function<void()>& f) {
+void CS_CORE_EXPORT parseSection(std::string const& sectionName, const std::function<void()>& f) {
   try {
     f();
   } catch (SettingsSectionException const& s) {
