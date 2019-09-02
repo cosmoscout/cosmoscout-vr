@@ -130,11 +130,22 @@ i {
     width: 32px;
 }
 
+#lockControl .btn{
+    height: 28px;
+    width: 28px;
+}
+
 #lockControl i {
     color: rgb(20, 20, 20);
-    top: -7px;
+    top: -9px;
     margin-left: -2px;
     font-size: 28px;
+}
+
+#increaseControl {
+    left: 50%;
+    transform: translateX(-50%);
+    top: 75px;
 }
 
 #decreaseControl {
@@ -142,12 +153,6 @@ i {
     transform: translateX(-50%);
     top: 48px;
     height: 16px;
-}
-
-#increaseControl {
-    left: 50%;
-    transform: translateX(-50%);
-    top: 75px;
 }
 
 #decreaseControl a,
@@ -177,18 +182,27 @@ i {
 #speedDecreaseControl {
     left: 50%;
     transform: translate(-350px);
-    top: 56px;
+    top: 62px;
 }
 
 #speedIncreaseControl {
     left: 50%;
     transform: translate(312px);
-    top: 56px;
+    top: 62px;
+    height: 15px;
+}
+
+#speedIncreaseControl .btn,
+#speedDecreaseControl .btn {
+    font-size: 28px;
+    height: 15px;
 }
 
 #speedIncreaseControl i,
 #speedDecreaseControl i {
     font-size: 28px;
+    height: 15px;
+    top: -13px;
 }
 
 .range-label {
