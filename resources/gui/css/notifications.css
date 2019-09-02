@@ -1,3 +1,6 @@
+html {
+    overflow: hidden;
+}
 
 #notifications {
     position: absolute;
@@ -12,6 +15,7 @@
 .notification {
     position: absolute;
     width: 380px;
+    font-size: 1rem;
     transform: translate(330px, 5px);
     color: #ccf;
     background: linear-gradient(to right, rgba(20, 20, 20, 0.8), rgba(20, 20, 20, 0.4));
@@ -66,8 +70,8 @@
 }
 
 .notification-title {
-    text-transform: uppercase;
-    font-size: 1.8rem;
+    font-family: 'AlegreyaSansSC';
+    font-size: 1.7rem;
     line-height: 2rem;
     margin-top: 13px;
 }

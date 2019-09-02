@@ -7,7 +7,9 @@ There are guides on how to compile, configure and use the software from a genera
 Specific configuration options are documented in the repositories of the [individual plugins](../README.md#Plugins-for-CosmoScout-VR).
 
 ### General Information
-* [Architecture of CosmoScout VR](architecture.md)
+* [Changelog](changelog.md)
+* [How to cite CosmoScout VR](citation.md)
+* [Software Architecture](architecture.md)
 * [Complete List of Dependencies](dependencies.md)
 
 ### Getting Started

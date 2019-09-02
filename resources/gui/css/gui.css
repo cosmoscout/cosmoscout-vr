@@ -8,11 +8,19 @@
 @font-face {
     font-family: 'Material Icons';
     src: url('../third-party/fonts/MaterialIcons-Regular.woff') format('woff');
-    ;
+}
+
+@font-face {
+    font-family: 'AlegreyaSansSC';
+    src: url('../third-party/fonts/AlegreyaSansSC-Regular.ttf') format('truetype');
+}
+
+.debug {
+    background: black;
 }
 
 .material-icons {
-    font-family: 'Material Icons';
+    font-family: 'Material Icons', sans-serif;
     font-weight: normal;
     font-style: normal;
     font-size: 24px; /* Preferred icon size */
@@ -27,11 +35,12 @@
 /* Basic Containers --------------------------------------------------------- */
 
 body {
-    font-family: 'Ubuntu' !important;
+    font-family: 'Ubuntu', sans-serif !important;
     color: #ddf;
-    font-size: 1.2rem;
+    font-size: 1rem;
     -webkit-user-select: none !important;
     -webkit-font-smoothing: antialiased;
+    background: transparent;
 }
 
 .hidden {
@@ -43,17 +52,16 @@ body {
 }
 
 xmp, code, pre {
-    background-color: rgba(0,0,0,0.4);
+    background-color: rgba(0, 0, 0, 0.4);
     padding: 5px;
     border-radius: 3px;
     overflow: auto;
 }
 
 .important {
-    background-color: rgba(200,200,255,0.2);
+    background-color: rgba(200, 200, 255, 0.2);
     padding: 5px;
     border-radius: 3px;
-
 }
 
 strong {
@@ -62,17 +70,27 @@ strong {
 }
 
 .row {
-    margin-bottom: 2px;
-    padding: 0px 0.25rem;
+    margin: 0 0 2px;
+    padding: 0 0.25rem;
 }
 
 .row .col {
-    padding: 0px 0.2rem;
+    padding: 0 0.2rem;
 }
 
 .text-right {
     text-align: right;
 }
+
+.col,.col-1,.col-10,.col-11,.col-12,.col-2,.col-3,.col-4,.col-5,.col-6,.col-7,.col-8,.col-9,.col-auto,
+.col-lg,.col-lg-1,.col-lg-10,.col-lg-11,.col-lg-12,.col-lg-2,.col-lg-3,.col-lg-4,.col-lg-5,.col-lg-6,.col-lg-7,.col-lg-8,.col-lg-9,.col-lg-auto,
+.col-md,.col-md-1,.col-md-10,.col-md-11,.col-md-12,.col-md-2,.col-md-3,.col-md-4,.col-md-5,.col-md-6,.col-md-7,.col-md-8,.col-md-9,.col-md-auto,
+.col-sm,.col-sm-1,.col-sm-10,.col-sm-11,.col-sm-12,.col-sm-2,.col-sm-3,.col-sm-4,.col-sm-5,.col-sm-6,.col-sm-7,.col-sm-8,.col-sm-9,.col-sm-auto,
+.col-xl,.col-xl-1,.col-xl-10,.col-xl-11,.col-xl-12,.col-xl-2,.col-xl-3,.col-xl-4,.col-xl-5,.col-xl-6,.col-xl-7, .col-xl-8, .col-xl-9, .col-xl-auto {
+    padding-right: 10px;
+    padding-left: 10px;
+}
+
 
 input:not([type]),
 input[type="text"]:not(.browser-default),
@@ -86,16 +104,17 @@ input[type="datetime-local"]:not(.browser-default),
 input[type="tel"]:not(.browser-default),
 input[type="number"]:not(.browser-default),
 input[type="search"]:not(.browser-default),
-textarea.materialize-textarea,
 .select-wrapper input.select-dropdown,
 .select-wrapper input.select-dropdown:focus {
+    border: none;
     border-bottom: 2px solid #ccf;
+    color: #ccf;
     margin: 0 0 5px 0;
     height: auto;
     line-height: 1.5;
-    font-size: 1.2rem;
+    background: transparent;
+    width: 100%;
 }
-
 
 
 input:focus:not([type]):not([readonly]),
@@ -109,8 +128,7 @@ input[type="datetime"]:focus:not(.browser-default):not([readonly]),
 input[type="datetime-local"]:focus:not(.browser-default):not([readonly]),
 input[type="tel"]:focus:not(.browser-default):not([readonly]),
 input[type="number"]:focus:not(.browser-default):not([readonly]),
-input[type="search"]:focus:not(.browser-default):not([readonly]),
-textarea.materialize-textarea:focus:not([readonly]) {
+input[type="search"]:focus:not(.browser-default):not([readonly]) {
     border-bottom: 2px solid #fff;
     box-shadow: none;
 }
@@ -155,7 +173,6 @@ input, textarea {
 .item-list .col {
     white-space: nowrap;
     text-overflow: ellipsis;
-    /*overflow: hidden;*/
 }
 
 .item-list > .row.selectable-item:active {
@@ -173,6 +190,7 @@ input, textarea {
 }
 
 /* Scroll box --------------------------------------------------------------- */
+
 .scroll-box {
     /*background-color: rgba(230, 230, 255, 0.1);*/
     -webkit-mask-image: -webkit-linear-gradient(rgba(255, 255, 255, 0) 0, rgba(255, 255, 255, 1) 20px, rgba(255, 255, 255, 1) 40%, rgba(255, 255, 255, 0) 49%), -webkit-linear-gradient(bottom, rgba(255, 255, 255, 0) 0, rgba(255, 255, 255, 1) 20px, rgba(255, 255, 255, 1) 49%, rgba(255, 255, 255, 0) 49%), -webkit-linear-gradient(rgba(255, 255, 255, 0) 30%, rgba(255, 255, 255, 1) 40%, rgba(255, 255, 255, 1) 60%, rgba(255, 255, 255, 0) 70%);
@@ -205,10 +223,13 @@ input, textarea {
 }
 
 /* Buttons ------------------------------------------------------------------ */
+
 .btn {
-    margin-bottom: 5px;
+    margin-bottom: 2px;
+    position: relative;
     padding: 0;
     color: #fff;
+    border-radius: 0;
 }
 
 .btn.unresponsive,
@@ -221,61 +242,38 @@ input, textarea {
     top: 1px;
 }
 
-.btn-large {
-    height: auto;
-    text-transform: none;
-    font-size: 1.2em;
-    line-height: 1.4em;
-    padding: 5px;
-}
-
-.btn-large i {
-    display: block;
-    font-size: 4em;
-    line-height: 1em;
-}
-
-.block {
+.btn.block {
     width: 100%;
+    padding: 4px;
 }
 
-.glass {
+.btn.glass {
     background-color: rgba(230, 230, 255, 0.1);
     border-bottom: 2px solid #ccf;
     box-shadow: none;
 }
 
-.glass.unresponsive,
+.btn.glass.unresponsive,
 .unresponsive .glass {
     border-bottom: 2px solid rgb(167, 167, 167);
 }
 
-.glass:hover {
+.btn.glass:hover {
     background-color: rgba(230, 230, 255, 0.3);
     border-bottom: 2px solid #fff;
     box-shadow: none;
+    color: #fff;
 }
 
-.light-glass {
+.btn.light-glass {
     background-color: transparent;
     box-shadow: none;
 }
 
-.light-glass:hover {
+.btn.light-glass:hover {
     background-color: rgba(230, 230, 255, 0.2);
     box-shadow: none;
 }
-
-
-/* Tooltips ----------------------------------------------------------------- */
-
-.material-tooltip {
-    color: #ddf;
-    background: rgba(20, 20, 20, 0.8);
-    border: 2px solid #ccf;
-    border-radius: 5px;
-}
-
 
 /* Tabs --------------------------------------------------------------------- */
 
@@ -309,89 +307,139 @@ input, textarea {
     height: 3px;
 }
 
-/* Radio & Chack Boxes ------------------------------------------------------ */
-
-.radio-button + div,
-.radio-button + span {
-    border-top: 1px solid transparent;
+.nav-tabs {
+    border-bottom: 1px dashed rgba(230, 230, 255, 0.3);
 }
 
-.radio-button:checked + div,
-.radio-button:checked + span {
-    color: #fff;
-    background-color: rgba(230, 230, 255, 0.4);
+.nav.nav-tabs {
+    margin: 0;
+}
+
+.nav-tabs .nav-item {
+    font-family: 'AlegreyaSansSC';
+    text-align: center;
+    color: #ccf;
+    padding: 2px;
+    border: none;
+    font-size: 1.5rem;
+}
+
+.nav-tabs .nav-link:hover {
+    border: none;
     text-shadow: 0 0 3px rgba(255, 255, 255, 0.4), 0 0 10px rgba(255, 255, 255, 0.4);
-    border-top: 1px dashed #ccf;
-    border-left: 1px dashed #ccf;
-    border-right: 1px dashed #ccf;
+    color: white;
 }
 
-label span {
-    transition: none !important;
+.nav-tabs .nav-link.active {
+    color: #ccf;
+    background-color: rgba(255, 255, 255, 0.1);
+    border: none;
+    border-bottom: 1px solid #ccf;
 }
 
-label span:hover {
-    color: #fff !important;
+.tab-content {
+    margin: 10px;
+}
+
+/* Check Boxes -------------------------------------------------------------- */
+
+input[type=checkbox] {
+    /* to hide the checkbox itself */
+    display: none;
+}
+
+label input[type=checkbox] + i::before {
+    display: inline-block;
+    position: absolute;
+    left: 0;
+    top: 0;
+    margin: 2px 0 4px 0;
+    content: "check_box_outline_blank";
+}
+
+label.checklabel span {
+    padding-left: 35px;
+}
+
+label input[type=checkbox]:checked + i::before {
+    color: white;
+    content: "check_box";
+}
+
+label.checklabel {
+    position: relative;
+    margin-bottom: 0;
+}
+
+label.checklabel:hover {
+    color: white;
     text-shadow: 0 0 3px rgba(255, 255, 255, 0.4), 0 0 10px rgba(255, 255, 255, 0.4);
+    cursor: pointer;
 }
 
-label span:active {
+label.checklabel:active {
     top: 1px;
 }
 
-[type="radio"]:not(:checked) + span, 
-[type="radio"]:checked + span,
-[type="checkbox"] + span:not(.lever) {
-    font-size: 1.2rem;
-    color: #ddf;
+
+/* Radio Buttons ------------------------------------------------------------ */
+
+input[type=radio] {
+    /* to hide the radio button itself */
+    display: none;
 }
 
-.unresponsive [type="radio"]:not(:checked) + span,
-.unresponsive [type="radio"]:checked + span,
-.unresponsive [type="checkbox"] + span {
-    color: rgb(167, 167, 167);
-}
-
-.filled-in[type="checkbox"]:not(:checked) + span:not(.lever)::after,
-[type="radio"]:not(:checked) + span:before,
-[type="radio"]:not(:checked) + span:after {
+input[type=radio] + span::before {
+    display: inline-block;
+    background: transparent;
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    margin: 6px 4px;
+    width: 16px;
+    height: 16px;
+    vertical-align: sub;
     border: 2px solid #ccf;
+    border-radius: 50%;
 }
 
-.unresponsive [type="checkbox"].filled-in:not(:checked) + span:after,
-.unresponsive [type="radio"]:not(:checked) + span:before,
-.unresponsive [type="radio"]:not(:checked) + span:after {
-    border: 2px solid rgb(167, 167, 167);
+input[type=radio] + span {
+    padding-left: 39px;
 }
 
-.filled-in[type="checkbox"]:checked + span:not(.lever)::after,
-[type="radio"]:checked + span:not(.lever)::after {
-    border: 2px solid #fff;
-    background-color: #fff;
+input[type=radio]:checked + span::before {
+    background: white;
+    border: 2px solid transparent;
 }
 
-.unresponsive.filled-in[type="checkbox"]:checked + span:not(.lever)::after,
-.unresponsive [type="radio"]:checked + span:after {
-    border: 2px solid rgb(167, 167, 167);
-    background-color: rgb(167, 167, 167);
+label.radiolabel {
+    position: relative;
+    margin-bottom: 0;
 }
 
-.filled-in[type="checkbox"]:checked + span:not(.lever)::before {
-    border-right: 2px solid #333;
-    border-bottom: 2px solid #333;
-}
-
-.toggle-button.active {
-    color: #fff;
-    background-color: rgba(230, 230, 255, 0.4);
+label.radiolabel:hover {
+    color: white;
     text-shadow: 0 0 3px rgba(255, 255, 255, 0.4), 0 0 10px rgba(255, 255, 255, 0.4);
-    border: 1px dashed #ccf;
+    cursor: pointer;
+}
+
+label.radiolabel:active {
+    top: 1px;
+}
+
+input[type=checkbox]:checked + div.btn {
+    background-color: rgba(230, 230, 255, 0.5);
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.4), 0 0 10px #aaf;
+    border-top: 1px dashed rgba(230, 230, 255, 0.5);
+    border-right: 1px dashed rgba(230, 230, 255, 0.5);
+    border-left: 1px dashed rgba(230, 230, 255, 0.5);
 }
 
 /* Utilities ---------------------------------------------------------------- */
 
 hr {
-    margin-top: 0px;
+    margin-top: 0;
     margin-bottom: 10px;
     border: 0;
     border-top: 1px dashed rgba(230, 230, 255, 0.3);
@@ -409,11 +457,9 @@ hr {
 .unresponsive .noUi-connect,
 .unresponsive .noUi-target .range-label {
     background-color: rgb(167, 167, 167);
-    ;
 }
 
 .noUi-target .range-label {
-    transform: scale(.5);
     height: auto;
     width: auto;
     left: 50%;
@@ -426,9 +472,12 @@ hr {
 }
 
 .noUi-target .noUi-active .range-label {
-    border-radius: 15px;
     transform: translate(-50%, -40px);
-    border-radius: 50%;
+    border-radius: 50% !important;
+}
+
+.noUi-target .range-label {
+    border-radius: 50% !important;
 }
 
 .range-label span {
@@ -438,8 +487,8 @@ hr {
     position: relative;
     white-space: nowrap;
     top: -1px;
-    left: 0px;
-    border-radius: 50%;
+    left: 0;
+    border-radius: 50% !important;
     padding: 2px;
 }
 
@@ -455,13 +504,98 @@ hr {
     box-shadow: none;
 }
 
+/* Collapsibles ------------------------------------------------------------- */
+
+.collapsible-header,
+.collapsible-body {
+    background: none;
+    border: none;
+    outline: none;
+}
+
+.collapsible-body {
+    padding: 10px 3px 3px 3px;
+}
+
+.collapsible-header {
+    color: #fff;
+    display: block;
+    font-size: 1.8rem;
+    line-height: 3.4rem;
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.4), 0 0 10px #aaf;
+    white-space: nowrap;
+    overflow: hidden;
+    text-align: center;
+    padding: 3px;
+}
+
+.collapsible-header .header-name {
+    opacity: 0;
+    text-transform: uppercase;
+    transition: opacity 0.2s linear;
+}
+
+.collapsible-header:hover .header-name,
+.collapsible > li.active .collapsible-header .header-name {
+    opacity: 1;
+    transition: opacity 0.2s linear;
+    transition-delay: 0.2s;
+}
+
+.collapsible-header:active {
+    top: 1px;
+}
+
+.collapsible-header:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.collapsible-header i {
+    position: absolute;
+    left: 9px;
+    font-size: 35px;
+    top: 10px;
+}
+
+.collapsible-body p {
+    padding: 0;
+}
+
+.collapsible {
+    border: none;
+    box-shadow: none;
+}
+
+.help .container .collapsible {
+    background-color: rgba(200, 200, 255, 0.1);
+}
+
+.right .collapsible > li {
+    background: linear-gradient(to right, rgba(20, 20, 20, 0.8), rgba(20, 20, 20, 0.4));
+}
+
+.left .collapsible > li {
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.collapsible > li {
+    transition: border 0.3s ease-out;
+    margin-bottom: 5px;
+    box-shadow: none;
+    border-bottom: 1px solid rgba(0, 0, 0, 0);
+}
+
+.collapsible > li {
+    border-top: 2px solid #ccf;
+}
+
 /* Strike ------------------------------------------------------------------- */
 
 .strike {
     display: block;
     text-align: center;
     overflow: hidden;
-    white-space: nowrap; 
+    white-space: nowrap;
     margin: 25px 0 10px 0px;
 }
 
@@ -470,9 +604,10 @@ hr {
 }
 
 .strike > * {
+    font-family: 'AlegreyaSansSC';
     position: relative;
     display: inline-block;
-    text-transform: uppercase;
+    font-size: 1.5rem;
     color: #fff;
     text-shadow: 0 0 5px rgba(255, 255, 255, 0.4), 0 0 10px #aaf;
 }
@@ -484,7 +619,7 @@ hr {
     top: 50%;
     width: 9999px;
     height: 1px;
-    background-image: linear-gradient(to right, rgba(230, 230, 255, 0.5) 3px, transparent 3px); 
+    background-image: linear-gradient(to right, rgba(230, 230, 255, 0.3) 3px, transparent 3px);
     background-size: 6px;
     background-repeat: repeat-x;
 }
@@ -499,85 +634,93 @@ hr {
     margin-left: 15px;
 }
 
-/* Color Picker ------------------------------------------------------------- */
-
-.cp-app {
-    border-radius: 0 !important;
-    z-index: 100;
-}
-
-input.color-picker {
-    text-indent: 100%;
-    white-space: nowrap;
-    overflow: hidden;
-    color: transparent;
-}
-
-/* Progress bars ------------------------------------------------------------ */
-
-.progress {
-    background-color: #aab;
-}
-
-.progress .indeterminate {
-    background-color: #fff;
-}
-
 /* Dropdowns ---------------------------------------------------------------- */
 
-.dropdown-content {
-    background-color: rgba(20, 20, 20, 1);
-    border: 1px solid #ccf;
-    margin-bottom: 5px;
+.bootstrap-select:not([class*=col-]):not([class*=form-control]):not(.input-group-btn) {
+    width: 100%;
+}
+
+.btn-light:not(:disabled):not(.disabled).active, .btn-light:not(:disabled):not(.disabled):active, .show>.btn-light.dropdown-toggle {
+    background-color: transparent;
+    color: white;
+    text-shadow: 0 0 3px rgba(255, 255, 255, 0.4), 0 0 10px rgba(255, 255, 255, 0.4) !important;
+}
+
+.dropdown-toggle {
+    background: transparent;
+    color: #ccf;
+    border: none;
+    border-bottom: 2px solid #ccf;
+}
+
+.dropdown-toggle.show {
+    background-color: transparent !important;
+    color: white !important;
+    text-shadow: 0 0 3px rgba(255, 255, 255, 0.4), 0 0 10px rgba(255, 255, 255, 0.4) !important;
+}
+
+.show>.btn-light.dropdown-toggle:focus,
+.dropdown-toggle:hover {
+    color: white;
+    text-shadow: 0 0 3px rgba(255, 255, 255, 0.4), 0 0 10px rgba(255, 255, 255, 0.4);
+    background: transparent;
     box-shadow: none;
 }
 
-.dropdown-content li,
-.dropdown-content li > span,
-.dropdown-content li > a {
+.dropdown-menu {
+    background: black;
+    border: 1px solid #ccf
+}
+
+.dropdown-item,
+.dropdown-option {
+    background: black;
     color: #ccf;
-    min-height: 20px;
-    line-height: 0.5rem;
 }
 
-.dropdown-content li:hover,
-.dropdown-content li.active {
-    background-color: rgba(255, 255, 255, 0.1);
-    text-shadow: 0 0 3px rgba(255, 255, 255, 0.2), 0 0 10px rgba(255, 255, 255, 0.2);
-    color: white;
-}
-
-.dropdown-content li.selected,
-.dropdown-content li.active.selected {
-    background-color: rgba(255, 255, 255, 0.2);
-    text-shadow: 0 0 3px rgba(255, 255, 255, 0.2), 0 0 10px rgba(255, 255, 255, 0.2);
-    color: white;
-}
-
-.select-wrapper .caret{
-    fill: white;
-    top: 3px;
-}
-
-.unresponsive .select-wrapper span.caret {
-    color: gray;
-}
-
-input.select-dropdown {
-    color: inherit;
-}
-input.select-dropdown:hover {
-    color: #fff;
+.dropdown-item:hover,
+.dropdown-item:focus,
+.dropdown-option:focus,
+.dropdown-option:hover {
+    background: black;
+    color: #ccf;
     text-shadow: 0 0 3px rgba(255, 255, 255, 0.4), 0 0 10px rgba(255, 255, 255, 0.4);
+    outline: none;
 }
 
-.select-dropdown li.optgroup:hover,
-.select-dropdown li.optgroup > span {
-    color: #aac;
-    background-color: transparent;
-    text-shadow: none;
+.bootstrap-select .dropdown-toggle:focus, .bootstrap-select>select.mobile-device:focus+.dropdown-toggle {
+    outline: none !important;
+    box-shadow: none;
 }
 
-.select-dropdown li.optgroup {
-    border-top: 1px dashed #ccf;
+.dropdown-item.active,
+.dropdown-option:active {
+    background-color: black;
+    text-shadow: 0 0 3px rgba(255, 255, 255, 0.4), 0 0 10px rgba(255, 255, 255, 0.4);
+    color: white;
+}
+
+/* Tooltips --------------------------------------------------------------------------------------------------------- */
+
+.bs-tooltip-auto[x-placement^=top] .arrow::before, .bs-tooltip-top .arrow::before {
+    border-top-color: #ccf !important;
+}
+
+.bs-tooltip-auto[x-placement^=right] .arrow::before, .bs-tooltip-right .arrow::before {
+    border-right-color: #ccf !important;
+}
+
+.bs-tooltip-auto[x-placement^=bottom] .arrow::before, .bs-tooltip-bottom .arrow::before {
+    border-bottom-color: #ccf !important;
+}
+
+.bs-tooltip-auto[x-placement^=left] .arrow::before, .bs-tooltip-left .arrow::before {
+    border-left-color: #ccf !important;
+}
+
+.tooltip .tooltip-inner {
+    color: #ddf;
+    background: rgba(20, 20, 20, 0.8);
+    border: 2px solid #ccf;
+    border-radius: 5px;
 }

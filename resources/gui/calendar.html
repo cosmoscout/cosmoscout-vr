@@ -1,17 +1,16 @@
 ﻿<!DOCTYPE html>
 <html>
+
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta charset="utf-8">
 
-    <link type="text/css" rel="stylesheet" href="third-party/css/materialize.min.css" />
+    <link type="text/css" rel="stylesheet" href="third-party/css/bootstrap.min.css" />
     <link type="text/css" rel="stylesheet" href="css/gui.css">
     <link type="text/css" rel="stylesheet" href="css/calendar.css">
 
     <script type="text/javascript" src="third-party/js/jquery-2.2.3.min.js"></script>
-    <script type="text/javascript" src="third-party/js/materialize.min.js"></script>
+    <script type="text/javascript" src="third-party/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="third-party/js/bootstrap-datepicker.js"></script>
-
 
     <script type="text/javascript">
 
@@ -29,7 +28,7 @@
                 format: "yyyy-mm-dd",
                 startDate: "1950-01-01",
                 endDate: "2049-12-31",
-            }).on("changeDate", function(e) {
+            }).on("changeDate", function (e) {
                 window.call_native("set_date", e.format() + " 00:00:00.000");
                 set_visible(false);
             });
@@ -37,9 +36,9 @@
     </script>
 
 </head>
+
 <body>
-
     <div id="calendar"></div>
-
 </body>
+
 </html>

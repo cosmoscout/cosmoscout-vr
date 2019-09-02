@@ -9,6 +9,7 @@
 #include <GL/freeglut.h>
 
 #include "InputManager.hpp"
+#include "cs-version.hpp"
 #include "tools/Tool.hpp"
 
 #include <VistaKernel/DisplayManager/GlutWindowImp/VistaGlutWindowingToolkit.h>
@@ -170,6 +171,8 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
   mNotifications->waitForFinishedLoading();
   mLoadingScreen->waitForFinishedLoading();
 
+  mLoadingScreen->callJavascript(
+      "set_version", GIT_RECENT_TAG + " (" + GIT_BRANCH + " @" + GIT_COMMIT_HASH + ")");
   mLoadingScreen->callJavascript("set_loading", true);
 
   // Register callbacks for notifications area.
