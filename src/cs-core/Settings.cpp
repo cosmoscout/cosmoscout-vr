@@ -11,7 +11,7 @@
 
 namespace cs::core {
 
-void CS_CORE_EXPORT parseSettingsSection(
+void CS_CORE_EXPORT parseSection(
     std::string const& sectionName, const std::function<void()>& f) {
   try {
     f();
@@ -32,53 +32,43 @@ void from_json(const nlohmann::json& j, Settings::Anchor& o) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void from_json(const nlohmann::json& j, Settings::Gui& o) {
-  parseSettingsSection("gui", [&] {
-    o.mWidthPixel  = parseProperty<uint32_t>("widthPixel", j);
-    o.mHeightPixel = parseProperty<uint32_t>("heightPixel", j);
-    o.mWidthMeter  = parseProperty<double>("widthMeter", j);
-    o.mHeightMeter = parseProperty<double>("heightMeter", j);
-    o.mPosXMeter   = parseProperty<double>("posXMeter", j);
-    o.mPosYMeter   = parseProperty<double>("posYMeter", j);
-    o.mPosZMeter   = parseProperty<double>("posZMeter", j);
-    o.mRotX        = parseProperty<double>("rotX", j);
-    o.mRotY        = parseProperty<double>("rotY", j);
-    o.mRotZ        = parseProperty<double>("rotZ", j);
-  });
+  o.mWidthPixel  = parseProperty<uint32_t>("widthPixel", j);
+  o.mHeightPixel = parseProperty<uint32_t>("heightPixel", j);
+  o.mWidthMeter  = parseProperty<double>("widthMeter", j);
+  o.mHeightMeter = parseProperty<double>("heightMeter", j);
+  o.mPosXMeter   = parseProperty<double>("posXMeter", j);
+  o.mPosYMeter   = parseProperty<double>("posYMeter", j);
+  o.mPosZMeter   = parseProperty<double>("posZMeter", j);
+  o.mRotX        = parseProperty<double>("rotX", j);
+  o.mRotY        = parseProperty<double>("rotY", j);
+  o.mRotZ        = parseProperty<double>("rotZ", j);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void from_json(const nlohmann::json& j, Settings::Observer& o) {
-  parseSettingsSection("observer", [&] {
-    o.mCenter    = parseProperty<std::string>("center", j);
-    o.mFrame     = parseProperty<std::string>("frame", j);
-    o.mLongitude = parseProperty<double>("longitude", j);
-    o.mLatitude  = parseProperty<double>("latitude", j);
-    o.mDistance  = parseProperty<double>("distance", j);
-  });
+  o.mCenter    = parseProperty<std::string>("center", j);
+  o.mFrame     = parseProperty<std::string>("frame", j);
+  o.mLongitude = parseProperty<double>("longitude", j);
+  o.mLatitude  = parseProperty<double>("latitude", j);
+  o.mDistance  = parseProperty<double>("distance", j);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#include <iostream>
-
 void from_json(const nlohmann::json& j, Settings& o) {
+
   o.mStartDate   = parseProperty<std::string>("startDate", j);
-  o.mObserver    = j.at("observer").get<Settings::Observer>();
+  o.mObserver    = parseSection<Settings::Observer>("observer", j);
   o.mSpiceKernel = parseProperty<std::string>("spiceKernel", j);
 
-  auto iter = j.find("gui");
-  if (iter != j.end()) {
-    o.mGui = iter->get<std::optional<Settings::Gui>>();
-  }
+  o.mGui = parseOptionalSection<Settings::Gui>("gui", j);
 
   o.mWidgetScale    = parseProperty<float>("widgetScale", j);
   o.mEnableMouseRay = parseProperty<bool>("enableMouseRay", j);
-  parseSettingsSection("anchors",
-      [&] { o.mAnchors = j.at("anchors").get<std::map<std::string, Settings::Anchor>>(); });
 
-  parseSettingsSection("plugins",
-      [&] { o.mPlugins = j.at("plugins").get<std::map<std::string, nlohmann::json>>(); });
+  o.mAnchors = parseMap<std::string, Settings::Anchor>("anchors", j);
+  o.mPlugins = parseMap<std::string, nlohmann::json>("plugins", j);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

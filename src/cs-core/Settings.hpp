@@ -10,13 +10,13 @@
 #include "cs_core_export.hpp"
 
 #include <cstdint>
+#include <exception>
 #include <glm/glm.hpp>
 #include <json.hpp>
 #include <map>
 #include <optional>
 #include <string>
 #include <vector>
-#include <exception>
 
 namespace nlohmann {
 
@@ -57,7 +57,8 @@ class CS_CORE_EXPORT SettingsSectionException : public std::exception {
   SettingsSectionException(std::string sectionName, std::string message)
       : sectionName(std::move(sectionName))
       , message(std::move(message))
-      , completeMessage("Failed to parse settings config in section '" + sectionName + "': " + message) {
+      , completeMessage(
+            "Failed to parse settings config in section '" + sectionName + "': " + message) {
   }
 
   [[nodiscard]] const char* what() const noexcept override {
@@ -65,14 +66,56 @@ class CS_CORE_EXPORT SettingsSectionException : public std::exception {
   }
 };
 
-void CS_CORE_EXPORT parseSettingsSection(std::string const& sectionName, const std::function<void()>& f);
+void CS_CORE_EXPORT parseSection(std::string const& sectionName, std::function<void()> const& f);
+
+template <typename T>
+T CS_CORE_EXPORT parseSection(std::string const& sectionName, nlohmann::json const& j) {
+  T result;
+  parseSection(sectionName, [&] { result = j.at(sectionName).get<T>(); });
+  return result;
+}
+
+template <typename T>
+std::optional<T> CS_CORE_EXPORT parseOptionalSection(
+    std::string const& sectionName, nlohmann::json const& j) {
+  std::optional<T> result;
+
+  auto iter = j.find(sectionName);
+  if (iter != j.end()) {
+    cs::core::parseSection(sectionName, [&] { result = iter->get<std::optional<T>>(); });
+  }
+
+  return result;
+}
+
+template <typename K, typename V>
+std::map<K, V> CS_CORE_EXPORT parseMap(std::string const& sectionName, nlohmann::json const& j) {
+  return parseSection<std::map<K, V>>(sectionName, j);
+}
+
+template <typename T>
+std::vector<T> CS_CORE_EXPORT parseVector(std::string const& sectionName, nlohmann::json const& j) {
+  return parseSection<std::vector<T>>(sectionName, j);
+}
 
 template <typename T>
 T CS_CORE_EXPORT parseProperty(std::string const& propertyName, nlohmann::json const& j) {
   try {
     return j.at(propertyName).get<T>();
   } catch (std::exception const& e) {
-    throw std::runtime_error("Error while trying to parse property '" + propertyName + "': " + std::string(e.what()));
+    throw std::runtime_error(
+        "Error while trying to parse property '" + propertyName + "': " + std::string(e.what()));
+  }
+}
+
+template <typename T>
+std::optional<T> CS_CORE_EXPORT parseOptional(
+    std::string const& propertyName, nlohmann::json const& j) {
+  auto iter = j.find(propertyName);
+  if (iter != j.end()) {
+    return iter->get<std::optional<T>>();
+  } else {
+    return std::nullopt;
   }
 }
 
