@@ -166,7 +166,7 @@ std::pair<double, double> getExistenceFromSettings(
   } catch (std::exception const& e) {
     throw std::runtime_error(
         "Failed to parse the 'startExistence' property of the anchor '" + anchor.first +
-        "'. The dates should be given in the format: YYYY-MM-dd HH:mm:ss.fff");
+        "'. The dates should be given in the format: 1969-07-20 20:17:40.000");
   }
 
   try {
@@ -174,7 +174,7 @@ std::pair<double, double> getExistenceFromSettings(
   } catch (std::exception const& e) {
     throw std::runtime_error(
         "Failed to parse the 'endExistence' property of the anchor '" +
-        anchor.first + "'. The dates should be given in the format: YYYY-MM-dd HH:mm:ss.fff");
+        anchor.first + "'. The dates should be given in the format: 1969-07-20 20:17:40.000");
   }
 
   return result;

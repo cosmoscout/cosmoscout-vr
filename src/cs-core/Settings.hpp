@@ -57,7 +57,7 @@ class CS_CORE_EXPORT SettingsSectionException : public std::exception {
   SettingsSectionException(std::string sectionName, std::string message)
       : sectionName(std::move(sectionName))
       , message(std::move(message))
-      , completeMessage(message + ", in section '" + sectionName + "'.") {
+      , completeMessage("Failed to parse settings config in section '" + sectionName + "': " + message) {
   }
 
   [[nodiscard]] const char* what() const noexcept override {
@@ -71,7 +71,7 @@ template <typename T>
 T CS_CORE_EXPORT parseProperty(std::string const& propertyName, nlohmann::json const& j) {
   try {
     return j.at(propertyName).get<T>();
-  } catch (nlohmann::json::exception const& e) {
+  } catch (std::exception const& e) {
     throw std::runtime_error("Error while trying to parse property '" + propertyName + "': " + std::string(e.what()));
   }
 }

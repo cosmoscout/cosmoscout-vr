@@ -11,7 +11,8 @@
 
 namespace cs::core {
 
-void CS_CORE_EXPORT parseSettingsSection(std::string const& sectionName, const std::function<void()>& f) {
+void CS_CORE_EXPORT parseSettingsSection(
+    std::string const& sectionName, const std::function<void()>& f) {
   try {
     f();
   } catch (SettingsSectionException const& s) {
@@ -59,9 +60,11 @@ void from_json(const nlohmann::json& j, Settings::Observer& o) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+#include <iostream>
+
 void from_json(const nlohmann::json& j, Settings& o) {
-  o.mStartDate = parseProperty<std::string>("startDate", j);
-  o.mObserver  = j.at("observer").get<Settings::Observer>();
+  o.mStartDate   = parseProperty<std::string>("startDate", j);
+  o.mObserver    = j.at("observer").get<Settings::Observer>();
   o.mSpiceKernel = parseProperty<std::string>("spiceKernel", j);
 
   auto iter = j.find("gui");
@@ -71,13 +74,11 @@ void from_json(const nlohmann::json& j, Settings& o) {
 
   o.mWidgetScale    = parseProperty<float>("widgetScale", j);
   o.mEnableMouseRay = parseProperty<bool>("enableMouseRay", j);
-  parseSettingsSection("anchors", [&] {
-    o.mAnchors = j.at("anchors").get<std::map<std::string, Settings::Anchor>>();
-  });
+  parseSettingsSection("anchors",
+      [&] { o.mAnchors = j.at("anchors").get<std::map<std::string, Settings::Anchor>>(); });
 
-  parseSettingsSection("plugins", [&] {
-    o.mPlugins = j.at("plugins").get<std::map<std::string, nlohmann::json>>();
-  });
+  parseSettingsSection("plugins",
+      [&] { o.mPlugins = j.at("plugins").get<std::map<std::string, nlohmann::json>>(); });
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

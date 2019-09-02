@@ -75,7 +75,7 @@ void TimeControl::resetTime() {
     try {
       tTime = utils::convert::toSpiceTime(boost::posix_time::time_from_string(startDate));
     } catch (std::exception const& e) {
-      throw std::runtime_error("Could not parse the 'startDate' setting. It should either be 'today' or in the format 'YYYY-MM-DD HH:mm:ss.fff'.");
+      throw std::runtime_error("Could not parse the 'startDate' setting. It should either be 'today' or in the format '1969-07-20 20:17:40.000'.");
     }
   }
 

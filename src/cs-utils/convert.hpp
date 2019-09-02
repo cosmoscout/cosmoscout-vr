@@ -82,7 +82,7 @@ CS_UTILS_EXPORT glm::dvec3 lngLatToNormal(glm::dvec2 const& lngLat, double radiu
 CS_UTILS_EXPORT glm::dvec2 normalToLngLat(glm::dvec3 const& normal, double radiusE, double radiusP);
 
 /// Parse the time of existence from the settings section of an anchor.
-CS_UTILS_EXPORT std::pair<double, double> getExistenceFromSettings(std::pair<std::string, core::Settings::Anchor> anchor);
+CS_UTILS_EXPORT std::pair<double, double> getExistenceFromSettings(std::pair<std::string, core::Settings::Anchor> const& anchor);
 
 /// Convert boost::posix_time::ptime to spice time, which is defined by the
 /// Barycentric Dynamical Time.
