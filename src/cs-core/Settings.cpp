@@ -16,7 +16,7 @@ void CS_CORE_EXPORT parseSettingsSection(
   try {
     f();
   } catch (SettingsSectionException const& s) {
-    throw SettingsSectionException(sectionName + "." + s.sectionName, s.what());
+    throw SettingsSectionException(sectionName + "." + s.sectionName, s.message);
   } catch (std::exception const& e) { throw SettingsSectionException(sectionName, e.what()); }
 }
 
