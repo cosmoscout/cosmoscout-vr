@@ -168,15 +168,70 @@ i {
     top: -4px;
 }
 
+#btnIncreaseMonth,
+#btnDecreaseMonth {
+    left: -3px;
+}
+
+#btnIncreaseDay,
+#btnDecreaseDay {
+    left: 1px;
+}
+
+#btnIncreaseHour,
+#btnDecreaseHour {
+    left: 7px;
+}
+
+#btnIncreaseMinute,
+#btnDecreaseMinute {
+    left: 3px;
+}
+
 #decreaseControl.mouseNear i,
 #increaseControl.mouseNear i {
     color: #ddf;
 }
 
+#decreaseControl.mouseOver a,
+#increaseControl.mouseOver a{
+    height: 26px;
+}
+
 #decreaseControl.mouseOver i,
 #increaseControl.mouseOver i {
     color: #ddf;
-    font-size: 22px;
+    font-size: 34px;
+}
+
+#increaseControl.mouseOver #btnIncreaseYear,
+#decreaseControl.mouseOver #btnDecreaseYear {
+    left: 0px;
+    top: -1px;
+}
+
+#increaseControl.mouseOver #btnIncreaseMonth,
+#decreaseControl.mouseOver #btnDecreaseMonth {
+    left: 11px;
+    top: -1px;
+}
+
+#increaseControl.mouseOver #btnIncreaseDay,
+#decreaseControl.mouseOver #btnDecreaseDay {
+    left: 30px;
+    top: -1px;
+}
+
+#increaseControl.mouseOver #btnIncreaseHour,
+#decreaseControl.mouseOver #btnDecreaseHour {
+    left: -7px;
+    top: -1px;
+}
+
+#increaseControl.mouseOver #btnIncreaseMinute,
+#decreaseControl.mouseOver #btnDecreaseMinute {
+    left: -27px;
+    top: -1px;
 }
 
 #speedDecreaseControl {
