@@ -57,7 +57,6 @@ void from_json(const nlohmann::json& j, Settings::Observer& o) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void from_json(const nlohmann::json& j, Settings& o) {
-
   o.mStartDate   = parseProperty<std::string>("startDate", j);
   o.mObserver    = parseSection<Settings::Observer>("observer", j);
   o.mSpiceKernel = parseProperty<std::string>("spiceKernel", j);

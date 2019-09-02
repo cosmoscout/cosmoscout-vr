@@ -47,6 +47,10 @@ struct adl_serializer<std::optional<T>> {
 
 namespace cs::core {
 
+/// An exception that is thrown while parsing the config. Prepends thrown exceptions with a section
+/// name to give the user more detailed information about the root of the error.
+/// The exception can and should be nested.
+/// @see parseSection()
 class CS_CORE_EXPORT SettingsSectionException : public std::exception {
   const std::string completeMessage;
 
@@ -66,8 +70,24 @@ class CS_CORE_EXPORT SettingsSectionException : public std::exception {
   }
 };
 
+/// Parses a section of the config file. If an exception gets thrown inside f a new exception will
+/// be created with the sectionName in its error message.
+///
+/// If this method is nested the section names of all the method calls will be joined with a 'dot'.
+/// Example:
+///
+/// @code
+/// parseSection("foo", [] {
+///     parseSection("bar", [] {
+///         throw std::runtime_error("bad character");
+///     });
+/// });
+/// @endcode
+///
+/// Console output: Failed to parse settings config in section 'foo.bar': bad character
 void CS_CORE_EXPORT parseSection(std::string const& sectionName, std::function<void()> const& f);
 
+/// A settings section that is also a value.
 template <typename T>
 T CS_CORE_EXPORT parseSection(std::string const& sectionName, nlohmann::json const& j) {
   T result;
@@ -75,6 +95,7 @@ T CS_CORE_EXPORT parseSection(std::string const& sectionName, nlohmann::json con
   return result;
 }
 
+/// An optional settings section.
 template <typename T>
 std::optional<T> CS_CORE_EXPORT parseOptionalSection(
     std::string const& sectionName, nlohmann::json const& j) {
@@ -88,16 +109,19 @@ std::optional<T> CS_CORE_EXPORT parseOptionalSection(
   return result;
 }
 
+/// A map of key values.
 template <typename K, typename V>
 std::map<K, V> CS_CORE_EXPORT parseMap(std::string const& sectionName, nlohmann::json const& j) {
   return parseSection<std::map<K, V>>(sectionName, j);
 }
 
+/// A vector of settings.
 template <typename T>
 std::vector<T> CS_CORE_EXPORT parseVector(std::string const& sectionName, nlohmann::json const& j) {
   return parseSection<std::vector<T>>(sectionName, j);
 }
 
+/// A single atomic property.
 template <typename T>
 T CS_CORE_EXPORT parseProperty(std::string const& propertyName, nlohmann::json const& j) {
   try {
@@ -108,6 +132,7 @@ T CS_CORE_EXPORT parseProperty(std::string const& propertyName, nlohmann::json c
   }
 }
 
+/// An optional property.
 template <typename T>
 std::optional<T> CS_CORE_EXPORT parseOptional(
     std::string const& propertyName, nlohmann::json const& j) {
