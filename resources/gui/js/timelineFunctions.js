@@ -75,11 +75,13 @@ var options = {
 };
 
 var playingOpt = {
-    moveable: false
+    moveable: false,
+    zoomable: false
 }
 
 var pausOpt = {
-    moveable: true
+    moveable: true,
+    zoomable: true
 }
 
 var overviewOptions = {
@@ -194,7 +196,7 @@ function overviewChangeCallback() {
 }
 
 function rangechangeCallback(properties) {
-    if(properties.byUser) {
+    if(properties.byUser && String(properties.event) != "[object WheelEvent]") {
         inRangeChange = true;
         click = false;
         var dif = mouseDownLeftTime.getTime() - properties.start.getTime();
@@ -519,25 +521,10 @@ function manuelZoomTimeline(event) {
                 timelineRangeFactor = maxRangeFactor;
             }
         }
-    } else {
-        if(event.deltaY < 0) {
-            timeline.zoomIn(zoomPercentage, animationFalse);
-        } else {
-            timeline.zoomOut(zoomPercentage, animationFalse);
-        }
-    }
-}
-
-function manuelZoomOverview(event) {
-    if(event.deltaY < 0) {
-        overviewTimeLine.zoomIn(zoomPercentage, animationFalse);
-    } else {
-        overviewTimeLine.zoomOut(zoomPercentage, animationFalse);
     }
 }
 
 container.addEventListener("wheel", manuelZoomTimeline, true);
-overviewContainer.addEventListener("wheel", manuelZoomOverview, true);
 
 document.getElementById("btnIncreaseMinute").onclick = plusOneMinute;
 document.getElementById("btnDecreaseMinute").onclick = minusOneMinute;

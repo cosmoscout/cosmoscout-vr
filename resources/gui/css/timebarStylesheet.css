@@ -78,6 +78,7 @@ body{
   #visualization .vis-panel.vis-bottom {
     height: 40px !important;
     top: -10px !important;
+    pointer-events: none;
   }
   #visualization .vis-text.vis-major {
     top: 17px !important;

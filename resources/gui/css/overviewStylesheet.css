@@ -42,6 +42,7 @@
 #overview .vis-panel.vis-bottom {
   height: 40px !important;
   top: -2px !important;
+  pointer-events: none;
 }
 
 #overview .vis-panel.vis-center {
