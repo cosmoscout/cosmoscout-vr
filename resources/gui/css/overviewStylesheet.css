@@ -17,6 +17,10 @@
   top: 26px;
 }
 
+#overview .vis-time-axis.vis-foreground {
+  height: 43px !important;
+}
+
 #overview .vis-item {
   background-color: rgba(0, 0, 0, 0.705);
 }
@@ -61,8 +65,9 @@
 }
 
 #overview .vis-text.vis-major {
-  top: 17px !important;
-  font-size: 11px;
+  top: 27px !important;
+  font-size: 12px;
+  z-index: 1;
 }
 
 #overview .vis-panel.vis-background.vis-horizontal,
@@ -89,9 +94,12 @@
   font-size: 10px;
 }
 
+#overview .vis-grid.vis-vertical.vis-major,
 #overview .vis-grid.vis-vertical.vis-minor {
-  width: 1px !important;
-  border-width: 5px !important;
-  border-radius: 100% !important;
-  z-index: 1;
+  width: 5px !important;
+  height: 5px !important;
+  border-radius: 50% !important;
+  background-color: #ddf;
+  z-index: 2;
+  top: 0px !important;
 }
