@@ -346,7 +346,7 @@ function moveWindow(seconds) {
     play = true;
     var step;
     if(seconds == secSpeed)
-        seconds++;
+        seconds = 0.0166666;
     step = convertSeconds(seconds * timelineRangeFactor);
     var startDate = new Date(centerTime.getTime());
     var endDate = new Date(centerTime.getTime());
