@@ -448,6 +448,9 @@ function togglePaus() {
         lastPlayValue = range.noUiSlider.get();;
         range.noUiSlider.set(paus);
     } else {
+        if(lastPlayValue == paus) {
+            lastPlayValue = secForw;
+        }
         range.noUiSlider.set(parseInt(lastPlayValue));
     }
 }
@@ -544,3 +547,5 @@ document.getElementById("btnDecreaseYear").onclick = minusOneYear;
 document.getElementById("btnPaus").onclick = togglePaus;
 document.getElementById("btnDecreaseSpeed").onclick = decreaseSpeed;
 document.getElementById("btnIncreaseSpeed").onclick = increaseSpeed;
+
+document.getElementById("divContainer").addEventListener("mouseup", mouseUpCallback);
