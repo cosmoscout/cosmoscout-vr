@@ -35,7 +35,7 @@ let maxRangeFactor = 60000;
 let minRangeFactor = 500;
 
 let redrawRate = 16.666666;
-let secSpeed = 0;
+let secSpeed = 0.0166666;
 let hourSpeed = 60;
 let daySpeed = 1440;
 let monthSpeed = 43800;
@@ -345,8 +345,6 @@ function minusOneYear() {
 function moveWindow(seconds) {
     play = true;
     var step;
-    if(seconds == secSpeed)
-        seconds = 0.0166666;
     step = convertSeconds(seconds * timelineRangeFactor);
     var startDate = new Date(centerTime.getTime());
     var endDate = new Date(centerTime.getTime());
