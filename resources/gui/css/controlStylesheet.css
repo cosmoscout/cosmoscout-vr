@@ -142,13 +142,13 @@ i {
     font-size: 28px;
 }
 
-#increaseControl {
+#decreaseControl {
     left: 50%;
     transform: translateX(-50%);
     top: 75px;
 }
 
-#decreaseControl {
+#increaseControl {
     left: 50%;
     transform: translateX(-50%);
     top: 48px;
