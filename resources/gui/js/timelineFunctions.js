@@ -150,6 +150,8 @@ overviewTimeLine.addCustomTime(timeline.getWindow().start, leftTimeId);
 overviewTimeLine.on('select', onSelect);
 overviewTimeLine.on('click', onOverviewClick);
 overviewTimeLine.on('changed', overviewChangeCallback);
+overviewTimeLine.on('mouseDown', overviewMouseDownCallback);
+overviewTimeLine.on('rangechange', overviewRangechangeCallback);
 initialOverviewWindow(new Date(1950,1), new Date(2030, 12));
 
 document.getElementById("dateLabel").innerText = formatDateReadable(centerTime);
@@ -180,6 +182,14 @@ function mouseUpCallback(properties) {
     }
     mouseOnTimelineDown = false;
     inRangeChange = false;
+}
+
+function overviewMouseDownCallback() {
+    click = true;
+}
+
+function overviewRangechangeCallback() {
+    click = false;
 }
 
 function timelineChangeCallback() {
@@ -278,14 +288,15 @@ function generalOnClick(properties) {
 }
 
 function onClickCallback(properties) {
-    if(!click) {
-        return;
+    if(click) {     
+        generalOnClick(properties);
     }
-    generalOnClick(properties);
 }
 
 function onOverviewClick (properties){
-    generalOnClick(properties);
+    if(click) {     
+        generalOnClick(properties);
+    }
 }
 
 
