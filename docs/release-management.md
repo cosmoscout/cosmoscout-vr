@@ -27,18 +27,27 @@ git checkout develop
 git submodule update --init
 ```
 
+First, the [changelog.md](https://github.com/cosmoscout/cosmoscout-vr/blob/develop/docs/changelog.md) has to be updated.
+Based on the commits since the last release and the completed project board, a list of changes is compiled.
+When this is done, the file has to be comitted:
+
+```bash
+git add docs/changelog.md
+git commit -m ":memo: Update changelog.md"
+```
+
 Then edit the [project(... VERSION ...)](https://github.com/cosmoscout/cosmoscout-vr/blob/develop/CMakeLists.txt#L8) in the main `CMakeLists.txt` file according to the new version number.
 Afterwards, the change has to be comitted:
 
 ```bash
 git add CMakeLists.txt
 git commit -m ":tada: Bump version number"
-git push origin develop
 ```
 
 Then we create a new git tag and merge this state to the `master` branch.
 
 ```bash
+git push origin develop
 git tag v<new version number>
 git checkout master
 git merge develop
