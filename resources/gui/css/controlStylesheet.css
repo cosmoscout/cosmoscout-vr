@@ -74,6 +74,11 @@ i {
     color: #ddf
 }
 
+.btn:hover {
+    text-shadow: 0 0 25px rgb(255, 255, 0);
+}
+
+
 #timeControl {
     left: 50%;
     transform: translateX(-50%);
