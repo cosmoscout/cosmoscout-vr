@@ -167,7 +167,7 @@ function setTimelineRange(min, max) {
     timeline.setOptions(rangeOpt);
 }
 
-function mouseDownCallback(properties) {
+function mouseDownCallback() {
     mouseOnTimelineDown = true;
     lastPlayValue = range.noUiSlider.get();
     range.noUiSlider.set(paus);
@@ -176,7 +176,7 @@ function mouseDownCallback(properties) {
     mouseDownLeftTime = timeline.getWindow().start;
 }
 
-function mouseUpCallback(properties) {
+function mouseUpCallback() {
     if(mouseOnTimelineDown) {
         range.noUiSlider.set(parseInt(lastPlayValue));
     }
@@ -496,7 +496,7 @@ function increaseSpeed() {
     range.noUiSlider.set(currentSpeed-(-1));
 }
 
-function rangeUpdateCallback(values, handle, unencoded, tap, positions) {
+function rangeUpdateCallback() {
     currentSpeed = range.noUiSlider.get();
     if(firstSliderValue) {
         document.getElementsByClassName("range-label")[0].innerHTML = '<i class="material-icons">chevron_right</i>';

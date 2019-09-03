@@ -13,34 +13,34 @@ function toggleLock() {
 }
 
 
-function mouseEnterTimeline (evt){
+function mouseEnterTimeline (){
     if(!locked) {
         document.getElementById('divContainer').classList.add('visible');
     }
 }
 
-function mouseLeaveTimenavigation (evt) {
+function mouseLeaveTimenavigation () {
     if(!locked) {
         document.getElementById('divContainer').classList.remove('visible');
     }
 }
 
-function mouseEnterTimeControl(evt) {
+function mouseEnterTimeControl() {
     document.getElementById("increaseControl").classList.add('mouseNear');
     document.getElementById("decreaseControl").classList.add('mouseNear');
 }
 
-function mouseLeaveTimeControl(evt) {
+function mouseLeaveTimeControl() {
     document.getElementById("increaseControl").classList.remove('mouseNear');
     document.getElementById("decreaseControl").classList.remove('mouseNear');
 }
 
-function enterTimeButtons(evt) {
+function enterTimeButtons() {
     document.getElementById("increaseControl").classList.add('mouseOver');
     document.getElementById("decreaseControl").classList.add('mouseOver');
 }
 
-function leaveTimeButtons(evt) {
+function leaveTimeButtons() {
     document.getElementById("increaseControl").classList.remove('mouseOver');
     document.getElementById("decreaseControl").classList.remove('mouseOver');
 }
