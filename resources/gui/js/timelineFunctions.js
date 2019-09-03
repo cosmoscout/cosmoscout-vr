@@ -119,13 +119,7 @@ noUiSlider.create(range, {
         'max' : monthForw,
     },
     snap: true,
-    start: secForw,
-    pips: {
-        mode: 'values',
-        values: [],
-        density: 12.5
-    },
-    
+    start: secForw
 });
 
 range.noUiSlider.on('update', rangeUpdateCallback);
