@@ -438,11 +438,32 @@ function makeTimeStep() {
     await makeTimeStep();
   }
 
-function set_time_speed(speed) {
-    if(speed == paus) {
-        range.noUiSlider.set(paus);
-    }
-}
+  var time_speed   = 1.0;
+  let hour_speed   = 3600;
+  let day_speed    = 86400;
+  let month_speed  = 2628000;
+  function set_time_speed(speed) {
+      $("#play-pause-icon").text("pause");
+      if (speed == 0.0) {
+          $("#play-pause-icon").text("play_arrow");
+          range.noUiSlider.set(paus);
+          window.call_native("print_notification", "Pause", "Time is paused.", "pause");
+      } else if (speed == 1.0) {
+          window.call_native("print_notification", "Speed: Realtime", "Time runs in realtime.", "play_arrow");
+      } else if (speed == hour_speed) {
+          window.call_native("print_notification", "Speed: Hour/s", "Time runs at one hour per second.", "fast_forward");
+      }else if (speed == day_speed) {
+          window.call_native("print_notification", "Speed: Day/s", "Time runs at one day per second.", "fast_forward");
+      }else if (speed == month_speed) {
+          window.call_native("print_notification", "Speed: Month/s", "Time runs at one month per second.", "fast_forward");
+      }else if (speed > time_speed) {
+          window.call_native("print_notification", "Speed: " + speed + "x", "Time speed increased.", "fast_forward");
+      } else if (speed < time_speed) {
+          window.call_native("print_notification", "Speed: " + speed + "x", "Time speed decreased.", "fast_rewind");
+      }
+
+      time_speed = speed;
+  }
 
 function togglePaus() {
     if(play) {
@@ -496,7 +517,7 @@ function rangeUpdateCallback(values, handle, unencoded, tap, positions) {
             window.call_native("set_time_speed", 0);
             document.getElementById("btnPaus").innerHTML = '<i class="material-icons">play_arrow</i>';
             document.getElementsByClassName("range-label")[0].innerHTML = '<i class="material-icons">pause</i>';
-         break; 
+            break; 
         case secForw:
             window.call_native("set_time_speed", secForw);
             document.getElementById("btnPaus").innerHTML = '<i class="material-icons">pause</i>';

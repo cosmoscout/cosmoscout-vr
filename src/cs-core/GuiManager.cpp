@@ -207,6 +207,11 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
         showNotification(title, content, icon);
       }));
 
+  mTimeNavigationBar->registerCallback<std::string, std::string, std::string>("print_notification",
+      ([this](std::string const& title, std::string const& content, std::string const& icon) {
+        showNotification(title, content, icon);
+      }));
+
   // Register callbacks for sidebar area.
 
   mSideBar->registerCallback<bool>("set_enable_timer_queries",
