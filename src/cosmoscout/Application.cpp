@@ -115,12 +115,9 @@ bool Application::Init(VistaSystem* pVistaSystem) {
     facet->format("%d-%b-%Y %H:%M:%S.%f");
     sstr.imbue(std::locale(std::locale::classic(), facet));
     sstr << cs::utils::convert::toBoostTime(val);
-    mGuiManager->getFooterBar()->callJavascript("set_date", sstr.str());
     mGuiManager->getTimeNavigationBar()->callJavascript("set_date", sstr.str());
   });
 
-  mTimeControl->pTimeSpeed.onChange().connect(
-      [this](float val) { mGuiManager->getFooterBar()->callJavascript("set_time_speed", val); });
   mTimeControl->pTimeSpeed.onChange().connect(
       [this](float val) { mGuiManager->getTimeNavigationBar()->callJavascript("set_time_speed", val); });
 
@@ -380,23 +377,6 @@ void Application::registerHeaderBarCallbacks() {
   });
 
   // Time Control -------------------------------------------------------
-
-  mGuiManager->getFooterBar()->registerCallback(
-      "reset_time", ([this]() { mTimeControl->resetTime(); }));
-
-  mGuiManager->getFooterBar()->registerCallback("toggle_time_stop", ([&]() {
-    float speed(mTimeControl->pTimeSpeed.get() == 0.f ? 1.f : 0.f);
-    mTimeControl->pTimeSpeed = speed;
-  }));
-
-  mGuiManager->getFooterBar()->registerCallback<double>("add_hours", ([&](double amount) {
-    mTimeControl->setTime(mTimeControl->pSimulationTime.get() + 60.0 * 60.0 * amount);
-  }));
-  mGuiManager->getFooterBar()->registerCallback(
-      "increase_time_speed", ([&]() { mTimeControl->increaseTimeSpeed(); }));
-
-  mGuiManager->getFooterBar()->registerCallback(
-      "decrease_time_speed", ([&]() { mTimeControl->decreaseTimeSpeed(); }));
   mGuiManager->getTimeNavigationBar()->registerCallback(
       "reset_time", ([this]() { mTimeControl->resetTime(); }));
 

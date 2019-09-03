@@ -100,19 +100,6 @@
             }
 
             time_speed = speed;
-
-            var text = speed + "x";
-            if (speed == "1")
-                text = "realtime";
-            if (speed == "0")
-                text = "paused";
-            if (speed == hour_speed)
-                text = "one hour per second";
-            if (speed == day_speed)
-                text = "one day per second";
-            if (speed == month_speed)
-                text = "one month per second";
-            $("#placeholder-7").text(text);
         }
 
         // overridden API calls ------------------------------------------------
@@ -140,15 +127,11 @@
             activePlanetFrame = frame;
         }
 
-        function set_date(date) {
-            $("#placeholder-4").text(date);
-        }
-
         function set_fps(fps) {
             // $("#placeholder-1").text(Math.floor(fps));
         }
 
-        function setHeader(xhr) {
+        function setFooter(xhr) {
             xhr.setRequestHeader('Access-Control-Allow-Origin', '*');
         }
 
