@@ -151,7 +151,7 @@ bool Application::Init(VistaSystem* pVistaSystem) {
 
   registerSolarSystemCallbacks();
   registerSideBarCallbacks();
-  registerHeaderBarCallbacks();
+  registerTimenavigationBarCallbacks();
   registerCalendarCallbacks();
 
   // open plugins ----------------------------------------------------------------------------------
@@ -253,13 +253,7 @@ void Application::registerSideBarCallbacks() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Application::registerHeaderBarCallbacks() {
-  mGuiManager->getFooterBar()->registerCallback<std::string, std::string, double, double, double>(
-      "fly_to", [this](std::string const& center, std::string const& frame, double longitude,
-                    double latitude, double height) {
-        mSolarSystem->flyObserverTo(center, frame,
-            cs::utils::convert::toRadians(glm::dvec2(longitude, latitude)), height, 5.0);
-      });
+void Application::registerTimenavigationBarCallbacks() {
 
   mGuiManager->getTimeNavigationBar()->registerCallback("navigate_north_up", [this]() {
     auto observerPos = mSolarSystem->getObserver().getAnchorPosition();
