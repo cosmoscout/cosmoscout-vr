@@ -150,6 +150,7 @@ initialOverviewWindow(new Date(1950,1), new Date(2030, 12));
 
 document.getElementById("dateLabel").innerText = formatDateReadable(centerTime);
 
+moveWindow(secSpeed);
 
 function setTimelineRange(min, max) {
     var rangeOpt = {
