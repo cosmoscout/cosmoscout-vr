@@ -438,78 +438,56 @@ function rangeUpdateCallback() {
         firstSliderValue = false;
         return;
     }
+
+    if(parseInt(currentSpeed) == paus) {
+        window.call_native("set_time_speed", 0);
+        document.getElementById("btnPaus").innerHTML = '<i class="material-icons">play_arrow</i>';
+        document.getElementsByClassName("range-label")[0].innerHTML = '<i class="material-icons">pause</i>';
+        play = false;
+        timeline.setOptions(pausOpt);
+        timelineZoomBlocked = false;
+    } else {
+        document.getElementById("btnPaus").innerHTML = '<i class="material-icons">pause</i>';
+        timeline.setOptions(playingOpt);
+        timelineZoomBlocked = true;
+        if(parseInt(currentSpeed) < paus) {
+            document.getElementsByClassName("range-label")[0].innerHTML = '<i class="material-icons">chevron_left</i>';
+        } else {
+            document.getElementsByClassName("range-label")[0].innerHTML = '<i class="material-icons">chevron_right</i>';
+        }
+    }
     switch(parseInt(currentSpeed)) {
         case monthBack:
             window.call_native("set_time_speed", -monthInSec);
-            document.getElementById("btnPaus").innerHTML = '<i class="material-icons">pause</i>';
-            document.getElementsByClassName("range-label")[0].innerHTML = '<i class="material-icons">chevron_left</i>';
             moveWindow(monthSpeed);
-            timeline.setOptions(playingOpt);
-            timelineZoomBlocked = true;
           break;
         case dayBack:
             window.call_native("set_time_speed", -dayInSec);
-            document.getElementById("btnPaus").innerHTML = '<i class="material-icons">pause</i>';
-            document.getElementsByClassName("range-label")[0].innerHTML = '<i class="material-icons">chevron_left</i>';
             moveWindow(daySpeed);
-            timeline.setOptions(playingOpt);
-            timelineZoomBlocked = true;
           break;
         case hourBack:
             window.call_native("set_time_speed", -hourInSec);
-            document.getElementById("btnPaus").innerHTML = '<i class="material-icons">pause</i>';
-            document.getElementsByClassName("range-label")[0].innerHTML = '<i class="material-icons">chevron_left</i>';
             moveWindow(hourSpeed);
-            timeline.setOptions(playingOpt);
-            timelineZoomBlocked = true;
           break;
         case secBack:
             window.call_native("set_time_speed", secBack);
-            document.getElementById("btnPaus").innerHTML = '<i class="material-icons">pause</i>';
-            document.getElementsByClassName("range-label")[0].innerHTML = '<i class="material-icons">chevron_left</i>';
             moveWindow(secSpeed);
-            timeline.setOptions(playingOpt);
-            timelineZoomBlocked = true;
             break;
-        case paus:
-            window.call_native("set_time_speed", 0);
-            document.getElementById("btnPaus").innerHTML = '<i class="material-icons">play_arrow</i>';
-            document.getElementsByClassName("range-label")[0].innerHTML = '<i class="material-icons">pause</i>';
-            play = false;
-            timeline.setOptions(pausOpt);
-            timelineZoomBlocked = false;
-            break; 
         case secForw:
             window.call_native("set_time_speed", secForw);
-            document.getElementById("btnPaus").innerHTML = '<i class="material-icons">pause</i>';
-            document.getElementsByClassName("range-label")[0].innerHTML = '<i class="material-icons">chevron_right</i>';
             moveWindow(secSpeed);
-            timeline.setOptions(playingOpt);
-            timelineZoomBlocked = true;
             break;
         case hourForw:
             window.call_native("set_time_speed", hourInSec);
-            document.getElementById("btnPaus").innerHTML = '<i class="material-icons">pause</i>';
-            document.getElementsByClassName("range-label")[0].innerHTML = '<i class="material-icons">chevron_right</i>';
             moveWindow(hourSpeed);
-            timeline.setOptions(playingOpt);
-            timelineZoomBlocked = true;
           break;
         case dayForw:
             window.call_native("set_time_speed", dayInSec);
-            document.getElementById("btnPaus").innerHTML = '<i class="material-icons">pause</i>';
-            document.getElementsByClassName("range-label")[0].innerHTML = '<i class="material-icons">chevron_right</i>';
             moveWindow(daySpeed);
-            timeline.setOptions(playingOpt);
-            timelineZoomBlocked = true;
           break;
         case monthForw:
             window.call_native("set_time_speed", monthInSec);
-            document.getElementById("btnPaus").innerHTML = '<i class="material-icons">pause</i>';
-            document.getElementsByClassName("range-label")[0].innerHTML = '<i class="material-icons">chevron_right</i>';
             moveWindow(monthSpeed);
-            timeline.setOptions(playingOpt);
-            timelineZoomBlocked = true;
             break;       
         default:
           // code block
