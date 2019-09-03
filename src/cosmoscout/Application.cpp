@@ -403,6 +403,9 @@ void Application::registerHeaderBarCallbacks() {
   mGuiManager->getTimeNavigationBar()->registerCallback<double>("add_hours", ([&](double amount) {
     mTimeControl->setTime(mTimeControl->pSimulationTime.get() + 60.0 * 60.0 * amount);
   }));
+  mGuiManager->getTimeNavigationBar()->registerCallback<double>("add_hours_without_animation", ([&](double amount) {
+    mTimeControl->setTimeWithoutAnimation(mTimeControl->pSimulationTime.get() + 60.0 * 60.0 * amount);
+  }));
   mGuiManager->getTimeNavigationBar()->registerCallback<std::string>(
       "set_date", ([this](std::string const& date) {
         mTimeControl->setTime(

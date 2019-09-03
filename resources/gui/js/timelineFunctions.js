@@ -197,16 +197,17 @@ function overviewChangeCallback() {
 
 function rangechangeCallback(properties) {
     if(properties.byUser && String(properties.event) != "[object WheelEvent]") {
-        inRangeChange = true;
         click = false;
-        var dif = mouseDownLeftTime.getTime() - properties.start.getTime();
-        var secondsDif = dif / 1000;
+        inRangeChange = true;
+        var dif = properties.start.getTime() - mouseDownLeftTime.getTime();
+        var secondsDif = dif/ 1000;
+        var hoursDif = secondsDif / 60 / 60;
         var step = convertSeconds(secondsDif);
         var date = new Date(centerTime.getTime());
-        date = decreaseDate(date, step.days, step.hours, step.minutes, step.seconds, step.milliSec);
+        date = increaseDate(date, step.days, step.hours, step.minutes, step.seconds, step.milliSec);
         set_date_local(date);
         mouseDownLeftTime = new Date(properties.start.getTime());
-        window.call_native("set_date_direct", formatDateCosmo(date));
+        window.call_native("add_hours_without_animation", hoursDif);
     }
 }
 
