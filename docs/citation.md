@@ -15,7 +15,7 @@ With the link below you can export a citation in many different formats.
   <img src ="img/nav-vspace.svg"/>
   <a href="README.md">&#8962; Help Index</a>
   <img src ="img/nav-vspace.svg"/>
-  <a href="architecture.md">Software Architecture &rsaquo;</a>
+  <a href="release-management.md">Release Management &rsaquo;</a>
 </p>
 
 <p align="center"><img src ="img/hr.svg"/></p>
