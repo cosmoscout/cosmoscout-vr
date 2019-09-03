@@ -225,8 +225,9 @@ function onSelect (properties) {
     mouseOverDisabled = true;
     for(var item in items._data) {
         if(items._data[item].id == properties.items) {
-            window.call_native("set_date", formatDateCosmo(new Date(items._data[item].start.getTime())));
-            setOverviewTimes();
+            var dif = items._data[item].start.getTime() - centerTime.getTime();
+            var hoursDif = dif / 1000 / 60 / 60;
+            window.call_native("add_hours", hoursDif);
         }
     }
 }
