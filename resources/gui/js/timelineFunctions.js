@@ -244,6 +244,25 @@ function set_items(events) {
     items.add(data);
 }
 
+function redrawSnipped() {
+    return new Promise(resolve => {
+    switch(parseInt(currentSpeed)) {
+        case paus:
+            timeline.setOptions(pausOpt);
+    }
+
+    setTimeout(function() {
+        resolve(10);
+        redrawSnipped();
+        }, redrawRate);
+    });
+  }
+
+  async function startRedrawSnipped() {
+    await redrawSnipped();
+  }
+
+
 function add_item(start, end, id, content, style, description) {
     var data = new Object();
     data.start = new Date(start);
@@ -441,6 +460,7 @@ function rangeUpdateCallback() {
         play = false;
         timeline.setOptions(pausOpt);
         timelineZoomBlocked = false;
+        startRedrawSnipped();
     } else {
         document.getElementById("btnPaus").innerHTML = '<i class="material-icons">pause</i>';
         timeline.setOptions(playingOpt);
