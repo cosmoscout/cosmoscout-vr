@@ -269,8 +269,9 @@ function add_item(start, end, id, content, style, description) {
 
 function generalOnClick(properties) {
     if(properties.what != "item" && properties.time != null) {
-        window.call_native("set_date", formatDateCosmo(new Date(properties.time.getTime())));
-        setOverviewTimes();
+        var dif = properties.time.getTime() - centerTime.getTime();
+        var hoursDif = dif / 1000 / 60 / 60;
+        window.call_native("add_hours", hoursDif);
     }
 }
 
