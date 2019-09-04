@@ -15,6 +15,29 @@
     top: 0px;
 }
 
+#bottomBorderLeft {
+    top: 65px;
+    height: 2px;
+    position: absolute;
+    background-color: #ddf;
+    width: 50%;
+    left: 0;
+    transform: translateX(-150px);
+}
+
+#bottomBorderRight {
+    top: 65px;
+    height: 2px;
+    position: absolute;
+    background-color: #ddf;
+    width: 50%;
+    left: 50%;
+    transform: translateX(150px);
+}
+
+
+
+
 #compass-arrow {
     background-image: url("../img/compass.png");
     width: 25px;
