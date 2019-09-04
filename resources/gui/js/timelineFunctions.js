@@ -112,7 +112,6 @@ noUiSlider.create(range, {
         '6%' : dayBack,
         '12%' : hourBack,
         '18%' : secBack,
-        '50%' : paus,
         '82%' : secForw,
         '88%' : hourForw,
         '94%' : dayForw,
@@ -162,15 +161,15 @@ function setTimelineRange(min, max) {
 
 function mouseDownCallback() {
     mouseOnTimelineDown = true;
-    lastPlayValue = range.noUiSlider.get();
-    range.noUiSlider.set(paus);
+    lastPlayValue = currentSpeed;
+    setPaus();
     timeline.setOptions(pausOpt);
     click = true;
     mouseDownLeftTime = timeline.getWindow().start;
 }
 
 function mouseUpCallback() {
-    if(mouseOnTimelineDown) {
+    if(mouseOnTimelineDown && lastPlayValue != paus) {
         range.noUiSlider.set(parseInt(lastPlayValue));
     }
     mouseOnTimelineDown = false;
@@ -406,7 +405,7 @@ function set_date_local(date) {
       $("#play-pause-icon").text("pause");
       if (speed == 0.0) {
           $("#play-pause-icon").text("play_arrow");
-          range.noUiSlider.set(paus);
+          setPaus();
           window.call_native("print_notification", "Pause", "Time is paused.", "pause");
       } else if (speed == 1.0) {
           window.call_native("print_notification", "Speed: Realtime", "Time runs in realtime.", "play_arrow");
@@ -425,10 +424,21 @@ function set_date_local(date) {
       time_speed = speed;
   }
 
+function setPaus() {
+    currentSpeed = paus;
+    window.call_native("set_time_speed", 0);
+    document.getElementById("btnPaus").innerHTML = '<i class="material-icons">play_arrow</i>';
+    document.getElementsByClassName("range-label")[0].innerHTML = '<i class="material-icons">pause</i>';
+    play = false;
+    timeline.setOptions(pausOpt);
+    timelineZoomBlocked = false;
+    startRedrawSnipped();
+}
+
 function togglePaus() {
     if(play) {
         lastPlayValue = range.noUiSlider.get();;
-        range.noUiSlider.set(paus);
+        setPaus();
     } else {
         if(lastPlayValue == paus) {
             lastPlayValue = secForw;
@@ -453,24 +463,15 @@ function rangeUpdateCallback() {
         return;
     }
 
-    if(parseInt(currentSpeed) == paus) {
-        window.call_native("set_time_speed", 0);
-        document.getElementById("btnPaus").innerHTML = '<i class="material-icons">play_arrow</i>';
-        document.getElementsByClassName("range-label")[0].innerHTML = '<i class="material-icons">pause</i>';
-        play = false;
-        timeline.setOptions(pausOpt);
-        timelineZoomBlocked = false;
-        startRedrawSnipped();
+    document.getElementById("btnPaus").innerHTML = '<i class="material-icons">pause</i>';
+    timeline.setOptions(playingOpt);
+    timelineZoomBlocked = true;
+    if(parseInt(currentSpeed) < paus) {
+        document.getElementsByClassName("range-label")[0].innerHTML = '<i class="material-icons">chevron_left</i>';
     } else {
-        document.getElementById("btnPaus").innerHTML = '<i class="material-icons">pause</i>';
-        timeline.setOptions(playingOpt);
-        timelineZoomBlocked = true;
-        if(parseInt(currentSpeed) < paus) {
-            document.getElementsByClassName("range-label")[0].innerHTML = '<i class="material-icons">chevron_left</i>';
-        } else {
-            document.getElementsByClassName("range-label")[0].innerHTML = '<i class="material-icons">chevron_right</i>';
-        }
+        document.getElementsByClassName("range-label")[0].innerHTML = '<i class="material-icons">chevron_right</i>';
     }
+
     switch(parseInt(currentSpeed)) {
         case monthBack:
             window.call_native("set_time_speed", -monthInSec);
