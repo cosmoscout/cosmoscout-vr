@@ -171,13 +171,13 @@ i {
 #decreaseControl {
     left: 50%;
     transform: translateX(-50%);
-    top: 77px;
+    top: 75px;
 }
 
 #increaseControl {
     left: 50%;
     transform: translateX(-50%);
-    top: 50px;
+    top: 48px;
     height: 16px;
 }
 
