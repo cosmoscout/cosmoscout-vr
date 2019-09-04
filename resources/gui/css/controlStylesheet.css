@@ -35,9 +35,6 @@
     transform: translateX(150px);
 }
 
-
-
-
 #compass-arrow {
     background-image: url("../img/compass.png");
     width: 25px;
@@ -105,7 +102,7 @@ i {
 #timeControl {
     left: 50%;
     transform: translateX(-50%);
-    background-image:linear-gradient(0deg,rgb(20, 20, 20) 56%, rgba(20, 20, 20, 0.5)  100%);
+    background-color: rgba(20, 20, 20, 0.5);
     top: 65px;
     border-radius: 0 0 50px 50px;
     border-bottom-color: #ddf;
@@ -307,5 +304,8 @@ i {
 }
 
 .noUi-target.noUi-ltr.noUi-horizontal.noUi-background {
-    background-color: #585454;
+    background-color: transparent;
+    background-image:linear-gradient(90deg, #585454 0%, #585454 25%,
+                    rgba(0,0,0,0) 25%, rgba(0,0,0,0) 75%, 
+                    #585454 75%, #585454 100%);
 }
