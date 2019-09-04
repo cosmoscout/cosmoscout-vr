@@ -10,11 +10,11 @@ body{
 
   .vis-timeline {
     border-width: 0px;
-    background-color: rgb(20, 20, 20);
+    background-color: rgba(20, 20, 20, 0.5);
   }
 
   #visualization .vis-timeline {
-    border-width: 2px 0 2px 0;
+    border-width: 0;
     border-color: #ddf;
     overflow: visible !important;
   }
@@ -131,4 +131,8 @@ body{
   #visualization .vis-grid.vis-vertical.vis-major{
     height: 18px !important;
     top: 2px !important;
+  }
+
+  #visualization .vis-panel.vis-center{
+    border-width: 0px;
   }

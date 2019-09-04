@@ -83,7 +83,7 @@ i {
     left: 50%;
     transform: translateX(-50%);
     background-color: rgb(20, 20, 20);
-    top: 63px;
+    top: 65px;
     border-radius: 0 0 50px 50px;
     border-bottom-color: #ddf;
     border-bottom-width: 2px;
@@ -124,6 +124,7 @@ i {
     left: 50%;
     width: 600px;
     transform: translateX(-50%);
+    top: 69px;
 }
 
 #lockControl{
@@ -150,13 +151,13 @@ i {
 #decreaseControl {
     left: 50%;
     transform: translateX(-50%);
-    top: 75px;
+    top: 77px;
 }
 
 #increaseControl {
     left: 50%;
     transform: translateX(-50%);
-    top: 48px;
+    top: 50px;
     height: 16px;
 }
 
@@ -242,13 +243,13 @@ i {
 #speedDecreaseControl {
     left: 50%;
     transform: translate(-350px);
-    top: 62px;
+    top: 64px;
 }
 
 #speedIncreaseControl {
     left: 50%;
     transform: translate(312px);
-    top: 62px;
+    top: 64px;
     height: 15px;
 }
 

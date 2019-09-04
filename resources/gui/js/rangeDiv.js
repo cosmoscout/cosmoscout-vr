@@ -1,6 +1,7 @@
 let minWidth = 70;
-let offset = 8;
+let offset = 5;
 let shorten = 5;
+let borderWidth = 3;
 
 function drawDiv() {
   
@@ -17,9 +18,10 @@ function drawDiv() {
     let height = leftRect.bottom - leftRect.top - shorten;
     let width = rightRect.right - leftRect.left;
 
+    var xValue = 0;
     if(width < minWidth) {
         width = minWidth;
-        var xValue = -(leftRect.left + minWidth - rightRect.right) / 2;
+        xValue = -(leftRect.left + minWidth - rightRect.right) / 2;
         divElement.style.transform = " translate(" + xValue + "px, 0px)";
     } else {
         divElement.style.transform = " translate(0px, 0px)";
@@ -27,6 +29,17 @@ function drawDiv() {
 
     divElement.style.height = height +'px';
     divElement.style.width = width + 'px';
+
+    divElement = document.getElementById("leftSnippet");
+    divElement.style.top = (leftRect.top+offset+height) + 'px';
+    divElement.style.width = (leftRect.right+xValue+borderWidth) + 'px';
+
+    var body = document.getElementsByTagName("body")[0];
+    var bodyRect = body.getBoundingClientRect();
+
+    divElement = document.getElementById("rightSnippet");
+    divElement.style.top = (leftRect.top+offset+height) + 'px';
+    divElement.style.width = (bodyRect.right-rightRect.right+xValue+1) + 'px';
   }
 
 drawDivCallback = drawDiv;

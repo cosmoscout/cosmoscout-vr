@@ -1,10 +1,26 @@
 
 #snippet {
-    background: rgb(20, 20, 20);
+    background: transparent;
     border-style: solid;
     border-width: 3px 3px 0 3px;
     border-top-left-radius:10px;
     border-top-right-radius:10px;
     border-color: #ddf;
     pointer-events: none;
+}
+
+#leftSnippet,
+#rightSnippet {
+    height: 1px;
+    border-bottom: 2px solid #ddf;
+    position: absolute;
+    pointer-events: none;
+}
+
+#leftSnippet {
+    left: 0px;
+}
+
+#rightSnippet {
+    right: 0px;
 }
