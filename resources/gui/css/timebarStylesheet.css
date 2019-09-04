@@ -10,13 +10,13 @@ body{
 
   .vis-timeline {
     border-width: 0px;
-    background-color: rgba(20, 20, 20, 0.5);
   }
 
   #visualization .vis-timeline {
     border-width: 0;
     border-color: #ddf;
     overflow: visible !important;
+    background-image:linear-gradient(0deg,rgba(20, 20, 20, 0.5) 80%, rgba(20, 20, 20, 0.0)  100%);
   }
 
   #visualization .vis-time-axis {
