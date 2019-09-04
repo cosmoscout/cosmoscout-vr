@@ -9,6 +9,7 @@
 
 #include "cs_core_export.hpp"
 
+#include <boost/date_time/posix_time/posix_time.hpp>
 #include <cstdint>
 #include <exception>
 #include <glm/glm.hpp>
@@ -47,6 +48,74 @@ struct adl_serializer<std::optional<T>> {
 
 namespace cs::core {
 
+/// Most of CosmoScout VR's configuration is done with one huge JSON file. This contains some global
+/// options and settings for each plugin. The available global options are defined below, the
+/// per-plugin settings are defined in each and every plugin.
+class CS_CORE_EXPORT Settings {
+ public:
+  struct Anchor {
+    std::string mCenter;
+    std::string mFrame;
+    std::string mStartExistence;
+    std::string mEndExistence;
+  };
+
+  struct Gui {
+    uint32_t mWidthPixel;
+    uint32_t mHeightPixel;
+    double   mWidthMeter;
+    double   mHeightMeter;
+    double   mPosXMeter;
+    double   mPosYMeter;
+    double   mPosZMeter;
+    double   mRotX;
+    double   mRotY;
+    double   mRotZ;
+  };
+
+  struct Observer {
+    std::string mCenter;
+    std::string mFrame;
+    double      mLongitude;
+    double      mLatitude;
+    double      mDistance;
+  };
+
+  /// Defines the initial simulation time.
+  std::string mStartDate;
+
+  /// Defines the initial observer location.
+  Observer mObserver;
+
+  /// The file name of the meta kernel for SPICE.
+  std::string mSpiceKernel;
+
+  /// When the (optional) object is given in the configuration file, the user interface is not drawn
+  /// in full-screen but rather at the given viewspace postion.
+  std::optional<Gui> mGui;
+
+  /// A multiplicator for the size of worldspace gui-elements.
+  float mWidgetScale;
+
+  /// When set to true, a ray is shown emerging from your input device.
+  bool mEnableMouseRay;
+
+  /// In order to reduce duplication of code, a list of all used SPICE-frames ("Anchors") is
+  /// required at the start of each configuration file. The name of each Anchor is then later used
+  /// to reference the respective SPICE frame.
+  std::map<std::string, Anchor> mAnchors;
+
+  /// A map with configuration options for each plugin. The JSON object is not parsed, this is done
+  /// by the plugins themselves.
+  std::map<std::string, nlohmann::json> mPlugins;
+
+  /// Creates an instance of this struct from a given JSON file.
+  static Settings read(std::string const& fileName);
+};
+
+std::pair<double, double> CS_CORE_EXPORT getExistenceFromSettings(
+    std::pair<std::string, Settings::Anchor> const& anchor);
+
 /// An exception that is thrown while parsing the config. Prepends thrown exceptions with a section
 /// name to give the user more detailed information about the root of the error.
 /// The exception can and should be nested.
@@ -62,7 +131,7 @@ class CS_CORE_EXPORT SettingsSectionException : public std::exception {
       : sectionName(std::move(sectionName))
       , message(std::move(message))
       , completeMessage(
-            "Failed to parse settings config in section '" + sectionName + "': " + message) {
+          "Failed to parse settings config in section '" + sectionName + "': " + message) {
   }
 
   [[nodiscard]] const char* what() const noexcept override {
@@ -143,71 +212,6 @@ std::optional<T> CS_CORE_EXPORT parseOptional(
     return std::nullopt;
   }
 }
-
-/// Most of CosmoScout VR's configuration is done with one huge JSON file. This contains some global
-/// options and settings for each plugin. The available global options are defined below, the
-/// per-plugin settings are defined in each and every plugin.
-class CS_CORE_EXPORT Settings {
- public:
-  struct Anchor {
-    std::string mCenter;
-    std::string mFrame;
-    std::string mStartExistence;
-    std::string mEndExistence;
-  };
-
-  struct Gui {
-    uint32_t mWidthPixel;
-    uint32_t mHeightPixel;
-    double   mWidthMeter;
-    double   mHeightMeter;
-    double   mPosXMeter;
-    double   mPosYMeter;
-    double   mPosZMeter;
-    double   mRotX;
-    double   mRotY;
-    double   mRotZ;
-  };
-
-  struct Observer {
-    std::string mCenter;
-    std::string mFrame;
-    double      mLongitude;
-    double      mLatitude;
-    double      mDistance;
-  };
-
-  /// Defines the initial simulation time.
-  std::string mStartDate;
-
-  /// Defines the initial observer location.
-  Observer mObserver;
-
-  /// The file name of the meta kernel for SPICE.
-  std::string mSpiceKernel;
-
-  /// When the (optional) object is given in the configuration file, the user interface is not drawn
-  /// in full-screen but rather at the given viewspace postion.
-  std::optional<Gui> mGui;
-
-  /// A multiplicator for the size of worldspace gui-elements.
-  float mWidgetScale;
-
-  /// When set to true, a ray is shown emerging from your input device.
-  bool mEnableMouseRay;
-
-  /// In order to reduce duplication of code, a list of all used SPICE-frames ("Anchors") is
-  /// required at the start of each configuration file. The name of each Anchor is then later used
-  /// to reference the respective SPICE frame.
-  std::map<std::string, Anchor> mAnchors;
-
-  /// A map with configuration options for each plugin. The JSON object is not parsed, this is done
-  /// by the plugins themselves.
-  std::map<std::string, nlohmann::json> mPlugins;
-
-  /// Creates an instance of this struct from a given JSON file.
-  static Settings read(std::string const& fileName);
-};
 
 } // namespace cs::core
 
