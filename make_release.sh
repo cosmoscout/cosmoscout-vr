@@ -24,7 +24,7 @@ BUILD_DIR="$CURRENT_DIR/build/linux-release"
 # The install directory.
 INSTALL_DIR="$CURRENT_DIR/install/linux-release"
 
-# This directory should be the one used as install directory for make_externals.sh.
+# This directory should be used as the install directory for make_externals.sh.
 EXTERNALS_INSTALL_DIR="$CURRENT_DIR/install/linux-externals"
 
 # The optional parameter --with-ccache enables the ccache support of CMake.
@@ -36,7 +36,7 @@ else
     CCACHE_FLAGS=""
 fi
 
-# create build directory if neccessary -------------------------------------------------------------
+# create the build directory if necessary -------------------------------------------------------------
 
 if [ ! -d "$BUILD_DIR" ]; then
   mkdir -p "$BUILD_DIR"
@@ -51,7 +51,7 @@ cmake -G "Eclipse CDT4 - Unix Makefiles" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" $
 
 cmake --build . --target install --parallel 8
 
-# Delete empty files install by cmake
+# Delete empty files installed by cmake
 find "$INSTALL_DIR" -type d -empty -delete
 
 echo "Finished successfully."
