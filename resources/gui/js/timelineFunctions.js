@@ -287,7 +287,7 @@ function add_item(start, end, id, content, style, description) {
             events[i].setAttribute('data-tooltip', content);
         }
     }
-    $('.tooltipped').tooltip({'enterDelay':500, 'margin':-8});
+    $('[data-toggle="tooltip"]').tooltip({ delay: 500, placement: "top", html: false });
 }
 
 function generalOnClick(properties) {
