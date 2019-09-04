@@ -5,7 +5,7 @@
 # ------------------------------------------------------------------------------------------------ #
 
 cmake_minimum_required(VERSION 3.12)
-project(cosmoscout-vr VERSION 1.0.0)
+project(cosmoscout-vr)
 
 # Use cmake 3.12's <PACKAGE>_ROOT variabled for searching.
 cmake_policy(SET CMP0074 NEW)
@@ -32,7 +32,7 @@ include(GenerateExportHeader)
 set(Boost_REALPATH ON)
 set(Boost_USE_MULTITHREADED ON)
 set(Boost_USE_STATIC_LIBS OFF)
-find_package(Boost REQUIRED COMPONENTS chrono date_time filesystem)
+find_package(Boost REQUIRED COMPONENTS system chrono date_time filesystem)
 find_package(OpenGL REQUIRED)
 
 # You have to provide the directory where the externals got installed to. The scripts make_*.sh and
@@ -157,6 +157,37 @@ endif()
 if (UNIX)
   install(FILES ${Boost_LIBRARIES} DESTINATION "lib")
 endif()
+
+# create version header ----------------------------------------------------------------------------
+
+# get the current git branch name
+execute_process(
+  COMMAND git rev-parse --abbrev-ref HEAD
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+  OUTPUT_VARIABLE GIT_BRANCH
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+
+# get the current commit hash
+execute_process(
+  COMMAND git log -1 --format=%h
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+  OUTPUT_VARIABLE GIT_COMMIT_HASH
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+
+# get the most recent tag
+execute_process(
+  COMMAND git describe --abbrev=0 --tags
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+  OUTPUT_VARIABLE GIT_RECENT_TAG
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+
+configure_file(
+  ${CMAKE_SOURCE_DIR}/src/cs-core/cs-version.hpp.in
+  ${CMAKE_BINARY_DIR}/src/cs-core/cs-version.hpp
+)
 
 # compiler settings --------------------------------------------------------------------------------
 

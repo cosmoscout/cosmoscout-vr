@@ -27,8 +27,8 @@ enum class CS_UTILS_EXPORT DrawOrder : int {
   ePlanets          = 100,
   eOpaqueItems      = 200,
   eStars            = 300,
-  eTransparentItems = 400,
-  eAtmospheres      = 500,
+  eAtmospheres      = 400,
+  eTransparentItems = 500,
   eRay              = 600,
   eGui              = 700
 };

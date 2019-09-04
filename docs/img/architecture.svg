@@ -13,7 +13,7 @@
    height="620"
    id="svg2"
    version="1.1"
-   inkscape:version="0.48.5 r10040"
+   inkscape:version="0.92.4 (5da689c313, 2019-01-14)"
    sodipodi:docname="architecture.svg">
   <defs
      id="defs4" />
@@ -25,14 +25,14 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="1.4142136"
-     inkscape:cx="484.44152"
-     inkscape:cy="358.22811"
+     inkscape:cx="449.08618"
+     inkscape:cy="345.50019"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="true"
      inkscape:window-width="1826"
-     inkscape:window-height="1360"
-     inkscape:window-x="2116"
+     inkscape:window-height="1044"
+     inkscape:window-x="94"
      inkscape:window-y="0"
      inkscape:window-maximized="0"
      borderlayer="true"
@@ -45,12 +45,14 @@
        enabled="true"
        snapvisiblegridlinesonly="true"
        dotted="false"
-       spacingx="10px"
-       spacingy="10px"
+       spacingx="10"
+       spacingy="10"
        color="#808080"
        opacity="0.0745098"
        empcolor="#808080"
-       empopacity="0.14117647" />
+       empopacity="0.14117647"
+       originx="0"
+       originy="0" />
   </sodipodi:namedview>
   <metadata
      id="metadata7">
@@ -60,7 +62,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title />
+        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -70,7 +72,7 @@
      id="layer1"
      transform="translate(0,-432.36218)">
     <rect
-       style="fill:#c5d7ea;fill-opacity:1;stroke:#6b9acb;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
+       style="fill:#c5d7ea;fill-opacity:1;stroke:#6b9acb;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
        id="rect3919"
        width="740"
        height="69.999992"
@@ -86,9 +88,9 @@
        height="70.000015"
        width="740"
        id="rect4272"
-       style="fill:#c5d7ea;fill-opacity:1;stroke:#6b9acb;stroke-width:0.99999994;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0" />
+       style="fill:#c5d7ea;fill-opacity:1;stroke:#6b9acb;stroke-width:0.99999994;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
     <rect
-       style="color:#000000;fill:#c5d7ea;fill-opacity:1;fill-rule:nonzero;stroke:#6b9acb;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+       style="color:#000000;display:inline;overflow:visible;visibility:visible;fill:#c5d7ea;fill-opacity:1;fill-rule:nonzero;stroke:#6b9acb;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker:none;enable-background:accumulate"
        id="rect4210"
        width="239.99997"
        height="70.000023"
@@ -104,9 +106,9 @@
        height="70.000015"
        width="239.99997"
        id="rect4208"
-       style="color:#000000;fill:#c5d7ea;fill-opacity:1;fill-rule:nonzero;stroke:#6b9acb;stroke-width:0.99999994;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate" />
+       style="color:#000000;display:inline;overflow:visible;visibility:visible;fill:#c5d7ea;fill-opacity:1;fill-rule:nonzero;stroke:#6b9acb;stroke-width:0.99999994;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker:none;enable-background:accumulate" />
     <rect
-       style="color:#000000;fill:#c5d7ea;fill-opacity:1;fill-rule:nonzero;stroke:#6b9acb;stroke-width:0.99999994;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+       style="color:#000000;display:inline;overflow:visible;visibility:visible;fill:#c5d7ea;fill-opacity:1;fill-rule:nonzero;stroke:#6b9acb;stroke-width:0.99999994;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker:none;enable-background:accumulate"
        id="rect2985"
        width="239.99998"
        height="70.000015"
@@ -116,37 +118,38 @@
        rx="4.5961943" />
     <path
        style="fill:none;stroke:#e3e4eb;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:0.99607843"
-       d="m 0,952.36218 880.00003,0"
+       d="M 0,952.36218 H 880.00003"
        id="path4631"
        inkscape:connector-curvature="0"
        sodipodi:nodetypes="cc" />
     <text
        xml:space="preserve"
-       style="font-size:18px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-indent:0;text-align:start;text-decoration:none;line-height:125%;letter-spacing:0px;word-spacing:0px;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:start;baseline-shift:baseline;color:#000000;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:Sans;-inkscape-font-specification:Sans"
+       style="color:#000000;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:0%;font-family:'-apple-system', BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';-inkscape-font-specification:'-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol';text-indent:0;text-align:start;text-decoration:none;text-decoration-line:none;letter-spacing:0px;word-spacing:0px;text-transform:none;writing-mode:lr-tb;direction:ltr;baseline-shift:baseline;text-anchor:start;display:inline;overflow:visible;visibility:visible;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;marker:none;enable-background:accumulate;"
        x="100"
        y="902.36218"
-       id="text3897"
-       sodipodi:linespacing="125%"><tspan
+       id="text3897"><tspan
          sodipodi:role="line"
          id="tspan3899"
          x="100"
-         y="902.36218">cs-utils</tspan></text>
+         y="902.36218"
+         style="font-size:18px;line-height:1.25;font-family:'-apple-system', BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';-inkscape-font-specification:'-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol';font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;">cs-utils</tspan></text>
     <text
        xml:space="preserve"
-       style="font-size:16px;font-style:normal;font-weight:normal;text-align:center;line-height:125%;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#6b9acb;fill-opacity:1;stroke:none;font-family:Sans"
+       style="font-style:normal;font-weight:normal;line-height:0%;font-family:'-apple-system', BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#6b9acb;fill-opacity:1;stroke:none;-inkscape-font-specification:'-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol';font-stretch:normal;font-variant:normal;"
        x="-828.01904"
        y="40"
        id="text3921"
-       sodipodi:linespacing="125%"
-       transform="matrix(0,-1,1,0,0,0)"><tspan
+       transform="rotate(-90)"><tspan
          sodipodi:role="line"
          id="tspan3923"
          x="-828.01904"
-         y="40">Core</tspan><tspan
+         y="40"
+         style="font-size:16px;line-height:1.25;font-family:'-apple-system', BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';-inkscape-font-specification:'-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol';font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;">Core</tspan><tspan
          sodipodi:role="line"
          x="-828.01904"
          y="60"
-         id="tspan4149">Libraries</tspan></text>
+         id="tspan4149"
+         style="font-size:16px;line-height:1.25;font-family:'-apple-system', BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';-inkscape-font-specification:'-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol';font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;">Libraries</tspan></text>
     <rect
        rx="4.5961947"
        ry="4.5961943"
@@ -155,18 +158,18 @@
        height="80.000015"
        width="270"
        id="rect3925"
-       style="color:#000000;fill:#c1b3d1;fill-opacity:1;fill-rule:nonzero;stroke:#766190;stroke-width:0.99999976;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate" />
+       style="color:#000000;display:inline;overflow:visible;visibility:visible;fill:#c1b3d1;fill-opacity:1;fill-rule:nonzero;stroke:#766190;stroke-width:0.99999976;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker:none;enable-background:accumulate" />
     <text
-       sodipodi:linespacing="125%"
        id="text3927"
        y="992.36218"
        x="100"
-       style="font-size:18px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-indent:0;text-align:start;text-decoration:none;line-height:125%;letter-spacing:0px;word-spacing:0px;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:start;baseline-shift:baseline;color:#000000;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:Sans;-inkscape-font-specification:Sans"
+       style="color:#000000;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:0%;font-family:'-apple-system', BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';-inkscape-font-specification:'-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol';text-indent:0;text-align:start;text-decoration:none;text-decoration-line:none;letter-spacing:0px;word-spacing:0px;text-transform:none;writing-mode:lr-tb;direction:ltr;baseline-shift:baseline;text-anchor:start;display:inline;overflow:visible;visibility:visible;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1;marker:none;enable-background:accumulate;"
        xml:space="preserve"><tspan
          y="992.36218"
          x="100"
          id="tspan3929"
-         sodipodi:role="line">ViSTA</tspan></text>
+         sodipodi:role="line"
+         style="font-size:18px;line-height:1.25;font-family:'-apple-system', BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';-inkscape-font-specification:'-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol';font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;">ViSTA</tspan></text>
     <rect
        rx="4.5961947"
        ry="4.5961947"
@@ -175,23 +178,23 @@
        height="50.000008"
        width="170"
        id="rect3954"
-       style="color:#000000;fill:#cddcab;fill-opacity:1;fill-rule:nonzero;stroke:#89a24c;stroke-width:0.99999994;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
-       transform="matrix(0,-1,1,0,0,0)" />
+       style="color:#000000;display:inline;overflow:visible;visibility:visible;fill:#cddcab;fill-opacity:1;fill-rule:nonzero;stroke:#89a24c;stroke-width:0.99999994;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker:none;enable-background:accumulate"
+       transform="rotate(-90)" />
     <text
-       sodipodi:linespacing="125%"
        id="text3956"
        y="740"
        x="-672.36218"
-       style="font-size:18px;font-style:normal;font-weight:normal;text-align:start;line-height:125%;letter-spacing:0px;word-spacing:0px;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans"
+       style="font-style:normal;font-weight:normal;line-height:0%;font-family:'-apple-system', BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';-inkscape-font-specification:'-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol';text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-stretch:normal;font-variant:normal;"
        xml:space="preserve"
-       transform="matrix(0,-1,1,0,0,0)"><tspan
+       transform="rotate(-90)"><tspan
          y="740"
          x="-672.36218"
          id="tspan3958"
-         sodipodi:role="line">csp-trajectories</tspan></text>
+         sodipodi:role="line"
+         style="font-size:18px;line-height:1.25;font-family:'-apple-system', BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';-inkscape-font-specification:'-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol';font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;">csp-trajectories</tspan></text>
     <rect
-       transform="matrix(0,-1,1,0,0,0)"
-       style="color:#000000;fill:#fdda8d;fill-opacity:1;fill-rule:nonzero;stroke:#f8a226;stroke-width:0.99999982;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+       transform="rotate(-90)"
+       style="color:#000000;display:inline;overflow:visible;visibility:visible;fill:#fdda8d;fill-opacity:1;fill-rule:nonzero;stroke:#f8a226;stroke-width:0.99999982;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker:none;enable-background:accumulate"
        id="rect4122"
        width="210"
        height="70"
@@ -200,56 +203,57 @@
        ry="4.5961947"
        rx="4.5961947" />
     <text
-       transform="matrix(0,-1,1,0,0,0)"
+       transform="rotate(-90)"
        xml:space="preserve"
-       style="font-size:18px;font-style:normal;font-weight:normal;text-align:start;line-height:125%;letter-spacing:0px;word-spacing:0px;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans"
+       style="font-style:normal;font-weight:normal;line-height:0%;font-family:'-apple-system', BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';-inkscape-font-specification:'-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol';text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-stretch:normal;font-variant:normal;"
        x="-672.36218"
        y="110"
-       id="text4124"
-       sodipodi:linespacing="125%"><tspan
+       id="text4124"><tspan
          sodipodi:role="line"
          id="tspan4126"
          x="-672.36218"
-         y="110">cosmoscout.exe</tspan></text>
+         y="110"
+         style="font-size:18px;line-height:1.25;font-family:'-apple-system', BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';-inkscape-font-specification:'-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol';font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;">cosmoscout.exe</tspan></text>
     <path
        sodipodi:nodetypes="cc"
        inkscape:connector-curvature="0"
        id="path4139"
-       d="m 0,702.36218 880.05817,0"
+       d="M 0,702.36218 H 880.05817"
        style="fill:none;stroke:#e3e4eb;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:0.99607843" />
     <path
        style="fill:none;stroke:#e3e4eb;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:0.99607843"
-       d="m 180,432.36218 0,260.00001"
+       d="M 180,432.36218 V 692.36219"
        id="path4141"
        inkscape:connector-curvature="0"
        sodipodi:nodetypes="cc" />
     <text
        xml:space="preserve"
-       style="font-size:16px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-indent:0;text-align:center;text-decoration:none;line-height:125%;letter-spacing:0px;word-spacing:0px;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:middle;baseline-shift:baseline;color:#000000;fill:#766190;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:Sans;-inkscape-font-specification:Sans"
+       style="color:#000000;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:0%;font-family:'-apple-system', BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';-inkscape-font-specification:'-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol';text-indent:0;text-align:center;text-decoration:none;text-decoration-line:none;letter-spacing:0px;word-spacing:0px;text-transform:none;writing-mode:lr-tb;direction:ltr;baseline-shift:baseline;text-anchor:middle;display:inline;overflow:visible;visibility:visible;fill:#766190;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1;marker:none;enable-background:accumulate;"
        x="-1002.3622"
        y="40"
        id="text4143"
-       sodipodi:linespacing="125%"
-       transform="matrix(0,-1,1,0,0,0)"><tspan
+       transform="rotate(-90)"><tspan
          sodipodi:role="line"
          id="tspan4145"
          x="-1002.3622"
-         y="40">External</tspan><tspan
+         y="40"
+         style="font-size:16px;line-height:1.25;font-family:'-apple-system', BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';-inkscape-font-specification:'-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol';font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;">External</tspan><tspan
          sodipodi:role="line"
          x="-1002.3622"
          y="60"
-         id="tspan4147">Libraries</tspan></text>
+         id="tspan4147"
+         style="font-size:16px;line-height:1.25;font-family:'-apple-system', BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';-inkscape-font-specification:'-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol';font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;">Libraries</tspan></text>
     <text
-       sodipodi:linespacing="125%"
        id="text4157"
        y="742.36218"
        x="100"
-       style="font-size:18px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-indent:0;text-align:start;text-decoration:none;line-height:125%;letter-spacing:0px;word-spacing:0px;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:start;baseline-shift:baseline;color:#000000;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:Sans;-inkscape-font-specification:Sans"
+       style="color:#000000;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:0%;font-family:'-apple-system', BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';-inkscape-font-specification:'-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol';text-indent:0;text-align:start;text-decoration:none;text-decoration-line:none;letter-spacing:0px;word-spacing:0px;text-transform:none;writing-mode:lr-tb;direction:ltr;baseline-shift:baseline;text-anchor:start;display:inline;overflow:visible;visibility:visible;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;marker:none;enable-background:accumulate;"
        xml:space="preserve"><tspan
          y="742.36218"
          x="100"
          id="tspan4159"
-         sodipodi:role="line">cs-core</tspan></text>
+         sodipodi:role="line"
+         style="font-size:18px;line-height:1.25;font-family:'-apple-system', BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';-inkscape-font-specification:'-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol';font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;">cs-core</tspan></text>
     <rect
        rx="4.5961947"
        ry="4.5961943"
@@ -258,7 +262,7 @@
        height="80.000015"
        width="270"
        id="rect3925-8"
-       style="color:#000000;fill:#c1b3d1;fill-opacity:1;fill-rule:nonzero;stroke:#766190;stroke-width:0.99999976;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate" />
+       style="color:#000000;display:inline;overflow:visible;visibility:visible;fill:#c1b3d1;fill-opacity:1;fill-rule:nonzero;stroke:#766190;stroke-width:0.99999976;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker:none;enable-background:accumulate" />
     <rect
        rx="4.5961947"
        ry="4.5961943"
@@ -267,92 +271,93 @@
        height="80.000015"
        width="180"
        id="rect3925-8-7"
-       style="color:#000000;fill:#c1b3d1;fill-opacity:1;fill-rule:nonzero;stroke:#766190;stroke-width:0.99999976;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate" />
+       style="color:#000000;display:inline;overflow:visible;visibility:visible;fill:#c1b3d1;fill-opacity:1;fill-rule:nonzero;stroke:#766190;stroke-width:0.99999976;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker:none;enable-background:accumulate" />
     <text
-       sodipodi:linespacing="125%"
        id="text4274"
        y="822.36218"
        x="100"
-       style="font-size:18px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-indent:0;text-align:start;text-decoration:none;line-height:125%;letter-spacing:0px;word-spacing:0px;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:start;baseline-shift:baseline;color:#000000;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:Sans;-inkscape-font-specification:Sans"
+       style="color:#000000;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:0%;font-family:'-apple-system', BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';-inkscape-font-specification:'-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol';text-indent:0;text-align:start;text-decoration:none;text-decoration-line:none;letter-spacing:0px;word-spacing:0px;text-transform:none;writing-mode:lr-tb;direction:ltr;baseline-shift:baseline;text-anchor:start;display:inline;overflow:visible;visibility:visible;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;marker:none;enable-background:accumulate;"
        xml:space="preserve"><tspan
          y="822.36218"
          x="100"
          id="tspan4276"
-         sodipodi:role="line">cs-graphics</tspan></text>
+         sodipodi:role="line"
+         style="font-size:18px;line-height:1.25;font-family:'-apple-system', BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';-inkscape-font-specification:'-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol';font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;">cs-graphics</tspan></text>
     <text
-       sodipodi:linespacing="125%"
        id="text4278"
        y="992.36218"
        x="380"
-       style="font-size:18px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-indent:0;text-align:start;text-decoration:none;line-height:125%;letter-spacing:0px;word-spacing:0px;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:start;baseline-shift:baseline;color:#000000;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:Sans;-inkscape-font-specification:Sans"
+       style="color:#000000;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:0%;font-family:'-apple-system', BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';-inkscape-font-specification:'-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol';text-indent:0;text-align:start;text-decoration:none;text-decoration-line:none;letter-spacing:0px;word-spacing:0px;text-transform:none;writing-mode:lr-tb;direction:ltr;baseline-shift:baseline;text-anchor:start;display:inline;overflow:visible;visibility:visible;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;marker:none;enable-background:accumulate;"
        xml:space="preserve"><tspan
          y="992.36218"
          x="380"
          id="tspan4280"
-         sodipodi:role="line">SPICE</tspan></text>
+         sodipodi:role="line"
+         style="font-size:18px;line-height:1.25;font-family:'-apple-system', BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';-inkscape-font-specification:'-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol';font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;">SPICE</tspan></text>
     <text
        xml:space="preserve"
-       style="font-size:18px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-indent:0;text-align:start;text-decoration:none;line-height:125%;letter-spacing:0px;word-spacing:0px;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:start;baseline-shift:baseline;color:#000000;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:Sans;-inkscape-font-specification:Sans"
+       style="color:#000000;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:0%;font-family:'-apple-system', BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';-inkscape-font-specification:'-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol';text-indent:0;text-align:start;text-decoration:none;text-decoration-line:none;letter-spacing:0px;word-spacing:0px;text-transform:none;writing-mode:lr-tb;direction:ltr;baseline-shift:baseline;text-anchor:start;display:inline;overflow:visible;visibility:visible;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;marker:none;enable-background:accumulate;"
        x="660"
        y="992.36218"
-       id="text4282"
-       sodipodi:linespacing="125%"><tspan
+       id="text4282"><tspan
          sodipodi:role="line"
          id="tspan4284"
          x="660"
-         y="992.36218">...</tspan></text>
+         y="992.36218"
+         style="font-size:18px;line-height:1.25;font-family:'-apple-system', BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';-inkscape-font-specification:'-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol';font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;">...</tspan></text>
     <text
-       sodipodi:linespacing="125%"
        id="text4286"
        y="822.36218"
        x="350"
-       style="font-size:18px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-indent:0;text-align:start;text-decoration:none;line-height:125%;letter-spacing:0px;word-spacing:0px;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:start;baseline-shift:baseline;color:#000000;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:Sans;-inkscape-font-specification:Sans"
+       style="color:#000000;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:0%;font-family:'-apple-system', BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';-inkscape-font-specification:'-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol';text-indent:0;text-align:start;text-decoration:none;text-decoration-line:none;letter-spacing:0px;word-spacing:0px;text-transform:none;writing-mode:lr-tb;direction:ltr;baseline-shift:baseline;text-anchor:start;display:inline;overflow:visible;visibility:visible;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;marker:none;enable-background:accumulate;"
        xml:space="preserve"><tspan
          y="822.36218"
          x="350"
          id="tspan4288"
-         sodipodi:role="line">cs-gui</tspan></text>
+         sodipodi:role="line"
+         style="font-size:18px;line-height:1.25;font-family:'-apple-system', BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';-inkscape-font-specification:'-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol';font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;">cs-gui</tspan></text>
     <text
        xml:space="preserve"
-       style="font-size:18px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-indent:0;text-align:start;text-decoration:none;line-height:125%;letter-spacing:0px;word-spacing:0px;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:start;baseline-shift:baseline;color:#000000;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:Sans;-inkscape-font-specification:Sans"
+       style="color:#000000;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:0%;font-family:'-apple-system', BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';-inkscape-font-specification:'-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol';text-indent:0;text-align:start;text-decoration:none;text-decoration-line:none;letter-spacing:0px;word-spacing:0px;text-transform:none;writing-mode:lr-tb;direction:ltr;baseline-shift:baseline;text-anchor:start;display:inline;overflow:visible;visibility:visible;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;marker:none;enable-background:accumulate;"
        x="600"
        y="822.36218"
-       id="text4290"
-       sodipodi:linespacing="125%"><tspan
+       id="text4290"><tspan
          sodipodi:role="line"
          id="tspan4292"
          x="600"
-         y="822.36218">cs-scene</tspan></text>
+         y="822.36218"
+         style="font-size:18px;line-height:1.25;font-family:'-apple-system', BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';-inkscape-font-specification:'-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol';font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;">cs-scene</tspan></text>
     <text
        xml:space="preserve"
-       style="font-size:14px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-indent:0;text-align:start;text-decoration:none;line-height:125%;letter-spacing:0px;word-spacing:0px;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:start;baseline-shift:baseline;color:#000000;fill:#000000;fill-opacity:0.56826567;fill-rule:nonzero;stroke:none;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:Sans;-inkscape-font-specification:Sans"
+       style="color:#000000;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:0%;font-family:'-apple-system', BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';-inkscape-font-specification:'-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol';text-indent:0;text-align:start;text-decoration:none;text-decoration-line:none;letter-spacing:0px;word-spacing:0px;text-transform:none;writing-mode:lr-tb;direction:ltr;baseline-shift:baseline;text-anchor:start;display:inline;overflow:visible;visibility:visible;fill:#000000;fill-opacity:0.56826567;fill-rule:nonzero;stroke:none;marker:none;enable-background:accumulate;"
        x="100"
        y="762.36218"
-       id="text4294"
-       sodipodi:linespacing="125%"><tspan
+       id="text4294"><tspan
          sodipodi:role="line"
          id="tspan4296"
          x="100"
-         y="762.36218">application logic: time control, UI management, input handling, plugin loading</tspan></text>
+         y="762.36218"
+         style="font-size:14px;line-height:1.25;font-family:'-apple-system', BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';-inkscape-font-specification:'-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol';font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;">application logic: time control, UI management, input handling, plugin loading</tspan></text>
     <text
-       transform="matrix(0,-1,1,0,0,0)"
-       sodipodi:linespacing="125%"
+       transform="rotate(-90)"
        id="text4298"
        y="40"
        x="-592.36218"
-       style="font-size:16px;font-style:normal;font-weight:normal;text-align:center;line-height:125%;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#f8a226;fill-opacity:1;stroke:none;font-family:Sans"
+       style="font-style:normal;font-weight:normal;line-height:0%;font-family:'-apple-system', BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#f8a226;fill-opacity:1;stroke:none;-inkscape-font-specification:'-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol';font-stretch:normal;font-variant:normal;"
        xml:space="preserve"><tspan
          id="tspan4302"
          y="40"
          x="-592.36218"
-         sodipodi:role="line">Main</tspan><tspan
+         sodipodi:role="line"
+         style="font-size:16px;line-height:1.25;font-family:'-apple-system', BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';-inkscape-font-specification:'-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol';font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;">Main</tspan><tspan
          y="60"
          x="-592.36218"
          sodipodi:role="line"
-         id="tspan4306">Executable</tspan></text>
+         id="tspan4306"
+         style="font-size:16px;line-height:1.25;font-family:'-apple-system', BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';-inkscape-font-specification:'-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol';font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;">Executable</tspan></text>
     <rect
-       transform="matrix(0,-1,1,0,0,0)"
-       style="color:#000000;fill:#cddcab;fill-opacity:1;fill-rule:nonzero;stroke:#89a24c;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+       transform="rotate(-90)"
+       style="color:#000000;display:inline;overflow:visible;visibility:visible;fill:#cddcab;fill-opacity:1;fill-rule:nonzero;stroke:#89a24c;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker:none;enable-background:accumulate"
        id="rect4308"
        width="120.00008"
        height="50.000008"
@@ -361,17 +366,17 @@
        ry="4.5961947"
        rx="4.5961952" />
     <text
-       transform="matrix(0,-1,1,0,0,0)"
+       transform="rotate(-90)"
        xml:space="preserve"
-       style="font-size:18px;font-style:normal;font-weight:normal;text-align:start;line-height:125%;letter-spacing:0px;word-spacing:0px;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans"
+       style="font-style:normal;font-weight:normal;line-height:0%;font-family:'-apple-system', BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';-inkscape-font-specification:'-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol';text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-stretch:normal;font-variant:normal;"
        x="-672.36218"
        y="680"
-       id="text4310"
-       sodipodi:linespacing="125%"><tspan
+       id="text4310"><tspan
          sodipodi:role="line"
          id="tspan4312"
          x="-672.36218"
-         y="680">csp-stars</tspan></text>
+         y="680"
+         style="font-size:18px;line-height:1.25;font-family:'-apple-system', BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';-inkscape-font-specification:'-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol';font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;">csp-stars</tspan></text>
     <rect
        rx="4.5961947"
        ry="4.5961947"
@@ -380,23 +385,23 @@
        height="50.000008"
        width="190"
        id="rect4314"
-       style="color:#000000;fill:#cddcab;fill-opacity:1;fill-rule:nonzero;stroke:#89a24c;stroke-width:0.99999988;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
-       transform="matrix(0,-1,1,0,0,0)" />
+       style="color:#000000;display:inline;overflow:visible;visibility:visible;fill:#cddcab;fill-opacity:1;fill-rule:nonzero;stroke:#89a24c;stroke-width:0.99999988;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker:none;enable-background:accumulate"
+       transform="rotate(-90)" />
     <text
-       sodipodi:linespacing="125%"
        id="text4316"
        y="620"
        x="-672.36218"
-       style="font-size:18px;font-style:normal;font-weight:normal;text-align:start;line-height:125%;letter-spacing:0px;word-spacing:0px;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans"
+       style="font-style:normal;font-weight:normal;line-height:0%;font-family:'-apple-system', BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';-inkscape-font-specification:'-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol';text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-stretch:normal;font-variant:normal;"
        xml:space="preserve"
-       transform="matrix(0,-1,1,0,0,0)"><tspan
+       transform="rotate(-90)"><tspan
          y="620"
          x="-672.36218"
          id="tspan4318"
-         sodipodi:role="line">csp-simple-bodies</tspan></text>
+         sodipodi:role="line"
+         style="font-size:18px;line-height:1.25;font-family:'-apple-system', BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';-inkscape-font-specification:'-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol';font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;">csp-simple-bodies</tspan></text>
     <rect
-       transform="matrix(0,-1,1,0,0,0)"
-       style="color:#000000;fill:#cddcab;fill-opacity:1;fill-rule:nonzero;stroke:#89a24c;stroke-width:0.99999994;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+       transform="rotate(-90)"
+       style="color:#000000;display:inline;overflow:visible;visibility:visible;fill:#cddcab;fill-opacity:1;fill-rule:nonzero;stroke:#89a24c;stroke-width:0.99999994;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker:none;enable-background:accumulate"
        id="rect4320"
        width="60.000004"
        height="50.000008"
@@ -405,121 +410,124 @@
        ry="4.5961947"
        rx="4.5961947" />
     <text
-       transform="matrix(0,-1,1,0,0,0)"
+       transform="rotate(-90)"
        xml:space="preserve"
-       style="font-size:20px;font-style:normal;font-weight:normal;text-align:start;line-height:125%;letter-spacing:0px;word-spacing:0px;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans"
+       style="font-style:normal;font-weight:normal;line-height:0%;font-family:'-apple-system', BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';-inkscape-font-specification:'-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol';text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-stretch:normal;font-variant:normal;"
        x="-672.36218"
        y="800"
-       id="text4322"
-       sodipodi:linespacing="125%"><tspan
+       id="text4322"><tspan
          sodipodi:role="line"
          id="tspan4324"
          x="-672.36218"
-         y="800">...</tspan></text>
+         y="800"
+         style="font-size:20px;line-height:1.25;font-family:'-apple-system', BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';-inkscape-font-specification:'-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol';font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;">...</tspan></text>
     <text
-       sodipodi:linespacing="125%"
        id="text4326"
        y="130"
        x="-672.36218"
-       style="font-size:14px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-indent:0;text-align:start;text-decoration:none;line-height:125%;letter-spacing:0px;word-spacing:0px;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:start;baseline-shift:baseline;color:#000000;fill:#000000;fill-opacity:0.56826567;fill-rule:nonzero;stroke:none;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:Sans;-inkscape-font-specification:Sans"
+       style="color:#000000;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:0%;font-family:'-apple-system', BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';-inkscape-font-specification:'-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol';text-indent:0;text-align:start;text-decoration:none;text-decoration-line:none;letter-spacing:0px;word-spacing:0px;text-transform:none;writing-mode:lr-tb;direction:ltr;baseline-shift:baseline;text-anchor:start;display:inline;overflow:visible;visibility:visible;fill:#000000;fill-opacity:0.56826567;fill-rule:nonzero;stroke:none;marker:none;enable-background:accumulate;"
        xml:space="preserve"
-       transform="matrix(0,-1,1,0,0,0)"><tspan
+       transform="rotate(-90)"><tspan
          y="130"
          x="-672.36218"
          id="tspan4328"
-         sodipodi:role="line">this you want to execute</tspan></text>
+         sodipodi:role="line"
+         style="font-size:14px;line-height:1.25;font-family:'-apple-system', BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';-inkscape-font-specification:'-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol';font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;">this you want to execute</tspan></text>
     <text
-       sodipodi:linespacing="125%"
        id="text4330"
        y="842.36218"
        x="100"
-       style="font-size:14px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-indent:0;text-align:start;text-decoration:none;line-height:125%;letter-spacing:0px;word-spacing:0px;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:start;baseline-shift:baseline;color:#000000;fill:#000000;fill-opacity:0.56826567;fill-rule:nonzero;stroke:none;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:Sans;-inkscape-font-specification:Sans"
+       style="color:#000000;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:0%;font-family:'-apple-system', BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';-inkscape-font-specification:'-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol';text-indent:0;text-align:start;text-decoration:none;text-decoration-line:none;letter-spacing:0px;word-spacing:0px;text-transform:none;writing-mode:lr-tb;direction:ltr;baseline-shift:baseline;text-anchor:start;display:inline;overflow:visible;visibility:visible;fill:#000000;fill-opacity:0.56826567;fill-rule:nonzero;stroke:none;marker:none;enable-background:accumulate;"
        xml:space="preserve"><tspan
          y="842.36218"
          x="100"
          id="tspan4332"
-         sodipodi:role="line">GLTF, texture loading</tspan></text>
+         sodipodi:role="line"
+         style="font-size:14px;line-height:1.25;font-family:'-apple-system', BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';-inkscape-font-specification:'-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol';font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;">GLTF, texture loading</tspan></text>
     <text
        xml:space="preserve"
-       style="font-size:14px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-indent:0;text-align:start;text-decoration:none;line-height:125%;letter-spacing:0px;word-spacing:0px;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:start;baseline-shift:baseline;color:#000000;fill:#000000;fill-opacity:0.56826567;fill-rule:nonzero;stroke:none;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:Sans;-inkscape-font-specification:Sans"
+       style="color:#000000;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:0%;font-family:'-apple-system', BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';-inkscape-font-specification:'-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol';text-indent:0;text-align:start;text-decoration:none;text-decoration-line:none;letter-spacing:0px;word-spacing:0px;text-transform:none;writing-mode:lr-tb;direction:ltr;baseline-shift:baseline;text-anchor:start;display:inline;overflow:visible;visibility:visible;fill:#000000;fill-opacity:0.56826567;fill-rule:nonzero;stroke:none;marker:none;enable-background:accumulate;"
        x="100"
        y="922.36218"
-       id="text4334"
-       sodipodi:linespacing="125%"><tspan
+       id="text4334"><tspan
          sodipodi:role="line"
          id="tspan4336"
          x="100"
-         y="922.36218">unit conversions, command line parsing, signal-slot pattern, ...</tspan></text>
+         y="922.36218"
+         style="font-size:14px;line-height:1.25;font-family:'-apple-system', BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';-inkscape-font-specification:'-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol';font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;">unit conversions, command line parsing, signal-slot pattern, ...</tspan></text>
     <text
        xml:space="preserve"
-       style="font-size:14px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-indent:0;text-align:start;text-decoration:none;line-height:125%;letter-spacing:0px;word-spacing:0px;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:start;baseline-shift:baseline;color:#000000;fill:#000000;fill-opacity:0.56826567;fill-rule:nonzero;stroke:none;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:Sans;-inkscape-font-specification:Sans"
+       style="color:#000000;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:0%;font-family:'-apple-system', BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';-inkscape-font-specification:'-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol';text-indent:0;text-align:start;text-decoration:none;text-decoration-line:none;letter-spacing:0px;word-spacing:0px;text-transform:none;writing-mode:lr-tb;direction:ltr;baseline-shift:baseline;text-anchor:start;display:inline;overflow:visible;visibility:visible;fill:#000000;fill-opacity:0.56826567;fill-rule:nonzero;stroke:none;marker:none;enable-background:accumulate;"
        x="350"
        y="842.36218"
-       id="text4338"
-       sodipodi:linespacing="125%"><tspan
+       id="text4338"><tspan
          sodipodi:role="line"
          id="tspan4340"
          x="350"
-         y="842.36218">CEF-wrapping</tspan></text>
+         y="842.36218"
+         style="font-size:14px;line-height:1.25;font-family:'-apple-system', BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';-inkscape-font-specification:'-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol';font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;">CEF-wrapping</tspan></text>
     <text
-       sodipodi:linespacing="125%"
        id="text4342"
        y="842.36218"
        x="600"
-       style="font-size:14px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-indent:0;text-align:start;text-decoration:none;line-height:125%;letter-spacing:0px;word-spacing:0px;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:start;baseline-shift:baseline;color:#000000;fill:#000000;fill-opacity:0.56826567;fill-rule:nonzero;stroke:none;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:Sans;-inkscape-font-specification:Sans"
+       style="color:#000000;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:0%;font-family:'-apple-system', BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';-inkscape-font-specification:'-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol';text-indent:0;text-align:start;text-decoration:none;text-decoration-line:none;letter-spacing:0px;word-spacing:0px;text-transform:none;writing-mode:lr-tb;direction:ltr;baseline-shift:baseline;text-anchor:start;display:inline;overflow:visible;visibility:visible;fill:#000000;fill-opacity:0.56826567;fill-rule:nonzero;stroke:none;marker:none;enable-background:accumulate;"
        xml:space="preserve"><tspan
          y="842.36218"
          x="600"
          id="tspan4344"
-         sodipodi:role="line">scene graph based on SPICE</tspan></text>
+         sodipodi:role="line"
+         style="font-size:14px;line-height:1.25;font-family:'-apple-system', BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';-inkscape-font-specification:'-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol';font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;">scene graph based on SPICE</tspan></text>
     <text
-       sodipodi:linespacing="125%"
        id="text4346"
        y="1012.3622"
        x="100"
-       style="font-size:14px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-indent:0;text-align:start;text-decoration:none;line-height:125%;letter-spacing:0px;word-spacing:0px;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:start;baseline-shift:baseline;color:#000000;fill:#000000;fill-opacity:0.56826567;fill-rule:nonzero;stroke:none;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:Sans;-inkscape-font-specification:Sans"
+       style="color:#000000;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:0%;font-family:'-apple-system', BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';-inkscape-font-specification:'-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol';text-indent:0;text-align:start;text-decoration:none;text-decoration-line:none;letter-spacing:0px;word-spacing:0px;text-transform:none;writing-mode:lr-tb;direction:ltr;baseline-shift:baseline;text-anchor:start;display:inline;overflow:visible;visibility:visible;fill:#000000;fill-opacity:0.56826567;fill-rule:nonzero;stroke:none;marker:none;enable-background:accumulate;"
        xml:space="preserve"><tspan
          y="1012.3622"
          x="100"
          id="tspan4348"
-         sodipodi:role="line">scene graph, device support,</tspan><tspan
+         sodipodi:role="line"
+         style="font-size:14px;line-height:1.25;font-family:'-apple-system', BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';-inkscape-font-specification:'-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol';font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;">scene graph, device support,</tspan><tspan
          y="1029.8622"
          x="100"
          sodipodi:role="line"
-         id="tspan4402">network synchronization</tspan></text>
+         id="tspan4402"
+         style="font-size:14px;line-height:1.25;font-family:'-apple-system', BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';-inkscape-font-specification:'-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol';font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;">network synchronization</tspan></text>
     <text
-       sodipodi:linespacing="125%"
        id="text4350"
        y="1012.3622"
        x="380"
-       style="font-size:14px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-indent:0;text-align:start;text-decoration:none;line-height:125%;letter-spacing:0px;word-spacing:0px;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:start;baseline-shift:baseline;color:#000000;fill:#000000;fill-opacity:0.56826567;fill-rule:nonzero;stroke:none;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:Sans;-inkscape-font-specification:Sans"
+       style="color:#000000;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:0%;font-family:'-apple-system', BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';-inkscape-font-specification:'-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol';text-indent:0;text-align:start;text-decoration:none;text-decoration-line:none;letter-spacing:0px;word-spacing:0px;text-transform:none;writing-mode:lr-tb;direction:ltr;baseline-shift:baseline;text-anchor:start;display:inline;overflow:visible;visibility:visible;fill:#000000;fill-opacity:0.56826567;fill-rule:nonzero;stroke:none;marker:none;enable-background:accumulate;"
        xml:space="preserve"><tspan
          y="1012.3622"
          x="380"
          id="tspan4352"
-         sodipodi:role="line">time-dependent positioning of</tspan><tspan
+         sodipodi:role="line"
+         style="font-size:14px;line-height:1.25;font-family:'-apple-system', BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';-inkscape-font-specification:'-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol';font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;">time-dependent positioning of</tspan><tspan
          y="1029.8622"
          x="380"
          sodipodi:role="line"
-         id="tspan4404">celestial object in space</tspan></text>
+         id="tspan4404"
+         style="font-size:14px;line-height:1.25;font-family:'-apple-system', BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';-inkscape-font-specification:'-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol';font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;">celestial object in space</tspan></text>
     <text
        xml:space="preserve"
-       style="font-size:14px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-indent:0;text-align:start;text-decoration:none;line-height:125%;letter-spacing:0px;word-spacing:0px;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:start;baseline-shift:baseline;color:#000000;fill:#000000;fill-opacity:0.56826567;fill-rule:nonzero;stroke:none;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:Sans;-inkscape-font-specification:Sans"
+       style="color:#000000;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:0%;font-family:'-apple-system', BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';-inkscape-font-specification:'-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol';text-indent:0;text-align:start;text-decoration:none;text-decoration-line:none;letter-spacing:0px;word-spacing:0px;text-transform:none;writing-mode:lr-tb;direction:ltr;baseline-shift:baseline;text-anchor:start;display:inline;overflow:visible;visibility:visible;fill:#000000;fill-opacity:0.56826567;fill-rule:nonzero;stroke:none;marker:none;enable-background:accumulate;"
        x="660"
        y="1012.3622"
-       id="text4354"
-       sodipodi:linespacing="125%"><tspan
+       id="text4354"><tspan
          sodipodi:role="line"
          id="tspan4356"
          x="660"
-         y="1012.3622">there are several </tspan><tspan
+         y="1012.3622"
+         style="font-size:14px;line-height:1.25;font-family:'-apple-system', BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';-inkscape-font-specification:'-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol';font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;">there are several </tspan><tspan
          sodipodi:role="line"
          x="660"
          y="1029.8622"
-         id="tspan4406">other dependencies</tspan></text>
+         id="tspan4406"
+         style="font-size:14px;line-height:1.25;font-family:'-apple-system', BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';-inkscape-font-specification:'-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol';font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;">other dependencies</tspan></text>
     <rect
-       transform="matrix(0,-1,1,0,0,0)"
-       style="color:#000000;fill:#cddcab;fill-opacity:1;fill-rule:nonzero;stroke:#89a24c;stroke-width:0.99999988;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+       transform="rotate(-90)"
+       style="color:#000000;display:inline;overflow:visible;visibility:visible;fill:#cddcab;fill-opacity:1;fill-rule:nonzero;stroke:#89a24c;stroke-width:0.99999988;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker:none;enable-background:accumulate"
        id="rect4358"
        width="140"
        height="50.000008"
@@ -528,17 +536,17 @@
        ry="4.5961947"
        rx="4.5961947" />
     <text
-       transform="matrix(0,-1,1,0,0,0)"
+       transform="rotate(-90)"
        xml:space="preserve"
-       style="font-size:18px;font-style:normal;font-weight:normal;text-align:start;line-height:125%;letter-spacing:0px;word-spacing:0px;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans"
+       style="font-style:normal;font-weight:normal;line-height:0%;font-family:'-apple-system', BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';-inkscape-font-specification:'-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol';text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-stretch:normal;font-variant:normal;"
        x="-672.36218"
        y="560"
-       id="text4360"
-       sodipodi:linespacing="125%"><tspan
+       id="text4360"><tspan
          sodipodi:role="line"
          id="tspan4362"
          x="-672.36218"
-         y="560">csp-sharad</tspan></text>
+         y="560"
+         style="font-size:18px;line-height:1.25;font-family:'-apple-system', BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';-inkscape-font-specification:'-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol';font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;">csp-sharad</tspan></text>
     <rect
        rx="4.5961947"
        ry="4.5961947"
@@ -547,23 +555,23 @@
        height="50.000008"
        width="120"
        id="rect4364"
-       style="color:#000000;fill:#cddcab;fill-opacity:1;fill-rule:nonzero;stroke:#89a24c;stroke-width:0.99999988;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
-       transform="matrix(0,-1,1,0,0,0)" />
+       style="color:#000000;display:inline;overflow:visible;visibility:visible;fill:#cddcab;fill-opacity:1;fill-rule:nonzero;stroke:#89a24c;stroke-width:0.99999988;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker:none;enable-background:accumulate"
+       transform="rotate(-90)" />
     <text
-       sodipodi:linespacing="125%"
        id="text4366"
        y="500"
        x="-672.36218"
-       style="font-size:18px;font-style:normal;font-weight:normal;text-align:start;line-height:125%;letter-spacing:0px;word-spacing:0px;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans"
+       style="font-style:normal;font-weight:normal;line-height:0%;font-family:'-apple-system', BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';-inkscape-font-specification:'-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol';text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-stretch:normal;font-variant:normal;"
        xml:space="preserve"
-       transform="matrix(0,-1,1,0,0,0)"><tspan
+       transform="rotate(-90)"><tspan
          y="500"
          x="-672.36218"
          id="tspan4368"
-         sodipodi:role="line">csp-rings</tspan></text>
+         sodipodi:role="line"
+         style="font-size:18px;line-height:1.25;font-family:'-apple-system', BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';-inkscape-font-specification:'-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol';font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;">csp-rings</tspan></text>
     <rect
-       transform="matrix(0,-1,1,0,0,0)"
-       style="color:#000000;fill:#cddcab;fill-opacity:1;fill-rule:nonzero;stroke:#89a24c;stroke-width:0.99999994;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+       transform="rotate(-90)"
+       style="color:#000000;display:inline;overflow:visible;visibility:visible;fill:#cddcab;fill-opacity:1;fill-rule:nonzero;stroke:#89a24c;stroke-width:0.99999994;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker:none;enable-background:accumulate"
        id="rect4370"
        width="230.00002"
        height="50.000008"
@@ -572,17 +580,17 @@
        ry="4.5961947"
        rx="4.5961952" />
     <text
-       transform="matrix(0,-1,1,0,0,0)"
+       transform="rotate(-90)"
        xml:space="preserve"
-       style="font-size:18px;font-style:normal;font-weight:normal;text-align:start;line-height:125%;letter-spacing:0px;word-spacing:0px;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans"
+       style="font-style:normal;font-weight:normal;line-height:0%;font-family:'-apple-system', BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';-inkscape-font-specification:'-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol';text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-stretch:normal;font-variant:normal;"
        x="-672.36218"
        y="440"
-       id="text4372"
-       sodipodi:linespacing="125%"><tspan
+       id="text4372"><tspan
          sodipodi:role="line"
          id="tspan4374"
          x="-672.36218"
-         y="440">csp-measurement-tools</tspan></text>
+         y="440"
+         style="font-size:18px;line-height:1.25;font-family:'-apple-system', BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';-inkscape-font-specification:'-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol';font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;">csp-measurement-tools</tspan></text>
     <rect
        rx="4.5961947"
        ry="4.5961947"
@@ -591,23 +599,23 @@
        height="50.000008"
        width="160"
        id="rect4376"
-       style="color:#000000;fill:#cddcab;fill-opacity:1;fill-rule:nonzero;stroke:#89a24c;stroke-width:0.99999988;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
-       transform="matrix(0,-1,1,0,0,0)" />
+       style="color:#000000;display:inline;overflow:visible;visibility:visible;fill:#cddcab;fill-opacity:1;fill-rule:nonzero;stroke:#89a24c;stroke-width:0.99999988;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker:none;enable-background:accumulate"
+       transform="rotate(-90)" />
     <text
-       sodipodi:linespacing="125%"
        id="text4378"
        y="380"
        x="-672.36218"
-       style="font-size:18px;font-style:normal;font-weight:normal;text-align:start;line-height:125%;letter-spacing:0px;word-spacing:0px;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans"
+       style="font-style:normal;font-weight:normal;line-height:0%;font-family:'-apple-system', BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';-inkscape-font-specification:'-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol';text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-stretch:normal;font-variant:normal;"
        xml:space="preserve"
-       transform="matrix(0,-1,1,0,0,0)"><tspan
+       transform="rotate(-90)"><tspan
          y="380"
          x="-672.36218"
          id="tspan4380"
-         sodipodi:role="line">csp-lod-bodies</tspan></text>
+         sodipodi:role="line"
+         style="font-size:18px;line-height:1.25;font-family:'-apple-system', BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';-inkscape-font-specification:'-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol';font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;">csp-lod-bodies</tspan></text>
     <rect
-       transform="matrix(0,-1,1,0,0,0)"
-       style="color:#000000;fill:#cddcab;fill-opacity:1;fill-rule:nonzero;stroke:#89a24c;stroke-width:0.99999988;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+       transform="rotate(-90)"
+       style="color:#000000;display:inline;overflow:visible;visibility:visible;fill:#cddcab;fill-opacity:1;fill-rule:nonzero;stroke:#89a24c;stroke-width:0.99999988;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker:none;enable-background:accumulate"
        id="rect4382"
        width="200"
        height="50.000008"
@@ -616,17 +624,17 @@
        ry="4.5961947"
        rx="4.5961947" />
     <text
-       transform="matrix(0,-1,1,0,0,0)"
+       transform="rotate(-90)"
        xml:space="preserve"
-       style="font-size:18px;font-style:normal;font-weight:normal;text-align:start;line-height:125%;letter-spacing:0px;word-spacing:0px;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans"
+       style="font-style:normal;font-weight:normal;line-height:0%;font-family:'-apple-system', BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';-inkscape-font-specification:'-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol';text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-stretch:normal;font-variant:normal;"
        x="-672.36218"
        y="320"
-       id="text4384"
-       sodipodi:linespacing="125%"><tspan
+       id="text4384"><tspan
          sodipodi:role="line"
          id="tspan4386"
          x="-672.36218"
-         y="320">csp-fly-to-locations</tspan></text>
+         y="320"
+         style="font-size:18px;line-height:1.25;font-family:'-apple-system', BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';-inkscape-font-specification:'-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol';font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;">csp-fly-to-locations</tspan></text>
     <rect
        rx="4.5961947"
        ry="4.5961947"
@@ -635,31 +643,31 @@
        height="50.000008"
        width="180"
        id="rect4388"
-       style="color:#000000;fill:#cddcab;fill-opacity:1;fill-rule:nonzero;stroke:#89a24c;stroke-width:0.99999988;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
-       transform="matrix(0,-1,1,0,0,0)" />
+       style="color:#000000;display:inline;overflow:visible;visibility:visible;fill:#cddcab;fill-opacity:1;fill-rule:nonzero;stroke:#89a24c;stroke-width:0.99999988;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker:none;enable-background:accumulate"
+       transform="rotate(-90)" />
     <text
-       sodipodi:linespacing="125%"
        id="text4390"
        y="260"
        x="-672.36218"
-       style="font-size:18px;font-style:normal;font-weight:normal;text-align:start;line-height:125%;letter-spacing:0px;word-spacing:0px;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans"
+       style="font-style:normal;font-weight:normal;line-height:0%;font-family:'-apple-system', BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';-inkscape-font-specification:'-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol';text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-stretch:normal;font-variant:normal;"
        xml:space="preserve"
-       transform="matrix(0,-1,1,0,0,0)"><tspan
+       transform="rotate(-90)"><tspan
          y="260"
          x="-672.36218"
          id="tspan4392"
-         sodipodi:role="line">csp-atmospheres</tspan></text>
+         sodipodi:role="line"
+         style="font-size:18px;line-height:1.25;font-family:'-apple-system', BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';-inkscape-font-specification:'-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol';font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;">csp-atmospheres</tspan></text>
     <text
        xml:space="preserve"
-       style="font-size:16px;font-style:normal;font-weight:normal;text-align:center;line-height:125%;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#89a24c;fill-opacity:1;stroke:none;font-family:Sans"
+       style="font-style:normal;font-weight:normal;line-height:0%;font-family:'-apple-system', BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#89a24c;fill-opacity:1;stroke:none;-inkscape-font-specification:'-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol';font-stretch:normal;font-variant:normal;"
        x="-592.36218"
        y="210"
        id="text4394"
-       sodipodi:linespacing="125%"
-       transform="matrix(0,-1,1,0,0,0)"><tspan
+       transform="rotate(-90)"><tspan
          id="tspan4398"
          sodipodi:role="line"
          x="-592.36218"
-         y="210">Plugins</tspan></text>
+         y="210"
+         style="font-size:16px;line-height:1.25;font-family:'-apple-system', BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';-inkscape-font-specification:'-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol';font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;">Plugins</tspan></text>
   </g>
 </svg>

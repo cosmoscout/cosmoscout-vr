@@ -2,7 +2,9 @@
   <img src ="img/banner-light-shafts.jpg" />
 </p>
 
-# User Interface of CosmoScout VR
+# Using CosmoScout VR
+
+:construction: _**Under Construction:** This guide is still far from complete. We will improve it in the future._
 
 **Navigation:** There are several ways for interacting with the scene.
 Currently mouse, keyboard and space navigator are supported.

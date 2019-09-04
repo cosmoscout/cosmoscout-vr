@@ -8,7 +8,7 @@
     "latitude": 48.086709
   },
   "spiceKernel": "../share/config/spice/simple.txt",
-  "widgetScale": 1.0,
+  "widgetScale": 0.8,
   "enableMouseRay": true,
   "gui": {
     "heightMeter": 1.8,

@@ -9,7 +9,7 @@ Some of the dependencies are only required by some plugins.
 
 | Engine Dependencies | Description | License |
 |:---|:---|:---|
-| [Boost (chrono, filesystem, date_time)](http://www.boost.org) | Used for time conversions and file system operations. | [Boost Software License](http://www.boost.org/LICENSE_1_0.txt) |
+| [Boost (system, chrono, filesystem, date_time)](http://www.boost.org) | Used for time conversions and file system operations. | [Boost Software License](http://www.boost.org/LICENSE_1_0.txt) |
 | [c-ares](https://c-ares.haxx.se) | A dependency of curl, used for asynchronous DNS requests. | [MIT](https://c-ares.haxx.se/license.html) |
 | [Chromium Embedded Framework](https://bitbucket.org/chromiumembedded/cef) | For the Webkit based user interface. | [BSD](https://bitbucket.org/chromiumembedded/cef/raw/a5a5e7ff08129f4122437dfdbba93d2a746c5c59/LICENSE.txt) |
 | [Curl](https://curl.haxx.se) | Library for downloading stuff from the Internet. | [MIT style](https://curl.haxx.se/legal/licmix.html) |
@@ -28,12 +28,13 @@ Some of the dependencies are only required by some plugins.
 | [zlib](https://zlib.net) | Dependency of Vista. | [MIT style](https://zlib.net/zlib_license.html) |
 | **UI Dependencies** | **Description** | **License** |
 | [Alegreya Sans Font](https://fonts.google.com/specimen/Alegreya+Sans) | This font is used for the CosmoScout VR logo. | [Open Font License ](https://fonts.google.com/specimen/Alegreya+Sans) |
+| [Bootstrap](https://github.com/twbs/bootstrap) | Main framework for the user interface. | [MIT](https://github.com/twbs/bootstrap/blob/master/LICENSE) |
 | [Bootstrap Date Picker](https://github.com/uxsolutions/bootstrap-datepicker) | The calendar in the user interface. | [Apache License 2.0](https://github.com/uxsolutions/bootstrap-datepicker/blob/master/LICENSE) |
+| [Bootstrap Select](https://github.com/snapappointments/bootstrap-select/) | Used for dropdowns in the UI. | [MIT](https://github.com/snapappointments/bootstrap-select/blob/v1.13.0-dev/LICENSE) |
 | [D3.js](https://github.com/d3/d3) | Used for some tools (like path measurement) to draw graphs in the user interface. | [BSD 3-Clause](https://github.com/d3/d3/blob/master/LICENSE) |
 | [fuzzyset.js](https://github.com/Glench/fuzzyset.js) | Used for the location search on other planets and moons. | [BSD](https://github.com/Glench/fuzzyset.js) |
 | [jQuery](https://jquery.org) | JavaScript library which is used extensively in the user interface. | [MIT](https://jquery.org/license/) |
 | [Material Icons](https://github.com/google/material-design-icons) | Icon set uses in the user interface. | [Apache License 2.0](https://github.com/google/material-design-icons/blob/master/LICENSE) |
-| [MaterializeCSS](https://github.com/Dogfalo/materialize) | CSS-toolkit used in the user interface. | [MIT](https://github.com/Dogfalo/materialize/blob/master/LICENSE) |
 | [noUiSlider](https://refreshless.com/nouislider) | JavaScript library for advanced sliders. | [WTFPL](http://www.wtfpl.net/about/) |
 | [Ubuntu Font](https://design.ubuntu.com/font) | This font is used in the user interface of CosmoScout VR. | [Ubuntu font licence](https://www.ubuntu.com/legal/terms-and-policies/font-licence) |
 | **Runtime Dependencies** | **Description** | **License** |
@@ -43,7 +44,7 @@ Some of the dependencies are only required by some plugins.
 | [proj.4](https://proj.org) | The `csp-lod-bodies` requires a [special version](https://github.com/cosmoscout/proj.4) of this library to be used by the Mapserver. | [MIT](https://proj.org/about.html) |
 
 <p align="center">
-  <a href="architecture.md">&lsaquo; Architecture</a>
+  <a href="architecture.md">&lsaquo; Software Architecture</a>
   <img src ="img/nav-vspace.svg"/>
   <a href="README.md">&#8962; Help Index</a>
   <img src ="img/nav-vspace.svg"/>
