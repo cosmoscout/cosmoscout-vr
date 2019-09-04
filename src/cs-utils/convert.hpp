@@ -9,8 +9,6 @@
 
 #include "cs_utils_export.hpp"
 
-#include "../cs-core/Settings.hpp"
-
 #include <boost/date_time/gregorian/gregorian.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 
