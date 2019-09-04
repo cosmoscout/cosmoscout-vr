@@ -7,6 +7,7 @@
     border-top-right-radius:10px;
     border-color: #ddf;
     pointer-events: none;
+    background-color: rgba(20, 20, 20, 0.5);
 }
 
 #leftSnippet,
