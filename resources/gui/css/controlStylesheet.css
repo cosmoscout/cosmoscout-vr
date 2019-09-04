@@ -195,22 +195,22 @@ i {
 
 #btnIncreaseMonth,
 #btnDecreaseMonth {
-    left: -3px;
+    left: 2px;
 }
 
 #btnIncreaseDay,
 #btnDecreaseDay {
-    left: 1px;
+    left: 14px;
 }
 
 #btnIncreaseHour,
 #btnDecreaseHour {
-    left: 7px;
+    left: 0px;
 }
 
 #btnIncreaseMinute,
 #btnDecreaseMinute {
-    left: 3px;
+    left: -13px;
 }
 
 #decreaseControl.mouseNear i,
