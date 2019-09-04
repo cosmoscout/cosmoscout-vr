@@ -82,7 +82,7 @@ i {
 #timeControl {
     left: 50%;
     transform: translateX(-50%);
-    background-color: rgb(20, 20, 20);
+    background-image:linear-gradient(0deg,rgb(20, 20, 20) 56%, rgba(20, 20, 20, 0.5)  100%);
     top: 65px;
     border-radius: 0 0 50px 50px;
     border-bottom-color: #ddf;
