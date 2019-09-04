@@ -272,20 +272,13 @@ function add_item(start, end, id, content, style, description) {
     if(style != "") {
         data.style = style;
     }
-    item = document.createElement('div');
-    item.setAttribute('class', 'tooltipped');
-    item.setAttribute('data-position', 'bottom');
-    item.setAttribute('data-tooltip', description);
-    item.appendChild(document.createTextNode(content));
-    data.content = item;
-    data.className = 'tooltipped overview';
+    data.content = content;
+    data.className = 'tooltipped';
     items.update(data);
     var events = document.getElementsByClassName('tooltipped')
     for(var i=0; i<events.length; i++) {
-        if(events[i].textContent == content && $(events[i]).hasClass("overview")) {
-            events[i].setAttribute('data-position', 'top');
-            events[i].setAttribute('data-tooltip', content);
-        }
+        events[i].setAttribute('data-toggle', 'tooltip');
+        events[i].setAttribute('title', content);
     }
     $('[data-toggle="tooltip"]').tooltip({ delay: 500, placement: "top", html: false });
 }
