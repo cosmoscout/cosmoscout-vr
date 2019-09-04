@@ -12,7 +12,7 @@ rem ----------------------------------------------------------------------------
 
 rem Create some required variables. ----------------------------------------------------------------
 
-rem This directory should all the submodules - they are assumed to reside in the subdirectory 
+rem This directory should contain all submodules - they are assumed to reside in the subdirectory 
 rem "externals" next to this script.
 set EXTERNALS_DIR=%~dp0\externals
 
@@ -225,10 +225,10 @@ cd "%BUILD_DIR%/cef/extracted"
 "%BUILD_DIR%/cef/bzip2/bin/bunzip2.exe" -v ../cef.tar.bz2
 cmake -E tar xfvj ../cef.tar
 
-rem We dont want the example applications.
+rem We don't want the example applications.
 rmdir %CEF_VERSION%\tests /s /q
 
-rem We wnat to built with /MD
+rem We want to built with /MD
 powershell.exe -command "(gc %CEF_VERSION%\cmake\cef_variables.cmake) -replace '/MT', '/MD' | Out-File -encoding UTF8 %CEF_VERSION%\cmake\cef_variables.cmake"
 
 cd ..
