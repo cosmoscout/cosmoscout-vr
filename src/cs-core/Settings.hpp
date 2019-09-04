@@ -131,8 +131,7 @@ class CS_CORE_EXPORT SettingsSectionException : public std::exception {
       : sectionName(std::move(sectionName))
       , message(std::move(message))
       , completeMessage(
-          "Failed to parse settings config in section '" + sectionName + "': " + message) {
-  }
+            "Failed to parse settings config in section '" + sectionName + "': " + message){};
 
   [[nodiscard]] const char* what() const noexcept override {
     return completeMessage.c_str();

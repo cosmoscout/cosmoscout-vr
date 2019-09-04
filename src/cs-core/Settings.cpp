@@ -12,7 +12,6 @@
 
 namespace cs::core {
 
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void from_json(const nlohmann::json& j, Settings::Anchor& o) {
@@ -82,6 +81,9 @@ void CS_CORE_EXPORT parseSection(std::string const& sectionName, const std::func
     throw SettingsSectionException(sectionName + "." + s.sectionName, s.message);
   } catch (std::exception const& e) { throw SettingsSectionException(sectionName, e.what()); }
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 std::pair<double, double> getExistenceFromSettings(
     std::pair<std::string, Settings::Anchor> const& anchor) {
   std::pair<double, double> result;
