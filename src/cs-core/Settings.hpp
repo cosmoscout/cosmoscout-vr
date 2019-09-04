@@ -157,7 +157,7 @@ void CS_CORE_EXPORT parseSection(std::string const& sectionName, std::function<v
 
 /// A settings section that is also a value.
 template <typename T>
-T CS_CORE_EXPORT parseSection(std::string const& sectionName, nlohmann::json const& j) {
+T parseSection(std::string const& sectionName, nlohmann::json const& j) {
   T result;
   parseSection(sectionName, [&] { result = j.at(sectionName).get<T>(); });
   return result;
@@ -165,8 +165,7 @@ T CS_CORE_EXPORT parseSection(std::string const& sectionName, nlohmann::json con
 
 /// An optional settings section.
 template <typename T>
-std::optional<T> CS_CORE_EXPORT parseOptionalSection(
-    std::string const& sectionName, nlohmann::json const& j) {
+std::optional<T> parseOptionalSection(std::string const& sectionName, nlohmann::json const& j) {
   std::optional<T> result;
 
   auto iter = j.find(sectionName);
@@ -179,19 +178,19 @@ std::optional<T> CS_CORE_EXPORT parseOptionalSection(
 
 /// A map of key values.
 template <typename K, typename V>
-std::map<K, V> CS_CORE_EXPORT parseMap(std::string const& sectionName, nlohmann::json const& j) {
+std::map<K, V> parseMap(std::string const& sectionName, nlohmann::json const& j) {
   return parseSection<std::map<K, V>>(sectionName, j);
 }
 
 /// A vector of settings.
 template <typename T>
-std::vector<T> CS_CORE_EXPORT parseVector(std::string const& sectionName, nlohmann::json const& j) {
+std::vector<T> parseVector(std::string const& sectionName, nlohmann::json const& j) {
   return parseSection<std::vector<T>>(sectionName, j);
 }
 
 /// A single atomic property.
 template <typename T>
-T CS_CORE_EXPORT parseProperty(std::string const& propertyName, nlohmann::json const& j) {
+T parseProperty(std::string const& propertyName, nlohmann::json const& j) {
   try {
     return j.at(propertyName).get<T>();
   } catch (std::exception const& e) {
@@ -202,8 +201,7 @@ T CS_CORE_EXPORT parseProperty(std::string const& propertyName, nlohmann::json c
 
 /// An optional property.
 template <typename T>
-std::optional<T> CS_CORE_EXPORT parseOptional(
-    std::string const& propertyName, nlohmann::json const& j) {
+std::optional<T> parseOptional(std::string const& propertyName, nlohmann::json const& j) {
   auto iter = j.find(propertyName);
   if (iter != j.end()) {
     return iter->get<std::optional<T>>();

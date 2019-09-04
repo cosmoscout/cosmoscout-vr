@@ -74,7 +74,7 @@ Settings Settings::read(std::string const& fileName) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CS_CORE_EXPORT parseSection(std::string const& sectionName, const std::function<void()>& f) {
+void parseSection(std::string const& sectionName, const std::function<void()>& f) {
   try {
     f();
   } catch (SettingsSectionException const& s) {
