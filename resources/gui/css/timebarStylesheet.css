@@ -1,13 +1,3 @@
-body{
-    font-family: "Times New Roman", Times, serif;
-    color: #ddf;
-    font-size: 15px;
-    -webkit-user-select: none !important;
-    -webkit-font-smoothing: antialiased;
-    overflow: hidden;
-  }
-
-
   .vis-timeline {
     border-width: 0px;
     background-color: rgba(20, 20, 20, 0.5);
