@@ -41,6 +41,7 @@
   height: 12px !important;
   top: 13px !important;
   min-width: 12px !important;
+  margin-left: 2px;
 }
 
 #overview .vis-panel.vis-bottom {
