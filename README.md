@@ -38,7 +38,7 @@ You can also read the [**changelog**](docs/changelog.md) to learn what's new in 
   - [ ] HDR-Rendering
 - [ ] Flexible User Interface
   - [X] Completely written in JavaScript with help of the [Chromium Embedded Framework](https://bitbucket.org/chromiumembedded/cef/src)
-  - [X] Main UI can be drawn in screen- or world-space
+  - [X] Main UI can be drawn in the screen- or world-space
   - [X] Web pages can be placed on planetary surfaces
   - [X] Interaction works both in VR and on the Desktop
   - [ ] Clear API between C++ and JavaScript 
