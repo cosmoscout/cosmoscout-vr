@@ -441,11 +441,19 @@ function togglePaus() {
 }
 
 function decreaseSpeed() {
-    range.noUiSlider.set(currentSpeed-1);
+    if(currentSpeed == paus) {
+        togglePaus();
+    } else {
+        range.noUiSlider.set(currentSpeed-1);
+    }
 }
 
 function increaseSpeed() {
-    range.noUiSlider.set(currentSpeed-(-1));
+    if(currentSpeed == paus) {
+        togglePaus();
+    }else {
+       range.noUiSlider.set(currentSpeed-(-1));
+    }
 }
 
 function rangeUpdateCallback() {
