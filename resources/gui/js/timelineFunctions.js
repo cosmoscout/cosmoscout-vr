@@ -344,21 +344,33 @@ function minusOneDay() {
 }
 
 function plusOneMonth() {
+    var date = new Date(centerTime.getTime());
     centerTime.setMonth(centerTime.getMonth() + 1);
-    window.call_native("set_date", formatDateCosmo(new Date(centerTime.getTime())));
+    var dif = centerTime.getTime() - date.getTime();
+    var hoursDif = dif / 1000 / 60 / 60;
+    window.call_native("add_hours", hoursDif);
 }
 function minusOneMonth() {
+    var date = new Date(centerTime.getTime());
     centerTime.setMonth(centerTime.getMonth() - 1);
-    window.call_native("set_date", formatDateCosmo(new Date(centerTime.getTime())));
+    var dif = centerTime.getTime() - date.getTime();
+    var hoursDif = dif / 1000 / 60 / 60;
+    window.call_native("add_hours", hoursDif);
 }
 
 function plusOneYear() {
+    var date = new Date(centerTime.getTime());
     centerTime.setFullYear(centerTime.getFullYear() + 1);
-    window.call_native("set_date", formatDateCosmo(new Date(centerTime.getTime())));
+    var dif = centerTime.getTime() - date.getTime();
+    var hoursDif = dif / 1000 / 60 / 60;
+    window.call_native("add_hours", hoursDif);
 }
 function minusOneYear() {
+    var date = new Date(centerTime.getTime());
     centerTime.setFullYear(centerTime.getFullYear() - 1);
-    window.call_native("set_date", formatDateCosmo(new Date(centerTime.getTime())));
+    var dif = centerTime.getTime() - date.getTime();
+    var hoursDif = dif / 1000 / 60 / 60;
+    window.call_native("add_hours", hoursDif);
 }
 
 
