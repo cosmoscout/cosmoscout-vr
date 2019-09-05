@@ -6,6 +6,9 @@ let dayInSec = 86400;
 let hourInSec =  3600;
 let minuteInSec = 60;
 
+let minuteInHours = 0.01666666666666;
+let dayInHours = 24;
+
 let timeId = 0;
 
 let leftTimeId = 'leftTime';
@@ -318,11 +321,11 @@ function setTimeToDate(date) {
 }
 
 function plusOneMinute() {
-    window.call_native("add_hours", 0.01666666666666);
+    window.call_native("add_hours", minuteInHours);
 }
 
 function minusOneMinute() {
-    window.call_native("add_hours", -0.01666666666666);
+    window.call_native("add_hours", -minuteInHours);
 }
 
 function plusOneHour() {
@@ -333,11 +336,11 @@ function minusOneHour() {
 }
 
 function plusOneDay() {
-    window.call_native("add_hours", 24);
+    window.call_native("add_hours", dayInHours);
     
 }
 function minusOneDay() {
-    window.call_native("add_hours", -24);
+    window.call_native("add_hours", -dayInHours);
 }
 
 function plusOneMonth() {
@@ -532,6 +535,46 @@ function manuelZoomTimeline(event) {
     }
 }
 
+function scrollOnYear(event) {
+    if(event.deltaY < 0) {
+        plusOneYear();
+    } else {
+        minusOneYear();
+    }
+}
+
+function scrollOnMonth(event) {
+    if(event.deltaY < 0) {
+        plusOneMonth();
+    } else {
+        minusOneMonth();
+    }
+}
+
+function scrollOnDay(event) {
+    if(event.deltaY < 0) {
+        window.call_native("add_hours_without_animation", dayInHours);
+    } else {
+        window.call_native("add_hours_without_animation", -dayInHours);
+    }
+}
+
+function scrollOnHour(event) {
+    if(event.deltaY < 0) {
+        window.call_native("add_hours_without_animation", 1);
+    } else {
+        window.call_native("add_hours_without_animation", -1);
+    }
+}
+
+function scrollOnMinute(event) {
+    if(event.deltaY < 0) {
+        window.call_native("add_hours_without_animation", minuteInHours);
+    } else {
+        window.call_native("add_hours_without_animation", -minuteInHours);
+    }
+}
+
 container.addEventListener("wheel", manuelZoomTimeline, true);
 
 document.getElementById("btnIncreaseMinute").onclick = plusOneMinute;
@@ -556,3 +599,15 @@ document.getElementById("btnIncreaseSpeed").onclick = increaseSpeed;
 document.getElementById("divContainer").addEventListener("mouseup", mouseUpCallback);
 
 document.getElementsByClassName('range-label')[0].addEventListener('mousedown', rangeUpdateCallback);
+
+document.getElementById("btnDecreaseYear").addEventListener("wheel", scrollOnYear);
+document.getElementById("btnDecreaseMonth").addEventListener("wheel", scrollOnMonth);
+document.getElementById("btnDecreaseDay").addEventListener("wheel", scrollOnDay);
+document.getElementById("btnDecreaseHour").addEventListener("wheel", scrollOnHour);
+document.getElementById("btnDecreaseMinute").addEventListener("wheel", scrollOnMinute);
+
+document.getElementById("btnIncreaseYear").addEventListener("wheel", scrollOnYear);
+document.getElementById("btnIncreaseMonth").addEventListener("wheel", scrollOnMonth);
+document.getElementById("btnIncreaseDay").addEventListener("wheel", scrollOnDay);
+document.getElementById("btnIncreaseHour").addEventListener("wheel", scrollOnHour);
+document.getElementById("btnIncreaseMinute").addEventListener("wheel", scrollOnMinute);
