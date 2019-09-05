@@ -200,4 +200,12 @@ $(document).ready(function () {
             $("#set_exposure_range").addClass("unresponsive");
         }
     });
+
+    $('#set_enable_hdr').change(function () {
+        if (this.checked) {
+            $(".hdr-setting").removeClass("unresponsive");
+        } else {
+            $(".hdr-setting").addClass("unresponsive");
+        }
+    });
 });
