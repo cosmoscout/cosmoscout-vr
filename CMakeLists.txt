@@ -5,7 +5,7 @@
 # ------------------------------------------------------------------------------------------------ #
 
 cmake_minimum_required(VERSION 3.12)
-project(cosmoscout-vr)
+project(cosmoscout-vr VERSION 1.0.0)
 
 # Use cmake 3.12's <PACKAGE>_ROOT variabled for searching.
 cmake_policy(SET CMP0074 NEW)
@@ -160,6 +160,8 @@ endif()
 
 # create version header ----------------------------------------------------------------------------
 
+message(STATUS "Trying to get current git branch and commit...")
+
 # get the current git branch name
 execute_process(
   COMMAND git rev-parse --abbrev-ref HEAD
@@ -183,6 +185,14 @@ execute_process(
   OUTPUT_VARIABLE GIT_RECENT_TAG
   OUTPUT_STRIP_TRAILING_WHITESPACE
 )
+
+# fallback to project version if it failed
+if (GIT_BRANCH STREQUAL "")
+  set(GIT_RECENT_TAG "v${PROJECT_VERSION}")
+  message(STATUS "  Failed - falling back to project version: ${GIT_RECENT_TAG}")
+else()
+  message(STATUS "  Success: ${GIT_RECENT_TAG} (${GIT_BRANCH} @${GIT_COMMIT_HASH})")
+endif()
 
 configure_file(
   ${CMAKE_SOURCE_DIR}/src/cs-core/cs-version.hpp.in
