@@ -49,28 +49,21 @@ void from_json(const nlohmann::json& j, Settings::Observer& o) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void from_json(const nlohmann::json& j, Settings::Event& o) {
-  o.mStart    = j.at("start").get<std::string>();
-  o.mContent     = j.at("content").get<std::string>();
-  o.mId = j.at("id").get<std::string>();
-  auto iter = j.find("end");
-  if (iter != j.end()) {
-    o.mEnd = iter->get<std::optional<std::string>>();
-  }
-  iter = j.find("style");
-  if (iter != j.end()) {
-    o.mStyle = iter->get<std::optional<std::string>>();
-  }
-  o.mDescription = j.at("description").get<std::string>();
+  o.mStart    = parseProperty<std::string>("start", j);
+  o.mContent  = parseProperty<std::string>("content", j);
+  o.mStyle  = parseProperty<std::string>("style", j);
+  o.mId       = parseProperty<std::string>("id", j);
+  o.mEnd      = parseOptionalSection<std::string>("end", j);
+  o.mDescription = parseProperty<std::string>("description", j);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void from_json(const nlohmann::json& j, Settings& o) {
   o.mStartDate   = parseProperty<std::string>("startDate", j);
-  o.mMinDate     = j.at("minDate").get<std::string>();
-  o.mMaxDate     = j.at("maxDate").get<std::string>();
+  o.mMinDate     = parseProperty<std::string>("minDate", j);
+  o.mMaxDate     = parseProperty<std::string>("maxDate", j);
   o.mObserver    = parseSection<Settings::Observer>("observer", j);
-  o.mSpiceKernel = j.at("spiceKernel").get<std::string>();
   o.mSpiceKernel = parseProperty<std::string>("spiceKernel", j);
 
   o.mGui = parseOptionalSection<Settings::Gui>("gui", j);
@@ -78,11 +71,9 @@ void from_json(const nlohmann::json& j, Settings& o) {
   o.mWidgetScale    = parseProperty<float>("widgetScale", j);
   o.mEnableMouseRay = parseProperty<bool>("enableMouseRay", j);
 
-  o.mWidgetScale    = j.at("widgetScale").get<float>();
-  o.mEnableMouseRay = j.at("enableMouseRay").get<bool>();
   o.mAnchors = parseMap<std::string, Settings::Anchor>("anchors", j);
   o.mPlugins = parseMap<std::string, nlohmann::json>("plugins", j);
-  o.mEvents         = j.at("events").get<std::vector<Settings::Event>>();
+  o.mEvents         = parseVector<Settings::Event>("events", j);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
