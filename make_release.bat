@@ -21,10 +21,10 @@ set BUILD_DIR=%CURRENT_DIR%\build\windows-release
 rem The install directory.
 set INSTALL_DIR=%CURRENT_DIR%\install\windows-release
 
-rem This directory should be the one used as install directory for make_externals.sh.
+rem This directory should be used as the install directory for make_externals.bat.
 set EXTERNALS_INSTALL_DIR=%CURRENT_DIR%\install\windows-externals
 
-rem create build directory if neccessary -----------------------------------------------------------
+rem create build directory if necessary -----------------------------------------------------------
 
 if exist "%BUILD_DIR%" goto BUILD_DIR_CREATED
     mkdir "%BUILD_DIR%"
@@ -39,7 +39,7 @@ cmake -G "Visual Studio 15 Win64" -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
 
 cmake --build . --config Release --target install --parallel 8 || exit /b
 
-rem Delete empty files install by cmake
+rem Delete empty files installed by cmake
 robocopy "%INSTALL_DIR%" "%INSTALL_DIR%" /s /move
 
 cd "%CURRENT_DIR%"

@@ -1,27 +1,35 @@
 function addPluginTab(pluginName, iconName, content) {
-    $("#tab-list .sidebar-tab:last").before(`
-    <li class="bevel sidebar-tab">
-      <div class="collapsible-header tab-header waves-effect waves-light">
-        <i class="material-icons">${iconName}</i>
-        <span class="header-name">${pluginName}</span>
-      </div>
-      <div class="collapsible-body tab-body">
-        ${content}
-      </div>
-    </li>
+    const id = pluginName.split(' ').join('-');
+    $("#sidebar-accordion .sidebar-tab:last").before(`
+    <div class="card sidebar-tab">
+        <div class="card-header collapsed tab" id="heading-${id}" data-toggle="collapse" 
+        data-target="#collapse-${id}" aria-expanded="false" aria-controls="collapse-${id}" type="button">
+            <i class="material-icons">${iconName}</i><span class="header-name">${id}</span>
+        </div>
+        <div class="card-body collapse" id="collapse-${id}" aria-labelledby="heading-${id}"
+             data-parent="#sidebar-accordion">
+            ${content}
+        </div>
+    </div>
   `);
 }
 
-function addSettingsSection(sectionName, iconName, content) {
-    $("#settings-list").append(`
-    <li>
-      <div class="collapsible-header settings-section waves-effect waves-light">
-      <i class="material-icons">${iconName}</i><span>${sectionName}</span><i class="material-icons caret-icon">keyboard_arrow_left</i>
-      </div>
-      <div class="collapsible-body settings-body">
-        ${content}
-      </div>
-    </li>
+function addSettingsSection(sectionName, icon, content) {
+    const id = sectionName.split(' ').join('-');
+    $("#settings-accordion").append(`
+    <div class="card settings-section">
+        <div class="card-header collapsed" id="headingSettings-${id}"
+             data-toggle="collapse" data-target="#collapseSettings-${id}" aria-expanded="false"
+             aria-controls="collapseSettings-${id}" type="button">
+            <i class="material-icons">${icon}</i>
+            <span>${sectionName}</span>
+            <i class="material-icons caret-icon">keyboard_arrow_left</i>
+        </div>
+        <div class="card-body collapse" id="collapseSettings-${id}"
+             aria-labelledby="headingSettings-${id}" data-parent="#settings-accordion">
+            ${content}
+        </div>
+    </div>
   `);
 }
 
@@ -34,28 +42,32 @@ function clear_container(id) {
 }
 
 function clear_dropdown(id) {
-    $('#' + id).empty();
-    $('#' + id).formSelect();
+    const element = $('#' + id);
+    element.empty();
+    element.selectpicker('render');
+}
+
+function set_dropdown_value(id, value) {
+    $('#' + id).selectpicker('val', value);
 }
 
 function add_dropdown_value(id, opt_value, opt_text, opt_selected) {
-    var selected = opt_selected ? 'selected' : '';
-    var html = '\
-                <option value="' +
-        opt_value + '" ' + selected + ' >' + opt_text + '</option>';
+    const selected = opt_selected ? 'selected' : '';
+    const html = `<option value="${opt_value}" ${selected}>${opt_text}</option>`;
 
-    $('#' + id).append(html);
-    $('#' + id).formSelect();
+    const element = $('#' + id);
+    element.append(html);
+    element.selectpicker('refresh');
 }
 
 // update gui when value is set over the network -----------------------
 function set_slider_value(id, value) {
-    var slider = document.getElementById(id);
+    const slider = document.getElementById(id);
     slider.noUiSlider.set(value);
 }
 
 function set_slider_value(id, val1, val2) {
-    var slider = document.getElementById(id);
+    const slider = document.getElementById(id);
     slider.noUiSlider.set([val1, val2]);
 }
 
@@ -71,13 +83,8 @@ function set_textbox_value(id, value) {
     $('.item-' + id + ' .text-input').val(value);
 }
 
-function set_dropdown_value(id, value) {
-    $('#' + id).val(value);
-    $('#' + id).formSelect();
-}
-
 function beauty_print_number(value) {
-    var abs = Math.abs(value);
+    const abs = Math.abs(value);
     if (abs >= 10000)
         return Number(value.toPrecision(2)).toExponential();
     if (abs >= 1000)
@@ -86,38 +93,28 @@ function beauty_print_number(value) {
         return Number(value.toPrecision(3));
     if (abs >= 0.1)
         return Number(value.toPrecision(2));
-    if (abs == 0)
+    if (abs === 0)
         return "0";
 
     return Number(value.toPrecision(2)).toExponential();
 }
 
-function set_map_data_copyright(text) {
-    $("#img-data-copyright").tooltip({ "html": "© " + text, "position": "top", "margin": -5 });
-}
-
-function set_elevation_data_copyright(text) {
-    $("#dem-data-copyright").tooltip({ "html": "© " + text, "position": "bottom", "margin": -5 });
-}
-
 function init() {
-    // Update all with ".simple-value-dropdown" class
-    $('.simple-value-dropdown').formSelect();
-    $('.collapsible').collapsible();
-
-    $('.simple-value-dropdown').on('change', function () {
-        if (this.id != '') {
+    const dropdowns = $(".simple-value-dropdown");
+    dropdowns.selectpicker();
+    dropdowns.on('change', function () {
+        if (this.id !== '') {
             window.call_native(this.id, this.value);
         }
     });
 
-    $('.simple-value-checkbox').change(function () {
+    $('.checklabel input').change(function () {
         window.call_native(this.id, this.checked);
     });
 
-    $('.tooltipped').tooltip({ 'enterDelay': 500, 'margin': -8 });
+    $('[data-toggle="tooltip"]').tooltip({ delay: 500, placement: "auto", html: false });
 
-    $('.simple-value-radio').change(function () {
+    $('.radiolabel input').change(function () {
         if (this.checked) {
             window.call_native(this.id);
         }
@@ -170,13 +167,13 @@ $(document).ready(function () {
     });
 
     // Performance
-    init_slider("set_lighting_quality", 1.0, 3.0, 1.0, [2]);
+    init_slider("set_lighting_quality", 1.0, 3.0, 1.0, [2.0]);
 
-    init_slider("set_shadowmap_cascades", 1.0, 5.0, 1.0, [3]);
+    init_slider("set_shadowmap_cascades", 1.0, 5.0, 1.0, [3.0]);
     init_slider("set_shadowmap_bias", 0.0, 10.0, 0.01, [1.0]);
-    init_slider("set_shadowmap_range", 0.0, 500.0, 1.0, [0, 100]);
-    init_slider("set_shadowmap_extension", -500.0, 500.0, 10.0, [-100, 100]);
-    init_slider("set_shadowmap_split_distribution", 0.5, 5.0, 0.1, [1]);
+    init_slider("set_shadowmap_range", 0.0, 500.0, 1.0, [0.0, 100.0]);
+    init_slider("set_shadowmap_extension", -500.0, 500.0, 10.0, [-100.0, 100.0]);
+    init_slider("set_shadowmap_split_distribution", 0.5, 5.0, 0.1, [1.0]);
 
     // Camera
     init_slider("set_exposure", -30, 30, 0.5, [0]);
@@ -202,13 +199,5 @@ $(document).ready(function () {
             $("#set_exposure").removeClass("unresponsive");
             $("#set_exposure_range").addClass("unresponsive");
         }
-    });
-});
-
-document.addEventListener('DOMContentLoaded', function () {
-    M.AutoInit();
-    let elem = document.querySelectorAll('.collapsible.expandable');
-    M.Collapsible.init(elem, {
-        accordion: false
     });
 });

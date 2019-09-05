@@ -186,7 +186,7 @@ bool Application::Init(VistaSystem* pVistaSystem) {
         std::cerr << "Error loading CosmoScout VR Plugin " << plugin.first << " : " << LIBERROR()
                   << std::endl;
       }
-    } catch (std::runtime_error const& e) {
+    } catch (std::exception const& e) {
       std::cerr << "Error loading plugin " << plugin.first << ": " << e.what() << std::endl;
     }
   }
@@ -589,7 +589,7 @@ void Application::FrameUpdate() {
 
         try {
           plugin->second.mPlugin->init();
-        } catch (std::runtime_error const& e) {
+        } catch (std::exception const& e) {
           std::cerr << "Error initializing plugin " << plugin->first << ": " << e.what()
                     << std::endl;
         }

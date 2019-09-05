@@ -1,0 +1,14 @@
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//                               This file is part of CosmoScout VR                               //
+//      and may be used under the terms of the MIT license. See the LICENSE file for details.     //
+//                        Copyright: (c) 2019 German Aerospace Center (DLR)                       //
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#ifndef CS_VERSION_HPP
+#define CS_VERSION_HPP
+
+#define GIT_BRANCH std::string("@GIT_BRANCH@")
+#define GIT_COMMIT_HASH std::string("@GIT_COMMIT_HASH@")
+#define GIT_RECENT_TAG std::string("@GIT_RECENT_TAG@")
+
+#endif // CS_VERSION_HPP

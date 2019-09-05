@@ -24,7 +24,7 @@ BUILD_DIR="$CURRENT_DIR/build/linux-debug"
 # The install directory.
 INSTALL_DIR="$CURRENT_DIR/install/linux-debug"
 
-# This directory should be the one used as install directory for make_externals.sh.
+# This directory should be used as the install directory for make_externals.sh.
 EXTERNALS_INSTALL_DIR="$CURRENT_DIR/install/linux-externals"
 
 # The optional parameter --with-ccache enables the ccache support of CMake.
