@@ -542,3 +542,5 @@ document.getElementById("btnDecreaseSpeed").onclick = decreaseSpeed;
 document.getElementById("btnIncreaseSpeed").onclick = increaseSpeed;
 
 document.getElementById("divContainer").addEventListener("mouseup", mouseUpCallback);
+
+document.getElementsByClassName('range-label')[0].addEventListener('mousedown', rangeUpdateCallback);
