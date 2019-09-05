@@ -452,7 +452,11 @@ function increaseSpeed() {
     if(currentSpeed == paus) {
         togglePaus();
     }else {
-       range.noUiSlider.set(currentSpeed-(-1));
+       if(currentSpeed == secBack) {
+            range.noUiSlider.set(secForw);
+       }else {
+            range.noUiSlider.set(currentSpeed-(-1));
+       }
     }
 }
 
