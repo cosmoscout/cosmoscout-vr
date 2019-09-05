@@ -27,7 +27,7 @@ const std::vector<unsigned> INDICES = {0, 1, 2, 2, 3, 0, 0, 4, 5, 5, 1, 0, 4, 7,
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 const std::string MouseRay::SHADER_VERT = R"(
-#version 440 compatibility
+#version 330
 
 uniform mat4 uMatModelView;
 uniform mat4 uMatProjection;
@@ -50,7 +50,7 @@ void main()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 const std::string MouseRay::SHADER_FRAG = R"(
-#version 440 compatibility
+#version 330
 
 // inputs
 in vec2 vTexCoords;

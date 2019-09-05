@@ -28,7 +28,7 @@ namespace cs::core::tools {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 const std::string Mark::SHADER_VERT = R"(
-#version 400 compatibility
+#version 330
 
 layout(location=0) in vec3 iPosition;
 
@@ -48,7 +48,7 @@ void main()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 const std::string Mark::SHADER_FRAG = R"(
-#version 400 compatibility
+#version 330
 
 uniform vec3 uHoverSelectActive;
 uniform float uFarClip;
