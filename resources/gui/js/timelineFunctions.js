@@ -253,10 +253,9 @@ function setTimelineRange(min, max) {
 }
 
 function mouseDownCallback() {
+    timeline.setOptions(pausOpt);
     mouseOnTimelineDown = true;
     lastPlayValue = currentSpeed;
-    setPaus();
-    timeline.setOptions(pausOpt);
     click = true;
     mouseDownLeftTime = timeline.getWindow().start;
 }
@@ -292,6 +291,9 @@ function overviewChangeCallback() {
 
 function rangechangeCallback(properties) {
     if(properties.byUser && String(properties.event) != "[object WheelEvent]") {
+        if(currentSpeed != paus) {
+            setPaus();
+        }
         click = false;
         inRangeChange = true;
         var dif = properties.start.getTime() - mouseDownLeftTime.getTime();
