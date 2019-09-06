@@ -151,7 +151,7 @@ echo.
 cmake -E make_directory "%BUILD_DIR%/opensg-1.8" && cd "%BUILD_DIR%/opensg-1.8"
 cmake -G "Visual Studio 15 Win64" -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
       -DGLUT_INCLUDE_DIR="%INSTALL_DIR%/include" -DGLUT_LIBRARY="%INSTALL_DIR%/lib/freeglut.lib"^
-      "%EXTERNALS_DIR%/opensg-1.8"
+      -DOPENSG_BUILD_TESTS=Off "%EXTERNALS_DIR%/opensg-1.8"
 cmake --build . --config Release --target install --parallel 8 || exit /b
 
 rem vista ------------------------------------------------------------------------------------------
