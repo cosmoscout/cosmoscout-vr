@@ -174,10 +174,30 @@ document.getElementById("dateLabel").innerText = formatDateReadable(centerTime);
 
 moveWindow(secSpeed);
 
-var hoveredItem;
+function redrawTooltip(event) {
+    return new Promise(resolve => {
+    if(tooltipVisible) {
+        var eventRect = event.getBoundingClientRect();
+        document.getElementById("customTooltip").style.top = eventRect.bottom + 'px';
+        document.getElementById("customTooltip").style.left = eventRect.left + 'px';
+    }
 
+    setTimeout(function() {
+        resolve(10);
+        redrawTooltip(event);
+        }, redrawRate);
+    });
+  }
+
+async function startRedrawTooltip(event) {
+    await redrawTooltip(event);
+}
+
+var hoveredItem;
+var tooltipVisible = false;
 function itemoverCallback(properties) {
     document.getElementById("customTooltip").style.display = "block";
+    tooltipVisible = true;
     for(var item in items._data) {
         if(items._data[item].id == properties.item) {
             document.getElementById("itemContent").innerHTML = items._data[item].content;
@@ -196,11 +216,15 @@ function itemoverCallback(properties) {
     var eventRect = event.getBoundingClientRect();
     document.getElementById("customTooltip").style.top = eventRect.bottom + 'px';
     document.getElementById("customTooltip").style.left = eventRect.left + 'px';
+    if(currentSpeed != paus) {
+        startRedrawTooltip(event);
+    }
 }
 
 function itemoutCallback(properties) {
     if(properties.event.toElement.className != "custom-tooltip-container") {
         document.getElementById("customTooltip").style.display = "none";
+        tooltipVisible = false;
     }
 }
 
@@ -210,6 +234,7 @@ function travelToItemLocation() {
 
 function leaveCustomTooltip() {
     document.getElementById("customTooltip").style.display = "none";
+    tooltipVisible = false;
 }
 
 function saveItems() {
