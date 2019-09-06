@@ -202,6 +202,7 @@ function applyEvent() {
         parHolder.item.style = "background-color: " + document.getElementById("eventColor").value;
         parHolder.item.content = document.getElementById("eventName").value;
         parHolder.item.start = new Date(document.getElementById("eventStartDate").value);
+        parHolder.item.className = 'tooltipped';
         if(document.getElementById("eventEndDate").value != "") {
             parHolder.item.end = new Date(document.getElementById("eventEndDate").value);
             
@@ -209,6 +210,7 @@ function applyEvent() {
         parHolder.callback(parHolder.item); // send back adjusted new item
         document.getElementById("myForm").style.display = "none";
         timeline.setOptions(editingDoneOpt);
+        tooltip(parHolder.item.content);
         saveItems();
     }
 }
@@ -355,6 +357,14 @@ function redrawSnipped() {
     await redrawSnipped();
   }
 
+function tooltip(content) {
+    var events = document.getElementsByClassName('tooltipped');
+    for(var i=0; i<events.length; i++) {
+        events[i].setAttribute('data-toggle', 'tooltip');
+        events[i].setAttribute('title', content);
+    }
+    $('[data-toggle="tooltip"]').tooltip({ delay: 500, placement: "top", html: false });
+}
 
 function add_item(start, end, id, content, style, description, planet, place) {
     var data = new Object();
@@ -371,12 +381,7 @@ function add_item(start, end, id, content, style, description, planet, place) {
     data.content = content;
     data.className = 'tooltipped';
     items.update(data);
-    var events = document.getElementsByClassName('tooltipped')
-    for(var i=0; i<events.length; i++) {
-        events[i].setAttribute('data-toggle', 'tooltip');
-        events[i].setAttribute('title', content);
-    }
-    $('[data-toggle="tooltip"]').tooltip({ delay: 500, placement: "top", html: false });
+    tooltip(content);
 }
 
 function generalOnClick(properties) {
