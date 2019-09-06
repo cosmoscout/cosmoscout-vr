@@ -5,7 +5,6 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    border: 3px solid #f1f1f1;
     z-index: 9;
   }
   
@@ -18,7 +17,7 @@
 
   /* Full-width input fields */
   .form-container input[type=text]{
-    width: 90%;
+    width: 100%;
     padding: 15px;
     margin: 5px 0 22px 0;
     border: none;
@@ -38,7 +37,7 @@
   .form-container input[type=date] {
     margin: 5px 0 22px 0;
     border: none;
-    width: 75%;
+    width: 100%;
     background: #f1f1f1;
   }
   
