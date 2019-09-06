@@ -414,8 +414,7 @@ function setTimeToDate(date) {
     var endDate = new Date(date.getTime());
     startDate.setHours(startOfDay);
     endDate.setHours(endOfDay);
-    play = false;
-    range.noUiSlider.set(0);
+    setPaus();
     timeline.setWindow(startDate, endDate, animationFalse);
     setOverviewTimes();
 }
