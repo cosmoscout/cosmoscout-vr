@@ -157,6 +157,7 @@ timeline.on('mouseDown', mouseDownCallback);
 timeline.on('mouseUp', mouseUpCallback);
 timeline.on('rangechange', rangechangeCallback);
 timeline.on('itemover', itemoverCallback);
+timeline.on('itemout', itemoutCallback);
 
 //create overview timeline
 overviewTimeLine = new vis.Timeline(overviewContainer, items, overviewOptions);
@@ -193,8 +194,14 @@ function itemoverCallback(properties) {
         }
     }
     var eventRect = event.getBoundingClientRect();
-    document.getElementById("customTooltip").style.top = eventRect.top + 'px';
+    document.getElementById("customTooltip").style.top = eventRect.bottom + 'px';
     document.getElementById("customTooltip").style.left = eventRect.left + 'px';
+}
+
+function itemoutCallback(properties) {
+    if(properties.event.toElement.className != "custom-tooltip-container") {
+        document.getElementById("customTooltip").style.display = "none";
+    }
 }
 
 function travelToItemLocation() {
