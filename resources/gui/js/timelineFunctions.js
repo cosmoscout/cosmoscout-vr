@@ -49,6 +49,9 @@ let endOfDay = 24;
 
 var currentSpeed;
 
+var parHolder = new Object();
+
+
 // Create a DataSet (allows two way data-binding)
 var items;
 
@@ -74,7 +77,15 @@ var options = {
     zoomable: false,
     moveable: false,
     showCurrentTime: false,
-    editable: false
+    editable: {
+        add: true,         // add new items by double tapping
+        updateTime: true,  // drag items horizontally
+        updateGroup: false, // drag items from one group to another
+        remove: true,       // delete an item by tapping the delete button top right
+        overrideItems: false  // allow these options to override item.editable
+    },
+    onAdd: onAddCallback,
+    onUpdate: onUpdateCallback
 };
 
 var playingOpt = {
@@ -98,6 +109,21 @@ var overviewOptions = {
     showCurrentTime: false,
     editable: false,
 }
+
+var whileEditingOpt = {
+    editable: false
+}
+
+var editingDoneOpt = {
+    editable: {
+        add: true,         // add new items by double tapping
+        updateTime: true,  // drag items horizontally
+        updateGroup: false, // drag items from one group to another
+        remove: true,       // delete an item by tapping the delete button top right
+        overrideItems: false  // allow these options to override item.editable
+    }
+}
+
 
 var animationFalse = {
     animation: false
@@ -153,6 +179,72 @@ initialOverviewWindow(new Date(1950,1), new Date(2030, 12));
 document.getElementById("dateLabel").innerText = formatDateReadable(centerTime);
 
 moveWindow(secSpeed);
+
+function saveItems() {
+    var data = items.get({
+        type: {
+          start: 'ISODate',
+          end: 'ISODate'
+        }
+    });
+}
+
+function closeForm() {
+    parHolder.callback(null); // cancel item creation
+    document.getElementById("myForm").style.display = "none";
+    timeline.setOptions(editingDoneOpt);
+}
+
+
+function applyEvent() {  
+    if (document.getElementById("eventName").value != ""
+    && document.getElementById("eventStartDate").value != "") {
+        parHolder.item.style = "background-color: " + document.getElementById("eventColor").value;
+        parHolder.item.content = document.getElementById("eventName").value;
+        parHolder.item.start = new Date(document.getElementById("eventStartDate").value);
+        if(document.getElementById("eventEndDate").value != "") {
+            parHolder.item.end = new Date(document.getElementById("eventEndDate").value);
+            
+        }
+        parHolder.callback(parHolder.item); // send back adjusted new item
+        document.getElementById("myForm").style.display = "none";
+        timeline.setOptions(editingDoneOpt);
+        saveItems();
+    }
+}
+
+function onUpdateCallback(item, callback) {
+    play = false;
+    timeline.setOptions(whileEditingOpt);
+    document.getElementById("headlineForm").innerText = "Update";
+    document.getElementById("myForm").style.display = "block";
+    document.getElementById("eventName").value = item.content;
+    document.getElementById("eventStartDate").value = getFormattedDate(item.start);
+    if(item.end) {
+        document.getElementById("eventEndDate").value = getFormattedDate(item.end);
+    } else {
+        document.getElementById("eventEndDate").value = "";
+    }
+    parHolder.item = item;
+    parHolder.callback = callback;
+    play = false;
+    range.noUiSlider.set(paus);
+}
+
+function onAddCallback(item, callback) {
+    play = false;
+    timeline.setOptions(whileEditingOpt);
+    document.getElementById("headlineForm").innerText = "Add";
+    document.getElementById("eventName").value = "";
+    document.getElementById("myForm").style.display = "block";
+    document.getElementById("eventStartDate").value = getFormattedDate(item.start);
+    document.getElementById("eventEndDate").value = "";
+    parHolder.item = item;
+    parHolder.callback = callback;
+    play = false;
+    range.noUiSlider.set(paus);
+}
+
 
 function setTimelineRange(min, max) {
     var rangeOpt = {
@@ -628,3 +720,6 @@ document.getElementById("btnIncreaseMonth").addEventListener("wheel", scrollOnMo
 document.getElementById("btnIncreaseDay").addEventListener("wheel", scrollOnDay);
 document.getElementById("btnIncreaseHour").addEventListener("wheel", scrollOnHour);
 document.getElementById("btnIncreaseMinute").addEventListener("wheel", scrollOnMinute);
+
+document.getElementById("btnCancel").onclick = closeForm;
+document.getElementById("btnApply").onclick = applyEvent;
