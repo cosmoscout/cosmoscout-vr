@@ -19,8 +19,8 @@ function mouseEnterTimeline (){
     }
 }
 
-function mouseLeaveTimenavigation () {
-    if(!locked) {
+function mouseLeaveTimenavigation (event) {
+    if(!locked && (event.toElement==null || event.toElement.className != "custom-tooltip-container")) {
         document.getElementById('divContainer').classList.remove('visible');
     }
 }
