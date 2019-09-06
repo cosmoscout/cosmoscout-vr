@@ -24,19 +24,19 @@ outlined.
 
 ```javascript
 {
-"startDate": "today",
-"observer": {
-"center": "Earth",
-"frame": "IAU_Earth",
-"distance": 10000000.0,
-"longitude": 11.281067,
-"latitude": 48.086709
-},
-"spiceKernel": "../share/config/spice/simple.txt",
-"widgetScale": 0.6,
-"enableMouseRay": false,
-"anchors": {},
-"plugins": {}
+  "startDate": "today",
+  "observer": {
+    "center": "Earth",
+    "frame": "IAU_Earth",
+    "distance": 10000000.0,
+    "longitude": 11.281067,
+    "latitude": 48.086709
+  },
+  "spiceKernel": "../share/config/spice/simple.txt",
+  "widgetScale": 0.6,
+  "enableMouseRay": false,
+  "anchors": {},
+  "plugins": {}
 }
 ```
 
@@ -59,13 +59,13 @@ emerging from your pointing device.
 Take this as an example:
 ```javascript
 "anchors": {
-"Moon": {
-"center": "Moon",
-"frame": "IAU_Moon",
-"startExistence": "1950-01-02 00:00:00.000",
-"endExistence": "2049-12-31 00:00:00.000"
-},
-...
+  "Moon": {
+    "center": "Moon",
+    "frame": "IAU_Moon",
+    "startExistence": "1950-01-02 00:00:00.000",
+    "endExistence": "2049-12-31 00:00:00.000"
+  },
+  ...
 }
 ```
 Now if you want to attach a simple body or a trajectory to this anchor, the configuration of the respective plugins will
@@ -77,15 +77,15 @@ In the example below, CosmoScout VR will attempt to load a plugin library called
 `../share/plugins/libcsp-simple-bodies.so` (`..\share\plugins\csp-simple-bodies.dll` on Windows).
 ```javascript
 "plugins": {
-"csp-simple-bodies": {
-"bodies": {
-"Moon": {
-"texture": "../share/resources/textures/moon.jpg"
-},
-...
-}
-},
-...
+  "csp-simple-bodies": {
+    "bodies": {
+      "Moon": {
+        "texture": "../share/resources/textures/moon.jpg"
+      },
+      ...
+    }
+  },
+  ...
 }
 ```
 The content of the objects in `"plugins"` is directly passed to the loaded plugin.
@@ -108,16 +108,16 @@ The `"gui"` object defines the size and position of this _virtual screen_.
 As an example, you can have a look at the provided [`simple_vive.json`](../config/base/scene/simple_vive.json) file:
 ```javascript
 "gui": {
-"heightMeter": 1.8,
-"heightPixel": 1200,
-"posXMeter": 0.0,
-"posYMeter": 1.2,
-"posZMeter": -1.0,
-"rotX": 0.0,
-"rotY": 0.0,
-"rotZ": 0.0,
-"widthMeter": 2.4,
-"widthPixel": 1600
+  "heightMeter": 1.8,
+  "heightPixel": 1200,
+  "posXMeter": 0.0,
+  "posYMeter": 1.2,
+  "posZMeter": -1.0,
+  "rotX": 0.0,
+  "rotY": 0.0,
+  "rotZ": 0.0,
+  "widthMeter": 2.4,
+  "widthPixel": 1600
 }
 ```
 
