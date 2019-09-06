@@ -89,7 +89,7 @@
     top: 0px;
   }
 
-  #visualization .vis-custom-time {
+  #visualization .vis-custom-time.custom {
     background-color: #ddf;
     width: 1px;
     cursor: inherit;

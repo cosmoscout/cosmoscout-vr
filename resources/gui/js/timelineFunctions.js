@@ -6,7 +6,7 @@ let minuteInSec = 60;
 let minuteInHours = 0.01666666666666;
 let dayInHours = 24;
 
-let timeId = 0;
+let timeId = 'custom';
 
 let leftTimeId = 'leftTime';
 let rightTimeId = 'rightTime';
@@ -47,10 +47,6 @@ let endOfDay = 24;
 var currentSpeed;
 
 var parHolder = new Object();
-
-
-// Create a DataSet (allows two way data-binding)
-var items;
 
 var timeline;
 var overviewTimeLine;
@@ -121,7 +117,6 @@ var editingDoneOpt = {
     }
 }
 
-
 var animationFalse = {
     animation: false
 };
@@ -161,6 +156,7 @@ timeline.on('changed', timelineChangeCallback);
 timeline.on('mouseDown', mouseDownCallback);
 timeline.on('mouseUp', mouseUpCallback);
 timeline.on('rangechange', rangechangeCallback);
+timeline.on('itemover', itemoverCallback);
 
 //create overview timeline
 overviewTimeLine = new vis.Timeline(overviewContainer, items, overviewOptions);
@@ -176,6 +172,31 @@ initialOverviewWindow(new Date(1950,1), new Date(2030, 12));
 document.getElementById("dateLabel").innerText = formatDateReadable(centerTime);
 
 moveWindow(secSpeed);
+
+function itemoverCallback(properties) {
+    document.getElementById("customTooltip").style.display = "block";
+    for(var item in items._data) {
+        if(items._data[item].id == properties.item) {
+            document.getElementById("itemContent").innerHTML = items._data[item].content;
+            document.getElementById("itemDescription").innerHTML = items._data[item].description;
+            document.getElementById("itemLocation").innerHTML = items._data[item].planet + " " +  items._data[item].place;
+        }
+    }
+    var events = document.getElementsByClassName(properties.item);
+    var event;
+    for(var i=0; i<events.length; i++) {
+        if($(events[i]).hasClass("event")) {
+            event = events[i];
+        }
+    }
+    var eventRect = event.getBoundingClientRect();
+    document.getElementById("customTooltip").style.top = eventRect.top + 'px';
+    document.getElementById("customTooltip").style.left = eventRect.left + 'px';
+}
+
+function leaveCustomTooltip() {
+    document.getElementById("customTooltip").style.display = "none";
+}
 
 function saveItems() {
     var data = items.get({
@@ -357,7 +378,7 @@ function redrawSnipped() {
   }
 
 function tooltip(content) {
-    var events = document.getElementsByClassName('tooltipped');
+    var events = document.getElementsByClassName('event');
     for(var i=0; i<events.length; i++) {
         events[i].setAttribute('data-toggle', 'tooltip');
         events[i].setAttribute('title', content);
@@ -376,9 +397,10 @@ function add_item(start, end, id, content, style, description, planet, place) {
         data.style = style;
     }
     data.planet = planet;
+    data.description = description;
     data.place = place;
     data.content = content;
-    data.className = 'tooltipped';
+    data.className = 'event ' + id;
     items.update(data);
     tooltip(content);
 }
@@ -720,3 +742,5 @@ document.getElementById("btnIncreaseMinute").addEventListener("wheel", scrollOnM
 
 document.getElementById("btnCancel").onclick = closeForm;
 document.getElementById("btnApply").onclick = applyEvent;
+
+document.getElementById("customTooltip").onmouseleave = leaveCustomTooltip;
