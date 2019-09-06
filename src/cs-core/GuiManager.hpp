@@ -113,8 +113,11 @@ class CS_CORE_EXPORT GuiManager {
   /// @param content The name or content of the event.
   /// @param style The optional css of the event.
   /// @param description The description of the event.
-  void addEventToTimenavigationBar(std::string start, std::optional<std::string> end
-    , std::string id, std::string content, std::optional<std::string> style, std::string description);
+  /// @param planet Planet the event is happening on.
+  /// @parama place The location on the planet.
+  void addEventToTimenavigationBar(std::string start, std::optional<std::string> end,
+    std::string id, std::string content, std::optional<std::string> style, std::string description,
+    std::string planet, std::string place);
 
   /// Returns the side bar GuiItem. The side bar is located at the left side of the screen.
   gui::GuiItem* getSideBar() const;

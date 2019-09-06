@@ -255,6 +255,18 @@ void Application::registerSideBarCallbacks() {
 
 void Application::registerTimenavigationBarCallbacks() {
 
+  mGuiManager->getTimeNavigationBar()->registerCallback<std::string, double, double, double>(
+      "fly_to", ([this](std::string const& name, double longitude,
+                    double latitude, double height) {
+        for (auto const& body : mSolarSystem->getBodies()) {
+          if (body->getCenterName() == name) {
+            mSolarSystem->pActiveBody = body;
+            mSolarSystem->flyObserverTo(body->getCenterName(), body->getFrameName(),
+              cs::utils::convert::toRadians(glm::dvec2(longitude, latitude)), height, 10.0);
+          }
+        }
+      }));
+
   mGuiManager->getTimeNavigationBar()->registerCallback("navigate_north_up", [this]() {
     auto observerPos = mSolarSystem->getObserver().getAnchorPosition();
 

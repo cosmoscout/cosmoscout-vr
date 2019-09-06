@@ -37,7 +37,11 @@
       "start": "1974-01-01T04:00:00",
       "end": "1976-05-01T04:30:00",
       "description": "Description item 4",
-      "style": "border-color: yellow"
+      "style": "border-color: yellow",
+      "location": {
+        "planet": "Mars",
+        "place": "Beer"
+      }
     },
     {
       "id": "5",
@@ -51,7 +55,11 @@
       "content": "item 6",
       "start": "2030-01-01T06:00:00",
       "description": "Description item 6",
-      "style": "border-color: yellow"
+      "style": "border-color: yellow",
+      "location": {
+        "planet": "Moon",
+        "place": "Abetti"
+      }
     },
     {
       "id": "7",
@@ -63,9 +71,13 @@
     {
       "id": "8",
       "content": "item 8",
-      "start": "2020-01-01T06:00:00",
+      "start": "2020-01-01T11:00:00",
       "description": "Description item 8",
-      "style": "border-color: orange"
+      "style": "border-color: orange",
+      "location": {
+          "planet": "Earth",
+          "place": "Braunschweig"
+      }
     }
   ],
   "spiceKernel": "../share/config/spice/simple.txt",

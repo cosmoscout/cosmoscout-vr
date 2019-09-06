@@ -237,8 +237,15 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
 
   for (int i = 0; i < settings->mEvents.size(); i++)
   {
+    std::string planet = "";
+    std::string place = "";
+    if(settings->mEvents.at(i).mLocation.has_value()) {
+      planet = settings->mEvents.at(i).mLocation.value().mPlanet;
+      place = settings->mEvents.at(i).mLocation.value().mPlace;
+    }
     addEventToTimenavigationBar(settings->mEvents.at(i).mStart, settings->mEvents.at(i).mEnd, 
-    settings->mEvents.at(i).mId, settings->mEvents.at(i).mContent, settings->mEvents.at(i).mStyle, settings->mEvents.at(i).mDescription);
+    settings->mEvents.at(i).mId, settings->mEvents.at(i).mContent, settings->mEvents.at(i).mStyle, settings->mEvents.at(i).mDescription,
+    planet, place);
   }
   
 }
@@ -471,8 +478,9 @@ void GuiManager::addScriptToSideBarFromJS(std::string const& jsFile) {
   addScriptToSideBar(content);
 }
 
-void GuiManager::addEventToTimenavigationBar(std::string start, std::optional<std::string> end, std::string id, std::string content, std::optional<std::string> style, std::string description) {
-  mTimeNavigationBar->callJavascript("add_item", start, end.value_or(""), id, content, style.value_or(""), description);
+void GuiManager::addEventToTimenavigationBar(std::string start, std::optional<std::string> end, std::string id, std::string content,
+ std::optional<std::string> style, std::string description, std::string planet, std::string place) {
+  mTimeNavigationBar->callJavascript("add_item", start, end.value_or(""), id, content, style.value_or(""), description, planet, place);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

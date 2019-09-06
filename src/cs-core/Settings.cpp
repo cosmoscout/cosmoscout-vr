@@ -48,6 +48,13 @@ void from_json(const nlohmann::json& j, Settings::Observer& o) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void from_json(const nlohmann::json& j, Settings::Location& o) {
+  o.mPlanet    = parseProperty<std::string>("planet", j);
+  o.mPlace     = parseProperty<std::string>("place", j);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void from_json(const nlohmann::json& j, Settings::Event& o) {
   o.mStart    = parseProperty<std::string>("start", j);
   o.mContent  = parseProperty<std::string>("content", j);
@@ -55,6 +62,7 @@ void from_json(const nlohmann::json& j, Settings::Event& o) {
   o.mId       = parseProperty<std::string>("id", j);
   o.mEnd      = parseOptionalSection<std::string>("end", j);
   o.mDescription = parseProperty<std::string>("description", j);
+  o.mLocation = parseOptionalSection<Settings::Location>("location", j);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

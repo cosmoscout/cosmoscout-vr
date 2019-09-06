@@ -233,6 +233,9 @@ function onSelect (properties) {
             var dif = items._data[item].start.getTime() - centerTime.getTime();
             var hoursDif = dif / 1000 / 60 / 60;
             window.call_native("add_hours", hoursDif);
+            if(items._data[item].planet != "") {
+                geo_code(items._data[item].planet, items._data[item].place);
+            }
         }
     }
 }
@@ -265,7 +268,7 @@ function redrawSnipped() {
   }
 
 
-function add_item(start, end, id, content, style, description) {
+function add_item(start, end, id, content, style, description, planet, place) {
     var data = new Object();
     data.start = new Date(start);
     data.id = id;
@@ -275,6 +278,8 @@ function add_item(start, end, id, content, style, description) {
     if(style != "") {
         data.style = style;
     }
+    data.planet = planet;
+    data.place = place;
     data.content = content;
     data.className = 'tooltipped';
     items.update(data);
