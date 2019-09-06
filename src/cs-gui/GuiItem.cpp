@@ -172,13 +172,13 @@ bool GuiItem::calculateMousePosition(int areaX, int areaY, int& x, int& y) {
   int tmpX = areaX - mOffsetX - mPositionX + getWidth() / 2;
   int tmpY = areaY - mOffsetY - mPositionY + getHeight() / 2;
 
+  x = tmpX;
+  y = tmpY;
+
   if (tmpX > mSizeX - 1 || tmpX < 0)
     return false;
   if (tmpY > mSizeY - 1 || tmpY < 0)
     return false;
-
-  x = tmpX;
-  y = tmpY;
 
   return true;
 }
