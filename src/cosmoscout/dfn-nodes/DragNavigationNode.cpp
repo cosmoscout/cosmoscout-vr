@@ -180,8 +180,8 @@ bool DragNavigationNode::DoEvalNode() {
     }
 
     // Only rotate, if no other interactive object is affected
-    if (bPerformRotation && !mInputManager->pHoveredNode.get() &&
-        !mInputManager->pHoveredGuiNode.get()) {
+    if (bPerformRotation && !mInputManager->pActiveNode.get() &&
+        !mInputManager->pActiveGuiNode.get()) {
       // Rotation angle computations:
       glm::dvec3 currentAxis = glm::cross(start_vec, end_vec);
 

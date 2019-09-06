@@ -26,6 +26,7 @@
 class IVistaNode;
 class VistaTransformNode;
 class VistaNodeAdapter;
+class VistaOpenGLNode;
 
 namespace cs::gui {
 class GuiItem;
@@ -51,18 +52,28 @@ class CS_CORE_EXPORT InputManager : public VistaKeyboardSystemControl::IVistaDir
     }
   };
 
-  /// The node that was clicked on last.
+  /// The GuiItem the pointer is currently hovering over is the pHoveredGuiNode. When pButtons[0] is
+  /// pressed while hovering a GuiItem, this GuiItem will become active and selected. Once the
+  /// button is released again, pActiveGuiNode will be nullptr again. As long as a node is active,
+  /// it will stay hovered and receive input events.
+  utils::Property<gui::GuiItem*> pHoveredGuiNode  = nullptr;
+  utils::Property<gui::GuiItem*> pActiveGuiNode   = nullptr;
+  utils::Property<gui::GuiItem*> pSelectedGuiNode = nullptr;
+
+  /// When no GuiItem is hovered, any other IVistaNode which has been registered via
+  /// registerSelectable() may become hovered.
+  /// The GuiItem the pointer is currently hovering over is the pHoveredGuiNode. When pButtons[0] is
+  /// pressed while hovering a GuiItem, this GuiItem will become active and selected. Once the
+  /// button is released again, pActiveGuiNode will be nullptr again. As long as a node is active,
+  /// it will stay hovered and receive input events.
+  utils::Property<IVistaNode*> pHoveredNode  = nullptr;
+  utils::Property<IVistaNode*> pActiveNode   = nullptr;
   utils::Property<IVistaNode*> pSelectedNode = nullptr;
 
-  /// DocTODO not sure what this is for.
-  utils::Property<IVistaNode*> pHoveredNode = nullptr;
-
-  /// The GuiItem the mouse is currently hovering over.
-  utils::Property<gui::GuiItem*> pHoveredGuiNode = nullptr;
-
-  /// The IntersectableObject currently hovered over.
+  /// Regardless of the node state above, this property will always be updated.
   utils::Property<Intersection> pHoveredObject;
 
+  /// Contains the state of the buttons of your input device.
   std::array<utils::Property<bool>, 8> pButtons;
 
   /// Emits an event when the escape key is pressed.
@@ -106,6 +117,8 @@ class CS_CORE_EXPORT InputManager : public VistaKeyboardSystemControl::IVistaDir
   std::unordered_set<gui::ScreenSpaceGuiArea*>                    mScreenSpaceGuis;
   VistaTransformNode*                                             mRayTrans;
   boost::posix_time::ptime                                        mClickTime;
+
+  VistaOpenGLNode* mActiveWorldSpaceGuiNode;
 };
 
 } // namespace cs::core

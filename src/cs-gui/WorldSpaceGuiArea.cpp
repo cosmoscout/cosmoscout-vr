@@ -168,10 +168,11 @@ bool WorldSpaceGuiArea::calculateMousePosition(
     return false;
   }
 
+  x = (int)((intersection[0] + 0.5) * mWidth);
+  y = (int)((-intersection[1] + 0.5) * mHeight);
+
   if (intersection[0] >= -0.5f && intersection[0] <= 0.5f && intersection[1] >= -0.5f &&
       intersection[1] <= 0.5f) {
-    x = (int)((intersection[0] + 0.5) * mWidth);
-    y = (int)((-intersection[1] + 0.5) * mHeight);
     return true;
   }
 
