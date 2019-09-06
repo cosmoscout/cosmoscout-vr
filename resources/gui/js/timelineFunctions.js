@@ -232,9 +232,12 @@ function travelToItemLocation() {
     geo_code(hoveredItem.planet, hoveredItem.place);
 }
 
-function leaveCustomTooltip() {
+function leaveCustomTooltip(event) {
     document.getElementById("customTooltip").style.display = "none";
     tooltipVisible = false;
+    if(event.toElement == null) {
+        mouseLeaveTimenavigation(event);
+    }
 }
 
 function saveItems() {
