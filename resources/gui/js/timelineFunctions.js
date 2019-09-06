@@ -1,6 +1,3 @@
-
-var play = true;
-
 let monthInSec = 2628000;
 let dayInSec = 86400;
 let hourInSec =  3600;
@@ -475,7 +472,6 @@ function minusOneYear() {
 
 
 function moveWindow(seconds) {
-    play = true;
     var step;
     step = convertSeconds(seconds * timelineRangeFactor);
     var startDate = new Date(centerTime.getTime());
@@ -536,14 +532,13 @@ function setPaus() {
     window.call_native("set_time_speed", 0);
     document.getElementById("btnPaus").innerHTML = '<i class="material-icons">play_arrow</i>';
     document.getElementsByClassName("range-label")[0].innerHTML = '<i class="material-icons">pause</i>';
-    play = false;
     timeline.setOptions(pausOpt);
     timelineZoomBlocked = false;
     startRedrawSnipped();
 }
 
 function togglePaus() {
-    if(play) {
+    if(currentSpeed != paus) {
         lastPlayValue = range.noUiSlider.get();;
         setPaus();
     } else {
