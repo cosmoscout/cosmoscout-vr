@@ -69,6 +69,8 @@
     height: 40px !important;
     top: -10px !important;
     pointer-events: none;
+    border-left-style: hidden;
+    border-right-style: hidden;
   }
   #visualization .vis-text.vis-major {
     top: 17px !important;
