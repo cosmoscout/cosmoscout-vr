@@ -173,6 +173,8 @@ document.getElementById("dateLabel").innerText = formatDateReadable(centerTime);
 
 moveWindow(secSpeed);
 
+var hoveredItem;
+
 function itemoverCallback(properties) {
     document.getElementById("customTooltip").style.display = "block";
     for(var item in items._data) {
@@ -180,6 +182,7 @@ function itemoverCallback(properties) {
             document.getElementById("itemContent").innerHTML = items._data[item].content;
             document.getElementById("itemDescription").innerHTML = items._data[item].description;
             document.getElementById("itemLocation").innerHTML = items._data[item].planet + " " +  items._data[item].place;
+            hoveredItem = items._data[item];
         }
     }
     var events = document.getElementsByClassName(properties.item);
@@ -192,6 +195,10 @@ function itemoverCallback(properties) {
     var eventRect = event.getBoundingClientRect();
     document.getElementById("customTooltip").style.top = eventRect.top + 'px';
     document.getElementById("customTooltip").style.left = eventRect.left + 'px';
+}
+
+function travelToItemLocation() {
+    geo_code(hoveredItem.planet, hoveredItem.place);
 }
 
 function leaveCustomTooltip() {
@@ -343,9 +350,6 @@ function onSelect (properties) {
             var dif = items._data[item].start.getTime() - centerTime.getTime();
             var hoursDif = dif / 1000 / 60 / 60;
             window.call_native("add_hours", hoursDif);
-            if(items._data[item].planet != "") {
-                geo_code(items._data[item].planet, items._data[item].place);
-            }
         }
     }
 }
@@ -723,6 +727,8 @@ document.getElementById("btnDecreaseYear").onclick = minusOneYear;
 document.getElementById("btnPaus").onclick = togglePaus;
 document.getElementById("btnDecreaseSpeed").onclick = decreaseSpeed;
 document.getElementById("btnIncreaseSpeed").onclick = increaseSpeed;
+
+document.getElementById("itemLocation").onclick = travelToItemLocation;
 
 document.getElementById("divContainer").addEventListener("mouseup", mouseUpCallback);
 
