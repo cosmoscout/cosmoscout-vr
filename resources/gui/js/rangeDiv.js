@@ -16,7 +16,7 @@ function drawDiv() {
     divElement.style.top = (leftRect.top+offset) + 'px';
 
     let height = leftRect.bottom - leftRect.top - shorten;
-    let width = rightRect.right - leftRect.left;
+    var width = rightRect.right - leftRect.left;
 
     var xValue = 0;
     if(width < minWidth) {
@@ -32,14 +32,17 @@ function drawDiv() {
 
     divElement = document.getElementById("leftSnippet");
     divElement.style.top = (leftRect.top+offset+height) + 'px';
-    divElement.style.width = (leftRect.right+xValue+borderWidth) + 'px';
-
+    width = leftRect.right+xValue+borderWidth;
+    width = width < 0 ? 0 : width;
+    divElement.style.width = width + 'px';
     var body = document.getElementsByTagName("body")[0];
     var bodyRect = body.getBoundingClientRect();
 
     divElement = document.getElementById("rightSnippet");
     divElement.style.top = (leftRect.top+offset+height) + 'px';
-    divElement.style.width = (bodyRect.right-rightRect.right+xValue+1) + 'px';
+    width = bodyRect.right-rightRect.right+xValue+1;
+    width = width < 0 ? 0 : width;
+    divElement.style.width = width + 'px';
   }
 
 drawDivCallback = drawDiv;
