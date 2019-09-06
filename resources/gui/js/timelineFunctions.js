@@ -214,7 +214,6 @@ function applyEvent() {
 }
 
 function onUpdateCallback(item, callback) {
-    play = false;
     timeline.setOptions(whileEditingOpt);
     document.getElementById("headlineForm").innerText = "Update";
     document.getElementById("myForm").style.display = "block";
@@ -227,12 +226,10 @@ function onUpdateCallback(item, callback) {
     }
     parHolder.item = item;
     parHolder.callback = callback;
-    play = false;
-    range.noUiSlider.set(paus);
+    setPaus();
 }
 
 function onAddCallback(item, callback) {
-    play = false;
     timeline.setOptions(whileEditingOpt);
     document.getElementById("headlineForm").innerText = "Add";
     document.getElementById("eventName").value = "";
@@ -241,8 +238,7 @@ function onAddCallback(item, callback) {
     document.getElementById("eventEndDate").value = "";
     parHolder.item = item;
     parHolder.callback = callback;
-    play = false;
-    range.noUiSlider.set(paus);
+    setPaus();
 }
 
 
