@@ -6,6 +6,21 @@ rem      and may be used under the terms of the MIT license. See the LICENSE fil
 rem                         Copyright: (c) 2019 German Aerospace Center (DLR)                      #
 rem ---------------------------------------------------------------------------------------------- #
 
+rem ---------------------------------------------------------------------------------------------- #
+rem Usage:                                                                                         #
+rem    make_debug.bat [additional CMake flags, defaults to -G "Visual Studio 15 Win64"]            #
+rem Examples:                                                                                      #
+rem    make_debug.bat                                                                              #
+rem    make_debug.bat -G "Visual Studio 15 Win64"                                                  #
+rem    make_debug.bat -G "Visual Studio 16 2019" -A x64                                            #
+rem ---------------------------------------------------------------------------------------------- #
+
+rem The CMake generator and other flags can be passed as parameters.
+set CMAKE_FLAGS=-G "Visual Studio 15 Win64"
+IF NOT "%*"=="" (
+  SET CMAKE_FLAGS=%*
+)
+
 rem create some required variables -----------------------------------------------------------------
 
 rem This directory should contain the top-level CMakeLists.txt - it is assumed to reside in the same
@@ -33,7 +48,7 @@ if exist "%BUILD_DIR%" goto BUILD_DIR_CREATED
 rem configure, compile & install -------------------------------------------------------------------
 
 cd "%BUILD_DIR%"
-cmake -G "Visual Studio 15 Win64" -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
+cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
       -DCOSMOSCOUT_EXTERNALS_DIR="%EXTERNALS_INSTALL_DIR%"^
       -DCMAKE_EXPORT_COMPILE_COMMANDS=On "%CMAKE_DIR%"
 
