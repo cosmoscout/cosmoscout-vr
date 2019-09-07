@@ -50,16 +50,15 @@ echo Downloading, building and installing GLEW ...
 echo.
 
 cmake -E make_directory "%BUILD_DIR%/glew/extracted" && cd "%BUILD_DIR%/glew"
-powershell.exe -command Invoke-WebRequest -Uri https://netcologne.dl.sourceforge.net/project/glew/glew/2.1.0/glew-2.1.0.zip -OutFile glew-2.1.0.zip
+powershell.exe -command Invoke-WebRequest -Uri https://netcologne.dl.sourceforge.net/project/glew/glew/2.1.0/glew-2.1.0-win32.zip -OutFile glew-2.1.0-win32.zip
 
 cd "%BUILD_DIR%/glew/extracted"
-cmake -E tar xfvj ../glew-2.1.0.zip
+cmake -E tar xfvj ../glew-2.1.0-win32.zip
 cd ..
 
-cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
-      -DCMAKE_INSTALL_LIBDIR=lib^
-      "%BUILD_DIR%/glew/extracted/glew-2.1.0/build/cmake" || exit /b
-cmake --build . --config Release --target install --parallel 8 || exit /b
+cmake -E copy_directory "%BUILD_DIR%/glew/extracted/glew-2.1.0/include"         "%INSTALL_DIR%/include" || exit /b
+cmake -E copy_directory "%BUILD_DIR%/glew/extracted/glew-2.1.0/lib/Release/x64" "%INSTALL_DIR%/lib"     || exit /b
+cmake -E copy_directory "%BUILD_DIR%/glew/extracted/glew-2.1.0/bin/Release/x64" "%INSTALL_DIR%/bin"     || exit /b
 
 rem freeglut ---------------------------------------------------------------------------------------
 
