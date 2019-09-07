@@ -19,7 +19,7 @@
 
 * The software has been made citable by registering a DOI on zenodo.org.
 * This changelog has been created.
-* Release management using Github Projects has been set up.
+* Release management using Github Milestones has been set up.
 * A Code of Conduct has been created.
 * A guide on where to submit issues has been created.
 * Issue templates have been added.
