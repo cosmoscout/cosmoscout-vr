@@ -17,7 +17,7 @@ rem ----------------------------------------------------------------------------
 
 rem The CMake generator and other flags can be passed as parameters.
 set CMAKE_FLAGS=-G "Visual Studio 15 Win64"
-IF NOT "%*"=="" (
+IF NOT "%~1"=="" (
   SET CMAKE_FLAGS=%*
 )
 
