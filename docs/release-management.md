@@ -5,8 +5,10 @@
 # Releases of CosmoScout VR
 
 Releases are [published on Github](https://github.com/cosmoscout/cosmoscout-vr/releases).
-The progress of future releases is tracked with [Github projects](https://github.com/cosmoscout/cosmoscout-vr/projects).
+The progress of future releases is tracked with [Github Milestones](https://github.com/cosmoscout/cosmoscout-vr/milestones).
 Submitted [issues](https://github.com/cosmoscout/cosmoscout-vr/issues) will be assigned to a specific release (depending on their importance and complexity).
+
+[Github Projects](https://github.com/cosmoscout/cosmoscout-vr/projects) will be used for high-level planning of complex features, such as network synchronization or photorealistic HDR rendering.
 
 ## Version Numbers
 
