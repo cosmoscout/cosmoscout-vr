@@ -49,8 +49,7 @@ rem configure, compile & install -----------------------------------------------
 
 cd "%BUILD_DIR%"
 cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
-      -DCOSMOSCOUT_EXTERNALS_DIR="%EXTERNALS_INSTALL_DIR%"^
-      -DCMAKE_EXPORT_COMPILE_COMMANDS=On "%CMAKE_DIR%"
+      -DCOSMOSCOUT_EXTERNALS_DIR="%EXTERNALS_INSTALL_DIR%" "%CMAKE_DIR%"
 
 cmake --build . --config Release --target install --parallel 8 || exit /b
 
