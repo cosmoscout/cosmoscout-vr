@@ -62,6 +62,26 @@ You can also read the [**changelog**](docs/changelog.md) to learn what's new in 
   - [X] Anaglyph stereo systems
   - [ ] Game Pads like the X-Box controller
 
+# Getting Started
+
+<p align="center"> 
+  <img src ="docs/img/banner-light-shafts.jpg" />
+</p>
+
+:warning: _**Warning:** CosmoScout VR is research software which is still under heavy development and changes on a daily basis.
+Many features are badly documented, it will crash without warning and may do other unexpected things.
+We are working hard on improving the user experience - please [report all issues and suggestions](https://github.com/cosmoscout/cosmoscout-vr/issues) you have!_
+
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/cosmoscout/cosmoscout-vr)](https://github.com/cosmoscout/cosmoscout-vr/releases)
+[![Commits since latest release](https://img.shields.io/github/commits-since/cosmoscout/cosmoscout-vr/latest/develop)](https://github.com/cosmoscout/cosmoscout-vr/commits/develop)
+[![GitHub issues](https://img.shields.io/github/issues-raw/cosmoscout/cosmoscout-vr)](https://github.com/cosmoscout/cosmoscout-vr/issues)
+[![GitHub issues](https://img.shields.io/github/issues-closed-raw/cosmoscout/cosmoscout-vr)](https://github.com/cosmoscout/cosmoscout-vr/issues?q=is%3Aissue+is%3Aclosed)
+
+For now, no binary packages of CosmoScout VR are provided.
+If you want to test or use the software, you have to compile it yourself.
+You can use the latest `develop` branch, as it may already contain some fixes for issues you are experiencing.
+This is actually quite easy as there are several guides in the **[`docs`](docs)** directory to get you started!
+
 # Plugins for CosmoScout VR
 
 CosmoScout VR can be extended via plugins.
@@ -80,26 +100,6 @@ Official Plugins | Description | Screenshot
 [csp-simple-bodies](https://github.com/cosmoscout/csp-simple-bodies) | Renders simple spherical celestial bodies. The bodies are drawn as an ellipsoid with an equirectangular texture. | ![screenshot](docs/img/csp-simple-bodies.jpg)
 [csp-stars](https://github.com/cosmoscout/csp-stars) | Draws 3D-stars loaded from catalogues. For now Tycho, Tycho2 and the Hipparcos catalogue are supported. | ![screenshot](docs/img/csp-stars.jpg)
 [csp-trajectories](https://github.com/cosmoscout/csp-trajectories) | Draws trajectories of celestial bodies and spacecrafts based on SPICE. The color, length, number of samples and the reference frame can be configured. | ![screenshot](docs/img/csp-trajectories.jpg)
-
-# Getting Started
-
-<p align="center"> 
-  <img src ="docs/img/banner-light-shafts.jpg" />
-</p>
-
-:warning: _**Warning:** CosmoScout VR is research software which is still under heavy development and changes on a daily basis.
-Many features are badly documented, it will crash without warning and may do other unexpected things.
-We are working hard on improving the user experience - please [report all issues and suggestions](https://github.com/cosmoscout/cosmoscout-vr/issues) you have!_
-
-There are several guides in the **[`docs`](docs)** directory to get you started!
-
-# How to cite CosmoScout VR
-
-If you use CosmoScout VR in your scientific work, please use the DOI of the version you are currently using.
-The DOI of each release is shown on the [releases page](https://github.com/cosmoscout/cosmoscout-vr/releases).
-With the link below you can export a citation in many different formats.
-
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3381953.svg)](https://doi.org/10.5281/zenodo.3381953)
 
 # License
 
