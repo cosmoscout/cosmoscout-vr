@@ -292,6 +292,9 @@ function onUpdateCallback(item, callback) {
     document.getElementById("myForm").style.display = "block";
     document.getElementById("eventName").value = item.content;
     document.getElementById("eventStartDate").value = getFormattedDate(item.start);
+    document.getElementById("descriptionInput").value = item.description; 
+    document.getElementById("planetInput").value = item.planet; 
+    document.getElementById("placeInput").value = item.place; 
     if(item.end) {
         document.getElementById("eventEndDate").value = getFormattedDate(item.end);
     } else {
@@ -309,6 +312,9 @@ function onAddCallback(item, callback) {
     document.getElementById("myForm").style.display = "block";
     document.getElementById("eventStartDate").value = getFormattedDate(item.start);
     document.getElementById("eventEndDate").value = "";
+    document.getElementById("descriptionInput").value = ""; 
+    document.getElementById("planetInput").value = ""; 
+    document.getElementById("placeInput").value = ""; 
     parHolder.item = item;
     parHolder.callback = callback;
     setPaus();
