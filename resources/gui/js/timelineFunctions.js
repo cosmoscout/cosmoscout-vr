@@ -269,10 +269,8 @@ function applyEvent() {
         if(document.getElementById("eventEndDate").value != "") {
             parHolder.item.end = new Date(document.getElementById("eventEndDate").value); 
         }
-        if(document.getElementById("planetInput").value != "") {
-            parHolder.item.planet = document.getElementById("planetInput").value; 
-            parHolder.item.place = document.getElementById("placeInput").value; 
-        }
+        parHolder.item.planet = document.getElementById("planetInput").value; 
+        parHolder.item.place = document.getElementById("placeInput").value; 
         if(parHolder.item.id == null) {
             parHolder.item.id = parHolder.item.content + parHolder.item.start + parHolder.item.end;
             parHolder.item.id = parHolder.item.id.replace(/\s/g,'');
