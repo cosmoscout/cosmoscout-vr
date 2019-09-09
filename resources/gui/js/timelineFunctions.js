@@ -262,7 +262,7 @@ function applyEvent() {
         parHolder.item.style = "border-color: " + document.getElementById("eventColor").value;
         parHolder.item.content = document.getElementById("eventName").value;
         parHolder.item.start = new Date(document.getElementById("eventStartDate").value);
-        parHolder.item.className = 'tooltipped';
+        parHolder.item.className = 'event ' + parHolder.item.id;
         if(document.getElementById("eventEndDate").value != "") {
             parHolder.item.end = new Date(document.getElementById("eventEndDate").value);
             
