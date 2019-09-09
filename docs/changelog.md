@@ -10,6 +10,8 @@
 
 * If built from the git source tree, the current branch and commit hash is shown on the loading screen.
 * If there are errors in the scene configuration file, detailed error information is now printed to the console.
+* Selection management in the user interface has been improved significantly: 
+When the left mouse button is pressed over an item, this item will receive input events until the mouse button is released regardless of the mouse position on the screen.
 * The user interface now uses bootstrap instead of materializecss. This makes the code easier to maintain and more future proof.
 * Scene and ViSTA configuration files can now be passed as arguments to the Windows start script.
 * The make_* scripts now support passing arguments to CMake.
@@ -24,7 +26,7 @@
 * A guide on where to submit issues has been created.
 * Issue templates have been added.
 * Some documentation regarding ViSTA configuration has been added.
-* Selection management in the user interface has been improved: When the left mouse button is pressed over an item, this item will receive input events until the mouse button is released regardless of the mouse position on the screen.
+* Line endings in the repository are now handled properly by git.
 * Most shaders now require only GLSL `#version 330`, only a few related to physically based rendering require up to `#version 450`.
 * No shaders require `compatibility` mode anymore.
 * The external submodules use absolute URLs now. Hence it is now possible to mirror the repository to other services (such as gitlab.com).
