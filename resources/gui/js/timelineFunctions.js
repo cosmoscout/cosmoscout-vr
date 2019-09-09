@@ -615,13 +615,12 @@ function setPaus() {
 
 function togglePaus() {
     if(currentSpeed != paus) {
-        lastPlayValue = range.noUiSlider.get();;
         setPaus();
     } else {
         if(lastPlayValue == paus) {
             lastPlayValue = secForw;
         }
-        range.noUiSlider.set(parseInt(lastPlayValue));
+        rangeUpdateCallback();
     }
 }
 
