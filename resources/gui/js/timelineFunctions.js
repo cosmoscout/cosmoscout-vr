@@ -176,15 +176,15 @@ moveWindow(secSpeed);
 
 function redrawTooltip(event) {
     return new Promise(resolve => {
-    if(tooltipVisible) {
         var eventRect = event.getBoundingClientRect();
         document.getElementById("customTooltip").style.top = eventRect.bottom + 'px';
         document.getElementById("customTooltip").style.left = eventRect.left + 'px';
-    }
 
     setTimeout(function() {
         resolve(10);
-        redrawTooltip(event);
+        if(tooltipVisible) {
+            redrawTooltip(event);
+        }
         }, redrawRate);
     });
   }
