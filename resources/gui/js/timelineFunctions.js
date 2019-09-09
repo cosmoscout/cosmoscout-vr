@@ -177,7 +177,7 @@ moveWindow(secSpeed);
 function redrawTooltip(event) {
     return new Promise(resolve => {
         var eventRect = event.getBoundingClientRect();
-        var left = eventRect.left < 0 ? 0 : eventRect.left;
+        var left = eventRect.left-150 < 0 ? 0 : eventRect.left-150;
         document.getElementById("customTooltip").style.top = eventRect.bottom + 'px';
         document.getElementById("customTooltip").style.left = left + 'px';
 
@@ -215,7 +215,7 @@ function itemoverCallback(properties) {
         }
     }
     var eventRect = event.getBoundingClientRect();
-    var left = eventRect.left < 0 ? 0 : eventRect.left;
+    var left = eventRect.left-150 < 0 ? 0 : eventRect.left-150;
     document.getElementById("customTooltip").style.top = eventRect.bottom + 'px';
     document.getElementById("customTooltip").style.left = left + 'px';
     if(currentSpeed != paus) {

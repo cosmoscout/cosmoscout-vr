@@ -8,8 +8,13 @@
     width: 300px;
     padding: 10px;
     background-color: rgba(20, 20, 20, 0.8);
+    border: 2px solid #ddf;
+    border-radius: 10px;
 }
 
+.custom-tooltip-container h3 {
+    text-align: center;
+}
 
 #itemLocation {
     cursor: pointer;
