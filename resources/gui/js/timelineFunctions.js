@@ -267,8 +267,10 @@ function applyEvent() {
         if(document.getElementById("eventEndDate").value != "") {
             parHolder.item.end = new Date(document.getElementById("eventEndDate").value); 
         }
-        parHolder.item.id = parHolder.item.content + parHolder.item.start + parHolder.item.end;
-        parHolder.item.id = parHolder.item.id.replace(/\s/g,'');
+        if(parHolder.item.id == null) {
+            parHolder.item.id = parHolder.item.content + parHolder.item.start + parHolder.item.end;
+            parHolder.item.id = parHolder.item.id.replace(/\s/g,'');
+        }
         parHolder.item.className = 'event ' + parHolder.item.id;
         parHolder.callback(parHolder.item); // send back adjusted new item
         document.getElementById("myForm").style.display = "none";
@@ -433,7 +435,7 @@ function add_item(start, end, id, content, style, description, planet, place) {
     data.start = new Date(start);
     data.id = id;
     if(end != "") {
-        data.end = end;
+        data.end = new Date(end);
     }
     if(style != "") {
         data.style = style;
