@@ -259,7 +259,7 @@ function closeForm() {
 function applyEvent() {  
     if (document.getElementById("eventName").value != ""
     && document.getElementById("eventStartDate").value != "") {
-        parHolder.item.style = "background-color: " + document.getElementById("eventColor").value;
+        parHolder.item.style = "border-color: " + document.getElementById("eventColor").value;
         parHolder.item.content = document.getElementById("eventName").value;
         parHolder.item.start = new Date(document.getElementById("eventStartDate").value);
         parHolder.item.className = 'tooltipped';
