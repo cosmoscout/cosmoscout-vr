@@ -260,12 +260,18 @@ function closeForm() {
 
 function applyEvent() {  
     if (document.getElementById("eventName").value != ""
-    && document.getElementById("eventStartDate").value != "") {
+    && document.getElementById("eventStartDate").value != ""
+    && document.getElementById("descriptionInput").value != "") {
         parHolder.item.style = "border-color: " + document.getElementById("eventColor").value;
         parHolder.item.content = document.getElementById("eventName").value;
         parHolder.item.start = new Date(document.getElementById("eventStartDate").value);
+        parHolder.item.description = document.getElementById("descriptionInput").value;
         if(document.getElementById("eventEndDate").value != "") {
             parHolder.item.end = new Date(document.getElementById("eventEndDate").value); 
+        }
+        if(document.getElementById("planetInput").value != "") {
+            parHolder.item.planet = document.getElementById("planetInput").value; 
+            parHolder.item.place = document.getElementById("placeInput").value; 
         }
         if(parHolder.item.id == null) {
             parHolder.item.id = parHolder.item.content + parHolder.item.start + parHolder.item.end;
