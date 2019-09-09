@@ -9,3 +9,12 @@
     padding: 10px;
     background-color: rgba(20, 20, 20, 0.8);
 }
+
+
+#itemLocation {
+    cursor: pointer;
+}
+
+#itemLocation:hover {
+    text-shadow: 0 0 20px #fff;
+}
