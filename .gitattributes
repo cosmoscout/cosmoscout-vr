@@ -8,6 +8,7 @@
 *.sh  text eol=lf
 *.bat text eol=crlf
 
+# Ignore some javascript files while computing the repository's most used languages on Github.
 resources/gui/third-party/* linguist-vendored
 resources/gui/js/moon.js linguist-vendored
 resources/gui/js/mars.js linguist-vendored
