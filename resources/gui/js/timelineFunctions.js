@@ -262,11 +262,12 @@ function applyEvent() {
         parHolder.item.style = "border-color: " + document.getElementById("eventColor").value;
         parHolder.item.content = document.getElementById("eventName").value;
         parHolder.item.start = new Date(document.getElementById("eventStartDate").value);
-        parHolder.item.className = 'event ' + parHolder.item.id;
         if(document.getElementById("eventEndDate").value != "") {
-            parHolder.item.end = new Date(document.getElementById("eventEndDate").value);
-            
+            parHolder.item.end = new Date(document.getElementById("eventEndDate").value); 
         }
+        parHolder.item.id = parHolder.item.content + parHolder.item.start + parHolder.item.end;
+        parHolder.item.id = parHolder.item.id.replace(/\s/g,'');
+        parHolder.item.className = 'event ' + parHolder.item.id;
         parHolder.callback(parHolder.item); // send back adjusted new item
         document.getElementById("myForm").style.display = "none";
         timeline.setOptions(editingDoneOpt);
