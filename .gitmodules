@@ -64,3 +64,6 @@
 [submodule "plugins/csp-atmospheres"]
 	path = plugins/csp-atmospheres
 	url = ../../cosmoscout/csp-atmospheres.git
+[submodule "plugins/csp-vestec"]
+	path = plugins/csp-vestec
+	url = https://github.com/cosmoscout/csp-vestec.git
