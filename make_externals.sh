@@ -11,6 +11,8 @@ set -e
 
 # ------------------------------------------------------------------------------------------------ #
 # Make sure to run "git submodule update --init" before executing this script!                     #
+# Default build mode is release, if "export COSMOSCOUT_DEBUG_BUILD=true" is executed before, all   #
+# dependecies will be built in debug mode.                                                         #
 # Usage:                                                                                           #
 #    ./make_externals.sh [additional CMake flags, defaults to -G "Eclipse CDT4 - Unix Makefiles"]  #
 # Examples:                                                                                        #
@@ -20,13 +22,19 @@ set -e
 #                        -DCMAKE_C_COMPILER_LAUNCHER=ccache                                        #
 # ------------------------------------------------------------------------------------------------ #
 
+# Create some required variables. ------------------------------------------------------------------
+
 # The CMake generator and other flags can be passed as parameters.
 CMAKE_FLAGS=(-G "Eclipse CDT4 - Unix Makefiles")
 if [ $# -ne 0 ]; then
   CMAKE_FLAGS=( "$@" )
 fi
 
-# Create some required variables. ------------------------------------------------------------------
+# Check if ComoScout VR debug build is enabled with "export COSMOSCOUT_DEBUG_BUILD=true".
+BUILD_TYPE=release
+case "$COSMOSCOUT_DEBUG_BUILD" in
+  (true) echo "CosmoScout VR debug build is enabled!"; BUILD_TYPE=debug;;
+esac
 
 # This directory should contain all submodules - they are assumed to reside in the subdirectory 
 # "externals" next to this script.
@@ -36,10 +44,10 @@ EXTERNALS_DIR="$( cd "$( dirname "$0" )" && pwd )/externals"
 CURRENT_DIR="$(pwd)"
 
 # The build directory.
-BUILD_DIR="$CURRENT_DIR/build/linux-externals"
+BUILD_DIR="$CURRENT_DIR/build/linux-externals-$BUILD_TYPE"
 
 # The install directory.
-INSTALL_DIR="$CURRENT_DIR/install/linux-externals"
+INSTALL_DIR="$CURRENT_DIR/install/linux-externals-$BUILD_TYPE"
 
 # Create some default installation directories.
 cmake -E make_directory "$INSTALL_DIR/lib"
@@ -62,8 +70,13 @@ cd ..
 
 cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
       -DCMAKE_INSTALL_LIBDIR=lib \
-      -DCMAKE_BUILD_TYPE=Release "$BUILD_DIR/glew/extracted/glew-2.1.0/build/cmake"
+      -DCMAKE_BUILD_TYPE=$BUILD_TYPE "$BUILD_DIR/glew/extracted/glew-2.1.0/build/cmake"
 cmake --build . --target install --parallel 8
+
+# ViSTA expects glew library to be called libGLEW.so
+case "$COSMOSCOUT_DEBUG_BUILD" in
+  (true) cp $INSTALL_DIR/lib/libGLEWd.so $INSTALL_DIR/lib/libGLEW.so;;
+esac
 
 # freeglut -----------------------------------------------------------------------------------------
 
@@ -74,7 +87,7 @@ echo ""
 cmake -E make_directory "$BUILD_DIR/freeglut" && cd "$BUILD_DIR/freeglut"
 cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
       -DCMAKE_INSTALL_LIBDIR=lib \
-      -DCMAKE_BUILD_TYPE=Release "$EXTERNALS_DIR/freeglut/freeglut/freeglut"
+      -DCMAKE_BUILD_TYPE=$BUILD_TYPE "$EXTERNALS_DIR/freeglut/freeglut/freeglut"
 cmake --build . --target install --parallel 8
 
 cmake -E copy_directory "$EXTERNALS_DIR/freeglut/freeglut/freeglut/include/GL" \
@@ -88,7 +101,7 @@ echo ""
 
 cmake -E make_directory "$BUILD_DIR/c-ares" && cd "$BUILD_DIR/c-ares"
 cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
-      -DCMAKE_BUILD_TYPE=Release "$EXTERNALS_DIR/c-ares"
+      -DCMAKE_BUILD_TYPE=$BUILD_TYPE "$EXTERNALS_DIR/c-ares"
 cmake --build . --target install --parallel 8
 
 # curl ---------------------------------------------------------------------------------------------
@@ -99,7 +112,7 @@ echo ""
 
 cmake -E make_directory "$BUILD_DIR/curl" && cd "$BUILD_DIR/curl"
 cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
-      -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF -DBUILD_CURL_EXE=OFF -DENABLE_ARES=ON \
+      -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DBUILD_TESTING=OFF -DBUILD_CURL_EXE=OFF -DENABLE_ARES=ON \
       -DCARES_INCLUDE_DIR="$INSTALL_DIR/include" \
       -DCARES_LIBRARY="$INSTALL_DIR/lib/libcares.so" \
       -DCMAKE_INSTALL_LIBDIR=lib \
@@ -112,12 +125,17 @@ echo ""
 echo "Building and installing curlpp ..."
 echo ""
 
+CURL_LIB="libcurl.so"
+case "$COSMOSCOUT_DEBUG_BUILD" in
+  (true) CURL_LIB="libcurl-d.so";;
+esac
+
 cmake -E make_directory "$BUILD_DIR/curlpp" && cd "$BUILD_DIR/curlpp"
 cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
       -DCURL_INCLUDE_DIR="$INSTALL_DIR/include" \
-      -DCURL_LIBRARY="$INSTALL_DIR/lib/libcurl.so" \
+      -DCURL_LIBRARY="$INSTALL_DIR/lib/$CURL_LIB" \
       -DCMAKE_INSTALL_LIBDIR=lib \
-      -DCMAKE_BUILD_TYPE=Release "$EXTERNALS_DIR/curlpp"
+      -DCMAKE_BUILD_TYPE=$BUILD_TYPE "$EXTERNALS_DIR/curlpp"
 cmake --build . --target install --parallel 8
 
 # libtiff ------------------------------------------------------------------------------------------
@@ -129,7 +147,7 @@ echo ""
 cmake -E make_directory "$BUILD_DIR/libtiff" && cd "$BUILD_DIR/libtiff"
 cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
       -DCMAKE_INSTALL_FULL_LIBDIR=lib \
-      -DCMAKE_BUILD_TYPE=Release "$EXTERNALS_DIR/libtiff"
+      -DCMAKE_BUILD_TYPE=$BUILD_TYPE "$EXTERNALS_DIR/libtiff"
 cmake --build . --target install --parallel 8
 
 # gli ----------------------------------------------------------------------------------------------
@@ -168,7 +186,7 @@ echo ""
 cmake -E make_directory "$BUILD_DIR/opensg-1.8" && cd "$BUILD_DIR/opensg-1.8"
 cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
       -DGLUT_INCLUDE_DIR="$INSTALL_DIR/include" -DGLUT_LIBRARY="$INSTALL_DIR/lib/libglut.so" \
-      -DOPENSG_BUILD_TESTS=Off -DCMAKE_BUILD_TYPE=Release "$EXTERNALS_DIR/opensg-1.8"
+      -DOPENSG_BUILD_TESTS=Off -DCMAKE_BUILD_TYPE=$BUILD_TYPE "$EXTERNALS_DIR/opensg-1.8"
 cmake --build . --target install --parallel 8
 
 # vista --------------------------------------------------------------------------------------------
@@ -180,7 +198,7 @@ echo ""
 cmake -E make_directory "$BUILD_DIR/vista" && cd "$BUILD_DIR/vista"
 cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
       -DCMAKE_CXX_FLAGS="-std=c++11" -DVISTADRIVERS_BUILD_3DCSPACENAVIGATOR=On \
-      -DVISTADEMO_ENABLED=Off -DCMAKE_BUILD_TYPE=Release -DOPENSG_ROOT_DIR="$INSTALL_DIR" \
+      -DVISTADEMO_ENABLED=Off -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DOPENSG_ROOT_DIR="$INSTALL_DIR" \
       "$EXTERNALS_DIR/vista"
 cmake --build . --target install --parallel 8
 
@@ -217,14 +235,14 @@ cd ..
 
 cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
       -DCEF_COMPILER_FLAGS="-Wno-undefined-var-template" \
-      -DCMAKE_BUILD_TYPE=Release "$BUILD_DIR/cef/extracted/$CEF_VERSION"
+      -DCMAKE_BUILD_TYPE=$BUILD_TYPE "$BUILD_DIR/cef/extracted/$CEF_VERSION"
 cmake --build . --parallel 8
 
 cmake -E make_directory "$INSTALL_DIR/include/cef"
-cmake -E copy_directory "$BUILD_DIR/cef/extracted/$CEF_VERSION/include"   "$INSTALL_DIR/include/cef/include"
-cmake -E copy_directory "$BUILD_DIR/cef/extracted/$CEF_VERSION/Resources" "$INSTALL_DIR/share/cef"
-cmake -E copy_directory "$BUILD_DIR/cef/extracted/$CEF_VERSION/Release"   "$INSTALL_DIR/lib"
-cmake -E copy "$BUILD_DIR/cef/libcef_dll_wrapper/libcef_dll_wrapper.a"    "$INSTALL_DIR/lib"
+cmake -E copy_directory "$BUILD_DIR/cef/extracted/$CEF_VERSION/include"        "$INSTALL_DIR/include/cef/include"
+cmake -E copy_directory "$BUILD_DIR/cef/extracted/$CEF_VERSION/Resources"      "$INSTALL_DIR/share/cef"
+cmake -E copy_directory "$BUILD_DIR/cef/extracted/$CEF_VERSION/${BUILD_TYPE^}" "$INSTALL_DIR/lib"
+cmake -E copy "$BUILD_DIR/cef/libcef_dll_wrapper/libcef_dll_wrapper.a"         "$INSTALL_DIR/lib"
 
 # --------------------------------------------------------------------------------------------------
 
