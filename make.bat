@@ -7,28 +7,23 @@ rem                         Copyright: (c) 2019 German Aerospace Center (DLR)   
 rem ---------------------------------------------------------------------------------------------- #
 
 rem ---------------------------------------------------------------------------------------------- #
+rem Default build mode is release, if "export COSMOSCOUT_DEBUG_BUILD=true" is executed before, the #
+rem application will be built in debug mode.                                                       #
 rem Usage:                                                                                         #
-rem    make.bat [additional CMake flags, defaults to -G "Visual Studio 15 Win64"]          #
+rem    make.bat [additional CMake flags, defaults to -G "Visual Studio 15 Win64"]                  #
 rem Examples:                                                                                      #
-rem    make.bat                                                                            #
-rem    make.bat -G "Visual Studio 15 Win64"                                                #
-rem    make.bat -G "Visual Studio 16 2019" -A x64                                          #
+rem    make.bat                                                                                    #
+rem    make.bat -G "Visual Studio 15 Win64"                                                        #
+rem    make.bat -G "Visual Studio 16 2019" -A x64                                                  #
 rem ---------------------------------------------------------------------------------------------- #
+
+rem create some required variables -----------------------------------------------------------------
 
 rem The CMake generator and other flags can be passed as parameters.
 set CMAKE_FLAGS=-G "Visual Studio 15 Win64"
 IF NOT "%~1"=="" (
   SET CMAKE_FLAGS=%*
 )
-
-rem create some required variables -----------------------------------------------------------------
-
-rem This directory should contain the top-level CMakeLists.txt - it is assumed to reside in the same
-rem directory as this script.
-set CMAKE_DIR=%~dp0
-
-rem Get the current directory - this is the default location for the build and install directory.
-set CURRENT_DIR=%cd%
 
 rem Check if ComoScout VR debug build is set with the environment variable
 IF "%COSMOSCOUT_DEBUG_BUILD%"=="true" (
@@ -37,6 +32,13 @@ IF "%COSMOSCOUT_DEBUG_BUILD%"=="true" (
 ) else (
   set BUILD_TYPE=release
 )
+
+rem This directory should contain the top-level CMakeLists.txt - it is assumed to reside in the same
+rem directory as this script.
+set CMAKE_DIR=%~dp0
+
+rem Get the current directory - this is the default location for the build and install directory.
+set CURRENT_DIR=%cd%
 
 rem The build directory.
 set BUILD_DIR=%CURRENT_DIR%\build\windows-%BUILD_TYPE%
@@ -62,7 +64,7 @@ cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
 cmake --build . --config %BUILD_TYPE% --target install --parallel 8 
 
 rem Delete empty files installed by cmake
-rem robocopy "%INSTALL_DIR%\lib" "%INSTALL_DIR%\lib" /s /move
+robocopy "%INSTALL_DIR%\lib" "%INSTALL_DIR%\lib" /s /move
 
 cd "%CURRENT_DIR%"
 echo Finished successfully.

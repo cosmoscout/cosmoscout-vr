@@ -8,6 +8,8 @@ rem ----------------------------------------------------------------------------
 
 rem ---------------------------------------------------------------------------------------------- #
 rem Make sure to run "git submodule update --init" before executing this script!                   #
+rem Default build mode is release, if "set COSMOSCOUT_DEBUG_BUILD=true" is executed before, all    #
+rem dependecies will be built in debug mode.                                                       #
 rem Usage:                                                                                         #
 rem    make_externals.bat [additional CMake flags, defaults to -G "Visual Studio 15 Win64"]        #
 rem Examples:                                                                                      #
@@ -22,13 +24,14 @@ IF NOT "%~1"=="" (
   SET CMAKE_FLAGS=%*
 )
 
-rem Check if ComoScout VR debug build is set with the environment variable
+rem Check if ComoScout VR debug build is enabled with "set COSMOSCOUT_DEBUG_BUILD=true".
 IF "%COSMOSCOUT_DEBUG_BUILD%"=="true" (
-  ECHO CosmoScout VR debug build is enabled!
+  echo CosmoScout VR debug build is enabled!
   set BUILD_TYPE=debug
 ) else (
   set BUILD_TYPE=release
 )
+
 rem Create some required variables. ----------------------------------------------------------------
 
 rem This directory should contain all submodules - they are assumed to reside in the subdirectory 
@@ -179,7 +182,8 @@ echo.
 cmake -E make_directory "%BUILD_DIR%/opensg-1.8" && cd "%BUILD_DIR%/opensg-1.8"
 cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
       -DGLUT_INCLUDE_DIR="%INSTALL_DIR%/include" -DGLUT_LIBRARY="%INSTALL_DIR%/lib/freeglut.lib"^
-      -DCMAKE_SHARED_LINKER_FLAGS="/FORCE:MULTIPLE" -DOPENSG_BUILD_TESTS=Off "%EXTERNALS_DIR%/opensg-1.8"
+      -DCMAKE_SHARED_LINKER_FLAGS="/FORCE:MULTIPLE" -DOPENSG_BUILD_TESTS=Off^
+      "%EXTERNALS_DIR%/opensg-1.8"
 
 cmake --build . --config %BUILD_TYPE% --target install --parallel 8
 
@@ -225,9 +229,9 @@ cmake %CMAKE_FLAGS% . || exit /b
 
 cmake --build . --config %BUILD_TYPE% --parallel 8 || exit /b
 
-cmake -E copy_directory "%BUILD_DIR%/cspice/extracted/cspice/include"            "%INSTALL_DIR%/include/cspice"
-cmake -E copy           "%BUILD_DIR%/cspice/extracted/cspice/%BUILD_TYPE%/cspice.lib" "%INSTALL_DIR%/lib"
-cmake -E copy           "%BUILD_DIR%/cspice/extracted/cspice/%BUILD_TYPE%/cspice.dll" "%INSTALL_DIR%/lib"
+cmake -E copy_directory "%BUILD_DIR%/cspice/extracted/cspice/include" "%INSTALL_DIR%/include/cspice"
+cmake -E copy "%BUILD_DIR%/cspice/extracted/cspice/%BUILD_TYPE%/cspice.lib" "%INSTALL_DIR%/lib"
+cmake -E copy "%BUILD_DIR%/cspice/extracted/cspice/%BUILD_TYPE%/cspice.dll" "%INSTALL_DIR%/lib"
 
 rem cef --------------------------------------------------------------------------------------------
 
