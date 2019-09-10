@@ -30,17 +30,20 @@ vec2 positions[4] = vec2[](
     vec2(0.5, -0.5),
     vec2(-0.5, 0.5),
     vec2(0.5, 0.5)
-);                               
+);
 
-out vec2 vTexCoords;                                                            
+uniform mat4 uMatModelView;
+uniform mat4 uMatProjection;
+
+out vec2 vTexCoords;
 out vec4 vPosition;
-                                                                           
-void main()                                                                
-{                       
-  vec2 p = positions[gl_VertexID];                                                   
+
+void main()
+{
+  vec2 p = positions[gl_VertexID];
   vTexCoords = vec2(p.x, -p.y) + 0.5;
-  vPosition = gl_ModelViewMatrix * vec4(p, 0, 1);
-  gl_Position = gl_ProjectionMatrix * vPosition;
+  vPosition = uMatModelView * vec4(p, 0, 1);
+  gl_Position = uMatProjection * vPosition;
 
   #ifdef USE_LINEARDEPTHBUFFER
     gl_Position.z = 0;
@@ -51,8 +54,8 @@ void main()
         gl_Position.z = 0.999999;
       }
     }
-  #endif                              
-}                                                                 
+  #endif
+}
 )";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -165,10 +168,11 @@ bool WorldSpaceGuiArea::calculateMousePosition(
     return false;
   }
 
+  x = (int)((intersection[0] + 0.5) * mWidth);
+  y = (int)((-intersection[1] + 0.5) * mHeight);
+
   if (intersection[0] >= -0.5f && intersection[0] <= 0.5f && intersection[1] >= -0.5f &&
       intersection[1] <= 0.5f) {
-    x = (int)((intersection[0] + 0.5) * mWidth);
-    y = (int)((-intersection[1] + 0.5) * mHeight);
     return true;
   }
 
@@ -183,7 +187,7 @@ bool WorldSpaceGuiArea::Do() {
     delete mShader;
     mShader = new VistaGLSLShader();
 
-    std::string defines = "#version 430 compatibility\n";
+    std::string defines = "#version 330\n";
 
     if (mUseLinearDepthBuffer) {
       defines += "#define USE_LINEARDEPTHBUFFER\n";
@@ -221,6 +225,13 @@ bool WorldSpaceGuiArea::Do() {
         ->GetClippingRange(near, far);
     mShader->SetUniform(mShader->GetUniformLocation("iFarClip"), (float)far);
   }
+
+  // get modelview and projection matrices
+  GLfloat glMatMV[16], glMatP[16];
+  glGetFloatv(GL_MODELVIEW_MATRIX, &glMatMV[0]);
+  glGetFloatv(GL_PROJECTION_MATRIX, &glMatP[0]);
+  glUniformMatrix4fv(mShader->GetUniformLocation("uMatModelView"), 1, GL_FALSE, glMatMV);
+  glUniformMatrix4fv(mShader->GetUniformLocation("uMatProjection"), 1, GL_FALSE, glMatP);
 
   // draw back-to-front
   auto const& items = getItems();

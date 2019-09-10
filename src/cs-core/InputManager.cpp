@@ -212,7 +212,26 @@ void InputManager::HandleEvent(VistaEvent* pEvent) {
 
           if (i == 0) {
             if (pHoveredNode.get()) {
-              pSelectedNode = pHoveredNode;
+              if (port->GetValue()) {
+                pSelectedNode = pHoveredNode;
+                pActiveNode   = pHoveredNode;
+              } else {
+                pActiveNode = nullptr;
+              }
+            }
+
+            if (pHoveredGuiNode.get()) {
+              gui::MouseEvent mouseEvent;
+              mouseEvent.mButton = gui::Button::eLeft;
+              if (port->GetValue()) {
+                pSelectedGuiNode = pHoveredGuiNode;
+                pActiveGuiNode   = pHoveredGuiNode;
+                mouseEvent.mType = gui::MouseEvent::Type::ePress;
+              } else {
+                pActiveGuiNode   = nullptr;
+                mouseEvent.mType = gui::MouseEvent::Type::eRelease;
+              }
+              pHoveredGuiNode.get()->injectMouseEvent(mouseEvent);
             }
 
             if (!port->GetValue()) {
@@ -224,17 +243,6 @@ void InputManager::HandleEvent(VistaEvent* pEvent) {
               }
               mClickTime = t;
             }
-          }
-
-          if (i == 0 && pHoveredGuiNode.get()) {
-            gui::MouseEvent mouseEvent;
-            mouseEvent.mButton = gui::Button::eLeft;
-            if (port->GetValue()) {
-              mouseEvent.mType = gui::MouseEvent::Type::ePress;
-            } else {
-              mouseEvent.mType = gui::MouseEvent::Type::eRelease;
-            }
-            pHoveredGuiNode.get()->injectMouseEvent(mouseEvent);
           }
         }
       }
@@ -287,6 +295,11 @@ bool InputManager::HandleContextChange(VistaInteractionEvent* pEvent) {
 
   pHoveredObject = intersection;
 
+  // If there is an active node, we do not want to change any selection state.
+  if (pActiveNode.get()) {
+    return true;
+  }
+
   // Test the Intention Node for Intersection with screen space gui.
   if (!mScreenSpaceGuis.empty()) {
     VistaViewport* pViewport(GetVistaSystem()->GetDisplayManager()->GetViewports().begin()->second);
@@ -323,24 +336,69 @@ bool InputManager::HandleContextChange(VistaInteractionEvent* pEvent) {
                       pViewportGui->getHeight());
 
         gui::GuiItem* item = pViewportGui->getItemAt(x, y);
+
+        // If there is a pActiveGuiNode in this pViewportGui, we want to send the input events even
+        // if the pointer is not over the item
+        if (!item && pActiveGuiNode.get()) {
+          if (std::find(pViewportGui->getItems().begin(), pViewportGui->getItems().end(),
+                  pActiveGuiNode.get()) != pViewportGui->getItems().end()) {
+            item = pActiveGuiNode.get();
+          }
+        }
+
         if (item) {
           // There has been no focused gui element before, so inject a focus event.
           if (!pHoveredGuiNode.get()) {
             item->injectFocusEvent(true);
           }
 
-          pHoveredGuiNode = item;
-          pHoveredNode    = nullptr;
+          if (!pActiveGuiNode.get()) {
+            pHoveredGuiNode = item;
+            pHoveredNode    = nullptr;
+          }
 
-          gui::MouseEvent event;
-          item->calculateMousePosition(x, y, event.mX, event.mY);
-          item->injectMouseEvent(event);
+          if (!pActiveGuiNode.get() || pActiveGuiNode.get() == item) {
+            gui::MouseEvent event;
+            item->calculateMousePosition(x, y, event.mX, event.mY);
+            item->injectMouseEvent(event);
+          }
           return true;
         }
       }
     }
   }
 
+  // If there is an active guiItem in Worldspace, we want to send the mouse input to it in all
+  // cases. So we can skip any later intersection calculation.
+  if (pActiveGuiNode.get()) {
+    VistaTransformMatrix matTransform;
+    mActiveWorldSpaceGuiNode->GetParentWorldTransform(matTransform);
+    gui::WorldSpaceGuiArea* area =
+        dynamic_cast<gui::WorldSpaceGuiArea*>(mActiveWorldSpaceGuiNode->GetExtension());
+
+    // We scale the gui element's transform matrix so that the translation magnitude becomes 1.f.
+    // This is not strictly necessary but reduces precision issues in the inversion of the matrix.
+    // Without this step, objects which are *really* far away would not be selectable.
+    VistaTransformMatrix matScale;
+    float                scale = 1.f / matTransform.GetTranslation().GetLength();
+    matScale.SetToScaleMatrix(scale);
+    matTransform = matScale * matTransform;
+
+    VistaTransformMatrix matInvParentTransform = matTransform.GetInverted();
+    VistaVector3D        start                 = matInvParentTransform * (v3Position * scale);
+    VistaVector3D end = matInvParentTransform * ((v3Position * scale) + qOrientation.GetViewDir());
+
+    int x, y;
+    area->calculateMousePosition(start, end, x, y);
+    // Inject a mouse move event.
+    gui::MouseEvent event;
+    pHoveredGuiNode.get()->calculateMousePosition(x, y, event.mX, event.mY);
+    pHoveredGuiNode.get()->injectMouseEvent(event);
+    return true;
+  }
+
+  // There is no currently active object. So we can intersect our selectables to find potential
+  // candidates.
   std::vector<IVistaIntentionSelectAdapter*> vResults;
   mSelection.SetConeTransform(v3Position, qOrientation);
   mSelection.Update(vResults);
@@ -367,9 +425,10 @@ bool InputManager::HandleContextChange(VistaInteractionEvent* pEvent) {
       VistaTransformMatrix matTransform;
       pOGLNode->GetParentWorldTransform(matTransform);
 
-      // We scale the gui element's transform matrix so that the translation magnitude becomes 1.f.
-      // This is not strictly necessary but reduces precision issues in the inversion of the matrix.
-      // Without this step, objects which are *really* far away would not be selectable.
+      // We scale the gui element's transform matrix so that the translation magnitude
+      // becomes 1.f. This is not strictly necessary but reduces precision issues in the
+      // inversion of the matrix. Without this step, objects which are *really* far away would
+      // not be selectable.
       VistaTransformMatrix matScale;
       float                scale = 1.f / matTransform.GetTranslation().GetLength();
       matScale.SetToScaleMatrix(scale);
@@ -389,7 +448,8 @@ bool InputManager::HandleContextChange(VistaInteractionEvent* pEvent) {
             item->injectFocusEvent(true);
           }
 
-          pHoveredGuiNode = item;
+          pHoveredGuiNode          = item;
+          mActiveWorldSpaceGuiNode = pOGLNode;
 
           // Inject a mouse move event.
           gui::MouseEvent event;
@@ -424,7 +484,6 @@ bool InputManager::HandleContextChange(VistaInteractionEvent* pEvent) {
 
   pHoveredNode = nullptr;
   unselectGuiNode();
-  // TODO setCursor(Cursor::ePointer);
 
   return true;
 }

@@ -181,8 +181,17 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
   mNotifications->waitForFinishedLoading();
   mLoadingScreen->waitForFinishedLoading();
 
-  mLoadingScreen->callJavascript(
-      "set_version", GIT_RECENT_TAG + " (" + GIT_BRANCH + " @" + GIT_COMMIT_HASH + ")");
+  std::string version(GIT_RECENT_TAG);
+
+  if (GIT_BRANCH != "") {
+    version += " (" + GIT_BRANCH;
+    if (GIT_COMMIT_HASH != "") {
+      version += " @" + GIT_COMMIT_HASH;
+    }
+    version += ")";
+  }
+
+  mLoadingScreen->callJavascript("set_version", version);
   mLoadingScreen->callJavascript("set_loading", true);
 
   // Register callbacks for notifications area.

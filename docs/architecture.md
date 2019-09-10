@@ -1,5 +1,5 @@
 <p align="center"> 
-  <img src ="img/banner-sunset.jpg" />
+  <img src ="img/banner-mro.jpg" />
 </p>
 
 # Architecture of CosmoScout VR
@@ -20,7 +20,7 @@ CosmoScout VR uses [several third-party libraries](dependencies.md) as a basis.
 The most important ones are [ViSTA](https://github.com/cosmoscout/vista) (which itself requires [OpenSG 1.8](https://github.com/cosmoscout/opensg-1.8)) and [SPICE](https://naif.jpl.nasa.gov/naif/toolkit.html).
 
 <p align="center">
-  <a href="citation.md"> &lsaquo; How to cite CosmoScout VR</a>
+  <a href="release-management.md">&lsaquo; Release Management</a>
   <img src ="img/nav-vspace.svg"/>
   <a href="README.md">&#8962; Help Index</a>
   <img src ="img/nav-vspace.svg"/>

@@ -56,8 +56,8 @@ class CS_GUI_EXPORT GuiItem : public WebView {
   ///
   /// @param      areaX  The x position of the mouse in the parent GuiArea.
   /// @param      areaY  The y position of the mouse in the parent GuiArea.
-  /// @param[out] x      The x position of the mouse inside this GuiItem.
-  /// @param[out] y      The y position of the mouse inside this GuiItem.
+  /// @param[out] x      The x position of the mouse relative to this GuiItem.
+  /// @param[out] y      The y position of the mouse relative to this GuiItem.
   ///
   /// @return If the mouse is in this items bounds at all.
   bool calculateMousePosition(int areaX, int areaY, int& x, int& y);
