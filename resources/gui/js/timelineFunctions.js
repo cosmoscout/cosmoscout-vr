@@ -54,7 +54,6 @@ var centerTime;
 
 var click;
 var mouseDownLeftTime;
-var inRangeChange = false;
 
 // DOM element where the Timeline will be attached
 var container = document.getElementById('visualization');
@@ -340,7 +339,6 @@ function mouseUpCallback() {
         range.noUiSlider.set(parseInt(lastPlayValue));
     }
     mouseOnTimelineDown = false;
-    inRangeChange = false;
 }
 
 function overviewMouseDownCallback() {
@@ -370,7 +368,6 @@ function rangechangeCallback(properties) {
             setPaus();
         }
         click = false;
-        inRangeChange = true;
         var dif = properties.start.getTime() - mouseDownLeftTime.getTime();
         var secondsDif = dif/ 1000;
         var hoursDif = secondsDif / 60 / 60;
@@ -558,9 +555,6 @@ function moveWindow(seconds) {
 }
   
 function set_date(date) {
-    if(inRangeChange) {
-        return;
-    }
     centerTime = new Date(date);
     timeline.moveTo(centerTime, animationFalse);
     timeline.setCustomTime(centerTime, timeId);
@@ -778,8 +772,6 @@ document.getElementById("btnDecreaseSpeed").onclick = decreaseSpeed;
 document.getElementById("btnIncreaseSpeed").onclick = increaseSpeed;
 
 document.getElementById("itemLocation").onclick = travelToItemLocation;
-
-document.getElementById("divContainer").addEventListener("mouseup", mouseUpCallback);
 
 document.getElementsByClassName('range-label')[0].addEventListener('mousedown', rangeUpdateCallback);
 
