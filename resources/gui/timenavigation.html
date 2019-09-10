@@ -53,7 +53,7 @@
       <div id="bottomBorderLeft"></div>
       <div id="bottomBorderRight"></div>
 
-      <span class="item">
+      <span class="item" id="buttonControl">
           <a class="btn light-glass" data-toggle="tooltip" title='Turn north up' onclick="window.call_native('navigate_north_up')"><span id="compass-arrow"></span></a>
           <a class="btn light-glass" data-toggle="tooltip" title='Fix horizon' onclick="window.call_native('navigate_fix_horizon')"><i class="material-icons">terrain</i></a>
           <a class="btn light-glass" data-toggle="tooltip" title='Launch to orbit' onclick="window.call_native('navigate_to_orbit')"><i class="material-icons">flight_takeoff</i></a>
@@ -129,6 +129,7 @@
   <div id="snippet" class="snippet"></div>
   <div id="rightSnippet" class="snippet"></div>
   
+  <script src="js/timenavigationapi.js"></script>
   <script src="js/dateOperations.js"></script>
   <script src="js/geoNavigation.js"></script>
   <script src="js/fade.js"></script>

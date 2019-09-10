@@ -401,15 +401,6 @@ function onSelect (properties) {
     }
 }
 
-function set_items(events) {
-    var data = JSON.parse(events);
-    for(item in data) {
-        data[item].start = new Date(data[item].start);
-    }
-    items.clear();
-    items.add(data);
-}
-
 function redrawSnipped() {
     return new Promise(resolve => {
     switch(parseInt(currentSpeed)) {
