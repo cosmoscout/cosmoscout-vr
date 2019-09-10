@@ -55,6 +55,9 @@ var centerTime;
 var click;
 var mouseDownLeftTime;
 
+var minDate;
+var maxDate;
+
 // DOM element where the Timeline will be attached
 var container = document.getElementById('visualization');
 var overviewContainer = document.getElementById('overview');
@@ -323,6 +326,8 @@ function setTimelineRange(min, max) {
         min: min,
         max: max
     }
+    minDate = min;
+    maxDate = max;
     timeline.setOptions(rangeOpt);
 }
 
@@ -741,6 +746,12 @@ function scrollOnMinute(event) {
     }
 }
 
+function resetTime() {
+    overviewTimeLine.setWindow(minDate, maxDate);
+    range.noUiSlider.set(secForw);
+    window.call_native('reset_time')
+}
+
 container.addEventListener("wheel", manuelZoomTimeline, true);
 
 document.getElementById("btnIncreaseMinute").onclick = plusOneMinute;
@@ -763,6 +774,8 @@ document.getElementById("btnDecreaseSpeed").onclick = decreaseSpeed;
 document.getElementById("btnIncreaseSpeed").onclick = increaseSpeed;
 
 document.getElementById("itemLocation").onclick = travelToItemLocation;
+
+document.getElementById("btnReset").onclick = resetTime;
 
 document.getElementsByClassName('range-label')[0].addEventListener('mousedown', rangeUpdateCallback);
 

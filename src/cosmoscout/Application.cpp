@@ -386,6 +386,9 @@ void Application::registerTimenavigationBarCallbacks() {
   mGuiManager->getTimeNavigationBar()->registerCallback(
       "reset_time", ([this]() { mTimeControl->resetTime(); }));
 
+  mGuiManager->getTimeNavigationBar()->registerCallback(
+      "reset_time", ([this]() { mTimeControl->resetTime(); }));
+
   mGuiManager->getTimeNavigationBar()->registerCallback<double>("add_hours", ([&](double amount) {
     mTimeControl->setTime(mTimeControl->pSimulationTime.get() + 60.0 * 60.0 * amount);
   }));

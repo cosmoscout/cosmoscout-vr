@@ -22,7 +22,7 @@
     background-color: #ddf;
     width: 50%;
     left: 0;
-    transform: translateX(-150px);
+    transform: translateX(-175px);
 }
 
 #bottomBorderRight {
@@ -32,7 +32,7 @@
     background-color: #ddf;
     width: 50%;
     left: 50%;
-    transform: translateX(150px);
+    transform: translateX(175px);
 }
 
 #compass-arrow {
@@ -112,17 +112,17 @@ i {
     border-bottom-color: #ddf;
     border-bottom-width: 2px;
     border-bottom-style: solid;
-    width: 300px;
+    width: 350px;
     text-align: center;
     height: 40px;
 }
 
-#btnCalendar {
+#btnReset {
     background-color: #ddf;
     border-radius: 0 50px 0 50px;
     width: 60px;
     height: 40px;
-    left: -26px;
+    left: -39px;
 }
 
 #btnPaus {
@@ -130,17 +130,24 @@ i {
     border-radius: 50px 0 50px 0;
     width: 60px;
     height: 40px;
-    right: -27px;
+    right: -34px;
 }
 
 #btnPaus i,
-#btnCalendar i {
+#btnReset i {
     color: rgb(20, 20, 20);
     font-size: 24px;
 }
 
+#btnCalendar {
+    position: absolute;
+    left: 58px;
+    z-index: 5;
+}
+
 #dateLabel {
     font-size: 20px;
+    left: -5px;
 }
 
 #speedControl {
@@ -173,13 +180,13 @@ i {
 
 #decreaseControl {
     left: 50%;
-    transform: translateX(-50%);
+    transform: translateX(-42%);
     top: 75px;
 }
 
 #increaseControl {
     left: 50%;
-    transform: translateX(-50%);
+    transform: translateX(-42%);
     top: 48px;
     height: 16px;
 }
@@ -197,24 +204,29 @@ i {
     top: -4px;
 }
 
+#btnIncreaseYear,
+#btnDecreaseYear {
+    left: -15px;
+}
+
 #btnIncreaseMonth,
 #btnDecreaseMonth {
-    left: 2px;
+    left: -13px;
 }
 
 #btnIncreaseDay,
 #btnDecreaseDay {
-    left: 14px;
+    left: 0px;
 }
 
 #btnIncreaseHour,
 #btnDecreaseHour {
-    left: 0px;
+    left: -17px;
 }
 
 #btnIncreaseMinute,
 #btnDecreaseMinute {
-    left: -13px;
+    left: -28px;
 }
 
 #decreaseControl.mouseNear i,
@@ -235,31 +247,31 @@ i {
 
 #increaseControl.mouseOver #btnIncreaseYear,
 #decreaseControl.mouseOver #btnDecreaseYear {
-    left: 0px;
+    left: -16px;
     top: -1px;
 }
 
 #increaseControl.mouseOver #btnIncreaseMonth,
 #decreaseControl.mouseOver #btnDecreaseMonth {
-    left: 11px;
+    left: -5px;
     top: -1px;
 }
 
 #increaseControl.mouseOver #btnIncreaseDay,
 #decreaseControl.mouseOver #btnDecreaseDay {
-    left: 30px;
+    left: 20px;
     top: -1px;
 }
 
 #increaseControl.mouseOver #btnIncreaseHour,
 #decreaseControl.mouseOver #btnDecreaseHour {
-    left: -7px;
+    left: -26px;
     top: -1px;
 }
 
 #increaseControl.mouseOver #btnIncreaseMinute,
 #decreaseControl.mouseOver #btnDecreaseMinute {
-    left: -27px;
+    left: -48px;
     top: -1px;
 }
 
