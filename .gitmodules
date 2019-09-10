@@ -49,3 +49,7 @@
 [submodule "externals/openvr"]
 	path = externals/openvr
 	url = https://github.com/ValveSoftware/openvr.git
+[submodule "plugins/csp-vestec"]
+	path = plugins/csp-vestec
+	url = https://github.com/cosmoscout/csp-vestec.git
+
