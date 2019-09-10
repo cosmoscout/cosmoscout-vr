@@ -9,10 +9,10 @@ find_path(OPENSG_INCLUDE_DIR OSGAction.h
     HINTS ${OPENSG_ROOT_DIR}/include/OpenSG)
 
 # Locate libraries.
-find_library(OPENSG_BASE_LIBRARY NAMES OSGBase
+find_library(OPENSG_BASE_LIBRARY NAMES OSGBase OSGBaseD
     HINTS ${OPENSG_ROOT_DIR}/lib ${OPENSG_ROOT_DIR}/lib64)
 
-find_library(OPENSG_SYSTEM_LIBRARY NAMES OSGSystem
+find_library(OPENSG_SYSTEM_LIBRARY NAMES OSGSystem OSGSystemD
     HINTS ${OPENSG_ROOT_DIR}/lib ${OPENSG_ROOT_DIR}/lib64)
 
 include(FindPackageHandleStandardArgs)
