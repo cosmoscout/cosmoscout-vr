@@ -50,160 +50,160 @@ cmake -E make_directory "%INSTALL_DIR%/share"
 cmake -E make_directory "%INSTALL_DIR%/bin"
 cmake -E make_directory "%INSTALL_DIR%/include"
 
-rem rem glew -------------------------------------------------------------------------------------------
-rem 
-rem echo.
-rem echo Downloading, building and installing GLEW ...
-rem echo.
-rem 
-rem cmake -E make_directory "%BUILD_DIR%/glew/extracted" && cd "%BUILD_DIR%/glew"
-rem powershell.exe -command Invoke-WebRequest -Uri https://netcologne.dl.sourceforge.net/project/glew/glew/2.1.0/glew-2.1.0-win32.zip -OutFile glew-2.1.0-win32.zip
-rem 
-rem cd "%BUILD_DIR%/glew/extracted"
-rem cmake -E tar xfvj ../glew-2.1.0-win32.zip
-rem cd ..
-rem 
-rem cmake -E copy_directory "%BUILD_DIR%/glew/extracted/glew-2.1.0/include"         "%INSTALL_DIR%/include" || exit /b
-rem cmake -E copy_directory "%BUILD_DIR%/glew/extracted/glew-2.1.0/lib/Release/x64" "%INSTALL_DIR%/lib"     || exit /b
-rem cmake -E copy_directory "%BUILD_DIR%/glew/extracted/glew-2.1.0/bin/Release/x64" "%INSTALL_DIR%/bin"     || exit /b
-rem 
-rem rem  freeglut ---------------------------------------------------------------------------------------
-rem 
-rem echo.
-rem echo Building and installing freeglut ...
-rem echo.
-rem 
-rem cmake -E make_directory "%BUILD_DIR%/freeglut" && cd "%BUILD_DIR%/freeglut"
+rem glew -------------------------------------------------------------------------------------------
+
+echo.
+echo Downloading, building and installing GLEW ...
+echo.
+
+cmake -E make_directory "%BUILD_DIR%/glew/extracted" && cd "%BUILD_DIR%/glew"
+powershell.exe -command Invoke-WebRequest -Uri https://netcologne.dl.sourceforge.net/project/glew/glew/2.1.0/glew-2.1.0-win32.zip -OutFile glew-2.1.0-win32.zip
+
+cd "%BUILD_DIR%/glew/extracted"
+cmake -E tar xfvj ../glew-2.1.0-win32.zip
+cd ..
+
+cmake -E copy_directory "%BUILD_DIR%/glew/extracted/glew-2.1.0/include"         "%INSTALL_DIR%/include" || exit /b
+cmake -E copy_directory "%BUILD_DIR%/glew/extracted/glew-2.1.0/lib/Release/x64" "%INSTALL_DIR%/lib"     || exit /b
+cmake -E copy_directory "%BUILD_DIR%/glew/extracted/glew-2.1.0/bin/Release/x64" "%INSTALL_DIR%/bin"     || exit /b
+
+rem  freeglut ---------------------------------------------------------------------------------------
+
+echo.
+echo Building and installing freeglut ...
+echo.
+
+cmake -E make_directory "%BUILD_DIR%/freeglut" && cd "%BUILD_DIR%/freeglut"
+cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
+      -DCMAKE_INSTALL_LIBDIR=lib^
+      "%EXTERNALS_DIR%/freeglut/freeglut/freeglut" || exit /b
+
+cmake --build . --config %BUILD_TYPE% --target install --parallel 8
+
+cmake -E copy_directory "%EXTERNALS_DIR%/freeglut/freeglut/freeglut/include/GL" "%INSTALL_DIR%/include/GL"
+
+rem c-ares -----------------------------------------------------------------------------------------
+
+echo.
+echo Building and installing c-ares ...
+echo.
+
+cmake -E make_directory "%BUILD_DIR%/c-ares" && cd "%BUILD_DIR%/c-ares"
+cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
+      "%EXTERNALS_DIR%/c-ares" || exit /b
+
+cmake --build . --config %BUILD_TYPE% --target install --parallel 8
+
+rem curl -------------------------------------------------------------------------------------------
+
+echo.
+echo Building and installing curl ...
+echo.
+
+cmake -E make_directory "%BUILD_DIR%/curl" && cd "%BUILD_DIR%/curl"
+cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
+      -DBUILD_TESTING=OFF -DBUILD_CURL_EXE=OFF -DENABLE_ARES=ON^
+      -DCARES_INCLUDE_DIR="%INSTALL_DIR%/include"^
+      -DCARES_LIBRARY="%INSTALL_DIR%/lib/cares.lib"^
+      -DCMAKE_INSTALL_LIBDIR=lib^
+      "%EXTERNALS_DIR%/curl" || exit /b
+
+cmake --build . --config %BUILD_TYPE% --target install --parallel 8
+
+rem curlpp -----------------------------------------------------------------------------------------
+
+echo.
+echo Building and installing curlpp ...
+echo.
+
+if "%COSMOSCOUT_DEBUG_BUILD%"=="true" (
+  set CURL_LIB=libcurl-d_imp.lib
+) else ( 
+  set CURL_LIB=libcurl_imp.lib
+)
+cmake -E make_directory "%BUILD_DIR%/curlpp" && cd "%BUILD_DIR%/curlpp"
+cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
+      -DCURL_INCLUDE_DIR="%INSTALL_DIR%/include"^
+      -DCURL_LIBRARY="%INSTALL_DIR%/lib/%CURL_LIB%"^
+      -DCMAKE_INSTALL_LIBDIR=lib^
+      "%EXTERNALS_DIR%/curlpp" || exit /b
+
+cmake --build . --config %BUILD_TYPE% --target install --parallel 8
+
+rem libtiff ----------------------------------------------------------------------------------------
+
+echo.
+echo Building and installing libtiff ...
+echo.
+
+cmake -E make_directory "%BUILD_DIR%/libtiff" && cd "%BUILD_DIR%/libtiff"
+cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
+      -DCMAKE_INSTALL_FULL_LIBDIR=lib^
+      "%EXTERNALS_DIR%/libtiff" || exit /b
+
+cmake --build . --config %BUILD_TYPE% --target install --parallel 8
+
+rem gli --------------------------------------------------------------------------------------------
+
+echo.
+echo Installing gli ...
+echo.
+
+cmake -E copy_directory "%EXTERNALS_DIR%/gli/gli" "%INSTALL_DIR%/include/gli" || exit /b
+
+rem glm --------------------------------------------------------------------------------------------
+
+echo.
+echo Installing glm ...
+echo.
+
+cmake -E copy_directory "%EXTERNALS_DIR%/glm/glm" "%INSTALL_DIR%/include/glm" || exit /b
+
+rem tinygltf ---------------------------------------------------------------------------------------
+
+echo.
+echo Installing tinygltf ...
+echo.
+
+cmake -E copy "%EXTERNALS_DIR%/tinygltf/json.hpp"          "%INSTALL_DIR%/include" || exit /b
+cmake -E copy "%EXTERNALS_DIR%/tinygltf/stb_image.h"       "%INSTALL_DIR%/include" || exit /b
+cmake -E copy "%EXTERNALS_DIR%/tinygltf/stb_image_write.h" "%INSTALL_DIR%/include" || exit /b
+cmake -E copy "%EXTERNALS_DIR%/tinygltf/tiny_gltf.h"       "%INSTALL_DIR%/include" || exit /b
+
+rem opensg -----------------------------------------------------------------------------------------
+
+echo.
+echo Building and installing opensg-1.8 ...
+echo.
+
+cmake -E make_directory "%BUILD_DIR%/opensg-1.8" && cd "%BUILD_DIR%/opensg-1.8"
+cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
+      -DGLUT_INCLUDE_DIR="%INSTALL_DIR%/include" -DGLUT_LIBRARY="%INSTALL_DIR%/lib/freeglut.lib"^
+      -DCMAKE_SHARED_LINKER_FLAGS="/FORCE:MULTIPLE" -DOPENSG_BUILD_TESTS=Off "%EXTERNALS_DIR%/opensg-1.8"
+
+cmake --build . --config %BUILD_TYPE% --target install --parallel 8
+
+rem vista ------------------------------------------------------------------------------------------
+
+echo.
+echo Building and installing vista ...
+echo.
+
+cmake -E make_directory "%BUILD_DIR%/vista" && cd "%BUILD_DIR%/vista"
+
+rem set OPENVR="T:/modulesystem/tools/openvr/OpenVR_SDK_1.0.3/install/win7.x86_64.msvc14.release"
 rem cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
-rem       -DCMAKE_INSTALL_LIBDIR=lib^
-rem       "%EXTERNALS_DIR%/freeglut/freeglut/freeglut" || exit /b
-rem 
-rem cmake --build . --config %BUILD_TYPE% --target install --parallel 8
-rem 
-rem cmake -E copy_directory "%EXTERNALS_DIR%/freeglut/freeglut/freeglut/include/GL" "%INSTALL_DIR%/include/GL"
-rem 
-rem rem c-ares -----------------------------------------------------------------------------------------
-rem 
-rem echo.
-rem echo Building and installing c-ares ...
-rem echo.
-rem 
-rem cmake -E make_directory "%BUILD_DIR%/c-ares" && cd "%BUILD_DIR%/c-ares"
-rem cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
-rem       "%EXTERNALS_DIR%/c-ares" || exit /b
-rem 
-rem cmake --build . --config %BUILD_TYPE% --target install --parallel 8
-rem 
-rem rem curl -------------------------------------------------------------------------------------------
-rem 
-rem echo.
-rem echo Building and installing curl ...
-rem echo.
-rem 
-rem cmake -E make_directory "%BUILD_DIR%/curl" && cd "%BUILD_DIR%/curl"
-rem cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
-rem       -DBUILD_TESTING=OFF -DBUILD_CURL_EXE=OFF -DENABLE_ARES=ON^
-rem       -DCARES_INCLUDE_DIR="%INSTALL_DIR%/include"^
-rem       -DCARES_LIBRARY="%INSTALL_DIR%/lib/cares.lib"^
-rem       -DCMAKE_INSTALL_LIBDIR=lib^
-rem       "%EXTERNALS_DIR%/curl" || exit /b
-rem 
-rem cmake --build . --config %BUILD_TYPE% --target install --parallel 8
-rem 
-rem rem curlpp -----------------------------------------------------------------------------------------
-rem 
-rem echo.
-rem echo Building and installing curlpp ...
-rem echo.
-rem 
-rem if "%COSMOSCOUT_DEBUG_BUILD%"=="true" (
-rem   set CURL_LIB=libcurl-d_imp.lib
-rem ) else ( 
-rem   set CURL_LIB=libcurl_imp.lib
-rem )
-rem cmake -E make_directory "%BUILD_DIR%/curlpp" && cd "%BUILD_DIR%/curlpp"
-rem cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
-rem       -DCURL_INCLUDE_DIR="%INSTALL_DIR%/include"^
-rem       -DCURL_LIBRARY="%INSTALL_DIR%/lib/%CURL_LIB%"^
-rem       -DCMAKE_INSTALL_LIBDIR=lib^
-rem       "%EXTERNALS_DIR%/curlpp" || exit /b
-rem 
-rem cmake --build . --config %BUILD_TYPE% --target install --parallel 8
-rem 
-rem rem libtiff ----------------------------------------------------------------------------------------
-rem 
-rem echo.
-rem echo Building and installing libtiff ...
-rem echo.
-rem 
-rem cmake -E make_directory "%BUILD_DIR%/libtiff" && cd "%BUILD_DIR%/libtiff"
-rem cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
-rem       -DCMAKE_INSTALL_FULL_LIBDIR=lib^
-rem       "%EXTERNALS_DIR%/libtiff" || exit /b
-rem 
-rem cmake --build . --config %BUILD_TYPE% --target install --parallel 8
-rem 
-rem rem gli --------------------------------------------------------------------------------------------
-rem 
-rem echo.
-rem echo Installing gli ...
-rem echo.
-rem 
-rem cmake -E copy_directory "%EXTERNALS_DIR%/gli/gli" "%INSTALL_DIR%/include/gli" || exit /b
-rem 
-rem rem glm --------------------------------------------------------------------------------------------
-rem 
-rem echo.
-rem echo Installing glm ...
-rem echo.
-rem 
-rem cmake -E copy_directory "%EXTERNALS_DIR%/glm/glm" "%INSTALL_DIR%/include/glm" || exit /b
-rem 
-rem rem tinygltf ---------------------------------------------------------------------------------------
-rem 
-rem echo.
-rem echo Installing tinygltf ...
-rem echo.
-rem 
-rem cmake -E copy "%EXTERNALS_DIR%/tinygltf/json.hpp"          "%INSTALL_DIR%/include" || exit /b
-rem cmake -E copy "%EXTERNALS_DIR%/tinygltf/stb_image.h"       "%INSTALL_DIR%/include" || exit /b
-rem cmake -E copy "%EXTERNALS_DIR%/tinygltf/stb_image_write.h" "%INSTALL_DIR%/include" || exit /b
-rem cmake -E copy "%EXTERNALS_DIR%/tinygltf/tiny_gltf.h"       "%INSTALL_DIR%/include" || exit /b
-rem 
-rem rem opensg -----------------------------------------------------------------------------------------
-rem 
-rem echo.
-rem echo Building and installing opensg-1.8 ...
-rem echo.
-rem 
-rem cmake -E make_directory "%BUILD_DIR%/opensg-1.8" && cd "%BUILD_DIR%/opensg-1.8"
-rem cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
-rem       -DGLUT_INCLUDE_DIR="%INSTALL_DIR%/include" -DGLUT_LIBRARY="%INSTALL_DIR%/lib/freeglut.lib"^
-rem       -DCMAKE_SHARED_LINKER_FLAGS="/FORCE:MULTIPLE" -DOPENSG_BUILD_TESTS=Off "%EXTERNALS_DIR%/opensg-1.8"
-rem 
-rem cmake --build . --config %BUILD_TYPE% --target install --parallel 8
-rem 
-rem rem vista ------------------------------------------------------------------------------------------
-rem 
-rem echo.
-rem echo Building and installing vista ...
-rem echo.
-rem 
-rem cmake -E make_directory "%BUILD_DIR%/vista" && cd "%BUILD_DIR%/vista"
-rem 
-rem rem set OPENVR="T:/modulesystem/tools/openvr/OpenVR_SDK_1.0.3/install/win7.x86_64.msvc14.release"
-rem rem cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
-rem rem       -DVISTACORELIBS_USE_VIVE=On -DVISTADRIVERS_BUILD_VIVE=On -DOPENVR_ROOT_DIR=%OPENVR%^
-rem rem       -DVISTADRIVERS_BUILD_3DCSPACENAVIGATOR=On^
-rem rem       -DCMAKE_CXX_FLAGS="-std=c++11" "%EXTERNALS_DIR%/vista" || exit /b
-rem 
-rem cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
+rem       -DVISTACORELIBS_USE_VIVE=On -DVISTADRIVERS_BUILD_VIVE=On -DOPENVR_ROOT_DIR=%OPENVR%^
+rem       -DVISTADRIVERS_BUILD_3DCSPACENAVIGATOR=On^
 rem       -DCMAKE_CXX_FLAGS="-std=c++11" "%EXTERNALS_DIR%/vista" || exit /b
-rem 
-rem cmake --build . --config %BUILD_TYPE% --target install --parallel 8
-rem 
-rem rem cspice -----------------------------------------------------------------------------------------
-rem 
+
+cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
+      -DCMAKE_CXX_FLAGS="-std=c++11" "%EXTERNALS_DIR%/vista" || exit /b
+
+cmake --build . --config %BUILD_TYPE% --target install --parallel 8
+
+rem cspice -----------------------------------------------------------------------------------------
+
 echo.
 echo Downloading and installing cspice ...
 echo.
@@ -273,7 +273,6 @@ cmake -E copy_directory "%BUILD_DIR%/cef/extracted/%CEF_VERSION%/include"       
 cmake -E copy_directory "%BUILD_DIR%/cef/extracted/%CEF_VERSION%/Resources"             "%INSTALL_DIR%/share/cef"
 cmake -E copy_directory "%BUILD_DIR%/cef/extracted/%CEF_VERSION%/Release"               "%INSTALL_DIR%/lib"
 cmake -E copy "%BUILD_DIR%/cef/libcef_dll_wrapper/%BUILD_TYPE%/libcef_dll_wrapper.lib"  "%INSTALL_DIR%/lib"
-
 
 rem ------------------------------------------------------------------------------------------------
 
