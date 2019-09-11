@@ -22,6 +22,7 @@ When the left mouse button is pressed over an item, this item will receive input
 #### Other Enhancements
 
 * The software has been made citable by registering a DOI on zenodo.org.
+* The WMS configuration of `csp-lod-bodies` is now directly in the scene settings.
 * This changelog has been created.
 * Release management using Github Milestones has been set up.
 * A Code of Conduct has been created.
