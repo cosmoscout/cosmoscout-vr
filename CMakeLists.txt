@@ -5,7 +5,7 @@
 # ------------------------------------------------------------------------------------------------ #
 
 cmake_minimum_required(VERSION 3.12)
-project(cosmoscout-vr VERSION 1.0.0)
+project(cosmoscout-vr VERSION 1.1.0)
 
 # Use cmake 3.12's <PACKAGE>_ROOT variabled for searching.
 cmake_policy(SET CMP0074 NEW)
