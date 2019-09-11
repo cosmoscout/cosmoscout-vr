@@ -9,8 +9,8 @@ It lets you explore, analyze and present huge planetary data sets and large simu
 [![c++17](https://img.shields.io/badge/docs-online-4c1.svg)](docs/README.md)
 [![gitter](https://badges.gitter.im/cosmoscout/cosmoscout.svg)](https://gitter.im/cosmoscout/community)
 [![license](https://img.shields.io/badge/license-MIT-purple.svg)](LICENSE)
-[![source loc](https://img.shields.io/badge/source_loc-10.0k-yellow.svg)](cloc.sh)
-[![plugin loc](https://img.shields.io/badge/plugin_loc-14.1k-yellow.svg)](cloc.sh)
+[![source loc](https://img.shields.io/badge/source_loc-10.2k-yellow.svg)](cloc.sh)
+[![plugin loc](https://img.shields.io/badge/plugin_loc-13.8k-yellow.svg)](cloc.sh)
 [![comments](https://img.shields.io/badge/comments-2.7k-orange.svg)](cloc.sh)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3381953.svg)](https://doi.org/10.5281/zenodo.3381953)
 
