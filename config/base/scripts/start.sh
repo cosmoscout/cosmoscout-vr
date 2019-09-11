@@ -11,7 +11,7 @@ SCRIPT_DIR="$( cd "$( dirname "$0" )" && pwd )"
 cd "$SCRIPT_DIR"
 
 # Scene config file can be passed as first parameter.
-SETTINGS="${1:-../share/config/simple_desktop.json}"
+SETTINGS="${1:-../share/config/vestec.json}"
 
 # Vista ini can be passed as second parameter.
 VISTA_INI="${2:-vista.ini}"

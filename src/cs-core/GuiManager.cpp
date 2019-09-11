@@ -234,6 +234,16 @@ GuiManager::~GuiManager() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void GuiManager::addGuiItem(gui::GuiItem* pItem, unsigned int index) {
+  if (mGlobalGuiArea) {
+    mGlobalGuiArea->addItem(pItem, index);
+  } else {
+    mLocalGuiArea->addItem(pItem, index);
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void GuiManager::setCursor(gui::Cursor cursor) {
   auto* windowingToolkit = dynamic_cast<VistaGlutWindowingToolkit*>(
       GetVistaSystem()->GetDisplayManager()->GetWindowingToolkit());
