@@ -6,6 +6,8 @@
 
 ## [v1.1.0](https://github.com/cosmoscout/cosmoscout-vr/releases)
 
+**Release Date:** 11 / 09 / 2019
+
 #### New Features
 
 * If built from the git source tree, the current branch and commit hash is shown on the loading screen.
@@ -37,6 +39,8 @@ When the left mouse button is pressed over an item, this item will receive input
 * Several typos in the documentation have been fixed.
 
 ## [v1.0.0](https://github.com/cosmoscout/cosmoscout-vr/releases)
+
+**Release Date:** 30 / 08 / 2019
 
 * Initial publication under the MIT license on Github.
 
