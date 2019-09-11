@@ -134,6 +134,10 @@ class CS_CORE_EXPORT GuiManager {
   /// This is called once a frame from the Application.
   void update();
 
+   /// Adds a gui item to the or global gui area
+  void addGuiItem(gui::GuiItem* pItem, unsigned int index = 0);
+
+
  private:
   std::shared_ptr<InputManager>        mInputManager;
   std::shared_ptr<utils::FrameTimings> mFrameTimings;
