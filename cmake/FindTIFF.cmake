@@ -9,7 +9,7 @@ find_path(TIFF_INCLUDE_DIR tiff.h
     HINTS ${TIFF_ROOT_DIR}/include)
 
 # Locate library.
-find_library(TIFF_LIBRARY NAMES tiff
+find_library(TIFF_LIBRARY NAMES tiff tiffd
     HINTS ${TIFF_ROOT_DIR}/lib ${TIFF_ROOT_DIR}/lib64)
 
 include(FindPackageHandleStandardArgs)

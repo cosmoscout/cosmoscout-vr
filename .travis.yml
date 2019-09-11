@@ -16,8 +16,8 @@ addons:
 cache:
   ccache: true
   directories:
-  - build/linux-externals
-  - build/windows-externals
+  - build/linux-externals-release
+  - build/windows-externals-release
 jobs:
   include:
     - stage: test
@@ -39,7 +39,7 @@ jobs:
         - CXX=g++
       script:
         - ./make_externals.sh -G "Unix Makefiles" -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
-        - ./make_release.sh -G "Unix Makefiles" -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
+        - ./make.sh -G "Unix Makefiles" -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
     - name: Linux Clang
       env: LABEL=LinuxClang
       os: linux
@@ -50,7 +50,7 @@ jobs:
         - CXX=clang++
       script:
         - ./make_externals.sh -G "Unix Makefiles" -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
-        - ./make_release.sh -G "Unix Makefiles" -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
+        - ./make.sh -G "Unix Makefiles" -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
     - name: Windows MSVC
       env: LABEL=WindowsMSVC
       os: windows
