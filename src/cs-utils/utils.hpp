@@ -92,6 +92,7 @@ constexpr typename std::underlying_type<T>::type enumCast(T val) {
 /// Well, does what is says.
 float CS_UTILS_EXPORT getCurrentFarClipDistance();
 
+/// Returns the contents of the file as a string. Any occurences of \r\n will be replaced by \n.
 std::string CS_UTILS_EXPORT loadFileContentsToString(std::string const& file);
 
 } // namespace cs::utils
