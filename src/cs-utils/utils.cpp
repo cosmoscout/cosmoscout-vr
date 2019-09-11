@@ -116,15 +116,16 @@ float getCurrentFarClipDistance() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::string loadFileContentsToString(std::string const& file) {
-  std::ifstream f;
-  f.open(file, std::ios::in);
+  std::ifstream f(file);
+  std::string   content;
 
-  std::string content;
-  for (std::string line; std::getline(f, line);) {
-    content.append(line + "\n");
-  }
+  f.seekg(0, std::ios::end);
+  content.reserve(f.tellg());
+  f.seekg(0, std::ios::beg);
 
-  f.close();
+  content.assign((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
+  replaceString(content, "\r\n", "\n");
+
   return content;
 }
 
