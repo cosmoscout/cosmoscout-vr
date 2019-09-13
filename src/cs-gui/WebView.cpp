@@ -242,6 +242,15 @@ void WebView::injectMouseEvent(MouseEvent const& event) {
   case MouseEvent::Type::ePress:
     if (event.mButton == Button::eLeft) {
       mMouseModifiers |= int(Modifier::eLeftButton);
+      double elpasedTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - mLastClick).count();
+      if(elpasedTime < 200)
+      {
+        mClickCount++;
+      }else
+      {
+        mClickCount = 1;
+      }
+      mLastClick = std::chrono::steady_clock::now();
     } else if (event.mButton == Button::eRight) {
       mMouseModifiers |= int(Modifier::eRightButton);
     } else if (event.mButton == Button::eMiddle) {
@@ -250,7 +259,7 @@ void WebView::injectMouseEvent(MouseEvent const& event) {
 
     cef_event.modifiers = (uint32)mMouseModifiers;
     mClient->GetInternalLifeSpanHandler()->GetBrowser()->GetHost()->SendMouseClickEvent(
-        cef_event, (cef_mouse_button_type_t)event.mButton, false, 1);
+        cef_event, (cef_mouse_button_type_t)event.mButton, false, mClickCount);
     break;
 
   case MouseEvent::Type::eRelease:
@@ -264,7 +273,7 @@ void WebView::injectMouseEvent(MouseEvent const& event) {
 
     cef_event.modifiers = (uint32)mMouseModifiers;
     mClient->GetInternalLifeSpanHandler()->GetBrowser()->GetHost()->SendMouseClickEvent(
-        cef_event, (cef_mouse_button_type_t)event.mButton, true, 1);
+        cef_event, (cef_mouse_button_type_t)event.mButton, true, mClickCount);
     break;
   }
 }
