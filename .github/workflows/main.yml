@@ -5,10 +5,7 @@ on: [push]
 jobs:
   build_linux:
     name: Linux Build
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-18.04, ubuntu-16.04]
+    runs-on: ubuntu-18.04
     steps:
     - uses: actions/checkout@v1
     - name: Checkout Submodules
@@ -31,10 +28,7 @@ jobs:
 
   build_windows:
     name: Windows Build
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [windows-2016, windows-2019]
+    runs-on: windows-2019
     steps:
     - uses: actions/checkout@v1
     - name: Checkout Submodules
