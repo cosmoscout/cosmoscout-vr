@@ -47,9 +47,6 @@ jobs:
     name: Linux Build (clang)
     runs-on: ubuntu-18.04
     needs: clang_format
-    env:
-      CC: clang
-      CXX: clang++
     steps:
     - uses: actions/checkout@v1
     - name: Checkout Submodules
@@ -65,6 +62,8 @@ jobs:
         sudo apt-get install libxi-dev
         sudo apt-get install libgconf-2-4
         sudo apt-get install libboost1.70-dev
+        export CC=clang
+        export CXX=clang++
     - name: Build Externals
       run: ./make_externals.sh
     - name: Build CosmoScout VR
