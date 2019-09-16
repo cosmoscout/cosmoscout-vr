@@ -19,10 +19,37 @@ jobs:
         DIFF=$(git diff)
         if [ ! -z "$DIFF" ]; then echo $DIFF && exit 1; fi
         
-  build_linux:
-    name: Linux Build
+  build_linux_gcc:
+    name: Linux Build (gcc)
     runs-on: ubuntu-18.04
     needs: clang_format
+    steps:
+    - uses: actions/checkout@v1
+    - name: Checkout Submodules
+      run: git submodule update --init
+    - name: Download Dependencies
+      run: |
+        sudo add-apt-repository ppa:mhier/libboost-latest
+        sudo apt-get update -q
+        sudo apt-get install libc++-dev
+        sudo apt-get install libgl1-mesa-dev
+        sudo apt-get install libglu1-mesa-dev
+        sudo apt-get install libx11-dev
+        sudo apt-get install libxi-dev
+        sudo apt-get install libgconf-2-4
+        sudo apt-get install libboost1.70-dev
+    - name: Build Externals
+      run: ./make_externals.sh
+    - name: Build CosmoScout VR
+      run: ./make.sh
+      
+  build_linux_clang:
+    name: Linux Build (clang)
+    runs-on: ubuntu-18.04
+    needs: clang_format
+    env:
+      CC: clang
+      CXX: clang++
     steps:
     - uses: actions/checkout@v1
     - name: Checkout Submodules
