@@ -3,13 +3,12 @@ name: CI
 on: [push]
 
 jobs:
-  build:
-
+  build_linux:
+    name: Linux Build
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ubuntu-18.04, ubuntu-16.04]
-    
     steps:
     - uses: actions/checkout@v1
     - name: Checkout Submodules
@@ -29,3 +28,18 @@ jobs:
       run: ./make_externals.sh
     - name: Build CosmoScout VR
       run: ./make.sh
+
+  build_windows:
+    name: Windows Build
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-2016, windows-2019]
+    steps:
+    - uses: actions/checkout@v1
+    - name: Checkout Submodules
+      run: git submodule update --init
+    - name: Build Externals
+      run: ./make_externals.bat
+    - name: Build CosmoScout VR
+      run: ./make.bat
