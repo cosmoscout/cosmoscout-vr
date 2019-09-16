@@ -12,8 +12,8 @@
 #include "MouseEvent.hpp"
 
 #include <any>
-#include <iostream>
 #include <chrono>
+#include <iostream>
 
 namespace cs::gui {
 
@@ -202,12 +202,11 @@ class CS_GUI_EXPORT WebView {
   int mMouseY;
   int mMouseModifiers;
 
-  //Time point for the last left mouse click
+  // Time point for the last left mouse click
   std::chrono::steady_clock::time_point mLastClick;
 
-  //Count number of left mouse button clicks
+  // Count number of left mouse button clicks
   int mClickCount = 1;
-
 };
 
 } // namespace cs::gui
