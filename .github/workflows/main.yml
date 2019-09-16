@@ -1,11 +1,24 @@
-name: Compile
+name: Continuous Integration
 
 on: [push]
 
 jobs:
+  clang_format:
+    name: Check Clang-Format
+    runs-on: ubuntu-18.04
+    steps:
+    - uses: actions/checkout@v1
+    - name: Run Clang-Format
+      run: ./clang-format.sh
+    - name: Compare Results
+      run: |
+        DIFF=$(git diff)
+        if [ ! -z "$DIFF" ]; then echo $DIFF && exit 1; fi
+        
   build_linux:
     name: Linux Build
     runs-on: ubuntu-18.04
+    needs: clang_format
     steps:
     - uses: actions/checkout@v1
     - name: Checkout Submodules
@@ -29,6 +42,7 @@ jobs:
   build_windows:
     name: Windows Build
     runs-on: windows-2016
+    needs: clang_format
     steps:
     - uses: actions/checkout@v1
     - name: Checkout Submodules
