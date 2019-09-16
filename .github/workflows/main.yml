@@ -1,0 +1,31 @@
+name: CI
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-18.04, ubuntu-16.04]
+    
+    steps:
+    - uses: actions/checkout@v1
+    - name: Checkout Submodules
+      run: git submodule update --init
+    - name: Download Dependencies
+      run: |
+        sudo add-apt-repository ppa:mhier/libboost-latest
+        sudo apt-get update -q
+        sudo apt-get install libc++-dev
+        sudo apt-get install libgl1-mesa-dev
+        sudo apt-get install libglu1-mesa-dev
+        sudo apt-get install libx11-dev
+        sudo apt-get install libxi-dev
+        sudo apt-get install libgconf-2-4
+        sudo apt-get install libboost1.70-dev
+    - name: Build Externals
+      run: ./make_externals.sh
+    - name: Build CosmoScout VR
+      run: ./make.sh
