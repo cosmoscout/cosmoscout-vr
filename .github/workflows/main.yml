@@ -1,4 +1,4 @@
-name: CI
+name: Compile
 
 on: [push]
 
@@ -28,7 +28,7 @@ jobs:
 
   build_windows:
     name: Windows Build
-    runs-on: windows-2019
+    runs-on: windows-2016
     steps:
     - uses: actions/checkout@v1
     - name: Checkout Submodules
