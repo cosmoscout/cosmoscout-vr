@@ -14,6 +14,7 @@ jobs:
         sudo apt-get remove -y clang-6.0 libclang-common-6.0-dev libclang1-6.0 libllvm6.0
         sudo apt-get autoremove
         sudo apt-get install -y clang-format
+        export foo=bar
     - name: Run Clang-Format
       run: ./clang-format.sh
     - name: Compare Results
@@ -31,6 +32,9 @@ jobs:
       run: git submodule update --init
     - name: Download Dependencies
       run: |
+        echo "-------------"
+        echo $foo
+        echo "-------------"
         sudo add-apt-repository ppa:mhier/libboost-latest
         sudo apt-get update -q
         sudo apt-get install libc++-dev
@@ -55,6 +59,9 @@ jobs:
       run: git submodule update --init
     - name: Download Dependencies
       run: |
+        echo "-------------"
+        echo $foo
+        echo "-------------"
         sudo add-apt-repository ppa:mhier/libboost-latest
         sudo apt-get update -q
         sudo apt-get install libc++-dev
@@ -66,6 +73,8 @@ jobs:
         sudo apt-get install libboost1.70-dev
         export CC=clang
         export CXX=clang++
+    - name: Test
+      run: echo $CXX
     - name: Build Externals
       run: ./make_externals.sh
     - name: Build CosmoScout VR
