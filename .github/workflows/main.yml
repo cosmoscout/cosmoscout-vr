@@ -2,7 +2,9 @@ name: Continuous Integration
 
 on:
   check_run:
+    types: [requested_action]
   pull_request:
+    types: [opened, synchronize, reopened]
   push:
     branches:    
       - master
