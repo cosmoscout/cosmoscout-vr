@@ -8,11 +8,12 @@ jobs:
     runs-on: ubuntu-18.04
     steps:
     - uses: actions/checkout@v1
-    - name: Download Dependencies
+    - name: Download Clang-Format
       run: |
-        ls /usr/bin
-        find /usr/bin | grep clang-format
-        exit 1
+        sudo apt-get update -y
+        sudo apt-get remove -y clang-6.0 libclang-common-6.0-dev libclang1-6.0 libllvm6.0
+        sudo apt-get autoremove
+        sudo apt-get install -y clang-format
     - name: Run Clang-Format
       run: ./clang-format.sh
     - name: Compare Results
