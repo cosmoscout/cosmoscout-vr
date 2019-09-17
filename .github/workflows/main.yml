@@ -1,9 +1,12 @@
 name: CI
 
 on:
-  check_run: {}
+  commit_comment: {}
   pull_request: {}
-  push: {}
+  push:
+    branches:
+      - develop
+      - master
 
 jobs:
   clang_format:
