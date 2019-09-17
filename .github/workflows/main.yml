@@ -10,8 +10,9 @@ jobs:
     - uses: actions/checkout@v1
     - name: Download Dependencies
       run: |
-        sudo apt-get update -q
+        ls /usr/bin
         find /usr/bin | grep clang-format
+        exit 1
     - name: Run Clang-Format
       run: ./clang-format.sh
     - name: Compare Results
