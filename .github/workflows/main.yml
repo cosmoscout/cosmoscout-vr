@@ -21,7 +21,7 @@ jobs:
         if [ ! -z "$DIFF" ]; then echo $DIFF && exit 1; fi
         
   build_linux_gcc:
-    name: Linux Build (gcc)
+    name: Linux Build (gcc 7.4.0)
     runs-on: ubuntu-18.04
     needs: clang_format
     steps:
@@ -45,7 +45,7 @@ jobs:
       run: ./make.sh
       
   build_linux_clang:
-    name: Linux Build (clang)
+    name: Linux Build (clang 6.0)
     runs-on: ubuntu-18.04
     needs: clang_format
     steps:
@@ -75,7 +75,7 @@ jobs:
       run: ./make.sh
 
   build_windows:
-    name: Windows Build
+    name: Windows Build (msvc 19.16.27032.1)
     runs-on: windows-2016
     needs: clang_format
     steps:
