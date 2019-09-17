@@ -28,8 +28,7 @@ namespace cs::gui {
 class GuiItem;
 
 /// A container which holds a collection of GuiItems.
-class CS_GUI_EXPORT GuiArea
-{
+class CS_GUI_EXPORT GuiArea {
 
  public:
   GuiArea()          = default;
