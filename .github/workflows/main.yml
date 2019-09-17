@@ -3,10 +3,7 @@ name: CI
 on:
   check_run: {}
   pull_request: {}
-  push:
-    branches:    
-      - master
-      - develop
+  push: {}
 
 jobs:
   clang_format:
