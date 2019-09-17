@@ -1,17 +1,12 @@
 name: CI
 
-on:
-  commit_comment: {}
-  pull_request: {}
-  push:
-    branches:
-      - develop
-      - master
+on: [push, pull_request]
 
 jobs:
   clang_format:
     name: Check Clang-Format
     runs-on: ubuntu-18.04
+    if: github.event_name == 'pull_request' || github.ref == 'master'  || github.ref == 'develop' || contains(github.event.commits[0].message, '[run-ci]')
     steps:
     - uses: actions/checkout@v1
     - name: Download Clang-Format
@@ -30,6 +25,7 @@ jobs:
     name: Linux Build (gcc 7.4.0)
     runs-on: ubuntu-18.04
     needs: clang_format
+    if: github.event_name == 'pull_request' || github.ref == 'master'  || github.ref == 'develop' || contains(github.event.commits[0].message, '[run-ci]')
     steps:
     - uses: actions/checkout@v1
     - name: Checkout Submodules
@@ -49,6 +45,7 @@ jobs:
     name: Linux Build (clang 6.0)
     runs-on: ubuntu-18.04
     needs: clang_format
+    if: github.event_name == 'pull_request' || github.ref == 'master'  || github.ref == 'develop' || contains(github.event.commits[0].message, '[run-ci]')
     steps:
     - uses: actions/checkout@v1
     - name: Checkout Submodules
@@ -74,6 +71,7 @@ jobs:
     name: Windows Build (msvc 19.16.27032.1)
     runs-on: windows-2016
     needs: clang_format
+    if: github.event_name == 'pull_request' || github.ref == 'master'  || github.ref == 'develop' || contains(github.event.commits[0].message, '[run-ci]')
     steps:
     - uses: actions/checkout@v1
     - name: Checkout Submodules
