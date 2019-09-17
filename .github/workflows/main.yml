@@ -1,8 +1,8 @@
 name: Continuous Integration
 
 on:
-  check_run:
-    types: [requested_action]
+  check_suite:
+    types: [requested, rerequested]
   pull_request:
     types: [opened, synchronize, reopened]
   push:
