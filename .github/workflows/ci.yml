@@ -8,7 +8,8 @@ jobs:
     runs-on: ubuntu-18.04
     if: github.event_name == 'pull_request' || github.ref == 'master'  || github.ref == 'develop' || contains(github.event.commits[0].message, '[run-ci]')
     steps:
-    - uses: actions/checkout@v1
+    - name: Checkout Repository
+      uses: actions/checkout@v1
     - name: Download Clang-Format
       run: |
         sudo apt-get update -y
@@ -26,7 +27,8 @@ jobs:
     runs-on: ubuntu-18.04
     needs: clang_format
     steps:
-    - uses: actions/checkout@v1
+    - name: Checkout Repository
+      uses: actions/checkout@v1
     - name: Checkout Submodules
       run: git submodule update --init
     - name: Download Dependencies
@@ -45,7 +47,8 @@ jobs:
     runs-on: ubuntu-18.04
     needs: clang_format
     steps:
-    - uses: actions/checkout@v1
+    - name: Checkout Repository
+      uses: actions/checkout@v1
     - name: Checkout Submodules
       run: git submodule update --init
     - name: Download Dependencies
@@ -70,7 +73,8 @@ jobs:
     runs-on: windows-2016
     needs: clang_format
     steps:
-    - uses: actions/checkout@v1
+    - name: Checkout Repository
+      uses: actions/checkout@v1
     - name: Checkout Submodules
       run: git submodule update --init
     - name: Build Externals
