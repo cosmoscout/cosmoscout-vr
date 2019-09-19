@@ -1,0 +1,48 @@
+name: Compile Releases
+
+on:
+  push:
+    tags: {}
+
+jobs:
+  release_linux:
+    name: Linux Release
+    runs-on: ubuntu-18.04
+    steps:
+    - uses: actions/checkout@v1
+    - name: Checkout Submodules
+      run: git submodule update --init
+    - name: Download Dependencies
+      run: |
+        sudo add-apt-repository ppa:mhier/libboost-latest
+        sudo apt-get update -q
+        sudo apt-get install libc++-dev libgl1-mesa-dev libglu1-mesa-dev libx11-dev
+        sudo apt-get install libxi-dev libgconf-2-4 libboost1.70-dev
+    - name: Get Example Data
+      run: ./get_example_data.sh
+    - name: Build Externals
+      run: ./make_externals.sh
+    - name: Build CosmoScout VR
+      run: ./make.sh
+    - uses: actions/upload-artifact@master
+      with:
+        name: cosmoscout-vr
+        path: install/linux-release
+
+  release_windows:
+    name: Windows Release
+    runs-on: windows-2016
+    steps:
+    - uses: actions/checkout@v1
+    - name: Checkout Submodules
+      run: git submodule update --init
+    - name: Get Example Data
+      run: ./get_example_data.bat
+    - name: Build Externals
+      run: ./make_externals.bat
+    - name: Build CosmoScout VR
+      run: ./make.bat
+    - uses: actions/upload-artifact@master
+      with:
+        name: cosmoscout-vr
+        path: install/windows-release
