@@ -30,7 +30,7 @@ jobs:
     - name: Checkout Submodules
       run: git submodule update --init
     - name: Download Dependencies
-      run: brew install xquartz
+      run: brew cask install xquartz
     - name: Build Externals
       run: ./make_externals.sh
     - name: Build CosmoScout VR
