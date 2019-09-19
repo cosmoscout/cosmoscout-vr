@@ -25,11 +25,12 @@ jobs:
     name: OSX Build
     runs-on: macOS-10.14
     needs: clang_format
-    if: github.event_name == 'pull_request' || github.ref == 'master'  || github.ref == 'develop' || contains(github.event.commits[0].message, '[run-ci]')
     steps:
     - uses: actions/checkout@v1
     - name: Checkout Submodules
       run: git submodule update --init
+    - name: Download Dependencies
+      run: brew install xquartz
     - name: Build Externals
       run: ./make_externals.sh
     - name: Build CosmoScout VR
@@ -39,7 +40,6 @@ jobs:
     name: Linux Build (gcc 7.4.0)
     runs-on: ubuntu-18.04
     needs: clang_format
-    if: github.event_name == 'pull_request' || github.ref == 'master'  || github.ref == 'develop' || contains(github.event.commits[0].message, '[run-ci]')
     steps:
     - uses: actions/checkout@v1
     - name: Checkout Submodules
@@ -59,7 +59,6 @@ jobs:
     name: Linux Build (clang 6.0)
     runs-on: ubuntu-18.04
     needs: clang_format
-    if: github.event_name == 'pull_request' || github.ref == 'master'  || github.ref == 'develop' || contains(github.event.commits[0].message, '[run-ci]')
     steps:
     - uses: actions/checkout@v1
     - name: Checkout Submodules
@@ -85,7 +84,6 @@ jobs:
     name: Windows Build (msvc 19.16.27032.1)
     runs-on: windows-2016
     needs: clang_format
-    if: github.event_name == 'pull_request' || github.ref == 'master'  || github.ref == 'develop' || contains(github.event.commits[0].message, '[run-ci]')
     steps:
     - uses: actions/checkout@v1
     - name: Checkout Submodules
