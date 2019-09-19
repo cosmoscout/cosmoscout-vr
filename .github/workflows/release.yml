@@ -2,7 +2,8 @@ name: Compile Releases
 
 on:
   push:
-    tags: {}
+    tags:
+      - '*'
 
 jobs:
   release_linux:
