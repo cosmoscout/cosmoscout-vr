@@ -29,7 +29,7 @@ jobs:
     - name: Upload Artifact
       uses: actions/upload-artifact@master
       with:
-        name: cosmoscout-vr
+        name: cosmoscout-vr-linux64
         path: install/linux-release
 
   release_windows:
@@ -49,5 +49,5 @@ jobs:
     - name: Upload Artifact
       uses: actions/upload-artifact@master
       with:
-        name: cosmoscout-vr
+        name: cosmoscout-vr-win64
         path: install/windows-release
