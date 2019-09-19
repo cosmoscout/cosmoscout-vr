@@ -20,22 +20,7 @@ jobs:
       run: |
         DIFF=$(git diff)
         if [ ! -z "$DIFF" ]; then echo $DIFF && exit 1; fi
-        
-  build_osx:
-    name: OSX Build
-    runs-on: macOS-10.14
-    needs: clang_format
-    steps:
-    - uses: actions/checkout@v1
-    - name: Checkout Submodules
-      run: git submodule update --init
-    - name: Download Dependencies
-      run: brew cask install xquartz
-    - name: Build Externals
-      run: ./make_externals.sh
-    - name: Build CosmoScout VR
-      run: ./make.sh
-      
+
   build_linux_gcc:
     name: Linux Build (gcc 7.4.0)
     runs-on: ubuntu-18.04
