@@ -6,6 +6,22 @@ on:
       - '*'
 
 jobs:
+  source_code:
+    name: Source Code
+    runs-on: ubuntu-18.04
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v1
+    - name: Checkout Submodules
+      run: git submodule update --init
+    - name: Create Archive
+      run: externals/git-archive-all.sh/git-archive-all.sh --prefix cosmoscout-vr/ source-with-submodules.tar.gz
+    - name: Upload Artifact
+      uses: actions/upload-artifact@master
+      with:
+        name: source-with-submodules
+        path: source-with-submodules.tar.gz
+        
   release_linux:
     name: Linux
     runs-on: ubuntu-18.04
