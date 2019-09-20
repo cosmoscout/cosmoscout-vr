@@ -16,7 +16,6 @@ cd "$DATA_DIR/stars"
 wget -nc ftp://ftp.imcce.fr/pub/catalogs/HIPP/cats/hip_main.dat
 wget -nc ftp://ftp.imcce.fr/pub/catalogs/TYCHO-2/catalog.dat -O tyc2_main.dat
 
-
 # download some basic spice kernels
 mkdir -p "$DATA_DIR/spice"
 cd "$DATA_DIR/spice"
@@ -24,3 +23,7 @@ cd "$DATA_DIR/spice"
 wget -nc https://naif.jpl.nasa.gov/pub/naif/cosmographia/kernels/spice/pck/pck00010.tpc
 wget -nc https://naif.jpl.nasa.gov/pub/naif/cosmographia/kernels/spice/lsk/naif0011.tls
 wget -nc https://naif.jpl.nasa.gov/pub/naif/cosmographia/kernels/spice/spk/cg_1950_2050_v01.bsp
+
+# --------------------------------------------------------------------------------------------------
+
+echo "Finished successfully."

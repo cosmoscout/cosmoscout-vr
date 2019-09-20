@@ -1,9 +1,6 @@
 name: Compile Releases
 
-on:
-  push:
-    tags:
-      - '*'
+on: [push]
 
 jobs:
   source_code:
