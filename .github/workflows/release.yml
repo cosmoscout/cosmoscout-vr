@@ -7,7 +7,7 @@ on:
 
 jobs:
   release_linux:
-    name: Linux Release
+    name: Linux
     runs-on: ubuntu-18.04
     steps:
     - name: Checkout Repository
@@ -33,7 +33,7 @@ jobs:
         path: install/linux-release
 
   release_windows:
-    name: Windows Release
+    name: Windows
     runs-on: windows-2016
     steps:
     - name: Checkout Repository
