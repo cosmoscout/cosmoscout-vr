@@ -4,6 +4,14 @@
 
 # Changelog of CosmoScout VR
 
+## [v1.1.1](https://github.com/cosmoscout/cosmoscout-vr/releases)
+
+**Release Date:** 20 / 09 / 2019
+
+#### Bug Fixes
+
+* Fixed a regression which messed up the display of world space user interfaces 
+
 ## [v1.1.0](https://github.com/cosmoscout/cosmoscout-vr/releases)
 
 **Release Date:** 11 / 09 / 2019
