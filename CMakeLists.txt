@@ -224,11 +224,3 @@ add_subdirectory(config)
 add_subdirectory(resources)
 add_subdirectory(src)
 add_subdirectory(plugins)
-
-# install data directory, complain if non-existent -------------------------------------------------
-
-if (EXISTS ${CMAKE_SOURCE_DIR}/data)
-  install(DIRECTORY ${CMAKE_SOURCE_DIR}/data DESTINATION "share/resources")
-else()
-  message(WARNING "Data directory was not found. Maybe you forgot to run the get_example_data.[sh/bat] script?")
-endif()

@@ -12,6 +12,7 @@
 #include "../cs-core/SolarSystem.hpp"
 #include "../cs-core/TimeControl.hpp"
 #include "../cs-utils/convert.hpp"
+#include "../cs-utils/filesystem.hpp"
 #include "../cs-utils/utils.hpp"
 #include "dfn-nodes/AutoSceneScaleNode.hpp"
 #include "dfn-nodes/DragNavigationNode.hpp"
@@ -55,8 +56,17 @@ Application::Application(cs::core::Settings const& settings)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool Application::Init(VistaSystem* pVistaSystem) {
-  // initialize curl - else it will be done in a not-threadsafe-manner in the TileSourcWMS
+  // initialize curl
   cURLpp::initialize();
+
+  // download datasets if required
+  for (auto const& download : mSettings->mDownloadData) {
+    if (!boost::filesystem::exists(download.mFile)) {
+      cs::utils::filesystem::downloadFile(download.mSource, download.mFile, true);
+    }
+  }
+
+  cs::core::SolarSystem::init(mSettings->mSpiceKernel);
 
   mInputManager   = std::make_shared<cs::core::InputManager>();
   mFrameTimings   = std::make_shared<cs::utils::FrameTimings>();
@@ -716,6 +726,8 @@ Application::~Application() {
   }
 
   mPlugins.clear();
+
+  cs::core::SolarSystem::cleanup();
 
   cURLpp::terminate();
 }

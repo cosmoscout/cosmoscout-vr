@@ -43,13 +43,6 @@ git submodule update --init
 This will clone the repository to `cosmoscout-vr` configure and build all externals in `cosmoscout-vr/build/linux-externals-release` and will install them to `cosmoscout-vr/install/linux-externals-release`.
 All parameters given to `make_externals.bat` will be forwarded to CMake. For example, you can change the CMake generator this way.
 
-For a minimal setup you will need some data sets which are not included in this git repository.
-Run this script to download the data to `cosmoscout-vr/data`:
-
-```shell
-./get_example_data.sh
-```
-
 Now you can compile CosmoScout VR:
 
 ```shell
@@ -100,13 +93,6 @@ make_externals.bat -G "Visual Studio 15 Win64"
 
 This will clone the repository to `cosmoscout-vr` configure and build all externals in `cosmoscout-vr\build\windows-externals-release` and will install them to `cosmoscout-vr\install\windows-externals-release`.
 All parameters given to `make_externals.bat` will be forwarded to CMake. For example, you can change the CMake generator this way.
-
-For a minimal setup you will need some data sets which are not included in this git repository.
-Run this script to download the data to `cosmoscout-vr\data`:
-
-```batch
-get_example_data.bat
-```
 
 Now you can compile CosmoScout VR.
 On Linux, boost is usually found automatically by CMake, on Windows you have to provide the `BOOST_ROOT` path.
