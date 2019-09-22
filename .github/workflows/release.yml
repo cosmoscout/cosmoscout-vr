@@ -33,10 +33,10 @@ jobs:
         sudo apt-get update -q
         sudo apt-get install libc++-dev libgl1-mesa-dev libglu1-mesa-dev libx11-dev
         sudo apt-get install libxi-dev libgconf-2-4 libboost1.70-dev
-    - name: Get Example Data
-      run: ./get_example_data.sh
     - name: Build Externals
       run: ./make_externals.sh
+    - name: Get Example Data
+      run: ./get_example_data.sh
     - name: Build CosmoScout VR
       run: ./make.sh
     - name: Create Artifact
@@ -57,12 +57,12 @@ jobs:
       uses: actions/checkout@v1
     - name: Checkout Submodules
       run: git submodule update --init
-    - name: Get Example Data
-      run: ./get_example_data.bat
     - name: Build Externals
-      run: ./make_externals.bat
+      run: make_externals.bat
+    - name: Get Example Data
+      run: get_example_data.bat
     - name: Build CosmoScout VR
-      run: ./make.bat
+      run: make.bat
     - name: Upload Artifact
       uses: actions/upload-artifact@master
       with:
