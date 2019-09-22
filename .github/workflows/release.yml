@@ -16,7 +16,7 @@ jobs:
     - name: Upload Artifact
       uses: actions/upload-artifact@master
       with:
-        name: source-with-submodules
+        name: source-with-submodules.zip
         path: source-with-submodules.tar.gz
         
   release_linux:

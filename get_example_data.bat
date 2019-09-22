@@ -19,9 +19,9 @@ cd "%DATA_DIR%\stars"
 
 echo "Test 2"
 
-powershell.exe -command Invoke-WebRequest -Uri ftp://ftp.imcce.fr/pub/catalogs/HIPP/cats/hip_main.dat -OutFile hip_main.dat
+rem powershell.exe -command Invoke-WebRequest -Uri ftp://ftp.imcce.fr/pub/catalogs/HIPP/cats/hip_main.dat -OutFile hip_main.dat
 echo "Test 3"
-powershell.exe -command Invoke-WebRequest -Uri ftp://ftp.imcce.fr/pub/catalogs/TYCHO-2/catalog.dat -OutFile tyc2_main.dat
+rem powershell.exe -command Invoke-WebRequest -Uri ftp://ftp.imcce.fr/pub/catalogs/TYCHO-2/catalog.dat -OutFile tyc2_main.dat
 echo "Test 4"
 
 rem download some basic spice kernels
