@@ -6,6 +6,7 @@ rem      and may be used under the terms of the MIT license. See the LICENSE fil
 rem                         Copyright: (c) 2019 German Aerospace Center (DLR)                      #
 rem ---------------------------------------------------------------------------------------------- #
 
+echo "Test 1"
 rem Get the current directory - we will return to this once this script finished
 set CURRENT_DIR=%cd%
 
@@ -16,8 +17,12 @@ rem download the hipparcos and the tycho2 catalogue
 mkdir "%DATA_DIR%\stars"
 cd "%DATA_DIR%\stars"
 
+echo "Test 2"
+
 powershell.exe -command Invoke-WebRequest -Uri ftp://ftp.imcce.fr/pub/catalogs/HIPP/cats/hip_main.dat -OutFile hip_main.dat
+echo "Test 3"
 powershell.exe -command Invoke-WebRequest -Uri ftp://ftp.imcce.fr/pub/catalogs/TYCHO-2/catalog.dat -OutFile tyc2_main.dat
+echo "Test 4"
 
 rem download some basic spice kernels
 mkdir "%DATA_DIR%\spice"

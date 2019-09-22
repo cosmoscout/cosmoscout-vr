@@ -39,11 +39,15 @@ jobs:
       run: ./make_externals.sh
     - name: Build CosmoScout VR
       run: ./make.sh
+    - name: Create Artifact
+      run: | 
+        mv install\linux-release cosmoscout-vr
+        cmake -E tar cv cosmoscout-vr-linux64.tar.gz cosmoscout-vr
     - name: Upload Artifact
       uses: actions/upload-artifact@master
       with:
-        name: cosmoscout-vr-linux64
-        path: install/linux-release
+        name: cosmoscout-vr-linux64.zip
+        path: cosmoscout-vr-linux64.tar.gz
 
   release_windows:
     name: Windows
@@ -62,5 +66,5 @@ jobs:
     - name: Upload Artifact
       uses: actions/upload-artifact@master
       with:
-        name: cosmoscout-vr-win64
+        name: cosmoscout-vr-win64.zip
         path: install/windows-release
