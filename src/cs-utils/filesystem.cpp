@@ -85,8 +85,8 @@ void downloadFile(std::string const& url, std::string const& destination, bool p
   request.setOpt(curlpp::options::ProgressFunction([&](double a, double b, double c, double d) {
     if (a > 0 && b > 0) {
       std::cout << " ... " << std::floor(b / a * 100) << "%            \r" << std::flush;
-      return 0;
     }
+    return 0;
   }));
 
   request.perform();
