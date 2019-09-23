@@ -76,8 +76,6 @@ void downloadFile(std::string const& url, std::string const& destination, bool p
     throw std::runtime_error("Failed to open " + destination + " for downloading " + url + "!");
   }
 
-  std::cout << "Downloading " << destination << " from " << url << " ... \r" << std::flush;
-
   curlpp::Easy request;
   request.setOpt(curlpp::options::Url(url));
   request.setOpt(curlpp::options::WriteStream(&stream));
@@ -86,14 +84,14 @@ void downloadFile(std::string const& url, std::string const& destination, bool p
   request.setOpt(curlpp::options::SslVerifyPeer(false));
   request.setOpt(curlpp::options::ProgressFunction([&](double a, double b, double c, double d) {
     if (a > 0 && b > 0) {
-      std::cout << "Downloading " << destination << " from " << url << " ... "
-                << std::floor(b / a * 100) << "%            \r" << std::flush;
+      std::cout << " ... " << std::floor(b / a * 100) << "%            \r" << std::flush;
       return 0;
     }
   }));
+
   request.perform();
 
-  std::cout << "Downloading " << destination << " from " << url << " ... Done" << std::endl;
+  std::cout << " ... Done" << std::endl;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -60,9 +60,16 @@ bool Application::Init(VistaSystem* pVistaSystem) {
   cURLpp::initialize();
 
   // download datasets if required
-  for (auto const& download : mSettings->mDownloadData) {
-    if (!boost::filesystem::exists(download.mFile)) {
-      cs::utils::filesystem::downloadFile(download.mSource, download.mFile, true);
+  for (int i = 0; i < mSettings->mDownloadData.size(); ++i) {
+    std::cout << "[" << i + 1 << "/" << mSettings->mDownloadData.size() << "] ";
+    if (boost::filesystem::exists(mSettings->mDownloadData[i].mFile)) {
+      std::cout << "Skipping download of " << mSettings->mDownloadData[i].mFile
+                << ": File already exists." << std::endl;
+    } else {
+      std::cout << "Downloading " << mSettings->mDownloadData[i].mFile << " from "
+                << mSettings->mDownloadData[i].mSource << std::endl;
+      cs::utils::filesystem::downloadFile(
+          mSettings->mDownloadData[i].mSource, mSettings->mDownloadData[i].mFile, true);
     }
   }
 
