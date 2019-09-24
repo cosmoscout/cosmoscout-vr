@@ -636,24 +636,28 @@ function set_date_local(date) {
   let day_speed    = 86400;
   let month_speed  = 2628000;
   function set_time_speed(speed) {
-      $("#play-pause-icon").text("pause");
-      if (speed == 0.0) {
-          $("#play-pause-icon").text("play_arrow");
-          setPaus();
-          window.call_native("print_notification", "Pause", "Time is paused.", "pause");
-      } else if (speed == 1.0) {
-          window.call_native("print_notification", "Speed: Realtime", "Time runs in realtime.", "play_arrow");
-      } else if (speed == hour_speed) {
-          window.call_native("print_notification", "Speed: Hour/s", "Time runs at one hour per second.", "fast_forward");
-      }else if (speed == day_speed) {
-          window.call_native("print_notification", "Speed: Day/s", "Time runs at one day per second.", "fast_forward");
-      }else if (speed == month_speed) {
-          window.call_native("print_notification", "Speed: Month/s", "Time runs at one month per second.", "fast_forward");
-      }else if (speed > time_speed) {
-          window.call_native("print_notification", "Speed: " + speed + "x", "Time speed increased.", "fast_forward");
-      } else if (speed < time_speed) {
-          window.call_native("print_notification", "Speed: " + speed + "x", "Time speed decreased.", "fast_rewind");
-      }
+    $("#play-pause-icon").text("pause");
+    if (speed == 0.0) {
+        $("#play-pause-icon").text("play_arrow");
+        setPaus();
+        window.call_native("print_notification", "Pause", "Time is paused.", "pause");
+    } else if (speed == 1.0) {
+        window.call_native("print_notification", "Speed: Realtime", "Time runs in realtime.", "play_arrow");
+    } else if (speed == hour_speed) {
+        window.call_native("print_notification", "Speed: Hour/s", "Time runs at one hour per second.", "fast_forward");
+    }else if (speed == day_speed) {
+        window.call_native("print_notification", "Speed: Day/s", "Time runs at one day per second.", "fast_forward");
+    }else if (speed == month_speed) {
+        window.call_native("print_notification", "Speed: Month/s", "Time runs at one month per second.", "fast_forward");
+    }else if (speed == -1.0) {
+        window.call_native("print_notification", "Speed: -Realtime", "Time runs backwards in realtime.", "fast_rewind");
+    } else if (speed == -hour_speed) {
+        window.call_native("print_notification", "Speed: -Hour/s", "Time runs backwards at one hour per second.", "fast_rewind");
+    }else if (speed == -day_speed) {
+        window.call_native("print_notification", "Speed: -Day/s", "Time runs backwards at one day per second.", "fast_rewind");
+    }else if (speed == -month_speed) {
+        window.call_native("print_notification", "Speed: -Month/s", "Time runs backwards at one month per second.", "fast_rewind");
+    }
 
       time_speed = speed;
   }
