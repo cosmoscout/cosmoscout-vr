@@ -132,4 +132,8 @@
   #visualization:hover {
     box-shadow: 0 0 15px #86d5f8;
   }
+
+  #visualization:active {
+    top: 1px;
+  }
  
