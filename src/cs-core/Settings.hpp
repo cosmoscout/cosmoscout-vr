@@ -81,11 +81,18 @@ class CS_CORE_EXPORT Settings {
     double      mDistance;
   };
 
+  struct DownloadData {
+    std::string mFile;
+    std::string mSource;
+  };
+
   /// Defines the initial simulation time.
   std::string mStartDate;
 
   /// Defines the initial observer location.
   Observer mObserver;
+
+  std::vector<DownloadData> mDownloadData;
 
   /// The file name of the meta kernel for SPICE.
   std::string mSpiceKernel;

@@ -12,7 +12,6 @@
 #include <algorithm>
 #include <limits>
 #include <map>
-#include <set>
 #include <sstream>
 #include <string>
 #include <type_traits>
@@ -81,8 +80,6 @@ T fromString(std::string const& v) {
 /// Splits the given string into chunks separated by the delim character.
 CS_UTILS_EXPORT std::vector<std::string> splitString(std::string const& s, char delim);
 
-CS_UTILS_EXPORT std::set<std::string> listFiles(std::string const& directory);
-
 /// A template to cast an enum class to its underlying type.
 template <typename T>
 constexpr typename std::underlying_type<T>::type enumCast(T val) {
@@ -91,9 +88,6 @@ constexpr typename std::underlying_type<T>::type enumCast(T val) {
 
 /// Well, does what is says.
 float CS_UTILS_EXPORT getCurrentFarClipDistance();
-
-/// Returns the contents of the file as a string. Any occurences of \r\n will be replaced by \n.
-std::string CS_UTILS_EXPORT loadFileContentsToString(std::string const& file);
 
 } // namespace cs::utils
 
