@@ -5,7 +5,7 @@
 # ------------------------------------------------------------------------------------------------ #
 
 cmake_minimum_required(VERSION 3.12)
-project(cosmoscout-vr VERSION 1.0.0)
+project(cosmoscout-vr VERSION 1.1.0)
 
 # Use cmake 3.12's <PACKAGE>_ROOT variabled for searching.
 cmake_policy(SET CMP0074 NEW)
@@ -16,10 +16,10 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 # CMAKE_BUILD_TYPE must be set (except for Visual Studio).
 if(NOT MSVC)
   if(NOT CMAKE_BUILD_TYPE OR
-    (NOT ${CMAKE_BUILD_TYPE} STREQUAL "Release" AND
-    NOT ${CMAKE_BUILD_TYPE} STREQUAL "Debug"))
+    (NOT ${CMAKE_BUILD_TYPE} STREQUAL "release" AND
+    NOT ${CMAKE_BUILD_TYPE} STREQUAL "debug"))
 
-    set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Release or Debug" FORCE)
+    set(CMAKE_BUILD_TYPE "release" CACHE STRING "release or debug" FORCE)
   endif()
 endif()
 
@@ -133,9 +133,6 @@ find_package(OPENSG REQUIRED)
 find_package(VistaCoreLibs REQUIRED 
   COMPONENTS "VistaBase" "VistaKernel" "VistaKernelOpenSGExt" "VistaOGLExt"
 )
-
-# strip "optimzed" flags as we will be using release libs only.
-list(FILTER VISTACORELIBS_LIBRARIES EXCLUDE REGEX optimized)
 
 # copy all third-party libraries to install directory
 install(

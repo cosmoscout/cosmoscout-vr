@@ -10,6 +10,8 @@
 set -e
 
 # ------------------------------------------------------------------------------------------------ #
+# Default build mode is release, if "export COSMOSCOUT_DEBUG_BUILD=true" is executed before, the   #
+# application will be built in debug mode.                                                         #
 # Usage:                                                                                           #
 #    ./make_release.sh [additional CMake flags, defaults to -G "Eclipse CDT4 - Unix Makefiles"]    #
 # Examples:                                                                                        #
@@ -19,13 +21,19 @@ set -e
 #                      -DCMAKE_C_COMPILER_LAUNCHER=ccache                                          #
 # ------------------------------------------------------------------------------------------------ #
 
+# create some required variables -------------------------------------------------------------------
+
 # The CMake generator and other flags can be passed as parameters.
 CMAKE_FLAGS=(-G "Eclipse CDT4 - Unix Makefiles")
 if [ $# -ne 0 ]; then
   CMAKE_FLAGS=( "$@" )
 fi
 
-# create some required variables -------------------------------------------------------------------
+# Check if ComoScout VR debug build is enabled with "export COSMOSCOUT_DEBUG_BUILD=true".
+BUILD_TYPE=release
+case "$COSMOSCOUT_DEBUG_BUILD" in
+  (true) echo "CosmoScout VR debug build is enabled!"; BUILD_TYPE=debug;;
+esac
 
 # This directory should contain the top-level CMakeLists.txt - it is assumed to reside in the same
 # directory as this script.
@@ -35,15 +43,15 @@ CMAKE_DIR="$( cd "$( dirname "$0" )" && pwd )"
 CURRENT_DIR="$(pwd)"
 
 # The build directory.
-BUILD_DIR="$CURRENT_DIR/build/linux-release"
+BUILD_DIR="$CURRENT_DIR/build/linux-$BUILD_TYPE"
 
 # The install directory.
-INSTALL_DIR="$CURRENT_DIR/install/linux-release"
+INSTALL_DIR="$CURRENT_DIR/install/linux-$BUILD_TYPE"
 
 # This directory should be used as the install directory for make_externals.sh.
-EXTERNALS_INSTALL_DIR="$CURRENT_DIR/install/linux-externals"
+EXTERNALS_INSTALL_DIR="$CURRENT_DIR/install/linux-externals-$BUILD_TYPE"
 
-# create the build directory if necessary -------------------------------------------------------------
+# create the build directory if necessary ----------------------------------------------------------
 
 if [ ! -d "$BUILD_DIR" ]; then
   mkdir -p "$BUILD_DIR"
@@ -53,7 +61,7 @@ fi
 
 cd "$BUILD_DIR"
 cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
-      -DCMAKE_BUILD_TYPE=Release -DCOSMOSCOUT_EXTERNALS_DIR="$EXTERNALS_INSTALL_DIR" \
+      -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCOSMOSCOUT_EXTERNALS_DIR="$EXTERNALS_INSTALL_DIR" \
       -DCMAKE_EXPORT_COMPILE_COMMANDS=On "$CMAKE_DIR"
 
 cmake --build . --target install --parallel 8
