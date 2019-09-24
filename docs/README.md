@@ -11,15 +11,16 @@ Specific configuration options are documented in the repositories of the [indivi
 * [Changelog](changelog.md)
 * [How to cite CosmoScout VR](citation.md)
 * [Release Management](release-management.md)
-* [Software Architecture](architecture.md)
-* [Complete List of Dependencies](dependencies.md)
 
 ### Getting Started
 * [Build Instructions](install.md)
 * [Using CosmoScout VR](using.md)
 * [Configuring CosmoScout VR](configuring.md)
-
-### Next Steps
 * [Contributing to the Project](contributing.md)
+
+### Software Documentation
+* [Software Architecture](architecture.md)
+* [Complete List of Dependencies](dependencies.md)
+* [Coordinate Systems of CosmoScout VR](coordinate-systems.md)
 
 <p align="center"><img src ="img/hr.svg"/></p>

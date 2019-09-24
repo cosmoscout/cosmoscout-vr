@@ -114,8 +114,6 @@ start.bat
 :information_source: _**Tip:** If you wish, you can delete the directories `build` and `install` at any time in order to force a complete reconfiguration or re-installation._
 
 <p align="center">
-  <a href="dependencies.md">&lsaquo; Dependencies</a>
-  <img src ="img/nav-vspace.svg"/>
   <a href="README.md">&#8962; Help Index</a>
   <img src ="img/nav-vspace.svg"/>
   <a href="using.md">Using CosmoScout VR &rsaquo;</a>
