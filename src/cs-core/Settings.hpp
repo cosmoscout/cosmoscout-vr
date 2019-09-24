@@ -85,15 +85,15 @@ class CS_CORE_EXPORT Settings {
     std::string mPlanet;
     std::string mPlace;
   };
-  
+
   struct Event {
-    std::string mStart;
+    std::string                mStart;
     std::optional<std::string> mEnd;
-    std::string mContent;
-    std::string mId;
+    std::string                mContent;
+    std::string                mId;
     std::optional<std::string> mStyle;
-    std::string mDescription;
-    std::optional<Location> mLocation;
+    std::string                mDescription;
+    std::optional<Location>    mLocation;
   };
 
   /// Defines the initial simulation time.

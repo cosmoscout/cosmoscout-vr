@@ -76,15 +76,15 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
   mViewportUpdater = new VistaViewportResizeToProjectionAdapter(pViewport);
   mViewportUpdater->SetUpdateMode(VistaViewportResizeToProjectionAdapter::MAINTAIN_HORIZONTAL_FOV);
 
-  mLoadingScreen = new gui::GuiItem("file://../share/resources/gui/loading_screen.html");
-  mCalendar      = new gui::GuiItem("file://../share/resources/gui/calendar.html");
-  mSideBar       = new gui::GuiItem("file://../share/resources/gui/sidebar.html");
-  mFooterBar     = new gui::GuiItem("file://../share/resources/gui/footer.html");
-  mNotifications = new gui::GuiItem("file://../share/resources/gui/notifications.html");
-  mLogo          = new gui::GuiItem("file://../share/resources/gui/logo.html");
-  mStatistics    = new gui::GuiItem("file://../share/resources/gui/statistics.html");
+  mLoadingScreen     = new gui::GuiItem("file://../share/resources/gui/loading_screen.html");
+  mCalendar          = new gui::GuiItem("file://../share/resources/gui/calendar.html");
+  mSideBar           = new gui::GuiItem("file://../share/resources/gui/sidebar.html");
+  mFooterBar         = new gui::GuiItem("file://../share/resources/gui/footer.html");
+  mNotifications     = new gui::GuiItem("file://../share/resources/gui/notifications.html");
+  mLogo              = new gui::GuiItem("file://../share/resources/gui/logo.html");
+  mStatistics        = new gui::GuiItem("file://../share/resources/gui/statistics.html");
   mTimeNavigationBar = new gui::GuiItem("file://../share/resources/gui/timenavigation.html");
-  
+
   mLoadingScreen->setIsInteractive(false);
 
   // Add global gui items to mGlobalGuiArea if available, else use the mLocalGuiArea.
@@ -241,22 +241,20 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
   mFrameTimings->pEnableMeasurements.onChange().connect(
       [this](bool enable) { mStatistics->setIsEnabled(enable); });
 
-  //Set settings for the time Navigation
+  // Set settings for the time Navigation
   mTimeNavigationBar->callJavascript("setTimelineRange", settings->mMinDate, settings->mMaxDate);
 
-  for (int i = 0; i < settings->mEvents.size(); i++)
-  {
+  for (int i = 0; i < settings->mEvents.size(); i++) {
     std::string planet = "";
-    std::string place = "";
-    if(settings->mEvents.at(i).mLocation.has_value()) {
+    std::string place  = "";
+    if (settings->mEvents.at(i).mLocation.has_value()) {
       planet = settings->mEvents.at(i).mLocation.value().mPlanet;
-      place = settings->mEvents.at(i).mLocation.value().mPlace;
+      place  = settings->mEvents.at(i).mLocation.value().mPlace;
     }
-    addEventToTimenavigationBar(settings->mEvents.at(i).mStart, settings->mEvents.at(i).mEnd, 
-    settings->mEvents.at(i).mId, settings->mEvents.at(i).mContent, settings->mEvents.at(i).mStyle, settings->mEvents.at(i).mDescription,
-    planet, place);
+    addEventToTimenavigationBar(settings->mEvents.at(i).mStart, settings->mEvents.at(i).mEnd,
+        settings->mEvents.at(i).mId, settings->mEvents.at(i).mContent,
+        settings->mEvents.at(i).mStyle, settings->mEvents.at(i).mDescription, planet, place);
   }
-  
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -487,9 +485,11 @@ void GuiManager::addScriptToSideBarFromJS(std::string const& jsFile) {
   addScriptToSideBar(content);
 }
 
-void GuiManager::addEventToTimenavigationBar(std::string start, std::optional<std::string> end, std::string id, std::string content,
- std::optional<std::string> style, std::string description, std::string planet, std::string place) {
-  mTimeNavigationBar->callJavascript("add_item", start, end.value_or(""), id, content, style.value_or(""), description, planet, place);
+void GuiManager::addEventToTimenavigationBar(std::string start, std::optional<std::string> end,
+    std::string id, std::string content, std::optional<std::string> style, std::string description,
+    std::string planet, std::string place) {
+  mTimeNavigationBar->callJavascript("add_item", start, end.value_or(""), id, content,
+      style.value_or(""), description, planet, place);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

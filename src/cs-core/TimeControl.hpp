@@ -39,7 +39,7 @@ class CS_CORE_EXPORT TimeControl {
   /// @param The target time in TDB.
   void setTime(double tTime);
 
-  /// Set the simulation time to a specific point in time. The transition is not done smoothly, 
+  /// Set the simulation time to a specific point in time. The transition is not done smoothly,
   /// even if the piont is close to the current simulation time.
   /// @param The target time in TDB.
   void setTimeWithoutAnimation(double tTime);

@@ -29,7 +29,7 @@ int main(int argc, char** argv) {
   args.addArgument({"-h", "--help"}, &printHelp, "Print this help.");
   args.addArgument({"-v", "--vistahelp"}, &printVistaHelp, "Print help for vista options.");
 
-  //does the actual parsing.
+  // does the actual parsing.
   try {
     args.parse(argc, argv);
   } catch (std::runtime_error const& e) {
@@ -85,8 +85,6 @@ int main(int argc, char** argv) {
     std::cerr << "Exception: " << e.what() << std::endl;
     return 1;
   }
-
-  
 
   return 0;
 }

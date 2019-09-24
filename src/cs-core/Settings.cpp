@@ -49,20 +49,20 @@ void from_json(const nlohmann::json& j, Settings::Observer& o) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void from_json(const nlohmann::json& j, Settings::Location& o) {
-  o.mPlanet    = parseProperty<std::string>("planet", j);
-  o.mPlace     = parseProperty<std::string>("place", j);
+  o.mPlanet = parseProperty<std::string>("planet", j);
+  o.mPlace  = parseProperty<std::string>("place", j);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void from_json(const nlohmann::json& j, Settings::Event& o) {
-  o.mStart    = parseProperty<std::string>("start", j);
-  o.mContent  = parseProperty<std::string>("content", j);
-  o.mStyle  = parseProperty<std::string>("style", j);
-  o.mId       = parseProperty<std::string>("id", j);
-  o.mEnd      = parseOptionalSection<std::string>("end", j);
+  o.mStart       = parseProperty<std::string>("start", j);
+  o.mContent     = parseProperty<std::string>("content", j);
+  o.mStyle       = parseProperty<std::string>("style", j);
+  o.mId          = parseProperty<std::string>("id", j);
+  o.mEnd         = parseOptionalSection<std::string>("end", j);
   o.mDescription = parseProperty<std::string>("description", j);
-  o.mLocation = parseOptionalSection<Settings::Location>("location", j);
+  o.mLocation    = parseOptionalSection<Settings::Location>("location", j);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -81,7 +81,7 @@ void from_json(const nlohmann::json& j, Settings& o) {
 
   o.mAnchors = parseMap<std::string, Settings::Anchor>("anchors", j);
   o.mPlugins = parseMap<std::string, nlohmann::json>("plugins", j);
-  o.mEvents         = parseVector<Settings::Event>("events", j);
+  o.mEvents  = parseVector<Settings::Event>("events", j);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

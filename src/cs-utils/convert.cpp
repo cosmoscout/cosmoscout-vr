@@ -178,7 +178,7 @@ double toSpiceTime(std::string const& tIn) {
 boost::posix_time::ptime toBoostTime(double tIn) {
   return boost::posix_time::ptime(boost::gregorian::date(2000, 1, 1),
       boost::posix_time::hours(12) +
-          boost::posix_time::milliseconds(static_cast<int64_t>(tIn*1000)));
+          boost::posix_time::milliseconds(static_cast<int64_t>(tIn * 1000)));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

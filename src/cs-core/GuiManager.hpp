@@ -116,8 +116,8 @@ class CS_CORE_EXPORT GuiManager {
   /// @param planet Planet the event is happening on.
   /// @parama place The location on the planet.
   void addEventToTimenavigationBar(std::string start, std::optional<std::string> end,
-    std::string id, std::string content, std::optional<std::string> style, std::string description,
-    std::string planet, std::string place);
+      std::string id, std::string content, std::optional<std::string> style,
+      std::string description, std::string planet, std::string place);
 
   /// Returns the side bar GuiItem. The side bar is located at the left side of the screen.
   gui::GuiItem* getSideBar() const;
@@ -129,7 +129,8 @@ class CS_CORE_EXPORT GuiManager {
   /// Returns the header bar GuiItem. The header bar is at the top of the screen.
   gui::GuiItem* getFooterBar() const;
 
-  /// Returns the time navigation bar GuiItem. The time navigation bar bar is at the bottom of the screen.
+  /// Returns the time navigation bar GuiItem. The time navigation bar bar is at the bottom of the
+  /// screen.
   gui::GuiItem* getTimeNavigationBar() const;
 
   /// Returns the statistics GuiItem. The statistics are at the right of the screen, when enabled.
@@ -159,15 +160,14 @@ class CS_CORE_EXPORT GuiManager {
   gui::WorldSpaceGuiArea*                 mGlobalGuiArea   = nullptr;
   gui::ScreenSpaceGuiArea*                mLocalGuiArea    = nullptr;
 
-  gui::GuiItem* mLoadingScreen = nullptr;
-  gui::GuiItem* mCalendar      = nullptr;
-  gui::GuiItem* mSideBar       = nullptr;
-  gui::GuiItem* mFooterBar     = nullptr;
-  gui::GuiItem* mNotifications = nullptr;
-  gui::GuiItem* mLogo          = nullptr;
-  gui::GuiItem* mStatistics    = nullptr;
+  gui::GuiItem* mLoadingScreen     = nullptr;
+  gui::GuiItem* mCalendar          = nullptr;
+  gui::GuiItem* mSideBar           = nullptr;
+  gui::GuiItem* mFooterBar         = nullptr;
+  gui::GuiItem* mNotifications     = nullptr;
+  gui::GuiItem* mLogo              = nullptr;
+  gui::GuiItem* mStatistics        = nullptr;
   gui::GuiItem* mTimeNavigationBar = nullptr;
-
 
   VistaTransformNode* mGlobalGuiTransform  = nullptr;
   VistaTransformNode* mLocalGuiTransform   = nullptr;

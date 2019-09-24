@@ -118,8 +118,9 @@ bool Application::Init(VistaSystem* pVistaSystem) {
     mGuiManager->getTimeNavigationBar()->callJavascript("set_date", sstr.str());
   });
 
-  mTimeControl->pTimeSpeed.onChange().connect(
-      [this](float val) { mGuiManager->getTimeNavigationBar()->callJavascript("set_time_speed", val); });
+  mTimeControl->pTimeSpeed.onChange().connect([this](float val) {
+    mGuiManager->getTimeNavigationBar()->callJavascript("set_time_speed", val);
+  });
 
   // set mouse pointer -----------------------------------------------------------------------------
   auto windowingToolkit = dynamic_cast<VistaGlutWindowingToolkit*>(
@@ -256,13 +257,12 @@ void Application::registerSideBarCallbacks() {
 void Application::registerTimenavigationBarCallbacks() {
 
   mGuiManager->getTimeNavigationBar()->registerCallback<std::string, double, double, double>(
-      "fly_to", ([this](std::string const& name, double longitude,
-                    double latitude, double height) {
+      "fly_to", ([this](std::string const& name, double longitude, double latitude, double height) {
         for (auto const& body : mSolarSystem->getBodies()) {
           if (body->getCenterName() == name) {
             mSolarSystem->pActiveBody = body;
             mSolarSystem->flyObserverTo(body->getCenterName(), body->getFrameName(),
-              cs::utils::convert::toRadians(glm::dvec2(longitude, latitude)), height, 10.0);
+                cs::utils::convert::toRadians(glm::dvec2(longitude, latitude)), height, 10.0);
           }
         }
       }));
@@ -392,9 +392,11 @@ void Application::registerTimenavigationBarCallbacks() {
   mGuiManager->getTimeNavigationBar()->registerCallback<double>("add_hours", ([&](double amount) {
     mTimeControl->setTime(mTimeControl->pSimulationTime.get() + 60.0 * 60.0 * amount);
   }));
-  mGuiManager->getTimeNavigationBar()->registerCallback<double>("add_hours_without_animation", ([&](double amount) {
-    mTimeControl->setTimeWithoutAnimation(mTimeControl->pSimulationTime.get() + 60.0 * 60.0 * amount);
-  }));
+  mGuiManager->getTimeNavigationBar()->registerCallback<double>(
+      "add_hours_without_animation", ([&](double amount) {
+        mTimeControl->setTimeWithoutAnimation(
+            mTimeControl->pSimulationTime.get() + 60.0 * 60.0 * amount);
+      }));
   mGuiManager->getTimeNavigationBar()->registerCallback<std::string>(
       "set_date", ([this](std::string const& date) {
         mTimeControl->setTime(
@@ -405,8 +407,8 @@ void Application::registerTimenavigationBarCallbacks() {
         mTimeControl->setTimeWithoutAnimation(
             cs::utils::convert::toSpiceTime(boost::posix_time::time_from_string(date)));
       }));
-  mGuiManager->getTimeNavigationBar()->registerCallback<double>("set_time_speed", ([&](double speed) {
-    mTimeControl->setTimeSpeed((float)speed);}));
+  mGuiManager->getTimeNavigationBar()->registerCallback<double>(
+      "set_time_speed", ([&](double speed) { mTimeControl->setTimeSpeed((float)speed); }));
 
   mGuiManager->getSideBar()->registerCallback<bool>(
       "set_enable_shadows", ([this](bool enable) { mGraphicsEngine->pEnableShadows = enable; }));
