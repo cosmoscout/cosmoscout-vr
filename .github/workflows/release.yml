@@ -35,8 +35,6 @@ jobs:
         sudo apt-get install libxi-dev libgconf-2-4 libboost1.70-dev
     - name: Build Externals
       run: ./make_externals.sh
-    - name: Get Example Data
-      run: ./get_example_data.sh
     - name: Build CosmoScout VR
       run: ./make.sh
     - name: Create Artifact
@@ -59,8 +57,6 @@ jobs:
       run: git submodule update --init
     - name: Build Externals
       run: make_externals.bat
-    - name: Get Example Data
-      run: get_example_data.bat
     - name: Build CosmoScout VR
       run: make.bat
     - name: Upload Artifact
