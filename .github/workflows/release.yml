@@ -45,7 +45,7 @@ jobs:
       run: ./make.sh
     - name: Create Artifact
       run: | 
-        mv install\linux-release cosmoscout-vr
+        mv install/linux-release cosmoscout-vr
         cmake -E tar cv cosmoscout-vr-linux64.tar.gz cosmoscout-vr
     - name: Upload to Release
       uses: svenstaro/upload-release-action@v1-release
