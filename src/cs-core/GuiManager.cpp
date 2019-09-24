@@ -8,6 +8,8 @@
 
 #include <GL/freeglut.h>
 
+#include "../cs-utils/filesystem.hpp"
+#include "../cs-utils/utils.hpp"
 #include "InputManager.hpp"
 #include "cs-version.hpp"
 #include "tools/Tool.hpp"
@@ -424,7 +426,7 @@ void GuiManager::addPluginTabToSideBar(
 
 void GuiManager::addPluginTabToSideBarFromHTML(
     std::string const& name, std::string const& icon, std::string const& htmlFile) {
-  std::string content = utils::loadFileContentsToString(htmlFile);
+  std::string content = utils::filesystem::loadToString(htmlFile);
   addPluginTabToSideBar(name, icon, content);
 }
 
@@ -435,7 +437,7 @@ void GuiManager::addSettingsSectionToSideBar(
 
 void GuiManager::addSettingsSectionToSideBarFromHTML(
     std::string const& name, std::string const& icon, std::string const& htmlFile) {
-  std::string content = utils::loadFileContentsToString(htmlFile);
+  std::string content = utils::filesystem::loadToString(htmlFile);
   addSettingsSectionToSideBar(name, icon, content);
 }
 
@@ -444,7 +446,7 @@ void GuiManager::addScriptToSideBar(std::string const& src) {
 }
 
 void GuiManager::addScriptToSideBarFromJS(std::string const& jsFile) {
-  std::string content = utils::loadFileContentsToString(jsFile);
+  std::string content = utils::filesystem::loadToString(jsFile);
   addScriptToSideBar(content);
 }
 

@@ -48,7 +48,7 @@ Some of the dependencies are only required by some plugins.
   <img src ="img/nav-vspace.svg"/>
   <a href="README.md">&#8962; Help Index</a>
   <img src ="img/nav-vspace.svg"/>
-  <a href="install.md">Build Instructions &rsaquo;</a>
+  <a href="coordinate-systems.md">Coordinate Systems &rsaquo;</a>
 </p>
 
 <p align="center"><img src ="img/hr.svg"/></p>

@@ -16,7 +16,6 @@
 #include "../cs-gui/types.hpp"
 
 #include "../cs-utils/FrameTimings.hpp"
-#include "../cs-utils/utils.hpp"
 
 #include <memory>
 #include <string>

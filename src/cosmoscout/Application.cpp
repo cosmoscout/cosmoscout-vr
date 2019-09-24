@@ -12,6 +12,7 @@
 #include "../cs-core/SolarSystem.hpp"
 #include "../cs-core/TimeControl.hpp"
 #include "../cs-utils/convert.hpp"
+#include "../cs-utils/filesystem.hpp"
 #include "../cs-utils/utils.hpp"
 #include "dfn-nodes/AutoSceneScaleNode.hpp"
 #include "dfn-nodes/DragNavigationNode.hpp"
@@ -55,8 +56,24 @@ Application::Application(cs::core::Settings const& settings)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool Application::Init(VistaSystem* pVistaSystem) {
-  // initialize curl - else it will be done in a not-threadsafe-manner in the TileSourcWMS
+  // initialize curl
   cURLpp::initialize();
+
+  // download datasets if required
+  for (int i = 0; i < mSettings->mDownloadData.size(); ++i) {
+    std::cout << "[" << i + 1 << "/" << mSettings->mDownloadData.size() << "] ";
+    if (boost::filesystem::exists(mSettings->mDownloadData[i].mFile)) {
+      std::cout << "Skipping download of " << mSettings->mDownloadData[i].mFile
+                << ": File already exists." << std::endl;
+    } else {
+      std::cout << "Downloading " << mSettings->mDownloadData[i].mFile << " from "
+                << mSettings->mDownloadData[i].mSource << std::endl;
+      cs::utils::filesystem::downloadFile(
+          mSettings->mDownloadData[i].mSource, mSettings->mDownloadData[i].mFile, true);
+    }
+  }
+
+  cs::core::SolarSystem::init(mSettings->mSpiceKernel);
 
   mInputManager   = std::make_shared<cs::core::InputManager>();
   mFrameTimings   = std::make_shared<cs::utils::FrameTimings>();
@@ -716,6 +733,8 @@ Application::~Application() {
   }
 
   mPlugins.clear();
+
+  cs::core::SolarSystem::cleanup();
 
   cURLpp::terminate();
 }

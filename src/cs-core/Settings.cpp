@@ -48,10 +48,22 @@ void from_json(const nlohmann::json& j, Settings::Observer& o) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void from_json(const nlohmann::json& j, Settings::DownloadData& o) {
+  o.mFile   = parseProperty<std::string>("file", j);
+  o.mSource = parseProperty<std::string>("source", j);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void from_json(const nlohmann::json& j, Settings& o) {
   o.mStartDate   = parseProperty<std::string>("startDate", j);
   o.mObserver    = parseSection<Settings::Observer>("observer", j);
   o.mSpiceKernel = parseProperty<std::string>("spiceKernel", j);
+
+  auto iter = j.find("downloadData");
+  if (iter != j.end()) {
+    o.mDownloadData = parseVector<Settings::DownloadData>("downloadData", j);
+  }
 
   o.mGui = parseOptionalSection<Settings::Gui>("gui", j);
 
