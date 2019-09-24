@@ -3,6 +3,7 @@ let offset = 5;
 let shorten = 5;
 let borderWidth = 3;
 
+// Draws the indicator which part of the overview is seen on the timeline
 function drawDiv() {
   
     var leftCustomTime = document.getElementsByClassName("leftTime")[0];

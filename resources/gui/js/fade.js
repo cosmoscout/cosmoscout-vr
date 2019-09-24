@@ -1,5 +1,6 @@
 var locked = false;
 
+// Toggles if the timeline is locked or is able to fade in/out
 function toggleLock() {
     document.getElementById('divContainer').classList.toggle('locked');
     document.getElementById('btnLock').classList.toggle('locked');

@@ -1,10 +1,11 @@
 
+//Flys the observer to a given location
 function flyToLocation(planet, location) {
         window.call_native("fly_to", planet, location.longitude, location.latitude, location.height);
         window.call_native("print_notification", "Travelling", "to " + location.name, "send");
 }
 
-
+// Gets the geo code for a location and then calls flyToLocation
 function geo_code(planet, place) {
 
     if (planet === "Earth")

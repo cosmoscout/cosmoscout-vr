@@ -4,6 +4,7 @@ let newStartDateId = 1;
 let newEndDateId = 2;
 var state;
 
+// Sets the visebilety of the caledar to the given value(true or false)
 function set_visible(visible) {
     if (visible) {
         $('#calendar').addClass('visible');
@@ -13,6 +14,7 @@ function set_visible(visible) {
     }
 }
 
+// Toggles the Visibility
 function toggle_visible() {
     if(calenderVisible) {
         calenderVisible = false;
@@ -23,6 +25,7 @@ function toggle_visible() {
     }
 }
 
+// Called if the Calendar is used to change the date
 function enterNewCenterTime() {
     if(calenderVisible && state == newCenterTimeId) {
         toggle_visible();
@@ -33,7 +36,7 @@ function enterNewCenterTime() {
 }
 
 
-
+// Called if the Calendar is used to enter a start date of an event
 function enterStartDate() {
 
     if(state == newStartDateId) {
@@ -46,7 +49,7 @@ function enterStartDate() {
 }
 
 
-
+// Called if the Calendar is used to enter the end date of an event
 function enterEndDate() {
     if(state == newEndDateId) {
         toggle_visible();
@@ -58,6 +61,7 @@ function enterEndDate() {
 
 }
 
+// Called if an Date in the Calendar is picked
 function changeDateCallback(e) {
     toggle_visible();
     switch(state) {

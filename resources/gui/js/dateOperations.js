@@ -1,3 +1,4 @@
+// Format a Date to a for a human readable string DD.MM.YYYY HH:MM
 function formatDateReadable(date) {
     var year = date.getFullYear();
     var month = (date.getMonth() + 1).toString();
@@ -11,6 +12,7 @@ function formatDateReadable(date) {
     return day + '.' + month + '.' + year + " " + hours + ":" + minutes;
 }
 
+// Format a Date to YYYY-MM-DD
 function getFormattedDate(date) {
     var year = date.getFullYear();
     var month = (date.getMonth() + 1).toString();
@@ -20,6 +22,7 @@ function getFormattedDate(date) {
     return year + '-' + month + '-' + day;
 }
 
+// Format a Date to a readable format for CosmoScoutVR YYYY-MM-DD HH:MM:SS.sss
 function formatDateCosmo (date) {
     var retVal = getFormattedDate(date);
     var hours = date.getHours().toString();
@@ -36,6 +39,7 @@ function formatDateCosmo (date) {
     return retVal;
 }
 
+// Convert seconds into Date
 function convertSeconds(given_seconds) {
     var converted = new Object();
     converted.days = Math.floor(given_seconds / dayInSec);
@@ -46,6 +50,7 @@ function convertSeconds(given_seconds) {
     return converted;
 }
 
+// Increase a Date by days, hours , minutes, seconds and milliseconds
 function increaseDate(date, days, hours, minutes, seconds, milliSec) {
     date.setDate( date.getDate() + days);
     date.setHours( date.getHours() + hours);
@@ -55,6 +60,7 @@ function increaseDate(date, days, hours, minutes, seconds, milliSec) {
     return date;
 }
 
+// Decrease a Date by days, hours , minutes, seconds and milliseconds
 function decreaseDate(date, days, hours, minutes, seconds, milliSec) {
     date.setDate( date.getDate() - days);
     date.setHours( date.getHours() - hours);

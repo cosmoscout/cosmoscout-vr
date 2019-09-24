@@ -176,6 +176,7 @@ document.getElementById("dateLabel").innerText = formatDateReadable(centerTime);
 
 moveWindow(secSpeed);
 
+// Redraws the tooltip of an event while the event is visible
 function redrawTooltip(event) {
     return new Promise(resolve => {
         var eventRect = event.getBoundingClientRect();
@@ -192,12 +193,14 @@ function redrawTooltip(event) {
     });
   }
 
+// Starts redwawing the tooltip of an event
 async function startRedrawTooltip(event) {
     await redrawTooltip(event);
 }
 
 var hoveredItem;
 var tooltipVisible = false;
+//Shows a tooltip if an item is hovered
 function itemoverCallback(properties) {
     document.getElementById("customTooltip").style.display = "block";
     tooltipVisible = true;
@@ -225,6 +228,7 @@ function itemoverCallback(properties) {
     }
 }
 
+// Cloes the tooltip if the mouse leaves the item and tooltip
 function itemoutCallback(properties) {
     if(properties.event.toElement.className != "custom-tooltip-container") {
         document.getElementById("customTooltip").style.display = "none";
@@ -232,10 +236,12 @@ function itemoutCallback(properties) {
     }
 }
 
+// Flys the observer to the location of the hovered item
 function travelToItemLocation() {
     geo_code(hoveredItem.planet, hoveredItem.place);
 }
 
+//Hide the tooltip if the mouse leaves the tooltip
 function leaveCustomTooltip(event) {
     document.getElementById("customTooltip").style.display = "none";
     tooltipVisible = false;
@@ -253,13 +259,14 @@ function saveItems() {
     });
 }
 
+// Close the event form
 function closeForm() {
     parHolder.callback(null); // cancel item creation
     document.getElementById("myForm").style.display = "none";
     timeline.setOptions(editingDoneOpt);
 }
 
-
+//Creates/Updates a evnt with the user inputs
 function applyEvent() {  
     if (document.getElementById("eventName").value != ""
     && document.getElementById("eventStartDate").value != ""
@@ -286,6 +293,7 @@ function applyEvent() {
     }
 }
 
+//Called when an item is about to be updated
 function onUpdateCallback(item, callback) {
     timeline.setOptions(whileEditingOpt);
     document.getElementById("headlineForm").innerText = "Update";
@@ -305,6 +313,8 @@ function onUpdateCallback(item, callback) {
     setPaus();
 }
 
+
+// Called when an item is about to be added
 function onAddCallback(item, callback) {
     timeline.setOptions(whileEditingOpt);
     document.getElementById("headlineForm").innerText = "Add";
@@ -320,7 +330,7 @@ function onAddCallback(item, callback) {
     setPaus();
 }
 
-
+//Sets the min and max date for the timeline
 function setTimelineRange(min, max) {
     var rangeOpt = {
         min: min,
@@ -367,6 +377,7 @@ function overviewChangeCallback() {
     }
 }
 
+// Called ehen the user moves the timeline
 function rangechangeCallback(properties) {
     if(properties.byUser && String(properties.event) != "[object WheelEvent]") {
         if(currentSpeed != paus) {
@@ -389,12 +400,14 @@ async function initialOverviewWindow(start, end) {
     overviewTimeLine.setWindow(start, end, animationFalse);
 }
 
+//Sets the custom times on the overview that represent the left and right time on the timeline
 function setOverviewTimes() {
     overviewTimeLine.setCustomTime(timeline.getWindow().end, rightTimeId);
     overviewTimeLine.setCustomTime(timeline.getWindow().start, leftTimeId);
     overviewChangeCallback();
 }
 
+// Change time to the start date of the selected item
 function onSelect (properties) {
     mouseOverDisabled = true;
     for(var item in items._data) {
@@ -452,6 +465,7 @@ function add_item(start, end, id, content, style, description, planet, place) {
     tooltip(content);
 }
 
+//Change the time to the clicked cvalue
 function generalOnClick(properties) {
     if(properties.what != "item" && properties.time != null) {
         var dif = properties.time.getTime() - centerTime.getTime();
@@ -460,12 +474,14 @@ function generalOnClick(properties) {
     }
 }
 
+//called if the timeline is clicked
 function onClickCallback(properties) {
     if(click) {     
         generalOnClick(properties);
     }
 }
 
+//called if the overview is clicked
 function onOverviewClick (properties){
     if(click) {     
         generalOnClick(properties);
@@ -558,6 +574,7 @@ function set_date(date) {
     document.getElementById("dateLabel").innerText = formatDateReadable(centerTime);
 }
 
+//Changes the shown date to a given date without synchronizing with CosmoScoutVR
 function set_date_local(date) {
     centerTime = new Date(date);
     timeline.moveTo(centerTime, animationFalse);
@@ -634,6 +651,7 @@ function increaseSpeed() {
     }
 }
 
+// Called at an interaction with the slider
 function rangeUpdateCallback() {
     currentSpeed = range.noUiSlider.get();
     if(firstSliderValue) {
@@ -713,6 +731,8 @@ function scrollOnYear(event) {
         minusOneYear();
     }
 }
+
+//Methods if the mouse wheel is scrolled over a time control button
 
 function scrollOnMonth(event) {
     if(event.deltaY < 0) {
