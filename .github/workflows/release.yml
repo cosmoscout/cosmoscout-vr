@@ -70,8 +70,8 @@ jobs:
       run: make.bat
     - name: Create Artifact
       run: | 
-        Move-Item -Path install\windows-release -Destination cosmoscout-vr
-        Compress-Archive -Path cosmoscout-vr -DestinationPath cosmoscout-vr-win64.zip
+        move install\windows-release cosmoscout-vr
+        cmake -E tar cv --format=zip cosmoscout-vr-win64.zip cosmoscout-vr
     - name: Upload to Release
       uses: svenstaro/upload-release-action@v1-release
       with:
