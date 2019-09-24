@@ -650,6 +650,9 @@ void Application::FrameUpdate() {
         mGuiManager->getFooterBar()->callJavascript("set_user_position",
             cs::utils::convert::toDegrees(polar.x), cs::utils::convert::toDegrees(polar.y),
             heightDiff);
+        mGuiManager->getTimeNavigationBar()->callJavascript("set_user_position",
+            cs::utils::convert::toDegrees(polar.x), cs::utils::convert::toDegrees(polar.y),
+            heightDiff);
       }
 
       // set compass ---------------------------------------------------------

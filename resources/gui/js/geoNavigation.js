@@ -5,58 +5,48 @@ function flyToLocation(planet, location) {
         window.call_native("print_notification", "Travelling", "to " + location.name, "send");
 }
 
-// Gets the geo code for a location and then calls flyToLocation
-function geo_code(planet, place) {
+function formatHeight(heightStr, unit) {
+    var height = parseFloat(heightStr);
+    if(unit == 'mm') return height / 1000;
+    else if(unit == 'cm') return height / 100;
+    else if(unit == 'm') return height;
+    else if(unit == 'km') return height * 1e3;
+    else if(unit == 'Tsd') return height * 1e6;
+    else if(unit == 'Au') return height * 1.496e11;
+    else if(unit == 'ly') return height * 9.461e15;
+    else if(unit == 'pc') return height * 3.086e16;
 
-    if (planet === "Earth")
-    {
-        $.ajax({
-            url: "https://nominatim.openstreetmap.org/search?q="+ encodeURIComponent(place) +"&format=json&limit=1",
-            type: 'GET',
-            dataType: 'json',
-            success: function(data) {
-                if (data.length === 0)
-                {
-                    window.call_native("print_notification", "Error", "Location not found!", "error");
-                    return;
-                }
+    return height * 3.086e19;
+}
 
-                var bounds = data[0].boundingbox;
-                var lat = bounds[1] - bounds[0];
-                var lon = bounds[3] - bounds[2];
+function formatLatitude(lat, half) {
+    lat = lat.substr(0, lat.length-1);
+    if (half == 'S')
+        return parseFloat(-lat);
+    else
+        return parseFloat(lat);
+}
 
-                var location = {
-                    "latitude":  parseFloat(data[0].lat),
-                    "longitude": parseFloat(data[0].lon),
-                    "height":    Math.max(lat, lon) * 111 * 1000,
-                    "name":      data[0].display_name
-                };
+function formatLongitude(long, half) {
+    long = long.substr(0, long.length-1);
+    if (half == 'W')
+        return parseFloat(-long);
+    else
+        return parseFloat(long);
+}
 
-                flyToLocation(planet, location);
-            },
-            error: function() {
-                console.log("Error requesting Data from openstreetmap");
-            }
-        });
-    } else {
-        planetLowerCase = planet.toLowerCase();
-        if (!locations[planetLowerCase]) {
-            window.call_native("print_notification", "Error", "No location for " +planet + "!", "error");
-            return;
-        }
+// Extracts the needed information out of the human readable place string
+// and calls flyToLocation for the given location.
+function geo_code(planet, place, name) {
+    var placeArr = place.split(" ");
+    var location = {
+        "longitude": formatLongitude(placeArr[0], placeArr[1]),
+        "latitude":  formatLatitude(placeArr[2],placeArr[3]),
+        "height":    formatHeight(placeArr[4], placeArr[5]),
+        "name":      name
+    }; 
+    
 
-        var fuzzyset = FuzzySet(Object.keys(locations[planetLowerCase]));
-        var name = fuzzyset.get(place)[0][1];
-        var location = locations[planetLowerCase][name];
-        var height = location[0] == 0 ? 10000 : location[0]*2000;
-
-        var location = {
-            "latitude":  location[1],
-            "longitude": location[2],
-            "height":    height,
-            "name":      name
-        };
-
-        flyToLocation(planet, location);
-    }
+    flyToLocation(planet, location, name);
+    
 }

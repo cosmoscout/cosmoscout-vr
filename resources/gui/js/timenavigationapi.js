@@ -31,3 +31,10 @@ function add_button(icon, tooltip, callback) {
     document.getElementById("buttonControl").appendChild(button);
     $('[data-toggle="tooltip"]').tooltip({ delay: 500, placement: "top", html: false });
 }
+
+// Sets the active planet
+function set_active_planet(center) {
+}
+
+function set_user_position(long, lat, height) {
+}

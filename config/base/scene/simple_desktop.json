@@ -40,7 +40,7 @@
       "style": "border-color: yellow",
       "location": {
         "planet": "Mars",
-        "place": "Beer"
+        "place": "112.01° E 53.33° S 2703 km"
       }
     },
     {
@@ -57,8 +57,8 @@
       "description": "Description item 6",
       "style": "border-color: yellow",
       "location": {
-        "planet": "Moon",
-        "place": "Abetti"
+        "planet": "Neptune",
+        "place": "11.84° E 20.47° S 10.0 Tsd km"
       }
     },
     {
@@ -76,7 +76,7 @@
       "style": "border-color: orange",
       "location": {
           "planet": "Earth",
-          "place": "Braunschweig"
+          "place": "11.16° E 50.53° N 253 km"
       }
     }
   ],
