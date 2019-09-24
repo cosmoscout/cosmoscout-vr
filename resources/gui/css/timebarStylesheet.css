@@ -128,3 +128,8 @@
   #visualization .vis-panel.vis-center{
     border-width: 0px;
   }
+
+  #visualization:hover {
+    box-shadow: 0 0 15px #86d5f8;
+  }
+ 
