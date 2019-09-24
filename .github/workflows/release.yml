@@ -1,6 +1,9 @@
 name: Compile Releases
 
-on: [push]
+on:
+  push:
+    tags:
+      - '*'
 
 jobs:
   source_code:
@@ -13,11 +16,14 @@ jobs:
       run: git submodule update --init
     - name: Create Archive
       run: externals/git-archive-all.sh/git-archive-all.sh --prefix cosmoscout-vr/ source-with-submodules.tar.gz
-    - name: Upload Artifact
-      uses: actions/upload-artifact@master
+    - name: Upload to Release
+      uses: svenstaro/upload-release-action@v1-release
       with:
-        name: source-with-submodules.zip
-        path: source-with-submodules.tar.gz
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: source-with-submodules.tar.gz
+        asset_name: source-with-submodules.tar.gz
+        tag: ${{ github.ref }}
+        overwrite: true
         
   release_linux:
     name: Linux
@@ -41,11 +47,14 @@ jobs:
       run: | 
         mv install\linux-release cosmoscout-vr
         cmake -E tar cv cosmoscout-vr-linux64.tar.gz cosmoscout-vr
-    - name: Upload Artifact
-      uses: actions/upload-artifact@master
+    - name: Upload to Release
+      uses: svenstaro/upload-release-action@v1-release
       with:
-        name: cosmoscout-vr-linux64.zip
-        path: cosmoscout-vr-linux64.tar.gz
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: cosmoscout-vr-linux64.tar.gz
+        asset_name: cosmoscout-vr-linux64.tar.gz
+        tag: ${{ github.ref }}
+        overwrite: true
 
   release_windows:
     name: Windows
@@ -59,8 +68,15 @@ jobs:
       run: make_externals.bat
     - name: Build CosmoScout VR
       run: make.bat
-    - name: Upload Artifact
-      uses: actions/upload-artifact@master
+    - name: Create Artifact
+      run: | 
+        Move-Item -Path install\windows-release -Destination cosmoscout-vr
+        Compress-Archive -Path cosmoscout-vr -DestinationPath cosmoscout-vr-win64.zip
+    - name: Upload to Release
+      uses: svenstaro/upload-release-action@v1-release
       with:
-        name: cosmoscout-vr-win64.zip
-        path: install/windows-release
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: cosmoscout-vr-win64.zip
+        asset_name: cosmoscout-vr-win64.zip
+        tag: ${{ github.ref }}
+        overwrite: true
