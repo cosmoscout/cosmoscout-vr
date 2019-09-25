@@ -103,7 +103,7 @@
 
   #visualization .vis-minor.vis-text {
     z-index: 1;
-    top: 12px !important;
+    top: 14px !important;
     font-size: 10px;
     margin-left: 4px;
   }
@@ -116,13 +116,13 @@
   #visualization .vis-grid.vis-vertical.vis-minor {
     border-color: #ddf;
     height: 14px !important;
-    top: 4px !important;
+    top: 6px !important;
     border-width: 2px;
   }
 
   #visualization .vis-grid.vis-vertical.vis-major{
     height: 18px !important;
-    top: 2px !important;
+    top: 4px !important;
   }
 
   #visualization .vis-panel.vis-center{
