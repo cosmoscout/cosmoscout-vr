@@ -4,7 +4,6 @@
 //                        Copyright: (c) 2019 German Aerospace Center (DLR)                       //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#include "../cs-core/SolarSystem.hpp"
 #include "../cs-gui/gui.hpp"
 #include "../cs-utils/CommandLine.hpp"
 #include "Application.hpp"
@@ -68,8 +67,6 @@ int main(int argc, char** argv) {
     auto pVistaSystem = new VistaSystem();
     pVistaSystem->SetIniSearchPaths(liSearchPath);
 
-    cs::core::SolarSystem::init(settings.mSpiceKernel);
-
     Application app(settings);
     pVistaSystem->SetFrameLoop(&app, true);
 
@@ -77,7 +74,6 @@ int main(int argc, char** argv) {
       pVistaSystem->Run();
     }
 
-    cs::core::SolarSystem::cleanup();
   } catch (VistaExceptionBase& e) {
     e.PrintException();
     return 1;

@@ -9,16 +9,18 @@
 #include "../cs-utils/FrameTimings.hpp"
 #include "GuiItem.hpp"
 
-#include <VistaMath/VistaBoundingBox.h>
-#include <VistaMath/VistaGeometries.h>
-
 #include <VistaKernel/DisplayManager/VistaDisplayManager.h>
 #include <VistaKernel/DisplayManager/VistaProjection.h>
 #include <VistaKernel/DisplayManager/VistaViewport.h>
 #include <VistaKernel/VistaSystem.h>
+#include <VistaMath/VistaBoundingBox.h>
+#include <VistaMath/VistaGeometries.h>
 #include <VistaOGLExt/VistaBufferObject.h>
 #include <VistaOGLExt/VistaGLSLShader.h>
 #include <VistaOGLExt/VistaTexture.h>
+
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 namespace {
 
@@ -227,28 +229,29 @@ bool WorldSpaceGuiArea::Do() {
   }
 
   // get modelview and projection matrices
-  GLfloat glMatMV[16], glMatP[16];
-  glGetFloatv(GL_MODELVIEW_MATRIX, &glMatMV[0]);
-  glGetFloatv(GL_PROJECTION_MATRIX, &glMatP[0]);
-  glUniformMatrix4fv(mShader->GetUniformLocation("uMatModelView"), 1, GL_FALSE, glMatMV);
-  glUniformMatrix4fv(mShader->GetUniformLocation("uMatProjection"), 1, GL_FALSE, glMatP);
+  GLfloat glMat[16];
+  glGetFloatv(GL_MODELVIEW_MATRIX, &glMat[0]);
+  glm::mat4 modelViewMat = glm::make_mat4(glMat);
+
+  glGetFloatv(GL_PROJECTION_MATRIX, &glMat[0]);
+  glUniformMatrix4fv(mShader->GetUniformLocation("uMatProjection"), 1, GL_FALSE, glMat);
 
   // draw back-to-front
   auto const& items = getItems();
   for (auto item = items.rbegin(); item != items.rend(); ++item) {
     if ((*item)->getIsEnabled()) {
-      glPushMatrix();
-      glTranslatef((GLfloat)((*item)->getRelPositionX() + (*item)->getRelOffsetX() - 0.5),
-          (GLfloat)(-(*item)->getRelPositionY() - (*item)->getRelOffsetY() + 0.5), 0);
-
-      glScalef((*item)->getRelSizeX(), (*item)->getRelSizeY(), 1.f);
+      auto localMat = glm::translate(
+          modelViewMat, glm::vec3((*item)->getRelPositionX() + (*item)->getRelOffsetX() - 0.5,
+                            -(*item)->getRelPositionY() - (*item)->getRelOffsetY() + 0.5, 0.0));
+      localMat =
+          glm::scale(localMat, glm::vec3((*item)->getRelSizeX(), (*item)->getRelSizeY(), 1.f));
 
       (*item)->getTexture()->Bind(GL_TEXTURE0);
+      glUniformMatrix4fv(
+          mShader->GetUniformLocation("uMatModelView"), 1, GL_FALSE, glm::value_ptr(localMat));
       mShader->SetUniform(mShader->GetUniformLocation("iTexture"), 0);
       glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
       (*item)->getTexture()->Unbind(GL_TEXTURE0);
-
-      glPopMatrix();
     }
   }
 

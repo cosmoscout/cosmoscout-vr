@@ -96,6 +96,11 @@ class CS_CORE_EXPORT Settings {
     std::optional<Location>    mLocation;
   };
 
+  struct DownloadData {
+    std::string mFile;
+    std::string mSource;
+  };
+
   /// Defines the initial simulation time.
   std::string mStartDate;
 
@@ -105,6 +110,8 @@ class CS_CORE_EXPORT Settings {
 
   /// Defines the initial observer location.
   Observer mObserver;
+
+  std::vector<DownloadData> mDownloadData;
 
   /// The file name of the meta kernel for SPICE.
   std::string mSpiceKernel;

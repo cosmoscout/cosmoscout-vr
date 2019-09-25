@@ -108,7 +108,7 @@ cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
       -DBUILD_TESTING=OFF -DBUILD_CURL_EXE=OFF -DENABLE_ARES=ON^
       -DCARES_INCLUDE_DIR="%INSTALL_DIR%/include"^
       -DCARES_LIBRARY="%INSTALL_DIR%/lib/cares.lib"^
-      -DCMAKE_INSTALL_LIBDIR=lib^
+      -DCMAKE_USE_WINSSL=On -DCMAKE_INSTALL_LIBDIR=lib^
       "%EXTERNALS_DIR%/curl" || exit /b
 
 cmake --build . --config %BUILD_TYPE% --target install --parallel 8

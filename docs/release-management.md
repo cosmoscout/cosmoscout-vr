@@ -70,8 +70,6 @@ The resulting file `source-with-submodules.tar.gz` is then uploaded to the new r
   <a href="citation.md">&lsaquo; How to cite CosmoScout VR</a>
   <img src ="img/nav-vspace.svg"/>
   <a href="README.md">&#8962; Help Index</a>
-  <img src ="img/nav-vspace.svg"/>
-  <a href="architecture.md">Software Architecture &rsaquo;</a>
 </p>
 
 <p align="center"><img src ="img/hr.svg"/></p>
