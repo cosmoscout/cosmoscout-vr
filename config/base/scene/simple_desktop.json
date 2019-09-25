@@ -15,21 +15,33 @@
       "content": "Item 1",
       "start": "1955-01-01T01:00:00",
       "description": "Description item 1",
-      "style": "border-color: yellow"
+      "style": "border-color: yellow",
+      "location": {
+        "planet": "Neptune",
+        "place": "11.84° E 20.47° S 10.0 Tsd km"
+      }
     },
     {
       "id": "2",
       "content": "Item 2",
       "start": "1960-01-01T02:00:00",
       "description": "Description item 2",
-      "style": "border-color: orange"
+      "style": "border-color: orange",
+      "location": {
+        "planet": "Neptune",
+        "place": "11.84° E 20.47° S 10.0 Tsd km"
+      }
     },
     {
       "id": "3",
       "content": "Item 3",
       "start": "1980-01-01T03:00:00",
       "description": "Description item 3",
-      "style": "border-color: green"
+      "style": "border-color: green",
+      "location": {
+        "planet": "Neptune",
+        "place": "11.84° E 20.47° S 10.0 Tsd km"
+      }
     },
     {
       "id": "4",
@@ -48,7 +60,11 @@
       "content": "Item 5",
       "start": "2014-01-01T05:00:00",
       "description": "Description item 5",
-      "style": "border-color: green"
+      "style": "border-color: green",
+      "location": {
+        "planet": "Neptune",
+        "place": "11.84° E 20.47° S 10.0 Tsd km"
+      }
     },
     {
       "id": "6",
@@ -66,7 +82,11 @@
       "content": "Item 7",
       "start": "1995-01-01T06:00:00",
       "description": "Description item 7",
-      "style": "border-color: pink"
+      "style": "border-color: pink",
+      "location": {
+        "planet": "Neptune",
+        "place": "11.84° E 20.47° S 10.0 Tsd km"
+      }
     },
     {
       "id": "8",
