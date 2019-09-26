@@ -72,13 +72,14 @@ You can also read the [**changelog**](docs/changelog.md) to learn what's new in 
 Many features are badly documented, it will crash without warning and may do other unexpected things.
 We are working hard on improving the user experience - please [report all issues and suggestions](https://github.com/cosmoscout/cosmoscout-vr/issues) you have!_
 
-For now, no binary packages of CosmoScout VR are provided.
-If you want to test or use the software, you have to compile it yourself.
-You can either use the `master` branch which contains the last stable release or you can use the latest `develop` branch.
-This may already contain some fixes for issues you are experiencing.
+For each release, [binary packages](https://github.com/cosmoscout/cosmoscout-vr/releases) are automatically created via [Github Actions](https://github.com/cosmoscout/cosmoscout-vr/actions).
 
-[![Commits since latest release](https://img.shields.io/github/commits-since/cosmoscout/cosmoscout-vr/latest/develop)](https://github.com/cosmoscout/cosmoscout-vr/commits/develop)
+When started for the very first time, some example datasets will be downloaded from the internet.
+**This will take some time!**
+The progress of this operation is printed to the console window.
 
+
+If the binary releases do not work for you or you want to test the latest features, you have to compile CosmoScout VR yourself.
 This is actually quite easy as there are several guides in the **[`docs`](docs)** directory to get you started!
 
 # Plugins for CosmoScout VR
