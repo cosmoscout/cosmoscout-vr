@@ -36,5 +36,6 @@ function add_button(icon, tooltip, callback) {
 function set_active_planet(center) {
 }
 
+// Sets the position of the user
 function set_user_position(long, lat, height) {
 }

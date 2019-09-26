@@ -389,6 +389,7 @@ function setTimelineRange(min, max) {
     timeline.setOptions(rangeOpt);
 }
 
+// Sets variable values when a mouseDown event is triggered over the timeline
 function mouseDownCallback() {
     timeline.setOptions(pausOpt);
     mouseOnTimelineDown = true;
@@ -397,6 +398,7 @@ function mouseDownCallback() {
     mouseDownLeftTime = timeline.getWindow().start;
 }
 
+// Sets variable values when a mouseUp event is triggered over the timeline
 function mouseUpCallback() {
     if(mouseOnTimelineDown && lastPlayValue != paus) {
         range.noUiSlider.set(parseInt(lastPlayValue));
@@ -404,6 +406,8 @@ function mouseUpCallback() {
     mouseOnTimelineDown = false;
 }
 
+
+// Callbacks to differ between a Click on the overview timeline and the user dragging the overview timeline
 function overviewMouseDownCallback() {
     click = true;
 }
@@ -412,6 +416,7 @@ function overviewRangechangeCallback() {
     click = false;
 }
 
+// Redraws the timerange indicator on the overview timeline in case the displayed time on the timeline changed
 function timelineChangeCallback() {
     setOverviewTimes();
     if(drawDivCallback != null) {
@@ -419,13 +424,14 @@ function timelineChangeCallback() {
     }
 }
 
+// Redraws the timerange indicator on the overview timeline in case the displayed time on the overview timeline changed
 function overviewChangeCallback() {
     if(drawDivCallback != null) {
         drawDivCallback();
     }
 }
 
-// Called ehen the user moves the timeline
+// Called when the user moves the timeline. It changes time so that the current time is alway in the middle
 function rangechangeCallback(properties) {
     if(properties.byUser && String(properties.event) != "[object WheelEvent]") {
         if(currentSpeed != paus) {
@@ -467,6 +473,7 @@ function onSelect (properties) {
     }
 }
 
+// Actively redraw the snipped so if the time is paused the range indicator fades in/out together with the timeline
 function redrawSnipped() {
     return new Promise(resolve => {
     switch(parseInt(currentSpeed)) {
@@ -485,6 +492,7 @@ function redrawSnipped() {
     await redrawSnipped();
   }
 
+  // Add a tooltip to the events
 function tooltip(content) {
     var events = document.getElementsByClassName('event');
     for(var i=0; i<events.length; i++) {
@@ -536,7 +544,7 @@ function onOverviewClick (properties){
     }
 }
 
-
+// Sets the time to a specific date
 function setTimeToDate(date) {
     date.setHours(middleOfDay);
     window.call_native("set_date", formatDateCosmo(new Date(date.getTime())));
@@ -603,7 +611,7 @@ function minusOneYear() {
 }
 
 
-
+// Moves the displayed time window and sizes the time range according to the simulation speed
 function moveWindow(seconds) {
     var step;
     step = convertSeconds(seconds * timelineRangeFactor);
@@ -662,6 +670,8 @@ function set_date_local(date) {
       time_speed = speed;
   }
 
+
+// Pauses the simulation
 function setPaus() {
     currentSpeed = paus;
     window.call_native("set_time_speed", 0);
@@ -683,6 +693,7 @@ function togglePaus() {
     }
 }
 
+// Decreases the speed of the simulation
 function decreaseSpeed() {
     if(currentSpeed == paus) {
         togglePaus();
@@ -691,6 +702,7 @@ function decreaseSpeed() {
     }
 }
 
+// Increases the sepped of the simulation
 function increaseSpeed() {
     if(currentSpeed == paus) {
         togglePaus();
@@ -759,6 +771,8 @@ function rangeUpdateCallback() {
       } 
 }
 
+
+// Changes the size of the displayed timerange while thesimulation is still playing
 function manuelZoomTimeline(event) {
     if(timelineZoomBlocked) {
         if(event.deltaY < 0) {
@@ -776,6 +790,8 @@ function manuelZoomTimeline(event) {
     }
 }
 
+//Methods if the mouse wheel is scrolled over a time control button
+
 function scrollOnYear(event) {
     if(event.deltaY < 0) {
         plusOneYear();
@@ -783,8 +799,6 @@ function scrollOnYear(event) {
         minusOneYear();
     }
 }
-
-//Methods if the mouse wheel is scrolled over a time control button
 
 function scrollOnMonth(event) {
     if(event.deltaY < 0) {
