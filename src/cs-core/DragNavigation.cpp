@@ -4,11 +4,11 @@
 //                        Copyright: (c) 2019 German Aerospace Center (DLR)                       //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#include "DragNavigationNode.hpp"
+#include "DragNavigation.hpp"
 
-#include "../../cs-core/InputManager.hpp"
-#include "../../cs-core/SolarSystem.hpp"
-#include "../../cs-core/TimeControl.hpp"
+#include "../cs-core/InputManager.hpp"
+#include "../cs-core/SolarSystem.hpp"
+#include "../cs-core/TimeControl.hpp"
 
 #include <VistaDataFlowNet/VdfnObjectRegistry.h>
 #include <VistaKernel/GraphicsManager/VistaSceneGraph.h>
@@ -50,40 +50,25 @@ glm::dvec3 GetPositionInObserverFrame(cs::scene::CelestialAnchor const& anchor,
 
 } // namespace
 
+namespace cs::core {
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-DragNavigationNode::DragNavigationNode(std::shared_ptr<cs::core::SolarSystem> const& pSolarSystem,
-    std::shared_ptr<cs::core::InputManager> const&                                   pInputManager,
-    std::shared_ptr<cs::core::TimeControl> const&                                    pTimeControl)
-    : IVdfnNode()
-    , mSolarSystem(pSolarSystem)
+DragNavigation::DragNavigation(std::shared_ptr<cs::core::SolarSystem> const& pSolarSystem,
+    std::shared_ptr<cs::core::InputManager> const&                           pInputManager,
+    std::shared_ptr<cs::core::TimeControl> const&                            pTimeControl)
+    : mSolarSystem(pSolarSystem)
     , mInputManager(pInputManager)
     , mTimeControl(pTimeControl)
 
 {
-  RegisterInPortPrototype("time", new TVdfnPortTypeCompare<TVdfnPort<double>>);
-
   mSelectionTrans = dynamic_cast<VistaTransformNode*>(
       GetVistaSystem()->GetGraphicsManager()->GetSceneGraph()->GetNode("SELECTION_NODE"));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool DragNavigationNode::PrepareEvaluationRun() {
-  mTime = dynamic_cast<TVdfnPort<double>*>(GetInPort("time"));
-
-  return GetIsValid();
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-bool DragNavigationNode::GetIsValid() const {
-  return mTime;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-bool DragNavigationNode::DoEvalNode() {
+void DragNavigation::update() {
   // current observer transform of this frame
   glm::dvec3 observerPos = mSolarSystem->getObserver().getAnchorPosition();
   glm::dquat observerRot = mSolarSystem->getObserver().getAnchorRotation();
@@ -147,7 +132,7 @@ bool DragNavigationNode::DoEvalNode() {
   }
 
   if (!mStartInteractionInitialized) {
-    return true;
+    return;
   }
 
   if (mInputManager->pButtons[0].get() || mInputManager->pButtons[1].get()) {
@@ -295,25 +280,10 @@ bool DragNavigationNode::DoEvalNode() {
   }
 
   mSolarSystem->getObserver().setAnchorRotation(newObserverRot);
-
-  return true;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-DragNavigationNodeCreate::DragNavigationNodeCreate(
-    std::shared_ptr<cs::core::SolarSystem> const&  pSolarSystem,
-    std::shared_ptr<cs::core::InputManager> const& pInputManager,
-    std::shared_ptr<cs::core::TimeControl> const&  pTimeControl)
-    : mSolarSystem(pSolarSystem)
-    , mInputManager(pInputManager)
-    , mTimeControl(pTimeControl) {
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-IVdfnNode* DragNavigationNodeCreate::CreateNode(const VistaPropertyList& oParams) const {
-  return new DragNavigationNode(mSolarSystem, mInputManager, mTimeControl);
-}
+} // namespace cs::core
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -55,23 +55,38 @@ void from_json(const nlohmann::json& j, Settings::DownloadData& o) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void from_json(const nlohmann::json& j, Settings::SceneScale& o) {
+  o.mMinScale            = parseProperty<double>("minScale", j);
+  o.mMaxScale            = parseProperty<double>("maxScale", j);
+  o.mCloseVisualDistance = parseProperty<double>("closeVisualDistance", j);
+  o.mFarVisualDistance   = parseProperty<double>("farVisualDistance", j);
+  o.mCloseRealDistance   = parseProperty<double>("closeRealDistance", j);
+  o.mFarRealDistance     = parseProperty<double>("farRealDistance", j);
+  o.mLockWeight          = parseProperty<double>("lockWeight", j);
+  o.mTrackWeight         = parseProperty<double>("trackWeight", j);
+  o.mMinObjectSize       = parseProperty<double>("minObjectSize", j);
+  o.mNearClip            = parseProperty<double>("nearClip", j);
+  o.mMinFarClip          = parseProperty<double>("minFarClip", j);
+  o.mMaxFarClip          = parseProperty<double>("maxFarClip", j);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void from_json(const nlohmann::json& j, Settings& o) {
-  o.mStartDate   = parseProperty<std::string>("startDate", j);
-  o.mObserver    = parseSection<Settings::Observer>("observer", j);
-  o.mSpiceKernel = parseProperty<std::string>("spiceKernel", j);
+  o.mStartDate      = parseProperty<std::string>("startDate", j);
+  o.mObserver       = parseSection<Settings::Observer>("observer", j);
+  o.mSpiceKernel    = parseProperty<std::string>("spiceKernel", j);
+  o.mSceneScale     = parseProperty<Settings::SceneScale>("sceneScale", j);
+  o.mGui            = parseOptionalSection<Settings::Gui>("gui", j);
+  o.mWidgetScale    = parseProperty<float>("widgetScale", j);
+  o.mEnableMouseRay = parseProperty<bool>("enableMouseRay", j);
+  o.mAnchors        = parseMap<std::string, Settings::Anchor>("anchors", j);
+  o.mPlugins        = parseMap<std::string, nlohmann::json>("plugins", j);
 
   auto iter = j.find("downloadData");
   if (iter != j.end()) {
     o.mDownloadData = parseVector<Settings::DownloadData>("downloadData", j);
   }
-
-  o.mGui = parseOptionalSection<Settings::Gui>("gui", j);
-
-  o.mWidgetScale    = parseProperty<float>("widgetScale", j);
-  o.mEnableMouseRay = parseProperty<bool>("enableMouseRay", j);
-
-  o.mAnchors = parseMap<std::string, Settings::Anchor>("anchors", j);
-  o.mPlugins = parseMap<std::string, nlohmann::json>("plugins", j);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

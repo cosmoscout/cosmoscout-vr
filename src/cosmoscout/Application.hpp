@@ -4,15 +4,12 @@
 //                        Copyright: (c) 2019 German Aerospace Center (DLR)                       //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#ifndef VIRTUAL_PLANET_APPLICATION_HPP
-#define VIRTUAL_PLANET_APPLICATION_HPP
+#ifndef CS_APPLICATION_HPP
+#define CS_APPLICATION_HPP
 
-#include "../cs-core/PluginBase.hpp"
-#include "../cs-core/Settings.hpp"
-#include "../cs-graphics/MouseRay.hpp"
-#include <VistaKernel/GraphicsManager/VistaOpenGLNode.h>
 #include <VistaKernel/VistaFrameLoop.h>
-#include <VistaKernel/VistaSystem.h>
+#include <map>
+#include <memory>
 
 #ifdef __linux__
 #include "dlfcn.h"
@@ -22,12 +19,17 @@
 #define COSMOSCOUT_LIBTYPE HINSTANCE
 #endif
 
+class IVistaClusterDataSync;
+
 namespace cs::core {
+class PluginBase;
+class Settings;
 class GuiManager;
 class InputManager;
 class GraphicsEngine;
 class TimeControl;
 class SolarSystem;
+class DragNavigation;
 } // namespace cs::core
 
 namespace cs::utils {
@@ -53,20 +55,33 @@ class Application : public VistaFrameLoop {
     cs::core::PluginBase* mPlugin = nullptr;
   };
 
+  void connectSlots();
+
+  /// This scales the cs::scene::CelestialObserver of the solar system to move the
+  /// closest body to a small world space distance. This distance depends on his or her *real*
+  /// distance in outer space to the respective body.
+  /// In order for the scientists to be able to interact with their environment, the next virtual
+  /// celestial body must never be more than an arm’s length away. If the Solar System were always
+  /// represented on a 1:1 scale, the virtual planetary surface would be too far away to work
+  /// effectively with the simulation.
+  /// As objects will be quite close to the observer in world space if the user is far away in
+  /// *real* space, this also reduces the far clip distance in order to increase depth accuracy
+  /// for objects close to the observer. This method also manages the SPICE frame changes when the
+  /// observer moves from body to body.
+  void updateSceneScale();
+
   std::shared_ptr<const cs::core::Settings> mSettings;
   std::shared_ptr<cs::core::InputManager>   mInputManager;
   std::shared_ptr<cs::core::GraphicsEngine> mGraphicsEngine;
   std::shared_ptr<cs::core::GuiManager>     mGuiManager;
   std::shared_ptr<cs::core::TimeControl>    mTimeControl;
   std::shared_ptr<cs::core::SolarSystem>    mSolarSystem;
+  std::shared_ptr<cs::core::DragNavigation> mDragNavigation;
   std::shared_ptr<cs::utils::FrameTimings>  mFrameTimings;
   std::map<std::string, Plugin>             mPlugins;
   bool                                      mLoadedAllPlugins = false;
 
-  void registerSolarSystemCallbacks();
-  void registerHeaderBarCallbacks();
-  void registerSideBarCallbacks();
-  void registerCalendarCallbacks();
+  std::unique_ptr<IVistaClusterDataSync> mSceneSync;
 };
 
-#endif // VIRTUAL_PLANET_APPLICATION_HPP
+#endif // CS_APPLICATION_HPP

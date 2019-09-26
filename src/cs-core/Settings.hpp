@@ -86,12 +86,31 @@ class CS_CORE_EXPORT Settings {
     std::string mSource;
   };
 
+  struct SceneScale {
+    double mMinScale;
+    double mMaxScale;
+    double mCloseVisualDistance;
+    double mFarVisualDistance;
+    double mCloseRealDistance;
+    double mFarRealDistance;
+    double mLockWeight;
+    double mTrackWeight;
+    double mMinObjectSize;
+    double mNearClip;
+    double mMinFarClip;
+    double mMaxFarClip;
+  };
+
   /// Defines the initial simulation time.
   std::string mStartDate;
 
   /// Defines the initial observer location.
   Observer mObserver;
 
+  /// PArameters which define how the virtual scene is scaled based on the observer position.
+  SceneScale mSceneScale;
+
+  /// A list of files which shall be downloaded before the application starts.
   std::vector<DownloadData> mDownloadData;
 
   /// The file name of the meta kernel for SPICE.
