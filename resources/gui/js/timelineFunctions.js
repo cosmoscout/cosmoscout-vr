@@ -531,6 +531,11 @@ function generalOnClick(properties) {
     if(properties.what != "item" && properties.time != null) {
         var dif = properties.time.getTime() - centerTime.getTime();
         var hoursDif = dif / 1000 / 60 / 60;
+        if(properties.time.getTimezoneOffset() > centerTime.getTimezoneOffset()) {
+            hoursDif -= 1;
+        } else if(properties.time.getTimezoneOffset() < centerTime.getTimezoneOffset()) {
+            hoursDif += 1;
+        }
         window.call_native("add_hours", hoursDif);
     }
 }
