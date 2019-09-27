@@ -468,6 +468,11 @@ function onSelect (properties) {
         if(items._data[item].id == properties.items) {
             var dif = items._data[item].start.getTime() - centerTime.getTime();
             var hoursDif = dif / 1000 / 60 / 60;
+            if(items._data[item].start.getTimezoneOffset() > centerTime.getTimezoneOffset()) {
+                hoursDif -= 1;
+            } else if(items._data[item].start.getTimezoneOffset() < centerTime.getTimezoneOffset()) {
+                hoursDif += 1;
+            }
             window.call_native("add_hours", hoursDif);
         }
     }
