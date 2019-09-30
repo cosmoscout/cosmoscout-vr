@@ -17,14 +17,17 @@ namespace cs::core {
 
 TimeControl::TimeControl(std::shared_ptr<const core::Settings> const& settings)
     : mSettings(settings) {
-  resetTime();
-  mLastUpdate = utils::convert::toSpiceTime(boost::posix_time::microsec_clock::universal_time());
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void TimeControl::update() {
   double now = utils::convert::toSpiceTime(boost::posix_time::microsec_clock::universal_time());
+
+  if (mLastUpdate < 0.0) {
+    resetTime();
+    mLastUpdate = now;
+  }
 
   if (mAnimationInProgress) {
     pSimulationTime = mAnimatedTime.get(now);

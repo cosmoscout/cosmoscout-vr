@@ -80,7 +80,7 @@ Application::~Application() {
 
   mPlugins.clear();
 
-  cs::core::SolarSystem::cleanup();
+  mSolarSystem->deinit();
 
   cURLpp::terminate();
 }
@@ -95,22 +95,8 @@ bool Application::Init(VistaSystem* pVistaSystem) {
   mFrameTimings   = std::make_shared<cs::utils::FrameTimings>();
   mGraphicsEngine = std::make_shared<cs::core::GraphicsEngine>(mSettings);
   mGuiManager     = std::make_shared<cs::core::GuiManager>(mSettings, mInputManager, mFrameTimings);
-
-  // download datasets if required
-  for (int i = 0; i < mSettings->mDownloadData.size(); ++i) {
-    std::cout << "[" << i + 1 << "/" << mSettings->mDownloadData.size() << "] ";
-    if (boost::filesystem::exists(mSettings->mDownloadData[i].mFile)) {
-      std::cout << "Skipping download of " << mSettings->mDownloadData[i].mFile
-                << ": File already exists." << std::endl;
-    } else {
-      std::cout << "Downloading " << mSettings->mDownloadData[i].mFile << " from "
-                << mSettings->mDownloadData[i].mSource << std::endl;
-      cs::utils::filesystem::downloadFile(
-          mSettings->mDownloadData[i].mSource, mSettings->mDownloadData[i].mFile, true);
-    }
-  }
-
-  cs::core::SolarSystem::init(mSettings->mSpiceKernel);
+  mSceneSync =
+      std::unique_ptr<IVistaClusterDataSync>(GetVistaSystem()->GetClusterMode()->CreateDataSync());
   mTimeControl = std::make_shared<cs::core::TimeControl>(mSettings);
   mSolarSystem = std::make_shared<cs::core::SolarSystem>(mTimeControl);
   mDragNavigation =
@@ -208,8 +194,6 @@ bool Application::Init(VistaSystem* pVistaSystem) {
 void Application::FrameUpdate() {
   ++m_iFrameCount;
 
-  std::cout << m_iFrameCount << std::endl;
-
   mFrameTimings->startFullFrameTiming();
 
   // emit vista events
@@ -227,6 +211,24 @@ void Application::FrameUpdate() {
     EmitSystemEvent(VistaSystemEvent::VSE_POSTAPPLICATIONLOOP);
     EmitSystemEvent(VistaSystemEvent::VSE_UPDATE_DELAYED_INTERACTION);
     EmitSystemEvent(VistaSystemEvent::VSE_PREGRAPHICS);
+  }
+
+  if (GetFrameCount() == 20) {
+    // download datasets if required
+    for (int i = 0; i < mSettings->mDownloadData.size(); ++i) {
+      std::cout << "[" << i + 1 << "/" << mSettings->mDownloadData.size() << "] ";
+      if (boost::filesystem::exists(mSettings->mDownloadData[i].mFile)) {
+        std::cout << "Skipping download of " << mSettings->mDownloadData[i].mFile
+                  << ": File already exists." << std::endl;
+      } else {
+        std::cout << "Downloading " << mSettings->mDownloadData[i].mFile << " from "
+                  << mSettings->mDownloadData[i].mSource << std::endl;
+        cs::utils::filesystem::downloadFile(
+            mSettings->mDownloadData[i].mSource, mSettings->mDownloadData[i].mFile, true);
+      }
+    }
+
+    mSolarSystem->init(mSettings->mSpiceKernel);
   }
 
   // load plugins ----------------------------------------------------------------------------------
@@ -310,14 +312,14 @@ void Application::FrameUpdate() {
     }
   }
 
-  // update CosmoScout VR classes
-  {
-    cs::utils::FrameTimings::ScopedTimer timer(
-        "TimeControl Update", cs::utils::FrameTimings::QueryMode::eCPU);
-    mTimeControl->update();
-  }
-
   if (mLoadedAllPlugins) {
+    // update CosmoScout VR classes
+    {
+      cs::utils::FrameTimings::ScopedTimer timer(
+          "TimeControl Update", cs::utils::FrameTimings::QueryMode::eCPU);
+      mTimeControl->update();
+    }
+
     for (auto const& plugin : mPlugins) {
       cs::utils::FrameTimings::ScopedTimer timer(
           plugin.first, cs::utils::FrameTimings::QueryMode::eBoth);

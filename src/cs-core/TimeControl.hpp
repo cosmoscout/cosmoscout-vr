@@ -51,7 +51,7 @@ class CS_CORE_EXPORT TimeControl {
   void decreaseTimeSpeed();
 
  private:
-  double mLastUpdate;
+  double mLastUpdate = -1.0;
 
   utils::AnimatedValue<double> mAnimatedTime;
   bool                         mAnimationInProgress = false;

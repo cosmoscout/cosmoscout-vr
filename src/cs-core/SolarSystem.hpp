@@ -122,11 +122,14 @@ class CS_CORE_EXPORT SolarSystem {
 
   // static utility functions ----------------------------------------------------------------------
 
-  /// Initializes SPICE. Should only be called once in the main() method.
-  static void init(std::string const& sSpiceMetaFile);
+  /// Initializes SPICE.
+  void init(std::string const& sSpiceMetaFile);
 
-  /// Cleans SPICE up. Should only be called once in the main() method, before the app terminates.
-  static void cleanup();
+  /// Return true, when init() has been called before.
+  bool getIsInitialized() const;
+
+  /// Cleans SPICE up.
+  void deinit();
 
   /// For debugging purposes.
   /// Prints all loaded SPICE frames.
@@ -170,6 +173,8 @@ class CS_CORE_EXPORT SolarSystem {
   std::shared_ptr<scene::CelestialObject>           mSun;
   std::set<std::shared_ptr<scene::CelestialAnchor>> mAnchors;
   std::set<std::shared_ptr<scene::CelestialBody>>   mBodies;
+
+  bool mIsInitialized = false;
 
   uint64_t mListenerIds = 0;
   std::unordered_map<uint64_t, std::function<void(std::shared_ptr<scene::CelestialBody>)>>
