@@ -12,9 +12,9 @@
   "events": [
     {
       "id": "1",
-      "content": "Item 1",
+      "content": "Event 1",
       "start": "1955-01-01T01:00:00",
-      "description": "Description item 1",
+      "description": "Description event 1",
       "style": "border-color: yellow",
       "location": {
         "planet": "Neptune",
@@ -23,9 +23,9 @@
     },
     {
       "id": "2",
-      "content": "Item 2",
+      "content": "Event 2",
       "start": "1960-01-01T02:00:00",
-      "description": "Description item 2",
+      "description": "Description event 2",
       "style": "border-color: orange",
       "location": {
         "planet": "Neptune",
@@ -34,9 +34,9 @@
     },
     {
       "id": "3",
-      "content": "Item 3",
+      "content": "Event 3",
       "start": "1980-01-01T03:00:00",
-      "description": "Description item 3",
+      "description": "Description event 3",
       "style": "border-color: green",
       "location": {
         "planet": "Neptune",
@@ -45,10 +45,10 @@
     },
     {
       "id": "4",
-      "content": "Item 4",
+      "content": "Event 4",
       "start": "1974-01-01T04:00:00",
       "end": "1976-05-01T04:30:00",
-      "description": "Description item 4",
+      "description": "Description event 4",
       "style": "border-color: yellow",
       "location": {
         "planet": "Mars",
@@ -57,9 +57,9 @@
     },
     {
       "id": "5",
-      "content": "Item 5",
+      "content": "Event 5",
       "start": "2014-01-01T05:00:00",
-      "description": "Description item 5",
+      "description": "Description event 5",
       "style": "border-color: green",
       "location": {
         "planet": "Neptune",
@@ -68,9 +68,9 @@
     },
     {
       "id": "6",
-      "content": "Item 6",
+      "content": "Event 6",
       "start": "2030-01-01T06:00:00",
-      "description": "Description item 6",
+      "description": "Description event 6",
       "style": "border-color: yellow",
       "location": {
         "planet": "Neptune",
@@ -79,9 +79,9 @@
     },
     {
       "id": "7",
-      "content": "Item 7",
+      "content": "Event 7",
       "start": "1995-01-01T06:00:00",
-      "description": "Description item 7",
+      "description": "Description event 7",
       "style": "border-color: pink",
       "location": {
         "planet": "Neptune",
@@ -90,9 +90,9 @@
     },
     {
       "id": "8",
-      "content": "Item 8",
+      "content": "Event 8",
       "start": "2020-01-01T11:00:00",
-      "description": "Description item 8",
+      "description": "Description event 8",
       "style": "border-color: orange",
       "location": {
         "planet": "Earth",
