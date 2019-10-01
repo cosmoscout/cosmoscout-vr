@@ -16,9 +16,8 @@
 #include "../cs-core/TimeControl.hpp"
 #include "../cs-graphics/MouseRay.hpp"
 #include "../cs-utils/convert.hpp"
-#include "../cs-utils/filesystem.hpp"
 #include "../cs-utils/utils.hpp"
-#include "dfn-nodes/ObserverNavigationNode.hpp"
+#include "ObserverNavigationNode.hpp"
 
 #include <curlpp/cURLpp.hpp>
 #include <glm/gtx/quaternion.hpp>

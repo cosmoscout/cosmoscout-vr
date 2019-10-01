@@ -14,7 +14,7 @@
 #include <VistaDataFlowNet/VdfnSerializer.h>
 #include <VistaKernel/VistaKernelConfig.h>
 
-#include "../../cs-utils/AnimatedValue.hpp"
+#include "../cs-utils/AnimatedValue.hpp"
 
 #include <memory>
 
