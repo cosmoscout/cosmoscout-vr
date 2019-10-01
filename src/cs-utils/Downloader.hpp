@@ -11,8 +11,6 @@
 
 #include "ThreadPool.hpp"
 
-#include <mutex>
-
 namespace cs::utils {
 
 class CS_UTILS_EXPORT Downloader {
@@ -21,10 +19,15 @@ class CS_UTILS_EXPORT Downloader {
 
   void download(std::string const& url, std::string const& file);
 
+  double getProgress() const;
+
   bool hasFinished() const;
 
  private:
   ThreadPool mThreadPool;
+
+  mutable std::mutex                     mProgressMutex;
+  std::vector<std::pair<double, double>> mProgress;
 };
 
 } // namespace cs::utils

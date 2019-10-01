@@ -227,6 +227,10 @@ void Application::FrameUpdate() {
     }
   }
 
+  if (!mDownloadedData && mDownloader) {
+    std::cout << mDownloader->getProgress() << std::endl;
+  }
+
   if (!mDownloadedData && mDownloader && mDownloader->hasFinished()) {
     mDownloadedData = true;
     mDownloader.release();

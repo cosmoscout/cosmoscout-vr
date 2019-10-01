@@ -19,11 +19,33 @@ Downloader::Downloader(size_t threadCount)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Downloader::download(std::string const& url, std::string const& file) {
-  mThreadPool.enqueue([file, url]() {
+  std::unique_lock<std::mutex> lock(mProgressMutex);
+  size_t                       progressIndex = mProgress.size();
+  mProgress.push_back({0.0, 0.0});
+
+  mThreadPool.enqueue([this, file, url, progressIndex]() {
     if (!boost::filesystem::exists(file)) {
-      filesystem::downloadFile(url, file, true);
+      filesystem::downloadFile(url, file, [this, progressIndex](double progress, double total) {
+        std::unique_lock<std::mutex> lock(mProgressMutex);
+        mProgress[progressIndex] = {progress, total};
+      });
     }
   });
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+double Downloader::getProgress() const {
+  std::unique_lock<std::mutex> lock(mProgressMutex);
+
+  double progress = 0.0, total = 0.0;
+
+  for (auto const& p : mProgress) {
+    progress += p.first;
+    total += p.second;
+  }
+
+  return progress / total * 100.0;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
