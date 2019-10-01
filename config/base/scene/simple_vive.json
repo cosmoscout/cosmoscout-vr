@@ -24,23 +24,23 @@
   "downloadData": [
     {
       "url": "ftp://ftp.imcce.fr/pub/catalogs/HIPP/cats/hip_main.dat",
-      "file": "../share/resources/data/stars/hip_main.dat"
+      "file": "../share/download/stars/hip_main.dat"
     },
     {
       "url": "ftp://ftp.imcce.fr/pub/catalogs/TYCHO-2/catalog.dat",
-      "file": "../share/resources/data/stars/tyc2_main.dat"
+      "file": "../share/download/stars/tyc2_main.dat"
     },
     {
       "url": "https://naif.jpl.nasa.gov/pub/naif/cosmographia/kernels/spice/pck/pck00010.tpc",
-      "file": "../share/resources/data/spice/pck00010.tpc"
+      "file": "../share/download/spice/pck00010.tpc"
     },
     {
       "url": "https://naif.jpl.nasa.gov/pub/naif/cosmographia/kernels/spice/lsk/naif0011.tls",
-      "file": "../share/resources/data/spice/naif0011.tls"
+      "file": "../share/download/spice/naif0011.tls"
     },
     {
       "url": "https://naif.jpl.nasa.gov/pub/naif/cosmographia/kernels/spice/spk/cg_1950_2050_v01.bsp",
-      "file": "../share/resources/data/spice/cg_1950_2050_v01.bsp"
+      "file": "../share/download/spice/cg_1950_2050_v01.bsp"
     }
   ],
   "spiceKernel": "../share/config/spice/simple.txt",
@@ -156,8 +156,8 @@
       "minSize": 0.1,
       "scalingExponent": 3.0,
       "starTexture": "../share/resources/textures/star.png",
-      "hipparcosCatalog": "../share/resources/data/stars/hip_main.dat",
-      "tycho2Catalog": "../share/resources/data/stars/tyc2_main.dat"
+      "hipparcosCatalog": "../share/download/stars/hip_main.dat",
+      "tycho2Catalog": "../share/download/stars/tyc2_main.dat"
     },
     "csp-atmospheres": {
       "atmospheres": {
