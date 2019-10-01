@@ -34,6 +34,7 @@ class DragNavigation;
 
 namespace cs::utils {
 class FrameTimings;
+class Downloader;
 } // namespace cs::utils
 
 /// This is the core class of CosmoScout VR. It is responsible for setting all ViSTA modules up,
@@ -79,9 +80,12 @@ class Application : public VistaFrameLoop {
   std::shared_ptr<cs::core::DragNavigation> mDragNavigation;
   std::shared_ptr<cs::utils::FrameTimings>  mFrameTimings;
   std::map<std::string, Plugin>             mPlugins;
-  bool                                      mLoadedAllPlugins = false;
+  std::unique_ptr<cs::utils::Downloader>    mDownloader;
+  std::unique_ptr<IVistaClusterDataSync>    mSceneSync;
 
-  std::unique_ptr<IVistaClusterDataSync> mSceneSync;
+  bool mDownloadedData            = false;
+  bool mLoadedAllPlugins          = false;
+  int  mStartPluginLoadingAtFrame = 0;
 };
 
 #endif // CS_APPLICATION_HPP

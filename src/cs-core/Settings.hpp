@@ -82,8 +82,8 @@ class CS_CORE_EXPORT Settings {
   };
 
   struct DownloadData {
+    std::string mUrl;
     std::string mFile;
-    std::string mSource;
   };
 
   struct SceneScale {

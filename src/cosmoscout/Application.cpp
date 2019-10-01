@@ -15,6 +15,7 @@
 #include "../cs-core/SolarSystem.hpp"
 #include "../cs-core/TimeControl.hpp"
 #include "../cs-graphics/MouseRay.hpp"
+#include "../cs-utils/Downloader.hpp"
 #include "../cs-utils/convert.hpp"
 #include "../cs-utils/utils.hpp"
 #include "ObserverNavigationNode.hpp"
@@ -212,33 +213,38 @@ void Application::FrameUpdate() {
     EmitSystemEvent(VistaSystemEvent::VSE_PREGRAPHICS);
   }
 
-  if (GetFrameCount() == 20) {
-    // download datasets if required
-    for (int i = 0; i < mSettings->mDownloadData.size(); ++i) {
-      std::cout << "[" << i + 1 << "/" << mSettings->mDownloadData.size() << "] ";
-      if (boost::filesystem::exists(mSettings->mDownloadData[i].mFile)) {
-        std::cout << "Skipping download of " << mSettings->mDownloadData[i].mFile
-                  << ": File already exists." << std::endl;
-      } else {
-        std::cout << "Downloading " << mSettings->mDownloadData[i].mFile << " from "
-                  << mSettings->mDownloadData[i].mSource << std::endl;
-        cs::utils::filesystem::downloadFile(
-            mSettings->mDownloadData[i].mSource, mSettings->mDownloadData[i].mFile, true);
-      }
-    }
+  const int32_t startLoadingAtFrame = 150;
 
+  if (GetFrameCount() == startLoadingAtFrame) {
+    // download datasets if required
+    if (mSettings->mDownloadData.size() > 0) {
+      mDownloader.reset(new cs::utils::Downloader(10));
+      for (auto const& download : mSettings->mDownloadData) {
+        mDownloader->download(download.mUrl, download.mFile);
+      }
+    } else {
+      mDownloadedData = true;
+    }
+  }
+
+  if (!mDownloadedData && mDownloader && mDownloader->hasFinished()) {
+    mDownloadedData = true;
+    mDownloader.release();
+  }
+
+  if (mDownloadedData && !mSolarSystem->getIsInitialized()) {
     mSolarSystem->init(mSettings->mSpiceKernel);
+    mStartPluginLoadingAtFrame = GetFrameCount();
   }
 
   // load plugins ----------------------------------------------------------------------------------
   // Start loading of resources after a short delay to make sure that the loading screen is visible.
   // Then we will draw some frames between each plugin to be able to update the loading screen's
   // status message.
-  if (!mLoadedAllPlugins) {
-    const int32_t startLoadingAtFrame = 150;
-    const int32_t loadingDelayFrames  = 25;
+  if (mDownloadedData && !mLoadedAllPlugins) {
+    const int32_t loadingDelayFrames = 25;
 
-    int32_t nextPluginToLoad = (GetFrameCount() - startLoadingAtFrame) / loadingDelayFrames;
+    int32_t nextPluginToLoad = (GetFrameCount() - mStartPluginLoadingAtFrame) / loadingDelayFrames;
 
     if (nextPluginToLoad >= 0 && nextPluginToLoad < mPlugins.size()) {
       auto plugin = mPlugins.begin();
@@ -246,7 +252,7 @@ void Application::FrameUpdate() {
       mGuiManager->setLoadingScreenStatus("Loading " + plugin->first + " ...");
     }
 
-    if ((std::max(0, GetFrameCount() - startLoadingAtFrame) % loadingDelayFrames) == 0) {
+    if ((std::max(0, GetFrameCount() - mStartPluginLoadingAtFrame) % loadingDelayFrames) == 0) {
       int32_t pluginToLoad = nextPluginToLoad - 1;
       if (pluginToLoad >= 0 && pluginToLoad < mPlugins.size()) {
 
@@ -271,7 +277,6 @@ void Application::FrameUpdate() {
         mLoadedAllPlugins = true;
 
         // initial observer animation
-        // --------------------------------------------------------------
         auto const& observerSettings = mSettings->mObserver;
         glm::dvec2  lonLat(observerSettings.mLongitude, observerSettings.mLatitude);
         lonLat = cs::utils::convert::toRadians(lonLat);

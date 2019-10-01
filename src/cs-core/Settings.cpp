@@ -49,8 +49,8 @@ void from_json(const nlohmann::json& j, Settings::Observer& o) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void from_json(const nlohmann::json& j, Settings::DownloadData& o) {
-  o.mFile   = parseProperty<std::string>("file", j);
-  o.mSource = parseProperty<std::string>("source", j);
+  o.mUrl  = parseProperty<std::string>("url", j);
+  o.mFile = parseProperty<std::string>("file", j);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
