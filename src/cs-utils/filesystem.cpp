@@ -89,8 +89,6 @@ void downloadFile(std::string const& url, std::string const& destination,
   }));
 
   request.perform();
-
-  std::cout << " ... Done" << std::endl;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

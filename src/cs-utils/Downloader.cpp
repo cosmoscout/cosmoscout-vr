@@ -45,6 +45,10 @@ double Downloader::getProgress() const {
     total += p.second;
   }
 
+  if (total <= 0.0) {
+    return 0.0;
+  }
+
   return progress / total * 100.0;
 }
 

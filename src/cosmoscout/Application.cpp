@@ -228,7 +228,11 @@ void Application::FrameUpdate() {
   }
 
   if (!mDownloadedData && mDownloader) {
-    std::cout << mDownloader->getProgress() << std::endl;
+    std::ostringstream text;
+    text << std::fixed << std::setprecision(2)
+         << "Downloading data ... <br><span style='font-family:monospace;font-size:0.7em'>"
+         << mDownloader->getProgress() << "%</span>";
+    mGuiManager->setLoadingScreenStatus(text.str());
   }
 
   if (!mDownloadedData && mDownloader && mDownloader->hasFinished()) {
