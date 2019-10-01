@@ -4,14 +4,13 @@
 #                         Copyright: (c) 2019 German Aerospace Center (DLR)                        #
 # ------------------------------------------------------------------------------------------------ #
 
-add_subdirectory(csp-anchor-labels)
-add_subdirectory(csp-atmospheres)
-add_subdirectory(csp-fly-to-locations)
-add_subdirectory(csp-lod-bodies)
-add_subdirectory(csp-measurement-tools)
-add_subdirectory(csp-rings)
-add_subdirectory(csp-satellites)
-add_subdirectory(csp-sharad)
-add_subdirectory(csp-simple-bodies)
-add_subdirectory(csp-stars)
-add_subdirectory(csp-trajectories)
+# Automatically go through all sub directories. This allows you to add your own plugins
+# to CosmoScout VR by putting them into a custom subdirectory here.
+
+FILE(GLOB SUBDIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR}/*)
+
+foreach(SUBDIR ${SUBDIRECTORIES})
+  if(EXISTS "${SUBDIR}/CMakeLists.txt")
+    add_subdirectory(${SUBDIR})
+  endif()
+endforeach()
