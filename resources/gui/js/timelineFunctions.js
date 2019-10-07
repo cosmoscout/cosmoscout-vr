@@ -310,7 +310,7 @@ function itemoutCallback(properties) {
 
 // Flys the observer to the location of the hovered item
 function travelToItemLocation() {
-    geo_code(hoveredItem.planet, hoveredItem.place, hoveredItem.content);
+    geo_code(false, hoveredItem.planet, hoveredItem.place, hoveredItem.content);
 }
 
 //Hide the tooltip if the mouse leaves the tooltip
@@ -500,6 +500,7 @@ function onSelect (properties) {
                 hoursDif += 1;
             }
             window.call_native("add_hours", hoursDif);
+            geo_code(true, items._data[item].planet, items._data[item].place, items._data[item].content);
         }
     }
 }

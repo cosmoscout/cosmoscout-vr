@@ -1,7 +1,9 @@
+let animationTime = 5
+let withoutAnimationTime = 0;
 
 //Flys the observer to a given location
-function flyToLocation(planet, location) {
-        window.call_native("fly_to", planet, location.longitude, location.latitude, location.height);
+function flyToLocation(planet, location, time) {
+        window.call_native("fly_to", planet, location.longitude, location.latitude, location.height, time);
         window.call_native("print_notification", "Travelling", "to " + location.name, "send");
 }
 
@@ -37,7 +39,7 @@ function formatLongitude(long, half) {
 
 // Extracts the needed information out of the human readable place string
 // and calls flyToLocation for the given location.
-function geo_code(planet, place, name) {
+function geo_code(direct, planet, place, name) {
     var placeArr = place.split(" ");
     var location = {
         "longitude": formatLongitude(placeArr[0], placeArr[1]),
@@ -46,7 +48,10 @@ function geo_code(planet, place, name) {
         "name":      name
     }; 
     
-
-    flyToLocation(planet, location, name);
+    if(direct) {
+        flyToLocation(planet, location, withoutAnimationTime);
+    }else {
+        flyToLocation(planet, location, name, animationTime);
+    }
     
 }
