@@ -174,6 +174,7 @@ noUiSlider.create(range, {
 range.noUiSlider.on('update', rangeUpdateCallback);
 
 var items = new vis.DataSet();
+var itemsOverview = new vis.DataSet();
 // Create a Timeline
 timeline = new vis.Timeline(container, items, options);
 centerTime = timeline.getCurrentTime();
@@ -189,7 +190,7 @@ timeline.on('itemover', itemoverCallback);
 timeline.on('itemout', itemoutCallback);
 
 //create overview timeline
-overviewTimeLine = new vis.Timeline(overviewContainer, items, overviewOptions);
+overviewTimeLine = new vis.Timeline(overviewContainer, itemsOverview, overviewOptions);
 overviewTimeLine.addCustomTime(timeline.getWindow().end, rightTimeId);
 overviewTimeLine.addCustomTime(timeline.getWindow().start, leftTimeId);
 overviewTimeLine.on('select', onSelect);
@@ -197,7 +198,7 @@ overviewTimeLine.on('click', onOverviewClick);
 overviewTimeLine.on('changed', overviewChangeCallback);
 overviewTimeLine.on('mouseDown', overviewMouseDownCallback);
 overviewTimeLine.on('rangechange', overviewRangechangeCallback);
-overviewTimeLine.on('itemover', itemoverCallback);
+overviewTimeLine.on('itemover', itemoverOverviewCallback);
 overviewTimeLine.on('itemout', itemoutCallback);
 initialOverviewWindow(new Date(1950,1), new Date(2030, 12));
 
@@ -275,7 +276,7 @@ async function startRedrawTooltip(event) {
 var hoveredItem;
 var tooltipVisible = false;
 //Shows a tooltip if an item is hovered
-function itemoverCallback(properties) {
+function itemoverCallback(properties, overview) {
     document.getElementById("customTooltip").style.display = "block";
     tooltipVisible = true;
     for(var item in items._data) {
@@ -289,7 +290,9 @@ function itemoverCallback(properties) {
     var events = document.getElementsByClassName(properties.item);
     var event;
     for(var i=0; i<events.length; i++) {
-        if($(events[i]).hasClass("event")) {
+        if(!overview && $(events[i]).hasClass("event")) {
+            event = events[i];
+        } else if(overview && $(events[i]).hasClass("overviewEvent")) {
             event = events[i];
         }
     }
@@ -300,6 +303,11 @@ function itemoverCallback(properties) {
     if(currentSpeed != paus) {
         startRedrawTooltip(event);
     }
+}
+
+//Shows a tooltip if an item on the overview timeline is hovered
+function itemoverOverviewCallback(properties) {
+    itemoverCallback(properties, true);
 }
 
 // Cloes the tooltip if the mouse leaves the item and tooltip
@@ -542,6 +550,8 @@ function add_item(start, end, id, content, style, description, planet, place) {
     data.content = content;
     data.className = 'event ' + id;
     items.update(data);
+    data.className = 'overviewEvent ' + id;
+    itemsOverview.update(data);
 }
 
 //Change the time to the clicked cvalue
