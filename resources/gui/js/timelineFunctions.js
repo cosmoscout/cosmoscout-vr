@@ -129,7 +129,15 @@ var overviewOptions = {
     zoomable: true,
     moveable: true,
     showCurrentTime: false,
-    editable: false,
+    editable: {
+        add: true,         // add new items by double tapping
+        updateTime: true,  // drag items horizontally
+        updateGroup: false, // drag items from one group to another
+        remove: false,       // delete an item by tapping the delete button top right
+        overrideItems: false  // allow these options to override item.editable
+    },
+    onAdd: oveviewOnAddCallback,
+    onUpdate: oveviewOnUpdateCallback
 }
 
 var whileEditingOpt = {
@@ -346,6 +354,7 @@ function closeForm() {
     parHolder.callback(null); // cancel item creation
     document.getElementById("myForm").style.display = "none";
     timeline.setOptions(editingDoneOpt);
+    overviewTimeLine.setOptions(editingDoneOpt);
 }
 
 //Creates/Updates a evnt with the user inputs
@@ -366,18 +375,28 @@ function applyEvent() {
             parHolder.item.id = parHolder.item.content + parHolder.item.start + parHolder.item.end;
             parHolder.item.id = parHolder.item.id.replace(/\s/g,'');
         }
-        parHolder.item.className = 'event ' + parHolder.item.id;
+        if(parHolder.overview) {
+            parHolder.item.className = 'overviewEvent ' + parHolder.item.id;
+        } else {
+            parHolder.item.className = 'event ' + parHolder.item.id;
+        }
         parHolder.callback(parHolder.item); // send back adjusted new item
         document.getElementById("myForm").style.display = "none";
         timeline.setOptions(editingDoneOpt);
-        tooltip(parHolder.item.content);
+        overviewTimeLine.setOptions(editingDoneOpt);
+        if(parHolder.overview) {
+            items.update(parHolder.item);
+        } else {
+            itemsOverview.update(parHolder.item);
+        }
         saveItems();
     }
 }
 
 //Called when an item is about to be updated
-function onUpdateCallback(item, callback) {
+function onUpdateCallback(item, callback, overview) {
     timeline.setOptions(whileEditingOpt);
+    overviewTimeLine.setOptions(whileEditingOpt);
     document.getElementById("headlineForm").innerText = "Update";
     document.getElementById("myForm").style.display = "block";
     document.getElementById("eventName").value = item.content;
@@ -392,13 +411,15 @@ function onUpdateCallback(item, callback) {
     }
     parHolder.item = item;
     parHolder.callback = callback;
+    parHolder.overview = overview;
     setPaus();
 }
 
 
 // Called when an item is about to be added
-function onAddCallback(item, callback) {
+function onAddCallback(item, callback, overview) {
     timeline.setOptions(whileEditingOpt);
+    overviewTimeLine.setOptions(whileEditingOpt);
     document.getElementById("headlineForm").innerText = "Add";
     document.getElementById("eventName").value = "";
     document.getElementById("myForm").style.display = "block";
@@ -409,7 +430,16 @@ function onAddCallback(item, callback) {
     document.getElementById("placeInput").value = format_longitude(userPosition.long) + format_latitude(userPosition.lat) + format_height(userPosition.height); 
     parHolder.item = item;
     parHolder.callback = callback;
+    parHolder.overview = overview;
     setPaus();
+}
+
+function oveviewOnUpdateCallback(item, callback) {
+    onUpdateCallback(item, callback, true);
+}
+
+function oveviewOnAddCallback(item, callback, overview) {
+    onAddCallback(item, callback, true);
 }
 
 //Sets the min and max date for the timeline
