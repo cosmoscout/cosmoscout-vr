@@ -327,3 +327,7 @@ i {
                     rgba(0,0,0,0) 25%, rgba(0,0,0,0) 75%, 
                     #585454 75%, #585454 100%);
 }
+
+#itemLocation{
+    text-decoration: underline;
+}

@@ -280,7 +280,7 @@ function itemoverCallback(properties) {
         if(items._data[item].id == properties.item) {
             document.getElementById("itemContent").innerHTML = items._data[item].content;
             document.getElementById("itemDescription").innerHTML = items._data[item].description;
-            document.getElementById("itemLocation").innerHTML = items._data[item].planet + " " +  items._data[item].place;
+            document.getElementById("itemLocation").innerHTML = "<i class='material-icons'>send</i> " + items._data[item].planet + " " +  items._data[item].place;
             hoveredItem = items._data[item];
         }
     }
