@@ -197,7 +197,12 @@ i {
 
 #decreaseControl a,
 #increaseControl a {
-    height: 16px;
+    height: 10px;
+    top: 5px;
+}
+
+#increaseControl a {
+    top: -19px;
 }
 
 #decreaseControl i,
@@ -205,11 +210,7 @@ i {
     color: rgb(50, 50, 50);
     transition: color 0.2s, font-size 0.2s;
     line-height: 1;
-    top: -4px;
-}
-
-#increaseControl a {
-    top: -27px;
+    top: -12px;
 }
 
 #btnIncreaseYear,
@@ -242,41 +243,6 @@ i {
     color: #ddf;
 }
 
-#decreaseControl.mouseOver a,
-#increaseControl.mouseOver a{
-    height: 26px;
-}
-
-#decreaseControl.mouseOver i,
-#increaseControl.mouseOver i {
-    color: #ddf;
-    font-size: 34px;
-}
-
-#increaseControl.mouseOver #btnIncreaseYear,
-#decreaseControl.mouseOver #btnDecreaseYear {
-    left: -16px;
-}
-
-#increaseControl.mouseOver #btnIncreaseMonth,
-#decreaseControl.mouseOver #btnDecreaseMonth {
-    left: -5px;
-}
-
-#increaseControl.mouseOver #btnIncreaseDay,
-#decreaseControl.mouseOver #btnDecreaseDay {
-    left: 20px;
-}
-
-#increaseControl.mouseOver #btnIncreaseHour,
-#decreaseControl.mouseOver #btnDecreaseHour {
-    left: -26px;
-}
-
-#increaseControl.mouseOver #btnIncreaseMinute,
-#decreaseControl.mouseOver #btnDecreaseMinute {
-    left: -48px;
-}
 
 #speedDecreaseControl {
     left: 50%;

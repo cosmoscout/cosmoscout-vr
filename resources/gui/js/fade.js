@@ -37,13 +37,13 @@ function mouseLeaveTimeControl() {
 }
 
 function enterTimeButtons() {
-    document.getElementById("increaseControl").classList.add('mouseOver');
-    document.getElementById("decreaseControl").classList.add('mouseOver');
+    document.getElementById("increaseControl").classList.add('mouseNear');
+    document.getElementById("decreaseControl").classList.add('mouseNear');
 }
 
 function leaveTimeButtons() {
-    document.getElementById("increaseControl").classList.remove('mouseOver');
-    document.getElementById("decreaseControl").classList.remove('mouseOver');
+    document.getElementById("increaseControl").classList.remove('mouseNear');
+    document.getElementById("decreaseControl").classList.remove('mouseNear');
 }
 
 document.getElementById("btnLock").onclick = toggleLock;
