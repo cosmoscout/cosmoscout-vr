@@ -15,6 +15,10 @@
     top: 0px;
 }
 
+.tooltip {
+    pointer-events: none;
+}
+
 #bottomBorderLeft {
     top: 65px;
     height: 2px;
