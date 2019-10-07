@@ -568,26 +568,26 @@ function setTimeToDate(date) {
 }
 
 function plusOneMinute() {
-    window.call_native("add_hours", minuteInHours);
+    window.call_native("add_hours_without_animation", minuteInHours);
 }
 
 function minusOneMinute() {
-    window.call_native("add_hours", -minuteInHours);
+    window.call_native("add_hours_without_animation", -minuteInHours);
 }
 
 function plusOneHour() {
-    window.call_native("add_hours", 1);
+    window.call_native("add_hours_without_animation", 1);
 }
 function minusOneHour() {
-    window.call_native("add_hours", -1);
+    window.call_native("add_hours_without_animation", -1);
 }
 
 function plusOneDay() {
-    window.call_native("add_hours", dayInHours);
+    window.call_native("add_hours_without_animation", dayInHours);
     
 }
 function minusOneDay() {
-    window.call_native("add_hours", -dayInHours);
+    window.call_native("add_hours_without_animation", -dayInHours);
 }
 
 function plusOneMonth() {
@@ -595,14 +595,14 @@ function plusOneMonth() {
     centerTime.setMonth(centerTime.getMonth() + 1);
     var dif = centerTime.getTime() - date.getTime();
     var hoursDif = dif / 1000 / 60 / 60;
-    window.call_native("add_hours", hoursDif);
+    window.call_native("add_hours_without_animation", hoursDif);
 }
 function minusOneMonth() {
     var date = new Date(centerTime.getTime());
     centerTime.setMonth(centerTime.getMonth() - 1);
     var dif = centerTime.getTime() - date.getTime();
     var hoursDif = dif / 1000 / 60 / 60;
-    window.call_native("add_hours", hoursDif);
+    window.call_native("add_hours_without_animation", hoursDif);
 }
 
 function plusOneYear() {
@@ -610,14 +610,14 @@ function plusOneYear() {
     centerTime.setFullYear(centerTime.getFullYear() + 1);
     var dif = centerTime.getTime() - date.getTime();
     var hoursDif = dif / 1000 / 60 / 60;
-    window.call_native("add_hours", hoursDif);
+    window.call_native("add_hours_without_animation", hoursDif);
 }
 function minusOneYear() {
     var date = new Date(centerTime.getTime());
     centerTime.setFullYear(centerTime.getFullYear() - 1);
     var dif = centerTime.getTime() - date.getTime();
     var hoursDif = dif / 1000 / 60 / 60;
-    window.call_native("add_hours", hoursDif);
+    window.call_native("add_hours_without_animation", hoursDif);
 }
 
 
@@ -820,25 +820,25 @@ function scrollOnMonth(event) {
 
 function scrollOnDay(event) {
     if(event.deltaY < 0) {
-        window.call_native("add_hours_without_animation", dayInHours);
+        plusOneDay()
     } else {
-        window.call_native("add_hours_without_animation", -dayInHours);
+        minusOneDay();
     }
 }
 
 function scrollOnHour(event) {
     if(event.deltaY < 0) {
-        window.call_native("add_hours_without_animation", 1);
+        plusOneHour();
     } else {
-        window.call_native("add_hours_without_animation", -1);
+        minusOneHour()
     }
 }
 
 function scrollOnMinute(event) {
     if(event.deltaY < 0) {
-        window.call_native("add_hours_without_animation", minuteInHours);
+        plusOneMinute();
     } else {
-        window.call_native("add_hours_without_animation", -minuteInHours);
+        minusOneMinute();
     }
 }
 
