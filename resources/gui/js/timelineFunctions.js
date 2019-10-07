@@ -197,6 +197,8 @@ overviewTimeLine.on('click', onOverviewClick);
 overviewTimeLine.on('changed', overviewChangeCallback);
 overviewTimeLine.on('mouseDown', overviewMouseDownCallback);
 overviewTimeLine.on('rangechange', overviewRangechangeCallback);
+overviewTimeLine.on('itemover', itemoverCallback);
+overviewTimeLine.on('itemout', itemoutCallback);
 initialOverviewWindow(new Date(1950,1), new Date(2030, 12));
 
 document.getElementById("dateLabel").innerText = formatDateReadable(centerTime);
@@ -524,16 +526,6 @@ function redrawSnipped() {
     await redrawSnipped();
   }
 
-  // Add a tooltip to the events
-function tooltip(content) {
-    var events = document.getElementsByClassName('event');
-    for(var i=0; i<events.length; i++) {
-        events[i].setAttribute('data-toggle', 'tooltip');
-        events[i].setAttribute('title', content);
-    }
-    $('[data-toggle="tooltip"]').tooltip({ delay: 500, placement: "top", html: false });
-}
-
 function add_item(start, end, id, content, style, description, planet, place) {
     var data = new Object();
     data.start = new Date(start);
@@ -550,7 +542,6 @@ function add_item(start, end, id, content, style, description, planet, place) {
     data.content = content;
     data.className = 'event ' + id;
     items.update(data);
-    tooltip(content);
 }
 
 //Change the time to the clicked cvalue

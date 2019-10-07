@@ -40,6 +40,9 @@
     function set_north_direction(angle) {
             $("#compass-arrow").css("transform", "rotateZ(" + angle + "rad)");
     }
+    $(document).ready(function () {
+      $('[data-toggle="tooltip"]').tooltip({ delay: 500, placement: "top", html: false });
+    });
   </script>
 </head>
 <body>
