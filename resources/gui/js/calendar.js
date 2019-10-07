@@ -27,6 +27,7 @@ function toggle_visible() {
 
 // Called if the Calendar is used to change the date
 function enterNewCenterTime() {
+    $('#calendar').datepicker('update', timeline.getCustomTime(timeId));
     if(calenderVisible && state == newCenterTimeId) {
         toggle_visible();
     } else if(!calenderVisible) {
@@ -38,7 +39,6 @@ function enterNewCenterTime() {
 
 // Called if the Calendar is used to enter a start date of an event
 function enterStartDate() {
-
     if(state == newStartDateId) {
         toggle_visible();
     }else {
