@@ -91,12 +91,13 @@
 
   #visualization .vis-custom-time.custom {
     background-color: #ddf;
-    width: 15px !important;
-    height: 15px !important;
+    width: 16px !important;
+    height: 16px !important;
     cursor: inherit;
     pointer-events: none;
     border-radius: 10px;
     top: -8px !important;
+    margin-left: -8px !important;
   }
 
   #visualization .vis-minor.vis-text {
