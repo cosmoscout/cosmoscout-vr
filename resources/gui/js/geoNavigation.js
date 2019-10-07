@@ -1,4 +1,4 @@
-let animationTime = 5
+let animationTime = 5;
 let withoutAnimationTime = 0;
 
 //Flys the observer to a given location
@@ -51,7 +51,7 @@ function geo_code(direct, planet, place, name) {
     if(direct) {
         flyToLocation(planet, location, withoutAnimationTime);
     }else {
-        flyToLocation(planet, location, name, animationTime);
+        flyToLocation(planet, location, animationTime);
     }
     
 }
