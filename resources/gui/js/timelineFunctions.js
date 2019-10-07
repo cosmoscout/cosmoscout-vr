@@ -83,7 +83,31 @@ var options = {
         overrideItems: false  // allow these options to override item.editable
     },
     onAdd: onAddCallback,
-    onUpdate: onUpdateCallback
+    onUpdate: onUpdateCallback,
+    format: {
+        minorLabels: {
+            millisecond:'SSS[ms]',
+            second:     's[s]',
+            minute:     'HH:mm',
+            hour:       'HH:mm',
+            weekday:    'ddd D',
+            day:        'D[d]',
+            week:       'D[d]',
+            month:      'MMM',
+            year:       'YYYY'
+          },
+        majorLabels: {
+            millisecond:'HH:mm:ss',
+            second:     'D MMMM HH:mm',
+            minute:     'ddd D MMMM',
+            hour:       'ddd D MMMM',
+            weekday:    'MMMM YYYY',
+            day:        'MMMM YYYY',
+            week:       'MMMM YYYY',
+            month:      'YYYY',
+            year:       ''
+          }        
+      }
 };
 
 var playingOpt = {
