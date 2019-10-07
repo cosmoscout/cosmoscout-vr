@@ -411,6 +411,8 @@ function setTimelineRange(min, max) {
     minDate = min;
     maxDate = max;
     timeline.setOptions(rangeOpt);
+    overviewTimeLine.setOptions(rangeOpt);
+    initialOverviewWindow(new Date(min), new Date(max));
 }
 
 // Sets variable values when a mouseDown event is triggered over the timeline
