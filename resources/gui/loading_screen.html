@@ -36,7 +36,7 @@
         #image {
             position: absolute;
             left: calc(50vw - 40vmin);
-            top: calc(50vh - 43vmin);
+            top: calc(50vh - 49vmin);
             width: 80vmin;
             height: 80vmin;
             background: url(img/splash_logo.png) center center;
@@ -45,19 +45,38 @@
 
         #upper {
             font-size: 12vmin;
-            line-height: 11vmin;
+            line-height: 12vmin;
+        }
+
+        #progress {
+            width: 80%;
+            margin: auto;
+            height: 0.15vmin;
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        #progress-bar {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(to right, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.7));
+            box-shadow: 0 0 3vmin rgba(255, 255, 255, 0.5), 0 0 1vmin rgba(255, 255, 255, 0.5);
+        }
+
+        .animated {
+            transition: width 0.2s ease;
         }
 
         #lower {
             font-size: 2.2vmin;
             text-transform: uppercase;
             letter-spacing: 0.8vmin;
+            line-height: 7vmin;
         }
 
         #text {
             position: absolute;
             left: calc(50vw - 40vmin);
-            top: calc(50vh + 10vmin);
+            top: calc(50vh + 5vmin);
             width: 80vmin;
             height: 20vmin;
             text-align: center;
@@ -87,6 +106,15 @@
             document.getElementById("lower").innerHTML = text;
         }
 
+        function set_progress(percent, animate) {
+            if (animate) {
+                document.getElementById("progress-bar").className = "animated";
+            } else {
+                document.getElementById("progress-bar").className = "";
+            }
+            document.getElementById("progress-bar").style.width = percent + "%";
+        }
+
         function set_version(text) {
             document.getElementById("version").innerHTML = text;
         }
@@ -100,6 +128,10 @@
         <div id="image"></div>
         <div id="text">
             <div id="upper">CosmoScout VR</div>
+            <div id="progress">
+                <div id="progress-bar">
+                </div>
+            </div>
             <div id="lower">loading core engine ...</div>
         </div>
         <div id="version">unknown version</div>

@@ -85,6 +85,9 @@ class CS_CORE_EXPORT GuiManager {
   /// as the loading screen will be hidden thereafter.
   void setLoadingScreenStatus(std::string const& sStatus) const;
 
+  /// Sets the progress bar state.
+  void setLoadingScreenProgress(float percent, bool animate) const;
+
   /// Hides the loading screen.
   void hideLoadingScreen();
 

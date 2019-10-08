@@ -325,6 +325,12 @@ void GuiManager::setLoadingScreenStatus(std::string const& sStatus) const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void GuiManager::setLoadingScreenProgress(float percent, bool animate) const {
+  mLoadingScreen->callJavascript("set_progress", percent, animate);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void GuiManager::hideLoadingScreen() {
   if (mLoadingScreen) {
 

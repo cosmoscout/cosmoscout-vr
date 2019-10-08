@@ -231,17 +231,14 @@ void Application::FrameUpdate() {
       for (auto const& download : mSettings->mDownloadData) {
         mDownloader->download(download.mUrl, download.mFile);
       }
+      mGuiManager->setLoadingScreenStatus("Downloading data ...");
     } else {
       mDownloadedData = true;
     }
   }
 
   if (!mDownloadedData && mDownloader) {
-    std::ostringstream text;
-    text << std::fixed << std::setprecision(2)
-         << "Downloading data ... <br><span style='font-family:monospace;font-size:0.7em'>"
-         << mDownloader->getProgress() << "%</span>";
-    mGuiManager->setLoadingScreenStatus(text.str());
+    mGuiManager->setLoadingScreenProgress(mDownloader->getProgress(), false);
   }
 
   if (!mDownloadedData && mDownloader && mDownloader->hasFinished()) {
@@ -267,6 +264,7 @@ void Application::FrameUpdate() {
       auto plugin = mPlugins.begin();
       std::advance(plugin, nextPluginToLoad);
       mGuiManager->setLoadingScreenStatus("Loading " + plugin->first + " ...");
+      mGuiManager->setLoadingScreenProgress(100.f * (nextPluginToLoad + 1) / mPlugins.size(), true);
     }
 
     if ((std::max(0, GetFrameCount() - mStartPluginLoadingAtFrame) % loadingDelayFrames) == 0) {
