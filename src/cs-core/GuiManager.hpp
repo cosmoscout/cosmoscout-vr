@@ -122,9 +122,6 @@ class CS_CORE_EXPORT GuiManager {
 
   void registerTool(std::shared_ptr<tools::Tool> const& tool);
 
-  /// Toggles the statistics.
-  void setEnableStatistics(bool enable);
-
   /// Hides or shows the entire user interface. This is bound to the ESC-key.
   void showGui();
   void hideGui();
