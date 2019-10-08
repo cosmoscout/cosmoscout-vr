@@ -7,6 +7,8 @@
 #ifndef CS_CORE_DRAG_NAVIGATION_HPP
 #define CS_CORE_DRAG_NAVIGATION_HPP
 
+#include "cs_core_export.hpp"
+
 #include <VistaKernel/VistaKernelConfig.h>
 
 #include <VistaBase/VistaVectorMath.h>
@@ -29,7 +31,7 @@ class SolarSystem;
 
 /// This class contains the logic for picking, dragging and rotating planets. It is used for the
 /// mouse interaction as well as the flystick and HTC-Vive interaction.
-class DragNavigation {
+class CS_CORE_EXPORT DragNavigation {
  public:
   DragNavigation(std::shared_ptr<cs::core::SolarSystem> const& pSolarSystem,
       std::shared_ptr<cs::core::InputManager> const&           pInputManager,
