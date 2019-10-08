@@ -768,16 +768,20 @@ function togglePaus() {
 
 // Decreases the speed of the simulation
 function decreaseSpeed() {
-    if(currentSpeed == paus) {
+    if(range.noUiSlider.get() > paus) {
+        range.noUiSlider.set(secBack);
+    }else if(currentSpeed == paus) {
         togglePaus();
-    } else {
+    }else {
         range.noUiSlider.set(currentSpeed-1);
     }
 }
 
 // Increases the sepped of the simulation
 function increaseSpeed() {
-    if(currentSpeed == paus) {
+    if(range.noUiSlider.get() < paus) {
+        range.noUiSlider.set(secForw);
+    }else if(currentSpeed == paus) {
         togglePaus();
     }else {
        if(currentSpeed == secBack) {
