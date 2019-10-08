@@ -196,6 +196,7 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
   mHeaderBar->waitForFinishedLoading();
   mNotifications->waitForFinishedLoading();
   mLoadingScreen->waitForFinishedLoading();
+  mCalendar->waitForFinishedLoading();
 
   // Create a string which contains the current version number of CosmoScout VR. This string is then
   // shown on the loading screen.
@@ -213,47 +214,6 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
 
   // Start the initial fade-in of the loading screen.
   mLoadingScreen->callJavascript("set_loading", true);
-
-  // Register some default callbacks for the different GuiItems. -----------------------------------
-
-  mHeaderBar->registerCallback<std::string, std::string, std::string>("print_notification",
-      ([this](std::string const& title, std::string const& content, std::string const& icon) {
-        showNotification(title, content, icon);
-      }));
-
-  mHeaderBar->registerCallback("show_date_dialog", ([this]() {
-    if (mCalendar->getIsInteractive()) {
-      mCalendar->callJavascript("set_visible", false);
-      mCalendar->setIsInteractive(false);
-    } else {
-      mCalendar->callJavascript("set_visible", true);
-      mCalendar->setIsInteractive(true);
-    }
-  }));
-
-  mCalendar->registerCallback<std::string>(
-      "set_date", ([this](std::string const& date) { mCalendar->setIsInteractive(false); }));
-
-  mSideBar->registerCallback<std::string, std::string, std::string>("print_notification",
-      ([this](std::string const& title, std::string const& content, std::string const& icon) {
-        showNotification(title, content, icon);
-      }));
-
-  mSideBar->registerCallback<bool>("set_enable_timer_queries",
-      ([this](bool value) { mFrameTimings->pEnableMeasurements = value; }));
-
-  mSideBar->registerCallback<bool>("set_enable_vsync", ([this](bool value) {
-    GetVistaSystem()
-        ->GetDisplayManager()
-        ->GetWindows()
-        .begin()
-        ->second->GetWindowProperties()
-        ->SetVSyncEnabled(value);
-  }));
-
-  // Shoaw the statistics GuiItem when measurements are enabled.
-  mFrameTimings->pEnableMeasurements.onChange().connect(
-      [this](bool enable) { mStatistics->setIsEnabled(enable); });
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -58,18 +58,21 @@
 Application::Application(cs::core::Settings const& settings)
     : VistaFrameLoop()
     , mSettings(std::make_shared<cs::core::Settings>(settings)) {
+
+  // Initialize curl.
+  cURLpp::initialize();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Application::~Application() {
-  for (auto const& plugin : mPlugins) {
-    plugin.second.mPlugin->deInit();
-  }
 
+  // Close all plugins first.
   for (auto const& plugin : mPlugins) {
     std::string pluginFile = plugin.first;
     std::cout << "Unloading Plugin " << pluginFile << std::endl;
+
+    plugin.second.mPlugin->deInit();
 
     auto handle           = plugin.second.mHandle;
     auto pluginDestructor = (void (*)(cs::core::PluginBase*))LIBFUNC(handle, "destroy");
@@ -80,6 +83,7 @@ Application::~Application() {
 
   mPlugins.clear();
 
+  // Then unload SPICE.
   mSolarSystem->deinit();
 
   cURLpp::terminate();
@@ -88,8 +92,6 @@ Application::~Application() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool Application::Init(VistaSystem* pVistaSystem) {
-  // initialize curl
-  cURLpp::initialize();
 
   mInputManager   = std::make_shared<cs::core::InputManager>();
   mFrameTimings   = std::make_shared<cs::utils::FrameTimings>();
@@ -103,27 +105,32 @@ bool Application::Init(VistaSystem* pVistaSystem) {
       std::make_shared<cs::core::DragNavigation>(mSolarSystem, mInputManager, mTimeControl);
 
   connectSlots();
+  registerGuiCallbacks();
 
-  // clang-format off
   VdfnNodeFactory* pNodeFactory = VdfnNodeFactory::GetSingleton();
-  pNodeFactory->SetNodeCreator("ObserverNavigationNode", new ObserverNavigationNodeCreate(mSolarSystem, mInputManager));
-  // clang-format on
+  pNodeFactory->SetNodeCreator(
+      "ObserverNavigationNode", new ObserverNavigationNodeCreate(mSolarSystem, mInputManager));
 
-  // add hot-keys ----------------------------------------------------------------------------------
+  // add some hot-keys -----------------------------------------------------------------------------
+
+  // '+' increases the speed of time.
   GetVistaSystem()->GetKeyboardSystemControl()->BindAction('+', [this]() {
     if (!mInputManager->pHoveredGuiNode.get()) {
       mTimeControl->increaseTimeSpeed();
     }
   });
 
+  // '-' decreases the speed of time.
   GetVistaSystem()->GetKeyboardSystemControl()->BindAction('-', [this]() {
     if (!mInputManager->pHoveredGuiNode.get()) {
       mTimeControl->decreaseTimeSpeed();
     }
   });
 
-  // set mouse pointer -----------------------------------------------------------------------------
+  // initialize the mouse pointer state ------------------------------------------------------------
 
+  // If we are running on freeglut, we can hide the mouse pointer when the mouse ray should be
+  // shown. This is determined by the settings key "enableMouseRay".
   auto windowingToolkit = dynamic_cast<VistaGlutWindowingToolkit*>(
       GetVistaSystem()->GetDisplayManager()->GetWindowingToolkit());
 
@@ -133,6 +140,8 @@ bool Application::Init(VistaSystem* pVistaSystem) {
     }
   }
 
+  // If the settings key "enableMouseRay" is set to true, we add a cone geometry to the
+  // SELECTION_NODE. The SELECTION_NODE is controlled by the users input device (via the DFN).
   if (mSettings->mEnableMouseRay) {
     auto                sceneGraph = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
     VistaTransformNode* pIntentionNode =
@@ -152,7 +161,7 @@ bool Application::Init(VistaSystem* pVistaSystem) {
     mGuiManager->setCursor(cs::gui::Cursor::ePointer);
   }
 
-  // open plugins ----------------------------------------------------------------------------------
+  // open plugin libraries --------------------------------------------------------------------
 
   for (auto const& plugin : mSettings->mPlugins) {
     try {
@@ -163,7 +172,7 @@ bool Application::Init(VistaSystem* pVistaSystem) {
       std::string path = "..\\share\\plugins\\" + plugin.first + ".dll";
 #endif
 
-      // Clear errors
+      // Clear errors.
       LIBERROR();
 
       COSMOSCOUT_LIBTYPE pluginHandle = OPENLIB(path.c_str());
@@ -486,7 +495,7 @@ void Application::FrameUpdate() {
 
 void Application::connectSlots() {
 
-  // UI updates based on property changes ----------------------------------------------------------
+  // Update mouse pointer coordinate display in the user interface.
   mInputManager->pHoveredObject.onChange().connect(
       [this](cs::core::InputManager::Intersection intersection) {
         if (intersection.mObject) {
@@ -508,6 +517,7 @@ void Application::connectSlots() {
         mGuiManager->getHeaderBar()->callJavascript("set_pointer_position", false);
       });
 
+  // Update the time shown in the user interface when the simulation time changes.
   mTimeControl->pSimulationTime.onChange().connect([this](double val) {
     std::stringstream sstr;
     auto              facet = new boost::posix_time::time_facet();
@@ -517,11 +527,11 @@ void Application::connectSlots() {
     mGuiManager->getHeaderBar()->callJavascript("set_date", sstr.str());
   });
 
+  // Update the simulation time speed shown in the user interface.
   mTimeControl->pTimeSpeed.onChange().connect(
       [this](float val) { mGuiManager->getHeaderBar()->callJavascript("set_time_speed", val); });
 
-  // register some callbacks -----------------------------------------------------------------------
-
+  // Show notification when the center name of the celestial observer changes.
   mSolarSystem->pObserverCenter.onChange().connect([this](std::string const& center) {
     if (center == "Solar System Barycenter") {
       mGuiManager->showNotification("Leaving " + mSolarSystem->pActiveBody.get()->getCenterName(),
@@ -534,6 +544,7 @@ void Application::connectSlots() {
     }
   });
 
+  // Show notification when the frame name of the celestial observer changes.
   mSolarSystem->pObserverFrame.onChange().connect([this](std::string const& frame) {
     if (frame == "J2000") {
       mGuiManager->showNotification(
@@ -546,34 +557,146 @@ void Application::connectSlots() {
     }
   });
 
+  // Show the current speed of the celestial observer in the user interface.
   mSolarSystem->pCurrentObserverSpeed.onChange().connect(
       [this](float speed) { mGuiManager->getHeaderBar()->callJavascript("set_speed", speed); });
 
+  // Show the statistics GuiItem when measurements are enabled.
+  mFrameTimings->pEnableMeasurements.onChange().connect(
+      [this](bool enable) { mGuiManager->getStatistics()->setIsEnabled(enable); });
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Application::registerGuiCallbacks() {
+
+  // SideBar callbacks -----------------------------------------------------------------------------
+
+  // Shows a notification in the top right corner. See GuiManager::showNotification() for details.
+  mGuiManager->getSideBar()->registerCallback<std::string, std::string, std::string>(
+      "print_notification",
+      ([this](std::string const& title, std::string const& content, std::string const& icon) {
+        mGuiManager->showNotification(title, content, icon);
+      }));
+
+  // Flies the observer to the given celestial body.
   mGuiManager->getSideBar()->registerCallback<std::string>(
       "set_celestial_body", ([this](std::string const& name) {
         for (auto const& body : mSolarSystem->getBodies()) {
           if (body->getCenterName() == name) {
             mSolarSystem->pActiveBody = body;
             mSolarSystem->flyObserverTo(body->getCenterName(), body->getFrameName(), 10.0);
+            break;
           }
         }
       }));
 
+  // Sets the current simulation time. The argument must be a string accepted by
+  // TimeControl::setTime.
   mGuiManager->getSideBar()->registerCallback<std::string>(
       "set_date", ([this](std::string const& sDate) {
         double time = cs::utils::convert::toSpiceTime(boost::posix_time::time_from_string(sDate));
         mTimeControl->setTime(time);
       }));
 
-  mGuiManager->getSideBar()->registerCallback<std::string>(
-      "set_date", ([this](std::string const& sDate) {
-        double time = cs::utils::convert::toSpiceTime(boost::posix_time::time_from_string(sDate));
-        mTimeControl->setTime(time);
-      }));
-
+  // Sets the current simulation time. The argument must be a double representing Barycentric
+  // Dynamical Time.
   mGuiManager->getSideBar()->registerCallback<double>(
       "set_time", ([this](double tTime) { mTimeControl->setTime(tTime); }));
 
+  // Adjusts the global ambient brightness factor.
+  mGuiManager->getSideBar()->registerCallback<double>(
+      "set_ambient_light", ([this](double value) { mGraphicsEngine->pAmbientBrightness = value; }));
+
+  // Enables lighting computation globally.
+  mGuiManager->getSideBar()->registerCallback<bool>(
+      "set_enable_lighting", ([this](bool enable) { mGraphicsEngine->pEnableLighting = enable; }));
+
+  // Shows cascaded shadow mapping debugging information on the terrain.
+  mGuiManager->getSideBar()->registerCallback<bool>("set_enable_cascades_debug",
+      ([this](bool enable) { mGraphicsEngine->pEnableShadowsDebug = enable; }));
+
+  // Enables the calculation of shadows.
+  mGuiManager->getSideBar()->registerCallback<bool>(
+      "set_enable_shadows", ([this](bool enable) { mGraphicsEngine->pEnableShadows = enable; }));
+
+  // Freezes the shadow frustum.
+  mGuiManager->getSideBar()->registerCallback<bool>("set_enable_shadow_freeze",
+      ([this](bool enable) { mGraphicsEngine->pEnableShadowsFreeze = enable; }));
+
+  // Sets a value which individual plugins may honor trading rendering fidelity for performance.
+  mGuiManager->getSideBar()->registerCallback<double>("set_lighting_quality",
+      ([this](const int value) { mGraphicsEngine->pLightingQuality = value; }));
+
+  // Adjusts the resolution of the shadowmap.
+  mGuiManager->getSideBar()->registerCallback<double>("set_shadowmap_resolution",
+      ([this](const int val) { mGraphicsEngine->pShadowMapResolution = val; }));
+
+  // Adjusts the number of shadowmap cascades.
+  mGuiManager->getSideBar()->registerCallback<double>("set_shadowmap_cascades",
+      ([this](const int val) { mGraphicsEngine->pShadowMapCascades = val; }));
+
+  // Adjusts the depth range of the shadowmap.
+  mGuiManager->getSideBar()->registerCallback<double, double>(
+      "set_shadowmap_range", ([this](double val, double handle) {
+        glm::vec2 range = mGraphicsEngine->pShadowMapRange.get();
+
+        if (handle == 0.0) {
+          range.x = (float)val;
+        } else {
+          range.y = (float)val;
+        };
+
+        mGraphicsEngine->pShadowMapRange = range;
+      }));
+
+  // Adjusts the additional frustum length for shadowmap rendering in sun space.
+  mGuiManager->getSideBar()->registerCallback<double, double>(
+      "set_shadowmap_extension", ([this](double val, double handle) {
+        glm::vec2 extension = mGraphicsEngine->pShadowMapExtension.get();
+
+        if (handle == 0.0) {
+          extension.x = (float)val;
+        } else {
+          extension.y = (float)val;
+        };
+
+        mGraphicsEngine->pShadowMapExtension = extension;
+      }));
+
+  // Adjusts the distribution of shadowmap cascades.
+  mGuiManager->getSideBar()->registerCallback<double>("set_shadowmap_split_distribution",
+      ([this](double val) { mGraphicsEngine->pShadowMapSplitDistribution = val; }));
+
+  // Adjusts the bias to mitigate shadow acne.
+  mGuiManager->getSideBar()->registerCallback<double>(
+      "set_shadowmap_bias", ([this](double val) { mGraphicsEngine->pShadowMapBias = val; }));
+
+  // A global factor which plugins may honor when they render some sort of terrain.
+  mGuiManager->getSideBar()->registerCallback<double>(
+      "set_terrain_height", ([this](double value) { mGraphicsEngine->pHeightScale = value; }));
+
+  // Adjusts the global scaling of world-space widgets.
+  mGuiManager->getSideBar()->registerCallback<double>(
+      "set_widget_scale", ([this](double value) { mGraphicsEngine->pWidgetScale = value; }));
+
+  // Enables or disables the per-frame time measurements.
+  mGuiManager->getSideBar()->registerCallback<bool>("set_enable_timer_queries",
+      ([this](bool value) { mFrameTimings->pEnableMeasurements = value; }));
+
+  // Enables or disables vertical synchronization.
+  mGuiManager->getSideBar()->registerCallback<bool>("set_enable_vsync", ([this](bool value) {
+    GetVistaSystem()
+        ->GetDisplayManager()
+        ->GetWindows()
+        .begin()
+        ->second->GetWindowProperties()
+        ->SetVSyncEnabled(value);
+  }));
+
+  // HeaderBar callbacks ---------------------------------------------------------------------------
+
+  // Flies the celestial observer to the given location in space.
   mGuiManager->getHeaderBar()->registerCallback<std::string, std::string, double, double, double>(
       "fly_to", [this](std::string const& center, std::string const& frame, double longitude,
                     double latitude, double height) {
@@ -581,6 +704,8 @@ void Application::connectSlots() {
             cs::utils::convert::toRadians(glm::dvec2(longitude, latitude)), height, 5.0);
       });
 
+  // Rotates the scene in such a way, that the y-axis points towards the north pole of the currently
+  // active celestial body.
   mGuiManager->getHeaderBar()->registerCallback("navigate_north_up", [this]() {
     auto observerPos = mSolarSystem->getObserver().getAnchorPosition();
 
@@ -599,6 +724,7 @@ void Application::connectSlots() {
         mSolarSystem->getObserver().getFrameName(), observerPos, rotation, 1.0);
   });
 
+  // Rotates the scene in such a way, that the currently visible horizon is levelled.
   mGuiManager->getHeaderBar()->registerCallback("navigate_fix_horizon", [this]() {
     auto radii = cs::core::SolarSystem::getRadii(mSolarSystem->getObserver().getCenterName());
 
@@ -628,6 +754,7 @@ void Application::connectSlots() {
         mSolarSystem->getObserver().getFrameName(), observerPos, rotation, 1.0);
   });
 
+  // Flies the celestial observer to 0.1% of its current height.
   mGuiManager->getHeaderBar()->registerCallback("navigate_to_surface", [this]() {
     auto radii = cs::core::SolarSystem::getRadii(mSolarSystem->getObserver().getCenterName());
 
@@ -670,6 +797,8 @@ void Application::connectSlots() {
         mSolarSystem->getObserver().getFrameName(), observerPos, rotation, 3.0);
   });
 
+  // Flies the celestial observer to an orbit at three times the radius of the currently active
+  // celestial body.
   mGuiManager->getHeaderBar()->registerCallback("navigate_to_orbit", [this]() {
     auto observerRot = mSolarSystem->getObserver().getAnchorRotation();
     auto radii       = cs::core::SolarSystem::getRadii(mSolarSystem->getObserver().getCenterName());
@@ -708,73 +837,29 @@ void Application::connectSlots() {
     mTimeControl->setTime(mTimeControl->pSimulationTime.get() + 60.0 * 60.0 * amount);
   }));
 
+  mGuiManager->getHeaderBar()->registerCallback<std::string, std::string, std::string>(
+      "print_notification",
+      ([this](std::string const& title, std::string const& content, std::string const& icon) {
+        mGuiManager->showNotification(title, content, icon);
+      }));
+
+  mGuiManager->getHeaderBar()->registerCallback("show_date_dialog", ([this]() {
+    if (mGuiManager->getCalendar()->getIsInteractive()) {
+      mGuiManager->getCalendar()->callJavascript("set_visible", false);
+      mGuiManager->getCalendar()->setIsInteractive(false);
+    } else {
+      mGuiManager->getCalendar()->callJavascript("set_visible", true);
+      mGuiManager->getCalendar()->setIsInteractive(true);
+    }
+  }));
+
   mGuiManager->getHeaderBar()->registerCallback(
       "increase_time_speed", ([&]() { mTimeControl->increaseTimeSpeed(); }));
 
   mGuiManager->getHeaderBar()->registerCallback(
       "decrease_time_speed", ([&]() { mTimeControl->decreaseTimeSpeed(); }));
 
-  mGuiManager->getSideBar()->registerCallback<bool>(
-      "set_enable_shadows", ([this](bool enable) { mGraphicsEngine->pEnableShadows = enable; }));
-
-  mGuiManager->getSideBar()->registerCallback<bool>("set_enable_shadow_freeze",
-      ([this](bool enable) { mGraphicsEngine->pEnableShadowsFreeze = enable; }));
-
-  mGuiManager->getSideBar()->registerCallback<bool>("set_enable_cascades_debug",
-      ([this](bool enable) { mGraphicsEngine->pEnableShadowsDebug = enable; }));
-
-  mGuiManager->getSideBar()->registerCallback<bool>(
-      "set_enable_lighting", ([this](bool enable) { mGraphicsEngine->pEnableLighting = enable; }));
-
-  mGuiManager->getSideBar()->registerCallback<double>("set_lighting_quality",
-      ([this](const int value) { mGraphicsEngine->pLightingQuality = value; }));
-
-  mGuiManager->getSideBar()->registerCallback<double>(
-      "set_ambient_light", ([this](double value) { mGraphicsEngine->pAmbientBrightness = value; }));
-
-  mGuiManager->getSideBar()->registerCallback<double>("set_shadowmap_resolution",
-      ([this](const int val) { mGraphicsEngine->pShadowMapResolution = val; }));
-
-  mGuiManager->getSideBar()->registerCallback<double>("set_shadowmap_cascades",
-      ([this](const int val) { mGraphicsEngine->pShadowMapCascades = val; }));
-
-  mGuiManager->getSideBar()->registerCallback<double, double>(
-      "set_shadowmap_range", ([this](double val, double handle) {
-        glm::vec2 range = mGraphicsEngine->pShadowMapRange.get();
-
-        if (handle == 0.0) {
-          range.x = (float)val;
-        } else {
-          range.y = (float)val;
-        };
-
-        mGraphicsEngine->pShadowMapRange = range;
-      }));
-
-  mGuiManager->getSideBar()->registerCallback<double, double>(
-      "set_shadowmap_extension", ([this](double val, double handle) {
-        glm::vec2 extension = mGraphicsEngine->pShadowMapExtension.get();
-
-        if (handle == 0.0) {
-          extension.x = (float)val;
-        } else {
-          extension.y = (float)val;
-        };
-
-        mGraphicsEngine->pShadowMapExtension = extension;
-      }));
-
-  mGuiManager->getSideBar()->registerCallback<double>("set_shadowmap_split_distribution",
-      ([this](double val) { mGraphicsEngine->pShadowMapSplitDistribution = val; }));
-
-  mGuiManager->getSideBar()->registerCallback<double>(
-      "set_shadowmap_bias", ([this](double val) { mGraphicsEngine->pShadowMapBias = val; }));
-
-  mGuiManager->getSideBar()->registerCallback<double>(
-      "set_terrain_height", ([this](double value) { mGraphicsEngine->pHeightScale = value; }));
-
-  mGuiManager->getSideBar()->registerCallback<double>(
-      "set_widget_scale", ([this](double value) { mGraphicsEngine->pWidgetScale = value; }));
+  // Calendar callbacks ----------------------------------------------------------------------------
 
   mGuiManager->getCalendar()->registerCallback<std::string>(
       "set_date", ([this](std::string const& date) {
