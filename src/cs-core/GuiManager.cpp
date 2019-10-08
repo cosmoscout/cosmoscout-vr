@@ -40,25 +40,30 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
 
   std::cout << "Loading: GuiManager" << std::endl;
 
+  // Initialize the Chromium Embedded Framework.
   gui::init();
 
+  // Update the main viewport when the window is resized.
+  VistaViewport* pViewport(GetVistaSystem()->GetDisplayManager()->GetViewports().begin()->second);
+  mViewportUpdater = new VistaViewportResizeToProjectionAdapter(pViewport);
+  mViewportUpdater->SetUpdateMode(VistaViewportResizeToProjectionAdapter::MAINTAIN_HORIZONTAL_FOV);
+
+  // Hide the user interface when ESC is pressed.
   mInputManager->sOnEscapePressed.connect([this]() { toggleGui(); });
 
-  auto pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
+  // Create GuiAreas and attach them to the SceneGraph ---------------------------------------------
 
-  // Attach gui to a common group node.
-  auto platform = GetVistaSystem()
-                      ->GetPlatformFor(GetVistaSystem()->GetDisplayManager()->GetDisplaySystem())
-                      ->GetPlatformNode();
-  mGlobalGuiTransform = pSG->NewTransformNode(platform);
-  mLocalGuiTransform  = pSG->NewTransformNode(pSG->GetRoot());
+  // The global GUI is drawn in world-space, the local GUI is drawn in screen-space.
+  auto pSG           = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
+  mLocalGuiTransform = pSG->NewTransformNode(pSG->GetRoot());
 
-  // Create gui areas.
-
+  // The global GUI area is only created when the according settings key was specified.
   if (settings->mGui) {
-    mGlobalGuiArea =
-        new gui::WorldSpaceGuiArea(settings->mGui->mWidthPixel, settings->mGui->mHeightPixel);
-    mGlobalGuiArea->setUseLinearDepthBuffer(true);
+    auto platform = GetVistaSystem()
+                        ->GetPlatformFor(GetVistaSystem()->GetDisplayManager()->GetDisplaySystem())
+                        ->GetPlatformNode();
+    mGlobalGuiTransform = pSG->NewTransformNode(platform);
+
     mGlobalGuiTransform->Scale(
         (float)settings->mGui->mWidthMeter, (float)settings->mGui->mHeightMeter, 1.0);
     mGlobalGuiTransform->Rotate(
@@ -69,14 +74,35 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
         VistaAxisAndAngle(VistaVector3D(0, 0, 1), (float)settings->mGui->mRotZ));
     mGlobalGuiTransform->Translate((float)settings->mGui->mPosXMeter,
         (float)settings->mGui->mPosYMeter, (float)settings->mGui->mPosZMeter);
+
+    // Create the global GUI area.
+    mGlobalGuiArea =
+        new gui::WorldSpaceGuiArea(settings->mGui->mWidthPixel, settings->mGui->mHeightPixel);
+    mGlobalGuiArea->setUseLinearDepthBuffer(true);
   }
 
-  VistaViewport* pViewport(GetVistaSystem()->GetDisplayManager()->GetViewports().begin()->second);
-
+  // Create the local GUI area.
   mLocalGuiArea = new gui::ScreenSpaceGuiArea(pViewport);
 
-  mViewportUpdater = new VistaViewportResizeToProjectionAdapter(pViewport);
-  mViewportUpdater->SetUpdateMode(VistaViewportResizeToProjectionAdapter::MAINTAIN_HORIZONTAL_FOV);
+  // Make sure that the GUI is drawn at the correct position in the draw order.
+  mLocalGuiOpenGLnode = pSG->NewOpenGLNode(mLocalGuiTransform, mLocalGuiArea);
+  VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
+      mLocalGuiOpenGLnode, static_cast<int>(utils::DrawOrder::eGui));
+
+  // Make the local GuiArea receive input events.
+  mInputManager->registerSelectable(mLocalGuiArea);
+
+  if (mGlobalGuiArea) {
+    // Make sure that the GUI is drawn at the correct position in the draw order.
+    mGlobalGuiOpenGLnode = pSG->NewOpenGLNode(mGlobalGuiTransform, mGlobalGuiArea);
+    VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
+        mGlobalGuiTransform, static_cast<int>(utils::DrawOrder::eGui));
+
+    // Make the global GuiArea receive input events.
+    mInputManager->registerSelectable(mGlobalGuiOpenGLnode);
+  }
+
+  // Now create the actual GuiItems and add them to the previously created GuiAreas ----------------
 
   mLoadingScreen = new gui::GuiItem("file://../share/resources/gui/loading_screen.html");
   mCalendar      = new gui::GuiItem("file://../share/resources/gui/calendar.html");
@@ -86,9 +112,8 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
   mLogo          = new gui::GuiItem("file://../share/resources/gui/logo.html");
   mStatistics    = new gui::GuiItem("file://../share/resources/gui/statistics.html");
 
-  mLoadingScreen->setIsInteractive(false);
-
-  // Add global gui items to mGlobalGuiArea if available, else use the mLocalGuiArea.
+  // Except for mStatistics, all GuiItems are attached to the global world-space GuiArea if it is
+  // available. If not, they are added to the local screen-space GuiArea.
   if (mGlobalGuiArea) {
     mGlobalGuiArea->addItem(mLogo);
     mGlobalGuiArea->addItem(mNotifications);
@@ -107,6 +132,11 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
 
   mLocalGuiArea->addItem(mStatistics);
 
+  // Configure attributes of the calendar. Per default, GuiItems are drawn full-screen in their
+  // GuiAreas.
+  mLoadingScreen->setIsInteractive(false);
+
+  // Configure the positioning and attributes of the calendar.
   mCalendar->setSizeX(500);
   mCalendar->setSizeY(400);
   mCalendar->setOffsetX(0);
@@ -116,6 +146,7 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
   mCalendar->setIsInteractive(false);
   mCalendar->setCursorChangeCallback([this](gui::Cursor c) { setCursor(c); });
 
+  // Configure the positioning and attributes of the side-bar.
   mSideBar->setSizeX(500);
   mSideBar->setRelSizeY(1.f);
   mSideBar->setRelPositionY(1.f);
@@ -124,6 +155,7 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
   mSideBar->setRelOffsetY(-0.5f);
   mSideBar->setCursorChangeCallback([this](gui::Cursor c) { setCursor(c); });
 
+  // Configure the positioning and attributes of the header-bar.
   mHeaderBar->setRelSizeX(1.f);
   mHeaderBar->setSizeY(80);
   mHeaderBar->setRelPositionX(0.5);
@@ -131,6 +163,7 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
   mHeaderBar->setOffsetY(40);
   mHeaderBar->setCursorChangeCallback([this](gui::Cursor c) { setCursor(c); });
 
+  // Configure the positioning and attributes of the notifications.
   mNotifications->setSizeX(420);
   mNotifications->setSizeY(320);
   mNotifications->setRelPositionY(0.f);
@@ -139,6 +172,7 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
   mNotifications->setOffsetY(200);
   mNotifications->setIsInteractive(false);
 
+  // Configure the positioning and attributes of the logo.
   mLogo->setSizeX(120);
   mLogo->setSizeY(100);
   mLogo->setRelPositionY(1.f);
@@ -147,6 +181,7 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
   mLogo->setOffsetY(-50);
   mLogo->setIsInteractive(false);
 
+  // Configure the positioning and attributes of the statistics.
   mStatistics->setSizeX(1200);
   mStatistics->setSizeY(300);
   mStatistics->setOffsetX(-600);
@@ -155,19 +190,8 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
   mStatistics->setRelPositionX(1.f);
   mStatistics->setIsInteractive(false);
 
-  mLocalGuiOpenGLnode = pSG->NewOpenGLNode(mLocalGuiTransform, mLocalGuiArea);
-  VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
-      mLocalGuiOpenGLnode, static_cast<int>(utils::DrawOrder::eGui));
-
-  if (mGlobalGuiArea) {
-    mGlobalGuiOpenGLnode = pSG->NewOpenGLNode(mGlobalGuiTransform, mGlobalGuiArea);
-    mInputManager->registerSelectable(mGlobalGuiOpenGLnode);
-    VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
-        mGlobalGuiTransform, static_cast<int>(utils::DrawOrder::eGui));
-  }
-
-  mInputManager->registerSelectable(mLocalGuiArea);
-
+  // Now we will call some JavaScript methods - so we have to wait until the GuiItems have been
+  // fully loaded.
   mSideBar->waitForFinishedLoading();
   mHeaderBar->waitForFinishedLoading();
   mNotifications->waitForFinishedLoading();
@@ -186,9 +210,11 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
   }
 
   mLoadingScreen->callJavascript("set_version", version);
+
+  // Start the initial fade-in of the loading screen.
   mLoadingScreen->callJavascript("set_loading", true);
 
-  // Register callbacks for notifications area.
+  // Register some default callbacks for the different GuiItems. -----------------------------------
 
   mHeaderBar->registerCallback<std::string, std::string, std::string>("print_notification",
       ([this](std::string const& title, std::string const& content, std::string const& icon) {
@@ -213,8 +239,6 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
         showNotification(title, content, icon);
       }));
 
-  // Register callbacks for sidebar area.
-
   mSideBar->registerCallback<bool>("set_enable_timer_queries",
       ([this](bool value) { mFrameTimings->pEnableMeasurements = value; }));
 
@@ -227,6 +251,7 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
         ->SetVSyncEnabled(value);
   }));
 
+  // Shoaw the statistics GuiItem when measurements are enabled.
   mFrameTimings->pEnableMeasurements.onChange().connect(
       [this](bool enable) { mStatistics->setIsEnabled(enable); });
 }
@@ -247,6 +272,7 @@ GuiManager::~GuiManager() {
     mInputManager->unregisterSelectable(mGlobalGuiOpenGLnode);
   }
 
+  // Free resources acquired by the Chromium Embedded Framework.
   gui::cleanUp();
 }
 
@@ -341,51 +367,58 @@ void GuiManager::setLoadingScreenStatus(std::string const& sStatus) const {
 
 void GuiManager::hideLoadingScreen() {
   if (mLoadingScreen) {
+
+    // Remove and delete the loading screen.
     if (mGlobalGuiArea) {
       mGlobalGuiArea->removeItem(mLoadingScreen);
     } else {
       mLocalGuiArea->removeItem(mLoadingScreen);
     }
 
+    delete mLoadingScreen;
+    mLoadingScreen = nullptr;
+
     // All plugins finished loading -> init their custom components.
     mSideBar->callJavascript("init");
 
+    // Make sure that the loading screen is not the hovered gui node.
     mInputManager->pHoveredGuiNode = nullptr;
-
-    delete mLoadingScreen;
-    mLoadingScreen = nullptr;
   }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void setEnableStatistics(bool enable) {
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 void GuiManager::showGui() {
-  mGlobalGuiTransform->SetIsEnabled(true);
+  if (mGlobalGuiTransform) {
+    mGlobalGuiTransform->SetIsEnabled(true);
+  }
   mLocalGuiTransform->SetIsEnabled(true);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void GuiManager::hideGui() {
-  mGlobalGuiTransform->SetIsEnabled(false);
+  if (mGlobalGuiTransform) {
+    mGlobalGuiTransform->SetIsEnabled(false);
+  }
   mLocalGuiTransform->SetIsEnabled(false);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void GuiManager::toggleGui() {
-  mGlobalGuiTransform->SetIsEnabled(!mGlobalGuiTransform->GetIsEnabled());
+  if (mGlobalGuiTransform) {
+    mGlobalGuiTransform->SetIsEnabled(!mGlobalGuiTransform->GetIsEnabled());
+  }
   mLocalGuiTransform->SetIsEnabled(!mLocalGuiTransform->GetIsEnabled());
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void GuiManager::update() {
+
+  // Update all registered tools. If the pShouldDelete property is set, the Tool is removed from the
+  // list.
   for (auto it = mTools.begin(); it != mTools.end();) {
     if ((*it)->pShouldDelete.get()) {
       it = mTools.erase(it);
@@ -395,6 +428,7 @@ void GuiManager::update() {
     }
   }
 
+  // If frame timings are enabled, collect the data and send it to the statistics GuiItem.
   if (mFrameTimings->pEnableMeasurements.get()) {
     std::string json("{");
     for (auto const& timings : mFrameTimings->getCalculatedQueryResults()) {
@@ -414,17 +448,18 @@ void GuiManager::update() {
     mStatistics->callJavascript("set_data", json, GetVistaSystem()->GetFrameLoop()->GetFrameRate());
   }
 
-  // Set fps.
-  float fFrameRate(GetVistaSystem()->GetFrameLoop()->GetFrameRate());
-  mHeaderBar->callJavascript("set_fps", fFrameRate);
-
-  // Update entire gui.
+  // Update all entities of the Chromium Embedded Framework.
   gui::update();
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void GuiManager::addPluginTabToSideBar(
     std::string const& name, std::string const& icon, std::string const& content) {
   mSideBar->callJavascript("addPluginTab", name, icon, content);
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void GuiManager::addPluginTabToSideBarFromHTML(
     std::string const& name, std::string const& icon, std::string const& htmlFile) {
@@ -432,10 +467,14 @@ void GuiManager::addPluginTabToSideBarFromHTML(
   addPluginTabToSideBar(name, icon, content);
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void GuiManager::addSettingsSectionToSideBar(
     std::string const& name, std::string const& icon, std::string const& content) {
   mSideBar->callJavascript("addSettingsSection", name, icon, content);
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void GuiManager::addSettingsSectionToSideBarFromHTML(
     std::string const& name, std::string const& icon, std::string const& htmlFile) {
@@ -443,9 +482,13 @@ void GuiManager::addSettingsSectionToSideBarFromHTML(
   addSettingsSectionToSideBar(name, icon, content);
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void GuiManager::addScriptToSideBar(std::string const& src) {
   mSideBar->executeJavascript(src);
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void GuiManager::addScriptToSideBarFromJS(std::string const& jsFile) {
   std::string content = utils::filesystem::loadToString(jsFile);
