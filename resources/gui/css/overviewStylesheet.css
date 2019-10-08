@@ -62,14 +62,14 @@
   width: 12px !important;
 }
 
-#overview .vis-item.vis-box:hover {
+#overview .vis-item.vis-box.mouseOver {
   width: 18px !important;
   height: 18px !important;
   margin-left: -1px;
   top: 10px !important;
 }
 
-#overview .vis-item.vis-range:hover {
+#overview .vis-item.vis-range.mouseOver {
   height: 18px !important;
   margin-left: -1px;
   top: 10px !important;

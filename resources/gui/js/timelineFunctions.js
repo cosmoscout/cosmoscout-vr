@@ -283,6 +283,7 @@ async function startRedrawTooltip(event) {
 
 var hoveredItem;
 var tooltipVisible = false;
+var hoveredHTMLEvent;
 //Shows a tooltip if an item is hovered
 function itemoverCallback(properties, overview) {
     document.getElementById("customTooltip").style.display = "block";
@@ -304,6 +305,8 @@ function itemoverCallback(properties, overview) {
             event = events[i];
         }
     }
+    hoveredHTMLEvent = event;
+    hoveredHTMLEvent.classList.add('mouseOver');
     var eventRect = event.getBoundingClientRect();
     var left = eventRect.left-150 < 0 ? 0 : eventRect.left-150;
     document.getElementById("customTooltip").style.top = eventRect.bottom + 'px';
@@ -323,6 +326,7 @@ function itemoutCallback(properties) {
     if(properties.event.toElement.className != "custom-tooltip-container") {
         document.getElementById("customTooltip").style.display = "none";
         tooltipVisible = false;
+        hoveredHTMLEvent.classList.remove('mouseOver');
     }
 }
 
@@ -335,6 +339,7 @@ function travelToItemLocation() {
 function leaveCustomTooltip(event) {
     document.getElementById("customTooltip").style.display = "none";
     tooltipVisible = false;
+    hoveredHTMLEvent.classList.remove('mouseOver');
     if(event.toElement == null) {
         mouseLeaveTimenavigation(event);
     }
