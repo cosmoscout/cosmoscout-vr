@@ -7,8 +7,9 @@
 #ifndef CS_VERSION_HPP
 #define CS_VERSION_HPP
 
-#define GIT_BRANCH std::string("@GIT_BRANCH@")
-#define GIT_COMMIT_HASH std::string("@GIT_COMMIT_HASH@")
-#define GIT_RECENT_TAG std::string("@GIT_RECENT_TAG@")
+// The following placeholders are automatically replaced by CMake during the build process.
+#define CS_GIT_BRANCH std::string("@GIT_BRANCH@")
+#define CS_GIT_COMMIT_HASH std::string("@GIT_COMMIT_HASH@")
+#define CS_PROJECT_VERSION std::string("@PROJECT_VERSION@")
 
 #endif // CS_VERSION_HPP

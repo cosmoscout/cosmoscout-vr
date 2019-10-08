@@ -175,20 +175,11 @@ execute_process(
   OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 
-# get the most recent tag
-execute_process(
-  COMMAND git describe --abbrev=0 --tags
-  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-  OUTPUT_VARIABLE GIT_RECENT_TAG
-  OUTPUT_STRIP_TRAILING_WHITESPACE
-)
-
 # fallback to project version if it failed
 if (GIT_BRANCH STREQUAL "")
-  set(GIT_RECENT_TAG "v${PROJECT_VERSION}")
-  message(STATUS "  Failed - falling back to project version: ${GIT_RECENT_TAG}")
+  message(STATUS "  Failed - falling back to project version: v${PROJECT_VERSION}")
 else()
-  message(STATUS "  Success: ${GIT_RECENT_TAG} (${GIT_BRANCH} @${GIT_COMMIT_HASH})")
+  message(STATUS "  Success: v${PROJECT_VERSION} (${GIT_BRANCH} @${GIT_COMMIT_HASH})")
 endif()
 
 configure_file(

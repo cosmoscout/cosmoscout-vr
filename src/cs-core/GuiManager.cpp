@@ -173,12 +173,14 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
   mNotifications->waitForFinishedLoading();
   mLoadingScreen->waitForFinishedLoading();
 
-  std::string version(GIT_RECENT_TAG);
+  // Create a string which contains the current version number of CosmoScout VR. This string is then
+  // shown on the loading screen.
+  std::string version("v" + CS_PROJECT_VERSION);
 
-  if (GIT_BRANCH != "") {
-    version += " (" + GIT_BRANCH;
-    if (GIT_COMMIT_HASH != "") {
-      version += " @" + GIT_COMMIT_HASH;
+  if (CS_GIT_BRANCH != "") {
+    version += " (" + CS_GIT_BRANCH;
+    if (CS_GIT_COMMIT_HASH != "") {
+      version += " @" + CS_GIT_COMMIT_HASH;
     }
     version += ")";
   }
