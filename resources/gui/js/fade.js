@@ -1,28 +1,14 @@
-var locked = false;
+var overviewVisible = true;
 
 // Toggles if the timeline is locked or is able to fade in/out
 function toggleLock() {
-    document.getElementById('divContainer').classList.toggle('locked');
-    document.getElementById('btnLock').classList.toggle('locked');
-    locked = !locked;
-    if(locked) {
-         document.getElementById("btnLock").innerHTML = '<i class="material-icons">lock</i>';
+    overviewVisible = !overviewVisible;
+    document.getElementById('divContainer').classList.toggle('visible');
+    if(overviewVisible) {
+        document.getElementById("btnExpand").innerHTML = '<i class="material-icons">expand_less</i>';
     }
     else {
-        document.getElementById("btnLock").innerHTML = '<i class="material-icons">lock_open</i>';
-    }
-}
-
-
-function mouseEnterTimeline (){
-    if(!locked) {
-        document.getElementById('divContainer').classList.add('visible');
-    }
-}
-
-function mouseLeaveTimenavigation (event) {
-    if(!locked && (event.toElement==null || event.toElement.className != "custom-tooltip-container")) {
-        document.getElementById('divContainer').classList.remove('visible');
+        document.getElementById("btnExpand").innerHTML = '<i class="material-icons">expand_more</i>';
     }
 }
 
@@ -46,10 +32,7 @@ function leaveTimeButtons() {
     document.getElementById("decreaseControl").classList.remove('mouseNear');
 }
 
-document.getElementById("btnLock").onclick = toggleLock;
-
-document.getElementById("visualization").onmouseenter = mouseEnterTimeline;
-document.getElementById("divContainer").onmouseleave = mouseLeaveTimenavigation;
+document.getElementById("btnExpand").onclick = toggleLock;
 
 document.getElementById("timeControl").onmouseenter = mouseEnterTimeControl;
 document.getElementById("timeControl").onmouseleave = mouseLeaveTimeControl;

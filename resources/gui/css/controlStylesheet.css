@@ -161,7 +161,7 @@ i {
     top: 69px;
 }
 
-#lockControl{
+#expandControl{
     right: 20px;
     background-color: #ddf;
     border-radius: 0 0 3px 3px;
@@ -170,12 +170,12 @@ i {
     width: 32px;
 }
 
-#lockControl .btn{
+#expandControl .btn{
     height: 28px;
     width: 28px;
 }
 
-#lockControl i {
+#expandControl i {
     color: rgb(20, 20, 20);
     top: -9px;
     margin-left: -2px;
