@@ -39,7 +39,7 @@ class CS_SCENE_EXPORT CelestialObject : public CelestialAnchor {
   /// @param tEndExistence    The point in Barycentric Dynamical Time in which the object ceased
   ///                         existing.
   CelestialObject(std::string const& sCenterName, std::string const& sFrameName,
-      double tStartExistence = std::numeric_limits<double>::min(),
+      double tStartExistence = std::numeric_limits<double>::lowest(),
       double tEndExistence   = std::numeric_limits<double>::max());
   ~CelestialObject() = default;
 
