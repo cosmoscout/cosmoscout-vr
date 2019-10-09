@@ -402,8 +402,10 @@ function applyEvent() {
         timeline.setOptions(editingDoneOpt);
         overviewTimeLine.setOptions(editingDoneOpt);
         if(parHolder.overview) {
+            parHolder.item.className = 'event ' + parHolder.item.id;
             items.update(parHolder.item);
         } else {
+            parHolder.item.className = 'overviewEvent ' + parHolder.item.id;
             itemsOverview.update(parHolder.item);
         }
         saveItems();
