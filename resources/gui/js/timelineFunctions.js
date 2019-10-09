@@ -342,9 +342,6 @@ function leaveCustomTooltip(event) {
     document.getElementById("customTooltip").style.display = "none";
     tooltipVisible = false;
     hoveredHTMLEvent.classList.remove('mouseOver');
-    if(event.toElement == null) {
-        mouseLeaveTimenavigation(event);
-    }
 }
 
 function saveItems() {
