@@ -766,7 +766,8 @@ function togglePaus() {
     }
 }
 
-// Decreases the speed of the simulation
+// Rewinds the simulation and increases the spedd if the simulation is already 
+// running backward
 function decreaseSpeed() {
     if(range.noUiSlider.get() > paus) {
         range.noUiSlider.set(secBack);
@@ -777,7 +778,7 @@ function decreaseSpeed() {
     }
 }
 
-// Increases the sepped of the simulation
+// Increases the speed of the simulation
 function increaseSpeed() {
     if(range.noUiSlider.get() < paus) {
         range.noUiSlider.set(secForw);
@@ -909,6 +910,7 @@ function scrollOnMinute(event) {
     }
 }
 
+// Resets the simulation
 function resetTime() {
     overviewTimeLine.setWindow(minDate, maxDate);
     range.noUiSlider.set(secForw);
