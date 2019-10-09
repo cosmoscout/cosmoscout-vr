@@ -211,8 +211,8 @@
             }
         }
 
-        // entry point ---------------------------------------------------------
-        $(document).ready(function () {
+        function init() {
+            $("#header").addClass("visible");
             $('[data-toggle="tooltip"]').tooltip({ delay: 500, placement: "top", html: false });
 
             $('#query').on('keypress', function (event) {
@@ -231,9 +231,7 @@
                     window.call_native("print_notification", "Travelling", "to " + location.name, "send");
                 });
             }
-
-
-        });
+        }
     </script>
 
 </head>

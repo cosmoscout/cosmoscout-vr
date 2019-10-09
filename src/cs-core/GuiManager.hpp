@@ -81,16 +81,6 @@ class CS_CORE_EXPORT GuiManager {
   void showNotification(std::string const& sTitle, std::string const& sText,
       std::string const& sIcon, std::string const& sFlyToOnClick = "") const;
 
-  /// Sets the status text on the loading screen. This is only useful during application start-up,
-  /// as the loading screen will be hidden thereafter.
-  void setLoadingScreenStatus(std::string const& sStatus) const;
-
-  /// Sets the progress bar state.
-  void setLoadingScreenProgress(float percent, bool animate) const;
-
-  /// Hides the loading screen.
-  void hideLoadingScreen();
-
   /// Adds a new tab to the side bar.
   ///
   /// @param name     The nam/title of the tab.
@@ -147,6 +137,16 @@ class CS_CORE_EXPORT GuiManager {
 
   /// Returns the logo GuiItem. The logo is at the bottom right of the screen.
   gui::GuiItem* getLogo() const;
+
+  /// Shows or hides the loading screen.
+  void enableLoadingScreen(bool enable);
+
+  /// Sets the status text on the loading screen. This is only useful during application start-up,
+  /// as the loading screen will be hidden thereafter.
+  void setLoadingScreenStatus(std::string const& sStatus) const;
+
+  /// Sets the progress bar state.
+  void setLoadingScreenProgress(float percent, bool animate) const;
 
   /// If you instantiate a cs::tools::Tool, you should register it here. The GuiManager will then
   /// call the update() of the tool each frame. The tool will be released automatically when its

@@ -120,20 +120,18 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
     mGlobalGuiArea->addItem(mSideBar);
     mGlobalGuiArea->addItem(mHeaderBar);
     mGlobalGuiArea->addItem(mCalendar);
-    mGlobalGuiArea->addItem(mLoadingScreen);
   } else {
     mLocalGuiArea->addItem(mLogo);
     mLocalGuiArea->addItem(mNotifications);
     mLocalGuiArea->addItem(mSideBar);
     mLocalGuiArea->addItem(mHeaderBar);
     mLocalGuiArea->addItem(mCalendar);
-    mLocalGuiArea->addItem(mLoadingScreen);
   }
 
   mLocalGuiArea->addItem(mStatistics);
 
-  // Configure attributes of the calendar. Per default, GuiItems are drawn full-screen in their
-  // GuiAreas.
+  // Configure attributes of the loading screen. Per default, GuiItems are drawn full-screen in
+  // their GuiAreas.
   mLoadingScreen->setIsInteractive(false);
 
   // Configure the positioning and attributes of the calendar.
@@ -212,8 +210,13 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
 
   mLoadingScreen->callJavascript("set_version", version);
 
-  // Start the initial fade-in of the loading screen.
-  mLoadingScreen->callJavascript("set_loading", true);
+  mLoadingScreen->registerCallback("finished_fadeout", [this]() {
+    if (mGlobalGuiArea) {
+      mGlobalGuiArea->removeItem(mLoadingScreen);
+    } else {
+      mLocalGuiArea->removeItem(mLoadingScreen);
+    }
+  });
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -313,8 +316,16 @@ gui::GuiItem* GuiManager::getLogo() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GuiManager::registerTool(std::shared_ptr<tools::Tool> const& tool) {
-  mTools.push_back(tool);
+void GuiManager::enableLoadingScreen(bool enable) {
+  mLoadingScreen->callJavascript("set_loading", enable);
+
+  if (enable) {
+    if (mGlobalGuiArea) {
+      mGlobalGuiArea->addItem(mLoadingScreen);
+    } else {
+      mLocalGuiArea->addItem(mLoadingScreen);
+    }
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -331,25 +342,8 @@ void GuiManager::setLoadingScreenProgress(float percent, bool animate) const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GuiManager::hideLoadingScreen() {
-  if (mLoadingScreen) {
-
-    // Remove and delete the loading screen.
-    if (mGlobalGuiArea) {
-      mGlobalGuiArea->removeItem(mLoadingScreen);
-    } else {
-      mLocalGuiArea->removeItem(mLoadingScreen);
-    }
-
-    delete mLoadingScreen;
-    mLoadingScreen = nullptr;
-
-    // All plugins finished loading -> init their custom components.
-    mSideBar->callJavascript("init");
-
-    // Make sure that the loading screen is not the hovered gui node.
-    mInputManager->pHoveredGuiNode = nullptr;
-  }
+void GuiManager::registerTool(std::shared_ptr<tools::Tool> const& tool) {
+  mTools.push_back(tool);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

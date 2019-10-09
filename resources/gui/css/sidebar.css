@@ -5,6 +5,12 @@
     overflow-x: hidden;
     overflow-y: scroll;
     padding-top: 80px;
+    opacity: 0;
+    transition: opacity 0.2s linear;
+}
+
+.side-bar.visible {
+    opacity: 1;
 }
 
 .side-bar::-webkit-scrollbar { 

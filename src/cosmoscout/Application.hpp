@@ -167,6 +167,7 @@ class Application : public VistaFrameLoop {
   bool mDownloadedData            = false;
   bool mLoadedAllPlugins          = false;
   int  mStartPluginLoadingAtFrame = 0;
+  int  mHideLoadingScreenAtFrame  = 0;
 };
 
 #endif // CS_APPLICATION_HPP

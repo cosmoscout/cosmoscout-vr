@@ -161,6 +161,8 @@ bool Application::Init(VistaSystem* pVistaSystem) {
     mGuiManager->setCursor(cs::gui::Cursor::ePointer);
   }
 
+  mGuiManager->enableLoadingScreen(true);
+
   // open plugin libraries --------------------------------------------------------------------
 
   for (auto const& plugin : mSettings->mPlugins) {
@@ -264,7 +266,7 @@ void Application::FrameUpdate() {
       auto plugin = mPlugins.begin();
       std::advance(plugin, nextPluginToLoad);
       mGuiManager->setLoadingScreenStatus("Loading " + plugin->first + " ...");
-      mGuiManager->setLoadingScreenProgress(100.f * (nextPluginToLoad + 1) / mPlugins.size(), true);
+      mGuiManager->setLoadingScreenProgress(100.f * nextPluginToLoad / mPlugins.size(), true);
     }
 
     if ((std::max(0, GetFrameCount() - mStartPluginLoadingAtFrame) % loadingDelayFrames) == 0) {
@@ -305,7 +307,7 @@ void Application::FrameUpdate() {
         // multiply longitude and latitude of start location by 0.5 to create
         // more interesting start animation
         auto cart = cs::utils::convert::toCartesian(
-            lonLat * 0.5, radii[0], radii[0], observerSettings.mDistance * 10);
+            lonLat * 0.5, radii[0], radii[0], observerSettings.mDistance * 5);
 
         glm::dvec3 y = glm::dvec3(0, -1, 0);
         glm::dvec3 z = cart;
@@ -325,13 +327,25 @@ void Application::FrameUpdate() {
         mSolarSystem->flyObserverTo(observerSettings.mCenter, observerSettings.mFrame, lonLat,
             observerSettings.mDistance, 5.0);
 
-        mGuiManager->hideLoadingScreen();
+        mGuiManager->setLoadingScreenStatus("Done.");
+        mGuiManager->setLoadingScreenProgress(100.f, true);
+
+        // All plugins finished loading -> init their custom components.
+        mGuiManager->getSideBar()->callJavascript("init");
+        mGuiManager->getHeaderBar()->callJavascript("init");
+
+        mHideLoadingScreenAtFrame = GetFrameCount() + loadingDelayFrames;
+
         std::cout << "Loading done." << std::endl;
       }
     }
   }
 
   if (mLoadedAllPlugins) {
+    if (GetFrameCount() == mHideLoadingScreenAtFrame) {
+      mGuiManager->enableLoadingScreen(false);
+    }
+
     // update CosmoScout VR classes
     {
       cs::utils::FrameTimings::ScopedTimer timer(
