@@ -22,6 +22,19 @@ function getFormattedDate(date) {
     return year + '-' + month + '-' + day;
 }
 
+// Format a Date to YYYY-MM-DD HH:MM:SS
+function getFormattedDateWithTime(date) {
+    var retVal = getFormattedDate(date);
+    var hours = date.getHours().toString();
+    var minutes = date.getMinutes().toString();
+    var seconds = date.getSeconds().toString();
+    hours = hours.length > 1 ? hours : '0' + hours;
+    minutes = minutes.length > 1 ? minutes : '0' + minutes;
+    seconds = seconds.length > 1 ? seconds : '0' + seconds;
+    retVal = retVal + " " + hours + ":" + minutes + ":" + seconds;
+    return retVal;
+}
+
 // Format a Date to a readable format for CosmoScoutVR YYYY-MM-DD HH:MM:SS.sss
 function formatDateCosmo (date) {
     var retVal = getFormattedDate(date);

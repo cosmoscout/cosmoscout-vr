@@ -94,5 +94,3 @@ $(document).ready(function () {
 
 document.getElementById("btnCalendar").onclick = enterNewCenterTime;
 document.getElementById("dateLabel").onclick = enterNewCenterTime;
-document.getElementById("eventStartDate").onclick = enterStartDate;
-document.getElementById("eventEndDate").onclick = enterEndDate;

@@ -449,12 +449,12 @@ function onUpdateCallback(item, callback, overview) {
     document.getElementById("headlineForm").innerText = "Update";
     document.getElementById("myForm").style.display = "block";
     document.getElementById("eventName").value = item.content;
-    document.getElementById("eventStartDate").value = getFormattedDate(item.start);
+    document.getElementById("eventStartDate").value = getFormattedDateWithTime(item.start);
     document.getElementById("descriptionInput").value = item.description; 
     document.getElementById("planetInput").value = item.planet; 
     document.getElementById("placeInput").value = item.place; 
     if(item.end) {
-        document.getElementById("eventEndDate").value = getFormattedDate(item.end);
+        document.getElementById("eventEndDate").value = getFormattedDateWithTime(item.end);
     } else {
         document.getElementById("eventEndDate").value = "";
     }
@@ -475,7 +475,7 @@ function onAddCallback(item, callback, overview) {
     document.getElementById("headlineForm").innerText = "Add";
     document.getElementById("eventName").value = "";
     document.getElementById("myForm").style.display = "block";
-    document.getElementById("eventStartDate").value = getFormattedDate(item.start);
+    document.getElementById("eventStartDate").value = getFormattedDateWithTime(item.start);
     document.getElementById("eventEndDate").value = "";
     document.getElementById("descriptionInput").value = ""; 
     document.getElementById("planetInput").value = activePlanetCenter; 
