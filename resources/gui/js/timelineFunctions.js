@@ -84,6 +84,7 @@ var options = {
     },
     onAdd: onAddCallback,
     onUpdate: onUpdateCallback,
+    onMove: onItemMoveCallback,
     format: {
         minorLabels: {
             millisecond:'SSS[ms]',
@@ -137,7 +138,8 @@ var overviewOptions = {
         overrideItems: false  // allow these options to override item.editable
     },
     onAdd: oveviewOnAddCallback,
-    onUpdate: oveviewOnUpdateCallback
+    onUpdate: oveviewOnUpdateCallback,
+    onMove: onItemMoveOverviewCallback
 }
 
 var whileEditingOpt = {
@@ -352,6 +354,15 @@ function saveItems() {
           end: 'ISODate'
         }
     });
+}
+
+//snapp back items iv they were dragged with the mouse
+function onItemMoveCallback(item, callback) {
+    callback(null);
+}
+
+function onItemMoveOverviewCallback(item, callback) {
+    callback(null);
 }
 
 // Close the event form
