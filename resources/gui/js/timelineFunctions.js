@@ -363,16 +363,28 @@ function closeForm() {
 }
 
 //Creates/Updates a evnt with the user inputs
+var wrongInpuStyle = "2px solid red";
 function applyEvent() {  
     if (document.getElementById("eventName").value != ""
     && document.getElementById("eventStartDate").value != ""
     && document.getElementById("descriptionInput").value != "") {
+        document.getElementById("eventName").style.border = "";
+        document.getElementById("eventStartDate").style.border = "";
+        document.getElementById("descriptionInput").style.border = "";
         parHolder.item.style = "border-color: " + document.getElementById("eventColor").value;
         parHolder.item.content = document.getElementById("eventName").value;
         parHolder.item.start = new Date(document.getElementById("eventStartDate").value);
         parHolder.item.description = document.getElementById("descriptionInput").value;
         if(document.getElementById("eventEndDate").value != "") {
-            parHolder.item.end = new Date(document.getElementById("eventEndDate").value); 
+            parHolder.item.end = new Date(document.getElementById("eventEndDate").value);
+            var diff =  parHolder.item.start - parHolder.item.end;
+            if(diff >= 0) {
+                parHolder.item.end = null;
+                document.getElementById("eventEndDate").style.border = wrongInpuStyle;
+                return;
+            } else {
+                document.getElementById("eventEndDate").style.border = "";
+            }
         }
         parHolder.item.planet = document.getElementById("planetInput").value; 
         parHolder.item.place = document.getElementById("placeInput").value; 
@@ -395,11 +407,30 @@ function applyEvent() {
             itemsOverview.update(parHolder.item);
         }
         saveItems();
+    }else {
+        if(document.getElementById("eventName").value == "") {
+            document.getElementById("eventName").style.border = wrongInpuStyle;
+        } else {
+            document.getElementById("eventName").style.border ="";
+        }
+        if(document.getElementById("eventStartDate").value == "") {
+            document.getElementById("eventStartDate").style.border = wrongInpuStyle;
+        }else {
+            document.getElementById("eventStartDate").style.border ="";
+        }
+        if(document.getElementById("descriptionInput").value == "") {
+            document.getElementById("descriptionInput").style.border = wrongInpuStyle;
+        }else {
+            document.getElementById("descriptionInput").style.border ="";
+        }
     }
 }
 
 //Called when an item is about to be updated
 function onUpdateCallback(item, callback, overview) {
+    document.getElementById("eventName").style.border = "";
+    document.getElementById("eventStartDate").style.border = "";
+    document.getElementById("descriptionInput").style.border = "";
     timeline.setOptions(whileEditingOpt);
     overviewTimeLine.setOptions(whileEditingOpt);
     document.getElementById("headlineForm").innerText = "Update";
@@ -423,6 +454,9 @@ function onUpdateCallback(item, callback, overview) {
 
 // Called when an item is about to be added
 function onAddCallback(item, callback, overview) {
+    document.getElementById("eventName").style.border = "";
+    document.getElementById("eventStartDate").style.border = "";
+    document.getElementById("descriptionInput").style.border = "";
     timeline.setOptions(whileEditingOpt);
     overviewTimeLine.setOptions(whileEditingOpt);
     document.getElementById("headlineForm").innerText = "Add";
