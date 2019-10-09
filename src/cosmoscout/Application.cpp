@@ -36,6 +36,7 @@
 #include <VistaKernel/GraphicsManager/VistaTransformNode.h>
 #include <VistaKernel/VistaSystem.h>
 #include <VistaKernelOpenSGExt/VistaOpenSGMaterialTools.h>
+#include <VistaOGLExt/VistaShaderRegistry.h>
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -86,6 +87,7 @@ Application::~Application() {
   // Then unload SPICE.
   mSolarSystem->deinit();
 
+  // And cleanup curl.
   cURLpp::terminate();
 }
 
@@ -93,6 +95,10 @@ Application::~Application() {
 
 bool Application::Init(VistaSystem* pVistaSystem) {
 
+  // Make sure that our shaders are found by ViSTA.
+  VistaShaderRegistry::GetInstance().AddSearchDirectory("../share/resources/shaders");
+
+  // First we create all our core classes.
   mInputManager   = std::make_shared<cs::core::InputManager>();
   mFrameTimings   = std::make_shared<cs::utils::FrameTimings>();
   mGraphicsEngine = std::make_shared<cs::core::GraphicsEngine>(mSettings);
@@ -104,12 +110,16 @@ bool Application::Init(VistaSystem* pVistaSystem) {
   mDragNavigation =
       std::make_shared<cs::core::DragNavigation>(mSolarSystem, mInputManager, mTimeControl);
 
-  connectSlots();
-  registerGuiCallbacks();
-
+  // The ObserverNavigationNode is used by several DFN networks to move the celestial observer.
   VdfnNodeFactory* pNodeFactory = VdfnNodeFactory::GetSingleton();
   pNodeFactory->SetNodeCreator(
       "ObserverNavigationNode", new ObserverNavigationNodeCreate(mSolarSystem, mInputManager));
+
+  // This connects several parts of CosmoScout VR to each other.
+  connectSlots();
+
+  // Setup user interface callbacks.
+  registerGuiCallbacks();
 
   // add some hot-keys -----------------------------------------------------------------------------
 
@@ -185,6 +195,7 @@ bool Application::Init(VistaSystem* pVistaSystem) {
 
         std::cout << "Opening Plugin " << plugin.first << " ..." << std::endl;
 
+        // Actually call the plugin's constructor and add the returned pointer to out list.
         mPlugins.insert(
             std::pair<std::string, Plugin>(plugin.first, {pluginHandle, pluginConstructor()}));
 
@@ -203,16 +214,20 @@ bool Application::Init(VistaSystem* pVistaSystem) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Application::FrameUpdate() {
-  ++m_iFrameCount;
 
+  // The FrameTimings are used to measure the time individual parts of the frame loop require.
   mFrameTimings->startFullFrameTiming();
 
-  // emit vista events
+  // Increase the frame count once every frame.
+  ++m_iFrameCount;
+
+  // At the beginning of each frame, the slaves (if any) are synchronized with the master.
   {
     cs::utils::FrameTimings::ScopedTimer timer("ClusterMode StartFrame");
     m_pClusterMode->StartFrame();
   }
 
+  // Emit vista events.
   if (m_pClusterMode->GetIsLeader()) {
     cs::utils::FrameTimings::ScopedTimer timer("Emit VistaSystemEvents");
     EmitSystemEvent(VistaSystemEvent::VSE_POSTGRAPHICS);
@@ -224,64 +239,78 @@ void Application::FrameUpdate() {
     EmitSystemEvent(VistaSystemEvent::VSE_PREGRAPHICS);
   }
 
-  const int32_t startLoadingAtFrame = 150;
-
-  if (GetFrameCount() == startLoadingAtFrame) {
-    // download datasets if required
+  // At frame 0 we start to download datasets.
+  if (GetFrameCount() == 0) {
     if (mSettings->mDownloadData.size() > 0) {
+      // Download datasets in parallel. We use 10 threads to download the data.
       mDownloader.reset(new cs::utils::Downloader(10));
       for (auto const& download : mSettings->mDownloadData) {
         mDownloader->download(download.mUrl, download.mFile);
       }
+
+      // Show to the user what's going on.
       mGuiManager->setLoadingScreenStatus("Downloading data ...");
+
     } else {
+      // There are actually no datasets to download, so we can just set mDownloadedData to true.
       mDownloadedData = true;
     }
   }
 
+  // Until everything is downloaded, update the progressbar accordingly.
   if (!mDownloadedData && mDownloader) {
     mGuiManager->setLoadingScreenProgress(mDownloader->getProgress(), false);
   }
 
+  // Once the data download has finished, we can delete our downloader.
   if (!mDownloadedData && mDownloader && mDownloader->hasFinished()) {
     mDownloadedData = true;
     mDownloader.release();
   }
 
+  // If all data is available, we can initialize the SolarSystem. This can only be done after the
+  // data download, as it requires SPICE kernels which might be part of the download.
   if (mDownloadedData && !mSolarSystem->getIsInitialized()) {
     mSolarSystem->init(mSettings->mSpiceKernel);
+
+    // Store the frame at which we should start loading the plugins.
     mStartPluginLoadingAtFrame = GetFrameCount();
   }
 
   // load plugins ----------------------------------------------------------------------------------
-  // Start loading of resources after a short delay to make sure that the loading screen is visible.
-  // Then we will draw some frames between each plugin to be able to update the loading screen's
-  // status message.
+
+  // Once all data has been downloaded and the SolarSystem has been initialized, we can start
+  // loading the plugins.
   if (mDownloadedData && !mLoadedAllPlugins) {
-    const int32_t loadingDelayFrames = 25;
 
-    int32_t nextPluginToLoad = (GetFrameCount() - mStartPluginLoadingAtFrame) / loadingDelayFrames;
+    // Before loading the first plugin and between loading the individual plugins, we will draw some
+    // frames. This allows the loading screen to update the status message and move the progress
+    // bar. For now, we wait a hard-coded number of 25 frames before and between loading of the
+    // plugins.
+    const int32_t cLoadingDelay = 25;
 
-    if (nextPluginToLoad >= 0 && nextPluginToLoad < mPlugins.size()) {
-      auto plugin = mPlugins.begin();
-      std::advance(plugin, nextPluginToLoad);
-      mGuiManager->setLoadingScreenStatus("Loading " + plugin->first + " ...");
-      mGuiManager->setLoadingScreenProgress(100.f * nextPluginToLoad / mPlugins.size(), true);
-    }
+    // Every 25th frame something happens. At frame X we will show the name of the plugin on the
+    // loading screen which will be loaded at frame X+25. At frame X+25 we will load the according
+    // plugin and also update the loading screen to display the name of the plugin which is going to
+    // be loaded at fram X+50. And so on.
+    if (((GetFrameCount() - mStartPluginLoadingAtFrame) % cLoadingDelay) == 0) {
 
-    if ((std::max(0, GetFrameCount() - mStartPluginLoadingAtFrame) % loadingDelayFrames) == 0) {
-      int32_t pluginToLoad = nextPluginToLoad - 1;
+      // Calculate the index of the plugin which should be loaded this frame.
+      int32_t pluginToLoad = (GetFrameCount() - mStartPluginLoadingAtFrame) / cLoadingDelay - 1;
+
       if (pluginToLoad >= 0 && pluginToLoad < mPlugins.size()) {
 
-        // load plugin -----------------------------------------------------------------------------
+        // Get an iterator pointing to the plugin handle.
         auto plugin = mPlugins.begin();
         std::advance(plugin, pluginToLoad);
 
-        auto sceneGraph = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
-
+        // First provide the plugin with all required class instances.
         plugin->second.mPlugin->setAPI(mSettings, mSolarSystem, mGuiManager, mInputManager,
-            sceneGraph, mGraphicsEngine, mFrameTimings, mTimeControl);
+            GetVistaSystem()->GetGraphicsManager()->GetSceneGraph(), mGraphicsEngine, mFrameTimings,
+            mTimeControl);
 
+        // Then do the actual initialization. This may actually take a while and the loading screen
+        // will become unresponsive in the meantime.
         try {
           plugin->second.mPlugin->init();
         } catch (std::exception const& e) {
@@ -291,9 +320,27 @@ void Application::FrameUpdate() {
 
       } else if (pluginToLoad == mPlugins.size()) {
 
+        std::cout << "Loading done." << std::endl;
+
+        // Once all plugins have been loaded, we set a boolean indicating this state.
         mLoadedAllPlugins = true;
 
-        // initial observer animation
+        // Update the loading screen status.
+        mGuiManager->setLoadingScreenStatus("Ready for Takeoff");
+        mGuiManager->setLoadingScreenProgress(100.f, true);
+
+        // All plugins finished loading -> init their custom components.
+        mGuiManager->getSideBar()->callJavascript("init");
+        mGuiManager->getHeaderBar()->callJavascript("init");
+
+        // We will keep the loading screen active for some frames, as the first frames are usually a
+        // bit choppy as data is uploaded to the GPU.
+        mHideLoadingScreenAtFrame = GetFrameCount() + cLoadingDelay;
+
+        // initial observer animation --------------------------------------------------------------
+
+        // At application startup, the celestial observer is transitioned to its position specified
+        // in the setting json file.
         auto const& observerSettings = mSettings->mObserver;
         glm::dvec2  lonLat(observerSettings.mLongitude, observerSettings.mLatitude);
         lonLat = cs::utils::convert::toRadians(lonLat);
@@ -304,8 +351,8 @@ void Application::FrameUpdate() {
           radii = glm::dvec3(1, 1, 1);
         }
 
-        // multiply longitude and latitude of start location by 0.5 to create
-        // more interesting start animation
+        // Multiply longitude and latitude of start location by 0.5 to create more interesting start
+        // animation.
         auto cart = cs::utils::convert::toCartesian(
             lonLat * 0.5, radii[0], radii[0], observerSettings.mDistance * 5);
 
@@ -326,33 +373,37 @@ void Application::FrameUpdate() {
 
         mSolarSystem->flyObserverTo(observerSettings.mCenter, observerSettings.mFrame, lonLat,
             observerSettings.mDistance, 5.0);
+      }
 
-        mGuiManager->setLoadingScreenStatus("Done.");
-        mGuiManager->setLoadingScreenProgress(100.f, true);
-
-        // All plugins finished loading -> init their custom components.
-        mGuiManager->getSideBar()->callJavascript("init");
-        mGuiManager->getHeaderBar()->callJavascript("init");
-
-        mHideLoadingScreenAtFrame = GetFrameCount() + loadingDelayFrames;
-
-        std::cout << "Loading done." << std::endl;
+      // If there is a plugin going to be loaded after the next cLoadingDelay frames, display its
+      // name on the loading screen and update the progress accordingly.
+      if (pluginToLoad + 1 < mPlugins.size()) {
+        auto plugin = mPlugins.begin();
+        std::advance(plugin, pluginToLoad + 1);
+        mGuiManager->setLoadingScreenStatus("Loading " + plugin->first + " ...");
+        mGuiManager->setLoadingScreenProgress(100.f * (pluginToLoad + 1) / mPlugins.size(), true);
       }
     }
   }
 
+  // Main classes are only updated once all plugins have been loaded.
   if (mLoadedAllPlugins) {
+
+    // Hide the loading screen after several frames.
     if (GetFrameCount() == mHideLoadingScreenAtFrame) {
       mGuiManager->enableLoadingScreen(false);
     }
 
-    // update CosmoScout VR classes
+    // update CosmoScout VR classes ----------------------------------------------------------------
+
+    // Update the TimeControl.
     {
       cs::utils::FrameTimings::ScopedTimer timer(
           "TimeControl Update", cs::utils::FrameTimings::QueryMode::eCPU);
       mTimeControl->update();
     }
 
+    // Update the individual plugins.
     for (auto const& plugin : mPlugins) {
       cs::utils::FrameTimings::ScopedTimer timer(
           plugin.first, cs::utils::FrameTimings::QueryMode::eBoth);
@@ -364,6 +415,7 @@ void Application::FrameUpdate() {
       }
     }
 
+    // Update the navigation, SolarSystem and scene scale.
     {
       cs::utils::FrameTimings::ScopedTimer timer(
           "SolarSystem Update", cs::utils::FrameTimings::QueryMode::eCPU);
@@ -372,6 +424,7 @@ void Application::FrameUpdate() {
       updateSceneScale();
     }
 
+    // Synchronize the observer position and simulation time across the network.
     {
       cs::utils::FrameTimings::ScopedTimer timer(
           "Scene Sync", cs::utils::FrameTimings::QueryMode::eCPU);
@@ -411,14 +464,21 @@ void Application::FrameUpdate() {
       mTimeControl->pSimulationTime = syncMessage.mTime;
     }
 
+    // Update the GraphicsEngine.
     {
       auto sunTransform = mSolarSystem->getSun()->getWorldTransform();
       mGraphicsEngine->setSunDirection(glm::normalize(sunTransform[3].xyz()));
     }
+  }
+
+  // Update the user interface.
+  {
+    cs::utils::FrameTimings::ScopedTimer timer(
+        "User Interface", cs::utils::FrameTimings::QueryMode::eCPU);
 
     if (mSolarSystem->pActiveBody.get()) {
-      glm::dmat4 mPTransInv = glm::inverse(mSolarSystem->pActiveBody.get()->getWorldTransform());
 
+      // Update the user's position display in the header bar.
       auto                pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
       VistaTransformNode* pTrans =
           dynamic_cast<VistaTransformNode*>(pSG->GetNode("Platform-User-Node"));
@@ -426,10 +486,10 @@ void Application::FrameUpdate() {
       auto vWorldPos = glm::vec4(1);
       pTrans->GetWorldPosition(vWorldPos.x, vWorldPos.y, vWorldPos.z);
 
-      // transform user position into planet coordinate system
-      auto   radii      = mSolarSystem->pActiveBody.get()->getRadii();
-      auto   vPlanetPos = mPTransInv * vWorldPos;
-      auto   polar      = cs::utils::convert::toLngLatHeight(vPlanetPos.xyz(), radii[0], radii[0]);
+      auto radii = mSolarSystem->pActiveBody.get()->getRadii();
+      auto vPlanetPos =
+          glm::inverse(mSolarSystem->pActiveBody.get()->getWorldTransform()) * vWorldPos;
+      auto   polar = cs::utils::convert::toLngLatHeight(vPlanetPos.xyz(), radii[0], radii[0]);
       double surfaceHeight = mSolarSystem->pActiveBody.get()->getHeight(polar.xy());
       double heightDiff    = polar.z / mGraphicsEngine->pHeightScale.get() - surfaceHeight;
 
@@ -439,7 +499,7 @@ void Application::FrameUpdate() {
             heightDiff);
       }
 
-      // set compass ---------------------------------------------------------
+      // Update the compass in the header bar.
       auto rot = mSolarSystem->getObserver().getRelativeRotation(
           mTimeControl->pSimulationTime.get(), *mSolarSystem->pActiveBody.get());
       glm::dvec4 up(0.0, 1.0, 0.0, 0.0);
@@ -453,15 +513,12 @@ void Application::FrameUpdate() {
 
       mGuiManager->getHeaderBar()->callJavascript("set_north_direction", angle);
     }
-  }
 
-  {
-    cs::utils::FrameTimings::ScopedTimer timer(
-        "User Interface", cs::utils::FrameTimings::QueryMode::eCPU);
     mGuiManager->update();
   }
 
-  // update vista classes
+  // update vista classes --------------------------------------------------------------------------
+
   {
     cs::utils::FrameTimings::ScopedTimer timer("ClusterMode ProcessFrame");
     m_pClusterMode->ProcessFrame();
@@ -487,6 +544,8 @@ void Application::FrameUpdate() {
     m_pClusterMode->SwapSync();
   }
 
+  // Measure frame time until here. If we moved this farther down, we would also measure the
+  // vertical synchronization delay, which would result in wrong timings.
   mFrameTimings->endFullFrameTiming();
 
   {
@@ -499,7 +558,7 @@ void Application::FrameUpdate() {
     m_pFrameRate->RecordTime();
   }
 
-  // record frame timings
+  // Record frame timings.
   mFrameTimings->update();
 }
 

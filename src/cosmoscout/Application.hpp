@@ -61,7 +61,7 @@ class Downloader;
 ///        - PluginBase::setAPI()
 ///        - PluginBase::init()
 ///      - When the last plugin finished loading, the loading screen is removed and the observer is
-///        animated to it's initial position in space.
+///        animated to its initial position in space.
 ///      - If all plugins are loaded:
 ///        - TimeControl::update()
 ///        - PluginBase::update() for each plugin
