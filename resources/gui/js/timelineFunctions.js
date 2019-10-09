@@ -344,15 +344,6 @@ function leaveCustomTooltip(event) {
     hoveredHTMLEvent.classList.remove('mouseOver');
 }
 
-function saveItems() {
-    var data = items.get({
-        type: {
-          start: 'ISODate',
-          end: 'ISODate'
-        }
-    });
-}
-
 //snapp back items iv they were dragged with the mouse
 function onItemMoveCallback(item, callback) {
     callback(null);
@@ -416,7 +407,6 @@ function applyEvent() {
             parHolder.item.className = 'overviewEvent ' + parHolder.item.id;
             itemsOverview.update(parHolder.item);
         }
-        saveItems();
     }else {
         if(document.getElementById("eventName").value == "") {
             document.getElementById("eventName").style.border = wrongInpuStyle;
