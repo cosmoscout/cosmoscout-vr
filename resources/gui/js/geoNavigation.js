@@ -14,7 +14,7 @@ function formatHeight(heightStr, unit) {
     else if(unit == 'm') return height;
     else if(unit == 'km') return height * 1e3;
     else if(unit == 'Tsd') return height * 1e6;
-    else if(unit == 'Au') return height * 1.496e11;
+    else if(unit == 'AU') return height * 1.496e11;
     else if(unit == 'ly') return height * 9.461e15;
     else if(unit == 'pc') return height * 3.086e16;
 
