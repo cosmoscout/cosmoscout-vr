@@ -190,8 +190,7 @@ void SolarSystem::flyObserverTo(std::string const& sCenter, std::string const& s
 
 void SolarSystem::flyObserverTo(
     std::string const& sCenter, std::string const& sFrame, double duration) {
-  double startTime(
-      utils::convert::toSpiceTime(boost::posix_time::microsec_clock::universal_time()));
+
   auto radii = getRadii(sCenter);
 
   if (radii[0] == 0.0) {
@@ -199,8 +198,11 @@ void SolarSystem::flyObserverTo(
   }
 
   scene::CelestialAnchor target(sCenter, sFrame);
-  auto targetDir = glm::normalize(target.getRelativePosition(startTime, mObserver));
-  auto targetRot = glm::normalize(target.getRelativeRotation(startTime, mObserver));
+
+  auto targetDir =
+      glm::normalize(target.getRelativePosition(mTimeControl->pSimulationTime.get(), mObserver));
+  auto targetRot =
+      glm::normalize(target.getRelativeRotation(mTimeControl->pSimulationTime.get(), mObserver));
 
   auto cart = targetDir * radii[0] * 3.0;
 
