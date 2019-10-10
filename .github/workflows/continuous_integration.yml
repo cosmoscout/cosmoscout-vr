@@ -1,6 +1,12 @@
 name: Continuous Integration
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+    - '*'
+  pull_request:
+    branches:
+    - '*'
 
 jobs:
   clang_format:
