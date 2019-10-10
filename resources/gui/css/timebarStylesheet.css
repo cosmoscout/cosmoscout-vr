@@ -25,14 +25,6 @@
     border-radius: 10px;
   }
 
-  #visualization .vis-item.vis-box {
-    border-radius: 10px;
-  }
-
-  #visualization .vis-item.vis-range {
-    border-radius: 10px;
-  }
-
   #visualization .vis-item,
   #visualization .vis-item.vis-line {
     border-width: 2px;
@@ -51,14 +43,29 @@
 
   #visualization .vis-item.vis-box,
   .vis-item.vis-range {
-    height: 13px !important;
-    min-width: 13px !important;
+    height: 12px !important;
+    min-width: 12px !important;
     top: 4px !important
   }
 
   #visualization .vis-item.vis-box {
-    width: 13px !important;
+    width: 12px !important;
   }
+
+  #visualization .vis-item.vis-box.mouseOver {
+    width: 18px !important;
+    height: 18px !important;
+    margin-left: -3px;
+    top: 1px !important;
+  }
+  
+  #visualization .vis-item.vis-range.mouseOver {
+    height: 18px !important;
+    margin-left: -3px;
+    top: 1px !important;
+    min-width: 18px !important;
+  }
+
 
   #visualization .vis-item-content {
     visibility: hidden;
