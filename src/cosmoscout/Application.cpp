@@ -239,8 +239,9 @@ void Application::FrameUpdate() {
     EmitSystemEvent(VistaSystemEvent::VSE_PREGRAPHICS);
   }
 
-  // At frame 0 we start to download datasets.
-  if (GetFrameCount() == 0) {
+  // At frame 25 we start to download datasets. This ensures that the loading screen is actually
+  // already visible.
+  if (GetFrameCount() == 25) {
     if (mSettings->mDownloadData.size() > 0) {
       // Download datasets in parallel. We use 10 threads to download the data.
       mDownloader.reset(new cs::utils::Downloader(10));
