@@ -12,6 +12,7 @@ jobs:
   clang_format:
     name: Check Clang-Format
     runs-on: ubuntu-18.04
+    if: github.event_name == 'pull_request' || github.ref == 'master'  || github.ref == 'develop' || contains(github.event.commits[0].message, '[run-ci]')
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v1
@@ -30,7 +31,7 @@ jobs:
   build_linux_gcc:
     name: Linux Build (gcc 7.4.0)
     runs-on: ubuntu-18.04
-    if: github.event_name == 'pull_request' || github.ref == 'master'  || github.ref == 'develop' || contains(github.event.commits[0].message, '[run-ci]')
+    needs: clang_format
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v1
@@ -50,7 +51,7 @@ jobs:
   build_linux_clang:
     name: Linux Build (clang 6.0)
     runs-on: ubuntu-18.04
-    if: github.event_name == 'pull_request' || github.ref == 'master'  || github.ref == 'develop' || contains(github.event.commits[0].message, '[run-ci]')
+    needs: clang_format
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v1
@@ -76,7 +77,7 @@ jobs:
   build_windows:
     name: Windows Build (msvc 19.16.27032.1)
     runs-on: windows-2016
-    if: github.event_name == 'pull_request' || github.ref == 'master'  || github.ref == 'develop' || contains(github.event.commits[0].message, '[run-ci]')
+    needs: clang_format
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v1
