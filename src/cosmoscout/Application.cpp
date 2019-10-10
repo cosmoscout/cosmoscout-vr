@@ -248,6 +248,7 @@ void Application::registerSideBarCallbacks() {
           if (body->getCenterName() == name) {
             mSolarSystem->pActiveBody = body;
             mSolarSystem->flyObserverTo(body->getCenterName(), body->getFrameName(), 10.0);
+            mGuiManager->showNotification("Travelling", "to " + name, "send");
           }
         }
       }));
