@@ -191,7 +191,7 @@ void DragNavigation::update() {
         }
 
         // Prepare an animated rotation approaching target angle
-        mDoKineticSmoothOut = std::abs(targetAngle - mTargetAngle) > 0.0000001f;
+        mDoKineticSmoothOut = std::abs(targetAngle - mTargetAngle) > 0.001f;
         mCurrentAngleDiff += targetAngle - mTargetAngle;
         mTargetAngle = targetAngle;
       } else {
@@ -207,7 +207,8 @@ void DragNavigation::update() {
 
       // Prepare smoothing out remaining angle diff
       if (mCurrentAngleDiff != 0.f) {
-        mTargetAngle      = mCurrentAngleDiff; // damp fast angle changes on horizon
+        // Reduce inertia a little.
+        mTargetAngle      = mCurrentAngleDiff * 0.5;
         mCurrentAngleDiff = 0.f;
       }
 
@@ -219,7 +220,8 @@ void DragNavigation::update() {
     // Prepare smoothing out remaining angle diff
     if (mCurrentAngleDiff != 0.f) {
       if (mDoKineticSmoothOut) {
-        mTargetAngle = mCurrentAngleDiff;
+        // Reduce inertia a little.
+        mTargetAngle = mCurrentAngleDiff * 0.5f;
       } else {
         mTargetAngle = 0.f;
       }
@@ -229,7 +231,7 @@ void DragNavigation::update() {
     // Smooth out remaining rotation do be done
     mTargetAngle = 0.8f * mTargetAngle;
 
-    if (std::abs(mTargetAngle) < 0.0000001f) {
+    if (std::abs(mTargetAngle) < 0.001f) {
       mTargetAngle      = 0.f;
       mLocalRotation    = false;
       mDoRollCorrection = false;
