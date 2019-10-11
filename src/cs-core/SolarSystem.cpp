@@ -8,11 +8,16 @@
 
 #include "SolarSystem.hpp"
 
+#include "../cs-utils/FrameTimings.hpp"
 #include "../cs-utils/convert.hpp"
+#include "GraphicsEngine.hpp"
+#include "Settings.hpp"
 #include "TimeControl.hpp"
 
 #include <VistaDataFlowNet/VdfnObjectRegistry.h>
 #include <VistaKernel/Cluster/VistaClusterMode.h>
+#include <VistaKernel/DisplayManager/VistaDisplayManager.h>
+#include <VistaKernel/DisplayManager/VistaProjection.h>
 #include <VistaKernel/GraphicsManager/VistaTransformNode.h>
 #include <VistaKernel/VistaSystem.h>
 
@@ -24,8 +29,14 @@ namespace cs::core {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-SolarSystem::SolarSystem(std::shared_ptr<TimeControl> const& pTimeControl)
-    : mTimeControl(pTimeControl)
+SolarSystem::SolarSystem(std::shared_ptr<const Settings> const& settings,
+    std::shared_ptr<utils::FrameTimings> const&                 frameTimings,
+    std::shared_ptr<GraphicsEngine> const&                      graphicsEngine,
+    std::shared_ptr<TimeControl> const&                         timeControl)
+    : mSettings(settings)
+    , mFrameTimings(frameTimings)
+    , mGraphicsEngine(graphicsEngine)
+    , mTimeControl(timeControl)
     , mSun(std::make_shared<scene::CelestialObject>("Sun", "IAU_Sun")) {
 
   pObserverCenter.onChange().connect([this](std::string const& center) {
@@ -142,6 +153,133 @@ void SolarSystem::update() {
   for (auto const& object : mAnchors) {
     object->update(simulationTime, mObserver);
   }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void SolarSystem::updateSceneScale() {
+  double simulationTime = mTimeControl->pSimulationTime.get();
+
+  // user will be locked to active planet, scene will be scaled that closest planet
+  // is mScaleDistance away in world space
+  std::shared_ptr<cs::scene::CelestialBody> pClosestBody;
+  std::shared_ptr<cs::scene::CelestialBody> pActiveBody;
+
+  double dActiveWeight    = 0;
+  double dClosestDistance = std::numeric_limits<double>::max();
+
+  glm::dvec3 vClosestPlanetObserverPosition(0.0);
+
+  for (auto const& object : getBodies()) {
+    if (!object->getIsInExistence()) {
+      continue;
+    }
+
+    auto radii = object->getRadii();
+
+    if (radii.x <= 0.0 || radii.y <= 0.0 || radii.z <= 0.0) {
+      continue;
+    }
+
+    glm::dvec3 vObserverPos;
+
+    try {
+      vObserverPos = object->getRelativePosition(simulationTime, mObserver);
+    } catch (...) { continue; }
+
+    double dDistance = glm::length(vObserverPos) - radii[0];
+    double dWeight   = (radii[0] + mSettings->mSceneScale.mMinObjectSize) /
+                     std::max(radii[0] + mSettings->mSceneScale.mMinObjectSize,
+                         radii[0] + dDistance - mSettings->mSceneScale.mMinObjectSize);
+
+    if (dWeight > dActiveWeight) {
+      pActiveBody   = object;
+      dActiveWeight = dWeight;
+    }
+
+    if (dDistance < dClosestDistance) {
+      pClosestBody                   = object;
+      dClosestDistance               = dDistance;
+      vClosestPlanetObserverPosition = vObserverPos;
+    }
+  }
+
+  // change frame and center if there is a object with weight larger than mLockWeight
+  // and mTrackWeight
+  if (pActiveBody) {
+    if (!mObserver.isAnimationInProgress()) {
+      std::string sCenter = "Solar System Barycenter";
+      std::string sFrame  = "J2000";
+
+      if (dActiveWeight > mSettings->mSceneScale.mLockWeight) {
+        sFrame = pActiveBody->getFrameName();
+      }
+
+      if (dActiveWeight > mSettings->mSceneScale.mTrackWeight) {
+        sCenter = pActiveBody->getCenterName();
+      }
+
+      pActiveBody     = pActiveBody;
+      pObserverCenter = sCenter;
+      pObserverFrame  = sFrame;
+    }
+  }
+
+  // scale scene in such a way that the closest planet
+  // is mScaleDistance away in world space
+  if (pClosestBody) {
+    auto   dSurfaceHeight = 0.0;
+    double dRealDistance  = glm::length(vClosestPlanetObserverPosition);
+
+    auto radii = pClosestBody->getRadii();
+
+    if (radii[0] > 0) {
+      auto lngLatHeight =
+          cs::utils::convert::toLngLatHeight(vClosestPlanetObserverPosition, radii[0], radii[0]);
+      dRealDistance = lngLatHeight.z;
+      dRealDistance -=
+          pClosestBody->getHeight(lngLatHeight.xy()) * mGraphicsEngine->pHeightScale.get();
+    }
+
+    if (std::isnan(dRealDistance)) {
+      return;
+    }
+
+    double interpolate = 1.0;
+
+    if (mSettings->mSceneScale.mFarRealDistance != mSettings->mSceneScale.mCloseRealDistance) {
+      interpolate = glm::clamp(
+          (dRealDistance - mSettings->mSceneScale.mCloseRealDistance) /
+              (mSettings->mSceneScale.mFarRealDistance - mSettings->mSceneScale.mCloseRealDistance),
+          0.0, 1.0);
+    }
+
+    double dScale = dRealDistance / glm::mix(mSettings->mSceneScale.mCloseVisualDistance,
+                                        mSettings->mSceneScale.mFarVisualDistance, interpolate);
+    dScale = glm::clamp(dScale, mSettings->mSceneScale.mMinScale, mSettings->mSceneScale.mMaxScale);
+    mObserver.setAnchorScale(dScale);
+
+    if (dRealDistance < mSettings->mSceneScale.mCloseRealDistance) {
+      double     penetration = mSettings->mSceneScale.mCloseRealDistance - dRealDistance;
+      glm::dvec3 position    = mObserver.getAnchorPosition();
+      mObserver.setAnchorPosition(position + glm::normalize(position) * penetration);
+    }
+
+    // set far clip dynamically
+    auto projections = GetVistaSystem()->GetDisplayManager()->GetProjections();
+    for (auto const& projection : projections) {
+      projection.second->GetProjectionProperties()->SetClippingRange(
+          mSettings->mSceneScale.mNearClip, glm::mix(mSettings->mSceneScale.mMaxFarClip,
+                                                mSettings->mSceneScale.mMinFarClip, interpolate));
+    }
+  }
+
+  // update speed display
+  static auto sLastObserverPosition = mObserver.getAnchorPosition();
+
+  pCurrentObserverSpeed = glm::length(sLastObserverPosition - mObserver.getAnchorPosition()) /
+                          mFrameTimings->pFrameTime.get();
+  sLastObserverPosition = mObserver.getAnchorPosition();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

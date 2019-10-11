@@ -140,19 +140,6 @@ class Application : public VistaFrameLoop {
   ///  - set_date
   void registerGuiCallbacks();
 
-  /// This scales the cs::scene::CelestialObserver of the solar system to move the
-  /// closest body to a small world space distance. This distance depends on his or her *real*
-  /// distance in outer space to the respective body.
-  /// In order for the scientists to be able to interact with their environment, the next virtual
-  /// celestial body must never be more than an arm’s length away. If the Solar System were always
-  /// represented on a 1:1 scale, the virtual planetary surface would be too far away to work
-  /// effectively with the simulation.
-  /// As objects will be quite close to the observer in world space if the user is far away in
-  /// *real* space, this also reduces the far clip distance in order to increase depth accuracy
-  /// for objects close to the observer. This method also manages the SPICE frame changes when the
-  /// observer moves from body to body.
-  void updateSceneScale();
-
   std::shared_ptr<const cs::core::Settings> mSettings;
   std::shared_ptr<cs::core::InputManager>   mInputManager;
   std::shared_ptr<cs::core::GraphicsEngine> mGraphicsEngine;
