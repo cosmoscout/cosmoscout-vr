@@ -19,7 +19,7 @@
 
 namespace cs::utils {
 class FrameTimings;
-}
+} // namespace cs::utils
 
 namespace cs::core {
 

@@ -36,6 +36,8 @@ class ScreenSpaceGuiArea;
 namespace cs::core {
 
 /// The central access point for handling input. An instance of this class is passed to all plugins.
+/// Any object which in some way needs to receive mouse input has to be registered with this class.
+/// If a GUI element is registered, it will also receive key and text input.
 class CS_CORE_EXPORT InputManager : public VistaKeyboardSystemControl::IVistaDirectKeySink,
                                     public VistaEventHandler {
  public:

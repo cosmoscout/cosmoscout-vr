@@ -13,14 +13,21 @@
 
 namespace cs::utils {
 
+/// This class can be used to download a set of files in parallel.
 class CS_UTILS_EXPORT Downloader {
  public:
+  /// This initializes the internal thread pool with the given number of threads.
   Downloader(size_t threadCount);
 
+  /// Queue a file to be downloaded. If a file with the given name already exists, nothing will be
+  /// done. This method will return quickly, as the actual download is done in a separate thread.
+  ///  If the path to the destination file does not exist, it will be created.
   void download(std::string const& url, std::string const& file);
 
+  /// Returns the total download progress in percent. If no file was downloaded, it will return 100.
   double getProgress() const;
 
+  /// Returns true when the internal thread pool has no running or pending tasks.
   bool hasFinished() const;
 
  private:

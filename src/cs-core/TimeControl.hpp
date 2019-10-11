@@ -36,7 +36,7 @@ class CS_CORE_EXPORT TimeControl {
 
   /// Set the simulation time to a specific point in time. The TimeControl class tries to
   /// transition to that point in time smoothly, if it is close to the current simulation time.
-  /// @param The target time in TDB.
+  /// @param time The target time in TDB.
   void setTime(double tTime);
 
   /// Resets the simulation time to the starting time or to the current time depending on the
