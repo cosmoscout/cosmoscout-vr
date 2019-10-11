@@ -248,8 +248,14 @@ void Application::FrameUpdate() {
         mDownloader->download(download.mUrl, download.mFile);
       }
 
-      // Show to the user what's going on.
-      mGuiManager->setLoadingScreenStatus("Downloading data ...");
+      // If all files were already downloaded, this could have gone quite quickly...
+      if (mDownloader->hasFinished()) {
+        mDownloadedData = true;
+        mDownloader.release();
+      } else {
+        // Show to the user what's going on.
+        mGuiManager->setLoadingScreenStatus("Downloading data ...");
+      }
 
     } else {
       // There are actually no datasets to download, so we can just set mDownloadedData to true.
