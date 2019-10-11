@@ -52,6 +52,7 @@ class CS_CORE_EXPORT DragNavigation {
   bool       mDraggingPlanet              = false;
   bool       mLocalRotation               = false;
   bool       mDoRollCorrection            = false;
+  bool       mDoKineticSmoothOut          = false;
   double     mTargetAngle                 = 0.0;
   float      mCurrentAngleDiff            = 0.f;
   glm::dvec3 mCurrentAxis                 = glm::dvec3(1.0, 0.0, 0.0);

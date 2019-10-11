@@ -191,11 +191,13 @@ void DragNavigation::update() {
         }
 
         // Prepare an animated rotation approaching target angle
+        mDoKineticSmoothOut = std::abs(targetAngle - mTargetAngle) > 0.0000001f;
         mCurrentAngleDiff += targetAngle - mTargetAngle;
         mTargetAngle = targetAngle;
       } else {
-        mTargetAngle      = 0;
-        mCurrentAngleDiff = 0;
+        mTargetAngle        = 0;
+        mCurrentAngleDiff   = 0;
+        mDoKineticSmoothOut = false;
       }
     } else {
       // Update camera for smoothing out even though button is pressed but
@@ -205,18 +207,22 @@ void DragNavigation::update() {
 
       // Prepare smoothing out remaining angle diff
       if (mCurrentAngleDiff != 0.f) {
-        // mTargetAngle = mCurrentAngleDiff*0.5f; // damp fast angle changes on horizon
         mTargetAngle      = mCurrentAngleDiff; // damp fast angle changes on horizon
         mCurrentAngleDiff = 0.f;
       }
 
       // Smooth out remaining rotation do be done
-      mTargetAngle = 0.8f * mTargetAngle;
+      mTargetAngle        = 0.8f * mTargetAngle;
+      mDoKineticSmoothOut = true;
     }
   } else {
     // Prepare smoothing out remaining angle diff
     if (mCurrentAngleDiff != 0.f) {
-      mTargetAngle      = mCurrentAngleDiff;
+      if (mDoKineticSmoothOut) {
+        mTargetAngle = mCurrentAngleDiff;
+      } else {
+        mTargetAngle = 0.f;
+      }
       mCurrentAngleDiff = 0.f;
     }
 
