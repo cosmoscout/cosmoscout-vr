@@ -134,14 +134,14 @@ find_package(VistaCoreLibs REQUIRED
   COMPONENTS "VistaBase" "VistaKernel" "VistaKernelOpenSGExt" "VistaOGLExt"
 )
 
-# copy all third-party libraries to install directory
+# Copy all third-party libraries to install directory.
 install(
   DIRECTORY ${COSMOSCOUT_EXTERNALS_DIR}/lib/ ${COSMOSCOUT_EXTERNALS_DIR}/bin/ 
   DESTINATION "lib"
   FILES_MATCHING PATTERN "*.so*" PATTERN "*.dll*"
 )
 
-# copy boost libraries to install directory
+# Copy boost libraries to install directory.
 if (WIN32)
   foreach(BOOST_LIB ${Boost_LIBRARIES})
     if(EXISTS "${BOOST_LIB}")
@@ -159,7 +159,7 @@ endif()
 
 message(STATUS "Trying to get current git branch and commit...")
 
-# get the current git branch name
+# Get the current git branch name.
 execute_process(
   COMMAND git rev-parse --abbrev-ref HEAD
   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
@@ -167,7 +167,7 @@ execute_process(
   OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 
-# get the current commit hash
+# Get the current commit hash.
 execute_process(
   COMMAND git log -1 --format=%h
   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
@@ -175,7 +175,7 @@ execute_process(
   OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 
-# fallback to project version if it failed
+# Fallback to project version if it failed.
 if (GIT_BRANCH STREQUAL "")
   message(STATUS "  Failed - falling back to project version: v${PROJECT_VERSION}")
 else()

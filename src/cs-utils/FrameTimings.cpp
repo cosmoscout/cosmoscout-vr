@@ -116,11 +116,6 @@ void FrameTimings::endFullFrameTiming() {
   if (!queryResults.empty() && !queryResults.begin()->second.empty()) {
     pFrameTime = std::max(queryResults.begin()->second[0].mGPUTime * 0.000001,
         queryResults.begin()->second[0].mCPUTime * 0.000001);
-
-    // uint32_t mills = queryResults.begin()->second[0].mCPUTime * 0.000001;
-    // if (mills < 99) {
-    //   std::this_thread::sleep_for(std::chrono::milliseconds(100 - mills - 1));
-    // }
   }
 }
 

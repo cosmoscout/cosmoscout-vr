@@ -14,10 +14,10 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int main(int argc, char** argv) {
-  // Launch gui child processes. For each GUI web site, a separate process is spawned by the
+  // Launch GUI child processes. For each GUI web site, a separate process is spawned by the
   // Chromium Embedded Framework. For the main process, this method returns immediately, for all
-  // others it blocks until the child process is terminated.
-  cs::gui::executeChildProcess(argc, argv);
+  // others it blocks until the child process has terminated.
+  cs::gui::executeWebProcess(argc, argv);
 
   // parse program options -------------------------------------------------------------------------
 
