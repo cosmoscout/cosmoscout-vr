@@ -13,9 +13,9 @@
 #include "../cs-utils/Property.hpp"
 #include "Settings.hpp"
 
+#include <VistaKernel/EventManager/VistaEventHandler.h>
 #include <VistaKernel/InteractionManager/VistaIntentionSelect.h>
 #include <VistaKernel/InteractionManager/VistaKeyboardSystemControl.h>
-#include <VistaKernel/Stuff/VistaInteractionHandlerBase.h>
 
 #include <glm/glm.hpp>
 #include <memory>
@@ -37,7 +37,7 @@ namespace cs::core {
 
 /// The central access point for handling input. An instance of this class is passed to all plugins.
 class CS_CORE_EXPORT InputManager : public VistaKeyboardSystemControl::IVistaDirectKeySink,
-                                    public IVistaInteractionHandlerBase {
+                                    public VistaEventHandler {
  public:
   /// This class describes an intersection point on an IntersectableObject. Usually this is used for
   /// intersections between the mouse ray and planets or moons.
@@ -115,6 +115,10 @@ class CS_CORE_EXPORT InputManager : public VistaKeyboardSystemControl::IVistaDir
   void unregisterSelectable(IVistaNode* pNode);
   void unregisterSelectable(gui::ScreenSpaceGuiArea* pGui);
 
+  /// This method computes the intersection between the mouse ray (SELECTION_NODE) and all
+  /// registered objects.
+  void update();
+
   // overrides of ViSTA base classes ---------------------------------------------------------------
 
   /// This is used to handle events emitted from DFN networks. That is button press and scroll wheel
@@ -124,13 +128,6 @@ class CS_CORE_EXPORT InputManager : public VistaKeyboardSystemControl::IVistaDir
   /// This is used to inject key presses to the pHoveredGuiNode. The ESC key is handled differently,
   /// it will be used to fire the sOnEscapePressed signal.
   bool HandleKeyPress(int key, int mods, bool bIsKeyRepeat) override;
-
-  /// This method computes the intersection between the mouse ray (SELECTION_NODE) and all
-  /// registered objects.
-  bool HandleContextChange(VistaInteractionEvent* pEvent) override;
-
-  bool HandleGraphUpdate(VistaInteractionEvent* pEvent) override;
-  bool HandleTimeUpdate(double dTs, double dLastTs) override;
 
  private:
   VistaIntentionSelect                                            mSelection;

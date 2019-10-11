@@ -37,9 +37,7 @@ namespace cs::core {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-InputManager::InputManager()
-    : IVistaInteractionHandlerBase(GetVistaSystem()->GetEventManager(),
-          GetVistaSystem()->GetInteractionManager()->GetRoleId("WORLD_POINTER"), false) {
+InputManager::InputManager() {
   std::cout << "Loading: InputManager" << std::endl;
 
   mClickTime = boost::posix_time::microsec_clock::universal_time();
@@ -51,7 +49,6 @@ InputManager::InputManager()
   mSelection.SetSelectionVolume(selectionVolume);
   mSelection.SetStickyness(0.5f);
   mSelection.SetSnappiness(0.5f);
-  // mSelection.SetScalingDistance(10000.f);
 
   // Add selection ray to scenegraph.
   VistaGeometryFactory oGeometryFactory(pSG);
@@ -169,6 +166,230 @@ void InputManager::unregisterSelectable(IVistaNode* pNode) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void InputManager::update() {
+  auto pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
+
+  // Set position and orientation of selection ray.
+  VistaVector3D       v3Position;
+  VistaQuaternion     qOrientation;
+  VistaTransformNode* pIntentionNode =
+      dynamic_cast<VistaTransformNode*>(pSG->GetNode("SELECTION_NODE"));
+
+  pIntentionNode->GetWorldPosition(v3Position);
+  pIntentionNode->GetWorldOrientation(qOrientation);
+  VistaVector3D v3Direction = qOrientation.GetViewDir();
+
+  // Test the Intention Node for Intersection with planets.
+  Intersection intersection;
+  for (auto const& intersectable : mIntersectables) {
+    glm::dvec3 pos(0.0, 0.0, 0.0);
+
+    bool intersects =
+        intersectable->getIntersection(glm::dvec3(v3Position[0], v3Position[1], v3Position[2]),
+            glm::dvec3(v3Direction[0], v3Direction[1], v3Direction[2]), pos);
+
+    if (intersects) {
+      intersection.mObject   = intersectable;
+      intersection.mPosition = pos;
+      break;
+    }
+  }
+
+  pHoveredObject = intersection;
+
+  // If there is an active node, we do not want to change any selection state.
+  if (pActiveNode.get()) {
+    return;
+  }
+
+  // Test the Intention Node for Intersection with screen space gui.
+  if (!mScreenSpaceGuis.empty()) {
+    VistaViewport* pViewport(GetVistaSystem()->GetDisplayManager()->GetViewports().begin()->second);
+    auto           pProbs = pViewport->GetProjection()->GetProjectionProperties();
+
+    VistaVector3D v3Origin, v3Up, v3Normal;
+    double        dLeft, dRight, dBottom, dTop;
+
+    pProbs->GetProjPlaneExtents(dLeft, dRight, dBottom, dTop);
+    pProbs->GetProjPlaneMidpoint(v3Origin[0], v3Origin[1], v3Origin[2]);
+    pProbs->GetProjPlaneUp(v3Up[0], v3Up[1], v3Up[2]);
+    pProbs->GetProjPlaneNormal(v3Normal[0], v3Normal[1], v3Normal[2]);
+
+    auto platformTransform =
+        GetVistaSystem()->GetDisplayManager()->GetDisplaySystem()->GetReferenceFrame();
+
+    VistaVector3D start = v3Position;
+    VistaVector3D end   = (v3Position + qOrientation.GetViewDir());
+
+    start = platformTransform->TransformPositionToFrame(start);
+    end   = platformTransform->TransformPositionToFrame(end);
+
+    VistaVector3D direction(end - start);
+
+    VistaRay   ray(start, direction);
+    VistaPlane plane(v3Origin, v3Up.Cross(v3Normal), v3Up, v3Normal);
+
+    VistaVector3D guiIntersection;
+
+    if (plane.CalcIntersection(ray, guiIntersection)) {
+      for (auto const& pViewportGui : mScreenSpaceGuis) {
+        int x = (int)((guiIntersection[0] - dLeft) / (dRight - dLeft) * pViewportGui->getWidth());
+        int y = (int)((1.0 - (guiIntersection[1] - dBottom) / (dTop - dBottom)) *
+                      pViewportGui->getHeight());
+
+        gui::GuiItem* item = pViewportGui->getItemAt(x, y);
+
+        // If there is a pActiveGuiNode in this pViewportGui, we want to send the input events even
+        // if the pointer is not over the item
+        if (!item && pActiveGuiNode.get()) {
+          if (std::find(pViewportGui->getItems().begin(), pViewportGui->getItems().end(),
+                  pActiveGuiNode.get()) != pViewportGui->getItems().end()) {
+            item = pActiveGuiNode.get();
+          }
+        }
+
+        if (item) {
+          // There has been no focused gui element before, so inject a focus event.
+          if (!pHoveredGuiNode.get()) {
+            item->injectFocusEvent(true);
+          }
+
+          if (!pActiveGuiNode.get()) {
+            pHoveredGuiNode = item;
+            pHoveredNode    = nullptr;
+          }
+
+          if (!pActiveGuiNode.get() || pActiveGuiNode.get() == item) {
+            gui::MouseEvent event;
+            item->calculateMousePosition(x, y, event.mX, event.mY);
+            item->injectMouseEvent(event);
+          }
+          return;
+        }
+      }
+    }
+  }
+
+  // If there is an active guiItem in Worldspace, we want to send the mouse input to it in all
+  // cases. So we can skip any later intersection calculation.
+  if (pActiveGuiNode.get()) {
+    VistaTransformMatrix matTransform;
+    mActiveWorldSpaceGuiNode->GetParentWorldTransform(matTransform);
+    gui::WorldSpaceGuiArea* area =
+        dynamic_cast<gui::WorldSpaceGuiArea*>(mActiveWorldSpaceGuiNode->GetExtension());
+
+    // We scale the gui element's transform matrix so that the translation magnitude becomes 1.f.
+    // This is not strictly necessary but reduces precision issues in the inversion of the matrix.
+    // Without this step, objects which are *really* far away would not be selectable.
+    VistaTransformMatrix matScale;
+    float                scale = 1.f / matTransform.GetTranslation().GetLength();
+    matScale.SetToScaleMatrix(scale);
+    matTransform = matScale * matTransform;
+
+    VistaTransformMatrix matInvParentTransform = matTransform.GetInverted();
+    VistaVector3D        start                 = matInvParentTransform * (v3Position * scale);
+    VistaVector3D end = matInvParentTransform * ((v3Position * scale) + qOrientation.GetViewDir());
+
+    int x, y;
+    area->calculateMousePosition(start, end, x, y);
+    // Inject a mouse move event.
+    gui::MouseEvent event;
+    pHoveredGuiNode.get()->calculateMousePosition(x, y, event.mX, event.mY);
+    pHoveredGuiNode.get()->injectMouseEvent(event);
+    return;
+  }
+
+  // There is no currently active object. So we can intersect our selectables to find potential
+  // candidates.
+  std::vector<IVistaIntentionSelectAdapter*> vResults;
+  mSelection.SetConeTransform(v3Position, qOrientation);
+  mSelection.Update(vResults);
+
+  auto unselectGuiNode([this]() {
+    if (pHoveredGuiNode.get()) {
+      gui::MouseEvent event;
+      event.mType = gui::MouseEvent::Type::eLeave;
+      pHoveredGuiNode.get()->injectMouseEvent(event);
+      pHoveredGuiNode.get()->injectFocusEvent(false);
+      pHoveredGuiNode = nullptr;
+    }
+  });
+
+  for (auto pNode : vResults) {
+    auto pNodeAdapter = dynamic_cast<VistaNodeAdapter*>(pNode);
+    auto pOGLNode     = dynamic_cast<VistaOpenGLNode*>(pNodeAdapter->GetNode());
+
+    // If its an OpenGLNode, it may be a gui element.
+    gui::WorldSpaceGuiArea* area =
+        pOGLNode ? dynamic_cast<gui::WorldSpaceGuiArea*>(pOGLNode->GetExtension()) : nullptr;
+
+    if (area) {
+      VistaTransformMatrix matTransform;
+      pOGLNode->GetParentWorldTransform(matTransform);
+
+      // We scale the gui element's transform matrix so that the translation magnitude
+      // becomes 1.f. This is not strictly necessary but reduces precision issues in the
+      // inversion of the matrix. Without this step, objects which are *really* far away would
+      // not be selectable.
+      VistaTransformMatrix matScale;
+      float                scale = 1.f / matTransform.GetTranslation().GetLength();
+      matScale.SetToScaleMatrix(scale);
+      matTransform = matScale * matTransform;
+
+      VistaTransformMatrix matInvParentTransform = matTransform.GetInverted();
+      VistaVector3D        start                 = matInvParentTransform * (v3Position * scale);
+      VistaVector3D        end =
+          matInvParentTransform * ((v3Position * scale) + qOrientation.GetViewDir());
+
+      int x, y;
+      if (area->calculateMousePosition(start, end, x, y)) {
+        gui::GuiItem* item = area->getItemAt(x, y);
+        if (item) {
+          // There has been no focused gui element before, so inject a focus event.
+          if (!pHoveredGuiNode.get()) {
+            item->injectFocusEvent(true);
+          }
+
+          pHoveredGuiNode          = item;
+          mActiveWorldSpaceGuiNode = pOGLNode;
+
+          // Inject a mouse move event.
+          gui::MouseEvent event;
+          pHoveredGuiNode.get()->calculateMousePosition(x, y, event.mX, event.mY);
+          pHoveredGuiNode.get()->injectMouseEvent(event);
+          pHoveredNode = nullptr;
+          return;
+        }
+      }
+    }
+
+    // Do not change input if mouse button is pressed.
+    if (pButtons[0].get()) {
+      return;
+    }
+
+    // It's a gui node, but it's completely transparent, so look for the next object.
+    if (area) {
+      continue;
+    }
+
+    // It is definitely no OpenGLNode, so deselect any previous active element.
+    unselectGuiNode();
+
+    IVistaNode* pVistaNode = pNodeAdapter->GetNode();
+
+    if (pVistaNode) {
+      pHoveredNode = pVistaNode;
+      return;
+    }
+  }
+
+  pHoveredNode = nullptr;
+  unselectGuiNode();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 bool InputManager::HandleKeyPress(int key, int mods, bool bIsKeyRepeat) {
 
   if (key == VISTA_KEY_ESC) {
@@ -258,246 +479,6 @@ void InputManager::HandleEvent(VistaEvent* pEvent) {
       }
     }
   }
-
-  IVistaInteractionHandlerBase::HandleEvent(pEvent);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-bool InputManager::HandleContextChange(VistaInteractionEvent* pEvent) {
-  auto pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
-
-  // Set position and orientation of selection ray.
-  VistaVector3D       v3Position;
-  VistaQuaternion     qOrientation;
-  VistaTransformNode* pIntentionNode =
-      dynamic_cast<VistaTransformNode*>(pSG->GetNode("SELECTION_NODE"));
-
-  pIntentionNode->GetWorldPosition(v3Position);
-  pIntentionNode->GetWorldOrientation(qOrientation);
-  VistaVector3D v3Direction = qOrientation.GetViewDir();
-
-  // Test the Intention Node for Intersection with planets.
-  Intersection intersection;
-  for (auto const& intersectable : mIntersectables) {
-    glm::dvec3 pos(0.0, 0.0, 0.0);
-
-    bool intersects =
-        intersectable->getIntersection(glm::dvec3(v3Position[0], v3Position[1], v3Position[2]),
-            glm::dvec3(v3Direction[0], v3Direction[1], v3Direction[2]), pos);
-
-    if (intersects) {
-      intersection.mObject   = intersectable;
-      intersection.mPosition = pos;
-      break;
-    }
-  }
-
-  pHoveredObject = intersection;
-
-  // If there is an active node, we do not want to change any selection state.
-  if (pActiveNode.get()) {
-    return true;
-  }
-
-  // Test the Intention Node for Intersection with screen space gui.
-  if (!mScreenSpaceGuis.empty()) {
-    VistaViewport* pViewport(GetVistaSystem()->GetDisplayManager()->GetViewports().begin()->second);
-    auto           pProbs = pViewport->GetProjection()->GetProjectionProperties();
-
-    VistaVector3D v3Origin, v3Up, v3Normal;
-    double        dLeft, dRight, dBottom, dTop;
-
-    pProbs->GetProjPlaneExtents(dLeft, dRight, dBottom, dTop);
-    pProbs->GetProjPlaneMidpoint(v3Origin[0], v3Origin[1], v3Origin[2]);
-    pProbs->GetProjPlaneUp(v3Up[0], v3Up[1], v3Up[2]);
-    pProbs->GetProjPlaneNormal(v3Normal[0], v3Normal[1], v3Normal[2]);
-
-    auto platformTransform =
-        GetVistaSystem()->GetDisplayManager()->GetDisplaySystem()->GetReferenceFrame();
-
-    VistaVector3D start = v3Position;
-    VistaVector3D end   = (v3Position + qOrientation.GetViewDir());
-
-    start = platformTransform->TransformPositionToFrame(start);
-    end   = platformTransform->TransformPositionToFrame(end);
-
-    VistaVector3D direction(end - start);
-
-    VistaRay   ray(start, direction);
-    VistaPlane plane(v3Origin, v3Up.Cross(v3Normal), v3Up, v3Normal);
-
-    VistaVector3D guiIntersection;
-
-    if (plane.CalcIntersection(ray, guiIntersection)) {
-      for (auto const& pViewportGui : mScreenSpaceGuis) {
-        int x = (int)((guiIntersection[0] - dLeft) / (dRight - dLeft) * pViewportGui->getWidth());
-        int y = (int)((1.0 - (guiIntersection[1] - dBottom) / (dTop - dBottom)) *
-                      pViewportGui->getHeight());
-
-        gui::GuiItem* item = pViewportGui->getItemAt(x, y);
-
-        // If there is a pActiveGuiNode in this pViewportGui, we want to send the input events even
-        // if the pointer is not over the item
-        if (!item && pActiveGuiNode.get()) {
-          if (std::find(pViewportGui->getItems().begin(), pViewportGui->getItems().end(),
-                  pActiveGuiNode.get()) != pViewportGui->getItems().end()) {
-            item = pActiveGuiNode.get();
-          }
-        }
-
-        if (item) {
-          // There has been no focused gui element before, so inject a focus event.
-          if (!pHoveredGuiNode.get()) {
-            item->injectFocusEvent(true);
-          }
-
-          if (!pActiveGuiNode.get()) {
-            pHoveredGuiNode = item;
-            pHoveredNode    = nullptr;
-          }
-
-          if (!pActiveGuiNode.get() || pActiveGuiNode.get() == item) {
-            gui::MouseEvent event;
-            item->calculateMousePosition(x, y, event.mX, event.mY);
-            item->injectMouseEvent(event);
-          }
-          return true;
-        }
-      }
-    }
-  }
-
-  // If there is an active guiItem in Worldspace, we want to send the mouse input to it in all
-  // cases. So we can skip any later intersection calculation.
-  if (pActiveGuiNode.get()) {
-    VistaTransformMatrix matTransform;
-    mActiveWorldSpaceGuiNode->GetParentWorldTransform(matTransform);
-    gui::WorldSpaceGuiArea* area =
-        dynamic_cast<gui::WorldSpaceGuiArea*>(mActiveWorldSpaceGuiNode->GetExtension());
-
-    // We scale the gui element's transform matrix so that the translation magnitude becomes 1.f.
-    // This is not strictly necessary but reduces precision issues in the inversion of the matrix.
-    // Without this step, objects which are *really* far away would not be selectable.
-    VistaTransformMatrix matScale;
-    float                scale = 1.f / matTransform.GetTranslation().GetLength();
-    matScale.SetToScaleMatrix(scale);
-    matTransform = matScale * matTransform;
-
-    VistaTransformMatrix matInvParentTransform = matTransform.GetInverted();
-    VistaVector3D        start                 = matInvParentTransform * (v3Position * scale);
-    VistaVector3D end = matInvParentTransform * ((v3Position * scale) + qOrientation.GetViewDir());
-
-    int x, y;
-    area->calculateMousePosition(start, end, x, y);
-    // Inject a mouse move event.
-    gui::MouseEvent event;
-    pHoveredGuiNode.get()->calculateMousePosition(x, y, event.mX, event.mY);
-    pHoveredGuiNode.get()->injectMouseEvent(event);
-    return true;
-  }
-
-  // There is no currently active object. So we can intersect our selectables to find potential
-  // candidates.
-  std::vector<IVistaIntentionSelectAdapter*> vResults;
-  mSelection.SetConeTransform(v3Position, qOrientation);
-  mSelection.Update(vResults);
-
-  auto unselectGuiNode([this]() {
-    if (pHoveredGuiNode.get()) {
-      gui::MouseEvent event;
-      event.mType = gui::MouseEvent::Type::eLeave;
-      pHoveredGuiNode.get()->injectMouseEvent(event);
-      pHoveredGuiNode.get()->injectFocusEvent(false);
-      pHoveredGuiNode = nullptr;
-    }
-  });
-
-  for (auto pNode : vResults) {
-    auto pNodeAdapter = dynamic_cast<VistaNodeAdapter*>(pNode);
-    auto pOGLNode     = dynamic_cast<VistaOpenGLNode*>(pNodeAdapter->GetNode());
-
-    // If its an OpenGLNode, it may be a gui element.
-    gui::WorldSpaceGuiArea* area =
-        pOGLNode ? dynamic_cast<gui::WorldSpaceGuiArea*>(pOGLNode->GetExtension()) : nullptr;
-
-    if (area) {
-      VistaTransformMatrix matTransform;
-      pOGLNode->GetParentWorldTransform(matTransform);
-
-      // We scale the gui element's transform matrix so that the translation magnitude
-      // becomes 1.f. This is not strictly necessary but reduces precision issues in the
-      // inversion of the matrix. Without this step, objects which are *really* far away would
-      // not be selectable.
-      VistaTransformMatrix matScale;
-      float                scale = 1.f / matTransform.GetTranslation().GetLength();
-      matScale.SetToScaleMatrix(scale);
-      matTransform = matScale * matTransform;
-
-      VistaTransformMatrix matInvParentTransform = matTransform.GetInverted();
-      VistaVector3D        start                 = matInvParentTransform * (v3Position * scale);
-      VistaVector3D        end =
-          matInvParentTransform * ((v3Position * scale) + qOrientation.GetViewDir());
-
-      int x, y;
-      if (area->calculateMousePosition(start, end, x, y)) {
-        gui::GuiItem* item = area->getItemAt(x, y);
-        if (item) {
-          // There has been no focused gui element before, so inject a focus event.
-          if (!pHoveredGuiNode.get()) {
-            item->injectFocusEvent(true);
-          }
-
-          pHoveredGuiNode          = item;
-          mActiveWorldSpaceGuiNode = pOGLNode;
-
-          // Inject a mouse move event.
-          gui::MouseEvent event;
-          pHoveredGuiNode.get()->calculateMousePosition(x, y, event.mX, event.mY);
-          pHoveredGuiNode.get()->injectMouseEvent(event);
-          pHoveredNode = nullptr;
-          return true;
-        }
-      }
-    }
-
-    // Do not change input if mouse button is pressed.
-    if (pButtons[0].get()) {
-      return true;
-    }
-
-    // It's a gui node, but it's completely transparent, so look for the next object.
-    if (area) {
-      continue;
-    }
-
-    // It is definitely no OpenGLNode, so deselect any previous active element.
-    unselectGuiNode();
-
-    IVistaNode* pVistaNode = pNodeAdapter->GetNode();
-
-    if (pVistaNode) {
-      pHoveredNode = pVistaNode;
-      return true;
-    }
-  }
-
-  pHoveredNode = nullptr;
-  unselectGuiNode();
-
-  return true;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-bool InputManager::HandleGraphUpdate(VistaInteractionEvent* pEvent) {
-  return HandleContextChange(pEvent);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-bool InputManager::HandleTimeUpdate(double dTs, double dLastTs) {
-  return true;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

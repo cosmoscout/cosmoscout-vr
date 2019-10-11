@@ -63,6 +63,7 @@ class Downloader;
 ///      - When the last plugin finished loading, the loading screen is removed and the observer is
 ///        animated to its initial position in space.
 ///      - If all plugins are loaded:
+///        - InputManager::update()
 ///        - TimeControl::update()
 ///        - PluginBase::update() for each plugin
 ///        - SolarSystem::update()

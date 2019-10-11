@@ -397,6 +397,13 @@ void Application::FrameUpdate() {
 
     // update CosmoScout VR classes ----------------------------------------------------------------
 
+    // Update the InputManager.
+    {
+      cs::utils::FrameTimings::ScopedTimer timer(
+          "InputManager Update", cs::utils::FrameTimings::QueryMode::eCPU);
+      mInputManager->update();
+    }
+
     // Update the TimeControl.
     {
       cs::utils::FrameTimings::ScopedTimer timer(
