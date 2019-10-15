@@ -9,37 +9,8 @@
     <link type="text/css" rel="stylesheet" href="css/footer.css">
 
     <script type="text/javascript" src="third-party/js/jquery-2.2.3.min.js"></script>
-    <script type="text/javascript" src="third-party/js/bootstrap.bundle.min.js"></script>
-    <script type="text/javascript" src="third-party/js/fuzzyset.js"></script>
-
-    <script type="text/javascript" src="js/mars.js"></script>
-    <script type="text/javascript" src="js/moon.js"></script>
 
     <script type="text/javascript">
-        // API calls, all relative to focused planet / moon --------------------
-        function set_fps(fps) {
-        }
-
-        function set_north_direction(angle) {
-        }
-
-        function set_user_position(long, lat, height) {
-        }
-
-        function set_pointer_position(hits, long, lat, height) {
-        }
-
-        function set_date(date) {
-        }
-
-        function set_speed(speed) {
-        }
-
-        function set_master(name, is_me, online) {
-        }
-
-        function set_active_planet(center, frame) {
-        }
 
         // private methods used in this file only ------------------------------
 
@@ -107,100 +78,6 @@
         function set_speed(speed) {
             $("#placeholder-8").text(format_speed(speed));
         }
-
-        var activePlanetCenter = "";
-        var activePlanetFrame = "";
-
-        function set_active_planet(center, frame) {
-            activePlanetCenter = center;
-            activePlanetFrame = frame;
-        }
-
-        function set_fps(fps) {
-            // $("#placeholder-1").text(Math.floor(fps));
-        }
-
-        function setFooter(xhr) {
-            xhr.setRequestHeader('Access-Control-Allow-Origin', '*');
-        }
-
-        function geo_code(query, callback) {
-            var planet = activePlanetCenter.toLowerCase();
-
-            if (planet === "earth") {
-                $.ajax({
-                    url: "https://nominatim.openstreetmap.org/search?q=" + encodeURIComponent(query) + "&format=json&limit=1",
-                    type: 'GET',
-                    dataType: 'json',
-                    success: function (data) {
-                        if (data.length === 0) {
-                            window.call_native("print_notification", "Error", "Location not found!", "error");
-                            return;
-                        }
-
-                        var bounds = data[0].boundingbox;
-                        var lat = bounds[1] - bounds[0];
-                        var lon = bounds[3] - bounds[2];
-
-                        var location = {
-                            "latitude": parseFloat(data[0].lat),
-                            "longitude": parseFloat(data[0].lon),
-                            "height": Math.max(lat, lon) * 111 * 1000,
-                            "name": data[0].display_name
-                        };
-
-                        callback(location);
-                    },
-                    error: function () {
-                        console.log("Error requesting Data from openstreetmap");
-                    },
-                    beforeSend: setHeader
-                });
-            } else {
-                if (!locations[planet]) {
-                    window.call_native("print_notification", "Error", "No location for " + planet + "!", "error");
-                    return;
-                }
-
-                var fuzzyset = FuzzySet(Object.keys(locations[planet]));
-                var name = fuzzyset.get(query)[0][1];
-                var location = locations[planet][name];
-                var height = location[0] == 0 ? 10000 : location[0] * 2000;
-
-                var location = {
-                    "latitude": location[1],
-                    "longitude": location[2],
-                    "height": height,
-                    "name": name
-                };
-
-                callback(location);
-            }
-        }
-
-        // entry point ---------------------------------------------------------
-        $(document).ready(function () {
-            $('[data-toggle="tooltip"]').tooltip({ delay: 500, placement: "top", html: false });
-
-            $('#query').on('keypress', function (event) {
-                if (event.key === 'Enter') {
-                    flyToLocation();
-                }
-            });
-            $('#fly-to').click(function () {
-                flyToLocation();
-            });
-
-            function flyToLocation() {
-                var query = $('#query').val();
-                geo_code(query, function (location) {
-                    window.call_native("fly_to", activePlanetCenter, activePlanetFrame, location.longitude, location.latitude, location.height);
-                    window.call_native("print_notification", "Travelling", "to " + location.name, "send");
-                });
-            }
-
-
-        });
     </script>
 
 </head>
@@ -210,7 +87,8 @@
     <div id="footer">
         <span class="item">
             <i class="material-icons">av_timer</i> <span id="placeholder-8" style="min-width: 120px">0 km/h</span>
-            <i class="material-icons">accessibility</i> <span id="placeholder-5" style="min-width: 190px">0° 0° 0m</span>
+            <i class="material-icons">accessibility</i> <span id="placeholder-5" style="min-width: 190px">0° 0°
+                0m</span>
             <i class="material-icons">mouse</i> <span id="placeholder-6" style="min-width: 190px"> - </span>
         </span>
     </div>

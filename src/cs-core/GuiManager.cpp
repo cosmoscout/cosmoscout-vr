@@ -449,10 +449,6 @@ void GuiManager::update() {
     mStatistics->callJavascript("set_data", json, GetVistaSystem()->GetFrameLoop()->GetFrameRate());
   }
 
-  // Set fps.
-  float fFrameRate(GetVistaSystem()->GetFrameLoop()->GetFrameRate());
-  mFooterBar->callJavascript("set_fps", fFrameRate);
-
   // Update entire gui.
   gui::update();
 }

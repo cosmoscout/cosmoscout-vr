@@ -9,8 +9,7 @@ body {
     right: 0;
     overflow: hidden;
     font-size: 0.9rem;
-    display: flex;
-    justify-content: space-between;
+    text-shadow: 0 0 5px black, 0 0 2px black;
 }
 
 #footer i {
