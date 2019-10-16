@@ -93,16 +93,16 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
   if (mGlobalGuiArea) {
     mGlobalGuiArea->addItem(mLogo);
     mGlobalGuiArea->addItem(mNotifications);
-    mGlobalGuiArea->addItem(mSideBar);
     mGlobalGuiArea->addItem(mFooterBar);
+    mGlobalGuiArea->addItem(mSideBar);
     mGlobalGuiArea->addItem(mCalendar);
     mGlobalGuiArea->addItem(mTimeNavigationBar);
     mGlobalGuiArea->addItem(mLoadingScreen);
   } else {
     mLocalGuiArea->addItem(mLogo);
     mLocalGuiArea->addItem(mNotifications);
-    mLocalGuiArea->addItem(mSideBar);
     mLocalGuiArea->addItem(mFooterBar);
+    mLocalGuiArea->addItem(mSideBar);
     mLocalGuiArea->addItem(mCalendar);
     mLocalGuiArea->addItem(mTimeNavigationBar);
     mLocalGuiArea->addItem(mLoadingScreen);
