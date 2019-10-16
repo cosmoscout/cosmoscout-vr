@@ -36,13 +36,13 @@ function getFormattedDateWithTime(date) {
 }
 
 // Format a Date to a readable format for CosmoScoutVR YYYY-MM-DD HH:MM:SS.sss
-function formatDateCosmo (date) {
+function formatDateCosmo(date) {
     var retVal = getFormattedDate(date);
     var hours = date.getHours().toString();
     var minutes = date.getMinutes().toString();
     var seconds = date.getSeconds().toString();
     var milliSec = date.getMilliseconds().toString();
-    while(milliSec.length < 3) {
+    while (milliSec.length < 3) {
         milliSec = '0' + milliSec;
     }
     hours = hours.length > 1 ? hours : '0' + hours;
@@ -65,20 +65,20 @@ function convertSeconds(given_seconds) {
 
 // Increase a Date by days, hours , minutes, seconds and milliseconds
 function increaseDate(date, days, hours, minutes, seconds, milliSec) {
-    date.setDate( date.getDate() + days);
-    date.setHours( date.getHours() + hours);
-    date.setMinutes( date.getMinutes() + minutes);
-    date.setSeconds( date.getSeconds() + seconds);
-    date.setMilliseconds( date.getMilliseconds() + milliSec);
+    date.setDate(date.getDate() + days);
+    date.setHours(date.getHours() + hours);
+    date.setMinutes(date.getMinutes() + minutes);
+    date.setSeconds(date.getSeconds() + seconds);
+    date.setMilliseconds(date.getMilliseconds() + milliSec);
     return date;
 }
 
 // Decrease a Date by days, hours , minutes, seconds and milliseconds
 function decreaseDate(date, days, hours, minutes, seconds, milliSec) {
-    date.setDate( date.getDate() - days);
-    date.setHours( date.getHours() - hours);
-    date.setMinutes( date.getMinutes() - minutes);
-    date.setSeconds( date.getSeconds() - seconds);
-    date.setMilliseconds( date.getMilliseconds() - milliSec);
+    date.setDate(date.getDate() - days);
+    date.setHours(date.getHours() - hours);
+    date.setMinutes(date.getMinutes() - minutes);
+    date.setSeconds(date.getSeconds() - seconds);
+    date.setMilliseconds(date.getMilliseconds() - milliSec);
     return date;
 }

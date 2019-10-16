@@ -19,7 +19,7 @@ function add_item(start, end, id, content, style, description, planet, place) {
 //                  to be registered as callback before clicking the button.
 function add_button(icon, tooltip, callback) {
     var button = document.createElement("a");
-    button.setAttribute('class',"btn light-glass");
+    button.setAttribute('class', "btn light-glass");
     button.setAttribute('data-toggle', 'tooltip');
     button.setAttribute('title', tooltip);
     callback = "window.call_native('" + callback + "')";

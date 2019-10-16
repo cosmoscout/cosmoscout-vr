@@ -4,7 +4,7 @@ var overviewVisible = false;
 function toggleLock() {
     overviewVisible = !overviewVisible;
     document.getElementById('divContainer').classList.toggle('visible');
-    if(overviewVisible) {
+    if (overviewVisible) {
         document.getElementById("btnExpand").innerHTML = '<i class="material-icons">expand_less</i>';
     }
     else {

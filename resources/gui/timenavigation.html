@@ -1,14 +1,13 @@
 <!DOCTYPE HTML>
 <html>
-<head>
-  <title>Timeline | Basic demo</title>
 
+<head>
   <meta charset="utf-8">
 
   <link type="text/css" rel="stylesheet" href="third-party/css/bootstrap.min.css" />
   <link type="text/css" rel="stylesheet" href="css/calendar.css">
   <link type="text/css" rel="stylesheet" href="css/gui.css">
-  
+
 
   <script type="text/javascript" src="js/mars.js"></script>
   <script type="text/javascript" src="js/moon.js"></script>
@@ -38,7 +37,7 @@
 
   <script type="text/javascript">
     function set_north_direction(angle) {
-            $("#compass-arrow").css("transform", "rotateZ(" + angle + "rad)");
+      $("#compass-arrow").css("transform", "rotateZ(" + angle + "rad)");
     }
     $(document).ready(function () {
       $('[data-toggle="tooltip"]').tooltip({ delay: 500, placement: "top", html: false });
@@ -46,62 +45,83 @@
     });
   </script>
 </head>
+
 <body>
 
   <div id="calendar"></div>
 
   <div id="divContainer" class="divContainer">
-      <div id="overview"></div>
-      <div id="visualization"></div>
+    <div id="overview"></div>
+    <div id="visualization"></div>
 
-      <div id="bottomBorderLeft"></div>
-      <div id="bottomBorderRight"></div>
+    <div id="bottomBorderLeft"></div>
+    <div id="bottomBorderRight"></div>
 
-      <span class="item" id="buttonControl">
-          <a class="btn light-glass" data-toggle="tooltip-bottom" title='Turn north up' onclick="window.call_native('navigate_north_up')"><span id="compass-arrow"></span></a>
-          <a class="btn light-glass" data-toggle="tooltip-bottom" title='Fix horizon' onclick="window.call_native('navigate_fix_horizon')"><i class="material-icons">terrain</i></a>
-          <a class="btn light-glass" data-toggle="tooltip-bottom" title='Launch to orbit' onclick="window.call_native('navigate_to_orbit')"><i class="material-icons">flight_takeoff</i></a>
-          <a class="btn light-glass" data-toggle="tooltip-bottom" title='Land on surface' onclick="window.call_native('navigate_to_surface')"><i class="material-icons">flight_land</i></a>
-      </span>
+    <span class="item" id="buttonControl">
+      <a class="btn light-glass" data-toggle="tooltip-bottom" title='Turn north up'
+        onclick="window.call_native('navigate_north_up')"><span id="compass-arrow"></span></a>
+      <a class="btn light-glass" data-toggle="tooltip-bottom" title='Fix horizon'
+        onclick="window.call_native('navigate_fix_horizon')"><i class="material-icons">terrain</i></a>
+      <a class="btn light-glass" data-toggle="tooltip-bottom" title='Launch to orbit'
+        onclick="window.call_native('navigate_to_orbit')"><i class="material-icons">flight_takeoff</i></a>
+      <a class="btn light-glass" data-toggle="tooltip-bottom" title='Land on surface'
+        onclick="window.call_native('navigate_to_surface')"><i class="material-icons">flight_land</i></a>
+    </span>
 
-      <span class="item" id="speedControl">
-        <div id="range"></div>
-      </span>
+    <span class="item" id="speedControl">
+      <div id="range"></div>
+    </span>
 
-      <span class="item" id="timeControl">
-          <a class="btn light-glass" data-toggle="tooltip-bottom" title='Reset simulation' id="btnReset"><i class="material-icons">restore</i></a>
-          <a class="btn light-glass" data-toggle="tooltip-bottom" title='Toggle calendar' id="btnCalendar"><i class="material-icons">date_range</i></a>
-          <span id="dateLabel" style="min-width: 120px">29.12.1997</span>
-          <a class="btn light-glass" data-toggle="tooltip-bottom" title='Toggle pause' id="btnPaus"><i class="material-icons">pause</i></a>
-      </span>
+    <span class="item" id="timeControl">
+      <a class="btn light-glass" data-toggle="tooltip-bottom" title='Reset simulation' id="btnReset"><i
+          class="material-icons">restore</i></a>
+      <a class="btn light-glass" data-toggle="tooltip-bottom" title='Toggle calendar' id="btnCalendar"><i
+          class="material-icons">date_range</i></a>
+      <span id="dateLabel" style="min-width: 120px">29.12.1997</span>
+      <a class="btn light-glass" data-toggle="tooltip-bottom" title='Toggle pause' id="btnPaus"><i
+          class="material-icons">pause</i></a>
+    </span>
 
-      <span class="item" id="expandControl">
-        <a class="waves-effect waves-light btn light-glass" data-toggle="tooltip-bottom" title='Toggle overview' id="btnExpand"><i class="material-icons">expand_more</i></a>
-      </span>
+    <span class="item" id="expandControl">
+      <a class="waves-effect waves-light btn light-glass" data-toggle="tooltip-bottom" title='Toggle overview'
+        id="btnExpand"><i class="material-icons">expand_more</i></a>
+    </span>
 
-      <span class="item" id="decreaseControl">
-        <a class="btn light-glass" data-toggle="tooltip-bottom" title='Decrease time by one day' id="btnDecreaseDay"><i class="material-icons">expand_more</i></a>
-        <a class="btn light-glass" data-toggle="tooltip-bottom" title='Decrease time by one month' id="btnDecreaseMonth" ><i class="material-icons">expand_more</i></a>
-        <a class="btn light-glass" data-toggle="tooltip-bottom" title='Decrease time by one year' id="btnDecreaseYear"><i class="material-icons">expand_more</i></a>
-        <a class="btn light-glass" data-toggle="tooltip-bottom" title='Decrease time by one hour' id="btnDecreaseHour"><i class="material-icons">expand_more</i></a>
-        <a class="btn light-glass" data-toggle="tooltip-bottom" title='Decrease time by one minute' id="btnDecreaseMinute"><i class="material-icons">expand_more</i></a>
-      </span>
+    <span class="item" id="decreaseControl">
+      <a class="btn light-glass" data-toggle="tooltip-bottom" title='Decrease time by one day' id="btnDecreaseDay"><i
+          class="material-icons">expand_more</i></a>
+      <a class="btn light-glass" data-toggle="tooltip-bottom" title='Decrease time by one month'
+        id="btnDecreaseMonth"><i class="material-icons">expand_more</i></a>
+      <a class="btn light-glass" data-toggle="tooltip-bottom" title='Decrease time by one year' id="btnDecreaseYear"><i
+          class="material-icons">expand_more</i></a>
+      <a class="btn light-glass" data-toggle="tooltip-bottom" title='Decrease time by one hour' id="btnDecreaseHour"><i
+          class="material-icons">expand_more</i></a>
+      <a class="btn light-glass" data-toggle="tooltip-bottom" title='Decrease time by one minute'
+        id="btnDecreaseMinute"><i class="material-icons">expand_more</i></a>
+    </span>
 
-      <span class="item" id="increaseControl">
-        <a class="btn light-glass" data-toggle="tooltip" title='Increase time by one day'  id="btnIncreaseDay"><i class="material-icons">expand_less</i></a>
-        <a class="btn light-glass" data-toggle="tooltip" title='Increase time by one month' id="btnIncreaseMonth"><i class="material-icons">expand_less</i></a>
-        <a class="btn light-glass" data-toggle="tooltip" title='Increase time by one year' id="btnIncreaseYear"><i class="material-icons">expand_less</i></a>
-        <a class="btn light-glass" data-toggle="tooltip" title='Increase time by one hour' id="btnIncreaseHour"><i class="material-icons">expand_less</i></a>
-        <a class="btn light-glass" data-toggle="tooltip" title='Increase time by one minute' id="btnIncreaseMinute"><i class="material-icons">expand_less</i></a>
-      </span>
+    <span class="item" id="increaseControl">
+      <a class="btn light-glass" data-toggle="tooltip" title='Increase time by one day' id="btnIncreaseDay"><i
+          class="material-icons">expand_less</i></a>
+      <a class="btn light-glass" data-toggle="tooltip" title='Increase time by one month' id="btnIncreaseMonth"><i
+          class="material-icons">expand_less</i></a>
+      <a class="btn light-glass" data-toggle="tooltip" title='Increase time by one year' id="btnIncreaseYear"><i
+          class="material-icons">expand_less</i></a>
+      <a class="btn light-glass" data-toggle="tooltip" title='Increase time by one hour' id="btnIncreaseHour"><i
+          class="material-icons">expand_less</i></a>
+      <a class="btn light-glass" data-toggle="tooltip" title='Increase time by one minute' id="btnIncreaseMinute"><i
+          class="material-icons">expand_less</i></a>
+    </span>
 
-      <span class="item" id="speedDecreaseControl">
-        <a class="btn light-glass" data-toggle="tooltip" title='Fast rewind'  id="btnDecreaseSpeed"><i class="material-icons">fast_rewind</i></a>
-      </span>
+    <span class="item" id="speedDecreaseControl">
+      <a class="btn light-glass" data-toggle="tooltip" title='Fast rewind' id="btnDecreaseSpeed"><i
+          class="material-icons">fast_rewind</i></a>
+    </span>
 
-      <span class="item" id="speedIncreaseControl">
-        <a class="btn light-glass" data-toggle="tooltip" title='Fast forward'  id="btnIncreaseSpeed"><i class="material-icons">fast_forward</i></a>
-      </span>
+    <span class="item" id="speedIncreaseControl">
+      <a class="btn light-glass" data-toggle="tooltip" title='Fast forward' id="btnIncreaseSpeed"><i
+          class="material-icons">fast_forward</i></a>
+    </span>
 
   </div>
 
@@ -123,9 +143,9 @@
 
   <div class="customTooltip" id="customTooltip">
     <div class="custom-tooltip-container">
-        <h3 id="itemContent">Content</h3>
-        <label for="description" id="itemDescription"><b>description</b></label>
-        <div id="itemLocation">Location</div>
+      <h3 id="itemContent">Content</h3>
+      <label for="description" id="itemDescription"><b>description</b></label>
+      <div id="itemLocation">Location</div>
     </div>
   </div>
 
@@ -133,7 +153,7 @@
   <div id="leftSnippet" class="snippet"></div>
   <div id="snippet" class="snippet"></div>
   <div id="rightSnippet" class="snippet"></div>
-  
+
   <script src="js/timenavigationapi.js"></script>
   <script src="js/dateOperations.js"></script>
   <script src="js/geoNavigation.js"></script>
@@ -144,4 +164,5 @@
   <script src="js/colorPicker.js"></script>
 
 </body>
+
 </html>

@@ -16,7 +16,7 @@ function set_visible(visible) {
 
 // Toggles the Visibility
 function toggle_visible() {
-    if(calenderVisible) {
+    if (calenderVisible) {
         calenderVisible = false;
         set_visible(false);
     } else {
@@ -28,9 +28,9 @@ function toggle_visible() {
 // Called if the Calendar is used to change the date
 function enterNewCenterTime() {
     $('#calendar').datepicker('update', timeline.getCustomTime(timeId));
-    if(calenderVisible && state == newCenterTimeId) {
+    if (calenderVisible && state == newCenterTimeId) {
         toggle_visible();
-    } else if(!calenderVisible) {
+    } else if (!calenderVisible) {
         state = newCenterTimeId;
         toggle_visible();
     }
@@ -39,9 +39,9 @@ function enterNewCenterTime() {
 
 // Called if the Calendar is used to enter a start date of an event
 function enterStartDate() {
-    if(state == newStartDateId) {
+    if (state == newStartDateId) {
         toggle_visible();
-    }else {
+    } else {
         state = newStartDateId;
         calenderVisible = true;
         set_visible(true);
@@ -51,33 +51,31 @@ function enterStartDate() {
 
 // Called if the Calendar is used to enter the end date of an event
 function enterEndDate() {
-    if(state == newEndDateId) {
+    if (state == newEndDateId) {
         toggle_visible();
-    }else {
+    } else {
         state = newEndDateId;
         calenderVisible = true;
         set_visible(true);
     }
-
 }
 
 // Called if an Date in the Calendar is picked
 function changeDateCallback(e) {
     toggle_visible();
-    switch(state) {
+    switch (state) {
         case newCenterTimeId:
             setTimeToDate(e.date);
-          break;
+            break;
         case newStartDateId:
             document.getElementById("eventStartDate").value = e.format();
-          break;
+            break;
         case newEndDateId:
             document.getElementById("eventEndDate").value = e.format();
-          break; 
+            break;
         default:
-          // code block
-      } 
-
+        // code block
+    }
 }
 
 // entry point ---------------------------------------------------------
