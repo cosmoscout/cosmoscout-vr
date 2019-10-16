@@ -216,6 +216,51 @@ document.getElementById("dateLabel").innerText = formatDateReadable(centerTime);
 
 moveWindow(secSpeed);
 
+// Sets the active planet
+function set_active_planet(center) {
+    activePlanetCenter = center;
+}
+
+
+function format_number(number) {
+    if (Math.abs(number) < 10) return number.toFixed(2);
+    else if (Math.abs(number) < 100) return number.toFixed(1);
+    else return number.toFixed(0)
+}
+
+function format_height(height) {
+    if (Math.abs(height) < 0.1) return format_number(height * 1000) + ' mm';
+    else if (Math.abs(height) < 1) return format_number(height * 100) + ' cm';
+    else if (Math.abs(height) < 1e4) return format_number(height) + ' m';
+    else if (Math.abs(height) < 1e7) return format_number(height / 1e3) + ' km';
+    else if (Math.abs(height) < 1e10) return format_number(height / 1e6) + ' Tsd km';
+    else if (Math.abs(height / 1.496e11) < 1e4) return format_number(height / 1.496e11) + ' AU';
+    else if (Math.abs(height / 9.461e15) < 1e3) return format_number(height / 9.461e15) + ' ly';
+    else if (Math.abs(height / 3.086e16) < 1e3) return format_number(height / 3.086e16) + ' pc';
+
+    return format_number(height / 3.086e19) + ' kpc';
+}
+
+function format_latitude(lat) {
+    if (lat < 0)
+        return (-lat).toFixed(2) + "° S ";
+    else
+        return (lat).toFixed(2) + "° N ";
+}
+
+function format_longitude(long) {
+    if (long < 0)
+        return (-long).toFixed(2) + "° W ";
+    else
+        return (long).toFixed(2) + "° E ";
+}
+
+function set_user_position(long, lat, height) {
+    userPosition.long = long;
+    userPosition.lat = lat;
+    userPosition.height = height;
+}
+
 // Redraws the tooltip of an event while the event is visible
 function redrawTooltip(event) {
     return new Promise(resolve => {
