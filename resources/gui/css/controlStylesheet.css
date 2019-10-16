@@ -102,11 +102,6 @@ i {
     color: #ddf
 }
 
-.btn:hover {
-    text-shadow: 0 0 25px rgb(255, 255, 0);
-}
-
-
 #timeControl {
     left: 50%;
     transform: translateX(-50%);
@@ -135,6 +130,12 @@ i {
     width: 60px;
     height: 40px;
     right: -34px;
+}
+
+#btnPaus:hover,
+#expandControl:hover,
+#btnReset:hover  {
+    background-color: white;
 }
 
 #btnPaus i,

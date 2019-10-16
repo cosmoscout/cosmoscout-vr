@@ -136,7 +136,7 @@
   }
 
   #visualization:hover {
-    box-shadow: 0 0 15px #86d5f8;
+    background-color: rgba(230, 230, 255, 0.3);
   }
 
   #visualization:active {
