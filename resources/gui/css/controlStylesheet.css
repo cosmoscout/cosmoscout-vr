@@ -73,24 +73,11 @@
 }
 
 i {
-    font-size: 1.2rem;
     position: relative;
-    margin-right: 2px;
 }
 
 .item {
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    line-height: 35px;
-    height: 35px;
-    vertical-align: bottom;
-    flex-grow: 1;
-    margin-left: 5px;
     position: absolute;
-    top: 67px;
-}
-
-.item span {
     display: inline-block;
 }
 
@@ -146,13 +133,14 @@ i {
 
 #btnCalendar {
     position: absolute;
-    left: 58px;
+    left: 72px;
     z-index: 5;
 }
 
 #dateLabel {
     font-size: 20px;
-    left: -5px;
+    left: 10px;
+    position: relative;
 }
 
 #speedControl {
@@ -178,22 +166,21 @@ i {
 
 #expandControl i {
     color: rgb(20, 20, 20);
-    top: -7px;
+    top: -3px;
     margin-left: -2px;
     font-size: 28px;
 }
 
 #decreaseControl {
     left: 50%;
-    transform: translateX(-42%);
-    top: 75px;
+    transform: translateX(-71px);
+    top: 80px;
 }
 
 #increaseControl {
     left: 50%;
-    transform: translateX(-42%);
-    top: 71px;
-    height: 16px;
+    transform: translateX(-71px);
+    top: 74px;
     pointer-events: none;
 }
 
@@ -214,8 +201,8 @@ i {
 
 #decreaseControl i,
 #increaseControl i {
-    color: rgb(50, 50, 50);
-    transition: color 0.2s, font-size 0.2s;
+    opacity: 0;
+    transition: opacity 0.2s;
     line-height: 1;
     top: -1px;
     pointer-events: none;
@@ -256,7 +243,7 @@ a:hover {
 
 #decreaseControl.mouseNear i,
 #increaseControl.mouseNear i {
-    color: #ddf;
+    opacity: 1;
 }
 
 
