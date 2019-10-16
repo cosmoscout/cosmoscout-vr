@@ -74,7 +74,6 @@
 
 i {
     font-size: 1.2rem;
-    top: 4px;
     position: relative;
     margin-right: 2px;
 }
@@ -142,6 +141,7 @@ i {
 #btnReset i {
     color: rgb(20, 20, 20);
     font-size: 24px;
+    top: 2px;
 }
 
 #btnCalendar {
@@ -159,7 +159,7 @@ i {
     left: 50%;
     width: 600px;
     transform: translateX(-50%);
-    top: 69px;
+    top: 72px;
 }
 
 #expandControl{
@@ -178,7 +178,7 @@ i {
 
 #expandControl i {
     color: rgb(20, 20, 20);
-    top: -9px;
+    top: -7px;
     margin-left: -2px;
     font-size: 28px;
 }
@@ -262,13 +262,13 @@ a:hover {
 
 #speedDecreaseControl {
     left: 50%;
-    transform: translate(-350px);
+    transform: translate(-345px);
     top: 64px;
 }
 
 #speedIncreaseControl {
     left: 50%;
-    transform: translate(312px);
+    transform: translate(310px);
     top: 64px;
     height: 15px;
 }
@@ -276,14 +276,6 @@ a:hover {
 #speedIncreaseControl .btn,
 #speedDecreaseControl .btn {
     font-size: 28px;
-    height: 15px;
-}
-
-#speedIncreaseControl i,
-#speedDecreaseControl i {
-    font-size: 28px;
-    height: 15px;
-    top: -13px;
 }
 
 .range-label {
