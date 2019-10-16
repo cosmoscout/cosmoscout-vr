@@ -1,4 +1,4 @@
-var overviewVisible = true;
+var overviewVisible = false;
 
 // Toggles if the timeline is locked or is able to fade in/out
 function toggleLock() {
