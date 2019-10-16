@@ -91,6 +91,7 @@
 .accordion>.card .card-header  {
     margin: 0;
     border: none;
+    border-radius: 0;
 }
 
 .side-bar *[type=button] {
