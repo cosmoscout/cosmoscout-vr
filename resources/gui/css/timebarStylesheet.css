@@ -1,5 +1,6 @@
 #visualization {
   transition: background-color 0.2s ease;
+  -webkit-font-smoothing: subpixel-antialiased;
 }
   
 .vis-timeline {
@@ -77,15 +78,17 @@
 
 
 #visualization .vis-panel.vis-bottom {
-  height: 40px !important;
-  top: -10px !important;
+  height: 35px !important;
+  top: 0px !important;
   pointer-events: none;
   border-left-style: hidden;
   border-right-style: hidden;
 }
+
 #visualization .vis-text.vis-major {
-  top: 17px !important;
-  visibility: hidden;
+  top: 20px !important;
+  font-size: 9px;
+  margin-left: 4px;
 }
 
 #visualization .vis-panel.vis-background.vis-horizontal,
@@ -93,7 +96,7 @@
 #visualization .vis-panel.vis-left,
 #visualization .vis-panel.vis-right,
 #visualization .vis-grid.vis-minor {
-  height: 25px !important;
+  height: 35px !important;
 }
 
 #visualization .vis-group {
@@ -113,8 +116,8 @@
 
 #visualization .vis-minor.vis-text {
   z-index: 1;
-  top: 14px !important;
-  font-size: 10px;
+  top: 2px !important;
+  font-size: 12px;
   margin-left: 4px;
 }
 
@@ -122,17 +125,18 @@
   top: 0px !important;
 }
 
-#visualization .vis-grid.vis-vertical.vis-major,
 #visualization .vis-grid.vis-vertical.vis-minor {
   border-color: #ddf;
-  height: 14px !important;
-  top: 6px !important;
+  height: 12px !important;
+  top: 4px !important;
   border-width: 2px;
 }
 
 #visualization .vis-grid.vis-vertical.vis-major{
-  height: 18px !important;
+  border-color: #ddf;
+  height: 28px !important;
   top: 4px !important;
+  border-width: 2px;
 }
 
 #visualization .vis-panel.vis-center{

@@ -20,7 +20,7 @@
 }
 
 #bottomBorderLeft {
-    top: 65px;
+    top: 75px;
     height: 2px;
     position: absolute;
     background-color: #ddf;
@@ -30,7 +30,7 @@
 }
 
 #bottomBorderRight {
-    top: 65px;
+    top: 75px;
     height: 2px;
     position: absolute;
     background-color: #ddf;
@@ -92,12 +92,11 @@ i {
     left: 50%;
     transform: translateX(-50%);
     background-color: rgba(20, 20, 20, 0.5);
-    top: 65px;
     border-radius: 0 0 50px 50px;
     border-bottom-color: #ddf;
     border-bottom-width: 2px;
     border-bottom-style: solid;
-    width: 350px;
+    width: 330px;
     text-align: center;
     height: 40px;
 }
@@ -107,7 +106,7 @@ i {
     border-radius: 0 50px 0 50px;
     width: 60px;
     height: 40px;
-    left: -39px;
+    left: -20px;
 }
 
 #btnPaus {
@@ -115,7 +114,7 @@ i {
     border-radius: 50px 0 50px 0;
     width: 60px;
     height: 40px;
-    right: -34px;
+    right: -20px;
 }
 
 #btnPaus:hover,
@@ -133,13 +132,13 @@ i {
 
 #btnCalendar {
     position: absolute;
-    left: 72px;
+    left: 54px;
     z-index: 5;
 }
 
 #dateLabel {
     font-size: 20px;
-    left: 10px;
+    left: 15px;
     position: relative;
 }
 
@@ -147,19 +146,19 @@ i {
     left: 50%;
     width: 600px;
     transform: translateX(-50%);
-    top: 72px;
+    top: 82px;
 }
 
-#expandControl{
+#expandControl {
     right: 20px;
     background-color: #ddf;
     border-radius: 0 0 3px 3px;
-    top: 65px;
+    top: 75px;
     height: 30px;
     width: 32px;
 }
 
-#expandControl .btn{
+#expandControl .btn {
     height: 28px;
     width: 28px;
 }
@@ -173,14 +172,14 @@ i {
 
 #decreaseControl {
     left: 50%;
-    transform: translateX(-71px);
-    top: 80px;
+    transform: translateX(-80px);
+    top: 90px;
 }
 
 #increaseControl {
     left: 50%;
-    transform: translateX(-71px);
-    top: 74px;
+    transform: translateX(-80px);
+    top: 84px;
     pointer-events: none;
 }
 
@@ -188,15 +187,16 @@ i {
 #increaseControl a {
     height: 20px;
     width: 36px;
-    top: 1px;
+    top: 5px;
     padding: 0px;
     margin: 0px;
     pointer-events: all;
     border: 0px;
+    position: absolute;
 }
 
 #increaseControl a {
-    top: -15px;
+    top: -10px;
 }
 
 #decreaseControl i,
@@ -216,29 +216,34 @@ a:hover {
     z-index: 10;
 }
 
-#btnIncreaseYear,
-#btnDecreaseYear {
-    left: -15px;
+#btnIncreaseDay,
+#btnDecreaseDay {
+    left: -1px;
 }
 
 #btnIncreaseMonth,
 #btnDecreaseMonth {
-    left: -13px;
+    left: 27px;
 }
 
-#btnIncreaseDay,
-#btnDecreaseDay {
-    left: 0px;
+#btnIncreaseYear,
+#btnDecreaseYear {
+    left: 65px;
 }
 
 #btnIncreaseHour,
 #btnDecreaseHour {
-    left: -17px;
+    left: 102px;
 }
 
 #btnIncreaseMinute,
 #btnDecreaseMinute {
-    left: -28px;
+    left: 130px;
+}
+
+#btnIncreaseSecond,
+#btnDecreaseSecond {
+    left: 157px;
 }
 
 #decreaseControl.mouseNear i,
@@ -250,13 +255,13 @@ a:hover {
 #speedDecreaseControl {
     left: 50%;
     transform: translate(-345px);
-    top: 64px;
+    top: 74px;
 }
 
 #speedIncreaseControl {
     left: 50%;
     transform: translate(310px);
-    top: 64px;
+    top: 74px;
     height: 15px;
 }
 

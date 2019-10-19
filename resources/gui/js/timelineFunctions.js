@@ -68,8 +68,8 @@ var overviewContainer = document.getElementById('overview');
 
 // Configuration for the Timeline
 var options = {
-    minHeight: 25,
-    maxHeight: 25,
+    minHeight: 35,
+    maxHeight: 35,
     stack: false,
     max: new Date(2030, 12),
     min: new Date(1950, 1),
