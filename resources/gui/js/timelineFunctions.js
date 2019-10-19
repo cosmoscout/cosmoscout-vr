@@ -30,8 +30,8 @@ let hourBack = -2;
 let dayBack = -3;
 let monthBack = -4;
 
-var timelineRangeFactor = 6000;
-let maxRangeFactor = 60000;
+var timelineRangeFactor = 5000000;
+let maxRangeFactor = 10000000000;
 let minRangeFactor = 500;
 
 let redrawRate = 16.666666;
