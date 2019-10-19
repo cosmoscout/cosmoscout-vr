@@ -3,7 +3,8 @@ let dayInSec = 86400;
 let hourInSec = 3600;
 let minuteInSec = 60;
 
-let minuteInHours = 0.01666666666666;
+let secondInHours = 1.0 / (60.0 * 60.0);
+let minuteInHours = 1.0 / 60.0;
 let dayInHours = 24;
 
 let timeId = 'custom';
@@ -665,6 +666,14 @@ function setTimeToDate(date) {
     setOverviewTimes();
 }
 
+function plusOneSecond() {
+    window.call_native("add_hours_without_animation", secondInHours);
+}
+
+function minusOneSecond() {
+    window.call_native("add_hours_without_animation", -secondInHours);
+}
+
 function plusOneMinute() {
     window.call_native("add_hours_without_animation", minuteInHours);
 }
@@ -945,6 +954,14 @@ function scrollOnMinute(event) {
     }
 }
 
+function scrollOnSecond(event) {
+    if (event.deltaY < 0) {
+        plusOneSecond();
+    } else {
+        minusOneSecond();
+    }
+}
+
 // Resets the simulation
 function resetTime() {
     overviewTimeLine.setWindow(minDate, maxDate);
@@ -953,6 +970,9 @@ function resetTime() {
 }
 
 container.addEventListener("wheel", manuelZoomTimeline, true);
+
+document.getElementById("btnIncreaseSecond").onclick = plusOneSecond;
+document.getElementById("btnDecreaseSecond").onclick = minusOneSecond;
 
 document.getElementById("btnIncreaseMinute").onclick = plusOneMinute;
 document.getElementById("btnDecreaseMinute").onclick = minusOneMinute;
@@ -984,12 +1004,14 @@ document.getElementById("btnDecreaseMonth").addEventListener("wheel", scrollOnMo
 document.getElementById("btnDecreaseDay").addEventListener("wheel", scrollOnDay);
 document.getElementById("btnDecreaseHour").addEventListener("wheel", scrollOnHour);
 document.getElementById("btnDecreaseMinute").addEventListener("wheel", scrollOnMinute);
+document.getElementById("btnDecreaseSecond").addEventListener("wheel", scrollOnSecond);
 
 document.getElementById("btnIncreaseYear").addEventListener("wheel", scrollOnYear);
 document.getElementById("btnIncreaseMonth").addEventListener("wheel", scrollOnMonth);
 document.getElementById("btnIncreaseDay").addEventListener("wheel", scrollOnDay);
 document.getElementById("btnIncreaseHour").addEventListener("wheel", scrollOnHour);
 document.getElementById("btnIncreaseMinute").addEventListener("wheel", scrollOnMinute);
+document.getElementById("btnIncreaseSecond").addEventListener("wheel", scrollOnSecond);
 
 document.getElementById("btnCancel").onclick = closeForm;
 document.getElementById("btnApply").onclick = applyEvent;
