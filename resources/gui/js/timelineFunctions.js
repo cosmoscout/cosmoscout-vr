@@ -15,7 +15,7 @@ var drawDivCallback = null;
 
 var firstTime = true;
 
-let zoomPercentage = 0.5;
+let zoomPercentage = 0.2;
 var timelineZoomBlocked = true;
 
 var firstSliderValue = true;
