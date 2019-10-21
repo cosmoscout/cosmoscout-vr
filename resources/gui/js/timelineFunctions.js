@@ -93,8 +93,8 @@ var options = {
             minute: 'HH:mm',
             hour: 'HH:mm',
             weekday: 'ddd D',
-            day: 'D[d]',
-            week: 'D[d]',
+            day: 'ddd D',
+            week: 'MMM D',
             month: 'MMM',
             year: 'YYYY'
         },

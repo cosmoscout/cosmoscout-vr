@@ -1,6 +1,6 @@
-let minWidth = 70;
-let offset = 5;
-let shorten = 5;
+let minWidth = 30;
+let offset = 2;
+let shorten = 2;
 let borderWidth = 3;
 
 // Draws the indicator which part of the overview is seen on the timeline
@@ -20,8 +20,8 @@ function drawDiv() {
 
     var xValue = 0;
     if (width < minWidth) {
-        width = minWidth;
-        xValue = -(leftRect.left + minWidth - rightRect.right) / 2;
+        width = minWidth + 2 * borderWidth;
+        xValue = -(leftRect.left + minWidth - rightRect.right) / 2 - borderWidth;
         divElement.style.transform = " translate(" + xValue + "px, 0px)";
     } else {
         divElement.style.transform = " translate(0px, 0px)";

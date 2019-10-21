@@ -85,7 +85,7 @@
 }
 
 #visualization .vis-text.vis-major {
-  top: 20px !important;
+  top: 7px !important;
   font-size: 9px;
   margin-left: 4px;
 }
@@ -99,7 +99,7 @@
 }
 
 #visualization .vis-group {
-  top: 15px;
+  top: 3px;
 }
 
 #visualization .vis-custom-time.custom {
@@ -115,7 +115,7 @@
 
 #visualization .vis-minor.vis-text {
   z-index: 1;
-  top: 2px !important;
+  top: 18px !important;
   font-size: 12px;
   margin-left: 4px;
 }
@@ -127,13 +127,13 @@
 #visualization .vis-grid.vis-vertical.vis-minor {
   border-color: #ddf;
   height: 12px !important;
-  top: 4px !important;
+  top: 22px !important;
   border-width: 2px;
 }
 
 #visualization .vis-grid.vis-vertical.vis-major{
   border-color: #ddf;
-  height: 28px !important;
+  height: 30px !important;
   top: 4px !important;
   border-width: 2px;
 }

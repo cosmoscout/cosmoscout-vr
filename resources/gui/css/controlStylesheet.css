@@ -11,7 +11,7 @@
     height: 110px;
 }
 
-.divContainer.visible{
+.divContainer.visible {
     top: 0px;
 }
 
@@ -46,6 +46,7 @@
     background-size: contain;
     display: inline-block;
 }
+
 #calendar {
     pointer-events: none;
     z-index: -1;
@@ -55,7 +56,7 @@
     width: 500px;
     height: 382px;
     top: 150px;
-    transition: opacity 1s;
+    transition: opacity 0.2s;
     transition-timing-function: ease-out;
 }
 
