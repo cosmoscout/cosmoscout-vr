@@ -79,7 +79,6 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
   mViewportUpdater->SetUpdateMode(VistaViewportResizeToProjectionAdapter::MAINTAIN_HORIZONTAL_FOV);
 
   mLoadingScreen     = new gui::GuiItem("file://../share/resources/gui/loading_screen.html");
-  mCalendar          = new gui::GuiItem("file://../share/resources/gui/calendar.html");
   mSideBar           = new gui::GuiItem("file://../share/resources/gui/sidebar.html");
   mFooterBar         = new gui::GuiItem("file://../share/resources/gui/footer.html");
   mNotifications     = new gui::GuiItem("file://../share/resources/gui/notifications.html");
@@ -95,7 +94,6 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
     mGlobalGuiArea->addItem(mNotifications);
     mGlobalGuiArea->addItem(mFooterBar);
     mGlobalGuiArea->addItem(mSideBar);
-    mGlobalGuiArea->addItem(mCalendar);
     mGlobalGuiArea->addItem(mTimeNavigationBar);
     mGlobalGuiArea->addItem(mLoadingScreen);
   } else {
@@ -103,21 +101,11 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
     mLocalGuiArea->addItem(mNotifications);
     mLocalGuiArea->addItem(mFooterBar);
     mLocalGuiArea->addItem(mSideBar);
-    mLocalGuiArea->addItem(mCalendar);
     mLocalGuiArea->addItem(mTimeNavigationBar);
     mLocalGuiArea->addItem(mLoadingScreen);
   }
 
   mLocalGuiArea->addItem(mStatistics);
-
-  mCalendar->setSizeX(500);
-  mCalendar->setSizeY(400);
-  mCalendar->setOffsetX(0);
-  mCalendar->setOffsetY(250);
-  mCalendar->setRelPositionY(0.f);
-  mCalendar->setRelPositionX(0.5f);
-  mCalendar->setIsInteractive(false);
-  mCalendar->setCursorChangeCallback([this](gui::Cursor c) { setCursor(c); });
 
   mSideBar->setSizeX(500);
   mSideBar->setRelSizeY(1.f);
@@ -197,25 +185,6 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
   mLoadingScreen->callJavascript("set_loading", true);
 
   // Register callbacks for notifications area.
-
-  mFooterBar->registerCallback<std::string, std::string, std::string>("print_notification",
-      ([this](std::string const& title, std::string const& content, std::string const& icon) {
-        showNotification(title, content, icon);
-      }));
-
-  mFooterBar->registerCallback("show_date_dialog", ([this]() {
-    if (mCalendar->getIsInteractive()) {
-      mCalendar->callJavascript("set_visible", false);
-      mCalendar->setIsInteractive(false);
-    } else {
-      mCalendar->callJavascript("set_visible", true);
-      mCalendar->setIsInteractive(true);
-    }
-  }));
-
-  mCalendar->registerCallback<std::string>(
-      "set_date", ([this](std::string const& date) { mCalendar->setIsInteractive(false); }));
-
   mSideBar->registerCallback<std::string, std::string, std::string>("print_notification",
       ([this](std::string const& title, std::string const& content, std::string const& icon) {
         showNotification(title, content, icon);
@@ -328,12 +297,6 @@ void GuiManager::showNotification(std::string const& sTitle, std::string const& 
 
 gui::GuiItem* GuiManager::getSideBar() const {
   return mSideBar;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-gui::GuiItem* GuiManager::getCalendar() const {
-  return mCalendar;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

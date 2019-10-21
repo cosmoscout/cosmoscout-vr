@@ -121,10 +121,6 @@ class CS_CORE_EXPORT GuiManager {
   /// Returns the side bar GuiItem. The side bar is located at the left side of the screen.
   gui::GuiItem* getSideBar() const;
 
-  /// Returns the calender GuiItem. The calender is at the top of the screen, when clicked on the
-  /// current date display.
-  gui::GuiItem* getCalendar() const;
-
   /// Returns the header bar GuiItem. The header bar is at the top of the screen.
   gui::GuiItem* getFooterBar() const;
 
@@ -160,7 +156,6 @@ class CS_CORE_EXPORT GuiManager {
   gui::ScreenSpaceGuiArea*                mLocalGuiArea    = nullptr;
 
   gui::GuiItem* mLoadingScreen     = nullptr;
-  gui::GuiItem* mCalendar          = nullptr;
   gui::GuiItem* mSideBar           = nullptr;
   gui::GuiItem* mFooterBar         = nullptr;
   gui::GuiItem* mNotifications     = nullptr;

@@ -170,7 +170,6 @@ bool Application::Init(VistaSystem* pVistaSystem) {
   registerSolarSystemCallbacks();
   registerSideBarCallbacks();
   registerTimenavigationBarCallbacks();
-  registerCalendarCallbacks();
 
   // open plugins ----------------------------------------------------------------------------------
   for (auto const& plugin : mSettings->mPlugins) {
@@ -491,16 +490,6 @@ void Application::registerTimenavigationBarCallbacks() {
 
   mGuiManager->getSideBar()->registerCallback<double>(
       "set_widget_scale", ([this](double value) { mGraphicsEngine->pWidgetScale = value; }));
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void Application::registerCalendarCallbacks() {
-  mGuiManager->getCalendar()->registerCallback<std::string>(
-      "set_date", ([this](std::string const& date) {
-        mTimeControl->setTime(
-            cs::utils::convert::toSpiceTime(boost::posix_time::time_from_string(date)));
-      }));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
