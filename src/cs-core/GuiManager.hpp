@@ -122,11 +122,11 @@ class CS_CORE_EXPORT GuiManager {
   gui::GuiItem* getSideBar() const;
 
   /// Returns the header bar GuiItem. The header bar is at the top of the screen.
-  gui::GuiItem* getFooterBar() const;
+  gui::GuiItem* getFooter() const;
 
   /// Returns the time navigation bar GuiItem. The time navigation bar bar is at the bottom of the
   /// screen.
-  gui::GuiItem* getTimeNavigationBar() const;
+  gui::GuiItem* getTimeline() const;
 
   /// Returns the statistics GuiItem. The statistics are at the right of the screen, when enabled.
   gui::GuiItem* getStatistics() const;
@@ -155,13 +155,13 @@ class CS_CORE_EXPORT GuiManager {
   gui::WorldSpaceGuiArea*                 mGlobalGuiArea   = nullptr;
   gui::ScreenSpaceGuiArea*                mLocalGuiArea    = nullptr;
 
-  gui::GuiItem* mLoadingScreen     = nullptr;
-  gui::GuiItem* mSideBar           = nullptr;
-  gui::GuiItem* mFooterBar         = nullptr;
-  gui::GuiItem* mNotifications     = nullptr;
-  gui::GuiItem* mLogo              = nullptr;
-  gui::GuiItem* mStatistics        = nullptr;
-  gui::GuiItem* mTimeNavigationBar = nullptr;
+  gui::GuiItem* mLoadingScreen = nullptr;
+  gui::GuiItem* mSideBar       = nullptr;
+  gui::GuiItem* mFooter        = nullptr;
+  gui::GuiItem* mNotifications = nullptr;
+  gui::GuiItem* mLogo          = nullptr;
+  gui::GuiItem* mStatistics    = nullptr;
+  gui::GuiItem* mTimeline      = nullptr;
 
   VistaTransformNode* mGlobalGuiTransform  = nullptr;
   VistaTransformNode* mLocalGuiTransform   = nullptr;

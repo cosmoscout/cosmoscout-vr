@@ -1,4 +1,4 @@
-// Format a Date to a for a human readable string DD.MM.YYYY HH:MM
+// Format a Date to a for a human readable string DD.MM.YYYY HH:MM:SS
 function formatDateReadable(date) {
     var year = date.getFullYear();
     var month = (date.getMonth() + 1).toString();

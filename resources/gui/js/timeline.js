@@ -1,3 +1,51 @@
+// API calls - these should be called from C++ -----------------------------------------------------
+
+// Sets the timeline to the given date
+function set_date(date) {
+}
+
+// Prints a notifivcatio for the time-speed and changes the slider if the time is paused
+function set_time_speed(speed) {
+}
+
+// Adds a new event to the timeline
+function add_item(start, end, id, content, style, description, planet, place) {
+}
+
+// Add a Button to the button bar
+// @param icon The materialize icon to use
+// @param tooltip Tooltip text that gets shown if the button is hovered
+// @param callback Native function that gets called if the button is clicked. The function has
+//                  to be registered as callback before clicking the button.
+function add_button(icon, tooltip, callback) {
+    var button = document.createElement("a");
+    button.setAttribute('class', "btn light-glass");
+    button.setAttribute('data-toggle', 'tooltip');
+    button.setAttribute('title', tooltip);
+    callback = "window.call_native('" + callback + "')";
+    button.setAttribute("onClick", callback);
+    var iconElement = document.createElement("i");
+    iconElement.innerHTML = icon;
+    iconElement.setAttribute("class", "material-icons");
+    button.appendChild(iconElement);
+    document.getElementById("buttonControl").appendChild(button);
+    $('[data-toggle="tooltip"]').tooltip({ delay: 500, placement: "top", html: false });
+}
+
+function set_north_direction(angle) {
+    $("#compass-arrow").css("transform", "rotateZ(" + angle + "rad)");
+}
+
+// Sets the active planet
+function set_active_planet(center) {
+}
+
+// Sets the position of the user
+function set_user_position(long, lat, height) {
+}
+
+// timeline configuration --------------------------------------------------------------------------
+
 let monthInSec = 2628000;
 let dayInSec = 86400;
 let hourInSec = 3600;
@@ -1017,3 +1065,210 @@ document.getElementById("btnCancel").onclick = closeForm;
 document.getElementById("btnApply").onclick = applyEvent;
 
 document.getElementById("customTooltip").onmouseleave = leaveCustomTooltip;
+
+// toggle if the overview by pressing the button on the right --------------------------------------
+
+var overviewVisible = false;
+
+function toggleOverview() {
+    overviewVisible = !overviewVisible;
+    document.getElementById('divContainer').classList.toggle('visible');
+    if (overviewVisible) {
+        document.getElementById("btnExpand").innerHTML = '<i class="material-icons">expand_less</i>';
+    }
+    else {
+        document.getElementById("btnExpand").innerHTML = '<i class="material-icons">expand_more</i>';
+    }
+}
+
+document.getElementById("btnExpand").onclick = toggleOverview;
+
+// toggle visibility of the increase / decrease time buttons ---------------------------------------
+
+function mouseEnterTimeControl() {
+    document.getElementById("increaseControl").classList.add('mouseNear');
+    document.getElementById("decreaseControl").classList.add('mouseNear');
+}
+
+function mouseLeaveTimeControl() {
+    document.getElementById("increaseControl").classList.remove('mouseNear');
+    document.getElementById("decreaseControl").classList.remove('mouseNear');
+}
+
+function enterTimeButtons() {
+    document.getElementById("increaseControl").classList.add('mouseNear');
+    document.getElementById("decreaseControl").classList.add('mouseNear');
+}
+
+function leaveTimeButtons() {
+    document.getElementById("increaseControl").classList.remove('mouseNear');
+    document.getElementById("decreaseControl").classList.remove('mouseNear');
+}
+
+document.getElementById("timeControl").onmouseenter = mouseEnterTimeControl;
+document.getElementById("timeControl").onmouseleave = mouseLeaveTimeControl;
+
+document.getElementById("increaseControl").onmouseenter = enterTimeButtons;
+document.getElementById("increaseControl").onmouseleave = leaveTimeButtons;
+
+document.getElementById("decreaseControl").onmouseenter = enterTimeButtons;
+document.getElementById("decreaseControl").onmouseleave = leaveTimeButtons;
+
+// draw the indicator which part of the overview is seen on the timeline ---------------------------
+
+let minWidth = 30;
+let offset = 2;
+let shorten = 2;
+let borderWidth = 3;
+
+function drawDiv() {
+    var leftCustomTime = document.getElementsByClassName("leftTime")[0];
+    var leftRect = leftCustomTime.getBoundingClientRect();
+    var rightCustomTime = document.getElementsByClassName("rightTime")[0];
+    var rightRect = rightCustomTime.getBoundingClientRect();
+
+    var divElement = document.getElementById("snippet");
+    divElement.style.position = "absolute";
+    divElement.style.left = leftRect.right + 'px';
+    divElement.style.top = (leftRect.top + offset) + 'px';
+
+    let height = leftRect.bottom - leftRect.top - shorten;
+    var width = rightRect.right - leftRect.left;
+
+    var xValue = 0;
+    if (width < minWidth) {
+        width = minWidth + 2 * borderWidth;
+        xValue = -(leftRect.left + minWidth - rightRect.right) / 2 - borderWidth;
+        divElement.style.transform = " translate(" + xValue + "px, 0px)";
+    } else {
+        divElement.style.transform = " translate(0px, 0px)";
+    }
+
+    divElement.style.height = height + 'px';
+    divElement.style.width = width + 'px';
+
+    divElement = document.getElementById("leftSnippet");
+    divElement.style.top = (leftRect.top + offset + height) + 'px';
+    width = leftRect.right + xValue + borderWidth;
+    width = width < 0 ? 0 : width;
+    divElement.style.width = width + 'px';
+    var body = document.getElementsByTagName("body")[0];
+    var bodyRect = body.getBoundingClientRect();
+
+    divElement = document.getElementById("rightSnippet");
+    divElement.style.top = (leftRect.top + offset + height) + 'px';
+    width = bodyRect.right - rightRect.right + xValue + 1;
+    width = width < 0 ? 0 : width;
+    divElement.style.width = width + 'px';
+}
+
+drawDivCallback = drawDiv;
+
+// color picker initialization ---------------------------------------------------------------------
+
+var picker = new CP(document.querySelector('input[type="colorPicker"]'));
+picker.on("change", function (color) {
+    this.source.value = '#' + color;
+});
+
+picker.on("change", function (color) {
+    var colorField = document.getElementById("eventColor");
+    colorField.style.background = '#' + color;
+});
+
+var calenderVisible = false;
+let newCenterTimeId = 0;
+let newStartDateId = 1;
+let newEndDateId = 2;
+var state;
+
+// calendar initialization -------------------------------------------------------------------------
+
+// Sets the visibility of the calendar to the given value(true or false)
+function set_visible(visible) {
+    if (visible) {
+        $('#calendar').addClass('visible');
+    }
+    else {
+        $('#calendar').removeClass('visible');
+    }
+}
+
+// Toggles the Visibility
+function toggle_visible() {
+    if (calenderVisible) {
+        calenderVisible = false;
+        set_visible(false);
+    } else {
+        calenderVisible = true;
+        set_visible(true);
+    }
+}
+
+// Called if the Calendar is used to change the date
+function enterNewCenterTime() {
+    $('#calendar').datepicker('update', timeline.getCustomTime(timeId));
+    if (calenderVisible && state == newCenterTimeId) {
+        toggle_visible();
+    } else if (!calenderVisible) {
+        state = newCenterTimeId;
+        toggle_visible();
+    }
+}
+
+
+// Called if the Calendar is used to enter a start date of an event
+function enterStartDate() {
+    if (state == newStartDateId) {
+        toggle_visible();
+    } else {
+        state = newStartDateId;
+        calenderVisible = true;
+        set_visible(true);
+    }
+}
+
+
+// Called if the Calendar is used to enter the end date of an event
+function enterEndDate() {
+    if (state == newEndDateId) {
+        toggle_visible();
+    } else {
+        state = newEndDateId;
+        calenderVisible = true;
+        set_visible(true);
+    }
+}
+
+// Called if an Date in the Calendar is picked
+function changeDateCallback(e) {
+    toggle_visible();
+    switch (state) {
+        case newCenterTimeId:
+            setTimeToDate(e.date);
+            break;
+        case newStartDateId:
+            document.getElementById("eventStartDate").value = e.format();
+            break;
+        case newEndDateId:
+            document.getElementById("eventEndDate").value = e.format();
+            break;
+        default:
+        // code block
+    }
+}
+
+// entry point
+$(document).ready(function () {
+    $('#calendar').datepicker({
+        weekStart: 1,
+        todayHighlight: true,
+        maxViewMode: 3,
+        format: "yyyy-mm-dd",
+        startDate: "1950-01-02",
+        endDate: "2049-12-31",
+    }).on("changeDate", changeDateCallback);
+});
+
+document.getElementById("btnCalendar").onclick = enterNewCenterTime;
+document.getElementById("dateLabel").onclick = enterNewCenterTime;

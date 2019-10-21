@@ -78,13 +78,13 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
   mViewportUpdater = new VistaViewportResizeToProjectionAdapter(pViewport);
   mViewportUpdater->SetUpdateMode(VistaViewportResizeToProjectionAdapter::MAINTAIN_HORIZONTAL_FOV);
 
-  mLoadingScreen     = new gui::GuiItem("file://../share/resources/gui/loading_screen.html");
-  mSideBar           = new gui::GuiItem("file://../share/resources/gui/sidebar.html");
-  mFooterBar         = new gui::GuiItem("file://../share/resources/gui/footer.html");
-  mNotifications     = new gui::GuiItem("file://../share/resources/gui/notifications.html");
-  mLogo              = new gui::GuiItem("file://../share/resources/gui/logo.html");
-  mStatistics        = new gui::GuiItem("file://../share/resources/gui/statistics.html");
-  mTimeNavigationBar = new gui::GuiItem("file://../share/resources/gui/timenavigation.html");
+  mLoadingScreen = new gui::GuiItem("file://../share/resources/gui/loading_screen.html");
+  mSideBar       = new gui::GuiItem("file://../share/resources/gui/sidebar.html");
+  mFooter        = new gui::GuiItem("file://../share/resources/gui/footer.html");
+  mNotifications = new gui::GuiItem("file://../share/resources/gui/notifications.html");
+  mLogo          = new gui::GuiItem("file://../share/resources/gui/logo.html");
+  mStatistics    = new gui::GuiItem("file://../share/resources/gui/statistics.html");
+  mTimeline      = new gui::GuiItem("file://../share/resources/gui/timeline.html");
 
   mLoadingScreen->setIsInteractive(false);
 
@@ -92,16 +92,16 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
   if (mGlobalGuiArea) {
     mGlobalGuiArea->addItem(mLogo);
     mGlobalGuiArea->addItem(mNotifications);
-    mGlobalGuiArea->addItem(mFooterBar);
+    mGlobalGuiArea->addItem(mFooter);
     mGlobalGuiArea->addItem(mSideBar);
-    mGlobalGuiArea->addItem(mTimeNavigationBar);
+    mGlobalGuiArea->addItem(mTimeline);
     mGlobalGuiArea->addItem(mLoadingScreen);
   } else {
     mLocalGuiArea->addItem(mLogo);
     mLocalGuiArea->addItem(mNotifications);
-    mLocalGuiArea->addItem(mFooterBar);
+    mLocalGuiArea->addItem(mFooter);
     mLocalGuiArea->addItem(mSideBar);
-    mLocalGuiArea->addItem(mTimeNavigationBar);
+    mLocalGuiArea->addItem(mTimeline);
     mLocalGuiArea->addItem(mLoadingScreen);
   }
 
@@ -115,18 +115,18 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
   mSideBar->setRelOffsetY(-0.5f);
   mSideBar->setCursorChangeCallback([this](gui::Cursor c) { setCursor(c); });
 
-  mFooterBar->setRelSizeX(1.f);
-  mFooterBar->setSizeY(80);
-  mFooterBar->setRelPositionX(0.5);
-  mFooterBar->setRelPositionY(1.f);
-  mFooterBar->setCursorChangeCallback([this](gui::Cursor c) { setCursor(c); });
+  mFooter->setRelSizeX(1.f);
+  mFooter->setSizeY(80);
+  mFooter->setRelPositionX(0.5);
+  mFooter->setRelPositionY(1.f);
+  mFooter->setCursorChangeCallback([this](gui::Cursor c) { setCursor(c); });
 
-  mTimeNavigationBar->setRelSizeX(1.f);
-  mTimeNavigationBar->setSizeY(644);
-  mTimeNavigationBar->setRelPositionX(0.5);
-  mTimeNavigationBar->setRelPositionY(0);
-  mTimeNavigationBar->setOffsetY(322);
-  mTimeNavigationBar->setCursorChangeCallback([this](gui::Cursor c) { setCursor(c); });
+  mTimeline->setRelSizeX(1.f);
+  mTimeline->setSizeY(644);
+  mTimeline->setRelPositionX(0.5);
+  mTimeline->setRelPositionY(0);
+  mTimeline->setOffsetY(322);
+  mTimeline->setCursorChangeCallback([this](gui::Cursor c) { setCursor(c); });
 
   mNotifications->setSizeX(420);
   mNotifications->setSizeY(320);
@@ -166,8 +166,8 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
   mInputManager->registerSelectable(mLocalGuiArea);
 
   mSideBar->waitForFinishedLoading();
-  mFooterBar->waitForFinishedLoading();
-  mTimeNavigationBar->waitForFinishedLoading();
+  mFooter->waitForFinishedLoading();
+  mTimeline->waitForFinishedLoading();
   mNotifications->waitForFinishedLoading();
   mLoadingScreen->waitForFinishedLoading();
 
@@ -190,7 +190,7 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
         showNotification(title, content, icon);
       }));
 
-  mTimeNavigationBar->registerCallback<std::string, std::string, std::string>("print_notification",
+  mTimeline->registerCallback<std::string, std::string, std::string>("print_notification",
       ([this](std::string const& title, std::string const& content, std::string const& icon) {
         showNotification(title, content, icon);
       }));
@@ -213,7 +213,7 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
       [this](bool enable) { mStatistics->setIsEnabled(enable); });
 
   // Set settings for the time Navigation
-  mTimeNavigationBar->callJavascript("setTimelineRange", settings->mMinDate, settings->mMaxDate);
+  mTimeline->callJavascript("setTimelineRange", settings->mMinDate, settings->mMaxDate);
 
   for (int i = 0; i < settings->mEvents.size(); i++) {
     std::string planet = "";
@@ -232,12 +232,12 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
 
 GuiManager::~GuiManager() {
   delete mSideBar;
-  delete mFooterBar;
+  delete mFooter;
   delete mNotifications;
   delete mLogo;
   delete mGlobalGuiArea;
   delete mViewportUpdater;
-  delete mTimeNavigationBar;
+  delete mTimeline;
 
   mInputManager->unregisterSelectable(mLocalGuiOpenGLnode);
 
@@ -301,14 +301,14 @@ gui::GuiItem* GuiManager::getSideBar() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-gui::GuiItem* GuiManager::getFooterBar() const {
-  return mFooterBar;
+gui::GuiItem* GuiManager::getFooter() const {
+  return mFooter;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-gui::GuiItem* GuiManager::getTimeNavigationBar() const {
-  return mTimeNavigationBar;
+gui::GuiItem* GuiManager::getTimeline() const {
+  return mTimeline;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -449,8 +449,8 @@ void GuiManager::addScriptToSideBarFromJS(std::string const& jsFile) {
 void GuiManager::addEventToTimenavigationBar(std::string start, std::optional<std::string> end,
     std::string id, std::string content, std::optional<std::string> style, std::string description,
     std::string planet, std::string place) {
-  mTimeNavigationBar->callJavascript("add_item", start, end.value_or(""), id, content,
-      style.value_or(""), description, planet, place);
+  mTimeline->callJavascript("add_item", start, end.value_or(""), id, content, style.value_or(""),
+      description, planet, place);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

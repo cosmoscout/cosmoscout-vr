@@ -116,13 +116,13 @@ bool Application::Init(VistaSystem* pVistaSystem) {
             auto lngLat = cs::utils::convert::toDegrees(polar.xy());
 
             if (!std::isnan(lngLat.x) && !std::isnan(lngLat.y) && !std::isnan(polar.z)) {
-              mGuiManager->getFooterBar()->callJavascript("set_pointer_position", true, lngLat.x,
+              mGuiManager->getFooter()->callJavascript("set_pointer_position", true, lngLat.x,
                   lngLat.y, polar.z / mGraphicsEngine->pHeightScale.get());
               return;
             }
           }
         }
-        mGuiManager->getFooterBar()->callJavascript("set_pointer_position", false);
+        mGuiManager->getFooter()->callJavascript("set_pointer_position", false);
       });
 
   // UI updates based on property changes ----------------------------------------------------------
@@ -132,12 +132,11 @@ bool Application::Init(VistaSystem* pVistaSystem) {
     facet->format("%d-%b-%Y %H:%M:%S.%f");
     sstr.imbue(std::locale(std::locale::classic(), facet));
     sstr << cs::utils::convert::toBoostTime(val);
-    mGuiManager->getTimeNavigationBar()->callJavascript("set_date", sstr.str());
+    mGuiManager->getTimeline()->callJavascript("set_date", sstr.str());
   });
 
-  mTimeControl->pTimeSpeed.onChange().connect([this](float val) {
-    mGuiManager->getTimeNavigationBar()->callJavascript("set_time_speed", val);
-  });
+  mTimeControl->pTimeSpeed.onChange().connect(
+      [this](float val) { mGuiManager->getTimeline()->callJavascript("set_time_speed", val); });
 
   // set mouse pointer -----------------------------------------------------------------------------
   auto windowingToolkit = dynamic_cast<VistaGlutWindowingToolkit*>(
@@ -236,7 +235,7 @@ void Application::registerSolarSystemCallbacks() {
   });
 
   mSolarSystem->pCurrentObserverSpeed.onChange().connect(
-      [this](float speed) { mGuiManager->getFooterBar()->callJavascript("set_speed", speed); });
+      [this](float speed) { mGuiManager->getFooter()->callJavascript("set_speed", speed); });
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -273,20 +272,19 @@ void Application::registerSideBarCallbacks() {
 
 void Application::registerTimenavigationBarCallbacks() {
 
-  mGuiManager->getTimeNavigationBar()
-      ->registerCallback<std::string, double, double, double, double>(
-          "fly_to", ([this](std::string const& name, double longitude, double latitude,
-                         double height, double time) {
-            for (auto const& body : mSolarSystem->getBodies()) {
-              if (body->getCenterName() == name) {
-                mSolarSystem->pActiveBody = body;
-                mSolarSystem->flyObserverTo(body->getCenterName(), body->getFrameName(),
-                    cs::utils::convert::toRadians(glm::dvec2(longitude, latitude)), height, time);
-              }
-            }
-          }));
+  mGuiManager->getTimeline()->registerCallback<std::string, double, double, double, double>(
+      "fly_to", ([this](std::string const& name, double longitude, double latitude, double height,
+                     double time) {
+        for (auto const& body : mSolarSystem->getBodies()) {
+          if (body->getCenterName() == name) {
+            mSolarSystem->pActiveBody = body;
+            mSolarSystem->flyObserverTo(body->getCenterName(), body->getFrameName(),
+                cs::utils::convert::toRadians(glm::dvec2(longitude, latitude)), height, time);
+          }
+        }
+      }));
 
-  mGuiManager->getTimeNavigationBar()->registerCallback("navigate_north_up", [this]() {
+  mGuiManager->getTimeline()->registerCallback("navigate_north_up", [this]() {
     auto observerPos = mSolarSystem->getObserver().getAnchorPosition();
 
     glm::dvec3 y = glm::vec3(0, -1, 0);
@@ -304,7 +302,7 @@ void Application::registerTimenavigationBarCallbacks() {
         mSolarSystem->getObserver().getFrameName(), observerPos, rotation, 1.0);
   });
 
-  mGuiManager->getTimeNavigationBar()->registerCallback("navigate_fix_horizon", [this]() {
+  mGuiManager->getTimeline()->registerCallback("navigate_fix_horizon", [this]() {
     auto radii = cs::core::SolarSystem::getRadii(mSolarSystem->getObserver().getCenterName());
 
     if (radii[0] == 0.0) {
@@ -333,7 +331,7 @@ void Application::registerTimenavigationBarCallbacks() {
         mSolarSystem->getObserver().getFrameName(), observerPos, rotation, 1.0);
   });
 
-  mGuiManager->getTimeNavigationBar()->registerCallback("navigate_to_surface", [this]() {
+  mGuiManager->getTimeline()->registerCallback("navigate_to_surface", [this]() {
     auto radii = cs::core::SolarSystem::getRadii(mSolarSystem->getObserver().getCenterName());
 
     if (radii[0] == 0.0 || radii[2] == 0.0) {
@@ -375,7 +373,7 @@ void Application::registerTimenavigationBarCallbacks() {
         mSolarSystem->getObserver().getFrameName(), observerPos, rotation, 3.0);
   });
 
-  mGuiManager->getTimeNavigationBar()->registerCallback("navigate_to_orbit", [this]() {
+  mGuiManager->getTimeline()->registerCallback("navigate_to_orbit", [this]() {
     auto observerRot = mSolarSystem->getObserver().getAnchorRotation();
     auto radii       = cs::core::SolarSystem::getRadii(mSolarSystem->getObserver().getCenterName());
 
@@ -402,31 +400,31 @@ void Application::registerTimenavigationBarCallbacks() {
   });
 
   // Time Control -------------------------------------------------------
-  mGuiManager->getTimeNavigationBar()->registerCallback(
+  mGuiManager->getTimeline()->registerCallback(
       "reset_time", ([this]() { mTimeControl->resetTime(); }));
 
-  mGuiManager->getTimeNavigationBar()->registerCallback(
+  mGuiManager->getTimeline()->registerCallback(
       "reset_time", ([this]() { mTimeControl->resetTime(); }));
 
-  mGuiManager->getTimeNavigationBar()->registerCallback<double>("add_hours", ([&](double amount) {
+  mGuiManager->getTimeline()->registerCallback<double>("add_hours", ([&](double amount) {
     mTimeControl->setTime(mTimeControl->pSimulationTime.get() + 60.0 * 60.0 * amount);
   }));
-  mGuiManager->getTimeNavigationBar()->registerCallback<double>(
+  mGuiManager->getTimeline()->registerCallback<double>(
       "add_hours_without_animation", ([&](double amount) {
         mTimeControl->setTimeWithoutAnimation(
             mTimeControl->pSimulationTime.get() + 60.0 * 60.0 * amount);
       }));
-  mGuiManager->getTimeNavigationBar()->registerCallback<std::string>(
+  mGuiManager->getTimeline()->registerCallback<std::string>(
       "set_date", ([this](std::string const& date) {
         mTimeControl->setTime(
             cs::utils::convert::toSpiceTime(boost::posix_time::time_from_string(date)));
       }));
-  mGuiManager->getTimeNavigationBar()->registerCallback<std::string>(
+  mGuiManager->getTimeline()->registerCallback<std::string>(
       "set_date_direct", ([this](std::string const& date) {
         mTimeControl->setTimeWithoutAnimation(
             cs::utils::convert::toSpiceTime(boost::posix_time::time_from_string(date)));
       }));
-  mGuiManager->getTimeNavigationBar()->registerCallback<double>(
+  mGuiManager->getTimeline()->registerCallback<double>(
       "set_time_speed", ([&](double speed) { mTimeControl->setTimeSpeed((float)speed); }));
 
   mGuiManager->getSideBar()->registerCallback<bool>(
@@ -656,10 +654,10 @@ void Application::FrameUpdate() {
       double heightDiff    = polar.z / mGraphicsEngine->pHeightScale.get() - surfaceHeight;
 
       if (!std::isnan(polar.x) && !std::isnan(polar.y) && !std::isnan(heightDiff)) {
-        mGuiManager->getFooterBar()->callJavascript("set_user_position",
+        mGuiManager->getFooter()->callJavascript("set_user_position",
             cs::utils::convert::toDegrees(polar.x), cs::utils::convert::toDegrees(polar.y),
             heightDiff);
-        mGuiManager->getTimeNavigationBar()->callJavascript("set_user_position",
+        mGuiManager->getTimeline()->callJavascript("set_user_position",
             cs::utils::convert::toDegrees(polar.x), cs::utils::convert::toDegrees(polar.y),
             heightDiff);
       }
@@ -676,7 +674,7 @@ void Application::FrameUpdate() {
         angle = -angle;
       }
 
-      mGuiManager->getTimeNavigationBar()->callJavascript("set_north_direction", angle);
+      mGuiManager->getTimeline()->callJavascript("set_north_direction", angle);
     }
 
     mGuiManager->update();
