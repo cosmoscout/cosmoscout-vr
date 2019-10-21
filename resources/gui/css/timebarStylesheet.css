@@ -1,5 +1,4 @@
 #visualization {
-  transition: background-color 0.2s ease;
   -webkit-font-smoothing: subpixel-antialiased;
 }
   
@@ -100,7 +99,7 @@
 }
 
 #visualization .vis-group {
-  top: 0px;
+  top: 15px;
 }
 
 #visualization .vis-custom-time.custom {

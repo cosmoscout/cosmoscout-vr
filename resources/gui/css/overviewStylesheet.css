@@ -95,7 +95,7 @@
 }
 
 #overview .vis-group {
-  top: 10px;
+  top: 6px;
 }
 
 #overview .vis-content {
@@ -118,4 +118,13 @@
   background-color: #ddf;
   z-index: 1;
   top: 0px !important;
+}
+
+#overview:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+#overview:active {
+  top: 1px;
+  background-color: rgba(255, 255, 255, 0.1);
 }
