@@ -188,7 +188,6 @@ i {
 #increaseControl a {
     height: 20px;
     width: 36px;
-    top: 5px;
     padding: 0px;
     margin: 0px;
     pointer-events: all;
@@ -196,8 +195,20 @@ i {
     position: absolute;
 }
 
+#decreaseControl a {
+    top: 5px;
+}
+
 #increaseControl a {
     top: -10px;
+}
+
+#decreaseControl a:active {
+    top: 6px;
+}
+
+#increaseControl a:active {
+    top: -9px;
 }
 
 #decreaseControl i,
