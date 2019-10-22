@@ -162,8 +162,8 @@ void SolarSystem::updateSceneScale() {
 
   // user will be locked to active planet, scene will be scaled that closest planet
   // is mScaleDistance away in world space
-  std::shared_ptr<cs::scene::CelestialBody> pClosestBody;
-  std::shared_ptr<cs::scene::CelestialBody> pActiveBody;
+  std::shared_ptr<cs::scene::CelestialBody> closestBody;
+  std::shared_ptr<cs::scene::CelestialBody> activeBody;
 
   double dActiveWeight    = 0;
   double dClosestDistance = std::numeric_limits<double>::max();
@@ -193,12 +193,12 @@ void SolarSystem::updateSceneScale() {
                          radii[0] + dDistance - mSettings->mSceneScale.mMinObjectSize);
 
     if (dWeight > dActiveWeight) {
-      pActiveBody   = object;
+      activeBody    = object;
       dActiveWeight = dWeight;
     }
 
     if (dDistance < dClosestDistance) {
-      pClosestBody                   = object;
+      closestBody                    = object;
       dClosestDistance               = dDistance;
       vClosestPlanetObserverPosition = vObserverPos;
     }
@@ -206,20 +206,20 @@ void SolarSystem::updateSceneScale() {
 
   // change frame and center if there is a object with weight larger than mLockWeight
   // and mTrackWeight
-  if (pActiveBody) {
+  if (activeBody) {
     if (!mObserver.isAnimationInProgress()) {
       std::string sCenter = "Solar System Barycenter";
       std::string sFrame  = "J2000";
 
       if (dActiveWeight > mSettings->mSceneScale.mLockWeight) {
-        sFrame = pActiveBody->getFrameName();
+        sFrame = activeBody->getFrameName();
       }
 
       if (dActiveWeight > mSettings->mSceneScale.mTrackWeight) {
-        sCenter = pActiveBody->getCenterName();
+        sCenter = activeBody->getCenterName();
       }
 
-      pActiveBody     = pActiveBody;
+      pActiveBody     = activeBody;
       pObserverCenter = sCenter;
       pObserverFrame  = sFrame;
     }
@@ -227,18 +227,18 @@ void SolarSystem::updateSceneScale() {
 
   // scale scene in such a way that the closest planet
   // is mScaleDistance away in world space
-  if (pClosestBody) {
+  if (closestBody) {
     auto   dSurfaceHeight = 0.0;
     double dRealDistance  = glm::length(vClosestPlanetObserverPosition);
 
-    auto radii = pClosestBody->getRadii();
+    auto radii = closestBody->getRadii();
 
     if (radii[0] > 0) {
       auto lngLatHeight =
           cs::utils::convert::toLngLatHeight(vClosestPlanetObserverPosition, radii[0], radii[0]);
       dRealDistance = lngLatHeight.z;
       dRealDistance -=
-          pClosestBody->getHeight(lngLatHeight.xy()) * mGraphicsEngine->pHeightScale.get();
+          closestBody->getHeight(lngLatHeight.xy()) * mGraphicsEngine->pHeightScale.get();
     }
 
     if (std::isnan(dRealDistance)) {
