@@ -7,7 +7,7 @@ function flyToLocation(planet, location, time) {
     window.call_native("print_notification", "Travelling", "to " + location.name, "send");
 }
 
-function formatHeight(heightStr, unit) {
+function parseHeight(heightStr, unit) {
     var height = parseFloat(heightStr);
     if (unit == 'mm') return height / 1000;
     else if (unit == 'cm') return height / 100;
@@ -21,7 +21,7 @@ function formatHeight(heightStr, unit) {
     return height * 3.086e19;
 }
 
-function formatLatitude(lat, half) {
+function parseLatitude(lat, half) {
     lat = lat.substr(0, lat.length - 1);
     if (half == 'S')
         return parseFloat(-lat);
@@ -29,7 +29,7 @@ function formatLatitude(lat, half) {
         return parseFloat(lat);
 }
 
-function formatLongitude(long, half) {
+function parseLongitude(long, half) {
     long = long.substr(0, long.length - 1);
     if (half == 'W')
         return parseFloat(-long);
@@ -39,12 +39,12 @@ function formatLongitude(long, half) {
 
 // Extracts the needed information out of the human readable place string
 // and calls flyToLocation for the given location.
-function geo_code(direct, planet, place, name) {
+function geoCode(direct, planet, place, name) {
     var placeArr = place.split(" ");
     var location = {
-        "longitude": formatLongitude(placeArr[0], placeArr[1]),
-        "latitude": formatLatitude(placeArr[2], placeArr[3]),
-        "height": formatHeight(placeArr[4], placeArr[5]),
+        "longitude": parseLongitude(placeArr[0], placeArr[1]),
+        "latitude": parseLatitude(placeArr[2], placeArr[3]),
+        "height": parseHeight(placeArr[4], placeArr[5]),
         "name": name
     };
 

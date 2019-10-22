@@ -449,7 +449,7 @@ void GuiManager::addScriptToSideBarFromJS(std::string const& jsFile) {
 void GuiManager::addEventToTimenavigationBar(std::string start, std::optional<std::string> end,
     std::string id, std::string content, std::optional<std::string> style, std::string description,
     std::string planet, std::string place) {
-  mTimeline->callJavascript("add_item", start, end.value_or(""), id, content, style.value_or(""),
+  mTimeline->callJavascript("addItem", start, end.value_or(""), id, content, style.value_or(""),
       description, planet, place);
 }
 

@@ -132,11 +132,11 @@ bool Application::Init(VistaSystem* pVistaSystem) {
     facet->format("%d-%b-%Y %H:%M:%S.%f");
     sstr.imbue(std::locale(std::locale::classic(), facet));
     sstr << cs::utils::convert::toBoostTime(val);
-    mGuiManager->getTimeline()->callJavascript("set_date", sstr.str());
+    mGuiManager->getTimeline()->callJavascript("setDate", sstr.str());
   });
 
   mTimeControl->pTimeSpeed.onChange().connect(
-      [this](float val) { mGuiManager->getTimeline()->callJavascript("set_time_speed", val); });
+      [this](float val) { mGuiManager->getTimeline()->callJavascript("setTimeSpeed", val); });
 
   // set mouse pointer -----------------------------------------------------------------------------
   auto windowingToolkit = dynamic_cast<VistaGlutWindowingToolkit*>(
@@ -253,13 +253,13 @@ void Application::registerSideBarCallbacks() {
       }));
 
   mGuiManager->getSideBar()->registerCallback<std::string>(
-      "set_date", ([this](std::string const& sDate) {
+      "setDate", ([this](std::string const& sDate) {
         double time = cs::utils::convert::toSpiceTime(boost::posix_time::time_from_string(sDate));
         mTimeControl->setTime(time);
       }));
 
   mGuiManager->getSideBar()->registerCallback<std::string>(
-      "set_date", ([this](std::string const& sDate) {
+      "setDate", ([this](std::string const& sDate) {
         double time = cs::utils::convert::toSpiceTime(boost::posix_time::time_from_string(sDate));
         mTimeControl->setTime(time);
       }));
@@ -415,17 +415,17 @@ void Application::registerTimenavigationBarCallbacks() {
             mTimeControl->pSimulationTime.get() + 60.0 * 60.0 * amount);
       }));
   mGuiManager->getTimeline()->registerCallback<std::string>(
-      "set_date", ([this](std::string const& date) {
+      "setDate", ([this](std::string const& date) {
         mTimeControl->setTime(
             cs::utils::convert::toSpiceTime(boost::posix_time::time_from_string(date)));
       }));
   mGuiManager->getTimeline()->registerCallback<std::string>(
-      "set_date_direct", ([this](std::string const& date) {
+      "setDate_direct", ([this](std::string const& date) {
         mTimeControl->setTimeWithoutAnimation(
             cs::utils::convert::toSpiceTime(boost::posix_time::time_from_string(date)));
       }));
   mGuiManager->getTimeline()->registerCallback<double>(
-      "set_time_speed", ([&](double speed) { mTimeControl->setTimeSpeed((float)speed); }));
+      "setTimeSpeed", ([&](double speed) { mTimeControl->setTimeSpeed((float)speed); }));
 
   mGuiManager->getSideBar()->registerCallback<bool>(
       "set_enable_shadows", ([this](bool enable) { mGraphicsEngine->pEnableShadows = enable; }));
@@ -654,10 +654,10 @@ void Application::FrameUpdate() {
       double heightDiff    = polar.z / mGraphicsEngine->pHeightScale.get() - surfaceHeight;
 
       if (!std::isnan(polar.x) && !std::isnan(polar.y) && !std::isnan(heightDiff)) {
-        mGuiManager->getFooter()->callJavascript("set_user_position",
+        mGuiManager->getFooter()->callJavascript("setUserPosition",
             cs::utils::convert::toDegrees(polar.x), cs::utils::convert::toDegrees(polar.y),
             heightDiff);
-        mGuiManager->getTimeline()->callJavascript("set_user_position",
+        mGuiManager->getTimeline()->callJavascript("setUserPosition",
             cs::utils::convert::toDegrees(polar.x), cs::utils::convert::toDegrees(polar.y),
             heightDiff);
       }
@@ -674,7 +674,7 @@ void Application::FrameUpdate() {
         angle = -angle;
       }
 
-      mGuiManager->getTimeline()->callJavascript("set_north_direction", angle);
+      mGuiManager->getTimeline()->callJavascript("setNorthDirection", angle);
     }
 
     mGuiManager->update();

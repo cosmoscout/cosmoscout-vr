@@ -419,7 +419,7 @@ i {
   left: -20px;
 }
 
-#btnPaus {
+#btnPause {
   background-color: #ddf;
   border-radius: 50px 0 50px 0;
   width: 60px;
@@ -427,13 +427,13 @@ i {
   right: -20px;
 }
 
-#btnPaus:hover,
+#btnPause:hover,
 #expandControl:hover,
 #btnReset:hover  {
   background-color: white;
 }
 
-#btnPaus i,
+#btnPause i,
 #btnReset i {
   color: rgb(20, 20, 20);
   font-size: 24px;

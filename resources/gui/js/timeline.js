@@ -1,15 +1,15 @@
 // API calls - these should be called from C++ -----------------------------------------------------
 
 // Sets the timeline to the given date
-function set_date(date) {
+function setDate(date) {
 }
 
 // Prints a notifivcatio for the time-speed and changes the slider if the time is paused
-function set_time_speed(speed) {
+function setTimeSpeed(speed) {
 }
 
 // Adds a new event to the timeline
-function add_item(start, end, id, content, style, description, planet, place) {
+function addItem(start, end, id, content, style, description, planet, place) {
 }
 
 // Add a Button to the button bar
@@ -17,7 +17,7 @@ function add_item(start, end, id, content, style, description, planet, place) {
 // @param tooltip Tooltip text that gets shown if the button is hovered
 // @param callback Native function that gets called if the button is clicked. The function has
 //                  to be registered as callback before clicking the button.
-function add_button(icon, tooltip, callback) {
+function addButton(icon, tooltip, callback) {
     var button = document.createElement("a");
     button.setAttribute('class', "btn light-glass");
     button.setAttribute('data-toggle', 'tooltip');
@@ -32,16 +32,16 @@ function add_button(icon, tooltip, callback) {
     $('[data-toggle="tooltip"]').tooltip({ delay: 500, placement: "top", html: false });
 }
 
-function set_north_direction(angle) {
+function setNorthDirection(angle) {
     $("#compass-arrow").css("transform", "rotateZ(" + angle + "rad)");
 }
 
 // Sets the active planet
-function set_active_planet(center) {
+function setActivePlanet(center) {
 }
 
 // Sets the position of the user
-function set_user_position(long, lat, height) {
+function setUserPosition(long, lat, height) {
 }
 
 // timeline configuration --------------------------------------------------------------------------
@@ -79,9 +79,9 @@ let hourBack = -2;
 let dayBack = -3;
 let monthBack = -4;
 
-var timelineRangeFactor = 5000000;
-let maxRangeFactor = 10000000000;
-let minRangeFactor = 500;
+var timelineRangeFactor = 100000;
+let maxRangeFactor = 100000000;
+let minRangeFactor = 5;
 
 let redrawRate = 16.666666;
 let secSpeed = 0.0166666;
@@ -186,8 +186,8 @@ var overviewOptions = {
         remove: false,       // delete an item by tapping the delete button top right
         overrideItems: false  // allow these options to override item.editable
     },
-    onAdd: oveviewOnAddCallback,
-    onUpdate: oveviewOnUpdateCallback,
+    onAdd: overviewOnAddCallback,
+    onUpdate: overviewOnUpdateCallback,
     onMove: onItemMoveOverviewCallback
 }
 
@@ -266,45 +266,45 @@ document.getElementById("dateLabel").innerText = formatDateReadable(centerTime);
 moveWindow(secSpeed);
 
 // Sets the active planet
-function set_active_planet(center) {
+function setActivePlanet(center) {
     activePlanetCenter = center;
 }
 
 
-function format_number(number) {
+function formatNumber(number) {
     if (Math.abs(number) < 10) return number.toFixed(2);
     else if (Math.abs(number) < 100) return number.toFixed(1);
     else return number.toFixed(0)
 }
 
-function format_height(height) {
-    if (Math.abs(height) < 0.1) return format_number(height * 1000) + ' mm';
-    else if (Math.abs(height) < 1) return format_number(height * 100) + ' cm';
-    else if (Math.abs(height) < 1e4) return format_number(height) + ' m';
-    else if (Math.abs(height) < 1e7) return format_number(height / 1e3) + ' km';
-    else if (Math.abs(height) < 1e10) return format_number(height / 1e6) + ' Tsd km';
-    else if (Math.abs(height / 1.496e11) < 1e4) return format_number(height / 1.496e11) + ' AU';
-    else if (Math.abs(height / 9.461e15) < 1e3) return format_number(height / 9.461e15) + ' ly';
-    else if (Math.abs(height / 3.086e16) < 1e3) return format_number(height / 3.086e16) + ' pc';
+function formatHeight(height) {
+    if (Math.abs(height) < 0.1) return formatNumber(height * 1000) + ' mm';
+    else if (Math.abs(height) < 1) return formatNumber(height * 100) + ' cm';
+    else if (Math.abs(height) < 1e4) return formatNumber(height) + ' m';
+    else if (Math.abs(height) < 1e7) return formatNumber(height / 1e3) + ' km';
+    else if (Math.abs(height) < 1e10) return formatNumber(height / 1e6) + ' Tsd km';
+    else if (Math.abs(height / 1.496e11) < 1e4) return formatNumber(height / 1.496e11) + ' AU';
+    else if (Math.abs(height / 9.461e15) < 1e3) return formatNumber(height / 9.461e15) + ' ly';
+    else if (Math.abs(height / 3.086e16) < 1e3) return formatNumber(height / 3.086e16) + ' pc';
 
-    return format_number(height / 3.086e19) + ' kpc';
+    return formatNumber(height / 3.086e19) + ' kpc';
 }
 
-function format_latitude(lat) {
+function formatLatitude(lat) {
     if (lat < 0)
         return (-lat).toFixed(2) + "° S ";
     else
         return (lat).toFixed(2) + "° N ";
 }
 
-function format_longitude(long) {
+function formatLongitude(long) {
     if (long < 0)
         return (-long).toFixed(2) + "° W ";
     else
         return (long).toFixed(2) + "° E ";
 }
 
-function set_user_position(long, lat, height) {
+function setUserPosition(long, lat, height) {
     userPosition.long = long;
     userPosition.lat = lat;
     userPosition.height = height;
@@ -327,7 +327,7 @@ function redrawTooltip(event) {
     });
 }
 
-// Starts redwawing the tooltip of an event
+// Starts redrawing the tooltip of an event
 async function startRedrawTooltip(event) {
     await redrawTooltip(event);
 }
@@ -336,7 +336,7 @@ var hoveredItem;
 var tooltipVisible = false;
 var hoveredHTMLEvent;
 
-//Shows a tooltip if an item is hovered
+// Shows a tooltip if an item is hovered
 function itemoverCallback(properties, overview) {
     document.getElementById("customTooltip").style.display = "block";
     tooltipVisible = true;
@@ -368,12 +368,12 @@ function itemoverCallback(properties, overview) {
     }
 }
 
-//Shows a tooltip if an item on the overview timeline is hovered
+// Shows a tooltip if an item on the overview timeline is hovered
 function itemoverOverviewCallback(properties) {
     itemoverCallback(properties, true);
 }
 
-// Cloes the tooltip if the mouse leaves the item and tooltip
+// Closes the tooltip if the mouse leaves the item and tooltip
 function itemoutCallback(properties) {
     if (properties.event.toElement.className != "custom-tooltip-container") {
         document.getElementById("customTooltip").style.display = "none";
@@ -382,19 +382,19 @@ function itemoutCallback(properties) {
     }
 }
 
-// Flys the observer to the location of the hovered item
+// Flies the observer to the location of the hovered item
 function travelToItemLocation() {
-    geo_code(false, hoveredItem.planet, hoveredItem.place, hoveredItem.content);
+    geoCode(false, hoveredItem.planet, hoveredItem.place, hoveredItem.content);
 }
 
-//Hide the tooltip if the mouse leaves the tooltip
+// Hide the tooltip if the mouse leaves the tooltip
 function leaveCustomTooltip(event) {
     document.getElementById("customTooltip").style.display = "none";
     tooltipVisible = false;
     hoveredHTMLEvent.classList.remove('mouseOver');
 }
 
-//snapp back items iv they were dragged with the mouse
+// Snap back items iv they were dragged with the mouse
 function onItemMoveCallback(item, callback) {
     callback(null);
 }
@@ -411,8 +411,8 @@ function closeForm() {
     overviewTimeLine.setOptions(editingDoneOpt);
 }
 
-//Creates/Updates a evnt with the user inputs
-var wrongInpuStyle = "2px solid red";
+// Creates/Updates a event with the user inputs
+var wrongInputStyle = "2px solid red";
 function applyEvent() {
     if (document.getElementById("eventName").value != ""
         && document.getElementById("eventStartDate").value != ""
@@ -429,7 +429,7 @@ function applyEvent() {
             var diff = parHolder.item.start - parHolder.item.end;
             if (diff >= 0) {
                 parHolder.item.end = null;
-                document.getElementById("eventEndDate").style.border = wrongInpuStyle;
+                document.getElementById("eventEndDate").style.border = wrongInputStyle;
                 return;
             } else {
                 document.getElementById("eventEndDate").style.border = "";
@@ -459,24 +459,24 @@ function applyEvent() {
         }
     } else {
         if (document.getElementById("eventName").value == "") {
-            document.getElementById("eventName").style.border = wrongInpuStyle;
+            document.getElementById("eventName").style.border = wrongInputStyle;
         } else {
             document.getElementById("eventName").style.border = "";
         }
         if (document.getElementById("eventStartDate").value == "") {
-            document.getElementById("eventStartDate").style.border = wrongInpuStyle;
+            document.getElementById("eventStartDate").style.border = wrongInputStyle;
         } else {
             document.getElementById("eventStartDate").style.border = "";
         }
         if (document.getElementById("descriptionInput").value == "") {
-            document.getElementById("descriptionInput").style.border = wrongInpuStyle;
+            document.getElementById("descriptionInput").style.border = wrongInputStyle;
         } else {
             document.getElementById("descriptionInput").style.border = "";
         }
     }
 }
 
-//Called when an item is about to be updated
+// Called when an item is about to be updated
 function onUpdateCallback(item, callback, overview) {
     document.getElementById("eventName").style.border = "";
     document.getElementById("eventStartDate").style.border = "";
@@ -498,9 +498,8 @@ function onUpdateCallback(item, callback, overview) {
     parHolder.item = item;
     parHolder.callback = callback;
     parHolder.overview = overview;
-    setPaus();
+    setPause();
 }
-
 
 // Called when an item is about to be added
 function onAddCallback(item, callback, overview) {
@@ -516,22 +515,22 @@ function onAddCallback(item, callback, overview) {
     document.getElementById("eventEndDate").value = "";
     document.getElementById("descriptionInput").value = "";
     document.getElementById("planetInput").value = activePlanetCenter;
-    document.getElementById("placeInput").value = format_longitude(userPosition.long) + format_latitude(userPosition.lat) + format_height(userPosition.height);
+    document.getElementById("placeInput").value = formatLongitude(userPosition.long) + formatLatitude(userPosition.lat) + formatHeight(userPosition.height);
     parHolder.item = item;
     parHolder.callback = callback;
     parHolder.overview = overview;
-    setPaus();
+    setPause();
 }
 
-function oveviewOnUpdateCallback(item, callback) {
+function overviewOnUpdateCallback(item, callback) {
     onUpdateCallback(item, callback, true);
 }
 
-function oveviewOnAddCallback(item, callback, overview) {
+function overviewOnAddCallback(item, callback, overview) {
     onAddCallback(item, callback, true);
 }
 
-//Sets the min and max date for the timeline
+// Sets the min and max date for the timeline
 function setTimelineRange(min, max) {
     var rangeOpt = {
         min: min,
@@ -561,7 +560,6 @@ function mouseUpCallback() {
     mouseOnTimelineDown = false;
 }
 
-
 // Callbacks to differ between a Click on the overview timeline and the user dragging the overview timeline
 function overviewMouseDownCallback() {
     click = true;
@@ -590,7 +588,7 @@ function overviewChangeCallback() {
 function rangechangeCallback(properties) {
     if (properties.byUser && String(properties.event) != "[object WheelEvent]") {
         if (currentSpeed != paus) {
-            setPaus();
+            setPause();
         }
         click = false;
         var dif = properties.start.getTime() - mouseDownLeftTime.getTime();
@@ -599,7 +597,7 @@ function rangechangeCallback(properties) {
         var step = convertSeconds(secondsDif);
         var date = new Date(centerTime.getTime());
         date = increaseDate(date, step.days, step.hours, step.minutes, step.seconds, step.milliSec);
-        set_date_local(date);
+        setDateLocal(date);
         mouseDownLeftTime = new Date(properties.start.getTime());
         window.call_native("add_hours_without_animation", hoursDif);
     }
@@ -609,7 +607,7 @@ async function initialOverviewWindow(start, end) {
     overviewTimeLine.setWindow(start, end, animationFalse);
 }
 
-//Sets the custom times on the overview that represent the left and right time on the timeline
+// Sets the custom times on the overview that represent the left and right time on the timeline
 function setOverviewTimes() {
     overviewTimeLine.setCustomTime(timeline.getWindow().end, rightTimeId);
     overviewTimeLine.setCustomTime(timeline.getWindow().start, leftTimeId);
@@ -629,7 +627,7 @@ function onSelect(properties) {
                 hoursDif += 1;
             }
             window.call_native("add_hours", hoursDif);
-            geo_code(true, items._data[item].planet, items._data[item].place, items._data[item].content);
+            geoCode(true, items._data[item].planet, items._data[item].place, items._data[item].content);
         }
     }
 }
@@ -653,7 +651,7 @@ async function startRedrawSnipped() {
     await redrawSnipped();
 }
 
-function add_item(start, end, id, content, style, description, planet, place) {
+function addItem(start, end, id, content, style, description, planet, place) {
     var data = new Object();
     data.start = new Date(start);
     data.id = id;
@@ -673,7 +671,7 @@ function add_item(start, end, id, content, style, description, planet, place) {
     itemsOverview.update(data);
 }
 
-//Change the time to the clicked cvalue
+// Change the time to the clicked value
 function generalOnClick(properties) {
     if (properties.what != "item" && properties.time != null) {
         var dif = properties.time.getTime() - centerTime.getTime();
@@ -687,14 +685,14 @@ function generalOnClick(properties) {
     }
 }
 
-//called if the timeline is clicked
+// Called if the timeline is clicked
 function onClickCallback(properties) {
     if (click) {
         generalOnClick(properties);
     }
 }
 
-//called if the overview is clicked
+// Called if the overview is clicked
 function onOverviewClick(properties) {
     if (click) {
         generalOnClick(properties);
@@ -704,12 +702,12 @@ function onOverviewClick(properties) {
 // Sets the time to a specific date
 function setTimeToDate(date) {
     date.setHours(middleOfDay);
-    window.call_native("set_date", formatDateCosmo(new Date(date.getTime())));
+    window.call_native("setDate", formatDateCosmo(new Date(date.getTime())));
     var startDate = new Date(date.getTime());
     var endDate = new Date(date.getTime());
     startDate.setHours(startOfDay);
     endDate.setHours(endOfDay);
-    setPaus();
+    setPause();
     timeline.setWindow(startDate, endDate, animationFalse);
     setOverviewTimes();
 }
@@ -733,14 +731,15 @@ function minusOneMinute() {
 function plusOneHour() {
     window.call_native("add_hours_without_animation", 1);
 }
+
 function minusOneHour() {
     window.call_native("add_hours_without_animation", -1);
 }
 
 function plusOneDay() {
     window.call_native("add_hours_without_animation", dayInHours);
-
 }
+
 function minusOneDay() {
     window.call_native("add_hours_without_animation", -dayInHours);
 }
@@ -752,6 +751,7 @@ function plusOneMonth() {
     var hoursDif = dif / 1000 / 60 / 60;
     window.call_native("add_hours_without_animation", hoursDif);
 }
+
 function minusOneMonth() {
     var date = new Date(centerTime.getTime());
     centerTime.setMonth(centerTime.getMonth() - 1);
@@ -767,6 +767,7 @@ function plusOneYear() {
     var hoursDif = dif / 1000 / 60 / 60;
     window.call_native("add_hours_without_animation", hoursDif);
 }
+
 function minusOneYear() {
     var date = new Date(centerTime.getTime());
     centerTime.setFullYear(centerTime.getFullYear() - 1);
@@ -775,11 +776,10 @@ function minusOneYear() {
     window.call_native("add_hours_without_animation", hoursDif);
 }
 
-
-// Moves the displayed time window and sizes the time range according to the simulation speed
-function moveWindow(seconds) {
+// Moves the displayed time window and sizes the time range according to the zoom factor
+function moveWindow() {
     var step;
-    step = convertSeconds(seconds * timelineRangeFactor);
+    step = convertSeconds(timelineRangeFactor);
     var startDate = new Date(centerTime.getTime());
     var endDate = new Date(centerTime.getTime());
     startDate = decreaseDate(startDate, step.days, step.hours, step.minutes, step.seconds, step.milliSec);
@@ -787,7 +787,7 @@ function moveWindow(seconds) {
     timeline.setWindow(startDate, endDate, animationFalse);
 }
 
-function set_date(date) {
+function setDate(date) {
     centerTime = new Date(date);
     timeline.moveTo(centerTime, animationFalse);
     timeline.setCustomTime(centerTime, timeId);
@@ -795,8 +795,8 @@ function set_date(date) {
     document.getElementById("dateLabel").innerText = formatDateReadable(centerTime);
 }
 
-//Changes the shown date to a given date without synchronizing with CosmoScoutVR
-function set_date_local(date) {
+// Changes the shown date to a given date without synchronizing with CosmoScout VR
+function setDateLocal(date) {
     centerTime = new Date(date);
     timeline.moveTo(centerTime, animationFalse);
     timeline.setCustomTime(centerTime, timeId);
@@ -804,52 +804,47 @@ function set_date_local(date) {
     document.getElementById("dateLabel").innerText = formatDateReadable(centerTime);
 }
 
-var time_speed = 1.0;
-let hour_speed = 3600;
-let day_speed = 86400;
-let month_speed = 2628000;
-function set_time_speed(speed) {
+function setTimeSpeed(speed) {
     $("#play-pause-icon").text("pause");
     if (speed == 0.0) {
         $("#play-pause-icon").text("play_arrow");
-        setPaus();
+        setPause();
         window.call_native("print_notification", "Pause", "Time is paused.", "pause");
     } else if (speed == 1.0) {
         window.call_native("print_notification", "Speed: Realtime", "Time runs in realtime.", "play_arrow");
-    } else if (speed == hour_speed) {
+    } else if (speed == 3600) {
         window.call_native("print_notification", "Speed: Hour/s", "Time runs at one hour per second.", "fast_forward");
-    } else if (speed == day_speed) {
+    } else if (speed == 86400) {
         window.call_native("print_notification", "Speed: Day/s", "Time runs at one day per second.", "fast_forward");
-    } else if (speed == month_speed) {
+    } else if (speed == 2628000) {
         window.call_native("print_notification", "Speed: Month/s", "Time runs at one month per second.", "fast_forward");
     } else if (speed == -1.0) {
         window.call_native("print_notification", "Speed: -Realtime", "Time runs backwards in realtime.", "fast_rewind");
-    } else if (speed == -hour_speed) {
+    } else if (speed == -3600) {
         window.call_native("print_notification", "Speed: -Hour/s", "Time runs backwards at one hour per second.", "fast_rewind");
-    } else if (speed == -day_speed) {
+    } else if (speed == -86400) {
         window.call_native("print_notification", "Speed: -Day/s", "Time runs backwards at one day per second.", "fast_rewind");
-    } else if (speed == -month_speed) {
+    } else if (speed == -2628000) {
         window.call_native("print_notification", "Speed: -Month/s", "Time runs backwards at one month per second.", "fast_rewind");
     }
 
-    time_speed = speed;
+    timeSpeed = speed;
 }
 
-
 // Pauses the simulation
-function setPaus() {
+function setPause() {
     currentSpeed = paus;
-    window.call_native("set_time_speed", 0);
-    document.getElementById("btnPaus").innerHTML = '<i class="material-icons">play_arrow</i>';
+    window.call_native("setTimeSpeed", 0);
+    document.getElementById("btnPause").innerHTML = '<i class="material-icons">play_arrow</i>';
     document.getElementsByClassName("range-label")[0].innerHTML = '<i class="material-icons">pause</i>';
     timeline.setOptions(pausOpt);
     timelineZoomBlocked = false;
     startRedrawSnipped();
 }
 
-function togglePaus() {
+function togglePause() {
     if (currentSpeed != paus) {
-        setPaus();
+        setPause();
     } else {
         if (lastPlayValue == paus) {
             lastPlayValue = secForw;
@@ -864,7 +859,7 @@ function decreaseSpeed() {
     if (range.noUiSlider.get() > paus) {
         range.noUiSlider.set(secBack);
     } else if (currentSpeed == paus) {
-        togglePaus();
+        togglePause();
     } else {
         range.noUiSlider.set(currentSpeed - 1);
     }
@@ -875,7 +870,7 @@ function increaseSpeed() {
     if (range.noUiSlider.get() < paus) {
         range.noUiSlider.set(secForw);
     } else if (currentSpeed == paus) {
-        togglePaus();
+        togglePause();
     } else {
         if (currentSpeed == secBack) {
             range.noUiSlider.set(secForw);
@@ -894,7 +889,7 @@ function rangeUpdateCallback() {
         return;
     }
 
-    document.getElementById("btnPaus").innerHTML = '<i class="material-icons">pause</i>';
+    document.getElementById("btnPause").innerHTML = '<i class="material-icons">pause</i>';
     timeline.setOptions(playingOpt);
     timelineZoomBlocked = true;
     if (parseInt(currentSpeed) < paus) {
@@ -903,38 +898,32 @@ function rangeUpdateCallback() {
         document.getElementsByClassName("range-label")[0].innerHTML = '<i class="material-icons">chevron_right</i>';
     }
 
+    moveWindow(monthSpeed);
+
     switch (parseInt(currentSpeed)) {
         case monthBack:
-            window.call_native("set_time_speed", -monthInSec);
-            moveWindow(monthSpeed);
+            window.call_native("setTimeSpeed", -monthInSec);
             break;
         case dayBack:
-            window.call_native("set_time_speed", -dayInSec);
-            moveWindow(daySpeed);
+            window.call_native("setTimeSpeed", -dayInSec);
             break;
         case hourBack:
-            window.call_native("set_time_speed", -hourInSec);
-            moveWindow(hourSpeed);
+            window.call_native("setTimeSpeed", -hourInSec);
             break;
         case secBack:
-            window.call_native("set_time_speed", secBack);
-            moveWindow(secSpeed);
+            window.call_native("setTimeSpeed", secBack);
             break;
         case secForw:
-            window.call_native("set_time_speed", secForw);
-            moveWindow(secSpeed);
+            window.call_native("setTimeSpeed", secForw);
             break;
         case hourForw:
-            window.call_native("set_time_speed", hourInSec);
-            moveWindow(hourSpeed);
+            window.call_native("setTimeSpeed", hourInSec);
             break;
         case dayForw:
-            window.call_native("set_time_speed", dayInSec);
-            moveWindow(daySpeed);
+            window.call_native("setTimeSpeed", dayInSec);
             break;
         case monthForw:
-            window.call_native("set_time_speed", monthInSec);
-            moveWindow(monthSpeed);
+            window.call_native("setTimeSpeed", monthInSec);
             break;
         default:
         // code block
@@ -1037,7 +1026,7 @@ document.getElementById("btnDecreaseMonth").onclick = minusOneMonth;
 document.getElementById("btnIncreaseYear").onclick = plusOneYear;
 document.getElementById("btnDecreaseYear").onclick = minusOneYear;
 
-document.getElementById("btnPaus").onclick = togglePaus;
+document.getElementById("btnPause").onclick = togglePause;
 document.getElementById("btnDecreaseSpeed").onclick = decreaseSpeed;
 document.getElementById("btnIncreaseSpeed").onclick = increaseSpeed;
 
