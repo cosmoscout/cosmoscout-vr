@@ -105,27 +105,29 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
   // Now create the actual GuiItems and add them to the previously created GuiAreas ----------------
 
   mLoadingScreen = new gui::GuiItem("file://../share/resources/gui/loading_screen.html");
-  mCalendar      = new gui::GuiItem("file://../share/resources/gui/calendar.html");
   mSideBar       = new gui::GuiItem("file://../share/resources/gui/sidebar.html");
-  mHeaderBar     = new gui::GuiItem("file://../share/resources/gui/header.html");
+  mFooter        = new gui::GuiItem("file://../share/resources/gui/footer.html");
   mNotifications = new gui::GuiItem("file://../share/resources/gui/notifications.html");
   mLogo          = new gui::GuiItem("file://../share/resources/gui/logo.html");
   mStatistics    = new gui::GuiItem("file://../share/resources/gui/statistics.html");
+  mTimeline      = new gui::GuiItem("file://../share/resources/gui/timeline.html");
 
   // Except for mStatistics, all GuiItems are attached to the global world-space GuiArea if it is
   // available. If not, they are added to the local screen-space GuiArea.
   if (mGlobalGuiArea) {
     mGlobalGuiArea->addItem(mLogo);
     mGlobalGuiArea->addItem(mNotifications);
+    mGlobalGuiArea->addItem(mFooter);
     mGlobalGuiArea->addItem(mSideBar);
-    mGlobalGuiArea->addItem(mHeaderBar);
-    mGlobalGuiArea->addItem(mCalendar);
+    mGlobalGuiArea->addItem(mTimeline);
+    mGlobalGuiArea->addItem(mLoadingScreen);
   } else {
     mLocalGuiArea->addItem(mLogo);
     mLocalGuiArea->addItem(mNotifications);
+    mLocalGuiArea->addItem(mFooter);
     mLocalGuiArea->addItem(mSideBar);
-    mLocalGuiArea->addItem(mHeaderBar);
-    mLocalGuiArea->addItem(mCalendar);
+    mLocalGuiArea->addItem(mTimeline);
+    mLocalGuiArea->addItem(mLoadingScreen);
   }
 
   mLocalGuiArea->addItem(mStatistics);
@@ -133,16 +135,6 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
   // Configure attributes of the loading screen. Per default, GuiItems are drawn full-screen in
   // their GuiAreas.
   mLoadingScreen->setIsInteractive(false);
-
-  // Configure the positioning and attributes of the calendar.
-  mCalendar->setSizeX(500);
-  mCalendar->setSizeY(400);
-  mCalendar->setOffsetX(0);
-  mCalendar->setOffsetY(250);
-  mCalendar->setRelPositionY(0.f);
-  mCalendar->setRelPositionX(0.5f);
-  mCalendar->setIsInteractive(false);
-  mCalendar->setCursorChangeCallback([this](gui::Cursor c) { setCursor(c); });
 
   // Configure the positioning and attributes of the side-bar.
   mSideBar->setSizeX(500);
@@ -153,13 +145,18 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
   mSideBar->setRelOffsetY(-0.5f);
   mSideBar->setCursorChangeCallback([this](gui::Cursor c) { setCursor(c); });
 
-  // Configure the positioning and attributes of the header-bar.
-  mHeaderBar->setRelSizeX(1.f);
-  mHeaderBar->setSizeY(80);
-  mHeaderBar->setRelPositionX(0.5);
-  mHeaderBar->setRelPositionY(0);
-  mHeaderBar->setOffsetY(40);
-  mHeaderBar->setCursorChangeCallback([this](gui::Cursor c) { setCursor(c); });
+  mFooter->setRelSizeX(1.f);
+  mFooter->setSizeY(80);
+  mFooter->setRelPositionX(0.5);
+  mFooter->setRelPositionY(1.f);
+  mFooter->setCursorChangeCallback([this](gui::Cursor c) { setCursor(c); });
+
+  mTimeline->setRelSizeX(1.f);
+  mTimeline->setSizeY(644);
+  mTimeline->setRelPositionX(0.5);
+  mTimeline->setRelPositionY(0);
+  mTimeline->setOffsetY(322);
+  mTimeline->setCursorChangeCallback([this](gui::Cursor c) { setCursor(c); });
 
   // Configure the positioning and attributes of the notifications.
   mNotifications->setSizeX(420);
@@ -167,7 +164,7 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
   mNotifications->setRelPositionY(0.f);
   mNotifications->setRelPositionX(1.f);
   mNotifications->setOffsetX(-210);
-  mNotifications->setOffsetY(200);
+  mNotifications->setOffsetY(250);
   mNotifications->setIsInteractive(false);
 
   // Configure the positioning and attributes of the logo.
@@ -191,10 +188,10 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
   // Now we will call some JavaScript methods - so we have to wait until the GuiItems have been
   // fully loaded.
   mSideBar->waitForFinishedLoading();
-  mHeaderBar->waitForFinishedLoading();
+  mFooter->waitForFinishedLoading();
+  mTimeline->waitForFinishedLoading();
   mNotifications->waitForFinishedLoading();
   mLoadingScreen->waitForFinishedLoading();
-  mCalendar->waitForFinishedLoading();
 
   // Create a string which contains the current version number of CosmoScout VR. This string is then
   // shown on the loading screen.
@@ -217,17 +214,33 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
       mLocalGuiArea->removeItem(mLoadingScreen);
     }
   });
+
+  // Set settings for the time Navigation
+  mTimeline->callJavascript("setTimelineRange", settings->mMinDate, settings->mMaxDate);
+
+  for (int i = 0; i < settings->mEvents.size(); i++) {
+    std::string planet = "";
+    std::string place  = "";
+    if (settings->mEvents.at(i).mLocation.has_value()) {
+      planet = settings->mEvents.at(i).mLocation.value().mPlanet;
+      place  = settings->mEvents.at(i).mLocation.value().mPlace;
+    }
+    addEventToTimenavigationBar(settings->mEvents.at(i).mStart, settings->mEvents.at(i).mEnd,
+        settings->mEvents.at(i).mId, settings->mEvents.at(i).mContent,
+        settings->mEvents.at(i).mStyle, settings->mEvents.at(i).mDescription, planet, place);
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 GuiManager::~GuiManager() {
   delete mSideBar;
-  delete mHeaderBar;
+  delete mFooter;
   delete mNotifications;
   delete mLogo;
   delete mGlobalGuiArea;
   delete mViewportUpdater;
+  delete mTimeline;
 
   mInputManager->unregisterSelectable(mLocalGuiOpenGLnode);
 
@@ -292,14 +305,14 @@ gui::GuiItem* GuiManager::getSideBar() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-gui::GuiItem* GuiManager::getCalendar() const {
-  return mCalendar;
+gui::GuiItem* GuiManager::getFooter() const {
+  return mFooter;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-gui::GuiItem* GuiManager::getHeaderBar() const {
-  return mHeaderBar;
+gui::GuiItem* GuiManager::getTimeline() const {
+  return mTimeline;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -453,6 +466,13 @@ void GuiManager::addScriptToSideBar(std::string const& src) {
 void GuiManager::addScriptToSideBarFromJS(std::string const& jsFile) {
   std::string content = utils::filesystem::loadToString(jsFile);
   addScriptToSideBar(content);
+}
+
+void GuiManager::addEventToTimenavigationBar(std::string start, std::optional<std::string> end,
+    std::string id, std::string content, std::optional<std::string> style, std::string description,
+    std::string planet, std::string place) {
+  mTimeline->callJavascript("addItem", start, end.value_or(""), id, content, style.value_or(""),
+      description, planet, place);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -1,0 +1,726 @@
+/* main timeline styles ------------------------------------------------------------------------- */
+
+#timeline {
+  -webkit-font-smoothing: subpixel-antialiased;
+}
+
+.vis-timeline {
+  border-width: 0px;
+  background-color: rgba(20, 20, 20, 0.5);
+}
+
+#timeline .vis-timeline {
+  border-width: 0;
+  border-color: #ddf;
+  overflow: visible !important;
+}
+
+#timeline .vis-time-axis {
+  pointer-events: none;
+}
+
+.vis-time-axis .vis-text {
+  padding: 1px;
+  color: #ddf;
+}
+
+#timeline .vis-item {
+  border-color: rgba(20, 20, 20, 0.308);
+  background-color: rgba(20, 20, 20, 0.5);
+  color: #ddf;
+  border-radius: 10px;
+}
+
+#timeline .vis-item,
+#timeline .vis-item.vis-line {
+  border-width: 2px;
+  border-radius: 10px;
+}
+
+#timeline .vis-item.vis-dot {
+  border-width: 0;
+  border-radius: 0;
+}
+
+#timeline .vis-item.vis-selected {
+  border-color: rgba(70, 70, 70, 0.308);
+  background-color: rgba(70, 70, 70, .247);
+}
+
+#timeline .vis-item.vis-box,
+.vis-item.vis-range {
+  height: 12px !important;
+  min-width: 12px !important;
+  top: 4px !important
+}
+
+#timeline .vis-item.vis-box {
+  width: 12px !important;
+}
+
+#timeline .vis-item.vis-box.mouseOver {
+  width: 18px !important;
+  height: 18px !important;
+  margin-left: -3px;
+  top: 1px !important;
+}
+
+#timeline .vis-item.vis-range.mouseOver {
+  height: 18px !important;
+  margin-left: -3px;
+  top: 1px !important;
+  min-width: 18px !important;
+}
+
+
+#timeline .vis-item-content {
+  visibility: hidden;
+}
+
+
+#timeline .vis-panel.vis-bottom {
+  height: 35px !important;
+  top: 0px !important;
+  pointer-events: none;
+  border-left-style: hidden;
+  border-right-style: hidden;
+}
+
+#timeline .vis-text.vis-major {
+  top: 7px !important;
+  font-size: 9px;
+  margin-left: 4px;
+}
+
+#timeline .vis-panel.vis-background.vis-horizontal,
+#timeline .vis-panel.vis-center,
+#timeline .vis-panel.vis-left,
+#timeline .vis-panel.vis-right,
+#timeline .vis-grid.vis-minor {
+  height: 35px !important;
+}
+
+#timeline .vis-group {
+  top: 3px;
+}
+
+#timeline .vis-custom-time.custom {
+  background-color: #ddf;
+  width: 16px !important;
+  height: 16px !important;
+  cursor: inherit;
+  pointer-events: none;
+  border-radius: 10px;
+  top: -8px !important;
+  margin-left: -8px !important;
+}
+
+#timeline .vis-minor.vis-text {
+  z-index: 1;
+  top: 18px !important;
+  font-size: 12px;
+  margin-left: 4px;
+}
+
+#timeline .vis-content {
+  top: 0px !important;
+}
+
+#timeline .vis-grid.vis-vertical.vis-minor {
+  border-color: #ddf;
+  height: 12px !important;
+  top: 22px !important;
+  border-width: 2px;
+}
+
+#timeline .vis-grid.vis-vertical.vis-major{
+  border-color: #ddf;
+  height: 30px !important;
+  top: 4px !important;
+  border-width: 2px;
+}
+
+#timeline .vis-panel.vis-center{
+  border-width: 0px;
+}
+
+#timeline:hover {
+  background-color: rgba(230, 230, 255, 0.3);
+}
+
+#timeline:active {
+  top: 1px;
+}
+
+/* overview timeline styles --------------------------------------------------------------------- */
+
+#overview .vis-timeline {
+  border-width: 0px;
+  background: rgba(20, 20, 20, 0);
+}
+
+#overview .vis-custom-time {
+  background-color: rgba(0, 110, 255, 0);
+  width: 2px;
+  cursor: move;
+  z-index: 1;
+  pointer-events: none;
+}
+
+#overview .vis-time-axis.vis-background {
+  height: 5px;
+  top: 22px;
+}
+
+#overview .vis-time-axis.vis-foreground {
+  height: 43px !important;
+}
+
+#overview .vis-item {
+  background-color: rgba(0, 0, 0, 0.705);
+}
+
+#overview .vis-item,
+#overview .vis-item.vis-line {
+  border-width: 2px;
+  border-radius: 10px;
+  z-index: 5;
+}
+
+#overview .vis-item.vis-dot {
+  border-width: 0;
+  border-radius: 0;
+}
+
+#overview .vis-item.vis-box,
+#overview .vis-item.vis-range {
+  height: 12px !important;
+  top: 13px !important;
+  min-width: 12px !important;
+  margin-left: 2px;
+}
+
+#overview .vis-panel.vis-bottom {
+  height: 40px !important;
+  top: -2px !important;
+  pointer-events: none;
+}
+
+#overview .vis-panel.vis-center {
+  border-style: dashed;
+  overflow: visible;
+  z-index: 1;
+}
+
+
+#overview .vis-item.vis-box {
+  width: 12px !important;
+}
+
+#overview .vis-item.vis-box.mouseOver {
+  width: 18px !important;
+  height: 18px !important;
+  margin-left: -1px;
+  top: 10px !important;
+}
+
+#overview .vis-item.vis-range.mouseOver {
+  height: 18px !important;
+  margin-left: -1px;
+  top: 10px !important;
+  min-width: 18px !important;
+}
+
+#overview .vis-item-content {
+  visibility: hidden;
+}
+
+#overview .vis-text.vis-major {
+  top: 26px !important;
+  font-size: 10px;
+  z-index: 1;
+}
+
+#overview .vis-panel.vis-background.vis-horizontal,
+#overview .vis-panel.vis-center,
+#overview .vis-panel.vis-left,
+#overview .vis-panel.vis-right,
+#overview .vis-grid.vis-minor {
+  height: 26px !important;
+}
+
+#overview .vis-group {
+  top: 6px;
+}
+
+#overview .vis-content {
+  top: 0px !important;
+}
+
+#overview .vis-minor.vis-text {
+  text-align: center;
+  transform: translate(-50%);
+  z-index: 1;
+  top: 8px !important;
+  font-size: 10px;
+}
+
+#overview .vis-grid.vis-vertical.vis-major,
+#overview .vis-grid.vis-vertical.vis-minor {
+  width: 5px !important;
+  height: 5px !important;
+  border-radius: 50% !important;
+  background-color: #ddf;
+  z-index: 1;
+  top: 0px !important;
+}
+
+#overview:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+#overview:active {
+  top: 1px;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* overview focus rect -------------------------------------------------------------------------- */
+
+#focusLens {
+  background: transparent;
+  border-style: solid;
+  border-width: 3px 3px 0 3px;
+  border-top-left-radius:10px;
+  border-top-right-radius:10px;
+  border-color: #ddf;
+  pointer-events: none;
+  background-color: rgba(20, 20, 20, 0.5);
+}
+
+#focusLensLeft,
+#focusLensRight {
+  height: 1px;
+  border-bottom: 2px solid #ddf;
+  position: absolute;
+  pointer-events: none;
+}
+
+#focusLensLeft {
+  left: 0px;
+}
+
+#focusLensRight {
+  right: 0px;
+}
+
+/* timeline control items ----------------------------------------------------------------------- */
+
+#timelineContainer {
+  position: absolute;
+  top: -43px;
+  left: 0px;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  transition: top 0.3s;
+  transition-timing-function: ease;
+  background-image:linear-gradient(180deg,rgba(20, 20, 20, 0.4) 80%, rgba(20, 20, 20, 0.0)  100%);
+  height: 110px;
+}
+
+#timelineContainer.visible {
+  top: 0px;
+}
+
+#bottomBorderLeft {
+  top: 75px;
+  height: 2px;
+  position: absolute;
+  background-color: #ddf;
+  width: 50%;
+  left: 0;
+  transform: translateX(-175px);
+}
+
+#bottomBorderRight {
+  top: 75px;
+  height: 2px;
+  position: absolute;
+  background-color: #ddf;
+  width: 50%;
+  left: 50%;
+  transform: translateX(175px);
+}
+
+#compass-arrow {
+  background-image: url("../img/compass.png");
+  width: 25px;
+  height: 25px;
+  background-size: contain;
+  display: inline-block;
+}
+
+#calendar {
+  pointer-events: none;
+  z-index: -1;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 500px;
+  height: 382px;
+  top: 150px;
+  transition: opacity 0.2s;
+  transition-timing-function: ease-out;
+}
+
+.datepicker-inline {
+  height: 382px;
+}
+
+#calendar.visible{
+  z-index: 10;
+  pointer-events: all;
+}
+
+i {
+  position: relative;
+}
+
+.item {
+  position: absolute;
+  display: inline-block;
+}
+
+.btn {
+  padding: 4px 4px 0 4px;
+  line-height: 35px;
+  border-radius: 0;
+  color: #ddf
+}
+
+#timeControl {
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(20, 20, 20, 0.5);
+  border-radius: 0 0 50px 50px;
+  border-bottom-color: #ddf;
+  border-bottom-width: 2px;
+  border-bottom-style: solid;
+  width: 330px;
+  text-align: center;
+  height: 40px;
+}
+
+#btnReset {
+  background-color: #ddf;
+  border-radius: 0 50px 0 50px;
+  width: 60px;
+  height: 40px;
+  left: -20px;
+}
+
+#btnPause {
+  background-color: #ddf;
+  border-radius: 50px 0 50px 0;
+  width: 60px;
+  height: 40px;
+  right: -20px;
+}
+
+#btnPause:hover,
+#expandControl:hover,
+#btnReset:hover  {
+  background-color: white;
+}
+
+#btnPause i,
+#btnReset i {
+  color: rgb(20, 20, 20);
+  font-size: 24px;
+  top: 2px;
+}
+
+#btnCalendar {
+  position: absolute;
+  left: 54px;
+  z-index: 5;
+}
+
+#dateLabel {
+  font-size: 20px;
+  left: 15px;
+  position: relative;
+}
+
+#speedControl {
+  left: 50%;
+  width: 600px;
+  transform: translateX(-50%);
+  top: 82px;
+}
+
+#expandControl {
+  right: 20px;
+  background-color: #ddf;
+  border-radius: 0 0 3px 3px;
+  top: 75px;
+  height: 30px;
+  width: 32px;
+}
+
+#expandControl .btn {
+  height: 28px;
+  width: 28px;
+}
+
+#expandControl i {
+  color: rgb(20, 20, 20);
+  top: -3px;
+  margin-left: -2px;
+  font-size: 28px;
+}
+
+#decreaseControl {
+  left: 50%;
+  transform: translateX(-80px);
+  top: 90px;
+}
+
+#increaseControl {
+  left: 50%;
+  transform: translateX(-80px);
+  top: 84px;
+  pointer-events: none;
+}
+
+#decreaseControl a,
+#increaseControl a {
+  height: 20px;
+  width: 36px;
+  padding: 0px;
+  margin: 0px;
+  pointer-events: all;
+  border: 0px;
+  position: absolute;
+}
+
+#decreaseControl a {
+  top: 5px;
+}
+
+#increaseControl a {
+  top: -10px;
+}
+
+#decreaseControl a:active {
+  top: 6px;
+}
+
+#increaseControl a:active {
+  top: -9px;
+}
+
+#decreaseControl i,
+#increaseControl i {
+  opacity: 0;
+  transition: opacity 0.2s;
+  line-height: 1;
+  top: -1px;
+  pointer-events: none;
+}
+
+#increaseControl i {
+  top: -6px;
+}
+
+a:hover {
+  z-index: 10;
+}
+
+#btnIncreaseDay,
+#btnDecreaseDay {
+  left: -1px;
+}
+
+#btnIncreaseMonth,
+#btnDecreaseMonth {
+  left: 27px;
+}
+
+#btnIncreaseYear,
+#btnDecreaseYear {
+  left: 65px;
+}
+
+#btnIncreaseHour,
+#btnDecreaseHour {
+  left: 102px;
+}
+
+#btnIncreaseMinute,
+#btnDecreaseMinute {
+  left: 130px;
+}
+
+#btnIncreaseSecond,
+#btnDecreaseSecond {
+  left: 157px;
+}
+
+#decreaseControl.mouseNear i,
+#increaseControl.mouseNear i {
+  opacity: 1;
+}
+
+
+#speedDecreaseControl {
+  left: 50%;
+  transform: translate(-345px);
+  top: 74px;
+}
+
+#speedIncreaseControl {
+  left: 50%;
+  transform: translate(310px);
+  top: 74px;
+  height: 15px;
+}
+
+#speedIncreaseControl .btn,
+#speedDecreaseControl .btn {
+  font-size: 28px;
+}
+
+.range-label {
+  height: 50px !important;
+  width: 50px !important;
+  top: -33px !important;
+  left: -12px !important;
+  background-color: #ddf !important;
+}
+
+.range-label:hover {
+  background-color: white !important;
+}
+
+.range-label i {
+  color: rgb(20, 20, 20);
+  transform: rotate(45deg);
+  font-size: 50px;
+  top: 0px;
+  left: 0px;
+}
+
+.noUi-handle.noUi-handle-lower.noUi-active {
+  left: -5px;
+  top: -5px;
+  transition: none;
+}
+
+.noUi-target .noUi-active .range-label {
+  transform: scale(.5) rotate(-45deg);
+  background-color: white !important;
+}
+
+.noUi-target.noUi-ltr.noUi-horizontal.noUi-background {
+  background-color: transparent;
+  background-image:linear-gradient(90deg, rgba(221,211,255,0.5) 0%, rgba(221,211,255,0.5) 25%,
+                  rgba(0,0,0,0) 25%, rgba(0,0,0,0) 75%, 
+                  rgba(221,211,255,0.5) 75%, rgba(221,211,255,0.5) 100%);
+}
+
+#itemLocation{
+  text-decoration: underline;
+}
+
+/* big timeline tooltips ------------------------------------------------------------------------ */
+
+.customTooltip {
+  display: none;
+  position: absolute;
+  z-index: 9;
+}
+
+.custom-tooltip-container {
+  width: 300px;
+  padding: 10px;
+  background-color: rgba(20, 20, 20, 0.8);
+  border: 2px solid #ddf;
+  border-radius: 10px;
+}
+
+.custom-tooltip-container h3 {
+  text-align: center;
+}
+
+#itemLocation {
+  cursor: pointer;
+}
+
+#itemLocation:hover {
+  text-shadow: 0 0 20px #fff;
+}
+
+.tooltip {
+  pointer-events: none;
+}
+
+/* add-event dialog ----------------------------------------------------------------------------- */
+
+/* The popup form - hidden by default */
+.form-popup {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 9;
+}
+
+/* Add styles to the form container */
+.form-container {
+  max-width: 300px;
+  padding: 10px;
+  background-color: rgba(20, 20, 20, 0.8);
+}
+
+/* Full-width input fields */
+.form-container input[type=text]{
+  width: 100%;
+  padding: 5px;
+  margin: 5px 0 22px 0;
+  border: none;
+  background: #f1f1f1;
+  color: rgb(63, 59, 59);
+}
+
+/* Full-width input fields */
+.form-container input[type=colorPicker] {
+  margin: 5px 0 22px 0;
+  border: none;
+  width: 100%;
+  background: #f1f1f1;
+}
+
+/* When the inputs get focus, do something */
+.form-container input[type=text]:focus, .form-container input[type=password]:focus {
+  background-color: #ddd;
+  outline: none;
+}
+
+
+/* Set a style for the apply/cancel button*/
+.form-container .btn {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  margin-bottom:10px;
+  opacity: 0.8;
+}
+
+/* Add a red background color to the cancel button */
+.form-container .cancel {
+  background-color: red;
+}

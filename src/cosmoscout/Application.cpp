@@ -337,7 +337,7 @@ void Application::FrameUpdate() {
 
         // All plugins finished loading -> init their custom components.
         mGuiManager->getSideBar()->callJavascript("init");
-        mGuiManager->getHeaderBar()->callJavascript("init");
+        // mGuiManager->getHeaderBar()->callJavascript("init");
 
         // We will keep the loading screen active for some frames, as the first frames are usually a
         // bit choppy as data is uploaded to the GPU.
@@ -507,7 +507,10 @@ void Application::FrameUpdate() {
       double heightDiff    = polar.z / mGraphicsEngine->pHeightScale.get() - surfaceHeight;
 
       if (!std::isnan(polar.x) && !std::isnan(polar.y) && !std::isnan(heightDiff)) {
-        mGuiManager->getHeaderBar()->callJavascript("set_user_position",
+        mGuiManager->getFooter()->callJavascript("setUserPosition",
+            cs::utils::convert::toDegrees(polar.x), cs::utils::convert::toDegrees(polar.y),
+            heightDiff);
+        mGuiManager->getTimeline()->callJavascript("setUserPosition",
             cs::utils::convert::toDegrees(polar.x), cs::utils::convert::toDegrees(polar.y),
             heightDiff);
       }
@@ -524,7 +527,7 @@ void Application::FrameUpdate() {
         angle = -angle;
       }
 
-      mGuiManager->getHeaderBar()->callJavascript("set_north_direction", angle);
+      mGuiManager->getTimeline()->callJavascript("setNorthDirection", angle);
     }
 
     mGuiManager->update();
@@ -592,28 +595,28 @@ void Application::connectSlots() {
             auto lngLat = cs::utils::convert::toDegrees(polar.xy());
 
             if (!std::isnan(lngLat.x) && !std::isnan(lngLat.y) && !std::isnan(polar.z)) {
-              mGuiManager->getHeaderBar()->callJavascript("set_pointer_position", true, lngLat.x,
+              mGuiManager->getFooter()->callJavascript("set_pointer_position", true, lngLat.x,
                   lngLat.y, polar.z / mGraphicsEngine->pHeightScale.get());
               return;
             }
           }
         }
-        mGuiManager->getHeaderBar()->callJavascript("set_pointer_position", false);
+        mGuiManager->getFooter()->callJavascript("set_pointer_position", false);
       });
 
   // Update the time shown in the user interface when the simulation time changes.
   mTimeControl->pSimulationTime.onChange().connect([this](double val) {
     std::stringstream sstr;
     auto              facet = new boost::posix_time::time_facet();
-    facet->format("%d-%b-%Y %H:%M");
+    facet->format("%d-%b-%Y %H:%M:%S.%f");
     sstr.imbue(std::locale(std::locale::classic(), facet));
     sstr << cs::utils::convert::toBoostTime(val);
-    mGuiManager->getHeaderBar()->callJavascript("set_date", sstr.str());
+    mGuiManager->getTimeline()->callJavascript("setDate", sstr.str());
   });
 
   // Update the simulation time speed shown in the user interface.
   mTimeControl->pTimeSpeed.onChange().connect(
-      [this](float val) { mGuiManager->getHeaderBar()->callJavascript("set_time_speed", val); });
+      [this](float val) { mGuiManager->getTimeline()->callJavascript("setTimeSpeed", val); });
 
   // Show notification when the center name of the celestial observer changes.
   mSolarSystem->pObserverCenter.onChange().connect([this](std::string const& center) {
@@ -643,7 +646,7 @@ void Application::connectSlots() {
 
   // Show the current speed of the celestial observer in the user interface.
   mSolarSystem->pCurrentObserverSpeed.onChange().connect(
-      [this](float speed) { mGuiManager->getHeaderBar()->callJavascript("set_speed", speed); });
+      [this](float speed) { mGuiManager->getFooter()->callJavascript("set_speed", speed); });
 
   // Show the statistics GuiItem when measurements are enabled.
   mFrameTimings->pEnableMeasurements.onChange().connect(
@@ -679,7 +682,7 @@ void Application::registerGuiCallbacks() {
   // Sets the current simulation time. The argument must be a string accepted by
   // TimeControl::setTime.
   mGuiManager->getSideBar()->registerCallback<std::string>(
-      "set_date", ([this](std::string const& sDate) {
+      "setDate", ([this](std::string const& sDate) {
         double time = cs::utils::convert::toSpiceTime(boost::posix_time::time_from_string(sDate));
         mTimeControl->setTime(time);
       }));
@@ -779,19 +782,52 @@ void Application::registerGuiCallbacks() {
         ->SetVSyncEnabled(value);
   }));
 
-  // HeaderBar callbacks ---------------------------------------------------------------------------
+  // Timeline callbacks ----------------------------------------------------------------------------
+
+  mGuiManager->getTimeline()->registerCallback<std::string, std::string, std::string>(
+      "print_notification",
+      ([this](std::string const& title, std::string const& content, std::string const& icon) {
+        mGuiManager->showNotification(title, content, icon);
+      }));
+
+  mGuiManager->getTimeline()->registerCallback(
+      "reset_time", ([this]() { mTimeControl->resetTime(); }));
+
+  mGuiManager->getTimeline()->registerCallback<double>("add_hours", ([&](double amount) {
+    mTimeControl->setTime(mTimeControl->pSimulationTime.get() + 60.0 * 60.0 * amount);
+  }));
+
+  mGuiManager->getTimeline()->registerCallback<double>(
+      "add_hours_without_animation", ([&](double amount) {
+        mTimeControl->setTimeWithoutAnimation(
+            mTimeControl->pSimulationTime.get() + 60.0 * 60.0 * amount);
+      }));
+
+  mGuiManager->getTimeline()->registerCallback<std::string>(
+      "setDate", ([this](std::string const& date) {
+        mTimeControl->setTime(
+            cs::utils::convert::toSpiceTime(boost::posix_time::time_from_string(date)));
+      }));
+
+  mGuiManager->getTimeline()->registerCallback<double>(
+      "setTimeSpeed", ([&](double speed) { mTimeControl->setTimeSpeed((float)speed); }));
 
   // Flies the celestial observer to the given location in space.
-  mGuiManager->getHeaderBar()->registerCallback<std::string, std::string, double, double, double>(
-      "fly_to", [this](std::string const& center, std::string const& frame, double longitude,
-                    double latitude, double height) {
-        mSolarSystem->flyObserverTo(center, frame,
-            cs::utils::convert::toRadians(glm::dvec2(longitude, latitude)), height, 5.0);
-      });
+  mGuiManager->getTimeline()->registerCallback<std::string, double, double, double, double>(
+      "fly_to", ([this](std::string const& name, double longitude, double latitude, double height,
+                     double time) {
+        for (auto const& body : mSolarSystem->getBodies()) {
+          if (body->getCenterName() == name) {
+            mSolarSystem->pActiveBody = body;
+            mSolarSystem->flyObserverTo(body->getCenterName(), body->getFrameName(),
+                cs::utils::convert::toRadians(glm::dvec2(longitude, latitude)), height, time);
+          }
+        }
+      }));
 
   // Rotates the scene in such a way, that the y-axis points towards the north pole of the currently
   // active celestial body.
-  mGuiManager->getHeaderBar()->registerCallback("navigate_north_up", [this]() {
+  mGuiManager->getTimeline()->registerCallback("navigate_north_up", [this]() {
     auto observerPos = mSolarSystem->getObserver().getAnchorPosition();
 
     glm::dvec3 y = glm::vec3(0, -1, 0);
@@ -810,7 +846,7 @@ void Application::registerGuiCallbacks() {
   });
 
   // Rotates the scene in such a way, that the currently visible horizon is levelled.
-  mGuiManager->getHeaderBar()->registerCallback("navigate_fix_horizon", [this]() {
+  mGuiManager->getTimeline()->registerCallback("navigate_fix_horizon", [this]() {
     auto radii = cs::core::SolarSystem::getRadii(mSolarSystem->getObserver().getCenterName());
 
     if (radii[0] == 0.0) {
@@ -840,7 +876,7 @@ void Application::registerGuiCallbacks() {
   });
 
   // Flies the celestial observer to 0.1% of its current height.
-  mGuiManager->getHeaderBar()->registerCallback("navigate_to_surface", [this]() {
+  mGuiManager->getTimeline()->registerCallback("navigate_to_surface", [this]() {
     auto radii = cs::core::SolarSystem::getRadii(mSolarSystem->getObserver().getCenterName());
 
     if (radii[0] == 0.0 || radii[2] == 0.0) {
@@ -884,7 +920,7 @@ void Application::registerGuiCallbacks() {
 
   // Flies the celestial observer to an orbit at three times the radius of the currently active
   // celestial body.
-  mGuiManager->getHeaderBar()->registerCallback("navigate_to_orbit", [this]() {
+  mGuiManager->getTimeline()->registerCallback("navigate_to_orbit", [this]() {
     auto observerRot = mSolarSystem->getObserver().getAnchorRotation();
     auto radii       = cs::core::SolarSystem::getRadii(mSolarSystem->getObserver().getCenterName());
 
@@ -909,48 +945,6 @@ void Application::registerGuiCallbacks() {
     mSolarSystem->flyObserverTo(mSolarSystem->getObserver().getCenterName(),
         mSolarSystem->getObserver().getFrameName(), cart, rotation, 3.0);
   });
-
-  mGuiManager->getHeaderBar()->registerCallback(
-      "reset_time", ([this]() { mTimeControl->resetTime(); }));
-
-  mGuiManager->getHeaderBar()->registerCallback("toggle_time_stop", ([&]() {
-    float speed(mTimeControl->pTimeSpeed.get() == 0.f ? 1.f : 0.f);
-    mTimeControl->pTimeSpeed = speed;
-  }));
-
-  mGuiManager->getHeaderBar()->registerCallback<double>("add_hours", ([&](double amount) {
-    mTimeControl->setTime(mTimeControl->pSimulationTime.get() + 60.0 * 60.0 * amount);
-  }));
-
-  mGuiManager->getHeaderBar()->registerCallback<std::string, std::string, std::string>(
-      "print_notification",
-      ([this](std::string const& title, std::string const& content, std::string const& icon) {
-        mGuiManager->showNotification(title, content, icon);
-      }));
-
-  mGuiManager->getHeaderBar()->registerCallback("show_date_dialog", ([this]() {
-    if (mGuiManager->getCalendar()->getIsInteractive()) {
-      mGuiManager->getCalendar()->callJavascript("set_visible", false);
-      mGuiManager->getCalendar()->setIsInteractive(false);
-    } else {
-      mGuiManager->getCalendar()->callJavascript("set_visible", true);
-      mGuiManager->getCalendar()->setIsInteractive(true);
-    }
-  }));
-
-  mGuiManager->getHeaderBar()->registerCallback(
-      "increase_time_speed", ([&]() { mTimeControl->increaseTimeSpeed(); }));
-
-  mGuiManager->getHeaderBar()->registerCallback(
-      "decrease_time_speed", ([&]() { mTimeControl->decreaseTimeSpeed(); }));
-
-  // Calendar callbacks ----------------------------------------------------------------------------
-
-  mGuiManager->getCalendar()->registerCallback<std::string>(
-      "set_date", ([this](std::string const& date) {
-        mTimeControl->setTime(
-            cs::utils::convert::toSpiceTime(boost::posix_time::time_from_string(date)));
-      }));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

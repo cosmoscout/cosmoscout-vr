@@ -18,6 +18,7 @@
 #include "../cs-utils/FrameTimings.hpp"
 
 #include <memory>
+#include <optional>
 #include <string>
 
 class VistaOpenGLNode;
@@ -122,15 +123,29 @@ class CS_CORE_EXPORT GuiManager {
   /// @param jsFile The javascript file that contains the source code.
   void addScriptToSideBarFromJS(std::string const& jsFile);
 
+  /// Adds an event item to the timenavigation
+  ///
+  /// @param start The start date of the event.
+  /// @param end The optional end date of the event.
+  /// @param id The id of the event.
+  /// @param content The name or content of the event.
+  /// @param style The optional css of the event.
+  /// @param description The description of the event.
+  /// @param planet Planet the event is happening on.
+  /// @parama place The location on the planet.
+  void addEventToTimenavigationBar(std::string start, std::optional<std::string> end,
+      std::string id, std::string content, std::optional<std::string> style,
+      std::string description, std::string planet, std::string place);
+
   /// Returns the side bar GuiItem. The side bar is located at the left side of the screen.
   gui::GuiItem* getSideBar() const;
 
-  /// Returns the calender GuiItem. The calender is at the top of the screen, when clicked on the
-  /// current date display.
-  gui::GuiItem* getCalendar() const;
-
   /// Returns the header bar GuiItem. The header bar is at the top of the screen.
-  gui::GuiItem* getHeaderBar() const;
+  gui::GuiItem* getFooter() const;
+
+  /// Returns the time navigation bar GuiItem. The time navigation bar bar is at the bottom of the
+  /// screen.
+  gui::GuiItem* getTimeline() const;
 
   /// Returns the statistics GuiItem. The statistics are at the right of the screen, when enabled.
   gui::GuiItem* getStatistics() const;
@@ -170,12 +185,12 @@ class CS_CORE_EXPORT GuiManager {
   gui::ScreenSpaceGuiArea*                mLocalGuiArea    = nullptr;
 
   gui::GuiItem* mLoadingScreen = nullptr;
-  gui::GuiItem* mCalendar      = nullptr;
   gui::GuiItem* mSideBar       = nullptr;
-  gui::GuiItem* mHeaderBar     = nullptr;
+  gui::GuiItem* mFooter        = nullptr;
   gui::GuiItem* mNotifications = nullptr;
   gui::GuiItem* mLogo          = nullptr;
   gui::GuiItem* mStatistics    = nullptr;
+  gui::GuiItem* mTimeline      = nullptr;
 
   // The global GUI is drawn in world-space.
   VistaTransformNode* mGlobalGuiTransform  = nullptr;

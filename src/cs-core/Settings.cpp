@@ -48,6 +48,25 @@ void from_json(const nlohmann::json& j, Settings::Observer& o) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void from_json(const nlohmann::json& j, Settings::Location& o) {
+  o.mPlanet = parseProperty<std::string>("planet", j);
+  o.mPlace  = parseProperty<std::string>("place", j);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void from_json(const nlohmann::json& j, Settings::Event& o) {
+  o.mStart       = parseProperty<std::string>("start", j);
+  o.mContent     = parseProperty<std::string>("content", j);
+  o.mStyle       = parseProperty<std::string>("style", j);
+  o.mId          = parseProperty<std::string>("id", j);
+  o.mEnd         = parseOptionalSection<std::string>("end", j);
+  o.mDescription = parseProperty<std::string>("description", j);
+  o.mLocation    = parseOptionalSection<Settings::Location>("location", j);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void from_json(const nlohmann::json& j, Settings::DownloadData& o) {
   o.mUrl  = parseProperty<std::string>("url", j);
   o.mFile = parseProperty<std::string>("file", j);
@@ -82,11 +101,16 @@ void from_json(const nlohmann::json& j, Settings& o) {
   o.mEnableMouseRay = parseProperty<bool>("enableMouseRay", j);
   o.mAnchors        = parseMap<std::string, Settings::Anchor>("anchors", j);
   o.mPlugins        = parseMap<std::string, nlohmann::json>("plugins", j);
+  o.mStartDate      = parseProperty<std::string>("startDate", j);
+  o.mMinDate        = parseProperty<std::string>("minDate", j);
+  o.mMaxDate        = parseProperty<std::string>("maxDate", j);
 
   auto iter = j.find("downloadData");
   if (iter != j.end()) {
     o.mDownloadData = parseVector<Settings::DownloadData>("downloadData", j);
   }
+
+  o.mEvents = parseVector<Settings::Event>("events", j);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

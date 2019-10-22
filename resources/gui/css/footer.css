@@ -1,0 +1,46 @@
+body {
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+}
+
+#footer {
+    position: absolute;
+    left: 0;
+    right: 0;
+    overflow: hidden;
+    font-size: 0.9rem;
+    text-shadow: 0 0 5px black, 0 0 2px black;
+}
+
+#footer i {
+    font-size: 1.2rem;
+    top: 4px;
+    position: relative;
+    margin-right: 2px;
+}
+
+#footer .item {
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    line-height: 35px;
+    height: 35px;
+    vertical-align: bottom;
+    flex-grow: 1;
+    margin-left: 5px;
+}
+
+#footer .item span {
+    display: inline-block;
+}
+
+#footer .btn {
+    padding: 4px 4px 0 4px;
+    color: #ddf
+}
+
+#footer .btn i {
+    line-height: 35px;
+    font-size: 1.5rem;
+    top: -4px;
+    margin: 0;
+}
