@@ -106,7 +106,7 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
 
   mLoadingScreen = new gui::GuiItem("file://../share/resources/gui/loading_screen.html");
   mSideBar       = new gui::GuiItem("file://../share/resources/gui/sidebar.html");
-  mFooter        = new gui::GuiItem("file://../share/resources/gui/footer.html");
+  mStatusBar     = new gui::GuiItem("file://../share/resources/gui/statusbar.html");
   mNotifications = new gui::GuiItem("file://../share/resources/gui/notifications.html");
   mLogo          = new gui::GuiItem("file://../share/resources/gui/logo.html");
   mStatistics    = new gui::GuiItem("file://../share/resources/gui/statistics.html");
@@ -117,14 +117,14 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
   if (mGlobalGuiArea) {
     mGlobalGuiArea->addItem(mLogo);
     mGlobalGuiArea->addItem(mNotifications);
-    mGlobalGuiArea->addItem(mFooter);
+    mGlobalGuiArea->addItem(mStatusBar);
     mGlobalGuiArea->addItem(mSideBar);
     mGlobalGuiArea->addItem(mTimeline);
     mGlobalGuiArea->addItem(mLoadingScreen);
   } else {
     mLocalGuiArea->addItem(mLogo);
     mLocalGuiArea->addItem(mNotifications);
-    mLocalGuiArea->addItem(mFooter);
+    mLocalGuiArea->addItem(mStatusBar);
     mLocalGuiArea->addItem(mSideBar);
     mLocalGuiArea->addItem(mTimeline);
     mLocalGuiArea->addItem(mLoadingScreen);
@@ -145,11 +145,11 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
   mSideBar->setRelOffsetY(-0.5f);
   mSideBar->setCursorChangeCallback([this](gui::Cursor c) { setCursor(c); });
 
-  mFooter->setRelSizeX(1.f);
-  mFooter->setSizeY(80);
-  mFooter->setRelPositionX(0.5);
-  mFooter->setRelPositionY(1.f);
-  mFooter->setCursorChangeCallback([this](gui::Cursor c) { setCursor(c); });
+  mStatusBar->setRelSizeX(1.f);
+  mStatusBar->setSizeY(80);
+  mStatusBar->setRelPositionX(0.5);
+  mStatusBar->setRelPositionY(1.f);
+  mStatusBar->setCursorChangeCallback([this](gui::Cursor c) { setCursor(c); });
 
   mTimeline->setRelSizeX(1.f);
   mTimeline->setSizeY(644);
@@ -188,7 +188,7 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
   // Now we will call some JavaScript methods - so we have to wait until the GuiItems have been
   // fully loaded.
   mSideBar->waitForFinishedLoading();
-  mFooter->waitForFinishedLoading();
+  mStatusBar->waitForFinishedLoading();
   mTimeline->waitForFinishedLoading();
   mNotifications->waitForFinishedLoading();
   mLoadingScreen->waitForFinishedLoading();
@@ -235,7 +235,7 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
 
 GuiManager::~GuiManager() {
   delete mSideBar;
-  delete mFooter;
+  delete mStatusBar;
   delete mNotifications;
   delete mLogo;
   delete mGlobalGuiArea;
@@ -305,8 +305,8 @@ gui::GuiItem* GuiManager::getSideBar() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-gui::GuiItem* GuiManager::getFooter() const {
-  return mFooter;
+gui::GuiItem* GuiManager::getStatusBar() const {
+  return mStatusBar;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

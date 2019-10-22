@@ -3,7 +3,7 @@ body {
     -webkit-font-smoothing: antialiased;
 }
 
-#footer {
+#statusbar {
     position: absolute;
     left: 0;
     right: 0;
@@ -12,14 +12,14 @@ body {
     text-shadow: 0 0 5px black, 0 0 2px black;
 }
 
-#footer i {
+#statusbar i {
     font-size: 1.2rem;
     top: 4px;
     position: relative;
     margin-right: 2px;
 }
 
-#footer .item {
+#statusbar .item {
     text-overflow: ellipsis;
     white-space: nowrap;
     line-height: 35px;
@@ -29,16 +29,16 @@ body {
     margin-left: 5px;
 }
 
-#footer .item span {
+#statusbar .item span {
     display: inline-block;
 }
 
-#footer .btn {
+#statusbar .btn {
     padding: 4px 4px 0 4px;
     color: #ddf
 }
 
-#footer .btn i {
+#statusbar .btn i {
     line-height: 35px;
     font-size: 1.5rem;
     top: -4px;

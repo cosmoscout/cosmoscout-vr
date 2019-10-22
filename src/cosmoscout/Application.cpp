@@ -507,7 +507,7 @@ void Application::FrameUpdate() {
       double heightDiff    = polar.z / mGraphicsEngine->pHeightScale.get() - surfaceHeight;
 
       if (!std::isnan(polar.x) && !std::isnan(polar.y) && !std::isnan(heightDiff)) {
-        mGuiManager->getFooter()->callJavascript("setUserPosition",
+        mGuiManager->getStatusBar()->callJavascript("setUserPosition",
             cs::utils::convert::toDegrees(polar.x), cs::utils::convert::toDegrees(polar.y),
             heightDiff);
         mGuiManager->getTimeline()->callJavascript("setUserPosition",
@@ -595,13 +595,13 @@ void Application::connectSlots() {
             auto lngLat = cs::utils::convert::toDegrees(polar.xy());
 
             if (!std::isnan(lngLat.x) && !std::isnan(lngLat.y) && !std::isnan(polar.z)) {
-              mGuiManager->getFooter()->callJavascript("set_pointer_position", true, lngLat.x,
+              mGuiManager->getStatusBar()->callJavascript("set_pointer_position", true, lngLat.x,
                   lngLat.y, polar.z / mGraphicsEngine->pHeightScale.get());
               return;
             }
           }
         }
-        mGuiManager->getFooter()->callJavascript("set_pointer_position", false);
+        mGuiManager->getStatusBar()->callJavascript("set_pointer_position", false);
       });
 
   // Update the time shown in the user interface when the simulation time changes.
@@ -646,7 +646,7 @@ void Application::connectSlots() {
 
   // Show the current speed of the celestial observer in the user interface.
   mSolarSystem->pCurrentObserverSpeed.onChange().connect(
-      [this](float speed) { mGuiManager->getFooter()->callJavascript("set_speed", speed); });
+      [this](float speed) { mGuiManager->getStatusBar()->callJavascript("set_speed", speed); });
 
   // Show the statistics GuiItem when measurements are enabled.
   mFrameTimings->pEnableMeasurements.onChange().connect(

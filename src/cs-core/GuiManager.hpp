@@ -141,7 +141,7 @@ class CS_CORE_EXPORT GuiManager {
   gui::GuiItem* getSideBar() const;
 
   /// Returns the header bar GuiItem. The header bar is at the top of the screen.
-  gui::GuiItem* getFooter() const;
+  gui::GuiItem* getStatusBar() const;
 
   /// Returns the time navigation bar GuiItem. The time navigation bar bar is at the bottom of the
   /// screen.
@@ -186,7 +186,7 @@ class CS_CORE_EXPORT GuiManager {
 
   gui::GuiItem* mLoadingScreen = nullptr;
   gui::GuiItem* mSideBar       = nullptr;
-  gui::GuiItem* mFooter        = nullptr;
+  gui::GuiItem* mStatusBar     = nullptr;
   gui::GuiItem* mNotifications = nullptr;
   gui::GuiItem* mLogo          = nullptr;
   gui::GuiItem* mStatistics    = nullptr;
