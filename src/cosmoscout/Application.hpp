@@ -64,7 +64,7 @@ class Application : public VistaFrameLoop {
   bool                                      mLoadedAllPlugins = false;
 
   void registerSolarSystemCallbacks();
-  void registerTimenavigationBarCallbacks();
+  void registerTimelineCallbacks();
   void registerSideBarCallbacks();
 };
 

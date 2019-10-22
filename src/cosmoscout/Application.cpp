@@ -168,7 +168,7 @@ bool Application::Init(VistaSystem* pVistaSystem) {
 
   registerSolarSystemCallbacks();
   registerSideBarCallbacks();
-  registerTimenavigationBarCallbacks();
+  registerTimelineCallbacks();
 
   // open plugins ----------------------------------------------------------------------------------
   for (auto const& plugin : mSettings->mPlugins) {
@@ -270,7 +270,7 @@ void Application::registerSideBarCallbacks() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Application::registerTimenavigationBarCallbacks() {
+void Application::registerTimelineCallbacks() {
 
   mGuiManager->getTimeline()->registerCallback<std::string, double, double, double, double>(
       "fly_to", ([this](std::string const& name, double longitude, double latitude, double height,
@@ -417,11 +417,6 @@ void Application::registerTimenavigationBarCallbacks() {
   mGuiManager->getTimeline()->registerCallback<std::string>(
       "setDate", ([this](std::string const& date) {
         mTimeControl->setTime(
-            cs::utils::convert::toSpiceTime(boost::posix_time::time_from_string(date)));
-      }));
-  mGuiManager->getTimeline()->registerCallback<std::string>(
-      "setDate_direct", ([this](std::string const& date) {
-        mTimeControl->setTimeWithoutAnimation(
             cs::utils::convert::toSpiceTime(boost::posix_time::time_from_string(date)));
       }));
   mGuiManager->getTimeline()->registerCallback<double>(
