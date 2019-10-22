@@ -79,12 +79,12 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
   mViewportUpdater->SetUpdateMode(VistaViewportResizeToProjectionAdapter::MAINTAIN_HORIZONTAL_FOV);
 
   mLoadingScreen = new gui::GuiItem("file://../share/resources/gui/loading_screen.html");
-  mCalendar      = new gui::GuiItem("file://../share/resources/gui/calendar.html");
   mSideBar       = new gui::GuiItem("file://../share/resources/gui/sidebar.html");
-  mHeaderBar     = new gui::GuiItem("file://../share/resources/gui/header.html");
+  mFooter        = new gui::GuiItem("file://../share/resources/gui/footer.html");
   mNotifications = new gui::GuiItem("file://../share/resources/gui/notifications.html");
   mLogo          = new gui::GuiItem("file://../share/resources/gui/logo.html");
   mStatistics    = new gui::GuiItem("file://../share/resources/gui/statistics.html");
+  mTimeline      = new gui::GuiItem("file://../share/resources/gui/timeline.html");
 
   mLoadingScreen->setIsInteractive(false);
 
@@ -92,29 +92,20 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
   if (mGlobalGuiArea) {
     mGlobalGuiArea->addItem(mLogo);
     mGlobalGuiArea->addItem(mNotifications);
+    mGlobalGuiArea->addItem(mFooter);
     mGlobalGuiArea->addItem(mSideBar);
-    mGlobalGuiArea->addItem(mHeaderBar);
-    mGlobalGuiArea->addItem(mCalendar);
+    mGlobalGuiArea->addItem(mTimeline);
     mGlobalGuiArea->addItem(mLoadingScreen);
   } else {
     mLocalGuiArea->addItem(mLogo);
     mLocalGuiArea->addItem(mNotifications);
+    mLocalGuiArea->addItem(mFooter);
     mLocalGuiArea->addItem(mSideBar);
-    mLocalGuiArea->addItem(mHeaderBar);
-    mLocalGuiArea->addItem(mCalendar);
+    mLocalGuiArea->addItem(mTimeline);
     mLocalGuiArea->addItem(mLoadingScreen);
   }
 
   mLocalGuiArea->addItem(mStatistics);
-
-  mCalendar->setSizeX(500);
-  mCalendar->setSizeY(400);
-  mCalendar->setOffsetX(0);
-  mCalendar->setOffsetY(250);
-  mCalendar->setRelPositionY(0.f);
-  mCalendar->setRelPositionX(0.5f);
-  mCalendar->setIsInteractive(false);
-  mCalendar->setCursorChangeCallback([this](gui::Cursor c) { setCursor(c); });
 
   mSideBar->setSizeX(500);
   mSideBar->setRelSizeY(1.f);
@@ -124,19 +115,25 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
   mSideBar->setRelOffsetY(-0.5f);
   mSideBar->setCursorChangeCallback([this](gui::Cursor c) { setCursor(c); });
 
-  mHeaderBar->setRelSizeX(1.f);
-  mHeaderBar->setSizeY(80);
-  mHeaderBar->setRelPositionX(0.5);
-  mHeaderBar->setRelPositionY(0);
-  mHeaderBar->setOffsetY(40);
-  mHeaderBar->setCursorChangeCallback([this](gui::Cursor c) { setCursor(c); });
+  mFooter->setRelSizeX(1.f);
+  mFooter->setSizeY(80);
+  mFooter->setRelPositionX(0.5);
+  mFooter->setRelPositionY(1.f);
+  mFooter->setCursorChangeCallback([this](gui::Cursor c) { setCursor(c); });
+
+  mTimeline->setRelSizeX(1.f);
+  mTimeline->setSizeY(644);
+  mTimeline->setRelPositionX(0.5);
+  mTimeline->setRelPositionY(0);
+  mTimeline->setOffsetY(322);
+  mTimeline->setCursorChangeCallback([this](gui::Cursor c) { setCursor(c); });
 
   mNotifications->setSizeX(420);
   mNotifications->setSizeY(320);
   mNotifications->setRelPositionY(0.f);
   mNotifications->setRelPositionX(1.f);
   mNotifications->setOffsetX(-210);
-  mNotifications->setOffsetY(200);
+  mNotifications->setOffsetY(250);
   mNotifications->setIsInteractive(false);
 
   mLogo->setSizeX(120);
@@ -169,7 +166,8 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
   mInputManager->registerSelectable(mLocalGuiArea);
 
   mSideBar->waitForFinishedLoading();
-  mHeaderBar->waitForFinishedLoading();
+  mFooter->waitForFinishedLoading();
+  mTimeline->waitForFinishedLoading();
   mNotifications->waitForFinishedLoading();
   mLoadingScreen->waitForFinishedLoading();
 
@@ -187,26 +185,12 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
   mLoadingScreen->callJavascript("set_loading", true);
 
   // Register callbacks for notifications area.
-
-  mHeaderBar->registerCallback<std::string, std::string, std::string>("print_notification",
+  mSideBar->registerCallback<std::string, std::string, std::string>("print_notification",
       ([this](std::string const& title, std::string const& content, std::string const& icon) {
         showNotification(title, content, icon);
       }));
 
-  mHeaderBar->registerCallback("show_date_dialog", ([this]() {
-    if (mCalendar->getIsInteractive()) {
-      mCalendar->callJavascript("set_visible", false);
-      mCalendar->setIsInteractive(false);
-    } else {
-      mCalendar->callJavascript("set_visible", true);
-      mCalendar->setIsInteractive(true);
-    }
-  }));
-
-  mCalendar->registerCallback<std::string>(
-      "set_date", ([this](std::string const& date) { mCalendar->setIsInteractive(false); }));
-
-  mSideBar->registerCallback<std::string, std::string, std::string>("print_notification",
+  mTimeline->registerCallback<std::string, std::string, std::string>("print_notification",
       ([this](std::string const& title, std::string const& content, std::string const& icon) {
         showNotification(title, content, icon);
       }));
@@ -227,17 +211,33 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
 
   mFrameTimings->pEnableMeasurements.onChange().connect(
       [this](bool enable) { mStatistics->setIsEnabled(enable); });
+
+  // Set settings for the time Navigation
+  mTimeline->callJavascript("setTimelineRange", settings->mMinDate, settings->mMaxDate);
+
+  for (int i = 0; i < settings->mEvents.size(); i++) {
+    std::string planet = "";
+    std::string place  = "";
+    if (settings->mEvents.at(i).mLocation.has_value()) {
+      planet = settings->mEvents.at(i).mLocation.value().mPlanet;
+      place  = settings->mEvents.at(i).mLocation.value().mPlace;
+    }
+    addEventToTimenavigationBar(settings->mEvents.at(i).mStart, settings->mEvents.at(i).mEnd,
+        settings->mEvents.at(i).mId, settings->mEvents.at(i).mContent,
+        settings->mEvents.at(i).mStyle, settings->mEvents.at(i).mDescription, planet, place);
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 GuiManager::~GuiManager() {
   delete mSideBar;
-  delete mHeaderBar;
+  delete mFooter;
   delete mNotifications;
   delete mLogo;
   delete mGlobalGuiArea;
   delete mViewportUpdater;
+  delete mTimeline;
 
   mInputManager->unregisterSelectable(mLocalGuiOpenGLnode);
 
@@ -301,14 +301,14 @@ gui::GuiItem* GuiManager::getSideBar() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-gui::GuiItem* GuiManager::getCalendar() const {
-  return mCalendar;
+gui::GuiItem* GuiManager::getFooter() const {
+  return mFooter;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-gui::GuiItem* GuiManager::getHeaderBar() const {
-  return mHeaderBar;
+gui::GuiItem* GuiManager::getTimeline() const {
+  return mTimeline;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -412,10 +412,6 @@ void GuiManager::update() {
     mStatistics->callJavascript("set_data", json, GetVistaSystem()->GetFrameLoop()->GetFrameRate());
   }
 
-  // Set fps.
-  float fFrameRate(GetVistaSystem()->GetFrameLoop()->GetFrameRate());
-  mHeaderBar->callJavascript("set_fps", fFrameRate);
-
   // Update entire gui.
   gui::update();
 }
@@ -448,6 +444,13 @@ void GuiManager::addScriptToSideBar(std::string const& src) {
 void GuiManager::addScriptToSideBarFromJS(std::string const& jsFile) {
   std::string content = utils::filesystem::loadToString(jsFile);
   addScriptToSideBar(content);
+}
+
+void GuiManager::addEventToTimenavigationBar(std::string start, std::optional<std::string> end,
+    std::string id, std::string content, std::optional<std::string> style, std::string description,
+    std::string planet, std::string place) {
+  mTimeline->callJavascript("addItem", start, end.value_or(""), id, content, style.value_or(""),
+      description, planet, place);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

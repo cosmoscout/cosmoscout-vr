@@ -64,9 +64,8 @@ class Application : public VistaFrameLoop {
   bool                                      mLoadedAllPlugins = false;
 
   void registerSolarSystemCallbacks();
-  void registerHeaderBarCallbacks();
+  void registerTimelineCallbacks();
   void registerSideBarCallbacks();
-  void registerCalendarCallbacks();
 };
 
 #endif // VIRTUAL_PLANET_APPLICATION_HPP

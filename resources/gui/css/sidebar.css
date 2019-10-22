@@ -4,7 +4,7 @@
     height: 100%;
     overflow-x: hidden;
     overflow-y: scroll;
-    padding-top: 80px;
+    padding-top: 140px;
 }
 
 .side-bar::-webkit-scrollbar { 
@@ -91,6 +91,7 @@
 .accordion>.card .card-header  {
     margin: 0;
     border: none;
+    border-radius: 0;
 }
 
 .side-bar *[type=button] {
