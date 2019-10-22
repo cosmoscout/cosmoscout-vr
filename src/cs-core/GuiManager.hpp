@@ -18,6 +18,7 @@
 #include "../cs-utils/FrameTimings.hpp"
 
 #include <memory>
+#include <optional>
 #include <string>
 
 class VistaOpenGLNode;
