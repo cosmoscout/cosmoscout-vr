@@ -111,7 +111,7 @@ var activePlanetCenter;
 var userPosition = new Object();
 
 // DOM element where the Timeline will be attached
-var container = document.getElementById('visualization');
+var timelineContainer = document.getElementById('timeline');
 var overviewContainer = document.getElementById('overview');
 
 // Configuration for the Timeline
@@ -235,7 +235,7 @@ range.noUiSlider.on('update', rangeUpdateCallback);
 var items = new vis.DataSet();
 var itemsOverview = new vis.DataSet();
 // Create a Timeline
-timeline = new vis.Timeline(container, items, options);
+timeline = new vis.Timeline(timelineContainer, items, options);
 centerTime = timeline.getCurrentTime();
 timeline.on('select', onSelect);
 timeline.moveTo(centerTime, animationFalse);
@@ -1017,7 +1017,7 @@ function resetTime() {
     window.call_native('reset_time')
 }
 
-container.addEventListener("wheel", manuelZoomTimeline, true);
+timelineContainer.addEventListener("wheel", manuelZoomTimeline, true);
 
 document.getElementById("btnIncreaseSecond").onclick = plusOneSecond;
 document.getElementById("btnDecreaseSecond").onclick = minusOneSecond;
@@ -1072,7 +1072,7 @@ var overviewVisible = false;
 
 function toggleOverview() {
     overviewVisible = !overviewVisible;
-    document.getElementById('divContainer').classList.toggle('visible');
+    document.getElementById('timelineContainer').classList.toggle('visible');
     if (overviewVisible) {
         document.getElementById("btnExpand").innerHTML = '<i class="material-icons">expand_less</i>';
     }
@@ -1127,7 +1127,7 @@ function drawDiv() {
     var rightCustomTime = document.getElementsByClassName("rightTime")[0];
     var rightRect = rightCustomTime.getBoundingClientRect();
 
-    var divElement = document.getElementById("snippet");
+    var divElement = document.getElementById("focusLens");
     divElement.style.position = "absolute";
     divElement.style.left = leftRect.right + 'px';
     divElement.style.top = (leftRect.top + offset) + 'px';
@@ -1147,7 +1147,7 @@ function drawDiv() {
     divElement.style.height = height + 'px';
     divElement.style.width = width + 'px';
 
-    divElement = document.getElementById("leftSnippet");
+    divElement = document.getElementById("focusLensLeft");
     divElement.style.top = (leftRect.top + offset + height) + 'px';
     width = leftRect.right + xValue + borderWidth;
     width = width < 0 ? 0 : width;
@@ -1155,7 +1155,7 @@ function drawDiv() {
     var body = document.getElementsByTagName("body")[0];
     var bodyRect = body.getBoundingClientRect();
 
-    divElement = document.getElementById("rightSnippet");
+    divElement = document.getElementById("focusLensRight");
     divElement.style.top = (leftRect.top + offset + height) + 'px';
     width = bodyRect.right - rightRect.right + xValue + 1;
     width = width < 0 ? 0 : width;

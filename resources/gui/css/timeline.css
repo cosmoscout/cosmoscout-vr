@@ -1,6 +1,6 @@
 /* main timeline styles ------------------------------------------------------------------------- */
 
-#visualization {
+#timeline {
   -webkit-font-smoothing: subpixel-antialiased;
 }
 
@@ -9,13 +9,13 @@
   background-color: rgba(20, 20, 20, 0.5);
 }
 
-#visualization .vis-timeline {
+#timeline .vis-timeline {
   border-width: 0;
   border-color: #ddf;
   overflow: visible !important;
 }
 
-#visualization .vis-time-axis {
+#timeline .vis-time-axis {
   pointer-events: none;
 }
 
@@ -24,48 +24,48 @@
   color: #ddf;
 }
 
-#visualization .vis-item {
+#timeline .vis-item {
   border-color: rgba(20, 20, 20, 0.308);
   background-color: rgba(20, 20, 20, 0.5);
   color: #ddf;
   border-radius: 10px;
 }
 
-#visualization .vis-item,
-#visualization .vis-item.vis-line {
+#timeline .vis-item,
+#timeline .vis-item.vis-line {
   border-width: 2px;
   border-radius: 10px;
 }
 
-#visualization .vis-item.vis-dot {
+#timeline .vis-item.vis-dot {
   border-width: 0;
   border-radius: 0;
 }
 
-#visualization .vis-item.vis-selected {
+#timeline .vis-item.vis-selected {
   border-color: rgba(70, 70, 70, 0.308);
   background-color: rgba(70, 70, 70, .247);
 }
 
-#visualization .vis-item.vis-box,
+#timeline .vis-item.vis-box,
 .vis-item.vis-range {
   height: 12px !important;
   min-width: 12px !important;
   top: 4px !important
 }
 
-#visualization .vis-item.vis-box {
+#timeline .vis-item.vis-box {
   width: 12px !important;
 }
 
-#visualization .vis-item.vis-box.mouseOver {
+#timeline .vis-item.vis-box.mouseOver {
   width: 18px !important;
   height: 18px !important;
   margin-left: -3px;
   top: 1px !important;
 }
 
-#visualization .vis-item.vis-range.mouseOver {
+#timeline .vis-item.vis-range.mouseOver {
   height: 18px !important;
   margin-left: -3px;
   top: 1px !important;
@@ -73,12 +73,12 @@
 }
 
 
-#visualization .vis-item-content {
+#timeline .vis-item-content {
   visibility: hidden;
 }
 
 
-#visualization .vis-panel.vis-bottom {
+#timeline .vis-panel.vis-bottom {
   height: 35px !important;
   top: 0px !important;
   pointer-events: none;
@@ -86,25 +86,25 @@
   border-right-style: hidden;
 }
 
-#visualization .vis-text.vis-major {
+#timeline .vis-text.vis-major {
   top: 7px !important;
   font-size: 9px;
   margin-left: 4px;
 }
 
-#visualization .vis-panel.vis-background.vis-horizontal,
-#visualization .vis-panel.vis-center,
-#visualization .vis-panel.vis-left,
-#visualization .vis-panel.vis-right,
-#visualization .vis-grid.vis-minor {
+#timeline .vis-panel.vis-background.vis-horizontal,
+#timeline .vis-panel.vis-center,
+#timeline .vis-panel.vis-left,
+#timeline .vis-panel.vis-right,
+#timeline .vis-grid.vis-minor {
   height: 35px !important;
 }
 
-#visualization .vis-group {
+#timeline .vis-group {
   top: 3px;
 }
 
-#visualization .vis-custom-time.custom {
+#timeline .vis-custom-time.custom {
   background-color: #ddf;
   width: 16px !important;
   height: 16px !important;
@@ -115,40 +115,40 @@
   margin-left: -8px !important;
 }
 
-#visualization .vis-minor.vis-text {
+#timeline .vis-minor.vis-text {
   z-index: 1;
   top: 18px !important;
   font-size: 12px;
   margin-left: 4px;
 }
 
-#visualization .vis-content {
+#timeline .vis-content {
   top: 0px !important;
 }
 
-#visualization .vis-grid.vis-vertical.vis-minor {
+#timeline .vis-grid.vis-vertical.vis-minor {
   border-color: #ddf;
   height: 12px !important;
   top: 22px !important;
   border-width: 2px;
 }
 
-#visualization .vis-grid.vis-vertical.vis-major{
+#timeline .vis-grid.vis-vertical.vis-major{
   border-color: #ddf;
   height: 30px !important;
   top: 4px !important;
   border-width: 2px;
 }
 
-#visualization .vis-panel.vis-center{
+#timeline .vis-panel.vis-center{
   border-width: 0px;
 }
 
-#visualization:hover {
+#timeline:hover {
   background-color: rgba(230, 230, 255, 0.3);
 }
 
-#visualization:active {
+#timeline:active {
   top: 1px;
 }
 
@@ -286,7 +286,7 @@
 
 /* overview focus rect -------------------------------------------------------------------------- */
 
-#snippet {
+#focusLens {
   background: transparent;
   border-style: solid;
   border-width: 3px 3px 0 3px;
@@ -297,25 +297,25 @@
   background-color: rgba(20, 20, 20, 0.5);
 }
 
-#leftSnippet,
-#rightSnippet {
+#focusLensLeft,
+#focusLensRight {
   height: 1px;
   border-bottom: 2px solid #ddf;
   position: absolute;
   pointer-events: none;
 }
 
-#leftSnippet {
+#focusLensLeft {
   left: 0px;
 }
 
-#rightSnippet {
+#focusLensRight {
   right: 0px;
 }
 
 /* timeline control items ----------------------------------------------------------------------- */
 
-.divContainer {
+#timelineContainer {
   position: absolute;
   top: -43px;
   left: 0px;
@@ -328,12 +328,8 @@
   height: 110px;
 }
 
-.divContainer.visible {
+#timelineContainer.visible {
   top: 0px;
-}
-
-.tooltip {
-  pointer-events: none;
 }
 
 #bottomBorderLeft {
@@ -384,10 +380,6 @@
 #calendar.visible{
   z-index: 10;
   pointer-events: all;
-}
-
-#vizualization {
-  z-index: 2;
 }
 
 i {
@@ -669,6 +661,10 @@ a:hover {
   text-shadow: 0 0 20px #fff;
 }
 
+.tooltip {
+  pointer-events: none;
+}
+
 /* add-event dialog ----------------------------------------------------------------------------- */
 
 /* The popup form - hidden by default */
@@ -706,14 +702,6 @@ a:hover {
   background: #f1f1f1;
 }
 
-/* Full-width input fields */
-.form-container input[type=date] {
-  margin: 5px 0 22px 0;
-  border: none;
-  width: 100%;
-  background: #f1f1f1;
-}
-
 /* When the inputs get focus, do something */
 .form-container input[type=text]:focus, .form-container input[type=password]:focus {
   background-color: #ddd;
@@ -735,14 +723,4 @@ a:hover {
 /* Add a red background color to the cancel button */
 .form-container .cancel {
   background-color: red;
-}
-
-#colorPickerForm {
-  width: 100%;
-  height: 200px;
-}
-
-#colorPicker {
-  width: 100%;
-  height: 200px;
 }
