@@ -81,11 +81,56 @@ class CS_CORE_EXPORT Settings {
     double      mDistance;
   };
 
+  struct Location {
+    std::string mPlanet;
+    std::string mPlace;
+  };
+
+  struct Event {
+    std::string                mStart;
+    std::optional<std::string> mEnd;
+    std::string                mContent;
+    std::string                mId;
+    std::optional<std::string> mStyle;
+    std::string                mDescription;
+    std::optional<Location>    mLocation;
+  };
+
+  struct DownloadData {
+    std::string mUrl;
+    std::string mFile;
+  };
+
+  struct SceneScale {
+    double mMinScale;
+    double mMaxScale;
+    double mCloseVisualDistance;
+    double mFarVisualDistance;
+    double mCloseRealDistance;
+    double mFarRealDistance;
+    double mLockWeight;
+    double mTrackWeight;
+    double mMinObjectSize;
+    double mNearClip;
+    double mMinFarClip;
+    double mMaxFarClip;
+  };
+
   /// Defines the initial simulation time.
   std::string mStartDate;
 
+  /// Defines the min and max Date on the timebar
+  std::string mMinDate;
+  std::string mMaxDate;
+
   /// Defines the initial observer location.
   Observer mObserver;
+
+  /// PArameters which define how the virtual scene is scaled based on the observer position.
+  SceneScale mSceneScale;
+
+  /// A list of files which shall be downloaded before the application starts.
+  std::vector<DownloadData> mDownloadData;
 
   /// The file name of the meta kernel for SPICE.
   std::string mSpiceKernel;
@@ -108,6 +153,9 @@ class CS_CORE_EXPORT Settings {
   /// required at the start of each configuration file. The name of each Anchor is then later used
   /// to reference the respective SPICE frame.
   std::map<std::string, Anchor> mAnchors;
+
+  /// Events to show on the timenavigation bar
+  std::vector<Event> mEvents;
 
   /// A map with configuration options for each plugin. The JSON object is not parsed, this is done
   /// by the plugins themselves.

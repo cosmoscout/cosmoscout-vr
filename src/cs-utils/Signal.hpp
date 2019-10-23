@@ -90,5 +90,7 @@ class Signal {
   mutable std::map<int, std::function<void(Args...)>> mSlots;
   mutable int                                         mCurrentID;
 };
+
 } // namespace cs::utils
+
 #endif // CS_UTILS_SIGNAL_HPP

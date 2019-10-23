@@ -23,8 +23,8 @@ class ToneMappingNode;
 namespace cs::core {
 
 /// The GraphicsEngine is responsible for managing the ShadowMap. It also provides access to global
-/// render settings.
-// TODO If that is all the GraphicsEngine does than the name is probably misleading.
+/// render settings. This class should only be instantiated once - this instance will be passed to
+/// all plugins.
 class CS_CORE_EXPORT GraphicsEngine {
  public:
   utils::Property<float>     pHeightScale                = 1.f;

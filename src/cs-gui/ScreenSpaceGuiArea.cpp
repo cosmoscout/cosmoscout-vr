@@ -105,7 +105,7 @@ bool ScreenSpaceGuiArea::Do() {
     delete mShader;
     mShader = new VistaGLSLShader();
 
-    std::string defines = "#version 430 compatibility\n";
+    std::string defines = "#version 330\n";
 
     mShader->InitVertexShaderFromString(defines + QUAD_VERT);
     mShader->InitFragmentShaderFromString(defines + QUAD_FRAG);

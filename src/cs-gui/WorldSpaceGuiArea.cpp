@@ -9,16 +9,18 @@
 #include "../cs-utils/FrameTimings.hpp"
 #include "GuiItem.hpp"
 
-#include <VistaMath/VistaBoundingBox.h>
-#include <VistaMath/VistaGeometries.h>
-
 #include <VistaKernel/DisplayManager/VistaDisplayManager.h>
 #include <VistaKernel/DisplayManager/VistaProjection.h>
 #include <VistaKernel/DisplayManager/VistaViewport.h>
 #include <VistaKernel/VistaSystem.h>
+#include <VistaMath/VistaBoundingBox.h>
+#include <VistaMath/VistaGeometries.h>
 #include <VistaOGLExt/VistaBufferObject.h>
 #include <VistaOGLExt/VistaGLSLShader.h>
 #include <VistaOGLExt/VistaTexture.h>
+
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 namespace {
 
@@ -30,17 +32,20 @@ vec2 positions[4] = vec2[](
     vec2(0.5, -0.5),
     vec2(-0.5, 0.5),
     vec2(0.5, 0.5)
-);                               
+);
 
-out vec2 vTexCoords;                                                            
+uniform mat4 uMatModelView;
+uniform mat4 uMatProjection;
+
+out vec2 vTexCoords;
 out vec4 vPosition;
-                                                                           
-void main()                                                                
-{                       
-  vec2 p = positions[gl_VertexID];                                                   
+
+void main()
+{
+  vec2 p = positions[gl_VertexID];
   vTexCoords = vec2(p.x, -p.y) + 0.5;
-  vPosition = gl_ModelViewMatrix * vec4(p, 0, 1);
-  gl_Position = gl_ProjectionMatrix * vPosition;
+  vPosition = uMatModelView * vec4(p, 0, 1);
+  gl_Position = uMatProjection * vPosition;
 
   #ifdef USE_LINEARDEPTHBUFFER
     gl_Position.z = 0;
@@ -51,8 +56,8 @@ void main()
         gl_Position.z = 0.999999;
       }
     }
-  #endif                              
-}                                                                 
+  #endif
+}
 )";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -165,10 +170,11 @@ bool WorldSpaceGuiArea::calculateMousePosition(
     return false;
   }
 
+  x = (int)((intersection[0] + 0.5) * mWidth);
+  y = (int)((-intersection[1] + 0.5) * mHeight);
+
   if (intersection[0] >= -0.5f && intersection[0] <= 0.5f && intersection[1] >= -0.5f &&
       intersection[1] <= 0.5f) {
-    x = (int)((intersection[0] + 0.5) * mWidth);
-    y = (int)((-intersection[1] + 0.5) * mHeight);
     return true;
   }
 
@@ -183,7 +189,7 @@ bool WorldSpaceGuiArea::Do() {
     delete mShader;
     mShader = new VistaGLSLShader();
 
-    std::string defines = "#version 430 compatibility\n";
+    std::string defines = "#version 330\n";
 
     if (mUseLinearDepthBuffer) {
       defines += "#define USE_LINEARDEPTHBUFFER\n";
@@ -222,22 +228,30 @@ bool WorldSpaceGuiArea::Do() {
     mShader->SetUniform(mShader->GetUniformLocation("iFarClip"), (float)far);
   }
 
+  // get modelview and projection matrices
+  GLfloat glMat[16];
+  glGetFloatv(GL_MODELVIEW_MATRIX, &glMat[0]);
+  glm::mat4 modelViewMat = glm::make_mat4(glMat);
+
+  glGetFloatv(GL_PROJECTION_MATRIX, &glMat[0]);
+  glUniformMatrix4fv(mShader->GetUniformLocation("uMatProjection"), 1, GL_FALSE, glMat);
+
   // draw back-to-front
   auto const& items = getItems();
   for (auto item = items.rbegin(); item != items.rend(); ++item) {
     if ((*item)->getIsEnabled()) {
-      glPushMatrix();
-      glTranslatef((GLfloat)((*item)->getRelPositionX() + (*item)->getRelOffsetX() - 0.5),
-          (GLfloat)(-(*item)->getRelPositionY() - (*item)->getRelOffsetY() + 0.5), 0);
-
-      glScalef((*item)->getRelSizeX(), (*item)->getRelSizeY(), 1.f);
+      auto localMat = glm::translate(
+          modelViewMat, glm::vec3((*item)->getRelPositionX() + (*item)->getRelOffsetX() - 0.5,
+                            -(*item)->getRelPositionY() - (*item)->getRelOffsetY() + 0.5, 0.0));
+      localMat =
+          glm::scale(localMat, glm::vec3((*item)->getRelSizeX(), (*item)->getRelSizeY(), 1.f));
 
       (*item)->getTexture()->Bind(GL_TEXTURE0);
+      glUniformMatrix4fv(
+          mShader->GetUniformLocation("uMatModelView"), 1, GL_FALSE, glm::value_ptr(localMat));
       mShader->SetUniform(mShader->GetUniformLocation("iTexture"), 0);
       glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
       (*item)->getTexture()->Unbind(GL_TEXTURE0);
-
-      glPopMatrix();
     }
   }
 

@@ -21,24 +21,25 @@ namespace cs::scene {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 const std::string Trajectory::SHADER_VERT = R"(
-#version 400 compatibility
+#version 330
 
 // inputs
-// ========================================================================
 layout(location = 0) in vec3 inPosition;
 layout(location = 1) in float inAge;
 
+// uniforms
+uniform mat4 uMatModelView;
+uniform mat4 uMatProjection;
+
 // outputs
-// ========================================================================
 out float fAge;
 out vec4 vPosition;
 
-// ========================================================================
 void main()
 {
     fAge = inAge;
-    vPosition = gl_ModelViewMatrix * vec4(inPosition.xyz, 1);
-    gl_Position = gl_ProjectionMatrix * vPosition;
+    vPosition = uMatModelView * vec4(inPosition.xyz, 1);
+    gl_Position = uMatProjection * vPosition;
 
   #if USE_LINEARDEPTHBUFFER
     gl_Position.z = 0;
@@ -55,24 +56,20 @@ void main()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 const std::string Trajectory::SHADER_FRAG = R"(
-#version 400 compatibility
+#version 330
 
 // inputs
-// ========================================================================
 in float fAge;
 in vec4 vPosition;
 
 // uniforms
-// ========================================================================
 uniform vec4 cStartColor;
 uniform vec4 cEndColor;
 uniform float fFarClip;
 
 // outputs
-// ========================================================================
 layout(location = 0) out vec4 vOutColor;
 
-// ========================================================================
 void main()
 {
   if (fAge < 0.0 || fAge > 1.0) discard;
@@ -198,6 +195,13 @@ bool Trajectory::Do() {
         mStartColor[2], mStartColor[3]);
     mShader->SetUniform(mShader->GetUniformLocation("cEndColor"), mEndColor[0], mEndColor[1],
         mEndColor[2], mEndColor[3]);
+
+    // get modelview and projection matrices
+    GLfloat glMatMV[16], glMatP[16];
+    glGetFloatv(GL_MODELVIEW_MATRIX, &glMatMV[0]);
+    glGetFloatv(GL_PROJECTION_MATRIX, &glMatP[0]);
+    glUniformMatrix4fv(mShader->GetUniformLocation("uMatModelView"), 1, GL_FALSE, glMatMV);
+    glUniformMatrix4fv(mShader->GetUniformLocation("uMatProjection"), 1, GL_FALSE, glMatP);
 
     glLineWidth(mWidth);
 

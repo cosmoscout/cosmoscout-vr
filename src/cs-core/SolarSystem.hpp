@@ -17,9 +17,15 @@
 #include <unordered_set>
 #include <vector>
 
+namespace cs::utils {
+class FrameTimings;
+} // namespace cs::utils
+
 namespace cs::core {
 
+class Settings;
 class TimeControl;
+class GraphicsEngine;
 
 /// The solar system is responsible for managing all CelestialBodies, the Sun and the observer.
 /// It functions as an interface to access these above mentioned objects from nearly anywhere in
@@ -47,7 +53,10 @@ class CS_CORE_EXPORT SolarSystem {
   /// Current position of the sun, realtive to the observer.
   utils::Property<glm::dvec3> pSunPosition = glm::dvec3(0.f);
 
-  SolarSystem(std::shared_ptr<TimeControl> const& pTimeControl);
+  SolarSystem(std::shared_ptr<const Settings> const& settings,
+      std::shared_ptr<utils::FrameTimings> const&    frameTimings,
+      std::shared_ptr<GraphicsEngine> const&         graphicsEngine,
+      std::shared_ptr<TimeControl> const&            timeControl);
   ~SolarSystem() = default;
 
   /// The Sun which is at the center of the SolarSystem.
@@ -84,6 +93,19 @@ class CS_CORE_EXPORT SolarSystem {
 
   /// Updates all CelestialAnchors, the Sun and the CelestialObservers animations.
   void update();
+
+  /// This scales the cs::scene::CelestialObserver of the solar system to move the
+  /// closest body to a small world space distance. This distance depends on his or her *real*
+  /// distance in outer space to the respective body.
+  /// In order for the scientists to be able to interact with their environment, the next virtual
+  /// celestial body must never be more than an arm’s length away. If the Solar System were always
+  /// represented on a 1:1 scale, the virtual planetary surface would be too far away to work
+  /// effectively with the simulation.
+  /// As objects will be quite close to the observer in world space if the user is far away in
+  /// *real* space, this also reduces the far clip distance in order to increase depth accuracy
+  /// for objects close to the observer. This method also manages the SPICE frame changes when the
+  /// observer moves from body to body.
+  void updateSceneScale();
 
   /// Gradually moves the observer's position and rotation from their current values to the given
   /// values.
@@ -130,11 +152,14 @@ class CS_CORE_EXPORT SolarSystem {
 
   // static utility functions ----------------------------------------------------------------------
 
-  /// Initializes SPICE. Should only be called once in the main() method.
-  static void init(std::string const& sSpiceMetaFile);
+  /// Initializes SPICE.
+  void init(std::string const& sSpiceMetaFile);
 
-  /// Cleans SPICE up. Should only be called once in the main() method, before the app terminates.
-  static void cleanup();
+  /// Return true, when init() has been called before.
+  bool getIsInitialized() const;
+
+  /// Cleans SPICE up.
+  void deinit();
 
   /// For debugging purposes.
   /// Prints all loaded SPICE frames.
@@ -173,11 +198,16 @@ class CS_CORE_EXPORT SolarSystem {
       double dEndTime, int iSamples);
 
  private:
+  std::shared_ptr<const Settings>                   mSettings;
+  std::shared_ptr<utils::FrameTimings>              mFrameTimings;
+  std::shared_ptr<GraphicsEngine>                   mGraphicsEngine;
   std::shared_ptr<TimeControl>                      mTimeControl;
   scene::CelestialObserver                          mObserver;
   std::shared_ptr<scene::CelestialObject>           mSun;
   std::set<std::shared_ptr<scene::CelestialAnchor>> mAnchors;
   std::set<std::shared_ptr<scene::CelestialBody>>   mBodies;
+
+  bool mIsInitialized = false;
 
   uint64_t mListenerIds = 0;
   std::unordered_map<uint64_t, std::function<void(std::shared_ptr<scene::CelestialBody>)>>

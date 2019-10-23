@@ -987,8 +987,8 @@ Primitive GltfShared::createMeshPrimitive(
   Primitive myPrimitive;
   myPrimitive.hasIndices = primitive.indices >= 0;
 
-  std::string definesVS = "#version 430\n";
-  std::string definesFS = "#version 430\n";
+  std::string definesVS = "#version 330\n";
+  std::string definesFS = "#version 330\n";
   // = "#version 450\n";
   definesFS += "#define USE_IBL\n#define USE_TEX_LOD\n";
 

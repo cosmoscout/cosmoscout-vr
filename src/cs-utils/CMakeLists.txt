@@ -4,7 +4,7 @@
 #                         Copyright: (c) 2019 German Aerospace Center (DLR)                        #
 # ------------------------------------------------------------------------------------------------ #
 
-#  build library -----------------------------------------------------------------------------------
+# build library ------------------------------------------------------------------------------------
 
 file(GLOB SOURCE_FILES *.cpp */*.cpp)
 
@@ -28,6 +28,9 @@ target_link_libraries(cs-utils
     ${VISTACORELIBS_LIBRARIES}
     ${CMAKE_DL_LIBS}
     cspice::cspice
+    curl::curl
+    curlpp::curlpp
+    c-ares::c-ares
 )
 
 target_include_directories(cs-utils

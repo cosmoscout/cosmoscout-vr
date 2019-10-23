@@ -8,7 +8,29 @@ rem ----------------------------------------------------------------------------
 
 rem ---------------------------------------------------------------------------------------------- #
 rem Make sure to run "git submodule update --init" before executing this script!                   #
+rem Default build mode is release, if "set COSMOSCOUT_DEBUG_BUILD=true" is executed before, all    #
+rem dependecies will be built in debug mode.                                                       #
+rem Usage:                                                                                         #
+rem    make_externals.bat [additional CMake flags, defaults to -G "Visual Studio 15 Win64"]        #
+rem Examples:                                                                                      #
+rem    make_externals.bat                                                                          #
+rem    make_externals.bat -G "Visual Studio 15 Win64"                                              #
+rem    make_externals.bat -G "Visual Studio 16 2019" -A x64                                        #
 rem ---------------------------------------------------------------------------------------------- #
+
+rem The CMake generator and other flags can be passed as parameters.
+set CMAKE_FLAGS=-G "Visual Studio 15 Win64"
+IF NOT "%~1"=="" (
+  SET CMAKE_FLAGS=%*
+)
+
+rem Check if ComoScout VR debug build is enabled with "set COSMOSCOUT_DEBUG_BUILD=true".
+IF "%COSMOSCOUT_DEBUG_BUILD%"=="true" (
+  echo CosmoScout VR debug build is enabled!
+  set BUILD_TYPE=debug
+) else (
+  set BUILD_TYPE=release
+)
 
 rem Create some required variables. ----------------------------------------------------------------
 
@@ -20,10 +42,10 @@ rem Get the current directory - this is the default location for the build and i
 set CURRENT_DIR=%cd%
 
 rem The build directory.
-set BUILD_DIR=%CURRENT_DIR%\build\windows-externals
+set BUILD_DIR=%CURRENT_DIR%\build\windows-externals-%BUILD_TYPE%
 
 rem The install directory.
-set INSTALL_DIR=%CURRENT_DIR%\install\windows-externals
+set INSTALL_DIR=%CURRENT_DIR%\install\windows-externals-%BUILD_TYPE%
 
 rem Create some default installation directories.
 cmake -E make_directory "%INSTALL_DIR%/lib"
@@ -38,28 +60,28 @@ echo Downloading, building and installing GLEW ...
 echo.
 
 cmake -E make_directory "%BUILD_DIR%/glew/extracted" && cd "%BUILD_DIR%/glew"
-powershell.exe -command Invoke-WebRequest -Uri https://netcologne.dl.sourceforge.net/project/glew/glew/2.1.0/glew-2.1.0.zip -OutFile glew-2.1.0.zip
+powershell.exe -command Invoke-WebRequest -Uri https://netcologne.dl.sourceforge.net/project/glew/glew/2.1.0/glew-2.1.0-win32.zip -OutFile glew-2.1.0-win32.zip
 
 cd "%BUILD_DIR%/glew/extracted"
-cmake -E tar xfvj ../glew-2.1.0.zip
+cmake -E tar xfvj ../glew-2.1.0-win32.zip
 cd ..
 
-cmake -G "Visual Studio 15 Win64" -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
-      -DCMAKE_INSTALL_LIBDIR=lib^
-      "%BUILD_DIR%/glew/extracted/glew-2.1.0/build/cmake" || exit /b
-cmake --build . --config Release --target install --parallel 8 || exit /b
+cmake -E copy_directory "%BUILD_DIR%/glew/extracted/glew-2.1.0/include"         "%INSTALL_DIR%/include" || exit /b
+cmake -E copy_directory "%BUILD_DIR%/glew/extracted/glew-2.1.0/lib/Release/x64" "%INSTALL_DIR%/lib"     || exit /b
+cmake -E copy_directory "%BUILD_DIR%/glew/extracted/glew-2.1.0/bin/Release/x64" "%INSTALL_DIR%/bin"     || exit /b
 
-rem freeglut ---------------------------------------------------------------------------------------
+rem  freeglut ---------------------------------------------------------------------------------------
 
 echo.
 echo Building and installing freeglut ...
 echo.
 
 cmake -E make_directory "%BUILD_DIR%/freeglut" && cd "%BUILD_DIR%/freeglut"
-cmake -G "Visual Studio 15 Win64" -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
+cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
       -DCMAKE_INSTALL_LIBDIR=lib^
       "%EXTERNALS_DIR%/freeglut/freeglut/freeglut" || exit /b
-cmake --build . --config Release --target install --parallel 8 || exit /b
+
+cmake --build . --config %BUILD_TYPE% --target install --parallel 8
 
 cmake -E copy_directory "%EXTERNALS_DIR%/freeglut/freeglut/freeglut/include/GL" "%INSTALL_DIR%/include/GL"
 
@@ -70,9 +92,10 @@ echo Building and installing c-ares ...
 echo.
 
 cmake -E make_directory "%BUILD_DIR%/c-ares" && cd "%BUILD_DIR%/c-ares"
-cmake -G "Visual Studio 15 Win64" -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
+cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
       "%EXTERNALS_DIR%/c-ares" || exit /b
-cmake --build . --config Release --target install --parallel 8 || exit /b
+
+cmake --build . --config %BUILD_TYPE% --target install --parallel 8
 
 rem curl -------------------------------------------------------------------------------------------
 
@@ -81,13 +104,14 @@ echo Building and installing curl ...
 echo.
 
 cmake -E make_directory "%BUILD_DIR%/curl" && cd "%BUILD_DIR%/curl"
-cmake -G "Visual Studio 15 Win64" -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
+cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
       -DBUILD_TESTING=OFF -DBUILD_CURL_EXE=OFF -DENABLE_ARES=ON^
       -DCARES_INCLUDE_DIR="%INSTALL_DIR%/include"^
       -DCARES_LIBRARY="%INSTALL_DIR%/lib/cares.lib"^
-      -DCMAKE_INSTALL_LIBDIR=lib^
+      -DCMAKE_USE_WINSSL=On -DCMAKE_INSTALL_LIBDIR=lib^
       "%EXTERNALS_DIR%/curl" || exit /b
-cmake --build . --config Release --target install --parallel 8 || exit /b
+
+cmake --build . --config %BUILD_TYPE% --target install --parallel 8
 
 rem curlpp -----------------------------------------------------------------------------------------
 
@@ -95,13 +119,19 @@ echo.
 echo Building and installing curlpp ...
 echo.
 
+if "%COSMOSCOUT_DEBUG_BUILD%"=="true" (
+  set CURL_LIB=libcurl-d_imp.lib
+) else ( 
+  set CURL_LIB=libcurl_imp.lib
+)
 cmake -E make_directory "%BUILD_DIR%/curlpp" && cd "%BUILD_DIR%/curlpp"
-cmake -G "Visual Studio 15 Win64" -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
+cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
       -DCURL_INCLUDE_DIR="%INSTALL_DIR%/include"^
-      -DCURL_LIBRARY="%INSTALL_DIR%/lib/libcurl_imp.lib"^
+      -DCURL_LIBRARY="%INSTALL_DIR%/lib/%CURL_LIB%"^
       -DCMAKE_INSTALL_LIBDIR=lib^
       "%EXTERNALS_DIR%/curlpp" || exit /b
-cmake --build . --config Release --target install --parallel 8 || exit /b
+
+cmake --build . --config %BUILD_TYPE% --target install --parallel 8
 
 rem libtiff ----------------------------------------------------------------------------------------
 
@@ -110,10 +140,11 @@ echo Building and installing libtiff ...
 echo.
 
 cmake -E make_directory "%BUILD_DIR%/libtiff" && cd "%BUILD_DIR%/libtiff"
-cmake -G "Visual Studio 15 Win64" -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
+cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
       -DCMAKE_INSTALL_FULL_LIBDIR=lib^
       "%EXTERNALS_DIR%/libtiff" || exit /b
-cmake --build . --config Release --target install --parallel 8 || exit /b
+
+cmake --build . --config %BUILD_TYPE% --target install --parallel 8
 
 rem gli --------------------------------------------------------------------------------------------
 
@@ -149,10 +180,12 @@ echo Building and installing opensg-1.8 ...
 echo.
 
 cmake -E make_directory "%BUILD_DIR%/opensg-1.8" && cd "%BUILD_DIR%/opensg-1.8"
-cmake -G "Visual Studio 15 Win64" -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
+cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
       -DGLUT_INCLUDE_DIR="%INSTALL_DIR%/include" -DGLUT_LIBRARY="%INSTALL_DIR%/lib/freeglut.lib"^
+      -DCMAKE_SHARED_LINKER_FLAGS="/FORCE:MULTIPLE" -DOPENSG_BUILD_TESTS=Off^
       "%EXTERNALS_DIR%/opensg-1.8"
-cmake --build . --config Release --target install --parallel 8 || exit /b
+
+cmake --build . --config %BUILD_TYPE% --target install --parallel 8
 
 rem vista ------------------------------------------------------------------------------------------
 
@@ -163,15 +196,15 @@ echo.
 cmake -E make_directory "%BUILD_DIR%/vista" && cd "%BUILD_DIR%/vista"
 
 rem set OPENVR="T:/modulesystem/tools/openvr/OpenVR_SDK_1.0.3/install/win7.x86_64.msvc14.release"
-rem cmake -G "Visual Studio 15 Win64" -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
+rem cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
 rem       -DVISTACORELIBS_USE_VIVE=On -DVISTADRIVERS_BUILD_VIVE=On -DOPENVR_ROOT_DIR=%OPENVR%^
 rem       -DVISTADRIVERS_BUILD_3DCSPACENAVIGATOR=On^
 rem       -DCMAKE_CXX_FLAGS="-std=c++11" "%EXTERNALS_DIR%/vista" || exit /b
 
-cmake -G "Visual Studio 15 Win64" -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
+cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
       -DCMAKE_CXX_FLAGS="-std=c++11" "%EXTERNALS_DIR%/vista" || exit /b
 
-cmake --build . --config Release --target install --parallel 8 || exit /b
+cmake --build . --config %BUILD_TYPE% --target install --parallel 8
 
 rem cspice -----------------------------------------------------------------------------------------
 
@@ -181,7 +214,6 @@ echo.
 
 cmake -E make_directory "%BUILD_DIR%/cspice/extracted" && cd "%BUILD_DIR%/cspice"
 powershell.exe -command $AllProtocols = [System.Net.SecurityProtocolType]'Tls11,Tls12'; [System.Net.ServicePointManager]::SecurityProtocol = $AllProtocols; Invoke-WebRequest -Uri https://naif.jpl.nasa.gov/pub/naif/toolkit//C/PC_Windows_VisualC_64bit/packages/cspice.zip -OutFile cspice.zip
-
 cd "%BUILD_DIR%/cspice/extracted"
 cmake -E tar xfvj ../cspice.zip
 cd cspice
@@ -193,12 +225,13 @@ echo file(GLOB_RECURSE CSPICE_SOURCE src/cspice/*.c) >> "CMakeLists.txt"
 echo add_library(cspice SHARED ${CSPICE_SOURCE}) >> "CMakeLists.txt"
 echo set_target_properties(cspice PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS 1) >> "CMakeLists.txt"
 
-cmake -G "Visual Studio 15 Win64" . || exit /b
-cmake --build . --config Release --parallel 8 || exit /b
+cmake %CMAKE_FLAGS% . || exit /b
 
-cmake -E copy_directory "%BUILD_DIR%/cspice/extracted/cspice/include"            "%INSTALL_DIR%/include/cspice"
-cmake -E copy           "%BUILD_DIR%/cspice/extracted/cspice/Release/cspice.lib" "%INSTALL_DIR%/lib"
-cmake -E copy           "%BUILD_DIR%/cspice/extracted/cspice/Release/cspice.dll" "%INSTALL_DIR%/lib"
+cmake --build . --config %BUILD_TYPE% --parallel 8 || exit /b
+
+cmake -E copy_directory "%BUILD_DIR%/cspice/extracted/cspice/include" "%INSTALL_DIR%/include/cspice"
+cmake -E copy "%BUILD_DIR%/cspice/extracted/cspice/%BUILD_TYPE%/cspice.lib" "%INSTALL_DIR%/lib"
+cmake -E copy "%BUILD_DIR%/cspice/extracted/cspice/%BUILD_TYPE%/cspice.dll" "%INSTALL_DIR%/lib"
 
 rem cef --------------------------------------------------------------------------------------------
 
@@ -233,16 +266,17 @@ powershell.exe -command "(gc %CEF_VERSION%\cmake\cef_variables.cmake) -replace '
 
 cd ..
 
-cmake -G "Visual Studio 15 Win64" -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
+cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
       "%BUILD_DIR%/cef/extracted/%CEF_VERSION%" || exit /b
-cmake --build . --config Release --parallel 8 || exit /b
+
+cmake --build . --config %BUILD_TYPE% --parallel 8 || exit /b     
 
 echo Installing cef...
 cmake -E make_directory "%INSTALL_DIR%/include/cef"
-cmake -E copy_directory "%BUILD_DIR%/cef/extracted/%CEF_VERSION%/include"         "%INSTALL_DIR%/include/cef/include"
-cmake -E copy_directory "%BUILD_DIR%/cef/extracted/%CEF_VERSION%/Resources"       "%INSTALL_DIR%/share/cef"
-cmake -E copy_directory "%BUILD_DIR%/cef/extracted/%CEF_VERSION%/Release"         "%INSTALL_DIR%/lib"
-cmake -E copy "%BUILD_DIR%/cef/libcef_dll_wrapper/Release/libcef_dll_wrapper.lib" "%INSTALL_DIR%/lib"
+cmake -E copy_directory "%BUILD_DIR%/cef/extracted/%CEF_VERSION%/include"               "%INSTALL_DIR%/include/cef/include"
+cmake -E copy_directory "%BUILD_DIR%/cef/extracted/%CEF_VERSION%/Resources"             "%INSTALL_DIR%/share/cef"
+cmake -E copy_directory "%BUILD_DIR%/cef/extracted/%CEF_VERSION%/Release"               "%INSTALL_DIR%/lib"
+cmake -E copy "%BUILD_DIR%/cef/libcef_dll_wrapper/%BUILD_TYPE%/libcef_dll_wrapper.lib"  "%INSTALL_DIR%/lib"
 
 rem ------------------------------------------------------------------------------------------------
 

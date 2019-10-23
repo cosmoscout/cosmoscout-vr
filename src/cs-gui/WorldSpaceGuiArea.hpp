@@ -44,7 +44,8 @@ class CS_GUI_EXPORT WorldSpaceGuiArea : public GuiArea, public IVistaOpenGLDraw 
 
   /// Calculates the position of the mouse in pixels. vRayOrigin and vRayEnd should be in
   /// gui-plane-coordinates. The gui plane is the xy-plane with the normal pointing in positive
-  /// z-direction.
+  /// z-direction. The result can be out of bounds of this area  - in this case 'false' is returned,
+  /// but the values are compted anyways.
   virtual bool calculateMousePosition(
       VistaVector3D const& vRayOrigin, VistaVector3D const& vRayEnd, int& x, int& y);
 
