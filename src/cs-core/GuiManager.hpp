@@ -53,7 +53,7 @@ class InputManager;
 ///  * The UI is drawn in a fixed resolution which is specified in the "gui": {...} settings key.
 ///  * When running in a clustered setup, the UI will be displayed across multiple displays.
 ///
-/// There are several GuiItems involved: e.g. the header-bar, the side-bar and the
+/// There are several GuiItems involved: e.g. the timeline, the status-bar, the side-bar and the
 /// notifications area. There are methods for getting access to these GuiItems - for example, these
 /// can be used to register callbacks which will be executed when a button is pressed in the UI.
 /// Plugins can add content to the sidebar. This is done with the methods addPluginTabToSideBar(),

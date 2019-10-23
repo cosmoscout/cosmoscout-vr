@@ -123,21 +123,18 @@ class Application : public VistaFrameLoop {
   ///  - set_shadowmap_split_distribution
   ///  - set_terrain_height
   ///  - set_widget_scale
-  /// HeaderBar:
-  ///  - add_hours
-  ///  - decrease_time_speed
-  ///  - fly_to
-  ///  - increase_time_speed
-  ///  - navigate_fix_horizon
-  ///  - navigate_north_up
-  ///  - navigate_to_orbit
-  ///  - navigate_to_surface
+  /// Timeline:
   ///  - print_notification
   ///  - reset_time
-  ///  - show_date_dialog
-  ///  - toggle_time_stop
-  /// Calendar:
+  ///  - add_hours
+  ///  - add_hours_without_animation
   ///  - set_date
+  ///  - set_time_speed
+  ///  - fly_to
+  ///  - navigate_north_up
+  ///  - navigate_fix_horizon
+  ///  - navigate_to_surface
+  ///  - navigate_to_orbit
   void registerGuiCallbacks();
 
   std::shared_ptr<const cs::core::Settings> mSettings;
