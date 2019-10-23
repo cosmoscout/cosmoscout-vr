@@ -507,10 +507,10 @@ void Application::FrameUpdate() {
       double heightDiff    = polar.z / mGraphicsEngine->pHeightScale.get() - surfaceHeight;
 
       if (!std::isnan(polar.x) && !std::isnan(polar.y) && !std::isnan(heightDiff)) {
-        mGuiManager->getStatusBar()->callJavascript("setUserPosition",
+        mGuiManager->getStatusBar()->callJavascript("set_user_position",
             cs::utils::convert::toDegrees(polar.x), cs::utils::convert::toDegrees(polar.y),
             heightDiff);
-        mGuiManager->getTimeline()->callJavascript("setUserPosition",
+        mGuiManager->getTimeline()->callJavascript("set_user_position",
             cs::utils::convert::toDegrees(polar.x), cs::utils::convert::toDegrees(polar.y),
             heightDiff);
       }
@@ -527,7 +527,7 @@ void Application::FrameUpdate() {
         angle = -angle;
       }
 
-      mGuiManager->getTimeline()->callJavascript("setNorthDirection", angle);
+      mGuiManager->getTimeline()->callJavascript("set_north_direction", angle);
     }
 
     mGuiManager->update();
@@ -611,12 +611,12 @@ void Application::connectSlots() {
     facet->format("%d-%b-%Y %H:%M:%S.%f");
     sstr.imbue(std::locale(std::locale::classic(), facet));
     sstr << cs::utils::convert::toBoostTime(val);
-    mGuiManager->getTimeline()->callJavascript("setDate", sstr.str());
+    mGuiManager->getTimeline()->callJavascript("set_date", sstr.str());
   });
 
   // Update the simulation time speed shown in the user interface.
   mTimeControl->pTimeSpeed.onChange().connect(
-      [this](float val) { mGuiManager->getTimeline()->callJavascript("setTimeSpeed", val); });
+      [this](float val) { mGuiManager->getTimeline()->callJavascript("set_time_speed", val); });
 
   // Show notification when the center name of the celestial observer changes.
   mSolarSystem->pObserverCenter.onChange().connect([this](std::string const& center) {
@@ -682,7 +682,7 @@ void Application::registerGuiCallbacks() {
   // Sets the current simulation time. The argument must be a string accepted by
   // TimeControl::setTime.
   mGuiManager->getSideBar()->registerCallback<std::string>(
-      "setDate", ([this](std::string const& sDate) {
+      "set_date", ([this](std::string const& sDate) {
         double time = cs::utils::convert::toSpiceTime(boost::posix_time::time_from_string(sDate));
         mTimeControl->setTime(time);
       }));
@@ -804,13 +804,13 @@ void Application::registerGuiCallbacks() {
       }));
 
   mGuiManager->getTimeline()->registerCallback<std::string>(
-      "setDate", ([this](std::string const& date) {
-        mTimeControl->setTime(
-            cs::utils::convert::toSpiceTime(boost::posix_time::time_from_string(date)));
+      "set_date", ([this](std::string const& date) {
+        double time = cs::utils::convert::toSpiceTime(boost::posix_time::time_from_string(date));
+        mTimeControl->setTime(time);
       }));
 
   mGuiManager->getTimeline()->registerCallback<double>(
-      "setTimeSpeed", ([&](double speed) { mTimeControl->setTimeSpeed((float)speed); }));
+      "set_time_speed", ([&](double speed) { mTimeControl->setTimeSpeed(speed); }));
 
   // Flies the celestial observer to the given location in space.
   mGuiManager->getTimeline()->registerCallback<std::string, double, double, double, double>(

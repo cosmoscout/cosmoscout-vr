@@ -2,12 +2,12 @@ let animationTime = 5;
 let withoutAnimationTime = 0;
 
 //Flys the observer to a given location
-function flyToLocation(planet, location, time) {
+function fly_to_location(planet, location, time) {
     window.call_native("fly_to", planet, location.longitude, location.latitude, location.height, time);
     window.call_native("print_notification", "Travelling", "to " + location.name, "send");
 }
 
-function parseHeight(heightStr, unit) {
+function parse_height(heightStr, unit) {
     var height = parseFloat(heightStr);
     if (unit == 'mm') return height / 1000;
     else if (unit == 'cm') return height / 100;
@@ -21,7 +21,7 @@ function parseHeight(heightStr, unit) {
     return height * 3.086e19;
 }
 
-function parseLatitude(lat, half) {
+function parse_latitude(lat, half) {
     lat = lat.substr(0, lat.length - 1);
     if (half == 'S')
         return parseFloat(-lat);
@@ -29,7 +29,7 @@ function parseLatitude(lat, half) {
         return parseFloat(lat);
 }
 
-function parseLongitude(long, half) {
+function parse_longitude(long, half) {
     long = long.substr(0, long.length - 1);
     if (half == 'W')
         return parseFloat(-long);
@@ -38,19 +38,19 @@ function parseLongitude(long, half) {
 }
 
 // Extracts the needed information out of the human readable place string
-// and calls flyToLocation for the given location.
-function geoCode(direct, planet, place, name) {
+// and calls fly_to_location for the given location.
+function geo_code(direct, planet, place, name) {
     var placeArr = place.split(" ");
     var location = {
-        "longitude": parseLongitude(placeArr[0], placeArr[1]),
-        "latitude": parseLatitude(placeArr[2], placeArr[3]),
-        "height": parseHeight(placeArr[4], placeArr[5]),
+        "longitude": parse_longitude(placeArr[0], placeArr[1]),
+        "latitude": parse_latitude(placeArr[2], placeArr[3]),
+        "height": parse_height(placeArr[4], placeArr[5]),
         "name": name
     };
 
     if (direct) {
-        flyToLocation(planet, location, withoutAnimationTime);
+        fly_to_location(planet, location, withoutAnimationTime);
     } else {
-        flyToLocation(planet, location, animationTime);
+        fly_to_location(planet, location, animationTime);
     }
 }
