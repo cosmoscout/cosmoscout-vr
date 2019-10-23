@@ -25,7 +25,7 @@ function add_button(icon, tooltip, callback) {
     iconElement.innerHTML = icon;
     iconElement.setAttribute("class", "material-icons");
     button.appendChild(iconElement);
-    document.getElementById("buttonControl").appendChild(button);
+    document.getElementById("plugin-buttons").appendChild(button);
     $('[data-toggle="tooltip"]').tooltip({ delay: 500, placement: "top", html: false });
 }
 
@@ -313,8 +313,8 @@ function redraw_tooltip(event) {
     return new Promise(resolve => {
         var eventRect = event.getBoundingClientRect();
         var left = eventRect.left - 150 < 0 ? 0 : eventRect.left - 150;
-        document.getElementById("customTooltip").style.top = eventRect.bottom + 'px';
-        document.getElementById("customTooltip").style.left = left + 'px';
+        document.getElementById("event-tooltip-container").style.top = eventRect.bottom + 'px';
+        document.getElementById("event-tooltip-container").style.left = left + 'px';
 
         setTimeout(function () {
             resolve(10);
@@ -336,13 +336,13 @@ var hoveredHTMLEvent;
 
 // Shows a tooltip if an item is hovered
 function item_over_callback(properties, overview) {
-    document.getElementById("customTooltip").style.display = "block";
+    document.getElementById("event-tooltip-container").style.display = "block";
     tooltipVisible = true;
     for (var item in items._data) {
         if (items._data[item].id == properties.item) {
-            document.getElementById("itemContent").innerHTML = items._data[item].content;
-            document.getElementById("itemDescription").innerHTML = items._data[item].description;
-            document.getElementById("itemLocation").innerHTML = "<i class='material-icons'>send</i> " + items._data[item].planet + " " + items._data[item].place;
+            document.getElementById("event-tooltip-content").innerHTML = items._data[item].content;
+            document.getElementById("event-tooltip-description").innerHTML = items._data[item].description;
+            document.getElementById("event-tooltip-location").innerHTML = "<i class='material-icons'>send</i> " + items._data[item].planet + " " + items._data[item].place;
             hoveredItem = items._data[item];
         }
     }
@@ -359,8 +359,8 @@ function item_over_callback(properties, overview) {
     hoveredHTMLEvent.classList.add('mouseOver');
     var eventRect = event.getBoundingClientRect();
     var left = eventRect.left - 150 < 0 ? 0 : eventRect.left - 150;
-    document.getElementById("customTooltip").style.top = eventRect.bottom + 'px';
-    document.getElementById("customTooltip").style.left = left + 'px';
+    document.getElementById("event-tooltip-container").style.top = eventRect.bottom + 'px';
+    document.getElementById("event-tooltip-container").style.left = left + 'px';
     if (currentSpeed != paus) {
         start_redraw_tooltip(event);
     }
@@ -373,8 +373,8 @@ function item_over_overview_callback(properties) {
 
 // Closes the tooltip if the mouse leaves the item and tooltip
 function item_out_callback(properties) {
-    if (properties.event.toElement.className != "custom-tooltip-container") {
-        document.getElementById("customTooltip").style.display = "none";
+    if (properties.event.toElement.className != "event-tooltip") {
+        document.getElementById("event-tooltip-container").style.display = "none";
         tooltipVisible = false;
         hoveredHTMLEvent.classList.remove('mouseOver');
     }
@@ -387,7 +387,7 @@ function travel_to_item_location() {
 
 // Hide the tooltip if the mouse leaves the tooltip
 function leave_custom_tooltip(event) {
-    document.getElementById("customTooltip").style.display = "none";
+    document.getElementById("event-tooltip-container").style.display = "none";
     tooltipVisible = false;
     hoveredHTMLEvent.classList.remove('mouseOver');
 }
@@ -404,7 +404,7 @@ function on_item_move_overview_callback(item, callback) {
 // Close the event form
 function close_form() {
     parHolder.callback(null); // cancel item creation
-    document.getElementById("myForm").style.display = "none";
+    document.getElementById("add-event-dialog").style.display = "none";
     timeline.setOptions(editingDoneOpt);
     overviewTimeLine.setOptions(editingDoneOpt);
 }
@@ -412,29 +412,29 @@ function close_form() {
 // Creates/Updates a event with the user inputs
 var wrongInputStyle = "2px solid red";
 function apply_event() {
-    if (document.getElementById("eventName").value != ""
-        && document.getElementById("eventStartDate").value != ""
-        && document.getElementById("descriptionInput").value != "") {
-        document.getElementById("eventName").style.border = "";
-        document.getElementById("eventStartDate").style.border = "";
-        document.getElementById("descriptionInput").style.border = "";
-        parHolder.item.style = "border-color: " + document.getElementById("eventColor").value;
-        parHolder.item.content = document.getElementById("eventName").value;
-        parHolder.item.start = new Date(document.getElementById("eventStartDate").value);
-        parHolder.item.description = document.getElementById("descriptionInput").value;
-        if (document.getElementById("eventEndDate").value != "") {
-            parHolder.item.end = new Date(document.getElementById("eventEndDate").value);
+    if (document.getElementById("event-dialog-name").value != ""
+        && document.getElementById("event-dialog-start-date").value != ""
+        && document.getElementById("event-dialog-description").value != "") {
+        document.getElementById("event-dialog-name").style.border = "";
+        document.getElementById("event-dialog-start-date").style.border = "";
+        document.getElementById("event-dialog-description").style.border = "";
+        parHolder.item.style = "border-color: " + document.getElementById("event-dialog-color").value;
+        parHolder.item.content = document.getElementById("event-dialog-name").value;
+        parHolder.item.start = new Date(document.getElementById("event-dialog-start-date").value);
+        parHolder.item.description = document.getElementById("event-dialog-description").value;
+        if (document.getElementById("event-dialog-end-date").value != "") {
+            parHolder.item.end = new Date(document.getElementById("event-dialog-end-date").value);
             var diff = parHolder.item.start - parHolder.item.end;
             if (diff >= 0) {
                 parHolder.item.end = null;
-                document.getElementById("eventEndDate").style.border = wrongInputStyle;
+                document.getElementById("event-dialog-end-date").style.border = wrongInputStyle;
                 return;
             } else {
-                document.getElementById("eventEndDate").style.border = "";
+                document.getElementById("event-dialog-end-date").style.border = "";
             }
         }
-        parHolder.item.planet = document.getElementById("planetInput").value;
-        parHolder.item.place = document.getElementById("placeInput").value;
+        parHolder.item.planet = document.getElementById("event-dialog-planet").value;
+        parHolder.item.place = document.getElementById("event-dialog-location").value;
         if (parHolder.item.id == null) {
             parHolder.item.id = parHolder.item.content + parHolder.item.start + parHolder.item.end;
             parHolder.item.id = parHolder.item.id.replace(/\s/g, '');
@@ -445,7 +445,7 @@ function apply_event() {
             parHolder.item.className = 'event ' + parHolder.item.id;
         }
         parHolder.callback(parHolder.item); // send back adjusted new item
-        document.getElementById("myForm").style.display = "none";
+        document.getElementById("add-event-dialog").style.display = "none";
         timeline.setOptions(editingDoneOpt);
         overviewTimeLine.setOptions(editingDoneOpt);
         if (parHolder.overview) {
@@ -456,42 +456,42 @@ function apply_event() {
             itemsOverview.update(parHolder.item);
         }
     } else {
-        if (document.getElementById("eventName").value == "") {
-            document.getElementById("eventName").style.border = wrongInputStyle;
+        if (document.getElementById("event-dialog-name").value == "") {
+            document.getElementById("event-dialog-name").style.border = wrongInputStyle;
         } else {
-            document.getElementById("eventName").style.border = "";
+            document.getElementById("event-dialog-name").style.border = "";
         }
-        if (document.getElementById("eventStartDate").value == "") {
-            document.getElementById("eventStartDate").style.border = wrongInputStyle;
+        if (document.getElementById("event-dialog-start-date").value == "") {
+            document.getElementById("event-dialog-start-date").style.border = wrongInputStyle;
         } else {
-            document.getElementById("eventStartDate").style.border = "";
+            document.getElementById("event-dialog-start-date").style.border = "";
         }
-        if (document.getElementById("descriptionInput").value == "") {
-            document.getElementById("descriptionInput").style.border = wrongInputStyle;
+        if (document.getElementById("event-dialog-description").value == "") {
+            document.getElementById("event-dialog-description").style.border = wrongInputStyle;
         } else {
-            document.getElementById("descriptionInput").style.border = "";
+            document.getElementById("event-dialog-description").style.border = "";
         }
     }
 }
 
 // Called when an item is about to be updated
 function on_update_callback(item, callback, overview) {
-    document.getElementById("eventName").style.border = "";
-    document.getElementById("eventStartDate").style.border = "";
-    document.getElementById("descriptionInput").style.border = "";
+    document.getElementById("event-dialog-name").style.border = "";
+    document.getElementById("event-dialog-start-date").style.border = "";
+    document.getElementById("event-dialog-description").style.border = "";
     timeline.setOptions(whileEditingOpt);
     overviewTimeLine.setOptions(whileEditingOpt);
     document.getElementById("headlineForm").innerText = "Update";
-    document.getElementById("myForm").style.display = "block";
-    document.getElementById("eventName").value = item.content;
-    document.getElementById("eventStartDate").value = get_formatted_dateWithTime(item.start);
-    document.getElementById("descriptionInput").value = item.description;
-    document.getElementById("planetInput").value = item.planet;
-    document.getElementById("placeInput").value = item.place;
+    document.getElementById("add-event-dialog").style.display = "block";
+    document.getElementById("event-dialog-name").value = item.content;
+    document.getElementById("event-dialog-start-date").value = get_formatted_dateWithTime(item.start);
+    document.getElementById("event-dialog-description").value = item.description;
+    document.getElementById("event-dialog-planet").value = item.planet;
+    document.getElementById("event-dialog-location").value = item.place;
     if (item.end) {
-        document.getElementById("eventEndDate").value = get_formatted_dateWithTime(item.end);
+        document.getElementById("event-dialog-end-date").value = get_formatted_dateWithTime(item.end);
     } else {
-        document.getElementById("eventEndDate").value = "";
+        document.getElementById("event-dialog-end-date").value = "";
     }
     parHolder.item = item;
     parHolder.callback = callback;
@@ -501,19 +501,19 @@ function on_update_callback(item, callback, overview) {
 
 // Called when an item is about to be added
 function on_add_callback(item, callback, overview) {
-    document.getElementById("eventName").style.border = "";
-    document.getElementById("eventStartDate").style.border = "";
-    document.getElementById("descriptionInput").style.border = "";
+    document.getElementById("event-dialog-name").style.border = "";
+    document.getElementById("event-dialog-start-date").style.border = "";
+    document.getElementById("event-dialog-description").style.border = "";
     timeline.setOptions(whileEditingOpt);
     overviewTimeLine.setOptions(whileEditingOpt);
     document.getElementById("headlineForm").innerText = "Add";
-    document.getElementById("eventName").value = "";
-    document.getElementById("myForm").style.display = "block";
-    document.getElementById("eventStartDate").value = get_formatted_dateWithTime(item.start);
-    document.getElementById("eventEndDate").value = "";
-    document.getElementById("descriptionInput").value = "";
-    document.getElementById("planetInput").value = activePlanetCenter;
-    document.getElementById("placeInput").value = format_longitude(userPosition.long) + format_latitude(userPosition.lat) + format_height(userPosition.height);
+    document.getElementById("event-dialog-name").value = "";
+    document.getElementById("add-event-dialog").style.display = "block";
+    document.getElementById("event-dialog-start-date").value = get_formatted_dateWithTime(item.start);
+    document.getElementById("event-dialog-end-date").value = "";
+    document.getElementById("event-dialog-description").value = "";
+    document.getElementById("event-dialog-planet").value = activePlanetCenter;
+    document.getElementById("event-dialog-location").value = format_longitude(userPosition.long) + format_latitude(userPosition.lat) + format_height(userPosition.height);
     parHolder.item = item;
     parHolder.callback = callback;
     parHolder.overview = overview;
@@ -833,7 +833,7 @@ function set_time_speed(speed) {
 function set_pause() {
     currentSpeed = paus;
     window.call_native("set_time_speed", 0);
-    document.getElementById("btnPause").innerHTML = '<i class="material-icons">play_arrow</i>';
+    document.getElementById("pause-button").innerHTML = '<i class="material-icons">play_arrow</i>';
     document.getElementsByClassName("range-label")[0].innerHTML = '<i class="material-icons">pause</i>';
     timeline.setOptions(pausOpt);
     timelineZoomBlocked = false;
@@ -887,7 +887,7 @@ function range_update_callback() {
         return;
     }
 
-    document.getElementById("btnPause").innerHTML = '<i class="material-icons">pause</i>';
+    document.getElementById("pause-button").innerHTML = '<i class="material-icons">pause</i>';
     timeline.setOptions(playingOpt);
     timelineZoomBlocked = true;
     if (parseInt(currentSpeed) < paus) {
@@ -1006,52 +1006,52 @@ function reset_time() {
 
 timelineContainer.addEventListener("wheel", manuel_zoom_timeline, true);
 
-document.getElementById("btnIncreaseSecond").onclick = plus_one_second;
-document.getElementById("btnDecreaseSecond").onclick = minus_one_second;
+document.getElementById("increase-second-button").onclick = plus_one_second;
+document.getElementById("decrease-second-button").onclick = minus_one_second;
 
-document.getElementById("btnIncreaseMinute").onclick = plus_one_minute;
-document.getElementById("btnDecreaseMinute").onclick = minus_one_minute;
+document.getElementById("increase-minute-button").onclick = plus_one_minute;
+document.getElementById("decrease-minute-button").onclick = minus_one_minute;
 
-document.getElementById("btnIncreaseHour").onclick = plus_one_hour;
-document.getElementById("btnDecreaseHour").onclick = minus_one_hour;
+document.getElementById("increase-hour-button").onclick = plus_one_hour;
+document.getElementById("decrease-hour-button").onclick = minus_one_hour;
 
-document.getElementById("btnIncreaseDay").onclick = plus_one_day;
-document.getElementById("btnDecreaseDay").onclick = minus_one_day;
+document.getElementById("increase-day-button").onclick = plus_one_day;
+document.getElementById("decrease-day-button").onclick = minus_one_day;
 
-document.getElementById("btnIncreaseMonth").onclick = plus_one_month;
-document.getElementById("btnDecreaseMonth").onclick = minus_one_month;
+document.getElementById("increase-month-button").onclick = plus_one_month;
+document.getElementById("decrease-month-button").onclick = minus_one_month;
 
-document.getElementById("btnIncreaseYear").onclick = plus_one_year;
-document.getElementById("btnDecreaseYear").onclick = minus_one_year;
+document.getElementById("increase-year-button").onclick = plus_one_year;
+document.getElementById("decrease-year-button").onclick = minus_one_year;
 
-document.getElementById("btnPause").onclick = toggle_pause;
-document.getElementById("btnDecrease_speed").onclick = decrease_speed;
-document.getElementById("btnIncrease_speed").onclick = increase_speed;
+document.getElementById("pause-button").onclick = toggle_pause;
+document.getElementById("speed-decrease-button").onclick = decrease_speed;
+document.getElementById("speed-increase-button").onclick = increase_speed;
 
-document.getElementById("itemLocation").onclick = travel_to_item_location;
+document.getElementById("event-tooltip-location").onclick = travel_to_item_location;
 
-document.getElementById("btnReset").onclick = reset_time;
+document.getElementById("time-reset-button").onclick = reset_time;
 
 document.getElementsByClassName('range-label')[0].addEventListener('mousedown', range_update_callback);
 
-document.getElementById("btnDecreaseYear").addEventListener("wheel", scroll_on_year);
-document.getElementById("btnDecreaseMonth").addEventListener("wheel", scroll_on_month);
-document.getElementById("btnDecreaseDay").addEventListener("wheel", scroll_on_day);
-document.getElementById("btnDecreaseHour").addEventListener("wheel", scroll_on_hour);
-document.getElementById("btnDecreaseMinute").addEventListener("wheel", scroll_on_minute);
-document.getElementById("btnDecreaseSecond").addEventListener("wheel", scroll_on_second);
+document.getElementById("decrease-year-button").addEventListener("wheel", scroll_on_year);
+document.getElementById("decrease-month-button").addEventListener("wheel", scroll_on_month);
+document.getElementById("decrease-day-button").addEventListener("wheel", scroll_on_day);
+document.getElementById("decrease-hour-button").addEventListener("wheel", scroll_on_hour);
+document.getElementById("decrease-minute-button").addEventListener("wheel", scroll_on_minute);
+document.getElementById("decrease-second-button").addEventListener("wheel", scroll_on_second);
 
-document.getElementById("btnIncreaseYear").addEventListener("wheel", scroll_on_year);
-document.getElementById("btnIncreaseMonth").addEventListener("wheel", scroll_on_month);
-document.getElementById("btnIncreaseDay").addEventListener("wheel", scroll_on_day);
-document.getElementById("btnIncreaseHour").addEventListener("wheel", scroll_on_hour);
-document.getElementById("btnIncreaseMinute").addEventListener("wheel", scroll_on_minute);
-document.getElementById("btnIncreaseSecond").addEventListener("wheel", scroll_on_second);
+document.getElementById("increase-year-button").addEventListener("wheel", scroll_on_year);
+document.getElementById("increase-month-button").addEventListener("wheel", scroll_on_month);
+document.getElementById("increase-day-button").addEventListener("wheel", scroll_on_day);
+document.getElementById("increase-hour-button").addEventListener("wheel", scroll_on_hour);
+document.getElementById("increase-minute-button").addEventListener("wheel", scroll_on_minute);
+document.getElementById("increase-second-button").addEventListener("wheel", scroll_on_second);
 
-document.getElementById("btnCancel").onclick = close_form;
-document.getElementById("btnApply").onclick = apply_event;
+document.getElementById("event-dialog-cancel-button").onclick = close_form;
+document.getElementById("event-dialog-apply-button").onclick = apply_event;
 
-document.getElementById("customTooltip").onmouseleave = leave_custom_tooltip;
+document.getElementById("event-tooltip-container").onmouseleave = leave_custom_tooltip;
 
 // toggle if the overview by pressing the button on the right --------------------------------------
 
@@ -1059,16 +1059,16 @@ var overviewVisible = false;
 
 function toggle_overview() {
     overviewVisible = !overviewVisible;
-    document.getElementById('timelineContainer').classList.toggle('visible');
+    document.getElementById('timeline-container').classList.toggle('visible');
     if (overviewVisible) {
-        document.getElementById("btnExpand").innerHTML = '<i class="material-icons">expand_less</i>';
+        document.getElementById("expand-button").innerHTML = '<i class="material-icons">expand_less</i>';
     }
     else {
-        document.getElementById("btnExpand").innerHTML = '<i class="material-icons">expand_more</i>';
+        document.getElementById("expand-button").innerHTML = '<i class="material-icons">expand_more</i>';
     }
 }
 
-document.getElementById("btnExpand").onclick = toggle_overview;
+document.getElementById("expand-button").onclick = toggle_overview;
 
 // toggle visibility of the increase / decrease time buttons ---------------------------------------
 
@@ -1092,8 +1092,8 @@ function leave_time_buttons() {
     document.getElementById("decreaseControl").classList.remove('mouseNear');
 }
 
-document.getElementById("timeControl").onmouseenter = mouse_enter_time_control;
-document.getElementById("timeControl").onmouseleave = mouse_leave_time_control;
+document.getElementById("time-control").onmouseenter = mouse_enter_time_control;
+document.getElementById("time-control").onmouseleave = mouse_leave_time_control;
 
 document.getElementById("increaseControl").onmouseenter = enter_time_buttons;
 document.getElementById("increaseControl").onmouseleave = leave_time_buttons;
@@ -1114,7 +1114,7 @@ function drawFocusLens() {
     var rightCustomTime = document.getElementsByClassName("rightTime")[0];
     var rightRect = rightCustomTime.getBoundingClientRect();
 
-    var divElement = document.getElementById("focusLens");
+    var divElement = document.getElementById("focus-lens");
     divElement.style.position = "absolute";
     divElement.style.left = leftRect.right + 'px';
     divElement.style.top = (leftRect.top + offset) + 'px';
@@ -1134,7 +1134,7 @@ function drawFocusLens() {
     divElement.style.height = height + 'px';
     divElement.style.width = width + 'px';
 
-    divElement = document.getElementById("focusLensLeft");
+    divElement = document.getElementById("focus-lens-left");
     divElement.style.top = (leftRect.top + offset + height) + 'px';
     width = leftRect.right + xValue + borderWidth;
     width = width < 0 ? 0 : width;
@@ -1142,7 +1142,7 @@ function drawFocusLens() {
     var body = document.getElementsByTagName("body")[0];
     var bodyRect = body.getBoundingClientRect();
 
-    divElement = document.getElementById("focusLensRight");
+    divElement = document.getElementById("focus-lens-right");
     divElement.style.top = (leftRect.top + offset + height) + 'px';
     width = bodyRect.right - rightRect.right + xValue + 1;
     width = width < 0 ? 0 : width;
@@ -1159,7 +1159,7 @@ picker.on("change", function (color) {
 });
 
 picker.on("change", function (color) {
-    var colorField = document.getElementById("eventColor");
+    var colorField = document.getElementById("event-dialog-color");
     colorField.style.background = '#' + color;
 });
 
@@ -1235,10 +1235,10 @@ function change_date_callback(e) {
             set_time_to_date(e.date);
             break;
         case newStartDateId:
-            document.getElementById("eventStartDate").value = e.format();
+            document.getElementById("event-dialog-start-date").value = e.format();
             break;
         case newEndDateId:
-            document.getElementById("eventEndDate").value = e.format();
+            document.getElementById("event-dialog-end-date").value = e.format();
             break;
         default:
         // code block
@@ -1254,8 +1254,8 @@ $(document).ready(function () {
         format: "yyyy-mm-dd",
         startDate: "1950-01-02",
         endDate: "2049-12-31",
-    }).on("changeDate", changeDateCallback);
+    }).on("changeDate", change_date_callback);
 });
 
-document.getElementById("btnCalendar").onclick = enter_new_center_time;
+document.getElementById("calendar-button").onclick = enter_new_center_time;
 document.getElementById("dateLabel").onclick = enter_new_center_time;
