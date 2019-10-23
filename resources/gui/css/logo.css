@@ -1,6 +1,5 @@
 body {
     background: rgba(255, 255, 255, 0);
-    /*background: #555;*/
     overflow: hidden;
     color: white;
 }
@@ -15,6 +14,11 @@ body {
     opacity: 0.5;
      -webkit-perspective: 120px;
     perspective: 500px;
+    transition: opacity 0.2s linear;
+}
+
+#logo.visible {
+    opacity: 0.5;
 }
 
 #logo-image  {

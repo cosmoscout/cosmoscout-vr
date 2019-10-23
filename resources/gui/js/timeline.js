@@ -1,5 +1,9 @@
 // API calls - these should be called from C++ -----------------------------------------------------
 
+function init() {
+    $("#timeline-container").addClass("visible");
+}
+
 // Sets the timeline to the given date
 function set_date(date) { }
 
@@ -1059,7 +1063,7 @@ var overviewVisible = false;
 
 function toggle_overview() {
     overviewVisible = !overviewVisible;
-    document.getElementById('timeline-container').classList.toggle('visible');
+    document.getElementById('timeline-container').classList.toggle('overview-visible');
     if (overviewVisible) {
         document.getElementById("expand-button").innerHTML = '<i class="material-icons">expand_less</i>';
     }

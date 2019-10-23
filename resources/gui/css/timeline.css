@@ -317,7 +317,7 @@
 
 #timeline-container {
   position: absolute;
-  top: -43px;
+  top: -120px;
   left: 0px;
   padding: 0;
   margin: 0;
@@ -329,6 +329,10 @@
 }
 
 #timeline-container.visible {
+  top: -43px;
+}
+
+#timeline-container.overview-visible {
   top: 0px;
 }
 

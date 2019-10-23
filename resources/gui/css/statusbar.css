@@ -10,6 +10,12 @@ body {
     overflow: hidden;
     font-size: 0.9rem;
     text-shadow: 0 0 5px black, 0 0 2px black;
+    opacity: 0;
+    transition: opacity 0.2s linear;
+}
+
+#statusbar.visible {
+    opacity: 1;
 }
 
 #statusbar i {

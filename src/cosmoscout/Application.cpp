@@ -337,7 +337,9 @@ void Application::FrameUpdate() {
 
         // All plugins finished loading -> init their custom components.
         mGuiManager->getSideBar()->callJavascript("init");
-        // mGuiManager->getHeaderBar()->callJavascript("init");
+        mGuiManager->getTimeline()->callJavascript("init");
+        mGuiManager->getStatusBar()->callJavascript("init");
+        mGuiManager->getLogo()->callJavascript("init");
 
         // We will keep the loading screen active for some frames, as the first frames are usually a
         // bit choppy as data is uploaded to the GPU.

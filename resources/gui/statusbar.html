@@ -61,7 +61,11 @@
                 return (long).toFixed(2) + "° E ";
         }
 
-        // overridden API calls ------------------------------------------------
+        // API calls -------------------------------------------------------------------------------
+
+        function init() {
+            $("#statusbar").addClass("visible");
+        }
 
         function set_pointer_position(hits, long, lat, height) {
             if (hits) {
