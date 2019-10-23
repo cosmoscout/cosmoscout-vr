@@ -179,7 +179,7 @@ var overviewOptions = {
     showCurrentTime: false,
     editable: {
         add: true,         // add new items by double tapping
-        updateTime: true,  // drag items horizontally
+        updateTime: false,  // drag items horizontally
         updateGroup: false, // drag items from one group to another
         remove: false,       // delete an item by tapping the delete button top right
         overrideItems: false  // allow these options to override item.editable
@@ -196,7 +196,7 @@ var whileEditingOpt = {
 var editingDoneOpt = {
     editable: {
         add: true,         // add new items by double tapping
-        updateTime: true,  // drag items horizontally
+        updateTime: false,  // drag items horizontally
         updateGroup: false, // drag items from one group to another
         remove: false,       // delete an item by tapping the delete button top right
         overrideItems: false  // allow these options to override item.editable
