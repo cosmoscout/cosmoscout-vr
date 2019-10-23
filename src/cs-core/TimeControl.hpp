@@ -36,7 +36,7 @@ class CS_CORE_EXPORT TimeControl {
 
   /// Set the simulation time to a specific point in time. The TimeControl class tries to
   /// transition to that point in time smoothly, if it is close to the current simulation time.
-  /// @param The target time in TDB.
+  /// @param time The target time in TDB.
   void setTime(double tTime);
 
   /// Set the simulation time to a specific point in time. The transition is not done smoothly,
@@ -60,7 +60,7 @@ class CS_CORE_EXPORT TimeControl {
   void setTimeSpeed(float speed);
 
  private:
-  double mLastUpdate;
+  double mLastUpdate = -1.0;
 
   utils::AnimatedValue<double> mAnimatedTime;
   bool                         mAnimationInProgress = false;

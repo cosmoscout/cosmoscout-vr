@@ -100,6 +100,7 @@ function beauty_print_number(value) {
 }
 
 function init() {
+    $(".side-bar").addClass("visible");
     const dropdowns = $(".simple-value-dropdown");
     dropdowns.selectpicker();
     dropdowns.on('change', function () {

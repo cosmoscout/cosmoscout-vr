@@ -4,19 +4,24 @@
 //                        Copyright: (c) 2019 German Aerospace Center (DLR)                       //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+#include "../cs-core/Settings.hpp"
 #include "../cs-gui/gui.hpp"
 #include "../cs-utils/CommandLine.hpp"
 #include "Application.hpp"
 
-#include <VistaOGLExt/VistaShaderRegistry.h>
+#include <VistaKernel/VistaSystem.h>
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int main(int argc, char** argv) {
-  // launch gui child processes
-  cs::gui::executeChildProcess(argc, argv);
+  // Launch GUI child processes. For each GUI web site, a separate process is spawned by the
+  // Chromium Embedded Framework. For the main process, this method returns immediately, for all
+  // others it blocks until the child process has terminated.
+  cs::gui::executeWebProcess(argc, argv);
 
-  // parse program options
+  // parse program options -------------------------------------------------------------------------
+
+  // These are the default values for the options.
   std::string settingsFile   = "../share/config/simple_desktop.json";
   bool        printHelp      = false;
   bool        printVistaHelp = false;
@@ -28,12 +33,12 @@ int main(int argc, char** argv) {
   args.addArgument({"-h", "--help"}, &printHelp, "Print this help.");
   args.addArgument({"-v", "--vistahelp"}, &printVistaHelp, "Print help for vista options.");
 
-  // does the actual parsing.
+  // Then do the actual parsing.
   try {
     args.parse(argc, argv);
   } catch (std::runtime_error const& e) {
     std::cout << e.what() << std::endl;
-    return -1;
+    return 1;
   }
 
   // When printHelp was set to true, we print a help message and exit.
@@ -48,7 +53,8 @@ int main(int argc, char** argv) {
     return 0;
   }
 
-  // read settings
+  // read settings ---------------------------------------------------------------------------------
+
   cs::core::Settings settings;
   try {
     settings = cs::core::Settings::read(settingsFile);
@@ -57,19 +63,21 @@ int main(int argc, char** argv) {
     return 1;
   }
 
-  // start application
+  // start application -----------------------------------------------------------------------------
+
   try {
-    std::list<std::string> liSearchPath;
-    liSearchPath.emplace_back("../share/config/vista");
-
-    VistaShaderRegistry::GetInstance().AddSearchDirectory("../share/resources/shaders");
-
+    // First we need a VistaSystem.
     auto pVistaSystem = new VistaSystem();
-    pVistaSystem->SetIniSearchPaths(liSearchPath);
 
+    // ViSTA is configured with plenty of ini files. The ini files of CosmoScout VR reside in a
+    // specific directory, so we have to add this directory to the search paths.
+    pVistaSystem->SetIniSearchPaths({"../share/config/vista"});
+
+    // The Application contains a lot of initialization code and the frame update.
     Application app(settings);
     pVistaSystem->SetFrameLoop(&app, true);
 
+    // Now run the program!
     if (pVistaSystem->Init(argc, argv)) {
       pVistaSystem->Run();
     }

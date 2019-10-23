@@ -34,14 +34,14 @@
 
   <div id="calendar"></div>
 
-  <div id="timelineContainer">
+  <div id="timeline-container">
     <div id="overview"></div>
     <div id="timeline"></div>
 
-    <div id="bottomBorderLeft"></div>
-    <div id="bottomBorderRight"></div>
+    <div id="bottom-border-left"></div>
+    <div id="bottom-border-right"></div>
 
-    <span class="item" id="buttonControl">
+    <span id="plugin-buttons" class="item">
       <a class="btn light-glass" data-toggle="tooltip-bottom" title='Turn north up'
         onclick="window.call_native('navigate_north_up')"><span id="compass-arrow"></span></a>
       <a class="btn light-glass" data-toggle="tooltip-bottom" title='Fix horizon'
@@ -52,86 +52,85 @@
         onclick="window.call_native('navigate_to_surface')"><i class="material-icons">flight_land</i></a>
     </span>
 
-    <span class="item" id="speedControl">
+    <span id="speed-control" class="item">
       <div id="range"></div>
     </span>
 
-    <span class="item" id="timeControl">
-      <a class="btn light-glass" data-toggle="tooltip-bottom" title='Reset simulation' id="btnReset"><i
+    <span id="time-control" class="item">
+      <a class="btn light-glass" data-toggle="tooltip-bottom" title='Reset simulation time' id="time-reset-button"><i
           class="material-icons">restore</i></a>
-      <a class="btn light-glass" data-toggle="tooltip-bottom" title='Toggle calendar' id="btnCalendar"><i
+      <a class="btn light-glass" data-toggle="tooltip-bottom" title='Toggle calendar' id="calendar-button"><i
           class="material-icons">date_range</i></a>
       <span id="dateLabel" style="min-width: 120px">29.12.1997</span>
-      <a class="btn light-glass" data-toggle="tooltip-bottom" title='Toggle pause' id="btnPause"><i
+      <a class="btn light-glass" data-toggle="tooltip-bottom" title='Toggle pause' id="pause-button"><i
           class="material-icons">pause</i></a>
     </span>
 
-    <span class="item" id="expandControl">
+    <span id="expand-control" class="item">
       <a class="waves-effect waves-light btn light-glass" data-toggle="tooltip-bottom" title='Toggle overview'
-        id="btnExpand"><i class="material-icons">expand_more</i></a>
+        id="expand-button"><i class="material-icons">expand_more</i></a>
     </span>
 
-    <span class="item" id="decreaseControl">
-      <a class="btn light-glass" id="btnDecreaseDay"><i class="material-icons">expand_more</i></a>
-      <a class="btn light-glass" id="btnDecreaseMonth"><i class="material-icons">expand_more</i></a>
-      <a class="btn light-glass" id="btnDecreaseYear"><i class="material-icons">expand_more</i></a>
-      <a class="btn light-glass" id="btnDecreaseHour"><i class="material-icons">expand_more</i></a>
-      <a class="btn light-glass" id="btnDecreaseMinute"><i class="material-icons">expand_more</i></a>
-      <a class="btn light-glass" id="btnDecreaseSecond"><i class="material-icons">expand_more</i></a>
+    <span id="decreaseControl" class="item">
+      <a class="btn light-glass" id="decrease-day-button"><i class="material-icons">expand_more</i></a>
+      <a class="btn light-glass" id="decrease-month-button"><i class="material-icons">expand_more</i></a>
+      <a class="btn light-glass" id="decrease-year-button"><i class="material-icons">expand_more</i></a>
+      <a class="btn light-glass" id="decrease-hour-button"><i class="material-icons">expand_more</i></a>
+      <a class="btn light-glass" id="decrease-minute-button"><i class="material-icons">expand_more</i></a>
+      <a class="btn light-glass" id="decrease-second-button"><i class="material-icons">expand_more</i></a>
     </span>
 
-    <span class="item" id="increaseControl">
-      <a class="btn light-glass" id="btnIncreaseDay"><i class="material-icons">expand_less</i></a>
-      <a class="btn light-glass" id="btnIncreaseMonth"><i class="material-icons">expand_less</i></a>
-      <a class="btn light-glass" id="btnIncreaseYear"><i class="material-icons">expand_less</i></a>
-      <a class="btn light-glass" id="btnIncreaseHour"><i class="material-icons">expand_less</i></a>
-      <a class="btn light-glass" id="btnIncreaseMinute"><i class="material-icons">expand_less</i></a>
-      <a class="btn light-glass" id="btnIncreaseSecond"><i class="material-icons">expand_less</i></a>
+    <span id="increaseControl" class="item">
+      <a class="btn light-glass" id="increase-day-button"><i class="material-icons">expand_less</i></a>
+      <a class="btn light-glass" id="increase-month-button"><i class="material-icons">expand_less</i></a>
+      <a class="btn light-glass" id="increase-year-button"><i class="material-icons">expand_less</i></a>
+      <a class="btn light-glass" id="increase-hour-button"><i class="material-icons">expand_less</i></a>
+      <a class="btn light-glass" id="increase-minute-button"><i class="material-icons">expand_less</i></a>
+      <a class="btn light-glass" id="increase-second-button"><i class="material-icons">expand_less</i></a>
     </span>
 
-    <span class="item" id="speedDecreaseControl">
-      <a class="btn light-glass" data-toggle="tooltip-bottom" title='Fast rewind' id="btnDecreaseSpeed"><i
+    <span id="speed-decrease-button-container" class="item">
+      <a class="btn light-glass" data-toggle="tooltip-bottom" title='Fast rewind' id="speed-decrease-button"><i
           class="material-icons">fast_rewind</i></a>
     </span>
 
-    <span class="item" id="speedIncreaseControl">
-      <a class="btn light-glass" data-toggle="tooltip-bottom" title='Fast forward' id="btnIncreaseSpeed"><i
+    <span id="speed-increase-button-container" class="item">
+      <a class="btn light-glass" data-toggle="tooltip-bottom" title='Fast forward' id="speed-increase-button"><i
           class="material-icons">fast_forward</i></a>
     </span>
 
   </div>
 
-  <div class="form-popup" id="myForm">
+  <div class="form-popup" id="add-event-dialog">
     <div class="form-container">
       <h1 id="headlineForm">Customize Event</h1>
-      <input type="text" placeholder="Event Name (required)" name="name" id="eventName">
-      <input type="colorPicker" name="color" id="eventColor">
-      <input type="text" name="date" id="eventStartDate">
-      <input type="text" placeholder="End date" name="date" id="eventEndDate">
-      <input type="text" placeholder="Description  (required)" name="date" id="descriptionInput">
-      <input type="text" placeholder="Planet" name="date" id="planetInput">
-      <input type="text" placeholder="Place" name="date" id="placeInput">
+      <input type="text" placeholder="Event Name (required)" name="name" id="event-dialog-name">
+      <input type="colorPicker" name="color" id="event-dialog-color">
+      <input type="text" name="date" id="event-dialog-start-date">
+      <input type="text" placeholder="End date" name="date" id="event-dialog-end-date">
+      <input type="text" placeholder="Description  (required)" name="date" id="event-dialog-description">
+      <input type="text" placeholder="Planet" name="date" id="event-dialog-planet">
+      <input type="text" placeholder="Place" name="date" id="event-dialog-location">
 
-      <button type="button" class="btn" id="btnApply">Apply</button>
-      <button type="button" class="btn cancel" id="btnCancel">Close</button>
+      <button type="button" class="btn" id="event-dialog-apply-button">Apply</button>
+      <button type="button" class="btn cancel" id="event-dialog-cancel-button">Close</button>
     </div>
   </div>
 
-  <div class="customTooltip" id="customTooltip">
-    <div class="custom-tooltip-container">
-      <h3 id="itemContent">Content</h3>
-      <label for="description" id="itemDescription"><b>description</b></label>
-      <div id="itemLocation">Location</div>
+  <div id="event-tooltip-container">
+    <div class="event-tooltip">
+      <h3 id="event-tooltip-content">Content</h3>
+      <label for="description" id="event-tooltip-description"><b>description</b></label>
+      <div id="event-tooltip-location">Location</div>
     </div>
   </div>
 
 
-  <div id="focusLensLeft" class="focusLens"></div>
-  <div id="focusLens" class="focusLens"></div>
-  <div id="focusLensRight" class="focusLens"></div>
+  <div id="focus-lens-left"></div>
+  <div id="focus-lens"></div>
+  <div id="focus-lens-right"></div>
 
-  <script src="js/dateOperations.js"></script>
-  <script src="js/geoNavigation.js"></script>
+  <script src="js/date_operations.js"></script>
   <script src="js/timeline.js"></script>
 
 </body>

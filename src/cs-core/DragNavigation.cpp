@@ -4,11 +4,11 @@
 //                        Copyright: (c) 2019 German Aerospace Center (DLR)                       //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#include "DragNavigationNode.hpp"
+#include "DragNavigation.hpp"
 
-#include "../../cs-core/InputManager.hpp"
-#include "../../cs-core/SolarSystem.hpp"
-#include "../../cs-core/TimeControl.hpp"
+#include "../cs-core/InputManager.hpp"
+#include "../cs-core/SolarSystem.hpp"
+#include "../cs-core/TimeControl.hpp"
 
 #include <VistaDataFlowNet/VdfnObjectRegistry.h>
 #include <VistaKernel/GraphicsManager/VistaSceneGraph.h>
@@ -50,40 +50,25 @@ glm::dvec3 GetPositionInObserverFrame(cs::scene::CelestialAnchor const& anchor,
 
 } // namespace
 
+namespace cs::core {
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-DragNavigationNode::DragNavigationNode(std::shared_ptr<cs::core::SolarSystem> const& pSolarSystem,
-    std::shared_ptr<cs::core::InputManager> const&                                   pInputManager,
-    std::shared_ptr<cs::core::TimeControl> const&                                    pTimeControl)
-    : IVdfnNode()
-    , mSolarSystem(pSolarSystem)
+DragNavigation::DragNavigation(std::shared_ptr<cs::core::SolarSystem> const& pSolarSystem,
+    std::shared_ptr<cs::core::InputManager> const&                           pInputManager,
+    std::shared_ptr<cs::core::TimeControl> const&                            pTimeControl)
+    : mSolarSystem(pSolarSystem)
     , mInputManager(pInputManager)
     , mTimeControl(pTimeControl)
 
 {
-  RegisterInPortPrototype("time", new TVdfnPortTypeCompare<TVdfnPort<double>>);
-
   mSelectionTrans = dynamic_cast<VistaTransformNode*>(
       GetVistaSystem()->GetGraphicsManager()->GetSceneGraph()->GetNode("SELECTION_NODE"));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool DragNavigationNode::PrepareEvaluationRun() {
-  mTime = dynamic_cast<TVdfnPort<double>*>(GetInPort("time"));
-
-  return GetIsValid();
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-bool DragNavigationNode::GetIsValid() const {
-  return mTime;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-bool DragNavigationNode::DoEvalNode() {
+void DragNavigation::update() {
   // current observer transform of this frame
   glm::dvec3 observerPos = mSolarSystem->getObserver().getAnchorPosition();
   glm::dquat observerRot = mSolarSystem->getObserver().getAnchorRotation();
@@ -147,7 +132,7 @@ bool DragNavigationNode::DoEvalNode() {
   }
 
   if (!mStartInteractionInitialized) {
-    return true;
+    return;
   }
 
   if (mInputManager->pButtons[0].get() || mInputManager->pButtons[1].get()) {
@@ -206,11 +191,13 @@ bool DragNavigationNode::DoEvalNode() {
         }
 
         // Prepare an animated rotation approaching target angle
+        mDoKineticSmoothOut = std::abs(targetAngle - mTargetAngle) > 0.001f;
         mCurrentAngleDiff += targetAngle - mTargetAngle;
         mTargetAngle = targetAngle;
       } else {
-        mTargetAngle      = 0;
-        mCurrentAngleDiff = 0;
+        mTargetAngle        = 0;
+        mCurrentAngleDiff   = 0;
+        mDoKineticSmoothOut = false;
       }
     } else {
       // Update camera for smoothing out even though button is pressed but
@@ -220,25 +207,31 @@ bool DragNavigationNode::DoEvalNode() {
 
       // Prepare smoothing out remaining angle diff
       if (mCurrentAngleDiff != 0.f) {
-        // mTargetAngle = mCurrentAngleDiff*0.5f; // damp fast angle changes on horizon
-        mTargetAngle      = mCurrentAngleDiff; // damp fast angle changes on horizon
+        // Reduce inertia a little.
+        mTargetAngle      = mCurrentAngleDiff * 0.5;
         mCurrentAngleDiff = 0.f;
       }
 
       // Smooth out remaining rotation do be done
-      mTargetAngle = 0.8f * mTargetAngle;
+      mTargetAngle        = 0.8f * mTargetAngle;
+      mDoKineticSmoothOut = true;
     }
   } else {
     // Prepare smoothing out remaining angle diff
     if (mCurrentAngleDiff != 0.f) {
-      mTargetAngle      = mCurrentAngleDiff;
+      if (mDoKineticSmoothOut) {
+        // Reduce inertia a little.
+        mTargetAngle = mCurrentAngleDiff * 0.5f;
+      } else {
+        mTargetAngle = 0.f;
+      }
       mCurrentAngleDiff = 0.f;
     }
 
     // Smooth out remaining rotation do be done
     mTargetAngle = 0.8f * mTargetAngle;
 
-    if (std::abs(mTargetAngle) < 0.0000001f) {
+    if (std::abs(mTargetAngle) < 0.001f) {
       mTargetAngle      = 0.f;
       mLocalRotation    = false;
       mDoRollCorrection = false;
@@ -295,25 +288,10 @@ bool DragNavigationNode::DoEvalNode() {
   }
 
   mSolarSystem->getObserver().setAnchorRotation(newObserverRot);
-
-  return true;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-DragNavigationNodeCreate::DragNavigationNodeCreate(
-    std::shared_ptr<cs::core::SolarSystem> const&  pSolarSystem,
-    std::shared_ptr<cs::core::InputManager> const& pInputManager,
-    std::shared_ptr<cs::core::TimeControl> const&  pTimeControl)
-    : mSolarSystem(pSolarSystem)
-    , mInputManager(pInputManager)
-    , mTimeControl(pTimeControl) {
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-IVdfnNode* DragNavigationNodeCreate::CreateNode(const VistaPropertyList& oParams) const {
-  return new DragNavigationNode(mSolarSystem, mInputManager, mTimeControl);
-}
+} // namespace cs::core
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

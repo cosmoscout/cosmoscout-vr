@@ -4,8 +4,8 @@
 //                        Copyright: (c) 2019 German Aerospace Center (DLR)                       //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#ifndef VIRTUAL_PLANET_OBSERVER_NODE_HPP
-#define VIRTUAL_PLANET_OBSERVER_NODE_HPP
+#ifndef CS_OBSERVER_NAVIGATION_NODE_HPP
+#define CS_OBSERVER_NAVIGATION_NODE_HPP
 
 #include <VistaBase/VistaVectorMath.h>
 #include <VistaDataFlowNet/VdfnNode.h>
@@ -14,7 +14,7 @@
 #include <VistaDataFlowNet/VdfnSerializer.h>
 #include <VistaKernel/VistaKernelConfig.h>
 
-#include "../../cs-utils/AnimatedValue.hpp"
+#include "../cs-utils/AnimatedValue.hpp"
 
 #include <memory>
 
@@ -78,4 +78,4 @@ class ObserverNavigationNodeCreate : public VdfnNodeFactory::IVdfnNodeCreator {
   std::shared_ptr<cs::core::InputManager> mInputManager;
 };
 
-#endif // VIRTUAL_PLANET_OBSERVER_NODE_HPP
+#endif // CS_OBSERVER_NAVIGATION_NODE_HPP

@@ -286,7 +286,7 @@
 
 /* overview focus rect -------------------------------------------------------------------------- */
 
-#focusLens {
+#focus-lens {
   background: transparent;
   border-style: solid;
   border-width: 3px 3px 0 3px;
@@ -297,27 +297,27 @@
   background-color: rgba(20, 20, 20, 0.5);
 }
 
-#focusLensLeft,
-#focusLensRight {
+#focus-lens-left,
+#focus-lens-right {
   height: 1px;
   border-bottom: 2px solid #ddf;
   position: absolute;
   pointer-events: none;
 }
 
-#focusLensLeft {
+#focus-lens-left {
   left: 0px;
 }
 
-#focusLensRight {
+#focus-lens-right {
   right: 0px;
 }
 
 /* timeline control items ----------------------------------------------------------------------- */
 
-#timelineContainer {
+#timeline-container {
   position: absolute;
-  top: -43px;
+  top: -120px;
   left: 0px;
   padding: 0;
   margin: 0;
@@ -328,11 +328,15 @@
   height: 110px;
 }
 
-#timelineContainer.visible {
+#timeline-container.visible {
+  top: -43px;
+}
+
+#timeline-container.overview-visible {
   top: 0px;
 }
 
-#bottomBorderLeft {
+#bottom-border-left {
   top: 75px;
   height: 2px;
   position: absolute;
@@ -342,7 +346,7 @@
   transform: translateX(-175px);
 }
 
-#bottomBorderRight {
+#bottom-border-right {
   top: 75px;
   height: 2px;
   position: absolute;
@@ -398,7 +402,7 @@ i {
   color: #ddf
 }
 
-#timeControl {
+#time-control {
   left: 50%;
   transform: translateX(-50%);
   background-color: rgba(20, 20, 20, 0.5);
@@ -411,7 +415,7 @@ i {
   height: 40px;
 }
 
-#btnReset {
+#time-reset-button {
   background-color: #ddf;
   border-radius: 0 50px 0 50px;
   width: 60px;
@@ -419,7 +423,7 @@ i {
   left: -20px;
 }
 
-#btnPause {
+#pause-button {
   background-color: #ddf;
   border-radius: 50px 0 50px 0;
   width: 60px;
@@ -427,20 +431,20 @@ i {
   right: -20px;
 }
 
-#btnPause:hover,
-#expandControl:hover,
-#btnReset:hover  {
+#pause-button:hover,
+#expand-control:hover,
+#time-reset-button:hover  {
   background-color: white;
 }
 
-#btnPause i,
-#btnReset i {
+#pause-button i,
+#time-reset-button i {
   color: rgb(20, 20, 20);
   font-size: 24px;
   top: 2px;
 }
 
-#btnCalendar {
+#calendar-button {
   position: absolute;
   left: 54px;
   z-index: 5;
@@ -452,14 +456,14 @@ i {
   position: relative;
 }
 
-#speedControl {
+#speed-control {
   left: 50%;
   width: 600px;
   transform: translateX(-50%);
   top: 82px;
 }
 
-#expandControl {
+#expand-control {
   right: 20px;
   background-color: #ddf;
   border-radius: 0 0 3px 3px;
@@ -468,12 +472,12 @@ i {
   width: 32px;
 }
 
-#expandControl .btn {
+#expand-control .btn {
   height: 28px;
   width: 28px;
 }
 
-#expandControl i {
+#expand-control i {
   color: rgb(20, 20, 20);
   top: -3px;
   margin-left: -2px;
@@ -537,33 +541,33 @@ a:hover {
   z-index: 10;
 }
 
-#btnIncreaseDay,
-#btnDecreaseDay {
+#increase-day-button,
+#decrease-day-button {
   left: -1px;
 }
 
-#btnIncreaseMonth,
-#btnDecreaseMonth {
+#increase-month-button,
+#decrease-month-button {
   left: 27px;
 }
 
-#btnIncreaseYear,
-#btnDecreaseYear {
+#increase-year-button,
+#decrease-year-button {
   left: 65px;
 }
 
-#btnIncreaseHour,
-#btnDecreaseHour {
+#increase-hour-button,
+#decrease-hour-button {
   left: 102px;
 }
 
-#btnIncreaseMinute,
-#btnDecreaseMinute {
+#increase-minute-button,
+#decrease-minute-button {
   left: 130px;
 }
 
-#btnIncreaseSecond,
-#btnDecreaseSecond {
+#increase-second-button,
+#decrease-second-button {
   left: 157px;
 }
 
@@ -573,21 +577,21 @@ a:hover {
 }
 
 
-#speedDecreaseControl {
+#speed-decrease-button-container {
   left: 50%;
   transform: translate(-345px);
   top: 74px;
 }
 
-#speedIncreaseControl {
+#speed-increase-button-container {
   left: 50%;
   transform: translate(310px);
   top: 74px;
   height: 15px;
 }
 
-#speedIncreaseControl .btn,
-#speedDecreaseControl .btn {
+#speed-increase-button-container .btn,
+#speed-decrease-button-container .btn {
   font-size: 28px;
 }
 
@@ -629,19 +633,19 @@ a:hover {
                   rgba(221,211,255,0.5) 75%, rgba(221,211,255,0.5) 100%);
 }
 
-#itemLocation{
+#event-tooltip-location{
   text-decoration: underline;
 }
 
 /* big timeline tooltips ------------------------------------------------------------------------ */
 
-.customTooltip {
+#event-tooltip-container {
   display: none;
   position: absolute;
   z-index: 9;
 }
 
-.custom-tooltip-container {
+.event-tooltip {
   width: 300px;
   padding: 10px;
   background-color: rgba(20, 20, 20, 0.8);
@@ -649,15 +653,15 @@ a:hover {
   border-radius: 10px;
 }
 
-.custom-tooltip-container h3 {
+.event-tooltip h3 {
   text-align: center;
 }
 
-#itemLocation {
+#event-tooltip-location {
   cursor: pointer;
 }
 
-#itemLocation:hover {
+#event-tooltip-location:hover {
   text-shadow: 0 0 20px #fff;
 }
 

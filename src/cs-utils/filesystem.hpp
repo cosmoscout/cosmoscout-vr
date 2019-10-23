@@ -31,8 +31,10 @@ CS_UTILS_EXPORT std::string loadToString(std::string const& file);
 /// Downloads a file from te internet. This call will block until the file is downloaded
 /// successfully or an error occurred. If the path to the destination file does not exist, it will
 /// be created. This will throw a std::runtime_error if something bad happend.
-CS_UTILS_EXPORT void downloadFile(
-    std::string const& url, std::string const& destination, bool printProgress);
+/// progressCallback will be called regularly, the first parameter is the amount of downloaded
+/// bytes, the second the total amount to be downloaded.
+CS_UTILS_EXPORT void downloadFile(std::string const& url, std::string const& destination,
+    std::function<void(double, double)> const& progressCallback);
 
 } // namespace cs::utils::filesystem
 

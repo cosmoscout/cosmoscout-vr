@@ -1,5 +1,5 @@
 // Format a Date to a for a human readable string DD.MM.YYYY HH:MM:SS
-function formatDateReadable(date) {
+function format_date_readable(date) {
     var year = date.getFullYear();
     var month = (date.getMonth() + 1).toString();
     var day = date.getDate().toString();
@@ -15,7 +15,7 @@ function formatDateReadable(date) {
 }
 
 // Format a Date to YYYY-MM-DD
-function getFormattedDate(date) {
+function get_formatted_date(date) {
     var year = date.getFullYear();
     var month = (date.getMonth() + 1).toString();
     var day = date.getDate().toString();
@@ -25,8 +25,8 @@ function getFormattedDate(date) {
 }
 
 // Format a Date to YYYY-MM-DD HH:MM:SS
-function getFormattedDateWithTime(date) {
-    var retVal = getFormattedDate(date);
+function get_formatted_dateWithTime(date) {
+    var retVal = get_formatted_date(date);
     var hours = date.getHours().toString();
     var minutes = date.getMinutes().toString();
     var seconds = date.getSeconds().toString();
@@ -38,8 +38,8 @@ function getFormattedDateWithTime(date) {
 }
 
 // Format a Date to a readable format for CosmoScoutVR YYYY-MM-DD HH:MM:SS.sss
-function formatDateCosmo(date) {
-    var retVal = getFormattedDate(date);
+function format_date_cosmo(date) {
+    var retVal = get_formatted_date(date);
     var hours = date.getHours().toString();
     var minutes = date.getMinutes().toString();
     var seconds = date.getSeconds().toString();
@@ -55,7 +55,7 @@ function formatDateCosmo(date) {
 }
 
 // Convert seconds into Date
-function convertSeconds(given_seconds) {
+function convert_seconds(given_seconds) {
     var converted = new Object();
     converted.days = Math.floor(given_seconds / dayInSec);
     converted.hours = Math.floor((given_seconds - (converted.days * dayInSec)) / hourInSec);
@@ -66,7 +66,7 @@ function convertSeconds(given_seconds) {
 }
 
 // Increase a Date by days, hours , minutes, seconds and milliseconds
-function increaseDate(date, days, hours, minutes, seconds, milliSec) {
+function increase_date(date, days, hours, minutes, seconds, milliSec) {
     date.setDate(date.getDate() + days);
     date.setHours(date.getHours() + hours);
     date.setMinutes(date.getMinutes() + minutes);
@@ -76,7 +76,7 @@ function increaseDate(date, days, hours, minutes, seconds, milliSec) {
 }
 
 // Decrease a Date by days, hours , minutes, seconds and milliseconds
-function decreaseDate(date, days, hours, minutes, seconds, milliSec) {
+function decrease_date(date, days, hours, minutes, seconds, milliSec) {
     date.setDate(date.getDate() - days);
     date.setHours(date.getHours() - hours);
     date.setMinutes(date.getMinutes() - minutes);
