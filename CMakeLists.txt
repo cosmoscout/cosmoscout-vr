@@ -134,14 +134,14 @@ find_package(VistaCoreLibs REQUIRED
   COMPONENTS "VistaBase" "VistaKernel" "VistaKernelOpenSGExt" "VistaOGLExt"
 )
 
-# copy all third-party libraries to install directory
+# Copy all third-party libraries to install directory.
 install(
   DIRECTORY ${COSMOSCOUT_EXTERNALS_DIR}/lib/ ${COSMOSCOUT_EXTERNALS_DIR}/bin/ 
   DESTINATION "lib"
   FILES_MATCHING PATTERN "*.so*" PATTERN "*.dll*"
 )
 
-# copy boost libraries to install directory
+# Copy boost libraries to install directory.
 if (WIN32)
   foreach(BOOST_LIB ${Boost_LIBRARIES})
     if(EXISTS "${BOOST_LIB}")
@@ -159,7 +159,7 @@ endif()
 
 message(STATUS "Trying to get current git branch and commit...")
 
-# get the current git branch name
+# Get the current git branch name.
 execute_process(
   COMMAND git rev-parse --abbrev-ref HEAD
   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
@@ -167,7 +167,7 @@ execute_process(
   OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 
-# get the current commit hash
+# Get the current commit hash.
 execute_process(
   COMMAND git log -1 --format=%h
   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
@@ -175,20 +175,11 @@ execute_process(
   OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 
-# get the most recent tag
-execute_process(
-  COMMAND git describe --abbrev=0 --tags
-  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-  OUTPUT_VARIABLE GIT_RECENT_TAG
-  OUTPUT_STRIP_TRAILING_WHITESPACE
-)
-
-# fallback to project version if it failed
+# Fallback to project version if it failed.
 if (GIT_BRANCH STREQUAL "")
-  set(GIT_RECENT_TAG "v${PROJECT_VERSION}")
-  message(STATUS "  Failed - falling back to project version: ${GIT_RECENT_TAG}")
+  message(STATUS "  Failed - falling back to project version: v${PROJECT_VERSION}")
 else()
-  message(STATUS "  Success: ${GIT_RECENT_TAG} (${GIT_BRANCH} @${GIT_COMMIT_HASH})")
+  message(STATUS "  Success: v${PROJECT_VERSION} (${GIT_BRANCH} @${GIT_COMMIT_HASH})")
 endif()
 
 configure_file(

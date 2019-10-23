@@ -68,7 +68,8 @@ std::string loadToString(std::string const& file) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void downloadFile(std::string const& url, std::string const& destination, bool printProgress) {
+void downloadFile(std::string const& url, std::string const& destination,
+    std::function<void(double, double)> const& progressCallback) {
   createDirectoryRecursively(boost::filesystem::path(destination).parent_path());
   std::ofstream stream(destination, std::ofstream::out | std::ofstream::binary);
 
@@ -83,15 +84,11 @@ void downloadFile(std::string const& url, std::string const& destination, bool p
   request.setOpt(curlpp::options::NoProgress(false));
   request.setOpt(curlpp::options::SslVerifyPeer(false));
   request.setOpt(curlpp::options::ProgressFunction([&](double a, double b, double c, double d) {
-    if (a > 0 && b > 0) {
-      std::cout << " ... " << std::floor(b / a * 100) << "%            \r" << std::flush;
-    }
+    progressCallback(b, a);
     return 0;
   }));
 
   request.perform();
-
-  std::cout << " ... Done" << std::endl;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

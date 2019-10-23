@@ -35,6 +35,8 @@ class Settings;
 /// a hook into the update loop.
 class CS_CORE_EXPORT PluginBase {
  public:
+  /// The constructor is called when the plugin is opened. This should contain no or very little
+  /// code. Your heavy initialization code should be executed in init().
   PluginBase() = default;
 
   /// This initializes the program state for this plugin, so it can interact with it. It will be
@@ -56,7 +58,8 @@ class CS_CORE_EXPORT PluginBase {
   /// want our app littered :)
   virtual void deInit(){};
 
-  /// Override this function if you want to do something on every update.
+  /// Override this function if you want to do something in every frame. See the Application class
+  /// for more details on when this method is actually called.
   virtual void update(){};
 
  protected:

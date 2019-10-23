@@ -17,14 +17,17 @@ namespace cs::core {
 
 TimeControl::TimeControl(std::shared_ptr<const core::Settings> const& settings)
     : mSettings(settings) {
-  resetTime();
-  mLastUpdate = utils::convert::toSpiceTime(boost::posix_time::microsec_clock::universal_time());
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void TimeControl::update() {
   double now = utils::convert::toSpiceTime(boost::posix_time::microsec_clock::universal_time());
+
+  if (mLastUpdate < 0.0) {
+    resetTime();
+    mLastUpdate = now;
+  }
 
   if (mAnimationInProgress) {
     pSimulationTime = mAnimatedTime.get(now);
@@ -33,7 +36,16 @@ void TimeControl::update() {
       mAnimationInProgress = false;
     }
   } else {
-    pSimulationTime = pSimulationTime.get() + (now - mLastUpdate) * pTimeSpeed.get();
+    double newSimulationTime = pSimulationTime.get() + (now - mLastUpdate) * pTimeSpeed.get();
+    double maxDate =
+        cs::utils::convert::toSpiceTime(boost::posix_time::time_from_string(mSettings->mMaxDate));
+    double minDate =
+        cs::utils::convert::toSpiceTime(boost::posix_time::time_from_string(mSettings->mMinDate));
+    if (maxDate < newSimulationTime || minDate > newSimulationTime) {
+      setTimeSpeed(0);
+    } else {
+      pSimulationTime = newSimulationTime;
+    }
   }
 
   mLastUpdate = now;
@@ -46,7 +58,13 @@ void TimeControl::setTime(double tTime) {
 
   double step = std::abs(pSimulationTime.get() - tTime) / 60 / 60;
 
-  if (step > 48) {
+  double maxDate =
+      cs::utils::convert::toSpiceTime(boost::posix_time::time_from_string(mSettings->mMaxDate));
+  double minDate =
+      cs::utils::convert::toSpiceTime(boost::posix_time::time_from_string(mSettings->mMinDate));
+  if (maxDate < tTime || minDate > tTime) {
+    setTimeSpeed(0);
+  } else if (step > 48) {
     // Make no animation for very large time changes.
     pSimulationTime = tTime;
   } else {
@@ -59,6 +77,20 @@ void TimeControl::setTime(double tTime) {
     mAnimatedTime = utils::AnimatedValue<double>(
         pSimulationTime.get(), tTime, now, now + duration, utils::AnimationDirection::eInOut);
     mAnimationInProgress = true;
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void TimeControl::setTimeWithoutAnimation(double tTime) {
+  double maxDate =
+      cs::utils::convert::toSpiceTime(boost::posix_time::time_from_string(mSettings->mMaxDate));
+  double minDate =
+      cs::utils::convert::toSpiceTime(boost::posix_time::time_from_string(mSettings->mMinDate));
+  if (maxDate < tTime || minDate > tTime) {
+    setTimeSpeed(0);
+  } else {
+    pSimulationTime = tTime;
   }
 }
 
@@ -112,6 +144,12 @@ void TimeControl::decreaseTimeSpeed() {
     speed = -0.5f;
   }
 
+  pTimeSpeed = speed;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void TimeControl::setTimeSpeed(float speed) {
   pTimeSpeed = speed;
 }
 

@@ -9,7 +9,7 @@
 # This scripts counts the lines of code and comments in the src/ and plugins/ directories.
 # The copyright-headers are substracted. It uses the commandline tool "cloc".
 
-# Get the location of this script
+# Get the location of this script.
 SCRIPT_DIR="$( cd "$( dirname "$0" )" && pwd )"
 
 function countLines() {

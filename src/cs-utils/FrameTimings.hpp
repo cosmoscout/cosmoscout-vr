@@ -22,7 +22,9 @@ namespace cs::utils {
 class TimerQueryPool;
 
 /// Responsible for measuring time. It is possible to measure either or both CPU and GPU time. To
-/// create a time measuring object use ScopedTimer.
+/// create a time measuring object use ScopedTimer. This class is not thread-safe, so you should
+/// only use it to measure time on the main thread. You should not need to instantiate this class.
+/// One instance will be created by the application class and is passed to each and every plugin.
 class CS_UTILS_EXPORT FrameTimings {
  public:
   /// Defines which timings should be measured.
@@ -32,14 +34,16 @@ class CS_UTILS_EXPORT FrameTimings {
     eBoth ///< CPU and GPU time will be measured.
   };
 
-  /// To enable or disable time measuring.
+  /// To enable or disable time measuring globally.
   Property<bool> pEnableMeasurements = false;
 
-  /// Get the last frame time. DocTODO for the whole frame?
+  /// Get the last frame time in seconds. This is the maximum of CPU and GPU time, excluding any
+  /// waiting for vertical synchronization.
   Property<double> pFrameTime = 0.0;
 
   /// A ScopedTimer is responsible for measuring time for its entire existence. The timer will
-  /// start measuring upon creation and stop measuring on deletion.
+  /// start measuring upon creation and stop measuring on deletion. If multiple timers with the same
+  /// name are created during one frame, their timings will be accumulated.
   class CS_UTILS_EXPORT ScopedTimer {
    public:
     /// @param name The name of the measured time.
@@ -56,20 +60,22 @@ class CS_UTILS_EXPORT FrameTimings {
     uint64_t mCPUTime = 0; ///< in ns (==10^-9 s)
   };
 
-  /// Starts a timer with the given name and mode.
-  static void start(std::string const& name, QueryMode mode = QueryMode::eBoth);
-
-  /// Stops the timer with the given name and saves the results.
-  static void end(std::string const& name);
-
-  /// Ends the timer that was started last.
-  static void end();
-
-  /// Returns the results of all measurements. (DocTODO in the last frame?)
-  std::unordered_map<std::string, QueryResult> getCalculatedQueryResults();
-
+  /// You should not need to instantiate this class. One instance will be created by the application
+  /// class and is passed to each and every plugin.
   explicit FrameTimings();
   ~FrameTimings() = default;
+
+  /// Starts a timer with the given name and mode. You can use this interface, however the
+  /// ScopedTimer is often more easy to use.
+  static void start(std::string const& name, QueryMode mode = QueryMode::eBoth);
+
+  /// Stops the timer with the given name and saves the results. You can use this interface, however
+  /// the ScopedTimer is often more easy to use.
+  static void end(std::string const& name);
+
+  /// Ends the timer that was started last. You can use this interface, however the ScopedTimer is
+  /// often more easy to use.
+  static void end();
 
   /// Starts the time measurement for the current frame. No need to call this manually. The
   /// application is responsible for this.
@@ -79,19 +85,26 @@ class CS_UTILS_EXPORT FrameTimings {
   /// application is responsible for this.
   void endFullFrameTiming();
 
-  /// Updates the frame timings. The application takes care of calling this.
+  /// Updates the frame timings. The application takes care of calling this on the primary instance.
   void update();
+
+  /// Once update() has been called, QueryResults most likely are available. However, we will only
+  /// get results from the last frame in order to prevent any blocking. Sometimes it might also take
+  /// a few frames longer to get any results from the GPU.
+  std::unordered_map<std::string, QueryResult> getCalculatedQueryResults();
 
  private:
   int                                            mCurrentIndex = 0;
   std::array<std::shared_ptr<TimerQueryPool>, 2> mFullFrameTimerPools;
 };
 
-/// DocTODO
+/// The TimerQueryPool is used in a double-buffer fashion internally by the FrameTimings class. You
+/// will not need to use this class directly.
 class CS_UTILS_EXPORT TimerQueryPool {
  public:
   explicit TimerQueryPool(std::size_t max_size);
 
+  /// Do not try to copy this class!
   TimerQueryPool(TimerQueryPool const&) = delete;
   void operator=(TimerQueryPool const&) = delete;
 
@@ -100,7 +113,7 @@ class CS_UTILS_EXPORT TimerQueryPool {
 
   boost::optional<std::size_t> timestamp();
 
-  /// Fetch timestamps from gpu and calculate time diffs.
+  /// Fetch timestamps from GPU and calculate time diffs.
   void calculateQueryResults();
 
   std::unordered_map<std::string, std::vector<FrameTimings::QueryResult>> const&

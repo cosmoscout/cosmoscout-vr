@@ -6,8 +6,8 @@
 
 #include "ObserverNavigationNode.hpp"
 
-#include "../../cs-core/InputManager.hpp"
-#include "../../cs-core/SolarSystem.hpp"
+#include "../cs-core/InputManager.hpp"
+#include "../cs-core/SolarSystem.hpp"
 
 #include <VistaAspects/VistaPropertyAwareable.h>
 
