@@ -337,6 +337,62 @@ async function start_redraw_tooltip(event) {
 var hoveredItem;
 var tooltipVisible = false;
 var hoveredHTMLEvent;
+let animationTime = 5;
+let withoutAnimationTime = 0;
+
+//Flys the observer to a given location
+function fly_to_location(planet, location, time) {
+    window.call_native("fly_to", planet, location.longitude, location.latitude, location.height, time);
+    window.call_native("print_notification", "Travelling", "to " + location.name, "send");
+}
+
+function parse_height(heightStr, unit) {
+    var height = parseFloat(heightStr);
+    if (unit == 'mm') return height / 1000;
+    else if (unit == 'cm') return height / 100;
+    else if (unit == 'm') return height;
+    else if (unit == 'km') return height * 1e3;
+    else if (unit == 'Tsd') return height * 1e6;
+    else if (unit == 'AU') return height * 1.496e11;
+    else if (unit == 'ly') return height * 9.461e15;
+    else if (unit == 'pc') return height * 3.086e16;
+
+    return height * 3.086e19;
+}
+
+function parse_latitude(lat, half) {
+    lat = lat.substr(0, lat.length - 1);
+    if (half == 'S')
+        return parseFloat(-lat);
+    else
+        return parseFloat(lat);
+}
+
+function parse_longitude(long, half) {
+    long = long.substr(0, long.length - 1);
+    if (half == 'W')
+        return parseFloat(-long);
+    else
+        return parseFloat(long);
+}
+
+// Extracts the needed information out of the human readable place string
+// and calls fly_to_location for the given location.
+function travel_to(direct, planet, place, name) {
+    var placeArr = place.split(" ");
+    var location = {
+        "longitude": parse_longitude(placeArr[0], placeArr[1]),
+        "latitude": parse_latitude(placeArr[2], placeArr[3]),
+        "height": parse_height(placeArr[4], placeArr[5]),
+        "name": name
+    };
+
+    if (direct) {
+        fly_to_location(planet, location, withoutAnimationTime);
+    } else {
+        fly_to_location(planet, location, animationTime);
+    }
+}
 
 // Shows a tooltip if an item is hovered
 function item_over_callback(properties, overview) {
@@ -386,7 +442,7 @@ function item_out_callback(properties) {
 
 // Flies the observer to the location of the hovered item
 function travel_to_item_location() {
-    geoCode(false, hoveredItem.planet, hoveredItem.place, hoveredItem.content);
+    travel_to(false, hoveredItem.planet, hoveredItem.place, hoveredItem.content);
 }
 
 // Hide the tooltip if the mouse leaves the tooltip
@@ -629,7 +685,7 @@ function on_select(properties) {
                 hoursDif += 1;
             }
             window.call_native("add_hours", hoursDif);
-            geoCode(true, items._data[item].planet, items._data[item].place, items._data[item].content);
+            travel_to(true, items._data[item].planet, items._data[item].place, items._data[item].content);
         }
     }
 }
