@@ -76,7 +76,7 @@ For each release, [binary packages](https://github.com/cosmoscout/cosmoscout-vr/
 
 When started for the very first time, some example datasets will be downloaded from the internet.
 **This will take some time!**
-The progress of this operation is printed to the console window.
+The progress of this operation is shown on the loading screen.
 
 
 If the binary releases do not work for you or you want to test the latest features, you have to compile CosmoScout VR yourself.
