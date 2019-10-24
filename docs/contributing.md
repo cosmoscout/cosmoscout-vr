@@ -23,7 +23,8 @@ The development of CosmoScout VR follows a simplified version of **git-flow**: T
 New features and bug fixes are implemented in `feature/*` branches and are merged to `develop` once they are finished.
 When a new milestone is reached, the content of `develop` will be merged to `master` and a tag is created.
 
-Travis CI is used for continuous integration. All pull requests and pushes to `master` and `develop` are built automatically.
+[Github Actions](https://github.com/cosmoscout/cosmoscout-vr/actions) are used for continuous integration.
+All pull requests and pushes to `master` and `develop` are built automatically.
 If you want to test a specific commit on any other branch, add **`[run-ci]`** to your commit message.
 
 ## Coding Guidelines

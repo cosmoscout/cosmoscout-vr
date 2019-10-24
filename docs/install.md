@@ -59,6 +59,10 @@ cd install/linux-release/bin
 ./start.sh
 ```
 
+When started for the very first time, some example datasets will be downloaded from the internet.
+**This will take some time!**
+The progress of this operation is shown on the loading screen.
+
 :information_source: _**Tip:** If you wish, you can delete the directories `build` and `install` at any time in order to force a complete reconfiguration or re-installation._
 
 For **manual compilation** follow the steps outlined in [make.sh](../make.sh).
@@ -110,6 +114,10 @@ The application can be executed with:
 cd install\windows-release\bin
 start.bat
 ```
+
+When started for the very first time, some example datasets will be downloaded from the internet.
+**This will take some time!**
+The progress of this operation is shown on the loading screen.
 
 :information_source: _**Tip:** If you wish, you can delete the directories `build` and `install` at any time in order to force a complete reconfiguration or re-installation._
 
