@@ -152,13 +152,6 @@
       ],
       "backgroundTexture1": "../share/resources/textures/celestial_grid.png",
       "backgroundTexture2": "../share/resources/textures/constellation_figures.png",
-      "maxMagnitude": 15.0,
-      "maxOpacity": 1.0,
-      "maxSize": 3.0,
-      "minMagnitude": -15.0,
-      "minOpacity": 0.5,
-      "minSize": 0.1,
-      "scalingExponent": 3.0,
       "starTexture": "../share/resources/textures/star.png",
       "hipparcosCatalog": "../share/download/stars/hip_main.dat",
       "tycho2Catalog": "../share/download/stars/tyc2_main.dat"
