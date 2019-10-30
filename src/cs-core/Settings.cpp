@@ -98,6 +98,7 @@ void from_json(const nlohmann::json& j, Settings& o) {
   o.mSceneScale     = parseProperty<Settings::SceneScale>("sceneScale", j);
   o.mGui            = parseOptionalSection<Settings::Gui>("gui", j);
   o.mWidgetScale    = parseProperty<float>("widgetScale", j);
+  o.mEnableHDR      = parseOptional<bool>("enableHDR", j);
   o.mEnableMouseRay = parseProperty<bool>("enableMouseRay", j);
   o.mAnchors        = parseMap<std::string, Settings::Anchor>("anchors", j);
   o.mPlugins        = parseMap<std::string, nlohmann::json>("plugins", j);

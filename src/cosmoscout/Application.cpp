@@ -348,6 +348,35 @@ void Application::FrameUpdate() {
         // bit choppy as data is uploaded to the GPU.
         mHideLoadingScreenAtFrame = GetFrameCount() + cLoadingDelay;
 
+        // touch all public properties -------------------------------------------------------------
+
+        mGraphicsEngine->pHeightScale.touch();
+        mGraphicsEngine->pWidgetScale.touch();
+        mGraphicsEngine->pEnableLighting.touch();
+        mGraphicsEngine->pEnableHDR.touch();
+        mGraphicsEngine->pLightingQuality.touch();
+        mGraphicsEngine->pEnableShadows.touch();
+        mGraphicsEngine->pEnableShadowsDebug.touch();
+        mGraphicsEngine->pEnableShadowsFreeze.touch();
+        mGraphicsEngine->pShadowMapResolution.touch();
+        mGraphicsEngine->pShadowMapCascades.touch();
+        mGraphicsEngine->pShadowMapBias.touch();
+        mGraphicsEngine->pShadowMapRange.touch();
+        mGraphicsEngine->pShadowMapExtension.touch();
+        mGraphicsEngine->pShadowMapSplitDistribution.touch();
+        mGraphicsEngine->pEnableAutoExposure.touch();
+        mGraphicsEngine->pExposure.touch();
+        mGraphicsEngine->pAutoExposureRange.touch();
+        mGraphicsEngine->pExposureCompensation.touch();
+        mGraphicsEngine->pExposureAdaptionSpeed.touch();
+        mGraphicsEngine->pSensorDiagonal.touch();
+        mGraphicsEngine->pFocalLength.touch();
+        mGraphicsEngine->pAmbientBrightness.touch();
+        mGraphicsEngine->pGlowIntensity.touch();
+        mGraphicsEngine->pExposureMeteringMode.touch();
+        mGraphicsEngine->pApproximateSceneBrightness.touch();
+        mGraphicsEngine->pAverageLuminance.touch();
+
         // initial observer animation --------------------------------------------------------------
 
         // At application startup, the celestial observer is transitioned to its position specified

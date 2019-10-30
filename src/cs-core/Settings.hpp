@@ -142,6 +142,10 @@ class CS_CORE_EXPORT Settings {
   /// A multiplicator for the size of worldspace gui-elements.
   float mWidgetScale;
 
+  /// When set to true, HDR rendering will be enabled per default. It can still be disabled at run
+  /// time. Defaults to false.
+  std::optional<bool> mEnableHDR;
+
   /// When set to true, a ray is shown emerging from your input device.
   bool mEnableMouseRay;
 

@@ -30,6 +30,7 @@ GraphicsEngine::GraphicsEngine(std::shared_ptr<const core::Settings> const& sett
   auto pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
 
   pWidgetScale = settings->mWidgetScale;
+  pEnableHDR   = settings->mEnableHDR.value_or(false);
 
   // setup shadows ---------------------------------------------------------------------------------
 
