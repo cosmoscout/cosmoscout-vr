@@ -113,7 +113,7 @@ void ApplyProgramAuto(
 } // namespace internal
 
 const std::string ToneMappingNode::SHADER_VERT = R"(
-    #version 440 compatibility
+    #version 430 compatibility
 
     out vec2 vTexcoords;
 
@@ -125,7 +125,7 @@ const std::string ToneMappingNode::SHADER_VERT = R"(
 )";
 
 const std::string ToneMappingNode::SHADER_FRAG = R"(
-    #version 440 compatibility
+    #version 430 compatibility
     in vec2 vTexcoords;
 
     layout(pixel_center_integer) in vec4 gl_FragCoord;
