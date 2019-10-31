@@ -49,17 +49,13 @@ const std::string GlowMipMap::sGlowShader = R"(
     vec3 oColor = vec3(0);
 
     if (uPass == 0) {
-      oColor += sampleHigherLevel(ivec2(-2, 0)) * 0.06136;
-      oColor += sampleHigherLevel(ivec2(-1, 0)) * 0.24477;
-      oColor += sampleHigherLevel(ivec2( 0, 0)) * 0.38774;
-      oColor += sampleHigherLevel(ivec2( 1, 0)) * 0.24477;
-      oColor += sampleHigherLevel(ivec2( 2, 0)) * 0.06136;
+      oColor += sampleHigherLevel(ivec2(-1, 0)) * 0.25;
+      oColor += sampleHigherLevel(ivec2( 0, 0)) * 0.5;
+      oColor += sampleHigherLevel(ivec2( 1, 0)) * 0.25;
     } else {
-      oColor += sampleSameLevel(ivec2(0, -2)) * 0.06136;
-      oColor += sampleSameLevel(ivec2(0, -1)) * 0.24477;
-      oColor += sampleSameLevel(ivec2(0,  0)) * 0.38774;
-      oColor += sampleSameLevel(ivec2(0,  1)) * 0.24477;
-      oColor += sampleSameLevel(ivec2(0,  2)) * 0.06136;
+      oColor += sampleSameLevel(ivec2(0, -1)) * 0.25;
+      oColor += sampleSameLevel(ivec2(0,  0)) * 0.5;
+      oColor += sampleSameLevel(ivec2(0,  1)) * 0.25;
     }
 
     imageStore(uOutColor, storePos, vec4(oColor, 0.0));
