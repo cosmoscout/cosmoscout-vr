@@ -13,61 +13,60 @@
 
 namespace cs::graphics {
 
-const std::string GlowMipMap::SHADER_COMP = R"(
-    #version 430
-    
-    layout (local_size_x = 16, local_size_y = 16) in;
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    layout (rgba32f, binding = 0) writeonly uniform image2D uOutColor;
-    layout (rgba32f, binding = 1) readonly  uniform image2D uInColor;
+const std::string GlowMipMap::sGlowShader = R"(
+  #version 430
+  
+  layout (local_size_x = 16, local_size_y = 16) in;
 
-    uniform int uPass;
-    uniform float uThreshold;
+  layout (rgba32f, binding = 0) writeonly uniform image2D uOutColor;
+  layout (rgba32f, binding = 1) readonly  uniform image2D uInColor;
 
-    // ===========================================================================
-    vec3 sampleHigherLevel(ivec2 offset)
-    {
-        vec3 col = imageLoad(uInColor, ivec2((gl_GlobalInvocationID.xy+offset)*2 + ivec2(0,0))).rgb * 0.25
-                 + imageLoad(uInColor, ivec2((gl_GlobalInvocationID.xy+offset)*2 + ivec2(1,0))).rgb * 0.25
-                 + imageLoad(uInColor, ivec2((gl_GlobalInvocationID.xy+offset)*2 + ivec2(0,1))).rgb * 0.25
-                 + imageLoad(uInColor, ivec2((gl_GlobalInvocationID.xy+offset)*2 + ivec2(1,1))).rgb * 0.25;
-        return col;
+  uniform int uPass;
+  uniform float uThreshold;
+
+  vec3 sampleHigherLevel(ivec2 offset) {
+    vec3 col = imageLoad(uInColor, ivec2((gl_GlobalInvocationID.xy+offset)*2 + ivec2(0,0))).rgb * 0.25
+             + imageLoad(uInColor, ivec2((gl_GlobalInvocationID.xy+offset)*2 + ivec2(1,0))).rgb * 0.25
+             + imageLoad(uInColor, ivec2((gl_GlobalInvocationID.xy+offset)*2 + ivec2(0,1))).rgb * 0.25
+             + imageLoad(uInColor, ivec2((gl_GlobalInvocationID.xy+offset)*2 + ivec2(1,1))).rgb * 0.25;
+    return col;
+  }
+
+  vec3 sampleSameLevel(ivec2 offset) {
+    return imageLoad(uInColor, ivec2(gl_GlobalInvocationID.xy+offset)).rgb;
+  }
+
+  void main() {
+    ivec2 storePos = ivec2(gl_GlobalInvocationID.xy);
+    ivec2 size     = imageSize(uOutColor);
+
+    if (storePos.x >= size.x || storePos.y >= size.y) {
+      return;
     }
 
-    vec3 sampleSameLevel(ivec2 offset)
-    {
-        return imageLoad(uInColor, ivec2(gl_GlobalInvocationID.xy+offset)).rgb;
+    vec3 oColor = vec3(0);
+
+    if (uPass == 0) {
+      oColor += sampleHigherLevel(ivec2(-2, 0)) * 0.06136;
+      oColor += sampleHigherLevel(ivec2(-1, 0)) * 0.24477;
+      oColor += sampleHigherLevel(ivec2( 0, 0)) * 0.38774;
+      oColor += sampleHigherLevel(ivec2( 1, 0)) * 0.24477;
+      oColor += sampleHigherLevel(ivec2( 2, 0)) * 0.06136;
+    } else {
+      oColor += sampleSameLevel(ivec2(0, -2)) * 0.06136;
+      oColor += sampleSameLevel(ivec2(0, -1)) * 0.24477;
+      oColor += sampleSameLevel(ivec2(0,  0)) * 0.38774;
+      oColor += sampleSameLevel(ivec2(0,  1)) * 0.24477;
+      oColor += sampleSameLevel(ivec2(0,  2)) * 0.06136;
     }
 
-    void main()
-    {
-        ivec2 storePos  = ivec2(gl_GlobalInvocationID.xy);
-        ivec2 size      = imageSize(uOutColor);
-
-        if (storePos.x >= size.x || storePos.y >= size.y) {
-            return;
-        }
-
-        vec3  oColor = vec3(0);
-
-        if (uPass == 0)
-        {
-            oColor += sampleHigherLevel(ivec2(-2, 0)) * 0.06136;
-            oColor += sampleHigherLevel(ivec2(-1, 0)) *0.24477;
-            oColor += sampleHigherLevel(ivec2( 0, 0)) *0.38774;
-            oColor += sampleHigherLevel(ivec2( 1, 0)) *0.24477;
-            oColor += sampleHigherLevel(ivec2( 2, 0)) * 0.06136;
-        } else {
-            oColor += sampleSameLevel(ivec2(0, -2)) * 0.06136;
-            oColor += sampleSameLevel(ivec2(0, -1)) *0.24477;
-            oColor += sampleSameLevel(ivec2(0,  0)) *0.38774;
-            oColor += sampleSameLevel(ivec2(0,  1)) *0.24477;
-            oColor += sampleSameLevel(ivec2(0,  2)) * 0.06136;
-        }
-
-        imageStore(uOutColor, storePos, vec4(oColor, 0.0) );
-    }
+    imageStore(uOutColor, storePos, vec4(oColor, 0.0));
+  }
 )";
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 GlowMipMap::GlowMipMap(int hdrBufferWidth, int hdrBufferHeight)
     : VistaTexture(GL_TEXTURE_2D)
@@ -93,7 +92,7 @@ GlowMipMap::GlowMipMap(int hdrBufferWidth, int hdrBufferHeight)
 
   // create compute shader
   auto        shader = glCreateShader(GL_COMPUTE_SHADER);
-  const char* c_str  = SHADER_COMP.c_str();
+  const char* c_str  = sGlowShader.c_str();
   glShaderSource(shader, 1, &c_str, nullptr);
   glCompileShader(shader);
 
@@ -127,9 +126,13 @@ GlowMipMap::GlowMipMap(int hdrBufferWidth, int hdrBufferHeight)
   }
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 GlowMipMap::~GlowMipMap() {
   glDeleteProgram(mComputeProgram);
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void GlowMipMap::update(VistaTexture* hdrBufferComposite) {
   int iWidth  = mHDRBufferWidth / 2;
@@ -181,4 +184,7 @@ void GlowMipMap::update(VistaTexture* hdrBufferComposite) {
   glBindImageTexture(0, 0, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
   glBindImageTexture(1, 0, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 } // namespace cs::graphics

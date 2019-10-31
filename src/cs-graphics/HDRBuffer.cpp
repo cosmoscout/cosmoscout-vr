@@ -19,9 +19,13 @@
 
 namespace cs::graphics {
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 HDRBuffer::HDRBuffer(bool highPrecision)
     : mHighPrecision(highPrecision) {
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 HDRBuffer::~HDRBuffer() {
   for (auto hdrBuffer : mHDRBufferData) {
@@ -33,6 +37,8 @@ HDRBuffer::~HDRBuffer() {
     delete hdrBuffer.second.mLuminanceMipMap;
   }
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void HDRBuffer::bind() {
   auto& hdrBuffer = getCurrentHDRBuffer();
@@ -101,6 +107,8 @@ void HDRBuffer::bind() {
   glScissor(0, 0, hdrBuffer.mWidth, hdrBuffer.mHeight);
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void HDRBuffer::unbind() {
 
   auto& hdrBuffer = getCurrentHDRBuffer();
@@ -116,10 +124,14 @@ void HDRBuffer::unbind() {
   }
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void HDRBuffer::doPingPong() {
   auto& hdrBuffer                  = getCurrentHDRBuffer();
   hdrBuffer.mCompositePinpongState = (hdrBuffer.mCompositePinpongState + 1) % 2;
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void HDRBuffer::clear() {
   bind();
@@ -132,10 +144,14 @@ void HDRBuffer::clear() {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 VistaTexture* HDRBuffer::getDepthAttachment() const {
   auto& hdrBuffer = getCurrentHDRBuffer();
   return hdrBuffer.mDepthAttachment;
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 VistaTexture* HDRBuffer::getCurrentWriteAttachment() const {
   auto& hdrBuffer = getCurrentHDRBuffer();
@@ -145,6 +161,8 @@ VistaTexture* HDRBuffer::getCurrentWriteAttachment() const {
   return hdrBuffer.mColorAttachments[1];
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 VistaTexture* HDRBuffer::getCurrentReadAttachment() const {
   auto& hdrBuffer = getCurrentHDRBuffer();
   if (hdrBuffer.mCompositePinpongState == 0) {
@@ -153,15 +171,21 @@ VistaTexture* HDRBuffer::getCurrentReadAttachment() const {
   return hdrBuffer.mColorAttachments[0];
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 HDRBuffer::HDRBufferData& HDRBuffer::getCurrentHDRBuffer() {
   auto viewport = GetVistaSystem()->GetDisplayManager()->GetCurrentRenderInfo()->m_pViewport;
   return mHDRBufferData[viewport];
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 HDRBuffer::HDRBufferData const& HDRBuffer::getCurrentHDRBuffer() const {
   auto viewport = GetVistaSystem()->GetDisplayManager()->GetCurrentRenderInfo()->m_pViewport;
   return mHDRBufferData.find(viewport)->second;
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::array<int, 2> HDRBuffer::getCurrentViewPortSize() const {
   auto viewport = GetVistaSystem()->GetDisplayManager()->GetCurrentRenderInfo()->m_pViewport;
@@ -170,12 +194,16 @@ std::array<int, 2> HDRBuffer::getCurrentViewPortSize() const {
   return size;
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 std::array<int, 2> HDRBuffer::getCurrentViewPortPos() const {
   auto viewport = GetVistaSystem()->GetDisplayManager()->GetCurrentRenderInfo()->m_pViewport;
   std::array<int, 2> pos;
   viewport->GetViewportProperties()->GetPosition(pos[0], pos[1]);
   return pos;
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void HDRBuffer::calculateLuminance(ExposureMeteringMode meteringMode) {
   auto&         hdrBuffer = getCurrentHDRBuffer();
@@ -194,9 +222,13 @@ void HDRBuffer::calculateLuminance(ExposureMeteringMode meteringMode) {
   }
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 float HDRBuffer::getLuminance() const {
   return mLuminance;
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void HDRBuffer::updateGlowMipMap() {
   auto&         hdrBuffer = getCurrentHDRBuffer();
@@ -211,8 +243,13 @@ void HDRBuffer::updateGlowMipMap() {
   hdrBuffer.mGlowMipMap->update(composite);
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 VistaTexture* HDRBuffer::getGlowMipMap() const {
   auto& hdrBuffer = getCurrentHDRBuffer();
   return hdrBuffer.mGlowMipMap;
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 } // namespace cs::graphics

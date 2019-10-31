@@ -13,82 +13,71 @@
 
 namespace cs::graphics {
 
-const std::string LuminanceMipMap::SHADER_COMP = R"(
-    #version 430
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+const std::string LuminanceMipMap::sComputeAverage = R"(
+  #version 430
+  
+  layout (local_size_x = 16, local_size_y = 16) in;
+
+  layout (r32f,    binding = 0) writeonly uniform image2D uOutLuminance;
+  layout (rgba32f, binding = 1) readonly  uniform image2D uInHDRBuffer;
+  layout (r32f,    binding = 2) readonly  uniform image2D uInLuminance;
+
+  uniform int uLevel;
+
+  float sampleHDRBuffer(ivec2 offset) {
+    vec3 color = imageLoad(uInHDRBuffer, ivec2(gl_GlobalInvocationID.xy*2 + offset)).rgb;
+    return max(max(color.r, color.g), color.b);
+  }
+
+  float samplePyramid(ivec2 offset) {
+    return imageLoad(uInLuminance, ivec2(gl_GlobalInvocationID.xy*2 + offset)).r;
+  }
+
+  void main() {
+    ivec2 storePos = ivec2(gl_GlobalInvocationID.xy);
+    ivec2 size     = imageSize(uOutLuminance);
+
+    if (storePos.x >= size.x || storePos.y >= size.y) {
+      return;
+    }
+
+    float oLuminance = 0;
     
-    layout (local_size_x = 16, local_size_y = 16) in;
+    if (uLevel == 0) {
+      oLuminance += sampleHDRBuffer(ivec2(0, 0));
+      oLuminance += sampleHDRBuffer(ivec2(0, 1));
+      oLuminance += sampleHDRBuffer(ivec2(1, 0));
+      oLuminance += sampleHDRBuffer(ivec2(1, 1));
+    } else {
+      oLuminance += samplePyramid(ivec2(0, 0));
+      oLuminance += samplePyramid(ivec2(0, 1));
+      oLuminance += samplePyramid(ivec2(1, 0));
+      oLuminance += samplePyramid(ivec2(1, 1));
 
-    layout (r32f,    binding = 0) writeonly uniform image2D uOutLuminance;
-    layout (rgba32f, binding = 1) readonly  uniform image2D uInHDRBuffer;
-    layout (r32f,    binding = 2) readonly  uniform image2D uInLuminance;
+      // handle cases close to right and top edge
+      ivec2 maxCoords = imageSize(uInLuminance) - ivec2(1);
+      if (gl_GlobalInvocationID.x*2 == maxCoords.x - 2) {
+        oLuminance += samplePyramid(ivec2(2,0));
+        oLuminance += samplePyramid(ivec2(2,1));
+      }
 
-    uniform int uLevel;
+      if (gl_GlobalInvocationID.y*2 == maxCoords.y - 2) {
+        oLuminance += samplePyramid(ivec2(0,2));
+        oLuminance += samplePyramid(ivec2(1,2));
 
-    // ===========================================================================
-    float sampleHDRBuffer(ivec2 offset)
-    {
-        vec3 color = imageLoad(uInHDRBuffer, ivec2(gl_GlobalInvocationID.xy*2 + offset)).rgb;
-        return max(max(color.r, color.g), color.b);
-    }
-
-    float samplePyramid(ivec2 offset)
-    {
-        return imageLoad(uInLuminance, ivec2(gl_GlobalInvocationID.xy*2 + offset)).r;
-    }
-
-    void main()
-    {
-        ivec2 storePos  = ivec2(gl_GlobalInvocationID.xy);
-        ivec2 size      = imageSize(uOutLuminance);
-
-        if (storePos.x >= size.x || storePos.y >= size.y) {
-            return;
+        if (gl_GlobalInvocationID.x*2 == maxCoords.x - 2) {
+            oLuminance += samplePyramid(ivec2(2,2));
         }
-
-        float oLuminance = 0;
-        float fSampleCount = 4;
-        
-        if (uLevel == 0)
-        {
-            oLuminance += sampleHDRBuffer(ivec2(0, 0));
-            oLuminance += sampleHDRBuffer(ivec2(0, 1));
-            oLuminance += sampleHDRBuffer(ivec2(1, 0));
-            oLuminance += sampleHDRBuffer(ivec2(1, 1));
-
-        } else {
-            oLuminance += samplePyramid(ivec2(0, 0));
-            oLuminance += samplePyramid(ivec2(0, 1));
-            oLuminance += samplePyramid(ivec2(1, 0));
-            oLuminance += samplePyramid(ivec2(1, 1));
-
-            // handle cases close to right and top edge
-            ivec2 maxCoords = imageSize(uInLuminance) - ivec2(1);
-            if (gl_GlobalInvocationID.x*2 == maxCoords.x - 2)
-            {
-                oLuminance += samplePyramid(ivec2(2,0));
-                oLuminance += samplePyramid(ivec2(2,1));
-                fSampleCount += 2;
-            }
-
-            if (gl_GlobalInvocationID.y*2 == maxCoords.y - 2)
-            {
-                oLuminance += samplePyramid(ivec2(0,2));
-                oLuminance += samplePyramid(ivec2(1,2));
-                fSampleCount += 2;
-
-                if (gl_GlobalInvocationID.x*2 == maxCoords.x - 2)
-                {
-                    oLuminance += samplePyramid(ivec2(2,2));
-                    fSampleCount += 1;
-                }
-            }
-        }
-
-        //oLuminance /= fSampleCount;
-
-        imageStore(uOutLuminance, storePos, vec4(oLuminance, 0.0, 0.0, 0.0) );
+      }
     }
+
+    imageStore(uOutLuminance, storePos, vec4(oLuminance, 0.0, 0.0, 0.0));
+  }
 )";
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 LuminanceMipMap::LuminanceMipMap(int hdrBufferWidth, int hdrBufferHeight)
     : VistaTexture(GL_TEXTURE_2D)
@@ -118,7 +107,7 @@ LuminanceMipMap::LuminanceMipMap(int hdrBufferWidth, int hdrBufferHeight)
 
   // create compute shader
   auto        shader = glCreateShader(GL_COMPUTE_SHADER);
-  const char* c_str  = SHADER_COMP.c_str();
+  const char* c_str  = sComputeAverage.c_str();
   glShaderSource(shader, 1, &c_str, nullptr);
   glCompileShader(shader);
 
@@ -152,10 +141,14 @@ LuminanceMipMap::LuminanceMipMap(int hdrBufferWidth, int hdrBufferHeight)
   }
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 LuminanceMipMap::~LuminanceMipMap() {
   glDeleteBuffers(1, &mPBO);
   glDeleteProgram(mComputeProgram);
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void LuminanceMipMap::update(ExposureMeteringMode meteringMode, VistaTexture* hdrBufferComposite) {
   int iWidth  = mHDRBufferWidth / 2;
@@ -207,11 +200,18 @@ void LuminanceMipMap::update(ExposureMeteringMode meteringMode, VistaTexture* hd
   mDataAvailable    = true;
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 bool LuminanceMipMap::getIsDataAvailable() const {
   return mDataAvailable;
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 float LuminanceMipMap::getLastLuminance() const {
   return mLastLuminance;
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 } // namespace cs::graphics

@@ -29,7 +29,7 @@ class CS_GRAPHICS_EXPORT GlowMipMap : public VistaTexture {
 
   VistaTexture* mTemporaryTarget = nullptr;
 
-  static const std::string SHADER_COMP;
+  static const std::string sGlowShader;
 };
 
 } // namespace cs::graphics

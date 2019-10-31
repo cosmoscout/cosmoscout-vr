@@ -24,6 +24,8 @@
 
 namespace cs::graphics {
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 namespace internal {
 // based on
 // https://placeholderart.wordpress.com/2014/12/15/implementing-a-physically-based-camera-automatic-exposure/
@@ -110,154 +112,158 @@ void ApplyProgramAuto(
   evDiff       = targetEV - ComputeEV(aperture, shutterSpeed, iso);
   shutterSpeed = glm::clamp(shutterSpeed * std::pow(2.0f, -evDiff), MIN_SHUTTER, MAX_SHUTTER);
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 } // namespace internal
 
-const std::string ToneMappingNode::SHADER_VERT = R"(
-    #version 430 compatibility
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    out vec2 vTexcoords;
+const std::string ToneMappingNode::sVertexShader = R"(
+  #version 430 compatibility
 
-    void main()
-    {
-        vTexcoords  = vec2((gl_VertexID << 1) & 2, gl_VertexID & 2);
-        gl_Position = vec4(vTexcoords * 2.0 - 1.0, 0.0, 1.0);
-    }
+  out vec2 vTexcoords;
+
+  void main()
+  {
+    vTexcoords  = vec2((gl_VertexID << 1) & 2, gl_VertexID & 2);
+    gl_Position = vec4(vTexcoords * 2.0 - 1.0, 0.0, 1.0);
+  }
 )";
 
-const std::string ToneMappingNode::SHADER_FRAG = R"(
-    #version 430 compatibility
-    in vec2 vTexcoords;
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    layout(pixel_center_integer) in vec4 gl_FragCoord;
+const std::string ToneMappingNode::sFragmentShader = R"(
+  #version 430 compatibility
+  
+  in vec2 vTexcoords;
 
-    layout(binding = 0) uniform sampler2D uDepth;
-    layout(binding = 1) uniform sampler2D uComposite;
-    layout(binding = 2) uniform sampler2D uGlowMipMap;
+  layout(pixel_center_integer) in vec4 gl_FragCoord;
 
-    uniform float uExposure;
-    uniform float uGlowIntensity;
+  layout(binding = 0) uniform sampler2D uDepth;
+  layout(binding = 1) uniform sampler2D uComposite;
+  layout(binding = 2) uniform sampler2D uGlowMipMap;
 
-    layout(location = 0) out vec3 oColor;
+  uniform float uExposure;
+  uniform float uGlowIntensity;
 
-    // http://filmicworlds.com/blog/filmic-tonemapping-operators/
-    float A = 0.15;
-    float B = 0.50;
-    float C = 0.10;
-    float D = 0.20;
-    float E = 0.02;
-    float F = 0.30;
-    float W = 11.2;
+  layout(location = 0) out vec3 oColor;
 
-    vec3 Uncharted2Tonemap(vec3 x)
-    {
-       return ((x*(A*x+C*B)+D*E)/(x*(A*x+B)+D*F))-E/F;
+  // http://filmicworlds.com/blog/filmic-tonemapping-operators/
+  float A = 0.15;
+  float B = 0.50;
+  float C = 0.10;
+  float D = 0.20;
+  float E = 0.02;
+  float F = 0.30;
+  float W = 11.2;
+
+  vec3 Uncharted2Tonemap(vec3 x) {
+    return ((x*(A*x+C*B)+D*E)/(x*(A*x+B)+D*F))-E/F;
+  }
+  
+  float linear_to_srgb(float c) {
+    const float a = 0.055;
+    if(c <= 0.0031308)
+      return 12.92*c;
+    else
+      return 1.055 * pow(c, 1.0/2.4) - 0.055;
+  }
+
+  vec3 linear_to_srgb(vec3 c) {
+    return vec3(linear_to_srgb(c.r), linear_to_srgb(c.g), linear_to_srgb(c.b));
+  }
+
+  float w0(float a) {
+    return (1.0 / 6.0) * (a * (a * (-a + 3.0) - 3.0) + 1.0);
+  }
+
+  float w1(float a) {
+    return (1.0 / 6.0) * (a * a * (3.0 * a - 6.0) + 4.0);
+  }
+
+  float w2(float a) {
+    return (1.0 / 6.0) * (a * (a * (-3.0 * a + 3.0) + 3.0) + 1.0);
+  }
+
+  float w3(float a) {
+    return (1.0 / 6.0) * (a * a * a);
+  }
+
+  // g0 and g1 are the two amplitude functions
+  float g0(float a) {
+    return w0(a) + w1(a);
+  }
+
+  float g1(float a) {
+    return w2(a) + w3(a);
+  }
+
+  // h0 and h1 are the two offset functions
+  float h0(float a) {
+    return -1.0 + w1(a) / (w0(a) + w1(a));
+  }
+
+  float h1(float a) {
+    return 1.0 + w3(a) / (w2(a) + w3(a));
+  }
+
+  vec4 texture2D_bicubic(sampler2D tex, vec2 uv, int p_lod) {
+    float lod = float(p_lod);
+    vec2 tex_size = textureSize(uGlowMipMap, p_lod);
+    vec2 pixel_size = 1.0 / tex_size;
+    uv = uv * tex_size + 0.5;
+    vec2 iuv = floor(uv);
+    vec2 fuv = fract(uv);
+
+    float g0x = g0(fuv.x);
+    float g1x = g1(fuv.x);
+    float h0x = h0(fuv.x);
+    float h1x = h1(fuv.x);
+    float h0y = h0(fuv.y);
+    float h1y = h1(fuv.y);
+
+    vec2 p0 = (vec2(iuv.x + h0x, iuv.y + h0y) - 0.5) * pixel_size;
+    vec2 p1 = (vec2(iuv.x + h1x, iuv.y + h0y) - 0.5) * pixel_size;
+    vec2 p2 = (vec2(iuv.x + h0x, iuv.y + h1y) - 0.5) * pixel_size;
+    vec2 p3 = (vec2(iuv.x + h1x, iuv.y + h1y) - 0.5) * pixel_size;
+
+    return (g0(fuv.y) * (g0x * textureLod(tex, p0, lod) + g1x * textureLod(tex, p1, lod))) +
+            (g1(fuv.y) * (g0x * textureLod(tex, p2, lod) + g1x * textureLod(tex, p3, lod)));
+  }
+
+  void main() {
+    vec3 color = texelFetch(uComposite, ivec2(vTexcoords * textureSize(uComposite, 0)), 0).rgb;
+
+    vec3  glow = vec3(0);
+    int maxLevels = textureQueryLevels(uGlowMipMap);
+    float weight = 1;
+
+    if (uGlowIntensity > 0) {
+      for (int i=0; i<maxLevels; ++i) {
+        glow += texture2D_bicubic(uGlowMipMap, vTexcoords, i).rgb;
+      }
+      color = mix(color, glow / maxLevels, uGlowIntensity);
     }
+
+    gl_FragDepth = texelFetch(uDepth, ivec2(vTexcoords * textureSize(uDepth, 0)), 0).r;
     
-    float linear_to_srgb(float c)
-    {
-      const float a = 0.055;
-      if(c <= 0.0031308)
-          return 12.92*c;
-      else
-          return 1.055 * pow(c, 1.0/2.4) - 0.055;
-    }
+    color = Uncharted2Tonemap(uExposure*color);
 
-    vec3 linear_to_srgb(vec3 c)
-    {
-      return vec3(linear_to_srgb(c.r), linear_to_srgb(c.g), linear_to_srgb(c.b));
-    }
+    vec3 whiteScale = vec3(1.0)/Uncharted2Tonemap(vec3(W));
 
-    float w0(float a) {
-        return (1.0 / 6.0) * (a * (a * (-a + 3.0) - 3.0) + 1.0);
-    }
-
-    float w1(float a) {
-        return (1.0 / 6.0) * (a * a * (3.0 * a - 6.0) + 4.0);
-    }
-
-    float w2(float a) {
-        return (1.0 / 6.0) * (a * (a * (-3.0 * a + 3.0) + 3.0) + 1.0);
-    }
-
-    float w3(float a) {
-        return (1.0 / 6.0) * (a * a * a);
-    }
-
-    // g0 and g1 are the two amplitude functions
-    float g0(float a) {
-        return w0(a) + w1(a);
-    }
-
-    float g1(float a) {
-        return w2(a) + w3(a);
-    }
-
-    // h0 and h1 are the two offset functions
-    float h0(float a) {
-        return -1.0 + w1(a) / (w0(a) + w1(a));
-    }
-
-    float h1(float a) {
-        return 1.0 + w3(a) / (w2(a) + w3(a));
-    }
-
-    vec4 texture2D_bicubic(sampler2D tex, vec2 uv, int p_lod) {
-        float lod = float(p_lod);
-        vec2 tex_size = textureSize(uGlowMipMap, p_lod);
-        vec2 pixel_size = 1.0 / tex_size;
-        uv = uv * tex_size + 0.5;
-        vec2 iuv = floor(uv);
-        vec2 fuv = fract(uv);
-
-        float g0x = g0(fuv.x);
-        float g1x = g1(fuv.x);
-        float h0x = h0(fuv.x);
-        float h1x = h1(fuv.x);
-        float h0y = h0(fuv.y);
-        float h1y = h1(fuv.y);
-
-        vec2 p0 = (vec2(iuv.x + h0x, iuv.y + h0y) - 0.5) * pixel_size;
-        vec2 p1 = (vec2(iuv.x + h1x, iuv.y + h0y) - 0.5) * pixel_size;
-        vec2 p2 = (vec2(iuv.x + h0x, iuv.y + h1y) - 0.5) * pixel_size;
-        vec2 p3 = (vec2(iuv.x + h1x, iuv.y + h1y) - 0.5) * pixel_size;
-
-        return (g0(fuv.y) * (g0x * textureLod(tex, p0, lod) + g1x * textureLod(tex, p1, lod))) +
-               (g1(fuv.y) * (g0x * textureLod(tex, p2, lod) + g1x * textureLod(tex, p3, lod)));
-    }
-
-    void main()
-    {
-        vec3 color = texelFetch(uComposite, ivec2(vTexcoords * textureSize(uComposite, 0)), 0).rgb;
-
-        vec3  glow = vec3(0);
-        int maxLevels = textureQueryLevels(uGlowMipMap);
-        float weight = 1;
-
-        if (uGlowIntensity > 0)
-        {
-            for (int i=0; i<maxLevels; ++i)
-            {
-                glow += texture2D_bicubic(uGlowMipMap, vTexcoords, i).rgb;
-            }
-            color = mix(color, glow / maxLevels, uGlowIntensity);
-        }
-
-        gl_FragDepth = texelFetch(uDepth, ivec2(vTexcoords * textureSize(uDepth, 0)), 0).r;
-        
-        color = Uncharted2Tonemap(uExposure*color);
-
-        vec3 whiteScale = vec3(1.0)/Uncharted2Tonemap(vec3(W));
-
-        oColor = linear_to_srgb(color*whiteScale);
-    }
+    oColor = linear_to_srgb(color*whiteScale);
+  }
 )";
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 ToneMappingNode::ToneMappingNode(std::shared_ptr<HDRBuffer> const& hdrBuffer, bool drawToBackBuffer)
     : mHDRBuffer(hdrBuffer)
     , mDrawToBackBuffer(drawToBackBuffer)
     , mShader(new VistaGLSLShader()) {
-  mShader->InitVertexShaderFromString(SHADER_VERT);
-  mShader->InitFragmentShaderFromString(SHADER_FRAG);
+  mShader->InitVertexShaderFromString(sVertexShader);
+  mShader->InitFragmentShaderFromString(sFragmentShader);
   mShader->Link();
 
   VistaEventManager* pEventManager = GetVistaSystem()->GetEventManager();
@@ -268,6 +274,8 @@ ToneMappingNode::ToneMappingNode(std::shared_ptr<HDRBuffer> const& hdrBuffer, bo
   mLuminanceSync    = GetVistaSystem()->GetClusterMode()->CreateDataSync();
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 ToneMappingNode::~ToneMappingNode() {
   VistaEventManager* pEventManager = GetVistaSystem()->GetEventManager();
   pEventManager->RemEventHandler(
@@ -277,71 +285,105 @@ ToneMappingNode::~ToneMappingNode() {
   delete mLuminanceSync;
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void ToneMappingNode::setExposure(float ev) {
   if (!mEnableAutoExposure) {
     mExposure = ev;
   }
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 float ToneMappingNode::getExposure() const {
   return mExposure;
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void ToneMappingNode::setExposureCompensation(float ev) {
   mExposureCompensation = ev;
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 float ToneMappingNode::getExposureCompensation() const {
   return mExposureCompensation;
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void ToneMappingNode::setMinAutoExposure(float ev) {
   mMinAutoExposure = ev;
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 float ToneMappingNode::getMinAutoExposure() const {
   return mMinAutoExposure;
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void ToneMappingNode::setMaxAutoExposure(float ev) {
   mMaxAutoExposure = ev;
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 float ToneMappingNode::getMaxAutoExposure() const {
   return mMaxAutoExposure;
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void ToneMappingNode::setExposureAdaptionSpeed(float speed) {
   mExposureAdaptionSpeed = speed;
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 float ToneMappingNode::getExposureAdaptionSpeed() const {
   return mExposureAdaptionSpeed;
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void ToneMappingNode::setEnableAutoExposure(bool value) {
   mEnableAutoExposure = value;
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 bool ToneMappingNode::getEnableAutoExposure() const {
   return mEnableAutoExposure;
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void ToneMappingNode::setExposureMeteringMode(ExposureMeteringMode value) {
   mExposureMeteringMode = value;
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 ExposureMeteringMode ToneMappingNode::getExposureMeteringMode() const {
   return mExposureMeteringMode;
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void ToneMappingNode::setGlowIntensity(float intensity) {
   mGlowIntensity = intensity;
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 float ToneMappingNode::getGlowIntensity() const {
   return mGlowIntensity;
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 float ToneMappingNode::getLastAverageLuminance() const {
   if (mGlobalLuminaceData.mPixelCount > 0 && mGlobalLuminaceData.mTotalLuminance > 0) {
@@ -349,6 +391,8 @@ float ToneMappingNode::getLastAverageLuminance() const {
   }
   return 0;
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool ToneMappingNode::ToneMappingNode::Do() {
   if (mEnableAutoExposure) {
@@ -431,6 +475,8 @@ bool ToneMappingNode::ToneMappingNode::Do() {
   return true;
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 bool ToneMappingNode::GetBoundingBox(VistaBoundingBox& oBoundingBox) {
   float min(std::numeric_limits<float>::min());
   float max(std::numeric_limits<float>::max());
@@ -441,6 +487,8 @@ bool ToneMappingNode::GetBoundingBox(VistaBoundingBox& oBoundingBox) {
 
   return true;
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void ToneMappingNode::HandleEvent(VistaEvent* pEvent) {
   // we accumulate all luminance values of this frame (can be multiple viewports
@@ -475,4 +523,7 @@ void ToneMappingNode::HandleEvent(VistaEvent* pEvent) {
     mLocalLuminaceData.mTotalLuminance = 0;
   }
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 } // namespace cs::graphics

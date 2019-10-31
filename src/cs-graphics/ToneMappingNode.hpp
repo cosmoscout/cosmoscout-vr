@@ -85,8 +85,8 @@ class CS_GRAPHICS_EXPORT ToneMappingNode : public IVistaOpenGLDraw, public Vista
   IVistaClusterDataCollect* mLuminanceCollect = nullptr;
   IVistaClusterDataSync*    mLuminanceSync    = nullptr;
 
-  static const std::string SHADER_VERT;
-  static const std::string SHADER_FRAG;
+  static const std::string sVertexShader;
+  static const std::string sFragmentShader;
 };
 } // namespace cs::graphics
 #endif // CS_GRAPHICS_TONEMAPPING_NODE_HPP
