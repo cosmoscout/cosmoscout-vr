@@ -989,7 +989,7 @@ Primitive GltfShared::createMeshPrimitive(
 
   std::string definesVS = "#version 330\n";
   std::string definesFS = "#version 330\n";
-  // = "#version 450\n";
+
   definesFS += "#define USE_IBL\n#define USE_TEX_LOD\n";
 
   if (primitive.attributes.count("NORMAL")) {
