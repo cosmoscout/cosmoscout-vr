@@ -43,7 +43,7 @@ class CS_CORE_EXPORT GraphicsEngine {
   utils::Property<float>     pShadowMapSplitDistribution = 1.f;
   utils::Property<bool>      pEnableAutoExposure         = true;
   utils::Property<float>     pExposure                   = 0.f;                    // in EV
-  utils::Property<glm::vec2> pAutoExposureRange          = glm::vec2(-15.f, 10.f); // in EV
+  utils::Property<glm::vec2> pAutoExposureRange          = glm::vec2(-12.f, 10.f); // in EV
   utils::Property<float>     pExposureCompensation       = 0.f;                    // in EV
   utils::Property<float>     pExposureAdaptionSpeed      = 3.f;
   utils::Property<float>     pSensorDiagonal             = 42.f; // in millimeters
