@@ -114,6 +114,10 @@ function init() {
     });
 
     $('[data-toggle="tooltip"]').tooltip({ delay: 500, placement: "auto", html: false });
+    $('[data-toggle="tooltip-top"]').tooltip({ delay: 500, placement: "top", html: false });
+    $('[data-toggle="tooltip-right"]').tooltip({ delay: 500, placement: "right", html: false });
+    $('[data-toggle="tooltip-left"]').tooltip({ delay: 500, placement: "left", html: false });
+    $('[data-toggle="tooltip-bottom"]').tooltip({ delay: 500, placement: "bottom", html: false });
 
     $('.radiolabel input').change(function () {
         if (this.checked) {
@@ -156,7 +160,6 @@ function set_maximum_scene_luminance(value) {
 }
 
 $(document).ready(function () {
-    //init();
 
     const slider = document.getElementById("set_shadowmap_resolution");
     noUiSlider.create(slider, {
@@ -203,6 +206,14 @@ $(document).ready(function () {
         } else {
             $("#set_exposure").removeClass("unresponsive");
             $("#set_exposure_range").addClass("unresponsive");
+        }
+    });
+
+    $('#set_enable_auto_glow').change(function () {
+        if (this.checked) {
+            $("#set_glow_intensity").addClass("unresponsive");
+        } else {
+            $("#set_glow_intensity").removeClass("unresponsive");
         }
     });
 

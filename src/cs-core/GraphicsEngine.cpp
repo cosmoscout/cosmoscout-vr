@@ -101,6 +101,12 @@ GraphicsEngine::GraphicsEngine(std::shared_ptr<const core::Settings> const& sett
     if (!pEnableAutoExposure.get()) {
       mToneMappingNode->setExposure(value);
     }
+
+    if (pEnableAutoGlow.get()) {
+      float glow = (pAutoExposureRange.get()[0] - value) /
+                   (pAutoExposureRange.get()[0] - pAutoExposureRange.get()[1]);
+      pGlowIntensity = std::clamp(glow * 0.5f, 0.001f, 1.f);
+    }
   });
 
   pHeightScale.touch();

@@ -241,7 +241,7 @@ const std::string ToneMappingNode::sFragmentShader = R"(
 
     if (uGlowIntensity > 0) {
       for (int i=0; i<maxLevels; ++i) {
-        glow += texture2D_bicubic(uGlowMipMap, vTexcoords, i).rgb;
+        glow += texture2D_bicubic(uGlowMipMap, vTexcoords, i).rgb / (i+1);
       }
       color = mix(color, glow / maxLevels, uGlowIntensity);
     }

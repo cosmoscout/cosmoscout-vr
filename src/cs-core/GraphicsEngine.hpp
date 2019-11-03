@@ -49,6 +49,7 @@ class CS_CORE_EXPORT GraphicsEngine {
   utils::Property<float>     pSensorDiagonal             = 42.f; // in millimeters
   utils::Property<float>     pFocalLength                = 24.f; // in millimeters
   utils::Property<float>     pAmbientBrightness          = std::pow(0.25f, 10.f);
+  utils::Property<bool>      pEnableAutoGlow             = true;
   utils::Property<float>     pGlowIntensity              = 0.5f;
   utils::Property<graphics::ExposureMeteringMode> pExposureMeteringMode =
       graphics::ExposureMeteringMode::AVERAGE;

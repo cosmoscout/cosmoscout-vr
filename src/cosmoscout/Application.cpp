@@ -838,6 +838,15 @@ void Application::registerGuiCallbacks() {
     }
   });
 
+  mGuiManager->getSideBar()->registerCallback<bool>(
+      "set_enable_auto_glow", ([this](bool val) { mGraphicsEngine->pEnableAutoGlow = val; }));
+
+  mGraphicsEngine->pGlowIntensity.onChange().connect([this](float value) {
+    if (mGraphicsEngine->pEnableAutoGlow.get()) {
+      mGuiManager->getSideBar()->callJavascript("set_slider_value", "set_glow_intensity", value);
+    }
+  });
+
   mGraphicsEngine->pAverageLuminance.onChange().connect([this](float value) {
     mGuiManager->getSideBar()->callJavascript("set_average_scene_luminance", value);
   });
