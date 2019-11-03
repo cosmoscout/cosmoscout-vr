@@ -51,6 +51,7 @@ class CS_GRAPHICS_EXPORT ToneMappingNode : public IVistaOpenGLDraw, public Vista
   float getGlowIntensity() const;
 
   float getLastAverageLuminance() const;
+  float getLastMaximumLuminance() const;
 
   virtual bool Do() override;
   virtual bool GetBoundingBox(VistaBoundingBox& bb) override;
@@ -75,8 +76,9 @@ class CS_GRAPHICS_EXPORT ToneMappingNode : public IVistaOpenGLDraw, public Vista
   VistaGLSLShader* mShader;
 
   struct LuminanceData {
-    int   mPixelCount     = 0;
-    float mTotalLuminance = 0;
+    int   mPixelCount       = 0;
+    float mTotalLuminance   = 0;
+    float mMaximumLuminance = 0;
   };
 
   LuminanceData mLocalLuminaceData;

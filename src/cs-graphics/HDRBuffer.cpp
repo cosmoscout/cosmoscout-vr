@@ -217,15 +217,22 @@ void HDRBuffer::calculateLuminance(ExposureMeteringMode meteringMode) {
 
   hdrBuffer.mLuminanceMipMap->update(meteringMode, composite);
 
-  if (hdrBuffer.mLuminanceMipMap->getLastLuminance()) {
-    mLuminance = hdrBuffer.mLuminanceMipMap->getLastLuminance();
+  if (hdrBuffer.mLuminanceMipMap->getLastTotalLuminance()) {
+    mTotalLuminance   = hdrBuffer.mLuminanceMipMap->getLastTotalLuminance();
+    mMaximumLuminance = hdrBuffer.mLuminanceMipMap->getLastMaximumLuminance();
   }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-float HDRBuffer::getLuminance() const {
-  return mLuminance;
+float HDRBuffer::getTotalLuminance() const {
+  return mTotalLuminance;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+float HDRBuffer::getMaximumLuminance() const {
+  return mMaximumLuminance;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

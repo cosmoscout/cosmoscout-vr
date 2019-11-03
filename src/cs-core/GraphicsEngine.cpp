@@ -171,6 +171,7 @@ void GraphicsEngine::update(glm::vec3 const& sunDirection) {
 
   if (pEnableHDR.get()) {
     pAverageLuminance = mToneMappingNode->getLastAverageLuminance();
+    pMaximumLuminance = mToneMappingNode->getLastMaximumLuminance();
   }
 }
 

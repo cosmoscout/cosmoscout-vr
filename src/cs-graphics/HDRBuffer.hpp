@@ -72,7 +72,8 @@ class CS_GRAPHICS_EXPORT HDRBuffer {
   void clear();
 
   void  calculateLuminance(ExposureMeteringMode mode);
-  float getLuminance() const;
+  float getTotalLuminance() const;
+  float getMaximumLuminance() const;
 
   void          updateGlowMipMap();
   VistaTexture* getGlowMipMap() const;
@@ -102,7 +103,8 @@ class CS_GRAPHICS_EXPORT HDRBuffer {
   HDRBufferData const& getCurrentHDRBuffer() const;
 
   std::unordered_map<VistaViewport*, HDRBufferData> mHDRBufferData;
-  float                                             mLuminance = 1.f;
+  float                                             mTotalLuminance   = 1.f;
+  float                                             mMaximumLuminance = 1.f;
 
   const float mHighPrecision;
 };

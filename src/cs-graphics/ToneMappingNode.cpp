@@ -394,6 +394,15 @@ float ToneMappingNode::getLastAverageLuminance() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+float ToneMappingNode::getLastMaximumLuminance() const {
+  if (mGlobalLuminaceData.mMaximumLuminance > 0) {
+    return mGlobalLuminaceData.mMaximumLuminance;
+  }
+  return 0;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 bool ToneMappingNode::ToneMappingNode::Do() {
   if (mEnableAutoExposure) {
     mHDRBuffer->calculateLuminance(mExposureMeteringMode);
@@ -404,7 +413,8 @@ bool ToneMappingNode::ToneMappingNode::Do() {
     // mGlobalLuminaceData and is in the next frame used for exposure calculation
     auto size = mHDRBuffer->getCurrentViewPortSize();
     mLocalLuminaceData.mPixelCount += size[0] * size[1];
-    mLocalLuminaceData.mTotalLuminance += mHDRBuffer->getLuminance();
+    mLocalLuminaceData.mTotalLuminance += mHDRBuffer->getTotalLuminance();
+    mLocalLuminaceData.mMaximumLuminance += mHDRBuffer->getMaximumLuminance();
 
     // calculate exposure based on last frame's average luminance
     // Time-dependent visual adaptation for fast realistic image display
@@ -504,14 +514,17 @@ void ToneMappingNode::HandleEvent(VistaEvent* pEvent) {
 
     // globalData is only filled on the cluster master. The slaves will receive
     // the accumulated mGlobalLuminaceData with the SyncData call below
-    mGlobalLuminaceData.mPixelCount     = 0;
-    mGlobalLuminaceData.mTotalLuminance = 0;
+    mGlobalLuminaceData.mPixelCount       = 0;
+    mGlobalLuminaceData.mTotalLuminance   = 0;
+    mGlobalLuminaceData.mMaximumLuminance = 0;
 
     for (auto const& data : globalData) {
       LuminanceData luminance;
       std::memcpy(&luminance, &data[0], sizeof(LuminanceData));
       mGlobalLuminaceData.mPixelCount += luminance.mPixelCount;
       mGlobalLuminaceData.mTotalLuminance += luminance.mTotalLuminance;
+      mGlobalLuminaceData.mMaximumLuminance =
+          std::max(mGlobalLuminaceData.mMaximumLuminance, luminance.mMaximumLuminance);
     }
 
     std::memcpy(&localData[0], &mGlobalLuminaceData, sizeof(LuminanceData));
@@ -519,8 +532,9 @@ void ToneMappingNode::HandleEvent(VistaEvent* pEvent) {
     std::memcpy(&mGlobalLuminaceData, &localData[0], sizeof(LuminanceData));
 
     // reset local data for next frame
-    mLocalLuminaceData.mPixelCount     = 0;
-    mLocalLuminaceData.mTotalLuminance = 0;
+    mLocalLuminaceData.mPixelCount       = 0;
+    mLocalLuminaceData.mTotalLuminance   = 0;
+    mLocalLuminaceData.mMaximumLuminance = 0;
   }
 }
 

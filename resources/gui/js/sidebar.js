@@ -147,8 +147,12 @@ function init_slider(id, min, max, step, start) {
     });
 }
 
-function set_scene_luminance(value) {
-    $("#scene-luminance").text(beauty_print_number(parseFloat(value)));
+function set_average_scene_luminance(value) {
+    $("#average-scene-luminance").text(beauty_print_number(parseFloat(value)));
+}
+
+function set_maximum_scene_luminance(value) {
+    $("#maximum-scene-luminance").text(beauty_print_number(parseFloat(value)));
 }
 
 $(document).ready(function () {
@@ -184,7 +188,7 @@ $(document).ready(function () {
     init_slider("set_exposure_adaption_speed", 0, 20, 0.1, [3]);
     init_slider("set_ambient_light", 0.0, 1.0, 0.001, [0.25]);
     init_slider("set_exposure_range", -30.0, 30, 0.1, [-15, 10]);
-    init_slider("set_glow_intensity", 0.0, 1, 0.01, [0.1]);
+    init_slider("set_glow_intensity", 0.0, 1, 0.01, [0.5]);
 
     $(document).on('click', '.item-create-button', function () {
         $(this).addClass('active');

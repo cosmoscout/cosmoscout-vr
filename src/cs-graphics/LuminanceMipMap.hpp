@@ -21,18 +21,21 @@ class CS_GRAPHICS_EXPORT LuminanceMipMap : public VistaTexture {
 
   void update(ExposureMeteringMode meteringMode, VistaTexture* hdrBufferComposite);
 
-  bool  getIsDataAvailable() const;
-  float getLastLuminance() const;
+  bool getIsDataAvailable() const;
+
+  float getLastTotalLuminance() const;
+  float getLastMaximumLuminance() const;
 
  private:
-  GLuint               mPBO              = 0;
-  GLuint               mComputeProgram   = 0;
-  ExposureMeteringMode mLastMeteringMode = ExposureMeteringMode::AVERAGE;
-  float                mLastLuminance    = 0.f;
-  int                  mMaxLevels        = 0;
-  int                  mHDRBufferWidth   = 0;
-  int                  mHDRBufferHeight  = 0;
-  bool                 mDataAvailable    = false;
+  GLuint               mPBO                  = 0;
+  GLuint               mComputeProgram       = 0;
+  ExposureMeteringMode mLastMeteringMode     = ExposureMeteringMode::AVERAGE;
+  float                mLastTotalLuminance   = 0.f;
+  float                mLastMaximumLuminance = 0.f;
+  int                  mMaxLevels            = 0;
+  int                  mHDRBufferWidth       = 0;
+  int                  mHDRBufferHeight      = 0;
+  bool                 mDataAvailable        = false;
 
   static const std::string sComputeAverage;
 };

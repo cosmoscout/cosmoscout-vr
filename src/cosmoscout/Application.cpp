@@ -376,6 +376,7 @@ void Application::FrameUpdate() {
         mGraphicsEngine->pExposureMeteringMode.touch();
         mGraphicsEngine->pApproximateSceneBrightness.touch();
         mGraphicsEngine->pAverageLuminance.touch();
+        mGraphicsEngine->pMaximumLuminance.touch();
 
         // initial observer animation --------------------------------------------------------------
 
@@ -838,7 +839,11 @@ void Application::registerGuiCallbacks() {
   });
 
   mGraphicsEngine->pAverageLuminance.onChange().connect([this](float value) {
-    mGuiManager->getSideBar()->callJavascript("set_scene_luminance", value);
+    mGuiManager->getSideBar()->callJavascript("set_average_scene_luminance", value);
+  });
+
+  mGraphicsEngine->pMaximumLuminance.onChange().connect([this](float value) {
+    mGuiManager->getSideBar()->callJavascript("set_maximum_scene_luminance", value);
   });
 
   mGuiManager->getSideBar()->registerCallback("set_exposure_metering_mode_0", ([this]() {
