@@ -9,7 +9,7 @@
     "longitude": 11.281067,
     "latitude": 48.086709
   },
-  "enableHDR": true,
+  "enableHDR": false,
   "sceneScale": {
     "minScale": 5,
     "maxScale": 100000000000000000,
