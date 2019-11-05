@@ -56,6 +56,19 @@ std::shared_ptr<const scene::CelestialObject> SolarSystem::getSun() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+glm::dvec3 SolarSystem::getSunDirection(glm::dvec3 const& observerPosition) const {
+  return glm::normalize(pSunPosition.get() - observerPosition);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+double SolarSystem::getSunIlluminance(glm::dvec3 const& observerPosition) const {
+  double sunDist = glm::length(pSunPosition.get() - observerPosition);
+  return pSunLuminousPower.get() / (sunDist * sunDist * 4.0 * glm::pi<double>());
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void SolarSystem::setObserver(scene::CelestialObserver const& observer) {
   mObserver = observer;
 }
