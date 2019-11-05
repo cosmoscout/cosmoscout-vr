@@ -125,7 +125,7 @@ LuminanceMipMap::LuminanceMipMap(int hdrBufferWidth, int hdrBufferHeight)
     glGetShaderInfoLog(shader, log_length, nullptr, v.data());
     std::string log(begin(v), end(v));
     glDeleteShader(shader);
-    std::cout << (std::string("ERROR: Failed to compile shader\n") + log) << std::endl;
+    throw std::runtime_error(std::string("ERROR: Failed to compile shader\n") + log);
   }
 
   mComputeProgram = glCreateProgram();
