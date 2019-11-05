@@ -170,8 +170,13 @@ bool Application::Init(VistaSystem* pVistaSystem) {
     mGuiManager->setCursor(cs::gui::Cursor::ePointer);
   }
 
+  // Initialize some gui components
   if (!mSettings->mEnableSensorSizeControl) {
     mGuiManager->getSideBar()->callJavascript("hide", "#enableSensorSizeControl");
+  }
+
+  if (!mSettings->mEnableHDR.value_or(false)) {
+    mGuiManager->getSideBar()->callJavascript("set_checkbox_value", "set_enable_hdr", false);
   }
 
   mGuiManager->enableLoadingScreen(true);

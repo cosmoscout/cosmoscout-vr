@@ -72,11 +72,11 @@ function set_slider_value(id, val1, val2) {
 }
 
 function set_radio_checked(id) {
-    $('#' + id).prop('checked', true);
+    $('#' + id).prop('checked', true).change();
 }
 
 function set_checkbox_value(id, value) {
-    $('#' + id).prop('checked', value);
+    $('#' + id).prop('checked', value).change();
 }
 
 function set_textbox_value(id, value) {
