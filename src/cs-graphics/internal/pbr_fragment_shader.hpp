@@ -33,6 +33,7 @@ out vec4 FragColor;
 
 uniform vec3 u_LightDirection;
 uniform vec3 u_LightColor;
+uniform vec3 u_EnableHDR;
 
 #ifdef USE_IBL
 uniform samplerCube u_DiffuseEnvSampler;
@@ -317,8 +318,10 @@ void main()
     color += emissive;
 #endif
 
-    //FragColor = vec4(color, baseColor.a);
-    FragColor = vec4(pow(color,vec3(1.0/2.2)), baseColor.a);
+    if (u_EnableHDR)
+        FragColor = vec4(color, baseColor.a);
+    else
+        FragColor = vec4(pow(color,vec3(1.0/2.2)), baseColor.a);
 
     #ifdef USE_LINEARDEPTHBUFFER
       gl_FragDepth = length(v_Position) / u_FarClip;

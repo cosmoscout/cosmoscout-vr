@@ -547,6 +547,7 @@ GLProgramInfo getProgramInfo(unsigned int program) {
 
   info.u_LightDirection_loc = glGetUniformLocation(program, "u_LightDirection");
   info.u_LightColor_loc     = glGetUniformLocation(program, "u_LightColor");
+  info.u_EnableHDR_loc      = glGetUniformLocation(program, "u_EnableHDR");
 
   info.u_DiffuseEnvSampler_loc  = glGetUniformLocation(program, "u_DiffuseEnvSampler");
   info.u_SpecularEnvSampler_loc = glGetUniformLocation(program, "u_SpecularEnvSampler");
@@ -1178,6 +1179,7 @@ void Primitive::draw(glm::mat4 const& projMat, glm::mat4 const& viewMat, glm::ma
   glUniform3fv(programInfo.u_LightDirection_loc, 1, glm::value_ptr(shared.m_lightDirection));
   glUniform3fv(programInfo.u_LightColor_loc, 1,
       glm::value_ptr(shared.m_lightColor * shared.m_lightIntensity));
+  glUniform1i(programInfo.u_EnableHDR_loc, shared.m_enableHDR);
   glUniform3fv(programInfo.u_Camera_loc, 1, glm::value_ptr(eye));
 
   glUniform2fv(
