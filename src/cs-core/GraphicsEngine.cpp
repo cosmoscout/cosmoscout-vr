@@ -108,31 +108,6 @@ GraphicsEngine::GraphicsEngine(std::shared_ptr<const core::Settings> const& sett
       pGlowIntensity = std::clamp(glow * 0.5f, 0.001f, 1.f);
     }
   });
-
-  pHeightScale.touch();
-  pWidgetScale.touch();
-  pEnableLighting.touch();
-  pLightingQuality.touch();
-  pEnableShadows.touch();
-  pEnableShadowsDebug.touch();
-  pEnableShadowsFreeze.touch();
-  pShadowMapResolution.touch();
-  pShadowMapCascades.touch();
-  pShadowMapBias.touch();
-  pShadowMapRange.touch();
-  pShadowMapExtension.touch();
-  pShadowMapSplitDistribution.touch();
-  pEnableAutoExposure.touch();
-  pExposure.touch();
-  pAutoExposureRange.touch();
-  pExposureCompensation.touch();
-  pExposureAdaptionSpeed.touch();
-  pSensorDiagonal.touch();
-  pFocalLength.touch();
-  pAmbientBrightness.touch();
-  pGlowIntensity.touch();
-  pExposureMeteringMode.touch();
-  pEnableHDR.touch();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
