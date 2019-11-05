@@ -1,0 +1,82 @@
+name: Publish Releases
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  source_code:
+    name: Source Code
+    runs-on: ubuntu-18.04
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v1
+    - name: Checkout Submodules
+      run: git submodule update --init
+    - name: Create Release
+      run: externals/git-archive-all.sh/git-archive-all.sh --prefix cosmoscout-vr/ source-with-submodules.tar.gz
+    - name: Upload Release
+      uses: svenstaro/upload-release-action@v1-release
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: source-with-submodules.tar.gz
+        asset_name: source-with-submodules.tar.gz
+        tag: ${{ github.ref }}
+        overwrite: true
+        
+  release_linux:
+    name: Linux
+    runs-on: ubuntu-18.04
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v1
+    - name: Checkout Submodules
+      run: git submodule update --init
+    - name: Download Dependencies
+      run: |
+        sudo add-apt-repository ppa:mhier/libboost-latest
+        sudo apt-get update -q
+        sudo apt-get install libc++-dev libgl1-mesa-dev libglu1-mesa-dev libx11-dev
+        sudo apt-get install libxi-dev libgconf-2-4 libboost1.70-dev
+    - name: Build Externals
+      run: ./make_externals.sh
+    - name: Build CosmoScout VR
+      run: ./make.sh
+    - name: Create Release
+      run: | 
+        mv install/linux-release cosmoscout-vr
+        cmake -E tar cv cosmoscout-vr-linux64.tar.gz cosmoscout-vr
+    - name: Upload Release
+      uses: svenstaro/upload-release-action@v1-release
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: cosmoscout-vr-linux64.tar.gz
+        asset_name: cosmoscout-vr-linux64.tar.gz
+        tag: ${{ github.ref }}
+        overwrite: true
+
+  release_windows:
+    name: Windows
+    runs-on: windows-2016
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v1
+    - name: Checkout Submodules
+      run: git submodule update --init
+    - name: Build Externals
+      run: make_externals.bat
+    - name: Build CosmoScout VR
+      run: make.bat
+    - name: Create Release
+      run: | 
+        move install\windows-release cosmoscout-vr
+        cmake -E tar cv cosmoscout-vr-win64.zip --format=zip cosmoscout-vr
+    - name: Upload Release
+      uses: svenstaro/upload-release-action@v1-release
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: cosmoscout-vr-win64.zip
+        asset_name: cosmoscout-vr-win64.zip
+        tag: ${{ github.ref }}
+        overwrite: true

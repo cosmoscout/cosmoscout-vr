@@ -1,0 +1,89 @@
+name: Continuous Integration
+
+on:
+  push:
+    branches:
+    - '*'
+  pull_request:
+    branches:
+    - '*'
+
+jobs:
+  clang_format:
+    name: Check Clang-Format
+    runs-on: ubuntu-18.04
+    if: github.event_name == 'pull_request' || github.ref == 'master'  || github.ref == 'develop' || contains(github.event.commits[0].message, '[run-ci]')
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v1
+    - name: Download Clang-Format
+      run: |
+        sudo apt-get update -y
+        sudo apt-get remove -y clang-6.0 libclang-common-6.0-dev libclang1-6.0 libllvm6.0
+        sudo apt-get install -y clang-format
+    - name: Run Clang-Format
+      run: ./clang-format.sh
+    - name: Compare Results
+      run: |
+        DIFF=$(git diff)
+        if [ ! -z "$DIFF" ]; then echo $DIFF && exit 1; fi
+
+  build_linux_gcc:
+    name: Linux Build (gcc 7.4.0)
+    runs-on: ubuntu-18.04
+    needs: clang_format
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v1
+    - name: Checkout Submodules
+      run: git submodule update --init
+    - name: Download Dependencies
+      run: |
+        sudo add-apt-repository ppa:mhier/libboost-latest
+        sudo apt-get update -q
+        sudo apt-get install libc++-dev libgl1-mesa-dev libglu1-mesa-dev libx11-dev
+        sudo apt-get install libxi-dev libgconf-2-4 libboost1.70-dev
+    - name: Build Externals
+      run: ./make_externals.sh
+    - name: Build CosmoScout VR
+      run: ./make.sh
+      
+  build_linux_clang:
+    name: Linux Build (clang 6.0)
+    runs-on: ubuntu-18.04
+    needs: clang_format
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v1
+    - name: Checkout Submodules
+      run: git submodule update --init
+    - name: Download Dependencies
+      run: |
+        sudo add-apt-repository ppa:mhier/libboost-latest
+        sudo apt-get update -q
+        sudo apt-get install libc++-dev libgl1-mesa-dev libglu1-mesa-dev libx11-dev
+        sudo apt-get install libxi-dev libgconf-2-4 libboost1.70-dev
+    - name: Build Externals
+      env:
+        CC: clang
+        CXX: clang++
+      run: ./make_externals.sh
+    - name: Build CosmoScout VR
+      env:
+        CC: clang
+        CXX: clang++
+      run: ./make.sh
+
+  build_windows:
+    name: Windows Build (msvc 19.16.27032.1)
+    runs-on: windows-2016
+    needs: clang_format
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v1
+    - name: Checkout Submodules
+      run: git submodule update --init
+    - name: Build Externals
+      run: make_externals.bat
+    - name: Build CosmoScout VR
+      run: make.bat
