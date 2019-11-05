@@ -24,7 +24,7 @@ jobs:
         asset_name: source-with-submodules.tar.gz
         tag: ${{ github.ref }}
         overwrite: true
-        
+
   release_linux:
     name: Linux
     runs-on: ubuntu-18.04
@@ -65,9 +65,9 @@ jobs:
     - name: Checkout Submodules
       run: git submodule update --init
     - name: Build Externals
-      run: make_externals.bat
+      run: .\make_externals.bat
     - name: Build CosmoScout VR
-      run: make.bat
+      run: .\make.bat
     - name: Create Release
       run: | 
         move install\windows-release cosmoscout-vr
