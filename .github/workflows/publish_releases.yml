@@ -24,7 +24,7 @@ jobs:
         asset_name: source-with-submodules.tar.gz
         tag: ${{ github.ref }}
         overwrite: true
-        
+
   release_linux:
     name: Linux
     runs-on: ubuntu-18.04
