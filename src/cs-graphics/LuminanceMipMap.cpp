@@ -141,7 +141,7 @@ LuminanceMipMap::LuminanceMipMap(int hdrBufferWidth, int hdrBufferHeight)
     glGetProgramInfoLog(mComputeProgram, log_length, nullptr, v.data());
     std::string log(begin(v), end(v));
 
-    std::cout << (std::string("ERROR: Failed to link compute shader\n") + log) << std::endl;
+    throw std::runtime_error(std::string("ERROR: Failed to link compute shader\n") + log);
   }
 }
 
