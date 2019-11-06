@@ -1,4 +1,4 @@
-name: Publish Releases
+name: Deploy
 
 on:
   push:

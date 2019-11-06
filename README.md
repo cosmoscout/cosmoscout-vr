@@ -5,7 +5,7 @@
 CosmoScout VR is a modular virtual universe developed at the German Aerospace Center (DLR).
 It lets you explore, analyze and present huge planetary data sets and large simulation data in real-time.
 
-[![Build Status](https://github.com/cosmoscout/cosmoscout-vr/workflows/Continuous%20Integration/badge.svg?branch=develop)](https://github.com/cosmoscout/cosmoscout-vr/actions)
+[![Build Status](https://github.com/cosmoscout/cosmoscout-vr/workflows/Build/badge.svg?branch=develop)](https://github.com/cosmoscout/cosmoscout-vr/actions)
 [![c++17](https://img.shields.io/badge/docs-online-4c1.svg)](docs/README.md)
 [![gitter](https://badges.gitter.im/cosmoscout/cosmoscout.svg)](https://gitter.im/cosmoscout/community)
 [![license](https://img.shields.io/badge/license-MIT-purple.svg)](LICENSE)
