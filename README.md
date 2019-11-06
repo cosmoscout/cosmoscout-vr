@@ -7,7 +7,6 @@ It lets you explore, analyze and present huge planetary data sets and large simu
 
 [![Build Status](https://github.com/cosmoscout/cosmoscout-vr/workflows/Build/badge.svg?branch=develop)](https://github.com/cosmoscout/cosmoscout-vr/actions)
 [![c++17](https://img.shields.io/badge/docs-online-4c1.svg)](docs/README.md)
-[![gitter](https://badges.gitter.im/cosmoscout/cosmoscout.svg)](https://gitter.im/cosmoscout/community)
 [![license](https://img.shields.io/badge/license-MIT-purple.svg)](LICENSE)
 [![source loc](https://img.shields.io/badge/source_loc-10.4k-green.svg)](cloc.sh)
 [![plugin loc](https://img.shields.io/badge/plugin_loc-13.7k-green.svg)](cloc.sh)

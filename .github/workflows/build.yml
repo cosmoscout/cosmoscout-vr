@@ -14,8 +14,8 @@ jobs:
     runs-on: ubuntu-18.04
     if: >
       github.event_name == 'pull_request' ||
-      contains(github.ref, 'master') ||
-      contains(github.ref, 'develop') ||
+      (contains(github.ref, 'master') && !contains(github.event.commits[0].message, '[no-ci]')) ||
+      (contains(github.ref, 'develop') && !contains(github.event.commits[0].message, '[no-ci]')) ||
       contains(github.event.commits[0].message, '[run-ci]')
     steps:
     - name: Checkout Repository
