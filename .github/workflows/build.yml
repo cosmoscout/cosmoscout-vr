@@ -16,6 +16,7 @@ jobs:
       github.event_name == 'pull_request' ||
       contains(github.ref, 'master') ||
       contains(github.ref, 'develop') ||
+      ( contains(github.ref, 'action') && contains(github.event.commits[0].message, '[no-ci]') ) ||
       contains(github.event.commits[0].message, '[run-ci]')
     steps:
     - name: Checkout Repository
