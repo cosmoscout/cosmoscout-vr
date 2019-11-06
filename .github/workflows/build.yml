@@ -23,9 +23,9 @@ jobs:
       uses: actions/checkout@v1
     - name: Download Clang-Format
       run: |
-        sudo apt-get update -y
-        sudo apt-get remove -y clang-6.0 libclang-common-6.0-dev libclang1-6.0 libllvm6.0
-        sudo apt-get install -y clang-format
+        sudo apt-get update -q
+        sudo apt-get remove -q clang-6.0 libclang-common-6.0-dev libclang1-6.0 libllvm6.0
+        sudo apt-get install -q clang-format
     - name: Run Clang-Format
       run: ./clang-format.sh
     - name: Compare Results
@@ -46,8 +46,8 @@ jobs:
       run: |
         sudo add-apt-repository ppa:mhier/libboost-latest
         sudo apt-get update -q
-        sudo apt-get install libc++-dev libgl1-mesa-dev libglu1-mesa-dev libx11-dev
-        sudo apt-get install libxi-dev libgconf-2-4 libboost1.70-dev
+        sudo apt-get install -q libc++-dev libgl1-mesa-dev libglu1-mesa-dev libx11-dev
+        sudo apt-get install -q libxi-dev libgconf-2-4 libboost1.70-dev
     - name: Build Externals
       run: ./make_externals.sh
     - name: Build CosmoScout VR
@@ -66,8 +66,8 @@ jobs:
       run: |
         sudo add-apt-repository ppa:mhier/libboost-latest
         sudo apt-get update -q
-        sudo apt-get install libc++-dev libgl1-mesa-dev libglu1-mesa-dev libx11-dev
-        sudo apt-get install libxi-dev libgconf-2-4 libboost1.70-dev
+        sudo apt-get install -q libc++-dev libgl1-mesa-dev libglu1-mesa-dev libx11-dev
+        sudo apt-get install -q libxi-dev libgconf-2-4 libboost1.70-dev
     - name: Build Externals
       env:
         CC: clang
