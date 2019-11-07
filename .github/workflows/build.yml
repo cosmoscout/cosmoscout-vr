@@ -1,4 +1,4 @@
-name: Build
+name: Test
 
 on: [push]
 
@@ -10,6 +10,6 @@ jobs:
     - uses: actions/checkout@v1
     - name: Print Debug
       run: |
-        echo "{{ github.ref }}"
-        echo "{{ github.event.head_commit.message }}"
-        echo "{{ github.event.commits[0].message }}"
+        echo {{ github.ref }}
+        echo {{ github.event.head_commit.message }}
+        echo {{ github.event.commits[0].message }}
