@@ -7,6 +7,8 @@
 The list below contains all dependencies of CosmoScout VR. Besides Boost, all of them are included either as [git submodules](../externals) or directly in the source tree.
 Some of the dependencies are only required by some plugins.
 
+A text document containing [all individual license texts](../LICENSE-3RD-PARTY.txt) is provided in the root directory of the source tree.
+
 | Engine Dependencies | Description | License |
 |:---|:---|:---|
 | [Boost (system, chrono, filesystem, date_time)](http://www.boost.org) | Used for time conversions and file system operations. | [Boost Software License](http://www.boost.org/LICENSE_1_0.txt) |

@@ -197,7 +197,9 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
   // shown on the loading screen.
   std::string version("v" + CS_PROJECT_VERSION);
 
-  if (CS_GIT_BRANCH != "") {
+  if (CS_GIT_BRANCH == "HEAD") {
+    version += " (@" + CS_GIT_COMMIT_HASH + ")";
+  } else if (CS_GIT_BRANCH != "") {
     version += " (" + CS_GIT_BRANCH;
     if (CS_GIT_COMMIT_HASH != "") {
       version += " @" + CS_GIT_COMMIT_HASH;
