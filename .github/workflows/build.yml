@@ -13,6 +13,7 @@ jobs:
     name: Print Debug
     runs-on: ubuntu-18.04
     steps:
+    - uses: actions/checkout@v1
     - name: Print Debug
       run: |
         echo "{{ github.ref }}"
