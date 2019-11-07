@@ -2,6 +2,8 @@ name: Build
 
 on: [push, pull_request]
 
+if: "contains(github.event.head_commit.message, '[run-ci]')"
+
 jobs:
   clang_format:
     name: Check Clang-Format
