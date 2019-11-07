@@ -30,7 +30,7 @@ git submodule update --init
 ```
 
 First, the [changelog.md](https://github.com/cosmoscout/cosmoscout-vr/blob/develop/docs/changelog.md) has to be updated.
-Based on the commits since the last release and the completed project board, a list of changes is compiled.
+Based on the commits since the last release and the completed milestone, a list of changes is compiled.
 When this is done, the file has to be comitted:
 
 ```bash
@@ -59,7 +59,7 @@ git push origin master
 
 The default downloads for tags on Github do not contain git submodules.
 Therefore, a separate archive containing all the submodule code is automatically created via Github Actions when a tag is pushed.
-Furthermore, binaries are automatically compiled with Github Actions and uploaded to the respective release.
+Furthermore, binaries for Windows and Linux are automatically compiled with Github Actions and uploaded to the respective release.
 
 <p align="center">
   <a href="citation.md">&lsaquo; How to cite CosmoScout VR</a>
