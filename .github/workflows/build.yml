@@ -6,7 +6,7 @@ jobs:
   clang_format:
     name: Check Clang-Format
     runs-on: ubuntu-18.04
-    if: "contains(github.ref, 'action') && contains(github.event.head_commit.message, '[run-ci]')"
+    if: "contains(github.ref, 'action')"
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v1
