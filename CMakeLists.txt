@@ -134,6 +134,8 @@ find_package(VistaCoreLibs REQUIRED
   COMPONENTS "VistaBase" "VistaKernel" "VistaKernelOpenSGExt" "VistaOGLExt"
 )
 
+# install some files -------------------------------------------------------------------------------
+
 # Copy all third-party libraries to install directory.
 install(
   DIRECTORY ${COSMOSCOUT_EXTERNALS_DIR}/lib/ ${COSMOSCOUT_EXTERNALS_DIR}/bin/ 
@@ -154,6 +156,19 @@ endif()
 if (UNIX)
   install(FILES ${Boost_LIBRARIES} DESTINATION "lib")
 endif()
+
+# Install documentation directory
+install(DIRECTORY
+  ${CMAKE_SOURCE_DIR}/docs
+  DESTINATION "."
+)
+
+# Install license files
+install(FILES
+  ${CMAKE_SOURCE_DIR}/LICENSE-3RD-PARTY.txt 
+  ${CMAKE_SOURCE_DIR}/LICENSE.txt 
+  DESTINATION "docs"
+)
 
 # create version header ----------------------------------------------------------------------------
 
