@@ -3,7 +3,7 @@ name: Deploy
 on:
   push:
     tags:
-      - '*'
+      - '**'
 
 jobs:
   source_code:
@@ -19,7 +19,7 @@ jobs:
     - name: Upload Release
       uses: svenstaro/upload-release-action@v1-release
       with:
-        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        repo_token: ${{ secrets.UPLOAD_TOKEN }}
         file: source-with-submodules.tar.gz
         asset_name: source-with-submodules.tar.gz
         tag: ${{ github.ref }}
@@ -50,7 +50,7 @@ jobs:
     - name: Upload Release
       uses: svenstaro/upload-release-action@v1-release
       with:
-        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        repo_token: ${{ secrets.UPLOAD_TOKEN }}
         file: cosmoscout-vr-linux64.tar.gz
         asset_name: cosmoscout-vr-linux64.tar.gz
         tag: ${{ github.ref }}
@@ -75,7 +75,7 @@ jobs:
     - name: Upload Release
       uses: svenstaro/upload-release-action@v1-release
       with:
-        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        repo_token: ${{ secrets.UPLOAD_TOKEN }}
         file: cosmoscout-vr-win64.zip
         asset_name: cosmoscout-vr-win64.zip
         tag: ${{ github.ref }}

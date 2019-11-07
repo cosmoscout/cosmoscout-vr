@@ -3,20 +3,15 @@ name: Build
 on:
   push:
     branches:
-    - '*'
+    - '**'
   pull_request:
     branches:
-    - '*'
+    - '**'
 
 jobs:
   clang_format:
     name: Check Clang-Format
     runs-on: ubuntu-18.04
-    if: >
-      github.event_name == 'pull_request' ||
-      contains(github.ref, 'master') ||
-      contains(github.ref, 'develop') ||
-      contains(github.event.commits[0].message, '[run-ci]')
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v1
@@ -35,7 +30,11 @@ jobs:
   build_linux_gcc:
     name: Linux Build (gcc 7.4.0)
     runs-on: ubuntu-18.04
-    needs: clang_format
+    if: >
+      github.event_name == 'pull_request' ||
+      ( contains(github.ref, 'master') && !contains(github.event.head_commit.message, '[no-ci]') ) ||
+      ( contains(github.ref, 'develop') && !contains(github.event.head_commit.message, '[no-ci]') ) ||
+      contains(github.event.head_commit.message, '[run-ci]')
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v1
@@ -55,7 +54,11 @@ jobs:
   build_linux_clang:
     name: Linux Build (clang 6.0)
     runs-on: ubuntu-18.04
-    needs: clang_format
+    if: >
+      github.event_name == 'pull_request' ||
+      ( contains(github.ref, 'master') && !contains(github.event.head_commit.message, '[no-ci]') ) ||
+      ( contains(github.ref, 'develop') && !contains(github.event.head_commit.message, '[no-ci]') ) ||
+      contains(github.event.head_commit.message, '[run-ci]')
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v1
@@ -81,7 +84,11 @@ jobs:
   build_windows:
     name: Windows Build (msvc 19.16.27032.1)
     runs-on: windows-2016
-    needs: clang_format
+    if: >
+      github.event_name == 'pull_request' ||
+      ( contains(github.ref, 'master') && !contains(github.event.head_commit.message, '[no-ci]') ) ||
+      ( contains(github.ref, 'develop') && !contains(github.event.head_commit.message, '[no-ci]') ) ||
+      contains(github.event.head_commit.message, '[run-ci]')
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v1
