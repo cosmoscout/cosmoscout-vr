@@ -12,7 +12,7 @@ jobs:
   clang_format:
     name: Check Clang-Format
     runs-on: ubuntu-18.04
-    if: "github.event_name == 'pull_request' || contains(github.ref, 'master') || contains(github.ref, 'develop') || ( contains(github.ref, 'action') && contains(github.event.head_commit.message, '[no-ci]') ) || contains(github.event.head_commit.message, '[run-ci]')"
+    if: contains(github.ref, 'action') && contains(github.event.head_commit.message, '[run-ci]')
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v1
