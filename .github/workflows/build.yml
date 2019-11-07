@@ -9,6 +9,13 @@ on:
     - '*'
 
 jobs:
+  print_debug:
+    name: Print Debug
+    runs-on: ubuntu-18.04
+    run: |
+      echo "{{ github.ref }}"
+      echo "{{ github.event.head_commit.message }}"
+      echo "{{ github.event.commits[0].message }}"
   clang_format:
     name: Check Clang-Format
     runs-on: ubuntu-18.04
