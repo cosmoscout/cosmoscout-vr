@@ -31,8 +31,6 @@ jobs:
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v1
-    - name: Checkout Branch
-      run: git checkout ${{ github.ref }}
     - name: Checkout Submodules
       run: git submodule update --init
     - name: Download Dependencies
@@ -64,8 +62,6 @@ jobs:
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v1
-    - name: Checkout Branch
-      run: git checkout ${{ github.ref }}
     - name: Checkout Submodules
       run: git submodule update --init
     - name: Build Externals
