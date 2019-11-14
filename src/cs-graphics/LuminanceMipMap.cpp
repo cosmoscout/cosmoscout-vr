@@ -107,6 +107,7 @@ LuminanceMipMap::LuminanceMipMap(int hdrBufferWidth, int hdrBufferHeight)
   glGenBuffers(1, &mPBO);
   glBindBuffer(GL_PIXEL_PACK_BUFFER, mPBO);
   glBufferStorage(GL_PIXEL_PACK_BUFFER, sizeof(float) * 2, nullptr, GL_MAP_READ_BIT);
+  glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 
   mDataAvailable = false;
 
