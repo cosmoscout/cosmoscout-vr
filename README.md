@@ -6,12 +6,12 @@ CosmoScout VR is a modular virtual universe developed at the German Aerospace Ce
 It lets you explore, analyze and present huge planetary data sets and large simulation data in real-time.
 
 [![Build Status](https://github.com/cosmoscout/cosmoscout-vr/workflows/Build/badge.svg?branch=develop)](https://github.com/cosmoscout/cosmoscout-vr/actions)
-[![documentation](https://img.shields.io/badge/read-docs-34D058.svg)](docs/README.md)
-[![contact](https://img.shields.io/badge/contact-via_email-6ca.svg)](mailto:cosmoscout@dlr.de)
-[![license](https://img.shields.io/badge/license-MIT-purple.svg)](LICENSE)
-[![source loc](https://img.shields.io/badge/source_loc-10.4k-green.svg)](cloc.sh)
-[![plugin loc](https://img.shields.io/badge/plugin_loc-13.7k-green.svg)](cloc.sh)
-[![comments](https://img.shields.io/badge/comments-3.0k-yellow.svg)](cloc.sh)
+[![documentation](https://img.shields.io/badge/Docs-online-34D058.svg)](docs/README.md)
+[![contact](https://img.shields.io/badge/Contact-email-6ca.svg)](mailto:cosmoscout@dlr.de)
+[![license](https://img.shields.io/badge/License-MIT-purple.svg)](LICENSE)
+[![source loc](https://img.shields.io/badge/LoC-10.4k-green.svg)](cloc.sh)
+[![plugin loc](https://img.shields.io/badge/LoC_Plugins-13.7k-green.svg)](cloc.sh)
+[![comments](https://img.shields.io/badge/Comments-3.0k-yellow.svg)](cloc.sh)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3381953.svg)](https://doi.org/10.5281/zenodo.3381953)
 
 The software can be build on Linux (gcc or clang) and Windows (msvc).
