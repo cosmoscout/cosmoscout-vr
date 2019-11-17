@@ -33,7 +33,7 @@ out vec4 FragColor;
 
 uniform vec3 u_LightDirection;
 uniform vec3 u_LightColor;
-uniform vec3 u_EnableHDR;
+uniform bool u_EnableHDR;
 
 #ifdef USE_IBL
 uniform samplerCube u_DiffuseEnvSampler;
