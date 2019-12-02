@@ -1,0 +1,3 @@
+# Configuring the IDE
+
+## CLion
