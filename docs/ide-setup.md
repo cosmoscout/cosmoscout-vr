@@ -2,8 +2,8 @@
 
 ## CLion
 ### Linux
-It is best to build the application once using the make_externals.sh and make.sh scripts.
-
+- Run: ./make_externals.sh
+- Run: ./make.sh
 - Go to: _Settings_ -> _Build, Execution, Deployment_ -> _CMake_
 - Release Profile
   - _Generation path_: `build/linux-release`
