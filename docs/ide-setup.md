@@ -43,3 +43,10 @@
 
 ### Windows
 _TODO_
+
+### Recommended Plugins
+- [.gitignore](https://plugins.jetbrains.com/plugin/7495--ignore/)
+- [Awesome Console](https://plugins.jetbrains.com/plugin/7677-awesome-console/)
+- [CodeGlance](https://plugins.jetbrains.com/plugin/7275-codeglance/)
+- [GitToolBox](https://plugins.jetbrains.com/plugin/7499-gittoolbox/)
+- [GLSL Support](https://plugins.jetbrains.com/plugin/6993-glsl-support/)
