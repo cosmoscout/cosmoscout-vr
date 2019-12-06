@@ -2,6 +2,12 @@
 
 ## CLion
 ### Linux
+Sadly you have to add the following lines to the `clion.sh` file, which is located in you CLion `bin` folder:
+```
+export LD_LIBRARY_PATH=../lib:../lib/DriverPlugins:$LD_LIBRARY_PATH
+export VISTACORELIBS_DRIVER_PLUGIN_DIRS=../lib/DriverPlugins
+```
+
 - Run: ./make_externals.sh
 - Run: ./make.sh
 - Go to: _Settings_ -> _Build, Execution, Deployment_ -> _CMake_
