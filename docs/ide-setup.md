@@ -23,7 +23,7 @@
 ```
 -DCMAKE_BUILD_TYPE=Debug
 -DCMAKE_INSTALL_PREFIX="<path to cosmoscout>/install/linux-debug"
--DCOSMOSCOUT_EXTERNALS_DIR="<path to cosmoscout>/install/linux-externals-debug"
+-DCOSMOSCOUT_EXTERNALS_DIR="<path to cosmoscout>/install/linux-externals-release"
 -DCMAKE_EXPORT_COMPILE_COMMANDS=On
 ```
 
