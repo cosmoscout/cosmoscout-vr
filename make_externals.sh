@@ -223,26 +223,25 @@ echo ""
 echo "Downloading, building and installing cef ..."
 echo ""
 
-CEF_VERSION=cef_binary_78.3.9%2Bgc7345f2%2Bchromium-78.0.3904.108_linux64_minimal
-CEF_OUT=cef_binary_78.3.9+gc7345f2+chromium-78.0.3904.108_linux64_minimal
+CEF_DIR=cef_binary_78.3.9+gc7345f2+chromium-78.0.3904.108_linux64_minimal
 
 cmake -E make_directory "$BUILD_DIR/cef/extracted" && cd "$BUILD_DIR/cef"
-wget -nc http://opensource.spotify.com/cefbuilds/$CEF_VERSION.tar.bz2
+wget -nc http://opensource.spotify.com/cefbuilds/cef_binary_78.3.9%2Bgc7345f2%2Bchromium-78.0.3904.108_linux64_minimal.tar.bz2
 
 cd "$BUILD_DIR/cef/extracted"
-cmake -E tar xfj ../$CEF_OUT.tar.bz2
-rm -rf $CEF_OUT/tests # we dont want the example applications
+cmake -E tar xfj ../$CEF_DIR.tar.bz2
+rm -rf $CEF_DIR/tests # we dont want the example applications
 cd ..
 
 cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
       -DCEF_COMPILER_FLAGS="-Wno-undefined-var-template" \
-      -DCMAKE_BUILD_TYPE=$BUILD_TYPE "$BUILD_DIR/cef/extracted/$CEF_OUT"
+      -DCMAKE_BUILD_TYPE=$BUILD_TYPE "$BUILD_DIR/cef/extracted/$CEF_DIR"
 cmake --build . --parallel 8
 
 cmake -E make_directory "$INSTALL_DIR/include/cef"
-cmake -E copy_directory "$BUILD_DIR/cef/extracted/$CEF_OUT/include"        "$INSTALL_DIR/include/cef/include"
-cmake -E copy_directory "$BUILD_DIR/cef/extracted/$CEF_OUT/Resources"      "$INSTALL_DIR/share/cef"
-cmake -E copy_directory "$BUILD_DIR/cef/extracted/$CEF_OUT/${BUILD_TYPE^}" "$INSTALL_DIR/lib"
+cmake -E copy_directory "$BUILD_DIR/cef/extracted/$CEF_DIR/include"        "$INSTALL_DIR/include/cef/include"
+cmake -E copy_directory "$BUILD_DIR/cef/extracted/$CEF_DIR/Resources"      "$INSTALL_DIR/share/cef"
+cmake -E copy_directory "$BUILD_DIR/cef/extracted/$CEF_DIR/${BUILD_TYPE^}" "$INSTALL_DIR/lib"
 cmake -E copy "$BUILD_DIR/cef/libcef_dll_wrapper/libcef_dll_wrapper.a"     "$INSTALL_DIR/lib"
 
 # --------------------------------------------------------------------------------------------------
