@@ -249,7 +249,7 @@ echo.
 echo Downloading, building and installing cef (this may take some time) ...
 echo.
 
-set CEF_VERSION=cef_binary_3.3239.1723.g071d1c1_windows64
+set CEF_VERSION=cef_binary_3.3239.1723.g071d1c1_window
 
 cmake -E make_directory "%BUILD_DIR%/cef/extracted" && cd "%BUILD_DIR%/cef"
 powershell.exe -command Invoke-WebRequest -Uri http://opensource.spotify.com/cefbuilds/%CEF_VERSION%.tar.bz2 -OutFile cef.tar.bz2
