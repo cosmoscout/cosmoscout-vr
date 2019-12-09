@@ -249,34 +249,31 @@ echo.
 echo Downloading, building and installing cef (this may take some time) ...
 echo.
 
-set CEF_VERSION=cef_binary_78.3.9%2Bgc7345f2%2Bchromium-78.0.3904.108_windows64_minimal
-set CEF_OUT=cef_binary_78.3.9+gc7345f2+chromium-78.0.3904.108_windows64_minimal
+set CEF_DIR=cef_binary_78.3.9+gc7345f2+chromium-78.0.3904.108_windows64_minimal
 
 cmake -E make_directory "%BUILD_DIR%/cef/extracted" && cd "%BUILD_DIR%/cef"
-powershell.exe -command Invoke-WebRequest -Uri http://opensource.spotify.com/cefbuilds/%CEF_VERSION%.tar.bz2 -OutFile cef.tar.bz2
+powershell.exe -command Invoke-WebRequest -Uri http://opensource.spotify.com/cefbuilds/cef_binary_78.3.9%%2Bgc7345f2%%2Bchromium-78.0.3904.108_windows64_minimal.tar.bz2 -OutFile cef.tar.bz2
 
 cd "%BUILD_DIR%/cef/extracted"
 "%BUILD_DIR%/cef/bzip2/bin/bunzip2.exe" -v ../cef.tar.bz2
 cmake -E tar xfvj ../cef.tar
 
 rem We don't want the example applications.
-rmdir %CEF_VERSION%\tests /s /q
-
-rem We want to built with /MD
-powershell.exe -command "(gc %CEF_VERSION%\cmake\cef_variables.cmake) -replace '/MT', '/MD' | Out-File -encoding UTF8 %CEF_VERSION%\cmake\cef_variables.cmake"
+rmdir %CEF_DIR%\tests /s /q
 
 cd ..
 
 cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
-      "%BUILD_DIR%/cef/extracted/%CEF_VERSION%" || exit /b
+      -DCEF_RUNTIME_LIBRARY_FLAG=/MD^
+      "%BUILD_DIR%/cef/extracted/%CEF_DIR%" || exit /b
 
-cmake --build . --config %BUILD_TYPE% --parallel 8 || exit /b     
+cmake --build . --config %BUILD_TYPE% --parallel 8 || exit /b
 
 echo Installing cef...
 cmake -E make_directory "%INSTALL_DIR%/include/cef"
-cmake -E copy_directory "%BUILD_DIR%/cef/extracted/%CEF_VERSION%/include"               "%INSTALL_DIR%/include/cef/include"
-cmake -E copy_directory "%BUILD_DIR%/cef/extracted/%CEF_VERSION%/Resources"             "%INSTALL_DIR%/share/cef"
-cmake -E copy_directory "%BUILD_DIR%/cef/extracted/%CEF_VERSION%/Release"               "%INSTALL_DIR%/lib"
+cmake -E copy_directory "%BUILD_DIR%/cef/extracted/%CEF_DIR%/include"                   "%INSTALL_DIR%/include/cef/include"
+cmake -E copy_directory "%BUILD_DIR%/cef/extracted/%CEF_DIR%/Resources"                 "%INSTALL_DIR%/share/cef"
+cmake -E copy_directory "%BUILD_DIR%/cef/extracted/%CEF_DIR%/Release"                   "%INSTALL_DIR%/lib"
 cmake -E copy "%BUILD_DIR%/cef/libcef_dll_wrapper/%BUILD_TYPE%/libcef_dll_wrapper.lib"  "%INSTALL_DIR%/lib"
 
 rem ------------------------------------------------------------------------------------------------
