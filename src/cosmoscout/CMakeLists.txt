@@ -4,24 +4,24 @@
 #                         Copyright: (c) 2019 German Aerospace Center (DLR)                        #
 # ------------------------------------------------------------------------------------------------ #
 
-set(TARGET_NAME cosmoscout)
-
 # build executable ---------------------------------------------------------------------------------
 
 file(GLOB SOURCE_FILES *.cpp */*.cpp)
 
-add_executable(${TARGET_NAME} ${SOURCE_FILES})
+add_executable(cosmoscout ${SOURCE_FILES})
 
-target_link_libraries(${TARGET_NAME}
-  curl::curl
-  curlpp::curlpp
-  c-ares::c-ares
+# cef needs to be linked first due to https://magpcss.org/ceforum/viewtopic.php?f=6&t=15118&start=10
+# to make sure the link order is kept, we need --no-as-needed
+set_target_properties(cosmoscout PROPERTIES LINK_WHAT_YOU_USE on)
+
+target_link_libraries(cosmoscout
+  cef::cef
   cs-core
 )
 
 # install executable ---------------------------------------------------------------------------------
 
 install(
-  TARGETS ${TARGET_NAME}
+  TARGETS cosmoscout
   RUNTIME DESTINATION "bin"
 )
