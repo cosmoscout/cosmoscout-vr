@@ -46,7 +46,7 @@ bool JSHandler::Execute(const CefString& name, CefRefPtr<CefV8Value> object,
   }
 
   if (success) {
-    mBrowser->SendProcessMessage(PID_BROWSER, msg);
+    mBrowser->GetMainFrame()->SendProcessMessage(PID_BROWSER, msg);
   }
 
   return true;
@@ -57,7 +57,7 @@ bool JSHandler::Execute(const CefString& name, CefRefPtr<CefV8Value> object,
 void JSHandler::SendError(std::string const& message) const {
   CefRefPtr<CefProcessMessage> msg = CefProcessMessage::Create("error");
   msg->GetArgumentList()->SetString(0, message);
-  mBrowser->SendProcessMessage(PID_BROWSER, msg);
+  mBrowser->GetMainFrame()->SendProcessMessage(PID_BROWSER, msg);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

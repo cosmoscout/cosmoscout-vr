@@ -8,13 +8,14 @@
 
 #include <fstream>
 #include <iostream>
+#include <utility>
 
 namespace cs::gui::detail {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool WebViewClient::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
-    CefProcessId source_process, CefRefPtr<CefProcessMessage> message) {
+    CefRefPtr<CefFrame> frame, CefProcessId source_process, CefRefPtr<CefProcessMessage> message) {
 
   if (message->GetName() == "call_native") {
 
@@ -60,7 +61,7 @@ bool WebViewClient::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
 
 void WebViewClient::RegisterJSCallback(
     std::string const& name, std::function<void(std::vector<std::any> const&)> callback) {
-  js_callbacks_[name] = callback;
+  js_callbacks_[name] = std::move(callback);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
