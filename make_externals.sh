@@ -239,10 +239,10 @@ cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
 cmake --build . --parallel 8
 
 cmake -E make_directory "$INSTALL_DIR/include/cef"
-cmake -E copy_directory "$BUILD_DIR/cef/extracted/$CEF_DIR/include"        "$INSTALL_DIR/include/cef/include"
-cmake -E copy_directory "$BUILD_DIR/cef/extracted/$CEF_DIR/Resources"      "$INSTALL_DIR/share/cef"
-cmake -E copy_directory "$BUILD_DIR/cef/extracted/$CEF_DIR/${BUILD_TYPE^}" "$INSTALL_DIR/lib"
-cmake -E copy "$BUILD_DIR/cef/libcef_dll_wrapper/libcef_dll_wrapper.a"     "$INSTALL_DIR/lib"
+cmake -E copy_directory "$BUILD_DIR/cef/extracted/$CEF_DIR/include"    "$INSTALL_DIR/include/cef/include"
+cmake -E copy_directory "$BUILD_DIR/cef/extracted/$CEF_DIR/Resources"  "$INSTALL_DIR/share/cef"
+cmake -E copy_directory "$BUILD_DIR/cef/extracted/$CEF_DIR/Release"    "$INSTALL_DIR/lib"
+cmake -E copy "$BUILD_DIR/cef/libcef_dll_wrapper/libcef_dll_wrapper.a" "$INSTALL_DIR/lib"
 
 # --------------------------------------------------------------------------------------------------
 
