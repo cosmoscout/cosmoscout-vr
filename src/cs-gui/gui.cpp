@@ -42,9 +42,9 @@ void init() {
   std::locale current_locale;
 
   CefSettings settings;
-  settings.command_line_args_disabled = true;
-  settings.remote_debugging_port      = 8999;
-  // settings.pack_loading_disabled = true;
+  settings.command_line_args_disabled   = true;
+  settings.no_sandbox                   = true;
+  settings.remote_debugging_port        = 8999;
   settings.windowless_rendering_enabled = true;
 
   if (!CefInitialize(app->GetArgs(), settings, app, nullptr)) {
