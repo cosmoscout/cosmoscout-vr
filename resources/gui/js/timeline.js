@@ -73,13 +73,15 @@ var firstSliderValue = true;
 
 let paus = 0;
 let secForw = 1;
-let hourForw = 2;
-let dayForw = 3;
-let monthForw = 4;
+let minuteForw = 2;
+let hourForw = 3;
+let dayForw = 4;
+let monthForw = 5;
 let secBack = -1;
-let hourBack = -2;
-let dayBack = -3;
-let monthBack = -4;
+let minuteBack = -2;
+let hourBack = -3;
+let dayBack = -4;
+let monthBack = -5;
 
 var timelineRangeFactor = 100000;
 let maxRangeFactor = 100000000;
@@ -220,12 +222,14 @@ var range = document.getElementById('range');
 noUiSlider.create(range, {
     range: {
         'min': monthBack,
-        '6%': dayBack,
-        '12%': hourBack,
+        '4.5%': dayBack,
+        '9%': hourBack,
+        '13.5%': minuteBack,
         '18%': secBack,
         '82%': secForw,
-        '88%': hourForw,
-        '94%': dayForw,
+        '86.5%': minuteForw,
+        '91%': hourForw,
+        '95.5%': dayForw,
         'max': monthForw,
     },
     snap: true,
@@ -868,16 +872,20 @@ function set_time_speed(speed) {
         $("#play-pause-icon").text("play_arrow");
         set_pause();
         window.call_native("print_notification", "Pause", "Time is paused.", "pause");
-    } else if (speed == 1.0) {
+    } else if (speed == 1) {
         window.call_native("print_notification", "Speed: Realtime", "Time runs in realtime.", "play_arrow");
+    } else if (speed == 60) {
+        window.call_native("print_notification", "Speed: Min/s", "Time runs at one minute per second.", "fast_forward");
     } else if (speed == 3600) {
         window.call_native("print_notification", "Speed: Hour/s", "Time runs at one hour per second.", "fast_forward");
     } else if (speed == 86400) {
         window.call_native("print_notification", "Speed: Day/s", "Time runs at one day per second.", "fast_forward");
     } else if (speed == 2628000) {
         window.call_native("print_notification", "Speed: Month/s", "Time runs at one month per second.", "fast_forward");
-    } else if (speed == -1.0) {
+    } else if (speed == -1) {
         window.call_native("print_notification", "Speed: -Realtime", "Time runs backwards in realtime.", "fast_rewind");
+    } else if (speed == -60) {
+        window.call_native("print_notification", "Speed: -Min/s", "Time runs backwards at one minute per second.", "fast_rewind");
     } else if (speed == -3600) {
         window.call_native("print_notification", "Speed: -Hour/s", "Time runs backwards at one hour per second.", "fast_rewind");
     } else if (speed == -86400) {
@@ -968,11 +976,17 @@ function range_update_callback() {
         case hourBack:
             window.call_native("set_time_speed", -hourInSec);
             break;
+        case minuteBack:
+            window.call_native("set_time_speed", -minuteInSec);
+            break;
         case secBack:
             window.call_native("set_time_speed", secBack);
             break;
         case secForw:
             window.call_native("set_time_speed", secForw);
+            break;
+        case minuteForw:
+            window.call_native("set_time_speed", minuteInSec);
             break;
         case hourForw:
             window.call_native("set_time_speed", hourInSec);
