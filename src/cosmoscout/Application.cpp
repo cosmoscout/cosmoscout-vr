@@ -437,6 +437,7 @@ void Application::FrameUpdate() {
       mDragNavigation->update();
       mSolarSystem->update();
       mSolarSystem->updateSceneScale();
+      mSolarSystem->updateObserverFrame();
     }
 
     // Synchronize the observer position and simulation time across the network.

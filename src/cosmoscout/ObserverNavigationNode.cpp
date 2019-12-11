@@ -151,14 +151,26 @@ bool ObserverNavigationNode::DoEvalNode() {
   vTranslation *= dDeltaTime;
   vTranslation += vOffset * dObserverScale;
 
+  double stepSize = glm::length(vTranslation);
+
+  if (stepSize > 0.0) {
+    // Ensure an SolarSystem::updateSceneScale() at least at 100 Hz
+    int32_t steps = std::ceil(dDeltaTime / 0.01);
+
+    for (int32_t i(0); i < steps; ++i) {
+      oObs.setAnchorPosition(
+          vObserverPosition + qObserverRotation * vTranslation / static_cast<double>(steps));
+
+      if (i < steps - 1) {
+        mSolarSystem->updateSceneScale();
+      }
+    }
+  }
+
   auto       qRotation     = mAngularDirection;
   glm::dvec3 vRotationAxis = glm::axis(qRotation);
   double     dRotationAngle =
       glm::angle(qRotation) * dDeltaTime * mMaxAngularSpeed * mAngularSpeed.get(dTtime);
-
-  if (glm::length(vTranslation) > 0.0) {
-    oObs.setAnchorPosition(vObserverPosition + qObserverRotation * vTranslation);
-  }
 
   if (dRotationAngle != 0.0) {
     oObs.setAnchorRotation(qObserverRotation * glm::angleAxis(dRotationAngle, vRotationAxis));
