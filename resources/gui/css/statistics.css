@@ -1,0 +1,61 @@
+@font-face {
+    font-family: 'Ubuntu';
+    src: url('third-party/fonts/Ubuntu-R.ttf') format('truetype');
+}
+
+body {
+    font-family: 'Ubuntu' !important;
+    color: #ddf;
+    margin: 0;
+    overflow: hidden;
+    text-shadow: 1px 1px 2px #000;
+}
+
+#container {
+    margin: 0;
+    padding: 0;
+}
+
+.item {
+    position: relative;
+    height: 24px;
+    margin-bottom: 5px;
+    overflow: visible;
+    white-space: nowrap;
+    background: linear-gradient(to left, rgba(20, 20, 20, 0.6) 0px, rgba(20, 20, 20, 0.0) 400px)
+}
+
+.item>.label {
+    position: absolute;
+    font-size: 16px;
+    padding-right: 65px;
+    padding-bottom: 3px;
+    min-width: 250px;
+    padding-top: 4px;
+    right: 0;
+    text-align: right;
+}
+
+.bar {
+    position: absolute;
+    right: 0;
+    height: 12px;
+    font-size: 11px;
+}
+
+.bar>.label {
+    position: absolute;
+    width: 60px;
+    right: 2px;
+    text-align: right;
+}
+
+.bar.gpu {
+    top: 0px;
+    opacity: 1.0;
+}
+
+.bar.cpu {
+    top: 12px;
+    opacity: 0.8;
+}

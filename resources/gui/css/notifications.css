@@ -70,7 +70,7 @@ html {
 }
 
 .notification-title {
-    font-family: 'AlegreyaSansSC';
+    font-family: 'AlegreyaSansSC', sans-serif;
     font-size: 1.7rem;
     line-height: 2rem;
     margin-top: 13px;
@@ -103,38 +103,38 @@ html {
 
 @-webkit-keyframes wiggle {
     0% {
-        transform: rotate3d(0,0,1,0deg);
+        transform: rotate3d(0, 0, 1, 0deg);
     }
 
     51% {
-        transform: rotate3d(0,0,1,0deg);
+        transform: rotate3d(0, 0, 1, 0deg);
     }
 
     58% {
-        transform: rotate3d(0,0,1,15deg);
+        transform: rotate3d(0, 0, 1, 15deg);
     }
 
     65% {
-        transform: rotate3d(0,0,1,-15deg);
+        transform: rotate3d(0, 0, 1, -15deg);
     }
 
     72% {
-        transform: rotate3d(0,0,1,10deg);
+        transform: rotate3d(0, 0, 1, 10deg);
     }
 
     79% {
-        transform: rotate3d(0,0,1,-10deg);
+        transform: rotate3d(0, 0, 1, -10deg);
     }
 
     86% {
-        transform: rotate3d(0,0,1,5deg);
+        transform: rotate3d(0, 0, 1, 5deg);
     }
 
     93% {
-        transform: rotate3d(0,0,1,-5deg);
+        transform: rotate3d(0, 0, 1, -5deg);
     }
 
     100% {
-        transform: rotate3d(0,0,1,0deg);
+        transform: rotate3d(0, 0, 1, 0deg);
     }
 }

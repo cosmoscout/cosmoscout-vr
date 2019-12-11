@@ -185,12 +185,7 @@ class CS_CORE_EXPORT GuiManager {
   gui::ScreenSpaceGuiArea*                mLocalGuiArea    = nullptr;
 
   gui::GuiItem* mLoadingScreen = nullptr;
-  gui::GuiItem* mSideBar       = nullptr;
-  gui::GuiItem* mStatusBar     = nullptr;
-  gui::GuiItem* mNotifications = nullptr;
-  gui::GuiItem* mLogo          = nullptr;
-  gui::GuiItem* mStatistics    = nullptr;
-  gui::GuiItem* mTimeline      = nullptr;
+  gui::GuiItem* mOneUi         = nullptr;
 
   // The global GUI is drawn in world-space.
   VistaTransformNode* mGlobalGuiTransform  = nullptr;

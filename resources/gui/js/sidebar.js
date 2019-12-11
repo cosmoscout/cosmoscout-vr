@@ -113,7 +113,7 @@ function init() {
         window.call_native(this.id, this.checked);
     });
 
-    $('[data-toggle="tooltip"]').tooltip({ delay: 500, placement: "auto", html: false });
+    $('[data-toggle="tooltip"]').tooltip({delay: 500, placement: "auto", html: false});
 
     $('.radiolabel input').change(function () {
         if (this.checked) {
@@ -126,9 +126,9 @@ function init_slider(id, min, max, step, start) {
     const slider = document.getElementById(id);
     noUiSlider.create(slider, {
         start: start,
-        connect: (start.length == 1 ? "lower" : true),
+        connect: (start.length === 1 ? "lower" : true),
         step: step,
-        range: { 'min': min, 'max': max },
+        range: {'min': min, 'max': max},
         format: {
             to: function (value) {
                 return beauty_print_number(value);
@@ -155,7 +155,7 @@ $(document).ready(function () {
         start: 2048,
         connect: "lower",
         snap: true,
-        range: { 'min': 256, '25%': 512, '50%': 1024, '75%': 2048, 'max': 4096 },
+        range: {'min': 256, '25%': 512, '50%': 1024, '75%': 2048, 'max': 4096},
         format: wNumb({})
     });
 

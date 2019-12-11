@@ -105,92 +105,36 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
   // Now create the actual GuiItems and add them to the previously created GuiAreas ----------------
 
   mLoadingScreen = new gui::GuiItem("file://../share/resources/gui/loading_screen.html");
-  mSideBar       = new gui::GuiItem("file://../share/resources/gui/sidebar.html");
-  mStatusBar     = new gui::GuiItem("file://../share/resources/gui/statusbar.html");
-  mNotifications = new gui::GuiItem("file://../share/resources/gui/notifications.html");
-  mLogo          = new gui::GuiItem("file://../share/resources/gui/logo.html");
-  mStatistics    = new gui::GuiItem("file://../share/resources/gui/statistics.html");
-  mTimeline      = new gui::GuiItem("file://../share/resources/gui/timeline.html");
+
+  mOneUi = new gui::GuiItem("file://../share/resources/gui/cosmogui.html");
 
   // Except for mStatistics, all GuiItems are attached to the global world-space GuiArea if it is
   // available. If not, they are added to the local screen-space GuiArea.
   if (mGlobalGuiArea) {
-    mGlobalGuiArea->addItem(mLogo);
-    mGlobalGuiArea->addItem(mNotifications);
-    mGlobalGuiArea->addItem(mStatusBar);
-    mGlobalGuiArea->addItem(mSideBar);
-    mGlobalGuiArea->addItem(mTimeline);
+
     mGlobalGuiArea->addItem(mLoadingScreen);
+    mGlobalGuiArea->addItem(mOneUi);
   } else {
-    mLocalGuiArea->addItem(mLogo);
-    mLocalGuiArea->addItem(mNotifications);
-    mLocalGuiArea->addItem(mStatusBar);
-    mLocalGuiArea->addItem(mSideBar);
-    mLocalGuiArea->addItem(mTimeline);
+
     mLocalGuiArea->addItem(mLoadingScreen);
+    mLocalGuiArea->addItem(mOneUi);
   }
 
-  mLocalGuiArea->addItem(mStatistics);
+  // mLocalGuiArea->addItem(mStatistics);
 
   // Configure attributes of the loading screen. Per default, GuiItems are drawn full-screen in
   // their GuiAreas.
   mLoadingScreen->setIsInteractive(false);
 
-  // Configure the positioning and attributes of the side-bar.
-  mSideBar->setSizeX(500);
-  mSideBar->setRelSizeY(1.f);
-  mSideBar->setRelPositionY(1.f);
-  mSideBar->setRelPositionX(0.f);
-  mSideBar->setOffsetX(250);
-  mSideBar->setRelOffsetY(-0.5f);
-  mSideBar->setCursorChangeCallback([this](gui::Cursor c) { setCursor(c); });
-
-  mStatusBar->setRelSizeX(1.f);
-  mStatusBar->setSizeY(80);
-  mStatusBar->setRelPositionX(0.5);
-  mStatusBar->setRelPositionY(1.f);
-  mStatusBar->setCursorChangeCallback([this](gui::Cursor c) { setCursor(c); });
-
-  mTimeline->setRelSizeX(1.f);
-  mTimeline->setSizeY(644);
-  mTimeline->setRelPositionX(0.5);
-  mTimeline->setRelPositionY(0);
-  mTimeline->setOffsetY(322);
-  mTimeline->setCursorChangeCallback([this](gui::Cursor c) { setCursor(c); });
-
-  // Configure the positioning and attributes of the notifications.
-  mNotifications->setSizeX(420);
-  mNotifications->setSizeY(320);
-  mNotifications->setRelPositionY(0.f);
-  mNotifications->setRelPositionX(1.f);
-  mNotifications->setOffsetX(-210);
-  mNotifications->setOffsetY(250);
-  mNotifications->setIsInteractive(false);
-
-  // Configure the positioning and attributes of the logo.
-  mLogo->setSizeX(120);
-  mLogo->setSizeY(100);
-  mLogo->setRelPositionY(1.f);
-  mLogo->setRelPositionX(1.f);
-  mLogo->setOffsetX(-60);
-  mLogo->setOffsetY(-50);
-  mLogo->setIsInteractive(false);
-
-  // Configure the positioning and attributes of the statistics.
-  mStatistics->setSizeX(1200);
-  mStatistics->setSizeY(300);
-  mStatistics->setOffsetX(-600);
-  mStatistics->setOffsetY(300);
-  mStatistics->setRelPositionY(0.f);
-  mStatistics->setRelPositionX(1.f);
-  mStatistics->setIsInteractive(false);
+  mOneUi->setRelSizeX(1.f);
+  mOneUi->setRelSizeY(1.f);
+  mOneUi->setRelPositionX(0.5);
+  mOneUi->setRelPositionY(0.5);
+  mOneUi->setCursorChangeCallback([this](gui::Cursor c) { setCursor(c); });
 
   // Now we will call some JavaScript methods - so we have to wait until the GuiItems have been
   // fully loaded.
-  mSideBar->waitForFinishedLoading();
-  mStatusBar->waitForFinishedLoading();
-  mTimeline->waitForFinishedLoading();
-  mNotifications->waitForFinishedLoading();
+  mOneUi->waitForFinishedLoading();
   mLoadingScreen->waitForFinishedLoading();
 
   // Create a string which contains the current version number of CosmoScout VR. This string is then
@@ -218,7 +162,7 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
   });
 
   // Set settings for the time Navigation
-  mTimeline->callJavascript("set_timeline_range", settings->mMinDate, settings->mMaxDate);
+  mOneUi->callJavascript("set_timeline_range", settings->mMinDate, settings->mMaxDate);
 
   for (int i = 0; i < settings->mEvents.size(); i++) {
     std::string planet = "";
@@ -236,13 +180,9 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 GuiManager::~GuiManager() {
-  delete mSideBar;
-  delete mStatusBar;
-  delete mNotifications;
-  delete mLogo;
   delete mGlobalGuiArea;
   delete mViewportUpdater;
-  delete mTimeline;
+  delete mOneUi;
 
   mInputManager->unregisterSelectable(mLocalGuiOpenGLnode);
 
@@ -296,37 +236,37 @@ void GuiManager::setCursor(gui::Cursor cursor) {
 
 void GuiManager::showNotification(std::string const& sTitle, std::string const& sText,
     std::string const& sIcon, std::string const& sFlyToOnClick) const {
-  mNotifications->callJavascript("print_notification", sTitle, sText, sIcon, sFlyToOnClick);
+  mOneUi->callJavascript("print_notification", sTitle, sText, sIcon, sFlyToOnClick);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 gui::GuiItem* GuiManager::getSideBar() const {
-  return mSideBar;
+  return mOneUi;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 gui::GuiItem* GuiManager::getStatusBar() const {
-  return mStatusBar;
+  return mOneUi;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 gui::GuiItem* GuiManager::getTimeline() const {
-  return mTimeline;
+  return mOneUi;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 gui::GuiItem* GuiManager::getStatistics() const {
-  return mStatistics;
+  return mOneUi;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 gui::GuiItem* GuiManager::getLogo() const {
-  return mLogo;
+  return mOneUi;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -420,7 +360,7 @@ void GuiManager::update() {
       json = "{}";
     }
 
-    mStatistics->callJavascript("set_data", json, GetVistaSystem()->GetFrameLoop()->GetFrameRate());
+    mOneUi->callJavascript("set_data", json, GetVistaSystem()->GetFrameLoop()->GetFrameRate());
   }
 
   // Update all entities of the Chromium Embedded Framework.
@@ -431,7 +371,7 @@ void GuiManager::update() {
 
 void GuiManager::addPluginTabToSideBar(
     std::string const& name, std::string const& icon, std::string const& content) {
-  mSideBar->callJavascript("addPluginTab", name, icon, content);
+  mOneUi->callJavascript("addPluginTab", name, icon, content);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -446,7 +386,7 @@ void GuiManager::addPluginTabToSideBarFromHTML(
 
 void GuiManager::addSettingsSectionToSideBar(
     std::string const& name, std::string const& icon, std::string const& content) {
-  mSideBar->callJavascript("addSettingsSection", name, icon, content);
+  mOneUi->callJavascript("addSettingsSection", name, icon, content);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -460,7 +400,7 @@ void GuiManager::addSettingsSectionToSideBarFromHTML(
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void GuiManager::addScriptToSideBar(std::string const& src) {
-  mSideBar->executeJavascript(src);
+  mOneUi->executeJavascript(src);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -475,7 +415,7 @@ void GuiManager::addScriptToSideBarFromJS(std::string const& jsFile) {
 void GuiManager::addEventToTimenavigationBar(std::string start, std::optional<std::string> end,
     std::string id, std::string content, std::optional<std::string> style, std::string description,
     std::string planet, std::string place) {
-  mTimeline->callJavascript("add_item", start, end.value_or(""), id, content, style.value_or(""),
+  mOneUi->callJavascript("add_item", start, end.value_or(""), id, content, style.value_or(""),
       description, planet, place);
 }
 

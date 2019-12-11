@@ -1,11 +1,11 @@
 // Format a Date to a for a human readable string DD.MM.YYYY HH:MM:SS
 function format_date_readable(date) {
-    var year = date.getFullYear();
-    var month = (date.getMonth() + 1).toString();
-    var day = date.getDate().toString();
-    var hours = date.getHours().toString();
-    var minutes = date.getMinutes().toString();
-    var seconds = date.getSeconds().toString();
+    let year = date.getFullYear();
+    let month = (date.getMonth() + 1).toString();
+    let day = date.getDate().toString();
+    let hours = date.getHours().toString();
+    let minutes = date.getMinutes().toString();
+    let seconds = date.getSeconds().toString();
     month = month.length > 1 ? month : '0' + month;
     day = day.length > 1 ? day : '0' + day;
     hours = hours.length > 1 ? hours : '0' + hours;
@@ -16,9 +16,9 @@ function format_date_readable(date) {
 
 // Format a Date to YYYY-MM-DD
 function get_formatted_date(date) {
-    var year = date.getFullYear();
-    var month = (date.getMonth() + 1).toString();
-    var day = date.getDate().toString();
+    let year = date.getFullYear();
+    let month = (date.getMonth() + 1).toString();
+    let day = date.getDate().toString();
     month = month.length > 1 ? month : '0' + month;
     day = day.length > 1 ? day : '0' + day;
     return year + '-' + month + '-' + day;
@@ -26,10 +26,10 @@ function get_formatted_date(date) {
 
 // Format a Date to YYYY-MM-DD HH:MM:SS
 function get_formatted_dateWithTime(date) {
-    var retVal = get_formatted_date(date);
-    var hours = date.getHours().toString();
-    var minutes = date.getMinutes().toString();
-    var seconds = date.getSeconds().toString();
+    let retVal = get_formatted_date(date);
+    let hours = date.getHours().toString();
+    let minutes = date.getMinutes().toString();
+    let seconds = date.getSeconds().toString();
     hours = hours.length > 1 ? hours : '0' + hours;
     minutes = minutes.length > 1 ? minutes : '0' + minutes;
     seconds = seconds.length > 1 ? seconds : '0' + seconds;
@@ -39,11 +39,11 @@ function get_formatted_dateWithTime(date) {
 
 // Format a Date to a readable format for CosmoScoutVR YYYY-MM-DD HH:MM:SS.sss
 function format_date_cosmo(date) {
-    var retVal = get_formatted_date(date);
-    var hours = date.getHours().toString();
-    var minutes = date.getMinutes().toString();
-    var seconds = date.getSeconds().toString();
-    var milliSec = date.getMilliseconds().toString();
+    let retVal = get_formatted_date(date);
+    let hours = date.getHours().toString();
+    let minutes = date.getMinutes().toString();
+    let seconds = date.getSeconds().toString();
+    let milliSec = date.getMilliseconds().toString();
     while (milliSec.length < 3) {
         milliSec = '0' + milliSec;
     }
@@ -56,7 +56,7 @@ function format_date_cosmo(date) {
 
 // Convert seconds into Date
 function convert_seconds(given_seconds) {
-    var converted = new Object();
+    let converted = {};
     converted.days = Math.floor(given_seconds / dayInSec);
     converted.hours = Math.floor((given_seconds - (converted.days * dayInSec)) / hourInSec);
     converted.minutes = Math.floor((given_seconds - (converted.days * dayInSec) - (converted.hours * hourInSec)) / minuteInSec);

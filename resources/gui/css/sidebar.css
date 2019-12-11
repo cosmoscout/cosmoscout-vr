@@ -13,7 +13,7 @@
     opacity: 1;
 }
 
-.side-bar::-webkit-scrollbar { 
+.side-bar::-webkit-scrollbar {
     display: none;
 }
 
@@ -44,7 +44,7 @@
 }
 
 .side-bar .tab .header-name {
-    font-family: 'AlegreyaSansSC';
+    font-family: 'AlegreyaSansSC', sans-serif;
     opacity: 0;
     transition: opacity 0.1s linear;
     overflow-x: hidden;
@@ -94,7 +94,7 @@
     border-radius: 0;
 }
 
-.accordion>.card .card-header  {
+.accordion > .card .card-header {
     margin: 0;
     border: none;
     border-radius: 0;
@@ -107,7 +107,7 @@
 /* Setting Sections --------------------------------------------------------- */
 
 .settings-section .card-header {
-    font-family: 'AlegreyaSansSC';
+    font-family: 'AlegreyaSansSC', sans-serif;
     width: 100%;
     font-size: 1.5rem;
     background: transparent;
@@ -116,7 +116,6 @@
     color: #fff;
     text-shadow: 0 0 5px rgba(255, 255, 255, 0.4), 0 0 10px #aaf;
     position: relative;
-    width: 100%;
     transition: 100ms background;
     padding: 0.5rem 1.7rem;
 }
