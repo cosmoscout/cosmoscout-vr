@@ -124,7 +124,7 @@ The progress of this operation is shown on the loading screen.
 <p align="center">
   <a href="README.md">&#8962; Help Index</a>
   <img src ="img/nav-vspace.svg"/>
-  <a href="using.md">Using CosmoScout VR &rsaquo;</a>
+  <a href="ide-setup.md">Setup your IDE &rsaquo;</a>
 </p>
 
 <p align="center"><img src ="img/hr.svg"/></p>

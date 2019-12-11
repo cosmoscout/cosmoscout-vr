@@ -1,7 +1,15 @@
+<p align="center"> 
+  <img src ="img/banner-ide.jpg" />
+</p>
+
 # Configuring the IDE
 
+Below you find some instructions on how to setup your preferred IDE for CosmoScout VR development.
+
 ## CLion
+
 ### Linux
+
 Sadly you have to add the following lines to the `clion.sh` file, which is located in you CLion `bin` folder:
 ```
 export LD_LIBRARY_PATH=../lib:../lib/DriverPlugins:$LD_LIBRARY_PATH
@@ -56,3 +64,13 @@ _TODO_
 - [CodeGlance](https://plugins.jetbrains.com/plugin/7275-codeglance/)
 - [GitToolBox](https://plugins.jetbrains.com/plugin/7499-gittoolbox/)
 - [GLSL Support](https://plugins.jetbrains.com/plugin/6993-glsl-support/)
+
+<p align="center">
+  <a href="install.md">&lsaquo; Generic Build Instructions</a>
+  <img src ="img/nav-vspace.svg"/>
+  <a href="README.md">&#8962; Help Index</a>
+  <img src ="img/nav-vspace.svg"/>
+  <a href="using.md">Using CosmoScout VR &rsaquo;</a>
+</p>
+
+<p align="center"><img src ="img/hr.svg"/></p>

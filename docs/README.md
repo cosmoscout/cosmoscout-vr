@@ -13,7 +13,8 @@ Specific configuration options are documented in the repositories of the [indivi
 * [Release Management](release-management.md)
 
 ### Getting Started
-* [Build Instructions](install.md)
+* [Generic Build Instructions](install.md)
+* [Setup your IDE](ide-setup.md)
 * [Using CosmoScout VR](using.md)
 * [Configuring CosmoScout VR](configuring.md)
 * [Contributing to the Project](contributing.md)
