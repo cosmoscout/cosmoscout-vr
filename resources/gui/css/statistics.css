@@ -1,5 +1,13 @@
+@font-face {
+    font-family: 'Ubuntu';
+    src: url('third-party/fonts/Ubuntu-R.ttf') format('truetype');
+}
 
 body {
+    font-family: 'Ubuntu' !important;
+    color: #ddf;
+    margin: 0;
+    overflow: hidden;
     text-shadow: 1px 1px 2px #000;
 }
 
@@ -43,7 +51,7 @@ body {
 }
 
 .bar.gpu {
-    top: 0;
+    top: 0px;
     opacity: 1.0;
 }
 
