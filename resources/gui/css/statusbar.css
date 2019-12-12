@@ -1,12 +1,10 @@
-body {
-    overflow: hidden;
-    -webkit-font-smoothing: antialiased;
-}
 
 #statusbar {
     position: absolute;
     left: 0;
     right: 0;
+    bottom: 0;
+    height: 35px;
     overflow: hidden;
     font-size: 0.9rem;
     text-shadow: 0 0 5px black, 0 0 2px black;

@@ -4,7 +4,7 @@
     height: 100%;
     overflow-x: hidden;
     overflow-y: scroll;
-    padding-top: 140px;
+    top: 140px;
     opacity: 0;
     transition: opacity 0.2s linear;
 }
@@ -44,7 +44,6 @@
 }
 
 .side-bar .tab .header-name {
-    font-family: 'AlegreyaSansSC', sans-serif;
     opacity: 0;
     transition: opacity 0.1s linear;
     overflow-x: hidden;
@@ -107,7 +106,6 @@
 /* Setting Sections --------------------------------------------------------- */
 
 .settings-section .card-header {
-    font-family: 'AlegreyaSansSC', sans-serif;
     width: 100%;
     font-size: 1.5rem;
     background: transparent;

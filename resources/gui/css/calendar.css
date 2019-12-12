@@ -1,13 +1,8 @@
-html {
-    height: 100%;
-    overflow: hidden;
-}
-
 #calendar {
     opacity: 0;
     transition: opacity 0.4s;
-    position: relative;
-    top: 0;
+    position: absolute;
+    top: 100px;
 }
 
 #calendar.visible {

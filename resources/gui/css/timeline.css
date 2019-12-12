@@ -5,7 +5,7 @@
 }
 
 .vis-timeline {
-  border-width: 0px;
+  border-width: 0;
   background-color: rgba(20, 20, 20, 0.5);
 }
 
@@ -80,7 +80,7 @@
 
 #timeline .vis-panel.vis-bottom {
   height: 35px !important;
-  top: 0px !important;
+  top: 0 !important;
   pointer-events: none;
   border-left-style: hidden;
   border-right-style: hidden;
@@ -123,7 +123,7 @@
 }
 
 #timeline .vis-content {
-  top: 0px !important;
+  top: 0 !important;
 }
 
 #timeline .vis-grid.vis-vertical.vis-minor {
@@ -141,7 +141,7 @@
 }
 
 #timeline .vis-panel.vis-center{
-  border-width: 0px;
+  border-width: 0;
 }
 
 #timeline:hover {
@@ -155,7 +155,7 @@
 /* overview timeline styles --------------------------------------------------------------------- */
 
 #overview .vis-timeline {
-  border-width: 0px;
+  border-width: 0;
   background: rgba(20, 20, 20, 0);
 }
 
@@ -254,7 +254,7 @@
 }
 
 #overview .vis-content {
-  top: 0px !important;
+  top: 0 !important;
 }
 
 #overview .vis-minor.vis-text {
@@ -272,7 +272,7 @@
   border-radius: 50% !important;
   background-color: #ddf;
   z-index: 1;
-  top: 0px !important;
+  top: 0 !important;
 }
 
 #overview:hover {
@@ -287,7 +287,6 @@
 /* overview focus rect -------------------------------------------------------------------------- */
 
 #focus-lens {
-  background: transparent;
   border-style: solid;
   border-width: 3px 3px 0 3px;
   border-top-left-radius:10px;
@@ -306,19 +305,19 @@
 }
 
 #focus-lens-left {
-  left: 0px;
+  left: 0;
 }
 
 #focus-lens-right {
-  right: 0px;
+  right: 0;
 }
 
 /* timeline control items ----------------------------------------------------------------------- */
 
 #timeline-container {
   position: absolute;
-  top: -120px;
-  left: 0px;
+  top: -42px;
+  left: 0;
   padding: 0;
   margin: 0;
   width: 100%;
@@ -333,7 +332,7 @@
 }
 
 #timeline-container.overview-visible {
-  top: 0px;
+  top: 0;
 }
 
 #bottom-border-left {
@@ -501,10 +500,10 @@ i {
 #increaseControl a {
   height: 20px;
   width: 36px;
-  padding: 0px;
-  margin: 0px;
+  padding: 0;
+  margin: 0;
   pointer-events: all;
-  border: 0px;
+  border: 0;
   position: absolute;
 }
 
@@ -611,8 +610,8 @@ a:hover {
   color: rgb(20, 20, 20);
   transform: rotate(45deg);
   font-size: 50px;
-  top: 0px;
-  left: 0px;
+  top: 0;
+  left: 0;
 }
 
 .noUi-handle.noUi-handle-lower.noUi-active {
