@@ -60,6 +60,7 @@ int main(int argc, char** argv) {
 
   // Run all registered tests.
   if (runTests) {
+    Application::testLoadAllPlugins();
     doctest::Context context(argc, argv);
     return context.run();
   }

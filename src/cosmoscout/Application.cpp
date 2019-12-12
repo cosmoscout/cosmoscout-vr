@@ -17,6 +17,8 @@
 #include "../cs-graphics/MouseRay.hpp"
 #include "../cs-utils/Downloader.hpp"
 #include "../cs-utils/convert.hpp"
+#include "../cs-utils/doctest.hpp"
+#include "../cs-utils/filesystem.hpp"
 #include "../cs-utils/utils.hpp"
 #include "ObserverNavigationNode.hpp"
 
@@ -582,6 +584,41 @@ void Application::FrameUpdate() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void Application::testLoadAllPlugins() {
+#ifdef __linux__
+  std::string path = "../share/plugins";
+#else
+  std::string path = "..\\share\\plugins";
+#endif
+
+  auto plugins = cs::utils::filesystem::listFiles(path);
+
+  for (auto const& plugin : plugins) {
+    try {
+
+      // Clear errors.
+      LIBERROR();
+
+      COSMOSCOUT_LIBTYPE pluginHandle = OPENLIB(plugin.c_str());
+
+      if (pluginHandle) {
+        cs::core::PluginBase* (*pluginConstructor)();
+        pluginConstructor = (cs::core::PluginBase * (*)()) LIBFUNC(pluginHandle, "create");
+
+        std::cout << "Opening Plugin " << plugin << " ..." << std::endl;
+
+      } else {
+        std::cerr << "Error loading CosmoScout VR Plugin " << plugin << " : " << LIBERROR()
+                  << std::endl;
+      }
+    } catch (std::exception const& e) {
+      std::cerr << "Error loading plugin " << plugin << ": " << e.what() << std::endl;
+    }
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Application::connectSlots() {
 
   // Update mouse pointer coordinate display in the user interface.
@@ -947,6 +984,12 @@ void Application::registerGuiCallbacks() {
     mSolarSystem->flyObserverTo(mSolarSystem->getObserver().getCenterName(),
         mSolarSystem->getObserver().getFrameName(), cart, rotation, 3.0);
   });
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+TEST_CASE("Application") {
+  CHECK(1 + 1 == 2);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

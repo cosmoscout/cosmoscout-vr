@@ -4,6 +4,10 @@
 //                        Copyright: (c) 2019 German Aerospace Center (DLR)                       //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#define DOCTEST_CONFIG_IMPLEMENT
+#ifndef CS_UTILS_DOCTEST_HPP
+#define CS_UTILS_DOCTEST_HPP
 
-#include "doctest.hpp"
+#define DOCTEST_CONFIG_IMPLEMENTATION_IN_DLL
+#include <doctest/doctest.h>
+
+#endif // CS_UTILS_DOCTEST_HPP

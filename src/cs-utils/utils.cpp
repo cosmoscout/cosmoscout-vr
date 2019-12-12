@@ -6,6 +6,8 @@
 
 #include "utils.hpp"
 
+#include "doctest.hpp"
+
 #include <VistaKernel/DisplayManager/VistaDisplayManager.h>
 #include <VistaKernel/DisplayManager/VistaProjection.h>
 #include <VistaKernel/DisplayManager/VistaViewport.h>
@@ -93,6 +95,12 @@ float getCurrentFarClipDistance() {
       ->GetProjectionProperties()
       ->GetClippingRange(near, far);
   return (float)far;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+TEST_CASE("cs::utils::toString") {
+  CHECK(toString(5) == "5");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

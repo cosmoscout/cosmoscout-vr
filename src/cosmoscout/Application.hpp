@@ -88,6 +88,8 @@ class Application : public VistaFrameLoop {
   /// Called every frame by ViSTA. The whole application logic is executed here.
   void FrameUpdate() override;
 
+  static void testLoadAllPlugins();
+
  private:
   struct Plugin {
     COSMOSCOUT_LIBTYPE    mHandle;
