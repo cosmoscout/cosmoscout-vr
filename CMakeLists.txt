@@ -216,6 +216,14 @@ add_compile_options($<$<CXX_COMPILER_ID:MSVC>:/EHsc>)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Enable code coverage measurements
+option(COSMOSCOUT_COVERAGE_INFO "Run code coverage analytics" OFF)
+
+if(COSMOSCOUT_COVERAGE_INFO AND "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+  add_definitions(--coverage)
+  add_link_options(--coverage)
+endif()
+
 # subdirectories -----------------------------------------------------------------------------------
 
 include_directories(
