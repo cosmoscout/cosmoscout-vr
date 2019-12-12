@@ -755,6 +755,7 @@ class StatisticsApi extends IApi {
      * @param frameRate {number}
      */
     setData(data, frameRate) {
+        this._values = [];
         data = JSON.parse(data);
 
         // first set all times to zero
@@ -794,18 +795,17 @@ class StatisticsApi extends IApi {
         const maxWidth = container.offsetWidth;
 
         container.innerHTML += `<div class="label"><strong>FPS: ${frameRate.toFixed(2)}</strong></div>`;
-        /*
-                for (let i = 0; i < maxEntries; ++i) {
-                    const widthGPU = maxWidth * this._values[i].avgTimeGPU / this._maxValue;
-                    const widthCPU = maxWidth * this._values[i].avgTimeCPU / this._maxValue;
+/*        for (let i = 0; i < maxEntries; ++i) {
+            const widthGPU = maxWidth * this._values[i].avgTimeGPU / this._maxValue;
+            const widthCPU = maxWidth * this._values[i].avgTimeCPU / this._maxValue;
 
-                    container.innerHTML += `<div class="item">
+            container.innerHTML += `<div class="item">
             <div class="bar gpu" style="background-color:${this._values[i].color}; width:${widthGPU}px"><div class='label'>gpu: ${(this._values[i].avgTimeGPU * 0.000001).toFixed(1)} ms</div></div>
             <div class="bar cpu" style="background-color:${this._values[i].color}; width:${widthCPU}px"><div class='label'>cpu: ${(this._values[i].avgTimeCPU * 0.000001).toFixed(1)} ms</div></div>
             <div class='label'>${this._values[i].name}</div>
         </div>`;
 
-                }*/
+        }*/
     }
 
 }

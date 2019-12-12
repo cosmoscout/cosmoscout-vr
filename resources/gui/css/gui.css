@@ -483,7 +483,8 @@ hr {
 }
 
 .noUi-target .noUi-active .range-label {
-    transform: translate(-50%, -40px);
+    transform: translate(-50%, -16px);
+    //transform: translate(-50%, -40px);
     border-radius: 50% !important;
 }
 

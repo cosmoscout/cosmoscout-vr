@@ -1134,6 +1134,7 @@ function drawFocusLens() {
     if (width < minWidth) {
         width = minWidth + 2 * borderWidth;
         xValue = -(leftRect.left + minWidth - rightRect.right) / 2 - borderWidth;
+        xValue = Math.round(xValue);
         divElement.style.transform = " translate(" + xValue + "px, 0px)";
     } else {
         divElement.style.transform = " translate(0px, 0px)";
