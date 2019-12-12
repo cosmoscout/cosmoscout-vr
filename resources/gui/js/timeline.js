@@ -4,17 +4,6 @@ function init() {
     $("#timeline-container").addClass("visible");
 }
 
-// Sets the timeline to the given date
-function set_date(date) {
-}
-
-// Prints a notifivcatio for the time-speed and changes the slider if the time is paused
-function set_time_speed(speed) {
-}
-
-// Adds a new event to the timeline
-function add_item(start, end, id, content, style, description, planet, place) {
-}
 
 // Add a Button to the button bar
 // @param icon The materialize icon to use
@@ -40,17 +29,6 @@ function set_north_direction(angle) {
     $("#compass-arrow").css("transform", "rotateZ(" + angle + "rad)");
 }
 
-// Sets the active planet
-function set_active_planet(center) {
-}
-
-// Sets the position of the user
-function set_user_position(long, lat, height) {
-}
-
-// Sets the min and max date for the timeline
-function set_timeline_range(min, max) {
-}
 
 // timeline configuration --------------------------------------------------------------------------
 
@@ -69,8 +47,6 @@ var leftTimeId = 'leftTime';
 var rightTimeId = 'rightTime';
 
 var drawFocusLensCallback = null;
-
-var firstTime = true;
 
 var zoomPercentage = 0.2;
 var timelineZoomBlocked = true;
@@ -92,6 +68,7 @@ var maxRangeFactor = 100000000;
 var minRangeFactor = 5;
 
 var redrawRate = 16.666666;
+var redrawRate = 300;
 var secSpeed = 0.0166666;
 var hourSpeed = 60;
 var daySpeed = 1440;
@@ -278,39 +255,6 @@ function set_active_planet(center) {
     activePlanetCenter = center;
 }
 
-
-function format_number(number) {
-    if (Math.abs(number) < 10) return number.toFixed(2);
-    else if (Math.abs(number) < 100) return number.toFixed(1);
-    else return number.toFixed(0);
-}
-
-function format_height(height) {
-    if (Math.abs(height) < 0.1) return format_number(height * 1000) + ' mm';
-    else if (Math.abs(height) < 1) return format_number(height * 100) + ' cm';
-    else if (Math.abs(height) < 1e4) return format_number(height) + ' m';
-    else if (Math.abs(height) < 1e7) return format_number(height / 1e3) + ' km';
-    else if (Math.abs(height) < 1e10) return format_number(height / 1e6) + ' Tsd km';
-    else if (Math.abs(height / 1.496e11) < 1e4) return format_number(height / 1.496e11) + ' AU';
-    else if (Math.abs(height / 9.461e15) < 1e3) return format_number(height / 9.461e15) + ' ly';
-    else if (Math.abs(height / 3.086e16) < 1e3) return format_number(height / 3.086e16) + ' pc';
-
-    return format_number(height / 3.086e19) + ' kpc';
-}
-
-function format_latitude(lat) {
-    if (lat < 0)
-        return (-lat).toFixed(2) + "° S ";
-    else
-        return (lat).toFixed(2) + "° N ";
-}
-
-function format_longitude(long) {
-    if (long < 0)
-        return (-long).toFixed(2) + "° W ";
-    else
-        return (long).toFixed(2) + "° E ";
-}
 
 function set_user_position(long, lat, height) {
     userPosition.long = long;
@@ -580,7 +524,7 @@ function on_add_callback(item, callback, overview) {
     document.getElementById("event-dialog-end-date").value = "";
     document.getElementById("event-dialog-description").value = "";
     document.getElementById("event-dialog-planet").value = activePlanetCenter;
-    document.getElementById("event-dialog-location").value = format_longitude(userPosition.long) + format_latitude(userPosition.lat) + format_height(userPosition.height);
+    document.getElementById("event-dialog-location").value = Format.longitude(userPosition.long) + Format.latitude(userPosition.lat) + Format.height(userPosition.height);
     parHolder.item = item;
     parHolder.callback = callback;
     parHolder.overview = overview;
@@ -681,7 +625,6 @@ function set_overview_times() {
 
 // Change time to the start date of the selected item
 function on_select(properties) {
-    var mouseOverDisabled = true;
     for (var item in items._data) {
         if (items._data[item].id === properties.items) {
             var dif = items._data[item].start.getTime() - centerTime.getTime();
@@ -1267,7 +1210,7 @@ function enter_new_center_time() {
     }
 }
 
-
+/*
 // Called if the Calendar is used to enter a start date of an event
 function enter_start_date() {
     if (state === newStartDateId) {
@@ -1289,7 +1232,7 @@ function enter_end_date() {
         calenderVisible = true;
         set_visible(true);
     }
-}
+}*/
 
 // Called if an Date in the Calendar is picked
 function change_date_callback(e) {
