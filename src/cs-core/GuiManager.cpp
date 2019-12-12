@@ -106,35 +106,31 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
 
   mLoadingScreen = new gui::GuiItem("file://../share/resources/gui/loading_screen.html");
 
-  mOneUi = new gui::GuiItem("file://../share/resources/gui/cosmogui.html");
+  mCosmoScoutGui = new gui::GuiItem("file://../share/resources/gui/cosmoscout.html");
 
   // Except for mStatistics, all GuiItems are attached to the global world-space GuiArea if it is
   // available. If not, they are added to the local screen-space GuiArea.
   if (mGlobalGuiArea) {
-
     mGlobalGuiArea->addItem(mLoadingScreen);
-    mGlobalGuiArea->addItem(mOneUi);
+    mGlobalGuiArea->addItem(mCosmoScoutGui);
   } else {
-
     mLocalGuiArea->addItem(mLoadingScreen);
-    mLocalGuiArea->addItem(mOneUi);
+    mLocalGuiArea->addItem(mCosmoScoutGui);
   }
-
-  // mLocalGuiArea->addItem(mStatistics);
 
   // Configure attributes of the loading screen. Per default, GuiItems are drawn full-screen in
   // their GuiAreas.
   mLoadingScreen->setIsInteractive(false);
 
-  mOneUi->setRelSizeX(1.f);
-  mOneUi->setRelSizeY(1.f);
-  mOneUi->setRelPositionX(0.5);
-  mOneUi->setRelPositionY(0.5);
-  mOneUi->setCursorChangeCallback([this](gui::Cursor c) { setCursor(c); });
+  mCosmoScoutGui->setRelSizeX(1.f);
+  mCosmoScoutGui->setRelSizeY(1.f);
+  mCosmoScoutGui->setRelPositionX(0.5f);
+  mCosmoScoutGui->setRelPositionY(0.5f);
+  mCosmoScoutGui->setCursorChangeCallback([this](gui::Cursor c) { setCursor(c); });
 
   // Now we will call some JavaScript methods - so we have to wait until the GuiItems have been
   // fully loaded.
-  mOneUi->waitForFinishedLoading();
+  mCosmoScoutGui->waitForFinishedLoading();
   mLoadingScreen->waitForFinishedLoading();
 
   // Create a string which contains the current version number of CosmoScout VR. This string is then
@@ -162,7 +158,7 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
   });
 
   // Set settings for the time Navigation
-  mOneUi->callJavascript("set_timeline_range", settings->mMinDate, settings->mMaxDate);
+    mCosmoScoutGui->callJavascript("set_timeline_range", settings->mMinDate, settings->mMaxDate);
 
   for (int i = 0; i < settings->mEvents.size(); i++) {
     std::string planet = "";
@@ -182,7 +178,7 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
 GuiManager::~GuiManager() {
   delete mGlobalGuiArea;
   delete mViewportUpdater;
-  delete mOneUi;
+  delete mCosmoScoutGui;
 
   mInputManager->unregisterSelectable(mLocalGuiOpenGLnode);
 
@@ -236,37 +232,37 @@ void GuiManager::setCursor(gui::Cursor cursor) {
 
 void GuiManager::showNotification(std::string const& sTitle, std::string const& sText,
     std::string const& sIcon, std::string const& sFlyToOnClick) const {
-  mOneUi->callJavascript("print_notification", sTitle, sText, sIcon, sFlyToOnClick);
+    mCosmoScoutGui->callJavascript("print_notification", sTitle, sText, sIcon, sFlyToOnClick);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 gui::GuiItem* GuiManager::getSideBar() const {
-  return mOneUi;
+  return mCosmoScoutGui;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 gui::GuiItem* GuiManager::getStatusBar() const {
-  return mOneUi;
+  return mCosmoScoutGui;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 gui::GuiItem* GuiManager::getTimeline() const {
-  return mOneUi;
+  return mCosmoScoutGui;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 gui::GuiItem* GuiManager::getStatistics() const {
-  return mOneUi;
+  return mCosmoScoutGui;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 gui::GuiItem* GuiManager::getLogo() const {
-  return mOneUi;
+  return mCosmoScoutGui;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -360,7 +356,7 @@ void GuiManager::update() {
       json = "{}";
     }
 
-    mOneUi->callJavascript("set_data", json, GetVistaSystem()->GetFrameLoop()->GetFrameRate());
+      mCosmoScoutGui->callJavascript("set_data", json, GetVistaSystem()->GetFrameLoop()->GetFrameRate());
   }
 
   // Update all entities of the Chromium Embedded Framework.
@@ -371,7 +367,7 @@ void GuiManager::update() {
 
 void GuiManager::addPluginTabToSideBar(
     std::string const& name, std::string const& icon, std::string const& content) {
-  mOneUi->callJavascript("addPluginTab", name, icon, content);
+    mCosmoScoutGui->callJavascript("addPluginTab", name, icon, content);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -386,7 +382,7 @@ void GuiManager::addPluginTabToSideBarFromHTML(
 
 void GuiManager::addSettingsSectionToSideBar(
     std::string const& name, std::string const& icon, std::string const& content) {
-  mOneUi->callJavascript("addSettingsSection", name, icon, content);
+    mCosmoScoutGui->callJavascript("addSettingsSection", name, icon, content);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -400,7 +396,7 @@ void GuiManager::addSettingsSectionToSideBarFromHTML(
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void GuiManager::addScriptToSideBar(std::string const& src) {
-  mOneUi->executeJavascript(src);
+    mCosmoScoutGui->executeJavascript(src);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -415,7 +411,7 @@ void GuiManager::addScriptToSideBarFromJS(std::string const& jsFile) {
 void GuiManager::addEventToTimenavigationBar(std::string start, std::optional<std::string> end,
     std::string id, std::string content, std::optional<std::string> style, std::string description,
     std::string planet, std::string place) {
-  mOneUi->callJavascript("add_item", start, end.value_or(""), id, content, style.value_or(""),
+    mCosmoScoutGui->callJavascript("add_item", start, end.value_or(""), id, content, style.value_or(""),
       description, planet, place);
 }
 
