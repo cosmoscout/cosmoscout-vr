@@ -4,12 +4,15 @@
 //                        Copyright: (c) 2019 German Aerospace Center (DLR)                       //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+#define DOCTEST_CONFIG_IMPLEMENTATION_IN_DLL
+
 #include "../cs-core/Settings.hpp"
 #include "../cs-gui/gui.hpp"
 #include "../cs-utils/CommandLine.hpp"
 #include "Application.hpp"
 
 #include <VistaKernel/VistaSystem.h>
+#include <doctest/doctest.h>
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -23,6 +26,7 @@ int main(int argc, char** argv) {
 
   // These are the default values for the options.
   std::string settingsFile   = "../share/config/simple_desktop.json";
+  bool        runTests       = false;
   bool        printHelp      = false;
   bool        printVistaHelp = false;
 
@@ -30,6 +34,7 @@ int main(int argc, char** argv) {
   cs::utils::CommandLine args("Welcome to CosmoScout VR! Here are the available options:");
   args.addArgument({"-s", "--settings"}, &settingsFile,
       "JSON file containing settings (default: " + settingsFile + ")");
+  args.addArgument({"-t", "--run-tests"}, &runTests, "Runs all unit tests.");
   args.addArgument({"-h", "--help"}, &printHelp, "Print this help.");
   args.addArgument({"-v", "--vistahelp"}, &printVistaHelp, "Print help for vista options.");
 
@@ -51,6 +56,12 @@ int main(int argc, char** argv) {
   if (printVistaHelp) {
     VistaSystem::ArgHelpMsg(argv[0], &std::cout);
     return 0;
+  }
+
+  // Run all registered tests.
+  if (runTests) {
+    doctest::Context context(argc, argv);
+    return context.run();
   }
 
   // read settings ---------------------------------------------------------------------------------
