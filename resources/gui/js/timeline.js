@@ -11,22 +11,11 @@ function init() {
 // @param callback Native function that gets called if the button is clicked. The function has
 //                  to be registered as callback before clicking the button.
 function add_button(icon, tooltip, callback) {
-    var button = document.createElement("a");
-    button.setAttribute('class', "btn light-glass");
-    button.setAttribute('data-toggle', 'tooltip');
-    button.setAttribute('title', tooltip);
-    callback = "window.call_native('" + callback + "')";
-    button.setAttribute("onClick", callback);
-    var iconElement = document.createElement("i");
-    iconElement.innerHTML = icon;
-    iconElement.setAttribute("class", "material-icons");
-    button.appendChild(iconElement);
-    document.getElementById("plugin-buttons").appendChild(button);
-    $('[data-toggle="tooltip"]').tooltip({delay: 500, placement: "top", html: false});
+    return CosmoScout.call('timeline', 'addButton', icon, tooltip, callback);
 }
 
 function set_north_direction(angle) {
-    $("#compass-arrow").css("transform", "rotateZ(" + angle + "rad)");
+    return CosmoScout.call('timeline', 'setNorthDirection', angle);
 }
 
 
@@ -292,8 +281,9 @@ var withoutAnimationTime = 0;
 
 //Flys the observer to a given location
 function fly_to_location(planet, location, time) {
-    window.call_native("fly_to", planet, location.longitude, location.latitude, location.height, time);
-    window.call_native("print_notification", "Travelling", "to " + location.name, "send");
+    CosmoScout.call('flyto', 'flyTo', planet, location.longitude, location.latitude, location.height, time);
+/*    window.call_native("fly_to", planet, location.longitude, location.latitude, location.height, time);
+    window.call_native("print_notification", "Travelling", "to " + location.name, "send");*/
 }
 
 function parse_height(heightStr, unit) {
@@ -517,7 +507,7 @@ function on_add_callback(item, callback, overview) {
     document.getElementById("event-dialog-description").style.border = "";
     timeline.setOptions(whileEditingOpt);
     overviewTimeLine.setOptions(whileEditingOpt);
-    document.getElementById("headlineForm").innerText = "Add";
+    document.getElementById("headlineForm").innerText = "Add Event";
     document.getElementById("event-dialog-name").value = "";
     document.getElementById("add-event-dialog").style.display = "block";
     document.getElementById("event-dialog-start-date").value = get_formatted_dateWithTime(item.start);
@@ -603,6 +593,7 @@ function range_change_callback(properties) {
         var dif = properties.start.getTime() - mouseDownLeftTime.getTime();
         var secondsDif = dif / 1000;
         var hoursDif = secondsDif / 60 / 60;
+        console.log(secondsDif);
         var step = convert_seconds(secondsDif);
         var date = new Date(centerTime.getTime());
         date = increase_date(date, step.days, step.hours, step.minutes, step.seconds, step.milliSec);
