@@ -594,8 +594,8 @@ void Application::testLoadAllPlugins() {
   auto plugins = cs::utils::filesystem::listFiles(path);
 
   for (auto const& plugin : plugins) {
-    try {
 
+    if (cs::utils::endsWith(plugin, ".so") || cs::utils::endsWith(plugin, ".dll")) {
       // Clear errors.
       LIBERROR();
 
@@ -605,14 +605,17 @@ void Application::testLoadAllPlugins() {
         cs::core::PluginBase* (*pluginConstructor)();
         pluginConstructor = (cs::core::PluginBase * (*)()) LIBFUNC(pluginHandle, "create");
 
-        std::cout << "Opening Plugin " << plugin << " ..." << std::endl;
+        if (pluginConstructor) {
+          std::cout << "Plugin " << plugin << " found." << std::endl;
+        } else {
+          std::cerr << "Error loading CosmoScout VR Plugin " << plugin << " : Invalid plugin."
+                    << std::endl;
+        }
 
       } else {
         std::cerr << "Error loading CosmoScout VR Plugin " << plugin << " : " << LIBERROR()
                   << std::endl;
       }
-    } catch (std::exception const& e) {
-      std::cerr << "Error loading plugin " << plugin << ": " << e.what() << std::endl;
     }
   }
 }
