@@ -8,8 +8,12 @@
 
 file(GLOB SOURCE_FILES *.cpp */*.cpp)
 
+# Header files are only added in order to make them available in your IDE.
+file(GLOB HEADER_FILES *.hpp */*.hpp)
+
 add_library(cs-graphics SHARED
   ${SOURCE_FILES}
+  ${HEADER_FILES}
 )
 
 target_link_libraries(cs-graphics
@@ -17,6 +21,13 @@ target_link_libraries(cs-graphics
     gli::gli
     cs-utils
 )
+
+# Make directory structure available in your IDE.
+source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" PREFIX "src" FILES 
+  ${SOURCE_FILES} ${HEADER_FILES}
+)
+
+# install the library ------------------------------------------------------------------------------
 
 install(TARGETS cs-graphics DESTINATION lib)
 
