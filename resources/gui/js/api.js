@@ -39,6 +39,11 @@ class CosmoScout {
         });
     }
 
+    /**
+     * Initialize third party drop downs,
+     * add input event listener,
+     * initialize tooltips
+     */
     static initInputs() {
         this.initDropDowns();
         this.initChecklabelInputs();
@@ -46,6 +51,9 @@ class CosmoScout {
         this.initTooltips();
     }
 
+    /**
+     * @see {initInputs}
+     */
     static initDropDowns() {
         document.querySelectorAll('.simple-value-dropdown').forEach(dropdown => {
             if (typeof dropdown.selectpicker !== "undefined") {
@@ -60,6 +68,9 @@ class CosmoScout {
         });
     }
 
+    /**
+     * @see {initInputs}
+     */
     static initChecklabelInputs() {
         document.querySelectorAll('.checklabel input').forEach(input => {
             input.addEventListener('change', event => {
@@ -70,6 +81,9 @@ class CosmoScout {
         });
     }
 
+    /**
+     * @see {initInputs}
+     */
     static initRadiolabelInputs() {
         document.querySelectorAll('.radiolabel input').forEach(input => {
             input.addEventListener('change', event => {
@@ -80,6 +94,9 @@ class CosmoScout {
         });
     }
 
+    /**
+     * @see {initInputs}
+     */
     static initTooltips() {
         const config = {delay: 500, placement: 'auto', html: false};
 
@@ -98,7 +115,7 @@ class CosmoScout {
     }
 
     /**
-     *Appends a script element to the body
+     * Appends a script element to the body
      *
      * @param url {string} Absolute or local file path
      * @param init {Function} Method gets run on script load
@@ -208,6 +225,10 @@ class CosmoScout {
      * @return {*}
      */
     static call(api, method, ...args) {
+        if (method !== 'setUserPosition' && method !== 'setNorthDirection' && method !== 'setSpeed') {
+            console.log(`Calling '${method}' on '${api}'`);
+        }
+
         if (this._apis.has(api)) {
             if (typeof (this._apis.get(api))[method] !== "undefined") {
                 return (this._apis.get(api))[method](...args);
@@ -361,8 +382,18 @@ class SidebarApi extends IApi {
         this._settings.appendChild(tab);
     }
 
-    addCelestialBody() {
+    addCelestialBody(name, icon) {
+        const area = $('#celestial-bodies');
+        area.append(`<div class='col-3 center' style='padding: 3px'>
+                    <a class='block btn glass' id='set_body_${name}'>
+                        <img style='pointer-events: none' src='../icons/${icon}' height='80' width='80'>
+                        ${name}
+                    </a>
+                </div>`);
 
+        $('#set_body_' + name).on('click', function () {
+            window.call_native('set_celestial_body', name);
+        });
     }
 
     /**
@@ -386,16 +417,67 @@ class SidebarApi extends IApi {
         }
     }
 
-    addLocation() {
+    /**
+     * TODO
+     * @param group
+     * @param text
+     */
+    addLocation(group, text) {
+        let first = false;
+        const tabArea = $("#location-tabs-area");
+        if (tabArea.children().length === 0) {
+            first = true;
+            tabArea.append(`
+            <nav>
+                <div class="row nav nav-tabs" id="location-tabs" role="tablist"></div>
+            </nav>
+            <div class="tab-content" id="nav-tabContents"></div>
+        `)
+        }
 
+        const locationsTab = $("#location-tabs");
+        const tabContents = $("#nav-tabContents");
+
+        let groupTab = $(`#nav-${group}`);
+        if (groupTab.length === 0) {
+            const active = first ? "active" : "";
+            locationsTab.append(`
+            <a class="nav-item nav-link ${active} col-4" id="nav-${group}-tab" data-toggle="tab" href="#nav-${group}" 
+                role="tab" aria-controls="nav-${group}" aria-selected="${first}">${group}</a>
+        `);
+
+            const show = first ? "show" : "";
+
+            tabContents.append(`
+            <div class="tab-pane fade ${show} ${active}" id="nav-${group}" role="tabpanel" aria-labelledby="nav-${group}-tab"></div>
+        `);
+
+            groupTab = $(`#nav-${group}`);
+        }
+
+        groupTab.append(`
+        <div class='row'>
+            <div class='col-8'>
+                ${text}
+            </div>
+            <div class='col-4'>
+                <a class='btn glass block fly-to' data-toggle="tooltip" title='Fly to ${text}' onclick='window.call_native("fly_to", "${text}")'>
+                    <i class='material-icons'>send</i>
+                </a>
+            </div>
+        </div>
+    `);
+
+        $('[data-toggle="tooltip"]').tooltip({delay: 500, placement: "auto", html: false});
     }
 
     setElevationDataCopyright(copyright) {
+        $("#img-data-copyright").tooltip({title: "© " + text, placement: "top"});
 
     }
 
     setMapDataCopyright(copyright) {
-
+        $("#dem-data-copyright").tooltip({title: "© " + text, placement: "bottom"});
     }
 
     /**
@@ -517,8 +599,19 @@ class SidebarApi extends IApi {
         });
     }
 
-    addSharad() {
+    /**
+     * TODO
+     * @param file
+     * @param time
+     */
+    addSharad(file, time) {
+        const html = `
+        <div class='row item-${file}''>
+            <div class='col-8' >${file}</div>
+            <div class='col-4'><a class='btn glass block' onclick='window.call_native("set_time", ${time})' ><i class='material-icons'>restore</i></a></div>
+        </div>`;
 
+        $('#list-sharad').append(html);
     }
 
     /**
@@ -602,12 +695,85 @@ class SidebarApi extends IApi {
 
         return element;
     }
-
-
 }
 
 class TimelineApi extends IApi {
+    name = 'timeline';
+    _buttonTemplate;
+    _buttonContainer;
 
+    _activePlanetName;
+
+    _userPosition = {
+        lat: 0,
+        long: 0,
+        height: 0,
+    };
+
+    init() {
+        this._buttonTemplate = document.getElementById('button-template').content.cloneNode(true);
+        this._buttonContainer = document.getElementById('plugin-buttons');
+    }
+
+    /**
+     * Adds a button to the button bar
+     *
+     * @param icon {string} Materialize icon name
+     * @param tooltip {string} Tooltip text that gets shown if the button is hovered
+     * @param callback {string} Function name passed to call_native
+     */
+    addButton(icon, tooltip, callback) {
+        let button = this._buttonTemplate.cloneNode(true).firstElementChild;
+
+        button.innerHTML = button.innerHTML
+            .replace('%ICON%', icon)
+            .trim();
+
+        button.setAttribute('title', tooltip);
+
+        button.addEventListener('click', () => {
+            CosmoScout.callNative(callback);
+        });
+
+        this._buttonContainer.appendChild(button);
+
+        CosmoScout.initTooltips();
+    }
+
+    setActivePlanet(name) {
+        this._activePlanetName = name;
+    }
+
+    /**
+     *
+     * @param long {number}
+     * @param lat {number}
+     * @param height {number}
+     */
+    setUserPosition(long, lat, height) {
+        this._userPosition = {
+            long,
+            lat,
+            height
+        }
+    }
+
+    /**
+     * Rotates the button bar compass
+     *
+     * @param angle {number}
+     */
+    setNorthDirection(angle) {
+        document.getElementById('compass-arrow').style.transform = `rotateZ(${angle}rad)`;
+    }
+
+    setDate(date) {
+
+    }
+
+    setTimeSpeed(speed) {
+
+    }
 }
 
 class NotificationApi extends IApi {
@@ -908,12 +1074,10 @@ class FlyToApi extends IApi {
     name = 'flyto';
 
     flyTo(planet, location, time) {
-        let name;
-
         if (typeof location === "undefined") {
             CosmoScout.callNative('fly_to', planet);
         } else {
-            CosmoScout.callNative('fly_to', planet + '', location.longitude + '', location.latitude + '', location.height + '', time + '');
+            CosmoScout.callNative('fly_to', planet, location.longitude, location.latitude, location.height, time);
         }
 
         CosmoScout.call('notifications', 'printNotification', 'Traveling', `to ${planet}`, 'send');
