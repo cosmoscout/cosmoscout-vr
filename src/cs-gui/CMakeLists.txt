@@ -17,6 +17,8 @@ target_link_libraries(cs-gui
     cef::cef
     cef::wrapper
     cs-utils
+
+    cs-gui-test
 )
 
 install(TARGETS cs-gui DESTINATION lib)

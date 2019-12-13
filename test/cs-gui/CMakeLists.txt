@@ -8,21 +8,15 @@
 
 file(GLOB SOURCE_FILES *.cpp */*.cpp)
 
-add_library(cs-scene SHARED
+add_library(cs-gui-test SHARED
   ${SOURCE_FILES}
 )
 
-target_link_libraries(cs-scene
+target_link_libraries(cs-gui-test
   PUBLIC
+    cef::cef
+    cef::wrapper
     cs-utils
-
-    cs-scene-test
 )
 
-install(TARGETS cs-scene DESTINATION lib)
-
-# export header ------------------------------------------------------------------------------------
-
-generate_export_header(cs-scene
-  EXPORT_FILE_NAME cs_scene_export.hpp
-)
+install(TARGETS cs-gui-test DESTINATION lib)

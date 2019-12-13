@@ -16,6 +16,8 @@ target_link_libraries(cs-graphics
   PUBLIC
     gli::gli
     cs-utils
+
+    cs-graphics-test
 )
 
 install(TARGETS cs-graphics DESTINATION lib)

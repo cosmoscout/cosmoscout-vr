@@ -8,21 +8,34 @@
 
 file(GLOB SOURCE_FILES *.cpp */*.cpp)
 
-add_library(cs-scene SHARED
+add_library(cs-utils-test SHARED
   ${SOURCE_FILES}
 )
 
-target_link_libraries(cs-scene
+target_link_libraries(cs-utils-test
   PUBLIC
-    cs-utils
-
-    cs-scene-test
+    glm::glm
+    tinygltf::tinygltf
+    Boost::filesystem
+    Boost::chrono
+    Boost::date_time
+    GLEW::GLEW
+    GLUT::GLUT
+    OpenGL::GL
+    OpenSG::base
+    OpenSG::system
+    Tiff::Tiff
+    ${VISTACORELIBS_LIBRARIES}
+    ${CMAKE_DL_LIBS}
+    cspice::cspice
+    curl::curl
+    curlpp::curlpp
+    c-ares::c-ares
 )
 
-install(TARGETS cs-scene DESTINATION lib)
-
-# export header ------------------------------------------------------------------------------------
-
-generate_export_header(cs-scene
-  EXPORT_FILE_NAME cs_scene_export.hpp
+target_include_directories(cs-utils-test
+  PUBLIC
+    ${VISTACORELIBS_INCLUDE_DIRS}
 )
+
+install(TARGETS cs-utils-test DESTINATION lib)

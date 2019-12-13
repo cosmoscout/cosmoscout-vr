@@ -232,9 +232,12 @@ include_directories(
   ${CMAKE_BINARY_DIR}/src/cs-graphics
   ${CMAKE_BINARY_DIR}/src/cs-gui
   ${CMAKE_BINARY_DIR}/src/cs-scene
+
+  ${CMAKE_BINARY_DIR}/test/cs-utils-test
 )
 
 add_subdirectory(config)
 add_subdirectory(resources)
 add_subdirectory(src)
+add_subdirectory(test)
 add_subdirectory(plugins)

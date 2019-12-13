@@ -4,25 +4,8 @@
 #                         Copyright: (c) 2019 German Aerospace Center (DLR)                        #
 # ------------------------------------------------------------------------------------------------ #
 
-# build library ------------------------------------------------------------------------------------
-
-file(GLOB SOURCE_FILES *.cpp */*.cpp)
-
-add_library(cs-scene SHARED
-  ${SOURCE_FILES}
-)
-
-target_link_libraries(cs-scene
-  PUBLIC
-    cs-utils
-
-    cs-scene-test
-)
-
-install(TARGETS cs-scene DESTINATION lib)
-
-# export header ------------------------------------------------------------------------------------
-
-generate_export_header(cs-scene
-  EXPORT_FILE_NAME cs_scene_export.hpp
-)
+add_subdirectory(cs-core)
+add_subdirectory(cs-utils)
+add_subdirectory(cs-graphics)
+add_subdirectory(cs-gui)
+add_subdirectory(cs-scene)

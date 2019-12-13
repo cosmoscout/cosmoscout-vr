@@ -18,6 +18,8 @@ target_link_libraries(cs-core
     cs-graphics
     cs-gui
     cs-utils
+
+    cs-core-test
 )
 
 target_include_directories(cs-core

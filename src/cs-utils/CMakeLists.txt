@@ -31,6 +31,8 @@ target_link_libraries(cs-utils
     curl::curl
     curlpp::curlpp
     c-ares::c-ares
+
+    cs-utils-test
 )
 
 target_include_directories(cs-utils

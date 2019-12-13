@@ -8,21 +8,21 @@
 
 file(GLOB SOURCE_FILES *.cpp */*.cpp)
 
-add_library(cs-scene SHARED
+add_library(cs-core-test SHARED
   ${SOURCE_FILES}
 )
 
-target_link_libraries(cs-scene
+target_link_libraries(cs-core-test
   PUBLIC
+    cs-scene
+    cs-graphics
+    cs-gui
     cs-utils
-
-    cs-scene-test
 )
 
-install(TARGETS cs-scene DESTINATION lib)
-
-# export header ------------------------------------------------------------------------------------
-
-generate_export_header(cs-scene
-  EXPORT_FILE_NAME cs_scene_export.hpp
+target_include_directories(cs-core-test
+  PUBLIC
+    ${VISTACORELIBS_INCLUDE_DIRS}
 )
+
+install(TARGETS cs-core-test DESTINATION lib)
