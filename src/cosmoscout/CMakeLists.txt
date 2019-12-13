@@ -8,7 +8,15 @@
 
 file(GLOB SOURCE_FILES *.cpp */*.cpp)
 
-add_executable(cosmoscout ${SOURCE_FILES})
+# Resoucre files and header files are only added in order to make them available in your IDE.
+file(GLOB HEADER_FILES *.hpp */*.hpp)
+file(GLOB_RECURSE RESOUCRE_FILES ../../resources/*)
+
+add_executable(cosmoscout
+  ${SOURCE_FILES}
+  ${HEADER_FILES}
+  ${RESOUCRE_FILES}
+)
 
 # cef needs to be linked first due to https://magpcss.org/ceforum/viewtopic.php?f=6&t=15118&start=10
 # to make sure the link order is kept, we need --no-as-needed
@@ -17,6 +25,18 @@ set_target_properties(cosmoscout PROPERTIES LINK_WHAT_YOU_USE on)
 target_link_libraries(cosmoscout
   cef::cef
   cs-core
+)
+
+# We mark all resource files as "header" in order to make sure that no one tries to compile them.
+set_source_files_properties(${RESOUCRE_FILES} PROPERTIES HEADER_FILE_ONLY TRUE)
+
+# Make directory structure available in your IDE.
+source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" PREFIX "src" FILES 
+  ${SOURCE_FILES} ${HEADER_FILES}
+)
+
+source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/../../resources" PREFIX "resources" FILES 
+  ${RESOUCRE_FILES}
 )
 
 # install executable ---------------------------------------------------------------------------------
