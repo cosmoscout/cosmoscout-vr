@@ -40,6 +40,13 @@ class CosmoScout {
     }
 
     static initInputs() {
+        this.initDropDowns();
+        this.initChecklabelInputs();
+        this.initRadiolabelInputs();
+        this.initTooltips();
+    }
+
+    static initDropDowns() {
         document.querySelectorAll('.simple-value-dropdown').forEach(dropdown => {
             if (typeof dropdown.selectpicker !== "undefined") {
                 dropdown.selectpicker();
@@ -51,7 +58,9 @@ class CosmoScout {
                 }
             });
         });
+    }
 
+    static initChecklabelInputs() {
         document.querySelectorAll('.checklabel input').forEach(input => {
             input.addEventListener('change', event => {
                 if (event.target !== null) {
@@ -59,19 +68,93 @@ class CosmoScout {
                 }
             })
         });
+    }
 
-        document.querySelectorAll('[data-toggle="tooltip"]').forEach(tooltip => {
-            if (typeof tooltip.tooltip !== "undefined") {
-                tooltip.tooltip({delay: 500, placement: "auto", html: false})
-            }
-        });
-
+    static initRadiolabelInputs() {
         document.querySelectorAll('.radiolabel input').forEach(input => {
             input.addEventListener('change', event => {
                 if (event.target !== null) {
                     CosmoScout.callNative(event.target.id);
                 }
             })
+        });
+    }
+
+    static initTooltips() {
+        const config = {delay: 500, placement: 'auto', html: false};
+
+        document.querySelectorAll('[data-toggle="tooltip"]').forEach(tooltip => {
+            if (typeof tooltip.tooltip !== "undefined") {
+                tooltip.tooltip(config)
+            }
+        });
+
+        document.querySelectorAll('[data-toggle="tooltip-bottom"]').forEach(tooltip => {
+            if (typeof tooltip.tooltip !== "undefined") {
+                config.placement = 'bottom';
+                tooltip.tooltip(config)
+            }
+        });
+    }
+
+    /**
+     *Appends a script element to the body
+     *
+     * @param url {string} Absolute or local file path
+     * @param init {Function} Method gets run on script load
+     */
+    static registerJavaScript(url, init) {
+        const script = document.createElement('script');
+        script.setAttribute('type', 'text/javascript');
+        script.setAttribute('src', url);
+
+        if (typeof init !== "undefined") {
+            script.addEventListener('load', init);
+            script.addEventListener('readystatechange', init);
+        }
+
+        document.body.appendChild(script);
+    }
+
+    /**
+     * Removes a script element by url
+     *
+     * @param url {string}
+     */
+    static unregisterJavaScript(url) {
+        document.querySelectorAll('script').forEach(element => {
+            if (typeof element.src !== "undefined" &&
+                (element.src === url || element.src === this._localizeUrl(url))) {
+                document.body.removeChild(element);
+            }
+        });
+    }
+
+    /**
+     * Appends a link stylesheet to the head
+     *
+     * @param url {string}
+     */
+    static registerCss(url) {
+        const link = document.createElement('link');
+        link.setAttribute('type', 'text/css');
+        link.setAttribute('rel', 'stylesheet');
+        link.setAttribute('href', url);
+
+        document.head.appendChild(link);
+    }
+
+    /**
+     * Removes a stylesheet by url
+     *
+     * @param url {string}
+     */
+    static unregisterCss(url) {
+        document.querySelectorAll('link').forEach(element => {
+            if (typeof element.href !== "undefined" &&
+                (element.href === url || element.href === this._localizeUrl(url))) {
+                document.head.removeChild(element);
+            }
         });
     }
 
@@ -176,6 +259,17 @@ class CosmoScout {
      */
     static getApi(name) {
         return this._apis.get(name);
+    }
+
+    /**
+     * Localizes a filename
+     *
+     * @param url {string}
+     * @return {string}
+     * @private
+     */
+    static _localizeUrl(url) {
+        return `file://../share/resources/gui/${url}`
     }
 }
 
@@ -513,65 +607,7 @@ class SidebarApi extends IApi {
 }
 
 class TimelineApi extends IApi {
-    name = 'timeline';
-    _activePlanetName;
-    _buttonTemplate;
-    _buttonContainer;
 
-    init() {
-        this._buttonTemplate = document.getElementById('button-template').content.cloneNode(true);
-        this._buttonContainer = document.getElementById('plugin-buttons');
-    }
-
-    /**
-     * Adds a button to the button bar
-     *
-     * @param icon {string} Materialize icon name
-     * @param tooltip {string} Tooltip text that gets shown if the button is hovered
-     * @param callback {string} Function name passed to call_native
-     */
-    addButton(icon, tooltip, callback) {
-        let button = this._buttonTemplate.cloneNode(true).firstElementChild;
-
-        button.innerHTML = button.innerHTML
-            .replace('%ICON%', icon)
-            .trim();
-
-        button.setAttribute('title', tooltip);
-
-        button.addEventListener('click', () => {
-            CosmoScout.callNative(callback);
-        });
-
-        this._buttonContainer.appendChild(button);
-
-        $('[data-toggle="tooltip-bottom"]').tooltip({delay: 500, placement: 'bottom', html: false});
-    }
-
-    setActivePlanet(name) {
-        this._activePlanetName = name;
-    }
-
-    setUserPosition() {
-
-    }
-
-    /**
-     * Rotates the button bar compass
-     *
-     * @param angle {number}
-     */
-    setNorthDirection(angle) {
-        document.getElementById('compass-arrow').style.transform = `rotateZ(${angle}rad)`;
-    }
-
-    setDate(date) {
-
-    }
-
-    setTimeSpeed(speed) {
-
-    }
 }
 
 class NotificationApi extends IApi {
@@ -623,7 +659,7 @@ class NotificationApi extends IApi {
         if (flyTo) {
             notification.classList.add('clickable');
             notification.addEventListener('click', () => {
-                CosmoScout.call('api', 'flyTo', flyTo);
+                CosmoScout.call('flyto', 'flyTo', flyTo);
             });
         }
 
@@ -866,6 +902,26 @@ class StatisticsApi extends IApi {
                 }*/
     }
 
+}
+
+class FlyToApi extends IApi {
+    name = 'flyto';
+
+    flyTo(planet, location, time) {
+        let name;
+
+        if (typeof location === "undefined") {
+            CosmoScout.callNative('fly_to', planet);
+        } else {
+            CosmoScout.callNative('fly_to', planet + '', location.longitude + '', location.latitude + '', location.height + '', time + '');
+        }
+
+        CosmoScout.call('notifications', 'printNotification', 'Traveling', `to ${planet}`, 'send');
+    }
+
+    setCelestialBody(name) {
+        CosmoScout.callNative('set_celestial_body', name);
+    }
 }
 
 /**
