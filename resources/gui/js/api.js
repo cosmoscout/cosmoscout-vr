@@ -82,7 +82,7 @@ class CosmoScout {
      * @param min {number}
      * @param max {number}
      * @param step {number}
-     * @param start {number}
+     * @param start {number[]}
      */
     static initSlider(id, min, max, step, start) {
         const slider = document.getElementById(id);
@@ -514,6 +514,64 @@ class SidebarApi extends IApi {
 
 class TimelineApi extends IApi {
     name = 'timeline';
+    _activePlanetName;
+    _buttonTemplate;
+    _buttonContainer;
+
+    init() {
+        this._buttonTemplate = document.getElementById('button-template').content.cloneNode(true);
+        this._buttonContainer = document.getElementById('plugin-buttons');
+    }
+
+    /**
+     * Adds a button to the button bar
+     *
+     * @param icon {string} Materialize icon name
+     * @param tooltip {string} Tooltip text that gets shown if the button is hovered
+     * @param callback {string} Function name passed to call_native
+     */
+    addButton(icon, tooltip, callback) {
+        let button = this._buttonTemplate.cloneNode(true).firstElementChild;
+
+        button.innerHTML = button.innerHTML
+            .replace('%ICON%', icon)
+            .trim();
+
+        button.setAttribute('title', tooltip);
+
+        button.addEventListener('click', () => {
+            CosmoScout.callNative(callback);
+        });
+
+        this._buttonContainer.appendChild(button);
+
+        $('[data-toggle="tooltip-bottom"]').tooltip({delay: 500, placement: 'bottom', html: false});
+    }
+
+    setActivePlanet(name) {
+        this._activePlanetName = name;
+    }
+
+    setUserPosition() {
+
+    }
+
+    /**
+     * Rotates the button bar compass
+     *
+     * @param angle {number}
+     */
+    setNorthDirection(angle) {
+        document.getElementById('compass-arrow').style.transform = `rotateZ(${angle}rad)`;
+    }
+
+    setDate(date) {
+
+    }
+
+    setTimeSpeed(speed) {
+
+    }
 }
 
 class NotificationApi extends IApi {
@@ -795,17 +853,17 @@ class StatisticsApi extends IApi {
         const maxWidth = container.offsetWidth;
 
         container.innerHTML += `<div class="label"><strong>FPS: ${frameRate.toFixed(2)}</strong></div>`;
-/*        for (let i = 0; i < maxEntries; ++i) {
-            const widthGPU = maxWidth * this._values[i].avgTimeGPU / this._maxValue;
-            const widthCPU = maxWidth * this._values[i].avgTimeCPU / this._maxValue;
+        /*        for (let i = 0; i < maxEntries; ++i) {
+                    const widthGPU = maxWidth * this._values[i].avgTimeGPU / this._maxValue;
+                    const widthCPU = maxWidth * this._values[i].avgTimeCPU / this._maxValue;
 
-            container.innerHTML += `<div class="item">
-            <div class="bar gpu" style="background-color:${this._values[i].color}; width:${widthGPU}px"><div class='label'>gpu: ${(this._values[i].avgTimeGPU * 0.000001).toFixed(1)} ms</div></div>
-            <div class="bar cpu" style="background-color:${this._values[i].color}; width:${widthCPU}px"><div class='label'>cpu: ${(this._values[i].avgTimeCPU * 0.000001).toFixed(1)} ms</div></div>
-            <div class='label'>${this._values[i].name}</div>
-        </div>`;
+                    container.innerHTML += `<div class="item">
+                    <div class="bar gpu" style="background-color:${this._values[i].color}; width:${widthGPU}px"><div class='label'>gpu: ${(this._values[i].avgTimeGPU * 0.000001).toFixed(1)} ms</div></div>
+                    <div class="bar cpu" style="background-color:${this._values[i].color}; width:${widthCPU}px"><div class='label'>cpu: ${(this._values[i].avgTimeCPU * 0.000001).toFixed(1)} ms</div></div>
+                    <div class='label'>${this._values[i].name}</div>
+                </div>`;
 
-        }*/
+                }*/
     }
 
 }
@@ -820,6 +878,11 @@ class Format {
      */
     static number(number) {
         number = parseFloat(number);
+
+        // Set very small numbers to 0
+        if (number < Number.EPSILON && -Number.EPSILON > number) {
+            number = 0;
+        }
 
         if (Math.abs(number) < 10) {
             return number.toFixed(2)
@@ -974,5 +1037,128 @@ class Format {
         }
 
         return value.toString();
+    }
+}
+
+/**
+ * Locales won't work in Android WebView
+ */
+class DateOperations {
+    static _defaultLocale;
+
+    /**
+     * Set a locale for all formatDateReadable calls
+     *
+     * @param locale
+     */
+    static setLocale(locale) {
+        try {
+            new Date().toLocaleString('i');
+        } catch (e) {
+            console.error('Browser does not support setting date locales.');
+
+            return;
+        }
+
+        this._defaultLocale = locale;
+    }
+
+    /**
+     *Format a Date to a for a human readable string DD.MM.YYYY HH:MM:SS
+     *
+     * @param date {Date}
+     * @return {string}
+     */
+    static formatDateReadable(date) {
+        return `${date.toLocaleDateString(this._defaultLocale)} ${date.toLocaleTimeString(this._defaultLocale)}`;
+    }
+
+    /**
+     * Format a Date to YYYY-MM-DD
+     *
+     * @param date {Date}
+     * @return {string}
+     */
+    static getFormattedDate(date) {
+        return date.toISOString().split('T')[0];
+    }
+
+    /**
+     * Format a Date to YYYY-MM-DD HH:MM:SS
+     *
+     * @param date {Date}
+     * @return {string}
+     */
+    static getFormattedDateWithTime(date) {
+        return `${this.getFormattedDate(date)} ${date.toLocaleTimeString('de-de')}`;
+    }
+
+    /**
+     * Format a Date to a readable format for CosmoScoutVR YYYY-MM-DD HH:MM:SS.sss
+     *
+     * @param date {Date}
+     * @return {string}
+     */
+    static formatDateCosmo(date) {
+        let milli = date.getMilliseconds().toString().padStart(3, '0');
+
+        return `${this.getFormattedDateWithTime(date)}.${milli}`;
+    }
+
+    /**
+     * Convert seconds into an object containing the duration in hours -- ms
+     *
+     * @param seconds {number}
+     * @return {{}}
+     */
+    static convertSeconds(seconds) {
+        const mSec = 60;
+        const hSec = mSec * mSec;
+        const dSec = hSec * 24;
+
+        let converted = {};
+
+        converted.days = Math.floor(seconds / dSec);
+        converted.hours = Math.floor((seconds - (converted.days * dSec)) / hSec);
+        converted.minutes = Math.floor((seconds - (converted.days * dSec) - (converted.hours * hSec)) / mSec);
+        converted.seconds = Math.floor(seconds - (converted.days * dSec) - (converted.hours * hSec) - (converted.minutes * mSec));
+        converted.milliSec = Math.round((seconds - Math.floor(seconds)) * 1000);
+
+        return converted;
+    }
+
+    /**
+     * Increase a Date by days, hours , minutes, seconds and milliseconds
+     *
+     * @param date {Date}
+     * @param days {number}
+     * @param hours {number}
+     * @param minutes {number}
+     * @param seconds {number}
+     * @param milliSec {number}
+     * @return {Date}
+     */
+    static increaseDate(date, days, hours, minutes, seconds, milliSec) {
+        date.setDate(date.getDate() + days);
+        date.setHours(date.getHours() + hours);
+        date.setMinutes(date.getMinutes() + minutes);
+        date.setSeconds(date.getSeconds() + seconds);
+        date.setMilliseconds(date.getMilliseconds() + milliSec);
+        return date;
+    }
+
+    /**
+     * Decrease a Date by days, hours , minutes, seconds and milliseconds
+     *
+     * @param date {Date}
+     * @param days {number}
+     * @param hours {number}
+     * @param minutes {number}
+     * @param seconds {number}
+     * @param milliSec {number}
+     * @return {Date}
+     */
+    static decreaseDate(date, days, hours, minutes, seconds, milliSec) {
+        return this.increaseDate(date, -days, -hours, -minutes, -seconds, -milliSec);
     }
 }
