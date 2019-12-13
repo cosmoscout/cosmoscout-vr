@@ -785,7 +785,9 @@ function move_window() {
     timeline.setWindow(startDate, endDate, animationFalse);
 }
 
-function set_date(date) {
+set_date = _.throttle(_set_date, 128);
+
+function _set_date(date) {
     centerTime = new Date(date);
     timeline.moveTo(centerTime, animationFalse);
     timeline.setCustomTime(centerTime, timeId);
