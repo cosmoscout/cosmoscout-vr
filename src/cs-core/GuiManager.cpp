@@ -158,7 +158,7 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
   });
 
   // Set settings for the time Navigation
-    mCosmoScoutGui->callJavascript("set_timeline_range", settings->mMinDate, settings->mMaxDate);
+  mCosmoScoutGui->callJavascript("set_timeline_range", settings->mMinDate, settings->mMaxDate);
 
   for (int i = 0; i < settings->mEvents.size(); i++) {
     std::string planet = "";
@@ -232,7 +232,7 @@ void GuiManager::setCursor(gui::Cursor cursor) {
 
 void GuiManager::showNotification(std::string const& sTitle, std::string const& sText,
     std::string const& sIcon, std::string const& sFlyToOnClick) const {
-    mCosmoScoutGui->callJavascript("print_notification", sTitle, sText, sIcon, sFlyToOnClick);
+  mCosmoScoutGui->callJavascript("print_notification", sTitle, sText, sIcon, sFlyToOnClick);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -356,7 +356,8 @@ void GuiManager::update() {
       json = "{}";
     }
 
-      mCosmoScoutGui->callJavascript("set_data", json, GetVistaSystem()->GetFrameLoop()->GetFrameRate());
+    mCosmoScoutGui->callJavascript(
+        "set_data", json, GetVistaSystem()->GetFrameLoop()->GetFrameRate());
   }
 
   // Update all entities of the Chromium Embedded Framework.
@@ -367,7 +368,7 @@ void GuiManager::update() {
 
 void GuiManager::addPluginTabToSideBar(
     std::string const& name, std::string const& icon, std::string const& content) {
-    mCosmoScoutGui->callJavascript("addPluginTab", name, icon, content);
+  mCosmoScoutGui->callJavascript("addPluginTab", name, icon, content);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -382,7 +383,7 @@ void GuiManager::addPluginTabToSideBarFromHTML(
 
 void GuiManager::addSettingsSectionToSideBar(
     std::string const& name, std::string const& icon, std::string const& content) {
-    mCosmoScoutGui->callJavascript("addSettingsSection", name, icon, content);
+  mCosmoScoutGui->callJavascript("addSettingsSection", name, icon, content);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -396,7 +397,7 @@ void GuiManager::addSettingsSectionToSideBarFromHTML(
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void GuiManager::addScriptToSideBar(std::string const& src) {
-    mCosmoScoutGui->executeJavascript(src);
+  mCosmoScoutGui->executeJavascript(src);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -411,8 +412,8 @@ void GuiManager::addScriptToSideBarFromJS(std::string const& jsFile) {
 void GuiManager::addEventToTimenavigationBar(std::string start, std::optional<std::string> end,
     std::string id, std::string content, std::optional<std::string> style, std::string description,
     std::string planet, std::string place) {
-    mCosmoScoutGui->callJavascript("add_item", start, end.value_or(""), id, content, style.value_or(""),
-      description, planet, place);
+  mCosmoScoutGui->callJavascript("add_item", start, end.value_or(""), id, content,
+      style.value_or(""), description, planet, place);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
