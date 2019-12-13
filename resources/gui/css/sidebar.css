@@ -1,6 +1,6 @@
 .side-bar {
     width: 450px;
-    height: 100%;
+    max-height: calc(100vh - 220px);
     margin-top: 100px;
     overflow-x: hidden;
     overflow-y: scroll;

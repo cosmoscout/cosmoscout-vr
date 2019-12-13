@@ -390,7 +390,7 @@ position: relative;
 }
 
 #timeline-container .item {
-    /*position: absolute;*/
+    position: absolute;
     display: inline-block;
 }
 
@@ -456,7 +456,8 @@ position: relative;
 
 #dateLabel {
     font-size: 20px;
-    left: 15px;
+    left: 16px;
+    top: 2px;
     position: relative;
 }
 
