@@ -11,35 +11,36 @@ Below you find some instructions on how to setup your preferred IDE for CosmoSco
 ### Linux
 
 Sadly you have to add the following lines to the `clion.sh` file, which is located in you CLion `bin` folder:
-```
+
+```bash
 export LD_LIBRARY_PATH=../lib:../lib/DriverPlugins:$LD_LIBRARY_PATH
 export VISTACORELIBS_DRIVER_PLUGIN_DIRS=../lib/DriverPlugins
 ```
 
-- Run: ./make_externals.sh
-- Run: ./make.sh
+- Run: `./make_externals.sh`
+- Run: `./make.sh`
 - Go to: _Settings_ -> _Build, Execution, Deployment_ -> _CMake_
 - Release Profile
   - _Generation path_: `build/linux-release`
   - _Build options_: `--parallel 8`
   - _CMAKE options_:
-```
--DCMAKE_BUILD_TYPE=Release
--DCMAKE_INSTALL_PREFIX="<path to cosmoscout>/install/linux-release"
--DCOSMOSCOUT_EXTERNALS_DIR="<path to cosmoscout>/install/linux-externals-release"
--DCMAKE_EXPORT_COMPILE_COMMANDS=On
-```
+    ```bash
+    -DCMAKE_BUILD_TYPE=Release
+    -DCMAKE_INSTALL_PREFIX="<path to cosmoscout>/install/linux-release"
+    -DCOSMOSCOUT_EXTERNALS_DIR="<path to cosmoscout>/install/linux-externals-release"
+    -DCMAKE_EXPORT_COMPILE_COMMANDS=On
+    ```
 
 - Debug Profile
   - _Generation path_: `build/linux-debug`
   - _Build options_: `--parallel 8`
   - _CMAKE options_:
-```
--DCMAKE_BUILD_TYPE=Debug
--DCMAKE_INSTALL_PREFIX="<path to cosmoscout>/install/linux-debug"
--DCOSMOSCOUT_EXTERNALS_DIR="<path to cosmoscout>/install/linux-externals-release"
--DCMAKE_EXPORT_COMPILE_COMMANDS=On
-```
+    ```bash
+    -DCMAKE_BUILD_TYPE=Debug
+    -DCMAKE_INSTALL_PREFIX="<path to cosmoscout>/install/linux-debug"
+    -DCOSMOSCOUT_EXTERNALS_DIR="<path to cosmoscout>/install/linux-externals-release"
+    -DCMAKE_EXPORT_COMPILE_COMMANDS=On
+    ```
 
 - Go to: _Run/Debug Configuration_ -> _CMake Application_ -> _cosmoscout_
 - Release profile
