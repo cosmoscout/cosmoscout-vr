@@ -11,11 +11,13 @@ file(GLOB SOURCE_FILES *.cpp */*.cpp)
 # Resoucre files and header files are only added in order to make them available in your IDE.
 file(GLOB HEADER_FILES *.hpp */*.hpp)
 file(GLOB_RECURSE RESOUCRE_FILES ../../resources/*)
+file(GLOB_RECURSE CONFIG_FILES ../../config/*)
 
 add_executable(cosmoscout
   ${SOURCE_FILES}
   ${HEADER_FILES}
   ${RESOUCRE_FILES}
+  ${CONFIG_FILES}
 )
 
 # cef needs to be linked first due to https://magpcss.org/ceforum/viewtopic.php?f=6&t=15118&start=10
@@ -27,12 +29,22 @@ target_link_libraries(cosmoscout
   cs-core
 )
 
-# We mark all resource files as "header" in order to make sure that no one tries to compile them.
+# We mark all resource and config files as "header"
+# in order to make sure that no one tries to compile them.
 set_source_files_properties(${RESOUCRE_FILES} PROPERTIES HEADER_FILE_ONLY TRUE)
+set_source_files_properties(${CONFIG_FILES} PROPERTIES HEADER_FILE_ONLY TRUE)
 
 # Make directory structure available in your IDE.
-source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" PREFIX "src" FILES 
-  ${SOURCE_FILES} ${HEADER_FILES}
+source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" PREFIX "src"
+  FILES ${SOURCE_FILES} ${HEADER_FILES}
+)
+
+source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/../../resources" PREFIX "resources"
+  FILES ${RESOUCRE_FILES}
+)
+
+source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/../../config" PREFIX "config"
+  FILES ${CONFIG_FILES}
 )
 
 source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/../../resources" PREFIX "resources" FILES 
