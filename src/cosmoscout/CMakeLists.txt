@@ -47,8 +47,10 @@ source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/../../config" PREFIX "config"
   FILES ${CONFIG_FILES}
 )
 
-source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/../../resources" PREFIX "resources" FILES 
-  ${RESOUCRE_FILES}
+# Make sure that CosmoScout VR can be directly started from within Visual Studio.
+set_target_properties(cosmoscout PROPERTIES 
+  VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_INSTALL_PREFIX}\\bin"
+  VS_DEBUGGER_ENVIRONMENT "PATH=..\\lib;%PATH% VISTACORELIBS_DRIVER_PLUGIN_DIRS=..\\lib\\DriverPlugins"
 )
 
 # install executable ---------------------------------------------------------------------------------
