@@ -7,10 +7,10 @@
 Below you find some instructions on how to setup your preferred IDE for CosmoScout VR development. 
 
 * [CLion](#clion)
-* [Eclipse](#eclipse)
-* [Sublime Text](#sublime-text)
-* [Visual Studio](#visual-studio)
-* [Visual Studio Code](#visual-studio-code)
+* [Eclipse](#-eclipse)
+* [Sublime Text](#-sublime-text)
+* [Visual Studio](#-visual-studio)
+* [Visual Studio Code](#-visual-studio-code)
 
 
 ## CLion
