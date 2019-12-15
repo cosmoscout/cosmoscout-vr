@@ -4,7 +4,14 @@
 
 # Configuring your IDE
 
-Below you find some instructions on how to setup your preferred IDE for CosmoScout VR development.
+Below you find some instructions on how to setup your preferred IDE for CosmoScout VR development. 
+
+* [CLion](#clion)
+* [Eclipse](#eclipse)
+* [Sublime Text](#sublime-text)
+* [Visual Studio](#visual-studio)
+* [Visual Studio Code](#visual-studio-code)
+
 
 ## CLion
 
@@ -66,7 +73,21 @@ _TODO_
 - [GitToolBox](https://plugins.jetbrains.com/plugin/7499-gittoolbox/)
 - [GLSL Support](https://plugins.jetbrains.com/plugin/6993-glsl-support/)
 
-## Visual Studio Code
+## <img src="https://simpleicons.org/icons/eclipseide.svg" alt="Simple Icons" width=24 height=18> Eclipse
+
+_TODO_
+
+## <img src="https://simpleicons.org/icons/sublimetext.svg" alt="Simple Icons" width=24 height=18> Sublime Text
+
+_TODO_
+
+## <img src="https://simpleicons.org/icons/visualstudio.svg" alt="Simple Icons" width=24 height=18> Visual Studio
+
+First, you should follow the [Generic Build Instructions](install.md) for Windows. Once CosmoScout VR has been compiled successfully, you can simply open the `cosmoscout-vr.sln` solution in either `build\windows-debug` or `build\windows-release`.
+
+Due to the build process of CosmoScout VR, this solution can only be used for Debug or Release mode respectively. Therefore you have to select the corresponding configuration type in Visual Studio.
+
+## <img src="https://simpleicons.org/icons/visualstudiocode.svg" alt="Simple Icons" width=24 height=18> Visual Studio Code
 
 For Visual Studio Code, only the [C/C++ Extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools) is required.
 However, we can also recommend the following extensions: [CMake](https://marketplace.visualstudio.com/items?itemName=twxs.cmake), [Markdown Preview Github Styling](https://marketplace.visualstudio.com/items?itemName=bierner.markdown-preview-github-styles) and [Code Spell Checker](https://marketplace.visualstudio.com/items?itemName=streetsidesoftware.code-spell-checker).
@@ -91,7 +112,12 @@ We will discuss these files in the following.
         "$gcc"
       ],
       "windows": {
-        "command": ".\\make.bat"
+        "command": ".\\make.bat",
+        "options": {
+          "env": {
+            "BOOST_ROOT": "C:\\local\\boost_1_69_0"
+          }
+        }
       }
     },
     {
@@ -108,7 +134,12 @@ We will discuss these files in the following.
         "$gcc"
       ],
       "windows": {
-        "command": ".\\make.bat"
+        "command": ".\\make.bat",
+        "options": {
+          "env": {
+            "BOOST_ROOT": "C:\\local\\boost_1_69_0"
+          }
+        }
       }
     },
     {
@@ -157,6 +188,8 @@ We will discuss these files in the following.
   ]
 }
 ```
+
+If you are on Windows, you may have to replace the `"BOOST_ROOT"` environment variable in this file.
 
 With this file in place, you can press `Ctrl+Shift+P` and select `Tasks: Run Task`. Now you can first select `Make Externals (Release)`, then `Make (Release)` and later `Run CosmoScout VR`.
 
