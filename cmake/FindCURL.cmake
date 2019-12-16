@@ -9,7 +9,7 @@ find_path(CURL_INCLUDE_DIR curl/curl.h
     HINTS ${CURL_ROOT_DIR}/include)
 
 # Locate library.
-find_library(CURL_LIBRARY NAMES curl libcurl_imp libcurl-d_imp
+find_library(CURL_LIBRARY NAMES curl curl-d libcurl_imp libcurl-d_imp
     HINTS ${CURL_ROOT_DIR}/lib ${CURL_ROOT_DIR}/lib64)
 
 include(FindPackageHandleStandardArgs)

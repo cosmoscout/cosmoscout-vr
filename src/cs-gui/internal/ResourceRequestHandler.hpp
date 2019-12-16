@@ -4,26 +4,25 @@
 //                        Copyright: (c) 2019 German Aerospace Center (DLR)                       //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#ifndef CS_GUI_DETAIL_DISPLAYHANDLER_HPP
-#define CS_GUI_DETAIL_DISPLAYHANDLER_HPP
+#ifndef CS_GUI_DETAIL_RESOURCEREQUESTHANDLER_HPP
+#define CS_GUI_DETAIL_RESOURCEREQUESTHANDLER_HPP
 
 #include <include/cef_client.h>
 
 namespace cs::gui::detail {
 
-/// This implementation of CefDisplayHandler is used to forward browser console messages to the
-/// standard output.
-class DisplayHandler : public CefDisplayHandler {
+/// Implements browser requests to system resources etc.
+class ResourceRequestHandler : public CefResourceRequestHandler {
 
  public:
-  /// Prints browser console log messages to the standard output.
-  bool OnConsoleMessage(CefRefPtr<CefBrowser> browser, cef_log_severity_t level,
-      CefString const& message, CefString const& source, int line) override;
+  /// Forwards file loading to the file system.
+  CefRefPtr<CefResourceHandler> GetResourceHandler(CefRefPtr<CefBrowser> browser,
+      CefRefPtr<CefFrame> frame, CefRefPtr<CefRequest> request) override;
 
  private:
-  IMPLEMENT_REFCOUNTING(DisplayHandler);
+  IMPLEMENT_REFCOUNTING(ResourceRequestHandler);
 };
 
 } // namespace cs::gui::detail
 
-#endif // CS_GUI_DETAIL_DISPLAYHANDLER_HPP
+#endif // CS_GUI_DETAIL_RESOURCEREQUESTHANDLER_HPP

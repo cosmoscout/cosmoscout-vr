@@ -12,8 +12,8 @@ namespace cs::gui::detail {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool DisplayHandler::OnConsoleMessage(
-    CefRefPtr<CefBrowser> browser, CefString const& message, CefString const& source, int line) {
+bool DisplayHandler::OnConsoleMessage(CefRefPtr<CefBrowser> browser, cef_log_severity_t level,
+    CefString const& message, CefString const& source, int line) {
 
   std::string path(source.ToString());
   int         pos((int)path.find_last_of("/\\"));
