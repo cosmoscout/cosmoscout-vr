@@ -1,8 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
     <meta charset="utf-8">
+    <title>CosmoScout Loading Screen</title>
 
     <style>
         @font-face {
@@ -13,7 +14,7 @@
         body {
             margin: 0;
             overflow: hidden;
-            font-family: 'AlegreyaSansSC' !important;
+            font-family: 'AlegreyaSansSC',sans-serif;
             color: #fff;
             text-shadow: 0 0 3vmin rgba(255, 255, 255, 0.5), 0 0 1vmin rgba(255, 255, 255, 0.5);
             opacity: 0;
@@ -22,7 +23,7 @@
 
         body.visible {
             transition: none;
-            opacity: 1 !important;
+            opacity: 1;
         }
 
         #background {
@@ -57,7 +58,7 @@
         }
 
         #progress-bar {
-            width: 0%;
+            width: 0;
             height: 100%;
             background: linear-gradient(to right, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.7));
             box-shadow: 0 0 3vmin rgba(255, 255, 255, 0.5), 0 0 1vmin rgba(255, 255, 255, 0.5);
@@ -98,7 +99,7 @@
                 document.body.className = "";
 
                 setTimeout(function () {
-                    if (document.body.className == "") {
+                    if (document.body.className === "") {
                         window.call_native("finished_fadeout");
                     }
                 }, 1500);

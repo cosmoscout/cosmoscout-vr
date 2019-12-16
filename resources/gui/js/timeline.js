@@ -4,17 +4,6 @@ function init() {
     $("#timeline-container").addClass("visible");
 }
 
-// Sets the timeline to the given date
-function set_date(date) {
-}
-
-// Prints a notifivcatio for the time-speed and changes the slider if the time is paused
-function set_time_speed(speed) {
-}
-
-// Adds a new event to the timeline
-function add_item(start, end, id, content, style, description, planet, place) {
-}
 
 // Add a Button to the button bar
 // @param icon The materialize icon to use
@@ -22,35 +11,13 @@ function add_item(start, end, id, content, style, description, planet, place) {
 // @param callback Native function that gets called if the button is clicked. The function has
 //                  to be registered as callback before clicking the button.
 function add_button(icon, tooltip, callback) {
-    var button = document.createElement("a");
-    button.setAttribute('class', "btn light-glass");
-    button.setAttribute('data-toggle', 'tooltip');
-    button.setAttribute('title', tooltip);
-    callback = "window.call_native('" + callback + "')";
-    button.setAttribute("onClick", callback);
-    var iconElement = document.createElement("i");
-    iconElement.innerHTML = icon;
-    iconElement.setAttribute("class", "material-icons");
-    button.appendChild(iconElement);
-    document.getElementById("plugin-buttons").appendChild(button);
-    $('[data-toggle="tooltip"]').tooltip({delay: 500, placement: "top", html: false});
+    return CosmoScout.call('timeline', 'addButton', icon, tooltip, callback);
 }
 
 function set_north_direction(angle) {
-    $("#compass-arrow").css("transform", "rotateZ(" + angle + "rad)");
+    return CosmoScout.call('timeline', 'setNorthDirection', angle);
 }
 
-// Sets the active planet
-function set_active_planet(center) {
-}
-
-// Sets the position of the user
-function set_user_position(long, lat, height) {
-}
-
-// Sets the min and max date for the timeline
-function set_timeline_range(min, max) {
-}
 
 // timeline configuration --------------------------------------------------------------------------
 
@@ -69,8 +36,6 @@ var leftTimeId = 'leftTime';
 var rightTimeId = 'rightTime';
 
 var drawFocusLensCallback = null;
-
-var firstTime = true;
 
 var zoomPercentage = 0.2;
 var timelineZoomBlocked = true;
@@ -94,6 +59,7 @@ var maxRangeFactor = 100000000;
 var minRangeFactor = 5;
 
 var redrawRate = 16.666666;
+var redrawRate = 300;
 var secSpeed = 0.0166666;
 var hourSpeed = 60;
 var daySpeed = 1440;
@@ -273,7 +239,7 @@ overviewTimeLine.on('itemover', item_over_overview_callback);
 overviewTimeLine.on('itemout', item_out_callback);
 initial_overview_window(new Date(1950, 1), new Date(2030, 12));
 
-document.getElementById("dateLabel").innerText = format_date_readable(centerTime);
+document.getElementById("dateLabel").innerText = DateOperations.formatDateReadable(centerTime);
 
 move_window(secSpeed);
 
@@ -282,39 +248,6 @@ function set_active_planet(center) {
     activePlanetCenter = center;
 }
 
-
-function format_number(number) {
-    if (Math.abs(number) < 10) return number.toFixed(2);
-    else if (Math.abs(number) < 100) return number.toFixed(1);
-    else return number.toFixed(0);
-}
-
-function format_height(height) {
-    if (Math.abs(height) < 0.1) return format_number(height * 1000) + ' mm';
-    else if (Math.abs(height) < 1) return format_number(height * 100) + ' cm';
-    else if (Math.abs(height) < 1e4) return format_number(height) + ' m';
-    else if (Math.abs(height) < 1e7) return format_number(height / 1e3) + ' km';
-    else if (Math.abs(height) < 1e10) return format_number(height / 1e6) + ' Tsd km';
-    else if (Math.abs(height / 1.496e11) < 1e4) return format_number(height / 1.496e11) + ' AU';
-    else if (Math.abs(height / 9.461e15) < 1e3) return format_number(height / 9.461e15) + ' ly';
-    else if (Math.abs(height / 3.086e16) < 1e3) return format_number(height / 3.086e16) + ' pc';
-
-    return format_number(height / 3.086e19) + ' kpc';
-}
-
-function format_latitude(lat) {
-    if (lat < 0)
-        return (-lat).toFixed(2) + "° S ";
-    else
-        return (lat).toFixed(2) + "° N ";
-}
-
-function format_longitude(long) {
-    if (long < 0)
-        return (-long).toFixed(2) + "° W ";
-    else
-        return (long).toFixed(2) + "° E ";
-}
 
 function set_user_position(long, lat, height) {
     userPosition.long = long;
@@ -325,6 +258,7 @@ function set_user_position(long, lat, height) {
 // Redraws the tooltip of an event while the event is visible
 function redraw_tooltip(event) {
     return new Promise(resolve => {
+        console.log('Redraw')
         var eventRect = event.getBoundingClientRect();
         var left = eventRect.left - 150 < 0 ? 0 : eventRect.left - 150;
         document.getElementById("event-tooltip-container").style.top = eventRect.bottom + 'px';
@@ -347,61 +281,28 @@ async function start_redraw_tooltip(event) {
 var hoveredItem;
 var tooltipVisible = false;
 var hoveredHTMLEvent;
-var animationTime = 5;
-var withoutAnimationTime = 0;
 
-//Flys the observer to a given location
-function fly_to_location(planet, location, time) {
-    window.call_native("fly_to", planet, location.longitude, location.latitude, location.height, time);
-    window.call_native("print_notification", "Travelling", "to " + location.name, "send");
-}
-
-function parse_height(heightStr, unit) {
-    var height = parseFloat(heightStr);
-    if (unit === 'mm') return height / 1000;
-    else if (unit === 'cm') return height / 100;
-    else if (unit === 'm') return height;
-    else if (unit === 'km') return height * 1e3;
-    else if (unit === 'Tsd') return height * 1e6;
-    else if (unit === 'AU') return height * 1.496e11;
-    else if (unit === 'ly') return height * 9.461e15;
-    else if (unit === 'pc') return height * 3.086e16;
-
-    return height * 3.086e19;
-}
-
-function parse_latitude(lat, half) {
-    lat = lat.substr(0, lat.length - 1);
-    if (half === 'S')
-        return parseFloat(-lat);
-    else
-        return parseFloat(lat);
-}
-
-function parse_longitude(long, half) {
-    long = long.substr(0, long.length - 1);
-    if (half === 'W')
-        return parseFloat(-long);
-    else
-        return parseFloat(long);
-}
 
 // Extracts the needed information out of the human readable place string
 // and calls fly_to_location for the given location.
 function travel_to(direct, planet, place, name) {
-    var placeArr = place.split(" ");
-    var location = {
+    CosmoScout.call('timeline', 'travelTo', direct, planet, place, name);
+/*    console.log(place);
+    let placeArr = place.split(" ");
+    let location = {
         "longitude": parse_longitude(placeArr[0], placeArr[1]),
         "latitude": parse_latitude(placeArr[2], placeArr[3]),
         "height": parse_height(placeArr[4], placeArr[5]),
         "name": name
     };
 
+    let time = animationTime;
+
     if (direct) {
-        fly_to_location(planet, location, withoutAnimationTime);
-    } else {
-        fly_to_location(planet, location, animationTime);
+        time = withoutAnimationTime
     }
+
+    CosmoScout.call('flyto', 'flyTo', planet, location.longitude, location.latitude, location.height, time);*/
 }
 
 // Shows a tooltip if an item is hovered
@@ -410,6 +311,7 @@ function item_over_callback(properties, overview) {
     tooltipVisible = true;
     for (var item in items._data) {
         if (items._data[item].id === properties.item) {
+            console.log('Over TRUE', properties.item, items._data[item].id);
             document.getElementById("event-tooltip-content").innerHTML = items._data[item].content;
             document.getElementById("event-tooltip-description").innerHTML = items._data[item].description;
             document.getElementById("event-tooltip-location").innerHTML = "<i class='material-icons'>send</i> " + items._data[item].planet + " " + items._data[item].place;
@@ -577,14 +479,14 @@ function on_add_callback(item, callback, overview) {
     document.getElementById("event-dialog-description").style.border = "";
     timeline.setOptions(whileEditingOpt);
     overviewTimeLine.setOptions(whileEditingOpt);
-    document.getElementById("headlineForm").innerText = "Add";
+    document.getElementById("headlineForm").innerText = "Add Event";
     document.getElementById("event-dialog-name").value = "";
     document.getElementById("add-event-dialog").style.display = "block";
     document.getElementById("event-dialog-start-date").value = get_formatted_dateWithTime(item.start);
     document.getElementById("event-dialog-end-date").value = "";
     document.getElementById("event-dialog-description").value = "";
     document.getElementById("event-dialog-planet").value = activePlanetCenter;
-    document.getElementById("event-dialog-location").value = format_longitude(userPosition.long) + format_latitude(userPosition.lat) + format_height(userPosition.height);
+    document.getElementById("event-dialog-location").value = Format.longitude(userPosition.long) + Format.latitude(userPosition.lat) + Format.height(userPosition.height);
     parHolder.item = item;
     parHolder.callback = callback;
     parHolder.overview = overview;
@@ -663,6 +565,7 @@ function range_change_callback(properties) {
         var dif = properties.start.getTime() - mouseDownLeftTime.getTime();
         var secondsDif = dif / 1000;
         var hoursDif = secondsDif / 60 / 60;
+        console.log(secondsDif);
         var step = convert_seconds(secondsDif);
         var date = new Date(centerTime.getTime());
         date = increase_date(date, step.days, step.hours, step.minutes, step.seconds, step.milliSec);
@@ -685,8 +588,9 @@ function set_overview_times() {
 
 // Change time to the start date of the selected item
 function on_select(properties) {
-    var mouseOverDisabled = true;
+    console.log(properties);
     for (var item in items._data) {
+        console.log(items._data[item].id === properties.items, items._data[item].id)
         if (items._data[item].id === properties.items) {
             var dif = items._data[item].start.getTime() - centerTime.getTime();
             var hoursDif = dif / 1000 / 60 / 60;
@@ -704,6 +608,7 @@ function on_select(properties) {
 // Actively redraw the snipped so if the time is paused the range indicator fades in/out together with the timeline
 function redraw_focus_lens() {
     return new Promise(resolve => {
+        console.log('redraw');
         if (parseInt(currentSpeed) === paus) {
             timeline.setOptions(pausOpt);
         }
@@ -855,12 +760,14 @@ function move_window() {
     timeline.setWindow(startDate, endDate, animationFalse);
 }
 
-function set_date(date) {
+set_date = _.throttle(_set_date, 128);
+
+function _set_date(date) {
     centerTime = new Date(date);
     timeline.moveTo(centerTime, animationFalse);
     timeline.setCustomTime(centerTime, timeId);
     set_overview_times();
-    document.getElementById("dateLabel").innerText = format_date_readable(centerTime);
+    document.getElementById("dateLabel").innerText = DateOperations.formatDateReadable(centerTime);
 }
 
 // Changes the shown date to a given date without synchronizing with CosmoScout VR
@@ -869,38 +776,11 @@ function set_date_local(date) {
     timeline.moveTo(centerTime, animationFalse);
     timeline.setCustomTime(centerTime, timeId);
     set_overview_times();
-    document.getElementById("dateLabel").innerText = format_date_readable(centerTime);
+    document.getElementById("dateLabel").innerText = DateOperations.formatDateReadable(centerTime);
 }
 
 function set_time_speed(speed) {
-    $("#play-pause-icon").text("pause");
-    if (speed === 0.0) {
-        $("#play-pause-icon").text("play_arrow");
-        set_pause();
-        window.call_native("print_notification", "Pause", "Time is paused.", "pause");
-    } else if (speed == 1) {
-        window.call_native("print_notification", "Speed: Realtime", "Time runs in realtime.", "play_arrow");
-    } else if (speed == 60) {
-        window.call_native("print_notification", "Speed: Min/s", "Time runs at one minute per second.", "fast_forward");
-    } else if (speed == 3600) {
-        window.call_native("print_notification", "Speed: Hour/s", "Time runs at one hour per second.", "fast_forward");
-    } else if (speed === 86400) {
-        window.call_native("print_notification", "Speed: Day/s", "Time runs at one day per second.", "fast_forward");
-    } else if (speed === 2628000) {
-        window.call_native("print_notification", "Speed: Month/s", "Time runs at one month per second.", "fast_forward");
-    } else if (speed == -1) {
-        window.call_native("print_notification", "Speed: -Realtime", "Time runs backwards in realtime.", "fast_rewind");
-    } else if (speed == -60) {
-        window.call_native("print_notification", "Speed: -Min/s", "Time runs backwards at one minute per second.", "fast_rewind");
-    } else if (speed == -3600) {
-        window.call_native("print_notification", "Speed: -Hour/s", "Time runs backwards at one hour per second.", "fast_rewind");
-    } else if (speed === -86400) {
-        window.call_native("print_notification", "Speed: -Day/s", "Time runs backwards at one day per second.", "fast_rewind");
-    } else if (speed === -2628000) {
-        window.call_native("print_notification", "Speed: -Month/s", "Time runs backwards at one month per second.", "fast_rewind");
-    }
-
-    timeSpeed = speed;
+    CosmoScout.call('timeline', 'setTimeSpeed', speed);
 }
 
 // Pauses the simulation
@@ -1205,6 +1085,7 @@ function drawFocusLens() {
     if (width < minWidth) {
         width = minWidth + 2 * borderWidth;
         xValue = -(leftRect.left + minWidth - rightRect.right) / 2 - borderWidth;
+        xValue = Math.round(xValue);
         divElement.style.transform = " translate(" + xValue + "px, 0px)";
     } else {
         divElement.style.transform = " translate(0px, 0px)";
@@ -1281,7 +1162,7 @@ function enter_new_center_time() {
     }
 }
 
-
+/*
 // Called if the Calendar is used to enter a start date of an event
 function enter_start_date() {
     if (state === newStartDateId) {
@@ -1303,7 +1184,7 @@ function enter_end_date() {
         calenderVisible = true;
         set_visible(true);
     }
-}
+}*/
 
 // Called if an Date in the Calendar is picked
 function change_date_callback(e) {

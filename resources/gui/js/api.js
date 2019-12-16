@@ -1,6 +1,8 @@
 /**
  * Simplistic api interface containing a name field and init method
  */
+import * as vis from "../third-party/js/vis-timeline-graph2d.min";
+
 class IApi {
     /**
      * Api Name
@@ -49,6 +51,7 @@ class CosmoScout {
         this.initChecklabelInputs();
         this.initRadiolabelInputs();
         this.initTooltips();
+        this.initDataCalls();
     }
 
     /**
@@ -89,6 +92,22 @@ class CosmoScout {
             input.addEventListener('change', event => {
                 if (event.target !== null) {
                     CosmoScout.callNative(event.target.id);
+                }
+            })
+        });
+    }
+
+    /**
+     * @see {initInputs}
+     * Adds an onclick listener to every element containing [data-call="methodname"]
+     * The method name gets passed to call_native
+     */
+    static initDataCalls() {
+        document.querySelectorAll('[data-call]').forEach(input => {
+            input.addEventListener('click', () => {
+                console.log(input.dataset);
+                if (typeof input.dataset.call !== "undefined") {
+                    CosmoScout.callNative(input.dataset.call);
                 }
             })
         });
@@ -258,7 +277,7 @@ class CosmoScout {
      * @param api {Object}
      */
     static register(name, api) {
-        window[name + 'Api'] = api;
+        this[name] = api;
         this._apis.set(name, api);
     }
 
@@ -268,7 +287,7 @@ class CosmoScout {
      * @param name {string}
      */
     static remove(name) {
-        delete window[name + 'Api'];
+        delete this[name];
         this._apis.delete(name);
     }
 
@@ -295,7 +314,7 @@ class CosmoScout {
 }
 
 class SidebarApi extends IApi {
-    /**
+    /**print_notification
      * @inheritDoc
      */
     name = 'sidebar';
@@ -472,12 +491,12 @@ class SidebarApi extends IApi {
     }
 
     setElevationDataCopyright(copyright) {
-        $("#img-data-copyright").tooltip({title: "© " + text, placement: "top"});
+        $("#img-data-copyright").tooltip({title: "© " + copyright, placement: "top"});
 
     }
 
     setMapDataCopyright(copyright) {
-        $("#dem-data-copyright").tooltip({title: "© " + text, placement: "bottom"});
+        $("#dem-data-copyright").tooltip({title: "© " + copyright, placement: "bottom"});
     }
 
     /**
@@ -697,11 +716,184 @@ class SidebarApi extends IApi {
     }
 }
 
+class VisTimelineEvent {
+    /**
+     * @type {Number|null}
+     */
+    group;
+
+    /**
+     * @type {Number|null}
+     */
+    item;
+
+    /**
+     * @type {Number|null}
+     */
+    customTime;
+
+    /**
+     * @type {Number}
+     */
+    pageX;
+
+    /**
+     * @type {Number}
+     */
+    pageY;
+
+    /**
+     * @type {Number}
+     */
+    x;
+
+    /**
+     * @type {Number}
+     */
+    y;
+
+    /**
+     * @type {Date}
+     */
+    time;
+
+
+    /**
+     * @type {Date}
+     */
+    snappedTime;
+
+    /**
+     * @type {string|null}
+     */
+    what;
+
+    /**
+     * @type {Event}
+     */
+    event;
+
+
+    /* Select Event */
+    /**
+     * @type {Number[]}
+     */
+    items;
+}
+
 class TimelineApi extends IApi {
     name = 'timeline';
+
+    PAUSE = 0;
+    REALTIME = 1;
+    MINUTES = 60;
+    HOURS = 3600;
+    DAYS = 86400;
+    MONTHS = 2628000;
+
+
     _buttonTemplate;
     _buttonContainer;
 
+    /**
+     * @type {DataSet}
+     */
+    _items;
+
+    /**
+     * @type {DataSet}
+     */
+    _itemsOverview;
+
+    _pauseOptions = {
+        moveable: true,
+        zoomable: true,
+    };
+
+    _playingOptions = {
+        moveable: false,
+        zoomable: false,
+    };
+
+    /**
+     * @type {Timeline}
+     */
+    _timeline;
+
+    _timelineOptions = {
+        minHeight: 35,
+        maxHeight: 35,
+        stack: false,
+        max: new Date(2030, 12),
+        min: new Date(1950, 1),
+        zoomable: false,
+        moveable: false,
+        showCurrentTime: false,
+        editable: {
+            add: true,         // add new items by double tapping
+            updateTime: true,  // drag items horizontally
+            updateGroup: false, // drag items from one group to another
+            remove: false,       // delete an item by tapping the delete button top right
+            overrideItems: false  // allow these options to override item.editable
+        },
+        onAdd: on_add_callback,
+        onUpdate: on_update_callback,
+        onMove: on_item_move_callback,
+        format: {
+            minorLabels: {
+                millisecond: 'SSS[ms]',
+                second: 's[s]',
+                minute: 'HH:mm',
+                hour: 'HH:mm',
+                weekday: 'ddd D',
+                day: 'ddd D',
+                week: 'MMM D',
+                month: 'MMM',
+                year: 'YYYY'
+            },
+            majorLabels: {
+                millisecond: 'HH:mm:ss',
+                second: 'D MMMM HH:mm',
+                minute: 'ddd D MMMM',
+                hour: 'ddd D MMMM',
+                weekday: 'MMMM YYYY',
+                day: 'MMMM YYYY',
+                week: 'MMMM YYYY',
+                month: 'YYYY',
+                year: ''
+            }
+        }
+    };
+
+    /**
+     * @type {Timeline}
+     */
+    _overviewTimeline;
+
+    _overviewTimelineOptions = {
+        minHeight: 40,
+        maxHeight: 40,
+        stack: false,
+        max: new Date(2030, 12),
+        min: new Date(1950, 1),
+        zoomable: true,
+        moveable: true,
+        showCurrentTime: false,
+        editable: {
+            add: true,         // add new items by double tapping
+            updateTime: false,  // drag items horizontally
+            updateGroup: false, // drag items from one group to another
+            remove: false,       // delete an item by tapping the delete button top right
+            overrideItems: false  // allow these options to override item.editable
+        },
+        onAdd: overview_on_add_callback,
+        onUpdate: overview_on_update_callback,
+        onMove: on_item_move_overview_callback
+    };
+
+    /**
+     * @type {string}
+     */
     _activePlanetName;
 
     _userPosition = {
@@ -710,9 +902,518 @@ class TimelineApi extends IApi {
         height: 0,
     };
 
+    /**
+     * @type {HTMLElement}
+     */
+    _timeSpeedSlider;
+
+    _timeSpeedSteps = {
+        pause: 0,
+        secForward: 1,
+        minForward: 2,
+        hourForward: 3,
+        dayForward: 4,
+        monthForward: 5,
+        secBack: -1,
+        minBack: -2,
+        hourBack: -3,
+        dayBack: -4,
+        monthBack: -5,
+    };
+
+    _click = false;
+    _currentSpeed;
+
+    /**
+     * @type {Date}
+     */
+    _centerTime;
+    _mouseOnTimelineDown;
+
+    _mouseDownLeftTime;
+    _minWidth;
+
+    _borderWidth;
+
+    _pause;
+
     init() {
         this._buttonTemplate = document.getElementById('button-template').content.cloneNode(true);
         this._buttonContainer = document.getElementById('plugin-buttons');
+
+        this._initTimeSpeedSlider();
+
+        this._items = new vis.DataSet();
+        this._itemsOverview = new vis.DataSet();
+
+        this._initTimelines();
+        this._initEventListener();
+    }
+
+    /**
+     *
+     * @param event {MouseEvent|WheelEvent}
+     * @private
+     */
+    _changeTime(event) {
+        if (typeof event.target.dataset.diff === "undefined") {
+            return;
+        }
+
+        let diff = parseInt(event.target.dataset.diff);
+
+        const date = new Date(this._centerTime.getTime());
+        this._centerTime.setSeconds(diff);
+        const dif = centerTime.getTime() - date.getTime();
+        const hoursDiff = dif / 1000 / 60 / 60;
+        CosmoScout.callNative("add_hours_without_animation", hoursDiff);
+    }
+
+    /**
+     *
+     * @param event {WheelEvent}
+     * @private
+     */
+    _changeTimeScroll(event) {
+        if (typeof event.target.dataset.diff === "undefined") {
+            return;
+        }
+
+        let diff = parseInt(event.target.dataset.diff);
+        // Data attribute is set in seconds. Call native wants hours
+        diff = Math.abs(diff) / 3600;
+
+        if (event.deltaY < 0) {
+            diff = -diff
+        }
+
+        CosmoScout.callNative('add_hours_without_animation', diff);
+    }
+
+    _initEventListener() {
+        this._timelineContainer.addEventListener("wheel", this._manualZoomTimeline, true);
+
+        const buttons = [
+            "decrease-year-button",
+            "decrease-month-button",
+            "decrease-day-button",
+            "decrease-hour-button",
+            "decrease-minute-button",
+            "decrease-second-button",
+
+            "increase-year-button",
+            "increase-month-button",
+            "increase-day-button",
+            "increase-hour-button",
+            "increase-minute-button",
+            "increase-second-button",
+        ];
+
+        buttons.forEach(button => {
+            const ele = document.getElementById(button);
+
+            if (ele instanceof HTMLElement) {
+                ele.addEventListener('click', this._changeTime);
+                ele.addEventListener('wheel', this._changeTimeScroll);
+            }
+        });
+
+
+        document.getElementById("pause-button").addEventListener('click', toggle_pause);
+        document.getElementById("speed-decrease-button").addEventListener('click', decrease_speed);
+        document.getElementById("speed-increase-button").addEventListener('click', increase_speed);
+
+        document.getElementById("event-tooltip-location").addEventListener('click', travel_to_item_location);
+
+        document.getElementById("time-reset-button").addEventListener('click', reset_time);
+
+        document.getElementsByClassName('range-label')[0].addEventListener('mousedown', this._rangeUpdateCallback);
+
+
+        document.getElementById("event-dialog-cancel-button").addEventListener('click', close_form);
+        document.getElementById("event-dialog-apply-button").addEventListener('click', apply_event);
+
+
+        document.getElementById("event-tooltip-container").addEventListener('mouseleave', this._leaveCustomTooltip);
+    }
+
+    _initTimeSpeedSlider() {
+        this._timeSpeedSlider = document.getElementById('range');
+
+        noUiSlider.create(this._timeSpeedSlider, {
+            range: {
+                'min': this._timeSpeedSteps.monthBack,
+                '4.5%': this._timeSpeedSteps.dayBack,
+                '9%': this._timeSpeedSteps.hourBack,
+                '13.5%': this._timeSpeedSteps.minBack,
+                '18%': this._timeSpeedSteps.secBack,
+                '82%': this._timeSpeedSteps.secForward,
+                '86.5%': this._timeSpeedSteps.minForward,
+                '91%': this._timeSpeedSteps.hourForward,
+                '95.5%': this._timeSpeedSteps.dayForward,
+                'max': this._timeSpeedSteps.monthForward,
+            },
+            snap: true,
+            start: 1
+        });
+
+        this._timeSpeedSlider.noUiSlider.on('update', this._rangeUpdateCallback);
+    }
+
+    _firstSliderValue;
+
+    _rangeUpdateCallback() {
+        this._currentSpeed = this._timeSpeedSlider.noUiSlider.get();
+        if (this._firstSliderValue) {
+            document.getElementsByClassName("range-label")[0].innerHTML = '<i class="material-icons">chevron_right</i>';
+            this._firstSliderValue = false;
+            return;
+        }
+
+        document.getElementById("pause-button").innerHTML = '<i class="material-icons">pause</i>';
+        this._timeline.setOptions(this._playingOptions);
+        timelineZoomBlocked = true;
+        if (parseInt(this._currentSpeed) < this._pause) {
+            document.getElementsByClassName("range-label")[0].innerHTML = '<i class="material-icons">chevron_left</i>';
+        } else {
+            document.getElementsByClassName("range-label")[0].innerHTML = '<i class="material-icons">chevron_right</i>';
+        }
+
+        // 43800 = Month Speed
+        this._moveWindow(43800);
+
+        switch (parseInt(this._currentSpeed)) {
+            case this._timeSpeedSteps.monthBack:
+                CosmoScout.callNative("set_time_speed", -this.MONTHS);
+                break;
+            case this._timeSpeedSteps.dayBack:
+                CosmoScout.callNative("set_time_speed", -this.DAYS);
+                break;
+            case this._timeSpeedSteps.hourBack:
+                CosmoScout.callNative("set_time_speed", -this.HOURS);
+                break;
+            case this._timeSpeedSteps.minBack:
+                CosmoScout.callNative("set_time_speed", -this.MINUTES);
+                break;
+            case this._timeSpeedSteps.secBack:
+                CosmoScout.callNative("set_time_speed", -1);
+                break;
+            case this._timeSpeedSteps.secForward:
+                CosmoScout.callNative("set_time_speed", 1);
+                break;
+            case this._timeSpeedSteps.minForward:
+                CosmoScout.callNative("set_time_speed", this.MINUTES);
+                break;
+            case this._timeSpeedSteps.hourForward:
+                CosmoScout.callNative("set_time_speed", this.HOURS);
+                break;
+            case this._timeSpeedSteps.dayForward:
+                CosmoScout.callNative("set_time_speed", this.DAYS);
+                break;
+            case this._timeSpeedSteps.monthForward:
+                CosmoScout.callNative("set_time_speed", this.MONTHS);
+                break;
+            default:
+        }
+    }
+
+
+    _rightTimeId = 'rightTime';
+
+    _leftTimeId = 'leftTime';
+
+    _timeId = 'custom';
+
+    _initTimelines() {
+        const timelineContainer = document.getElementById('timeline');
+        timelineContainer.addEventListener("wheel", this._manualZoomTimeline, true);
+
+        const overviewContainer = document.getElementById('overview');
+
+        this._timeline = new vis.Timeline(timelineContainer, this._items, this._timelineOptions);
+        this._centerTime = this._timeline.getCurrentTime();
+        this._timeline.on('select', this._onSelect);
+        this._timeline.moveTo(this._centerTime, {
+            animation: false,
+        });
+
+        this._timeline.addCustomTime(this._this._centerTime, this._timeId);
+        this._timeline.on('click', this._onClickCallback);
+        this._timeline.on('changed', this._timelineChangedCallback);
+        this._timeline.on('mouseDown', this._mouseDownCallback);
+        this._timeline.on('mouseUp', this._mouseUpCallback);
+        this._timeline.on('rangechange', this._rangeChangeCallback);
+        this._timeline.on('itemover', this._itemOverCallback);
+        this._timeline.on('itemout', this._itemOutCallback);
+
+//create overview timeline
+        this._overviewTimeline = new vis.Timeline(overviewContainer, this._itemsOverview, this._overviewTimelineOptions);
+        this._overviewTimeline.addCustomTime(this._timeline.getWindow().end, this._rightTimeId);
+        this._overviewTimeline.addCustomTime(this._timeline.getWindow().start, this._leftTimeId);
+        this._overviewTimeline.on('select', this._onSelect);
+        this._overviewTimeline.on('click', this._onClickCallback);
+        this._overviewTimeline.on('changed', this._drawFocusLens);
+        this._overviewTimeline.on('mouseDown', this._overviewMouseDownCallback);
+        this._overviewTimeline.on('rangechange', this._overviewChangedCallback);
+        this._overviewTimeline.on('itemover', this._itemOverOverviewCallback);
+        this._overviewTimeline.on('itemout', this._itemOutCallback);
+        this._initialOverviewWindow(new Date(1950, 1), new Date(2030, 12));
+    }
+
+    _initialOverviewWindow(start, end) {
+        this._overviewTimeline.setWindow(start, end, {
+            animations: false,
+        });
+    }
+
+    _tooltipVisible;
+
+    /**
+     *
+     * @param properties {VisTimelineEvent}
+     * @private
+     */
+    _itemOutCallback(properties) {
+        if (properties.event.toElement.className !== "event-tooltip") {
+            document.getElementById("event-tooltip-container").style.display = "none";
+            this._tooltipVisible = false;
+            hoveredHTMLEvent.classList.remove('mouseOver');
+        }
+    }
+
+    _itemOverOverviewCallback(properties) {
+        this._itemOverCallback(properties, true);
+    }
+
+    _moveWindow() {
+        const step = convert_seconds(timelineRangeFactor);
+        let startDate = new Date(centerTime.getTime());
+        let endDate = new Date(centerTime.getTime());
+        startDate = DateOperations.decreaseDate(startDate, step.days, step.hours, step.minutes, step.seconds, step.milliSec);
+        endDate = DateOperations.increaseDate(endDate, step.days, step.hours, step.minutes, step.seconds, step.milliSec);
+        this._timeline.setWindow(startDate, endDate, {
+            animations: false,
+        });
+    }
+
+    _hoveredHTMLEvent;
+
+    /**
+     *
+     * @param properties {VisTimelineEvent}
+     * @param overview
+     * @private
+     */
+    _itemOverCallback(properties, overview) {
+        document.getElementById("event-tooltip-container").style.display = "block";
+        this._tooltipVisible = true;
+        for (const item in this._items._data) {
+            if (this._items._data[item].id === properties.item) {
+                document.getElementById("event-tooltip-content").innerHTML = this._items._data[item].content;
+                document.getElementById("event-tooltip-description").innerHTML = this._items._data[item].description;
+                document.getElementById("event-tooltip-location").innerHTML = "<i class='material-icons'>send</i> " + this._items._data[item].planet + " " + this._items._data[item].place;
+                hoveredItem = this._items._data[item];
+            }
+        }
+        const events = document.getElementsByClassName(properties.item);
+        let event;
+        for (let i = 0; i < events.length; i++) {
+            if (!overview && $(events[i]).hasClass("event")) {
+                event = events[i];
+            } else if (overview && $(events[i]).hasClass("overviewEvent")) {
+                event = events[i];
+            }
+        }
+        this._hoveredHTMLEvent = event;
+        this._hoveredHTMLEvent.classList.add('mouseOver');
+        const eventRect = event.getBoundingClientRect();
+        const left = eventRect.left - 150 < 0 ? 0 : eventRect.left - 150;
+        document.getElementById("event-tooltip-container").style.top = eventRect.bottom + 'px';
+        document.getElementById("event-tooltip-container").style.left = left + 'px';
+        if (this._currentSpeed !== this._pause) {
+            start_redraw_tooltip(event);
+        }
+    }
+
+    _leaveCustomTooltip() {
+        document.getElementById("event-tooltip-container").style.display = "none";
+        this._tooltipVisible = false;
+        this._hoveredHTMLEvent.classList.remove('mouseOver');
+    }
+
+
+    _mouseDownCallback() {
+        this._timeline.setOptions(this._pauseOptions);
+        this._mouseOnTimelineDown = true;
+        this._lastPlayValue = this._currentSpeed;
+        this._click = true;
+        this._mouseDownLeftTime = this._timeline.getWindow().start;
+    }
+
+    _lastPlayValue;
+
+    _mouseUpCallback() {
+        if (this._mouseOnTimelineDown && this._lastPlayValue !== this._pause) {
+            this._timeSpeedSlider.noUiSlider.set(parseInt(this._lastPlayValue));
+        }
+        this._mouseOnTimelineDown = false;
+    }
+
+    _overviewMouseDownCallback() {
+        this._click = true;
+
+    }
+
+    _overviewChangedCallback() {
+        this._click = false;
+    }
+
+    _timelineChangedCallback() {
+        this._setOverviewTimes();
+        this._drawFocusLens();
+    }
+
+    _rangeChangeCallback(properties) {
+        if (properties.byUser && !properties.event instanceof WheelEvent) {
+            if (this._currentSpeed !== this._pause) {
+                set_pause();
+            }
+            click = false;
+            const dif = properties.start.getTime() - this._mouseDownLeftTime.getTime();
+            const secondsDif = dif / 1000;
+            const hoursDif = secondsDif / 60 / 60;
+
+            const step = convert_seconds(secondsDif);
+            let date = new Date(this._centerTime.getTime());
+            date = increase_date(date, step.days, step.hours, step.minutes, step.seconds, step.milliSec);
+            set_date_local(date);
+            this._mouseDownLeftTime = new Date(properties.start.getTime());
+            window.call_native("add_hours_without_animation", hoursDif);
+        }
+    }
+
+    _setOverviewTimes() {
+        this._overviewTimeline.setCustomTime(timeline.getWindow().end, this._rightTimeId);
+        this._overviewTimeline.setCustomTime(timeline.getWindow().start, this._leftTimeId);
+        this._drawFocusLens();
+    }
+
+
+    _drawFocusLens() {
+        const leftCustomTime = document.getElementsByClassName("leftTime")[0];
+        const leftRect = leftCustomTime.getBoundingClientRect();
+        const rightCustomTime = document.getElementsByClassName("rightTime")[0];
+        const rightRect = rightCustomTime.getBoundingClientRect();
+
+        let divElement = document.getElementById("focus-lens");
+        divElement.style.position = "absolute";
+        divElement.style.left = leftRect.right + 'px';
+        divElement.style.top = (leftRect.top + offset) + 'px';
+
+        const height = leftRect.bottom - leftRect.top - shorten;
+        let width = rightRect.right - leftRect.left;
+
+        let xValue = 0;
+        if (width < this._minWidth) {
+            width = this._minWidth + 2 * this._borderWidth;
+            xValue = -(leftRect.left + this._minWidth - rightRect.right) / 2 - this._borderWidth;
+            xValue = Math.round(xValue);
+            divElement.style.transform = " translate(" + xValue + "px, 0px)";
+        } else {
+            divElement.style.transform = " translate(0px, 0px)";
+        }
+
+        divElement.style.height = height + 'px';
+        divElement.style.width = width + 'px';
+
+        divElement = document.getElementById("focus-lens-left");
+        divElement.style.top = (leftRect.top + offset + height) + 'px';
+        width = leftRect.right + xValue + this._borderWidth;
+        width = width < 0 ? 0 : width;
+        divElement.style.width = width + 'px';
+        const body = document.getElementsByTagName("body")[0];
+        let bodyRect = body.getBoundingClientRect();
+
+        divElement = document.getElementById("focus-lens-right");
+        divElement.style.top = (leftRect.top + offset + height) + 'px';
+        width = bodyRect.right - rightRect.right + xValue + 1;
+        width = width < 0 ? 0 : width;
+        divElement.style.width = width + 'px';
+    }
+
+    _onClickCallback(properties) {
+        if (this._click) {
+            this._generalOnClick(properties)
+        }
+    }
+
+    /**
+     * Changes the size of the displayed time range while the simulation is still playing
+     *
+     * @param event
+     * @private
+     */
+    _manualZoomTimeline(event) {
+        if (timelineZoomBlocked) {
+            if (event.deltaY < 0) {
+                timelineRangeFactor -= timelineRangeFactor * zoomPercentage;
+                if (timelineRangeFactor < minRangeFactor) {
+                    timelineRangeFactor = minRangeFactor;
+                }
+            } else {
+                timelineRangeFactor += timelineRangeFactor * zoomPercentage;
+                if (timelineRangeFactor > maxRangeFactor) {
+                    timelineRangeFactor = maxRangeFactor;
+                }
+            }
+            this._rangeUpdateCallback();
+        }
+    }
+
+    /**
+     * Vis Timeline Event Properties
+     * https://visjs.github.io/vis-timeline/docs/timeline/#getEventProperties
+     *
+     * @param properties {VisTimelineEvent}
+     * @private
+     */
+    _onSelect(properties) {
+        for (const item in this._items._data) {
+            if (this._items._data[item].id === properties.items) {
+                let dif = this._items._data[item].start.getTime() - this._centerTime.getTime();
+                let hoursDif = dif / 1000 / 60 / 60;
+
+                if (this._items._data[item].start.getTimezoneOffset() > this._centerTime.getTimezoneOffset()) {
+                    hoursDif -= 1;
+                } else if (this._items._data[item].start.getTimezoneOffset() < this._centerTime.getTimezoneOffset()) {
+                    hoursDif += 1;
+                }
+
+                window.call_native("add_hours", hoursDif);
+                travel_to(true, this._items._data[item].planet, this._items._data[item].place, this._items._data[item].content);
+            }
+        }
+    }
+
+    /**
+     * Vis Timeline Event Properties
+     * https://visjs.github.io/vis-timeline/docs/timeline/#getEventProperties
+     *
+     * @param properties {VisTimelineEvent}
+     * @private
+     */
+    _generalOnClick(properties) {
+        if (properties.what !== "item" && properties.time != null) {
+            const dif = properties.time.getTime() - this._centerTime.getTime();
+            let hoursDif = dif / 1000 / 60 / 60;
+
+            if (properties.time.getTimezoneOffset() > this._centerTime.getTimezoneOffset()) {
+                hoursDif -= 1;
+            } else if (properties.time.getTimezoneOffset() < this._centerTime.getTimezoneOffset()) {
+                hoursDif += 1;
+            }
+            window.call_native("add_hours", hoursDif);
+        }
     }
 
     /**
@@ -771,8 +1472,177 @@ class TimelineApi extends IApi {
 
     }
 
-    setTimeSpeed(speed) {
+    addItem(start, end, id, content, style, description, planet, place) {
+        const data = {};
+        data.start = new Date(start);
+        data.id = id;
+        if (end !== "") {
+            data.end = new Date(end);
+        }
+        if (style !== "") {
+            data.style = style;
+        }
+        data.planet = planet;
+        data.description = description;
+        data.place = place;
+        data.content = content;
+        data.className = 'event ' + id;
+        items.update(data);
+        data.className = 'overviewEvent ' + id;
+        itemsOverview.update(data);
+    }
 
+    /**
+     * Called from Application.cpp 622/816
+     *
+     * @param speed {number}
+     */
+    setTimeSpeed(speed) {
+        let notification = [];
+
+        switch (speed) {
+            case this.PAUSE:
+                set_pause();
+                notification = ['Pause', 'Time is paused.', 'pause'];
+                break;
+
+            case this.REALTIME:
+                notification = ["Speed: Realtime", "Time runs in realtime.", "play_arrow"];
+                break;
+
+            case this.MINUTES:
+                notification = ["Speed: Min/s", "Time runs at one minute per second.", "fast_forward"];
+                break;
+
+            case this.HOURS:
+                notification = ["Speed: Hour/s", "Time runs at one hour per second.", "fast_forward"];
+                break;
+
+            case this.DAYS:
+                notification = ["Speed: Day/s", "Time runs at one day per second.", "fast_forward"];
+                break;
+
+            case this.MONTHS:
+                notification = ["Speed: Month/s", "Time runs at one month per second.", "fast_forward"];
+                break;
+
+            /* Negative times */
+            case -this.REALTIME:
+                notification = ["Speed: -Realtime", "Time runs backwards in realtime.", "fast_rewind"];
+                break;
+
+            case -this.MINUTES:
+                notification = ["Speed: -Min/s", "Time runs backwards at one minute per second.", "fast_rewind"];
+                break;
+
+            case -this.HOURS:
+                notification = ["Speed: -Hour/s", "Time runs backwards at one hour per second.", "fast_rewind"];
+                break;
+
+            case -this.DAYS:
+                notification = ["Speed: -Day/s", "Time runs backwards at one day per second.", "fast_rewind"];
+                break;
+
+            case -this.MONTHS:
+                notification = ["Speed: -Month/s", "Time runs backwards at one month per second.", "fast_rewind"];
+                break;
+        }
+
+        if (notification.length > 0) {
+            CosmoScout.call('notifications', 'printNotification', ...notification);
+        }
+    }
+
+    /**
+     *
+     * @param direct {boolean}
+     * @param planet {string}
+     * @param place {string} Location string in the form of '3.635° E 26.133° S 10.0 Tsd km'
+     * @param name {string}
+     */
+    travelTo(direct, planet, place, name) {
+        let placeArr = place.split(' ');
+
+        let animationTime = direct ? 0 : 5;
+
+        CosmoScout.call(
+            'flyto',
+            'flyTo',
+            planet,
+            this._parseLongitude(placeArr[0], placeArr[1]),
+            this._parseLatitude(placeArr[2], placeArr[3]),
+            this._parseHeight(placeArr[4], placeArr[5]),
+            animationTime
+        );
+    }
+
+    /**
+     * Parses a latitude string for travelTo
+     *
+     * @see {travelTo}
+     * @param lat {string}
+     * @param half {string}
+     * @return {number}
+     * @private
+     */
+    _parseLatitude(lat, half) {
+        let latitude = parseFloat(lat);
+        if (half === 'S') {
+            latitude = -latitude;
+        }
+
+        return latitude;
+    }
+
+    /**
+     * Parses a longitude string for travelTo
+     *
+     * @see {travelTo}
+     * @param lon {string}
+     * @param half {string}
+     * @return {number}
+     * @private
+     */
+    _parseLongitude(lon, half) {
+        let longitude = parseFloat(lon);
+        if (half === 'W') {
+            longitude = -longitude;
+        }
+
+        return longitude;
+    }
+
+    /**
+     * Parses a height string
+     *
+     * @param heightStr {string}
+     * @param unit {string}
+     * @return {number}
+     * @private
+     */
+    _parseHeight(heightStr, unit) {
+        const height = parseFloat(heightStr);
+
+        switch (unit) {
+            case 'mm':
+                return height / 1000;
+            case 'cm':
+                return height / 100;
+            case 'm':
+                return height;
+            case 'km':
+                return height * 1e3;
+            case 'Tsd':
+                return height * 1e6;
+            case 'AU':
+                return height * 1.496e11;
+            case 'ly':
+                return height * 9.461e15;
+            case 'pc':
+                return height * 3.086e16;
+            default:
+                return height * 3.086e19;
+        }
     }
 }
 
@@ -895,19 +1765,13 @@ class StatusbarApi extends IApi {
     _speedContainer;
 
     /**
-     * Provide config object to overwrite default html container ids
+     * Initialize all containers
+     *
      * @param config {{userPosition: string, pointerPosition: string, speed: string}}
      */
-    constructor(config = {}) {
-        super();
-
+    init(config = {}) {
         Object.assign(this.config, config);
-    }
 
-    /**
-     * Initialize all containers
-     */
-    init() {
         this._userContainer = document.getElementById(this.config.userPosition);
         this._pointerContainer = document.getElementById(this.config.pointerPosition);
         this._speedContainer = document.getElementById(this.config.speed);
