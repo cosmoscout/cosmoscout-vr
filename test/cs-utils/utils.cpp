@@ -8,8 +8,9 @@
 #include "../../src/cs-utils/utils.hpp"
 
 namespace cs::utils {
-TEST_CASE("string contains") {
+TEST_CASE("cs::utils::contains(std::string, std::string)") {
   CHECK(contains("", ""));
+  CHECK(contains("a", ""));
   CHECK(contains("ab", "a"));
   CHECK(contains("aa", "a"));
 
