@@ -32,7 +32,7 @@ class RenderHandler : public CefRenderHandler {
   int GetHeight() const;
 
   /// Gives the browser the available area for its view.
-  bool GetViewRect(CefRefPtr<CefBrowser> browser, CefRect& rect) override;
+  void GetViewRect(CefRefPtr<CefBrowser> browser, CefRect& rect) override;
 
   /// Implements the custom rendering pipeline.
   void OnPaint(CefRefPtr<CefBrowser> browser, PaintElementType type, const RectList& dirtyRects,

@@ -7,6 +7,8 @@
 The list below contains all dependencies of CosmoScout VR. Besides Boost, all of them are included either as [git submodules](../externals) or directly in the source tree.
 Some of the dependencies are only required by some plugins.
 
+A text document containing [all individual license texts](../LICENSE-3RD-PARTY.txt) is provided in the root directory of the source tree.
+
 | Engine Dependencies | Description | License |
 |:---|:---|:---|
 | [Boost (system, chrono, filesystem, date_time)](http://www.boost.org) | Used for time conversions and file system operations. | [Boost Software License](http://www.boost.org/LICENSE_1_0.txt) |
@@ -31,12 +33,14 @@ Some of the dependencies are only required by some plugins.
 | [Bootstrap](https://github.com/twbs/bootstrap) | Main framework for the user interface. | [MIT](https://github.com/twbs/bootstrap/blob/master/LICENSE) |
 | [Bootstrap Date Picker](https://github.com/uxsolutions/bootstrap-datepicker) | The calendar in the user interface. | [Apache License 2.0](https://github.com/uxsolutions/bootstrap-datepicker/blob/master/LICENSE) |
 | [Bootstrap Select](https://github.com/snapappointments/bootstrap-select/) | Used for dropdowns in the UI. | [MIT](https://github.com/snapappointments/bootstrap-select/blob/v1.13.0-dev/LICENSE) |
+| [Color Picker](https://tovic.github.io/color-picker/) | Used for color pickers in the UI. | [MIT](https://github.com/tovic/color-picker/blob/master/LICENSE) |
 | [D3.js](https://github.com/d3/d3) | Used for some tools (like path measurement) to draw graphs in the user interface. | [BSD 3-Clause](https://github.com/d3/d3/blob/master/LICENSE) |
 | [fuzzyset.js](https://github.com/Glench/fuzzyset.js) | Used for the location search on other planets and moons. | [BSD](https://github.com/Glench/fuzzyset.js) |
 | [jQuery](https://jquery.org) | JavaScript library which is used extensively in the user interface. | [MIT](https://jquery.org/license/) |
 | [Material Icons](https://github.com/google/material-design-icons) | Icon set uses in the user interface. | [Apache License 2.0](https://github.com/google/material-design-icons/blob/master/LICENSE) |
 | [noUiSlider](https://refreshless.com/nouislider) | JavaScript library for advanced sliders. | [WTFPL](http://www.wtfpl.net/about/) |
 | [Ubuntu Font](https://design.ubuntu.com/font) | This font is used in the user interface of CosmoScout VR. | [Ubuntu font licence](https://www.ubuntu.com/legal/terms-and-policies/font-licence) |
+| [vis-timeline](https://github.com/visjs/vis-timeline) | This is used for the timeline. | [Apache License 2.0](https://github.com/visjs/vis-timeline/blob/master/LICENSE-APACHE-2.0) or [MIT](https://github.com/visjs/vis-timeline/blob/master/LICENSE-MIT)|
 | **Runtime Dependencies** | **Description** | **License** |
 | [Apache built by Apachehaus](https://www.apachehaus.com/cgi-bin/download.plx) | This is a pre-compiled apache server for windows which can be used to run your own Mapserver. Only required by the `csp-lod-bodies` plugin. | [Apache License 2.0](https://www.apache.org/licenses/) |
 | [GDAL](https://trac.osgeo.org/gdal) | Dependency of the Mapserver. Only required by the `csp-lod-bodies` plugin. | [X11/MIT](https://trac.osgeo.org/gdal/wiki/FAQGeneral#WhatlicensedoesGDALOGRuse) |
@@ -48,7 +52,7 @@ Some of the dependencies are only required by some plugins.
   <img src ="img/nav-vspace.svg"/>
   <a href="README.md">&#8962; Help Index</a>
   <img src ="img/nav-vspace.svg"/>
-  <a href="install.md">Build Instructions &rsaquo;</a>
+  <a href="coordinate-systems.md">Coordinate Systems &rsaquo;</a>
 </p>
 
 <p align="center"><img src ="img/hr.svg"/></p>

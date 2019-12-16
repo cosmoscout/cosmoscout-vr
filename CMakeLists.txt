@@ -5,7 +5,7 @@
 # ------------------------------------------------------------------------------------------------ #
 
 cmake_minimum_required(VERSION 3.12)
-project(cosmoscout-vr VERSION 1.0.0)
+project(cosmoscout-vr VERSION 1.1.1)
 
 # Use cmake 3.12's <PACKAGE>_ROOT variabled for searching.
 cmake_policy(SET CMP0074 NEW)
@@ -16,12 +16,15 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 # CMAKE_BUILD_TYPE must be set (except for Visual Studio).
 if(NOT MSVC)
   if(NOT CMAKE_BUILD_TYPE OR
-    (NOT ${CMAKE_BUILD_TYPE} STREQUAL "Release" AND
-    NOT ${CMAKE_BUILD_TYPE} STREQUAL "Debug"))
+    (NOT ${CMAKE_BUILD_TYPE} STREQUAL "release" AND
+    NOT ${CMAKE_BUILD_TYPE} STREQUAL "debug"))
 
-    set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Release or Debug" FORCE)
+    set(CMAKE_BUILD_TYPE "release" CACHE STRING "release or debug" FORCE)
   endif()
 endif()
+
+# Use folders when targeting an IDE
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 # find dependencies --------------------------------------------------------------------------------
 
@@ -134,17 +137,16 @@ find_package(VistaCoreLibs REQUIRED
   COMPONENTS "VistaBase" "VistaKernel" "VistaKernelOpenSGExt" "VistaOGLExt"
 )
 
-# strip "optimzed" flags as we will be using release libs only.
-list(FILTER VISTACORELIBS_LIBRARIES EXCLUDE REGEX optimized)
+# install some files -------------------------------------------------------------------------------
 
-# copy all third-party libraries to install directory
+# Copy all third-party libraries to install directory.
 install(
   DIRECTORY ${COSMOSCOUT_EXTERNALS_DIR}/lib/ ${COSMOSCOUT_EXTERNALS_DIR}/bin/ 
   DESTINATION "lib"
   FILES_MATCHING PATTERN "*.so*" PATTERN "*.dll*"
 )
 
-# copy boost libraries to install directory
+# Copy boost libraries to install directory.
 if (WIN32)
   foreach(BOOST_LIB ${Boost_LIBRARIES})
     if(EXISTS "${BOOST_LIB}")
@@ -158,11 +160,24 @@ if (UNIX)
   install(FILES ${Boost_LIBRARIES} DESTINATION "lib")
 endif()
 
+# Install documentation directory
+install(DIRECTORY
+  ${CMAKE_SOURCE_DIR}/docs
+  DESTINATION "."
+)
+
+# Install license files
+install(FILES
+  ${CMAKE_SOURCE_DIR}/LICENSE-3RD-PARTY.txt 
+  ${CMAKE_SOURCE_DIR}/LICENSE.txt 
+  DESTINATION "docs"
+)
+
 # create version header ----------------------------------------------------------------------------
 
 message(STATUS "Trying to get current git branch and commit...")
 
-# get the current git branch name
+# Get the current git branch name.
 execute_process(
   COMMAND git rev-parse --abbrev-ref HEAD
   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
@@ -170,7 +185,7 @@ execute_process(
   OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 
-# get the current commit hash
+# Get the current commit hash.
 execute_process(
   COMMAND git log -1 --format=%h
   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
@@ -178,20 +193,11 @@ execute_process(
   OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 
-# get the most recent tag
-execute_process(
-  COMMAND git describe --abbrev=0 --tags
-  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-  OUTPUT_VARIABLE GIT_RECENT_TAG
-  OUTPUT_STRIP_TRAILING_WHITESPACE
-)
-
-# fallback to project version if it failed
+# Fallback to project version if it failed.
 if (GIT_BRANCH STREQUAL "")
-  set(GIT_RECENT_TAG "v${PROJECT_VERSION}")
-  message(STATUS "  Failed - falling back to project version: ${GIT_RECENT_TAG}")
+  message(STATUS "  Failed - falling back to project version: v${PROJECT_VERSION}")
 else()
-  message(STATUS "  Success: ${GIT_RECENT_TAG} (${GIT_BRANCH} @${GIT_COMMIT_HASH})")
+  message(STATUS "  Success: v${PROJECT_VERSION} (${GIT_BRANCH} @${GIT_COMMIT_HASH})")
 endif()
 
 configure_file(
@@ -227,11 +233,3 @@ add_subdirectory(config)
 add_subdirectory(resources)
 add_subdirectory(src)
 add_subdirectory(plugins)
-
-# install data directory, complain if non-existent -------------------------------------------------
-
-if (EXISTS ${CMAKE_SOURCE_DIR}/data)
-  install(DIRECTORY ${CMAKE_SOURCE_DIR}/data DESTINATION "share/resources")
-else()
-  message(WARNING "Data directory was not found. Maybe you forgot to run the get_example_data.[sh/bat] script?")
-endif()

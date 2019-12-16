@@ -1,9 +1,26 @@
 /build
 /install
 /data
+
+# ignore all additional configuration directories in /config
 /config/*
-!/config/base
 !/config/CMakeLists.txt
+!/config/base
+
+# ignore all additional plugin directories in /plugins
+/plugins/*
+!/plugins/CMakeLists.txt
+!/plugins/csp-anchor-labels
+!/plugins/csp-atmospheres
+!/plugins/csp-fly-to-locations
+!/plugins/csp-lod-bodies
+!/plugins/csp-measurement-tools
+!/plugins/csp-rings
+!/plugins/csp-satellites
+!/plugins/csp-sharad
+!/plugins/csp-simple-bodies
+!/plugins/csp-stars
+!/plugins/csp-trajectories
 
 *.sublime*
 .vscode

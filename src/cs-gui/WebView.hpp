@@ -12,12 +12,18 @@
 #include "MouseEvent.hpp"
 
 #include <any>
+#include <chrono>
 #include <iostream>
 
 namespace cs::gui {
 
-/// A WebView is an interface to an HTML page. It allows for registering callbacks and executing
-/// Javascript within the page.
+/// A WebView is wrapper of an HTML page. It allows for registering C++ callbacks which can be
+/// called from JavaScript and allows executing JavaScript code in the context of the website from
+/// C++. Usually you will not instantiate this class directly, you will rather use the GuiItem
+/// class.
+/// For debugging, you can use Chromium's developper tools. Once the applications is running, you
+/// can navigate to http://127.0.0.1:8999/ with your Chromium based browser in order to inspect the
+/// individual WebViews of CosmoScout VR.
 class CS_GUI_EXPORT WebView {
  public:
   /// Creates a new WebView for the given page at the location of the URL.
@@ -30,7 +36,8 @@ class CS_GUI_EXPORT WebView {
   /// Registers a callback, that is called, when the cursor changes its appearance.
   void setCursorChangeCallback(CursorChangeCallback const& callback);
 
-  /// Calls an existing Javascript function.
+  /// Calls an existing Javascript function. You can pass as many arguments as you like. They will
+  /// be converted to std::strings, so on the JavaScript side you will have to convert them back.
   ///
   /// @param function The name of the function.
   /// @param a        The arguments of the function. Each arguments type must be convertible to a
@@ -45,8 +52,13 @@ class CS_GUI_EXPORT WebView {
   /// Execute Javascript code.
   void executeJavascript(std::string const& code) const;
 
-  /// Register a callback which can be called from Javascript with the "window.call_native()"
-  /// function. Registering the same name twice will override the first callback.
+  /// Register a callback which can be called from Javascript with the
+  /// "window.call_native('callback_name', ... args ...)" function. Registering the same name twice
+  /// will override the first callback.
+  /// This first version takes no arguments from the JavaScript side. There are other versions
+  /// below, which take up to six arguments. JavaScript variables passed to the window.call_native
+  /// function will be converted to C++ types. This works for integer, doubles, booleans and
+  /// std::strings.
   ///
   /// @param name     Name of the callback.
   /// @param callback The function to execute when the HTML-Element fires a change event.
@@ -55,6 +67,7 @@ class CS_GUI_EXPORT WebView {
         name, [this, callback](std::vector<std::any> const& args) { callback(); });
   }
 
+  /// See documentation above.
   template <typename A>
   void registerCallback(std::string const& name, std::function<void(A)> const& callback) {
     registerJSCallbackImpl(name, [this, name, callback](std::vector<std::any> const& args) {
@@ -67,6 +80,7 @@ class CS_GUI_EXPORT WebView {
     });
   }
 
+  /// See documentation above.
   template <typename A, typename B>
   void registerCallback(std::string const& name, std::function<void(A, B)> const& callback) {
     registerJSCallbackImpl(name, [this, name, callback](std::vector<std::any> const& args) {
@@ -79,6 +93,7 @@ class CS_GUI_EXPORT WebView {
     });
   }
 
+  /// See documentation above.
   template <typename A, typename B, typename C>
   void registerCallback(std::string const& name, std::function<void(A, B, C)> const& callback) {
     registerJSCallbackImpl(name, [this, name, callback](std::vector<std::any> const& args) {
@@ -91,6 +106,7 @@ class CS_GUI_EXPORT WebView {
     });
   }
 
+  /// See documentation above.
   template <typename A, typename B, typename C, typename D>
   void registerCallback(std::string const& name, std::function<void(A, B, C, D)> const& callback) {
     registerJSCallbackImpl(name, [this, name, callback](std::vector<std::any> const& args) {
@@ -104,6 +120,7 @@ class CS_GUI_EXPORT WebView {
     });
   }
 
+  /// See documentation above.
   template <typename A, typename B, typename C, typename D, typename E>
   void registerCallback(
       std::string const& name, std::function<void(A, B, C, D, E)> const& callback) {
@@ -118,6 +135,7 @@ class CS_GUI_EXPORT WebView {
     });
   }
 
+  /// See documentation above.
   template <typename A, typename B, typename C, typename D, typename E, typename F>
   void registerCallback(
       std::string const& name, std::function<void(A, B, C, D, E, F)> const& callback) {
@@ -148,10 +166,11 @@ class CS_GUI_EXPORT WebView {
   virtual uint8_t getAlpha(int x, int y) const; ///< Gives the alpha value at the given coordinates.
 
   /// The interactive state determines if a user can interact with the HTML contents. If set to
-  /// false all inputs will be ignored.
+  /// false all inputs will be ignored. This might increase performance.
   virtual bool getIsInteractive() const;
   virtual void setIsInteractive(bool interactive);
 
+  /// Returns the current size of the web page.
   virtual int getWidth() const;
   virtual int getHeight() const;
 
@@ -164,9 +183,14 @@ class CS_GUI_EXPORT WebView {
   /// @param ignoreCache If set to true the site will not be using cached data.
   virtual void reload(bool ignoreCache = false) const;
 
+  /// When the user clicked on a hyperlink on the web page, this functionality can be used to move
+  /// forward or backwards in the history.
   virtual void goBack() const;
   virtual void goForward() const;
 
+  /// These could be executed when the according hot keys are pressed. The system's clipboard will
+  /// be used. So the user can actually copy-paste from one WebView to another or even from an to
+  /// third-party applications.
   virtual void cut() const;
   virtual void copy() const;
   virtual void paste() const;
@@ -183,15 +207,17 @@ class CS_GUI_EXPORT WebView {
   /// Forward a KeyEvent to the page.
   virtual void injectKeyEvent(KeyEvent const& event);
 
+  /// These are not yet working properly. However, you can navigate to http://127.0.0.1:8999/ with
+  /// your Chromium based browser in order to inspect the individual WebViews of CosmoScout VR.
   void toggleDevTools();
   void showDevTools();
   void closeDevTools();
 
+ private:
   void callJavascriptImpl(std::string const& function, std::vector<std::string> const& args) const;
   void registerJSCallbackImpl(
       std::string const& name, std::function<void(std::vector<std::any> const&)> const& callback);
 
- private:
   detail::WebViewClient* mClient;
 
   bool mInteractive;
@@ -200,6 +226,12 @@ class CS_GUI_EXPORT WebView {
   int mMouseX;
   int mMouseY;
   int mMouseModifiers;
+
+  // Time point for the last left mouse click
+  std::chrono::steady_clock::time_point mLastClick;
+
+  // Count number of left mouse button clicks
+  int mClickCount = 1;
 };
 
 } // namespace cs::gui

@@ -5,13 +5,13 @@
 CosmoScout VR is a modular virtual universe developed at the German Aerospace Center (DLR).
 It lets you explore, analyze and present huge planetary data sets and large simulation data in real-time.
 
-[![Build Status](https://travis-ci.com/cosmoscout/cosmoscout-vr.svg?branch=master)](https://travis-ci.com/cosmoscout/cosmoscout-vr/branches)
-[![c++17](https://img.shields.io/badge/docs-online-4c1.svg)](docs/README.md)
-[![gitter](https://badges.gitter.im/cosmoscout/cosmoscout.svg)](https://gitter.im/cosmoscout/community)
-[![license](https://img.shields.io/badge/license-MIT-purple.svg)](LICENSE)
-[![source loc](https://img.shields.io/badge/source_loc-10.0k-yellow.svg)](cloc.sh)
-[![plugin loc](https://img.shields.io/badge/plugin_loc-14.1k-yellow.svg)](cloc.sh)
-[![comments](https://img.shields.io/badge/comments-2.7k-orange.svg)](cloc.sh)
+[![Build Status](https://github.com/cosmoscout/cosmoscout-vr/workflows/Build/badge.svg?branch=develop)](https://github.com/cosmoscout/cosmoscout-vr/actions)
+[![documentation](https://img.shields.io/badge/Docs-online-34D058.svg)](docs/README.md)
+[![contact](https://img.shields.io/badge/Contact-email-6ca.svg)](mailto:cosmoscout@dlr.de)
+[![license](https://img.shields.io/badge/License-MIT-purple.svg)](LICENSE)
+[![source loc](https://img.shields.io/badge/LoC-10.4k-green.svg)](cloc.sh)
+[![plugin loc](https://img.shields.io/badge/LoC_Plugins-13.7k-green.svg)](cloc.sh)
+[![comments](https://img.shields.io/badge/Comments-3.0k-yellow.svg)](cloc.sh)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3381953.svg)](https://doi.org/10.5281/zenodo.3381953)
 
 The software can be build on Linux (gcc or clang) and Windows (msvc).
@@ -72,13 +72,14 @@ You can also read the [**changelog**](docs/changelog.md) to learn what's new in 
 Many features are badly documented, it will crash without warning and may do other unexpected things.
 We are working hard on improving the user experience - please [report all issues and suggestions](https://github.com/cosmoscout/cosmoscout-vr/issues) you have!_
 
-For now, no binary packages of CosmoScout VR are provided.
-If you want to test or use the software, you have to compile it yourself.
-You can either use the `master` branch which contains the last stable release or you can use the latest `develop` branch.
-This may already contain some fixes for issues you are experiencing.
+For each release, [binary packages](https://github.com/cosmoscout/cosmoscout-vr/releases) are automatically created via [Github Actions](https://github.com/cosmoscout/cosmoscout-vr/actions).
 
-[![Commits since latest release](https://img.shields.io/github/commits-since/cosmoscout/cosmoscout-vr/latest/develop)](https://github.com/cosmoscout/cosmoscout-vr/commits/develop)
+When started for the very first time, some example datasets will be downloaded from the internet.
+**This will take some time!**
+The progress of this operation is shown on the loading screen.
 
+
+If the binary releases do not work for you or you want to test the latest features, you have to compile CosmoScout VR yourself.
 This is actually quite easy as there are several guides in the **[`docs`](docs)** directory to get you started!
 
 # Plugins for CosmoScout VR

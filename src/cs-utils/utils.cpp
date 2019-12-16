@@ -84,25 +84,6 @@ std::vector<std::string> splitString(std::string const& s, char delim) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::set<std::string> listFiles(std::string const& directory) {
-  boost::filesystem::path               dir(directory);
-  boost::filesystem::directory_iterator end_iter;
-
-  std::set<std::string> result;
-
-  if (boost::filesystem::exists(dir) && boost::filesystem::is_directory(dir)) {
-    for (boost::filesystem::directory_iterator dir_iter(dir); dir_iter != end_iter; ++dir_iter) {
-      if (boost::filesystem::is_regular_file(dir_iter->status())) {
-        result.insert(boost::filesystem::path(*dir_iter).normalize().string());
-      }
-    }
-  }
-
-  return result;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 float getCurrentFarClipDistance() {
   double near, far;
   GetVistaSystem()
@@ -112,20 +93,6 @@ float getCurrentFarClipDistance() {
       ->GetProjectionProperties()
       ->GetClippingRange(near, far);
   return (float)far;
-}
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-std::string loadFileContentsToString(std::string const& file) {
-  std::ifstream f;
-  f.open(file, std::ios::in);
-
-  std::string content;
-  for (std::string line; std::getline(f, line);) {
-    content.append(line + "\n");
-  }
-
-  f.close();
-  return content;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

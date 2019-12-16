@@ -17,8 +17,8 @@ class DisplayHandler : public CefDisplayHandler {
 
  public:
   /// Prints browser console log messages to the standard output.
-  bool OnConsoleMessage(CefRefPtr<CefBrowser> browser, CefString const& message,
-      CefString const& source, int line) override;
+  bool OnConsoleMessage(CefRefPtr<CefBrowser> browser, cef_log_severity_t level,
+      CefString const& message, CefString const& source, int line) override;
 
  private:
   IMPLEMENT_REFCOUNTING(DisplayHandler);

@@ -14,6 +14,7 @@
 #include "LoadHandler.hpp"
 #include "RenderHandler.hpp"
 #include "RequestHandler.hpp"
+#include "ResourceRequestHandler.hpp"
 
 #include <any>
 #include <include/cef_client.h>
@@ -82,8 +83,8 @@ class WebViewClient : public CefClient {
   }
 
   /// Forwards JS callbacks for execution.
-  bool OnProcessMessageReceived(CefRefPtr<CefBrowser> browser, CefProcessId source_process,
-      CefRefPtr<CefProcessMessage> message) override;
+  bool OnProcessMessageReceived(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame,
+      CefProcessId source_process, CefRefPtr<CefProcessMessage> message) override;
 
  private:
   IMPLEMENT_REFCOUNTING(WebViewClient);

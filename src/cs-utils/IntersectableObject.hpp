@@ -13,7 +13,8 @@
 
 namespace cs::utils {
 
-/// An interface for objects that can be intersected by a ray.
+/// An interface for objects that can be intersected by a ray. One class implementing this interface
+/// is the cs::scene::CelestialObject.
 class IntersectableObject {
  public:
   /// Calculates the intersection of the implementing object and a ray.
