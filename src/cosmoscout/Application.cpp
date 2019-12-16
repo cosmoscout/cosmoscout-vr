@@ -336,9 +336,9 @@ void Application::FrameUpdate() {
         mGuiManager->setLoadingScreenProgress(100.f, true);
 
         // All plugins finished loading -> init their custom components.
-        mGuiManager->getSideBar()->callJavascript("init");
-        mGuiManager->getTimeline()->callJavascript("init");
-        mGuiManager->getStatusBar()->callJavascript("sidebarApi.init");
+        mGuiManager->getSideBar()->callJavascript("CosmoScout.call", "sidebar", "init");
+        mGuiManager->getTimeline()->callJavascript("CosmoScout.call", "timeline", "init");
+        mGuiManager->getStatusBar()->callJavascript("CosmoScout.call", "statusbar", "init");
         mGuiManager->getLogo()->callJavascript("init");
         mGuiManager->getSideBar()->callJavascript("CosmoScout.initInputs");
 
@@ -510,10 +510,10 @@ void Application::FrameUpdate() {
       double heightDiff    = polar.z / mGraphicsEngine->pHeightScale.get() - surfaceHeight;
 
       if (!std::isnan(polar.x) && !std::isnan(polar.y) && !std::isnan(heightDiff)) {
-        mGuiManager->getStatusBar()->callJavascript("set_user_position",
+        mGuiManager->getStatusBar()->callJavascript("CosmoScout.call", "statusbar", "setUserPosition",
             cs::utils::convert::toDegrees(polar.x), cs::utils::convert::toDegrees(polar.y),
             heightDiff);
-        mGuiManager->getTimeline()->callJavascript("set_user_position",
+        mGuiManager->getTimeline()->callJavascript("CosmoScout.call", "statusbar", "setUserPosition",
             cs::utils::convert::toDegrees(polar.x), cs::utils::convert::toDegrees(polar.y),
             heightDiff);
       }
@@ -530,7 +530,7 @@ void Application::FrameUpdate() {
         angle = -angle;
       }
 
-      mGuiManager->getTimeline()->callJavascript("set_north_direction", angle);
+      mGuiManager->getTimeline()->callJavascript("CosmoScout.call", "timeline", "setNorthDirection", angle);
     }
 
     mGuiManager->update();
@@ -598,13 +598,13 @@ void Application::connectSlots() {
             auto lngLat = cs::utils::convert::toDegrees(polar.xy());
 
             if (!std::isnan(lngLat.x) && !std::isnan(lngLat.y) && !std::isnan(polar.z)) {
-              mGuiManager->getStatusBar()->callJavascript("set_pointer_position", true, lngLat.x,
+              mGuiManager->getStatusBar()->callJavascript("CosmoScout.call", "statusbar", "setPointerPosition", true, lngLat.x,
                   lngLat.y, polar.z / mGraphicsEngine->pHeightScale.get());
               return;
             }
           }
         }
-        mGuiManager->getStatusBar()->callJavascript("set_pointer_position", false);
+        mGuiManager->getStatusBar()->callJavascript("CosmoScout.call", "statusbar", "setPointerPosition",false);
       });
 
   // Update the time shown in the user interface when the simulation time changes.
