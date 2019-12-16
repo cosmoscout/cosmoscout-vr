@@ -42,7 +42,7 @@ export VISTACORELIBS_DRIVER_PLUGIN_DIRS=../lib/DriverPlugins
   - _Generation path_: `build/linux-debug`
   - _Build options_: `--parallel 8`
   - _CMAKE options_:
-    ```bash
+    ```
     -DCMAKE_BUILD_TYPE=Debug
     -DCMAKE_INSTALL_PREFIX="<path to cosmoscout>/install/linux-debug"
     -DCOSMOSCOUT_EXTERNALS_DIR="<path to cosmoscout>/install/linux-externals-release"
@@ -55,13 +55,13 @@ export VISTACORELIBS_DRIVER_PLUGIN_DIRS=../lib/DriverPlugins
   - _Executable_ -> _Select other_: `<path to cosmoscout>/install/linux-release/bin/cosmoscout`
   - _Program arguments_: `--settings=../share/config/simple_desktop.json -vista vista.ini`
   - _Working directory_: `<path to cosmoscout>/install/linux-release/bin`
-  - _Before launch_ -> _+_ -> _Install_
+  - _Before launch_ -> __+__ -> _Install_
 - Debug profile
   - _Target_: `cosmoscout`
   - _Executable_ -> _Select other_: `<path to cosmoscout>/install/linux-debug/bin/cosmoscout`
   - _Program arguments_: `--settings=../share/config/simple_desktop.json -vista vista.ini`
   - _Working directory_: `<path to cosmoscout>/install/linux-debug/bin`
-  - _Before launch_ -> _+_ -> _Install_
+  - _Before launch_ -> __+__ -> _Install_
 
 ### Windows
 Currently CLion only supports debugging with MinGW and Cygwin. Sadly CosmoScout only runs on MSVC so only a release 
@@ -82,7 +82,7 @@ highest available (and supported) version.
   - _Generation path_: `build\windows-release`
   - _Build options_: `--parallel 8`
   - _CMAKE options_:
-    ```bat
+    ```
     -DCMAKE_BUILD_TYPE=Release
     -G "Visual Studio 16 2019" -A x64
     -DCMAKE_INSTALL_PREFIX="<path to cosmoscout>\install\windows-release"
@@ -95,7 +95,8 @@ highest available (and supported) version.
   - _Program arguments_: `--settings=../share/config/simple_desktop.json -vista vista.ini`
   - _Working directory_: `<path to cosmoscout>\install\windows-release\bin`
   - _Environment variables_: `VISTACORELIBS_DRIVER_PLUGIN_DIRS=..\lib\DriverPlugins;PATH=..\lib\;%PATH%`
-  - _Before launch_ -> _+_ -> _Install_
+    - (If you haven't set `BOOST_ROOT` as a system wide environment variable you need to add that too here.)
+  - _Before launch_ -> __+__ -> _Install_
 
 ### Recommended Plugins
 - [.gitignore](https://plugins.jetbrains.com/plugin/7495--ignore/)
