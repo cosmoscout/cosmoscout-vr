@@ -4,19 +4,19 @@
 //                        Copyright: (c) 2019 German Aerospace Center (DLR)                       //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#include "../../src/cs-utils/doctest.hpp"
 #include "../../src/cs-utils/utils.hpp"
+#include "../../src/cs-utils/doctest.hpp"
 
 namespace cs::utils {
 TEST_CASE("cs::utils::contains(std::string, std::string)") {
-  CHECK(contains("", ""));
-  CHECK(contains("a", ""));
-  CHECK(contains("ab", "a"));
-  CHECK(contains("aa", "a"));
+  CHECK_UNARY(contains("", ""));
+  CHECK_UNARY(contains("a", ""));
+  CHECK_UNARY(contains("ab", "a"));
+  CHECK_UNARY(contains("aa", "a"));
 
-  CHECK(!contains("", "a"));
-  CHECK(!contains("b", "a"));
-  CHECK(!contains("ab", "ba"));
-  CHECK(!contains("a", " "));
+  CHECK_UNARY_FALSE(contains("", "a"));
+  CHECK_UNARY_FALSE(contains("b", "a"));
+  CHECK_UNARY_FALSE(contains("ab", "ba"));
+  CHECK_UNARY_FALSE(contains("a", " "));
 };
-}
+} // namespace cs::utils
