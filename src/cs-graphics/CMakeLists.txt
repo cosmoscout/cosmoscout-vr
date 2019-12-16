@@ -7,17 +7,17 @@
 # build library ------------------------------------------------------------------------------------
 
 file(GLOB SOURCE_FILES *.cpp */*.cpp)
+file(GLOB TEST_FILES ../../test/cs-graphics/*.cpp ../../test/cs-graphics/*/*.cpp)
 
 add_library(cs-graphics SHARED
   ${SOURCE_FILES}
+  ${TEST_FILES}
 )
 
 target_link_libraries(cs-graphics
   PUBLIC
     gli::gli
     cs-utils
-
-    cs-graphics-test
 )
 
 install(TARGETS cs-graphics DESTINATION lib)

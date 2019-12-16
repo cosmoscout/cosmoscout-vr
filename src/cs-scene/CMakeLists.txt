@@ -7,16 +7,16 @@
 # build library ------------------------------------------------------------------------------------
 
 file(GLOB SOURCE_FILES *.cpp */*.cpp)
+file(GLOB TEST_FILES ../../test/cs-scene/*.cpp ../../test/cs-scene/*/*.cpp)
 
 add_library(cs-scene SHARED
   ${SOURCE_FILES}
+  ${TEST_FILES}
 )
 
 target_link_libraries(cs-scene
   PUBLIC
     cs-utils
-
-    cs-scene-test
 )
 
 install(TARGETS cs-scene DESTINATION lib)

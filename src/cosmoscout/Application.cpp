@@ -594,11 +594,6 @@ void Application::testLoadAllPlugins() {
   auto plugins = cs::utils::filesystem::listFiles(path);
 
   for (auto const& plugin : plugins) {
-
-    if (cs::utils::contains(plugin, "test")) {
-      continue;
-    }
-
     if (cs::utils::endsWith(plugin, ".so") || cs::utils::endsWith(plugin, ".dll")) {
       // Clear errors.
       LIBERROR();

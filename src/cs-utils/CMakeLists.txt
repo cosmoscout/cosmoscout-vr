@@ -7,9 +7,11 @@
 # build library ------------------------------------------------------------------------------------
 
 file(GLOB SOURCE_FILES *.cpp */*.cpp)
+file(GLOB TEST_FILES ../../test/cs-utils/*.cpp ../../test/cs-utils/*/*.cpp)
 
 add_library(cs-utils SHARED
   ${SOURCE_FILES}
+  ${TEST_FILES}
 )
 
 target_link_libraries(cs-utils
@@ -31,8 +33,6 @@ target_link_libraries(cs-utils
     curl::curl
     curlpp::curlpp
     c-ares::c-ares
-
-    cs-utils-test
 )
 
 target_include_directories(cs-utils

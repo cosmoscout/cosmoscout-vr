@@ -7,9 +7,11 @@
 # build library ------------------------------------------------------------------------------------
 
 file(GLOB SOURCE_FILES *.cpp */*.cpp)
+file(GLOB TEST_FILES ../../test/cs-core/*.cpp ../../test/cs-core/*/*.cpp)
 
 add_library(cs-core SHARED
   ${SOURCE_FILES}
+  ${TEST_FILES}
 )
 
 target_link_libraries(cs-core
@@ -18,8 +20,6 @@ target_link_libraries(cs-core
     cs-graphics
     cs-gui
     cs-utils
-
-    cs-core-test
 )
 
 target_include_directories(cs-core

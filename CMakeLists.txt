@@ -239,5 +239,4 @@ include_directories(
 add_subdirectory(config)
 add_subdirectory(resources)
 add_subdirectory(src)
-add_subdirectory(test)
 add_subdirectory(plugins)

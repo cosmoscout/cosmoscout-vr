@@ -7,9 +7,11 @@
 # build library ------------------------------------------------------------------------------------
 
 file(GLOB SOURCE_FILES *.cpp */*.cpp)
+file(GLOB TEST_FILES ../../test/cs-gui/*.cpp ../../test/cs-gui/*/*.cpp)
 
 add_library(cs-gui SHARED
   ${SOURCE_FILES}
+  ${TEST_FILES}
 )
 
 target_link_libraries(cs-gui
@@ -17,8 +19,6 @@ target_link_libraries(cs-gui
     cef::cef
     cef::wrapper
     cs-utils
-
-    cs-gui-test
 )
 
 install(TARGETS cs-gui DESTINATION lib)
