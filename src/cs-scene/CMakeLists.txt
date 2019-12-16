@@ -9,8 +9,12 @@
 file(GLOB SOURCE_FILES *.cpp */*.cpp)
 file(GLOB TEST_FILES ../../test/cs-scene/*.cpp ../../test/cs-scene/*/*.cpp)
 
+# Header files are only added in order to make them available in your IDE.
+file(GLOB HEADER_FILES *.hpp */*.hpp)
+
 add_library(cs-scene SHARED
   ${SOURCE_FILES}
+  ${HEADER_FILES}
   ${TEST_FILES}
 )
 
@@ -18,6 +22,13 @@ target_link_libraries(cs-scene
   PUBLIC
     cs-utils
 )
+
+# Make directory structure available in your IDE.
+source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" PREFIX "src" FILES
+  ${SOURCE_FILES} ${HEADER_FILES}
+)
+
+# install the library ------------------------------------------------------------------------------
 
 install(TARGETS cs-scene DESTINATION lib)
 

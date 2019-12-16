@@ -23,6 +23,9 @@ if(NOT MSVC)
   endif()
 endif()
 
+# Use folders when targeting an IDE
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+
 # find dependencies --------------------------------------------------------------------------------
 
 include(GenerateExportHeader)
