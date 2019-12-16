@@ -64,7 +64,38 @@ export VISTACORELIBS_DRIVER_PLUGIN_DIRS=../lib/DriverPlugins
   - _Before launch_ -> _+_ -> _Install_
 
 ### Windows
-_TODO_
+Currently CLion only supports debugging with MinGW and Cygwin. Sadly CosmoScout only runs on MSVC so only a release 
+build will be possible for now.
+Following this restriction you need to install Visual Studio beforehand. If you are not bound to a specific version use
+the latest Visual Studio.
+
+The following will use `-G "Visual Studio 16 2019" -A x64` as the compilation target, you can replace it with your 
+highest available (and supported) version.
+
+- Run: `.\make_externals.bat -G "Visual Studio 16 2019" -A x64`
+- Run: `.\make.bat -G "Visual Studio 16 2019" -A x64`
+- Go to: _Settings_ -> _Build, Execution, Deployment_ -> _Toolchain_
+  - Add Visual Studio if it is not in the list yet. And make sure it is at the top.
+  - If Visual Studio is installed correctly everything else here should be set automagically.
+- Go to: _Settings_ -> _Build, Execution, Deployment_ -> _CMake_
+- Release Profile
+  - _Generation path_: `build\windows-release`
+  - _Build options_: `--parallel 8`
+  - _CMAKE options_:
+    ```bat
+    -DCMAKE_BUILD_TYPE=Release
+    -G "Visual Studio 16 2019" -A x64
+    -DCMAKE_INSTALL_PREFIX="<path to cosmoscout>\install\windows-release"
+    -DCOSMOSCOUT_EXTERNALS_DIR="<path to cosmoscout>\install\windows-externals-release"
+    ```
+
+- Go to: _Run/Debug Configuration_ -> _CMake Application_ -> _cosmoscout_
+  - _Target_: `cosmoscout`
+  - _Executable_ -> _Select other_: `<path to cosmoscout>\install\windows-release\bin\cosmoscout.exe`
+  - _Program arguments_: `--settings=../share/config/simple_desktop.json -vista vista.ini`
+  - _Working directory_: `<path to cosmoscout>\install\windows-release\bin`
+  - _Environment variables_: `VISTACORELIBS_DRIVER_PLUGIN_DIRS=..\lib\DriverPlugins;PATH=..\lib\;%PATH%`
+  - _Before launch_ -> _+_ -> _Install_
 
 ### Recommended Plugins
 - [.gitignore](https://plugins.jetbrains.com/plugin/7495--ignore/)
@@ -75,11 +106,13 @@ _TODO_
 
 ## <img src="https://simpleicons.org/icons/eclipseide.svg" alt="Simple Icons" width=24 height=18> Eclipse
 
-_TODO_
+_TODO_ Currently nobody tried to use CosmoScout VR with Eclipse yet. If you do manage to set up CosmoScout with this IDE
+we would be glad if you could make a pull request with set up instructions.
 
 ## <img src="https://simpleicons.org/icons/sublimetext.svg" alt="Simple Icons" width=24 height=18> Sublime Text
 
-_TODO_
+_TODO_ Currently nobody tried to use CosmoScout VR with Sublime yet. If you do manage to set up CosmoScout with this IDE
+we would be glad if you could make a pull request with set up instructions.
 
 ## <img src="https://simpleicons.org/icons/visualstudio.svg" alt="Simple Icons" width=24 height=18> Visual Studio
 
