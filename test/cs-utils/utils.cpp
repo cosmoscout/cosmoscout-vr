@@ -17,6 +17,6 @@ TEST_CASE("cs::utils::contains(std::string, std::string)") {
   CHECK(!contains("", "a"));
   CHECK(!contains("b", "a"));
   CHECK(!contains("ab", "ba"));
-  CHECK(!contains("a", " "));K
+  CHECK(!contains("a", " "));
 };
 }
