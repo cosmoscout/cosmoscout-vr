@@ -6,14 +6,11 @@
 
 #include "utils.hpp"
 
-#include "doctest.hpp"
-
 #include <VistaKernel/DisplayManager/VistaDisplayManager.h>
 #include <VistaKernel/DisplayManager/VistaProjection.h>
 #include <VistaKernel/DisplayManager/VistaViewport.h>
 #include <VistaKernel/VistaSystem.h>
 
-#include <boost/filesystem.hpp>
 #include <iostream>
 
 namespace cs::utils {
@@ -113,37 +110,6 @@ float getCurrentFarClipDistance() {
       ->GetProjectionProperties()
       ->GetClippingRange(near, far);
   return (float)far;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-TEST_CASE("cs::utils::toString") {
-  CHECK(toString(5) == "5");
-}
-
-TEST_CASE("cs::utils::contains") {
-  CHECK(contains("lorem ipsum", "lor"));
-  CHECK(contains("lorem ipsum", "psum"));
-  CHECK(contains("lorem ipsum", "m"));
-  CHECK(!contains("lorem ipsum", "emi"));
-  CHECK(!contains("lorem ipsum", "sum "));
-}
-
-TEST_CASE("cs::utils::startsWith") {
-  CHECK(startsWith("lorem ipsum", "lor"));
-  CHECK(startsWith("lorem ipsum", "lorem ipsum"));
-  CHECK(!startsWith("lorem ipsum", "orem"));
-  CHECK(!startsWith("lorem ipsum", "lorem ipsum foo"));
-  CHECK(!startsWith("lorem ipsum", "abracadabra simsalabim"));
-}
-
-TEST_CASE("cs::utils::endsWith") {
-  CHECK(endsWith("lorem ipsum", "sum"));
-  CHECK(endsWith("lorem ipsum", "m"));
-  CHECK(endsWith("lorem ipsum", "lorem ipsum"));
-  CHECK(!endsWith("lorem ipsum", "ipsu"));
-  CHECK(!endsWith("lorem ipsum", "foo lorem ipsum"));
-  CHECK(!endsWith("lorem ipsum", "abracadabra simsalabim"));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

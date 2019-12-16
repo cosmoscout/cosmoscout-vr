@@ -17,7 +17,6 @@
 #include "../cs-graphics/MouseRay.hpp"
 #include "../cs-utils/Downloader.hpp"
 #include "../cs-utils/convert.hpp"
-#include "../cs-utils/doctest.hpp"
 #include "../cs-utils/filesystem.hpp"
 #include "../cs-utils/utils.hpp"
 #include "ObserverNavigationNode.hpp"
@@ -986,12 +985,6 @@ void Application::registerGuiCallbacks() {
     mSolarSystem->flyObserverTo(mSolarSystem->getObserver().getCenterName(),
         mSolarSystem->getObserver().getFrameName(), cart, rotation, 3.0);
   });
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-TEST_CASE("Application") {
-  CHECK(1 + 1 == 2);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
