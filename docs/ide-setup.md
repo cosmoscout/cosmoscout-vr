@@ -13,11 +13,18 @@ Below you find some instructions on how to setup your preferred IDE for CosmoSco
 * [Visual Studio Code](#-visual-studio-code)
 
 
-## CLion
+## CLion (Linux & Windows)
+
+For CLion, we can recommended these plugins for the development of CosmoScout VR:
+- [.gitignore](https://plugins.jetbrains.com/plugin/7495--ignore/)
+- [Awesome Console](https://plugins.jetbrains.com/plugin/7677-awesome-console/)
+- [CodeGlance](https://plugins.jetbrains.com/plugin/7275-codeglance/)
+- [GitToolBox](https://plugins.jetbrains.com/plugin/7499-gittoolbox/)
+- [GLSL Support](https://plugins.jetbrains.com/plugin/6993-glsl-support/)
 
 ### Linux
 
-Sadly you have to add the following lines to the `clion.sh` file, which is located in you CLion `bin` folder:
+You have to add the following lines to the `clion.sh` file, which is located in you CLion `bin` folder:
 
 ```bash
 export LD_LIBRARY_PATH=../lib:../lib/DriverPlugins:$LD_LIBRARY_PATH
@@ -64,6 +71,7 @@ export VISTACORELIBS_DRIVER_PLUGIN_DIRS=../lib/DriverPlugins
   - _Before launch_ -> __+__ -> _Install_
 
 ### Windows
+
 Currently CLion only supports debugging with MinGW and Cygwin. Sadly CosmoScout only runs on MSVC so only a release 
 build will be possible for now.
 Following this restriction you need to install Visual Studio beforehand. If you are not bound to a specific version use
@@ -98,30 +106,23 @@ highest available (and supported) version.
     - (If you haven't set `BOOST_ROOT` as a system wide environment variable you need to add that too here.)
   - _Before launch_ -> __+__ -> _Install_
 
-### Recommended Plugins
-- [.gitignore](https://plugins.jetbrains.com/plugin/7495--ignore/)
-- [Awesome Console](https://plugins.jetbrains.com/plugin/7677-awesome-console/)
-- [CodeGlance](https://plugins.jetbrains.com/plugin/7275-codeglance/)
-- [GitToolBox](https://plugins.jetbrains.com/plugin/7499-gittoolbox/)
-- [GLSL Support](https://plugins.jetbrains.com/plugin/6993-glsl-support/)
-
-## <img src="https://simpleicons.org/icons/eclipseide.svg" alt="Simple Icons" width=24 height=18> Eclipse
+## <img src="https://simpleicons.org/icons/eclipseide.svg" alt="Simple Icons" width=24 height=18> Eclipse (Linux only)
 
 _TODO_ Currently nobody tried to use CosmoScout VR with Eclipse yet. If you do manage to set up CosmoScout with this IDE
 we would be glad if you could make a pull request with set up instructions.
 
-## <img src="https://simpleicons.org/icons/sublimetext.svg" alt="Simple Icons" width=24 height=18> Sublime Text
+## <img src="https://simpleicons.org/icons/sublimetext.svg" alt="Simple Icons" width=24 height=18> Sublime Text (Linux & Windows)
 
 _TODO_ Currently nobody tried to use CosmoScout VR with Sublime yet. If you do manage to set up CosmoScout with this IDE
 we would be glad if you could make a pull request with set up instructions.
 
-## <img src="https://simpleicons.org/icons/visualstudio.svg" alt="Simple Icons" width=24 height=18> Visual Studio
+## <img src="https://simpleicons.org/icons/visualstudio.svg" alt="Simple Icons" width=24 height=18> Visual Studio (Windows only)
 
 First, you should follow the [Generic Build Instructions](install.md) for Windows. Once CosmoScout VR has been compiled successfully, you can simply open the `cosmoscout-vr.sln` solution in either `build\windows-debug` or `build\windows-release`.
 
 Due to the build process of CosmoScout VR, this solution can only be used for Debug or Release mode respectively. Therefore you have to select the corresponding configuration type in Visual Studio.
 
-## <img src="https://simpleicons.org/icons/visualstudiocode.svg" alt="Simple Icons" width=24 height=18> Visual Studio Code
+## <img src="https://simpleicons.org/icons/visualstudiocode.svg" alt="Simple Icons" width=24 height=18> Visual Studio Code (Linux & Windows)
 
 For Visual Studio Code, only the [C/C++ Extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools) is required.
 However, we can also recommend the following extensions: [CMake](https://marketplace.visualstudio.com/items?itemName=twxs.cmake), [Markdown Preview Github Styling](https://marketplace.visualstudio.com/items?itemName=bierner.markdown-preview-github-styles) and [Code Spell Checker](https://marketplace.visualstudio.com/items?itemName=streetsidesoftware.code-spell-checker).
