@@ -336,9 +336,9 @@ void Application::FrameUpdate() {
         mGuiManager->setLoadingScreenProgress(100.f, true);
 
         // All plugins finished loading -> init their custom components.
-        mGuiManager->getSideBar()->callJavascript("CosmoScout.call", "sidebar", "init");
+/*        mGuiManager->getSideBar()->callJavascript("CosmoScout.call", "sidebar", "init");
         mGuiManager->getTimeline()->callJavascript("CosmoScout.call", "timeline", "init");
-        mGuiManager->getStatusBar()->callJavascript("CosmoScout.call", "statusbar", "init");
+        mGuiManager->getStatusBar()->callJavascript("CosmoScout.call", "statusbar", "init");*/
         mGuiManager->getLogo()->callJavascript("init");
         mGuiManager->getSideBar()->callJavascript("CosmoScout.initInputs");
 
@@ -614,12 +614,12 @@ void Application::connectSlots() {
     facet->format("%d-%b-%Y %H:%M:%S.%f");
     sstr.imbue(std::locale(std::locale::classic(), facet));
     sstr << cs::utils::convert::toBoostTime(val);
-    mGuiManager->getTimeline()->callJavascript("set_date", sstr.str());
+    mGuiManager->getTimeline()->callJavascript("CosmoScout.call", "timeline", "setDate", sstr.str());
   });
 
   // Update the simulation time speed shown in the user interface.
   mTimeControl->pTimeSpeed.onChange().connect(
-      [this](float val) { mGuiManager->getTimeline()->callJavascript("set_time_speed", val); });
+      [this](float val) { mGuiManager->getTimeline()->callJavascript("CosmoScout.call", "timeline", "setTimeSpeed", val); });
 
   // Show notification when the center name of the celestial observer changes.
   mSolarSystem->pObserverCenter.onChange().connect([this](std::string const& center) {

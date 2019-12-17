@@ -158,7 +158,7 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
   });
 
   // Set settings for the time Navigation
-  mCosmoScoutGui->callJavascript("set_timeline_range", settings->mMinDate, settings->mMaxDate);
+  mCosmoScoutGui->callJavascript("CosmoScout.call", "timeline", "setTimelineRange", settings->mMinDate, settings->mMaxDate);
 
   for (int i = 0; i < settings->mEvents.size(); i++) {
     std::string planet = "";
@@ -412,7 +412,7 @@ void GuiManager::addScriptToSideBarFromJS(std::string const& jsFile) {
 void GuiManager::addEventToTimenavigationBar(std::string start, std::optional<std::string> end,
     std::string id, std::string content, std::optional<std::string> style, std::string description,
     std::string planet, std::string place) {
-  mCosmoScoutGui->callJavascript("add_item", start, end.value_or(""), id, content,
+  mCosmoScoutGui->callJavascript("CosmoScout.call", "timeline", "addItem", start, end.value_or(""), id, content,
       style.value_or(""), description, planet, place);
 }
 
