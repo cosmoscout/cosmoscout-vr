@@ -795,12 +795,12 @@ void Application::registerGuiCallbacks() {
   mGuiManager->getTimeline()->registerCallback(
       "reset_time", ([this]() { mTimeControl->resetTime(); }));
 
-  mGuiManager->getTimeline()->registerCallback<double>("add_hours", ([&](double amount) {
+  mGuiManager->getTimeline()->registerCallback<double>("add_hours", ([this](double amount) {
     mTimeControl->setTime(mTimeControl->pSimulationTime.get() + 60.0 * 60.0 * amount);
   }));
 
   mGuiManager->getTimeline()->registerCallback<double>(
-      "add_hours_without_animation", ([&](double amount) {
+      "add_hours_without_animation", ([this](double amount) {
         mTimeControl->setTimeWithoutAnimation(
             mTimeControl->pSimulationTime.get() + 60.0 * 60.0 * amount);
       }));
@@ -812,7 +812,7 @@ void Application::registerGuiCallbacks() {
       }));
 
   mGuiManager->getTimeline()->registerCallback<double>(
-      "set_time_speed", ([&](double speed) { mTimeControl->setTimeSpeed(speed); }));
+      "set_time_speed", ([this](double speed) { mTimeControl->setTimeSpeed(speed); }));
 
   // Flies the celestial observer to the given location in space.
   mGuiManager->getTimeline()->registerCallback<std::string, double, double, double, double>(

@@ -14,6 +14,20 @@ namespace cs::gui::detail {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+WebViewClient::~WebViewClient() {
+  if (js_callbacks_.size() > 0) {
+    std::cout << "[~WebViewClient] Warning: There are still JavaScript callbacks registered!"
+              << std::endl;
+
+    for (auto&& i : js_callbacks_) {
+      std::cout << " - " << i.first << std::endl;
+      i.second = [](std::vector<std::any> const&) {};
+    }
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 bool WebViewClient::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
     CefRefPtr<CefFrame> frame, CefProcessId source_process, CefRefPtr<CefProcessMessage> message) {
 

@@ -51,6 +51,7 @@ DeletableMark::DeletableMark(DeletableMark const& other)
 
 DeletableMark::~DeletableMark() {
   if (mGuiNode) {
+    mGuiItem->unregisterCallback("delete_me");
     mInputManager->unregisterSelectable(mGuiNode);
     mGuiArea->removeItem(mGuiItem.get());
 
