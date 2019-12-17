@@ -4,7 +4,7 @@
 #                         Copyright: (c) 2019 German Aerospace Center (DLR)                        #
 # ------------------------------------------------------------------------------------------------ #
 
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.13)
 project(cosmoscout-vr VERSION 1.1.1)
 
 # Use cmake 3.12's <PACKAGE>_ROOT variabled for searching.
