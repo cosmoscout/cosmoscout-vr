@@ -7,7 +7,6 @@
 # build library ------------------------------------------------------------------------------------
 
 file(GLOB SOURCE_FILES *.cpp */*.cpp)
-file(GLOB TEST_FILES ../../test/cs-graphics/*.cpp ../../test/cs-graphics/*/*.cpp)
 
 # Header files are only added in order to make them available in your IDE.
 file(GLOB HEADER_FILES *.hpp */*.hpp)
@@ -15,7 +14,6 @@ file(GLOB HEADER_FILES *.hpp */*.hpp)
 add_library(cs-graphics SHARED
   ${SOURCE_FILES}
   ${HEADER_FILES}
-  ${TEST_FILES}
 )
 
 target_link_libraries(cs-graphics

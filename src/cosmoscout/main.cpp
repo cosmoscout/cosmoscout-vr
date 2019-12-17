@@ -4,15 +4,15 @@
 //                        Copyright: (c) 2019 German Aerospace Center (DLR)                       //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#define DOCTEST_CONFIG_IMPLEMENTATION_IN_DLL
+#define DOCTEST_CONFIG_IMPLEMENT
 
 #include "../cs-core/Settings.hpp"
 #include "../cs-gui/gui.hpp"
 #include "../cs-utils/CommandLine.hpp"
+#include "../cs-utils/doctest.hpp"
 #include "Application.hpp"
 
 #include <VistaKernel/VistaSystem.h>
-#include <doctest/doctest.h>
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 

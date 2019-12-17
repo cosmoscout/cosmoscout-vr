@@ -7,7 +7,6 @@
 # build library ------------------------------------------------------------------------------------
 
 file(GLOB SOURCE_FILES *.cpp */*.cpp)
-file(GLOB TEST_FILES ../../test/cs-utils/*.cpp ../../test/cs-utils/*/*.cpp)
 
 # Header files are only added in order to make them available in your IDE.
 file(GLOB HEADER_FILES *.hpp */*.hpp)
@@ -15,12 +14,12 @@ file(GLOB HEADER_FILES *.hpp */*.hpp)
 add_library(cs-utils SHARED
   ${SOURCE_FILES}
   ${HEADER_FILES}
-  ${TEST_FILES}
 )
 
 target_link_libraries(cs-utils
   PUBLIC
     glm::glm
+    doctest::doctest
     tinygltf::tinygltf
     Boost::filesystem
     Boost::chrono
