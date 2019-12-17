@@ -6,21 +6,14 @@
 
 Below you find some instructions on how to setup your preferred IDE for CosmoScout VR development. 
 
-* [CLion](#clion)
-* [Eclipse](#-eclipse)
-* [Sublime Text](#-sublime-text)
-* [Visual Studio](#-visual-studio)
-* [Visual Studio Code](#-visual-studio-code)
+* [CLion](#clion-linux--windows)
+* [Eclipse](#-eclipse-linux-only)
+* [Sublime Text](#-sublime-text-linux--windows)
+* [Visual Studio](#-visual-studio-windows-only)
+* [Visual Studio Code](#-visual-studio-code-linux--windows)
 
 
 ## CLion (Linux & Windows)
-
-For CLion, we can recommended these plugins for the development of CosmoScout VR:
-- [.gitignore](https://plugins.jetbrains.com/plugin/7495--ignore/)
-- [Awesome Console](https://plugins.jetbrains.com/plugin/7677-awesome-console/)
-- [CodeGlance](https://plugins.jetbrains.com/plugin/7275-codeglance/)
-- [GitToolBox](https://plugins.jetbrains.com/plugin/7499-gittoolbox/)
-- [GLSL Support](https://plugins.jetbrains.com/plugin/6993-glsl-support/)
 
 ### Linux
 
@@ -105,6 +98,13 @@ highest available (and supported) version.
   - _Environment variables_: `VISTACORELIBS_DRIVER_PLUGIN_DIRS=..\lib\DriverPlugins;PATH=..\lib\;%PATH%`
     - (If you haven't set `BOOST_ROOT` as a system wide environment variable you need to add that too here.)
   - _Before launch_ -> __+__ -> _Install_
+  
+For CLion, we can recommended these plugins for the development of CosmoScout VR:
+- [.gitignore](https://plugins.jetbrains.com/plugin/7495--ignore/)
+- [Awesome Console](https://plugins.jetbrains.com/plugin/7677-awesome-console/)
+- [CodeGlance](https://plugins.jetbrains.com/plugin/7275-codeglance/)
+- [GitToolBox](https://plugins.jetbrains.com/plugin/7499-gittoolbox/)
+- [GLSL Support](https://plugins.jetbrains.com/plugin/6993-glsl-support/)
 
 ## <img src="https://simpleicons.org/icons/eclipseide.svg" alt="Simple Icons" width=24 height=18> Eclipse (Linux only)
 
@@ -113,8 +113,80 @@ we would be glad if you could make a pull request with set up instructions.
 
 ## <img src="https://simpleicons.org/icons/sublimetext.svg" alt="Simple Icons" width=24 height=18> Sublime Text (Linux & Windows)
 
-_TODO_ Currently nobody tried to use CosmoScout VR with Sublime yet. If you do manage to set up CosmoScout with this IDE
-we would be glad if you could make a pull request with set up instructions.
+To get started with Sublime Text 3, you can create a project file in the root directory of CosmoScout VR:
+
+### `CosmoScout VR.sublime-project`
+
+```json
+{
+    "build_systems":
+    [
+        {
+            "name": "Make (Release)",
+            "file_regex": "^(..[^:]*):([0-9]+):?([0-9]+)?:? (.*)$",
+            "cmd": "./make.sh",
+            "working_dir": "$project_path",
+            "windows": {
+                "cmd": "make.bat"
+            },
+        },
+        {
+            "name": "Make (Debug)",
+            "file_regex": "^(..[^:]*):([0-9]+):?([0-9]+)?:? (.*)$",
+            "cmd": "./make.sh",
+            "working_dir": "$project_path",
+            "env": {
+                "COSMOSCOUT_DEBUG_BUILD": "true"
+            },
+            "windows": {
+                "cmd": "make.bat"
+            },
+        },
+        {
+            "name": "Make Externals (Release)",
+            "file_regex": "^(..[^:]*):([0-9]+):?([0-9]+)?:? (.*)$",
+            "cmd": "./make_externals.sh",
+            "working_dir": "$project_path",
+            "windows": {
+                "cmd": "make_externals.bat"
+            }
+        },
+        {
+            "name": "Make Externals (Debug)",
+            "file_regex": "^(..[^:]*):([0-9]+):?([0-9]+)?:? (.*)$",
+            "cmd": "./make_externals.sh",
+            "working_dir": "$project_path",
+            "windows": {
+                "cmd": "make_externals.bat"
+            },
+            "env": {
+                "COSMOSCOUT_DEBUG_BUILD": "true"
+            }
+        },
+        {
+            "name": "Run CosmoScout VR",
+            "cmd": "install/linux-release/bin/start.sh",
+            "working_dir": "$project_path",
+            "windows": {
+                "cmd": "install\\window-release\\bin\\start.bat"
+            }
+        }
+    ],
+    "folders":
+    [
+        {
+            "path": "."
+        }
+    ]
+}
+```
+
+Now you can press `Ctrl-B` to bring up the build system selection.
+When you press this the next time, it will execute the build system selected previously.
+Press `Ctrl-Shift-B` to select another build system.
+You should first select `Make Externals (Release)`, then `Make (Release)` and later `Run CosmoScout VR`.
+
+While this will give you a basic build system, it will not allow for auto-completion or debugging.
 
 ## <img src="https://simpleicons.org/icons/visualstudio.svg" alt="Simple Icons" width=24 height=18> Visual Studio (Windows only)
 
