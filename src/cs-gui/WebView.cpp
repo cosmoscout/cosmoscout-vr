@@ -46,7 +46,7 @@ WebView::WebView(const std::string& url, int width, int height, bool allowLocalF
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 WebView::~WebView() {
-  auto host = mClient->GetInternalLifeSpanHandler()->GetBrowser()->GetHost();
+  auto host = mBrowser->GetHost();
   while (!host->TryCloseBrowser()) {
     CefDoMessageLoopWork();
     std::this_thread::sleep_for(std::chrono::milliseconds(1));
@@ -73,8 +73,8 @@ void WebView::setCursorChangeCallback(CursorChangeCallback const& callback) {
 void WebView::resize(int width, int height) const {
   mClient->GetInternalRenderHandler()->Resize(width, height);
 
-  if (mClient->GetInternalLifeSpanHandler()->GetBrowser()) {
-    mClient->GetInternalLifeSpanHandler()->GetBrowser()->GetHost()->WasResized();
+  if (mBrowser) {
+    mBrowser->GetHost()->WasResized();
   }
 }
 
@@ -150,57 +150,57 @@ void WebView::waitForFinishedLoading() const {
 
 void WebView::reload(bool ignoreCache) const {
   if (ignoreCache)
-    mClient->GetInternalLifeSpanHandler()->GetBrowser()->ReloadIgnoreCache();
+    mBrowser->ReloadIgnoreCache();
   else
-    mClient->GetInternalLifeSpanHandler()->GetBrowser()->Reload();
+    mBrowser->Reload();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void WebView::goBack() const {
-  mClient->GetInternalLifeSpanHandler()->GetBrowser()->GoBack();
+  mBrowser->GoBack();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void WebView::goForward() const {
-  mClient->GetInternalLifeSpanHandler()->GetBrowser()->GoForward();
+  mBrowser->GoForward();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void WebView::cut() const {
-  mClient->GetInternalLifeSpanHandler()->GetBrowser()->GetFocusedFrame()->Cut();
+  mBrowser->GetFocusedFrame()->Cut();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void WebView::copy() const {
-  mClient->GetInternalLifeSpanHandler()->GetBrowser()->GetFocusedFrame()->Copy();
+  mBrowser->GetFocusedFrame()->Copy();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void WebView::paste() const {
-  mClient->GetInternalLifeSpanHandler()->GetBrowser()->GetFocusedFrame()->Paste();
+  mBrowser->GetFocusedFrame()->Paste();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void WebView::remove() const {
-  mClient->GetInternalLifeSpanHandler()->GetBrowser()->GetFocusedFrame()->Delete();
+  mBrowser->GetFocusedFrame()->Delete();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void WebView::undo() const {
-  mClient->GetInternalLifeSpanHandler()->GetBrowser()->GetFocusedFrame()->Undo();
+  mBrowser->GetFocusedFrame()->Undo();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void WebView::redo() const {
-  mClient->GetInternalLifeSpanHandler()->GetBrowser()->GetFocusedFrame()->Redo();
+  mBrowser->GetFocusedFrame()->Redo();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -208,7 +208,7 @@ void WebView::redo() const {
 void WebView::injectFocusEvent(bool focus) {
   if (!mInteractive)
     return;
-  mClient->GetInternalLifeSpanHandler()->GetBrowser()->GetHost()->SendFocusEvent(focus);
+  mBrowser->GetHost()->SendFocusEvent(focus);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -226,17 +226,17 @@ void WebView::injectMouseEvent(MouseEvent const& event) {
   case MouseEvent::Type::eMove:
     cef_event.x = mMouseX = event.mX;
     cef_event.y = mMouseY = event.mY;
-    mClient->GetInternalLifeSpanHandler()->GetBrowser()->GetHost()->SendMouseMoveEvent(
+    mBrowser->GetHost()->SendMouseMoveEvent(
         cef_event, false);
     break;
 
   case MouseEvent::Type::eLeave:
-    mClient->GetInternalLifeSpanHandler()->GetBrowser()->GetHost()->SendMouseMoveEvent(
+    mBrowser->GetHost()->SendMouseMoveEvent(
         cef_event, true);
     break;
 
   case MouseEvent::Type::eScroll:
-    mClient->GetInternalLifeSpanHandler()->GetBrowser()->GetHost()->SendMouseWheelEvent(
+    mBrowser->GetHost()->SendMouseWheelEvent(
         cef_event, event.mX, event.mY);
     break;
 
@@ -259,7 +259,7 @@ void WebView::injectMouseEvent(MouseEvent const& event) {
     }
 
     cef_event.modifiers = (uint32)mMouseModifiers;
-    mClient->GetInternalLifeSpanHandler()->GetBrowser()->GetHost()->SendMouseClickEvent(
+    mBrowser->GetHost()->SendMouseClickEvent(
         cef_event, (cef_mouse_button_type_t)event.mButton, false, mClickCount);
     break;
 
@@ -273,7 +273,7 @@ void WebView::injectMouseEvent(MouseEvent const& event) {
     }
 
     cef_event.modifiers = (uint32)mMouseModifiers;
-    mClient->GetInternalLifeSpanHandler()->GetBrowser()->GetHost()->SendMouseClickEvent(
+    mBrowser->GetHost()->SendMouseClickEvent(
         cef_event, (cef_mouse_button_type_t)event.mButton, true, mClickCount);
     break;
   }
@@ -301,7 +301,7 @@ void WebView::injectKeyEvent(KeyEvent const& event) {
     cef_event.type = KEYEVENT_CHAR;
   }
 
-  mClient->GetInternalLifeSpanHandler()->GetBrowser()->GetHost()->SendKeyEvent(cef_event);
+  mBrowser->GetHost()->SendKeyEvent(cef_event);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -314,14 +314,14 @@ void WebView::callJavascriptImpl(
   }
   call.back() = ')';
 
-  CefRefPtr<CefFrame> frame = mClient->GetInternalLifeSpanHandler()->GetBrowser()->GetMainFrame();
+  CefRefPtr<CefFrame> frame = mBrowser->GetMainFrame();
   frame->ExecuteJavaScript(call, frame->GetURL(), 0);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void WebView::executeJavascript(std::string const& code) const {
-  CefRefPtr<CefFrame> frame = mClient->GetInternalLifeSpanHandler()->GetBrowser()->GetMainFrame();
+  CefRefPtr<CefFrame> frame = mBrowser->GetMainFrame();
   frame->ExecuteJavaScript(code, frame->GetURL(), 0);
 }
 

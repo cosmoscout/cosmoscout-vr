@@ -87,6 +87,46 @@ Application::~Application() {
 
   // And cleanup curl.
   cURLpp::terminate();
+
+  // Make sure all shared pointers have been cleared nicely. Print a warning if some references are still hanging around.
+  std::cout << __LINE__ << std::endl;
+  mDragNavigation.reset();
+  std::cout << __LINE__ << std::endl;
+
+  auto assertCleanUp = [](std::string const& name, size_t count) {
+    if (count > 1) {
+      std::cout << "[Application] Warning: Use count of " << name <<" is " << count-1 << " but should be 0." << std::endl;
+    }
+  };
+
+  assertCleanUp("mSolarSystem", mSolarSystem.use_count());
+  mSolarSystem.reset();
+  std::cout << __LINE__ << std::endl;
+
+  assertCleanUp("mTimeControl", mTimeControl.use_count());
+  mTimeControl.reset();
+  std::cout << __LINE__ << std::endl;
+
+  assertCleanUp("mGuiManager", mGuiManager.use_count());
+  mGuiManager.reset();
+  std::cout << __LINE__ << std::endl;
+
+  assertCleanUp("mGraphicsEngine", mGraphicsEngine.use_count());
+  mGraphicsEngine.reset();
+  std::cout << __LINE__ << std::endl;
+
+  assertCleanUp("mFrameTimings", mFrameTimings.use_count());
+  mFrameTimings.reset();
+  std::cout << __LINE__ << std::endl;
+
+  assertCleanUp("mInputManager", mInputManager.use_count());
+  mInputManager.reset();
+  std::cout << __LINE__ << std::endl;
+
+  assertCleanUp("mSettings", mSettings.use_count());
+  mSettings.reset();
+  std::cout << __LINE__ << std::endl;
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -106,13 +146,12 @@ bool Application::Init(VistaSystem* pVistaSystem) {
   mTimeControl = std::make_shared<cs::core::TimeControl>(mSettings);
   mSolarSystem = std::make_shared<cs::core::SolarSystem>(
       mSettings, mFrameTimings, mGraphicsEngine, mTimeControl);
-  mDragNavigation =
-      std::make_shared<cs::core::DragNavigation>(mSolarSystem, mInputManager, mTimeControl);
+  mDragNavigation.reset(new cs::core::DragNavigation(mSolarSystem, mInputManager, mTimeControl));
 
   // The ObserverNavigationNode is used by several DFN networks to move the celestial observer.
   VdfnNodeFactory* pNodeFactory = VdfnNodeFactory::GetSingleton();
   pNodeFactory->SetNodeCreator(
-      "ObserverNavigationNode", new ObserverNavigationNodeCreate(mSolarSystem, mInputManager));
+      "ObserverNavigationNode", new ObserverNavigationNodeCreate(mSolarSystem.get(), mInputManager.get()));
 
   // This connects several parts of CosmoScout VR to each other.
   connectSlots();
