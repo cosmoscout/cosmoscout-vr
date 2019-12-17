@@ -294,6 +294,9 @@
     border-color: #ddf;
     pointer-events: none;
     background-color: rgba(20, 20, 20, 0.5);
+    top: 2px ;
+    z-index: 1;
+    position: absolute;
 }
 
 #focus-lens-left,
@@ -302,6 +305,7 @@
     border-bottom: 2px solid #ddf;
     position: absolute;
     pointer-events: none;
+    z-index: 1;
 }
 
 #focus-lens-left {
@@ -309,7 +313,7 @@
 }
 
 #focus-lens-right {
-    right: 1px;
+    right: 0;
 }
 
 /* timeline control items ----------------------------------------------------------------------- */
@@ -324,11 +328,11 @@ position: relative;
     transition: margin-top 0.3s;
     transition-timing-function: ease;
     background-image: linear-gradient(180deg, rgba(20, 20, 20, 0.4) 80%, rgba(20, 20, 20, 0.0) 100%);
-
+    margin-top: -43px;
 }
 
 #timeline-container.visible {
-    margin-top: -43px;
+
 }
 
 #timeline-container.overview-visible {
@@ -342,7 +346,7 @@ position: relative;
     background-color: #ddf;
     width: 50%;
     left: 0;
-    transform: translateX(-175px);
+    transform: translateX(-170px);
 }
 
 #bottom-border-right {
@@ -351,8 +355,8 @@ position: relative;
     position: absolute;
     background-color: #ddf;
     width: 50%;
-    left: 50%;
-    transform: translateX(175px);
+    right: 0;
+    transform: translateX(170px);
 }
 
 #compass-arrow {
@@ -363,27 +367,6 @@ position: relative;
     display: inline-block;
 }
 
-#calendar {
-    pointer-events: none;
-    z-index: -1;
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 500px;
-    height: 382px;
-    top: 150px;
-    transition: opacity 0.2s;
-    transition-timing-function: ease-out;
-}
-
-.datepicker-inline {
-    height: 382px;
-}
-
-#calendar.visible {
-    z-index: 10;
-    pointer-events: all;
-}
 
 #timeline-container i {
     position: relative;

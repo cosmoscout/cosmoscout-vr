@@ -1,11 +1,24 @@
 #calendar {
+    pointer-events: none;
+    z-index: -1;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 500px;
+    height: 382px;
+    top: 150px;
+    transition-timing-function: ease-out;
     opacity: 0;
     transition: opacity 0.4s;
-    position: absolute;
-    top: 100px;
+}
+
+.datepicker-inline {
+    height: 382px;
 }
 
 #calendar.visible {
+    z-index: 10;
+    pointer-events: all;
     opacity: 1;
 }
 

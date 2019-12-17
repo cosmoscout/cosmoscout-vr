@@ -35,24 +35,45 @@
 </head>
 <body>
 
-
-<div id="notifications"></div>
-
-<div id="statistics"></div>
-
-<div id="timeline-container">
-    <div id="overview"></div>
-    <div id="timeline"></div>
-
-    <div id="bottom-border-left"></div>
-    <div id="bottom-border-right"></div>
-
-    <div>
-        <div id="speed-control" class="item">
-            <div id="range"></div>
+<div id="loading-screen" style="display: none">
+    <div id="background"></div>
+    <div id="loading-screen-logo">
+        <div id="image"></div>
+        <div id="text">
+            <div id="upper">CosmoScout VR</div>
+            <div id="progress">
+                <div id="progress-bar">
+                </div>
+            </div>
+            <div id="lower">loading core engine ...</div>
         </div>
+        <div id="version">unknown version</div>
+    </div>
+</div>
+<div id="cosmo-scout">
 
-        <span id="time-control" class="item">
+    <div id="notifications"></div>
+
+    <div id="statistics"></div>
+
+    <div id="timeline-container">
+        <div id="overview"></div>
+
+        <div id="focus-lens-left"></div>
+        <div id="focus-lens"></div>
+        <div id="focus-lens-right"></div>
+
+        <div id="timeline"></div>
+
+        <div id="bottom-border-left"></div>
+        <div id="bottom-border-right"></div>
+
+        <div>
+            <div id="speed-control" class="item">
+                <div id="range"></div>
+            </div>
+
+            <span id="time-control" class="item">
       <a class="btn light-glass btn-main" data-toggle="tooltip-bottom" title='Reset simulation time'
          id="time-reset-button">
           <i class="material-icons">restore</i>
@@ -66,14 +87,14 @@
       </a>
     </span>
 
-        <span id="expand-control" class="item">
+            <span id="expand-control" class="item">
           <a class="waves-effect waves-light btn light-glass" data-toggle="tooltip-bottom" title='Toggle overview'
              id="expand-button">
               <i class="material-icons">expand_more</i>
           </a>
         </span>
 
-        <span id="decreaseControl" class="item">
+            <span id="decreaseControl" class="item">
           <a class="btn light-glass" id="decrease-day-button" data-diff="-86400">
               <i class="material-icons">expand_more</i>
           </a>
@@ -94,7 +115,7 @@
           </a>
         </span>
 
-        <span id="increaseControl" class="item">
+            <span id="increaseControl" class="item">
           <a class="btn light-glass" id="increase-day-button" data-diff="86400">
               <i class="material-icons">expand_less</i>
           </a>
@@ -115,204 +136,204 @@
           </a>
         </span>
 
-        <span id="speed-decrease-button-container" class="item">
+            <span id="speed-decrease-button-container" class="item">
           <a class="btn light-glass" data-toggle="tooltip-bottom" title='Fast rewind' id="speed-decrease-button">
               <i class="material-icons">fast_rewind</i>
           </a>
         </span>
 
-        <span id="speed-increase-button-container" class="item">
+            <span id="speed-increase-button-container" class="item">
           <a class="btn light-glass" data-toggle="tooltip-bottom" title='Fast forward' id="speed-increase-button">
               <i class="material-icons">fast_forward</i>
           </a>
         </span>
+        </div>
+
+        <div id="plugin-buttons">
+            <a class="btn light-glass" data-toggle="tooltip-bottom" title='Turn north up' data-call="navigate_north_up">
+                <span id="compass-arrow"></span>
+            </a>
+            <a class="btn light-glass" data-toggle="tooltip-bottom" title="Fix horizon"
+               data-call="navigate_fix_horizon">
+                <i class="material-icons">terrain</i>
+            </a>
+            <a class="btn light-glass" data-toggle="tooltip-bottom" title="Launch to orbit"
+               data-call="navigate_to_orbit">
+                <i class="material-icons">flight_takeoff</i>
+            </a>
+            <a class="btn light-glass" data-toggle="tooltip-bottom" title="Land on surface"
+               data-call="navigate_to_surface">
+                <i class="material-icons">flight_land</i>
+            </a>
+        </div>
     </div>
 
-    <div id="plugin-buttons">
-        <a class="btn light-glass" data-toggle="tooltip-bottom" title='Turn north up' data-call="navigate_north_up">
-            <span id="compass-arrow"></span>
-        </a>
-        <a class="btn light-glass" data-toggle="tooltip-bottom" title="Fix horizon" data-call="navigate_fix_horizon">
-            <i class="material-icons">terrain</i>
-        </a>
-        <a class="btn light-glass" data-toggle="tooltip-bottom" title="Launch to orbit" data-call="navigate_to_orbit">
-            <i class="material-icons">flight_takeoff</i>
-        </a>
-        <a class="btn light-glass" data-toggle="tooltip-bottom" title="Land on surface" data-call="navigate_to_surface">
-            <i class="material-icons">flight_land</i>
-        </a>
-    </div>
-</div>
 
-
-<div id="focus-lens-left"></div>
-<div id="focus-lens"></div>
-<div id="focus-lens-right"></div>
-
-<div id="left-side-bar" class="side-bar left">
-    <div class="accordion" id="sidebar-accordion">
-        <div class="card sidebar-tab">
-            <div class="card-header collapsed tab"
-                 id="heading-GeneralSettings"
-                 data-toggle="collapse"
-                 data-target="#collapse-GeneralSettings"
-                 aria-expanded="false"
-                 aria-controls="collapse-GeneralSettings"
-                 type="button">
-                <i class="material-icons">settings</i>
-                <span class="header-name">Advanced Settings</span>
-            </div>
-            <div class="card-body collapse"
-                 id="collapse-GeneralSettings"
-                 aria-labelledby="heading-GeneralSettings"
-                 data-parent="#sidebar-accordion">
-                <div class="accordion" id="settings-accordion">
-                    <div class="card settings-section">
-                        <div class="card-header collapsed"
-                             id="headingSettings-Graphics"
-                             data-toggle="collapse"
-                             data-target="#collapseSettings-Graphics"
-                             aria-expanded="false"
-                             aria-controls="collapseSettings-Graphics"
-                             type="button">
-                            <i class="material-icons">trending_up</i>
-                            <span>Graphics</span>
-                            <i class="material-icons caret-icon">keyboard_arrow_left</i>
-                        </div>
-                        <div class="card-body collapse"
-                             id="collapseSettings-Graphics"
-                             aria-labelledby="headingSettings-Graphics"
-                             data-parent="#settings-accordion">
-                            <div class="row">
-                                <div class="col-5">
-                                    <label class="checklabel">
-                                        <input type="checkbox" id="set_enable_vsync" checked/>
-                                        <i class="material-icons"></i>
-                                        <span>VSync</span>
-                                    </label>
-                                </div>
-                                <div class="col-7">
-                                    <label class="checklabel">
-                                        <input type="checkbox" id="set_enable_timer_queries"/>
-                                        <i class="material-icons"></i>
-                                        <span>Display Timing</span>
-                                    </label>
-                                </div>
+    <div id="left-side-bar" class="side-bar left">
+        <div class="accordion" id="sidebar-accordion">
+            <div class="card sidebar-tab">
+                <div class="card-header collapsed tab"
+                     id="heading-GeneralSettings"
+                     data-toggle="collapse"
+                     data-target="#collapse-GeneralSettings"
+                     aria-expanded="false"
+                     aria-controls="collapse-GeneralSettings"
+                     type="button">
+                    <i class="material-icons">settings</i>
+                    <span class="header-name">Advanced Settings</span>
+                </div>
+                <div class="card-body collapse"
+                     id="collapse-GeneralSettings"
+                     aria-labelledby="heading-GeneralSettings"
+                     data-parent="#sidebar-accordion">
+                    <div class="accordion" id="settings-accordion">
+                        <div class="card settings-section">
+                            <div class="card-header collapsed"
+                                 id="headingSettings-Graphics"
+                                 data-toggle="collapse"
+                                 data-target="#collapseSettings-Graphics"
+                                 aria-expanded="false"
+                                 aria-controls="collapseSettings-Graphics"
+                                 type="button">
+                                <i class="material-icons">trending_up</i>
+                                <span>Graphics</span>
+                                <i class="material-icons caret-icon">keyboard_arrow_left</i>
                             </div>
-
-                            <div class="strike">
-                                <span>Lighting</span>
-                            </div>
-
-                            <div class="row">
-                                <div class="col-7 offset-5">
-                                    <label class="checklabel">
-                                        <input type="checkbox" id="set_enable_lighting"/>
-                                        <i class="material-icons"></i>
-                                        <span>Enable</span>
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-5">
-                                    Quality
-                                </div>
-                                <div class="col-7">
-                                    <div id="set_lighting_quality"></div>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-5">
-                                    Ambient Light
-                                </div>
-                                <div class="col-7">
-                                    <div id="set_ambient_light">
+                            <div class="card-body collapse"
+                                 id="collapseSettings-Graphics"
+                                 aria-labelledby="headingSettings-Graphics"
+                                 data-parent="#settings-accordion">
+                                <div class="row">
+                                    <div class="col-5">
+                                        <label class="checklabel">
+                                            <input type="checkbox" id="set_enable_vsync" checked/>
+                                            <i class="material-icons"></i>
+                                            <span>VSync</span>
+                                        </label>
+                                    </div>
+                                    <div class="col-7">
+                                        <label class="checklabel">
+                                            <input type="checkbox" id="set_enable_timer_queries"/>
+                                            <i class="material-icons"></i>
+                                            <span>Display Timing</span>
+                                        </label>
                                     </div>
                                 </div>
-                            </div>
 
-                            <div class="strike">
-                                <span>Shadows</span>
-                            </div>
+                                <div class="strike">
+                                    <span>Lighting</span>
+                                </div>
 
-                            <div class="row">
-                                <div class="col-7 offset-5">
-                                    <label class="checklabel">
-                                        <input type="checkbox" id="set_enable_shadows"/>
-                                        <i class="material-icons"></i>
-                                        <span>Enable</span>
-                                    </label>
+                                <div class="row">
+                                    <div class="col-7 offset-5">
+                                        <label class="checklabel">
+                                            <input type="checkbox" id="set_enable_lighting"/>
+                                            <i class="material-icons"></i>
+                                            <span>Enable</span>
+                                        </label>
+                                    </div>
                                 </div>
-                            </div>
+                                <div class="row">
+                                    <div class="col-5">
+                                        Quality
+                                    </div>
+                                    <div class="col-7">
+                                        <div id="set_lighting_quality"></div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-5">
+                                        Ambient Light
+                                    </div>
+                                    <div class="col-7">
+                                        <div id="set_ambient_light">
+                                        </div>
+                                    </div>
+                                </div>
 
-                            <div class="row">
-                                <div class="col-5">
-                                    Shadowmap Size
+                                <div class="strike">
+                                    <span>Shadows</span>
                                 </div>
-                                <div class="col-7">
-                                    <div id="set_shadowmap_resolution"></div>
-                                </div>
-                            </div>
 
-                            <div class="row">
-                                <div class="col-5">
-                                    Cascades
+                                <div class="row">
+                                    <div class="col-7 offset-5">
+                                        <label class="checklabel">
+                                            <input type="checkbox" id="set_enable_shadows"/>
+                                            <i class="material-icons"></i>
+                                            <span>Enable</span>
+                                        </label>
+                                    </div>
                                 </div>
-                                <div class="col-7">
-                                    <div id="set_shadowmap_cascades"></div>
-                                </div>
-                            </div>
 
-                            <div class="row">
-                                <div class="col-5">
-                                    Cascade Distribution
+                                <div class="row">
+                                    <div class="col-5">
+                                        Shadowmap Size
+                                    </div>
+                                    <div class="col-7">
+                                        <div id="set_shadowmap_resolution"></div>
+                                    </div>
                                 </div>
-                                <div class="col-7">
-                                    <div id="set_shadowmap_split_distribution"></div>
-                                </div>
-                            </div>
 
-                            <div class="row">
-                                <div class="col-5">
-                                    Bias
+                                <div class="row">
+                                    <div class="col-5">
+                                        Cascades
+                                    </div>
+                                    <div class="col-7">
+                                        <div id="set_shadowmap_cascades"></div>
+                                    </div>
                                 </div>
-                                <div class="col-7">
-                                    <div id="set_shadowmap_bias"></div>
-                                </div>
-                            </div>
 
-                            <div class="row">
-                                <div class="col-5">
-                                    Depth Range
+                                <div class="row">
+                                    <div class="col-5">
+                                        Cascade Distribution
+                                    </div>
+                                    <div class="col-7">
+                                        <div id="set_shadowmap_split_distribution"></div>
+                                    </div>
                                 </div>
-                                <div class="col-7">
-                                    <div id="set_shadowmap_range"></div>
-                                </div>
-                            </div>
 
-                            <div class="row">
-                                <div class="col-5">
-                                    Sunspace Extension
+                                <div class="row">
+                                    <div class="col-5">
+                                        Bias
+                                    </div>
+                                    <div class="col-7">
+                                        <div id="set_shadowmap_bias"></div>
+                                    </div>
                                 </div>
-                                <div class="col-7">
-                                    <div id="set_shadowmap_extension"></div>
-                                </div>
-                            </div>
 
-                            <div class="row">
-                                <div class="col-7 offset-5">
-                                    <label class="checklabel">
-                                        <input type="checkbox" id="set_enable_cascades_debug"/>
-                                        <i class="material-icons"></i>
-                                        <span>Show Shadow LOD</span>
-                                    </label>
+                                <div class="row">
+                                    <div class="col-5">
+                                        Depth Range
+                                    </div>
+                                    <div class="col-7">
+                                        <div id="set_shadowmap_range"></div>
+                                    </div>
                                 </div>
-                                <div class="col-7 offset-5">
-                                    <label class="checklabel">
-                                        <input type="checkbox" id="set_enable_shadow_freeze"/>
-                                        <i class="material-icons"></i>
-                                        <span>Freeze Shadow LOD</span>
-                                    </label>
+
+                                <div class="row">
+                                    <div class="col-5">
+                                        Sunspace Extension
+                                    </div>
+                                    <div class="col-7">
+                                        <div id="set_shadowmap_extension"></div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-7 offset-5">
+                                        <label class="checklabel">
+                                            <input type="checkbox" id="set_enable_cascades_debug"/>
+                                            <i class="material-icons"></i>
+                                            <span>Show Shadow LOD</span>
+                                        </label>
+                                    </div>
+                                    <div class="col-7 offset-5">
+                                        <label class="checklabel">
+                                            <input type="checkbox" id="set_enable_shadow_freeze"/>
+                                            <i class="material-icons"></i>
+                                            <span>Freeze Shadow LOD</span>
+                                        </label>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -321,48 +342,47 @@
             </div>
         </div>
     </div>
-</div>
 
-<div id="logo">
-    <div id="logo-image"></div>
-    <div id="logo-text"></div>
-</div>
+    <div id="logo">
+        <div id="logo-image"></div>
+        <div id="logo-text"></div>
+    </div>
 
-<div id="statusbar">
+    <div id="statusbar">
     <span class="item">
         <i class="material-icons">av_timer</i> <span id="placeholder-8" style="min-width: 120px">0 km/h</span>
         <i class="material-icons">accessibility</i> <span id="placeholder-5" style="min-width: 190px">0° 0° 0m</span>
         <i class="material-icons">mouse</i> <span id="placeholder-6" style="min-width: 190px"> - </span>
     </span>
-</div>
+    </div>
 
 
-<div id="calendar"></div>
+    <div id="calendar"></div>
 
-<div class="form-popup" id="add-event-dialog">
-    <div class="form-container">
-        <h1 id="headlineForm">Customize Event</h1>
-        <input type="text" placeholder="Event Name (required)" name="name" id="event-dialog-name">
-        <input type="colorPicker" name="color" id="event-dialog-color">
-        <input type="text" name="date" id="event-dialog-start-date">
-        <input type="text" placeholder="End date" name="date" id="event-dialog-end-date">
-        <input type="text" placeholder="Description  (required)" name="date" id="event-dialog-description">
-        <input type="text" placeholder="Planet" name="date" id="event-dialog-planet">
-        <input type="text" placeholder="Place" name="date" id="event-dialog-location">
+    <div class="form-popup" id="add-event-dialog">
+        <div class="form-container">
+            <h1 id="headlineForm">Customize Event</h1>
+            <input type="text" placeholder="Event Name (required)" name="name" id="event-dialog-name">
+            <input type="colorPicker" name="color" id="event-dialog-color">
+            <input type="text" name="date" id="event-dialog-start-date">
+            <input type="text" placeholder="End date" name="date" id="event-dialog-end-date">
+            <input type="text" placeholder="Description  (required)" name="date" id="event-dialog-description">
+            <input type="text" placeholder="Planet" name="date" id="event-dialog-planet">
+            <input type="text" placeholder="Place" name="date" id="event-dialog-location">
 
-        <button type="button" class="btn" id="event-dialog-apply-button">Apply</button>
-        <button type="button" class="btn cancel" id="event-dialog-cancel-button">Close</button>
+            <button type="button" class="btn" id="event-dialog-apply-button">Apply</button>
+            <button type="button" class="btn cancel" id="event-dialog-cancel-button">Close</button>
+        </div>
+    </div>
+
+    <div id="event-tooltip-container">
+        <div class="event-tooltip">
+            <h3 id="event-tooltip-content">Content</h3>
+            <label for="description" id="event-tooltip-description"><b>description</b></label>
+            <div id="event-tooltip-location">Location</div>
+        </div>
     </div>
 </div>
-
-<div id="event-tooltip-container">
-    <div class="event-tooltip">
-        <h3 id="event-tooltip-content">Content</h3>
-        <label for="description" id="event-tooltip-description"><b>description</b></label>
-        <div id="event-tooltip-location">Location</div>
-    </div>
-</div>
-
 
 <!-- Javascript libraries -->
 <!-- Third Party-->
@@ -394,7 +414,7 @@
 
 <!-- Timeline -->
 <script type="text/javascript" src="js/date_operations.js"></script>
-<script type="text/javascript" src="js/timeline.js"></script>
+<!--<script type="text/javascript" src="js/timeline.js"></script>-->
 
 <!-- Statistics -->
 <script type="text/javascript" src="js/statistics.js"></script>
@@ -426,7 +446,7 @@
 
         CosmoScout.initInputs();
 
-        const slider = document.getElementById("set_shadowmap_resolution");
+/*        const slider = document.getElementById("set_shadowmap_resolution");
         noUiSlider.create(slider, {
             start: 2048,
             connect: "lower",
@@ -437,9 +457,9 @@
 
         slider.noUiSlider.on('slide', function (values, handle, unencoded) {
             CosmoScout.callNative("set_shadowmap_resolution", unencoded, 0);
-        });
+        });*/
 
-        CosmoScout.initSlider("set_ambient_light", 0.0, 1.0, 0.01, [0.5]);
+/*        CosmoScout.initSlider("set_ambient_light", 0.0, 1.0, 0.01, [0.5]);
 
         // Performance
         CosmoScout.initSlider("set_lighting_quality", 1.0, 3.0, 1.0, [2.0]);
@@ -448,7 +468,7 @@
         CosmoScout.initSlider("set_shadowmap_bias", 0.0, 10.0, 0.01, [1.0]);
         CosmoScout.initSlider("set_shadowmap_range", 0.0, 500.0, 1.0, [0.0, 100.0]);
         CosmoScout.initSlider("set_shadowmap_extension", -500.0, 500.0, 10.0, [-100.0, 100.0]);
-        CosmoScout.initSlider("set_shadowmap_split_distribution", 0.5, 5.0, 0.1, [1.0]);
+        CosmoScout.initSlider("set_shadowmap_split_distribution", 0.5, 5.0, 0.1, [1.0]);*/
 
         $(document).on('click', '.item-create-button', function () {
             $(this).addClass('active');
@@ -457,6 +477,39 @@
 
         $('body').addClass('loaded');
     });
+</script>
+
+<script type="text/javascript">
+    function set_loading(enable) {
+        if (enable) {
+            document.body.className = "visible";
+        } else {
+            document.body.className = "";
+
+            setTimeout(function () {
+                if (document.body.className === "") {
+                    window.call_native("finished_fadeout");
+                }
+            }, 1500);
+        }
+    }
+
+    function set_status(text) {
+        document.getElementById("lower").innerHTML = text;
+    }
+
+    function set_progress(percent, animate) {
+        if (animate) {
+            document.getElementById("progress-bar").className = "animated";
+        } else {
+            document.getElementById("progress-bar").className = "";
+        }
+        document.getElementById("progress-bar").style.width = percent + "%";
+    }
+
+    function set_version(text) {
+        document.getElementById("version").innerHTML = text;
+    }
 </script>
 
 <template id="button-template">

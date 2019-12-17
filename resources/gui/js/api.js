@@ -1,8 +1,6 @@
 /**
  * Simplistic api interface containing a name field and init method
  */
-import * as vis from "../third-party/js/vis-timeline-graph2d.min";
-
 class IApi {
     /**
      * Api Name
@@ -244,7 +242,7 @@ class CosmoScout {
      * @return {*}
      */
     static call(api, method, ...args) {
-        if (method !== 'setUserPosition' && method !== 'setNorthDirection' && method !== 'setSpeed') {
+        if (method !== 'setUserPosition' && method !== 'setNorthDirection' && method !== 'setSpeed' && method !== 'setDate') {
             console.log(`Calling '${method}' on '${api}'`);
         }
 
@@ -836,9 +834,9 @@ class TimelineApi extends IApi {
             remove: false,       // delete an item by tapping the delete button top right
             overrideItems: false  // allow these options to override item.editable
         },
-        onAdd: on_add_callback,
-        onUpdate: on_update_callback,
-        onMove: on_item_move_callback,
+        onAdd: this._onAddCallback.bind(this),
+        onUpdate: this._onUpdateCallback.bind(this),
+        onMove: this._onItemMoveCallback.bind(this),
         format: {
             minorLabels: {
                 millisecond: 'SSS[ms]',
@@ -886,9 +884,9 @@ class TimelineApi extends IApi {
             remove: false,       // delete an item by tapping the delete button top right
             overrideItems: false  // allow these options to override item.editable
         },
-        onAdd: overview_on_add_callback,
-        onUpdate: overview_on_update_callback,
-        onMove: on_item_move_overview_callback
+        onAdd: this._overviewOnAddCallback.bind(this),
+        onUpdate: this._overviewOnUpdateCallback.bind(this),
+        onMove: this._onItemMoveCallback.bind(this),
     };
 
     /**
@@ -928,18 +926,60 @@ class TimelineApi extends IApi {
      * @type {Date}
      */
     _centerTime;
-    _mouseOnTimelineDown;
+    _mouseOnTimelineDown = false;
 
     _mouseDownLeftTime;
-    _minWidth;
+    _minWidth = 30;
 
-    _borderWidth;
+    _borderWidth = 3;
 
-    _pause;
+    _parHolder = {};
+
+    _timelineContainer;
+
+    _editingDoneOptions = {
+        editable: {
+            add: true,         // add new items by double tapping
+            updateTime: false,  // drag items horizontally
+            updateGroup: false, // drag items from one group to another
+            remove: false,       // delete an item by tapping the delete button top right
+            overrideItems: false  // allow these options to override item.editable
+        }
+    };
+
+    _activePlanetCenter;
+
+    _whileEditingOptions = {
+        editable: false
+    };
+    _firstSliderValue = true;
+
+    _rightTimeId = 'rightTime';
+
+    _leftTimeId = 'leftTime';
+
+    _timeId = 'custom';
+    _tooltipVisible = false;
+    _timelineRangeFactor = 100000;
+    _hoveredHTMLEvent;
+    _hoveredItem;
+
+    _lastPlayValue = 1;
+
+    _timelineZoomBlocked = true;
+
+    _zoomPercentage = 0.2;
+
+    _minRangeFactor = 5;
+
+    _maxRangeFactor = 100000000;
+
 
     init() {
         this._buttonTemplate = document.getElementById('button-template').content.cloneNode(true);
         this._buttonContainer = document.getElementById('plugin-buttons');
+
+        this._timelineContainer = document.getElementById('timeline');
 
         this._initTimeSpeedSlider();
 
@@ -947,8 +987,75 @@ class TimelineApi extends IApi {
         this._itemsOverview = new vis.DataSet();
 
         this._initTimelines();
+        this._moveWindow();
         this._initEventListener();
     }
+
+    _onItemMoveCallback(item, callback) {
+        callback(null);
+    }
+
+    _overviewOnUpdateCallback(item, callback) {
+        this._onUpdateCallback(item, callback, true)
+    }
+
+    _overviewOnAddCallback(item, callback) {
+        this._onAddCallback(item, callback, true)
+    }
+
+    _onAddCallback(item, callback, overview) {
+        document.getElementById("event-dialog-name").style.border = "";
+        document.getElementById("event-dialog-start-date").style.border = "";
+        document.getElementById("event-dialog-description").style.border = "";
+        this._timeline.setOptions(this._whileEditingOptions);
+        this._overviewTimeline.setOptions(this._whileEditingOptions);
+        document.getElementById("headlineForm").innerText = "Add Event";
+        document.getElementById("event-dialog-name").value = "";
+        document.getElementById("add-event-dialog").style.display = "block";
+        document.getElementById("event-dialog-start-date").value = DateOperations.getFormattedDateWithTime(item.start);
+        document.getElementById("event-dialog-end-date").value = "";
+        document.getElementById("event-dialog-description").value = "";
+        document.getElementById("event-dialog-planet").value = this._activePlanetCenter;
+        document.getElementById("event-dialog-location").value = Format.longitude(this._userPosition.long) + Format.latitude(this._userPosition.lat) + Format.height(this._userPosition.height);
+        this._parHolder.item = item;
+        this._parHolder.callback = callback;
+        this._parHolder.overview = overview;
+        this._setPause()
+    }
+
+    _onUpdateCallback(item, callback, overview) {
+        document.getElementById("event-dialog-name").style.border = "";
+        document.getElementById("event-dialog-start-date").style.border = "";
+        document.getElementById("event-dialog-description").style.border = "";
+        this._timeline.setOptions(this._whileEditingOptions);
+        this._overviewTimeline.setOptions(this._whileEditingOptions);
+        document.getElementById("headlineForm").innerText = "Update";
+        document.getElementById("add-event-dialog").style.display = "block";
+        document.getElementById("event-dialog-name").value = item.content;
+        document.getElementById("event-dialog-start-date").value = DateOperations.getFormattedDateWithTime(item.start);
+        document.getElementById("event-dialog-description").value = item.description;
+        document.getElementById("event-dialog-planet").value = item.planet;
+        document.getElementById("event-dialog-location").value = item.place;
+        if (item.end) {
+            document.getElementById("event-dialog-end-date").value = DateOperations.getFormattedDateWithTime(item.end);
+        } else {
+            document.getElementById("event-dialog-end-date").value = "";
+        }
+        this._parHolder.item = item;
+        this._parHolder.callback = callback;
+        this._parHolder.overview = overview;
+        this._setPause()
+    }
+
+    _setPause() {
+        this._currentSpeed = 0;
+        window.call_native("set_time_speed", 0);
+        document.getElementById("pause-button").innerHTML = '<i class="material-icons">play_arrow</i>';
+        document.getElementsByClassName("range-label")[0].innerHTML = '<i class="material-icons">pause</i>';
+        this._timeline.setOptions(this._pauseOptions);
+        this._timelineZoomBlocked = false;
+    }
+
 
     /**
      *
@@ -964,7 +1071,7 @@ class TimelineApi extends IApi {
 
         const date = new Date(this._centerTime.getTime());
         this._centerTime.setSeconds(diff);
-        const dif = centerTime.getTime() - date.getTime();
+        const dif = this._centerTime.getTime() - date.getTime();
         const hoursDiff = dif / 1000 / 60 / 60;
         CosmoScout.callNative("add_hours_without_animation", hoursDiff);
     }
@@ -991,7 +1098,7 @@ class TimelineApi extends IApi {
     }
 
     _initEventListener() {
-        this._timelineContainer.addEventListener("wheel", this._manualZoomTimeline, true);
+        this._timelineContainer.addEventListener("wheel", this._manualZoomTimeline.bind(this), true);
 
         const buttons = [
             "decrease-year-button",
@@ -1013,54 +1120,175 @@ class TimelineApi extends IApi {
             const ele = document.getElementById(button);
 
             if (ele instanceof HTMLElement) {
-                ele.addEventListener('click', this._changeTime);
-                ele.addEventListener('wheel', this._changeTimeScroll);
+                ele.addEventListener('click', this._changeTime.bind(this));
+                ele.addEventListener('wheel', this._changeTimeScroll.bind(this));
             }
         });
 
 
-        document.getElementById("pause-button").addEventListener('click', toggle_pause);
-        document.getElementById("speed-decrease-button").addEventListener('click', decrease_speed);
-        document.getElementById("speed-increase-button").addEventListener('click', increase_speed);
+        document.getElementById("pause-button").addEventListener('click', this._togglePause.bind(this));
+        document.getElementById("speed-decrease-button").addEventListener('click', this._decreaseSpeed.bind(this));
+        document.getElementById("speed-increase-button").addEventListener('click', this._increaseSpeed.bind(this));
 
-        document.getElementById("event-tooltip-location").addEventListener('click', travel_to_item_location);
+        document.getElementById("event-tooltip-location").addEventListener('click', this._travelToItemLocation.bind(this));
 
-        document.getElementById("time-reset-button").addEventListener('click', reset_time);
+        document.getElementById("time-reset-button").addEventListener('click', this._resetTime.bind(this));
 
-        document.getElementsByClassName('range-label')[0].addEventListener('mousedown', this._rangeUpdateCallback);
-
-
-        document.getElementById("event-dialog-cancel-button").addEventListener('click', close_form);
-        document.getElementById("event-dialog-apply-button").addEventListener('click', apply_event);
+        document.getElementsByClassName('range-label')[0].addEventListener('mousedown', this._rangeUpdateCallback.bind(this));
 
 
-        document.getElementById("event-tooltip-container").addEventListener('mouseleave', this._leaveCustomTooltip);
+        document.getElementById("event-dialog-cancel-button").addEventListener('click', this._closeForm.bind(this));
+        document.getElementById("event-dialog-apply-button").addEventListener('click', this._applyEvent.bind(this));
+
+
+        document.getElementById("event-tooltip-container").addEventListener('mouseleave', this._leaveCustomTooltip.bind(this));
+    }
+
+    _travelToItemLocation() {
+        travel_to(false, hoveredItem.planet, hoveredItem.place, hoveredItem.content);
+
+    }
+
+    _closeForm() {
+        this._parHolder.callback(null); // cancel item creation
+        document.getElementById("add-event-dialog").style.display = "none";
+        this._timeline.setOptions(this._editingDoneOptions);
+        this._overviewTimeline.setOptions(this._editingDoneOptions);
+    }
+
+    _applyEvent() {
+        if (document.getElementById("event-dialog-name").value !== ""
+            && document.getElementById("event-dialog-start-date").value !== ""
+            && document.getElementById("event-dialog-description").value !== "") {
+            document.getElementById("event-dialog-name").style.border = "";
+            document.getElementById("event-dialog-start-date").style.border = "";
+            document.getElementById("event-dialog-description").style.border = "";
+            parHolder.item.style = "border-color: " + document.getElementById("event-dialog-color").value;
+            parHolder.item.content = document.getElementById("event-dialog-name").value;
+            parHolder.item.start = new Date(document.getElementById("event-dialog-start-date").value);
+            parHolder.item.description = document.getElementById("event-dialog-description").value;
+            if (document.getElementById("event-dialog-end-date").value !== "") {
+                parHolder.item.end = new Date(document.getElementById("event-dialog-end-date").value);
+                var diff = parHolder.item.start - parHolder.item.end;
+                if (diff >= 0) {
+                    parHolder.item.end = null;
+                    document.getElementById("event-dialog-end-date").style.border = wrongInputStyle;
+                    return;
+                } else {
+                    document.getElementById("event-dialog-end-date").style.border = "";
+                }
+            }
+            parHolder.item.planet = document.getElementById("event-dialog-planet").value;
+            parHolder.item.place = document.getElementById("event-dialog-location").value;
+            if (parHolder.item.id == null) {
+                parHolder.item.id = parHolder.item.content + parHolder.item.start + parHolder.item.end;
+                parHolder.item.id = parHolder.item.id.replace(/\s/g, '');
+            }
+            if (parHolder.overview) {
+                parHolder.item.className = 'overviewEvent ' + parHolder.item.id;
+            } else {
+                parHolder.item.className = 'event ' + parHolder.item.id;
+            }
+            parHolder.callback(parHolder.item); // send back adjusted new item
+            document.getElementById("add-event-dialog").style.display = "none";
+            timeline.setOptions(editingDoneOpt);
+            overviewTimeLine.setOptions(editingDoneOpt);
+            if (parHolder.overview) {
+                parHolder.item.className = 'event ' + parHolder.item.id;
+                items.update(parHolder.item);
+            } else {
+                parHolder.item.className = 'overviewEvent ' + parHolder.item.id;
+                itemsOverview.update(parHolder.item);
+            }
+        } else {
+            if (document.getElementById("event-dialog-name").value === "") {
+                document.getElementById("event-dialog-name").style.border = wrongInputStyle;
+            } else {
+                document.getElementById("event-dialog-name").style.border = "";
+            }
+            if (document.getElementById("event-dialog-start-date").value === "") {
+                document.getElementById("event-dialog-start-date").style.border = wrongInputStyle;
+            } else {
+                document.getElementById("event-dialog-start-date").style.border = "";
+            }
+            if (document.getElementById("event-dialog-description").value === "") {
+                document.getElementById("event-dialog-description").style.border = wrongInputStyle;
+            } else {
+                document.getElementById("event-dialog-description").style.border = "";
+            }
+        }
+    }
+
+    _decreaseSpeed() {
+        if (this._timeSpeedSlider.noUiSlider.get() > 0) {
+            this._timeSpeedSlider.noUiSlider.set(-1);
+        } else if (this._currentSpeed === 0) {
+            this._togglePause();
+        } else {
+            this._timeSpeedSlider.noUiSlider.set(this._currentSpeed - 1);
+        }
+    }
+
+    _increaseSpeed() {
+        if (this._timeSpeedSlider.noUiSlider.get() < 0) {
+            this._timeSpeedSlider.noUiSlider.set(-1);
+        } else if (this._currentSpeed === 0) {
+            this._togglePause();
+        } else {
+            if (this._currentSpeed === -1) {
+                this._timeSpeedSlider.noUiSlider.set(1);
+            } else {
+                this._timeSpeedSlider.noUiSlider.set(this._currentSpeed - (-1));
+            }
+        }
+    }
+
+    _resetTime() {
+        this._overviewTimeline.setWindow(this._minDate, this._maxDate);
+        this._timeSpeedSlider.noUiSlider.set(1);
+        window.call_native('reset_time')
+    }
+
+    _togglePause() {
+        console.log('Toggl :--)');
+        if (this._currentSpeed !== 0) {
+            this._setPause();
+        } else {
+            if (this._lastPlayValue === 0) {
+                this._lastPlayValue = 1;
+            }
+            this._rangeUpdateCallback();
+        }
     }
 
     _initTimeSpeedSlider() {
         this._timeSpeedSlider = document.getElementById('range');
 
-        noUiSlider.create(this._timeSpeedSlider, {
-            range: {
-                'min': this._timeSpeedSteps.monthBack,
-                '4.5%': this._timeSpeedSteps.dayBack,
-                '9%': this._timeSpeedSteps.hourBack,
-                '13.5%': this._timeSpeedSteps.minBack,
-                '18%': this._timeSpeedSteps.secBack,
-                '82%': this._timeSpeedSteps.secForward,
-                '86.5%': this._timeSpeedSteps.minForward,
-                '91%': this._timeSpeedSteps.hourForward,
-                '95.5%': this._timeSpeedSteps.dayForward,
-                'max': this._timeSpeedSteps.monthForward,
-            },
-            snap: true,
-            start: 1
-        });
+        try {
+            noUiSlider.create(this._timeSpeedSlider, {
+                range: {
+                    'min': this._timeSpeedSteps.monthBack,
+                    '4.5%': this._timeSpeedSteps.dayBack,
+                    '9%': this._timeSpeedSteps.hourBack,
+                    '13.5%': this._timeSpeedSteps.minBack,
+                    '18%': this._timeSpeedSteps.secBack,
+                    '82%': this._timeSpeedSteps.secForward,
+                    '86.5%': this._timeSpeedSteps.minForward,
+                    '91%': this._timeSpeedSteps.hourForward,
+                    '95.5%': this._timeSpeedSteps.dayForward,
+                    'max': this._timeSpeedSteps.monthForward,
+                },
+                snap: true,
+                start: 1
+            });
 
-        this._timeSpeedSlider.noUiSlider.on('update', this._rangeUpdateCallback);
+            this._timeSpeedSlider.noUiSlider.on('update', this._rangeUpdateCallback.bind(this));
+        } catch (e) {
+            console.log('Slider was already initialized')
+        }
+
     }
 
-    _firstSliderValue;
 
     _rangeUpdateCallback() {
         this._currentSpeed = this._timeSpeedSlider.noUiSlider.get();
@@ -1072,15 +1300,14 @@ class TimelineApi extends IApi {
 
         document.getElementById("pause-button").innerHTML = '<i class="material-icons">pause</i>';
         this._timeline.setOptions(this._playingOptions);
-        timelineZoomBlocked = true;
-        if (parseInt(this._currentSpeed) < this._pause) {
+        this._timelineZoomBlocked = true;
+        if (parseInt(this._currentSpeed) < 0) {
             document.getElementsByClassName("range-label")[0].innerHTML = '<i class="material-icons">chevron_left</i>';
         } else {
             document.getElementsByClassName("range-label")[0].innerHTML = '<i class="material-icons">chevron_right</i>';
         }
 
-        // 43800 = Month Speed
-        this._moveWindow(43800);
+        this._moveWindow();
 
         switch (parseInt(this._currentSpeed)) {
             case this._timeSpeedSteps.monthBack:
@@ -1118,45 +1345,38 @@ class TimelineApi extends IApi {
     }
 
 
-    _rightTimeId = 'rightTime';
-
-    _leftTimeId = 'leftTime';
-
-    _timeId = 'custom';
-
     _initTimelines() {
-        const timelineContainer = document.getElementById('timeline');
-        timelineContainer.addEventListener("wheel", this._manualZoomTimeline, true);
+        this._timelineContainer.addEventListener("wheel", this._manualZoomTimeline.bind(this), true);
 
         const overviewContainer = document.getElementById('overview');
 
-        this._timeline = new vis.Timeline(timelineContainer, this._items, this._timelineOptions);
+        this._timeline = new vis.Timeline(this._timelineContainer, this._items, this._timelineOptions);
         this._centerTime = this._timeline.getCurrentTime();
-        this._timeline.on('select', this._onSelect);
+        this._timeline.on('select', this._onSelect.bind(this));
         this._timeline.moveTo(this._centerTime, {
             animation: false,
         });
 
-        this._timeline.addCustomTime(this._this._centerTime, this._timeId);
-        this._timeline.on('click', this._onClickCallback);
-        this._timeline.on('changed', this._timelineChangedCallback);
-        this._timeline.on('mouseDown', this._mouseDownCallback);
-        this._timeline.on('mouseUp', this._mouseUpCallback);
-        this._timeline.on('rangechange', this._rangeChangeCallback);
-        this._timeline.on('itemover', this._itemOverCallback);
-        this._timeline.on('itemout', this._itemOutCallback);
+        this._timeline.addCustomTime(this._centerTime, this._timeId);
+        this._timeline.on('click', this._onClickCallback.bind(this));
+        this._timeline.on('changed', this._timelineChangedCallback.bind(this));
+        this._timeline.on('mouseDown', this._mouseDownCallback.bind(this));
+        this._timeline.on('mouseUp', this._mouseUpCallback.bind(this));
+        this._timeline.on('rangechange', this._rangeChangeCallback.bind(this));
+        this._timeline.on('itemover', this._itemOverCallback.bind(this));
+        this._timeline.on('itemout', this._itemOutCallback.bind(this));
 
 //create overview timeline
         this._overviewTimeline = new vis.Timeline(overviewContainer, this._itemsOverview, this._overviewTimelineOptions);
         this._overviewTimeline.addCustomTime(this._timeline.getWindow().end, this._rightTimeId);
         this._overviewTimeline.addCustomTime(this._timeline.getWindow().start, this._leftTimeId);
-        this._overviewTimeline.on('select', this._onSelect);
-        this._overviewTimeline.on('click', this._onClickCallback);
-        this._overviewTimeline.on('changed', this._drawFocusLens);
-        this._overviewTimeline.on('mouseDown', this._overviewMouseDownCallback);
-        this._overviewTimeline.on('rangechange', this._overviewChangedCallback);
-        this._overviewTimeline.on('itemover', this._itemOverOverviewCallback);
-        this._overviewTimeline.on('itemout', this._itemOutCallback);
+        this._overviewTimeline.on('select', this._onSelect.bind(this));
+        this._overviewTimeline.on('click', this._onClickCallback.bind(this));
+        this._overviewTimeline.on('changed', this._drawFocusLens.bind(this));
+        this._overviewTimeline.on('mouseDown', this._overviewMouseDownCallback.bind(this));
+        this._overviewTimeline.on('rangechange', this._overviewChangedCallback.bind(this));
+        this._overviewTimeline.on('itemover', this._itemOverOverviewCallback.bind(this));
+        this._overviewTimeline.on('itemout', this._itemOutCallback.bind(this));
         this._initialOverviewWindow(new Date(1950, 1), new Date(2030, 12));
     }
 
@@ -1166,7 +1386,6 @@ class TimelineApi extends IApi {
         });
     }
 
-    _tooltipVisible;
 
     /**
      *
@@ -1177,7 +1396,7 @@ class TimelineApi extends IApi {
         if (properties.event.toElement.className !== "event-tooltip") {
             document.getElementById("event-tooltip-container").style.display = "none";
             this._tooltipVisible = false;
-            hoveredHTMLEvent.classList.remove('mouseOver');
+            this._hoveredHTMLEvent.classList.remove('mouseOver');
         }
     }
 
@@ -1185,18 +1404,17 @@ class TimelineApi extends IApi {
         this._itemOverCallback(properties, true);
     }
 
+
     _moveWindow() {
-        const step = convert_seconds(timelineRangeFactor);
-        let startDate = new Date(centerTime.getTime());
-        let endDate = new Date(centerTime.getTime());
+        const step = DateOperations.convertSeconds(this._timelineRangeFactor);
+        let startDate = new Date(this._centerTime.getTime());
+        let endDate = new Date(this._centerTime.getTime());
         startDate = DateOperations.decreaseDate(startDate, step.days, step.hours, step.minutes, step.seconds, step.milliSec);
         endDate = DateOperations.increaseDate(endDate, step.days, step.hours, step.minutes, step.seconds, step.milliSec);
         this._timeline.setWindow(startDate, endDate, {
             animations: false,
         });
     }
-
-    _hoveredHTMLEvent;
 
     /**
      *
@@ -1212,7 +1430,7 @@ class TimelineApi extends IApi {
                 document.getElementById("event-tooltip-content").innerHTML = this._items._data[item].content;
                 document.getElementById("event-tooltip-description").innerHTML = this._items._data[item].description;
                 document.getElementById("event-tooltip-location").innerHTML = "<i class='material-icons'>send</i> " + this._items._data[item].planet + " " + this._items._data[item].place;
-                hoveredItem = this._items._data[item];
+                this._hoveredItem = this._items._data[item];
             }
         }
         const events = document.getElementsByClassName(properties.item);
@@ -1230,9 +1448,6 @@ class TimelineApi extends IApi {
         const left = eventRect.left - 150 < 0 ? 0 : eventRect.left - 150;
         document.getElementById("event-tooltip-container").style.top = eventRect.bottom + 'px';
         document.getElementById("event-tooltip-container").style.left = left + 'px';
-        if (this._currentSpeed !== this._pause) {
-            start_redraw_tooltip(event);
-        }
     }
 
     _leaveCustomTooltip() {
@@ -1250,10 +1465,8 @@ class TimelineApi extends IApi {
         this._mouseDownLeftTime = this._timeline.getWindow().start;
     }
 
-    _lastPlayValue;
-
     _mouseUpCallback() {
-        if (this._mouseOnTimelineDown && this._lastPlayValue !== this._pause) {
+        if (this._mouseOnTimelineDown && this._lastPlayValue !== 0) {
             this._timeSpeedSlider.noUiSlider.set(parseInt(this._lastPlayValue));
         }
         this._mouseOnTimelineDown = false;
@@ -1268,36 +1481,49 @@ class TimelineApi extends IApi {
         this._click = false;
     }
 
+    _setOverviewTimes() {
+        this._overviewTimeline.setCustomTime(this._timeline.getWindow().end, this._rightTimeId);
+        this._overviewTimeline.setCustomTime(this._timeline.getWindow().start, this._leftTimeId);
+        this._drawFocusLens();
+    }
+
     _timelineChangedCallback() {
         this._setOverviewTimes();
         this._drawFocusLens();
     }
 
     _rangeChangeCallback(properties) {
-        if (properties.byUser && !properties.event instanceof WheelEvent) {
-            if (this._currentSpeed !== this._pause) {
-                set_pause();
+        if (properties.byUser) {
+            //console.log(!properties.event.srcEvent instanceof WheelEvent)
+        }
+        if (properties.byUser && String(properties.event) !== "[object WheelEvent]") {
+
+            if (this._currentSpeed !== 0) {
+                this._setPause();
             }
-            click = false;
+            this._click = false;
             const dif = properties.start.getTime() - this._mouseDownLeftTime.getTime();
             const secondsDif = dif / 1000;
             const hoursDif = secondsDif / 60 / 60;
 
-            const step = convert_seconds(secondsDif);
+            const step = DateOperations.convertSeconds(secondsDif);
             let date = new Date(this._centerTime.getTime());
-            date = increase_date(date, step.days, step.hours, step.minutes, step.seconds, step.milliSec);
-            set_date_local(date);
+            date = DateOperations.increaseDate(date, step.days, step.hours, step.minutes, step.seconds, step.milliSec);
+            this._setDateLocal(date);
             this._mouseDownLeftTime = new Date(properties.start.getTime());
             window.call_native("add_hours_without_animation", hoursDif);
         }
     }
 
-    _setOverviewTimes() {
-        this._overviewTimeline.setCustomTime(timeline.getWindow().end, this._rightTimeId);
-        this._overviewTimeline.setCustomTime(timeline.getWindow().start, this._leftTimeId);
-        this._drawFocusLens();
+    _setDateLocal(date) {
+        this._centerTime = new Date(date);
+        this._timeline.moveTo(this._centerTime, {
+            animation: false
+        });
+        this._timeline.setCustomTime(this._centerTime, this._timeId);
+        this._setOverviewTimes();
+        document.getElementById("dateLabel").innerText = DateOperations.formatDateReadable(this._centerTime);
     }
-
 
     _drawFocusLens() {
         const leftCustomTime = document.getElementsByClassName("leftTime")[0];
@@ -1306,11 +1532,9 @@ class TimelineApi extends IApi {
         const rightRect = rightCustomTime.getBoundingClientRect();
 
         let divElement = document.getElementById("focus-lens");
-        divElement.style.position = "absolute";
         divElement.style.left = leftRect.right + 'px';
-        divElement.style.top = (leftRect.top + offset) + 'px';
 
-        const height = leftRect.bottom - leftRect.top - shorten;
+        const height = leftRect.bottom - leftRect.top - 2;
         let width = rightRect.right - leftRect.left;
 
         let xValue = 0;
@@ -1327,15 +1551,13 @@ class TimelineApi extends IApi {
         divElement.style.width = width + 'px';
 
         divElement = document.getElementById("focus-lens-left");
-        divElement.style.top = (leftRect.top + offset + height) + 'px';
         width = leftRect.right + xValue + this._borderWidth;
         width = width < 0 ? 0 : width;
         divElement.style.width = width + 'px';
         const body = document.getElementsByTagName("body")[0];
-        let bodyRect = body.getBoundingClientRect();
+        const bodyRect = body.getBoundingClientRect();
 
         divElement = document.getElementById("focus-lens-right");
-        divElement.style.top = (leftRect.top + offset + height) + 'px';
         width = bodyRect.right - rightRect.right + xValue + 1;
         width = width < 0 ? 0 : width;
         divElement.style.width = width + 'px';
@@ -1347,6 +1569,7 @@ class TimelineApi extends IApi {
         }
     }
 
+
     /**
      * Changes the size of the displayed time range while the simulation is still playing
      *
@@ -1354,16 +1577,16 @@ class TimelineApi extends IApi {
      * @private
      */
     _manualZoomTimeline(event) {
-        if (timelineZoomBlocked) {
+        if (this._timelineZoomBlocked) {
             if (event.deltaY < 0) {
-                timelineRangeFactor -= timelineRangeFactor * zoomPercentage;
-                if (timelineRangeFactor < minRangeFactor) {
-                    timelineRangeFactor = minRangeFactor;
+                this._timelineRangeFactor -= this._timelineRangeFactor * this._zoomPercentage;
+                if (this._timelineRangeFactor < this._minRangeFactor) {
+                    this._timelineRangeFactor = this._minRangeFactor;
                 }
             } else {
-                timelineRangeFactor += timelineRangeFactor * zoomPercentage;
-                if (timelineRangeFactor > maxRangeFactor) {
-                    timelineRangeFactor = maxRangeFactor;
+                this._timelineRangeFactor += this._timelineRangeFactor * this._zoomPercentage;
+                if (this._timelineRangeFactor > this._maxRangeFactor) {
+                    this._timelineRangeFactor = this._maxRangeFactor;
                 }
             }
             this._rangeUpdateCallback();
@@ -1469,7 +1692,13 @@ class TimelineApi extends IApi {
     }
 
     setDate(date) {
-
+        this._centerTime = new Date(date);
+        this._timeline.moveTo(this._centerTime, {
+            animation: false
+        });
+        this._timeline.setCustomTime(this._centerTime, this._timeId);
+        this._setOverviewTimes();
+        document.getElementById("dateLabel").innerText = DateOperations.formatDateReadable(this._centerTime);
     }
 
     addItem(start, end, id, content, style, description, planet, place) {
@@ -1487,9 +1716,21 @@ class TimelineApi extends IApi {
         data.place = place;
         data.content = content;
         data.className = 'event ' + id;
-        items.update(data);
+        this._items.update(data);
         data.className = 'overviewEvent ' + id;
-        itemsOverview.update(data);
+        this._itemsOverview.update(data);
+    }
+
+    setTimelineRange(min, max) {
+        const rangeOpt = {
+            min: min,
+            max: max
+        };
+        this._minDate = min;
+        this._maxDate = max;
+        this._timeline.setOptions(rangeOpt);
+        this._overviewTimeline.setOptions(rangeOpt);
+        this._initialOverviewWindow(new Date(min), new Date(max));
     }
 
     /**
@@ -1502,7 +1743,7 @@ class TimelineApi extends IApi {
 
         switch (speed) {
             case this.PAUSE:
-                set_pause();
+                this._setPause();
                 notification = ['Pause', 'Time is paused.', 'pause'];
                 break;
 
@@ -1691,6 +1932,7 @@ class NotificationApi extends IApi {
         }
 
         let notification = this._makeNotification(title, content, icon);
+        this._container.prepend(notification);
 
         if (flyTo) {
             notification.classList.add('clickable');
@@ -1699,13 +1941,14 @@ class NotificationApi extends IApi {
             });
         }
 
-        notification.classList.add('show');
         notification.timer = setTimeout(() => {
             notification.classList.add('fadeout');
             this._container.removeChild(notification);
         }, 8000);
 
-        this._container.prepend(notification);
+        setTimeout(() => {
+            notification.classList.add('show');
+        }, 60);
     }
 
     /**
