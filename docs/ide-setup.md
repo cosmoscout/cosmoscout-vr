@@ -168,7 +168,7 @@ To get started with Sublime Text 3, you can create a project file in the root di
             "cmd": "install/linux-release/bin/start.sh",
             "working_dir": "$project_path",
             "windows": {
-                "cmd": "install\\window-release\\bin\\start.bat"
+                "cmd": "install\\windows-release\\bin\\start.bat"
             }
         }
     ],
