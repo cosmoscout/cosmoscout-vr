@@ -45,7 +45,7 @@ jobs:
       - name: Cache Object Files
         uses: actions/cache@v1
         with:
-          path: ~/.ccache
+          path: $HOME/.ccache
           key: linux-gcc
       - name: Install CMake
         run: sudo pip install cmake
@@ -86,7 +86,7 @@ jobs:
       - name: Cache Object Files
         uses: actions/cache@v1
         with:
-          path: ~/.ccache
+          path: $HOME/.ccache
           key: linux-clang
       - name: Install CMake
         run: sudo pip install cmake
@@ -125,7 +125,7 @@ jobs:
       - name: Cache Object Files
         uses: actions/cache@v1
         with:
-          path: %HOME%\\clcache
+          path: ${{ env.HOME }}\\clcache
           key: windows-msvc
       - name: Build Externals
         shell: cmd
