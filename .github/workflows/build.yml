@@ -45,7 +45,7 @@ jobs:
       - name: Cache Object Files
         uses: actions/cache@v1
         with:
-          path: $HOME/.ccache
+          path: ${{ env.HOME }}/.ccache
           key: linux-gcc
       - name: Install CMake
         run: sudo pip install cmake
@@ -86,7 +86,7 @@ jobs:
       - name: Cache Object Files
         uses: actions/cache@v1
         with:
-          path: $HOME/.ccache
+          path: ${{ env.HOME }}/.ccache
           key: linux-clang
       - name: Install CMake
         run: sudo pip install cmake
