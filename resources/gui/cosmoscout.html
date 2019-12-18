@@ -12,6 +12,8 @@
     <link type="text/css" rel="stylesheet" href="third-party/css/vis-timeline-graph2d.css"/>
     <link type="text/css" rel="stylesheet" href="third-party/css/color-picker.min.css">
 
+    <link type="text/css" rel="stylesheet" href="css/loading_screen.css">
+
     <link type="text/css" rel="stylesheet" href="css/gui.css">
 
     <link type="text/css" rel="stylesheet" href="css/timeline.css"/>
@@ -22,6 +24,8 @@
     <link type="text/css" rel="stylesheet" href="css/notifications.css">
 
     <link type="text/css" rel="stylesheet" href="css/statusbar.css">
+
+    <link type="text/css" rel="stylesheet" href="css/logo.css">
 
     <style>
         .loaded .side-bar {
@@ -35,7 +39,7 @@
 </head>
 <body>
 
-<div id="loading-screen" style="display: none">
+<div id="loading-screen">
     <div id="background"></div>
     <div id="loading-screen-logo">
         <div id="image"></div>
@@ -50,6 +54,7 @@
         <div id="version">unknown version</div>
     </div>
 </div>
+
 <div id="cosmo-scout">
 
     <div id="notifications"></div>
@@ -435,24 +440,7 @@
 <script type="text/javascript" src="js/apis/statistics.js"></script>
 <script type="text/javascript" src="js/apis/statusbar.js"></script>
 <script type="text/javascript" src="js/apis/timeline.js"></script>
-
-
-<!-- Timeline -->
-<!--<script type="text/javascript" src="js/date_operations.js"></script>
-&lt;!&ndash;<script type="text/javascript" src="js/timeline.js"></script>&ndash;&gt;
-
-&lt;!&ndash; Statistics &ndash;&gt;
-<script type="text/javascript" src="js/old/statistics.js"></script>
-
-&lt;!&ndash; Sidebar &ndash;&gt;
-<script type="text/javascript" src="js/old/sidebar.js"></script>
-
-&lt;!&ndash; Notifications &ndash;&gt;
-<script type="text/javascript" src="js/old/notification.js"></script>
-
-&lt;!&ndash; Statusbar &ndash;&gt;
-<script type="text/javascript" src="js/old/statusbar.js"></script>-->
-
+<script type="text/javascript" src="js/apis/loading_screen.js"></script>
 
 <script type="text/javascript">
   function init_slider(...args) {
@@ -461,6 +449,7 @@
 
   document.addEventListener('DOMContentLoaded', () => {
     CosmoScout.init([
+      LoadingScreenApi,
       NotificationApi,
       StatusbarApi,
       SidebarApi,
@@ -500,41 +489,8 @@
       $(this).text('Cancel');
     });
 
-    $('body').addClass('loaded');
+    document.getElementById('logo').classList.add('visible')
   });
-</script>
-
-<script type="text/javascript">
-  function set_loading(enable) {
-    if (enable) {
-      document.body.className = "visible";
-    } else {
-      document.body.className = "";
-
-      setTimeout(function () {
-        if (document.body.className === "") {
-          window.call_native("finished_fadeout");
-        }
-      }, 1500);
-    }
-  }
-
-  function set_status(text) {
-    document.getElementById("lower").innerHTML = text;
-  }
-
-  function set_progress(percent, animate) {
-    if (animate) {
-      document.getElementById("progress-bar").className = "animated";
-    } else {
-      document.getElementById("progress-bar").className = "";
-    }
-    document.getElementById("progress-bar").style.width = percent + "%";
-  }
-
-  function set_version(text) {
-    document.getElementById("version").innerHTML = text;
-  }
 </script>
 
 <template id="button-template">

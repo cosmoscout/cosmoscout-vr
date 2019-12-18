@@ -104,23 +104,23 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
 
   // Now create the actual GuiItems and add them to the previously created GuiAreas ----------------
 
-  mLoadingScreen = new gui::GuiItem("file://../share/resources/gui/loading_screen.html");
+/*  mLoadingScreen = new gui::GuiItem("file://../share/resources/gui/loading_screen.html");*/
 
   mCosmoScoutGui = new gui::GuiItem("file://../share/resources/gui/cosmoscout.html");
 
   // Except for mStatistics, all GuiItems are attached to the global world-space GuiArea if it is
   // available. If not, they are added to the local screen-space GuiArea.
   if (mGlobalGuiArea) {
-    mGlobalGuiArea->addItem(mLoadingScreen);
+    //mGlobalGuiArea->addItem(mLoadingScreen);
     mGlobalGuiArea->addItem(mCosmoScoutGui);
   } else {
-    mLocalGuiArea->addItem(mLoadingScreen);
+    //mLocalGuiArea->addItem(mLoadingScreen);
     mLocalGuiArea->addItem(mCosmoScoutGui);
   }
 
   // Configure attributes of the loading screen. Per default, GuiItems are drawn full-screen in
   // their GuiAreas.
-  mLoadingScreen->setIsInteractive(false);
+  //mLoadingScreen->setIsInteractive(false);
 
   mCosmoScoutGui->setRelSizeX(1.f);
   mCosmoScoutGui->setRelSizeY(1.f);
@@ -131,7 +131,7 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
   // Now we will call some JavaScript methods - so we have to wait until the GuiItems have been
   // fully loaded.
   mCosmoScoutGui->waitForFinishedLoading();
-  mLoadingScreen->waitForFinishedLoading();
+  //mLoadingScreen->waitForFinishedLoading();
 
   // Create a string which contains the current version number of CosmoScout VR. This string is then
   // shown on the loading screen.
@@ -147,15 +147,15 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
     version += ")";
   }
 
-  mLoadingScreen->callJavascript("set_version", version);
+  mCosmoScoutGui->callJavascript("CosmoScout.call", "loading_screen", "setVersion", version);
 
-  mLoadingScreen->registerCallback("finished_fadeout", [this]() {
+/*  mLoadingScreen->registerCallback("finished_fadeout", [this]() {
     if (mGlobalGuiArea) {
       mGlobalGuiArea->removeItem(mLoadingScreen);
     } else {
       mLocalGuiArea->removeItem(mLoadingScreen);
     }
-  });
+  });*/
 
   // Set settings for the time Navigation
   mCosmoScoutGui->callJavascript("CosmoScout.call", "timeline", "setTimelineRange", settings->mMinDate, settings->mMaxDate);
@@ -268,27 +268,27 @@ gui::GuiItem* GuiManager::getLogo() const {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void GuiManager::enableLoadingScreen(bool enable) {
-  mLoadingScreen->callJavascript("set_loading", enable);
+    mCosmoScoutGui->callJavascript("CosmoScout.call", "loading_screen", "setLoading", enable);
 
-  if (enable) {
+/*  if (enable) {
     if (mGlobalGuiArea) {
       mGlobalGuiArea->addItem(mLoadingScreen);
     } else {
       mLocalGuiArea->addItem(mLoadingScreen);
     }
-  }
+  }*/
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void GuiManager::setLoadingScreenStatus(std::string const& sStatus) const {
-  mLoadingScreen->callJavascript("set_status", sStatus);
+    mCosmoScoutGui->callJavascript("CosmoScout.call", "loading_screen", "setStatus", sStatus);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void GuiManager::setLoadingScreenProgress(float percent, bool animate) const {
-  mLoadingScreen->callJavascript("set_progress", percent, animate);
+    mCosmoScoutGui->callJavascript("CosmoScout.call", "loading_screen", "setProgress", percent, animate);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

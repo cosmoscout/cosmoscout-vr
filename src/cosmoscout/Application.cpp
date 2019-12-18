@@ -336,10 +336,6 @@ void Application::FrameUpdate() {
         mGuiManager->setLoadingScreenProgress(100.f, true);
 
         // All plugins finished loading -> init their custom components.
-/*        mGuiManager->getSideBar()->callJavascript("CosmoScout.call", "sidebar", "init");
-        mGuiManager->getTimeline()->callJavascript("CosmoScout.call", "timeline", "init");
-        mGuiManager->getStatusBar()->callJavascript("CosmoScout.call", "statusbar", "init");*/
-        mGuiManager->getLogo()->callJavascript("init");
         mGuiManager->getSideBar()->callJavascript("CosmoScout.initInputs");
 
         // We will keep the loading screen active for some frames, as the first frames are usually a

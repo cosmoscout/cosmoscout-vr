@@ -4,7 +4,7 @@
     height: 100%;
     overflow-x: hidden;
     overflow-y: scroll;
-    padding-top: 140px;
+    padding-top: 70px;
     opacity: 0;
     transition: opacity 0.2s linear;
 }
