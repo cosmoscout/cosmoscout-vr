@@ -120,4 +120,4 @@ jobs:
         run: make.bat
       - name: Run Tests
         shell: cmd
-        run: install\\linux-release\\bin\\run_all_tests.bat
+        run: install\\windows-release\\bin\\run_all_tests.bat
