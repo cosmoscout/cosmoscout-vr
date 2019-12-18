@@ -1,86 +1,128 @@
-// Format a Date to a for a human readable string DD.MM.YYYY HH:MM:SS
-function format_date_readable(date) {
-    let year = date.getFullYear();
-    let month = (date.getMonth() + 1).toString();
-    let day = date.getDate().toString();
-    let hours = date.getHours().toString();
-    let minutes = date.getMinutes().toString();
-    let seconds = date.getSeconds().toString();
-    month = month.length > 1 ? month : '0' + month;
-    day = day.length > 1 ? day : '0' + day;
-    hours = hours.length > 1 ? hours : '0' + hours;
-    minutes = minutes.length > 1 ? minutes : '0' + minutes;
-    seconds = seconds.length > 1 ? seconds : '0' + seconds;
-    return day + '.' + month + '.' + year + " " + hours + ":" + minutes + ":" + seconds;
-}
+/**
+ * Locales won't work in Android WebView
+ */
+class DateOperations {
+  static _defaultLocale = 'de-de';
 
-// Format a Date to YYYY-MM-DD
-function get_formatted_date(date) {
-    let year = date.getFullYear();
-    let month = (date.getMonth() + 1).toString();
-    let day = date.getDate().toString();
-    month = month.length > 1 ? month : '0' + month;
-    day = day.length > 1 ? day : '0' + day;
-    return year + '-' + month + '-' + day;
-}
+  static _defaultDateOptions = {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  };
 
-// Format a Date to YYYY-MM-DD HH:MM:SS
-function get_formatted_dateWithTime(date) {
-    let retVal = get_formatted_date(date);
-    let hours = date.getHours().toString();
-    let minutes = date.getMinutes().toString();
-    let seconds = date.getSeconds().toString();
-    hours = hours.length > 1 ? hours : '0' + hours;
-    minutes = minutes.length > 1 ? minutes : '0' + minutes;
-    seconds = seconds.length > 1 ? seconds : '0' + seconds;
-    retVal = retVal + " " + hours + ":" + minutes + ":" + seconds;
-    return retVal;
-}
+  /**
+   * Set a locale for all formatDateReadable calls
+   *
+   * @param locale
+   */
+  static setLocale(locale) {
+    try {
+      new Date().toLocaleString('i');
+    } catch (e) {
+      console.error('Browser does not support setting date locales.');
 
-// Format a Date to a readable format for CosmoScoutVR YYYY-MM-DD HH:MM:SS.sss
-function format_date_cosmo(date) {
-    let retVal = get_formatted_date(date);
-    let hours = date.getHours().toString();
-    let minutes = date.getMinutes().toString();
-    let seconds = date.getSeconds().toString();
-    let milliSec = date.getMilliseconds().toString();
-    while (milliSec.length < 3) {
-        milliSec = '0' + milliSec;
+      return;
     }
-    hours = hours.length > 1 ? hours : '0' + hours;
-    minutes = minutes.length > 1 ? minutes : '0' + minutes;
-    seconds = seconds.length > 1 ? seconds : '0' + seconds;
-    retVal = retVal + " " + hours + ":" + minutes + ":" + seconds + "." + milliSec;
-    return retVal;
-}
 
-// Convert seconds into Date
-function convert_seconds(given_seconds) {
-    let converted = {};
-    converted.days = Math.floor(given_seconds / dayInSec);
-    converted.hours = Math.floor((given_seconds - (converted.days * dayInSec)) / hourInSec);
-    converted.minutes = Math.floor((given_seconds - (converted.days * dayInSec) - (converted.hours * hourInSec)) / minuteInSec);
-    converted.seconds = Math.floor(given_seconds - (converted.days * dayInSec) - (converted.hours * hourInSec) - (converted.minutes * minuteInSec));
-    converted.milliSec = Math.round((given_seconds - Math.floor(given_seconds)) * 1000);
+    this._defaultLocale = locale;
+  }
+
+  /**
+   *Format a Date to a for a human readable string DD.MM.YYYY HH:MM:SS
+   *
+   * @param date {Date}
+   * @return {string}
+   */
+  static formatDateReadable(date) {
+    return `${date.toLocaleDateString(this._defaultLocale, this._defaultDateOptions)} ${date.toLocaleTimeString(this._defaultLocale)}`;
+  }
+
+  /**
+   * Format a Date to YYYY-MM-DD
+   *
+   * @param date {Date}
+   * @return {string}
+   */
+  static getFormattedDate(date) {
+    return date.toISOString().split('T')[0];
+  }
+
+  /**
+   * Format a Date to YYYY-MM-DD HH:MM:SS
+   *
+   * @param date {Date}
+   * @return {string}
+   */
+  static getFormattedDateWithTime(date) {
+    return `${this.getFormattedDate(date)} ${date.toLocaleTimeString('de-de')}`;
+  }
+
+  /**
+   * Format a Date to a readable format for CosmoScoutVR YYYY-MM-DD HH:MM:SS.sss
+   *
+   * @param date {Date}
+   * @return {string}
+   */
+  static formatDateCosmo(date) {
+    const milli = date.getMilliseconds().toString().padStart(3, '0');
+
+    return `${this.getFormattedDateWithTime(date)}.${milli}`;
+  }
+
+  /**
+   * Convert seconds into an object containing the duration in hours -- ms
+   *
+   * @param seconds {number}
+   * @return {{}}
+   */
+  static convertSeconds(seconds) {
+    const mSec = 60;
+    const hSec = mSec * mSec;
+    const dSec = hSec * 24;
+
+    const converted = {};
+
+    converted.days = Math.floor(seconds / dSec);
+    converted.hours = Math.floor((seconds - (converted.days * dSec)) / hSec);
+    converted.minutes = Math.floor((seconds - (converted.days * dSec) - (converted.hours * hSec)) / mSec);
+    converted.seconds = Math.floor(seconds - (converted.days * dSec) - (converted.hours * hSec) - (converted.minutes * mSec));
+    converted.milliSec = Math.round((seconds - Math.floor(seconds)) * 1000);
+
     return converted;
-}
+  }
 
-// Increase a Date by days, hours , minutes, seconds and milliseconds
-function increase_date(date, days, hours, minutes, seconds, milliSec) {
+  /**
+   * Increase a Date by days, hours , minutes, seconds and milliseconds
+   *
+   * @param date {Date}
+   * @param days {number}
+   * @param hours {number}
+   * @param minutes {number}
+   * @param seconds {number}
+   * @param milliSec {number}
+   * @return {Date}
+   */
+  static increaseDate(date, days, hours, minutes, seconds, milliSec) {
     date.setDate(date.getDate() + days);
     date.setHours(date.getHours() + hours);
     date.setMinutes(date.getMinutes() + minutes);
     date.setSeconds(date.getSeconds() + seconds);
     date.setMilliseconds(date.getMilliseconds() + milliSec);
     return date;
-}
+  }
 
-// Decrease a Date by days, hours , minutes, seconds and milliseconds
-function decrease_date(date, days, hours, minutes, seconds, milliSec) {
-    date.setDate(date.getDate() - days);
-    date.setHours(date.getHours() - hours);
-    date.setMinutes(date.getMinutes() - minutes);
-    date.setSeconds(date.getSeconds() - seconds);
-    date.setMilliseconds(date.getMilliseconds() - milliSec);
-    return date;
+  /**
+   * Decrease a Date by days, hours , minutes, seconds and milliseconds
+   *
+   * @param date {Date}
+   * @param days {number}
+   * @param hours {number}
+   * @param minutes {number}
+   * @param seconds {number}
+   * @param milliSec {number}
+   * @return {Date}
+   */
+  static decreaseDate(date, days, hours, minutes, seconds, milliSec) {
+    return this.increaseDate(date, -days, -hours, -minutes, -seconds, -milliSec);
+  }
 }
