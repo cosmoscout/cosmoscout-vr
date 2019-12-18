@@ -17,6 +17,7 @@
 #include "../cs-graphics/MouseRay.hpp"
 #include "../cs-utils/Downloader.hpp"
 #include "../cs-utils/convert.hpp"
+#include "../cs-utils/filesystem.hpp"
 #include "../cs-utils/utils.hpp"
 #include "ObserverNavigationNode.hpp"
 
@@ -615,6 +616,43 @@ void Application::FrameUpdate() {
 
   // Record frame timings.
   mFrameTimings->update();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Application::testLoadAllPlugins() {
+#ifdef __linux__
+  std::string path = "../share/plugins";
+#else
+  std::string path = "..\\share\\plugins";
+#endif
+
+  auto plugins = cs::utils::filesystem::listFiles(path);
+
+  for (auto const& plugin : plugins) {
+    if (cs::utils::endsWith(plugin, ".so") || cs::utils::endsWith(plugin, ".dll")) {
+      // Clear errors.
+      LIBERROR();
+
+      COSMOSCOUT_LIBTYPE pluginHandle = OPENLIB(plugin.c_str());
+
+      if (pluginHandle) {
+        cs::core::PluginBase* (*pluginConstructor)();
+        pluginConstructor = (cs::core::PluginBase * (*)()) LIBFUNC(pluginHandle, "create");
+
+        if (pluginConstructor) {
+          std::cout << "Plugin " << plugin << " found." << std::endl;
+        } else {
+          std::cerr << "Error loading CosmoScout VR Plugin " << plugin << " : Invalid plugin."
+                    << std::endl;
+        }
+
+      } else {
+        std::cerr << "Error loading CosmoScout VR Plugin " << plugin << " : " << LIBERROR()
+                  << std::endl;
+      }
+    }
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

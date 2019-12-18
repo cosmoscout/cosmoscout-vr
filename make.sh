@@ -13,11 +13,11 @@ set -e
 # Default build mode is release, if "export COSMOSCOUT_DEBUG_BUILD=true" is executed before, the   #
 # application will be built in debug mode.                                                         #
 # Usage:                                                                                           #
-#    ./make_release.sh [additional CMake flags, defaults to -G "Eclipse CDT4 - Unix Makefiles"]    #
+#    ./make.sh [additional CMake flags, defaults to -G "Eclipse CDT4 - Unix Makefiles"]            #
 # Examples:                                                                                        #
-#    ./make_release.sh                                                                             #
-#    ./make_release.sh -G "Unix Makefiles"                                                         #
-#    ./make_release.sh -G "Eclipse CDT4 - Unix Makefiles" -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \   #
+#    ./make.sh                                                                                     #
+#    ./make.sh -G "Unix Makefiles"                                                                 #
+#    ./make.sh -G "Eclipse CDT4 - Unix Makefiles" -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \           #
 #                      -DCMAKE_C_COMPILER_LAUNCHER=ccache                                          #
 # ------------------------------------------------------------------------------------------------ #
 
@@ -32,7 +32,13 @@ fi
 # Check if ComoScout VR debug build is enabled with "export COSMOSCOUT_DEBUG_BUILD=true".
 BUILD_TYPE=release
 case "$COSMOSCOUT_DEBUG_BUILD" in
-  (true) echo "CosmoScout VR debug build is enabled!"; BUILD_TYPE=debug;;
+  (true) echo "CosmoScout VR debug build is enabled!"; BUILD_TYPE=debug;
+esac
+
+# Check if code coverage should be measured with "export COSMOSCOUT_CODE_COVERAGE=true".
+COVERAGE=-DCOSMOSCOUT_COVERAGE_INFO=Off
+case "$COSMOSCOUT_CODE_COVERAGE" in
+  (true) echo "CosmoScout VR coverage info enabled!"; COVERAGE=-DCOSMOSCOUT_COVERAGE_INFO=On;
 esac
 
 # This directory should contain the top-level CMakeLists.txt - it is assumed to reside in the same
@@ -60,7 +66,7 @@ fi
 # configure, compile & install ---------------------------------------------------------------------
 
 cd "$BUILD_DIR"
-cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
+cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" $COVERAGE \
       -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCOSMOSCOUT_EXTERNALS_DIR="$EXTERNALS_INSTALL_DIR" \
       -DCMAKE_EXPORT_COMPILE_COMMANDS=On "$CMAKE_DIR"
 

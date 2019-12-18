@@ -4,7 +4,7 @@
 #                         Copyright: (c) 2019 German Aerospace Center (DLR)                        #
 # ------------------------------------------------------------------------------------------------ #
 
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.13)
 project(cosmoscout-vr VERSION 1.1.1)
 
 # Use cmake 3.12's <PACKAGE>_ROOT variabled for searching.
@@ -73,6 +73,12 @@ else()
   SET(GLI_ROOT_DIR ${COSMOSCOUT_EXTERNALS_DIR})
 endif()
 
+if (DEFINED ENV{DOCTEST_ROOT_DIR})
+  SET(DOCTEST_ROOT_DIR "$ENV{DOCTEST_ROOT_DIR}")
+else()
+  SET(DOCTEST_ROOT_DIR ${COSMOSCOUT_EXTERNALS_DIR})
+endif()
+
 if (DEFINED ENV{TINYGLTF_ROOT_DIR})
   SET(TINYGLTF_ROOT_DIR "$ENV{TINYGLTF_ROOT_DIR}")
 else()
@@ -123,6 +129,7 @@ endif()
 
 find_package(GLM REQUIRED)
 find_package(GLI REQUIRED)
+find_package(DOCTEST REQUIRED)
 find_package(TINYGLTF REQUIRED)
 find_package(CSPICE REQUIRED)
 find_package(CARES REQUIRED)
@@ -218,6 +225,14 @@ add_compile_options($<$<CXX_COMPILER_ID:MSVC>:/EHsc>)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# Enable code coverage measurements
+option(COSMOSCOUT_COVERAGE_INFO "Run code coverage analytics" OFF)
+
+if(COSMOSCOUT_COVERAGE_INFO AND "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+  add_definitions(--coverage)
+  add_link_options(--coverage)
+endif()
 
 # subdirectories -----------------------------------------------------------------------------------
 
