@@ -281,7 +281,7 @@ We will discuss these files in the following.
       }
     },
     {
-      "label": "Run CosmoScout VR",
+      "label": "Run CosmoScout VR (Release)",
       "type": "shell",
       "command": "install/linux-release/bin/start.sh",
       "options": {
@@ -290,6 +290,42 @@ We will discuss these files in the following.
       "problemMatcher": [],
       "windows": {
         "command": ".\\install/windows-release/bin/start.bat"
+      }
+    },
+    {
+      "label": "Run CosmoScout VR (Debug)",
+      "type": "shell",
+      "command": "install/linux-debug/bin/start.sh",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [],
+      "windows": {
+        "command": ".\\install/windows-debug/bin/start.bat"
+      }
+    },
+    {
+      "label": "Run All Tests (Release)",
+      "type": "shell",
+      "command": "install/linux-release/bin/run_all_tests.sh",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [],
+      "windows": {
+        "command": ".\\install/windows-release/bin/run_all_tests.bat"
+      }
+    },
+    {
+      "label": "Run All Tests (Debug)",
+      "type": "shell",
+      "command": "install/linux-debug/bin/run_all_tests.sh",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [],
+      "windows": {
+        "command": ".\\install/windows-debug/bin/run_all_tests.bat"
       }
     }
   ]
