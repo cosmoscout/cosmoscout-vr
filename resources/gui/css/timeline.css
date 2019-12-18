@@ -475,13 +475,13 @@ position: relative;
 #decreaseControl {
     left: 50%;
     transform: translateX(-80px);
-    top: 90px;
+    top: 88px;
 }
 
 #increaseControl {
     left: 50%;
     transform: translateX(-80px);
-    top: 84px;
+    top: 81px;
     pointer-events: none;
 }
 
