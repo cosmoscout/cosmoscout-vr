@@ -736,3 +736,13 @@ hr {
     border: 2px solid #ccf;
     border-radius: 5px;
 }
+
+#cosmo-scout {
+    opacity: 0;
+    transition: opacity .75s;
+}
+
+.loaded #cosmo-scout {
+    opacity: 1;
+    z-index: 2;
+}

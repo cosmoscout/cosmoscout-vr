@@ -11,7 +11,7 @@
     transition: opacity 0.2s linear;
 }
 
-#logo.visible {
+.loaded #logo {
     opacity: 0.5;
 }
 

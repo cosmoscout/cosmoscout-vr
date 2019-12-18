@@ -41,9 +41,13 @@ class CosmoScout {
    */
   static init(apis) {
     apis.forEach((Api) => {
-      const instance = new Api();
-      this.register(instance.name, instance);
-      instance.init();
+      try {
+        const instance = new Api();
+        this.register(instance.name, instance);
+        instance.init();
+      } catch (e) {
+        console.error(`Could not initialize ${Api}`);
+      }
     });
   }
 
