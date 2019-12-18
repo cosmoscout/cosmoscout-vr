@@ -85,6 +85,9 @@ class Application : public VistaFrameLoop {
   /// Initializes the Application. Should only be called by ViSTA.
   bool Init(VistaSystem* pVistaSystem) override;
 
+  /// De-Initializes the Application. Should only be called by ViSTA.
+  void Quit() override;
+
   /// Called every frame by ViSTA. The whole application logic is executed here.
   void FrameUpdate() override;
 

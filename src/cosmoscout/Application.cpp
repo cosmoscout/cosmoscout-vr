@@ -65,68 +65,8 @@ Application::Application(cs::core::Settings const& settings)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Application::~Application() {
-
-  // Close all plugins first.
-  for (auto const& plugin : mPlugins) {
-    std::string pluginFile = plugin.first;
-    std::cout << "Unloading Plugin " << pluginFile << std::endl;
-
-    plugin.second.mPlugin->deInit();
-
-    auto handle           = plugin.second.mHandle;
-    auto pluginDestructor = (void (*)(cs::core::PluginBase*))LIBFUNC(handle, "destroy");
-
-    pluginDestructor(plugin.second.mPlugin);
-    CLOSELIB(handle);
-  }
-
-  mPlugins.clear();
-
-  // Then unload SPICE.
-  mSolarSystem->deinit();
-
-  // And cleanup curl.
+  // Last but not least, cleanup curl.
   cURLpp::terminate();
-
-  // Make sure all shared pointers have been cleared nicely. Print a warning if some references are still hanging around.
-  std::cout << __LINE__ << std::endl;
-  mDragNavigation.reset();
-  std::cout << __LINE__ << std::endl;
-
-  auto assertCleanUp = [](std::string const& name, size_t count) {
-    if (count > 1) {
-      std::cout << "[Application] Warning: Use count of " << name <<" is " << count-1 << " but should be 0." << std::endl;
-    }
-  };
-
-  assertCleanUp("mSolarSystem", mSolarSystem.use_count());
-  mSolarSystem.reset();
-  std::cout << __LINE__ << std::endl;
-
-  assertCleanUp("mTimeControl", mTimeControl.use_count());
-  mTimeControl.reset();
-  std::cout << __LINE__ << std::endl;
-
-  assertCleanUp("mGuiManager", mGuiManager.use_count());
-  mGuiManager.reset();
-  std::cout << __LINE__ << std::endl;
-
-  assertCleanUp("mGraphicsEngine", mGraphicsEngine.use_count());
-  mGraphicsEngine.reset();
-  std::cout << __LINE__ << std::endl;
-
-  assertCleanUp("mFrameTimings", mFrameTimings.use_count());
-  mFrameTimings.reset();
-  std::cout << __LINE__ << std::endl;
-
-  assertCleanUp("mInputManager", mInputManager.use_count());
-  mInputManager.reset();
-  std::cout << __LINE__ << std::endl;
-
-  assertCleanUp("mSettings", mSettings.use_count());
-  mSettings.reset();
-  std::cout << __LINE__ << std::endl;
-
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -150,8 +90,8 @@ bool Application::Init(VistaSystem* pVistaSystem) {
 
   // The ObserverNavigationNode is used by several DFN networks to move the celestial observer.
   VdfnNodeFactory* pNodeFactory = VdfnNodeFactory::GetSingleton();
-  pNodeFactory->SetNodeCreator(
-      "ObserverNavigationNode", new ObserverNavigationNodeCreate(mSolarSystem.get(), mInputManager.get()));
+  pNodeFactory->SetNodeCreator("ObserverNavigationNode",
+      new ObserverNavigationNodeCreate(mSolarSystem.get(), mInputManager.get()));
 
   // This connects several parts of CosmoScout VR to each other.
   connectSlots();
@@ -247,6 +187,64 @@ bool Application::Init(VistaSystem* pVistaSystem) {
   }
 
   return VistaFrameLoop::Init(pVistaSystem);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Application::Quit() {
+
+  // Close all plugins first.
+  for (auto const& plugin : mPlugins) {
+    std::string pluginFile = plugin.first;
+    std::cout << "Unloading Plugin " << pluginFile << std::endl;
+
+    plugin.second.mPlugin->deInit();
+
+    auto handle           = plugin.second.mHandle;
+    auto pluginDestructor = (void (*)(cs::core::PluginBase*))LIBFUNC(handle, "destroy");
+
+    pluginDestructor(plugin.second.mPlugin);
+    CLOSELIB(handle);
+  }
+
+  mPlugins.clear();
+
+  // Then unload SPICE.
+  mSolarSystem->deinit();
+
+  // Make sure all shared pointers have been cleared nicely. Print a warning if some references are
+  // still hanging around.
+  mDragNavigation.reset();
+
+  auto assertCleanUp = [](std::string const& name, size_t count) {
+    if (count > 1) {
+      std::cout << "[Application] Warning: Use count of " << name << " is " << count - 1
+                << " but should be 0." << std::endl;
+    }
+  };
+
+  assertCleanUp("mSolarSystem", mSolarSystem.use_count());
+  mSolarSystem.reset();
+
+  assertCleanUp("mTimeControl", mTimeControl.use_count());
+  mTimeControl.reset();
+
+  assertCleanUp("mGuiManager", mGuiManager.use_count());
+  mGuiManager.reset();
+
+  assertCleanUp("mGraphicsEngine", mGraphicsEngine.use_count());
+  mGraphicsEngine.reset();
+
+  assertCleanUp("mFrameTimings", mFrameTimings.use_count());
+  mFrameTimings.reset();
+
+  assertCleanUp("mInputManager", mInputManager.use_count());
+  mInputManager.reset();
+
+  assertCleanUp("mSettings", mSettings.use_count());
+  mSettings.reset();
+
+  VistaFrameLoop::Quit();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

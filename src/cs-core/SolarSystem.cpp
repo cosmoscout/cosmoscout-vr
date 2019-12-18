@@ -122,6 +122,10 @@ void SolarSystem::unregisterBody(std::shared_ptr<scene::CelestialBody> const& bo
   for (const auto& listener : mRemoveBodyListeners) {
     listener.second(body);
   }
+
+  if (pActiveBody.get() == body) {
+    pActiveBody = nullptr;
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

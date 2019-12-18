@@ -236,6 +236,39 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 GuiManager::~GuiManager() {
+  mSideBar->unregisterCallback("set_lighting_quality");
+  mSideBar->unregisterCallback("set_celestial_body");
+  mSideBar->unregisterCallback("set_enable_shadows");
+  mSideBar->unregisterCallback("print_notification");
+  mSideBar->unregisterCallback("set_shadowmap_split_distribution");
+  mSideBar->unregisterCallback("set_enable_cascades_debug");
+  mSideBar->unregisterCallback("set_ambient_light");
+  mSideBar->unregisterCallback("set_shadowmap_cascades");
+  mSideBar->unregisterCallback("set_shadowmap_extension");
+  mSideBar->unregisterCallback("set_enable_shadow_freeze");
+  mSideBar->unregisterCallback("set_date");
+  mSideBar->unregisterCallback("set_time");
+  mSideBar->unregisterCallback("set_shadowmap_range");
+  mSideBar->unregisterCallback("set_terrain_height");
+  mSideBar->unregisterCallback("set_widget_scale");
+  mSideBar->unregisterCallback("set_enable_lighting");
+  mSideBar->unregisterCallback("set_enable_timer_queries");
+  mSideBar->unregisterCallback("set_shadowmap_resolution");
+  mSideBar->unregisterCallback("set_shadowmap_bias");
+  mSideBar->unregisterCallback("set_enable_vsync");
+
+  mTimeline->unregisterCallback("navigate_to_surface");
+  mTimeline->unregisterCallback("fly_to");
+  mTimeline->unregisterCallback("reset_time");
+  mTimeline->unregisterCallback("print_notification");
+  mTimeline->unregisterCallback("navigate_to_orbit");
+  mTimeline->unregisterCallback("set_time_speed");
+  mTimeline->unregisterCallback("add_hours_without_animation");
+  mTimeline->unregisterCallback("navigate_fix_horizon");
+  mTimeline->unregisterCallback("navigate_north_up");
+  mTimeline->unregisterCallback("set_date");
+  mTimeline->unregisterCallback("add_hours");
+
   delete mSideBar;
   delete mStatusBar;
   delete mNotifications;
