@@ -45,7 +45,7 @@ jobs:
       - name: Cache Object Files
         uses: actions/cache@v1
         with:
-          path: ${HOME}/.ccache
+          path: ~/.ccache
           key: linux-gcc
       - name: Download Dependencies
         run: |
@@ -85,7 +85,7 @@ jobs:
       - name: Cache Object Files
         uses: actions/cache@v1
         with:
-          path: ${HOME}/.ccache
+          path: ~/.ccache
           key: linux-clang
       - name: Download Dependencies
         run: |
@@ -123,7 +123,7 @@ jobs:
       - name: Cache Object Files
         uses: actions/cache@v1
         with:
-          path: ${HOME}\\clcache
+          path: ~/clcache
           key: windows-msvc
       - name: Download Dependencies
         run: pip install clcache
