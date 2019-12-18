@@ -50,14 +50,14 @@ jobs:
           sudo apt-get update -q
           sudo apt-get install libc++-dev libgl1-mesa-dev libglu1-mesa-dev libx11-dev
           sudo apt-get install libxi-dev libgconf-2-4 libboost1.70-dev
-
           sudo apt-get install -y lcov
-
       - name: Build Externals
         run: ./make_externals.sh
       - name: Build CosmoScout VR
         run: ./make.sh
-      - name: Check Test Coverage
+      - name: Run Tests
+        run: ./install/linux-release/bin/run_all_tests.sh
+      - name: Calculate Test Coverage
         run: ./lcov.sh
       - name: Upload Coverage Info
         uses: coverallsapp/github-action@master
@@ -86,7 +86,6 @@ jobs:
           sudo apt-get update -q
           sudo apt-get install libc++-dev libgl1-mesa-dev libglu1-mesa-dev libx11-dev
           sudo apt-get install libxi-dev libgconf-2-4 libboost1.70-dev
-
       - name: Build Externals
         env:
           CC: clang
@@ -97,6 +96,8 @@ jobs:
           CC: clang
           CXX: clang++
         run: ./make.sh
+      - name: Run Tests
+        run: ./install/linux-release/bin/run_all_tests.sh
 
   build_windows:
     name: Windows Build (msvc 19.16.27032.1)
@@ -117,3 +118,6 @@ jobs:
       - name: Build CosmoScout VR
         shell: cmd
         run: make.bat
+      - name: Run Tests
+        shell: cmd
+        run: install\\linux-release\\bin\\run_all_tests.bat
