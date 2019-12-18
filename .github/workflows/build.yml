@@ -42,6 +42,11 @@ jobs:
         uses: actions/checkout@v1
       - name: Checkout Submodules
         run: git submodule update --init
+      - name: Cache Object Files
+        uses: actions/cache@v1
+        with:
+          path: ~/.ccache
+          key: linux-gcc
       - name: Install CMake
         run: sudo pip install cmake
       - name: Download Dependencies
@@ -49,12 +54,12 @@ jobs:
           sudo add-apt-repository ppa:mhier/libboost-latest
           sudo apt-get update -q
           sudo apt-get install libc++-dev libgl1-mesa-dev libglu1-mesa-dev libx11-dev
-          sudo apt-get install libxi-dev libgconf-2-4 libboost1.70-dev
+          sudo apt-get install libxi-dev libgconf-2-4 libboost1.70-dev ccache
           sudo apt-get install -y lcov
       - name: Build Externals
-        run: ./make_externals.sh
+        run: ./make_externals.sh -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
       - name: Build CosmoScout VR
-        run: ./make.sh
+        run: ./make.sh -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
       - name: Run Tests
         run: ./install/linux-release/bin/run_all_tests.sh
       - name: Calculate Test Coverage
@@ -78,6 +83,11 @@ jobs:
         uses: actions/checkout@v1
       - name: Checkout Submodules
         run: git submodule update --init
+      - name: Cache Object Files
+        uses: actions/cache@v1
+        with:
+          path: ~/.ccache
+          key: linux-clang
       - name: Install CMake
         run: sudo pip install cmake
       - name: Download Dependencies
@@ -85,17 +95,17 @@ jobs:
           sudo add-apt-repository ppa:mhier/libboost-latest
           sudo apt-get update -q
           sudo apt-get install libc++-dev libgl1-mesa-dev libglu1-mesa-dev libx11-dev
-          sudo apt-get install libxi-dev libgconf-2-4 libboost1.70-dev
+          sudo apt-get install libxi-dev libgconf-2-4 libboost1.70-dev ccache
       - name: Build Externals
         env:
           CC: clang
           CXX: clang++
-        run: ./make_externals.sh
+        run: ./make_externals.sh -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
       - name: Build CosmoScout VR
         env:
           CC: clang
           CXX: clang++
-        run: ./make.sh
+        run: ./make.sh -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
       - name: Run Tests
         run: ./install/linux-release/bin/run_all_tests.sh
 
@@ -112,12 +122,17 @@ jobs:
         uses: actions/checkout@v1
       - name: Checkout Submodules
         run: git submodule update --init
+      - name: Cache Object Files
+        uses: actions/cache@v1
+        with:
+          path: %HOME%\\clcache
+          key: windows-msvc
       - name: Build Externals
         shell: cmd
-        run: make_externals.bat
+        run: make_externals.bat -DCMAKE_CXX_COMPILER_LAUNCHER=clcache -DCMAKE_C_COMPILER_LAUNCHER=clcache
       - name: Build CosmoScout VR
         shell: cmd
-        run: make.bat
+        run: make.bat -DCMAKE_CXX_COMPILER_LAUNCHER=clcache -DCMAKE_C_COMPILER_LAUNCHER=clcache
       - name: Run Tests
         shell: cmd
         run: install\\windows-release\\bin\\run_all_tests.bat
