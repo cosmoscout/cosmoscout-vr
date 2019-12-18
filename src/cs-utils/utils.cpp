@@ -11,10 +11,27 @@
 #include <VistaKernel/DisplayManager/VistaViewport.h>
 #include <VistaKernel/VistaSystem.h>
 
-#include <boost/filesystem.hpp>
 #include <iostream>
 
 namespace cs::utils {
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool contains(std::string const& string, std::string const& value) {
+  return string.find(value) != std::string::npos;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool startsWith(std::string const& string, std::string const& prefix) {
+  return string.find(prefix) == 0;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool endsWith(std::string const& string, std::string const& postfix) {
+  return std::mismatch(postfix.rbegin(), postfix.rend(), string.rbegin()).first == postfix.rend();
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 

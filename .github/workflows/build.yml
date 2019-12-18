@@ -3,29 +3,29 @@ name: Build
 on:
   push:
     branches:
-    - '**'
+      - '**'
   pull_request:
     branches:
-    - '**'
+      - '**'
 
 jobs:
   clang_format:
     name: Check Clang-Format
     runs-on: ubuntu-18.04
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v1
-    - name: Download Clang-Format
-      run: |
-        sudo apt-get update -y
-        sudo apt-get remove -y clang-6.0 libclang-common-6.0-dev libclang1-6.0 libllvm6.0
-        sudo apt-get install -y clang-format
-    - name: Run Clang-Format
-      run: ./clang-format.sh
-    - name: Compare Results
-      run: |
-        DIFF=$(git diff)
-        if [ ! -z "$DIFF" ]; then echo $DIFF && exit 1; fi
+      - name: Checkout Repository
+        uses: actions/checkout@v1
+      - name: Download Clang-Format
+        run: |
+          sudo apt-get update -y
+          sudo apt-get remove -y clang-6.0 libclang-common-6.0-dev libclang1-6.0 libllvm6.0
+          sudo apt-get install -y clang-format
+      - name: Run Clang-Format
+        run: ./clang-format.sh
+      - name: Compare Results
+        run: |
+          DIFF=$(git diff)
+          if [ ! -z "$DIFF" ]; then echo $DIFF && exit 1; fi
 
   build_linux_gcc:
     name: Linux Build (gcc 7.4.0)
@@ -35,21 +35,35 @@ jobs:
       ( contains(github.ref, 'master') && !contains(github.event.head_commit.message, '[no-ci]') ) ||
       ( contains(github.ref, 'develop') && !contains(github.event.head_commit.message, '[no-ci]') ) ||
       contains(github.event.head_commit.message, '[run-ci]')
+    env:
+      COSMOSCOUT_CODE_COVERAGE: true
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v1
-    - name: Checkout Submodules
-      run: git submodule update --init
-    - name: Download Dependencies
-      run: |
-        sudo add-apt-repository ppa:mhier/libboost-latest
-        sudo apt-get update -q
-        sudo apt-get install libc++-dev libgl1-mesa-dev libglu1-mesa-dev libx11-dev
-        sudo apt-get install libxi-dev libgconf-2-4 libboost1.70-dev
-    - name: Build Externals
-      run: ./make_externals.sh
-    - name: Build CosmoScout VR
-      run: ./make.sh
+      - name: Checkout Repository
+        uses: actions/checkout@v1
+      - name: Checkout Submodules
+        run: git submodule update --init
+      - name: Install CMake
+        run: sudo pip install cmake
+      - name: Download Dependencies
+        run: |
+          sudo add-apt-repository ppa:mhier/libboost-latest
+          sudo apt-get update -q
+          sudo apt-get install libc++-dev libgl1-mesa-dev libglu1-mesa-dev libx11-dev
+          sudo apt-get install libxi-dev libgconf-2-4 libboost1.70-dev
+          sudo apt-get install -y lcov
+      - name: Build Externals
+        run: ./make_externals.sh
+      - name: Build CosmoScout VR
+        run: ./make.sh
+      - name: Run Tests
+        run: ./install/linux-release/bin/run_all_tests.sh
+      - name: Calculate Test Coverage
+        run: ./lcov.sh
+      - name: Upload Coverage Info
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path-to-lcov: ./build/linux-release/coverage.info
 
   build_linux_clang:
     name: Linux Build (clang 6.0)
@@ -60,26 +74,30 @@ jobs:
       ( contains(github.ref, 'develop') && !contains(github.event.head_commit.message, '[no-ci]') ) ||
       contains(github.event.head_commit.message, '[run-ci]')
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v1
-    - name: Checkout Submodules
-      run: git submodule update --init
-    - name: Download Dependencies
-      run: |
-        sudo add-apt-repository ppa:mhier/libboost-latest
-        sudo apt-get update -q
-        sudo apt-get install libc++-dev libgl1-mesa-dev libglu1-mesa-dev libx11-dev
-        sudo apt-get install libxi-dev libgconf-2-4 libboost1.70-dev
-    - name: Build Externals
-      env:
-        CC: clang
-        CXX: clang++
-      run: ./make_externals.sh
-    - name: Build CosmoScout VR
-      env:
-        CC: clang
-        CXX: clang++
-      run: ./make.sh
+      - name: Checkout Repository
+        uses: actions/checkout@v1
+      - name: Checkout Submodules
+        run: git submodule update --init
+      - name: Install CMake
+        run: sudo pip install cmake
+      - name: Download Dependencies
+        run: |
+          sudo add-apt-repository ppa:mhier/libboost-latest
+          sudo apt-get update -q
+          sudo apt-get install libc++-dev libgl1-mesa-dev libglu1-mesa-dev libx11-dev
+          sudo apt-get install libxi-dev libgconf-2-4 libboost1.70-dev
+      - name: Build Externals
+        env:
+          CC: clang
+          CXX: clang++
+        run: ./make_externals.sh
+      - name: Build CosmoScout VR
+        env:
+          CC: clang
+          CXX: clang++
+        run: ./make.sh
+      - name: Run Tests
+        run: ./install/linux-release/bin/run_all_tests.sh
 
   build_windows:
     name: Windows Build (msvc 19.16.27032.1)
@@ -90,13 +108,16 @@ jobs:
       ( contains(github.ref, 'develop') && !contains(github.event.head_commit.message, '[no-ci]') ) ||
       contains(github.event.head_commit.message, '[run-ci]')
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v1
-    - name: Checkout Submodules
-      run: git submodule update --init
-    - name: Build Externals
-      shell: cmd
-      run: make_externals.bat
-    - name: Build CosmoScout VR
-      shell: cmd
-      run: make.bat
+      - name: Checkout Repository
+        uses: actions/checkout@v1
+      - name: Checkout Submodules
+        run: git submodule update --init
+      - name: Build Externals
+        shell: cmd
+        run: make_externals.bat
+      - name: Build CosmoScout VR
+        shell: cmd
+        run: make.bat
+      - name: Run Tests
+        shell: cmd
+        run: install\\windows-release\\bin\\run_all_tests.bat
