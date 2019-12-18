@@ -54,6 +54,7 @@ lcov -q -a $BUILD_DIR/zero_coverage.info -a $BUILD_DIR/test_coverage.info --o $B
 
 # Remove any coverage from externals, examples and test directories.
 lcov -q --remove $BUILD_DIR/coverage.info \*externals\* --output-file $BUILD_DIR/coverage.info
+lcov -q --remove $BUILD_DIR/coverage.info \*test\* --output-file $BUILD_DIR/coverage.info
 
 # Generate html report and open it in a web browser when an argument was passed to the script.
 if [ $# != 0 ]
