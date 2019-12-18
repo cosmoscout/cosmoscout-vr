@@ -33,7 +33,7 @@ fi
 # Check if ComoScout VR debug build is enabled with "export COSMOSCOUT_DEBUG_BUILD=true".
 BUILD_TYPE=release
 case "$COSMOSCOUT_DEBUG_BUILD" in
-  (true) echo "CosmoScout VR debug build is enabled!"; BUILD_TYPE=debug;;
+  (true) echo "CosmoScout VR debug build is enabled!"; BUILD_TYPE=debug;
 esac
 
 # This directory should contain all submodules - they are assumed to reside in the subdirectory 
