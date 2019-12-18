@@ -649,7 +649,7 @@ void Application::connectSlots() {
 
   // Show the current speed of the celestial observer in the user interface.
   mSolarSystem->pCurrentObserverSpeed.onChange().connect(
-      [this](float speed) { mGuiManager->getStatusBar()->callJavascript("set_speed", speed); });
+      [this](float speed) { mGuiManager->getStatusBar()->callJavascript("CosmoScout.call", "statusbar", "setSpeed", speed); });
 
   // Show the statistics GuiItem when measurements are enabled.
   mFrameTimings->pEnableMeasurements.onChange().connect(

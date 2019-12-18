@@ -368,7 +368,7 @@ void GuiManager::update() {
 
 void GuiManager::addPluginTabToSideBar(
     std::string const& name, std::string const& icon, std::string const& content) {
-  mCosmoScoutGui->callJavascript("addPluginTab", name, icon, content);
+  mCosmoScoutGui->callJavascript("CosmoScout.call", "sidebar", "addPluginTab", name, icon, content);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -383,7 +383,7 @@ void GuiManager::addPluginTabToSideBarFromHTML(
 
 void GuiManager::addSettingsSectionToSideBar(
     std::string const& name, std::string const& icon, std::string const& content) {
-  mCosmoScoutGui->callJavascript("addSettingsSection", name, icon, content);
+  mCosmoScoutGui->callJavascript("CosmoScout.call", "sidebar", "addSettingsSection", name, icon, content);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
