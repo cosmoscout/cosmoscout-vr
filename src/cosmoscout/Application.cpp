@@ -397,7 +397,7 @@ void Application::FrameUpdate() {
 
     // Hide the loading screen after several frames.
     if (GetFrameCount() == mHideLoadingScreenAtFrame) {
-        mGuiManager->getGui()->callJavascript("CosmoScout.initInputs");
+      mGuiManager->getGui()->callJavascript("CosmoScout.initInputs");
       mGuiManager->enableLoadingScreen(false);
     }
 
@@ -508,7 +508,7 @@ void Application::FrameUpdate() {
       double heightDiff    = polar.z / mGraphicsEngine->pHeightScale.get() - surfaceHeight;
 
       if (!std::isnan(polar.x) && !std::isnan(polar.y) && !std::isnan(heightDiff)) {
-        mGuiManager->getGui()->callJavascript("CosmoScout.call", "statusbar", "setUserPosition",
+        mGuiManager->getGui()->callJavascript("CosmoScout.call", "timeline", "setUserPosition",
             cs::utils::convert::toDegrees(polar.x), cs::utils::convert::toDegrees(polar.y),
             heightDiff);
         mGuiManager->getGui()->callJavascript("CosmoScout.call", "statusbar", "setUserPosition",
@@ -528,7 +528,8 @@ void Application::FrameUpdate() {
         angle = -angle;
       }
 
-      mGuiManager->getGui()->callJavascript("CosmoScout.call", "timeline", "setNorthDirection", angle);
+      mGuiManager->getGui()->callJavascript(
+          "CosmoScout.call", "timeline", "setNorthDirection", angle);
     }
 
     mGuiManager->update();
@@ -633,13 +634,15 @@ void Application::connectSlots() {
             auto lngLat = cs::utils::convert::toDegrees(polar.xy());
 
             if (!std::isnan(lngLat.x) && !std::isnan(lngLat.y) && !std::isnan(polar.z)) {
-              mGuiManager->getGui()->callJavascript("CosmoScout.call", "statusbar", "setPointerPosition", true, lngLat.x,
-                  lngLat.y, polar.z / mGraphicsEngine->pHeightScale.get());
+              mGuiManager->getGui()->callJavascript("CosmoScout.call", "statusbar",
+                  "setPointerPosition", true, lngLat.x, lngLat.y,
+                  polar.z / mGraphicsEngine->pHeightScale.get());
               return;
             }
           }
         }
-        mGuiManager->getGui()->callJavascript("CosmoScout.call", "statusbar", "setPointerPosition",false);
+        mGuiManager->getGui()->callJavascript(
+            "CosmoScout.call", "statusbar", "setPointerPosition", false);
       });
 
   // Update the time shown in the user interface when the simulation time changes.
@@ -653,8 +656,9 @@ void Application::connectSlots() {
   });
 
   // Update the simulation time speed shown in the user interface.
-  mTimeControl->pTimeSpeed.onChange().connect(
-      [this](float val) { mGuiManager->getGui()->callJavascript("CosmoScout.call", "timeline", "setTimeSpeed", val); });
+  mTimeControl->pTimeSpeed.onChange().connect([this](float val) {
+    mGuiManager->getGui()->callJavascript("CosmoScout.call", "timeline", "setTimeSpeed", val);
+  });
 
   // Show notification when the center name of the celestial observer changes.
   mSolarSystem->pObserverCenter.onChange().connect([this](std::string const& center) {
@@ -683,12 +687,14 @@ void Application::connectSlots() {
   });
 
   // Show the current speed of the celestial observer in the user interface.
-  mSolarSystem->pCurrentObserverSpeed.onChange().connect(
-      [this](float speed) { mGuiManager->getGui()->callJavascript("CosmoScout.call", "statusbar", "setSpeed", speed); });
+  mSolarSystem->pCurrentObserverSpeed.onChange().connect([this](float speed) {
+    mGuiManager->getGui()->callJavascript("CosmoScout.call", "statusbar", "setSpeed", speed);
+  });
 
   // Show the statistics GuiItem when measurements are enabled.
-  mFrameTimings->pEnableMeasurements.onChange().connect(
-      [this](bool enable) { mGuiManager->getGui()->callJavascript("CosmoScout.clearHtml", "statistics"); });
+  mFrameTimings->pEnableMeasurements.onChange().connect([this](bool enable) {
+    mGuiManager->getGui()->callJavascript("CosmoScout.clearHtml", "statistics");
+  });
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -828,8 +834,7 @@ void Application::registerGuiCallbacks() {
         mGuiManager->showNotification(title, content, icon);
       }));
 
-  mGuiManager->getGui()->registerCallback(
-      "reset_time", ([this]() { mTimeControl->resetTime(); }));
+  mGuiManager->getGui()->registerCallback("reset_time", ([this]() { mTimeControl->resetTime(); }));
 
   mGuiManager->getGui()->registerCallback<double>("add_hours", ([&](double amount) {
     mTimeControl->setTime(mTimeControl->pSimulationTime.get() + 60.0 * 60.0 * amount);

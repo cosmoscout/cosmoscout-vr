@@ -246,8 +246,6 @@ class TimelineApi extends IApi {
     },
   };
 
-  _activePlanetCenter;
-
   _whileEditingOptions = {
     editable: false,
   };
@@ -487,16 +485,23 @@ class TimelineApi extends IApi {
     const placeArr = place.split(' ');
 
     const animationTime = direct ? 0 : 5;
+    const location = {
+      longitude: this._parseLongitude(placeArr[0], placeArr[1]),
+      latitude: this._parseLatitude(placeArr[2], placeArr[3]),
+      height: this._parseHeight(placeArr[4], placeArr[5]),
+      name,
+    };
 
-    CosmoScout.call(
+    CosmoScout.callNative('fly_to', planet, location.longitude, location.latitude, location.height, animationTime);
+    CosmoScout.call('notifications', 'printNotification', 'Travelling', `to ${location.name}`, 'send');
+
+    /*    CosmoScout.call(
       'flyto',
       'flyTo',
       planet,
-      this._parseLongitude(placeArr[0], placeArr[1]),
-      this._parseLatitude(placeArr[2], placeArr[3]),
-      this._parseHeight(placeArr[4], placeArr[5]),
+      location,
       animationTime,
-    );
+    ); */
   }
 
   /* Internal methods */
@@ -567,7 +572,7 @@ class TimelineApi extends IApi {
     document.getElementById('event-dialog-start-date').value = DateOperations.getFormattedDateWithTime(item.start);
     document.getElementById('event-dialog-end-date').value = '';
     document.getElementById('event-dialog-description').value = '';
-    document.getElementById('event-dialog-planet').value = this._activePlanetCenter;
+    document.getElementById('event-dialog-planet').value = this._activePlanetName;
     document.getElementById('event-dialog-location').value = Format.longitude(this._userPosition.long) + Format.latitude(this._userPosition.lat) + Format.height(this._userPosition.height);
     this._parHolder.item = item;
     this._parHolder.callback = callback;
@@ -1019,7 +1024,9 @@ class TimelineApi extends IApi {
    * @private
    */
   _itemOutCallback(properties) {
-    if (properties.event.toElement.className !== 'event-tooltip') {
+    const element = properties.event.toElement;
+
+    if (element !== null && element.className !== 'event-tooltip') {
       document.getElementById('event-tooltip-container').style.display = 'none';
       this._tooltipVisible = false;
       this._hoveredHTMLEvent.classList.remove('mouseOver');
@@ -1287,7 +1294,7 @@ class TimelineApi extends IApi {
         }
 
         CosmoScout.callNative('add_hours', hoursDif);
-        travel_to(true, this._items._data[item].planet, this._items._data[item].place, this._items._data[item].content);
+        this.travelTo(true, this._items._data[item].planet, this._items._data[item].place, this._items._data[item].content);
       }
     }
   }

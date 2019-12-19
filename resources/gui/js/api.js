@@ -375,7 +375,7 @@ class CosmoScout {
    */
   static call(api, method, ...args) {
     if (method !== 'setUserPosition' && method !== 'setNorthDirection' && method !== 'setSpeed' && method !== 'setDate') {
-      console.log(`Calling '${method}' on '${api}'`);
+      // console.log(`Calling '${method}' on '${api}'`);
     }
 
     if (this._apis.has(api)) {
