@@ -1,10 +1,9 @@
 .side-bar {
     width: 450px;
-    position: absolute;
-    height: 100%;
+    height: calc(100vh - 200px);
     overflow-x: hidden;
     overflow-y: scroll;
-    padding-top: 70px;
+    margin-top: 50px;
     opacity: 0;
     transition: opacity 0.2s linear;
 }
