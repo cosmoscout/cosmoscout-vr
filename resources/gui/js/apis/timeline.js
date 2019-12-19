@@ -485,16 +485,23 @@ class TimelineApi extends IApi {
     const placeArr = place.split(' ');
 
     const animationTime = direct ? 0 : 5;
+    const location = {
+      longitude: this._parseLongitude(placeArr[0], placeArr[1]),
+      latitude: this._parseLatitude(placeArr[2], placeArr[3]),
+      height: this._parseHeight(placeArr[4], placeArr[5]),
+      name,
+    };
 
-    CosmoScout.call(
+    CosmoScout.callNative('fly_to', planet, location.longitude, location.latitude, location.height, animationTime);
+    CosmoScout.call('notifications', 'printNotification', 'Travelling', `to ${location.name}`, 'send');
+
+    /*    CosmoScout.call(
       'flyto',
       'flyTo',
       planet,
-      this._parseLongitude(placeArr[0], placeArr[1]),
-      this._parseLatitude(placeArr[2], placeArr[3]),
-      this._parseHeight(placeArr[4], placeArr[5]),
+      location,
       animationTime,
-    );
+    ); */
   }
 
   /* Internal methods */
@@ -1017,7 +1024,9 @@ class TimelineApi extends IApi {
    * @private
    */
   _itemOutCallback(properties) {
-    if (properties.event.toElement.className !== 'event-tooltip') {
+    const element = properties.event.toElement;
+
+    if (element !== null && element.className !== 'event-tooltip') {
       document.getElementById('event-tooltip-container').style.display = 'none';
       this._tooltipVisible = false;
       this._hoveredHTMLEvent.classList.remove('mouseOver');
