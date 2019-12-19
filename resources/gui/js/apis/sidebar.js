@@ -65,7 +65,7 @@ class SidebarApi extends IApi {
     const html = this._replaceMarkers(tab.innerHTML, this._makeId(sectionName), icon, content);
 
     tab.innerHTML = html
-      .replace('%SECTION%', sectionName)
+      .replace(this._regex('SECTION'), sectionName)
       .trim();
 
     this._settings.appendChild(tab);
@@ -103,24 +103,21 @@ class SidebarApi extends IApi {
   }
 
   /**
-   * @see {_clearHtml}
    * @param id {string}
    */
   clearContainer(id) {
-    this._clearHtml(id);
+    CosmoScout.clearHtml(id);
   }
 
   /**
-   * TODO UNUSED
-   * @see {_clearHtml}
+   * TODO UNUSED / Remove jQuery
+   *
    * @param id {string}
    */
   clearDropdown(id) {
-    const element = this._clearHtml(id);
+    CosmoScout.clearHtml(id);
 
-    if (element !== null && typeof element.selectpicker !== 'undefined') {
-      element.selectpicker('render');
-    }
+    $(`#${id}`).selectpicker('render');
   }
 
   /**
@@ -206,6 +203,7 @@ class SidebarApi extends IApi {
 
   /**
    * Adds an option to a dropdown
+   * TODO remove jQuery
    *
    * @param id {string} DropDown ID
    * @param value {string|number} Option value
@@ -223,9 +221,7 @@ class SidebarApi extends IApi {
     if (dropdown !== null) {
       dropdown.appendChild(option);
 
-      if (typeof dropdown.selectpicker !== 'undefined') {
-        dropdown.selectpicker('refresh');
-      }
+      $(`#${id}`).selectpicker('refresh');
     } else {
       console.warn(`Dropdown '${id} 'not found`);
     }
@@ -238,13 +234,7 @@ class SidebarApi extends IApi {
    * @param value {string|number}
    */
   setDropdownValue(id, value) {
-    const dropdown = document.getElementById(id);
-
-    if (dropdown !== null && typeof dropdown.selectpicker !== 'undefined') {
-      dropdown.selectpicker('val', value);
-    } else {
-      console.warn(`Dropdown '${id}' not found, or 'SelectPicker' not active.`);
-    }
+    $(`#${id}`).selectpicker('val', value);
   }
 
   /**
@@ -256,8 +246,8 @@ class SidebarApi extends IApi {
     const tool = CosmoScout.loadTemplateContent('measurement-tools');
 
     tool.innerHTML = tool.innerHTML
-      .replace('%CONTENT%', name)
-      .replace('%ICON%', icon)
+      .replace(this._regex('CONTENT'), name)
+      .replace(this._regex('ICON'), icon)
       .trim();
 
     tool.addEventListener('click', () => {
@@ -279,6 +269,9 @@ class SidebarApi extends IApi {
     });
   }
 
+  /**
+   * Deselect all measurement tools
+   */
   deselectMeasurementTool() {
     document.querySelectorAll('#measurement-tools .radio-button').forEach((node) => {
       node.checked = false;
@@ -286,18 +279,23 @@ class SidebarApi extends IApi {
   }
 
   /**
-   * TODO
-   * @param file
-   * @param time
+   * @param file {string}
+   * @param time {string|number}
    */
   addSharad(file, time) {
-    const html = `
-        <div class='row item-${file}''>
-            <div class='col-8' >${file}</div>
-            <div class='col-4'><a class='btn glass block' onclick='window.call_native("set_time", ${time})' ><i class='material-icons'>restore</i></a></div>
-        </div>`;
+    const sharadList = document.getElementById('list-sharad');
+    const sharad = CosmoScout.loadTemplateContent('sharad');
 
-    $('#list-sharad').append(html);
+    sharad.innerHTML = sharad.innerHTML
+      .replace(this._regex('FILE'), file)
+      .replace(this._regex('TIME'), time)
+      .trim();
+
+    sharad.classList.add(`item-${file}`);
+
+    sharadList.appendChild(sharad);
+
+    CosmoScout.initDataCalls();
   }
 
   /**
@@ -361,27 +359,6 @@ class SidebarApi extends IApi {
       .replace(this._regex('CONTENT'), content)
       .replace(this._regex('ICON'), icon)
       .trim();
-  }
-
-  /**
-   * Clear the innerHtml of an element if it exists
-   *
-   * @param id
-   * @return {HTMLElement | null}
-   * @private
-   */
-  _clearHtml(id) {
-    const element = document.getElementById(id);
-
-    if (element !== null) {
-      element.childNodes.forEach((node) => {
-        element.removeChild(node);
-      });
-    } else {
-      console.warn(`No element #${id} found.`);
-    }
-
-    return element;
   }
 
   /**
