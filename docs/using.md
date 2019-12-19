@@ -6,6 +6,8 @@
 
 :construction: _**Under Construction:** This guide is still far from complete. We will improve it in the future._
 
+:warning: _**Warning:** The [default configuration](../config/base/scene/simple_desktop.json) only contains a few data sets with very low resolution. Please read the [Configuring Guide](configuring.md) and the documentation of the [individual plugins](../README.md#Plugins-for-CosmoScout-VR) for including new data sets._
+
 **Navigation:** There are several ways for interacting with the scene.
 Currently mouse, keyboard and space navigator are supported.
 More input devices can be added via VRPN.
