@@ -58,12 +58,15 @@ jobs:
           sudo apt-get install libxi-dev libgconf-2-4 libboost1.70-dev ccache lcov
           sudo pip install cmake
           ccache --max-size 1G
+          ccache -z
       - name: Build Externals
         run: ./make_externals.sh -G "Unix Makefiles" -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
       - name: Build CosmoScout VR
         run: ./make.sh -G "Unix Makefiles" -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
       - name: Run Tests
         run: ./install/linux-release/bin/run_all_tests.sh
+      - name: Print Cache Usage
+        run: ccache -s
       - name: Calculate Test Coverage
         run: ./lcov.sh
       - name: Upload Coverage Info
@@ -101,6 +104,7 @@ jobs:
           sudo apt-get install libxi-dev libgconf-2-4 libboost1.70-dev ccache
           sudo pip install cmake
           ccache --max-size 1G
+          ccache -z
       - name: Build Externals
         env:
           CC: clang
@@ -113,6 +117,8 @@ jobs:
         run: ./make.sh -G "Unix Makefiles" -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
       - name: Run Tests
         run: ./install/linux-release/bin/run_all_tests.sh
+      - name: Print Cache Usage
+        run: ccache -s
 
   build_windows:
     name: Windows MSVC 19.16.27032.1
@@ -138,17 +144,16 @@ jobs:
       - name: Download Dependencies
         run: |
           pip install clcache
-          clcache -s
+          clcache -M 5368709120
           clcache -z
-          clcache -M 1073741824
       - name: Build Externals
         shell: cmd
-        run: |
-          make_externals.bat -G "Visual Studio 15 Win64" -DCMAKE_VS_GLOBALS=CLToolExe=clcache.exe;TrackFileAccess=false
-          clcache -s
+        run: make_externals.bat -G "Visual Studio 15 Win64" -DCMAKE_VS_GLOBALS=CLToolExe=clcache.exe;TrackFileAccess=false
       - name: Build CosmoScout VR
         shell: cmd
         run: make.bat -G "Visual Studio 15 Win64" -DCMAKE_VS_GLOBALS=CLToolExe=clcache.exe;TrackFileAccess=false
       - name: Run Tests
         shell: cmd
         run: install\\windows-release\\bin\\run_all_tests.bat
+      - name: Print Cache Usage
+        run: clcache -s
