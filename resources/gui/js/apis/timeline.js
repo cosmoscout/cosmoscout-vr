@@ -513,19 +513,19 @@ class TimelineApi extends IApi {
     });
   }
 
+  /**
+   * TODO remove jQuery
+   * @private
+   */
   _initCalendar() {
-    const calendar = document.getElementById('calendar');
-
-    if (typeof calendar.datepicker !== 'undefined') {
-      calendar.datepicker({
-        weekStart: 1,
-        todayHighlight: true,
-        maxViewMode: 3,
-        format: 'yyyy-mm-dd',
-        startDate: '1950-01-02',
-        endDate: '2049-12-31',
-      }).on('changeDate', this._changeDateCallback.bind(this));
-    }
+    $('#calendar').datepicker({
+      weekStart: 1,
+      todayHighlight: true,
+      maxViewMode: 3,
+      format: "yyyy-mm-dd",
+      startDate: "1950-01-02",
+      endDate: "2049-12-31",
+    }).on("changeDate", this._changeDateCallback.bind(this));
   }
 
   /**
@@ -1161,9 +1161,6 @@ class TimelineApi extends IApi {
    * @private
    */
   _rangeChangeCallback(properties) {
-    if (properties.byUser) {
-      // console.log(!properties.event.srcEvent instanceof WheelEvent)
-    }
     if (properties.byUser && String(properties.event) !== '[object WheelEvent]') {
       if (this._currentSpeed !== 0) {
         this._setPause();
