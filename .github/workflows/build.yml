@@ -60,9 +60,9 @@ jobs:
           sudo pip install cmake
           ccache --max-size 100M
       - name: Build Externals
-        run: ./make_externals.sh -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
+        run: ./make_externals.sh -G "Unix Makefiles" -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
       - name: Build CosmoScout VR
-        run: ./make.sh -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
+        run: ./make.sh -G "Unix Makefiles" -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
       - name: Run Tests
         run: ./install/linux-release/bin/run_all_tests.sh
       - name: Calculate Test Coverage
@@ -106,12 +106,12 @@ jobs:
         env:
           CC: clang
           CXX: clang++
-        run: ./make_externals.sh -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
+        run: ./make_externals.sh -G "Unix Makefiles" -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
       - name: Build CosmoScout VR
         env:
           CC: clang
           CXX: clang++
-        run: ./make.sh -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
+        run: ./make.sh -G "Unix Makefiles" -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
       - name: Run Tests
         run: ./install/linux-release/bin/run_all_tests.sh
 
@@ -140,12 +140,13 @@ jobs:
         run: |
           pip install clcache
           clcache -M 104857600
+          where clcache
       - name: Build Externals
         shell: cmd
-        run: make_externals.bat -DCMAKE_CXX_COMPILER=clcache -DCMAKE_C_COMPILER=clcache
+        run: make_externals.bat -G "Visual Studio 15 Win64" -DCMAKE_CXX_COMPILER=clcache -DCMAKE_C_COMPILER=clcache
       - name: Build CosmoScout VR
         shell: cmd
-        run: make.bat -DCMAKE_CXX_COMPILER=clcache -DCMAKE_C_COMPILER=clcache
+        run: make.bat -G "Visual Studio 15 Win64" -DCMAKE_CXX_COMPILER=clcache -DCMAKE_C_COMPILER=clcache
       - name: Run Tests
         shell: cmd
         run: install\\windows-release\\bin\\run_all_tests.bat
