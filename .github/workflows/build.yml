@@ -46,7 +46,10 @@ jobs:
         uses: actions/cache@v1
         with:
           path: ~/.ccache
-          key: linux-gcc
+          key: gcc-${{ github.ref }}-${{ github.sha }}
+          restore-keys: |
+            gcc-${{ github.ref }}-
+            gcc-
       - name: Download Dependencies
         run: |
           sudo add-apt-repository ppa:mhier/libboost-latest
@@ -55,6 +58,7 @@ jobs:
           sudo apt-get install libxi-dev libgconf-2-4 libboost1.70-dev ccache
           sudo apt-get install -y lcov
           sudo pip install cmake
+          ccache --max-size 100M
       - name: Build Externals
         run: ./make_externals.sh -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
       - name: Build CosmoScout VR
@@ -86,7 +90,10 @@ jobs:
         uses: actions/cache@v1
         with:
           path: ~/.ccache
-          key: linux-clang
+          key: clang-${{ github.ref }}-${{ github.sha }}
+          restore-keys: |
+            clang-${{ github.ref }}-
+            clang-
       - name: Download Dependencies
         run: |
           sudo add-apt-repository ppa:mhier/libboost-latest
@@ -94,6 +101,7 @@ jobs:
           sudo apt-get install libc++-dev libgl1-mesa-dev libglu1-mesa-dev libx11-dev
           sudo apt-get install libxi-dev libgconf-2-4 libboost1.70-dev ccache
           sudo pip install cmake
+          ccache --max-size 100M
       - name: Build Externals
         env:
           CC: clang
@@ -124,9 +132,14 @@ jobs:
         uses: actions/cache@v1
         with:
           path: ~/clcache
-          key: windows-msvc
+          key: msvc-${{ github.ref }}-${{ github.sha }}
+          restore-keys: |
+            msvc-${{ github.ref }}-
+            msvc-
       - name: Download Dependencies
-        run: pip install clcache
+        run: |
+          pip install clcache
+          clcache -M 104857600
       - name: Build Externals
         shell: cmd
         run: make_externals.bat -DCMAKE_CXX_COMPILER=clcache -DCMAKE_C_COMPILER=clcache
