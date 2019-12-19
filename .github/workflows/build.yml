@@ -136,10 +136,16 @@ jobs:
             msvc-${{ github.ref }}-
             msvc-
       - name: Download Dependencies
-        run: pip install clcache
+        run: |
+          pip install clcache
+          clcache -s
+          clcache -z
+          clcache -M 1073741824
       - name: Build Externals
         shell: cmd
-        run: make_externals.bat -G "Visual Studio 15 Win64" -DCMAKE_VS_GLOBALS=CLToolExe=clcache.exe;TrackFileAccess=false
+        run: |
+          make_externals.bat -G "Visual Studio 15 Win64" -DCMAKE_VS_GLOBALS=CLToolExe=clcache.exe;TrackFileAccess=false
+          clcache -s
       - name: Build CosmoScout VR
         shell: cmd
         run: make.bat -G "Visual Studio 15 Win64" -DCMAKE_VS_GLOBALS=CLToolExe=clcache.exe;TrackFileAccess=false
