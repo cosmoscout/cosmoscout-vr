@@ -140,13 +140,13 @@ jobs:
         run: |
           pip install clcache
           clcache -M 104857600
-          where clcache
+          where.exe clcache
       - name: Build Externals
         shell: cmd
-        run: make_externals.bat -G "Visual Studio 15 Win64" -DCMAKE_CXX_COMPILER=clcache -DCMAKE_C_COMPILER=clcache
+        run: make_externals.bat -G "Visual Studio 15 Win64" -DCMAKE_VS_GLOBALS="CLToolExe=clcache.exe;CLToolPath=C:\Python37\Scripts;TrackFileAccess=false"
       - name: Build CosmoScout VR
         shell: cmd
-        run: make.bat -G "Visual Studio 15 Win64" -DCMAKE_CXX_COMPILER=clcache -DCMAKE_C_COMPILER=clcache
+        run: make.bat -G "Visual Studio 15 Win64" -DCMAKE_VS_GLOBALS="CLToolExe=clcache.exe;CLToolPath=C:\Python37\Scripts;TrackFileAccess=false"
       - name: Run Tests
         shell: cmd
         run: install\\windows-release\\bin\\run_all_tests.bat
