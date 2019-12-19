@@ -72,6 +72,7 @@ void RenderHandler::OnPaint(CefRefPtr<CefBrowser> browser, PaintElementType type
     RectList const& dirtyRects, const void* b, int width, int height) {
   size_t bufferSize = width * height * 4;
 
+  // When the source buffer got larger we reallocate and copy the whole source buffer over.
   if (mCurrentBufferSize < bufferSize) {
     if (mPixelData)
       delete[] mPixelData;
@@ -79,11 +80,15 @@ void RenderHandler::OnPaint(CefRefPtr<CefBrowser> browser, PaintElementType type
     mPixelData         = new uint8_t[bufferSize];
     mCurrentBufferSize = bufferSize;
     std::memcpy(mPixelData, b, bufferSize * sizeof(uint8_t));
+
+    // Otherwise we only copy the dirty regions.
   } else {
     // For each changed region
     for (const auto& rect : dirtyRects) {
 
-      // We copy each row of the changed region over individually.
+      // We copy each row of the changed region over individually, since they are not guaranteed to
+      // have continuous memory.
+      //
       // ################################################################################
       // ##############################+--------------------------------------+##########
       // ####################### i = 0 |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|##########
