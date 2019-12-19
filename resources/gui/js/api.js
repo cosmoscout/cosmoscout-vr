@@ -155,6 +155,11 @@ class CosmoScout {
       input.addEventListener('click', () => {
         if (typeof input.dataset.call !== 'undefined') {
           const args = input.dataset.call.split(',');
+          /* Somewhat ugly check if second arg is a number. Requires last char to be 'f' */
+          if (typeof args[1] !== 'undefined' && args[1].slice(-1) === 'f') {
+            args[1] = parseFloat(args[1]);
+          }
+
           CosmoScout.callNative(...args);
         }
       });
@@ -277,6 +282,26 @@ class CosmoScout {
     this._templates.set(id, content);
 
     return content.cloneNode(true).firstElementChild;
+  }
+
+  /**
+   * Clear the innerHtml of an element if it exists
+   *
+   * @param element {string|HTMLElement} Element or ID
+   * @return {void}
+   */
+  static clearHtml(element) {
+    if (typeof element === 'string') {
+      element = document.getElementById(element);
+    }
+
+    if (element !== null && element instanceof HTMLElement) {
+      while (element.firstChild !== null) {
+        element.removeChild(element.firstChild);
+      }
+    } else {
+      console.warn('Element could not be cleared.');
+    }
   }
 
   /**
