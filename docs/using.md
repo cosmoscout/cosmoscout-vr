@@ -27,7 +27,7 @@ On the left hand side is the main menu.
 Here you can select which data sets are shown, manipulate the surface visualization, add annotations, fly to pre-defined locations and perform various other tasks.
 
 <p align="center">
-  <a href="install.md">&lsaquo; Build Instructions</a>
+  <a href="ide-setup.md">&lsaquo; Setup your IDE</a>
   <img src ="img/nav-vspace.svg"/>
   <a href="README.md">&#8962; Help Index</a>
   <img src ="img/nav-vspace.svg"/>

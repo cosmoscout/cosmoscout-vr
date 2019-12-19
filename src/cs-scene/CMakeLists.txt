@@ -22,7 +22,7 @@ target_link_libraries(cs-scene
 )
 
 # Make directory structure available in your IDE.
-source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" PREFIX "src" FILES 
+source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" PREFIX "src" FILES
   ${SOURCE_FILES} ${HEADER_FILES}
 )
 

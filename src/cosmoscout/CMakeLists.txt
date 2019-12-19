@@ -12,12 +12,14 @@ file(GLOB SOURCE_FILES *.cpp */*.cpp)
 file(GLOB HEADER_FILES *.hpp */*.hpp)
 file(GLOB_RECURSE RESOUCRE_FILES ../../resources/*)
 file(GLOB_RECURSE CONFIG_FILES ../../config/*)
+file(GLOB_RECURSE TEST_FILES ../../test/*)
 
 add_executable(cosmoscout
   ${SOURCE_FILES}
   ${HEADER_FILES}
   ${RESOUCRE_FILES}
   ${CONFIG_FILES}
+  ${TEST_FILES}
 )
 
 # cef needs to be linked first due to https://magpcss.org/ceforum/viewtopic.php?f=6&t=15118&start=10

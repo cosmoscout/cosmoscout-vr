@@ -153,6 +153,14 @@ cmake --build . --target install --parallel 8
 # gli ----------------------------------------------------------------------------------------------
 
 echo ""
+echo "Installing doctest ..."
+echo ""
+
+cmake -E copy_directory "$EXTERNALS_DIR/doctest/doctest" "$INSTALL_DIR/include/doctest"
+
+# gli ----------------------------------------------------------------------------------------------
+
+echo ""
 echo "Installing gli ..."
 echo ""
 
