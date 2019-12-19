@@ -237,31 +237,7 @@ void GuiManager::showNotification(std::string const& sTitle, std::string const& 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-gui::GuiItem* GuiManager::getSideBar() const {
-  return mCosmoScoutGui;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-gui::GuiItem* GuiManager::getStatusBar() const {
-  return mCosmoScoutGui;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-gui::GuiItem* GuiManager::getTimeline() const {
-  return mCosmoScoutGui;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-gui::GuiItem* GuiManager::getStatistics() const {
-  return mCosmoScoutGui;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-gui::GuiItem* GuiManager::getLogo() const {
+gui::GuiItem* GuiManager::getGui() const {
   return mCosmoScoutGui;
 }
 
@@ -357,7 +333,7 @@ void GuiManager::update() {
     }
 
     mCosmoScoutGui->callJavascript(
-        "set_data", json, GetVistaSystem()->GetFrameLoop()->GetFrameRate());
+        "CosmoScout.call", "statistics", "setData", json, GetVistaSystem()->GetFrameLoop()->GetFrameRate());
   }
 
   // Update all entities of the Chromium Embedded Framework.

@@ -113,7 +113,7 @@ class CS_CORE_EXPORT GuiManager {
       std::string const& name, std::string const& icon, std::string const& htmlFile);
 
   /// This can be used to initialize the DOM elements added to the sidebar with the methods above.
-  /// This is identical to getSideBar()->executeJavascript(src);
+  /// This is identical to getGui()->executeJavascript(src);
   ///
   /// @param src The javascript source code.
   void addScriptToSideBar(std::string const& src);
@@ -137,21 +137,8 @@ class CS_CORE_EXPORT GuiManager {
       std::string id, std::string content, std::optional<std::string> style,
       std::string description, std::string planet, std::string place);
 
-  /// Returns the side bar GuiItem. The side bar is located at the left side of the screen.
-  gui::GuiItem* getSideBar() const;
-
-  /// Returns the header bar GuiItem. The header bar is at the top of the screen.
-  gui::GuiItem* getStatusBar() const;
-
-  /// Returns the time navigation bar GuiItem. The time navigation bar bar is at the bottom of the
-  /// screen.
-  gui::GuiItem* getTimeline() const;
-
-  /// Returns the statistics GuiItem. The statistics are at the right of the screen, when enabled.
-  gui::GuiItem* getStatistics() const;
-
-  /// Returns the logo GuiItem. The logo is at the bottom right of the screen.
-  gui::GuiItem* getLogo() const;
+  /// Returns the CosmoScout Gui.
+  gui::GuiItem* getGui() const;
 
   /// Shows or hides the loading screen.
   void enableLoadingScreen(bool enable);
@@ -184,7 +171,6 @@ class CS_CORE_EXPORT GuiManager {
   gui::WorldSpaceGuiArea*                 mGlobalGuiArea   = nullptr;
   gui::ScreenSpaceGuiArea*                mLocalGuiArea    = nullptr;
 
-  gui::GuiItem* mLoadingScreen = nullptr;
   gui::GuiItem* mCosmoScoutGui = nullptr;
 
   // The global GUI is drawn in world-space.
