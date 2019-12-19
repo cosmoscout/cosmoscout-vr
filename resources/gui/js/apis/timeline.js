@@ -246,8 +246,6 @@ class TimelineApi extends IApi {
     },
   };
 
-  _activePlanetCenter;
-
   _whileEditingOptions = {
     editable: false,
   };
@@ -567,7 +565,7 @@ class TimelineApi extends IApi {
     document.getElementById('event-dialog-start-date').value = DateOperations.getFormattedDateWithTime(item.start);
     document.getElementById('event-dialog-end-date').value = '';
     document.getElementById('event-dialog-description').value = '';
-    document.getElementById('event-dialog-planet').value = this._activePlanetCenter;
+    document.getElementById('event-dialog-planet').value = this._activePlanetName;
     document.getElementById('event-dialog-location').value = Format.longitude(this._userPosition.long) + Format.latitude(this._userPosition.lat) + Format.height(this._userPosition.height);
     this._parHolder.item = item;
     this._parHolder.callback = callback;
@@ -1287,7 +1285,7 @@ class TimelineApi extends IApi {
         }
 
         CosmoScout.callNative('add_hours', hoursDif);
-        travel_to(true, this._items._data[item].planet, this._items._data[item].place, this._items._data[item].content);
+        this.travelTo(true, this._items._data[item].planet, this._items._data[item].place, this._items._data[item].content);
       }
     }
   }
