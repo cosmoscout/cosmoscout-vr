@@ -26,6 +26,7 @@
     <link type="text/css" rel="stylesheet" href="css/statusbar.css">
 
     <link type="text/css" rel="stylesheet" href="css/logo.css">
+    <link type="text/css" rel="stylesheet" href="css/statistics.css">
 
     <style>
         .loaded .side-bar {
@@ -56,10 +57,9 @@
 </div>
 
 <div id="cosmo-scout">
-
     <div id="notifications"></div>
 
-    <div id="statistics"></div>
+    <div id="statistics" class="font-ubuntu"></div>
 
     <div id="timeline-container">
         <div id="overview"></div>
@@ -188,7 +188,6 @@
             </a>
         </div>
     </div>
-
 
     <div id="left-side-bar" class="side-bar left">
         <div class="accordion" id="sidebar-accordion">
@@ -370,11 +369,11 @@
     </div>
 
     <div id="statusbar">
-    <span class="item">
-        <i class="material-icons">av_timer</i> <span id="placeholder-8" style="min-width: 120px">0 km/h</span>
-        <i class="material-icons">accessibility</i> <span id="placeholder-5" style="min-width: 190px">0° 0° 0m</span>
-        <i class="material-icons">mouse</i> <span id="placeholder-6" style="min-width: 190px"> - </span>
-    </span>
+        <span class="item">
+            <i class="material-icons">av_timer</i> <span id="placeholder-8" style="min-width: 120px">0 km/h</span>
+            <i class="material-icons">accessibility</i> <span id="placeholder-5" style="min-width: 190px">0° 0° 0m</span>
+            <i class="material-icons">mouse</i> <span id="placeholder-6" style="min-width: 190px"> - </span>
+        </span>
     </div>
 
     <div id="calendar"></div>
@@ -576,10 +575,10 @@
 </template>
 
 <template id="sharad-template">
-    <div class="row item-%FILE%">
+    <div class="row">
         <div class="col-8">%FILE%</div>
         <div class="col-4">
-            <a class="btn glass block">
+            <a class="btn glass block" data-call="set_time,%TIME%i">
                 <i class="material-icons">restore</i>
             </a>
         </div>
