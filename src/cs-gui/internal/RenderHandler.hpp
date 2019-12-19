@@ -54,6 +54,7 @@ class RenderHandler : public CefRenderHandler {
   DrawCallback         mDrawCallback;
   CursorChangeCallback mCursorChangeCallback;
 
+  size_t   mCurrentBufferSize = 0;
   uint8_t* mPixelData;
 };
 

@@ -5,6 +5,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "RenderHandler.hpp"
+#include "../../cs-utils/FrameTimings.hpp"
 
 namespace cs::gui::detail {
 
@@ -69,8 +70,27 @@ void RenderHandler::GetViewRect(CefRefPtr<CefBrowser> browser, CefRect& rect) {
 
 void RenderHandler::OnPaint(CefRefPtr<CefBrowser> browser, PaintElementType type,
     RectList const& dirtyRects, const void* b, int width, int height) {
+  size_t bufferSize = width * height * 4;
 
-  mPixelData = (uint8_t*)b;
+  if (mCurrentBufferSize < bufferSize) {
+    if (mPixelData)
+      delete[] mPixelData;
+
+    mPixelData         = new uint8_t[bufferSize];
+    mCurrentBufferSize = bufferSize;
+    std::memcpy(mPixelData, b, bufferSize * sizeof(uint8_t));
+  } else {
+    // For each changed region
+    for (const auto& rect : dirtyRects) {
+
+      // For each row in the changed region
+      for (int i = 0; i < rect.height; ++i) {
+        size_t start = ((rect.y + i) * width + rect.x) * 4 * sizeof(uint8_t);
+        size_t size  = rect.width * 4 * sizeof(uint8_t);
+        std::memcpy(mPixelData + start, ((uint8_t*)b) + start, size);
+      }
+    }
+  }
 
   if (mDrawCallback) {
 
