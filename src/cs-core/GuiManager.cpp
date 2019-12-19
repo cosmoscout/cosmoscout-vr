@@ -104,23 +104,23 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
 
   // Now create the actual GuiItems and add them to the previously created GuiAreas ----------------
 
-/*  mLoadingScreen = new gui::GuiItem("file://../share/resources/gui/loading_screen.html");*/
+  /*  mLoadingScreen = new gui::GuiItem("file://../share/resources/gui/loading_screen.html");*/
 
   mCosmoScoutGui = new gui::GuiItem("file://../share/resources/gui/cosmoscout.html");
 
   // Except for mStatistics, all GuiItems are attached to the global world-space GuiArea if it is
   // available. If not, they are added to the local screen-space GuiArea.
   if (mGlobalGuiArea) {
-    //mGlobalGuiArea->addItem(mLoadingScreen);
+    // mGlobalGuiArea->addItem(mLoadingScreen);
     mGlobalGuiArea->addItem(mCosmoScoutGui);
   } else {
-    //mLocalGuiArea->addItem(mLoadingScreen);
+    // mLocalGuiArea->addItem(mLoadingScreen);
     mLocalGuiArea->addItem(mCosmoScoutGui);
   }
 
   // Configure attributes of the loading screen. Per default, GuiItems are drawn full-screen in
   // their GuiAreas.
-  //mLoadingScreen->setIsInteractive(false);
+  // mLoadingScreen->setIsInteractive(false);
 
   mCosmoScoutGui->setRelSizeX(1.f);
   mCosmoScoutGui->setRelSizeY(1.f);
@@ -131,7 +131,7 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
   // Now we will call some JavaScript methods - so we have to wait until the GuiItems have been
   // fully loaded.
   mCosmoScoutGui->waitForFinishedLoading();
-  //mLoadingScreen->waitForFinishedLoading();
+  // mLoadingScreen->waitForFinishedLoading();
 
   // Create a string which contains the current version number of CosmoScout VR. This string is then
   // shown on the loading screen.
@@ -149,16 +149,17 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
 
   mCosmoScoutGui->callJavascript("CosmoScout.call", "loading_screen", "setVersion", version);
 
-/*  mLoadingScreen->registerCallback("finished_fadeout", [this]() {
-    if (mGlobalGuiArea) {
-      mGlobalGuiArea->removeItem(mLoadingScreen);
-    } else {
-      mLocalGuiArea->removeItem(mLoadingScreen);
-    }
-  });*/
+  /*  mLoadingScreen->registerCallback("finished_fadeout", [this]() {
+      if (mGlobalGuiArea) {
+        mGlobalGuiArea->removeItem(mLoadingScreen);
+      } else {
+        mLocalGuiArea->removeItem(mLoadingScreen);
+      }
+    });*/
 
   // Set settings for the time Navigation
-  mCosmoScoutGui->callJavascript("CosmoScout.call", "timeline", "setTimelineRange", settings->mMinDate, settings->mMaxDate);
+  mCosmoScoutGui->callJavascript(
+      "CosmoScout.call", "timeline", "setTimelineRange", settings->mMinDate, settings->mMaxDate);
 
   for (int i = 0; i < settings->mEvents.size(); i++) {
     std::string planet = "";
@@ -232,7 +233,8 @@ void GuiManager::setCursor(gui::Cursor cursor) {
 
 void GuiManager::showNotification(std::string const& sTitle, std::string const& sText,
     std::string const& sIcon, std::string const& sFlyToOnClick) const {
-  mCosmoScoutGui->callJavascript("CosmoScout.call", "notifications", "printNotification", sTitle, sText, sIcon, sFlyToOnClick);
+  mCosmoScoutGui->callJavascript(
+      "CosmoScout.call", "notifications", "printNotification", sTitle, sText, sIcon, sFlyToOnClick);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -244,27 +246,28 @@ gui::GuiItem* GuiManager::getGui() const {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void GuiManager::enableLoadingScreen(bool enable) {
-    mCosmoScoutGui->callJavascript("CosmoScout.call", "loading_screen", "setLoading", enable);
+  mCosmoScoutGui->callJavascript("CosmoScout.call", "loading_screen", "setLoading", enable);
 
-/*  if (enable) {
-    if (mGlobalGuiArea) {
-      mGlobalGuiArea->addItem(mLoadingScreen);
-    } else {
-      mLocalGuiArea->addItem(mLoadingScreen);
-    }
-  }*/
+  /*  if (enable) {
+      if (mGlobalGuiArea) {
+        mGlobalGuiArea->addItem(mLoadingScreen);
+      } else {
+        mLocalGuiArea->addItem(mLoadingScreen);
+      }
+    }*/
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void GuiManager::setLoadingScreenStatus(std::string const& sStatus) const {
-    mCosmoScoutGui->callJavascript("CosmoScout.call", "loading_screen", "setStatus", sStatus);
+  mCosmoScoutGui->callJavascript("CosmoScout.call", "loading_screen", "setStatus", sStatus);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void GuiManager::setLoadingScreenProgress(float percent, bool animate) const {
-    mCosmoScoutGui->callJavascript("CosmoScout.call", "loading_screen", "setProgress", percent, animate);
+  mCosmoScoutGui->callJavascript(
+      "CosmoScout.call", "loading_screen", "setProgress", percent, animate);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -332,8 +335,8 @@ void GuiManager::update() {
       json = "{}";
     }
 
-    mCosmoScoutGui->callJavascript(
-        "CosmoScout.call", "statistics", "setData", json, GetVistaSystem()->GetFrameLoop()->GetFrameRate());
+    mCosmoScoutGui->callJavascript("CosmoScout.call", "statistics", "setData", json,
+        GetVistaSystem()->GetFrameLoop()->GetFrameRate());
   }
 
   // Update all entities of the Chromium Embedded Framework.
@@ -359,7 +362,8 @@ void GuiManager::addPluginTabToSideBarFromHTML(
 
 void GuiManager::addSettingsSectionToSideBar(
     std::string const& name, std::string const& icon, std::string const& content) {
-  mCosmoScoutGui->callJavascript("CosmoScout.call", "sidebar", "addSettingsSection", name, icon, content);
+  mCosmoScoutGui->callJavascript(
+      "CosmoScout.call", "sidebar", "addSettingsSection", name, icon, content);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -388,8 +392,8 @@ void GuiManager::addScriptToSideBarFromJS(std::string const& jsFile) {
 void GuiManager::addEventToTimenavigationBar(std::string start, std::optional<std::string> end,
     std::string id, std::string content, std::optional<std::string> style, std::string description,
     std::string planet, std::string place) {
-  mCosmoScoutGui->callJavascript("CosmoScout.call", "timeline", "addItem", start, end.value_or(""), id, content,
-      style.value_or(""), description, planet, place);
+  mCosmoScoutGui->callJavascript("CosmoScout.call", "timeline", "addItem", start, end.value_or(""),
+      id, content, style.value_or(""), description, planet, place);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
