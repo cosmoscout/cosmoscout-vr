@@ -55,7 +55,7 @@ class StatisticsApi extends IApi {
   }
 
   _resetTimes() {
-    this._values.forEach(value => {
+    this._values.forEach((value) => {
       if (typeof this._data[value.name] !== 'undefined') {
         value.timeGPU = this._data[value.name][0];
         value.timeCPU = this._data[value.name][1];

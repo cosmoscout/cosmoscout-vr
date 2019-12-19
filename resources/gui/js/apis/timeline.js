@@ -522,10 +522,10 @@ class TimelineApi extends IApi {
       weekStart: 1,
       todayHighlight: true,
       maxViewMode: 3,
-      format: "yyyy-mm-dd",
-      startDate: "1950-01-02",
-      endDate: "2049-12-31",
-    }).on("changeDate", this._changeDateCallback.bind(this));
+      format: 'yyyy-mm-dd',
+      startDate: '1950-01-02',
+      endDate: '2049-12-31',
+    }).on('changeDate', this._changeDateCallback.bind(this));
   }
 
   /**

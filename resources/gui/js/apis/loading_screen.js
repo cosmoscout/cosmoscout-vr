@@ -1,4 +1,4 @@
-class LoadingScreenApi extends IApi{
+class LoadingScreenApi extends IApi {
   name = 'loading_screen';
 
   /**
