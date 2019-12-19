@@ -28,7 +28,7 @@ jobs:
           if [ ! -z "$DIFF" ]; then echo $DIFF && exit 1; fi
 
   build_linux_gcc:
-    name: Linux Build (gcc 7.4.0)
+    name: Linux GCC 7.4.0
     runs-on: ubuntu-18.04
     if: >
       github.event_name == 'pull_request' ||
@@ -70,7 +70,7 @@ jobs:
           path-to-lcov: ./build/linux-release/coverage.info
 
   build_linux_clang:
-    name: Linux Build (clang 6.0)
+    name: Linux Clang 6.0
     runs-on: ubuntu-18.04
     if: >
       github.event_name == 'pull_request' ||
@@ -108,7 +108,7 @@ jobs:
         run: ./install/linux-release/bin/run_all_tests.sh
 
   build_windows:
-    name: Windows Build (msvc 19.16.27032.1)
+    name: Windows MSVC 19.16.27032.1
     runs-on: windows-2016
     if: >
       github.event_name == 'pull_request' ||
@@ -129,16 +129,10 @@ jobs:
         run: pip install clcache
       - name: Build Externals
         shell: cmd
-        env:
-          CC: clcache
-          CXX: clcache
-        run: make_externals.bat
+        run: make_externals.bat -DCMAKE_CXX_COMPILER=clcache -DCMAKE_C_COMPILER=clcache
       - name: Build CosmoScout VR
         shell: cmd
-        env:
-          CC: clcache
-          CXX: clcache
-        run: make.bat
+        run: make.bat -DCMAKE_CXX_COMPILER=clcache -DCMAKE_C_COMPILER=clcache
       - name: Run Tests
         shell: cmd
         run: install\\windows-release\\bin\\run_all_tests.bat

@@ -20,6 +20,8 @@ int main(int argc, char** argv) {
   // others it blocks until the child process has terminated.
   cs::gui::executeWebProcess(argc, argv);
 
+  std::cout << "test" << std::endl;
+
   // parse program options -------------------------------------------------------------------------
 
   // These are the default values for the options.
