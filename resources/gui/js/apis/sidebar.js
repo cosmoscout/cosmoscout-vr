@@ -243,6 +243,8 @@ class SidebarApi extends IApi {
    * @param icon {string}
    */
   addMeasurementTool(name, icon) {
+    const area = document.getElementById('measurement-tools');
+
     const tool = CosmoScout.loadTemplateContent('measurement-tools');
 
     tool.innerHTML = tool.innerHTML
@@ -254,19 +256,21 @@ class SidebarApi extends IApi {
       CosmoScout.callNative('set_celestial_body', name);
     });
 
-    tool.addEventListener('change', function () {
+    tool.addEventListener('change', (event) => {
       document.querySelectorAll('#measurement-tools .radio-button').forEach((node) => {
         if (node.id !== `set_tool_${icon}`) {
           node.checked = false;
         }
       });
 
-      if (this.checked) {
+      if (event.target.checked) {
         CosmoScout.callNative('set_measurement_tool', name);
       } else {
         CosmoScout.callNative('set_measurement_tool', 'none');
       }
     });
+
+    area.appendChild(tool);
   }
 
   /**
