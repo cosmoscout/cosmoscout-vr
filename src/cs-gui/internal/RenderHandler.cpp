@@ -83,11 +83,22 @@ void RenderHandler::OnPaint(CefRefPtr<CefBrowser> browser, PaintElementType type
     // For each changed region
     for (const auto& rect : dirtyRects) {
 
-      // For each row in the changed region
+      // We copy each row of the changed region over individually.
+      // ################################################################################
+      // ##############################+--------------------------------------+##########
+      // ####################### i = 0 |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|##########
+      // ####################### i = 1 |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|##########
+      // ####################### i = 2 |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|##########
+      // ####################### i = 3 |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|##########
+      // ####################### i = 4 |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|##########
+      // ####################### i = 5 |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|##########
+      // ##############################+--------------------------------------+##########
+      // ################################################################################
+      // ################################################################################
       for (int i = 0; i < rect.height; ++i) {
-        size_t start = ((rect.y + i) * width + rect.x) * 4 * sizeof(uint8_t);
-        size_t size  = rect.width * 4 * sizeof(uint8_t);
-        std::memcpy(mPixelData + start, ((uint8_t*)b) + start, size);
+        size_t startOffset = ((rect.y + i) * width + rect.x) * 4 * sizeof(uint8_t);
+        size_t extend      = rect.width * 4 * sizeof(uint8_t);
+        std::memcpy(mPixelData + startOffset, (uint8_t*)b + startOffset, extend);
       }
     }
   }
