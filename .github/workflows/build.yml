@@ -136,8 +136,7 @@ jobs:
             msvc-${{ github.ref }}-
             msvc-
       - name: Download Dependencies
-        run: |
-          pip install clcache
+        run: pip install clcache
       - name: Build Externals
         shell: cmd
         run: make_externals.bat -G "Visual Studio 15 Win64" -DCMAKE_VS_GLOBALS=CLToolExe=clcache.exe;TrackFileAccess=false
