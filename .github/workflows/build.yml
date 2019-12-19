@@ -55,10 +55,9 @@ jobs:
           sudo add-apt-repository ppa:mhier/libboost-latest
           sudo apt-get update -q
           sudo apt-get install libc++-dev libgl1-mesa-dev libglu1-mesa-dev libx11-dev
-          sudo apt-get install libxi-dev libgconf-2-4 libboost1.70-dev ccache
-          sudo apt-get install -y lcov
+          sudo apt-get install libxi-dev libgconf-2-4 libboost1.70-dev ccache lcov
           sudo pip install cmake
-          ccache --max-size 100M
+          ccache --max-size 1G
       - name: Build Externals
         run: ./make_externals.sh -G "Unix Makefiles" -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
       - name: Build CosmoScout VR
@@ -101,7 +100,7 @@ jobs:
           sudo apt-get install libc++-dev libgl1-mesa-dev libglu1-mesa-dev libx11-dev
           sudo apt-get install libxi-dev libgconf-2-4 libboost1.70-dev ccache
           sudo pip install cmake
-          ccache --max-size 100M
+          ccache --max-size 1G
       - name: Build Externals
         env:
           CC: clang
@@ -139,7 +138,6 @@ jobs:
       - name: Download Dependencies
         run: |
           pip install clcache
-          clcache -M 104857600
       - name: Build Externals
         shell: cmd
         run: make_externals.bat -G "Visual Studio 15 Win64" -DCMAKE_VS_GLOBALS=CLToolExe=clcache.exe;TrackFileAccess=false
