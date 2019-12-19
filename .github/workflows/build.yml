@@ -144,7 +144,7 @@ jobs:
       - name: Download Dependencies
         run: |
           pip install clcache
-          clcache -M 5368709120
+          clcache -M 2147483648
           clcache -z
       - name: Build Externals
         shell: cmd
