@@ -57,7 +57,7 @@ class RenderHandler : public CefRenderHandler {
   CursorChangeCallback mCursorChangeCallback;
 
   size_t   mCurrentBufferSize = 0;
-  uint8_t* mPixelData = nullptr;
+  uint8_t* mPixelData         = nullptr;
 };
 
 } // namespace cs::gui::detail
