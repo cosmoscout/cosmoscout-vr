@@ -73,8 +73,7 @@ void RenderHandler::OnPaint(CefRefPtr<CefBrowser> browser, PaintElementType type
 
   // When the source buffer got larger we reallocate and copy the whole source buffer over.
   if (mCurrentBufferSize < bufferSize) {
-    if (mPixelData)
-      delete[] mPixelData;
+    delete[] mPixelData;
 
     mPixelData         = new uint8_t[bufferSize];
     mCurrentBufferSize = bufferSize;
@@ -151,6 +150,12 @@ void RenderHandler::OnCursorChange(CefRefPtr<CefBrowser> browser, CefCursorHandl
   if (mCursorChangeCallback) {
     mCursorChangeCallback(static_cast<Cursor>(type));
   }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+RenderHandler::~RenderHandler() {
+  delete[] mPixelData;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
