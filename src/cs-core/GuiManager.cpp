@@ -389,6 +389,13 @@ void GuiManager::addScriptToSideBarFromJS(std::string const& jsFile) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void GuiManager::addHtmlToGui(std::string const& id, std::string const& src) {
+  std::string content = utils::filesystem::loadToString(src);
+  mCosmoScoutGui->callJavascript("CosmoScout.registerHtml", id, content);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void GuiManager::addEventToTimenavigationBar(std::string start, std::optional<std::string> end,
     std::string id, std::string content, std::optional<std::string> style, std::string description,
     std::string planet, std::string place) {

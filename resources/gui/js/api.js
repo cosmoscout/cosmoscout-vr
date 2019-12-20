@@ -1,3 +1,4 @@
+
 /**
  * Simplistic api interface containing a name field and init method
  */
@@ -13,6 +14,35 @@ class IApi {
    * Called in CosmoScout.init
    */
   init() {
+  }
+
+  /**
+   * Replace common template markers with content
+   *
+   * @param html {string}
+   * @param id {string}
+   * @param icon {string}
+   * @param content {string}
+   * @return {string}
+   * @protected
+   */
+  replaceMarkers(html, id, icon, content) {
+    return html
+      .replace(this.regex('ID'), id)
+      .replace(this.regex('CONTENT'), content)
+      .replace(this.regex('ICON'), icon)
+      .trim();
+  }
+
+  /**
+   * Creates a search global Regex Object of %matcher%
+   *
+   * @param matcher {string}
+   * @return {RegExp}
+   * @protected
+   */
+  regex(matcher) {
+    return new RegExp(`\%${matcher}\%`, 'g');
   }
 }
 
@@ -35,14 +65,31 @@ class CosmoScout {
   static _templates = new Map();
 
   /**
+   * Registered html parts
+   *
+   * @see {registerHtml}
+   * @type {Map<string, DocumentFragment>}
+   * @private
+   */
+  static _html = new Map();
+
+  /**
    * Init a list of apis
    *
-   * @param apis {IApi[]}
+   * @param apis {IApi}
    */
-  static init(apis) {
-    apis.forEach((Api) => {
+  static init(...apis) {
+    [...apis].forEach((Api) => {
       try {
-        const instance = new Api();
+        let instance;
+
+        if (typeof Api === 'string' && String(Api).slice(-3) === 'Api') {
+          // oof
+          instance = eval(`new ${Api}()`);
+        } else {
+          instance = new Api();
+        }
+
         this.register(instance.name, instance);
         instance.init();
       } catch (e) {
@@ -258,6 +305,59 @@ class CosmoScout {
   }
 
   /**
+   * Append HTML to body per default or element with id containerId
+   *
+   * @param id {string}
+   * @param content {string}
+   * @param containerId {string}
+   */
+  static registerHtml(id, content, containerId = 'body') {
+    let container = document.body;
+    if (containerId !== 'body') {
+      container = document.getElementById(containerId);
+    }
+
+    if (container === null) {
+      console.error(`Cannot register #${id} into container #${containerId}.`);
+      return;
+    }
+
+    const item = document.createElement('template');
+
+    item.innerHTML = content;
+
+    this._html.set(id, item.content);
+
+    container.appendChild(item.content);
+  }
+
+  /**
+   * Remove registered html from the body of container with id containerId
+   *
+   * @param id {string}
+   * @param containerId {string}
+   */
+  static unregisterHtml(id, containerId = 'body') {
+    let container = document.body;
+    if (containerId !== 'body') {
+      container = document.getElementById(containerId);
+    }
+
+    if (container === null) {
+      console.error(`Container #${containerId} does not exist.`);
+      return;
+    }
+
+    if (!this._html.has(id)) {
+      console.error(`No Html with #${id} registered.`);
+      return;
+    }
+
+    container.removeChild(this._html.get(id));
+    this._html.delete(id);
+  }
+
+  /**
    * Tries to load the template content of 'id-template'
    * Returns false if no template was found, HTMLElement otherwise.
    *
@@ -285,7 +385,7 @@ class CosmoScout {
   }
 
   /**
-   * Clear the innerHtml of an element if it exists
+   * Clear the content of an element if it exists
    *
    * @param element {string|HTMLElement} Element or ID
    * @return {void}

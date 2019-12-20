@@ -123,6 +123,12 @@ class CS_CORE_EXPORT GuiManager {
   /// @param jsFile The javascript file that contains the source code.
   void addScriptToSideBarFromJS(std::string const& jsFile);
 
+  /// This can be used to initialize the DOM elements added to the sidebar with the methods above.
+  /// This is identical to getGui()->executeJavascript(src);
+  ///
+  /// @param src The html source code
+  void addHtmlToGui(std::string const& id, std::string const& src);
+
   /// Adds an event item to the timenavigation
   ///
   /// @param start The start date of the event.
