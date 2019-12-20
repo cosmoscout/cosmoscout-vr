@@ -102,19 +102,14 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
     mInputManager->registerSelectable(mGlobalGuiOpenGLnode);
   }
 
-  // Now create the actual GuiItems and add them to the previously created GuiAreas ----------------
-
-  /*  mLoadingScreen = new gui::GuiItem("file://../share/resources/gui/loading_screen.html");*/
-
+  // Now create the actual Gui and add it to the previously created GuiAreas ----------------
   mCosmoScoutGui = new gui::GuiItem("file://../share/resources/gui/cosmoscout.html");
 
   // Except for mStatistics, all GuiItems are attached to the global world-space GuiArea if it is
   // available. If not, they are added to the local screen-space GuiArea.
   if (mGlobalGuiArea) {
-    // mGlobalGuiArea->addItem(mLoadingScreen);
     mGlobalGuiArea->addItem(mCosmoScoutGui);
   } else {
-    // mLocalGuiArea->addItem(mLoadingScreen);
     mLocalGuiArea->addItem(mCosmoScoutGui);
   }
 
@@ -148,14 +143,6 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
   }
 
   mCosmoScoutGui->callJavascript("CosmoScout.call", "loading_screen", "setVersion", version);
-
-  /*  mLoadingScreen->registerCallback("finished_fadeout", [this]() {
-      if (mGlobalGuiArea) {
-        mGlobalGuiArea->removeItem(mLoadingScreen);
-      } else {
-        mLocalGuiArea->removeItem(mLoadingScreen);
-      }
-    });*/
 
   // Set settings for the time Navigation
   mCosmoScoutGui->callJavascript(
@@ -247,14 +234,6 @@ gui::GuiItem* GuiManager::getGui() const {
 
 void GuiManager::enableLoadingScreen(bool enable) {
   mCosmoScoutGui->callJavascript("CosmoScout.call", "loading_screen", "setLoading", enable);
-
-  /*  if (enable) {
-      if (mGlobalGuiArea) {
-        mGlobalGuiArea->addItem(mLoadingScreen);
-      } else {
-        mLocalGuiArea->addItem(mLoadingScreen);
-      }
-    }*/
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
