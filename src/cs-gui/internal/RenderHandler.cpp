@@ -5,7 +5,6 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "RenderHandler.hpp"
-#include "../../cs-utils/FrameTimings.hpp"
 
 namespace cs::gui::detail {
 
@@ -35,7 +34,7 @@ bool RenderHandler::GetColor(int x, int y, uint8_t& r, uint8_t& g, uint8_t& b, u
     return false;
   }
 
-  int data_pos(x * 4 + (y)*mLastDrawWidth * 4);
+  int data_pos(x * 4 + y * mLastDrawWidth * 4);
 
   // this might be dangerous --- I'm not entirely sure whether this pixel data
   // reference is guranteed to be valid. If something bad happens, we have to
@@ -72,22 +71,37 @@ void RenderHandler::OnPaint(CefRefPtr<CefBrowser> browser, PaintElementType type
     RectList const& dirtyRects, const void* b, int width, int height) {
   size_t bufferSize = width * height * 4;
 
+  // When the source buffer got larger we reallocate and copy the whole source buffer over.
   if (mCurrentBufferSize < bufferSize) {
-    if (mPixelData)
-      delete[] mPixelData;
+    delete[] mPixelData;
 
     mPixelData         = new uint8_t[bufferSize];
     mCurrentBufferSize = bufferSize;
     std::memcpy(mPixelData, b, bufferSize * sizeof(uint8_t));
+
+    // Otherwise we only copy the dirty regions.
   } else {
     // For each changed region
     for (const auto& rect : dirtyRects) {
 
-      // For each row in the changed region
+      // We copy each row of the changed region over individually, since they are not guaranteed to
+      // have continuous memory.
+      //
+      // ################################################################################
+      // ##############################+--------------------------------------+##########
+      // ####################### i = 0 |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|##########
+      // ####################### i = 1 |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|##########
+      // ####################### i = 2 |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|##########
+      // ####################### i = 3 |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|##########
+      // ####################### i = 4 |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|##########
+      // ####################### i = 5 |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|##########
+      // ##############################+--------------------------------------+##########
+      // ################################################################################
+      // ################################################################################
       for (int i = 0; i < rect.height; ++i) {
-        size_t start = ((rect.y + i) * width + rect.x) * 4 * sizeof(uint8_t);
-        size_t size  = rect.width * 4 * sizeof(uint8_t);
-        std::memcpy(mPixelData + start, ((uint8_t*)b) + start, size);
+        size_t startOffset = ((rect.y + i) * width + rect.x) * 4 * sizeof(uint8_t);
+        size_t extend      = rect.width * 4 * sizeof(uint8_t);
+        std::memcpy(mPixelData + startOffset, (uint8_t*)b + startOffset, extend);
       }
     }
   }
@@ -136,6 +150,12 @@ void RenderHandler::OnCursorChange(CefRefPtr<CefBrowser> browser, CefCursorHandl
   if (mCursorChangeCallback) {
     mCursorChangeCallback(static_cast<Cursor>(type));
   }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+RenderHandler::~RenderHandler() {
+  delete[] mPixelData;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
