@@ -72,6 +72,8 @@ class SidebarApi extends IApi {
   }
 
   /**
+   * Passthrough call to CosmoScout.clearHtml
+   *
    * @param id {string}
    */
   clearContainer(id) {
@@ -88,7 +90,6 @@ class SidebarApi extends IApi {
 
     $(`#${id}`).selectpicker('render');
   }
-
 
   /**
    * Sets an elevation data copyright tooltip
@@ -145,7 +146,6 @@ class SidebarApi extends IApi {
   setDropdownValue(id, value) {
     $(`#${id}`).selectpicker('val', value);
   }
-
 
   /**
    * TODO UNUSED

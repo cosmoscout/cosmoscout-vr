@@ -12,6 +12,7 @@ class NotificationApi extends IApi {
 
     /**
      * Set the container in which to place the notifications
+     *
      * @param container {string}
      */
     init(container = 'notifications') {
@@ -67,7 +68,7 @@ class NotificationApi extends IApi {
      * @param title {string}
      * @param content {string}
      * @param icon {string}
-     * @return {HTMLDivElement}
+     * @return {HTMLElement}
      * @private
      */
     _makeNotification(title, content, icon = '') {

@@ -4,16 +4,48 @@ class StatisticsApi extends IApi {
    */
   name = 'statistics';
 
+  /**
+   * Timing values
+   *
+   * @type {*[]}
+   * @private
+   */
   _values = [];
 
+  /**
+   * Parsed json
+   *
+   * @type {Array}
+   * @private
+   */
   _data;
 
+  /**
+   * ColorHash object
+   *
+   * @type {ColorHash}
+   * @private
+   */
   _colorHash;
 
+  /**
+   * Min time to be used for calculations
+   *
+   * @type {number}
+   * @private
+   */
   _minTime = 1000;
 
+  /**
+   * @type {number}
+   * @private
+   */
   _maxValue = 1e9 / 30;
 
+  /**
+   * @type {number}
+   * @private
+   */
   _alpha = 0.95;
 
   init() {
@@ -54,6 +86,12 @@ class StatisticsApi extends IApi {
     this._insertHtml(frameRate);
   }
 
+  /**
+   * Reset times
+   *
+   * @see {_data}
+   * @private
+   */
   _resetTimes() {
     this._values.forEach((value) => {
       if (typeof this._data[value.name] !== 'undefined') {
@@ -68,6 +106,12 @@ class StatisticsApi extends IApi {
     });
   }
 
+  /**
+   * Add elements to _values
+   *
+   * @see {_values}
+   * @private
+   */
   _addNewElements() {
     for (const key in this._data) {
       if (!this._data.hasOwnProperty(key)) {
@@ -87,6 +131,12 @@ class StatisticsApi extends IApi {
     }
   }
 
+  /**
+   * Insert the actual html
+   *
+   * @param frameRate {number}
+   * @private
+   */
   _insertHtml(frameRate) {
     const container = document.getElementById('statistics');
     CosmoScout.clearHtml(container);
