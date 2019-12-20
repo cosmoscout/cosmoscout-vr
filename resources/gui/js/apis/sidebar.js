@@ -44,7 +44,7 @@ class SidebarApi extends IApi {
       return;
     }
 
-    tab.innerHTML = this._replaceMarkers(tab.innerHTML, this._makeId(pluginName), icon, content);
+    tab.innerHTML = this.replaceMarkers(tab.innerHTML, this._makeId(pluginName), icon, content);
 
     this._sidebar.insertBefore(tab, this._sidebarTab);
   }
@@ -62,10 +62,10 @@ class SidebarApi extends IApi {
       return;
     }
 
-    const html = this._replaceMarkers(tab.innerHTML, this._makeId(sectionName), icon, content);
+    const html = this.replaceMarkers(tab.innerHTML, this._makeId(sectionName), icon, content);
 
     tab.innerHTML = html
-      .replace(this._regex('SECTION'), sectionName)
+      .replace(this.regex('SECTION'), sectionName)
       .trim();
 
     this._settings.appendChild(tab);
@@ -84,8 +84,8 @@ class SidebarApi extends IApi {
     }
 
     button.innerHTML = button.innerHTML
-      .replace(this._regex('NAME'), name)
-      .replace(this._regex('ICON'), icon)
+      .replace(this.regex('NAME'), name)
+      .replace(this.regex('ICON'), icon)
       .trim();
 
     button.addEventListener('click', () => {
@@ -147,9 +147,9 @@ class SidebarApi extends IApi {
       const element = document.createElement('template');
 
       element.innerHTML = locationTabContent.outerHTML
-        .replace(this._regex('ACTIVE'), active)
-        .replace(this._regex('GROUP'), group)
-        .replace(this._regex('FIRST'), first.toString())
+        .replace(this.regex('ACTIVE'), active)
+        .replace(this.regex('GROUP'), group)
+        .replace(this.regex('FIRST'), first.toString())
         .trim();
 
       locationsTab.appendChild(element.content);
@@ -159,9 +159,9 @@ class SidebarApi extends IApi {
       const tabContent = CosmoScout.loadTemplateContent('location-tab-pane');
 
       element.innerHTML = tabContent.outerHTML
-        .replace(this._regex('SHOW'), show)
-        .replace(this._regex('ACTIVE'), active)
-        .replace(this._regex('GROUP'), group)
+        .replace(this.regex('SHOW'), show)
+        .replace(this.regex('ACTIVE'), active)
+        .replace(this.regex('GROUP'), group)
         .trim();
 
       tabContents.appendChild(element.content);
@@ -172,7 +172,7 @@ class SidebarApi extends IApi {
     const groupTabContent = CosmoScout.loadTemplateContent('location-group');
 
     groupTabContent.innerHTML = groupTabContent.innerHTML
-      .replace(this._regex('TEXT'), text)
+      .replace(this.regex('TEXT'), text)
       .trim();
 
     groupTab.appendChild(groupTabContent);
@@ -237,70 +237,6 @@ class SidebarApi extends IApi {
     $(`#${id}`).selectpicker('val', value);
   }
 
-  /**
-   * TODO
-   * @param name {string}
-   * @param icon {string}
-   */
-  addMeasurementTool(name, icon) {
-    const area = document.getElementById('measurement-tools');
-
-    const tool = CosmoScout.loadTemplateContent('measurement-tools');
-
-    tool.innerHTML = tool.innerHTML
-      .replace(this._regex('CONTENT'), name)
-      .replace(this._regex('ICON'), icon)
-      .trim();
-
-    tool.addEventListener('click', () => {
-      CosmoScout.callNative('set_celestial_body', name);
-    });
-
-    tool.addEventListener('change', (event) => {
-      document.querySelectorAll('#measurement-tools .radio-button').forEach((node) => {
-        if (node.id !== `set_tool_${icon}`) {
-          node.checked = false;
-        }
-      });
-
-      if (event.target.checked) {
-        CosmoScout.callNative('set_measurement_tool', name);
-      } else {
-        CosmoScout.callNative('set_measurement_tool', 'none');
-      }
-    });
-
-    area.appendChild(tool);
-  }
-
-  /**
-   * Deselect all measurement tools
-   */
-  deselectMeasurementTool() {
-    document.querySelectorAll('#measurement-tools .radio-button').forEach((node) => {
-      node.checked = false;
-    });
-  }
-
-  /**
-   * @param file {string}
-   * @param time {string|number}
-   */
-  addSharad(file, time) {
-    const sharadList = document.getElementById('list-sharad');
-    const sharad = CosmoScout.loadTemplateContent('sharad');
-
-    sharad.innerHTML = sharad.innerHTML
-      .replace(this._regex('FILE'), file)
-      .replace(this._regex('TIME'), time)
-      .trim();
-
-    sharad.classList.add(`item-${file}`);
-
-    sharadList.appendChild(sharad);
-
-    CosmoScout.initDataCalls();
-  }
 
   /**
    * TODO UNUSED
@@ -345,34 +281,5 @@ class SidebarApi extends IApi {
    */
   _makeId(name) {
     return name.split(' ').join('-');
-  }
-
-  /**
-   * Replace common template markers with content
-   *
-   * @param html {string}
-   * @param id {string}
-   * @param icon {string}
-   * @param content {string}
-   * @return {string}
-   * @private
-   */
-  _replaceMarkers(html, id, icon, content) {
-    return html
-      .replace(this._regex('ID'), id)
-      .replace(this._regex('CONTENT'), content)
-      .replace(this._regex('ICON'), icon)
-      .trim();
-  }
-
-  /**
-   * Creates a search global Regex Object of %matcher%
-   *
-   * @param matcher {string}
-   * @return {RegExp}
-   * @private
-   */
-  _regex(matcher) {
-    return new RegExp(`\%${matcher}\%`, 'g');
   }
 }

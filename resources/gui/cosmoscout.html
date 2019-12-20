@@ -447,15 +447,15 @@
   }
 
   document.addEventListener('DOMContentLoaded', () => {
-    CosmoScout.init([
+    CosmoScout.init(
       LoadingScreenApi,
       NotificationApi,
       StatusbarApi,
       SidebarApi,
       StatisticsApi,
       TimelineApi,
-      FlyToApi,
-    ]);
+      FlyToApi
+    );
 
     CosmoScout.initInputs();
 
@@ -561,30 +561,6 @@
     </div>
 </template>
 
-<template id="measurement-tools-template">
-    <div class="col-4 center measurement-tool">
-        <label>
-            <input id="set_tool_%ICON%" type="checkbox" name="measurement-tool" class="radio-button"/>
-            <span class="block btn glass">
-                <i class="material-icons">%ICON%</i>
-                <br>
-                <span>%CONTENT%</span>
-            </span>
-        </label>
-    </div>
-</template>
-
-<template id="sharad-template">
-    <div class="row">
-        <div class="col-8">%FILE%</div>
-        <div class="col-4">
-            <a class="btn glass block" data-call="set_time,%TIME%f">
-                <i class="material-icons">restore</i>
-            </a>
-        </div>
-    </div>
-</template>
-
 <template id="location-tab-template">
     <div>
         <nav>
@@ -628,243 +604,6 @@
         </div>
     </div>
 </template>
-
-<!--
-
-<script>
-
-    document.addEventListener("DOMContentLoaded", function (event) {
-        const menu = new MarkingTS.Menu('body', {
-            main: {
-                animationDuration: 200,
-                enableMaxClickRadius: false,
-                minTraceDistance: 100,
-            },
-            geometry: {
-                useActionShape: true,
-                stroke: {
-                    enabled: true,
-                    color: '#ccf',
-                },
-                icon: {
-                    color: '#fff',
-                    selectionColor: '#ccf'
-                },
-                color: 'rgba(0,0,0,0.5)',
-                selectionColor: 'rgba(50,50,50,0.5)',
-
-                text: {
-                    color: '#fff',
-                    selectionColor: '#ccf',
-                }
-            },
-            arc: {
-                enabled: false,
-                color: [
-                    'rgba(204,204,255,0.5)',
-                    'rgba(204,204,255,0)',
-                ]
-            },
-            checkbox: {
-                selectionColor: '#7a7a9b',
-                selectionColorSelected: '#a4a4c5',
-            },
-            ribbonslider: {
-
-            }
-        });
-
-        const struct = {
-            id: 'Root',
-            text: 'Hauptmenü',
-            direction: 0,
-            icon: 'bars',
-            children: [
-                {
-                    id: 'atmosphere',
-                    text: 'Atmospähre',
-                    icon: 'wind',
-                    direction: 0,
-                    type: 'ribbonslider',
-                    //type: 'checkbox',
-                    data: {
-
-                        min: -5000,
-                        max: 5000,
-                        initial: 0,
-                        precision: 10,
-                        stepDist: 100,
-                        stepSize: 250,
-                    }
-                },
-                {
-                    id: 'tools',
-                    text: 'Werkzeuge',
-                    icon: 'tools',
-                    direction: 45,
-                    type: 'radio-group',
-                    //type: 'crankslider',
-                    children: [
-                        {
-                            id: 't1',
-                            text: 'Word',
-                            icon: 'file-word',
-                            direction: 0
-                        },
-                        {
-                            id: 't2',
-                            text: 'Excel',
-                            icon: 'file-excel',
-                            direction: 90,
-                            data: {
-                                selected: true
-                            }
-                        },
-                        {
-                            id: 't3',
-                            text: 'PowerPoint',
-                            icon: 'file-powerpoint',
-                            direction: 180
-                        },
-                        {
-                            id: 't4',
-                            text: 'Access',
-                            icon: 'file-csv',
-                            direction: 270
-                        }
-                    ]
-                },
-                {
-                    id: 'play',
-                    text: 'Play',
-                    icon: 'play',
-                    direction: 90,
-
-                },
-                {
-                    id: 'water-level',
-                    text: 'Water Level',
-                    icon: 'water',
-
-                    type: 'ribbonslider',
-                    data: {
-
-                        min: -2,
-                        max: 2,
-                        initial: 0,
-                        stepSize: 0.5,
-                        precision: 0.01,
-                        stepDist: 100,
-                    },
-                    direction: 134,
-                    children: [
-                        {
-                            id: 'documents-folder',
-                            text: 'Öffnen',
-                            icon: 'folder-open',
-                            direction: 60,
-                            type: 'checkbox',
-
-                        },
-                        {
-                            id: 'book-dead',
-                            text: 'Nicht öffnen',
-                            icon: 'book-dead',
-                            direction: 225,
-                            type: 'checkbox',
-                        }
-                    ]
-                },
-                {
-                    id: 'help',
-                    text: 'Hilfe',
-                    icon: 'question',
-                    direction: 180,
-                    type: 'checkbox',
-
-                },
-                {
-                    id: 'search',
-                    text: 'Suche',
-                    icon: 'search',
-                    direction: 225,
-                    children: [
-                        {
-                            id: 's1',
-                            text: 'Neue Suche',
-                            icon: 'search-plus',
-                            direction: 90
-                        },
-                        {
-                            id: 's2',
-                            text: 'Suche löschen',
-                            icon: 'search-minus',
-                            direction: 180
-                        },
-                        {
-                            id: 's3',
-                            text: 'Ort suchen',
-                            icon: 'search-location',
-                            direction: 315
-                        }
-                    ]
-                },
-                {
-                    id: 'view',
-                    text: 'Pause',
-                    icon: 'pause',
-                    direction: 270,
-
-                },
-                {
-                    id: 'edit',
-                    text: 'Bearbeiten',
-                    icon: 'edit',
-                    direction: 315,
-
-                }
-            ]
-        };
-
-        menu.init();
-
-
-        //menu.drawTrace();
-        menu.setStructure(MarkingTS.MenuParser.parse(struct));
-        console.log(menu._rootItem.childCount);
-        menu.selection$.subscribe(s => {
-            if (s.type === 'itemSelection') {
-                switch (s.source.itemId) {
-                    case 's2':
-                        window.call_native('navigate_to_surface');
-                        break;
-
-                    case 's3':
-                        window.call_native('navigate_to_orbit');
-                        break;
-
-                    case 'view':
-                        window.call_native("set_time_speed", 0);
-                        break;
-
-                    case 'play':
-                        window.call_native("set_time_speed", 1);
-                        break;
-
-                }
-            }
-
-            if ((s.type === 'sliderValueChanging' || s.type === 'sliderValueFinal') && s.source.itemId === 'atmosphere') {
-                window.call_native("set_time_speed", s.data.value);
-            }
-            console.log(s.source.itemId, s.data);
-        });
-
-        window.menu = menu;
-    });
-</script>
--->
-
 
 </body>
 </html>
