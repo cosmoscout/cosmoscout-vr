@@ -9,9 +9,9 @@ class StatusbarApi extends IApi {
      * @type {{userPosition: string, pointerPosition: string, speed: string}}
      */
     config = {
-      userPosition: 'placeholder-5',
-      pointerPosition: 'placeholder-6',
-      speed: 'placeholder-8',
+      userPosition: 'statusbar-user-position',
+      pointerPosition: 'statusbar-pointer-position',
+      speed: 'statusbar-speed',
     };
 
     /**
