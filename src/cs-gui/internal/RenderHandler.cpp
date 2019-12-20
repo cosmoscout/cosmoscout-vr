@@ -34,7 +34,7 @@ bool RenderHandler::GetColor(int x, int y, uint8_t& r, uint8_t& g, uint8_t& b, u
     return false;
   }
 
-  int data_pos(x * 4 + (y)*mLastDrawWidth * 4);
+  int data_pos(x * 4 + y * mLastDrawWidth * 4);
 
   // this might be dangerous --- I'm not entirely sure whether this pixel data
   // reference is guranteed to be valid. If something bad happens, we have to
