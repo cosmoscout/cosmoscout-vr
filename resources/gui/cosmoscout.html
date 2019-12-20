@@ -433,7 +433,6 @@
 <script type="text/javascript" src="js/format.js"></script>
 <script type="text/javascript" src="js/api.js"></script>
 
-<script type="text/javascript" src="js/apis/flyto.js"></script>
 <script type="text/javascript" src="js/apis/notification.js"></script>
 <script type="text/javascript" src="js/apis/sidebar.js"></script>
 <script type="text/javascript" src="js/apis/statistics.js"></script>
@@ -442,10 +441,6 @@
 <script type="text/javascript" src="js/apis/loading_screen.js"></script>
 
 <script type="text/javascript">
-  function init_slider(...args) {
-    return CosmoScout.initSlider(...args);
-  }
-
   document.addEventListener('DOMContentLoaded', () => {
     CosmoScout.init(
       LoadingScreenApi,
@@ -453,8 +448,7 @@
       StatusbarApi,
       SidebarApi,
       StatisticsApi,
-      TimelineApi,
-      FlyToApi
+      TimelineApi
     );
 
     CosmoScout.initInputs();
@@ -548,59 +542,6 @@
              aria-labelledby="headingSettings-%ID%"
              data-parent="#settings-accordion">
             %CONTENT%
-        </div>
-    </div>
-</template>
-
-<template id="sidebar-celestial-body-template">
-    <div class="col-3 center celestial-body-button">
-        <a class="block btn glass" id="set_body_%NAME%">
-            <img src="../icons/%ICON%" alt="%ICON%" height="80" width="80">
-            %NAME%
-        </a>
-    </div>
-</template>
-
-<template id="location-tab-template">
-    <div>
-        <nav>
-            <div class="row nav nav-tabs" id="location-tabs" role="tablist"></div>
-        </nav>
-        <div class="tab-content" id="nav-tabContents"></div>
-    </div>
-</template>
-
-<template id="location-tab-link-template">
-    <a class="nav-item nav-link %ACTIVE% col-4"
-       id="nav-%GROUP%-tab"
-       data-toggle="tab"
-       href="#nav-%GROUP%"
-       role="tab"
-       aria-controls="nav-%GROUP%"
-       aria-selected="%FIRST%">
-        %GROUP%
-    </a>
-</template>
-
-<template id="location-tab-pane-template">
-    <div class="tab-pane fade %SHOW% %ACTIVE%"
-         id="nav-%GROUP%"
-         role="tabpanel"
-         aria-labelledby="nav-%GROUP%-tab"></div>
-</template>
-
-<template id="location-group-template">
-    <div class="row">
-        <div class="col-8">
-            %TEXT%
-        </div>
-        <div class="col-4">
-            <a class="btn glass block fly-to"
-               data-toggle="tooltip"
-               title="Fly to %TEXT%"
-               data-call="fly_to,%TEXT%">
-                <i class="material-icons">send</i>
-            </a>
         </div>
     </div>
 </template>
