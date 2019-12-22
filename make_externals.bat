@@ -272,7 +272,7 @@ rmdir %CEF_DIR%\tests /s /q
 cd ..
 
 cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
-      -DCEF_RUNTIME_LIBRARY_FLAG=/MD^
+      -DCEF_RUNTIME_LIBRARY_FLAG=/MD -DCEF_DEBUG_INFO_FLAG=""^
       "%BUILD_DIR%/cef/extracted/%CEF_DIR%" || exit /b
 
 cmake --build . --config %BUILD_TYPE% --parallel 8 || exit /b
