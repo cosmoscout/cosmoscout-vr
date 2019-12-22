@@ -77,8 +77,8 @@ echo Building and installing freeglut ...
 echo.
 
 cmake -E make_directory "%BUILD_DIR%/freeglut" && cd "%BUILD_DIR%/freeglut"
-cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
-      -DCMAKE_INSTALL_LIBDIR=lib^
+cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%" -DFREEGLUT_BUILD_DEMOS=Off^
+      -DCMAKE_INSTALL_LIBDIR=lib -DFREEGLUT_BUILD_STATIC_LIBS=Off^
       "%EXTERNALS_DIR%/freeglut/freeglut/freeglut" || exit /b
 
 cmake --build . --config %BUILD_TYPE% --target install --parallel 8
