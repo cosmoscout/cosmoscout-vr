@@ -13,9 +13,8 @@
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-ObserverNavigationNode::ObserverNavigationNode(
-    cs::core::SolarSystem*   pSolarSystem,
-    cs::core::InputManager*  pInputManager, VistaPropertyList const& oParams)
+ObserverNavigationNode::ObserverNavigationNode(cs::core::SolarSystem* pSolarSystem,
+    cs::core::InputManager* pInputManager, VistaPropertyList const& oParams)
     : IVdfnNode()
     , mSolarSystem(pSolarSystem)
     , mInputManager(pInputManager)
@@ -170,8 +169,7 @@ bool ObserverNavigationNode::DoEvalNode() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 ObserverNavigationNodeCreate::ObserverNavigationNodeCreate(
-    cs::core::SolarSystem*  pSolarSystem,
-    cs::core::InputManager* pInputManager)
+    cs::core::SolarSystem* pSolarSystem, cs::core::InputManager* pInputManager)
     : mSolarSystem(pSolarSystem)
     , mInputManager(pInputManager) {
 }

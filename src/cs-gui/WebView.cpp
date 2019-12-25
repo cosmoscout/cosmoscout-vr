@@ -226,18 +226,15 @@ void WebView::injectMouseEvent(MouseEvent const& event) {
   case MouseEvent::Type::eMove:
     cef_event.x = mMouseX = event.mX;
     cef_event.y = mMouseY = event.mY;
-    mBrowser->GetHost()->SendMouseMoveEvent(
-        cef_event, false);
+    mBrowser->GetHost()->SendMouseMoveEvent(cef_event, false);
     break;
 
   case MouseEvent::Type::eLeave:
-    mBrowser->GetHost()->SendMouseMoveEvent(
-        cef_event, true);
+    mBrowser->GetHost()->SendMouseMoveEvent(cef_event, true);
     break;
 
   case MouseEvent::Type::eScroll:
-    mBrowser->GetHost()->SendMouseWheelEvent(
-        cef_event, event.mX, event.mY);
+    mBrowser->GetHost()->SendMouseWheelEvent(cef_event, event.mX, event.mY);
     break;
 
   case MouseEvent::Type::ePress:

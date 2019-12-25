@@ -38,7 +38,8 @@ class CS_CORE_EXPORT PluginBase {
   /// The constructor is called when the plugin is opened. This should contain no or very little
   /// code. Your heavy initialization code should be executed in init().
   PluginBase() = default;
-  virtual ~PluginBase() {}
+  virtual ~PluginBase() {
+  }
 
   /// This initializes the program state for this plugin, so it can interact with it. It will be
   /// called by the core application before the plugin initializes. There is no need to call this
