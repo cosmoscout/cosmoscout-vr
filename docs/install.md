@@ -2,12 +2,12 @@
   <img src ="img/banner-earth.jpg" />
 </p>
 
-# Build Instructions
+# Generic Build Instructions
 
-:warning: _**Warning:** The [default configuration](../config/base/scene/simple_desktop.json) only contains a few data sets with very low resolution. Please read the [Configuring Guide](configuring.md) and the documentation of the [individual plugins](../README.md#Plugins-for-CosmoScout-VR) for including new data sets._
+:information_source: _**Tip:** This page contains generic build instructions for CosmoScout VR. Alternatively, you can follow a [guide specific to your IDE](ide-setup.md)._
 
 **CosmoScout VR supports 64 bits only and can be build in debug and release mode on Linux and Windows.
-You will need a copy of [CMake](https://cmake.org/) (version 3.12 or greater), [Boost](https://www.boost.org/) (version 1.69 or greater) and a recent C++ compiler (gcc 7, clang 5 or msvc 19).
+You will need a copy of [CMake](https://cmake.org/) (version 3.13 or greater), [Boost](https://www.boost.org/) (version 1.69 or greater) and a recent C++ compiler (gcc 7, clang 5 or msvc 19).
 For the compilation of the externals [Python](https://www.python.org/) is also required.**
 
 When compiling from source, you can either choose the `master` branch which contains the code of the last stable release or you can switch to the `develop` branch to test the latest features.
@@ -67,6 +67,8 @@ The progress of this operation is shown on the loading screen.
 
 For **manual compilation** follow the steps outlined in [make.sh](../make.sh).
 
+:information_source: _**Tip:** You can use [ccache](https://ccache.dev/) to considerably speed up build times. You just need to call `./make_externals.sh -G "Unix Makefiles" -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache` and `./make.sh -G "Unix Makefiles" -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache` respectively._
+
 ## Windows
 
 :warning: _**Warning:** During compilation of the externals, files with pretty long names are generated. Since Windows does not support paths longer 260 letters, you have to compile CosmoScout VR quite close to your file system root (`e.g. C:\cosmoscout-vr`). If you are on Windows 10, [you can disable this limit](https://www.howtogeek.com/266621/how-to-make-windows-10-accept-file-paths-over-260-characters/)._
@@ -120,6 +122,8 @@ When started for the very first time, some example datasets will be downloaded f
 The progress of this operation is shown on the loading screen.
 
 :information_source: _**Tip:** If you wish, you can delete the directories `build` and `install` at any time in order to force a complete reconfiguration or re-installation._
+
+:information_source: _**Tip:** You can use [clcache](https://github.com/frerich/clcache) to considerably speed up build times. You just need to call `make_externals.bat -G "Visual Studio 15 Win64" -DCMAKE_VS_GLOBALS="CLToolExe=clcache.exe;TrackFileAccess=false"` and `make.bat -G "Visual Studio 15 Win64" -DCMAKE_VS_GLOBALS=CLToolExe"=clcache.exe;TrackFileAccess=false"` respectively._
 
 <p align="center">
   <a href="README.md">&#8962; Help Index</a>
