@@ -6,7 +6,7 @@
 
 # build executable ---------------------------------------------------------------------------------
 
-file(GLOB SOURCE_FILES *.cpp */*.cpp)
+file(GLOB SOURCE_FILES *.cpp */*.cpp icon.rc)
 
 # Resoucre files and header files are only added in order to make them available in your IDE.
 file(GLOB HEADER_FILES *.hpp */*.hpp)
