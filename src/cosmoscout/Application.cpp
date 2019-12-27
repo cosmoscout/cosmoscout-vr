@@ -147,7 +147,7 @@ bool Application::Init(VistaSystem* pVistaSystem) {
     VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
         pIntentionNode, static_cast<int>(cs::utils::DrawOrder::eRay));
   } else {
-    mGuiManager->setCursor(cs::gui::Cursor::ePointer);
+    cs::core::GuiManager::setCursor(cs::gui::Cursor::ePointer);
   }
 
   mGuiManager->enableLoadingScreen(true);

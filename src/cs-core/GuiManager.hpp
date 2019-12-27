@@ -69,9 +69,8 @@ class CS_CORE_EXPORT GuiManager {
   virtual ~GuiManager();
 
   /// Set the cursor icon. This is usually used in the following way:
-  /// guiItem->setCursorChangeCallback(
-  ///    [guiManager](cs::gui::Cursor c) { guiManager->setCursor(c); });
-  void setCursor(gui::Cursor cursor);
+  /// guiItem->setCursorChangeCallback([](cs::gui::Cursor c) { GuiManager::setCursor(c); });
+  static void setCursor(gui::Cursor cursor);
 
   /// Shows a notification in the top right corner.
   ///
