@@ -60,13 +60,16 @@ jobs:
           sudo apt-get install -y cloc
       - name: Run Cloc
         run: |
-          REFERENCE_PERCENTAGE="$(reference/cloc.sh --percentage-only)"
-          CURRENT_PERCENTAGE="$(current/cloc.sh --percentage-only)"
-          echo "Previous Percentage of Comments: $REFERENCE_PERCENTAGE"
-          echo "Current Percentage of Comments: $CURRENT_PERCENTAGE"
-          if [ "$REFERENCE_PERCENTAGE" -gt "$CURRENT_PERCENTAGE" ]
+          BEFORE="$(reference/cloc.sh --percentage-only)"
+          AFTER="$(current/cloc.sh --percentage-only)"
+          echo "Previous Percentage of Comments: $BEFORE"
+          echo "Current Percentage of Comments: $AFTER"
+          if (( $(echo "$BEFORE > $AFTER" |bc -l) ))
           then
+            awk -v a=$AFTER -v b=$BEFORE 'BEGIN {printf "Percentage decreased! (%3.4f)\n", (a-b)}'
             exit 1
+          else
+            awk -v a=$AFTER -v b=$BEFORE 'BEGIN {printf "Percentage increased! (%3.4f)\n", (a-b)}'
           fi
 
   build_linux_gcc:
