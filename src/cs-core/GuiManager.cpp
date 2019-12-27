@@ -390,12 +390,6 @@ void GuiManager::setLoadingScreenProgress(float percent, bool animate) const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GuiManager::registerTool(std::shared_ptr<tools::Tool> const& tool) {
-  mTools.push_back(tool);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 void GuiManager::showGui() {
   if (mGlobalGuiTransform) {
     mGlobalGuiTransform->SetIsEnabled(true);
@@ -424,17 +418,6 @@ void GuiManager::toggleGui() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void GuiManager::update() {
-
-  // Update all registered tools. If the pShouldDelete property is set, the Tool is removed from the
-  // list.
-  for (auto it = mTools.begin(); it != mTools.end();) {
-    if ((*it)->pShouldDelete.get()) {
-      it = mTools.erase(it);
-    } else {
-      (*it)->update();
-      ++it;
-    }
-  }
 
   // If frame timings are enabled, collect the data and send it to the statistics GuiItem.
   if (mFrameTimings->pEnableMeasurements.get()) {

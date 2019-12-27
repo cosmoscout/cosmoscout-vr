@@ -172,18 +172,19 @@ bool Application::Init(VistaSystem* pVistaSystem) {
         cs::core::PluginBase* (*pluginConstructor)();
         pluginConstructor = (cs::core::PluginBase * (*)()) LIBFUNC(pluginHandle, "create");
 
-        std::cout << "Opening Plugin " << plugin.first << " ..." << std::endl;
+        std::cout << "[Application] Opening Plugin " << plugin.first << " ..." << std::endl;
 
         // Actually call the plugin's constructor and add the returned pointer to out list.
         mPlugins.insert(
             std::pair<std::string, Plugin>(plugin.first, {pluginHandle, pluginConstructor()}));
 
       } else {
-        std::cerr << "Error loading CosmoScout VR Plugin " << plugin.first << " : " << LIBERROR()
-                  << std::endl;
+        std::cerr << "[Application] Error loading CosmoScout VR Plugin " << plugin.first << " : "
+                  << LIBERROR() << std::endl;
       }
     } catch (std::exception const& e) {
-      std::cerr << "Error loading plugin " << plugin.first << ": " << e.what() << std::endl;
+      std::cerr << "[Application] Error loading plugin " << plugin.first << ": " << e.what()
+                << std::endl;
     }
   }
 
@@ -197,7 +198,7 @@ void Application::Quit() {
   // Close all plugins first.
   for (auto const& plugin : mPlugins) {
     std::string pluginFile = plugin.first;
-    std::cout << "Unloading Plugin " << pluginFile << std::endl;
+    std::cout << "[Application] Unloading Plugin " << pluginFile << std::endl;
 
     plugin.second.mPlugin->deInit();
 
@@ -221,6 +222,8 @@ void Application::Quit() {
     if (count > 1) {
       std::cout << "[Application] Warning: Use count of " << name << " is " << count - 1
                 << " but should be 0." << std::endl;
+    } else {
+      std::cout << "[Application] Deleting " << name << std::endl;
     }
   };
 

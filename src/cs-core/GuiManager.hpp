@@ -30,11 +30,6 @@ class FrameTimings;
 } // namespace cs::utils
 
 namespace cs::core {
-
-namespace tools {
-class Tool;
-}
-
 class Settings;
 class InputManager;
 
@@ -162,11 +157,6 @@ class CS_CORE_EXPORT GuiManager {
   /// Sets the progress bar state.
   void setLoadingScreenProgress(float percent, bool animate) const;
 
-  /// If you instantiate a cs::tools::Tool, you should register it here. The GuiManager will then
-  /// call the update() of the tool each frame. The tool will be released automatically when its
-  /// pShouldDelete property is set to true.
-  void registerTool(std::shared_ptr<tools::Tool> const& tool);
-
   /// Hides or shows the entire user interface. This is bound to the ESC-key.
   void showGui();
   void hideGui();
@@ -198,8 +188,6 @@ class CS_CORE_EXPORT GuiManager {
   // The local GUI is drawn in screen-space.
   VistaTransformNode* mLocalGuiTransform  = nullptr;
   VistaOpenGLNode*    mLocalGuiOpenGLnode = nullptr;
-
-  std::list<std::shared_ptr<tools::Tool>> mTools;
 
   int   mGuiWidth = 1920, mGuiHeight = 1080;
   float mGuiScaleX = 1.6f, mGuiScaleY = 0.9f;
