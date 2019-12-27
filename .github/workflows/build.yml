@@ -60,8 +60,14 @@ jobs:
           sudo apt-get install -y cloc
       - name: Run Cloc
         run: |
-          current/cloc.sh --percentage-only
-          reference/cloc.sh --percentage-only
+          REFERENCE_PERCENTAGE="$(reference/cloc.sh --percentage-only)"
+          CURRENT_PERCENTAGE="$(current/cloc.sh --percentage-only)"
+          echo "Previous Percentage of Comments: $REFERENCE_PERCENTAGE"
+          echo "Current Percentage of Comments: $CURRENT_PERCENTAGE"
+          if [ "$REFERENCE_PERCENTAGE" -gt "$CURRENT_PERCENTAGE" ]
+          then
+            exit 1
+          fi
 
   build_linux_gcc:
     name: Linux GCC 7.4.0
