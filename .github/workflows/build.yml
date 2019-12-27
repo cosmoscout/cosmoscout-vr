@@ -26,6 +26,19 @@ jobs:
         run: |
           DIFF=$(git diff)
           if [ ! -z "$DIFF" ]; then echo $DIFF && exit 1; fi
+  
+  comment_percentage:
+    name: Check Comment Percentage
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v1
+      - name: Download Cloc
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y cloc
+      - name: Run Cloc
+        run: ./cloc.sh
 
   build_linux_gcc:
     name: Linux GCC 7.4.0
