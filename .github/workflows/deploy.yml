@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-18.04
     steps:
     - name: Checkout Repository
-      uses: actions/checkout@v1
+      uses: actions/checkout@v2
     - name: Checkout Submodules
       run: git submodule update --init
     - name: Create Release
@@ -30,7 +30,7 @@ jobs:
     runs-on: ubuntu-18.04
     steps:
     - name: Checkout Repository
-      uses: actions/checkout@v1
+      uses: actions/checkout@v2
     - name: Checkout Submodules
       run: git submodule update --init
     - name: Download Dependencies
@@ -61,7 +61,7 @@ jobs:
     runs-on: windows-2016
     steps:
     - name: Checkout Repository
-      uses: actions/checkout@v1
+      uses: actions/checkout@v2
     - name: Checkout Submodules
       run: git submodule update --init
     - name: Build Externals

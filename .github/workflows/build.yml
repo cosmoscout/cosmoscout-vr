@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-18.04
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v1
+        uses: actions/checkout@v2
       - name: Checkout Submodules
         run: git submodule update --init plugins
       - name: Download Clang-Format
@@ -33,16 +33,35 @@ jobs:
     name: Check Comment Percentage
     runs-on: ubuntu-18.04
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v1
-      - name: Checkout Submodules
-        run: git submodule update --init plugins
+      - name: Checkout Current Repository
+        uses: actions/checkout@v2
+        with:
+          path: current
+          ref: ${{ github.ref }}
+      - name: Checkout Reference Repository
+        if: github.event_name == 'pull_request'
+        uses: actions/checkout@v2
+        with:
+          path: reference
+          ref: ${{ github.base_ref }}
+      - name: Checkout Reference Repository
+        if: github.event_name == 'push'
+        uses: actions/checkout@v2
+        with:
+          path: reference
+          ref: ${{ github.event.before }}
+      - name: Checkout Current Submodules
+        run: cd $GITHUB_WORKSPACE/current && git submodule update --init plugins
+      - name: Checkout Reference Submodules
+        run: cd $GITHUB_WORKSPACE/reference && git submodule update --init plugins
       - name: Download Cloc
         run: |
           sudo apt-get update -y
           sudo apt-get install -y cloc
       - name: Run Cloc
-        run: ./cloc.sh
+        run: |
+          current/cloc.sh --percentage-only
+          reference/cloc.sh --percentage-only
 
   build_linux_gcc:
     name: Linux GCC 7.4.0
@@ -56,7 +75,7 @@ jobs:
       COSMOSCOUT_CODE_COVERAGE: true
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v1
+        uses: actions/checkout@v2
       - name: Checkout Submodules
         run: git submodule update --init
       - name: Cache Object Files
@@ -102,7 +121,7 @@ jobs:
       contains(github.event.head_commit.message, '[run-ci]')
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v1
+        uses: actions/checkout@v2
       - name: Checkout Submodules
         run: git submodule update --init
       - name: Cache Object Files
@@ -147,7 +166,7 @@ jobs:
       contains(github.event.head_commit.message, '[run-ci]')
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v1
+        uses: actions/checkout@v2
       - name: Checkout Submodules
         run: git submodule update --init
       - name: Cache Object Files
