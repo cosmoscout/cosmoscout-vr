@@ -286,7 +286,6 @@ void SolarSystem::updateSceneScale() {
 
 void SolarSystem::flyObserverTo(std::string const& sCenter, std::string const& sFrame,
     glm::dvec3 const& position, glm::dquat const& rotation, double duration) {
-  // SetObserverToCamera();
 
   double simulationTime(mTimeControl->pSimulationTime.get());
   double startTime(
@@ -356,22 +355,6 @@ void SolarSystem::flyObserverTo(
   auto rotation = glm::toQuat(glm::dmat3(x, y, z));
 
   flyObserverTo(sCenter, sFrame, cart, rotation, duration);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void SolarSystem::setObserverToCamera() {
-  double simulationTime(mTimeControl->pSimulationTime.get());
-
-  auto          pCam = GetVistaSystem()->GetDfnObjectRegistry()->GetObjectTransform("CAM:MAIN");
-  VistaVector3D camPos;
-  pCam->GetTranslation(camPos);
-
-  scene::CelestialAnchor frame(mObserver.getCenterName(), mObserver.getFrameName());
-  auto                   mat    = frame.getRelativeTransform(simulationTime, mObserver);
-  glm::dvec3             offset = (mat * glm::dvec4(camPos[0], camPos[1], camPos[2], 1.0)).xyz();
-  mObserver.setAnchorPosition(offset);
-  pCam->SetTranslation(0, 0, 0);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

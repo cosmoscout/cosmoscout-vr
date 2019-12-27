@@ -129,9 +129,6 @@ class CS_CORE_EXPORT SolarSystem {
   /// @param duration The duration in Barycentric Dynamical Time to move to the new location.
   void flyObserverTo(std::string const& sCenter, std::string const& sFrame, double duration);
 
-  /// DocTODO
-  void setObserverToCamera();
-
   /// The methods below can be used for being notified about new CelestialBodies being added to or
   /// removed from the SolarSystem.
   uint64_t registerAddBodyListener(
