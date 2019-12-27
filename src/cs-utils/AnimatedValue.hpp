@@ -28,13 +28,26 @@ enum class AnimationLoop { eNone, eRepeat, eToggle };
 template <typename T>
 class AnimatedValue {
  public:
-  T                  mStartValue, mEndValue;
-  double             mStartTime = 0.0;
-  double             mEndTime   = 0.0;
-  AnimationDirection mDirection = AnimationDirection::eInOut;
-  double             mExponent  = 0.0;
+  /// The value at the beginning of the animation.
+  T mStartValue;
 
-  /// DocTODO why would anyone create an AnimatedValue, with the same value for start and end?
+  /// The value at the end of the animation.
+  T mEndValue;
+
+  /// The time at which the animations result is equivalent to the startValue.
+  double mStartTime = 0.0;
+
+  /// The time at which the animations result is equivalent to the endValue.
+  double mEndTime = 0.0;
+
+  /// The way the animation plays out. See AnimationDirection for more.
+  AnimationDirection mDirection = AnimationDirection::eInOut;
+
+  /// How extreme the effects of non-linear directions are.
+  double mExponent = 0.0;
+
+  /// The default constructor can be used to create an AnimatedValue for which you do not know the
+  /// endValue yet.
   explicit AnimatedValue(T const& val = T{})
       : mStartValue(val)
       , mEndValue(val) {
