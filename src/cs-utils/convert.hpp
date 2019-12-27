@@ -86,8 +86,7 @@ CS_UTILS_EXPORT double toSpiceTime(boost::posix_time::ptime const& tIn);
 /// Convert a time string to spice time, which is defined by the Barycentric Dynamical Time.
 CS_UTILS_EXPORT double toSpiceTime(std::string const& tIn);
 
-/// Convert time in seconds since 2000-01-01 12:00:00.000 to boost::posix_time::ptime. Be
-/// aware, that fractional seconds will be truncated. //DocTODO
+/// Convert time in seconds since 2000-01-01 12:00:00.000 to boost::posix_time::ptime.
 CS_UTILS_EXPORT boost::posix_time::ptime toBoostTime(double tIn);
 
 } // namespace cs::utils::convert
