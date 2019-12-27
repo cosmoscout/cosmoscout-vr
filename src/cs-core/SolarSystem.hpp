@@ -116,7 +116,7 @@ class CS_CORE_EXPORT SolarSystem {
   /// @param sCenter  The SPICE name of the targets center.
   /// @param sFrame   The SPICE reference frame of the targets location.
   /// @param lngLat   The target longitude and latitude in on the surface.
-  /// @param height   The target height over the surface. (DocTODO see level or mean elevation?)
+  /// @param height   The target height above see level.
   /// @param duration The duration in Barycentric Dynamical Time to move to the new location.
   void flyObserverTo(std::string const& sCenter, std::string const& sFrame,
       glm::dvec2 const& lngLat, double height, double duration);
@@ -176,8 +176,8 @@ class CS_CORE_EXPORT SolarSystem {
   /// @param sFrameName   The SPICE frame of reference.
   /// @param sTargetName  The SPICE name of the center of the body for whom the Trajectory shall
   ///                     be calculated.
-  /// @param dStartTime   The start time of the trajectory. DocTODO more specific
-  /// @param dEndTime     The end time of the trajectory. DocTODO more specific
+  /// @param dStartTime   The start time of the trajectory. In Barycentric Dynamical Time.
+  /// @param dEndTime     The end time of the trajectory. In Barycentric Dynamical Time.
   /// @param iSamples     The resolution of the trajectory.
   ///
   /// @return A vector of points, where the x, y and z values represent the position and the w

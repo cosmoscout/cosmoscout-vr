@@ -66,10 +66,10 @@ jobs:
           echo "Current Percentage of Comments: $AFTER"
           if (( $(echo "$BEFORE > $AFTER" |bc -l) ))
           then
-            awk -v a=$AFTER -v b=$BEFORE 'BEGIN {printf "Percentage decreased! (%3.4f)\n", (a-b)}'
+            awk -v a=$AFTER -v b=$BEFORE 'BEGIN {printf "Percentage decreased! (%3.4f%)\n", (a-b)}'
             exit 1
           else
-            awk -v a=$AFTER -v b=$BEFORE 'BEGIN {printf "Percentage increased! (%3.4f)\n", (a-b)}'
+            awk -v a=$AFTER -v b=$BEFORE 'BEGIN {printf "Percentage increased! (%3.4f%)\n", (a-b)}'
           fi
 
   build_linux_gcc:

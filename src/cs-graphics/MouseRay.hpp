@@ -16,7 +16,8 @@
 
 namespace cs::graphics {
 
-/// A ray that shoots from the mouse into space? DocTODO
+/// A ray that shoots from the user's input device into space. It is modelled with a thin white
+/// cylinder and is used in VR setups as a replacement for the mouse pointer.
 class CS_GRAPHICS_EXPORT MouseRay : public IVistaOpenGLDraw {
  public:
   MouseRay();
