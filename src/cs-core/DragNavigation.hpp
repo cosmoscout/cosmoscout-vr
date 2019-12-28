@@ -29,8 +29,13 @@ class InputManager;
 class TimeControl;
 class SolarSystem;
 
-/// This class contains the logic for picking, dragging and rotating planets. It is used for the
-/// mouse interaction as well as the flystick and HTC-Vive interaction.
+/// This class is instantiated once by the CosmoScout application and contains the logic for
+/// picking, dragging and rotating planets. It is used for the mouse interaction as well as the
+/// flystick and HTC-Vive interaction. It uses the transformation of the "SELECTION_NODE" (which is
+/// created by the InputManager) and the button state of the InputManager as input.
+/// When the primary button is pressed, the SolarSystem's Observer is moved around the currently
+/// active celestial body. When the secondary input button is pressed, the Observer itself is
+/// rotated.
 class CS_CORE_EXPORT DragNavigation {
  public:
   DragNavigation(std::shared_ptr<cs::core::SolarSystem> const& pSolarSystem,
@@ -39,6 +44,7 @@ class CS_CORE_EXPORT DragNavigation {
 
   ~DragNavigation() = default;
 
+  /// This is called once a frame by the CosmoScout application.
   void update();
 
  private:

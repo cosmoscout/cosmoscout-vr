@@ -30,6 +30,7 @@ T metersToLightyears(T meters) {
 }
 
 /// Converts AU to meters. One AU is equivalent to the average distance between the Earth and the
+/// Sun.
 template <typename T>
 T astronomicalUnitsToMeters(T astronomicalUnits) {
   return astronomicalUnits * 149597870700.0;
