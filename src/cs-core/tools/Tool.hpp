@@ -12,7 +12,22 @@
 
 namespace cs::core::tools {
 
-/// This is the base interface for all tools.
+/// This is the base interface for all tools. Tools are meant to be things which are created by the
+/// user at runtime somewhere in the universe in order to measure something. Ususally they are
+/// placed on planetary surfaces.
+/// If you instantiate derived classes somewhere in your plugin code, you should store them in a
+/// std::list<std::shared_ptr<cs::core::tools::Tool>> mTools;
+/// Then, once each frame you should check the Tool's pShouldDelete property and remove it from the
+/// list if necessary.
+///
+/// for (auto it = mTools.begin(); it != mTools.end();) {
+///   if ((*it)->pShouldDelete.get()) {
+///     it = mTools.erase(it);
+///   } else {
+///     (*it)->update();
+///     ++it;
+///   }
+/// }
 class CS_CORE_EXPORT Tool {
  public:
   /// If set to true the tool will be deleted in the next update cycle.

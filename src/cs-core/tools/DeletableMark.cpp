@@ -6,10 +6,10 @@
 
 #include "DeletableMark.hpp"
 
+#include "../../cs-core/GuiManager.hpp"
 #include "../../cs-gui/GuiItem.hpp"
 #include "../../cs-gui/WorldSpaceGuiArea.hpp"
 #include "../../cs-scene/CelestialAnchorNode.hpp"
-#include "../GuiManager.hpp"
 #include "../InputManager.hpp"
 #include "../SolarSystem.hpp"
 
@@ -25,11 +25,9 @@ namespace cs::core::tools {
 DeletableMark::DeletableMark(std::shared_ptr<InputManager> const& pInputManager,
     std::shared_ptr<SolarSystem> const&                           pSolarSystem,
     std::shared_ptr<GraphicsEngine> const&                        graphicsEngine,
-    std::shared_ptr<GuiManager> const&                            pGuiManager,
     std::shared_ptr<TimeControl> const& pTimeControl, std::string const& sCenter,
     std::string const& sFrame)
-    : Mark(pInputManager, pSolarSystem, graphicsEngine, pGuiManager, pTimeControl, sCenter, sFrame)
-    , mGuiManager(pGuiManager)
+    : Mark(pInputManager, pSolarSystem, graphicsEngine, pTimeControl, sCenter, sFrame)
     , mGuiArea(new cs::gui::WorldSpaceGuiArea(80, 90))
     , mGuiItem(new cs::gui::GuiItem("file://../share/resources/gui/deletable_mark.html")) {
 
@@ -40,7 +38,6 @@ DeletableMark::DeletableMark(std::shared_ptr<InputManager> const& pInputManager,
 
 DeletableMark::DeletableMark(DeletableMark const& other)
     : Mark(other)
-    , mGuiManager(other.mGuiManager)
     , mGuiArea(new cs::gui::WorldSpaceGuiArea(100, 100))
     , mGuiItem(new cs::gui::GuiItem("file://../share/resources/gui/deletable_mark.html")) {
 
@@ -51,6 +48,7 @@ DeletableMark::DeletableMark(DeletableMark const& other)
 
 DeletableMark::~DeletableMark() {
   if (mGuiNode) {
+    mGuiItem->unregisterCallback("delete_me");
     mInputManager->unregisterSelectable(mGuiNode);
     mGuiArea->removeItem(mGuiItem.get());
 
@@ -70,7 +68,7 @@ void DeletableMark::initData() {
   mGuiArea->addItem(mGuiItem.get());
   mGuiArea->setUseLinearDepthBuffer(true);
 
-  mGuiItem->setCursorChangeCallback([this](cs::gui::Cursor c) { mGuiManager->setCursor(c); });
+  mGuiItem->setCursorChangeCallback([](cs::gui::Cursor c) { cs::core::GuiManager::setCursor(c); });
 
   mGuiNode = pSG->NewOpenGLNode(pGuiTransform, mGuiArea.get());
   mInputManager->registerSelectable(mGuiNode);

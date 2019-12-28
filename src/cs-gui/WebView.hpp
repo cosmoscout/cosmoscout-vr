@@ -13,6 +13,7 @@
 
 #include <any>
 #include <chrono>
+#include <include/cef_client.h>
 #include <iostream>
 
 namespace cs::gui {
@@ -219,6 +220,7 @@ class CS_GUI_EXPORT WebView {
       std::string const& name, std::function<void(std::vector<std::any> const&)> const& callback);
 
   detail::WebViewClient* mClient;
+  CefRefPtr<CefBrowser>  mBrowser;
 
   bool mInteractive;
 
