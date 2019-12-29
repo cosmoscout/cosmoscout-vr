@@ -53,6 +53,7 @@ When the left mouse button is pressed over an item, this item will receive input
 
 * Initial publication under the MIT license on Github.
 
+<p align="center"><img src ="img/hr.svg"/></p>
 <p align="center">
   <a href="code_of_conduct.md">&lsaquo; Code of Conduct</a>
   <img src ="img/nav-vspace.svg"/>
@@ -61,4 +62,3 @@ When the left mouse button is pressed over an item, this item will receive input
   <a href="citation.md">How to cite CosmoScout VR &rsaquo;</a>
 </p>
 
-<p align="center"><img src ="img/hr.svg"/></p>

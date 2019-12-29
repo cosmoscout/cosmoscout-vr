@@ -61,10 +61,12 @@ The default downloads for tags on Github do not contain git submodules.
 Therefore, a separate archive containing all the submodule code is automatically created via Github Actions when a tag is pushed.
 Furthermore, binaries for Windows and Linux are automatically compiled with Github Actions and uploaded to the respective release.
 
+<p align="center"><img src ="img/hr.svg"/></p>
 <p align="center">
   <a href="citation.md">&lsaquo; How to cite CosmoScout VR</a>
   <img src ="img/nav-vspace.svg"/>
   <a href="README.md">&#8962; Help Index</a>
+  <img src ="img/nav-vspace.svg"/>
+  <a href="continuous-integration.md">Continuous Integration &rsaquo;</a>
 </p>
 
-<p align="center"><img src ="img/hr.svg"/></p>
