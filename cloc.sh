@@ -8,6 +8,8 @@
 
 # This scripts counts the lines of code and comments in the src/ and plugins/ directories.
 # The copyright-headers are substracted. It uses the commandline tool "cloc".
+# All dumb comments like those /////////// or those // ------------ are also substracted.
+# You can pass the --percentage-only flag to show only the percentage of code comments.
 
 # Get the location of this script.
 SCRIPT_DIR="$( cd "$( dirname "$0" )" && pwd )"
@@ -50,7 +52,19 @@ PLUGINS_LINES_OF_COMMENTS=""
 countLines "${SCRIPT_DIR}/plugins" PLUGINS_LINES_OF_CODE PLUGINS_LINES_OF_COMMENTS
 
 # Print results.
-awk -v a=$SOURCE_LINES_OF_CODE      'BEGIN {printf "Lines of source code:  %5.1fk\n", a/1000}'
-awk -v a=$PLUGINS_LINES_OF_CODE     'BEGIN {printf "Lines of plugin code:  %5.1fk\n", a/1000}'
-awk -v a=$SOURCE_LINES_OF_COMMENTS -v b=$PLUGINS_LINES_OF_COMMENTS  \
-                                    'BEGIN {printf "Lines of comments:     %5.1fk\n", (a+b)/1000}'
+if [[ $* == *--percentage-only* ]]
+then
+  awk -v a=$SOURCE_LINES_OF_COMMENTS -v b=$PLUGINS_LINES_OF_COMMENTS \
+      -v c=$SOURCE_LINES_OF_CODE -v d=$PLUGINS_LINES_OF_CODE \
+      'BEGIN {printf "%3.4f\n", 100*(a+b)/(a+b+c+d)}'
+else
+  awk -v a=$SOURCE_LINES_OF_CODE \
+      'BEGIN {printf "Lines of source code:  %6.1fk\n", a/1000}'
+  awk -v a=$PLUGINS_LINES_OF_CODE \
+      'BEGIN {printf "Lines of plugin code:  %6.1fk\n", a/1000}'
+  awk -v a=$SOURCE_LINES_OF_COMMENTS -v b=$PLUGINS_LINES_OF_COMMENTS \
+      'BEGIN {printf "Lines of comments:     %6.1fk\n", (a+b)/1000}'
+  awk -v a=$SOURCE_LINES_OF_COMMENTS -v b=$PLUGINS_LINES_OF_COMMENTS \
+      -v c=$SOURCE_LINES_OF_CODE -v d=$PLUGINS_LINES_OF_CODE \
+      'BEGIN {printf "Comment Percentage:    %3.4f\n", 100*(a+b)/(a+b+c+d)}'
+fi
