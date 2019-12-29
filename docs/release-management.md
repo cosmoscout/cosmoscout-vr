@@ -4,7 +4,7 @@
 
 # Releases of CosmoScout VR
 
-Releases are [published on Github](https://github.com/cosmoscout/cosmoscout-vr/releases).
+Releases are [published on Github](https://github.com/cosmoscout/cosmoscout-vr/releases). They are automatically created via [Github Actions](https://github.com/cosmoscout/cosmoscout-vr/actions) whenever a git tag is pushed.
 The progress of future releases is tracked with [Github Milestones](https://github.com/cosmoscout/cosmoscout-vr/milestones).
 Submitted [issues](https://github.com/cosmoscout/cosmoscout-vr/issues) will be assigned to a specific release (depending on their importance and complexity).
 
@@ -58,8 +58,8 @@ git push origin master
 ```
 
 The default downloads for tags on Github do not contain git submodules.
-Therefore, a separate archive containing all the submodule code is automatically created via Github Actions when a tag is pushed.
-Furthermore, binaries for Windows and Linux are automatically compiled with Github Actions and uploaded to the respective release.
+Therefore, a separate archive containing all the submodule code is automatically created via [Github Actions](https://github.com/cosmoscout/cosmoscout-vr/actions) when a tag is pushed.
+Furthermore, binaries for Windows and Linux are automatically compiled with [Github Actions](https://github.com/cosmoscout/cosmoscout-vr/actions) and uploaded to the respective release.
 
 <p align="center"><img src ="img/hr.svg"/></p>
 <p align="center">
