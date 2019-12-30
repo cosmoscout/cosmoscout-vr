@@ -955,6 +955,7 @@ The trick is, to create a separate git repository for your configuration files a
   subdirectories.
   So you can install any scripts / configs / data files you like as part of CosmoScout's build process!
 
+  <p align="center"><img src="img/hr.svg" /></p>
   <p align="center">
     <a href="using.md">&lsaquo; Using CosmoScout VR</a>
     <img src="img/nav-vspace.svg" />
@@ -962,5 +963,3 @@ The trick is, to create a separate git repository for your configuration files a
     <img src="img/nav-vspace.svg" />
     <a href="contributing.md">Contributing Guides &rsaquo;</a>
   </p>
-
-  <p align="center"><img src="img/hr.svg" /></p>

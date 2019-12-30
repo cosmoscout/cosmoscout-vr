@@ -125,10 +125,9 @@ The progress of this operation is shown on the loading screen.
 
 :information_source: _**Tip:** You can use [clcache](https://github.com/frerich/clcache) to considerably speed up build times. You just need to call `make_externals.bat -G "Visual Studio 15 Win64" -DCMAKE_VS_GLOBALS="CLToolExe=clcache.exe;TrackFileAccess=false"` and `make.bat -G "Visual Studio 15 Win64" -DCMAKE_VS_GLOBALS=CLToolExe"=clcache.exe;TrackFileAccess=false"` respectively._
 
+<p align="center"><img src ="img/hr.svg"/></p>
 <p align="center">
   <a href="README.md">&#8962; Help Index</a>
   <img src ="img/nav-vspace.svg"/>
   <a href="ide-setup.md">Setup your IDE &rsaquo;</a>
 </p>
-
-<p align="center"><img src ="img/hr.svg"/></p>

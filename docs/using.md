@@ -28,6 +28,7 @@ In addition, there are some buttons controlling the simulation time.
 On the left hand side is the main menu.
 Here you can select which data sets are shown, manipulate the surface visualization, add annotations, fly to pre-defined locations and perform various other tasks.
 
+<p align="center"><img src ="img/hr.svg"/></p>
 <p align="center">
   <a href="ide-setup.md">&lsaquo; Setup your IDE</a>
   <img src ="img/nav-vspace.svg"/>
@@ -35,5 +36,3 @@ Here you can select which data sets are shown, manipulate the surface visualizat
   <img src ="img/nav-vspace.svg"/>
   <a href="configuring.md">Configuring CosmoScout VR &rsaquo;</a>
 </p>
-
-<p align="center"><img src ="img/hr.svg"/></p>

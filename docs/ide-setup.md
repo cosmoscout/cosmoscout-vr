@@ -446,6 +446,7 @@ This file configures Intellisense. On Linux, the CMake flag `-DCMAKE_EXPORT_COMP
 Finally, when this files is created, you can use `F5` to launch the debugger on Windows and on Linux.
 For this to work, CosmoScout VR and its dependencies have to be built in debug mode.
 
+<p align="center"><img src ="img/hr.svg"/></p>
 <p align="center">
   <a href="install.md">&lsaquo; Generic Build Instructions</a>
   <img src ="img/nav-vspace.svg"/>
@@ -453,5 +454,3 @@ For this to work, CosmoScout VR and its dependencies have to be built in debug m
   <img src ="img/nav-vspace.svg"/>
   <a href="using.md">Using CosmoScout VR &rsaquo;</a>
 </p>
-
-<p align="center"><img src ="img/hr.svg"/></p>
