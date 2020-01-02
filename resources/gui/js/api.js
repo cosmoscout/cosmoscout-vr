@@ -208,7 +208,7 @@ class CosmoScout {
   static initTooltips() {
     const config = { delay: 500, placement: 'auto', html: false };
 
-    /* Boostrap Tooltips require jQuery for now */
+    /* Bootstrap Tooltips require jQuery for now */
     $('[data-toggle="tooltip"]').tooltip(config);
     config.placement = 'bottom';
     $('[data-toggle="tooltip-bottom"]').tooltip(config);
