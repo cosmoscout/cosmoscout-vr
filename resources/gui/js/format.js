@@ -1,6 +1,9 @@
+/* eslint no-param-reassign: 0 */
+
 /**
  * Formats different numbers
  */
+// eslint-disable-next-line no-unused-vars
 class Format {
   /**
      * @param number {number|string}

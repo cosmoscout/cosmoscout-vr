@@ -1,6 +1,6 @@
 /* global $,Format,noUiSlider */
 /* eslint max-classes-per-file: 0 */
-'use strict';
+
 
 /**
  * Simplistic api interface containing a name field and init method
@@ -17,7 +17,6 @@ class IApi {
   /**
    * Called in CosmoScout.init
    */
-  // eslint-disable-next-line class-methods-use-this
   init() {
   }
 
@@ -194,7 +193,8 @@ class CosmoScout {
         if (typeof input.dataset.call !== 'undefined') {
           const args = input.dataset.call;
 
-          eval(`CosmoScout.callNative(${args})`)
+          // eslint-disable-next-line no-eval
+          eval(`CosmoScout.callNative(${args})`);
         }
       });
 

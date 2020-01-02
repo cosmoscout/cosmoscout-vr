@@ -1,6 +1,7 @@
 /**
  * Locales won't work in Android WebView
  */
+// eslint-disable-next-line no-unused-vars
 class DateOperations {
   static _defaultLocale = 'de-de';
 
@@ -13,7 +14,7 @@ class DateOperations {
   /**
    * Set a locale for all formatDateReadable calls
    *
-   * @param locale
+   * @param {string} locale
    */
   static setLocale(locale) {
     try {
@@ -83,9 +84,16 @@ class DateOperations {
     const converted = {};
 
     converted.days = Math.floor(seconds / dSec);
-    converted.hours = Math.floor((seconds - (converted.days * dSec)) / hSec);
-    converted.minutes = Math.floor((seconds - (converted.days * dSec) - (converted.hours * hSec)) / mSec);
-    converted.seconds = Math.floor(seconds - (converted.days * dSec) - (converted.hours * hSec) - (converted.minutes * mSec));
+
+    const daysSec = converted.days * dSec;
+    converted.hours = Math.floor((seconds - daysSec) / hSec);
+
+    const hoursSec = converted.hours * hSec;
+    converted.minutes = Math.floor((seconds - daysSec - hoursSec) / mSec);
+
+    const minSec = converted.minutes * mSec;
+    converted.seconds = Math.floor(seconds - daysSec - hoursSec - minSec);
+
     converted.milliSec = Math.round((seconds - Math.floor(seconds)) * 1000);
 
     return converted;
