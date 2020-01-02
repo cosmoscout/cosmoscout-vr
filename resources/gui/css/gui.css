@@ -737,12 +737,12 @@ hr {
     border-radius: 5px;
 }
 
-#cosmo-scout {
+#comsoscout {
     opacity: 0;
     transition: opacity .75s;
 }
 
-.loaded #cosmo-scout {
+.loaded #comsoscout {
     opacity: 1;
     z-index: 2;
 }
