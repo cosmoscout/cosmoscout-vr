@@ -1,3 +1,8 @@
+/* global IApi, Format */
+
+/**
+ * Statusbar Api
+ */
 class StatusbarApi extends IApi {
     /**
      * @inheritDoc
