@@ -1,7 +1,11 @@
+/* global $,Format,noUiSlider */
+/* eslint max-classes-per-file: 0 */
+'use strict';
 
 /**
  * Simplistic api interface containing a name field and init method
  */
+// eslint-disable-next-line no-unused-vars
 class IApi {
   /**
    * Api Name
@@ -13,6 +17,7 @@ class IApi {
   /**
    * Called in CosmoScout.init
    */
+  // eslint-disable-next-line class-methods-use-this
   init() {
   }
 
@@ -41,14 +46,16 @@ class IApi {
    * @return {RegExp}
    * @protected
    */
+  // eslint-disable-next-line class-methods-use-this
   regex(matcher) {
-    return new RegExp(`\%${matcher}\%`, 'g');
+    return new RegExp(`%${matcher}%`, 'g');
   }
 }
 
 /**
  * Api Container holding all registered apis.
  */
+// eslint-disable-next-line no-unused-vars
 class CosmoScout {
   /**
    * @type {Map<string, Object>}
@@ -84,7 +91,7 @@ class CosmoScout {
         let instance;
 
         if (typeof Api === 'string' && String(Api).slice(-3) === 'Api') {
-          // oof
+          // eslint-disable-next-line no-eval
           instance = eval(`new ${Api}()`);
         } else {
           instance = new Api();
@@ -119,30 +126,14 @@ class CosmoScout {
     const dropdowns = $('.simple-value-dropdown');
     dropdowns.selectpicker();
 
-    dropdowns.on('change', function () {
-      if (this.id !== '') {
-        CosmoScout.callNative(this.id, this.value);
+    const eventListener = (event) => {
+      if (event.target !== null && event.target.id !== '') {
+        CosmoScout.callNative(event.target.id, event.target.value);
       }
-    });
-
-    return;
+    };
 
     document.querySelectorAll('.simple-value-dropdown').forEach((dropdown) => {
-      if (typeof dropdown.selectpicker !== 'undefined') {
-        dropdown.selectpicker();
-      }
-
-      if (typeof dropdown.dataset.initialized !== 'undefined') {
-        return;
-      }
-
-      dropdown.addEventListener('change', (event) => {
-        if (event.target !== null && event.target.id !== '') {
-          CosmoScout.callNative(event.target.id, event.target.value);
-        }
-      });
-
-      dropdown.dataset.initialized = 'true';
+      dropdown.addEventListener('change', eventListener);
     });
   }
 
@@ -187,7 +178,7 @@ class CosmoScout {
   /**
    * @see {initInputs}
    * @see {callNative}
-   * Adds an onclick listener to every element containing [data-call="methodname"]
+   * Adds an onclick listener to every element containing [data-call="'methodname'"]
    * The method name gets passed to CosmoScout.callNative.
    * Arguments can be passed by separating the content with ','
    * E.g.: fly_to,Africa -> CosmoScout.callNative('fly_to', 'Africa')
@@ -201,13 +192,9 @@ class CosmoScout {
 
       input.addEventListener('click', () => {
         if (typeof input.dataset.call !== 'undefined') {
-          const args = input.dataset.call.split(',');
-          /* Somewhat ugly check if second arg is a number. Requires last char to be 'f' */
-          if (typeof args[1] !== 'undefined' && args[1].slice(-1) === 'f') {
-            args[1] = parseFloat(args[1]);
-          }
+          const args = input.dataset.call;
 
-          CosmoScout.callNative(...args);
+          eval(`CosmoScout.callNative(${args})`)
         }
       });
 
@@ -225,22 +212,6 @@ class CosmoScout {
     $('[data-toggle="tooltip"]').tooltip(config);
     config.placement = 'bottom';
     $('[data-toggle="tooltip-bottom"]').tooltip(config);
-
-    return;
-
-    /* Init tooltips without jQuery */
-    document.querySelectorAll('[data-toggle="tooltip"]').forEach((tooltip) => {
-      if (typeof tooltip.tooltip !== 'undefined') {
-        tooltip.tooltip(config);
-      }
-    });
-
-    document.querySelectorAll('[data-toggle="tooltip-bottom"]').forEach((tooltip) => {
-      if (typeof tooltip.tooltip !== 'undefined') {
-        config.placement = 'bottom';
-        tooltip.tooltip(config);
-      }
-    });
   }
 
   /**
@@ -361,11 +332,11 @@ class CosmoScout {
    * Tries to load the template content of 'id-template'
    * Returns false if no template was found, HTMLElement otherwise.
    *
-   * @param id {string} Template element id without '-template' suffix
+   * @param templateId {string} Template element id without '-template' suffix
    * @return {boolean|HTMLElement}
    */
-  static loadTemplateContent(id) {
-    id = `${id}-template`;
+  static loadTemplateContent(templateId) {
+    const id = `${templateId}-template`;
 
     if (this._templates.has(id)) {
       return this._templates.get(id).cloneNode(true).firstElementChild;
@@ -392,6 +363,7 @@ class CosmoScout {
    */
   static clearHtml(element) {
     if (typeof element === 'string') {
+      // eslint-disable-next-line no-param-reassign
       element = document.getElementById(element);
     }
 
@@ -536,29 +508,6 @@ class CosmoScout {
 
     if (element !== null) {
       element.value = value;
-    }
-  }
-
-  /**
-   * Global entry point to call any method on any registered api
-   *
-   * @param api {string} Name of api
-   * @param method {string} Method name
-   * @param args {string|number|boolean|Function|Object} Arguments to pass through
-   * @return {*}
-   */
-  static call(api, method, ...args) {
-    if (method !== 'setUserPosition' && method !== 'setNorthDirection' && method !== 'setSpeed' && method !== 'setDate') {
-      // console.log(`Calling '${method}' on '${api}'`);
-    }
-
-    if (this._apis.has(api)) {
-      if (typeof (this._apis.get(api))[method] !== 'undefined' && method[0] !== '_') {
-        return (this._apis.get(api))[method](...args);
-      }
-      console.error(`'${method}' does not exist on api '${api}'.`);
-    } else {
-      console.error(`Api '${api}' is not registered.`);
     }
   }
 
