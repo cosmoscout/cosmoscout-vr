@@ -71,25 +71,6 @@ class SidebarApi extends IApi {
     this._settings.appendChild(tab);
   }
 
-  /**
-   * Passthrough call to CosmoScout.clearHtml
-   *
-   * @param id {string}
-   */
-  clearContainer(id) {
-    CosmoScout.clearHtml(id);
-  }
-
-  /**
-   * TODO UNUSED / Remove jQuery
-   *
-   * @param id {string}
-   */
-  clearDropdown(id) {
-    CosmoScout.clearHtml(id);
-
-    $(`#${id}`).selectpicker('render');
-  }
 
   /**
    * Sets an elevation data copyright tooltip
@@ -109,76 +90,6 @@ class SidebarApi extends IApi {
    */
   setMapDataCopyright(copyright) {
     $('#dem-data-copyright').tooltip({ title: `© ${copyright}`, placement: 'bottom' });
-  }
-
-  /**
-   * Adds an option to a dropdown
-   * TODO remove jQuery
-   *
-   * @param id {string} DropDown ID
-   * @param value {string|number} Option value
-   * @param text {string} Option text
-   * @param selected {boolean} Selected flag
-   */
-  addDropdownValue(id, value, text, selected = false) {
-    const dropdown = document.getElementById(id);
-    const option = document.createElement('option');
-
-    option.value = value;
-    option.selected = selected === true;
-    option.text = text;
-
-    if (dropdown !== null) {
-      dropdown.appendChild(option);
-
-      $(`#${id}`).selectpicker('refresh');
-    } else {
-      console.warn(`Dropdown '${id} 'not found`);
-    }
-  }
-
-  /**
-   * TODO UNUSED
-   *
-   * @param id {string}
-   * @param value {string|number}
-   */
-  setDropdownValue(id, value) {
-    $(`#${id}`).selectpicker('val', value);
-  }
-
-  /**
-   * TODO UNUSED
-   * @param id {string}
-   */
-  setRadioChecked(id) {
-    this.setCheckboxValue(id, true);
-  }
-
-  /**
-   * TODO UNUSED
-   * @param id {string}
-   * @param value {boolean}
-   */
-  setCheckboxValue(id, value) {
-    const element = document.getElementById(id);
-
-    if (element !== null) {
-      element.checked = value === true;
-    }
-  }
-
-  /**
-   * TODO UNUSED
-   * @param id {string}
-   * @param value {string}
-   */
-  setTextboxValue(id, value) {
-    const element = document.querySelector(`.item-${id} .text-input`);
-
-    if (element !== null) {
-      element.value = value;
-    }
   }
 
   /**

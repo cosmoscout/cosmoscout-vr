@@ -466,6 +466,80 @@ class CosmoScout {
   }
 
   /**
+   * @param id {string}
+   */
+  static clearDropdown(id) {
+    CosmoScout.clearHtml(id);
+
+    $(`#${id}`).selectpicker('render');
+  }
+
+  /**
+   * Adds an option to a dropdown
+   * TODO remove jQuery
+   *
+   * @param id {string} DropDown ID
+   * @param value {string|number} Option value
+   * @param text {string} Option text
+   * @param selected {boolean} Selected flag
+   */
+  static addDropdownValue(id, value, text, selected = false) {
+    const dropdown = document.getElementById(id);
+    const option = document.createElement('option');
+
+    option.value = value;
+    option.selected = selected === true;
+    option.text = text;
+
+    if (dropdown !== null) {
+      dropdown.appendChild(option);
+
+      $(`#${id}`).selectpicker('refresh');
+    } else {
+      console.warn(`Dropdown '${id} 'not found`);
+    }
+  }
+
+  /**
+   * @param id {string}
+   * @param value {string|number}
+   */
+  static setDropdownValue(id, value) {
+    $(`#${id}`).selectpicker('val', value);
+  }
+
+  /**
+   * @param id {string}
+   */
+  static setRadioChecked(id) {
+    this.setCheckboxValue(id, true);
+  }
+
+  /**
+   * @param id {string}
+   * @param value {boolean}
+   */
+  static setCheckboxValue(id, value) {
+    const element = document.getElementById(id);
+
+    if (element !== null) {
+      element.checked = value === true;
+    }
+  }
+
+  /**
+   * @param id {string}
+   * @param value {string}
+   */
+  static setTextboxValue(id, value) {
+    const element = document.querySelector(`.item-${id} .text-input`);
+
+    if (element !== null) {
+      element.value = value;
+    }
+  }
+
+  /**
    * Global entry point to call any method on any registered api
    *
    * @param api {string} Name of api
