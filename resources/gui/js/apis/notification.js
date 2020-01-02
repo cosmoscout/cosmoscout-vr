@@ -1,3 +1,8 @@
+/* global IApi, CosmoScout */
+
+/**
+ * Notifications
+ */
 class NotificationApi extends IApi {
     /**
      * @inheritDoc
@@ -38,7 +43,7 @@ class NotificationApi extends IApi {
 
       let notification;
       try {
-        notification = this._makeNotification(title, content, icon);
+        notification = NotificationApi.makeNotification(title, content, icon);
       } catch (e) {
         return;
       }
@@ -71,7 +76,7 @@ class NotificationApi extends IApi {
      * @return {HTMLElement}
      * @private
      */
-    _makeNotification(title, content, icon = '') {
+    static makeNotification(title, content, icon = '') {
       const notification = CosmoScout.loadTemplateContent('notification');
 
       if (notification === false) {
