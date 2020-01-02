@@ -57,7 +57,7 @@ class InputManager;
 /// notifications area. There are methods for getting access to these GuiItems - for example, these
 /// can be used to register callbacks which will be executed when a button is pressed in the UI.
 /// Plugins can add content to the sidebar. This is done with the methods addPluginTabToSideBar(),
-/// addSettingsSectionToSideBar() and addScriptToSideBar().
+/// addSettingsSectionToSideBar() and addScriptToGui().
 ///
 /// This class should only be instantiated once - this is done by the Application class and this
 /// instance is then passed to all plugins.
@@ -116,12 +116,12 @@ class CS_CORE_EXPORT GuiManager {
   /// This is identical to getGui()->executeJavascript(src);
   ///
   /// @param src The javascript source code.
-  void addScriptToSideBar(std::string const& src);
+  void addScriptToGui(std::string const& src);
 
   /// This can be used to initialize the DOM elements added to the sidebar with the methods above.
   ///
   /// @param jsFile The javascript file that contains the source code.
-  void addScriptToSideBarFromJS(std::string const& jsFile);
+  void addScriptToGuiFromJS(std::string const& jsFile);
 
   /// This can be used to initialize the DOM elements added to the sidebar with the methods above.
   /// This is identical to getGui()->executeJavascript(src);

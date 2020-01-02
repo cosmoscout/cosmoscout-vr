@@ -126,7 +126,6 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
   // Now we will call some JavaScript methods - so we have to wait until the GuiItems have been
   // fully loaded.
   mCosmoScoutGui->waitForFinishedLoading();
-  // mLoadingScreen->waitForFinishedLoading();
 
   // Create a string which contains the current version number of CosmoScout VR. This string is then
   // shown on the loading screen.
@@ -355,15 +354,15 @@ void GuiManager::addSettingsSectionToSideBarFromHTML(
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GuiManager::addScriptToSideBar(std::string const& src) {
+void GuiManager::addScriptToGui(std::string const& src) {
   mCosmoScoutGui->executeJavascript(src);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GuiManager::addScriptToSideBarFromJS(std::string const& jsFile) {
+void GuiManager::addScriptToGuiFromJS(std::string const& jsFile) {
   std::string content = utils::filesystem::loadToString(jsFile);
-  addScriptToSideBar(content);
+    addScriptToGui(content);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
