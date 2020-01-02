@@ -30,7 +30,7 @@
     text-shadow: 0 0 5px rgba(255, 255, 255, 0.4), 0 0 10px #aaf;
     text-align: center;
     padding: 3px;
-    border-top: 2px solid #ccf !important;
+    border-top: 2px solid var(--cs-border-color) !important;
     position: relative;
 }
 

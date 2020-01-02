@@ -11,7 +11,7 @@
 
 #timeline .vis-timeline {
     border-width: 0;
-    border-color: #ddf;
+    border-color: var(--cs-border-color-light);
     overflow: visible !important;
 }
 
@@ -21,13 +21,13 @@
 
 .vis-time-axis .vis-text {
     padding: 1px;
-    color: #ddf;
+    color: var(--cs-text-color);;
 }
 
 #timeline .vis-item {
     border-color: rgba(20, 20, 20, 0.308);
     background-color: rgba(20, 20, 20, 0.5);
-    color: #ddf;
+    color: var(--cs-text-color);;
     border-radius: 10px;
 }
 
@@ -105,7 +105,7 @@
 }
 
 #timeline .vis-custom-time.custom {
-    background-color: #ddf;
+    background-color: var(--cs-background-color-light);
     width: 16px !important;
     height: 16px !important;
     cursor: inherit;
@@ -127,14 +127,14 @@
 }
 
 #timeline .vis-grid.vis-vertical.vis-minor {
-    border-color: #ddf;
+    border-color: var(--cs-border-color-light);
     height: 12px !important;
     top: 22px !important;
     border-width: 2px;
 }
 
 #timeline .vis-grid.vis-vertical.vis-major {
-    border-color: #ddf;
+    border-color: var(--cs-border-color-light);
     height: 30px !important;
     top: 4px !important;
     border-width: 2px;
@@ -270,7 +270,7 @@
     width: 5px !important;
     height: 5px !important;
     border-radius: 50% !important;
-    background-color: #ddf;
+    background-color: var(--cs-background-color-light);
     z-index: 1;
     top: 0 !important;
 }
@@ -291,7 +291,7 @@
     border-width: 3px 3px 0 3px;
     border-top-left-radius: 10px;
     border-top-right-radius: 10px;
-    border-color: #ddf;
+    border-color: var(--cs-border-color-light);
     pointer-events: none;
     background-color: rgba(20, 20, 20, 0.5);
     top: 2px ;
@@ -302,7 +302,7 @@
 #focus-lens-left,
 #focus-lens-right {
     height: 1px;
-    border-bottom: 2px solid #ddf;
+    border-bottom: 2px solid var(--cs-border-color-light);
     position: absolute;
     pointer-events: none;
     z-index: 1;
@@ -343,7 +343,7 @@ position: relative;
     top: 75px;
     height: 2px;
     position: absolute;
-    background-color: #ddf;
+    background-color: var(--cs-background-color-light);
     width: 50%;
     left: 0;
     transform: translateX(-170px);
@@ -353,7 +353,7 @@ position: relative;
     top: 75px;
     height: 2px;
     position: absolute;
-    background-color: #ddf;
+    background-color: var(--cs-background-color-light);
     width: 50%;
     right: 0;
     transform: translateX(170px);
@@ -381,7 +381,7 @@ position: relative;
     padding: 4px 4px 0 4px;
     line-height: 35px;
     border-radius: 0;
-    color: #ddf
+    color: var(--cs-text-color);
 }
 
 #time-control {
@@ -389,7 +389,7 @@ position: relative;
     transform: translateX(-50%);
     background-color: rgba(20, 20, 20, 0.5);
     border-radius: 0 0 50px 50px;
-    border-bottom-color: #ddf;
+    border-bottom-color: var(--cs-border-color-light);
     border-bottom-width: 2px;
     border-bottom-style: solid;
     width: 330px;
@@ -408,7 +408,7 @@ position: relative;
 }
 
 #timeline-container .btn-main {
-    background-color: #ddf;
+    background-color: var(--cs-background-color-light);
     width: 60px;
     height: 40px;
 }
@@ -416,7 +416,7 @@ position: relative;
 #timeline-container #pause-button:hover,
 #expand-control:hover,
 #time-reset-button:hover {
-    background-color: white;
+    background-color: #fff;
 }
 
 #pause-button i,
@@ -453,7 +453,7 @@ position: relative;
 
 #expand-control {
     right: 20px;
-    background-color: #ddf;
+    background-color: var(--cs-background-color-light);
     border-radius: 0 0 3px 3px;
     top: 75px;
     height: 30px;
@@ -583,40 +583,6 @@ position: relative;
     font-size: 28px;
 }
 
-/*
-
-.range-label {
-  height: 50px !important;
-  width: 50px !important;
-  top: -33px !important;
-  left: -12px !important;
-  background-color: #ddf !important;
-}
-
-.range-label:hover {
-  background-color: white !important;
-}
-
-.range-label i {
-  color: rgb(20, 20, 20);
-  transform: rotate(45deg);
-  font-size: 50px;
-  top: 0;
-  left: 0;
-}
-
-.noUi-handle.noUi-handle-lower.noUi-active {
-  left: -5px;
-  top: -5px;
-  transition: none;
-}
-
-.noUi-target .noUi-active .range-label {
-  transform: scale(.5) rotate(-45deg);
-  background-color: white !important;
-}
-*/
-
 #timeline-container .noUi-target.noUi-ltr.noUi-horizontal.noUi-background {
     background-color: transparent;
     background-image: linear-gradient(90deg, rgba(221, 211, 255, 0.5) 0%, rgba(221, 211, 255, 0.5) 25%,
@@ -640,7 +606,7 @@ position: relative;
     width: 300px;
     padding: 10px;
     background-color: rgba(20, 20, 20, 0.8);
-    border: 2px solid #ddf;
+    border: 2px solid var(--cs-border-color-light);;
     border-radius: 10px;
 }
 
@@ -707,7 +673,7 @@ position: relative;
 /* Set a style for the apply/cancel button*/
 .form-container .btn {
     background-color: #4CAF50;
-    color: white;
+    color: #fff;
     border: none;
     cursor: pointer;
     width: 100%;

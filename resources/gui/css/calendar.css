@@ -24,7 +24,7 @@
 
 .datepicker {
     background-color: rgba(20, 20, 20, 0.5);
-    border-bottom: 3px solid #ccf;
+    border-bottom: 3px solid var(--cs-border-color);
 }
 
 .datepicker-inline {
