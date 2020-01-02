@@ -12,7 +12,7 @@
     transition: opacity 0.2s linear;
 }
 
-#statusbar.visible {
+.loaded #statusbar {
     opacity: 1;
 }
 
