@@ -1,11 +1,9 @@
 /* global $,Format,noUiSlider */
-/* eslint max-classes-per-file: 0 */
-
+/* eslint-disable max-classes-per-file */
 
 /**
  * Simplistic api interface containing a name field and init method
  */
-// eslint-disable-next-line no-unused-vars
 class IApi {
   /**
    * Api Name
