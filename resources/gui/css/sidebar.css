@@ -101,7 +101,7 @@
 
 /* Setting Sections --------------------------------------------------------- */
 
-.settings-section .card-header {
+#sidebar .settings-section .card-header {
     font-family: 'AlegreyaSansSC', sans-serif;
     width: 100%;
     font-size: 1.5rem;
@@ -115,33 +115,33 @@
     padding: 0.5rem 1.7rem;
 }
 
-.settings-section .card-header:active {
+#sidebar .settings-section .card-header:active {
     top: 1px;
 }
 
-.settings-section .card-header i {
+#sidebar .settings-section .card-header i {
     width: 2rem;
     font-size: 1.6rem;
     display: inline-block;
     line-height: 2rem;
 }
 
-.settings-section .card-header span {
+#sidebar .settings-section .card-header span {
     text-align: center;
     display: inline-block;
     padding-left: 25px;
 }
 
-.settings-section .card-body {
+#sidebar .settings-section .card-body {
     background-color: transparent !important;
     width: 100%;
 }
 
-.settings-section .card-header:hover {
+#sidebar .settings-section .card-header:hover {
     background: rgba(255, 255, 255, 0.1);
 }
 
-.settings-section .card-header .caret-icon {
+#sidebar .settings-section .card-header .caret-icon {
     position: absolute;
     left: auto;
     right: 0;
@@ -149,7 +149,7 @@
     transition: 100ms transform;
 }
 
-.settings-section .card-header:not(.collapsed) .caret-icon {
+#sidebar .settings-section .card-header:not(.collapsed) .caret-icon {
     transform: rotate(-90deg);
 }
 
