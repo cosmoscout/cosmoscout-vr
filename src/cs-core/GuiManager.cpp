@@ -141,11 +141,11 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
     version += ")";
   }
 
-  mCosmoScoutGui->callJavascript("CosmoScout.call", "loading_screen", "setVersion", version);
+  mCosmoScoutGui->callJavascript("CosmoScout.loadingScreen.setVersion", version);
 
   // Set settings for the time Navigation
   mCosmoScoutGui->callJavascript(
-      "CosmoScout.call", "timeline", "setTimelineRange", settings->mMinDate, settings->mMaxDate);
+      "CosmoScout.timeline.setTimelineRange", settings->mMinDate, settings->mMaxDate);
 
   for (int i = 0; i < settings->mEvents.size(); i++) {
     std::string planet = "";
@@ -220,7 +220,7 @@ void GuiManager::setCursor(gui::Cursor cursor) {
 void GuiManager::showNotification(std::string const& sTitle, std::string const& sText,
     std::string const& sIcon, std::string const& sFlyToOnClick) const {
   mCosmoScoutGui->callJavascript(
-      "CosmoScout.call", "notifications", "printNotification", sTitle, sText, sIcon, sFlyToOnClick);
+      "CosmoScout.notifications.printNotification", sTitle, sText, sIcon, sFlyToOnClick);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -232,20 +232,20 @@ gui::GuiItem* GuiManager::getGui() const {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void GuiManager::enableLoadingScreen(bool enable) {
-  mCosmoScoutGui->callJavascript("CosmoScout.call", "loading_screen", "setLoading", enable);
+  mCosmoScoutGui->callJavascript("CosmoScout.loadingScreen.setLoading", enable);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void GuiManager::setLoadingScreenStatus(std::string const& sStatus) const {
-  mCosmoScoutGui->callJavascript("CosmoScout.call", "loading_screen", "setStatus", sStatus);
+  mCosmoScoutGui->callJavascript("CosmoScout.loadingScreen.setStatus", sStatus);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void GuiManager::setLoadingScreenProgress(float percent, bool animate) const {
   mCosmoScoutGui->callJavascript(
-      "CosmoScout.call", "loading_screen", "setProgress", percent, animate);
+      "CosmoScout.loadingScreen.setProgress", percent, animate);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -313,7 +313,7 @@ void GuiManager::update() {
       json = "{}";
     }
 
-    mCosmoScoutGui->callJavascript("CosmoScout.call", "statistics", "setData", json,
+    mCosmoScoutGui->callJavascript("CosmoScout.statistics.setData", json,
         GetVistaSystem()->GetFrameLoop()->GetFrameRate());
   }
 
@@ -325,7 +325,7 @@ void GuiManager::update() {
 
 void GuiManager::addPluginTabToSideBar(
     std::string const& name, std::string const& icon, std::string const& content) {
-  mCosmoScoutGui->callJavascript("CosmoScout.call", "sidebar", "addPluginTab", name, icon, content);
+  mCosmoScoutGui->callJavascript("CosmoScout.sidebar.addPluginTab", name, icon, content);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -341,7 +341,7 @@ void GuiManager::addPluginTabToSideBarFromHTML(
 void GuiManager::addSettingsSectionToSideBar(
     std::string const& name, std::string const& icon, std::string const& content) {
   mCosmoScoutGui->callJavascript(
-      "CosmoScout.call", "sidebar", "addSettingsSection", name, icon, content);
+      "CosmoScout.sidebar.addSettingsSection", name, icon, content);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -377,7 +377,7 @@ void GuiManager::addHtmlToGui(std::string const& id, std::string const& src) {
 void GuiManager::addEventToTimenavigationBar(std::string start, std::optional<std::string> end,
     std::string id, std::string content, std::optional<std::string> style, std::string description,
     std::string planet, std::string place) {
-  mCosmoScoutGui->callJavascript("CosmoScout.call", "timeline", "addItem", start, end.value_or(""),
+  mCosmoScoutGui->callJavascript("CosmoScout.timeline.addItem", start, end.value_or(""),
       id, content, style.value_or(""), description, planet, place);
 }
 

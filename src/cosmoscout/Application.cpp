@@ -508,10 +508,10 @@ void Application::FrameUpdate() {
       double heightDiff    = polar.z / mGraphicsEngine->pHeightScale.get() - surfaceHeight;
 
       if (!std::isnan(polar.x) && !std::isnan(polar.y) && !std::isnan(heightDiff)) {
-        mGuiManager->getGui()->callJavascript("CosmoScout.call", "timeline", "setUserPosition",
+        mGuiManager->getGui()->callJavascript("CosmoScout.timeline.setUserPosition",
             cs::utils::convert::toDegrees(polar.x), cs::utils::convert::toDegrees(polar.y),
             heightDiff);
-        mGuiManager->getGui()->callJavascript("CosmoScout.call", "statusbar", "setUserPosition",
+        mGuiManager->getGui()->callJavascript("CosmoScout.statusbar.setUserPosition",
             cs::utils::convert::toDegrees(polar.x), cs::utils::convert::toDegrees(polar.y),
             heightDiff);
       }
@@ -529,7 +529,7 @@ void Application::FrameUpdate() {
       }
 
       mGuiManager->getGui()->callJavascript(
-          "CosmoScout.call", "timeline", "setNorthDirection", angle);
+          "CosmoScout.timeline.setNorthDirection", angle);
     }
 
     mGuiManager->update();
@@ -642,7 +642,7 @@ void Application::connectSlots() {
           }
         }
         mGuiManager->getGui()->callJavascript(
-            "CosmoScout.call", "statusbar", "setPointerPosition", false);
+            "CosmoScout.statusbar.setPointerPosition", false);
       });
 
   // Update the time shown in the user interface when the simulation time changes.
@@ -652,12 +652,12 @@ void Application::connectSlots() {
     facet->format("%d-%b-%Y %H:%M:%S.%f");
     sstr.imbue(std::locale(std::locale::classic(), facet));
     sstr << cs::utils::convert::toBoostTime(val);
-    mGuiManager->getGui()->callJavascript("CosmoScout.call", "timeline", "setDate", sstr.str());
+    mGuiManager->getGui()->callJavascript("CosmoScout.timeline.setDate", sstr.str());
   });
 
   // Update the simulation time speed shown in the user interface.
   mTimeControl->pTimeSpeed.onChange().connect([this](float val) {
-    mGuiManager->getGui()->callJavascript("CosmoScout.call", "timeline", "setTimeSpeed", val);
+    mGuiManager->getGui()->callJavascript("CosmoScout.timeline.setTimeSpeed", val);
   });
 
   // Show notification when the center name of the celestial observer changes.
@@ -688,7 +688,7 @@ void Application::connectSlots() {
 
   // Show the current speed of the celestial observer in the user interface.
   mSolarSystem->pCurrentObserverSpeed.onChange().connect([this](float speed) {
-    mGuiManager->getGui()->callJavascript("CosmoScout.call", "statusbar", "setSpeed", speed);
+    mGuiManager->getGui()->callJavascript("CosmoScout.statusbar.setSpeed", speed);
   });
 
   // Show the statistics GuiItem when measurements are enabled.

@@ -1,5 +1,5 @@
 class LoadingScreenApi extends IApi {
-  name = 'loading_screen';
+  name = 'loadingScreen';
 
   /**
    * @type {HTMLElement}
