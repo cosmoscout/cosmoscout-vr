@@ -1,4 +1,12 @@
+/* global IApi, CosmoScout */
+
+/**
+ * The loading screen
+ */
 class LoadingScreenApi extends IApi {
+  /**
+   * @inheritDoc
+   */
   name = 'loadingScreen';
 
   /**
@@ -21,6 +29,9 @@ class LoadingScreenApi extends IApi {
    */
   _progressBar;
 
+  /**
+   * @inheritDoc
+   */
   init() {
     this._loadingScreen = document.getElementById('loading-screen');
     this._version = document.getElementById('version');
@@ -28,6 +39,12 @@ class LoadingScreenApi extends IApi {
     this._progressBar = document.getElementById('progress-bar');
   }
 
+  /**
+   * Enable the loading screen.
+   * Removes dependencies if enable is false
+   *
+   * @param {boolean} enable
+   */
   setLoading(enable) {
     if (enable) {
       document.body.classList.add('loading');
@@ -44,10 +61,21 @@ class LoadingScreenApi extends IApi {
     }
   }
 
+  /**
+   * Sets the status text like current plugin
+   *
+   * @param {string} text
+   */
   setStatus(text) {
     this._status.innerHTML = text;
   }
 
+  /**
+   * Updates the progress bar progress
+   *
+   * @param {number} percent
+   * @param {boolean} animate
+   */
   setProgress(percent, animate) {
     if (animate) {
       this._progressBar.classList.add('animated');
@@ -58,6 +86,11 @@ class LoadingScreenApi extends IApi {
     this._progressBar.style.width = `${percent}%`;
   }
 
+  /**
+   * Sets the version string
+   *
+   * @param {string} text
+   */
   setVersion(text) {
     this._version.innerHTML = text;
   }
