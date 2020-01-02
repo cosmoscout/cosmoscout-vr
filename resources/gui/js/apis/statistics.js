@@ -1,3 +1,8 @@
+/* global IApi, CosmoScout, ColorHash */
+
+/**
+ * Statistics Api
+ */
 class StatisticsApi extends IApi {
   /**
    * @inheritDoc
@@ -71,8 +76,9 @@ class StatisticsApi extends IApi {
     this._addNewElements();
 
     // remove all with very little contribution
-    this._values = this._values.filter((element) => element.timeGPU > this._minTime || element.timeCPU > this._minTime
-      || element.avgTimeGPU > this._minTime || element.avgTimeCPU > this._minTime);
+    const minTime = (element) => element.timeGPU > this._minTime || element.timeCPU > this._minTime
+      || element.avgTimeGPU > this._minTime || element.avgTimeCPU > this._minTime;
+    this._values = this._values.filter(minTime);
 
     // update average values
     this._values.forEach((element) => {
@@ -95,8 +101,8 @@ class StatisticsApi extends IApi {
   _resetTimes() {
     this._values.forEach((value) => {
       if (typeof this._data[value.name] !== 'undefined') {
-        value.timeGPU = this._data[value.name][0];
-        value.timeCPU = this._data[value.name][1];
+        [value.timeGPU, value.timeCPU] = this._data[value.name];
+
         this._data[value.name][0] = -1;
         this._data[value.name][1] = -1;
       } else {
@@ -113,11 +119,7 @@ class StatisticsApi extends IApi {
    * @private
    */
   _addNewElements() {
-    for (const key in this._data) {
-      if (!this._data.hasOwnProperty(key)) {
-        continue;
-      }
-
+    Object.keys(this._data).forEach((key) => {
       if (this._data[key][0] >= 0) {
         this._values.push({
           name: key,
@@ -128,7 +130,7 @@ class StatisticsApi extends IApi {
           color: this._colorHash.hex(key),
         });
       }
-    }
+    });
   }
 
   /**
@@ -151,8 +153,10 @@ class StatisticsApi extends IApi {
     container.appendChild(item.content);
 
     for (let i = 0; i < maxEntries; ++i) {
+      /* eslint-disable no-mixed-operators */
       const widthGPU = maxWidth * this._values[i].avgTimeGPU / this._maxValue;
       const widthCPU = maxWidth * this._values[i].avgTimeCPU / this._maxValue;
+      /* eslint-enable no-mixed-operators */
 
       item.innerHTML += `<div class="statistics-item">
         <div class="bar gpu" style="background-color:${this._values[i].color}; width:${widthGPU}px"><div class="label">gpu: ${(this._values[i].avgTimeGPU * 0.000001).toFixed(1)} ms</div></div>
