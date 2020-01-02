@@ -528,8 +528,7 @@ void Application::FrameUpdate() {
         angle = -angle;
       }
 
-      mGuiManager->getGui()->callJavascript(
-          "CosmoScout.timeline.setNorthDirection", angle);
+      mGuiManager->getGui()->callJavascript("CosmoScout.timeline.setNorthDirection", angle);
     }
 
     mGuiManager->update();
@@ -634,14 +633,13 @@ void Application::connectSlots() {
             auto lngLat = cs::utils::convert::toDegrees(polar.xy());
 
             if (!std::isnan(lngLat.x) && !std::isnan(lngLat.y) && !std::isnan(polar.z)) {
-              mGuiManager->getGui()->callJavascript("CosmoScout.statusbar.setPointerPosition", true, lngLat.x, lngLat.y,
-                  polar.z / mGraphicsEngine->pHeightScale.get());
+              mGuiManager->getGui()->callJavascript("CosmoScout.statusbar.setPointerPosition", true,
+                  lngLat.x, lngLat.y, polar.z / mGraphicsEngine->pHeightScale.get());
               return;
             }
           }
         }
-        mGuiManager->getGui()->callJavascript(
-            "CosmoScout.statusbar.setPointerPosition", false);
+        mGuiManager->getGui()->callJavascript("CosmoScout.statusbar.setPointerPosition", false);
       });
 
   // Update the time shown in the user interface when the simulation time changes.

@@ -244,8 +244,7 @@ void GuiManager::setLoadingScreenStatus(std::string const& sStatus) const {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void GuiManager::setLoadingScreenProgress(float percent, bool animate) const {
-  mCosmoScoutGui->callJavascript(
-      "CosmoScout.loadingScreen.setProgress", percent, animate);
+  mCosmoScoutGui->callJavascript("CosmoScout.loadingScreen.setProgress", percent, animate);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -313,8 +312,8 @@ void GuiManager::update() {
       json = "{}";
     }
 
-    mCosmoScoutGui->callJavascript("CosmoScout.statistics.setData", json,
-        GetVistaSystem()->GetFrameLoop()->GetFrameRate());
+    mCosmoScoutGui->callJavascript(
+        "CosmoScout.statistics.setData", json, GetVistaSystem()->GetFrameLoop()->GetFrameRate());
   }
 
   // Update all entities of the Chromium Embedded Framework.
@@ -340,8 +339,7 @@ void GuiManager::addPluginTabToSideBarFromHTML(
 
 void GuiManager::addSettingsSectionToSideBar(
     std::string const& name, std::string const& icon, std::string const& content) {
-  mCosmoScoutGui->callJavascript(
-      "CosmoScout.sidebar.addSettingsSection", name, icon, content);
+  mCosmoScoutGui->callJavascript("CosmoScout.sidebar.addSettingsSection", name, icon, content);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -362,7 +360,7 @@ void GuiManager::addScriptToGui(std::string const& src) {
 
 void GuiManager::addScriptToGuiFromJS(std::string const& jsFile) {
   std::string content = utils::filesystem::loadToString(jsFile);
-    addScriptToGui(content);
+  addScriptToGui(content);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -377,8 +375,8 @@ void GuiManager::addHtmlToGui(std::string const& id, std::string const& src) {
 void GuiManager::addEventToTimenavigationBar(std::string start, std::optional<std::string> end,
     std::string id, std::string content, std::optional<std::string> style, std::string description,
     std::string planet, std::string place) {
-  mCosmoScoutGui->callJavascript("CosmoScout.timeline.addItem", start, end.value_or(""),
-      id, content, style.value_or(""), description, planet, place);
+  mCosmoScoutGui->callJavascript("CosmoScout.timeline.addItem", start, end.value_or(""), id,
+      content, style.value_or(""), description, planet, place);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
