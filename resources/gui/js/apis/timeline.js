@@ -1,6 +1,6 @@
-/* global IApi, CosmoScout, vis, CP, $, DateOperations, noUiSlider */
+/* global IApi, CosmoScout, vis, CP, $, DateOperations, noUiSlider, Format */
 
-/* eslint class-methods-use-this: 0 */
+/* eslint-disable class-methods-use-this, max-len, max-classes-per-file, no-underscore-dangle */
 
 /**
  * https://visjs.github.io/vis-timeline/docs/timeline/#getEventProperties
@@ -472,6 +472,9 @@ class TimelineApi extends IApi {
       case -this.MONTHS:
         notification = ['Speed: -Month/s', 'Time runs backwards at one month per second.', 'fast_rewind'];
         break;
+
+      default:
+        break;
     }
 
     if (notification.length > 0) {
@@ -515,7 +518,8 @@ class TimelineApi extends IApi {
 
   _initColorPicker() {
     const picker = new CP(document.querySelector('input[type="colorPicker"]'));
-    picker.on('change', function (color) {
+
+    picker.on('change', function change(color) {
       this.source.value = `#${color}`;
     });
 
