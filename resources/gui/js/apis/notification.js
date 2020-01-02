@@ -53,7 +53,7 @@ class NotificationApi extends IApi {
       if (flyTo) {
         notification.classList.add('clickable');
         notification.addEventListener('click', () => {
-          CosmoScout.call('flyto', 'flyTo', flyTo);
+          CosmoScout.flyto.flyTo(flyTo);
         });
       }
 

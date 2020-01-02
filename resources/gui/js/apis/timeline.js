@@ -475,7 +475,7 @@ class TimelineApi extends IApi {
     }
 
     if (notification.length > 0) {
-      CosmoScout.call('notifications', 'printNotification', ...notification);
+      CosmoScout.notifications.printNotification(...notification);
     }
   }
 
@@ -500,7 +500,7 @@ class TimelineApi extends IApi {
     };
 
     CosmoScout.callNative('fly_to', planet, location.longitude, location.latitude, location.height, animationTime);
-    CosmoScout.call('notifications', 'printNotification', 'Travelling', `to ${location.name}`, 'send');
+    CosmoScout.notifications.printNotification('Travelling', `to ${location.name}`, 'send');
 
     /*    CosmoScout.call(
       'flyto',
