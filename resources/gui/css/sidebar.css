@@ -1,4 +1,4 @@
-.side-bar {
+#sidebar {
     width: 450px;
     height: calc(100vh - 200px);
     overflow-x: hidden;
@@ -8,19 +8,15 @@
     transition: opacity 0.2s linear;
 }
 
-.side-bar.visible {
+.loaded #sidebar {
     opacity: 1;
 }
 
-.side-bar::-webkit-scrollbar {
+#sidebar::-webkit-scrollbar {
     display: none;
 }
 
-.side-bar.right {
-    right: 0;
-}
-
-.side-bar .tab {
+#sidebar .tab {
     color: #fff;
     background-color: rgba(0, 0, 0, 0.5);
     display: block;
@@ -38,11 +34,11 @@
     position: relative;
 }
 
-.side-bar .tab:active {
+#sidebar .tab:active {
     top: 1px;
 }
 
-.side-bar .tab .header-name {
+#sidebar .tab .header-name {
     font-family: 'AlegreyaSansSC', sans-serif;
     opacity: 0;
     transition: opacity 0.1s linear;
@@ -52,23 +48,23 @@
 }
 
 
-.side-bar .tab:not(.collapsed),
-.side-bar .tab:hover {
+#sidebar .tab:not(.collapsed),
+#sidebar .tab:hover {
     width: 450px;
 }
 
-.side-bar .tab:hover {
+#sidebar .tab:hover {
     background-color: rgba(50, 50, 50, 0.5);
 }
 
-.side-bar .tab:not(.collapsed) .header-name,
-.side-bar .tab:hover .header-name {
+#sidebar .tab:not(.collapsed) .header-name,
+#sidebar .tab:hover .header-name {
     opacity: 1;
     transition: opacity 0.2s linear;
     transition-delay: 0.1s;
 }
 
-.side-bar .card-header i {
+#sidebar .card-header i {
     position: absolute;
     left: 9px;
     font-size: 35px;
@@ -79,12 +75,12 @@
     text-align: center;
 }
 
-.side-bar .card .card-body {
+#sidebar .card .card-body {
     background-color: rgba(0, 0, 0, 0.5);
     padding: 0;
 }
 
-.side-bar .card {
+#sidebar .card {
     background: transparent;
     padding: 5px 0;
     margin: 0;
@@ -99,7 +95,7 @@
     border-radius: 0;
 }
 
-.side-bar *[type=button] {
+#sidebar *[type=button] {
     -webkit-appearance: none;
 }
 
@@ -157,7 +153,7 @@
     transform: rotate(-90deg);
 }
 
-.side-bar .card.settings-section {
+#sidebar .card.settings-section {
     border-style: dashed;
     border-width: 1px 0 0 0;
     border-color: rgba(255, 255, 255, 0.4);
