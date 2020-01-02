@@ -372,6 +372,12 @@ void GuiManager::addHtmlToGui(std::string const& id, std::string const& src) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void GuiManager::addCssToGui(const std::string& fileName) {
+  mCosmoScoutGui->callJavascript("CosmoScout.registerCss", fileName);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void GuiManager::addEventToTimenavigationBar(std::string start, std::optional<std::string> end,
     std::string id, std::string content, std::optional<std::string> style, std::string description,
     std::string planet, std::string place) {
