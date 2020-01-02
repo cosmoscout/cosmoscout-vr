@@ -634,8 +634,7 @@ void Application::connectSlots() {
             auto lngLat = cs::utils::convert::toDegrees(polar.xy());
 
             if (!std::isnan(lngLat.x) && !std::isnan(lngLat.y) && !std::isnan(polar.z)) {
-              mGuiManager->getGui()->callJavascript("CosmoScout.call", "statusbar",
-                  "setPointerPosition", true, lngLat.x, lngLat.y,
+              mGuiManager->getGui()->callJavascript("CosmoScout.statusbar.setPointerPosition", true, lngLat.x, lngLat.y,
                   polar.z / mGraphicsEngine->pHeightScale.get());
               return;
             }
