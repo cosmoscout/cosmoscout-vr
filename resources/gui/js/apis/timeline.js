@@ -1,3 +1,7 @@
+/* global IApi, CosmoScout, vis, CP, $, DateOperations, noUiSlider */
+
+/* eslint class-methods-use-this: 0 */
+
 /**
  * https://visjs.github.io/vis-timeline/docs/timeline/#getEventProperties
  */
@@ -71,6 +75,9 @@ class VisTimelineEvent {
   items;
 }
 
+/**
+ * Timeline Api
+ */
 class TimelineApi extends IApi {
   name = 'timeline';
 
@@ -630,7 +637,7 @@ class TimelineApi extends IApi {
       return;
     }
 
-    const diff = parseInt(event.target.dataset.diff);
+    const diff = parseInt(event.target.dataset.diff, 10);
 
     const date = new Date(this._centerTime.getTime());
     this._centerTime.setSeconds(diff);
@@ -713,34 +720,34 @@ class TimelineApi extends IApi {
     document.getElementById('dateLabel').addEventListener('click', this._enterNewCenterTime.bind(this));
 
     // toggle visibility of the increase / decrease time buttons ---------------------------------------
-    function mouse_enter_time_control() {
+    function mouseEnterTimeControl() {
       document.getElementById('increaseControl').classList.add('mouseNear');
       document.getElementById('decreaseControl').classList.add('mouseNear');
     }
 
-    function mouse_leave_time_control() {
+    function mouseLeaveTimeControl() {
       document.getElementById('increaseControl').classList.remove('mouseNear');
       document.getElementById('decreaseControl').classList.remove('mouseNear');
     }
 
-    function enter_time_buttons() {
+    function enterTimeButtons() {
       document.getElementById('increaseControl').classList.add('mouseNear');
       document.getElementById('decreaseControl').classList.add('mouseNear');
     }
 
-    function leave_time_buttons() {
+    function leaveTimeButtons() {
       document.getElementById('increaseControl').classList.remove('mouseNear');
       document.getElementById('decreaseControl').classList.remove('mouseNear');
     }
 
-    document.getElementById('time-control').onmouseenter = mouse_enter_time_control;
-    document.getElementById('time-control').onmouseleave = mouse_leave_time_control;
+    document.getElementById('time-control').onmouseenter = mouseEnterTimeControl;
+    document.getElementById('time-control').onmouseleave = mouseLeaveTimeControl;
 
-    document.getElementById('increaseControl').onmouseenter = enter_time_buttons;
-    document.getElementById('increaseControl').onmouseleave = leave_time_buttons;
+    document.getElementById('increaseControl').onmouseenter = enterTimeButtons;
+    document.getElementById('increaseControl').onmouseleave = leaveTimeButtons;
 
-    document.getElementById('decreaseControl').onmouseenter = enter_time_buttons;
-    document.getElementById('decreaseControl').onmouseleave = leave_time_buttons;
+    document.getElementById('decreaseControl').onmouseenter = enterTimeButtons;
+    document.getElementById('decreaseControl').onmouseleave = leaveTimeButtons;
   }
 
   /**
@@ -909,7 +916,7 @@ class TimelineApi extends IApi {
 
       this._timeSpeedSlider.noUiSlider.on('update', this._rangeUpdateCallback.bind(this));
     } catch (e) {
-      console.log('Slider was already initialized');
+      console.error('Slider was already initialized');
     }
   }
 
@@ -929,7 +936,7 @@ class TimelineApi extends IApi {
     document.getElementById('pause-button').innerHTML = '<i class="material-icons">pause</i>';
     this._timeline.setOptions(this._playingOptions);
     this._timelineZoomBlocked = true;
-    if (parseInt(this._currentSpeed) < 0) {
+    if (parseInt(this._currentSpeed, 10) < 0) {
       document.getElementsByClassName('range-label')[0].innerHTML = '<i class="material-icons">chevron_left</i>';
     } else {
       document.getElementsByClassName('range-label')[0].innerHTML = '<i class="material-icons">chevron_right</i>';
@@ -937,7 +944,7 @@ class TimelineApi extends IApi {
 
     this._moveWindow();
 
-    switch (parseInt(this._currentSpeed)) {
+    switch (parseInt(this._currentSpeed, 10)) {
       case this._timeSpeedSteps.monthBack:
         CosmoScout.callNative('set_time_speed', -this.MONTHS);
         break;
@@ -1122,7 +1129,7 @@ class TimelineApi extends IApi {
    */
   _mouseUpCallback() {
     if (this._mouseOnTimelineDown && this._lastPlayValue !== 0) {
-      this._timeSpeedSlider.noUiSlider.set(parseInt(this._lastPlayValue));
+      this._timeSpeedSlider.noUiSlider.set(parseInt(this._lastPlayValue, 10));
     }
     this._mouseOnTimelineDown = false;
   }
