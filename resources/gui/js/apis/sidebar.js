@@ -73,26 +73,6 @@ class SidebarApi extends IApi {
 
 
   /**
-   * Sets an elevation data copyright tooltip
-   * TODO Remove jQuery
-   *
-   * @param copyright {string}
-   */
-  setElevationDataCopyright(copyright) {
-    $('#img-data-copyright').tooltip({ title: `© ${copyright}`, placement: 'top' });
-  }
-
-  /**
-   * Sets a map data copyright tooltip
-   * TODO Remove jQuery
-   *
-   * @param copyright {string}
-   */
-  setMapDataCopyright(copyright) {
-    $('#dem-data-copyright').tooltip({ title: `© ${copyright}`, placement: 'bottom' });
-  }
-
-  /**
    * @see {addPluginTab}
    * @see {addSettingsSection}
    * @param name {string}
