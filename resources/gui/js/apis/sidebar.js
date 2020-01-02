@@ -1,5 +1,10 @@
+/* global IApi, CosmoScout */
+
+/**
+ * Sidebar Api
+ */
 class SidebarApi extends IApi {
-  /** print_notification
+  /**
    * @inheritDoc
    */
   name = 'sidebar';
@@ -44,7 +49,9 @@ class SidebarApi extends IApi {
       return;
     }
 
-    tab.innerHTML = this.replaceMarkers(tab.innerHTML, this._makeId(pluginName), icon, content);
+    const id = SidebarApi.makeId(pluginName);
+
+    tab.innerHTML = this.replaceMarkers(tab.innerHTML, id, icon, content);
 
     this._sidebar.insertBefore(tab, this._sidebarTab);
   }
@@ -62,7 +69,7 @@ class SidebarApi extends IApi {
       return;
     }
 
-    const html = this.replaceMarkers(tab.innerHTML, this._makeId(sectionName), icon, content);
+    const html = this.replaceMarkers(tab.innerHTML, SidebarApi.makeId(sectionName), icon, content);
 
     tab.innerHTML = html
       .replace(this.regex('SECTION'), sectionName)
@@ -71,7 +78,6 @@ class SidebarApi extends IApi {
     this._settings.appendChild(tab);
   }
 
-
   /**
    * @see {addPluginTab}
    * @see {addSettingsSection}
@@ -79,7 +85,7 @@ class SidebarApi extends IApi {
    * @return {string}
    * @private
    */
-  _makeId(name) {
+  static makeId(name) {
     return name.split(' ').join('-');
   }
 }
