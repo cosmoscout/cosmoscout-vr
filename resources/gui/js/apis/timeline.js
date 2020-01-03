@@ -502,16 +502,8 @@ class TimelineApi extends IApi {
       name,
     };
 
-    CosmoScout.callNative('fly_to', planet, location.longitude, location.latitude, location.height, animationTime);
+    CosmoScout.callNative('fly_to_location', planet, location.longitude, location.latitude, location.height, animationTime);
     CosmoScout.notifications.printNotification('Travelling', `to ${location.name}`, 'send');
-
-    /*    CosmoScout.call(
-      'flyto',
-      'flyTo',
-      planet,
-      location,
-      animationTime,
-    ); */
   }
 
   /* Internal methods */
