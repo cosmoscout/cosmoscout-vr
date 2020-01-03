@@ -21,11 +21,11 @@ class IApi {
   /**
    * Replace common template markers with content
    *
-   * @param html {string}
-   * @param id {string}
-   * @param icon {string}
-   * @param content {string}
-   * @return {string}
+   * @param html {string} HTML with %MARKER% markers
+   * @param id {string} Id marker replacement
+   * @param icon {string} Icon marker replacement
+   * @param content {string} Content marker replacement
+   * @return {string} replaced html
    * @protected
    */
   replaceMarkers(html, id, icon, content) {
@@ -37,7 +37,7 @@ class IApi {
   }
 
   /**
-   * Creates a search global Regex Object of %matcher%
+   * Creates a search global Regex Object of %MATCHER%
    *
    * @param matcher {string}
    * @return {RegExp}
@@ -45,7 +45,7 @@ class IApi {
    */
   // eslint-disable-next-line class-methods-use-this
   regex(matcher) {
-    return new RegExp(`%${matcher}%`, 'g');
+    return new RegExp(`%${String(matcher).toUpperCase()}%`, 'g');
   }
 }
 
@@ -55,6 +55,9 @@ class IApi {
 // eslint-disable-next-line no-unused-vars
 class CosmoScout {
   /**
+   * Registered apis
+   *
+   * @see {IApi.name}
    * @type {Map<string, Object>}
    * @private
    */
@@ -63,6 +66,7 @@ class CosmoScout {
   /**
    * Cache loaded templates
    *
+   * @see {loadTemplateContent}
    * @type {Map<string, DocumentFragment>}
    * @private
    */
@@ -116,6 +120,8 @@ class CosmoScout {
   }
 
   /**
+   * Initialized .simple-value-dropdown selectpicker
+   *
    * @see {initInputs}
    * TODO Remove jQuery
    */
@@ -135,6 +141,10 @@ class CosmoScout {
   }
 
   /**
+   * Adds a 'change' event listener which calls callNative with id and checkstate
+   * Will only add a listener once
+   *
+   * @see {callNative}
    * @see {initInputs}
    */
   static initChecklabelInputs() {
@@ -154,6 +164,9 @@ class CosmoScout {
   }
 
   /**
+   * Adds a change event listener which calls callNative with the target id
+   *
+   * @see {callNative}
    * @see {initInputs}
    */
   static initRadiolabelInputs() {
@@ -173,13 +186,15 @@ class CosmoScout {
   }
 
   /**
-   * @see {initInputs}
-   * @see {callNative}
    * Adds an onclick listener to every element containing [data-call="'methodname'"]
    * The method name gets passed to CosmoScout.callNative.
    * Arguments can be passed by separating the content with ','
-   * E.g.: fly_to,Africa -> CosmoScout.callNative('fly_to', 'Africa')
+   * E.g.: 'fly_to','Africa' -> CosmoScout.callNative('fly_to', 'Africa')
    *       method,arg1,...,argN -> CosmoScout.callNative('method', arg1, ..., argN)
+   * Attribute content will be passed to eval. Strings need to be wrapped in '
+   *
+   * @see {callNative}
+   * @see {initInputs}
    */
   static initDataCalls() {
     document.querySelectorAll('[data-call]').forEach((input) => {
@@ -201,6 +216,8 @@ class CosmoScout {
   }
 
   /**
+   * Initializes [data-toggle="tooltip"] elements.
+   *
    * @see {initInputs}
    */
   static initTooltips() {
@@ -220,7 +237,6 @@ class CosmoScout {
    */
   static registerJavaScript(url, init) {
     const script = document.createElement('script');
-    script.setAttribute('type', 'text/javascript');
     script.setAttribute('src', url);
 
     if (typeof init !== 'undefined') {
@@ -252,7 +268,6 @@ class CosmoScout {
    */
   static registerCss(url) {
     const link = document.createElement('link');
-    link.setAttribute('type', 'text/css');
     link.setAttribute('rel', 'stylesheet');
     link.setAttribute('href', url);
 
@@ -274,11 +289,11 @@ class CosmoScout {
   }
 
   /**
-   * Append HTML to body per default or element with id containerId
+   * Append HTML to the body (default) or element with id containerId
    *
-   * @param id {string}
-   * @param content {string}
-   * @param containerId {string}
+   * @param id {string} Id for de-registering
+   * @param content {string} Html content
+   * @param containerId {string} ['body'] Container ID to append the HTML to. Defaults to body element if omitted
    */
   static registerHtml(id, content, containerId = 'body') {
     let container = document.body;
@@ -301,8 +316,9 @@ class CosmoScout {
   }
 
   /**
-   * Remove registered html from the body of container with id containerId
+   * Remove registered html from the body or container with id containerId
    *
+   * @see {registerHtml}
    * @param id {string}
    * @param containerId {string}
    */
@@ -377,11 +393,11 @@ class CosmoScout {
   /**
    * Initialize a noUiSlider
    *
-   * @param id {string}
-   * @param min {number}
-   * @param max {number}
-   * @param step {number}
-   * @param start {number[]}
+   * @param id {string} Slider html id without '#'
+   * @param min {number} Min value
+   * @param max {number} Max value
+   * @param step {number} Step size
+   * @param start {number[]} Handle count and position
    */
   static initSlider(id, min, max, step, start) {
     const slider = document.getElementById(id);
@@ -416,7 +432,7 @@ class CosmoScout {
   }
 
   /**
-   * Set a noUiSlider value
+   * Sets a noUiSlider value
    *
    * @param id {string} Slider ID
    * @param value {number} Value
@@ -436,6 +452,8 @@ class CosmoScout {
   }
 
   /**
+   * Clears the content of a selecticker dropdown
+   *
    * @param id {string}
    */
   static clearDropdown(id) {
@@ -471,6 +489,8 @@ class CosmoScout {
   }
 
   /**
+   * Sets the current value of a selectpicker
+   *
    * @param id {string}
    * @param value {string|number}
    */
@@ -479,15 +499,20 @@ class CosmoScout {
   }
 
   /**
-   * @param id {string}
+   * Sets a radio button to checked
+   *
+   * @see {setCheckboxValue}
+   * @param id {string} Radiobutton id
    */
   static setRadioChecked(id) {
     this.setCheckboxValue(id, true);
   }
 
   /**
-   * @param id {string}
-   * @param value {boolean}
+   * Sets a checkboxs checked state to true/false
+   *
+   * @param id {string} Checkbox id
+   * @param value {boolean} True = checked / False = unchecked
    */
   static setCheckboxValue(id, value) {
     const element = document.getElementById(id);
@@ -498,6 +523,9 @@ class CosmoScout {
   }
 
   /**
+   * Sets the value of a text input
+   * Only selects .text-input s which descend .item-ID
+   *
    * @param id {string}
    * @param value {string}
    */
@@ -523,8 +551,8 @@ class CosmoScout {
   /**
    * Register an api object
    *
-   * @param name {string}
-   * @param api {Object}
+   * @param name {string} Api name from IApi
+   * @param api {Object} Instantiated IApi object
    */
   static register(name, api) {
     this[name] = api;
