@@ -590,6 +590,15 @@ position: relative;
     rgba(221, 211, 255, 0.5) 75%, rgba(221, 211, 255, 0.5) 100%);
 }
 
+#timeline-container .noUi-target .range-label {
+    background-color: var(--cs-background-color-light);
+}
+
+#timeline-container .noUi-target:hover .range-label,
+#timeline-container .noUi-target .noUi-active .range-label {
+    background-color: #fff;
+}
+
 #event-tooltip-location {
     text-decoration: underline;
 }
@@ -606,7 +615,7 @@ position: relative;
     width: 300px;
     padding: 10px;
     background-color: rgba(20, 20, 20, 0.8);
-    border: 2px solid var(--cs-border-color-light);;
+    border: 2px solid var(--cs-border-color-light);
     border-radius: 10px;
 }
 

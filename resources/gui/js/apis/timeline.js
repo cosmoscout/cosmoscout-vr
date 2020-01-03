@@ -656,7 +656,7 @@ class TimelineApi extends IApi {
     // Data attribute is set in seconds. Call native wants hours
     diff = Math.abs(diff) / 3600;
 
-    if (event.deltaY < 0) {
+    if (event.deltaY > 0) {
       diff = -diff;
     }
 
