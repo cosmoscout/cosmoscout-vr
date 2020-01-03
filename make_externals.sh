@@ -157,8 +157,8 @@ echo "Building and installing spdlog ..."
 echo ""
 
 cmake -E make_directory "$BUILD_DIR/spdlog" && cd "$BUILD_DIR/spdlog"
-cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" SPDLOG_BUILD_EXAMPLE=OFF \
-      SPDLOG_BUILD_TESTS=OFF -DCMAKE_BUILD_TYPE=$BUILD_TYPE "$EXTERNALS_DIR/spdlog"
+cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" -DSPDLOG_BUILD_EXAMPLE=OFF \
+      -DSPDLOG_BUILD_TESTS=OFF -DCMAKE_BUILD_TYPE=$BUILD_TYPE "$EXTERNALS_DIR/spdlog"
 cmake --build . --target install --parallel 8
 
 # doctest ------------------------------------------------------------------------------------------
