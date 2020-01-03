@@ -147,16 +147,15 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
   mCosmoScoutGui->callJavascript(
       "CosmoScout.timeline.setTimelineRange", settings->mMinDate, settings->mMaxDate);
 
-  for (int i = 0; i < settings->mEvents.size(); i++) {
+  for (const auto& mEvent : settings->mEvents) {
     std::string planet = "";
     std::string place  = "";
-    if (settings->mEvents.at(i).mLocation.has_value()) {
-      planet = settings->mEvents.at(i).mLocation.value().mPlanet;
-      place  = settings->mEvents.at(i).mLocation.value().mPlace;
+    if (mEvent.mLocation.has_value()) {
+      planet = mEvent.mLocation.value().mPlanet;
+      place  = mEvent.mLocation.value().mPlace;
     }
-    addEventToTimenavigationBar(settings->mEvents.at(i).mStart, settings->mEvents.at(i).mEnd,
-        settings->mEvents.at(i).mId, settings->mEvents.at(i).mContent,
-        settings->mEvents.at(i).mStyle, settings->mEvents.at(i).mDescription, planet, place);
+    addEventToTimenavigationBar(mEvent.mStart, mEvent.mEnd, mEvent.mId, mEvent.mContent,
+        mEvent.mStyle, mEvent.mDescription, planet, place);
   }
 }
 
@@ -186,6 +185,7 @@ GuiManager::~GuiManager() {
 
   mCosmoScoutGui->unregisterCallback("navigate_to_surface");
   mCosmoScoutGui->unregisterCallback("fly_to");
+  mCosmoScoutGui->unregisterCallback("fly_to_location");
   mCosmoScoutGui->unregisterCallback("reset_time");
   mCosmoScoutGui->unregisterCallback("print_notification");
   mCosmoScoutGui->unregisterCallback("navigate_to_orbit");
