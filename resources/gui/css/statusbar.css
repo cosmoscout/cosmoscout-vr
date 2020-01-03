@@ -1,7 +1,10 @@
 
 #statusbar {
-    flex: 0 0 100%;
-    align-self: flex-end;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 2;
     height: 35px;
     overflow: hidden;
     font-size: 0.9rem;
