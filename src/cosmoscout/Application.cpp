@@ -889,7 +889,7 @@ void Application::registerGuiCallbacks() {
         mTimeControl->setTime(time);
       }));
 
-  mGuiManager->getTimeline()->registerCallback<double>(
+  mGuiManager->getGui()->registerCallback<double>(
       "set_time_speed", ([this](double speed) { mTimeControl->setTimeSpeed(speed); }));
 
   // Flies the celestial observer to the given location in space.
