@@ -227,6 +227,40 @@ void Application::Quit() {
     }
   };
 
+  mGuiManager->getGui()->unregisterCallback("set_lighting_quality");
+  mGuiManager->getGui()->unregisterCallback("set_celestial_body");
+  mGuiManager->getGui()->unregisterCallback("set_enable_shadows");
+  mGuiManager->getGui()->unregisterCallback("print_notification");
+  mGuiManager->getGui()->unregisterCallback("set_shadowmap_split_distribution");
+  mGuiManager->getGui()->unregisterCallback("set_enable_cascades_debug");
+  mGuiManager->getGui()->unregisterCallback("set_ambient_light");
+  mGuiManager->getGui()->unregisterCallback("set_shadowmap_cascades");
+  mGuiManager->getGui()->unregisterCallback("set_shadowmap_extension");
+  mGuiManager->getGui()->unregisterCallback("set_enable_shadow_freeze");
+  mGuiManager->getGui()->unregisterCallback("set_date");
+  mGuiManager->getGui()->unregisterCallback("set_time");
+  mGuiManager->getGui()->unregisterCallback("set_shadowmap_range");
+  mGuiManager->getGui()->unregisterCallback("set_terrain_height");
+  mGuiManager->getGui()->unregisterCallback("set_widget_scale");
+  mGuiManager->getGui()->unregisterCallback("set_enable_lighting");
+  mGuiManager->getGui()->unregisterCallback("set_enable_timer_queries");
+  mGuiManager->getGui()->unregisterCallback("set_shadowmap_resolution");
+  mGuiManager->getGui()->unregisterCallback("set_shadowmap_bias");
+  mGuiManager->getGui()->unregisterCallback("set_enable_vsync");
+
+  mGuiManager->getGui()->unregisterCallback("navigate_to_surface");
+  mGuiManager->getGui()->unregisterCallback("fly_to");
+  mGuiManager->getGui()->unregisterCallback("fly_to_location");
+  mGuiManager->getGui()->unregisterCallback("reset_time");
+  mGuiManager->getGui()->unregisterCallback("print_notification");
+  mGuiManager->getGui()->unregisterCallback("navigate_to_orbit");
+  mGuiManager->getGui()->unregisterCallback("set_time_speed");
+  mGuiManager->getGui()->unregisterCallback("add_hours_without_animation");
+  mGuiManager->getGui()->unregisterCallback("navigate_fix_horizon");
+  mGuiManager->getGui()->unregisterCallback("navigate_north_up");
+  mGuiManager->getGui()->unregisterCallback("set_date");
+  mGuiManager->getGui()->unregisterCallback("add_hours");
+
   assertCleanUp("mSolarSystem", mSolarSystem.use_count());
   mSolarSystem.reset();
 

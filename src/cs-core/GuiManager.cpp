@@ -162,40 +162,6 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 GuiManager::~GuiManager() {
-  mCosmoScoutGui->unregisterCallback("set_lighting_quality");
-  mCosmoScoutGui->unregisterCallback("set_celestial_body");
-  mCosmoScoutGui->unregisterCallback("set_enable_shadows");
-  mCosmoScoutGui->unregisterCallback("print_notification");
-  mCosmoScoutGui->unregisterCallback("set_shadowmap_split_distribution");
-  mCosmoScoutGui->unregisterCallback("set_enable_cascades_debug");
-  mCosmoScoutGui->unregisterCallback("set_ambient_light");
-  mCosmoScoutGui->unregisterCallback("set_shadowmap_cascades");
-  mCosmoScoutGui->unregisterCallback("set_shadowmap_extension");
-  mCosmoScoutGui->unregisterCallback("set_enable_shadow_freeze");
-  mCosmoScoutGui->unregisterCallback("set_date");
-  mCosmoScoutGui->unregisterCallback("set_time");
-  mCosmoScoutGui->unregisterCallback("set_shadowmap_range");
-  mCosmoScoutGui->unregisterCallback("set_terrain_height");
-  mCosmoScoutGui->unregisterCallback("set_widget_scale");
-  mCosmoScoutGui->unregisterCallback("set_enable_lighting");
-  mCosmoScoutGui->unregisterCallback("set_enable_timer_queries");
-  mCosmoScoutGui->unregisterCallback("set_shadowmap_resolution");
-  mCosmoScoutGui->unregisterCallback("set_shadowmap_bias");
-  mCosmoScoutGui->unregisterCallback("set_enable_vsync");
-
-  mCosmoScoutGui->unregisterCallback("navigate_to_surface");
-  mCosmoScoutGui->unregisterCallback("fly_to");
-  mCosmoScoutGui->unregisterCallback("fly_to_location");
-  mCosmoScoutGui->unregisterCallback("reset_time");
-  mCosmoScoutGui->unregisterCallback("print_notification");
-  mCosmoScoutGui->unregisterCallback("navigate_to_orbit");
-  mCosmoScoutGui->unregisterCallback("set_time_speed");
-  mCosmoScoutGui->unregisterCallback("add_hours_without_animation");
-  mCosmoScoutGui->unregisterCallback("navigate_fix_horizon");
-  mCosmoScoutGui->unregisterCallback("navigate_north_up");
-  mCosmoScoutGui->unregisterCallback("set_date");
-  mCosmoScoutGui->unregisterCallback("add_hours");
-
   delete mGlobalGuiArea;
   delete mViewportUpdater;
   delete mCosmoScoutGui;
