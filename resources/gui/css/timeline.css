@@ -319,6 +319,7 @@
 /* timeline control items ----------------------------------------------------------------------- */
 
 #timeline-container {
+    z-index: 2;
     position: relative;
     padding: 0;
     width: 100%;
