@@ -66,27 +66,7 @@ Application::Application(cs::core::Settings const& settings)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Application::~Application() {
-
-  // Close all plugins first.
-  for (auto const& plugin : mPlugins) {
-    std::string pluginFile = plugin.first;
-    std::cout << "Unloading Plugin " << pluginFile << std::endl;
-
-    plugin.second.mPlugin->deInit();
-
-    auto handle           = plugin.second.mHandle;
-    auto pluginDestructor = (void (*)(cs::core::PluginBase*))LIBFUNC(handle, "destroy");
-
-    pluginDestructor(plugin.second.mPlugin);
-    CLOSELIB(handle);
-  }
-
-  mPlugins.clear();
-
-  // Then unload SPICE.
-  mSolarSystem->deinit();
-
-  // And cleanup curl.
+  // Last but not least, cleanup curl.
   cURLpp::terminate();
 }
 
@@ -107,13 +87,12 @@ bool Application::Init(VistaSystem* pVistaSystem) {
   mTimeControl = std::make_shared<cs::core::TimeControl>(mSettings);
   mSolarSystem = std::make_shared<cs::core::SolarSystem>(
       mSettings, mFrameTimings, mGraphicsEngine, mTimeControl);
-  mDragNavigation =
-      std::make_shared<cs::core::DragNavigation>(mSolarSystem, mInputManager, mTimeControl);
+  mDragNavigation.reset(new cs::core::DragNavigation(mSolarSystem, mInputManager, mTimeControl));
 
   // The ObserverNavigationNode is used by several DFN networks to move the celestial observer.
   VdfnNodeFactory* pNodeFactory = VdfnNodeFactory::GetSingleton();
-  pNodeFactory->SetNodeCreator(
-      "ObserverNavigationNode", new ObserverNavigationNodeCreate(mSolarSystem, mInputManager));
+  pNodeFactory->SetNodeCreator("ObserverNavigationNode",
+      new ObserverNavigationNodeCreate(mSolarSystem.get(), mInputManager.get()));
 
   // This connects several parts of CosmoScout VR to each other.
   connectSlots();
@@ -168,7 +147,7 @@ bool Application::Init(VistaSystem* pVistaSystem) {
     VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
         pIntentionNode, static_cast<int>(cs::utils::DrawOrder::eRay));
   } else {
-    mGuiManager->setCursor(cs::gui::Cursor::ePointer);
+    cs::core::GuiManager::setCursor(cs::gui::Cursor::ePointer);
   }
 
   mGuiManager->enableLoadingScreen(true);
@@ -193,22 +172,83 @@ bool Application::Init(VistaSystem* pVistaSystem) {
         cs::core::PluginBase* (*pluginConstructor)();
         pluginConstructor = (cs::core::PluginBase * (*)()) LIBFUNC(pluginHandle, "create");
 
-        std::cout << "Opening Plugin " << plugin.first << " ..." << std::endl;
+        std::cout << "[Application] Opening Plugin " << plugin.first << " ..." << std::endl;
 
         // Actually call the plugin's constructor and add the returned pointer to out list.
         mPlugins.insert(
             std::pair<std::string, Plugin>(plugin.first, {pluginHandle, pluginConstructor()}));
 
       } else {
-        std::cerr << "Error loading CosmoScout VR Plugin " << plugin.first << " : " << LIBERROR()
-                  << std::endl;
+        std::cerr << "[Application] Error loading CosmoScout VR Plugin " << plugin.first << " : "
+                  << LIBERROR() << std::endl;
       }
     } catch (std::exception const& e) {
-      std::cerr << "Error loading plugin " << plugin.first << ": " << e.what() << std::endl;
+      std::cerr << "[Application] Error loading plugin " << plugin.first << ": " << e.what()
+                << std::endl;
     }
   }
 
   return VistaFrameLoop::Init(pVistaSystem);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Application::Quit() {
+
+  // Close all plugins first.
+  for (auto const& plugin : mPlugins) {
+    std::string pluginFile = plugin.first;
+    std::cout << "[Application] Unloading Plugin " << pluginFile << std::endl;
+
+    plugin.second.mPlugin->deInit();
+
+    auto handle           = plugin.second.mHandle;
+    auto pluginDestructor = (void (*)(cs::core::PluginBase*))LIBFUNC(handle, "destroy");
+
+    pluginDestructor(plugin.second.mPlugin);
+    CLOSELIB(handle);
+  }
+
+  mPlugins.clear();
+
+  // Then unload SPICE.
+  mSolarSystem->deinit();
+
+  // Make sure all shared pointers have been cleared nicely. Print a warning if some references are
+  // still hanging around.
+  mDragNavigation.reset();
+
+  auto assertCleanUp = [](std::string const& name, size_t count) {
+    if (count > 1) {
+      std::cout << "[Application] Warning: Use count of " << name << " is " << count - 1
+                << " but should be 0." << std::endl;
+    } else {
+      std::cout << "[Application] Deleting " << name << std::endl;
+    }
+  };
+
+  assertCleanUp("mSolarSystem", mSolarSystem.use_count());
+  mSolarSystem.reset();
+
+  assertCleanUp("mTimeControl", mTimeControl.use_count());
+  mTimeControl.reset();
+
+  assertCleanUp("mGuiManager", mGuiManager.use_count());
+  mGuiManager.reset();
+
+  assertCleanUp("mGraphicsEngine", mGraphicsEngine.use_count());
+  mGraphicsEngine.reset();
+
+  assertCleanUp("mFrameTimings", mFrameTimings.use_count());
+  mFrameTimings.reset();
+
+  assertCleanUp("mInputManager", mInputManager.use_count());
+  mInputManager.reset();
+
+  assertCleanUp("mSettings", mSettings.use_count());
+  mSettings.reset();
+
+  VistaFrameLoop::Quit();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -833,12 +873,12 @@ void Application::registerGuiCallbacks() {
 
   mGuiManager->getGui()->registerCallback("reset_time", ([this]() { mTimeControl->resetTime(); }));
 
-  mGuiManager->getGui()->registerCallback<double>("add_hours", ([&](double amount) {
+  mGuiManager->getGui()->registerCallback<double>("add_hours", ([this](double amount) {
     mTimeControl->setTime(mTimeControl->pSimulationTime.get() + 60.0 * 60.0 * amount);
   }));
 
   mGuiManager->getGui()->registerCallback<double>(
-      "add_hours_without_animation", ([&](double amount) {
+      "add_hours_without_animation", ([this](double amount) {
         mTimeControl->setTimeWithoutAnimation(
             mTimeControl->pSimulationTime.get() + 60.0 * 60.0 * amount);
       }));
@@ -849,8 +889,8 @@ void Application::registerGuiCallbacks() {
         mTimeControl->setTime(time);
       }));
 
-  mGuiManager->getGui()->registerCallback<double>(
-      "set_time_speed", ([&](double speed) { mTimeControl->setTimeSpeed(speed); }));
+  mGuiManager->getTimeline()->registerCallback<double>(
+      "set_time_speed", ([this](double speed) { mTimeControl->setTimeSpeed(speed); }));
 
   // Flies the celestial observer to the given location in space.
   mGuiManager->getGui()->registerCallback<std::string, double, double, double, double>(

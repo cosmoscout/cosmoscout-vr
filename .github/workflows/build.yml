@@ -14,7 +14,9 @@ jobs:
     runs-on: ubuntu-18.04
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v1
+        uses: actions/checkout@v2
+      - name: Checkout Submodules
+        run: git submodule update --init plugins
       - name: Download Clang-Format
         run: |
           sudo apt-get update -y
@@ -26,9 +28,46 @@ jobs:
         run: |
           DIFF=$(git diff)
           if [ ! -z "$DIFF" ]; then echo $DIFF && exit 1; fi
+  
+  comment_percentage:
+    name: Check Comment Percentage
+    runs-on: ubuntu-18.04
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout Current Repository
+        uses: actions/checkout@v2
+        with:
+          path: current
+          ref: ${{ github.ref }}
+      - name: Checkout Base Repository
+        uses: actions/checkout@v2
+        with:
+          path: base
+          ref: ${{ github.base_ref }}
+      - name: Checkout Current Submodules
+        run: cd $GITHUB_WORKSPACE/current && git submodule update --init plugins
+      - name: Checkout Base Submodules
+        run: cd $GITHUB_WORKSPACE/base && git submodule update --init plugins
+      - name: Download Cloc
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y cloc
+      - name: Run Cloc
+        run: |
+          BASE="$(base/cloc.sh --percentage-only)"
+          CURRENT="$(current/cloc.sh --percentage-only)"
+          echo "Percentage of Comments in Base Repository: $BASE"
+          echo "Percentage of Comments after Merge: $CURRENT"
+          if (( $(echo "$BASE > $CURRENT" |bc -l) ))
+          then
+            awk -v a=$CURRENT -v b=$BASE 'BEGIN {printf "Percentage decreased! (%3.4f%)\n", (a-b)}'
+            exit 1
+          else
+            awk -v a=$CURRENT -v b=$BASE 'BEGIN {printf "Percentage increased! (%3.4f%)\n", (a-b)}'
+          fi
 
   build_linux_gcc:
-    name: Linux Build (gcc 7.4.0)
+    name: Linux GCC 7.4.0
     runs-on: ubuntu-18.04
     if: >
       github.event_name == 'pull_request' ||
@@ -39,24 +78,34 @@ jobs:
       COSMOSCOUT_CODE_COVERAGE: true
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v1
+        uses: actions/checkout@v2
       - name: Checkout Submodules
         run: git submodule update --init
-      - name: Install CMake
-        run: sudo pip install cmake
+      - name: Cache Object Files
+        uses: actions/cache@v1
+        with:
+          path: ~/.ccache
+          key: gcc-${{ github.ref }}-${{ github.sha }}
+          restore-keys: |
+            gcc-${{ github.ref }}-
+            gcc-
       - name: Download Dependencies
         run: |
           sudo add-apt-repository ppa:mhier/libboost-latest
           sudo apt-get update -q
           sudo apt-get install libc++-dev libgl1-mesa-dev libglu1-mesa-dev libx11-dev
-          sudo apt-get install libxi-dev libgconf-2-4 libboost1.70-dev
-          sudo apt-get install -y lcov
+          sudo apt-get install libxi-dev libgconf-2-4 libboost1.70-dev ccache lcov
+          sudo pip install cmake
+          ccache --max-size 1G
+          ccache -z
       - name: Build Externals
-        run: ./make_externals.sh
+        run: ./make_externals.sh -G "Unix Makefiles" -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
       - name: Build CosmoScout VR
-        run: ./make.sh
+        run: ./make.sh -G "Unix Makefiles" -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
       - name: Run Tests
         run: ./install/linux-release/bin/run_all_tests.sh
+      - name: Print Cache Usage
+        run: ccache -s
       - name: Calculate Test Coverage
         run: ./lcov.sh
       - name: Upload Coverage Info
@@ -66,7 +115,7 @@ jobs:
           path-to-lcov: ./build/linux-release/coverage.info
 
   build_linux_clang:
-    name: Linux Build (clang 6.0)
+    name: Linux Clang 6.0
     runs-on: ubuntu-18.04
     if: >
       github.event_name == 'pull_request' ||
@@ -75,32 +124,43 @@ jobs:
       contains(github.event.head_commit.message, '[run-ci]')
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v1
+        uses: actions/checkout@v2
       - name: Checkout Submodules
         run: git submodule update --init
-      - name: Install CMake
-        run: sudo pip install cmake
+      - name: Cache Object Files
+        uses: actions/cache@v1
+        with:
+          path: ~/.ccache
+          key: clang-${{ github.ref }}-${{ github.sha }}
+          restore-keys: |
+            clang-${{ github.ref }}-
+            clang-
       - name: Download Dependencies
         run: |
           sudo add-apt-repository ppa:mhier/libboost-latest
           sudo apt-get update -q
           sudo apt-get install libc++-dev libgl1-mesa-dev libglu1-mesa-dev libx11-dev
-          sudo apt-get install libxi-dev libgconf-2-4 libboost1.70-dev
+          sudo apt-get install libxi-dev libgconf-2-4 libboost1.70-dev ccache
+          sudo pip install cmake
+          ccache --max-size 1G
+          ccache -z
       - name: Build Externals
         env:
           CC: clang
           CXX: clang++
-        run: ./make_externals.sh
+        run: ./make_externals.sh -G "Unix Makefiles" -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
       - name: Build CosmoScout VR
         env:
           CC: clang
           CXX: clang++
-        run: ./make.sh
+        run: ./make.sh -G "Unix Makefiles" -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
       - name: Run Tests
         run: ./install/linux-release/bin/run_all_tests.sh
+      - name: Print Cache Usage
+        run: ccache -s
 
   build_windows:
-    name: Windows Build (msvc 19.16.27032.1)
+    name: Windows MSVC 19.16.27032.1
     runs-on: windows-2016
     if: >
       github.event_name == 'pull_request' ||
@@ -109,15 +169,30 @@ jobs:
       contains(github.event.head_commit.message, '[run-ci]')
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v1
+        uses: actions/checkout@v2
       - name: Checkout Submodules
         run: git submodule update --init
+      - name: Cache Object Files
+        uses: actions/cache@v1
+        with:
+          path: ~/clcache
+          key: msvc-${{ github.ref }}-${{ github.sha }}
+          restore-keys: |
+            msvc-${{ github.ref }}-
+            msvc-
+      - name: Download Dependencies
+        run: |
+          pip install clcache
+          clcache -M 2147483648
+          clcache -z
       - name: Build Externals
         shell: cmd
-        run: make_externals.bat
+        run: make_externals.bat -G "Visual Studio 15 Win64" -DCMAKE_VS_GLOBALS="CLToolExe=clcache.exe;TrackFileAccess=false"
       - name: Build CosmoScout VR
         shell: cmd
-        run: make.bat
+        run: make.bat -G "Visual Studio 15 Win64" -DCMAKE_VS_GLOBALS="CLToolExe=clcache.exe;TrackFileAccess=false"
       - name: Run Tests
         shell: cmd
         run: install\\windows-release\\bin\\run_all_tests.bat
+      - name: Print Cache Usage
+        run: clcache -s

@@ -336,6 +336,10 @@ If you are on Windows, you may have to replace the `"BOOST_ROOT"` environment va
 
 With this file in place, you can press `Ctrl+Shift+P` and select `Tasks: Run Task`. Now you can first select `Make Externals (Release)`, then `Make (Release)` and later `Run CosmoScout VR`.
 
+:information_source: _**Tip (Linux only):** You can use [ccache](https://ccache.dev/) to considerably speed up build times. You just need to replace the commands with `./make_externals.sh -G "Unix Makefiles" -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache` and `./make.sh -G "Unix Makefiles" -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache` respectively._
+
+:information_source: _**Tip (Windows only):** You can use [clcache](https://github.com/frerich/clcache) to considerably speed up build times. You just need to call `make_externals.bat -G "Visual Studio 15 Win64" -DCMAKE_VS_GLOBALS=CLToolExe="clcache.exe;TrackFileAccess=false"` and `make.bat -G "Visual Studio 15 Win64" -DCMAKE_VS_GLOBALS="CLToolExe=clcache.exe;TrackFileAccess=false"` respectively._
+
 ### `.vscode/c_cpp_properties.json`
 
 ```json
@@ -442,6 +446,7 @@ This file configures Intellisense. On Linux, the CMake flag `-DCMAKE_EXPORT_COMP
 Finally, when this files is created, you can use `F5` to launch the debugger on Windows and on Linux.
 For this to work, CosmoScout VR and its dependencies have to be built in debug mode.
 
+<p align="center"><img src ="img/hr.svg"/></p>
 <p align="center">
   <a href="install.md">&lsaquo; Generic Build Instructions</a>
   <img src ="img/nav-vspace.svg"/>
@@ -449,5 +454,3 @@ For this to work, CosmoScout VR and its dependencies have to be built in debug m
   <img src ="img/nav-vspace.svg"/>
   <a href="using.md">Using CosmoScout VR &rsaquo;</a>
 </p>
-
-<p align="center"><img src ="img/hr.svg"/></p>

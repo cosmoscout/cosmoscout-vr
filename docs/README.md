@@ -11,6 +11,7 @@ Specific configuration options are documented in the repositories of the [indivi
 * [Changelog](changelog.md)
 * [How to cite CosmoScout VR](citation.md)
 * [Release Management](release-management.md)
+* [Continuous Integration](continuous-integration.md)
 
 ### Getting Started
 * [Generic Build Instructions](install.md)

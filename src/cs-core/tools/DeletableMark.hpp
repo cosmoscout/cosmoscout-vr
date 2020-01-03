@@ -22,7 +22,6 @@ class CS_CORE_EXPORT DeletableMark : public Mark {
   DeletableMark(std::shared_ptr<InputManager> const& pInputManager,
       std::shared_ptr<SolarSystem> const&            pSolarSystem,
       std::shared_ptr<GraphicsEngine> const&         graphicsEngine,
-      std::shared_ptr<GuiManager> const&             pGuiManager,
       std::shared_ptr<TimeControl> const& pTimeControl, std::string const& sCenter,
       std::string const& sFrame);
 
@@ -33,7 +32,6 @@ class CS_CORE_EXPORT DeletableMark : public Mark {
  private:
   void initData();
 
-  std::shared_ptr<GuiManager>             mGuiManager;
   VistaOpenGLNode*                        mGuiNode = nullptr;
   std::unique_ptr<gui::WorldSpaceGuiArea> mGuiArea;
   std::unique_ptr<gui::GuiItem>           mGuiItem;

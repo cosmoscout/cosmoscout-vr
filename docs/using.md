@@ -6,6 +6,8 @@
 
 :construction: _**Under Construction:** This guide is still far from complete. We will improve it in the future._
 
+:warning: _**Warning:** The [default configuration](../config/base/scene/simple_desktop.json) only contains a few data sets with very low resolution. Please read the [Configuring Guide](configuring.md) and the documentation of the [individual plugins](../README.md#Plugins-for-CosmoScout-VR) for including new data sets._
+
 **Navigation:** There are several ways for interacting with the scene.
 Currently mouse, keyboard and space navigator are supported.
 More input devices can be added via VRPN.
@@ -26,6 +28,7 @@ In addition, there are some buttons controlling the simulation time.
 On the left hand side is the main menu.
 Here you can select which data sets are shown, manipulate the surface visualization, add annotations, fly to pre-defined locations and perform various other tasks.
 
+<p align="center"><img src ="img/hr.svg"/></p>
 <p align="center">
   <a href="ide-setup.md">&lsaquo; Setup your IDE</a>
   <img src ="img/nav-vspace.svg"/>
@@ -33,5 +36,3 @@ Here you can select which data sets are shown, manipulate the surface visualizat
   <img src ="img/nav-vspace.svg"/>
   <a href="configuring.md">Configuring CosmoScout VR &rsaquo;</a>
 </p>
-
-<p align="center"><img src ="img/hr.svg"/></p>

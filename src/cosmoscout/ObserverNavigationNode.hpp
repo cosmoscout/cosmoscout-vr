@@ -32,9 +32,8 @@ class SolarSystem;
 /// or config/vista/xml/headtracking.xml for example usages of this node.
 class ObserverNavigationNode : public IVdfnNode {
  public:
-  ObserverNavigationNode(std::shared_ptr<cs::core::SolarSystem> const& pSolarSystem,
-      std::shared_ptr<cs::core::InputManager> const&                   pInputManager,
-      VistaPropertyList const&                                         oParams);
+  ObserverNavigationNode(cs::core::SolarSystem* pSolarSystem, cs::core::InputManager* pInputManager,
+      VistaPropertyList const& oParams);
   ~ObserverNavigationNode() override = default;
 
   bool PrepareEvaluationRun() override;
@@ -44,8 +43,8 @@ class ObserverNavigationNode : public IVdfnNode {
   bool GetIsValid() const override;
 
  private:
-  std::shared_ptr<cs::core::SolarSystem>  mSolarSystem;
-  std::shared_ptr<cs::core::InputManager> mInputManager;
+  cs::core::SolarSystem*  mSolarSystem;
+  cs::core::InputManager* mInputManager;
 
   TVdfnPort<double>*          mTime;
   TVdfnPort<VistaVector3D>*   mTranslation;
@@ -69,13 +68,13 @@ class ObserverNavigationNode : public IVdfnNode {
 
 class ObserverNavigationNodeCreate : public VdfnNodeFactory::IVdfnNodeCreator {
  public:
-  ObserverNavigationNodeCreate(std::shared_ptr<cs::core::SolarSystem> const& pSolarSystem,
-      std::shared_ptr<cs::core::InputManager> const&                         pInputManager);
+  ObserverNavigationNodeCreate(
+      cs::core::SolarSystem* pSolarSystem, cs::core::InputManager* pInputManager);
   IVdfnNode* CreateNode(const VistaPropertyList& oParams) const override;
 
  private:
-  std::shared_ptr<cs::core::SolarSystem>  mSolarSystem;
-  std::shared_ptr<cs::core::InputManager> mInputManager;
+  cs::core::SolarSystem*  mSolarSystem;
+  cs::core::InputManager* mInputManager;
 };
 
 #endif // CS_OBSERVER_NAVIGATION_NODE_HPP

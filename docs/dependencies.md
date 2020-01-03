@@ -47,6 +47,7 @@ A text document containing [all individual license texts](../LICENSE-3RD-PARTY.t
 | [Mapserver](http://mapserver.org) | Used to provide map data over the internet. Only required by the `csp-lod-bodies` plugin. | [MIT](http://mapserver.org/copyright.html) |
 | [proj.4](https://proj.org) | The `csp-lod-bodies` requires a [special version](https://github.com/cosmoscout/proj.4) of this library to be used by the Mapserver. | [MIT](https://proj.org/about.html) |
 
+<p align="center"><img src ="img/hr.svg"/></p>
 <p align="center">
   <a href="architecture.md">&lsaquo; Software Architecture</a>
   <img src ="img/nav-vspace.svg"/>
@@ -54,5 +55,3 @@ A text document containing [all individual license texts](../LICENSE-3RD-PARTY.t
   <img src ="img/nav-vspace.svg"/>
   <a href="coordinate-systems.md">Coordinate Systems &rsaquo;</a>
 </p>
-
-<p align="center"><img src ="img/hr.svg"/></p>

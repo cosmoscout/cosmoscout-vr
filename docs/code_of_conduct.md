@@ -79,10 +79,9 @@ available at https://www.contributor-covenant.org/version/1/4/code-of-conduct.ht
 For answers to common questions about this code of conduct, see
 https://www.contributor-covenant.org/faq
 
+<p align="center"><img src ="img/hr.svg"/></p>
 <p align="center">
   <a href="README.md">&#8962; Help Index</a>
   <img src ="img/nav-vspace.svg"/>
   <a href="changelog.md">Changelog &rsaquo;</a>
 </p>
-
-<p align="center"><img src ="img/hr.svg"/></p>

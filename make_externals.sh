@@ -33,7 +33,7 @@ fi
 # Check if ComoScout VR debug build is enabled with "export COSMOSCOUT_DEBUG_BUILD=true".
 BUILD_TYPE=release
 case "$COSMOSCOUT_DEBUG_BUILD" in
-  (true) echo "CosmoScout VR debug build is enabled!"; BUILD_TYPE=debug;;
+  (true) echo "CosmoScout VR debug build is enabled!"; BUILD_TYPE=debug;
 esac
 
 # This directory should contain all submodules - they are assumed to reside in the subdirectory 
@@ -86,7 +86,7 @@ echo ""
 
 cmake -E make_directory "$BUILD_DIR/freeglut" && cd "$BUILD_DIR/freeglut"
 cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
-      -DCMAKE_INSTALL_LIBDIR=lib \
+      -DCMAKE_INSTALL_LIBDIR=lib -DFREEGLUT_BUILD_DEMOS=Off -DFREEGLUT_BUILD_STATIC_LIBS=Off \
       -DCMAKE_BUILD_TYPE=$BUILD_TYPE "$EXTERNALS_DIR/freeglut/freeglut/freeglut"
 cmake --build . --target install --parallel 8
 
