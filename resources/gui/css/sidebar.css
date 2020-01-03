@@ -1,15 +1,20 @@
 #sidebar {
     width: 450px;
-    height: calc(100vh - 200px);
+    height: calc(100vh - 115px);
     overflow-x: hidden;
     overflow-y: scroll;
-    margin-top: 50px;
     opacity: 0;
     transition: opacity 0.2s linear;
+    -webkit-mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0) 0px, rgba(0, 0, 0, 1) 50px), linear-gradient(180deg, rgba(0,0,0,0) calc(100% - 30px), rgba(0,0,0,1) 100%);
+    -webkit-mask-composite: xor;
 }
 
 .loaded #sidebar {
     opacity: 1;
+}
+
+#sidebar .accordion {
+    padding-top: 50px;
 }
 
 #sidebar::-webkit-scrollbar {
