@@ -12,6 +12,9 @@
 
 #include <VistaKernel/VistaSystem.h>
 
+#include <spdlog/sinks/stdout_color_sinks.h>
+#include <spdlog/spdlog.h>
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int main(int argc, char** argv) {
@@ -19,6 +22,20 @@ int main(int argc, char** argv) {
   // Chromium Embedded Framework. For the main process, this method returns immediately, for all
   // others it blocks until the child process has terminated.
   cs::gui::executeWebProcess(argc, argv);
+
+  // setup logger ----------------------------------------------------------------------------------
+
+  // Set default log level and pattern.
+  spdlog::set_level(spdlog::level::debug);
+  spdlog::set_pattern("%^[%n] %l:%$ %v");
+
+  // Create default loggers.
+  spdlog::stdout_color_mt("cosmoscout-vr");
+  spdlog::stdout_color_mt("cs-core");
+  spdlog::stdout_color_mt("cs-graphics");
+  spdlog::stdout_color_mt("cs-gui");
+  spdlog::stdout_color_mt("cs-scene");
+  spdlog::stdout_color_mt("cs-utils");
 
   // parse program options -------------------------------------------------------------------------
 
@@ -40,7 +57,7 @@ int main(int argc, char** argv) {
   try {
     args.parse(argc, argv);
   } catch (std::runtime_error const& e) {
-    std::cout << e.what() << std::endl;
+    spdlog::get("cosmoscout-vr")->error(e.what());
     return 1;
   }
 
@@ -69,7 +86,7 @@ int main(int argc, char** argv) {
   try {
     settings = cs::core::Settings::read(settingsFile);
   } catch (std::exception& e) {
-    std::cerr << "Failed to read settings: " << e.what() << std::endl;
+    spdlog::get("cosmoscout-vr")->error("Failed to read settings: {}", e.what());
     return 1;
   }
 
@@ -96,7 +113,7 @@ int main(int argc, char** argv) {
     e.PrintException();
     return 1;
   } catch (std::exception& e) {
-    std::cerr << "Exception: " << e.what() << std::endl;
+    spdlog::get("cosmoscout-vr")->error(e.what());
     return 1;
   }
 
