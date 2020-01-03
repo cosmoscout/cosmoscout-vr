@@ -858,11 +858,9 @@ class TimelineApi extends IApi {
    */
   _increaseSpeed() {
     if (this._timeSpeedSlider.noUiSlider.get() < 0) {
-      this._timeSpeedSlider.noUiSlider.set(-1);
+      this._timeSpeedSlider.noUiSlider.set(1);
     } else if (this._currentSpeed === 0) {
       this._togglePause();
-    } else if (this._currentSpeed === -1) {
-      this._timeSpeedSlider.noUiSlider.set(1);
     } else {
       this._timeSpeedSlider.noUiSlider.set(this._currentSpeed - (-1));
     }
