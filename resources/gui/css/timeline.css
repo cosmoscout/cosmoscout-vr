@@ -319,20 +319,14 @@
 /* timeline control items ----------------------------------------------------------------------- */
 
 #timeline-container {
-/*position: absolute;*/
-position: relative;
-    left: 0;
+    position: relative;
     padding: 0;
-    margin: 0;
     width: 100%;
     transition: margin-top 0.3s;
     transition-timing-function: ease;
     background-image: linear-gradient(180deg, rgba(20, 20, 20, 0.4) 80%, rgba(20, 20, 20, 0.0) 100%);
-    margin-top: -43px;
-}
-
-#timeline-container.visible {
-
+    margin: -43px 0 0;
+    flex: 0 0 100%;
 }
 
 #timeline-container.overview-visible {

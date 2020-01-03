@@ -1,11 +1,7 @@
-html {
-    overflow: hidden;
-}
-
 #notifications {
-    position: absolute;
-    top: 70px;
-    right: 0;
+    position: relative;
+    margin-left: auto;
+    margin-top: 50px;
     width: 420px;
     height: 320px;
     overflow: hidden;

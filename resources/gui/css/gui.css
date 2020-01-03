@@ -750,6 +750,10 @@ hr {
 }
 
 #comsoscout {
+    display: flex;
+    flex-wrap: wrap;
+    width: 100vw;
+    height: 100vh;
     opacity: 0;
     transition: opacity .75s;
 }

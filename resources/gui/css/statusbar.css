@@ -1,9 +1,7 @@
 
 #statusbar {
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    flex: 0 0 100%;
+    align-self: flex-end;
     height: 35px;
     overflow: hidden;
     font-size: 0.9rem;
