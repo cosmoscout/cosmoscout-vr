@@ -5,15 +5,17 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "../cs-core/Settings.hpp"
+#include "../cs-core/logger.hpp"
+#include "../cs-graphics/logger.hpp"
 #include "../cs-gui/gui.hpp"
+#include "../cs-gui/logger.hpp"
+#include "../cs-scene/logger.hpp"
 #include "../cs-utils/CommandLine.hpp"
 #include "../cs-utils/doctest.hpp"
+#include "../cs-utils/logger.hpp"
 #include "Application.hpp"
 
 #include <VistaKernel/VistaSystem.h>
-
-#include <spdlog/sinks/stdout_color_sinks.h>
-#include <spdlog/spdlog.h>
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -23,19 +25,15 @@ int main(int argc, char** argv) {
   // others it blocks until the child process has terminated.
   cs::gui::executeWebProcess(argc, argv);
 
-  // setup logger ----------------------------------------------------------------------------------
-
-  // Set default log level and pattern.
-  spdlog::set_level(spdlog::level::debug);
-  spdlog::set_pattern("%^[%n] %l:%$ %v");
+  // setup loggers ---------------------------------------------------------------------------------
 
   // Create default loggers.
-  spdlog::stdout_color_mt("cosmoscout-vr");
-  spdlog::stdout_color_mt("cs-core");
-  spdlog::stdout_color_mt("cs-graphics");
-  spdlog::stdout_color_mt("cs-gui");
-  spdlog::stdout_color_mt("cs-scene");
-  spdlog::stdout_color_mt("cs-utils");
+  cs::utils::logger::init("cosmoscout-vr");
+  cs::core::logger::init();
+  cs::graphics::logger::init();
+  cs::gui::logger::init();
+  cs::scene::logger::init();
+  cs::utils::logger::init();
 
   // parse program options -------------------------------------------------------------------------
 
@@ -57,7 +55,7 @@ int main(int argc, char** argv) {
   try {
     args.parse(argc, argv);
   } catch (std::runtime_error const& e) {
-    spdlog::get("cosmoscout-vr")->error(e.what());
+    spdlog::error(e.what());
     return 1;
   }
 
@@ -86,7 +84,7 @@ int main(int argc, char** argv) {
   try {
     settings = cs::core::Settings::read(settingsFile);
   } catch (std::exception& e) {
-    spdlog::get("cosmoscout-vr")->error("Failed to read settings: {}", e.what());
+    spdlog::error("Failed to read settings: {}", e.what());
     return 1;
   }
 
@@ -113,7 +111,7 @@ int main(int argc, char** argv) {
     e.PrintException();
     return 1;
   } catch (std::exception& e) {
-    spdlog::get("cosmoscout-vr")->error(e.what());
+    spdlog::error(e.what());
     return 1;
   }
 

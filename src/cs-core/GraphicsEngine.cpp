@@ -8,12 +8,17 @@
 
 #include <VistaKernel/GraphicsManager/VistaSceneGraph.h>
 #include <VistaKernel/VistaSystem.h>
+#include <spdlog/spdlog.h>
 
 namespace cs::core {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 GraphicsEngine::GraphicsEngine(std::shared_ptr<const core::Settings> const& settings) {
+
+  // Tell the user what's going on.
+  spdlog::debug("Creating GraphicsEngine.");
+
   auto pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
 
   pWidgetScale = settings->mWidgetScale;
@@ -44,6 +49,13 @@ GraphicsEngine::GraphicsEngine(std::shared_ptr<const core::Settings> const& sett
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+GraphicsEngine::~GraphicsEngine() {
+  // Tell the user what's going on.
+  spdlog::debug("Deleting GraphicsEngine.");
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void GraphicsEngine::registerCaster(graphics::ShadowCaster* caster) {
   mShadowMap.registerCaster(caster);
 }
@@ -69,14 +81,14 @@ graphics::ShadowMap const* GraphicsEngine::getShadowMap() const {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void GraphicsEngine::calculateCascades() {
-  float              near  = pShadowMapRange.get().x;
-  float              far   = pShadowMapRange.get().y;
-  int                count = pShadowMapCascades.get();
+  float              nearEnd = pShadowMapRange.get().x;
+  float              farEnd  = pShadowMapRange.get().y;
+  int                count   = pShadowMapCascades.get();
   std::vector<float> splits(count + 1);
   for (int i(0); i < splits.size(); ++i) {
     float alpha = (float)(i) / count;
     alpha       = std::pow(alpha, pShadowMapSplitDistribution.get());
-    splits[i]   = glm::mix(near, far, alpha);
+    splits[i]   = glm::mix(nearEnd, farEnd, alpha);
   }
   mShadowMap.setCascadeSplits(splits);
   mShadowMap.setSunNearClipOffset(pShadowMapExtension.get().x);

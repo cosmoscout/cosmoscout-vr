@@ -29,7 +29,7 @@ class CS_CORE_EXPORT TimeControl {
   utils::Property<float> pTimeSpeed = 1.f;
 
   TimeControl(std::shared_ptr<const Settings> const& settings);
-  ~TimeControl() = default;
+  ~TimeControl();
 
   /// Updates the time every update. No need to call this.
   void update();

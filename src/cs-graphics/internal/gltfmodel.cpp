@@ -13,15 +13,15 @@
 #include "stb_image_helper.hpp"
 #include "tiny_gltf_helper.hpp"
 
-#include <algorithm>
-#include <fstream>
-#include <gli/gli.hpp>
-
 #include <VistaKernel/DisplayManager/VistaDisplayManager.h>
 #include <VistaKernel/DisplayManager/VistaProjection.h>
 #include <VistaKernel/DisplayManager/VistaViewport.h>
 #include <VistaKernel/VistaSystem.h>
 #include <VistaMath/VistaBoundingBox.h>
+#include <algorithm>
+#include <fstream>
+#include <gli/gli.hpp>
+#include <spdlog/spdlog.h>
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -708,7 +708,7 @@ gli::texture_cube prefilterCubemapGGX(gli::texture_cube const& inputCubemap, std
     glDrawBuffers(1, drawBuffers);
 
     if (GL_FRAMEBUFFER_COMPLETE != glCheckFramebufferStatus(GL_FRAMEBUFFER)) {
-      std::cout << "Invalid FBO!!!\n";
+      spdlog::error("Invalid FBO!!!");
     }
 
     auto inputCubemapTexVar = it->second;
@@ -810,7 +810,7 @@ gli::texture_cube irradianceCubemap(gli::texture_cube const& inputCubemap, int w
     glDrawBuffers(1, drawBuffers);
 
     if (GL_FRAMEBUFFER_COMPLETE != glCheckFramebufferStatus(GL_FRAMEBUFFER)) {
-      std::cout << "Invalid FBO!!!\n";
+      spdlog::error("Invalid FBO!!!");
     }
 
     auto inputCubemapTexVar = it->second;
@@ -1157,14 +1157,14 @@ void Primitive::draw(glm::mat4 const& projMat, glm::mat4 const& viewMat, glm::ma
   }
 
   if (shared.m_linearDepthBuffer) {
-    double near, far;
+    double nearClip, farClip;
     GetVistaSystem()
         ->GetDisplayManager()
         ->GetCurrentRenderInfo()
         ->m_pViewport->GetProjection()
         ->GetProjectionProperties()
-        ->GetClippingRange(near, far);
-    glUniform1f(programInfo.u_FarClip_loc, (float)far);
+        ->GetClippingRange(nearClip, farClip);
+    glUniform1f(programInfo.u_FarClip_loc, (float)farClip);
   }
 
   auto viewMatInverse = glm::inverse(viewMat);

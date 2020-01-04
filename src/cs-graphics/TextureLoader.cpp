@@ -13,9 +13,9 @@
 #include <stb_image.h>
 #include <stb_image_write.h>
 
-#include <tiffio.h>
-
 #include <iostream>
+#include <spdlog/spdlog.h>
+#include <tiffio.h>
 #include <vector>
 
 namespace cs::graphics {
@@ -68,7 +68,7 @@ inline GLint stbi_component_to_internal_format(int component) {
 
 std::shared_ptr<VistaTexture> TextureLoader::loadFromFile(std::string const& sFileName) {
 
-  std::cout << "Loading: Texture " << sFileName << std::endl;
+  spdlog::debug("Loading Texture {} ...", sFileName);
 
   std::string suffix = sFileName.substr(sFileName.rfind('.'));
 
@@ -83,7 +83,7 @@ std::shared_ptr<VistaTexture> TextureLoader::loadFromFile(std::string const& sFi
     // load with tifflib
     auto data = TIFFOpen(sFileName.c_str(), "r");
     if (!data) {
-      std::cout << "Failed to load " << sFileName << std::endl;
+      spdlog::error("Failed to load {}!", sFileName);
       return nullptr;
     }
 
@@ -98,8 +98,7 @@ std::shared_ptr<VistaTexture> TextureLoader::loadFromFile(std::string const& sFi
     TIFFGetField(data, TIFFTAG_SAMPLESPERPIXEL, &channels);
 
     if (bpp != 8) {
-      std::cout << "Failed to load " << sFileName
-                << ": Only 8 bit per sample are supported right now." << std::endl;
+      spdlog::error("Failed to load {}: Only 8 bit per sample are supported right now.", sFileName);
       return nullptr;
     }
 
@@ -129,7 +128,7 @@ std::shared_ptr<VistaTexture> TextureLoader::loadFromFile(std::string const& sFi
     unsigned char* pixels = stbi_load(sFileName.c_str(), &width, &height, &bpp, channels);
 
     if (!pixels) {
-      std::cout << "Failed to load " << sFileName << std::endl;
+      spdlog::error("Failed to load {}!", sFileName);
       return nullptr;
     }
 

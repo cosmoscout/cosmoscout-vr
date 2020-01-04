@@ -8,6 +8,7 @@
 
 #include <cspice/SpiceUsr.h>
 #include <glm/gtc/type_ptr.hpp>
+#include <spdlog/spdlog.h>
 
 namespace cs::utils::convert {
 
@@ -168,7 +169,7 @@ double toSpiceTime(boost::posix_time::ptime const& tIn) {
 double toSpiceTime(std::string const& tIn) {
   try {
     return toSpiceTime(boost::posix_time::time_from_string(tIn));
-  } catch (std::exception& e) { std::cout << "Failed to convert time: " << e.what() << std::endl; }
+  } catch (std::exception& e) { spdlog::error("Failed to convert time: {}", e.what()); }
 
   return 0.0;
 }

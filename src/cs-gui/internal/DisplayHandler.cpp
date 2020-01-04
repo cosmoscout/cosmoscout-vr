@@ -7,6 +7,7 @@
 #include "DisplayHandler.hpp"
 
 #include <iostream>
+#include <spdlog/spdlog.h>
 
 namespace cs::gui::detail {
 
@@ -17,8 +18,8 @@ bool DisplayHandler::OnConsoleMessage(CefRefPtr<CefBrowser> browser, cef_log_sev
 
   std::string path(source.ToString());
   int         pos((int)path.find_last_of("/\\"));
-  std::cout << "[" << path.substr(pos == std::string::npos ? 0 : pos + 1) << ":" << line << "] "
-            << message.ToString() << std::endl;
+  spdlog::info(
+      "[{}:{}] {}", path.substr(pos == std::string::npos ? 0 : pos + 1), line, message.ToString());
   return true;
 }
 

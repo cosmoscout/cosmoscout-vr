@@ -21,9 +21,6 @@
 #include "../cs-utils/utils.hpp"
 #include "ObserverNavigationNode.hpp"
 
-#include <curlpp/cURLpp.hpp>
-#include <spdlog/spdlog.h>
-
 #include <VistaBase/VistaTimeUtils.h>
 #include <VistaInterProcComm/Cluster/VistaClusterDataSync.h>
 #include <VistaKernel/Cluster/VistaClusterMode.h>
@@ -37,6 +34,8 @@
 #include <VistaKernel/VistaSystem.h>
 #include <VistaKernelOpenSGExt/VistaOpenSGMaterialTools.h>
 #include <VistaOGLExt/VistaShaderRegistry.h>
+#include <curlpp/cURLpp.hpp>
+#include <spdlog/spdlog.h>
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -173,18 +172,16 @@ bool Application::Init(VistaSystem* pVistaSystem) {
         cs::core::PluginBase* (*pluginConstructor)();
         pluginConstructor = (cs::core::PluginBase * (*)()) LIBFUNC(pluginHandle, "create");
 
-        spdlog::get("cosmoscout-vr")->info("Opening plugin {}...", plugin.first);
+        spdlog::info("Opening plugin {}.", plugin.first);
 
         // Actually call the plugin's constructor and add the returned pointer to out list.
         mPlugins.insert(
             std::pair<std::string, Plugin>(plugin.first, {pluginHandle, pluginConstructor()}));
-
       } else {
-        spdlog::get("cosmoscout-vr")
-            ->error("Failed to load plugin {}: {}", plugin.first, LIBERROR());
+        spdlog::error("Failed to load plugin {}: {}", plugin.first, LIBERROR());
       }
     } catch (std::exception const& e) {
-      spdlog::get("cosmoscout-vr")->error("Failed to load plugin {}: {}", plugin.first, e.what());
+      spdlog::error("Failed to load plugin {}: {}", plugin.first, e.what());
     }
   }
 
@@ -195,12 +192,14 @@ bool Application::Init(VistaSystem* pVistaSystem) {
 
 void Application::Quit() {
 
-  // Close all plugins first.
+  // De-init all plugins first.
   for (auto const& plugin : mPlugins) {
-    std::string pluginFile = plugin.first;
-    spdlog::get("cosmoscout-vr")->info("Unloading plugin {}...", pluginFile);
-
     plugin.second.mPlugin->deInit();
+  }
+
+  // Then close all plugins.
+  for (auto const& plugin : mPlugins) {
+    spdlog::info("Closing plugin {}.", plugin.first);
 
     auto handle           = plugin.second.mHandle;
     auto pluginDestructor = (void (*)(cs::core::PluginBase*))LIBFUNC(handle, "destroy");
@@ -220,9 +219,7 @@ void Application::Quit() {
 
   auto assertCleanUp = [](std::string const& name, size_t count) {
     if (count > 1) {
-      spdlog::get("cosmoscout-vr")->warn("Use count of {} is {} but should be 0.", name, count - 1);
-    } else {
-      spdlog::get("cosmoscout-vr")->debug("Deleting {}", name);
+      spdlog::warn("Use count of {} is {} but should be 0.", name, count - 1);
     }
   };
 
@@ -294,7 +291,7 @@ void Application::FrameUpdate() {
         mDownloader.release();
       } else {
         // Show to the user what's going on.
-        mGuiManager->setLoadingScreenStatus("Downloading data ...");
+        mGuiManager->setLoadingScreenStatus("Downloading data...");
       }
 
     } else {
@@ -360,13 +357,12 @@ void Application::FrameUpdate() {
         try {
           plugin->second.mPlugin->init();
         } catch (std::exception const& e) {
-          spdlog::get("cosmoscout-vr")
-              ->error("Failed to initialize plugin {}: {}", plugin->first, e.what());
+          spdlog::error("Failed to initialize plugin {}: {}", plugin->first, e.what());
         }
 
       } else if (pluginToLoad == mPlugins.size()) {
 
-        spdlog::get("cosmoscout-vr")->info("Loading done.");
+        spdlog::info("Loading done.");
 
         // Once all plugins have been loaded, we set a boolean indicating this state.
         mLoadedAllPlugins = true;
@@ -466,7 +462,7 @@ void Application::FrameUpdate() {
       try {
         plugin.second.mPlugin->update();
       } catch (std::runtime_error const& e) {
-        spdlog::get("cosmoscout-vr")->error("Error updating plugin {}: {}", plugin.first, e.what());
+        spdlog::error("Error updating plugin {}: {}", plugin.first, e.what());
       }
     }
 
@@ -643,13 +639,13 @@ void Application::testLoadAllPlugins() {
         pluginConstructor = (cs::core::PluginBase * (*)()) LIBFUNC(pluginHandle, "create");
 
         if (pluginConstructor) {
-          spdlog::get("cosmoscout-vr")->info("Plugin {} found.", plugin);
+          spdlog::info("Plugin {} found.", plugin);
         } else {
-          spdlog::get("cosmoscout-vr")->error("Failed to load plugin {}: Invalid plugin.", plugin);
+          spdlog::error("Failed to load plugin {}: Invalid plugin.", plugin);
         }
 
       } else {
-        spdlog::get("cosmoscout-vr")->error("Failed to load plugin {}: {}", plugin, LIBERROR());
+        spdlog::error("Failed to load plugin {}: {}", plugin, LIBERROR());
       }
     }
   }
