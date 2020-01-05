@@ -11,6 +11,8 @@
 
 namespace cs::gui::logger {
 
+/// This creates the default logger for "cs-gui" and is called at startup by the main() method.
+/// See ../cs-utils/logger.hpp for more logging details.
 CS_GUI_EXPORT void init();
 
 } // namespace cs::gui::logger

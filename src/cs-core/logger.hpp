@@ -11,6 +11,8 @@
 
 namespace cs::core::logger {
 
+/// This creates the default logger for "cs-core" and is called at startup by the main() method.
+/// See ../cs-utils/logger.hpp for more logging details.
 CS_CORE_EXPORT void init();
 
 } // namespace cs::core::logger

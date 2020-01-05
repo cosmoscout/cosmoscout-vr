@@ -580,8 +580,8 @@ Buffer getOrCreateBufferObject(std::map<int, Buffer>& bufferMap, tinygltf::Model
   auto it = bufferMap.find(bufferViewIndex);
   if (it != bufferMap.end()) {
     if (it->second.target != target) {
-      std::cerr << "WARNING: getOrCreateBufferObject target is different"
-                << " from Buffer.target for " << bufferViewIndex << '\n';
+      spdlog::error(
+          "getOrCreateBufferObject target is different from Buffer.target for {}", bufferViewIndex);
     }
     return it->second;
   } // else create

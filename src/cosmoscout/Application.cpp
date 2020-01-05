@@ -362,7 +362,7 @@ void Application::FrameUpdate() {
 
       } else if (pluginToLoad == mPlugins.size()) {
 
-        spdlog::info("Loading done.");
+        spdlog::info("Ready for Takeoff!");
 
         // Once all plugins have been loaded, we set a boolean indicating this state.
         mLoadedAllPlugins = true;

@@ -14,6 +14,7 @@
 #include "../cs-utils/doctest.hpp"
 #include "../cs-utils/logger.hpp"
 #include "Application.hpp"
+#include "cs-version.hpp"
 
 #include <VistaKernel/VistaSystem.h>
 
@@ -29,6 +30,8 @@ int main(int argc, char** argv) {
 
   // Create default loggers.
   cs::utils::logger::init("cosmoscout-vr");
+  spdlog::info("Welcome to CosmoScout VR v" + CS_PROJECT_VERSION);
+
   cs::core::logger::init();
   cs::graphics::logger::init();
   cs::gui::logger::init();
@@ -114,6 +117,8 @@ int main(int argc, char** argv) {
     spdlog::error(e.what());
     return 1;
   }
+
+  spdlog::info("Shutdown complete. Fare well!");
 
   return 0;
 }

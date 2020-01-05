@@ -7,6 +7,7 @@
 #include "FrameTimings.hpp"
 
 #include <GL/glew.h>
+#include <spdlog/spdlog.h>
 #include <thread>
 
 namespace cs::utils {
@@ -156,8 +157,8 @@ void TimerQueryPool::start(std::string const& name, FrameTimings::QueryMode mode
     if (t) {
       range.mGPUStart = *t;
     } else {
-      std::cerr << "WARN: TimerQueryPool::Start, No more Timestamps available (mMaxSize="
-                << mMaxSize << ", mIndex=" << mIndex << "\n";
+      spdlog::error("TimerQueryPool::Start, No more Timestamps available (mMaxSize={}, mIndex={})",
+          mMaxSize, mIndex);
     }
   }
 
@@ -178,7 +179,7 @@ void TimerQueryPool::end(std::string const& name) {
 
   auto iter = mQueryRanges.find(name);
   if (iter == mQueryRanges.end()) {
-    std::cerr << "WARN: TimerQueryPool::End, unknown key: " << name << '\n';
+    spdlog::error("TimerQueryPool::End, unknown key: {}", name);
     return;
   }
 
@@ -189,7 +190,7 @@ void TimerQueryPool::end(std::string const& name) {
     if (t) {
       range.mGPUEnd = *t;
     } else {
-      std::cerr << "WARN: TimerQueryPool::End, No more Timestamps available\n";
+      spdlog::error("TimerQueryPool::End, No more Timestamps available");
     }
   }
 

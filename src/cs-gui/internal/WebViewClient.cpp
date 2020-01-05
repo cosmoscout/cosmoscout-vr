@@ -66,7 +66,7 @@ bool WebViewClient::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
 
     return true;
   } else if (message->GetName() == "error") {
-    std::cerr << message->GetArgumentList()->GetString(0).ToString() << std::endl;
+    spdlog::error(message->GetArgumentList()->GetString(0).ToString());
   }
 
   return false;

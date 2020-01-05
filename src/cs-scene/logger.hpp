@@ -11,6 +11,8 @@
 
 namespace cs::scene::logger {
 
+/// This creates the default logger for "cs-scene" and is called at startup by the main() method.
+/// See ../cs-utils/logger.hpp for more logging details.
 CS_SCENE_EXPORT void init();
 
 } // namespace cs::scene::logger

@@ -11,6 +11,8 @@
 
 namespace cs::graphics::logger {
 
+/// This creates the default logger for "cs-graphics" and is called at startup by the main() method.
+/// See ../cs-utils/logger.hpp for more logging details.
 CS_GRAPHICS_EXPORT void init();
 
 } // namespace cs::graphics::logger
