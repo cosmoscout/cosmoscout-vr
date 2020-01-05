@@ -228,7 +228,10 @@ add_definitions(
   -DNOMINMAX
 )
 
-add_compile_options($<$<CXX_COMPILER_ID:MSVC>:/EHsc>)
+add_compile_options(
+  $<$<CXX_COMPILER_ID:MSVC>:/EHsc>
+  $<$<CXX_COMPILER_ID:MSVC>:/wd4251>
+)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
