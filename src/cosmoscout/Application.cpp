@@ -172,16 +172,16 @@ bool Application::Init(VistaSystem* pVistaSystem) {
         cs::core::PluginBase* (*pluginConstructor)();
         pluginConstructor = (cs::core::PluginBase * (*)()) LIBFUNC(pluginHandle, "create");
 
-        spdlog::info("Opening plugin {}.", plugin.first);
+        spdlog::info("Opening plugin '{}'.", plugin.first);
 
         // Actually call the plugin's constructor and add the returned pointer to out list.
         mPlugins.insert(
             std::pair<std::string, Plugin>(plugin.first, {pluginHandle, pluginConstructor()}));
       } else {
-        spdlog::error("Failed to load plugin {}: {}", plugin.first, LIBERROR());
+        spdlog::error("Failed to load plugin '{}': {}", plugin.first, LIBERROR());
       }
     } catch (std::exception const& e) {
-      spdlog::error("Failed to load plugin {}: {}", plugin.first, e.what());
+      spdlog::error("Failed to load plugin '{}': {}", plugin.first, e.what());
     }
   }
 
@@ -199,7 +199,7 @@ void Application::Quit() {
 
   // Then close all plugins.
   for (auto const& plugin : mPlugins) {
-    spdlog::info("Closing plugin {}.", plugin.first);
+    spdlog::info("Closing plugin '{}'.", plugin.first);
 
     auto handle           = plugin.second.mHandle;
     auto pluginDestructor = (void (*)(cs::core::PluginBase*))LIBFUNC(handle, "destroy");
@@ -219,7 +219,9 @@ void Application::Quit() {
 
   auto assertCleanUp = [](std::string const& name, size_t count) {
     if (count > 1) {
-      spdlog::warn("Use count of {} is {} but should be 0.", name, count - 1);
+      spdlog::warn(
+          "Failed to properly cleanup the Application: Use count of '{}' is {} but should be 0.",
+          name, count - 1);
     }
   };
 
@@ -357,7 +359,7 @@ void Application::FrameUpdate() {
         try {
           plugin->second.mPlugin->init();
         } catch (std::exception const& e) {
-          spdlog::error("Failed to initialize plugin {}: {}", plugin->first, e.what());
+          spdlog::error("Failed to initialize plugin '{}': {}", plugin->first, e.what());
         }
 
       } else if (pluginToLoad == mPlugins.size()) {
@@ -462,7 +464,7 @@ void Application::FrameUpdate() {
       try {
         plugin.second.mPlugin->update();
       } catch (std::runtime_error const& e) {
-        spdlog::error("Error updating plugin {}: {}", plugin.first, e.what());
+        spdlog::error("Error updating plugin '{}': {}", plugin.first, e.what());
       }
     }
 
@@ -639,13 +641,13 @@ void Application::testLoadAllPlugins() {
         pluginConstructor = (cs::core::PluginBase * (*)()) LIBFUNC(pluginHandle, "create");
 
         if (pluginConstructor) {
-          spdlog::info("Plugin {} found.", plugin);
+          spdlog::info("Plugin '{}' found.", plugin);
         } else {
-          spdlog::error("Failed to load plugin {}: Invalid plugin.", plugin);
+          spdlog::error("Failed to load plugin '{}': Plugin has no 'create' method.", plugin);
         }
 
       } else {
-        spdlog::error("Failed to load plugin {}: {}", plugin, LIBERROR());
+        spdlog::error("Failed to load plugin '{}': {}", plugin, LIBERROR());
       }
     }
   }

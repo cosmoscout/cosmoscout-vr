@@ -187,7 +187,7 @@ bool ShadowMap::Do() {
     cleanUp();
 
     if (mSplits.size() < 2) {
-      spdlog::warn("Shadow Warning: No splits have been defined, shadows will be ugly!");
+      spdlog::warn("Shadows will be ugly: No splits have been defined!");
       mSplits = {0.1f, 5.f, 20.f, 50.f, 100.f};
     }
 

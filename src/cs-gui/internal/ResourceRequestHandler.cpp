@@ -27,7 +27,7 @@ CefRefPtr<CefResourceHandler> ResourceRequestHandler::GetResourceHandler(
     std::ifstream input(path, std::ios::binary);
 
     if (!input) {
-      spdlog::error("Failed to open file '{}'!", path);
+      spdlog::error("Failed to open gui resource: Cannot open file '{}'!", path);
       return nullptr;
     }
 

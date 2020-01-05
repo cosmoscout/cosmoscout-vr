@@ -30,7 +30,7 @@ int main(int argc, char** argv) {
 
   // Create default loggers.
   cs::utils::logger::init("cosmoscout-vr");
-  spdlog::info("Welcome to CosmoScout VR v" + CS_PROJECT_VERSION);
+  spdlog::info("Welcome to CosmoScout VR v" + CS_PROJECT_VERSION + "!");
 
   cs::core::logger::init();
   cs::graphics::logger::init();
@@ -58,7 +58,7 @@ int main(int argc, char** argv) {
   try {
     args.parse(argc, argv);
   } catch (std::runtime_error const& e) {
-    spdlog::error(e.what());
+    spdlog::error("Failed to parse command line arguments: {}", e.what());
     return 1;
   }
 
@@ -111,10 +111,10 @@ int main(int argc, char** argv) {
     }
 
   } catch (VistaExceptionBase& e) {
-    e.PrintException();
+    spdlog::error("Caught unexpected VistaException: {}", e.what());
     return 1;
   } catch (std::exception& e) {
-    spdlog::error(e.what());
+    spdlog::error("Caught unexpected std::exception: {}", e.what());
     return 1;
   }
 

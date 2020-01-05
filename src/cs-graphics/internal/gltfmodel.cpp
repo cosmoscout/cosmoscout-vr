@@ -581,7 +581,8 @@ Buffer getOrCreateBufferObject(std::map<int, Buffer>& bufferMap, tinygltf::Model
   if (it != bufferMap.end()) {
     if (it->second.target != target) {
       spdlog::error(
-          "getOrCreateBufferObject target is different from Buffer.target for {}", bufferViewIndex);
+          "Failed to create GLTF BufferObject: Target is different from Buffer.target for {}!",
+          bufferViewIndex);
     }
     return it->second;
   } // else create
@@ -708,7 +709,7 @@ gli::texture_cube prefilterCubemapGGX(gli::texture_cube const& inputCubemap, std
     glDrawBuffers(1, drawBuffers);
 
     if (GL_FRAMEBUFFER_COMPLETE != glCheckFramebufferStatus(GL_FRAMEBUFFER)) {
-      spdlog::error("Invalid FBO!!!");
+      spdlog::error("Failed to filter GLTF cubemap: Invalid FBO!");
     }
 
     auto inputCubemapTexVar = it->second;
@@ -810,7 +811,7 @@ gli::texture_cube irradianceCubemap(gli::texture_cube const& inputCubemap, int w
     glDrawBuffers(1, drawBuffers);
 
     if (GL_FRAMEBUFFER_COMPLETE != glCheckFramebufferStatus(GL_FRAMEBUFFER)) {
-      spdlog::error("Invalid FBO!!!");
+      spdlog::error("Failed to filter GLTF cubemap: Invalid FBO!");
     }
 
     auto inputCubemapTexVar = it->second;

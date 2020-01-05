@@ -157,7 +157,8 @@ void TimerQueryPool::start(std::string const& name, FrameTimings::QueryMode mode
     if (t) {
       range.mGPUStart = *t;
     } else {
-      spdlog::error("TimerQueryPool::Start, No more Timestamps available (mMaxSize={}, mIndex={})",
+      spdlog::error(
+          "Failed to start timer query: No more Timestamps available (mMaxSize={}, mIndex={})!",
           mMaxSize, mIndex);
     }
   }
@@ -179,7 +180,7 @@ void TimerQueryPool::end(std::string const& name) {
 
   auto iter = mQueryRanges.find(name);
   if (iter == mQueryRanges.end()) {
-    spdlog::error("TimerQueryPool::End, unknown key: {}", name);
+    spdlog::error("Failed to end timer query: Unknown key '{}'!", name);
     return;
   }
 
@@ -190,7 +191,7 @@ void TimerQueryPool::end(std::string const& name) {
     if (t) {
       range.mGPUEnd = *t;
     } else {
-      spdlog::error("TimerQueryPool::End, No more Timestamps available");
+      spdlog::error("Failed to end timer query: No more Timestamps available!");
     }
   }
 

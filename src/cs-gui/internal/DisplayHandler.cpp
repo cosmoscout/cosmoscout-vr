@@ -18,8 +18,21 @@ bool DisplayHandler::OnConsoleMessage(CefRefPtr<CefBrowser> browser, cef_log_sev
 
   std::string path(source.ToString());
   int         pos((int)path.find_last_of("/\\"));
-  spdlog::info(
-      "[{}:{}] {}", path.substr(pos == std::string::npos ? 0 : pos + 1), line, message.ToString());
+  std::string logMessage("[" + path.substr(pos == std::string::npos ? 0 : pos + 1) + ":" +
+                         std::to_string(line) + "] " + message.ToString());
+
+  if (level == LOGSEVERITY_DEBUG) {
+    spdlog::debug(logMessage);
+  } else if (level == LOGSEVERITY_WARNING) {
+    spdlog::warn(logMessage);
+  } else if (level == LOGSEVERITY_ERROR) {
+    spdlog::error(logMessage);
+  } else if (level == LOGSEVERITY_FATAL) {
+    spdlog::critical(logMessage);
+  } else {
+    spdlog::info(logMessage);
+  }
+
   return true;
 }
 

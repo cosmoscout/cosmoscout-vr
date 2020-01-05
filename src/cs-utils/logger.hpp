@@ -71,7 +71,7 @@ inline void init(std::string const& name) {
   logger->set_level(spdlog::level::trace);
 
   // See https://github.com/gabime/spdlog/wiki/3.-Custom-formatting for formatting options.
-  logger->set_pattern("%^[%L][%n]%$ %v");
+  logger->set_pattern("%^[%L] %-17!n:%$ %v");
 
   // Since spdlog has a default logger for each shared library, this method "inline". This way it
   // will setup the logger for your plugin when it's called from your code.
