@@ -22,6 +22,10 @@ class NotificationApi extends IApi {
      */
     init(container = 'notifications') {
       this._container = document.getElementById(container);
+
+      if (this._container === null) {
+        console.error(`Element with id #${container} not found.`);
+      }
     }
 
     /**
@@ -33,6 +37,11 @@ class NotificationApi extends IApi {
      * @param flyTo {string} Optional flyto name which gets passed to 'fly_to'. Activated on click
      */
     printNotification(title, content, icon, flyTo) {
+      if (this._container === null) {
+        console.error('Notification container is not defined. Did you call "init"?');
+        return;
+      }
+
       if (this._container.children.length > 4) {
         const no = this._container.lastElementChild;
 
@@ -80,7 +89,7 @@ class NotificationApi extends IApi {
       const notification = CosmoScout.loadTemplateContent('notification');
 
       if (notification === false) {
-        throw new Error();
+        throw new Error('Notification template content could not be loaded. Does "#notification-template" exist?');
       }
 
       notification.innerHTML = notification.innerHTML
