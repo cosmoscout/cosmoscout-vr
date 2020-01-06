@@ -2,6 +2,8 @@
   <img src ="img/banner-light-shafts.jpg" />
 </p>
 
+:construction: _**Under Construction:** This guide is still far from complete. We will improve it in the future._
+
 # Writing Plugins for CosmoScout VR
 The modularity of CosmoScout allows for easy feature extension through the use of plugins.  
 This documentation aims at understanding the basic plugin architecture and the available apis.
@@ -38,9 +40,43 @@ Plugins that need extensive configuration or are feature rich should add a desig
 GuiManager::addPluginTabToSideBarFromHTML(std::string const& name, std::string const& icon, std::string const& htmlFile);
 ```
 
+Tab skeleton
+```html
+<div class="strike">
+    <span>Plugin Section Headline</span>
+</div>
+
+<div class="row">
+    <div class="col-5">
+        Label name
+    </div>
+    <div class="col-1">
+        <i class="material-icons">Material Icon Name</i>
+    </div>
+    <div class="col-6">
+        <!-- <select> / <input> -->
+    </div>
+</div>
+<!-- ... rows -->
+
+<div class="strike">
+    <span>Plugin Section Headline</span>
+</div>
+
+<div class="row">
+    <div class="col-6">
+        50% width label
+    </div>
+    <div class="col-6">
+        <!-- <select> / <input> / ... -->
+    </div>
+</div>
+<!-- ... rows -->
+```
+
 #### Settings section
 The settings section is the last tab in the sidebar and contains, as the name denotes, settings.  
-Settings should only include checkboxes for enabling and disabling features or sliders to set ranges. 
+Settings should only include checkboxes for enabling or disabling features or radio groups to change modes. 
 
 ```c++
 /// Adds a new section to the settings tab.
@@ -48,6 +84,38 @@ Settings should only include checkboxes for enabling and disabling features or s
 /// @param name      The name/title of the section.
 /// @param htmlFile  The HTML file that describes the sections contents.
 GuiManager::addSettingsSectionToSideBarFromHTML(std::string const& name, std::string const& icon, std::string const& htmlFile);
+```
+
+Settings skeleton:
+```html
+<div class="row">
+    <div class="col-7 offset-5">
+        <label class="checklabel">
+            <input type="checkbox" id="set_enable_example_feature" />
+            <i class="material-icons"></i>
+            <span>Example checkbox</span>
+        </label>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-5">
+        Example radio
+    </div>
+    <div class="col-7">
+        <label class="radiolabel">
+            <input name="example_radio" type="radio" id="set_example_mode_0" />
+            <span>Example mode 1</span>
+        </label>
+    </div>
+    <div class="col-7 offset-5">
+        <label class="radiolabel">
+            <input name="example_radio" type="radio" id="set_example_mode_1" />
+            <span>Example mode 2</span>
+        </label>
+    </div>
+</div>
+<!-- ... rows -->
 ```
 
 ### Registering CSS
@@ -266,7 +334,7 @@ CosmoScout.setSliderValue('multi_handle_slider', 1, 2);
 Clears the content of a dropdown.
 
 ```javascript
-// Clear options of <input type="dropdown" id="example-dropdown">
+// Clear options of <select id="example-dropdown">
 CosmoScout.clearDropdown('example-dropdown');
 ```
 
