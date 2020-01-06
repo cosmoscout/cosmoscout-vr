@@ -98,6 +98,11 @@ class CosmoScout {
           instance = new Api();
         }
 
+        if (instance.name === '') {
+          console.error(`${instance.constructor.name} is missing the 'name' property.`);
+          return;
+        }
+
         this.register(instance.name, instance);
         instance.init();
       } catch (e) {
@@ -136,6 +141,10 @@ class CosmoScout {
     };
 
     document.querySelectorAll('.simple-value-dropdown').forEach((dropdown) => {
+      if (typeof dropdown.dataset.initialized !== 'undefined') {
+        return;
+      }
+
       dropdown.addEventListener('change', eventListener);
     });
   }
