@@ -1,4 +1,4 @@
-/* global IApi, Format */
+/* global IApi, Format, CosmoScout */
 
 /**
  * Statusbar Api
@@ -58,6 +58,10 @@ class StatusbarApi extends IApi {
      * @param height {number|string} Height
      */
     setUserPosition(long, lat, height) {
+      if (CosmoScout.cache('userPos', long, lat, height)) {
+        return;
+      }
+
       this._userContainer.innerText = `${Format.longitude(long) + Format.latitude(lat)}(${Format.height(height)})`;
     }
 
@@ -70,6 +74,10 @@ class StatusbarApi extends IApi {
      * @param height {number|string} Height
      */
     setPointerPosition(hits, long, lat, height) {
+      if (CosmoScout.cache('pointerPos', hits, long, lat, height)) {
+        return;
+      }
+
       let text = ' - ';
 
       if (hits) {
@@ -85,6 +93,10 @@ class StatusbarApi extends IApi {
      * @param speed {number}
      */
     setSpeed(speed) {
+      if (CosmoScout.cache('speed', speed)) {
+        return;
+      }
+
       this._speedContainer.innerText = Format.speed(speed);
     }
 }
