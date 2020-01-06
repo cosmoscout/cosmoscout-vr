@@ -549,7 +549,7 @@ void Application::FrameUpdate() {
       double surfaceHeight = mSolarSystem->pActiveBody.get()->getHeight(polar.xy());
       double heightDiff    = polar.z / mGraphicsEngine->pHeightScale.get() - surfaceHeight;
 
-      if (!std::isnan(polar.x) && !std::isnan(polar.y) && !std::isnan(heightDiff)) {
+      if (!std::isnan(polar.x) && !std::isnan(polar.y) && !std::isnan(heightDiff) && m_iFrameCount % 10 == 0) {
         mGuiManager->getGui()->callJavascript("CosmoScout.timeline.setUserPosition",
             cs::utils::convert::toDegrees(polar.x), cs::utils::convert::toDegrees(polar.y),
             heightDiff);

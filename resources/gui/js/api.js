@@ -82,6 +82,15 @@ class CosmoScout {
   static _html = new Map();
 
   /**
+   * Global cache Map
+   *
+   * @see {cache}
+   * @type {Map<string, string>}
+   * @private
+   */
+  static _cache = new Map();
+
+  /**
    * Init a list of apis
    *
    * @param apis {IApi}
@@ -586,6 +595,25 @@ class CosmoScout {
    */
   static getApi(name) {
     return this._apis.get(name);
+  }
+
+  /**
+   * Reduces args to a string and saves it under `key` in the cache map
+   *
+   * @param {string} key
+   * @param {string|number|boolean} args
+   * @return {boolean} True if cache has key and content matches, false otherwise
+   */
+  static cache(key, ...args) {
+    const cacheContent = args.reduce((prev, current) => `${prev}${current}`, '');
+
+    if (cacheContent === this._cache.get(key)) {
+      return true;
+    }
+
+    this._cache.set(key, cacheContent);
+
+    return false;
   }
 
   /**
