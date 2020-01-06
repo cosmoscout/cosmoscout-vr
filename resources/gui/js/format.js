@@ -10,7 +10,7 @@ class Format {
      * @return {string}
      */
   static number(number) {
-    number = parseFloat(number);
+    number = Number(number);
 
     // Set very small numbers to 0
     if (number < Number.EPSILON && -Number.EPSILON > number) {
@@ -36,7 +36,7 @@ class Format {
     let num;
     let unit;
 
-    height = parseFloat(height);
+    height = Number(height);
 
     if (Math.abs(height) < 0.1) {
       num = Format.number(height * 1000);
@@ -80,7 +80,7 @@ class Format {
     let num;
     let unit;
 
-    speed = parseFloat(speed);
+    speed = Number(speed);
 
     if (Math.abs(speed * 3.6) < 500) {
       num = Format.number(speed * 3.6);
@@ -121,7 +121,7 @@ class Format {
      * @return {string}
      */
   static latitude(lat) {
-    lat = parseFloat(lat);
+    lat = Number(lat);
 
     if (lat < 0) {
       return `${(-lat).toFixed(2)}° S `;
@@ -137,7 +137,7 @@ class Format {
      * @return {string}
      */
   static longitude(lon) {
-    lon = parseFloat(lon);
+    lon = Number(lon);
 
     if (lon < 0) {
       return `${(-lon).toFixed(2)}° W `;
