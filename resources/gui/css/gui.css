@@ -749,7 +749,7 @@ hr {
     border-radius: 5px;
 }
 
-#comsoscout {
+#cosmoscout {
     display: flex;
     flex-wrap: wrap;
     width: 100vw;
@@ -758,7 +758,7 @@ hr {
     transition: opacity .75s;
 }
 
-.loaded #comsoscout {
+.loaded #cosmoscout {
     opacity: 1;
     z-index: 2;
 }
