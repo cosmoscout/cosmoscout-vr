@@ -137,7 +137,7 @@
   },
   "plugins": {
     "csp-vestec": {
-      "vestec-info": "Hi VESTEC"
+      "vestec-data-dir": "../share/vestec/data"
     },
     "csp-stars": {
       "backgroundColor1": [
