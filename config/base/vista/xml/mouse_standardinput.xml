@@ -6,17 +6,17 @@
 			<param name="sensor_index" value="0"/>
 			<param name="driver" value="MOUSE"/>
 		</node>
-		
+
 		<node name="project_mouse" type="HistoryProject">
-			<param name="project">WHEEL_STATE, POSITION, LEFT_BUTTON, RIGHT_BUTTON, X_POS, Y_POS</param>
+			<param name="project">WHEEL_STATE, POSITION, LEFT_BUTTON, RIGHT_BUTTON, MIDDLE_BUTTON, X_POS, Y_POS</param>
 		</node>
 
 		<node name="intention_transform" type="SetTransform">
 			<param name="object" value="SELECTION_NODE"/>
 		</node>
-		
+
 		<node name="3dmouse_matrix" type="MatrixCompose"/>
-		
+
 		<node name="3dmouse" type="3DMouseTransform">
 			<param name="displaysystem" value="MAIN"/>
 			<param name="viewport" value="MAIN_VIEWPORT"/>
@@ -28,17 +28,24 @@
 		<node name="wheel_value"          type="Difference[int]"/>
 		<node name="left_button_change_detect"  type="ChangeDetect[bool]"/>
 		<node name="right_button_change_detect" type="ChangeDetect[bool]"/>
+		<node name="middle_button_change_detect" type="ChangeDetect[bool]"/>
+
 
 		<node name="scroll_wheel" tag="scroll_wheel" type="EventSource"/>
+		<!-- Left Mouse Button -->
 		<node name="button_01"    tag="button_01"    type="EventSource"/>
+		<!-- Right Mouse Button -->
 		<node name="button_02"    tag="button_02"    type="EventSource"/>
+		<!-- Mouse Wheel Button -->
+		<node name="button_03"    tag="button_03"    type="EventSource"/>
+
+		<!-- <node name="debug_text" type="SimpleText"/> -->
 	</graph>
 	<edges>
 		<edge fromnode="mouse" tonode="project_mouse" fromport="history" toport="history"/>
-	
+
 		<edge fromnode="project_mouse" tonode="3dmouse" fromport="X_POS" toport="x_pos"/>
 		<edge fromnode="project_mouse" tonode="3dmouse" fromport="Y_POS" toport="y_pos"/>
-
 
 		<edge fromnode="project_mouse" tonode="wheel_change_detect" fromport="WHEEL_STATE" toport="in"/>
 		<edge fromnode="wheel_change_detect" tonode="wheel_value" fromport="out" toport="in"/>
@@ -46,12 +53,17 @@
 
 		<edge fromnode="project_mouse" tonode="left_button_change_detect" fromport="LEFT_BUTTON" toport="in"/>
 		<edge fromnode="project_mouse" tonode="right_button_change_detect" fromport="RIGHT_BUTTON" toport="in"/>
+		<edge fromnode="project_mouse" tonode="middle_button_change_detect" fromport="MIDDLE_BUTTON" toport="in"/>
+
 		<edge fromnode="left_button_change_detect" tonode="button_01" fromport="out" toport="value"/>
 		<edge fromnode="right_button_change_detect" tonode="button_02" fromport="out" toport="value"/>
-		
+		<edge fromnode="middle_button_change_detect" tonode="button_03" fromport="out" toport="value"/>
+
 		<edge fromnode="3dmouse" tonode="3dmouse_matrix" fromport="position" toport="translation"/>
 		<edge fromnode="3dmouse" tonode="3dmouse_matrix" fromport="orientation" toport="orientation"/>
-				
+
 		<edge fromnode="3dmouse_matrix" tonode="intention_transform" fromport="out" toport="in"/>
+
+		<!--<edge fromnode="middle_button_change_detect" tonode="debug_text" fromport="out" toport="p" />-->
 	</edges>
 </module>
