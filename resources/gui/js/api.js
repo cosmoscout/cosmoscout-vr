@@ -115,7 +115,7 @@ class CosmoScout {
         this.register(instance.name, instance);
         instance.init();
       } catch (e) {
-        console.error(`Could not initialize ${Api}`);
+        console.error(`Could not initialize ${Api}: ${e.message}`);
       }
     });
   }
@@ -251,16 +251,21 @@ class CosmoScout {
    * Appends a script element to the body
    *
    * @param url {string} Absolute or local file path
-   * @param init {Function} Method gets run on script load
+   * @param init {string|Function} Method gets run on script load
    */
   static registerJavaScript(url, init) {
     const script = document.createElement('script');
-    script.setAttribute('src', url);
 
     if (typeof init !== 'undefined') {
-      script.addEventListener('load', init);
+      if (typeof init === 'string') {
+        'use strict';
+        init = eval(init);
+      }
+
       script.addEventListener('readystatechange', init);
     }
+
+    script.setAttribute('src', url);
 
     document.body.appendChild(script);
   }
