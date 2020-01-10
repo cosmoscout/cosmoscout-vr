@@ -211,10 +211,6 @@ class CS_CORE_EXPORT GuiManager {
   /// Sets the progress bar state.
   void setLoadingScreenProgress(float percent, bool animate) const;
 
-   /// Adds a gui item to the or global gui area
-  void addGuiItem(gui::GuiItem* pItem, unsigned int index = 0);
-
-
  private:
   void onLoad();
   void onSave();

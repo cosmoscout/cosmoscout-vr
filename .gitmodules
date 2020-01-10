@@ -58,4 +58,3 @@
 [submodule "plugins/csp-vestec"]
 	path = plugins/csp-vestec
 	url = https://github.com/cosmoscout/csp-vestec.git
-	
