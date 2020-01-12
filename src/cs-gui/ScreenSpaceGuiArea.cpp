@@ -15,6 +15,8 @@
 #include <VistaKernel/DisplayManager/VistaDisplayManager.h>
 #include <VistaKernel/DisplayManager/VistaProjection.h>
 #include <VistaKernel/DisplayManager/VistaViewport.h>
+#include <VistaKernel/GraphicsManager/VistaGraphicsManager.h>
+#include <VistaKernel/VistaSystem.h>
 #include <VistaOGLExt/VistaGLSLShader.h>
 #include <VistaOGLExt/VistaTexture.h>
 
@@ -146,6 +148,14 @@ bool ScreenSpaceGuiArea::Do() {
 
   glPopAttrib();
 
+  // A viewport resize event occurred some frames ago. Let's resize our items accordingly!
+  if (mDelayedViewportUpdate > 0 &&
+      mDelayedViewportUpdate < GetVistaSystem()->GetGraphicsManager()->GetFrameCount()) {
+    mDelayedViewportUpdate = 0;
+    mViewport->GetViewportProperties()->GetSize(mWidth, mHeight);
+    updateItems();
+  }
+
   return true;
 }
 
@@ -166,7 +176,10 @@ bool ScreenSpaceGuiArea::GetBoundingBox(VistaBoundingBox& oBoundingBox) {
 
 void ScreenSpaceGuiArea::ObserverUpdate(IVistaObserveable* pObserveable, int nMsg, int nTicket) {
   if (nMsg == VistaViewport::VistaViewportProperties::MSG_SIZE_CHANGE) {
-    onViewportChange();
+    // As it's not a good idea to resize CEF gui elements very often (performance wise and sometimes
+    // resize events get lost), we wait a hard-coded number of frames until we perform the actual
+    // resizing.
+    mDelayedViewportUpdate = GetVistaSystem()->GetGraphicsManager()->GetFrameCount() + 5;
   }
 }
 
