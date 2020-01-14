@@ -50,6 +50,8 @@ GuiItem::GuiItem(std::string const& url, bool allowLocalFileAccess)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 GuiItem::~GuiItem() {
+  glDeleteBuffers(1, &mTextureBuffer);
+  glDeleteTextures(1, &mTexture);
   // seems to be necessary as OnPaint can be called by some other thread even
   // if this object is already deleted
   setDrawCallback([](DrawEvent const& event) { return 0;});
