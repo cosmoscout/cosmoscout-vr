@@ -6,9 +6,8 @@
 
 #include "RenderHandler.hpp"
 #include "../../cs-utils/FrameTimings.hpp"
-#include <chrono>
+#include <GL/glew.h>
 #include <deque>
-#include <iostream>
 
 namespace cs::gui::detail {
 
@@ -34,11 +33,20 @@ void RenderHandler::Resize(int width, int height) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool RenderHandler::GetColor(int x, int y, uint8_t& r, uint8_t& g, uint8_t& b, uint8_t& a) const {
+  auto timer = cs::utils::FrameTimings::ScopedTimer("GetColor");
   if (!mPixelData) {
     return false;
   }
 
   int data_pos(x * 4 + y * mLastDrawWidth * 4);
+
+  /*glBindBuffer(GL_TEXTURE_BUFFER, mTextureBuffer);
+  auto* data = static_cast<uint8_t*>(glMapBufferRange(GL_TEXTURE_BUFFER, data_pos, 4 *
+  sizeof(uint8_t), GL_MAP_READ_BIT));
+
+  if(!data) {
+    return false;
+  }*/
 
   // this might be dangerous --- I'm not entirely sure whether this pixel data
   // reference is guranteed to be valid. If something bad happens, we have to
@@ -47,6 +55,9 @@ bool RenderHandler::GetColor(int x, int y, uint8_t& r, uint8_t& g, uint8_t& b, u
   g = mPixelData[data_pos + 1];
   r = mPixelData[data_pos + 2];
   a = mPixelData[data_pos + 3];
+
+  // glUnmapBuffer(GL_TEXTURE_BUFFER);
+  // glBindBuffer(GL_TEXTURE_BUFFER, 0);
 
   return true;
 }
@@ -71,17 +82,12 @@ void RenderHandler::GetViewRect(CefRefPtr<CefBrowser> browser, CefRect& rect) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int counter = 0;
-
 void RenderHandler::OnPaint(CefRefPtr<CefBrowser> browser, PaintElementType type,
     RectList const& dirtyRects, const void* b, int width, int height) {
-  auto timer = cs::utils::FrameTimings::ScopedTimer("Copy stuff");
+  auto t1 = cs::utils::FrameTimings::ScopedTimer("Copy All");
 
-  if (++counter == 60) {
-    counter = 0;
-  }
-
-  auto startCopy1 = std::chrono::high_resolution_clock::now();
+  int minY = height;
+  int maxY = 0;
 
   size_t bufferSize = width * height * 4;
 
@@ -93,37 +99,49 @@ void RenderHandler::OnPaint(CefRefPtr<CefBrowser> browser, PaintElementType type
     mCurrentBufferSize = bufferSize;
     std::memcpy(mPixelData, b, bufferSize * sizeof(uint8_t));
 
+    minY = 0;
+    maxY = height;
+
     // Otherwise we only copy the dirty regions.
   } else {
-    // For each changed region
-    for (const auto& rect : dirtyRects) {
+    for (auto const& rect : dirtyRects) {
+      if (rect.y < minY)
+        minY = rect.y;
 
-      // We copy each row of the changed region over individually, since they are not guaranteed to
-      // have continuous memory.
-      //
-      // ################################################################################
-      // ##############################+--------------------------------------+##########
-      // ####################### i = 0 |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|##########
-      // ####################### i = 1 |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|##########
-      // ####################### i = 2 |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|##########
-      // ####################### i = 3 |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|##########
-      // ####################### i = 4 |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|##########
-      // ####################### i = 5 |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|##########
-      // ##############################+--------------------------------------+##########
-      // ################################################################################
-      // ################################################################################
-      for (int i = 0; i < rect.height; ++i) {
-        size_t startOffset = ((rect.y + i) * width + rect.x) * 4 * sizeof(uint8_t);
-        size_t extend      = rect.width * 4 * sizeof(uint8_t);
+      if (rect.y + rect.height > maxY)
+        maxY = rect.y + rect.height;
+
+      if (rect.width > 0.8 * width) {
+        // When the rect is almost the whole screen width we just copy the rest of the width
+        // too. This is faster since we only need one efficient std::memcpy call.
+
+        size_t startOffset = rect.y * width * 4 * sizeof(uint8_t);
+        size_t extend      = rect.height * width * 4 * sizeof(uint8_t);
+
         std::memcpy(mPixelData + startOffset, (uint8_t*)b + startOffset, extend);
+      } else {
+        // We copy each row of the changed region over individually, since they are not
+        // guaranteed to have continuous memory.
+        //
+        // ################################################################################
+        // ##############################+--------------------------------------+##########
+        // ####################### i = 0 |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|##########
+        // ####################### i = 1 |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|##########
+        // ####################### i = 2 |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|##########
+        // ####################### i = 3 |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|##########
+        // ####################### i = 4 |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|##########
+        // ####################### i = 5 |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|##########
+        // ##############################+--------------------------------------+##########
+        // ################################################################################
+        // ################################################################################
+        for (int i = 0; i < rect.height; ++i) {
+          size_t startOffset = ((rect.y + i) * width + rect.x) * 4 * sizeof(uint8_t);
+          size_t extend      = rect.width * 4 * sizeof(uint8_t);
+
+          std::memcpy(mPixelData + startOffset, (uint8_t*)b + startOffset, extend);
+        }
       }
     }
-  }
-
-  if (counter == 0) {
-    auto endCopy1 = std::chrono::high_resolution_clock::now();
-    auto elapsed1 = std::chrono::duration_cast<std::chrono::microseconds>(endCopy1 - startCopy1).count();
-    std::cout << "  Copy1: " << elapsed1 << std::endl;
   }
 
   if (mDrawCallback) {
@@ -133,56 +151,15 @@ void RenderHandler::OnPaint(CefRefPtr<CefBrowser> browser, PaintElementType type
     mLastDrawWidth  = width;
     mLastDrawHeight = height;
 
-    //if (event.mResized) {
-      auto startCopy2 = std::chrono::high_resolution_clock::now();
+    event.mX      = 0;
+    event.mY      = minY;
+    event.mWidth  = width;
+    event.mHeight = maxY - minY;
+    event.mData   = static_cast<uint8_t const*>(b) + minY * width * 4 * sizeof(uint8_t);
 
-      event.mX      = 0;
-      event.mY      = 0;
-      event.mWidth  = width;
-      event.mHeight = height;
-      event.mData   = mPixelData;
-
-      mDrawCallback(event);
-
-      if (counter == 0) {
-        auto endCopy2 = std::chrono::high_resolution_clock::now();
-        auto elapsed2 = std::chrono::duration_cast<std::chrono::microseconds>(endCopy2 - startCopy2).count();
-        std::cout << "  Copy2: " << elapsed2 << std::endl;
-      }
-    /*} else {
-      auto startCopy3 = std::chrono::high_resolution_clock::now();
-
-      for (auto const& rect : dirtyRects) {
-        event.mX      = rect.x;
-        event.mY      = rect.y;
-        event.mWidth  = rect.width;
-        event.mHeight = rect.height;
-
-        std::vector<uint8_t> data(rect.width * rect.height * 4ul);
-
-        for (int y(0); y < rect.height; ++y) {
-          std::memcpy(&data[y * rect.width * 4], mPixelData + ((y + rect.y) * width + rect.x) * 4,
-              rect.width * (size_t)4);
-        }
-
-        event.mData = data.data();
-        mDrawCallback(event);
-
-        if (counter == 0) {
-          auto endCopy3 = std::chrono::high_resolution_clock::now();
-          auto elapsed3 = std::chrono::duration_cast<std::chrono::microseconds>(endCopy3 - startCopy3).count();
-          std::cout << "  Copy3: " << elapsed3 << std::endl;
-        }
-      }
-    }*/
+    mTextureBuffer = mDrawCallback(event);
   }
-
-  if (counter == 0) {
-    auto endCopyAll = std::chrono::high_resolution_clock::now();
-    auto elapsedAll = std::chrono::duration_cast<std::chrono::microseconds>(endCopyAll - startCopy1).count();
-    std::cout << "CopyAll: " << elapsedAll << std::endl;
-  }
-}
+} // namespace cs::gui::detail
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -196,7 +173,7 @@ void RenderHandler::OnCursorChange(CefRefPtr<CefBrowser> browser, CefCursorHandl
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 RenderHandler::~RenderHandler() {
-  delete[] mPixelData;
+  // delete[] mPixelData;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

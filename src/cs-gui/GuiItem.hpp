@@ -69,7 +69,7 @@ class CS_GUI_EXPORT GuiItem : public WebView {
   std::pair<uint32_t, uint32_t> getTexture() const;
 
  private:
-  void updateTexture(DrawEvent const& event);
+  uint32_t updateTexture(DrawEvent const& event);
   void updateSizes();
 
   //VistaTexture* mTexture;

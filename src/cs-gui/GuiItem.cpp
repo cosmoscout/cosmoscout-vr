@@ -37,20 +37,14 @@ GuiItem::GuiItem(std::string const& url, bool allowLocalFileAccess)
     , mIsRelPositionY(true)
     , mIsRelOffsetX(true)
     , mIsRelOffsetY(true) {
-  setDrawCallback([this](DrawEvent const& event) { updateTexture(event); });
-
+  setDrawCallback([this](DrawEvent const& event) { return updateTexture(event); });
 
   glGenBuffers(1, &mTextureBuffer);
   glBindBuffer(GL_TEXTURE_BUFFER, mTextureBuffer);
-  glBufferData(GL_TEXTURE_BUFFER, 4 * sizeof(uint8_t) * getWidth() * getHeight(), nullptr, GL_STATIC_DRAW);
+  glBufferData(GL_TEXTURE_BUFFER, 4 * sizeof(uint8_t) * getWidth() * getHeight(), nullptr, GL_DYNAMIC_DRAW);
 
   glGenTextures(1, &mTexture);
   glBindBuffer(GL_TEXTURE_BUFFER, 0);
-
-  //mTexture->SetWrapS(GL_CLAMP_TO_EDGE);
-  //mTexture->SetWrapT(GL_CLAMP_TO_EDGE);
-  //mTexture->UploadTexture(getWidth(), getHeight(), nullptr, false);
-  //mTexture->Unbind();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -58,8 +52,7 @@ GuiItem::GuiItem(std::string const& url, bool allowLocalFileAccess)
 GuiItem::~GuiItem() {
   // seems to be necessary as OnPaint can be called by some other thread even
   // if this object is already deleted
-  setDrawCallback([](DrawEvent const& event) {});
-  //delete mTexture;
+  setDrawCallback([](DrawEvent const& event) { return 0;});
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -193,30 +186,17 @@ bool GuiItem::calculateMousePosition(int areaX, int areaY, int& x, int& y) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GuiItem::updateTexture(DrawEvent const& event) {
+uint32_t GuiItem::updateTexture(DrawEvent const& event) {
   glBindBuffer(GL_TEXTURE_BUFFER, mTextureBuffer);
 
   if (event.mResized) {
-    glBufferData(GL_TEXTURE_BUFFER, 4 * sizeof(uint8_t) * event.mWidth * event.mHeight, event.mData, GL_STATIC_DRAW);
+    glBufferData(GL_TEXTURE_BUFFER, 4 * sizeof(uint8_t) * event.mWidth * event.mHeight, event.mData, GL_DYNAMIC_DRAW);
   } else {
-    glBufferSubData(GL_TEXTURE_BUFFER, 0, 4 * sizeof(uint8_t) * event.mWidth * event.mHeight, event.mData);
+    glBufferSubData(GL_TEXTURE_BUFFER, event.mY * event.mWidth * 4 * sizeof(uint8_t), 4 * sizeof(uint8_t) * event.mWidth * event.mHeight, event.mData);
   }
 
-
   glBindBuffer(GL_TEXTURE_BUFFER, 0);
-
-  //mTexture->Bind();
-
-  /*
-  if (event.mResized) {
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, event.mWidth, event.mHeight, 0, GL_BGRA,
-        GL_UNSIGNED_BYTE, event.mData);
-  } else {
-    glTexSubImage2D(GL_TEXTURE_2D, 0, event.mX, event.mY, event.mWidth, event.mHeight, GL_BGRA,
-        GL_UNSIGNED_BYTE, event.mData);
-  }*/
-
-  //mTexture->Unbind();
+  return mTextureBuffer;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -56,7 +56,6 @@ uniform ivec2 texSize;
 layout(location = 0) out vec4 vOutColor;
 
 void main() {
-    //vOutColor = texture(iTexture, vTexCoords);
     ivec2 iTexCoords = ivec2(vec2(texSize) * vTexCoords);
     vOutColor = texelFetch(texture, iTexCoords.y * texSize.x + iTexCoords.x).bgra;
 
@@ -140,15 +139,12 @@ bool ScreenSpaceGuiArea::Do() {
       glUniform2i(mShader->GetUniformLocation("texSize"), mWidth, mHeight);
 
       auto [texBuffer, tex] = (*item)->getTexture();
-
-      //(*item)->getTexture()->Bind(GL_TEXTURE0);
       glActiveTexture(GL_TEXTURE0);
       glBindTexture(GL_TEXTURE_BUFFER, tex);
       glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA8, texBuffer);
       mShader->SetUniform(mShader->GetUniformLocation("texture"), 0);
 
       glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-      //(*item)->getTexture()->Unbind(GL_TEXTURE0);
 
       glBindTexture(GL_TEXTURE_BUFFER, 0);
     }

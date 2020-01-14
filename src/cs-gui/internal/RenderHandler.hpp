@@ -58,6 +58,7 @@ class RenderHandler : public CefRenderHandler {
 
   size_t   mCurrentBufferSize = 0;
   uint8_t* mPixelData         = nullptr;
+  uint32_t mTextureBuffer;
 };
 
 } // namespace cs::gui::detail
