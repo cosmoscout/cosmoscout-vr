@@ -246,12 +246,12 @@ bool WorldSpaceGuiArea::Do() {
       localMat =
           glm::scale(localMat, glm::vec3((*item)->getRelSizeX(), (*item)->getRelSizeY(), 1.f));
 
-      (*item)->getTexture()->Bind(GL_TEXTURE0);
+      //(*item)->getTexture()->Bind(GL_TEXTURE0);
       glUniformMatrix4fv(
           mShader->GetUniformLocation("uMatModelView"), 1, GL_FALSE, glm::value_ptr(localMat));
       mShader->SetUniform(mShader->GetUniformLocation("iTexture"), 0);
       glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-      (*item)->getTexture()->Unbind(GL_TEXTURE0);
+      //(*item)->getTexture()->Unbind(GL_TEXTURE0);
     }
   }
 

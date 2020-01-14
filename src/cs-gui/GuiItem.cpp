@@ -16,7 +16,7 @@ namespace cs::gui {
 
 GuiItem::GuiItem(std::string const& url, bool allowLocalFileAccess)
     : WebView(url, 100, 100, allowLocalFileAccess)
-    , mTexture(new VistaTexture(GL_TEXTURE_2D))
+    //, mTexture(new VistaTexture(GL_TEXTURE_2D))
     , mAreaWidth(1)
     , mAreaHeight(1)
     , mSizeX(0)
@@ -39,10 +39,18 @@ GuiItem::GuiItem(std::string const& url, bool allowLocalFileAccess)
     , mIsRelOffsetY(true) {
   setDrawCallback([this](DrawEvent const& event) { updateTexture(event); });
 
-  mTexture->SetWrapS(GL_CLAMP_TO_EDGE);
-  mTexture->SetWrapT(GL_CLAMP_TO_EDGE);
-  mTexture->UploadTexture(getWidth(), getHeight(), nullptr, false);
-  mTexture->Unbind();
+
+  glGenBuffers(1, &mTextureBuffer);
+  glBindBuffer(GL_TEXTURE_BUFFER, mTextureBuffer);
+  glBufferData(GL_TEXTURE_BUFFER, 4 * sizeof(uint8_t) * getWidth() * getHeight(), nullptr, GL_STATIC_DRAW);
+
+  glGenTextures(1, &mTexture);
+  glBindBuffer(GL_TEXTURE_BUFFER, 0);
+
+  //mTexture->SetWrapS(GL_CLAMP_TO_EDGE);
+  //mTexture->SetWrapT(GL_CLAMP_TO_EDGE);
+  //mTexture->UploadTexture(getWidth(), getHeight(), nullptr, false);
+  //mTexture->Unbind();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -51,7 +59,7 @@ GuiItem::~GuiItem() {
   // seems to be necessary as OnPaint can be called by some other thread even
   // if this object is already deleted
   setDrawCallback([](DrawEvent const& event) {});
-  delete mTexture;
+  //delete mTexture;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -186,17 +194,29 @@ bool GuiItem::calculateMousePosition(int areaX, int areaY, int& x, int& y) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void GuiItem::updateTexture(DrawEvent const& event) {
-  mTexture->Bind();
+  glBindBuffer(GL_TEXTURE_BUFFER, mTextureBuffer);
 
+  if (event.mResized) {
+    glBufferData(GL_TEXTURE_BUFFER, 4 * sizeof(uint8_t) * event.mWidth * event.mHeight, event.mData, GL_STATIC_DRAW);
+  } else {
+    glBufferSubData(GL_TEXTURE_BUFFER, 0, 4 * sizeof(uint8_t) * event.mWidth * event.mHeight, event.mData);
+  }
+
+
+  glBindBuffer(GL_TEXTURE_BUFFER, 0);
+
+  //mTexture->Bind();
+
+  /*
   if (event.mResized) {
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, event.mWidth, event.mHeight, 0, GL_BGRA,
         GL_UNSIGNED_BYTE, event.mData);
   } else {
     glTexSubImage2D(GL_TEXTURE_2D, 0, event.mX, event.mY, event.mWidth, event.mHeight, GL_BGRA,
         GL_UNSIGNED_BYTE, event.mData);
-  }
+  }*/
 
-  mTexture->Unbind();
+  //mTexture->Unbind();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -252,8 +272,8 @@ void GuiItem::updateSizes() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-VistaTexture* GuiItem::getTexture() const {
-  return mTexture;
+std::pair<uint32_t, uint32_t> GuiItem::getTexture() const {
+  return {mTextureBuffer, mTexture};
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

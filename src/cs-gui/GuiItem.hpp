@@ -66,13 +66,15 @@ class CS_GUI_EXPORT GuiItem : public WebView {
   void onAreaResize(int width, int height);
 
   /// @return The current HTML output as an OpenGL texture.
-  VistaTexture* getTexture() const;
+  std::pair<uint32_t, uint32_t> getTexture() const;
 
  private:
   void updateTexture(DrawEvent const& event);
   void updateSizes();
 
-  VistaTexture* mTexture;
+  //VistaTexture* mTexture;
+  uint32_t mTextureBuffer;
+  uint32_t mTexture;
 
   int mAreaWidth, mAreaHeight; // in pixels
 

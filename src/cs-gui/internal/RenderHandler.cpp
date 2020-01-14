@@ -5,6 +5,10 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "RenderHandler.hpp"
+#include "../../cs-utils/FrameTimings.hpp"
+#include <chrono>
+#include <deque>
+#include <iostream>
 
 namespace cs::gui::detail {
 
@@ -67,8 +71,18 @@ void RenderHandler::GetViewRect(CefRefPtr<CefBrowser> browser, CefRect& rect) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+int counter = 0;
+
 void RenderHandler::OnPaint(CefRefPtr<CefBrowser> browser, PaintElementType type,
     RectList const& dirtyRects, const void* b, int width, int height) {
+  auto timer = cs::utils::FrameTimings::ScopedTimer("Copy stuff");
+
+  if (++counter == 60) {
+    counter = 0;
+  }
+
+  auto startCopy1 = std::chrono::high_resolution_clock::now();
+
   size_t bufferSize = width * height * 4;
 
   // When the source buffer got larger we reallocate and copy the whole source buffer over.
@@ -106,15 +120,22 @@ void RenderHandler::OnPaint(CefRefPtr<CefBrowser> browser, PaintElementType type
     }
   }
 
-  if (mDrawCallback) {
+  if (counter == 0) {
+    auto endCopy1 = std::chrono::high_resolution_clock::now();
+    auto elapsed1 = std::chrono::duration_cast<std::chrono::microseconds>(endCopy1 - startCopy1).count();
+    std::cout << "  Copy1: " << elapsed1 << std::endl;
+  }
 
+  if (mDrawCallback) {
     DrawEvent event;
     event.mResized = width != mLastDrawWidth || height != mLastDrawHeight;
 
     mLastDrawWidth  = width;
     mLastDrawHeight = height;
 
-    if (event.mResized) {
+    //if (event.mResized) {
+      auto startCopy2 = std::chrono::high_resolution_clock::now();
+
       event.mX      = 0;
       event.mY      = 0;
       event.mWidth  = width;
@@ -122,7 +143,15 @@ void RenderHandler::OnPaint(CefRefPtr<CefBrowser> browser, PaintElementType type
       event.mData   = mPixelData;
 
       mDrawCallback(event);
-    } else {
+
+      if (counter == 0) {
+        auto endCopy2 = std::chrono::high_resolution_clock::now();
+        auto elapsed2 = std::chrono::duration_cast<std::chrono::microseconds>(endCopy2 - startCopy2).count();
+        std::cout << "  Copy2: " << elapsed2 << std::endl;
+      }
+    /*} else {
+      auto startCopy3 = std::chrono::high_resolution_clock::now();
+
       for (auto const& rect : dirtyRects) {
         event.mX      = rect.x;
         event.mY      = rect.y;
@@ -138,8 +167,20 @@ void RenderHandler::OnPaint(CefRefPtr<CefBrowser> browser, PaintElementType type
 
         event.mData = data.data();
         mDrawCallback(event);
+
+        if (counter == 0) {
+          auto endCopy3 = std::chrono::high_resolution_clock::now();
+          auto elapsed3 = std::chrono::duration_cast<std::chrono::microseconds>(endCopy3 - startCopy3).count();
+          std::cout << "  Copy3: " << elapsed3 << std::endl;
+        }
       }
-    }
+    }*/
+  }
+
+  if (counter == 0) {
+    auto endCopyAll = std::chrono::high_resolution_clock::now();
+    auto elapsedAll = std::chrono::duration_cast<std::chrono::microseconds>(endCopyAll - startCopy1).count();
+    std::cout << "CopyAll: " << elapsedAll << std::endl;
   }
 }
 

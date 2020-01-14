@@ -47,20 +47,22 @@ void main()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const std::string QUAD_FRAG = R"(
-in vec2 vTexCoords;                                                             
+const std::string QUAD_FRAG = R"(in vec2 vTexCoords;
 in vec4 vPosition;
 
-uniform sampler2D iTexture;                                                
-                                                                           
-layout(location = 0) out vec4 vOutColor;                                   
-                                                                           
-void main()                                                                
-{                                                                                                    
-  vOutColor = texture(iTexture, vTexCoords); 
-  if (vOutColor.a == 0.0) discard; 
+uniform samplerBuffer texture;
+uniform ivec2 texSize;
 
-  vOutColor.rgb /= vOutColor.a;
+layout(location = 0) out vec4 vOutColor;
+
+void main() {
+    //vOutColor = texture(iTexture, vTexCoords);
+    ivec2 iTexCoords = ivec2(vec2(texSize) * vTexCoords);
+    vOutColor = texelFetch(texture, iTexCoords.y * texSize.x + iTexCoords.x).bgra;
+
+    if (vOutColor.a == 0.0) discard;
+
+    vOutColor.rgb /= vOutColor.a;
 }  
 )";
 
@@ -135,10 +137,20 @@ bool ScreenSpaceGuiArea::Do() {
       float scaleY = (*item)->getRelSizeY();
       mShader->SetUniform(mShader->GetUniformLocation("iScale"), scaleX, scaleY);
 
-      (*item)->getTexture()->Bind(GL_TEXTURE0);
-      mShader->SetUniform(mShader->GetUniformLocation("iTexture"), 0);
+      glUniform2i(mShader->GetUniformLocation("texSize"), mWidth, mHeight);
+
+      auto [texBuffer, tex] = (*item)->getTexture();
+
+      //(*item)->getTexture()->Bind(GL_TEXTURE0);
+      glActiveTexture(GL_TEXTURE0);
+      glBindTexture(GL_TEXTURE_BUFFER, tex);
+      glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA8, texBuffer);
+      mShader->SetUniform(mShader->GetUniformLocation("texture"), 0);
+
       glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-      (*item)->getTexture()->Unbind(GL_TEXTURE0);
+      //(*item)->getTexture()->Unbind(GL_TEXTURE0);
+
+      glBindTexture(GL_TEXTURE_BUFFER, 0);
     }
   }
 
