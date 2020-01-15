@@ -127,18 +127,20 @@ bool ScreenSpaceGuiArea::Do() {
   // draw back-to-front
   auto const& items = getItems();
   for (auto item = items.rbegin(); item != items.rend(); ++item) {
-    if ((*item)->getIsEnabled()) {
-      float posX = (*item)->getRelPositionX() + (*item)->getRelOffsetX();
-      float posY = 1 - (*item)->getRelPositionY() - (*item)->getRelOffsetY();
+    auto guiItem = *item;
+
+    if (guiItem->getIsEnabled()) {
+      float posX = guiItem->getRelPositionX() + guiItem->getRelOffsetX();
+      float posY = 1 - guiItem->getRelPositionY() - guiItem->getRelOffsetY();
       mShader->SetUniform(mShader->GetUniformLocation("iPosition"), posX, posY);
 
-      float scaleX = (*item)->getRelSizeX();
-      float scaleY = (*item)->getRelSizeY();
+      float scaleX = guiItem->getRelSizeX();
+      float scaleY = guiItem->getRelSizeY();
       mShader->SetUniform(mShader->GetUniformLocation("iScale"), scaleX, scaleY);
 
-      glUniform2i(mShader->GetUniformLocation("texSize"), mWidth, mHeight);
+      glUniform2i(mShader->GetUniformLocation("texSize"), mOldWidth, mOldHeight);
 
-      auto [texBuffer, tex] = (*item)->getTexture();
+      auto [texBuffer, tex] = guiItem->getTexture();
       glActiveTexture(GL_TEXTURE0);
       glBindTexture(GL_TEXTURE_BUFFER, tex);
       glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA8, texBuffer);
@@ -153,6 +155,9 @@ bool ScreenSpaceGuiArea::Do() {
   mShader->Release();
 
   glPopAttrib();
+
+  mOldWidth  = mWidth;
+  mOldHeight = mHeight;
 
   return true;
 }
@@ -181,6 +186,8 @@ void ScreenSpaceGuiArea::ObserverUpdate(IVistaObserveable* pObserveable, int nMs
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void ScreenSpaceGuiArea::onViewportChange() {
+  mOldWidth  = mWidth;
+  mOldHeight = mHeight;
   mViewport->GetViewportProperties()->GetSize(mWidth, mHeight);
   updateItems();
 }

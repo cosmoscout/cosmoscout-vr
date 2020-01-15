@@ -16,7 +16,6 @@ namespace cs::gui {
 
 GuiItem::GuiItem(std::string const& url, bool allowLocalFileAccess)
     : WebView(url, 100, 100, allowLocalFileAccess)
-    //, mTexture(new VistaTexture(GL_TEXTURE_2D))
     , mAreaWidth(1)
     , mAreaHeight(1)
     , mSizeX(0)
@@ -39,9 +38,15 @@ GuiItem::GuiItem(std::string const& url, bool allowLocalFileAccess)
     , mIsRelOffsetY(true) {
   setDrawCallback([this](DrawEvent const& event) { return updateTexture(event); });
 
+  cs::utils::enableGLDebug();
+
   glGenBuffers(1, &mTextureBuffer);
   glBindBuffer(GL_TEXTURE_BUFFER, mTextureBuffer);
-  glBufferData(GL_TEXTURE_BUFFER, 4 * sizeof(uint8_t) * getWidth() * getHeight(), nullptr, GL_DYNAMIC_DRAW);
+  size_t bufferSize{4 * sizeof(uint8_t) * getWidth() * getHeight()};
+
+  GLbitfield flags = GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT;
+  glBufferStorage(GL_TEXTURE_BUFFER, bufferSize, nullptr, flags);
+  mBufferData = static_cast<uint8_t*>(glMapBufferRange(GL_TEXTURE_BUFFER, 0, bufferSize, flags));
 
   glGenTextures(1, &mTexture);
   glBindBuffer(GL_TEXTURE_BUFFER, 0);
@@ -50,11 +55,13 @@ GuiItem::GuiItem(std::string const& url, bool allowLocalFileAccess)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 GuiItem::~GuiItem() {
+  glBindBuffer(GL_TEXTURE_BUFFER, mTextureBuffer);
+  glUnmapBuffer(GL_TEXTURE_BUFFER);
   glDeleteBuffers(1, &mTextureBuffer);
   glDeleteTextures(1, &mTexture);
   // seems to be necessary as OnPaint can be called by some other thread even
   // if this object is already deleted
-  setDrawCallback([](DrawEvent const& event) { return 0;});
+  setDrawCallback([](DrawEvent const& event) { return nullptr; });
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -188,17 +195,25 @@ bool GuiItem::calculateMousePosition(int areaX, int areaY, int& x, int& y) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-uint32_t GuiItem::updateTexture(DrawEvent const& event) {
-  glBindBuffer(GL_TEXTURE_BUFFER, mTextureBuffer);
-
+uint8_t* GuiItem::updateTexture(DrawEvent const& event) {
   if (event.mResized) {
-    glBufferData(GL_TEXTURE_BUFFER, 4 * sizeof(uint8_t) * event.mWidth * event.mHeight, event.mData, GL_DYNAMIC_DRAW);
-  } else {
-    glBufferSubData(GL_TEXTURE_BUFFER, event.mY * event.mWidth * 4 * sizeof(uint8_t), 4 * sizeof(uint8_t) * event.mWidth * event.mHeight, event.mData);
+    glBindBuffer(GL_TEXTURE_BUFFER, mTextureBuffer);
+    glUnmapBuffer(GL_TEXTURE_BUFFER);
+    glBindBuffer(GL_TEXTURE_BUFFER, 0);
+
+    glDeleteBuffers(1, &mTextureBuffer);
+    glGenBuffers(1, &mTextureBuffer);
+    glBindBuffer(GL_TEXTURE_BUFFER, mTextureBuffer);
+
+    size_t     bufferSize{4 * sizeof(uint8_t) * event.mWidth * event.mHeight};
+    GLbitfield flags = GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT;
+    glBufferStorage(GL_TEXTURE_BUFFER, bufferSize, nullptr, flags);
+    mBufferData = static_cast<uint8_t*>(glMapBufferRange(GL_TEXTURE_BUFFER, 0, bufferSize, flags));
+
+    glBindBuffer(GL_TEXTURE_BUFFER, 0);
   }
 
-  glBindBuffer(GL_TEXTURE_BUFFER, 0);
-  return mTextureBuffer;
+  return mBufferData;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

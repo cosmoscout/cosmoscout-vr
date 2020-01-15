@@ -53,6 +53,8 @@ class CS_GUI_EXPORT ScreenSpaceGuiArea : public GuiArea,
   bool             mShaderDirty = true;
   int              mWidth       = 0;
   int              mHeight      = 0;
+  int              mOldWidth    = 0;
+  int              mOldHeight   = 0;
 };
 
 } // namespace cs::gui

@@ -98,6 +98,9 @@ constexpr typename std::underlying_type<T>::type enumCast(T val) {
 /// Well, does what is says.
 float CS_UTILS_EXPORT getCurrentFarClipDistance();
 
+
+void CS_UTILS_EXPORT enableGLDebug(bool onlyErrors = true);
+void CS_UTILS_EXPORT disableGLDebug();
 } // namespace cs::utils
 
 #endif // CS_UTILS_UTILS_HPP
