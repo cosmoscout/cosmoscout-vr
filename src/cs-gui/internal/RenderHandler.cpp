@@ -8,6 +8,7 @@
 #include "../../cs-utils/FrameTimings.hpp"
 #include <GL/glew.h>
 #include <deque>
+#include <thread>
 
 namespace cs::gui::detail {
 
@@ -86,63 +87,53 @@ void RenderHandler::OnPaint(CefRefPtr<CefBrowser> browser, PaintElementType type
     RectList const& dirtyRects, const void* b, int width, int height) {
   auto t1 = cs::utils::FrameTimings::ScopedTimer("Copy All");
 
-  int minY = height;
-  int maxY = 0;
+  auto thread = std::thread([&, this] {
+    size_t bufferSize = width * height * 4;
 
-  size_t bufferSize = width * height * 4;
+    // When the source buffer got larger we reallocate and copy the whole source buffer over.
+    if (mCurrentBufferSize < bufferSize) {
+      delete[] mPixelData;
 
-  // When the source buffer got larger we reallocate and copy the whole source buffer over.
-  if (mCurrentBufferSize < bufferSize) {
-    delete[] mPixelData;
+      mPixelData         = new uint8_t[bufferSize];
+      mCurrentBufferSize = bufferSize;
+      std::memcpy(mPixelData, b, bufferSize * sizeof(uint8_t));
 
-    mPixelData         = new uint8_t[bufferSize];
-    mCurrentBufferSize = bufferSize;
-    std::memcpy(mPixelData, b, bufferSize * sizeof(uint8_t));
+      // Otherwise we only copy the dirty regions.
+    } else {
+      for (auto const& rect : dirtyRects) {
+        if (rect.width > 0.8 * width) {
+          // When the rect is almost the whole screen width we just copy the rest of the width
+          // too. This is faster since we only need one efficient std::memcpy call.
 
-    minY = 0;
-    maxY = height;
-
-    // Otherwise we only copy the dirty regions.
-  } else {
-    for (auto const& rect : dirtyRects) {
-      if (rect.y < minY)
-        minY = rect.y;
-
-      if (rect.y + rect.height > maxY)
-        maxY = rect.y + rect.height;
-
-      if (rect.width > 0.8 * width) {
-        // When the rect is almost the whole screen width we just copy the rest of the width
-        // too. This is faster since we only need one efficient std::memcpy call.
-
-        size_t startOffset = rect.y * width * 4 * sizeof(uint8_t);
-        size_t extend      = rect.height * width * 4 * sizeof(uint8_t);
-
-        std::memcpy(mPixelData + startOffset, (uint8_t*)b + startOffset, extend);
-      } else {
-        // We copy each row of the changed region over individually, since they are not
-        // guaranteed to have continuous memory.
-        //
-        // ################################################################################
-        // ##############################+--------------------------------------+##########
-        // ####################### i = 0 |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|##########
-        // ####################### i = 1 |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|##########
-        // ####################### i = 2 |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|##########
-        // ####################### i = 3 |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|##########
-        // ####################### i = 4 |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|##########
-        // ####################### i = 5 |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|##########
-        // ##############################+--------------------------------------+##########
-        // ################################################################################
-        // ################################################################################
-        for (int i = 0; i < rect.height; ++i) {
-          size_t startOffset = ((rect.y + i) * width + rect.x) * 4 * sizeof(uint8_t);
-          size_t extend      = rect.width * 4 * sizeof(uint8_t);
+          size_t startOffset = rect.y * width * 4 * sizeof(uint8_t);
+          size_t extend      = rect.height * width * 4 * sizeof(uint8_t);
 
           std::memcpy(mPixelData + startOffset, (uint8_t*)b + startOffset, extend);
+        } else {
+          // We copy each row of the changed region over individually, since they are not
+          // guaranteed to have continuous memory.
+          //
+          // ################################################################################
+          // ##############################+--------------------------------------+##########
+          // ####################### i = 0 |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|##########
+          // ####################### i = 1 |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|##########
+          // ####################### i = 2 |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|##########
+          // ####################### i = 3 |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|##########
+          // ####################### i = 4 |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|##########
+          // ####################### i = 5 |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|##########
+          // ##############################+--------------------------------------+##########
+          // ################################################################################
+          // ################################################################################
+          for (int i = 0; i < rect.height; ++i) {
+            size_t startOffset = ((rect.y + i) * width + rect.x) * 4 * sizeof(uint8_t);
+            size_t extend      = rect.width * 4 * sizeof(uint8_t);
+
+            std::memcpy(mPixelData + startOffset, (uint8_t*)b + startOffset, extend);
+          }
         }
       }
     }
-  }
+  });
 
   if (mDrawCallback) {
     DrawEvent event;
@@ -150,6 +141,17 @@ void RenderHandler::OnPaint(CefRefPtr<CefBrowser> browser, PaintElementType type
 
     mLastDrawWidth  = width;
     mLastDrawHeight = height;
+
+    int minY = height;
+    int maxY = 0;
+
+    for (auto const& rect : dirtyRects) {
+      if (rect.y < minY)
+        minY = rect.y;
+
+      if (rect.y + rect.height > maxY)
+        maxY = rect.y + rect.height;
+    }
 
     event.mX      = 0;
     event.mY      = minY;
@@ -159,6 +161,8 @@ void RenderHandler::OnPaint(CefRefPtr<CefBrowser> browser, PaintElementType type
 
     mTextureBuffer = mDrawCallback(event);
   }
+
+  thread.join();
 } // namespace cs::gui::detail
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
