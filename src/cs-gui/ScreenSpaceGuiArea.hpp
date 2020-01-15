@@ -49,10 +49,11 @@ class CS_GUI_EXPORT ScreenSpaceGuiArea : public GuiArea,
   virtual void onViewportChange();
 
   VistaViewport*   mViewport;
-  VistaGLSLShader* mShader      = nullptr;
-  bool             mShaderDirty = true;
-  int              mWidth       = 0;
-  int              mHeight      = 0;
+  VistaGLSLShader* mShader                = nullptr;
+  bool             mShaderDirty           = true;
+  int              mWidth                 = 0;
+  int              mHeight                = 0;
+  int              mDelayedViewportUpdate = 0;
   int              mOldWidth    = 0;
   int              mOldHeight   = 0;
 };
