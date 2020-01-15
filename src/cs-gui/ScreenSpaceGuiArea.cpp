@@ -49,20 +49,21 @@ void main()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const std::string QUAD_FRAG = R"(
-in vec2 vTexCoords;                                                             
+const std::string QUAD_FRAG = R"(in vec2 vTexCoords;
 in vec4 vPosition;
 
-uniform sampler2D iTexture;                                                
-                                                                           
-layout(location = 0) out vec4 vOutColor;                                   
-                                                                           
-void main()                                                                
-{                                                                                                    
-  vOutColor = texture(iTexture, vTexCoords); 
-  if (vOutColor.a == 0.0) discard; 
+uniform samplerBuffer texture;
+uniform ivec2 texSize;
 
-  vOutColor.rgb /= vOutColor.a;
+layout(location = 0) out vec4 vOutColor;
+
+void main() {
+    ivec2 iTexCoords = ivec2(vec2(texSize) * vTexCoords);
+    vOutColor = texelFetch(texture, iTexCoords.y * texSize.x + iTexCoords.x).bgra;
+
+    if (vOutColor.a == 0.0) discard;
+
+    vOutColor.rgb /= vOutColor.a;
 }  
 )";
 
@@ -128,19 +129,28 @@ bool ScreenSpaceGuiArea::Do() {
   // draw back-to-front
   auto const& items = getItems();
   for (auto item = items.rbegin(); item != items.rend(); ++item) {
-    if ((*item)->getIsEnabled()) {
-      float posX = (*item)->getRelPositionX() + (*item)->getRelOffsetX();
-      float posY = 1 - (*item)->getRelPositionY() - (*item)->getRelOffsetY();
+    auto guiItem = *item;
+
+    if (guiItem->getIsEnabled()) {
+      float posX = guiItem->getRelPositionX() + guiItem->getRelOffsetX();
+      float posY = 1 - guiItem->getRelPositionY() - guiItem->getRelOffsetY();
       mShader->SetUniform(mShader->GetUniformLocation("iPosition"), posX, posY);
 
-      float scaleX = (*item)->getRelSizeX();
-      float scaleY = (*item)->getRelSizeY();
+      float scaleX = guiItem->getRelSizeX();
+      float scaleY = guiItem->getRelSizeY();
       mShader->SetUniform(mShader->GetUniformLocation("iScale"), scaleX, scaleY);
 
-      (*item)->getTexture()->Bind(GL_TEXTURE0);
-      mShader->SetUniform(mShader->GetUniformLocation("iTexture"), 0);
+      glUniform2i(mShader->GetUniformLocation("texSize"), mOldWidth, mOldHeight);
+
+      auto [texBuffer, tex] = guiItem->getTexture();
+      glActiveTexture(GL_TEXTURE0);
+      glBindTexture(GL_TEXTURE_BUFFER, tex);
+      glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA8, texBuffer);
+      mShader->SetUniform(mShader->GetUniformLocation("texture"), 0);
+
       glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-      (*item)->getTexture()->Unbind(GL_TEXTURE0);
+
+      glBindTexture(GL_TEXTURE_BUFFER, 0);
     }
   }
 
@@ -155,6 +165,9 @@ bool ScreenSpaceGuiArea::Do() {
     mViewport->GetViewportProperties()->GetSize(mWidth, mHeight);
     updateItems();
   }
+  
+  mOldWidth  = mWidth;
+  mOldHeight = mHeight;
 
   return true;
 }
@@ -186,6 +199,8 @@ void ScreenSpaceGuiArea::ObserverUpdate(IVistaObserveable* pObserveable, int nMs
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void ScreenSpaceGuiArea::onViewportChange() {
+  mOldWidth  = mWidth;
+  mOldHeight = mHeight;
   mViewport->GetViewportProperties()->GetSize(mWidth, mHeight);
   updateItems();
 }

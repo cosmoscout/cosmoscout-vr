@@ -16,7 +16,6 @@ namespace cs::gui {
 
 GuiItem::GuiItem(std::string const& url, bool allowLocalFileAccess)
     : WebView(url, 100, 100, allowLocalFileAccess)
-    , mTexture(new VistaTexture(GL_TEXTURE_2D))
     , mAreaWidth(1)
     , mAreaHeight(1)
     , mSizeX(0)
@@ -37,21 +36,32 @@ GuiItem::GuiItem(std::string const& url, bool allowLocalFileAccess)
     , mIsRelPositionY(true)
     , mIsRelOffsetX(true)
     , mIsRelOffsetY(true) {
-  setDrawCallback([this](DrawEvent const& event) { updateTexture(event); });
+  setDrawCallback([this](DrawEvent const& event) { return updateTexture(event); });
 
-  mTexture->SetWrapS(GL_CLAMP_TO_EDGE);
-  mTexture->SetWrapT(GL_CLAMP_TO_EDGE);
-  mTexture->UploadTexture(getWidth(), getHeight(), nullptr, false);
-  mTexture->Unbind();
+  cs::utils::enableGLDebug();
+
+  glGenBuffers(1, &mTextureBuffer);
+  glBindBuffer(GL_TEXTURE_BUFFER, mTextureBuffer);
+  size_t bufferSize{4 * sizeof(uint8_t) * getWidth() * getHeight()};
+
+  GLbitfield flags = GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT;
+  glBufferStorage(GL_TEXTURE_BUFFER, bufferSize, nullptr, flags);
+  mBufferData = static_cast<uint8_t*>(glMapBufferRange(GL_TEXTURE_BUFFER, 0, bufferSize, flags));
+
+  glGenTextures(1, &mTexture);
+  glBindBuffer(GL_TEXTURE_BUFFER, 0);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 GuiItem::~GuiItem() {
+  glBindBuffer(GL_TEXTURE_BUFFER, mTextureBuffer);
+  glUnmapBuffer(GL_TEXTURE_BUFFER);
+  glDeleteBuffers(1, &mTextureBuffer);
+  glDeleteTextures(1, &mTexture);
   // seems to be necessary as OnPaint can be called by some other thread even
   // if this object is already deleted
-  setDrawCallback([](DrawEvent const& event) {});
-  delete mTexture;
+  setDrawCallback([](DrawEvent const& event) { return nullptr; });
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -185,18 +195,25 @@ bool GuiItem::calculateMousePosition(int areaX, int areaY, int& x, int& y) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GuiItem::updateTexture(DrawEvent const& event) {
-  mTexture->Bind();
-
+uint8_t* GuiItem::updateTexture(DrawEvent const& event) {
   if (event.mResized) {
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, event.mWidth, event.mHeight, 0, GL_BGRA,
-        GL_UNSIGNED_BYTE, event.mData);
-  } else {
-    glTexSubImage2D(GL_TEXTURE_2D, 0, event.mX, event.mY, event.mWidth, event.mHeight, GL_BGRA,
-        GL_UNSIGNED_BYTE, event.mData);
+    glBindBuffer(GL_TEXTURE_BUFFER, mTextureBuffer);
+    glUnmapBuffer(GL_TEXTURE_BUFFER);
+    glBindBuffer(GL_TEXTURE_BUFFER, 0);
+
+    glDeleteBuffers(1, &mTextureBuffer);
+    glGenBuffers(1, &mTextureBuffer);
+    glBindBuffer(GL_TEXTURE_BUFFER, mTextureBuffer);
+
+    size_t     bufferSize{4 * sizeof(uint8_t) * event.mWidth * event.mHeight};
+    GLbitfield flags = GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT;
+    glBufferStorage(GL_TEXTURE_BUFFER, bufferSize, nullptr, flags);
+    mBufferData = static_cast<uint8_t*>(glMapBufferRange(GL_TEXTURE_BUFFER, 0, bufferSize, flags));
+
+    glBindBuffer(GL_TEXTURE_BUFFER, 0);
   }
 
-  mTexture->Unbind();
+  return mBufferData;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -252,8 +269,8 @@ void GuiItem::updateSizes() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-VistaTexture* GuiItem::getTexture() const {
-  return mTexture;
+std::pair<uint32_t, uint32_t> GuiItem::getTexture() const {
+  return {mTextureBuffer, mTexture};
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

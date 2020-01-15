@@ -66,15 +66,18 @@ const std::string QUAD_FRAG = R"(
 in vec2 vTexCoords;                                                             
 in vec4 vPosition;
 
-uniform sampler2D iTexture;                                                
-uniform float iFarClip;                                                
-                                                                           
-layout(location = 0) out vec4 vOutColor;                                   
-                                                                           
-void main()                                                                
-{                                                                                                    
-  vOutColor = texture(iTexture, vTexCoords); 
-  if (vOutColor.a == 0.0) discard; 
+uniform float iFarClip;
+
+uniform samplerBuffer texture;
+uniform ivec2 texSize;
+
+layout(location = 0) out vec4 vOutColor;
+
+void main() {
+  ivec2 iTexCoords = ivec2(vec2(texSize) * vTexCoords);
+  vOutColor = texelFetch(texture, iTexCoords.y * texSize.x + iTexCoords.x).bgra;
+
+  if (vOutColor.a == 0.0) discard;
 
   vOutColor.rgb /= vOutColor.a;
 
@@ -246,12 +249,20 @@ bool WorldSpaceGuiArea::Do() {
       localMat =
           glm::scale(localMat, glm::vec3((*item)->getRelSizeX(), (*item)->getRelSizeY(), 1.f));
 
-      (*item)->getTexture()->Bind(GL_TEXTURE0);
       glUniformMatrix4fv(
           mShader->GetUniformLocation("uMatModelView"), 1, GL_FALSE, glm::value_ptr(localMat));
-      mShader->SetUniform(mShader->GetUniformLocation("iTexture"), 0);
+
+      glUniform2i(mShader->GetUniformLocation("texSize"), mWidth, mHeight);
+
+      auto [texBuffer, tex] = (*item)->getTexture();
+      glActiveTexture(GL_TEXTURE0);
+      glBindTexture(GL_TEXTURE_BUFFER, tex);
+      glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA8, texBuffer);
+      mShader->SetUniform(mShader->GetUniformLocation("texture"), 0);
+
       glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-      (*item)->getTexture()->Unbind(GL_TEXTURE0);
+
+      glBindTexture(GL_TEXTURE_BUFFER, 0);
     }
   }
 

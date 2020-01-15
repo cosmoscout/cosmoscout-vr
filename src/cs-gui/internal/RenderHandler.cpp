@@ -5,6 +5,10 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "RenderHandler.hpp"
+#include "../../cs-utils/FrameTimings.hpp"
+#include <GL/glew.h>
+#include <deque>
+#include <thread>
 
 namespace cs::gui::detail {
 
@@ -30,6 +34,7 @@ void RenderHandler::Resize(int width, int height) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool RenderHandler::GetColor(int x, int y, uint8_t& r, uint8_t& g, uint8_t& b, uint8_t& a) const {
+  auto timer = cs::utils::FrameTimings::ScopedTimer("GetColor");
   if (!mPixelData) {
     return false;
   }
@@ -69,79 +74,62 @@ void RenderHandler::GetViewRect(CefRefPtr<CefBrowser> browser, CefRect& rect) {
 
 void RenderHandler::OnPaint(CefRefPtr<CefBrowser> browser, PaintElementType type,
     RectList const& dirtyRects, const void* b, int width, int height) {
-  size_t bufferSize = width * height * 4;
+  DrawEvent event{};
+  event.mResized = width != mLastDrawWidth || height != mLastDrawHeight;
+  mLastDrawWidth  = width;
+  mLastDrawHeight = height;
 
-  // When the source buffer got larger we reallocate and copy the whole source buffer over.
-  if (mCurrentBufferSize < bufferSize) {
-    delete[] mPixelData;
+  if (event.mResized) {
+    event.mX = 0;
+    event.mY = 0;
+    event.mWidth = width;
+    event.mHeight = height;
+  }
 
-    mPixelData         = new uint8_t[bufferSize];
-    mCurrentBufferSize = bufferSize;
+  mPixelData = mDrawCallback(event);
+  if (!mPixelData) {
+    std::cerr << "[" << __FILE__ << ":" << __LINE__ << "] Error when initializing GUI Texture Buffer!" << std::endl;
+    return;
+  }
+
+  if (event.mResized) {
+    size_t bufferSize = width * height * 4;
     std::memcpy(mPixelData, b, bufferSize * sizeof(uint8_t));
-
-    // Otherwise we only copy the dirty regions.
   } else {
-    // For each changed region
-    for (const auto& rect : dirtyRects) {
+    for (auto const& rect : dirtyRects) {
+      if (rect.width > 0.5 * width) {
+        // When the rect is almost the whole screen width we just copy the rest of the width
+        // too. This is faster since we only need one efficient std::memcpy call.
 
-      // We copy each row of the changed region over individually, since they are not guaranteed to
-      // have continuous memory.
-      //
-      // ################################################################################
-      // ##############################+--------------------------------------+##########
-      // ####################### i = 0 |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|##########
-      // ####################### i = 1 |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|##########
-      // ####################### i = 2 |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|##########
-      // ####################### i = 3 |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|##########
-      // ####################### i = 4 |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|##########
-      // ####################### i = 5 |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|##########
-      // ##############################+--------------------------------------+##########
-      // ################################################################################
-      // ################################################################################
-      for (int i = 0; i < rect.height; ++i) {
-        size_t startOffset = ((rect.y + i) * width + rect.x) * 4 * sizeof(uint8_t);
-        size_t extend      = rect.width * 4 * sizeof(uint8_t);
+        size_t startOffset = rect.y * width * 4 * sizeof(uint8_t);
+        size_t extend      = rect.height * width * 4 * sizeof(uint8_t);
+
         std::memcpy(mPixelData + startOffset, (uint8_t*)b + startOffset, extend);
-      }
-    }
-  }
+      } else {
+        // We copy each row of the changed region over individually, since they are not
+        // guaranteed to have continuous memory.
+        //
+        // ################################################################################
+        // ##############################+--------------------------------------+##########
+        // ####################### i = 0 |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|##########
+        // ####################### i = 1 |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|##########
+        // ####################### i = 2 |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|##########
+        // ####################### i = 3 |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|##########
+        // ####################### i = 4 |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|##########
+        // ####################### i = 5 |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|##########
+        // ##############################+--------------------------------------+##########
+        // ################################################################################
+        // ################################################################################
+        for (int i = 0; i < rect.height; ++i) {
+          size_t startOffset = ((rect.y + i) * width + rect.x) * 4 * sizeof(uint8_t);
+          size_t extend      = rect.width * 4 * sizeof(uint8_t);
 
-  if (mDrawCallback) {
-
-    DrawEvent event;
-    event.mResized = width != mLastDrawWidth || height != mLastDrawHeight;
-
-    mLastDrawWidth  = width;
-    mLastDrawHeight = height;
-
-    if (event.mResized) {
-      event.mX      = 0;
-      event.mY      = 0;
-      event.mWidth  = width;
-      event.mHeight = height;
-      event.mData   = mPixelData;
-
-      mDrawCallback(event);
-    } else {
-      for (auto const& rect : dirtyRects) {
-        event.mX      = rect.x;
-        event.mY      = rect.y;
-        event.mWidth  = rect.width;
-        event.mHeight = rect.height;
-
-        std::vector<uint8_t> data(rect.width * rect.height * 4ul);
-
-        for (int y(0); y < rect.height; ++y) {
-          std::memcpy(&data[y * rect.width * 4], mPixelData + ((y + rect.y) * width + rect.x) * 4,
-              rect.width * (size_t)4);
+          std::memcpy(mPixelData + startOffset, (uint8_t*)b + startOffset, extend);
         }
-
-        event.mData = data.data();
-        mDrawCallback(event);
       }
     }
   }
-}
+} // namespace cs::gui::detail
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -155,7 +143,7 @@ void RenderHandler::OnCursorChange(CefRefPtr<CefBrowser> browser, CefCursorHandl
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 RenderHandler::~RenderHandler() {
-  delete[] mPixelData;
+  // delete[] mPixelData;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
