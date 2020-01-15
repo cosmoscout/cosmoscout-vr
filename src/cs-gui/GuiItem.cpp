@@ -165,6 +165,12 @@ float GuiItem::getRelOffsetX() const {
 float GuiItem::getRelOffsetY() const {
   return mRelOffsetY;
 }
+int GuiItem::getCefWidth() const {
+  return mCefWidth;
+}
+int GuiItem::getCefHeight() const {
+  return mCefHeight;
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -211,6 +217,8 @@ uint8_t* GuiItem::updateTexture(DrawEvent const& event) {
     mBufferData = static_cast<uint8_t*>(glMapBufferRange(GL_TEXTURE_BUFFER, 0, bufferSize, flags));
 
     glBindBuffer(GL_TEXTURE_BUFFER, 0);
+    mCefWidth  = event.mWidth;
+    mCefHeight = event.mHeight;
   }
 
   return mBufferData;

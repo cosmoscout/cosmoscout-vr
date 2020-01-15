@@ -131,7 +131,9 @@ bool ScreenSpaceGuiArea::Do() {
   for (auto item = items.rbegin(); item != items.rend(); ++item) {
     auto guiItem = *item;
 
-    if (guiItem->getIsEnabled()) {
+    bool cefRightSize = mWidth == guiItem->getCefWidth() && mHeight == guiItem->getCefHeight();
+
+    if (guiItem->getIsEnabled() && cefRightSize) {
       float posX = guiItem->getRelPositionX() + guiItem->getRelOffsetX();
       float posY = 1 - guiItem->getRelPositionY() - guiItem->getRelOffsetY();
       mShader->SetUniform(mShader->GetUniformLocation("iPosition"), posX, posY);
@@ -140,7 +142,7 @@ bool ScreenSpaceGuiArea::Do() {
       float scaleY = guiItem->getRelSizeY();
       mShader->SetUniform(mShader->GetUniformLocation("iScale"), scaleX, scaleY);
 
-      glUniform2i(mShader->GetUniformLocation("texSize"), mOldWidth, mOldHeight);
+      glUniform2i(mShader->GetUniformLocation("texSize"), guiItem->getCefWidth(), guiItem->getCefHeight());
 
       auto [texBuffer, tex] = guiItem->getTexture();
       glActiveTexture(GL_TEXTURE0);
@@ -157,9 +159,6 @@ bool ScreenSpaceGuiArea::Do() {
   mShader->Release();
 
   glPopAttrib();
-
-  mOldWidth  = mWidth;
-  mOldHeight = mHeight;
 
   // A viewport resize event occurred some frames ago. Let's resize our items accordingly!
   if (mDelayedViewportUpdate > 0 &&
@@ -199,8 +198,6 @@ void ScreenSpaceGuiArea::ObserverUpdate(IVistaObserveable* pObserveable, int nMs
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void ScreenSpaceGuiArea::onViewportChange() {
-  mOldWidth  = mWidth;
-  mOldHeight = mHeight;
   mViewport->GetViewportProperties()->GetSize(mWidth, mHeight);
   updateItems();
 }

@@ -34,12 +34,15 @@ void RenderHandler::Resize(int width, int height) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool RenderHandler::GetColor(int x, int y, uint8_t& r, uint8_t& g, uint8_t& b, uint8_t& a) const {
-  auto timer = cs::utils::FrameTimings::ScopedTimer("GetColor");
   if (!mPixelData) {
     return false;
   }
 
   int data_pos(x * 4 + y * mLastDrawWidth * 4);
+
+  if (data_pos + 3 >= 4 * mWidth * mHeight) {
+    return false;
+  }
 
   // this might be dangerous --- I'm not entirely sure whether this pixel data
   // reference is guranteed to be valid. If something bad happens, we have to

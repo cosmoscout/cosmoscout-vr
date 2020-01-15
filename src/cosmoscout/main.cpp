@@ -12,6 +12,16 @@
 
 #include <VistaKernel/VistaSystem.h>
 
+#ifdef _WIN64
+extern "C" {
+// This tells Windows to use the dedicated NVIDIA GPU over Intel integrated graphics.
+__declspec(dllexport) unsigned long NvOptimusEnablement = 0x00000001;
+
+// This tells Windows to use the dedicated AMD GPU over Intel integrated graphics.
+__declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
+}
+#endif
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int main(int argc, char** argv) {

@@ -6,6 +6,7 @@
 
 #include "GraphicsEngine.hpp"
 
+#include <GL/glew.h>
 #include <VistaKernel/GraphicsManager/VistaSceneGraph.h>
 #include <VistaKernel/VistaSystem.h>
 
@@ -14,6 +15,9 @@ namespace cs::core {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 GraphicsEngine::GraphicsEngine(std::shared_ptr<const core::Settings> const& settings) {
+  std::cout << " OpenGL Vendor: " << glGetString(GL_VENDOR) << std::endl;
+  std::cout << "OpenGL Version: " << glGetString(GL_VERSION) << std::endl;
+
   auto pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
 
   pWidgetScale = settings->mWidgetScale;

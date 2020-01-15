@@ -47,6 +47,8 @@ class CS_GUI_EXPORT GuiItem : public WebView {
   int          getOffsetY() const;      ///< Get the y position of the item in screen space [0..1].
   float        getRelOffsetX() const;   ///< Get the x offset of the item in screen space [0..1].
   float        getRelOffsetY() const;   ///< Get the y offset of the item in screen space [0..1].
+  int          getCefWidth() const;
+  int          getCefHeight() const;
 
   /// The enabled flag determines if the item will be rendered.
   void setIsEnabled(bool bEnabled);
@@ -74,7 +76,10 @@ class CS_GUI_EXPORT GuiItem : public WebView {
 
   uint32_t mTextureBuffer;
   uint32_t mTexture;
-  uint8_t* mBufferData         = nullptr;
+  uint8_t* mBufferData = nullptr;
+
+  int mCefWidth  = 0;
+  int mCefHeight = 0;
 
   int mAreaWidth, mAreaHeight; // in pixels
 
