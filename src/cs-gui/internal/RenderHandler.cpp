@@ -74,8 +74,6 @@ void RenderHandler::GetViewRect(CefRefPtr<CefBrowser> browser, CefRect& rect) {
 
 void RenderHandler::OnPaint(CefRefPtr<CefBrowser> browser, PaintElementType type,
     RectList const& dirtyRects, const void* b, int width, int height) {
-  auto timer = cs::utils::FrameTimings::ScopedTimer(" ### Copy ###");
-
   DrawEvent event{};
   event.mResized = width != mLastDrawWidth || height != mLastDrawHeight;
   mLastDrawWidth  = width;
