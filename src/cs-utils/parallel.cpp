@@ -33,4 +33,4 @@ void parallelFor(size_t count, std::function<void(size_t)> const& f) {
   parallelFor(count, std::thread::hardware_concurrency(), f);
 }
 
-}
+} // namespace cs::utils

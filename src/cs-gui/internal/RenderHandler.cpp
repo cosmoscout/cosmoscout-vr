@@ -78,20 +78,21 @@ void RenderHandler::GetViewRect(CefRefPtr<CefBrowser> browser, CefRect& rect) {
 void RenderHandler::OnPaint(CefRefPtr<CefBrowser> browser, PaintElementType type,
     RectList const& dirtyRects, const void* b, int width, int height) {
   DrawEvent event{};
-  event.mResized = width != mLastDrawWidth || height != mLastDrawHeight;
+  event.mResized  = width != mLastDrawWidth || height != mLastDrawHeight;
   mLastDrawWidth  = width;
   mLastDrawHeight = height;
 
   if (event.mResized) {
-    event.mX = 0;
-    event.mY = 0;
-    event.mWidth = width;
+    event.mX      = 0;
+    event.mY      = 0;
+    event.mWidth  = width;
     event.mHeight = height;
   }
 
   mPixelData = mDrawCallback(event);
   if (!mPixelData) {
-    std::cerr << "[" << __FILE__ << ":" << __LINE__ << "] Error when initializing GUI Texture Buffer!" << std::endl;
+    std::cerr << "[" << __FILE__ << ":" << __LINE__
+              << "] Error when initializing GUI Texture Buffer!" << std::endl;
     return;
   }
 

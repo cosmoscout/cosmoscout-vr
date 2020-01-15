@@ -142,7 +142,8 @@ bool ScreenSpaceGuiArea::Do() {
       float scaleY = guiItem->getRelSizeY();
       mShader->SetUniform(mShader->GetUniformLocation("iScale"), scaleX, scaleY);
 
-      glUniform2i(mShader->GetUniformLocation("texSize"), guiItem->getCefWidth(), guiItem->getCefHeight());
+      glUniform2i(
+          mShader->GetUniformLocation("texSize"), guiItem->getCefWidth(), guiItem->getCefHeight());
 
       auto [texBuffer, tex] = guiItem->getTexture();
       glActiveTexture(GL_TEXTURE0);
