@@ -529,8 +529,7 @@ void Application::FrameUpdate() {
 
   // Update the user interface.
   {
-    cs::utils::FrameTimings::ScopedTimer timer(
-        "User Interface", cs::utils::FrameTimings::QueryMode::eCPU);
+    cs::utils::FrameTimings::ScopedTimer timer("User Interface");
 
     if (mSolarSystem->pActiveBody.get()) {
 
