@@ -9,8 +9,17 @@
 
 #include "cs_utils_export.hpp"
 
+#include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/spdlog.h>
+
+#if defined(__clang__) || defined(__GNUC__) || defined(__GNUG__)
+#define CS_ALWAYS_INLINE inline __attribute__((__always_inline__))
+#elif defined(_MSC_VER)
+#define CS_ALWAYS_INLINE __forceinline
+#else
+#define CS_ALWAYS_INLINE inline
+#endif
 
 /// CosmoScout VR uses spdlog for logging. You can print messages simply with code like this:
 /// spdlog::info("The awnser is {}!", 42);
@@ -59,13 +68,18 @@ namespace cs::utils::logger {
 /// This creates the default logger for "cs-utils" and is called at startup by the main() method.
 CS_UTILS_EXPORT void init();
 
+CS_UTILS_EXPORT spdlog::sink_ptr getCoutSink();
+CS_UTILS_EXPORT spdlog::sink_ptr getFileSink();
+
 /// Call this method once from your plugin in order to setup the default logger. The given name will
 /// be shown together with the log level in each message.
-inline void init(std::string const& name) {
+CS_ALWAYS_INLINE void init(std::string const& name) {
 
   // We create a colored console logger which can be used from multiple threads. We may consider
   // logging to files in the future.
-  auto logger = spdlog::stdout_color_mt(name);
+  std::vector<spdlog::sink_ptr> sinks = {getCoutSink(), getFileSink()};
+  auto logger =
+      std::make_shared<spdlog::logger>(name, sinks.begin(), sinks.end());
 
   // TODO: Make log level configurable.
   logger->set_level(spdlog::level::trace);
