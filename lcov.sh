@@ -46,6 +46,7 @@ lcov -q --capture --no-external --initial --directory . --output-file $BUILD_DIR
 # run the tests ------------------------------------------------------------------------------------
 
 $INSTALL_DIR/bin/run_tests.sh
+$INSTALL_DIR/bin/run_graphical_tests.sh
 
 # capture the coverage of the test -----------------------------------------------------------------
 

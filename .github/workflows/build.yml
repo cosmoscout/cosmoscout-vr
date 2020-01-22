@@ -74,36 +74,44 @@ jobs:
       ( contains(github.ref, 'master') && !contains(github.event.head_commit.message, '[no-ci]') ) ||
       ( contains(github.ref, 'develop') && !contains(github.event.head_commit.message, '[no-ci]') ) ||
       contains(github.event.head_commit.message, '[run-ci]')
-    env:
-      COSMOSCOUT_CODE_COVERAGE: true
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2
       - name: Checkout Submodules
         run: git submodule update --init
       - name: Cache Object Files
-        uses: actions/cache@v1
+        uses: actions/cache@v1.1.0
         with:
           path: ~/.ccache
-          key: gcc-${{ github.ref }}-${{ github.sha }}
-          restore-keys: |
-            gcc-${{ github.ref }}-
-            gcc-
+          key: gcc-${{ github.sha }}
+          restore-keys: gcc-
       - name: Download Dependencies
         run: |
           sudo add-apt-repository ppa:mhier/libboost-latest
           sudo apt-get update -q
           sudo apt-get install libc++-dev libgl1-mesa-dev libglu1-mesa-dev libx11-dev
-          sudo apt-get install libxi-dev libgconf-2-4 libboost1.70-dev ccache lcov
+          sudo apt-get install libxi-dev libgconf-2-4 libboost1.70-dev ccache lcov xvfb
           sudo pip install cmake
           ccache --max-size 1G
           ccache -z
+      # Workaround for https://github.com/actions/virtual-environments/issues/10
+      - name: Avoid to use GitHub Actions-installed boost
+        shell: bash
+        run: echo "::set-env name=BOOST_ROOT::"
       - name: Build Externals
         run: ./make_externals.sh -G "Unix Makefiles" -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
       - name: Build CosmoScout VR
-        run: ./make.sh -G "Unix Makefiles" -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
+        run: ./make.sh -G "Unix Makefiles" -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCOSMOSCOUT_COVERAGE_INFO=On -DCOSMOSCOUT_UNIT_TESTS=On
       - name: Run Tests
         run: ./install/linux-release/bin/run_tests.sh
+      - name: Run Graphical Tests
+        run: ./install/linux-release/bin/run_graphical_tests.sh
+      - name: Upload Results of Failed Test 
+        uses: actions/upload-artifact@v1
+        if: failure()
+        with:
+          name: graphical-test-results-gcc
+          path: install/linux-release/bin/test
       - name: Calculate Test Coverage
         run: ./lcov.sh
       - name: Upload Coverage Info
@@ -126,13 +134,11 @@ jobs:
       - name: Checkout Submodules
         run: git submodule update --init
       - name: Cache Object Files
-        uses: actions/cache@v1
+        uses: actions/cache@v1.1.0
         with:
           path: ~/.ccache
-          key: clang-${{ github.ref }}-${{ github.sha }}
-          restore-keys: |
-            clang-${{ github.ref }}-
-            clang-
+          key: clang-${{ github.sha }}
+          restore-keys: clang-
       - name: Download Dependencies
         run: |
           sudo add-apt-repository ppa:mhier/libboost-latest
@@ -142,6 +148,10 @@ jobs:
           sudo pip install cmake
           ccache --max-size 1G
           ccache -z
+      # Workaround for https://github.com/actions/virtual-environments/issues/10
+      - name: Avoid to use GitHub Actions-installed boost
+        shell: bash
+        run: echo "::set-env name=BOOST_ROOT::"
       - name: Build Externals
         env:
           CC: clang
@@ -154,10 +164,18 @@ jobs:
         run: ./make.sh -G "Unix Makefiles" -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCOSMOSCOUT_UNIT_TESTS=On
       - name: Run Tests
         run: ./install/linux-release/bin/run_tests.sh
+      - name: Run Graphical Tests
+        run: ./install/linux-release/bin/run_graphical_tests.sh
+      - name: Upload Results of Failed Test 
+        uses: actions/upload-artifact@v1
+        if: failure()
+        with:
+          name: graphical-test-results-clang
+          path: install/linux-release/bin/test
 
   build_windows:
-    name: Windows MSVC 19.16.27032.1
-    runs-on: windows-2016
+    name: Windows MSVC 19.24.28314.0
+    runs-on: windows-2019
     if: >
       github.event_name == 'pull_request' ||
       ( contains(github.ref, 'master') && !contains(github.event.head_commit.message, '[no-ci]') ) ||
@@ -169,13 +187,11 @@ jobs:
       - name: Checkout Submodules
         run: git submodule update --init
       - name: Cache Object Files
-        uses: actions/cache@v1
+        uses: actions/cache@v1.1.0
         with:
           path: ~/clcache
-          key: msvc-${{ github.ref }}-${{ github.sha }}
-          restore-keys: |
-            msvc-${{ github.ref }}-
-            msvc-
+          key: msvc19.24-${{ github.sha }}
+          restore-keys: msvc19.24-
       - name: Download Dependencies
         run: |
           pip install clcache
@@ -183,10 +199,10 @@ jobs:
           clcache -z
       - name: Build Externals
         shell: cmd
-        run: make_externals.bat -G "Visual Studio 15 Win64" -DCMAKE_VS_GLOBALS="CLToolExe=clcache.exe;TrackFileAccess=false"
+        run: make_externals.bat -G "Visual Studio 16 2019" -A x64 -DCMAKE_VS_GLOBALS="CLToolExe=clcache.exe;TrackFileAccess=false"
       - name: Build CosmoScout VR
         shell: cmd
-        run: make.bat -G "Visual Studio 15 Win64" -DCMAKE_VS_GLOBALS="CLToolExe=clcache.exe;TrackFileAccess=false"
+        run: make.bat -G "Visual Studio 16 2019" -A x64 -DCMAKE_VS_GLOBALS="CLToolExe=clcache.exe;TrackFileAccess=false" -DCOSMOSCOUT_UNIT_TESTS=On
       - name: Run Tests
         shell: cmd
         run: install\\windows-release\\bin\\run_tests.bat
