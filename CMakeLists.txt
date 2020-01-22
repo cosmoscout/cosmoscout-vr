@@ -226,6 +226,12 @@ add_compile_options($<$<CXX_COMPILER_ID:MSVC>:/EHsc>)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Enable unit tests
+option(COSMOSCOUT_UNIT_TESTS "Enable compilation of tests" OFF)
+if (NOT COSMOSCOUT_UNIT_TESTS)
+  add_definitions(-DDOCTEST_CONFIG_DISABLE)
+endif()
+
 # Enable code coverage measurements
 option(COSMOSCOUT_COVERAGE_INFO "Run code coverage analytics" OFF)
 

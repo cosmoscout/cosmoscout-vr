@@ -14,7 +14,7 @@ cd "%SCRIPT_DIR%"
 rem Set paths so that all libraries are found.
 set PATH=%SCRIPT_DIR%\..\lib;%PATH%
 
-cosmoscout.exe --run-tests
+cosmoscout.exe --run-tests --test-case-exclude="*[graphical]*"
 
 rem Go back to where we came from
 cd "%CURRENT_DIR%"
