@@ -151,7 +151,7 @@ jobs:
         env:
           CC: clang
           CXX: clang++
-        run: ./make.sh -G "Unix Makefiles" -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
+        run: ./make.sh -G "Unix Makefiles" -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCOSMOSCOUT_UNIT_TESTS=On
       - name: Run Tests
         run: ./install/linux-release/bin/run_tests.sh
 
