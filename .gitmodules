@@ -36,7 +36,7 @@
 	url = https://github.com/onqtam/doctest.git
 [submodule "externals/spdlog"]
 	path = externals/spdlog
-	url = https://github.com/gabime/spdlog.git
+	url = https://github.com/cosmoscout/spdlog.git
 [submodule "plugins/csp-trajectories"]
 	path = plugins/csp-trajectories
 	url = ../../cosmoscout/csp-trajectories.git
