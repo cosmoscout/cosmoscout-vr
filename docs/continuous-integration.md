@@ -29,10 +29,35 @@ As this job takes quite some time, it is only executed for the events below:
 The code is compiled on Ubuntu (with GCC and Clang) and on Windows (with MSVC).
 Tests are executed on all platforms and the results are uploaded to [coveralls.io](https://coveralls.io/github/cosmoscout/cosmoscout-vr).
 
-### Caching
-
 Both, the externals and CosmoScout's code itself is built with [ccache](https://ccache.dev/) and [clcache](https://github.com/frerich/clcache) in order to speed up build times by a factor of five.
 Between job runs, the object file cache is stored with the [cache action](https://github.com/actions/cache).
+
+There are two types of test cases, _regular_ tests and _graphical_ tests.
+
+### Regular Tests
+
+In CosmoScout VR, unit testing is done with [doctest](https://github.com/onqtam/doctest). You can run all tests which require no OpenGL context with the following scripts.
+
+#### Linux:
+
+```shell
+./install/linux-release/run_tests.sh
+```
+
+#### Windows:
+```batch
+install\linux-release\run_tests.bat
+```
+
+### Graphical Tests
+
+These tests require an OpenGL context and will open a window.
+Oftentimes they capture a screenshot and compare the result to a reference image.
+the _graphical tests_ require [Xvfb](https://en.wikipedia.org/wiki/Xvfb) and [imagemagick](https://imagemagick.org/index.php) to be installed on your system and only work on Linux for now:
+
+```shell
+./install/linux-release/run_graphical_tests.sh
+```
 
 <p align="center"><img src ="img/hr.svg"/></p>
 
