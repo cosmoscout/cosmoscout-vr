@@ -103,9 +103,7 @@ jobs:
       - name: Build CosmoScout VR
         run: ./make.sh -G "Unix Makefiles" -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
       - name: Run Tests
-        run: ./install/linux-release/bin/run_all_tests.sh
-      - name: Print Cache Usage
-        run: ccache -s
+        run: ./install/linux-release/bin/run_tests.sh
       - name: Calculate Test Coverage
         run: ./lcov.sh
       - name: Upload Coverage Info
@@ -155,9 +153,7 @@ jobs:
           CXX: clang++
         run: ./make.sh -G "Unix Makefiles" -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
       - name: Run Tests
-        run: ./install/linux-release/bin/run_all_tests.sh
-      - name: Print Cache Usage
-        run: ccache -s
+        run: ./install/linux-release/bin/run_tests.sh
 
   build_windows:
     name: Windows MSVC 19.16.27032.1
@@ -193,6 +189,6 @@ jobs:
         run: make.bat -G "Visual Studio 15 Win64" -DCMAKE_VS_GLOBALS="CLToolExe=clcache.exe;TrackFileAccess=false"
       - name: Run Tests
         shell: cmd
-        run: install\\windows-release\\bin\\run_all_tests.bat
+        run: install\\windows-release\\bin\\run_tests.bat
       - name: Print Cache Usage
         run: clcache -s
