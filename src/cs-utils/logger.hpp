@@ -78,8 +78,7 @@ CS_ALWAYS_INLINE void init(std::string const& name) {
   // We create a colored console logger which can be used from multiple threads. We may consider
   // logging to files in the future.
   std::vector<spdlog::sink_ptr> sinks = {getCoutSink(), getFileSink()};
-  auto logger =
-      std::make_shared<spdlog::logger>(name, sinks.begin(), sinks.end());
+  auto logger = std::make_shared<spdlog::logger>(name, sinks.begin(), sinks.end());
 
   // TODO: Make log level configurable.
   logger->set_level(spdlog::level::trace);
@@ -87,8 +86,8 @@ CS_ALWAYS_INLINE void init(std::string const& name) {
   // See https://github.com/gabime/spdlog/wiki/3.-Custom-formatting for formatting options.
   logger->set_pattern("%^[%L] %-17!n:%$ %v");
 
-  // Since spdlog has a default logger for each shared library, this method "inline". This way it
-  // will setup the logger for your plugin when it's called from your code.
+  // Since spdlog has a default logger for each shared library, this method is marked "inline". This
+  // way it will setup the logger for your plugin when it's called from your code.
   spdlog::set_default_logger(logger);
 }
 
