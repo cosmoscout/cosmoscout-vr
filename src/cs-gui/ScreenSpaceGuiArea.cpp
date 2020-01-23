@@ -131,7 +131,7 @@ int ScreenSpaceGuiArea::getHeight() const {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void ScreenSpaceGuiArea::setSmooth(bool enable) {
-  mSmooth = enable;
+  mSmooth      = enable;
   mShaderDirty = true;
 }
 

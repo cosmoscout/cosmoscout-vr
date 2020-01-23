@@ -187,7 +187,7 @@ void WorldSpaceGuiArea::setUseLinearDepthBuffer(bool bEnable) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void WorldSpaceGuiArea::setSmooth(bool enable) {
-  mSmooth = enable;
+  mSmooth      = enable;
   mShaderDirty = true;
 }
 
