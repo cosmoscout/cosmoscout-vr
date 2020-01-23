@@ -49,7 +49,10 @@ void main()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const std::string QUAD_FRAG = R"(in vec2 vTexCoords;
+const std::string QUAD_FRAG = R"(
+// #define LERP
+
+in vec2 vTexCoords;
 in vec4 vPosition;
 
 uniform samplerBuffer texture;
@@ -57,9 +60,35 @@ uniform ivec2 texSize;
 
 layout(location = 0) out vec4 vOutColor;
 
+vec4 getTexel(ivec2 p) {
+  return texelFetch(texture, p.y * texSize.x + p.x).bgra;
+}
+
+#ifdef LERP
+vec4 getPixel(vec2 position) {
+    vec2 absolutePosition = position * texSize;
+    ivec2 iPosition = ivec2(absolutePosition);
+
+    vec4 tl = getTexel(iPosition);
+    vec4 tr = getTexel(iPosition + ivec2(1, 0));
+    vec4 bl = getTexel(iPosition + ivec2(0, 1));
+    vec4 br = getTexel(iPosition + ivec2(1, 1));
+
+    vec2 d = fract(absolutePosition);
+
+    vec4 top = mix(tl, tr, d.x);
+    vec4 bot = mix(bl, br, d.x);
+
+    return mix(top, bot, d.y);
+}
+#endif // LERP
+
 void main() {
-    ivec2 iTexCoords = ivec2(vec2(texSize) * vTexCoords);
-    vOutColor = texelFetch(texture, iTexCoords.y * texSize.x + iTexCoords.x).bgra;
+    #ifdef LERP
+      vOutColor = getPixel(vTexCoords);
+    #else
+      vOutColor = getTexel(ivec2(vec2(texSize) * vTexCoords));
+    #endif
 
     if (vOutColor.a == 0.0) discard;
 
