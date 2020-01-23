@@ -19,7 +19,7 @@ Therefore the percentage of source lines of code containing comments is calculat
 
 This test will pass if the amount of comments did not decrease.
 
-## Builds & Tests
+## Builds of CosmoScout VR
 [Github Actions](https://github.com/cosmoscout/cosmoscout-vr/actions) is also used to compile the code of CosmoScout VR and all of its dependencies.
 As this job takes quite some time, it is only executed for the events below:
   * For each push to `master` or `develop` if the commit message does not contain `[no-ci]`.
@@ -32,11 +32,16 @@ Tests are executed on all platforms and the results are uploaded to [coveralls.i
 Both, the externals and CosmoScout's code itself is built with [ccache](https://ccache.dev/) and [clcache](https://github.com/frerich/clcache) in order to speed up build times by a factor of five.
 Between job runs, the object file cache is stored with the [cache action](https://github.com/actions/cache).
 
+## Unit Tests
+
+In CosmoScout VR, unit testing is done with [doctest](https://github.com/onqtam/doctest).
+Tests are executed for every build, so the same behavior of `[no-ci]` and `[run-ci]` as above applies here.
 There are two types of test cases, _regular_ tests and _graphical_ tests.
 
 ### Regular Tests
 
-In CosmoScout VR, unit testing is done with [doctest](https://github.com/onqtam/doctest). You can run all tests which require no OpenGL context with the following scripts.
+Regular tests require no OpenGL and no window.
+You can run them with the following scripts.
 
 #### Linux:
 
@@ -53,7 +58,9 @@ install\linux-release\run_tests.bat
 
 These tests require an OpenGL context and will open a window.
 Oftentimes they capture a screenshot and compare the result to a reference image.
-the _graphical tests_ require [Xvfb](https://en.wikipedia.org/wiki/Xvfb) and [imagemagick](https://imagemagick.org/index.php) to be installed on your system and only work on Linux for now:
+
+In order to make them possible even if there is no graphics card or display attached, they require [Xvfb](https://en.wikipedia.org/wiki/Xvfb) and [imagemagick](https://imagemagick.org/index.php) to be installed on your system.
+Graphical tests can only be executed on Linux for now:
 
 ```shell
 ./install/linux-release/run_graphical_tests.sh
