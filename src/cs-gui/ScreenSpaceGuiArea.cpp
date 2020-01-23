@@ -50,8 +50,6 @@ void main()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 const std::string QUAD_FRAG = R"(
-// #define LERP
-
 in vec2 vTexCoords;
 in vec4 vPosition;
 
@@ -61,6 +59,7 @@ uniform ivec2 texSize;
 layout(location = 0) out vec4 vOutColor;
 
 vec4 getTexel(ivec2 p) {
+  p = clamp(p, ivec2(0), texSize - ivec2(1));
   return texelFetch(texture, p.y * texSize.x + p.x).bgra;
 }
 
@@ -131,6 +130,13 @@ int ScreenSpaceGuiArea::getHeight() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void ScreenSpaceGuiArea::setSmooth(bool enable) {
+  mSmooth = enable;
+  mShaderDirty = true;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 bool ScreenSpaceGuiArea::Do() {
   utils::FrameTimings::ScopedTimer timer("User Interface");
   if (mShaderDirty) {
@@ -138,6 +144,9 @@ bool ScreenSpaceGuiArea::Do() {
     mShader = new VistaGLSLShader();
 
     std::string defines = "#version 330\n";
+
+    if (mSmooth)
+      defines += "#define LERP\n";
 
     mShader->InitVertexShaderFromString(defines + QUAD_VERT);
     mShader->InitFragmentShaderFromString(defines + QUAD_FRAG);

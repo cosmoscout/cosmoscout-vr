@@ -74,6 +74,7 @@ uniform ivec2 texSize;
 layout(location = 0) out vec4 vOutColor;
 
 vec4 getTexel(ivec2 p) {
+  p = clamp(p, ivec2(0), texSize - ivec2(1));
   return texelFetch(texture, p.y * texSize.x + p.x).bgra;
 }
 
@@ -95,7 +96,11 @@ vec4 getPixel(vec2 position) {
 }
 
 void main() {
-  vOutColor = getPixel(vTexCoords);
+  #ifdef LERP
+    vOutColor = getPixel(vTexCoords);
+  #else
+    vOutColor = getTexel(ivec2(vec2(texSize) * vTexCoords));
+  #endif
 
   if (vOutColor.a == 0.0) discard;
 
@@ -181,6 +186,13 @@ void WorldSpaceGuiArea::setUseLinearDepthBuffer(bool bEnable) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void WorldSpaceGuiArea::setSmooth(bool enable) {
+  mSmooth = enable;
+  mShaderDirty = true;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 bool WorldSpaceGuiArea::calculateMousePosition(
     VistaVector3D const& vRayOrigin, VistaVector3D const& vRayEnd, int& x, int& y) {
 
@@ -217,6 +229,9 @@ bool WorldSpaceGuiArea::Do() {
     if (mUseLinearDepthBuffer) {
       defines += "#define USE_LINEARDEPTHBUFFER\n";
     }
+
+    if (mSmooth)
+      defines += "#define LERP\n";
 
     mShader->InitVertexShaderFromString(defines + QUAD_VERT);
     mShader->InitFragmentShaderFromString(defines + QUAD_FRAG);

@@ -49,6 +49,9 @@ class CS_GUI_EXPORT GuiArea {
   /// Returns the item at the given index.
   GuiItem* getItem(unsigned int index = 0);
 
+
+  virtual void setSmooth(bool enable) = 0;
+
   /// Returns the item at the given coordinates.
   ///
   /// @param checkAlpha            If true an item is only returned if it has an alpha value greater

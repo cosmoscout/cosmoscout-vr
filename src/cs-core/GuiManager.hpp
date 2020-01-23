@@ -58,6 +58,8 @@ class InputManager;
 /// instance is then passed to all plugins.
 class CS_CORE_EXPORT GuiManager {
  public:
+  utils::Property<bool> pSmoothScreenSpaceGui = false;
+
   GuiManager(std::shared_ptr<const Settings> const& settings,
       std::shared_ptr<InputManager> const&          pInputManager,
       std::shared_ptr<utils::FrameTimings> const&   pFrameTimings);
