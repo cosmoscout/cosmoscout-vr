@@ -58,6 +58,8 @@ class InputManager;
 /// instance is then passed to all plugins.
 class CS_CORE_EXPORT GuiManager {
  public:
+  /// If true the main user interface will be rendered using linear interpolation between pixels,
+  /// which creates smoother edges. This may make small text more blurred and hardly readable.
   utils::Property<bool> pSmoothScreenSpaceGui = false;
 
   GuiManager(std::shared_ptr<const Settings> const& settings,
