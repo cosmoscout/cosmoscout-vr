@@ -49,7 +49,6 @@ class CS_GUI_EXPORT GuiArea {
   /// Returns the item at the given index.
   GuiItem* getItem(unsigned int index = 0);
 
-
   virtual void setSmooth(bool enable) = 0;
 
   /// Returns the item at the given coordinates.
