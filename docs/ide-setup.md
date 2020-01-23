@@ -305,27 +305,27 @@ We will discuss these files in the following.
       }
     },
     {
-      "label": "Run All Tests (Release)",
+      "label": "Run Tests (Release)",
       "type": "shell",
-      "command": "install/linux-release/bin/run_all_tests.sh",
+      "command": "install/linux-release/bin/run_tests.sh",
       "options": {
         "cwd": "${workspaceFolder}"
       },
       "problemMatcher": [],
       "windows": {
-        "command": ".\\install/windows-release/bin/run_all_tests.bat"
+        "command": ".\\install/windows-release/bin/run_tests.bat"
       }
     },
     {
-      "label": "Run All Tests (Debug)",
+      "label": "Run Tests (Debug)",
       "type": "shell",
-      "command": "install/linux-debug/bin/run_all_tests.sh",
+      "command": "install/linux-debug/bin/run_tests.sh",
       "options": {
         "cwd": "${workspaceFolder}"
       },
       "problemMatcher": [],
       "windows": {
-        "command": ".\\install/windows-debug/bin/run_all_tests.bat"
+        "command": ".\\install/windows-debug/bin/run_tests.bat"
       }
     }
   ]

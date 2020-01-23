@@ -34,17 +34,11 @@ void createDirectoryRecursively(
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::set<std::string> listFiles(std::string const& directory) {
-  boost::filesystem::path               dir(directory);
-  boost::filesystem::directory_iterator end_iter;
 
   std::set<std::string> result;
 
-  if (boost::filesystem::exists(dir) && boost::filesystem::is_directory(dir)) {
-    for (boost::filesystem::directory_iterator dir_iter(dir); dir_iter != end_iter; ++dir_iter) {
-      if (boost::filesystem::is_regular_file(dir_iter->status())) {
-        result.insert(boost::filesystem::path(*dir_iter).normalize().string());
-      }
-    }
+  for (auto& p : boost::filesystem::directory_iterator(directory)) {
+    result.insert(p.path().string());
   }
 
   return result;

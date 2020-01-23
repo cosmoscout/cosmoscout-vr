@@ -100,6 +100,10 @@ float CS_UTILS_EXPORT getCurrentFarClipDistance();
 
 void CS_UTILS_EXPORT enableGLDebug(bool onlyErrors = true);
 void CS_UTILS_EXPORT disableGLDebug();
+
+/// Executes a system command and returns the output.
+std::string exec(std::string const& cmd);
+
 } // namespace cs::utils
 
 #endif // CS_UTILS_UTILS_HPP

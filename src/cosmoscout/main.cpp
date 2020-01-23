@@ -42,9 +42,12 @@ int main(int argc, char** argv) {
   cs::utils::CommandLine args("Welcome to CosmoScout VR! Here are the available options:");
   args.addArgument({"-s", "--settings"}, &settingsFile,
       "JSON file containing settings (default: " + settingsFile + ")");
-  args.addArgument({"-t", "--run-tests"}, &runTests, "Runs all unit tests.");
   args.addArgument({"-h", "--help"}, &printHelp, "Print this help.");
   args.addArgument({"-v", "--vistahelp"}, &printVistaHelp, "Print help for vista options.");
+
+#ifndef DOCTEST_CONFIG_DISABLE
+  args.addArgument({"-t", "--run-tests"}, &runTests, "Runs all unit tests.");
+#endif
 
   // Then do the actual parsing.
   try {
@@ -52,6 +55,13 @@ int main(int argc, char** argv) {
   } catch (std::runtime_error const& e) {
     std::cout << e.what() << std::endl;
     return 1;
+  }
+
+  // Run all registered tests.
+  if (runTests) {
+    Application::testLoadAllPlugins();
+    doctest::Context context(argc, argv);
+    return context.run();
   }
 
   // When printHelp was set to true, we print a help message and exit.
@@ -64,13 +74,6 @@ int main(int argc, char** argv) {
   if (printVistaHelp) {
     VistaSystem::ArgHelpMsg(argv[0], &std::cout);
     return 0;
-  }
-
-  // Run all registered tests.
-  if (runTests) {
-    Application::testLoadAllPlugins();
-    doctest::Context context(argc, argv);
-    return context.run();
   }
 
   // read settings ---------------------------------------------------------------------------------
