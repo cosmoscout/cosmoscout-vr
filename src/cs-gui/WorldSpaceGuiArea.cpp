@@ -289,10 +289,8 @@ bool WorldSpaceGuiArea::Do() {
 
       glUniform2i(mShader->GetUniformLocation("texSize"), mWidth, mHeight);
 
-      auto [texBuffer, tex] = (*item)->getTexture();
       glActiveTexture(GL_TEXTURE0);
-      glBindTexture(GL_TEXTURE_BUFFER, tex);
-      glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA8, texBuffer);
+      glBindTexture(GL_TEXTURE_BUFFER, (*item)->getTexture());
       mShader->SetUniform(mShader->GetUniformLocation("texture"), 0);
 
       glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);

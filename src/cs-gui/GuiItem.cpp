@@ -49,7 +49,12 @@ GuiItem::GuiItem(std::string const& url, bool allowLocalFileAccess)
   mBufferData = static_cast<uint8_t*>(glMapBufferRange(GL_TEXTURE_BUFFER, 0, bufferSize, flags));
 
   glGenTextures(1, &mTexture);
+
+  glBindTexture(GL_TEXTURE_BUFFER, mTexture);
+  glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA8, mTextureBuffer);
+
   glBindBuffer(GL_TEXTURE_BUFFER, 0);
+  glBindTexture(GL_TEXTURE_BUFFER, 0);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -216,7 +221,11 @@ uint8_t* GuiItem::updateTexture(DrawEvent const& event) {
     glBufferStorage(GL_TEXTURE_BUFFER, bufferSize, nullptr, flags);
     mBufferData = static_cast<uint8_t*>(glMapBufferRange(GL_TEXTURE_BUFFER, 0, bufferSize, flags));
 
+    glBindTexture(GL_TEXTURE_BUFFER, mTexture);
+    glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA8, mTextureBuffer);
+
     glBindBuffer(GL_TEXTURE_BUFFER, 0);
+    glBindTexture(GL_TEXTURE_BUFFER, 0);
     mCefWidth  = event.mWidth;
     mCefHeight = event.mHeight;
   }
@@ -277,8 +286,8 @@ void GuiItem::updateSizes() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::pair<uint32_t, uint32_t> GuiItem::getTexture() const {
-  return {mTextureBuffer, mTexture};
+uint32_t GuiItem::getTexture() const {
+  return mTexture;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
