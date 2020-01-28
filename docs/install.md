@@ -46,7 +46,7 @@ All parameters given to `make_externals.bat` will be forwarded to CMake. For exa
 Now you can compile CosmoScout VR:
 
 ```shell
-./make.sh -G "Unix Makefiles"
+./make.sh -G "Unix Makefiles" -DCOSMOSCOUT_UNIT_TESTS=On
 ```
 
 This will configure and build CosmoScout VR in `cosmoscout-vr/build/linux-release` and will install it to `cosmoscout-vr/install/linux-release`.
@@ -55,13 +55,19 @@ Again, all parameters given to `make.sh` will be forwarded to CMake.
 The application can be executed with:
 
 ```shell
-cd install/linux-release/bin
-./start.sh
+./install/linux-release/bin/start.sh
 ```
 
 When started for the very first time, some example datasets will be downloaded from the internet.
 **This will take some time!**
 The progress of this operation is shown on the loading screen.
+
+Since you specified `-DCOSMOSCOUT_UNIT_TESTS=On` at build time, you can now execute the unit tests with (the _graphical tests_ require [Xvfb](https://en.wikipedia.org/wiki/Xvfb) and [imagemagick](https://imagemagick.org/index.php) to be installed on your system):
+
+```shell
+./install/linux-release/run_tests.sh
+./install/linux-release/run_graphical_tests.sh
+```
 
 :information_source: _**Tip:** If you wish, you can delete the directories `build` and `install` at any time in order to force a complete reconfiguration or re-installation._
 
@@ -92,6 +98,8 @@ Per default, CosmoScout VR and all dependencies are built in release mode.
 You can switch to debug mode by setting the environment variable `set COSMOSCOUT_DEBUG_BUILD=true` (or `$env:COSMOSCOUT_DEBUG_BUILD = 'true'` if you are using PowerShell) before executing the scripts below.
 This step only has to be done once.
 
+If you are using Visual Studio 2019, you have to replace `-G "Visual Studio 15 Win64"` with `-G "Visual Studio 16 2019" -A x64`.
+
 ```batch
 git submodule update --init
 make_externals.bat -G "Visual Studio 15 Win64"
@@ -106,7 +114,7 @@ On Linux, boost is usually found automatically by CMake, on Windows you have to 
 
 ```batch
 set BOOST_ROOT=C:\local\boost_1_69_0
-make.bat -G "Visual Studio 15 Win64"
+make.bat -G "Visual Studio 15 Win64" -DCOSMOSCOUT_UNIT_TESTS=On
 ```
 
 This will configure and build CosmoScout VR in `cosmoscout-vr\build\windows-release` and will install it to `cosmoscout-vr\install\windows-release`.
@@ -120,6 +128,12 @@ start.bat
 When started for the very first time, some example datasets will be downloaded from the internet.
 **This will take some time!**
 The progress of this operation is shown on the loading screen.
+
+Since you specified `-DCOSMOSCOUT_UNIT_TESTS=On` at build time, you can now execute the unit tests with:
+
+```batch
+install\linux-release\run_tests.bat
+```
 
 :information_source: _**Tip:** If you wish, you can delete the directories `build` and `install` at any time in order to force a complete reconfiguration or re-installation._
 
