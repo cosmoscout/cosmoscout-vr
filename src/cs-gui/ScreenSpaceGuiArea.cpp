@@ -65,7 +65,7 @@ vec4 getTexel(ivec2 p) {
 
 #ifdef LERP
 vec4 getPixel(vec2 position) {
-    vec2 absolutePosition = position * texSize;
+    vec2 absolutePosition = position * texSize - 0.5;
     ivec2 iPosition = ivec2(absolutePosition);
 
     vec4 tl = getTexel(iPosition);
