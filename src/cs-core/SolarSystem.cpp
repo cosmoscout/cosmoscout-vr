@@ -159,14 +159,17 @@ void SolarSystem::update() {
   }
 
   // update speed display
-  static auto sLastObserverPosition = mObserver.getAnchorPosition();
+  auto observerPosition = mObserver.getAnchorPosition();
+  auto now              = std::chrono::high_resolution_clock::now();
 
-  // pFrameTime is in milliseconds so we have to multiply by 1000.0
-  pCurrentObserverSpeed = 1000.0 *
-                          glm::length(sLastObserverPosition - mObserver.getAnchorPosition()) /
-                          mFrameTimings->pFrameTime.get();
+  auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(now - mLastTime).count();
 
-  sLastObserverPosition = mObserver.getAnchorPosition();
+  // duration is in nanoseconds so we have to multiply by 1.0e9
+  if (duration > 0) {
+    pCurrentObserverSpeed = 1.0e9 * glm::length(mLastPosition - observerPosition) / duration;
+    mLastPosition         = observerPosition;
+    mLastTime             = now;
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
