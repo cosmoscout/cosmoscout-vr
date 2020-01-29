@@ -37,7 +37,7 @@ std::set<std::string> listFiles(std::string const& directory, std::regex const r
   std::set<std::string> result;
 
   for (auto& p : boost::filesystem::directory_iterator(directory)) {
-    if(std::regex_match(p.path().string(), regex) && boost::filesystem::is_regular_file(p.path()))
+    if (std::regex_match(p.path().string(), regex) && boost::filesystem::is_regular_file(p.path()))
       result.insert(p.path().string());
   }
 
@@ -46,12 +46,11 @@ std::set<std::string> listFiles(std::string const& directory, std::regex const r
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::set<std::string> listDirs(std::string const& directory, std::regex const regex)
-{
+std::set<std::string> listDirs(std::string const& directory, std::regex const regex) {
   std::set<std::string> result;
 
   for (auto& p : boost::filesystem::directory_iterator(directory)) {
-    if(std::regex_match(p.path().string(), regex) && boost::filesystem::is_directory(p.path()))
+    if (std::regex_match(p.path().string(), regex) && boost::filesystem::is_directory(p.path()))
       result.insert(p.path().string());
   }
 
@@ -76,8 +75,7 @@ std::string loadToString(std::string const& file) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void writeStringToFile(std::string const& filePath, std::string const& content)
-{
+void writeStringToFile(std::string const& filePath, std::string const& content) {
   std::ofstream file(filePath, std::ofstream::out);
   file << content;
   file.close();

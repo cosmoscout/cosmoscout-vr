@@ -10,9 +10,9 @@
 #include "cs_utils_export.hpp"
 
 #include <boost/filesystem.hpp>
+#include <regex>
 #include <set>
 #include <string>
-#include <regex>
 
 /// Utility functions for all sorts of stuff.
 namespace cs::utils::filesystem {
@@ -24,10 +24,12 @@ CS_UTILS_EXPORT void createDirectoryRecursively(boost::filesystem::path const& p
                                            boost::filesystem::perms::others_read);
 
 /// Lists all files in the given directory.
-CS_UTILS_EXPORT std::set<std::string> listFiles(std::string const& directory, std::regex const regex = std::regex(".*") );
+CS_UTILS_EXPORT std::set<std::string> listFiles(
+    std::string const& directory, std::regex const regex = std::regex(".*"));
 
 /// Lists all subdirectories in the given directory. (Not recursive)
-CS_UTILS_EXPORT std::set<std::string> listDirs(std::string const& directory, std::regex const regex = std::regex(".*") );
+CS_UTILS_EXPORT std::set<std::string> listDirs(
+    std::string const& directory, std::regex const regex = std::regex(".*"));
 
 /// Returns the contents of the file as a string. Any occurrences of \r\n will be replaced by \n.
 CS_UTILS_EXPORT std::string loadToString(std::string const& file);
