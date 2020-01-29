@@ -157,6 +157,19 @@ void SolarSystem::update() {
   for (auto const& object : mAnchors) {
     object->update(simulationTime, mObserver);
   }
+
+  // update speed display
+  auto observerPosition = mObserver.getAnchorPosition();
+  auto now              = std::chrono::high_resolution_clock::now();
+
+  auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(now - mLastTime).count();
+
+  // duration is in nanoseconds so we have to multiply by 1.0e9
+  if (duration > 0) {
+    pCurrentObserverSpeed = 1.0e9 * glm::length(mLastPosition - observerPosition) / duration;
+    mLastPosition         = observerPosition;
+    mLastTime             = now;
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -277,13 +290,6 @@ void SolarSystem::updateSceneScale() {
                                                 mSettings->mSceneScale.mMinFarClip, interpolate));
     }
   }
-
-  // update speed display
-  static auto sLastObserverPosition = mObserver.getAnchorPosition();
-
-  pCurrentObserverSpeed = glm::length(sLastObserverPosition - mObserver.getAnchorPosition()) /
-                          mFrameTimings->pFrameTime.get();
-  sLastObserverPosition = mObserver.getAnchorPosition();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

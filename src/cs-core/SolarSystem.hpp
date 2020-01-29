@@ -13,6 +13,7 @@
 #include "../cs-scene/CelestialBody.hpp"
 #include "../cs-scene/CelestialObserver.hpp"
 
+#include <chrono>
 #include <set>
 #include <unordered_set>
 #include <vector>
@@ -206,6 +207,10 @@ class CS_CORE_EXPORT SolarSystem {
       mAddBodyListeners;
   std::unordered_map<uint64_t, std::function<void(std::shared_ptr<scene::CelestialBody>)>>
       mRemoveBodyListeners;
+
+  // These are used for measuring the observer speed.
+  glm::dvec3                                     mLastPosition = glm::dvec3(0.0);
+  std::chrono::high_resolution_clock::time_point mLastTime;
 };
 
 } // namespace cs::core
