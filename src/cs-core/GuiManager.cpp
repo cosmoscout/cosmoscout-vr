@@ -157,14 +157,6 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
     addEventToTimenavigationBar(mEvent.mStart, mEvent.mEnd, mEvent.mId, mEvent.mContent,
         mEvent.mStyle, mEvent.mDescription, planet, place);
   }
-
-  pSmoothScreenSpaceGui.onChange().connect([this](bool enable) {
-    if (mLocalGuiArea) {
-      mLocalGuiArea->setSmooth(enable);
-    } else {
-      mGlobalGuiArea->setSmooth(enable);
-    }
-  });
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -179,8 +171,6 @@ GuiManager::~GuiManager() {
   if (mGlobalGuiOpenGLnode) {
     mInputManager->unregisterSelectable(mGlobalGuiOpenGLnode);
   }
-
-  pSmoothScreenSpaceGui.disconnect();
 
   // Free resources acquired by the Chromium Embedded Framework.
   gui::cleanUp();

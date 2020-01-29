@@ -79,29 +79,24 @@ vec4 getTexel(ivec2 p) {
 }
 
 vec4 getPixel(vec2 position) {
-    vec2 absolutePosition = position * texSize - 0.5;
-    ivec2 iPosition = ivec2(absolutePosition);
+  vec2 absolutePosition = position * texSize - 0.5;
+  ivec2 iPosition = ivec2(absolutePosition);
 
-    vec4 tl = getTexel(iPosition);
-    vec4 tr = getTexel(iPosition + ivec2(1, 0));
-    vec4 bl = getTexel(iPosition + ivec2(0, 1));
-    vec4 br = getTexel(iPosition + ivec2(1, 1));
+  vec4 tl = getTexel(iPosition);
+  vec4 tr = getTexel(iPosition + ivec2(1, 0));
+  vec4 bl = getTexel(iPosition + ivec2(0, 1));
+  vec4 br = getTexel(iPosition + ivec2(1, 1));
 
-    vec2 d = fract(absolutePosition);
+  vec2 d = fract(absolutePosition);
 
-    vec4 top = mix(tl, tr, d.x);
-    vec4 bot = mix(bl, br, d.x);
+  vec4 top = mix(tl, tr, d.x);
+  vec4 bot = mix(bl, br, d.x);
 
-    return mix(top, bot, d.y);
+  return mix(top, bot, d.y);
 }
 
 void main() {
-  #ifdef LERP
-    vOutColor = getPixel(vTexCoords);
-  #else
-    vOutColor = getTexel(ivec2(vec2(texSize) * vTexCoords));
-  #endif
-
+  vOutColor = getPixel(vTexCoords);
   if (vOutColor.a == 0.0) discard;
 
   vOutColor.rgb /= vOutColor.a;
@@ -186,13 +181,6 @@ void WorldSpaceGuiArea::setUseLinearDepthBuffer(bool bEnable) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void WorldSpaceGuiArea::setSmooth(bool enable) {
-  mSmooth      = enable;
-  mShaderDirty = true;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 bool WorldSpaceGuiArea::calculateMousePosition(
     VistaVector3D const& vRayOrigin, VistaVector3D const& vRayEnd, int& x, int& y) {
 
@@ -229,9 +217,6 @@ bool WorldSpaceGuiArea::Do() {
     if (mUseLinearDepthBuffer) {
       defines += "#define USE_LINEARDEPTHBUFFER\n";
     }
-
-    if (mSmooth)
-      defines += "#define LERP\n";
 
     mShader->InitVertexShaderFromString(defines + QUAD_VERT);
     mShader->InitFragmentShaderFromString(defines + QUAD_FRAG);

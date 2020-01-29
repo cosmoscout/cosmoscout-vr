@@ -63,34 +63,9 @@ vec4 getTexel(ivec2 p) {
   return texelFetch(texture, p.y * texSize.x + p.x).bgra;
 }
 
-#ifdef LERP
-vec4 getPixel(vec2 position) {
-    vec2 absolutePosition = position * texSize - 0.5;
-    ivec2 iPosition = ivec2(absolutePosition);
-
-    vec4 tl = getTexel(iPosition);
-    vec4 tr = getTexel(iPosition + ivec2(1, 0));
-    vec4 bl = getTexel(iPosition + ivec2(0, 1));
-    vec4 br = getTexel(iPosition + ivec2(1, 1));
-
-    vec2 d = fract(absolutePosition);
-
-    vec4 top = mix(tl, tr, d.x);
-    vec4 bot = mix(bl, br, d.x);
-
-    return mix(top, bot, d.y);
-}
-#endif // LERP
-
 void main() {
-    #ifdef LERP
-      vOutColor = getPixel(vTexCoords);
-    #else
-      vOutColor = getTexel(ivec2(vec2(texSize) * vTexCoords));
-    #endif
-
+    vOutColor = getTexel(ivec2(vec2(texSize) * vTexCoords));
     if (vOutColor.a == 0.0) discard;
-
     vOutColor.rgb /= vOutColor.a;
 }  
 )";
@@ -130,13 +105,6 @@ int ScreenSpaceGuiArea::getHeight() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void ScreenSpaceGuiArea::setSmooth(bool enable) {
-  mSmooth      = enable;
-  mShaderDirty = true;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 bool ScreenSpaceGuiArea::Do() {
   utils::FrameTimings::ScopedTimer timer("User Interface");
   if (mShaderDirty) {
@@ -144,9 +112,6 @@ bool ScreenSpaceGuiArea::Do() {
     mShader = new VistaGLSLShader();
 
     std::string defines = "#version 330\n";
-
-    if (mSmooth)
-      defines += "#define LERP\n";
 
     mShader->InitVertexShaderFromString(defines + QUAD_VERT);
     mShader->InitFragmentShaderFromString(defines + QUAD_FRAG);

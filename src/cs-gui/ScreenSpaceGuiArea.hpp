@@ -38,8 +38,6 @@ class CS_GUI_EXPORT ScreenSpaceGuiArea : public GuiArea,
   int getWidth() const override;
   int getHeight() const override;
 
-  void setSmooth(bool enable) override;
-
   /// Draws the UI to screen.
   bool Do() override;
   bool GetBoundingBox(VistaBoundingBox& bb) override;
@@ -58,7 +56,6 @@ class CS_GUI_EXPORT ScreenSpaceGuiArea : public GuiArea,
   int              mOldWidth              = 0;
   int              mOldHeight             = 0;
   int              mDelayedViewportUpdate = 0;
-  bool             mSmooth                = false;
 };
 
 } // namespace cs::gui

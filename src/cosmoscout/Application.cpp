@@ -739,11 +739,6 @@ void Application::connectSlots() {
 
 void Application::registerGuiCallbacks() {
 
-  // Global callbacks -----------------------------------------------------------------------------
-
-  mGuiManager->getGui()->registerCallback<bool>("set_lerp_screenspace_gui",
-      [this](bool enable) { mGuiManager->pSmoothScreenSpaceGui = enable; });
-
   // Shows a notification in the top right corner. See GuiManager::showNotification() for details.
   mGuiManager->getGui()->registerCallback<std::string, std::string, std::string>(
       "print_notification",
@@ -1022,7 +1017,6 @@ void Application::registerGuiCallbacks() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Application::unregisterGuiCallbacks() {
-  mGuiManager->getGui()->unregisterCallback("set_lerp_screenspace_gui");
   mGuiManager->getGui()->unregisterCallback("set_lighting_quality");
   mGuiManager->getGui()->unregisterCallback("set_celestial_body");
   mGuiManager->getGui()->unregisterCallback("set_enable_shadows");

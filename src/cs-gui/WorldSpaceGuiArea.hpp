@@ -34,8 +34,6 @@ class CS_GUI_EXPORT WorldSpaceGuiArea : public GuiArea, public IVistaOpenGLDraw 
   int getWidth() const override;
   int getHeight() const override;
 
-  void setSmooth(bool enable) override;
-
   /// If true, the elements won't be occluded by world objects.
   void setIgnoreDepth(bool ignore);
   bool getIgnoreDepth() const;
@@ -62,7 +60,6 @@ class CS_GUI_EXPORT WorldSpaceGuiArea : public GuiArea, public IVistaOpenGLDraw 
   bool             mUseLinearDepthBuffer = false;
   int              mWidth                = 0;
   int              mHeight               = 0;
-  bool             mSmooth               = true;
 };
 
 } // namespace cs::gui

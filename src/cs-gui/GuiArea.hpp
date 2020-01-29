@@ -49,10 +49,6 @@ class CS_GUI_EXPORT GuiArea {
   /// Returns the item at the given index.
   GuiItem* getItem(unsigned int index = 0);
 
-  /// If true the content will be rendered using linear interpolation between pixels, which creates
-  /// smoother edges. This may make small text more blurred readable.
-  virtual void setSmooth(bool enable) = 0;
-
   /// Returns the item at the given coordinates.
   ///
   /// @param checkAlpha            If true an item is only returned if it has an alpha value greater
