@@ -29,7 +29,7 @@ int main(int argc, char** argv) {
   // setup loggers ---------------------------------------------------------------------------------
 
   // Create default loggers.
-  cs::utils::logger::init("cosmoscout-vr");
+  spdlog::set_default_logger(cs::utils::logger::createLogger("cosmoscout-vr"));
   spdlog::info("Welcome to CosmoScout VR v" + CS_PROJECT_VERSION + "!");
 
   cs::core::logger::init();

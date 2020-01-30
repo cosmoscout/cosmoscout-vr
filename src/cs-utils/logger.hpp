@@ -13,14 +13,6 @@
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/spdlog.h>
 
-#if defined(__clang__) || defined(__GNUC__) || defined(__GNUG__)
-#define CS_ALWAYS_INLINE inline __attribute__((__always_inline__))
-#elif defined(_MSC_VER)
-#define CS_ALWAYS_INLINE __forceinline
-#else
-#define CS_ALWAYS_INLINE inline
-#endif
-
 /// CosmoScout VR uses spdlog for logging. You can print messages simply with code like this:
 /// spdlog::info("The awnser is {}!", 42);
 /// spdlog uses the fmt library for formatting. You can have a look at their READMEs for examples:
@@ -68,28 +60,11 @@ namespace cs::utils::logger {
 /// This creates the default logger for "cs-utils" and is called at startup by the main() method.
 CS_UTILS_EXPORT void init();
 
-CS_UTILS_EXPORT spdlog::sink_ptr getCoutSink();
-CS_UTILS_EXPORT spdlog::sink_ptr getFileSink();
-
-/// Call this method once from your plugin in order to setup the default logger. The given name will
-/// be shown together with the log level in each message.
-CS_ALWAYS_INLINE void init(std::string const& name) {
-
-  // We create a colored console logger which can be used from multiple threads. We may consider
-  // logging to files in the future.
-  std::vector<spdlog::sink_ptr> sinks = {getCoutSink(), getFileSink()};
-  auto logger = std::make_shared<spdlog::logger>(name, sinks.begin(), sinks.end());
-
-  // TODO: Make log level configurable.
-  logger->set_level(spdlog::level::trace);
-
-  // See https://github.com/gabime/spdlog/wiki/3.-Custom-formatting for formatting options.
-  logger->set_pattern("%^[%L] %-17!n:%$ %v");
-
-  // Since spdlog has a default logger for each shared library, this method is marked "inline". This
-  // way it will setup the logger for your plugin when it's called from your code.
-  spdlog::set_default_logger(logger);
-}
+/// Call this method once from your plugin in order to create a new logger. The given name will
+/// be shown together with the log level in each message. You need to call
+/// spdlog::set_default_logger(logger); in order to be able to use the global spdlog::info() etc.
+/// methods.
+CS_UTILS_EXPORT std::shared_ptr<spdlog::logger> createLogger(std::string const& name);
 
 } // namespace cs::utils::logger
 
