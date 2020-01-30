@@ -78,7 +78,6 @@ std::string loadToString(std::string const& file) {
 void writeStringToFile(std::string const& filePath, std::string const& content) {
   std::ofstream file(filePath, std::ofstream::out);
   file << content;
-  file.close();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

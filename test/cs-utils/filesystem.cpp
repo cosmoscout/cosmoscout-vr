@@ -15,49 +15,30 @@ TEST_CASE("cs::utils::filesystem::create_and_list_dir") {
   cs::utils::filesystem::createDirectoryRecursively("./testDir/testDir");
   std::set<std::string> result = cs::utils::filesystem::listDirs("./testDir");
 
-  CHECK(1 == result.size());
-
-  std::set<std::string>::iterator it = result.begin();
-  std::advance(it, 0);
-  std::string entry = *it;
-
-  CHECK_EQ("./testDir/testDir", entry);
+  CHECK_EQ(result.size(), 1);
+  CHECK_EQ(*result.begin(), "./testDir/testDir");
 };
 
 TEST_CASE("cs::utils::filesystem::write_and_read") {
   cs::utils::filesystem::writeStringToFile("./testDir/testfile.txt","test");
   std::string result = cs::utils::filesystem::loadToString("./testDir/testfile.txt");
-  CHECK_EQ("test", result);
+  CHECK_EQ(result, "test");
 };
 
 TEST_CASE("cs::utils::filesystem::create_and_list_files_with_regex") {
   cs::utils::filesystem::writeStringToFile("./testDir/testfile.tmp","test");
   std::set<std::string> result = cs::utils::filesystem::listFiles("./testDir",std::regex(".+\\.tmp"));
  
-  CHECK(1 == result.size());
-
-  std::set<std::string>::iterator it = result.begin();
-  std::advance(it, 0);
-  std::string entry = *it;
-
-  CHECK_EQ("./testDir/testfile.tmp", entry);
+  CHECK_EQ(result.size(), 1);
+  CHECK_EQ(*result.begin(), "./testDir/testfile.tmp");
 };
 
 TEST_CASE("cs::utils::filesystem::create_and_list_files") {
   std::set<std::string> result = cs::utils::filesystem::listFiles("./testDir");
  
   CHECK(result.size() == 2);
-
-  std::set<std::string>::iterator it = result.begin();
-  std::advance(it, 0);
-  std::string entry = *it;
-
-  CHECK_EQ("./testDir/testfile.tmp", entry);
-
-  std::advance(it, 1);
-  entry = *it;
-
-  CHECK_EQ("./testDir/testfile.txt", entry);
+  CHECK_EQ(*result.begin(), "./testDir/testfile.tmp");
+  CHECK_EQ(*(++result.begin()), "./testDir/testfile.txt");
 };
 
 
