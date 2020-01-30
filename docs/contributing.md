@@ -19,7 +19,7 @@ Before we can accept your merge request, you have to print, sign, scan and send 
 
 ## Branching Guidelines
 
-The development of CosmoScout VR follows a simplifitadaed version of **git-flow**: The `master` branch always contains stable code.
+The development of CosmoScout VR follows a simplified version of **git-flow**: The `master` branch always contains stable code.
 New features and bug fixes are implemented in `feature/*` branches and are merged to `develop` once they are finished.
 When a new milestone is reached, the content of `develop` will be merged to `master` and a tag is created.
 
