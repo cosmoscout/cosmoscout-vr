@@ -33,12 +33,25 @@ void createDirectoryRecursively(
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::set<std::string> listFiles(std::string const& directory) {
-
+std::set<std::string> listFiles(std::string const& directory, std::regex const regex) {
   std::set<std::string> result;
 
   for (auto& p : boost::filesystem::directory_iterator(directory)) {
-    result.insert(p.path().string());
+    if (std::regex_match(p.path().string(), regex) && boost::filesystem::is_regular_file(p.path()))
+      result.insert(p.path().string());
+  }
+
+  return result;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::set<std::string> listDirs(std::string const& directory, std::regex const regex) {
+  std::set<std::string> result;
+
+  for (auto& p : boost::filesystem::directory_iterator(directory)) {
+    if (std::regex_match(p.path().string(), regex) && boost::filesystem::is_directory(p.path()))
+      result.insert(p.path().string());
   }
 
   return result;
@@ -58,6 +71,13 @@ std::string loadToString(std::string const& file) {
   replaceString(content, "\r\n", "\n");
 
   return content;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void writeStringToFile(std::string const& filePath, std::string const& content) {
+  std::ofstream file(filePath, std::ofstream::out);
+  file << content;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
