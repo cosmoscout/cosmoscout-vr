@@ -37,8 +37,8 @@ class CS_UTILS_EXPORT FrameTimings {
   /// To enable or disable time measuring globally.
   Property<bool> pEnableMeasurements = false;
 
-  /// Get the last frame time in seconds. This is the maximum of CPU and GPU time, excluding any
-  /// waiting for vertical synchronization.
+  /// Get the last frame time in milliseconds. This is the maximum of CPU and GPU time, excluding
+  /// any waiting for vertical synchronization.
   Property<double> pFrameTime = 0.0;
 
   /// A ScopedTimer is responsible for measuring time for its entire existence. The timer will

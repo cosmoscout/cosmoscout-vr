@@ -19,6 +19,7 @@ add_library(cs-utils SHARED
 target_link_libraries(cs-utils
   PUBLIC
     glm::glm
+    doctest::doctest
     tinygltf::tinygltf
     Boost::filesystem
     Boost::chrono
@@ -43,7 +44,7 @@ target_include_directories(cs-utils
 )
 
 # Make directory structure available in your IDE.
-source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" PREFIX "src" FILES 
+source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" PREFIX "src" FILES
   ${SOURCE_FILES} ${HEADER_FILES}
 )
 

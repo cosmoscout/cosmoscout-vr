@@ -19,10 +19,9 @@ All of them use some utility functionality from [`cs-utils`](../src/cs-utils).
 CosmoScout VR uses [several third-party libraries](dependencies.md) as a basis.
 The most important ones are [ViSTA](https://github.com/cosmoscout/vista) (which itself requires [OpenSG 1.8](https://github.com/cosmoscout/opensg-1.8)) and [SPICE](https://naif.jpl.nasa.gov/naif/toolkit.html).
 
+<p align="center"><img src ="img/hr.svg"/></p>
 <p align="center">
   <a href="README.md">&#8962; Help Index</a>
   <img src ="img/nav-vspace.svg"/>
   <a href="dependencies.md">Dependencies &rsaquo;</a>
 </p>
-
-<p align="center"><img src ="img/hr.svg"/></p>

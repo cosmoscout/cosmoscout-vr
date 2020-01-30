@@ -85,8 +85,13 @@ class Application : public VistaFrameLoop {
   /// Initializes the Application. Should only be called by ViSTA.
   bool Init(VistaSystem* pVistaSystem) override;
 
+  /// De-Initializes the Application. Should only be called by ViSTA.
+  void Quit() override;
+
   /// Called every frame by ViSTA. The whole application logic is executed here.
   void FrameUpdate() override;
+
+  static void testLoadAllPlugins();
 
  private:
   struct Plugin {
@@ -143,7 +148,7 @@ class Application : public VistaFrameLoop {
   std::shared_ptr<cs::core::GuiManager>     mGuiManager;
   std::shared_ptr<cs::core::TimeControl>    mTimeControl;
   std::shared_ptr<cs::core::SolarSystem>    mSolarSystem;
-  std::shared_ptr<cs::core::DragNavigation> mDragNavigation;
+  std::unique_ptr<cs::core::DragNavigation> mDragNavigation;
   std::shared_ptr<cs::utils::FrameTimings>  mFrameTimings;
   std::map<std::string, Plugin>             mPlugins;
   std::unique_ptr<cs::utils::Downloader>    mDownloader;

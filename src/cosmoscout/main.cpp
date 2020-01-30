@@ -7,6 +7,7 @@
 #include "../cs-core/Settings.hpp"
 #include "../cs-gui/gui.hpp"
 #include "../cs-utils/CommandLine.hpp"
+#include "../cs-utils/doctest.hpp"
 #include "Application.hpp"
 
 #include <VistaKernel/VistaSystem.h>
@@ -23,6 +24,7 @@ int main(int argc, char** argv) {
 
   // These are the default values for the options.
   std::string settingsFile   = "../share/config/simple_desktop.json";
+  bool        runTests       = false;
   bool        printHelp      = false;
   bool        printVistaHelp = false;
 
@@ -33,12 +35,23 @@ int main(int argc, char** argv) {
   args.addArgument({"-h", "--help"}, &printHelp, "Print this help.");
   args.addArgument({"-v", "--vistahelp"}, &printVistaHelp, "Print help for vista options.");
 
+#ifndef DOCTEST_CONFIG_DISABLE
+  args.addArgument({"-t", "--run-tests"}, &runTests, "Runs all unit tests.");
+#endif
+
   // Then do the actual parsing.
   try {
     args.parse(argc, argv);
   } catch (std::runtime_error const& e) {
     std::cout << e.what() << std::endl;
     return 1;
+  }
+
+  // Run all registered tests.
+  if (runTests) {
+    Application::testLoadAllPlugins();
+    doctest::Context context(argc, argv);
+    return context.run();
   }
 
   // When printHelp was set to true, we print a help message and exit.

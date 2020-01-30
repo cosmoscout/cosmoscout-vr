@@ -75,13 +75,11 @@ void main()
 Mark::Mark(std::shared_ptr<InputManager> const& pInputManager,
     std::shared_ptr<SolarSystem> const&         pSolarSystem,
     std::shared_ptr<GraphicsEngine> const&      graphicsEngine,
-    std::shared_ptr<GuiManager> const&          pGuiManager,
     std::shared_ptr<TimeControl> const& pTimeControl, std::string const& sCenter,
     std::string const& sFrame)
     : mInputManager(pInputManager)
     , mSolarSystem(pSolarSystem)
     , mGraphicsEngine(graphicsEngine)
-    , mGuiManager(pGuiManager)
     , mTimeControl(pTimeControl)
     , mVAO(new VistaVertexArrayObject())
     , mVBO(new VistaBufferObject())
@@ -101,7 +99,6 @@ Mark::Mark(Mark const& other)
     , mInputManager(other.mInputManager)
     , mSolarSystem(other.mSolarSystem)
     , mGraphicsEngine(other.mGraphicsEngine)
-    , mGuiManager(other.mGuiManager)
     , mTimeControl(other.mTimeControl)
     , mVAO(new VistaVertexArrayObject())
     , mVBO(new VistaBufferObject())
@@ -276,10 +273,10 @@ void Mark::initData(std::string const& sCenter, std::string const& sFrame) {
   mHoveredNodeConnection = mInputManager->pHoveredNode.onChange().connect([this](IVistaNode* node) {
     if (node == mParent && !pHovered.get()) {
       pHovered = true;
-      mGuiManager->setCursor(cs::gui::Cursor::eHand);
+      cs::core::GuiManager::setCursor(cs::gui::Cursor::eHand);
     } else if (node != mParent && pHovered.get()) {
       pHovered = false;
-      mGuiManager->setCursor(cs::gui::Cursor::ePointer);
+      cs::core::GuiManager::setCursor(cs::gui::Cursor::ePointer);
     }
   });
 
