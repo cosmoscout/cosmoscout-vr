@@ -127,10 +127,10 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
   mCosmoScoutGui->setCursorChangeCallback([this](gui::Cursor c) { setCursor(c); });
 
   // Configure the positioning and attributes of the statistics.
-  mStatistics->setSizeX(1200);
-  mStatistics->setSizeY(300);
-  mStatistics->setOffsetX(-600);
-  mStatistics->setOffsetY(300);
+  mStatistics->setSizeX(600);
+  mStatistics->setSizeY(320);
+  mStatistics->setOffsetX(-300);
+  mStatistics->setOffsetY(500);
   mStatistics->setRelPositionY(0.f);
   mStatistics->setRelPositionX(1.f);
   mStatistics->setIsInteractive(false);
@@ -296,6 +296,7 @@ void GuiManager::toggleGui() {
 void GuiManager::update() {
 
   // If frame timings are enabled, collect the data and send it to the statistics GuiItem.
+  mStatistics->setIsEnabled(mFrameTimings->pEnableMeasurements.get());
   if (mFrameTimings->pEnableMeasurements.get()) {
     std::string json("{");
     for (auto const& timings : mFrameTimings->getCalculatedQueryResults()) {
