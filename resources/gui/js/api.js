@@ -492,15 +492,15 @@ class CosmoScout {
    * @param id {string} DropDown ID
    * @param value {string|number} Option value
    * @param text {string} Option text
-   * @param selected {boolean} Selected flag
+   * @param selected {boolean|string} Selected flag
    */
   static addDropdownValue(id, value, text, selected = false) {
     const dropdown = document.getElementById(id);
     const option = document.createElement('option');
 
     option.value = value;
-    option.selected = selected === true;
-    option.text = text;
+    option.selected = Boolean(Number(selected)) === true;
+    option.textContent = text;
 
     if (dropdown !== null) {
       dropdown.appendChild(option);
