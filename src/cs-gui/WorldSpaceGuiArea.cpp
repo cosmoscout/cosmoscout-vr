@@ -262,20 +262,26 @@ bool WorldSpaceGuiArea::Do() {
   // draw back-to-front
   auto const& items = getItems();
   for (auto item = items.rbegin(); item != items.rend(); ++item) {
-    if ((*item)->getIsEnabled()) {
+    auto guiItem = *item;
+
+    bool textureRightSize = guiItem->getWidth() == guiItem->getTextureSizeX() &&
+                            guiItem->getHeight() == guiItem->getTextureSizeY();
+
+    if (guiItem->getIsEnabled() && textureRightSize) {
       auto localMat = glm::translate(
-          modelViewMat, glm::vec3((*item)->getRelPositionX() + (*item)->getRelOffsetX() - 0.5,
-                            -(*item)->getRelPositionY() - (*item)->getRelOffsetY() + 0.5, 0.0));
+          modelViewMat, glm::vec3(guiItem->getRelPositionX() + guiItem->getRelOffsetX() - 0.5,
+                            -guiItem->getRelPositionY() - guiItem->getRelOffsetY() + 0.5, 0.0));
       localMat =
-          glm::scale(localMat, glm::vec3((*item)->getRelSizeX(), (*item)->getRelSizeY(), 1.f));
+          glm::scale(localMat, glm::vec3(guiItem->getRelSizeX(), guiItem->getRelSizeY(), 1.f));
 
       glUniformMatrix4fv(
           mShader->GetUniformLocation("uMatModelView"), 1, GL_FALSE, glm::value_ptr(localMat));
 
-      glUniform2i(mShader->GetUniformLocation("texSize"), mWidth, mHeight);
+      glUniform2i(mShader->GetUniformLocation("texSize"), guiItem->getTextureSizeX(),
+          guiItem->getTextureSizeY());
 
       glActiveTexture(GL_TEXTURE0);
-      glBindTexture(GL_TEXTURE_BUFFER, (*item)->getTexture());
+      glBindTexture(GL_TEXTURE_BUFFER, guiItem->getTexture());
       mShader->SetUniform(mShader->GetUniformLocation("texture"), 0);
 
       glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);

@@ -133,9 +133,10 @@ bool ScreenSpaceGuiArea::Do() {
   for (auto item = items.rbegin(); item != items.rend(); ++item) {
     auto guiItem = *item;
 
-    bool cefRightSize = mWidth == guiItem->getCefWidth() && mHeight == guiItem->getCefHeight();
+    bool textureRightSize = guiItem->getWidth() == guiItem->getTextureSizeX() &&
+                            guiItem->getHeight() == guiItem->getTextureSizeY();
 
-    if (guiItem->getIsEnabled() && cefRightSize) {
+    if (guiItem->getIsEnabled() && textureRightSize) {
       float posX = guiItem->getRelPositionX() + guiItem->getRelOffsetX();
       float posY = 1 - guiItem->getRelPositionY() - guiItem->getRelOffsetY();
       mShader->SetUniform(mShader->GetUniformLocation("iPosition"), posX, posY);
@@ -144,8 +145,8 @@ bool ScreenSpaceGuiArea::Do() {
       float scaleY = guiItem->getRelSizeY();
       mShader->SetUniform(mShader->GetUniformLocation("iScale"), scaleX, scaleY);
 
-      glUniform2i(
-          mShader->GetUniformLocation("texSize"), guiItem->getCefWidth(), guiItem->getCefHeight());
+      glUniform2i(mShader->GetUniformLocation("texSize"), guiItem->getTextureSizeX(),
+          guiItem->getTextureSizeY());
 
       glActiveTexture(GL_TEXTURE0);
       glBindTexture(GL_TEXTURE_BUFFER, guiItem->getTexture());
