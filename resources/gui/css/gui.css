@@ -451,7 +451,7 @@ label.radiolabel:active {
     top: 1px;
 }
 
-input[type=checkbox]:checked + div.btn {
+input[type=checkbox]:checked + span.btn {
     background-color: rgba(230, 230, 255, 0.5);
     text-shadow: 0 0 5px rgba(255, 255, 255, 0.4), 0 0 10px #aaf;
     border-top: 1px dashed rgba(230, 230, 255, 0.5);
