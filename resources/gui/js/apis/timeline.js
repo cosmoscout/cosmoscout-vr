@@ -526,14 +526,16 @@ class TimelineApi extends IApi {
    * @private
    */
   _initCalendar() {
-    $('#calendar').datepicker({
-      weekStart: 1,
-      todayHighlight: true,
-      maxViewMode: 3,
-      format: 'yyyy-mm-dd',
-      startDate: '1950-01-02',
-      endDate: '2049-12-31',
-    }).on('changeDate', this._changeDateCallback.bind(this));
+    $('#calendar')
+      .datepicker({
+        weekStart: 1,
+        todayHighlight: true,
+        maxViewMode: 3,
+        format: 'yyyy-mm-dd',
+        startDate: '1950-01-02',
+        endDate: '2049-12-31',
+      })
+      .on('changeDate', this._changeDateCallback.bind(this));
   }
 
   /**
@@ -629,16 +631,58 @@ class TimelineApi extends IApi {
    * @private
    */
   _changeTime(event) {
-    if (typeof event.target.dataset.diff === 'undefined') {
+    const { type, direction } = event.target.dataset;
+
+    if (typeof type === 'undefined' || typeof direction === 'undefined') {
+      console.error('changeTime event bound to element without "data-type" and "data-direction" attributes.');
       return;
     }
 
-    const diff = parseInt(event.target.dataset.diff, 10);
+    let times = 1;
+    if (typeof event.deltaY !== 'undefined') {
+      times = -Math.sign(event.deltaY);
+    } else if (direction === 'decrease') {
+      times = -times;
+    }
 
-    const date = new Date(this._centerTime.getTime());
+    const oldDate = new Date(this._centerTime.getTime());
+    const newDate = new Date(this._centerTime.getTime());
+
+    switch (type) {
+      case 'year':
+        newDate.setFullYear(newDate.getFullYear() + times);
+        break;
+
+      case 'month':
+        newDate.setMonth(newDate.getMonth() + times);
+        break;
+
+      case 'day':
+        newDate.setDate(newDate.getDate() + times);
+        break;
+
+      case 'hour':
+        newDate.setHours(newDate.getHours() + times);
+        break;
+
+      case 'minute':
+        newDate.setMinutes(newDate.getMinutes() + times);
+        break;
+
+      case 'second':
+        newDate.setSeconds(newDate.getSeconds() + times);
+        break;
+
+      default:
+        console.error('[data-type] not in [year, month, day, hour, second]');
+        break;
+    }
+
+    const diff = newDate.getTime() - oldDate.getTime();
+
     this._centerTime.setSeconds(diff);
-    const dif = this._centerTime.getTime() - date.getTime();
-    const hoursDiff = dif / 1000 / 60 / 60;
+
+    const hoursDiff = diff / 1000 / 60 / 60;
     CosmoScout.callNative('add_hours_without_animation', hoursDiff);
   }
 
@@ -666,74 +710,83 @@ class TimelineApi extends IApi {
   _initEventListener() {
     this._timelineContainer.addEventListener('wheel', this._manualZoomTimeline.bind(this), true);
 
-    const buttons = [
-      'decrease-year-button',
-      'decrease-month-button',
-      'decrease-day-button',
-      'decrease-hour-button',
-      'decrease-minute-button',
-      'decrease-second-button',
+    document.querySelectorAll('[data-change="time"]')
+      .forEach((element) => {
+        if (element instanceof HTMLElement) {
+          element.addEventListener('click', this._changeTime.bind(this));
+          element.addEventListener('wheel', this._changeTime.bind(this));
+        }
+      });
 
-      'increase-year-button',
-      'increase-month-button',
-      'increase-day-button',
-      'increase-hour-button',
-      'increase-minute-button',
-      'increase-second-button',
-    ];
+    document.getElementById('pause-button')
+      .addEventListener('click', this._togglePause.bind(this));
+    document.getElementById('speed-decrease-button')
+      .addEventListener('click', this._decreaseSpeed.bind(this));
+    document.getElementById('speed-increase-button')
+      .addEventListener('click', this._increaseSpeed.bind(this));
 
-    buttons.forEach((button) => {
-      const ele = document.getElementById(button);
+    document.getElementById('event-tooltip-location')
+      .addEventListener('click', this._travelToItemLocation.bind(this));
 
-      if (ele instanceof HTMLElement) {
-        ele.addEventListener('click', this._changeTime.bind(this));
-        ele.addEventListener('wheel', this._changeTimeScroll.bind(this));
-      }
-    });
-
-
-    document.getElementById('pause-button').addEventListener('click', this._togglePause.bind(this));
-    document.getElementById('speed-decrease-button').addEventListener('click', this._decreaseSpeed.bind(this));
-    document.getElementById('speed-increase-button').addEventListener('click', this._increaseSpeed.bind(this));
-
-    document.getElementById('event-tooltip-location').addEventListener('click', this._travelToItemLocation.bind(this));
-
-    document.getElementById('time-reset-button').addEventListener('click', this._resetTime.bind(this));
+    document.getElementById('time-reset-button')
+      .addEventListener('click', this._resetTime.bind(this));
 
     document.getElementsByClassName('range-label')[0].addEventListener('mousedown', this._rangeUpdateCallback.bind(this));
 
 
-    document.getElementById('event-dialog-cancel-button').addEventListener('click', this._closeForm.bind(this));
-    document.getElementById('event-dialog-apply-button').addEventListener('click', this._applyEvent.bind(this));
+    document.getElementById('event-dialog-cancel-button')
+      .addEventListener('click', this._closeForm.bind(this));
+    document.getElementById('event-dialog-apply-button')
+      .addEventListener('click', this._applyEvent.bind(this));
 
 
-    document.getElementById('event-tooltip-container').addEventListener('mouseleave', this._leaveCustomTooltip.bind(this));
+    document.getElementById('event-tooltip-container')
+      .addEventListener('mouseleave', this._leaveCustomTooltip.bind(this));
 
-    document.getElementById('expand-button').addEventListener('click', this._toggleOverview.bind(this));
+    document.getElementById('expand-button')
+      .addEventListener('click', this._toggleOverview.bind(this));
 
 
-    document.getElementById('calendar-button').addEventListener('click', this._enterNewCenterTime.bind(this));
-    document.getElementById('dateLabel').addEventListener('click', this._enterNewCenterTime.bind(this));
+    document.getElementById('calendar-button')
+      .addEventListener('click', this._enterNewCenterTime.bind(this));
+    document.getElementById('dateLabel')
+      .addEventListener('click', this._enterNewCenterTime.bind(this));
 
     // toggle visibility of the increase / decrease time buttons ---------------------------------------
     function mouseEnterTimeControl() {
-      document.getElementById('increaseControl').classList.add('mouseNear');
-      document.getElementById('decreaseControl').classList.add('mouseNear');
+      document.getElementById('increaseControl')
+        .classList
+        .add('mouseNear');
+      document.getElementById('decreaseControl')
+        .classList
+        .add('mouseNear');
     }
 
     function mouseLeaveTimeControl() {
-      document.getElementById('increaseControl').classList.remove('mouseNear');
-      document.getElementById('decreaseControl').classList.remove('mouseNear');
+      document.getElementById('increaseControl')
+        .classList
+        .remove('mouseNear');
+      document.getElementById('decreaseControl')
+        .classList
+        .remove('mouseNear');
     }
 
     function enterTimeButtons() {
-      document.getElementById('increaseControl').classList.add('mouseNear');
-      document.getElementById('decreaseControl').classList.add('mouseNear');
+      document.getElementById('increaseControl')
+        .classList
+        .add('mouseNear');
+      document.getElementById('decreaseControl')
+        .classList
+        .add('mouseNear');
     }
 
     function leaveTimeButtons() {
-      document.getElementById('increaseControl').classList.remove('mouseNear');
-      document.getElementById('decreaseControl').classList.remove('mouseNear');
+      document.getElementById('increaseControl')
+        .classList
+        .remove('mouseNear');
+      document.getElementById('decreaseControl')
+        .classList
+        .remove('mouseNear');
     }
 
     document.getElementById('time-control').onmouseenter = mouseEnterTimeControl;
@@ -830,7 +883,9 @@ class TimelineApi extends IApi {
 
   _toggleOverview() {
     this._overviewVisible = !this._overviewVisible;
-    document.getElementById('timeline-container').classList.toggle('overview-visible');
+    document.getElementById('timeline-container')
+      .classList
+      .toggle('overview-visible');
     if (this._overviewVisible) {
       document.getElementById('expand-button').innerHTML = '<i class="material-icons">expand_less</i>';
     } else {
@@ -1081,9 +1136,11 @@ class TimelineApi extends IApi {
     const events = document.getElementsByClassName(properties.item);
     let event;
     for (let i = 0; i < events.length; ++i) {
-      if (!overview && $(events[i]).hasClass('event')) {
+      if (!overview && $(events[i])
+        .hasClass('event')) {
         event = events[i];
-      } else if (overview && $(events[i]).hasClass('overviewEvent')) {
+      } else if (overview && $(events[i])
+        .hasClass('overviewEvent')) {
         event = events[i];
       }
     }
@@ -1397,9 +1454,11 @@ class TimelineApi extends IApi {
    */
   _setVisible(visible) {
     if (visible) {
-      $('#calendar').addClass('visible');
+      $('#calendar')
+        .addClass('visible');
     } else {
-      $('#calendar').removeClass('visible');
+      $('#calendar')
+        .removeClass('visible');
     }
   }
 
@@ -1422,7 +1481,8 @@ class TimelineApi extends IApi {
    * @private
    */
   _enterNewCenterTime() {
-    $('#calendar').datepicker('update', this._timeline.getCustomTime(this._timeId));
+    $('#calendar')
+      .datepicker('update', this._timeline.getCustomTime(this._timeId));
     if (this._calenderVisible && this._state === this._newCenterTimeId) {
       this._toggleVisible();
     } else if (!this._calenderVisible) {
