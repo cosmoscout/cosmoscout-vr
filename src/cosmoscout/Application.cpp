@@ -730,9 +730,8 @@ void Application::connectSlots() {
   });
 
   // Show the statistics GuiItem when measurements are enabled.
-  mFrameTimings->pEnableMeasurements.onChange().connect([this](bool enable) {
-      mGuiManager->getStatistics()->setIsEnabled(enable);
-  });
+  mFrameTimings->pEnableMeasurements.onChange().connect(
+      [this](bool enable) { mGuiManager->getStatistics()->setIsEnabled(enable); });
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
