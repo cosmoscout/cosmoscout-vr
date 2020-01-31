@@ -26,7 +26,6 @@
     <link type="text/css" rel="stylesheet" href="css/statusbar.css">
 
     <link type="text/css" rel="stylesheet" href="css/logo.css">
-    <link type="text/css" rel="stylesheet" href="css/statistics.css">
 </head>
 <body>
 
@@ -93,43 +92,43 @@
             </span>
 
             <span id="decreaseControl" class="item">
-                <a class="btn light-glass" id="decrease-day-button" data-diff="-86400">
+                <a class="btn light-glass" data-change="time" data-type="day" data-direction="decrease">
                     <i class="material-icons">expand_more</i>
                 </a>
-                <a class="btn light-glass" id="decrease-month-button" data-diff="-2628000">
+                <a class="btn light-glass" data-change="time" data-type="month" data-direction="decrease">
                     <i class="material-icons">expand_more</i>
                 </a>
-                <a class="btn light-glass" id="decrease-year-button" data-diff="-31536000">
+                <a class="btn light-glass" data-change="time" data-type="year" data-direction="decrease">
                     <i class="material-icons">expand_more</i>
                 </a>
-                <a class="btn light-glass" id="decrease-hour-button" data-diff="-3600">
+                <a class="btn light-glass" data-change="time" data-type="hour" data-direction="decrease">
                     <i class="material-icons">expand_more</i>
                 </a>
-                <a class="btn light-glass" id="decrease-minute-button" data-diff="-60">
+                <a class="btn light-glass" data-change="time" data-type="minute" data-direction="decrease">
                     <i class="material-icons">expand_more</i>
                 </a>
-                <a class="btn light-glass" id="decrease-second-button" data-diff="-1">
+                <a class="btn light-glass" data-change="time" data-type="second" data-direction="decrease">
                     <i class="material-icons">expand_more</i>
                 </a>
             </span>
 
             <span id="increaseControl" class="item">
-                <a class="btn light-glass" id="increase-day-button" data-diff="86400">
+                <a class="btn light-glass" data-change="time" data-type="day" data-direction="increase">
                     <i class="material-icons">expand_less</i>
                 </a>
-                <a class="btn light-glass" id="increase-month-button" data-diff="2628000">
+                <a class="btn light-glass" data-change="time" data-type="month" data-direction="increase">
                     <i class="material-icons">expand_less</i>
                 </a>
-                <a class="btn light-glass" id="increase-year-button" data-diff="31536000">
+                <a class="btn light-glass" data-change="time" data-type="year" data-direction="increase">
                     <i class="material-icons">expand_less</i>
                 </a>
-                <a class="btn light-glass" id="increase-hour-button" data-diff="3600">
+                <a class="btn light-glass" data-change="time" data-type="hour" data-direction="increase">
                     <i class="material-icons">expand_less</i>
                 </a>
-                <a class="btn light-glass" id="increase-minute-button" data-diff="60">
+                <a class="btn light-glass" data-change="time" data-type="minute" data-direction="increase">
                     <i class="material-icons">expand_less</i>
                 </a>
-                <a class="btn light-glass" id="increase-second-button" data-diff="1">
+                <a class="btn light-glass" data-change="time" data-type="second" data-direction="increase">
                     <i class="material-icons">expand_less</i>
                 </a>
             </span>
@@ -351,8 +350,6 @@
 
     <div id="notifications"></div>
 
-    <div id="statistics" class="font-ubuntu"></div>
-
     <div id="calendar"></div>
 
     <div class="form-popup" id="add-event-dialog">
@@ -409,10 +406,6 @@
 <!-- Timeline -->
 <script type="text/javascript" src="third-party/js/vis-timeline-graph2d.min.js"></script>
 <script type="text/javascript" src="third-party/js/color-picker.min.js"></script>
-
-<!-- Statistics -->
-<script type="text/javascript" src="third-party/js/color-hash.js"></script>
-
 
 <!-- CosmoScout -->
 <script type="text/javascript" src="js/date_operations.js"></script>
