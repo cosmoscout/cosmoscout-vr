@@ -731,7 +731,7 @@ void Application::connectSlots() {
 
   // Show the statistics GuiItem when measurements are enabled.
   mFrameTimings->pEnableMeasurements.onChange().connect([this](bool enable) {
-    mGuiManager->getGui()->callJavascript("CosmoScout.clearHtml", "statistics");
+      mGuiManager->getStatistics()->setIsEnabled(enable);
   });
 }
 

@@ -104,6 +104,7 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
 
   // Now create the actual Gui and add it to the previously created GuiAreas ----------------
   mCosmoScoutGui = new gui::GuiItem("file://../share/resources/gui/cosmoscout.html");
+  mStatistics    = new gui::GuiItem("file://../share/resources/gui/statistics.html");
 
   // Except for mStatistics, all GuiItems are attached to the global world-space GuiArea if it is
   // available. If not, they are added to the local screen-space GuiArea.
@@ -112,6 +113,8 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
   } else {
     mLocalGuiArea->addItem(mCosmoScoutGui);
   }
+
+  mLocalGuiArea->addItem(mStatistics);
 
   // Configure attributes of the loading screen. Per default, GuiItems are drawn full-screen in
   // their GuiAreas.
@@ -123,9 +126,18 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
   mCosmoScoutGui->setRelPositionY(0.5f);
   mCosmoScoutGui->setCursorChangeCallback([this](gui::Cursor c) { setCursor(c); });
 
+  // Configure the positioning and attributes of the statistics.
+  mStatistics->setRelSizeX(1.f);
+  mStatistics->setRelSizeY(1.f);
+  mStatistics->setRelPositionX(0.5f);
+  mStatistics->setRelPositionY(0.5f);
+  mStatistics->setIsInteractive(false);
+  mStatistics->setIsEnabled(false);
+
   // Now we will call some JavaScript methods - so we have to wait until the GuiItems have been
   // fully loaded.
   mCosmoScoutGui->waitForFinishedLoading();
+  mStatistics->waitForFinishedLoading();
 
   // Create a string which contains the current version number of CosmoScout VR. This string is then
   // shown on the loading screen.
@@ -230,6 +242,12 @@ gui::GuiItem* GuiManager::getGui() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+gui::GuiItem* GuiManager::getStatistics() const {
+  return mStatistics;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void GuiManager::enableLoadingScreen(bool enable) {
   mCosmoScoutGui->callJavascript("CosmoScout.loadingScreen.setLoading", enable);
 }
@@ -294,7 +312,7 @@ void GuiManager::update() {
       json = "{}";
     }
 
-    mCosmoScoutGui->callJavascript(
+    mStatistics->callJavascript(
         "CosmoScout.statistics.setData", json, GetVistaSystem()->GetFrameLoop()->GetFrameRate());
   }
 

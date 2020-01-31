@@ -145,6 +145,9 @@ class CS_CORE_EXPORT GuiManager {
   /// Returns the CosmoScout Gui.
   gui::GuiItem* getGui() const;
 
+  /// Returns the CosmoScout Statistics Gui.
+  gui::GuiItem* getStatistics() const;
+
   /// Shows or hides the loading screen.
   void enableLoadingScreen(bool enable);
 
@@ -172,6 +175,7 @@ class CS_CORE_EXPORT GuiManager {
   gui::ScreenSpaceGuiArea*                mLocalGuiArea    = nullptr;
 
   gui::GuiItem* mCosmoScoutGui = nullptr;
+  gui::GuiItem* mStatistics    = nullptr;
 
   // The global GUI is drawn in world-space.
   VistaTransformNode* mGlobalGuiTransform  = nullptr;
