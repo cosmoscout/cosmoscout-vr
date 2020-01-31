@@ -53,6 +53,28 @@ cmake -E make_directory "%INSTALL_DIR%/share"
 cmake -E make_directory "%INSTALL_DIR%/bin"
 cmake -E make_directory "%INSTALL_DIR%/include"
 
+rem # VTK -----------------------------------------------------------------------------------------
+
+echo .
+echo Building and installing VTK 8.1.0 ...
+echo .
+
+cmake -E make_directory "%BUILD_DIR%/vtk" && cd "%BUILD_DIR%/vtk"
+cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
+      -DBUILD_TESTING=off "%EXTERNALS_DIR%/vtk"
+cmake --build . --config %BUILD_TYPE% --target install --parallel 8
+
+rem # TTK -----------------------------------------------------------------------------------------
+
+echo .
+echo Building and installing TTK 0.9.8 ...
+echo .
+
+cmake -E make_directory "%BUILD_DIR%/ttk" && cd "%BUILD_DIR%/ttk"
+cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
+      -DTTK_BUILD_PARAVIEW_PLUGINS=Off -DTTK_ENABLE_GRAPHVIZ=Off -DBUILD_TESTING=off "%EXTERNALS_DIR%/ttk"
+cmake --build . --config %BUILD_TYPE% --target install --parallel 8
+
 rem glew -------------------------------------------------------------------------------------------
 
 echo.
