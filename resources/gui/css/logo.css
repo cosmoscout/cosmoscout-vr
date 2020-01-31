@@ -20,8 +20,8 @@
     background-image: url("../img/dlr_logo.png");
     width: 100px;
     height: 83px;
-/*    animation: rotate 50s ease-in-out infinite;
-    -webkit-animation: rotate 50s ease-in-out infinite;*/
+    animation: rotate 50s ease-in-out infinite;
+    -webkit-animation: rotate 50s ease-in-out infinite;
 }
 
 #logo-text {
