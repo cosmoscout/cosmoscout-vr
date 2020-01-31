@@ -80,6 +80,21 @@ cmake -E make_directory "%INSTALL_DIR%/share"
 cmake -E make_directory "%INSTALL_DIR%/bin"
 cmake -E make_directory "%INSTALL_DIR%/include"
 
+rem gdal 3.0 --------------------------------------------------------------------------------------------
+
+echo.
+echo Downloading and installing gdal ...
+echo.
+
+cmake -E make_directory "%BUILD_DIR%/gdal/extracted" && cd "%BUILD_DIR%/gdal"
+powershell.exe -command Invoke-WebRequest -Uri http://download.gisinternals.com/sdk/downloads/release-1900-gdal-mapserver-libs.zip -OutFile gdal.zip
+
+cd "%BUILD_DIR%/gdal/extracted"
+cmake -E tar xfvj ../gdal.zip
+
+cmake -E copy_directory "%BUILD_DIR%/gdal/extracted/include"                   "%INSTALL_DIR%/gdal/include/"
+cmake -E copy_directory "%BUILD_DIR%/gdal/extracted/lib"        			   "%INSTALL_DIR%/gdal/lib"
+
 rem # VTK -----------------------------------------------------------------------------------------
 
 echo .
