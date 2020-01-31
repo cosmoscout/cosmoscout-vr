@@ -63,7 +63,7 @@ void main()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 const std::string QUAD_FRAG = R"(
-in vec2 vTexCoords;                                                             
+in vec2 vTexCoords;
 in vec4 vPosition;
 
 uniform float iFarClip;
@@ -105,7 +105,7 @@ void main() {
     // write linear depth
     gl_FragDepth = length(vPosition.xyz) / iFarClip;
   #endif
-}  
+}
 )";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
