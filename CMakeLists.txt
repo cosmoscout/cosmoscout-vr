@@ -4,7 +4,7 @@
 #                         Copyright: (c) 2019 German Aerospace Center (DLR)                        #
 # ------------------------------------------------------------------------------------------------ #
 
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.13)
 project(cosmoscout-vr VERSION 1.1.1)
 
 # Use cmake 3.12's <PACKAGE>_ROOT variabled for searching.
@@ -22,6 +22,9 @@ if(NOT MSVC)
     set(CMAKE_BUILD_TYPE "release" CACHE STRING "release or debug" FORCE)
   endif()
 endif()
+
+# Use folders when targeting an IDE
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 # find dependencies --------------------------------------------------------------------------------
 
@@ -68,6 +71,12 @@ if (DEFINED ENV{GLI_ROOT_DIR})
   SET(GLI_ROOT_DIR "$ENV{GLI_ROOT_DIR}")
 else()
   SET(GLI_ROOT_DIR ${COSMOSCOUT_EXTERNALS_DIR})
+endif()
+
+if (DEFINED ENV{DOCTEST_ROOT_DIR})
+  SET(DOCTEST_ROOT_DIR "$ENV{DOCTEST_ROOT_DIR}")
+else()
+  SET(DOCTEST_ROOT_DIR ${COSMOSCOUT_EXTERNALS_DIR})
 endif()
 
 if (DEFINED ENV{TINYGLTF_ROOT_DIR})
@@ -120,6 +129,7 @@ endif()
 
 find_package(GLM REQUIRED)
 find_package(GLI REQUIRED)
+find_package(DOCTEST REQUIRED)
 find_package(TINYGLTF REQUIRED)
 find_package(CSPICE REQUIRED)
 find_package(CARES REQUIRED)
@@ -215,6 +225,20 @@ add_compile_options($<$<CXX_COMPILER_ID:MSVC>:/EHsc>)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# Enable unit tests
+option(COSMOSCOUT_UNIT_TESTS "Enable compilation of tests" OFF)
+if (NOT COSMOSCOUT_UNIT_TESTS)
+  add_definitions(-DDOCTEST_CONFIG_DISABLE)
+endif()
+
+# Enable code coverage measurements
+option(COSMOSCOUT_COVERAGE_INFO "Run code coverage analytics" OFF)
+
+if(COSMOSCOUT_COVERAGE_INFO AND "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+  add_definitions(--coverage)
+  add_link_options(--coverage)
+endif()
 
 # subdirectories -----------------------------------------------------------------------------------
 

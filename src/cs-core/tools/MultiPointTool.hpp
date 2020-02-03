@@ -17,7 +17,6 @@ namespace cs::core {
 class TimeControl;
 class SolarSystem;
 class InputManager;
-class GuiManager;
 class GraphicsEngine;
 
 namespace tools {
@@ -35,7 +34,6 @@ class CS_CORE_EXPORT MultiPointTool : public Tool {
   MultiPointTool(std::shared_ptr<InputManager> const& pInputManager,
       std::shared_ptr<SolarSystem> const&             pSolarSystem,
       std::shared_ptr<GraphicsEngine> const&          graphicsEngine,
-      std::shared_ptr<GuiManager> const&              pGuiManager,
       std::shared_ptr<TimeControl> const& pTimeControl, std::string const& sCenter,
       std::string const& sFrame);
 
@@ -57,7 +55,6 @@ class CS_CORE_EXPORT MultiPointTool : public Tool {
   std::shared_ptr<InputManager>   mInputManager;
   std::shared_ptr<SolarSystem>    mSolarSystem;
   std::shared_ptr<GraphicsEngine> mGraphicsEngine;
-  std::shared_ptr<GuiManager>     mGuiManager;
   std::shared_ptr<TimeControl>    mTimeControl;
 
   std::list<std::shared_ptr<DeletableMark>> mPoints;

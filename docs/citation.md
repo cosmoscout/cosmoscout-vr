@@ -10,6 +10,7 @@ With the link below you can export a citation in many different formats.
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3381953.svg)](https://doi.org/10.5281/zenodo.3381953)
 
+<p align="center"><img src ="img/hr.svg"/></p>
 <p align="center">
   <a href="changelog.md"> &lsaquo; Changelog</a>
   <img src ="img/nav-vspace.svg"/>
@@ -17,5 +18,3 @@ With the link below you can export a citation in many different formats.
   <img src ="img/nav-vspace.svg"/>
   <a href="release-management.md">Release Management &rsaquo;</a>
 </p>
-
-<p align="center"><img src ="img/hr.svg"/></p>

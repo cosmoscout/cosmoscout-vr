@@ -218,14 +218,14 @@ bool WorldSpaceGuiArea::Do() {
   mShader->Bind();
 
   if (mUseLinearDepthBuffer) {
-    double near, far;
+    double nearClip, farClip;
     GetVistaSystem()
         ->GetDisplayManager()
         ->GetCurrentRenderInfo()
         ->m_pViewport->GetProjection()
         ->GetProjectionProperties()
-        ->GetClippingRange(near, far);
-    mShader->SetUniform(mShader->GetUniformLocation("iFarClip"), (float)far);
+        ->GetClippingRange(nearClip, farClip);
+    mShader->SetUniform(mShader->GetUniformLocation("iFarClip"), (float)farClip);
   }
 
   // get modelview and projection matrices

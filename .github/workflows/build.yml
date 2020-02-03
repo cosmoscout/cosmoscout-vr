@@ -3,32 +3,71 @@ name: Build
 on:
   push:
     branches:
-    - '**'
+      - '**'
   pull_request:
     branches:
-    - '**'
+      - '**'
 
 jobs:
   clang_format:
     name: Check Clang-Format
     runs-on: ubuntu-18.04
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v1
-    - name: Download Clang-Format
-      run: |
-        sudo apt-get update -y
-        sudo apt-get remove -y clang-6.0 libclang-common-6.0-dev libclang1-6.0 libllvm6.0
-        sudo apt-get install -y clang-format
-    - name: Run Clang-Format
-      run: ./clang-format.sh
-    - name: Compare Results
-      run: |
-        DIFF=$(git diff)
-        if [ ! -z "$DIFF" ]; then echo $DIFF && exit 1; fi
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+      - name: Checkout Submodules
+        run: git submodule update --init plugins
+      - name: Download Clang-Format
+        run: |
+          sudo apt-get update -y
+          sudo apt-get remove -y clang-6.0 libclang-common-6.0-dev libclang1-6.0 libllvm6.0
+          sudo apt-get install -y clang-format
+      - name: Run Clang-Format
+        run: ./clang-format.sh
+      - name: Compare Results
+        run: |
+          DIFF=$(git diff)
+          if [ ! -z "$DIFF" ]; then echo $DIFF && exit 1; fi
+  
+  comment_percentage:
+    name: Check Comment Percentage
+    runs-on: ubuntu-18.04
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout Current Repository
+        uses: actions/checkout@v2
+        with:
+          path: current
+          ref: ${{ github.ref }}
+      - name: Checkout Base Repository
+        uses: actions/checkout@v2
+        with:
+          path: base
+          ref: ${{ github.base_ref }}
+      - name: Checkout Current Submodules
+        run: cd $GITHUB_WORKSPACE/current && git submodule update --init plugins
+      - name: Checkout Base Submodules
+        run: cd $GITHUB_WORKSPACE/base && git submodule update --init plugins
+      - name: Download Cloc
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y cloc
+      - name: Run Cloc
+        run: |
+          BASE="$(base/cloc.sh --percentage-only)"
+          CURRENT="$(current/cloc.sh --percentage-only)"
+          echo "Percentage of Comments in Base Repository: $BASE"
+          echo "Percentage of Comments after Merge: $CURRENT"
+          if (( $(echo "$BASE > $CURRENT" |bc -l) ))
+          then
+            awk -v a=$CURRENT -v b=$BASE 'BEGIN {printf "Percentage decreased! (%3.4f%)\n", (a-b)}'
+            exit 1
+          else
+            awk -v a=$CURRENT -v b=$BASE 'BEGIN {printf "Percentage increased! (%3.4f%)\n", (a-b)}'
+          fi
 
   build_linux_gcc:
-    name: Linux Build (gcc 7.4.0)
+    name: Linux GCC 7.4.0
     runs-on: ubuntu-18.04
     if: >
       github.event_name == 'pull_request' ||
@@ -36,23 +75,53 @@ jobs:
       ( contains(github.ref, 'develop') && !contains(github.event.head_commit.message, '[no-ci]') ) ||
       contains(github.event.head_commit.message, '[run-ci]')
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v1
-    - name: Checkout Submodules
-      run: git submodule update --init
-    - name: Download Dependencies
-      run: |
-        sudo add-apt-repository ppa:mhier/libboost-latest
-        sudo apt-get update -q
-        sudo apt-get install libc++-dev libgl1-mesa-dev libglu1-mesa-dev libx11-dev
-        sudo apt-get install libxi-dev libgconf-2-4 libboost1.70-dev
-    - name: Build Externals
-      run: ./make_externals.sh
-    - name: Build CosmoScout VR
-      run: ./make.sh
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+      - name: Checkout Submodules
+        run: git submodule update --init
+      - name: Cache Object Files
+        uses: actions/cache@v1.1.0
+        with:
+          path: ~/.ccache
+          key: gcc-${{ github.sha }}
+          restore-keys: gcc-
+      - name: Download Dependencies
+        run: |
+          sudo add-apt-repository ppa:mhier/libboost-latest
+          sudo apt-get update -q
+          sudo apt-get install libc++-dev libgl1-mesa-dev libglu1-mesa-dev libx11-dev
+          sudo apt-get install libxi-dev libgconf-2-4 libboost1.70-dev ccache lcov xvfb
+          sudo pip install cmake
+          ccache --max-size 1G
+          ccache -z
+      # Workaround for https://github.com/actions/virtual-environments/issues/10
+      - name: Avoid to use GitHub Actions-installed boost
+        shell: bash
+        run: echo "::set-env name=BOOST_ROOT::"
+      - name: Build Externals
+        run: ./make_externals.sh -G "Unix Makefiles" -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
+      - name: Build CosmoScout VR
+        run: ./make.sh -G "Unix Makefiles" -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCOSMOSCOUT_COVERAGE_INFO=On -DCOSMOSCOUT_UNIT_TESTS=On
+      - name: Run Tests
+        run: ./install/linux-release/bin/run_tests.sh
+      - name: Run Graphical Tests
+        run: ./install/linux-release/bin/run_graphical_tests.sh
+      - name: Upload Results of Failed Test 
+        uses: actions/upload-artifact@v1
+        if: failure()
+        with:
+          name: graphical-test-results-gcc
+          path: install/linux-release/bin/test
+      - name: Calculate Test Coverage
+        run: ./lcov.sh
+      - name: Upload Coverage Info
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path-to-lcov: ./build/linux-release/coverage.info
 
   build_linux_clang:
-    name: Linux Build (clang 6.0)
+    name: Linux Clang 6.0
     runs-on: ubuntu-18.04
     if: >
       github.event_name == 'pull_request' ||
@@ -60,43 +129,82 @@ jobs:
       ( contains(github.ref, 'develop') && !contains(github.event.head_commit.message, '[no-ci]') ) ||
       contains(github.event.head_commit.message, '[run-ci]')
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v1
-    - name: Checkout Submodules
-      run: git submodule update --init
-    - name: Download Dependencies
-      run: |
-        sudo add-apt-repository ppa:mhier/libboost-latest
-        sudo apt-get update -q
-        sudo apt-get install libc++-dev libgl1-mesa-dev libglu1-mesa-dev libx11-dev
-        sudo apt-get install libxi-dev libgconf-2-4 libboost1.70-dev
-    - name: Build Externals
-      env:
-        CC: clang
-        CXX: clang++
-      run: ./make_externals.sh
-    - name: Build CosmoScout VR
-      env:
-        CC: clang
-        CXX: clang++
-      run: ./make.sh
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+      - name: Checkout Submodules
+        run: git submodule update --init
+      - name: Cache Object Files
+        uses: actions/cache@v1.1.0
+        with:
+          path: ~/.ccache
+          key: clang-${{ github.sha }}
+          restore-keys: clang-
+      - name: Download Dependencies
+        run: |
+          sudo add-apt-repository ppa:mhier/libboost-latest
+          sudo apt-get update -q
+          sudo apt-get install libc++-dev libgl1-mesa-dev libglu1-mesa-dev libx11-dev
+          sudo apt-get install libxi-dev libgconf-2-4 libboost1.70-dev ccache
+          sudo pip install cmake
+          ccache --max-size 1G
+          ccache -z
+      # Workaround for https://github.com/actions/virtual-environments/issues/10
+      - name: Avoid to use GitHub Actions-installed boost
+        shell: bash
+        run: echo "::set-env name=BOOST_ROOT::"
+      - name: Build Externals
+        env:
+          CC: clang
+          CXX: clang++
+        run: ./make_externals.sh -G "Unix Makefiles" -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
+      - name: Build CosmoScout VR
+        env:
+          CC: clang
+          CXX: clang++
+        run: ./make.sh -G "Unix Makefiles" -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCOSMOSCOUT_UNIT_TESTS=On
+      - name: Run Tests
+        run: ./install/linux-release/bin/run_tests.sh
+      - name: Run Graphical Tests
+        run: ./install/linux-release/bin/run_graphical_tests.sh
+      - name: Upload Results of Failed Test 
+        uses: actions/upload-artifact@v1
+        if: failure()
+        with:
+          name: graphical-test-results-clang
+          path: install/linux-release/bin/test
 
   build_windows:
-    name: Windows Build (msvc 19.16.27032.1)
-    runs-on: windows-2016
+    name: Windows MSVC 19.24.28314.0
+    runs-on: windows-2019
     if: >
       github.event_name == 'pull_request' ||
       ( contains(github.ref, 'master') && !contains(github.event.head_commit.message, '[no-ci]') ) ||
       ( contains(github.ref, 'develop') && !contains(github.event.head_commit.message, '[no-ci]') ) ||
       contains(github.event.head_commit.message, '[run-ci]')
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v1
-    - name: Checkout Submodules
-      run: git submodule update --init
-    - name: Build Externals
-      shell: cmd
-      run: make_externals.bat
-    - name: Build CosmoScout VR
-      shell: cmd
-      run: make.bat
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+      - name: Checkout Submodules
+        run: git submodule update --init
+      - name: Cache Object Files
+        uses: actions/cache@v1.1.0
+        with:
+          path: ~/clcache
+          key: msvc19.24-${{ github.sha }}
+          restore-keys: msvc19.24-
+      - name: Download Dependencies
+        run: |
+          pip install clcache
+          clcache -M 2147483648
+          clcache -z
+      - name: Build Externals
+        shell: cmd
+        run: make_externals.bat -G "Visual Studio 16 2019" -A x64 -DCMAKE_VS_GLOBALS="CLToolExe=clcache.exe;TrackFileAccess=false"
+      - name: Build CosmoScout VR
+        shell: cmd
+        run: make.bat -G "Visual Studio 16 2019" -A x64 -DCMAKE_VS_GLOBALS="CLToolExe=clcache.exe;TrackFileAccess=false" -DCOSMOSCOUT_UNIT_TESTS=On
+      - name: Run Tests
+        shell: cmd
+        run: install\\windows-release\\bin\\run_tests.bat
+      - name: Print Cache Usage
+        run: clcache -s

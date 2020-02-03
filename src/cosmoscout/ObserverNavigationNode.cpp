@@ -13,9 +13,8 @@
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-ObserverNavigationNode::ObserverNavigationNode(
-    std::shared_ptr<cs::core::SolarSystem> const&  pSolarSystem,
-    std::shared_ptr<cs::core::InputManager> const& pInputManager, VistaPropertyList const& oParams)
+ObserverNavigationNode::ObserverNavigationNode(cs::core::SolarSystem* pSolarSystem,
+    cs::core::InputManager* pInputManager, VistaPropertyList const& oParams)
     : IVdfnNode()
     , mSolarSystem(pSolarSystem)
     , mInputManager(pInputManager)
@@ -182,8 +181,7 @@ bool ObserverNavigationNode::DoEvalNode() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 ObserverNavigationNodeCreate::ObserverNavigationNodeCreate(
-    std::shared_ptr<cs::core::SolarSystem> const&  pSolarSystem,
-    std::shared_ptr<cs::core::InputManager> const& pInputManager)
+    cs::core::SolarSystem* pSolarSystem, cs::core::InputManager* pInputManager)
     : mSolarSystem(pSolarSystem)
     , mInputManager(pInputManager) {
 }

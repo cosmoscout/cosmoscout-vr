@@ -11,11 +11,9 @@ The HEALPix and MapServer coordinate systems are specific to the [csp-lod-bodies
   <img src ="img/coordinate-systems.jpg" />
 </p>
 
-
+<p align="center"><img src ="img/hr.svg"/></p>
 <p align="center">
   <a href="dependencies.md">&lsaquo; Dependencies</a>
   <img src ="img/nav-vspace.svg"/>
   <a href="README.md">&#8962; Help Index</a>
 </p>
-
-<p align="center"><img src ="img/hr.svg"/></p>

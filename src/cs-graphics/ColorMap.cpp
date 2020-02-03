@@ -6,6 +6,8 @@
 
 #include "ColorMap.hpp"
 
+#include "../cs-utils/doctest.hpp"
+
 #include <glm/glm.hpp>
 #include <json.hpp>
 
@@ -111,6 +113,15 @@ void ColorMap::bind(unsigned unit) {
 
 void ColorMap::unbind(unsigned unit) {
   mTexture->Unbind(unit);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+TEST_CASE("cs::graphics::ColorMap::interpolate") {
+  std::map<float, glm::vec3> stops = {{0.f, glm::vec3(1.f, 1.f, 0.f)},
+      {0.5f, glm::vec3(1.f, 0.f, 0.f)}, {1.0f, glm::vec3(1.f, 0.f, 1.f)}};
+
+  CHECK(interpolate(0.f, stops) == glm::vec3(1.f, 1.f, 0.f));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -20,7 +20,7 @@ class CS_GUI_EXPORT GuiItem : public WebView {
  public:
   /// Creates a new GuiItem for the given page at the location of the URL.
   explicit GuiItem(std::string const& url, bool allowLocalFileAccess = false);
-  ~GuiItem() override;
+  virtual ~GuiItem();
 
   void setSizeX(unsigned int value); ///< Sets the width of the item in pixels.
   void setSizeY(unsigned int value); ///< Sets the height of the item in pixels.

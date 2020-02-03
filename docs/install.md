@@ -2,12 +2,12 @@
   <img src ="img/banner-earth.jpg" />
 </p>
 
-# Build Instructions
+# Generic Build Instructions
 
-:warning: _**Warning:** The [default configuration](../config/base/scene/simple_desktop.json) only contains a few data sets with very low resolution. Please read the [Configuring Guide](configuring.md) and the documentation of the [individual plugins](../README.md#Plugins-for-CosmoScout-VR) for including new data sets._
+:information_source: _**Tip:** This page contains generic build instructions for CosmoScout VR. Alternatively, you can follow a [guide specific to your IDE](ide-setup.md)._
 
 **CosmoScout VR supports 64 bits only and can be build in debug and release mode on Linux and Windows.
-You will need a copy of [CMake](https://cmake.org/) (version 3.12 or greater), [Boost](https://www.boost.org/) (version 1.69 or greater) and a recent C++ compiler (gcc 7, clang 5 or msvc 19).
+You will need a copy of [CMake](https://cmake.org/) (version 3.13 or greater), [Boost](https://www.boost.org/) (version 1.69 or greater) and a recent C++ compiler (gcc 7, clang 5 or msvc 19).
 For the compilation of the externals [Python](https://www.python.org/) is also required.**
 
 When compiling from source, you can either choose the `master` branch which contains the code of the last stable release or you can switch to the `develop` branch to test the latest features.
@@ -46,7 +46,7 @@ All parameters given to `make_externals.bat` will be forwarded to CMake. For exa
 Now you can compile CosmoScout VR:
 
 ```shell
-./make.sh -G "Unix Makefiles"
+./make.sh -G "Unix Makefiles" -DCOSMOSCOUT_UNIT_TESTS=On
 ```
 
 This will configure and build CosmoScout VR in `cosmoscout-vr/build/linux-release` and will install it to `cosmoscout-vr/install/linux-release`.
@@ -55,17 +55,25 @@ Again, all parameters given to `make.sh` will be forwarded to CMake.
 The application can be executed with:
 
 ```shell
-cd install/linux-release/bin
-./start.sh
+./install/linux-release/bin/start.sh
 ```
 
 When started for the very first time, some example datasets will be downloaded from the internet.
 **This will take some time!**
 The progress of this operation is shown on the loading screen.
 
+Since you specified `-DCOSMOSCOUT_UNIT_TESTS=On` at build time, you can now execute the unit tests with (the _graphical tests_ require [Xvfb](https://en.wikipedia.org/wiki/Xvfb) and [imagemagick](https://imagemagick.org/index.php) to be installed on your system):
+
+```shell
+./install/linux-release/run_tests.sh
+./install/linux-release/run_graphical_tests.sh
+```
+
 :information_source: _**Tip:** If you wish, you can delete the directories `build` and `install` at any time in order to force a complete reconfiguration or re-installation._
 
 For **manual compilation** follow the steps outlined in [make.sh](../make.sh).
+
+:information_source: _**Tip:** You can use [ccache](https://ccache.dev/) to considerably speed up build times. You just need to call `./make_externals.sh -G "Unix Makefiles" -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache` and `./make.sh -G "Unix Makefiles" -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache` respectively._
 
 ## Windows
 
@@ -90,6 +98,8 @@ Per default, CosmoScout VR and all dependencies are built in release mode.
 You can switch to debug mode by setting the environment variable `set COSMOSCOUT_DEBUG_BUILD=true` (or `$env:COSMOSCOUT_DEBUG_BUILD = 'true'` if you are using PowerShell) before executing the scripts below.
 This step only has to be done once.
 
+If you are using Visual Studio 2019, you have to replace `-G "Visual Studio 15 Win64"` with `-G "Visual Studio 16 2019" -A x64`.
+
 ```batch
 git submodule update --init
 make_externals.bat -G "Visual Studio 15 Win64"
@@ -104,7 +114,7 @@ On Linux, boost is usually found automatically by CMake, on Windows you have to 
 
 ```batch
 set BOOST_ROOT=C:\local\boost_1_69_0
-make.bat -G "Visual Studio 15 Win64"
+make.bat -G "Visual Studio 15 Win64" -DCOSMOSCOUT_UNIT_TESTS=On
 ```
 
 This will configure and build CosmoScout VR in `cosmoscout-vr\build\windows-release` and will install it to `cosmoscout-vr\install\windows-release`.
@@ -119,12 +129,19 @@ When started for the very first time, some example datasets will be downloaded f
 **This will take some time!**
 The progress of this operation is shown on the loading screen.
 
+Since you specified `-DCOSMOSCOUT_UNIT_TESTS=On` at build time, you can now execute the unit tests with:
+
+```batch
+install\linux-release\run_tests.bat
+```
+
 :information_source: _**Tip:** If you wish, you can delete the directories `build` and `install` at any time in order to force a complete reconfiguration or re-installation._
 
+:information_source: _**Tip:** You can use [clcache](https://github.com/frerich/clcache) to considerably speed up build times. You just need to call `make_externals.bat -G "Visual Studio 15 Win64" -DCMAKE_VS_GLOBALS="CLToolExe=clcache.exe;TrackFileAccess=false"` and `make.bat -G "Visual Studio 15 Win64" -DCMAKE_VS_GLOBALS=CLToolExe"=clcache.exe;TrackFileAccess=false"` respectively._
+
+<p align="center"><img src ="img/hr.svg"/></p>
 <p align="center">
   <a href="README.md">&#8962; Help Index</a>
   <img src ="img/nav-vspace.svg"/>
-  <a href="using.md">Using CosmoScout VR &rsaquo;</a>
+  <a href="ide-setup.md">Setup your IDE &rsaquo;</a>
 </p>
-
-<p align="center"><img src ="img/hr.svg"/></p>

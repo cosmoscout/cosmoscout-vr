@@ -122,6 +122,10 @@ void SolarSystem::unregisterBody(std::shared_ptr<scene::CelestialBody> const& bo
   for (const auto& listener : mRemoveBodyListeners) {
     listener.second(body);
   }
+
+  if (pActiveBody.get() == body) {
+    pActiveBody = nullptr;
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -155,11 +159,17 @@ void SolarSystem::update() {
   }
 
   // update speed display
-  static auto sLastObserverPosition = mObserver.getAnchorPosition();
+  auto observerPosition = mObserver.getAnchorPosition();
+  auto now              = std::chrono::high_resolution_clock::now();
 
-  pCurrentObserverSpeed = glm::length(sLastObserverPosition - mObserver.getAnchorPosition()) /
-                          mFrameTimings->pFrameTime.get();
-  sLastObserverPosition = mObserver.getAnchorPosition();
+  auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(now - mLastTime).count();
+
+  // duration is in nanoseconds so we have to multiply by 1.0e9
+  if (duration > 0) {
+    pCurrentObserverSpeed = 1.0e9 * glm::length(mLastPosition - observerPosition) / duration;
+    mLastPosition         = observerPosition;
+    mLastTime             = now;
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
