@@ -499,7 +499,7 @@ class CosmoScout {
     const option = document.createElement('option');
 
     option.value = value;
-    option.selected = Boolean(Number(selected)) === true;
+    option.selected = CosmoScout.castCppBool(selected) === true;
     option.textContent = text;
 
     if (dropdown !== null) {
@@ -630,5 +630,15 @@ class CosmoScout {
    */
   static _localizeUrl(url) {
     return `file://../share/resources/gui/${url}`;
+  }
+
+  /**
+   * Casts a C++ number to boolean
+   *
+   * @param input {number|boolean}
+   * @returns {boolean}
+   */
+  static castCppBool(input) {
+    return Boolean(Number(input));
   }
 }

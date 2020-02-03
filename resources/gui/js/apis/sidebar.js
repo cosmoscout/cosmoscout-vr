@@ -81,6 +81,37 @@ class SidebarApi extends IApi {
   }
 
   /**
+   * Enables or disables a plugin tab.
+   * Disabled tabs will be collapsed if open.
+   *
+   * @param collapseId {string}
+   * @param enabled {boolean}
+   */
+  setTabEnabled(collapseId, enabled) {
+    const tab = document.getElementById(collapseId);
+
+    if (tab === null) {
+      console.error(`Tab with id #${collapseId} not found.`);
+      return;
+    }
+
+    // Add unresponsive class to parent element
+    // Or tab if no parent is present
+    // We assume tabs are contained in .sidebar-tab elements
+    let parent = tab.parentElement;
+    if (parent === null) {
+      parent = tab;
+    }
+
+    if (CosmoScout.castCppBool(enabled) === true) {
+      parent.classList.remove('unresponsive');
+    } else {
+      $(`#${collapseId}`).collapse('hide');
+      parent.classList.add('unresponsive');
+    }
+  }
+
+  /**
    * @see {addPluginTab}
    * @see {addSettingsSection}
    * @param name {string}
