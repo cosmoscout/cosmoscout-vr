@@ -134,33 +134,29 @@ bool ObserverNavigationNode::DoEvalNode() {
     vOffset  = glm::dvec3(tmp[0], tmp[1], tmp[2]);
   }
 
-  auto&      oObs              = mSolarSystem->getObserver();
-  glm::dvec3 vObserverPosition = oObs.getAnchorPosition();
-  glm::dquat qObserverRotation = oObs.getAnchorRotation();
-  double     dObserverScale    = oObs.getAnchorScale();
-
   auto vTranslation = mLinearDirection;
 
   vTranslation.x *= mMaxLinearSpeed[0];
   vTranslation.y *= mMaxLinearSpeed[1];
   vTranslation.z *= mMaxLinearSpeed[2];
-  vTranslation *= dObserverScale;
   vTranslation *= mLinearSpeed.get(dTtime);
 
   vTranslation *= dDeltaTime;
-  vTranslation += vOffset * dObserverScale;
+  vTranslation += vOffset;
 
+  auto&  oObs     = mSolarSystem->getObserver();
   double stepSize = glm::length(vTranslation);
 
   if (stepSize > 0.0) {
-    // Ensure an SolarSystem::updateSceneScale() at least at 100 Hz
+    // Ensure that an SolarSystem::updateSceneScale() is called at least at 100 Hz. If it is called
+    // only once a frame, it can happen that the observer instantly travels to a planet's surface.
     int32_t steps = std::ceil(dDeltaTime / 0.01);
 
-    for (int32_t i(0); i < steps; ++i) {
-      oObs.setAnchorPosition(
-          vObserverPosition + qObserverRotation * vTranslation / static_cast<double>(steps));
-
-      if (i < steps - 1) {
+    for (int32_t i(1); i <= steps; ++i) {
+      oObs.setAnchorPosition(oObs.getAnchorPosition() + oObs.getAnchorRotation() * vTranslation *
+                                                            oObs.getAnchorScale() /
+                                                            static_cast<double>(steps));
+      if (i < steps) {
         mSolarSystem->updateSceneScale();
       }
     }
@@ -172,7 +168,8 @@ bool ObserverNavigationNode::DoEvalNode() {
       glm::angle(qRotation) * dDeltaTime * mMaxAngularSpeed * mAngularSpeed.get(dTtime);
 
   if (dRotationAngle != 0.0) {
-    oObs.setAnchorRotation(qObserverRotation * glm::angleAxis(dRotationAngle, vRotationAxis));
+    oObs.setAnchorRotation(
+        oObs.getAnchorRotation() * glm::angleAxis(dRotationAngle, vRotationAxis));
   }
 
   return true;
