@@ -48,6 +48,9 @@ class CS_CORE_EXPORT GraphicsEngine {
 
   graphics::ShadowMap const* getShadowMap() const;
 
+  void enableGLDebug(bool onlyErrors = true);
+  void disableGLDebug();
+
  private:
   void calculateCascades();
 

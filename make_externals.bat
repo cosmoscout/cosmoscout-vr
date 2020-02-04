@@ -257,10 +257,10 @@ echo.
 echo Downloading, building and installing cef (this may take some time) ...
 echo.
 
-set CEF_DIR=cef_binary_78.3.9+gc7345f2+chromium-78.0.3904.108_windows64_minimal
+set CEF_DIR=cef_binary_79.0.10+ge866a07+chromium-79.0.3945.88_windows64_minimal
 
 cmake -E make_directory "%BUILD_DIR%/cef/extracted" && cd "%BUILD_DIR%/cef"
-powershell.exe -command Invoke-WebRequest -Uri http://opensource.spotify.com/cefbuilds/cef_binary_78.3.9%%2Bgc7345f2%%2Bchromium-78.0.3904.108_windows64_minimal.tar.bz2 -OutFile cef.tar.bz2
+powershell.exe -command Invoke-WebRequest -Uri http://opensource.spotify.com/cefbuilds/cef_binary_79.0.10%%2Bge866a07%%2Bchromium-79.0.3945.88_windows64_minimal.tar.bz2 -OutFile cef.tar.bz2
 
 cd "%BUILD_DIR%/cef/extracted"
 "%BUILD_DIR%/cef/bzip2/bin/bunzip2.exe" -v ../cef.tar.bz2

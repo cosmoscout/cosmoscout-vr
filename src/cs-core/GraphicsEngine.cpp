@@ -6,6 +6,7 @@
 
 #include "GraphicsEngine.hpp"
 
+#include <GL/glew.h>
 #include <VistaKernel/GraphicsManager/VistaSceneGraph.h>
 #include <VistaKernel/VistaSystem.h>
 
@@ -14,6 +15,9 @@ namespace cs::core {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 GraphicsEngine::GraphicsEngine(std::shared_ptr<const core::Settings> const& settings) {
+  std::cout << "OpenGL Vendor:  " << glGetString(GL_VENDOR) << std::endl;
+  std::cout << "OpenGL Version: " << glGetString(GL_VERSION) << std::endl;
+
   auto pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
 
   pWidgetScale = settings->mWidgetScale;
@@ -64,6 +68,31 @@ void GraphicsEngine::setSunDirection(glm::vec3 const& direction) {
 
 graphics::ShadowMap const* GraphicsEngine::getShadowMap() const {
   return &mShadowMap;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool glDebugOnlyErrors = true;
+
+void GLAPIENTRY oglMessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity,
+    GLsizei length, const GLchar* message, const void* userParam) {
+  if (type == GL_DEBUG_TYPE_ERROR)
+    fprintf(
+        stderr, "GL ERROR: type = 0x%x, severity = 0x%x, message = %s\n", type, severity, message);
+  else if (!glDebugOnlyErrors)
+    fprintf(stdout, "GL WARNING: type = 0x%x, severity = 0x%x, message = %s\n", type, severity,
+        message);
+}
+
+void GraphicsEngine::enableGLDebug(bool onlyErrors) {
+  glDebugOnlyErrors = onlyErrors;
+  glEnable(GL_DEBUG_OUTPUT);
+  glDebugMessageCallback(oglMessageCallback, nullptr);
+}
+
+void GraphicsEngine::disableGLDebug() {
+  glDisable(GL_DEBUG_OUTPUT);
+  glDebugMessageCallback(nullptr, nullptr);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

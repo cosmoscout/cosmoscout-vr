@@ -1,27 +1,21 @@
-body {
-    background: rgba(255, 255, 255, 0);
-    overflow: hidden;
-    color: white;
-}
-
 #logo {
     position: absolute;
     right: 20px;
-    bottom: 0px;
+    bottom: 0;
     width: 100px;
     height: 100px;
     transform-origin: 0 0;
     opacity: 0;
-     -webkit-perspective: 120px;
+    -webkit-perspective: 120px;
     perspective: 500px;
     transition: opacity 0.2s linear;
 }
 
-#logo.visible {
+.loaded #logo {
     opacity: 0.5;
 }
 
-#logo-image  {
+#logo-image {
     position: absolute;
     background-image: url("../img/dlr_logo.png");
     width: 100px;
@@ -30,7 +24,7 @@ body {
     -webkit-animation: rotate 50s ease-in-out infinite;
 }
 
-#logo-text  {
+#logo-text {
     position: absolute;
     background-image: url("../img/dlr_name.png");
     width: 100px;
@@ -38,15 +32,15 @@ body {
 }
 
 /*@keyframes rotate {*/
-@-webkit-keyframes rotate { 
+@-webkit-keyframes rotate {
     0% {
-        transform: rotate3d(0,1,0,0deg);
+        transform: rotate3d(0, 1, 0, 0deg);
     }
     2% {
-        transform: rotate3d(0,1,0,360deg);
+        transform: rotate3d(0, 1, 0, 360deg);
     }
     100% {
-        transform: rotate3d(0,1,0,360deg);
+        transform: rotate3d(0, 1, 0, 360deg);
     }
 }
 

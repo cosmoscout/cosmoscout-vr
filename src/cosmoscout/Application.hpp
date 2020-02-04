@@ -106,8 +106,7 @@ class Application : public VistaFrameLoop {
   void connectSlots();
 
   /// There are several C++ callbacks available in the JavaScript code of the user interface. In
-  /// this method those callbacks are set up. Here are all registered callbacks, sorted by GuiArea:
-  /// SideBar:
+  /// this method those callbacks are set up. Here are all registered callbacks:
   ///  - print_notification
   ///  - set_celestial_body
   ///  - set_date
@@ -128,19 +127,17 @@ class Application : public VistaFrameLoop {
   ///  - set_shadowmap_split_distribution
   ///  - set_terrain_height
   ///  - set_widget_scale
-  /// Timeline:
   ///  - print_notification
   ///  - reset_time
   ///  - add_hours
   ///  - add_hours_without_animation
-  ///  - set_date
   ///  - set_time_speed
-  ///  - fly_to
   ///  - navigate_north_up
   ///  - navigate_fix_horizon
   ///  - navigate_to_surface
   ///  - navigate_to_orbit
   void registerGuiCallbacks();
+  void unregisterGuiCallbacks();
 
   std::shared_ptr<const cs::core::Settings> mSettings;
   std::shared_ptr<cs::core::InputManager>   mInputManager;

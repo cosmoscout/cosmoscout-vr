@@ -1,3 +1,15 @@
+/* Global Colors------------------------------------------------------------- */
+:root {
+    --cs-text-color: #ddf;
+    --cs-text-color-darkened: #ccf;
+
+    --cs-border-color-light: #ddf;
+    --cs-border-color: #ccf;
+
+    --cs-background-color-light: #ddf;
+    --cs-background-color: #ccf;
+}
+
 /* Resources ---------------------------------------------------------------- */
 
 @font-face {
@@ -15,8 +27,16 @@
     src: url('../third-party/fonts/AlegreyaSansSC-Regular.ttf') format('truetype');
 }
 
+.font-ubuntu {
+    font-family: 'Ubuntu', sans-serif;
+}
+
+.font-alegreya {
+    font-family: 'AlegreyaSansSC', sans-serif;
+}
+
 .debug {
-    background: black;
+    background: #000;
 }
 
 .material-icons {
@@ -34,9 +54,13 @@
 
 /* Basic Containers --------------------------------------------------------- */
 
+html {
+    overflow: hidden;
+}
+
 body {
-    font-family: 'Ubuntu', sans-serif !important;
-    color: #ddf;
+    font-family: 'Ubuntu', sans-serif;
+    color: var(--cs-text-color);
     font-size: 1rem;
     -webkit-user-select: none !important;
     -webkit-font-smoothing: antialiased;
@@ -51,7 +75,7 @@ body {
     font-size: 80%;
 }
 
-xmp, code, pre {
+code, pre {
     background-color: rgba(0, 0, 0, 0.4);
     padding: 5px;
     border-radius: 3px;
@@ -82,11 +106,11 @@ strong {
     text-align: right;
 }
 
-.col,.col-1,.col-10,.col-11,.col-12,.col-2,.col-3,.col-4,.col-5,.col-6,.col-7,.col-8,.col-9,.col-auto,
-.col-lg,.col-lg-1,.col-lg-10,.col-lg-11,.col-lg-12,.col-lg-2,.col-lg-3,.col-lg-4,.col-lg-5,.col-lg-6,.col-lg-7,.col-lg-8,.col-lg-9,.col-lg-auto,
-.col-md,.col-md-1,.col-md-10,.col-md-11,.col-md-12,.col-md-2,.col-md-3,.col-md-4,.col-md-5,.col-md-6,.col-md-7,.col-md-8,.col-md-9,.col-md-auto,
-.col-sm,.col-sm-1,.col-sm-10,.col-sm-11,.col-sm-12,.col-sm-2,.col-sm-3,.col-sm-4,.col-sm-5,.col-sm-6,.col-sm-7,.col-sm-8,.col-sm-9,.col-sm-auto,
-.col-xl,.col-xl-1,.col-xl-10,.col-xl-11,.col-xl-12,.col-xl-2,.col-xl-3,.col-xl-4,.col-xl-5,.col-xl-6,.col-xl-7, .col-xl-8, .col-xl-9, .col-xl-auto {
+.col, .col-1, .col-10, .col-11, .col-12, .col-2, .col-3, .col-4, .col-5, .col-6, .col-7, .col-8, .col-9, .col-auto,
+.col-lg, .col-lg-1, .col-lg-10, .col-lg-11, .col-lg-12, .col-lg-2, .col-lg-3, .col-lg-4, .col-lg-5, .col-lg-6, .col-lg-7, .col-lg-8, .col-lg-9, .col-lg-auto,
+.col-md, .col-md-1, .col-md-10, .col-md-11, .col-md-12, .col-md-2, .col-md-3, .col-md-4, .col-md-5, .col-md-6, .col-md-7, .col-md-8, .col-md-9, .col-md-auto,
+.col-sm, .col-sm-1, .col-sm-10, .col-sm-11, .col-sm-12, .col-sm-2, .col-sm-3, .col-sm-4, .col-sm-5, .col-sm-6, .col-sm-7, .col-sm-8, .col-sm-9, .col-sm-auto,
+.col-xl, .col-xl-1, .col-xl-10, .col-xl-11, .col-xl-12, .col-xl-2, .col-xl-3, .col-xl-4, .col-xl-5, .col-xl-6, .col-xl-7, .col-xl-8, .col-xl-9, .col-xl-auto {
     padding-right: 10px;
     padding-left: 10px;
 }
@@ -107,8 +131,8 @@ input[type="search"]:not(.browser-default),
 .select-wrapper input.select-dropdown,
 .select-wrapper input.select-dropdown:focus {
     border: none;
-    border-bottom: 2px solid #ccf;
-    color: #ccf;
+    border-bottom: 2px solid var(--cs-border-color);
+    color: var(--cs-text-color-darkened);
     margin: 0 0 5px 0;
     height: auto;
     line-height: 1.5;
@@ -134,7 +158,7 @@ input[type="search"]:focus:not(.browser-default):not([readonly]) {
 }
 
 input, textarea {
-    color: white;
+    color: #fff;
 }
 
 .unresponsive {
@@ -145,7 +169,7 @@ input, textarea {
 .item-list.big-items > .row {
     background-color: rgba(255, 255, 255, 0.1);
     margin-bottom: 10px;
-    border-top: 2px solid #ccf;
+    border-top: 2px solid var(--cs-border-color);
     padding: 5px;
 }
 
@@ -192,7 +216,6 @@ input, textarea {
 /* Scroll box --------------------------------------------------------------- */
 
 .scroll-box {
-    /*background-color: rgba(230, 230, 255, 0.1);*/
     -webkit-mask-image: -webkit-linear-gradient(rgba(255, 255, 255, 0) 0, rgba(255, 255, 255, 1) 20px, rgba(255, 255, 255, 1) 40%, rgba(255, 255, 255, 0) 49%), -webkit-linear-gradient(bottom, rgba(255, 255, 255, 0) 0, rgba(255, 255, 255, 1) 20px, rgba(255, 255, 255, 1) 49%, rgba(255, 255, 255, 0) 49%), -webkit-linear-gradient(rgba(255, 255, 255, 0) 30%, rgba(255, 255, 255, 1) 40%, rgba(255, 255, 255, 1) 60%, rgba(255, 255, 255, 0) 70%);
     -webkit-mask-composite: and, and, and;
     overflow-y: auto;
@@ -249,7 +272,7 @@ input, textarea {
 
 .btn.glass {
     background-color: rgba(230, 230, 255, 0.1);
-    border-bottom: 2px solid #ccf;
+    border-bottom: 2px solid var(--cs-border-color);
     box-shadow: none;
 }
 
@@ -279,7 +302,7 @@ input, textarea {
 
 .tabs {
     background-color: transparent;
-    border-bottom: 2px solid #ccf;
+    border-bottom: 2px solid var(--cs-border-color);
     margin-bottom: 5px;
 }
 
@@ -288,7 +311,7 @@ input, textarea {
 }
 
 .tabs .tab a {
-    color: #ccf !important;
+    color: var(--cs-text-color-darkened) !important;
     position: relative;
 }
 
@@ -303,7 +326,7 @@ input, textarea {
 }
 
 .tabs .indicator {
-    background-color: #ccf;
+    background-color: var(--cs-text-color-darkened);
     height: 3px;
 }
 
@@ -316,9 +339,9 @@ input, textarea {
 }
 
 .nav-tabs .nav-item {
-    font-family: 'AlegreyaSansSC';
+    font-family: 'AlegreyaSansSC', sans-serif;
     text-align: center;
-    color: #ccf;
+    color: var(--cs-text-color-darkened);
     padding: 2px;
     border: none;
     font-size: 1.5rem;
@@ -327,14 +350,14 @@ input, textarea {
 .nav-tabs .nav-link:hover {
     border: none;
     text-shadow: 0 0 3px rgba(255, 255, 255, 0.4), 0 0 10px rgba(255, 255, 255, 0.4);
-    color: white;
+    color: #fff;
 }
 
 .nav-tabs .nav-link.active {
-    color: #ccf;
+    color: var(--cs-text-color-darkened);
     background-color: rgba(255, 255, 255, 0.1);
     border: none;
-    border-bottom: 1px solid #ccf;
+    border-bottom: 1px solid var(--cs-border-color);
 }
 
 .tab-content {
@@ -362,7 +385,7 @@ label.checklabel span {
 }
 
 label input[type=checkbox]:checked + i::before {
-    color: white;
+    color: #fff;
     content: "check_box";
 }
 
@@ -372,7 +395,7 @@ label.checklabel {
 }
 
 label.checklabel:hover {
-    color: white;
+    color: #fff;
     text-shadow: 0 0 3px rgba(255, 255, 255, 0.4), 0 0 10px rgba(255, 255, 255, 0.4);
     cursor: pointer;
 }
@@ -400,7 +423,7 @@ input[type=radio] + span::before {
     width: 16px;
     height: 16px;
     vertical-align: sub;
-    border: 2px solid #ccf;
+    border: 2px solid var(--cs-border-color);
     border-radius: 50%;
 }
 
@@ -409,7 +432,7 @@ input[type=radio] + span {
 }
 
 input[type=radio]:checked + span::before {
-    background: white;
+    background: #fff;
     border: 2px solid transparent;
 }
 
@@ -419,7 +442,7 @@ label.radiolabel {
 }
 
 label.radiolabel:hover {
-    color: white;
+    color: #fff;
     text-shadow: 0 0 3px rgba(255, 255, 255, 0.4), 0 0 10px rgba(255, 255, 255, 0.4);
     cursor: pointer;
 }
@@ -428,7 +451,7 @@ label.radiolabel:active {
     top: 1px;
 }
 
-input[type=checkbox]:checked + div.btn {
+input[type=checkbox]:checked + span.btn {
     background-color: rgba(230, 230, 255, 0.5);
     text-shadow: 0 0 5px rgba(255, 255, 255, 0.4), 0 0 10px #aaf;
     border-top: 1px dashed rgba(230, 230, 255, 0.5);
@@ -472,7 +495,8 @@ hr {
 }
 
 .noUi-target .noUi-active .range-label {
-    transform: translate(-50%, -40px);
+    transform: translate(-50%, -16px);
+    //transform: translate(-50%, -40px);
     border-radius: 50% !important;
 }
 
@@ -586,7 +610,7 @@ hr {
 }
 
 .collapsible > li {
-    border-top: 2px solid #ccf;
+    border-top: 2px solid var(--cs-border-color);
 }
 
 /* Strike ------------------------------------------------------------------- */
@@ -596,15 +620,15 @@ hr {
     text-align: center;
     overflow: hidden;
     white-space: nowrap;
-    margin: 25px 0 10px 0px;
+    margin: 25px 0 10px 0;
 }
 
 .strike:first-child {
-    margin-top: 0px;
+    margin-top: 0;
 }
 
 .strike > * {
-    font-family: 'AlegreyaSansSC';
+    font-family: 'AlegreyaSansSC', sans-serif;
     position: relative;
     display: inline-block;
     font-size: 1.5rem;
@@ -640,87 +664,101 @@ hr {
     width: 100%;
 }
 
-.btn-light:not(:disabled):not(.disabled).active, .btn-light:not(:disabled):not(.disabled):active, .show>.btn-light.dropdown-toggle {
+.btn-light:not(:disabled):not(.disabled).active, .btn-light:not(:disabled):not(.disabled):active, .show > .btn-light.dropdown-toggle {
     background-color: transparent;
-    color: white;
+    color: #fff;
     text-shadow: 0 0 3px rgba(255, 255, 255, 0.4), 0 0 10px rgba(255, 255, 255, 0.4) !important;
 }
 
 .dropdown-toggle {
     background: transparent;
-    color: #ccf;
+    color: var(--cs-text-color-darkened);
     border: none;
-    border-bottom: 2px solid #ccf;
+    border-bottom: 2px solid var(--cs-border-color);
 }
 
 .dropdown-toggle.show {
     background-color: transparent !important;
-    color: white !important;
+    color: #fff !important;
     text-shadow: 0 0 3px rgba(255, 255, 255, 0.4), 0 0 10px rgba(255, 255, 255, 0.4) !important;
 }
 
-.show>.btn-light.dropdown-toggle:focus,
+.show > .btn-light.dropdown-toggle:focus,
 .dropdown-toggle:hover {
-    color: white;
+    color: #fff;
     text-shadow: 0 0 3px rgba(255, 255, 255, 0.4), 0 0 10px rgba(255, 255, 255, 0.4);
     background: transparent;
     box-shadow: none;
 }
 
 .dropdown-menu {
-    background: black;
-    border: 1px solid #ccf
+    background: #000;
+    border: 1px solid var(--cs-border-color)
 }
 
 .dropdown-item,
 .dropdown-option {
-    background: black;
-    color: #ccf;
+    background: #000;
+    color: var(--cs-text-color-darkened);
 }
 
 .dropdown-item:hover,
 .dropdown-item:focus,
 .dropdown-option:focus,
 .dropdown-option:hover {
-    background: black;
-    color: #ccf;
+    background: #000;
+    color: var(--cs-text-color-darkened);
     text-shadow: 0 0 3px rgba(255, 255, 255, 0.4), 0 0 10px rgba(255, 255, 255, 0.4);
     outline: none;
 }
 
-.bootstrap-select .dropdown-toggle:focus, .bootstrap-select>select.mobile-device:focus+.dropdown-toggle {
+.bootstrap-select .dropdown-toggle:focus, .bootstrap-select > select.mobile-device:focus + .dropdown-toggle {
     outline: none !important;
     box-shadow: none;
 }
 
 .dropdown-item.active,
 .dropdown-option:active {
-    background-color: black;
+    background-color: #000;
     text-shadow: 0 0 3px rgba(255, 255, 255, 0.4), 0 0 10px rgba(255, 255, 255, 0.4);
-    color: white;
+    color: #fff;
 }
 
 /* Tooltips --------------------------------------------------------------------------------------------------------- */
 
 .bs-tooltip-auto[x-placement^=top] .arrow::before, .bs-tooltip-top .arrow::before {
-    border-top-color: #ccf !important;
+    border-top-color: var(--cs-text-color-darkened) !important;
 }
 
 .bs-tooltip-auto[x-placement^=right] .arrow::before, .bs-tooltip-right .arrow::before {
-    border-right-color: #ccf !important;
+    border-right-color: var(--cs-text-color-darkened) !important;
 }
 
 .bs-tooltip-auto[x-placement^=bottom] .arrow::before, .bs-tooltip-bottom .arrow::before {
-    border-bottom-color: #ccf !important;
+    border-bottom-color: var(--cs-text-color-darkened) !important;
 }
 
 .bs-tooltip-auto[x-placement^=left] .arrow::before, .bs-tooltip-left .arrow::before {
-    border-left-color: #ccf !important;
+    border-left-color: var(--cs-text-color-darkened) !important;
 }
 
 .tooltip .tooltip-inner {
-    color: #ddf;
+    color: var(--cs-text-color);
     background: rgba(20, 20, 20, 0.8);
-    border: 2px solid #ccf;
+    border: 2px solid var(--cs-border-color);
     border-radius: 5px;
+}
+
+#cosmoscout {
+    display: flex;
+    flex-wrap: wrap;
+    width: 100vw;
+    height: 100vh;
+    opacity: 0;
+    transition: opacity .75s;
+}
+
+.loaded #cosmoscout {
+    opacity: 1;
+    z-index: 2;
 }

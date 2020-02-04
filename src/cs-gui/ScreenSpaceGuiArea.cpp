@@ -30,40 +30,43 @@ vec2 positions[4] = vec2[](
     vec2( 0.5, -0.5),
     vec2(-0.5,  0.5),
     vec2( 0.5,  0.5)
-);        
+);
 
-uniform vec2 iPosition;                       
-uniform vec2 iScale;                       
+uniform vec2 iPosition;
+uniform vec2 iScale;
 
-out vec2 vTexCoords;                                                            
+out vec2 vTexCoords;
 out vec4 vPosition;
-                                                                           
-void main()                                                                
-{                       
-  vec2 p = positions[gl_VertexID];                                                   
+
+void main() {
+  vec2 p = positions[gl_VertexID];
   vTexCoords = vec2(p.x, -p.y) + 0.5;
   vPosition = vec4((p*iScale + iPosition)*2-1, 0, 1);
-  gl_Position = vPosition;                                   
-}                                                            
+  gl_Position = vPosition;
+}
 )";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 const std::string QUAD_FRAG = R"(
-in vec2 vTexCoords;                                                             
+in vec2 vTexCoords;
 in vec4 vPosition;
 
-uniform sampler2D iTexture;                                                
-                                                                           
-layout(location = 0) out vec4 vOutColor;                                   
-                                                                           
-void main()                                                                
-{                                                                                                    
-  vOutColor = texture(iTexture, vTexCoords); 
-  if (vOutColor.a == 0.0) discard; 
+uniform samplerBuffer texture;
+uniform ivec2 texSize;
 
+layout(location = 0) out vec4 vOutColor;
+
+vec4 getTexel(ivec2 p) {
+  p = clamp(p, ivec2(0), texSize - ivec2(1));
+  return texelFetch(texture, p.y * texSize.x + p.x).bgra;
+}
+
+void main() {
+  vOutColor = getTexel(ivec2(vec2(texSize) * vTexCoords));
+  if (vOutColor.a == 0.0) discard;
   vOutColor.rgb /= vOutColor.a;
-}  
+}
 )";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -128,19 +131,30 @@ bool ScreenSpaceGuiArea::Do() {
   // draw back-to-front
   auto const& items = getItems();
   for (auto item = items.rbegin(); item != items.rend(); ++item) {
-    if ((*item)->getIsEnabled()) {
-      float posX = (*item)->getRelPositionX() + (*item)->getRelOffsetX();
-      float posY = 1 - (*item)->getRelPositionY() - (*item)->getRelOffsetY();
+    auto guiItem = *item;
+
+    bool textureRightSize = guiItem->getWidth() == guiItem->getTextureSizeX() &&
+                            guiItem->getHeight() == guiItem->getTextureSizeY();
+
+    if (guiItem->getIsEnabled() && textureRightSize) {
+      float posX = guiItem->getRelPositionX() + guiItem->getRelOffsetX();
+      float posY = 1 - guiItem->getRelPositionY() - guiItem->getRelOffsetY();
       mShader->SetUniform(mShader->GetUniformLocation("iPosition"), posX, posY);
 
-      float scaleX = (*item)->getRelSizeX();
-      float scaleY = (*item)->getRelSizeY();
+      float scaleX = guiItem->getRelSizeX();
+      float scaleY = guiItem->getRelSizeY();
       mShader->SetUniform(mShader->GetUniformLocation("iScale"), scaleX, scaleY);
 
-      (*item)->getTexture()->Bind(GL_TEXTURE0);
-      mShader->SetUniform(mShader->GetUniformLocation("iTexture"), 0);
+      glUniform2i(mShader->GetUniformLocation("texSize"), guiItem->getTextureSizeX(),
+          guiItem->getTextureSizeY());
+
+      glActiveTexture(GL_TEXTURE0);
+      glBindTexture(GL_TEXTURE_BUFFER, guiItem->getTexture());
+      mShader->SetUniform(mShader->GetUniformLocation("texture"), 0);
+
       glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-      (*item)->getTexture()->Unbind(GL_TEXTURE0);
+
+      glBindTexture(GL_TEXTURE_BUFFER, 0);
     }
   }
 

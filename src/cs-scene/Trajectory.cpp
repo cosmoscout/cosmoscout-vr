@@ -180,15 +180,8 @@ bool Trajectory::Do() {
     mShader->Bind();
 
     if (mUseLinearDepthBuffer) {
-      double near, far;
-      GetVistaSystem()
-          ->GetDisplayManager()
-          ->GetCurrentRenderInfo()
-          ->m_pViewport->GetProjection()
-          ->GetProjectionProperties()
-          ->GetClippingRange(near, far);
-
-      mShader->SetUniform(mShader->GetUniformLocation("fFarClip"), (float)far);
+      mShader->SetUniform(
+          mShader->GetUniformLocation("fFarClip"), utils::getCurrentFarClipDistance());
     }
 
     mShader->SetUniform(mShader->GetUniformLocation("cStartColor"), mStartColor[0], mStartColor[1],
