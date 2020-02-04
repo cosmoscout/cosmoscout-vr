@@ -4,7 +4,7 @@
 
 # Continuous Integration
 
-[Github Actions](https://github.com/cosmoscout/cosmoscout-vr/actions) is used for contiuous integration of CosmoScout VR.
+[Github Actions](https://github.com/cosmoscout/cosmoscout-vr/actions) is used for continuous integration of CosmoScout VR.
 The file [`build.yml`](../.github/workflows/build.yml) describes which jobs are run whenever a commit is pushed or a pull request is opened.
 
 ## Clang-Format Check
