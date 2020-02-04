@@ -11,7 +11,6 @@
 #include <VistaKernel/DisplayManager/VistaViewport.h>
 #include <VistaKernel/VistaSystem.h>
 
-#include <GL/glew.h>
 #include <array>
 #include <iostream>
 #include <memory>
@@ -136,31 +135,6 @@ std::string exec(std::string const& cmd) {
     result += buffer.data();
   }
   return result;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-bool glDebugOnlyErrors = true;
-
-void GLAPIENTRY oglMessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity,
-    GLsizei length, const GLchar* message, const void* userParam) {
-  if (type == GL_DEBUG_TYPE_ERROR)
-    fprintf(
-        stderr, "GL ERROR: type = 0x%x, severity = 0x%x, message = %s\n", type, severity, message);
-  else if (!glDebugOnlyErrors)
-    fprintf(stdout, "GL WARNING: type = 0x%x, severity = 0x%x, message = %s\n", type, severity,
-        message);
-}
-
-void CS_UTILS_EXPORT enableGLDebug(bool onlyErrors) {
-  glDebugOnlyErrors = onlyErrors;
-  glEnable(GL_DEBUG_OUTPUT);
-  glDebugMessageCallback(oglMessageCallback, nullptr);
-}
-
-void CS_UTILS_EXPORT disableGLDebug() {
-  glDisable(GL_DEBUG_OUTPUT);
-  glDebugMessageCallback(nullptr, nullptr);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
