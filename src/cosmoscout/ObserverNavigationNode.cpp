@@ -150,7 +150,7 @@ bool ObserverNavigationNode::DoEvalNode() {
   if (stepSize > 0.0) {
     // Ensure that an SolarSystem::updateSceneScale() is called at least at 100 Hz. If it is called
     // only once a frame, it can happen that the observer instantly travels to a planet's surface.
-    int32_t steps = std::ceil(dDeltaTime / 0.01);
+    int32_t steps = std::ceil(dDeltaTime * 100.0);
 
     for (int32_t i(1); i <= steps; ++i) {
       oObs.setAnchorPosition(oObs.getAnchorPosition() + oObs.getAnchorRotation() * vTranslation *
