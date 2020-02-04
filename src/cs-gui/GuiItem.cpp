@@ -38,8 +38,6 @@ GuiItem::GuiItem(std::string const& url, bool allowLocalFileAccess)
     , mIsRelOffsetY(true) {
   setDrawCallback([this](DrawEvent const& event) { return updateTexture(event); });
 
-  cs::utils::enableGLDebug();
-
   glGenBuffers(1, &mTextureBuffer);
   glBindBuffer(GL_TEXTURE_BUFFER, mTextureBuffer);
   size_t bufferSize{4 * sizeof(uint8_t) * getWidth() * getHeight()};
