@@ -96,9 +96,13 @@ class CS_CORE_EXPORT SolarSystem {
   /// effectively with the simulation.
   /// As objects will be quite close to the observer in world space if the user is far away in
   /// *real* space, this also reduces the far clip distance in order to increase depth accuracy
-  /// for objects close to the observer. This method also manages the SPICE frame changes when the
-  /// observer moves from body to body.
+  /// for objects close to the observer.
   void updateSceneScale();
+
+  /// This method manages the SPICE frame changes when the observer moves from body to body. The
+  /// active body is determined by its weight. The weight of a body is calculated by its size and
+  /// distance to the observer.
+  void updateObserverFrame();
 
   /// Gradually moves the observer's position and rotation from their current values to the given
   /// values.
