@@ -12,7 +12,7 @@
 
 * A timeline has been added to the user interface. This allows for quick temporal navigation and adjustments of the simulation time speed.
 * The loading screen now shows an animated progress bar. Also, the loading screen now has a fade-out effect.
-* Assets files (including SPICE kernels) can now be downloaded at startup. The files to download are specified in the scene configuration file. The download progress is shown on loading screen.
+* Asset files (including SPICE kernels) can now be downloaded at startup. The files to download are specified in the scene configuration file. The download progress is shown on loading screen.
 * Github Actions is now used instead of Travis for continuous integration of CosmoScout VR. These features are configured:
   * Binary builds of CosmoScout VR for Linux and Windows whenever a tag is pushed.
   * Clang-Format: For each and every push event, a job is executed which checks whether the code base obeys our clang-format rules.
@@ -26,7 +26,7 @@
 #### Other Enhancements
 
 * The user interface code of CosmoScout VR has been vastly restructured. Most importantly, the main user interface now consists of one HTML page only. This simplifies development of plugins which have to modify the UI. Furthermore, the API between C++ and JavaScript is now much cleaner. Other UI related changes include: 
-  * The middle mouse button and double click events are now support for UI elements.
+  * The middle mouse button and double click events are now supported for UI elements.
   * Chromium Embedded Framework  has been upgrade to version 79.
 * Other parts of the code base have been refactored, leading to
   * a clean shutdown - no more crashes on windows when the CosmoScout VR window is closed and
@@ -101,4 +101,3 @@ When the left mouse button is pressed over an item, this item will receive input
   <img src ="img/nav-vspace.svg"/>
   <a href="citation.md">How to cite CosmoScout VR &rsaquo;</a>
 </p>
-
