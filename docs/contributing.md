@@ -13,10 +13,6 @@ Feel free to fork the repository, implement your changes and create a merge requ
 Since CosmoScout VR uses plenty of git submodules, forking is not straight-forward.
 There is a [forking guide](#forking-cosmoscout-vr) available to get you started!
 
-## DLR Individual Contributor License Agreement
-
-Before we can accept your merge request, you have to print, sign, scan and send the [DLR Individual Contributor License Agreement](CLA.md) via e-mail to cosmoscout@dlr.de.
-
 ## Branching Guidelines
 
 The development of CosmoScout VR follows a simplified version of **git-flow**: The `master` branch always contains stable code.
