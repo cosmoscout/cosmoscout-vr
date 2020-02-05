@@ -74,6 +74,8 @@ if exist "%BUILD_DIR%" goto BUILD_DIR_CREATED
 
 rem configure, compile & install -------------------------------------------------------------------
 
+set GDAL_DIR=%CURRENT_DIR%\install\windows-externals-%BUILD_TYPE%\gdal
+
 cd "%BUILD_DIR%"
 cmake %CMAKE_FLAGS% -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
       -DCMAKE_UNITY_BUILD=%UNITY_BUILD% -DCOSMOSCOUT_USE_PRECOMPILED_HEADERS=%PRECOMPILED_HEADERS%^
