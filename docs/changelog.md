@@ -13,6 +13,7 @@
 * A timeline has been added to the user interface. This allows for quick temporal navigation and adjustments of the simulation time speed.
 * The loading screen now shows an animated progress bar. Also, the loading screen now has a fade-out effect.
 * Asset files (including SPICE kernels) can now be downloaded at startup. The files to download are specified in the scene configuration file. The download progress is shown on loading screen.
+* Support for Unit Tests has been added. This also adds support for *graphical* tests. These tests require an OpenGL context and will open a window; oftentimes they capture a screenshot and compare the result to a reference image. In order to make this possible even if there is no graphics card or display attached, they require [Xvfb](https://en.wikipedia.org/wiki/Xvfb) and [imagemagick](https://imagemagick.org/index.php).
 * Github Actions is now used instead of Travis for continuous integration of CosmoScout VR. These features are configured:
   * Binary builds of CosmoScout VR for Linux and Windows whenever a tag is pushed.
   * Clang-Format: For each and every push event, a job is executed which checks whether the code base obeys our clang-format rules.
@@ -21,7 +22,6 @@
     * For each push to `master` or `develop` if the commit message does not contain `[no-ci]`.
     * For each push to any branch if commit message contains `[run-ci]`.
     * For pull requests.
-  * Support for *Graphical Tests* has been added. These tests require an OpenGL context and will open a window; oftentimes they capture a screenshot and compare the result to a reference image. In order to make this possible even if there is no graphics card or display attached, they require [Xvfb](https://en.wikipedia.org/wiki/Xvfb) and [imagemagick](https://imagemagick.org/index.php).
 
 #### Other Enhancements
 
