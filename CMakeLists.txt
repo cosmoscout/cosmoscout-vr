@@ -167,7 +167,18 @@ endif()
 
 # Copy all third-party libraries to install directory.
 install(
-  DIRECTORY ${COSMOSCOUT_EXTERNALS_DIR}/lib/ ${COSMOSCOUT_EXTERNALS_DIR}/bin/ 
+  DIRECTORY ${COSMOSCOUT_EXTERNALS_DIR}/gdal/lib/
+  DESTINATION "lib"
+  FILES_MATCHING PATTERN "*.so*" PATTERN "*.dll*"
+)
+
+install(
+  DIRECTORY ${COSMOSCOUT_EXTERNALS_DIR}/gdal/lib/proj6/share
+  DESTINATION "bin/proj6"
+)
+
+install(
+  DIRECTORY ${COSMOSCOUT_EXTERNALS_DIR}/lib/ ${COSMOSCOUT_EXTERNALS_DIR}/bin/
   DESTINATION "lib"
   FILES_MATCHING PATTERN "*.so*" PATTERN "*.dll*"
 )
