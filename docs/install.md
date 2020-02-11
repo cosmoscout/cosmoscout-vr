@@ -75,8 +75,8 @@ The progress of this operation is shown on the loading screen.
 Since you specified `-DCOSMOSCOUT_UNIT_TESTS=On` at build time, you can now execute the unit tests with (the _graphical tests_ require [Xvfb](https://en.wikipedia.org/wiki/Xvfb) and [imagemagick](https://imagemagick.org/index.php) to be installed on your system):
 
 ```shell
-./install/linux-release/run_tests.sh
-./install/linux-release/run_graphical_tests.sh
+./install/linux-release/bin/run_tests.sh
+./install/linux-release/bin/run_graphical_tests.sh
 ```
 
 :information_source: _**Tip:** If you wish, you can delete the directories `build` and `install` at any time in order to force a complete reconfiguration or re-installation._
@@ -159,7 +159,7 @@ The progress of this operation is shown on the loading screen.
 Since you specified `-DCOSMOSCOUT_UNIT_TESTS=On` at build time, you can now execute the unit tests with:
 
 ```batch
-install\linux-release\run_tests.bat
+install\linux-release\bin\run_tests.bat
 ```
 
 :information_source: _**Tip:** If you wish, you can delete the directories `build` and `install` at any time in order to force a complete reconfiguration or re-installation._
