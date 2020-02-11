@@ -72,7 +72,7 @@ When started for the very first time, some example datasets will be downloaded f
 **This will take some time!**
 The progress of this operation is shown on the loading screen.
 
-Since you specified `-DCOSMOSCOUT_UNIT_TESTS=On` at build time, you can now execute the unit tests with (the _graphical tests_ require [Xvfb](https://en.wikipedia.org/wiki/Xvfb) and [imagemagick](https://imagemagick.org/index.php) to be installed on your system):
+Since you specified `-DCOSMOSCOUT_UNIT_TESTS=On` at build time, you can now execute the unit tests with (the _graphical tests_ require [Xvfb](https://en.wikipedia.org/wiki/Xvfb) and [imagemagick](https://imagemagick.org/index.php) to be installed on your system. On Ubuntu: `sudo apt-get install xvfb imagemagick`):
 
 ```shell
 ./install/linux-release/bin/run_tests.sh
