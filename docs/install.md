@@ -17,6 +17,14 @@ When compiling from source, you can either choose the `master` branch which cont
 On Linux, one can either use the provided shell script ([make.sh](../make.sh)) or build the software manually using CMake. 
 **Using the provided script** is easy and definitely the recommended way.
 
+Before you start, it may be necessary to install some additional system packages.
+As there are many distributions with varying default libs and available packages, giving an exhaustive list is difficult.
+Here is an exemplary list for Ubuntu 19.10 which you have to adapt to your specific distribution:
+
+```bash
+sudo apt-get install git cmake build-essential xorg-dev libboost-dev libglu1-mesa-dev
+```
+
 ### Cloning the repository
 
 ```shell
@@ -32,15 +40,6 @@ git checkout develop
 
 ### Getting the dependencies
 
-It may be necessary to install some additional system packages.
-As there are many distributions with varying default libs and available packages, giving an exhaustive list is difficult.
-Here is an exemplary list for Ubuntu 19.10 which you have to adapt to your specific distribution:
-
-```bash
-sudo apt-get install git cmake build-essential xorg-dev libboost-dev
-```
-
-Then you have to compile the dependencies.
 Per default, CosmoScout VR and all dependencies are built in release mode.
 You can switch to debug mode by setting the environment variable `export COSMOSCOUT_DEBUG_BUILD=true` before executing the scripts below.
 This step only has to be done once.
