@@ -17,7 +17,15 @@ When compiling from source, you can either choose the `master` branch which cont
 On Linux, one can either use the provided shell script ([make.sh](../make.sh)) or build the software manually using CMake. 
 **Using the provided script** is easy and definitely the recommended way.
 
-In any way, first you have to clone the repository.
+Before you start, it may be necessary to install some additional system packages.
+As there are many distributions with varying default libs and available packages, giving an exhaustive list is difficult.
+Here is an exemplary list for Ubuntu 19.10 which you have to adapt to your specific distribution:
+
+```bash
+sudo apt-get install git cmake build-essential xorg-dev libboost-all-dev libglu1-mesa-dev libssl-dev
+```
+
+### Cloning the repository
 
 ```shell
 git clone git@github.com:cosmoscout/cosmoscout-vr.git
@@ -30,7 +38,8 @@ The default branch is `master`, which contains the code of the last stable relea
 git checkout develop
 ```
 
-Then you have to compile the dependencies.
+### Getting the dependencies
+
 Per default, CosmoScout VR and all dependencies are built in release mode.
 You can switch to debug mode by setting the environment variable `export COSMOSCOUT_DEBUG_BUILD=true` before executing the scripts below.
 This step only has to be done once.
@@ -43,14 +52,15 @@ git submodule update --init
 This will clone the repository to `cosmoscout-vr` configure and build all externals in `cosmoscout-vr/build/linux-externals-release` and will install them to `cosmoscout-vr/install/linux-externals-release`.
 All parameters given to `make_externals.bat` will be forwarded to CMake. For example, you can change the CMake generator this way.
 
-Now you can compile CosmoScout VR:
+### Compiling CosmoScout VR
+
+This will configure and build CosmoScout VR in `cosmoscout-vr/build/linux-release` and will install it to `cosmoscout-vr/install/linux-release`.
+Again, all parameters given to `make.sh` will be forwarded to CMake:
 
 ```shell
 ./make.sh -G "Unix Makefiles" -DCOSMOSCOUT_UNIT_TESTS=On
 ```
 
-This will configure and build CosmoScout VR in `cosmoscout-vr/build/linux-release` and will install it to `cosmoscout-vr/install/linux-release`.
-Again, all parameters given to `make.sh` will be forwarded to CMake.
 
 The application can be executed with:
 
@@ -62,11 +72,11 @@ When started for the very first time, some example datasets will be downloaded f
 **This will take some time!**
 The progress of this operation is shown on the loading screen.
 
-Since you specified `-DCOSMOSCOUT_UNIT_TESTS=On` at build time, you can now execute the unit tests with (the _graphical tests_ require [Xvfb](https://en.wikipedia.org/wiki/Xvfb) and [imagemagick](https://imagemagick.org/index.php) to be installed on your system):
+Since you specified `-DCOSMOSCOUT_UNIT_TESTS=On` at build time, you can now execute the unit tests with (the _graphical tests_ require [Xvfb](https://en.wikipedia.org/wiki/Xvfb) and [imagemagick](https://imagemagick.org/index.php) to be installed on your system. On Ubuntu: `sudo apt-get install xvfb imagemagick`):
 
 ```shell
-./install/linux-release/run_tests.sh
-./install/linux-release/run_graphical_tests.sh
+./install/linux-release/bin/run_tests.sh
+./install/linux-release/bin/run_graphical_tests.sh
 ```
 
 :information_source: _**Tip:** If you wish, you can delete the directories `build` and `install` at any time in order to force a complete reconfiguration or re-installation._
@@ -78,6 +88,8 @@ For **manual compilation** follow the steps outlined in [make.sh](../make.sh).
 ## Windows
 
 :warning: _**Warning:** During compilation of the externals, files with pretty long names are generated. Since Windows does not support paths longer 260 letters, you have to compile CosmoScout VR quite close to your file system root (`e.g. C:\cosmoscout-vr`). If you are on Windows 10, [you can disable this limit](https://www.howtogeek.com/266621/how-to-make-windows-10-accept-file-paths-over-260-characters/)._
+
+### Cloning the repository
 
 For Windows, there is a batch script ([make.bat](../make.bat)) which can be used in the same way as the script for Linux.
 First you have to clone the repository:
@@ -92,6 +104,20 @@ The default branch is `master`, which contains the code of the last stable relea
 ```shell
 git checkout develop
 ```
+
+### Getting the dependencies
+
+Getting a precompiled version of boost suitable for CosmoScout VR which will be found by CMake can be difficult: Older CMake versions fail to find boost versions which are too new; but on the other hand you need a rather new version if you use a very recent version of MSVC (e.g. 14.2, the one shipped with Visual Studio 2019). The "oldest" precompiled boost which you can get on SourceForge for MSVC 14.2 is version 1.70.0.
+
+So using version 1.70.0 may work in most cases. You can get it from from https://sourceforge.net/projects/boost/files/boost-binaries/1.70.0
+
+MSVC | Visual Studio | File | Link
+--- | --- | --- | ---
+14.2 | 2019 | `boost_1_70_0-unsupported-msvc-14.2-64.exe` | [download](https://sourceforge.net/projects/boost/files/boost-binaries/1.70.0/boost_1_70_0-unsupported-msvc-14.2-64.exe/download)
+14.1 | 2017 | `boost_1_70_0-msvc-14.1-64.exe` | [download](https://sourceforge.net/projects/boost/files/boost-binaries/1.70.0/boost_1_70_0-msvc-14.1-64.exe/download)
+14.0 | 2015 | `boost_1_70_0-msvc-14.0-64.exe` | [download](https://sourceforge.net/projects/boost/files/boost-binaries/1.70.0/boost_1_70_0-msvc-14.0-64.exe/download)
+
+
 
 Then you have to compile the dependencies.
 Per default, CosmoScout VR and all dependencies are built in release mode.
@@ -108,7 +134,8 @@ make_externals.bat -G "Visual Studio 15 Win64"
 This will clone the repository to `cosmoscout-vr` configure and build all externals in `cosmoscout-vr\build\windows-externals-release` and will install them to `cosmoscout-vr\install\windows-externals-release`.
 All parameters given to `make_externals.bat` will be forwarded to CMake. For example, you can change the CMake generator this way.
 
-Now you can compile CosmoScout VR.
+### Compiling CosmoScout VR
+
 On Linux, boost is usually found automatically by CMake, on Windows you have to provide the `BOOST_ROOT` path.
 **Replace the path in the command below to match your setup!**
 
@@ -132,7 +159,7 @@ The progress of this operation is shown on the loading screen.
 Since you specified `-DCOSMOSCOUT_UNIT_TESTS=On` at build time, you can now execute the unit tests with:
 
 ```batch
-install\linux-release\run_tests.bat
+install\linux-release\bin\run_tests.bat
 ```
 
 :information_source: _**Tip:** If you wish, you can delete the directories `build` and `install` at any time in order to force a complete reconfiguration or re-installation._
