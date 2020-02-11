@@ -22,7 +22,7 @@ As there are many distributions with varying default libs and available packages
 Here is an exemplary list for Ubuntu 19.10 which you have to adapt to your specific distribution:
 
 ```bash
-sudo apt-get install git cmake build-essential xorg-dev libboost-dev libglu1-mesa-dev
+sudo apt-get install git cmake build-essential xorg-dev libboost-all-dev libglu1-mesa-dev libssl-dev
 ```
 
 ### Cloning the repository
