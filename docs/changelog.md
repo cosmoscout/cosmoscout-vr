@@ -6,16 +6,16 @@
 
 ## [v1.2.0](https://github.com/cosmoscout/cosmoscout-vr/releases)
 
-**Release Date:** 2020-02-05
+**Release Date:** 2020-02-11
 
 #### New Features
 
-* A timeline has been added to the user interface. This allows for quick temporal navigation and adjustments of the simulation time speed.
-* The loading screen now shows an animated progress bar. Also, the loading screen now has a fade-out effect.
-* Asset files (including SPICE kernels) can now be downloaded at startup. The files to download are specified in the scene configuration file. The download progress is shown on loading screen.
-* Support for Unit Tests has been added. This also adds support for *graphical* tests. These tests require an OpenGL context and will open a window; oftentimes they capture a screenshot and compare the result to a reference image. In order to make this possible even if there is no graphics card or display attached, they require [Xvfb](https://en.wikipedia.org/wiki/Xvfb) and [imagemagick](https://imagemagick.org/index.php).
-* Github Actions is now used instead of Travis for continuous integration of CosmoScout VR. These features are configured:
-  * Binary builds of CosmoScout VR for Linux and Windows whenever a tag is pushed.
+* A **timeline** has been added to the user interface. This allows for quick temporal navigation and adjustments of the simulation time speed.
+* The loading screen now shows an **animated progress bar**. Also, the loading screen now has a fade-out effect.
+* Asset files (including SPICE kernels) can now be **downloaded at startup**. The files to download are specified in the scene configuration file. The download progress is shown on loading screen.
+* Support for **Unit Tests** has been added. This also adds support for **_graphical_ tests**. These tests require an OpenGL context and will open a window; oftentimes they capture a screenshot and compare the result to a reference image. In order to make this possible even if there is no graphics card or display attached, they require [Xvfb](https://en.wikipedia.org/wiki/Xvfb) and [imagemagick](https://imagemagick.org/index.php).
+* **Github Actions** is now used instead of Travis for continuous integration of CosmoScout VR. These features are configured:
+  * **Binary builds** of CosmoScout VR for Linux and Windows whenever a tag is pushed.
   * Clang-Format: For each and every push event, a job is executed which checks whether the code base obeys our clang-format rules.
   * For pull requests only, a job is run which analyses the amount of comments in the source tree. This test will pass if the percentage of comments did not decrease.
   * CosmoScout VR and all of its dependencies are compiled and tests are run. As this job takes quite some time, it is only executed for the events below:
@@ -25,19 +25,21 @@
 
 #### Other Enhancements
 
-* The user interface code of CosmoScout VR has been vastly restructured. Most importantly, the main user interface now consists of one HTML page only. This simplifies development of plugins which have to modify the UI. Furthermore, the API between C++ and JavaScript is now much cleaner. Other UI related changes include: 
+* The user interface code of CosmoScout VR has been **vastly restructured**. Most importantly, the main user interface now consists of **one HTML page only**. This simplifies development of plugins which have to modify the UI. Furthermore, the API between C++ and JavaScript is now much cleaner. Other UI related changes include: 
   * The middle mouse button and double click events are now supported for UI elements.
   * Chromium Embedded Framework  has been upgrade to version 79.
 * Other parts of the code base have been refactored, leading to
-  * a clean shutdown - no more crashes on windows when the CosmoScout VR window is closed and
-  * several performance improvements.
+  * a **clean shutdown** - no more crashes on windows when the CosmoScout VR window is closed and
+  * several **performance improvements**.
 * An icon has been assigned to the CosmoScout VR executable on Windows.
 * An icon has been assigned to the CosmoScout VR window on Windows.
 * The high performance GPU is now automatically selected on Windows.
 * A notification is now shown when travelling to a location.
-* A lot of documentation has been added:
+* A lot of **documentation** has been added:
   * Explanation of CosmoScout VR's coordinate systems.
   * Guides on how to setup various IDEs for CosmoScout VR development.
+  * A list of required software packages for Linux
+  * A guide on how-to get a matching version of Boost
 
 #### Bug Fixes
 
