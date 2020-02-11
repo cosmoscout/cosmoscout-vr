@@ -40,11 +40,13 @@
   * Guides on how to setup various IDEs for CosmoScout VR development.
   * A list of required software packages for Linux
   * A guide on how-to get a matching version of Boost
+* More Space Mice from 3DConnexion are now supported.
 
 #### Bug Fixes
 
 * An issue has been fixed which leads to an instant zoom-to-surface effect when CosmoScout VR runs at low frame rates and the mouse wheel is scrolled quickly.
 * The Sun's position did not change at dates before 2000-01-01.
+* The axis formatting in the path tool did not show the fractional part of decimal numbers.
 
 ## [v1.1.1](https://github.com/cosmoscout/cosmoscout-vr/releases)
 
