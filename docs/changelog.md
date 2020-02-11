@@ -41,6 +41,7 @@
   * A list of required software packages for Linux
   * A guide on how-to get a matching version of Boost
 * More Space Mice from 3DConnexion are now supported.
+* `develop` is now the default branch for CosmoScout VR and its plugins.
 
 #### Bug Fixes
 

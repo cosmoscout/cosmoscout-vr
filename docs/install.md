@@ -32,10 +32,10 @@ git clone git@github.com:cosmoscout/cosmoscout-vr.git
 cd cosmoscout-vr
 ```
 
-The default branch is `master`, which contains the code of the last stable release. If you want to test the latest features, you can switch to the `develop` branch.
+The default branch is `develop`, which contains the latest features. If you prefer to use the last stable release, you can switch to the `master` branch.
 
 ```shell
-git checkout develop
+git checkout master
 ```
 
 ### Getting the dependencies
@@ -99,10 +99,10 @@ git clone git@github.com:cosmoscout/cosmoscout-vr.git
 cd cosmoscout-vr
 ```
 
-The default branch is `master`, which contains the code of the last stable release. If you want to test the latest features, you can switch to the `develop` branch.
+The default branch is `develop`, which contains the latest features. If you prefer to use the last stable release, you can switch to the `master` branch.
 
-```shell
-git checkout develop
+```batch
+git checkout master
 ```
 
 ### Getting the dependencies
