@@ -5,7 +5,7 @@
 # ------------------------------------------------------------------------------------------------ #
 
 cmake_minimum_required(VERSION 3.13)
-project(cosmoscout-vr VERSION 1.1.1)
+project(cosmoscout-vr VERSION 1.2.0)
 
 # Use cmake 3.12's <PACKAGE>_ROOT variabled for searching.
 cmake_policy(SET CMP0074 NEW)
@@ -235,6 +235,12 @@ add_compile_options(
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# Enable unit tests
+option(COSMOSCOUT_UNIT_TESTS "Enable compilation of tests" OFF)
+if (NOT COSMOSCOUT_UNIT_TESTS)
+  add_definitions(-DDOCTEST_CONFIG_DISABLE)
+endif()
 
 # Enable code coverage measurements
 option(COSMOSCOUT_COVERAGE_INFO "Run code coverage analytics" OFF)

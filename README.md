@@ -6,8 +6,8 @@ CosmoScout VR is a modular virtual universe developed at the German Aerospace Ce
 It lets you explore, analyze and present huge planetary data sets and large simulation data in real-time.
 
 [![Build Status](https://github.com/cosmoscout/cosmoscout-vr/workflows/Build/badge.svg?branch=develop)](https://github.com/cosmoscout/cosmoscout-vr/actions)
+[![Coverage Status](https://coveralls.io/repos/github/cosmoscout/cosmoscout-vr/badge.svg?branch=develop)](https://coveralls.io/github/cosmoscout/cosmoscout-vr?branch=develop)
 [![documentation](https://img.shields.io/badge/Docs-online-34D058.svg)](docs/README.md)
-[![contact](https://img.shields.io/badge/Contact-email-6ca.svg)](mailto:cosmoscout@dlr.de)
 [![license](https://img.shields.io/badge/License-MIT-purple.svg)](LICENSE)
 [![source loc](https://img.shields.io/badge/LoC-10.4k-green.svg)](cloc.sh)
 [![plugin loc](https://img.shields.io/badge/LoC_Plugins-13.7k-green.svg)](cloc.sh)
@@ -36,12 +36,12 @@ You can also read the [**changelog**](docs/changelog.md) to learn what's new in 
   - [X] Rendering of orbits and trajectories based on SPICE (with [csp-trajectories](https://github.com/cosmoscout/csp-trajectories))
   - [ ] Rendering of shadows
   - [ ] HDR-Rendering
-- [ ] Flexible User Interface
+- [x] Flexible User Interface
   - [X] Completely written in JavaScript with help of the [Chromium Embedded Framework](https://bitbucket.org/chromiumembedded/cef/src)
   - [X] Main UI can be drawn in the screen- or world-space
   - [X] Web pages can be placed on planetary surfaces
   - [X] Interaction works both in VR and on the Desktop
-  - [ ] Clear API between C++ and JavaScript 
+  - [x] Clear API between C++ and JavaScript 
 - [ ] Cross-Platform
   - [X] Runs on Linux
   - [X] Runs on Windows

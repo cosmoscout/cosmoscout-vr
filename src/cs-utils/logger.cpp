@@ -12,23 +12,27 @@
 namespace cs::utils::logger {
 
 template <spdlog::level::level_enum level>
-class SpdlogBuffer : public std::stringbuf {
+class SpdlogBuffer : public std::streambuf {
  public:
   SpdlogBuffer(std::shared_ptr<spdlog::logger> const& logger)
       : mLogger(logger) {
   }
 
  private:
-  virtual int sync() override {
-    mLogger->log(level, "{}", str());
+  int_type overflow(int_type c) override {
+    char_type ch = traits_type::to_char_type(c);
+    if (ch == '\n') {
+      mLogger->log(level, "{}", mLine);
+      mLine = "";
+    } else {
+      mLine += ch;
+    }
+
     return 0;
   }
 
-  int overflow(int ch) override {
-    return callback_(&ch, 1, user_data_); // returns the number of characters successfully written.
-  }
-
   std::shared_ptr<spdlog::logger> mLogger;
+  std::string                     mLine;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -58,8 +62,9 @@ void init() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::shared_ptr<spdlog::logger> createLogger(std::string const& name) {
-  static auto coutSink = std::make_shared<spdlog::sinks::basic_file_sink_mt>("cosmoscout.log");
-  static auto fileSink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+  static auto fileSink =
+      std::make_shared<spdlog::sinks::basic_file_sink_mt>("cosmoscout.log", true);
+  static auto coutSink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
 
   // We create a colored console logger which can be used from multiple threads. We may consider
   // logging to files in the future.
@@ -70,7 +75,7 @@ std::shared_ptr<spdlog::logger> createLogger(std::string const& name) {
   logger->set_level(spdlog::level::trace);
 
   // See https://github.com/gabime/spdlog/wiki/3.-Custom-formatting for formatting options.
-  logger->set_pattern("%^[%L] %-17!n:%$ %v");
+  logger->set_pattern("%^[%L] %=15n%$ %v");
 
   return logger;
 }

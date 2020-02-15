@@ -167,98 +167,81 @@ void SolarSystem::update() {
   for (auto const& object : mAnchors) {
     object->update(simulationTime, mObserver);
   }
+
+  // update speed display
+  auto observerPosition = mObserver.getAnchorPosition();
+  auto now              = std::chrono::high_resolution_clock::now();
+
+  auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(now - mLastTime).count();
+
+  // duration is in nanoseconds so we have to multiply by 1.0e9
+  if (duration > 0) {
+    pCurrentObserverSpeed = 1.0e9 * glm::length(mLastPosition - observerPosition) / duration;
+    mLastPosition         = observerPosition;
+    mLastTime             = now;
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void SolarSystem::updateSceneScale() {
-  double simulationTime = mTimeControl->pSimulationTime.get();
 
-  // user will be locked to active planet, scene will be scaled that closest planet
-  // is mScaleDistance away in world space
+  // First we have to find the planet which is closest to the observer.
   std::shared_ptr<cs::scene::CelestialBody> closestBody;
-  std::shared_ptr<cs::scene::CelestialBody> activeBody;
+  double                                    dClosestDistance = std::numeric_limits<double>::max();
 
-  double dActiveWeight    = 0;
-  double dClosestDistance = std::numeric_limits<double>::max();
-
+  // Here we will store the position of the observer relative to the closestBody.
   glm::dvec3 vClosestPlanetObserverPosition(0.0);
 
   for (auto const& object : getBodies()) {
+
+    // Skip non-existant objects.
     if (!object->getIsInExistence()) {
       continue;
     }
 
+    // Skip objects with an unkown radius.
     auto radii = object->getRadii();
-
     if (radii.x <= 0.0 || radii.y <= 0.0 || radii.z <= 0.0) {
       continue;
     }
 
-    glm::dvec3 vObserverPos;
-
+    // Finally check if the current body is closest to the observer. We won't incorporate surface
+    // elevation in this check.
     try {
-      vObserverPos = object->getRelativePosition(simulationTime, mObserver);
+      auto vObserverPos =
+          object->getRelativePosition(mTimeControl->pSimulationTime.get(), mObserver);
+      double dDistance = glm::length(vObserverPos) - radii[0];
+
+      if (dDistance < dClosestDistance) {
+        closestBody                    = object;
+        dClosestDistance               = dDistance;
+        vClosestPlanetObserverPosition = vObserverPos;
+      }
     } catch (...) { continue; }
-
-    double dDistance = glm::length(vObserverPos) - radii[0];
-    double dWeight   = (radii[0] + mSettings->mSceneScale.mMinObjectSize) /
-                     std::max(radii[0] + mSettings->mSceneScale.mMinObjectSize,
-                         radii[0] + dDistance - mSettings->mSceneScale.mMinObjectSize);
-
-    if (dWeight > dActiveWeight) {
-      activeBody    = object;
-      dActiveWeight = dWeight;
-    }
-
-    if (dDistance < dClosestDistance) {
-      closestBody                    = object;
-      dClosestDistance               = dDistance;
-      vClosestPlanetObserverPosition = vObserverPos;
-    }
   }
 
-  // change frame and center if there is a object with weight larger than mLockWeight
-  // and mTrackWeight
-  if (activeBody) {
-    if (!mObserver.isAnimationInProgress()) {
-      std::string sCenter = "Solar System Barycenter";
-      std::string sFrame  = "J2000";
-
-      if (dActiveWeight > mSettings->mSceneScale.mLockWeight) {
-        sFrame = activeBody->getFrameName();
-      }
-
-      if (dActiveWeight > mSettings->mSceneScale.mTrackWeight) {
-        sCenter = activeBody->getCenterName();
-      }
-
-      pActiveBody     = activeBody;
-      pObserverCenter = sCenter;
-      pObserverFrame  = sFrame;
-    }
-  }
-
-  // scale scene in such a way that the closest planet
-  // is mScaleDistance away in world space
+  // Now that we found a closest body, we will scale the observer in such a way, that the closest
+  // body is rendered at a distance between mSettings->mSceneScale.mCloseVisualDistance and
+  // mSettings->mSceneScale.mFarVisualDistance (in meters).
   if (closestBody) {
-    auto   dSurfaceHeight = 0.0;
-    double dRealDistance  = glm::length(vClosestPlanetObserverPosition);
 
+    // First we calculate the *real* world-space distance to the planet (incorporating surface
+    // elevation).
     auto radii = closestBody->getRadii();
-
-    if (radii[0] > 0) {
-      auto lngLatHeight =
-          cs::utils::convert::toLngLatHeight(vClosestPlanetObserverPosition, radii[0], radii[0]);
-      dRealDistance = lngLatHeight.z;
-      dRealDistance -=
-          closestBody->getHeight(lngLatHeight.xy()) * mGraphicsEngine->pHeightScale.get();
-    }
+    auto lngLatHeight =
+        cs::utils::convert::toLngLatHeight(vClosestPlanetObserverPosition, radii[0], radii[0]);
+    double dRealDistance = lngLatHeight.z - closestBody->getHeight(lngLatHeight.xy()) *
+                                                mGraphicsEngine->pHeightScale.get();
 
     if (std::isnan(dRealDistance)) {
       return;
     }
 
+    // The render distance between mSettings->mSceneScale.mCloseVisualDistance and
+    // mSettings->mSceneScale.mFarVisualDistance is chosen based on the observer's world-space
+    // distance between mSettings->mSceneScale.mFarRealDistance and
+    // mSettings->mSceneScale.mCloseRealDistance (also in meters).
     double interpolate = 1.0;
 
     if (mSettings->mSceneScale.mFarRealDistance != mSettings->mSceneScale.mCloseRealDistance) {
@@ -279,7 +262,7 @@ void SolarSystem::updateSceneScale() {
       mObserver.setAnchorPosition(position + glm::normalize(position) * penetration);
     }
 
-    // set far clip dynamically
+    // We set the far clip plane dynamically, based on the same interpolation factor.
     auto projections = GetVistaSystem()->GetDisplayManager()->GetProjections();
     for (auto const& projection : projections) {
       projection.second->GetProjectionProperties()->SetClippingRange(
@@ -287,13 +270,67 @@ void SolarSystem::updateSceneScale() {
                                                 mSettings->mSceneScale.mMinFarClip, interpolate));
     }
   }
+}
 
-  // update speed display
-  static auto sLastObserverPosition = mObserver.getAnchorPosition();
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  pCurrentObserverSpeed = glm::length(sLastObserverPosition - mObserver.getAnchorPosition()) /
-                          mFrameTimings->pFrameTime.get();
-  sLastObserverPosition = mObserver.getAnchorPosition();
+void SolarSystem::updateObserverFrame() {
+
+  // The Observer will be locked to the active planet.
+  std::shared_ptr<cs::scene::CelestialBody> activeBody;
+
+  // The active planet is the one with the heighest *weight*.
+  double dActiveWeight = 0;
+
+  for (auto const& object : getBodies()) {
+    // Skip non-existant objects.
+    if (!object->getIsInExistence()) {
+      continue;
+    }
+
+    // Skip objects with an unkown radius.
+    auto radii = object->getRadii();
+    if (radii.x <= 0.0 || radii.y <= 0.0 || radii.z <= 0.0) {
+      continue;
+    }
+
+    try {
+      auto vObserverPos =
+          object->getRelativePosition(mTimeControl->pSimulationTime.get(), mObserver);
+      double dDistance = glm::length(vObserverPos) - radii[0];
+
+      // The weigh depends on the object size and it's distance to the observer.
+      double dWeight = (radii[0] + mSettings->mSceneScale.mMinObjectSize) /
+                       std::max(radii[0] + mSettings->mSceneScale.mMinObjectSize,
+                           radii[0] + dDistance - mSettings->mSceneScale.mMinObjectSize);
+
+      if (dWeight > dActiveWeight) {
+        activeBody    = object;
+        dActiveWeight = dWeight;
+      }
+    } catch (...) { continue; }
+  }
+
+  // We change frame and center if there is a object with weight larger than mLockWeight
+  // and mTrackWeight.
+  if (activeBody) {
+    if (!mObserver.isAnimationInProgress()) {
+      std::string sCenter = "Solar System Barycenter";
+      std::string sFrame  = "J2000";
+
+      if (dActiveWeight > mSettings->mSceneScale.mLockWeight) {
+        sFrame = activeBody->getFrameName();
+      }
+
+      if (dActiveWeight > mSettings->mSceneScale.mTrackWeight) {
+        sCenter = activeBody->getCenterName();
+      }
+
+      pActiveBody     = activeBody;
+      pObserverCenter = sCenter;
+      pObserverFrame  = sFrame;
+    }
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

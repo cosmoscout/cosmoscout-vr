@@ -13,4 +13,6 @@ cd "$SCRIPT_DIR"
 # Set paths so that all libraries are found.
 export LD_LIBRARY_PATH=../lib:../lib/DriverPlugins:$LD_LIBRARY_PATH
 
-./cosmoscout --run-tests
+# Run all tests except those marked to require a display. That means, this script can be executed on
+# a machine without a GPU and without a screen.
+./cosmoscout --run-tests --test-case-exclude="*[graphical]*"

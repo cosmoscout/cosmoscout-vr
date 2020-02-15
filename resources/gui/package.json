@@ -1,0 +1,19 @@
+{
+  "name": "cosmoscout-api",
+  "version": "0.0.0",
+  "description": "CosmoScout JavaScript Api",
+  "dependencies": {},
+  "devDependencies": {
+    "babel-eslint": "^10.0.3",
+    "eslint": "^6.7.2",
+    "eslint-config-airbnb-base": "^14.0.0",
+    "eslint-plugin-import": "^2.19.1"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint js/api.js js/format.js js/date_operations.js js/apis/**",
+    "lint-fix": "eslint js/api.js js/format.js js/date_operations.js js/apis/** --fix"
+  },
+  "author": "",
+  "license": "MIT"
+}

@@ -18,6 +18,16 @@
 
 #include <VistaKernel/VistaSystem.h>
 
+#ifdef _WIN64
+extern "C" {
+// This tells Windows to use the dedicated NVIDIA GPU over Intel integrated graphics.
+__declspec(dllexport) unsigned long NvOptimusEnablement = 0x00000001;
+
+// This tells Windows to use the dedicated AMD GPU over Intel integrated graphics.
+__declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
+}
+#endif
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int main(int argc, char** argv) {
@@ -50,9 +60,12 @@ int main(int argc, char** argv) {
   cs::utils::CommandLine args("Welcome to CosmoScout VR! Here are the available options:");
   args.addArgument({"-s", "--settings"}, &settingsFile,
       "JSON file containing settings (default: " + settingsFile + ")");
-  args.addArgument({"-t", "--run-tests"}, &runTests, "Runs all unit tests.");
   args.addArgument({"-h", "--help"}, &printHelp, "Print this help.");
   args.addArgument({"-v", "--vistahelp"}, &printVistaHelp, "Print help for vista options.");
+
+#ifndef DOCTEST_CONFIG_DISABLE
+  args.addArgument({"-t", "--run-tests"}, &runTests, "Runs all unit tests.");
+#endif
 
   // Then do the actual parsing.
   try {
@@ -60,6 +73,13 @@ int main(int argc, char** argv) {
   } catch (std::runtime_error const& e) {
     spdlog::error("Failed to parse command line arguments: {}", e.what());
     return 1;
+  }
+
+  // Run all registered tests.
+  if (runTests) {
+    Application::testLoadAllPlugins();
+    doctest::Context context(argc, argv);
+    return context.run();
   }
 
   // When printHelp was set to true, we print a help message and exit.
@@ -72,13 +92,6 @@ int main(int argc, char** argv) {
   if (printVistaHelp) {
     VistaSystem::ArgHelpMsg(argv[0], &std::cout);
     return 0;
-  }
-
-  // Run all registered tests.
-  if (runTests) {
-    Application::testLoadAllPlugins();
-    doctest::Context context(argc, argv);
-    return context.run();
   }
 
   // read settings ---------------------------------------------------------------------------------

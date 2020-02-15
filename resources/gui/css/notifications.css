@@ -1,10 +1,7 @@
-html {
-    overflow: hidden;
-}
-
 #notifications {
-    position: absolute;
-    right: 0;
+    position: relative;
+    margin-left: auto;
+    margin-top: 50px;
     width: 420px;
     height: 320px;
     overflow: hidden;
@@ -14,16 +11,17 @@ html {
 
 .notification {
     position: absolute;
+    opacity: 0;
     width: 380px;
     font-size: 1rem;
     transform: translate(330px, 5px);
-    color: #ccf;
+    color: var(--cs-text-color-darkened);
     background: linear-gradient(to right, rgba(20, 20, 20, 0.8), rgba(20, 20, 20, 0.4));
     line-height: 15px;
     padding-bottom: 15px;
-    opacity: 0;
     border-radius: 5px;
-    transition: transform 500ms cubic-bezier(0.305, 1.535, 0.570, 1.000), opacity 500ms linear;
+    transition: transform 500ms cubic-bezier(0.305, 1.535, 0.570, 1.000);
+    animation: fadeout 500ms 7500ms linear;
 }
 
 .notification.clickable:hover {
@@ -56,11 +54,10 @@ html {
 
 .notification.fadeout {
     opacity: 0;
-    transition: transform 500ms cubic-bezier(0.305, 1.535, 0.570, 1.000), opacity 700ms linear;
 }
 
 .notification.row {
-    margin: 0;
+
 }
 
 .notification i {
@@ -70,71 +67,79 @@ html {
 }
 
 .notification-title {
-    font-family: 'AlegreyaSansSC';
     font-size: 1.7rem;
     line-height: 2rem;
     margin-top: 13px;
 }
 
+@-webkit-keyframes fadeout {
+    0% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+    }
+}
+
 @-webkit-keyframes flash {
     0% {
-        color: #ccf;
+        color: var(--cs-text-color-darkened);
         opacity: 0;
     }
 
     50% {
-        color: #ccf;
+        color: var(--cs-text-color-darkened);
         opacity: 0.8;
-        text-shadow: 0 0 0 #ccf;
+        text-shadow: 0 0 0 var(--cs-text-color-darkened);
     }
 
     60% {
         color: #fff;
         opacity: 1;
-        text-shadow: 0 0 30px #ccf;
+        text-shadow: 0 0 30px var(--cs-text-color-darkened);
     }
 
     100% {
-        color: #ccf;
-        text-shadow: 0 0 0 #ccf;
+        color: var(--cs-text-color-darkened);
+        text-shadow: 0 0 0 var(--cs-text-color-darkened);
     }
 }
 
-
 @-webkit-keyframes wiggle {
     0% {
-        transform: rotate3d(0,0,1,0deg);
+        transform: rotate3d(0, 0, 1, 0deg);
     }
 
     51% {
-        transform: rotate3d(0,0,1,0deg);
+        transform: rotate3d(0, 0, 1, 0deg);
     }
 
     58% {
-        transform: rotate3d(0,0,1,15deg);
+        transform: rotate3d(0, 0, 1, 15deg);
     }
 
     65% {
-        transform: rotate3d(0,0,1,-15deg);
+        transform: rotate3d(0, 0, 1, -15deg);
     }
 
     72% {
-        transform: rotate3d(0,0,1,10deg);
+        transform: rotate3d(0, 0, 1, 10deg);
     }
 
     79% {
-        transform: rotate3d(0,0,1,-10deg);
+        transform: rotate3d(0, 0, 1, -10deg);
     }
 
     86% {
-        transform: rotate3d(0,0,1,5deg);
+        transform: rotate3d(0, 0, 1, 5deg);
     }
 
     93% {
-        transform: rotate3d(0,0,1,-5deg);
+        transform: rotate3d(0, 0, 1, -5deg);
     }
 
     100% {
-        transform: rotate3d(0,0,1,0deg);
+        transform: rotate3d(0, 0, 1, 0deg);
     }
 }

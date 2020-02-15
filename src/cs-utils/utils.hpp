@@ -98,6 +98,9 @@ constexpr typename std::underlying_type<T>::type enumCast(T val) {
 /// Well, does what is says.
 float CS_UTILS_EXPORT getCurrentFarClipDistance();
 
+/// Executes a system command and returns the output.
+std::string exec(std::string const& cmd);
+
 } // namespace cs::utils
 
 #endif // CS_UTILS_UTILS_HPP

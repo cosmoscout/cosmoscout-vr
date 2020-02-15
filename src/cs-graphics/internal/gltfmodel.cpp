@@ -5,6 +5,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "gltfmodel.hpp"
+#include "../../cs-utils/utils.hpp"
 
 #include <GL/glew.h>
 
@@ -1158,14 +1159,7 @@ void Primitive::draw(glm::mat4 const& projMat, glm::mat4 const& viewMat, glm::ma
   }
 
   if (shared.m_linearDepthBuffer) {
-    double nearClip, farClip;
-    GetVistaSystem()
-        ->GetDisplayManager()
-        ->GetCurrentRenderInfo()
-        ->m_pViewport->GetProjection()
-        ->GetProjectionProperties()
-        ->GetClippingRange(nearClip, farClip);
-    glUniform1f(programInfo.u_FarClip_loc, (float)farClip);
+    glUniform1f(programInfo.u_FarClip_loc, utils::getCurrentFarClipDistance());
   }
 
   auto viewMatInverse = glm::inverse(viewMat);

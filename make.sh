@@ -35,12 +35,6 @@ case "$COSMOSCOUT_DEBUG_BUILD" in
   (true) echo "CosmoScout VR debug build is enabled!"; BUILD_TYPE=debug;
 esac
 
-# Check if code coverage should be measured with "export COSMOSCOUT_CODE_COVERAGE=true".
-COVERAGE=-DCOSMOSCOUT_COVERAGE_INFO=Off
-case "$COSMOSCOUT_CODE_COVERAGE" in
-  (true) echo "CosmoScout VR coverage info enabled!"; COVERAGE=-DCOSMOSCOUT_COVERAGE_INFO=On;
-esac
-
 # This directory should contain the top-level CMakeLists.txt - it is assumed to reside in the same
 # directory as this script.
 CMAKE_DIR="$( cd "$( dirname "$0" )" && pwd )"
@@ -66,7 +60,7 @@ fi
 # configure, compile & install ---------------------------------------------------------------------
 
 cd "$BUILD_DIR"
-cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" $COVERAGE \
+cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
       -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCOSMOSCOUT_EXTERNALS_DIR="$EXTERNALS_INSTALL_DIR" \
       -DCMAKE_EXPORT_COMPILE_COMMANDS=On "$CMAKE_DIR"
 

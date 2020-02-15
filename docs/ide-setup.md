@@ -124,22 +124,22 @@ To get started with Sublime Text 3, you can create a project file in the root di
         {
             "name": "Make (Release)",
             "file_regex": "^(..[^:]*):([0-9]+):?([0-9]+)?:? (.*)$",
-            "cmd": "./make.sh",
+            "cmd": "./make.sh -DCOSMOSCOUT_UNIT_TESTS=On",
             "working_dir": "$project_path",
             "windows": {
-                "cmd": "make.bat"
+                "cmd": "make.bat -DCOSMOSCOUT_UNIT_TESTS=On"
             },
         },
         {
             "name": "Make (Debug)",
             "file_regex": "^(..[^:]*):([0-9]+):?([0-9]+)?:? (.*)$",
-            "cmd": "./make.sh",
+            "cmd": "./make.sh -DCOSMOSCOUT_UNIT_TESTS=On",
             "working_dir": "$project_path",
             "env": {
                 "COSMOSCOUT_DEBUG_BUILD": "true"
             },
             "windows": {
-                "cmd": "make.bat"
+                "cmd": "make.bat -DCOSMOSCOUT_UNIT_TESTS=On"
             },
         },
         {
@@ -211,7 +211,7 @@ We will discuss these files in the following.
     {
       "label": "Make (Release)",
       "type": "shell",
-      "command": "./make.sh",
+      "command": "./make.sh -DCOSMOSCOUT_UNIT_TESTS=On",
       "options": {
         "cwd": "${workspaceFolder}"
       },
@@ -219,7 +219,7 @@ We will discuss these files in the following.
         "$gcc"
       ],
       "windows": {
-        "command": ".\\make.bat",
+        "command": ".\\make.bat -DCOSMOSCOUT_UNIT_TESTS=On",
         "options": {
           "env": {
             "BOOST_ROOT": "C:\\local\\boost_1_69_0"
@@ -230,7 +230,7 @@ We will discuss these files in the following.
     {
       "label": "Make (Debug)",
       "type": "shell",
-      "command": "./make.sh",
+      "command": "./make.sh -DCOSMOSCOUT_UNIT_TESTS=On",
       "options": {
         "cwd": "${workspaceFolder}",
         "env": {
@@ -241,7 +241,7 @@ We will discuss these files in the following.
         "$gcc"
       ],
       "windows": {
-        "command": ".\\make.bat",
+        "command": ".\\make.bat -DCOSMOSCOUT_UNIT_TESTS=On",
         "options": {
           "env": {
             "BOOST_ROOT": "C:\\local\\boost_1_69_0"
@@ -305,27 +305,27 @@ We will discuss these files in the following.
       }
     },
     {
-      "label": "Run All Tests (Release)",
+      "label": "Run Tests (Release)",
       "type": "shell",
-      "command": "install/linux-release/bin/run_all_tests.sh",
+      "command": "install/linux-release/bin/run_tests.sh",
       "options": {
         "cwd": "${workspaceFolder}"
       },
       "problemMatcher": [],
       "windows": {
-        "command": ".\\install/windows-release/bin/run_all_tests.bat"
+        "command": ".\\install/windows-release/bin/run_tests.bat"
       }
     },
     {
-      "label": "Run All Tests (Debug)",
+      "label": "Run Tests (Debug)",
       "type": "shell",
-      "command": "install/linux-debug/bin/run_all_tests.sh",
+      "command": "install/linux-debug/bin/run_tests.sh",
       "options": {
         "cwd": "${workspaceFolder}"
       },
       "problemMatcher": [],
       "windows": {
-        "command": ".\\install/windows-debug/bin/run_all_tests.bat"
+        "command": ".\\install/windows-debug/bin/run_tests.bat"
       }
     }
   ]
