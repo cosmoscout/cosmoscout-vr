@@ -66,16 +66,22 @@ std::shared_ptr<spdlog::logger> createLogger(std::string const& name) {
       std::make_shared<spdlog::sinks::basic_file_sink_mt>("cosmoscout.log", true);
   static auto coutSink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
 
+  std::string paddedName = name + " ";
+  while (paddedName.length() < 20) {
+    paddedName += ".";
+  }
+  paddedName.back() = ' ';
+
   // We create a colored console logger which can be used from multiple threads. We may consider
   // logging to files in the future.
   std::vector<spdlog::sink_ptr> sinks = {coutSink, fileSink};
-  auto logger = std::make_shared<spdlog::logger>(name, sinks.begin(), sinks.end());
+  auto logger = std::make_shared<spdlog::logger>(paddedName, sinks.begin(), sinks.end());
 
   // TODO: Make log level configurable.
   logger->set_level(spdlog::level::trace);
 
   // See https://github.com/gabime/spdlog/wiki/3.-Custom-formatting for formatting options.
-  logger->set_pattern("%^[%L] %=15n%$ %v");
+  logger->set_pattern("%^[%L] %n%$%v");
 
   return logger;
 }
