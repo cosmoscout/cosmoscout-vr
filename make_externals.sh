@@ -153,13 +153,10 @@ cmake --build . --target install --parallel 8
 # spdlog -------------------------------------------------------------------------------------------
 
 echo ""
-echo "Building and installing spdlog ..."
+echo "Installing spdlog ..."
 echo ""
 
-cmake -E make_directory "$BUILD_DIR/spdlog" && cd "$BUILD_DIR/spdlog"
-cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" -DSPDLOG_BUILD_EXAMPLE=OFF \
-      -DSPDLOG_BUILD_TESTS=OFF -DCMAKE_BUILD_TYPE=$BUILD_TYPE "$EXTERNALS_DIR/spdlog"
-cmake --build . --target install --parallel 8
+cmake -E copy_directory "$EXTERNALS_DIR/spdlog/include/spdlog" "$INSTALL_DIR/include/spdlog"
 
 # doctest ------------------------------------------------------------------------------------------
 

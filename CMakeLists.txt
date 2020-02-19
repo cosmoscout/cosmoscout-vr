@@ -226,6 +226,7 @@ add_definitions(
   -DGLM_ENABLE_EXPERIMENTAL
   -DGLM_FORCE_SWIZZLE
   -DNOMINMAX
+  -DSPDLOG_DLL_LOCAL_REGISTRY
 )
 
 add_compile_options(
