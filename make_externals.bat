@@ -146,7 +146,15 @@ cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
 
 cmake --build . --config %BUILD_TYPE% --target install --parallel 8
 
-rem doctest --------------------------------------------------------------------------------------------
+rem spdlog -----------------------------------------------------------------------------------------
+
+echo.
+echo Installing spdlog ...
+echo.
+
+cmake -E copy_directory "%EXTERNALS_DIR%/spdlog/include/spdlog" "%INSTALL_DIR%/include/spdlog" || exit /b
+
+rem doctest ----------------------------------------------------------------------------------------
 
 echo.
 echo Installing doctest ...

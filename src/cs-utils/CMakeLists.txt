@@ -36,6 +36,7 @@ target_link_libraries(cs-utils
     curl::curl
     curlpp::curlpp
     c-ares::c-ares
+    spdlog::spdlog
 )
 
 target_include_directories(cs-utils

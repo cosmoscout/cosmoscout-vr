@@ -38,6 +38,7 @@ class CS_CORE_EXPORT GraphicsEngine {
   utils::Property<float>     pShadowMapSplitDistribution = 1.f;
 
   GraphicsEngine(std::shared_ptr<const Settings> const& settings);
+  ~GraphicsEngine();
 
   /// All objects which are able to cast shadows need to be registered.
   void registerCaster(graphics::ShadowCaster* caster);

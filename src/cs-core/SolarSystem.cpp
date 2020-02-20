@@ -20,10 +20,10 @@
 #include <VistaKernel/DisplayManager/VistaProjection.h>
 #include <VistaKernel/GraphicsManager/VistaTransformNode.h>
 #include <VistaKernel/VistaSystem.h>
-
 #include <cspice/SpiceUsr.h>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/quaternion.hpp>
+#include <spdlog/spdlog.h>
 
 namespace cs::core {
 
@@ -39,6 +39,9 @@ SolarSystem::SolarSystem(std::shared_ptr<const Settings> const& settings,
     , mTimeControl(timeControl)
     , mSun(std::make_shared<scene::CelestialObject>("Sun", "IAU_Sun")) {
 
+  // Tell the user what's going on.
+  spdlog::debug("Creating SolarSystem.");
+
   pObserverCenter.onChange().connect([this](std::string const& center) {
     mObserver.changeOrigin(center, mObserver.getFrameName(), mTimeControl->pSimulationTime.get());
   });
@@ -46,6 +49,13 @@ SolarSystem::SolarSystem(std::shared_ptr<const Settings> const& settings,
   pObserverFrame.onChange().connect([this](std::string const& frame) {
     mObserver.changeOrigin(mObserver.getCenterName(), frame, mTimeControl->pSimulationTime.get());
   });
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+SolarSystem::~SolarSystem() {
+  // Tell the user what's going on.
+  spdlog::debug("Deleting SolarSystem.");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -421,9 +431,9 @@ void SolarSystem::printFrames() {
   SPICEINT_CELL(ids, 1000);
   bltfrm_c(SPICE_FRMTYP_ALL, &ids);
 
-  std::cout << "-----------------------------------------" << std::endl;
-  std::cout << "Built-in frames:" << std::endl;
-  std::cout << "-----------------------------------------" << std::endl;
+  spdlog::info("-----------------------------------------");
+  spdlog::info("Built-in frames:");
+  spdlog::info("-----------------------------------------");
 
   for (int i = 0; i < card_c(&ids); ++i) {
     int obj = SPICE_CELL_ELEM_I(&ids, i);
@@ -431,12 +441,12 @@ void SolarSystem::printFrames() {
     std::string out(50, ' ');
     frmnam_c(obj, 50, &out[0]);
 
-    std::cout << out << std::endl;
+    spdlog::info(out);
   }
 
-  std::cout << "-----------------------------------------" << std::endl;
-  std::cout << "Loaded frames:" << std::endl;
-  std::cout << "-----------------------------------------" << std::endl;
+  spdlog::info("-----------------------------------------");
+  spdlog::info("Loaded frames:");
+  spdlog::info("-----------------------------------------");
 
   kplfrm_c(SPICE_FRMTYP_ALL, &ids);
   for (int i = 0; i < card_c(&ids); ++i) {
@@ -445,7 +455,7 @@ void SolarSystem::printFrames() {
     std::string out(50, ' ');
     frmnam_c(obj, 50, &out[0]);
 
-    std::cout << out << std::endl;
+    spdlog::info(out);
   }
 }
 

@@ -150,7 +150,15 @@ cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
       -DCMAKE_BUILD_TYPE=$BUILD_TYPE "$EXTERNALS_DIR/libtiff"
 cmake --build . --target install --parallel 8
 
-# gli ----------------------------------------------------------------------------------------------
+# spdlog -------------------------------------------------------------------------------------------
+
+echo ""
+echo "Installing spdlog ..."
+echo ""
+
+cmake -E copy_directory "$EXTERNALS_DIR/spdlog/include/spdlog" "$INSTALL_DIR/include/spdlog"
+
+# doctest ------------------------------------------------------------------------------------------
 
 echo ""
 echo "Installing doctest ..."

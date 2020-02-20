@@ -21,8 +21,6 @@
 #include "../cs-utils/utils.hpp"
 #include "ObserverNavigationNode.hpp"
 
-#include <curlpp/cURLpp.hpp>
-
 #include <VistaBase/VistaTimeUtils.h>
 #include <VistaInterProcComm/Cluster/VistaClusterDataSync.h>
 #include <VistaKernel/Cluster/VistaClusterMode.h>
@@ -36,6 +34,8 @@
 #include <VistaKernel/VistaSystem.h>
 #include <VistaKernelOpenSGExt/VistaOpenSGMaterialTools.h>
 #include <VistaOGLExt/VistaShaderRegistry.h>
+#include <curlpp/cURLpp.hpp>
+#include <spdlog/spdlog.h>
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -172,19 +172,16 @@ bool Application::Init(VistaSystem* pVistaSystem) {
         cs::core::PluginBase* (*pluginConstructor)();
         pluginConstructor = (cs::core::PluginBase * (*)()) LIBFUNC(pluginHandle, "create");
 
-        std::cout << "[Application] Opening Plugin " << plugin.first << " ..." << std::endl;
+        spdlog::info("Opening plugin '{}'.", plugin.first);
 
         // Actually call the plugin's constructor and add the returned pointer to out list.
         mPlugins.insert(
             std::pair<std::string, Plugin>(plugin.first, {pluginHandle, pluginConstructor()}));
-
       } else {
-        std::cerr << "[Application] Error loading CosmoScout VR Plugin " << plugin.first << " : "
-                  << LIBERROR() << std::endl;
+        spdlog::error("Failed to load plugin '{}': {}", plugin.first, LIBERROR());
       }
     } catch (std::exception const& e) {
-      std::cerr << "[Application] Error loading plugin " << plugin.first << ": " << e.what()
-                << std::endl;
+      spdlog::error("Failed to load plugin '{}': {}", plugin.first, e.what());
     }
   }
 
@@ -195,12 +192,14 @@ bool Application::Init(VistaSystem* pVistaSystem) {
 
 void Application::Quit() {
 
-  // Close all plugins first.
+  // De-init all plugins first.
   for (auto const& plugin : mPlugins) {
-    std::string pluginFile = plugin.first;
-    std::cout << "[Application] Unloading Plugin " << pluginFile << std::endl;
-
     plugin.second.mPlugin->deInit();
+  }
+
+  // Then close all plugins.
+  for (auto const& plugin : mPlugins) {
+    spdlog::info("Closing plugin '{}'.", plugin.first);
 
     auto handle           = plugin.second.mHandle;
     auto pluginDestructor = (void (*)(cs::core::PluginBase*))LIBFUNC(handle, "destroy");
@@ -220,10 +219,9 @@ void Application::Quit() {
 
   auto assertCleanUp = [](std::string const& name, size_t count) {
     if (count > 1) {
-      std::cout << "[Application] Warning: Use count of " << name << " is " << count - 1
-                << " but should be 0." << std::endl;
-    } else {
-      std::cout << "[Application] Deleting " << name << std::endl;
+      spdlog::warn(
+          "Failed to properly cleanup the Application: Use count of '{}' is {} but should be 0.",
+          name, count - 1);
     }
   };
 
@@ -297,7 +295,7 @@ void Application::FrameUpdate() {
         mDownloader.release();
       } else {
         // Show to the user what's going on.
-        mGuiManager->setLoadingScreenStatus("Downloading data ...");
+        mGuiManager->setLoadingScreenStatus("Downloading data...");
       }
 
     } else {
@@ -363,13 +361,12 @@ void Application::FrameUpdate() {
         try {
           plugin->second.mPlugin->init();
         } catch (std::exception const& e) {
-          std::cerr << "Error initializing plugin " << plugin->first << ": " << e.what()
-                    << std::endl;
+          spdlog::error("Failed to initialize plugin '{}': {}", plugin->first, e.what());
         }
 
       } else if (pluginToLoad == mPlugins.size()) {
 
-        std::cout << "Loading done." << std::endl;
+        spdlog::info("Ready for Takeoff!");
 
         // Once all plugins have been loaded, we set a boolean indicating this state.
         mLoadedAllPlugins = true;
@@ -467,7 +464,7 @@ void Application::FrameUpdate() {
       try {
         plugin.second.mPlugin->update();
       } catch (std::runtime_error const& e) {
-        std::cerr << "Error updating plugin " << plugin.first << ": " << e.what() << std::endl;
+        spdlog::error("Error updating plugin '{}': {}", plugin.first, e.what());
       }
     }
 
@@ -644,15 +641,13 @@ void Application::testLoadAllPlugins() {
         pluginConstructor = (cs::core::PluginBase * (*)()) LIBFUNC(pluginHandle, "create");
 
         if (pluginConstructor) {
-          std::cout << "Plugin " << plugin << " found." << std::endl;
+          spdlog::info("Plugin '{}' found.", plugin);
         } else {
-          std::cerr << "Error loading CosmoScout VR Plugin " << plugin << " : Invalid plugin."
-                    << std::endl;
+          spdlog::error("Failed to load plugin '{}': Plugin has no 'create' method.", plugin);
         }
 
       } else {
-        std::cerr << "Error loading CosmoScout VR Plugin " << plugin << " : " << LIBERROR()
-                  << std::endl;
+        spdlog::error("Failed to load plugin '{}': {}", plugin, LIBERROR());
       }
     }
   }

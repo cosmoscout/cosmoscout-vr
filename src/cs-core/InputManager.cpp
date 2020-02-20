@@ -6,11 +6,10 @@
 
 #include "InputManager.hpp"
 
-#include "../cs-utils/utils.hpp"
-
 #include "../cs-gui/GuiItem.hpp"
 #include "../cs-gui/ScreenSpaceGuiArea.hpp"
 #include "../cs-gui/WorldSpaceGuiArea.hpp"
+#include "../cs-utils/utils.hpp"
 
 #include <VistaDataFlowNet/VdfnNode.h>
 #include <VistaDataFlowNet/VdfnObjectRegistry.h>
@@ -32,13 +31,16 @@
 #include <VistaKernel/InteractionManager/VistaInteractionManager.h>
 #include <VistaKernel/VistaSystem.h>
 #include <VistaKernelOpenSGExt/VistaOpenSGMaterialTools.h>
+#include <spdlog/spdlog.h>
 
 namespace cs::core {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 InputManager::InputManager() {
-  std::cout << "Loading: InputManager" << std::endl;
+
+  // Tell the user what's going on.
+  spdlog::debug("Creating InputManager.");
 
   mClickTime = boost::posix_time::microsec_clock::universal_time();
 
@@ -97,6 +99,9 @@ InputManager::InputManager() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 InputManager::~InputManager() {
+  // Tell the user what's going on.
+  spdlog::debug("Deleting InputManager.");
+
   for (auto adapter : mAdapters) {
     mSelection.UnregisterNode(adapter);
     delete adapter;

@@ -9,14 +9,18 @@
 #include <GL/glew.h>
 #include <VistaKernel/GraphicsManager/VistaSceneGraph.h>
 #include <VistaKernel/VistaSystem.h>
+#include <spdlog/spdlog.h>
 
 namespace cs::core {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 GraphicsEngine::GraphicsEngine(std::shared_ptr<const core::Settings> const& settings) {
-  std::cout << "OpenGL Vendor:  " << glGetString(GL_VENDOR) << std::endl;
-  std::cout << "OpenGL Version: " << glGetString(GL_VERSION) << std::endl;
+
+  // Tell the user what's going on.
+  spdlog::debug("Creating GraphicsEngine.");
+  spdlog::info("OpenGL Vendor:  {}", glGetString(GL_VENDOR));
+  spdlog::info("OpenGL Version: {}", glGetString(GL_VERSION));
 
   auto pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
 
@@ -44,6 +48,13 @@ GraphicsEngine::GraphicsEngine(std::shared_ptr<const core::Settings> const& sett
 
   pShadowMapRange.onChange().connect([this](glm::vec2) { calculateCascades(); });
   pShadowMapExtension.onChange().connect([this](glm::vec2) { calculateCascades(); });
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+GraphicsEngine::~GraphicsEngine() {
+  // Tell the user what's going on.
+  spdlog::debug("Deleting GraphicsEngine.");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -98,14 +109,14 @@ void GraphicsEngine::disableGLDebug() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void GraphicsEngine::calculateCascades() {
-  float              near  = pShadowMapRange.get().x;
-  float              far   = pShadowMapRange.get().y;
-  int                count = pShadowMapCascades.get();
+  float              nearEnd = pShadowMapRange.get().x;
+  float              farEnd  = pShadowMapRange.get().y;
+  int                count   = pShadowMapCascades.get();
   std::vector<float> splits(count + 1);
   for (int i(0); i < splits.size(); ++i) {
     float alpha = (float)(i) / count;
     alpha       = std::pow(alpha, pShadowMapSplitDistribution.get());
-    splits[i]   = glm::mix(near, far, alpha);
+    splits[i]   = glm::mix(nearEnd, farEnd, alpha);
   }
   mShadowMap.setCascadeSplits(splits);
   mShadowMap.setSunNearClipOffset(pShadowMapExtension.get().x);

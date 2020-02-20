@@ -50,7 +50,7 @@ class CS_CORE_EXPORT SolarSystem {
       std::shared_ptr<utils::FrameTimings> const&    frameTimings,
       std::shared_ptr<GraphicsEngine> const&         graphicsEngine,
       std::shared_ptr<TimeControl> const&            timeControl);
-  ~SolarSystem() = default;
+  ~SolarSystem();
 
   /// The Sun which is at the center of the SolarSystem.
   std::shared_ptr<const scene::CelestialObject> getSun() const;

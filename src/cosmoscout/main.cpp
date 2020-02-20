@@ -5,10 +5,16 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "../cs-core/Settings.hpp"
+#include "../cs-core/logger.hpp"
+#include "../cs-graphics/logger.hpp"
 #include "../cs-gui/gui.hpp"
+#include "../cs-gui/logger.hpp"
+#include "../cs-scene/logger.hpp"
 #include "../cs-utils/CommandLine.hpp"
 #include "../cs-utils/doctest.hpp"
+#include "../cs-utils/logger.hpp"
 #include "Application.hpp"
+#include "cs-version.hpp"
 
 #include <VistaKernel/VistaSystem.h>
 
@@ -29,6 +35,18 @@ int main(int argc, char** argv) {
   // Chromium Embedded Framework. For the main process, this method returns immediately, for all
   // others it blocks until the child process has terminated.
   cs::gui::executeWebProcess(argc, argv);
+
+  // setup loggers ---------------------------------------------------------------------------------
+
+  // Create default loggers.
+  spdlog::set_default_logger(cs::utils::logger::createLogger("cosmoscout-vr"));
+  spdlog::info("Welcome to CosmoScout VR v" + CS_PROJECT_VERSION + "!");
+
+  cs::core::logger::init();
+  cs::graphics::logger::init();
+  cs::gui::logger::init();
+  cs::scene::logger::init();
+  cs::utils::logger::init();
 
   // parse program options -------------------------------------------------------------------------
 
@@ -53,7 +71,7 @@ int main(int argc, char** argv) {
   try {
     args.parse(argc, argv);
   } catch (std::runtime_error const& e) {
-    std::cout << e.what() << std::endl;
+    spdlog::error("Failed to parse command line arguments: {}", e.what());
     return 1;
   }
 
@@ -82,7 +100,7 @@ int main(int argc, char** argv) {
   try {
     settings = cs::core::Settings::read(settingsFile);
   } catch (std::exception& e) {
-    std::cerr << "Failed to read settings: " << e.what() << std::endl;
+    spdlog::error("Failed to read settings: {}", e.what());
     return 1;
   }
 
@@ -106,12 +124,14 @@ int main(int argc, char** argv) {
     }
 
   } catch (VistaExceptionBase& e) {
-    e.PrintException();
+    spdlog::error("Caught unexpected VistaException: {}", e.what());
     return 1;
   } catch (std::exception& e) {
-    std::cerr << "Exception: " << e.what() << std::endl;
+    spdlog::error("Caught unexpected std::exception: {}", e.what());
     return 1;
   }
+
+  spdlog::info("Shutdown complete. Fare well!");
 
   return 0;
 }

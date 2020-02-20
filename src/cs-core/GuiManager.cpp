@@ -27,6 +27,7 @@
 #include <VistaKernel/VistaSystem.h>
 #include <VistaKernelOpenSGExt/VistaOpenSGMaterialTools.h>
 #include <fstream>
+#include <spdlog/spdlog.h>
 
 namespace cs::core {
 
@@ -38,7 +39,8 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
     : mInputManager(pInputManager)
     , mFrameTimings(pFrameTimings) {
 
-  std::cout << "Loading: GuiManager" << std::endl;
+  // Tell the user what's going on.
+  spdlog::debug("Creating GuiManager.");
 
   // Initialize the Chromium Embedded Framework.
   gui::init();
@@ -174,6 +176,9 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 GuiManager::~GuiManager() {
+  // Tell the user what's going on.
+  spdlog::debug("Deleting GuiManager.");
+
   delete mGlobalGuiArea;
   delete mViewportUpdater;
   delete mCosmoScoutGui;
