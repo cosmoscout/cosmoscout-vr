@@ -23,6 +23,8 @@
 
 /// Here are the available log levels of spdlog with some hints on when you should use them.
 /// spdlog::critical(...)
+///   Use this for errors which certainly lead to a crash and which also may have corrupted
+///   something for the user.
 ///
 /// spdlog::error(...)
 ///   Use this for errors which cannot be recovered at runtime abd which likely lead to a crash of
@@ -61,7 +63,8 @@ namespace cs::utils::logger {
 CS_UTILS_EXPORT void init();
 
 /// Call this method once from your plugin in order to create a new logger. The given name will
-/// be shown together with the log level in each message. You need to call
+/// be shown together with the log level in each message. The logger will print to the console and
+/// store it's messages in a file called cosmoscout.log. You need to call
 /// spdlog::set_default_logger(logger); in order to be able to use the global spdlog::info() etc.
 /// methods.
 CS_UTILS_EXPORT std::shared_ptr<spdlog::logger> createLogger(std::string const& name);

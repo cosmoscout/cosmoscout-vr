@@ -11,6 +11,9 @@
 
 namespace cs::utils::logger {
 
+namespace {
+
+// This class is used to intercept Vista messages.
 template <spdlog::level::level_enum level>
 class SpdlogBuffer : public std::streambuf {
  public:
@@ -19,6 +22,7 @@ class SpdlogBuffer : public std::streambuf {
   }
 
  private:
+  // Whenever vista prints a '\n', a new log messages is emitted.
   int_type overflow(int_type c) override {
     char_type ch = traits_type::to_char_type(c);
     if (ch == '\n') {
@@ -35,25 +39,32 @@ class SpdlogBuffer : public std::streambuf {
   std::string                     mLine;
 };
 
+} // namespace
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void init() {
   spdlog::set_default_logger(createLogger("cs-utils"));
 
+  // This logger will be used by vista.
   static auto vistaLogger = createLogger("vista");
 
+  // Assign a custom log stream for vista's debug messages.
   static SpdlogBuffer<spdlog::level::debug> debugBuffer(vistaLogger);
   static std::ostream                       debugStream(&debugBuffer);
   vstr::SetDebugStream(&debugStream);
 
+  // Assign a custom log stream for vista's info messages.
   static SpdlogBuffer<spdlog::level::info> infoBuffer(vistaLogger);
   static std::ostream                      infoStream(&infoBuffer);
   vstr::SetOutStream(&infoStream);
 
+  // Assign a custom log stream for vista's warnings.
   static SpdlogBuffer<spdlog::level::warn> warnBuffer(vistaLogger);
   static std::ostream                      warnStream(&warnBuffer);
   vstr::SetWarnStream(&warnStream);
 
+  // Assign a custom log stream for vista's errors.
   static SpdlogBuffer<spdlog::level::err> errBuffer(vistaLogger);
   static std::ostream                     errStream(&errBuffer);
   vstr::SetErrStream(&errStream);
@@ -62,19 +73,20 @@ void init() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::shared_ptr<spdlog::logger> createLogger(std::string const& name) {
+  // Setup our sinks. The logger will print to the console and store it's messages in a file called
+  // cosmoscout.log.
   static auto fileSink =
       std::make_shared<spdlog::sinks::basic_file_sink_mt>("cosmoscout.log", true);
   static auto coutSink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+  static std::vector<spdlog::sink_ptr> sinks = {coutSink, fileSink};
 
+  // Append some ... to the name of the logger to make the output more readable.
   std::string paddedName = name + " ";
   while (paddedName.length() < 20) {
     paddedName += ".";
   }
   paddedName.back() = ' ';
 
-  // We create a colored console logger which can be used from multiple threads. We may consider
-  // logging to files in the future.
-  std::vector<spdlog::sink_ptr> sinks = {coutSink, fileSink};
   auto logger = std::make_shared<spdlog::logger>(paddedName, sinks.begin(), sinks.end());
 
   // TODO: Make log level configurable.
