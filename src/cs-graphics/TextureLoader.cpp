@@ -100,7 +100,7 @@ std::shared_ptr<VistaTexture> TextureLoader::loadFromFile(std::string const& sFi
 
     if (bpp != 8) {
       spdlog::error(
-          "Failed to load '{}' with libtiff: Only 8 bit per sample are supported right now.",
+          "Failed to load '{}' with libtiff: Only 8 bit per sample are supported right now!",
           sFileName);
       return nullptr;
     }
