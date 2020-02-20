@@ -581,7 +581,7 @@ Buffer getOrCreateBufferObject(std::map<int, Buffer>& bufferMap, tinygltf::Model
   auto it = bufferMap.find(bufferViewIndex);
   if (it != bufferMap.end()) {
     if (it->second.target != target) {
-      spdlog::error(
+      spdlog::warn(
           "Failed to create GLTF BufferObject: Target is different from Buffer.target for {}!",
           bufferViewIndex);
     }

@@ -27,7 +27,7 @@
 ///   something for the user.
 ///
 /// spdlog::error(...)
-///   Use this for errors which cannot be recovered at runtime abd which likely lead to a crash of
+///   Use this for errors which cannot be recovered at runtime and which likely lead to a crash of
 ///   the application.
 ///
 /// spdlog::warn(...)
@@ -38,7 +38,7 @@
 ///   Use this to inform the user on progress of operations or other events.
 ///
 /// spdlog::debug(...)
-///   Use this for information which is meant for the application developper and not for the user.
+///   Use this for information which is meant for the application developer and not for the user.
 ///
 /// spdlog::trace(...)
 ///   You may use this for temporay debugging of code flow. These should not stay in the code.

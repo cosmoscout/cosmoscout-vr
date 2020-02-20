@@ -22,7 +22,7 @@ class SpdlogBuffer : public std::streambuf {
   }
 
  private:
-  // Whenever vista prints a '\n', a new log messages is emitted.
+  // Whenever vista prints a '\n', a new log message is emitted.
   int_type overflow(int_type c) override {
     char_type ch = traits_type::to_char_type(c);
     if (ch == '\n') {

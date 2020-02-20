@@ -48,7 +48,7 @@ void init() {
   settings.windowless_rendering_enabled = true;
 
   if (!CefInitialize(app->GetArgs(), settings, app, nullptr)) {
-    spdlog::error("Failed to initialize CEF. Gui will not work at all");
+    spdlog::error("Failed to initialize CEF. Gui will not work at all.");
   }
 
   std::locale::global(current_locale);
