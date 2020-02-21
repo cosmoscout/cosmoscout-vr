@@ -38,6 +38,36 @@ class StatusbarApi extends IApi {
     _speedContainer;
 
     /**
+     * @type {number}
+     * @private
+     */
+    _observerSpeed = 0.0;
+
+    /**
+     * @type {array}
+     * @private
+     */
+    _observerPosition = [0.0, 0.0, 0.0];
+
+    /**
+     * @type {array}
+     * @private
+     */
+    _pointerPosition = null;
+
+    /**
+     * @type {string}
+     * @private
+     */
+    _activePlanetCenter = "";
+
+    /**
+     * @type {string}
+     * @private
+     */
+    _activePlanetFrame = "";
+
+    /**
      * Initialize all containers
      *
      * @param config {{userPosition: string, pointerPosition: string, speed: string}}
@@ -51,52 +81,92 @@ class StatusbarApi extends IApi {
     }
 
     /**
-     * Set the current user position string
-     *
-     * @param long {number|string} Longitude
-     * @param lat {number|string} Latitude
-     * @param height {number|string} Height
-     */
-    setUserPosition(long, lat, height) {
-      if (CosmoScout.cache('userPos', long, lat, height)) {
-        return;
-      }
-
-      this._userContainer.innerText = `${Format.longitude(long) + Format.latitude(lat)}(${Format.height(height)})`;
-    }
-
-    /**
-     * Set the current pointer position
-     *
-     * @param hits {boolean} True if the pointer ray hits an object
-     * @param long {number|string} Longitude
-     * @param lat {number|string} Latitude
-     * @param height {number|string} Height
-     */
-    setPointerPosition(hits, long, lat, height) {
-      if (CosmoScout.cache('pointerPos', hits, long, lat, height)) {
-        return;
-      }
-
-      let text = ' - ';
-
-      if (hits) {
-        text = `${Format.longitude(long) + Format.latitude(lat)}(${Format.height(height)})`;
-      }
-
-      this._pointerContainer.innerText = text;
-    }
-
-    /**
-     * Set the current navigator speed
+     * Called regularly by CosmoScout VR
      *
      * @param speed {number}
      */
-    setSpeed(speed) {
-      if (CosmoScout.cache('speed', speed)) {
-        return;
-      }
-
+    setObserverSpeed(speed) {
       this._speedContainer.innerText = Format.speed(speed);
+      this._observerSpeed = speed;
+    }
+  
+    getObserverSpeed() {
+      return this._observerSpeed;
+    }
+    
+    /**
+     * Called regularly by CosmoScout VR
+     *
+     * @param long {number}
+     * @param lat {number}
+     * @param height {number}
+     */
+    setObserverPosition(lat, lng, height) {
+      this._userContainer.innerText = `${Format.longitude(lng) + Format.latitude(lat)}(${Format.height(height)})`;
+      this._observerPosition = [lat, lng, height];
+    }
+    
+    /**
+     * @return The current position of the observer in [lng, lat, height]
+     */
+    getObserverPosition() {
+      return this._observerPosition;
+    }
+    
+    /**
+     * Called regularly by CosmoScout VR
+     *
+     * @param hits {bool}
+     * @param long {number}
+     * @param lat {number}
+     * @param height {number}
+     */
+    setPointerPosition(hits, lat, lng, height) {
+      if (hits) {
+        this._pointerContainer.innerText = `${Format.longitude(lng) + Format.latitude(lat)}(${Format.height(height)})`;
+        this._pointerPosition = [lat, lng, height];
+      } else {
+        this._pointerContainer.innerText = ' - ';
+        this._pointerPosition = null;
+      }
+    }
+    
+    /**
+     * @return The current position of the mouse pointer in [lng, lat, height] - may be null {array}
+     */
+    getPointerPosition() {
+      return _pointerPosition;
+    }
+
+    /**
+     * Called regularly by CosmoScout VR
+     *
+     * @param centerName {string}
+     */
+    setActivePlanetCenter(centerName) {
+      this._activePlanetCenter = centerName;
+    }
+    
+    /**
+     * @return The current planet's center name {string}
+     */
+    getActivePlanetCenter() {
+      return this._activePlanetCenter;
+    }
+
+    /**
+     * Called regularly by CosmoScout VR
+     *
+     * @param frameName {string}
+     */
+    setActivePlanetFrame(frameName) {
+      this._activePlanetFrame = frameName;
+    }
+    
+    /**
+     * @return The current planet's frame name {string}
+     */
+    getActivePlanetframe() {
+      return this._activePlanetFrame;
     }
 }
