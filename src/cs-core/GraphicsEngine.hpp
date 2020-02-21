@@ -59,6 +59,7 @@ class CS_CORE_EXPORT GraphicsEngine {
   utils::Property<float> pMaximumLuminance           = 1.f;
 
   GraphicsEngine(std::shared_ptr<const Settings> const& settings);
+  ~GraphicsEngine();
 
   /// All objects which are able to cast shadows need to be registered.
   void registerCaster(graphics::ShadowCaster* caster);
@@ -69,6 +70,9 @@ class CS_CORE_EXPORT GraphicsEngine {
 
   std::shared_ptr<graphics::ShadowMap> getShadowMap() const;
   std::shared_ptr<graphics::HDRBuffer> getHDRBuffer() const;
+
+  void enableGLDebug(bool onlyErrors = true);
+  void disableGLDebug();
 
  private:
   void calculateCascades();

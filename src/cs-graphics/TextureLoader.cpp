@@ -13,9 +13,9 @@
 #include <stb_image.h>
 #include <stb_image_write.h>
 
-#include <tiffio.h>
-
 #include <iostream>
+#include <spdlog/spdlog.h>
+#include <tiffio.h>
 #include <vector>
 
 namespace cs::graphics {
@@ -68,12 +68,11 @@ inline GLint stbi_component_to_internal_format(int component) {
 
 std::shared_ptr<VistaTexture> TextureLoader::loadFromFile(std::string const& sFileName) {
 
-  std::cout << "Loading: Texture " << sFileName << std::endl;
-
   std::string suffix = sFileName.substr(sFileName.rfind('.'));
 
   if (suffix == ".tga") {
     // load with vista
+    spdlog::debug("Loading Texture '{}' with Vista.", sFileName);
     return std::shared_ptr<VistaTexture>(VistaOGLUtils::LoadTextureFromTga(sFileName));
   }
 
@@ -81,9 +80,11 @@ std::shared_ptr<VistaTexture> TextureLoader::loadFromFile(std::string const& sFi
 
   if (suffix == ".tiff" || suffix == ".tif") {
     // load with tifflib
+    spdlog::debug("Loading Texture '{}' with libtiff.", sFileName);
+
     auto data = TIFFOpen(sFileName.c_str(), "r");
     if (!data) {
-      std::cout << "Failed to load " << sFileName << std::endl;
+      spdlog::error("Failed to load '{}' with libtiff!", sFileName);
       return nullptr;
     }
 
@@ -98,8 +99,9 @@ std::shared_ptr<VistaTexture> TextureLoader::loadFromFile(std::string const& sFi
     TIFFGetField(data, TIFFTAG_SAMPLESPERPIXEL, &channels);
 
     if (bpp != 8) {
-      std::cout << "Failed to load " << sFileName
-                << ": Only 8 bit per sample are supported right now." << std::endl;
+      spdlog::error(
+          "Failed to load '{}' with libtiff: Only 8 bit per sample are supported right now!",
+          sFileName);
       return nullptr;
     }
 
@@ -123,13 +125,15 @@ std::shared_ptr<VistaTexture> TextureLoader::loadFromFile(std::string const& sFi
     TIFFClose(data);
   } else {
     // load with stb image
+    spdlog::debug("Loading Texture '{}' with stbi.", sFileName);
+
     int width, height, bpp;
     int channels = 4;
 
     unsigned char* pixels = stbi_load(sFileName.c_str(), &width, &height, &bpp, channels);
 
     if (!pixels) {
-      std::cout << "Failed to load " << sFileName << std::endl;
+      spdlog::error("Failed to load '{}' with stbi!", sFileName);
       return nullptr;
     }
 

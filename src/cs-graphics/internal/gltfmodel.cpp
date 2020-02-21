@@ -5,6 +5,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "gltfmodel.hpp"
+#include "../../cs-utils/utils.hpp"
 
 #include <GL/glew.h>
 
@@ -13,15 +14,15 @@
 #include "stb_image_helper.hpp"
 #include "tiny_gltf_helper.hpp"
 
-#include <algorithm>
-#include <fstream>
-#include <gli/gli.hpp>
-
 #include <VistaKernel/DisplayManager/VistaDisplayManager.h>
 #include <VistaKernel/DisplayManager/VistaProjection.h>
 #include <VistaKernel/DisplayManager/VistaViewport.h>
 #include <VistaKernel/VistaSystem.h>
 #include <VistaMath/VistaBoundingBox.h>
+#include <algorithm>
+#include <fstream>
+#include <gli/gli.hpp>
+#include <spdlog/spdlog.h>
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -581,8 +582,9 @@ Buffer getOrCreateBufferObject(std::map<int, Buffer>& bufferMap, tinygltf::Model
   auto it = bufferMap.find(bufferViewIndex);
   if (it != bufferMap.end()) {
     if (it->second.target != target) {
-      std::cerr << "WARNING: getOrCreateBufferObject target is different"
-                << " from Buffer.target for " << bufferViewIndex << '\n';
+      spdlog::warn(
+          "Failed to create GLTF BufferObject: Target is different from Buffer.target for {}!",
+          bufferViewIndex);
     }
     return it->second;
   } // else create
@@ -709,7 +711,7 @@ gli::texture_cube prefilterCubemapGGX(gli::texture_cube const& inputCubemap, std
     glDrawBuffers(1, drawBuffers);
 
     if (GL_FRAMEBUFFER_COMPLETE != glCheckFramebufferStatus(GL_FRAMEBUFFER)) {
-      std::cout << "Invalid FBO!!!\n";
+      spdlog::error("Failed to filter GLTF cubemap: Invalid FBO!");
     }
 
     auto inputCubemapTexVar = it->second;
@@ -811,7 +813,7 @@ gli::texture_cube irradianceCubemap(gli::texture_cube const& inputCubemap, int w
     glDrawBuffers(1, drawBuffers);
 
     if (GL_FRAMEBUFFER_COMPLETE != glCheckFramebufferStatus(GL_FRAMEBUFFER)) {
-      std::cout << "Invalid FBO!!!\n";
+      spdlog::error("Failed to filter GLTF cubemap: Invalid FBO!");
     }
 
     auto inputCubemapTexVar = it->second;
@@ -1158,14 +1160,7 @@ void Primitive::draw(glm::mat4 const& projMat, glm::mat4 const& viewMat, glm::ma
   }
 
   if (shared.m_linearDepthBuffer) {
-    double near, far;
-    GetVistaSystem()
-        ->GetDisplayManager()
-        ->GetCurrentRenderInfo()
-        ->m_pViewport->GetProjection()
-        ->GetProjectionProperties()
-        ->GetClippingRange(near, far);
-    glUniform1f(programInfo.u_FarClip_loc, (float)far);
+    glUniform1f(programInfo.u_FarClip_loc, utils::getCurrentFarClipDistance());
   }
 
   auto viewMatInverse = glm::inverse(viewMat);

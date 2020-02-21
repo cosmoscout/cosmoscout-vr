@@ -42,6 +42,8 @@ class RenderHandler : public CefRenderHandler {
   void OnCursorChange(CefRefPtr<CefBrowser> browser, CefCursorHandle cursor,
       CefRenderHandler::CursorType type, const CefCursorInfo& customursor_info) override;
 
+  ~RenderHandler() override;
+
  private:
   IMPLEMENT_REFCOUNTING(RenderHandler);
 
@@ -54,7 +56,7 @@ class RenderHandler : public CefRenderHandler {
   DrawCallback         mDrawCallback;
   CursorChangeCallback mCursorChangeCallback;
 
-  uint8_t* mPixelData;
+  uint8_t* mPixelData = nullptr;
 };
 
 } // namespace cs::gui::detail

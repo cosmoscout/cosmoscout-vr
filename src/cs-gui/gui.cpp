@@ -9,6 +9,7 @@
 #include "internal/WebApp.hpp"
 
 #include <iostream>
+#include <spdlog/spdlog.h>
 
 namespace cs::gui {
 
@@ -32,8 +33,7 @@ void executeWebProcess(int argc, char* argv[]) {
 void init() {
 
   if (!app) {
-    std::cerr << "Failed to initialize gui: Please call "
-              << "executeWebProcess() before init()!" << std::endl;
+    spdlog::error("Failed to initialize gui: Please call executeWebProcess() before init()!");
     return;
   }
 
@@ -48,7 +48,7 @@ void init() {
   settings.windowless_rendering_enabled = true;
 
   if (!CefInitialize(app->GetArgs(), settings, app, nullptr)) {
-    std::cerr << "Failed to initialize CEF. Gui will not work at all" << std::endl;
+    spdlog::error("Failed to initialize CEF. Gui will not work at all.");
   }
 
   std::locale::global(current_locale);

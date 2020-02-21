@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-18.04
     steps:
     - name: Checkout Repository
-      uses: actions/checkout@v1
+      uses: actions/checkout@v2
     - name: Checkout Submodules
       run: git submodule update --init
     - name: Create Release
@@ -30,7 +30,7 @@ jobs:
     runs-on: ubuntu-18.04
     steps:
     - name: Checkout Repository
-      uses: actions/checkout@v1
+      uses: actions/checkout@v2
     - name: Checkout Submodules
       run: git submodule update --init
     - name: Download Dependencies
@@ -39,6 +39,7 @@ jobs:
         sudo apt-get update -q
         sudo apt-get install libc++-dev libgl1-mesa-dev libglu1-mesa-dev libx11-dev
         sudo apt-get install libxi-dev libgconf-2-4 libboost1.70-dev
+        sudo pip install cmake==3.13.3
     - name: Build Externals
       run: ./make_externals.sh
     - name: Build CosmoScout VR
@@ -61,7 +62,7 @@ jobs:
     runs-on: windows-2016
     steps:
     - name: Checkout Repository
-      uses: actions/checkout@v1
+      uses: actions/checkout@v2
     - name: Checkout Submodules
       run: git submodule update --init
     - name: Build Externals

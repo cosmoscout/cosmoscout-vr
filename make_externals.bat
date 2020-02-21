@@ -77,8 +77,8 @@ echo Building and installing freeglut ...
 echo.
 
 cmake -E make_directory "%BUILD_DIR%/freeglut" && cd "%BUILD_DIR%/freeglut"
-cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
-      -DCMAKE_INSTALL_LIBDIR=lib^
+cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%" -DFREEGLUT_BUILD_DEMOS=Off^
+      -DCMAKE_INSTALL_LIBDIR=lib -DFREEGLUT_BUILD_STATIC_LIBS=Off^
       "%EXTERNALS_DIR%/freeglut/freeglut/freeglut" || exit /b
 
 cmake --build . --config %BUILD_TYPE% --target install --parallel 8
@@ -145,6 +145,22 @@ cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
       "%EXTERNALS_DIR%/libtiff" || exit /b
 
 cmake --build . --config %BUILD_TYPE% --target install --parallel 8
+
+rem spdlog -----------------------------------------------------------------------------------------
+
+echo.
+echo Installing spdlog ...
+echo.
+
+cmake -E copy_directory "%EXTERNALS_DIR%/spdlog/include/spdlog" "%INSTALL_DIR%/include/spdlog" || exit /b
+
+rem doctest ----------------------------------------------------------------------------------------
+
+echo.
+echo Installing doctest ...
+echo.
+
+cmake -E copy_directory "%EXTERNALS_DIR%/doctest/doctest" "%INSTALL_DIR%/include/doctest" || exit /b
 
 rem gli --------------------------------------------------------------------------------------------
 
@@ -249,10 +265,10 @@ echo.
 echo Downloading, building and installing cef (this may take some time) ...
 echo.
 
-set CEF_DIR=cef_binary_78.3.9+gc7345f2+chromium-78.0.3904.108_windows64_minimal
+set CEF_DIR=cef_binary_79.1.36+g90301bd+chromium-79.0.3945.130_windows64_minimal
 
 cmake -E make_directory "%BUILD_DIR%/cef/extracted" && cd "%BUILD_DIR%/cef"
-powershell.exe -command Invoke-WebRequest -Uri http://opensource.spotify.com/cefbuilds/cef_binary_78.3.9%%2Bgc7345f2%%2Bchromium-78.0.3904.108_windows64_minimal.tar.bz2 -OutFile cef.tar.bz2
+powershell.exe -command Invoke-WebRequest -Uri http://opensource.spotify.com/cefbuilds/cef_binary_79.1.36%%2Bg90301bd%%2Bchromium-79.0.3945.130_windows64_minimal.tar.bz2 -OutFile cef.tar.bz2
 
 cd "%BUILD_DIR%/cef/extracted"
 "%BUILD_DIR%/cef/bzip2/bin/bunzip2.exe" -v ../cef.tar.bz2
@@ -264,7 +280,7 @@ rmdir %CEF_DIR%\tests /s /q
 cd ..
 
 cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
-      -DCEF_RUNTIME_LIBRARY_FLAG=/MD^
+      -DCEF_RUNTIME_LIBRARY_FLAG=/MD -DCEF_DEBUG_INFO_FLAG=""^
       "%BUILD_DIR%/cef/extracted/%CEF_DIR%" || exit /b
 
 cmake --build . --config %BUILD_TYPE% --parallel 8 || exit /b

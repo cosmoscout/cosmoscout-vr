@@ -1,20 +1,19 @@
-body {
-    overflow: hidden;
-    -webkit-font-smoothing: antialiased;
-}
 
 #statusbar {
     position: absolute;
+    bottom: 0;
     left: 0;
     right: 0;
+    z-index: 2;
+    height: 35px;
     overflow: hidden;
     font-size: 0.9rem;
-    text-shadow: 0 0 5px black, 0 0 2px black;
+    text-shadow: 0 0 5px #000, 0 0 2px #000;
     opacity: 0;
     transition: opacity 0.2s linear;
 }
 
-#statusbar.visible {
+.loaded #statusbar {
     opacity: 1;
 }
 
@@ -41,7 +40,7 @@ body {
 
 #statusbar .btn {
     padding: 4px 4px 0 4px;
-    color: #ddf
+    color: var(--cs-text-color);
 }
 
 #statusbar .btn i {

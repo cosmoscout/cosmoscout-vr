@@ -11,10 +11,29 @@
 #include <VistaKernel/DisplayManager/VistaViewport.h>
 #include <VistaKernel/VistaSystem.h>
 
-#include <boost/filesystem.hpp>
+#include <array>
 #include <iostream>
+#include <memory>
 
 namespace cs::utils {
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool contains(std::string const& string, std::string const& value) {
+  return string.find(value) != std::string::npos;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool startsWith(std::string const& string, std::string const& prefix) {
+  return string.find(prefix) == 0;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool endsWith(std::string const& string, std::string const& postfix) {
+  return std::mismatch(postfix.rbegin(), postfix.rend(), string.rbegin()).first == postfix.rend();
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -93,6 +112,29 @@ float getCurrentFarClipDistance() {
       ->GetProjectionProperties()
       ->GetClippingRange(near, far);
   return (float)far;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#ifdef __linux__
+#define CS_POPEN popen
+#define CS_CLOSE pclose
+#else
+#define CS_POPEN _popen
+#define CS_CLOSE _pclose
+#endif
+
+std::string exec(std::string const& cmd) {
+  std::array<char, 128>                      buffer;
+  std::string                                result;
+  std::unique_ptr<FILE, decltype(&CS_CLOSE)> pipe(CS_POPEN(cmd.c_str(), "r"), CS_CLOSE);
+  if (!pipe) {
+    throw std::runtime_error("popen() failed!");
+  }
+  while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
+    result += buffer.data();
+  }
+  return result;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

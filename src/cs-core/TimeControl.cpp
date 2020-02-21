@@ -10,6 +10,7 @@
 #include "Settings.hpp"
 
 #include <VistaKernel/VistaSystem.h>
+#include <spdlog/spdlog.h>
 
 namespace cs::core {
 
@@ -17,6 +18,16 @@ namespace cs::core {
 
 TimeControl::TimeControl(std::shared_ptr<const core::Settings> const& settings)
     : mSettings(settings) {
+
+  // Tell the user what's going on.
+  spdlog::debug("Creating TimeControl.");
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+TimeControl::~TimeControl() {
+  // Tell the user what's going on.
+  spdlog::debug("Deleting TimeControl.");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -30,11 +30,6 @@ class FrameTimings;
 } // namespace cs::utils
 
 namespace cs::core {
-
-namespace tools {
-class Tool;
-}
-
 class Settings;
 class InputManager;
 
@@ -57,7 +52,7 @@ class InputManager;
 /// notifications area. There are methods for getting access to these GuiItems - for example, these
 /// can be used to register callbacks which will be executed when a button is pressed in the UI.
 /// Plugins can add content to the sidebar. This is done with the methods addPluginTabToSideBar(),
-/// addSettingsSectionToSideBar() and addScriptToSideBar().
+/// addSettingsSectionToSideBar() and addScriptToGui().
 ///
 /// This class should only be instantiated once - this is done by the Application class and this
 /// instance is then passed to all plugins.
@@ -69,9 +64,8 @@ class CS_CORE_EXPORT GuiManager {
   virtual ~GuiManager();
 
   /// Set the cursor icon. This is usually used in the following way:
-  /// guiItem->setCursorChangeCallback(
-  ///    [guiManager](cs::gui::Cursor c) { guiManager->setCursor(c); });
-  void setCursor(gui::Cursor cursor);
+  /// guiItem->setCursorChangeCallback([](cs::gui::Cursor c) { GuiManager::setCursor(c); });
+  static void setCursor(gui::Cursor cursor);
 
   /// Shows a notification in the top right corner.
   ///
@@ -113,15 +107,26 @@ class CS_CORE_EXPORT GuiManager {
       std::string const& name, std::string const& icon, std::string const& htmlFile);
 
   /// This can be used to initialize the DOM elements added to the sidebar with the methods above.
-  /// This is identical to getSideBar()->executeJavascript(src);
+  /// This is identical to getGui()->executeJavascript(src);
   ///
   /// @param src The javascript source code.
-  void addScriptToSideBar(std::string const& src);
+  void addScriptToGui(std::string const& src);
 
   /// This can be used to initialize the DOM elements added to the sidebar with the methods above.
   ///
   /// @param jsFile The javascript file that contains the source code.
-  void addScriptToSideBarFromJS(std::string const& jsFile);
+  void addScriptToGuiFromJS(std::string const& jsFile);
+
+  /// Append HTML to the body.
+  /// The src content will be wrapped in a template element.
+  ///
+  /// @param src The html source code
+  void addHtmlToGui(std::string const& id, std::string const& src);
+
+  /// Adds a link element to the head with a local file href.
+  ///
+  /// @param fileName The filename in the css folder
+  void addCssToGui(std::string const& fileName);
 
   /// Adds an event item to the timenavigation
   ///
@@ -137,21 +142,11 @@ class CS_CORE_EXPORT GuiManager {
       std::string id, std::string content, std::optional<std::string> style,
       std::string description, std::string planet, std::string place);
 
-  /// Returns the side bar GuiItem. The side bar is located at the left side of the screen.
-  gui::GuiItem* getSideBar() const;
+  /// Returns the CosmoScout Gui.
+  gui::GuiItem* getGui() const;
 
-  /// Returns the header bar GuiItem. The header bar is at the top of the screen.
-  gui::GuiItem* getStatusBar() const;
-
-  /// Returns the time navigation bar GuiItem. The time navigation bar bar is at the bottom of the
-  /// screen.
-  gui::GuiItem* getTimeline() const;
-
-  /// Returns the statistics GuiItem. The statistics are at the right of the screen, when enabled.
+  /// Returns the CosmoScout Statistics Gui.
   gui::GuiItem* getStatistics() const;
-
-  /// Returns the logo GuiItem. The logo is at the bottom right of the screen.
-  gui::GuiItem* getLogo() const;
 
   /// Shows or hides the loading screen.
   void enableLoadingScreen(bool enable);
@@ -162,11 +157,6 @@ class CS_CORE_EXPORT GuiManager {
 
   /// Sets the progress bar state.
   void setLoadingScreenProgress(float percent, bool animate) const;
-
-  /// If you instantiate a cs::tools::Tool, you should register it here. The GuiManager will then
-  /// call the update() of the tool each frame. The tool will be released automatically when its
-  /// pShouldDelete property is set to true.
-  void registerTool(std::shared_ptr<tools::Tool> const& tool);
 
   /// Hides or shows the entire user interface. This is bound to the ESC-key.
   void showGui();
@@ -184,13 +174,8 @@ class CS_CORE_EXPORT GuiManager {
   gui::WorldSpaceGuiArea*                 mGlobalGuiArea   = nullptr;
   gui::ScreenSpaceGuiArea*                mLocalGuiArea    = nullptr;
 
-  gui::GuiItem* mLoadingScreen = nullptr;
-  gui::GuiItem* mSideBar       = nullptr;
-  gui::GuiItem* mStatusBar     = nullptr;
-  gui::GuiItem* mNotifications = nullptr;
-  gui::GuiItem* mLogo          = nullptr;
+  gui::GuiItem* mCosmoScoutGui = nullptr;
   gui::GuiItem* mStatistics    = nullptr;
-  gui::GuiItem* mTimeline      = nullptr;
 
   // The global GUI is drawn in world-space.
   VistaTransformNode* mGlobalGuiTransform  = nullptr;
@@ -199,8 +184,6 @@ class CS_CORE_EXPORT GuiManager {
   // The local GUI is drawn in screen-space.
   VistaTransformNode* mLocalGuiTransform  = nullptr;
   VistaOpenGLNode*    mLocalGuiOpenGLnode = nullptr;
-
-  std::list<std::shared_ptr<tools::Tool>> mTools;
 
   int   mGuiWidth = 1920, mGuiHeight = 1080;
   float mGuiScaleX = 1.6f, mGuiScaleY = 0.9f;

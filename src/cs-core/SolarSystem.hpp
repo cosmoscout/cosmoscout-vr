@@ -13,6 +13,7 @@
 #include "../cs-scene/CelestialBody.hpp"
 #include "../cs-scene/CelestialObserver.hpp"
 
+#include <chrono>
 #include <set>
 #include <unordered_set>
 #include <vector>
@@ -58,7 +59,7 @@ class CS_CORE_EXPORT SolarSystem {
       std::shared_ptr<utils::FrameTimings> const&    frameTimings,
       std::shared_ptr<GraphicsEngine> const&         graphicsEngine,
       std::shared_ptr<TimeControl> const&            timeControl);
-  ~SolarSystem() = default;
+  ~SolarSystem();
 
   /// The Sun which is at the center of the SolarSystem.
   std::shared_ptr<const scene::CelestialObject> getSun() const;
@@ -113,9 +114,13 @@ class CS_CORE_EXPORT SolarSystem {
   /// effectively with the simulation.
   /// As objects will be quite close to the observer in world space if the user is far away in
   /// *real* space, this also reduces the far clip distance in order to increase depth accuracy
-  /// for objects close to the observer. This method also manages the SPICE frame changes when the
-  /// observer moves from body to body.
+  /// for objects close to the observer.
   void updateSceneScale();
+
+  /// This method manages the SPICE frame changes when the observer moves from body to body. The
+  /// active body is determined by its weight. The weight of a body is calculated by its size and
+  /// distance to the observer.
+  void updateObserverFrame();
 
   /// Gradually moves the observer's position and rotation from their current values to the given
   /// values.
@@ -224,6 +229,10 @@ class CS_CORE_EXPORT SolarSystem {
       mAddBodyListeners;
   std::unordered_map<uint64_t, std::function<void(std::shared_ptr<scene::CelestialBody>)>>
       mRemoveBodyListeners;
+
+  // These are used for measuring the observer speed.
+  glm::dvec3                                     mLastPosition = glm::dvec3(0.0);
+  std::chrono::high_resolution_clock::time_point mLastTime;
 };
 
 } // namespace cs::core

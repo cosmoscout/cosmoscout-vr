@@ -52,7 +52,7 @@
 
         <!-- observer output -->
         <node name="observer" type="ObserverNavigationNode">
-            <param name="max_linear_speed" value="30, 30, 30" />
+            <param name="max_linear_speed" value="50, 50, 50" />
         </node>
 
         <!-- Debugging -->

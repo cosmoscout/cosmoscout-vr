@@ -63,18 +63,41 @@ void main()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 const std::string QUAD_FRAG = R"(
-in vec2 vTexCoords;                                                             
+in vec2 vTexCoords;
 in vec4 vPosition;
 
-uniform sampler2D iTexture;                                                
-uniform float iFarClip;                                                
-                                                                           
-layout(location = 0) out vec4 vOutColor;                                   
-                                                                           
-void main()                                                                
-{                                                                                                    
-  vOutColor = texture(iTexture, vTexCoords); 
-  if (vOutColor.a == 0.0) discard; 
+uniform float iFarClip;
+
+uniform samplerBuffer texture;
+uniform ivec2 texSize;
+
+layout(location = 0) out vec4 vOutColor;
+
+vec4 getTexel(ivec2 p) {
+  p = clamp(p, ivec2(0), texSize - ivec2(1));
+  return texelFetch(texture, p.y * texSize.x + p.x).bgra;
+}
+
+vec4 getPixel(vec2 position) {
+  vec2 absolutePosition = position * texSize - 0.5;
+  ivec2 iPosition = ivec2(absolutePosition);
+
+  vec4 tl = getTexel(iPosition);
+  vec4 tr = getTexel(iPosition + ivec2(1, 0));
+  vec4 bl = getTexel(iPosition + ivec2(0, 1));
+  vec4 br = getTexel(iPosition + ivec2(1, 1));
+
+  vec2 d = fract(absolutePosition);
+
+  vec4 top = mix(tl, tr, d.x);
+  vec4 bot = mix(bl, br, d.x);
+
+  return mix(top, bot, d.y);
+}
+
+void main() {
+  vOutColor = getPixel(vTexCoords);
+  if (vOutColor.a == 0.0) discard;
 
   vOutColor.rgb /= vOutColor.a;
 
@@ -82,7 +105,7 @@ void main()
     // write linear depth
     gl_FragDepth = length(vPosition.xyz) / iFarClip;
   #endif
-}  
+}
 )";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -218,14 +241,8 @@ bool WorldSpaceGuiArea::Do() {
   mShader->Bind();
 
   if (mUseLinearDepthBuffer) {
-    double near, far;
-    GetVistaSystem()
-        ->GetDisplayManager()
-        ->GetCurrentRenderInfo()
-        ->m_pViewport->GetProjection()
-        ->GetProjectionProperties()
-        ->GetClippingRange(near, far);
-    mShader->SetUniform(mShader->GetUniformLocation("iFarClip"), (float)far);
+    mShader->SetUniform(
+        mShader->GetUniformLocation("iFarClip"), utils::getCurrentFarClipDistance());
   }
 
   // get modelview and projection matrices
@@ -239,19 +256,31 @@ bool WorldSpaceGuiArea::Do() {
   // draw back-to-front
   auto const& items = getItems();
   for (auto item = items.rbegin(); item != items.rend(); ++item) {
-    if ((*item)->getIsEnabled()) {
-      auto localMat = glm::translate(
-          modelViewMat, glm::vec3((*item)->getRelPositionX() + (*item)->getRelOffsetX() - 0.5,
-                            -(*item)->getRelPositionY() - (*item)->getRelOffsetY() + 0.5, 0.0));
-      localMat =
-          glm::scale(localMat, glm::vec3((*item)->getRelSizeX(), (*item)->getRelSizeY(), 1.f));
+    auto guiItem = *item;
 
-      (*item)->getTexture()->Bind(GL_TEXTURE0);
+    bool textureRightSize = guiItem->getWidth() == guiItem->getTextureSizeX() &&
+                            guiItem->getHeight() == guiItem->getTextureSizeY();
+
+    if (guiItem->getIsEnabled() && textureRightSize) {
+      auto localMat = glm::translate(
+          modelViewMat, glm::vec3(guiItem->getRelPositionX() + guiItem->getRelOffsetX() - 0.5,
+                            -guiItem->getRelPositionY() - guiItem->getRelOffsetY() + 0.5, 0.0));
+      localMat =
+          glm::scale(localMat, glm::vec3(guiItem->getRelSizeX(), guiItem->getRelSizeY(), 1.f));
+
       glUniformMatrix4fv(
           mShader->GetUniformLocation("uMatModelView"), 1, GL_FALSE, glm::value_ptr(localMat));
-      mShader->SetUniform(mShader->GetUniformLocation("iTexture"), 0);
+
+      glUniform2i(mShader->GetUniformLocation("texSize"), guiItem->getTextureSizeX(),
+          guiItem->getTextureSizeY());
+
+      glActiveTexture(GL_TEXTURE0);
+      glBindTexture(GL_TEXTURE_BUFFER, guiItem->getTexture());
+      mShader->SetUniform(mShader->GetUniformLocation("texture"), 0);
+
       glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-      (*item)->getTexture()->Unbind(GL_TEXTURE0);
+
+      glBindTexture(GL_TEXTURE_BUFFER, 0);
     }
   }
 

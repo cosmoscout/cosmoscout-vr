@@ -13,9 +13,8 @@
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-ObserverNavigationNode::ObserverNavigationNode(
-    std::shared_ptr<cs::core::SolarSystem> const&  pSolarSystem,
-    std::shared_ptr<cs::core::InputManager> const& pInputManager, VistaPropertyList const& oParams)
+ObserverNavigationNode::ObserverNavigationNode(cs::core::SolarSystem* pSolarSystem,
+    cs::core::InputManager* pInputManager, VistaPropertyList const& oParams)
     : IVdfnNode()
     , mSolarSystem(pSolarSystem)
     , mInputManager(pInputManager)
@@ -135,33 +134,42 @@ bool ObserverNavigationNode::DoEvalNode() {
     vOffset  = glm::dvec3(tmp[0], tmp[1], tmp[2]);
   }
 
-  auto&      oObs              = mSolarSystem->getObserver();
-  glm::dvec3 vObserverPosition = oObs.getAnchorPosition();
-  glm::dquat qObserverRotation = oObs.getAnchorRotation();
-  double     dObserverScale    = oObs.getAnchorScale();
-
   auto vTranslation = mLinearDirection;
 
   vTranslation.x *= mMaxLinearSpeed[0];
   vTranslation.y *= mMaxLinearSpeed[1];
   vTranslation.z *= mMaxLinearSpeed[2];
-  vTranslation *= dObserverScale;
   vTranslation *= mLinearSpeed.get(dTtime);
 
   vTranslation *= dDeltaTime;
-  vTranslation += vOffset * dObserverScale;
+  vTranslation += vOffset;
+
+  auto&  oObs     = mSolarSystem->getObserver();
+  double stepSize = glm::length(vTranslation);
+
+  if (stepSize > 0.0) {
+    // Ensure that an SolarSystem::updateSceneScale() is called at least at 100 Hz. If it is called
+    // only once a frame, it can happen that the observer instantly travels to a planet's surface.
+    int32_t steps = std::ceil(dDeltaTime * 100.0);
+
+    for (int32_t i(1); i <= steps; ++i) {
+      oObs.setAnchorPosition(oObs.getAnchorPosition() + oObs.getAnchorRotation() * vTranslation *
+                                                            oObs.getAnchorScale() /
+                                                            static_cast<double>(steps));
+      if (i < steps) {
+        mSolarSystem->updateSceneScale();
+      }
+    }
+  }
 
   auto       qRotation     = mAngularDirection;
   glm::dvec3 vRotationAxis = glm::axis(qRotation);
   double     dRotationAngle =
       glm::angle(qRotation) * dDeltaTime * mMaxAngularSpeed * mAngularSpeed.get(dTtime);
 
-  if (glm::length(vTranslation) > 0.0) {
-    oObs.setAnchorPosition(vObserverPosition + qObserverRotation * vTranslation);
-  }
-
   if (dRotationAngle != 0.0) {
-    oObs.setAnchorRotation(qObserverRotation * glm::angleAxis(dRotationAngle, vRotationAxis));
+    oObs.setAnchorRotation(
+        oObs.getAnchorRotation() * glm::angleAxis(dRotationAngle, vRotationAxis));
   }
 
   return true;
@@ -170,8 +178,7 @@ bool ObserverNavigationNode::DoEvalNode() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 ObserverNavigationNodeCreate::ObserverNavigationNodeCreate(
-    std::shared_ptr<cs::core::SolarSystem> const&  pSolarSystem,
-    std::shared_ptr<cs::core::InputManager> const& pInputManager)
+    cs::core::SolarSystem* pSolarSystem, cs::core::InputManager* pInputManager)
     : mSolarSystem(pSolarSystem)
     , mInputManager(pInputManager) {
 }

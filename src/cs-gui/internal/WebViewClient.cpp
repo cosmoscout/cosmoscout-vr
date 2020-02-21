@@ -8,9 +8,24 @@
 
 #include <fstream>
 #include <iostream>
+#include <spdlog/spdlog.h>
 #include <utility>
 
 namespace cs::gui::detail {
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+WebViewClient::~WebViewClient() {
+  if (js_callbacks_.size() > 0) {
+    spdlog::warn(
+        "While destructing a WebViewClient there were still JavaScript callbacks registered:");
+
+    for (auto&& i : js_callbacks_) {
+      spdlog::warn(" - {}", i.first);
+      i.second = [](std::vector<std::any> const&) {};
+    }
+  }
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -23,8 +38,8 @@ bool WebViewClient::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
     auto        callback(js_callbacks_.find(name));
 
     if (callback == js_callbacks_.end()) {
-      std::cout << "Cannot call function '" << name
-                << "': No callback is registered for this function name!" << std::endl;
+      spdlog::warn(
+          "Cannot call function '{}': No callback is registered for this function name!", name);
       return true;
     }
 
@@ -51,7 +66,7 @@ bool WebViewClient::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
 
     return true;
   } else if (message->GetName() == "error") {
-    std::cerr << message->GetArgumentList()->GetString(0).ToString() << std::endl;
+    spdlog::error(message->GetArgumentList()->GetString(0).ToString());
   }
 
   return false;

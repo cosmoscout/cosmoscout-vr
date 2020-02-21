@@ -13,7 +13,9 @@
 
 #include <any>
 #include <chrono>
+#include <include/cef_client.h>
 #include <iostream>
+#include <spdlog/spdlog.h>
 
 namespace cs::gui {
 
@@ -74,8 +76,7 @@ class CS_GUI_EXPORT WebView {
       try {
         callback(std::any_cast<A>(args[0]));
       } catch (std::bad_any_cast const& e) {
-        std::cerr << "Cannot execute javascript call \"" << name << "\": " << e.what() << "!"
-                  << std::endl;
+        spdlog::error("Cannot execute javascript call '{}': {}", name, e.what());
       }
     });
   }
@@ -87,8 +88,7 @@ class CS_GUI_EXPORT WebView {
       try {
         callback(std::any_cast<A>(args[0]), std::any_cast<B>(args[1]));
       } catch (std::bad_any_cast const& e) {
-        std::cerr << "Cannot execute javascript call \"" << name << "\": " << e.what() << "!"
-                  << std::endl;
+        spdlog::error("Cannot execute javascript call '{}': {}", name, e.what());
       }
     });
   }
@@ -100,8 +100,7 @@ class CS_GUI_EXPORT WebView {
       try {
         callback(std::any_cast<A>(args[0]), std::any_cast<B>(args[1]), std::any_cast<C>(args[2]));
       } catch (std::bad_any_cast const& e) {
-        std::cerr << "Cannot execute javascript call \"" << name << "\": " << e.what() << "!"
-                  << std::endl;
+        spdlog::error("Cannot execute javascript call '{}': {}", name, e.what());
       }
     });
   }
@@ -114,8 +113,7 @@ class CS_GUI_EXPORT WebView {
         callback(std::any_cast<A>(args[0]), std::any_cast<B>(args[1]), std::any_cast<C>(args[2]),
             std::any_cast<D>(args[3]));
       } catch (std::bad_any_cast const& e) {
-        std::cerr << "Cannot execute javascript call \"" << name << "\": " << e.what() << "!"
-                  << std::endl;
+        spdlog::error("Cannot execute javascript call '{}': {}", name, e.what());
       }
     });
   }
@@ -129,8 +127,7 @@ class CS_GUI_EXPORT WebView {
         callback(std::any_cast<A>(args[0]), std::any_cast<B>(args[1]), std::any_cast<C>(args[2]),
             std::any_cast<D>(args[3]), std::any_cast<E>(args[4]));
       } catch (std::bad_any_cast const& e) {
-        std::cerr << "Cannot execute javascript call \"" << name << "\": " << e.what() << "!"
-                  << std::endl;
+        spdlog::error("Cannot execute javascript call '{}': {}", name, e.what());
       }
     });
   }
@@ -144,8 +141,7 @@ class CS_GUI_EXPORT WebView {
         callback(std::any_cast<A>(args[0]), std::any_cast<B>(args[1]), std::any_cast<C>(args[2]),
             std::any_cast<D>(args[3]), std::any_cast<E>(args[4]), std::any_cast<F>(args[5]));
       } catch (std::bad_any_cast const& e) {
-        std::cerr << "Cannot execute javascript call \"" << name << "\": " << e.what() << "!"
-                  << std::endl;
+        spdlog::error("Cannot execute javascript call '{}': {}", name, e.what());
       }
     });
   }
@@ -219,6 +215,7 @@ class CS_GUI_EXPORT WebView {
       std::string const& name, std::function<void(std::vector<std::any> const&)> const& callback);
 
   detail::WebViewClient* mClient;
+  CefRefPtr<CefBrowser>  mBrowser;
 
   bool mInteractive;
 

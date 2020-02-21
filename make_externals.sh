@@ -33,7 +33,7 @@ fi
 # Check if ComoScout VR debug build is enabled with "export COSMOSCOUT_DEBUG_BUILD=true".
 BUILD_TYPE=release
 case "$COSMOSCOUT_DEBUG_BUILD" in
-  (true) echo "CosmoScout VR debug build is enabled!"; BUILD_TYPE=debug;;
+  (true) echo "CosmoScout VR debug build is enabled!"; BUILD_TYPE=debug;
 esac
 
 # This directory should contain all submodules - they are assumed to reside in the subdirectory 
@@ -86,7 +86,7 @@ echo ""
 
 cmake -E make_directory "$BUILD_DIR/freeglut" && cd "$BUILD_DIR/freeglut"
 cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
-      -DCMAKE_INSTALL_LIBDIR=lib \
+      -DCMAKE_INSTALL_LIBDIR=lib -DFREEGLUT_BUILD_DEMOS=Off -DFREEGLUT_BUILD_STATIC_LIBS=Off \
       -DCMAKE_BUILD_TYPE=$BUILD_TYPE "$EXTERNALS_DIR/freeglut/freeglut/freeglut"
 cmake --build . --target install --parallel 8
 
@@ -149,6 +149,22 @@ cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
       -DCMAKE_INSTALL_FULL_LIBDIR=lib \
       -DCMAKE_BUILD_TYPE=$BUILD_TYPE "$EXTERNALS_DIR/libtiff"
 cmake --build . --target install --parallel 8
+
+# spdlog -------------------------------------------------------------------------------------------
+
+echo ""
+echo "Installing spdlog ..."
+echo ""
+
+cmake -E copy_directory "$EXTERNALS_DIR/spdlog/include/spdlog" "$INSTALL_DIR/include/spdlog"
+
+# doctest ------------------------------------------------------------------------------------------
+
+echo ""
+echo "Installing doctest ..."
+echo ""
+
+cmake -E copy_directory "$EXTERNALS_DIR/doctest/doctest" "$INSTALL_DIR/include/doctest"
 
 # gli ----------------------------------------------------------------------------------------------
 
@@ -223,10 +239,10 @@ echo ""
 echo "Downloading, building and installing cef ..."
 echo ""
 
-CEF_DIR=cef_binary_78.3.9+gc7345f2+chromium-78.0.3904.108_linux64_minimal
+CEF_DIR=cef_binary_79.1.36+g90301bd+chromium-79.0.3945.130_linux64_minimal
 
 cmake -E make_directory "$BUILD_DIR/cef/extracted" && cd "$BUILD_DIR/cef"
-wget -nc http://opensource.spotify.com/cefbuilds/cef_binary_78.3.9%2Bgc7345f2%2Bchromium-78.0.3904.108_linux64_minimal.tar.bz2
+wget -nc http://opensource.spotify.com/cefbuilds/cef_binary_79.1.36%2Bg90301bd%2Bchromium-79.0.3945.130_linux64_minimal.tar.bz2
 
 cd "$BUILD_DIR/cef/extracted"
 cmake -E tar xfj ../$CEF_DIR.tar.bz2
@@ -239,10 +255,10 @@ cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
 cmake --build . --parallel 8
 
 cmake -E make_directory "$INSTALL_DIR/include/cef"
-cmake -E copy_directory "$BUILD_DIR/cef/extracted/$CEF_DIR/include"        "$INSTALL_DIR/include/cef/include"
-cmake -E copy_directory "$BUILD_DIR/cef/extracted/$CEF_DIR/Resources"      "$INSTALL_DIR/share/cef"
-cmake -E copy_directory "$BUILD_DIR/cef/extracted/$CEF_DIR/${BUILD_TYPE^}" "$INSTALL_DIR/lib"
-cmake -E copy "$BUILD_DIR/cef/libcef_dll_wrapper/libcef_dll_wrapper.a"     "$INSTALL_DIR/lib"
+cmake -E copy_directory "$BUILD_DIR/cef/extracted/$CEF_DIR/include"    "$INSTALL_DIR/include/cef/include"
+cmake -E copy_directory "$BUILD_DIR/cef/extracted/$CEF_DIR/Resources"  "$INSTALL_DIR/share/cef"
+cmake -E copy_directory "$BUILD_DIR/cef/extracted/$CEF_DIR/Release"    "$INSTALL_DIR/lib"
+cmake -E copy "$BUILD_DIR/cef/libcef_dll_wrapper/libcef_dll_wrapper.a" "$INSTALL_DIR/lib"
 
 # --------------------------------------------------------------------------------------------------
 

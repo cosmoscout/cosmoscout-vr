@@ -48,6 +48,15 @@ bool contains(std::unordered_map<K, V> const& map, K const& key) {
   return map.find(key) != map.end();
 }
 
+/// Returns true if the given string contains at least once the given value.
+CS_UTILS_EXPORT bool contains(std::string const& string, std::string const& value);
+
+/// Returns true if the start of the given string fully contains the given prefix.
+CS_UTILS_EXPORT bool startsWith(std::string const& string, std::string const& prefix);
+
+/// Returns true if the end of the given string fully contains the given postfix.
+CS_UTILS_EXPORT bool endsWith(std::string const& string, std::string const& postfix);
+
 /// Replaces all occurrences of the sPlaceHolder parameter in sInput by sNewString.
 CS_UTILS_EXPORT void replaceString(
     std::string& sInput, std::string const& sPlaceHolder, std::string const& sNewString);
@@ -89,6 +98,9 @@ constexpr typename std::underlying_type<T>::type enumCast(T val) {
 
 /// Well, does what is says.
 float CS_UTILS_EXPORT getCurrentFarClipDistance();
+
+/// Executes a system command and returns the output.
+std::string exec(std::string const& cmd);
 
 } // namespace cs::utils
 
