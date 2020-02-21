@@ -192,17 +192,6 @@ class TimelineApi extends IApi {
   };
 
   /**
-   * @type {string}
-   */
-  _activePlanetName;
-
-  _userPosition = {
-    lat: 0,
-    long: 0,
-    height: 0,
-  };
-
-  /**
    * @type {HTMLElement}
    * @member {noUiSlider}
    */
@@ -341,24 +330,6 @@ class TimelineApi extends IApi {
     this._buttonContainer.appendChild(button);
 
     CosmoScout.initTooltips();
-  }
-
-  setActivePlanet(name) {
-    this._activePlanetName = name;
-  }
-
-  /**
-   *
-   * @param long {number}
-   * @param lat {number}
-   * @param height {number}
-   */
-  setUserPosition(long, lat, height) {
-    this._userPosition = {
-      long,
-      lat,
-      height,
-    };
   }
 
   /**
@@ -577,8 +548,10 @@ class TimelineApi extends IApi {
     document.getElementById('event-dialog-start-date').value = DateOperations.getFormattedDateWithTime(item.start);
     document.getElementById('event-dialog-end-date').value = '';
     document.getElementById('event-dialog-description').value = '';
-    document.getElementById('event-dialog-planet').value = this._activePlanetName;
-    document.getElementById('event-dialog-location').value = Format.longitude(this._userPosition.long) + Format.latitude(this._userPosition.lat) + Format.height(this._userPosition.height);
+    document.getElementById('event-dialog-planet').value = CosmoScout.statusbar.getActivePlanetCenter();
+
+    let userPos = CosmoScout.statusbar.getObserverPosition();
+    document.getElementById('event-dialog-location').value = Format.longitude(userPos[1]) + Format.latitude(userPos[0]) + Format.height(userPos[2]);
     this._parHolder.item = item;
     this._parHolder.callback = callback;
     this._parHolder.overview = overview;
