@@ -375,9 +375,6 @@ void Application::FrameUpdate() {
         mGuiManager->setLoadingScreenStatus("Ready for Takeoff");
         mGuiManager->setLoadingScreenProgress(100.f, true);
 
-        // All plugins finished loading -> init their custom components.
-        mGuiManager->getGui()->callJavascript("CosmoScout.initInputs");
-
         // We will keep the loading screen active for some frames, as the first frames are usually a
         // bit choppy as data is uploaded to the GPU.
         mHideLoadingScreenAtFrame = GetFrameCount() + cLoadingDelay;
@@ -436,8 +433,10 @@ void Application::FrameUpdate() {
 
     // Hide the loading screen after several frames.
     if (GetFrameCount() == mHideLoadingScreenAtFrame) {
-      mGuiManager->getGui()->callJavascript("CosmoScout.initInputs");
       mGuiManager->enableLoadingScreen(false);
+
+      // All plugins finished loading -> init their custom components.
+      mGuiManager->getGui()->callJavascript("CosmoScout.initInputs");
     }
 
     // update CosmoScout VR classes ----------------------------------------------------------------
@@ -528,6 +527,9 @@ void Application::FrameUpdate() {
   // Update the user interface.
   {
     cs::utils::FrameTimings::ScopedTimer timer("User Interface");
+
+    // Call update on all APIs
+    mGuiManager->getGui()->callJavascript("CosmoScout.update");
 
     if (mSolarSystem->pActiveBody.get()) {
 

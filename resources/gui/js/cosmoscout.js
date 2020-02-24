@@ -33,7 +33,7 @@ class CosmoScout {
    */
   static _html = new Map();
 
-    /**
+  /**
    * Init a list of apis
    *
    * @param apis {IApi}
@@ -61,6 +61,15 @@ class CosmoScout {
         console.error(`Could not initialize ${Api}: ${e.message}`);
       }
     });
+  }
+
+  /**
+   * This is called once a frame.
+   *
+   * @param apis {IApi}
+   */
+  static update() {
+    this._apis.forEach(api => api.update());
   }
 
   /**

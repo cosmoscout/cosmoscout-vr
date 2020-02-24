@@ -19,6 +19,12 @@ class IApi {
   }
 
   /**
+   * Automatically called once a frame
+   */
+  update() {
+  }
+
+  /**
    * Replace common template markers with content
    *
    * @param html {string} HTML with %MARKER% markers
