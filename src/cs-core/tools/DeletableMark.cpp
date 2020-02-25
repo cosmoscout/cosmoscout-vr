@@ -48,7 +48,7 @@ DeletableMark::DeletableMark(DeletableMark const& other)
 
 DeletableMark::~DeletableMark() {
   if (mGuiNode) {
-    mGuiItem->unregisterCallback("delete_me");
+    mGuiItem->unregisterCallback("deleteMe");
     mInputManager->unregisterSelectable(mGuiNode);
     mGuiArea->removeItem(mGuiItem.get());
 
@@ -76,10 +76,10 @@ void DeletableMark::initData() {
   VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
       pGuiTransform, static_cast<int>(cs::utils::DrawOrder::eTransparentItems));
 
-  mGuiItem->registerCallback("delete_me", [this]() { pShouldDelete = true; });
+  mGuiItem->registerCallback("deleteMe", [this]() { pShouldDelete = true; });
 
   mSelfSelectedConnection = pSelected.onChange().connect(
-      [this](bool val) { mGuiItem->callJavascript("set_minimized", !val); });
+      [this](bool val) { mGuiItem->callJavascript("setMinimized", !val); });
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

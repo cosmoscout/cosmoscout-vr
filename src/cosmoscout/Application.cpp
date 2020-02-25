@@ -737,14 +737,14 @@ void Application::registerGuiCallbacks() {
 
   // Shows a notification in the top right corner. See GuiManager::showNotification() for details.
   mGuiManager->getGui()->registerCallback<std::string, std::string, std::string>(
-      "print_notification",
+      "printNotification",
       ([this](std::string const& title, std::string const& content, std::string const& icon) {
         mGuiManager->showNotification(title, content, icon);
       }));
 
   // Flies the observer to the given celestial body.
   mGuiManager->getGui()->registerCallback<std::string>(
-      "set_celestial_body", ([this](std::string const& name) {
+      "setCelestialBody", ([this](std::string const& name) {
         for (auto const& body : mSolarSystem->getBodies()) {
           if (body->getCenterName() == name) {
             mSolarSystem->pActiveBody = body;
@@ -758,7 +758,7 @@ void Application::registerGuiCallbacks() {
   // Sets the current simulation time. The argument must be a string accepted by
   // TimeControl::setTime.
   mGuiManager->getGui()->registerCallback<std::string>(
-      "set_date", ([this](std::string const& sDate) {
+      "setDate", ([this](std::string const& sDate) {
         double time = cs::utils::convert::toSpiceTime(boost::posix_time::time_from_string(sDate));
         mTimeControl->setTime(time);
       }));
@@ -766,43 +766,43 @@ void Application::registerGuiCallbacks() {
   // Sets the current simulation time. The argument must be a double representing Barycentric
   // Dynamical Time.
   mGuiManager->getGui()->registerCallback<double>(
-      "set_time", ([this](double tTime) { mTimeControl->setTime(tTime); }));
+      "setTime", ([this](double tTime) { mTimeControl->setTime(tTime); }));
 
   // Adjusts the global ambient brightness factor.
   mGuiManager->getGui()->registerCallback<double>(
-      "set_ambient_light", ([this](double value) { mGraphicsEngine->pAmbientBrightness = value; }));
+      "setAmbientLight", ([this](double value) { mGraphicsEngine->pAmbientBrightness = value; }));
 
   // Enables lighting computation globally.
   mGuiManager->getGui()->registerCallback<bool>(
-      "set_enable_lighting", ([this](bool enable) { mGraphicsEngine->pEnableLighting = enable; }));
+      "setEnableLighting", ([this](bool enable) { mGraphicsEngine->pEnableLighting = enable; }));
 
   // Shows cascaded shadow mapping debugging information on the terrain.
-  mGuiManager->getGui()->registerCallback<bool>("set_enable_cascades_debug",
+  mGuiManager->getGui()->registerCallback<bool>("setEnableCascadesDebug",
       ([this](bool enable) { mGraphicsEngine->pEnableShadowsDebug = enable; }));
 
   // Enables the calculation of shadows.
   mGuiManager->getGui()->registerCallback<bool>(
-      "set_enable_shadows", ([this](bool enable) { mGraphicsEngine->pEnableShadows = enable; }));
+      "setEnableShadows", ([this](bool enable) { mGraphicsEngine->pEnableShadows = enable; }));
 
   // Freezes the shadow frustum.
-  mGuiManager->getGui()->registerCallback<bool>("set_enable_shadow_freeze",
+  mGuiManager->getGui()->registerCallback<bool>("setEnableShadowFreeze",
       ([this](bool enable) { mGraphicsEngine->pEnableShadowsFreeze = enable; }));
 
   // Sets a value which individual plugins may honor trading rendering fidelity for performance.
-  mGuiManager->getGui()->registerCallback<double>("set_lighting_quality",
+  mGuiManager->getGui()->registerCallback<double>("setLightingQuality",
       ([this](const int value) { mGraphicsEngine->pLightingQuality = value; }));
 
   // Adjusts the resolution of the shadowmap.
-  mGuiManager->getGui()->registerCallback<double>("set_shadowmap_resolution",
+  mGuiManager->getGui()->registerCallback<double>("setShadowmapResolution",
       ([this](const int val) { mGraphicsEngine->pShadowMapResolution = val; }));
 
   // Adjusts the number of shadowmap cascades.
-  mGuiManager->getGui()->registerCallback<double>("set_shadowmap_cascades",
+  mGuiManager->getGui()->registerCallback<double>("setShadowmapCascades",
       ([this](const int val) { mGraphicsEngine->pShadowMapCascades = val; }));
 
   // Adjusts the depth range of the shadowmap.
   mGuiManager->getGui()->registerCallback<double, double>(
-      "set_shadowmap_range", ([this](double val, double handle) {
+      "setShadowmapRange", ([this](double val, double handle) {
         glm::vec2 range = mGraphicsEngine->pShadowMapRange.get();
 
         if (handle == 0.0) {
@@ -816,7 +816,7 @@ void Application::registerGuiCallbacks() {
 
   // Adjusts the additional frustum length for shadowmap rendering in sun space.
   mGuiManager->getGui()->registerCallback<double, double>(
-      "set_shadowmap_extension", ([this](double val, double handle) {
+      "setShadowmapExtension", ([this](double val, double handle) {
         glm::vec2 extension = mGraphicsEngine->pShadowMapExtension.get();
 
         if (handle == 0.0) {
@@ -829,27 +829,27 @@ void Application::registerGuiCallbacks() {
       }));
 
   // Adjusts the distribution of shadowmap cascades.
-  mGuiManager->getGui()->registerCallback<double>("set_shadowmap_split_distribution",
+  mGuiManager->getGui()->registerCallback<double>("setShadowmapSplitDistribution",
       ([this](double val) { mGraphicsEngine->pShadowMapSplitDistribution = val; }));
 
   // Adjusts the bias to mitigate shadow acne.
   mGuiManager->getGui()->registerCallback<double>(
-      "set_shadowmap_bias", ([this](double val) { mGraphicsEngine->pShadowMapBias = val; }));
+      "setShadowmapBias", ([this](double val) { mGraphicsEngine->pShadowMapBias = val; }));
 
   // A global factor which plugins may honor when they render some sort of terrain.
   mGuiManager->getGui()->registerCallback<double>(
-      "set_terrain_height", ([this](double value) { mGraphicsEngine->pHeightScale = value; }));
+      "setTerrainHeight", ([this](double value) { mGraphicsEngine->pHeightScale = value; }));
 
   // Adjusts the global scaling of world-space widgets.
   mGuiManager->getGui()->registerCallback<double>(
-      "set_widget_scale", ([this](double value) { mGraphicsEngine->pWidgetScale = value; }));
+      "setWidgetScale", ([this](double value) { mGraphicsEngine->pWidgetScale = value; }));
 
   // Enables or disables the per-frame time measurements.
-  mGuiManager->getGui()->registerCallback<bool>("set_enable_timer_queries",
+  mGuiManager->getGui()->registerCallback<bool>("setEnableTimerQueries",
       ([this](bool value) { mFrameTimings->pEnableMeasurements = value; }));
 
   // Enables or disables vertical synchronization.
-  mGuiManager->getGui()->registerCallback<bool>("set_enable_vsync", ([this](bool value) {
+  mGuiManager->getGui()->registerCallback<bool>("setEnableVsync", ([this](bool value) {
     GetVistaSystem()
         ->GetDisplayManager()
         ->GetWindows()
@@ -860,24 +860,24 @@ void Application::registerGuiCallbacks() {
 
   // Timeline callbacks ----------------------------------------------------------------------------
 
-  mGuiManager->getGui()->registerCallback("reset_time", ([this]() { mTimeControl->resetTime(); }));
+  mGuiManager->getGui()->registerCallback("resetTime", ([this]() { mTimeControl->resetTime(); }));
 
-  mGuiManager->getGui()->registerCallback<double>("add_hours", ([this](double amount) {
+  mGuiManager->getGui()->registerCallback<double>("addHours", ([this](double amount) {
     mTimeControl->setTime(mTimeControl->pSimulationTime.get() + 60.0 * 60.0 * amount);
   }));
 
   mGuiManager->getGui()->registerCallback<double>(
-      "add_hours_without_animation", ([this](double amount) {
+      "addHoursWithoutAnimation", ([this](double amount) {
         mTimeControl->setTimeWithoutAnimation(
             mTimeControl->pSimulationTime.get() + 60.0 * 60.0 * amount);
       }));
 
   mGuiManager->getGui()->registerCallback<double>(
-      "set_time_speed", ([this](double speed) { mTimeControl->setTimeSpeed(speed); }));
+      "setTimeSpeed", ([this](double speed) { mTimeControl->setTimeSpeed(speed); }));
 
   // Flies the celestial observer to the given location in space.
   mGuiManager->getGui()->registerCallback<std::string, double, double, double, double>(
-      "fly_to_location", ([this](std::string const& name, double longitude, double latitude,
+      "flyToLocation", ([this](std::string const& name, double longitude, double latitude,
                               double height, double time) {
         for (auto const& body : mSolarSystem->getBodies()) {
           if (body->getCenterName() == name) {
@@ -890,7 +890,7 @@ void Application::registerGuiCallbacks() {
 
   // Rotates the scene in such a way, that the y-axis points towards the north pole of the currently
   // active celestial body.
-  mGuiManager->getGui()->registerCallback("navigate_north_up", [this]() {
+  mGuiManager->getGui()->registerCallback("navigateNorthUp", [this]() {
     auto observerPos = mSolarSystem->getObserver().getAnchorPosition();
 
     glm::dvec3 y = glm::vec3(0, -1, 0);
@@ -909,7 +909,7 @@ void Application::registerGuiCallbacks() {
   });
 
   // Rotates the scene in such a way, that the currently visible horizon is levelled.
-  mGuiManager->getGui()->registerCallback("navigate_fix_horizon", [this]() {
+  mGuiManager->getGui()->registerCallback("navigateFixHorizon", [this]() {
     auto radii = cs::core::SolarSystem::getRadii(mSolarSystem->getObserver().getCenterName());
 
     if (radii[0] == 0.0) {
@@ -939,7 +939,7 @@ void Application::registerGuiCallbacks() {
   });
 
   // Flies the celestial observer to 0.1% of its current height.
-  mGuiManager->getGui()->registerCallback("navigate_to_surface", [this]() {
+  mGuiManager->getGui()->registerCallback("navigateToSurface", [this]() {
     auto radii = cs::core::SolarSystem::getRadii(mSolarSystem->getObserver().getCenterName());
 
     if (radii[0] == 0.0 || radii[2] == 0.0) {
@@ -983,7 +983,7 @@ void Application::registerGuiCallbacks() {
 
   // Flies the celestial observer to an orbit at three times the radius of the currently active
   // celestial body.
-  mGuiManager->getGui()->registerCallback("navigate_to_orbit", [this]() {
+  mGuiManager->getGui()->registerCallback("navigateToOrbit", [this]() {
     auto observerRot = mSolarSystem->getObserver().getAnchorRotation();
     auto radii       = cs::core::SolarSystem::getRadii(mSolarSystem->getObserver().getCenterName());
 
@@ -1013,33 +1013,33 @@ void Application::registerGuiCallbacks() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Application::unregisterGuiCallbacks() {
-  mGuiManager->getGui()->unregisterCallback("set_lighting_quality");
-  mGuiManager->getGui()->unregisterCallback("set_celestial_body");
-  mGuiManager->getGui()->unregisterCallback("set_enable_shadows");
-  mGuiManager->getGui()->unregisterCallback("print_notification");
-  mGuiManager->getGui()->unregisterCallback("set_shadowmap_split_distribution");
-  mGuiManager->getGui()->unregisterCallback("set_enable_cascades_debug");
-  mGuiManager->getGui()->unregisterCallback("set_ambient_light");
-  mGuiManager->getGui()->unregisterCallback("set_shadowmap_cascades");
-  mGuiManager->getGui()->unregisterCallback("set_shadowmap_extension");
-  mGuiManager->getGui()->unregisterCallback("set_enable_shadow_freeze");
-  mGuiManager->getGui()->unregisterCallback("set_date");
-  mGuiManager->getGui()->unregisterCallback("set_time");
-  mGuiManager->getGui()->unregisterCallback("set_shadowmap_range");
-  mGuiManager->getGui()->unregisterCallback("set_terrain_height");
-  mGuiManager->getGui()->unregisterCallback("set_widget_scale");
-  mGuiManager->getGui()->unregisterCallback("set_enable_lighting");
-  mGuiManager->getGui()->unregisterCallback("set_enable_timer_queries");
-  mGuiManager->getGui()->unregisterCallback("set_shadowmap_resolution");
-  mGuiManager->getGui()->unregisterCallback("set_shadowmap_bias");
-  mGuiManager->getGui()->unregisterCallback("set_enable_vsync");
-  mGuiManager->getGui()->unregisterCallback("navigate_to_surface");
-  mGuiManager->getGui()->unregisterCallback("fly_to_location");
-  mGuiManager->getGui()->unregisterCallback("reset_time");
-  mGuiManager->getGui()->unregisterCallback("navigate_to_orbit");
-  mGuiManager->getGui()->unregisterCallback("set_time_speed");
-  mGuiManager->getGui()->unregisterCallback("add_hours_without_animation");
-  mGuiManager->getGui()->unregisterCallback("navigate_fix_horizon");
-  mGuiManager->getGui()->unregisterCallback("navigate_north_up");
-  mGuiManager->getGui()->unregisterCallback("add_hours");
+  mGuiManager->getGui()->unregisterCallback("setLightingQuality");
+  mGuiManager->getGui()->unregisterCallback("setCelestialBody");
+  mGuiManager->getGui()->unregisterCallback("setEnableShadows");
+  mGuiManager->getGui()->unregisterCallback("printNotification");
+  mGuiManager->getGui()->unregisterCallback("setShadowmapSplitDistribution");
+  mGuiManager->getGui()->unregisterCallback("setEnableCascadesDebug");
+  mGuiManager->getGui()->unregisterCallback("setAmbientLight");
+  mGuiManager->getGui()->unregisterCallback("setShadowmapCascades");
+  mGuiManager->getGui()->unregisterCallback("setShadowmapExtension");
+  mGuiManager->getGui()->unregisterCallback("setEnableShadowFreeze");
+  mGuiManager->getGui()->unregisterCallback("setDate");
+  mGuiManager->getGui()->unregisterCallback("setTime");
+  mGuiManager->getGui()->unregisterCallback("setShadowmapRange");
+  mGuiManager->getGui()->unregisterCallback("setTerrainHeight");
+  mGuiManager->getGui()->unregisterCallback("setWidgetScale");
+  mGuiManager->getGui()->unregisterCallback("setEnableLighting");
+  mGuiManager->getGui()->unregisterCallback("setEnableTimerQueries");
+  mGuiManager->getGui()->unregisterCallback("setShadowmapResolution");
+  mGuiManager->getGui()->unregisterCallback("setShadowmapBias");
+  mGuiManager->getGui()->unregisterCallback("setEnableVsync");
+  mGuiManager->getGui()->unregisterCallback("navigateToSurface");
+  mGuiManager->getGui()->unregisterCallback("flyToLocation");
+  mGuiManager->getGui()->unregisterCallback("resetTime");
+  mGuiManager->getGui()->unregisterCallback("navigateToOrbit");
+  mGuiManager->getGui()->unregisterCallback("setTimeSpeed");
+  mGuiManager->getGui()->unregisterCallback("addHoursWithoutAnimation");
+  mGuiManager->getGui()->unregisterCallback("navigateFixHorizon");
+  mGuiManager->getGui()->unregisterCallback("navigateNorthUp");
+  mGuiManager->getGui()->unregisterCallback("addHours");
 }
