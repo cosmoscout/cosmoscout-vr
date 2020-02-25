@@ -15,6 +15,8 @@ class CosmoScout {
    */
   static _apis = new Map();
 
+  static callbacks = {};
+
   /**
    * Init a list of apis
    *
@@ -52,17 +54,6 @@ class CosmoScout {
    */
   static update() {
     this._apis.forEach(api => api.update());
-  }
-
-  /**
-   * window.call_native wrapper
-   *
-   * @param fn {string}
-   * @param args {any}
-   * @return {*}
-   */
-  static callNative(fn, ...args) {
-    return window.call_native(fn, ...args);
   }
 
   /**

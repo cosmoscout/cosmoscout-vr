@@ -38,7 +38,6 @@ class GuiApi extends IApi {
     this.initChecklabelInputs();
     this.initRadiolabelInputs();
     this.initTooltips();
-    this.initDataCalls();
   }
 
   /**
@@ -53,7 +52,7 @@ class GuiApi extends IApi {
 
     const eventListener = (event) => {
       if (event.target !== null && event.target.id !== '') {
-        CosmoScout.callNative(event.target.id, event.target.value);
+        CosmoScout.callbacks[event.target.id](event.target.value);
       }
     };
 
@@ -81,7 +80,7 @@ class GuiApi extends IApi {
 
       input.addEventListener('change', (event) => {
         if (event.target !== null) {
-          CosmoScout.callNative(event.target.id, event.target.checked);
+          CosmoScout.callbacks[event.target.id](event.target.checked);
         }
       });
 
@@ -103,37 +102,7 @@ class GuiApi extends IApi {
 
       input.addEventListener('change', (event) => {
         if (event.target !== null) {
-          CosmoScout.callNative(event.target.id);
-        }
-      });
-
-      input.dataset.initialized = 'true';
-    });
-  }
-
-  /**
-   * Adds an onclick listener to every element containing [data-call="'methodname'"]
-   * The method name gets passed to CosmoScout.callNative.
-   * Arguments can be passed by separating the content with ','
-   * E.g.: 'fly_to','Africa' -> CosmoScout.callNative('fly_to', 'Africa')
-   *       method,arg1,...,argN -> CosmoScout.callNative('method', arg1, ..., argN)
-   * Attribute content will be passed to eval. Strings need to be wrapped in '
-   *
-   * @see {callNative}
-   * @see {initInputs}
-   */
-  initDataCalls() {
-    document.querySelectorAll('[data-call]').forEach((input) => {
-      if (typeof input.dataset.initialized !== 'undefined') {
-        return;
-      }
-
-      input.addEventListener('click', () => {
-        if (typeof input.dataset.call !== 'undefined') {
-          const args = input.dataset.call;
-
-          // eslint-disable-next-line no-eval
-          eval(`CosmoScout.callNative(${args})`);
+          CosmoScout.callbacks[event.target.id]();
         }
       });
 
@@ -355,9 +324,9 @@ class GuiApi extends IApi {
 
     slider.noUiSlider.on('slide', (values, handle, unencoded) => {
       if (Array.isArray(unencoded)) {
-        CosmoScout.callNative(id, unencoded[handle], handle);
+        CosmoScout.callbacks[id](unencoded[handle], handle);
       } else {
-        CosmoScout.callNative(id, unencoded, 0);
+        CosmoScout.callbacks[id](unencoded, 0);
       }
     });
   }

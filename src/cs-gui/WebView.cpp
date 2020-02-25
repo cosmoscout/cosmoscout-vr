@@ -326,6 +326,15 @@ void WebView::executeJavascript(std::string const& code) const {
 
 void WebView::unregisterCallback(std::string const& name) {
   mClient->UnregisterJSCallback(name);
+
+  std::string cmd = R"(
+    if (typeof CosmoScout !== 'undefined') {
+      delete CosmoScout.callbacks.$;
+    }
+  )";
+
+  utils::replaceString(cmd, "$", name);
+  executeJavascript(cmd);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -333,6 +342,15 @@ void WebView::unregisterCallback(std::string const& name) {
 void WebView::registerJSCallbackImpl(
     std::string const& name, std::function<void(std::vector<std::any> const&)> const& callback) {
   mClient->RegisterJSCallback(name, callback);
+
+  std::string cmd = R"(
+    if (typeof CosmoScout !== 'undefined') {
+      CosmoScout.callbacks.$ = (...args) => window.call_native('$', ...args);
+    }
+  )";
+
+  utils::replaceString(cmd, "$", name);
+  executeJavascript(cmd);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

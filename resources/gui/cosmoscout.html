@@ -150,25 +150,25 @@
             <a class="btn light-glass"
                data-toggle="tooltip-bottom"
                title="Turn north up"
-               data-call="'navigate_north_up'">
+               onclick="CosmoScout.callbacks.navigate_north_up()">
                 <span id="compass-arrow"></span>
             </a>
             <a class="btn light-glass"
                data-toggle="tooltip-bottom"
                title="Fix horizon"
-               data-call="'navigate_fix_horizon'">
+               onclick="CosmoScout.callbacks.navigate_fix_horizon()">
                 <i class="material-icons">terrain</i>
             </a>
             <a class="btn light-glass"
                data-toggle="tooltip-bottom"
                title="Launch to orbit"
-               data-call="'navigate_to_orbit'">
+               onclick="CosmoScout.callbacks.navigate_to_orbit()">
                 <i class="material-icons">flight_takeoff</i>
             </a>
             <a class="btn light-glass"
                data-toggle="tooltip-bottom"
                title="Land on surface"
-               data-call="'navigate_to_surface'">
+               onclick="CosmoScout.callbacks.navigate_to_surface()">
                 <i class="material-icons">flight_land</i>
             </a>
         </div>
@@ -441,7 +441,7 @@
     });
 
     slider.noUiSlider.on('slide', function (values, handle, unencoded) {
-      CosmoScout.callNative("set_shadowmap_resolution", unencoded, 0);
+      CosmoScout.callbacks.set_shadowmap_resolution(unencoded, 0);
     });
 
     CosmoScout.gui.initSlider("set_ambient_light", 0.0, 1.0, 0.01, [0.5]);
