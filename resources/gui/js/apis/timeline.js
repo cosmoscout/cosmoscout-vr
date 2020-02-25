@@ -548,9 +548,9 @@ class TimelineApi extends IApi {
     document.getElementById('event-dialog-start-date').value = CosmoScout.utils.getFormattedDateWithTime(item.start);
     document.getElementById('event-dialog-end-date').value = '';
     document.getElementById('event-dialog-description').value = '';
-    document.getElementById('event-dialog-planet').value = CosmoScout.statusbar.getActivePlanetCenter();
+    document.getElementById('event-dialog-planet').value = CosmoScout.state.activePlanetCenter;
 
-    let userPos = CosmoScout.statusbar.getObserverPosition();
+    let userPos = CosmoScout.state.observerPosition;
     document.getElementById('event-dialog-location').value = CosmoScout.utils.formatLongitude(userPos[1]) + CosmoScout.utils.formatLatitude(userPos[0]) + CosmoScout.utils.formatHeight(userPos[2]);
     this._parHolder.item = item;
     this._parHolder.callback = callback;

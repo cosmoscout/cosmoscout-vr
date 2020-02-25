@@ -549,9 +549,9 @@ void Application::FrameUpdate() {
       double heightDiff    = polar.z / mGraphicsEngine->pHeightScale.get() - surfaceHeight;
 
       if (!std::isnan(polar.x) && !std::isnan(polar.y) && !std::isnan(heightDiff)) {
-        mGuiManager->getGui()->callJavascript("CosmoScout.statusbar.setObserverPosition",
+        mGuiManager->getGui()->executeJavascript(fmt::format("CosmoScout.state.observerPosition = [{}, {}, {}]",
             cs::utils::convert::toDegrees(polar.x), cs::utils::convert::toDegrees(polar.y),
-            heightDiff);
+            heightDiff));
       }
 
       // Update the compass in the header bar.
@@ -669,13 +669,13 @@ void Application::connectSlots() {
             auto lngLat = cs::utils::convert::toDegrees(polar.xy());
 
             if (!std::isnan(lngLat.x) && !std::isnan(lngLat.y) && !std::isnan(polar.z)) {
-              mGuiManager->getGui()->callJavascript("CosmoScout.statusbar.setPointerPosition", true,
-                  lngLat.x, lngLat.y, polar.z / mGraphicsEngine->pHeightScale.get());
+              mGuiManager->getGui()->executeJavascript(fmt::format("CosmoScout.state.pointerPosition = [{}, {}, {}];",
+                  lngLat.x, lngLat.y, polar.z / mGraphicsEngine->pHeightScale.get()));
               return;
             }
           }
         }
-        mGuiManager->getGui()->callJavascript("CosmoScout.statusbar.setPointerPosition", false);
+        mGuiManager->getGui()->executeJavascript("CosmoScout.state.pointerPosition = undefined;");
       });
 
   // Update the time shown in the user interface when the simulation time changes.
@@ -704,7 +704,7 @@ void Application::connectSlots() {
           "Position is locked to " + mSolarSystem->pActiveBody.get()->getCenterName() + ".",
           "public");
     }
-    mGuiManager->getGui()->callJavascript("CosmoScout.statusbar.setActivePlanetCenter", center);
+    mGuiManager->getGui()->executeJavascript(fmt::format("CosmoScout.state.activePlanetCenter = '{}';", center));
   });
 
   // Show notification when the frame name of the celestial observer changes.
@@ -718,12 +718,12 @@ void Application::connectSlots() {
           "Orbit in sync with " + mSolarSystem->pActiveBody.get()->getCenterName() + ".",
           "vpn_lock");
     }
-    mGuiManager->getGui()->callJavascript("CosmoScout.statusbar.setActivePlanetFrame", frame);
+    mGuiManager->getGui()->executeJavascript(fmt::format("CosmoScout.state.activePlanetFrame = '{}';", frame));
   });
 
   // Show the current speed of the celestial observer in the user interface.
   mSolarSystem->pCurrentObserverSpeed.onChange().connect([this](float speed) {
-    mGuiManager->getGui()->callJavascript("CosmoScout.statusbar.setObserverSpeed", speed);
+    mGuiManager->getGui()->executeJavascript(fmt::format("CosmoScout.state.observerSpeed = {};", speed));
   });
 
   // Show the statistics GuiItem when measurements are enabled.

@@ -6,6 +6,22 @@
  */
 // eslint-disable-next-line no-unused-vars
 class CosmoScout {
+  
+  /**
+   * Stores all callbacks registered via C++
+   */
+  static callbacks = {};
+
+  /**
+   * Use this to access read-only state variables which are set from C++.
+   * activePlanetCenter
+   * activePlanetFrame
+   * observerSpeed
+   * pointerPosition
+   * observerPosition
+   */
+  static state = {};
+
   /**
    * Registered apis
    *
@@ -14,8 +30,6 @@ class CosmoScout {
    * @private
    */
   static _apis = new Map();
-
-  static callbacks = {};
 
   /**
    * Init a list of apis
@@ -39,7 +53,7 @@ class CosmoScout {
           return;
         }
 
-        this.register(instance.name, instance);
+        this.registerApi(instance.name, instance);
         instance.init();
       } catch (e) {
         console.error(`Could not initialize ${Api}: ${e.message}`);
@@ -62,7 +76,7 @@ class CosmoScout {
    * @param name {string} Api name from IApi
    * @param api {Object} Instantiated IApi object
    */
-  static register(name, api) {
+  static registerApi(name, api) {
     this[name] = api;
     this._apis.set(name, api);
   }
@@ -72,7 +86,7 @@ class CosmoScout {
    *
    * @param name {string}
    */
-  static remove(name) {
+  static removeApi(name) {
     delete this[name];
     this._apis.delete(name);
   }
