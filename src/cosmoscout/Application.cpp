@@ -878,7 +878,7 @@ void Application::registerGuiCallbacks() {
   // Flies the celestial observer to the given location in space.
   mGuiManager->getGui()->registerCallback<std::string, double, double, double, double>(
       "flyToLocation", ([this](std::string const& name, double longitude, double latitude,
-                              double height, double time) {
+                            double height, double time) {
         for (auto const& body : mSolarSystem->getBodies()) {
           if (body->getCenterName() == name) {
             mSolarSystem->pActiveBody = body;
