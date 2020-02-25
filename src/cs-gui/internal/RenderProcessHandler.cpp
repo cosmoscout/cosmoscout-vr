@@ -16,8 +16,8 @@ void RenderProcessHandler::OnContextCreated(
     CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefV8Context> context) {
 
   CefRefPtr<CefV8Value> object = context->GetGlobal();
-  CefRefPtr<CefV8Value> func   = CefV8Value::CreateFunction("call_native", new JSHandler(browser));
-  object->SetValue("call_native", func, V8_PROPERTY_ATTRIBUTE_NONE);
+  CefRefPtr<CefV8Value> func   = CefV8Value::CreateFunction("callNative", new JSHandler(browser));
+  object->SetValue("callNative", func, V8_PROPERTY_ATTRIBUTE_NONE);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

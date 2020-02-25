@@ -11,11 +11,11 @@
 
 namespace cs::gui::detail {
 
-/// Used to add the call_native method to the JS window object.
+/// Used to add the callNative method to the JS window object.
 class RenderProcessHandler : public CefRenderProcessHandler {
  public:
   /// This is called for each new context. We use this callback to add the
-  /// call_native method to the window object.
+  /// callNative method to the window object.
   virtual void OnContextCreated(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame,
       CefRefPtr<CefV8Context> context) override;
 

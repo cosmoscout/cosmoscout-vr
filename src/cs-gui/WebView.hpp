@@ -55,10 +55,10 @@ class CS_GUI_EXPORT WebView {
   void executeJavascript(std::string const& code) const;
 
   /// Register a callback which can be called from Javascript with the
-  /// "window.call_native('callback_name', ... args ...)" function. Registering the same name twice
+  /// "window.callNative('callback_name', ... args ...)" function. Registering the same name twice
   /// will override the first callback.
   /// This first version takes no arguments from the JavaScript side. There are other versions
-  /// below, which take up to six arguments. JavaScript variables passed to the window.call_native
+  /// below, which take up to six arguments. JavaScript variables passed to the window.callNative
   /// function will be converted to C++ types. This works for integer, doubles, booleans and
   /// std::strings.
   ///
