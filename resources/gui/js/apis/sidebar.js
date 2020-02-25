@@ -74,7 +74,7 @@ class SidebarApi extends IApi {
     const html = this.replaceMarkers(tab.innerHTML, SidebarApi.makeId(sectionName), icon, content);
 
     tab.innerHTML = html
-      .replace(this.regex('SECTION'), sectionName)
+      .replace(/%SECTION%/g, sectionName)
       .trim();
 
     this._settings.appendChild(tab);
@@ -109,6 +109,24 @@ class SidebarApi extends IApi {
       $(`#${collapseId}`).collapse('hide');
       parent.classList.add('unresponsive');
     }
+  }
+
+  /**
+   * Replace common template markers with content
+   *
+   * @param html {string} HTML with %MARKER% markers
+   * @param id {string} Id marker replacement
+   * @param icon {string} Icon marker replacement
+   * @param content {string} Content marker replacement
+   * @return {string} replaced html
+   * @protected
+   */
+  replaceMarkers(html, id, icon, content) {
+    return html
+      .replace(/%ID%/g, id)
+      .replace(/%CONTENT%/g, content)
+      .replace(/%ICON%/g, icon)
+      .trim();
   }
 
   /**
