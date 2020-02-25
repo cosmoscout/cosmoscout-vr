@@ -373,13 +373,13 @@ void GuiManager::addScriptToGuiFromJS(std::string const& jsFile) {
 
 void GuiManager::addHtmlToGui(std::string const& id, std::string const& src) {
   std::string content = utils::filesystem::loadToString(src);
-  mCosmoScoutGui->callJavascript("CosmoScout.registerHtml", id, content);
+  mCosmoScoutGui->callJavascript("CosmoScout.gui.registerHtml", id, content);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void GuiManager::addCssToGui(const std::string& fileName) {
-  mCosmoScoutGui->callJavascript("CosmoScout.registerCss", fileName);
+  mCosmoScoutGui->callJavascript("CosmoScout.gui.registerCss", fileName);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

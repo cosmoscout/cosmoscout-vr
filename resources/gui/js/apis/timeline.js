@@ -311,7 +311,7 @@ class TimelineApi extends IApi {
    * @param callback {string} Function name passed to call_native
    */
   addButton(icon, tooltip, callback) {
-    const button = CosmoScout.loadTemplateContent('button');
+    const button = CosmoScout.gui.loadTemplateContent('button');
 
     if (button === false) {
       return;
@@ -329,7 +329,7 @@ class TimelineApi extends IApi {
 
     this._buttonContainer.appendChild(button);
 
-    CosmoScout.initTooltips();
+    CosmoScout.gui.initTooltips();
   }
 
   /**
@@ -348,7 +348,7 @@ class TimelineApi extends IApi {
     });
     this._timeline.setCustomTime(this._centerTime, this._timeId);
     this._setOverviewTimes();
-    document.getElementById('dateLabel').innerText = DateOperations.formatDateReadable(this._centerTime);
+    document.getElementById('dateLabel').innerText = CosmoScout.utils.formatDateReadable(this._centerTime);
   }
 
   addItem(start, end, id, content, style, description, planet, place) {
@@ -545,13 +545,13 @@ class TimelineApi extends IApi {
     document.getElementById('headlineForm').innerText = 'Add Event';
     document.getElementById('event-dialog-name').value = '';
     document.getElementById('add-event-dialog').style.display = 'block';
-    document.getElementById('event-dialog-start-date').value = DateOperations.getFormattedDateWithTime(item.start);
+    document.getElementById('event-dialog-start-date').value = CosmoScout.utils.getFormattedDateWithTime(item.start);
     document.getElementById('event-dialog-end-date').value = '';
     document.getElementById('event-dialog-description').value = '';
     document.getElementById('event-dialog-planet').value = CosmoScout.statusbar.getActivePlanetCenter();
 
     let userPos = CosmoScout.statusbar.getObserverPosition();
-    document.getElementById('event-dialog-location').value = Format.longitude(userPos[1]) + Format.latitude(userPos[0]) + Format.height(userPos[2]);
+    document.getElementById('event-dialog-location').value = CosmoScout.utils.formatLongitude(userPos[1]) + CosmoScout.utils.formatLatitude(userPos[0]) + CosmoScout.utils.formatHeight(userPos[2]);
     this._parHolder.item = item;
     this._parHolder.callback = callback;
     this._parHolder.overview = overview;
@@ -574,12 +574,12 @@ class TimelineApi extends IApi {
     document.getElementById('headlineForm').innerText = 'Update';
     document.getElementById('add-event-dialog').style.display = 'block';
     document.getElementById('event-dialog-name').value = item.content;
-    document.getElementById('event-dialog-start-date').value = DateOperations.getFormattedDateWithTime(item.start);
+    document.getElementById('event-dialog-start-date').value = CosmoScout.utils.getFormattedDateWithTime(item.start);
     document.getElementById('event-dialog-description').value = item.description;
     document.getElementById('event-dialog-planet').value = item.planet;
     document.getElementById('event-dialog-location').value = item.place;
     if (item.end) {
-      document.getElementById('event-dialog-end-date').value = DateOperations.getFormattedDateWithTime(item.end);
+      document.getElementById('event-dialog-end-date').value = CosmoScout.utils.getFormattedDateWithTime(item.end);
     } else {
       document.getElementById('event-dialog-end-date').value = '';
     }
@@ -1077,11 +1077,11 @@ class TimelineApi extends IApi {
    * @private
    */
   _moveWindow() {
-    const step = DateOperations.convertSeconds(this._timelineRangeFactor);
+    const step = CosmoScout.utils.convertSeconds(this._timelineRangeFactor);
     let startDate = new Date(this._centerTime.getTime());
     let endDate = new Date(this._centerTime.getTime());
-    startDate = DateOperations.decreaseDate(startDate, step.days, step.hours, step.minutes, step.seconds, step.milliSec);
-    endDate = DateOperations.increaseDate(endDate, step.days, step.hours, step.minutes, step.seconds, step.milliSec);
+    startDate = CosmoScout.utils.decreaseDate(startDate, step.days, step.hours, step.minutes, step.seconds, step.milliSec);
+    endDate = CosmoScout.utils.increaseDate(endDate, step.days, step.hours, step.minutes, step.seconds, step.milliSec);
     this._timeline.setWindow(startDate, endDate, {
       animations: false,
     });
@@ -1208,9 +1208,9 @@ class TimelineApi extends IApi {
       const secondsDif = dif / 1000;
       const hoursDif = secondsDif / 60 / 60;
 
-      const step = DateOperations.convertSeconds(secondsDif);
+      const step = CosmoScout.utils.convertSeconds(secondsDif);
       let date = new Date(this._centerTime.getTime());
-      date = DateOperations.increaseDate(date, step.days, step.hours, step.minutes, step.seconds, step.milliSec);
+      date = CosmoScout.utils.increaseDate(date, step.days, step.hours, step.minutes, step.seconds, step.milliSec);
       this._setDateLocal(date);
       this._mouseDownLeftTime = new Date(properties.start.getTime());
       CosmoScout.callNative('add_hours_without_animation', hoursDif);
@@ -1229,7 +1229,7 @@ class TimelineApi extends IApi {
     });
     this._timeline.setCustomTime(this._centerTime, this._timeId);
     this._setOverviewTimes();
-    document.getElementById('dateLabel').innerText = DateOperations.formatDateReadable(this._centerTime);
+    document.getElementById('dateLabel').innerText = CosmoScout.utils.formatDateReadable(this._centerTime);
   }
 
   _drawFocusLens() {
@@ -1495,7 +1495,7 @@ class TimelineApi extends IApi {
    */
   _setTimeToDate(date) {
     date.setHours(12);
-    CosmoScout.callNative('set_date', DateOperations.formatDateCosmo(new Date(date.getTime())));
+    CosmoScout.callNative('set_date', CosmoScout.utils.formatDateCosmo(new Date(date.getTime())));
     const startDate = new Date(date.getTime());
     const endDate = new Date(date.getTime());
     startDate.setHours(0);

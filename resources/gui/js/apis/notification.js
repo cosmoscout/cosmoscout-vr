@@ -86,7 +86,7 @@ class NotificationApi extends IApi {
      * @private
      */
     static makeNotification(title, content, icon = '') {
-      const notification = CosmoScout.loadTemplateContent('notification');
+      const notification = CosmoScout.gui.loadTemplateContent('notification');
 
       if (notification === false) {
         throw new Error('Notification template content could not be loaded. Does "#notification-template" exist?');

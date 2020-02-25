@@ -436,7 +436,7 @@ void Application::FrameUpdate() {
       mGuiManager->enableLoadingScreen(false);
 
       // All plugins finished loading -> init their custom components.
-      mGuiManager->getGui()->callJavascript("CosmoScout.initInputs");
+      mGuiManager->getGui()->callJavascript("CosmoScout.gui.initInputs");
     }
 
     // update CosmoScout VR classes ----------------------------------------------------------------

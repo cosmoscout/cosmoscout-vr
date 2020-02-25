@@ -408,8 +408,6 @@
 <script type="text/javascript" src="third-party/js/color-picker.min.js"></script>
 
 <!-- CosmoScout -->
-<script type="text/javascript" src="js/date_operations.js"></script>
-<script type="text/javascript" src="js/format.js"></script>
 <script type="text/javascript" src="js/api.js"></script>
 <script type="text/javascript" src="js/cosmoscout.js"></script>
 
@@ -418,10 +416,14 @@
 <script type="text/javascript" src="js/apis/statusbar.js"></script>
 <script type="text/javascript" src="js/apis/timeline.js"></script>
 <script type="text/javascript" src="js/apis/loading_screen.js"></script>
+<script type="text/javascript" src="js/apis/gui.js"></script>
+<script type="text/javascript" src="js/apis/utils.js"></script>
 
 <script type="text/javascript">
   document.addEventListener('DOMContentLoaded', () => {
     CosmoScout.init(
+      UtilsApi,
+      GuiApi,
       LoadingScreenApi,
       NotificationApi,
       StatusbarApi,
@@ -442,16 +444,16 @@
       CosmoScout.callNative("set_shadowmap_resolution", unencoded, 0);
     });
 
-    CosmoScout.initSlider("set_ambient_light", 0.0, 1.0, 0.01, [0.5]);
+    CosmoScout.gui.initSlider("set_ambient_light", 0.0, 1.0, 0.01, [0.5]);
 
     // Performance
-    CosmoScout.initSlider("set_lighting_quality", 1.0, 3.0, 1.0, [2.0]);
+    CosmoScout.gui.initSlider("set_lighting_quality", 1.0, 3.0, 1.0, [2.0]);
 
-    CosmoScout.initSlider("set_shadowmap_cascades", 1.0, 5.0, 1.0, [3.0]);
-    CosmoScout.initSlider("set_shadowmap_bias", 0.0, 10.0, 0.01, [1.0]);
-    CosmoScout.initSlider("set_shadowmap_range", 0.0, 500.0, 1.0, [0.0, 100.0]);
-    CosmoScout.initSlider("set_shadowmap_extension", -500.0, 500.0, 10.0, [-100.0, 100.0]);
-    CosmoScout.initSlider("set_shadowmap_split_distribution", 0.5, 5.0, 0.1, [1.0]);
+    CosmoScout.gui.initSlider("set_shadowmap_cascades", 1.0, 5.0, 1.0, [3.0]);
+    CosmoScout.gui.initSlider("set_shadowmap_bias", 0.0, 10.0, 0.01, [1.0]);
+    CosmoScout.gui.initSlider("set_shadowmap_range", 0.0, 500.0, 1.0, [0.0, 100.0]);
+    CosmoScout.gui.initSlider("set_shadowmap_extension", -500.0, 500.0, 10.0, [-100.0, 100.0]);
+    CosmoScout.gui.initSlider("set_shadowmap_split_distribution", 0.5, 5.0, 0.1, [1.0]);
 
     $(document).on('click', '.item-create-button', function () {
       $(this).addClass('active');

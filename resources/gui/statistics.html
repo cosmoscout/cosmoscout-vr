@@ -15,12 +15,14 @@
 
 <script type="text/javascript" src="js/api.js"></script>
 <script type="text/javascript" src="js/cosmoscout.js"></script>
+<script type="text/javascript" src="js/apis/gui.js"></script>
 <script type="text/javascript" src="js/apis/statistics.js"></script>
 
 <script type="text/javascript">
   document.addEventListener('DOMContentLoaded', () => {
     CosmoScout.init(
-      StatisticsApi,
+      GuiApi,
+      StatisticsApi
     );
   });
 </script>

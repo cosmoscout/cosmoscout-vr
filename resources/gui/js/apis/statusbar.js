@@ -86,7 +86,7 @@ class StatusbarApi extends IApi {
      * @param speed {number}
      */
     setObserverSpeed(speed) {
-      this._speedContainer.innerText = Format.speed(speed);
+      this._speedContainer.innerText = CosmoScout.utils.formatSpeed(speed);
       this._observerSpeed = speed;
     }
   
@@ -102,7 +102,7 @@ class StatusbarApi extends IApi {
      * @param height {number}
      */
     setObserverPosition(lat, lng, height) {
-      this._userContainer.innerText = `${Format.longitude(lng) + Format.latitude(lat)}(${Format.height(height)})`;
+      this._userContainer.innerText = `${CosmoScout.utils.formatLongitude(lng) + CosmoScout.utils.formatLatitude(lat)}(${CosmoScout.utils.formatHeight(height)})`;
       this._observerPosition = [lat, lng, height];
     }
     
@@ -123,7 +123,7 @@ class StatusbarApi extends IApi {
      */
     setPointerPosition(hits, lat, lng, height) {
       if (hits) {
-        this._pointerContainer.innerText = `${Format.longitude(lng) + Format.latitude(lat)}(${Format.height(height)})`;
+        this._pointerContainer.innerText = `${CosmoScout.utils.formatLongitude(lng) + CosmoScout.utils.formatLatitude(lat)}(${CosmoScout.utils.formatHeight(height)})`;
         this._pointerPosition = [lat, lng, height];
       } else {
         this._pointerContainer.innerText = ' - ';

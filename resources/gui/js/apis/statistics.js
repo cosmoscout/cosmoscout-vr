@@ -141,7 +141,7 @@ class StatisticsApi extends IApi {
    */
   _insertHtml(frameRate) {
     const container = document.getElementById('statistics');
-    CosmoScout.clearHtml(container);
+    CosmoScout.gui.clearHtml(container);
 
     const maxEntries = Math.min(10, this._values.length);
     const maxWidth = container.offsetWidth;
