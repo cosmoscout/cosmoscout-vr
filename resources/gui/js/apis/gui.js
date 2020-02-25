@@ -407,7 +407,7 @@ class GuiApi extends IApi {
     const option = document.createElement('option');
 
     option.value = value;
-    option.selected = CosmoScout.castCppBool(selected) === true;
+    option.selected = selected ? true : false;
     option.textContent = text;
 
     if (dropdown !== null) {

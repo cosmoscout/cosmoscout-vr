@@ -50,9 +50,9 @@ class SidebarApi extends IApi {
       return;
     }
 
-    const id = SidebarApi.makeId(pluginName);
+    const id = this._makeId(pluginName);
 
-    tab.innerHTML = this.replaceMarkers(tab.innerHTML, id, icon, content);
+    tab.innerHTML = this._replaceMarkers(tab.innerHTML, id, icon, content);
 
     this._sidebar.insertBefore(tab, this._sidebarTab);
   }
@@ -71,7 +71,7 @@ class SidebarApi extends IApi {
       return;
     }
 
-    const html = this.replaceMarkers(tab.innerHTML, SidebarApi.makeId(sectionName), icon, content);
+    const html = this._replaceMarkers(tab.innerHTML, this._makeId(sectionName), icon, content);
 
     tab.innerHTML = html
       .replace(/%SECTION%/g, sectionName)
@@ -103,7 +103,7 @@ class SidebarApi extends IApi {
       parent = tab;
     }
 
-    if (CosmoScout.castCppBool(enabled) === true) {
+    if (enabled) {
       parent.classList.remove('unresponsive');
     } else {
       $(`#${collapseId}`).collapse('hide');
@@ -121,7 +121,7 @@ class SidebarApi extends IApi {
    * @return {string} replaced html
    * @protected
    */
-  replaceMarkers(html, id, icon, content) {
+  _replaceMarkers(html, id, icon, content) {
     return html
       .replace(/%ID%/g, id)
       .replace(/%CONTENT%/g, content)
@@ -136,7 +136,7 @@ class SidebarApi extends IApi {
    * @return {string}
    * @private
    */
-  static makeId(name) {
+  _makeId(name) {
     return name.split(' ').join('-');
   }
 }

@@ -85,24 +85,4 @@ class CosmoScout {
     delete this[name];
     this._apis.delete(name);
   }
-
-  /**
-   * Get a registered api object
-   *
-   * @param name {string}
-   * @return {Object}
-   */
-  static getApi(name) {
-    return this._apis.get(name);
-  }
-
-  /**
-   * Casts a C++ number to boolean
-   *
-   * @param input {number|boolean}
-   * @returns {boolean}
-   */
-  static castCppBool(input) {
-    return Boolean(Number(input));
-  }
 }
