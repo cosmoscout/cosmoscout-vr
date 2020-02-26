@@ -236,7 +236,7 @@ void GuiManager::setCursor(gui::Cursor cursor) {
 void GuiManager::showNotification(std::string const& sTitle, std::string const& sText,
     std::string const& sIcon, std::string const& sFlyToOnClick) const {
   mCosmoScoutGui->callJavascript(
-      "CosmoScout.notifications.printNotification", sTitle, sText, sIcon, sFlyToOnClick);
+      "CosmoScout.notifications.print", sTitle, sText, sIcon, sFlyToOnClick);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

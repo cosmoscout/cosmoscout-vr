@@ -449,7 +449,7 @@ class TimelineApi extends IApi {
     }
 
     if (notification.length > 0) {
-      CosmoScout.notifications.printNotification(...notification);
+      CosmoScout.notifications.print(...notification);
     }
   }
 
@@ -473,8 +473,8 @@ class TimelineApi extends IApi {
       name,
     };
 
-    CosmoScout.callbacks.flyToLocation(planet, location.longitude, location.latitude, location.height, animationTime);
-    CosmoScout.notifications.printNotification('Travelling', `to ${location.name}`, 'send');
+    CosmoScout.callbacks.navigation.flyToLocation(planet, location.longitude, location.latitude, location.height, animationTime);
+    CosmoScout.notifications.print('Travelling', `to ${location.name}`, 'send');
   }
 
   /* Internal methods */
@@ -591,7 +591,7 @@ class TimelineApi extends IApi {
 
   _setPause() {
     this._currentSpeed = 0;
-    CosmoScout.callbacks.setTimeSpeed(0);
+    CosmoScout.callbacks.time.setSpeed(0);
     document.getElementById('pause-button').innerHTML = '<i class="material-icons">play_arrow</i>';
     document.getElementsByClassName('range-label')[0].innerHTML = '<i class="material-icons">pause</i>';
     this._timeline.setOptions(this._pauseOptions);
@@ -656,7 +656,7 @@ class TimelineApi extends IApi {
     this._centerTime.setSeconds(diff);
 
     const hoursDiff = diff / 1000 / 60 / 60;
-    CosmoScout.callbacks.addHoursWithoutAnimation(hoursDiff);
+    CosmoScout.callbacks.time.addHoursWithoutAnimation(hoursDiff);
   }
 
   /**
@@ -677,7 +677,7 @@ class TimelineApi extends IApi {
       diff = -diff;
     }
 
-    CosmoScout.callbacks.addHoursWithoutAnimation(diff);
+    CosmoScout.callbacks.time.addHoursWithoutAnimation(diff);
   }
 
   _initEventListener() {
@@ -901,7 +901,7 @@ class TimelineApi extends IApi {
   _resetTime() {
     this._overviewTimeline.setWindow(this._minDate, this._maxDate);
     this._timeSpeedSlider.noUiSlider.set(1);
-    CosmoScout.callbacks.resetTime();
+    CosmoScout.callbacks.time.reset();
   }
 
   _togglePause() {
@@ -968,34 +968,34 @@ class TimelineApi extends IApi {
 
     switch (parseInt(this._currentSpeed, 10)) {
       case this._timeSpeedSteps.monthBack:
-        CosmoScout.callbacks.setTimeSpeed(-this.MONTHS);
+        CosmoScout.callbacks.time.setSpeed(-this.MONTHS);
         break;
       case this._timeSpeedSteps.dayBack:
-        CosmoScout.callbacks.setTimeSpeed(-this.DAYS);
+        CosmoScout.callbacks.time.setSpeed(-this.DAYS);
         break;
       case this._timeSpeedSteps.hourBack:
-        CosmoScout.callbacks.setTimeSpeed(-this.HOURS);
+        CosmoScout.callbacks.time.setSpeed(-this.HOURS);
         break;
       case this._timeSpeedSteps.minBack:
-        CosmoScout.callbacks.setTimeSpeed(-this.MINUTES);
+        CosmoScout.callbacks.time.setSpeed(-this.MINUTES);
         break;
       case this._timeSpeedSteps.secBack:
-        CosmoScout.callbacks.setTimeSpeed(-1);
+        CosmoScout.callbacks.time.setSpeed(-1);
         break;
       case this._timeSpeedSteps.secForward:
-        CosmoScout.callbacks.setTimeSpeed(1);
+        CosmoScout.callbacks.time.setSpeed(1);
         break;
       case this._timeSpeedSteps.minForward:
-        CosmoScout.callbacks.setTimeSpeed(this.MINUTES);
+        CosmoScout.callbacks.time.setSpeed(this.MINUTES);
         break;
       case this._timeSpeedSteps.hourForward:
-        CosmoScout.callbacks.setTimeSpeed(this.HOURS);
+        CosmoScout.callbacks.time.setSpeed(this.HOURS);
         break;
       case this._timeSpeedSteps.dayForward:
-        CosmoScout.callbacks.setTimeSpeed(this.DAYS);
+        CosmoScout.callbacks.time.setSpeed(this.DAYS);
         break;
       case this._timeSpeedSteps.monthForward:
-        CosmoScout.callbacks.setTimeSpeed(this.MONTHS);
+        CosmoScout.callbacks.time.setSpeed(this.MONTHS);
         break;
       default:
     }
@@ -1213,7 +1213,7 @@ class TimelineApi extends IApi {
       date = CosmoScout.utils.increaseDate(date, step.days, step.hours, step.minutes, step.seconds, step.milliSec);
       this._setDateLocal(date);
       this._mouseDownLeftTime = new Date(properties.start.getTime());
-      CosmoScout.callbacks.addHoursWithoutAnimation(hoursDif);
+      CosmoScout.callbacks.time.addHoursWithoutAnimation(hoursDif);
     }
   }
 
@@ -1324,7 +1324,7 @@ class TimelineApi extends IApi {
           hoursDif += 1;
         }
 
-        CosmoScout.callbacks.addHours(hoursDif);
+        CosmoScout.callbacks.time.addHours(hoursDif);
         this.travelTo(true, this._items._data[item].planet, this._items._data[item].place, this._items._data[item].content);
       }
     }
@@ -1347,7 +1347,7 @@ class TimelineApi extends IApi {
       } else if (properties.time.getTimezoneOffset() < this._centerTime.getTimezoneOffset()) {
         hoursDif += 1;
       }
-      CosmoScout.callbacks.addHours(hoursDif);
+      CosmoScout.callbacks.time.addHours(hoursDif);
     }
   }
 
@@ -1495,7 +1495,7 @@ class TimelineApi extends IApi {
    */
   _setTimeToDate(date) {
     date.setHours(12);
-    CosmoScout.callbacks.setDate(CosmoScout.utils.formatDateCosmo(new Date(date.getTime())));
+    CosmoScout.callbacks.time.setDate(CosmoScout.utils.formatDateCosmo(new Date(date.getTime())));
     const startDate = new Date(date.getTime());
     const endDate = new Date(date.getTime());
     startDate.setHours(0);
