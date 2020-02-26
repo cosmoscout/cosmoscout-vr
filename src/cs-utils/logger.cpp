@@ -7,6 +7,7 @@
 #include "logger.hpp"
 
 #include <VistaBase/VistaStreamUtils.h>
+#include <spdlog/sinks/base_sink.h>
 #include <sstream>
 
 namespace cs::utils::logger {
@@ -38,6 +39,33 @@ class SpdlogBuffer : public std::streambuf {
   std::shared_ptr<spdlog::logger> mLogger;
   std::string                     mLine;
 };
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+class SignalSink : public spdlog::sinks::base_sink<std::mutex> {
+ public:
+  Signal<std::string, spdlog::level::level_enum, std::string> onMessage;
+
+ protected:
+  void sink_it_(const spdlog::details::log_msg& msg) override {
+    onMessage.emit(std::string(msg.logger_name.begin(), msg.logger_name.end()), msg.level,
+        std::string(msg.payload.begin(), msg.payload.end()));
+  }
+
+  void flush_() override {
+  }
+};
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// Setup our sinks. The logger will print to the console and store it's messages in a file called
+// cosmoscout.log.
+auto signalSink = std::make_shared<SignalSink>();
+auto fileSink   = std::make_shared<spdlog::sinks::basic_file_sink_mt>("cosmoscout.log", true);
+auto coutSink   = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+std::vector<spdlog::sink_ptr> sinks = {signalSink, coutSink, fileSink};
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 } // namespace
 
@@ -72,13 +100,13 @@ void init() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+Signal<std::string, spdlog::level::level_enum, std::string> const& onMessage() {
+  return signalSink->onMessage;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 std::shared_ptr<spdlog::logger> createLogger(std::string const& name) {
-  // Setup our sinks. The logger will print to the console and store it's messages in a file called
-  // cosmoscout.log.
-  static auto fileSink =
-      std::make_shared<spdlog::sinks::basic_file_sink_mt>("cosmoscout.log", true);
-  static auto coutSink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
-  static std::vector<spdlog::sink_ptr> sinks = {coutSink, fileSink};
 
   // Append some ... to the name of the logger to make the output more readable.
   std::string paddedName = name + " ";

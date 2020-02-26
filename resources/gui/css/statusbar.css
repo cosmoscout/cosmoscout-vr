@@ -122,14 +122,19 @@
 #console-output-area,
 #console-suggestion-area,
 #console-input-area input {
-  font-family: 'Courier New', Courier, monospace;
   text-shadow: 1px 1px 1px #000, 0px 0px 1px #000, 1px 1px 3px #000;
   color:white;
   font-size: 11pt;
 }
 
+#console-output-area,
+#console-suggestion-area,
+#console-input-area input {
+  font-family: 'Courier New', Courier, monospace;
+}
+
 #console-output-area {
-  font-size: 10pt;
+  font-size: 9pt;
 }
 
 #statusbar {

@@ -59,7 +59,7 @@ class StatusbarApi extends IApi {
         }
         e.preventDefault();
       }
-  
+
       // Down pressed - history down
       if (e.keyCode == 40) {
         if (self._history.length > 0) {
@@ -77,57 +77,57 @@ class StatusbarApi extends IApi {
     this._inputField.addEventListener('keypress', function (e) {
 
       self._enableSuggestionArea(false);
-  
+
       // Return pressed - try to execute the command!
       if (e.keyCode == 13) {
         try {
           let result = eval(self._inputField.value);
           if (result != undefined) {
-            self.printMessage("I", "js", result);
+            console.log(result);
           }
         } catch (error) {
-          self.printMessage("E", "js", error);
+          console.warn(error);
         }
-  
+
         if (self._history.length == 0 || self._history[self._history.length - 1] != self._inputField.value) {
           self._history.push(self._inputField.value);
         }
-  
+
         self._historyIndex = self._history.length;
         self._inputField.value = ""
       }
-  
+
       // Tab pressed - auto complete
       if (e.keyCode == 9) {
         e.preventDefault();
-  
+
         let cursorPos = self._inputField.selectionStart;
         let text = self._inputField.value.substring(0, cursorPos);
-  
+
         let objectEnd = text.lastIndexOf(".");
         let objectBegin = 0;
-  
+
         // find last occurrence of " " , ; + - * / ( ) { } | & !
         let regex = new RegExp("\\s|,|;|\\+|-|\\*|/|\\(|\\)|{|}|\\||&|\\!", "g");
         let match;
         while ((match = regex.exec(text)) != null) {
           objectBegin = match.index + 1;
         }
-  
+
         let objectName = "window";
         let prefixBegin = 0;
-  
+
         if (objectEnd < objectBegin) {
           prefixBegin = objectBegin;
         } else if (objectEnd > 0 && objectBegin < cursorPos - 1) {
           objectName = text.substring(Math.max(0, objectBegin), objectEnd);
           prefixBegin = objectEnd + 1;
         }
-  
+
         let prefix = text.substring(prefixBegin);
-  
+
         let object = eval(objectName);
-  
+
         if (object != undefined) {
 
           let properties = Object.getOwnPropertyNames(object);
@@ -138,18 +138,18 @@ class StatusbarApi extends IApi {
           }
 
           properties = properties.filter(element => prefix === "" || element.startsWith(prefix)).sort();
-  
+
           let prefixEnd = cursorPos;
-  
+
           // find next occurrence of " " , ; + - * / ( ) { } | & ! [ ]
           let regex = new RegExp("\\s|,|;|\\+|-|\\*|/|\\(|\\)|{|}|\\||&|\\!|\\[|\\]", "g");
           regex.lastIndex = cursorPos;
           match = regex.exec(self._inputField.value);
-  
+
           if (match != null) {
             prefixEnd = match.index;
           }
-  
+
           let getCompletion = (element) => {
             let completion = element;
             let finalCursorPos = prefixBegin + completion.length;
@@ -157,15 +157,15 @@ class StatusbarApi extends IApi {
               completion += "()";
               finalCursorPos += 1;
             }
-  
+
             if (typeof object[completion] === "object") {
               completion += ".";
               finalCursorPos += 1;
             }
-  
+
             return [completion, finalCursorPos];
           }
-  
+
           if (properties.length == 1) {
             let [completion, finalCursorPos] = getCompletion(properties[0]);
             self._setCompletion(prefixBegin, prefixEnd, finalCursorPos, completion);
@@ -185,7 +185,7 @@ class StatusbarApi extends IApi {
                                                               ${finalCursorPos}, "${completion}");'>
                        ${element}
                 </span>`);
-                self._enableSuggestionArea(true);
+              self._enableSuggestionArea(true);
             });
           }
         }
@@ -200,7 +200,7 @@ class StatusbarApi extends IApi {
     } else {
       this._pointerContainer.innerText = ' - ';
     }
-    
+
     pos = CosmoScout.state.observerPosition;
     if (pos !== undefined) {
       this._userContainer.innerText = `${CosmoScout.utils.formatLongitude(pos[0]) + CosmoScout.utils.formatLatitude(pos[1])}(${CosmoScout.utils.formatHeight(pos[2])})`;
@@ -215,7 +215,7 @@ class StatusbarApi extends IApi {
 
   printMessage(level, channel, message) {
     this._outputField.insertAdjacentHTML("afterbegin", `<div class='message level-${level}'>
-                                                    [${level}][${channel}] ${message}
+                                                    [${level}] ${channel} ${message}
                                                   </div>`);
 
     while (this._outputField.children.length > 100) {

@@ -18,6 +18,7 @@
 #include "../cs-utils/Downloader.hpp"
 #include "../cs-utils/convert.hpp"
 #include "../cs-utils/filesystem.hpp"
+#include "../cs-utils/logger.hpp"
 #include "../cs-utils/utils.hpp"
 #include "ObserverNavigationNode.hpp"
 
@@ -549,9 +550,10 @@ void Application::FrameUpdate() {
       double heightDiff    = polar.z / mGraphicsEngine->pHeightScale.get() - surfaceHeight;
 
       if (!std::isnan(polar.x) && !std::isnan(polar.y) && !std::isnan(heightDiff)) {
-        mGuiManager->getGui()->executeJavascript(fmt::format("CosmoScout.state.observerPosition = [{}, {}, {}]",
-            cs::utils::convert::toDegrees(polar.x), cs::utils::convert::toDegrees(polar.y),
-            heightDiff));
+        mGuiManager->getGui()->executeJavascript(
+            fmt::format("CosmoScout.state.observerPosition = [{}, {}, {}]",
+                cs::utils::convert::toDegrees(polar.x), cs::utils::convert::toDegrees(polar.y),
+                heightDiff));
       }
 
       // Update the compass in the header bar.
@@ -669,8 +671,9 @@ void Application::connectSlots() {
             auto lngLat = cs::utils::convert::toDegrees(polar.xy());
 
             if (!std::isnan(lngLat.x) && !std::isnan(lngLat.y) && !std::isnan(polar.z)) {
-              mGuiManager->getGui()->executeJavascript(fmt::format("CosmoScout.state.pointerPosition = [{}, {}, {}];",
-                  lngLat.x, lngLat.y, polar.z / mGraphicsEngine->pHeightScale.get()));
+              mGuiManager->getGui()->executeJavascript(
+                  fmt::format("CosmoScout.state.pointerPosition = [{}, {}, {}];", lngLat.x,
+                      lngLat.y, polar.z / mGraphicsEngine->pHeightScale.get()));
               return;
             }
           }
@@ -704,7 +707,8 @@ void Application::connectSlots() {
           "Position is locked to " + mSolarSystem->pActiveBody.get()->getCenterName() + ".",
           "public");
     }
-    mGuiManager->getGui()->executeJavascript(fmt::format("CosmoScout.state.activePlanetCenter = '{}';", center));
+    mGuiManager->getGui()->executeJavascript(
+        fmt::format("CosmoScout.state.activePlanetCenter = '{}';", center));
   });
 
   // Show notification when the frame name of the celestial observer changes.
@@ -718,17 +722,30 @@ void Application::connectSlots() {
           "Orbit in sync with " + mSolarSystem->pActiveBody.get()->getCenterName() + ".",
           "vpn_lock");
     }
-    mGuiManager->getGui()->executeJavascript(fmt::format("CosmoScout.state.activePlanetFrame = '{}';", frame));
+    mGuiManager->getGui()->executeJavascript(
+        fmt::format("CosmoScout.state.activePlanetFrame = '{}';", frame));
   });
 
   // Show the current speed of the celestial observer in the user interface.
   mSolarSystem->pCurrentObserverSpeed.onChange().connect([this](float speed) {
-    mGuiManager->getGui()->executeJavascript(fmt::format("CosmoScout.state.observerSpeed = {};", speed));
+    mGuiManager->getGui()->executeJavascript(
+        fmt::format("CosmoScout.state.observerSpeed = {};", speed));
   });
 
   // Show the statistics GuiItem when measurements are enabled.
   mFrameTimings->pEnableMeasurements.onChange().connect(
       [this](bool enable) { mGuiManager->getStatistics()->setIsEnabled(enable); });
+
+  cs::utils::logger::onMessage().connect(
+      [this](
+          std::string const& logger, spdlog::level::level_enum level, std::string const& message) {
+                const std::unordered_map<spdlog::level::level_enum, std::string> mapping = {
+            {spdlog::level::trace, "T"}, {spdlog::level::debug, "D"}, {spdlog::level::info, "I"},
+            {spdlog::level::warn, "W"}, {spdlog::level::err, "E"}, {spdlog::level::critical, "C"}};
+
+        mGuiManager->getGui()->callJavascript(
+            "CosmoScout.statusbar.printMessage", mapping.at(level), logger, message);
+      });
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -762,20 +779,20 @@ void Application::registerGuiCallbacks() {
       "time.set", ([this](double tTime) { mTimeControl->setTime(tTime); }));
 
   // Adjusts the global ambient brightness factor.
-  mGuiManager->getGui()->registerCallback<double>(
-      "graphics.setAmbientLight", ([this](double value) { mGraphicsEngine->pAmbientBrightness = value; }));
+  mGuiManager->getGui()->registerCallback<double>("graphics.setAmbientLight",
+      ([this](double value) { mGraphicsEngine->pAmbientBrightness = value; }));
 
   // Enables lighting computation globally.
-  mGuiManager->getGui()->registerCallback<bool>(
-      "graphics.setEnableLighting", ([this](bool enable) { mGraphicsEngine->pEnableLighting = enable; }));
+  mGuiManager->getGui()->registerCallback<bool>("graphics.setEnableLighting",
+      ([this](bool enable) { mGraphicsEngine->pEnableLighting = enable; }));
 
   // Shows cascaded shadow mapping debugging information on the terrain.
   mGuiManager->getGui()->registerCallback<bool>("graphics.setEnableCascadesDebug",
       ([this](bool enable) { mGraphicsEngine->pEnableShadowsDebug = enable; }));
 
   // Enables the calculation of shadows.
-  mGuiManager->getGui()->registerCallback<bool>(
-      "graphics.setEnableShadows", ([this](bool enable) { mGraphicsEngine->pEnableShadows = enable; }));
+  mGuiManager->getGui()->registerCallback<bool>("graphics.setEnableShadows",
+      ([this](bool enable) { mGraphicsEngine->pEnableShadows = enable; }));
 
   // Freezes the shadow frustum.
   mGuiManager->getGui()->registerCallback<bool>("graphics.setEnableShadowFreeze",
@@ -830,8 +847,8 @@ void Application::registerGuiCallbacks() {
       "graphics.setShadowmapBias", ([this](double val) { mGraphicsEngine->pShadowMapBias = val; }));
 
   // A global factor which plugins may honor when they render some sort of terrain.
-  mGuiManager->getGui()->registerCallback<double>(
-      "graphics.setTerrainHeight", ([this](double value) { mGraphicsEngine->pHeightScale = value; }));
+  mGuiManager->getGui()->registerCallback<double>("graphics.setTerrainHeight",
+      ([this](double value) { mGraphicsEngine->pHeightScale = value; }));
 
   // Adjusts the global scaling of world-space widgets.
   mGuiManager->getGui()->registerCallback<double>(
@@ -870,8 +887,8 @@ void Application::registerGuiCallbacks() {
 
   // Flies the celestial observer to the given location in space.
   mGuiManager->getGui()->registerCallback<std::string, double, double, double, double>(
-      "navigation.flyToLocation", ([this](std::string const& name, double longitude, double latitude,
-                            double height, double time) {
+      "navigation.flyToLocation", ([this](std::string const& name, double longitude,
+                                       double latitude, double height, double time) {
         for (auto const& body : mSolarSystem->getBodies()) {
           if (body->getCenterName() == name) {
             mSolarSystem->pActiveBody = body;
