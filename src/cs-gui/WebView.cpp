@@ -345,6 +345,8 @@ void WebView::registerJSCallbackImpl(
 
   std::string cmd = R"(
     if (typeof CosmoScout !== 'undefined') {
+      let components = '$'.split('.');
+      components.reduce((a, b) => a[b] = a[b] || {}, CosmoScout.callbacks);
       CosmoScout.callbacks.$ = (...args) => window.callNative('$', ...args);
     }
   )";

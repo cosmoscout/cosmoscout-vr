@@ -211,14 +211,14 @@
                                 <div class="row">
                                     <div class="col-5">
                                         <label class="checklabel">
-                                            <input type="checkbox" id="setEnableVsync" checked/>
+                                            <input type="checkbox" data-callback="setEnableVsync" checked/>
                                             <i class="material-icons"></i>
                                             <span>VSync</span>
                                         </label>
                                     </div>
                                     <div class="col-7">
                                         <label class="checklabel">
-                                            <input type="checkbox" id="setEnableTimerQueries"/>
+                                            <input type="checkbox" data-callback="setEnableTimerQueries"/>
                                             <i class="material-icons"></i>
                                             <span>Display Timing</span>
                                         </label>
@@ -232,7 +232,7 @@
                                 <div class="row">
                                     <div class="col-7 offset-5">
                                         <label class="checklabel">
-                                            <input type="checkbox" id="setEnableLighting"/>
+                                            <input type="checkbox" data-callback="setEnableLighting"/>
                                             <i class="material-icons"></i>
                                             <span>Enable</span>
                                         </label>
@@ -243,7 +243,7 @@
                                         Quality
                                     </div>
                                     <div class="col-7">
-                                        <div id="setLightingQuality"></div>
+                                        <div data-callback="setLightingQuality"></div>
                                     </div>
                                 </div>
                                 <div class="row">
@@ -251,7 +251,7 @@
                                         Ambient Light
                                     </div>
                                     <div class="col-7">
-                                        <div id="setAmbientLight">
+                                        <div data-callback="setAmbientLight">
                                         </div>
                                     </div>
                                 </div>
@@ -263,7 +263,7 @@
                                 <div class="row">
                                     <div class="col-7 offset-5">
                                         <label class="checklabel">
-                                            <input type="checkbox" id="setEnableShadows"/>
+                                            <input type="checkbox" data-callback="setEnableShadows"/>
                                             <i class="material-icons"></i>
                                             <span>Enable</span>
                                         </label>
@@ -275,7 +275,7 @@
                                         Shadowmap Size
                                     </div>
                                     <div class="col-7">
-                                        <div id="setShadowmapResolution"></div>
+                                        <div data-callback="setShadowmapResolution"></div>
                                     </div>
                                 </div>
 
@@ -284,7 +284,7 @@
                                         Cascades
                                     </div>
                                     <div class="col-7">
-                                        <div id="setShadowmapCascades"></div>
+                                        <div data-callback="setShadowmapCascades"></div>
                                     </div>
                                 </div>
 
@@ -293,7 +293,7 @@
                                         Cascade Distribution
                                     </div>
                                     <div class="col-7">
-                                        <div id="setShadowmapSplitDistribution"></div>
+                                        <div data-callback="setShadowmapSplitDistribution"></div>
                                     </div>
                                 </div>
 
@@ -302,7 +302,7 @@
                                         Bias
                                     </div>
                                     <div class="col-7">
-                                        <div id="setShadowmapBias"></div>
+                                        <div data-callback="setShadowmapBias"></div>
                                     </div>
                                 </div>
 
@@ -311,7 +311,7 @@
                                         Depth Range
                                     </div>
                                     <div class="col-7">
-                                        <div id="setShadowmapRange"></div>
+                                        <div data-callback="setShadowmapRange"></div>
                                     </div>
                                 </div>
 
@@ -320,21 +320,21 @@
                                         Sunspace Extension
                                     </div>
                                     <div class="col-7">
-                                        <div id="setShadowmapExtension"></div>
+                                        <div data-callback="setShadowmapExtension"></div>
                                     </div>
                                 </div>
 
                                 <div class="row">
                                     <div class="col-7 offset-5">
                                         <label class="checklabel">
-                                            <input type="checkbox" id="setEnableCascadesDebug"/>
+                                            <input type="checkbox" data-callback="setEnableCascadesDebug"/>
                                             <i class="material-icons"></i>
                                             <span>Show Shadow LOD</span>
                                         </label>
                                     </div>
                                     <div class="col-7 offset-5">
                                         <label class="checklabel">
-                                            <input type="checkbox" id="setEnableShadowFreeze"/>
+                                            <input type="checkbox" data-callback="setEnableShadowFreeze"/>
                                             <i class="material-icons"></i>
                                             <span>Freeze Shadow LOD</span>
                                         </label>
@@ -431,7 +431,7 @@
       TimelineApi
     );
 
-    const slider = document.getElementById("setShadowmapResolution");
+    const slider = document.querySelector('[data-callback="setShadowmapResolution"]');
     noUiSlider.create(slider, {
       start: 2048,
       connect: "lower",
@@ -448,7 +448,7 @@
 
     // Performance
     CosmoScout.gui.initSlider("setLightingQuality", 1.0, 3.0, 1.0, [2.0]);
-
+    
     CosmoScout.gui.initSlider("setShadowmapCascades", 1.0, 5.0, 1.0, [3.0]);
     CosmoScout.gui.initSlider("setShadowmapBias", 0.0, 10.0, 0.01, [1.0]);
     CosmoScout.gui.initSlider("setShadowmapRange", 0.0, 500.0, 1.0, [0.0, 100.0]);

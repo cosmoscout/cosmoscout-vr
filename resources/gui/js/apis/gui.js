@@ -51,8 +51,12 @@ class GuiApi extends IApi {
     dropdowns.selectpicker();
 
     const eventListener = (event) => {
-      if (event.target !== null && event.target.id !== '') {
-        CosmoScout.callbacks[event.target.id](event.target.value);
+      if (event.target !== null) {
+        let callback = CosmoScout.callbacks.find(event.target.dataset.callback)
+          
+        if (callback !== undefined) {
+          callback(event.target.value);
+        }
       }
     };
 
@@ -80,7 +84,11 @@ class GuiApi extends IApi {
 
       input.addEventListener('change', (event) => {
         if (event.target !== null) {
-          CosmoScout.callbacks[event.target.id](event.target.checked);
+          let callback = CosmoScout.callbacks.find(event.target.dataset.callback)
+          
+          if (callback !== undefined) {
+            callback(event.target.checked);
+          }
         }
       });
 
@@ -102,7 +110,11 @@ class GuiApi extends IApi {
 
       input.addEventListener('change', (event) => {
         if (event.target !== null) {
-          CosmoScout.callbacks[event.target.id]();
+          let callback = CosmoScout.callbacks.find(event.target.dataset.callback)
+          
+          if (callback !== undefined) {
+            callback(event.target.checked);
+          }
         }
       });
 
@@ -299,8 +311,8 @@ class GuiApi extends IApi {
    * @param step {number} Step size
    * @param start {number[]} Handle count and position
    */
-  initSlider(id, min, max, step, start) {
-    const slider = document.getElementById(id);
+  initSlider(callbackName, min, max, step, start) {
+    const slider = document.querySelector(`[data-callback="${callbackName}"]`);
 
     if (typeof noUiSlider === 'undefined') {
       console.error('\'noUiSlider\' is not defined.');
@@ -323,10 +335,13 @@ class GuiApi extends IApi {
     });
 
     slider.noUiSlider.on('slide', (values, handle, unencoded) => {
-      if (Array.isArray(unencoded)) {
-        CosmoScout.callbacks[id](unencoded[handle], handle);
-      } else {
-        CosmoScout.callbacks[id](unencoded, 0);
+      let callback = CosmoScout.callbacks.find(callbackName);
+      if (callback !== undefined) {
+        if (Array.isArray(unencoded)) {
+          callback(unencoded[handle], handle);
+        } else {
+          callback(unencoded, 0);
+        }
       }
     });
   }
@@ -337,8 +352,8 @@ class GuiApi extends IApi {
    * @param id {string} Slider ID
    * @param value {number} Value
    */
-  setSliderValue(id, ...value) {
-    const slider = document.getElementById(id);
+  setSliderValue(callbackName, ...value) {
+    const slider = document.querySelector(`[data-callback="${callbackName}"]`);
 
     if (slider !== null && typeof slider.noUiSlider !== 'undefined') {
       if (value.length === 1) {
@@ -347,7 +362,7 @@ class GuiApi extends IApi {
         slider.noUiSlider.set(value);
       }
     } else {
-      console.warn(`Slider '${id} 'not found or 'noUiSlider' not active.`);
+      console.warn(`Slider '${callbackName} 'not found or 'noUiSlider' not active.`);
     }
   }
 
@@ -356,10 +371,11 @@ class GuiApi extends IApi {
    *
    * @param id {string}
    */
-  clearDropdown(id) {
-    CosmoScout.gui.clearHtml(id);
+  clearDropdown(callbackName) {
+    const dropdown = document.querySelector(`[data-callback="${callbackName}"]`);
+    CosmoScout.gui.clearHtml(dropdown);
 
-    $(`#${id}`).selectpicker('render');
+    $(dropdown).selectpicker('render');
   }
 
   /**
@@ -371,8 +387,8 @@ class GuiApi extends IApi {
    * @param text {string} Option text
    * @param selected {boolean|string} Selected flag
    */
-  addDropdownValue(id, value, text, selected = false) {
-    const dropdown = document.getElementById(id);
+  addDropdownValue(callbackName, value, text, selected = false) {
+    const dropdown = document.querySelector(`[data-callback="${callbackName}"]`);
     const option = document.createElement('option');
 
     option.value = value;
@@ -382,9 +398,9 @@ class GuiApi extends IApi {
     if (dropdown !== null) {
       dropdown.appendChild(option);
 
-      $(`#${id}`).selectpicker('refresh');
+      $(dropdown).selectpicker('refresh');
     } else {
-      console.warn(`Dropdown '${id} 'not found`);
+      console.warn(`Dropdown '${callbackName} 'not found`);
     }
   }
 
@@ -394,8 +410,9 @@ class GuiApi extends IApi {
    * @param id {string}
    * @param value {string|number}
    */
-  setDropdownValue(id, value) {
-    $(`#${id}`).selectpicker('val', value);
+  setDropdownValue(callbackName, value) {
+    const dropdown = document.querySelector(`[data-callback="${callbackName}"]`);
+    $(dropdown).selectpicker('val', value);
   }
 
   /**
@@ -404,8 +421,8 @@ class GuiApi extends IApi {
    * @see {setCheckboxValue}
    * @param id {string} Radiobutton id
    */
-  setRadioChecked(id) {
-    this.setCheckboxValue(id, true);
+  setRadioChecked(callbackName) {
+    this.setCheckboxValue(callbackName, true);
   }
 
   /**
@@ -414,8 +431,8 @@ class GuiApi extends IApi {
    * @param id {string} Checkbox id
    * @param value {boolean} True = checked / False = unchecked
    */
-  setCheckboxValue(id, value) {
-    const element = document.getElementById(id);
+  setCheckboxValue(callbackName, value) {
+    const element = document.querySelector(`[data-callback="${callbackName}"]`);
 
     if (element !== null) {
       element.checked = value === true;

@@ -10,7 +10,18 @@ class CosmoScout {
   /**
    * Stores all callbacks registered via C++
    */
-  static callbacks = {};
+  static callbacks = {
+    find: (name) => {
+      try {
+        let callback = name.split('.').reduce((a, b) => a[b], CosmoScout.callbacks);
+        if (callback !== undefined) {
+          return callback;
+        }
+      } catch(e) {}
+
+      console.warn(`Failed to find callback ${name} on CosmoScout.callbacks!`);
+    }
+  };
 
   /**
    * Use this to access read-only state variables which are set from C++.
