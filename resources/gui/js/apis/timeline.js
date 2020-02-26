@@ -324,7 +324,7 @@ class TimelineApi extends IApi {
     button.setAttribute('title', tooltip);
 
     button.addEventListener('click', () => {
-      CosmoScout.callbacks[callback]();
+      CosmoScout.callbacks.find(callback)();
     });
 
     this._buttonContainer.appendChild(button);

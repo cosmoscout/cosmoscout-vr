@@ -376,12 +376,30 @@
         </div>
     </div>
 
+    <div id="console-output-area"></div>
+    <div id="console-suggestion-area"></div>
     <div id="statusbar">
-        <span class="item">
-            <i class="material-icons">av_timer</i> <span id="statusbar-speed" style="min-width: 120px">0 km/h</span>
-            <i class="material-icons">accessibility</i> <span id="statusbar-user-position" style="min-width: 190px">0° 0° 0m</span>
-            <i class="material-icons">mouse</i> <span id="statusbar-pointer-position" style="min-width: 190px"> - </span>
-        </span>
+        <div id="console-input-area">
+            <div class="button" id="console-toggle-button">
+                <i class="material-icons">speaker_notes</i>
+            </div>
+            <div class="button" id="console-filter-button">
+                <i class="material-icons">filter_list</i>
+            </div>
+            <input type="text" placeholder="Run Command...">
+        </div>
+        <div>
+            <i class="material-icons">speed</i>
+            <div id="statusbar-speed">0 km/h</div>
+        </div>
+        <div>
+            <i class="material-icons">location_on</i>
+            <div id="statusbar-user-position">0° 0° 0m</div>
+        </div>
+        <div>
+            <i class="material-icons">mouse</i>
+            <div id="statusbar-pointer-position"> - </div>
+        </div>
     </div>
 
     <div id="logo">
@@ -420,6 +438,9 @@
 <script type="text/javascript" src="js/apis/utils.js"></script>
 
 <script type="text/javascript">
+
+  var CosmoScout = new CosmoScoutAPI();
+
   document.addEventListener('DOMContentLoaded', () => {
     CosmoScout.init(
       UtilsApi,

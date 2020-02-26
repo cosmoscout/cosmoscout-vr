@@ -1,51 +1,256 @@
+/* Layout */
 
-#statusbar {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    z-index: 2;
-    height: 35px;
-    overflow: hidden;
-    font-size: 0.9rem;
-    text-shadow: 0 0 5px #000, 0 0 2px #000;
-    opacity: 0;
-    transition: opacity 0.2s linear;
+:root {
+  --statusbar-size: 30px;
+  --console-width: 50vw;
+  --console-height: 300px;
 }
 
-.loaded #statusbar {
-    opacity: 1;
+#statusbar {
+  position: absolute;
+  bottom: 0px;
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  height: var(--statusbar-size);
+  line-height: var(--statusbar-size);
 }
 
 #statusbar i {
-    font-size: 1.2rem;
-    top: 4px;
-    position: relative;
-    margin-right: 2px;
+  line-height: var(--statusbar-size);
+  font-size: calc(var(--statusbar-size) * 0.6);
 }
 
-#statusbar .item {
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    line-height: 35px;
-    height: 35px;
-    vertical-align: bottom;
-    flex-grow: 1;
-    margin-left: 5px;
+#statusbar .button {
+  text-align: center;
 }
 
-#statusbar .item span {
-    display: inline-block;
+#statusbar>div {
+  flex-basis: 200px;
+  white-space: nowrap;
+  text-align: center;
 }
 
-#statusbar .btn {
-    padding: 4px 4px 0 4px;
-    color: var(--cs-text-color);
+#statusbar>div>div {
+  display: inline-block;
+  vertical-align: top;
 }
 
-#statusbar .btn i {
-    line-height: 35px;
-    font-size: 1.5rem;
-    top: -4px;
-    margin: 0;
+#console-output-area {
+  position: absolute;
+  bottom: var(--statusbar-size);
+  display: flex;
+  height: var(--console-height);
+  width: var(--console-width);
+  flex-direction: column-reverse;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+#console-output-area .message {
+  flex-shrink: 0;
+}
+
+#console-suggestion-area {
+  position: absolute;
+  bottom: var(--statusbar-size);
+  width: var(--console-width);
+  max-height: var(--console-height);
+  overflow: auto;
+  /* overflow-x: hidden; */
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+}
+
+#console-suggestion-area .suggestion {
+  padding: 3px 6px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  max-width: 200px;
+}
+
+#console-input-area {
+  height: var(--statusbar-size);
+  flex-basis: initial !important;
+}
+
+#console-input-area input {
+  width: calc(var(--console-width) - 2* var(--statusbar-size));
+}
+
+#console-toggle-button {
+  display: inline-block;
+}
+
+
+/* Transitioning */
+
+#console-output-area .message {
+  opacity: 1;
+  transition: opacity 1s linear, max-height 0.3s linear;
+  transition-delay: 5s, 0s;
+  max-height: 0;
+  overflow-y: hidden;
+}
+
+#console-output-area .message.initial-transition {
+  opacity: 0;
+  max-height: 100px;
+}
+
+#console-output-area:hover .message {
+  opacity: 1;
+  transition-delay: 0s, 0s;
+}
+
+#console-suggestion-area {
+  transition: opacity 0.1s linear;
+  opacity: 0;
+  pointer-events: none;
+}
+
+#console-suggestion-area.show {
+  opacity: 1;
+  pointer-events: initial;
+}
+
+
+
+/* Styling */
+#statusbar,
+#console-output-area,
+#console-suggestion-area,
+#console-input-area input {
+  font-family: 'Courier New', Courier, monospace;
+  text-shadow: 1px 1px 1px #000, 0px 0px 1px #000, 1px 1px 3px #000;
+  color:white;
+  font-size: 11pt;
+}
+
+#console-output-area {
+  font-size: 10pt;
+}
+
+#statusbar {
+  background: linear-gradient(to right, black, rgba(0, 0, 0, 0));
+}
+
+#console-suggestion-area::-webkit-scrollbar,
+#console-output-area::-webkit-scrollbar {
+  display: none;
+}
+
+#console-output-area {
+  -webkit-mask-image: -webkit-linear-gradient(rgba(255, 255, 255, 0) 0,
+                                              rgba(255, 255, 255, 1) 25px);
+}
+
+#console-output-area .message {
+  text-indent: -35px;
+  padding: 1px 1px 1px 35px;
+  word-wrap: break-word;
+  background: linear-gradient(to right, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0));
+}
+
+#console-output-area .message.level-T {
+  color: rgb(174, 128, 197);
+}
+
+#console-output-area .message.level-D {
+  color: rgb(148, 196, 255);
+}
+
+#console-output-area .message.level-I {
+  color: rgb(221, 221, 221);
+}
+
+#console-output-area .message.level-W {
+  color: rgb(255, 200, 100);
+}
+
+#console-output-area .message.level-E {
+  color: rgb(255, 126, 126);
+}
+
+#console-output-area .message.level-C {
+  color: rgb(255, 40, 40);
+}
+
+#console-suggestion-area {
+  background: rgba(0, 0, 0, 1);
+  box-shadow: black 0 0 30px;
+  font-size: 9pt;
+}
+
+#console-suggestion-area .suggestion {
+  color: rgb(255, 255, 255);
+  opacity: 0.8;
+}
+
+#console-suggestion-area .suggestion.private {
+  opacity: 0.5;
+}
+
+#console-suggestion-area .suggestion::before {
+  font-family: 'Material Icons';
+  vertical-align: middle;
+  margin-right: -5px;
+}
+
+#console-suggestion-area .suggestion.type-string::before {
+  content: "format_size";
+}
+
+#console-suggestion-area .suggestion.type-string {
+  color: rgb(214, 194, 168);
+}
+
+#console-suggestion-area .suggestion.type-function::before {
+  content: "code";
+}
+
+#console-suggestion-area .suggestion.type-function {
+  color: rgb(175, 196, 216);
+}
+
+#console-suggestion-area .suggestion.type-object::before {
+  content: "extension";
+}
+
+#console-suggestion-area .suggestion.type-object {
+  color: rgb(216, 177, 216);
+}
+
+#console-suggestion-area .suggestion.type-boolean::before {
+  content: "done";
+}
+
+#console-suggestion-area .suggestion.type-boolean {
+  color: rgb(214, 172, 172);
+}
+
+#console-suggestion-area .suggestion.type-number::before {
+  content: "filter_1";
+}
+
+#console-suggestion-area .suggestion.type-number {
+  color: rgb(170, 218, 174);
+}
+
+#console-suggestion-area .suggestion:hover {
+  opacity: 1;
+  cursor: pointer;
+}
+
+#console-suggestion-area .suggestion:active {
+  position: relative;
+  top: 1px;
+}
+
+#console-input-area input {
+  padding: 0;
+  border: none;
+  background: none;
+  outline: none;
 }

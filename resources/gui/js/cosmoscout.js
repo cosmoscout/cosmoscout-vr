@@ -5,12 +5,12 @@
  * Api Container holding all registered apis.
  */
 // eslint-disable-next-line no-unused-vars
-class CosmoScout {
+class CosmoScoutAPI {
   
   /**
    * Stores all callbacks registered via C++
    */
-  static callbacks = {
+  callbacks = {
     find: (name) => {
       try {
         let callback = name.split('.').reduce((a, b) => a[b], CosmoScout.callbacks);
@@ -31,7 +31,7 @@ class CosmoScout {
    * pointerPosition
    * observerPosition
    */
-  static state = {};
+  state = {};
 
   /**
    * Registered apis
@@ -40,14 +40,14 @@ class CosmoScout {
    * @type {Map<string, Object>}
    * @private
    */
-  static _apis = new Map();
+  _apis = new Map();
 
   /**
    * Init a list of apis
    *
    * @param apis {IApi}
    */
-  static init(...apis) {
+  init(...apis) {
     [...apis].forEach((Api) => {
       try {
         let instance;
@@ -77,7 +77,7 @@ class CosmoScout {
    *
    * @param apis {IApi}
    */
-  static update() {
+  update() {
     this._apis.forEach(api => api.update());
   }
 
@@ -87,7 +87,7 @@ class CosmoScout {
    * @param name {string} Api name from IApi
    * @param api {Object} Instantiated IApi object
    */
-  static registerApi(name, api) {
+  registerApi(name, api) {
     this[name] = api;
     this._apis.set(name, api);
   }
@@ -97,7 +97,7 @@ class CosmoScout {
    *
    * @param name {string}
    */
-  static removeApi(name) {
+  removeApi(name) {
     delete this[name];
     this._apis.delete(name);
   }
