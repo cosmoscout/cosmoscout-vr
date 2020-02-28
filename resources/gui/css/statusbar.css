@@ -2,7 +2,7 @@
 
 :root {
   --statusbar-size: 30px;
-  --console-width: 50vw;
+  --console-width: 30vw;
   --console-height: 300px;
 }
 
@@ -10,7 +10,6 @@
   position: absolute;
   bottom: 0px;
   display: flex;
-  justify-content: space-between;
   width: 100%;
   height: var(--statusbar-size);
   line-height: var(--statusbar-size);
@@ -26,9 +25,12 @@
 }
 
 #statusbar>div {
-  flex-basis: 200px;
   white-space: nowrap;
-  text-align: center;
+}
+
+#statusbar>div:first-of-type,
+#statusbar>div:last-of-type  {
+  margin-right: auto;
 }
 
 #statusbar>div>div {
@@ -38,8 +40,9 @@
 
 #console-output-area {
   position: absolute;
-  bottom: var(--statusbar-size);
+  bottom: 0;
   display: flex;
+  padding-bottom: var(--statusbar-size);
   height: var(--console-height);
   width: var(--console-width);
   flex-direction: column-reverse;
@@ -57,7 +60,6 @@
   width: var(--console-width);
   max-height: var(--console-height);
   overflow: auto;
-  /* overflow-x: hidden; */
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
 }
@@ -76,7 +78,12 @@
 }
 
 #console-input-area input {
-  width: calc(var(--console-width) - 2* var(--statusbar-size));
+  transition: width 0.3s ease;
+  width: 120px;
+}
+
+#console-input-area input:focus {
+  width: calc(var(--console-width) - 2*var(--statusbar-size));
 }
 
 #console-toggle-button {
@@ -122,15 +129,15 @@
 #console-output-area,
 #console-suggestion-area,
 #console-input-area input {
-  text-shadow: 1px 1px 1px #000, 0px 0px 1px #000, 1px 1px 3px #000;
-  color:white;
+  text-shadow: 1px 1px 1px #000, 0px 0px 1px #000, 3px 3px 10px #000;
+  color:#ddf;
   font-size: 11pt;
 }
 
 #console-output-area,
 #console-suggestion-area,
 #console-input-area input {
-  font-family: 'Courier New', Courier, monospace;
+  font-family: 'Ubuntu Mono', Courier, monospace;
 }
 
 #console-output-area {
@@ -138,7 +145,7 @@
 }
 
 #statusbar {
-  background: linear-gradient(to right, black, rgba(0, 0, 0, 0));
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0));
 }
 
 #console-suggestion-area::-webkit-scrollbar,
@@ -153,9 +160,10 @@
 
 #console-output-area .message {
   text-indent: -35px;
-  padding: 1px 1px 1px 35px;
+  padding-left: 35px;
+  line-height: 14px;
   word-wrap: break-word;
-  background: linear-gradient(to right, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0));
+  /* background: linear-gradient(to right, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0)); */
 }
 
 #console-output-area .message.level-T {
@@ -254,8 +262,15 @@
 }
 
 #console-input-area input {
-  padding: 0;
+  padding: 0 0 0 3px;
   border: none;
   background: none;
   outline: none;
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 2px;
+}
+
+#console-input-area input::placeholder {
+  opacity: 0.5;
+  color: #ddf;
 }
