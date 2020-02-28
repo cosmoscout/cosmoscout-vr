@@ -18,6 +18,11 @@
 }
 
 @font-face {
+    font-family: 'Ubuntu Mono';
+    src: url('../third-party/fonts/UbuntuMono-Regular.ttf') format('truetype');
+}
+
+@font-face {
     font-family: 'Material Icons';
     src: url('../third-party/fonts/MaterialIcons-Regular.woff2') format('woff2');
 }
