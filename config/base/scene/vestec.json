@@ -165,17 +165,17 @@
       "maxGPUTilesColor": 2048,
       "maxGPUTilesGray": 2048,
       "maxGPUTilesDEM": 2048,
-      "mapCache": "/localdata1/map-cache/",
+      "mapCache": "map-cache/",
       "bodies": {
           "Earth": {
               "imgDatasets": [
                   {
-                      "name": "Helgoland + Blue Marble",
-                      "copyright": "DLR, NASA",
+                      "name": "EOX Sentinel 2",
+                      "copyright": "EOX",
                       "url": "http://129.247.34.87/mapserv?service=wms",
                       "format": "U8Vec3",
-                      "layers": "earth.bluemarble.rgb,earth.os.helgoland.rgb",
-                      "maxLevel": 18
+                      "layers": "earth.eox.sentinel.rgb",
+                      "maxLevel": 13
                   },
                   {
                       "name": "Blue Marble",
