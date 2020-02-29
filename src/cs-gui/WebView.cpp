@@ -70,6 +70,12 @@ void WebView::setCursorChangeCallback(CursorChangeCallback const& callback) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void WebView::setRequestKeyboardFocusCallback(RequestKeyboardFocusCallback const& callback) {
+  mClient->GetInternalRenderHandler()->SetRequestKeyboardFocusCallback(callback);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void WebView::resize(int width, int height) const {
   mClient->GetInternalRenderHandler()->Resize(width, height);
 

@@ -6,18 +6,17 @@
 
 #include "ObserverNavigationNode.hpp"
 
-#include "../cs-core/InputManager.hpp"
 #include "../cs-core/SolarSystem.hpp"
+#include "../cs-gui/GuiItem.hpp"
 
 #include <VistaAspects/VistaPropertyAwareable.h>
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-ObserverNavigationNode::ObserverNavigationNode(cs::core::SolarSystem* pSolarSystem,
-    cs::core::InputManager* pInputManager, VistaPropertyList const& oParams)
+ObserverNavigationNode::ObserverNavigationNode(
+    cs::core::SolarSystem* pSolarSystem, VistaPropertyList const& oParams)
     : IVdfnNode()
     , mSolarSystem(pSolarSystem)
-    , mInputManager(pInputManager)
     , mTime(nullptr)
     , mTranslation(nullptr)
     , mRotation(nullptr)
@@ -83,13 +82,11 @@ bool ObserverNavigationNode::DoEvalNode() {
 
     // update velocities
     if (glm::length(vLinearDirection) > 0.0) {
-      if (!mInputManager->pHoveredGuiNode.get() || !mPreventNavigationWhenHoveredGui) {
-        mLinearDirection = vLinearDirection;
+      mLinearDirection = vLinearDirection;
 
-        if (mLinearSpeed.mEndValue == 0.0) {
-          mLinearSpeed.mStartValue = 1.0;
-          mLinearSpeed.mEndValue   = 1.0;
-        }
+      if (mLinearSpeed.mEndValue == 0.0) {
+        mLinearSpeed.mStartValue = 1.0;
+        mLinearSpeed.mEndValue   = 1.0;
       }
     } else {
       if (mLinearSpeed.mEndValue == 1.0) {
@@ -109,13 +106,11 @@ bool ObserverNavigationNode::DoEvalNode() {
 
     // update velocities
     if (angle > 0.0) {
-      if (!mInputManager->pHoveredGuiNode.get() || !mPreventNavigationWhenHoveredGui) {
-        mAngularDirection = qRotation;
+      mAngularDirection = qRotation;
 
-        if (mAngularSpeed.mEndValue == 0.0) {
-          mAngularSpeed.mStartValue = 1.0;
-          mAngularSpeed.mEndValue   = 1.0;
-        }
+      if (mAngularSpeed.mEndValue == 0.0) {
+        mAngularSpeed.mStartValue = 1.0;
+        mAngularSpeed.mEndValue   = 1.0;
       }
     } else {
       if (mAngularSpeed.mEndValue == 1.0) {
@@ -177,17 +172,14 @@ bool ObserverNavigationNode::DoEvalNode() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-ObserverNavigationNodeCreate::ObserverNavigationNodeCreate(
-    cs::core::SolarSystem* pSolarSystem, cs::core::InputManager* pInputManager)
-    : mSolarSystem(pSolarSystem)
-    , mInputManager(pInputManager) {
+ObserverNavigationNodeCreate::ObserverNavigationNodeCreate(cs::core::SolarSystem* pSolarSystem)
+    : mSolarSystem(pSolarSystem) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 IVdfnNode* ObserverNavigationNodeCreate::CreateNode(const VistaPropertyList& oParams) const {
-  return new ObserverNavigationNode(
-      mSolarSystem, mInputManager, oParams.GetSubListConstRef("param"));
+  return new ObserverNavigationNode(mSolarSystem, oParams.GetSubListConstRef("param"));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

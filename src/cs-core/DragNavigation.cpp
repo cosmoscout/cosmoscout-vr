@@ -166,7 +166,7 @@ void DragNavigation::update() {
 
     // Only rotate, if no other interactive object is affected
     if (bPerformRotation && !mInputManager->pActiveNode.get() &&
-        !mInputManager->pActiveGuiNode.get()) {
+        !mInputManager->pActiveGuiItem.get()) {
       // Rotation angle computations:
       glm::dvec3 currentAxis = glm::cross(start_vec, end_vec);
 

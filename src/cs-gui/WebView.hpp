@@ -35,8 +35,11 @@ class CS_GUI_EXPORT WebView {
   /// Registers a callback that is called, when the page is redrawn.
   void setDrawCallback(DrawCallback const& callback);
 
-  /// Registers a callback, that is called, when the cursor changes its appearance.
+  /// The given callback is fired when when the cursor icon should change.
   void setCursorChangeCallback(CursorChangeCallback const& callback);
+
+  /// The given callback is fired when the active gui element wants to receive keyboard events.
+  void setRequestKeyboardFocusCallback(RequestKeyboardFocusCallback const& callback);
 
   /// Calls an existing Javascript function. You can pass as many arguments as you like. They will
   /// be converted to std::strings, so on the JavaScript side you will have to convert them back.

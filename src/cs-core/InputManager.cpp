@@ -65,28 +65,28 @@ InputManager::InputManager() {
 
   // Copy, paste, ctr-z,...
   GetVistaSystem()->GetKeyboardSystemControl()->BindAction(24, [this]() {
-    if (pHoveredGuiNode.get()) {
-      pHoveredGuiNode.get()->cut();
+    if (pSelectedGuiItem.get()) {
+      pSelectedGuiItem.get()->cut();
     }
   });
   GetVistaSystem()->GetKeyboardSystemControl()->BindAction(3, [this]() {
-    if (pHoveredGuiNode.get()) {
-      pHoveredGuiNode.get()->copy();
+    if (pSelectedGuiItem.get()) {
+      pSelectedGuiItem.get()->copy();
     }
   });
   GetVistaSystem()->GetKeyboardSystemControl()->BindAction(22, [this]() {
-    if (pHoveredGuiNode.get()) {
-      pHoveredGuiNode.get()->paste();
+    if (pSelectedGuiItem.get()) {
+      pSelectedGuiItem.get()->paste();
     }
   });
   GetVistaSystem()->GetKeyboardSystemControl()->BindAction(26, [this]() {
-    if (pHoveredGuiNode.get()) {
-      pHoveredGuiNode.get()->undo();
+    if (pSelectedGuiItem.get()) {
+      pSelectedGuiItem.get()->undo();
     }
   });
   GetVistaSystem()->GetKeyboardSystemControl()->BindAction(25, [this]() {
-    if (pHoveredGuiNode.get()) {
-      pHoveredGuiNode.get()->redo();
+    if (pSelectedGuiItem.get()) {
+      pSelectedGuiItem.get()->redo();
     }
   });
 
@@ -150,6 +150,16 @@ void InputManager::unregisterSelectable(std::shared_ptr<utils::IntersectableObje
 
 void InputManager::unregisterSelectable(gui::ScreenSpaceGuiArea* pGui) {
   if (pGui) {
+    if (utils::contains(pGui->getItems(), pHoveredGuiItem.get())) {
+      pHoveredGuiItem = nullptr;
+    }
+    if (utils::contains(pGui->getItems(), pSelectedGuiItem.get())) {
+      pSelectedGuiItem = nullptr;
+    }
+    if (utils::contains(pGui->getItems(), pActiveGuiItem.get())) {
+      pActiveGuiItem = nullptr;
+    }
+
     mScreenSpaceGuis.erase(pGui);
   }
 }
@@ -157,6 +167,34 @@ void InputManager::unregisterSelectable(gui::ScreenSpaceGuiArea* pGui) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void InputManager::unregisterSelectable(IVistaNode* pNode) {
+  if (pHoveredNode.get() == pNode) {
+    pHoveredNode = nullptr;
+  }
+  if (pSelectedNode.get() == pNode) {
+    pSelectedNode = nullptr;
+  }
+  if (pActiveNode.get() == pNode) {
+    pActiveNode = nullptr;
+  }
+
+  auto pOGLNode = dynamic_cast<VistaOpenGLNode*>(pNode);
+
+  // If its an OpenGLNode, it may be a gui element.
+  if (pOGLNode) {
+    gui::WorldSpaceGuiArea* area = dynamic_cast<gui::WorldSpaceGuiArea*>(pOGLNode->GetExtension());
+    if (area) {
+      if (utils::contains(area->getItems(), pHoveredGuiItem.get())) {
+        pHoveredGuiItem = nullptr;
+      }
+      if (utils::contains(area->getItems(), pSelectedGuiItem.get())) {
+        pSelectedGuiItem = nullptr;
+      }
+      if (utils::contains(area->getItems(), pActiveGuiItem.get())) {
+        pActiveGuiItem = nullptr;
+      }
+    }
+  }
+
   if (pNode) {
     for (auto& pAdapter : mAdapters) {
       if (pAdapter->GetNode() == pNode) {
@@ -242,42 +280,42 @@ void InputManager::update() {
         int y = (int)((1.0 - (guiIntersection[1] - dBottom) / (dTop - dBottom)) *
                       pViewportGui->getHeight());
 
-        gui::GuiItem* item = pViewportGui->getItemAt(x, y);
+        if (pActiveGuiItem.get()) {
+          // If there is an active gui item we need to send mouse move events even if it's not
+          // hovered. So we check whether the current screen space gui area contains this active
+          // item.
+          if (utils::contains(pViewportGui->getItems(), pActiveGuiItem.get())) {
 
-        // If there is a pActiveGuiNode in this pViewportGui, we want to send the input events even
-        // if the pointer is not over the item
-        if (!item && pActiveGuiNode.get()) {
-          if (std::find(pViewportGui->getItems().begin(), pViewportGui->getItems().end(),
-                  pActiveGuiNode.get()) != pViewportGui->getItems().end()) {
-            item = pActiveGuiNode.get();
+            // If so, we send the mouse move and are done.
+            gui::MouseEvent event;
+            pActiveGuiItem.get()->calculateMousePosition(x, y, event.mX, event.mY);
+            pActiveGuiItem.get()->injectMouseEvent(event);
+            return;
           }
-        }
-
-        if (item) {
-          // There has been no focused gui element before, so inject a focus event.
-          if (!pHoveredGuiNode.get()) {
-            item->injectFocusEvent(true);
-          }
-
-          if (!pActiveGuiNode.get()) {
-            pHoveredGuiNode = item;
+        } else {
+          // If there is no active gui item, we should check if the mouse pointer is currently
+          // hovering an item.
+          auto item = pViewportGui->getItemAt(x, y);
+          if (item) {
+            // We have hovered gui item! Let's update the selection state as depicted in the diagram
+            // in InputManager.hpp.
+            pHoveredGuiItem = item;
             pHoveredNode    = nullptr;
-          }
 
-          if (!pActiveGuiNode.get() || pActiveGuiNode.get() == item) {
             gui::MouseEvent event;
             item->calculateMousePosition(x, y, event.mX, event.mY);
             item->injectMouseEvent(event);
+            return;
           }
-          return;
         }
       }
     }
   }
 
-  // If there is an active guiItem in Worldspace, we want to send the mouse input to it in all
-  // cases. So we can skip any later intersection calculation.
-  if (pActiveGuiNode.get()) {
+  // Now we are sure that there is no active gui item of a screen space gui area. If there is an
+  // active gui item in a Worldspace gui area, we want to send the mouse input to it in all cases.
+  // So we can skip any later intersection calculation.
+  if (pActiveGuiItem.get()) {
     VistaTransformMatrix matTransform;
     mActiveWorldSpaceGuiNode->GetParentWorldTransform(matTransform);
     gui::WorldSpaceGuiArea* area =
@@ -299,26 +337,16 @@ void InputManager::update() {
     area->calculateMousePosition(start, end, x, y);
     // Inject a mouse move event.
     gui::MouseEvent event;
-    pHoveredGuiNode.get()->calculateMousePosition(x, y, event.mX, event.mY);
-    pHoveredGuiNode.get()->injectMouseEvent(event);
+    pActiveGuiItem.get()->calculateMousePosition(x, y, event.mX, event.mY);
+    pActiveGuiItem.get()->injectMouseEvent(event);
     return;
   }
 
   // There is no currently active object. So we can intersect our selectables to find potential
-  // candidates.
+  // candidates for hovering.
   std::vector<IVistaIntentionSelectAdapter*> vResults;
   mSelection.SetConeTransform(v3Position, qOrientation);
   mSelection.Update(vResults);
-
-  auto unselectGuiNode([this]() {
-    if (pHoveredGuiNode.get()) {
-      gui::MouseEvent event;
-      event.mType = gui::MouseEvent::Type::eLeave;
-      pHoveredGuiNode.get()->injectMouseEvent(event);
-      pHoveredGuiNode.get()->injectFocusEvent(false);
-      pHoveredGuiNode = nullptr;
-    }
-  });
 
   for (auto pNode : vResults) {
     auto pNodeAdapter = dynamic_cast<VistaNodeAdapter*>(pNode);
@@ -349,48 +377,36 @@ void InputManager::update() {
       int x, y;
       if (area->calculateMousePosition(start, end, x, y)) {
         gui::GuiItem* item = area->getItemAt(x, y);
-        if (item) {
-          // There has been no focused gui element before, so inject a focus event.
-          if (!pHoveredGuiNode.get()) {
-            item->injectFocusEvent(true);
-          }
 
-          pHoveredGuiNode          = item;
+        // We found an intersected gui item! Let's inject a mouse move event and we are done.
+        if (item) {
+          pHoveredGuiItem          = item;
+          pHoveredNode             = nullptr;
           mActiveWorldSpaceGuiNode = pOGLNode;
 
-          // Inject a mouse move event.
           gui::MouseEvent event;
-          pHoveredGuiNode.get()->calculateMousePosition(x, y, event.mX, event.mY);
-          pHoveredGuiNode.get()->injectMouseEvent(event);
-          pHoveredNode = nullptr;
+          pHoveredGuiItem.get()->calculateMousePosition(x, y, event.mX, event.mY);
+          pHoveredGuiItem.get()->injectMouseEvent(event);
           return;
         }
       }
-    }
 
-    // Do not change input if mouse button is pressed.
-    if (pButtons[0].get()) {
-      return;
-    }
-
-    // It's a gui node, but it's completely transparent, so look for the next object.
-    if (area) {
+      // It's a gui node, but it's completely transparent, so look for the next object.
       continue;
     }
 
-    // It is definitely no OpenGLNode, so deselect any previous active element.
-    unselectGuiNode();
-
+    // It is definitely no gui item, so deselect any previous active element.
     IVistaNode* pVistaNode = pNodeAdapter->GetNode();
 
     if (pVistaNode) {
-      pHoveredNode = pVistaNode;
+      pHoveredNode    = pVistaNode;
+      pHoveredGuiItem = nullptr;
       return;
     }
   }
 
-  pHoveredNode = nullptr;
-  unselectGuiNode();
+  pHoveredGuiItem = nullptr;
+  pHoveredNode    = nullptr;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -402,28 +418,40 @@ bool InputManager::HandleKeyPress(int key, int mods, bool bIsKeyRepeat) {
     return true;
   }
 
-  if (!pHoveredGuiNode.get()) {
-    // continue event propagation if no gui not is hovered
-    return false;
-  }
+  if (pSelectedGuiItem.get() && pSelectedGuiItem.get()->getIsKeyboardInputElementFocused()) {
+    pSelectedGuiItem.get()->injectKeyEvent(gui::KeyEvent(key, mods));
 
-  pHoveredGuiNode.get()->injectKeyEvent(gui::KeyEvent(key, mods));
-
-  if (key == 24 || key == 3 || key == 22 || key == 26 || key == 25) {
-    // Continue event propagation for ctrl-x, -c, -v, -z, -y.
-    return false;
-  }
-
-  if (key < 0) {
     // Continue propagation for key-up events so that DFN realizes those even with the pointer being
-    // above the gui.
-    return false;
+    // above the gui. Also, continue event propagation for ctrl-x, -c, -v, -z, -y.
+    if (key < 0 || key == 24 || key == 3 || key == 22 || key == 26 || key == 25) {
+      return false;
+    }
+    return true;
   }
 
-  return true;
+  // Continue event propagation to DFN for navigation input if no gui input element has focus.
+  return false;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// This implements the state transitions depicted in the diagram in InputManager.hpp which are
+// labelled with "button press" and "button release".
+template <typename T>
+void handleButtonEvent(bool pressed, T& hovered, T& active, T& selected) {
+  if (pressed) {
+    if (hovered.get()) {
+      active   = hovered;
+      selected = hovered;
+    } else if (selected.get()) {
+      selected = nullptr;
+    }
+  } else {
+    if (active.get()) {
+      active = nullptr;
+    }
+  }
+}
 
 void InputManager::HandleEvent(VistaEvent* pEvent) {
   if (pEvent->GetId() == VistaInteractionEvent::VEID_GRAPH_INPORT_CHANGE) {
@@ -437,27 +465,48 @@ void InputManager::HandleEvent(VistaEvent* pEvent) {
           pButtons[i] = port->GetValue();
 
           if (i == 0) {
-            if (pHoveredNode.get()) {
-              if (port->GetValue()) {
-                pSelectedNode = pHoveredNode;
-                pActiveNode   = pHoveredNode;
-              } else {
-                pActiveNode = nullptr;
-              }
-            }
 
-            if (pHoveredGuiNode.get()) {
+            // If the button is released and we have an active gui item, its active state will be
+            // reset. So we send a mouse release event before.
+            if (!port->GetValue() && pActiveGuiItem.get()) {
               gui::MouseEvent mouseEvent;
               mouseEvent.mButton = gui::Button::eLeft;
-              if (port->GetValue()) {
-                pSelectedGuiNode = pHoveredGuiNode;
-                pActiveGuiNode   = pHoveredGuiNode;
-                mouseEvent.mType = gui::MouseEvent::Type::ePress;
-              } else {
-                pActiveGuiNode   = nullptr;
-                mouseEvent.mType = gui::MouseEvent::Type::eRelease;
+              mouseEvent.mType   = gui::MouseEvent::Type::eRelease;
+              pActiveGuiItem.get()->injectMouseEvent(mouseEvent);
+            }
+
+            // If we have a button press event for a selected but not hovered item, it will be
+            // un-selected. We should send a complete click event.
+            if (port->GetValue() && pSelectedGuiItem.get() &&
+                pSelectedGuiItem.get() != pHoveredGuiItem()) {
+              gui::MouseEvent mouseEvent;
+              mouseEvent.mButton = gui::Button::eLeft;
+              mouseEvent.mType   = gui::MouseEvent::Type::ePress;
+              pSelectedGuiItem.get()->injectMouseEvent(mouseEvent);
+              mouseEvent.mType = gui::MouseEvent::Type::eRelease;
+              pSelectedGuiItem.get()->injectMouseEvent(mouseEvent);
+            }
+
+            handleButtonEvent(port->GetValue(), pHoveredGuiItem, pActiveGuiItem, pSelectedGuiItem);
+            handleButtonEvent(port->GetValue(), pHoveredNode, pActiveNode, pSelectedNode);
+
+            gui::MouseEvent mouseEvent;
+            mouseEvent.mButton = gui::Button::eLeft;
+            if (port->GetValue()) {
+              mouseEvent.mType = gui::MouseEvent::Type::ePress;
+            } else {
+              mouseEvent.mType = gui::MouseEvent::Type::eRelease;
+            }
+
+            if (pActiveGuiItem.get()) {
+              pActiveGuiItem.get()->injectMouseEvent(mouseEvent);
+            } else {
+              if (pSelectedGuiItem.get()) {
+                pSelectedGuiItem.get()->injectMouseEvent(mouseEvent);
               }
-              pHoveredGuiNode.get()->injectMouseEvent(mouseEvent);
+              if (pHoveredGuiItem.get() && pHoveredGuiItem.get() != pSelectedGuiItem.get()) {
+                pHoveredGuiItem.get()->injectMouseEvent(mouseEvent);
+              }
             }
 
             if (!port->GetValue()) {
@@ -475,11 +524,12 @@ void InputManager::HandleEvent(VistaEvent* pEvent) {
 
       if (tag == "scroll_wheel") {
         TVdfnPort<int>* port(dynamic_cast<TVdfnPort<int>*>(node->GetInPort("value")));
-        if (port && pHoveredGuiNode.get()) {
+        auto            item = pActiveGuiItem.get() ? pActiveGuiItem.get() : pHoveredGuiItem.get();
+        if (port && item) {
           gui::MouseEvent mouseEvent;
           mouseEvent.mType = gui::MouseEvent::Type::eScroll;
           mouseEvent.mY    = port->GetValue() * 20;
-          pHoveredGuiNode.get()->injectMouseEvent(mouseEvent);
+          item->injectMouseEvent(mouseEvent);
         }
       }
     }

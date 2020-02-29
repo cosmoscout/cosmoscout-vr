@@ -58,6 +58,9 @@ class CS_GUI_EXPORT GuiItem : public WebView {
   void setIsEnabled(bool bEnabled);
   bool getIsEnabled() const;
 
+  /// Returns true when a HTML element is focused which can receive keyboard input.
+  bool getIsKeyboardInputElementFocused() const;
+
   /// Calculates the position of the mouse within this items bounds.
   ///
   /// @param      areaX  The x position of the mouse in the parent GuiArea.
@@ -95,7 +98,8 @@ class CS_GUI_EXPORT GuiItem : public WebView {
   float        mRelPositionX, mRelPositionY; // in [0..1]
   float        mRelOffsetX, mRelOffsetY;     // in [0..1]
   bool mIsRelSizeX, mIsRelSizeY, mIsRelPositionX, mIsRelPositionY, mIsRelOffsetX, mIsRelOffsetY;
-  bool mIsEnabled = true;
+  bool mIsEnabled                     = true;
+  bool mIsKeyboardInputElementFocused = false;
 };
 
 } // namespace cs::gui

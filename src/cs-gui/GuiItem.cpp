@@ -38,6 +38,9 @@ GuiItem::GuiItem(std::string const& url, bool allowLocalFileAccess)
     , mIsRelOffsetY(true) {
   setDrawCallback([this](DrawEvent const& event) { return updateTexture(event); });
 
+  setRequestKeyboardFocusCallback(
+      [this](bool requested) { mIsKeyboardInputElementFocused = requested; });
+
   glGenBuffers(1, &mTextureBuffer);
   glBindBuffer(GL_TEXTURE_BUFFER, mTextureBuffer);
   size_t bufferSize{4 * sizeof(uint8_t) * getWidth() * getHeight()};
@@ -183,6 +186,12 @@ void GuiItem::setIsEnabled(bool bEnabled) {
 
 bool GuiItem::getIsEnabled() const {
   return mIsEnabled;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool GuiItem::getIsKeyboardInputElementFocused() const {
+  return mIsKeyboardInputElementFocused;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

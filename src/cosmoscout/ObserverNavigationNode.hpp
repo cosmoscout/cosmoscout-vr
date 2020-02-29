@@ -19,7 +19,6 @@
 #include <memory>
 
 namespace cs::core {
-class InputManager;
 class SolarSystem;
 } // namespace cs::core
 
@@ -32,8 +31,7 @@ class SolarSystem;
 /// or config/vista/xml/headtracking.xml for example usages of this node.
 class ObserverNavigationNode : public IVdfnNode {
  public:
-  ObserverNavigationNode(cs::core::SolarSystem* pSolarSystem, cs::core::InputManager* pInputManager,
-      VistaPropertyList const& oParams);
+  ObserverNavigationNode(cs::core::SolarSystem* pSolarSystem, VistaPropertyList const& oParams);
   ~ObserverNavigationNode() override = default;
 
   bool PrepareEvaluationRun() override;
@@ -43,8 +41,7 @@ class ObserverNavigationNode : public IVdfnNode {
   bool GetIsValid() const override;
 
  private:
-  cs::core::SolarSystem*  mSolarSystem;
-  cs::core::InputManager* mInputManager;
+  cs::core::SolarSystem* mSolarSystem;
 
   TVdfnPort<double>*          mTime;
   TVdfnPort<VistaVector3D>*   mTranslation;
@@ -68,13 +65,11 @@ class ObserverNavigationNode : public IVdfnNode {
 
 class ObserverNavigationNodeCreate : public VdfnNodeFactory::IVdfnNodeCreator {
  public:
-  ObserverNavigationNodeCreate(
-      cs::core::SolarSystem* pSolarSystem, cs::core::InputManager* pInputManager);
+  ObserverNavigationNodeCreate(cs::core::SolarSystem* pSolarSystem);
   IVdfnNode* CreateNode(const VistaPropertyList& oParams) const override;
 
  private:
-  cs::core::SolarSystem*  mSolarSystem;
-  cs::core::InputManager* mInputManager;
+  cs::core::SolarSystem* mSolarSystem;
 };
 
 #endif // CS_OBSERVER_NAVIGATION_NODE_HPP

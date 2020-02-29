@@ -92,30 +92,14 @@ bool Application::Init(VistaSystem* pVistaSystem) {
 
   // The ObserverNavigationNode is used by several DFN networks to move the celestial observer.
   VdfnNodeFactory* pNodeFactory = VdfnNodeFactory::GetSingleton();
-  pNodeFactory->SetNodeCreator("ObserverNavigationNode",
-      new ObserverNavigationNodeCreate(mSolarSystem.get(), mInputManager.get()));
+  pNodeFactory->SetNodeCreator(
+      "ObserverNavigationNode", new ObserverNavigationNodeCreate(mSolarSystem.get()));
 
   // This connects several parts of CosmoScout VR to each other.
   connectSlots();
 
   // Setup user interface callbacks.
   registerGuiCallbacks();
-
-  // add some hot-keys -----------------------------------------------------------------------------
-
-  // '+' increases the speed of time.
-  GetVistaSystem()->GetKeyboardSystemControl()->BindAction('+', [this]() {
-    if (!mInputManager->pHoveredGuiNode.get()) {
-      mTimeControl->increaseTimeSpeed();
-    }
-  });
-
-  // '-' decreases the speed of time.
-  GetVistaSystem()->GetKeyboardSystemControl()->BindAction('-', [this]() {
-    if (!mInputManager->pHoveredGuiNode.get()) {
-      mTimeControl->decreaseTimeSpeed();
-    }
-  });
 
   // initialize the mouse pointer state ------------------------------------------------------------
 
@@ -739,7 +723,7 @@ void Application::connectSlots() {
   cs::utils::logger::onMessage().connect(
       [this](
           std::string const& logger, spdlog::level::level_enum level, std::string const& message) {
-                const std::unordered_map<spdlog::level::level_enum, std::string> mapping = {
+        const std::unordered_map<spdlog::level::level_enum, std::string> mapping = {
             {spdlog::level::trace, "T"}, {spdlog::level::debug, "D"}, {spdlog::level::info, "I"},
             {spdlog::level::warn, "W"}, {spdlog::level::err, "E"}, {spdlog::level::critical, "C"}};
 
