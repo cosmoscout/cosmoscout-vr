@@ -40,10 +40,6 @@
     font-family: 'AlegreyaSansSC', sans-serif;
 }
 
-.debug {
-    background: #000;
-}
-
 .material-icons {
     font-family: 'Material Icons', sans-serif;
     font-weight: normal;
@@ -752,18 +748,4 @@ hr {
     background: rgba(20, 20, 20, 0.8);
     border: 2px solid var(--cs-border-color);
     border-radius: 5px;
-}
-
-#cosmoscout {
-    display: flex;
-    flex-wrap: wrap;
-    width: 100vw;
-    height: 100vh;
-    opacity: 0;
-    transition: opacity .75s;
-}
-
-.loaded #cosmoscout {
-    opacity: 1;
-    z-index: 2;
 }

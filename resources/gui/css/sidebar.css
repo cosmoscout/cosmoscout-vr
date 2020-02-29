@@ -1,13 +1,16 @@
 #sidebar {
-    width: 450px;
-    height: 100vh;
-    margin-top: -25px;
-    padding-bottom: 100px;
+    grid-area: sidebar;
+    max-height: 100vh;
+    max-width: 450px;
+    margin-top: -35px;
+    margin-bottom: -15px;
+    z-index: 1;
     overflow-x: hidden;
     overflow-y: scroll;
     opacity: 0;
     transition: opacity 0.2s linear;
-    -webkit-mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0) 0px, rgba(0, 0, 0, 1) 50px), linear-gradient(180deg, rgba(0,0,0,0) calc(100% - 110px), rgba(0,0,0,1) calc(100% - 80px), rgba(0,0,0,1) 100%);
+    -webkit-mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0) 0px, rgba(0, 0, 0, 1) 50px), 
+                        linear-gradient(180deg, rgba(0,0,0,0) calc(100% - 30px), rgba(0,0,0,1) 100%);
     -webkit-mask-composite: xor;
 }
 
@@ -17,6 +20,7 @@
 
 #sidebar-accordion {
     padding-top: 50px;
+    padding-bottom: 50px;
 }
 
 #sidebar::-webkit-scrollbar {

@@ -319,10 +319,10 @@
 /* timeline control items ----------------------------------------------------------------------- */
 
 #timeline-container {
+    grid-area: timeline;
     z-index: 2;
     position: relative;
     padding: 0;
-    width: 100%;
     transition: margin-top 0.3s;
     transition-timing-function: ease;
     background-image: linear-gradient(180deg, rgba(20, 20, 20, 0.4) 80%, rgba(20, 20, 20, 0.0) 100%);

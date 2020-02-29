@@ -7,9 +7,9 @@
 }
 
 #statusbar {
-  position: absolute;
-  bottom: 0px;
+  grid-area: statusbar;
   display: flex;
+  z-index: 2;
   width: 100%;
   height: var(--statusbar-size);
   line-height: var(--statusbar-size);
@@ -41,6 +41,7 @@
 #console-output-area {
   position: absolute;
   bottom: 0;
+  z-index: 0;
   display: flex;
   padding-bottom: var(--statusbar-size);
   height: var(--console-height);
@@ -129,7 +130,7 @@
 #console-output-area,
 #console-suggestion-area,
 #console-input-area input {
-  text-shadow: 1px 1px 1px #000, 0px 0px 1px #000, 3px 3px 10px #000;
+  text-shadow: 1px 1px 1px #000, 0px 0px 1px #000, 1px 1px 5px rgba(0, 0, 0, 0.75);
   color:#ddf;
   font-size: 11pt;
 }
@@ -141,11 +142,11 @@
 }
 
 #console-output-area {
-  font-size: 9pt;
+  font-size: 10pt;
 }
 
 #statusbar {
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0));
+  /* background: linear-gradient(to top, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)); */
 }
 
 #console-suggestion-area::-webkit-scrollbar,
@@ -154,8 +155,10 @@
 }
 
 #console-output-area {
-  -webkit-mask-image: -webkit-linear-gradient(rgba(255, 255, 255, 0) 0,
-                                              rgba(255, 255, 255, 1) 25px);
+  background: linear-gradient(to right, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0));
+  -webkit-mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0) 0px, rgba(0, 0, 0, 1) 50px), 
+                      linear-gradient(180deg, rgba(0,0,0,0) calc(100% - var(--statusbar-size)), rgba(0,0,0,1) 100%, rgba(0,0,0,1) 100%);
+  -webkit-mask-composite: xor;
 }
 
 #console-output-area .message {
@@ -163,7 +166,6 @@
   padding-left: 35px;
   line-height: 14px;
   word-wrap: break-word;
-  /* background: linear-gradient(to right, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0)); */
 }
 
 #console-output-area .message.level-T {
@@ -175,7 +177,7 @@
 }
 
 #console-output-area .message.level-I {
-  color: rgb(221, 221, 221);
+  color:#ddf;
 }
 
 #console-output-area .message.level-W {

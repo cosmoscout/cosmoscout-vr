@@ -1,0 +1,16 @@
+#cosmoscout {
+    opacity: 0;
+    transition: opacity .75s;
+    display: grid;
+    height: 100vh;
+    grid-template-columns: auto 1fr 400px;
+    grid-template-rows: auto 1fr 30px;
+    grid-template-areas: 
+        "timeline timeline timeline"
+        "sidebar main notifications"
+        "statusbar statusbar statusbar";
+}
+
+.loaded #cosmoscout {
+    opacity: 1;
+}
