@@ -399,14 +399,29 @@ void InputManager::update() {
     IVistaNode* pVistaNode = pNodeAdapter->GetNode();
 
     if (pVistaNode) {
-      pHoveredNode    = pVistaNode;
-      pHoveredGuiItem = nullptr;
+      pHoveredNode = pVistaNode;
+
+      // De-hover any hovered gui items.
+      if (pHoveredGuiItem.get()) {
+        gui::MouseEvent event;
+        event.mType = gui::MouseEvent::Type::eLeave;
+        pHoveredGuiItem.get()->injectMouseEvent(event);
+        pHoveredGuiItem = nullptr;
+      }
+
       return;
     }
   }
 
-  pHoveredGuiItem = nullptr;
-  pHoveredNode    = nullptr;
+  // It seems nothing is hovered at all...
+  if (pHoveredGuiItem.get()) {
+    gui::MouseEvent event;
+    event.mType = gui::MouseEvent::Type::eLeave;
+    pHoveredGuiItem.get()->injectMouseEvent(event);
+    pHoveredGuiItem = nullptr;
+  }
+
+  pHoveredNode = nullptr;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -476,17 +491,23 @@ void InputManager::HandleEvent(VistaEvent* pEvent) {
             }
 
             // If we have a button press event for a selected but not hovered item, it will be
-            // un-selected. We should send a complete click event.
+            // un-selected. We should send focus-out event.
             if (port->GetValue() && pSelectedGuiItem.get() &&
                 pSelectedGuiItem.get() != pHoveredGuiItem()) {
-              gui::MouseEvent mouseEvent;
-              mouseEvent.mButton = gui::Button::eLeft;
-              mouseEvent.mType   = gui::MouseEvent::Type::ePress;
-              pSelectedGuiItem.get()->injectMouseEvent(mouseEvent);
-              mouseEvent.mType = gui::MouseEvent::Type::eRelease;
-              pSelectedGuiItem.get()->injectMouseEvent(mouseEvent);
+
+              pSelectedGuiItem.get()->injectFocusEvent(false);
             }
 
+            // If there is a hovered item which is not yet selected, we should send a focus-in
+            // event.
+            if (port->GetValue() && pHoveredGuiItem.get() &&
+                pSelectedGuiItem.get() != pHoveredGuiItem()) {
+
+              pHoveredGuiItem.get()->injectFocusEvent(true);
+            }
+
+            // Execute the state transitions as depicted in the diagram in InputManager.hpp. All
+            // transitions which are labelled with "button press" and "button release".
             handleButtonEvent(port->GetValue(), pHoveredGuiItem, pActiveGuiItem, pSelectedGuiItem);
             handleButtonEvent(port->GetValue(), pHoveredNode, pActiveNode, pSelectedNode);
 
@@ -500,13 +521,8 @@ void InputManager::HandleEvent(VistaEvent* pEvent) {
 
             if (pActiveGuiItem.get()) {
               pActiveGuiItem.get()->injectMouseEvent(mouseEvent);
-            } else {
-              if (pSelectedGuiItem.get()) {
-                pSelectedGuiItem.get()->injectMouseEvent(mouseEvent);
-              }
-              if (pHoveredGuiItem.get() && pHoveredGuiItem.get() != pSelectedGuiItem.get()) {
-                pHoveredGuiItem.get()->injectMouseEvent(mouseEvent);
-              }
+            } else if (pHoveredGuiItem.get()) {
+              pHoveredGuiItem.get()->injectMouseEvent(mouseEvent);
             }
 
             if (!port->GetValue()) {
