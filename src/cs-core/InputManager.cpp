@@ -525,7 +525,7 @@ void InputManager::HandleEvent(VistaEvent* pEvent) {
       if (tag == "scroll_wheel") {
         TVdfnPort<int>* port(dynamic_cast<TVdfnPort<int>*>(node->GetInPort("value")));
         auto            item = pActiveGuiItem.get() ? pActiveGuiItem.get() : pHoveredGuiItem.get();
-        if (port && item) {
+        if (port && item && item->getCanScroll()) {
           gui::MouseEvent mouseEvent;
           mouseEvent.mType = gui::MouseEvent::Type::eScroll;
           mouseEvent.mY    = port->GetValue() * 20;

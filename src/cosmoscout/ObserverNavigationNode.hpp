@@ -32,7 +32,6 @@ class SolarSystem;
 class ObserverNavigationNode : public IVdfnNode {
  public:
   ObserverNavigationNode(cs::core::SolarSystem* pSolarSystem, VistaPropertyList const& oParams);
-  ~ObserverNavigationNode() override = default;
 
   bool PrepareEvaluationRun() override;
 

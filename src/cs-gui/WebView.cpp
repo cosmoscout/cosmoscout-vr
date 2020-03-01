@@ -23,11 +23,7 @@ class DevToolsClient : public CefClient {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 WebView::WebView(const std::string& url, int width, int height, bool allowLocalFileAccess)
-    : mClient(new detail::WebViewClient())
-    , mInteractive(true)
-    , mMouseX(0)
-    , mMouseY(0)
-    , mMouseModifiers(0) {
+    : mClient(new detail::WebViewClient()) {
   resize(width, height);
 
   CefWindowInfo info;
@@ -136,6 +132,18 @@ void WebView::setIsInteractive(bool interactive) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+bool WebView::getCanScroll() const {
+  return mCanScroll;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void WebView::setCanScroll(bool canScroll) {
+  mCanScroll = canScroll;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 int WebView::getWidth() const {
   return mClient->GetInternalRenderHandler()->GetWidth();
 }
@@ -212,16 +220,19 @@ void WebView::redo() const {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void WebView::injectFocusEvent(bool focus) {
-  if (!mInteractive)
+  if (!mInteractive) {
     return;
+  }
+
   mBrowser->GetHost()->SendFocusEvent(focus);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void WebView::injectMouseEvent(MouseEvent const& event) {
-  if (!mInteractive)
+  if (!mInteractive || (!mCanScroll && event.mType == MouseEvent::Type::eScroll)) {
     return;
+  }
 
   CefMouseEvent cef_event;
   cef_event.modifiers = (uint32)mMouseModifiers;

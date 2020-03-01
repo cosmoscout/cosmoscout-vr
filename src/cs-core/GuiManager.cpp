@@ -136,6 +136,7 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
   mStatistics->setRelPositionY(0.f);
   mStatistics->setRelPositionX(1.f);
   mStatistics->setIsInteractive(false);
+  mStatistics->setCanScroll(false);
 
   // Now we will call some JavaScript methods - so we have to wait until the GuiItems have been
   // fully loaded.

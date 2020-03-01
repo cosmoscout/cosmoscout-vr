@@ -20,6 +20,7 @@
 #include "../cs-utils/filesystem.hpp"
 #include "../cs-utils/logger.hpp"
 #include "../cs-utils/utils.hpp"
+#include "GetSelectionStateNode.hpp"
 #include "ObserverNavigationNode.hpp"
 
 #include <VistaBase/VistaTimeUtils.h>
@@ -94,6 +95,8 @@ bool Application::Init(VistaSystem* pVistaSystem) {
   VdfnNodeFactory* pNodeFactory = VdfnNodeFactory::GetSingleton();
   pNodeFactory->SetNodeCreator(
       "ObserverNavigationNode", new ObserverNavigationNodeCreate(mSolarSystem.get()));
+  pNodeFactory->SetNodeCreator(
+      "GetSelectionStateNode", new GetSelectionStateNodeCreate(mInputManager.get()));
 
   // This connects several parts of CosmoScout VR to each other.
   connectSlots();

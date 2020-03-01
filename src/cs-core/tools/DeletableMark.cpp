@@ -70,6 +70,9 @@ void DeletableMark::initData() {
 
   mGuiItem->setCursorChangeCallback([](cs::gui::Cursor c) { cs::core::GuiManager::setCursor(c); });
 
+  mGuiItem->setCanScroll(false);
+  mGuiItem->waitForFinishedLoading();
+
   mGuiNode = pSG->NewOpenGLNode(pGuiTransform, mGuiArea.get());
   mInputManager->registerSelectable(mGuiNode);
 

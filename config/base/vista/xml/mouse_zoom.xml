@@ -50,6 +50,10 @@
         <node name="forward_translation" type="Multiply[int,VistaVector3D]"/>
         <node name="zoom_translation" type="Transform[VistaQuaternion,VistaVector3D]"/>
 
+        <node name="get_selection_state" type="GetSelectionStateNode" />
+        <node name="scroll_condition_invert" type="Invert[bool]"/>
+        <node name="scroll_condition" type="ConditionalRoute"/>
+
         <!-- observer output -->
         <node name="observer" type="ObserverNavigationNode">
             <param name="max_linear_speed" value="50, 50, 50" />
@@ -72,7 +76,12 @@
         <edge fromnode="project_mouse" tonode="force_evaluation_wheel" fromport="WHEEL_STATE" toport="WHEEL_STATE"/>
         <edge fromnode="force_evaluation_wheel" tonode="wheel_value" fromport="WHEEL_STATE" toport="in"/>
         <edge fromnode="timer" tonode="force_evaluation_wheel" fromport="time" toport="time"/>
-        <edge fromnode="wheel_value"  tonode="forward_translation" fromport="out" toport="first"/>
+        
+        <edge fromnode="get_selection_state" tonode="scroll_condition_invert" fromport="hovered_gui_item_allows_scrolling" toport="in"/>
+        <edge fromnode="scroll_condition_invert" tonode="scroll_condition" fromport="out" toport="trigger"/>
+        <edge fromnode="wheel_value" tonode="scroll_condition" fromport="out" toport="wheel_value"/>
+
+        <edge fromnode="scroll_condition" tonode="forward_translation" fromport="wheel_value" toport="first"/>
         <edge fromnode="forward_direction"  tonode="zoom_translation" fromport="value" toport="second"/>
 
         <edge fromnode="3dmouse"  tonode="zoom_translation" fromport="orientation" toport="first"/>

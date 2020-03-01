@@ -165,9 +165,14 @@ class CS_GUI_EXPORT WebView {
   virtual uint8_t getAlpha(int x, int y) const; ///< Gives the alpha value at the given coordinates.
 
   /// The interactive state determines if a user can interact with the HTML contents. If set to
-  /// false all inputs will be ignored. This might increase performance.
+  /// false all inputs will be ignored. This might increase performance. Default is true.
   virtual bool getIsInteractive() const;
   virtual void setIsInteractive(bool interactive);
+
+  /// If set to false, all mouse scroll events will be ignored. This may increase performance but
+  /// more importantly, things like zooming will work even if the mouse is hovering this webview.
+  virtual bool getCanScroll() const;
+  virtual void setCanScroll(bool canScroll);
 
   /// Returns the current size of the web page.
   virtual int getWidth() const;
@@ -220,12 +225,13 @@ class CS_GUI_EXPORT WebView {
   detail::WebViewClient* mClient;
   CefRefPtr<CefBrowser>  mBrowser;
 
-  bool mInteractive;
+  bool mInteractive = true;
+  bool mCanScroll   = true;
 
   // Input state.
-  int mMouseX;
-  int mMouseY;
-  int mMouseModifiers;
+  int mMouseX         = 0;
+  int mMouseY         = 0;
+  int mMouseModifiers = 0;
 
   // Time point for the last left mouse click
   std::chrono::steady_clock::time_point mLastClick;
