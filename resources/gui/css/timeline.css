@@ -1,5 +1,9 @@
 /* main timeline styles ------------------------------------------------------------------------- */
 
+:root {
+    --center-element-width: 330px;
+  }
+
 #timeline {
     -webkit-font-smoothing: subpixel-antialiased;
 }
@@ -323,11 +327,9 @@
     z-index: 2;
     position: relative;
     padding: 0;
-    transition: margin-top 0.3s;
-    transition-timing-function: ease;
+    transition: margin-top 0.3s ease;
     background-image: linear-gradient(180deg, rgba(20, 20, 20, 0.4) 80%, rgba(20, 20, 20, 0.0) 100%);
     margin: -43px 0 0;
-    flex: 0 0 100%;
 }
 
 #timeline-container.overview-visible {
@@ -339,9 +341,8 @@
     height: 2px;
     position: absolute;
     background-color: var(--cs-background-color-light);
-    width: 50%;
+    width: calc(50% - 0.5*var(--center-element-width));
     left: 0;
-    transform: translateX(-170px);
 }
 
 #bottom-border-right {
@@ -349,9 +350,8 @@
     height: 2px;
     position: absolute;
     background-color: var(--cs-background-color-light);
-    width: 50%;
+    width: calc(50% - 0.5*var(--center-element-width));
     right: 0;
-    transform: translateX(170px);
 }
 
 #compass-arrow {
@@ -387,7 +387,7 @@
     border-bottom-color: var(--cs-border-color-light);
     border-bottom-width: 2px;
     border-bottom-style: solid;
-    width: 330px;
+    width: var(--center-element-width);
     text-align: center;
     height: 40px;
 }

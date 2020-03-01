@@ -1,9 +1,7 @@
 #notifications {
     grid-area: notifications;
     position: relative;
-    margin-left: auto;
-    margin-top: 50px;
-    width: 420px;
+    width: 100%;
     height: 320px;
     overflow: hidden;
     -webkit-mask-image: linear-gradient(to top, rgba(255, 255, 255, 0) 0,
@@ -13,7 +11,7 @@
 .notification {
     position: absolute;
     opacity: 0;
-    width: 380px;
+    width: calc(100% - 50px);
     font-size: 1rem;
     transform: translate(330px, 5px);
     color: var(--cs-text-color-darkened);

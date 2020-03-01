@@ -33,6 +33,7 @@ class StatusbarApi extends IApi {
   _inputField;
   _suggestionField;
   _outputField;
+  _outputWrapper;
 
   /**
    * Initialize all containers
@@ -44,10 +45,19 @@ class StatusbarApi extends IApi {
     this._inputField = document.querySelector("#console-input-area input");
     this._suggestionField = document.querySelector("#console-suggestion-area");
     this._outputField = document.querySelector("#console-output-area");
+    this._outputWrapper = document.querySelector("#console-output-wrapper");
 
     let self = this;
 
-    this._inputField.addEventListener('keydown', function (e) {
+    this._inputField.onfocus = (e) => {
+      this._outputWrapper.classList.add('console-has-input-focus');
+    };
+
+    this._inputField.onblur = (e) => {
+      this._outputWrapper.classList.remove('console-has-input-focus');
+    };
+
+    this._inputField.onkeydown = (e) => {
       // Up pressed - history up
       if (e.keyCode == 38) {
         if (self._history.length > 0) {
@@ -72,9 +82,9 @@ class StatusbarApi extends IApi {
         }
         e.preventDefault();
       }
-    });
+    };
 
-    this._inputField.addEventListener('keypress', function (e) {
+    this._inputField.onkeypress = (e) => {
 
       self._enableSuggestionArea(false);
 
@@ -190,7 +200,7 @@ class StatusbarApi extends IApi {
           }
         }
       }
-    }, true);
+    };
   }
 
   update() {
