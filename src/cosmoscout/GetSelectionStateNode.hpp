@@ -22,6 +22,16 @@ namespace cs::core {
 class InputManager;
 } // namespace cs::core
 
+/// This DFN node can be used to check whether scenegraph nodes or user interface elemnts are
+/// currently hovered, selected or active. Available outports are:
+/// bool: "selected_gui_item_has_keyboard_focus"
+/// bool: "hovered_gui_item_allows_scrolling"
+/// bool: "hovered_gui_item"
+/// bool: "active_gui_item"
+/// bool: "selected_gui_item"
+/// bool: "hovered_node"
+/// bool: "active_node"
+/// bool: "selected_node"
 class GetSelectionStateNode : public IVdfnNode {
  public:
   GetSelectionStateNode(cs::core::InputManager* pInputManager, VistaPropertyList const& oParams);

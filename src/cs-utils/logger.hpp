@@ -64,6 +64,8 @@ namespace cs::utils::logger {
 /// This creates the default logger for "cs-utils" and is called at startup by the main() method.
 CS_UTILS_EXPORT void init();
 
+/// This signal is emitted whenever a message is logged with spdlog. The first argument is the
+/// logger's name, the second the log level, the last argument is the message.
 CS_UTILS_EXPORT Signal<std::string, spdlog::level::level_enum, std::string> const& onMessage();
 
 /// Call this method once from your plugin in order to create a new logger. The given name will

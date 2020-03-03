@@ -1,7 +1,11 @@
 /* global IApi, Format, CosmoScout */
 
 /**
- * Statusbar Api
+ * This is a default CosmoScout API. Once initialized, you can access its methods via
+ * CosmoScout.statusbar.<method name>. The only public method you may want to call is
+ * CosmoScout.statusbar.printMessage(), which will print something to the console.
+ * However, this is not recommended as all messages logged with console.log() will be
+ * printed to the console anyways.
  */
 class StatusbarApi extends IApi {
   /**
@@ -36,7 +40,7 @@ class StatusbarApi extends IApi {
   _outputWrapper;
 
   /**
-   * Initializes the statusbar and the on-screen console
+   * Initializes the statusbar and the on-screen console.
    */
   init() {
 
@@ -54,7 +58,7 @@ class StatusbarApi extends IApi {
     this._inputField.onfocus = (e) => {
       this._outputWrapper.classList.add('console-has-input-focus');
     };
-    
+
     this._inputField.onblur = (e) => {
       this._outputWrapper.classList.remove('console-has-input-focus');
     };

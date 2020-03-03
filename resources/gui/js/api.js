@@ -2,7 +2,8 @@
 /* eslint-disable max-classes-per-file */
 
 /**
- * Simplistic api interface containing a name field and init method
+ * When you create a plugin for CosmoScout VR, you can derive from this class. Your JavaScript
+ * cade can be initialized in init() and updated regularly within update().
  */
 class IApi {
   /**
@@ -13,13 +14,14 @@ class IApi {
   name;
 
   /**
-   * Called in CosmoScout.init
+   * Called when the API is registered via CosmoScout.init()
    */
   init() {
   }
 
   /**
-   * Automatically called once a frame
+   * Automatically called once a frame. You should override this if you want to do something at
+   * regular intervals.
    */
   update() {
   }

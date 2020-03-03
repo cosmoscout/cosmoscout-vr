@@ -1,7 +1,8 @@
 /* eslint no-param-reassign: 0 */
 
 /**
- * Utils Api
+ * This is a default CosmoScout API. Once initialized, you can access its methods via
+ * CosmoScout.utils.<method name>.
  */
 class UtilsApi extends IApi {
   /**

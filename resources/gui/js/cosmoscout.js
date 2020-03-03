@@ -6,9 +6,12 @@
  */
 // eslint-disable-next-line no-unused-vars
 class CosmoScoutAPI {
-  
+
   /**
-   * Stores all callbacks registered via C++
+   * Stores all callbacks registered via C++. It has one default "callbacks.find()" method, which
+   *  can be used to call callbacks which are actually registered as sub objects.
+   * callbacks.find("notifications.print") will return the function "print" registered on 
+   * the object "notifications".
    */
   callbacks = {
     find: (name) => {
@@ -17,7 +20,7 @@ class CosmoScoutAPI {
         if (callback !== undefined) {
           return callback;
         }
-      } catch(e) {}
+      } catch (e) { }
 
       console.warn(`Failed to find callback ${name} on CosmoScout.callbacks!`);
     }

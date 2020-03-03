@@ -344,6 +344,7 @@ void WebView::executeJavascript(std::string const& code) const {
 void WebView::unregisterCallback(std::string const& name) {
   mClient->UnregisterJSCallback(name);
 
+  // Also remove the function property on the CosmoScout.callbacks property.
   std::string cmd = R"(
     if (typeof CosmoScout !== 'undefined') {
       delete CosmoScout.callbacks.$;
@@ -360,6 +361,10 @@ void WebView::registerJSCallbackImpl(
     std::string const& name, std::function<void(std::vector<std::any> const&)> const& callback) {
   mClient->RegisterJSCallback(name, callback);
 
+  // Register the callback as a property of the CosmoScout.callbacks object. As the name may contain
+  // multiple dots, this is a little tricky. We have to create multiple chained objects; e.g. for
+  // the callback "notifications.print.warning", we first have to create the object "notifications",
+  // then "print" and then the function "warning".
   std::string cmd = R"(
     if (typeof CosmoScout !== 'undefined') {
       let components = '$'.split('.');

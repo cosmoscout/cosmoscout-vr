@@ -58,12 +58,14 @@ class CS_GUI_EXPORT WebView {
   void executeJavascript(std::string const& code) const;
 
   /// Register a callback which can be called from Javascript with the
-  /// "window.callNative('callback_name', ... args ...)" function. Registering the same name twice
-  /// will override the first callback.
-  /// This first version takes no arguments from the JavaScript side. There are other versions
-  /// below, which take up to six arguments. JavaScript variables passed to the window.callNative
-  /// function will be converted to C++ types. This works for integer, doubles, booleans and
-  /// std::strings.
+  /// "window.callNative('callback_name', ... args ...)" function. Callbacks are also registered as
+  /// CosmoScout.callbacks.callback_name(... args ...). For the latter to work, the WebView has to
+  /// have finished loading. So please call waitForFinishedLoading() before calling these methods.
+  /// It is fine (and encouraged) to have dots in the callback name in order to create scopes.
+  /// Registering the same name twice will override the first callback. This first version takes no
+  /// arguments from the JavaScript side. There are other versions below, which take up to six
+  /// arguments. JavaScript variables passed to the window.callNative function will be converted to
+  /// C++ types. This works for integers, doubles, booleans and std::strings.
   ///
   /// @param name     Name of the callback.
   /// @param callback The function to execute when the HTML-Element fires a change event.

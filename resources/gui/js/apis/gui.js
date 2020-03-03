@@ -1,7 +1,8 @@
 /* eslint no-param-reassign: 0 */
 
 /**
- * Gui bar Api
+ * This is a default CosmoScout API. Once initialized, you can access its methods via
+ * CosmoScout.gui.<method name>.
  */
 class GuiApi extends IApi {
   /**
@@ -53,7 +54,7 @@ class GuiApi extends IApi {
     const eventListener = (event) => {
       if (event.target !== null) {
         let callback = CosmoScout.callbacks.find(event.target.dataset.callback)
-          
+
         if (callback !== undefined) {
           callback(event.target.value);
         }
@@ -85,7 +86,7 @@ class GuiApi extends IApi {
       input.addEventListener('change', (event) => {
         if (event.target !== null) {
           let callback = CosmoScout.callbacks.find(event.target.dataset.callback)
-          
+
           if (callback !== undefined) {
             callback(event.target.checked);
           }
@@ -111,7 +112,7 @@ class GuiApi extends IApi {
       input.addEventListener('change', (event) => {
         if (event.target !== null) {
           let callback = CosmoScout.callbacks.find(event.target.dataset.callback)
-          
+
           if (callback !== undefined) {
             callback(event.target.checked);
           }

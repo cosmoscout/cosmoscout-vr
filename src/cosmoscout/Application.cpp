@@ -1013,32 +1013,32 @@ void Application::registerGuiCallbacks() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Application::unregisterGuiCallbacks() {
-  mGuiManager->getGui()->unregisterCallback("graphics.setWidgetScale");
-  mGuiManager->getGui()->unregisterCallback("graphics.setEnableTimerQueries");
-  mGuiManager->getGui()->unregisterCallback("graphics.setLightingQuality");
-  mGuiManager->getGui()->unregisterCallback("graphics.setEnableShadows");
-  mGuiManager->getGui()->unregisterCallback("graphics.setShadowmapSplitDistribution");
-  mGuiManager->getGui()->unregisterCallback("graphics.setEnableCascadesDebug");
   mGuiManager->getGui()->unregisterCallback("graphics.setAmbientLight");
+  mGuiManager->getGui()->unregisterCallback("graphics.setEnableCascadesDebug");
+  mGuiManager->getGui()->unregisterCallback("graphics.setEnableLighting");
+  mGuiManager->getGui()->unregisterCallback("graphics.setEnableShadowFreeze");
+  mGuiManager->getGui()->unregisterCallback("graphics.setEnableShadows");
+  mGuiManager->getGui()->unregisterCallback("graphics.setEnableTimerQueries");
+  mGuiManager->getGui()->unregisterCallback("graphics.setEnableVsync");
+  mGuiManager->getGui()->unregisterCallback("graphics.setLightingQuality");
+  mGuiManager->getGui()->unregisterCallback("graphics.setShadowmapBias");
   mGuiManager->getGui()->unregisterCallback("graphics.setShadowmapCascades");
   mGuiManager->getGui()->unregisterCallback("graphics.setShadowmapExtension");
-  mGuiManager->getGui()->unregisterCallback("graphics.setEnableShadowFreeze");
   mGuiManager->getGui()->unregisterCallback("graphics.setShadowmapRange");
-  mGuiManager->getGui()->unregisterCallback("graphics.setTerrainHeight");
-  mGuiManager->getGui()->unregisterCallback("graphics.setEnableLighting");
   mGuiManager->getGui()->unregisterCallback("graphics.setShadowmapResolution");
-  mGuiManager->getGui()->unregisterCallback("graphics.setShadowmapBias");
-  mGuiManager->getGui()->unregisterCallback("graphics.setEnableVsync");
-  mGuiManager->getGui()->unregisterCallback("time.setDate");
-  mGuiManager->getGui()->unregisterCallback("time.set");
-  mGuiManager->getGui()->unregisterCallback("time.reset");
-  mGuiManager->getGui()->unregisterCallback("time.setSpeed");
+  mGuiManager->getGui()->unregisterCallback("graphics.setShadowmapSplitDistribution");
+  mGuiManager->getGui()->unregisterCallback("graphics.setTerrainHeight");
+  mGuiManager->getGui()->unregisterCallback("graphics.setWidgetScale");
+  mGuiManager->getGui()->unregisterCallback("navigation.fixHorizon");
+  mGuiManager->getGui()->unregisterCallback("navigation.flyToLocation");
+  mGuiManager->getGui()->unregisterCallback("navigation.northUp");
+  mGuiManager->getGui()->unregisterCallback("navigation.setCelestialBody");
+  mGuiManager->getGui()->unregisterCallback("navigation.toOrbit");
+  mGuiManager->getGui()->unregisterCallback("navigation.toSurface");
   mGuiManager->getGui()->unregisterCallback("time.addHours");
   mGuiManager->getGui()->unregisterCallback("time.addHoursWithoutAnimation");
-  mGuiManager->getGui()->unregisterCallback("navigation.setCelestialBody");
-  mGuiManager->getGui()->unregisterCallback("navigation.flyToLocation");
-  mGuiManager->getGui()->unregisterCallback("navigation.toSurface");
-  mGuiManager->getGui()->unregisterCallback("navigation.fixHorizon");
-  mGuiManager->getGui()->unregisterCallback("navigation.northUp");
-  mGuiManager->getGui()->unregisterCallback("navigation.toOrbit");
+  mGuiManager->getGui()->unregisterCallback("time.reset");
+  mGuiManager->getGui()->unregisterCallback("time.set");
+  mGuiManager->getGui()->unregisterCallback("time.setDate");
+  mGuiManager->getGui()->unregisterCallback("time.setSpeed");
 }
