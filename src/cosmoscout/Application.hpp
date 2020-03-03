@@ -155,6 +155,8 @@ class Application : public VistaFrameLoop {
   bool mLoadedAllPlugins          = false;
   int  mStartPluginLoadingAtFrame = 0;
   int  mHideLoadingScreenAtFrame  = 0;
+
+  int mOnMessageConnection = -1;
 };
 
 #endif // CS_APPLICATION_HPP

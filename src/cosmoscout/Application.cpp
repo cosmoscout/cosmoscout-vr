@@ -180,6 +180,9 @@ bool Application::Init(VistaSystem* pVistaSystem) {
 
 void Application::Quit() {
 
+  // Do not attempt to print anything to the on-screen console.
+  cs::utils::logger::onMessage().disconnect(mOnMessageConnection);
+
   // De-init all plugins first.
   for (auto const& plugin : mPlugins) {
     plugin.second.mPlugin->deInit();
@@ -723,7 +726,7 @@ void Application::connectSlots() {
   mFrameTimings->pEnableMeasurements.onChange().connect(
       [this](bool enable) { mGuiManager->getStatistics()->setIsEnabled(enable); });
 
-  cs::utils::logger::onMessage().connect(
+  mOnMessageConnection = cs::utils::logger::onMessage().connect(
       [this](
           std::string const& logger, spdlog::level::level_enum level, std::string const& message) {
         const std::unordered_map<spdlog::level::level_enum, std::string> mapping = {
