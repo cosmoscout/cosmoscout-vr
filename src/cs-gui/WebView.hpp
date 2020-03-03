@@ -77,6 +77,7 @@ class CS_GUI_EXPORT WebView {
   /// See documentation above.
   template <typename A>
   void registerCallback(std::string const& name, std::function<void(A)> const& callback) {
+    assertJavaScriptType<A>();
     registerJSCallbackImpl(name, [this, name, callback](std::vector<std::any> const& args) {
       try {
         callback(std::any_cast<A>(args[0]));
@@ -89,6 +90,8 @@ class CS_GUI_EXPORT WebView {
   /// See documentation above.
   template <typename A, typename B>
   void registerCallback(std::string const& name, std::function<void(A, B)> const& callback) {
+    assertJavaScriptType<A>();
+    assertJavaScriptType<B>();
     registerJSCallbackImpl(name, [this, name, callback](std::vector<std::any> const& args) {
       try {
         callback(std::any_cast<A>(args[0]), std::any_cast<B>(args[1]));
@@ -101,6 +104,9 @@ class CS_GUI_EXPORT WebView {
   /// See documentation above.
   template <typename A, typename B, typename C>
   void registerCallback(std::string const& name, std::function<void(A, B, C)> const& callback) {
+    assertJavaScriptType<A>();
+    assertJavaScriptType<B>();
+    assertJavaScriptType<C>();
     registerJSCallbackImpl(name, [this, name, callback](std::vector<std::any> const& args) {
       try {
         callback(std::any_cast<A>(args[0]), std::any_cast<B>(args[1]), std::any_cast<C>(args[2]));
@@ -113,6 +119,10 @@ class CS_GUI_EXPORT WebView {
   /// See documentation above.
   template <typename A, typename B, typename C, typename D>
   void registerCallback(std::string const& name, std::function<void(A, B, C, D)> const& callback) {
+    assertJavaScriptType<A>();
+    assertJavaScriptType<B>();
+    assertJavaScriptType<C>();
+    assertJavaScriptType<D>();
     registerJSCallbackImpl(name, [this, name, callback](std::vector<std::any> const& args) {
       try {
         callback(std::any_cast<A>(args[0]), std::any_cast<B>(args[1]), std::any_cast<C>(args[2]),
@@ -127,6 +137,11 @@ class CS_GUI_EXPORT WebView {
   template <typename A, typename B, typename C, typename D, typename E>
   void registerCallback(
       std::string const& name, std::function<void(A, B, C, D, E)> const& callback) {
+    assertJavaScriptType<A>();
+    assertJavaScriptType<B>();
+    assertJavaScriptType<C>();
+    assertJavaScriptType<D>();
+    assertJavaScriptType<E>();
     registerJSCallbackImpl(name, [this, name, callback](std::vector<std::any> const& args) {
       try {
         callback(std::any_cast<A>(args[0]), std::any_cast<B>(args[1]), std::any_cast<C>(args[2]),
@@ -141,6 +156,12 @@ class CS_GUI_EXPORT WebView {
   template <typename A, typename B, typename C, typename D, typename E, typename F>
   void registerCallback(
       std::string const& name, std::function<void(A, B, C, D, E, F)> const& callback) {
+    assertJavaScriptType<A>();
+    assertJavaScriptType<B>();
+    assertJavaScriptType<C>();
+    assertJavaScriptType<D>();
+    assertJavaScriptType<E>();
+    assertJavaScriptType<F>();
     registerJSCallbackImpl(name, [this, name, callback](std::vector<std::any> const& args) {
       try {
         callback(std::any_cast<A>(args[0]), std::any_cast<B>(args[1]), std::any_cast<C>(args[2]),
@@ -220,6 +241,14 @@ class CS_GUI_EXPORT WebView {
   void closeDevTools();
 
  private:
+  template <typename T>
+  static constexpr void assertJavaScriptType() {
+    static_assert(std::is_same<T, int>() || std::is_same<T, double>() || std::is_same<T, bool>() ||
+                      std::is_same<T, std::string>(),
+        "Only integers, doubles, booleans and std::strings are supported for JavaScript callback "
+        "parameters!");
+  }
+
   void callJavascriptImpl(std::string const& function, std::vector<std::string> const& args) const;
   void registerJSCallbackImpl(
       std::string const& name, std::function<void(std::vector<std::any> const&)> const& callback);

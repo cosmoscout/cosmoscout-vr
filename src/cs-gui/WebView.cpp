@@ -347,11 +347,11 @@ void WebView::unregisterCallback(std::string const& name) {
   // Also remove the function property on the CosmoScout.callbacks property.
   std::string cmd = R"(
     if (typeof CosmoScout !== 'undefined') {
-      delete CosmoScout.callbacks.$;
+      delete CosmoScout.callbacks.$name;
     }
   )";
 
-  utils::replaceString(cmd, "$", name);
+  utils::replaceString(cmd, "$name", name);
   executeJavascript(cmd);
 }
 
@@ -367,13 +367,13 @@ void WebView::registerJSCallbackImpl(
   // then "print" and then the function "warning".
   std::string cmd = R"(
     if (typeof CosmoScout !== 'undefined') {
-      let components = '$'.split('.');
+      let components = '$name'.split('.');
       components.reduce((a, b) => a[b] = a[b] || {}, CosmoScout.callbacks);
-      CosmoScout.callbacks.$ = (...args) => window.callNative('$', ...args);
+      CosmoScout.callbacks.$ = (...args) => window.callNative('$name', ...args);
     }
   )";
 
-  utils::replaceString(cmd, "$", name);
+  utils::replaceString(cmd, "$name", name);
   executeJavascript(cmd);
 }
 
