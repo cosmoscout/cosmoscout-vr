@@ -23,6 +23,8 @@ class CosmoScoutAPI {
       } catch (e) { }
 
       console.warn(`Failed to find callback ${name} on CosmoScout.callbacks!`);
+
+      return null;
     }
   };
 
@@ -37,7 +39,7 @@ class CosmoScoutAPI {
   state = {};
 
   /**
-   * Registered apis
+   * Registered apis.
    *
    * @see {IApi.name}
    * @type {Map<string, Object>}
