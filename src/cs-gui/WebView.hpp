@@ -62,10 +62,11 @@ class CS_GUI_EXPORT WebView {
   /// CosmoScout.callbacks.callback_name(... args ...). For the latter to work, the WebView has to
   /// have finished loading. So please call waitForFinishedLoading() before calling these methods.
   /// It is fine (and encouraged) to have dots in the callback name in order to create scopes.
-  /// Registering the same name twice will override the first callback. This first version takes no
-  /// arguments from the JavaScript side. There are other versions below, which take up to six
-  /// arguments. JavaScript variables passed to the window.callNative function will be converted to
-  /// C++ types. This works for integers, doubles, booleans and std::strings.
+  /// Registering the same name twice will override the first callback. The first version of
+  /// registerCallback() takes no arguments from the JavaScript side. There is another other
+  /// versions below, which takes arbitrary arguments. JavaScript variables passed to the
+  /// window.callNative function will be converted to C++ types. This works for integers, doubles,
+  /// booleans and std::strings.
   ///
   /// @param name     Name of the callback.
   /// @param callback The function to execute when the HTML-Element fires a change event.
@@ -75,101 +76,10 @@ class CS_GUI_EXPORT WebView {
   }
 
   /// See documentation above.
-  template <typename A>
-  void registerCallback(std::string const& name, std::function<void(A)> const& callback) {
-    assertJavaScriptType<A>();
-    registerJSCallbackImpl(name, [this, name, callback](std::vector<std::any> const& args) {
-      try {
-        callback(std::any_cast<A>(args[0]));
-      } catch (std::bad_any_cast const& e) {
-        spdlog::error("Cannot execute javascript call '{}': {}", name, e.what());
-      }
-    });
-  }
-
-  /// See documentation above.
-  template <typename A, typename B>
-  void registerCallback(std::string const& name, std::function<void(A, B)> const& callback) {
-    assertJavaScriptType<A>();
-    assertJavaScriptType<B>();
-    registerJSCallbackImpl(name, [this, name, callback](std::vector<std::any> const& args) {
-      try {
-        callback(std::any_cast<A>(args[0]), std::any_cast<B>(args[1]));
-      } catch (std::bad_any_cast const& e) {
-        spdlog::error("Cannot execute javascript call '{}': {}", name, e.what());
-      }
-    });
-  }
-
-  /// See documentation above.
-  template <typename A, typename B, typename C>
-  void registerCallback(std::string const& name, std::function<void(A, B, C)> const& callback) {
-    assertJavaScriptType<A>();
-    assertJavaScriptType<B>();
-    assertJavaScriptType<C>();
-    registerJSCallbackImpl(name, [this, name, callback](std::vector<std::any> const& args) {
-      try {
-        callback(std::any_cast<A>(args[0]), std::any_cast<B>(args[1]), std::any_cast<C>(args[2]));
-      } catch (std::bad_any_cast const& e) {
-        spdlog::error("Cannot execute javascript call '{}': {}", name, e.what());
-      }
-    });
-  }
-
-  /// See documentation above.
-  template <typename A, typename B, typename C, typename D>
-  void registerCallback(std::string const& name, std::function<void(A, B, C, D)> const& callback) {
-    assertJavaScriptType<A>();
-    assertJavaScriptType<B>();
-    assertJavaScriptType<C>();
-    assertJavaScriptType<D>();
-    registerJSCallbackImpl(name, [this, name, callback](std::vector<std::any> const& args) {
-      try {
-        callback(std::any_cast<A>(args[0]), std::any_cast<B>(args[1]), std::any_cast<C>(args[2]),
-            std::any_cast<D>(args[3]));
-      } catch (std::bad_any_cast const& e) {
-        spdlog::error("Cannot execute javascript call '{}': {}", name, e.what());
-      }
-    });
-  }
-
-  /// See documentation above.
-  template <typename A, typename B, typename C, typename D, typename E>
-  void registerCallback(
-      std::string const& name, std::function<void(A, B, C, D, E)> const& callback) {
-    assertJavaScriptType<A>();
-    assertJavaScriptType<B>();
-    assertJavaScriptType<C>();
-    assertJavaScriptType<D>();
-    assertJavaScriptType<E>();
-    registerJSCallbackImpl(name, [this, name, callback](std::vector<std::any> const& args) {
-      try {
-        callback(std::any_cast<A>(args[0]), std::any_cast<B>(args[1]), std::any_cast<C>(args[2]),
-            std::any_cast<D>(args[3]), std::any_cast<E>(args[4]));
-      } catch (std::bad_any_cast const& e) {
-        spdlog::error("Cannot execute javascript call '{}': {}", name, e.what());
-      }
-    });
-  }
-
-  /// See documentation above.
-  template <typename A, typename B, typename C, typename D, typename E, typename F>
-  void registerCallback(
-      std::string const& name, std::function<void(A, B, C, D, E, F)> const& callback) {
-    assertJavaScriptType<A>();
-    assertJavaScriptType<B>();
-    assertJavaScriptType<C>();
-    assertJavaScriptType<D>();
-    assertJavaScriptType<E>();
-    assertJavaScriptType<F>();
-    registerJSCallbackImpl(name, [this, name, callback](std::vector<std::any> const& args) {
-      try {
-        callback(std::any_cast<A>(args[0]), std::any_cast<B>(args[1]), std::any_cast<C>(args[2]),
-            std::any_cast<D>(args[3]), std::any_cast<E>(args[4]), std::any_cast<F>(args[5]));
-      } catch (std::bad_any_cast const& e) {
-        spdlog::error("Cannot execute javascript call '{}': {}", name, e.what());
-      }
-    });
+  template <typename... Args>
+  void registerCallback(std::string const& name, std::function<void(Args...)> const& callback) {
+    assertJavaScriptTypes<Args...>();
+    registerCallbackWrapper(name, callback, std::index_sequence_for<Args...>{});
   }
 
   /// Unregisters a JavaScript callback.
@@ -241,12 +151,38 @@ class CS_GUI_EXPORT WebView {
   void closeDevTools();
 
  private:
+  /// This ensures statically that all given template types are either bool, double, int,
+  /// std::string or std::string&&.
+  template <typename... Args>
+  void assertJavaScriptTypes() {
+    // Call assertJavaScriptType() for each Arg of Args.
+    int tmp[] = {(assertJavaScriptType<Args>(), 0)...};
+  }
+
+  /// /// This ensures statically that the given template type is either bool, double, int,
+  /// std::string or std::string&&.
   template <typename T>
   static constexpr void assertJavaScriptType() {
     static_assert(std::is_same<T, int>() || std::is_same<T, double>() || std::is_same<T, bool>() ||
-                      std::is_same<T, std::string>(),
+                      std::is_same<T, std::string>() || std::is_same<T, std::string&&>(),
         "Only integers, doubles, booleans and std::strings are supported for JavaScript callback "
         "parameters!");
+  }
+
+  /// This wraps the given callback in a lambda which will stored in an internal map. This lambda
+  /// receives its arguments as a std::vector<std::any>, each item in this vector will be casted to
+  /// the required paramater types of the given callback.
+  template <typename... Args, std::size_t... Is>
+  void registerCallbackWrapper(std::string const& name,
+      std::function<void(Args...)> const&         callback, std::index_sequence<Is...>) {
+
+    registerJSCallbackImpl(name, [this, name, callback](std::vector<std::any> const& args) {
+      try {
+        callback(std::any_cast<typename std::remove_reference<Args>::type>(args[Is])...);
+      } catch (std::bad_any_cast const& e) {
+        spdlog::error("Cannot execute javascript call '{}': {}", name, e.what());
+      }
+    });
   }
 
   void callJavascriptImpl(std::string const& function, std::vector<std::string> const& args) const;
