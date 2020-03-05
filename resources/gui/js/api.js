@@ -7,7 +7,8 @@
  */
 class IApi {
   /**
-   * Api Name
+   * Api Name. Once registered via CosmoScoutAPI.init(), methods of the derived class can be called
+   *  with CosmoScout.<api name>.<method name>()
    *
    * @type {string}
    */

@@ -42,10 +42,9 @@ class GuiApi extends IApi {
   }
 
   /**
-   * Initialized .simple-value-dropdown selectpicker
+   * Initializes all .simple-value-dropdown with bootstrap's selectpicker.
    *
    * @see {initInputs}
-   * TODO Remove jQuery
    */
   initDropDowns() {
     const dropdowns = $('.simple-value-dropdown');
