@@ -35,7 +35,7 @@ class CS_GUI_EXPORT WebView {
   /// Registers a callback that is called, when the page is redrawn.
   void setDrawCallback(DrawCallback const& callback);
 
-  /// The given callback is fired when when the cursor icon should change.
+  /// The given callback is fired when the cursor icon should change.
   void setCursorChangeCallback(CursorChangeCallback const& callback);
 
   /// The given callback is fired when the active gui element wants to receive keyboard events.

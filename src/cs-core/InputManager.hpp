@@ -102,7 +102,7 @@ class CS_CORE_EXPORT InputManager : public VistaKeyboardSystemControl::IVistaDir
   utils::Property<IVistaNode*>   pSelectedNode    = nullptr;
 
   /// Regardless of the node state above, this property will always be updated. Usually it contains
-  /// the intersection between the mouse ray and a Planet or Moon. This property should be
+  /// the intersection between the mouse ray and a planet or moon. This property should be
   /// considered read-only.
   utils::Property<Intersection> pHoveredObject;
 

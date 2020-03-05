@@ -22,7 +22,7 @@ class RenderHandler : public CefRenderHandler {
   /// Sets what should happen, when the displayed data changes.
   void SetDrawCallback(DrawCallback const& callback);
 
-  /// The given callback is fired when when the cursor icon should change.
+  /// The given callback is fired when the cursor icon should change.
   void SetCursorChangeCallback(CursorChangeCallback const& callback);
 
   /// The given callback is fired when the active gui element wants to receive keyboard events.

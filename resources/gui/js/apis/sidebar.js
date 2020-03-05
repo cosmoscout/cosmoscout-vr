@@ -112,7 +112,7 @@ class SidebarApi extends IApi {
   }
 
   /**
-   * Replace common template markers with content
+   * Replace common template markers with content.
    *
    * @param html {string} HTML with %MARKER% markers
    * @param id {string} Id marker replacement

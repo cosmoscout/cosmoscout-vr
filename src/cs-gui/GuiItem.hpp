@@ -58,7 +58,7 @@ class CS_GUI_EXPORT GuiItem : public WebView {
   void setIsEnabled(bool bEnabled);
   bool getIsEnabled() const;
 
-  /// Returns true when a HTML element is focused which can receive keyboard input.
+  /// Returns true when an HTML element is focused which can receive keyboard input.
   bool getIsKeyboardInputElementFocused() const;
 
   /// Calculates the position of the mouse within this items bounds.

@@ -38,7 +38,7 @@ class NotificationApi extends IApi {
      */
     print(title, content, icon, flyTo) {
       if (this._container === null) {
-        console.error('Notification container is not defined. Did you call "init"?');
+        console.error('Notification container is not defined! Did you call "init"?');
         return;
       }
 

@@ -3,7 +3,7 @@
 
 /**
  * When you create a plugin for CosmoScout VR, you can derive from this class. Your JavaScript
- * cade can be initialized in init() and updated regularly within update().
+ * code can be initialized in init() and updated regularly within update().
  */
 class IApi {
   /**

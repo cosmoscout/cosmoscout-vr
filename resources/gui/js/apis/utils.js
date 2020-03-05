@@ -19,7 +19,7 @@ class UtilsApi extends IApi {
   };
 
   /**
-   *Format a Date to a for a human readable string DD.MM.YYYY HH:MM:SS
+   * Format a Date to a for a human readable string DD.MM.YYYY HH:MM:SS.
    *
    * @param date {Date}
    * @return {string}
@@ -39,7 +39,7 @@ class UtilsApi extends IApi {
   }
 
   /**
-   * Format a Date to YYYY-MM-DD HH:MM:SS
+   * Format a Date to YYYY-MM-DD HH:MM:SS.
    *
    * @param date {Date}
    * @return {string}
@@ -49,7 +49,7 @@ class UtilsApi extends IApi {
   }
 
   /**
-   * Format a Date to a readable format for CosmoScoutVR YYYY-MM-DD HH:MM:SS.sss
+   * Format a Date to a readable format for CosmoScout VR YYYY-MM-DD HH:MM:SS.sss.
    *
    * @param date {Date}
    * @return {string}
@@ -90,7 +90,7 @@ class UtilsApi extends IApi {
   }
 
   /**
-   * Increase a Date by days, hours , minutes, seconds and milliseconds
+   * Increase a Date by days, hours, minutes, seconds and milliseconds.
    *
    * @param date {Date}
    * @param days {number}
@@ -110,7 +110,7 @@ class UtilsApi extends IApi {
   }
 
   /**
-   * Decrease a Date by days, hours , minutes, seconds and milliseconds
+   * Decrease a Date by days, hours, minutes, seconds and milliseconds.
    *
    * @param date {Date}
    * @param days {number}
@@ -126,9 +126,9 @@ class UtilsApi extends IApi {
 
 
   /**
-     * @param number {number|string}
-     * @return {string}
-     */
+   * @param number {number|string}
+   * @return {string}
+   */
   formatNumber(number) {
     number = Number(number);
 
@@ -147,11 +147,11 @@ class UtilsApi extends IApi {
   }
 
   /**
-     * Returns a formatted height string
-     *
-     * @param height {number|string}
-     * @return {string}
-     */
+   * Returns a formatted height string.
+   *
+   * @param height {number|string}
+   * @return {string}
+   */
   formatHeight(height) {
     let num;
     let unit;
@@ -191,11 +191,11 @@ class UtilsApi extends IApi {
   }
 
   /**
-     * Returns a formatted speed string
-     *
-     * @param speed {number|string}
-     * @return {string}
-     */
+   * Returns a formatted speed string.
+   *
+   * @param speed {number|string}
+   * @return {string}
+   */
   formatSpeed(speed) {
     let num;
     let unit;
@@ -251,11 +251,11 @@ class UtilsApi extends IApi {
   }
 
   /**
-     * Returns a formatted longitude string
-     *
-     * @param lon {number|string}
-     * @return {string}
-     */
+   * Returns a formatted longitude string.
+   *
+   * @param lon {number|string}
+   * @return {string}
+   */
   formatLongitude(lon) {
     lon = Number(lon);
 
@@ -267,10 +267,9 @@ class UtilsApi extends IApi {
   }
 
   /**
-     *
-     * @param number {number}
-     * @return {string|number}
-     */
+   * @param number {number}
+   * @return {string|number}
+   */
   beautifyNumber(number) {
     const abs = Math.abs(number);
     let value;
