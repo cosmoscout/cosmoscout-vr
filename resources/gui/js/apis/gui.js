@@ -61,11 +61,9 @@ class GuiApi extends IApi {
     };
 
     document.querySelectorAll('.simple-value-dropdown').forEach((dropdown) => {
-      if (typeof dropdown.dataset.initialized !== 'undefined') {
-        return;
+      if (typeof dropdown.dataset.initialized === 'undefined') {
+        dropdown.addEventListener('change', eventListener);
       }
-
-      dropdown.addEventListener('change', eventListener);
     });
   }
 
@@ -78,21 +76,19 @@ class GuiApi extends IApi {
    */
   initChecklabelInputs() {
     document.querySelectorAll('.checklabel input').forEach((input) => {
-      if (typeof input.dataset.initialized !== 'undefined') {
-        return;
-      }
-
-      input.addEventListener('change', (event) => {
-        if (event.target !== null) {
-          let callback = CosmoScout.callbacks.find(event.target.dataset.callback)
-
-          if (callback !== undefined) {
-            callback(event.target.checked);
+      if (typeof input.dataset.initialized === 'undefined') {
+        input.addEventListener('change', (event) => {
+          if (event.target !== null) {
+            let callback = CosmoScout.callbacks.find(event.target.dataset.callback)
+  
+            if (callback !== undefined) {
+              callback(event.target.checked);
+            }
           }
-        }
-      });
-
-      input.dataset.initialized = 'true';
+        });
+  
+        input.dataset.initialized = 'true';
+      }
     });
   }
 
@@ -104,21 +100,19 @@ class GuiApi extends IApi {
    */
   initRadiolabelInputs() {
     document.querySelectorAll('.radiolabel input').forEach((input) => {
-      if (typeof input.dataset.initialized !== 'undefined') {
-        return;
-      }
-
-      input.addEventListener('change', (event) => {
-        if (event.target !== null) {
-          let callback = CosmoScout.callbacks.find(event.target.dataset.callback)
-
-          if (callback !== undefined) {
-            callback(event.target.checked);
+      if (typeof input.dataset.initialized === 'undefined') {
+        input.addEventListener('change', (event) => {
+          if (event.target !== null) {
+            let callback = CosmoScout.callbacks.find(event.target.dataset.callback)
+  
+            if (callback !== undefined) {
+              callback(event.target.checked);
+            }
           }
-        }
-      });
-
-      input.dataset.initialized = 'true';
+        });
+  
+        input.dataset.initialized = 'true';
+      }
     });
   }
 
