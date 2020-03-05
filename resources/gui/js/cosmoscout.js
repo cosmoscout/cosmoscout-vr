@@ -9,7 +9,7 @@ class CosmoScoutAPI {
 
   /**
    * Stores all callbacks registered via C++. It has one default "callbacks.find()" method, which
-   *  can be used to call callbacks which are actually registered as sub objects.
+   * can be used to call callbacks which are actually registered as sub objects.
    * callbacks.find("notifications.print") will return the function "print" registered on 
    * the object "notifications".
    */
@@ -46,7 +46,7 @@ class CosmoScoutAPI {
   _apis = new Map();
 
   /**
-   * Init a list of apis
+   * Init a list of apis.
    *
    * @param apis {IApi}
    */
@@ -85,7 +85,7 @@ class CosmoScoutAPI {
   }
 
   /**
-   * Register an api object
+   * Register an api object.
    *
    * @param name {string} Api name from IApi
    * @param api {Object} Instantiated IApi object
