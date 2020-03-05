@@ -54,6 +54,7 @@ class NotificationApi extends IApi {
       try {
         notification = this._makeNotification(title, content, icon);
       } catch (e) {
+        console.warn(e);
         return;
       }
 
