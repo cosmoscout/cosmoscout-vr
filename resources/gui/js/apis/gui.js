@@ -208,7 +208,7 @@ class GuiApi extends IApi {
     }
 
     if (container === null) {
-      console.error(`Cannot register #${id} into container #${containerId}.`);
+      console.warn(`Cannot register #${id} into container #${containerId}!`);
       return;
     }
 
@@ -235,12 +235,12 @@ class GuiApi extends IApi {
     }
 
     if (container === null) {
-      console.error(`Container #${containerId} does not exist.`);
+      console.warn(`Container #${containerId} does not exist!`);
       return;
     }
 
     if (!this._html.has(id)) {
-      console.error(`No Html with #${id} registered.`);
+      console.warn(`No Html with #${id} registered!`);
       return;
     }
 
@@ -265,7 +265,7 @@ class GuiApi extends IApi {
     const template = document.getElementById(id);
 
     if (template === null) {
-      console.error(`Template '#${id}' not found.`);
+      console.warn(`Template '#${id}' not found!`);
       return false;
     }
 
@@ -299,7 +299,7 @@ class GuiApi extends IApi {
   /**
    * Initialize a noUiSlider.
    *
-   * @param id {string} Slider html id without '#'
+   * @param callbackName {string} tha data-callback attribute of the slider element
    * @param min {number} Min value
    * @param max {number} Max value
    * @param step {number} Step size
@@ -309,7 +309,7 @@ class GuiApi extends IApi {
     const slider = document.querySelector(`[data-callback="${callbackName}"]`);
 
     if (typeof noUiSlider === 'undefined') {
-      console.error('\'noUiSlider\' is not defined.');
+      console.warn('\'noUiSlider\' is not defined!');
       return;
     }
 
@@ -343,7 +343,7 @@ class GuiApi extends IApi {
   /**
    * Sets a noUiSlider value.
    *
-   * @param id {string} Slider ID
+   * @param callbackName {string} tha data-callback attribute of the slider element
    * @param value {number} Value
    */
   setSliderValue(callbackName, ...value) {
@@ -363,7 +363,7 @@ class GuiApi extends IApi {
   /**
    * Clears the content of a selecticker dropdown.
    *
-   * @param id {string}
+   * @param callbackName {string} tha data-callback attribute of the dropdown element
    */
   clearDropdown(callbackName) {
     const dropdown = document.querySelector(`[data-callback="${callbackName}"]`);
@@ -374,9 +374,8 @@ class GuiApi extends IApi {
 
   /**
    * Adds an option to a dropdown.
-   * TODO remove jQuery
    *
-   * @param id {string} DropDown ID
+   * @param callbackName {string} tha data-callback attribute of the dropdown element
    * @param value {string|number} Option value
    * @param text {string} Option text
    * @param selected {boolean|string} Selected flag
@@ -401,7 +400,7 @@ class GuiApi extends IApi {
   /**
    * Sets the current value of a selectpicker.
    *
-   * @param id {string}
+   * @param callbackName {string} tha data-callback attribute of the dropdown element
    * @param value {string|number}
    */
   setDropdownValue(callbackName, value) {
@@ -413,7 +412,7 @@ class GuiApi extends IApi {
    * Sets a radio button to checked.
    *
    * @see {setCheckboxValue}
-   * @param id {string} Radiobutton id
+   * @param callbackName {string} tha data-callback attribute of the radio button element
    */
   setRadioChecked(callbackName) {
     this.setCheckboxValue(callbackName, true);
@@ -422,7 +421,7 @@ class GuiApi extends IApi {
   /**
    * Sets a checkboxs checked state to true/false.
    *
-   * @param id {string} Checkbox id
+   * @param callbackName {string} tha data-callback attribute of the radio button element
    * @param value {boolean} True = checked / False = unchecked
    */
   setCheckboxValue(callbackName, value) {
@@ -437,7 +436,7 @@ class GuiApi extends IApi {
    * Sets the value of a text input.
    * Only selects .text-input s which descend .item-ID
    *
-   * @param id {string}
+   * @param callbackName {string} tha data-callback attribute of the text input element
    * @param value {string}
    */
   setTextboxValue(id, value) {

@@ -46,7 +46,7 @@ class SidebarApi extends IApi {
   addPluginTab(pluginName, icon, content) {
     const tab = CosmoScout.gui.loadTemplateContent('sidebar-plugin-tab');
     if (tab === false) {
-      console.error('"#sidebar-plugin-tab-template" could not be loaded.');
+      console.warn('"#sidebar-plugin-tab-template" could not be loaded!');
       return;
     }
 
@@ -67,7 +67,7 @@ class SidebarApi extends IApi {
   addSettingsSection(sectionName, icon, content) {
     const tab = CosmoScout.gui.loadTemplateContent('sidebar-settings-section');
     if (tab === false) {
-      console.error('"#sidebar-settings-section-template" could not be loaded.');
+      console.warn('"#sidebar-settings-section-template" could not be loaded!');
       return;
     }
 
@@ -91,7 +91,7 @@ class SidebarApi extends IApi {
     const tab = document.getElementById(collapseId);
 
     if (tab === null) {
-      console.error(`Tab with id #${collapseId} not found.`);
+      console.warn(`Tab with id #${collapseId} not found!`);
       return;
     }
 
