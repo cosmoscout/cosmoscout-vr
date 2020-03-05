@@ -45,7 +45,7 @@ class UtilsApi extends IApi {
    * @return {string}
    */
   getFormattedDateWithTime(date) {
-    return `${this.getFormattedDate(date)} ${date.toLocaleTimeString('de-de')}`;
+    return `${this.getFormattedDate(date)} ${date.toLocaleTimeString(this._defaultLocale)}`;
   }
 
   /**
@@ -61,7 +61,8 @@ class UtilsApi extends IApi {
   }
 
   /**
-   * Convert seconds into an object containing the duration in hours -- ms
+   * Convert seconds into an object containing the duration in days, hours, minutes, seconds,
+   * and milliseconds.
    *
    * @param seconds {number}
    * @return {{}}
