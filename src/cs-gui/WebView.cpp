@@ -367,7 +367,7 @@ void WebView::registerJSCallbackImpl(
     if (typeof CosmoScout !== 'undefined') {
       let components = '$name'.split('.');
       components.reduce((a, b) => a[b] = a[b] || {}, CosmoScout.callbacks);
-      CosmoScout.callbacks.$ = (...args) => window.callNative('$name', ...args);
+      CosmoScout.callbacks.$name = (...args) => window.callNative('$name', ...args);
     }
   )";
 
