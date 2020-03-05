@@ -68,8 +68,8 @@ class GuiApi extends IApi {
   }
 
   /**
-   * Adds a 'change' event listener which calls callNative with id and checkstate
-   * Will only add a listener once
+   * Adds a 'change' event listener which calls callNative with id and checkstate.
+   * This will only add a listener once.
    *
    * @see {callNative}
    * @see {initInputs}
@@ -93,7 +93,7 @@ class GuiApi extends IApi {
   }
 
   /**
-   * Adds a change event listener which calls callNative with the target id
+   * Adds a change event listener which calls callNative with the target id.
    *
    * @see {callNative}
    * @see {initInputs}
@@ -131,7 +131,7 @@ class GuiApi extends IApi {
   }
 
   /**
-   * Appends a script element to the body
+   * Appends a script element to the body.
    *
    * @param url {string} Absolute or local file path
    * @param init {string|Function} Method gets run on script load
@@ -154,7 +154,7 @@ class GuiApi extends IApi {
   }
 
   /**
-   * Removes a script element by url
+   * Removes a script element by url.
    *
    * @param url {string}
    */
@@ -168,7 +168,7 @@ class GuiApi extends IApi {
   }
 
   /**
-   * Appends a link stylesheet to the head
+   * Appends a link stylesheet to the head.
    *
    * @param url {string}
    */
@@ -181,7 +181,7 @@ class GuiApi extends IApi {
   }
 
   /**
-   * Removes a stylesheet by url
+   * Removes a stylesheet by url.
    *
    * @param url {string}
    */
@@ -195,7 +195,7 @@ class GuiApi extends IApi {
   }
 
   /**
-   * Append HTML to the body (default) or element with id containerId
+   * Append HTML to the body (default) or element with id containerId.
    *
    * @param id {string} Id for de-registering
    * @param content {string} Html content
@@ -222,7 +222,7 @@ class GuiApi extends IApi {
   }
 
   /**
-   * Remove registered html from the body or container with id containerId
+   * Remove registered html from the body or container with id containerId.
    *
    * @see {registerHtml}
    * @param id {string}
@@ -249,7 +249,7 @@ class GuiApi extends IApi {
   }
 
   /**
-   * Tries to load the template content of 'id-template'
+   * Tries to load the template content of 'id-template'.
    * Returns false if no template was found, HTMLElement otherwise.
    *
    * @param templateId {string} Template element id without '-template' suffix
@@ -276,7 +276,7 @@ class GuiApi extends IApi {
   }
 
   /**
-   * Clear the content of an element if it exists
+   * Clear the content of an element if it exists.
    *
    * @param element {string|HTMLElement} Element or ID
    * @return {void}
@@ -297,7 +297,7 @@ class GuiApi extends IApi {
   }
 
   /**
-   * Initialize a noUiSlider
+   * Initialize a noUiSlider.
    *
    * @param id {string} Slider html id without '#'
    * @param min {number} Min value
@@ -341,7 +341,7 @@ class GuiApi extends IApi {
   }
 
   /**
-   * Sets a noUiSlider value
+   * Sets a noUiSlider value.
    *
    * @param id {string} Slider ID
    * @param value {number} Value
@@ -361,7 +361,7 @@ class GuiApi extends IApi {
   }
 
   /**
-   * Clears the content of a selecticker dropdown
+   * Clears the content of a selecticker dropdown.
    *
    * @param id {string}
    */
@@ -373,7 +373,7 @@ class GuiApi extends IApi {
   }
 
   /**
-   * Adds an option to a dropdown
+   * Adds an option to a dropdown.
    * TODO remove jQuery
    *
    * @param id {string} DropDown ID
@@ -399,7 +399,7 @@ class GuiApi extends IApi {
   }
 
   /**
-   * Sets the current value of a selectpicker
+   * Sets the current value of a selectpicker.
    *
    * @param id {string}
    * @param value {string|number}
@@ -410,7 +410,7 @@ class GuiApi extends IApi {
   }
 
   /**
-   * Sets a radio button to checked
+   * Sets a radio button to checked.
    *
    * @see {setCheckboxValue}
    * @param id {string} Radiobutton id
@@ -420,7 +420,7 @@ class GuiApi extends IApi {
   }
 
   /**
-   * Sets a checkboxs checked state to true/false
+   * Sets a checkboxs checked state to true/false.
    *
    * @param id {string} Checkbox id
    * @param value {boolean} True = checked / False = unchecked
@@ -434,7 +434,7 @@ class GuiApi extends IApi {
   }
 
   /**
-   * Sets the value of a text input
+   * Sets the value of a text input.
    * Only selects .text-input s which descend .item-ID
    *
    * @param id {string}
