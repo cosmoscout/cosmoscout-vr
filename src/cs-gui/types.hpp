@@ -76,6 +76,7 @@ enum class CS_GUI_EXPORT Cursor : int {
 };
 
 typedef std::function<void(Cursor)> CursorChangeCallback;
+typedef std::function<void(bool)>   RequestKeyboardFocusCallback;
 
 /// The mouse button that was interacted with.
 enum class CS_GUI_EXPORT Button : int {

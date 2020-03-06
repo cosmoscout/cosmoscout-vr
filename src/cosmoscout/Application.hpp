@@ -91,6 +91,7 @@ class Application : public VistaFrameLoop {
   /// Called every frame by ViSTA. The whole application logic is executed here.
   void FrameUpdate() override;
 
+  /// This is used by the test runners to load tests from the plugins.
   static void testLoadAllPlugins();
 
  private:
@@ -105,37 +106,37 @@ class Application : public VistaFrameLoop {
   /// no access to the GUI, this connection is established in this method.
   void connectSlots();
 
-  /// There are several C++ callbacks available in the JavaScript code of the user interface. In
-  /// this method those callbacks are set up. Here are all registered callbacks:
-  ///  - print_notification
-  ///  - set_celestial_body
-  ///  - set_date
-  ///  - set_time
-  ///  - set_enable_cascades_debug
-  ///  - set_ambient_light
-  ///  - set_enable_lighting
-  ///  - set_enable_shadow_freeze
-  ///  - set_enable_shadows
-  ///  - set_enable_timer_queries
-  ///  - set_enable_vsync
-  ///  - set_lighting_quality
-  ///  - set_shadowmap_bias
-  ///  - set_shadowmap_cascades
-  ///  - set_shadowmap_extension
-  ///  - set_shadowmap_range
-  ///  - set_shadowmap_resolution
-  ///  - set_shadowmap_split_distribution
-  ///  - set_terrain_height
-  ///  - set_widget_scale
-  ///  - print_notification
-  ///  - reset_time
-  ///  - add_hours
-  ///  - add_hours_without_animation
-  ///  - set_time_speed
-  ///  - navigate_north_up
-  ///  - navigate_fix_horizon
-  ///  - navigate_to_surface
-  ///  - navigate_to_orbit
+  /// There are several default C++ callbacks available in the JavaScript code of the user
+  /// interface. You can also explore them with the onscreen JavaScript console. In this method
+  /// those callbacks are set up. Here are all registered callbacks:
+  /// "graphics.setAmbientLight"
+  /// "graphics.setEnableCascadesDebug"
+  /// "graphics.setEnableLighting"
+  /// "graphics.setEnableShadowFreeze"
+  /// "graphics.setEnableShadows"
+  /// "graphics.setEnableTimerQueries"
+  /// "graphics.setEnableVsync"
+  /// "graphics.setLightingQuality"
+  /// "graphics.setShadowmapBias"
+  /// "graphics.setShadowmapCascades"
+  /// "graphics.setShadowmapExtension"
+  /// "graphics.setShadowmapRange"
+  /// "graphics.setShadowmapResolution"
+  /// "graphics.setShadowmapSplitDistribution"
+  /// "graphics.setTerrainHeight"
+  /// "graphics.setWidgetScale"
+  /// "navigation.fixHorizon"
+  /// "navigation.flyToLocation"
+  /// "navigation.northUp"
+  /// "navigation.setCelestialBody"
+  /// "navigation.toOrbit"
+  /// "navigation.toSurface"
+  /// "time.addHours"
+  /// "time.addHoursWithoutAnimation"
+  /// "time.reset"
+  /// "time.set"
+  /// "time.setDate"
+  /// "time.setSpeed"
   void registerGuiCallbacks();
   void unregisterGuiCallbacks();
 
@@ -155,6 +156,8 @@ class Application : public VistaFrameLoop {
   bool mLoadedAllPlugins          = false;
   int  mStartPluginLoadingAtFrame = 0;
   int  mHideLoadingScreenAtFrame  = 0;
+
+  int mOnMessageConnection = -1;
 };
 
 #endif // CS_APPLICATION_HPP

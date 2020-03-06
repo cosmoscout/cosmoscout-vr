@@ -1,7 +1,7 @@
 #logo {
     position: absolute;
-    right: 20px;
-    bottom: 0;
+    right: 15px;
+    bottom: 0px;
     width: 100px;
     height: 100px;
     transform-origin: 0 0;
@@ -31,7 +31,6 @@
     height: 83px;
 }
 
-/*@keyframes rotate {*/
 @-webkit-keyframes rotate {
     0% {
         transform: rotate3d(0, 1, 0, 0deg);

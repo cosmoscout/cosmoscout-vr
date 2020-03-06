@@ -36,9 +36,9 @@ class NotificationApi extends IApi {
      * @param icon {string} Materialize Icon Name
      * @param flyTo {string} Optional flyto name which gets passed to 'fly_to'. Activated on click
      */
-    printNotification(title, content, icon, flyTo) {
+    print(title, content, icon, flyTo) {
       if (this._container === null) {
-        console.error('Notification container is not defined. Did you call "init"?');
+        console.error('Notification container is not defined! Did you call "init"?');
         return;
       }
 
@@ -52,8 +52,9 @@ class NotificationApi extends IApi {
 
       let notification;
       try {
-        notification = NotificationApi.makeNotification(title, content, icon);
+        notification = this._makeNotification(title, content, icon);
       } catch (e) {
+        console.warn(e);
         return;
       }
 
@@ -62,7 +63,7 @@ class NotificationApi extends IApi {
       if (flyTo) {
         notification.classList.add('clickable');
         notification.addEventListener('click', () => {
-          CosmoScout.flyto.flyTo(flyTo);
+          CosmoScout.callbacks.navigation.flyTo(flyTo);
         });
       }
 
@@ -85,8 +86,8 @@ class NotificationApi extends IApi {
      * @return {HTMLElement}
      * @private
      */
-    static makeNotification(title, content, icon = '') {
-      const notification = CosmoScout.loadTemplateContent('notification');
+    _makeNotification(title, content, icon = '') {
+      const notification = CosmoScout.gui.loadTemplateContent('notification');
 
       if (notification === false) {
         throw new Error('Notification template content could not be loaded. Does "#notification-template" exist?');

@@ -8,6 +8,7 @@
 #include "../../cs-utils/FrameTimings.hpp"
 #include <GL/glew.h>
 #include <deque>
+#include <spdlog/spdlog.h>
 #include <thread>
 
 namespace cs::gui::detail {
@@ -22,6 +23,12 @@ void RenderHandler::SetDrawCallback(DrawCallback const& callback) {
 
 void RenderHandler::SetCursorChangeCallback(CursorChangeCallback const& callback) {
   mCursorChangeCallback = callback;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void RenderHandler::SetRequestKeyboardFocusCallback(RequestKeyboardFocusCallback const& callback) {
+  mRequestKeyboardFocusCallback = callback;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -141,6 +148,16 @@ void RenderHandler::OnCursorChange(CefRefPtr<CefBrowser> browser, CefCursorHandl
     CefRenderHandler::CursorType type, const CefCursorInfo& customursor_info) {
   if (mCursorChangeCallback) {
     mCursorChangeCallback(static_cast<Cursor>(type));
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void RenderHandler::OnVirtualKeyboardRequested(
+    CefRefPtr<CefBrowser> browser, TextInputMode input_mode) {
+
+  if (mRequestKeyboardFocusCallback) {
+    mRequestKeyboardFocusCallback(input_mode != CEF_TEXT_INPUT_MODE_NONE);
   }
 }
 

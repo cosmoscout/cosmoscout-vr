@@ -44,15 +44,15 @@ class SidebarApi extends IApi {
    * @param content {string}
    */
   addPluginTab(pluginName, icon, content) {
-    const tab = CosmoScout.loadTemplateContent('sidebar-plugin-tab');
+    const tab = CosmoScout.gui.loadTemplateContent('sidebar-plugin-tab');
     if (tab === false) {
-      console.error('"#sidebar-plugin-tab-template" could not be loaded.');
+      console.warn('"#sidebar-plugin-tab-template" could not be loaded!');
       return;
     }
 
-    const id = SidebarApi.makeId(pluginName);
+    const id = this._makeId(pluginName);
 
-    tab.innerHTML = this.replaceMarkers(tab.innerHTML, id, icon, content);
+    tab.innerHTML = this._replaceMarkers(tab.innerHTML, id, icon, content);
 
     this._sidebar.insertBefore(tab, this._sidebarTab);
   }
@@ -65,16 +65,16 @@ class SidebarApi extends IApi {
    * @param content {string}
    */
   addSettingsSection(sectionName, icon, content) {
-    const tab = CosmoScout.loadTemplateContent('sidebar-settings-section');
+    const tab = CosmoScout.gui.loadTemplateContent('sidebar-settings-section');
     if (tab === false) {
-      console.error('"#sidebar-settings-section-template" could not be loaded.');
+      console.warn('"#sidebar-settings-section-template" could not be loaded!');
       return;
     }
 
-    const html = this.replaceMarkers(tab.innerHTML, SidebarApi.makeId(sectionName), icon, content);
+    const html = this._replaceMarkers(tab.innerHTML, this._makeId(sectionName), icon, content);
 
     tab.innerHTML = html
-      .replace(this.regex('SECTION'), sectionName)
+      .replace(/%SECTION%/g, sectionName)
       .trim();
 
     this._settings.appendChild(tab);
@@ -91,7 +91,7 @@ class SidebarApi extends IApi {
     const tab = document.getElementById(collapseId);
 
     if (tab === null) {
-      console.error(`Tab with id #${collapseId} not found.`);
+      console.warn(`Tab with id #${collapseId} not found!`);
       return;
     }
 
@@ -103,12 +103,30 @@ class SidebarApi extends IApi {
       parent = tab;
     }
 
-    if (CosmoScout.castCppBool(enabled) === true) {
+    if (enabled) {
       parent.classList.remove('unresponsive');
     } else {
       $(`#${collapseId}`).collapse('hide');
       parent.classList.add('unresponsive');
     }
+  }
+
+  /**
+   * Replace common template markers with content.
+   *
+   * @param html {string} HTML with %MARKER% markers
+   * @param id {string} Id marker replacement
+   * @param icon {string} Icon marker replacement
+   * @param content {string} Content marker replacement
+   * @return {string} replaced html
+   * @protected
+   */
+  _replaceMarkers(html, id, icon, content) {
+    return html
+      .replace(/%ID%/g, id)
+      .replace(/%CONTENT%/g, content)
+      .replace(/%ICON%/g, icon)
+      .trim();
   }
 
   /**
@@ -118,7 +136,7 @@ class SidebarApi extends IApi {
    * @return {string}
    * @private
    */
-  static makeId(name) {
+  _makeId(name) {
     return name.split(' ').join('-');
   }
 }

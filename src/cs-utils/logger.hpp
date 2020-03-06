@@ -9,6 +9,8 @@
 
 #include "cs_utils_export.hpp"
 
+#include "Signal.hpp"
+
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/spdlog.h>
@@ -61,6 +63,10 @@ namespace cs::utils::logger {
 
 /// This creates the default logger for "cs-utils" and is called at startup by the main() method.
 CS_UTILS_EXPORT void init();
+
+/// This signal is emitted whenever a message is logged with spdlog. The first argument is the
+/// logger's name, the second the log level, the last argument is the message.
+CS_UTILS_EXPORT Signal<std::string, spdlog::level::level_enum, std::string> const& onMessage();
 
 /// Call this method once from your plugin in order to create a new logger. The given name will
 /// be shown together with the log level in each message. The logger will print to the console and

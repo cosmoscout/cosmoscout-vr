@@ -136,6 +136,7 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
   mStatistics->setRelPositionY(0.f);
   mStatistics->setRelPositionX(1.f);
   mStatistics->setIsInteractive(false);
+  mStatistics->setCanScroll(false);
 
   // Now we will call some JavaScript methods - so we have to wait until the GuiItems have been
   // fully loaded.
@@ -236,7 +237,7 @@ void GuiManager::setCursor(gui::Cursor cursor) {
 void GuiManager::showNotification(std::string const& sTitle, std::string const& sText,
     std::string const& sIcon, std::string const& sFlyToOnClick) const {
   mCosmoScoutGui->callJavascript(
-      "CosmoScout.notifications.printNotification", sTitle, sText, sIcon, sFlyToOnClick);
+      "CosmoScout.notifications.print", sTitle, sText, sIcon, sFlyToOnClick);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -373,13 +374,13 @@ void GuiManager::addScriptToGuiFromJS(std::string const& jsFile) {
 
 void GuiManager::addHtmlToGui(std::string const& id, std::string const& src) {
   std::string content = utils::filesystem::loadToString(src);
-  mCosmoScoutGui->callJavascript("CosmoScout.registerHtml", id, content);
+  mCosmoScoutGui->callJavascript("CosmoScout.gui.registerHtml", id, content);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void GuiManager::addCssToGui(const std::string& fileName) {
-  mCosmoScoutGui->callJavascript("CosmoScout.registerCss", fileName);
+  mCosmoScoutGui->callJavascript("CosmoScout.gui.registerCss", fileName);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

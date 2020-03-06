@@ -2,55 +2,28 @@
 /* eslint-disable max-classes-per-file */
 
 /**
- * Simplistic api interface containing a name field and init method
+ * When you create a plugin for CosmoScout VR, you can derive from this class. Your JavaScript
+ * code can be initialized in init() and updated regularly within update().
  */
 class IApi {
   /**
-   * Api Name
+   * Api Name. Once registered via CosmoScoutAPI.init(), methods of the derived class can be called
+   *  with CosmoScout.<api name>.<method name>()
    *
    * @type {string}
    */
   name;
 
   /**
-   * Called in CosmoScout.init
+   * Called when the API is registered via CosmoScout.init()
    */
   init() {
   }
 
   /**
-   * Automatically called once a frame
+   * Automatically called once a frame. You should override this if you want to do something at
+   * regular intervals.
    */
   update() {
-  }
-
-  /**
-   * Replace common template markers with content
-   *
-   * @param html {string} HTML with %MARKER% markers
-   * @param id {string} Id marker replacement
-   * @param icon {string} Icon marker replacement
-   * @param content {string} Content marker replacement
-   * @return {string} replaced html
-   * @protected
-   */
-  replaceMarkers(html, id, icon, content) {
-    return html
-      .replace(this.regex('ID'), id)
-      .replace(this.regex('CONTENT'), content)
-      .replace(this.regex('ICON'), icon)
-      .trim();
-  }
-
-  /**
-   * Creates a search global Regex Object of %MATCHER%
-   *
-   * @param matcher {string}
-   * @return {RegExp}
-   * @protected
-   */
-  // eslint-disable-next-line class-methods-use-this
-  regex(matcher) {
-    return new RegExp(`%${String(matcher).toUpperCase()}%`, 'g');
   }
 }

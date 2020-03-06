@@ -12,7 +12,7 @@
     <script type="text/javascript" src="third-party/js/bootstrap.bundle.min.js"></script>
 
     <script type="text/javascript">
-        function set_minimized(minimize) {
+        function setMinimized(minimize) {
             if (minimize) $('.deletable-mark').addClass('minimized');
             else $('.deletable-mark').removeClass('minimized');
         }
@@ -22,7 +22,7 @@
 
 <body style="overflow: hidden">
     <div class="deletable-mark minimized">
-        <a class="btn glass block" onclick="window.call_native('delete_me')"><i
+        <a class="btn glass block" onclick="window.callNative('deleteMe')"><i
                 class="material-icons">delete_forever</i></a>
         <div class="triangle"></div>
     </div>

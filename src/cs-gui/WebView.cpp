@@ -23,11 +23,7 @@ class DevToolsClient : public CefClient {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 WebView::WebView(const std::string& url, int width, int height, bool allowLocalFileAccess)
-    : mClient(new detail::WebViewClient())
-    , mInteractive(true)
-    , mMouseX(0)
-    , mMouseY(0)
-    , mMouseModifiers(0) {
+    : mClient(new detail::WebViewClient()) {
   resize(width, height);
 
   CefWindowInfo info;
@@ -66,6 +62,12 @@ void WebView::setDrawCallback(DrawCallback const& callback) {
 
 void WebView::setCursorChangeCallback(CursorChangeCallback const& callback) {
   mClient->GetInternalRenderHandler()->SetCursorChangeCallback(callback);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void WebView::setRequestKeyboardFocusCallback(RequestKeyboardFocusCallback const& callback) {
+  mClient->GetInternalRenderHandler()->SetRequestKeyboardFocusCallback(callback);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -126,6 +128,18 @@ bool WebView::getIsInteractive() const {
 
 void WebView::setIsInteractive(bool interactive) {
   mInteractive = interactive;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool WebView::getCanScroll() const {
+  return mCanScroll;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void WebView::setCanScroll(bool canScroll) {
+  mCanScroll = canScroll;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -206,16 +220,17 @@ void WebView::redo() const {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void WebView::injectFocusEvent(bool focus) {
-  if (!mInteractive)
-    return;
-  mBrowser->GetHost()->SendFocusEvent(focus);
+  if (mInteractive) {
+    mBrowser->GetHost()->SendFocusEvent(focus);
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void WebView::injectMouseEvent(MouseEvent const& event) {
-  if (!mInteractive)
+  if (!mInteractive || (!mCanScroll && event.mType == MouseEvent::Type::eScroll)) {
     return;
+  }
 
   CefMouseEvent cef_event;
   cef_event.modifiers = (uint32)mMouseModifiers;
@@ -326,12 +341,89 @@ void WebView::executeJavascript(std::string const& code) const {
 
 void WebView::unregisterCallback(std::string const& name) {
   mClient->UnregisterJSCallback(name);
+
+  // Also remove the function property on the CosmoScout.callbacks property.
+  std::string cmd = R"(
+    if (typeof CosmoScout !== 'undefined') {
+      delete CosmoScout.callbacks.$name;
+    }
+  )";
+
+  utils::replaceString(cmd, "$name", name);
+  executeJavascript(cmd);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void WebView::registerJSCallbackImpl(
-    std::string const& name, std::function<void(std::vector<std::any> const&)> const& callback) {
+void WebView::registerJSCallbackImpl(std::string const& name, std::string const& comment,
+    std::vector<std::type_index> const&                      types,
+    std::function<void(std::vector<std::any> const&)> const& callback) {
+
+  // To increase the readability of the callback signature when inspected via an interactive
+  // console, we name every argument depending on its type.
+  std::string signature = "";
+
+  const std::unordered_map<std::type_index, std::string> typeNames = {
+      {std::type_index(typeid(double)), "double"}, {std::type_index(typeid(bool)), "bool"},
+      {std::type_index(typeid(std::string)), "string"}};
+
+  std::unordered_map<std::type_index, int> typeCounts;
+
+  for (int i(0); i < types.size(); ++i) {
+    signature += typeNames.at(types[i]);
+
+    if (typeCounts[types[i]]++ > 0) {
+      signature += std::to_string(typeCounts[types[i]]);
+    }
+
+    if (i + 1 < types.size()) {
+      signature += ", ";
+    }
+  }
+
+  // When executing the 'window.callNative()' method, we need the callback's name as first
+  // parameter.
+  std::string callSignature = "'" + name + "'" + (signature == "" ? "" : ", " + signature);
+
+  // Format the comment. This is a bit more involved since we do line wrapping for long comments.
+  std::string formattedComment = "  // ";
+  size_t      currentSpacePos  = 0;
+  size_t      currentLineWidth = 0;
+  while (currentSpacePos != std::string::npos) {
+    size_t nextSpacePos = comment.find_first_of(' ', currentSpacePos + 1);
+    formattedComment += comment.substr(currentSpacePos, nextSpacePos - currentSpacePos);
+    currentLineWidth += nextSpacePos - currentSpacePos;
+    currentSpacePos = nextSpacePos;
+
+    if (currentSpacePos != std::string::npos && currentLineWidth > 40) {
+      formattedComment += "\n  //";
+      currentLineWidth = 0;
+    }
+  }
+
+  // This registers the callback as a property of the CosmoScout.callbacks object. As the name may
+  // contain multiple dots, this is a little tricky. We have to create multiple chained objects;
+  // e.g. for the callback "notifications.print.warning", we first have to create the object
+  // "notifications", then "print" and then the function "warning".
+  std::string cmd = R"(
+if (typeof CosmoScout !== 'undefined') {
+let components = '$name'.split('.');
+components.reduce((a, b) => a[b] = a[b] || {}, CosmoScout.callbacks);
+CosmoScout.callbacks.$name = ($signature) => {
+
+$comment
+
+  window.callNative($callSignature);
+}
+})";
+
+  utils::replaceString(cmd, "$name", name);
+  utils::replaceString(cmd, "$comment", formattedComment);
+  utils::replaceString(cmd, "$signature", signature);
+  utils::replaceString(cmd, "$callSignature", callSignature);
+  executeJavascript(cmd);
+
+  // Register the actual 'window.callNative()' handler.
   mClient->RegisterJSCallback(name, callback);
 }
 

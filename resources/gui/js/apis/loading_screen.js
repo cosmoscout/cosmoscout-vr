@@ -54,9 +54,9 @@ class LoadingScreenApi extends IApi {
 
       setTimeout(() => {
         document.body.removeChild(this._loadingScreen);
-        CosmoScout.unregisterCss('css/loading_screen.css');
-        CosmoScout.unregisterJavaScript('js/apis/loading_screen.js');
-        CosmoScout.remove('loading_screen');
+        CosmoScout.gui.unregisterCss('css/loading_screen.css');
+        CosmoScout.gui.unregisterJavaScript('js/apis/loading_screen.js');
+        CosmoScout.removeApi('loading_screen');
       }, 1500);
     }
   }
