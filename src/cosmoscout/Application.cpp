@@ -784,7 +784,7 @@ void Application::registerGuiCallbacks() {
 
   // Shows cascaded shadow mapping debugging information on the terrain.
   mGuiManager->getGui()->registerCallback("graphics.setEnableCascadesDebug",
-      "Enables or disables a debug visualization for the shadow maps",
+      "Enables or disables a debug visualization for the shadow maps.",
       std::function([this](bool enable) { mGraphicsEngine->pEnableShadowsDebug = enable; }));
 
   // Enables the calculation of shadows.
@@ -794,7 +794,7 @@ void Application::registerGuiCallbacks() {
 
   // Freezes the shadow frustum.
   mGuiManager->getGui()->registerCallback("graphics.setEnableShadowFreeze",
-      "If enabled, the camera frustum used for the calculation of the shadow map cascades, is not "
+      "If enabled, the camera frustum used for the calculation of the shadow map cascades is not "
       "updated anymore.",
       std::function([this](bool enable) { mGraphicsEngine->pEnableShadowsFreeze = enable; }));
 
@@ -811,7 +811,7 @@ void Application::registerGuiCallbacks() {
 
   // Adjusts the number of shadowmap cascades.
   mGuiManager->getGui()->registerCallback("graphics.setShadowmapCascades",
-      "Sets the number of shadow map cascades. Should in the range of 1-5.",
+      "Sets the number of shadow map cascades. Should be in the range of 1-5.",
       std::function([this](double val) { mGraphicsEngine->pShadowMapCascades = val; }));
 
   // Adjusts the depth range of the shadowmap.
