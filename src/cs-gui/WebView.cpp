@@ -364,8 +364,8 @@ void WebView::registerJSCallbackImpl(std::string const& name, std::string const&
   std::string signature = "";
 
   const std::unordered_map<std::type_index, std::string> typeNames = {
-      {std::type_index(typeid(int)), "integer"}, {std::type_index(typeid(double)), "double"},
-      {std::type_index(typeid(bool)), "bool"}, {std::type_index(typeid(std::string)), "string"}};
+      {std::type_index(typeid(double)), "double"}, {std::type_index(typeid(bool)), "bool"},
+      {std::type_index(typeid(std::string)), "string"}};
 
   std::unordered_map<std::type_index, int> typeCounts;
 

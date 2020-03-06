@@ -66,8 +66,8 @@ class CS_GUI_EXPORT WebView {
   /// Registering the same name twice will override the first callback. The first version of
   /// registerCallback() takes no arguments from the JavaScript side. There is another other
   /// versions below, which takes arbitrary arguments. JavaScript variables passed to the
-  /// window.callNative function will be converted to C++ types. This works for integers, doubles,
-  /// booleans and std::strings.
+  /// window.callNative function will be converted to C++ types. This works for doubles, bools and
+  /// std::strings.
   ///
   /// @param name     Name of the callback.
   /// @param comment  The comment will be visible when inspecting the CosmoScout.callbacks object
@@ -156,22 +156,21 @@ class CS_GUI_EXPORT WebView {
   void closeDevTools();
 
  private:
-  /// This ensures statically that all given template types are either bool, double, int,
-  /// std::string or std::string&&.
+  /// This ensures statically that all given template types are either bool, double, std::string or
+  /// std::string&&.
   template <typename... Args>
   void assertJavaScriptTypes() {
     // Call assertJavaScriptType() for each Arg of Args.
     int tmp[] = {(assertJavaScriptType<Args>(), 0)...};
   }
 
-  /// /// This ensures statically that the given template type is either bool, double, int,
-  /// std::string or std::string&&.
+  /// This ensures statically that the given template type is either bool, double, std::string or
+  /// std::string&&.
   template <typename T>
   static constexpr void assertJavaScriptType() {
-    static_assert(std::is_same<T, int>() || std::is_same<T, double>() || std::is_same<T, bool>() ||
+    static_assert(std::is_same<T, double>() || std::is_same<T, bool>() ||
                       std::is_same<T, std::string>() || std::is_same<T, std::string&&>(),
-        "Only integers, doubles, booleans and std::strings are supported for JavaScript callback "
-        "parameters!");
+        "Only doubles, bools and std::strings are supported for JavaScript callback parameters!");
   }
 
   /// This wraps the given callback in a lambda which will stored in an internal map. This lambda

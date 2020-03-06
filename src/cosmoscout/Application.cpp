@@ -801,18 +801,18 @@ void Application::registerGuiCallbacks() {
   // Sets a value which individual plugins may honor trading rendering fidelity for performance.
   mGuiManager->getGui()->registerCallback("graphics.setLightingQuality",
       "Sets the quality for lighting computations. This can be either 0, 1 or 2.",
-      std::function([this](const int value) { mGraphicsEngine->pLightingQuality = value; }));
+      std::function([this](double value) { mGraphicsEngine->pLightingQuality = value; }));
 
   // Adjusts the resolution of the shadowmap.
   mGuiManager->getGui()->registerCallback("graphics.setShadowmapResolution",
       "Sets the resolution of the shadow maps. This should be a power of two, e.g. 256, 512, 1024, "
       "etc.",
-      std::function([this](const int val) { mGraphicsEngine->pShadowMapResolution = val; }));
+      std::function([this](double val) { mGraphicsEngine->pShadowMapResolution = val; }));
 
   // Adjusts the number of shadowmap cascades.
   mGuiManager->getGui()->registerCallback("graphics.setShadowmapCascades",
       "Sets the number of shadow map cascades. Should in the range of 1-5.",
-      std::function([this](const int val) { mGraphicsEngine->pShadowMapCascades = val; }));
+      std::function([this](double val) { mGraphicsEngine->pShadowMapCascades = val; }));
 
   // Adjusts the depth range of the shadowmap.
   mGuiManager->getGui()->registerCallback("graphics.setShadowmapRange",
