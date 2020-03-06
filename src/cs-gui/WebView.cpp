@@ -355,7 +355,7 @@ void WebView::unregisterCallback(std::string const& name) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void WebView::registerJSCallbackImpl(std::string const&      name,
+void WebView::registerJSCallbackImpl(std::string const& name, std::string const& comment,
     std::vector<std::type_index> const&                      types,
     std::function<void(std::vector<std::any> const&)> const& callback) {
 
@@ -383,6 +383,22 @@ void WebView::registerJSCallbackImpl(std::string const&      name,
   // parameter.
   std::string callSignature = "'" + name + "'" + (signature == "" ? "" : ", " + signature);
 
+  // Format the comment. This is a bit more involved since we do line wrapping for long comments.
+  std::string formattedComment = "  // ";
+  size_t      currentSpacePos  = 0;
+  size_t      currentLineWidth = 0;
+  while (currentSpacePos != std::string::npos) {
+    size_t nextSpacePos = comment.find_first_of(' ', currentSpacePos + 1);
+    formattedComment += comment.substr(currentSpacePos, nextSpacePos - currentSpacePos);
+    currentLineWidth += nextSpacePos - currentSpacePos;
+    currentSpacePos = nextSpacePos;
+
+    if (currentSpacePos != std::string::npos && currentLineWidth > 40) {
+      formattedComment += "\n  //";
+      currentLineWidth = 0;
+    }
+  }
+
   // This registers the callback as a property of the CosmoScout.callbacks object. As the name may
   // contain multiple dots, this is a little tricky. We have to create multiple chained objects;
   // e.g. for the callback "notifications.print.warning", we first have to create the object
@@ -392,11 +408,15 @@ if (typeof CosmoScout !== 'undefined') {
 let components = '$name'.split('.');
 components.reduce((a, b) => a[b] = a[b] || {}, CosmoScout.callbacks);
 CosmoScout.callbacks.$name = ($signature) => {
+
+$comment
+
   window.callNative($callSignature);
 }
 })";
 
   utils::replaceString(cmd, "$name", name);
+  utils::replaceString(cmd, "$comment", formattedComment);
   utils::replaceString(cmd, "$signature", signature);
   utils::replaceString(cmd, "$callSignature", callSignature);
   executeJavascript(cmd);

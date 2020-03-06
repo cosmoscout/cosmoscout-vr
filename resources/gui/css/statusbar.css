@@ -121,7 +121,7 @@
 
 #console-output-area .message {
   opacity: 1;
-  transition: opacity 1s linear, max-height 0.3s linear;
+  transition: opacity 1s linear, max-height 1s linear;
   transition-delay: 3s, 0s;
   max-height: 0;
   overflow-y: hidden;
@@ -129,7 +129,7 @@
 
 #console-output-area .message.initial-transition {
   opacity: 0;
-  max-height: 100px;
+  max-height: 500px;
 }
 
 #console-output-wrapper:hover .message,

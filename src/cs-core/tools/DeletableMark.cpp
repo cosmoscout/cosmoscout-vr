@@ -79,7 +79,8 @@ void DeletableMark::initData() {
   VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
       pGuiTransform, static_cast<int>(cs::utils::DrawOrder::eTransparentItems));
 
-  mGuiItem->registerCallback("deleteMe", [this]() { pShouldDelete = true; });
+  mGuiItem->registerCallback("deleteMe", "Call this to remove the tool.",
+      std::function([this]() { pShouldDelete = true; }));
 
   mSelfSelectedConnection = pSelected.onChange().connect(
       [this](bool val) { mGuiItem->callJavascript("setMinimized", !val); });
