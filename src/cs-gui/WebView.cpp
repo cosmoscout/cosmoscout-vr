@@ -355,24 +355,55 @@ void WebView::unregisterCallback(std::string const& name) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void WebView::registerJSCallbackImpl(
-    std::string const& name, std::function<void(std::vector<std::any> const&)> const& callback) {
-  mClient->RegisterJSCallback(name, callback);
+void WebView::registerJSCallbackImpl(std::string const&      name,
+    std::vector<std::type_index> const&                      types,
+    std::function<void(std::vector<std::any> const&)> const& callback) {
 
-  // Register the callback as a property of the CosmoScout.callbacks object. As the name may contain
-  // multiple dots, this is a little tricky. We have to create multiple chained objects; e.g. for
-  // the callback "notifications.print.warning", we first have to create the object "notifications",
-  // then "print" and then the function "warning".
+  // To increase the readability of the callback signature when inspected via an interactive
+  // console, we prefix every argument with an 'i', 'd', 'b' or an 's' depending on its type.
+  std::string signature = "";
+
+  const std::unordered_map<std::type_index, std::string> prefixes = {
+      {std::type_index(typeid(int)), "i"}, {std::type_index(typeid(double)), "d"},
+      {std::type_index(typeid(bool)), "b"}, {std::type_index(typeid(std::string)), "s"}};
+
+  for (int i(0); i < types.size(); ++i) {
+    if (i == 0) {
+      signature += fmt::format("{}Parameter ", prefixes.at(types[i]));
+    } else {
+      signature += fmt::format("{}Parameter{}", prefixes.at(types[i]), i + 1);
+    }
+
+    if (i + 1 < types.size()) {
+      signature += ", ";
+    }
+  }
+
+  // When executing the 'window.callNative()' method, we need the callback's name as first
+  // parameter.
+  std::string callSignature = "'" + name + "'" + (signature == "" ? "" : ", " + signature);
+
+  // This registers the callback as a property of the CosmoScout.callbacks object. As the name may
+  // contain multiple dots, this is a little tricky. We have to create multiple chained objects;
+  // e.g. for the callback "notifications.print.warning", we first have to create the object
+  // "notifications", then "print" and then the function "warning".
   std::string cmd = R"(
     if (typeof CosmoScout !== 'undefined') {
       let components = '$name'.split('.');
       components.reduce((a, b) => a[b] = a[b] || {}, CosmoScout.callbacks);
-      CosmoScout.callbacks.$name = (...args) => window.callNative('$name', ...args);
+      CosmoScout.callbacks.$name = ($signature) => {
+        window.callNative($callSignature);
+      }
     }
   )";
 
   utils::replaceString(cmd, "$name", name);
+  utils::replaceString(cmd, "$signature", signature);
+  utils::replaceString(cmd, "$callSignature", callSignature);
   executeJavascript(cmd);
+
+  // Register the actual 'window.callNative()' handler.
+  mClient->RegisterJSCallback(name, callback);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

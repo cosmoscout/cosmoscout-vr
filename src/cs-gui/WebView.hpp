@@ -16,6 +16,7 @@
 #include <include/cef_client.h>
 #include <iostream>
 #include <spdlog/spdlog.h>
+#include <typeindex>
 
 namespace cs::gui {
 
@@ -72,7 +73,7 @@ class CS_GUI_EXPORT WebView {
   /// @param callback The function to execute when the HTML-Element fires a change event.
   void registerCallback(std::string const& name, std::function<void()> const& callback) {
     registerJSCallbackImpl(
-        name, [this, callback](std::vector<std::any> const& args) { callback(); });
+        name, {}, [this, callback](std::vector<std::any> const& args) { callback(); });
   }
 
   /// See documentation above.
@@ -176,7 +177,11 @@ class CS_GUI_EXPORT WebView {
   void registerCallbackWrapper(std::string const& name,
       std::function<void(Args...)> const&         callback, std::index_sequence<Is...>) {
 
-    registerJSCallbackImpl(name, [this, name, callback](std::vector<std::any> const& args) {
+    // The types vector is requred to prefix the JavaScript function's arguments with an 'i', 'd',
+    // 'b' or an 's' depending on its type.
+    std::vector<std::type_index> types = {std::type_index(typeid(Args))...};
+
+    registerJSCallbackImpl(name, types, [this, name, callback](std::vector<std::any> const& args) {
       try {
         callback(std::any_cast<typename std::remove_reference<Args>::type>(args[Is])...);
       } catch (std::bad_any_cast const& e) {
@@ -186,8 +191,8 @@ class CS_GUI_EXPORT WebView {
   }
 
   void callJavascriptImpl(std::string const& function, std::vector<std::string> const& args) const;
-  void registerJSCallbackImpl(
-      std::string const& name, std::function<void(std::vector<std::any> const&)> const& callback);
+  void registerJSCallbackImpl(std::string const& name, std::vector<std::type_index> const& types,
+      std::function<void(std::vector<std::any> const&)> const& callback);
 
   detail::WebViewClient* mClient;
   CefRefPtr<CefBrowser>  mBrowser;
