@@ -181,8 +181,8 @@ class CS_GUI_EXPORT WebView {
   void registerCallbackWrapper(std::string const& name, std::string const& comment,
       std::function<void(Args...)> const& callback, std::index_sequence<Is...>) {
 
-    // The types vector is requred to prefix the JavaScript function's arguments with an 'i', 'd',
-    // 'b' or an 's' depending on its type.
+    // The types vector is required to name the JavaScript function's arguments depending on its
+    // type.
     std::vector<std::type_index> types = {std::type_index(typeid(Args))...};
 
     registerJSCallbackImpl(

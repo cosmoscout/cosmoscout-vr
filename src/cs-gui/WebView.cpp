@@ -360,18 +360,20 @@ void WebView::registerJSCallbackImpl(std::string const& name, std::string const&
     std::function<void(std::vector<std::any> const&)> const& callback) {
 
   // To increase the readability of the callback signature when inspected via an interactive
-  // console, we prefix every argument with an 'i', 'd', 'b' or an 's' depending on its type.
+  // console, we name every argument depending on its type.
   std::string signature = "";
 
-  const std::unordered_map<std::type_index, std::string> prefixes = {
-      {std::type_index(typeid(int)), "i"}, {std::type_index(typeid(double)), "d"},
-      {std::type_index(typeid(bool)), "b"}, {std::type_index(typeid(std::string)), "s"}};
+  const std::unordered_map<std::type_index, std::string> typeNames = {
+      {std::type_index(typeid(int)), "integer"}, {std::type_index(typeid(double)), "double"},
+      {std::type_index(typeid(bool)), "bool"}, {std::type_index(typeid(std::string)), "string"}};
+
+  std::unordered_map<std::type_index, int> typeCounts;
 
   for (int i(0); i < types.size(); ++i) {
-    if (i == 0) {
-      signature += fmt::format("{}Parameter", prefixes.at(types[i]));
-    } else {
-      signature += fmt::format("{}Parameter{}", prefixes.at(types[i]), i + 1);
+    signature += typeNames.at(types[i]);
+
+    if (typeCounts[types[i]]++ > 0) {
+      signature += std::to_string(typeCounts[types[i]]);
     }
 
     if (i + 1 < types.size()) {
