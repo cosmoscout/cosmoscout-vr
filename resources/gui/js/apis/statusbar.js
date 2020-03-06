@@ -262,9 +262,7 @@ class StatusbarApi extends IApi {
    * @param message {string} The message.
    */
   printMessage(level, channel, message) {
-    this._outputField.insertAdjacentHTML("afterbegin", `<div class='message level-${level}'>
-                                                    [${level}] ${channel} ${message}
-                                                  </div>`);
+    this._outputField.insertAdjacentHTML("afterbegin", `<div class='message level-${level}'>[${level}] ${channel} ${message}</div>`);
 
     while (this._outputField.children.length > 100) {
       this._outputField.removeChild(this._outputField.lastChild);

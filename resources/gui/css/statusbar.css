@@ -67,6 +67,7 @@
 
 #console-output-area .message {
   flex-shrink: 0;
+  white-space: pre-wrap;
 }
 
 #console-suggestion-area {

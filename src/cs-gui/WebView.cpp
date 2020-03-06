@@ -369,7 +369,7 @@ void WebView::registerJSCallbackImpl(std::string const&      name,
 
   for (int i(0); i < types.size(); ++i) {
     if (i == 0) {
-      signature += fmt::format("{}Parameter ", prefixes.at(types[i]));
+      signature += fmt::format("{}Parameter", prefixes.at(types[i]));
     } else {
       signature += fmt::format("{}Parameter{}", prefixes.at(types[i]), i + 1);
     }
@@ -388,14 +388,13 @@ void WebView::registerJSCallbackImpl(std::string const&      name,
   // e.g. for the callback "notifications.print.warning", we first have to create the object
   // "notifications", then "print" and then the function "warning".
   std::string cmd = R"(
-    if (typeof CosmoScout !== 'undefined') {
-      let components = '$name'.split('.');
-      components.reduce((a, b) => a[b] = a[b] || {}, CosmoScout.callbacks);
-      CosmoScout.callbacks.$name = ($signature) => {
-        window.callNative($callSignature);
-      }
-    }
-  )";
+if (typeof CosmoScout !== 'undefined') {
+let components = '$name'.split('.');
+components.reduce((a, b) => a[b] = a[b] || {}, CosmoScout.callbacks);
+CosmoScout.callbacks.$name = ($signature) => {
+  window.callNative($callSignature);
+}
+})";
 
   utils::replaceString(cmd, "$name", name);
   utils::replaceString(cmd, "$signature", signature);
