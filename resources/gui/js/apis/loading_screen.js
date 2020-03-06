@@ -34,9 +34,9 @@ class LoadingScreenApi extends IApi {
    */
   init() {
     this._loadingScreen = document.getElementById('loading-screen');
-    this._version = document.getElementById('version');
-    this._status = document.getElementById('lower');
-    this._progressBar = document.getElementById('progress-bar');
+    this._version       = document.getElementById('version');
+    this._status        = document.getElementById('lower');
+    this._progressBar   = document.getElementById('progress-bar');
   }
 
   /**

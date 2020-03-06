@@ -10,7 +10,7 @@ class CosmoScoutAPI {
   /**
    * Stores all callbacks registered via C++. It has one default "callbacks.find()" method, which
    * can be used to call callbacks which are actually registered as sub objects.
-   * callbacks.find("notifications.print") will return the function "print" registered on 
+   * callbacks.find("notifications.print") will return the function "print" registered on
    * the object "notifications".
    */
   callbacks = {
@@ -20,7 +20,7 @@ class CosmoScoutAPI {
         if (callback !== undefined) {
           return callback;
         }
-      } catch (e) { }
+      } catch (e) {}
 
       console.warn(`Failed to find callback ${name} on CosmoScout.callbacks!`);
 
@@ -71,9 +71,7 @@ class CosmoScoutAPI {
 
         this.registerApi(instance.name, instance);
         instance.init();
-      } catch (e) {
-        console.error(`Could not initialize ${Api}: ${e.message}`);
-      }
+      } catch (e) { console.error(`Could not initialize ${Api}: ${e.message}`); }
     });
   }
 

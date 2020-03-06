@@ -31,8 +31,8 @@ class SidebarApi extends IApi {
    * Loads all templates and needed container refs
    */
   init() {
-    this._settings = document.getElementById('settings-accordion');
-    this._sidebar = document.getElementById('sidebar-accordion');
+    this._settings   = document.getElementById('settings-accordion');
+    this._sidebar    = document.getElementById('sidebar-accordion');
     this._sidebarTab = document.getElementById('sidebar-accordion').lastElementChild;
   }
 
@@ -73,9 +73,7 @@ class SidebarApi extends IApi {
 
     const html = this._replaceMarkers(tab.innerHTML, this._makeId(sectionName), icon, content);
 
-    tab.innerHTML = html
-      .replace(/%SECTION%/g, sectionName)
-      .trim();
+    tab.innerHTML = html.replace(/%SECTION%/g, sectionName).trim();
 
     this._settings.appendChild(tab);
   }
@@ -122,11 +120,7 @@ class SidebarApi extends IApi {
    * @protected
    */
   _replaceMarkers(html, id, icon, content) {
-    return html
-      .replace(/%ID%/g, id)
-      .replace(/%CONTENT%/g, content)
-      .replace(/%ICON%/g, icon)
-      .trim();
+    return html.replace(/%ID%/g, id).replace(/%CONTENT%/g, content).replace(/%ICON%/g, icon).trim();
   }
 
   /**

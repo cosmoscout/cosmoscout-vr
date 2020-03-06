@@ -31,9 +31,9 @@ class StatusbarApi extends IApi {
    */
   _speedContainer;
 
-  _history = [];
+  _history      = [];
   _historyIndex = 0;
-  _currentCmd = "";
+  _currentCmd   = "";
   _inputField;
   _suggestionField;
   _outputField;
@@ -45,13 +45,13 @@ class StatusbarApi extends IApi {
   init() {
 
     // Store required containers for faster access.
-    this._userContainer = document.querySelector("#statusbar-user-position");
+    this._userContainer    = document.querySelector("#statusbar-user-position");
     this._pointerContainer = document.querySelector("#statusbar-pointer-position");
-    this._speedContainer = document.querySelector("#statusbar-speed");
-    this._inputField = document.querySelector("#console-input-area input");
-    this._suggestionField = document.querySelector("#console-suggestion-area");
-    this._outputField = document.querySelector("#console-output-area");
-    this._outputWrapper = document.querySelector("#console-output-wrapper");
+    this._speedContainer   = document.querySelector("#statusbar-speed");
+    this._inputField       = document.querySelector("#console-input-area input");
+    this._suggestionField  = document.querySelector("#console-suggestion-area");
+    this._outputField      = document.querySelector("#console-output-area");
+    this._outputWrapper    = document.querySelector("#console-output-wrapper");
 
     // The 'console-has-input-focus' class on the _outputWrapper forces the console messages to not
     // fade when the text input field has input focus.
@@ -70,7 +70,7 @@ class StatusbarApi extends IApi {
           if (this._historyIndex == this._history.length) {
             this._currentCmd = this._inputField.value;
           }
-          this._historyIndex = Math.max(0, this._historyIndex - 1);
+          this._historyIndex     = Math.max(0, this._historyIndex - 1);
           this._inputField.value = this._history[this._historyIndex];
         }
         e.preventDefault();
@@ -91,7 +91,6 @@ class StatusbarApi extends IApi {
     };
 
     this._inputField.onkeypress = (e) => {
-
       this._enableSuggestionArea(false);
 
       // Return pressed - try to execute the command!
@@ -101,16 +100,15 @@ class StatusbarApi extends IApi {
           if (result != undefined) {
             console.log(result);
           }
-        } catch (error) {
-          console.warn(error);
-        }
+        } catch (error) { console.warn(error); }
 
         // Push command to history.
-        if (this._history.length == 0 || this._history[this._history.length - 1] != this._inputField.value) {
+        if (this._history.length == 0 ||
+            this._history[this._history.length - 1] != this._inputField.value) {
           this._history.push(this._inputField.value);
         }
 
-        this._historyIndex = this._history.length;
+        this._historyIndex     = this._history.length;
         this._inputField.value = ""
       }
 
@@ -126,8 +124,8 @@ class StatusbarApi extends IApi {
 
         // We will suggest properties of object directly preceding the cursor. The name of the
         // object has to end with a '.', the start of the object can be any of the characters in
-        // the regex below. 
-        let objectEnd = text.lastIndexOf(".");
+        // the regex below.
+        let objectEnd   = text.lastIndexOf(".");
         let objectBegin = 0;
 
         // find last occurrence of " " , ; + - * / ( ) { } | & !
@@ -142,12 +140,12 @@ class StatusbarApi extends IApi {
         // look for global variable (object name = 'window'). The prefix is everything between
         // the '.' and the cursor position (or the entire command if there is no '.').
         let prefixBegin = 0;
-        let objectName = "window";
+        let objectName  = "window";
 
         if (objectEnd < objectBegin) {
           prefixBegin = objectBegin;
         } else if (objectEnd > 0 && objectBegin < cursorPos - 1) {
-          objectName = text.substring(Math.max(0, objectBegin), objectEnd);
+          objectName  = text.substring(Math.max(0, objectBegin), objectEnd);
           prefixBegin = objectEnd + 1;
         }
 
@@ -162,14 +160,16 @@ class StatusbarApi extends IApi {
 
           // We suggest all properties of the object and it's __proto__ part.
           let properties = Object.getOwnPropertyNames(object);
-          let proto = Object.getPrototypeOf(object);
+          let proto      = Object.getPrototypeOf(object);
 
           if (proto && proto != Object.prototype && typeof proto !== "function") {
             properties = properties.concat(Object.getOwnPropertyNames(proto))
           }
 
-          // Now we filter the list to contain only those with our prefix and sort it alphabetically.
-          properties = properties.filter(element => prefix === "" || element.startsWith(prefix)).sort();
+          // Now we filter the list to contain only those with our prefix and sort it
+          // alphabetically.
+          properties =
+              properties.filter(element => prefix === "" || element.startsWith(prefix)).sort();
 
           // If the cursor is somewhere in the middle of a property name, we want to replace the
           // entire property with our completion. We use nother regex to find the end of the text
@@ -177,9 +177,9 @@ class StatusbarApi extends IApi {
           let prefixEnd = cursorPos;
 
           // Find next occurrence of " " , ; + - * / ( ) { } | & ! [ ]
-          let regex = new RegExp("\\s|,|;|\\+|-|\\*|/|\\(|\\)|{|}|\\||&|\\!|\\[|\\]", "g");
+          let regex       = new RegExp("\\s|,|;|\\+|-|\\*|/|\\(|\\)|{|}|\\||&|\\!|\\[|\\]", "g");
           regex.lastIndex = cursorPos;
-          match = regex.exec(this._inputField.value);
+          match           = regex.exec(this._inputField.value);
 
           if (match != null) {
             prefixEnd = match.index;
@@ -187,39 +187,40 @@ class StatusbarApi extends IApi {
 
           // If the thing we suggest for completion is an object, we append a '.', if it's a
           // function we add '()' and place the cursor between the brackets.
-          let getCompletion = (element) => {
-            let completion = element;
-            let finalCursorPos = prefixBegin + completion.length;
-            if (typeof object[completion] === "function") {
-              completion += "()";
-              finalCursorPos += 1;
-            }
+          let getCompletion =
+              (element) => {
+                let completion     = element;
+                let finalCursorPos = prefixBegin + completion.length;
+                if (typeof object[completion] === "function") {
+                  completion += "()";
+                  finalCursorPos += 1;
+                }
 
-            if (typeof object[completion] === "object") {
-              completion += ".";
-              finalCursorPos += 1;
-            }
+                if (typeof object[completion] === "object") {
+                  completion += ".";
+                  finalCursorPos += 1;
+                }
 
-            return [completion, finalCursorPos];
-          }
+                return [completion, finalCursorPos];
+              }
 
           if (properties.length == 1) {
             // If there is only one possible completion, we directly apply it.
             let [completion, finalCursorPos] = getCompletion(properties[0]);
             this._setCompletion(prefixBegin, prefixEnd, finalCursorPos, completion);
-          } else {
+          }
+          else {
             // If there are multiple completion possibilities, we show a list.
             this._suggestionField.innerHTML = "";
             properties.forEach(element => {
               let [completion, finalCursorPos] = getCompletion(element);
-              let classNames = `suggestion type-${typeof object[element]}`;
+              let classNames                   = `suggestion type-${typeof object[element]}`;
 
               if (completion.startsWith("_")) {
                 classNames += " private";
               }
 
-              this._suggestionField.insertAdjacentHTML("beforeend",
-                `<span class='${classNames}'
+              this._suggestionField.insertAdjacentHTML("beforeend", `<span class='${classNames}'
                        onclick='CosmoScout.statusbar._setCompletion(${prefixBegin}, ${prefixEnd}, 
                                                               ${finalCursorPos}, "${completion}");'>
                        ${element}
@@ -238,14 +239,18 @@ class StatusbarApi extends IApi {
   update() {
     let pos = CosmoScout.state.pointerPosition;
     if (pos !== undefined) {
-      this._pointerContainer.innerText = `${CosmoScout.utils.formatLongitude(pos[0]) + CosmoScout.utils.formatLatitude(pos[1])}(${CosmoScout.utils.formatHeight(pos[2])})`;
+      this._pointerContainer.innerText =
+          `${CosmoScout.utils.formatLongitude(pos[0]) + CosmoScout.utils.formatLatitude(pos[1])}(${
+              CosmoScout.utils.formatHeight(pos[2])})`;
     } else {
       this._pointerContainer.innerText = ' - ';
     }
 
     pos = CosmoScout.state.observerPosition;
     if (pos !== undefined) {
-      this._userContainer.innerText = `${CosmoScout.utils.formatLongitude(pos[0]) + CosmoScout.utils.formatLatitude(pos[1])}(${CosmoScout.utils.formatHeight(pos[2])})`;
+      this._userContainer.innerText =
+          `${CosmoScout.utils.formatLongitude(pos[0]) + CosmoScout.utils.formatLatitude(pos[1])}(${
+              CosmoScout.utils.formatHeight(pos[2])})`;
     } else {
       this._userContainer.innerText = ' - ';
     }
@@ -262,7 +267,8 @@ class StatusbarApi extends IApi {
    * @param message {string} The message.
    */
   printMessage(level, channel, message) {
-    this._outputField.insertAdjacentHTML("afterbegin", `<div class='message level-${level}'>[${level}] ${channel} ${message}</div>`);
+    this._outputField.insertAdjacentHTML(
+        "afterbegin", `<div class='message level-${level}'>[${level}] ${channel} ${message}</div>`);
 
     while (this._outputField.children.length > 100) {
       this._outputField.removeChild(this._outputField.lastChild);
@@ -275,7 +281,7 @@ class StatusbarApi extends IApi {
 
   /**
    * Toggles the visibility of the suggestion area.
-   * @param {bool} enable 
+   * @param {bool} enable
    */
   _enableSuggestionArea(enable) {
     if (enable) {
@@ -293,9 +299,8 @@ class StatusbarApi extends IApi {
    * @param {number} text           The text to insert.
    */
   _setCompletion(startIndex, endIndex, finalCursorPos, text) {
-    this._inputField.value = this._inputField.value.substring(0, startIndex)
-      + text
-      + this._inputField.value.substring(endIndex);
+    this._inputField.value = this._inputField.value.substring(0, startIndex) + text +
+                             this._inputField.value.substring(endIndex);
     this._inputField.setSelectionRange(finalCursorPos, finalCursorPos);
     this._inputField.focus();
     this._enableSuggestionArea(false);

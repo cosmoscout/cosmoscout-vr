@@ -55,7 +55,7 @@ class StatisticsApi extends IApi {
 
   init() {
     if (typeof ColorHash !== 'undefined') {
-      this._colorHash = new ColorHash({ lightness: 0.5, saturation: 0.3 });
+      this._colorHash = new ColorHash({lightness: 0.5, saturation: 0.3});
     } else {
       console.error('Class \'ColorHash\' not defined.');
     }
@@ -76,8 +76,9 @@ class StatisticsApi extends IApi {
     this._addNewElements();
 
     // remove all with very little contribution
-    const minTime = (element) => element.timeGPU > this._minTime || element.timeCPU > this._minTime
-      || element.avgTimeGPU > this._minTime || element.avgTimeCPU > this._minTime;
+    const minTime = (element) =>
+        element.timeGPU > this._minTime || element.timeCPU > this._minTime ||
+        element.avgTimeGPU > this._minTime || element.avgTimeCPU > this._minTime;
     this._values = this._values.filter(minTime);
 
     // update average values
@@ -144,7 +145,7 @@ class StatisticsApi extends IApi {
     CosmoScout.gui.clearHtml(container);
 
     const maxEntries = Math.min(10, this._values.length);
-    const maxWidth = container.offsetWidth;
+    const maxWidth   = container.offsetWidth;
 
     const item = document.createElement('template');
 
@@ -159,8 +160,12 @@ class StatisticsApi extends IApi {
       /* eslint-enable no-mixed-operators */
 
       item.innerHTML += `<div class="statistics-item">
-        <div class="bar gpu" style="background-color:${this._values[i].color}; width:${widthGPU}px"><div class="label">gpu: ${(this._values[i].avgTimeGPU * 0.000001).toFixed(1)} ms</div></div>
-        <div class="bar cpu" style="background-color:${this._values[i].color}; width:${widthCPU}px"><div class="label">cpu: ${(this._values[i].avgTimeCPU * 0.000001).toFixed(1)} ms</div></div>
+        <div class="bar gpu" style="background-color:${this._values[i].color}; width:${
+          widthGPU}px"><div class="label">gpu: ${
+          (this._values[i].avgTimeGPU * 0.000001).toFixed(1)} ms</div></div>
+        <div class="bar cpu" style="background-color:${this._values[i].color}; width:${
+          widthCPU}px"><div class="label">cpu: ${
+          (this._values[i].avgTimeCPU * 0.000001).toFixed(1)} ms</div></div>
         <div class="label">${this._values[i].name}</div>
       </div>`;
 

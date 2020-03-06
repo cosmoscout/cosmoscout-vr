@@ -28,7 +28,6 @@ class GuiApi extends IApi {
    */
   _html = new Map();
 
-
   /**
    * Initialize third party drop downs,
    * add input event listener,
@@ -80,13 +79,13 @@ class GuiApi extends IApi {
         input.addEventListener('change', (event) => {
           if (event.target !== null) {
             let callback = CosmoScout.callbacks.find(event.target.dataset.callback)
-  
+
             if (callback !== undefined) {
               callback(event.target.checked);
             }
           }
         });
-  
+
         input.dataset.initialized = 'true';
       }
     });
@@ -104,13 +103,13 @@ class GuiApi extends IApi {
         input.addEventListener('change', (event) => {
           if (event.target !== null) {
             let callback = CosmoScout.callbacks.find(event.target.dataset.callback)
-  
+
             if (callback !== undefined) {
               callback(event.target.checked);
             }
           }
         });
-  
+
         input.dataset.initialized = 'true';
       }
     });
@@ -122,7 +121,7 @@ class GuiApi extends IApi {
    * @see {initInputs}
    */
   initTooltips() {
-    const config = { delay: 500, placement: 'auto', html: false };
+    const config = {delay: 500, placement: 'auto', html: false};
 
     /* Bootstrap Tooltips require jQuery for now */
     $('[data-toggle="tooltip"]').tooltip(config);
@@ -160,8 +159,8 @@ class GuiApi extends IApi {
    */
   unregisterJavaScript(url) {
     document.querySelectorAll('script').forEach((element) => {
-      if (typeof element.src !== 'undefined'
-        && (element.src === url || element.src === this._localizeUrl(url))) {
+      if (typeof element.src !== 'undefined' &&
+          (element.src === url || element.src === this._localizeUrl(url))) {
         document.body.removeChild(element);
       }
     });
@@ -187,8 +186,8 @@ class GuiApi extends IApi {
    */
   unregisterCss(url) {
     document.querySelectorAll('link').forEach((element) => {
-      if (typeof element.href !== 'undefined'
-        && (element.href === url || element.href === this._localizeUrl(url))) {
+      if (typeof element.href !== 'undefined' &&
+          (element.href === url || element.href === this._localizeUrl(url))) {
         document.head.removeChild(element);
       }
     });
@@ -199,7 +198,8 @@ class GuiApi extends IApi {
    *
    * @param id {string} Id for de-registering
    * @param content {string} Html content
-   * @param containerId {string} ['body'] Container ID to append the HTML to. Defaults to body element if omitted
+   * @param containerId {string} ['body'] Container ID to append the HTML to. Defaults to body
+   * element if omitted
    */
   registerHtml(id, content, containerId = 'body') {
     let container = document.body;
@@ -269,7 +269,7 @@ class GuiApi extends IApi {
       return false;
     }
 
-    const { content } = template;
+    const {content} = template;
     this._templates.set(id, content);
 
     return content.cloneNode(true).firstElementChild;
@@ -317,7 +317,7 @@ class GuiApi extends IApi {
       start,
       connect: (start.length === 1 ? 'lower' : true),
       step,
-      range: { min, max },
+      range: {min, max},
       format: {
         to(value) {
           return CosmoScout.utils.beautifyNumber(value);
@@ -382,10 +382,10 @@ class GuiApi extends IApi {
    */
   addDropdownValue(callbackName, value, text, selected = false) {
     const dropdown = document.querySelector(`[data-callback="${callbackName}"]`);
-    const option = document.createElement('option');
+    const option   = document.createElement('option');
 
-    option.value = value;
-    option.selected = selected ? true : false;
+    option.value       = value;
+    option.selected    = selected ? true : false;
     option.textContent = text;
 
     if (dropdown !== null) {

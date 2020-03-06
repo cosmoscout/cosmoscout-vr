@@ -25,7 +25,8 @@ class UtilsApi extends IApi {
    * @return {string}
    */
   formatDateReadable(date) {
-    return `${date.toLocaleDateString(this._defaultLocale, this._defaultDateOptions)} ${date.toLocaleTimeString(this._defaultLocale)}`;
+    return `${date.toLocaleDateString(this._defaultLocale, this._defaultDateOptions)} ${
+        date.toLocaleTimeString(this._defaultLocale)}`;
   }
 
   /**
@@ -76,13 +77,13 @@ class UtilsApi extends IApi {
 
     converted.days = Math.floor(seconds / dSec);
 
-    const daysSec = converted.days * dSec;
+    const daysSec   = converted.days * dSec;
     converted.hours = Math.floor((seconds - daysSec) / hSec);
 
-    const hoursSec = converted.hours * hSec;
+    const hoursSec    = converted.hours * hSec;
     converted.minutes = Math.floor((seconds - daysSec - hoursSec) / mSec);
 
-    const minSec = converted.minutes * mSec;
+    const minSec      = converted.minutes * mSec;
     converted.seconds = Math.floor(seconds - daysSec - hoursSec - minSec);
 
     converted.milliSec = Math.round((seconds - Math.floor(seconds)) * 1000);
@@ -125,7 +126,6 @@ class UtilsApi extends IApi {
     return this.increaseDate(date, -days, -hours, -minutes, -seconds, -milliSec);
   }
 
-
   /**
    * @param number {number|string}
    * @return {string}
@@ -140,7 +140,8 @@ class UtilsApi extends IApi {
 
     if (Math.abs(number) < 10) {
       return number.toFixed(2);
-    } if (Math.abs(number) < 100) {
+    }
+    if (Math.abs(number) < 100) {
       return number.toFixed(1);
     }
 
@@ -160,31 +161,31 @@ class UtilsApi extends IApi {
     height = Number(height);
 
     if (Math.abs(height) < 0.1) {
-      num = this.formatNumber(height * 1000);
+      num  = this.formatNumber(height * 1000);
       unit = 'mm';
     } else if (Math.abs(height) < 1) {
-      num = this.formatNumber(height * 100);
+      num  = this.formatNumber(height * 100);
       unit = 'cm';
     } else if (Math.abs(height) < 1e4) {
-      num = this.formatNumber(height);
+      num  = this.formatNumber(height);
       unit = 'm';
     } else if (Math.abs(height) < 1e7) {
-      num = this.formatNumber(height / 1e3);
+      num  = this.formatNumber(height / 1e3);
       unit = 'km';
     } else if (Math.abs(height) < 1e10) {
-      num = this.formatNumber(height / 1e6);
+      num  = this.formatNumber(height / 1e6);
       unit = 'Tsd km';
     } else if (Math.abs(height / 1.496e11) < 1e4) {
-      num = this.formatNumber(height / 1.496e11);
+      num  = this.formatNumber(height / 1.496e11);
       unit = 'AU';
     } else if (Math.abs(height / 9.461e15) < 1e3) {
-      num = this.formatNumber(height / 9.461e15);
+      num  = this.formatNumber(height / 9.461e15);
       unit = 'ly';
     } else if (Math.abs(height / 3.086e16) < 1e3) {
-      num = this.formatNumber(height / 3.086e16);
+      num  = this.formatNumber(height / 3.086e16);
       unit = 'pc';
     } else {
-      num = this.formatNumber(height / 3.086e19);
+      num  = this.formatNumber(height / 3.086e19);
       unit = 'kpc';
     }
 
@@ -204,31 +205,31 @@ class UtilsApi extends IApi {
     speed = Number(speed);
 
     if (Math.abs(speed * 3.6) < 500) {
-      num = this.formatNumber(speed * 3.6);
+      num  = this.formatNumber(speed * 3.6);
       unit = 'km/h';
     } else if (Math.abs(speed) < 1e3) {
-      num = this.formatNumber(speed);
+      num  = this.formatNumber(speed);
       unit = 'm/s';
     } else if (Math.abs(speed) < 1e7) {
-      num = this.formatNumber(speed / 1e3);
+      num  = this.formatNumber(speed / 1e3);
       unit = 'km/s';
     } else if (Math.abs(speed) < 1e8) {
-      num = this.formatNumber(speed / 1e6);
+      num  = this.formatNumber(speed / 1e6);
       unit = 'Tsd km/s';
     } else if (Math.abs(speed / 2.998e8) < 1e3) {
-      num = this.formatNumber(speed / 2.998e8);
+      num  = this.formatNumber(speed / 2.998e8);
       unit = 'SoL';
     } else if (Math.abs(speed / 1.496e11) < 1e3) {
-      num = this.formatNumber(speed / 1.496e11);
+      num  = this.formatNumber(speed / 1.496e11);
       unit = 'AU/s';
     } else if (Math.abs(speed / 9.461e15) < 1e3) {
-      num = this.formatNumber(speed / 9.461e15);
+      num  = this.formatNumber(speed / 9.461e15);
       unit = 'ly/s';
     } else if (Math.abs(speed / 3.086e16) < 1e3) {
-      num = this.formatNumber(speed / 3.086e16);
+      num  = this.formatNumber(speed / 3.086e16);
       unit = 'pc/s';
     } else {
-      num = this.formatNumber(speed / 3.086e19);
+      num  = this.formatNumber(speed / 3.086e19);
       unit = 'kpc/s';
     }
 
@@ -236,11 +237,11 @@ class UtilsApi extends IApi {
   }
 
   /**
-     * Returns a formatted latitude string
-     *
-     * @param lat {number|string}
-     * @return {string}
-     */
+   * Returns a formatted latitude string
+   *
+   * @param lat {number|string}
+   * @return {string}
+   */
   formatLatitude(lat) {
     lat = Number(lat);
 
