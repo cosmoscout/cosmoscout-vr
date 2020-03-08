@@ -2,520 +2,520 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <title>CosmoScout GUI</title>
+  <meta charset="UTF-8">
+  <title>CosmoScout GUI</title>
 
-    <link type="text/css" rel="stylesheet" href="third-party/css/bootstrap.min.css" />
-    <link type="text/css" rel="stylesheet" href="third-party/css/bootstrap-select.min.css" />
+  <link type="text/css" rel="stylesheet" href="third-party/css/bootstrap.min.css" />
+  <link type="text/css" rel="stylesheet" href="third-party/css/bootstrap-select.min.css" />
 
-    <link type="text/css" rel="stylesheet" href="third-party/css/nouislider.css">
+  <link type="text/css" rel="stylesheet" href="third-party/css/nouislider.css">
 
-    <link type="text/css" rel="stylesheet" href="third-party/css/vis-timeline-graph2d.css" />
-    <link type="text/css" rel="stylesheet" href="third-party/css/color-picker.min.css">
+  <link type="text/css" rel="stylesheet" href="third-party/css/vis-timeline-graph2d.css" />
+  <link type="text/css" rel="stylesheet" href="third-party/css/color-picker.min.css">
 
-    <link type="text/css" rel="stylesheet" href="css/gui.css">
-    <link type="text/css" rel="stylesheet" href="css/cosmoscout.css">
-    <link type="text/css" rel="stylesheet" href="css/loading_screen.css">
-    <link type="text/css" rel="stylesheet" href="css/timeline.css" />
-    <link type="text/css" rel="stylesheet" href="css/calendar.css">
-    <link type="text/css" rel="stylesheet" href="css/sidebar.css" />
-    <link type="text/css" rel="stylesheet" href="css/notifications.css">
-    <link type="text/css" rel="stylesheet" href="css/statusbar.css">
-    <link type="text/css" rel="stylesheet" href="css/logo.css">
+  <link type="text/css" rel="stylesheet" href="css/gui.css">
+  <link type="text/css" rel="stylesheet" href="css/cosmoscout.css">
+  <link type="text/css" rel="stylesheet" href="css/loading_screen.css">
+  <link type="text/css" rel="stylesheet" href="css/timeline.css" />
+  <link type="text/css" rel="stylesheet" href="css/calendar.css">
+  <link type="text/css" rel="stylesheet" href="css/sidebar.css" />
+  <link type="text/css" rel="stylesheet" href="css/notifications.css">
+  <link type="text/css" rel="stylesheet" href="css/statusbar.css">
+  <link type="text/css" rel="stylesheet" href="css/logo.css">
 </head>
 
 <body>
 
-    <div id="loading-screen">
-        <div id="background"></div>
-        <div id="loading-screen-logo">
-            <div id="image"></div>
-            <div id="text">
-                <div id="upper">CosmoScout VR</div>
-                <div id="progress">
-                    <div id="progress-bar">
-                    </div>
-                </div>
-                <div id="lower">loading core engine ...</div>
-            </div>
-            <div id="version">unknown version</div>
+  <div id="loading-screen">
+    <div id="background"></div>
+    <div id="loading-screen-logo">
+      <div id="image"></div>
+      <div id="text">
+        <div id="upper">CosmoScout VR</div>
+        <div id="progress">
+          <div id="progress-bar">
+          </div>
         </div>
+        <div id="lower">loading core engine ...</div>
+      </div>
+      <div id="version">unknown version</div>
     </div>
+  </div>
 
-    <div id="cosmoscout">
-        <div id="timeline-container">
-            <div id="overview"></div>
+  <div id="cosmoscout">
+    <div id="timeline-container">
+      <div id="overview"></div>
 
-            <div id="focus-lens-left"></div>
-            <div id="focus-lens"></div>
-            <div id="focus-lens-right"></div>
+      <div id="focus-lens-left"></div>
+      <div id="focus-lens"></div>
+      <div id="focus-lens-right"></div>
 
-            <div id="timeline"></div>
+      <div id="timeline"></div>
 
-            <div id="bottom-border-left"></div>
-            <div id="bottom-border-right"></div>
+      <div id="bottom-border-left"></div>
+      <div id="bottom-border-right"></div>
 
-            <div>
-                <div id="speed-control" class="item">
-                    <div id="range"></div>
-                </div>
-
-                <span id="time-control" class="item">
-                    <a class="btn light-glass btn-main" data-toggle="tooltip-bottom" title="Reset simulation time"
-                        id="time-reset-button">
-                        <i class="material-icons">restore</i>
-                    </a>
-                    <a class="btn light-glass" data-toggle="tooltip-bottom" title="Toggle calendar"
-                        id="calendar-button">
-                        <i class="material-icons">date_range</i>
-                    </a>
-                    <span id="dateLabel" style="min-width: 120px">01.01.1970</span>
-                    <a class="btn light-glass btn-main" data-toggle="tooltip-bottom" title="Toggle pause"
-                        id="pause-button">
-                        <i class="material-icons">pause</i>
-                    </a>
-                </span>
-
-                <span id="expand-control" class="item">
-                    <a class="waves-effect waves-light btn light-glass" data-toggle="tooltip-bottom"
-                        title="Toggle overview" id="expand-button">
-                        <i class="material-icons">expand_more</i>
-                    </a>
-                </span>
-
-                <span id="decreaseControl" class="item">
-                    <a class="btn light-glass" id="decrease-day-button" data-change="time" data-type="day"
-                        data-direction="decrease">
-                        <i class="material-icons">expand_more</i>
-                    </a>
-                    <a class="btn light-glass" id="decrease-month-button" data-change="time" data-type="month"
-                        data-direction="decrease">
-                        <i class="material-icons">expand_more</i>
-                    </a>
-                    <a class="btn light-glass" id="decrease-year-button" data-change="time" data-type="year"
-                        data-direction="decrease">
-                        <i class="material-icons">expand_more</i>
-                    </a>
-                    <a class="btn light-glass" id="decrease-hour-button" data-change="time" data-type="hour"
-                        data-direction="decrease">
-                        <i class="material-icons">expand_more</i>
-                    </a>
-                    <a class="btn light-glass" id="decrease-minute-button" data-change="time" data-type="minute"
-                        data-direction="decrease">
-                        <i class="material-icons">expand_more</i>
-                    </a>
-                    <a class="btn light-glass" id="decrease-second-button" data-change="time" data-type="second"
-                        data-direction="decrease">
-                        <i class="material-icons">expand_more</i>
-                    </a>
-                </span>
-
-                <span id="increaseControl" class="item">
-                    <a class="btn light-glass" id="increase-day-button" data-change="time" data-type="day"
-                        data-direction="increase">
-                        <i class="material-icons">expand_less</i>
-                    </a>
-                    <a class="btn light-glass" id="increase-month-button" data-change="time" data-type="month"
-                        data-direction="increase">
-                        <i class="material-icons">expand_less</i>
-                    </a>
-                    <a class="btn light-glass" id="increase-year-button" data-change="time" data-type="year"
-                        data-direction="increase">
-                        <i class="material-icons">expand_less</i>
-                    </a>
-                    <a class="btn light-glass" id="increase-hour-button" data-change="time" data-type="hour"
-                        data-direction="increase">
-                        <i class="material-icons">expand_less</i>
-                    </a>
-                    <a class="btn light-glass" id="increase-minute-button" data-change="time" data-type="minute"
-                        data-direction="increase">
-                        <i class="material-icons">expand_less</i>
-                    </a>
-                    <a class="btn light-glass" id="increase-second-button" data-change="time" data-type="second"
-                        data-direction="increase">
-                        <i class="material-icons">expand_less</i>
-                    </a>
-                </span>
-
-                <span id="speed-decrease-button-container" class="item">
-                    <a class="btn light-glass" data-toggle="tooltip-bottom" title='Fast rewind'
-                        id="speed-decrease-button">
-                        <i class="material-icons">fast_rewind</i>
-                    </a>
-                </span>
-
-                <span id="speed-increase-button-container" class="item">
-                    <a class="btn light-glass" data-toggle="tooltip-bottom" title='Fast forward'
-                        id="speed-increase-button">
-                        <i class="material-icons">fast_forward</i>
-                    </a>
-                </span>
-            </div>
-
-            <div id="plugin-buttons">
-                <a class="btn light-glass" data-toggle="tooltip-bottom" title="Turn north up"
-                    onclick="CosmoScout.callbacks.navigation.northUp()">
-                    <span id="compass-arrow"></span>
-                </a>
-                <a class="btn light-glass" data-toggle="tooltip-bottom" title="Fix horizon"
-                    onclick="CosmoScout.callbacks.navigation.fixHorizon()">
-                    <i class="material-icons">terrain</i>
-                </a>
-                <a class="btn light-glass" data-toggle="tooltip-bottom" title="Launch to orbit"
-                    onclick="CosmoScout.callbacks.navigation.toOrbit()">
-                    <i class="material-icons">flight_takeoff</i>
-                </a>
-                <a class="btn light-glass" data-toggle="tooltip-bottom" title="Land on surface"
-                    onclick="CosmoScout.callbacks.navigation.toSurface()">
-                    <i class="material-icons">flight_land</i>
-                </a>
-            </div>
+      <div>
+        <div id="speed-control" class="item">
+          <div id="range"></div>
         </div>
 
-        <div id="sidebar">
-            <div class="accordion" id="sidebar-accordion">
-                <div class="card sidebar-tab">
-                    <div class="card-header collapsed tab" id="heading-GeneralSettings" data-toggle="collapse"
-                        data-target="#collapse-GeneralSettings" aria-expanded="false"
-                        aria-controls="collapse-GeneralSettings" type="button">
-                        <i class="material-icons">settings</i>
-                        <span class="header-name">Advanced Settings</span>
-                    </div>
-                    <div class="card-body collapse" id="collapse-GeneralSettings"
-                        aria-labelledby="heading-GeneralSettings" data-parent="#sidebar-accordion">
-                        <div class="accordion" id="settings-accordion">
-                            <div class="card settings-section">
-                                <div class="card-header collapsed" id="headingSettings-Graphics" data-toggle="collapse"
-                                    data-target="#collapseSettings-Graphics" aria-expanded="false"
-                                    aria-controls="collapseSettings-Graphics" type="button">
-                                    <i class="material-icons">trending_up</i>
-                                    <span>Graphics</span>
-                                    <i class="material-icons caret-icon">keyboard_arrow_left</i>
-                                </div>
-                                <div class="card-body collapse" id="collapseSettings-Graphics"
-                                    aria-labelledby="headingSettings-Graphics" data-parent="#settings-accordion">
-                                    <div class="row">
-                                        <div class="col-5">
-                                            <label class="checklabel">
-                                                <input type="checkbox" data-callback="graphics.setEnableVsync"
-                                                    checked />
-                                                <i class="material-icons"></i>
-                                                <span>VSync</span>
-                                            </label>
-                                        </div>
-                                        <div class="col-7">
-                                            <label class="checklabel">
-                                                <input type="checkbox" data-callback="graphics.setEnableTimerQueries" />
-                                                <i class="material-icons"></i>
-                                                <span>Display Timing</span>
-                                            </label>
-                                        </div>
-                                    </div>
+        <span id="time-control" class="item">
+          <a class="btn light-glass btn-main" data-toggle="tooltip-bottom"
+            title="Reset simulation time" id="time-reset-button">
+            <i class="material-icons">restore</i>
+          </a>
+          <a class="btn light-glass" data-toggle="tooltip-bottom" title="Toggle calendar"
+            id="calendar-button">
+            <i class="material-icons">date_range</i>
+          </a>
+          <span id="dateLabel" style="min-width: 120px">01.01.1970</span>
+          <a class="btn light-glass btn-main" data-toggle="tooltip-bottom" title="Toggle pause"
+            id="pause-button">
+            <i class="material-icons">pause</i>
+          </a>
+        </span>
 
-                                    <div class="strike">
-                                        <span>Lighting</span>
-                                    </div>
+        <span id="expand-control" class="item">
+          <a class="waves-effect waves-light btn light-glass" data-toggle="tooltip-bottom"
+            title="Toggle overview" id="expand-button">
+            <i class="material-icons">expand_more</i>
+          </a>
+        </span>
 
-                                    <div class="row">
-                                        <div class="col-7 offset-5">
-                                            <label class="checklabel">
-                                                <input type="checkbox" data-callback="graphics.setEnableLighting" />
-                                                <i class="material-icons"></i>
-                                                <span>Enable</span>
-                                            </label>
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-5">
-                                            Quality
-                                        </div>
-                                        <div class="col-7">
-                                            <div data-callback="graphics.setLightingQuality"></div>
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-5">
-                                            Ambient Light
-                                        </div>
-                                        <div class="col-7">
-                                            <div data-callback="graphics.setAmbientLight">
-                                            </div>
-                                        </div>
-                                    </div>
+        <span id="decreaseControl" class="item">
+          <a class="btn light-glass" id="decrease-day-button" data-change="time" data-type="day"
+            data-direction="decrease">
+            <i class="material-icons">expand_more</i>
+          </a>
+          <a class="btn light-glass" id="decrease-month-button" data-change="time" data-type="month"
+            data-direction="decrease">
+            <i class="material-icons">expand_more</i>
+          </a>
+          <a class="btn light-glass" id="decrease-year-button" data-change="time" data-type="year"
+            data-direction="decrease">
+            <i class="material-icons">expand_more</i>
+          </a>
+          <a class="btn light-glass" id="decrease-hour-button" data-change="time" data-type="hour"
+            data-direction="decrease">
+            <i class="material-icons">expand_more</i>
+          </a>
+          <a class="btn light-glass" id="decrease-minute-button" data-change="time"
+            data-type="minute" data-direction="decrease">
+            <i class="material-icons">expand_more</i>
+          </a>
+          <a class="btn light-glass" id="decrease-second-button" data-change="time"
+            data-type="second" data-direction="decrease">
+            <i class="material-icons">expand_more</i>
+          </a>
+        </span>
 
-                                    <div class="strike">
-                                        <span>Shadows</span>
-                                    </div>
+        <span id="increaseControl" class="item">
+          <a class="btn light-glass" id="increase-day-button" data-change="time" data-type="day"
+            data-direction="increase">
+            <i class="material-icons">expand_less</i>
+          </a>
+          <a class="btn light-glass" id="increase-month-button" data-change="time" data-type="month"
+            data-direction="increase">
+            <i class="material-icons">expand_less</i>
+          </a>
+          <a class="btn light-glass" id="increase-year-button" data-change="time" data-type="year"
+            data-direction="increase">
+            <i class="material-icons">expand_less</i>
+          </a>
+          <a class="btn light-glass" id="increase-hour-button" data-change="time" data-type="hour"
+            data-direction="increase">
+            <i class="material-icons">expand_less</i>
+          </a>
+          <a class="btn light-glass" id="increase-minute-button" data-change="time"
+            data-type="minute" data-direction="increase">
+            <i class="material-icons">expand_less</i>
+          </a>
+          <a class="btn light-glass" id="increase-second-button" data-change="time"
+            data-type="second" data-direction="increase">
+            <i class="material-icons">expand_less</i>
+          </a>
+        </span>
 
-                                    <div class="row">
-                                        <div class="col-7 offset-5">
-                                            <label class="checklabel">
-                                                <input type="checkbox" data-callback="graphics.setEnableShadows" />
-                                                <i class="material-icons"></i>
-                                                <span>Enable</span>
-                                            </label>
-                                        </div>
-                                    </div>
+        <span id="speed-decrease-button-container" class="item">
+          <a class="btn light-glass" data-toggle="tooltip-bottom" title='Fast rewind'
+            id="speed-decrease-button">
+            <i class="material-icons">fast_rewind</i>
+          </a>
+        </span>
 
-                                    <div class="row">
-                                        <div class="col-5">
-                                            Shadowmap Size
-                                        </div>
-                                        <div class="col-7">
-                                            <div data-callback="graphics.setShadowmapResolution"></div>
-                                        </div>
-                                    </div>
+        <span id="speed-increase-button-container" class="item">
+          <a class="btn light-glass" data-toggle="tooltip-bottom" title='Fast forward'
+            id="speed-increase-button">
+            <i class="material-icons">fast_forward</i>
+          </a>
+        </span>
+      </div>
 
-                                    <div class="row">
-                                        <div class="col-5">
-                                            Cascades
-                                        </div>
-                                        <div class="col-7">
-                                            <div data-callback="graphics.setShadowmapCascades"></div>
-                                        </div>
-                                    </div>
-
-                                    <div class="row">
-                                        <div class="col-5">
-                                            Cascade Distribution
-                                        </div>
-                                        <div class="col-7">
-                                            <div data-callback="graphics.setShadowmapSplitDistribution"></div>
-                                        </div>
-                                    </div>
-
-                                    <div class="row">
-                                        <div class="col-5">
-                                            Bias
-                                        </div>
-                                        <div class="col-7">
-                                            <div data-callback="graphics.setShadowmapBias"></div>
-                                        </div>
-                                    </div>
-
-                                    <div class="row">
-                                        <div class="col-5">
-                                            Depth Range
-                                        </div>
-                                        <div class="col-7">
-                                            <div data-callback="graphics.setShadowmapRange"></div>
-                                        </div>
-                                    </div>
-
-                                    <div class="row">
-                                        <div class="col-5">
-                                            Sunspace Extension
-                                        </div>
-                                        <div class="col-7">
-                                            <div data-callback="graphics.setShadowmapExtension"></div>
-                                        </div>
-                                    </div>
-
-                                    <div class="row">
-                                        <div class="col-7 offset-5">
-                                            <label class="checklabel">
-                                                <input type="checkbox"
-                                                    data-callback="graphics.setEnableCascadesDebug" />
-                                                <i class="material-icons"></i>
-                                                <span>Show Shadow LOD</span>
-                                            </label>
-                                        </div>
-                                        <div class="col-7 offset-5">
-                                            <label class="checklabel">
-                                                <input type="checkbox" data-callback="graphics.setEnableShadowFreeze" />
-                                                <i class="material-icons"></i>
-                                                <span>Freeze Shadow LOD</span>
-                                            </label>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div id="notifications"></div>
-
-        <div id="calendar"></div>
-
-        <div class="form-popup" id="add-event-dialog">
-            <div class="form-container">
-                <h1 id="headlineForm">Customize Event</h1>
-                <input type="text" placeholder="Event Name (required)" name="name" id="event-dialog-name">
-                <input type="colorPicker" name="color" id="event-dialog-color">
-                <input type="text" name="date" id="event-dialog-start-date">
-                <input type="text" placeholder="End date" name="date" id="event-dialog-end-date">
-                <input type="text" placeholder="Description  (required)" name="date" id="event-dialog-description">
-                <input type="text" placeholder="Planet" name="date" id="event-dialog-planet">
-                <input type="text" placeholder="Place" name="date" id="event-dialog-location">
-
-                <button type="button" class="btn" id="event-dialog-apply-button">Apply</button>
-                <button type="button" class="btn cancel" id="event-dialog-cancel-button">Close</button>
-            </div>
-        </div>
-
-        <div id="event-tooltip-container">
-            <div class="event-tooltip">
-                <h3 id="event-tooltip-content">Content</h3>
-                <label for="description" id="event-tooltip-description"><b>description</b></label>
-                <div id="event-tooltip-location">Location</div>
-            </div>
-        </div>
-
-        <div id="console-output-wrapper">
-            <div id="console-output-area"></div>
-        </div>
-        <div id="console-suggestion-area"></div>
-        <div id="statusbar">
-            <div id="console-input-area">
-                <div class="button" id="console-filter-button">
-                    <i class="material-icons">filter_list</i>
-                </div>
-                <input type="text" placeholder="Run Command...">
-            </div>
-            <div style="flex-basis: 200px">
-                <i class="material-icons">speed</i>
-                <div id="statusbar-speed">0 km/h</div>
-            </div>
-            <div style="flex-basis: 300px">
-                <i class="material-icons">location_on</i>
-                <div id="statusbar-user-position">0° 0° 0m</div>
-            </div>
-            <div style="flex-basis: 300px">
-                <i class="material-icons">mouse</i>
-                <div id="statusbar-pointer-position"> - </div>
-            </div>
-        </div>
-
-        <div id="logo">
-            <div id="logo-image"></div>
-            <div id="logo-text"></div>
-        </div>
-    </div>
-
-    <!-- Javascript libraries -->
-    <!-- Third Party-->
-    <script type="text/javascript" src="third-party/js/jquery-2.2.3.min.js"></script>
-
-    <!-- Bootstrap -->
-    <script type="text/javascript" src="third-party/js/bootstrap.bundle.min.js"></script>
-    <script type="text/javascript" src="third-party/js/bootstrap-datepicker.js"></script>
-    <script type="text/javascript" src="third-party/js/bootstrap-select.min.js"></script>
-
-    <script type="text/javascript" src="third-party/js/d3.min.js"></script>
-
-    <script type="text/javascript" src="third-party/js/nouislider.min.js"></script>
-
-    <!-- Timeline -->
-    <script type="text/javascript" src="third-party/js/vis-timeline-graph2d.min.js"></script>
-    <script type="text/javascript" src="third-party/js/color-picker.min.js"></script>
-
-    <!-- CosmoScout -->
-    <script type="text/javascript" src="js/api.js"></script>
-    <script type="text/javascript" src="js/cosmoscout.js"></script>
-
-    <script type="text/javascript" src="js/apis/notification.js"></script>
-    <script type="text/javascript" src="js/apis/sidebar.js"></script>
-    <script type="text/javascript" src="js/apis/statusbar.js"></script>
-    <script type="text/javascript" src="js/apis/timeline.js"></script>
-    <script type="text/javascript" src="js/apis/loading_screen.js"></script>
-    <script type="text/javascript" src="js/apis/gui.js"></script>
-    <script type="text/javascript" src="js/apis/utils.js"></script>
-
-    <script type="text/javascript">
-
-        var CosmoScout = new CosmoScoutAPI();
-
-        document.addEventListener('DOMContentLoaded', () => {
-            CosmoScout.init(
-                UtilsApi,
-                GuiApi,
-                LoadingScreenApi,
-                NotificationApi,
-                StatusbarApi,
-                SidebarApi,
-                TimelineApi
-            );
-
-            const slider = document.querySelector('[data-callback="graphics.setShadowmapResolution"]');
-            noUiSlider.create(slider, {
-                start: 2048,
-                connect: "lower",
-                snap: true,
-                range: { 'min': 256, '25%': 512, '50%': 1024, '75%': 2048, 'max': 4096 },
-                format: wNumb({})
-            });
-
-            slider.noUiSlider.on('slide', function (values, handle, unencoded) {
-                CosmoScout.callbacks.graphics.setShadowmapResolution(unencoded, 0);
-            });
-
-            CosmoScout.gui.initSlider("graphics.setAmbientLight", 0.0, 1.0, 0.01, [0.5]);
-
-            // Performance
-            CosmoScout.gui.initSlider("graphics.setLightingQuality", 1.0, 3.0, 1.0, [2.0]);
-
-            CosmoScout.gui.initSlider("graphics.setShadowmapCascades", 1.0, 5.0, 1.0, [3.0]);
-            CosmoScout.gui.initSlider("graphics.setShadowmapBias", 0.0, 10.0, 0.01, [1.0]);
-            CosmoScout.gui.initSlider("graphics.setShadowmapRange", 0.0, 500.0, 1.0, [0.0, 100.0]);
-            CosmoScout.gui.initSlider("graphics.setShadowmapExtension", -500.0, 500.0, 10.0, [-100.0, 100.0]);
-            CosmoScout.gui.initSlider("graphics.setShadowmapSplitDistribution", 0.5, 5.0, 0.1, [1.0]);
-
-            $(document).on('click', '.item-create-button', function () {
-                $(this).addClass('active');
-                $(this).text('Cancel');
-            });
-        });
-    </script>
-
-    <template id="button-template">
-        <a class="btn light-glass" data-toggle="tooltip-bottom">
-            <i class="material-icons">%ICON%</i>
+      <div id="plugin-buttons">
+        <a class="btn light-glass" data-toggle="tooltip-bottom" title="Turn north up"
+          onclick="CosmoScout.callbacks.navigation.northUp()">
+          <span id="compass-arrow"></span>
         </a>
-    </template>
+        <a class="btn light-glass" data-toggle="tooltip-bottom" title="Fix horizon"
+          onclick="CosmoScout.callbacks.navigation.fixHorizon()">
+          <i class="material-icons">terrain</i>
+        </a>
+        <a class="btn light-glass" data-toggle="tooltip-bottom" title="Launch to orbit"
+          onclick="CosmoScout.callbacks.navigation.toOrbit()">
+          <i class="material-icons">flight_takeoff</i>
+        </a>
+        <a class="btn light-glass" data-toggle="tooltip-bottom" title="Land on surface"
+          onclick="CosmoScout.callbacks.navigation.toSurface()">
+          <i class="material-icons">flight_land</i>
+        </a>
+      </div>
+    </div>
 
-    <template id="notification-template">
-        <div class="notification row">
-            <div class="col-2">
-                <i class="material-icons">%ICON%</i>
-            </div>
-            <div class="col-10">
-                <div class="notification-title font-alegreya">%TITLE%</div>
-                <div class="notification-content">%CONTENT%</div>
-            </div>
-        </div>
-    </template>
-
-    <template id="sidebar-plugin-tab-template">
+    <div id="sidebar">
+      <div class="accordion" id="sidebar-accordion">
         <div class="card sidebar-tab">
-            <div class="card-header collapsed tab" id="heading-%ID%" data-toggle="collapse" data-target="#collapse-%ID%"
-                aria-expanded="false" aria-controls="collapse-%ID%" type="button">
-                <i class="material-icons">%ICON%</i><span class="header-name font-alegreya">%ID%</span>
-            </div>
-            <div class="card-body collapse" id="collapse-%ID%" aria-labelledby="heading-%ID%"
-                data-parent="#sidebar-accordion">
-                %CONTENT%
-            </div>
-        </div>
-    </template>
+          <div class="card-header collapsed tab" id="heading-GeneralSettings" data-toggle="collapse"
+            data-target="#collapse-GeneralSettings" aria-expanded="false"
+            aria-controls="collapse-GeneralSettings" type="button">
+            <i class="material-icons">settings</i>
+            <span class="header-name">Advanced Settings</span>
+          </div>
+          <div class="card-body collapse" id="collapse-GeneralSettings"
+            aria-labelledby="heading-GeneralSettings" data-parent="#sidebar-accordion">
+            <div class="accordion" id="settings-accordion">
+              <div class="card settings-section">
+                <div class="card-header collapsed" id="headingSettings-Graphics"
+                  data-toggle="collapse" data-target="#collapseSettings-Graphics"
+                  aria-expanded="false" aria-controls="collapseSettings-Graphics" type="button">
+                  <i class="material-icons">trending_up</i>
+                  <span>Graphics</span>
+                  <i class="material-icons caret-icon">keyboard_arrow_left</i>
+                </div>
+                <div class="card-body collapse" id="collapseSettings-Graphics"
+                  aria-labelledby="headingSettings-Graphics" data-parent="#settings-accordion">
+                  <div class="row">
+                    <div class="col-5">
+                      <label class="checklabel">
+                        <input type="checkbox" data-callback="graphics.setEnableVsync" checked />
+                        <i class="material-icons"></i>
+                        <span>VSync</span>
+                      </label>
+                    </div>
+                    <div class="col-7">
+                      <label class="checklabel">
+                        <input type="checkbox" data-callback="graphics.setEnableTimerQueries" />
+                        <i class="material-icons"></i>
+                        <span>Display Timing</span>
+                      </label>
+                    </div>
+                  </div>
 
-    <template id="sidebar-settings-section-template">
-        <div class="card settings-section">
-            <div class="card-header collapsed font-alegreya" id="headingSettings-%ID%" data-toggle="collapse"
-                data-target="#collapseSettings-%ID%" aria-expanded="false" aria-controls="collapseSettings-%ID%"
-                type="button">
-                <i class="material-icons">%ICON%</i>
-                <span>%SECTION%</span>
-                <i class="material-icons caret-icon">keyboard_arrow_left</i>
+                  <div class="strike">
+                    <span>Lighting</span>
+                  </div>
+
+                  <div class="row">
+                    <div class="col-7 offset-5">
+                      <label class="checklabel">
+                        <input type="checkbox" data-callback="graphics.setEnableLighting" />
+                        <i class="material-icons"></i>
+                        <span>Enable</span>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-5">
+                      Quality
+                    </div>
+                    <div class="col-7">
+                      <div data-callback="graphics.setLightingQuality"></div>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-5">
+                      Ambient Light
+                    </div>
+                    <div class="col-7">
+                      <div data-callback="graphics.setAmbientLight">
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="strike">
+                    <span>Shadows</span>
+                  </div>
+
+                  <div class="row">
+                    <div class="col-7 offset-5">
+                      <label class="checklabel">
+                        <input type="checkbox" data-callback="graphics.setEnableShadows" />
+                        <i class="material-icons"></i>
+                        <span>Enable</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div class="row">
+                    <div class="col-5">
+                      Shadowmap Size
+                    </div>
+                    <div class="col-7">
+                      <div data-callback="graphics.setShadowmapResolution"></div>
+                    </div>
+                  </div>
+
+                  <div class="row">
+                    <div class="col-5">
+                      Cascades
+                    </div>
+                    <div class="col-7">
+                      <div data-callback="graphics.setShadowmapCascades"></div>
+                    </div>
+                  </div>
+
+                  <div class="row">
+                    <div class="col-5">
+                      Cascade Distribution
+                    </div>
+                    <div class="col-7">
+                      <div data-callback="graphics.setShadowmapSplitDistribution"></div>
+                    </div>
+                  </div>
+
+                  <div class="row">
+                    <div class="col-5">
+                      Bias
+                    </div>
+                    <div class="col-7">
+                      <div data-callback="graphics.setShadowmapBias"></div>
+                    </div>
+                  </div>
+
+                  <div class="row">
+                    <div class="col-5">
+                      Depth Range
+                    </div>
+                    <div class="col-7">
+                      <div data-callback="graphics.setShadowmapRange"></div>
+                    </div>
+                  </div>
+
+                  <div class="row">
+                    <div class="col-5">
+                      Sunspace Extension
+                    </div>
+                    <div class="col-7">
+                      <div data-callback="graphics.setShadowmapExtension"></div>
+                    </div>
+                  </div>
+
+                  <div class="row">
+                    <div class="col-7 offset-5">
+                      <label class="checklabel">
+                        <input type="checkbox" data-callback="graphics.setEnableCascadesDebug" />
+                        <i class="material-icons"></i>
+                        <span>Show Shadow LOD</span>
+                      </label>
+                    </div>
+                    <div class="col-7 offset-5">
+                      <label class="checklabel">
+                        <input type="checkbox" data-callback="graphics.setEnableShadowFreeze" />
+                        <i class="material-icons"></i>
+                        <span>Freeze Shadow LOD</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div class="card-body collapse" id="collapseSettings-%ID%" aria-labelledby="headingSettings-%ID%"
-                data-parent="#settings-accordion">
-                %CONTENT%
-            </div>
+          </div>
         </div>
-    </template>
+      </div>
+    </div>
+
+    <div id="notifications"></div>
+
+    <div id="calendar"></div>
+
+    <div class="form-popup" id="add-event-dialog">
+      <div class="form-container">
+        <h1 id="headlineForm">Customize Event</h1>
+        <input type="text" placeholder="Event Name (required)" name="name" id="event-dialog-name">
+        <input type="colorPicker" name="color" id="event-dialog-color">
+        <input type="text" name="date" id="event-dialog-start-date">
+        <input type="text" placeholder="End date" name="date" id="event-dialog-end-date">
+        <input type="text" placeholder="Description  (required)" name="date"
+          id="event-dialog-description">
+        <input type="text" placeholder="Planet" name="date" id="event-dialog-planet">
+        <input type="text" placeholder="Place" name="date" id="event-dialog-location">
+
+        <button type="button" class="btn" id="event-dialog-apply-button">Apply</button>
+        <button type="button" class="btn cancel" id="event-dialog-cancel-button">Close</button>
+      </div>
+    </div>
+
+    <div id="event-tooltip-container">
+      <div class="event-tooltip">
+        <h3 id="event-tooltip-content">Content</h3>
+        <label for="description" id="event-tooltip-description"><b>description</b></label>
+        <div id="event-tooltip-location">Location</div>
+      </div>
+    </div>
+
+    <div id="console-output-wrapper">
+      <div id="console-output-area"></div>
+    </div>
+    <div id="console-suggestion-area"></div>
+    <div id="statusbar">
+      <div id="console-input-area">
+        <div class="button" id="console-filter-button">
+          <i class="material-icons">filter_list</i>
+        </div>
+        <input type="text" placeholder="Run Command...">
+      </div>
+      <div style="flex-basis: 200px">
+        <i class="material-icons">speed</i>
+        <div id="statusbar-speed">0 km/h</div>
+      </div>
+      <div style="flex-basis: 300px">
+        <i class="material-icons">location_on</i>
+        <div id="statusbar-user-position">0° 0° 0m</div>
+      </div>
+      <div style="flex-basis: 300px">
+        <i class="material-icons">mouse</i>
+        <div id="statusbar-pointer-position"> - </div>
+      </div>
+    </div>
+
+    <div id="logo">
+      <div id="logo-image"></div>
+      <div id="logo-text"></div>
+    </div>
+  </div>
+
+  <!-- Javascript libraries -->
+  <!-- Third Party-->
+  <script type="text/javascript" src="third-party/js/jquery-2.2.3.min.js"></script>
+
+  <!-- Bootstrap -->
+  <script type="text/javascript" src="third-party/js/bootstrap.bundle.min.js"></script>
+  <script type="text/javascript" src="third-party/js/bootstrap-datepicker.js"></script>
+  <script type="text/javascript" src="third-party/js/bootstrap-select.min.js"></script>
+
+  <script type="text/javascript" src="third-party/js/d3.min.js"></script>
+
+  <script type="text/javascript" src="third-party/js/nouislider.min.js"></script>
+
+  <!-- Timeline -->
+  <script type="text/javascript" src="third-party/js/vis-timeline-graph2d.min.js"></script>
+  <script type="text/javascript" src="third-party/js/color-picker.min.js"></script>
+
+  <!-- CosmoScout -->
+  <script type="text/javascript" src="js/api.js"></script>
+  <script type="text/javascript" src="js/cosmoscout.js"></script>
+
+  <script type="text/javascript" src="js/apis/notification.js"></script>
+  <script type="text/javascript" src="js/apis/sidebar.js"></script>
+  <script type="text/javascript" src="js/apis/statusbar.js"></script>
+  <script type="text/javascript" src="js/apis/timeline.js"></script>
+  <script type="text/javascript" src="js/apis/loading_screen.js"></script>
+  <script type="text/javascript" src="js/apis/gui.js"></script>
+  <script type="text/javascript" src="js/apis/utils.js"></script>
+
+  <script type="text/javascript">
+
+    var CosmoScout = new CosmoScoutAPI();
+
+    document.addEventListener('DOMContentLoaded', () => {
+      CosmoScout.init(
+        UtilsApi,
+        GuiApi,
+        LoadingScreenApi,
+        NotificationApi,
+        StatusbarApi,
+        SidebarApi,
+        TimelineApi
+      );
+
+      const slider = document.querySelector('[data-callback="graphics.setShadowmapResolution"]');
+      noUiSlider.create(slider, {
+        start: 2048,
+        connect: "lower",
+        snap: true,
+        range: { 'min': 256, '25%': 512, '50%': 1024, '75%': 2048, 'max': 4096 },
+        format: wNumb({})
+      });
+
+      slider.noUiSlider.on('slide', function (values, handle, unencoded) {
+        CosmoScout.callbacks.graphics.setShadowmapResolution(unencoded, 0);
+      });
+
+      CosmoScout.gui.initSlider("graphics.setAmbientLight", 0.0, 1.0, 0.01, [0.5]);
+
+      // Performance
+      CosmoScout.gui.initSlider("graphics.setLightingQuality", 1.0, 3.0, 1.0, [2.0]);
+
+      CosmoScout.gui.initSlider("graphics.setShadowmapCascades", 1.0, 5.0, 1.0, [3.0]);
+      CosmoScout.gui.initSlider("graphics.setShadowmapBias", 0.0, 10.0, 0.01, [1.0]);
+      CosmoScout.gui.initSlider("graphics.setShadowmapRange", 0.0, 500.0, 1.0, [0.0, 100.0]);
+      CosmoScout.gui.initSlider("graphics.setShadowmapExtension", -500.0, 500.0, 10.0, [-100.0, 100.0]);
+      CosmoScout.gui.initSlider("graphics.setShadowmapSplitDistribution", 0.5, 5.0, 0.1, [1.0]);
+
+      $(document).on('click', '.item-create-button', function () {
+        $(this).addClass('active');
+        $(this).text('Cancel');
+      });
+    });
+  </script>
+
+  <template id="button-template">
+    <a class="btn light-glass" data-toggle="tooltip-bottom">
+      <i class="material-icons">%ICON%</i>
+    </a>
+  </template>
+
+  <template id="notification-template">
+    <div class="notification row">
+      <div class="col-2">
+        <i class="material-icons">%ICON%</i>
+      </div>
+      <div class="col-10">
+        <div class="notification-title font-alegreya">%TITLE%</div>
+        <div class="notification-content">%CONTENT%</div>
+      </div>
+    </div>
+  </template>
+
+  <template id="sidebar-plugin-tab-template">
+    <div class="card sidebar-tab">
+      <div class="card-header collapsed tab" id="heading-%ID%" data-toggle="collapse"
+        data-target="#collapse-%ID%" aria-expanded="false" aria-controls="collapse-%ID%"
+        type="button">
+        <i class="material-icons">%ICON%</i><span class="header-name font-alegreya">%ID%</span>
+      </div>
+      <div class="card-body collapse" id="collapse-%ID%" aria-labelledby="heading-%ID%"
+        data-parent="#sidebar-accordion">
+        %CONTENT%
+      </div>
+    </div>
+  </template>
+
+  <template id="sidebar-settings-section-template">
+    <div class="card settings-section">
+      <div class="card-header collapsed font-alegreya" id="headingSettings-%ID%"
+        data-toggle="collapse" data-target="#collapseSettings-%ID%" aria-expanded="false"
+        aria-controls="collapseSettings-%ID%" type="button">
+        <i class="material-icons">%ICON%</i>
+        <span>%SECTION%</span>
+        <i class="material-icons caret-icon">keyboard_arrow_left</i>
+      </div>
+      <div class="card-body collapse" id="collapseSettings-%ID%"
+        aria-labelledby="headingSettings-%ID%" data-parent="#settings-accordion">
+        %CONTENT%
+      </div>
+    </div>
+  </template>
 
 </body>
 

@@ -1,31 +1,33 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <title>CosmoScout Statistics</title>
+  <meta charset="UTF-8">
+  <title>CosmoScout Statistics</title>
 
-    <link type="text/css" rel="stylesheet" href="css/gui.css">
-    <link type="text/css" rel="stylesheet" href="css/statistics.css">
+  <link type="text/css" rel="stylesheet" href="css/gui.css">
+  <link type="text/css" rel="stylesheet" href="css/statistics.css">
 </head>
+
 <body>
-<div id="statistics" class="font-ubuntu"></div>
+  <div id="statistics" class="font-ubuntu"></div>
 
-<!-- Statistics -->
-<script type="text/javascript" src="third-party/js/color-hash.js"></script>
+  <script type="text/javascript" src="third-party/js/color-hash.js"></script>
 
-<script type="text/javascript" src="js/api.js"></script>
-<script type="text/javascript" src="js/cosmoscout.js"></script>
-<script type="text/javascript" src="js/apis/gui.js"></script>
-<script type="text/javascript" src="js/apis/statistics.js"></script>
+  <script type="text/javascript" src="js/api.js"></script>
+  <script type="text/javascript" src="js/cosmoscout.js"></script>
+  <script type="text/javascript" src="js/apis/gui.js"></script>
+  <script type="text/javascript" src="js/apis/statistics.js"></script>
 
-<script type="text/javascript">
-  var CosmoScout = new CosmoScoutAPI();
-  document.addEventListener('DOMContentLoaded', () => {
-    CosmoScout.init(
-      GuiApi,
-      StatisticsApi
-    );
-  });
-</script>
+  <script type="text/javascript">
+    var CosmoScout = new CosmoScoutAPI();
+    document.addEventListener('DOMContentLoaded', () => {
+      CosmoScout.init(
+        GuiApi,
+        StatisticsApi
+      );
+    });
+  </script>
 </body>
+
 </html>

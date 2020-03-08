@@ -29,7 +29,7 @@
 }
 
 #statusbar>div:first-of-type,
-#statusbar>div:last-of-type  {
+#statusbar>div:last-of-type {
   margin-right: auto;
 }
 
@@ -157,7 +157,7 @@
 #console-suggestion-area,
 #console-input-area input {
   text-shadow: 1px 1px 1px #000, 0px 0px 1px #000, 1px 1px 5px rgba(0, 0, 0, 0.75);
-  color:#ddf;
+  color: #ddf;
   font-size: 11pt;
 }
 
@@ -177,8 +177,8 @@
 }
 
 #console-output-wrapper {
-  -webkit-mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0) 0px, rgba(0, 0, 0, 1) 50px), 
-                      linear-gradient(180deg, rgba(0,0,0,0) calc(100% - var(--statusbar-size)), rgba(0,0,0,1) 100%, rgba(0,0,0,1) 100%);
+  -webkit-mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0) 0px, rgba(0, 0, 0, 1) 50px),
+    linear-gradient(180deg, rgba(0, 0, 0, 0) calc(100% - var(--statusbar-size)), rgba(0, 0, 0, 1) 100%, rgba(0, 0, 0, 1) 100%);
   -webkit-mask-composite: xor;
 }
 
@@ -202,7 +202,7 @@
 }
 
 #console-output-area .message.level-I {
-  color:#ddf;
+  color: #ddf;
 }
 
 #console-output-area .message.level-W {

@@ -1,99 +1,99 @@
 /* main timeline styles ------------------------------------------------------------------------- */
 
 :root {
-    --center-element-width: 330px;
-  }
+  --center-element-width: 330px;
+}
 
 #timeline {
-    -webkit-font-smoothing: subpixel-antialiased;
+  -webkit-font-smoothing: subpixel-antialiased;
 }
 
 .vis-timeline {
-    border-width: 0;
-    background-color: rgba(20, 20, 20, 0.5);
+  border-width: 0;
+  background-color: rgba(20, 20, 20, 0.5);
 }
 
 #timeline .vis-timeline {
-    border-width: 0;
-    border-color: var(--cs-border-color-light);
-    overflow: visible !important;
+  border-width: 0;
+  border-color: var(--cs-border-color-light);
+  overflow: visible !important;
 }
 
 #timeline .vis-time-axis {
-    pointer-events: none;
+  pointer-events: none;
 }
 
 .vis-time-axis .vis-text {
-    padding: 1px;
-    color: var(--cs-text-color);;
+  padding: 1px;
+  color: var(--cs-text-color);
 }
 
 #timeline .vis-item {
-    border-color: rgba(20, 20, 20, 0.308);
-    background-color: rgba(20, 20, 20, 0.5);
-    color: var(--cs-text-color);;
-    border-radius: 10px;
+  border-color: rgba(20, 20, 20, 0.308);
+  background-color: rgba(20, 20, 20, 0.5);
+  color: var(--cs-text-color);
+  border-radius: 10px;
 }
 
 #timeline .vis-item,
 #timeline .vis-item.vis-line {
-    border-width: 2px;
-    border-radius: 10px;
+  border-width: 2px;
+  border-radius: 10px;
 }
 
 #timeline .vis-item.vis-dot {
-    border-width: 0;
-    border-radius: 0;
+  border-width: 0;
+  border-radius: 0;
 }
 
 #timeline .vis-item.vis-selected {
-    border-color: rgba(70, 70, 70, 0.308);
-    background-color: rgba(70, 70, 70, .247);
+  border-color: rgba(70, 70, 70, 0.308);
+  background-color: rgba(70, 70, 70, .247);
 }
 
 #timeline .vis-item.vis-box,
 .vis-item.vis-range {
-    height: 12px !important;
-    min-width: 12px !important;
-    top: 4px !important
+  height: 12px !important;
+  min-width: 12px !important;
+  top: 4px !important
 }
 
 #timeline .vis-item.vis-box {
-    width: 12px !important;
+  width: 12px !important;
 }
 
 #timeline .vis-item.vis-box.mouseOver {
-    width: 18px !important;
-    height: 18px !important;
-    margin-left: -3px;
-    top: 1px !important;
+  width: 18px !important;
+  height: 18px !important;
+  margin-left: -3px;
+  top: 1px !important;
 }
 
 #timeline .vis-item.vis-range.mouseOver {
-    height: 18px !important;
-    margin-left: -3px;
-    top: 1px !important;
-    min-width: 18px !important;
+  height: 18px !important;
+  margin-left: -3px;
+  top: 1px !important;
+  min-width: 18px !important;
 }
 
 
 #timeline .vis-item-content {
-    visibility: hidden;
+  visibility: hidden;
 }
 
 
 #timeline .vis-panel.vis-bottom {
-    height: 35px !important;
-    top: 0 !important;
-    pointer-events: none;
-    border-left-style: hidden;
-    border-right-style: hidden;
+  height: 35px !important;
+  top: 0 !important;
+  pointer-events: none;
+  border-left-style: hidden;
+  border-right-style: hidden;
 }
 
 #timeline .vis-text.vis-major {
-    top: 7px !important;
-    font-size: 9px;
-    margin-left: 4px;
+  top: 7px !important;
+  font-size: 9px;
+  margin-left: 4px;
 }
 
 #timeline .vis-panel.vis-background.vis-horizontal,
@@ -101,148 +101,148 @@
 #timeline .vis-panel.vis-left,
 #timeline .vis-panel.vis-right,
 #timeline .vis-grid.vis-minor {
-    height: 35px !important;
+  height: 35px !important;
 }
 
 #timeline .vis-group {
-    top: 3px;
+  top: 3px;
 }
 
 #timeline .vis-custom-time.custom {
-    background-color: var(--cs-background-color-light);
-    width: 16px !important;
-    height: 16px !important;
-    cursor: inherit;
-    pointer-events: none;
-    border-radius: 10px;
-    top: -8px !important;
-    margin-left: -8px !important;
+  background-color: var(--cs-background-color-light);
+  width: 16px !important;
+  height: 16px !important;
+  cursor: inherit;
+  pointer-events: none;
+  border-radius: 10px;
+  top: -8px !important;
+  margin-left: -8px !important;
 }
 
 #timeline .vis-minor.vis-text {
-    z-index: 1;
-    top: 18px !important;
-    font-size: 12px;
-    margin-left: 4px;
+  z-index: 1;
+  top: 18px !important;
+  font-size: 12px;
+  margin-left: 4px;
 }
 
 #timeline .vis-content {
-    top: 0 !important;
+  top: 0 !important;
 }
 
 #timeline .vis-grid.vis-vertical.vis-minor {
-    border-color: var(--cs-border-color-light);
-    height: 12px !important;
-    top: 22px !important;
-    border-width: 2px;
+  border-color: var(--cs-border-color-light);
+  height: 12px !important;
+  top: 22px !important;
+  border-width: 2px;
 }
 
 #timeline .vis-grid.vis-vertical.vis-major {
-    border-color: var(--cs-border-color-light);
-    height: 30px !important;
-    top: 4px !important;
-    border-width: 2px;
+  border-color: var(--cs-border-color-light);
+  height: 30px !important;
+  top: 4px !important;
+  border-width: 2px;
 }
 
 #timeline .vis-panel.vis-center {
-    border-width: 0;
+  border-width: 0;
 }
 
 #timeline:hover {
-    background-color: rgba(230, 230, 255, 0.3);
+  background-color: rgba(230, 230, 255, 0.3);
 }
 
 #timeline:active {
-    top: 1px;
+  top: 1px;
 }
 
 /* overview timeline styles --------------------------------------------------------------------- */
 
 #overview .vis-timeline {
-    border-width: 0;
-    background: rgba(20, 20, 20, 0);
+  border-width: 0;
+  background: rgba(20, 20, 20, 0);
 }
 
 #overview .vis-custom-time {
-    background-color: rgba(0, 110, 255, 0);
-    width: 2px;
-    cursor: move;
-    z-index: 1;
-    pointer-events: none;
+  background-color: rgba(0, 110, 255, 0);
+  width: 2px;
+  cursor: move;
+  z-index: 1;
+  pointer-events: none;
 }
 
 #overview .vis-time-axis.vis-background {
-    height: 5px;
-    top: 22px;
+  height: 5px;
+  top: 22px;
 }
 
 #overview .vis-time-axis.vis-foreground {
-    height: 43px !important;
+  height: 43px !important;
 }
 
 #overview .vis-item {
-    background-color: rgba(0, 0, 0, 0.705);
+  background-color: rgba(0, 0, 0, 0.705);
 }
 
 #overview .vis-item,
 #overview .vis-item.vis-line {
-    border-width: 2px;
-    border-radius: 10px;
-    z-index: 5;
+  border-width: 2px;
+  border-radius: 10px;
+  z-index: 5;
 }
 
 #overview .vis-item.vis-dot {
-    border-width: 0;
-    border-radius: 0;
+  border-width: 0;
+  border-radius: 0;
 }
 
 #overview .vis-item.vis-box,
 #overview .vis-item.vis-range {
-    height: 12px !important;
-    top: 13px !important;
-    min-width: 12px !important;
-    margin-left: 2px;
+  height: 12px !important;
+  top: 13px !important;
+  min-width: 12px !important;
+  margin-left: 2px;
 }
 
 #overview .vis-panel.vis-bottom {
-    height: 40px !important;
-    top: -2px !important;
-    pointer-events: none;
+  height: 40px !important;
+  top: -2px !important;
+  pointer-events: none;
 }
 
 #overview .vis-panel.vis-center {
-    border-style: dashed;
-    overflow: visible;
-    z-index: 1;
+  border-style: dashed;
+  overflow: visible;
+  z-index: 1;
 }
 
 
 #overview .vis-item.vis-box {
-    width: 12px !important;
+  width: 12px !important;
 }
 
 #overview .vis-item.vis-box.mouseOver {
-    width: 18px !important;
-    height: 18px !important;
-    margin-left: -1px;
-    top: 10px !important;
+  width: 18px !important;
+  height: 18px !important;
+  margin-left: -1px;
+  top: 10px !important;
 }
 
 #overview .vis-item.vis-range.mouseOver {
-    height: 18px !important;
-    margin-left: -1px;
-    top: 10px !important;
-    min-width: 18px !important;
+  height: 18px !important;
+  margin-left: -1px;
+  top: 10px !important;
+  min-width: 18px !important;
 }
 
 #overview .vis-item-content {
-    visibility: hidden;
+  visibility: hidden;
 }
 
 #overview .vis-text.vis-major {
-    top: 26px !important;
-    font-size: 10px;
-    z-index: 1;
+  top: 26px !important;
+  font-size: 10px;
+  z-index: 1;
 }
 
 #overview .vis-panel.vis-background.vis-horizontal,
@@ -250,449 +250,449 @@
 #overview .vis-panel.vis-left,
 #overview .vis-panel.vis-right,
 #overview .vis-grid.vis-minor {
-    height: 26px !important;
+  height: 26px !important;
 }
 
 #overview .vis-group {
-    top: 6px;
+  top: 6px;
 }
 
 #overview .vis-content {
-    top: 0 !important;
+  top: 0 !important;
 }
 
 #overview .vis-minor.vis-text {
-    text-align: center;
-    transform: translate(-50%);
-    z-index: 1;
-    top: 8px !important;
-    font-size: 10px;
+  text-align: center;
+  transform: translate(-50%);
+  z-index: 1;
+  top: 8px !important;
+  font-size: 10px;
 }
 
 #overview .vis-grid.vis-vertical.vis-major,
 #overview .vis-grid.vis-vertical.vis-minor {
-    width: 5px !important;
-    height: 5px !important;
-    border-radius: 50% !important;
-    background-color: var(--cs-background-color-light);
-    z-index: 1;
-    top: 0 !important;
+  width: 5px !important;
+  height: 5px !important;
+  border-radius: 50% !important;
+  background-color: var(--cs-background-color-light);
+  z-index: 1;
+  top: 0 !important;
 }
 
 #overview:hover {
-    background-color: rgba(255, 255, 255, 0.1);
+  background-color: rgba(255, 255, 255, 0.1);
 }
 
 #overview:active {
-    top: 1px;
-    background-color: rgba(255, 255, 255, 0.1);
+  top: 1px;
+  background-color: rgba(255, 255, 255, 0.1);
 }
 
 /* overview focus rect -------------------------------------------------------------------------- */
 
 #focus-lens {
-    border-style: solid;
-    border-width: 3px 3px 0 3px;
-    border-top-left-radius: 10px;
-    border-top-right-radius: 10px;
-    border-color: var(--cs-border-color-light);
-    pointer-events: none;
-    background-color: rgba(20, 20, 20, 0.5);
-    top: 2px ;
-    z-index: 1;
-    position: absolute;
+  border-style: solid;
+  border-width: 3px 3px 0 3px;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+  border-color: var(--cs-border-color-light);
+  pointer-events: none;
+  background-color: rgba(20, 20, 20, 0.5);
+  top: 2px;
+  z-index: 1;
+  position: absolute;
 }
 
 #focus-lens-left,
 #focus-lens-right {
-    height: 1px;
-    border-bottom: 2px solid var(--cs-border-color-light);
-    position: absolute;
-    pointer-events: none;
-    z-index: 1;
+  height: 1px;
+  border-bottom: 2px solid var(--cs-border-color-light);
+  position: absolute;
+  pointer-events: none;
+  z-index: 1;
 }
 
 #focus-lens-left {
-    left: 0;
+  left: 0;
 }
 
 #focus-lens-right {
-    right: 0;
+  right: 0;
 }
 
 /* timeline control items ----------------------------------------------------------------------- */
 
 #timeline-container {
-    grid-area: timeline;
-    z-index: 2;
-    position: relative;
-    padding: 0;
-    transition: margin-top 0.3s ease;
-    background-image: linear-gradient(180deg, rgba(20, 20, 20, 0.4) 80%, rgba(20, 20, 20, 0.0) 100%);
-    margin: -43px 0 0;
+  grid-area: timeline;
+  z-index: 2;
+  position: relative;
+  padding: 0;
+  transition: margin-top 0.3s ease;
+  background-image: linear-gradient(180deg, rgba(20, 20, 20, 0.4) 80%, rgba(20, 20, 20, 0.0) 100%);
+  margin: -43px 0 0;
 }
 
 #timeline-container.overview-visible {
-    margin-top: 0;
+  margin-top: 0;
 }
 
 #bottom-border-left {
-    top: 75px;
-    height: 2px;
-    position: absolute;
-    background-color: var(--cs-background-color-light);
-    width: calc(50% - 0.5*var(--center-element-width));
-    left: 0;
+  top: 75px;
+  height: 2px;
+  position: absolute;
+  background-color: var(--cs-background-color-light);
+  width: calc(50% - 0.5*var(--center-element-width));
+  left: 0;
 }
 
 #bottom-border-right {
-    top: 75px;
-    height: 2px;
-    position: absolute;
-    background-color: var(--cs-background-color-light);
-    width: calc(50% - 0.5*var(--center-element-width));
-    right: 0;
+  top: 75px;
+  height: 2px;
+  position: absolute;
+  background-color: var(--cs-background-color-light);
+  width: calc(50% - 0.5*var(--center-element-width));
+  right: 0;
 }
 
 #compass-arrow {
-    background-image: url("../img/compass.png");
-    width: 25px;
-    height: 25px;
-    background-size: contain;
-    display: inline-block;
+  background-image: url("../img/compass.png");
+  width: 25px;
+  height: 25px;
+  background-size: contain;
+  display: inline-block;
 }
 
 
 #timeline-container i {
-    position: relative;
+  position: relative;
 }
 
 #timeline-container .item {
-    position: absolute;
-    display: inline-block;
+  position: absolute;
+  display: inline-block;
 }
 
 #timeline-container .btn {
-    padding: 4px 4px 0 4px;
-    line-height: 35px;
-    border-radius: 0;
-    color: var(--cs-text-color);
+  padding: 4px 4px 0 4px;
+  line-height: 35px;
+  border-radius: 0;
+  color: var(--cs-text-color);
 }
 
 #time-control {
-    left: 50%;
-    transform: translateX(-50%);
-    background-color: rgba(20, 20, 20, 0.5);
-    border-radius: 0 0 50px 50px;
-    border-bottom-color: var(--cs-border-color-light);
-    border-bottom-width: 2px;
-    border-bottom-style: solid;
-    width: var(--center-element-width);
-    text-align: center;
-    height: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(20, 20, 20, 0.5);
+  border-radius: 0 0 50px 50px;
+  border-bottom-color: var(--cs-border-color-light);
+  border-bottom-width: 2px;
+  border-bottom-style: solid;
+  width: var(--center-element-width);
+  text-align: center;
+  height: 40px;
 }
 
 #timeline-container #time-reset-button {
-    border-radius: 0 50px 0 50px;
-    left: -20px;
+  border-radius: 0 50px 0 50px;
+  left: -20px;
 }
 
 #timeline-container #pause-button {
-    border-radius: 50px 0 50px 0;
-    right: -20px;
+  border-radius: 50px 0 50px 0;
+  right: -20px;
 }
 
 #timeline-container .btn-main {
-    background-color: var(--cs-background-color-light);
-    width: 60px;
-    height: 40px;
+  background-color: var(--cs-background-color-light);
+  width: 60px;
+  height: 40px;
 }
 
 #timeline-container #pause-button:hover,
 #expand-control:hover,
 #time-reset-button:hover {
-    background-color: #fff;
+  background-color: #fff;
 }
 
 #pause-button i,
 #time-reset-button i {
-    color: rgb(20, 20, 20);
-    font-size: 24px;
-    top: 2px;
+  color: rgb(20, 20, 20);
+  font-size: 24px;
+  top: 2px;
 }
 
 #timeline-container .range-label {
-    color: rgb(20, 20, 20);
-    line-height: 1;
+  color: rgb(20, 20, 20);
+  line-height: 1;
 }
 
 #calendar-button {
-    position: absolute;
-    left: 54px;
-    z-index: 5;
+  position: absolute;
+  left: 54px;
+  z-index: 5;
 }
 
 #dateLabel {
-    font-size: 20px;
-    left: 16px;
-    top: 2px;
-    position: relative;
+  font-size: 20px;
+  left: 16px;
+  top: 2px;
+  position: relative;
 }
 
 #speed-control {
-    left: 50%;
-    width: 600px;
-    transform: translateX(-50%);
-    top: 82px;
+  left: 50%;
+  width: 600px;
+  transform: translateX(-50%);
+  top: 82px;
 }
 
 #expand-control {
-    right: 20px;
-    background-color: var(--cs-background-color-light);
-    border-radius: 0 0 3px 3px;
-    top: 75px;
-    height: 30px;
-    width: 32px;
+  right: 20px;
+  background-color: var(--cs-background-color-light);
+  border-radius: 0 0 3px 3px;
+  top: 75px;
+  height: 30px;
+  width: 32px;
 }
 
 #expand-control .btn {
-    height: 28px;
-    width: 28px;
+  height: 28px;
+  width: 28px;
 }
 
 #expand-control i {
-    color: rgb(20, 20, 20);
-    top: -3px;
-    margin-left: -2px;
-    font-size: 28px;
+  color: rgb(20, 20, 20);
+  top: -3px;
+  margin-left: -2px;
+  font-size: 28px;
 }
 
 #decreaseControl {
-    left: 50%;
-    transform: translateX(-80px);
-    top: 88px;
+  left: 50%;
+  transform: translateX(-80px);
+  top: 88px;
 }
 
 #increaseControl {
-    left: 50%;
-    transform: translateX(-80px);
-    top: 81px;
-    pointer-events: none;
+  left: 50%;
+  transform: translateX(-80px);
+  top: 81px;
+  pointer-events: none;
 }
 
 #decreaseControl a,
 #increaseControl a {
-    height: 20px;
-    width: 36px;
-    padding: 0;
-    margin: 0;
-    pointer-events: all;
-    border: 0;
-    position: absolute;
+  height: 20px;
+  width: 36px;
+  padding: 0;
+  margin: 0;
+  pointer-events: all;
+  border: 0;
+  position: absolute;
 }
 
 #decreaseControl a {
-    top: 5px;
+  top: 5px;
 }
 
 #increaseControl a {
-    top: -10px;
+  top: -10px;
 }
 
 #decreaseControl a:active {
-    top: 6px;
+  top: 6px;
 }
 
 #increaseControl a:active {
-    top: -9px;
+  top: -9px;
 }
 
 #decreaseControl i,
 #increaseControl i {
-    opacity: 0;
-    transition: opacity 0.2s;
-    line-height: 1;
-    top: -1px;
-    pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s;
+  line-height: 1;
+  top: -1px;
+  pointer-events: none;
 }
 
 #increaseControl i {
-    top: -6px;
+  top: -6px;
 }
 
 #timeline-container a:hover {
-    z-index: 10;
+  z-index: 10;
 }
 
 #increase-day-button,
 #decrease-day-button {
-    left: -1px;
+  left: -1px;
 }
 
 #increase-month-button,
 #decrease-month-button {
-    left: 27px;
+  left: 27px;
 }
 
 #increase-year-button,
 #decrease-year-button {
-    left: 65px;
+  left: 65px;
 }
 
 #increase-hour-button,
 #decrease-hour-button {
-    left: 102px;
+  left: 102px;
 }
 
 #increase-minute-button,
 #decrease-minute-button {
-    left: 130px;
+  left: 130px;
 }
 
 #increase-second-button,
 #decrease-second-button {
-    left: 157px;
+  left: 157px;
 }
 
 #decreaseControl.mouseNear i,
 #increaseControl.mouseNear i {
-    opacity: 1;
+  opacity: 1;
 }
 
 
 #speed-decrease-button-container {
-    left: 50%;
-    transform: translate(-345px);
-    top: 74px;
+  left: 50%;
+  transform: translate(-345px);
+  top: 74px;
 }
 
 #speed-increase-button-container {
-    left: 50%;
-    transform: translate(310px);
-    top: 74px;
-    height: 15px;
+  left: 50%;
+  transform: translate(310px);
+  top: 74px;
+  height: 15px;
 }
 
 #speed-increase-button-container .btn,
 #speed-decrease-button-container .btn {
-    font-size: 28px;
+  font-size: 28px;
 }
 
 #timeline-container .noUi-target.noUi-ltr.noUi-horizontal.noUi-background {
-    background-color: transparent;
-    background-image: linear-gradient(90deg, rgba(221, 211, 255, 0.5) 0%, rgba(221, 211, 255, 0.5) 25%,
-    rgba(0, 0, 0, 0) 25%, rgba(0, 0, 0, 0) 75%,
-    rgba(221, 211, 255, 0.5) 75%, rgba(221, 211, 255, 0.5) 100%);
+  background-color: transparent;
+  background-image: linear-gradient(90deg, rgba(221, 211, 255, 0.5) 0%, rgba(221, 211, 255, 0.5) 25%,
+      rgba(0, 0, 0, 0) 25%, rgba(0, 0, 0, 0) 75%,
+      rgba(221, 211, 255, 0.5) 75%, rgba(221, 211, 255, 0.5) 100%);
 }
 
 #timeline-container .noUi-target .range-label {
-    background-color: var(--cs-background-color-light);
+  background-color: var(--cs-background-color-light);
 }
 
 #timeline-container .noUi-target:hover .range-label,
 #timeline-container .noUi-target .noUi-active .range-label {
-    background-color: #fff;
+  background-color: #fff;
 }
 
 #event-tooltip-location {
-    text-decoration: underline;
+  text-decoration: underline;
 }
 
 /* big timeline tooltips ------------------------------------------------------------------------ */
 
 #event-tooltip-container {
-    display: none;
-    position: absolute;
-    z-index: 9;
+  display: none;
+  position: absolute;
+  z-index: 9;
 }
 
 .event-tooltip {
-    width: 300px;
-    padding: 10px;
-    background-color: rgba(20, 20, 20, 0.8);
-    border: 2px solid var(--cs-border-color-light);
-    border-radius: 10px;
+  width: 300px;
+  padding: 10px;
+  background-color: rgba(20, 20, 20, 0.8);
+  border: 2px solid var(--cs-border-color-light);
+  border-radius: 10px;
 }
 
 .event-tooltip h3 {
-    text-align: center;
+  text-align: center;
 }
 
 #event-tooltip-location {
-    cursor: pointer;
+  cursor: pointer;
 }
 
 #event-tooltip-location:hover {
-    text-shadow: 0 0 20px #fff;
+  text-shadow: 0 0 20px #fff;
 }
 
 .tooltip {
-    pointer-events: none;
+  pointer-events: none;
 }
 
 /* add-event dialog ----------------------------------------------------------------------------- */
 
 /* The popup form - hidden by default */
 .form-popup {
-    display: none;
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 9;
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 9;
 }
 
 /* Add styles to the form container */
 .form-container {
-    max-width: 300px;
-    padding: 10px;
-    background-color: rgba(20, 20, 20, 0.8);
+  max-width: 300px;
+  padding: 10px;
+  background-color: rgba(20, 20, 20, 0.8);
 }
 
 /* Full-width input fields */
 .form-container input[type=text] {
-    width: 100%;
-    padding: 5px;
-    margin: 5px 0 22px 0;
-    border: none;
-    background: #f1f1f1;
-    color: rgb(63, 59, 59);
+  width: 100%;
+  padding: 5px;
+  margin: 5px 0 22px 0;
+  border: none;
+  background: #f1f1f1;
+  color: rgb(63, 59, 59);
 }
 
 /* Full-width input fields */
 .form-container input[type=colorPicker] {
-    margin: 5px 0 22px 0;
-    border: none;
-    width: 100%;
-    background: #f1f1f1;
+  margin: 5px 0 22px 0;
+  border: none;
+  width: 100%;
+  background: #f1f1f1;
 }
 
 /* When the inputs get focus, do something */
-.form-container input[type=text]:focus, .form-container input[type=password]:focus {
-    background-color: #ddd;
-    outline: none;
+.form-container input[type=text]:focus,
+.form-container input[type=password]:focus {
+  background-color: #ddd;
+  outline: none;
 }
 
 
 /* Set a style for the apply/cancel button*/
 .form-container .btn {
-    background-color: #4CAF50;
-    color: #fff;
-    border: none;
-    cursor: pointer;
-    width: 100%;
-    margin-bottom: 10px;
-    opacity: 0.8;
+  background-color: #4CAF50;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  margin-bottom: 10px;
+  opacity: 0.8;
 }
 
 /* Add a red background color to the cancel button */
 .form-container .cancel {
-    background-color: red;
+  background-color: red;
 }
 
 #timeline-container #plugin-buttons {
-    max-width: 25vw;
-    display: flex;
-    flex-wrap: wrap;
+  max-width: 25vw;
+  display: flex;
+  flex-wrap: wrap;
 }
-

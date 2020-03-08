@@ -199,6 +199,20 @@
         }
       }
     },
+    "csp-measurement-tools": {
+      "polygon": {
+        "heightDiff": 1.002,
+        "maxAttempt": 5,
+        "maxPoints": 1000,
+        "sleekness": 15
+      },
+      "ellipse": {
+        "numSamples": 360
+      },
+      "path": {
+        "numSamples": 256
+      }
+    },
     "csp-simple-bodies": {
       "bodies": {
         "Sun": {
