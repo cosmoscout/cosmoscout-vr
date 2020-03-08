@@ -32,7 +32,7 @@ WebViewClient::~WebViewClient() {
 bool WebViewClient::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
     CefRefPtr<CefFrame> frame, CefProcessId source_process, CefRefPtr<CefProcessMessage> message) {
 
-  if (message->GetName() == "call_native") {
+  if (message->GetName() == "callNative") {
 
     std::string name(message->GetArgumentList()->GetString(0).ToString());
     auto        callback(js_callbacks_.find(name));

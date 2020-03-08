@@ -119,7 +119,7 @@ Mark::~Mark() {
   mGraphicsEngine->pHeightScale.onChange().disconnect(mHeightScaleConnection);
 
   mInputManager->pHoveredNode    = nullptr;
-  mInputManager->pHoveredGuiNode = nullptr;
+  mInputManager->pHoveredGuiItem = nullptr;
 
   if (mParent) {
     mInputManager->unregisterSelectable(mParent);

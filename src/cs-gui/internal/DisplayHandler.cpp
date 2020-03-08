@@ -16,21 +16,18 @@ namespace cs::gui::detail {
 bool DisplayHandler::OnConsoleMessage(CefRefPtr<CefBrowser> browser, cef_log_severity_t level,
     CefString const& message, CefString const& source, int line) {
 
-  std::string path(source.ToString());
-  int         pos((int)path.find_last_of("/\\"));
-  std::string logMessage("[" + path.substr(pos == std::string::npos ? 0 : pos + 1) + ":" +
-                         std::to_string(line) + "] " + message.ToString());
-
-  if (level == LOGSEVERITY_DEBUG) {
-    spdlog::debug(logMessage);
+  if (level == LOGSEVERITY_VERBOSE) {
+    spdlog::trace(message.ToString());
+  } else if (level == LOGSEVERITY_DEBUG) {
+    spdlog::debug(message.ToString());
   } else if (level == LOGSEVERITY_WARNING) {
-    spdlog::warn(logMessage);
+    spdlog::warn(message.ToString());
   } else if (level == LOGSEVERITY_ERROR) {
-    spdlog::error(logMessage);
+    spdlog::error(message.ToString());
   } else if (level == LOGSEVERITY_FATAL) {
-    spdlog::critical(logMessage);
+    spdlog::critical(message.ToString());
   } else {
-    spdlog::info(logMessage);
+    spdlog::info(message.ToString());
   }
 
   return true;

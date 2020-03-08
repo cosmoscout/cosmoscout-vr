@@ -51,7 +51,6 @@ class VisTimelineEvent {
    */
   time;
 
-
   /**
    * @type {Date}
    */
@@ -66,7 +65,6 @@ class VisTimelineEvent {
    * @type {Event}
    */
   event;
-
 
   /* Select Event */
   /**
@@ -130,10 +128,10 @@ class TimelineApi extends IApi {
     moveable: false,
     showCurrentTime: false,
     editable: {
-      add: true, // add new items by double tapping
-      updateTime: true, // drag items horizontally
-      updateGroup: false, // drag items from one group to another
-      remove: false, // delete an item by tapping the delete button top right
+      add: true,            // add new items by double tapping
+      updateTime: true,     // drag items horizontally
+      updateGroup: false,   // drag items from one group to another
+      remove: false,        // delete an item by tapping the delete button top right
       overrideItems: false, // allow these options to override item.editable
     },
     onAdd: this._onAddCallback.bind(this),
@@ -180,26 +178,15 @@ class TimelineApi extends IApi {
     moveable: true,
     showCurrentTime: false,
     editable: {
-      add: true, // add new items by double tapping
-      updateTime: false, // drag items horizontally
-      updateGroup: false, // drag items from one group to another
-      remove: false, // delete an item by tapping the delete button top right
+      add: true,            // add new items by double tapping
+      updateTime: false,    // drag items horizontally
+      updateGroup: false,   // drag items from one group to another
+      remove: false,        // delete an item by tapping the delete button top right
       overrideItems: false, // allow these options to override item.editable
     },
     onAdd: this._overviewOnAddCallback.bind(this),
     onUpdate: this._overviewOnUpdateCallback.bind(this),
     onMove: this._onItemMoveCallback.bind(this),
-  };
-
-  /**
-   * @type {string}
-   */
-  _activePlanetName;
-
-  _userPosition = {
-    lat: 0,
-    long: 0,
-    height: 0,
   };
 
   /**
@@ -245,10 +232,10 @@ class TimelineApi extends IApi {
 
   _editingDoneOptions = {
     editable: {
-      add: true, // add new items by double tapping
-      updateTime: false, // drag items horizontally
-      updateGroup: false, // drag items from one group to another
-      remove: false, // delete an item by tapping the delete button top right
+      add: true,            // add new items by double tapping
+      updateTime: false,    // drag items horizontally
+      updateGroup: false,   // drag items from one group to another
+      remove: false,        // delete an item by tapping the delete button top right
       overrideItems: false, // allow these options to override item.editable
     },
   };
@@ -304,7 +291,7 @@ class TimelineApi extends IApi {
 
     this._initTimeSpeedSlider();
 
-    this._items = new vis.DataSet();
+    this._items         = new vis.DataSet();
     this._itemsOverview = new vis.DataSet();
 
     this._initTimelines();
@@ -319,46 +306,26 @@ class TimelineApi extends IApi {
    *
    * @param icon {string} Materialize icon name
    * @param tooltip {string} Tooltip text that gets shown if the button is hovered
-   * @param callback {string} Function name passed to call_native
+   * @param callback {string} Name of callback on CosmoScout.callbacks
    */
   addButton(icon, tooltip, callback) {
-    const button = CosmoScout.loadTemplateContent('button');
+    const button = CosmoScout.gui.loadTemplateContent('button');
 
     if (button === false) {
       return;
     }
 
-    button.innerHTML = button.innerHTML
-      .replace('%ICON%', icon)
-      .trim();
+    button.innerHTML = button.innerHTML.replace('%ICON%', icon).trim();
 
     button.setAttribute('title', tooltip);
 
     button.addEventListener('click', () => {
-      CosmoScout.callNative(callback);
+      CosmoScout.callbacks.find(callback)();
     });
 
     this._buttonContainer.appendChild(button);
 
-    CosmoScout.initTooltips();
-  }
-
-  setActivePlanet(name) {
-    this._activePlanetName = name;
-  }
-
-  /**
-   *
-   * @param long {number}
-   * @param lat {number}
-   * @param height {number}
-   */
-  setUserPosition(long, lat, height) {
-    this._userPosition = {
-      long,
-      lat,
-      height,
-    };
+    CosmoScout.gui.initTooltips();
   }
 
   /**
@@ -377,24 +344,25 @@ class TimelineApi extends IApi {
     });
     this._timeline.setCustomTime(this._centerTime, this._timeId);
     this._setOverviewTimes();
-    document.getElementById('dateLabel').innerText = DateOperations.formatDateReadable(this._centerTime);
+    document.getElementById('dateLabel').innerText =
+        CosmoScout.utils.formatDateReadable(this._centerTime);
   }
 
   addItem(start, end, id, content, style, description, planet, place) {
     const data = {};
     data.start = new Date(start);
-    data.id = id;
+    data.id    = id;
     if (end !== '') {
       data.end = new Date(end);
     }
     if (style !== '') {
       data.style = style;
     }
-    data.planet = planet;
+    data.planet      = planet;
     data.description = description;
-    data.place = place;
-    data.content = content;
-    data.className = `event ${id}`;
+    data.place       = place;
+    data.content     = content;
+    data.className   = `event ${id}`;
     this._items.update(data);
     data.className = `overviewEvent ${id}`;
     this._itemsOverview.update(data);
@@ -427,58 +395,61 @@ class TimelineApi extends IApi {
     let notification = [];
 
     switch (speed) {
-      case this.PAUSE:
-        this._setPause();
-        notification = ['Pause', 'Time is paused.', 'pause'];
-        break;
+    case this.PAUSE:
+      this._setPause();
+      notification = ['Pause', 'Time is paused.', 'pause'];
+      break;
 
-      case this.REALTIME:
-        notification = ['Speed: Realtime', 'Time runs in realtime.', 'play_arrow'];
-        break;
+    case this.REALTIME:
+      notification = ['Speed: Realtime', 'Time runs in realtime.', 'play_arrow'];
+      break;
 
-      case this.MINUTES:
-        notification = ['Speed: Min/s', 'Time runs at one minute per second.', 'fast_forward'];
-        break;
+    case this.MINUTES:
+      notification = ['Speed: Min/s', 'Time runs at one minute per second.', 'fast_forward'];
+      break;
 
-      case this.HOURS:
-        notification = ['Speed: Hour/s', 'Time runs at one hour per second.', 'fast_forward'];
-        break;
+    case this.HOURS:
+      notification = ['Speed: Hour/s', 'Time runs at one hour per second.', 'fast_forward'];
+      break;
 
-      case this.DAYS:
-        notification = ['Speed: Day/s', 'Time runs at one day per second.', 'fast_forward'];
-        break;
+    case this.DAYS:
+      notification = ['Speed: Day/s', 'Time runs at one day per second.', 'fast_forward'];
+      break;
 
-      case this.MONTHS:
-        notification = ['Speed: Month/s', 'Time runs at one month per second.', 'fast_forward'];
-        break;
+    case this.MONTHS:
+      notification = ['Speed: Month/s', 'Time runs at one month per second.', 'fast_forward'];
+      break;
 
-      /* Negative times */
-      case -this.REALTIME:
-        notification = ['Speed: -Realtime', 'Time runs backwards in realtime.', 'fast_rewind'];
-        break;
+    /* Negative times */
+    case -this.REALTIME:
+      notification = ['Speed: -Realtime', 'Time runs backwards in realtime.', 'fast_rewind'];
+      break;
 
-      case -this.MINUTES:
-        notification = ['Speed: -Min/s', 'Time runs backwards at one minute per second.', 'fast_rewind'];
-        break;
+    case -this.MINUTES:
+      notification =
+          ['Speed: -Min/s', 'Time runs backwards at one minute per second.', 'fast_rewind'];
+      break;
 
-      case -this.HOURS:
-        notification = ['Speed: -Hour/s', 'Time runs backwards at one hour per second.', 'fast_rewind'];
-        break;
+    case -this.HOURS:
+      notification =
+          ['Speed: -Hour/s', 'Time runs backwards at one hour per second.', 'fast_rewind'];
+      break;
 
-      case -this.DAYS:
-        notification = ['Speed: -Day/s', 'Time runs backwards at one day per second.', 'fast_rewind'];
-        break;
+    case -this.DAYS:
+      notification = ['Speed: -Day/s', 'Time runs backwards at one day per second.', 'fast_rewind'];
+      break;
 
-      case -this.MONTHS:
-        notification = ['Speed: -Month/s', 'Time runs backwards at one month per second.', 'fast_rewind'];
-        break;
+    case -this.MONTHS:
+      notification =
+          ['Speed: -Month/s', 'Time runs backwards at one month per second.', 'fast_rewind'];
+      break;
 
-      default:
-        break;
+    default:
+      break;
     }
 
     if (notification.length > 0) {
-      CosmoScout.notifications.printNotification(...notification);
+      CosmoScout.notifications.print(...notification);
     }
   }
 
@@ -495,15 +466,16 @@ class TimelineApi extends IApi {
     const placeArr = place.split(' ');
 
     const animationTime = direct ? 0 : 5;
-    const location = {
+    const location      = {
       longitude: this._parseLongitude(placeArr[0], placeArr[1]),
       latitude: this._parseLatitude(placeArr[2], placeArr[3]),
       height: this._parseHeight(placeArr[4], placeArr[5]),
       name,
     };
 
-    CosmoScout.callNative('fly_to_location', planet, location.longitude, location.latitude, location.height, animationTime);
-    CosmoScout.notifications.printNotification('Travelling', `to ${location.name}`, 'send');
+    CosmoScout.callbacks.navigation.flyToLocation(
+        planet, location.longitude, location.latitude, location.height, animationTime);
+    CosmoScout.notifications.print('Travelling', `to ${location.name}`, 'send');
   }
 
   /* Internal methods */
@@ -516,7 +488,7 @@ class TimelineApi extends IApi {
     });
 
     picker.on('change', (color) => {
-      const colorField = document.getElementById('event-dialog-color');
+      const colorField            = document.getElementById('event-dialog-color');
       colorField.style.background = `#${color}`;
     });
   }
@@ -527,15 +499,15 @@ class TimelineApi extends IApi {
    */
   _initCalendar() {
     $('#calendar')
-      .datepicker({
-        weekStart: 1,
-        todayHighlight: true,
-        maxViewMode: 3,
-        format: 'yyyy-mm-dd',
-        startDate: '1950-01-02',
-        endDate: '2049-12-31',
-      })
-      .on('changeDate', this._changeDateCallback.bind(this));
+        .datepicker({
+          weekStart: 1,
+          todayHighlight: true,
+          maxViewMode: 3,
+          format: 'yyyy-mm-dd',
+          startDate: '1950-01-02',
+          endDate: '2049-12-31',
+        })
+        .on('changeDate', this._changeDateCallback.bind(this));
   }
 
   /**
@@ -566,20 +538,25 @@ class TimelineApi extends IApi {
    * @private
    */
   _onAddCallback(item, callback, overview) {
-    document.getElementById('event-dialog-name').style.border = '';
-    document.getElementById('event-dialog-start-date').style.border = '';
+    document.getElementById('event-dialog-name').style.border        = '';
+    document.getElementById('event-dialog-start-date').style.border  = '';
     document.getElementById('event-dialog-description').style.border = '';
     this._timeline.setOptions(this._whileEditingOptions);
     this._overviewTimeline.setOptions(this._whileEditingOptions);
-    document.getElementById('headlineForm').innerText = 'Add Event';
-    document.getElementById('event-dialog-name').value = '';
+    document.getElementById('headlineForm').innerText         = 'Add Event';
+    document.getElementById('event-dialog-name').value        = '';
     document.getElementById('add-event-dialog').style.display = 'block';
-    document.getElementById('event-dialog-start-date').value = DateOperations.getFormattedDateWithTime(item.start);
-    document.getElementById('event-dialog-end-date').value = '';
+    document.getElementById('event-dialog-start-date').value =
+        CosmoScout.utils.getFormattedDateWithTime(item.start);
+    document.getElementById('event-dialog-end-date').value    = '';
     document.getElementById('event-dialog-description').value = '';
-    document.getElementById('event-dialog-planet').value = this._activePlanetName;
-    document.getElementById('event-dialog-location').value = Format.longitude(this._userPosition.long) + Format.latitude(this._userPosition.lat) + Format.height(this._userPosition.height);
-    this._parHolder.item = item;
+    document.getElementById('event-dialog-planet').value      = CosmoScout.state.activePlanetCenter;
+
+    let userPos = CosmoScout.state.observerPosition;
+    document.getElementById('event-dialog-location').value =
+        CosmoScout.utils.formatLongitude(userPos[1]) + CosmoScout.utils.formatLatitude(userPos[0]) +
+        CosmoScout.utils.formatHeight(userPos[2]);
+    this._parHolder.item     = item;
     this._parHolder.callback = callback;
     this._parHolder.overview = overview;
     this._setPause();
@@ -593,24 +570,26 @@ class TimelineApi extends IApi {
    * @private
    */
   _onUpdateCallback(item, callback, overview) {
-    document.getElementById('event-dialog-name').style.border = '';
-    document.getElementById('event-dialog-start-date').style.border = '';
+    document.getElementById('event-dialog-name').style.border        = '';
+    document.getElementById('event-dialog-start-date').style.border  = '';
     document.getElementById('event-dialog-description').style.border = '';
     this._timeline.setOptions(this._whileEditingOptions);
     this._overviewTimeline.setOptions(this._whileEditingOptions);
-    document.getElementById('headlineForm').innerText = 'Update';
+    document.getElementById('headlineForm').innerText         = 'Update';
     document.getElementById('add-event-dialog').style.display = 'block';
-    document.getElementById('event-dialog-name').value = item.content;
-    document.getElementById('event-dialog-start-date').value = DateOperations.getFormattedDateWithTime(item.start);
+    document.getElementById('event-dialog-name').value        = item.content;
+    document.getElementById('event-dialog-start-date').value =
+        CosmoScout.utils.getFormattedDateWithTime(item.start);
     document.getElementById('event-dialog-description').value = item.description;
-    document.getElementById('event-dialog-planet').value = item.planet;
-    document.getElementById('event-dialog-location').value = item.place;
+    document.getElementById('event-dialog-planet').value      = item.planet;
+    document.getElementById('event-dialog-location').value    = item.place;
     if (item.end) {
-      document.getElementById('event-dialog-end-date').value = DateOperations.getFormattedDateWithTime(item.end);
+      document.getElementById('event-dialog-end-date').value =
+          CosmoScout.utils.getFormattedDateWithTime(item.end);
     } else {
       document.getElementById('event-dialog-end-date').value = '';
     }
-    this._parHolder.item = item;
+    this._parHolder.item     = item;
     this._parHolder.callback = callback;
     this._parHolder.overview = overview;
     this._setPause();
@@ -618,9 +597,10 @@ class TimelineApi extends IApi {
 
   _setPause() {
     this._currentSpeed = 0;
-    CosmoScout.callNative('set_time_speed', 0);
+    CosmoScout.callbacks.time.setSpeed(0);
     document.getElementById('pause-button').innerHTML = '<i class="material-icons">play_arrow</i>';
-    document.getElementsByClassName('range-label')[0].innerHTML = '<i class="material-icons">pause</i>';
+    document.getElementsByClassName('range-label')[0].innerHTML =
+        '<i class="material-icons">pause</i>';
     this._timeline.setOptions(this._pauseOptions);
     this._timelineZoomBlocked = false;
   }
@@ -631,10 +611,11 @@ class TimelineApi extends IApi {
    * @private
    */
   _changeTime(event) {
-    const { type, direction } = event.target.dataset;
+    const {type, direction} = event.target.dataset;
 
     if (typeof type === 'undefined' || typeof direction === 'undefined') {
-      console.error('changeTime event bound to element without "data-type" and "data-direction" attributes.');
+      console.error(
+          'changeTime event bound to element without "data-type" and "data-direction" attributes.');
       return;
     }
 
@@ -649,33 +630,33 @@ class TimelineApi extends IApi {
     const newDate = new Date(this._centerTime.getTime());
 
     switch (type) {
-      case 'year':
-        newDate.setFullYear(newDate.getFullYear() + times);
-        break;
+    case 'year':
+      newDate.setFullYear(newDate.getFullYear() + times);
+      break;
 
-      case 'month':
-        newDate.setMonth(newDate.getMonth() + times);
-        break;
+    case 'month':
+      newDate.setMonth(newDate.getMonth() + times);
+      break;
 
-      case 'day':
-        newDate.setDate(newDate.getDate() + times);
-        break;
+    case 'day':
+      newDate.setDate(newDate.getDate() + times);
+      break;
 
-      case 'hour':
-        newDate.setHours(newDate.getHours() + times);
-        break;
+    case 'hour':
+      newDate.setHours(newDate.getHours() + times);
+      break;
 
-      case 'minute':
-        newDate.setMinutes(newDate.getMinutes() + times);
-        break;
+    case 'minute':
+      newDate.setMinutes(newDate.getMinutes() + times);
+      break;
 
-      case 'second':
-        newDate.setSeconds(newDate.getSeconds() + times);
-        break;
+    case 'second':
+      newDate.setSeconds(newDate.getSeconds() + times);
+      break;
 
-      default:
-        console.error('[data-type] not in [year, month, day, hour, second]');
-        break;
+    default:
+      console.error('[data-type] not in [year, month, day, hour, second]');
+      break;
     }
 
     const diff = newDate.getTime() - oldDate.getTime();
@@ -683,7 +664,7 @@ class TimelineApi extends IApi {
     this._centerTime.setSeconds(diff);
 
     const hoursDiff = diff / 1000 / 60 / 60;
-    CosmoScout.callNative('add_hours_without_animation', hoursDiff);
+    CosmoScout.callbacks.time.addHoursWithoutAnimation(hoursDiff);
   }
 
   /**
@@ -697,96 +678,77 @@ class TimelineApi extends IApi {
     }
 
     let diff = parseInt(event.target.dataset.diff, 10);
-    // Data attribute is set in seconds. Call native wants hours
+    // Data attribute is set in seconds. add_hours_without_animation wants hours
     diff = Math.abs(diff) / 3600;
 
     if (event.deltaY > 0) {
       diff = -diff;
     }
 
-    CosmoScout.callNative('add_hours_without_animation', diff);
+    CosmoScout.callbacks.time.addHoursWithoutAnimation(diff);
   }
 
   _initEventListener() {
     this._timelineContainer.addEventListener('wheel', this._manualZoomTimeline.bind(this), true);
 
-    document.querySelectorAll('[data-change="time"]')
-      .forEach((element) => {
-        if (element instanceof HTMLElement) {
-          element.addEventListener('click', this._changeTime.bind(this));
-          element.addEventListener('wheel', this._changeTime.bind(this));
-        }
-      });
+    document.querySelectorAll('[data-change="time"]').forEach((element) => {
+      if (element instanceof HTMLElement) {
+        element.addEventListener('click', this._changeTime.bind(this));
+        element.addEventListener('wheel', this._changeTime.bind(this));
+      }
+    });
 
-    document.getElementById('pause-button')
-      .addEventListener('click', this._togglePause.bind(this));
+    document.getElementById('pause-button').addEventListener('click', this._togglePause.bind(this));
     document.getElementById('speed-decrease-button')
-      .addEventListener('click', this._decreaseSpeed.bind(this));
+        .addEventListener('click', this._decreaseSpeed.bind(this));
     document.getElementById('speed-increase-button')
-      .addEventListener('click', this._increaseSpeed.bind(this));
+        .addEventListener('click', this._increaseSpeed.bind(this));
 
     document.getElementById('event-tooltip-location')
-      .addEventListener('click', this._travelToItemLocation.bind(this));
+        .addEventListener('click', this._travelToItemLocation.bind(this));
 
     document.getElementById('time-reset-button')
-      .addEventListener('click', this._resetTime.bind(this));
+        .addEventListener('click', this._resetTime.bind(this));
 
-    document.getElementsByClassName('range-label')[0].addEventListener('mousedown', this._rangeUpdateCallback.bind(this));
-
+    document.getElementsByClassName('range-label')[0].addEventListener(
+        'mousedown', this._rangeUpdateCallback.bind(this));
 
     document.getElementById('event-dialog-cancel-button')
-      .addEventListener('click', this._closeForm.bind(this));
+        .addEventListener('click', this._closeForm.bind(this));
     document.getElementById('event-dialog-apply-button')
-      .addEventListener('click', this._applyEvent.bind(this));
-
+        .addEventListener('click', this._applyEvent.bind(this));
 
     document.getElementById('event-tooltip-container')
-      .addEventListener('mouseleave', this._leaveCustomTooltip.bind(this));
+        .addEventListener('mouseleave', this._leaveCustomTooltip.bind(this));
 
     document.getElementById('expand-button')
-      .addEventListener('click', this._toggleOverview.bind(this));
-
+        .addEventListener('click', this._toggleOverview.bind(this));
 
     document.getElementById('calendar-button')
-      .addEventListener('click', this._enterNewCenterTime.bind(this));
+        .addEventListener('click', this._enterNewCenterTime.bind(this));
     document.getElementById('dateLabel')
-      .addEventListener('click', this._enterNewCenterTime.bind(this));
+        .addEventListener('click', this._enterNewCenterTime.bind(this));
 
-    // toggle visibility of the increase / decrease time buttons ---------------------------------------
+    // toggle visibility of the increase / decrease time buttons
+    // ---------------------------------------
     function mouseEnterTimeControl() {
-      document.getElementById('increaseControl')
-        .classList
-        .add('mouseNear');
-      document.getElementById('decreaseControl')
-        .classList
-        .add('mouseNear');
+      document.getElementById('increaseControl').classList.add('mouseNear');
+      document.getElementById('decreaseControl').classList.add('mouseNear');
     }
 
     function mouseLeaveTimeControl() {
-      document.getElementById('increaseControl')
-        .classList
-        .remove('mouseNear');
-      document.getElementById('decreaseControl')
-        .classList
-        .remove('mouseNear');
+      document.getElementById('increaseControl').classList.remove('mouseNear');
+      document.getElementById('decreaseControl').classList.remove('mouseNear');
     }
 
     function enterTimeButtons() {
-      document.getElementById('increaseControl')
-        .classList
-        .add('mouseNear');
-      document.getElementById('decreaseControl')
-        .classList
-        .add('mouseNear');
+      document.getElementById('increaseControl').classList.add('mouseNear');
+      document.getElementById('decreaseControl').classList.add('mouseNear');
     }
 
     function leaveTimeButtons() {
-      document.getElementById('increaseControl')
-        .classList
-        .remove('mouseNear');
-      document.getElementById('decreaseControl')
-        .classList
-        .remove('mouseNear');
+      document.getElementById('increaseControl').classList.remove('mouseNear');
+      document.getElementById('decreaseControl').classList.remove('mouseNear');
     }
 
     document.getElementById('time-control').onmouseenter = mouseEnterTimeControl;
@@ -804,7 +766,8 @@ class TimelineApi extends IApi {
    * @private
    */
   _travelToItemLocation() {
-    this.travelTo(false, this._hoveredItem.planet, this._hoveredItem.place, this._hoveredItem.content);
+    this.travelTo(
+        false, this._hoveredItem.planet, this._hoveredItem.place, this._hoveredItem.content);
   }
 
   /**
@@ -820,30 +783,33 @@ class TimelineApi extends IApi {
 
   _applyEvent() {
     /* TODO Just add a class to the parent element to indicate wrong state */
-    if (document.getElementById('event-dialog-name').value !== ''
-      && document.getElementById('event-dialog-start-date').value !== ''
-      && document.getElementById('event-dialog-description').value !== '') {
-      document.getElementById('event-dialog-name').style.border = '';
-      document.getElementById('event-dialog-start-date').style.border = '';
+    if (document.getElementById('event-dialog-name').value !== '' &&
+        document.getElementById('event-dialog-start-date').value !== '' &&
+        document.getElementById('event-dialog-description').value !== '') {
+      document.getElementById('event-dialog-name').style.border        = '';
+      document.getElementById('event-dialog-start-date').style.border  = '';
       document.getElementById('event-dialog-description').style.border = '';
-      this._parHolder.item.style = `border-color: ${document.getElementById('event-dialog-color').value}`;
+      this._parHolder.item.style =
+          `border-color: ${document.getElementById('event-dialog-color').value}`;
       this._parHolder.item.content = document.getElementById('event-dialog-name').value;
-      this._parHolder.item.start = new Date(document.getElementById('event-dialog-start-date').value);
+      this._parHolder.item.start =
+          new Date(document.getElementById('event-dialog-start-date').value);
       this._parHolder.item.description = document.getElementById('event-dialog-description').value;
       if (document.getElementById('event-dialog-end-date').value !== '') {
         this._parHolder.item.end = new Date(document.getElementById('event-dialog-end-date').value);
-        const diff = this._parHolder.item.start - this._parHolder.item.end;
+        const diff               = this._parHolder.item.start - this._parHolder.item.end;
         if (diff >= 0) {
-          this._parHolder.item.end = null;
+          this._parHolder.item.end                                      = null;
           document.getElementById('event-dialog-end-date').style.border = this._wrongInputStyle;
           return;
         }
         document.getElementById('event-dialog-end-date').style.border = '';
       }
       this._parHolder.item.planet = document.getElementById('event-dialog-planet').value;
-      this._parHolder.item.place = document.getElementById('event-dialog-location').value;
+      this._parHolder.item.place  = document.getElementById('event-dialog-location').value;
       if (this._parHolder.item.id == null) {
-        this._parHolder.item.id = this._parHolder.item.content + this._parHolder.item.start + this._parHolder.item.end;
+        this._parHolder.item.id =
+            this._parHolder.item.content + this._parHolder.item.start + this._parHolder.item.end;
         this._parHolder.item.id = this._parHolder.item.id.replace(/\s/g, '');
       }
       if (this._parHolder.overview) {
@@ -883,13 +849,13 @@ class TimelineApi extends IApi {
 
   _toggleOverview() {
     this._overviewVisible = !this._overviewVisible;
-    document.getElementById('timeline-container')
-      .classList
-      .toggle('overview-visible');
+    document.getElementById('timeline-container').classList.toggle('overview-visible');
     if (this._overviewVisible) {
-      document.getElementById('expand-button').innerHTML = '<i class="material-icons">expand_less</i>';
+      document.getElementById('expand-button').innerHTML =
+          '<i class="material-icons">expand_less</i>';
     } else {
-      document.getElementById('expand-button').innerHTML = '<i class="material-icons">expand_more</i>';
+      document.getElementById('expand-button').innerHTML =
+          '<i class="material-icons">expand_more</i>';
     }
   }
 
@@ -928,7 +894,7 @@ class TimelineApi extends IApi {
   _resetTime() {
     this._overviewTimeline.setWindow(this._minDate, this._maxDate);
     this._timeSpeedSlider.noUiSlider.set(1);
-    CosmoScout.callNative('reset_time');
+    CosmoScout.callbacks.time.reset();
   }
 
   _togglePause() {
@@ -964,9 +930,7 @@ class TimelineApi extends IApi {
       });
 
       this._timeSpeedSlider.noUiSlider.on('update', this._rangeUpdateCallback.bind(this));
-    } catch (e) {
-      console.error('Slider was already initialized');
-    }
+    } catch (e) { console.error('Slider was already initialized'); }
   }
 
   /**
@@ -977,7 +941,8 @@ class TimelineApi extends IApi {
   _rangeUpdateCallback() {
     this._currentSpeed = this._timeSpeedSlider.noUiSlider.get();
     if (this._firstSliderValue) {
-      document.getElementsByClassName('range-label')[0].innerHTML = '<i class="material-icons">chevron_right</i>';
+      document.getElementsByClassName('range-label')[0].innerHTML =
+          '<i class="material-icons">chevron_right</i>';
       this._firstSliderValue = false;
       return;
     }
@@ -986,45 +951,47 @@ class TimelineApi extends IApi {
     this._timeline.setOptions(this._playingOptions);
     this._timelineZoomBlocked = true;
     if (parseInt(this._currentSpeed, 10) < 0) {
-      document.getElementsByClassName('range-label')[0].innerHTML = '<i class="material-icons">chevron_left</i>';
+      document.getElementsByClassName('range-label')[0].innerHTML =
+          '<i class="material-icons">chevron_left</i>';
     } else {
-      document.getElementsByClassName('range-label')[0].innerHTML = '<i class="material-icons">chevron_right</i>';
+      document.getElementsByClassName('range-label')[0].innerHTML =
+          '<i class="material-icons">chevron_right</i>';
     }
 
     this._moveWindow();
 
     switch (parseInt(this._currentSpeed, 10)) {
-      case this._timeSpeedSteps.monthBack:
-        CosmoScout.callNative('set_time_speed', -this.MONTHS);
-        break;
-      case this._timeSpeedSteps.dayBack:
-        CosmoScout.callNative('set_time_speed', -this.DAYS);
-        break;
-      case this._timeSpeedSteps.hourBack:
-        CosmoScout.callNative('set_time_speed', -this.HOURS);
-        break;
-      case this._timeSpeedSteps.minBack:
-        CosmoScout.callNative('set_time_speed', -this.MINUTES);
-        break;
-      case this._timeSpeedSteps.secBack:
-        CosmoScout.callNative('set_time_speed', -1);
-        break;
-      case this._timeSpeedSteps.secForward:
-        CosmoScout.callNative('set_time_speed', 1);
-        break;
-      case this._timeSpeedSteps.minForward:
-        CosmoScout.callNative('set_time_speed', this.MINUTES);
-        break;
-      case this._timeSpeedSteps.hourForward:
-        CosmoScout.callNative('set_time_speed', this.HOURS);
-        break;
-      case this._timeSpeedSteps.dayForward:
-        CosmoScout.callNative('set_time_speed', this.DAYS);
-        break;
-      case this._timeSpeedSteps.monthForward:
-        CosmoScout.callNative('set_time_speed', this.MONTHS);
-        break;
-      default:
+    case this._timeSpeedSteps.monthBack:
+      CosmoScout.callbacks.time.setSpeed(-this.MONTHS);
+      break;
+    case this._timeSpeedSteps.dayBack:
+      CosmoScout.callbacks.time.setSpeed(-this.DAYS);
+      break;
+    case this._timeSpeedSteps.hourBack:
+      CosmoScout.callbacks.time.setSpeed(-this.HOURS);
+      break;
+    case this._timeSpeedSteps.minBack:
+      CosmoScout.callbacks.time.setSpeed(-this.MINUTES);
+      break;
+    case this._timeSpeedSteps.secBack:
+      CosmoScout.callbacks.time.setSpeed(-1);
+      break;
+    case this._timeSpeedSteps.secForward:
+      CosmoScout.callbacks.time.setSpeed(1);
+      break;
+    case this._timeSpeedSteps.minForward:
+      CosmoScout.callbacks.time.setSpeed(this.MINUTES);
+      break;
+    case this._timeSpeedSteps.hourForward:
+      CosmoScout.callbacks.time.setSpeed(this.HOURS);
+      break;
+    case this._timeSpeedSteps.dayForward:
+      CosmoScout.callbacks.time.setSpeed(this.DAYS);
+      break;
+    case this._timeSpeedSteps.monthForward:
+      CosmoScout.callbacks.time.setSpeed(this.MONTHS);
+      break;
+    default:
     }
   }
 
@@ -1054,7 +1021,8 @@ class TimelineApi extends IApi {
     this._timeline.on('itemout', this._itemOutCallback.bind(this));
 
     // create overview timeline
-    this._overviewTimeline = new vis.Timeline(overviewContainer, this._itemsOverview, this._overviewTimelineOptions);
+    this._overviewTimeline =
+        new vis.Timeline(overviewContainer, this._itemsOverview, this._overviewTimelineOptions);
     this._overviewTimeline.addCustomTime(this._timeline.getWindow().end, this._rightTimeId);
     this._overviewTimeline.addCustomTime(this._timeline.getWindow().start, this._leftTimeId);
     this._overviewTimeline.on('select', this._onSelect.bind(this));
@@ -1084,7 +1052,7 @@ class TimelineApi extends IApi {
 
     if (element !== null && element.className !== 'event-tooltip') {
       document.getElementById('event-tooltip-container').style.display = 'none';
-      this._tooltipVisible = false;
+      this._tooltipVisible                                             = false;
       this._hoveredHTMLEvent.classList.remove('mouseOver');
     }
   }
@@ -1104,11 +1072,13 @@ class TimelineApi extends IApi {
    * @private
    */
   _moveWindow() {
-    const step = DateOperations.convertSeconds(this._timelineRangeFactor);
+    const step    = CosmoScout.utils.convertSeconds(this._timelineRangeFactor);
     let startDate = new Date(this._centerTime.getTime());
-    let endDate = new Date(this._centerTime.getTime());
-    startDate = DateOperations.decreaseDate(startDate, step.days, step.hours, step.minutes, step.seconds, step.milliSec);
-    endDate = DateOperations.increaseDate(endDate, step.days, step.hours, step.minutes, step.seconds, step.milliSec);
+    let endDate   = new Date(this._centerTime.getTime());
+    startDate     = CosmoScout.utils.decreaseDate(
+        startDate, step.days, step.hours, step.minutes, step.seconds, step.milliSec);
+    endDate = CosmoScout.utils.increaseDate(
+        endDate, step.days, step.hours, step.minutes, step.seconds, step.milliSec);
     this._timeline.setWindow(startDate, endDate, {
       animations: false,
     });
@@ -1124,31 +1094,33 @@ class TimelineApi extends IApi {
    */
   _itemOverCallback(properties, overview) {
     document.getElementById('event-tooltip-container').style.display = 'block';
-    this._tooltipVisible = true;
+    this._tooltipVisible                                             = true;
     for (const item in this._items._data) {
       if (this._items._data[item].id === properties.item) {
-        document.getElementById('event-tooltip-content').innerHTML = this._items._data[item].content;
-        document.getElementById('event-tooltip-description').innerHTML = this._items._data[item].description;
-        document.getElementById('event-tooltip-location').innerHTML = `<i class='material-icons'>send</i> ${this._items._data[item].planet} ${this._items._data[item].place}`;
+        document.getElementById('event-tooltip-content').innerHTML =
+            this._items._data[item].content;
+        document.getElementById('event-tooltip-description').innerHTML =
+            this._items._data[item].description;
+        document.getElementById('event-tooltip-location').innerHTML =
+            `<i class='material-icons'>send</i> ${this._items._data[item].planet} ${
+                this._items._data[item].place}`;
         this._hoveredItem = this._items._data[item];
       }
     }
     const events = document.getElementsByClassName(properties.item);
     let event;
     for (let i = 0; i < events.length; ++i) {
-      if (!overview && $(events[i])
-        .hasClass('event')) {
+      if (!overview && $(events[i]).hasClass('event')) {
         event = events[i];
-      } else if (overview && $(events[i])
-        .hasClass('overviewEvent')) {
+      } else if (overview && $(events[i]).hasClass('overviewEvent')) {
         event = events[i];
       }
     }
     this._hoveredHTMLEvent = event;
     this._hoveredHTMLEvent.classList.add('mouseOver');
     const eventRect = event.getBoundingClientRect();
-    const left = eventRect.left - 150 < 0 ? 0 : eventRect.left - 150;
-    document.getElementById('event-tooltip-container').style.top = `${eventRect.bottom}px`;
+    const left      = eventRect.left - 150 < 0 ? 0 : eventRect.left - 150;
+    document.getElementById('event-tooltip-container').style.top  = `${eventRect.bottom}px`;
     document.getElementById('event-tooltip-container').style.left = `${left}px`;
   }
 
@@ -1158,7 +1130,7 @@ class TimelineApi extends IApi {
    */
   _leaveCustomTooltip() {
     document.getElementById('event-tooltip-container').style.display = 'none';
-    this._tooltipVisible = false;
+    this._tooltipVisible                                             = false;
     this._hoveredHTMLEvent.classList.remove('mouseOver');
   }
 
@@ -1169,9 +1141,9 @@ class TimelineApi extends IApi {
   _mouseDownCallback() {
     this._timeline.setOptions(this._pauseOptions);
     this._mouseOnTimelineDown = true;
-    this._lastPlayValue = this._currentSpeed;
-    this._click = true;
-    this._mouseDownLeftTime = this._timeline.getWindow().start;
+    this._lastPlayValue       = this._currentSpeed;
+    this._click               = true;
+    this._mouseDownLeftTime   = this._timeline.getWindow().start;
   }
 
   /**
@@ -1186,7 +1158,8 @@ class TimelineApi extends IApi {
   }
 
   /**
-   * Callbacks to differ between a Click on the overview timeline and the user dragging the overview timeline
+   * Callbacks to differ between a Click on the overview timeline and the user dragging the overview
+   * timeline
    * @private
    */
   _overviewMouseDownCallback() {
@@ -1194,7 +1167,8 @@ class TimelineApi extends IApi {
   }
 
   /**
-   * Redraws the timerange indicator on the overview timeline in case the displayed time on the overview timeline changed
+   * Redraws the timerange indicator on the overview timeline in case the displayed time on the
+   * overview timeline changed
    * @private
    */
   _overviewChangedCallback() {
@@ -1212,7 +1186,8 @@ class TimelineApi extends IApi {
   }
 
   /**
-   * Redraws the timerange indicator on the overview timeline in case the displayed time on the timeline changed
+   * Redraws the timerange indicator on the overview timeline in case the displayed time on the
+   * timeline changed
    * @private
    */
   _timelineChangedCallback() {
@@ -1221,7 +1196,8 @@ class TimelineApi extends IApi {
   }
 
   /**
-   * Called when the user moves the timeline. It changes time so that the current time is alway in the middle
+   * Called when the user moves the timeline. It changes time so that the current time is alway in
+   * the middle
    * @param properties {VisTimelineEvent}
    * @private
    */
@@ -1230,17 +1206,18 @@ class TimelineApi extends IApi {
       if (this._currentSpeed !== 0) {
         this._setPause();
       }
-      this._click = false;
-      const dif = properties.start.getTime() - this._mouseDownLeftTime.getTime();
+      this._click      = false;
+      const dif        = properties.start.getTime() - this._mouseDownLeftTime.getTime();
       const secondsDif = dif / 1000;
-      const hoursDif = secondsDif / 60 / 60;
+      const hoursDif   = secondsDif / 60 / 60;
 
-      const step = DateOperations.convertSeconds(secondsDif);
-      let date = new Date(this._centerTime.getTime());
-      date = DateOperations.increaseDate(date, step.days, step.hours, step.minutes, step.seconds, step.milliSec);
+      const step = CosmoScout.utils.convertSeconds(secondsDif);
+      let date   = new Date(this._centerTime.getTime());
+      date       = CosmoScout.utils.increaseDate(
+          date, step.days, step.hours, step.minutes, step.seconds, step.milliSec);
       this._setDateLocal(date);
       this._mouseDownLeftTime = new Date(properties.start.getTime());
-      CosmoScout.callNative('add_hours_without_animation', hoursDif);
+      CosmoScout.callbacks.time.addHoursWithoutAnimation(hoursDif);
     }
   }
 
@@ -1256,24 +1233,25 @@ class TimelineApi extends IApi {
     });
     this._timeline.setCustomTime(this._centerTime, this._timeId);
     this._setOverviewTimes();
-    document.getElementById('dateLabel').innerText = DateOperations.formatDateReadable(this._centerTime);
+    document.getElementById('dateLabel').innerText =
+        CosmoScout.utils.formatDateReadable(this._centerTime);
   }
 
   _drawFocusLens() {
-    const leftCustomTime = document.getElementsByClassName('leftTime')[0];
-    const leftRect = leftCustomTime.getBoundingClientRect();
+    const leftCustomTime  = document.getElementsByClassName('leftTime')[0];
+    const leftRect        = leftCustomTime.getBoundingClientRect();
     const rightCustomTime = document.getElementsByClassName('rightTime')[0];
-    const rightRect = rightCustomTime.getBoundingClientRect();
+    const rightRect       = rightCustomTime.getBoundingClientRect();
 
-    let divElement = document.getElementById('focus-lens');
+    let divElement        = document.getElementById('focus-lens');
     divElement.style.left = `${leftRect.right}px`;
 
     const height = leftRect.bottom - leftRect.top - 2;
-    let width = rightRect.right - leftRect.left;
+    let width    = rightRect.right - leftRect.left;
 
     let xValue = 0;
     if (width < this._minWidth) {
-      width = this._minWidth + 2 * this._borderWidth;
+      width  = this._minWidth + 2 * this._borderWidth;
       xValue = -(leftRect.left + this._minWidth - rightRect.right) / 2 - this._borderWidth;
       xValue = Math.round(xValue);
       divElement.style.transform = ` translate(${xValue}px, 0px)`;
@@ -1282,18 +1260,18 @@ class TimelineApi extends IApi {
     }
 
     divElement.style.height = `${height}px`;
-    divElement.style.width = `${width}px`;
+    divElement.style.width  = `${width}px`;
 
-    divElement = document.getElementById('focus-lens-left');
-    width = leftRect.right + xValue + this._borderWidth;
-    width = width < 0 ? 0 : width;
+    divElement             = document.getElementById('focus-lens-left');
+    width                  = leftRect.right + xValue + this._borderWidth;
+    width                  = width < 0 ? 0 : width;
     divElement.style.width = `${width}px`;
-    const body = document.getElementsByTagName('body')[0];
-    const bodyRect = body.getBoundingClientRect();
+    const body             = document.getElementsByTagName('body')[0];
+    const bodyRect         = body.getBoundingClientRect();
 
-    divElement = document.getElementById('focus-lens-right');
-    width = bodyRect.right - rightRect.right + xValue + 1;
-    width = width < 0 ? 0 : width;
+    divElement             = document.getElementById('focus-lens-right');
+    width                  = bodyRect.right - rightRect.right + xValue + 1;
+    width                  = width < 0 ? 0 : width;
     divElement.style.width = `${width}px`;
   }
 
@@ -1342,17 +1320,20 @@ class TimelineApi extends IApi {
   _onSelect(properties) {
     for (const item in this._items._data) {
       if (this._items._data[item].id === properties.items) {
-        const dif = this._items._data[item].start.getTime() - this._centerTime.getTime();
+        const dif    = this._items._data[item].start.getTime() - this._centerTime.getTime();
         let hoursDif = dif / 1000 / 60 / 60;
 
-        if (this._items._data[item].start.getTimezoneOffset() > this._centerTime.getTimezoneOffset()) {
+        if (this._items._data[item].start.getTimezoneOffset() >
+            this._centerTime.getTimezoneOffset()) {
           hoursDif -= 1;
-        } else if (this._items._data[item].start.getTimezoneOffset() < this._centerTime.getTimezoneOffset()) {
+        } else if (this._items._data[item].start.getTimezoneOffset() <
+                   this._centerTime.getTimezoneOffset()) {
           hoursDif += 1;
         }
 
-        CosmoScout.callNative('add_hours', hoursDif);
-        this.travelTo(true, this._items._data[item].planet, this._items._data[item].place, this._items._data[item].content);
+        CosmoScout.callbacks.time.addHours(hoursDif);
+        this.travelTo(true, this._items._data[item].planet, this._items._data[item].place,
+            this._items._data[item].content);
       }
     }
   }
@@ -1366,7 +1347,7 @@ class TimelineApi extends IApi {
    */
   _generalOnClick(properties) {
     if (properties.what !== 'item' && properties.time != null) {
-      const dif = properties.time.getTime() - this._centerTime.getTime();
+      const dif    = properties.time.getTime() - this._centerTime.getTime();
       let hoursDif = dif / 1000 / 60 / 60;
 
       if (properties.time.getTimezoneOffset() > this._centerTime.getTimezoneOffset()) {
@@ -1374,7 +1355,7 @@ class TimelineApi extends IApi {
       } else if (properties.time.getTimezoneOffset() < this._centerTime.getTimezoneOffset()) {
         hoursDif += 1;
       }
-      CosmoScout.callNative('add_hours', hoursDif);
+      CosmoScout.callbacks.time.addHours(hoursDif);
     }
   }
 
@@ -1426,24 +1407,24 @@ class TimelineApi extends IApi {
     const height = parseFloat(heightStr);
 
     switch (unit) {
-      case 'mm':
-        return height / 1000;
-      case 'cm':
-        return height / 100;
-      case 'm':
-        return height;
-      case 'km':
-        return height * 1e3;
-      case 'Tsd':
-        return height * 1e6;
-      case 'AU':
-        return height * 1.496e11;
-      case 'ly':
-        return height * 9.461e15;
-      case 'pc':
-        return height * 3.086e16;
-      default:
-        return height * 3.086e19;
+    case 'mm':
+      return height / 1000;
+    case 'cm':
+      return height / 100;
+    case 'm':
+      return height;
+    case 'km':
+      return height * 1e3;
+    case 'Tsd':
+      return height * 1e6;
+    case 'AU':
+      return height * 1.496e11;
+    case 'ly':
+      return height * 9.461e15;
+    case 'pc':
+      return height * 3.086e16;
+    default:
+      return height * 3.086e19;
     }
   }
 
@@ -1454,11 +1435,9 @@ class TimelineApi extends IApi {
    */
   _setVisible(visible) {
     if (visible) {
-      $('#calendar')
-        .addClass('visible');
+      $('#calendar').addClass('visible');
     } else {
-      $('#calendar')
-        .removeClass('visible');
+      $('#calendar').removeClass('visible');
     }
   }
 
@@ -1481,8 +1460,7 @@ class TimelineApi extends IApi {
    * @private
    */
   _enterNewCenterTime() {
-    $('#calendar')
-      .datepicker('update', this._timeline.getCustomTime(this._timeId));
+    $('#calendar').datepicker('update', this._timeline.getCustomTime(this._timeId));
     if (this._calenderVisible && this._state === this._newCenterTimeId) {
       this._toggleVisible();
     } else if (!this._calenderVisible) {
@@ -1522,9 +1500,9 @@ class TimelineApi extends IApi {
    */
   _setTimeToDate(date) {
     date.setHours(12);
-    CosmoScout.callNative('set_date', DateOperations.formatDateCosmo(new Date(date.getTime())));
+    CosmoScout.callbacks.time.setDate(CosmoScout.utils.formatDateCosmo(new Date(date.getTime())));
     const startDate = new Date(date.getTime());
-    const endDate = new Date(date.getTime());
+    const endDate   = new Date(date.getTime());
     startDate.setHours(0);
     endDate.setHours(24);
     this._setPause();
@@ -1542,16 +1520,16 @@ class TimelineApi extends IApi {
   _changeDateCallback(event) {
     this._toggleVisible();
     switch (this._state) {
-      case this._newCenterTimeId:
-        this._setTimeToDate(event.date);
-        break;
-      case this._newStartDateId:
-        document.getElementById('event-dialog-start-date').value = event.format();
-        break;
-      case this._newEndDateId:
-        document.getElementById('event-dialog-end-date').value = event.format();
-        break;
-      default:
+    case this._newCenterTimeId:
+      this._setTimeToDate(event.date);
+      break;
+    case this._newStartDateId:
+      document.getElementById('event-dialog-start-date').value = event.format();
+      break;
+    case this._newEndDateId:
+      document.getElementById('event-dialog-end-date').value = event.format();
+      break;
+    default:
       // code block
     }
   }

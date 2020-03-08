@@ -29,7 +29,7 @@ class CS_CORE_EXPORT GraphicsEngine {
  public:
   utils::Property<float>     pHeightScale                = 1.f;
   utils::Property<float>     pWidgetScale                = 1.f;
-  utils::Property<bool>      pEnableLighting             = true;
+  utils::Property<bool>      pEnableLighting             = false;
   utils::Property<bool>      pEnableHDR                  = false;
   utils::Property<int>       pLightingQuality            = 2;
   utils::Property<bool>      pEnableShadows              = false;

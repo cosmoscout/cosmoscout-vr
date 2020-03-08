@@ -48,7 +48,7 @@ DeletableMark::DeletableMark(DeletableMark const& other)
 
 DeletableMark::~DeletableMark() {
   if (mGuiNode) {
-    mGuiItem->unregisterCallback("delete_me");
+    mGuiItem->unregisterCallback("deleteMe");
     mInputManager->unregisterSelectable(mGuiNode);
     mGuiArea->removeItem(mGuiItem.get());
 
@@ -69,6 +69,7 @@ void DeletableMark::initData() {
   mGuiArea->setUseLinearDepthBuffer(true);
 
   mGuiItem->setCursorChangeCallback([](cs::gui::Cursor c) { cs::core::GuiManager::setCursor(c); });
+  mGuiItem->setCanScroll(false);
 
   mGuiNode = pSG->NewOpenGLNode(pGuiTransform, mGuiArea.get());
   mInputManager->registerSelectable(mGuiNode);
@@ -76,10 +77,11 @@ void DeletableMark::initData() {
   VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
       pGuiTransform, static_cast<int>(cs::utils::DrawOrder::eTransparentItems));
 
-  mGuiItem->registerCallback("delete_me", [this]() { pShouldDelete = true; });
+  mGuiItem->registerCallback("deleteMe", "Call this to remove the tool.",
+      std::function([this]() { pShouldDelete = true; }));
 
   mSelfSelectedConnection = pSelected.onChange().connect(
-      [this](bool val) { mGuiItem->callJavascript("set_minimized", !val); });
+      [this](bool val) { mGuiItem->callJavascript("setMinimized", !val); });
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

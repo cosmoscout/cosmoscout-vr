@@ -22,8 +22,11 @@ class RenderHandler : public CefRenderHandler {
   /// Sets what should happen, when the displayed data changes.
   void SetDrawCallback(DrawCallback const& callback);
 
-  /// Sets what happens, when the cursor icon changes.
+  /// The given callback is fired when the cursor icon should change.
   void SetCursorChangeCallback(CursorChangeCallback const& callback);
+
+  /// The given callback is fired when the active gui element wants to receive keyboard events.
+  void SetRequestKeyboardFocusCallback(RequestKeyboardFocusCallback const& callback);
 
   void Resize(int width, int height);
   bool GetColor(int x, int y, uint8_t& r, uint8_t& g, uint8_t& b, uint8_t& a) const;
@@ -42,6 +45,8 @@ class RenderHandler : public CefRenderHandler {
   void OnCursorChange(CefRefPtr<CefBrowser> browser, CefCursorHandle cursor,
       CefRenderHandler::CursorType type, const CefCursorInfo& customursor_info) override;
 
+  void OnVirtualKeyboardRequested(CefRefPtr<CefBrowser> browser, TextInputMode input_mode) override;
+
   ~RenderHandler() override;
 
  private:
@@ -53,8 +58,9 @@ class RenderHandler : public CefRenderHandler {
   int mLastDrawWidth;
   int mLastDrawHeight;
 
-  DrawCallback         mDrawCallback;
-  CursorChangeCallback mCursorChangeCallback;
+  DrawCallback                 mDrawCallback;
+  CursorChangeCallback         mCursorChangeCallback;
+  RequestKeyboardFocusCallback mRequestKeyboardFocusCallback;
 
   uint8_t* mPixelData = nullptr;
 };
