@@ -1,175 +1,175 @@
 #sidebar {
-    grid-area: sidebar;
-    max-height: 100vh;
-    max-width: 450px;
-    margin-top: -35px;
-    margin-bottom: -15px;
-    z-index: 1;
-    overflow-x: hidden;
-    overflow-y: scroll;
-    opacity: 0;
-    transition: opacity 0.2s linear;
-    -webkit-mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0) 0px, rgba(0, 0, 0, 1) 50px), 
-                        linear-gradient(180deg, rgba(0,0,0,0) calc(100% - 30px), rgba(0,0,0,1) 100%);
-    -webkit-mask-composite: xor;
+  grid-area: sidebar;
+  max-height: 100vh;
+  max-width: 450px;
+  margin-top: -35px;
+  margin-bottom: -15px;
+  z-index: 1;
+  overflow-x: hidden;
+  overflow-y: scroll;
+  opacity: 0;
+  transition: opacity 0.2s linear;
+  -webkit-mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0) 0px, rgba(0, 0, 0, 1) 50px),
+    linear-gradient(180deg, rgba(0, 0, 0, 0) calc(100% - 30px), rgba(0, 0, 0, 1) 100%);
+  -webkit-mask-composite: xor;
 }
 
 .loaded #sidebar {
-    opacity: 1;
+  opacity: 1;
 }
 
 #sidebar-accordion {
-    padding-top: 50px;
-    padding-bottom: 50px;
+  padding-top: 50px;
+  padding-bottom: 50px;
 }
 
 #sidebar::-webkit-scrollbar {
-    display: none;
+  display: none;
 }
 
 #sidebar .tab {
-    color: #fff;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: block;
-    font-size: 2rem;
-    line-height: 2.5rem;
-    transition: width 0.3s ease, background 0.1s linear;
-    width: 55px;
-    height: 55px;
-    overflow: hidden;
-    white-space: nowrap;
-    text-shadow: 0 0 5px rgba(255, 255, 255, 0.4), 0 0 10px #aaf;
-    text-align: center;
-    padding: 3px;
-    border-top: 2px solid var(--cs-border-color) !important;
-    position: relative;
+  color: #fff;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: block;
+  font-size: 2rem;
+  line-height: 2.5rem;
+  transition: width 0.3s ease, background 0.1s linear;
+  width: 55px;
+  height: 55px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-shadow: 0 0 5px rgba(255, 255, 255, 0.4), 0 0 10px #aaf;
+  text-align: center;
+  padding: 3px;
+  border-top: 2px solid var(--cs-border-color) !important;
+  position: relative;
 }
 
 #sidebar .tab:active {
-    top: 1px;
+  top: 1px;
 }
 
 #sidebar .tab .header-name {
-    font-family: 'AlegreyaSansSC', sans-serif;
-    opacity: 0;
-    transition: opacity 0.1s linear;
-    overflow-x: hidden;
-    text-overflow: clip;
-    white-space: nowrap;
+  font-family: 'AlegreyaSansSC', sans-serif;
+  opacity: 0;
+  transition: opacity 0.1s linear;
+  overflow-x: hidden;
+  text-overflow: clip;
+  white-space: nowrap;
 }
 
 
 #sidebar .tab:not(.collapsed),
 #sidebar .tab:hover {
-    width: 450px;
+  width: 450px;
 }
 
 #sidebar .tab:hover {
-    background-color: rgba(50, 50, 50, 0.5);
+  background-color: rgba(50, 50, 50, 0.5);
 }
 
 #sidebar .tab:not(.collapsed) .header-name,
 #sidebar .tab:hover .header-name {
-    opacity: 1;
-    transition: opacity 0.2s linear;
-    transition-delay: 0.1s;
+  opacity: 1;
+  transition: opacity 0.2s linear;
+  transition-delay: 0.1s;
 }
 
 #sidebar .card-header i {
-    position: absolute;
-    left: 9px;
-    font-size: 35px;
-    top: 10px;
-    width: 2rem;
-    margin-right: 1rem;
-    display: inline-block;
-    text-align: center;
+  position: absolute;
+  left: 9px;
+  font-size: 35px;
+  top: 10px;
+  width: 2rem;
+  margin-right: 1rem;
+  display: inline-block;
+  text-align: center;
 }
 
 #sidebar .card .card-body {
-    background-color: rgba(0, 0, 0, 0.5);
-    padding: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  padding: 0;
 }
 
 #sidebar .card {
-    background: transparent;
-    padding: 5px 0;
-    margin: 0;
-    box-shadow: none;
-    border: none;
-    border-radius: 0;
+  background: transparent;
+  padding: 5px 0;
+  margin: 0;
+  box-shadow: none;
+  border: none;
+  border-radius: 0;
 }
 
-.accordion > .card .card-header {
-    margin: 0;
-    border: none;
-    border-radius: 0;
+.accordion>.card .card-header {
+  margin: 0;
+  border: none;
+  border-radius: 0;
 }
 
 #sidebar *[type=button] {
-    -webkit-appearance: none;
+  -webkit-appearance: none;
 }
 
 /* Setting Sections --------------------------------------------------------- */
 
 #sidebar .settings-section .card-header {
-    font-family: 'AlegreyaSansSC', sans-serif;
-    width: 100%;
-    font-size: 1.5rem;
-    background: transparent;
-    border: none;
-    margin: 0;
-    color: #fff;
-    text-shadow: 0 0 5px rgba(255, 255, 255, 0.4), 0 0 10px #aaf;
-    position: relative;
-    transition: 100ms background;
-    padding: 0.5rem 1.7rem;
+  font-family: 'AlegreyaSansSC', sans-serif;
+  width: 100%;
+  font-size: 1.5rem;
+  background: transparent;
+  border: none;
+  margin: 0;
+  color: #fff;
+  text-shadow: 0 0 5px rgba(255, 255, 255, 0.4), 0 0 10px #aaf;
+  position: relative;
+  transition: 100ms background;
+  padding: 0.5rem 1.7rem;
 }
 
 #sidebar .settings-section .card-header:active {
-    top: 1px;
+  top: 1px;
 }
 
 #sidebar .settings-section .card-header i {
-    width: 2rem;
-    font-size: 1.6rem;
-    display: inline-block;
-    line-height: 2rem;
+  width: 2rem;
+  font-size: 1.6rem;
+  display: inline-block;
+  line-height: 2rem;
 }
 
 #sidebar .settings-section .card-header span {
-    text-align: center;
-    display: inline-block;
-    padding-left: 25px;
+  text-align: center;
+  display: inline-block;
+  padding-left: 25px;
 }
 
 #sidebar .settings-section .card-body {
-    background-color: transparent !important;
-    width: 100%;
+  background-color: transparent !important;
+  width: 100%;
 }
 
 #sidebar .settings-section .card-header:hover {
-    background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 #sidebar .settings-section .card-header .caret-icon {
-    position: absolute;
-    left: auto;
-    right: 0;
-    transform: rotate(0deg);
-    transition: 100ms transform;
+  position: absolute;
+  left: auto;
+  right: 0;
+  transform: rotate(0deg);
+  transition: 100ms transform;
 }
 
 #sidebar .settings-section .card-header:not(.collapsed) .caret-icon {
-    transform: rotate(-90deg);
+  transform: rotate(-90deg);
 }
 
 #sidebar .card.settings-section {
-    border-style: dashed;
-    border-width: 1px 0 0 0;
-    border-color: rgba(255, 255, 255, 0.4);
+  border-style: dashed;
+  border-width: 1px 0 0 0;
+  border-color: rgba(255, 255, 255, 0.4);
 }
 
 .settings-accordion {
-    margin-bottom: 0;
+  margin-bottom: 0;
 }

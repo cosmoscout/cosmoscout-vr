@@ -1,45 +1,46 @@
 #logo {
-    position: absolute;
-    right: 15px;
-    bottom: 0px;
-    width: 100px;
-    height: 100px;
-    transform-origin: 0 0;
-    opacity: 0;
-    -webkit-perspective: 120px;
-    perspective: 500px;
-    transition: opacity 0.2s linear;
+  position: absolute;
+  right: 15px;
+  bottom: 0px;
+  width: 100px;
+  height: 100px;
+  transform-origin: 0 0;
+  opacity: 0;
+  -webkit-perspective: 120px;
+  perspective: 500px;
+  transition: opacity 0.2s linear;
 }
 
 .loaded #logo {
-    opacity: 0.5;
+  opacity: 0.5;
 }
 
 #logo-image {
-    position: absolute;
-    background-image: url("../img/dlr_logo.png");
-    width: 100px;
-    height: 83px;
-    animation: rotate 50s ease-in-out infinite;
-    -webkit-animation: rotate 50s ease-in-out infinite;
+  position: absolute;
+  background-image: url("../img/dlr_logo.png");
+  width: 100px;
+  height: 83px;
+  animation: rotate 50s ease-in-out infinite;
+  -webkit-animation: rotate 50s ease-in-out infinite;
 }
 
 #logo-text {
-    position: absolute;
-    background-image: url("../img/dlr_name.png");
-    width: 100px;
-    height: 83px;
+  position: absolute;
+  background-image: url("../img/dlr_name.png");
+  width: 100px;
+  height: 83px;
 }
 
 @-webkit-keyframes rotate {
-    0% {
-        transform: rotate3d(0, 1, 0, 0deg);
-    }
-    2% {
-        transform: rotate3d(0, 1, 0, 360deg);
-    }
-    100% {
-        transform: rotate3d(0, 1, 0, 360deg);
-    }
-}
+  0% {
+    transform: rotate3d(0, 1, 0, 0deg);
+  }
 
+  2% {
+    transform: rotate3d(0, 1, 0, 360deg);
+  }
+
+  100% {
+    transform: rotate3d(0, 1, 0, 360deg);
+  }
+}
