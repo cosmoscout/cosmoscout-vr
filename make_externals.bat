@@ -95,7 +95,7 @@ cmake -E make_directory "%BUILD_DIR%/c-ares" && cd "%BUILD_DIR%/c-ares"
 cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
       "%EXTERNALS_DIR%/c-ares" || exit /b
 
-        cmake --build . --config %BUILD_TYPE% --target install --parallel
+cmake --build . --config %BUILD_TYPE% --target install --parallel
 
 rem curl -------------------------------------------------------------------------------------------
 

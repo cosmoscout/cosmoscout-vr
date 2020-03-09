@@ -19,7 +19,7 @@ set -e
 #    ./make_externals.sh                                                                           #
 #    ./make_externals.sh -G "Unix Makefiles"                                                       #
 #    ./make_externals.sh -G "Eclipse CDT4 - Unix Makefiles" -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \ #
-#                        -DCMAKE_C_COMPILER_LAUNCHR=ccache                                        #
+#                        -DCMAKE_C_COMPILER_LAUNCHER=ccache                                        #
 # ------------------------------------------------------------------------------------------------ #
 
 # Create some required variables. ------------------------------------------------------------------
