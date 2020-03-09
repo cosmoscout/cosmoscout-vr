@@ -61,7 +61,7 @@ cd "%BUILD_DIR%"
 cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
       -DCOSMOSCOUT_EXTERNALS_DIR="%EXTERNALS_INSTALL_DIR%" "%CMAKE_DIR%"  || exit /b
 
-cmake --build . --config %BUILD_TYPE% --target install --parallel 8  || exit /b
+cmake --build . --config %BUILD_TYPE% --target install --parallel "%NUMBER_OF_PROCESSORS%"  || exit /b
 
 rem Delete empty files installed by cmake
 robocopy "%INSTALL_DIR%\lib" "%INSTALL_DIR%\lib" /s /move || exit /b
