@@ -11,7 +11,6 @@
 #include "KeyEvent.hpp"
 #include "MouseEvent.hpp"
 
-#include <any>
 #include <chrono>
 #include <include/cef_client.h>
 #include <iostream>
@@ -76,7 +75,7 @@ class CS_GUI_EXPORT WebView {
   void registerCallback(
       std::string const& name, std::string const& comment, std::function<void()> const& callback) {
     registerJSCallbackImpl(
-        name, comment, {}, [this, callback](std::vector<std::any> const& args) { callback(); });
+        name, comment, {}, [this, callback](std::vector<JSType> const& args) { callback(); });
   }
 
   /// See documentation above.
@@ -174,7 +173,7 @@ class CS_GUI_EXPORT WebView {
   }
 
   /// This wraps the given callback in a lambda which will stored in an internal map. This lambda
-  /// receives its arguments as a std::vector<std::any>, each item in this vector will be casted to
+  /// receives its arguments as a std::vector<JSType>, each item in this vector will be casted to
   /// the required paramater types of the given callback.
   template <typename... Args, std::size_t... Is>
   void registerCallbackWrapper(std::string const& name, std::string const& comment,
@@ -185,10 +184,10 @@ class CS_GUI_EXPORT WebView {
     std::vector<std::type_index> types = {std::type_index(typeid(Args))...};
 
     registerJSCallbackImpl(
-        name, comment, types, [this, name, callback](std::vector<std::any> const& args) {
+        name, comment, std::move(types), [this, name, callback](std::vector<JSType>&& args) {
           try {
-            callback(std::any_cast<typename std::remove_reference<Args>::type>(args[Is])...);
-          } catch (std::bad_any_cast const& e) {
+            callback(std::get<typename std::remove_reference<Args>::type>(std::move(args[Is]))...);
+          } catch (std::bad_variant_access const& e) {
             spdlog::error("Cannot execute javascript call '{}': {}", name, e.what());
           }
         });
@@ -196,8 +195,8 @@ class CS_GUI_EXPORT WebView {
 
   void callJavascriptImpl(std::string const& function, std::vector<std::string> const& args) const;
   void registerJSCallbackImpl(std::string const& name, std::string const& comment,
-      std::vector<std::type_index> const&                      types,
-      std::function<void(std::vector<std::any> const&)> const& callback);
+      std::vector<std::type_index>&&                    types,
+      std::function<void(std::vector<JSType>&&)> const& callback);
 
   detail::WebViewClient* mClient;
   CefRefPtr<CefBrowser>  mBrowser;

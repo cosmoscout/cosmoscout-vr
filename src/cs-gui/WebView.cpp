@@ -356,8 +356,8 @@ void WebView::unregisterCallback(std::string const& name) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void WebView::registerJSCallbackImpl(std::string const& name, std::string const& comment,
-    std::vector<std::type_index> const&                      types,
-    std::function<void(std::vector<std::any> const&)> const& callback) {
+    std::vector<std::type_index>&&                    types,
+    std::function<void(std::vector<JSType>&&)> const& callback) {
 
   // To increase the readability of the callback signature when inspected via an interactive
   // console, we name every argument depending on its type.

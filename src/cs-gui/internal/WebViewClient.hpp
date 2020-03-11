@@ -16,7 +16,6 @@
 #include "RequestHandler.hpp"
 #include "ResourceRequestHandler.hpp"
 
-#include <any>
 #include <include/cef_client.h>
 #include <include/cef_render_handler.h>
 #include <include/cef_v8.h>
@@ -34,7 +33,7 @@ class WebViewClient : public CefClient {
   /// Registers callback functions for Javascript. Registering the same name twice will override the
   /// first callback.
   void RegisterJSCallback(
-      std::string const& name, std::function<void(std::vector<std::any> const&)> callback);
+      std::string const& name, std::function<void(std::vector<JSType>&&)> callback);
 
   /// Unregisters a JavaScript callback.
   void UnregisterJSCallback(std::string const& name);
@@ -95,7 +94,7 @@ class WebViewClient : public CefClient {
   CefRefPtr<LoadHandler>     mLoadHandler     = new LoadHandler();
   CefRefPtr<RequestHandler>  mRequestHandler  = new RequestHandler();
 
-  std::unordered_map<std::string, std::function<void(std::vector<std::any> const&)>> js_callbacks_;
+  std::unordered_map<std::string, std::function<void(std::vector<JSType>&&)>> js_callbacks_;
 };
 
 } // namespace cs::gui::detail

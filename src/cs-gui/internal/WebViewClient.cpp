@@ -22,7 +22,7 @@ WebViewClient::~WebViewClient() {
 
     for (auto&& i : js_callbacks_) {
       spdlog::warn(" - {}", i.first);
-      i.second = [](std::vector<std::any> const&) {};
+      i.second = [](std::vector<JSType> const&) {};
     }
   }
 }
@@ -43,7 +43,7 @@ bool WebViewClient::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
       return true;
     }
 
-    std::vector<std::any> args;
+    std::vector<JSType> args;
 
     for (int i(1); i < message->GetArgumentList()->GetSize(); ++i) {
       CefValueType type(message->GetArgumentList()->GetType((size_t)i));
@@ -58,11 +58,12 @@ bool WebViewClient::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
         args.emplace_back(message->GetArgumentList()->GetString((size_t)i).ToString());
         break;
       default:
+        spdlog::warn("Failed to parse argument {} of callback '{}': Unsupported type!");
         break;
       }
     }
 
-    callback->second(args);
+    callback->second(std::move(args));
 
     return true;
   } else if (message->GetName() == "error") {
@@ -75,7 +76,7 @@ bool WebViewClient::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void WebViewClient::RegisterJSCallback(
-    std::string const& name, std::function<void(std::vector<std::any> const&)> callback) {
+    std::string const& name, std::function<void(std::vector<JSType>&&)> callback) {
   js_callbacks_[name] = std::move(callback);
 }
 
