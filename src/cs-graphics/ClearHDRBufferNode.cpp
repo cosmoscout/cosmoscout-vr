@@ -13,17 +13,21 @@
 
 namespace cs::graphics {
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 ClearHDRBufferNode::ClearHDRBufferNode(std::shared_ptr<HDRBuffer> const& hdrBuffer)
     : mHDRBuffer(hdrBuffer) {
 }
-ClearHDRBufferNode::~ClearHDRBufferNode() {
-}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool ClearHDRBufferNode::ClearHDRBufferNode::Do() {
   mHDRBuffer->clear();
   mHDRBuffer->bind();
   return true;
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool ClearHDRBufferNode::GetBoundingBox(VistaBoundingBox& oBoundingBox) {
   float min(std::numeric_limits<float>::min());
@@ -35,5 +39,7 @@ bool ClearHDRBufferNode::GetBoundingBox(VistaBoundingBox& oBoundingBox) {
 
   return true;
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 } // namespace cs::graphics

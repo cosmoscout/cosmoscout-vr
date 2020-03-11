@@ -65,15 +65,19 @@ GraphicsEngine::GraphicsEngine(std::shared_ptr<const core::Settings> const& sett
 
   pShadowMapExtension.onChange().connect([this](glm::vec2) { calculateCascades(); });
 
-  // setup hdr buffer ------------------------------------------------------------------------------
+  // setup HDR buffer ------------------------------------------------------------------------------
 
   mHDRBuffer = std::make_shared<graphics::HDRBuffer>();
 
+  // Create a node which clears the HDRBuffer at the beginning of a frame (this will be enabled only
+  // if HDR rendering is enabled).
   mClearNode       = std::make_shared<graphics::ClearHDRBufferNode>(mHDRBuffer);
   auto clearGLNode = pSG->NewOpenGLNode(pSG->GetRoot(), mClearNode.get());
   VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
       clearGLNode, static_cast<int>(utils::DrawOrder::eClearHDRBuffer));
 
+  // Create a node which performas tonemapping of the HDRBuffer at the end of a frame (this will be
+  // enabled only if HDR rendering is enabled).
   mToneMappingNode       = std::make_shared<graphics::ToneMappingNode>(mHDRBuffer, true);
   auto toneMappingGLNode = pSG->NewOpenGLNode(pSG->GetRoot(), mToneMappingNode.get());
   VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
@@ -109,6 +113,9 @@ GraphicsEngine::GraphicsEngine(std::shared_ptr<const core::Settings> const& sett
       mToneMappingNode->setExposure(value);
     }
 
+    // Whenever the exposure changes, and if auto-glow is enabled, we change the glow intensity
+    // based on the exposure value. The auto-glow amount is based on the current exposure relative
+    // to the auto-exposure range.
     if (pEnableAutoGlow.get()) {
       float glow = (pAutoExposureRange.get()[0] - value) /
                    (pAutoExposureRange.get()[0] - pAutoExposureRange.get()[1]);
@@ -141,7 +148,9 @@ void GraphicsEngine::unregisterCaster(graphics::ShadowCaster* caster) {
 void GraphicsEngine::update(glm::vec3 const& sunDirection) {
   mShadowMap->setSunDirection(VistaVector3D(sunDirection.x, sunDirection.y, sunDirection.z));
 
-  // update projection
+  // Update projection. When the sensor size control is enabled, we will calculate the projection
+  // plane extents based on the screens aspect ratio, the given sensor diagonal and sensor focal
+  // length.
   if (mSettings->mEnableSensorSizeControl) {
     VistaViewport* pViewport(GetVistaSystem()->GetDisplayManager()->GetViewports().begin()->second);
     int            sizeX = 0;
@@ -159,7 +168,8 @@ void GraphicsEngine::update(glm::vec3 const& sunDirection) {
     pProjProps->SetProjPlaneMidpoint(0, 0, -1);
   }
 
-  // update exposure
+  // Update exposure. If auto exposure is enabled, the property will reflect the exposure chosen by
+  // the tonemapping node.
   if (pEnableAutoExposure.get()) {
     pExposure = mToneMappingNode->getExposure();
   }

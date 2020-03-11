@@ -25,62 +25,57 @@ namespace cs::graphics {
 class LuminanceMipMap;
 class GlowMipMap;
 
+/// In future we will have various ways to compute the exposure. For now, the average brightness of
+/// all pixels is computed.
 enum class ExposureMeteringMode { AVERAGE = 0 };
 
-/**
- * Rendering with VistaDeferredPBRExport
-VistaDeferredPBR involves several required steps
- * - ClearHDRBufferNode::Do()   Should be called quite early, this will clear and bind the
-HDRBuffer.
- * - Draw opaque geometry     The HDRBuffer has several attachements your shaders are supposed to
- *                            write to:
- *                            gl_FragDepth = length(viewSpacePosition) / farClip;
- *                            layout(location = 0) out vec3 oNormal                       3x16 bit
- *                            layout(location = 1) out vec3 oAlbedo                       3x8  bit
- *                            layout(location = 2) out vec3 oEmissivity;                  3x16 bit
- *                            layout(location = 3) out vec3 oRoughnessMetalnessOcclusion; 3x8  bit
- * - HDRBufferResolveNode::Do() This will do physically based shading based on the HDRBuffer, light
- *                            information and an environment map and store the result in another
- *                            3x16 bit target
- * - Apply HDR effects        OpenGLNodes may use the HDRBuffer interface to apply effects such as
- *                            bloom or lensflares or tone-mapping. The internal render target will
- *                            be used in a ping-pong fashion. The last effect should be configured
- *                            to write to the backbuffer. HDRBuffer attachments will be bound to
- *                            texture units and can be accessed like this:
- *                            layout(binding = 0) uniform sampler2D uDepth;
- *                            layout(binding = 1) uniform sampler2D uNormal;
- *                            layout(binding = 2) uniform sampler2D uAlbedo;
- *                            layout(binding = 3) uniform sampler2D uEmissivity;
- *                            layout(binding = 4) uniform sampler2D uRoughnessMetalnessOcclusion;
- *                            layout(binding = 5) uniform sampler2D uComposite;
- */
+/// The HDRBuffer is used as render target when HDR rendering is enabled. It contains an framebuffer
+/// object for each viewport. Each framebuffer object has two color attachments containing luminance
+/// values (which can be used in a ping-pong fashion) and a depth attachment. It also contains a
+/// LuminanceMipMap to compute the average brightness for auto-exposure and a GlowMipMap for a
+/// glare-effect.
 class CS_GRAPHICS_EXPORT HDRBuffer {
  public:
+  /// When highPrecision is set to false, only 16bit color buffers are used.
   HDRBuffer(bool highPrecision = true);
   virtual ~HDRBuffer();
 
-  // Binds DEPTH and one ping-pong target for writing.
+  /// Binds DEPTH and one ping-pong target for writing.
   void bind();
 
-  // Subsequent calls will draw to the backbuffer again.
+  /// Subsequent calls will draw to the backbuffer again.
   void unbind();
 
-  // Subsequent calls to bind() will use the ping-pong targets the other way around.
+  /// Subsequent calls to bind() will use the ping-pong targets the other way around.
   void doPingPong();
 
-  // Clears all attachements, that is DEPTH to 1.0, and HDR_0 and HDR_1 to vec3(0).
+  /// Clears all attachments, that is DEPTH to 1.0, and HDR_0 and HDR_1 to vec3(0).
   void clear();
 
+  /// Calculate the scene's luminance based on the given metering mode. The results cab be retrieved
+  /// with getTotalLuminance().
   void  calculateLuminance(ExposureMeteringMode mode);
   float getTotalLuminance() const;
+
+  /// Whenever calculateLuminance() is called, the maximum luminance is also computed.
   float getMaximumLuminance() const;
 
+  /// Update and access the GlowMipMap.
   void          updateGlowMipMap();
   VistaTexture* getGlowMipMap() const;
+
+  /// Returns the depth attachment for the currently rendered viewport.
   VistaTexture* getDepthAttachment() const;
+
+  /// Returns the color attachment which is currently bound for writing for the currently rendered
+  /// viewport.
   VistaTexture* getCurrentWriteAttachment() const;
+
+  /// Returns the color attachment which is currently bound for reading for the currently rendered
+  /// viewport.
   VistaTexture* getCurrentReadAttachment() const;
 
+  /// Helper methods to access the size and position of the viewports we are currently rendering to.
   std::array<int, 2> getCurrentViewPortSize() const;
   std::array<int, 2> getCurrentViewPortPos() const;
 

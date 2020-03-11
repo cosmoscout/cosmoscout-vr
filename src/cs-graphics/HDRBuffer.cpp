@@ -41,11 +41,12 @@ HDRBuffer::~HDRBuffer() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void HDRBuffer::bind() {
+  // Get the HDRBuffer for the current viewport.
   auto& hdrBuffer = getCurrentHDRBuffer();
   auto  size      = getCurrentViewPortSize();
 
   if (size[0] != hdrBuffer.mWidth || size[1] != hdrBuffer.mHeight) {
-    // create hdrBuffer --------------------------------------------------------------------------
+    // create hdrBuffer ----------------------------------------------------------------------------
     hdrBuffer.mWidth  = size[0];
     hdrBuffer.mHeight = size[1];
 
@@ -82,11 +83,11 @@ void HDRBuffer::bind() {
     addAttachment(hdrBuffer.mDepthAttachment, GL_DEPTH_ATTACHMENT, GL_DEPTH_COMPONENT24,
         GL_DEPTH_COMPONENT, GL_FLOAT);
 
-    // create luminance mipmaps ----------------------------------------------------------------
+    // create luminance mipmaps --------------------------------------------------------------------
     delete hdrBuffer.mLuminanceMipMap;
     hdrBuffer.mLuminanceMipMap = new LuminanceMipMap(size[0], size[1]);
 
-    // create glow mipmaps ---------------------------------------------------------------------
+    // create glow mipmaps -------------------------------------------------------------------------
     delete hdrBuffer.mGlowMipMap;
     hdrBuffer.mGlowMipMap = new GlowMipMap(size[0], size[1]);
   }

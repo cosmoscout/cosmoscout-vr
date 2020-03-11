@@ -10,10 +10,13 @@
 #include "HDRBuffer.hpp"
 
 #include <VistaOGLExt/VistaTexture.h>
-#include <memory>
 
 namespace cs::graphics {
 
+/// This is a 32bit RGBA texture of half the given width and height with full mipmap levels.
+/// Whenever update() is called, all mipmap levels are updated using compute shaders in several
+/// passes to contain a blurred version of the given texture. The blur radius increases with the
+/// mipmap level.
 class CS_GRAPHICS_EXPORT GlowMipMap : public VistaTexture {
  public:
   GlowMipMap(int hdrBufferWidth, int hdrBufferHeight);
