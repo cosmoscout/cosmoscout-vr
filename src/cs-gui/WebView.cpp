@@ -339,6 +339,14 @@ void WebView::executeJavascript(std::string const& code) const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void WebView::registerCallback(
+    std::string const& name, std::string const& comment, std::function<void()> const& callback) {
+  registerJSCallbackImpl(name, comment, {},
+      [this, callback](std::vector<std::optional<JSType>> const& args) { callback(); });
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void WebView::unregisterCallback(std::string const& name) {
   mClient->UnregisterJSCallback(name);
 
@@ -356,8 +364,8 @@ void WebView::unregisterCallback(std::string const& name) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void WebView::registerJSCallbackImpl(std::string const& name, std::string const& comment,
-    std::vector<std::type_index>&&                    types,
-    std::function<void(std::vector<JSType>&&)> const& callback) {
+    std::vector<std::type_index>&&                                   types,
+    std::function<void(std::vector<std::optional<JSType>>&&)> const& callback) {
 
   // To increase the readability of the callback signature when inspected via an interactive
   // console, we name every argument depending on its type.
@@ -365,7 +373,10 @@ void WebView::registerJSCallbackImpl(std::string const& name, std::string const&
 
   const std::unordered_map<std::type_index, std::string> typeNames = {
       {std::type_index(typeid(double)), "double"}, {std::type_index(typeid(bool)), "bool"},
-      {std::type_index(typeid(std::string)), "string"}};
+      {std::type_index(typeid(std::string)), "string"},
+      {std::type_index(typeid(std::optional<double>)), "optionalDouble"},
+      {std::type_index(typeid(std::optional<bool>)), "optionalBool"},
+      {std::type_index(typeid(std::optional<std::string>)), "optionalString"}};
 
   std::unordered_map<std::type_index, int> typeCounts;
 

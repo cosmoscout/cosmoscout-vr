@@ -73,10 +73,7 @@ class CS_GUI_EXPORT WebView {
   ///                 in a interactive console.
   /// @param callback The function to execute when the HTML-Element fires a change event.
   void registerCallback(
-      std::string const& name, std::string const& comment, std::function<void()> const& callback) {
-    registerJSCallbackImpl(
-        name, comment, {}, [this, callback](std::vector<JSType> const& args) { callback(); });
-  }
+      std::string const& name, std::string const& comment, std::function<void()> const& callback);
 
   /// See documentation above.
   template <typename... Args>
@@ -167,14 +164,38 @@ class CS_GUI_EXPORT WebView {
   /// std::string&&.
   template <typename T>
   static constexpr void assertJavaScriptType() {
-    static_assert(std::is_same<T, double>() || std::is_same<T, bool>() ||
-                      std::is_same<T, std::string>() || std::is_same<T, std::string&&>(),
-        "Only doubles, bools and std::strings are supported for JavaScript callback parameters!");
+    static_assert(
+        std::is_same<T, double>() || std::is_same<T, bool>() || std::is_same<T, std::string>() ||
+            std::is_same<T, std::string&&>() || std::is_same<T, std::optional<double>>() ||
+            std::is_same<T, std::optional<bool>>() || std::is_same<T, std::optional<std::string>>(),
+        "Only doubles, bools and std::strings are supported for JavaScript callback parameters "
+        "(and std::optionals thereof)!");
   }
 
-  /// This wraps the given callback in a lambda which will stored in an internal map. This lambda
-  /// receives its arguments as a std::vector<JSType>, each item in this vector will be casted to
-  /// the required paramater types of the given callback.
+  /// The UnderlyingValue struct is used to access the actual value in a std::optional<JSType>.
+  /// There are two variants of the struct as we may want to have the actual value (a bool, double
+  /// or std::string) contained in the std::optional<JSType>, or an std::optional thereof (either a
+  /// std::optional<bool>, std::optional<double>, or std::optional<std::string>).
+  template <typename T>
+  struct UnderlyingValue {
+    static inline constexpr T get(std::optional<JSType>&& value) {
+      return std::get<typename std::remove_reference<T>::type>(std::move(value.value()));
+    }
+  };
+
+  template <typename T>
+  struct UnderlyingValue<std::optional<T>> {
+    static inline constexpr std::optional<T> get(std::optional<JSType>&& value) {
+      if (value.has_value()) {
+        return std::get<T>(std::move(value.value()));
+      }
+      return std::nullopt;
+    }
+  };
+
+  /// This wraps the given callback in a lambda which will be stored in an internal map. This lambda
+  /// receives its arguments as a std::vector<std::optional<JSType>>, each item in this vector will
+  /// be casted to the required paramater types of the given callback.
   template <typename... Args, std::size_t... Is>
   void registerCallbackWrapper(std::string const& name, std::string const& comment,
       std::function<void(Args...)> const& callback, std::index_sequence<Is...>) {
@@ -183,20 +204,31 @@ class CS_GUI_EXPORT WebView {
     // type.
     std::vector<std::type_index> types = {std::type_index(typeid(Args))...};
 
-    registerJSCallbackImpl(
-        name, comment, std::move(types), [this, name, callback](std::vector<JSType>&& args) {
+    registerJSCallbackImpl(name, comment, std::move(types),
+        [this, name, callback](std::vector<std::optional<JSType>>&& args) {
+          // It is possible that the JavaScript method was called with less arguments than we expect
+          // (if some of our arguments are optional). Therefore we pad the args vector with
+          // std::nullopts.
+          args.resize(sizeof...(Args));
+
           try {
-            callback(std::get<typename std::remove_reference<Args>::type>(std::move(args[Is]))...);
+            // Now call the actual callback. The UnderlyingValue struct is used to access the actual
+            // value in the std::optional<JSType>. See its implementation above.
+            callback(UnderlyingValue<Args>::get(std::move(args[Is]))...);
+          } catch (std::bad_optional_access const& e) {
+            spdlog::error("Cannot execute javascript call '{}':{}!", name, e.what());
           } catch (std::bad_variant_access const& e) {
-            spdlog::error("Cannot execute javascript call '{}': {}", name, e.what());
+            spdlog::error("Cannot execute javascript call '{}': Parameters do not match to the "
+                          "registered callback!",
+                name);
           }
         });
   }
 
   void callJavascriptImpl(std::string const& function, std::vector<std::string> const& args) const;
   void registerJSCallbackImpl(std::string const& name, std::string const& comment,
-      std::vector<std::type_index>&&                    types,
-      std::function<void(std::vector<JSType>&&)> const& callback);
+      std::vector<std::type_index>&&                                   types,
+      std::function<void(std::vector<std::optional<JSType>>&&)> const& callback);
 
   detail::WebViewClient* mClient;
   CefRefPtr<CefBrowser>  mBrowser;

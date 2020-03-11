@@ -33,7 +33,7 @@ class WebViewClient : public CefClient {
   /// Registers callback functions for Javascript. Registering the same name twice will override the
   /// first callback.
   void RegisterJSCallback(
-      std::string const& name, std::function<void(std::vector<JSType>&&)> callback);
+      std::string const& name, std::function<void(std::vector<std::optional<JSType>>&&)> callback);
 
   /// Unregisters a JavaScript callback.
   void UnregisterJSCallback(std::string const& name);
@@ -94,7 +94,8 @@ class WebViewClient : public CefClient {
   CefRefPtr<LoadHandler>     mLoadHandler     = new LoadHandler();
   CefRefPtr<RequestHandler>  mRequestHandler  = new RequestHandler();
 
-  std::unordered_map<std::string, std::function<void(std::vector<JSType>&&)>> js_callbacks_;
+  std::unordered_map<std::string, std::function<void(std::vector<std::optional<JSType>>&&)>>
+      mJSCallbacks;
 };
 
 } // namespace cs::gui::detail

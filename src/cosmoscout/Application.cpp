@@ -918,11 +918,13 @@ void Application::registerGuiCallbacks() {
 
   // Flies the observer to the given celestial body.
   mGuiManager->getGui()->registerCallback("navigation.setBody",
-      "Makes the observer fly to the celestial body with the given name.",
-      std::function([this](std::string&& name) {
+      "Makes the observer fly to the celestial body with the given name. The optional argument "
+      "specifies the travel time in seconds (default is 10s).",
+      std::function([this](std::string&& name, std::optional<double> duration) {
         for (auto const& body : mSolarSystem->getBodies()) {
           if (body->getCenterName() == name) {
-            mSolarSystem->flyObserverTo(body->getCenterName(), body->getFrameName(), 10.0);
+            mSolarSystem->flyObserverTo(
+                body->getCenterName(), body->getFrameName(), duration.value_or(10.0));
             mGuiManager->showNotification("Travelling", "to " + name, "send");
             break;
           }
@@ -947,7 +949,9 @@ void Application::registerGuiCallbacks() {
   // Rotates the scene in such a way, that the y-axis points towards the north pole of the currently
   // active celestial body.
   mGuiManager->getGui()->registerCallback("navigation.northUp",
-      "Turns the observer so that north is facing upwards.", std::function([this]() {
+      "Turns the observer so that north is facing upwards. The optional argument specifies the "
+      "animation time in seconds (default is 2s).",
+      std::function([this](std::optional<double> duration) {
         auto observerPos = mSolarSystem->getObserver().getAnchorPosition();
 
         glm::dvec3 y = glm::vec3(0, -1, 0);
@@ -962,7 +966,8 @@ void Application::registerGuiCallbacks() {
         auto rotation = glm::toQuat(glm::dmat3(x, y, z));
 
         mSolarSystem->flyObserverTo(mSolarSystem->getObserver().getCenterName(),
-            mSolarSystem->getObserver().getFrameName(), observerPos, rotation, 1.0);
+            mSolarSystem->getObserver().getFrameName(), observerPos, rotation,
+            duration.value_or(1.0));
       }));
 
   // Rotates the scene in such a way, that the currently visible horizon is levelled.
