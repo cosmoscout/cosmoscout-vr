@@ -64,7 +64,7 @@ cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
       -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCOSMOSCOUT_EXTERNALS_DIR="$EXTERNALS_INSTALL_DIR" \
       -DCMAKE_EXPORT_COMPILE_COMMANDS=On "$CMAKE_DIR"
 
-cmake --build . --target install --parallel
+cmake --build . --target install --parallel "$(nproc)"
 
 # Delete empty files installed by cmake
 find "$INSTALL_DIR" -type d -empty -delete
