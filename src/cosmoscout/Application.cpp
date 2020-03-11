@@ -280,6 +280,23 @@ void Application::FrameUpdate() {
     EmitSystemEvent(VistaSystemEvent::VSE_PREGRAPHICS);
   }
 
+  // update vista classes --------------------------------------------------------------------------
+
+  {
+    cs::utils::FrameTimings::ScopedTimer timer("ClusterMode ProcessFrame");
+    m_pClusterMode->ProcessFrame();
+  }
+
+  {
+    cs::utils::FrameTimings::ScopedTimer timer("ClusterMode EndFrame");
+    m_pClusterMode->EndFrame();
+  }
+
+  {
+    cs::utils::FrameTimings::ScopedTimer timer("AvgLoopTime RecordTime");
+    m_pAvgLoopTime->RecordTime();
+  }
+
   // At frame 25 we start to download datasets. This ensures that the loading screen is actually
   // already visible.
   if (GetFrameCount() == 25) {
@@ -605,21 +622,6 @@ void Application::FrameUpdate() {
   }
 
   // update vista classes --------------------------------------------------------------------------
-
-  {
-    cs::utils::FrameTimings::ScopedTimer timer("ClusterMode ProcessFrame");
-    m_pClusterMode->ProcessFrame();
-  }
-
-  {
-    cs::utils::FrameTimings::ScopedTimer timer("ClusterMode EndFrame");
-    m_pClusterMode->EndFrame();
-  }
-
-  {
-    cs::utils::FrameTimings::ScopedTimer timer("AvgLoopTime RecordTime");
-    m_pAvgLoopTime->RecordTime();
-  }
 
   {
     cs::utils::FrameTimings::ScopedTimer timer("DisplayManager DrawFrame");
