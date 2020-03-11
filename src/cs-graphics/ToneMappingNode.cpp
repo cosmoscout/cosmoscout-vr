@@ -11,6 +11,7 @@
 #include <VistaInterProcComm/Cluster/VistaClusterDataCollect.h>
 #include <VistaInterProcComm/Cluster/VistaClusterDataSync.h>
 #include <VistaKernel/Cluster/VistaClusterMode.h>
+#include <VistaKernel/DisplayManager/VistaDisplayManager.h>
 #include <VistaKernel/EventManager/VistaEventManager.h>
 #include <VistaKernel/EventManager/VistaSystemEvent.h>
 #include <VistaKernel/VistaFrameLoop.h>
@@ -404,7 +405,12 @@ float ToneMappingNode::getLastMaximumLuminance() const {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool ToneMappingNode::ToneMappingNode::Do() {
-  if (mEnableAutoExposure) {
+
+  bool doCalculateExposure =
+      GetVistaSystem()->GetDisplayManager()->GetCurrentRenderInfo()->m_eEyeRenderMode !=
+      VistaDisplayManager::RenderInfo::ERM_RIGHT;
+
+  if (doCalculateExposure && mEnableAutoExposure) {
     mHDRBuffer->calculateLuminance(mExposureMeteringMode);
 
     // we accumulate all luminance values of this frame (can be multiple viewports
@@ -445,7 +451,7 @@ bool ToneMappingNode::ToneMappingNode::Do() {
 
   // ---------------
 
-  if (mEnableAutoExposure) {
+  if (doCalculateExposure && mEnableAutoExposure) {
     mExposure = glm::clamp(mAutoExposure, mMinAutoExposure, mMaxAutoExposure);
   }
 
