@@ -7,6 +7,7 @@
 #include "Downloader.hpp"
 
 #include "../cs-utils/filesystem.hpp"
+#include <spdlog/spdlog.h>
 
 namespace cs::utils {
 
@@ -27,11 +28,19 @@ void Downloader::download(std::string const& url, std::string const& file) {
   size_t                       progressIndex = mProgress.size();
   mProgress.push_back({0.0, 0.0});
 
+  // We download to a file with a .part suffix. Once the download is done, we will remove the
+  // suffix.
   mThreadPool.enqueue([this, file, url, progressIndex]() {
-    filesystem::downloadFile(url, file, [this, progressIndex](double progress, double total) {
-      std::unique_lock<std::mutex> lock(mProgressMutex);
-      mProgress[progressIndex] = {progress, total};
-    });
+    spdlog::info("Downloading file '{}'...", file);
+
+    filesystem::downloadFile(
+        url, file + ".part", [this, progressIndex](double progress, double total) {
+          std::unique_lock<std::mutex> lock(mProgressMutex);
+          mProgress[progressIndex] = {progress, total};
+        });
+
+    std::rename((file + ".part").c_str(), file.c_str());
+    spdlog::info("Finished downloading file '{}'.", file);
   });
 }
 
