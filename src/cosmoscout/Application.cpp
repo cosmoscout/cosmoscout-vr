@@ -742,35 +742,7 @@ void Application::connectSlots() {
 
 void Application::registerGuiCallbacks() {
 
-  // Flies the observer to the given celestial body.
-  mGuiManager->getGui()->registerCallback("navigation.setCelestialBody",
-      "Makes the observer fly to the celestial body with the given name.",
-      std::function([this](std::string&& name) {
-        for (auto const& body : mSolarSystem->getBodies()) {
-          if (body->getCenterName() == name) {
-            mSolarSystem->pActiveBody = body;
-            mSolarSystem->flyObserverTo(body->getCenterName(), body->getFrameName(), 10.0);
-            mGuiManager->showNotification("Travelling", "to " + name, "send");
-            break;
-          }
-        }
-      }));
-
-  // Sets the current simulation time. The argument must be a string accepted by
-  // TimeControl::setTime.
-  mGuiManager->getGui()->registerCallback("time.setDate",
-      "Sets the current simulation time. Format must be in the format '2002-01-20 "
-      "23:59:59.000'.",
-      std::function([this](std::string&& sDate) {
-        double time = cs::utils::convert::toSpiceTime(boost::posix_time::time_from_string(sDate));
-        mTimeControl->setTime(time);
-      }));
-
-  // Sets the current simulation time. The argument must be a double representing Barycentric
-  // Dynamical Time.
-  mGuiManager->getGui()->registerCallback("time.set",
-      "Sets the current simulation time. The value must be in barycentric dynamical time.",
-      std::function([this](double tTime) { mTimeControl->setTime(tTime); }));
+  // graphics callbacks ----------------------------------------------------------------------------
 
   // Adjusts the global ambient brightness factor.
   mGuiManager->getGui()->registerCallback("graphics.setAmbientLight",
@@ -886,6 +858,22 @@ void Application::registerGuiCallbacks() {
 
   // Timeline callbacks ----------------------------------------------------------------------------
 
+  // Sets the current simulation time. The argument must be a string accepted by
+  // TimeControl::setTime.
+  mGuiManager->getGui()->registerCallback("time.setDate",
+      "Sets the current simulation time. Format must be in the format '2002-01-20 "
+      "23:59:59.000'.",
+      std::function([this](std::string&& sDate) {
+        double time = cs::utils::convert::toSpiceTime(boost::posix_time::time_from_string(sDate));
+        mTimeControl->setTime(time);
+      }));
+
+  // Sets the current simulation time. The argument must be a double representing Barycentric
+  // Dynamical Time.
+  mGuiManager->getGui()->registerCallback("time.set",
+      "Sets the current simulation time. The value must be in barycentric dynamical time.",
+      std::function([this](double tTime) { mTimeControl->setTime(tTime); }));
+
   mGuiManager->getGui()->registerCallback("time.reset",
       "Resets the simulation time to the default value.",
       std::function([this]() { mTimeControl->resetTime(); }));
@@ -908,17 +896,50 @@ void Application::registerGuiCallbacks() {
       "Sets the multiplier for the simulation time speed.",
       std::function([this](double speed) { mTimeControl->setTimeSpeed(speed); }));
 
+  // navigation callbacks --------------------------------------------------------------------------
+
+  // Sets the observer position to the given cartesian coordinates.
+  mGuiManager->getGui()->registerCallback("navigation.setPosition",
+      "Sets the observer position to the given cartesian coordinates.",
+      std::function([this](double x, double y, double z, double time) {
+        mSolarSystem->flyObserverTo(mSolarSystem->getObserver().getCenterName(),
+            mSolarSystem->getObserver().getFrameName(), glm::dvec3(x, y, z),
+            mSolarSystem->getObserver().getAnchorRotation(), time);
+      }));
+
+  // Sets the observer rotation to the given quaternion coordinates.
+  mGuiManager->getGui()->registerCallback("navigation.setRotation",
+      "Sets the observer rotation to the given quaternion.",
+      std::function([this](double w, double x, double y, double z) {
+        mSolarSystem->flyObserverTo(mSolarSystem->getObserver().getCenterName(),
+            mSolarSystem->getObserver().getFrameName(),
+            mSolarSystem->getObserver().getAnchorPosition(), glm::dquat(w, x, y, z), 2.0);
+      }));
+
+  // Flies the observer to the given celestial body.
+  mGuiManager->getGui()->registerCallback("navigation.setBody",
+      "Makes the observer fly to the celestial body with the given name.",
+      std::function([this](std::string&& name) {
+        for (auto const& body : mSolarSystem->getBodies()) {
+          if (body->getCenterName() == name) {
+            mSolarSystem->flyObserverTo(body->getCenterName(), body->getFrameName(), 10.0);
+            mGuiManager->showNotification("Travelling", "to " + name, "send");
+            break;
+          }
+        }
+      }));
+
   // Flies the celestial observer to the given location in space.
-  mGuiManager->getGui()->registerCallback("navigation.flyToLocation",
+  mGuiManager->getGui()->registerCallback("navigation.setBodyLongLatHeightDuration",
       "Makes the observer fly to a given postion in space. First parameter is the target bodies "
       "name, then latitude, longitude, elevation and travel time in seconds are required.",
       std::function([this](std::string&& name, double longitude, double latitude, double height,
-                        double time) {
+                        double duration) {
         for (auto const& body : mSolarSystem->getBodies()) {
           if (body->getCenterName() == name) {
             mSolarSystem->pActiveBody = body;
             mSolarSystem->flyObserverTo(body->getCenterName(), body->getFrameName(),
-                cs::utils::convert::toRadians(glm::dvec2(longitude, latitude)), height, time);
+                cs::utils::convert::toRadians(glm::dvec2(longitude, latitude)), height, duration);
           }
         }
       }));
@@ -1069,9 +1090,11 @@ void Application::unregisterGuiCallbacks() {
   mGuiManager->getGui()->unregisterCallback("graphics.setTerrainHeight");
   mGuiManager->getGui()->unregisterCallback("graphics.setWidgetScale");
   mGuiManager->getGui()->unregisterCallback("navigation.fixHorizon");
-  mGuiManager->getGui()->unregisterCallback("navigation.flyToLocation");
   mGuiManager->getGui()->unregisterCallback("navigation.northUp");
-  mGuiManager->getGui()->unregisterCallback("navigation.setCelestialBody");
+  mGuiManager->getGui()->unregisterCallback("navigation.setBody");
+  mGuiManager->getGui()->unregisterCallback("navigation.setBodyLongLatHeightDuration");
+  mGuiManager->getGui()->unregisterCallback("navigation.setPosition");
+  mGuiManager->getGui()->unregisterCallback("navigation.setRotation");
   mGuiManager->getGui()->unregisterCallback("navigation.toOrbit");
   mGuiManager->getGui()->unregisterCallback("navigation.toSurface");
   mGuiManager->getGui()->unregisterCallback("time.addHours");
