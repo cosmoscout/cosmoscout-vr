@@ -473,7 +473,7 @@ class TimelineApi extends IApi {
       name,
     };
 
-    CosmoScout.callbacks.navigation.flyToLocation(
+    CosmoScout.callbacks.navigation.setBodyLongLatHeightDuration(
         planet, location.longitude, location.latitude, location.height, animationTime);
     CosmoScout.notifications.print('Travelling', `to ${location.name}`, 'send');
   }

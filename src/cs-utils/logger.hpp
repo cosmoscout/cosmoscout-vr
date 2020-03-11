@@ -75,6 +75,11 @@ CS_UTILS_EXPORT Signal<std::string, spdlog::level::level_enum, std::string> cons
 /// methods.
 CS_UTILS_EXPORT std::shared_ptr<spdlog::logger> createLogger(std::string const& name);
 
+/// Adjust the log level for each sink seperately.
+CS_UTILS_EXPORT void setFileLogLevel(spdlog::level::level_enum level);
+CS_UTILS_EXPORT void setCoutLogLevel(spdlog::level::level_enum level);
+CS_UTILS_EXPORT void setSignalLogLevel(spdlog::level::level_enum level);
+
 } // namespace cs::utils::logger
 
 #endif // CS_UTILS_LOGGER_HPP

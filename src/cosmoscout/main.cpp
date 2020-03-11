@@ -38,9 +38,8 @@ int main(int argc, char** argv) {
 
   // setup loggers ---------------------------------------------------------------------------------
 
-  // Create default loggers.
+  // Create default loggers. The log level will be set once the settings are read.
   spdlog::set_default_logger(cs::utils::logger::createLogger("cosmoscout-vr"));
-  spdlog::info("Welcome to CosmoScout VR v" + CS_PROJECT_VERSION + "!");
 
   cs::core::logger::init();
   cs::graphics::logger::init();
@@ -103,6 +102,16 @@ int main(int argc, char** argv) {
     spdlog::error("Failed to read settings: {}", e.what());
     return 1;
   }
+
+  // configure loggers -----------------------------------------------------------------------------
+
+  // Once we have read the settings, we can set the log level.
+  cs::utils::logger::setCoutLogLevel(settings.mConsoleLogLevel);
+  cs::utils::logger::setFileLogLevel(settings.mFileLogLevel);
+  cs::utils::logger::setSignalLogLevel(settings.mScreenLogLevel);
+
+  // Print a nifty welcome message!
+  spdlog::info("Welcome to CosmoScout VR v" + CS_PROJECT_VERSION + "!");
 
   // start application -----------------------------------------------------------------------------
 

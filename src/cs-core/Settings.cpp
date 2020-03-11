@@ -106,6 +106,9 @@ void from_json(const nlohmann::json& j, Settings& o) {
   o.mStartDate      = parseProperty<std::string>("startDate", j);
   o.mMinDate        = parseProperty<std::string>("minDate", j);
   o.mMaxDate        = parseProperty<std::string>("maxDate", j);
+  o.mFileLogLevel    = spdlog::level::from_str(parseProperty<std::string>("fileLogLevel", j));
+  o.mConsoleLogLevel = spdlog::level::from_str(parseProperty<std::string>("consoleLogLevel", j));
+  o.mScreenLogLevel  = spdlog::level::from_str(parseProperty<std::string>("screenLogLevel", j));
 
   auto iter = j.find("downloadData");
   if (iter != j.end()) {

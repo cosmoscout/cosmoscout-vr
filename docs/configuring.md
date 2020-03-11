@@ -25,6 +25,9 @@ In the following, the individual parameters are explained and the required steps
   "startDate": "today",
   "minDate": "1950-01-02 00:00:00.000",
   "maxDate": "2049-12-31 00:00:00.000",
+  "fileLogLevel": "debug",
+  "consoleLogLevel": "trace",
+  "screenLogLevel": "info",
   "observer": {
     "center": "Earth",
     "frame": "IAU_Earth",
@@ -58,6 +61,8 @@ In the following, the individual parameters are explained and the required steps
 * **`"startDate"`:** This should be either `"today"` or in the format `"1950-01-02 00:00:00.000"` and determines the initial simulation time.
 * **`"minDate"`:** This should be in the format `"1950-01-02 00:00:00.000"` and determines the left end of the timeline. You have to make sure that the loaded SPICE kernels are valid for this time range.
 * **`"maxDate"`:** This should be in the format `"2049-12-31 00:00:00.000"` and determines the right end of the timeline. You have to make sure that the loaded SPICE kernels are valid for this time range.
+* **`"fileLogLevel"`**, **`"consoleLogLevel"`** and **`"screenLogLevel"`:** Adjust the verbosity of the log output written to `cosmoscout.log`, written to the command line and written to the on-screen console respectively. Should be one of 
+`"trace"`, `"debug"`, `"info"`, `"warning"`, `"error"`, `"critical"` or `"off"`.
 * **`"observer"`:** Specifies the initial position of the virtual camera. `"center"` and `"frame"` define the initial SPICE reference frame; `"distance"` (in meters), `"longitude"` and `"latitude"` (in degree) the 3D-position inside this reference frame.
 For more background information on SPICE reference frames, you may read [this document](https://naif.jpl.nasa.gov/pub/naif/toolkit_docs/Tutorials/pdf/individual_docs/17_frames_and_coordinate_systems.pdf). 
 * **`spiceKernel`:** The path to the SPICE meta kernel. If you want to start experimenting with SPICE, you can read the [SPICE-kernels-required-reading document](https://naif.jpl.nasa.gov/pub/naif/toolkit_docs/C/req/kernel.html). 
