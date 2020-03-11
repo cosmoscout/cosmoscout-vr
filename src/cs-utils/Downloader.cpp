@@ -28,7 +28,7 @@ void Downloader::download(std::string const& url, std::string const& file) {
   size_t                       progressIndex = mProgress.size();
   mProgress.push_back({0.0, 0.0});
 
-  // We download to to a file with a .part suffix. Once the download is done, we will remove the
+  // We download to a file with a .part suffix. Once the download is done, we will remove the
   // suffix.
   mThreadPool.enqueue([this, file, url, progressIndex]() {
     spdlog::info("Downloading file '{}'...", file);
