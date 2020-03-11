@@ -81,7 +81,7 @@ cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%" -DFREEGLUT_BUILD_DEMO
       -DCMAKE_INSTALL_LIBDIR=lib -DFREEGLUT_BUILD_STATIC_LIBS=Off^
       "%EXTERNALS_DIR%/freeglut/freeglut/freeglut" || exit /b
 
-cmake --build . --config %BUILD_TYPE% --target install --parallel
+cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS%
 
 cmake -E copy_directory "%EXTERNALS_DIR%/freeglut/freeglut/freeglut/include/GL" "%INSTALL_DIR%/include/GL"
 
@@ -95,7 +95,7 @@ cmake -E make_directory "%BUILD_DIR%/c-ares" && cd "%BUILD_DIR%/c-ares"
 cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
       "%EXTERNALS_DIR%/c-ares" || exit /b
 
-cmake --build . --config %BUILD_TYPE% --target install --parallel
+cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS%
 
 rem curl -------------------------------------------------------------------------------------------
 
@@ -111,7 +111,7 @@ cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
       -DCMAKE_USE_WINSSL=On -DCMAKE_INSTALL_LIBDIR=lib^
       "%EXTERNALS_DIR%/curl" || exit /b
 
-cmake --build . --config %BUILD_TYPE% --target install --parallel
+cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS%
 
 rem curlpp -----------------------------------------------------------------------------------------
 
@@ -131,7 +131,7 @@ cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
       -DCMAKE_INSTALL_LIBDIR=lib^
       "%EXTERNALS_DIR%/curlpp" || exit /b
 
-cmake --build . --config %BUILD_TYPE% --target install --parallel
+cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS%
 
 rem libtiff ----------------------------------------------------------------------------------------
 
@@ -144,7 +144,7 @@ cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
       -DCMAKE_INSTALL_FULL_LIBDIR=lib^
       "%EXTERNALS_DIR%/libtiff" || exit /b
 
-cmake --build . --config %BUILD_TYPE% --target install --parallel
+cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS%
 
 rem spdlog -----------------------------------------------------------------------------------------
 
@@ -201,7 +201,7 @@ cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
       -DCMAKE_SHARED_LINKER_FLAGS="/FORCE:MULTIPLE" -DOPENSG_BUILD_TESTS=Off^
       "%EXTERNALS_DIR%/opensg-1.8"
 
-cmake --build . --config %BUILD_TYPE% --target install --parallel
+cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS%
 
 rem vista ------------------------------------------------------------------------------------------
 
@@ -220,7 +220,7 @@ rem       -DCMAKE_CXX_FLAGS="-std=c++11" "%EXTERNALS_DIR%/vista" || exit /b
 cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
       -DCMAKE_CXX_FLAGS="-std=c++11" "%EXTERNALS_DIR%/vista" || exit /b
 
-cmake --build . --config %BUILD_TYPE% --target install --parallel
+cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS%
 
 rem cspice -----------------------------------------------------------------------------------------
 
@@ -243,7 +243,7 @@ echo set_target_properties(cspice PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS 1) >> "C
 
 cmake %CMAKE_FLAGS% . || exit /b
 
-cmake --build . --config %BUILD_TYPE% --parallel || exit /b
+cmake --build . --config %BUILD_TYPE% --parallel %NUMBER_OF_PROCESSORS% || exit /b
 
 cmake -E copy_directory "%BUILD_DIR%/cspice/extracted/cspice/include" "%INSTALL_DIR%/include/cspice"
 cmake -E copy "%BUILD_DIR%/cspice/extracted/cspice/%BUILD_TYPE%/cspice.lib" "%INSTALL_DIR%/lib"
@@ -283,7 +283,7 @@ cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
       -DCEF_RUNTIME_LIBRARY_FLAG=/MD -DCEF_DEBUG_INFO_FLAG=""^
       "%BUILD_DIR%/cef/extracted/%CEF_DIR%" || exit /b
 
-cmake --build . --config %BUILD_TYPE% --parallel || exit /b
+cmake --build . --config %BUILD_TYPE% --parallel %NUMBER_OF_PROCESSORS% || exit /b
 
 echo Installing cef...
 cmake -E make_directory "%INSTALL_DIR%/include/cef"

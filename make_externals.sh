@@ -71,7 +71,7 @@ cd ..
 cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
       -DCMAKE_INSTALL_LIBDIR=lib \
       -DCMAKE_BUILD_TYPE=$BUILD_TYPE "$BUILD_DIR/glew/extracted/glew-2.1.0/build/cmake"
-cmake --build . --target install --parallel
+cmake --build . --target install --parallel "$(nproc)"
 
 # ViSTA expects glew library to be called libGLEW.so
 case "$COSMOSCOUT_DEBUG_BUILD" in
@@ -88,7 +88,7 @@ cmake -E make_directory "$BUILD_DIR/freeglut" && cd "$BUILD_DIR/freeglut"
 cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
       -DCMAKE_INSTALL_LIBDIR=lib -DFREEGLUT_BUILD_DEMOS=Off -DFREEGLUT_BUILD_STATIC_LIBS=Off \
       -DCMAKE_BUILD_TYPE=$BUILD_TYPE "$EXTERNALS_DIR/freeglut/freeglut/freeglut"
-cmake --build . --target install --parallel
+cmake --build . --target install --parallel "$(nproc)"
 
 cmake -E copy_directory "$EXTERNALS_DIR/freeglut/freeglut/freeglut/include/GL" \
                         "$INSTALL_DIR/include/GL"
@@ -102,7 +102,7 @@ echo ""
 cmake -E make_directory "$BUILD_DIR/c-ares" && cd "$BUILD_DIR/c-ares"
 cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
       -DCMAKE_BUILD_TYPE=$BUILD_TYPE "$EXTERNALS_DIR/c-ares"
-cmake --build . --target install --parallel
+cmake --build . --target install --parallel "$(nproc)"
 
 # curl ---------------------------------------------------------------------------------------------
 
@@ -117,7 +117,7 @@ cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
       -DCARES_LIBRARY="$INSTALL_DIR/lib/libcares.so" \
       -DCMAKE_INSTALL_LIBDIR=lib \
       "$EXTERNALS_DIR/curl"
-cmake --build . --target install --parallel
+cmake --build . --target install --parallel "$(nproc)"
 
 # curlpp -------------------------------------------------------------------------------------------
 
@@ -136,7 +136,7 @@ cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
       -DCURL_LIBRARY="$INSTALL_DIR/lib/$CURL_LIB" \
       -DCMAKE_INSTALL_LIBDIR=lib \
       -DCMAKE_BUILD_TYPE=$BUILD_TYPE "$EXTERNALS_DIR/curlpp"
-cmake --build . --target install --parallel
+cmake --build . --target install --parallel "$(nproc)"
 
 # libtiff ------------------------------------------------------------------------------------------
 
@@ -148,7 +148,7 @@ cmake -E make_directory "$BUILD_DIR/libtiff" && cd "$BUILD_DIR/libtiff"
 cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
       -DCMAKE_INSTALL_FULL_LIBDIR=lib \
       -DCMAKE_BUILD_TYPE=$BUILD_TYPE "$EXTERNALS_DIR/libtiff"
-cmake --build . --target install --parallel
+cmake --build . --target install --parallel "$(nproc)"
 
 # spdlog -------------------------------------------------------------------------------------------
 
@@ -203,7 +203,7 @@ cmake -E make_directory "$BUILD_DIR/opensg-1.8" && cd "$BUILD_DIR/opensg-1.8"
 cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
       -DGLUT_INCLUDE_DIR="$INSTALL_DIR/include" -DGLUT_LIBRARY="$INSTALL_DIR/lib/libglut.so" \
       -DOPENSG_BUILD_TESTS=Off -DCMAKE_BUILD_TYPE=$BUILD_TYPE "$EXTERNALS_DIR/opensg-1.8"
-cmake --build . --target install --parallel
+cmake --build . --target install --parallel "$(nproc)"
 
 # vista --------------------------------------------------------------------------------------------
 
@@ -216,7 +216,7 @@ cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
       -DCMAKE_CXX_FLAGS="-std=c++11" -DVISTADRIVERS_BUILD_3DCSPACENAVIGATOR=On \
       -DVISTADEMO_ENABLED=Off -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DOPENSG_ROOT_DIR="$INSTALL_DIR" \
       "$EXTERNALS_DIR/vista"
-cmake --build . --target install --parallel
+cmake --build . --target install --parallel "$(nproc)"
 
 # cspice -------------------------------------------------------------------------------------------
 
@@ -252,7 +252,7 @@ cd ..
 cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
       -DCEF_COMPILER_FLAGS="-Wno-undefined-var-template" \
       -DCMAKE_BUILD_TYPE=$BUILD_TYPE "$BUILD_DIR/cef/extracted/$CEF_DIR"
-cmake --build . --parallel
+cmake --build . --parallel "$(nproc)"
 
 cmake -E make_directory "$INSTALL_DIR/include/cef"
 cmake -E copy_directory "$BUILD_DIR/cef/extracted/$CEF_DIR/include"    "$INSTALL_DIR/include/cef/include"
