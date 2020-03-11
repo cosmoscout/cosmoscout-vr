@@ -140,7 +140,8 @@ bool Application::Init(VistaSystem* pVistaSystem) {
 
   // Initialize some gui components
   if (!mSettings->mEnableSensorSizeControl) {
-    mGuiManager->getGui()->callJavascript("CosmoScout.gui.hide", "#enableSensorSizeControl");
+    mGuiManager->getGui()->executeJavascript(
+        "document.querySelector('#enableSensorSizeControl').classList.add('hidden')");
   }
 
   if (!mSettings->mEnableHDR.value_or(false)) {
