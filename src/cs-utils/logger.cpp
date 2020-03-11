@@ -117,13 +117,29 @@ std::shared_ptr<spdlog::logger> createLogger(std::string const& name) {
 
   auto logger = std::make_shared<spdlog::logger>(paddedName, sinks.begin(), sinks.end());
 
-  // TODO: Make log level configurable.
-  logger->set_level(spdlog::level::trace);
-
   // See https://github.com/gabime/spdlog/wiki/3.-Custom-formatting for formatting options.
   logger->set_pattern("%^[%L] %n%$%v");
+  logger->set_level(spdlog::level::trace);
 
   return logger;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void setFileLogLevel(spdlog::level::level_enum level) {
+  fileSink->set_level(level);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void setCoutLogLevel(spdlog::level::level_enum level) {
+  coutSink->set_level(level);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void setSignalLogLevel(spdlog::level::level_enum level) {
+  signalSink->set_level(level);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

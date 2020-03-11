@@ -16,6 +16,7 @@
 #include <json.hpp>
 #include <map>
 #include <optional>
+#include <spdlog/spdlog.h>
 #include <string>
 #include <vector>
 
@@ -144,6 +145,19 @@ class CS_CORE_EXPORT Settings {
 
   /// When set to true, a ray is shown emerging from your input device.
   bool mEnableMouseRay;
+
+  /// These set the loglevel for the output to the log file, console and on-screen output
+  /// respectively.
+  /// trace:    Critical messages, errors, warnings, info, debug and trace messages.
+  /// debug:    Critical messages, errors, warnings, info and debug messages.
+  /// info:     Critical messages, errors, warnings and info messages.
+  /// warning:  Critical messages, errors and warnings.
+  /// error:    Critical messages and errors.
+  /// critical: Only critical messages.
+  /// off:      No output at all.
+  spdlog::level::level_enum mFileLogLevel;
+  spdlog::level::level_enum mConsoleLogLevel;
+  spdlog::level::level_enum mScreenLogLevel;
 
   /// In order to reduce duplication of code, a list of all used SPICE-frames ("Anchors") is
   /// required at the start of each configuration file. The name of each Anchor is then later used
