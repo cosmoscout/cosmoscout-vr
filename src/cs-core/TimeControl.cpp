@@ -33,6 +33,16 @@ TimeControl::~TimeControl() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void TimeControl::update() {
+  // Initialize our members. This has to be done here as SPICE is not yet loaded at construction
+  // time.
+  if (mStartDate == "") {
+    mStartDate = mSettings->mStartDate;
+    mMaxDate =
+        cs::utils::convert::toSpiceTime(boost::posix_time::time_from_string(mSettings->mMaxDate));
+    mMinDate =
+        cs::utils::convert::toSpiceTime(boost::posix_time::time_from_string(mSettings->mMinDate));
+  }
+
   double now = utils::convert::toSpiceTime(boost::posix_time::microsec_clock::universal_time());
 
   if (mLastUpdate < 0.0) {
@@ -47,15 +57,12 @@ void TimeControl::update() {
       mAnimationInProgress = false;
     }
   } else {
-    double newSimulationTime = pSimulationTime.get() + (now - mLastUpdate) * pTimeSpeed.get();
-    double maxDate =
-        cs::utils::convert::toSpiceTime(boost::posix_time::time_from_string(mSettings->mMaxDate));
-    double minDate =
-        cs::utils::convert::toSpiceTime(boost::posix_time::time_from_string(mSettings->mMinDate));
-    if (maxDate < newSimulationTime || minDate > newSimulationTime) {
+    double tTime = pSimulationTime.get() + (now - mLastUpdate) * pTimeSpeed.get();
+    if (tTime >= mMaxDate || tTime <= mMinDate) {
+      pSimulationTime = std::clamp(tTime, mMinDate, mMaxDate);
       setTimeSpeed(0);
     } else {
-      pSimulationTime = newSimulationTime;
+      pSimulationTime = tTime;
     }
   }
 
@@ -64,26 +71,20 @@ void TimeControl::update() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void TimeControl::setTime(double tTime) {
+void TimeControl::setTime(double tTime, double duration, double threshold) {
+
   double now = utils::convert::toSpiceTime(boost::posix_time::microsec_clock::universal_time());
+  double difference = std::abs(pSimulationTime.get() - tTime);
 
-  double step = std::abs(pSimulationTime.get() - tTime) / 60 / 60;
-
-  double maxDate =
-      cs::utils::convert::toSpiceTime(boost::posix_time::time_from_string(mSettings->mMaxDate));
-  double minDate =
-      cs::utils::convert::toSpiceTime(boost::posix_time::time_from_string(mSettings->mMinDate));
-  if (maxDate < tTime || minDate > tTime) {
+  if (tTime >= mMaxDate || tTime <= mMinDate) {
+    pSimulationTime = std::clamp(tTime, mMinDate, mMaxDate);
     setTimeSpeed(0);
-  } else if (step > 48) {
+  } else if (duration <= 0.0 || difference > std::abs(threshold) || threshold <= 0) {
     // Make no animation for very large time changes.
     pSimulationTime = tTime;
   } else {
-    // Make smooth animation for time changes.
-    double duration = 0.5;
-
-    // Increase duration for longer time steps.
-    duration += glm::clamp(step / 20.0, 0.0, 5.0);
+    // Make smooth animation for time changes greater than the given threshold.
+    double duration = duration * difference / threshold;
 
     mAnimatedTime = utils::AnimatedValue<double>(
         pSimulationTime.get(), tTime, now, now + duration, utils::AnimationDirection::eInOut);
@@ -93,30 +94,15 @@ void TimeControl::setTime(double tTime) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void TimeControl::setTimeWithoutAnimation(double tTime) {
-  double maxDate =
-      cs::utils::convert::toSpiceTime(boost::posix_time::time_from_string(mSettings->mMaxDate));
-  double minDate =
-      cs::utils::convert::toSpiceTime(boost::posix_time::time_from_string(mSettings->mMinDate));
-  if (maxDate < tTime || minDate > tTime) {
-    setTimeSpeed(0);
-  } else {
-    pSimulationTime = tTime;
-  }
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 void TimeControl::resetTime() {
-  std::string startDate = mSettings->mStartDate;
 
   double tTime;
 
-  if (startDate == "today") {
+  if (mStartDate == "today") {
     tTime = utils::convert::toSpiceTime(boost::posix_time::microsec_clock::universal_time());
   } else {
     try {
-      tTime = utils::convert::toSpiceTime(boost::posix_time::time_from_string(startDate));
+      tTime = utils::convert::toSpiceTime(boost::posix_time::time_from_string(mStartDate));
     } catch (std::exception const& e) {
       throw std::runtime_error("Could not parse the 'startDate' setting. It should either be "
                                "'today' or in the format '1969-07-20 20:17:40.000'.");
@@ -124,38 +110,6 @@ void TimeControl::resetTime() {
   }
 
   setTime(tTime);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void TimeControl::increaseTimeSpeed() {
-  float speed(pTimeSpeed.get());
-
-  if (speed > 0.f) {
-    speed *= 2.f;
-  } else if (speed <= -1.f) {
-    speed /= 2.f;
-  } else {
-    speed = 0.5f;
-  }
-
-  pTimeSpeed = speed;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void TimeControl::decreaseTimeSpeed() {
-  float speed(pTimeSpeed.get());
-
-  if (speed >= 1.f) {
-    speed /= 2.f;
-  } else if (speed < 0.f) {
-    speed *= 2.f;
-  } else {
-    speed = -0.5f;
-  }
-
-  pTimeSpeed = speed;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

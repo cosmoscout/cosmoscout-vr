@@ -134,7 +134,6 @@ class Application : public VistaFrameLoop {
   /// "navigation.toOrbit"
   /// "navigation.toSurface"
   /// "time.addHours"
-  /// "time.addHoursWithoutAnimation"
   /// "time.reset"
   /// "time.set"
   /// "time.setDate"

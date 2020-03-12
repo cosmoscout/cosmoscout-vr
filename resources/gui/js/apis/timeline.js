@@ -664,28 +664,7 @@ class TimelineApi extends IApi {
     this._centerTime.setSeconds(diff);
 
     const hoursDiff = diff / 1000 / 60 / 60;
-    CosmoScout.callbacks.time.addHoursWithoutAnimation(hoursDiff);
-  }
-
-  /**
-   *
-   * @param event {WheelEvent}
-   * @private
-   */
-  _changeTimeScroll(event) {
-    if (typeof event.target.dataset.diff === 'undefined') {
-      return;
-    }
-
-    let diff = parseInt(event.target.dataset.diff, 10);
-    // Data attribute is set in seconds. add_hours_without_animation wants hours
-    diff = Math.abs(diff) / 3600;
-
-    if (event.deltaY > 0) {
-      diff = -diff;
-    }
-
-    CosmoScout.callbacks.time.addHoursWithoutAnimation(diff);
+    CosmoScout.callbacks.time.addHours(hoursDiff);
   }
 
   _initEventListener() {
@@ -1217,7 +1196,7 @@ class TimelineApi extends IApi {
           date, step.days, step.hours, step.minutes, step.seconds, step.milliSec);
       this._setDateLocal(date);
       this._mouseDownLeftTime = new Date(properties.start.getTime());
-      CosmoScout.callbacks.time.addHoursWithoutAnimation(hoursDif);
+      CosmoScout.callbacks.time.addHours(hoursDif);
     }
   }
 
@@ -1331,7 +1310,7 @@ class TimelineApi extends IApi {
           hoursDif += 1;
         }
 
-        CosmoScout.callbacks.time.addHours(hoursDif);
+        CosmoScout.callbacks.time.addHours(hoursDif, 2.0);
         this.travelTo(true, this._items._data[item].planet, this._items._data[item].place,
             this._items._data[item].content);
       }
@@ -1355,7 +1334,7 @@ class TimelineApi extends IApi {
       } else if (properties.time.getTimezoneOffset() < this._centerTime.getTimezoneOffset()) {
         hoursDif += 1;
       }
-      CosmoScout.callbacks.time.addHours(hoursDif);
+      CosmoScout.callbacks.time.addHours(hoursDif, 2.0);
     }
   }
 

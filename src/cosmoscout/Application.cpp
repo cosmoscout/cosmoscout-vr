@@ -871,26 +871,28 @@ void Application::registerGuiCallbacks() {
   // Sets the current simulation time. The argument must be a double representing Barycentric
   // Dynamical Time.
   mGuiManager->getGui()->registerCallback("time.set",
-      "Sets the current simulation time. The value must be in barycentric dynamical time.",
-      std::function([this](double tTime) { mTimeControl->setTime(tTime); }));
+      "Sets the current simulation time. The value must be in barycentric dynamical time. If the "
+      "absolute difference to the current simulation time is lower than the given threshold "
+      "(optionalDouble2, default is 172800s which is 48h), there will be a transition of the given "
+      "duration (optionalDouble, default is 0s).",
+      std::function(
+          [this](double tTime, std::optional<double> duration, std::optional<double> threshold) {
+            mTimeControl->setTime(tTime, duration.value_or(0.0), threshold.value_or(48 * 60 * 60));
+          }));
 
   mGuiManager->getGui()->registerCallback("time.reset",
       "Resets the simulation time to the default value.",
       std::function([this]() { mTimeControl->resetTime(); }));
 
   mGuiManager->getGui()->registerCallback("time.addHours",
-      "Adds the given amount of hours to the current simulation time. If the amount is low, there "
-      "will be a transition.",
-      std::function([this](double amount) {
-        mTimeControl->setTime(mTimeControl->pSimulationTime.get() + 60.0 * 60.0 * amount);
-      }));
-
-  mGuiManager->getGui()->registerCallback("time.addHoursWithoutAnimation",
-      "Adds the given amount of hours to the current simulation time.",
-      std::function([this](double amount) {
-        mTimeControl->setTimeWithoutAnimation(
-            mTimeControl->pSimulationTime.get() + 60.0 * 60.0 * amount);
-      }));
+      "Adds the given amount of hours to the current simulation time. If the amount is lower than "
+      "the given threshold (optionalDouble2, default is 172800s which is 48h), there will be a "
+      "transition of the given duration (optionalDouble, default is 0s).",
+      std::function(
+          [this](double amount, std::optional<double> duration, std::optional<double> threshold) {
+            mTimeControl->setTime(mTimeControl->pSimulationTime.get() + 60.0 * 60.0 * amount,
+                duration.value_or(0.0), threshold.value_or(48 * 60 * 60));
+          }));
 
   mGuiManager->getGui()->registerCallback("time.setSpeed",
       "Sets the multiplier for the simulation time speed.",
@@ -1103,7 +1105,6 @@ void Application::unregisterGuiCallbacks() {
   mGuiManager->getGui()->unregisterCallback("navigation.toOrbit");
   mGuiManager->getGui()->unregisterCallback("navigation.toSurface");
   mGuiManager->getGui()->unregisterCallback("time.addHours");
-  mGuiManager->getGui()->unregisterCallback("time.addHoursWithoutAnimation");
   mGuiManager->getGui()->unregisterCallback("time.reset");
   mGuiManager->getGui()->unregisterCallback("time.set");
   mGuiManager->getGui()->unregisterCallback("time.setDate");
