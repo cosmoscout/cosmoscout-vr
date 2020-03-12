@@ -121,7 +121,7 @@ void ApplyProgramAuto(
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 const std::string ToneMappingNode::sVertexShader = R"(
-  #version 430 compatibility
+  #version 430
 
   out vec2 vTexcoords;
 
@@ -135,7 +135,7 @@ const std::string ToneMappingNode::sVertexShader = R"(
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 const std::string ToneMappingNode::sFragmentShader = R"(
-  #version 430 compatibility
+  #version 430
   
   in vec2 vTexcoords;
 
