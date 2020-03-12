@@ -873,7 +873,7 @@ class TimelineApi extends IApi {
   _resetTime() {
     this._overviewTimeline.setWindow(this._minDate, this._maxDate);
     this._timeSpeedSlider.noUiSlider.set(1);
-    CosmoScout.callbacks.time.reset();
+    CosmoScout.callbacks.time.reset(3.0);
   }
 
   _togglePause() {
@@ -1310,7 +1310,7 @@ class TimelineApi extends IApi {
           hoursDif += 1;
         }
 
-        CosmoScout.callbacks.time.addHours(hoursDif, 2.0);
+        CosmoScout.callbacks.time.addHours(hoursDif, 3.0);
         this.travelTo(true, this._items._data[item].planet, this._items._data[item].place,
             this._items._data[item].content);
       }
@@ -1334,7 +1334,7 @@ class TimelineApi extends IApi {
       } else if (properties.time.getTimezoneOffset() < this._centerTime.getTimezoneOffset()) {
         hoursDif += 1;
       }
-      CosmoScout.callbacks.time.addHours(hoursDif, 2.0);
+      CosmoScout.callbacks.time.addHours(hoursDif, 3.0);
     }
   }
 

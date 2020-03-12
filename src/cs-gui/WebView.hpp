@@ -14,6 +14,7 @@
 #include <chrono>
 #include <include/cef_client.h>
 #include <iostream>
+#include <optional>
 #include <spdlog/spdlog.h>
 #include <typeindex>
 
@@ -215,9 +216,7 @@ class CS_GUI_EXPORT WebView {
             // Now call the actual callback. The UnderlyingValue struct is used to access the actual
             // value in the std::optional<JSType>. See its implementation above.
             callback(UnderlyingValue<Args>::get(std::move(args[Is]))...);
-          } catch (std::bad_optional_access const& e) {
-            spdlog::error("Cannot execute javascript call '{}':{}!", name, e.what());
-          } catch (std::bad_variant_access const& e) {
+          } catch (std::exception const& e) {
             spdlog::error("Cannot execute javascript call '{}': Parameters do not match to the "
                           "registered callback!",
                 name);

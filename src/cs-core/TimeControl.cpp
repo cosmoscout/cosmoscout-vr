@@ -72,7 +72,6 @@ void TimeControl::update() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void TimeControl::setTime(double tTime, double duration, double threshold) {
-
   double now = utils::convert::toSpiceTime(boost::posix_time::microsec_clock::universal_time());
   double difference = std::abs(pSimulationTime.get() - tTime);
 
@@ -83,8 +82,9 @@ void TimeControl::setTime(double tTime, double duration, double threshold) {
     // Make no animation for very large time changes.
     pSimulationTime = tTime;
   } else {
-    // Make smooth animation for time changes greater than the given threshold.
-    double duration = duration * difference / threshold;
+    // Make smooth animation for time changes greater than the given threshold. We reduce the
+    // duration up to 20% of the given value if the difference is smaller than the threshold.
+    duration = 0.2 * duration + 0.8 * duration * difference / threshold;
 
     mAnimatedTime = utils::AnimatedValue<double>(
         pSimulationTime.get(), tTime, now, now + duration, utils::AnimationDirection::eInOut);
@@ -94,7 +94,7 @@ void TimeControl::setTime(double tTime, double duration, double threshold) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void TimeControl::resetTime() {
+void TimeControl::resetTime(double duration, double threshold) {
 
   double tTime;
 
@@ -109,7 +109,7 @@ void TimeControl::resetTime() {
     }
   }
 
-  setTime(tTime);
+  setTime(tTime, duration, threshold);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

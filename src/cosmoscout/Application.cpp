@@ -882,7 +882,9 @@ void Application::registerGuiCallbacks() {
 
   mGuiManager->getGui()->registerCallback("time.reset",
       "Resets the simulation time to the default value.",
-      std::function([this]() { mTimeControl->resetTime(); }));
+      std::function([this](std::optional<double> duration, std::optional<double> threshold) {
+        mTimeControl->resetTime(duration.value_or(0.0), threshold.value_or(48 * 60 * 60));
+      }));
 
   mGuiManager->getGui()->registerCallback("time.addHours",
       "Adds the given amount of hours to the current simulation time. If the amount is lower than "
@@ -902,20 +904,23 @@ void Application::registerGuiCallbacks() {
 
   // Sets the observer position to the given cartesian coordinates.
   mGuiManager->getGui()->registerCallback("navigation.setPosition",
-      "Sets the observer position to the given cartesian coordinates.",
-      std::function([this](double x, double y, double z, double time) {
+      "Sets the observer position to the given cartesian coordinates. The optional double argument "
+      "specifies the transition time in seconds (default is 5s).",
+      std::function([this](double x, double y, double z, std::optional<double> duration) {
         mSolarSystem->flyObserverTo(mSolarSystem->getObserver().getCenterName(),
             mSolarSystem->getObserver().getFrameName(), glm::dvec3(x, y, z),
-            mSolarSystem->getObserver().getAnchorRotation(), time);
+            mSolarSystem->getObserver().getAnchorRotation(), duration.value_or(5.0));
       }));
 
   // Sets the observer rotation to the given quaternion coordinates.
   mGuiManager->getGui()->registerCallback("navigation.setRotation",
-      "Sets the observer rotation to the given quaternion.",
-      std::function([this](double w, double x, double y, double z) {
+      "Sets the observer rotation to the given quaternion. The optional double argument specifies "
+      "the transition time in seconds (default is 2s).",
+      std::function([this](double w, double x, double y, double z, std::optional<double> duration) {
         mSolarSystem->flyObserverTo(mSolarSystem->getObserver().getCenterName(),
             mSolarSystem->getObserver().getFrameName(),
-            mSolarSystem->getObserver().getAnchorPosition(), glm::dquat(w, x, y, z), 2.0);
+            mSolarSystem->getObserver().getAnchorPosition(), glm::dquat(w, x, y, z),
+            duration.value_or(2.0));
       }));
 
   // Flies the observer to the given celestial body.
@@ -936,14 +941,16 @@ void Application::registerGuiCallbacks() {
   // Flies the celestial observer to the given location in space.
   mGuiManager->getGui()->registerCallback("navigation.setBodyLongLatHeightDuration",
       "Makes the observer fly to a given postion in space. First parameter is the target bodies "
-      "name, then latitude, longitude, elevation and travel time in seconds are required.",
+      "name, then latitude, longitude and elevation are required. The optional double argument "
+      "specifies the transition time in seconds (default is 10s).",
       std::function([this](std::string&& name, double longitude, double latitude, double height,
-                        double duration) {
+                        std::optional<double> duration) {
         for (auto const& body : mSolarSystem->getBodies()) {
           if (body->getCenterName() == name) {
             mSolarSystem->pActiveBody = body;
             mSolarSystem->flyObserverTo(body->getCenterName(), body->getFrameName(),
-                cs::utils::convert::toRadians(glm::dvec2(longitude, latitude)), height, duration);
+                cs::utils::convert::toRadians(glm::dvec2(longitude, latitude)), height,
+                duration.value_or(10.0));
           }
         }
       }));
@@ -952,7 +959,7 @@ void Application::registerGuiCallbacks() {
   // active celestial body.
   mGuiManager->getGui()->registerCallback("navigation.northUp",
       "Turns the observer so that north is facing upwards. The optional argument specifies the "
-      "animation time in seconds (default is 2s).",
+      "animation time in seconds (default is 1s).",
       std::function([this](std::optional<double> duration) {
         auto observerPos = mSolarSystem->getObserver().getAnchorPosition();
 
@@ -974,7 +981,9 @@ void Application::registerGuiCallbacks() {
 
   // Rotates the scene in such a way, that the currently visible horizon is levelled.
   mGuiManager->getGui()->registerCallback("navigation.fixHorizon",
-      "Turns the observer so that the horizon is horizontal.", std::function([this]() {
+      "Turns the observer so that the horizon is horizontal. The optional argument specifies the "
+      "animation time in seconds (default is 1s).",
+      std::function([this](std::optional<double> duration) {
         auto radii = cs::core::SolarSystem::getRadii(mSolarSystem->getObserver().getCenterName());
 
         if (radii[0] == 0.0) {
@@ -1000,12 +1009,15 @@ void Application::registerGuiCallbacks() {
         auto rotation = glm::toQuat(glm::dmat3(x, y, z)) * tilt;
 
         mSolarSystem->flyObserverTo(mSolarSystem->getObserver().getCenterName(),
-            mSolarSystem->getObserver().getFrameName(), observerPos, rotation, 1.0);
+            mSolarSystem->getObserver().getFrameName(), observerPos, rotation,
+            duration.value_or(1.0));
       }));
 
   // Flies the celestial observer to 0.1% of its current height.
   mGuiManager->getGui()->registerCallback("navigation.toSurface",
-      "Reduces the altitude of the observer significantly.", std::function([this]() {
+      "Reduces the altitude of the observer significantly. The optional argument specifies the "
+      "animation time in seconds (default is 3s).",
+      std::function([this](std::optional<double> duration) {
         auto radii = cs::core::SolarSystem::getRadii(mSolarSystem->getObserver().getCenterName());
 
         if (radii[0] == 0.0 || radii[2] == 0.0) {
@@ -1044,13 +1056,16 @@ void Application::registerGuiCallbacks() {
         auto rotation = glm::toQuat(glm::dmat3(x, y, z)) * tilt;
 
         mSolarSystem->flyObserverTo(mSolarSystem->getObserver().getCenterName(),
-            mSolarSystem->getObserver().getFrameName(), observerPos, rotation, 3.0);
+            mSolarSystem->getObserver().getFrameName(), observerPos, rotation,
+            duration.value_or(3.0));
       }));
 
   // Flies the celestial observer to an orbit at three times the radius of the currently active
   // celestial body.
   mGuiManager->getGui()->registerCallback("navigation.toOrbit",
-      "Increases the altitude of the observer significantly.", std::function([this]() {
+      "Increases the altitude of the observer significantly. The optional argument specifies the "
+      "animation time in seconds (default is 3s).",
+      std::function([this](std::optional<double> duration) {
         auto observerRot = mSolarSystem->getObserver().getAnchorRotation();
         auto radii = cs::core::SolarSystem::getRadii(mSolarSystem->getObserver().getCenterName());
 
@@ -1073,7 +1088,7 @@ void Application::registerGuiCallbacks() {
         auto rotation = glm::toQuat(glm::dmat3(x, y, z));
 
         mSolarSystem->flyObserverTo(mSolarSystem->getObserver().getCenterName(),
-            mSolarSystem->getObserver().getFrameName(), cart, rotation, 3.0);
+            mSolarSystem->getObserver().getFrameName(), cart, rotation, duration.value_or(3.0));
       }));
 }
 
