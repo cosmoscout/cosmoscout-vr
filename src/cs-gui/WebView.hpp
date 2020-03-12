@@ -129,7 +129,7 @@ class CS_GUI_EXPORT WebView {
 
   /// These could be executed when the according hot keys are pressed. The system's clipboard will
   /// be used. So the user can actually copy-paste from one WebView to another or even from a
-  /// WebView to a third-party applications.
+  /// WebView to third-party applications.
   virtual void cut() const;
   virtual void copy() const;
   virtual void paste() const;
@@ -194,7 +194,7 @@ class CS_GUI_EXPORT WebView {
     }
   };
 
-  /// This wraps the given callback in a lambda which will be stored in a internal map. This lambda
+  /// This wraps the given callback in a lambda which will be stored in an internal map. This lambda
   /// receives its arguments as a std::vector<std::optional<JSType>>, each item in this vector will
   /// be casted to the required paramater types of the given callback.
   template <typename... Args, std::size_t... Is>
