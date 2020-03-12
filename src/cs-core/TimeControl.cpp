@@ -38,9 +38,9 @@ void TimeControl::update() {
   if (mStartDate == "") {
     mStartDate = mSettings->mStartDate;
     mMaxDate =
-        cs::utils::convert::toSpiceTime(boost::posix_time::time_from_string(mSettings->mMaxDate));
+        utils::convert::toSpiceTime(boost::posix_time::time_from_string(mSettings->mMaxDate));
     mMinDate =
-        cs::utils::convert::toSpiceTime(boost::posix_time::time_from_string(mSettings->mMinDate));
+        utils::convert::toSpiceTime(boost::posix_time::time_from_string(mSettings->mMinDate));
   }
 
   double now = utils::convert::toSpiceTime(boost::posix_time::microsec_clock::universal_time());

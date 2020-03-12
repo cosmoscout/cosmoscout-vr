@@ -128,8 +128,8 @@ class CS_GUI_EXPORT WebView {
   virtual void goForward() const;
 
   /// These could be executed when the according hot keys are pressed. The system's clipboard will
-  /// be used. So the user can actually copy-paste from one WebView to another or even from an to
-  /// third-party applications.
+  /// be used. So the user can actually copy-paste from one WebView to another or even from a
+  /// WebView to a third-party applications.
   virtual void cut() const;
   virtual void copy() const;
   virtual void paste() const;
@@ -175,7 +175,7 @@ class CS_GUI_EXPORT WebView {
 
   /// The UnderlyingValue struct is used to access the actual value in a std::optional<JSType>.
   /// There are two variants of the struct as we may want to have the actual value (a bool, double
-  /// or std::string) contained in the std::optional<JSType>, or an std::optional thereof (either a
+  /// or std::string) contained in the std::optional<JSType>, or a std::optional thereof (either a
   /// std::optional<bool>, std::optional<double>, or std::optional<std::string>).
   template <typename T>
   struct UnderlyingValue {
@@ -194,7 +194,7 @@ class CS_GUI_EXPORT WebView {
     }
   };
 
-  /// This wraps the given callback in a lambda which will be stored in an internal map. This lambda
+  /// This wraps the given callback in a lambda which will be stored in a internal map. This lambda
   /// receives its arguments as a std::vector<std::optional<JSType>>, each item in this vector will
   /// be casted to the required paramater types of the given callback.
   template <typename... Args, std::size_t... Is>

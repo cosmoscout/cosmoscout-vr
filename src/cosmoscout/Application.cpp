@@ -881,7 +881,10 @@ void Application::registerGuiCallbacks() {
           }));
 
   mGuiManager->getGui()->registerCallback("time.reset",
-      "Resets the simulation time to the default value.",
+      "Resets the simulation time to the default value. If the absolute difference to the current "
+      "simulation time is lower than the given threshold (optionalDouble2, default is 172800s "
+      "which is 48h), there will be a transition of the given duration (optionalDouble, default is "
+      "0s).",
       std::function([this](std::optional<double> duration, std::optional<double> threshold) {
         mTimeControl->resetTime(duration.value_or(0.0), threshold.value_or(48 * 60 * 60));
       }));

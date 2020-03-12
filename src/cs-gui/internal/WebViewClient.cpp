@@ -22,7 +22,7 @@ WebViewClient::~WebViewClient() {
 
     for (auto&& i : mJSCallbacks) {
       spdlog::warn(" - {}", i.first);
-      i.second = [](std::vector<std::optional<JSType>> const&) {};
+      i.second = [](auto) {};
     }
   }
 }
