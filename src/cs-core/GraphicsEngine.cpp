@@ -85,10 +85,6 @@ GraphicsEngine::GraphicsEngine(std::shared_ptr<const core::Settings> const& sett
 
   pGlowIntensity.onChange().connect([this](float val) { mToneMappingNode->setGlowIntensity(val); });
 
-  pExposureMeteringMode.onChange().connect([this](graphics::ExposureMeteringMode val) {
-    mToneMappingNode->setExposureMeteringMode(val);
-  });
-
   pExposureCompensation.onChange().connect(
       [this](float val) { mToneMappingNode->setExposureCompensation(val); });
 

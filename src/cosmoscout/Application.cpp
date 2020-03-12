@@ -422,7 +422,6 @@ void Application::FrameUpdate() {
         mGraphicsEngine->pFocalLength.touch();
         mGraphicsEngine->pAmbientBrightness.touch();
         mGraphicsEngine->pGlowIntensity.touch();
-        mGraphicsEngine->pExposureMeteringMode.touch();
         mGraphicsEngine->pApproximateSceneBrightness.touch();
         mGraphicsEngine->pAverageLuminance.touch();
         mGraphicsEngine->pMaximumLuminance.touch();

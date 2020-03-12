@@ -25,10 +25,6 @@ namespace cs::graphics {
 class LuminanceMipMap;
 class GlowMipMap;
 
-/// In future we will have various ways to compute the exposure. For now, the average brightness of
-/// all pixels is computed.
-enum class ExposureMeteringMode { AVERAGE = 0 };
-
 /// The HDRBuffer is used as render target when HDR rendering is enabled. It contains an framebuffer
 /// object for each viewport. Each framebuffer object has two color attachments containing luminance
 /// values (which can be used in a ping-pong fashion) and a depth attachment. It also contains a
@@ -52,12 +48,10 @@ class CS_GRAPHICS_EXPORT HDRBuffer {
   /// Clears all attachments, that is DEPTH to 1.0, and HDR_0 and HDR_1 to vec3(0).
   void clear();
 
-  /// Calculate the scene's luminance based on the given metering mode. The results cab be retrieved
-  /// with getTotalLuminance().
-  void  calculateLuminance(ExposureMeteringMode mode);
+  /// Calculate the scene's total and maximum luminance. The results can be retrieved with
+  /// getTotalLuminance() and getMaximumLuminance().
+  void  calculateLuminance();
   float getTotalLuminance() const;
-
-  /// Whenever calculateLuminance() is called, the maximum luminance is also computed.
   float getMaximumLuminance() const;
 
   /// Update and access the GlowMipMap.

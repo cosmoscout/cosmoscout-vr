@@ -51,12 +51,9 @@ class CS_CORE_EXPORT GraphicsEngine {
   utils::Property<float>     pAmbientBrightness          = std::pow(0.25f, 10.f);
   utils::Property<bool>      pEnableAutoGlow             = true;
   utils::Property<float>     pGlowIntensity              = 0.5f;
-  utils::Property<graphics::ExposureMeteringMode> pExposureMeteringMode =
-      graphics::ExposureMeteringMode::AVERAGE;
-
-  utils::Property<float> pApproximateSceneBrightness = 1.f;
-  utils::Property<float> pAverageLuminance           = 1.f;
-  utils::Property<float> pMaximumLuminance           = 1.f;
+  utils::Property<float>     pApproximateSceneBrightness = 1.f;
+  utils::Property<float>     pAverageLuminance           = 1.f;
+  utils::Property<float>     pMaximumLuminance           = 1.f;
 
   GraphicsEngine(std::shared_ptr<const Settings> const& settings);
   ~GraphicsEngine();

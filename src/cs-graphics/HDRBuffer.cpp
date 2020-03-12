@@ -41,26 +41,29 @@ HDRBuffer::~HDRBuffer() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void HDRBuffer::bind() {
-  // Get the HDRBuffer for the current viewport.
+
+  // There is a different framebuffer object for each viewport. Here wee retrieve the current one.
   auto& hdrBuffer = getCurrentHDRBuffer();
   auto  size      = getCurrentViewPortSize();
 
+  // If the size changed, we have to re-create the framebuffer object and its attachments.
   if (size[0] != hdrBuffer.mWidth || size[1] != hdrBuffer.mHeight) {
-    // create hdrBuffer ----------------------------------------------------------------------------
     hdrBuffer.mWidth  = size[0];
     hdrBuffer.mHeight = size[1];
 
-    // clear old framebuffer object
+    // Clear old framebuffer object.
     delete hdrBuffer.mFBO;
 
-    // create new framebuffer object
+    // Create new framebuffer object.
     hdrBuffer.mFBO = new VistaFramebufferObj();
 
+    // Attaches a new texture to the hdrBuffer framebuffer object.
     auto addAttachment = [&hdrBuffer](VistaTexture*& texture, int attachment, int internalFormat,
                              int format, int type) {
       if (!texture) {
         texture = new VistaTexture(GL_TEXTURE_2D);
       }
+
       texture->Bind();
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -71,39 +74,42 @@ void HDRBuffer::bind() {
       hdrBuffer.mFBO->Attach(texture, attachment);
     };
 
-    // ping-pong A
+    // Add HDR-attachment ping-pong A.
     addAttachment(hdrBuffer.mColorAttachments[0], GL_COLOR_ATTACHMENT0,
         mHighPrecision ? GL_RGBA32F : GL_RGBA16F, GL_RGBA, GL_FLOAT);
 
-    // ping-pong B
+    // Add HDR-attachment ping-pong B.
     addAttachment(hdrBuffer.mColorAttachments[1], GL_COLOR_ATTACHMENT1,
         mHighPrecision ? GL_RGBA32F : GL_RGBA16F, GL_RGBA, GL_FLOAT);
 
-    // depth attachment
+    // Add depth-attachment.
     addAttachment(hdrBuffer.mDepthAttachment, GL_DEPTH_ATTACHMENT, GL_DEPTH_COMPONENT24,
         GL_DEPTH_COMPONENT, GL_FLOAT);
 
-    // create luminance mipmaps --------------------------------------------------------------------
+    // Create luminance mipmaps.
     delete hdrBuffer.mLuminanceMipMap;
     hdrBuffer.mLuminanceMipMap = new LuminanceMipMap(size[0], size[1]);
 
-    // create glow mipmaps -------------------------------------------------------------------------
+    // Create glow mipmaps.
     delete hdrBuffer.mGlowMipMap;
     hdrBuffer.mGlowMipMap = new GlowMipMap(size[0], size[1]);
   }
 
+  // Bind the framebuffer object for writing.
   if (!hdrBuffer.mIsBound) {
     glGetIntegerv(GL_VIEWPORT, hdrBuffer.mCachedViewport);
     hdrBuffer.mFBO->Bind();
     hdrBuffer.mIsBound = true;
   }
 
+  // Select the write attachment based on the current ping-pong state.
   if (hdrBuffer.mCompositePinpongState == 0) {
     glDrawBuffer(GL_COLOR_ATTACHMENT0);
   } else {
     glDrawBuffer(GL_COLOR_ATTACHMENT1);
   }
 
+  // Set the viewport to the entire hdrBuffer.
   glViewport(0, 0, hdrBuffer.mWidth, hdrBuffer.mHeight);
   glScissor(0, 0, hdrBuffer.mWidth, hdrBuffer.mHeight);
 }
@@ -112,12 +118,15 @@ void HDRBuffer::bind() {
 
 void HDRBuffer::unbind() {
 
+  // There is a different framebuffer object for each viewport. Here wee retrieve the current one.
   auto& hdrBuffer = getCurrentHDRBuffer();
 
+  // If it is bound, unbind it.
   if (hdrBuffer.mIsBound) {
     hdrBuffer.mFBO->Release();
     hdrBuffer.mIsBound = false;
 
+    // And restore the original viewport.
     glViewport(hdrBuffer.mCachedViewport[0], hdrBuffer.mCachedViewport[1],
         hdrBuffer.mCachedViewport[2], hdrBuffer.mCachedViewport[3]);
     glScissor(hdrBuffer.mCachedViewport[0], hdrBuffer.mCachedViewport[1],
@@ -128,6 +137,7 @@ void HDRBuffer::unbind() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void HDRBuffer::doPingPong() {
+  // There is a different framebuffer object for each viewport. Here wee retrieve the current one.
   auto& hdrBuffer                  = getCurrentHDRBuffer();
   hdrBuffer.mCompositePinpongState = (hdrBuffer.mCompositePinpongState + 1) % 2;
 }
@@ -206,7 +216,7 @@ std::array<int, 2> HDRBuffer::getCurrentViewPortPos() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void HDRBuffer::calculateLuminance(ExposureMeteringMode meteringMode) {
+void HDRBuffer::calculateLuminance() {
   auto&         hdrBuffer = getCurrentHDRBuffer();
   VistaTexture* composite;
 
@@ -216,7 +226,7 @@ void HDRBuffer::calculateLuminance(ExposureMeteringMode meteringMode) {
     composite = hdrBuffer.mColorAttachments[1];
   }
 
-  hdrBuffer.mLuminanceMipMap->update(meteringMode, composite);
+  hdrBuffer.mLuminanceMipMap->update(composite);
 
   if (hdrBuffer.mLuminanceMipMap->getLastTotalLuminance()) {
     mTotalLuminance   = hdrBuffer.mLuminanceMipMap->getLastTotalLuminance();

@@ -362,18 +362,6 @@ bool ToneMappingNode::getEnableAutoExposure() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void ToneMappingNode::setExposureMeteringMode(ExposureMeteringMode value) {
-  mExposureMeteringMode = value;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-ExposureMeteringMode ToneMappingNode::getExposureMeteringMode() const {
-  return mExposureMeteringMode;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 void ToneMappingNode::setGlowIntensity(float intensity) {
   mGlowIntensity = intensity;
 }
@@ -411,7 +399,7 @@ bool ToneMappingNode::ToneMappingNode::Do() {
       VistaDisplayManager::RenderInfo::ERM_RIGHT;
 
   if (doCalculateExposure && mEnableAutoExposure) {
-    mHDRBuffer->calculateLuminance(mExposureMeteringMode);
+    mHDRBuffer->calculateLuminance();
 
     // we accumulate all luminance values of this frame (can be multiple viewports
     // and / or multiple eyes). These values will be send to the master in

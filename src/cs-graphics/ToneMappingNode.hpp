@@ -44,9 +44,6 @@ class CS_GRAPHICS_EXPORT ToneMappingNode : public IVistaOpenGLDraw, public Vista
   void setEnableAutoExposure(bool value);
   bool getEnableAutoExposure() const;
 
-  void                 setExposureMeteringMode(ExposureMeteringMode value);
-  ExposureMeteringMode getExposureMeteringMode() const;
-
   void  setGlowIntensity(float intensity);
   float getGlowIntensity() const;
 
@@ -70,8 +67,6 @@ class CS_GRAPHICS_EXPORT ToneMappingNode : public IVistaOpenGLDraw, public Vista
   float mMaxAutoExposure       = 15.f;
   float mExposureAdaptionSpeed = 1.f;
   float mGlowIntensity         = 0.f;
-
-  ExposureMeteringMode mExposureMeteringMode = ExposureMeteringMode::AVERAGE;
 
   VistaGLSLShader* mShader;
 

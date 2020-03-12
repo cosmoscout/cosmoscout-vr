@@ -86,11 +86,11 @@ GlowMipMap::GlowMipMap(int hdrBufferWidth, int hdrBufferHeight)
 
   glTexStorage2D(GL_TEXTURE_2D, mMaxLevels, GL_RGBA32F, iWidth, iHeight);
 
-  // create storage for temporary glow target (this is used for the vertical blurring)
+  // Create storage for temporary glow target (this is used for the vertical blurring passes).
   mTemporaryTarget->Bind();
   glTexStorage2D(GL_TEXTURE_2D, mMaxLevels, GL_RGBA32F, iWidth, iHeight);
 
-  // create compute shader
+  // Create the compute shader.
   auto        shader = glCreateShader(GL_COMPUTE_SHADER);
   const char* c_str  = sGlowShader.c_str();
   glShaderSource(shader, 1, &c_str, nullptr);
@@ -135,10 +135,10 @@ GlowMipMap::~GlowMipMap() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void GlowMipMap::update(VistaTexture* hdrBufferComposite) {
-  int iWidth  = mHDRBufferWidth / 2;
-  int iHeight = mHDRBufferHeight / 2;
 
-  // update current glow mipmap ------------------------------------------------------------------
+  // We update the glow mipmap with several passes. First, the base level is filled with a
+  // downsampled and horizontally blurred version of the HDRBuffer. Then, this is blurred
+  // vertically. Then it's downsampled and horizontally blurred once more. And so on.
 
   glUseProgram(mComputeProgram);
 
@@ -148,7 +148,7 @@ void GlowMipMap::update(VistaTexture* hdrBufferComposite) {
       int           inputLevel = level, outputLevel = level;
 
       // level  pass   input   inputLevel output outputLevel     blur      samplesHigherLevel
-      //   0     0    gbuffer     0        temp      0        horizontal          true
+      //   0     0   hdrbuffer    0        temp      0        horizontal          true
       //   0     1     temp       0        this      0         vertical           false
       //   1     0     this       0        temp      1        horizontal          true
       //   1     1     temp       1        this      1         vertical           false
@@ -170,8 +170,10 @@ void GlowMipMap::update(VistaTexture* hdrBufferComposite) {
 
       glUniform1i(glGetUniformLocation(mComputeProgram, "uPass"), pass);
 
-      int width  = std::max(1.0, std::floor(static_cast<double>(iWidth) / std::pow(2, level)));
-      int height = std::max(1.0, std::floor(static_cast<double>(iHeight) / std::pow(2, level)));
+      int width =
+          std::max(1.0, std::floor(static_cast<double>(mHDRBufferWidth / 2) / std::pow(2, level)));
+      int height =
+          std::max(1.0, std::floor(static_cast<double>(mHDRBufferHeight / 2) / std::pow(2, level)));
 
       glBindImageTexture(0, output->GetId(), outputLevel, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
       glBindImageTexture(1, input->GetId(), inputLevel, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
