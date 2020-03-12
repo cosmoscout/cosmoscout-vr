@@ -16,13 +16,13 @@ namespace cs::gui::detail {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 WebViewClient::~WebViewClient() {
-  if (js_callbacks_.size() > 0) {
+  if (mJSCallbacks.size() > 0) {
     spdlog::warn(
         "While destructing a WebViewClient there were still JavaScript callbacks registered:");
 
-    for (auto&& i : js_callbacks_) {
+    for (auto&& i : mJSCallbacks) {
       spdlog::warn(" - {}", i.first);
-      i.second = [](std::vector<std::any> const&) {};
+      i.second = [](auto) {};
     }
   }
 }
@@ -35,15 +35,15 @@ bool WebViewClient::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
   if (message->GetName() == "callNative") {
 
     std::string name(message->GetArgumentList()->GetString(0).ToString());
-    auto        callback(js_callbacks_.find(name));
+    auto        callback(mJSCallbacks.find(name));
 
-    if (callback == js_callbacks_.end()) {
+    if (callback == mJSCallbacks.end()) {
       spdlog::warn(
           "Cannot call function '{}': No callback is registered for this function name!", name);
       return true;
     }
 
-    std::vector<std::any> args;
+    std::vector<std::optional<JSType>> args;
 
     for (int i(1); i < message->GetArgumentList()->GetSize(); ++i) {
       CefValueType type(message->GetArgumentList()->GetType((size_t)i));
@@ -57,12 +57,17 @@ bool WebViewClient::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
       case VTYPE_STRING:
         args.emplace_back(message->GetArgumentList()->GetString((size_t)i).ToString());
         break;
+      case VTYPE_INVALID:
+      case VTYPE_NULL:
+        args.emplace_back(std::nullopt);
+        break;
       default:
+        spdlog::warn("Failed to parse argument {} of callback '{}': Unsupported type!", i, name);
         break;
       }
     }
 
-    callback->second(args);
+    callback->second(std::move(args));
 
     return true;
   } else if (message->GetName() == "error") {
@@ -75,14 +80,14 @@ bool WebViewClient::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void WebViewClient::RegisterJSCallback(
-    std::string const& name, std::function<void(std::vector<std::any> const&)> callback) {
-  js_callbacks_[name] = std::move(callback);
+    std::string const& name, std::function<void(std::vector<std::optional<JSType>>&&)> callback) {
+  mJSCallbacks[name] = std::move(callback);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void WebViewClient::UnregisterJSCallback(std::string const& name) {
-  js_callbacks_.erase(name);
+  mJSCallbacks.erase(name);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
