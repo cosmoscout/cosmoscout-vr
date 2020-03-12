@@ -35,6 +35,8 @@ bool JSHandler::Execute(const CefString& name, CefRefPtr<CefV8Value> object,
       msg->GetArgumentList()->SetBool(i, arguments[i]->GetBoolValue());
     } else if (arguments[i]->IsString()) {
       msg->GetArgumentList()->SetString(i, arguments[i]->GetStringValue());
+    } else if (arguments[i]->IsNull() || arguments[i]->IsUndefined()) {
+      msg->GetArgumentList()->SetNull(i);
     } else {
       std::stringstream sstr;
       sstr << "Failed to handle window.callNative call. Argument " << i

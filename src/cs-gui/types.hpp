@@ -11,6 +11,7 @@
 
 #include <cstdint>
 #include <functional>
+#include <variant>
 #include <vector>
 
 namespace cs::gui {
@@ -26,6 +27,8 @@ struct CS_GUI_EXPORT DrawEvent {
 };
 
 typedef std::function<uint8_t*(DrawEvent const&)> DrawCallback;
+
+typedef std::variant<double, bool, std::string> JSType;
 
 /// The visual appearance of the cursor.
 enum class CS_GUI_EXPORT Cursor : int {
