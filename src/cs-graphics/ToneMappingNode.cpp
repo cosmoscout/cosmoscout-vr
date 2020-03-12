@@ -259,14 +259,15 @@ const std::string ToneMappingNode::sFragmentShader = R"(
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-ToneMappingNode::ToneMappingNode(std::shared_ptr<HDRBuffer> const& hdrBuffer, bool drawToBackBuffer)
+ToneMappingNode::ToneMappingNode(std::shared_ptr<HDRBuffer> const& hdrBuffer)
     : mHDRBuffer(hdrBuffer)
-    , mDrawToBackBuffer(drawToBackBuffer)
     , mShader(new VistaGLSLShader()) {
   mShader->InitVertexShaderFromString(sVertexShader);
   mShader->InitFragmentShaderFromString(sFragmentShader);
   mShader->Link();
 
+  // Connect to the VSE_POSTGRAPHICS event. When this event is emitted, we will collect all
+  // luminance values of the connected cluster nodes.
   VistaEventManager* pEventManager = GetVistaSystem()->GetEventManager();
   pEventManager->AddEventHandler(
       this, VistaSystemEvent::GetTypeId(), VistaSystemEvent::VSE_POSTGRAPHICS);
@@ -375,8 +376,8 @@ float ToneMappingNode::getGlowIntensity() const {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 float ToneMappingNode::getLastAverageLuminance() const {
-  if (mGlobalLuminaceData.mPixelCount > 0 && mGlobalLuminaceData.mTotalLuminance > 0) {
-    return mGlobalLuminaceData.mTotalLuminance / mGlobalLuminaceData.mPixelCount;
+  if (mGlobalLuminanceData.mPixelCount > 0 && mGlobalLuminanceData.mTotalLuminance > 0) {
+    return mGlobalLuminanceData.mTotalLuminance / mGlobalLuminanceData.mPixelCount;
   }
   return 0;
 }
@@ -384,8 +385,8 @@ float ToneMappingNode::getLastAverageLuminance() const {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 float ToneMappingNode::getLastMaximumLuminance() const {
-  if (mGlobalLuminaceData.mMaximumLuminance > 0) {
-    return mGlobalLuminaceData.mMaximumLuminance;
+  if (mGlobalLuminanceData.mMaximumLuminance > 0) {
+    return mGlobalLuminanceData.mMaximumLuminance;
   }
   return 0;
 }
@@ -401,19 +402,18 @@ bool ToneMappingNode::ToneMappingNode::Do() {
   if (doCalculateExposure && mEnableAutoExposure) {
     mHDRBuffer->calculateLuminance();
 
-    // we accumulate all luminance values of this frame (can be multiple viewports
-    // and / or multiple eyes). These values will be send to the master in
-    // VSE_POSTGRAPHICS and accumulated for all clients. The result is stored in
-    // mGlobalLuminaceData and is in the next frame used for exposure calculation
+    // We accumulate all luminance values of this frame (can be multiple viewports and / or multiple
+    // eyes). These values will be send to the master in VSE_POSTGRAPHICS and accumulated for all
+    // clients. The result is stored in mGlobalLuminanceData and is in the next frame used for
+    // exposure calculation
     auto size = mHDRBuffer->getCurrentViewPortSize();
-    mLocalLuminaceData.mPixelCount += size[0] * size[1];
-    mLocalLuminaceData.mTotalLuminance += mHDRBuffer->getTotalLuminance();
-    mLocalLuminaceData.mMaximumLuminance += mHDRBuffer->getMaximumLuminance();
+    mLocalLuminanceData.mPixelCount += size[0] * size[1];
+    mLocalLuminanceData.mTotalLuminance += mHDRBuffer->getTotalLuminance();
+    mLocalLuminanceData.mMaximumLuminance += mHDRBuffer->getMaximumLuminance();
 
-    // calculate exposure based on last frame's average luminance
-    // Time-dependent visual adaptation for fast realistic image display
-    // https://dl.acm.org/citation.cfm?id=344810
-    if (mGlobalLuminaceData.mPixelCount > 0 && mGlobalLuminaceData.mTotalLuminance > 0) {
+    // Calculate exposure based on last frame's average luminance Time-dependent visual adaptation
+    // for fast realistic image display (https://dl.acm.org/citation.cfm?id=344810).
+    if (mGlobalLuminanceData.mPixelCount > 0 && mGlobalLuminanceData.mTotalLuminance > 0) {
       float frameTime        = GetVistaSystem()->GetFrameLoop()->GetAverageLoopTime();
       float averageLuminance = getLastAverageLuminance();
       mAutoExposure += (std::log2(1.f / averageLuminance) - mAutoExposure) *
@@ -424,20 +424,6 @@ bool ToneMappingNode::ToneMappingNode::Do() {
   if (mGlowIntensity > 0) {
     mHDRBuffer->updateGlowMipMap();
   }
-  // ---------------
-
-  // float targetEV    = internal::ComputeTargetEV(mLuminance);
-  // float focalLength = 25.f;
-  // float aperture, shutterSpeed, iso;
-  // internal::ApplyProgramAuto(focalLength, targetEV, aperture, shutterSpeed, iso);
-
-  // std::cout << "--------------------" << std::endl;
-  // std::cout << "targetEV:     " << targetEV << std::endl;
-  // std::cout << "aperture:     " << aperture << std::endl;
-  // std::cout << "shutterSpeed: 1 / " << 1.f / shutterSpeed << std::endl;
-  // std::cout << "iso:          " << iso << std::endl;
-
-  // ---------------
 
   if (doCalculateExposure && mEnableAutoExposure) {
     mExposure = glm::clamp(mAutoExposure, mMinAutoExposure, mMaxAutoExposure);
@@ -454,19 +440,6 @@ bool ToneMappingNode::ToneMappingNode::Do() {
   glDisable(GL_BLEND);
   glDisable(GL_CULL_FACE);
   glEnable(GL_TEXTURE_2D);
-
-  // if we are drawing to the back-buffer, we want to
-  // disable depth testing but enable depth writing
-  // if we draw to the gbuffer we do not want to perform
-  // neither depth testing nor depth writing
-  if (mDrawToBackBuffer) {
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_ALWAYS);
-    glDepthMask(GL_TRUE);
-  } else {
-    glDisable(GL_DEPTH_TEST);
-    glDepthMask(GL_FALSE);
-  }
 
   mShader->Bind();
   mShader->SetUniform(mShader->GetUniformLocation("uExposure"), exposure);
@@ -495,40 +468,40 @@ bool ToneMappingNode::GetBoundingBox(VistaBoundingBox& oBoundingBox) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void ToneMappingNode::HandleEvent(VistaEvent* pEvent) {
-  // we accumulate all luminance values of this frame (can be multiple viewports
-  // and / or multiple eyes) in mLocalLuminaceData. This will be send to the master in
-  // VSE_POSTGRAPHICS and accumulated for all clients. The result is stored in
-  // mGlobalLuminaceData and is in the next frame used for exposure calculation
+  // We accumulate all luminance values of this frame (can be multiple viewports and / or multiple
+  // eyes) in mLocalLuminanceData. This will be send to the master in VSE_POSTGRAPHICS and
+  // accumulated for all clients. The result is stored in mGlobalLuminanceData and is in the next
+  // frame used for exposure calculation.
   if (pEvent->GetId() == VistaSystemEvent::VSE_POSTGRAPHICS) {
     std::vector<std::vector<VistaType::byte>> globalData;
     std::vector<VistaType::byte>              localData(sizeof(LuminanceData));
 
-    std::memcpy(&localData[0], &mLocalLuminaceData, sizeof(LuminanceData));
+    std::memcpy(&localData[0], &mLocalLuminanceData, sizeof(LuminanceData));
     mLuminanceCollect->CollectData(&localData[0], sizeof(LuminanceData), globalData);
 
-    // globalData is only filled on the cluster master. The slaves will receive
-    // the accumulated mGlobalLuminaceData with the SyncData call below
-    mGlobalLuminaceData.mPixelCount       = 0;
-    mGlobalLuminaceData.mTotalLuminance   = 0;
-    mGlobalLuminaceData.mMaximumLuminance = 0;
+    // mGlobalLuminanceData is only filled on the cluster master. The slaves will receive the
+    // accumulated mGlobalLuminanceData with the SyncData call below
+    mGlobalLuminanceData.mPixelCount       = 0;
+    mGlobalLuminanceData.mTotalLuminance   = 0;
+    mGlobalLuminanceData.mMaximumLuminance = 0;
 
     for (auto const& data : globalData) {
       LuminanceData luminance;
       std::memcpy(&luminance, &data[0], sizeof(LuminanceData));
-      mGlobalLuminaceData.mPixelCount += luminance.mPixelCount;
-      mGlobalLuminaceData.mTotalLuminance += luminance.mTotalLuminance;
-      mGlobalLuminaceData.mMaximumLuminance =
-          std::max(mGlobalLuminaceData.mMaximumLuminance, luminance.mMaximumLuminance);
+      mGlobalLuminanceData.mPixelCount += luminance.mPixelCount;
+      mGlobalLuminanceData.mTotalLuminance += luminance.mTotalLuminance;
+      mGlobalLuminanceData.mMaximumLuminance =
+          std::max(mGlobalLuminanceData.mMaximumLuminance, luminance.mMaximumLuminance);
     }
 
-    std::memcpy(&localData[0], &mGlobalLuminaceData, sizeof(LuminanceData));
+    std::memcpy(&localData[0], &mGlobalLuminanceData, sizeof(LuminanceData));
     mLuminanceSync->SyncData(localData);
-    std::memcpy(&mGlobalLuminaceData, &localData[0], sizeof(LuminanceData));
+    std::memcpy(&mGlobalLuminanceData, &localData[0], sizeof(LuminanceData));
 
-    // reset local data for next frame
-    mLocalLuminaceData.mPixelCount       = 0;
-    mLocalLuminaceData.mTotalLuminance   = 0;
-    mLocalLuminaceData.mMaximumLuminance = 0;
+    // Reset local data for next frame.
+    mLocalLuminanceData.mPixelCount       = 0;
+    mLocalLuminanceData.mTotalLuminance   = 0;
+    mLocalLuminanceData.mMaximumLuminance = 0;
   }
 }
 

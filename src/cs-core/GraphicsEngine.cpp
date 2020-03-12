@@ -78,7 +78,7 @@ GraphicsEngine::GraphicsEngine(std::shared_ptr<const core::Settings> const& sett
 
   // Create a node which performas tonemapping of the HDRBuffer at the end of a frame (this will be
   // enabled only if HDR rendering is enabled).
-  mToneMappingNode       = std::make_shared<graphics::ToneMappingNode>(mHDRBuffer, true);
+  mToneMappingNode       = std::make_shared<graphics::ToneMappingNode>(mHDRBuffer);
   auto toneMappingGLNode = pSG->NewOpenGLNode(pSG->GetRoot(), mToneMappingNode.get());
   VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
       toneMappingGLNode, static_cast<int>(utils::DrawOrder::eToneMapping));
