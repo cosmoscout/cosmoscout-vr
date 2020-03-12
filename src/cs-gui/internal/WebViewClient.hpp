@@ -20,6 +20,7 @@
 #include <include/cef_render_handler.h>
 #include <include/cef_v8.h>
 #include <include/wrapper/cef_stream_resource_handler.h>
+#include <optional>
 #include <unordered_map>
 
 namespace cs::gui::detail {
