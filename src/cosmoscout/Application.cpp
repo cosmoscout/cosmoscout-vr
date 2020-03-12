@@ -909,6 +909,8 @@ void Application::registerGuiCallbacks() {
       "Adjust the quickness of auto-exposure.",
       std::function([this](double val) { mGraphicsEngine->pExposureAdaptionSpeed = val; }));
 
+  // If auto-exposure is enabled, we update the slider in the user interface to show the current
+  // value.
   mGraphicsEngine->pExposure.onChange().connect([this](float value) {
     if (mGraphicsEngine->pEnableAutoExposure.get()) {
       mGuiManager->getGui()->callJavascript(
@@ -920,6 +922,7 @@ void Application::registerGuiCallbacks() {
       "If enabled, the glow amount is chosen based on the current exposure.",
       std::function([this](bool val) { mGraphicsEngine->pEnableAutoGlow = val; }));
 
+  // If auto-glow is enabled, we update the slider in the user interface to show the current value.
   mGraphicsEngine->pGlowIntensity.onChange().connect([this](float value) {
     if (mGraphicsEngine->pEnableAutoGlow.get()) {
       mGuiManager->getGui()->callJavascript(
@@ -927,10 +930,12 @@ void Application::registerGuiCallbacks() {
     }
   });
 
+  // Update the side bar field showing the average luminance of the scene.
   mGraphicsEngine->pAverageLuminance.onChange().connect([this](float value) {
     mGuiManager->getGui()->callJavascript("CosmoScout.sidebar.setAverageSceneLuminance", value);
   });
 
+  // Update the side bar field showing the maximum luminance of the scene.
   mGraphicsEngine->pMaximumLuminance.onChange().connect([this](float value) {
     mGuiManager->getGui()->callJavascript("CosmoScout.sidebar.setMaximumSceneLuminance", value);
   });
@@ -966,7 +971,7 @@ void Application::registerGuiCallbacks() {
 
   // Enables or disables vertical synchronization.
   mGuiManager->getGui()->registerCallback("graphics.setEnableVsync",
-      "Enables or disables vertical synchonization.", std::function([this](bool value) {
+      "Enables or disables vertical synchronization.", std::function([this](bool value) {
         GetVistaSystem()
             ->GetDisplayManager()
             ->GetWindows()

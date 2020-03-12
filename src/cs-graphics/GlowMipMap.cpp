@@ -69,10 +69,14 @@ GlowMipMap::GlowMipMap(int hdrBufferWidth, int hdrBufferHeight)
     , mHDRBufferWidth(hdrBufferWidth)
     , mHDRBufferHeight(hdrBufferHeight)
     , mTemporaryTarget(new VistaTexture(GL_TEXTURE_2D)) {
-  // create glow mipmap storage
+
+  // Create glow mipmap storage. The texture has half the size of the HDR buffer (rounded down) in
+  // both directions.
   int iWidth  = mHDRBufferWidth / 2;
   int iHeight = mHDRBufferHeight / 2;
-  mMaxLevels  = std::max(1.0, std::floor(std::log2(std::max(iWidth, iHeight))) + 1);
+
+  // Compute the number of available mipmap levels.
+  mMaxLevels = std::max(1.0, std::floor(std::log2(std::max(iWidth, iHeight))) + 1);
 
   Bind();
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
