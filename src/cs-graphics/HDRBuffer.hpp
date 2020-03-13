@@ -50,7 +50,13 @@ class CS_GRAPHICS_EXPORT HDRBuffer {
 
   /// Calculate the scene's total and maximum luminance. The results can be retrieved with
   /// getTotalLuminance() and getMaximumLuminance().
-  void  calculateLuminance();
+  void calculateLuminance();
+
+  // Get the results of the last but one call to calculateLuminance(). The data is read back from
+  // the GPU one
+  /// frame after the computation in order to reduce synchronization requirements. In order to get
+  /// the average luminance, you have to divide getLastTotalLuminance() by (hdrBufferWidth *
+  /// hdrBufferHeight).
   float getTotalLuminance() const;
   float getMaximumLuminance() const;
 
@@ -74,6 +80,9 @@ class CS_GRAPHICS_EXPORT HDRBuffer {
   std::array<int, 2> getCurrentViewPortPos() const;
 
  private:
+  // There is one of these structs for each viewport. That means, we have a separate framebuffer
+  // object, GlowMipMap and LuminanceMipMap for each viewport. This is mainly because viewports
+  // often have different sizes.
   struct HDRBufferData {
     VistaFramebufferObj*         mFBO              = nullptr;
     std::array<VistaTexture*, 2> mColorAttachments = {{nullptr, nullptr}};
@@ -81,6 +90,7 @@ class CS_GRAPHICS_EXPORT HDRBuffer {
     LuminanceMipMap*             mLuminanceMipMap  = nullptr;
     GlowMipMap*                  mGlowMipMap       = nullptr;
 
+    // Stores the original viewport position and size.
     int  mCachedViewport[4];
     int  mWidth                 = 0;
     int  mHeight                = 0;
@@ -88,6 +98,8 @@ class CS_GRAPHICS_EXPORT HDRBuffer {
     bool mIsBound               = false;
   };
 
+  // Helper methods to retrieve the current HDRBufferData struct based on the viewport we are
+  // currently rendering to.
   HDRBufferData&       getCurrentHDRBuffer();
   HDRBufferData const& getCurrentHDRBuffer() const;
 

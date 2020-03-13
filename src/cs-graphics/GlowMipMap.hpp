@@ -22,6 +22,8 @@ class CS_GRAPHICS_EXPORT GlowMipMap : public VistaTexture {
   GlowMipMap(int hdrBufferWidth, int hdrBufferHeight);
   virtual ~GlowMipMap();
 
+  /// Perform the glow calculation by parallel reduction of the HDR values. This is a costly
+  /// operation and should only be called once a frame.
   void update(VistaTexture* hdrBufferComposite);
 
  private:

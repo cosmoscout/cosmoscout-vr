@@ -14,7 +14,7 @@
 
 namespace cs::graphics {
 
-/// The LuminanceMipMap is a texture with full mipmap levels which are used to calculate the average
+/// The LuminanceMipMap is a texture with full mipmap levels which are used to calculate the total
 /// and maximum luminance of the current scene by parallel reduction. It's a 32bit RG texture of
 /// half the given width and height.
 class CS_GRAPHICS_EXPORT LuminanceMipMap : public VistaTexture {
@@ -22,13 +22,18 @@ class CS_GRAPHICS_EXPORT LuminanceMipMap : public VistaTexture {
   LuminanceMipMap(int hdrBufferWidth, int hdrBufferHeight);
   virtual ~LuminanceMipMap();
 
+  /// Perform the parallel reduction of luminance values. This is a costly operation and should only
+  /// be called once a frame.
   void update(VistaTexture* hdrBufferComposite);
 
   /// Returns true once data has been retrieved from the GPU. This will be one frame after the first
   /// call to update().
   bool getIsDataAvailable() const;
 
-  /// Get the
+  /// Get the results of the last but one call to update(). The data is read back from the GPU one
+  /// frame after the computation in order to reduce synchronization requirements. In order to get
+  /// the average luminance, you have to divide getLastTotalLuminance() by (hdrBufferWidth *
+  /// hdrBufferHeight).
   float getLastTotalLuminance() const;
   float getLastMaximumLuminance() const;
 

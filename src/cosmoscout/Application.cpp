@@ -876,26 +876,32 @@ void Application::registerGuiCallbacks() {
       "Sets a factor for the scaling of world space user interface elements.",
       std::function([this](double value) { mGraphicsEngine->pWidgetScale = value; }));
 
+  // Adjusts the sensor diagonal of the virtual camera.
   mGuiManager->getGui()->registerCallback("graphics.setSensorDiagonal",
       "Sets the sensor diagonal of the virtual camera in [mm].",
       std::function([this](double val) { mGraphicsEngine->pSensorDiagonal = val; }));
 
+  // Adjusts the foacl length of the virtual camera.
   mGuiManager->getGui()->registerCallback("graphics.setFocalLength",
       "Sets the focal length of the virtual camera in [mm].",
       std::function([this](double val) { mGraphicsEngine->pFocalLength = val; }));
 
+  // Toggles HDR rendering.
   mGuiManager->getGui()->registerCallback("graphics.setEnableHDR",
       "Enables or disables HDR rendering.",
       std::function([this](bool val) { mGraphicsEngine->pEnableHDR = val; }));
 
+  // Toggles auto-exposure.
   mGuiManager->getGui()->registerCallback("graphics.setEnableAutoExposure",
       "Enables or disables automatic exposure calculation.",
       std::function([this](bool val) { mGraphicsEngine->pEnableAutoExposure = val; }));
 
+  // Adjusts the exposure compensation for HDR rendering.
   mGuiManager->getGui()->registerCallback("graphics.setExposureCompensation",
       "Adds some additional exposure in [EV].",
       std::function([this](double val) { mGraphicsEngine->pExposureCompensation = val; }));
 
+  // Adjusts the exposure of the virtual camera in HDR mode.
   mGuiManager->getGui()->registerCallback("graphics.setExposure",
       "Sets the exposure of the image in [EV]. Only available if auto-exposure is disabled.",
       std::function([this](double val) {
@@ -904,6 +910,7 @@ void Application::registerGuiCallbacks() {
         }
       }));
 
+  // Adjusts how fast the exposure adapts to new lighting condtitions.
   mGuiManager->getGui()->registerCallback("graphics.setExposureAdaptionSpeed",
       "Adjust the quickness of auto-exposure.",
       std::function([this](double val) { mGraphicsEngine->pExposureAdaptionSpeed = val; }));
@@ -917,6 +924,7 @@ void Application::registerGuiCallbacks() {
     }
   });
 
+  // Toggles auto-glow.
   mGuiManager->getGui()->registerCallback("graphics.setEnableAutoGlow",
       "If enabled, the glow amount is chosen based on the current exposure.",
       std::function([this](bool val) { mGraphicsEngine->pEnableAutoGlow = val; }));
@@ -939,15 +947,18 @@ void Application::registerGuiCallbacks() {
     mGuiManager->getGui()->callJavascript("CosmoScout.sidebar.setMaximumSceneLuminance", value);
   });
 
+  // Adjusts the amount of ambient lighting.
   mGuiManager->getGui()->registerCallback("graphics.setAmbientLight",
       "Sets the amount of ambient light.", std::function([this](double val) {
         mGraphicsEngine->pAmbientBrightness = std::pow(val, 10.0);
       }));
 
+  // Adjusts the amount of artificial glare in HDR mode.
   mGuiManager->getGui()->registerCallback("graphics.setGlowIntensity",
       "Adjusts the amount of glow of overexposed areas.",
       std::function([this](double val) { mGraphicsEngine->pGlowIntensity = val; }));
 
+  // Adjusts the exposure range for auto exposure.
   mGuiManager->getGui()->registerCallback("graphics.setExposureRange",
       "Sets the minimum and maximum value for auto-exposure. The first paramater is the actual "
       "value in [EV], the second determines which to sets: Zero for the lower end; one for the "
@@ -1003,6 +1014,7 @@ void Application::registerGuiCallbacks() {
             mTimeControl->setTime(tTime, duration.value_or(0.0), threshold.value_or(48 * 60 * 60));
           }));
 
+  // Resets the time to the configured start time.
   mGuiManager->getGui()->registerCallback("time.reset",
       "Resets the simulation time to the default value. If the absolute difference to the current "
       "simulation time is lower than the given threshold (optionalDouble2, default is 172800s "
@@ -1012,6 +1024,7 @@ void Application::registerGuiCallbacks() {
         mTimeControl->resetTime(duration.value_or(0.0), threshold.value_or(48 * 60 * 60));
       }));
 
+  // Modifies the current simulation time by adding some (fractional) hours.
   mGuiManager->getGui()->registerCallback("time.addHours",
       "Adds the given amount of hours to the current simulation time. If the amount is lower than "
       "the given threshold (optionalDouble2, default is 172800s which is 48h), there will be a "
@@ -1022,6 +1035,7 @@ void Application::registerGuiCallbacks() {
                 duration.value_or(0.0), threshold.value_or(48 * 60 * 60));
           }));
 
+  // Adjusts the simulation time speed.
   mGuiManager->getGui()->registerCallback("time.setSpeed",
       "Sets the multiplier for the simulation time speed.",
       std::function([this](double speed) { mTimeControl->setTimeSpeed(speed); }));
