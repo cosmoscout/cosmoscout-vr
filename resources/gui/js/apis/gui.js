@@ -403,9 +403,13 @@ class GuiApi extends IApi {
    * @param callbackName {string} tha data-callback attribute of the dropdown element
    * @param value {string|number}
    */
-  setDropdownValue(callbackName, value) {
+  setDropdownValue(callbackName, value, triggerCallbacks) {
     const dropdown = document.querySelector(`[data-callback="${callbackName}"]`);
     $(dropdown).selectpicker('val', value);
+
+    if (triggerCallbacks) {
+      this._triggerChangeEvent(dropdown);
+    }
   }
 
   /**
@@ -424,11 +428,15 @@ class GuiApi extends IApi {
    * @param callbackName {string} tha data-callback attribute of the radio button element
    * @param value {boolean} True = checked / False = unchecked
    */
-  setCheckboxValue(callbackName, value) {
+  setCheckboxValue(callbackName, value, triggerCallbacks) {
     const element = document.querySelector(`[data-callback="${callbackName}"]`);
 
     if (element !== null) {
       element.checked = value === true;
+
+      if (triggerCallbacks) {
+        this._triggerChangeEvent(element);
+      }
     }
   }
 
@@ -456,5 +464,17 @@ class GuiApi extends IApi {
    */
   _localizeUrl(url) {
     return `file://../share/resources/gui/${url}`;
+  }
+
+  /**
+   * Triggers an artificial change event on a given HTML element.
+   *
+   * @param element {HTMLElement} The element to fire the event on
+   * @private
+   */
+  _triggerChangeEvent(element) {
+    let evt = document.createEvent("HTMLEvents");
+    evt.initEvent("change", false, true);
+    element.dispatchEvent(evt);
   }
 }

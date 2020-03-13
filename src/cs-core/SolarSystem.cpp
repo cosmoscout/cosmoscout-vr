@@ -66,6 +66,19 @@ std::shared_ptr<const scene::CelestialObject> SolarSystem::getSun() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+glm::dvec3 SolarSystem::getSunDirection(glm::dvec3 const& observerPosition) const {
+  return glm::normalize(pSunPosition.get() - observerPosition);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+double SolarSystem::getSunIlluminance(glm::dvec3 const& observerPosition) const {
+  double sunDist = glm::length(pSunPosition.get() - observerPosition);
+  return pSunLuminousPower.get() / (sunDist * sunDist * 4.0 * glm::pi<double>());
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void SolarSystem::setObserver(scene::CelestialObserver const& observer) {
   mObserver = observer;
 }
@@ -168,13 +181,35 @@ void SolarSystem::update() {
     object->update(simulationTime, mObserver);
   }
 
-  // update speed display
+  // Update sun position.
+  pSunPosition = mSun->getWorldTransform()[3].xyz();
+
+  // Calculate luminous power of the Sun. This can be calculated by multiplying the illuminance at
+  // the average distance of Earth with the surface area of a sphere with a radius of the average
+  // distance of Earth.
+
+  // Sun's illuminance in lux at Earth.
+  double sunIlluminanceAtEarth = 1.1e5;
+
+  // Average distance between Sun and Earth in meters.
+  double distEarthSun = 1.496e11;
+
+  // Luminous power of the Sun in lumens.
+  double sunLuminousPower =
+      4.0 * glm::pi<double>() * distEarthSun * distEarthSun * sunIlluminanceAtEarth;
+
+  // As our scene is always scaled, we have to scale the luminous power of the sun accordingly.
+  // Else, our Sun would be extremely bright when scaled down.
+  double sceneScale = 1.0 / mObserver.getAnchorScale();
+  pSunLuminousPower = sunLuminousPower * sceneScale * sceneScale;
+
+  // Update the property containing the current observer speed.
   auto observerPosition = mObserver.getAnchorPosition();
   auto now              = std::chrono::high_resolution_clock::now();
 
   auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(now - mLastTime).count();
 
-  // duration is in nanoseconds so we have to multiply by 1.0e9
+  // Duration is in nanoseconds so we have to multiply by 1.0e9.
   if (duration > 0) {
     pCurrentObserverSpeed = 1.0e9 * glm::length(mLastPosition - observerPosition) / duration;
     mLastPosition         = observerPosition;

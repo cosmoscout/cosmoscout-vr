@@ -138,10 +138,20 @@ bool Application::Init(VistaSystem* pVistaSystem) {
     cs::core::GuiManager::setCursor(cs::gui::Cursor::ePointer);
   }
 
+  // Initialize some gui components
+  if (!mSettings->mEnableSensorSizeControl) {
+    mGuiManager->getGui()->executeJavascript(
+        "document.querySelector('#enableSensorSizeControl').classList.add('hidden')");
+  }
+
+  if (!mSettings->mEnableHDR.value_or(false)) {
+    mGuiManager->getGui()->callJavascript(
+        "CosmoScout.gui.setCheckboxValue", "graphics.setEnableHDR", false, true);
+  }
+
   mGuiManager->enableLoadingScreen(true);
 
-  // open plugin libraries --------------------------------------------------------------------
-
+  // open plugins ----------------------------------------------------------------------------------
   for (auto const& plugin : mSettings->mPlugins) {
     try {
 
@@ -270,6 +280,23 @@ void Application::FrameUpdate() {
     EmitSystemEvent(VistaSystemEvent::VSE_PREGRAPHICS);
   }
 
+  // update vista classes --------------------------------------------------------------------------
+
+  {
+    cs::utils::FrameTimings::ScopedTimer timer("ClusterMode ProcessFrame");
+    m_pClusterMode->ProcessFrame();
+  }
+
+  {
+    cs::utils::FrameTimings::ScopedTimer timer("ClusterMode EndFrame");
+    m_pClusterMode->EndFrame();
+  }
+
+  {
+    cs::utils::FrameTimings::ScopedTimer timer("AvgLoopTime RecordTime");
+    m_pAvgLoopTime->RecordTime();
+  }
+
   // At frame 25 we start to download datasets. This ensures that the loading screen is actually
   // already visible.
   if (GetFrameCount() == 25) {
@@ -369,6 +396,35 @@ void Application::FrameUpdate() {
         // We will keep the loading screen active for some frames, as the first frames are usually a
         // bit choppy as data is uploaded to the GPU.
         mHideLoadingScreenAtFrame = GetFrameCount() + cLoadingDelay;
+
+        // touch all public properties -------------------------------------------------------------
+
+        mGraphicsEngine->pHeightScale.touch();
+        mGraphicsEngine->pWidgetScale.touch();
+        mGraphicsEngine->pEnableLighting.touch();
+        mGraphicsEngine->pEnableHDR.touch();
+        mGraphicsEngine->pLightingQuality.touch();
+        mGraphicsEngine->pEnableShadows.touch();
+        mGraphicsEngine->pEnableShadowsDebug.touch();
+        mGraphicsEngine->pEnableShadowsFreeze.touch();
+        mGraphicsEngine->pShadowMapResolution.touch();
+        mGraphicsEngine->pShadowMapCascades.touch();
+        mGraphicsEngine->pShadowMapBias.touch();
+        mGraphicsEngine->pShadowMapRange.touch();
+        mGraphicsEngine->pShadowMapExtension.touch();
+        mGraphicsEngine->pShadowMapSplitDistribution.touch();
+        mGraphicsEngine->pEnableAutoExposure.touch();
+        mGraphicsEngine->pExposure.touch();
+        mGraphicsEngine->pAutoExposureRange.touch();
+        mGraphicsEngine->pExposureCompensation.touch();
+        mGraphicsEngine->pExposureAdaptionSpeed.touch();
+        mGraphicsEngine->pSensorDiagonal.touch();
+        mGraphicsEngine->pFocalLength.touch();
+        mGraphicsEngine->pAmbientBrightness.touch();
+        mGraphicsEngine->pGlowIntensity.touch();
+        mGraphicsEngine->pApproximateSceneBrightness.touch();
+        mGraphicsEngine->pAverageLuminance.touch();
+        mGraphicsEngine->pMaximumLuminance.touch();
 
         // initial observer animation --------------------------------------------------------------
 
@@ -511,7 +567,7 @@ void Application::FrameUpdate() {
     // Update the GraphicsEngine.
     {
       auto sunTransform = mSolarSystem->getSun()->getWorldTransform();
-      mGraphicsEngine->setSunDirection(glm::normalize(sunTransform[3].xyz()));
+      mGraphicsEngine->update(glm::normalize(sunTransform[3].xyz()));
     }
   }
 
@@ -565,21 +621,6 @@ void Application::FrameUpdate() {
   }
 
   // update vista classes --------------------------------------------------------------------------
-
-  {
-    cs::utils::FrameTimings::ScopedTimer timer("ClusterMode ProcessFrame");
-    m_pClusterMode->ProcessFrame();
-  }
-
-  {
-    cs::utils::FrameTimings::ScopedTimer timer("ClusterMode EndFrame");
-    m_pClusterMode->EndFrame();
-  }
-
-  {
-    cs::utils::FrameTimings::ScopedTimer timer("AvgLoopTime RecordTime");
-    m_pAvgLoopTime->RecordTime();
-  }
 
   {
     cs::utils::FrameTimings::ScopedTimer timer("DisplayManager DrawFrame");
@@ -744,11 +785,6 @@ void Application::registerGuiCallbacks() {
 
   // graphics callbacks ----------------------------------------------------------------------------
 
-  // Adjusts the global ambient brightness factor.
-  mGuiManager->getGui()->registerCallback("graphics.setAmbientLight",
-      "Sets the amount of ambient light.",
-      std::function([this](double value) { mGraphicsEngine->pAmbientBrightness = value; }));
-
   // Enables lighting computation globally.
   mGuiManager->getGui()->registerCallback("graphics.setEnableLighting",
       "Enables or disables lighting computations for planet surfaces.",
@@ -840,6 +876,104 @@ void Application::registerGuiCallbacks() {
       "Sets a factor for the scaling of world space user interface elements.",
       std::function([this](double value) { mGraphicsEngine->pWidgetScale = value; }));
 
+  // Adjusts the sensor diagonal of the virtual camera.
+  mGuiManager->getGui()->registerCallback("graphics.setSensorDiagonal",
+      "Sets the sensor diagonal of the virtual camera in [mm].",
+      std::function([this](double val) { mGraphicsEngine->pSensorDiagonal = val; }));
+
+  // Adjusts the foacl length of the virtual camera.
+  mGuiManager->getGui()->registerCallback("graphics.setFocalLength",
+      "Sets the focal length of the virtual camera in [mm].",
+      std::function([this](double val) { mGraphicsEngine->pFocalLength = val; }));
+
+  // Toggles HDR rendering.
+  mGuiManager->getGui()->registerCallback("graphics.setEnableHDR",
+      "Enables or disables HDR rendering.",
+      std::function([this](bool val) { mGraphicsEngine->pEnableHDR = val; }));
+
+  // Toggles auto-exposure.
+  mGuiManager->getGui()->registerCallback("graphics.setEnableAutoExposure",
+      "Enables or disables automatic exposure calculation.",
+      std::function([this](bool val) { mGraphicsEngine->pEnableAutoExposure = val; }));
+
+  // Adjusts the exposure compensation for HDR rendering.
+  mGuiManager->getGui()->registerCallback("graphics.setExposureCompensation",
+      "Adds some additional exposure in [EV].",
+      std::function([this](double val) { mGraphicsEngine->pExposureCompensation = val; }));
+
+  // Adjusts the exposure of the virtual camera in HDR mode.
+  mGuiManager->getGui()->registerCallback("graphics.setExposure",
+      "Sets the exposure of the image in [EV]. Only available if auto-exposure is disabled.",
+      std::function([this](double val) {
+        if (!mGraphicsEngine->pEnableAutoExposure.get()) {
+          mGraphicsEngine->pExposure = val;
+        }
+      }));
+
+  // Adjusts how fast the exposure adapts to new lighting condtitions.
+  mGuiManager->getGui()->registerCallback("graphics.setExposureAdaptionSpeed",
+      "Adjust the quickness of auto-exposure.",
+      std::function([this](double val) { mGraphicsEngine->pExposureAdaptionSpeed = val; }));
+
+  // If auto-exposure is enabled, we update the slider in the user interface to show the current
+  // value.
+  mGraphicsEngine->pExposure.onChange().connect([this](float value) {
+    if (mGraphicsEngine->pEnableAutoExposure.get()) {
+      mGuiManager->getGui()->callJavascript(
+          "CosmoScout.gui.setSliderValue", "graphics.setExposure", value);
+    }
+  });
+
+  // Toggles auto-glow.
+  mGuiManager->getGui()->registerCallback("graphics.setEnableAutoGlow",
+      "If enabled, the glow amount is chosen based on the current exposure.",
+      std::function([this](bool val) { mGraphicsEngine->pEnableAutoGlow = val; }));
+
+  // If auto-glow is enabled, we update the slider in the user interface to show the current value.
+  mGraphicsEngine->pGlowIntensity.onChange().connect([this](float value) {
+    if (mGraphicsEngine->pEnableAutoGlow.get()) {
+      mGuiManager->getGui()->callJavascript(
+          "CosmoScout.gui.setSliderValue", "graphics.setGlowIntensity", value);
+    }
+  });
+
+  // Update the side bar field showing the average luminance of the scene.
+  mGraphicsEngine->pAverageLuminance.onChange().connect([this](float value) {
+    mGuiManager->getGui()->callJavascript("CosmoScout.sidebar.setAverageSceneLuminance", value);
+  });
+
+  // Update the side bar field showing the maximum luminance of the scene.
+  mGraphicsEngine->pMaximumLuminance.onChange().connect([this](float value) {
+    mGuiManager->getGui()->callJavascript("CosmoScout.sidebar.setMaximumSceneLuminance", value);
+  });
+
+  // Adjusts the amount of ambient lighting.
+  mGuiManager->getGui()->registerCallback("graphics.setAmbientLight",
+      "Sets the amount of ambient light.", std::function([this](double val) {
+        mGraphicsEngine->pAmbientBrightness = std::pow(val, 10.0);
+      }));
+
+  // Adjusts the amount of artificial glare in HDR mode.
+  mGuiManager->getGui()->registerCallback("graphics.setGlowIntensity",
+      "Adjusts the amount of glow of overexposed areas.",
+      std::function([this](double val) { mGraphicsEngine->pGlowIntensity = val; }));
+
+  // Adjusts the exposure range for auto exposure.
+  mGuiManager->getGui()->registerCallback("graphics.setExposureRange",
+      "Sets the minimum and maximum value for auto-exposure. The first paramater is the actual "
+      "value in [EV], the second determines which to sets: Zero for the lower end; one for the "
+      "upper end.",
+      std::function([this](double val, double handle) {
+        glm::vec2 range = mGraphicsEngine->pAutoExposureRange.get();
+
+        if (handle == 0.0)
+          range.x = val;
+        else
+          range.y = val;
+
+        mGraphicsEngine->pAutoExposureRange = range;
+      }));
+
   // Enables or disables the per-frame time measurements.
   mGuiManager->getGui()->registerCallback("graphics.setEnableTimerQueries",
       "Shows or hides the frame timing information.",
@@ -847,7 +981,7 @@ void Application::registerGuiCallbacks() {
 
   // Enables or disables vertical synchronization.
   mGuiManager->getGui()->registerCallback("graphics.setEnableVsync",
-      "Enables or disables vertical synchonization.", std::function([this](bool value) {
+      "Enables or disables vertical synchronization.", std::function([this](bool value) {
         GetVistaSystem()
             ->GetDisplayManager()
             ->GetWindows()
@@ -880,6 +1014,7 @@ void Application::registerGuiCallbacks() {
             mTimeControl->setTime(tTime, duration.value_or(0.0), threshold.value_or(48 * 60 * 60));
           }));
 
+  // Resets the time to the configured start time.
   mGuiManager->getGui()->registerCallback("time.reset",
       "Resets the simulation time to the default value. If the absolute difference to the current "
       "simulation time is lower than the given threshold (optionalDouble2, default is 172800s "
@@ -889,6 +1024,7 @@ void Application::registerGuiCallbacks() {
         mTimeControl->resetTime(duration.value_or(0.0), threshold.value_or(48 * 60 * 60));
       }));
 
+  // Modifies the current simulation time by adding some (fractional) hours.
   mGuiManager->getGui()->registerCallback("time.addHours",
       "Adds the given amount of hours to the current simulation time. If the amount is lower than "
       "the given threshold (optionalDouble2, default is 172800s which is 48h), there will be a "
@@ -899,6 +1035,7 @@ void Application::registerGuiCallbacks() {
                 duration.value_or(0.0), threshold.value_or(48 * 60 * 60));
           }));
 
+  // Adjusts the simulation time speed.
   mGuiManager->getGui()->registerCallback("time.setSpeed",
       "Sets the multiplier for the simulation time speed.",
       std::function([this](double speed) { mTimeControl->setTimeSpeed(speed); }));
@@ -1114,6 +1251,16 @@ void Application::unregisterGuiCallbacks() {
   mGuiManager->getGui()->unregisterCallback("graphics.setShadowmapSplitDistribution");
   mGuiManager->getGui()->unregisterCallback("graphics.setTerrainHeight");
   mGuiManager->getGui()->unregisterCallback("graphics.setWidgetScale");
+  mGuiManager->getGui()->unregisterCallback("graphics.setFocalLength");
+  mGuiManager->getGui()->unregisterCallback("graphics.setEnableAutoExposure");
+  mGuiManager->getGui()->unregisterCallback("graphics.setEnableHDR");
+  mGuiManager->getGui()->unregisterCallback("graphics.setExposure");
+  mGuiManager->getGui()->unregisterCallback("graphics.setExposureAdaptionSpeed");
+  mGuiManager->getGui()->unregisterCallback("graphics.setExposureCompensation");
+  mGuiManager->getGui()->unregisterCallback("graphics.setSensorDiagonal");
+  mGuiManager->getGui()->unregisterCallback("graphics.setEnableAutoGlow");
+  mGuiManager->getGui()->unregisterCallback("graphics.setGlowIntensity");
+  mGuiManager->getGui()->unregisterCallback("graphics.setExposureRange");
   mGuiManager->getGui()->unregisterCallback("navigation.fixHorizon");
   mGuiManager->getGui()->unregisterCallback("navigation.northUp");
   mGuiManager->getGui()->unregisterCallback("navigation.setBody");

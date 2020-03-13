@@ -23,13 +23,15 @@ namespace cs::utils {
 
 /// Defines the order in which objects will be rendered.
 enum class CS_UTILS_EXPORT DrawOrder : int {
-  ePlanets          = 100,
-  eOpaqueItems      = 200,
-  eStars            = 300,
-  eAtmospheres      = 400,
-  eTransparentItems = 500,
-  eRay              = 600,
-  eGui              = 700
+  eClearHDRBuffer   = 100,
+  ePlanets          = 200,
+  eOpaqueItems      = 300,
+  eStars            = 400,
+  eAtmospheres      = 500,
+  eToneMapping      = 600,
+  eTransparentItems = 700,
+  eRay              = 800,
+  eGui              = 900
 };
 
 template <typename T>

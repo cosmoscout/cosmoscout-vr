@@ -62,6 +62,7 @@ struct GLProgramInfo {
   // Fragmentshader
   int u_LightDirection_loc;
   int u_LightColor_loc;
+  int u_EnableHDR_loc;
 
   int u_DiffuseEnvSampler_loc;
   int u_SpecularEnvSampler_loc;
@@ -149,6 +150,7 @@ struct GltfShared {
   glm::vec3            m_lightColor     = glm::vec3(0.0f, 0.0f, 0.0f);
   glm::vec3            m_lightDirection = glm::vec3(0.0f, 0.0f, 1.0f);
   float                m_lightIntensity = 1.0f;
+  bool                 m_enableHDR      = false;
   float                m_IBLIntensity   = 1.0f;
   glm::mat3            m_IBLrotation    = glm::mat3(1.0f);
   tinygltf::Model      minyGltfModel;

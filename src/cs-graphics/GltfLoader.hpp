@@ -46,6 +46,7 @@ class CS_GRAPHICS_EXPORT GltfLoader {
   void setLightDirection(float x, float y, float z);
   void setLightDirection(VistaVector3D const& dir);
   void setLightIntensity(float intensity);
+  void setEnableHDR(bool enable);
 
   void setIBLIntensity(float intensity);
 

@@ -93,13 +93,15 @@ void from_json(const nlohmann::json& j, Settings::SceneScale& o) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void from_json(const nlohmann::json& j, Settings& o) {
-  o.mStartDate       = parseProperty<std::string>("startDate", j);
-  o.mObserver        = parseSection<Settings::Observer>("observer", j);
-  o.mSpiceKernel     = parseProperty<std::string>("spiceKernel", j);
-  o.mSceneScale      = parseProperty<Settings::SceneScale>("sceneScale", j);
-  o.mGui             = parseOptionalSection<Settings::Gui>("gui", j);
-  o.mWidgetScale     = parseProperty<float>("widgetScale", j);
-  o.mEnableMouseRay  = parseProperty<bool>("enableMouseRay", j);
+  o.mStartDate               = parseProperty<std::string>("startDate", j);
+  o.mObserver                = parseSection<Settings::Observer>("observer", j);
+  o.mSpiceKernel             = parseProperty<std::string>("spiceKernel", j);
+  o.mSceneScale              = parseProperty<Settings::SceneScale>("sceneScale", j);
+  o.mGui                     = parseOptionalSection<Settings::Gui>("gui", j);
+  o.mWidgetScale             = parseProperty<float>("widgetScale", j);
+  o.mEnableHDR               = parseOptional<bool>("enableHDR", j);
+  o.mEnableMouseRay          = parseProperty<bool>("enableMouseRay", j);
+  o.mEnableSensorSizeControl = parseProperty<bool>("enableSensorSizeControl", j);
   o.mFileLogLevel    = spdlog::level::from_str(parseProperty<std::string>("fileLogLevel", j));
   o.mConsoleLogLevel = spdlog::level::from_str(parseProperty<std::string>("consoleLogLevel", j));
   o.mScreenLogLevel  = spdlog::level::from_str(parseProperty<std::string>("screenLogLevel", j));

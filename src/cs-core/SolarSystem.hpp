@@ -46,6 +46,15 @@ class CS_CORE_EXPORT SolarSystem {
   /// The current speed of the observer in m/s in relation to his current SPICE reference frame.
   utils::Property<float> pCurrentObserverSpeed;
 
+  /// Luminous power of the sun (in lumens) scaled to match the current observer scale.
+  /// In order to get an illuminance value i (in lux), calculate the distance to the sun
+  /// d = length(p-pSunPosition) and then calculate i = pSunLuminousPower / (d*d*4*PI).
+  /// You can use the getSunIlluminance() helper method to do exactly that.
+  utils::Property<float> pSunLuminousPower = 1.f;
+
+  /// Current position of the sun, relative to the observer.
+  utils::Property<glm::dvec3> pSunPosition = glm::dvec3(0.f);
+
   SolarSystem(std::shared_ptr<const Settings> const& settings,
       std::shared_ptr<utils::FrameTimings> const&    frameTimings,
       std::shared_ptr<GraphicsEngine> const&         graphicsEngine,
@@ -54,6 +63,15 @@ class CS_CORE_EXPORT SolarSystem {
 
   /// The Sun which is at the center of the SolarSystem.
   std::shared_ptr<const scene::CelestialObject> getSun() const;
+
+  /// Returns the direction towards the sun.
+  /// This is calculated by "return normalize(pSunPosition - observerPosition)".
+  glm::dvec3 getSunDirection(glm::dvec3 const& observerPosition) const;
+
+  /// Returns the illuminance value i (in lux) at the given observer position in space. Internally,
+  /// the distance d to the sun is calculated (d = length(pSunPosition - observerPosition)) and then
+  /// then i = pSunLuminousPower / (d*d*4*PI) is calculated.
+  double getSunIlluminance(glm::dvec3 const& observerPosition) const;
 
   /// The CelestialObserver, which controls the camera.
   void                            setObserver(scene::CelestialObserver const& observer);

@@ -109,6 +109,14 @@ class SidebarApi extends IApi {
     }
   }
 
+  setAverageSceneLuminance(value) {
+    $("#average-scene-luminance").text(CosmoScout.utils.beautifyNumber(parseFloat(value)));
+  }
+
+  setMaximumSceneLuminance(value) {
+    $("#maximum-scene-luminance").text(CosmoScout.utils.beautifyNumber(parseFloat(value)));
+  }
+
   /**
    * Replace common template markers with content.
    *

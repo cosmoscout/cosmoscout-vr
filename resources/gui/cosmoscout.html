@@ -194,15 +194,19 @@
                 </div>
                 <div class="card-body collapse" id="collapseSettings-Graphics"
                   aria-labelledby="headingSettings-Graphics" data-parent="#settings-accordion">
+
                   <div class="row">
-                    <div class="col-5">
+                    <div class="col-7 offset-5">
                       <label class="checklabel">
                         <input type="checkbox" data-callback="graphics.setEnableVsync" checked />
                         <i class="material-icons"></i>
                         <span>VSync</span>
                       </label>
                     </div>
-                    <div class="col-7">
+                  </div>
+
+                  <div class="row">
+                    <div class="col-7 offset-5">
                       <label class="checklabel">
                         <input type="checkbox" data-callback="graphics.setEnableTimerQueries" />
                         <i class="material-icons"></i>
@@ -211,16 +215,153 @@
                     </div>
                   </div>
 
-                  <div class="strike">
-                    <span>Lighting</span>
+                  <div class="row">
+                    <div class="col-7 offset-5">
+                      <label class="checklabel">
+                        <input type="checkbox" data-callback="graphics.setEnableHDR" checked />
+                        <i class="material-icons"></i>
+                        <span>Enable HDR Rendering</span>
+                      </label>
+                    </div>
                   </div>
+
+                  <div class="row hdr-setting">
+                    <div class="col-5">
+                      Exposure (EV)
+                    </div>
+                    <div class="col-1">
+                      <label class="checklabel" data-toggle="tooltip-top"
+                        title='Select exposure automatically'>
+                        <input type="checkbox" data-callback="graphics.setEnableAutoExposure"
+                          checked />
+                        <i class="material-icons"></i>
+                      </label>
+                    </div>
+                    <div class="col-6">
+                      <div data-callback="graphics.setExposure" class="unresponsive">
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="row hdr-setting">
+                    <div class="col-5">
+                      Exposure Range (EV)
+                    </div>
+                    <div class="col-7">
+                      <div data-callback="graphics.setExposureRange">
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="row hdr-setting">
+                    <div class="col-5">
+                      Compensation (EV)
+                    </div>
+                    <div class="col-7">
+                      <div data-callback="graphics.setExposureCompensation">
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="row hdr-setting">
+                    <div class="col-5">
+                      Adaption Speed
+                    </div>
+                    <div class="col-7">
+                      <div data-callback="graphics.setExposureAdaptionSpeed">
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="row hdr-setting">
+                    <div class="col-5">
+                      Glow Intensity
+                    </div>
+                    <div class="col-1">
+                      <label class="checklabel" data-toggle="tooltip-top"
+                        title='Select glow amount automatically'>
+                        <input type="checkbox" data-callback="graphics.setEnableAutoGlow" checked />
+                        <i class="material-icons"></i>
+                      </label>
+                    </div>
+                    <div class="col-6">
+                      <div class="unresponsive" data-callback="graphics.setGlowIntensity">
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="row hdr-setting">
+                    <div class="col-5">
+                      Average Luminance:
+                    </div>
+                    <div class="col-7" style="text-align: right">
+                      <span id="average-scene-luminance">0</span> cd / m²
+                    </div>
+                  </div>
+
+                  <div class="row hdr-setting">
+                    <div class="col-5">
+                      Maximum Luminance:
+                    </div>
+                    <div class="col-7" style="text-align: right">
+                      <span id="maximum-scene-luminance">0</span> cd / m²
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+
+              <div id="enableSensorSizeControl">
+                <div class="card settings-section">
+                  <div class="card-header collapsed" id="headingSettings-Optics"
+                    data-toggle="collapse" data-target="#collapseSettings-Optics"
+                    aria-expanded="false" aria-controls="collapseSettings-Optics" type="button">
+                    <i class="material-icons">camera</i><span>Optics</span><i
+                      class="material-icons caret-icon">keyboard_arrow_left</i>
+                  </div>
+                  <div class="card-body collapse" id="collapseSettings-Optics"
+                    aria-labelledby="headingSettings-Optics" data-parent="#settings-accordion">
+
+                    <div class="row">
+                      <div class="col-5">
+                        Sensor Diagonal (mm)
+                      </div>
+                      <div class="col-7">
+                        <div data-callback="graphics.setSensorDiagonal">
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="row">
+                      <div class="col-5">
+                        Focal Length (mm)
+                      </div>
+                      <div class="col-7">
+                        <div data-callback="graphics.setFocalLength">
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+
+              <div class="card settings-section">
+                <div class="card-header collapsed" id="headingSettings-LightShadow"
+                  data-toggle="collapse" data-target="#collapseSettings-LightShadow"
+                  aria-expanded="false" aria-controls="collapseSettings-LightShadow" type="button">
+                  <i class="material-icons">brightness_medium</i><span>Light & Shadow</span><i
+                    class="material-icons caret-icon">keyboard_arrow_left</i>
+                </div>
+                <div class="card-body collapse" id="collapseSettings-LightShadow"
+                  aria-labelledby="headingSettings-LightShadow" data-parent="#settings-accordion">
 
                   <div class="row">
                     <div class="col-7 offset-5">
                       <label class="checklabel">
                         <input type="checkbox" data-callback="graphics.setEnableLighting" />
                         <i class="material-icons"></i>
-                        <span>Enable</span>
+                        <span>Enable Lighting</span>
                       </label>
                     </div>
                   </div>
@@ -242,16 +383,12 @@
                     </div>
                   </div>
 
-                  <div class="strike">
-                    <span>Shadows</span>
-                  </div>
-
                   <div class="row">
                     <div class="col-7 offset-5">
                       <label class="checklabel">
                         <input type="checkbox" data-callback="graphics.setEnableShadows" />
                         <i class="material-icons"></i>
-                        <span>Enable</span>
+                        <span>Enable Shadows</span>
                       </label>
                     </div>
                   </div>
@@ -451,21 +588,54 @@
         CosmoScout.callbacks.graphics.setShadowmapResolution(unencoded, 0);
       });
 
-      CosmoScout.gui.initSlider("graphics.setAmbientLight", 0.0, 1.0, 0.01, [0.5]);
-
-      // Performance
       CosmoScout.gui.initSlider("graphics.setLightingQuality", 1.0, 3.0, 1.0, [2.0]);
-
       CosmoScout.gui.initSlider("graphics.setShadowmapCascades", 1.0, 5.0, 1.0, [3.0]);
       CosmoScout.gui.initSlider("graphics.setShadowmapBias", 0.0, 10.0, 0.01, [1.0]);
       CosmoScout.gui.initSlider("graphics.setShadowmapRange", 0.0, 500.0, 1.0, [0.0, 100.0]);
       CosmoScout.gui.initSlider("graphics.setShadowmapExtension", -500.0, 500.0, 10.0, [-100.0, 100.0]);
       CosmoScout.gui.initSlider("graphics.setShadowmapSplitDistribution", 0.5, 5.0, 0.1, [1.0]);
+      CosmoScout.gui.initSlider("graphics.setExposure", -30, 30, 0.5, [0]);
+      CosmoScout.gui.initSlider("graphics.setSensorDiagonal", 10.0, 70, 1, [42]);
+      CosmoScout.gui.initSlider("graphics.setFocalLength", 10.0, 500, 1, [24]);
+      CosmoScout.gui.initSlider("graphics.setExposureCompensation", -10, 10, 0.5, [0]);
+      CosmoScout.gui.initSlider("graphics.setExposureAdaptionSpeed", 0, 20, 0.1, [3]);
+      CosmoScout.gui.initSlider("graphics.setAmbientLight", 0.0, 1.0, 0.001, [0.25]);
+      CosmoScout.gui.initSlider("graphics.setExposureRange", -30.0, 30, 0.1, [-14, 10]);
+      CosmoScout.gui.initSlider("graphics.setGlowIntensity", 0.0, 1, 0.01, [0.5]);
 
       $(document).on('click', '.item-create-button', function () {
         $(this).addClass('active');
         $(this).text('Cancel');
       });
+
+      document.querySelector('[data-callback="graphics.setEnableAutoExposure"]')
+        .addEventListener('change', (event) => {
+          if (event.target.checked) {
+            document.querySelector('[data-callback="graphics.setExposure"]').classList.add('unresponsive');
+            document.querySelector('[data-callback="graphics.setExposureRange"]').classList.remove('unresponsive');
+          } else {
+            document.querySelector('[data-callback="graphics.setExposure"]').classList.remove('unresponsive');
+            document.querySelector('[data-callback="graphics.setExposureRange"]').classList.add('unresponsive');
+          }
+        });
+
+      document.querySelector('[data-callback="graphics.setEnableAutoGlow"]')
+        .addEventListener('change', (event) => {
+          if (event.target.checked) {
+            document.querySelector('[data-callback="graphics.setGlowIntensity"]').classList.add('unresponsive');
+          } else {
+            document.querySelector('[data-callback="graphics.setGlowIntensity"]').classList.remove('unresponsive');
+          }
+        });
+
+      document.querySelector('[data-callback="graphics.setEnableHDR"]')
+        .addEventListener('change', (event) => {
+          if (event.target.checked) {
+            document.querySelectorAll('.hdr-setting').forEach((elem) => elem.classList.remove('unresponsive'));
+          } else {
+            document.querySelectorAll('.hdr-setting').forEach((elem) => elem.classList.add('unresponsive'));
+          }
+        });
     });
   </script>
 
