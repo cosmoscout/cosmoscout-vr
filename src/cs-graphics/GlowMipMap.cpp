@@ -143,7 +143,7 @@ void GlowMipMap::update(VistaTexture* hdrBufferComposite) {
   glUseProgram(mComputeProgram);
 
   for (int level(0); level < mMaxLevels; ++level) {
-    for (int pass(0); pass <= 1; ++pass) {
+    for (int pass(0); pass < 2; ++pass) {
       VistaTexture *input = this, *output = this;
       int           inputLevel = level, outputLevel = level;
 

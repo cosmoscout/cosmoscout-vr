@@ -21,7 +21,7 @@ class IVistaClusterDataSync;
 
 namespace cs::graphics {
 
-/// The ToneMappingNode is used to bring the content of the HDRBuffer to the LDR backbuffer. It
+/// The ToneMappingNode is used to transform the content of the HDRBuffer to the LDR backbuffer. It
 /// applies filmic tonemapping based on http://filmicworlds.com/blog/filmic-tonemapping-operators/.
 /// Auto-exposure is implemented using the LuminanceMipMap of the HDRBuffer, an artificial glare can
 /// be added using the GlowMipMap of the HDRBuffer.

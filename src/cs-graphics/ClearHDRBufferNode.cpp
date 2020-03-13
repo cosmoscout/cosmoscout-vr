@@ -30,7 +30,7 @@ bool ClearHDRBufferNode::ClearHDRBufferNode::Do() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool ClearHDRBufferNode::GetBoundingBox(VistaBoundingBox& oBoundingBox) {
-  float min(std::numeric_limits<float>::min());
+  float min(std::numeric_limits<float>::lowest());
   float max(std::numeric_limits<float>::max());
   float fMin[3] = {min, min, min};
   float fMax[3] = {max, max, max};

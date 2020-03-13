@@ -196,7 +196,7 @@ void SolarSystem::update() {
 
   // Luminous power of the Sun in lumens.
   double sunLuminousPower =
-      4 * glm::pi<double>() * distEarthSun * distEarthSun * sunIlluminanceAtEarth;
+      4.0 * glm::pi<double>() * distEarthSun * distEarthSun * sunIlluminanceAtEarth;
 
   // As our scene is always scaled, we have to scale the luminous power of the sun accordingly.
   // Else, our Sun would be extremely bright when scaled down.

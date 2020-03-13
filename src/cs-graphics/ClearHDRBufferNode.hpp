@@ -16,8 +16,7 @@ namespace cs::graphics {
 
 class HDRBuffer;
 
-/// This node does not much. It only clears and binds the given HDRBuffer when its Do() method is
-/// called.
+/// This node clears and binds the given HDRBuffer when its Do() method is called.
 class CS_GRAPHICS_EXPORT ClearHDRBufferNode : public IVistaOpenGLDraw {
  public:
   ClearHDRBufferNode(std::shared_ptr<HDRBuffer> const& hdrBuffer);

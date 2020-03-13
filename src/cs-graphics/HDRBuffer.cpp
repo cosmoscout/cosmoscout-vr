@@ -28,7 +28,7 @@ HDRBuffer::HDRBuffer(bool highPrecision)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 HDRBuffer::~HDRBuffer() {
-  for (auto hdrBuffer : mHDRBufferData) {
+  for (auto& hdrBuffer : mHDRBufferData) {
     delete hdrBuffer.second.mFBO;
     for (auto tex : hdrBuffer.second.mColorAttachments) {
       delete tex;

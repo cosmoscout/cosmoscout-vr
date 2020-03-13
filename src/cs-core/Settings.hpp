@@ -151,7 +151,7 @@ class CS_CORE_EXPORT Settings {
   bool mEnableMouseRay;
 
   /// When set to true, there will be controls in the user interface to control the camera's
-  /// frustum. In a VR-setup, this should usually be set to 'false'.
+  /// frustum. In a VR setup, this should usually be set to 'false'.
   bool mEnableSensorSizeControl;
 
   /// These set the loglevel for the output to the log file, console and on-screen output

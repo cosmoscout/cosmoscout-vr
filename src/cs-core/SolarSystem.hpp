@@ -48,11 +48,11 @@ class CS_CORE_EXPORT SolarSystem {
 
   /// Luminous power of the sun (in lumens) scaled to match the current observer scale.
   /// In order to get an illuminance value i (in lux), calculate the distance to the sun
-  /// d = length(p-pSunPosition) and calculate then i = pSunLuminousPower / (d*d*4*PI)
+  /// d = length(p-pSunPosition) and then calculate i = pSunLuminousPower / (d*d*4*PI).
   /// You can use the getSunIlluminance() helper method to do exactly that.
   utils::Property<float> pSunLuminousPower = 1.f;
 
-  /// Current position of the sun, realtive to the observer.
+  /// Current position of the sun, relative to the observer.
   utils::Property<glm::dvec3> pSunPosition = glm::dvec3(0.f);
 
   SolarSystem(std::shared_ptr<const Settings> const& settings,
