@@ -50,9 +50,11 @@ class SidebarApi extends IApi {
       return;
     }
 
-    const id = this._makeId(pluginName);
-
-    tab.innerHTML = this._replaceMarkers(tab.innerHTML, id, icon, content);
+    tab.id        = "sidebar-tab-" + this._makeId(pluginName);
+    tab.innerHTML = tab.innerHTML.replace(/%NAME%/g, pluginName)
+                        .replace(/%ICON%/g, icon)
+                        .replace(/%ID%/g, tab.id)
+                        .replace(/%CONTENT%/g, content);
 
     this._sidebar.insertBefore(tab, this._sidebarTab);
   }
@@ -71,11 +73,33 @@ class SidebarApi extends IApi {
       return;
     }
 
-    const html = this._replaceMarkers(tab.innerHTML, this._makeId(sectionName), icon, content);
-
-    tab.innerHTML = html.replace(/%SECTION%/g, sectionName).trim();
+    tab.id        = "sidebar-settings-" + this._makeId(sectionName);
+    tab.innerHTML = tab.innerHTML.replace(/%NAME%/g, sectionName)
+                        .replace(/%ICON%/g, icon)
+                        .replace(/%ID%/g, tab.id)
+                        .replace(/%CONTENT%/g, content);
 
     this._settings.appendChild(tab);
+  }
+
+  /**
+   * Removes a plugin tab from the sidebar
+   *
+   * @param pluginName {string}
+   */
+  removePluginTab(pluginName) {
+    const id = "sidebar-tab-" + this._makeId(pluginName);
+    document.getElementById(id).remove();
+  }
+
+  /**
+   * Removes a settings section from the sidebar
+   *
+   * @param pluginName {string}
+   */
+  removeSettingsSection(pluginName) {
+    const id = "sidebar-settings-" + this._makeId(pluginName);
+    document.getElementById(id).remove();
   }
 
   /**
@@ -115,20 +139,6 @@ class SidebarApi extends IApi {
 
   setMaximumSceneLuminance(value) {
     $("#maximum-scene-luminance").text(CosmoScout.utils.beautifyNumber(parseFloat(value)));
-  }
-
-  /**
-   * Replace common template markers with content.
-   *
-   * @param html {string} HTML with %MARKER% markers
-   * @param id {string} Id marker replacement
-   * @param icon {string} Icon marker replacement
-   * @param content {string} Content marker replacement
-   * @return {string} replaced html
-   * @protected
-   */
-  _replaceMarkers(html, id, icon, content) {
-    return html.replace(/%ID%/g, id).replace(/%CONTENT%/g, content).replace(/%ICON%/g, icon).trim();
   }
 
   /**

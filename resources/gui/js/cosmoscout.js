@@ -91,8 +91,8 @@ class CosmoScoutAPI {
    * @param api {Object} Instantiated IApi object
    */
   registerApi(name, api) {
-    this[name] = api;
     this._apis.set(name, api);
+    this[name] = api;
   }
 
   /**
@@ -101,7 +101,7 @@ class CosmoScoutAPI {
    * @param name {string}
    */
   removeApi(name) {
-    delete this[name];
     this._apis.delete(name);
+    delete this[name];
   }
 }
