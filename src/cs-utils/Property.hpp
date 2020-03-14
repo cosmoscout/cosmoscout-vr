@@ -95,6 +95,13 @@ class Property {
     mOnChange.emit(mValue);
   }
 
+  /// Emits beforeChange() and onChange() even if the value did not change but only for one
+  /// connection each.
+  void touchFor(int onChangeConnection = -1, int beforeChangeConnection = -1) {
+    mBeforeChange.emit(mValue);
+    mOnChange.emit(mValue);
+  }
+
   /// Returns the value.
   virtual T const& get() const {
     return mValue;

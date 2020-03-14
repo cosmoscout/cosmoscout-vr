@@ -79,6 +79,14 @@ class Signal {
     }
   }
 
+  /// Calls only one connected functions.
+  void emitFor(int connectionID, Args... p) {
+    auto const& it = mSlots.find(connectionID);
+    if (it != mSlots.end()) {
+      it.second(p...);
+    }
+  }
+
   /// Assignment creates new Signal.
   Signal& operator=(Signal const& other) {
     disconnectAll();
