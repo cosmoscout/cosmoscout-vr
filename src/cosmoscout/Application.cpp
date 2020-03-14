@@ -47,12 +47,14 @@
 #define CLOSELIB(handle) dlclose((handle))
 #define LIBERROR() dlerror()
 #define LIBFILETYPE ".so"
+#define PLUGIN_PATH "../share/plugins/"
 #else
 #define OPENLIB(libname) LoadLibrary((libname))
 #define LIBFUNC(handle, fn) GetProcAddress((HMODULE)(handle), (fn))
 #define CLOSELIB(handle) FreeLibrary((HMODULE)(handle))
 #define LIBERROR() GetLastError()
 #define LIBFILETYPE ".dll"
+#define PLUGIN_PATH "..\\share\\plugins\\"
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -153,34 +155,7 @@ bool Application::Init(VistaSystem* pVistaSystem) {
 
   // open plugins ----------------------------------------------------------------------------------
   for (auto const& plugin : mSettings->mPlugins) {
-    try {
-
-#ifdef __linux__
-      std::string path = "../share/plugins/lib" + plugin.first + ".so";
-#else
-      std::string path = "..\\share\\plugins\\" + plugin.first + ".dll";
-#endif
-
-      // Clear errors.
-      LIBERROR();
-
-      COSMOSCOUT_LIBTYPE pluginHandle = OPENLIB(path.c_str());
-
-      if (pluginHandle) {
-        cs::core::PluginBase* (*pluginConstructor)();
-        pluginConstructor = (cs::core::PluginBase * (*)()) LIBFUNC(pluginHandle, "create");
-
-        spdlog::info("Opening plugin '{}'.", plugin.first);
-
-        // Actually call the plugin's constructor and add the returned pointer to out list.
-        mPlugins.insert(
-            std::pair<std::string, Plugin>(plugin.first, {pluginHandle, pluginConstructor()}));
-      } else {
-        spdlog::error("Failed to load plugin '{}': {}", plugin.first, LIBERROR());
-      }
-    } catch (std::exception const& e) {
-      spdlog::error("Failed to load plugin '{}': {}", plugin.first, e.what());
-    }
+    openPlugin(plugin.first);
   }
 
   return VistaFrameLoop::Init(pVistaSystem);
@@ -200,13 +175,7 @@ void Application::Quit() {
 
   // Then close all plugins.
   for (auto const& plugin : mPlugins) {
-    spdlog::info("Closing plugin '{}'.", plugin.first);
-
-    auto handle           = plugin.second.mHandle;
-    auto pluginDestructor = (void (*)(cs::core::PluginBase*))LIBFUNC(handle, "destroy");
-
-    pluginDestructor(plugin.second.mPlugin);
-    CLOSELIB(handle);
+    closePlugin(plugin.first);
   }
 
   mPlugins.clear();
@@ -369,18 +338,7 @@ void Application::FrameUpdate() {
         auto plugin = mPlugins.begin();
         std::advance(plugin, pluginToLoad);
 
-        // First provide the plugin with all required class instances.
-        plugin->second.mPlugin->setAPI(mSettings, mSolarSystem, mGuiManager, mInputManager,
-            GetVistaSystem()->GetGraphicsManager()->GetSceneGraph(), mGraphicsEngine, mFrameTimings,
-            mTimeControl);
-
-        // Then do the actual initialization. This may actually take a while and the loading screen
-        // will become unresponsive in the meantime.
-        try {
-          plugin->second.mPlugin->init();
-        } catch (std::exception const& e) {
-          spdlog::error("Failed to initialize plugin '{}': {}", plugin->first, e.what());
-        }
+        initPlugin(plugin->first);
 
       } else if (pluginToLoad == mPlugins.size()) {
 
@@ -653,13 +611,8 @@ void Application::FrameUpdate() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Application::testLoadAllPlugins() {
-#ifdef __linux__
-  std::string path = "../share/plugins";
-#else
-  std::string path = "..\\share\\plugins";
-#endif
 
-  auto plugins = cs::utils::filesystem::listFiles(path);
+  auto plugins = cs::utils::filesystem::listFiles(PLUGIN_PATH);
 
   for (auto const& plugin : plugins) {
     if (cs::utils::endsWith(plugin, ".so") || cs::utils::endsWith(plugin, ".dll")) {
@@ -682,6 +635,92 @@ void Application::testLoadAllPlugins() {
         spdlog::error("Failed to load plugin '{}': {}", plugin, LIBERROR());
       }
     }
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Application::openPlugin(std::string const& name) {
+  try {
+
+#ifdef __linux__
+    std::string path = PLUGIN_PATH "lib" + name + ".so";
+#else
+    std::string path = PLUGIN_PATH + name + ".dll";
+#endif
+
+    // Clear errors.
+    LIBERROR();
+
+    COSMOSCOUT_LIBTYPE pluginHandle = OPENLIB(path.c_str());
+
+    if (pluginHandle) {
+      cs::core::PluginBase* (*pluginConstructor)();
+      pluginConstructor = (cs::core::PluginBase * (*)()) LIBFUNC(pluginHandle, "create");
+
+      spdlog::info("Opening plugin '{}'.", name);
+
+      // Actually call the plugin's constructor and add the returned pointer to out list.
+      mPlugins.insert(std::pair<std::string, Plugin>(name, {pluginHandle, pluginConstructor()}));
+    } else {
+      spdlog::error("Failed to load plugin '{}': {}", name, LIBERROR());
+    }
+  } catch (std::exception const& e) {
+    spdlog::error("Failed to load plugin '{}': {}", name, e.what());
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Application::initPlugin(std::string const& name) {
+  auto plugin = mPlugins.find(name);
+
+  if (plugin != mPlugins.end()) {
+    // First provide the plugin with all required class instances.
+    plugin->second.mPlugin->setAPI(mSettings, mSolarSystem, mGuiManager, mInputManager,
+        GetVistaSystem()->GetGraphicsManager()->GetSceneGraph(), mGraphicsEngine, mFrameTimings,
+        mTimeControl);
+
+    // Then do the actual initialization. This may actually take a while and the application
+    // will become unresponsive in the meantime.
+    try {
+      plugin->second.mPlugin->init();
+    } catch (std::exception const& e) {
+      spdlog::error("Failed to initialize plugin '{}': {}", plugin->first, e.what());
+    }
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Application::deinitPlugin(std::string const& name) {
+  auto plugin = mPlugins.find(name);
+
+  if (plugin != mPlugins.end()) {
+    plugin->second.mPlugin->deInit();
+  } else {
+    spdlog::warn("Failed to unload plugin '{}': No plugin loaded with this name!", name);
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Application::closePlugin(std::string const& name) {
+  auto plugin = mPlugins.find(name);
+
+  if (plugin != mPlugins.end()) {
+    spdlog::info("Closing plugin '{}'.", plugin->first);
+
+    auto handle           = plugin->second.mHandle;
+    auto pluginDestructor = (void (*)(cs::core::PluginBase*))LIBFUNC(handle, "destroy");
+
+    pluginDestructor(plugin->second.mPlugin);
+    CLOSELIB(handle);
+
+    mPlugins.erase(plugin);
+
+  } else {
+    spdlog::warn("Failed to close plugin '{}': No plugin loaded with this name!", name);
   }
 }
 
@@ -782,6 +821,37 @@ void Application::connectSlots() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Application::registerGuiCallbacks() {
+
+  // Unloads a plugin.
+  mGuiManager->getGui()->registerCallback("plugin.unload",
+      "Unloads the plugin with the given name.", std::function([this](std::string&& pluginName) {
+        deinitPlugin(pluginName);
+        closePlugin(pluginName);
+      }));
+
+  // Loads a plugin.
+  mGuiManager->getGui()->registerCallback("plugin.load", "Loads the plugin with the given name.",
+      std::function([this](std::string&& pluginName) {
+        openPlugin(pluginName);
+        initPlugin(pluginName);
+      }));
+
+  // Reloads a plugin.
+  mGuiManager->getGui()->registerCallback("plugin.reload",
+      "Reloads the plugin with the given name.", std::function([this](std::string&& pluginName) {
+        deinitPlugin(pluginName);
+        closePlugin(pluginName);
+        openPlugin(pluginName);
+        initPlugin(pluginName);
+      }));
+
+  // Lists all loaded plugins.
+  mGuiManager->getGui()->registerCallback(
+      "plugin.list", "Lists all loaded plugins.", std::function([this]() {
+        for (auto const& plugin : mPlugins) {
+          spdlog::info(plugin.first);
+        }
+      }));
 
   // graphics callbacks ----------------------------------------------------------------------------
 
@@ -1235,6 +1305,10 @@ void Application::registerGuiCallbacks() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Application::unregisterGuiCallbacks() {
+  mGuiManager->getGui()->unregisterCallback("plugin.list");
+  mGuiManager->getGui()->unregisterCallback("plugin.load");
+  mGuiManager->getGui()->unregisterCallback("plugin.reload");
+  mGuiManager->getGui()->unregisterCallback("plugin.unload");
   mGuiManager->getGui()->unregisterCallback("graphics.setAmbientLight");
   mGuiManager->getGui()->unregisterCallback("graphics.setEnableCascadesDebug");
   mGuiManager->getGui()->unregisterCallback("graphics.setEnableLighting");

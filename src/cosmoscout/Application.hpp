@@ -100,6 +100,11 @@ class Application : public VistaFrameLoop {
     cs::core::PluginBase* mPlugin = nullptr;
   };
 
+  void openPlugin(std::string const& name);
+  void initPlugin(std::string const& name);
+  void deinitPlugin(std::string const& name);
+  void closePlugin(std::string const& name);
+
   /// This connects several parts of CosmoScout VR to each other. For example, when the InputManager
   /// calculates a new intersection between the mouse-ray and the currently active planet, the
   /// coordinates of this intersection are shown in the user interface. Since the InputManager has
@@ -109,6 +114,10 @@ class Application : public VistaFrameLoop {
   /// There are several default C++ callbacks available in the JavaScript code of the user
   /// interface. You can also explore them with the onscreen JavaScript console. In this method
   /// those callbacks are set up. Here are all registered callbacks:
+  /// "plugin.list"
+  /// "plugin.load"
+  /// "plugin.reload"
+  /// "plugin.unload"
   /// "graphics.setAmbientLight"
   /// "graphics.setEnableCascadesDebug"
   /// "graphics.setEnableLighting"
