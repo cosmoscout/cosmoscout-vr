@@ -439,9 +439,6 @@ void Application::FrameUpdate() {
     // Hide the loading screen after several frames.
     if (GetFrameCount() == mHideLoadingScreenAtFrame) {
       mGuiManager->enableLoadingScreen(false);
-
-      // All plugins finished loading -> init their custom components.
-      mGuiManager->getGui()->callJavascript("CosmoScout.gui.initInputs");
     }
 
     // update CosmoScout VR classes ----------------------------------------------------------------
@@ -685,6 +682,9 @@ void Application::initPlugin(std::string const& name) {
     // will become unresponsive in the meantime.
     try {
       plugin->second.mPlugin->init();
+
+      // Plugin finished loading -> init its custom components.
+      mGuiManager->getGui()->callJavascript("CosmoScout.gui.initInputs");
     } catch (std::exception const& e) {
       spdlog::error("Failed to initialize plugin '{}': {}", plugin->first, e.what());
     }
