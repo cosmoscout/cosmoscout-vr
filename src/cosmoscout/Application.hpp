@@ -168,6 +168,10 @@ class Application : public VistaFrameLoop {
   int  mHideLoadingScreenAtFrame  = 0;
 
   int mOnMessageConnection = -1;
+
+  // For deferred hot-reloading of plugins.
+  std::vector<std::string> mPluginsToUnload;
+  std::vector<std::string> mPluginsToLoad;
 };
 
 #endif // CS_APPLICATION_HPP

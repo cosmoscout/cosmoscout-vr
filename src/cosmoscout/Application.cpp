@@ -266,6 +266,22 @@ void Application::FrameUpdate() {
     m_pAvgLoopTime->RecordTime();
   }
 
+  // hot-reloading of plugins ----------------------------------------------------------------------
+
+  for (auto const& plugin : mPluginsToUnload) {
+    deinitPlugin(plugin);
+    closePlugin(plugin);
+  }
+  mPluginsToUnload.clear();
+
+  for (auto const& plugin : mPluginsToLoad) {
+    openPlugin(plugin);
+    initPlugin(plugin);
+  }
+  mPluginsToLoad.clear();
+
+  // download datsets at application startup -------------------------------------------------------
+
   // At frame 25 we start to download datasets. This ensures that the loading screen is actually
   // already visible.
   if (GetFrameCount() == 25) {
@@ -311,7 +327,7 @@ void Application::FrameUpdate() {
     mStartPluginLoadingAtFrame = GetFrameCount();
   }
 
-  // load plugins ----------------------------------------------------------------------------------
+  // load plugins at application startup -----------------------------------------------------------
 
   // Once all data has been downloaded and the SolarSystem has been initialized, we can start
   // loading the plugins.
@@ -825,24 +841,26 @@ void Application::registerGuiCallbacks() {
   // Unloads a plugin.
   mGuiManager->getGui()->registerCallback("plugin.unload",
       "Unloads the plugin with the given name.", std::function([this](std::string&& pluginName) {
-        deinitPlugin(pluginName);
-        closePlugin(pluginName);
+        // We do not directly unload the plugin, as this callback is triggered from the
+        // GuiManager->update(). Doing this here could lead to deadlocks.
+        mPluginsToUnload.emplace_back(pluginName);
       }));
 
   // Loads a plugin.
   mGuiManager->getGui()->registerCallback("plugin.load", "Loads the plugin with the given name.",
       std::function([this](std::string&& pluginName) {
-        openPlugin(pluginName);
-        initPlugin(pluginName);
+        // We do not directly load the plugin, as this callback is triggered from the
+        // GuiManager->update(). Doing this here could lead to deadlocks.
+        mPluginsToLoad.emplace_back(pluginName);
       }));
 
   // Reloads a plugin.
   mGuiManager->getGui()->registerCallback("plugin.reload",
       "Reloads the plugin with the given name.", std::function([this](std::string&& pluginName) {
-        deinitPlugin(pluginName);
-        closePlugin(pluginName);
-        openPlugin(pluginName);
-        initPlugin(pluginName);
+        // We do not directly reload the plugin, as this callback is triggered from the
+        // GuiManager->update(). Doing this here could lead to deadlocks.
+        mPluginsToUnload.emplace_back(pluginName);
+        mPluginsToLoad.emplace_back(pluginName);
       }));
 
   // Lists all loaded plugins.

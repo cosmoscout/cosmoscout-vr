@@ -143,6 +143,10 @@ void InputManager::registerSelectable(IVistaNode* pNode) {
 void InputManager::unregisterSelectable(std::shared_ptr<utils::IntersectableObject> const& pBody) {
   if (pBody) {
     mIntersectables.erase(pBody);
+
+    if (pHoveredObject.get().mObject == pBody) {
+      pHoveredObject = Intersection();
+    }
   }
 }
 
