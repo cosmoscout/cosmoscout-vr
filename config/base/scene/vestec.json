@@ -134,7 +134,8 @@
   "plugins": {
     "csp-vestec": {
       "vestec-data-dir": "../share/vestec/data/persistence",
-      "vestec-2D-fire": "../share/vestec/data/2D-fire"
+      "vestec-2D-fire": "../share/vestec/data/2D-fire",
+      "diseases-dir": "../share/vestec/data/diseases"
     },
     "csp-stars": {
       "backgroundColor1": [
