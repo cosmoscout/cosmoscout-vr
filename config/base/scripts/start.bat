@@ -30,6 +30,7 @@ set PROJ_LIB=%SCRIPT_DIR%\proj6\share
  
 set VISTACORELIBS_DRIVER_PLUGIN_DIRS=%SCRIPT_DIR%\..\lib\DriverPlugins
 set PATH=%SCRIPT_DIR%\..\lib;%SCRIPT_DIR%\..\lib\ttk;%PATH%
+set GDAL_DRIVER_PATH=..\lib\gdal\plugins
 
 cosmoscout.exe --settings=%SETTINGS% -vistaini %VISTA_INI%
 
