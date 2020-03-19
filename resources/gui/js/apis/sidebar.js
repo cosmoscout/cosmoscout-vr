@@ -39,19 +39,19 @@ class SidebarApi extends IApi {
   /**
    * Add a plugin tab to the sidebar
    *
-   * @param pluginName {string}
+   * @param tabName {string}
    * @param icon {string}
    * @param content {string}
    */
-  addPluginTab(pluginName, icon, content) {
+  addPluginTab(tabName, icon, content) {
     const tab = CosmoScout.gui.loadTemplateContent('sidebar-plugin-tab');
     if (tab === false) {
       console.warn('"#sidebar-plugin-tab-template" could not be loaded!');
       return;
     }
 
-    tab.id        = "sidebar-tab-" + this._makeId(pluginName);
-    tab.innerHTML = tab.innerHTML.replace(/%NAME%/g, pluginName)
+    tab.id        = "sidebar-tab-" + this._makeId(tabName);
+    tab.innerHTML = tab.innerHTML.replace(/%NAME%/g, tabName)
                         .replace(/%ICON%/g, icon)
                         .replace(/%ID%/g, tab.id)
                         .replace(/%CONTENT%/g, content);
@@ -85,10 +85,10 @@ class SidebarApi extends IApi {
   /**
    * Removes a plugin tab from the sidebar
    *
-   * @param pluginName {string}
+   * @param tabName {string}
    */
-  removePluginTab(pluginName) {
-    const id = "sidebar-tab-" + this._makeId(pluginName);
+  removePluginTab(tabName) {
+    const id = "sidebar-tab-" + this._makeId(tabName);
     document.getElementById(id).remove();
   }
 
@@ -106,30 +106,23 @@ class SidebarApi extends IApi {
    * Enables or disables a plugin tab.
    * Disabled tabs will be collapsed if open.
    *
-   * @param collapseId {string}
+   * @param tabName {string}
    * @param enabled {boolean}
    */
-  setTabEnabled(collapseId, enabled) {
-    const tab = document.getElementById(collapseId);
+  setTabEnabled(tabName, enabled) {
+    const id       = "sidebar-tab-" + this._makeId(tabName);
+    const tab = document.getElementById(id);
 
     if (tab === null) {
-      console.warn(`Tab with id #${collapseId} not found!`);
+      console.warn(`Tab with id #${id} not found!`);
       return;
     }
 
-    // Add unresponsive class to parent element
-    // Or tab if no parent is present
-    // We assume tabs are contained in .sidebar-tab elements
-    let parent = tab.parentElement;
-    if (parent === null) {
-      parent = tab;
-    }
-
     if (enabled) {
-      parent.classList.remove('unresponsive');
+      tab.classList.remove('unresponsive');
     } else {
-      $(`#${collapseId}`).collapse('hide');
-      parent.classList.add('unresponsive');
+      $(`#${id}`).collapse('hide');
+      tab.classList.add('unresponsive');
     }
   }
 
