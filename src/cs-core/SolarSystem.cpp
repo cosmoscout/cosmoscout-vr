@@ -497,10 +497,22 @@ void SolarSystem::printFrames() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void SolarSystem::init(std::string const& sSpiceMetaFile) {
+
+  // Continue execution on errors.
+  erract_c("SET", 0, "RETURN");
+
+  // Disable default error reports.
+  errdev_c("SET", 0, "NULL");
+
+  // Load the spice kernels.
   furnsh_c(sSpiceMetaFile.c_str());
-  std::string set("SET");
-  std::string action("RETURN");
-  erract_c(&set[0], 0, &action[0]);
+
+  if (failed_c()) {
+    SpiceChar msg[320];
+    getmsg_c("LONG", 320, msg);
+    throw std::runtime_error(msg);
+  }
+
   mIsInitialized = true;
 }
 
@@ -515,22 +527,6 @@ bool SolarSystem::getIsInitialized() const {
 void SolarSystem::deinit() {
   kclear_c();
   mIsInitialized = false;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void SolarSystem::disableSpiceErrorReports() {
-  std::string set("SET");
-  std::string device("NULL");
-  errdev_c(&set[0], 0, &device[0]);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void SolarSystem::enableSpiceErrorReports() {
-  std::string set("SET");
-  std::string device("SCREEN");
-  errdev_c(&set[0], 0, &device[0]);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -91,8 +91,10 @@ glm::dvec3 CelestialAnchor::getRelativePosition(double tTime, CelestialAnchor co
         mFrameName.c_str(), "OBSERVER", "NONE", mCenterName.c_str(), relPos, &timeOfLight);
 
     if (failed_c()) {
+      SpiceChar msg[320];
+      getmsg_c("LONG", 320, msg);
       reset_c();
-      throw std::runtime_error("Failed to update spice frame.");
+      throw std::runtime_error(msg);
     }
 
     vRelPos = glm::dvec3(relPos[1], relPos[2], relPos[0]) * 1000.0;

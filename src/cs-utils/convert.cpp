@@ -161,6 +161,10 @@ glm::dvec2 normalToLngLat(glm::dvec3 const& normal, double radiusE, double radiu
 double toSpiceTime(boost::posix_time::ptime const& tIn) {
   double dTime;
   str2et_c(boost::posix_time::to_simple_string(tIn).c_str(), &dTime);
+  if (failed_c()) {
+    reset_c();
+    spdlog::warn("Failed to convert boost time to SPICE time!");
+  }
   return dTime;
 }
 

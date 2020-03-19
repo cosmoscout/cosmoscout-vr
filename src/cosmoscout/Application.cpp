@@ -321,7 +321,12 @@ void Application::FrameUpdate() {
   // If all data is available, we can initialize the SolarSystem. This can only be done after the
   // data download, as it requires SPICE kernels which might be part of the download.
   if (mDownloadedData && !mSolarSystem->getIsInitialized()) {
-    mSolarSystem->init(mSettings->mSpiceKernel);
+    try {
+      mSolarSystem->init(mSettings->mSpiceKernel);
+    } catch (std::runtime_error e) {
+      spdlog::error("Failed to initialize the SolarSystem: {}", e.what());
+      Quit();
+    }
 
     // Store the frame at which we should start loading the plugins.
     mStartPluginLoadingAtFrame = GetFrameCount();
