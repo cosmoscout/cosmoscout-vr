@@ -112,11 +112,11 @@ Mark::Mark(Mark const& other)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Mark::~Mark() {
-  mInputManager->pHoveredNode.onChange().disconnect(mHoveredNodeConnection);
-  mInputManager->pSelectedNode.onChange().disconnect(mSelectedNodeConnection);
-  mInputManager->pButtons[0].onChange().disconnect(mButtonsConnection);
-  mInputManager->pHoveredObject.onChange().disconnect(mHoveredPlanetConnection);
-  mGraphicsEngine->pHeightScale.onChange().disconnect(mHeightScaleConnection);
+  mInputManager->pHoveredNode.disconnect(mHoveredNodeConnection);
+  mInputManager->pSelectedNode.disconnect(mSelectedNodeConnection);
+  mInputManager->pButtons[0].disconnect(mButtonsConnection);
+  mInputManager->pHoveredObject.disconnect(mHoveredPlanetConnection);
+  mGraphicsEngine->pHeightScale.disconnect(mHeightScaleConnection);
 
   mInputManager->pHoveredNode    = nullptr;
   mInputManager->pHoveredGuiItem = nullptr;
@@ -270,7 +270,7 @@ void Mark::initData(std::string const& sCenter, std::string const& sFrame) {
   mVAO->SpecifyAttributeArrayFloat(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), 0, mVBO.get());
 
   // update hover state
-  mHoveredNodeConnection = mInputManager->pHoveredNode.onChange().connect([this](IVistaNode* node) {
+  mHoveredNodeConnection = mInputManager->pHoveredNode.connect([this](IVistaNode* node) {
     if (node == mParent && !pHovered.get()) {
       pHovered = true;
       cs::core::GuiManager::setCursor(cs::gui::Cursor::eHand);
@@ -280,14 +280,14 @@ void Mark::initData(std::string const& sCenter, std::string const& sFrame) {
     }
   });
 
-  mSelectedNodeConnection = mInputManager->pSelectedNode.onChange().connect(
+  mSelectedNodeConnection = mInputManager->pSelectedNode.connect(
       [this](IVistaNode* node) { pSelected = (node == mParent); });
 
-  mButtonsConnection = mInputManager->pButtons[0].onChange().connect(
+  mButtonsConnection = mInputManager->pButtons[0].connect(
       [this](bool press) { pActive = (press && pHovered.get()); });
 
   mHoveredPlanetConnection =
-      mInputManager->pHoveredObject.onChange().connect([this](InputManager::Intersection const& i) {
+      mInputManager->pHoveredObject.connect([this](InputManager::Intersection const& i) {
         if (pActive.get() && i.mObject) {
           auto body = std::dynamic_pointer_cast<cs::scene::CelestialBody>(i.mObject);
           if (body && body->getCenterName() == mAnchor->getCenterName()) {
@@ -299,7 +299,7 @@ void Mark::initData(std::string const& sCenter, std::string const& sFrame) {
       });
 
   // update position
-  mSelfLngLatConnection = pLngLat.onChange().connect([this](glm::dvec2 const& lngLat) {
+  mSelfLngLatConnection = pLngLat.connect([this](glm::dvec2 const& lngLat) {
     // Request the height under the Mark and add it
     auto   body   = mSolarSystem->getBody(mAnchor->getCenterName());
     double height = body->getHeight(lngLat);
@@ -320,7 +320,7 @@ void Mark::initData(std::string const& sCenter, std::string const& sFrame) {
 
   // connect the heightscale value to this object. Whenever the heightscale value changes
   // the landmark will be set to the correct height value
-  mHeightScaleConnection = mGraphicsEngine->pHeightScale.onChange().connect([this](float const& h) {
+  mHeightScaleConnection = mGraphicsEngine->pHeightScale.connect([this](float const& h) {
     auto   body   = mSolarSystem->getBody(mAnchor->getCenterName());
     double height = body->getHeight(pLngLat.get()) * h;
     auto   radii  = body->getRadii();

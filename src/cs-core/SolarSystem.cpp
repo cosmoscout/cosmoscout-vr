@@ -42,11 +42,11 @@ SolarSystem::SolarSystem(std::shared_ptr<const Settings> const& settings,
   // Tell the user what's going on.
   spdlog::debug("Creating SolarSystem.");
 
-  pObserverCenter.onChange().connect([this](std::string const& center) {
+  pObserverCenter.connect([this](std::string const& center) {
     mObserver.changeOrigin(center, mObserver.getFrameName(), mTimeControl->pSimulationTime.get());
   });
 
-  pObserverFrame.onChange().connect([this](std::string const& frame) {
+  pObserverFrame.connect([this](std::string const& frame) {
     mObserver.changeOrigin(mObserver.getCenterName(), frame, mTimeControl->pSimulationTime.get());
   });
 }

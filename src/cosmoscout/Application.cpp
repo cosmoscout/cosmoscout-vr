@@ -376,35 +376,6 @@ void Application::FrameUpdate() {
         // bit choppy as data is uploaded to the GPU.
         mHideLoadingScreenAtFrame = GetFrameCount() + cLoadingDelay;
 
-        // touch all public properties -------------------------------------------------------------
-
-        mGraphicsEngine->pHeightScale.touch();
-        mGraphicsEngine->pWidgetScale.touch();
-        mGraphicsEngine->pEnableLighting.touch();
-        mGraphicsEngine->pEnableHDR.touch();
-        mGraphicsEngine->pLightingQuality.touch();
-        mGraphicsEngine->pEnableShadows.touch();
-        mGraphicsEngine->pEnableShadowsDebug.touch();
-        mGraphicsEngine->pEnableShadowsFreeze.touch();
-        mGraphicsEngine->pShadowMapResolution.touch();
-        mGraphicsEngine->pShadowMapCascades.touch();
-        mGraphicsEngine->pShadowMapBias.touch();
-        mGraphicsEngine->pShadowMapRange.touch();
-        mGraphicsEngine->pShadowMapExtension.touch();
-        mGraphicsEngine->pShadowMapSplitDistribution.touch();
-        mGraphicsEngine->pEnableAutoExposure.touch();
-        mGraphicsEngine->pExposure.touch();
-        mGraphicsEngine->pAutoExposureRange.touch();
-        mGraphicsEngine->pExposureCompensation.touch();
-        mGraphicsEngine->pExposureAdaptionSpeed.touch();
-        mGraphicsEngine->pSensorDiagonal.touch();
-        mGraphicsEngine->pFocalLength.touch();
-        mGraphicsEngine->pAmbientBrightness.touch();
-        mGraphicsEngine->pGlowIntensity.touch();
-        mGraphicsEngine->pApproximateSceneBrightness.touch();
-        mGraphicsEngine->pAverageLuminance.touch();
-        mGraphicsEngine->pMaximumLuminance.touch();
-
         // initial observer animation --------------------------------------------------------------
 
         // At application startup, the celestial observer is transitioned to its position specified
@@ -750,30 +721,28 @@ void Application::closePlugin(std::string const& name) {
 void Application::connectSlots() {
 
   // Update mouse pointer coordinate display in the user interface.
-  mInputManager->pHoveredObject.onChange().connect(
-      [this](cs::core::InputManager::Intersection intersection) {
-        if (intersection.mObject) {
-          auto body = std::dynamic_pointer_cast<cs::scene::CelestialBody>(intersection.mObject);
+  mInputManager->pHoveredObject.connect([this](cs::core::InputManager::Intersection intersection) {
+    if (intersection.mObject) {
+      auto body = std::dynamic_pointer_cast<cs::scene::CelestialBody>(intersection.mObject);
 
-          if (body) {
-            auto radii = body->getRadii();
-            auto polar =
-                cs::utils::convert::toLngLatHeight(intersection.mPosition, radii[0], radii[0]);
-            auto lngLat = cs::utils::convert::toDegrees(polar.xy());
+      if (body) {
+        auto radii = body->getRadii();
+        auto polar = cs::utils::convert::toLngLatHeight(intersection.mPosition, radii[0], radii[0]);
+        auto lngLat = cs::utils::convert::toDegrees(polar.xy());
 
-            if (!std::isnan(lngLat.x) && !std::isnan(lngLat.y) && !std::isnan(polar.z)) {
-              mGuiManager->getGui()->executeJavascript(
-                  fmt::format("CosmoScout.state.pointerPosition = [{}, {}, {}];", lngLat.x,
-                      lngLat.y, polar.z / mGraphicsEngine->pHeightScale.get()));
-              return;
-            }
-          }
+        if (!std::isnan(lngLat.x) && !std::isnan(lngLat.y) && !std::isnan(polar.z)) {
+          mGuiManager->getGui()->executeJavascript(
+              fmt::format("CosmoScout.state.pointerPosition = [{}, {}, {}];", lngLat.x, lngLat.y,
+                  polar.z / mGraphicsEngine->pHeightScale.get()));
+          return;
         }
-        mGuiManager->getGui()->executeJavascript("CosmoScout.state.pointerPosition = undefined;");
-      });
+      }
+    }
+    mGuiManager->getGui()->executeJavascript("CosmoScout.state.pointerPosition = undefined;");
+  });
 
   // Update the time shown in the user interface when the simulation time changes.
-  mTimeControl->pSimulationTime.onChange().connect([this](double val) {
+  mTimeControl->pSimulationTime.connect([this](double val) {
     std::stringstream sstr;
     auto              facet = new boost::posix_time::time_facet();
     facet->format("%d-%b-%Y %H:%M:%S.%f");
@@ -783,12 +752,12 @@ void Application::connectSlots() {
   });
 
   // Update the simulation time speed shown in the user interface.
-  mTimeControl->pTimeSpeed.onChange().connect([this](float val) {
+  mTimeControl->pTimeSpeed.connect([this](float val) {
     mGuiManager->getGui()->callJavascript("CosmoScout.timeline.setTimeSpeed", val);
   });
 
   // Show notification when the center name of the celestial observer changes.
-  mSolarSystem->pObserverCenter.onChange().connect([this](std::string const& center) {
+  mSolarSystem->pObserverCenter.connect([this](std::string const& center) {
     if (center == "Solar System Barycenter") {
       mGuiManager->showNotification("Leaving " + mSolarSystem->pActiveBody.get()->getCenterName(),
           "Now travelling in free space.", "star");
@@ -803,7 +772,7 @@ void Application::connectSlots() {
   });
 
   // Show notification when the frame name of the celestial observer changes.
-  mSolarSystem->pObserverFrame.onChange().connect([this](std::string const& frame) {
+  mSolarSystem->pObserverFrame.connect([this](std::string const& frame) {
     if (frame == "J2000") {
       mGuiManager->showNotification(
           "Stop tracking " + mSolarSystem->pActiveBody.get()->getCenterName(),
@@ -818,13 +787,13 @@ void Application::connectSlots() {
   });
 
   // Show the current speed of the celestial observer in the user interface.
-  mSolarSystem->pCurrentObserverSpeed.onChange().connect([this](float speed) {
+  mSolarSystem->pCurrentObserverSpeed.connect([this](float speed) {
     mGuiManager->getGui()->executeJavascript(
         fmt::format("CosmoScout.state.observerSpeed = {};", speed));
   });
 
   // Show the statistics GuiItem when measurements are enabled.
-  mFrameTimings->pEnableMeasurements.onChange().connect(
+  mFrameTimings->pEnableMeasurements.connect(
       [this](bool enable) { mGuiManager->getStatistics()->setIsEnabled(enable); });
 
   mOnMessageConnection = cs::utils::logger::onMessage().connect(
@@ -1010,7 +979,7 @@ void Application::registerGuiCallbacks() {
 
   // If auto-exposure is enabled, we update the slider in the user interface to show the current
   // value.
-  mGraphicsEngine->pExposure.onChange().connect([this](float value) {
+  mGraphicsEngine->pExposure.connect([this](float value) {
     if (mGraphicsEngine->pEnableAutoExposure.get()) {
       mGuiManager->getGui()->callJavascript(
           "CosmoScout.gui.setSliderValue", "graphics.setExposure", value);
@@ -1023,7 +992,7 @@ void Application::registerGuiCallbacks() {
       std::function([this](bool val) { mGraphicsEngine->pEnableAutoGlow = val; }));
 
   // If auto-glow is enabled, we update the slider in the user interface to show the current value.
-  mGraphicsEngine->pGlowIntensity.onChange().connect([this](float value) {
+  mGraphicsEngine->pGlowIntensity.connect([this](float value) {
     if (mGraphicsEngine->pEnableAutoGlow.get()) {
       mGuiManager->getGui()->callJavascript(
           "CosmoScout.gui.setSliderValue", "graphics.setGlowIntensity", value);
@@ -1031,12 +1000,12 @@ void Application::registerGuiCallbacks() {
   });
 
   // Update the side bar field showing the average luminance of the scene.
-  mGraphicsEngine->pAverageLuminance.onChange().connect([this](float value) {
+  mGraphicsEngine->pAverageLuminance.connect([this](float value) {
     mGuiManager->getGui()->callJavascript("CosmoScout.sidebar.setAverageSceneLuminance", value);
   });
 
   // Update the side bar field showing the maximum luminance of the scene.
-  mGraphicsEngine->pMaximumLuminance.onChange().connect([this](float value) {
+  mGraphicsEngine->pMaximumLuminance.connect([this](float value) {
     mGuiManager->getGui()->callJavascript("CosmoScout.sidebar.setMaximumSceneLuminance", value);
   });
 
