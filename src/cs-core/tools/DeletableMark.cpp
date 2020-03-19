@@ -80,8 +80,8 @@ void DeletableMark::initData() {
   mGuiItem->registerCallback("deleteMe", "Call this to remove the tool.",
       std::function([this]() { pShouldDelete = true; }));
 
-  mSelfSelectedConnection = pSelected.connect(
-      [this](bool val) { mGuiItem->callJavascript("setMinimized", !val); });
+  mSelfSelectedConnection =
+      pSelected.connect([this](bool val) { mGuiItem->callJavascript("setMinimized", !val); });
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

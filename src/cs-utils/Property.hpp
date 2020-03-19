@@ -14,10 +14,11 @@
 namespace cs::utils {
 
 /// A Property encapsulates a value and may inform you on any changes applied to this value.
-/// All functions given to connect() will be called when the internal value is about to be changed. The new value
-  /// is passed as parameter, to access the old value you can use the get() method, as the internal
-  /// value will be overwritten after the signal emission.
-  /// Const-correctness in this class is relative to the contained value: All methods which are marked const are guaranteed not to change the internal value.
+/// All functions given to connect() will be called when the internal value is about to be changed.
+/// The new value is passed as parameter, to access the old value you can use the get() method, as
+/// the internal value will be overwritten after the signal emission. Const-correctness in this
+/// class is relative to the contained value: All methods which are marked const are guaranteed not
+/// to change the internal value.
 template <typename T>
 class Property {
 

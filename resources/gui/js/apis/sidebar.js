@@ -110,7 +110,7 @@ class SidebarApi extends IApi {
    * @param enabled {boolean}
    */
   setTabEnabled(tabName, enabled) {
-    const id       = "sidebar-tab-" + this._makeId(tabName);
+    const id  = "sidebar-tab-" + this._makeId(tabName);
     const tab = document.getElementById(id);
 
     if (tab === null) {
