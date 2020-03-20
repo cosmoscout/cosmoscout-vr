@@ -106,6 +106,9 @@ class CS_CORE_EXPORT GuiManager {
   void addSettingsSectionToSideBarFromHTML(
       std::string const& name, std::string const& icon, std::string const& htmlFile);
 
+  void removePluginTab(std::string const& name);
+  void removeSettingsSection(std::string const& name);
+
   /// This can be used to initialize the DOM elements added to the sidebar with the methods above.
   /// This is identical to getGui()->executeJavascript(src);
   ///

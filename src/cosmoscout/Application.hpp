@@ -10,6 +10,7 @@
 #include <VistaKernel/VistaFrameLoop.h>
 #include <map>
 #include <memory>
+#include <set>
 
 #ifdef __linux__
 #include "dlfcn.h"
@@ -97,8 +98,21 @@ class Application : public VistaFrameLoop {
  private:
   struct Plugin {
     COSMOSCOUT_LIBTYPE    mHandle;
-    cs::core::PluginBase* mPlugin = nullptr;
+    cs::core::PluginBase* mPlugin        = nullptr;
+    bool                  mIsInitialized = false;
   };
+
+  /// Opens a plugin from a shared library. Only the create() method of the plugin is called.
+  void openPlugin(std::string const& name);
+
+  /// Calls setAPI() and init() on the given plugin. openPlugin() has to be called before.
+  void initPlugin(std::string const& name);
+
+  /// Calls deinit() on the given plugin. initPlugin() has to be called before.
+  void deinitPlugin(std::string const& name);
+
+  /// Calls the destroy() method from the plugin shared object and unloads the library.
+  void closePlugin(std::string const& name);
 
   /// This connects several parts of CosmoScout VR to each other. For example, when the InputManager
   /// calculates a new intersection between the mouse-ray and the currently active planet, the
@@ -109,6 +123,10 @@ class Application : public VistaFrameLoop {
   /// There are several default C++ callbacks available in the JavaScript code of the user
   /// interface. You can also explore them with the onscreen JavaScript console. In this method
   /// those callbacks are set up. Here are all registered callbacks:
+  /// "core.listPlugins"
+  /// "core.loadPlugin"
+  /// "core.reloadPlugin"
+  /// "core.unloadPlugin"
   /// "graphics.setAmbientLight"
   /// "graphics.setEnableCascadesDebug"
   /// "graphics.setEnableLighting"
@@ -159,6 +177,10 @@ class Application : public VistaFrameLoop {
   int  mHideLoadingScreenAtFrame  = 0;
 
   int mOnMessageConnection = -1;
+
+  // For deferred hot-reloading of plugins.
+  std::set<std::string> mPluginsToUnload;
+  std::set<std::string> mPluginsToLoad;
 };
 
 #endif // CS_APPLICATION_HPP

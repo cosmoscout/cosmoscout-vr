@@ -47,12 +47,14 @@
 #define CLOSELIB(handle) dlclose((handle))
 #define LIBERROR() dlerror()
 #define LIBFILETYPE ".so"
+#define PLUGIN_PATH "../share/plugins/"
 #else
 #define OPENLIB(libname) LoadLibrary((libname))
 #define LIBFUNC(handle, fn) GetProcAddress((HMODULE)(handle), (fn))
 #define CLOSELIB(handle) FreeLibrary((HMODULE)(handle))
 #define LIBERROR() GetLastError()
 #define LIBFILETYPE ".dll"
+#define PLUGIN_PATH "..\\share\\plugins\\"
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -153,34 +155,7 @@ bool Application::Init(VistaSystem* pVistaSystem) {
 
   // open plugins ----------------------------------------------------------------------------------
   for (auto const& plugin : mSettings->mPlugins) {
-    try {
-
-#ifdef __linux__
-      std::string path = "../share/plugins/lib" + plugin.first + ".so";
-#else
-      std::string path = "..\\share\\plugins\\" + plugin.first + ".dll";
-#endif
-
-      // Clear errors.
-      LIBERROR();
-
-      COSMOSCOUT_LIBTYPE pluginHandle = OPENLIB(path.c_str());
-
-      if (pluginHandle) {
-        cs::core::PluginBase* (*pluginConstructor)();
-        pluginConstructor = (cs::core::PluginBase * (*)()) LIBFUNC(pluginHandle, "create");
-
-        spdlog::info("Opening plugin '{}'.", plugin.first);
-
-        // Actually call the plugin's constructor and add the returned pointer to out list.
-        mPlugins.insert(
-            std::pair<std::string, Plugin>(plugin.first, {pluginHandle, pluginConstructor()}));
-      } else {
-        spdlog::error("Failed to load plugin '{}': {}", plugin.first, LIBERROR());
-      }
-    } catch (std::exception const& e) {
-      spdlog::error("Failed to load plugin '{}': {}", plugin.first, e.what());
-    }
+    openPlugin(plugin.first);
   }
 
   return VistaFrameLoop::Init(pVistaSystem);
@@ -200,13 +175,7 @@ void Application::Quit() {
 
   // Then close all plugins.
   for (auto const& plugin : mPlugins) {
-    spdlog::info("Closing plugin '{}'.", plugin.first);
-
-    auto handle           = plugin.second.mHandle;
-    auto pluginDestructor = (void (*)(cs::core::PluginBase*))LIBFUNC(handle, "destroy");
-
-    pluginDestructor(plugin.second.mPlugin);
-    CLOSELIB(handle);
+    closePlugin(plugin.first);
   }
 
   mPlugins.clear();
@@ -297,6 +266,22 @@ void Application::FrameUpdate() {
     m_pAvgLoopTime->RecordTime();
   }
 
+  // hot-reloading of plugins ----------------------------------------------------------------------
+
+  for (auto const& plugin : mPluginsToUnload) {
+    deinitPlugin(plugin);
+    closePlugin(plugin);
+  }
+  mPluginsToUnload.clear();
+
+  for (auto const& plugin : mPluginsToLoad) {
+    openPlugin(plugin);
+    initPlugin(plugin);
+  }
+  mPluginsToLoad.clear();
+
+  // download datsets at application startup -------------------------------------------------------
+
   // At frame 25 we start to download datasets. This ensures that the loading screen is actually
   // already visible.
   if (GetFrameCount() == 25) {
@@ -336,13 +321,18 @@ void Application::FrameUpdate() {
   // If all data is available, we can initialize the SolarSystem. This can only be done after the
   // data download, as it requires SPICE kernels which might be part of the download.
   if (mDownloadedData && !mSolarSystem->getIsInitialized()) {
-    mSolarSystem->init(mSettings->mSpiceKernel);
+    try {
+      mSolarSystem->init(mSettings->mSpiceKernel);
+    } catch (std::runtime_error e) {
+      spdlog::error("Failed to initialize the SolarSystem: {}", e.what());
+      Quit();
+    }
 
     // Store the frame at which we should start loading the plugins.
     mStartPluginLoadingAtFrame = GetFrameCount();
   }
 
-  // load plugins ----------------------------------------------------------------------------------
+  // load plugins at application startup -----------------------------------------------------------
 
   // Once all data has been downloaded and the SolarSystem has been initialized, we can start
   // loading the plugins.
@@ -369,18 +359,7 @@ void Application::FrameUpdate() {
         auto plugin = mPlugins.begin();
         std::advance(plugin, pluginToLoad);
 
-        // First provide the plugin with all required class instances.
-        plugin->second.mPlugin->setAPI(mSettings, mSolarSystem, mGuiManager, mInputManager,
-            GetVistaSystem()->GetGraphicsManager()->GetSceneGraph(), mGraphicsEngine, mFrameTimings,
-            mTimeControl);
-
-        // Then do the actual initialization. This may actually take a while and the loading screen
-        // will become unresponsive in the meantime.
-        try {
-          plugin->second.mPlugin->init();
-        } catch (std::exception const& e) {
-          spdlog::error("Failed to initialize plugin '{}': {}", plugin->first, e.what());
-        }
+        initPlugin(plugin->first);
 
       } else if (pluginToLoad == mPlugins.size()) {
 
@@ -396,35 +375,6 @@ void Application::FrameUpdate() {
         // We will keep the loading screen active for some frames, as the first frames are usually a
         // bit choppy as data is uploaded to the GPU.
         mHideLoadingScreenAtFrame = GetFrameCount() + cLoadingDelay;
-
-        // touch all public properties -------------------------------------------------------------
-
-        mGraphicsEngine->pHeightScale.touch();
-        mGraphicsEngine->pWidgetScale.touch();
-        mGraphicsEngine->pEnableLighting.touch();
-        mGraphicsEngine->pEnableHDR.touch();
-        mGraphicsEngine->pLightingQuality.touch();
-        mGraphicsEngine->pEnableShadows.touch();
-        mGraphicsEngine->pEnableShadowsDebug.touch();
-        mGraphicsEngine->pEnableShadowsFreeze.touch();
-        mGraphicsEngine->pShadowMapResolution.touch();
-        mGraphicsEngine->pShadowMapCascades.touch();
-        mGraphicsEngine->pShadowMapBias.touch();
-        mGraphicsEngine->pShadowMapRange.touch();
-        mGraphicsEngine->pShadowMapExtension.touch();
-        mGraphicsEngine->pShadowMapSplitDistribution.touch();
-        mGraphicsEngine->pEnableAutoExposure.touch();
-        mGraphicsEngine->pExposure.touch();
-        mGraphicsEngine->pAutoExposureRange.touch();
-        mGraphicsEngine->pExposureCompensation.touch();
-        mGraphicsEngine->pExposureAdaptionSpeed.touch();
-        mGraphicsEngine->pSensorDiagonal.touch();
-        mGraphicsEngine->pFocalLength.touch();
-        mGraphicsEngine->pAmbientBrightness.touch();
-        mGraphicsEngine->pGlowIntensity.touch();
-        mGraphicsEngine->pApproximateSceneBrightness.touch();
-        mGraphicsEngine->pAverageLuminance.touch();
-        mGraphicsEngine->pMaximumLuminance.touch();
 
         // initial observer animation --------------------------------------------------------------
 
@@ -481,9 +431,6 @@ void Application::FrameUpdate() {
     // Hide the loading screen after several frames.
     if (GetFrameCount() == mHideLoadingScreenAtFrame) {
       mGuiManager->enableLoadingScreen(false);
-
-      // All plugins finished loading -> init their custom components.
-      mGuiManager->getGui()->callJavascript("CosmoScout.gui.initInputs");
     }
 
     // update CosmoScout VR classes ----------------------------------------------------------------
@@ -653,13 +600,8 @@ void Application::FrameUpdate() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Application::testLoadAllPlugins() {
-#ifdef __linux__
-  std::string path = "../share/plugins";
-#else
-  std::string path = "..\\share\\plugins";
-#endif
 
-  auto plugins = cs::utils::filesystem::listFiles(path);
+  auto plugins = cs::utils::filesystem::listFiles(PLUGIN_PATH);
 
   for (auto const& plugin : plugins) {
     if (cs::utils::endsWith(plugin, ".so") || cs::utils::endsWith(plugin, ".dll")) {
@@ -687,33 +629,137 @@ void Application::testLoadAllPlugins() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void Application::openPlugin(std::string const& name) {
+  auto plugin = mPlugins.find(name);
+
+  if (plugin == mPlugins.end()) {
+    try {
+
+#ifdef __linux__
+      std::string path = PLUGIN_PATH "lib" + name + ".so";
+#else
+      std::string path = PLUGIN_PATH + name + ".dll";
+#endif
+
+      // Clear errors.
+      LIBERROR();
+
+      COSMOSCOUT_LIBTYPE pluginHandle = OPENLIB(path.c_str());
+
+      if (pluginHandle) {
+        cs::core::PluginBase* (*pluginConstructor)();
+        pluginConstructor = (cs::core::PluginBase * (*)()) LIBFUNC(pluginHandle, "create");
+
+        spdlog::info("Opening plugin '{}'.", name);
+
+        // Actually call the plugin's constructor and add the returned pointer to out list.
+        mPlugins.insert(std::pair<std::string, Plugin>(name, {pluginHandle, pluginConstructor()}));
+      } else {
+        spdlog::error("Failed to load plugin '{}': {}", name, LIBERROR());
+      }
+    } catch (std::exception const& e) {
+      spdlog::error("Failed to load plugin '{}': {}", name, e.what());
+    }
+  } else {
+    spdlog::warn("Cannot open plugin '{}': Plugin is already opened!", name);
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Application::initPlugin(std::string const& name) {
+  auto plugin = mPlugins.find(name);
+
+  if (plugin != mPlugins.end()) {
+    if (!plugin->second.mIsInitialized) {
+
+      // First provide the plugin with all required class instances.
+      plugin->second.mPlugin->setAPI(mSettings, mSolarSystem, mGuiManager, mInputManager,
+          GetVistaSystem()->GetGraphicsManager()->GetSceneGraph(), mGraphicsEngine, mFrameTimings,
+          mTimeControl);
+
+      // Then do the actual initialization. This may actually take a while and the application
+      // will become unresponsive in the meantime.
+      try {
+        plugin->second.mPlugin->init();
+        plugin->second.mIsInitialized = true;
+
+        // Plugin finished loading -> init its custom components.
+        mGuiManager->getGui()->callJavascript("CosmoScout.gui.initInputs");
+      } catch (std::exception const& e) {
+        spdlog::error("Failed to initialize plugin '{}': {}", plugin->first, e.what());
+      }
+    } else {
+      spdlog::warn("Cannot initialize plugin '{}': Plugin is already initialized!", name);
+    }
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Application::deinitPlugin(std::string const& name) {
+  auto plugin = mPlugins.find(name);
+
+  if (plugin != mPlugins.end()) {
+    if (plugin->second.mIsInitialized) {
+      plugin->second.mPlugin->deInit();
+      plugin->second.mIsInitialized = false;
+    } else {
+      spdlog::warn("Cannot deinitialize plugin '{}': Plugin is not initialized!", name);
+    }
+  } else {
+    spdlog::warn("Cannot unload plugin '{}': No plugin loaded with this name!", name);
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Application::closePlugin(std::string const& name) {
+  auto plugin = mPlugins.find(name);
+
+  if (plugin != mPlugins.end()) {
+    spdlog::info("Closing plugin '{}'.", plugin->first);
+
+    auto handle           = plugin->second.mHandle;
+    auto pluginDestructor = (void (*)(cs::core::PluginBase*))LIBFUNC(handle, "destroy");
+
+    pluginDestructor(plugin->second.mPlugin);
+    CLOSELIB(handle);
+
+    mPlugins.erase(plugin);
+
+  } else {
+    spdlog::warn("Failed to close plugin '{}': No plugin loaded with this name!", name);
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Application::connectSlots() {
 
   // Update mouse pointer coordinate display in the user interface.
-  mInputManager->pHoveredObject.onChange().connect(
-      [this](cs::core::InputManager::Intersection intersection) {
-        if (intersection.mObject) {
-          auto body = std::dynamic_pointer_cast<cs::scene::CelestialBody>(intersection.mObject);
+  mInputManager->pHoveredObject.connect([this](cs::core::InputManager::Intersection intersection) {
+    if (intersection.mObject) {
+      auto body = std::dynamic_pointer_cast<cs::scene::CelestialBody>(intersection.mObject);
 
-          if (body) {
-            auto radii = body->getRadii();
-            auto polar =
-                cs::utils::convert::toLngLatHeight(intersection.mPosition, radii[0], radii[0]);
-            auto lngLat = cs::utils::convert::toDegrees(polar.xy());
+      if (body) {
+        auto radii = body->getRadii();
+        auto polar = cs::utils::convert::toLngLatHeight(intersection.mPosition, radii[0], radii[0]);
+        auto lngLat = cs::utils::convert::toDegrees(polar.xy());
 
-            if (!std::isnan(lngLat.x) && !std::isnan(lngLat.y) && !std::isnan(polar.z)) {
-              mGuiManager->getGui()->executeJavascript(
-                  fmt::format("CosmoScout.state.pointerPosition = [{}, {}, {}];", lngLat.x,
-                      lngLat.y, polar.z / mGraphicsEngine->pHeightScale.get()));
-              return;
-            }
-          }
+        if (!std::isnan(lngLat.x) && !std::isnan(lngLat.y) && !std::isnan(polar.z)) {
+          mGuiManager->getGui()->executeJavascript(
+              fmt::format("CosmoScout.state.pointerPosition = [{}, {}, {}];", lngLat.x, lngLat.y,
+                  polar.z / mGraphicsEngine->pHeightScale.get()));
+          return;
         }
-        mGuiManager->getGui()->executeJavascript("CosmoScout.state.pointerPosition = undefined;");
-      });
+      }
+    }
+    mGuiManager->getGui()->executeJavascript("CosmoScout.state.pointerPosition = undefined;");
+  });
 
   // Update the time shown in the user interface when the simulation time changes.
-  mTimeControl->pSimulationTime.onChange().connect([this](double val) {
+  mTimeControl->pSimulationTime.connect([this](double val) {
     std::stringstream sstr;
     auto              facet = new boost::posix_time::time_facet();
     facet->format("%d-%b-%Y %H:%M:%S.%f");
@@ -723,12 +769,12 @@ void Application::connectSlots() {
   });
 
   // Update the simulation time speed shown in the user interface.
-  mTimeControl->pTimeSpeed.onChange().connect([this](float val) {
+  mTimeControl->pTimeSpeed.connect([this](float val) {
     mGuiManager->getGui()->callJavascript("CosmoScout.timeline.setTimeSpeed", val);
   });
 
   // Show notification when the center name of the celestial observer changes.
-  mSolarSystem->pObserverCenter.onChange().connect([this](std::string const& center) {
+  mSolarSystem->pObserverCenter.connect([this](std::string const& center) {
     if (center == "Solar System Barycenter") {
       mGuiManager->showNotification("Leaving " + mSolarSystem->pActiveBody.get()->getCenterName(),
           "Now travelling in free space.", "star");
@@ -743,7 +789,7 @@ void Application::connectSlots() {
   });
 
   // Show notification when the frame name of the celestial observer changes.
-  mSolarSystem->pObserverFrame.onChange().connect([this](std::string const& frame) {
+  mSolarSystem->pObserverFrame.connect([this](std::string const& frame) {
     if (frame == "J2000") {
       mGuiManager->showNotification(
           "Stop tracking " + mSolarSystem->pActiveBody.get()->getCenterName(),
@@ -758,13 +804,13 @@ void Application::connectSlots() {
   });
 
   // Show the current speed of the celestial observer in the user interface.
-  mSolarSystem->pCurrentObserverSpeed.onChange().connect([this](float speed) {
+  mSolarSystem->pCurrentObserverSpeed.connect([this](float speed) {
     mGuiManager->getGui()->executeJavascript(
         fmt::format("CosmoScout.state.observerSpeed = {};", speed));
   });
 
   // Show the statistics GuiItem when measurements are enabled.
-  mFrameTimings->pEnableMeasurements.onChange().connect(
+  mFrameTimings->pEnableMeasurements.connect(
       [this](bool enable) { mGuiManager->getStatistics()->setIsEnabled(enable); });
 
   mOnMessageConnection = cs::utils::logger::onMessage().connect(
@@ -793,6 +839,39 @@ void Application::registerGuiCallbacks() {
   // Loads a scene state from the given file.
   mGuiManager->getGui()->registerCallback("core.load", "Loads a scene state from the given file.",
       std::function([this](std::string&& file) { mSettings->read(file); }));
+
+  // Unloads a plugin.
+  mGuiManager->getGui()->registerCallback("core.unloadPlugin",
+      "Unloads the plugin with the given name.", std::function([this](std::string&& pluginName) {
+        // We do not directly unload the plugin, as this callback is triggered from the
+        // GuiManager->update(). Doing this here could lead to deadlocks.
+        mPluginsToUnload.insert(pluginName);
+      }));
+
+  // Loads a plugin.
+  mGuiManager->getGui()->registerCallback("core.loadPlugin",
+      "Loads the plugin with the given name.", std::function([this](std::string&& pluginName) {
+        // We do not directly load the plugin, as this callback is triggered from the
+        // GuiManager->update(). Doing this here could lead to deadlocks.
+        mPluginsToLoad.insert(pluginName);
+      }));
+
+  // Reloads a plugin.
+  mGuiManager->getGui()->registerCallback("core.reloadPlugin",
+      "Reloads the plugin with the given name.", std::function([this](std::string&& pluginName) {
+        // We do not directly reload the plugin, as this callback is triggered from the
+        // GuiManager->update(). Doing this here could lead to deadlocks.
+        mPluginsToUnload.insert(pluginName);
+        mPluginsToLoad.insert(pluginName);
+      }));
+
+  // Lists all loaded plugins.
+  mGuiManager->getGui()->registerCallback(
+      "core.listPlugins", "Lists all loaded plugins.", std::function([this]() {
+        for (auto const& plugin : mPlugins) {
+          spdlog::info(plugin.first);
+        }
+      }));
 
   // graphics callbacks ----------------------------------------------------------------------------
 
@@ -928,7 +1007,7 @@ void Application::registerGuiCallbacks() {
 
   // If auto-exposure is enabled, we update the slider in the user interface to show the current
   // value.
-  mGraphicsEngine->pExposure.onChange().connect([this](float value) {
+  mGraphicsEngine->pExposure.connect([this](float value) {
     if (mGraphicsEngine->pEnableAutoExposure.get()) {
       mGuiManager->getGui()->callJavascript(
           "CosmoScout.gui.setSliderValue", "graphics.setExposure", value);
@@ -941,7 +1020,7 @@ void Application::registerGuiCallbacks() {
       std::function([this](bool val) { mGraphicsEngine->pEnableAutoGlow = val; }));
 
   // If auto-glow is enabled, we update the slider in the user interface to show the current value.
-  mGraphicsEngine->pGlowIntensity.onChange().connect([this](float value) {
+  mGraphicsEngine->pGlowIntensity.connect([this](float value) {
     if (mGraphicsEngine->pEnableAutoGlow.get()) {
       mGuiManager->getGui()->callJavascript(
           "CosmoScout.gui.setSliderValue", "graphics.setGlowIntensity", value);
@@ -949,12 +1028,12 @@ void Application::registerGuiCallbacks() {
   });
 
   // Update the side bar field showing the average luminance of the scene.
-  mGraphicsEngine->pAverageLuminance.onChange().connect([this](float value) {
+  mGraphicsEngine->pAverageLuminance.connect([this](float value) {
     mGuiManager->getGui()->callJavascript("CosmoScout.sidebar.setAverageSceneLuminance", value);
   });
 
   // Update the side bar field showing the maximum luminance of the scene.
-  mGraphicsEngine->pMaximumLuminance.onChange().connect([this](float value) {
+  mGraphicsEngine->pMaximumLuminance.connect([this](float value) {
     mGuiManager->getGui()->callJavascript("CosmoScout.sidebar.setMaximumSceneLuminance", value);
   });
 
@@ -1246,6 +1325,12 @@ void Application::registerGuiCallbacks() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Application::unregisterGuiCallbacks() {
+  mGuiManager->getGui()->unregisterCallback("core.save");
+  mGuiManager->getGui()->unregisterCallback("core.load");
+  mGuiManager->getGui()->unregisterCallback("core.listPlugins");
+  mGuiManager->getGui()->unregisterCallback("core.loadPlugin");
+  mGuiManager->getGui()->unregisterCallback("core.reloadPlugin");
+  mGuiManager->getGui()->unregisterCallback("core.unloadPlugin");
   mGuiManager->getGui()->unregisterCallback("graphics.setAmbientLight");
   mGuiManager->getGui()->unregisterCallback("graphics.setEnableCascadesDebug");
   mGuiManager->getGui()->unregisterCallback("graphics.setEnableLighting");

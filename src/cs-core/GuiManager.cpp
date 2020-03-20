@@ -359,6 +359,18 @@ void GuiManager::addSettingsSectionToSideBarFromHTML(
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void GuiManager::removePluginTab(std::string const& name) {
+  mCosmoScoutGui->callJavascript("CosmoScout.sidebar.removePluginTab", name);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void GuiManager::removeSettingsSection(std::string const& name) {
+  mCosmoScoutGui->callJavascript("CosmoScout.sidebar.removeSettingsSection", name);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void GuiManager::addScriptToGui(std::string const& src) {
   mCosmoScoutGui->executeJavascript(src);
 }
