@@ -10,7 +10,7 @@ namespace cs::core {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void PluginBase::setAPI(std::shared_ptr<const Settings> const& settings,
+void PluginBase::setAPI(std::shared_ptr<Settings> const& settings,
     std::shared_ptr<SolarSystem> const& solarSystem, std::shared_ptr<GuiManager> const& guiManager,
     std::shared_ptr<InputManager> const& inputManager, VistaSceneGraph* sceneGraph,
     std::shared_ptr<GraphicsEngine> const&      graphicsEngine,

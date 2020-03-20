@@ -9,6 +9,8 @@
 
 #include "cs_core_export.hpp"
 
+#include "../cs-utils/Property.hpp"
+
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <cstdint>
 #include <exception>
@@ -22,7 +24,7 @@
 
 namespace nlohmann {
 
-// A partial template specialisation for serialization and deserialization of glm::*vec*.
+// A partial template specialization for serialization and deserialization of glm::*vec*.
 template <int C, typename T, glm::qualifier Q>
 struct adl_serializer<glm::vec<C, T, Q>> {
   static void to_json(json& j, glm::vec<C, T, Q> const& opt) {
@@ -39,7 +41,7 @@ struct adl_serializer<glm::vec<C, T, Q>> {
   }
 };
 
-// A partial template specialisation for serialization and deserialization of glm::*qua*.
+// A partial template specialization for serialization and deserialization of glm::*qua*.
 template <typename T, glm::qualifier Q>
 struct adl_serializer<glm::qua<T, Q>> {
   static void to_json(json& j, glm::qua<T, Q> const& opt) {
@@ -54,6 +56,18 @@ struct adl_serializer<glm::qua<T, Q>> {
   }
 };
 
+// A partial template specialization for cs::utils::Property.
+template <typename T>
+struct adl_serializer<cs::utils::Property<T>> {
+  static void to_json(json& j, cs::utils::Property<T> const& opt) {
+    j = opt.get();
+  }
+
+  static void from_json(json const& j, cs::utils::Property<T>& opt) {
+    opt = j.get<T>();
+  }
+};
+
 } // namespace nlohmann
 
 namespace cs::core {
@@ -62,6 +76,42 @@ namespace cs::core {
 /// options and settings for each plugin. The available global options are defined below, the
 /// per-plugin settings are defined in each and every plugin.
 struct CS_CORE_EXPORT Settings {
+
+  template <typename T>
+  struct Default {
+    Default(T const& defaultValue)
+        : mDefaultValue(defaultValue)
+        , mValue(defaultValue) {
+    }
+
+    bool isDefault() const {
+      return mValue == mDefaultValue;
+    }
+
+    void reset() {
+      mValue = mDefaultValue;
+    }
+
+    T const& operator()() {
+      return mValue;
+    }
+
+    T& operator->() {
+      return mValue;
+    }
+
+    T const& operator->() const {
+      return mValue;
+    }
+
+    void operator=(T const& value) {
+      mValue = value;
+    }
+
+    const T mDefaultValue;
+    T       mValue;
+  };
+
   struct Anchor {
     std::string mCenter;
     std::string mFrame;
@@ -135,7 +185,7 @@ struct CS_CORE_EXPORT Settings {
   /// Defines the initial observer location.
   Observer mObserver;
 
-  /// PArameters which define how the virtual scene is scaled based on the observer position.
+  /// Parameters which define how the virtual scene is scaled based on the observer position.
   SceneScale mSceneScale;
 
   /// A list of files which shall be downloaded before the application starts.
@@ -187,8 +237,8 @@ struct CS_CORE_EXPORT Settings {
   /// by the plugins themselves.
   std::map<std::string, nlohmann::json> mPlugins;
 
-  /// Creates an instance of this struct from a given JSON file.
-  static Settings read(std::string const& fileName);
+  /// Initializes all members from a given JSON file.
+  void read(std::string const& fileName);
 
   /// Writes the current settings to a JSON file.
   void write(std::string const& fileName) const;
@@ -242,6 +292,18 @@ struct CS_CORE_EXPORT Settings {
     }
   }
 
+  template <typename T>
+  static void deserialize(
+      nlohmann::json const& j, std::string const& property, Default<T>& target) {
+    try {
+      target = j.at(property).get<T>();
+    } catch (DeserializationException const& e) {
+      throw DeserializationException(e.mProperty + " in '" + property + "'", e.mJSONError);
+    } catch (std::exception const& e) {
+      throw DeserializationException("'" + property + "'", e.what());
+    }
+  }
+
   /// This template is used to set values in json objects. The main reasons not to directly use the
   /// interface of nlohmann::json is that we can overload the serialize() method to accept
   /// std::optionals.
@@ -256,6 +318,13 @@ struct CS_CORE_EXPORT Settings {
       nlohmann::json& j, std::string const& property, std::optional<T> const& target) {
     if (target) {
       j[property] = target.value();
+    }
+  }
+
+  template <typename T>
+  static void serialize(nlohmann::json& j, std::string const& property, Default<T> const& target) {
+    if (!target.isDefault()) {
+      j[property] = target.mValue;
     }
   }
 };

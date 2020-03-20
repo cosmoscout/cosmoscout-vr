@@ -57,9 +57,9 @@
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Application::Application(cs::core::Settings const& settings)
+Application::Application(std::shared_ptr<cs::core::Settings> const& settings)
     : VistaFrameLoop()
-    , mSettings(std::make_shared<cs::core::Settings>(settings)) {
+    , mSettings(settings) {
 
   // Initialize curl.
   cURLpp::initialize();
@@ -792,7 +792,7 @@ void Application::registerGuiCallbacks() {
 
   // Loads a scene state from the given file.
   mGuiManager->getGui()->registerCallback("core.load", "Loads a scene state from the given file.",
-      std::function([this](std::string&& file) { cs::core::Settings::read(file); }));
+      std::function([this](std::string&& file) { mSettings->read(file); }));
 
   // graphics callbacks ----------------------------------------------------------------------------
 

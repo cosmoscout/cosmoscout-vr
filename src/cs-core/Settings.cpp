@@ -217,12 +217,12 @@ void to_json(nlohmann::json& j, Settings const& o) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Settings Settings::read(std::string const& fileName) {
+void Settings::read(std::string const& fileName) {
   std::ifstream  i(fileName);
   nlohmann::json settings;
   i >> settings;
 
-  return settings;
+  from_json(settings, *this);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

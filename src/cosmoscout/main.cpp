@@ -95,9 +95,9 @@ int main(int argc, char** argv) {
 
   // read settings ---------------------------------------------------------------------------------
 
-  cs::core::Settings settings;
+  auto settings = std::make_shared<cs::core::Settings>();
   try {
-    settings = cs::core::Settings::read(settingsFile);
+    settings->read(settingsFile);
   } catch (std::exception& e) {
     spdlog::error("Failed to read settings: {}", e.what());
     return 1;
@@ -106,9 +106,9 @@ int main(int argc, char** argv) {
   // configure loggers -----------------------------------------------------------------------------
 
   // Once we have read the settings, we can set the log level.
-  cs::utils::logger::setCoutLogLevel(settings.mConsoleLogLevel);
-  cs::utils::logger::setFileLogLevel(settings.mFileLogLevel);
-  cs::utils::logger::setSignalLogLevel(settings.mScreenLogLevel);
+  cs::utils::logger::setCoutLogLevel(settings->mConsoleLogLevel);
+  cs::utils::logger::setFileLogLevel(settings->mFileLogLevel);
+  cs::utils::logger::setSignalLogLevel(settings->mScreenLogLevel);
 
   // Print a nifty welcome message!
   spdlog::info("Welcome to CosmoScout VR v" + CS_PROJECT_VERSION + "!");

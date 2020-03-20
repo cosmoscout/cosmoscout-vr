@@ -79,7 +79,7 @@ class Downloader;
 class Application : public VistaFrameLoop {
  public:
   /// This does only inititlize curl.
-  explicit Application(cs::core::Settings const& settings);
+  explicit Application(std::shared_ptr<cs::core::Settings> const& settings);
   ~Application() override;
 
   /// Initializes the Application. Should only be called by ViSTA.
@@ -141,7 +141,7 @@ class Application : public VistaFrameLoop {
   void registerGuiCallbacks();
   void unregisterGuiCallbacks();
 
-  std::shared_ptr<const cs::core::Settings> mSettings;
+  std::shared_ptr<cs::core::Settings>       mSettings;
   std::shared_ptr<cs::core::InputManager>   mInputManager;
   std::shared_ptr<cs::core::GraphicsEngine> mGraphicsEngine;
   std::shared_ptr<cs::core::GuiManager>     mGuiManager;
