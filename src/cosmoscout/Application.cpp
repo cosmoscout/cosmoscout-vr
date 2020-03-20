@@ -661,7 +661,7 @@ void Application::openPlugin(std::string const& name) {
       spdlog::error("Failed to load plugin '{}': {}", name, e.what());
     }
   } else {
-    spdlog::warn("Cannot to open plugin '{}': Plugin is already opened!", name);
+    spdlog::warn("Cannot open plugin '{}': Plugin is already opened!", name);
   }
 }
 
@@ -690,7 +690,7 @@ void Application::initPlugin(std::string const& name) {
         spdlog::error("Failed to initialize plugin '{}': {}", plugin->first, e.what());
       }
     } else {
-      spdlog::warn("Cannot to initialize plugin '{}': Plugin is already initialized!", name);
+      spdlog::warn("Cannot initialize plugin '{}': Plugin is already initialized!", name);
     }
   }
 }
@@ -705,10 +705,10 @@ void Application::deinitPlugin(std::string const& name) {
       plugin->second.mPlugin->deInit();
       plugin->second.mIsInitialized = false;
     } else {
-      spdlog::warn("Cannot to deinitialize plugin '{}': Plugin is not initialized!", name);
+      spdlog::warn("Cannot deinitialize plugin '{}': Plugin is not initialized!", name);
     }
   } else {
-    spdlog::warn("Cannot to unload plugin '{}': No plugin loaded with this name!", name);
+    spdlog::warn("Cannot unload plugin '{}': No plugin loaded with this name!", name);
   }
 }
 
