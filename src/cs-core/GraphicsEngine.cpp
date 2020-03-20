@@ -48,22 +48,21 @@ GraphicsEngine::GraphicsEngine(std::shared_ptr<const core::Settings> const& sett
 
   calculateCascades();
 
-  pEnableShadows.onChange().connect([this](bool val) { mShadowMap->setEnabled(val); });
+  pEnableShadows.connect([this](bool val) { mShadowMap->setEnabled(val); });
 
-  pEnableShadowsFreeze.onChange().connect([this](bool val) { mShadowMap->setFreezeCascades(val); });
+  pEnableShadowsFreeze.connect([this](bool val) { mShadowMap->setFreezeCascades(val); });
 
-  pShadowMapResolution.onChange().connect(
-      [this](int val) { mShadowMap->setResolution((uint32_t)val); });
+  pShadowMapResolution.connect([this](int val) { mShadowMap->setResolution((uint32_t)val); });
 
-  pShadowMapCascades.onChange().connect([this](int) { calculateCascades(); });
+  pShadowMapCascades.connect([this](int) { calculateCascades(); });
 
-  pShadowMapBias.onChange().connect([this](float val) { mShadowMap->setBias(val * 0.0001f); });
+  pShadowMapBias.connect([this](float val) { mShadowMap->setBias(val * 0.0001f); });
 
-  pShadowMapSplitDistribution.onChange().connect([this](float) { calculateCascades(); });
+  pShadowMapSplitDistribution.connect([this](float) { calculateCascades(); });
 
-  pShadowMapRange.onChange().connect([this](glm::vec2) { calculateCascades(); });
+  pShadowMapRange.connect([this](glm::vec2) { calculateCascades(); });
 
-  pShadowMapExtension.onChange().connect([this](glm::vec2) { calculateCascades(); });
+  pShadowMapExtension.connect([this](glm::vec2) { calculateCascades(); });
 
   // setup HDR buffer ------------------------------------------------------------------------------
 
@@ -83,28 +82,28 @@ GraphicsEngine::GraphicsEngine(std::shared_ptr<const core::Settings> const& sett
   VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
       toneMappingGLNode, static_cast<int>(utils::DrawOrder::eToneMapping));
 
-  pGlowIntensity.onChange().connect([this](float val) { mToneMappingNode->setGlowIntensity(val); });
+  pGlowIntensity.connectAndTouch([this](float val) { mToneMappingNode->setGlowIntensity(val); });
 
-  pExposureCompensation.onChange().connect(
+  pExposureCompensation.connectAndTouch(
       [this](float val) { mToneMappingNode->setExposureCompensation(val); });
 
-  pExposureAdaptionSpeed.onChange().connect(
+  pExposureAdaptionSpeed.connectAndTouch(
       [this](float val) { mToneMappingNode->setExposureAdaptionSpeed(val); });
 
-  pAutoExposureRange.onChange().connect([this](glm::vec2 val) {
+  pAutoExposureRange.connectAndTouch([this](glm::vec2 val) {
     mToneMappingNode->setMinAutoExposure(val[0]);
     mToneMappingNode->setMaxAutoExposure(val[1]);
   });
 
-  pEnableHDR.onChange().connect([clearGLNode, toneMappingGLNode](bool enabled) {
+  pEnableHDR.connectAndTouch([clearGLNode, toneMappingGLNode](bool enabled) {
     clearGLNode->SetIsEnabled(enabled);
     toneMappingGLNode->SetIsEnabled(enabled);
   });
 
-  pEnableAutoExposure.onChange().connect(
+  pEnableAutoExposure.connectAndTouch(
       [this](bool enabled) { mToneMappingNode->setEnableAutoExposure(enabled); });
 
-  pExposure.onChange().connect([this](float value) {
+  pExposure.connectAndTouch([this](float value) {
     if (!pEnableAutoExposure.get()) {
       mToneMappingNode->setExposure(value);
     }

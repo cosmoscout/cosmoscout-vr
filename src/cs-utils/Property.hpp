@@ -14,6 +14,11 @@
 namespace cs::utils {
 
 /// A Property encapsulates a value and may inform you on any changes applied to this value.
+/// All functions given to connect() will be called when the internal value is about to be changed.
+/// The new value is passed as parameter, to access the old value you can use the get() method, as
+/// the internal value will be overwritten after the signal emission. Const-correctness in this
+/// class is relative to the contained value: All methods which are marked const are guaranteed not
+/// to change the internal value.
 template <typename T>
 class Property {
 
@@ -46,58 +51,23 @@ class Property {
 
   Property(Property<T>&& other)
       : mOnChange(std::move(other.mOnChange))
-      , mBeforeChange(std::move(other.mBeforeChange))
       , mConnection(other.mConnection)
       , mConnectionID(other.mConnectionID)
       , mValue(other.mValue) {
   }
 
-  /// Returns a Signal which is fired when the internal value will be changed. The old value is
-  /// passed as parameter.
-  virtual Signal<T> const& beforeChange() const {
-    return mBeforeChange;
+  /// The given function is called when the internal value is about to be changed. The new value
+  /// is passed as parameter, to access the old value you can use the get() method, as the internal
+  /// value will be overwritten after the signal emission.
+  virtual int connect(std::function<void(T)> const& slot) const {
+    return mOnChange.connect(slot);
   }
 
-  /// Returns a Signal which is fired when the internal value has been changed. The new value is
-  /// passed as parameter.
-  virtual Signal<T> const& onChange() const {
-    return mOnChange;
-  }
-
-  /// Sets the Property to a new value. beforeChange() and onChange() will be emitted.
-  virtual void set(T const& value) {
-    if (value != mValue) {
-      mBeforeChange.emit(mValue);
-      mValue = value;
-      mOnChange.emit(mValue);
-    }
-  }
-
-  /// Sets the Property to a new value. beforeChange() and onChange() will be emitted for all but
-  /// one connections.
-  virtual void setWithEmitForAllButOne(
-      T const& value, int excludeOnChange = -1, int excludeBeforeChange = -1) {
-    if (value != mValue) {
-      mBeforeChange.emitForAllButOne(excludeBeforeChange, mValue);
-      mValue = value;
-      mOnChange.emitForAllButOne(excludeOnChange, mValue);
-    }
-  }
-
-  /// Sets the Property to a new value. beforeChange() and onChange() will not be emitted.
-  void setWithNoEmit(T const& value) {
-    mValue = value;
-  }
-
-  /// Emits beforeChange() and onChange() even if the value did not change.
-  void touch() {
-    mBeforeChange.emit(mValue);
-    mOnChange.emit(mValue);
-  }
-
-  /// Returns the value.
-  virtual T const& get() const {
-    return mValue;
+  /// Same as above, but in addition, the given function is immediately called once.
+  virtual int connectAndTouch(std::function<void(T)> const& slot) const {
+    int connection = mOnChange.connect(slot);
+    touch(connection);
+    return connection;
   }
 
   /// Connects two Properties to each other. If the source's value is changed, this' value will be
@@ -105,7 +75,7 @@ class Property {
   virtual void connectFrom(Property<T> const& source) {
     disconnect();
     mConnection   = &source;
-    mConnectionID = source.onChange().connect([this](T const& value) {
+    mConnectionID = source.connect([this](T const& value) {
       set(value);
       return true;
     });
@@ -113,19 +83,59 @@ class Property {
   }
 
   /// If this Property is connected from another property, it will be disconnected.
-  virtual void disconnect() {
+  virtual void disconnect() const {
     if (mConnection) {
-      mConnection->onChange().disconnect(mConnectionID);
+      mConnection->disconnect(mConnectionID);
       mConnectionID = -1;
       mConnection   = nullptr;
     }
   }
 
+  /// Disconnects a previously connected function.
+  void disconnect(int id) const {
+    mOnChange.disconnect(id);
+  }
+
   /// If there are any Properties connected to this Property, they won't be notified of any further
   /// changes.
-  virtual void disconnectAuditors() {
+  virtual void disconnectAll() const {
     mOnChange.disconnectAll();
-    mBeforeChange.disconnectAll();
+  }
+
+  /// Sets the Property to a new value. onChange() will be emitted.
+  virtual void set(T const& value) {
+    if (value != mValue) {
+      mOnChange.emit(value);
+      mValue = value;
+    }
+  }
+
+  /// Sets the Property to a new value. onChange() will be emitted for all but one connections.
+  virtual void setWithEmitForAllButOne(T const& value, int excludeConnection = -1) {
+    if (value != mValue) {
+      mOnChange.emitForAllButOne(excludeConnection, mValue);
+      mValue = value;
+    }
+  }
+
+  /// Sets the Property to a new value. onChange() will not be emitted.
+  void setWithNoEmit(T const& value) {
+    mValue = value;
+  }
+
+  /// Emits onChange() even if the value did not change.
+  void touch() const {
+    mOnChange.emit(mValue);
+  }
+
+  /// Emits onChange() even if the value did not change but only for one connection.
+  void touch(int connection) const {
+    mOnChange.emitFor(connection, mValue);
+  }
+
+  /// Returns the value.
+  virtual T const& get() const {
+    return mValue;
   }
 
   /// Assigns the value of another Property.
@@ -162,12 +172,11 @@ class Property {
   }
 
  private:
-  Signal<T> mOnChange;
-  Signal<T> mBeforeChange;
+  mutable Signal<T> mOnChange;
 
-  Property<T> const* mConnection;
-  int                mConnectionID;
-  T                  mValue;
+  mutable Property<T> const* mConnection;
+  mutable int                mConnectionID;
+  T                          mValue;
 };
 
 /// Specialization for built-in default constructors.

@@ -27,7 +27,7 @@ MultiPointTool::MultiPointTool(std::shared_ptr<InputManager> const& pInputManage
     , mFrame(sFrame) {
 
   // if pAddPointMode is true, a new point will be add on left mouse button click
-  mLeftButtonConnection = mInputManager->pButtons[0].onChange().connect([this](bool pressed) {
+  mLeftButtonConnection = mInputManager->pButtons[0].connect([this](bool pressed) {
     if (pAddPointMode.get() && !pressed) {
       auto planet = mInputManager->pHoveredObject.get().mObject;
       if (planet) {
@@ -38,7 +38,7 @@ MultiPointTool::MultiPointTool(std::shared_ptr<InputManager> const& pInputManage
 
   // if pAddPointMode is true, it will be set to false on right mouse button click
   // the point which was currently added will be removed again
-  mRightButtonConnection = mInputManager->pButtons[1].onChange().connect([this](bool pressed) {
+  mRightButtonConnection = mInputManager->pButtons[1].connect([this](bool pressed) {
     if (pAddPointMode.get() && !pressed) {
       pAddPointMode = false;
       mPoints.pop_back();
@@ -51,8 +51,8 @@ MultiPointTool::MultiPointTool(std::shared_ptr<InputManager> const& pInputManage
 
 MultiPointTool::~MultiPointTool() {
   // disconnect the mouse button slots
-  mInputManager->pButtons[0].onChange().disconnect(mLeftButtonConnection);
-  mInputManager->pButtons[1].onChange().disconnect(mRightButtonConnection);
+  mInputManager->pButtons[0].disconnect(mLeftButtonConnection);
+  mInputManager->pButtons[1].disconnect(mRightButtonConnection);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -76,7 +76,7 @@ void MultiPointTool::addPoint() {
   }
 
   // register callback to update line vertices when the landmark position has been changed
-  mPoints.back()->pLngLat.onChange().connect([this](glm::dvec2 const& lngLat) { onPointMoved(); });
+  mPoints.back()->pLngLat.connect([this](glm::dvec2 const& lngLat) { onPointMoved(); });
 
   // call update once since new data is available
   onPointAdded();
@@ -122,6 +122,18 @@ void MultiPointTool::update() {
       }
     }
   }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::string const& MultiPointTool::getCenterName() const {
+  return mCenter;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::string const& MultiPointTool::getFrameName() const {
+  return mFrame;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

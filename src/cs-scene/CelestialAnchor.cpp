@@ -8,10 +8,11 @@
 
 #include <VistaKernel/GraphicsManager/VistaNodeBridge.h>
 
-#include <boost/optional.hpp>
 #include <cspice/SpiceUsr.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <optional>
+#include <unordered_map>
 
 namespace cs::scene {
 
@@ -26,15 +27,15 @@ namespace {
 template <typename K, typename V>
 class Cache {
  public:
-  boost::optional<V> get(double tTime, K const& key) {
+  std::optional<V> get(double tTime, K const& key) {
     if (tTime != mLastTime) {
-      return boost::none;
+      return std::nullopt;
     }
 
     auto value = mache.find(key);
 
     if (value == mache.end()) {
-      return boost::none;
+      return std::nullopt;
     }
 
     return value->second;
@@ -84,15 +85,17 @@ glm::dvec3 CelestialAnchor::getRelativePosition(double tTime, CelestialAnchor co
   glm::dvec3 vRelPos;
 
   if (cacheValue) {
-    vRelPos = cacheValue.get();
+    vRelPos = cacheValue.value();
   } else {
     double relPos[6], timeOfLight, otherPos[] = {vOtherPos[2], vOtherPos[0], vOtherPos[1]};
     spkcpt_c(otherPos, other.getCenterName().c_str(), other.getFrameName().c_str(), tTime,
         mFrameName.c_str(), "OBSERVER", "NONE", mCenterName.c_str(), relPos, &timeOfLight);
 
     if (failed_c()) {
+      SpiceChar msg[320];
+      getmsg_c("LONG", 320, msg);
       reset_c();
-      throw std::runtime_error("Failed to update spice frame.");
+      throw std::runtime_error(msg);
     }
 
     vRelPos = glm::dvec3(relPos[1], relPos[2], relPos[0]) * 1000.0;
@@ -116,7 +119,7 @@ glm::dquat CelestialAnchor::getRelativeRotation(double tTime, CelestialAnchor co
 
   glm::dquat qRot;
   if (cacheValue) {
-    qRot = cacheValue.get();
+    qRot = cacheValue.value();
   } else {
     // get rotation from self to other
     double rotMat[3][3];

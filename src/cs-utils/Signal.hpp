@@ -34,18 +34,6 @@ class Signal {
       , mCurrentID(other.mCurrentID) {
   }
 
-  /// Connects a member function to this Signal.
-  template <typename T>
-  int connectMember(T* inst, void (T::*func)(Args...)) {
-    return connect([=](Args... args) { (inst->*func)(args...); });
-  }
-
-  /// Connects a const member function to this Signal.
-  template <typename T>
-  int connectMember(T* inst, void (T::*func)(Args...) const) {
-    return connect([=](Args... args) { (inst->*func)(args...); });
-  }
-
   /// Connects a std::function to the signal. The returned value can be used to disconnect the
   /// function again.
   int connect(std::function<void(Args...)> const& slot) const {
@@ -76,6 +64,14 @@ class Signal {
       if (it.first != excludedConnectionID) {
         it.second(p...);
       }
+    }
+  }
+
+  /// Calls only one connected functions.
+  void emitFor(int connectionID, Args... p) {
+    auto const& it = mSlots.find(connectionID);
+    if (it != mSlots.end()) {
+      it->second(p...);
     }
   }
 

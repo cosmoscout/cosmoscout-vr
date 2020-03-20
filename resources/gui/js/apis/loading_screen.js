@@ -47,16 +47,15 @@ class LoadingScreenApi extends IApi {
    */
   setLoading(enable) {
     if (enable) {
+      this._loadingScreen.classList.remove("hidden");
+      document.body.classList.remove('loaded');
       document.body.classList.add('loading');
     } else {
-      document.body.classList.remove(...document.body.classList);
+      document.body.classList.remove('loading');
       document.body.classList.add('loaded');
 
       setTimeout(() => {
-        document.body.removeChild(this._loadingScreen);
-        CosmoScout.gui.unregisterCss('css/loading_screen.css');
-        CosmoScout.gui.unregisterJavaScript('js/apis/loading_screen.js');
-        CosmoScout.removeApi('loading_screen');
+        this._loadingScreen.classList.add("hidden");
       }, 1500);
     }
   }

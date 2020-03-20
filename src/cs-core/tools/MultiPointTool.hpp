@@ -42,6 +42,12 @@ class CS_CORE_EXPORT MultiPointTool : public Tool {
   /// Called from Tools class.
   void update() override;
 
+  /// Returns the SPICE center name of the celestial body this is attached to.
+  std::string const& getCenterName() const;
+
+  /// Returns the SPICE frame name of the celestial body this is attached to.
+  std::string const& getFrameName() const;
+
  protected:
   /// Derived classes should implement these - they will be called after the corresponding event
   /// happened.

@@ -39,20 +39,22 @@ class SidebarApi extends IApi {
   /**
    * Add a plugin tab to the sidebar
    *
-   * @param pluginName {string}
+   * @param tabName {string}
    * @param icon {string}
    * @param content {string}
    */
-  addPluginTab(pluginName, icon, content) {
+  addPluginTab(tabName, icon, content) {
     const tab = CosmoScout.gui.loadTemplateContent('sidebar-plugin-tab');
     if (tab === false) {
       console.warn('"#sidebar-plugin-tab-template" could not be loaded!');
       return;
     }
 
-    const id = this._makeId(pluginName);
-
-    tab.innerHTML = this._replaceMarkers(tab.innerHTML, id, icon, content);
+    tab.id        = "sidebar-tab-" + this._makeId(tabName);
+    tab.innerHTML = tab.innerHTML.replace(/%NAME%/g, tabName)
+                        .replace(/%ICON%/g, icon)
+                        .replace(/%ID%/g, tab.id)
+                        .replace(/%CONTENT%/g, content);
 
     this._sidebar.insertBefore(tab, this._sidebarTab);
   }
@@ -71,41 +73,56 @@ class SidebarApi extends IApi {
       return;
     }
 
-    const html = this._replaceMarkers(tab.innerHTML, this._makeId(sectionName), icon, content);
-
-    tab.innerHTML = html.replace(/%SECTION%/g, sectionName).trim();
+    tab.id        = "sidebar-settings-" + this._makeId(sectionName);
+    tab.innerHTML = tab.innerHTML.replace(/%NAME%/g, sectionName)
+                        .replace(/%ICON%/g, icon)
+                        .replace(/%ID%/g, tab.id)
+                        .replace(/%CONTENT%/g, content);
 
     this._settings.appendChild(tab);
+  }
+
+  /**
+   * Removes a plugin tab from the sidebar
+   *
+   * @param tabName {string}
+   */
+  removePluginTab(tabName) {
+    const id = "sidebar-tab-" + this._makeId(tabName);
+    document.getElementById(id).remove();
+  }
+
+  /**
+   * Removes a settings section from the sidebar
+   *
+   * @param pluginName {string}
+   */
+  removeSettingsSection(pluginName) {
+    const id = "sidebar-settings-" + this._makeId(pluginName);
+    document.getElementById(id).remove();
   }
 
   /**
    * Enables or disables a plugin tab.
    * Disabled tabs will be collapsed if open.
    *
-   * @param collapseId {string}
+   * @param tabName {string}
    * @param enabled {boolean}
    */
-  setTabEnabled(collapseId, enabled) {
-    const tab = document.getElementById(collapseId);
+  setTabEnabled(tabName, enabled) {
+    const id  = "sidebar-tab-" + this._makeId(tabName);
+    const tab = document.getElementById(id);
 
     if (tab === null) {
-      console.warn(`Tab with id #${collapseId} not found!`);
+      console.warn(`Tab with id #${id} not found!`);
       return;
     }
 
-    // Add unresponsive class to parent element
-    // Or tab if no parent is present
-    // We assume tabs are contained in .sidebar-tab elements
-    let parent = tab.parentElement;
-    if (parent === null) {
-      parent = tab;
-    }
-
     if (enabled) {
-      parent.classList.remove('unresponsive');
+      tab.classList.remove('unresponsive');
     } else {
-      $(`#${collapseId}`).collapse('hide');
-      parent.classList.add('unresponsive');
+      $(`#${id}`).collapse('hide');
+      tab.classList.add('unresponsive');
     }
   }
 
@@ -115,20 +132,6 @@ class SidebarApi extends IApi {
 
   setMaximumSceneLuminance(value) {
     $("#maximum-scene-luminance").text(CosmoScout.utils.beautifyNumber(parseFloat(value)));
-  }
-
-  /**
-   * Replace common template markers with content.
-   *
-   * @param html {string} HTML with %MARKER% markers
-   * @param id {string} Id marker replacement
-   * @param icon {string} Icon marker replacement
-   * @param content {string} Content marker replacement
-   * @return {string} replaced html
-   * @protected
-   */
-  _replaceMarkers(html, id, icon, content) {
-    return html.replace(/%ID%/g, id).replace(/%CONTENT%/g, content).replace(/%ICON%/g, icon).trim();
   }
 
   /**

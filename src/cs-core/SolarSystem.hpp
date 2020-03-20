@@ -180,12 +180,6 @@ class CS_CORE_EXPORT SolarSystem {
   /// Prints all loaded SPICE frames.
   static void printFrames();
 
-  /// Disables SPICEs error reports.
-  static void disableSpiceErrorReports();
-
-  /// Enables SPICEs error reports.
-  static void enableSpiceErrorReports();
-
   static void scaleRelativeToObserver(scene::CelestialAnchor& anchor,
       scene::CelestialObserver const& observer, double simulationTime, double baseDistance,
       double scaleFactor);
