@@ -215,9 +215,6 @@ void Application::Quit() {
   assertCleanUp("mInputManager", mInputManager.use_count());
   mInputManager.reset();
 
-  assertCleanUp("mSettings", mSettings.use_count());
-  mSettings.reset();
-
   VistaFrameLoop::Quit();
 }
 

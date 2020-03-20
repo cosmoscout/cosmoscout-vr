@@ -235,25 +235,23 @@ void Settings::write(std::string const& fileName) const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::pair<double, double> getExistenceFromSettings(
-    std::pair<std::string, Settings::Anchor> const& anchor) {
+std::pair<double, double> Settings::Anchor::getExistence() {
   std::pair<double, double> result;
 
   try {
-    result.first = utils::convert::toSpiceTime(
-        boost::posix_time::time_from_string(anchor.second.mStartExistence));
+    result.first =
+        utils::convert::toSpiceTime(boost::posix_time::time_from_string(mStartExistence));
   } catch (std::exception const& e) {
     throw std::runtime_error("Failed to parse the 'startExistence' property of the anchor '" +
-                             anchor.first +
+                             mCenter +
                              "'. The dates should be given in the format: 1969-07-20 20:17:40.000");
   }
 
   try {
-    result.second = utils::convert::toSpiceTime(
-        boost::posix_time::time_from_string(anchor.second.mEndExistence));
+    result.second = utils::convert::toSpiceTime(boost::posix_time::time_from_string(mEndExistence));
   } catch (std::exception const& e) {
     throw std::runtime_error("Failed to parse the 'endExistence' property of the anchor '" +
-                             anchor.first +
+                             mCenter +
                              "'. The dates should be given in the format: 1969-07-20 20:17:40.000");
   }
 

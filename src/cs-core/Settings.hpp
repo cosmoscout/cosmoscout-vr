@@ -117,6 +117,8 @@ struct CS_CORE_EXPORT Settings {
     std::string mFrame;
     std::string mStartExistence;
     std::string mEndExistence;
+
+    std::pair<double, double> getExistence();
   };
 
   struct Gui {
@@ -328,9 +330,6 @@ struct CS_CORE_EXPORT Settings {
     }
   }
 };
-
-std::pair<double, double> CS_CORE_EXPORT getExistenceFromSettings(
-    std::pair<std::string, Settings::Anchor> const& anchor);
 
 } // namespace cs::core
 
