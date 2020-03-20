@@ -783,6 +783,17 @@ void Application::connectSlots() {
 
 void Application::registerGuiCallbacks() {
 
+  // core callbacks --------------------------------------------------------------------------------
+
+  // Saves the current scene state to the given file.
+  mGuiManager->getGui()->registerCallback("core.save",
+      "Saves the current scene state to the given file.",
+      std::function([this](std::string&& file) { mSettings->write(file); }));
+
+  // Loads a scene state from the given file.
+  mGuiManager->getGui()->registerCallback("core.load", "Loads a scene state from the given file.",
+      std::function([this](std::string&& file) { cs::core::Settings::read(file); }));
+
   // graphics callbacks ----------------------------------------------------------------------------
 
   // Enables lighting computation globally.

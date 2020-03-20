@@ -22,26 +22,35 @@
 
 namespace nlohmann {
 
-/// A partial template specialisation for serialization and deserialization of std::optional.
-template <typename T>
-struct adl_serializer<std::optional<T>> {
-  static void to_json(json& j, const std::optional<T>& opt) {
-    if (!opt) {
-      j = nullptr;
-    } else {
-      // This will call adl_serializer<T>::to_json which will find the free function to_json in T's
-      // namespace!
-      j = *opt;
+// A partial template specialisation for serialization and deserialization of glm::*vec*.
+template <int C, typename T, glm::qualifier Q>
+struct adl_serializer<glm::vec<C, T, Q>> {
+  static void to_json(json& j, glm::vec<C, T, Q> const& opt) {
+    j = json::array();
+    for (int i = 0; i < C; ++i) {
+      j[i] = opt[i];
     }
   }
 
-  static void from_json(const json& j, std::optional<T>& opt) {
-    if (j.is_null()) {
-      opt = {};
-    } else {
-      // Same as above, but with adl_serializer<T>::from_json.
-      opt = j.get<T>();
+  static void from_json(json const& j, glm::vec<C, T, Q>& opt) {
+    for (int i = 0; i < C; ++i) {
+      j.at(i).get_to(opt[i]);
     }
+  }
+};
+
+// A partial template specialisation for serialization and deserialization of glm::*qua*.
+template <typename T, glm::qualifier Q>
+struct adl_serializer<glm::qua<T, Q>> {
+  static void to_json(json& j, glm::qua<T, Q> const& opt) {
+    j = {opt[0], opt[1], opt[2], opt[3]};
+  }
+
+  static void from_json(json const& j, glm::qua<T, Q>& opt) {
+    j.at(0).get_to(opt[0]);
+    j.at(1).get_to(opt[1]);
+    j.at(2).get_to(opt[2]);
+    j.at(3).get_to(opt[3]);
   }
 };
 
@@ -52,8 +61,7 @@ namespace cs::core {
 /// Most of CosmoScout VR's configuration is done with one huge JSON file. This contains some global
 /// options and settings for each plugin. The available global options are defined below, the
 /// per-plugin settings are defined in each and every plugin.
-class CS_CORE_EXPORT Settings {
- public:
+struct CS_CORE_EXPORT Settings {
   struct Anchor {
     std::string mCenter;
     std::string mFrame;
@@ -181,104 +189,79 @@ class CS_CORE_EXPORT Settings {
 
   /// Creates an instance of this struct from a given JSON file.
   static Settings read(std::string const& fileName);
+
+  /// Writes the current settings to a JSON file.
+  void write(std::string const& fileName) const;
+
+  /// An exception that is thrown while parsing the config. Prepends thrown exceptions with a
+  /// section name to give the user more detailed information about the root of the error.
+  /// The exception can and should be nested.
+  class DeserializationException : public std::exception {
+   public:
+    DeserializationException(std::string const& property, std::string const& jsonError);
+
+    const char* what() const noexcept override;
+
+    const std::string mProperty;
+    const std::string mJSONError;
+    const std::string mMessage;
+  };
+
+  /// This template is used to retrieve values from json objects. There are two reasons not to
+  /// directly use the interface of nlohmann::json: First we want to show more detailed error
+  /// messages using the exception type defined above. Second, the and deserialize() methods are
+  /// overloaded to accept std::optionals.
+  /// This makes using optional paameters in your settings very straight-forward.
+  template <typename T>
+  static void deserialize(nlohmann::json const& j, std::string const& property, T& target) {
+    try {
+      j.at(property).get_to(target);
+    } catch (DeserializationException const& e) {
+      throw DeserializationException(e.mProperty + " in '" + property + "'", e.mJSONError);
+    } catch (std::exception const& e) {
+      throw DeserializationException("'" + property + "'", e.what());
+    }
+  }
+
+  /// Overload for std::optionals. It will set the given optional to std::nullopt if it does not
+  /// exist in the json object.
+  template <typename T>
+  static void deserialize(
+      nlohmann::json const& j, std::string const& property, std::optional<T>& target) {
+    auto iter = j.find(property);
+    if (iter != j.end()) {
+      try {
+        target = iter->get<T>();
+      } catch (DeserializationException const& e) {
+        throw DeserializationException(e.mProperty + " in '" + property + "'", e.mJSONError);
+      } catch (std::exception const& e) {
+        throw DeserializationException("'" + property + "'", e.what());
+      }
+    } else {
+      target = std::nullopt;
+    }
+  }
+
+  /// This template is used to set values in json objects. The main reasons not to directly use the
+  /// interface of nlohmann::json is that we can overload the serialize() method to accept
+  /// std::optionals.
+  /// This makes using optional paameters in your settings very straight-forward.
+  template <typename T>
+  static void serialize(nlohmann::json& j, std::string const& property, T const& target) {
+    j[property] = target;
+  }
+
+  template <typename T>
+  static void serialize(
+      nlohmann::json& j, std::string const& property, std::optional<T> const& target) {
+    if (target) {
+      j[property] = target.value();
+    }
+  }
 };
 
 std::pair<double, double> CS_CORE_EXPORT getExistenceFromSettings(
     std::pair<std::string, Settings::Anchor> const& anchor);
-
-/// An exception that is thrown while parsing the config. Prepends thrown exceptions with a section
-/// name to give the user more detailed information about the root of the error.
-/// The exception can and should be nested.
-/// @see parseSection()
-class CS_CORE_EXPORT SettingsSectionException : public std::exception {
-  const std::string completeMessage;
-
- public:
-  const std::string sectionName;
-  const std::string message;
-
-  SettingsSectionException(std::string sectionName, std::string message)
-      : sectionName(std::move(sectionName))
-      , message(std::move(message))
-      , completeMessage(
-            "Failed to parse settings config in section '" + sectionName + "': " + message){};
-
-  [[nodiscard]] const char* what() const noexcept override {
-    return completeMessage.c_str();
-  }
-};
-
-/// Parses a section of the config file. If an exception gets thrown inside f a new exception will
-/// be created with the sectionName in its error message.
-///
-/// If this method is nested the section names of all the method calls will be joined with a 'dot'.
-/// Example:
-///
-/// @code
-/// parseSection("foo", [] {
-///     parseSection("bar", [] {
-///         throw std::runtime_error("bad character");
-///     });
-/// });
-/// @endcode
-///
-/// Console output: Failed to parse settings config in section 'foo.bar': bad character
-void CS_CORE_EXPORT parseSection(std::string const& sectionName, std::function<void()> const& f);
-
-/// A settings section that is also a value.
-template <typename T>
-T parseSection(std::string const& sectionName, nlohmann::json const& j) {
-  T result;
-  parseSection(sectionName, [&] { result = j.at(sectionName).get<T>(); });
-  return result;
-}
-
-/// An optional settings section.
-template <typename T>
-std::optional<T> parseOptionalSection(std::string const& sectionName, nlohmann::json const& j) {
-  std::optional<T> result;
-
-  auto iter = j.find(sectionName);
-  if (iter != j.end()) {
-    cs::core::parseSection(sectionName, [&] { result = iter->get<std::optional<T>>(); });
-  }
-
-  return result;
-}
-
-/// A map of key values.
-template <typename K, typename V>
-std::map<K, V> parseMap(std::string const& sectionName, nlohmann::json const& j) {
-  return parseSection<std::map<K, V>>(sectionName, j);
-}
-
-/// A vector of settings.
-template <typename T>
-std::vector<T> parseVector(std::string const& sectionName, nlohmann::json const& j) {
-  return parseSection<std::vector<T>>(sectionName, j);
-}
-
-/// A single atomic property.
-template <typename T>
-T parseProperty(std::string const& propertyName, nlohmann::json const& j) {
-  try {
-    return j.at(propertyName).get<T>();
-  } catch (std::exception const& e) {
-    throw std::runtime_error(
-        "Error while trying to parse property '" + propertyName + "': " + std::string(e.what()));
-  }
-}
-
-/// An optional property.
-template <typename T>
-std::optional<T> parseOptional(std::string const& propertyName, nlohmann::json const& j) {
-  auto iter = j.find(propertyName);
-  if (iter != j.end()) {
-    return iter->get<std::optional<T>>();
-  } else {
-    return std::nullopt;
-  }
-}
 
 } // namespace cs::core
 
