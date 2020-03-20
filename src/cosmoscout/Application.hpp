@@ -98,12 +98,20 @@ class Application : public VistaFrameLoop {
  private:
   struct Plugin {
     COSMOSCOUT_LIBTYPE    mHandle;
-    cs::core::PluginBase* mPlugin = nullptr;
+    cs::core::PluginBase* mPlugin        = nullptr;
+    bool                  mIsInitialized = false;
   };
 
+  /// Opens a plugin from a shared library. Only the create() method of the plugin is called.
   void openPlugin(std::string const& name);
+
+  /// Calls setAPI() and init() on the given plugin. openPlugin() has to be called before.
   void initPlugin(std::string const& name);
+
+  /// Calls deinit() on the given plugin. initPlugin() has to be called before.
   void deinitPlugin(std::string const& name);
+
+  /// Calls the destroy() method from the plugin shared object and unloads the library.
   void closePlugin(std::string const& name);
 
   /// This connects several parts of CosmoScout VR to each other. For example, when the InputManager

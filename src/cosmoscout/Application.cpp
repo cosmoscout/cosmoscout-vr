@@ -661,7 +661,7 @@ void Application::openPlugin(std::string const& name) {
       spdlog::error("Failed to load plugin '{}': {}", name, e.what());
     }
   } else {
-    spdlog::warn("Failed to open plugin '{}': Plugin is already opened!", name);
+    spdlog::warn("Cannot to open plugin '{}': Plugin is already opened!", name);
   }
 }
 
@@ -671,20 +671,26 @@ void Application::initPlugin(std::string const& name) {
   auto plugin = mPlugins.find(name);
 
   if (plugin != mPlugins.end()) {
-    // First provide the plugin with all required class instances.
-    plugin->second.mPlugin->setAPI(mSettings, mSolarSystem, mGuiManager, mInputManager,
-        GetVistaSystem()->GetGraphicsManager()->GetSceneGraph(), mGraphicsEngine, mFrameTimings,
-        mTimeControl);
+    if (!plugin->second.mIsInitialized) {
 
-    // Then do the actual initialization. This may actually take a while and the application
-    // will become unresponsive in the meantime.
-    try {
-      plugin->second.mPlugin->init();
+      // First provide the plugin with all required class instances.
+      plugin->second.mPlugin->setAPI(mSettings, mSolarSystem, mGuiManager, mInputManager,
+          GetVistaSystem()->GetGraphicsManager()->GetSceneGraph(), mGraphicsEngine, mFrameTimings,
+          mTimeControl);
 
-      // Plugin finished loading -> init its custom components.
-      mGuiManager->getGui()->callJavascript("CosmoScout.gui.initInputs");
-    } catch (std::exception const& e) {
-      spdlog::error("Failed to initialize plugin '{}': {}", plugin->first, e.what());
+      // Then do the actual initialization. This may actually take a while and the application
+      // will become unresponsive in the meantime.
+      try {
+        plugin->second.mPlugin->init();
+        plugin->second.mIsInitialized = true;
+
+        // Plugin finished loading -> init its custom components.
+        mGuiManager->getGui()->callJavascript("CosmoScout.gui.initInputs");
+      } catch (std::exception const& e) {
+        spdlog::error("Failed to initialize plugin '{}': {}", plugin->first, e.what());
+      }
+    } else {
+      spdlog::warn("Cannot to initialize plugin '{}': Plugin is already initialized!", name);
     }
   }
 }
@@ -695,9 +701,14 @@ void Application::deinitPlugin(std::string const& name) {
   auto plugin = mPlugins.find(name);
 
   if (plugin != mPlugins.end()) {
-    plugin->second.mPlugin->deInit();
+    if (plugin->second.mIsInitialized) {
+      plugin->second.mPlugin->deInit();
+      plugin->second.mIsInitialized = false;
+    } else {
+      spdlog::warn("Cannot to deinitialize plugin '{}': Plugin is not initialized!", name);
+    }
   } else {
-    spdlog::warn("Failed to unload plugin '{}': No plugin loaded with this name!", name);
+    spdlog::warn("Cannot to unload plugin '{}': No plugin loaded with this name!", name);
   }
 }
 
