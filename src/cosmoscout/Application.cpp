@@ -630,32 +630,38 @@ void Application::testLoadAllPlugins() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Application::openPlugin(std::string const& name) {
-  try {
+  auto plugin = mPlugins.find(name);
+
+  if (plugin == mPlugins.end()) {
+    try {
 
 #ifdef __linux__
-    std::string path = PLUGIN_PATH "lib" + name + ".so";
+      std::string path = PLUGIN_PATH "lib" + name + ".so";
 #else
-    std::string path = PLUGIN_PATH + name + ".dll";
+      std::string path = PLUGIN_PATH + name + ".dll";
 #endif
 
-    // Clear errors.
-    LIBERROR();
+      // Clear errors.
+      LIBERROR();
 
-    COSMOSCOUT_LIBTYPE pluginHandle = OPENLIB(path.c_str());
+      COSMOSCOUT_LIBTYPE pluginHandle = OPENLIB(path.c_str());
 
-    if (pluginHandle) {
-      cs::core::PluginBase* (*pluginConstructor)();
-      pluginConstructor = (cs::core::PluginBase * (*)()) LIBFUNC(pluginHandle, "create");
+      if (pluginHandle) {
+        cs::core::PluginBase* (*pluginConstructor)();
+        pluginConstructor = (cs::core::PluginBase * (*)()) LIBFUNC(pluginHandle, "create");
 
-      spdlog::info("Opening plugin '{}'.", name);
+        spdlog::info("Opening plugin '{}'.", name);
 
-      // Actually call the plugin's constructor and add the returned pointer to out list.
-      mPlugins.insert(std::pair<std::string, Plugin>(name, {pluginHandle, pluginConstructor()}));
-    } else {
-      spdlog::error("Failed to load plugin '{}': {}", name, LIBERROR());
+        // Actually call the plugin's constructor and add the returned pointer to out list.
+        mPlugins.insert(std::pair<std::string, Plugin>(name, {pluginHandle, pluginConstructor()}));
+      } else {
+        spdlog::error("Failed to load plugin '{}': {}", name, LIBERROR());
+      }
+    } catch (std::exception const& e) {
+      spdlog::error("Failed to load plugin '{}': {}", name, e.what());
     }
-  } catch (std::exception const& e) {
-    spdlog::error("Failed to load plugin '{}': {}", name, e.what());
+  } else {
+    spdlog::warn("Failed to open plugin '{}': Plugin is already opened!", name);
   }
 }
 
@@ -817,7 +823,7 @@ void Application::registerGuiCallbacks() {
       "Unloads the plugin with the given name.", std::function([this](std::string&& pluginName) {
         // We do not directly unload the plugin, as this callback is triggered from the
         // GuiManager->update(). Doing this here could lead to deadlocks.
-        mPluginsToUnload.emplace_back(pluginName);
+        mPluginsToUnload.insert(pluginName);
       }));
 
   // Loads a plugin.
@@ -825,7 +831,7 @@ void Application::registerGuiCallbacks() {
       std::function([this](std::string&& pluginName) {
         // We do not directly load the plugin, as this callback is triggered from the
         // GuiManager->update(). Doing this here could lead to deadlocks.
-        mPluginsToLoad.emplace_back(pluginName);
+        mPluginsToLoad.insert(pluginName);
       }));
 
   // Reloads a plugin.
@@ -833,8 +839,8 @@ void Application::registerGuiCallbacks() {
       "Reloads the plugin with the given name.", std::function([this](std::string&& pluginName) {
         // We do not directly reload the plugin, as this callback is triggered from the
         // GuiManager->update(). Doing this here could lead to deadlocks.
-        mPluginsToUnload.emplace_back(pluginName);
-        mPluginsToLoad.emplace_back(pluginName);
+        mPluginsToUnload.insert(pluginName);
+        mPluginsToLoad.insert(pluginName);
       }));
 
   // Lists all loaded plugins.
