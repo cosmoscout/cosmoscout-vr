@@ -830,7 +830,7 @@ void Application::connectSlots() {
 void Application::registerGuiCallbacks() {
 
   // Unloads a plugin.
-  mGuiManager->getGui()->registerCallback("plugin.unload",
+  mGuiManager->getGui()->registerCallback("core.unloadPlugin",
       "Unloads the plugin with the given name.", std::function([this](std::string&& pluginName) {
         // We do not directly unload the plugin, as this callback is triggered from the
         // GuiManager->update(). Doing this here could lead to deadlocks.
@@ -838,15 +838,15 @@ void Application::registerGuiCallbacks() {
       }));
 
   // Loads a plugin.
-  mGuiManager->getGui()->registerCallback("plugin.load", "Loads the plugin with the given name.",
-      std::function([this](std::string&& pluginName) {
+  mGuiManager->getGui()->registerCallback("core.loadPlugin",
+      "Loads the plugin with the given name.", std::function([this](std::string&& pluginName) {
         // We do not directly load the plugin, as this callback is triggered from the
         // GuiManager->update(). Doing this here could lead to deadlocks.
         mPluginsToLoad.insert(pluginName);
       }));
 
   // Reloads a plugin.
-  mGuiManager->getGui()->registerCallback("plugin.reload",
+  mGuiManager->getGui()->registerCallback("core.reloadPlugin",
       "Reloads the plugin with the given name.", std::function([this](std::string&& pluginName) {
         // We do not directly reload the plugin, as this callback is triggered from the
         // GuiManager->update(). Doing this here could lead to deadlocks.
@@ -856,7 +856,7 @@ void Application::registerGuiCallbacks() {
 
   // Lists all loaded plugins.
   mGuiManager->getGui()->registerCallback(
-      "plugin.list", "Lists all loaded plugins.", std::function([this]() {
+      "core.listPlugins", "Lists all loaded plugins.", std::function([this]() {
         for (auto const& plugin : mPlugins) {
           spdlog::info(plugin.first);
         }
@@ -1314,10 +1314,10 @@ void Application::registerGuiCallbacks() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Application::unregisterGuiCallbacks() {
-  mGuiManager->getGui()->unregisterCallback("plugin.list");
-  mGuiManager->getGui()->unregisterCallback("plugin.load");
-  mGuiManager->getGui()->unregisterCallback("plugin.reload");
-  mGuiManager->getGui()->unregisterCallback("plugin.unload");
+  mGuiManager->getGui()->unregisterCallback("core.listPlugins");
+  mGuiManager->getGui()->unregisterCallback("core.loadPlugin");
+  mGuiManager->getGui()->unregisterCallback("core.reloadPlugin");
+  mGuiManager->getGui()->unregisterCallback("core.unloadPlugin");
   mGuiManager->getGui()->unregisterCallback("graphics.setAmbientLight");
   mGuiManager->getGui()->unregisterCallback("graphics.setEnableCascadesDebug");
   mGuiManager->getGui()->unregisterCallback("graphics.setEnableLighting");

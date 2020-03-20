@@ -123,10 +123,10 @@ class Application : public VistaFrameLoop {
   /// There are several default C++ callbacks available in the JavaScript code of the user
   /// interface. You can also explore them with the onscreen JavaScript console. In this method
   /// those callbacks are set up. Here are all registered callbacks:
-  /// "plugin.list"
-  /// "plugin.load"
-  /// "plugin.reload"
-  /// "plugin.unload"
+  /// "core.listPlugins"
+  /// "core.loadPlugin"
+  /// "core.reloadPlugin"
+  /// "core.unloadPlugin"
   /// "graphics.setAmbientLight"
   /// "graphics.setEnableCascadesDebug"
   /// "graphics.setEnableLighting"
