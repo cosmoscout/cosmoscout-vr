@@ -76,7 +76,7 @@ std::unique_ptr<VistaTexture> TextureLoader::loadFromFile(std::string const& sFi
     return std::unique_ptr<VistaTexture>(VistaOGLUtils::LoadTextureFromTga(sFileName));
   }
 
-  std::unique_ptr<VistaTexture> result(new VistaTexture(GL_TEXTURE_2D));
+  std::unique_ptr<VistaTexture> result = std::make_unique<VistaTexture>(GL_TEXTURE_2D);
 
   if (suffix == ".tiff" || suffix == ".tif") {
     // load with tifflib
