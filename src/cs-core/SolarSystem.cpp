@@ -267,7 +267,7 @@ void SolarSystem::updateSceneScale() {
     auto lngLatHeight =
         cs::utils::convert::toLngLatHeight(vClosestPlanetObserverPosition, radii[0], radii[0]);
     double dRealDistance = lngLatHeight.z - closestBody->getHeight(lngLatHeight.xy()) *
-                                                mGraphicsEngine->pHeightScale.get();
+                                                mSettings->mGraphics.pHeightScale.get();
 
     if (std::isnan(dRealDistance)) {
       return;

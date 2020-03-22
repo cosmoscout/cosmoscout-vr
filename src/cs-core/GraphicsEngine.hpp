@@ -27,35 +27,11 @@ namespace cs::core {
 /// all plugins.
 class CS_CORE_EXPORT GraphicsEngine {
  public:
-  utils::Property<float>     pHeightScale                = 1.f;
-  utils::Property<float>     pWidgetScale                = 1.f;
-  utils::Property<bool>      pEnableLighting             = false;
-  utils::Property<bool>      pEnableHDR                  = false;
-  utils::Property<int>       pLightingQuality            = 2;
-  utils::Property<bool>      pEnableShadows              = false;
-  utils::Property<bool>      pEnableShadowsDebug         = false;
-  utils::Property<bool>      pEnableShadowsFreeze        = false;
-  utils::Property<int>       pShadowMapResolution        = 2048;
-  utils::Property<int>       pShadowMapCascades          = 3;
-  utils::Property<float>     pShadowMapBias              = 1.0f;
-  utils::Property<glm::vec2> pShadowMapRange             = glm::vec2(0.f, 100.f);
-  utils::Property<glm::vec2> pShadowMapExtension         = glm::vec2(-100.f, 100.f);
-  utils::Property<float>     pShadowMapSplitDistribution = 1.f;
-  utils::Property<bool>      pEnableAutoExposure         = true;
-  utils::Property<float>     pExposure                   = 0.f;                    // in EV
-  utils::Property<glm::vec2> pAutoExposureRange          = glm::vec2(-14.f, 10.f); // in EV
-  utils::Property<float>     pExposureCompensation       = 0.f;                    // in EV
-  utils::Property<float>     pExposureAdaptionSpeed      = 3.f;
-  utils::Property<float>     pSensorDiagonal             = 42.f; // in millimeters
-  utils::Property<float>     pFocalLength                = 24.f; // in millimeters
-  utils::Property<float>     pAmbientBrightness          = std::pow(0.25f, 10.f);
-  utils::Property<bool>      pEnableAutoGlow             = true;
-  utils::Property<float>     pGlowIntensity              = 0.5f;
-  utils::Property<float>     pApproximateSceneBrightness = 1.f;
-  utils::Property<float>     pAverageLuminance           = 1.f;
-  utils::Property<float>     pMaximumLuminance           = 1.f;
+  utils::Property<float> pApproximateSceneBrightness = 1.f;
+  utils::Property<float> pAverageLuminance           = 1.f;
+  utils::Property<float> pMaximumLuminance           = 1.f;
 
-  GraphicsEngine(std::shared_ptr<const Settings> const& settings);
+  GraphicsEngine(std::shared_ptr<Settings> const& settings);
   ~GraphicsEngine();
 
   /// All objects which are able to cast shadows need to be registered.
@@ -74,7 +50,7 @@ class CS_CORE_EXPORT GraphicsEngine {
  private:
   void calculateCascades();
 
-  std::shared_ptr<const core::Settings>         mSettings;
+  std::shared_ptr<core::Settings>               mSettings;
   std::shared_ptr<graphics::ShadowMap>          mShadowMap;
   std::shared_ptr<graphics::HDRBuffer>          mHDRBuffer;
   std::shared_ptr<graphics::ClearHDRBufferNode> mClearNode;

@@ -2,9 +2,6 @@
   "startDate": "today",
   "minDate": "1950-01-02 00:00:00.000",
   "maxDate": "2049-12-31 00:00:00.000",
-  "fileLogLevel": "debug",
-  "consoleLogLevel": "trace",
-  "screenLogLevel": "info",
   "observer": {
     "center": "Earth",
     "frame": "IAU_Earth",
@@ -12,7 +9,6 @@
     "longitude": 11.281067,
     "latitude": 48.086709
   },
-  "enableHDR": false,
   "sceneScale": {
     "minScale": 5,
     "maxScale": 100000000000000000,
@@ -64,8 +60,8 @@
   ],
   "spiceKernel": "../share/config/spice/simple.txt",
   "widgetScale": 0.6,
-  "enableMouseRay": false,
-  "enableSensorSizeControl": true,
+  "graphics": {},
+  "logLevel": {},
   "anchors": {
     "Sun": {
       "center": "Sun",

@@ -17,7 +17,7 @@ namespace cs::core {
 class TimeControl;
 class SolarSystem;
 class InputManager;
-class GraphicsEngine;
+class Settings;
 
 namespace tools {
 
@@ -32,8 +32,7 @@ class CS_CORE_EXPORT MultiPointTool : public Tool {
   cs::utils::Property<bool> pAnyPointSelected = false;
 
   MultiPointTool(std::shared_ptr<InputManager> const& pInputManager,
-      std::shared_ptr<SolarSystem> const&             pSolarSystem,
-      std::shared_ptr<GraphicsEngine> const&          graphicsEngine,
+      std::shared_ptr<SolarSystem> const& pSolarSystem, std::shared_ptr<Settings> const& settings,
       std::shared_ptr<TimeControl> const& pTimeControl, std::string const& sCenter,
       std::string const& sFrame);
 
@@ -58,10 +57,10 @@ class CS_CORE_EXPORT MultiPointTool : public Tool {
   /// A derived class may call this in order to add a new point at the current pointer position.
   void addPoint();
 
-  std::shared_ptr<InputManager>   mInputManager;
-  std::shared_ptr<SolarSystem>    mSolarSystem;
-  std::shared_ptr<GraphicsEngine> mGraphicsEngine;
-  std::shared_ptr<TimeControl>    mTimeControl;
+  std::shared_ptr<InputManager> mInputManager;
+  std::shared_ptr<SolarSystem>  mSolarSystem;
+  std::shared_ptr<Settings>     mSettings;
+  std::shared_ptr<TimeControl>  mTimeControl;
 
   std::list<std::shared_ptr<DeletableMark>> mPoints;
 

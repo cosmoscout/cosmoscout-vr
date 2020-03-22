@@ -60,26 +60,26 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
   mLocalGuiTransform = pSG->NewTransformNode(pSG->GetRoot());
 
   // The global GUI area is only created when the according settings key was specified.
-  if (settings->mGui) {
+  if (settings->mGuiPosition) {
     auto platform = GetVistaSystem()
                         ->GetPlatformFor(GetVistaSystem()->GetDisplayManager()->GetDisplaySystem())
                         ->GetPlatformNode();
     mGlobalGuiTransform = pSG->NewTransformNode(platform);
 
-    mGlobalGuiTransform->Scale(
-        (float)settings->mGui->mWidthMeter, (float)settings->mGui->mHeightMeter, 1.0);
+    mGlobalGuiTransform->Scale((float)settings->mGuiPosition->mWidthMeter,
+        (float)settings->mGuiPosition->mHeightMeter, 1.0);
     mGlobalGuiTransform->Rotate(
-        VistaAxisAndAngle(VistaVector3D(1, 0, 0), (float)settings->mGui->mRotX));
+        VistaAxisAndAngle(VistaVector3D(1, 0, 0), (float)settings->mGuiPosition->mRotX));
     mGlobalGuiTransform->Rotate(
-        VistaAxisAndAngle(VistaVector3D(0, 1, 0), (float)settings->mGui->mRotY));
+        VistaAxisAndAngle(VistaVector3D(0, 1, 0), (float)settings->mGuiPosition->mRotY));
     mGlobalGuiTransform->Rotate(
-        VistaAxisAndAngle(VistaVector3D(0, 0, 1), (float)settings->mGui->mRotZ));
-    mGlobalGuiTransform->Translate((float)settings->mGui->mPosXMeter,
-        (float)settings->mGui->mPosYMeter, (float)settings->mGui->mPosZMeter);
+        VistaAxisAndAngle(VistaVector3D(0, 0, 1), (float)settings->mGuiPosition->mRotZ));
+    mGlobalGuiTransform->Translate((float)settings->mGuiPosition->mPosXMeter,
+        (float)settings->mGuiPosition->mPosYMeter, (float)settings->mGuiPosition->mPosZMeter);
 
     // Create the global GUI area.
-    mGlobalGuiArea =
-        new gui::WorldSpaceGuiArea(settings->mGui->mWidthPixel, settings->mGui->mHeightPixel);
+    mGlobalGuiArea = new gui::WorldSpaceGuiArea(
+        settings->mGuiPosition->mWidthPixel, settings->mGuiPosition->mHeightPixel);
     mGlobalGuiArea->setUseLinearDepthBuffer(true);
   }
 

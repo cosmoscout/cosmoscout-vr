@@ -9,10 +9,16 @@
 
 #include "cs_graphics_export.hpp"
 
+#include <memory>
+
 #include <VistaKernel/GraphicsManager/VistaOpenGLDraw.h>
+#include <VistaKernel/GraphicsManager/VistaOpenGLNode.h>
 #include <VistaOGLExt/VistaBufferObject.h>
 #include <VistaOGLExt/VistaGLSLShader.h>
 #include <VistaOGLExt/VistaVertexArrayObject.h>
+
+class VistaTransformNode;
+class VistaOpenGLNode;
 
 namespace cs::graphics {
 
@@ -20,12 +26,14 @@ namespace cs::graphics {
 class CS_GRAPHICS_EXPORT MouseRay : public IVistaOpenGLDraw {
  public:
   MouseRay();
-  ~MouseRay() override = default;
 
   bool Do() override;
   bool GetBoundingBox(VistaBoundingBox& bb) override;
 
  private:
+  std::unique_ptr<VistaTransformNode> mRayTransform;
+  std::unique_ptr<VistaOpenGLNode>    mMouseRayNode;
+
   VistaGLSLShader        mShader;
   VistaVertexArrayObject mRayVAO;
   VistaBufferObject      mRayVBO;

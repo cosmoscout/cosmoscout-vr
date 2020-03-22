@@ -26,27 +26,18 @@ class Property {
   typedef T value_type;
 
   /// Properties for built-in types are automatically initialized to 0.
-  Property()
-      : mConnection(nullptr)
-      , mConnectionID(-1) {
-  }
+  Property() = default;
 
   Property(T const& val)
-      : mValue(val)
-      , mConnection(nullptr)
-      , mConnectionID(-1) {
+      : mValue(val) {
   }
 
   Property(T&& val)
-      : mValue(std::move(val))
-      , mConnection(nullptr)
-      , mConnectionID(-1) {
+      : mValue(std::move(val)) {
   }
 
   Property(Property<T> const& other)
-      : mValue(other.mValue)
-      , mConnection(nullptr)
-      , mConnectionID(-1) {
+      : mValue(other.mValue) {
   }
 
   Property(Property<T>&& other)
@@ -140,7 +131,7 @@ class Property {
 
   /// Assigns the value of another Property.
   virtual Property<T>& operator=(Property<T> const& rhs) {
-    set(rhs.mValue);
+    set(rhs.get());
     return *this;
   }
 
@@ -152,82 +143,32 @@ class Property {
 
   /// Compares the values of two Properties.
   bool operator==(Property<T> const& rhs) const {
-    return Property<T>::get() == rhs.get();
+    return get() == rhs.get();
   }
   bool operator!=(Property<T> const& rhs) const {
-    return Property<T>::get() != rhs.get();
+    return get() != rhs.get();
   }
 
   /// Compares the values of the Property to another value.
   bool operator==(T const& rhs) const {
-    return Property<T>::get() == rhs;
+    return get() == rhs;
   }
   bool operator!=(T const& rhs) const {
-    return Property<T>::get() != rhs;
+    return get() != rhs;
   }
 
   /// Returns the value of this Property.
   T const& operator()() const {
-    return Property<T>::get();
+    return get();
   }
 
  private:
   mutable Signal<T> mOnChange;
 
-  mutable Property<T> const* mConnection;
-  mutable int                mConnectionID;
-  T                          mValue;
+  mutable Property<T> const* mConnection   = nullptr;
+  mutable int                mConnectionID = -1;
+  T                          mValue{};
 };
-
-/// Specialization for built-in default constructors.
-template <>
-inline Property<double>::Property()
-    : mConnection(nullptr)
-    , mConnectionID(-1)
-    , mValue(0.0) {
-}
-
-template <>
-inline Property<float>::Property()
-    : mConnection(nullptr)
-    , mConnectionID(-1)
-    , mValue(0.f) {
-}
-
-template <>
-inline Property<short>::Property()
-    : mConnection(nullptr)
-    , mConnectionID(-1)
-    , mValue(0) {
-}
-
-template <>
-inline Property<int>::Property()
-    : mConnection(nullptr)
-    , mConnectionID(-1)
-    , mValue(0) {
-}
-
-template <>
-inline Property<char>::Property()
-    : mConnection(nullptr)
-    , mConnectionID(-1)
-    , mValue(0) {
-}
-
-template <>
-inline Property<unsigned>::Property()
-    : mConnection(nullptr)
-    , mConnectionID(-1)
-    , mValue(0) {
-}
-
-template <>
-inline Property<bool>::Property()
-    : mConnection(nullptr)
-    , mConnectionID(-1)
-    , mValue(false) {
-}
 
 /// Stream operators.
 template <typename T>

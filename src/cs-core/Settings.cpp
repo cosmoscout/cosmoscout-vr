@@ -47,7 +47,7 @@ void to_json(nlohmann::json& j, Settings::Anchor const& o) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void from_json(nlohmann::json const& j, Settings::Gui& o) {
+void from_json(nlohmann::json const& j, Settings::GuiPosition& o) {
   Settings::deserialize(j, "widthPixel", o.mWidthPixel);
   Settings::deserialize(j, "heightPixel", o.mHeightPixel);
   Settings::deserialize(j, "widthMeter", o.mWidthMeter);
@@ -60,7 +60,7 @@ void from_json(nlohmann::json const& j, Settings::Gui& o) {
   Settings::deserialize(j, "rotZ", o.mRotZ);
 }
 
-void to_json(nlohmann::json& j, Settings::Gui const& o) {
+void to_json(nlohmann::json& j, Settings::GuiPosition const& o) {
   Settings::serialize(j, "widthPixel", o.mWidthPixel);
   Settings::serialize(j, "heightPixel", o.mHeightPixel);
   Settings::serialize(j, "widthMeter", o.mWidthMeter);
@@ -93,12 +93,12 @@ void to_json(nlohmann::json& j, Settings::Observer const& o) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void from_json(nlohmann::json const& j, Settings::Location& o) {
+void from_json(nlohmann::json const& j, Settings::Event::Location& o) {
   Settings::deserialize(j, "planet", o.mPlanet);
   Settings::deserialize(j, "place", o.mPlace);
 }
 
-void to_json(nlohmann::json& j, Settings::Location const& o) {
+void to_json(nlohmann::json& j, Settings::Event::Location const& o) {
   Settings::serialize(j, "planet", o.mPlanet);
   Settings::serialize(j, "place", o.mPlace);
 }
@@ -171,19 +171,86 @@ void to_json(nlohmann::json& j, Settings::SceneScale const& o) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void from_json(nlohmann::json const& j, Settings::LogLevel& o) {
+  Settings::deserialize(j, "file", o.mFile);
+  Settings::deserialize(j, "console", o.mConsole);
+  Settings::deserialize(j, "screen", o.mScreen);
+}
+
+void to_json(nlohmann::json& j, Settings::LogLevel const& o) {
+  Settings::serialize(j, "file", o.mFile);
+  Settings::serialize(j, "console", o.mConsole);
+  Settings::serialize(j, "screen", o.mScreen);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void from_json(nlohmann::json const& j, Settings::Graphics& o) {
+  Settings::deserialize(j, "widgetScale", o.pWidgetScale);
+  Settings::deserialize(j, "heightScale", o.pHeightScale);
+  Settings::deserialize(j, "enableHDR", o.pEnableHDR);
+  Settings::deserialize(j, "enableLighting", o.pEnableLighting);
+  Settings::deserialize(j, "lightingQuality", o.pLightingQuality);
+  Settings::deserialize(j, "enableShadows", o.pEnableShadows);
+  Settings::deserialize(j, "enableShadowsDebug", o.pEnableShadowsDebug);
+  Settings::deserialize(j, "enableShadowsFreeze", o.pEnableShadowsFreeze);
+  Settings::deserialize(j, "shadowMapResolution", o.pShadowMapResolution);
+  Settings::deserialize(j, "shadowMapCascades", o.pShadowMapCascades);
+  Settings::deserialize(j, "shadowMapBias", o.pShadowMapBias);
+  Settings::deserialize(j, "shadowMapRange", o.pShadowMapRange);
+  Settings::deserialize(j, "shadowMapExtension", o.pShadowMapExtension);
+  Settings::deserialize(j, "shadowMapSplitDistribution", o.pShadowMapSplitDistribution);
+  Settings::deserialize(j, "enableAutoExposure", o.pEnableAutoExposure);
+  Settings::deserialize(j, "exposure", o.pExposure);
+  Settings::deserialize(j, "autoExposureRange", o.pAutoExposureRange);
+  Settings::deserialize(j, "exposureCompensation", o.pExposureCompensation);
+  Settings::deserialize(j, "exposureAdaptionSpeed", o.pExposureAdaptionSpeed);
+  Settings::deserialize(j, "sensorDiagonal", o.pSensorDiagonal);
+  Settings::deserialize(j, "focalLength", o.pFocalLength);
+  Settings::deserialize(j, "ambientBrightness", o.pAmbientBrightness);
+  Settings::deserialize(j, "enableAutoGlow", o.pEnableAutoGlow);
+  Settings::deserialize(j, "glowIntensity", o.pGlowIntensity);
+}
+
+void to_json(nlohmann::json& j, Settings::Graphics const& o) {
+  Settings::serialize(j, "widgetScale", o.pWidgetScale);
+  Settings::serialize(j, "heightScale", o.pHeightScale);
+  Settings::serialize(j, "enableHDR", o.pEnableHDR);
+  Settings::serialize(j, "enableLighting", o.pEnableLighting);
+  Settings::serialize(j, "lightingQuality", o.pLightingQuality);
+  Settings::serialize(j, "enableShadows", o.pEnableShadows);
+  Settings::serialize(j, "enableShadowsDebug", o.pEnableShadowsDebug);
+  Settings::serialize(j, "enableShadowsFreeze", o.pEnableShadowsFreeze);
+  Settings::serialize(j, "shadowMapResolution", o.pShadowMapResolution);
+  Settings::serialize(j, "shadowMapCascades", o.pShadowMapCascades);
+  Settings::serialize(j, "shadowMapBias", o.pShadowMapBias);
+  Settings::serialize(j, "shadowMapRange", o.pShadowMapRange);
+  Settings::serialize(j, "shadowMapExtension", o.pShadowMapExtension);
+  Settings::serialize(j, "shadowMapSplitDistribution", o.pShadowMapSplitDistribution);
+  Settings::serialize(j, "enableAutoExposure", o.pEnableAutoExposure);
+  Settings::serialize(j, "exposure", o.pExposure);
+  Settings::serialize(j, "autoExposureRange", o.pAutoExposureRange);
+  Settings::serialize(j, "exposureCompensation", o.pExposureCompensation);
+  Settings::serialize(j, "exposureAdaptionSpeed", o.pExposureAdaptionSpeed);
+  Settings::serialize(j, "sensorDiagonal", o.pSensorDiagonal);
+  Settings::serialize(j, "focalLength", o.pFocalLength);
+  Settings::serialize(j, "ambientBrightness", o.pAmbientBrightness);
+  Settings::serialize(j, "enableAutoGlow", o.pEnableAutoGlow);
+  Settings::serialize(j, "glowIntensity", o.pGlowIntensity);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void from_json(nlohmann::json const& j, Settings& o) {
   Settings::deserialize(j, "startDate", o.mStartDate);
   Settings::deserialize(j, "observer", o.mObserver);
   Settings::deserialize(j, "spiceKernel", o.mSpiceKernel);
   Settings::deserialize(j, "sceneScale", o.mSceneScale);
-  Settings::deserialize(j, "gui", o.mGui);
-  Settings::deserialize(j, "widgetScale", o.mWidgetScale);
-  Settings::deserialize(j, "enableHDR", o.mEnableHDR);
-  Settings::deserialize(j, "enableMouseRay", o.mEnableMouseRay);
-  Settings::deserialize(j, "enableSensorSizeControl", o.mEnableSensorSizeControl);
-  Settings::deserialize(j, "fileLogLevel", o.mFileLogLevel);
-  Settings::deserialize(j, "consoleLogLevel", o.mConsoleLogLevel);
-  Settings::deserialize(j, "screenLogLevel", o.mScreenLogLevel);
+  Settings::deserialize(j, "guiPosition", o.mGuiPosition);
+  Settings::deserialize(j, "graphics", o.mGraphics);
+  Settings::deserialize(j, "enableMouseRay", o.pEnableMouseRay);
+  Settings::deserialize(j, "enableSensorSizeControl", o.pEnableSensorSizeControl);
+  Settings::deserialize(j, "logLevel", o.mLogLevel);
   Settings::deserialize(j, "anchors", o.mAnchors);
   Settings::deserialize(j, "plugins", o.mPlugins);
   Settings::deserialize(j, "startDate", o.mStartDate);
@@ -198,14 +265,11 @@ void to_json(nlohmann::json& j, Settings const& o) {
   Settings::serialize(j, "observer", o.mObserver);
   Settings::serialize(j, "spiceKernel", o.mSpiceKernel);
   Settings::serialize(j, "sceneScale", o.mSceneScale);
-  Settings::serialize(j, "gui", o.mGui);
-  Settings::serialize(j, "widgetScale", o.mWidgetScale);
-  Settings::serialize(j, "enableHDR", o.mEnableHDR);
-  Settings::serialize(j, "enableMouseRay", o.mEnableMouseRay);
-  Settings::serialize(j, "enableSensorSizeControl", o.mEnableSensorSizeControl);
-  Settings::serialize(j, "fileLogLevel", o.mFileLogLevel);
-  Settings::serialize(j, "consoleLogLevel", o.mConsoleLogLevel);
-  Settings::serialize(j, "screenLogLevel", o.mScreenLogLevel);
+  Settings::serialize(j, "guiPosition", o.mGuiPosition);
+  Settings::serialize(j, "graphics", o.mGraphics);
+  Settings::serialize(j, "enableMouseRay", o.pEnableMouseRay);
+  Settings::serialize(j, "enableSensorSizeControl", o.pEnableSensorSizeControl);
+  Settings::serialize(j, "logLevel", o.mLogLevel);
   Settings::serialize(j, "anchors", o.mAnchors);
   Settings::serialize(j, "plugins", o.mPlugins);
   Settings::serialize(j, "startDate", o.mStartDate);

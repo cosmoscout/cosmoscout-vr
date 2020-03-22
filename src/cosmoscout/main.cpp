@@ -106,9 +106,12 @@ int main(int argc, char** argv) {
   // configure loggers -----------------------------------------------------------------------------
 
   // Once we have read the settings, we can set the log level.
-  cs::utils::logger::setCoutLogLevel(settings->mConsoleLogLevel);
-  cs::utils::logger::setFileLogLevel(settings->mFileLogLevel);
-  cs::utils::logger::setSignalLogLevel(settings->mScreenLogLevel);
+  settings->mLogLevel.mConsole.connectAndTouch(
+      [](auto level) { cs::utils::logger::setCoutLogLevel(level); });
+  settings->mLogLevel.mFile.connectAndTouch(
+      [](auto level) { cs::utils::logger::setFileLogLevel(level); });
+  settings->mLogLevel.mScreen.connectAndTouch(
+      [](auto level) { cs::utils::logger::setSignalLogLevel(level); });
 
   // Print a nifty welcome message!
   spdlog::info("Welcome to CosmoScout VR v" + CS_PROJECT_VERSION + "!");

@@ -15,13 +15,12 @@ namespace cs::core::tools {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 MultiPointTool::MultiPointTool(std::shared_ptr<InputManager> const& pInputManager,
-    std::shared_ptr<SolarSystem> const&                             pSolarSystem,
-    std::shared_ptr<GraphicsEngine> const&                          graphicsEngine,
+    std::shared_ptr<SolarSystem> const& pSolarSystem, std::shared_ptr<Settings> const& settings,
     std::shared_ptr<TimeControl> const& pTimeControl, std::string const& sCenter,
     std::string const& sFrame)
     : mInputManager(pInputManager)
     , mSolarSystem(pSolarSystem)
-    , mGraphicsEngine(graphicsEngine)
+    , mSettings(settings)
     , mTimeControl(pTimeControl)
     , mCenter(sCenter)
     , mFrame(sFrame) {
@@ -60,7 +59,7 @@ MultiPointTool::~MultiPointTool() {
 void MultiPointTool::addPoint() {
   // add the Mark to the list
   mPoints.emplace_back(std::make_shared<DeletableMark>(
-      mInputManager, mSolarSystem, mGraphicsEngine, mTimeControl, mCenter, mFrame));
+      mInputManager, mSolarSystem, mSettings, mTimeControl, mCenter, mFrame));
 
   // if there is a planet intersection, move the point to the intersection location
   auto intersection = mInputManager->pHoveredObject.get();

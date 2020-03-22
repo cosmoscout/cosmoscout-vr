@@ -30,7 +30,7 @@ namespace cs::core {
 class TimeControl;
 class SolarSystem;
 class InputManager;
-class GraphicsEngine;
+class Settings;
 
 namespace tools {
 
@@ -44,9 +44,8 @@ class CS_CORE_EXPORT Mark : public IVistaOpenGLDraw, public Tool {
   cs::utils::Property<bool>       pActive   = false;
   cs::utils::Property<glm::vec3>  pColor    = glm::vec3(0.75, 0.75, 1.0);
 
-  Mark(std::shared_ptr<InputManager> const&  pInputManager,
-      std::shared_ptr<SolarSystem> const&    pSolarSystem,
-      std::shared_ptr<GraphicsEngine> const& graphicsEngine,
+  Mark(std::shared_ptr<InputManager> const& pInputManager,
+      std::shared_ptr<SolarSystem> const& pSolarSystem, std::shared_ptr<Settings> const& Settings,
       std::shared_ptr<TimeControl> const& pTimeControl, std::string const& sCenter,
       std::string const& sFrame);
 
@@ -65,10 +64,10 @@ class CS_CORE_EXPORT Mark : public IVistaOpenGLDraw, public Tool {
   bool GetBoundingBox(VistaBoundingBox& bb) override;
 
  protected:
-  std::shared_ptr<InputManager>   mInputManager;
-  std::shared_ptr<SolarSystem>    mSolarSystem;
-  std::shared_ptr<GraphicsEngine> mGraphicsEngine;
-  std::shared_ptr<TimeControl>    mTimeControl;
+  std::shared_ptr<InputManager> mInputManager;
+  std::shared_ptr<SolarSystem>  mSolarSystem;
+  std::shared_ptr<Settings>     mSettings;
+  std::shared_ptr<TimeControl>  mTimeControl;
 
   std::shared_ptr<cs::scene::CelestialAnchorNode> mAnchor = nullptr;
   VistaOpenGLNode*                                mParent = nullptr;

@@ -30,11 +30,9 @@
 #include <VistaKernel/DisplayManager/VistaDisplayManager.h>
 #include <VistaKernel/EventManager/VistaEventManager.h>
 #include <VistaKernel/EventManager/VistaSystemEvent.h>
-#include <VistaKernel/GraphicsManager/VistaOpenGLNode.h>
 #include <VistaKernel/GraphicsManager/VistaSceneGraph.h>
 #include <VistaKernel/GraphicsManager/VistaTransformNode.h>
 #include <VistaKernel/VistaSystem.h>
-#include <VistaKernelOpenSGExt/VistaOpenSGMaterialTools.h>
 #include <VistaOGLExt/VistaShaderRegistry.h>
 #include <curlpp/cURLpp.hpp>
 #include <spdlog/spdlog.h>
@@ -108,48 +106,44 @@ bool Application::Init(VistaSystem* pVistaSystem) {
 
   // initialize the mouse pointer state ------------------------------------------------------------
 
-  // If we are running on freeglut, we can hide the mouse pointer when the mouse ray should be
-  // shown. This is determined by the settings key "enableMouseRay".
-  auto windowingToolkit = dynamic_cast<VistaGlutWindowingToolkit*>(
-      GetVistaSystem()->GetDisplayManager()->GetWindowingToolkit());
+  mSettings->pEnableMouseRay.connectAndTouch([this](bool enable) {
+    // If we are running on freeglut, we can hide the mouse pointer when the mouse ray should be
+    // shown. This is determined by the settings key "enableMouseRay".
+    auto windowingToolkit = dynamic_cast<VistaGlutWindowingToolkit*>(
+        GetVistaSystem()->GetDisplayManager()->GetWindowingToolkit());
 
-  if (windowingToolkit) {
-    for (auto const& window : GetVistaSystem()->GetDisplayManager()->GetWindows()) {
-      windowingToolkit->SetCursorIsEnabled(window.second, !mSettings->mEnableMouseRay);
+    if (windowingToolkit) {
+      for (auto const& window : GetVistaSystem()->GetDisplayManager()->GetWindows()) {
+        windowingToolkit->SetCursorIsEnabled(window.second, !enable);
+      }
     }
-  }
 
-  // If the settings key "enableMouseRay" is set to true, we add a cone geometry to the
-  // SELECTION_NODE. The SELECTION_NODE is controlled by the users input device (via the DFN).
-  if (mSettings->mEnableMouseRay) {
-    auto                sceneGraph = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
-    VistaTransformNode* pIntentionNode =
-        dynamic_cast<VistaTransformNode*>(sceneGraph->GetNode("SELECTION_NODE"));
-
-    VistaTransformNode* mRayTrans = sceneGraph->NewTransformNode(pIntentionNode);
-    mRayTrans->SetScale(0.001, 0.001, 30);
-    mRayTrans->SetName("Ray_Trans");
-
-    auto ray      = new cs::graphics::MouseRay();
-    auto coneNode = sceneGraph->NewOpenGLNode(mRayTrans, ray);
-    coneNode->SetName("Cone_Node");
-
-    VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
-        pIntentionNode, static_cast<int>(cs::utils::DrawOrder::eRay));
-  } else {
-    cs::core::GuiManager::setCursor(cs::gui::Cursor::ePointer);
-  }
+    // If the settings key "enableMouseRay" is set to true, we add a cone geometry to the
+    // SELECTION_NODE. The SELECTION_NODE is controlled by the users input device (via the DFN).
+    if (enable) {
+      mMouseRay = std::make_unique<cs::graphics::MouseRay>();
+    } else {
+      mMouseRay.reset();
+      cs::core::GuiManager::setCursor(cs::gui::Cursor::ePointer);
+    }
+  });
 
   // Initialize some gui components
-  if (!mSettings->mEnableSensorSizeControl) {
-    mGuiManager->getGui()->executeJavascript(
-        "document.querySelector('#enableSensorSizeControl').classList.add('hidden')");
-  }
-
-  if (!mSettings->mEnableHDR.value_or(false)) {
+  mSettings->pEnableSensorSizeControl.connectAndTouch([this](bool enable) {
     mGuiManager->getGui()->callJavascript(
-        "CosmoScout.gui.setCheckboxValue", "graphics.setEnableHDR", false, true);
-  }
+        "CosmoScout.gui.hideElement", "#enableSensorSizeControl", !enable);
+  });
+
+  mGuiManager->getGui()->callJavascript("CosmoScout.gui.setCheckboxValue", "graphics.setEnableHDR",
+      mSettings->mGraphics.pEnableHDR.get(), true);
+
+  mSettings->mGraphics.pEnableHDR.connect([this](bool enable) {
+    mGuiManager->getGui()->callJavascript(
+        "CosmoScout.gui.setCheckboxValue", "graphics.setEnableHDR", enable);
+  });
+
+  mSettings->mSpiceKernel.connect(
+      [](auto) { spdlog::warn("Reloading the SPICE kernals at runtime is not yet supported!"); });
 
   mGuiManager->enableLoadingScreen(true);
 
@@ -319,7 +313,7 @@ void Application::FrameUpdate() {
   // data download, as it requires SPICE kernels which might be part of the download.
   if (mDownloadedData && !mSolarSystem->getIsInitialized()) {
     try {
-      mSolarSystem->init(mSettings->mSpiceKernel);
+      mSolarSystem->init(mSettings->mSpiceKernel.get());
     } catch (std::runtime_error e) {
       spdlog::error("Failed to initialize the SolarSystem: {}", e.what());
       Quit();
@@ -537,7 +531,7 @@ void Application::FrameUpdate() {
           glm::inverse(mSolarSystem->pActiveBody.get()->getWorldTransform()) * vWorldPos;
       auto   polar = cs::utils::convert::toLngLatHeight(vPlanetPos.xyz(), radii[0], radii[0]);
       double surfaceHeight = mSolarSystem->pActiveBody.get()->getHeight(polar.xy());
-      double heightDiff    = polar.z / mGraphicsEngine->pHeightScale.get() - surfaceHeight;
+      double heightDiff    = polar.z / mSettings->mGraphics.pHeightScale.get() - surfaceHeight;
 
       if (!std::isnan(polar.x) && !std::isnan(polar.y) && !std::isnan(heightDiff)) {
         mGuiManager->getGui()->executeJavascript(
@@ -747,7 +741,7 @@ void Application::connectSlots() {
         if (!std::isnan(lngLat.x) && !std::isnan(lngLat.y) && !std::isnan(polar.z)) {
           mGuiManager->getGui()->executeJavascript(
               fmt::format("CosmoScout.state.pointerPosition = [{}, {}, {}];", lngLat.x, lngLat.y,
-                  polar.z / mGraphicsEngine->pHeightScale.get()));
+                  polar.z / mSettings->mGraphics.pHeightScale.get()));
           return;
         }
       }
@@ -875,39 +869,39 @@ void Application::registerGuiCallbacks() {
   // Enables lighting computation globally.
   mGuiManager->getGui()->registerCallback("graphics.setEnableLighting",
       "Enables or disables lighting computations for planet surfaces.",
-      std::function([this](bool enable) { mGraphicsEngine->pEnableLighting = enable; }));
+      std::function([this](bool enable) { mSettings->mGraphics.pEnableLighting = enable; }));
 
   // Shows cascaded shadow mapping debugging information on the terrain.
   mGuiManager->getGui()->registerCallback("graphics.setEnableCascadesDebug",
       "Enables or disables a debug visualization for the shadow maps.",
-      std::function([this](bool enable) { mGraphicsEngine->pEnableShadowsDebug = enable; }));
+      std::function([this](bool enable) { mSettings->mGraphics.pEnableShadowsDebug = enable; }));
 
   // Enables the calculation of shadows.
   mGuiManager->getGui()->registerCallback("graphics.setEnableShadows",
       "Enables or disables calculation of shadow maps.",
-      std::function([this](bool enable) { mGraphicsEngine->pEnableShadows = enable; }));
+      std::function([this](bool enable) { mSettings->mGraphics.pEnableShadows = enable; }));
 
   // Freezes the shadow frustum.
   mGuiManager->getGui()->registerCallback("graphics.setEnableShadowFreeze",
       "If enabled, the camera frustum used for the calculation of the shadow map cascades is not "
       "updated anymore.",
-      std::function([this](bool enable) { mGraphicsEngine->pEnableShadowsFreeze = enable; }));
+      std::function([this](bool enable) { mSettings->mGraphics.pEnableShadowsFreeze = enable; }));
 
   // Sets a value which individual plugins may honor trading rendering fidelity for performance.
   mGuiManager->getGui()->registerCallback("graphics.setLightingQuality",
       "Sets the quality for lighting computations. This can be either 0, 1 or 2.",
-      std::function([this](double value) { mGraphicsEngine->pLightingQuality = value; }));
+      std::function([this](double value) { mSettings->mGraphics.pLightingQuality = value; }));
 
   // Adjusts the resolution of the shadowmap.
   mGuiManager->getGui()->registerCallback("graphics.setShadowmapResolution",
       "Sets the resolution of the shadow maps. This should be a power of two, e.g. 256, 512, 1024, "
       "etc.",
-      std::function([this](double val) { mGraphicsEngine->pShadowMapResolution = val; }));
+      std::function([this](double val) { mSettings->mGraphics.pShadowMapResolution = val; }));
 
   // Adjusts the number of shadowmap cascades.
   mGuiManager->getGui()->registerCallback("graphics.setShadowmapCascades",
       "Sets the number of shadow map cascades. Should be in the range of 1-5.",
-      std::function([this](double val) { mGraphicsEngine->pShadowMapCascades = val; }));
+      std::function([this](double val) { mSettings->mGraphics.pShadowMapCascades = val; }));
 
   // Adjusts the depth range of the shadowmap.
   mGuiManager->getGui()->registerCallback("graphics.setShadowmapRange",
@@ -915,7 +909,7 @@ void Application::registerGuiCallbacks() {
       "viewspace, the second specifies which end to set: Zero for the closer end; One for the "
       "farther end.",
       std::function([this](double val, double handle) {
-        glm::vec2 range = mGraphicsEngine->pShadowMapRange.get();
+        glm::vec2 range = mSettings->mGraphics.pShadowMapRange.get();
 
         if (handle == 0.0) {
           range.x = (float)val;
@@ -923,7 +917,7 @@ void Application::registerGuiCallbacks() {
           range.y = (float)val;
         };
 
-        mGraphicsEngine->pShadowMapRange = range;
+        mSettings->mGraphics.pShadowMapRange = range;
       }));
 
   // Adjusts the additional frustum length for shadowmap rendering in sun space.
@@ -932,7 +926,7 @@ void Application::registerGuiCallbacks() {
       "actual value in sunspace, the second specifies which end to set: Zero for the closer end; "
       "One for the farther end.",
       std::function([this](double val, double handle) {
-        glm::vec2 extension = mGraphicsEngine->pShadowMapExtension.get();
+        glm::vec2 extension = mSettings->mGraphics.pShadowMapExtension.get();
 
         if (handle == 0.0) {
           extension.x = (float)val;
@@ -940,72 +934,73 @@ void Application::registerGuiCallbacks() {
           extension.y = (float)val;
         };
 
-        mGraphicsEngine->pShadowMapExtension = extension;
+        mSettings->mGraphics.pShadowMapExtension = extension;
       }));
 
   // Adjusts the distribution of shadowmap cascades.
   mGuiManager->getGui()->registerCallback("graphics.setShadowmapSplitDistribution",
       "Defines an exponent for the distribution of the shadowmap cascades.",
-      std::function([this](double val) { mGraphicsEngine->pShadowMapSplitDistribution = val; }));
+      std::function(
+          [this](double val) { mSettings->mGraphics.pShadowMapSplitDistribution = val; }));
 
   // Adjusts the bias to mitigate shadow acne.
   mGuiManager->getGui()->registerCallback("graphics.setShadowmapBias",
       "Sets the bias for the shadow map lookups.",
-      std::function([this](double val) { mGraphicsEngine->pShadowMapBias = val; }));
+      std::function([this](double val) { mSettings->mGraphics.pShadowMapBias = val; }));
 
   // A global factor which plugins may honor when they render some sort of terrain.
   mGuiManager->getGui()->registerCallback("graphics.setTerrainHeight",
       "Sets a factor for the height exaggeration of the planet's surface.",
-      std::function([this](double value) { mGraphicsEngine->pHeightScale = value; }));
+      std::function([this](double value) { mSettings->mGraphics.pHeightScale = value; }));
 
   // Adjusts the global scaling of world-space widgets.
   mGuiManager->getGui()->registerCallback("graphics.setWidgetScale",
       "Sets a factor for the scaling of world space user interface elements.",
-      std::function([this](double value) { mGraphicsEngine->pWidgetScale = value; }));
+      std::function([this](double value) { mSettings->mGraphics.pWidgetScale = value; }));
 
   // Adjusts the sensor diagonal of the virtual camera.
   mGuiManager->getGui()->registerCallback("graphics.setSensorDiagonal",
       "Sets the sensor diagonal of the virtual camera in [mm].",
-      std::function([this](double val) { mGraphicsEngine->pSensorDiagonal = val; }));
+      std::function([this](double val) { mSettings->mGraphics.pSensorDiagonal = val; }));
 
   // Adjusts the foacl length of the virtual camera.
   mGuiManager->getGui()->registerCallback("graphics.setFocalLength",
       "Sets the focal length of the virtual camera in [mm].",
-      std::function([this](double val) { mGraphicsEngine->pFocalLength = val; }));
+      std::function([this](double val) { mSettings->mGraphics.pFocalLength = val; }));
 
   // Toggles HDR rendering.
   mGuiManager->getGui()->registerCallback("graphics.setEnableHDR",
       "Enables or disables HDR rendering.",
-      std::function([this](bool val) { mGraphicsEngine->pEnableHDR = val; }));
+      std::function([this](bool val) { mSettings->mGraphics.pEnableHDR = val; }));
 
   // Toggles auto-exposure.
   mGuiManager->getGui()->registerCallback("graphics.setEnableAutoExposure",
       "Enables or disables automatic exposure calculation.",
-      std::function([this](bool val) { mGraphicsEngine->pEnableAutoExposure = val; }));
+      std::function([this](bool val) { mSettings->mGraphics.pEnableAutoExposure = val; }));
 
   // Adjusts the exposure compensation for HDR rendering.
   mGuiManager->getGui()->registerCallback("graphics.setExposureCompensation",
       "Adds some additional exposure in [EV].",
-      std::function([this](double val) { mGraphicsEngine->pExposureCompensation = val; }));
+      std::function([this](double val) { mSettings->mGraphics.pExposureCompensation = val; }));
 
   // Adjusts the exposure of the virtual camera in HDR mode.
   mGuiManager->getGui()->registerCallback("graphics.setExposure",
       "Sets the exposure of the image in [EV]. Only available if auto-exposure is disabled.",
       std::function([this](double val) {
-        if (!mGraphicsEngine->pEnableAutoExposure.get()) {
-          mGraphicsEngine->pExposure = val;
+        if (!mSettings->mGraphics.pEnableAutoExposure.get()) {
+          mSettings->mGraphics.pExposure = val;
         }
       }));
 
   // Adjusts how fast the exposure adapts to new lighting condtitions.
   mGuiManager->getGui()->registerCallback("graphics.setExposureAdaptionSpeed",
       "Adjust the quickness of auto-exposure.",
-      std::function([this](double val) { mGraphicsEngine->pExposureAdaptionSpeed = val; }));
+      std::function([this](double val) { mSettings->mGraphics.pExposureAdaptionSpeed = val; }));
 
   // If auto-exposure is enabled, we update the slider in the user interface to show the current
   // value.
-  mGraphicsEngine->pExposure.connect([this](float value) {
-    if (mGraphicsEngine->pEnableAutoExposure.get()) {
+  mSettings->mGraphics.pExposure.connect([this](float value) {
+    if (mSettings->mGraphics.pEnableAutoExposure.get()) {
       mGuiManager->getGui()->callJavascript(
           "CosmoScout.gui.setSliderValue", "graphics.setExposure", value);
     }
@@ -1014,11 +1009,11 @@ void Application::registerGuiCallbacks() {
   // Toggles auto-glow.
   mGuiManager->getGui()->registerCallback("graphics.setEnableAutoGlow",
       "If enabled, the glow amount is chosen based on the current exposure.",
-      std::function([this](bool val) { mGraphicsEngine->pEnableAutoGlow = val; }));
+      std::function([this](bool val) { mSettings->mGraphics.pEnableAutoGlow = val; }));
 
   // If auto-glow is enabled, we update the slider in the user interface to show the current value.
-  mGraphicsEngine->pGlowIntensity.connect([this](float value) {
-    if (mGraphicsEngine->pEnableAutoGlow.get()) {
+  mSettings->mGraphics.pGlowIntensity.connect([this](float value) {
+    if (mSettings->mGraphics.pEnableAutoGlow.get()) {
       mGuiManager->getGui()->callJavascript(
           "CosmoScout.gui.setSliderValue", "graphics.setGlowIntensity", value);
     }
@@ -1037,13 +1032,13 @@ void Application::registerGuiCallbacks() {
   // Adjusts the amount of ambient lighting.
   mGuiManager->getGui()->registerCallback("graphics.setAmbientLight",
       "Sets the amount of ambient light.", std::function([this](double val) {
-        mGraphicsEngine->pAmbientBrightness = std::pow(val, 10.0);
+        mSettings->mGraphics.pAmbientBrightness = std::pow(val, 10.0);
       }));
 
   // Adjusts the amount of artificial glare in HDR mode.
   mGuiManager->getGui()->registerCallback("graphics.setGlowIntensity",
       "Adjusts the amount of glow of overexposed areas.",
-      std::function([this](double val) { mGraphicsEngine->pGlowIntensity = val; }));
+      std::function([this](double val) { mSettings->mGraphics.pGlowIntensity = val; }));
 
   // Adjusts the exposure range for auto exposure.
   mGuiManager->getGui()->registerCallback("graphics.setExposureRange",
@@ -1051,14 +1046,14 @@ void Application::registerGuiCallbacks() {
       "value in [EV], the second determines which to sets: Zero for the lower end; one for the "
       "upper end.",
       std::function([this](double val, double handle) {
-        glm::vec2 range = mGraphicsEngine->pAutoExposureRange.get();
+        glm::vec2 range = mSettings->mGraphics.pAutoExposureRange.get();
 
         if (handle == 0.0)
           range.x = val;
         else
           range.y = val;
 
-        mGraphicsEngine->pAutoExposureRange = range;
+        mSettings->mGraphics.pAutoExposureRange = range;
       }));
 
   // Enables or disables the per-frame time measurements.
@@ -1264,7 +1259,7 @@ void Application::registerGuiCallbacks() {
           height += mSolarSystem->pActiveBody.get()->getHeight(lngLatHeight.xy());
         }
 
-        height *= mGraphicsEngine->pHeightScale.get();
+        height *= mSettings->mGraphics.pHeightScale.get();
 
         auto observerPos =
             cs::utils::convert::toCartesian(lngLatHeight.xy(), radii[0], radii[0], height);

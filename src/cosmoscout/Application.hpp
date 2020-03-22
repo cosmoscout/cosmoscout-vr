@@ -33,6 +33,10 @@ class SolarSystem;
 class DragNavigation;
 } // namespace cs::core
 
+namespace cs::graphics {
+class MouseRay;
+} // namespace cs::graphics
+
 namespace cs::utils {
 class FrameTimings;
 class Downloader;
@@ -170,6 +174,7 @@ class Application : public VistaFrameLoop {
   std::map<std::string, Plugin>             mPlugins;
   std::unique_ptr<cs::utils::Downloader>    mDownloader;
   std::unique_ptr<IVistaClusterDataSync>    mSceneSync;
+  std::unique_ptr<cs::graphics::MouseRay>   mMouseRay;
 
   bool mDownloadedData            = false;
   bool mLoadedAllPlugins          = false;

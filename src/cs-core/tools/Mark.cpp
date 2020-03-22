@@ -9,9 +9,9 @@
 #include "../../cs-scene/CelestialAnchorNode.hpp"
 #include "../../cs-utils/convert.hpp"
 #include "../../cs-utils/utils.hpp"
-#include "../GraphicsEngine.hpp"
 #include "../GuiManager.hpp"
 #include "../InputManager.hpp"
+#include "../Settings.hpp"
 #include "../SolarSystem.hpp"
 #include "../TimeControl.hpp"
 
@@ -73,13 +73,12 @@ void main()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Mark::Mark(std::shared_ptr<InputManager> const& pInputManager,
-    std::shared_ptr<SolarSystem> const&         pSolarSystem,
-    std::shared_ptr<GraphicsEngine> const&      graphicsEngine,
+    std::shared_ptr<SolarSystem> const& pSolarSystem, std::shared_ptr<Settings> const& settings,
     std::shared_ptr<TimeControl> const& pTimeControl, std::string const& sCenter,
     std::string const& sFrame)
     : mInputManager(pInputManager)
     , mSolarSystem(pSolarSystem)
-    , mGraphicsEngine(graphicsEngine)
+    , mSettings(settings)
     , mTimeControl(pTimeControl)
     , mVAO(new VistaVertexArrayObject())
     , mVBO(new VistaBufferObject())
@@ -98,7 +97,7 @@ Mark::Mark(Mark const& other)
     , pActive(other.pActive)
     , mInputManager(other.mInputManager)
     , mSolarSystem(other.mSolarSystem)
-    , mGraphicsEngine(other.mGraphicsEngine)
+    , mSettings(other.mSettings)
     , mTimeControl(other.mTimeControl)
     , mVAO(new VistaVertexArrayObject())
     , mVBO(new VistaBufferObject())
@@ -116,7 +115,7 @@ Mark::~Mark() {
   mInputManager->pSelectedNode.disconnect(mSelectedNodeConnection);
   mInputManager->pButtons[0].disconnect(mButtonsConnection);
   mInputManager->pHoveredObject.disconnect(mHoveredPlanetConnection);
-  mGraphicsEngine->pHeightScale.disconnect(mHeightScaleConnection);
+  mSettings->mGraphics.pHeightScale.disconnect(mHeightScaleConnection);
 
   mInputManager->pHoveredNode    = nullptr;
   mInputManager->pHoveredGuiItem = nullptr;
@@ -149,7 +148,7 @@ void Mark::update() {
   double simulationTime(mTimeControl->pSimulationTime.get());
 
   SolarSystem::scaleRelativeToObserver(*mAnchor, mSolarSystem->getObserver(), simulationTime,
-      mOriginalDistance, mGraphicsEngine->pWidgetScale.get());
+      mOriginalDistance, mSettings->mGraphics.pWidgetScale.get());
   SolarSystem::turnToObserver(*mAnchor, mSolarSystem->getObserver(), simulationTime, false);
 }
 
@@ -305,7 +304,7 @@ void Mark::initData(std::string const& sCenter, std::string const& sFrame) {
     double height = body->getHeight(lngLat);
     auto   radii  = body->getRadii();
     auto   cart   = cs::utils::convert::toCartesian(
-        lngLat, radii[0], radii[0], height * mGraphicsEngine->pHeightScale.get());
+        lngLat, radii[0], radii[0], height * mSettings->mGraphics.pHeightScale.get());
     mAnchor->setAnchorPosition(cart);
 
     // This seems to be the first time the tool is moved, so we have to store the distance to the
@@ -320,7 +319,7 @@ void Mark::initData(std::string const& sCenter, std::string const& sFrame) {
 
   // connect the heightscale value to this object. Whenever the heightscale value changes
   // the landmark will be set to the correct height value
-  mHeightScaleConnection = mGraphicsEngine->pHeightScale.connect([this](float const& h) {
+  mHeightScaleConnection = mSettings->mGraphics.pHeightScale.connect([this](float const& h) {
     auto   body   = mSolarSystem->getBody(mAnchor->getCenterName());
     double height = body->getHeight(pLngLat.get()) * h;
     auto   radii  = body->getRadii();

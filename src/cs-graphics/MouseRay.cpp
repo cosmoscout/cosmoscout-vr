@@ -8,6 +8,10 @@
 
 #include "../cs-utils/utils.hpp"
 
+#include <VistaKernel/GraphicsManager/VistaSceneGraph.h>
+#include <VistaKernel/GraphicsManager/VistaTransformNode.h>
+#include <VistaKernel/VistaSystem.h>
+#include <VistaKernelOpenSGExt/VistaOpenSGMaterialTools.h>
 #include <VistaMath/VistaBoundingBox.h>
 
 #include <glm/gtc/type_ptr.hpp>
@@ -72,6 +76,18 @@ void main()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 MouseRay::MouseRay() {
+  auto                sceneGraph = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
+  VistaTransformNode* intentionNode =
+      dynamic_cast<VistaTransformNode*>(sceneGraph->GetNode("SELECTION_NODE"));
+
+  mRayTransform.reset(sceneGraph->NewTransformNode(intentionNode));
+  mRayTransform->SetScale(0.001, 0.001, 30);
+
+  mMouseRayNode.reset(sceneGraph->NewOpenGLNode(mRayTransform.get(), this));
+
+  VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
+      intentionNode, static_cast<int>(cs::utils::DrawOrder::eRay));
+
   // Create box shader.
   mShader.InitVertexShaderFromString(SHADER_VERT);
   mShader.InitFragmentShaderFromString(SHADER_FRAG);
