@@ -15,8 +15,8 @@
 #include <cstdint>
 #include <exception>
 #include <glm/glm.hpp>
-#include <json.hpp>
 #include <map>
+#include <nlohmann/json.hpp>
 #include <optional>
 #include <spdlog/spdlog.h>
 #include <string>

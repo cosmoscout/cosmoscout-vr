@@ -9,7 +9,7 @@
 #include "../cs-utils/doctest.hpp"
 
 #include <glm/glm.hpp>
-#include <json.hpp>
+#include <nlohmann/json.hpp>
 
 #include <fstream>
 

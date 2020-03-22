@@ -158,6 +158,14 @@ echo ""
 
 cmake -E copy_directory "$EXTERNALS_DIR/spdlog/include/spdlog" "$INSTALL_DIR/include/spdlog"
 
+# jsonhpp ------------------------------------------------------------------------------------------
+
+echo ""
+echo "Installing jsonHPP ..."
+echo ""
+
+cmake -E copy_directory "$EXTERNALS_DIR/json/include/nlohmann" "$INSTALL_DIR/include/nlohmann"
+
 # doctest ------------------------------------------------------------------------------------------
 
 echo ""
