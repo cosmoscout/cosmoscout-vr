@@ -499,10 +499,10 @@ void SolarSystem::printFrames() {
 void SolarSystem::init(std::string const& sSpiceMetaFile) {
 
   // Continue execution on errors.
-  erract_c("SET", 0, "RETURN");
+  erract_c((char*)"SET", 0, (char*)"RETURN");
 
   // Disable default error reports.
-  errdev_c("SET", 0, "NULL");
+  errdev_c((char*)"SET", 0, (char*)"NULL");
 
   // Load the spice kernels.
   furnsh_c(sSpiceMetaFile.c_str());
