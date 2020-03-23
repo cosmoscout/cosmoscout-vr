@@ -220,11 +220,29 @@ class CS_CORE_EXPORT Settings {
 
   // -----------------------------------------------------------------------------------------------
 
+  /// The file name of the meta kernel for SPICE.
+  utils::Property<std::string> pSpiceKernel;
+
+  /// If set to false, the user interface is completely hidden.
+  utils::DefaultProperty<bool> pEnableUserInterface{true};
+
+  /// If set to true, a ray is shown emerging from your input device.
+  utils::DefaultProperty<bool> pEnableMouseRay{false};
+
+  /// If set to true, there will be controls in the user interface to control the camera's
+  /// frustum. In a VR setup, this should usually be set to 'false'.
+  utils::DefaultProperty<bool> pEnableSensorSizeControl{true};
+
+  /// A list of files which shall be downloaded before the application starts.
   struct DownloadData {
     std::string mUrl;
     std::string mFile;
   };
 
+  std::vector<DownloadData> mDownloadData;
+
+  /// If the (optional) object is given in the configuration file, the user interface is not drawn
+  /// in full-screen but rather at the given viewspace postion.
   struct GuiPosition {
     uint32_t mWidthPixel;
     uint32_t mHeightPixel;
@@ -238,6 +256,8 @@ class CS_CORE_EXPORT Settings {
     double   mRotZ;
   };
 
+  std::optional<GuiPosition> mGuiPosition;
+
   /// These set the loglevel for the output to the log file, console and on-screen output
   /// respectively.
   /// trace:    Critical messages, errors, warnings, info, debug and trace messages.
@@ -250,26 +270,6 @@ class CS_CORE_EXPORT Settings {
   utils::DefaultProperty<spdlog::level::level_enum> pLogLevelFile{spdlog::level::debug};
   utils::DefaultProperty<spdlog::level::level_enum> pLogLevelConsole{spdlog::level::trace};
   utils::DefaultProperty<spdlog::level::level_enum> pLogLevelScreen{spdlog::level::info};
-
-  /// A list of files which shall be downloaded before the application starts.
-  std::vector<DownloadData> mDownloadData;
-
-  /// The file name of the meta kernel for SPICE.
-  utils::Property<std::string> pSpiceKernel;
-
-  /// If the (optional) object is given in the configuration file, the user interface is not drawn
-  /// in full-screen but rather at the given viewspace postion.
-  std::optional<GuiPosition> mGuiPosition;
-
-  /// If set to false, the user interface is completely hidden.
-  utils::DefaultProperty<bool> pEnableUserInterface{true};
-
-  /// If set to true, a ray is shown emerging from your input device.
-  utils::DefaultProperty<bool> pEnableMouseRay{false};
-
-  /// If set to true, there will be controls in the user interface to control the camera's
-  /// frustum. In a VR setup, this should usually be set to 'false'.
-  utils::DefaultProperty<bool> pEnableSensorSizeControl{true};
 
   // -----------------------------------------------------------------------------------------------
 
