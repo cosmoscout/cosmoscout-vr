@@ -61,6 +61,12 @@ Application::Application(std::shared_ptr<cs::core::Settings> const& settings)
     : VistaFrameLoop()
     , mSettings(settings) {
 
+  mSettings->sOnLoad.connect([this]() {
+    mSolarSystem->flyObserverTo(mSettings->mObserver.pCenter.get(),
+        mSettings->mObserver.pFrame.get(), mSettings->mObserver.pPosition.get(),
+        mSettings->mObserver.pRotation.get(), 5.0);
+  });
+
   // Initialize curl.
   cURLpp::initialize();
 }
@@ -367,42 +373,9 @@ void Application::FrameUpdate() {
         // bit choppy as data is uploaded to the GPU.
         mHideLoadingScreenAtFrame = GetFrameCount() + cLoadingDelay;
 
-        // initial observer animation --------------------------------------------------------------
-
-        // At application startup, the celestial observer is transitioned to its position specified
-        // in the setting json file.
-        auto const& observerSettings = mSettings->mObserver;
-        glm::dvec2  lonLat(observerSettings.mLongitude, observerSettings.mLatitude);
-        lonLat = cs::utils::convert::toRadians(lonLat);
-
-        auto radii = cs::core::SolarSystem::getRadii(observerSettings.mCenter);
-
-        if (radii[0] == 0.0 || radii[2] == 0.0) {
-          radii = glm::dvec3(1, 1, 1);
-        }
-
-        // Multiply longitude and latitude of start location by 0.5 to create more interesting start
-        // animation.
-        auto cart = cs::utils::convert::toCartesian(
-            lonLat * 0.5, radii[0], radii[0], observerSettings.mDistance * 5);
-
-        glm::dvec3 y = glm::dvec3(0, -1, 0);
-        glm::dvec3 z = cart;
-        glm::dvec3 x = glm::cross(z, y);
-        y            = glm::cross(z, x);
-
-        x = glm::normalize(x);
-        y = glm::normalize(y);
-        z = glm::normalize(z);
-
-        auto rotation = glm::toQuat(glm::dmat3(x, y, z));
-        mSolarSystem->getObserver().setCenterName(observerSettings.mCenter);
-        mSolarSystem->getObserver().setFrameName(observerSettings.mFrame);
-        mSolarSystem->getObserver().setAnchorPosition(cart);
-        mSolarSystem->getObserver().setAnchorRotation(rotation);
-
-        mSolarSystem->flyObserverTo(observerSettings.mCenter, observerSettings.mFrame, lonLat,
-            observerSettings.mDistance, 5.0);
+        // Emit the initial onLoad signal. As the settings file had been loaded before all plugins
+        // have been loaded, we have to emit this once more.
+        mSettings->sOnLoad.emit();
       }
 
       // If there is a plugin going to be loaded after the next cLoadingDelay frames, display its
@@ -765,7 +738,7 @@ void Application::connectSlots() {
   });
 
   // Show notification when the center name of the celestial observer changes.
-  mSolarSystem->pObserverCenter.connect([this](std::string const& center) {
+  mSettings->mObserver.pCenter.connect([this](std::string const& center) {
     if (center == "Solar System Barycenter") {
       mGuiManager->showNotification("Leaving " + mSolarSystem->pActiveBody.get()->getCenterName(),
           "Now travelling in free space.", "star");
@@ -780,7 +753,7 @@ void Application::connectSlots() {
   });
 
   // Show notification when the frame name of the celestial observer changes.
-  mSolarSystem->pObserverFrame.connect([this](std::string const& frame) {
+  mSettings->mObserver.pFrame.connect([this](std::string const& frame) {
     if (frame == "J2000") {
       mGuiManager->showNotification(
           "Stop tracking " + mSolarSystem->pActiveBody.get()->getCenterName(),

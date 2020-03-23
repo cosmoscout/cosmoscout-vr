@@ -76,19 +76,17 @@ void to_json(nlohmann::json& j, Settings::GuiPosition const& o) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void from_json(nlohmann::json const& j, Settings::Observer& o) {
-  Settings::deserialize(j, "center", o.mCenter);
-  Settings::deserialize(j, "frame", o.mFrame);
-  Settings::deserialize(j, "longitude", o.mLongitude);
-  Settings::deserialize(j, "latitude", o.mLatitude);
-  Settings::deserialize(j, "distance", o.mDistance);
+  Settings::deserialize(j, "center", o.pCenter);
+  Settings::deserialize(j, "frame", o.pFrame);
+  Settings::deserialize(j, "position", o.pPosition);
+  Settings::deserialize(j, "rotation", o.pRotation);
 }
 
 void to_json(nlohmann::json& j, Settings::Observer const& o) {
-  Settings::serialize(j, "center", o.mCenter);
-  Settings::serialize(j, "frame", o.mFrame);
-  Settings::serialize(j, "longitude", o.mLongitude);
-  Settings::serialize(j, "latitude", o.mLatitude);
-  Settings::serialize(j, "distance", o.mDistance);
+  Settings::serialize(j, "center", o.pCenter);
+  Settings::serialize(j, "frame", o.pFrame);
+  Settings::serialize(j, "position", o.pPosition);
+  Settings::serialize(j, "rotation", o.pRotation);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -271,18 +269,6 @@ void to_json(nlohmann::json& j, Settings const& o) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-utils::Signal<> const& Settings::onLoad() const {
-  return mOnLoad;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-utils::Signal<> const& Settings::onSave() const {
-  return mOnSave;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 void Settings::read(std::string const& fileName) {
   std::ifstream  i(fileName);
   nlohmann::json settings;
@@ -291,14 +277,14 @@ void Settings::read(std::string const& fileName) {
   from_json(settings, *this);
 
   // Notify listeners that values might have changed.
-  mOnLoad.emit();
+  sOnLoad.emit();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Settings::write(std::string const& fileName) const {
+void Settings::write(std::string const& fileName) {
   // Tell listeners that the settings are about to be saved.
-  mOnSave.emit();
+  sOnSave.emit();
 
   std::ofstream  o(fileName);
   nlohmann::json settings = *this;

@@ -15,6 +15,7 @@
 #include <cstdint>
 #include <exception>
 #include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp>
 #include <map>
 #include <nlohmann/json.hpp>
 #include <optional>
@@ -86,7 +87,7 @@ namespace cs::core {
 ///                     currently set to std::nullopt.
 /// Property<T>:        This is a mandatory element; omitting it in the JSON file will lead to an
 ///                     error. You can connect to the onChange() signal in order to be notified when
-///                     the value changes. For example, this could be caused by by modifing a
+///                     the value changes. This, for example, could be caused by by modifing a
 ///                     corresponding widget in the user interface or by reloading the settings.
 /// DefaultProperty<T>: Similar to the Property<T> but not mandatory. When reading from file, it
 ///                     will be set to its default state if it's not present in the file. On save,
@@ -97,12 +98,14 @@ class CS_CORE_EXPORT Settings {
   // -----------------------------------------------------------------------------------------------
 
   /// This Signal is emitted when the settings are (re-)loaded from file. You can connect a function
-  /// to check whether something has changed compared to the last settings state.
-  utils::Signal<> const& onLoad() const;
+  /// to check whether something has changed compared to the last settings state. The first onLoad
+  /// will be emitted after all plugins have been initialized. This emitted directly from the
+  /// Application class which is responsible for loading the plugins.
+  utils::Signal<> sOnLoad;
 
   /// This signal is emitted before the settings are written to file. You can use this to update any
   /// fields according to the current scene state.
-  utils::Signal<> const& onSave() const;
+  utils::Signal<> sOnSave;
 
   /// Initializes all members from a given JSON file. Once reading finished, the onLoad signal will
   /// be emitted.
@@ -110,27 +113,53 @@ class CS_CORE_EXPORT Settings {
 
   /// Writes the current settings to a JSON file. Before the state is written to file, the on Save
   /// signal will be emitted.
-  void write(std::string const& fileName) const;
+  void write(std::string const& fileName);
 
   // -----------------------------------------------------------------------------------------------
 
+  /// Defines the initial simulation time. Changing this value will have no directly visible effect,
+  /// but any later time resets will use to the new value. Should be either "today" or in the format
+  /// "1950-01-02 00:00:00.000".
+  utils::Property<std::string> pStartDate;
+
+  /// Defines the min and max Date on the timebar. Changing these values will be directly reflected
+  /// in the user interface. Should be in the format "1950-01-02 00:00:00.000".
+  utils::Property<std::string> pMinDate;
+  utils::Property<std::string> pMaxDate;
+
+  /// In order to reduce duplication of code, a list of all used SPICE-frames ("Anchors") is
+  /// required at the start of each configuration file. The name of each Anchor is then later used
+  /// to reference the respective SPICE frame.
   struct Anchor {
     std::string mCenter;
     std::string mFrame;
     std::string mStartExistence;
     std::string mEndExistence;
 
+    /// Convenience method to convert the two strings above to SPICE-compatible doubles.
     std::pair<double, double> getExistence();
   };
 
-  struct Observer {
-    std::string mCenter;
-    std::string mFrame;
-    double      mLongitude;
-    double      mLatitude;
-    double      mDistance;
-  };
+  std::map<std::string, Anchor> mAnchors;
 
+  /// The values of the observer are updated by the SolarSystem once each frame. For all others,
+  /// they should be considered readonly. If you want to modify the transformation of the virtual
+  /// observer, use the api of the SolarSystem instead.
+  struct Observer {
+    /// The name of the SPICE center of the observer.
+    utils::Property<std::string> pCenter;
+
+    /// The SPICE frame of reference the observer is currently in.
+    utils::Property<std::string> pFrame;
+
+    /// The position of the observer relative to its center and frame.
+    utils::Property<glm::dvec3> pPosition;
+
+    /// The rotation of the observer relative to its frame.
+    utils::Property<glm::dquat> pRotation;
+  } mObserver;
+
+  /// Events to show on the timenavigation bar
   struct Event {
     struct Location {
       std::string mPlanet;
@@ -146,6 +175,29 @@ class CS_CORE_EXPORT Settings {
     std::optional<Location>    mLocation;
   };
 
+  std::vector<Event> mEvents;
+
+  /// In order for the scientists to be able to interact with their environment, the next virtual
+  /// celestial body must never be more than an arm’s length away.
+  /// If the Solar System were always represented on a 1:1 scale, the virtual planetary surface
+  /// would be too far away to work effectively with the simulation. The SceneScale object controls
+  /// how the virtual scene is scaled depending on the observer's position. This distance to the
+  /// closest celestial body depends on the observer's *real* distance in outer space to the
+  /// respective body.
+  /// If the observer is closer to a celestial body's surface than "closeRealDistance" (in meters),
+  /// the scene will be shown in 1:"minScale" and the respective body will be rendered at a distance
+  /// of "closeVisualDistance" (in meters). If the observer is farther away than "farRealDistance"
+  /// (in meters) from any body, the scene will be shown in 1:"maxScale" and the closest body will
+  /// be rendered at a distance of "farVisualDistance" (in meters). At any distance between
+  /// "closeRealDistance" and "farRealDistance", the values above will be linearly interpolated.
+  /// This object also controls the automatic SPICE frame changes when the observer moves from
+  /// body to body. The active body is determined by its weight which is calculated by its size and
+  /// distance to the observer. When this weight exceeds "trackWeight", the observer will follow the
+  /// body's position. When this weight exceeds "lockWeight", the observer will also follow the
+  /// body's rotation.
+  /// Last but not least, the far clipping plane depends on the scene scale: Near clip will always
+  /// be set to "nearClip" (in meters), while far clip will be interpolated between "minFarClip" and
+  /// "maxFarClip" depending on the scene scale.
   struct SceneScale {
     double mMinScale;
     double mMaxScale;
@@ -161,26 +213,7 @@ class CS_CORE_EXPORT Settings {
     double mMaxFarClip;
   };
 
-  /// Defines the initial simulation time.
-  utils::Property<std::string> pStartDate;
-
-  /// Defines the min and max Date on the timebar
-  utils::Property<std::string> pMinDate;
-  utils::Property<std::string> pMaxDate;
-
-  /// Defines the initial observer location.
-  Observer mObserver;
-
-  /// Parameters which define how the virtual scene is scaled based on the observer position.
   SceneScale mSceneScale;
-
-  /// In order to reduce duplication of code, a list of all used SPICE-frames ("Anchors") is
-  /// required at the start of each configuration file. The name of each Anchor is then later used
-  /// to reference the respective SPICE frame.
-  std::map<std::string, Anchor> mAnchors;
-
-  /// Events to show on the timenavigation bar
-  std::vector<Event> mEvents;
 
   // -----------------------------------------------------------------------------------------------
 
@@ -380,10 +413,6 @@ class CS_CORE_EXPORT Settings {
   template <typename T>
   static void serialize(
       nlohmann::json& j, std::string const& property, utils::DefaultProperty<T> const& target);
-
- private:
-  mutable utils::Signal<> mOnLoad;
-  mutable utils::Signal<> mOnSave;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

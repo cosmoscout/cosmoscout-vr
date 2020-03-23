@@ -49,6 +49,8 @@ void TimeControl::update() {
 
     resetTime();
     mLastUpdate = now;
+
+    mInitialized = true;
   }
 
   if (mAnimationInProgress) {

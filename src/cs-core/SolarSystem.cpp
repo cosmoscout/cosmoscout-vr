@@ -29,10 +29,10 @@ namespace cs::core {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-SolarSystem::SolarSystem(std::shared_ptr<const Settings> const& settings,
-    std::shared_ptr<utils::FrameTimings> const&                 frameTimings,
-    std::shared_ptr<GraphicsEngine> const&                      graphicsEngine,
-    std::shared_ptr<TimeControl> const&                         timeControl)
+SolarSystem::SolarSystem(std::shared_ptr<Settings> const& settings,
+    std::shared_ptr<utils::FrameTimings> const&           frameTimings,
+    std::shared_ptr<GraphicsEngine> const&                graphicsEngine,
+    std::shared_ptr<TimeControl> const&                   timeControl)
     : mSettings(settings)
     , mFrameTimings(frameTimings)
     , mGraphicsEngine(graphicsEngine)
@@ -41,14 +41,6 @@ SolarSystem::SolarSystem(std::shared_ptr<const Settings> const& settings,
 
   // Tell the user what's going on.
   spdlog::debug("Creating SolarSystem.");
-
-  pObserverCenter.connect([this](std::string const& center) {
-    mObserver.changeOrigin(center, mObserver.getFrameName(), mTimeControl->pSimulationTime.get());
-  });
-
-  pObserverFrame.connect([this](std::string const& frame) {
-    mObserver.changeOrigin(mObserver.getCenterName(), frame, mTimeControl->pSimulationTime.get());
-  });
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -215,6 +207,10 @@ void SolarSystem::update() {
     mLastPosition         = observerPosition;
     mLastTime             = now;
   }
+
+  // Update settings properties.
+  mSettings->mObserver.pPosition = mObserver.getAnchorPosition();
+  mSettings->mObserver.pRotation = mObserver.getAnchorRotation();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -361,9 +357,11 @@ void SolarSystem::updateObserverFrame() {
         sCenter = activeBody->getCenterName();
       }
 
-      pActiveBody     = activeBody;
-      pObserverCenter = sCenter;
-      pObserverFrame  = sFrame;
+      pActiveBody = activeBody;
+
+      mObserver.changeOrigin(sCenter, sFrame, mTimeControl->pSimulationTime.get());
+      mSettings->mObserver.pCenter = sCenter;
+      mSettings->mObserver.pFrame  = sFrame;
     }
   }
 }
@@ -372,7 +370,6 @@ void SolarSystem::updateObserverFrame() {
 
 void SolarSystem::flyObserverTo(std::string const& sCenter, std::string const& sFrame,
     glm::dvec3 const& position, glm::dquat const& rotation, double duration) {
-  // SetObserverToCamera();
 
   double simulationTime(mTimeControl->pSimulationTime.get());
   double startTime(
@@ -442,22 +439,6 @@ void SolarSystem::flyObserverTo(
   auto rotation = glm::toQuat(glm::dmat3(x, y, z));
 
   flyObserverTo(sCenter, sFrame, cart, rotation, duration);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void SolarSystem::setObserverToCamera() {
-  double simulationTime(mTimeControl->pSimulationTime.get());
-
-  auto          pCam = GetVistaSystem()->GetDfnObjectRegistry()->GetObjectTransform("CAM:MAIN");
-  VistaVector3D camPos;
-  pCam->GetTranslation(camPos);
-
-  scene::CelestialAnchor frame(mObserver.getCenterName(), mObserver.getFrameName());
-  auto                   mat    = frame.getRelativeTransform(simulationTime, mObserver);
-  glm::dvec3             offset = (mat * glm::dvec4(camPos[0], camPos[1], camPos[2], 1.0)).xyz();
-  mObserver.setAnchorPosition(offset);
-  pCam->SetTranslation(0, 0, 0);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
