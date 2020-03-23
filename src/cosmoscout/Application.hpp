@@ -106,6 +106,9 @@ class Application : public VistaFrameLoop {
     bool                  mIsInitialized = false;
   };
 
+  /// Called whenever the settings are (re-)loaded;
+  void onLoad();
+
   /// Opens a plugin from a shared library. Only the create() method of the plugin is called.
   void openPlugin(std::string const& name);
 
@@ -186,6 +189,12 @@ class Application : public VistaFrameLoop {
   // For deferred hot-reloading of plugins.
   std::set<std::string> mPluginsToUnload;
   std::set<std::string> mPluginsToLoad;
+
+  // For deferred reloading of settings.
+  std::string mSettingsToRead;
+
+  // For deferred writing of settings.
+  std::string mSettingsToWrite;
 };
 
 #endif // CS_APPLICATION_HPP

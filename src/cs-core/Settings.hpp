@@ -100,15 +100,15 @@ class CS_CORE_EXPORT Settings {
  public:
   // -----------------------------------------------------------------------------------------------
 
-  /// This Signal is emitted when the settings are (re-)loaded from file. You can connect a function
-  /// to check whether something has changed compared to the last settings state. The first onLoad
-  /// will be emitted after all plugins have been initialized. This emitted directly from the
-  /// Application class which is responsible for loading the plugins.
-  utils::Signal<> sOnLoad;
+  /// This Signal is emitted when the settings are reloaded from file. You can connect a function
+  /// to check whether something has changed compared to the last settings state. The very first
+  /// onLoad will be emitted before any Plugin or core class is initialized, so don't rely on that
+  /// one.
+  utils::Signal<> const& onLoad() const;
 
   /// This signal is emitted before the settings are written to file. You can use this to update any
   /// fields according to the current scene state.
-  utils::Signal<> sOnSave;
+  utils::Signal<> const& onSave() const;
 
   /// Initializes all members from a given JSON file. Once reading finished, the onLoad signal will
   /// be emitted.
@@ -116,7 +116,7 @@ class CS_CORE_EXPORT Settings {
 
   /// Writes the current settings to a JSON file. Before the state is written to file, the on Save
   /// signal will be emitted.
-  void write(std::string const& fileName);
+  void write(std::string const& fileName) const;
 
   // -----------------------------------------------------------------------------------------------
 
@@ -419,6 +419,10 @@ class CS_CORE_EXPORT Settings {
   template <typename T>
   static void serialize(
       nlohmann::json& j, std::string const& property, utils::DefaultProperty<T> const& target);
+
+ private:
+  mutable utils::Signal<> mOnLoad;
+  mutable utils::Signal<> mOnSave;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

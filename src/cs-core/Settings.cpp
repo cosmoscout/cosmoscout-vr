@@ -271,24 +271,44 @@ void to_json(nlohmann::json& j, Settings const& o) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+utils::Signal<> const& Settings::onLoad() const {
+  return mOnLoad;
+}
+
+utils::Signal<> const& Settings::onSave() const {
+  return mOnSave;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Settings::read(std::string const& fileName) {
-  std::ifstream  i(fileName);
+  std::ifstream i(fileName);
+
+  if (!i) {
+    throw std::runtime_error("Cannot open file!");
+  }
+
   nlohmann::json settings;
   i >> settings;
 
   from_json(settings, *this);
 
   // Notify listeners that values might have changed.
-  sOnLoad.emit();
+  mOnLoad.emit();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Settings::write(std::string const& fileName) {
+void Settings::write(std::string const& fileName) const {
   // Tell listeners that the settings are about to be saved.
-  sOnSave.emit();
+  mOnSave.emit();
 
-  std::ofstream  o(fileName);
+  std::ofstream o(fileName);
+
+  if (!o) {
+    throw std::runtime_error("Cannot open file!");
+  }
+
   nlohmann::json settings = *this;
   o << std::setw(2) << settings;
 }

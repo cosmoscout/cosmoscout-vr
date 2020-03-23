@@ -61,11 +61,7 @@ Application::Application(std::shared_ptr<cs::core::Settings> const& settings)
     : VistaFrameLoop()
     , mSettings(settings) {
 
-  mSettings->sOnLoad.connect([this]() {
-    mSolarSystem->flyObserverTo(mSettings->mObserver.pCenter.get(),
-        mSettings->mObserver.pFrame.get(), mSettings->mObserver.pPosition.get(),
-        mSettings->mObserver.pRotation.get(), 5.0);
-  });
+  mSettings->onLoad().connect([this]() { onLoad(); });
 
   // Initialize curl.
   cURLpp::initialize();
@@ -277,6 +273,26 @@ void Application::FrameUpdate() {
   }
   mPluginsToLoad.clear();
 
+  // loading and saving ----------------------------------------------------------------------------
+
+  if (mSettingsToWrite != "") {
+    try {
+      mSettings->write(mSettingsToWrite);
+    } catch (std::exception const& e) {
+      spdlog::warn("Failed to save settings to '{}': {}", mSettingsToWrite, e.what());
+    }
+    mSettingsToWrite = "";
+  }
+
+  if (mSettingsToRead != "") {
+    try {
+      mSettings->read(mSettingsToRead);
+    } catch (std::exception const& e) {
+      spdlog::warn("Failed to load settings from '{}': {}", mSettingsToRead, e.what());
+    }
+    mSettingsToRead = "";
+  }
+
   // download datsets at application startup -------------------------------------------------------
 
   // At frame 25 we start to download datasets. This ensures that the loading screen is actually
@@ -373,9 +389,8 @@ void Application::FrameUpdate() {
         // bit choppy as data is uploaded to the GPU.
         mHideLoadingScreenAtFrame = GetFrameCount() + cLoadingDelay;
 
-        // Emit the initial onLoad signal. As the settings file had been loaded before all plugins
-        // have been loaded, we have to emit this once more.
-        mSettings->sOnLoad.emit();
+        // Call code which has to be executed whenever the settings are reloaded.
+        onLoad();
       }
 
       // If there is a plugin going to be loaded after the next cLoadingDelay frames, display its
@@ -593,6 +608,13 @@ void Application::testLoadAllPlugins() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void Application::onLoad() {
+  mSolarSystem->flyObserverTo(mSettings->mObserver.pCenter.get(), mSettings->mObserver.pFrame.get(),
+      mSettings->mObserver.pPosition.get(), mSettings->mObserver.pRotation.get(), 5.0);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Application::openPlugin(std::string const& name) {
   auto plugin = mPlugins.find(name);
 
@@ -798,11 +820,11 @@ void Application::registerGuiCallbacks() {
   // Saves the current scene state to the given file.
   mGuiManager->getGui()->registerCallback("core.save",
       "Saves the current scene state to the given file.",
-      std::function([this](std::string&& file) { mSettings->write(file); }));
+      std::function([this](std::string&& file) { mSettingsToWrite = file; }));
 
   // Loads a scene state from the given file.
   mGuiManager->getGui()->registerCallback("core.load", "Loads a scene state from the given file.",
-      std::function([this](std::string&& file) { mSettings->read(file); }));
+      std::function([this](std::string&& file) { mSettingsToRead = file; }));
 
   // Unloads a plugin.
   mGuiManager->getGui()->registerCallback("core.unloadPlugin",
