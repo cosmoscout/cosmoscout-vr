@@ -609,6 +609,24 @@ void Application::testLoadAllPlugins() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Application::onLoad() {
+
+  // First unload all plugins which are not required anymore.
+  for (auto const& plugin : mPlugins) {
+    if (mSettings->mPlugins.find(plugin.first) == mSettings->mPlugins.end()) {
+      deinitPlugin(plugin.first);
+      closePlugin(plugin.first);
+    }
+  }
+
+  // Then load new plugins.
+  for (auto const& plugin : mSettings->mPlugins) {
+    if (mPlugins.find(plugin.first) == mPlugins.end()) {
+      openPlugin(plugin.first);
+      initPlugin(plugin.first);
+    }
+  }
+
+  // Move the observer to the new position.
   mSolarSystem->flyObserverTo(mSettings->mObserver.pCenter.get(), mSettings->mObserver.pFrame.get(),
       mSettings->mObserver.pPosition.get(), mSettings->mObserver.pRotation.get(), 5.0);
 }
