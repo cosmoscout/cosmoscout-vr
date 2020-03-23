@@ -232,6 +232,7 @@ void from_json(nlohmann::json const& j, Settings& o) {
   Settings::deserialize(j, "sceneScale", o.mSceneScale);
   Settings::deserialize(j, "guiPosition", o.mGuiPosition);
   Settings::deserialize(j, "graphics", o.mGraphics);
+  Settings::deserialize(j, "enableUserInterface", o.pEnableUserInterface);
   Settings::deserialize(j, "enableMouseRay", o.pEnableMouseRay);
   Settings::deserialize(j, "enableSensorSizeControl", o.pEnableSensorSizeControl);
   Settings::deserialize(j, "logLevelFile", o.pLogLevelFile);
@@ -253,6 +254,7 @@ void to_json(nlohmann::json& j, Settings const& o) {
   Settings::serialize(j, "sceneScale", o.mSceneScale);
   Settings::serialize(j, "guiPosition", o.mGuiPosition);
   Settings::serialize(j, "graphics", o.mGraphics);
+  Settings::serialize(j, "enableUserInterface", o.pEnableUserInterface);
   Settings::serialize(j, "enableMouseRay", o.pEnableMouseRay);
   Settings::serialize(j, "enableSensorSizeControl", o.pEnableSensorSizeControl);
   Settings::serialize(j, "logLevelFile", o.pLogLevelFile);

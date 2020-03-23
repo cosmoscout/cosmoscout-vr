@@ -51,9 +51,6 @@ GuiManager::GuiManager(std::shared_ptr<Settings> const& settings,
   mViewportUpdater = new VistaViewportResizeToProjectionAdapter(pViewport);
   mViewportUpdater->SetUpdateMode(VistaViewportResizeToProjectionAdapter::MAINTAIN_HORIZONTAL_FOV);
 
-  // Hide the user interface when ESC is pressed.
-  mInputManager->sOnEscapePressed.connect([this]() { toggleGui(); });
-
   // Create GuiAreas and attach them to the SceneGraph ---------------------------------------------
 
   // The global GUI is drawn in world-space, the local GUI is drawn in screen-space.
@@ -121,7 +118,6 @@ GuiManager::GuiManager(std::shared_ptr<Settings> const& settings,
 
   // Configure attributes of the loading screen. Per default, GuiItems are drawn full-screen in
   // their GuiAreas.
-  // mLoadingScreen->setIsInteractive(false);
 
   mCosmoScoutGui->setRelSizeX(1.f);
   mCosmoScoutGui->setRelSizeY(1.f);
@@ -168,6 +164,18 @@ GuiManager::GuiManager(std::shared_ptr<Settings> const& settings,
   mSettings->pMaxDate.connect([this](std::string const& maxDate) {
     mCosmoScoutGui->callJavascript(
         "CosmoScout.timeline.setTimelineRange", mSettings->pMinDate.get(), maxDate);
+  });
+
+  // Hide the user interface when ESC is pressed.
+  mInputManager->sOnEscapePressed.connect(
+      [this]() { mSettings->pEnableUserInterface = !mSettings->pEnableUserInterface.get(); });
+
+  mSettings->pEnableUserInterface.connectAndTouch([this](bool enable) {
+    if (enable) {
+      showGui();
+    } else {
+      hideGui();
+    }
   });
 
   for (const auto& mEvent : mSettings->mEvents) {
@@ -285,6 +293,7 @@ void GuiManager::showGui() {
     mGlobalGuiTransform->SetIsEnabled(true);
   }
   mLocalGuiTransform->SetIsEnabled(true);
+  mCosmoScoutGui->setIsInteractive(true);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -294,6 +303,7 @@ void GuiManager::hideGui() {
     mGlobalGuiTransform->SetIsEnabled(false);
   }
   mLocalGuiTransform->SetIsEnabled(false);
+  mCosmoScoutGui->setIsInteractive(false);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

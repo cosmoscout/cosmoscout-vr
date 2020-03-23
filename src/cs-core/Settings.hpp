@@ -25,7 +25,8 @@
 
 namespace nlohmann {
 
-// A partial template specialization for serialization and deserialization of glm::*vec*.
+// A partial template specialization for serialization and deserialization of glm::*vec*. This
+// allows using glm's vector types as settings elements.
 template <int C, typename T, glm::qualifier Q>
 struct adl_serializer<glm::vec<C, T, Q>> {
   static void to_json(json& j, glm::vec<C, T, Q> const& opt) {
@@ -42,7 +43,8 @@ struct adl_serializer<glm::vec<C, T, Q>> {
   }
 };
 
-// A partial template specialization for serialization and deserialization of glm::*qua*.
+// A partial template specialization for serialization and deserialization of glm::*qua*. This
+// allows using glm's quaternion types as settings elements.
 template <typename T, glm::qualifier Q>
 struct adl_serializer<glm::qua<T, Q>> {
   static void to_json(json& j, glm::qua<T, Q> const& opt) {
@@ -57,7 +59,8 @@ struct adl_serializer<glm::qua<T, Q>> {
   }
 };
 
-// A partial template specialization for cs::utils::Property.
+// A partial template specialization for cs::utils::Property. This allows using our Properties as
+// settings elements.
 template <typename T>
 struct adl_serializer<cs::utils::Property<T>> {
   static void to_json(json& j, cs::utils::Property<T> const& opt) {
@@ -254,14 +257,17 @@ class CS_CORE_EXPORT Settings {
   /// The file name of the meta kernel for SPICE.
   utils::Property<std::string> pSpiceKernel;
 
-  /// When the (optional) object is given in the configuration file, the user interface is not drawn
+  /// If the (optional) object is given in the configuration file, the user interface is not drawn
   /// in full-screen but rather at the given viewspace postion.
   std::optional<GuiPosition> mGuiPosition;
 
-  /// When set to true, a ray is shown emerging from your input device.
+  /// If set to false, the user interface is completely hidden.
+  utils::DefaultProperty<bool> pEnableUserInterface{true};
+
+  /// If set to true, a ray is shown emerging from your input device.
   utils::DefaultProperty<bool> pEnableMouseRay{false};
 
-  /// When set to true, there will be controls in the user interface to control the camera's
+  /// If set to true, there will be controls in the user interface to control the camera's
   /// frustum. In a VR setup, this should usually be set to 'false'.
   utils::DefaultProperty<bool> pEnableSensorSizeControl{true};
 
