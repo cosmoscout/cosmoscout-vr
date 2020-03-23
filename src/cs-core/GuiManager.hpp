@@ -58,9 +58,9 @@ class InputManager;
 /// instance is then passed to all plugins.
 class CS_CORE_EXPORT GuiManager {
  public:
-  GuiManager(std::shared_ptr<const Settings> const& settings,
-      std::shared_ptr<InputManager> const&          pInputManager,
-      std::shared_ptr<utils::FrameTimings> const&   pFrameTimings);
+  GuiManager(std::shared_ptr<Settings> const&     settings,
+      std::shared_ptr<InputManager> const&        pInputManager,
+      std::shared_ptr<utils::FrameTimings> const& pFrameTimings);
   virtual ~GuiManager();
 
   /// Set the cursor icon. This is usually used in the following way:
@@ -171,6 +171,7 @@ class CS_CORE_EXPORT GuiManager {
 
  private:
   std::shared_ptr<InputManager>        mInputManager;
+  std::shared_ptr<Settings>            mSettings;
   std::shared_ptr<utils::FrameTimings> mFrameTimings;
 
   VistaViewportResizeToProjectionAdapter* mViewportUpdater = nullptr;

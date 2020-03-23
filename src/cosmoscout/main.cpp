@@ -106,11 +106,11 @@ int main(int argc, char** argv) {
   // configure loggers -----------------------------------------------------------------------------
 
   // Once we have read the settings, we can set the log level.
-  settings->mLogLevel.mConsole.connectAndTouch(
+  settings->pLogLevelConsole.connectAndTouch(
       [](auto level) { cs::utils::logger::setCoutLogLevel(level); });
-  settings->mLogLevel.mFile.connectAndTouch(
+  settings->pLogLevelFile.connectAndTouch(
       [](auto level) { cs::utils::logger::setFileLogLevel(level); });
-  settings->mLogLevel.mScreen.connectAndTouch(
+  settings->pLogLevelScreen.connectAndTouch(
       [](auto level) { cs::utils::logger::setSignalLogLevel(level); });
 
   // Print a nifty welcome message!

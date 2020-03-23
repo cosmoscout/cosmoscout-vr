@@ -33,10 +33,11 @@ namespace cs::core {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
-    std::shared_ptr<InputManager> const&                      pInputManager,
-    std::shared_ptr<utils::FrameTimings> const&               pFrameTimings)
+GuiManager::GuiManager(std::shared_ptr<Settings> const& settings,
+    std::shared_ptr<InputManager> const&                pInputManager,
+    std::shared_ptr<utils::FrameTimings> const&         pFrameTimings)
     : mInputManager(pInputManager)
+    , mSettings(settings)
     , mFrameTimings(pFrameTimings) {
 
   // Tell the user what's going on.
@@ -60,26 +61,26 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
   mLocalGuiTransform = pSG->NewTransformNode(pSG->GetRoot());
 
   // The global GUI area is only created when the according settings key was specified.
-  if (settings->mGuiPosition) {
+  if (mSettings->mGuiPosition) {
     auto platform = GetVistaSystem()
                         ->GetPlatformFor(GetVistaSystem()->GetDisplayManager()->GetDisplaySystem())
                         ->GetPlatformNode();
     mGlobalGuiTransform = pSG->NewTransformNode(platform);
 
-    mGlobalGuiTransform->Scale((float)settings->mGuiPosition->mWidthMeter,
-        (float)settings->mGuiPosition->mHeightMeter, 1.0);
+    mGlobalGuiTransform->Scale((float)mSettings->mGuiPosition->mWidthMeter,
+        (float)mSettings->mGuiPosition->mHeightMeter, 1.0);
     mGlobalGuiTransform->Rotate(
-        VistaAxisAndAngle(VistaVector3D(1, 0, 0), (float)settings->mGuiPosition->mRotX));
+        VistaAxisAndAngle(VistaVector3D(1, 0, 0), (float)mSettings->mGuiPosition->mRotX));
     mGlobalGuiTransform->Rotate(
-        VistaAxisAndAngle(VistaVector3D(0, 1, 0), (float)settings->mGuiPosition->mRotY));
+        VistaAxisAndAngle(VistaVector3D(0, 1, 0), (float)mSettings->mGuiPosition->mRotY));
     mGlobalGuiTransform->Rotate(
-        VistaAxisAndAngle(VistaVector3D(0, 0, 1), (float)settings->mGuiPosition->mRotZ));
-    mGlobalGuiTransform->Translate((float)settings->mGuiPosition->mPosXMeter,
-        (float)settings->mGuiPosition->mPosYMeter, (float)settings->mGuiPosition->mPosZMeter);
+        VistaAxisAndAngle(VistaVector3D(0, 0, 1), (float)mSettings->mGuiPosition->mRotZ));
+    mGlobalGuiTransform->Translate((float)mSettings->mGuiPosition->mPosXMeter,
+        (float)mSettings->mGuiPosition->mPosYMeter, (float)mSettings->mGuiPosition->mPosZMeter);
 
     // Create the global GUI area.
     mGlobalGuiArea = new gui::WorldSpaceGuiArea(
-        settings->mGuiPosition->mWidthPixel, settings->mGuiPosition->mHeightPixel);
+        mSettings->mGuiPosition->mWidthPixel, mSettings->mGuiPosition->mHeightPixel);
     mGlobalGuiArea->setUseLinearDepthBuffer(true);
   }
 
@@ -159,10 +160,17 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
   mCosmoScoutGui->callJavascript("CosmoScout.loadingScreen.setVersion", version);
 
   // Set settings for the time Navigation
-  mCosmoScoutGui->callJavascript(
-      "CosmoScout.timeline.setTimelineRange", settings->mMinDate, settings->mMaxDate);
+  mSettings->pMinDate.connectAndTouch([this](std::string const& minDate) {
+    mCosmoScoutGui->callJavascript(
+        "CosmoScout.timeline.setTimelineRange", minDate, mSettings->pMaxDate.get());
+  });
 
-  for (const auto& mEvent : settings->mEvents) {
+  mSettings->pMaxDate.connect([this](std::string const& maxDate) {
+    mCosmoScoutGui->callJavascript(
+        "CosmoScout.timeline.setTimelineRange", mSettings->pMinDate.get(), maxDate);
+  });
+
+  for (const auto& mEvent : mSettings->mEvents) {
     std::string planet = "";
     std::string place  = "";
     if (mEvent.mLocation.has_value()) {

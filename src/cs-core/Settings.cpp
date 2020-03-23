@@ -171,20 +171,6 @@ void to_json(nlohmann::json& j, Settings::SceneScale const& o) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void from_json(nlohmann::json const& j, Settings::LogLevel& o) {
-  Settings::deserialize(j, "file", o.mFile);
-  Settings::deserialize(j, "console", o.mConsole);
-  Settings::deserialize(j, "screen", o.mScreen);
-}
-
-void to_json(nlohmann::json& j, Settings::LogLevel const& o) {
-  Settings::serialize(j, "file", o.mFile);
-  Settings::serialize(j, "console", o.mConsole);
-  Settings::serialize(j, "screen", o.mScreen);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 void from_json(nlohmann::json const& j, Settings::Graphics& o) {
   Settings::deserialize(j, "widgetScale", o.pWidgetScale);
   Settings::deserialize(j, "heightScale", o.pHeightScale);
@@ -242,41 +228,57 @@ void to_json(nlohmann::json& j, Settings::Graphics const& o) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void from_json(nlohmann::json const& j, Settings& o) {
-  Settings::deserialize(j, "startDate", o.mStartDate);
+  Settings::deserialize(j, "startDate", o.pStartDate);
   Settings::deserialize(j, "observer", o.mObserver);
-  Settings::deserialize(j, "spiceKernel", o.mSpiceKernel);
+  Settings::deserialize(j, "spiceKernel", o.pSpiceKernel);
   Settings::deserialize(j, "sceneScale", o.mSceneScale);
   Settings::deserialize(j, "guiPosition", o.mGuiPosition);
   Settings::deserialize(j, "graphics", o.mGraphics);
   Settings::deserialize(j, "enableMouseRay", o.pEnableMouseRay);
   Settings::deserialize(j, "enableSensorSizeControl", o.pEnableSensorSizeControl);
-  Settings::deserialize(j, "logLevel", o.mLogLevel);
+  Settings::deserialize(j, "logLevelFile", o.pLogLevelFile);
+  Settings::deserialize(j, "logLevelConsole", o.pLogLevelConsole);
+  Settings::deserialize(j, "logLevelScreen", o.pLogLevelScreen);
   Settings::deserialize(j, "anchors", o.mAnchors);
   Settings::deserialize(j, "plugins", o.mPlugins);
-  Settings::deserialize(j, "startDate", o.mStartDate);
-  Settings::deserialize(j, "minDate", o.mMinDate);
-  Settings::deserialize(j, "maxDate", o.mMaxDate);
+  Settings::deserialize(j, "startDate", o.pStartDate);
+  Settings::deserialize(j, "minDate", o.pMinDate);
+  Settings::deserialize(j, "maxDate", o.pMaxDate);
   Settings::deserialize(j, "downloadData", o.mDownloadData);
   Settings::deserialize(j, "events", o.mEvents);
 }
 
 void to_json(nlohmann::json& j, Settings const& o) {
-  Settings::serialize(j, "startDate", o.mStartDate);
+  Settings::serialize(j, "startDate", o.pStartDate);
   Settings::serialize(j, "observer", o.mObserver);
-  Settings::serialize(j, "spiceKernel", o.mSpiceKernel);
+  Settings::serialize(j, "spiceKernel", o.pSpiceKernel);
   Settings::serialize(j, "sceneScale", o.mSceneScale);
   Settings::serialize(j, "guiPosition", o.mGuiPosition);
   Settings::serialize(j, "graphics", o.mGraphics);
   Settings::serialize(j, "enableMouseRay", o.pEnableMouseRay);
   Settings::serialize(j, "enableSensorSizeControl", o.pEnableSensorSizeControl);
-  Settings::serialize(j, "logLevel", o.mLogLevel);
+  Settings::serialize(j, "logLevelFile", o.pLogLevelFile);
+  Settings::serialize(j, "logLevelConsole", o.pLogLevelConsole);
+  Settings::serialize(j, "logLevelScreen", o.pLogLevelScreen);
   Settings::serialize(j, "anchors", o.mAnchors);
   Settings::serialize(j, "plugins", o.mPlugins);
-  Settings::serialize(j, "startDate", o.mStartDate);
-  Settings::serialize(j, "minDate", o.mMinDate);
-  Settings::serialize(j, "maxDate", o.mMaxDate);
+  Settings::serialize(j, "startDate", o.pStartDate);
+  Settings::serialize(j, "minDate", o.pMinDate);
+  Settings::serialize(j, "maxDate", o.pMaxDate);
   Settings::serialize(j, "downloadData", o.mDownloadData);
   Settings::serialize(j, "events", o.mEvents);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+utils::Signal<> const& Settings::onLoad() const {
+  return mOnLoad;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+utils::Signal<> const& Settings::onSave() const {
+  return mOnSave;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -287,11 +289,17 @@ void Settings::read(std::string const& fileName) {
   i >> settings;
 
   from_json(settings, *this);
+
+  // Notify listeners that values might have changed.
+  mOnLoad.emit();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Settings::write(std::string const& fileName) const {
+  // Tell listeners that the settings are about to be saved.
+  mOnSave.emit();
+
   std::ofstream  o(fileName);
   nlohmann::json settings = *this;
   o << std::setw(2) << settings;

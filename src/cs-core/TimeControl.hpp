@@ -65,11 +65,10 @@ class CS_CORE_EXPORT TimeControl {
   void setTimeSpeed(float speed);
 
  private:
-  double mLastUpdate = -1.0;
-
-  std::string mStartDate;
-  double      mMaxDate = 0.0;
-  double      mMinDate = 0.0;
+  bool   mInitialized = false;
+  double mLastUpdate  = 0.0;
+  double pMaxDate     = 0.0;
+  double pMinDate     = 0.0;
 
   utils::AnimatedValue<double> mAnimatedTime;
   bool                         mAnimationInProgress = false;

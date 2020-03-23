@@ -142,7 +142,7 @@ bool Application::Init(VistaSystem* pVistaSystem) {
         "CosmoScout.gui.setCheckboxValue", "graphics.setEnableHDR", enable);
   });
 
-  mSettings->mSpiceKernel.connect(
+  mSettings->pSpiceKernel.connect(
       [](auto) { spdlog::warn("Reloading the SPICE kernals at runtime is not yet supported!"); });
 
   mGuiManager->enableLoadingScreen(true);
@@ -313,7 +313,7 @@ void Application::FrameUpdate() {
   // data download, as it requires SPICE kernels which might be part of the download.
   if (mDownloadedData && !mSolarSystem->getIsInitialized()) {
     try {
-      mSolarSystem->init(mSettings->mSpiceKernel.get());
+      mSolarSystem->init(mSettings->pSpiceKernel.get());
     } catch (std::runtime_error e) {
       spdlog::error("Failed to initialize the SolarSystem: {}", e.what());
       Quit();
