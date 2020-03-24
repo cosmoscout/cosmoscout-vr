@@ -10,6 +10,7 @@ namespace cs::gui::detail {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+#pragma warning(disable: 4100)
 WebApp::WebApp(int argc, char* argv[], bool hardware_accelerated)
 #ifdef _WIN32
     : mArgs(GetModuleHandleW(NULL))
@@ -18,6 +19,7 @@ WebApp::WebApp(int argc, char* argv[], bool hardware_accelerated)
 #endif
     , mHardwareAccelerated(hardware_accelerated) {
 }
+#pragma warning(default: 4100)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 

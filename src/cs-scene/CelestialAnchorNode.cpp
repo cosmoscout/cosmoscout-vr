@@ -24,7 +24,7 @@ CelestialAnchorNode::CelestialAnchorNode(VistaGroupNode* pParent, IVistaNodeBrid
 
 void CelestialAnchorNode::update(double tTime, CelestialObserver const& oObs) {
   try {
-    glm::dmat4 mat = oObs.getRelativeTransform(tTime, *this);
+    glm::mat4 mat = oObs.getRelativeTransform(tTime, *this);
 
     SetTransform(VistaTransformMatrix(mat[0][0], mat[1][0], mat[2][0], mat[3][0], mat[0][1],
         mat[1][1], mat[2][1], mat[3][1], mat[0][2], mat[1][2], mat[2][2], mat[3][2], mat[0][3],

@@ -79,7 +79,7 @@ class CS_SCENE_EXPORT CelestialAnchor {
   virtual void   setAnchorScale(double dScale);
 
   /// Called regularly by the Universe if registered.
-  virtual void update(double tTime, CelestialObserver const& oObs) {
+  virtual void update(double, CelestialObserver const&) {
   }
 
  protected:

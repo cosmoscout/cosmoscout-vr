@@ -76,7 +76,8 @@ GlowMipMap::GlowMipMap(int hdrBufferWidth, int hdrBufferHeight)
   int iHeight = mHDRBufferHeight / 2;
 
   // Compute the number of available mipmap levels.
-  mMaxLevels = std::max(1.0, std::floor(std::log2(std::max(iWidth, iHeight))) + 1);
+  mMaxLevels =
+      static_cast<int>(std::max(1.0, std::floor(std::log2(std::max(iWidth, iHeight))) + 1));
 
   Bind();
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
@@ -170,16 +171,17 @@ void GlowMipMap::update(VistaTexture* hdrBufferComposite) {
 
       glUniform1i(glGetUniformLocation(mComputeProgram, "uPass"), pass);
 
-      int width =
-          std::max(1.0, std::floor(static_cast<double>(mHDRBufferWidth / 2) / std::pow(2, level)));
-      int height =
-          std::max(1.0, std::floor(static_cast<double>(mHDRBufferHeight / 2) / std::pow(2, level)));
+      int width = static_cast<int>(
+          std::max(1.0, std::floor(static_cast<double>(mHDRBufferWidth / 2) / std::pow(2, level))));
+      int height = static_cast<int>(std::max(
+          1.0, std::floor(static_cast<double>(mHDRBufferHeight / 2) / std::pow(2, level))));
 
       glBindImageTexture(0, output->GetId(), outputLevel, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
       glBindImageTexture(1, input->GetId(), inputLevel, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
 
       glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
-      glDispatchCompute(std::ceil(1.0 * width / 16), std::ceil(1.0 * height / 16), 1);
+      glDispatchCompute(static_cast<uint32_t>(std::ceil(1.0 * width / 16)),
+          static_cast<uint32_t>(std::ceil(1.0 * height / 16)), 1);
     }
   }
 

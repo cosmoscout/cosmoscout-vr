@@ -190,7 +190,7 @@ std::pair<double, double> CS_CORE_EXPORT getExistenceFromSettings(
 /// name to give the user more detailed information about the root of the error.
 /// The exception can and should be nested.
 /// @see parseSection()
-class CS_CORE_EXPORT SettingsSectionException : public std::exception {
+class SettingsSectionException : public std::exception {
   const std::string completeMessage;
 
  public:

@@ -14,7 +14,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 GetSelectionStateNode::GetSelectionStateNode(
-    cs::core::InputManager* pInputManager, VistaPropertyList const& oParams)
+    cs::core::InputManager* pInputManager, VistaPropertyList const&)
     : IVdfnNode()
     , mInputManager(pInputManager) {
 

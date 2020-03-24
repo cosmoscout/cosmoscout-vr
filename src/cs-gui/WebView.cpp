@@ -255,10 +255,11 @@ void WebView::injectMouseEvent(MouseEvent const& event) {
   case MouseEvent::Type::ePress:
     if (event.mButton == Button::eLeft) {
       mMouseModifiers |= int(Modifier::eLeftButton);
-      double elpasedTime = std::chrono::duration_cast<std::chrono::milliseconds>(
-          std::chrono::steady_clock::now() - mLastClick)
-                               .count();
-      if (elpasedTime < 200) {
+      double elapsedTime =
+          static_cast<double>(std::chrono::duration_cast<std::chrono::milliseconds>(
+              std::chrono::steady_clock::now() - mLastClick)
+                                  .count());
+      if (elapsedTime < 200) {
         mClickCount++;
       } else {
         mClickCount = 1;
@@ -342,7 +343,7 @@ void WebView::executeJavascript(std::string const& code) const {
 void WebView::registerCallback(
     std::string const& name, std::string const& comment, std::function<void()> const& callback) {
   registerJSCallbackImpl(name, comment, {},
-      [this, callback](std::vector<std::optional<JSType>> const& args) { callback(); });
+      [this, callback](std::vector<std::optional<JSType>> const&) { callback(); });
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

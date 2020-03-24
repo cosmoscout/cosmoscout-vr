@@ -53,7 +53,7 @@ class CS_UTILS_EXPORT ThreadPool {
   /// Returns the amount of tasks that await execution.
   uint32_t getPendingTaskCount() const {
     std::unique_lock<std::mutex> lock(mMutex);
-    return mTasks.size();
+    return static_cast<uint32_t>(mTasks.size());
   }
 
   /// Returns the number of tasks that currently are being executed.

@@ -232,6 +232,11 @@ add_definitions(
 add_compile_options(
   $<$<CXX_COMPILER_ID:MSVC>:/EHsc>
   $<$<CXX_COMPILER_ID:MSVC>:/wd4251>
+  /experimental:external
+  /external:I  ${COSMOSCOUT_EXTERNALS_DIR}/include
+  /external:W0
+  /W4 # /WX
+  /wd4250
 )
 
 set(CMAKE_CXX_STANDARD 17)

@@ -97,7 +97,7 @@ void downloadFile(std::string const& url, std::string const& destination,
   request.setOpt(curlpp::options::NoSignal(true));
   request.setOpt(curlpp::options::NoProgress(false));
   request.setOpt(curlpp::options::SslVerifyPeer(false));
-  request.setOpt(curlpp::options::ProgressFunction([&](double a, double b, double c, double d) {
+  request.setOpt(curlpp::options::ProgressFunction([&](double a, double b, double, double) {
     progressCallback(b, a);
     return 0;
   }));

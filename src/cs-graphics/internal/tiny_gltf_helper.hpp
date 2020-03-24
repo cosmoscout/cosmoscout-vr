@@ -92,9 +92,11 @@ auto find_material_parameter(
     return def;
   } else {
     auto const& parameter = it->second;
-    T           value;
+    T           value{};
     for (size_t i = 0; i < std::min(size_t(value.length()), parameter.number_array.size()); ++i) {
+#pragma warning(disable: 4267 4244)
       value[i] = parameter.number_array[i];
+#pragma warning(default: 4267 4244)
     }
     return value;
   }

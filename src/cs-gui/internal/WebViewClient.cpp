@@ -30,7 +30,7 @@ WebViewClient::~WebViewClient() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool WebViewClient::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
-    CefRefPtr<CefFrame> frame, CefProcessId source_process, CefRefPtr<CefProcessMessage> message) {
+    CefRefPtr<CefFrame> frame, CefProcessId, CefRefPtr<CefProcessMessage> message) {
 
   if (message->GetName() == "callNative") {
 

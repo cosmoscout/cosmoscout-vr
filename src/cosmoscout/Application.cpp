@@ -127,7 +127,7 @@ bool Application::Init(VistaSystem* pVistaSystem) {
         dynamic_cast<VistaTransformNode*>(sceneGraph->GetNode("SELECTION_NODE"));
 
     VistaTransformNode* mRayTrans = sceneGraph->NewTransformNode(pIntentionNode);
-    mRayTrans->SetScale(0.001, 0.001, 30);
+    mRayTrans->SetScale(0.001f, 0.001f, 30.0f);
     mRayTrans->SetName("Ray_Trans");
 
     auto ray      = new cs::graphics::MouseRay();
@@ -309,7 +309,7 @@ void Application::FrameUpdate() {
 
   // Until everything is downloaded, update the progressbar accordingly.
   if (!mDownloadedData && mDownloader) {
-    mGuiManager->setLoadingScreenProgress(mDownloader->getProgress(), false);
+    mGuiManager->setLoadingScreenProgress(static_cast<float>(mDownloader->getProgress()), false);
   }
 
   // Once the data download has finished, we can delete our downloader.
@@ -556,8 +556,8 @@ void Application::FrameUpdate() {
       glm::dvec4 north = rot * up;
       north.z          = 0.0;
 
-      float angle = std::acos(glm::dot(up, glm::normalize(north)));
-      if (north.x < 0.f) {
+      double angle = std::acos(glm::dot(up, glm::normalize(north)));
+      if (north.x < 0.0) {
         angle = -angle;
       }
 
@@ -888,18 +888,21 @@ void Application::registerGuiCallbacks() {
   // Sets a value which individual plugins may honor trading rendering fidelity for performance.
   mGuiManager->getGui()->registerCallback("graphics.setLightingQuality",
       "Sets the quality for lighting computations. This can be either 0, 1 or 2.",
-      std::function([this](double value) { mGraphicsEngine->pLightingQuality = value; }));
+      std::function(
+          [this](double value) { mGraphicsEngine->pLightingQuality = static_cast<int>(value); }));
 
   // Adjusts the resolution of the shadowmap.
   mGuiManager->getGui()->registerCallback("graphics.setShadowmapResolution",
       "Sets the resolution of the shadow maps. This should be a power of two, e.g. 256, 512, 1024, "
       "etc.",
-      std::function([this](double val) { mGraphicsEngine->pShadowMapResolution = val; }));
+      std::function(
+          [this](double val) { mGraphicsEngine->pShadowMapResolution = static_cast<int>(val); }));
 
   // Adjusts the number of shadowmap cascades.
   mGuiManager->getGui()->registerCallback("graphics.setShadowmapCascades",
       "Sets the number of shadow map cascades. Should be in the range of 1-5.",
-      std::function([this](double val) { mGraphicsEngine->pShadowMapCascades = val; }));
+      std::function(
+          [this](double val) { mGraphicsEngine->pShadowMapCascades = static_cast<int>(val); }));
 
   // Adjusts the depth range of the shadowmap.
   mGuiManager->getGui()->registerCallback("graphics.setShadowmapRange",
@@ -938,32 +941,39 @@ void Application::registerGuiCallbacks() {
   // Adjusts the distribution of shadowmap cascades.
   mGuiManager->getGui()->registerCallback("graphics.setShadowmapSplitDistribution",
       "Defines an exponent for the distribution of the shadowmap cascades.",
-      std::function([this](double val) { mGraphicsEngine->pShadowMapSplitDistribution = val; }));
+      std::function([this](double val) {
+        mGraphicsEngine->pShadowMapSplitDistribution = static_cast<float>(val);
+      }));
 
   // Adjusts the bias to mitigate shadow acne.
   mGuiManager->getGui()->registerCallback("graphics.setShadowmapBias",
-      "Sets the bias for the shadow map lookups.",
-      std::function([this](double val) { mGraphicsEngine->pShadowMapBias = val; }));
+      "Sets the bias for the shadow map lookups.", std::function([this](double val) {
+        mGraphicsEngine->pShadowMapBias = static_cast<float>(val);
+      }));
 
   // A global factor which plugins may honor when they render some sort of terrain.
   mGuiManager->getGui()->registerCallback("graphics.setTerrainHeight",
       "Sets a factor for the height exaggeration of the planet's surface.",
-      std::function([this](double value) { mGraphicsEngine->pHeightScale = value; }));
+      std::function(
+          [this](double value) { mGraphicsEngine->pHeightScale = static_cast<float>(value); }));
 
   // Adjusts the global scaling of world-space widgets.
   mGuiManager->getGui()->registerCallback("graphics.setWidgetScale",
       "Sets a factor for the scaling of world space user interface elements.",
-      std::function([this](double value) { mGraphicsEngine->pWidgetScale = value; }));
+      std::function(
+          [this](double value) { mGraphicsEngine->pWidgetScale = static_cast<float>(value); }));
 
   // Adjusts the sensor diagonal of the virtual camera.
   mGuiManager->getGui()->registerCallback("graphics.setSensorDiagonal",
-      "Sets the sensor diagonal of the virtual camera in [mm].",
-      std::function([this](double val) { mGraphicsEngine->pSensorDiagonal = val; }));
+      "Sets the sensor diagonal of the virtual camera in [mm].", std::function([this](double val) {
+        mGraphicsEngine->pSensorDiagonal = static_cast<float>(val);
+      }));
 
   // Adjusts the foacl length of the virtual camera.
   mGuiManager->getGui()->registerCallback("graphics.setFocalLength",
-      "Sets the focal length of the virtual camera in [mm].",
-      std::function([this](double val) { mGraphicsEngine->pFocalLength = val; }));
+      "Sets the focal length of the virtual camera in [mm].", std::function([this](double val) {
+        mGraphicsEngine->pFocalLength = static_cast<float>(val);
+      }));
 
   // Toggles HDR rendering.
   mGuiManager->getGui()->registerCallback("graphics.setEnableHDR",
@@ -977,22 +987,24 @@ void Application::registerGuiCallbacks() {
 
   // Adjusts the exposure compensation for HDR rendering.
   mGuiManager->getGui()->registerCallback("graphics.setExposureCompensation",
-      "Adds some additional exposure in [EV].",
-      std::function([this](double val) { mGraphicsEngine->pExposureCompensation = val; }));
+      "Adds some additional exposure in [EV].", std::function([this](double val) {
+        mGraphicsEngine->pExposureCompensation = static_cast<float>(val);
+      }));
 
   // Adjusts the exposure of the virtual camera in HDR mode.
   mGuiManager->getGui()->registerCallback("graphics.setExposure",
       "Sets the exposure of the image in [EV]. Only available if auto-exposure is disabled.",
       std::function([this](double val) {
         if (!mGraphicsEngine->pEnableAutoExposure.get()) {
-          mGraphicsEngine->pExposure = val;
+          mGraphicsEngine->pExposure = static_cast<float>(val);
         }
       }));
 
   // Adjusts how fast the exposure adapts to new lighting condtitions.
   mGuiManager->getGui()->registerCallback("graphics.setExposureAdaptionSpeed",
-      "Adjust the quickness of auto-exposure.",
-      std::function([this](double val) { mGraphicsEngine->pExposureAdaptionSpeed = val; }));
+      "Adjust the quickness of auto-exposure.", std::function([this](double val) {
+        mGraphicsEngine->pExposureAdaptionSpeed = static_cast<float>(val);
+      }));
 
   // If auto-exposure is enabled, we update the slider in the user interface to show the current
   // value.
@@ -1029,13 +1041,14 @@ void Application::registerGuiCallbacks() {
   // Adjusts the amount of ambient lighting.
   mGuiManager->getGui()->registerCallback("graphics.setAmbientLight",
       "Sets the amount of ambient light.", std::function([this](double val) {
-        mGraphicsEngine->pAmbientBrightness = std::pow(val, 10.0);
+        mGraphicsEngine->pAmbientBrightness = static_cast<float>(std::pow(val, 10.0));
       }));
 
   // Adjusts the amount of artificial glare in HDR mode.
   mGuiManager->getGui()->registerCallback("graphics.setGlowIntensity",
-      "Adjusts the amount of glow of overexposed areas.",
-      std::function([this](double val) { mGraphicsEngine->pGlowIntensity = val; }));
+      "Adjusts the amount of glow of overexposed areas.", std::function([this](double val) {
+        mGraphicsEngine->pGlowIntensity = static_cast<float>(val);
+      }));
 
   // Adjusts the exposure range for auto exposure.
   mGuiManager->getGui()->registerCallback("graphics.setExposureRange",
@@ -1046,9 +1059,9 @@ void Application::registerGuiCallbacks() {
         glm::vec2 range = mGraphicsEngine->pAutoExposureRange.get();
 
         if (handle == 0.0)
-          range.x = val;
+          range.x = static_cast<float>(val);
         else
-          range.y = val;
+          range.y = static_cast<float>(val);
 
         mGraphicsEngine->pAutoExposureRange = range;
       }));
@@ -1116,8 +1129,9 @@ void Application::registerGuiCallbacks() {
 
   // Adjusts the simulation time speed.
   mGuiManager->getGui()->registerCallback("time.setSpeed",
-      "Sets the multiplier for the simulation time speed.",
-      std::function([this](double speed) { mTimeControl->setTimeSpeed(speed); }));
+      "Sets the multiplier for the simulation time speed.", std::function([this](double speed) {
+        mTimeControl->setTimeSpeed(static_cast<float>(speed));
+      }));
 
   // navigation callbacks --------------------------------------------------------------------------
 
