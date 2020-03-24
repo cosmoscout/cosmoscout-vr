@@ -155,6 +155,30 @@ GuiManager::GuiManager(std::shared_ptr<Settings> const& settings,
 
   mCosmoScoutGui->callJavascript("CosmoScout.loadingScreen.setVersion", version);
 
+  // Restore history from saved file. Currently we don't update the history when reloading a
+  // settings file at runtime, as overwriting the history feels a bit odd.
+  if (mSettings->mCommandHistory && mSettings->mCommandHistory.value().size() > 0) {
+    nlohmann::json array = mSettings->mCommandHistory.value();
+    mCosmoScoutGui->executeJavascript("CosmoScout.statusbar.history = " + array.dump());
+    mCosmoScoutGui->executeJavascript("CosmoScout.statusbar.historyIndex = " +
+                                      std::to_string(mSettings->mCommandHistory.value().size()));
+  }
+
+  // Register a callback which is used by the statusbur to store executed commands on the C++ side.
+  mCosmoScoutGui->registerCallback("statusbar.addCommandToHistory",
+      "Adds a string to the command history so that it can be saved between sessions.",
+      std::function([this](std::string&& command) {
+        if (!mSettings->mCommandHistory) {
+          mSettings->mCommandHistory = std::deque<std::string>();
+        }
+
+        mSettings->mCommandHistory.value().push_back(command);
+
+        if (mSettings->mCommandHistory.value().size() > 20) {
+          mSettings->mCommandHistory.value().pop_front();
+        }
+      }));
+
   // Set settings for the time Navigation
   mSettings->pMinDate.connectAndTouch([this](std::string const& minDate) {
     mCosmoScoutGui->callJavascript(
@@ -195,6 +219,8 @@ GuiManager::GuiManager(std::shared_ptr<Settings> const& settings,
 GuiManager::~GuiManager() {
   // Tell the user what's going on.
   spdlog::debug("Deleting GuiManager.");
+
+  mCosmoScoutGui->unregisterCallback("statusbar.addCommandToHistory");
 
   delete mGlobalGuiArea;
   delete mViewportUpdater;

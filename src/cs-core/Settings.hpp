@@ -13,6 +13,7 @@
 
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <cstdint>
+#include <deque>
 #include <exception>
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
@@ -270,6 +271,9 @@ class CS_CORE_EXPORT Settings {
   utils::DefaultProperty<spdlog::level::level_enum> pLogLevelFile{spdlog::level::debug};
   utils::DefaultProperty<spdlog::level::level_enum> pLogLevelConsole{spdlog::level::trace};
   utils::DefaultProperty<spdlog::level::level_enum> pLogLevelScreen{spdlog::level::info};
+
+  /// Contains the last 20 commands which have been executed via the on-screen console.
+  std::optional<std::deque<std::string>> mCommandHistory;
 
   // -----------------------------------------------------------------------------------------------
 

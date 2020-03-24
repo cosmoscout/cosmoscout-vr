@@ -245,6 +245,7 @@ void from_json(nlohmann::json const& j, Settings& o) {
   Settings::deserialize(j, "maxDate", o.pMaxDate);
   Settings::deserialize(j, "downloadData", o.mDownloadData);
   Settings::deserialize(j, "events", o.mEvents);
+  Settings::deserialize(j, "commandHistory", o.mCommandHistory);
 }
 
 void to_json(nlohmann::json& j, Settings const& o) {
@@ -267,6 +268,7 @@ void to_json(nlohmann::json& j, Settings const& o) {
   Settings::serialize(j, "maxDate", o.pMaxDate);
   Settings::serialize(j, "downloadData", o.mDownloadData);
   Settings::serialize(j, "events", o.mEvents);
+  Settings::serialize(j, "commandHistory", o.mCommandHistory);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

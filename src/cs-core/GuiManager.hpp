@@ -45,7 +45,8 @@ class InputManager;
 ///    item. This is for example useful for the statistics GuiItem which is in all cases shown in
 ///    screen-space.
 /// World-Space:
-///  * The UI is drawn in a fixed resolution which is specified in the "gui": {...} settings key.
+///  * The UI is drawn in a fixed resolution which is specified in the "guiPosition": {...} settings
+///    key.
 ///  * When running in a clustered setup, the UI will be displayed across multiple displays.
 ///
 /// There are several GuiItems involved: e.g. the timeline, the status-bar, the side-bar and the
