@@ -134,7 +134,7 @@ class CS_CORE_EXPORT Settings {
   /// In order to reduce duplication of code, a list of all used SPICE-frames ("Anchors") is
   /// required at the start of each configuration file. The name of each Anchor is then later used
   /// to reference the respective SPICE frame.
-  struct Anchor {
+  struct CS_CORE_EXPORT Anchor {
     std::string mCenter;
     std::string mFrame;
     std::string mStartExistence;
@@ -375,7 +375,7 @@ class CS_CORE_EXPORT Settings {
   /// An exception that is thrown while parsing the config. Prepends thrown exceptions with a
   /// section name to give the user more detailed information about the root of the error.
   /// The exception can and should be nested.
-  class DeserializationException : public std::exception {
+  class CS_CORE_EXPORT DeserializationException : public std::exception {
    public:
     DeserializationException(std::string const& property, std::string const& jsonError);
 
