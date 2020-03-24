@@ -31,7 +31,7 @@ class DefaultProperty : public Property<T> {
   }
 
   DefaultProperty(DefaultProperty<T> const& other)
-      : Property<T>(other.mValue)
+      : Property<T>(other)
       , mDefaultValue(other.mDefaultValue) {
   }
 
