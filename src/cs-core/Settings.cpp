@@ -226,7 +226,8 @@ void to_json(nlohmann::json& j, Settings::Graphics const& o) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void from_json(nlohmann::json const& j, Settings& o) {
-  Settings::deserialize(j, "startDate", o.pStartDate);
+  Settings::deserialize(j, "startDate", o.mStartDate);
+  Settings::deserialize(j, "resetDate", o.mResetDate);
   Settings::deserialize(j, "observer", o.mObserver);
   Settings::deserialize(j, "spiceKernel", o.pSpiceKernel);
   Settings::deserialize(j, "sceneScale", o.mSceneScale);
@@ -240,7 +241,6 @@ void from_json(nlohmann::json const& j, Settings& o) {
   Settings::deserialize(j, "logLevelScreen", o.pLogLevelScreen);
   Settings::deserialize(j, "anchors", o.mAnchors);
   Settings::deserialize(j, "plugins", o.mPlugins);
-  Settings::deserialize(j, "startDate", o.pStartDate);
   Settings::deserialize(j, "minDate", o.pMinDate);
   Settings::deserialize(j, "maxDate", o.pMaxDate);
   Settings::deserialize(j, "downloadData", o.mDownloadData);
@@ -249,7 +249,8 @@ void from_json(nlohmann::json const& j, Settings& o) {
 }
 
 void to_json(nlohmann::json& j, Settings const& o) {
-  Settings::serialize(j, "startDate", o.pStartDate);
+  Settings::serialize(j, "startDate", o.mStartDate);
+  Settings::serialize(j, "resetDate", o.mResetDate);
   Settings::serialize(j, "observer", o.mObserver);
   Settings::serialize(j, "spiceKernel", o.pSpiceKernel);
   Settings::serialize(j, "sceneScale", o.mSceneScale);
@@ -263,7 +264,6 @@ void to_json(nlohmann::json& j, Settings const& o) {
   Settings::serialize(j, "logLevelScreen", o.pLogLevelScreen);
   Settings::serialize(j, "anchors", o.mAnchors);
   Settings::serialize(j, "plugins", o.mPlugins);
-  Settings::serialize(j, "startDate", o.pStartDate);
   Settings::serialize(j, "minDate", o.pMinDate);
   Settings::serialize(j, "maxDate", o.pMaxDate);
   Settings::serialize(j, "downloadData", o.mDownloadData);
