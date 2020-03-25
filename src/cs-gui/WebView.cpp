@@ -255,10 +255,9 @@ void WebView::injectMouseEvent(MouseEvent const& event) {
   case MouseEvent::Type::ePress:
     if (event.mButton == Button::eLeft) {
       mMouseModifiers |= int(Modifier::eLeftButton);
-      double elapsedTime =
-          static_cast<double>(std::chrono::duration_cast<std::chrono::milliseconds>(
-              std::chrono::steady_clock::now() - mLastClick)
-                                  .count());
+      auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(
+          std::chrono::steady_clock::now() - mLastClick)
+                             .count();
       if (elapsedTime < 200) {
         mClickCount++;
       } else {

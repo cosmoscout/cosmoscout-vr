@@ -232,6 +232,8 @@ add_definitions(
 add_compile_options(
   $<$<CXX_COMPILER_ID:MSVC>:/EHsc>
   $<$<CXX_COMPILER_ID:MSVC>:/wd4251>
+
+  # Warns about multiple inheritance problems, which we can't avoid inheriting from ViSTA classes.
   $<$<CXX_COMPILER_ID:MSVC>:/wd4250>
 )
 

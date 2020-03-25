@@ -35,6 +35,8 @@ class ScreenSpaceGuiArea;
 
 namespace cs::core {
 
+// The warning can be ignored since the interface methods inhereted from ViSTA aren't used outside
+// this module.
 #ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable : 4275)
