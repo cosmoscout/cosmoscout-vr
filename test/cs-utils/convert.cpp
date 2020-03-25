@@ -9,15 +9,19 @@
 
 namespace cs::utils {
 
-const double PI = 3.14159265359;
+const double PI   = 3.14159265359;
 const double PI_2 = PI / 2.0;
 const double PI_4 = PI / 4.0;
 
+const float PI_F   = 3.14159265359f;
+const float PI_2_F = PI_F / 2.0f;
+const float PI_4_F = PI_F / 4.0f;
+
 TEST_CASE("cs::utils::toDegrees") {
   CHECK_EQ(convert::toDegrees<float>(0.f), 0.f);
-  CHECK_EQ(convert::toDegrees<float>(PI_4), doctest::Approx(45.f));
-  CHECK_EQ(convert::toDegrees<float>(PI_2), doctest::Approx(90.f));
-  CHECK_EQ(convert::toDegrees<float>(PI), doctest::Approx(180.f));
+  CHECK_EQ(convert::toDegrees<float>(PI_4_F), doctest::Approx(45.f));
+  CHECK_EQ(convert::toDegrees<float>(PI_2_F), doctest::Approx(90.f));
+  CHECK_EQ(convert::toDegrees<float>(PI_F), doctest::Approx(180.f));
 
   // TODO Should that work like this?
   // CHECK(convert::toDegrees<float>(2.f * M_PI) == doctest::Approx(0.f));
@@ -36,9 +40,9 @@ TEST_CASE("cs::utils::toDegrees") {
 
 TEST_CASE("cs::utils::toRadians") {
   CHECK_EQ(convert::toRadians<float>(0.0f), 0.0f);
-  CHECK_EQ(convert::toRadians<float>(45.f), doctest::Approx(PI_4));
-  CHECK_EQ(convert::toRadians<float>(90.f), doctest::Approx(PI_2));
-  CHECK_EQ(convert::toRadians<float>(180.f), doctest::Approx(PI));
+  CHECK_EQ(convert::toRadians<float>(45.f), doctest::Approx(PI_4_F));
+  CHECK_EQ(convert::toRadians<float>(90.f), doctest::Approx(PI_2_F));
+  CHECK_EQ(convert::toRadians<float>(180.f), doctest::Approx(PI_F));
 
   CHECK_EQ(convert::toRadians<double>(0.0), 0.0);
   CHECK_EQ(convert::toRadians<double>(45.0), doctest::Approx(PI_4));

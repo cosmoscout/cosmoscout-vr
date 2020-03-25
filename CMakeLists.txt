@@ -232,12 +232,17 @@ add_definitions(
 add_compile_options(
   $<$<CXX_COMPILER_ID:MSVC>:/EHsc>
   $<$<CXX_COMPILER_ID:MSVC>:/wd4251>
-  /experimental:external
-  /external:I  ${COSMOSCOUT_EXTERNALS_DIR}/include
-  /external:W0
-  /W3 /WX
-  /wd4250
+  $<$<CXX_COMPILER_ID:MSVC>:/wd4250>
 )
+
+if (MSVC)
+  add_compile_options(
+    /experimental:external
+    /external:I ${COSMOSCOUT_EXTERNALS_DIR}/include
+    /external:W0
+    /W3 /WX
+  )
+endif()
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)

@@ -45,12 +45,12 @@ T metersToAstronomicalUnits(T meters) {
 
 template <typename T>
 T toRadians(T degrees) {
-  return degrees * glm::pi<double>() / 180.0;
+  return static_cast<T>(degrees * glm::pi<double>() / 180.0);
 }
 
 template <typename T>
 T toDegrees(T radians) {
-  return radians * 180.0 / glm::pi<double>();
+  return static_cast<T>(radians * 180.0 / glm::pi<double>());
 }
 
 /// Transform cartesian (x,y,z) coordinates to geodetic (lng, lat, height above surface)
