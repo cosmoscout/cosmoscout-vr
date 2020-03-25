@@ -36,6 +36,7 @@ class ScreenSpaceGuiArea;
 namespace cs::core {
 
 #ifdef _MSC_VER
+#pragma warning(push)
 #pragma warning(disable : 4275)
 #endif _MSC_VER
 
