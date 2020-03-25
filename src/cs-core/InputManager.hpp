@@ -35,13 +35,6 @@ class ScreenSpaceGuiArea;
 
 namespace cs::core {
 
-// The warning can be ignored since the interface methods inhereted from ViSTA aren't used outside
-// this module.
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable : 4275)
-#endif
-
 /// The central access point for handling input. An instance of this class is passed to all plugins.
 /// Any object which in some way needs to receive mouse input has to be registered with this class.
 /// If a GUI element is registered, it will also receive key and text input.
@@ -175,9 +168,5 @@ class CS_CORE_EXPORT InputManager : public VistaKeyboardSystemControl::IVistaDir
 };
 
 } // namespace cs::core
-
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
 
 #endif // CS_CORE_INPUT_MANAGER_HPP
