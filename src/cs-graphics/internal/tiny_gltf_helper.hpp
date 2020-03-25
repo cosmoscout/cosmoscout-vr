@@ -93,10 +93,8 @@ auto find_material_parameter(
   } else {
     auto const& parameter = it->second;
     T           value{};
-    for (size_t i = 0; i < std::min(size_t(value.length()), parameter.number_array.size()); ++i) {
-#pragma warning(disable: 4267 4244)
-      value[i] = parameter.number_array[i];
-#pragma warning(default: 4267 4244)
+    for (int i = 0; i < std::min(size_t(value.length()), parameter.number_array.size()); ++i) {
+      value[i] = static_cast<decltype(value.x)>(parameter.number_array[i]);
     }
     return value;
   }
