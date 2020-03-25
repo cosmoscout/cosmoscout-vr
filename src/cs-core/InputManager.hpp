@@ -178,6 +178,6 @@ class CS_CORE_EXPORT InputManager : public VistaKeyboardSystemControl::IVistaDir
 
 #ifdef _MSC_VER
 #pragma warning(pop)
-#endif _MSC_VER
+#endif
 
 #endif // CS_CORE_INPUT_MANAGER_HPP
