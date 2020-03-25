@@ -94,7 +94,7 @@ auto find_material_parameter(
     auto const& parameter = it->second;
     T           value{};
     for (int i = 0; i < std::min(size_t(value.length()), parameter.number_array.size()); ++i) {
-      value[i] = static_cast<decltype(value.x)>(parameter.number_array[i]);
+      value[i] = static_cast<typename T::value_type>(parameter.number_array[i]);
     }
     return value;
   }
