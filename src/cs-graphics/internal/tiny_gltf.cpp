@@ -5,7 +5,4 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #define TINYGLTF_IMPLEMENTATION
-
-#pragma warning(disable: 4701)
-#include "tiny_gltf.h"
-#pragma warning(default: 4701)
+#include <tiny_gltf.h>

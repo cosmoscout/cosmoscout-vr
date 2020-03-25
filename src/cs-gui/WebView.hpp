@@ -153,7 +153,6 @@ class CS_GUI_EXPORT WebView {
   void closeDevTools();
 
  private:
-#pragma warning(disable : 4189)
   /// This ensures statically that all given template types are either bool, double, std::string or
   /// std::string&&.
   template <typename... Args>
@@ -161,7 +160,6 @@ class CS_GUI_EXPORT WebView {
     // Call assertJavaScriptType() for each Arg of Args.
     int tmp[] = {(assertJavaScriptType<Args>(), 0)...};
   }
-#pragma warning(default : 4189)
 
   /// This ensures statically that the given template type is either bool, double, std::string or
   /// std::string&&.

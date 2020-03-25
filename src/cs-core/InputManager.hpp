@@ -35,14 +35,15 @@ class ScreenSpaceGuiArea;
 
 namespace cs::core {
 
-#pragma warning(disable: 4275)
+#ifdef _WIN32
+#pragma warning(disable : 4275)
+#endif _WIN32
+
 /// The central access point for handling input. An instance of this class is passed to all plugins.
 /// Any object which in some way needs to receive mouse input has to be registered with this class.
 /// If a GUI element is registered, it will also receive key and text input.
 class CS_CORE_EXPORT InputManager : public VistaKeyboardSystemControl::IVistaDirectKeySink,
                                     public VistaEventHandler {
-#pragma warning(default: 4275)
-
  public:
   /// This class describes an intersection point on an IntersectableObject. Usually this is used for
   /// intersections between the mouse ray and planets or moons.
@@ -171,5 +172,9 @@ class CS_CORE_EXPORT InputManager : public VistaKeyboardSystemControl::IVistaDir
 };
 
 } // namespace cs::core
+
+#ifdef _WIN32
+#pragma warning(default : 4275)
+#endif _WIN32
 
 #endif // CS_CORE_INPUT_MANAGER_HPP

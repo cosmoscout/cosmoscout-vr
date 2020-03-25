@@ -235,7 +235,7 @@ add_compile_options(
   /experimental:external
   /external:I  ${COSMOSCOUT_EXTERNALS_DIR}/include
   /external:W0
-  /W4 # /WX
+  /W3 /WX
   /wd4250
 )
 
