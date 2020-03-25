@@ -40,7 +40,7 @@ namespace cs::core {
 #ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable : 4275)
-#endif _MSC_VER
+#endif
 
 /// The central access point for handling input. An instance of this class is passed to all plugins.
 /// Any object which in some way needs to receive mouse input has to be registered with this class.
@@ -178,6 +178,6 @@ class CS_CORE_EXPORT InputManager : public VistaKeyboardSystemControl::IVistaDir
 
 #ifdef _MSC_VER
 #pragma warning(pop)
-#endif _MSC_VER
+#endif
 
 #endif // CS_CORE_INPUT_MANAGER_HPP

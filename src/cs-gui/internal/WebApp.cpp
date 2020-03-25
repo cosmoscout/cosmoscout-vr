@@ -18,7 +18,6 @@ WebApp::WebApp(int argc, char* argv[], bool hardware_accelerated)
 #endif
     , mHardwareAccelerated(hardware_accelerated) {
 }
-// #pragma warning(default: 4100)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
