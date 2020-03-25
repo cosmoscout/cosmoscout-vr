@@ -35,9 +35,9 @@ class ScreenSpaceGuiArea;
 
 namespace cs::core {
 
-#ifdef _WIN32
+#ifdef _MSC_VER
 #pragma warning(disable : 4275)
-#endif _WIN32
+#endif _MSC_VER
 
 /// The central access point for handling input. An instance of this class is passed to all plugins.
 /// Any object which in some way needs to receive mouse input has to be registered with this class.
@@ -173,8 +173,8 @@ class CS_CORE_EXPORT InputManager : public VistaKeyboardSystemControl::IVistaDir
 
 } // namespace cs::core
 
-#ifdef _WIN32
+#ifdef _MSC_VER
 #pragma warning(default : 4275)
-#endif _WIN32
+#endif _MSC_VER
 
 #endif // CS_CORE_INPUT_MANAGER_HPP
