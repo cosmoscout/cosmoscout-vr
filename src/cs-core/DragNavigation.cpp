@@ -192,7 +192,7 @@ void DragNavigation::update() {
 
         // Prepare an animated rotation approaching target angle
         mDoKineticSmoothOut = std::abs(targetAngle - mTargetAngle) > 0.001f;
-        mCurrentAngleDiff += targetAngle - mTargetAngle;
+        mCurrentAngleDiff += static_cast<float>(targetAngle - mTargetAngle);
         mTargetAngle = targetAngle;
       } else {
         mTargetAngle        = 0;

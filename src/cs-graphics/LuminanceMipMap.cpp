@@ -95,7 +95,8 @@ LuminanceMipMap::LuminanceMipMap(int hdrBufferWidth, int hdrBufferHeight)
   int iHeight = mHDRBufferHeight / 2;
 
   // Compute the number of available mipmap levels.
-  mMaxLevels = std::max(1.0, std::floor(std::log2(std::max(iWidth, iHeight))) + 1);
+  mMaxLevels =
+      static_cast<int>(std::max(1.0, std::floor(std::log2(std::max(iWidth, iHeight))) + 1));
 
   Bind();
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
@@ -184,10 +185,10 @@ void LuminanceMipMap::update(VistaTexture* hdrBufferComposite) {
 
   // We loop through all levels always reading from the last level.
   for (int i(0); i < mMaxLevels; ++i) {
-    int width =
-        std::max(1.0, std::floor(static_cast<double>(mHDRBufferWidth / 2) / std::pow(2, i)));
-    int height =
-        std::max(1.0, std::floor(static_cast<double>(mHDRBufferHeight / 2) / std::pow(2, i)));
+    int width = static_cast<int>(
+        std::max(1.0, std::floor(static_cast<double>(mHDRBufferWidth / 2) / std::pow(2, i))));
+    int height = static_cast<int>(
+        std::max(1.0, std::floor(static_cast<double>(mHDRBufferHeight / 2) / std::pow(2, i))));
 
     glUniform1i(glGetUniformLocation(mComputeProgram, "uLevel"), i);
     glBindImageTexture(0, GetId(), i, GL_FALSE, 0, GL_WRITE_ONLY, GL_RG32F);
@@ -200,7 +201,8 @@ void LuminanceMipMap::update(VistaTexture* hdrBufferComposite) {
 
     // Make sure writing has finished.
     glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
-    glDispatchCompute(std::ceil(1.0 * width / 16), std::ceil(1.0 * height / 16), 1);
+    glDispatchCompute(static_cast<uint32_t>(std::ceil(1.0 * width / 16)),
+        static_cast<uint32_t>(std::ceil(1.0 * height / 16)), 1);
   }
 
   glBindImageTexture(0, 0, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RG32F);

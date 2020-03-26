@@ -78,8 +78,7 @@ void ApplyAperturePriority(
   shutterSpeed = glm::clamp(shutterSpeed * std::pow(2.0f, -evDiff), MIN_SHUTTER, MAX_SHUTTER);
 }
 
-void ApplyShutterPriority(
-    float focalLength, float targetEV, float& aperture, float& shutterSpeed, float& iso) {
+void ApplyShutterPriority(float, float targetEV, float& aperture, float& shutterSpeed, float& iso) {
   // Start with the assumption that we want an aperture of 4.0
   aperture = 4.0f;
 
@@ -414,7 +413,7 @@ bool ToneMappingNode::ToneMappingNode::Do() {
     // Calculate exposure based on last frame's average luminance Time-dependent visual adaptation
     // for fast realistic image display (https://dl.acm.org/citation.cfm?id=344810).
     if (mGlobalLuminanceData.mPixelCount > 0 && mGlobalLuminanceData.mTotalLuminance > 0) {
-      float frameTime        = GetVistaSystem()->GetFrameLoop()->GetAverageLoopTime();
+      float frameTime = static_cast<float>(GetVistaSystem()->GetFrameLoop()->GetAverageLoopTime());
       float averageLuminance = getLastAverageLuminance();
       mAutoExposure += (std::log2(1.f / averageLuminance) - mAutoExposure) *
                        (1.f - std::exp(-mExposureAdaptionSpeed * frameTime));

@@ -430,7 +430,7 @@ void InputManager::update() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool InputManager::HandleKeyPress(int key, int mods, bool bIsKeyRepeat) {
+bool InputManager::HandleKeyPress(int key, int mods, bool) {
 
   if (key == VISTA_KEY_ESC) {
     sOnEscapePressed.emit();

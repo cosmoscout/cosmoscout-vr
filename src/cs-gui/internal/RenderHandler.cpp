@@ -82,7 +82,7 @@ void RenderHandler::GetViewRect(CefRefPtr<CefBrowser> browser, CefRect& rect) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void RenderHandler::OnPaint(CefRefPtr<CefBrowser> browser, PaintElementType type,
+void RenderHandler::OnPaint(CefRefPtr<CefBrowser> browser, PaintElementType,
     RectList const& dirtyRects, const void* b, int width, int height) {
   DrawEvent event{};
   event.mResized  = width != mLastDrawWidth || height != mLastDrawHeight;
@@ -144,8 +144,8 @@ void RenderHandler::OnPaint(CefRefPtr<CefBrowser> browser, PaintElementType type
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void RenderHandler::OnCursorChange(CefRefPtr<CefBrowser> browser, CefCursorHandle cursor,
-    CefRenderHandler::CursorType type, const CefCursorInfo& customursor_info) {
+void RenderHandler::OnCursorChange(CefRefPtr<CefBrowser> browser, CefCursorHandle,
+    CefRenderHandler::CursorType                         type, const CefCursorInfo&) {
   if (mCursorChangeCallback) {
     mCursorChangeCallback(static_cast<Cursor>(type));
   }

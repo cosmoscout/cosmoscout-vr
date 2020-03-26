@@ -191,8 +191,8 @@ std::shared_ptr<graphics::HDRBuffer> GraphicsEngine::getHDRBuffer() const {
 
 bool glDebugOnlyErrors = true;
 
-void GLAPIENTRY oglMessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity,
-    GLsizei length, const GLchar* message, const void* userParam) {
+void GLAPIENTRY oglMessageCallback(
+    GLenum, GLenum type, GLuint, GLenum severity, GLsizei, const GLchar* message, const void*) {
   if (type == GL_DEBUG_TYPE_ERROR)
     fprintf(
         stderr, "GL ERROR: type = 0x%x, severity = 0x%x, message = %s\n", type, severity, message);

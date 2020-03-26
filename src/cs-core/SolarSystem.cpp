@@ -201,7 +201,7 @@ void SolarSystem::update() {
   // As our scene is always scaled, we have to scale the luminous power of the sun accordingly.
   // Else, our Sun would be extremely bright when scaled down.
   double sceneScale = 1.0 / mObserver.getAnchorScale();
-  pSunLuminousPower = sunLuminousPower * sceneScale * sceneScale;
+  pSunLuminousPower = static_cast<float>(sunLuminousPower * sceneScale * sceneScale);
 
   // Update the property containing the current observer speed.
   auto observerPosition = mObserver.getAnchorPosition();
@@ -211,9 +211,10 @@ void SolarSystem::update() {
 
   // Duration is in nanoseconds so we have to multiply by 1.0e9.
   if (duration > 0) {
-    pCurrentObserverSpeed = 1.0e9 * glm::length(mLastPosition - observerPosition) / duration;
-    mLastPosition         = observerPosition;
-    mLastTime             = now;
+    pCurrentObserverSpeed =
+        static_cast<float>(1.0e9 * glm::length(mLastPosition - observerPosition) / duration);
+    mLastPosition = observerPosition;
+    mLastTime     = now;
   }
 }
 

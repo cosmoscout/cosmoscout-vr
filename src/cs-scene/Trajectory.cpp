@@ -217,7 +217,7 @@ bool Trajectory::Do() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool Trajectory::GetBoundingBox(VistaBoundingBox& bb) {
+bool Trajectory::GetBoundingBox(VistaBoundingBox&) {
   return false;
 }
 

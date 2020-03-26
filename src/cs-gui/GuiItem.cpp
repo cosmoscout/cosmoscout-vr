@@ -67,7 +67,7 @@ GuiItem::~GuiItem() {
   glDeleteTextures(1, &mTexture);
   // seems to be necessary as OnPaint can be called by some other thread even
   // if this object is already deleted
-  setDrawCallback([](DrawEvent const& event) { return nullptr; });
+  setDrawCallback([](DrawEvent const&) { return nullptr; });
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -203,9 +203,9 @@ bool GuiItem::calculateMousePosition(int areaX, int areaY, int& x, int& y) {
   x = tmpX;
   y = tmpY;
 
-  if (tmpX > mSizeX - 1 || tmpX < 0)
+  if (tmpX > static_cast<int>(mSizeX) - 1 || tmpX < 0)
     return false;
-  if (tmpY > mSizeY - 1 || tmpY < 0)
+  if (tmpY > static_cast<int>(mSizeY) - 1 || tmpY < 0)
     return false;
 
   return true;
@@ -253,37 +253,37 @@ void GuiItem::onAreaResize(int width, int height) {
 
 void GuiItem::updateSizes() {
   if (mIsRelSizeX) {
-    mSizeX = mRelSizeX * mAreaWidth;
+    mSizeX = static_cast<uint32_t>(mRelSizeX * mAreaWidth);
   } else {
     mRelSizeX = 1.f * mSizeX / mAreaWidth;
   }
 
   if (mIsRelSizeY) {
-    mSizeY = mRelSizeY * mAreaHeight;
+    mSizeY = static_cast<uint32_t>(mRelSizeY * mAreaHeight);
   } else {
     mRelSizeY = 1.f * mSizeY / mAreaHeight;
   }
 
   if (mIsRelPositionX) {
-    mPositionX = mRelPositionX * mAreaWidth;
+    mPositionX = static_cast<uint32_t>(mRelPositionX * mAreaWidth);
   } else {
     mRelPositionX = 1.f * mPositionX / mAreaWidth;
   }
 
   if (mIsRelPositionY) {
-    mPositionY = mRelPositionY * mAreaHeight;
+    mPositionY = static_cast<uint32_t>(mRelPositionY * mAreaHeight);
   } else {
     mRelPositionY = 1.f * mPositionY / mAreaHeight;
   }
 
   if (mIsRelOffsetX) {
-    mOffsetX = mRelOffsetX * mAreaWidth;
+    mOffsetX = static_cast<uint32_t>(mRelOffsetX * mAreaWidth);
   } else {
     mRelOffsetX = 1.f * mOffsetX / mAreaWidth;
   }
 
   if (mIsRelOffsetY) {
-    mOffsetY = mRelOffsetY * mAreaHeight;
+    mOffsetY = static_cast<uint32_t>(mRelOffsetY * mAreaHeight);
   } else {
     mRelOffsetY = 1.f * mOffsetY / mAreaHeight;
   }
