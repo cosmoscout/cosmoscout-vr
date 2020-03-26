@@ -380,7 +380,7 @@ void WebView::registerJSCallbackImpl(std::string const& name, std::string const&
 
   std::unordered_map<std::type_index, int> typeCounts;
 
-  for (int i(0); i < types.size(); ++i) {
+  for (size_t i(0); i < types.size(); ++i) {
     signature += typeNames.at(types[i]);
 
     if (typeCounts[types[i]]++ > 0) {

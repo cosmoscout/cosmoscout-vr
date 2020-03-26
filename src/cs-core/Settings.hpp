@@ -37,7 +37,7 @@ struct adl_serializer<std::optional<T>> {
 
   static void from_json(const json& j, std::optional<T>& opt) {
     if (j.is_null()) {
-      opt = {};
+      opt = std::nullopt;
     } else {
       // Same as above, but with adl_serializer<T>::from_json.
       opt = j.get<T>();
@@ -191,7 +191,6 @@ std::pair<double, double> CS_CORE_EXPORT getExistenceFromSettings(
 /// The exception can and should be nested.
 /// @see parseSection()
 class SettingsSectionException : public std::exception {
-  const std::string completeMessage;
 
  public:
   const std::string sectionName;
@@ -206,6 +205,9 @@ class SettingsSectionException : public std::exception {
   [[nodiscard]] const char* what() const noexcept override {
     return completeMessage.c_str();
   }
+
+ private:
+  const std::string completeMessage;
 };
 
 /// Parses a section of the config file. If an exception gets thrown inside f a new exception will

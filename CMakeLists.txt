@@ -237,9 +237,14 @@ if (MSVC)
     /W3 /WX
     /EHsc
     /wd4251
-
+    
     # Warns about multiple inheritance problems, which we can't avoid inheriting from ViSTA classes.
     /wd4250
+  )
+else()
+  add_compile_options(
+    -Wall
+    -Werror
   )
 endif()
 

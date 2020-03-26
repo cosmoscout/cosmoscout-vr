@@ -32,21 +32,21 @@ class Property {
   }
 
   Property(T const& val)
-      : mValue(val)
-      , mConnection(nullptr)
-      , mConnectionID(-1) {
+      : mConnection(nullptr)
+      , mConnectionID(-1)
+      , mValue(val) {
   }
 
   Property(T&& val)
-      : mValue(std::move(val))
-      , mConnection(nullptr)
-      , mConnectionID(-1) {
+      : mConnection(nullptr)
+      , mConnectionID(-1)
+      , mValue(std::move(val)) {
   }
 
   Property(Property<T> const& other)
-      : mValue(other.mValue)
-      , mConnection(nullptr)
-      , mConnectionID(-1) {
+      : mConnection(nullptr)
+      , mConnectionID(-1)
+      , mValue(other.mValue) {
   }
 
   Property(Property<T>&& other)

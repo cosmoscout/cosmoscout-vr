@@ -158,7 +158,7 @@ class CS_GUI_EXPORT WebView {
   template <typename... Args>
   void assertJavaScriptTypes() {
     // Call assertJavaScriptType() for each Arg of Args.
-    int tmp[] = {(assertJavaScriptType<Args>(), 0)...};
+    std::initializer_list<int>{(assertJavaScriptType<Args>(), 0)...};
   }
 
   /// This ensures statically that the given template type is either bool, double, std::string or

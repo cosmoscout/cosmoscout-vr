@@ -219,7 +219,7 @@ void GraphicsEngine::calculateCascades() {
   float              farEnd  = pShadowMapRange.get().y;
   int                count   = pShadowMapCascades.get();
   std::vector<float> splits(count + 1);
-  for (int i(0); i < splits.size(); ++i) {
+  for (size_t i(0); i < splits.size(); ++i) {
     float alpha = (float)(i) / count;
     alpha       = std::pow(alpha, pShadowMapSplitDistribution.get());
     splits[i]   = glm::mix(nearEnd, farEnd, alpha);

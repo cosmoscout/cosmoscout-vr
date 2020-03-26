@@ -110,7 +110,7 @@ void Trajectory::upload(glm::dmat4 const& relativeTransform, double dTime,
     // transform all points to observer centric coordinates
     std::vector<glm::vec4> points(vPoints.size());
 
-    for (int i(0); i < vPoints.size(); ++i) {
+    for (size_t i(0); i < vPoints.size(); ++i) {
       int ringbufferIndex = (i + startIndex) % (int)vPoints.size();
 
       glm::dvec4 const& curr = vPoints[ringbufferIndex];
