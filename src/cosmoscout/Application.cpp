@@ -1073,7 +1073,7 @@ void Application::registerGuiCallbacks() {
 
   // Enables or disables vertical synchronization.
   mGuiManager->getGui()->registerCallback("graphics.setEnableVsync",
-      "Enables or disables vertical synchronization.", std::function([this](bool value) {
+      "Enables or disables vertical synchronization.", std::function([](bool value) {
         GetVistaSystem()
             ->GetDisplayManager()
             ->GetWindows()

@@ -34,7 +34,7 @@ GetSelectionStateNode::GetSelectionStateNode(
 
 bool GetSelectionStateNode::DoEvalNode() {
 
-  const auto updatePort = [this](TVdfnPort<bool>& port, bool newVal) {
+  const auto updatePort = [](TVdfnPort<bool>& port, bool newVal) {
     bool& oldVal = port.GetValueRef();
     if (oldVal != newVal) {
       oldVal = newVal;

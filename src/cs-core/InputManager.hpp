@@ -161,7 +161,6 @@ class CS_CORE_EXPORT InputManager : public VistaKeyboardSystemControl::IVistaDir
   std::unordered_set<VistaNodeAdapter*>                           mAdapters;
   std::unordered_set<std::shared_ptr<utils::IntersectableObject>> mIntersectables;
   std::unordered_set<gui::ScreenSpaceGuiArea*>                    mScreenSpaceGuis;
-  VistaTransformNode*                                             mRayTrans;
   boost::posix_time::ptime                                        mClickTime;
 
   VistaOpenGLNode* mActiveWorldSpaceGuiNode;

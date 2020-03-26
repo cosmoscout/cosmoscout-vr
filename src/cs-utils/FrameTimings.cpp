@@ -87,7 +87,7 @@ FrameTimings::getCalculatedQueryResults() {
 
 FrameTimings::FrameTimings() {
   std::size_t maxNRofTimings = 512;
-  pEnableMeasurements.connect([maxNRofTimings, this](bool enable) {
+  pEnableMeasurements.connect([maxNRofTimings](bool enable) {
     if (enable) {
       s_pTimerQueryPoolInstances[0] = std::make_shared<TimerQueryPool>(maxNRofTimings);
       s_pTimerQueryPoolInstances[1] = std::make_shared<TimerQueryPool>(maxNRofTimings);

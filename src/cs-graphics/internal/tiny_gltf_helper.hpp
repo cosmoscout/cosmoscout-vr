@@ -73,6 +73,8 @@ inline int toGLprimitiveMode(tinygltf::Primitive const& primitive) {
   } else {
     assert(0);
   }
+
+  return 0;
 }
 
 /// Returns the parameter with the given name from the material.
