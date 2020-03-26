@@ -229,20 +229,17 @@ add_definitions(
   -DSPDLOG_DLL_LOCAL_REGISTRY
 )
 
-add_compile_options(
-  $<$<CXX_COMPILER_ID:MSVC>:/EHsc>
-  $<$<CXX_COMPILER_ID:MSVC>:/wd4251>
-
-  # Warns about multiple inheritance problems, which we can't avoid inheriting from ViSTA classes.
-  $<$<CXX_COMPILER_ID:MSVC>:/wd4250>
-)
-
 if (MSVC)
   add_compile_options(
     /experimental:external
-    /external:I ${COSMOSCOUT_EXTERNALS_DIR}/include
+    /external:anglebrackets
     /external:W0
     /W3 /WX
+    /EHsc
+    /wd4251
+
+    # Warns about multiple inheritance problems, which we can't avoid inheriting from ViSTA classes.
+    /wd4250
   )
 endif()
 
