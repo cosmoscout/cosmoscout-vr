@@ -44,7 +44,6 @@ const float MAX_ISO      = 6400;
 const float MIN_SHUTTER  = 1.f / 4000.f;
 const float MAX_SHUTTER  = 1.f / 30.f;
 const float MIN_APERTURE = 1.8f;
-const float MAX_APERTURE = 22.f;
 
 // Given an aperture, shutter speed, and exposure value compute the required ISO value
 float ComputeISO(float aperture, float shutterSpeed, float ev) {

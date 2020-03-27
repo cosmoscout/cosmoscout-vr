@@ -241,6 +241,11 @@ if (MSVC)
     # Warns about multiple inheritance problems, which we can't avoid inheriting from ViSTA classes.
     /wd4250
   )
+else()
+  add_compile_options(
+    -Wall
+    -Werror
+  )
 endif()
 
 set(CMAKE_CXX_STANDARD 17)

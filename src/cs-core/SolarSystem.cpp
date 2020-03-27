@@ -499,11 +499,17 @@ void SolarSystem::printFrames() {
 
 void SolarSystem::init(std::string const& sSpiceMetaFile) {
 
+// Ignore that the SPICE api expects char* instead of cont char*
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wwrite-strings"
+
   // Continue execution on errors.
   erract_c("SET", 0, "RETURN");
 
   // Disable default error reports.
   errdev_c("SET", 0, "NULL");
+
+#pragma GCC diagnostic pop
 
   // Load the spice kernels.
   furnsh_c(sSpiceMetaFile.c_str());

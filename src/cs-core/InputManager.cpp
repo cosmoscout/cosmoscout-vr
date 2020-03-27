@@ -478,7 +478,7 @@ void InputManager::HandleEvent(VistaEvent* pEvent) {
     IVdfnNode const* node(event->GetEventNode());
     std::string      tag;
     if (node->GetUserTag(tag)) {
-      for (int i(0); i < pButtons.size(); ++i) {
+      for (size_t i(0); i < pButtons.size(); ++i) {
         if (tag == "button_0" + std::to_string(i + 1)) {
           auto port(dynamic_cast<TVdfnPort<bool>*>(node->GetInPort("value")));
           pButtons[i] = port->GetValue();

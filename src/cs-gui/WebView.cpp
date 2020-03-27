@@ -341,8 +341,8 @@ void WebView::executeJavascript(std::string const& code) const {
 
 void WebView::registerCallback(
     std::string const& name, std::string const& comment, std::function<void()> const& callback) {
-  registerJSCallbackImpl(name, comment, {},
-      [this, callback](std::vector<std::optional<JSType>> const&) { callback(); });
+  registerJSCallbackImpl(
+      name, comment, {}, [callback](std::vector<std::optional<JSType>> const&) { callback(); });
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -380,7 +380,7 @@ void WebView::registerJSCallbackImpl(std::string const& name, std::string const&
 
   std::unordered_map<std::type_index, int> typeCounts;
 
-  for (int i(0); i < types.size(); ++i) {
+  for (size_t i(0); i < types.size(); ++i) {
     signature += typeNames.at(types[i]);
 
     if (typeCounts[types[i]]++ > 0) {

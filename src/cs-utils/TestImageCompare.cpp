@@ -18,8 +18,8 @@ namespace cs::utils {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 TestImageCompare::TestImageCompare(std::string const& imageName, int32_t frame)
-    : mImageName(imageName)
-    , mCapture("test/" + imageName + ".png", frame) {
+    : mCapture("test/" + imageName + ".png", frame)
+    , mImageName(imageName) {
 
   auto vs = new VistaSystem();
   vs->SetIniSearchPaths({"../share/config/vista"});

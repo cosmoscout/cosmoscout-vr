@@ -73,6 +73,8 @@ inline int toGLprimitiveMode(tinygltf::Primitive const& primitive) {
   } else {
     assert(0);
   }
+
+  return 0;
 }
 
 /// Returns the parameter with the given name from the material.
@@ -93,7 +95,7 @@ auto find_material_parameter(
   } else {
     auto const& parameter = it->second;
     T           value{};
-    for (int i = 0; i < std::min(size_t(value.length()), parameter.number_array.size()); ++i) {
+    for (size_t i = 0; i < std::min(size_t(value.length()), parameter.number_array.size()); ++i) {
       value[i] = static_cast<typename T::value_type>(parameter.number_array[i]);
     }
     return value;

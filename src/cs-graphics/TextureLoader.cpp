@@ -22,50 +22,6 @@ namespace cs::graphics {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace {
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// constexpr GLenum stbi_component_to_format(int component)
-inline GLenum stbi_component_to_format(int component) {
-  switch (component) {
-  case STBI_grey:
-    return GL_RED;
-  case STBI_grey_alpha:
-    return GL_RG;
-  case STBI_rgb:
-    return GL_RGB;
-  case STBI_rgb_alpha:
-    return GL_RGBA;
-  default:
-    return GL_RGB;
-  }
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// constexpr GLint stbi_component_to_internal_format(int component)
-inline GLint stbi_component_to_internal_format(int component) {
-  switch (component) {
-  case STBI_grey:
-    return GL_RED;
-  case STBI_grey_alpha:
-    return GL_RG;
-  case STBI_rgb:
-    return GL_RGB;
-  case STBI_rgb_alpha:
-    return GL_RGBA;
-  default:
-    return GL_RGB;
-  }
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-} // namespace
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 std::unique_ptr<VistaTexture> TextureLoader::loadFromFile(std::string const& sFileName) {
 
   std::string suffix = sFileName.substr(sFileName.rfind('.'));

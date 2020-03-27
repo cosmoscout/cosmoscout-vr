@@ -323,7 +323,7 @@ void Application::FrameUpdate() {
   if (mDownloadedData && !mSolarSystem->getIsInitialized()) {
     try {
       mSolarSystem->init(mSettings->mSpiceKernel);
-    } catch (std::runtime_error e) {
+    } catch (std::runtime_error const& e) {
       spdlog::error("Failed to initialize the SolarSystem: {}", e.what());
       Quit();
     }
@@ -353,7 +353,7 @@ void Application::FrameUpdate() {
       // Calculate the index of the plugin which should be loaded this frame.
       int32_t pluginToLoad = (GetFrameCount() - mStartPluginLoadingAtFrame) / cLoadingDelay - 1;
 
-      if (pluginToLoad >= 0 && pluginToLoad < mPlugins.size()) {
+      if (pluginToLoad >= 0 && pluginToLoad < static_cast<int32_t>(mPlugins.size())) {
 
         // Get an iterator pointing to the plugin handle.
         auto plugin = mPlugins.begin();
@@ -361,7 +361,7 @@ void Application::FrameUpdate() {
 
         initPlugin(plugin->first);
 
-      } else if (pluginToLoad == mPlugins.size()) {
+      } else if (pluginToLoad == static_cast<int32_t>(mPlugins.size())) {
 
         spdlog::info("Ready for Takeoff!");
 
@@ -416,7 +416,7 @@ void Application::FrameUpdate() {
 
       // If there is a plugin going to be loaded after the next cLoadingDelay frames, display its
       // name on the loading screen and update the progress accordingly.
-      if (pluginToLoad + 1 < mPlugins.size()) {
+      if (pluginToLoad + 1 < static_cast<int32_t>(mPlugins.size())) {
         auto plugin = mPlugins.begin();
         std::advance(plugin, pluginToLoad + 1);
         mGuiManager->setLoadingScreenStatus("Loading " + plugin->first + " ...");
@@ -1073,7 +1073,7 @@ void Application::registerGuiCallbacks() {
 
   // Enables or disables vertical synchronization.
   mGuiManager->getGui()->registerCallback("graphics.setEnableVsync",
-      "Enables or disables vertical synchronization.", std::function([this](bool value) {
+      "Enables or disables vertical synchronization.", std::function([](bool value) {
         GetVistaSystem()
             ->GetDisplayManager()
             ->GetWindows()

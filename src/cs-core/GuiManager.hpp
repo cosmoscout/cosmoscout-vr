@@ -187,11 +187,6 @@ class CS_CORE_EXPORT GuiManager {
   // The local GUI is drawn in screen-space.
   VistaTransformNode* mLocalGuiTransform  = nullptr;
   VistaOpenGLNode*    mLocalGuiOpenGLnode = nullptr;
-
-  int   mGuiWidth = 1920, mGuiHeight = 1080;
-  float mGuiScaleX = 1.6f, mGuiScaleY = 0.9f;
-  float mGuiPosX = 0.f, mGuiPosY = 0.f, mGuiPosZ = 0.f;
-  float mGuiRotX = 0.f, mGuiRotY = 0.f, mGuiRotZ = 0.f;
 };
 
 } // namespace cs::core

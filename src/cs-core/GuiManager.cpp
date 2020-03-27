@@ -126,7 +126,7 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
   mCosmoScoutGui->setRelSizeY(1.f);
   mCosmoScoutGui->setRelPositionX(0.5f);
   mCosmoScoutGui->setRelPositionY(0.5f);
-  mCosmoScoutGui->setCursorChangeCallback([this](gui::Cursor c) { setCursor(c); });
+  mCosmoScoutGui->setCursorChangeCallback([](gui::Cursor c) { setCursor(c); });
 
   // Configure the positioning and attributes of the statistics.
   mStatistics->setSizeX(600);
