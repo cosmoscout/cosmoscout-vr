@@ -10,6 +10,7 @@
 
 #include "../cs-utils/FrameTimings.hpp"
 #include "../cs-utils/convert.hpp"
+#include "../cs-utils/utils.hpp"
 #include "GraphicsEngine.hpp"
 #include "Settings.hpp"
 #include "TimeControl.hpp"
@@ -499,9 +500,9 @@ void SolarSystem::printFrames() {
 
 void SolarSystem::init(std::string const& sSpiceMetaFile) {
 
-// Ignore that the SPICE api expects char* instead of cont char*
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wwrite-strings"
+  // Ignore that the SPICE api expects char* instead of cont char*
+  CS_WARNING_PUSH
+  CS_DISABLE_GCC_WARNING("-Wwrite-strings")
 
   // Continue execution on errors.
   erract_c("SET", 0, "RETURN");
@@ -509,7 +510,7 @@ void SolarSystem::init(std::string const& sSpiceMetaFile) {
   // Disable default error reports.
   errdev_c("SET", 0, "NULL");
 
-#pragma GCC diagnostic pop
+  CS_WARNING_POP
 
   // Load the spice kernels.
   furnsh_c(sSpiceMetaFile.c_str());

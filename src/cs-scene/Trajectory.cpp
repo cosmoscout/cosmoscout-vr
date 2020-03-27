@@ -198,7 +198,7 @@ bool Trajectory::Do() {
 
     glLineWidth(mWidth);
 
-    int amountNoDepth = mPointCount / 2;
+    uint32_t amountNoDepth = mPointCount / 2;
 
     glDepthMask(GL_FALSE);
     glDrawArrays(GL_LINE_STRIP, 0, amountNoDepth + 1);
