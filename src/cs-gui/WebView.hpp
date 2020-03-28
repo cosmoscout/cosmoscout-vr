@@ -157,11 +157,11 @@ class CS_GUI_EXPORT WebView {
   /// std::string&&.
   template <typename... Args>
   static constexpr void assertJavaScriptTypes() {
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-value"
+    CS_WARNINGS_PUSH
+    CS_DISABLE_GCC_WARNING("-Wunused-value")
     // Call assertJavaScriptType() for each Arg of Args.
     std::initializer_list<int>{(assertJavaScriptType<Args>(), 0)...};
-#pragma GCC diagnostic pop
+    CS_WARNINGS_POP
   }
 
   /// This ensures statically that the given template type is either bool, double, std::string or

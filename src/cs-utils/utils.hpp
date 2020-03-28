@@ -18,6 +18,20 @@
 #include <unordered_map>
 #include <vector>
 
+/// These macros can be used to selectively disable specific gcc / clang or msvc warnings.
+#if defined(__clang__) || defined(__GNUC__)
+#define CS_DO_PRAGMA(X) _Pragma(#X)
+#define CS_WARNINGS_PUSH _Pragma("GCC diagnostic push")
+#define CS_WARNINGS_POP _Pragma("GCC diagnostic pop")
+#define CS_DISABLE_GCC_WARNING(warningName) CS_DO_PRAGMA(GCC diagnostic ignored warningName)
+#define CS_DISABLE_MSVC_WARNING(warningNumber)
+#elif defined(_MSC_VER)
+#define CS_WARNINGS_PUSH __pragma(warning(push))
+#define CS_WARNINGS_POP __pragma(warning(pop))
+#define CS_DISABLE_MSVC_WARNING(warningNumber) __pragma(warning(disable : warningNumber))
+#define CS_DISABLE_GCC_WARNING(warningName)
+#endif
+
 /// Utility functions for all sorts of stuff.
 namespace cs::utils {
 
