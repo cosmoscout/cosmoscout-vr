@@ -33,12 +33,11 @@ namespace cs::core {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-GuiManager::GuiManager(std::shared_ptr<Settings> const& settings,
-    std::shared_ptr<InputManager> const&                pInputManager,
-    std::shared_ptr<utils::FrameTimings> const&         pFrameTimings)
-    : mInputManager(pInputManager)
-    , mSettings(settings)
-    , mFrameTimings(pFrameTimings) {
+GuiManager::GuiManager(std::shared_ptr<Settings> settings,
+    std::shared_ptr<InputManager> pInputManager, std::shared_ptr<utils::FrameTimings> pFrameTimings)
+    : mInputManager(std::move(pInputManager))
+    , mSettings(std::move(settings))
+    , mFrameTimings(std::move(pFrameTimings)) {
 
   // Tell the user what's going on.
   spdlog::debug("Creating GuiManager.");
@@ -64,8 +63,8 @@ GuiManager::GuiManager(std::shared_ptr<Settings> const& settings,
                         ->GetPlatformNode();
     mGlobalGuiTransform = pSG->NewTransformNode(platform);
 
-    mGlobalGuiTransform->Scale((float)mSettings->mGuiPosition->mWidthMeter,
-        (float)mSettings->mGuiPosition->mHeightMeter, 1.0);
+    mGlobalGuiTransform->Scale(static_cast<float>(mSettings->mGuiPosition->mWidthMeter),
+        static_cast<float>(mSettings->mGuiPosition->mHeightMeter), 1.0f);
     mGlobalGuiTransform->Rotate(
         VistaAxisAndAngle(VistaVector3D(1, 0, 0), (float)mSettings->mGuiPosition->mRotX));
     mGlobalGuiTransform->Rotate(

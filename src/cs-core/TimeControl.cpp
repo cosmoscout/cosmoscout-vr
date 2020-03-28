@@ -16,10 +16,10 @@ namespace cs::core {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-TimeControl::TimeControl(std::shared_ptr<core::Settings> const& settings)
-    : mSettings(settings) {
+TimeControl::TimeControl(std::shared_ptr<core::Settings> settings)
+    : mSettings(std::move(settings)) {
 
-  // Update the mStartDate in the settings. If the current simulation time iffers less than one
+  // Update the mStartDate in the settings. If the current simulation time differs less than one
   // minute from the current system time, we write "today", else the actual simulation date.
   mSettings->onSave().connect([this]() {
     auto now = utils::convert::toSpiceTime(boost::posix_time::microsec_clock::universal_time());
@@ -40,7 +40,7 @@ TimeControl::TimeControl(std::shared_ptr<core::Settings> const& settings)
         setTime(
             utils::convert::toSpiceTime(boost::posix_time::time_from_string(mSettings->mStartDate)),
             5.0);
-      } catch (std::exception const& e) {
+      } catch (std::exception const&) {
         throw std::runtime_error("Could not parse the 'startDate' setting. It should either be "
                                  "'today' or in the format '1969-07-20 20:17:40.000'.");
       }
@@ -81,7 +81,7 @@ void TimeControl::update() {
       try {
         setTime(utils::convert::toSpiceTime(
             boost::posix_time::time_from_string(mSettings->mStartDate)));
-      } catch (std::exception const& e) {
+      } catch (std::exception const&) {
         throw std::runtime_error("Could not parse the 'startDate' setting. It should either be "
                                  "'today' or in the format '1969-07-20 20:17:40.000'.");
       }
@@ -146,7 +146,7 @@ void TimeControl::resetTime(double duration, double threshold) {
       setTime(
           utils::convert::toSpiceTime(boost::posix_time::time_from_string(mSettings->mResetDate)),
           duration, threshold);
-    } catch (std::exception const& e) {
+    } catch (std::exception const&) {
       throw std::runtime_error("Could not parse the 'resetDate' setting. It should either be "
                                "'today' or in the format '1969-07-20 20:17:40.000'.");
     }

@@ -98,7 +98,7 @@ int main(int argc, char** argv) {
   auto settings = std::make_shared<cs::core::Settings>();
   try {
     settings->read(settingsFile);
-  } catch (std::exception& e) {
+  } catch (std::exception const& e) {
     spdlog::error("Failed to read settings: {}", e.what());
     return 1;
   }

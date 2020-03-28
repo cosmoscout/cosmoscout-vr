@@ -145,7 +145,7 @@ bool Application::Init(VistaSystem* pVistaSystem) {
   });
 
   mSettings->pSpiceKernel.connect(
-      [](auto) { spdlog::warn("Reloading the SPICE kernals at runtime is not yet supported!"); });
+      [](auto) { spdlog::warn("Reloading the SPICE kernels at runtime is not yet supported!"); });
 
   mGuiManager->enableLoadingScreen(true);
 
@@ -275,7 +275,7 @@ void Application::FrameUpdate() {
 
   // loading and saving ----------------------------------------------------------------------------
 
-  if (mSettingsToWrite != "") {
+  if (!mSettingsToWrite.empty()) {
     try {
       mSettings->write(mSettingsToWrite);
     } catch (std::exception const& e) {
@@ -284,7 +284,7 @@ void Application::FrameUpdate() {
     mSettingsToWrite = "";
   }
 
-  if (mSettingsToRead != "") {
+  if (!mSettingsToRead.empty()) {
     try {
       mSettings->read(mSettingsToRead);
     } catch (std::exception const& e) {
@@ -336,7 +336,7 @@ void Application::FrameUpdate() {
   if (mDownloadedData && !mSolarSystem->getIsInitialized()) {
     try {
       mSolarSystem->init(mSettings->pSpiceKernel.get());
-    } catch (std::runtime_error e) {
+    } catch (std::runtime_error const& e) {
       spdlog::error("Failed to initialize the SolarSystem: {}", e.what());
       Quit();
     }

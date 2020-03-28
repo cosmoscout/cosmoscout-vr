@@ -28,7 +28,7 @@ class CS_CORE_EXPORT TimeControl {
   /// The current speed of the simulation.
   utils::Property<float> pTimeSpeed = 1.f;
 
-  TimeControl(std::shared_ptr<Settings> const& settings);
+  TimeControl(std::shared_ptr<Settings> settings);
   ~TimeControl();
 
   /// Updates the simulation time based on the current time speed. This is called once a frame by

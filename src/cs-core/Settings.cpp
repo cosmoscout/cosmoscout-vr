@@ -287,7 +287,7 @@ void Settings::read(std::string const& fileName) {
   std::ifstream i(fileName);
 
   if (!i) {
-    throw std::runtime_error("Cannot open file!");
+    throw std::runtime_error("Cannot open file: '" + fileName + "'!");
   }
 
   nlohmann::json settings;
@@ -308,7 +308,7 @@ void Settings::write(std::string const& fileName) const {
   std::ofstream o(fileName);
 
   if (!o) {
-    throw std::runtime_error("Cannot open file!");
+    throw std::runtime_error("Cannot open file: '" + fileName + "'!");
   }
 
   nlohmann::json settings = *this;

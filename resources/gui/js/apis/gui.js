@@ -297,7 +297,7 @@ class GuiApi extends IApi {
   }
 
   /**
-   * Togglw the class hidden on the given element.
+   * Toggle the class hidden on the given element.
    *
    * @param element {string|HTMLElement} Element or selector
    * @param element {string|HTMLElement} Element or ID
@@ -316,7 +316,7 @@ class GuiApi extends IApi {
         element.classList.remove('hidden');
       }
     } else {
-      console.warn('Element could not be shown / hidden.');
+      console.warn('Element could not be shown / hidden!');
     }
   }
 

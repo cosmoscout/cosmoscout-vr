@@ -15,11 +15,11 @@ namespace cs::utils {
 
 /// A Property encapsulates a value and may inform you on any changes applied to this value. This
 /// DefaultProperty stores an additional constant default value. There are methods to check whether
-/// the DefaultValue is in the default state and it can be restted to the default state.
+/// the DefaultValue is in the default state and it can be resetted to the default state.
 template <typename T>
 class DefaultProperty : public Property<T> {
  public:
-  /// There is no default constructore as a default value has to be given at construction time.
+  /// There is no default constructor, as a default value has to be given at construction time.
   DefaultProperty(T const& val)
       : Property<T>(val)
       , mDefaultValue(val) {
@@ -35,7 +35,7 @@ class DefaultProperty : public Property<T> {
       , mDefaultValue(other.mDefaultValue) {
   }
 
-  /// Returns true is the current value of the Property equals the default state.
+  /// Returns true if the current value of the Property equals to the default state.
   bool isDefault() const {
     return Property<T>::get() == mDefaultValue;
   }

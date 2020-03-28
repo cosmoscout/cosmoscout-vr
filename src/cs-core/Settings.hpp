@@ -91,7 +91,7 @@ namespace cs::core {
 ///                     currently set to std::nullopt.
 /// Property<T>:        This is a mandatory element; omitting it in the JSON file will lead to an
 ///                     error. You can connect to the onChange() signal in order to be notified when
-///                     the value changes. This, for example, could be caused by by modifing a
+///                     the value changes. This, for example, could be caused by modifing a
 ///                     corresponding widget in the user interface or by reloading the settings.
 /// DefaultProperty<T>: Similar to the Property<T> but not mandatory. When reading from file, it
 ///                     will be set to its default state if it's not present in the file. On save,
@@ -115,7 +115,7 @@ class CS_CORE_EXPORT Settings {
   /// be emitted.
   void read(std::string const& fileName);
 
-  /// Writes the current settings to a JSON file. Before the state is written to file, the on Save
+  /// Writes the current settings to a JSON file. Before the state is written to file, the onSave
   /// signal will be emitted.
   void write(std::string const& fileName) const;
 
@@ -130,7 +130,7 @@ class CS_CORE_EXPORT Settings {
   /// the format "1950-01-02 00:00:00.000".
   std::string mResetDate;
 
-  /// Defines the min and max Date on the timebar. Changing these values will be directly reflected
+  /// Defines the min and max date on the timebar. Changing these values will be directly reflected
   /// in the user interface. Should be in the format "1950-01-02 00:00:00.000".
   utils::Property<std::string> pMinDate;
   utils::Property<std::string> pMaxDate;
@@ -316,7 +316,7 @@ class CS_CORE_EXPORT Settings {
     /// The number of shadow map cascades.
     utils::DefaultProperty<int> pShadowMapCascades{3};
 
-    /// An parameter to control shadow acne. Hight values lead to a less accurate shadow but also to
+    /// A parameter to control shadow acne. Hight values lead to a less accurate shadow but also to
     /// less artifacts.
     utils::DefaultProperty<float> pShadowMapBias{1.0f};
 

@@ -25,8 +25,8 @@ namespace cs::core {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-GraphicsEngine::GraphicsEngine(std::shared_ptr<core::Settings> const& settings)
-    : mSettings(settings)
+GraphicsEngine::GraphicsEngine(std::shared_ptr<core::Settings> settings)
+    : mSettings(std::move(settings))
     , mShadowMap(std::make_shared<graphics::ShadowMap>()) {
 
   // Tell the user what's going on.
@@ -39,7 +39,7 @@ GraphicsEngine::GraphicsEngine(std::shared_ptr<core::Settings> const& settings)
   // setup shadows ---------------------------------------------------------------------------------
 
   mShadowMap->setEnabled(false);
-  mShadowMap->setResolution((uint32_t)mSettings->mGraphics.pShadowMapResolution.get());
+  mShadowMap->setResolution(static_cast<uint32_t>(mSettings->mGraphics.pShadowMapResolution.get()));
   mShadowMap->setBias(mSettings->mGraphics.pShadowMapBias.get() * 0.0001f);
   pSG->NewOpenGLNode(pSG->GetRoot(), mShadowMap.get());
 
