@@ -13,6 +13,10 @@
 #include <limits>
 #include <memory>
 
+#if defined(_WIN32) && defined(max)
+#undef max
+#endif
+
 class VistaOpenGLNode;
 
 namespace cs::scene {

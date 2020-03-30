@@ -222,7 +222,8 @@ class StatusbarApi extends IApi {
 
               this._suggestionField.insertAdjacentHTML("beforeend", `<span class='${classNames}'
                        onclick='CosmoScout.statusbar._setCompletion(${prefixBegin}, ${prefixEnd}, 
-                                                              ${finalCursorPos}, "${completion}");'>
+                                                              ${finalCursorPos}, "${
+                                                                        completion}");'>
                        ${element}
                 </span>`);
               this._enableSuggestionArea(true);

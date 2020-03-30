@@ -51,7 +51,7 @@ class CS_GUI_EXPORT WorldSpaceGuiArea : public GuiArea, public IVistaOpenGLDraw 
 
   /// Draws the GuiElements to the screen.
   bool Do() override;
-  bool GetBoundingBox(VistaBoundingBox& bb) override;
+  bool GetBoundingBox(VistaBoundingBox& oBoundingBox) override;
 
  private:
   VistaGLSLShader* mShader               = nullptr;

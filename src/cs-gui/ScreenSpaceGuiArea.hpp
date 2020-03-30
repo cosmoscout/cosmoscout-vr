@@ -40,7 +40,7 @@ class CS_GUI_EXPORT ScreenSpaceGuiArea : public GuiArea,
 
   /// Draws the UI to screen.
   bool Do() override;
-  bool GetBoundingBox(VistaBoundingBox& bb) override;
+  bool GetBoundingBox(VistaBoundingBox& oBoundingBox) override;
 
   /// Handles changes to the screen size.
   void ObserverUpdate(IVistaObserveable* pObserveable, int nMsg, int nTicket) override;

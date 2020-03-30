@@ -70,7 +70,7 @@ void HDRBuffer::bind() {
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
       glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, hdrBuffer.mWidth, hdrBuffer.mHeight, 0, format,
-          type, 0);
+          type, nullptr);
       hdrBuffer.mFBO->Attach(texture, attachment);
     };
 
@@ -198,18 +198,18 @@ HDRBuffer::HDRBufferData const& HDRBuffer::getCurrentHDRBuffer() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::array<int, 2> HDRBuffer::getCurrentViewPortSize() const {
+std::array<int, 2> HDRBuffer::getCurrentViewPortSize() {
   auto viewport = GetVistaSystem()->GetDisplayManager()->GetCurrentRenderInfo()->m_pViewport;
-  std::array<int, 2> size;
+  std::array<int, 2> size{};
   viewport->GetViewportProperties()->GetSize(size[0], size[1]);
   return size;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::array<int, 2> HDRBuffer::getCurrentViewPortPos() const {
+std::array<int, 2> HDRBuffer::getCurrentViewPortPos() {
   auto viewport = GetVistaSystem()->GetDisplayManager()->GetCurrentRenderInfo()->m_pViewport;
-  std::array<int, 2> pos;
+  std::array<int, 2> pos{};
   viewport->GetViewportProperties()->GetPosition(pos[0], pos[1]);
   return pos;
 }

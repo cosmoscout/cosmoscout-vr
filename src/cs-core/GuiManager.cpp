@@ -28,16 +28,16 @@
 #include <VistaKernelOpenSGExt/VistaOpenSGMaterialTools.h>
 #include <fstream>
 #include <spdlog/spdlog.h>
+#include <utility>
 
 namespace cs::core {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
-    std::shared_ptr<InputManager> const&                      pInputManager,
-    std::shared_ptr<utils::FrameTimings> const&               pFrameTimings)
-    : mInputManager(pInputManager)
-    , mFrameTimings(pFrameTimings) {
+    std::shared_ptr<InputManager> pInputManager, std::shared_ptr<utils::FrameTimings> pFrameTimings)
+    : mInputManager(std::move(pInputManager))
+    , mFrameTimings(std::move(pFrameTimings)) {
 
   // Tell the user what's going on.
   spdlog::debug("Creating GuiManager.");
@@ -148,9 +148,9 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
 
   if (CS_GIT_BRANCH == "HEAD") {
     version += " (@" + CS_GIT_COMMIT_HASH + ")";
-  } else if (CS_GIT_BRANCH != "") {
+  } else if (!CS_GIT_BRANCH.empty()) {
     version += " (" + CS_GIT_BRANCH;
-    if (CS_GIT_COMMIT_HASH != "") {
+    if (!CS_GIT_COMMIT_HASH.empty()) {
       version += " @" + CS_GIT_COMMIT_HASH;
     }
     version += ")";
@@ -163,8 +163,8 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
       "CosmoScout.timeline.setTimelineRange", settings->mMinDate, settings->mMaxDate);
 
   for (const auto& mEvent : settings->mEvents) {
-    std::string planet = "";
-    std::string place  = "";
+    std::string planet;
+    std::string place;
     if (mEvent.mLocation.has_value()) {
       planet = mEvent.mLocation.value().mPlanet;
       place  = mEvent.mLocation.value().mPlace;
@@ -397,9 +397,10 @@ void GuiManager::addCssToGui(const std::string& fileName) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GuiManager::addEventToTimenavigationBar(std::string start, std::optional<std::string> end,
-    std::string id, std::string content, std::optional<std::string> style, std::string description,
-    std::string planet, std::string place) {
+void GuiManager::addEventToTimenavigationBar(const std::string& start,
+    const std::optional<std::string>& end, const std::string& id, const std::string& content,
+    const std::optional<std::string>& style, const std::string& description,
+    const std::string& planet, const std::string& place) {
   mCosmoScoutGui->callJavascript("CosmoScout.timeline.addItem", start, end.value_or(""), id,
       content, style.value_or(""), description, planet, place);
 }

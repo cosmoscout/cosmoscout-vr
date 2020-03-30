@@ -81,8 +81,8 @@ class CS_GUI_EXPORT GuiItem : public WebView {
   uint8_t* updateTexture(DrawEvent const& event);
   void     updateSizes();
 
-  uint32_t mTextureBuffer;
-  uint32_t mTexture;
+  uint32_t mTextureBuffer{};
+  uint32_t mTexture{};
   uint8_t* mBufferData = nullptr;
 
   // in pixels

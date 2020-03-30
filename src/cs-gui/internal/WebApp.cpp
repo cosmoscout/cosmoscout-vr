@@ -12,7 +12,7 @@ namespace cs::gui::detail {
 
 WebApp::WebApp(int argc, char* argv[], bool hardware_accelerated)
 #ifdef _WIN32
-    : mArgs(GetModuleHandleW(NULL))
+    : mArgs(GetModuleHandleW(nullptr))
 #else
     : mArgs(argc, argv)
 #endif

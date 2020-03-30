@@ -20,7 +20,7 @@ namespace cs::scene {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const std::string Trajectory::SHADER_VERT = R"(
+static const std::string SHADER_VERT = R"(
 #version 330
 
 // inputs
@@ -55,7 +55,7 @@ void main()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const std::string Trajectory::SHADER_FRAG = R"(
+static const std::string SHADER_FRAG = R"(
 #version 330
 
 // inputs

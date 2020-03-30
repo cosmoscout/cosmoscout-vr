@@ -26,7 +26,7 @@ void Downloader::download(std::string const& url, std::string const& file) {
 
   std::unique_lock<std::mutex> lock(mProgressMutex);
   size_t                       progressIndex = mProgress.size();
-  mProgress.push_back({0.0, 0.0});
+  mProgress.emplace_back(0.0, 0.0);
 
   // We download to a file with a .part suffix. Once the download is done, we will remove the
   // suffix.

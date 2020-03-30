@@ -25,7 +25,7 @@ CommandLine::CommandLine(std::string description)
 void CommandLine::addArgument(
     std::vector<std::string> const& flags, Value value, std::string const& help) {
 
-  mArguments.emplace_back(Argument{flags, std::move(value), help});
+  mArguments.emplace_back(Argument{flags, value, help});
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

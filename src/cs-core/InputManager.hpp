@@ -163,7 +163,7 @@ class CS_CORE_EXPORT InputManager : public VistaKeyboardSystemControl::IVistaDir
   std::unordered_set<gui::ScreenSpaceGuiArea*>                    mScreenSpaceGuis;
   boost::posix_time::ptime                                        mClickTime;
 
-  VistaOpenGLNode* mActiveWorldSpaceGuiNode;
+  VistaOpenGLNode* mActiveWorldSpaceGuiNode{};
 };
 
 } // namespace cs::core

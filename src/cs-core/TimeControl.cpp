@@ -12,12 +12,14 @@
 #include <VistaKernel/VistaSystem.h>
 #include <spdlog/spdlog.h>
 
+#include <utility>
+
 namespace cs::core {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-TimeControl::TimeControl(std::shared_ptr<const core::Settings> const& settings)
-    : mSettings(settings) {
+TimeControl::TimeControl(std::shared_ptr<const core::Settings> settings)
+    : mSettings(std::move(settings)) {
 
   // Tell the user what's going on.
   spdlog::debug("Creating TimeControl.");
@@ -35,7 +37,7 @@ TimeControl::~TimeControl() {
 void TimeControl::update() {
   // Initialize our members. This has to be done here as SPICE is not yet loaded at construction
   // time.
-  if (mStartDate == "") {
+  if (mStartDate.empty()) {
     mStartDate = mSettings->mStartDate;
     mMaxDate =
         utils::convert::toSpiceTime(boost::posix_time::time_from_string(mSettings->mMaxDate));

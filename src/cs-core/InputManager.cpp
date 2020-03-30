@@ -185,7 +185,7 @@ void InputManager::unregisterSelectable(IVistaNode* pNode) {
 
   // If its an OpenGLNode, it may be a gui element.
   if (pOGLNode) {
-    gui::WorldSpaceGuiArea* area = dynamic_cast<gui::WorldSpaceGuiArea*>(pOGLNode->GetExtension());
+    auto* area = dynamic_cast<gui::WorldSpaceGuiArea*>(pOGLNode->GetExtension());
     if (area) {
       if (utils::contains(area->getItems(), pHoveredGuiItem.get())) {
         pHoveredGuiItem = nullptr;
@@ -322,8 +322,7 @@ void InputManager::update() {
   if (pActiveGuiItem.get()) {
     VistaTransformMatrix matTransform;
     mActiveWorldSpaceGuiNode->GetParentWorldTransform(matTransform);
-    gui::WorldSpaceGuiArea* area =
-        dynamic_cast<gui::WorldSpaceGuiArea*>(mActiveWorldSpaceGuiNode->GetExtension());
+    auto* area = dynamic_cast<gui::WorldSpaceGuiArea*>(mActiveWorldSpaceGuiNode->GetExtension());
 
     // We scale the gui element's transform matrix so that the translation magnitude becomes 1.f.
     // This is not strictly necessary but reduces precision issues in the inversion of the matrix.

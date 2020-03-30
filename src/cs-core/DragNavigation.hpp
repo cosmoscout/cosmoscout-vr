@@ -33,9 +33,9 @@ class SolarSystem;
 /// mouse interaction as well as the flystick and HTC-Vive interaction.
 class CS_CORE_EXPORT DragNavigation {
  public:
-  DragNavigation(std::shared_ptr<cs::core::SolarSystem> const& pSolarSystem,
-      std::shared_ptr<cs::core::InputManager> const&           pInputManager,
-      std::shared_ptr<cs::core::TimeControl> const&            pTimeControl);
+  DragNavigation(std::shared_ptr<cs::core::SolarSystem> pSolarSystem,
+      std::shared_ptr<cs::core::InputManager>           pInputManager,
+      std::shared_ptr<cs::core::TimeControl>            pTimeControl);
 
   ~DragNavigation() = default;
 

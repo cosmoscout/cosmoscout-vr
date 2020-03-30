@@ -29,7 +29,7 @@ WebView::WebView(const std::string& url, int width, int height, bool allowLocalF
   CefWindowInfo info;
   info.width  = width;
   info.height = height;
-  info.SetAsWindowless(0);
+  info.SetAsWindowless(nullptr);
 
   CefBrowserSettings browserSettings;
   browserSettings.windowless_frame_rate = 60;
@@ -369,7 +369,7 @@ void WebView::registerJSCallbackImpl(std::string const& name, std::string const&
 
   // To increase the readability of the callback signature when inspected via an interactive
   // console, we name every argument depending on its type.
-  std::string signature = "";
+  std::string signature;
 
   const std::unordered_map<std::type_index, std::string> typeNames = {
       {std::type_index(typeid(double)), "double"}, {std::type_index(typeid(bool)), "bool"},
@@ -394,7 +394,7 @@ void WebView::registerJSCallbackImpl(std::string const& name, std::string const&
 
   // When executing the 'window.callNative()' method, we need the callback's name as first
   // parameter.
-  std::string callSignature = "'" + name + "'" + (signature == "" ? "" : ", " + signature);
+  std::string callSignature = "'" + name + "'" + (signature.empty() ? "" : ", " + signature);
 
   // Format the comment. This is a bit more involved since we do line wrapping for long comments.
   std::string formattedComment = "  // ";

@@ -15,7 +15,7 @@ namespace cs::graphics {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const std::string LuminanceMipMap::sComputeAverage = R"(
+static const std::string sComputeAverage = R"(
   #version 430
   
   layout (local_size_x = 16, local_size_y = 16) in;
@@ -163,7 +163,7 @@ void LuminanceMipMap::update(VistaTexture* hdrBufferComposite) {
 
   // Map the pixel buffer object and read the two values.
   if (mDataAvailable) {
-    float* data           = (float*)glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
+    auto* data            = (float*)glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
     mLastTotalLuminance   = data[0];
     mLastMaximumLuminance = data[1];
     glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
@@ -210,7 +210,7 @@ void LuminanceMipMap::update(VistaTexture* hdrBufferComposite) {
 
   // Copy the top mipmap level to the PBO for readback in the next frame.
   Bind();
-  glGetTexImage(GL_TEXTURE_2D, mMaxLevels - 1, GL_RG, GL_FLOAT, 0);
+  glGetTexImage(GL_TEXTURE_2D, mMaxLevels - 1, GL_RG, GL_FLOAT, nullptr);
   Unbind();
   glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 

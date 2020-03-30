@@ -14,6 +14,7 @@
 #include <VistaKernel/GraphicsManager/VistaSceneGraph.h>
 #include <VistaKernel/VistaSystem.h>
 #include <glm/gtx/io.hpp>
+#include <utility>
 
 namespace {
 
@@ -54,12 +55,12 @@ namespace cs::core {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-DragNavigation::DragNavigation(std::shared_ptr<cs::core::SolarSystem> const& pSolarSystem,
-    std::shared_ptr<cs::core::InputManager> const&                           pInputManager,
-    std::shared_ptr<cs::core::TimeControl> const&                            pTimeControl)
-    : mSolarSystem(pSolarSystem)
-    , mInputManager(pInputManager)
-    , mTimeControl(pTimeControl)
+DragNavigation::DragNavigation(std::shared_ptr<cs::core::SolarSystem> pSolarSystem,
+    std::shared_ptr<cs::core::InputManager>                           pInputManager,
+    std::shared_ptr<cs::core::TimeControl>                            pTimeControl)
+    : mSolarSystem(std::move(pSolarSystem))
+    , mInputManager(std::move(pInputManager))
+    , mTimeControl(std::move(pTimeControl))
 
 {
   mSelectionTrans = dynamic_cast<VistaTransformNode*>(

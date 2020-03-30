@@ -68,8 +68,8 @@ class CS_CORE_EXPORT GraphicsEngine {
   std::shared_ptr<graphics::ShadowMap> getShadowMap() const;
   std::shared_ptr<graphics::HDRBuffer> getHDRBuffer() const;
 
-  void enableGLDebug(bool onlyErrors = true);
-  void disableGLDebug();
+  static void enableGLDebug(bool onlyErrors = true);
+  static void disableGLDebug();
 
  private:
   void calculateCascades();

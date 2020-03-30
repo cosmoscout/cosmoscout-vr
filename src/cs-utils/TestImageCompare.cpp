@@ -13,6 +13,8 @@
 #include <VistaKernel/VistaFrameLoop.h>
 #include <VistaKernel/VistaSystem.h>
 
+#include <utility>
+
 namespace cs::utils {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -74,8 +76,8 @@ float TestImageCompare::doComparison() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-TestImageCompare::FrameCapture::FrameCapture(std::string const& fileName, int32_t frame)
-    : mFileName(fileName)
+TestImageCompare::FrameCapture::FrameCapture(std::string fileName, int32_t frame)
+    : mFileName(std::move(fileName))
     , mFrame(frame) {
 }
 

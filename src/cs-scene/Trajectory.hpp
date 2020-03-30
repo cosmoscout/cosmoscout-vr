@@ -84,9 +84,6 @@ class CS_SCENE_EXPORT Trajectory : public IVistaOpenGLDraw {
   bool mUseLinearDepthBuffer = false;
 
   uint32_t mPointCount;
-
-  static const std::string SHADER_VERT;
-  static const std::string SHADER_FRAG;
 };
 } // namespace cs::scene
 

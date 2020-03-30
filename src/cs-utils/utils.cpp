@@ -125,7 +125,7 @@ float getCurrentFarClipDistance() {
 #endif
 
 std::string exec(std::string const& cmd) {
-  std::array<char, 128>                      buffer;
+  std::array<char, 128>                      buffer{};
   std::string                                result;
   std::unique_ptr<FILE, decltype(&CS_CLOSE)> pipe(CS_POPEN(cmd.c_str(), "r"), CS_CLOSE);
   if (!pipe) {

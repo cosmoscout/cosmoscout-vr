@@ -59,8 +59,8 @@ class InputManager;
 class CS_CORE_EXPORT GuiManager {
  public:
   GuiManager(std::shared_ptr<const Settings> const& settings,
-      std::shared_ptr<InputManager> const&          pInputManager,
-      std::shared_ptr<utils::FrameTimings> const&   pFrameTimings);
+      std::shared_ptr<InputManager>                 pInputManager,
+      std::shared_ptr<utils::FrameTimings>          pFrameTimings);
   virtual ~GuiManager();
 
   /// Set the cursor icon. This is usually used in the following way:
@@ -141,9 +141,9 @@ class CS_CORE_EXPORT GuiManager {
   /// @param description The description of the event.
   /// @param planet Planet the event is happening on.
   /// @parama place The location on the planet.
-  void addEventToTimenavigationBar(std::string start, std::optional<std::string> end,
-      std::string id, std::string content, std::optional<std::string> style,
-      std::string description, std::string planet, std::string place);
+  void addEventToTimenavigationBar(const std::string& start, const std::optional<std::string>& end,
+      const std::string& id, const std::string& content, const std::optional<std::string>& style,
+      const std::string& description, const std::string& planet, const std::string& place);
 
   /// Returns the CosmoScout Gui.
   gui::GuiItem* getGui() const;

@@ -9,6 +9,7 @@
 #include <GL/glew.h>
 #include <spdlog/spdlog.h>
 #include <thread>
+#include <utility>
 
 namespace cs::utils {
 
@@ -22,8 +23,8 @@ std::string                                    s_sLastRangeKey;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-FrameTimings::ScopedTimer::ScopedTimer(std::string const& name, QueryMode mode)
-    : mName(name) {
+FrameTimings::ScopedTimer::ScopedTimer(std::string name, QueryMode mode)
+    : mName(std::move(name)) {
   FrameTimings::start(mName, mode);
 }
 
@@ -61,7 +62,7 @@ void FrameTimings::end() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::unordered_map<std::string, FrameTimings::QueryResult>
-FrameTimings::getCalculatedQueryResults() {
+FrameTimings::getCalculatedQueryResults() const {
   std::unordered_map<std::string, QueryResult> result;
 
   if (!s_pTimerQueryPoolInstances[s_iCurrentInstance]) {
@@ -122,7 +123,7 @@ void FrameTimings::endFullFrameTiming() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void FrameTimings::update() {
+void FrameTimings::update() const {
   s_iCurrentInstance = (s_iCurrentInstance + 1) % 2;
 
   if (!s_pTimerQueryPoolInstances[s_iCurrentInstance]) {

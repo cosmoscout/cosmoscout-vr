@@ -9,6 +9,7 @@
 #include <VistaBase/VistaStreamUtils.h>
 #include <spdlog/sinks/base_sink.h>
 #include <sstream>
+#include <utility>
 
 namespace cs::utils::logger {
 
@@ -18,8 +19,8 @@ namespace {
 template <spdlog::level::level_enum level>
 class SpdlogBuffer : public std::streambuf {
  public:
-  SpdlogBuffer(std::shared_ptr<spdlog::logger> const& logger)
-      : mLogger(logger) {
+  explicit SpdlogBuffer(std::shared_ptr<spdlog::logger> logger)
+      : mLogger(std::move(logger)) {
   }
 
  private:

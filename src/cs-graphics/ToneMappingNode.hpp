@@ -30,7 +30,7 @@ namespace cs::graphics {
 class CS_GRAPHICS_EXPORT ToneMappingNode : public IVistaOpenGLDraw, public VistaEventHandler {
  public:
   /// The node will draw to the backbuffer using the contents from the given HDRBuffer.
-  ToneMappingNode(std::shared_ptr<HDRBuffer> const& hdrBuffer);
+  ToneMappingNode(std::shared_ptr<HDRBuffer> hdrBuffer);
   virtual ~ToneMappingNode();
 
   /// Set the exposure in EV. getExposure() can be used to retreive the current exposure if
@@ -72,7 +72,7 @@ class CS_GRAPHICS_EXPORT ToneMappingNode : public IVistaOpenGLDraw, public Vista
   float getLastMaximumLuminance() const;
 
   virtual bool Do() override;
-  virtual bool GetBoundingBox(VistaBoundingBox& bb) override;
+  virtual bool GetBoundingBox(VistaBoundingBox& oBoundingBox) override;
 
   virtual void HandleEvent(VistaEvent* event) override;
 
@@ -101,9 +101,6 @@ class CS_GRAPHICS_EXPORT ToneMappingNode : public IVistaOpenGLDraw, public Vista
 
   IVistaClusterDataCollect* mLuminanceCollect = nullptr;
   IVistaClusterDataSync*    mLuminanceSync    = nullptr;
-
-  static const std::string sVertexShader;
-  static const std::string sFragmentShader;
 };
 } // namespace cs::graphics
 #endif // CS_GRAPHICS_TONEMAPPING_NODE_HPP

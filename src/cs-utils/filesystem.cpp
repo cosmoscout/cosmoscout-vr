@@ -33,7 +33,7 @@ void createDirectoryRecursively(
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::set<std::string> listFiles(std::string const& directory, std::regex const regex) {
+std::set<std::string> listFiles(std::string const& directory, std::regex const& regex) {
   std::set<std::string> result;
 
   for (auto& p : boost::filesystem::directory_iterator(directory)) {
@@ -46,7 +46,7 @@ std::set<std::string> listFiles(std::string const& directory, std::regex const r
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::set<std::string> listDirs(std::string const& directory, std::regex const regex) {
+std::set<std::string> listDirs(std::string const& directory, std::regex const& regex) {
   std::set<std::string> result;
 
   for (auto& p : boost::filesystem::directory_iterator(directory)) {

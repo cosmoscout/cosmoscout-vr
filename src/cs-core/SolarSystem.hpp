@@ -55,10 +55,9 @@ class CS_CORE_EXPORT SolarSystem {
   /// Current position of the sun, relative to the observer.
   utils::Property<glm::dvec3> pSunPosition = glm::dvec3(0.f);
 
-  SolarSystem(std::shared_ptr<const Settings> const& settings,
-      std::shared_ptr<utils::FrameTimings> const&    frameTimings,
-      std::shared_ptr<GraphicsEngine> const&         graphicsEngine,
-      std::shared_ptr<TimeControl> const&            timeControl);
+  SolarSystem(std::shared_ptr<const Settings> settings,
+      std::shared_ptr<utils::FrameTimings>    frameTimings,
+      std::shared_ptr<GraphicsEngine> graphicsEngine, std::shared_ptr<TimeControl> timeControl);
   ~SolarSystem();
 
   /// The Sun which is at the center of the SolarSystem.

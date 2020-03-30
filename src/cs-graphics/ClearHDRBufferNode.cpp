@@ -10,13 +10,14 @@
 
 #include <VistaMath/VistaBoundingBox.h>
 #include <limits>
+#include <utility>
 
 namespace cs::graphics {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-ClearHDRBufferNode::ClearHDRBufferNode(std::shared_ptr<HDRBuffer> const& hdrBuffer)
-    : mHDRBuffer(hdrBuffer) {
+ClearHDRBufferNode::ClearHDRBufferNode(std::shared_ptr<HDRBuffer> hdrBuffer)
+    : mHDRBuffer(std::move(hdrBuffer)) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

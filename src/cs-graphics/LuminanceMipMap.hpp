@@ -46,8 +46,6 @@ class CS_GRAPHICS_EXPORT LuminanceMipMap : public VistaTexture {
   int    mHDRBufferWidth       = 0;
   int    mHDRBufferHeight      = 0;
   bool   mDataAvailable        = false;
-
-  static const std::string sComputeAverage;
 };
 
 } // namespace cs::graphics

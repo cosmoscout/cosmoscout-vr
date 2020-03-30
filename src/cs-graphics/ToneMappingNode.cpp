@@ -22,6 +22,7 @@
 
 #include <glm/glm.hpp>
 #include <limits>
+#include <utility>
 
 namespace cs::graphics {
 
@@ -118,7 +119,7 @@ void ApplyProgramAuto(
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const std::string ToneMappingNode::sVertexShader = R"(
+static const std::string sVertexShader = R"(
   #version 430
 
   out vec2 vTexcoords;
@@ -132,7 +133,7 @@ const std::string ToneMappingNode::sVertexShader = R"(
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const std::string ToneMappingNode::sFragmentShader = R"(
+static const std::string sFragmentShader = R"(
   #version 430
   
   in vec2 vTexcoords;
@@ -257,8 +258,8 @@ const std::string ToneMappingNode::sFragmentShader = R"(
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-ToneMappingNode::ToneMappingNode(std::shared_ptr<HDRBuffer> const& hdrBuffer)
-    : mHDRBuffer(hdrBuffer)
+ToneMappingNode::ToneMappingNode(std::shared_ptr<HDRBuffer> hdrBuffer)
+    : mHDRBuffer(std::move(hdrBuffer))
     , mShader(new VistaGLSLShader()) {
   mShader->InitVertexShaderFromString(sVertexShader);
   mShader->InitFragmentShaderFromString(sFragmentShader);
@@ -412,7 +413,7 @@ bool ToneMappingNode::ToneMappingNode::Do() {
     // Calculate exposure based on last frame's average luminance Time-dependent visual adaptation
     // for fast realistic image display (https://dl.acm.org/citation.cfm?id=344810).
     if (mGlobalLuminanceData.mPixelCount > 0 && mGlobalLuminanceData.mTotalLuminance > 0) {
-      float frameTime = static_cast<float>(GetVistaSystem()->GetFrameLoop()->GetAverageLoopTime());
+      auto  frameTime = static_cast<float>(GetVistaSystem()->GetFrameLoop()->GetAverageLoopTime());
       float averageLuminance = getLastAverageLuminance();
       mAutoExposure += (std::log2(1.f / averageLuminance) - mAutoExposure) *
                        (1.f - std::exp(-mExposureAdaptionSpeed * frameTime));

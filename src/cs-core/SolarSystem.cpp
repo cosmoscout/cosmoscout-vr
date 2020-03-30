@@ -30,14 +30,13 @@ namespace cs::core {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-SolarSystem::SolarSystem(std::shared_ptr<const Settings> const& settings,
-    std::shared_ptr<utils::FrameTimings> const&                 frameTimings,
-    std::shared_ptr<GraphicsEngine> const&                      graphicsEngine,
-    std::shared_ptr<TimeControl> const&                         timeControl)
-    : mSettings(settings)
-    , mFrameTimings(frameTimings)
-    , mGraphicsEngine(graphicsEngine)
-    , mTimeControl(timeControl)
+SolarSystem::SolarSystem(std::shared_ptr<const Settings> settings,
+    std::shared_ptr<utils::FrameTimings>                 frameTimings,
+    std::shared_ptr<GraphicsEngine> graphicsEngine, std::shared_ptr<TimeControl> timeControl)
+    : mSettings(std::move(settings))
+    , mFrameTimings(std::move(frameTimings))
+    , mGraphicsEngine(std::move(graphicsEngine))
+    , mTimeControl(std::move(timeControl))
     , mSun(std::make_shared<scene::CelestialObject>("Sun", "IAU_Sun")) {
 
   // Tell the user what's going on.

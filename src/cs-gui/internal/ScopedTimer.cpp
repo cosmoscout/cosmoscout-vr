@@ -9,13 +9,14 @@
 #include <chrono>
 #include <iostream>
 #include <spdlog/spdlog.h>
+#include <utility>
 
 namespace cs::gui::detail {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-ScopedTimer::ScopedTimer(std::string const& name)
-    : mName(name)
+ScopedTimer::ScopedTimer(std::string name)
+    : mName(std::move(name))
     , mStartTime(GetNow()) {
 }
 

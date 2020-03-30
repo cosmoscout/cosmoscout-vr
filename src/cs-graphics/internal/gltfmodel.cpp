@@ -23,6 +23,7 @@
 #include <fstream>
 #include <gli/gli.hpp>
 #include <spdlog/spdlog.h>
+#include <utility>
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -453,7 +454,7 @@ GLuint createCompute(const char* cs) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::shared_ptr<GLuint> linkShader(GLuint vertShader, GLuint fragShader) {
-  std::shared_ptr<GLuint> ptr(new GLuint(0), [](GLuint* ptr) {
+  std::shared_ptr<GLuint> ptr(new GLuint(0), [](const GLuint* ptr) {
     if (*ptr != 0u) {
       glDeleteProgram(*ptr);
     }
@@ -1283,8 +1284,8 @@ void Mesh::draw(glm::mat4 const& projMat, glm::mat4 const& viewMat, glm::mat4 co
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-VistaGltfNode::VistaGltfNode(tinygltf::Node const& node, std::shared_ptr<GltfShared> const& shared)
-    : mShared(shared)
+VistaGltfNode::VistaGltfNode(tinygltf::Node const& node, std::shared_ptr<GltfShared> shared)
+    : mShared(std::move(shared))
     , mName(node.name)
     , mMeshIndex(node.mesh) {
 }

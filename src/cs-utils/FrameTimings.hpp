@@ -48,7 +48,7 @@ class CS_UTILS_EXPORT FrameTimings {
    public:
     /// @param name The name of the measured time.
     /// @param mode The mode of querying. See QueryMode for more info.
-    explicit ScopedTimer(std::string const& name, QueryMode mode = QueryMode::eBoth);
+    explicit ScopedTimer(std::string name, QueryMode mode = QueryMode::eBoth);
     ~ScopedTimer();
 
    private:
@@ -86,12 +86,12 @@ class CS_UTILS_EXPORT FrameTimings {
   void endFullFrameTiming();
 
   /// Updates the frame timings. The application takes care of calling this on the primary instance.
-  void update();
+  void update() const;
 
   /// Once update() has been called, QueryResults most likely are available. However, we will only
   /// get results from the last frame in order to prevent any blocking. Sometimes it might also take
   /// a few frames longer to get any results from the GPU.
-  std::unordered_map<std::string, QueryResult> getCalculatedQueryResults();
+  std::unordered_map<std::string, QueryResult> getCalculatedQueryResults() const;
 
  private:
   int                                            mCurrentIndex = 0;

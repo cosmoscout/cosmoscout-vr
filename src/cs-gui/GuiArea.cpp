@@ -5,10 +5,12 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "GuiArea.hpp"
-
 #include "GuiItem.hpp"
-
 #include <algorithm>
+
+#if defined(_WIN32) && defined(min)
+#undef min
+#endif
 
 namespace cs::gui {
 

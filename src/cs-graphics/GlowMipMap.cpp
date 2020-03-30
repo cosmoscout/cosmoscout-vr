@@ -15,7 +15,7 @@ namespace cs::graphics {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const std::string GlowMipMap::sGlowShader = R"(
+static const std::string sGlowShader = R"(
   #version 430
   
   layout (local_size_x = 16, local_size_y = 16) in;

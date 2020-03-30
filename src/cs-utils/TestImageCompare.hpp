@@ -42,7 +42,7 @@ class CS_UTILS_EXPORT TestImageCompare {
  private:
   class FrameCapture : public VistaEventHandler {
    public:
-    FrameCapture(std::string const& fileName, int32_t frame);
+    FrameCapture(std::string fileName, int32_t frame);
     virtual void HandleEvent(VistaEvent* pEvent);
 
    private:

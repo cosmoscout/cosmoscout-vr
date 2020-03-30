@@ -22,12 +22,13 @@
 #include <VistaKernelOpenSGExt/VistaOpenSGMaterialTools.h>
 
 #include <glm/gtc/type_ptr.hpp>
+#include <utility>
 
 namespace cs::core::tools {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const std::string Mark::SHADER_VERT = R"(
+static const std::string SHADER_VERT = R"(
 #version 330
 
 layout(location=0) in vec3 iPosition;
@@ -47,7 +48,7 @@ void main()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const std::string Mark::SHADER_FRAG = R"(
+static const std::string SHADER_FRAG = R"(
 #version 330
 
 uniform vec3 uHoverSelectActive;
@@ -72,15 +73,13 @@ void main()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Mark::Mark(std::shared_ptr<InputManager> const& pInputManager,
-    std::shared_ptr<SolarSystem> const&         pSolarSystem,
-    std::shared_ptr<GraphicsEngine> const&      graphicsEngine,
-    std::shared_ptr<TimeControl> const& pTimeControl, std::string const& sCenter,
-    std::string const& sFrame)
-    : mInputManager(pInputManager)
-    , mSolarSystem(pSolarSystem)
-    , mGraphicsEngine(graphicsEngine)
-    , mTimeControl(pTimeControl)
+Mark::Mark(std::shared_ptr<InputManager> pInputManager, std::shared_ptr<SolarSystem> pSolarSystem,
+    std::shared_ptr<GraphicsEngine> graphicsEngine, std::shared_ptr<TimeControl> pTimeControl,
+    std::string const& sCenter, std::string const& sFrame)
+    : mInputManager(std::move(pInputManager))
+    , mSolarSystem(std::move(pSolarSystem))
+    , mGraphicsEngine(std::move(graphicsEngine))
+    , mTimeControl(std::move(pTimeControl))
     , mVAO(new VistaVertexArrayObject())
     , mVBO(new VistaBufferObject())
     , mIBO(new VistaBufferObject())

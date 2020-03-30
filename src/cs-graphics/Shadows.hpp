@@ -90,7 +90,7 @@ class CS_GRAPHICS_EXPORT ShadowMap : public IVistaOpenGLDraw {
   std::vector<VistaTransformMatrix> const& getShadowMatrices() const;
 
   bool Do() override;
-  bool GetBoundingBox(VistaBoundingBox& bb) override;
+  bool GetBoundingBox(VistaBoundingBox& oBoundingBox) override;
 
  private:
   void cleanUp();

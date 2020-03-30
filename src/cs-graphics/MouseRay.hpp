@@ -30,9 +30,6 @@ class CS_GRAPHICS_EXPORT MouseRay : public IVistaOpenGLDraw {
   VistaVertexArrayObject mRayVAO;
   VistaBufferObject      mRayVBO;
   VistaBufferObject      mRayIBO;
-
-  static const std::string SHADER_VERT;
-  static const std::string SHADER_FRAG;
 };
 
 } // namespace cs::graphics

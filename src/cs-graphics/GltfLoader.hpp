@@ -55,7 +55,7 @@ class CS_GRAPHICS_EXPORT GltfLoader {
   void rotateIBL(glm::mat3 const& m);
 
   /// Attaches the model to the VistaSceneGraph for rendering.
-  bool attachTo(VistaSceneGraph* sg, VistaTransformNode* node);
+  bool attachTo(VistaSceneGraph* sg, VistaTransformNode* parent);
 
  private:
   std::shared_ptr<internal::GltfShared> mShared;

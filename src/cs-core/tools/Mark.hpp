@@ -44,11 +44,9 @@ class CS_CORE_EXPORT Mark : public IVistaOpenGLDraw, public Tool {
   cs::utils::Property<bool>       pActive   = false;
   cs::utils::Property<glm::vec3>  pColor    = glm::vec3(0.75, 0.75, 1.0);
 
-  Mark(std::shared_ptr<InputManager> const&  pInputManager,
-      std::shared_ptr<SolarSystem> const&    pSolarSystem,
-      std::shared_ptr<GraphicsEngine> const& graphicsEngine,
-      std::shared_ptr<TimeControl> const& pTimeControl, std::string const& sCenter,
-      std::string const& sFrame);
+  Mark(std::shared_ptr<InputManager> pInputManager, std::shared_ptr<SolarSystem> pSolarSystem,
+      std::shared_ptr<GraphicsEngine> graphicsEngine, std::shared_ptr<TimeControl> pTimeControl,
+      std::string const& sCenter, std::string const& sFrame);
 
   Mark(Mark const& other);
 
@@ -83,13 +81,10 @@ class CS_CORE_EXPORT Mark : public IVistaOpenGLDraw, public Tool {
   std::unique_ptr<VistaBufferObject>      mIBO;
   std::unique_ptr<VistaGLSLShader>        mShader;
 
-  size_t mIndexCount;
+  size_t mIndexCount{};
 
   int mSelfLngLatConnection = -1, mHoveredNodeConnection = -1, mSelectedNodeConnection = -1,
       mButtonsConnection = -1, mHoveredPlanetConnection = -1, mHeightScaleConnection = -1;
-
-  static const std::string SHADER_VERT;
-  static const std::string SHADER_FRAG;
 };
 
 } // namespace tools

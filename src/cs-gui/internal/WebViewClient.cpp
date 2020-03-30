@@ -16,7 +16,7 @@ namespace cs::gui::detail {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 WebViewClient::~WebViewClient() {
-  if (mJSCallbacks.size() > 0) {
+  if (!mJSCallbacks.empty()) {
     spdlog::warn(
         "While destructing a WebViewClient there were still JavaScript callbacks registered:");
 

@@ -37,6 +37,7 @@
 #include <VistaKernelOpenSGExt/VistaOpenSGMaterialTools.h>
 #include <VistaOGLExt/VistaShaderRegistry.h>
 #include <curlpp/cURLpp.hpp>
+#include <memory>
 #include <spdlog/spdlog.h>
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -91,7 +92,8 @@ bool Application::Init(VistaSystem* pVistaSystem) {
   mTimeControl = std::make_shared<cs::core::TimeControl>(mSettings);
   mSolarSystem = std::make_shared<cs::core::SolarSystem>(
       mSettings, mFrameTimings, mGraphicsEngine, mTimeControl);
-  mDragNavigation.reset(new cs::core::DragNavigation(mSolarSystem, mInputManager, mTimeControl));
+  mDragNavigation =
+      std::make_unique<cs::core::DragNavigation>(mSolarSystem, mInputManager, mTimeControl);
 
   // The ObserverNavigationNode is used by several DFN networks to move the celestial observer.
   VdfnNodeFactory* pNodeFactory = VdfnNodeFactory::GetSingleton();
@@ -285,9 +287,9 @@ void Application::FrameUpdate() {
   // At frame 25 we start to download datasets. This ensures that the loading screen is actually
   // already visible.
   if (GetFrameCount() == 25) {
-    if (mSettings->mDownloadData.size() > 0) {
+    if (!mSettings->mDownloadData.empty()) {
       // Download datasets in parallel. We use 10 threads to download the data.
-      mDownloader.reset(new cs::utils::Downloader(10));
+      mDownloader = std::make_unique<cs::utils::Downloader>(10);
       for (auto const& download : mSettings->mDownloadData) {
         mDownloader->download(download.mUrl, download.mFile);
       }
@@ -481,7 +483,7 @@ void Application::FrameUpdate() {
         glm::dquat mRotation;
         double     mScale;
         double     mTime;
-      } syncMessage;
+      } syncMessage{};
 
       syncMessage.mPosition = mSolarSystem->getObserver().getAnchorPosition();
       syncMessage.mRotation = mSolarSystem->getObserver().getAnchorRotation();
@@ -738,25 +740,27 @@ void Application::closePlugin(std::string const& name) {
 void Application::connectSlots() {
 
   // Update mouse pointer coordinate display in the user interface.
-  mInputManager->pHoveredObject.connect([this](cs::core::InputManager::Intersection intersection) {
-    if (intersection.mObject) {
-      auto body = std::dynamic_pointer_cast<cs::scene::CelestialBody>(intersection.mObject);
+  mInputManager->pHoveredObject.connect(
+      [this](const cs::core::InputManager::Intersection& intersection) {
+        if (intersection.mObject) {
+          auto body = std::dynamic_pointer_cast<cs::scene::CelestialBody>(intersection.mObject);
 
-      if (body) {
-        auto radii = body->getRadii();
-        auto polar = cs::utils::convert::toLngLatHeight(intersection.mPosition, radii[0], radii[0]);
-        auto lngLat = cs::utils::convert::toDegrees(polar.xy());
+          if (body) {
+            auto radii = body->getRadii();
+            auto polar =
+                cs::utils::convert::toLngLatHeight(intersection.mPosition, radii[0], radii[0]);
+            auto lngLat = cs::utils::convert::toDegrees(polar.xy());
 
-        if (!std::isnan(lngLat.x) && !std::isnan(lngLat.y) && !std::isnan(polar.z)) {
-          mGuiManager->getGui()->executeJavascript(
-              fmt::format("CosmoScout.state.pointerPosition = [{}, {}, {}];", lngLat.x, lngLat.y,
-                  polar.z / mGraphicsEngine->pHeightScale.get()));
-          return;
+            if (!std::isnan(lngLat.x) && !std::isnan(lngLat.y) && !std::isnan(polar.z)) {
+              mGuiManager->getGui()->executeJavascript(
+                  fmt::format("CosmoScout.state.pointerPosition = [{}, {}, {}];", lngLat.x,
+                      lngLat.y, polar.z / mGraphicsEngine->pHeightScale.get()));
+              return;
+            }
+          }
         }
-      }
-    }
-    mGuiManager->getGui()->executeJavascript("CosmoScout.state.pointerPosition = undefined;");
-  });
+        mGuiManager->getGui()->executeJavascript("CosmoScout.state.pointerPosition = undefined;");
+      });
 
   // Update the time shown in the user interface when the simulation time changes.
   mTimeControl->pSimulationTime.connect([this](double val) {

@@ -13,6 +13,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <optional>
 #include <unordered_map>
+#include <utility>
 
 namespace cs::scene {
 
@@ -61,12 +62,12 @@ class Cache {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-CelestialAnchor::CelestialAnchor(std::string const& sCenterName, std::string const& sFrameName)
+CelestialAnchor::CelestialAnchor(std::string sCenterName, std::string sFrameName)
     : mPosition(0.0, 0.0, 0.0)
     , mRotation(1.0, 0.0, 0.0, 0.0)
     , mScale(1.0)
-    , mCenterName(sCenterName)
-    , mFrameName(sFrameName) {
+    , mCenterName(std::move(sCenterName))
+    , mFrameName(std::move(sFrameName)) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

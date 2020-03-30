@@ -25,7 +25,7 @@ namespace cs::utils {
 class CS_UTILS_EXPORT ThreadPool {
  public:
   /// Creates a new ThreadPool with the specified amount of threads.
-  ThreadPool(size_t threadCount);
+  ThreadPool(size_t threads);
   virtual ~ThreadPool();
 
   /// Adds a new work item to the pool.
