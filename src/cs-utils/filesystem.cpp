@@ -37,8 +37,10 @@ std::set<std::string> listFiles(std::string const& directory, std::regex const& 
   std::set<std::string> result;
 
   for (auto& p : boost::filesystem::directory_iterator(directory)) {
-    if (std::regex_match(p.path().string(), regex) && boost::filesystem::is_regular_file(p.path()))
+    if (std::regex_match(p.path().string(), regex) &&
+        boost::filesystem::is_regular_file(p.path())) {
       result.insert(p.path().string());
+    }
   }
 
   return result;
@@ -50,8 +52,9 @@ std::set<std::string> listDirs(std::string const& directory, std::regex const& r
   std::set<std::string> result;
 
   for (auto& p : boost::filesystem::directory_iterator(directory)) {
-    if (std::regex_match(p.path().string(), regex) && boost::filesystem::is_directory(p.path()))
+    if (std::regex_match(p.path().string(), regex) && boost::filesystem::is_directory(p.path())) {
       result.insert(p.path().string());
+    }
   }
 
   return result;
@@ -97,10 +100,11 @@ void downloadFile(std::string const& url, std::string const& destination,
   request.setOpt(curlpp::options::NoSignal(true));
   request.setOpt(curlpp::options::NoProgress(false));
   request.setOpt(curlpp::options::SslVerifyPeer(false));
-  request.setOpt(curlpp::options::ProgressFunction([&](double a, double b, double, double) {
-    progressCallback(b, a);
-    return 0;
-  }));
+  request.setOpt(curlpp::options::ProgressFunction(
+      [&](double a, double b, double /*unused*/, double /*unused*/) {
+        progressCallback(b, a);
+        return 0;
+      }));
 
   request.perform();
 }

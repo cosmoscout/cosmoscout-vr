@@ -11,9 +11,9 @@
 #include "cs_utils_export.hpp"
 
 #include <array>
-#include <boost/optional.hpp>
 #include <chrono>
 #include <memory>
+#include <optional>
 #include <unordered_map>
 #include <vector>
 
@@ -111,7 +111,7 @@ class CS_UTILS_EXPORT TimerQueryPool {
   void start(std::string const& name, FrameTimings::QueryMode mode);
   void end(std::string const& name);
 
-  boost::optional<std::size_t> timestamp();
+  std::optional<std::size_t> timestamp();
 
   /// Fetch timestamps from GPU and calculate time diffs.
   void calculateQueryResults();

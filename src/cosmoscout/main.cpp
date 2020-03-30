@@ -68,7 +68,8 @@ int main(int argc, char** argv) {
 
   // Then do the actual parsing.
   try {
-    args.parse(argc, argv);
+    std::vector<std::string> arguments(argv + 1, argv + argc);
+    args.parse(arguments);
   } catch (std::runtime_error const& e) {
     spdlog::error("Failed to parse command line arguments: {}", e.what());
     return 1;

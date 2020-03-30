@@ -64,7 +64,7 @@ class SignalSink : public spdlog::sinks::base_sink<std::mutex> {
 auto signalSink = std::make_shared<SignalSink>();
 auto fileSink   = std::make_shared<spdlog::sinks::basic_file_sink_mt>("cosmoscout.log", true);
 auto coutSink   = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
-std::vector<spdlog::sink_ptr> sinks = {signalSink, coutSink, fileSink};
+std::vector<spdlog::sink_ptr> sinks{signalSink, coutSink, fileSink};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -108,10 +108,11 @@ Signal<std::string, spdlog::level::level_enum, std::string> const& onMessage() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::shared_ptr<spdlog::logger> createLogger(std::string const& name) {
+  size_t const prefixLength = 20;
 
   // Append some ... to the name of the logger to make the output more readable.
   std::string paddedName = name + " ";
-  while (paddedName.length() < 20) {
+  while (paddedName.size() < prefixLength) {
     paddedName += ".";
   }
   paddedName.back() = ' ';
@@ -119,7 +120,7 @@ std::shared_ptr<spdlog::logger> createLogger(std::string const& name) {
   auto logger = std::make_shared<spdlog::logger>(paddedName, sinks.begin(), sinks.end());
 
   // See https://github.com/gabime/spdlog/wiki/3.-Custom-formatting for formatting options.
-  logger->set_pattern("%^[%L] %n%$%v");
+  logger->set_pattern("%^[%L] %n%$%v"); //NOLINT(clang-analyzer-cplusplus.Move)
   logger->set_level(spdlog::level::trace);
 
   return logger;

@@ -17,8 +17,8 @@ namespace cs::utils {
 
 namespace {
 int                                            s_iCurrentInstance = 0;
-std::array<std::shared_ptr<TimerQueryPool>, 2> s_pTimerQueryPoolInstances;
-std::string                                    s_sLastRangeKey;
+std::array<std::shared_ptr<TimerQueryPool>, 2> s_pTimerQueryPoolInstances{};
+std::string s_sLastRangeKey{}; // NOLINT(fuchsia-statically-constructed-objects)
 } // namespace
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -31,14 +31,16 @@ FrameTimings::ScopedTimer::ScopedTimer(std::string name, QueryMode mode)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 FrameTimings::ScopedTimer::~ScopedTimer() {
-  FrameTimings::end(mName);
+  try {
+    FrameTimings::end(mName);
+  } catch (...) {}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void FrameTimings::start(std::string const& name, QueryMode mode) {
-  if (s_pTimerQueryPoolInstances[s_iCurrentInstance]) {
-    s_pTimerQueryPoolInstances[s_iCurrentInstance]->start(name, mode);
+  if (s_pTimerQueryPoolInstances.at(s_iCurrentInstance)) {
+    s_pTimerQueryPoolInstances.at(s_iCurrentInstance)->start(name, mode);
     s_sLastRangeKey = name;
   }
 }
@@ -46,16 +48,16 @@ void FrameTimings::start(std::string const& name, QueryMode mode) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void FrameTimings::end(std::string const& name) {
-  if (s_pTimerQueryPoolInstances[s_iCurrentInstance]) {
-    s_pTimerQueryPoolInstances[s_iCurrentInstance]->end(name);
+  if (s_pTimerQueryPoolInstances.at(s_iCurrentInstance)) {
+    s_pTimerQueryPoolInstances.at(s_iCurrentInstance)->end(name);
   }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void FrameTimings::end() {
-  if (s_pTimerQueryPoolInstances[s_iCurrentInstance]) {
-    s_pTimerQueryPoolInstances[s_iCurrentInstance]->end(s_sLastRangeKey);
+  if (s_pTimerQueryPoolInstances.at(s_iCurrentInstance)) {
+    s_pTimerQueryPoolInstances.at(s_iCurrentInstance)->end(s_sLastRangeKey);
   }
 }
 
@@ -65,13 +67,15 @@ std::unordered_map<std::string, FrameTimings::QueryResult>
 FrameTimings::getCalculatedQueryResults() const {
   std::unordered_map<std::string, QueryResult> result;
 
-  if (!s_pTimerQueryPoolInstances[s_iCurrentInstance]) {
+  if (!s_pTimerQueryPoolInstances.at(s_iCurrentInstance)) {
     return result;
   }
 
   if (pEnableMeasurements.get()) {
-    for (auto const& ranges : s_pTimerQueryPoolInstances[s_iCurrentInstance]->getQueryResults()) {
-      uint64_t timeGPU(0), timeCPU(0);
+    for (auto const& ranges :
+        s_pTimerQueryPoolInstances.at(s_iCurrentInstance)->getQueryResults()) {
+      uint64_t timeGPU(0);
+      uint64_t timeCPU(0);
       for (auto const& range : ranges.second) {
         timeGPU += range.mGPUTime;
         timeCPU += range.mCPUTime;
@@ -87,7 +91,7 @@ FrameTimings::getCalculatedQueryResults() const {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 FrameTimings::FrameTimings() {
-  std::size_t maxNRofTimings = 512;
+  std::size_t const maxNRofTimings = 512;
   pEnableMeasurements.connect([maxNRofTimings](bool enable) {
     if (enable) {
       s_pTimerQueryPoolInstances[0] = std::make_shared<TimerQueryPool>(maxNRofTimings);
@@ -104,20 +108,21 @@ FrameTimings::FrameTimings() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void FrameTimings::startFullFrameTiming() {
-  mFullFrameTimerPools[mCurrentIndex]->start("FullFrame", FrameTimings::QueryMode::eBoth);
+  mFullFrameTimerPools.at(mCurrentIndex)->start("FullFrame", FrameTimings::QueryMode::eBoth);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void FrameTimings::endFullFrameTiming() {
-  mFullFrameTimerPools[mCurrentIndex]->end("FullFrame");
+  mFullFrameTimerPools.at(mCurrentIndex)->end("FullFrame");
   mCurrentIndex = (mCurrentIndex + 1) % 2;
-  mFullFrameTimerPools[mCurrentIndex]->calculateQueryResults();
+  mFullFrameTimerPools.at(mCurrentIndex)->calculateQueryResults();
 
-  auto queryResults = mFullFrameTimerPools[mCurrentIndex]->getQueryResults();
+  double const epsilon      = 0.000001;
+  auto         queryResults = mFullFrameTimerPools.at(mCurrentIndex)->getQueryResults();
   if (!queryResults.empty() && !queryResults.begin()->second.empty()) {
-    pFrameTime = std::max(queryResults.begin()->second[0].mGPUTime * 0.000001,
-        queryResults.begin()->second[0].mCPUTime * 0.000001);
+    pFrameTime = std::max(queryResults.begin()->second[0].mGPUTime * epsilon,
+        queryResults.begin()->second[0].mCPUTime * epsilon);
   }
 }
 
@@ -126,12 +131,12 @@ void FrameTimings::endFullFrameTiming() {
 void FrameTimings::update() const {
   s_iCurrentInstance = (s_iCurrentInstance + 1) % 2;
 
-  if (!s_pTimerQueryPoolInstances[s_iCurrentInstance]) {
+  if (!s_pTimerQueryPoolInstances.at(s_iCurrentInstance)) {
     return;
   }
 
   if (pEnableMeasurements.get()) {
-    s_pTimerQueryPoolInstances[s_iCurrentInstance]->calculateQueryResults();
+    s_pTimerQueryPoolInstances.at(s_iCurrentInstance)->calculateQueryResults();
   }
 }
 
@@ -142,9 +147,8 @@ TimerQueryPool::TimerQueryPool(std::size_t max_size)
     , mQueries(max_size, 0)
     , mTimestamps(max_size, 0)
     , mQueryDone(0)
-    , mIndex(0)
-    , mQueryRanges() {
-  glGenQueries((GLsizei)max_size, mQueries.data());
+    , mIndex(0) {
+  glGenQueries(static_cast<GLsizei>(max_size), mQueries.data());
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -204,14 +208,14 @@ void TimerQueryPool::end(std::string const& name) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-boost::optional<std::size_t> TimerQueryPool::timestamp() {
+std::optional<std::size_t> TimerQueryPool::timestamp() {
   if (mIndex < mMaxSize) {
     glQueryCounter(mQueries[mIndex], GL_TIMESTAMP);
     std::size_t inserted_at = mIndex;
     ++mIndex;
     return inserted_at;
   }
-  return boost::none;
+  return std::nullopt;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -240,9 +244,9 @@ void TimerQueryPool::calculateQueryResults() {
     for (auto& range : pair.second) {
       FrameTimings::QueryResult result;
       result.mGPUTime = mTimestamps[range.mGPUEnd] - mTimestamps[range.mGPUStart];
-      result.mCPUTime = (uint64_t)std::chrono::duration_cast<std::chrono::nanoseconds>(
-          range.mCPUEnd - range.mCPUStart)
-                            .count();
+      result.mCPUTime = static_cast<uint64_t>(
+          std::chrono::duration_cast<std::chrono::nanoseconds>(range.mCPUEnd - range.mCPUStart)
+              .count());
       mQueryResults[pair.first].push_back(result);
     }
   }

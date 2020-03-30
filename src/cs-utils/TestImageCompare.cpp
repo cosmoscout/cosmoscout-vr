@@ -13,6 +13,7 @@
 #include <VistaKernel/VistaFrameLoop.h>
 #include <VistaKernel/VistaSystem.h>
 
+#include <array>
 #include <utility>
 
 namespace cs::utils {
@@ -21,33 +22,32 @@ namespace cs::utils {
 
 TestImageCompare::TestImageCompare(std::string const& imageName, int32_t frame)
     : mCapture("test/" + imageName + ".png", frame)
-    , mImageName(imageName) {
+    , mImageName(imageName)
+    , mVS(std::make_unique<VistaSystem>()) {
 
-  auto vs = new VistaSystem();
-  vs->SetIniSearchPaths({"../share/config/vista"});
+  mVS->SetIniSearchPaths({"../share/config/vista"});
 
-  auto        killAfterFrame = std::to_string(frame);
-  int         argc           = 5;
-  const char* n_argv[]       = {
-      "", "-vistaini", "vista_test.ini", "-kill_after_frame", killAfterFrame.c_str()};
-  const char** argv = n_argv;
+  auto      killAfterFrame = std::to_string(frame);
+  int const argc           = 5;
+
+  std::string arg0;
+  std::string arg1 = "-vistaini";
+  std::string arg2 = "vista_test.ini";
+  std::string arg3 = "-kill_after_frame";
+
+  std::array<char*, argc> nArgv{
+      arg0.data(), arg1.data(), arg2.data(), arg3.data(), killAfterFrame.data()};
 
   vstr::SetOutStream(&mVistaOutput);
   vstr::SetWarnStream(&mVistaOutput);
   vstr::SetDebugStream(&mVistaOutput);
 
-  if (!vs->Init(argc, const_cast<char**>(argv))) {
+  if (!mVS->Init(argc, nArgv.data())) {
     throw std::runtime_error("Failed to initialize VistaSystem!");
   }
 
-  vs->GetEventManager()->AddEventHandler(
+  mVS->GetEventManager()->AddEventHandler(
       &mCapture, VistaSystemEvent::GetTypeId(), VistaSystemEvent::VSE_POSTGRAPHICS);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-TestImageCompare::~TestImageCompare() {
-  delete GetVistaSystem();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -67,11 +67,11 @@ float TestImageCompare::doComparison() {
 
   // The result is something like "  123 (0.345)". We are interested in the part between brackets.
   std::string result     = cs::utils::exec(compareCommand);
-  float       errorValue = -1.f;
+  float       errorValue = -1.F;
   try {
     errorValue = stof(result.substr(result.find('(') + 1));
   } catch (...) { throw std::runtime_error("Imagemagick's compare failed:" + result); }
-  return errorValue * 100.f;
+  return errorValue * 100.F;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
