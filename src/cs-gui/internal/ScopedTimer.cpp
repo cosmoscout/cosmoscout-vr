@@ -7,7 +7,6 @@
 #include "ScopedTimer.hpp"
 
 #include <chrono>
-#include <iostream>
 #include <spdlog/spdlog.h>
 #include <utility>
 
@@ -32,7 +31,8 @@ ScopedTimer::~ScopedTimer() {
 double ScopedTimer::GetNow() {
   auto time        = std::chrono::system_clock::now();
   auto since_epoch = time.time_since_epoch();
-  return std::chrono::duration_cast<std::chrono::microseconds>(since_epoch).count() * 0.001;
+  double const microToNano = 0.001;
+  return std::chrono::duration_cast<std::chrono::microseconds>(since_epoch).count() * microToNano;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

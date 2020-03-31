@@ -47,7 +47,7 @@ class RenderHandler : public CefRenderHandler {
 
   void OnVirtualKeyboardRequested(CefRefPtr<CefBrowser> browser, TextInputMode input_mode) override;
 
-  ~RenderHandler() override;
+  ~RenderHandler() override = default;
 
  private:
   IMPLEMENT_REFCOUNTING(RenderHandler);

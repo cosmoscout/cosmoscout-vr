@@ -11,6 +11,7 @@
 
 #include <VistaAspects/VistaObserver.h>
 #include <VistaKernel/GraphicsManager/VistaOpenGLDraw.h>
+#include <VistaOGLExt/VistaGLSLShader.h>
 #include <vector>
 
 class VistaTransformNode;
@@ -19,7 +20,6 @@ class VistaVector3D;
 class VistaQuaternion;
 class VistaProjection;
 class VistaViewport;
-class VistaGLSLShader;
 class VistaVertexArrayObject;
 class VistaBufferObject;
 

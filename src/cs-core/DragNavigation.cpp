@@ -117,10 +117,12 @@ void DragNavigation::update() {
       mDraggingPlanet    = true;
     }
 
+    float const epsilon = 0.05F;
+
     // if no planet is currently under the pointer or if we picked too close
     // too the horizon we will 'grab the sky' instead
     if (!pickedPlanet ||
-        glm::dot(rayDir, glm::normalize(mStartIntersection - rotationCenter)) >= -0.05f) {
+        glm::dot(rayDir, glm::normalize(mStartIntersection - rotationCenter)) >= -epsilon) {
       mDraggingPlanet = false;
     }
 
@@ -134,8 +136,11 @@ void DragNavigation::update() {
     return;
   }
 
+  float const smoothThreshold = 0.8F;
+
   if (mInputManager->pButtons[0].get() || mInputManager->pButtons[1].get()) {
-    glm::dvec3 end_vec, start_vec;
+    glm::dvec3 end_vec;
+    glm::dvec3 start_vec;
     bool       bPerformRotation = false;
     mLocalRotation              = mInputManager->pButtons[1].get();
 
@@ -183,14 +188,17 @@ void DragNavigation::update() {
           auto radii = cs::core::SolarSystem::getRadii(mSolarSystem->getObserver().getCenterName());
           double distance = glm::length(mSolarSystem->getObserver().getAnchorPosition());
 
+          double const epsilon = 0.0001;
+
           // some magic numbers here to achieve 'good' dragging speeds
           // regardless of the surface distance when 'grabbing the sky'
-          double fac = glm::clamp((distance - radii[0]) / radii[0], 0.0001, 0.5);
-          targetAngle *= fac * 4.0;
+          double fac = glm::clamp((distance - radii[0]) / radii[0], epsilon, 0.5);
+          targetAngle *= fac * 4;
         }
 
+        float const epsilon = 0.001F;
         // Prepare an animated rotation approaching target angle
-        mDoKineticSmoothOut = std::abs(targetAngle - mTargetAngle) > 0.001f;
+        mDoKineticSmoothOut = std::abs(targetAngle - mTargetAngle) > epsilon;
         mCurrentAngleDiff += static_cast<float>(targetAngle - mTargetAngle);
         mTargetAngle = targetAngle;
       } else {
@@ -205,40 +213,41 @@ void DragNavigation::update() {
       mStartObserverRot = observerRot;
 
       // Prepare smoothing out remaining angle diff
-      if (mCurrentAngleDiff != 0.f) {
+      if (mCurrentAngleDiff != 0.F) {
         // Reduce inertia a little.
         mTargetAngle      = mCurrentAngleDiff * 0.5;
-        mCurrentAngleDiff = 0.f;
+        mCurrentAngleDiff = 0.F;
       }
 
       // Smooth out remaining rotation do be done
-      mTargetAngle        = 0.8f * mTargetAngle;
+      mTargetAngle        = smoothThreshold * mTargetAngle;
       mDoKineticSmoothOut = true;
     }
   } else {
     // Prepare smoothing out remaining angle diff
-    if (mCurrentAngleDiff != 0.f) {
+    if (mCurrentAngleDiff != 0.F) {
       if (mDoKineticSmoothOut) {
         // Reduce inertia a little.
-        mTargetAngle = mCurrentAngleDiff * 0.5f;
+        mTargetAngle = mCurrentAngleDiff * 0.5F;
       } else {
-        mTargetAngle = 0.f;
+        mTargetAngle = 0.F;
       }
-      mCurrentAngleDiff = 0.f;
+      mCurrentAngleDiff = 0.F;
     }
 
     // Smooth out remaining rotation do be done
-    mTargetAngle = 0.8f * mTargetAngle;
+    mTargetAngle = smoothThreshold * mTargetAngle;
 
-    if (std::abs(mTargetAngle) < 0.001f) {
-      mTargetAngle      = 0.f;
+    float const epsilon = 0.001F;
+    if (std::abs(mTargetAngle) < epsilon) {
+      mTargetAngle      = 0.F;
       mLocalRotation    = false;
       mDoRollCorrection = false;
     }
   }
 
   // Softly increasing the absolute rotation angle value
-  mCurrentAngleDiff = 0.8f * mCurrentAngleDiff;
+  mCurrentAngleDiff = smoothThreshold * mCurrentAngleDiff;
 
   // apply observer position change if rotating planet
   if (!mLocalRotation) {
@@ -260,14 +269,16 @@ void DragNavigation::update() {
     auto   radii    = cs::core::SolarSystem::getRadii(mSolarSystem->getObserver().getCenterName());
     double distance = glm::length(mSolarSystem->getObserver().getAnchorPosition());
 
-    if (distance < radii[0] * 1.1) {
+    double const upscale = 1.1;
+    if (distance < radii[0] * upscale) {
       glm::dvec3 normal = mSolarSystem->getObserver().getAnchorPosition() / distance;
       glm::dvec3 y      = glm::normalize((newObserverRot * glm::dvec4(0, 1, 0, 0)).xyz());
       glm::dvec3 x      = glm::normalize((newObserverRot * glm::dvec4(1, 0, 0, 0)).xyz());
 
-      if (glm::dot(normal, y) > 0.999 ||
+      double const epsilon = 0.999;
+      if (glm::dot(normal, y) > epsilon ||
           (glm::dot(normal, y) > 0 &&
-              std::abs(glm::dot(glm::normalize(glm::cross(y, normal)), x)) > 0.999)) {
+              std::abs(glm::dot(glm::normalize(glm::cross(y, normal)), x)) > epsilon)) {
         mDoRollCorrection = true;
       }
     }

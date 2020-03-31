@@ -120,7 +120,7 @@ class CS_GUI_EXPORT WebView {
   /// Reloads the page.
   ///
   /// @param ignoreCache If set to true the site will not be using cached data.
-  virtual void reload(bool ignoreCache = false) const;
+  virtual void reload(bool ignoreCache) const;
 
   /// When the user clicked on a hyperlink on the web page, this functionality can be used to move
   /// forward or backwards in the history.

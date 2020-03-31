@@ -15,6 +15,7 @@ namespace cs::gui {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// NOLINTNEXTLINE(fuchsia-multiple-inheritance): A clang-tidy bug?
 class DevToolsClient : public CefClient {
  public:
   IMPLEMENT_REFCOUNTING(DevToolsClient);
@@ -24,7 +25,7 @@ class DevToolsClient : public CefClient {
 
 WebView::WebView(const std::string& url, int width, int height, bool allowLocalFileAccess)
     : mClient(new detail::WebViewClient()) {
-  resize(width, height);
+  WebView::resize(width, height);
 
   CefWindowInfo info;
   info.width  = width;
@@ -32,7 +33,9 @@ WebView::WebView(const std::string& url, int width, int height, bool allowLocalF
   info.SetAsWindowless(nullptr);
 
   CefBrowserSettings browserSettings;
-  browserSettings.windowless_frame_rate = 60;
+
+  int const targetFrameRate             = 60;
+  browserSettings.windowless_frame_rate = targetFrameRate;
   browserSettings.web_security          = allowLocalFileAccess ? STATE_DISABLED : STATE_ENABLED;
 
   mBrowser =
@@ -89,7 +92,8 @@ bool WebView::getColor(int x, int y, uint8_t& r, uint8_t& g, uint8_t& b, uint8_t
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 uint8_t WebView::getRed(int x, int y) const {
-  uint8_t value(0), tmp(0);
+  uint8_t value(0);
+  uint8_t tmp(0);
   mClient->GetInternalRenderHandler()->GetColor(x, y, value, tmp, tmp, tmp);
   return value;
 }
@@ -97,7 +101,8 @@ uint8_t WebView::getRed(int x, int y) const {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 uint8_t WebView::getGreen(int x, int y) const {
-  uint8_t value(0), tmp(0);
+  uint8_t value(0);
+  uint8_t tmp(0);
   mClient->GetInternalRenderHandler()->GetColor(x, y, tmp, value, tmp, tmp);
   return value;
 }
@@ -105,7 +110,8 @@ uint8_t WebView::getGreen(int x, int y) const {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 uint8_t WebView::getBlue(int x, int y) const {
-  uint8_t value(0), tmp(0);
+  uint8_t value(0);
+  uint8_t tmp(0);
   mClient->GetInternalRenderHandler()->GetColor(x, y, tmp, tmp, value, tmp);
   return value;
 }
@@ -113,7 +119,8 @@ uint8_t WebView::getBlue(int x, int y) const {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 uint8_t WebView::getAlpha(int x, int y) const {
-  uint8_t value(0), tmp(0);
+  uint8_t value(0);
+  uint8_t tmp(0);
   mClient->GetInternalRenderHandler()->GetColor(x, y, tmp, tmp, tmp, value);
   return value;
 }
@@ -163,10 +170,11 @@ void WebView::waitForFinishedLoading() const {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void WebView::reload(bool ignoreCache) const {
-  if (ignoreCache)
+  if (ignoreCache) {
     mBrowser->ReloadIgnoreCache();
-  else
+  } else {
     mBrowser->Reload();
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -233,7 +241,7 @@ void WebView::injectMouseEvent(MouseEvent const& event) {
   }
 
   CefMouseEvent cef_event;
-  cef_event.modifiers = (uint32)mMouseModifiers;
+  cef_event.modifiers = static_cast<uint32>(mMouseModifiers);
   cef_event.x         = mMouseX;
   cef_event.y         = mMouseY;
 
@@ -258,7 +266,9 @@ void WebView::injectMouseEvent(MouseEvent const& event) {
       auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(
           std::chrono::steady_clock::now() - mLastClick)
                              .count();
-      if (elapsedTime < 200) {
+
+      int const doubleClickWindowMillis = 200;
+      if (elapsedTime < doubleClickWindowMillis) {
         mClickCount++;
       } else {
         mClickCount = 1;
@@ -270,9 +280,9 @@ void WebView::injectMouseEvent(MouseEvent const& event) {
       mMouseModifiers |= int(Modifier::eMiddleButton);
     }
 
-    cef_event.modifiers = (uint32)mMouseModifiers;
+    cef_event.modifiers = static_cast<uint32>(mMouseModifiers);
     mBrowser->GetHost()->SendMouseClickEvent(
-        cef_event, (cef_mouse_button_type_t)event.mButton, false, mClickCount);
+        cef_event, static_cast<cef_mouse_button_type_t>(event.mButton), false, mClickCount);
     break;
 
   case MouseEvent::Type::eRelease:
@@ -284,9 +294,9 @@ void WebView::injectMouseEvent(MouseEvent const& event) {
       mMouseModifiers &= ~int(Modifier::eMiddleButton);
     }
 
-    cef_event.modifiers = (uint32)mMouseModifiers;
+    cef_event.modifiers = static_cast<uint32>(mMouseModifiers);
     mBrowser->GetHost()->SendMouseClickEvent(
-        cef_event, (cef_mouse_button_type_t)event.mButton, true, mClickCount);
+        cef_event, static_cast<cef_mouse_button_type_t>(event.mButton), true, mClickCount);
     break;
   }
 }
@@ -302,7 +312,7 @@ void WebView::injectKeyEvent(KeyEvent const& event) {
   cef_event.modifiers               = event.mModifiers;
   cef_event.character               = event.mCharacter;
   cef_event.is_system_key           = false;
-  cef_event.windows_key_code        = (int)event.mKey;
+  cef_event.windows_key_code        = static_cast<int>(event.mKey);
   cef_event.focus_on_editable_field = true;
 
   if (event.mType == KeyEvent::Type::ePress) {
@@ -321,7 +331,7 @@ void WebView::injectKeyEvent(KeyEvent const& event) {
 void WebView::callJavascriptImpl(
     std::string const& function, std::vector<std::string> const& args) const {
   std::string call(function + "( ");
-  for (auto& s : args) {
+  for (auto&& s : args) {
     call += s + ",";
   }
   call.back() = ')';
@@ -341,8 +351,8 @@ void WebView::executeJavascript(std::string const& code) const {
 
 void WebView::registerCallback(
     std::string const& name, std::string const& comment, std::function<void()> const& callback) {
-  registerJSCallbackImpl(
-      name, comment, {}, [callback](std::vector<std::optional<JSType>> const&) { callback(); });
+  registerJSCallbackImpl(name, comment, {},
+      [callback](std::vector<std::optional<JSType>> const& /*unused*/) { callback(); });
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -406,7 +416,8 @@ void WebView::registerJSCallbackImpl(std::string const& name, std::string const&
     currentLineWidth += nextSpacePos - currentSpacePos;
     currentSpacePos = nextSpacePos;
 
-    if (currentSpacePos != std::string::npos && currentLineWidth > 40) {
+    size_t const maxLineWidth = 40;
+    if (currentSpacePos != std::string::npos && currentLineWidth > maxLineWidth) {
       formattedComment += "\n  //";
       currentLineWidth = 0;
     }

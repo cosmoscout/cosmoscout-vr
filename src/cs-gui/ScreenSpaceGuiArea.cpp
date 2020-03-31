@@ -18,13 +18,12 @@
 #include <VistaKernel/GraphicsManager/VistaGraphicsManager.h>
 #include <VistaKernel/VistaSystem.h>
 #include <VistaOGLExt/VistaGLSLShader.h>
-#include <VistaOGLExt/VistaTexture.h>
 
 namespace {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const std::string QUAD_VERT = R"(
+const char* QUAD_VERT = R"(
 vec2 positions[4] = vec2[](
     vec2(-0.5, -0.5),
     vec2( 0.5, -0.5),
@@ -48,7 +47,7 @@ void main() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const std::string QUAD_FRAG = R"(
+const char* QUAD_FRAG = R"(
 in vec2 vTexCoords;
 in vec4 vPosition;
 
@@ -78,16 +77,9 @@ namespace cs::gui {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 ScreenSpaceGuiArea::ScreenSpaceGuiArea(VistaViewport* pViewport)
-    : mViewport(pViewport)
-    , mShader(new VistaGLSLShader()) {
+    : mViewport(pViewport) {
   Observe(mViewport->GetViewportProperties());
-  onViewportChange();
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-ScreenSpaceGuiArea::~ScreenSpaceGuiArea() {
-  delete mShader;
+  ScreenSpaceGuiArea::onViewportChange();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -107,14 +99,13 @@ int ScreenSpaceGuiArea::getHeight() const {
 bool ScreenSpaceGuiArea::Do() {
   utils::FrameTimings::ScopedTimer timer("User Interface");
   if (mShaderDirty) {
-    delete mShader;
-    mShader = new VistaGLSLShader();
+    mShader = VistaGLSLShader();
 
     std::string defines = "#version 330\n";
 
-    mShader->InitVertexShaderFromString(defines + QUAD_VERT);
-    mShader->InitFragmentShaderFromString(defines + QUAD_FRAG);
-    mShader->Link();
+    mShader.InitVertexShaderFromString(defines + QUAD_VERT);
+    mShader.InitFragmentShaderFromString(defines + QUAD_FRAG);
+    mShader.Link();
 
     mShaderDirty = false;
   }
@@ -126,12 +117,12 @@ bool ScreenSpaceGuiArea::Do() {
   glDepthMask(GL_FALSE);
   glDisable(GL_DEPTH_TEST);
 
-  mShader->Bind();
+  mShader.Bind();
 
   // draw back-to-front
   auto const& items = getItems();
   for (auto item = items.rbegin(); item != items.rend(); ++item) {
-    auto guiItem = *item;
+    auto* guiItem = *item;
 
     bool textureRightSize = guiItem->getWidth() == guiItem->getTextureSizeX() &&
                             guiItem->getHeight() == guiItem->getTextureSizeY();
@@ -139,18 +130,18 @@ bool ScreenSpaceGuiArea::Do() {
     if (guiItem->getIsEnabled() && textureRightSize) {
       float posX = guiItem->getRelPositionX() + guiItem->getRelOffsetX();
       float posY = 1 - guiItem->getRelPositionY() - guiItem->getRelOffsetY();
-      mShader->SetUniform(mShader->GetUniformLocation("iPosition"), posX, posY);
+      mShader.SetUniform(mShader.GetUniformLocation("iPosition"), posX, posY);
 
       float scaleX = guiItem->getRelSizeX();
       float scaleY = guiItem->getRelSizeY();
-      mShader->SetUniform(mShader->GetUniformLocation("iScale"), scaleX, scaleY);
+      mShader.SetUniform(mShader.GetUniformLocation("iScale"), scaleX, scaleY);
 
-      glUniform2i(mShader->GetUniformLocation("texSize"), guiItem->getTextureSizeX(),
+      glUniform2i(mShader.GetUniformLocation("texSize"), guiItem->getTextureSizeX(),
           guiItem->getTextureSizeY());
 
       glActiveTexture(GL_TEXTURE0);
       glBindTexture(GL_TEXTURE_BUFFER, guiItem->getTexture());
-      mShader->SetUniform(mShader->GetUniformLocation("texture"), 0);
+      mShader.SetUniform(mShader.GetUniformLocation("texture"), 0);
 
       glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
@@ -158,7 +149,7 @@ bool ScreenSpaceGuiArea::Do() {
     }
   }
 
-  mShader->Release();
+  mShader.Release();
 
   glPopAttrib();
 
@@ -176,19 +167,20 @@ bool ScreenSpaceGuiArea::Do() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool ScreenSpaceGuiArea::GetBoundingBox(VistaBoundingBox& oBoundingBox) {
-  float min(std::numeric_limits<float>::min());
-  float max(std::numeric_limits<float>::max());
-  float fMin[3] = {min, min, min};
-  float fMax[3] = {max, max, max};
+  float                min(std::numeric_limits<float>::min());
+  float                max(std::numeric_limits<float>::max());
+  std::array<float, 3> fMin = {min, min, min};
+  std::array<float, 3> fMax = {max, max, max};
 
-  oBoundingBox.SetBounds(fMin, fMax);
+  oBoundingBox.SetBounds(fMin.data(), fMax.data());
 
   return true;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void ScreenSpaceGuiArea::ObserverUpdate(IVistaObserveable*, int nMsg, int) {
+void ScreenSpaceGuiArea::ObserverUpdate(
+    IVistaObserveable* /*pObserveable*/, int nMsg, int /*nTicket*/) {
   if (nMsg == VistaViewport::VistaViewportProperties::MSG_SIZE_CHANGE) {
     // As it's not a good idea to resize CEF gui elements very often (performance wise and sometimes
     // resize events get lost), we wait a hard-coded number of frames until we perform the actual

@@ -11,6 +11,7 @@
 
 #include <VistaAspects/VistaObserver.h>
 #include <VistaKernel/GraphicsManager/VistaOpenGLDraw.h>
+#include <VistaOGLExt/VistaGLSLShader.h>
 #include <vector>
 
 class VistaTransformNode;
@@ -33,7 +34,7 @@ class CS_GUI_EXPORT ScreenSpaceGuiArea : public GuiArea,
 
  public:
   explicit ScreenSpaceGuiArea(VistaViewport* pViewport);
-  ~ScreenSpaceGuiArea() override;
+  ~ScreenSpaceGuiArea() override = default;
 
   int getWidth() const override;
   int getHeight() const override;
@@ -49,7 +50,7 @@ class CS_GUI_EXPORT ScreenSpaceGuiArea : public GuiArea,
   virtual void onViewportChange();
 
   VistaViewport*   mViewport;
-  VistaGLSLShader* mShader                = nullptr;
+  VistaGLSLShader  mShader;
   bool             mShaderDirty           = true;
   int              mWidth                 = 0;
   int              mHeight                = 0;

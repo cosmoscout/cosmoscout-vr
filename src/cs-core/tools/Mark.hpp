@@ -50,7 +50,7 @@ class CS_CORE_EXPORT Mark : public IVistaOpenGLDraw, public Tool {
 
   Mark(Mark const& other);
 
-  virtual ~Mark();
+  ~Mark() override;
 
   std::shared_ptr<cs::scene::CelestialAnchorNode> const& getAnchor() const;
   std::shared_ptr<cs::scene::CelestialAnchorNode>&       getAnchor();

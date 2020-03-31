@@ -43,26 +43,25 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #ifdef __linux__
-#define OPENLIB(libname) dlopen((libname), RTLD_LAZY)
-#define LIBFUNC(handle, fn) dlsym((handle), (fn))
-#define CLOSELIB(handle) dlclose((handle))
-#define LIBERROR() dlerror()
-#define LIBFILETYPE ".so"
-#define PLUGIN_PATH "../share/plugins/"
+#define OPENLIB(libname) dlopen((libname), RTLD_LAZY) // NOLINT
+#define LIBFUNC(handle, fn) dlsym((handle), (fn))     // NOLINT
+#define CLOSELIB(handle) dlclose((handle))            // NOLINT
+#define LIBERROR() dlerror()                          // NOLINT
+#define LIBFILETYPE ".so"                             // NOLINT
+#define PLUGIN_PATH "../share/plugins/"               // NOLINT
 #else
-#define OPENLIB(libname) LoadLibrary((libname))
-#define LIBFUNC(handle, fn) GetProcAddress((HMODULE)(handle), (fn))
-#define CLOSELIB(handle) FreeLibrary((HMODULE)(handle))
-#define LIBERROR() GetLastError()
-#define LIBFILETYPE ".dll"
-#define PLUGIN_PATH "..\\share\\plugins\\"
+#define OPENLIB(libname) LoadLibrary((libname))                     // NOLINT
+#define LIBFUNC(handle, fn) GetProcAddress((HMODULE)(handle), (fn)) // NOLINT
+#define CLOSELIB(handle) FreeLibrary((HMODULE)(handle))             // NOLINT
+#define LIBERROR() GetLastError()                                   // NOLINT
+#define LIBFILETYPE ".dll"                                          // NOLINT
+#define PLUGIN_PATH "..\\share\\plugins\\"                          // NOLINT
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Application::Application(cs::core::Settings const& settings)
-    : VistaFrameLoop()
-    , mSettings(std::make_shared<cs::core::Settings>(settings)) {
+    : mSettings(std::make_shared<cs::core::Settings>(settings)) {
 
   // Initialize curl.
   cURLpp::initialize();
@@ -97,9 +96,9 @@ bool Application::Init(VistaSystem* pVistaSystem) {
 
   // The ObserverNavigationNode is used by several DFN networks to move the celestial observer.
   VdfnNodeFactory* pNodeFactory = VdfnNodeFactory::GetSingleton();
-  pNodeFactory->SetNodeCreator(
+  pNodeFactory->SetNodeCreator( // NOLINTNEXTLINE: TODO is this a memory leak?
       "ObserverNavigationNode", new ObserverNavigationNodeCreate(mSolarSystem.get()));
-  pNodeFactory->SetNodeCreator(
+  pNodeFactory->SetNodeCreator( // NOLINTNEXTLINE: TODO is this a memory leak?
       "GetSelectionStateNode", new GetSelectionStateNodeCreate(mInputManager.get()));
 
   // This connects several parts of CosmoScout VR to each other.
@@ -112,7 +111,7 @@ bool Application::Init(VistaSystem* pVistaSystem) {
 
   // If we are running on freeglut, we can hide the mouse pointer when the mouse ray should be
   // shown. This is determined by the settings key "enableMouseRay".
-  auto windowingToolkit = dynamic_cast<VistaGlutWindowingToolkit*>(
+  auto* windowingToolkit = dynamic_cast<VistaGlutWindowingToolkit*>(
       GetVistaSystem()->GetDisplayManager()->GetWindowingToolkit());
 
   if (windowingToolkit) {
@@ -124,16 +123,18 @@ bool Application::Init(VistaSystem* pVistaSystem) {
   // If the settings key "enableMouseRay" is set to true, we add a cone geometry to the
   // SELECTION_NODE. The SELECTION_NODE is controlled by the users input device (via the DFN).
   if (mSettings->mEnableMouseRay) {
-    auto                sceneGraph = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
+    auto*               sceneGraph = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
     VistaTransformNode* pIntentionNode =
         dynamic_cast<VistaTransformNode*>(sceneGraph->GetNode("SELECTION_NODE"));
 
     VistaTransformNode* mRayTrans = sceneGraph->NewTransformNode(pIntentionNode);
-    mRayTrans->SetScale(0.001f, 0.001f, 30.0f);
+    float const         xyScale   = 0.001F;
+    float const         zScale    = 30.0F;
+    mRayTrans->SetScale(xyScale, xyScale, zScale);
     mRayTrans->SetName("Ray_Trans");
 
-    auto ray      = new cs::graphics::MouseRay();
-    auto coneNode = sceneGraph->NewOpenGLNode(mRayTrans, ray);
+    auto* ray      = new cs::graphics::MouseRay(); // NOLINT: TODO is this a memory leak?
+    auto* coneNode = sceneGraph->NewOpenGLNode(mRayTrans, ray);
     coneNode->SetName("Cone_Node");
 
     VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
@@ -286,7 +287,8 @@ void Application::FrameUpdate() {
 
   // At frame 25 we start to download datasets. This ensures that the loading screen is actually
   // already visible.
-  if (GetFrameCount() == 25) {
+  int32_t const waitFrames = 25;
+  if (GetFrameCount() == waitFrames) {
     if (!mSettings->mDownloadData.empty()) {
       // Download datasets in parallel. We use 10 threads to download the data.
       mDownloader = std::make_unique<cs::utils::Downloader>(10);
@@ -297,7 +299,7 @@ void Application::FrameUpdate() {
       // If all files were already downloaded, this could have gone quite quickly...
       if (mDownloader->hasFinished()) {
         mDownloadedData = true;
-        mDownloader.release();
+        mDownloader.reset(nullptr);
       } else {
         // Show to the user what's going on.
         mGuiManager->setLoadingScreenStatus("Downloading data...");
@@ -317,7 +319,7 @@ void Application::FrameUpdate() {
   // Once the data download has finished, we can delete our downloader.
   if (!mDownloadedData && mDownloader && mDownloader->hasFinished()) {
     mDownloadedData = true;
-    mDownloader.release();
+    mDownloader.reset(nullptr);
   }
 
   // If all data is available, we can initialize the SolarSystem. This can only be done after the
@@ -372,7 +374,7 @@ void Application::FrameUpdate() {
 
         // Update the loading screen status.
         mGuiManager->setLoadingScreenStatus("Ready for Takeoff");
-        mGuiManager->setLoadingScreenProgress(100.f, true);
+        mGuiManager->setLoadingScreenProgress(100.F, true);
 
         // We will keep the loading screen active for some frames, as the first frames are usually a
         // bit choppy as data is uploaded to the GPU.
@@ -412,8 +414,9 @@ void Application::FrameUpdate() {
         mSolarSystem->getObserver().setAnchorPosition(cart);
         mSolarSystem->getObserver().setAnchorRotation(rotation);
 
+        double const travelTimeSeconds = 5.0;
         mSolarSystem->flyObserverTo(observerSettings.mCenter, observerSettings.mFrame, lonLat,
-            observerSettings.mDistance, 5.0);
+            observerSettings.mDistance, travelTimeSeconds);
       }
 
       // If there is a plugin going to be loaded after the next cLoadingDelay frames, display its
@@ -422,7 +425,8 @@ void Application::FrameUpdate() {
         auto plugin = mPlugins.begin();
         std::advance(plugin, pluginToLoad + 1);
         mGuiManager->setLoadingScreenStatus("Loading " + plugin->first + " ...");
-        mGuiManager->setLoadingScreenProgress(100.f * (pluginToLoad + 1) / mPlugins.size(), true);
+        mGuiManager->setLoadingScreenProgress(
+            100.F * static_cast<float>(pluginToLoad + 1) / mPlugins.size(), true);
       }
     }
   }
@@ -530,7 +534,7 @@ void Application::FrameUpdate() {
     if (mSolarSystem->pActiveBody.get()) {
 
       // Update the user's position display in the header bar.
-      auto                pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
+      auto*               pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
       VistaTransformNode* pTrans =
           dynamic_cast<VistaTransformNode*>(pSG->GetNode("Platform-User-Node"));
 
@@ -613,8 +617,9 @@ void Application::testLoadAllPlugins() {
       COSMOSCOUT_LIBTYPE pluginHandle = OPENLIB(plugin.c_str());
 
       if (pluginHandle) {
-        cs::core::PluginBase* (*pluginConstructor)();
-        pluginConstructor = (cs::core::PluginBase * (*)()) LIBFUNC(pluginHandle, "create");
+        cs::core::PluginBase* (*pluginConstructor)(){};
+        pluginConstructor = // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+            reinterpret_cast<cs::core::PluginBase* (*)()>(LIBFUNC(pluginHandle, "create"));
 
         if (pluginConstructor) {
           spdlog::info("Plugin '{}' found.", plugin);
@@ -649,8 +654,9 @@ void Application::openPlugin(std::string const& name) {
       COSMOSCOUT_LIBTYPE pluginHandle = OPENLIB(path.c_str());
 
       if (pluginHandle) {
-        cs::core::PluginBase* (*pluginConstructor)();
-        pluginConstructor = (cs::core::PluginBase * (*)()) LIBFUNC(pluginHandle, "create");
+        cs::core::PluginBase* (*pluginConstructor)(){};
+        pluginConstructor = // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+            reinterpret_cast<cs::core::PluginBase* (*)()>(LIBFUNC(pluginHandle, "create"));
 
         spdlog::info("Opening plugin '{}'.", name);
 
@@ -722,8 +728,9 @@ void Application::closePlugin(std::string const& name) {
   if (plugin != mPlugins.end()) {
     spdlog::info("Closing plugin '{}'.", plugin->first);
 
-    auto handle           = plugin->second.mHandle;
-    auto pluginDestructor = (void (*)(cs::core::PluginBase*))LIBFUNC(handle, "destroy");
+    auto* handle           = plugin->second.mHandle;
+    auto  pluginDestructor = // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+        reinterpret_cast<void (*)(cs::core::PluginBase*)>(LIBFUNC(handle, "destroy"));
 
     pluginDestructor(plugin->second.mPlugin);
     CLOSELIB(handle);
@@ -765,7 +772,9 @@ void Application::connectSlots() {
   // Update the time shown in the user interface when the simulation time changes.
   mTimeControl->pSimulationTime.connect([this](double val) {
     std::stringstream sstr;
-    auto              facet = new boost::posix_time::time_facet();
+
+    // NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
+    auto*             facet = new boost::posix_time::time_facet();
     facet->format("%d-%b-%Y %H:%M:%S.%f");
     sstr.imbue(std::locale(std::locale::classic(), facet));
     sstr << cs::utils::convert::toBoostTime(val);
@@ -917,9 +926,9 @@ void Application::registerGuiCallbacks() {
         glm::vec2 range = mGraphicsEngine->pShadowMapRange.get();
 
         if (handle == 0.0) {
-          range.x = (float)val;
+          range.x = static_cast<float>(val);
         } else {
-          range.y = (float)val;
+          range.y = static_cast<float>(val);
         };
 
         mGraphicsEngine->pShadowMapRange = range;
@@ -934,9 +943,9 @@ void Application::registerGuiCallbacks() {
         glm::vec2 extension = mGraphicsEngine->pShadowMapExtension.get();
 
         if (handle == 0.0) {
-          extension.x = (float)val;
+          extension.x = static_cast<float>(val);
         } else {
-          extension.y = (float)val;
+          extension.y = static_cast<float>(val);
         };
 
         mGraphicsEngine->pShadowMapExtension = extension;
@@ -1062,10 +1071,11 @@ void Application::registerGuiCallbacks() {
       std::function([this](double val, double handle) {
         glm::vec2 range = mGraphicsEngine->pAutoExposureRange.get();
 
-        if (handle == 0.0)
+        if (handle == 0.0) {
           range.x = static_cast<float>(val);
-        else
+        } else {
           range.y = static_cast<float>(val);
+        }
 
         mGraphicsEngine->pAutoExposureRange = range;
       }));
@@ -1107,7 +1117,8 @@ void Application::registerGuiCallbacks() {
       "duration (optionalDouble, default is 0s).",
       std::function(
           [this](double tTime, std::optional<double> duration, std::optional<double> threshold) {
-            mTimeControl->setTime(tTime, duration.value_or(0.0), threshold.value_or(48 * 60 * 60));
+            double const twoDays = 48 * 60 * 60;
+            mTimeControl->setTime(tTime, duration.value_or(0.0), threshold.value_or(twoDays));
           }));
 
   // Resets the time to the configured start time.
@@ -1117,7 +1128,8 @@ void Application::registerGuiCallbacks() {
       "which is 48h), there will be a transition of the given duration (optionalDouble, default is "
       "0s).",
       std::function([this](std::optional<double> duration, std::optional<double> threshold) {
-        mTimeControl->resetTime(duration.value_or(0.0), threshold.value_or(48 * 60 * 60));
+        double const twoDays = 48 * 60 * 60;
+        mTimeControl->resetTime(duration.value_or(0.0), threshold.value_or(twoDays));
       }));
 
   // Modifies the current simulation time by adding some (fractional) hours.
@@ -1127,8 +1139,10 @@ void Application::registerGuiCallbacks() {
       "transition of the given duration (optionalDouble, default is 0s).",
       std::function(
           [this](double amount, std::optional<double> duration, std::optional<double> threshold) {
-            mTimeControl->setTime(mTimeControl->pSimulationTime.get() + 60.0 * 60.0 * amount,
-                duration.value_or(0.0), threshold.value_or(48 * 60 * 60));
+            double const twoDays        = 48 * 60 * 60;
+            double const hoursToSeconds = 60.0 * 60.0;
+            mTimeControl->setTime(mTimeControl->pSimulationTime.get() + hoursToSeconds * amount,
+                duration.value_or(0.0), threshold.value_or(twoDays));
           }));
 
   // Adjusts the simulation time speed.
@@ -1144,9 +1158,11 @@ void Application::registerGuiCallbacks() {
       "Sets the observer position to the given cartesian coordinates. The optional double argument "
       "specifies the transition time in seconds (default is 5s).",
       std::function([this](double x, double y, double z, std::optional<double> duration) {
+        double const animationTimeSeconds = 5.0;
         mSolarSystem->flyObserverTo(mSolarSystem->getObserver().getCenterName(),
             mSolarSystem->getObserver().getFrameName(), glm::dvec3(x, y, z),
-            mSolarSystem->getObserver().getAnchorRotation(), duration.value_or(5.0));
+            mSolarSystem->getObserver().getAnchorRotation(),
+            duration.value_or(animationTimeSeconds));
       }));
 
   // Sets the observer rotation to the given quaternion coordinates.
@@ -1265,7 +1281,8 @@ void Application::registerGuiCallbacks() {
             mSolarSystem->getObserver().getAnchorPosition(), radii[0], radii[0]);
 
         // fly to 0.1% of current height
-        double height = lngLatHeight.z * 0.001;
+        double const permille = 0.001;
+        double       height   = lngLatHeight.z * permille;
 
         // limit to at least 10% of planet radius and at most 2m
         height = glm::clamp(height, 2.0, radii[0] * 0.1);

@@ -37,6 +37,13 @@ namespace cs::core {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/// Helper function that converts the character on the keyboard to an int expected by ViSTA.
+constexpr int vistaKeyCode(char c) {
+  return c - 'a' + 1;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 InputManager::InputManager() {
 
   // Tell the user what's going on.
@@ -44,13 +51,15 @@ InputManager::InputManager() {
 
   mClickTime = boost::posix_time::microsec_clock::universal_time();
 
-  auto pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
+  auto* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
 
+  float const selectionHeight = 10.0F;
+  float const selectionRadius = 0.3F;
   // Configure selection volume.
-  VistaEvenCone selectionVolume(10.f, 0.3f);
+  VistaEvenCone selectionVolume(selectionHeight, selectionRadius);
   mSelection.SetSelectionVolume(selectionVolume);
-  mSelection.SetStickyness(0.5f);
-  mSelection.SetSnappiness(0.5f);
+  mSelection.SetStickyness(0.5F);
+  mSelection.SetSnappiness(0.5F);
 
   // Add selection ray to scenegraph.
   VistaGeometryFactory oGeometryFactory(pSG);
@@ -64,27 +73,32 @@ InputManager::InputManager() {
   GetVistaSystem()->GetKeyboardSystemControl()->UnbindAction('q');
 
   // Copy, paste, ctr-z,...
-  GetVistaSystem()->GetKeyboardSystemControl()->BindAction(24, [this]() {
+
+  GetVistaSystem()->GetKeyboardSystemControl()->BindAction(vistaKeyCode('x'), [this]() {
     if (pSelectedGuiItem.get()) {
       pSelectedGuiItem.get()->cut();
     }
   });
-  GetVistaSystem()->GetKeyboardSystemControl()->BindAction(3, [this]() {
+
+  GetVistaSystem()->GetKeyboardSystemControl()->BindAction(vistaKeyCode('c'), [this]() {
     if (pSelectedGuiItem.get()) {
       pSelectedGuiItem.get()->copy();
     }
   });
-  GetVistaSystem()->GetKeyboardSystemControl()->BindAction(22, [this]() {
+
+  GetVistaSystem()->GetKeyboardSystemControl()->BindAction(vistaKeyCode('v'), [this]() {
     if (pSelectedGuiItem.get()) {
       pSelectedGuiItem.get()->paste();
     }
   });
-  GetVistaSystem()->GetKeyboardSystemControl()->BindAction(26, [this]() {
+
+  GetVistaSystem()->GetKeyboardSystemControl()->BindAction(vistaKeyCode('z'), [this]() {
     if (pSelectedGuiItem.get()) {
       pSelectedGuiItem.get()->undo();
     }
   });
-  GetVistaSystem()->GetKeyboardSystemControl()->BindAction(25, [this]() {
+
+  GetVistaSystem()->GetKeyboardSystemControl()->BindAction(vistaKeyCode('y'), [this]() {
     if (pSelectedGuiItem.get()) {
       pSelectedGuiItem.get()->redo();
     }
@@ -99,12 +113,15 @@ InputManager::InputManager() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 InputManager::~InputManager() {
-  // Tell the user what's going on.
-  spdlog::debug("Deleting InputManager.");
+  try {
+    // Tell the user what's going on.
+    spdlog::debug("Deleting InputManager.");
+  } catch (...) {}
 
-  for (auto adapter : mAdapters) {
+  for (auto* adapter : mAdapters) {
     mSelection.UnregisterNode(adapter);
-    delete adapter;
+    delete adapter; // NOLINT(cppcoreguidelines-owning-memory): unordered_set doesn't like smart
+                    // pointers.
   }
 }
 
@@ -128,11 +145,13 @@ void InputManager::registerSelectable(gui::ScreenSpaceGuiArea* pGui) {
 
 void InputManager::registerSelectable(IVistaNode* pNode) {
   if ((pNode->GetType() == VISTA_GEOMNODE || pNode->GetType() == VISTA_OPENGLNODE)) {
-    auto pAdapter = new VistaBoundingBoxAdapter(pNode);
+    auto* pAdapter = new VistaBoundingBoxAdapter(pNode); // NOLINT(cppcoreguidelines-owning-memory):
+                                                         // std::set doesn't like smart pointers.
     mSelection.RegisterNode(pAdapter);
     mAdapters.insert(pAdapter);
   } else {
-    auto pAdapter = new VistaNodeAdapter(pNode);
+    auto* pAdapter = new VistaNodeAdapter(pNode); // NOLINT(cppcoreguidelines-owning-memory):
+                                                  // std::set doesn't like smart pointers.
     mSelection.RegisterNode(pAdapter);
     mAdapters.insert(pAdapter);
   }
@@ -181,7 +200,7 @@ void InputManager::unregisterSelectable(IVistaNode* pNode) {
     pActiveNode = nullptr;
   }
 
-  auto pOGLNode = dynamic_cast<VistaOpenGLNode*>(pNode);
+  auto* pOGLNode = dynamic_cast<VistaOpenGLNode*>(pNode);
 
   // If its an OpenGLNode, it may be a gui element.
   if (pOGLNode) {
@@ -200,10 +219,11 @@ void InputManager::unregisterSelectable(IVistaNode* pNode) {
   }
 
   if (pNode) {
-    for (auto& pAdapter : mAdapters) {
+    for (auto* pAdapter : mAdapters) {
       if (pAdapter->GetNode() == pNode) {
         mSelection.UnregisterNode(pAdapter);
-        delete pAdapter;
+        delete pAdapter; // NOLINT(cppcoreguidelines-owning-memory): unordered_set doesn't like
+                         // smart pointers.
         mAdapters.erase(pAdapter);
         return;
       }
@@ -214,7 +234,7 @@ void InputManager::unregisterSelectable(IVistaNode* pNode) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void InputManager::update() {
-  auto pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
+  auto* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
 
   // Set position and orientation of selection ray.
   VistaVector3D       v3Position;
@@ -252,17 +272,22 @@ void InputManager::update() {
   // Test the Intention Node for Intersection with screen space gui.
   if (!mScreenSpaceGuis.empty()) {
     VistaViewport* pViewport(GetVistaSystem()->GetDisplayManager()->GetViewports().begin()->second);
-    auto           pProbs = pViewport->GetProjection()->GetProjectionProperties();
+    auto*          pProbs = pViewport->GetProjection()->GetProjectionProperties();
 
-    VistaVector3D v3Origin, v3Up, v3Normal;
-    double        dLeft, dRight, dBottom, dTop;
+    VistaVector3D v3Origin;
+    VistaVector3D v3Up;
+    VistaVector3D v3Normal;
+    double        dLeft{};
+    double        dRight{};
+    double        dBottom{};
+    double        dTop{};
 
     pProbs->GetProjPlaneExtents(dLeft, dRight, dBottom, dTop);
     pProbs->GetProjPlaneMidpoint(v3Origin[0], v3Origin[1], v3Origin[2]);
     pProbs->GetProjPlaneUp(v3Up[0], v3Up[1], v3Up[2]);
     pProbs->GetProjPlaneNormal(v3Normal[0], v3Normal[1], v3Normal[2]);
 
-    auto platformTransform =
+    auto* platformTransform =
         GetVistaSystem()->GetDisplayManager()->GetDisplaySystem()->GetReferenceFrame();
 
     VistaVector3D start = v3Position;
@@ -280,9 +305,10 @@ void InputManager::update() {
 
     if (plane.CalcIntersection(ray, guiIntersection)) {
       for (auto const& pViewportGui : mScreenSpaceGuis) {
-        int x = (int)((guiIntersection[0] - dLeft) / (dRight - dLeft) * pViewportGui->getWidth());
-        int y = (int)((1.0 - (guiIntersection[1] - dBottom) / (dTop - dBottom)) *
-                      pViewportGui->getHeight());
+        int x = static_cast<int>(
+            (guiIntersection[0] - dLeft) / (dRight - dLeft) * pViewportGui->getWidth());
+        int y = static_cast<int>(
+            (1.0 - (guiIntersection[1] - dBottom) / (dTop - dBottom)) * pViewportGui->getHeight());
 
         if (pActiveGuiItem.get()) {
           // If there is an active gui item we need to send mouse move events even if it's not
@@ -299,7 +325,7 @@ void InputManager::update() {
         } else {
           // If there is no active gui item, we should check if the mouse pointer is currently
           // hovering an item.
-          auto item = pViewportGui->getItemAt(x, y);
+          auto* item = pViewportGui->getItemAt(x, y);
           if (item) {
             // We have hovered gui item! Let's update the selection state as depicted in the diagram
             // in InputManager.hpp.
@@ -328,7 +354,7 @@ void InputManager::update() {
     // This is not strictly necessary but reduces precision issues in the inversion of the matrix.
     // Without this step, objects which are *really* far away would not be selectable.
     VistaTransformMatrix matScale;
-    float                scale = 1.f / matTransform.GetTranslation().GetLength();
+    float                scale = 1.F / matTransform.GetTranslation().GetLength();
     matScale.SetToScaleMatrix(scale);
     matTransform = matScale * matTransform;
 
@@ -336,7 +362,8 @@ void InputManager::update() {
     VistaVector3D        start                 = matInvParentTransform * (v3Position * scale);
     VistaVector3D end = matInvParentTransform * ((v3Position * scale) + qOrientation.GetViewDir());
 
-    int x, y;
+    int x{};
+    int y{};
     area->calculateMousePosition(start, end, x, y);
     // Inject a mouse move event.
     gui::MouseEvent event;
@@ -351,9 +378,9 @@ void InputManager::update() {
   mSelection.SetConeTransform(v3Position, qOrientation);
   mSelection.Update(vResults);
 
-  for (auto pNode : vResults) {
-    auto pNodeAdapter = dynamic_cast<VistaNodeAdapter*>(pNode);
-    auto pOGLNode     = dynamic_cast<VistaOpenGLNode*>(pNodeAdapter->GetNode());
+  for (auto* pNode : vResults) {
+    auto* pNodeAdapter = dynamic_cast<VistaNodeAdapter*>(pNode);
+    auto* pOGLNode     = dynamic_cast<VistaOpenGLNode*>(pNodeAdapter->GetNode());
 
     // If its an OpenGLNode, it may be a gui element.
     gui::WorldSpaceGuiArea* area =
@@ -368,7 +395,7 @@ void InputManager::update() {
       // inversion of the matrix. Without this step, objects which are *really* far away would
       // not be selectable.
       VistaTransformMatrix matScale;
-      float                scale = 1.f / matTransform.GetTranslation().GetLength();
+      float                scale = 1.F / matTransform.GetTranslation().GetLength();
       matScale.SetToScaleMatrix(scale);
       matTransform = matScale * matTransform;
 
@@ -377,7 +404,8 @@ void InputManager::update() {
       VistaVector3D        end =
           matInvParentTransform * ((v3Position * scale) + qOrientation.GetViewDir());
 
-      int x, y;
+      int x{};
+      int y{};
       if (area->calculateMousePosition(start, end, x, y)) {
         gui::GuiItem* item = area->getItemAt(x, y);
 
@@ -429,8 +457,7 @@ void InputManager::update() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool InputManager::HandleKeyPress(int key, int mods, bool) {
-
+bool InputManager::HandleKeyPress(int key, int mods, bool /*bIsKeyRepeat*/) {
   if (key == VISTA_KEY_ESC) {
     sOnEscapePressed.emit();
     return true;
@@ -441,10 +468,8 @@ bool InputManager::HandleKeyPress(int key, int mods, bool) {
 
     // Continue propagation for key-up events so that DFN realizes those even with the pointer being
     // above the gui. Also, continue event propagation for ctrl-x, -c, -v, -z, -y.
-    if (key < 0 || key == 24 || key == 3 || key == 22 || key == 26 || key == 25) {
-      return false;
-    }
-    return true;
+    return !(key < 0 || key == vistaKeyCode('x') || key == vistaKeyCode('c') ||
+             key == vistaKeyCode('v') || key == vistaKeyCode('z') || key == vistaKeyCode('y'));
   }
 
   // Continue event propagation to DFN for navigation input if no gui input element has focus.
@@ -473,14 +498,14 @@ void handleButtonEvent(bool pressed, T& hovered, T& active, T& selected) {
 
 void InputManager::HandleEvent(VistaEvent* pEvent) {
   if (pEvent->GetId() == VistaInteractionEvent::VEID_GRAPH_INPORT_CHANGE) {
-    auto             event(dynamic_cast<VistaInteractionEvent*>(pEvent));
+    auto*            event(dynamic_cast<VistaInteractionEvent*>(pEvent));
     IVdfnNode const* node(event->GetEventNode());
     std::string      tag;
     if (node->GetUserTag(tag)) {
       for (size_t i(0); i < pButtons.size(); ++i) {
         if (tag == "button_0" + std::to_string(i + 1)) {
-          auto port(dynamic_cast<TVdfnPort<bool>*>(node->GetInPort("value")));
-          pButtons[i] = port->GetValue();
+          auto* port(dynamic_cast<TVdfnPort<bool>*>(node->GetInPort("value")));
+          pButtons.at(i) = port->GetValue();
 
           if (i == 0) {
 
@@ -532,7 +557,9 @@ void InputManager::HandleEvent(VistaEvent* pEvent) {
               auto t    = boost::posix_time::microsec_clock::universal_time();
               auto diff = (t - mClickTime);
 
-              if (diff < boost::posix_time::time_duration(boost::posix_time::millisec(200))) {
+              int32_t const doubleClickTimeMillis = 200;
+              if (diff < boost::posix_time::time_duration(
+                             boost::posix_time::millisec(doubleClickTimeMillis))) {
                 sOnDoubleClick.emit();
               }
               mClickTime = t;
@@ -543,11 +570,13 @@ void InputManager::HandleEvent(VistaEvent* pEvent) {
 
       if (tag == "scroll_wheel") {
         TVdfnPort<int>* port(dynamic_cast<TVdfnPort<int>*>(node->GetInPort("value")));
-        auto            item = pActiveGuiItem.get() ? pActiveGuiItem.get() : pHoveredGuiItem.get();
+        auto*           item = pActiveGuiItem.get() ? pActiveGuiItem.get() : pHoveredGuiItem.get();
         if (port && item && item->getCanScroll()) {
           gui::MouseEvent mouseEvent;
           mouseEvent.mType = gui::MouseEvent::Type::eScroll;
-          mouseEvent.mY    = port->GetValue() * 20;
+
+          int const scrollSpeed = 20;
+          mouseEvent.mY         = port->GetValue() * scrollSpeed;
           item->injectMouseEvent(mouseEvent);
         }
       }

@@ -25,9 +25,9 @@ class CS_CORE_EXPORT DeletableMark : public Mark {
       std::shared_ptr<TimeControl> const& pTimeControl, std::string const& sCenter,
       std::string const& sFrame);
 
-  DeletableMark(DeletableMark const& other);
+  // DeletableMark(DeletableMark const& other);
 
-  virtual ~DeletableMark();
+  ~DeletableMark() override;
 
  private:
   void initData();

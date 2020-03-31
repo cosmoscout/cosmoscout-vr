@@ -10,6 +10,7 @@ namespace cs::gui::detail {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// NOLINTNEXTLINE
 WebApp::WebApp(int argc, char* argv[], bool hardware_accelerated)
 #ifdef _WIN32
     : mArgs(GetModuleHandleW(nullptr))

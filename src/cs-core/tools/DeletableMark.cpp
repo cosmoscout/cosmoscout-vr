@@ -28,14 +28,14 @@ DeletableMark::DeletableMark(std::shared_ptr<InputManager> const& pInputManager,
     std::shared_ptr<TimeControl> const& pTimeControl, std::string const& sCenter,
     std::string const& sFrame)
     : Mark(pInputManager, pSolarSystem, graphicsEngine, pTimeControl, sCenter, sFrame)
-    , mGuiArea(new cs::gui::WorldSpaceGuiArea(80, 90))
+    , mGuiArea(new cs::gui::WorldSpaceGuiArea(80, 90)) // NOLINT
     , mGuiItem(new cs::gui::GuiItem("file://../share/resources/gui/deletable_mark.html")) {
 
   initData();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-
+/*
 DeletableMark::DeletableMark(DeletableMark const& other)
     : Mark(other)
     , mGuiArea(new cs::gui::WorldSpaceGuiArea(100, 100))
@@ -43,7 +43,7 @@ DeletableMark::DeletableMark(DeletableMark const& other)
 
   initData();
 }
-
+*/
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 DeletableMark::~DeletableMark() {
@@ -59,12 +59,18 @@ DeletableMark::~DeletableMark() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void DeletableMark::initData() {
-  auto pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
+  auto* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
 
-  auto pGuiTransform = pSG->NewTransformNode(mAnchor.get());
-  pGuiTransform->Translate(0.f, 0.4f, 0.f);
-  pGuiTransform->Scale(0.001f * mGuiArea->getWidth(), 0.001f * mGuiArea->getHeight(), 1.f);
-  pGuiTransform->Rotate(VistaAxisAndAngle(VistaVector3D(0.0, 1.0, 0.0), -glm::pi<float>() / 2.f));
+  auto* pGuiTransform = pSG->NewTransformNode(mAnchor.get());
+
+  float const offsetY = 0.4F;
+  pGuiTransform->Translate(0.F, offsetY, 0.F);
+
+  float const scale = 0.001F;
+  pGuiTransform->Scale(scale * static_cast<float>(mGuiArea->getWidth()),
+      scale * static_cast<float>(mGuiArea->getHeight()), 1.F);
+
+  pGuiTransform->Rotate(VistaAxisAndAngle(VistaVector3D(0.0, 1.0, 0.0), -glm::pi<float>() / 2.F));
   mGuiArea->addItem(mGuiItem.get());
   mGuiArea->setUseLinearDepthBuffer(true);
 

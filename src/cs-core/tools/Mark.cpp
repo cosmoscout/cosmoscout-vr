@@ -28,7 +28,7 @@ namespace cs::core::tools {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static const std::string SHADER_VERT = R"(
+static const char* SHADER_VERT = R"(
 #version 330
 
 layout(location=0) in vec3 iPosition;
@@ -48,7 +48,7 @@ void main()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static const std::string SHADER_FRAG = R"(
+static const char* SHADER_FRAG = R"(
 #version 330
 
 uniform vec3 uHoverSelectActive;
@@ -80,10 +80,10 @@ Mark::Mark(std::shared_ptr<InputManager> pInputManager, std::shared_ptr<SolarSys
     , mSolarSystem(std::move(pSolarSystem))
     , mGraphicsEngine(std::move(graphicsEngine))
     , mTimeControl(std::move(pTimeControl))
-    , mVAO(new VistaVertexArrayObject())
-    , mVBO(new VistaBufferObject())
-    , mIBO(new VistaBufferObject())
-    , mShader(new VistaGLSLShader()) {
+    , mVAO(std::make_unique<VistaVertexArrayObject>())
+    , mVBO(std::make_unique<VistaBufferObject>())
+    , mIBO(std::make_unique<VistaBufferObject>())
+    , mShader(std::make_unique<VistaGLSLShader>()) {
 
   initData(sCenter, sFrame);
 }
@@ -155,22 +155,23 @@ void Mark::update() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool Mark::Do() {
-  GLfloat glMatMV[16], glMatP[16];
-  glGetFloatv(GL_MODELVIEW_MATRIX, &glMatMV[0]);
-  glGetFloatv(GL_PROJECTION_MATRIX, &glMatP[0]);
+  std::array<GLfloat, 16> glMatMV{};
+  std::array<GLfloat, 16> glMatP{};
+  glGetFloatv(GL_MODELVIEW_MATRIX, glMatMV.data());
+  glGetFloatv(GL_PROJECTION_MATRIX, glMatP.data());
 
   mShader->Bind();
   mVAO->Bind();
-  glUniformMatrix4fv(mShader->GetUniformLocation("uMatModelView"), 1, GL_FALSE, glMatMV);
-  glUniformMatrix4fv(mShader->GetUniformLocation("uMatProjection"), 1, GL_FALSE, glMatP);
-  mShader->SetUniform(mShader->GetUniformLocation("uHoverSelectActive"), pHovered.get() ? 1.f : 0.f,
-      pSelected.get() ? 1.f : 0.f, pActive.get() ? 1.f : 0.f);
+  glUniformMatrix4fv(mShader->GetUniformLocation("uMatModelView"), 1, GL_FALSE, glMatMV.data());
+  glUniformMatrix4fv(mShader->GetUniformLocation("uMatProjection"), 1, GL_FALSE, glMatP.data());
+  mShader->SetUniform(mShader->GetUniformLocation("uHoverSelectActive"), pHovered.get() ? 1.F : 0.F,
+      pSelected.get() ? 1.F : 0.F, pActive.get() ? 1.F : 0.F);
   mShader->SetUniform(
       mShader->GetUniformLocation("uFarClip"), cs::utils::getCurrentFarClipDistance());
   mShader->SetUniform(
       mShader->GetUniformLocation("uColor"), pColor.get().x, pColor.get().y, pColor.get().z);
 
-  glDrawElements(GL_TRIANGLES, (GLsizei)mIndexCount, GL_UNSIGNED_INT, nullptr);
+  glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(mIndexCount), GL_UNSIGNED_INT, nullptr);
   mVAO->Release();
   mShader->Release();
 
@@ -180,10 +181,12 @@ bool Mark::Do() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool Mark::GetBoundingBox(VistaBoundingBox& bb) {
-  float fMin[3] = {-0.01f, -0.01f, -0.01f};
-  float fMax[3] = {0.01f, 0.01f, 0.01f};
+  float const extend = 0.01F;
 
-  bb.SetBounds(fMin, fMax);
+  std::array<float, 3> const fMin = {-extend, -extend, -extend};
+  std::array<float, 3> const fMax = {extend, extend, extend};
+
+  bb.SetBounds(fMin.data(), fMax.data());
 
   return true;
 }
@@ -195,7 +198,7 @@ void Mark::initData(std::string const& sCenter, std::string const& sFrame) {
   mShader->InitFragmentShaderFromString(SHADER_FRAG);
   mShader->Link();
 
-  auto pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
+  auto* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
 
   mAnchor = std::make_shared<cs::scene::CelestialAnchorNode>(
       pSG->GetRoot(), pSG->GetNodeBridge(), "", sCenter, sFrame);
@@ -319,7 +322,7 @@ void Mark::initData(std::string const& sCenter, std::string const& sFrame) {
 
   // connect the heightscale value to this object. Whenever the heightscale value changes
   // the landmark will be set to the correct height value
-  mHeightScaleConnection = mGraphicsEngine->pHeightScale.connect([this](float const& h) {
+  mHeightScaleConnection = mGraphicsEngine->pHeightScale.connect([this](float h) {
     auto   body   = mSolarSystem->getBody(mAnchor->getCenterName());
     double height = body->getHeight(pLngLat.get()) * h;
     auto   radii  = body->getRadii();

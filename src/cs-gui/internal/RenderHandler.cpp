@@ -54,10 +54,10 @@ bool RenderHandler::GetColor(int x, int y, uint8_t& r, uint8_t& g, uint8_t& b, u
   // this might be dangerous --- I'm not entirely sure whether this pixel data
   // reference is guranteed to be valid. If something bad happens, we have to
   // consider keeping a local copy of the pixel data...
-  b = mPixelData[data_pos + 0];
-  g = mPixelData[data_pos + 1];
-  r = mPixelData[data_pos + 2];
-  a = mPixelData[data_pos + 3];
+  b = mPixelData[data_pos + 0]; // NOLINT: This
+  g = mPixelData[data_pos + 1]; // NOLINT: is
+  r = mPixelData[data_pos + 2]; // NOLINT: performance
+  a = mPixelData[data_pos + 3]; // NOLINT: critical.
 
   return true;
 }
@@ -76,13 +76,13 @@ int RenderHandler::GetHeight() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void RenderHandler::GetViewRect(CefRefPtr<CefBrowser> browser, CefRect& rect) {
+void RenderHandler::GetViewRect(CefRefPtr<CefBrowser> /*browser*/, CefRect& rect) {
   rect = CefRect(0, 0, mWidth, mHeight);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void RenderHandler::OnPaint(CefRefPtr<CefBrowser> browser, PaintElementType,
+void RenderHandler::OnPaint(CefRefPtr<CefBrowser> /*browser*/, PaintElementType /*type*/,
     RectList const& dirtyRects, const void* b, int width, int height) {
   DrawEvent event{};
   event.mResized  = width != mLastDrawWidth || height != mLastDrawHeight;
@@ -115,6 +115,7 @@ void RenderHandler::OnPaint(CefRefPtr<CefBrowser> browser, PaintElementType,
         size_t startOffset = rect.y * width * 4 * sizeof(uint8_t);
         size_t extend      = rect.height * width * 4 * sizeof(uint8_t);
 
+        // NOLINTNEXTLINE: This is performance critical.
         std::memcpy(mPixelData + startOffset, (uint8_t*)b + startOffset, extend);
       } else {
         // We copy each row of the changed region over individually, since they are not
@@ -135,6 +136,7 @@ void RenderHandler::OnPaint(CefRefPtr<CefBrowser> browser, PaintElementType,
           size_t startOffset = ((rect.y + i) * width + rect.x) * 4 * sizeof(uint8_t);
           size_t extend      = rect.width * 4 * sizeof(uint8_t);
 
+          // NOLINTNEXTLINE: This is performance critical.
           std::memcpy(mPixelData + startOffset, (uint8_t*)b + startOffset, extend);
         }
       }
@@ -144,8 +146,8 @@ void RenderHandler::OnPaint(CefRefPtr<CefBrowser> browser, PaintElementType,
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void RenderHandler::OnCursorChange(CefRefPtr<CefBrowser> browser, CefCursorHandle,
-    CefRenderHandler::CursorType                         type, const CefCursorInfo&) {
+void RenderHandler::OnCursorChange(CefRefPtr<CefBrowser> /*browser*/, CefCursorHandle,
+    CefRenderHandler::CursorType type, const CefCursorInfo& /*custom_cursor_info*/) {
   if (mCursorChangeCallback) {
     mCursorChangeCallback(static_cast<Cursor>(type));
   }
@@ -154,17 +156,11 @@ void RenderHandler::OnCursorChange(CefRefPtr<CefBrowser> browser, CefCursorHandl
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void RenderHandler::OnVirtualKeyboardRequested(
-    CefRefPtr<CefBrowser> browser, TextInputMode input_mode) {
+    CefRefPtr<CefBrowser> /*browser*/, TextInputMode input_mode) {
 
   if (mRequestKeyboardFocusCallback) {
     mRequestKeyboardFocusCallback(input_mode != CEF_TEXT_INPUT_MODE_NONE);
   }
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-RenderHandler::~RenderHandler() {
-  // delete[] mPixelData;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -173,12 +173,12 @@ class CS_CORE_EXPORT GuiManager {
   std::shared_ptr<InputManager>        mInputManager;
   std::shared_ptr<utils::FrameTimings> mFrameTimings;
 
-  VistaViewportResizeToProjectionAdapter* mViewportUpdater = nullptr;
-  gui::WorldSpaceGuiArea*                 mGlobalGuiArea   = nullptr;
-  gui::ScreenSpaceGuiArea*                mLocalGuiArea    = nullptr;
+  std::unique_ptr<VistaViewportResizeToProjectionAdapter> mViewportUpdater;
+  std::unique_ptr<gui::WorldSpaceGuiArea>                 mGlobalGuiArea;
+  std::unique_ptr<gui::ScreenSpaceGuiArea>                mLocalGuiArea;
 
-  gui::GuiItem* mCosmoScoutGui = nullptr;
-  gui::GuiItem* mStatistics    = nullptr;
+  std::unique_ptr<gui::GuiItem> mCosmoScoutGui;
+  std::unique_ptr<gui::GuiItem> mStatistics;
 
   // The global GUI is drawn in world-space.
   VistaTransformNode* mGlobalGuiTransform  = nullptr;

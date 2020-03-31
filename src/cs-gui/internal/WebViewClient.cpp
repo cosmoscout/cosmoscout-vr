@@ -7,7 +7,6 @@
 #include "WebViewClient.hpp"
 
 #include <fstream>
-#include <iostream>
 #include <spdlog/spdlog.h>
 #include <utility>
 
@@ -16,21 +15,24 @@ namespace cs::gui::detail {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 WebViewClient::~WebViewClient() {
-  if (!mJSCallbacks.empty()) {
-    spdlog::warn(
-        "While destructing a WebViewClient there were still JavaScript callbacks registered:");
+  try {
+    if (!mJSCallbacks.empty()) {
+      spdlog::warn(
+          "While destructing a WebViewClient there were still JavaScript callbacks registered:");
 
-    for (auto&& i : mJSCallbacks) {
-      spdlog::warn(" - {}", i.first);
-      i.second = [](auto) {};
+      for (auto&& i : mJSCallbacks) {
+        spdlog::warn(" - {}", i.first);
+        i.second = [](auto /*unused*/) {};
+      }
     }
-  }
+  } catch (...) {}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool WebViewClient::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
-    CefRefPtr<CefFrame> frame, CefProcessId, CefRefPtr<CefProcessMessage> message) {
+bool WebViewClient::OnProcessMessageReceived(CefRefPtr<CefBrowser> /*browser*/,
+    CefRefPtr<CefFrame> /*frame*/, CefProcessId /*source_process*/,
+    CefRefPtr<CefProcessMessage> message) {
 
   if (message->GetName() == "callNative") {
 
@@ -70,7 +72,9 @@ bool WebViewClient::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
     callback->second(std::move(args));
 
     return true;
-  } else if (message->GetName() == "error") {
+  }
+
+  if (message->GetName() == "error") {
     spdlog::error(message->GetArgumentList()->GetString(0).ToString());
   }
 

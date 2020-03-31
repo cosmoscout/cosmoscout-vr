@@ -1,7 +1,40 @@
-Checks: '*,-clang-diagnostic-inconsistent-dllimport,-fuchsia-default-arguments-calls,-modernize-use-trailing-return-type,-readability-implicit-bool-conversion,-cppcoreguidelines-pro-type-union-access,-cppcoreguidelines-avoid-magic-numbers,-misc-non-private-member-variables-in-classes,-fuchsia-statically-constructed-objects'
-WarningsAsErrors: '-*,-cert-err58-cpp'
+Checks: '*,
+-abseil-string-find-startswith,
+-bugprone-exception-escape,
+-bugprone-narrowing-conversions,
+-clang-diagnostic-inconsistent-dllimport,
+-cppcoreguidelines-avoid-c-arrays,
+-cppcoreguidelines-avoid-magic-numbers,
+-cppcoreguidelines-pro-type-vararg,
+-cppcoreguidelines-pro-type-union-access,
+-fuchsia-default-arguments-calls,
+-fuchsia-overloaded-operator,
+-fuchsia-statically-constructed-objects,
+-google-readability-todo,
+-google-readability-braces-around-statements,
+-google-runtime-references,
+-hicpp-avoid-c-arrays,
+-hicpp-braces-around-statements,
+-hicpp-signed-bitwise,
+-hicpp-uppercase-literal-suffix,
+-hicpp-vararg,
+-llvm-qualified-auto,
+-misc-non-private-member-variables-in-classes,
+-modernize-use-trailing-return-type,
+-readability-implicit-bool-conversion'
+
+WarningsAsErrors: '-*,
+-cert-err58-cpp,
+-cppcoreguidelines-macro-usage,
+-cppcoreguidelines-pro-type-reinterpret-cast,
+-readability-magic-numbers'
+
 AnalyzeTemporaryDtors: false
 FormatStyle:     none
 CheckOptions:
   - key: readability-magic-numbers.IgnoredFloatingPointValues
-    value: '0.0;0.5;1.0;2.0'
+    value: '0.0;0.1;0.2;0.5;1.0;2.0;3.0;4.0;5.0;10.0;100.0;45.0;90.0;180.0;360.0'
+  - key: readability-magic-numbers.IgnoredIntegerValues
+    value: '-2;-1;0;1;2;3;4;5;10;100;1000'
+  - key: readability-magic-numbers.IgnorePowersOf2IntegerValues
+    value: '1'

@@ -17,7 +17,7 @@ namespace cs::gui {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void GuiArea::addItem(GuiItem* item, unsigned int index) {
-  index = std::min(index, (unsigned int)mItems.size());
+  index = std::min(index, static_cast<unsigned int>(mItems.size()));
   mItems.insert(mItems.begin() + index, item);
   item->onAreaResize(getWidth(), getHeight());
 }
@@ -53,10 +53,11 @@ GuiItem* GuiArea::getItem(unsigned int index) {
 
 GuiItem* GuiArea::getItemAt(
     int areaX, int areaY, bool checkAlpha, bool excludeNoninteractive, bool excludeDisabled) {
-  for (auto item : mItems) {
+  for (auto const& item : mItems) {
     if ((item->getIsInteractive() || !excludeNoninteractive) &&
         (item->getIsEnabled() || !excludeDisabled)) {
-      int x, y;
+      int x{};
+      int y{};
       if (item->calculateMousePosition(areaX, areaY, x, y)) {
         if (!checkAlpha || item->getAlpha(x, y) > 0) {
           return item;
@@ -76,7 +77,7 @@ std::vector<GuiItem*> const& GuiArea::getItems() const {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void GuiArea::updateItems() {
-  for (auto item : mItems) {
+  for (auto&& item : mItems) {
     item->onAreaResize(getWidth(), getHeight());
   }
 }

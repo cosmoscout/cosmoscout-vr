@@ -15,8 +15,7 @@
 
 ObserverNavigationNode::ObserverNavigationNode(
     cs::core::SolarSystem* pSolarSystem, VistaPropertyList const& oParams)
-    : IVdfnNode()
-    , mSolarSystem(pSolarSystem)
+    : mSolarSystem(pSolarSystem)
     , mTime(nullptr)
     , mTranslation(nullptr)
     , mRotation(nullptr)
@@ -35,9 +34,16 @@ ObserverNavigationNode::ObserverNavigationNode(
     , mLastTime(-1.0) {
   mLinearSpeed.mDirection = cs::utils::AnimationDirection::eLinear;
 
+  // NOLINTNEXTLINE(cppcoreguidelines-owning-memory): TODO memory leak?
   RegisterInPortPrototype("time", new TVdfnPortTypeCompare<TVdfnPort<double>>);
+
+  // NOLINTNEXTLINE(cppcoreguidelines-owning-memory): TODO memory leak?
   RegisterInPortPrototype("translation", new TVdfnPortTypeCompare<TVdfnPort<VistaVector3D>>);
+
+  // NOLINTNEXTLINE(cppcoreguidelines-owning-memory): TODO memory leak?
   RegisterInPortPrototype("rotation", new TVdfnPortTypeCompare<TVdfnPort<VistaQuaternion>>);
+
+  // NOLINTNEXTLINE(cppcoreguidelines-owning-memory): TODO memory leak?
   RegisterInPortPrototype("offset", new TVdfnPortTypeCompare<TVdfnPort<VistaVector3D>>);
 }
 

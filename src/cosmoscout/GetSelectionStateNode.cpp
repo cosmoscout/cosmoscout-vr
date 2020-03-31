@@ -14,9 +14,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 GetSelectionStateNode::GetSelectionStateNode(
-    cs::core::InputManager* pInputManager, VistaPropertyList const&)
-    : IVdfnNode()
-    , mInputManager(pInputManager) {
+    cs::core::InputManager* pInputManager, VistaPropertyList const& /*unused*/)
+    : mInputManager(pInputManager) {
 
   SetEvaluationFlag(true);
 

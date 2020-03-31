@@ -76,7 +76,7 @@ void MultiPointTool::addPoint() {
   }
 
   // register callback to update line vertices when the landmark position has been changed
-  mPoints.back()->pLngLat.connect([this](glm::dvec2 const&) { onPointMoved(); });
+  mPoints.back()->pLngLat.connect([this](glm::dvec2 const& /*unused*/) { onPointMoved(); });
 
   // call update once since new data is available
   onPointAdded();

@@ -47,7 +47,7 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
 
   // Update the main viewport when the window is resized.
   VistaViewport* pViewport(GetVistaSystem()->GetDisplayManager()->GetViewports().begin()->second);
-  mViewportUpdater = new VistaViewportResizeToProjectionAdapter(pViewport);
+  mViewportUpdater = std::make_unique<VistaViewportResizeToProjectionAdapter>(pViewport);
   mViewportUpdater->SetUpdateMode(VistaViewportResizeToProjectionAdapter::MAINTAIN_HORIZONTAL_FOV);
 
   // Hide the user interface when ESC is pressed.
@@ -56,47 +56,48 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
   // Create GuiAreas and attach them to the SceneGraph ---------------------------------------------
 
   // The global GUI is drawn in world-space, the local GUI is drawn in screen-space.
-  auto pSG           = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
+  auto* pSG          = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
   mLocalGuiTransform = pSG->NewTransformNode(pSG->GetRoot());
 
   // The global GUI area is only created when the according settings key was specified.
   if (settings->mGui) {
-    auto platform = GetVistaSystem()
-                        ->GetPlatformFor(GetVistaSystem()->GetDisplayManager()->GetDisplaySystem())
-                        ->GetPlatformNode();
+    auto* platform = GetVistaSystem()
+                         ->GetPlatformFor(GetVistaSystem()->GetDisplayManager()->GetDisplaySystem())
+                         ->GetPlatformNode();
     mGlobalGuiTransform = pSG->NewTransformNode(platform);
 
-    mGlobalGuiTransform->Scale(
-        (float)settings->mGui->mWidthMeter, (float)settings->mGui->mHeightMeter, 1.0);
+    mGlobalGuiTransform->Scale(static_cast<float>(settings->mGui->mWidthMeter),
+        static_cast<float>(settings->mGui->mHeightMeter), 1.0);
     mGlobalGuiTransform->Rotate(
-        VistaAxisAndAngle(VistaVector3D(1, 0, 0), (float)settings->mGui->mRotX));
+        VistaAxisAndAngle(VistaVector3D(1, 0, 0), static_cast<float>(settings->mGui->mRotX)));
     mGlobalGuiTransform->Rotate(
-        VistaAxisAndAngle(VistaVector3D(0, 1, 0), (float)settings->mGui->mRotY));
+        VistaAxisAndAngle(VistaVector3D(0, 1, 0), static_cast<float>(settings->mGui->mRotY)));
     mGlobalGuiTransform->Rotate(
-        VistaAxisAndAngle(VistaVector3D(0, 0, 1), (float)settings->mGui->mRotZ));
-    mGlobalGuiTransform->Translate((float)settings->mGui->mPosXMeter,
-        (float)settings->mGui->mPosYMeter, (float)settings->mGui->mPosZMeter);
+        VistaAxisAndAngle(VistaVector3D(0, 0, 1), static_cast<float>(settings->mGui->mRotZ)));
+    mGlobalGuiTransform->Translate(static_cast<float>(settings->mGui->mPosXMeter),
+        static_cast<float>(settings->mGui->mPosYMeter),
+        static_cast<float>(settings->mGui->mPosZMeter));
 
     // Create the global GUI area.
-    mGlobalGuiArea =
-        new gui::WorldSpaceGuiArea(settings->mGui->mWidthPixel, settings->mGui->mHeightPixel);
+    mGlobalGuiArea = std::make_unique<gui::WorldSpaceGuiArea>(
+        settings->mGui->mWidthPixel, settings->mGui->mHeightPixel);
     mGlobalGuiArea->setUseLinearDepthBuffer(true);
   }
 
   // Create the local GUI area.
-  mLocalGuiArea = new gui::ScreenSpaceGuiArea(pViewport);
+  mLocalGuiArea = std::make_unique<gui::ScreenSpaceGuiArea>(pViewport);
 
   // Make sure that the GUI is drawn at the correct position in the draw order.
-  mLocalGuiOpenGLnode = pSG->NewOpenGLNode(mLocalGuiTransform, mLocalGuiArea);
+  mLocalGuiOpenGLnode = pSG->NewOpenGLNode(mLocalGuiTransform, mLocalGuiArea.get());
   VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
       mLocalGuiOpenGLnode, static_cast<int>(utils::DrawOrder::eGui));
 
   // Make the local GuiArea receive input events.
-  mInputManager->registerSelectable(mLocalGuiArea);
+  mInputManager->registerSelectable(mLocalGuiArea.get());
 
   if (mGlobalGuiArea) {
     // Make sure that the GUI is drawn at the correct position in the draw order.
-    mGlobalGuiOpenGLnode = pSG->NewOpenGLNode(mGlobalGuiTransform, mGlobalGuiArea);
+    mGlobalGuiOpenGLnode = pSG->NewOpenGLNode(mGlobalGuiTransform, mGlobalGuiArea.get());
     VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
         mGlobalGuiTransform, static_cast<int>(utils::DrawOrder::eGui));
 
@@ -105,36 +106,36 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
   }
 
   // Now create the actual Gui and add it to the previously created GuiAreas ----------------
-  mCosmoScoutGui = new gui::GuiItem("file://../share/resources/gui/cosmoscout.html");
-  mStatistics    = new gui::GuiItem("file://../share/resources/gui/statistics.html");
+  mCosmoScoutGui = std::make_unique<gui::GuiItem>("file://../share/resources/gui/cosmoscout.html");
+  mStatistics    = std::make_unique<gui::GuiItem>("file://../share/resources/gui/statistics.html");
 
   // Except for mStatistics, all GuiItems are attached to the global world-space GuiArea if it is
   // available. If not, they are added to the local screen-space GuiArea.
   if (mGlobalGuiArea) {
-    mGlobalGuiArea->addItem(mCosmoScoutGui);
+    mGlobalGuiArea->addItem(mCosmoScoutGui.get());
   } else {
-    mLocalGuiArea->addItem(mCosmoScoutGui);
+    mLocalGuiArea->addItem(mCosmoScoutGui.get());
   }
 
-  mLocalGuiArea->addItem(mStatistics);
+  mLocalGuiArea->addItem(mStatistics.get());
 
   // Configure attributes of the loading screen. Per default, GuiItems are drawn full-screen in
   // their GuiAreas.
   // mLoadingScreen->setIsInteractive(false);
 
-  mCosmoScoutGui->setRelSizeX(1.f);
-  mCosmoScoutGui->setRelSizeY(1.f);
-  mCosmoScoutGui->setRelPositionX(0.5f);
-  mCosmoScoutGui->setRelPositionY(0.5f);
+  mCosmoScoutGui->setRelSizeX(1.F);
+  mCosmoScoutGui->setRelSizeY(1.F);
+  mCosmoScoutGui->setRelPositionX(0.5F);
+  mCosmoScoutGui->setRelPositionY(0.5F);
   mCosmoScoutGui->setCursorChangeCallback([](gui::Cursor c) { setCursor(c); });
 
   // Configure the positioning and attributes of the statistics.
-  mStatistics->setSizeX(600);
-  mStatistics->setSizeY(320);
-  mStatistics->setOffsetX(-300);
-  mStatistics->setOffsetY(500);
-  mStatistics->setRelPositionY(0.f);
-  mStatistics->setRelPositionX(1.f);
+  mStatistics->setSizeX(600);    // NOLINT
+  mStatistics->setSizeY(320);    // NOLINT
+  mStatistics->setOffsetX(-300); // NOLINT
+  mStatistics->setOffsetY(500);  // NOLINT
+  mStatistics->setRelPositionY(0.F);
+  mStatistics->setRelPositionX(1.F);
   mStatistics->setIsInteractive(false);
   mStatistics->setCanScroll(false);
 
@@ -177,12 +178,10 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 GuiManager::~GuiManager() {
-  // Tell the user what's going on.
-  spdlog::debug("Deleting GuiManager.");
-
-  delete mGlobalGuiArea;
-  delete mViewportUpdater;
-  delete mCosmoScoutGui;
+  try {
+    // Tell the user what's going on.
+    spdlog::debug("Deleting GuiManager.");
+  } catch (...) {}
 
   mInputManager->unregisterSelectable(mLocalGuiOpenGLnode);
 
@@ -197,7 +196,7 @@ GuiManager::~GuiManager() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void GuiManager::setCursor(gui::Cursor cursor) {
-  auto windowingToolkit = dynamic_cast<VistaGlutWindowingToolkit*>(
+  auto* windowingToolkit = dynamic_cast<VistaGlutWindowingToolkit*>(
       GetVistaSystem()->GetDisplayManager()->GetWindowingToolkit());
 
   int glutCursor = GLUT_CURSOR_LEFT_ARROW;
@@ -243,13 +242,13 @@ void GuiManager::showNotification(std::string const& sTitle, std::string const& 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 gui::GuiItem* GuiManager::getGui() const {
-  return mCosmoScoutGui;
+  return mCosmoScoutGui.get();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 gui::GuiItem* GuiManager::getStatistics() const {
-  return mStatistics;
+  return mStatistics.get();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -306,9 +305,11 @@ void GuiManager::update() {
   if (mFrameTimings->pEnableMeasurements.get()) {
     std::string json("{");
     for (auto const& timings : mFrameTimings->getCalculatedQueryResults()) {
-      uint64_t timeGPU(timings.second.mGPUTime), timeCPU(timings.second.mCPUTime);
+      uint64_t timeGPU(timings.second.mGPUTime);
+      uint64_t timeCPU(timings.second.mCPUTime);
 
-      if (timeGPU > 100000 || timeCPU > 100000) {
+      uint64_t const waitNanos = 100000;
+      if (timeGPU > waitNanos || timeCPU > waitNanos) {
         json += "\"" + timings.first + "\":[" + std::to_string(timeGPU) + "," +
                 std::to_string(timeCPU) + "],";
       }

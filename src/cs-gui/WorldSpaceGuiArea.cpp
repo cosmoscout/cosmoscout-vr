@@ -26,7 +26,7 @@ namespace {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const std::string QUAD_VERT = R"(
+const char* QUAD_VERT = R"(
 vec2 positions[4] = vec2[](
     vec2(-0.5, -0.5),
     vec2(0.5, -0.5),
@@ -62,7 +62,7 @@ void main()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const std::string QUAD_FRAG = R"(
+const char* QUAD_FRAG = R"(
 in vec2 vTexCoords;
 in vec4 vPosition;
 
@@ -117,15 +117,8 @@ namespace cs::gui {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 WorldSpaceGuiArea::WorldSpaceGuiArea(int width, int height)
-    : mShader(new VistaGLSLShader())
-    , mWidth(width)
+    : mWidth(width)
     , mHeight(height) {
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-WorldSpaceGuiArea::~WorldSpaceGuiArea() {
-  delete mShader;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -193,15 +186,11 @@ bool WorldSpaceGuiArea::calculateMousePosition(
     return false;
   }
 
-  x = (int)((intersection[0] + 0.5) * mWidth);
-  y = (int)((-intersection[1] + 0.5) * mHeight);
+  x = static_cast<int>((intersection[0] + 0.5) * mWidth);
+  y = static_cast<int>((-intersection[1] + 0.5) * mHeight);
 
-  if (intersection[0] >= -0.5f && intersection[0] <= 0.5f && intersection[1] >= -0.5f &&
-      intersection[1] <= 0.5f) {
-    return true;
-  }
-
-  return false;
+  return intersection[0] >= -0.5F && intersection[0] <= 0.5F && intersection[1] >= -0.5F &&
+         intersection[1] <= 0.5F;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -209,8 +198,7 @@ bool WorldSpaceGuiArea::calculateMousePosition(
 bool WorldSpaceGuiArea::Do() {
   utils::FrameTimings::ScopedTimer timer("User Interface");
   if (mShaderDirty) {
-    delete mShader;
-    mShader = new VistaGLSLShader();
+    mShader = VistaGLSLShader();
 
     std::string defines = "#version 330\n";
 
@@ -218,17 +206,18 @@ bool WorldSpaceGuiArea::Do() {
       defines += "#define USE_LINEARDEPTHBUFFER\n";
     }
 
-    mShader->InitVertexShaderFromString(defines + QUAD_VERT);
-    mShader->InitFragmentShaderFromString(defines + QUAD_FRAG);
-    mShader->Link();
+    mShader.InitVertexShaderFromString(defines + QUAD_VERT);
+    mShader.InitFragmentShaderFromString(defines + QUAD_FRAG);
+    mShader.Link();
 
     mShaderDirty = false;
   }
 
-  if (mIgnoreDepth)
+  if (mIgnoreDepth) {
     glPushAttrib(GL_ENABLE_BIT | GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-  else
+  } else {
     glPushAttrib(GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT);
+  }
 
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -238,25 +227,24 @@ bool WorldSpaceGuiArea::Do() {
     glDisable(GL_DEPTH_TEST);
   }
 
-  mShader->Bind();
+  mShader.Bind();
 
   if (mUseLinearDepthBuffer) {
-    mShader->SetUniform(
-        mShader->GetUniformLocation("iFarClip"), utils::getCurrentFarClipDistance());
+    mShader.SetUniform(mShader.GetUniformLocation("iFarClip"), utils::getCurrentFarClipDistance());
   }
 
   // get modelview and projection matrices
-  GLfloat glMat[16];
-  glGetFloatv(GL_MODELVIEW_MATRIX, &glMat[0]);
-  glm::mat4 modelViewMat = glm::make_mat4(glMat);
+  std::array<GLfloat, 16> glMat{};
+  glGetFloatv(GL_MODELVIEW_MATRIX, glMat.data());
+  glm::mat4 modelViewMat = glm::make_mat4(glMat.data());
 
-  glGetFloatv(GL_PROJECTION_MATRIX, &glMat[0]);
-  glUniformMatrix4fv(mShader->GetUniformLocation("uMatProjection"), 1, GL_FALSE, glMat);
+  glGetFloatv(GL_PROJECTION_MATRIX, glMat.data());
+  glUniformMatrix4fv(mShader.GetUniformLocation("uMatProjection"), 1, GL_FALSE, glMat.data());
 
   // draw back-to-front
   auto const& items = getItems();
   for (auto item = items.rbegin(); item != items.rend(); ++item) {
-    auto guiItem = *item;
+    auto* guiItem = *item;
 
     bool textureRightSize = guiItem->getWidth() == guiItem->getTextureSizeX() &&
                             guiItem->getHeight() == guiItem->getTextureSizeY();
@@ -266,17 +254,17 @@ bool WorldSpaceGuiArea::Do() {
           modelViewMat, glm::vec3(guiItem->getRelPositionX() + guiItem->getRelOffsetX() - 0.5,
                             -guiItem->getRelPositionY() - guiItem->getRelOffsetY() + 0.5, 0.0));
       localMat =
-          glm::scale(localMat, glm::vec3(guiItem->getRelSizeX(), guiItem->getRelSizeY(), 1.f));
+          glm::scale(localMat, glm::vec3(guiItem->getRelSizeX(), guiItem->getRelSizeY(), 1.F));
 
       glUniformMatrix4fv(
-          mShader->GetUniformLocation("uMatModelView"), 1, GL_FALSE, glm::value_ptr(localMat));
+          mShader.GetUniformLocation("uMatModelView"), 1, GL_FALSE, glm::value_ptr(localMat));
 
-      glUniform2i(mShader->GetUniformLocation("texSize"), guiItem->getTextureSizeX(),
+      glUniform2i(mShader.GetUniformLocation("texSize"), guiItem->getTextureSizeX(),
           guiItem->getTextureSizeY());
 
       glActiveTexture(GL_TEXTURE0);
       glBindTexture(GL_TEXTURE_BUFFER, guiItem->getTexture());
-      mShader->SetUniform(mShader->GetUniformLocation("texture"), 0);
+      mShader.SetUniform(mShader.GetUniformLocation("texture"), 0);
 
       glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
@@ -284,7 +272,7 @@ bool WorldSpaceGuiArea::Do() {
     }
   }
 
-  mShader->Release();
+  mShader.Release();
 
   if (mIgnoreDepth) {
     glDepthMask(GL_TRUE);
@@ -298,10 +286,11 @@ bool WorldSpaceGuiArea::Do() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool WorldSpaceGuiArea::GetBoundingBox(VistaBoundingBox& oBoundingBox) {
-  float fMin[3] = {-1.f, -1.f, -0.000001f};
-  float fMax[3] = {1.f, 1.f, 0.000001f};
+  float const          epsilon = 0.000001F;
+  std::array<float, 3> fMin    = {-1.F, -1.F, -epsilon};
+  std::array<float, 3> fMax    = {1.F, 1.F, epsilon};
 
-  oBoundingBox.SetBounds(fMin, fMax);
+  oBoundingBox.SetBounds(fMin.data(), fMax.data());
 
   return true;
 }
