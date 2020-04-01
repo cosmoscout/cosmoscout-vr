@@ -9,8 +9,6 @@
 
 #include "cs_graphics_export.hpp"
 
-#include <VistaOGLExt/VistaTexture.h>
-
 #include <array>
 #include <unordered_map>
 #include <vector>
@@ -84,18 +82,18 @@ class CS_GRAPHICS_EXPORT HDRBuffer {
   // object, GlowMipMap and LuminanceMipMap for each viewport. This is mainly because viewports
   // often have different sizes.
   struct HDRBufferData {
-    VistaFramebufferObj*         mFBO              = nullptr;
-    std::array<VistaTexture*, 2> mColorAttachments = {{nullptr, nullptr}};
-    VistaTexture*                mDepthAttachment  = nullptr;
-    LuminanceMipMap*             mLuminanceMipMap  = nullptr;
-    GlowMipMap*                  mGlowMipMap       = nullptr;
+    VistaFramebufferObj*         mFBO;
+    std::array<VistaTexture*, 2> mColorAttachments;
+    VistaTexture*                mDepthAttachment;
+    LuminanceMipMap*             mLuminanceMipMap;
+    GlowMipMap*                  mGlowMipMap;
 
     // Stores the original viewport position and size.
-    int  mCachedViewport[4];
-    int  mWidth                 = 0;
-    int  mHeight                = 0;
-    int  mCompositePinpongState = 0;
-    bool mIsBound               = false;
+    std::array<int, 4> mCachedViewport;
+    int                mWidth                 = 0;
+    int                mHeight                = 0;
+    int                mCompositePinpongState = 0;
+    bool               mIsBound               = false;
   };
 
   // Helper methods to retrieve the current HDRBufferData struct based on the viewport we are
@@ -107,7 +105,7 @@ class CS_GRAPHICS_EXPORT HDRBuffer {
   float                                             mTotalLuminance   = 1.f;
   float                                             mMaximumLuminance = 1.f;
 
-  const float mHighPrecision;
+  const bool mHighPrecision;
 };
 
 } // namespace cs::graphics

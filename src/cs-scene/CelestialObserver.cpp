@@ -21,8 +21,9 @@ void CelestialObserver::updateMovementAnimation(double tTime) {
     mPosition = mAnimatedPosition.get(tTime);
     mRotation = mAnimatedRotation.get(tTime);
 
-    if (mAnimatedPosition.mEndTime < tTime)
+    if (mAnimatedPosition.mEndTime < tTime) {
       mAnimationInProgress = false;
+    }
   }
 }
 

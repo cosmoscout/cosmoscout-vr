@@ -6,15 +6,14 @@
 
 #include "DisplayHandler.hpp"
 
-#include <iostream>
 #include <spdlog/spdlog.h>
 
 namespace cs::gui::detail {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool DisplayHandler::OnConsoleMessage(CefRefPtr<CefBrowser> browser, cef_log_severity_t level,
-    CefString const& message, CefString const&, int) {
+bool DisplayHandler::OnConsoleMessage(CefRefPtr<CefBrowser> /*browser*/, cef_log_severity_t level,
+    CefString const& message, CefString const& /*source*/, int /*line*/) {
 
   if (level == LOGSEVERITY_VERBOSE) {
     spdlog::trace(message.ToString());

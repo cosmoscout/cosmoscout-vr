@@ -91,7 +91,9 @@ Mark::Mark(std::shared_ptr<InputManager> pInputManager, std::shared_ptr<SolarSys
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Mark::Mark(Mark const& other)
-    : pLngLat(other.pLngLat)
+    : IVistaOpenGLDraw(other)
+    , Tool(other)
+    , pLngLat(other.pLngLat)
     , pHovered(other.pHovered)
     , pSelected(other.pSelected)
     , pActive(other.pActive)
@@ -100,10 +102,10 @@ Mark::Mark(Mark const& other)
     , mGraphicsEngine(other.mGraphicsEngine)
     , mTimeControl(other.mTimeControl)
     , mOriginalDistance(other.mOriginalDistance)
-    , mVAO(new VistaVertexArrayObject())
-    , mVBO(new VistaBufferObject())
-    , mIBO(new VistaBufferObject())
-    , mShader(new VistaGLSLShader()) {
+    , mVAO(std::make_unique<VistaVertexArrayObject>())
+    , mVBO(std::make_unique<VistaBufferObject>())
+    , mIBO(std::make_unique<VistaBufferObject>())
+    , mShader(std::make_unique<VistaGLSLShader>()) {
 
   initData(other.getAnchor()->getCenterName(), other.getAnchor()->getFrameName());
 }

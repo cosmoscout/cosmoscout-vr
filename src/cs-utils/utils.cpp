@@ -104,14 +104,15 @@ std::vector<std::string> splitString(std::string const& s, char delim) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 float getCurrentFarClipDistance() {
-  double near, far;
+  double near{};
+  double far{};
   GetVistaSystem()
       ->GetDisplayManager()
       ->GetCurrentRenderInfo()
       ->m_pViewport->GetProjection()
       ->GetProjectionProperties()
       ->GetClippingRange(near, far);
-  return (float)far;
+  return static_cast<float>(far);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

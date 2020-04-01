@@ -29,12 +29,12 @@ HDRBuffer::HDRBuffer(bool highPrecision)
 
 HDRBuffer::~HDRBuffer() {
   for (auto& hdrBuffer : mHDRBufferData) {
-    delete hdrBuffer.second.mFBO;
-    for (auto tex : hdrBuffer.second.mColorAttachments) {
-      delete tex;
+    delete hdrBuffer.second.mFBO; // NOLINT(cppcoreguidelines-owning-memory)
+    for (auto* tex : hdrBuffer.second.mColorAttachments) {
+      delete tex; // NOLINT(cppcoreguidelines-owning-memory)
     }
 
-    delete hdrBuffer.second.mLuminanceMipMap;
+    delete hdrBuffer.second.mLuminanceMipMap; // NOLINT(cppcoreguidelines-owning-memory)
   }
 }
 
@@ -51,17 +51,15 @@ void HDRBuffer::bind() {
     hdrBuffer.mWidth  = size[0];
     hdrBuffer.mHeight = size[1];
 
-    // Clear old framebuffer object.
-    delete hdrBuffer.mFBO;
-
     // Create new framebuffer object.
-    hdrBuffer.mFBO = new VistaFramebufferObj();
+    delete hdrBuffer.mFBO; // NOLINT(cppcoreguidelines-owning-memory)
+    hdrBuffer.mFBO = new VistaFramebufferObj(); // NOLINT(cppcoreguidelines-owning-memory)
 
     // Attaches a new texture to the hdrBuffer framebuffer object.
-    auto addAttachment = [&hdrBuffer](VistaTexture*& texture, int attachment, int internalFormat,
-                             int format, int type) {
+    auto addAttachment = [&hdrBuffer](VistaTexture*& texture, int attachment,
+                             int internalFormat, int format, int type) {
       if (!texture) {
-        texture = new VistaTexture(GL_TEXTURE_2D);
+        texture = new VistaTexture(GL_TEXTURE_2D); // NOLINT(cppcoreguidelines-owning-memory)
       }
 
       texture->Bind();
@@ -87,17 +85,19 @@ void HDRBuffer::bind() {
         GL_DEPTH_COMPONENT, GL_FLOAT);
 
     // Create luminance mipmaps.
-    delete hdrBuffer.mLuminanceMipMap;
+    delete hdrBuffer.mLuminanceMipMap; // NOLINT(cppcoreguidelines-owning-memory)
+    // NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
     hdrBuffer.mLuminanceMipMap = new LuminanceMipMap(size[0], size[1]);
 
     // Create glow mipmaps.
-    delete hdrBuffer.mGlowMipMap;
+    delete hdrBuffer.mGlowMipMap; // NOLINT(cppcoreguidelines-owning-memory)
+    // NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
     hdrBuffer.mGlowMipMap = new GlowMipMap(size[0], size[1]);
   }
 
   // Bind the framebuffer object for writing.
   if (!hdrBuffer.mIsBound) {
-    glGetIntegerv(GL_VIEWPORT, hdrBuffer.mCachedViewport);
+    glGetIntegerv(GL_VIEWPORT, hdrBuffer.mCachedViewport.data());
     hdrBuffer.mFBO->Bind();
     hdrBuffer.mIsBound = true;
   }
@@ -127,10 +127,10 @@ void HDRBuffer::unbind() {
     hdrBuffer.mIsBound = false;
 
     // And restore the original viewport.
-    glViewport(hdrBuffer.mCachedViewport[0], hdrBuffer.mCachedViewport[1],
-        hdrBuffer.mCachedViewport[2], hdrBuffer.mCachedViewport[3]);
-    glScissor(hdrBuffer.mCachedViewport[0], hdrBuffer.mCachedViewport[1],
-        hdrBuffer.mCachedViewport[2], hdrBuffer.mCachedViewport[3]);
+    glViewport(hdrBuffer.mCachedViewport.at(0), hdrBuffer.mCachedViewport.at(1),
+        hdrBuffer.mCachedViewport.at(2), hdrBuffer.mCachedViewport.at(3));
+    glScissor(hdrBuffer.mCachedViewport.at(0), hdrBuffer.mCachedViewport.at(1),
+        hdrBuffer.mCachedViewport.at(2), hdrBuffer.mCachedViewport.at(3));
   }
 }
 
@@ -146,11 +146,11 @@ void HDRBuffer::doPingPong() {
 
 void HDRBuffer::clear() {
   bind();
-  glClearColor(0.f, 0.f, 0.f, 0.f);
+  glClearColor(0.F, 0.F, 0.F, 0.F);
   glClearDepth(1.0);
 
-  GLenum bufs[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
-  glDrawBuffers(2, bufs);
+  std::array<GLenum, 2> bufs = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
+  glDrawBuffers(2, bufs.data());
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
@@ -158,59 +158,59 @@ void HDRBuffer::clear() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 VistaTexture* HDRBuffer::getDepthAttachment() const {
-  auto& hdrBuffer = getCurrentHDRBuffer();
+  auto const& hdrBuffer = getCurrentHDRBuffer();
   return hdrBuffer.mDepthAttachment;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 VistaTexture* HDRBuffer::getCurrentWriteAttachment() const {
-  auto& hdrBuffer = getCurrentHDRBuffer();
+  auto const& hdrBuffer = getCurrentHDRBuffer();
   if (hdrBuffer.mCompositePinpongState == 0) {
-    return hdrBuffer.mColorAttachments[0];
+    return hdrBuffer.mColorAttachments.at(0);
   }
-  return hdrBuffer.mColorAttachments[1];
+  return hdrBuffer.mColorAttachments.at(1);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 VistaTexture* HDRBuffer::getCurrentReadAttachment() const {
-  auto& hdrBuffer = getCurrentHDRBuffer();
+  auto const& hdrBuffer = getCurrentHDRBuffer();
   if (hdrBuffer.mCompositePinpongState == 0) {
-    return hdrBuffer.mColorAttachments[1];
+    return hdrBuffer.mColorAttachments.at(1);
   }
-  return hdrBuffer.mColorAttachments[0];
+  return hdrBuffer.mColorAttachments.at(0);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 HDRBuffer::HDRBufferData& HDRBuffer::getCurrentHDRBuffer() {
-  auto viewport = GetVistaSystem()->GetDisplayManager()->GetCurrentRenderInfo()->m_pViewport;
+  auto* viewport = GetVistaSystem()->GetDisplayManager()->GetCurrentRenderInfo()->m_pViewport;
   return mHDRBufferData[viewport];
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 HDRBuffer::HDRBufferData const& HDRBuffer::getCurrentHDRBuffer() const {
-  auto viewport = GetVistaSystem()->GetDisplayManager()->GetCurrentRenderInfo()->m_pViewport;
+  auto* viewport = GetVistaSystem()->GetDisplayManager()->GetCurrentRenderInfo()->m_pViewport;
   return mHDRBufferData.find(viewport)->second;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::array<int, 2> HDRBuffer::getCurrentViewPortSize() {
-  auto viewport = GetVistaSystem()->GetDisplayManager()->GetCurrentRenderInfo()->m_pViewport;
+  auto* viewport = GetVistaSystem()->GetDisplayManager()->GetCurrentRenderInfo()->m_pViewport;
   std::array<int, 2> size{};
-  viewport->GetViewportProperties()->GetSize(size[0], size[1]);
+  viewport->GetViewportProperties()->GetSize(size.at(0), size.at(1));
   return size;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::array<int, 2> HDRBuffer::getCurrentViewPortPos() {
-  auto viewport = GetVistaSystem()->GetDisplayManager()->GetCurrentRenderInfo()->m_pViewport;
+  auto* viewport = GetVistaSystem()->GetDisplayManager()->GetCurrentRenderInfo()->m_pViewport;
   std::array<int, 2> pos{};
-  viewport->GetViewportProperties()->GetPosition(pos[0], pos[1]);
+  viewport->GetViewportProperties()->GetPosition(pos.at(0), pos.at(1));
   return pos;
 }
 
@@ -218,17 +218,17 @@ std::array<int, 2> HDRBuffer::getCurrentViewPortPos() {
 
 void HDRBuffer::calculateLuminance() {
   auto&         hdrBuffer = getCurrentHDRBuffer();
-  VistaTexture* composite;
+  VistaTexture* composite = nullptr;
 
   if (hdrBuffer.mCompositePinpongState == 0) {
-    composite = hdrBuffer.mColorAttachments[0];
+    composite = hdrBuffer.mColorAttachments.at(0);
   } else {
-    composite = hdrBuffer.mColorAttachments[1];
+    composite = hdrBuffer.mColorAttachments.at(1);
   }
 
   hdrBuffer.mLuminanceMipMap->update(composite);
 
-  if (hdrBuffer.mLuminanceMipMap->getLastTotalLuminance()) {
+  if (hdrBuffer.mLuminanceMipMap->getLastTotalLuminance() != 0.0F) {
     mTotalLuminance   = hdrBuffer.mLuminanceMipMap->getLastTotalLuminance();
     mMaximumLuminance = hdrBuffer.mLuminanceMipMap->getLastMaximumLuminance();
   }
@@ -250,12 +250,12 @@ float HDRBuffer::getMaximumLuminance() const {
 
 void HDRBuffer::updateGlowMipMap() {
   auto&         hdrBuffer = getCurrentHDRBuffer();
-  VistaTexture* composite;
+  VistaTexture* composite = nullptr;
 
   if (hdrBuffer.mCompositePinpongState == 0) {
-    composite = hdrBuffer.mColorAttachments[0];
+    composite = hdrBuffer.mColorAttachments.at(0);
   } else {
-    composite = hdrBuffer.mColorAttachments[1];
+    composite = hdrBuffer.mColorAttachments.at(1);
   }
 
   hdrBuffer.mGlowMipMap->update(composite);
@@ -264,7 +264,7 @@ void HDRBuffer::updateGlowMipMap() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 VistaTexture* HDRBuffer::getGlowMipMap() const {
-  auto& hdrBuffer = getCurrentHDRBuffer();
+  auto const& hdrBuffer = getCurrentHDRBuffer();
   return hdrBuffer.mGlowMipMap;
 }
 

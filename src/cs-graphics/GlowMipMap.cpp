@@ -15,7 +15,7 @@ namespace cs::graphics {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static const std::string sGlowShader = R"(
+static const char* sGlowShader = R"(
   #version 430
   
   layout (local_size_x = 16, local_size_y = 16) in;
@@ -93,8 +93,7 @@ GlowMipMap::GlowMipMap(int hdrBufferWidth, int hdrBufferHeight)
 
   // Create the compute shader.
   auto        shader = glCreateShader(GL_COMPUTE_SHADER);
-  const char* c_str  = sGlowShader.c_str();
-  glShaderSource(shader, 1, &c_str, nullptr);
+  glShaderSource(shader, 1, &sGlowShader, nullptr);
   glCompileShader(shader);
 
   auto val = 0;
@@ -145,8 +144,10 @@ void GlowMipMap::update(VistaTexture* hdrBufferComposite) {
 
   for (int level(0); level < mMaxLevels; ++level) {
     for (int pass(0); pass < 2; ++pass) {
-      VistaTexture *input = this, *output = this;
-      int           inputLevel = level, outputLevel = level;
+      VistaTexture* input       = this;
+      VistaTexture* output      = this;
+      int           inputLevel  = level;
+      int           outputLevel = level;
 
       // level  pass   input   inputLevel output outputLevel     blur      samplesHigherLevel
       //   0     0   hdrbuffer    0        temp      0        horizontal          true

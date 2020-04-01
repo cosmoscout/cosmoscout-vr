@@ -31,8 +31,8 @@
   {                                                                                                \
     GLenum e = glGetError();                                                                       \
     if (e != GL_NO_ERROR) {                                                                        \
-      printf("WARNING from vista-gltf: OpenGL error in \"%s\": %d (%d) %s:%d\n", desc, e, e,       \
-          __FILE__, __LINE__);                                                                     \
+      spdlog::warn("From vista-gltf: OpenGL error in \"{}\": {} ({}) {}:{}", desc, e, e, __FILE__, \
+          __LINE__);                                                                               \
     }                                                                                              \
   }
 
@@ -508,8 +508,9 @@ std::pair<std::map<std::string, UniformVar>, std::map<std::string, TextureVar>> 
       std::vector<GLchar> str(maxLen);
       auto                length = 0;
       auto                size   = 0;
-      auto                type   = 0u;
-      glGetActiveUniform(gl_programd, (GLuint)i, maxLen, &length, &size, &type, str.data());
+      auto                type   = 0U;
+      glGetActiveUniform(
+          gl_programd, static_cast<GLuint>(i), maxLen, &length, &size, &type, str.data());
       std::string name(str.data(), length);
 
       auto loc = glGetUniformLocation(gl_programd, name.c_str());
@@ -600,7 +601,7 @@ Buffer getOrCreateBufferObject(std::map<int, Buffer>& bufferMap, tinygltf::Model
 
   glGenBuffers(1, ptr.get());
   glBindBuffer(target, *ptr);
-  glBufferData(
+  glBufferData( // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
       target, bufferView.byteLength, &buffer.data.at(0) + bufferView.byteOffset, GL_STATIC_DRAW);
   glBindBuffer(target, 0);
   bufferMap[bufferViewIndex] = Buffer{target, ptr};
@@ -672,14 +673,14 @@ Texture uploadCubemap(gli::texture_cube const& gliTex) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 gli::texture_cube prefilterCubemapGGX(gli::texture_cube const& inputCubemap, std::size_t levels) {
-  auto vao = 0u;
+  auto vao = 0U;
   glGenVertexArrays(1, &vao);
   glBindVertexArray(vao);
 
   auto program = createProgram(vertex_shader_source, filter_fragment_source);
-  glUseProgram((GLuint)program);
+  glUseProgram(static_cast<GLuint>(program));
   CheckGLErrors("after glUseProgram");
-  auto info        = get_active_uniforms((GLuint)program);
+  auto info        = get_active_uniforms(static_cast<GLuint>(program));
   auto uniformVars = info.first;
   auto textureVars = info.second;
 
@@ -700,15 +701,15 @@ gli::texture_cube prefilterCubemapGGX(gli::texture_cube const& inputCubemap, std
   auto it = textureVars.find("u_InputCubemap");
   if (it != textureVars.end()) {
 
-    auto fbo = 0u;
+    auto fbo = 0U;
     glGenFramebuffers(1, &fbo);
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 
     auto outputCubemapTex = uploadCubemap(filteredGliTex);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X,
         *outputCubemapTex.image, 0);
-    GLenum drawBuffers[1] = {GL_COLOR_ATTACHMENT0};
-    glDrawBuffers(1, drawBuffers);
+    GLenum drawBuffers = GL_COLOR_ATTACHMENT0;
+    glDrawBuffers(1, &drawBuffers);
 
     if (GL_FRAMEBUFFER_COMPLETE != glCheckFramebufferStatus(GL_FRAMEBUFFER)) {
       spdlog::error("Failed to filter GLTF cubemap: Invalid FBO!");
@@ -721,24 +722,24 @@ gli::texture_cube prefilterCubemapGGX(gli::texture_cube const& inputCubemap, std
 
     auto mipLevelsIterator = uniformVars.find("u_MipLevels");
     if (mipLevelsIterator != uniformVars.end()) {
-      glUniform1i(mipLevelsIterator->second.location, (GLint)levels);
+      glUniform1i(mipLevelsIterator->second.location, static_cast<GLint>(levels));
     }
 
     for (std::size_t level = 0; level < levels; ++level) {
       auto extent         = filteredGliTex.extent(level);
       auto uLevelIterator = uniformVars.find("u_Level");
       if (uLevelIterator != uniformVars.end()) {
-        glUniform1i(uLevelIterator->second.location, (GLint)level);
+        glUniform1i(uLevelIterator->second.location, static_cast<GLint>(level));
       }
 
       for (std::size_t face = 0; face < 6; ++face) {
         auto target = static_cast<GLenum>(GL_TEXTURE_CUBE_MAP_POSITIVE_X + face);
-        glFramebufferTexture2D(
-            GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, target, *outputCubemapTex.image, (GLint)level);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, target,
+            *outputCubemapTex.image, static_cast<GLint>(level));
 
         uLevelIterator = uniformVars.find("u_Face");
         if (uLevelIterator != uniformVars.end()) {
-          glUniform1i(uLevelIterator->second.location, (GLint)face);
+          glUniform1i(uLevelIterator->second.location, static_cast<GLint>(face));
         }
 
         glViewport(0, 0, extent.x, extent.y);
@@ -762,7 +763,7 @@ gli::texture_cube prefilterCubemapGGX(gli::texture_cube const& inputCubemap, std
     for (std::size_t level = 0; level < filteredGliTex.levels(); ++level) {
       for (std::size_t face = 0; face < filteredGliTex.faces(); ++face) {
         auto target = static_cast<GLenum>(GL_TEXTURE_CUBE_MAP_POSITIVE_X + face);
-        glGetTexImage(target, (GLint)level, formatExternal,
+        glGetTexImage(target, static_cast<GLint>(level), formatExternal,
             formatType, // GL_FLOAT,
             filteredGliTex[face][level].data());
         CheckGLErrors("after glGetTexImage");
@@ -771,7 +772,7 @@ gli::texture_cube prefilterCubemapGGX(gli::texture_cube const& inputCubemap, std
     glBindTexture(outputCubemapTex.target, 0);
   }
   glDeleteVertexArrays(1, &vao);
-  glDeleteProgram((GLuint)program);
+  glDeleteProgram(static_cast<GLuint>(program));
   return filteredGliTex;
 }
 
@@ -783,9 +784,9 @@ gli::texture_cube irradianceCubemap(gli::texture_cube const& inputCubemap, int w
   glBindVertexArray(vao);
 
   auto program = createProgram(vertex_shader_source, irradiance_fragment_source);
-  glUseProgram((GLuint)program);
+  glUseProgram(static_cast<GLuint>(program));
   CheckGLErrors("after glUseProgram");
-  auto info        = get_active_uniforms((GLuint)program);
+  auto info        = get_active_uniforms(static_cast<GLuint>(program));
   auto uniformVars = info.first;
   auto textureVars = info.second;
 
@@ -802,15 +803,15 @@ gli::texture_cube irradianceCubemap(gli::texture_cube const& inputCubemap, int w
 
   auto it = textureVars.find("u_InputCubemap");
   if (it != textureVars.end()) {
-    auto fbo = 0u;
+    auto fbo = 0U;
     glGenFramebuffers(1, &fbo);
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 
     auto outputCubemapTex = uploadCubemap(filteredGliTex);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X,
         *outputCubemapTex.image, 0);
-    GLenum drawBuffers[1] = {GL_COLOR_ATTACHMENT0};
-    glDrawBuffers(1, drawBuffers);
+    GLenum drawBuffers = GL_COLOR_ATTACHMENT0;
+    glDrawBuffers(1, &drawBuffers);
 
     if (GL_FRAMEBUFFER_COMPLETE != glCheckFramebufferStatus(GL_FRAMEBUFFER)) {
       spdlog::error("Failed to filter GLTF cubemap: Invalid FBO!");
@@ -822,7 +823,7 @@ gli::texture_cube irradianceCubemap(gli::texture_cube const& inputCubemap, int w
     glBindSampler(inputCubemapTexVar.unit, *inputCubemapTex.sampler);
 
     auto level = 0;
-    for (auto face = 0u; face < 6u; ++face) {
+    for (auto face = 0U; face < 6U; ++face) {
       auto target = GL_TEXTURE_CUBE_MAP_POSITIVE_X + face;
       glFramebufferTexture2D(
           GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, target, *outputCubemapTex.image, level);
@@ -849,8 +850,8 @@ gli::texture_cube irradianceCubemap(gli::texture_cube const& inputCubemap, int w
     // Fetch cubemap
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(outputCubemapTex.target, *outputCubemapTex.image);
-    for (auto lvl = 0u; lvl < filteredGliTex.levels(); ++lvl) {
-      for (auto face = 0u; face < filteredGliTex.faces(); ++face) {
+    for (auto lvl = 0U; lvl < filteredGliTex.levels(); ++lvl) {
+      for (auto face = 0U; face < filteredGliTex.faces(); ++face) {
         auto target = static_cast<GLenum>(GL_TEXTURE_CUBE_MAP_POSITIVE_X + face);
         glGetTexImage(target, lvl, formatExternal,
             formatType, // GL_FLOAT,
@@ -861,7 +862,7 @@ gli::texture_cube irradianceCubemap(gli::texture_cube const& inputCubemap, int w
     glBindTexture(outputCubemapTex.target, 0);
   }
   glDeleteVertexArrays(1, &vao);
-  glDeleteProgram((GLuint)program);
+  glDeleteProgram(static_cast<GLuint>(program));
   return filteredGliTex;
 }
 
@@ -869,8 +870,9 @@ gli::texture_cube irradianceCubemap(gli::texture_cube const& inputCubemap, int w
 
 std::shared_ptr<GLuint> createGPUimage(tinygltf::Image const& img, bool withMipmaps) {
   std::shared_ptr<GLuint> ptr(new GLuint(0), [](GLuint* ptr) {
-    if (*ptr != 0u)
+    if (*ptr != 0U) {
       glDeleteTextures(1, ptr);
+    }
   });
   glGenTextures(1, ptr.get());
   glBindTexture(GL_TEXTURE_2D, *ptr);
@@ -937,7 +939,7 @@ Texture createBrdfLUT(int width, int height) {
 
   glUseProgram(program);
   glBindImageTexture(0, *texture_ptr, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RG16F);
-  glDispatchCompute((GLuint)width / 16, (GLuint)height / 16, 1);
+  glDispatchCompute(static_cast<GLuint>(width) / 16, static_cast<GLuint>(height) / 16, 1);
   glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
   glBindImageTexture(0, 0, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RG16F);
 
@@ -952,7 +954,7 @@ Texture createBrdfLUT(int width, int height) {
   sampler.wrapT     = GL_CLAMP_TO_EDGE;
 
   return Texture{GL_TEXTURE_2D, createGPUsampler(sampler), texture_ptr};
-}
+} // NOLINT(clang-analyzer-cplusplus.NewDeleteLeaks): TODO memory leak here?
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -963,7 +965,7 @@ void GltfShared::buildMeshes(tinygltf::Model const& gltf) {
       auto it = primitive.attributes.find("POSITION");
 
       if (it != primitive.attributes.end()) {
-        auto& a = gltf.accessors[it->second];
+        auto const& a = gltf.accessors[it->second];
 
         if (a.minValues.size() == 3) {
           mesh.minPos[0] = std::min(mesh.minPos[0], float(a.minValues[0]));
@@ -1053,13 +1055,13 @@ Primitive GltfShared::createMeshPrimitive(
 
   if (material) {
     myPrimitive.baseColorFactor =
-        find_material_parameter(*material, "baseColorFactor", glm::vec4(1.0f));
+        find_material_parameter(*material, "baseColorFactor", glm::vec4(1.0F));
     myPrimitive.metallicRoughnessValues.x =
-        find_material_parameter(*material, "metallicFactor", 1.0f);
+        find_material_parameter(*material, "metallicFactor", 1.0F);
     myPrimitive.metallicRoughnessValues.y =
-        find_material_parameter(*material, "roughnessFactor", 1.0f);
+        find_material_parameter(*material, "roughnessFactor", 1.0F);
     myPrimitive.emissiveFactor =
-        find_material_parameter(*material, "emissiveFactor", glm::vec3(0.0f));
+        find_material_parameter(*material, "emissiveFactor", glm::vec3(0.0F));
 
     std::map<std::string, std::string> materialTextures{{"baseColorTexture", "u_BaseColorSampler"},
         {"metallicRoughnessTexture", "u_MetallicRoughnessSampler"},
@@ -1108,17 +1110,19 @@ Primitive GltfShared::createMeshPrimitive(
     tinygltf::Accessor const& accessor = gltf.accessors[pair.second];
 
     auto buffer = getOrCreateBufferObject(
-        bufferMap, gltf, (unsigned int)accessor.bufferView, GL_ARRAY_BUFFER);
+        bufferMap, gltf, static_cast<unsigned int>(accessor.bufferView), GL_ARRAY_BUFFER);
     glBindBuffer(GL_ARRAY_BUFFER, *buffer.id);
     int size = sizeFromGltfAccessorType(accessor);
     // pair.first would be "POSITION", "NORMAL", "TEXCOORD_0", ...
     auto it = myPrimitive.programInfo.pbr_attributes.find(attrName);
 
     if (it != myPrimitive.programInfo.pbr_attributes.end() && it->second >= 0) {
-      glEnableVertexAttribArray((GLuint)it->second);
-      glVertexAttribPointer((GLuint)it->second, size, (GLenum)accessor.componentType,
+      glEnableVertexAttribArray(static_cast<GLuint>(it->second));
+      glVertexAttribPointer(static_cast<GLuint>(it->second), size,
+          static_cast<GLenum>(accessor.componentType),
           GLboolean(accessor.normalized ? GL_TRUE : GL_FALSE),
-          (GLsizei)gltf.bufferViews[accessor.bufferView].byteStride,
+          static_cast<GLsizei>(gltf.bufferViews[accessor.bufferView].byteStride),
+          // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
           static_cast<char*>(nullptr) + accessor.byteOffset);
       myPrimitive.verticesCount = accessor.count;
     }
@@ -1128,8 +1132,8 @@ Primitive GltfShared::createMeshPrimitive(
     tinygltf::Accessor const& indexAccessor = gltf.accessors[primitive.indices];
     // Import glBindBuffer(GL_ELEMENT_ARRAY_BUFFER has to be called after
     // glBindVertexArray
-    auto buffer = getOrCreateBufferObject(
-        bufferMap, gltf, (unsigned int)indexAccessor.bufferView, GL_ELEMENT_ARRAY_BUFFER);
+    auto buffer = getOrCreateBufferObject(bufferMap, gltf,
+        static_cast<unsigned int>(indexAccessor.bufferView), GL_ELEMENT_ARRAY_BUFFER);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, *buffer.id);
     myPrimitive.indicesCount = indexAccessor.count,
     myPrimitive.indicesType  = indexAccessor.componentType,
@@ -1142,7 +1146,7 @@ Primitive GltfShared::createMeshPrimitive(
   for (auto const& pair : primitive.attributes) {
     auto it = myPrimitive.programInfo.pbr_attributes.find(pair.first);
     if (it != myPrimitive.programInfo.pbr_attributes.end() && it->second >= 0) {
-      glDisableVertexAttribArray((GLuint)it->second);
+      glDisableVertexAttribArray(static_cast<GLuint>(it->second));
     }
   }
 
@@ -1199,10 +1203,12 @@ void Primitive::draw(glm::mat4 const& projMat, glm::mat4 const& viewMat, glm::ma
   if (vaoPtr) {
     glBindVertexArray(*vaoPtr);
     if (hasIndices) {
-      glDrawElements((GLenum)mode, (GLsizei)indicesCount, (GLenum)indicesType,
+      glDrawElements(static_cast<GLenum>(mode), static_cast<GLsizei>(indicesCount),
+          static_cast<GLenum>(indicesType),
+          // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
           static_cast<char*>(nullptr) + byteOffset);
     } else {
-      glDrawArrays((GLenum)mode, 0, (GLsizei)verticesCount);
+      glDrawArrays(static_cast<GLenum>(mode), 0, static_cast<GLsizei>(verticesCount));
     }
     glBindVertexArray(0);
   }
@@ -1221,8 +1227,8 @@ void Primitive::draw(glm::mat4 const& projMat, glm::mat4 const& viewMat, glm::ma
 void GltfShared::init(tinygltf::Model const& gltf, std::string const& cubemapFilepath) {
 
   // save current viewport
-  GLint current_viewport[4];
-  glGetIntegerv(GL_VIEWPORT, current_viewport);
+  std::array<GLint, 4> current_viewport{};
+  glGetIntegerv(GL_VIEWPORT, current_viewport.data());
 
   {
     std::ifstream f(cubemapFilepath.c_str());
@@ -1242,27 +1248,28 @@ void GltfShared::init(tinygltf::Model const& gltf, std::string const& cubemapFil
   auto defaultSampler = createGPUsampler(defaultTinygltfSampler());
   for (auto const& t : gltf.textures) {
     std::shared_ptr<GLuint> sampler;
-    if (t.sampler >= 0)
+    if (t.sampler >= 0) {
       sampler = sharedSamplers[t.sampler];
-    else
+    } else {
       sampler = defaultSampler;
+    }
 
     mextures.emplace_back(Texture{GL_TEXTURE_2D, sampler, sharedImages.at(t.source)});
   }
 
-  mrdfLUTindex = (int)mextures.size();
+  mrdfLUTindex = static_cast<int>(mextures.size());
   mextures.push_back(createBrdfLUT(512, 512));
 
   glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
   gli::texture_cube inputGliTex(gli::load(cubemapFilepath));
 
   // diffuse env map
-  miffuseEnvMapIndex = (int)mextures.size();
+  miffuseEnvMapIndex = static_cast<int>(mextures.size());
   auto diffuseGliTex = irradianceCubemap(inputGliTex, 32, 32);
   mextures.push_back(uploadCubemap(diffuseGliTex));
 
   // specular env map
-  mpecularEnvMapIndex = (int)mextures.size();
+  mpecularEnvMapIndex = static_cast<int>(mextures.size());
   auto specularGliTex = prefilterCubemapGGX(inputGliTex, 10);
   mextures.push_back(uploadCubemap(specularGliTex));
 
@@ -1295,14 +1302,14 @@ VistaGltfNode::~VistaGltfNode() = default;
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool VistaGltfNode::Do() {
-  auto renderInfo = GetVistaSystem()->GetDisplayManager()->GetCurrentRenderInfo();
+  auto const* renderInfo = GetVistaSystem()->GetDisplayManager()->GetCurrentRenderInfo();
 
-  GLfloat glMat[16];
-  glGetFloatv(GL_MODELVIEW_MATRIX, &glMat[0]);
-  glm::mat4 modelViewMat = glm::make_mat4(glMat); // == viewMat * modelMat
+  std::array<GLfloat, 16> glMat{};
+  glGetFloatv(GL_MODELVIEW_MATRIX, glMat.data());
+  glm::mat4 modelViewMat = glm::make_mat4(glMat.data()); // == viewMat * modelMat
 
-  glGetFloatv(GL_PROJECTION_MATRIX, &glMat[0]);
-  glm::mat4 projMat  = glm::make_mat4(glMat);
+  glGetFloatv(GL_PROJECTION_MATRIX, glMat.data());
+  glm::mat4 projMat  = glm::make_mat4(glMat.data());
   glm::mat4 viewMat  = glm::make_mat4(renderInfo->m_matCameraTransform.GetData());
   glm::mat4 modelMat = glm::inverse(viewMat) * modelViewMat;
 

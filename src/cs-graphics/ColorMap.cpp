@@ -88,7 +88,7 @@ ColorMap::ColorMap(std::string const& sJsonFile)
 
   std::vector<glm::vec4> colors(RESOLUTION);
   for (size_t i(0); i < colors.size(); ++i) {
-    float     key   = static_cast<float>(i) / (colors.size() - 1);
+    float     key   = static_cast<float>(i) / static_cast<float>(colors.size() - 1);
     glm::vec3 color = interpolate(key, colorMapData.rgbStops);
     float     alpha = interpolate(key, colorMapData.alphaStops);
     colors[i]       = glm::vec4(color, alpha);
@@ -118,10 +118,10 @@ void ColorMap::unbind(unsigned unit) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 TEST_CASE("cs::graphics::ColorMap::interpolate") {
-  std::map<float, glm::vec3> stops = {{0.f, glm::vec3(1.f, 1.f, 0.f)},
-      {0.5f, glm::vec3(1.f, 0.f, 0.f)}, {1.0f, glm::vec3(1.f, 0.f, 1.f)}};
+  std::map<float, glm::vec3> stops = {{0.F, glm::vec3(1.F, 1.F, 0.F)},
+      {0.5F, glm::vec3(1.F, 0.F, 0.F)}, {1.0F, glm::vec3(1.F, 0.F, 1.F)}};
 
-  CHECK(interpolate(0.f, stops) == glm::vec3(1.f, 1.f, 0.f));
+  CHECK(interpolate(0.F, stops) == glm::vec3(1.F, 1.F, 0.F));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

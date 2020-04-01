@@ -15,7 +15,7 @@ namespace cs::graphics {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static const std::string sComputeAverage = R"(
+static const char* sComputeAverage = R"(
   #version 430
   
   layout (local_size_x = 16, local_size_y = 16) in;
@@ -114,8 +114,7 @@ LuminanceMipMap::LuminanceMipMap(int hdrBufferWidth, int hdrBufferHeight)
 
   // Create the compute shader.
   auto        shader = glCreateShader(GL_COMPUTE_SHADER);
-  const char* c_str  = sComputeAverage.c_str();
-  glShaderSource(shader, 1, &c_str, nullptr);
+  glShaderSource(shader, 1, &sComputeAverage, nullptr);
   glCompileShader(shader);
 
   int rvalue = 0;
@@ -163,9 +162,9 @@ void LuminanceMipMap::update(VistaTexture* hdrBufferComposite) {
 
   // Map the pixel buffer object and read the two values.
   if (mDataAvailable) {
-    auto* data            = (float*)glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
-    mLastTotalLuminance   = data[0];
-    mLastMaximumLuminance = data[1];
+    auto* data            = static_cast<float*>(glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY));
+    mLastTotalLuminance   = data[0]; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+    mLastMaximumLuminance = data[1]; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
     glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
 
     if (std::isnan(mLastTotalLuminance)) {

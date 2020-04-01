@@ -10,14 +10,14 @@
 #include "cs_scene_export.hpp"
 
 #include <VistaKernel/GraphicsManager/VistaOpenGLDraw.h>
+#include <VistaOGLExt/VistaBufferObject.h>
+#include <VistaOGLExt/VistaVertexArrayObject.h>
+#include <VistaOGLExt/VistaGLSLShader.h>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <vector>
-
-class VistaGLSLShader;
-class VistaVertexArrayObject;
-class VistaBufferObject;
+#include <memory>
 
 namespace cs::scene {
 
@@ -32,7 +32,7 @@ namespace cs::scene {
 class CS_SCENE_EXPORT Trajectory : public IVistaOpenGLDraw {
  public:
   Trajectory();
-  ~Trajectory() override;
+  ~Trajectory() override = default;
 
   /// Transforms all points by relativeTransform and uploads them to the GPU. Call this every frame
   /// in order to show the trajectory with observer centric coordinates. dTime determines the
@@ -71,9 +71,9 @@ class CS_SCENE_EXPORT Trajectory : public IVistaOpenGLDraw {
  private:
   void createShader();
 
-  VistaGLSLShader*        mShader;
-  VistaVertexArrayObject* mVAO;
-  VistaBufferObject*      mVBO;
+  std::unique_ptr<VistaGLSLShader>        mShader;
+  std::unique_ptr<VistaVertexArrayObject> mVAO;
+  std::unique_ptr<VistaBufferObject>      mVBO;
 
   double    mMaxAge;
   glm::vec4 mStartColor;
