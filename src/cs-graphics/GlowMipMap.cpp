@@ -92,7 +92,7 @@ GlowMipMap::GlowMipMap(int hdrBufferWidth, int hdrBufferHeight)
   glTexStorage2D(GL_TEXTURE_2D, mMaxLevels, GL_RGBA32F, iWidth, iHeight);
 
   // Create the compute shader.
-  auto        shader = glCreateShader(GL_COMPUTE_SHADER);
+  auto shader = glCreateShader(GL_COMPUTE_SHADER);
   glShaderSource(shader, 1, &sGlowShader, nullptr);
   glCompileShader(shader);
 

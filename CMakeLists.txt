@@ -262,7 +262,7 @@ if(CS_RUN_CLANG_TIDY)
   else()
     set(CS_CT_OPT "-checks=")
     set(CS_CT_OPT "${CS_CT_OPT};-config=")
-    # set(CS_CT_OPT "${CS_CT_OPT};-fix")
+    set(CS_CT_OPT "${CS_CT_OPT};-fix")
     set(CS_CT_OPT "${CS_CT_OPT};-quiet")
 
     #if (WIN32)

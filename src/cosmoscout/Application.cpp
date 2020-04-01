@@ -774,7 +774,7 @@ void Application::connectSlots() {
     std::stringstream sstr;
 
     // NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
-    auto*             facet = new boost::posix_time::time_facet();
+    auto* facet = new boost::posix_time::time_facet();
     facet->format("%d-%b-%Y %H:%M:%S.%f");
     sstr.imbue(std::locale(std::locale::classic(), facet));
     sstr << cs::utils::convert::toBoostTime(val);
@@ -929,7 +929,7 @@ void Application::registerGuiCallbacks() {
           range.x = static_cast<float>(val);
         } else {
           range.y = static_cast<float>(val);
-        };
+        }
 
         mGraphicsEngine->pShadowMapRange = range;
       }));
@@ -946,7 +946,7 @@ void Application::registerGuiCallbacks() {
           extension.x = static_cast<float>(val);
         } else {
           extension.y = static_cast<float>(val);
-        };
+        }
 
         mGraphicsEngine->pShadowMapExtension = extension;
       }));

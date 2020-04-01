@@ -120,7 +120,7 @@ std::shared_ptr<spdlog::logger> createLogger(std::string const& name) {
   auto logger = std::make_shared<spdlog::logger>(paddedName, sinks.begin(), sinks.end());
 
   // See https://github.com/gabime/spdlog/wiki/3.-Custom-formatting for formatting options.
-  logger->set_pattern("%^[%L] %n%$%v"); //NOLINT(clang-analyzer-cplusplus.Move)
+  logger->set_pattern("%^[%L] %n%$%v"); // NOLINT(clang-analyzer-cplusplus.Move)
   logger->set_level(spdlog::level::trace);
 
   return logger;

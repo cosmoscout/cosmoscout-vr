@@ -10,7 +10,7 @@ namespace cs::gui::detail {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool JSHandler::Execute(const CefString& name, CefRefPtr<CefV8Value>  /*object*/,
+bool JSHandler::Execute(const CefString& name, CefRefPtr<CefV8Value> /*object*/,
     const CefV8ValueList& arguments, CefRefPtr<CefV8Value>& /*retval*/, CefString& /*exception*/) {
 
   if (name != "callNative") {

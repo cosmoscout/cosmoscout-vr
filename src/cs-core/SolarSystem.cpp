@@ -636,7 +636,7 @@ glm::dvec3 SolarSystem::getRadii(std::string const& sCenterName) {
   glm::dvec3 result;
   bodvrd_c(sCenterName.c_str(), "RADII", 3, &n, glm::value_ptr(result));
   double const kmToMeter = 1000.0;
-  result = result * kmToMeter;
+  result                 = result * kmToMeter;
 
   if (n != 3) {
     throw std::runtime_error("Failed to retrieve radii for object " + sCenterName + ".");

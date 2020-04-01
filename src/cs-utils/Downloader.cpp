@@ -50,7 +50,7 @@ double Downloader::getProgress() const {
   std::unique_lock<std::mutex> lock(mProgressMutex);
 
   double progress = 0.0;
-  double total = 0.0;
+  double total    = 0.0;
 
   for (auto const& p : mProgress) {
     progress += p.first;

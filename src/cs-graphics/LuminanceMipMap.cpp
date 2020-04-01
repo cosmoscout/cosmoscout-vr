@@ -113,7 +113,7 @@ LuminanceMipMap::LuminanceMipMap(int hdrBufferWidth, int hdrBufferHeight)
   glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 
   // Create the compute shader.
-  auto        shader = glCreateShader(GL_COMPUTE_SHADER);
+  auto shader = glCreateShader(GL_COMPUTE_SHADER);
   glShaderSource(shader, 1, &sComputeAverage, nullptr);
   glCompileShader(shader);
 

@@ -49,12 +49,12 @@ class CS_GUI_EXPORT ScreenSpaceGuiArea : public GuiArea,
  private:
   virtual void onViewportChange();
 
-  VistaViewport*   mViewport;
-  VistaGLSLShader  mShader;
-  bool             mShaderDirty           = true;
-  int              mWidth                 = 0;
-  int              mHeight                = 0;
-  int              mDelayedViewportUpdate = 0;
+  VistaViewport*  mViewport;
+  VistaGLSLShader mShader;
+  bool            mShaderDirty           = true;
+  int             mWidth                 = 0;
+  int             mHeight                = 0;
+  int             mDelayedViewportUpdate = 0;
 };
 
 } // namespace cs::gui

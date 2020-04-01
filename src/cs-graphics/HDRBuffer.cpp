@@ -52,12 +52,12 @@ void HDRBuffer::bind() {
     hdrBuffer.mHeight = size[1];
 
     // Create new framebuffer object.
-    delete hdrBuffer.mFBO; // NOLINT(cppcoreguidelines-owning-memory)
+    delete hdrBuffer.mFBO;                      // NOLINT(cppcoreguidelines-owning-memory)
     hdrBuffer.mFBO = new VistaFramebufferObj(); // NOLINT(cppcoreguidelines-owning-memory)
 
     // Attaches a new texture to the hdrBuffer framebuffer object.
-    auto addAttachment = [&hdrBuffer](VistaTexture*& texture, int attachment,
-                             int internalFormat, int format, int type) {
+    auto addAttachment = [&hdrBuffer](VistaTexture*& texture, int attachment, int internalFormat,
+                             int format, int type) {
       if (!texture) {
         texture = new VistaTexture(GL_TEXTURE_2D); // NOLINT(cppcoreguidelines-owning-memory)
       }

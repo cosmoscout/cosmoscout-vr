@@ -118,9 +118,10 @@ int main(int argc, char** argv) {
 
   // start application -----------------------------------------------------------------------------
 
+  std::unique_ptr<VistaSystem> pVistaSystem = nullptr;
   try {
     // First we need a VistaSystem.
-    auto pVistaSystem = std::make_unique<VistaSystem>();
+    pVistaSystem = std::make_unique<VistaSystem>();
 
     // ViSTA is configured with plenty of ini files. The ini files of CosmoScout VR reside in a
     // specific directory, so we have to add this directory to the search paths.

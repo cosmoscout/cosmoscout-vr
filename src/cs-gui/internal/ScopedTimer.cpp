@@ -29,8 +29,8 @@ ScopedTimer::~ScopedTimer() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 double ScopedTimer::GetNow() {
-  auto time        = std::chrono::system_clock::now();
-  auto since_epoch = time.time_since_epoch();
+  auto         time        = std::chrono::system_clock::now();
+  auto         since_epoch = time.time_since_epoch();
   double const microToNano = 0.001;
   return std::chrono::duration_cast<std::chrono::microseconds>(since_epoch).count() * microToNano;
 }
