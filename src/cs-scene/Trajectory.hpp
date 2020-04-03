@@ -32,6 +32,13 @@ namespace cs::scene {
 class CS_SCENE_EXPORT Trajectory : public IVistaOpenGLDraw {
  public:
   Trajectory();
+
+  Trajectory(Trajectory const& other) = delete;
+  Trajectory(Trajectory&& other)      = delete;
+
+  Trajectory& operator=(Trajectory const& other) = delete;
+  Trajectory& operator=(Trajectory&& other) = delete;
+
   ~Trajectory() override = default;
 
   /// Transforms all points by relativeTransform and uploads them to the GPU. Call this every frame

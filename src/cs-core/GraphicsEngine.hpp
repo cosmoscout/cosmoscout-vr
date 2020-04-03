@@ -27,8 +27,8 @@ namespace cs::core {
 /// all plugins.
 class CS_CORE_EXPORT GraphicsEngine {
  public:
-  utils::Property<float>     pHeightScale                = 1.f;
-  utils::Property<float>     pWidgetScale                = 1.f;
+  utils::Property<float>     pHeightScale                = 1.F;
+  utils::Property<float>     pWidgetScale                = 1.F;
   utils::Property<bool>      pEnableLighting             = false;
   utils::Property<bool>      pEnableHDR                  = false;
   utils::Property<int>       pLightingQuality            = 2;
@@ -37,25 +37,32 @@ class CS_CORE_EXPORT GraphicsEngine {
   utils::Property<bool>      pEnableShadowsFreeze        = false;
   utils::Property<int>       pShadowMapResolution        = 2048;
   utils::Property<int>       pShadowMapCascades          = 3;
-  utils::Property<float>     pShadowMapBias              = 1.0f;
-  utils::Property<glm::vec2> pShadowMapRange             = glm::vec2(0.f, 100.f);
-  utils::Property<glm::vec2> pShadowMapExtension         = glm::vec2(-100.f, 100.f);
-  utils::Property<float>     pShadowMapSplitDistribution = 1.f;
+  utils::Property<float>     pShadowMapBias              = 1.0F;
+  utils::Property<glm::vec2> pShadowMapRange             = glm::vec2(0.F, 100.F);
+  utils::Property<glm::vec2> pShadowMapExtension         = glm::vec2(-100.F, 100.F);
+  utils::Property<float>     pShadowMapSplitDistribution = 1.F;
   utils::Property<bool>      pEnableAutoExposure         = true;
-  utils::Property<float>     pExposure                   = 0.f;                    // in EV
-  utils::Property<glm::vec2> pAutoExposureRange          = glm::vec2(-14.f, 10.f); // in EV
-  utils::Property<float>     pExposureCompensation       = 0.f;                    // in EV
-  utils::Property<float>     pExposureAdaptionSpeed      = 3.f;
-  utils::Property<float>     pSensorDiagonal             = 42.f; // in millimeters
-  utils::Property<float>     pFocalLength                = 24.f; // in millimeters
-  utils::Property<float>     pAmbientBrightness          = std::pow(0.25f, 10.f);
+  utils::Property<float>     pExposure                   = 0.F;                    // in EV
+  utils::Property<glm::vec2> pAutoExposureRange          = glm::vec2(-14.F, 10.F); // in EV
+  utils::Property<float>     pExposureCompensation       = 0.F;                    // in EV
+  utils::Property<float>     pExposureAdaptionSpeed      = 3.F;
+  utils::Property<float>     pSensorDiagonal             = 42.F; // in millimeters
+  utils::Property<float>     pFocalLength                = 24.F; // in millimeters
+  utils::Property<float>     pAmbientBrightness          = std::pow(0.25F, 10.F);
   utils::Property<bool>      pEnableAutoGlow             = true;
-  utils::Property<float>     pGlowIntensity              = 0.5f;
-  utils::Property<float>     pApproximateSceneBrightness = 1.f;
-  utils::Property<float>     pAverageLuminance           = 1.f;
-  utils::Property<float>     pMaximumLuminance           = 1.f;
+  utils::Property<float>     pGlowIntensity              = 0.5F;
+  utils::Property<float>     pApproximateSceneBrightness = 1.F;
+  utils::Property<float>     pAverageLuminance           = 1.F;
+  utils::Property<float>     pMaximumLuminance           = 1.F;
 
-  GraphicsEngine(std::shared_ptr<const Settings> const& settings);
+  explicit GraphicsEngine(std::shared_ptr<const Settings> const& settings);
+
+  GraphicsEngine(GraphicsEngine const& other) = delete;
+  GraphicsEngine(GraphicsEngine&& other)      = delete;
+
+  GraphicsEngine& operator=(GraphicsEngine const& other) = delete;
+  GraphicsEngine& operator=(GraphicsEngine&& other) = delete;
+
   ~GraphicsEngine();
 
   /// All objects which are able to cast shadows need to be registered.

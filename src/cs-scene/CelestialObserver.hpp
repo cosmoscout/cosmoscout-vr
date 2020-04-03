@@ -48,7 +48,7 @@ class CS_SCENE_EXPORT CelestialObserver : public CelestialAnchor {
       double dRealStartTime, double dRealEndTime);
 
   /// @return true, if the observer is currently being moved.
-  bool isAnimationInProgress() const {
+  [[nodiscard]] bool isAnimationInProgress() const {
     return mAnimationInProgress;
   }
 

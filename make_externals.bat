@@ -125,7 +125,7 @@ if "%COSMOSCOUT_DEBUG_BUILD%"=="true" (
   set CURL_LIB=libcurl_imp.lib
 )
 cmake -E make_directory "%BUILD_DIR%/curlpp" && cd "%BUILD_DIR%/curlpp"
-cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
+cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%" -DCMAKE_UNITY_BUILD=On^
       -DCURL_INCLUDE_DIR="%INSTALL_DIR%/include"^
       -DCURL_LIBRARY="%INSTALL_DIR%/lib/%CURL_LIB%"^
       -DCMAKE_INSTALL_LIBDIR=lib^
@@ -140,7 +140,7 @@ echo Building and installing libtiff ...
 echo.
 
 cmake -E make_directory "%BUILD_DIR%/libtiff" && cd "%BUILD_DIR%/libtiff"
-cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
+cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%" -DCMAKE_UNITY_BUILD=On^
       -DCMAKE_INSTALL_FULL_LIBDIR=lib^
       "%EXTERNALS_DIR%/libtiff" || exit /b
 
@@ -279,7 +279,7 @@ rmdir %CEF_DIR%\tests /s /q
 cd ..
 
 cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
-      -DCEF_RUNTIME_LIBRARY_FLAG=/MD -DCEF_DEBUG_INFO_FLAG=""^
+      -DCEF_RUNTIME_LIBRARY_FLAG=/MD -DCEF_DEBUG_INFO_FLAG="" -DCMAKE_UNITY_BUILD=On^
       "%BUILD_DIR%/cef/extracted/%CEF_DIR%" || exit /b
 
 cmake --build . --config %BUILD_TYPE% --parallel %NUMBER_OF_PROCESSORS% || exit /b

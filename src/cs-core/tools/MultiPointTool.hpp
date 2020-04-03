@@ -35,7 +35,13 @@ class CS_CORE_EXPORT MultiPointTool : public Tool {
       std::shared_ptr<SolarSystem> pSolarSystem, std::shared_ptr<GraphicsEngine> graphicsEngine,
       std::shared_ptr<TimeControl> pTimeControl, std::string sCenter, std::string sFrame);
 
-  virtual ~MultiPointTool();
+  MultiPointTool(MultiPointTool const& other) = delete;
+  MultiPointTool(MultiPointTool&& other)      = delete;
+
+  MultiPointTool& operator=(MultiPointTool const& other) = delete;
+  MultiPointTool& operator=(MultiPointTool&& other) = delete;
+
+  ~MultiPointTool() override;
 
   /// Called from Tools class.
   void update() override;

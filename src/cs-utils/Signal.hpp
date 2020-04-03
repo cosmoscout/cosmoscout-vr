@@ -20,19 +20,28 @@ template <typename... Args>
 class Signal {
 
  public:
-  Signal()
-      : mCurrentID(0) {
-  }
+  Signal() = default;
 
   /// Copy creates new signal.
-  Signal(Signal const&)
+  Signal(Signal const& /*unused*/)
       : mCurrentID(0) {
   }
 
-  Signal(Signal&& other)
+  Signal(Signal&& other) noexcept
       : mSlots(std::move(other.mSlots))
       , mCurrentID(other.mCurrentID) {
   }
+
+  Signal& operator=(Signal&& other) noexcept {
+    if (this != &other) {
+      mSlots     = std::move(other.mSlots);
+      mCurrentID = other.mCurrentID;
+    }
+
+    return *this;
+  }
+
+  ~Signal() = default;
 
   /// Connects a std::function to the signal. The returned value can be used to disconnect the
   /// function again.
@@ -53,14 +62,14 @@ class Signal {
 
   /// Calls all connected functions.
   void emit(Args... p) {
-    for (auto it : mSlots) {
+    for (const auto& it : mSlots) {
       it.second(p...);
     }
   }
 
   /// Calls all connected functions except for one.
   void emitForAllButOne(int excludedConnectionID, Args... p) {
-    for (auto it : mSlots) {
+    for (const auto& it : mSlots) {
       if (it.first != excludedConnectionID) {
         it.second(p...);
       }
@@ -76,15 +85,16 @@ class Signal {
   }
 
   /// Assignment creates new Signal.
-  Signal& operator=(Signal const&) {
-    disconnectAll();
-
+  Signal& operator=(Signal const& other) { // NOLINT(cert-oop54-cpp)
+    if (this != &other) {
+      disconnectAll();
+    }
     return *this;
   }
 
  private:
   mutable std::map<int, std::function<void(Args...)>> mSlots;
-  mutable int                                         mCurrentID;
+  mutable int                                         mCurrentID{0};
 };
 
 } // namespace cs::utils

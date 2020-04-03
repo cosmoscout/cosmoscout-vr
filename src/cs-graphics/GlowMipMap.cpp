@@ -173,9 +173,11 @@ void GlowMipMap::update(VistaTexture* hdrBufferComposite) {
       glUniform1i(glGetUniformLocation(mComputeProgram, "uPass"), pass);
 
       int width = static_cast<int>(
-          std::max(1.0, std::floor(static_cast<double>(mHDRBufferWidth / 2) / std::pow(2, level))));
-      int height = static_cast<int>(std::max(
-          1.0, std::floor(static_cast<double>(mHDRBufferHeight / 2) / std::pow(2, level))));
+          std::max(1.0, std::floor(static_cast<double>(static_cast<int>(mHDRBufferWidth / 2)) /
+                                   std::pow(2, level))));
+      int height = static_cast<int>(
+          std::max(1.0, std::floor(static_cast<double>(static_cast<int>(mHDRBufferHeight / 2)) /
+                                   std::pow(2, level))));
 
       glBindImageTexture(0, output->GetId(), outputLevel, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
       glBindImageTexture(1, input->GetId(), inputLevel, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);

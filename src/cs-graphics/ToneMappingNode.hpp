@@ -30,8 +30,15 @@ namespace cs::graphics {
 class CS_GRAPHICS_EXPORT ToneMappingNode : public IVistaOpenGLDraw, public VistaEventHandler {
  public:
   /// The node will draw to the backbuffer using the contents from the given HDRBuffer.
-  ToneMappingNode(std::shared_ptr<HDRBuffer> hdrBuffer);
-  virtual ~ToneMappingNode();
+  explicit ToneMappingNode(std::shared_ptr<HDRBuffer> hdrBuffer);
+
+  ToneMappingNode(ToneMappingNode const& other) = delete;
+  ToneMappingNode(ToneMappingNode&& other)      = delete;
+
+  ToneMappingNode& operator=(ToneMappingNode const& other) = delete;
+  ToneMappingNode& operator=(ToneMappingNode&& other) = delete;
+
+  ~ToneMappingNode() override;
 
   /// Set the exposure in EV. getExposure() can be used to retreive the current exposure if
   /// auto-exposure is enabled.
@@ -71,22 +78,22 @@ class CS_GRAPHICS_EXPORT ToneMappingNode : public IVistaOpenGLDraw, public Vista
   float getLastAverageLuminance() const;
   float getLastMaximumLuminance() const;
 
-  virtual bool Do() override;
-  virtual bool GetBoundingBox(VistaBoundingBox& oBoundingBox) override;
+  bool Do() override;
+  bool GetBoundingBox(VistaBoundingBox& oBoundingBox) override;
 
-  virtual void HandleEvent(VistaEvent* event) override;
+  void HandleEvent(VistaEvent* event) override;
 
  private:
   std::shared_ptr<HDRBuffer> mHDRBuffer;
 
-  float mExposureCompensation  = 0.f;
+  float mExposureCompensation  = 0.F;
   bool  mEnableAutoExposure    = false;
-  float mExposure              = 0.f;
-  float mAutoExposure          = 0.f;
-  float mMinAutoExposure       = -15.f;
-  float mMaxAutoExposure       = 15.f;
-  float mExposureAdaptionSpeed = 1.f;
-  float mGlowIntensity         = 0.f;
+  float mExposure              = 0.F;
+  float mAutoExposure          = 0.F;
+  float mMinAutoExposure       = -15.F;
+  float mMaxAutoExposure       = 15.F;
+  float mExposureAdaptionSpeed = 1.F;
+  float mGlowIntensity         = 0.F;
 
   VistaGLSLShader* mShader;
 

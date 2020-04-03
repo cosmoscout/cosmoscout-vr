@@ -45,6 +45,13 @@ class CS_SCENE_EXPORT CelestialObject : public CelestialAnchor {
   CelestialObject(std::string const& sCenterName, std::string const& sFrameName,
       double tStartExistence = std::numeric_limits<double>::lowest(),
       double tEndExistence   = std::numeric_limits<double>::max());
+
+  CelestialObject(CelestialObject const& other) = delete;
+  CelestialObject(CelestialObject&& other)      = delete;
+
+  CelestialObject& operator=(CelestialObject const& other) = delete;
+  CelestialObject& operator=(CelestialObject&& other) = delete;
+
   virtual ~CelestialObject() = default;
 
   virtual glm::dmat4 const& getWorldTransform() const;

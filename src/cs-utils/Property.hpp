@@ -23,38 +23,42 @@ template <typename T>
 class Property {
 
  public:
-  typedef T value_type;
+  using value_type = T;
 
   /// Properties for built-in types are automatically initialized to 0.
-  Property()
-      : mConnection(nullptr)
-      , mConnectionID(-1) {
+  Property() = default;
+
+  Property(T const& val) // NOLINT(hicpp-explicit-conversions)
+      : mValue(val) {
   }
 
-  Property(T const& val)
-      : mConnection(nullptr)
-      , mConnectionID(-1)
-      , mValue(val) {
-  }
-
-  Property(T&& val)
-      : mConnection(nullptr)
-      , mConnectionID(-1)
-      , mValue(std::move(val)) {
+  Property(T&& val) // NOLINT(hicpp-explicit-conversions)
+      : mValue(std::move(val)) {
   }
 
   Property(Property<T> const& other)
-      : mConnection(nullptr)
-      , mConnectionID(-1)
-      , mValue(other.mValue) {
+      : mValue(other.mValue) {
   }
 
-  Property(Property<T>&& other)
+  Property(Property<T>&& other) noexcept
       : mOnChange(std::move(other.mOnChange))
       , mConnection(other.mConnection)
       , mConnectionID(other.mConnectionID)
       , mValue(other.mValue) {
   }
+
+  Property& operator=(Property<T>&& other) noexcept {
+    if (this != &other) {
+      mOnChange     = std::move(other.mOnChange);
+      mConnection   = other.mConnection;
+      mConnectionID = other.mConnectionID;
+      mValue        = other.mValue;
+    }
+
+    return *this;
+  }
+
+  ~Property() = default;
 
   /// The given function is called when the internal value is about to be changed. The new value
   /// is passed as parameter, to access the old value you can use the get() method, as the internal
@@ -139,8 +143,11 @@ class Property {
   }
 
   /// Assigns the value of another Property.
-  virtual Property<T>& operator=(Property<T> const& rhs) {
-    set(rhs.mValue);
+  Property<T>& operator=(Property<T> const& rhs) { // NOLINT(bugprone-unhandled-self-assignment): ?
+    if (this != &rhs) {
+      set(rhs.mValue);
+    }
+
     return *this;
   }
 
@@ -174,60 +181,10 @@ class Property {
  private:
   mutable Signal<T> mOnChange;
 
-  mutable Property<T> const* mConnection;
-  mutable int                mConnectionID;
-  T                          mValue;
+  mutable Property<T> const* mConnection{nullptr};
+  mutable int                mConnectionID{-1};
+  T                          mValue{}; // Default initialize (primitives => 0 | false).
 };
-
-/// Specialization for built-in default constructors.
-template <>
-inline Property<double>::Property()
-    : mConnection(nullptr)
-    , mConnectionID(-1)
-    , mValue(0.0) {
-}
-
-template <>
-inline Property<float>::Property()
-    : mConnection(nullptr)
-    , mConnectionID(-1)
-    , mValue(0.f) {
-}
-
-template <>
-inline Property<short>::Property()
-    : mConnection(nullptr)
-    , mConnectionID(-1)
-    , mValue(0) {
-}
-
-template <>
-inline Property<int>::Property()
-    : mConnection(nullptr)
-    , mConnectionID(-1)
-    , mValue(0) {
-}
-
-template <>
-inline Property<char>::Property()
-    : mConnection(nullptr)
-    , mConnectionID(-1)
-    , mValue(0) {
-}
-
-template <>
-inline Property<unsigned>::Property()
-    : mConnection(nullptr)
-    , mConnectionID(-1)
-    , mValue(0) {
-}
-
-template <>
-inline Property<bool>::Property()
-    : mConnection(nullptr)
-    , mConnectionID(-1)
-    , mValue(false) {
-}
 
 /// Stream operators.
 template <typename T>

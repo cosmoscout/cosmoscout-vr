@@ -49,6 +49,10 @@ class CS_CORE_EXPORT Mark : public IVistaOpenGLDraw, public Tool {
       std::string const& sCenter, std::string const& sFrame);
 
   Mark(Mark const& other);
+  Mark(Mark&& other) = default;
+
+  Mark& operator=(Mark const& other) = delete;
+  Mark& operator=(Mark&& other) = delete;
 
   ~Mark() override;
 

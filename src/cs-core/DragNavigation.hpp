@@ -37,6 +37,12 @@ class CS_CORE_EXPORT DragNavigation {
       std::shared_ptr<cs::core::InputManager>           pInputManager,
       std::shared_ptr<cs::core::TimeControl>            pTimeControl);
 
+  DragNavigation(DragNavigation const& other) = delete;
+  DragNavigation(DragNavigation&& other)      = delete;
+
+  DragNavigation& operator=(DragNavigation const& other) = delete;
+  DragNavigation& operator=(DragNavigation&& other) = delete;
+
   ~DragNavigation() = default;
 
   void update();
@@ -54,7 +60,7 @@ class CS_CORE_EXPORT DragNavigation {
   bool       mDoRollCorrection            = false;
   bool       mDoKineticSmoothOut          = false;
   double     mTargetAngle                 = 0.0;
-  float      mCurrentAngleDiff            = 0.f;
+  float      mCurrentAngleDiff            = 0.F;
   glm::dvec3 mCurrentAxis                 = glm::dvec3(1.0, 0.0, 0.0);
 
   glm::dvec3 mStartIntersection = glm::dvec3(0.0);

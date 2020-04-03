@@ -31,7 +31,14 @@ class GlowMipMap;
 class CS_GRAPHICS_EXPORT HDRBuffer {
  public:
   /// When highPrecision is set to false, only 16bit color buffers are used.
-  HDRBuffer(bool highPrecision = true);
+  explicit HDRBuffer(bool highPrecision = true);
+
+  HDRBuffer(HDRBuffer const& other) = delete;
+  HDRBuffer(HDRBuffer&& other)      = delete;
+
+  HDRBuffer& operator=(HDRBuffer const& other) = delete;
+  HDRBuffer& operator=(HDRBuffer&& other) = delete;
+
   virtual ~HDRBuffer();
 
   /// Binds DEPTH and one ping-pong target for writing.
@@ -82,14 +89,14 @@ class CS_GRAPHICS_EXPORT HDRBuffer {
   // object, GlowMipMap and LuminanceMipMap for each viewport. This is mainly because viewports
   // often have different sizes.
   struct HDRBufferData {
-    VistaFramebufferObj*         mFBO;
-    std::array<VistaTexture*, 2> mColorAttachments;
-    VistaTexture*                mDepthAttachment;
-    LuminanceMipMap*             mLuminanceMipMap;
-    GlowMipMap*                  mGlowMipMap;
+    VistaFramebufferObj*         mFBO{};
+    std::array<VistaTexture*, 2> mColorAttachments{};
+    VistaTexture*                mDepthAttachment{};
+    LuminanceMipMap*             mLuminanceMipMap{};
+    GlowMipMap*                  mGlowMipMap{};
 
     // Stores the original viewport position and size.
-    std::array<int, 4> mCachedViewport;
+    std::array<int, 4> mCachedViewport{};
     int                mWidth                 = 0;
     int                mHeight                = 0;
     int                mCompositePinpongState = 0;
@@ -102,8 +109,8 @@ class CS_GRAPHICS_EXPORT HDRBuffer {
   HDRBufferData const& getCurrentHDRBuffer() const;
 
   std::unordered_map<VistaViewport*, HDRBufferData> mHDRBufferData;
-  float                                             mTotalLuminance   = 1.f;
-  float                                             mMaximumLuminance = 1.f;
+  float                                             mTotalLuminance   = 1.F;
+  float                                             mMaximumLuminance = 1.F;
 
   const bool mHighPrecision;
 };

@@ -19,10 +19,10 @@ class HDRBuffer;
 /// This node clears and binds the given HDRBuffer when its Do() method is called.
 class CS_GRAPHICS_EXPORT ClearHDRBufferNode : public IVistaOpenGLDraw {
  public:
-  ClearHDRBufferNode(std::shared_ptr<HDRBuffer> hdrBuffer);
+  explicit ClearHDRBufferNode(std::shared_ptr<HDRBuffer> hdrBuffer);
 
-  virtual bool Do() override;
-  virtual bool GetBoundingBox(VistaBoundingBox& oBoundingBox) override;
+  bool Do() override;
+  bool GetBoundingBox(VistaBoundingBox& oBoundingBox) override;
 
  private:
   std::shared_ptr<HDRBuffer> mHDRBuffer;

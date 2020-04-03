@@ -20,6 +20,13 @@ namespace cs::graphics {
 class CS_GRAPHICS_EXPORT MouseRay : public IVistaOpenGLDraw {
  public:
   MouseRay();
+
+  MouseRay(MouseRay const& other) = delete;
+  MouseRay(MouseRay&& other)      = delete;
+
+  MouseRay& operator=(MouseRay const& other) = delete;
+  MouseRay& operator=(MouseRay&& other) = delete;
+
   ~MouseRay() override = default;
 
   bool Do() override;

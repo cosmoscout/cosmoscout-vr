@@ -61,6 +61,13 @@ class CS_CORE_EXPORT GuiManager {
   GuiManager(std::shared_ptr<const Settings> const& settings,
       std::shared_ptr<InputManager>                 pInputManager,
       std::shared_ptr<utils::FrameTimings>          pFrameTimings);
+
+  GuiManager(GuiManager const& other) = delete;
+  GuiManager(GuiManager&& other)      = delete;
+
+  GuiManager& operator=(GuiManager const& other) = delete;
+  GuiManager& operator=(GuiManager&& other) = delete;
+
   virtual ~GuiManager();
 
   /// Set the cursor icon. This is usually used in the following way:

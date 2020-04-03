@@ -40,6 +40,12 @@ class CS_GRAPHICS_EXPORT GltfLoader {
   GltfLoader(const std::string& sGltfFile, const std::string& cubemapFilepath,
       bool linearDepthBuffer = false);
 
+  GltfLoader(GltfLoader const& other) = delete;
+  GltfLoader(GltfLoader&& other)      = delete;
+
+  GltfLoader& operator=(GltfLoader const& other) = delete;
+  GltfLoader& operator=(GltfLoader&& other) = delete;
+
   ~GltfLoader() = default;
 
   void setLightColor(float r, float g, float b);

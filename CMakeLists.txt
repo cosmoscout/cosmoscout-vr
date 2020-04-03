@@ -230,6 +230,12 @@ add_definitions(
 )
 
 if (MSVC)
+  add_definitions(
+    # For whatever reason ViSTA checks for 'WIN32' instead of '_WIN32' in a lot of places, which
+    # results in Linux code being included on Windows.
+    -DWIN32
+  )
+
   add_compile_options(
     /experimental:external
     /external:anglebrackets
@@ -260,29 +266,19 @@ if(CS_RUN_CLANG_TIDY)
     message(WARNING "CS_RUN_CLANG_TIDY is ON but clang-tidy is not found!")
     set(CMAKE_CXX_CLANG_TIDY "" CACHE STRING "" FORCE)
   else()
-    set(CS_CT_OPT "-checks=")
-    set(CS_CT_OPT "${CS_CT_OPT};-config=")
-    set(CS_CT_OPT "${CS_CT_OPT};-fix")
+    set(CS_CT_OPT "-fix")
     set(CS_CT_OPT "${CS_CT_OPT};-quiet")
-
-    #if (WIN32)
-    #  set(CS_CT_OPT "${CS_CT_OPT};-header-filter='((?!externals|install).)*(plugins\\\\.*\\\\)?src\\\\.*\\.hpp'")
-    #else()
-    #  set(CS_CT_OPT "${CS_CT_OPT};-header-filter='((?!externals|install).)*(plugins\\/.*\\/)?src\\/.*\\.hpp'")
-    #endif()
-
-    set(CS_CT_OPT "${CS_CT_OPT};-format-style='file'")
-    set(CS_CT_OPT "${CS_CT_OPT};-p;${CMAKE_CURRENT_BINARY_DIR}")
+    set(CS_CT_OPT "${CS_CT_OPT};-p;${CMAKE_BINARY_DIR}")
 
     set(CS_CT_OPT "${CS_CT_OPT};-extra-arg=-std=c++17")
     set(CS_CT_OPT "${CS_CT_OPT};-extra-arg=-DGLM_ENABLE_EXPERIMENTAL")
     set(CS_CT_OPT "${CS_CT_OPT};-extra-arg=-DGLM_FORCE_SWIZZLE")
     set(CS_CT_OPT "${CS_CT_OPT};-extra-arg=-I${CMAKE_SOURCE_DIR}/src")
-    set(CS_CT_OPT "${CS_CT_OPT};-extra-arg=-I${CMAKE_CURRENT_BINARY_DIR}/src/cs-utils")
-    set(CS_CT_OPT "${CS_CT_OPT};-extra-arg=-I${CMAKE_CURRENT_BINARY_DIR}/src/cs-scene")
-    set(CS_CT_OPT "${CS_CT_OPT};-extra-arg=-I${CMAKE_CURRENT_BINARY_DIR}/src/cs-graphics")
-    set(CS_CT_OPT "${CS_CT_OPT};-extra-arg=-I${CMAKE_CURRENT_BINARY_DIR}/src/cs-core")
-    set(CS_CT_OPT "${CS_CT_OPT};-extra-arg=-I${CMAKE_CURRENT_BINARY_DIR}/src/cs-gui")
+    set(CS_CT_OPT "${CS_CT_OPT};-extra-arg=-I${CMAKE_BINARY_DIR}/src/cs-utils")
+    set(CS_CT_OPT "${CS_CT_OPT};-extra-arg=-I${CMAKE_BINARY_DIR}/src/cs-scene")
+    set(CS_CT_OPT "${CS_CT_OPT};-extra-arg=-I${CMAKE_BINARY_DIR}/src/cs-graphics")
+    set(CS_CT_OPT "${CS_CT_OPT};-extra-arg=-I${CMAKE_BINARY_DIR}/src/cs-core")
+    set(CS_CT_OPT "${CS_CT_OPT};-extra-arg=-I${CMAKE_BINARY_DIR}/src/cs-gui")
     set(CS_CT_OPT "${CS_CT_OPT};-extra-arg=-I${COSMOSCOUT_EXTERNALS_DIR}/include")
     set(CS_CT_OPT "${CS_CT_OPT};-extra-arg=-I${COSMOSCOUT_EXTERNALS_DIR}/include/cef")
     set(CS_CT_OPT "${CS_CT_OPT};-extra-arg=-I${Boost_INCLUDE_DIRS}")

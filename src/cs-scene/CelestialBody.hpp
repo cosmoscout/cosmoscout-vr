@@ -19,11 +19,17 @@ class CS_SCENE_EXPORT CelestialBody : public CelestialObject, public utils::Inte
   CelestialBody(std::string const& sCenterName, std::string const& sFrameName,
       double tStartExistence, double tEndExistence);
 
-  virtual ~CelestialBody() = default;
+  CelestialBody(CelestialBody const& other) = delete;
+  CelestialBody(CelestialBody&& other)      = delete;
+
+  CelestialBody& operator=(CelestialBody const& other) = delete;
+  CelestialBody& operator=(CelestialBody&& other) = delete;
+
+  ~CelestialBody() override = default;
 
   /// The elevation at a specific point on the surface.
   ///
-  /// @param lngLat The coordinates on the surface in the Georaphic Coordinate System format.
+  /// @param lngLat The coordinates on the surface in the Geographic Coordinate System format.
   virtual double getHeight(glm::dvec2 lngLat) const = 0;
 
   /// The radii of the Body in meters.

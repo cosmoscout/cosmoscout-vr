@@ -26,6 +26,13 @@ class CS_GUI_EXPORT WorldSpaceGuiArea : public GuiArea, public IVistaOpenGLDraw 
 
  public:
   explicit WorldSpaceGuiArea(int width = 640, int height = 480);
+
+  WorldSpaceGuiArea(WorldSpaceGuiArea const& other) = delete;
+  WorldSpaceGuiArea(WorldSpaceGuiArea&& other)      = delete;
+
+  WorldSpaceGuiArea& operator=(WorldSpaceGuiArea const& other) = delete;
+  WorldSpaceGuiArea& operator=(WorldSpaceGuiArea&& other) = delete;
+
   ~WorldSpaceGuiArea() override = default;
 
   void setWidth(int width);

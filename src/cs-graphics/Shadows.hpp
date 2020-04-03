@@ -46,6 +46,14 @@ class CS_GRAPHICS_EXPORT ShadowCaster {
 /// filtering.
 class CS_GRAPHICS_EXPORT ShadowMap : public IVistaOpenGLDraw {
  public:
+  ShadowMap() = default;
+
+  ShadowMap(ShadowMap const& other) = delete;
+  ShadowMap(ShadowMap&& other)      = delete;
+
+  ShadowMap& operator=(ShadowMap const& other) = delete;
+  ShadowMap& operator=(ShadowMap&& other) = delete;
+
   ~ShadowMap() override;
 
   /// All objects which are able to cast shadows need to be registered.
