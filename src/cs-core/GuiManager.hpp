@@ -128,10 +128,10 @@ class CS_CORE_EXPORT GuiManager {
 
   /// Adds a link element to the head with a local file href.
   ///
-  /// @param fileName The filename in the css folder
+  /// @param fileName The filename in the css folder.
   void addCssToGui(std::string const& fileName);
 
-  /// Adds an event item to the timenavigation
+  /// Adds an event item to the timenavigation.
   ///
   /// @param start The start date of the event.
   /// @param end The optional end date of the event.
@@ -144,6 +144,11 @@ class CS_CORE_EXPORT GuiManager {
   void addEventToTimenavigationBar(std::string start, std::optional<std::string> end,
       std::string id, std::string content, std::optional<std::string> style,
       std::string description, std::string planet, std::string place);
+
+  /// Removes an existing event item from the timenavigation.
+  ///
+  /// @param id The id of the event.
+  void removeEventFromTimenavigationBar(std::string id);
 
   /// Returns the CosmoScout Gui.
   gui::GuiItem* getGui() const;

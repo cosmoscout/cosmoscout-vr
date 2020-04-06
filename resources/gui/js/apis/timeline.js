@@ -368,6 +368,11 @@ class TimelineApi extends IApi {
     this._itemsOverview.update(data);
   }
 
+  removeItem(id) {
+    this._items.remove(id);
+    this._itemsOverview.remove(id);
+  }
+
   /**
    * Sets the min and max date for the timeline
    *
