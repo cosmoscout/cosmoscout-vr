@@ -19,6 +19,7 @@
 !/plugins/csp-satellites
 !/plugins/csp-sharad
 !/plugins/csp-simple-bodies
+!/plugins/csp-simple-wms-bodies
 !/plugins/csp-stars
 !/plugins/csp-trajectories
 
