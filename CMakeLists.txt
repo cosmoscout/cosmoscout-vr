@@ -237,15 +237,15 @@ if (MSVC)
   )
 
   add_compile_options(
-    /experimental:external
-    /external:anglebrackets
-    /external:W0
-    /W3 /WX
-    /EHsc
-    /wd4251
+    -experimental:external
+    -external:anglebrackets
+    -external:W0
+    -W3 -WX
+    -EHsc
+    -wd4251
 
     # Warns about multiple inheritance problems, which we can't avoid inheriting from ViSTA classes.
-    /wd4250
+    -wd4250
   )
 else()
   add_compile_options(
@@ -266,8 +266,7 @@ if(CS_RUN_CLANG_TIDY)
     message(WARNING "CS_RUN_CLANG_TIDY is ON but clang-tidy is not found!")
     set(CMAKE_CXX_CLANG_TIDY "" CACHE STRING "" FORCE)
   else()
-    set(CS_CT_OPT "-fix")
-    set(CS_CT_OPT "${CS_CT_OPT};-quiet")
+    set(CS_CT_OPT "-quiet")
     set(CS_CT_OPT "${CS_CT_OPT};-p;${CMAKE_BINARY_DIR}")
 
     set(CS_CT_OPT "${CS_CT_OPT};-extra-arg=-std=c++17")
