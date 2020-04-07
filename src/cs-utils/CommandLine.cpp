@@ -87,7 +87,7 @@ void CommandLine::printHelp(std::ostream& os) const {
 void CommandLine::parse(std::vector<std::string> args) const {
 
   // Skip the first argument (name of the program).
-  int i = 0;
+  size_t i = 0;
   while (i < args.size()) {
 
     // We assume that the entire argument is an argument flag.
