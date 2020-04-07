@@ -6,6 +6,7 @@
 
 #include "tiny_gltf_helper.hpp"
 #include <stb_image.h>
+#include <memory>
 
 namespace cs::graphics::internal {
 
