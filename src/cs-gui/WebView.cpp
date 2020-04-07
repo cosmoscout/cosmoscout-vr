@@ -30,7 +30,12 @@ WebView::WebView(const std::string& url, int width, int height, bool allowLocalF
   CefWindowInfo info;
   info.width  = width;
   info.height = height;
-  info.SetAsWindowless(static_cast<HWND>(nullptr));
+
+#ifdef _MSC_VER
+  info.SetAsWindowless(nullptr);
+#else
+  info.SetAsWindowless(0);
+#endif
 
   CefBrowserSettings browserSettings;
 
