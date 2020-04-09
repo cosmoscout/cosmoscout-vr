@@ -128,7 +128,7 @@ cmake -E make_directory "%BUILD_DIR%/curlpp" && cd "%BUILD_DIR%/curlpp"
 cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
       -DCURL_INCLUDE_DIR="%INSTALL_DIR%/include"^
       -DCURL_LIBRARY="%INSTALL_DIR%/lib/%CURL_LIB%"^
-      -DCMAKE_INSTALL_LIBDIR=lib^
+      -DCMAKE_INSTALL_LIBDIR=lib -DCURL_NO_CURL_CMAKE=On^
       "%EXTERNALS_DIR%/curlpp" || exit /b
 
 cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS%
