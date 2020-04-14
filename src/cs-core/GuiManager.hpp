@@ -148,9 +148,9 @@ class CS_CORE_EXPORT GuiManager {
   /// @param description The description of the event.
   /// @param planet Planet the event is happening on.
   /// @parama place The location on the planet.
-  void addEventToTimenavigationBar(const std::string& start, const std::optional<std::string>& end,
-      const std::string& id, const std::string& content, const std::optional<std::string>& style,
-      const std::string& description, const std::string& planet, const std::string& place);
+  void addEventToTimenavigationBar(std::string const& start, std::optional<std::string> const& end,
+      std::string const& id, std::string const& content, std::optional<std::string> const& style,
+      std::string const& description, std::string const& planet, std::string const& place);
 
   /// Returns the CosmoScout Gui.
   gui::GuiItem* getGui() const;
