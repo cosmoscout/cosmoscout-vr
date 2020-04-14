@@ -36,10 +36,9 @@ class CS_UTILS_EXPORT ThreadPool {
   virtual ~ThreadPool();
 
   /// Adds a new work item to the pool.
-  template <class F, class... Args>
-  auto enqueue(F&& f, Args&&... /*args*/)
-      -> std::future<typename std::invoke_result<F, Args...>::type> {
-    using return_type = typename std::invoke_result<F, Args...>::type;
+  template <class F>
+  auto enqueue(F&& f) -> std::future<typename std::invoke_result<F>::type> {
+    using return_type = typename std::invoke_result<F>::type;
 
     auto task = std::make_shared<std::packaged_task<return_type()>>(
         [Func = std::forward<F>(f)] { return Func(); });
