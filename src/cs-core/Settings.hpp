@@ -86,7 +86,7 @@ namespace cs::core {
 /// There are basically four setting types:
 /// std::optional<T>:   Settings which have a std::optional type can be defined in the JSON file but
 ///                     do not have to. If they are not present in the JSON file, they will be set
-///                     to std::nullopt. When settings were reloaded, you have to check whether the
+///                     to std::nullopt. When settings are reloaded, you have to check whether the
 ///                     value has changed. When saving, it will only be written if it is not
 ///                     currently set to std::nullopt.
 /// Property<T>:        This is a mandatory element; omitting it in the JSON file will lead to an
@@ -329,7 +329,7 @@ class CS_CORE_EXPORT Settings {
     /// An exponent for controlling the distribution of shadow map cascades.
     utils::DefaultProperty<float> pShadowMapSplitDistribution{1.f};
 
-    /// If set tu true, the exposure of the virtual camera will be computed automatically. Has no
+    /// If set to true, the exposure of the virtual camera will be computed automatically. Has no
     /// effect if HDR rendering is disabled.
     utils::DefaultProperty<bool> pEnableAutoExposure{true};
 

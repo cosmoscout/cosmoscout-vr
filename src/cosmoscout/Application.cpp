@@ -835,12 +835,12 @@ void Application::registerGuiCallbacks() {
 
   // core callbacks --------------------------------------------------------------------------------
 
-  // Saves the current scene state to the given file.
+  // Saves the current scene state in a specified file.
   mGuiManager->getGui()->registerCallback("core.save",
       "Saves the current scene state to the given file.",
       std::function([this](std::string&& file) { mSettingsToWrite = file; }));
 
-  // Loads a scene state from the given file.
+  // Loads a scene state from a specified file.
   mGuiManager->getGui()->registerCallback("core.load", "Loads a scene state from the given file.",
       std::function([this](std::string&& file) { mSettingsToRead = file; }));
 
