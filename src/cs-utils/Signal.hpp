@@ -62,7 +62,7 @@ class Signal {
 
   /// Calls all connected functions.
   void emit(Args... p) {
-    for (const auto& it : mSlots) {
+    for (auto const& it : mSlots) {
       it.second(p...);
     }
   }
