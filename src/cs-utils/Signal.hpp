@@ -69,7 +69,7 @@ class Signal {
 
   /// Calls all connected functions except for one.
   void emitForAllButOne(int excludedConnectionID, Args... p) {
-    for (const auto& it : mSlots) {
+    for (auto const& it : mSlots) {
       if (it.first != excludedConnectionID) {
         it.second(p...);
       }
