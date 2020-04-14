@@ -319,7 +319,7 @@ void Mark::initData(std::string const& sCenter, std::string const& sFrame) {
 
   // connect the heightscale value to this object. Whenever the heightscale value changes
   // the landmark will be set to the correct height value
-  mHeightScaleConnection = mSettings->mGraphics.pHeightScale.connect([this](float const& h) {
+  mHeightScaleConnection = mSettings->mGraphics.pHeightScale.connect([this](float h) {
     auto   body   = mSolarSystem->getBody(mAnchor->getCenterName());
     double height = body->getHeight(pLngLat.get()) * h;
     auto   radii  = body->getRadii();
