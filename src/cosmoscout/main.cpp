@@ -118,10 +118,9 @@ int main(int argc, char** argv) {
 
   // start application -----------------------------------------------------------------------------
 
-  std::unique_ptr<VistaSystem> pVistaSystem = nullptr;
   try {
     // First we need a VistaSystem.
-    pVistaSystem = std::make_unique<VistaSystem>();
+    auto pVistaSystem = std::make_unique<VistaSystem>();
 
     // ViSTA is configured with plenty of ini files. The ini files of CosmoScout VR reside in a
     // specific directory, so we have to add this directory to the search paths.
@@ -135,6 +134,10 @@ int main(int argc, char** argv) {
     if (pVistaSystem->Init(argc, argv)) {
       pVistaSystem->Run();
     }
+
+    // We will delete the frameloop (which is our Application) ourselves when the make_unique
+    // pointer goes out of scope.
+    pVistaSystem->SetFrameLoop(nullptr, false);
 
   } catch (VistaExceptionBase& e) {
     spdlog::error("Caught unexpected VistaException: {}", e.what());

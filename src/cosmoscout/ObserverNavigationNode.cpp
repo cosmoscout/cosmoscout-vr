@@ -34,16 +34,16 @@ ObserverNavigationNode::ObserverNavigationNode(
     , mLastTime(-1.0) {
   mLinearSpeed.mDirection = cs::utils::AnimationDirection::eLinear;
 
-  // NOLINTNEXTLINE(cppcoreguidelines-owning-memory): TODO memory leak?
+  // NOLINTNEXTLINE(cppcoreguidelines-owning-memory): deleted in IVdfnNode::~IVdfnNode()
   RegisterInPortPrototype("time", new TVdfnPortTypeCompare<TVdfnPort<double>>);
 
-  // NOLINTNEXTLINE(cppcoreguidelines-owning-memory): TODO memory leak?
+  // NOLINTNEXTLINE(cppcoreguidelines-owning-memory): deleted in IVdfnNode::~IVdfnNode()
   RegisterInPortPrototype("translation", new TVdfnPortTypeCompare<TVdfnPort<VistaVector3D>>);
 
-  // NOLINTNEXTLINE(cppcoreguidelines-owning-memory): TODO memory leak?
+  // NOLINTNEXTLINE(cppcoreguidelines-owning-memory): deleted in IVdfnNode::~IVdfnNode()
   RegisterInPortPrototype("rotation", new TVdfnPortTypeCompare<TVdfnPort<VistaQuaternion>>);
 
-  // NOLINTNEXTLINE(cppcoreguidelines-owning-memory): TODO memory leak?
+  // NOLINTNEXTLINE(cppcoreguidelines-owning-memory): deleted in IVdfnNode::~IVdfnNode()
   RegisterInPortPrototype("offset", new TVdfnPortTypeCompare<TVdfnPort<VistaVector3D>>);
 }
 
