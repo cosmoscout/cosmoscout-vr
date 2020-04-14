@@ -398,10 +398,10 @@ void GuiManager::addCssToGui(const std::string& fileName) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GuiManager::addEventToTimenavigationBar(const std::string& start,
-    const std::optional<std::string>& end, const std::string& id, const std::string& content,
-    const std::optional<std::string>& style, const std::string& description,
-    const std::string& planet, const std::string& place) {
+void GuiManager::addEventToTimenavigationBar(std::string const& start,
+    std::optional<std::string> const& end, std::string const& id, std::string const& content,
+    std::optional<std::string> const& style, std::string const& description,
+    std::string const& planet, std::string const& place) {
   mCosmoScoutGui->callJavascript("CosmoScout.timeline.addItem", start, end.value_or(""), id,
       content, style.value_or(""), description, planet, place);
 }
