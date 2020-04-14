@@ -275,7 +275,7 @@
               "preFetch": 5
             },
             {
-              "name": "angeeichtes Radarkomposit (RW)",
+              "name": "Calibrated Radar Composite (RW)",
               "copyright": "DWD",
               "url": "https://maps.dwd.de/geoserver/ows?service=wms&version=1.3.0&request=GetMap&CRS=EPSG:1000004&BBOX=-180,-90,180,90&FORMAT=image/png",
               "width": 1600,
@@ -285,7 +285,7 @@
               "preFetch": 5
             },
             {
-              "name": "Radarvorhersage (Basis RX)",
+              "name": "Radar Forecast (RX)",
               "copyright": "DWD",
               "url": "https://maps.dwd.de/geoserver/ows?service=wms&version=1.3.0&request=GetMap&CRS=EPSG:1000004&BBOX=-180,-90,180,90&FORMAT=image/png",
               "width": 1600,
