@@ -748,7 +748,7 @@ void Application::connectSlots() {
 
   // Update mouse pointer coordinate display in the user interface.
   mInputManager->pHoveredObject.connect(
-      [this](const cs::core::InputManager::Intersection& intersection) {
+      [this](cs::core::InputManager::Intersection const& intersection) {
         if (intersection.mObject) {
           auto body = std::dynamic_pointer_cast<cs::scene::CelestialBody>(intersection.mObject);
 
