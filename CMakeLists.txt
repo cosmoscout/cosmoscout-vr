@@ -237,15 +237,15 @@ if (MSVC)
   )
 
   add_compile_options(
-    -experimental:external
-    -external:anglebrackets
-    -external:W0
-    -W3 -WX
-    -EHsc
-    -wd4251
+    /experimental:external
+    /external:anglebrackets
+    /external:W0
+    /W3 /WX
+    /EHsc
+    /wd4251
 
     # Warns about multiple inheritance problems, which we can't avoid inheriting from ViSTA classes.
-    -wd4250
+    /wd4250
   )
 else()
   add_compile_options(
@@ -253,46 +253,6 @@ else()
     -Werror
   )
 endif()
-
-# clang-tidy ---------------------------------------------------------------------------------------
-
-option(CS_RUN_CLANG_TIDY "Run clang-tidy with the compiler." Off)
-if(CS_RUN_CLANG_TIDY)
-  if(CMake_SOURCE_DIR STREQUAL CMake_BINARY_DIR)
-    message(FATAL_ERROR "CS_RUN_CLANG_TIDY requires an out-of-source build!")
-  endif()
-  find_program(CLANG_TIDY_COMMAND NAMES clang-tidy)
-  if(NOT CLANG_TIDY_COMMAND)
-    message(WARNING "CS_RUN_CLANG_TIDY is ON but clang-tidy is not found!")
-    set(CMAKE_CXX_CLANG_TIDY "" CACHE STRING "" FORCE)
-  else()
-    set(CS_CT_OPT "-quiet")
-    set(CS_CT_OPT "${CS_CT_OPT};-p;${CMAKE_BINARY_DIR}")
-
-    set(CS_CT_OPT "${CS_CT_OPT};-extra-arg=-std=c++17")
-    set(CS_CT_OPT "${CS_CT_OPT};-extra-arg=-DGLM_ENABLE_EXPERIMENTAL")
-    set(CS_CT_OPT "${CS_CT_OPT};-extra-arg=-DGLM_FORCE_SWIZZLE")
-    set(CS_CT_OPT "${CS_CT_OPT};-extra-arg=-I${CMAKE_SOURCE_DIR}/src")
-    set(CS_CT_OPT "${CS_CT_OPT};-extra-arg=-I${CMAKE_BINARY_DIR}/src/cs-utils")
-    set(CS_CT_OPT "${CS_CT_OPT};-extra-arg=-I${CMAKE_BINARY_DIR}/src/cs-scene")
-    set(CS_CT_OPT "${CS_CT_OPT};-extra-arg=-I${CMAKE_BINARY_DIR}/src/cs-graphics")
-    set(CS_CT_OPT "${CS_CT_OPT};-extra-arg=-I${CMAKE_BINARY_DIR}/src/cs-core")
-    set(CS_CT_OPT "${CS_CT_OPT};-extra-arg=-I${CMAKE_BINARY_DIR}/src/cs-gui")
-    set(CS_CT_OPT "${CS_CT_OPT};-extra-arg=-I${COSMOSCOUT_EXTERNALS_DIR}/include")
-    set(CS_CT_OPT "${CS_CT_OPT};-extra-arg=-I${COSMOSCOUT_EXTERNALS_DIR}/include/cef")
-    set(CS_CT_OPT "${CS_CT_OPT};-extra-arg=-I${Boost_INCLUDE_DIRS}")
-
-    set(CMAKE_CXX_CLANG_TIDY "${CLANG_TIDY_COMMAND};${CS_CT_OPT}")
-endif()
-
-  file(SHA1 ${CMAKE_CURRENT_SOURCE_DIR}/.clang-tidy clang_tidy_sha1)
-  set(CLANG_TIDY_DEFINITIONS "CLANG_TIDY_SHA1=${clang_tidy_sha1}")
-  unset(clang_tidy_sha1)
-
-endif()
-configure_file(.clang-tidy .clang-tidy COPYONLY)
-
-
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
