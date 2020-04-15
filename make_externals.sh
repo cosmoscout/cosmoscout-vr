@@ -132,9 +132,9 @@ esac
 
 cmake -E make_directory "$BUILD_DIR/curlpp" && cd "$BUILD_DIR/curlpp"
 cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
-      -DCURL_INCLUDE_DIR="$INSTALL_DIR/include" \
+      -DCURL_INCLUDE_DIR="$INSTALL_DIR/include" -DCMAKE_UNITY_BUILD=On \
       -DCURL_LIBRARY="$INSTALL_DIR/lib/$CURL_LIB" \
-      -DCMAKE_INSTALL_LIBDIR=lib \
+      -DCMAKE_INSTALL_LIBDIR=lib -DCURL_NO_CURL_CMAKE=On \
       -DCMAKE_BUILD_TYPE=$BUILD_TYPE "$EXTERNALS_DIR/curlpp"
 cmake --build . --target install --parallel "$(nproc)"
 
@@ -146,7 +146,7 @@ echo ""
 
 cmake -E make_directory "$BUILD_DIR/libtiff" && cd "$BUILD_DIR/libtiff"
 cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
-      -DCMAKE_INSTALL_FULL_LIBDIR=lib \
+      -DCMAKE_INSTALL_FULL_LIBDIR=lib -DCMAKE_UNITY_BUILD=On \
       -DCMAKE_BUILD_TYPE=$BUILD_TYPE "$EXTERNALS_DIR/libtiff"
 cmake --build . --target install --parallel "$(nproc)"
 
@@ -258,7 +258,7 @@ rm -rf $CEF_DIR/tests # we dont want the example applications
 cd ..
 
 cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
-      -DCEF_COMPILER_FLAGS="-Wno-undefined-var-template" \
+      -DCEF_COMPILER_FLAGS="-Wno-undefined-var-template" -DCMAKE_UNITY_BUILD=On \
       -DCMAKE_BUILD_TYPE=$BUILD_TYPE "$BUILD_DIR/cef/extracted/$CEF_DIR"
 cmake --build . --parallel "$(nproc)"
 

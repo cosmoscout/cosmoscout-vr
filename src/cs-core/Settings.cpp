@@ -323,7 +323,7 @@ std::pair<double, double> Settings::Anchor::getExistence() {
   try {
     result.first =
         utils::convert::toSpiceTime(boost::posix_time::time_from_string(mStartExistence));
-  } catch (std::exception const& e) {
+  } catch (std::exception const&) {
     throw std::runtime_error("Failed to parse the 'startExistence' property of the anchor '" +
                              mCenter +
                              "'. The dates should be given in the format: 1969-07-20 20:17:40.000");
@@ -331,7 +331,7 @@ std::pair<double, double> Settings::Anchor::getExistence() {
 
   try {
     result.second = utils::convert::toSpiceTime(boost::posix_time::time_from_string(mEndExistence));
-  } catch (std::exception const& e) {
+  } catch (std::exception const&) {
     throw std::runtime_error("Failed to parse the 'endExistence' property of the anchor '" +
                              mCenter +
                              "'. The dates should be given in the format: 1969-07-20 20:17:40.000");

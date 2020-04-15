@@ -30,7 +30,7 @@ WebViewClient::~WebViewClient() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool WebViewClient::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
-    CefRefPtr<CefFrame> frame, CefProcessId source_process, CefRefPtr<CefProcessMessage> message) {
+    CefRefPtr<CefFrame> frame, CefProcessId, CefRefPtr<CefProcessMessage> message) {
 
   if (message->GetName() == "callNative") {
 
@@ -45,17 +45,17 @@ bool WebViewClient::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
 
     std::vector<std::optional<JSType>> args;
 
-    for (int i(1); i < message->GetArgumentList()->GetSize(); ++i) {
-      CefValueType type(message->GetArgumentList()->GetType((size_t)i));
+    for (size_t i(1); i < message->GetArgumentList()->GetSize(); ++i) {
+      CefValueType type(message->GetArgumentList()->GetType(i));
       switch (type) {
       case VTYPE_DOUBLE:
-        args.emplace_back(message->GetArgumentList()->GetDouble((size_t)i));
+        args.emplace_back(message->GetArgumentList()->GetDouble(i));
         break;
       case VTYPE_BOOL:
-        args.emplace_back(message->GetArgumentList()->GetBool((size_t)i));
+        args.emplace_back(message->GetArgumentList()->GetBool(i));
         break;
       case VTYPE_STRING:
-        args.emplace_back(message->GetArgumentList()->GetString((size_t)i).ToString());
+        args.emplace_back(message->GetArgumentList()->GetString(i).ToString());
         break;
       case VTYPE_INVALID:
       case VTYPE_NULL:

@@ -110,7 +110,7 @@ void Trajectory::upload(glm::dmat4 const& relativeTransform, double dTime,
     // transform all points to observer centric coordinates
     std::vector<glm::vec4> points(vPoints.size());
 
-    for (int i(0); i < vPoints.size(); ++i) {
+    for (size_t i(0); i < vPoints.size(); ++i) {
       int ringbufferIndex = (i + startIndex) % (int)vPoints.size();
 
       glm::dvec4 const& curr = vPoints[ringbufferIndex];
@@ -198,7 +198,7 @@ bool Trajectory::Do() {
 
     glLineWidth(mWidth);
 
-    int amountNoDepth = mPointCount / 2;
+    uint32_t amountNoDepth = mPointCount / 2;
 
     glDepthMask(GL_FALSE);
     glDrawArrays(GL_LINE_STRIP, 0, amountNoDepth + 1);
@@ -217,7 +217,7 @@ bool Trajectory::Do() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool Trajectory::GetBoundingBox(VistaBoundingBox& bb) {
+bool Trajectory::GetBoundingBox(VistaBoundingBox&) {
   return false;
 }
 

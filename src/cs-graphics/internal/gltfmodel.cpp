@@ -464,8 +464,8 @@ std::shared_ptr<GLuint> linkShader(GLuint vertShader, GLuint fragShader) {
   glAttachShader(*ptr, fragShader);
   glLinkProgram(*ptr);
 
-  auto status = getProgrami(*ptr, GL_LINK_STATUS);
-  assert(status == GL_TRUE && "VistaGltf.gltfmodel.linkShader: failed to link shader");
+  assert(getProgrami(*ptr, GL_LINK_STATUS) == GL_TRUE &&
+         "VistaGltf.gltfmodel.linkShader: failed to link shader");
 
   CheckGLErrors("linkShader");
   return ptr;
@@ -531,7 +531,6 @@ GLProgramInfo getProgramInfo(unsigned int program) {
   GLProgramInfo info;
   glUseProgram(program);
 
-  auto count = getProgrami(program, GL_ACTIVE_ATTRIBUTES);
   // glGetActiveAttrib(program, index, maxLength, size, type, name)
   std::map<std::string, std::string> attributeMap{{"a_Position", "POSITION"},
       {"a_Normal", "NORMAL"}, {"a_Tangent", "TANGENT"}, {"a_UV", "TEXCOORD_0"}};
@@ -849,12 +848,12 @@ gli::texture_cube irradianceCubemap(gli::texture_cube const& inputCubemap, int w
     // Fetch cubemap
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(outputCubemapTex.target, *outputCubemapTex.image);
-    for (auto level = 0u; level < filteredGliTex.levels(); ++level) {
+    for (auto lvl = 0u; lvl < filteredGliTex.levels(); ++lvl) {
       for (auto face = 0u; face < filteredGliTex.faces(); ++face) {
         auto target = static_cast<GLenum>(GL_TEXTURE_CUBE_MAP_POSITIVE_X + face);
-        glGetTexImage(target, level, formatExternal,
+        glGetTexImage(target, lvl, formatExternal,
             formatType, // GL_FLOAT,
-            filteredGliTex[face][level].data());
+            filteredGliTex[face][lvl].data());
         CheckGLErrors("after glGetTexImage");
       }
     }

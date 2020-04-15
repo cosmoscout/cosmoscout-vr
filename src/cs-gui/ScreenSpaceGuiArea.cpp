@@ -188,7 +188,7 @@ bool ScreenSpaceGuiArea::GetBoundingBox(VistaBoundingBox& oBoundingBox) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void ScreenSpaceGuiArea::ObserverUpdate(IVistaObserveable* pObserveable, int nMsg, int nTicket) {
+void ScreenSpaceGuiArea::ObserverUpdate(IVistaObserveable*, int nMsg, int) {
   if (nMsg == VistaViewport::VistaViewportProperties::MSG_SIZE_CHANGE) {
     // As it's not a good idea to resize CEF gui elements very often (performance wise and sometimes
     // resize events get lost), we wait a hard-coded number of frames until we perform the actual

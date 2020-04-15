@@ -10,6 +10,7 @@
 
 #include "../cs-utils/FrameTimings.hpp"
 #include "../cs-utils/convert.hpp"
+#include "../cs-utils/utils.hpp"
 #include "GraphicsEngine.hpp"
 #include "Settings.hpp"
 #include "TimeControl.hpp"
@@ -193,7 +194,7 @@ void SolarSystem::update() {
   // As our scene is always scaled, we have to scale the luminous power of the sun accordingly.
   // Else, our Sun would be extremely bright when scaled down.
   double sceneScale = 1.0 / mObserver.getAnchorScale();
-  pSunLuminousPower = sunLuminousPower * sceneScale * sceneScale;
+  pSunLuminousPower = static_cast<float>(sunLuminousPower * sceneScale * sceneScale);
 
   // Update the property containing the current observer speed.
   auto observerPosition = mObserver.getAnchorPosition();
@@ -203,9 +204,10 @@ void SolarSystem::update() {
 
   // Duration is in nanoseconds so we have to multiply by 1.0e9.
   if (duration > 0) {
-    pCurrentObserverSpeed = 1.0e9 * glm::length(mLastPosition - observerPosition) / duration;
-    mLastPosition         = observerPosition;
-    mLastTime             = now;
+    pCurrentObserverSpeed =
+        static_cast<float>(1.0e9 * glm::length(mLastPosition - observerPosition) / duration);
+    mLastPosition = observerPosition;
+    mLastTime     = now;
   }
 
   // Update settings properties.
@@ -480,10 +482,10 @@ void SolarSystem::printFrames() {
 void SolarSystem::init(std::string const& sSpiceMetaFile) {
 
   // Continue execution on errors.
-  erract_c((char*)"SET", 0, (char*)"RETURN");
+  erract_c("SET", 0, const_cast<char*>("RETURN"));
 
   // Disable default error reports.
-  errdev_c((char*)"SET", 0, (char*)"NULL");
+  errdev_c("SET", 0, const_cast<char*>("NULL"));
 
   // Load the spice kernels.
   furnsh_c(sSpiceMetaFile.c_str());

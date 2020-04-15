@@ -25,7 +25,7 @@ class Signal {
   }
 
   /// Copy creates new signal.
-  Signal(Signal const& other)
+  Signal(Signal const&)
       : mCurrentID(0) {
   }
 
@@ -76,7 +76,7 @@ class Signal {
   }
 
   /// Assignment creates new Signal.
-  Signal& operator=(Signal const& other) {
+  Signal& operator=(Signal const&) {
     disconnectAll();
 
     return *this;

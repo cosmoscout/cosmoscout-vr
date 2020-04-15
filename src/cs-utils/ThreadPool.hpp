@@ -30,8 +30,9 @@ class CS_UTILS_EXPORT ThreadPool {
 
   /// Adds a new work item to the pool.
   template <class F, class... Args>
-  auto enqueue(F&& f, Args&&... args) -> std::future<typename std::result_of<F(Args...)>::type> {
-    using return_type = typename std::result_of<F(Args...)>::type;
+  auto enqueue(F&& f, Args&&... args)
+      -> std::future<typename std::invoke_result<F, Args...>::type> {
+    using return_type = typename std::invoke_result<F, Args...>::type;
 
     auto task = std::make_shared<std::packaged_task<return_type()>>(
         std::bind(std::forward<F>(f), std::forward<Args>(args)...));
@@ -53,7 +54,7 @@ class CS_UTILS_EXPORT ThreadPool {
   /// Returns the amount of tasks that await execution.
   uint32_t getPendingTaskCount() const {
     std::unique_lock<std::mutex> lock(mMutex);
-    return mTasks.size();
+    return static_cast<uint32_t>(mTasks.size());
   }
 
   /// Returns the number of tasks that currently are being executed.

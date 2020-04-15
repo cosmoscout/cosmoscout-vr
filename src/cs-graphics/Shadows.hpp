@@ -102,9 +102,9 @@ class CS_GRAPHICS_EXPORT ShadowMap : public IVistaOpenGLDraw {
   VistaVector3D                     mSunDirection = VistaVector3D(0, 1, 0);
   unsigned                          mResolution   = 1024;
   std::vector<float>                mSplits;
-  float                             mSunNearClipOffset = -500;
-  float                             mSunFarClipOffset  = 500;
-  float                             mBias              = 0.0001;
+  float                             mSunNearClipOffset = -500.0f;
+  float                             mSunFarClipOffset  = 500.0f;
+  float                             mBias              = 0.0001f;
   bool                              mFreezeCascades    = false;
   bool                              mEnabled           = true;
 

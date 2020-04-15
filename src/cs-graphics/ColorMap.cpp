@@ -87,7 +87,7 @@ ColorMap::ColorMap(std::string const& sJsonFile)
   const int RESOLUTION = 256;
 
   std::vector<glm::vec4> colors(RESOLUTION);
-  for (int i(0); i < colors.size(); ++i) {
+  for (size_t i(0); i < colors.size(); ++i) {
     float     key   = static_cast<float>(i) / (colors.size() - 1);
     glm::vec3 color = interpolate(key, colorMapData.rgbStops);
     float     alpha = interpolate(key, colorMapData.alphaStops);

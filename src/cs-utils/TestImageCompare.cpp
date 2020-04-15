@@ -18,11 +18,11 @@ namespace cs::utils {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 TestImageCompare::TestImageCompare(std::string const& imageName, int32_t frame)
-    : mImageName(imageName)
-    , mCapture("test/" + imageName + ".png", frame) {
+    : mCapture("test/" + imageName + ".png", frame)
+    , mImageName(imageName) {
 
   auto vs = new VistaSystem();
-  GetVistaSystem()->SetIniSearchPaths({"../share/config/vista"});
+  vs->SetIniSearchPaths({"../share/config/vista"});
 
   auto        killAfterFrame = std::to_string(frame);
   int         argc           = 5;
@@ -34,11 +34,11 @@ TestImageCompare::TestImageCompare(std::string const& imageName, int32_t frame)
   vstr::SetWarnStream(&mVistaOutput);
   vstr::SetDebugStream(&mVistaOutput);
 
-  if (!GetVistaSystem()->Init(argc, const_cast<char**>(argv))) {
+  if (!vs->Init(argc, const_cast<char**>(argv))) {
     throw std::runtime_error("Failed to initialize VistaSystem!");
   }
 
-  GetVistaSystem()->GetEventManager()->AddEventHandler(
+  vs->GetEventManager()->AddEventHandler(
       &mCapture, VistaSystemEvent::GetTypeId(), VistaSystemEvent::VSE_POSTGRAPHICS);
 }
 

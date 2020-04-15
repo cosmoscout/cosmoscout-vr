@@ -192,7 +192,7 @@ bool ShadowMap::Do() {
     }
 
     // create shadow maps for all cascades
-    for (int i = 0; i < mSplits.size() - 1; ++i) {
+    for (size_t i = 0; i < mSplits.size() - 1; ++i) {
       mShadowMapFBOs.push_back(new VistaFramebufferObj());
       mShadowMaps.push_back(new VistaTexture(GL_TEXTURE_2D));
       mShadowMatrices.emplace_back(VistaTransformMatrix());
@@ -268,7 +268,7 @@ bool ShadowMap::Do() {
   }
 
   // ow we render all registered shadow casters into the shadow maps
-  for (int i = 0; i < mSplits.size() - 1; ++i) {
+  for (size_t i = 0; i < mSplits.size() - 1; ++i) {
     // bind the fbo
     mShadowMapFBOs[i]->Bind();
 
@@ -279,7 +279,7 @@ bool ShadowMap::Do() {
 
     // as slice corners are in light space alreay, we can just calculate the
     // bounding box of each frustum slice by min and max
-    for (int s = i; s < i + 2; ++s) {
+    for (size_t s = i; s < i + 2; ++s) {
       for (auto const& p : splitSlices[s]) {
         r = std::max(r, p[0]);
         l = std::min(l, p[0]);

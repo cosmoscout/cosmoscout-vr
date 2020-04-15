@@ -14,7 +14,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 GetSelectionStateNode::GetSelectionStateNode(
-    cs::core::InputManager* pInputManager, VistaPropertyList const& oParams)
+    cs::core::InputManager* pInputManager, VistaPropertyList const&)
     : IVdfnNode()
     , mInputManager(pInputManager) {
 
@@ -34,7 +34,7 @@ GetSelectionStateNode::GetSelectionStateNode(
 
 bool GetSelectionStateNode::DoEvalNode() {
 
-  const auto updatePort = [this](TVdfnPort<bool>& port, bool newVal) {
+  const auto updatePort = [](TVdfnPort<bool>& port, bool newVal) {
     bool& oldVal = port.GetValueRef();
     if (oldVal != newVal) {
       oldVal = newVal;

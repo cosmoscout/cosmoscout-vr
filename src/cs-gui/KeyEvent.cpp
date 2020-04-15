@@ -22,7 +22,7 @@ KeyEvent::KeyEvent()
 
 KeyEvent::KeyEvent(int key, int mods) {
   mType      = key < 0 ? KeyEvent::Type::eRelease : KeyEvent::Type::ePress;
-  mCharacter = key;
+  mCharacter = static_cast<uint16_t>(key);
 
   setMods(mods);
 

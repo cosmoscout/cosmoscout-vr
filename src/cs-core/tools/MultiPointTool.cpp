@@ -41,7 +41,7 @@ MultiPointTool::MultiPointTool(std::shared_ptr<InputManager> const& pInputManage
     if (pAddPointMode.get() && !pressed) {
       pAddPointMode = false;
       mPoints.pop_back();
-      onPointRemoved(mPoints.size());
+      onPointRemoved(static_cast<int32_t>(mPoints.size()));
     }
   });
 }
@@ -75,7 +75,7 @@ void MultiPointTool::addPoint() {
   }
 
   // register callback to update line vertices when the landmark position has been changed
-  mPoints.back()->pLngLat.connect([this](glm::dvec2 const& lngLat) { onPointMoved(); });
+  mPoints.back()->pLngLat.connect([this](glm::dvec2 const&) { onPointMoved(); });
 
   // call update once since new data is available
   onPointAdded();
@@ -93,7 +93,7 @@ void MultiPointTool::update() {
       mark = mPoints.erase(mark);
       onPointRemoved(index);
     } else {
-      anyPointSelected |= (*mark)->pSelected.get();
+      anyPointSelected |= static_cast<bool>((*mark)->pSelected.get());
       (*mark)->update();
       ++mark;
       ++index;

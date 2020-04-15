@@ -72,8 +72,6 @@ void DragNavigation::update() {
   // current observer transform of this frame
   glm::dvec3 observerPos = mSolarSystem->getObserver().getAnchorPosition();
   glm::dquat observerRot = mSolarSystem->getObserver().getAnchorRotation();
-  glm::dmat4 observerTransform(
-      glm::translate(observerPos) * glm::rotate(glm::angle(observerRot), glm::axis(observerRot)));
 
   // store observer transform when dragging started
   if (!mInputManager->pButtons[0].get() && !mInputManager->pButtons[1].get()) {
@@ -192,7 +190,7 @@ void DragNavigation::update() {
 
         // Prepare an animated rotation approaching target angle
         mDoKineticSmoothOut = std::abs(targetAngle - mTargetAngle) > 0.001f;
-        mCurrentAngleDiff += targetAngle - mTargetAngle;
+        mCurrentAngleDiff += static_cast<float>(targetAngle - mTargetAngle);
         mTargetAngle = targetAngle;
       } else {
         mTargetAngle        = 0;

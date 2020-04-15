@@ -99,11 +99,11 @@ Mark::Mark(Mark const& other)
     , mSolarSystem(other.mSolarSystem)
     , mSettings(other.mSettings)
     , mTimeControl(other.mTimeControl)
+    , mOriginalDistance(other.mOriginalDistance)
     , mVAO(new VistaVertexArrayObject())
     , mVBO(new VistaBufferObject())
     , mIBO(new VistaBufferObject())
-    , mShader(new VistaGLSLShader())
-    , mOriginalDistance(other.mOriginalDistance) {
+    , mShader(new VistaGLSLShader()) {
 
   initData(other.getAnchor()->getCenterName(), other.getAnchor()->getFrameName());
 }

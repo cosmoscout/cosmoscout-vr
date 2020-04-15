@@ -156,9 +156,12 @@ class CS_GUI_EXPORT WebView {
   /// This ensures statically that all given template types are either bool, double, std::string or
   /// std::string&&.
   template <typename... Args>
-  void assertJavaScriptTypes() {
+  static constexpr void assertJavaScriptTypes() {
+    CS_WARNINGS_PUSH
+    CS_DISABLE_GCC_WARNING("-Wunused-value")
     // Call assertJavaScriptType() for each Arg of Args.
-    int tmp[] = {(assertJavaScriptType<Args>(), 0)...};
+    std::initializer_list<int>{(assertJavaScriptType<Args>(), 0)...};
+    CS_WARNINGS_POP
   }
 
   /// This ensures statically that the given template type is either bool, double, std::string or
@@ -206,7 +209,7 @@ class CS_GUI_EXPORT WebView {
     std::vector<std::type_index> types = {std::type_index(typeid(Args))...};
 
     registerJSCallbackImpl(name, comment, std::move(types),
-        [this, name, callback](std::vector<std::optional<JSType>>&& args) {
+        [name, callback](std::vector<std::optional<JSType>>&& args) {
           // It is possible that the JavaScript method was called with less arguments than we expect
           // (if some of our arguments are optional). Therefore we pad the args vector with
           // std::nullopts.
@@ -216,7 +219,7 @@ class CS_GUI_EXPORT WebView {
             // Now call the actual callback. The UnderlyingValue struct is used to access the actual
             // value in the std::optional<JSType>. See its implementation above.
             callback(UnderlyingValue<Args>::get(std::move(args[Is]))...);
-          } catch (std::exception const& e) {
+          } catch (std::exception const&) {
             spdlog::error("Cannot execute javascript call '{}': Parameters do not match to the "
                           "registered callback!",
                 name);
