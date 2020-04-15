@@ -91,7 +91,6 @@ jobs:
           sudo apt-get update -q
           sudo apt-get install libc++-dev libgl1-mesa-dev libglu1-mesa-dev libx11-dev
           sudo apt-get install libxi-dev libgconf-2-4 libboost1.70-dev ccache lcov xvfb
-          sudo pip install cmake==3.13.3
           ccache --max-size 1G
           ccache -z
       # Workaround for https://github.com/actions/virtual-environments/issues/10
@@ -145,7 +144,6 @@ jobs:
           sudo apt-get update -q
           sudo apt-get install libc++-dev libgl1-mesa-dev libglu1-mesa-dev libx11-dev
           sudo apt-get install libxi-dev libgconf-2-4 libboost1.70-dev ccache
-          sudo pip install cmake==3.13.3
           ccache --max-size 1G
           ccache -z
       # Workaround for https://github.com/actions/virtual-environments/issues/10

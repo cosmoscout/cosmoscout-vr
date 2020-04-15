@@ -455,6 +455,16 @@ void Application::FrameUpdate() {
       mTimeControl->update();
     }
 
+    // Update the navigation, SolarSystem and scene scale.
+    {
+      cs::utils::FrameTimings::ScopedTimer timer(
+          "SolarSystem Update", cs::utils::FrameTimings::QueryMode::eCPU);
+      mDragNavigation->update();
+      mSolarSystem->update();
+      mSolarSystem->updateSceneScale();
+      mSolarSystem->updateObserverFrame();
+    }
+
     // Update the individual plugins.
     for (auto const& plugin : mPlugins) {
       cs::utils::FrameTimings::ScopedTimer timer(
@@ -465,16 +475,6 @@ void Application::FrameUpdate() {
       } catch (std::runtime_error const& e) {
         spdlog::error("Error updating plugin '{}': {}", plugin.first, e.what());
       }
-    }
-
-    // Update the navigation, SolarSystem and scene scale.
-    {
-      cs::utils::FrameTimings::ScopedTimer timer(
-          "SolarSystem Update", cs::utils::FrameTimings::QueryMode::eCPU);
-      mDragNavigation->update();
-      mSolarSystem->update();
-      mSolarSystem->updateSceneScale();
-      mSolarSystem->updateObserverFrame();
     }
 
     // Synchronize the observer position and simulation time across the network.
