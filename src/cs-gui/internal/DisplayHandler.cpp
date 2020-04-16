@@ -16,17 +16,17 @@ bool DisplayHandler::OnConsoleMessage(CefRefPtr<CefBrowser> /*browser*/, cef_log
     CefString const& message, CefString const& /*source*/, int /*line*/) {
 
   if (level == LOGSEVERITY_VERBOSE) {
-    logger()->trace(message.ToString());
+    logger().trace(message.ToString());
   } else if (level == LOGSEVERITY_DEBUG) {
-    logger()->debug(message.ToString());
+    logger().debug(message.ToString());
   } else if (level == LOGSEVERITY_WARNING) {
-    logger()->warn(message.ToString());
+    logger().warn(message.ToString());
   } else if (level == LOGSEVERITY_ERROR) {
-    logger()->error(message.ToString());
+    logger().error(message.ToString());
   } else if (level == LOGSEVERITY_FATAL) {
-    logger()->critical(message.ToString());
+    logger().critical(message.ToString());
   } else {
-    logger()->info(message.ToString());
+    logger().info(message.ToString());
   }
 
   return true;

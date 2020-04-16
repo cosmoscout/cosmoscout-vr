@@ -47,7 +47,7 @@ constexpr int vistaKeyCode(char c) {
 InputManager::InputManager() {
 
   // Tell the user what's going on.
-  logger()->debug("Creating InputManager.");
+  logger().debug("Creating InputManager.");
 
   mClickTime = boost::posix_time::microsec_clock::universal_time();
 
@@ -115,7 +115,7 @@ InputManager::InputManager() {
 InputManager::~InputManager() {
   try {
     // Tell the user what's going on.
-    logger()->debug("Deleting InputManager.");
+    logger().debug("Deleting InputManager.");
   } catch (...) {}
 
   for (auto* adapter : mAdapters) {

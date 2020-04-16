@@ -15,7 +15,7 @@ namespace cs::gui {
 
 /// This creates the default singleton logger for "cs-gui" when called for the first time and
 /// returns it. See cs-utils/logger.hpp for more logging details.
-CS_GUI_EXPORT std::shared_ptr<spdlog::logger> logger();
+CS_GUI_EXPORT spdlog::logger& logger();
 
 } // namespace cs::gui
 

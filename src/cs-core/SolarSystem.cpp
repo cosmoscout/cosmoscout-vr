@@ -40,7 +40,7 @@ SolarSystem::SolarSystem(std::shared_ptr<const Settings> settings,
     , mSun(std::make_shared<scene::CelestialObject>("Sun", "IAU_Sun")) {
 
   // Tell the user what's going on.
-  logger()->debug("Creating SolarSystem.");
+  logger().debug("Creating SolarSystem.");
 
   pObserverCenter.connect([this](std::string const& center) {
     mObserver.changeOrigin(center, mObserver.getFrameName(), mTimeControl->pSimulationTime.get());
@@ -55,7 +55,7 @@ SolarSystem::SolarSystem(std::shared_ptr<const Settings> settings,
 
 SolarSystem::~SolarSystem() {
   // Tell the user what's going on.
-  logger()->debug("Deleting SolarSystem.");
+  logger().debug("Deleting SolarSystem.");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -468,9 +468,9 @@ void SolarSystem::printFrames() {
   SPICEINT_CELL(ids, 1000); // NOLINT: Creates a c-array.
   bltfrm_c(SPICE_FRMTYP_ALL, &ids);
 
-  logger()->info("-----------------------------------------");
-  logger()->info("Built-in frames:");
-  logger()->info("-----------------------------------------");
+  logger().info("-----------------------------------------");
+  logger().info("Built-in frames:");
+  logger().info("-----------------------------------------");
 
   int64_t const length = 50;
 
@@ -479,12 +479,12 @@ void SolarSystem::printFrames() {
     std::string out(length, ' ');
     frmnam_c(obj, length, &out[0]);
 
-    logger()->info(out);
+    logger().info(out);
   }
 
-  logger()->info("-----------------------------------------");
-  logger()->info("Loaded frames:");
-  logger()->info("-----------------------------------------");
+  logger().info("-----------------------------------------");
+  logger().info("Loaded frames:");
+  logger().info("-----------------------------------------");
 
   kplfrm_c(SPICE_FRMTYP_ALL, &ids); // NOLINT
   for (int i = 0; i < card_c(&ids); ++i) {
@@ -493,7 +493,7 @@ void SolarSystem::printFrames() {
     std::string out(length, ' ');
     frmnam_c(obj, length, &out[0]);
 
-    logger()->info(out);
+    logger().info(out);
   }
 }
 

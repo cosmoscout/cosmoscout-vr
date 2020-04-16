@@ -35,7 +35,7 @@ void executeWebProcess(int argc, char* argv[]) {
 void init() {
 
   if (!app) {
-    logger()->error("Failed to initialize gui: Please call executeWebProcess() before init()!");
+    logger().error("Failed to initialize gui: Please call executeWebProcess() before init()!");
     return;
   }
 
@@ -50,7 +50,7 @@ void init() {
   settings.windowless_rendering_enabled = true;
 
   if (!CefInitialize(app->GetArgs(), settings, app, nullptr)) {
-    logger()->error("Failed to initialize CEF. Gui will not work at all.");
+    logger().error("Failed to initialize CEF. Gui will not work at all.");
   }
 
   std::locale::global(current_locale);

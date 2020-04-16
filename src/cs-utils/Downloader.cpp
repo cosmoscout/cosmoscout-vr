@@ -31,7 +31,7 @@ void Downloader::download(std::string const& url, std::string const& file) {
   // We download to a file with a .part suffix. Once the download is done, we will remove the
   // suffix.
   mThreadPool.enqueue([this, file, url, progressIndex]() {
-    logger()->info("Downloading file '{}'...", file);
+    logger().info("Downloading file '{}'...", file);
 
     filesystem::downloadFile(
         url, file + ".part", [this, progressIndex](double progress, double total) {
@@ -40,7 +40,7 @@ void Downloader::download(std::string const& url, std::string const& file) {
         });
 
     std::rename((file + ".part").c_str(), file.c_str());
-    logger()->info("Finished downloading file '{}'.", file);
+    logger().info("Finished downloading file '{}'.", file);
   });
 }
 

@@ -16,7 +16,7 @@ bool RequestHandler::OnCertificateError(CefRefPtr<CefBrowser> /*browser*/,
     cef_errorcode_t /*cert_error*/, CefString const& /*request_url*/,
     CefRefPtr<CefSSLInfo> /*ssl_info*/, CefRefPtr<CefRequestCallback> callback) {
 
-  logger()->warn("Detected a certificate error in Chromium Embedded Framework. Continuing...");
+  logger().warn("Detected a certificate error in Chromium Embedded Framework. Continuing...");
 
   callback->Continue(true);
   return true;

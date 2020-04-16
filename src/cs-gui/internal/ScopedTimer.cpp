@@ -24,7 +24,7 @@ ScopedTimer::ScopedTimer(std::string name)
 
 ScopedTimer::~ScopedTimer() {
   double now = GetNow();
-  logger()->info("{}: {} ms", mName, now - mStartTime);
+  logger().info("{}: {} ms", mName, now - mStartTime);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -21,14 +21,14 @@ TimeControl::TimeControl(std::shared_ptr<const core::Settings> settings)
     : mSettings(std::move(settings)) {
 
   // Tell the user what's going on.
-  logger()->debug("Creating TimeControl.");
+  logger().debug("Creating TimeControl.");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 TimeControl::~TimeControl() {
   // Tell the user what's going on.
-  logger()->debug("Deleting TimeControl.");
+  logger().debug("Deleting TimeControl.");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

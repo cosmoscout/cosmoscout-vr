@@ -15,7 +15,7 @@ namespace cs::graphics {
 
 /// This creates the default singleton logger for "cs-graphics" when called for the first time and
 /// returns it. See cs-utils/logger.hpp for more logging details.
-CS_GRAPHICS_EXPORT std::shared_ptr<spdlog::logger> logger();
+CS_GRAPHICS_EXPORT spdlog::logger& logger();
 
 } // namespace cs::graphics
 

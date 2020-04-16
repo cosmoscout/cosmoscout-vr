@@ -40,7 +40,7 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
     , mFrameTimings(std::move(pFrameTimings)) {
 
   // Tell the user what's going on.
-  logger()->debug("Creating GuiManager.");
+  logger().debug("Creating GuiManager.");
 
   // Initialize the Chromium Embedded Framework.
   gui::init();
@@ -180,7 +180,7 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
 GuiManager::~GuiManager() {
   try {
     // Tell the user what's going on.
-    logger()->debug("Deleting GuiManager.");
+    logger().debug("Deleting GuiManager.");
   } catch (...) {}
 
   mInputManager->unregisterSelectable(mLocalGuiOpenGLnode);

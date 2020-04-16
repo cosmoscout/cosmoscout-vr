@@ -228,8 +228,8 @@ class CS_GUI_EXPORT WebView {
             // value in the std::optional<JSType>. See its implementation above.
             callback(UnderlyingValue<Args>::get(std::move(args[Is]))...);
           } catch (std::exception const&) {
-            logger()->error("Cannot execute javascript call '{}': Parameters do not match to the "
-                            "registered callback!",
+            logger().error("Cannot execute javascript call '{}': Parameters do not match to the "
+                           "registered callback!",
                 name);
           }
         });

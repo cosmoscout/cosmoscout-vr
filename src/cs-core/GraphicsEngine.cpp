@@ -29,9 +29,9 @@ GraphicsEngine::GraphicsEngine(std::shared_ptr<const core::Settings> const& sett
     , mShadowMap(std::make_shared<graphics::ShadowMap>()) {
 
   // Tell the user what's going on.
-  logger()->debug("Creating GraphicsEngine.");
-  logger()->info("OpenGL Vendor:  {}", glGetString(GL_VENDOR));
-  logger()->info("OpenGL Version: {}", glGetString(GL_VERSION));
+  logger().debug("Creating GraphicsEngine.");
+  logger().info("OpenGL Vendor:  {}", glGetString(GL_VENDOR));
+  logger().info("OpenGL Version: {}", glGetString(GL_VERSION));
 
   auto* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
 
@@ -131,7 +131,7 @@ GraphicsEngine::GraphicsEngine(std::shared_ptr<const core::Settings> const& sett
 GraphicsEngine::~GraphicsEngine() {
   try {
     // Tell the user what's going on.
-    logger()->debug("Deleting GraphicsEngine.");
+    logger().debug("Deleting GraphicsEngine.");
   } catch (...) {}
 }
 
@@ -205,15 +205,15 @@ void GLAPIENTRY oglMessageCallback(GLenum /*source*/, GLenum type, GLuint /*id*/
 
   if (type == GL_DEBUG_TYPE_ERROR || GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR) {
     if (severity == GL_DEBUG_SEVERITY_HIGH) {
-      logger()->critical(message);
+      logger().critical(message);
     } else {
-      logger()->error(message);
+      logger().error(message);
     }
   } else if (!glDebugOnlyErrors) {
     if (severity == GL_DEBUG_SEVERITY_NOTIFICATION) {
-      logger()->debug(message);
+      logger().debug(message);
     } else {
-      logger()->warn(message);
+      logger().warn(message);
     }
   }
 }

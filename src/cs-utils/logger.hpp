@@ -14,7 +14,7 @@
 #include <spdlog/spdlog.h>
 
 /// CosmoScout VR uses spdlog for logging. You can print messages simply with code like this:
-/// logger()->info("The awnser is {}!", 42);
+/// logger().info("The awnser is {}!", 42);
 /// spdlog uses the fmt library for formatting. You can have a look at their READMEs for examples:
 ///   https://github.com/gabime/spdlog
 ///   https://github.com/fmtlib/fmt
@@ -23,25 +23,25 @@
 /// message.
 
 /// Here are the available log levels of spdlog with some hints on when you should use them.
-/// logger()->critical(...)
+/// logger().critical(...)
 ///   Use this for errors which certainly lead to a crash and which also may have corrupted
 ///   something for the user.
 ///
-/// logger()->error(...)
+/// logger().error(...)
 ///   Use this for errors which cannot be recovered at runtime and which likely lead to a crash of
 ///   the application.
 ///
-/// logger()->warn(...)
+/// logger().warn(...)
 ///   Use this for issues which will not lead to a crash but which may limit functionality in some
 ///   way.
 ///
-/// logger()->info(...)
+/// logger().info(...)
 ///   Use this to inform the user on progress of operations or other events.
 ///
-/// logger()->debug(...)
+/// logger().debug(...)
 ///   Use this for information which is meant for the application developer and not for the user.
 ///
-/// logger()->trace(...)
+/// logger().trace(...)
 ///   You may use this for temporay debugging of code flow. These should not stay in the code.
 
 /// Here are some guidelines for well-formatted log messages.
@@ -62,7 +62,7 @@ namespace cs::utils {
 
 /// This creates the default singleton logger for "cs-utils" when called for the first time and
 /// returns it.
-CS_UTILS_EXPORT std::shared_ptr<spdlog::logger> logger();
+CS_UTILS_EXPORT spdlog::logger& logger();
 
 /// This creates the default logger for vista and is called at startup by the main() method.
 CS_UTILS_EXPORT void initVistaLogger();
@@ -75,7 +75,7 @@ CS_UTILS_EXPORT Signal<std::string, spdlog::level::level_enum, std::string> cons
 /// be shown together with the log level in each message. The logger will print to the console and
 /// store it's messages in a file called cosmoscout.log. If you want to, you could store the
 /// returned logger in function static variable in order to create a singleton.
-CS_UTILS_EXPORT std::shared_ptr<spdlog::logger> createLogger(std::string const& name);
+CS_UTILS_EXPORT std::unique_ptr<spdlog::logger> createLogger(std::string const& name);
 
 /// Adjust the log level for each sink seperately.
 CS_UTILS_EXPORT spdlog::sink_ptr getLoggerSignalSink();

@@ -64,16 +64,16 @@ class SignalSink : public spdlog::sinks::base_sink<std::mutex> {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::shared_ptr<spdlog::logger> logger() {
+spdlog::logger& logger() {
   static auto logger = createLogger("cs-utils");
-  return logger;
+  return *logger.get();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void initVistaLogger() {
   // This logger will be used by vista.
-  static auto vistaLogger = createLogger("vista");
+  static std::shared_ptr<spdlog::logger> vistaLogger = createLogger("vista");
 
   // Assign a custom log stream for vista's debug messages.
   static SpdlogBuffer<spdlog::level::debug> debugBuffer(vistaLogger);
@@ -104,7 +104,7 @@ Signal<std::string, spdlog::level::level_enum, std::string> const& onLogMessage(
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::shared_ptr<spdlog::logger> createLogger(std::string const& name) {
+std::unique_ptr<spdlog::logger> createLogger(std::string const& name) {
   size_t const prefixLength = 20;
 
   // Append some ... to the name of the logger to make the output more readable.
@@ -116,7 +116,7 @@ std::shared_ptr<spdlog::logger> createLogger(std::string const& name) {
 
   std::vector<spdlog::sink_ptr> sinks = {
       getLoggerSignalSink(), getLoggerCoutSink(), getLoggerFileSink()};
-  auto logger = std::make_shared<spdlog::logger>(paddedName, sinks.begin(), sinks.end());
+  auto logger = std::make_unique<spdlog::logger>(paddedName, sinks.begin(), sinks.end());
 
   // See https://github.com/gabime/spdlog/wiki/3.-Custom-formatting for formatting options.
   logger->set_pattern("%^[%L] %n%$%v"); // NOLINT(clang-analyzer-cplusplus.Move)

@@ -29,7 +29,7 @@ CefRefPtr<CefResourceHandler> ResourceRequestHandler::GetResourceHandler(
     std::ifstream input(path, std::ios::binary);
 
     if (!input) {
-      logger()->error("Failed to open gui resource: Cannot open file '{}'!", path);
+      logger().error("Failed to open gui resource: Cannot open file '{}'!", path);
       return nullptr;
     }
 
@@ -53,7 +53,7 @@ CefRefPtr<CefResourceHandler> ResourceRequestHandler::GetResourceHandler(
     } else if (ext == ".woff" || ext == ".woff2") {
       mime = "application/x-font-woff";
     } else if (ext != ".html") {
-      logger()->warn("Opening file with unknown extension '{}'!", ext);
+      logger().warn("Opening file with unknown extension '{}'!", ext);
     }
 
     return new CefStreamResourceHandler(mime, stream);

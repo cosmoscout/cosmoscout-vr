@@ -18,11 +18,11 @@ namespace cs::gui::detail {
 WebViewClient::~WebViewClient() {
   try {
     if (!mJSCallbacks.empty()) {
-      logger()->warn(
+      logger().warn(
           "While destructing a WebViewClient there were still JavaScript callbacks registered:");
 
       for (auto&& i : mJSCallbacks) {
-        logger()->warn(" - {}", i.first);
+        logger().warn(" - {}", i.first);
         i.second = [](auto /*unused*/) {};
       }
     }
@@ -41,7 +41,7 @@ bool WebViewClient::OnProcessMessageReceived(CefRefPtr<CefBrowser> /*browser*/,
     auto        callback(mJSCallbacks.find(name));
 
     if (callback == mJSCallbacks.end()) {
-      logger()->warn(
+      logger().warn(
           "Cannot call function '{}': No callback is registered for this function name!", name);
       return true;
     }
@@ -65,7 +65,7 @@ bool WebViewClient::OnProcessMessageReceived(CefRefPtr<CefBrowser> /*browser*/,
         args.emplace_back(std::nullopt);
         break;
       default:
-        logger()->warn("Failed to parse argument {} of callback '{}': Unsupported type!", i, name);
+        logger().warn("Failed to parse argument {} of callback '{}': Unsupported type!", i, name);
         break;
       }
     }
@@ -76,7 +76,7 @@ bool WebViewClient::OnProcessMessageReceived(CefRefPtr<CefBrowser> /*browser*/,
   }
 
   if (message->GetName() == "error") {
-    logger()->error(message->GetArgumentList()->GetString(0).ToString());
+    logger().error(message->GetArgumentList()->GetString(0).ToString());
   }
 
   return false;
