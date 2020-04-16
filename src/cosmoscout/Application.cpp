@@ -702,8 +702,8 @@ void Application::initPlugin(std::string const& name) {
           GetVistaSystem()->GetGraphicsManager()->GetSceneGraph(), mGraphicsEngine, mFrameTimings,
           mTimeControl);
 
-      // Then do the actual initialization. This may actually take a while and the application
-      // will become unresponsive in the meantime.
+      // Then do the actual initialization. This may actually take a while and the application will
+      // become unresponsive in the meantime.
       try {
         plugin->second.mPlugin->init();
         plugin->second.mIsInitialized = true;
@@ -922,8 +922,7 @@ void Application::registerGuiCallbacks() {
 
   // Freezes the shadow frustum.
   mGuiManager->getGui()->registerCallback("graphics.setEnableShadowFreeze",
-      "If enabled, the camera frustum used for the calculation of the shadow map cascades is "
-      "not "
+      "If enabled, the camera frustum used for the calculation of the shadow map cascades is not "
       "updated anymore.",
       std::function([this](bool enable) { mSettings->mGraphics.pEnableShadowsFreeze = enable; }));
 
@@ -935,8 +934,7 @@ void Application::registerGuiCallbacks() {
 
   // Adjusts the resolution of the shadowmap.
   mGuiManager->getGui()->registerCallback("graphics.setShadowmapResolution",
-      "Sets the resolution of the shadow maps. This should be a power of two, e.g. 256, 512, "
-      "1024, "
+      "Sets the resolution of the shadow maps. This should be a power of two, e.g. 256, 512, 1024, "
       "etc.",
       std::function([this](double val) {
         mSettings->mGraphics.pShadowMapResolution = static_cast<int>(val);
@@ -968,8 +966,7 @@ void Application::registerGuiCallbacks() {
   // Adjusts the additional frustum length for shadowmap rendering in sun space.
   mGuiManager->getGui()->registerCallback("graphics.setShadowmapExtension",
       "Sets one end of the shadow frustum range in sun direction. The first parameter is the "
-      "actual value in sunspace, the second specifies which end to set: Zero for the closer "
-      "end; "
+      "actual value in sunspace, the second specifies which end to set: Zero for the closer end; "
       "One for the farther end.",
       std::function([this](double val, double handle) {
         glm::vec2 extension = mSettings->mGraphics.pShadowMapExtension.get();
@@ -1135,8 +1132,7 @@ void Application::registerGuiCallbacks() {
   // Sets the current simulation time. The argument must be a string accepted by
   // TimeControl::setTime.
   mGuiManager->getGui()->registerCallback("time.setDate",
-      "Sets the current simulation time. Format must be in the format '2002-01-20 "
-      "23:59:59.000'.",
+      "Sets the current simulation time. Format must be in the format '2002-01-20 23:59:59.000'.",
       std::function([this](std::string&& sDate) {
         double time = cs::utils::convert::toSpiceTime(boost::posix_time::time_from_string(sDate));
         mTimeControl->setTime(time);
@@ -1145,11 +1141,9 @@ void Application::registerGuiCallbacks() {
   // Sets the current simulation time. The argument must be a double representing Barycentric
   // Dynamical Time.
   mGuiManager->getGui()->registerCallback("time.set",
-      "Sets the current simulation time. The value must be in barycentric dynamical time. If "
-      "the "
+      "Sets the current simulation time. The value must be in barycentric dynamical time. If the "
       "absolute difference to the current simulation time is lower than the given threshold "
-      "(optionalDouble2, default is 172800s which is 48h), there will be a transition of the "
-      "given "
+      "(optionalDouble2, default is 172800s which is 48h), there will be a transition of the given "
       "duration (optionalDouble, default is 0s).",
       std::function(
           [this](double tTime, std::optional<double> duration, std::optional<double> threshold) {
@@ -1159,11 +1153,9 @@ void Application::registerGuiCallbacks() {
 
   // Resets the time to the configured start time.
   mGuiManager->getGui()->registerCallback("time.reset",
-      "Resets the simulation time to the default value. If the absolute difference to the "
-      "current "
+      "Resets the simulation time to the default value. If the absolute difference to the current "
       "simulation time is lower than the given threshold (optionalDouble2, default is 172800s "
-      "which is 48h), there will be a transition of the given duration (optionalDouble, "
-      "default is "
+      "which is 48h), there will be a transition of the given duration (optionalDouble, default is "
       "0s).",
       std::function([this](std::optional<double> duration, std::optional<double> threshold) {
         double const twoDays = 48 * 60 * 60;
@@ -1172,8 +1164,7 @@ void Application::registerGuiCallbacks() {
 
   // Modifies the current simulation time by adding some (fractional) hours.
   mGuiManager->getGui()->registerCallback("time.addHours",
-      "Adds the given amount of hours to the current simulation time. If the amount is lower "
-      "than "
+      "Adds the given amount of hours to the current simulation time. If the amount is lower than "
       "the given threshold (optionalDouble2, default is 172800s which is 48h), there will be a "
       "transition of the given duration (optionalDouble, default is 0s).",
       std::function(
@@ -1195,8 +1186,7 @@ void Application::registerGuiCallbacks() {
 
   // Sets the observer position to the given cartesian coordinates.
   mGuiManager->getGui()->registerCallback("navigation.setPosition",
-      "Sets the observer position to the given cartesian coordinates. The optional double "
-      "argument "
+      "Sets the observer position to the given cartesian coordinates. The optional double argument "
       "specifies the transition time in seconds (default is 5s).",
       std::function([this](double x, double y, double z, std::optional<double> duration) {
         double const animationTimeSeconds = 5.0;
@@ -1208,8 +1198,7 @@ void Application::registerGuiCallbacks() {
 
   // Sets the observer rotation to the given quaternion coordinates.
   mGuiManager->getGui()->registerCallback("navigation.setRotation",
-      "Sets the observer rotation to the given quaternion. The optional double argument "
-      "specifies "
+      "Sets the observer rotation to the given quaternion. The optional double argument specifies "
       "the transition time in seconds (default is 2s).",
       std::function([this](double w, double x, double y, double z, std::optional<double> duration) {
         mSolarSystem->flyObserverTo(mSolarSystem->getObserver().getCenterName(),
@@ -1235,8 +1224,7 @@ void Application::registerGuiCallbacks() {
 
   // Flies the celestial observer to the given location in space.
   mGuiManager->getGui()->registerCallback("navigation.setBodyLongLatHeightDuration",
-      "Makes the observer fly to a given postion in space. First parameter is the target "
-      "bodies "
+      "Makes the observer fly to a given postion in space. First parameter is the target bodies "
       "name, then latitude, longitude and elevation are required. The optional double argument "
       "specifies the transition time in seconds (default is 10s).",
       std::function([this](std::string&& name, double longitude, double latitude, double height,
@@ -1277,8 +1265,7 @@ void Application::registerGuiCallbacks() {
 
   // Rotates the scene in such a way, that the currently visible horizon is levelled.
   mGuiManager->getGui()->registerCallback("navigation.fixHorizon",
-      "Turns the observer so that the horizon is horizontal. The optional argument specifies "
-      "the "
+      "Turns the observer so that the horizon is horizontal. The optional argument specifies the "
       "animation time in seconds (default is 1s).",
       std::function([this](std::optional<double> duration) {
         auto radii = cs::core::SolarSystem::getRadii(mSolarSystem->getObserver().getCenterName());
@@ -1361,8 +1348,7 @@ void Application::registerGuiCallbacks() {
   // Flies the celestial observer to an orbit at three times the radius of the currently active
   // celestial body.
   mGuiManager->getGui()->registerCallback("navigation.toOrbit",
-      "Increases the altitude of the observer significantly. The optional argument specifies "
-      "the "
+      "Increases the altitude of the observer significantly. The optional argument specifies the "
       "animation time in seconds (default is 3s).",
       std::function([this](std::optional<double> duration) {
         auto observerRot = mSolarSystem->getObserver().getAnchorRotation();
