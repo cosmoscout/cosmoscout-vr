@@ -12,6 +12,7 @@
 #include "../cs-utils/utils.hpp"
 #include "InputManager.hpp"
 #include "cs-version.hpp"
+#include "logger.hpp"
 #include "tools/Tool.hpp"
 
 #include <VistaKernel/DisplayManager/GlutWindowImp/VistaGlutWindowingToolkit.h>
@@ -27,7 +28,6 @@
 #include <VistaKernel/VistaSystem.h>
 #include <VistaKernelOpenSGExt/VistaOpenSGMaterialTools.h>
 #include <fstream>
-#include <spdlog/spdlog.h>
 #include <utility>
 
 namespace cs::core {
@@ -40,7 +40,7 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
     , mFrameTimings(std::move(pFrameTimings)) {
 
   // Tell the user what's going on.
-  spdlog::debug("Creating GuiManager.");
+  logger()->debug("Creating GuiManager.");
 
   // Initialize the Chromium Embedded Framework.
   gui::init();
@@ -180,7 +180,7 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
 GuiManager::~GuiManager() {
   try {
     // Tell the user what's going on.
-    spdlog::debug("Deleting GuiManager.");
+    logger()->debug("Deleting GuiManager.");
   } catch (...) {}
 
   mInputManager->unregisterSelectable(mLocalGuiOpenGLnode);

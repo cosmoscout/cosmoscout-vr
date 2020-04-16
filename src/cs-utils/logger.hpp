@@ -62,7 +62,7 @@ namespace cs::utils {
 
 /// This creates the default singleton logger for "cs-utils" when called for the first time and
 /// returns it.
-CS_UTILS_NO_EXPORT std::shared_ptr<spdlog::logger> logger();
+CS_UTILS_EXPORT std::shared_ptr<spdlog::logger> logger();
 
 /// This creates the default logger for vista and is called at startup by the main() method.
 CS_UTILS_EXPORT void initVistaLogger();

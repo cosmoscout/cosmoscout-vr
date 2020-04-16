@@ -49,7 +49,7 @@ class SignalSink : public spdlog::sinks::base_sink<std::mutex> {
   Signal<std::string, spdlog::level::level_enum, std::string> onLogMessage;
 
  protected:
-  void sink_it_(const spdlog::details::log_msg& msg) override {
+  void sink_it_(spdlog::details::log_msg const& msg) override {
     onLogMessage.emit(std::string(msg.logger_name.begin(), msg.logger_name.end()), msg.level,
         std::string(msg.payload.begin(), msg.payload.end()));
   }
@@ -61,6 +61,13 @@ class SignalSink : public spdlog::sinks::base_sink<std::mutex> {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 } // namespace
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::shared_ptr<spdlog::logger> logger() {
+    static auto logger = createLogger("cs-utils");
+  return logger;
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 

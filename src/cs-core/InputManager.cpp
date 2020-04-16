@@ -10,6 +10,7 @@
 #include "../cs-gui/ScreenSpaceGuiArea.hpp"
 #include "../cs-gui/WorldSpaceGuiArea.hpp"
 #include "../cs-utils/utils.hpp"
+#include "logger.hpp"
 
 #include <VistaDataFlowNet/VdfnNode.h>
 #include <VistaDataFlowNet/VdfnObjectRegistry.h>
@@ -31,7 +32,6 @@
 #include <VistaKernel/InteractionManager/VistaInteractionManager.h>
 #include <VistaKernel/VistaSystem.h>
 #include <VistaKernelOpenSGExt/VistaOpenSGMaterialTools.h>
-#include <spdlog/spdlog.h>
 
 namespace cs::core {
 
@@ -47,7 +47,7 @@ constexpr int vistaKeyCode(char c) {
 InputManager::InputManager() {
 
   // Tell the user what's going on.
-  spdlog::debug("Creating InputManager.");
+  logger()->debug("Creating InputManager.");
 
   mClickTime = boost::posix_time::microsec_clock::universal_time();
 
@@ -115,7 +115,7 @@ InputManager::InputManager() {
 InputManager::~InputManager() {
   try {
     // Tell the user what's going on.
-    spdlog::debug("Deleting InputManager.");
+    logger()->debug("Deleting InputManager.");
   } catch (...) {}
 
   for (auto* adapter : mAdapters) {

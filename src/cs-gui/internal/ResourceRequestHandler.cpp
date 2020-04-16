@@ -6,9 +6,10 @@
 
 #include "ResourceRequestHandler.hpp"
 
+#include "../logger.hpp"
+
 #include <fstream>
 #include <include/wrapper/cef_stream_resource_handler.h>
-#include <spdlog/spdlog.h>
 
 namespace cs::gui::detail {
 
@@ -28,7 +29,7 @@ CefRefPtr<CefResourceHandler> ResourceRequestHandler::GetResourceHandler(
     std::ifstream input(path, std::ios::binary);
 
     if (!input) {
-      spdlog::error("Failed to open gui resource: Cannot open file '{}'!", path);
+      logger()->error("Failed to open gui resource: Cannot open file '{}'!", path);
       return nullptr;
     }
 
@@ -52,7 +53,7 @@ CefRefPtr<CefResourceHandler> ResourceRequestHandler::GetResourceHandler(
     } else if (ext == ".woff" || ext == ".woff2") {
       mime = "application/x-font-woff";
     } else if (ext != ".html") {
-      spdlog::warn("Opening file with unknown extension '{}'!", ext);
+      logger()->warn("Opening file with unknown extension '{}'!", ext);
     }
 
     return new CefStreamResourceHandler(mime, stream);

@@ -10,12 +10,12 @@
 #include "../cs-utils/utils.hpp"
 #include "KeyEvent.hpp"
 #include "MouseEvent.hpp"
+#include "logger.hpp"
 
 #include <chrono>
 #include <include/cef_client.h>
 #include <iostream>
 #include <optional>
-#include <spdlog/spdlog.h>
 #include <typeindex>
 
 namespace cs::gui {
@@ -228,8 +228,8 @@ class CS_GUI_EXPORT WebView {
             // value in the std::optional<JSType>. See its implementation above.
             callback(UnderlyingValue<Args>::get(std::move(args[Is]))...);
           } catch (std::exception const&) {
-            spdlog::error("Cannot execute javascript call '{}': Parameters do not match to the "
-                          "registered callback!",
+            logger()->error("Cannot execute javascript call '{}': Parameters do not match to the "
+                            "registered callback!",
                 name);
           }
         });

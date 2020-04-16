@@ -6,8 +6,9 @@
 
 #include "ScopedTimer.hpp"
 
+#include "../logger.hpp"
+
 #include <chrono>
-#include <spdlog/spdlog.h>
 #include <utility>
 
 namespace cs::gui::detail {
@@ -23,7 +24,7 @@ ScopedTimer::ScopedTimer(std::string name)
 
 ScopedTimer::~ScopedTimer() {
   double now = GetNow();
-  spdlog::info("{}: {} ms", mName, now - mStartTime);
+  logger()->info("{}: {} ms", mName, now - mStartTime);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

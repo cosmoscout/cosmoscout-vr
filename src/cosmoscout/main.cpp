@@ -41,7 +41,6 @@ int main(int argc, char** argv) {
   // setup loggers ---------------------------------------------------------------------------------
 
   // Create the loggers for vista. The log level will be set once the settings are read.
-  // spdlog::set_default_logger(cs::utils::logger::createLogger("cosmoscout-vr"));
   cs::utils::initVistaLogger();
 
   // parse program options -------------------------------------------------------------------------
@@ -69,7 +68,7 @@ int main(int argc, char** argv) {
     std::vector<std::string> arguments(argv + 1, argv + argc);
     args.parse(arguments);
   } catch (std::runtime_error const& e) {
-    spdlog::error("Failed to parse command line arguments: {}", e.what());
+    logger()->error("Failed to parse command line arguments: {}", e.what());
     return 1;
   }
 
@@ -99,7 +98,7 @@ int main(int argc, char** argv) {
   try {
     settings = cs::core::Settings::read(settingsFile);
   } catch (std::exception& e) {
-    spdlog::error("Failed to read settings: {}", e.what());
+    logger()->error("Failed to read settings: {}", e.what());
     return 1;
   }
 
@@ -111,7 +110,7 @@ int main(int argc, char** argv) {
   cs::utils::getLoggerSignalSink()->set_level(settings.mScreenLogLevel);
 
   // Print a nifty welcome message!
-  spdlog::info("Welcome to CosmoScout VR v" + CS_PROJECT_VERSION + "!");
+  logger()->info("Welcome to CosmoScout VR v" + CS_PROJECT_VERSION + "!");
 
   // start application -----------------------------------------------------------------------------
 
@@ -137,14 +136,14 @@ int main(int argc, char** argv) {
     pVistaSystem->SetFrameLoop(nullptr, false);
 
   } catch (VistaExceptionBase& e) {
-    spdlog::error("Caught unexpected VistaException: {}", e.what());
+    logger()->error("Caught unexpected VistaException: {}", e.what());
     return 1;
   } catch (std::exception& e) {
-    spdlog::error("Caught unexpected std::exception: {}", e.what());
+    logger()->error("Caught unexpected std::exception: {}", e.what());
     return 1;
   }
 
-  spdlog::info("Shutdown complete. Fare well!");
+  logger()->info("Shutdown complete. Fare well!");
 
   return 0;
 }

@@ -15,7 +15,7 @@ namespace cs::core {
 
 /// This creates the default singleton logger for "cs-core" when called for the first time and
 /// returns it. See cs-utils/logger.hpp for more logging details.
-CS_CORE_NO_EXPORT std::shared_ptr<spdlog::logger> logger();
+CS_CORE_EXPORT std::shared_ptr<spdlog::logger> logger();
 
 } // namespace cs::core
 
