@@ -256,7 +256,7 @@
       }
     },
     "csp-anchor-labels": {
-      "defaultEnabled": true,
+      "enabled": true,
       "enableDepthOverlap": true,
       "ignoreOverlapThreshold": 0.1,
       "labelScale": 1.2,
