@@ -9,11 +9,11 @@
 
 #include <GL/glew.h>
 
+#include "../logger.hpp"
 #include "pbr_fragment_shader.hpp"
 #include "pbr_vertex_shader.hpp"
 #include "stb_image_helper.hpp"
 #include "tiny_gltf_helper.hpp"
-#include "../logger.hpp"
 
 #include <VistaKernel/DisplayManager/VistaDisplayManager.h>
 #include <VistaKernel/DisplayManager/VistaProjection.h>

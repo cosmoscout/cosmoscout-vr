@@ -22,6 +22,7 @@
 #include "../cs-utils/utils.hpp"
 #include "GetSelectionStateNode.hpp"
 #include "ObserverNavigationNode.hpp"
+#include "logger.hpp"
 
 #include <VistaBase/VistaTimeUtils.h>
 #include <VistaInterProcComm/Cluster/VistaClusterDataSync.h>
@@ -38,7 +39,6 @@
 #include <VistaOGLExt/VistaShaderRegistry.h>
 #include <curlpp/cURLpp.hpp>
 #include <memory>
-#include "logger.hpp"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 

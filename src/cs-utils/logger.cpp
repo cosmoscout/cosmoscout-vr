@@ -65,7 +65,7 @@ class SignalSink : public spdlog::sinks::base_sink<std::mutex> {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::shared_ptr<spdlog::logger> logger() {
-    static auto logger = createLogger("cs-utils");
+  static auto logger = createLogger("cs-utils");
   return logger;
 }
 
