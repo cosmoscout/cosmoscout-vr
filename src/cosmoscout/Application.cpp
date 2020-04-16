@@ -22,6 +22,7 @@
 #include "../cs-utils/utils.hpp"
 #include "GetSelectionStateNode.hpp"
 #include "ObserverNavigationNode.hpp"
+#include "logger.hpp"
 
 #include <VistaBase/VistaTimeUtils.h>
 #include <VistaInterProcComm/Cluster/VistaClusterDataSync.h>
@@ -36,7 +37,6 @@
 #include <VistaOGLExt/VistaShaderRegistry.h>
 #include <curlpp/cURLpp.hpp>
 #include <memory>
-#include <spdlog/spdlog.h>
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -163,7 +163,7 @@ bool Application::Init(VistaSystem* pVistaSystem) {
 void Application::Quit() {
 
   // Do not attempt to print anything to the on-screen console.
-  cs::utils::logger::onMessage().disconnect(mOnMessageConnection);
+  cs::utils::onLogMessage().disconnect(mOnMessageConnection);
 
   // De-init all plugins first.
   for (auto const& plugin : mPlugins) {
@@ -186,7 +186,7 @@ void Application::Quit() {
 
   auto assertCleanUp = [](std::string const& name, size_t count) {
     if (count > 1) {
-      spdlog::warn(
+      logger().warn(
           "Failed to properly cleanup the Application: Use count of '{}' is {} but should be 0.",
           name, count - 1);
     }
@@ -339,7 +339,7 @@ void Application::FrameUpdate() {
     try {
       mSolarSystem->init(mSettings->pSpiceKernel.get());
     } catch (std::runtime_error const& e) {
-      spdlog::error("Failed to initialize the SolarSystem: {}", e.what());
+      logger().error("Failed to initialize the SolarSystem: {}", e.what());
       Quit();
     }
 
@@ -378,7 +378,7 @@ void Application::FrameUpdate() {
 
       } else if (pluginToLoad == static_cast<int32_t>(mPlugins.size())) {
 
-        spdlog::info("Ready for Takeoff!");
+        logger().info("Ready for Takeoff!");
 
         // Once all plugins have been loaded, we set a boolean indicating this state.
         mLoadedAllPlugins = true;
@@ -449,7 +449,7 @@ void Application::FrameUpdate() {
       try {
         plugin.second.mPlugin->update();
       } catch (std::runtime_error const& e) {
-        spdlog::error("Error updating plugin '{}': {}", plugin.first, e.what());
+        logger().error("Error updating plugin '{}': {}", plugin.first, e.what());
       }
     }
 
@@ -598,13 +598,13 @@ void Application::testLoadAllPlugins() {
             reinterpret_cast<cs::core::PluginBase* (*)()>(LIBFUNC(pluginHandle, "create"));
 
         if (pluginConstructor) {
-          spdlog::info("Plugin '{}' found.", plugin);
+          logger().info("Plugin '{}' found.", plugin);
         } else {
-          spdlog::error("Failed to load plugin '{}': Plugin has no 'create' method.", plugin);
+          logger().error("Failed to load plugin '{}': Plugin has no 'create' method.", plugin);
         }
 
       } else {
-        spdlog::error("Failed to load plugin '{}': {}", plugin, LIBERROR());
+        logger().error("Failed to load plugin '{}': {}", plugin, LIBERROR());
       }
     }
   }
@@ -659,18 +659,18 @@ void Application::openPlugin(std::string const& name) {
         pluginConstructor = // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
             reinterpret_cast<cs::core::PluginBase* (*)()>(LIBFUNC(pluginHandle, "create"));
 
-        spdlog::info("Opening plugin '{}'.", name);
+        logger().info("Opening plugin '{}'.", name);
 
         // Actually call the plugin's constructor and add the returned pointer to out list.
         mPlugins.insert(std::pair<std::string, Plugin>(name, {pluginHandle, pluginConstructor()}));
       } else {
-        spdlog::error("Failed to load plugin '{}': {}", name, LIBERROR());
+        logger().error("Failed to load plugin '{}': {}", name, LIBERROR());
       }
     } catch (std::exception const& e) {
-      spdlog::error("Failed to load plugin '{}': {}", name, e.what());
+      logger().error("Failed to load plugin '{}': {}", name, e.what());
     }
   } else {
-    spdlog::warn("Cannot open plugin '{}': Plugin is already opened!", name);
+    logger().warn("Cannot open plugin '{}': Plugin is already opened!", name);
   }
 }
 
@@ -696,10 +696,10 @@ void Application::initPlugin(std::string const& name) {
         // Plugin finished loading -> init its custom components.
         mGuiManager->getGui()->callJavascript("CosmoScout.gui.initInputs");
       } catch (std::exception const& e) {
-        spdlog::error("Failed to initialize plugin '{}': {}", plugin->first, e.what());
+        logger().error("Failed to initialize plugin '{}': {}", plugin->first, e.what());
       }
     } else {
-      spdlog::warn("Cannot initialize plugin '{}': Plugin is already initialized!", name);
+      logger().warn("Cannot initialize plugin '{}': Plugin is already initialized!", name);
     }
   }
 }
@@ -714,10 +714,10 @@ void Application::deinitPlugin(std::string const& name) {
       plugin->second.mPlugin->deInit();
       plugin->second.mIsInitialized = false;
     } else {
-      spdlog::warn("Cannot deinitialize plugin '{}': Plugin is not initialized!", name);
+      logger().warn("Cannot deinitialize plugin '{}': Plugin is not initialized!", name);
     }
   } else {
-    spdlog::warn("Cannot unload plugin '{}': No plugin loaded with this name!", name);
+    logger().warn("Cannot unload plugin '{}': No plugin loaded with this name!", name);
   }
 }
 
@@ -727,7 +727,7 @@ void Application::closePlugin(std::string const& name) {
   auto plugin = mPlugins.find(name);
 
   if (plugin != mPlugins.end()) {
-    spdlog::info("Closing plugin '{}'.", plugin->first);
+    logger().info("Closing plugin '{}'.", plugin->first);
 
     auto* handle           = plugin->second.mHandle;
     auto  pluginDestructor = // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
@@ -739,7 +739,7 @@ void Application::closePlugin(std::string const& name) {
     mPlugins.erase(plugin);
 
   } else {
-    spdlog::warn("Failed to close plugin '{}': No plugin loaded with this name!", name);
+    logger().warn("Failed to close plugin '{}': No plugin loaded with this name!", name);
   }
 }
 
@@ -825,7 +825,7 @@ void Application::connectSlots() {
   mFrameTimings->pEnableMeasurements.connect(
       [this](bool enable) { mGuiManager->getStatistics()->setIsEnabled(enable); });
 
-  mOnMessageConnection = cs::utils::logger::onMessage().connect(
+  mOnMessageConnection = cs::utils::onLogMessage().connect(
       [this](
           std::string const& logger, spdlog::level::level_enum level, std::string const& message) {
         const std::unordered_map<spdlog::level::level_enum, std::string> mapping = {
@@ -881,7 +881,7 @@ void Application::registerGuiCallbacks() {
   mGuiManager->getGui()->registerCallback(
       "core.listPlugins", "Lists all loaded plugins.", std::function([this]() {
         for (auto const& plugin : mPlugins) {
-          spdlog::info(plugin.first);
+          logger().info(plugin.first);
         }
       }));
 

@@ -9,6 +9,7 @@
 #include "../cs-graphics/ClearHDRBufferNode.hpp"
 #include "../cs-graphics/ToneMappingNode.hpp"
 #include "../cs-utils/utils.hpp"
+#include "logger.hpp"
 
 #include <GL/glew.h>
 #include <VistaKernel/DisplayManager/VistaDisplayManager.h>
@@ -18,7 +19,6 @@
 #include <VistaKernel/GraphicsManager/VistaSceneGraph.h>
 #include <VistaKernel/VistaSystem.h>
 #include <VistaKernelOpenSGExt/VistaOpenSGMaterialTools.h>
-#include <spdlog/spdlog.h>
 
 namespace cs::core {
 
@@ -29,9 +29,9 @@ GraphicsEngine::GraphicsEngine(std::shared_ptr<core::Settings> settings)
     , mShadowMap(std::make_shared<graphics::ShadowMap>()) {
 
   // Tell the user what's going on.
-  spdlog::debug("Creating GraphicsEngine.");
-  spdlog::info("OpenGL Vendor:  {}", glGetString(GL_VENDOR));
-  spdlog::info("OpenGL Version: {}", glGetString(GL_VERSION));
+  logger().debug("Creating GraphicsEngine.");
+  logger().info("OpenGL Vendor:  {}", glGetString(GL_VENDOR));
+  logger().info("OpenGL Version: {}", glGetString(GL_VERSION));
 
   auto* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
 
@@ -128,7 +128,7 @@ GraphicsEngine::GraphicsEngine(std::shared_ptr<core::Settings> settings)
 GraphicsEngine::~GraphicsEngine() {
   try {
     // Tell the user what's going on.
-    spdlog::debug("Deleting GraphicsEngine.");
+    logger().debug("Deleting GraphicsEngine.");
   } catch (...) {}
 }
 
@@ -203,15 +203,15 @@ void GLAPIENTRY oglMessageCallback(GLenum /*source*/, GLenum type, GLuint /*id*/
 
   if (type == GL_DEBUG_TYPE_ERROR || GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR) {
     if (severity == GL_DEBUG_SEVERITY_HIGH) {
-      spdlog::critical(message);
+      logger().critical(message);
     } else {
-      spdlog::error(message);
+      logger().error(message);
     }
   } else if (!glDebugOnlyErrors) {
     if (severity == GL_DEBUG_SEVERITY_NOTIFICATION) {
-      spdlog::debug(message);
+      logger().debug(message);
     } else {
-      spdlog::warn(message);
+      logger().warn(message);
     }
   }
 }

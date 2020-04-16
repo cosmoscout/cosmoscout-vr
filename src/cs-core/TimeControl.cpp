@@ -8,10 +8,9 @@
 
 #include "../cs-utils/convert.hpp"
 #include "Settings.hpp"
+#include "logger.hpp"
 
 #include <VistaKernel/VistaSystem.h>
-#include <spdlog/spdlog.h>
-
 #include <utility>
 
 namespace cs::core {
@@ -50,14 +49,14 @@ TimeControl::TimeControl(std::shared_ptr<core::Settings> settings)
   });
 
   // Tell the user what's going on.
-  spdlog::debug("Creating TimeControl.");
+  logger().debug("Creating TimeControl.");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 TimeControl::~TimeControl() {
   // Tell the user what's going on.
-  spdlog::debug("Deleting TimeControl.");
+  logger().debug("Deleting TimeControl.");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

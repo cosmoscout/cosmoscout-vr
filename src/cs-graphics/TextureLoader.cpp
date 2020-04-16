@@ -6,15 +6,15 @@
 
 #include "TextureLoader.hpp"
 
-#include <VistaOGLExt/VistaOGLUtils.h>
+#include "logger.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb_image.h>
 #include <stb_image_write.h>
 
+#include <VistaOGLExt/VistaOGLUtils.h>
 #include <iostream>
-#include <spdlog/spdlog.h>
 #include <tiffio.h>
 #include <vector>
 
@@ -28,7 +28,7 @@ std::unique_ptr<VistaTexture> TextureLoader::loadFromFile(std::string const& sFi
 
   if (suffix == ".tga") {
     // load with vista
-    spdlog::debug("Loading Texture '{}' with Vista.", sFileName);
+    logger().debug("Loading Texture '{}' with Vista.", sFileName);
     return std::unique_ptr<VistaTexture>(VistaOGLUtils::LoadTextureFromTga(sFileName));
   }
 
@@ -36,11 +36,11 @@ std::unique_ptr<VistaTexture> TextureLoader::loadFromFile(std::string const& sFi
 
   if (suffix == ".tiff" || suffix == ".tif") {
     // load with tifflib
-    spdlog::debug("Loading Texture '{}' with libtiff.", sFileName);
+    logger().debug("Loading Texture '{}' with libtiff.", sFileName);
 
     auto* data = TIFFOpen(sFileName.c_str(), "r");
     if (!data) {
-      spdlog::error("Failed to load '{}' with libtiff!", sFileName);
+      logger().error("Failed to load '{}' with libtiff!", sFileName);
       return nullptr;
     }
 
@@ -56,7 +56,7 @@ std::unique_ptr<VistaTexture> TextureLoader::loadFromFile(std::string const& sFi
     TIFFGetField(data, TIFFTAG_SAMPLESPERPIXEL, &channels);
 
     if (bpp != 8) {
-      spdlog::error(
+      logger().error(
           "Failed to load '{}' with libtiff: Only 8 bit per sample are supported right now!",
           sFileName);
       return nullptr;
@@ -83,7 +83,7 @@ std::unique_ptr<VistaTexture> TextureLoader::loadFromFile(std::string const& sFi
     TIFFClose(data);
   } else {
     // load with stb image
-    spdlog::debug("Loading Texture '{}' with stbi.", sFileName);
+    logger().debug("Loading Texture '{}' with stbi.", sFileName);
 
     int width{};
     int height{};
@@ -93,7 +93,7 @@ std::unique_ptr<VistaTexture> TextureLoader::loadFromFile(std::string const& sFi
     unsigned char* pixels = stbi_load(sFileName.c_str(), &width, &height, &bpp, channels);
 
     if (!pixels) {
-      spdlog::error("Failed to load '{}' with stbi!", sFileName);
+      logger().error("Failed to load '{}' with stbi!", sFileName);
       return nullptr;
     }
 
