@@ -10,6 +10,7 @@
 #include "cs_core_export.hpp"
 
 #include "../cs-utils/DefaultProperty.hpp"
+#include "../cs-utils/utils.hpp"
 
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <cstdint>
@@ -376,6 +377,10 @@ class CS_CORE_EXPORT Settings {
 
   // -----------------------------------------------------------------------------------------------
 
+  /// As CosmoScout VR is always built together with its plugins, we can ignore this warning.
+  CS_WARNINGS_PUSH
+  CS_DISABLE_MSVC_WARNING(4275)
+
   /// An exception that is thrown while parsing the config. Prepends thrown exceptions with a
   /// section name to give the user more detailed information about the root of the error.
   /// The exception can and should be nested.
@@ -389,6 +394,8 @@ class CS_CORE_EXPORT Settings {
     const std::string mJSONError;
     const std::string mMessage;
   };
+
+  CS_WARNINGS_POP
 
   /// This template is used to retrieve values from json objects. There are two reasons not to
   /// directly use the interface of nlohmann::json: First we want to show more detailed error
