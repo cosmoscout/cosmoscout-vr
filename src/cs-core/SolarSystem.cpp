@@ -458,7 +458,7 @@ void SolarSystem::printFrames() {
   for (int i = 0; i < card_c(&ids); ++i) {
     int         obj = SPICE_CELL_ELEM_I(&ids, i); // NOLINT
     std::string out(length, ' ');
-    frmnam_c(obj, length, &out[0]);
+    frmnam_c(obj, length, out.data());
 
     logger().info(out);
   }

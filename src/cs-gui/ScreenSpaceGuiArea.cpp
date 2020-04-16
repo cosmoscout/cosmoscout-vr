@@ -167,10 +167,10 @@ bool ScreenSpaceGuiArea::Do() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool ScreenSpaceGuiArea::GetBoundingBox(VistaBoundingBox& oBoundingBox) {
-  float                min(std::numeric_limits<float>::min());
-  float                max(std::numeric_limits<float>::max());
-  std::array<float, 3> fMin = {min, min, min};
-  std::array<float, 3> fMax = {max, max, max};
+  float      min(std::numeric_limits<float>::min());
+  float      max(std::numeric_limits<float>::max());
+  std::array fMin{min, min, min};
+  std::array fMax{max, max, max};
 
   oBoundingBox.SetBounds(fMin.data(), fMax.data());
 

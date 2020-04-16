@@ -19,7 +19,7 @@ namespace cs::utils {
 namespace {
 int                                            s_iCurrentInstance = 0;
 std::array<std::shared_ptr<TimerQueryPool>, 2> s_pTimerQueryPoolInstances{};
-std::string s_sLastRangeKey{}; // NOLINT(fuchsia-statically-constructed-objects)
+std::string                                    s_sLastRangeKey{};
 } // namespace
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

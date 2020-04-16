@@ -127,10 +127,10 @@ GuiManager::GuiManager(std::shared_ptr<Settings> settings,
   mCosmoScoutGui->setCursorChangeCallback([](gui::Cursor c) { setCursor(c); });
 
   // Configure the positioning and attributes of the statistics.
-  mStatistics->setSizeX(600);    // NOLINT
-  mStatistics->setSizeY(320);    // NOLINT
-  mStatistics->setOffsetX(-300); // NOLINT
-  mStatistics->setOffsetY(500);  // NOLINT
+  mStatistics->setSizeX(600);
+  mStatistics->setSizeY(320);
+  mStatistics->setOffsetX(-300);
+  mStatistics->setOffsetY(500);
   mStatistics->setRelPositionY(0.F);
   mStatistics->setRelPositionX(1.F);
   mStatistics->setIsInteractive(false);

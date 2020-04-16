@@ -183,10 +183,10 @@ bool Mark::Do() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool Mark::GetBoundingBox(VistaBoundingBox& bb) {
-  float const extend = 0.01F;
+  float extend = 0.01F;
 
-  std::array<float, 3> const fMin = {-extend, -extend, -extend};
-  std::array<float, 3> const fMax = {extend, extend, extend};
+  std::array fMin{-extend, -extend, -extend};
+  std::array fMax{extend, extend, extend};
 
   bb.SetBounds(fMin.data(), fMax.data());
 

@@ -34,16 +34,6 @@ DeletableMark::DeletableMark(std::shared_ptr<InputManager> const& pInputManager,
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/*
-DeletableMark::DeletableMark(DeletableMark const& other)
-    : Mark(other)
-    , mGuiArea(new cs::gui::WorldSpaceGuiArea(100, 100))
-    , mGuiItem(new cs::gui::GuiItem("file://../share/resources/gui/deletable_mark.html")) {
-
-  initData();
-}
-*/
-////////////////////////////////////////////////////////////////////////////////////////////////////
 
 DeletableMark::~DeletableMark() {
   if (mGuiNode) {
