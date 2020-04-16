@@ -33,8 +33,15 @@ class CS_CORE_EXPORT Tool {
   /// If set to true the tool will be deleted in the next update cycle.
   cs::utils::Property<bool> pShouldDelete = false;
 
-  virtual ~Tool() {
-  }
+  Tool() = default;
+
+  Tool(Tool const& other)     = default;
+  Tool(Tool&& other) noexcept = default;
+
+  Tool& operator=(Tool const& other) = default;
+  Tool& operator=(Tool&& other) noexcept = default;
+
+  virtual ~Tool() = default;
 
   virtual void update() {
   }

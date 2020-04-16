@@ -10,13 +10,14 @@
 
 #include <VistaMath/VistaBoundingBox.h>
 #include <limits>
+#include <utility>
 
 namespace cs::graphics {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-ClearHDRBufferNode::ClearHDRBufferNode(std::shared_ptr<HDRBuffer> const& hdrBuffer)
-    : mHDRBuffer(hdrBuffer) {
+ClearHDRBufferNode::ClearHDRBufferNode(std::shared_ptr<HDRBuffer> hdrBuffer)
+    : mHDRBuffer(std::move(hdrBuffer)) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -32,10 +33,11 @@ bool ClearHDRBufferNode::ClearHDRBufferNode::Do() {
 bool ClearHDRBufferNode::GetBoundingBox(VistaBoundingBox& oBoundingBox) {
   float min(std::numeric_limits<float>::lowest());
   float max(std::numeric_limits<float>::max());
-  float fMin[3] = {min, min, min};
-  float fMax[3] = {max, max, max};
 
-  oBoundingBox.SetBounds(fMin, fMax);
+  std::array<float, 3> fMin = {min, min, min};
+  std::array<float, 3> fMax = {max, max, max};
+
+  oBoundingBox.SetBounds(fMin.data(), fMax.data());
 
   return true;
 }

@@ -10,6 +10,7 @@
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <sstream>
+#include <utility>
 
 namespace cs::utils {
 
@@ -19,8 +20,8 @@ namespace {
 template <spdlog::level::level_enum level>
 class SpdlogBuffer : public std::streambuf {
  public:
-  SpdlogBuffer(std::shared_ptr<spdlog::logger> const& logger)
-      : mLogger(logger) {
+  explicit SpdlogBuffer(std::shared_ptr<spdlog::logger> logger)
+      : mLogger(std::move(logger)) {
   }
 
  private:
@@ -97,10 +98,11 @@ Signal<std::string, spdlog::level::level_enum, std::string> const& onLogMessage(
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::shared_ptr<spdlog::logger> createLogger(std::string const& name) {
+  size_t const prefixLength = 20;
 
   // Append some ... to the name of the logger to make the output more readable.
   std::string paddedName = name + " ";
-  while (paddedName.length() < 20) {
+  while (paddedName.size() < prefixLength) {
     paddedName += ".";
   }
   paddedName.back() = ' ';
@@ -110,7 +112,7 @@ std::shared_ptr<spdlog::logger> createLogger(std::string const& name) {
   auto logger = std::make_shared<spdlog::logger>(paddedName, sinks.begin(), sinks.end());
 
   // See https://github.com/gabime/spdlog/wiki/3.-Custom-formatting for formatting options.
-  logger->set_pattern("%^[%L] %n%$%v");
+  logger->set_pattern("%^[%L] %n%$%v"); // NOLINT(clang-analyzer-cplusplus.Move)
   logger->set_level(spdlog::level::trace);
 
   return logger;

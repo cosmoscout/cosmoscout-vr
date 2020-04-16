@@ -140,7 +140,7 @@ struct Mesh {
 
 /// Represents a GLTF model.
 struct GltfShared {
-  void init(tinygltf::Model const& gltf, const std::string& sEnvmapSpecular);
+  void init(tinygltf::Model const& gltf, const std::string& cubemapFilepath);
 
  private:
   void      buildMeshes(tinygltf::Model const& gltf);
@@ -165,7 +165,7 @@ struct GltfShared {
 /// A Vista wrapper for the GLTF model responsible for rendering.
 class VistaGltfNode : public IVistaOpenGLDraw {
  public:
-  VistaGltfNode(tinygltf::Node const& node, std::shared_ptr<GltfShared> const& shared);
+  VistaGltfNode(tinygltf::Node const& node, std::shared_ptr<GltfShared> shared);
 
   ~VistaGltfNode() override;
 

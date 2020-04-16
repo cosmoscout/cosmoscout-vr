@@ -7,7 +7,6 @@
 #include "GraphicsEngine.hpp"
 
 #include "../cs-graphics/ClearHDRBufferNode.hpp"
-#include "../cs-graphics/HDRBuffer.hpp"
 #include "../cs-graphics/ToneMappingNode.hpp"
 #include "../cs-utils/utils.hpp"
 
@@ -34,7 +33,7 @@ GraphicsEngine::GraphicsEngine(std::shared_ptr<const core::Settings> const& sett
   spdlog::info("OpenGL Vendor:  {}", glGetString(GL_VENDOR));
   spdlog::info("OpenGL Version: {}", glGetString(GL_VERSION));
 
-  auto pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
+  auto* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
 
   pWidgetScale = settings->mWidgetScale;
   pEnableHDR   = settings->mEnableHDR.value_or(false);
@@ -42,8 +41,10 @@ GraphicsEngine::GraphicsEngine(std::shared_ptr<const core::Settings> const& sett
   // setup shadows ---------------------------------------------------------------------------------
 
   mShadowMap->setEnabled(false);
-  mShadowMap->setResolution((uint32_t)pShadowMapResolution.get());
-  mShadowMap->setBias(pShadowMapBias.get() * 0.0001f);
+  mShadowMap->setResolution(static_cast<uint32_t>(pShadowMapResolution.get()));
+
+  float const eps = 0.0001F;
+  mShadowMap->setBias(pShadowMapBias.get() * eps);
   pSG->NewOpenGLNode(pSG->GetRoot(), mShadowMap.get());
 
   calculateCascades();
@@ -52,17 +53,21 @@ GraphicsEngine::GraphicsEngine(std::shared_ptr<const core::Settings> const& sett
 
   pEnableShadowsFreeze.connect([this](bool val) { mShadowMap->setFreezeCascades(val); });
 
-  pShadowMapResolution.connect([this](int val) { mShadowMap->setResolution((uint32_t)val); });
+  pShadowMapResolution.connect(
+      [this](int val) { mShadowMap->setResolution(static_cast<uint32_t>(val)); });
 
-  pShadowMapCascades.connect([this](int) { calculateCascades(); });
+  pShadowMapCascades.connect([this](int /*unused*/) { calculateCascades(); });
 
-  pShadowMapBias.connect([this](float val) { mShadowMap->setBias(val * 0.0001f); });
+  pShadowMapBias.connect([this](float val) {
+    float const eps = 0.0001F;
+    mShadowMap->setBias(val * eps);
+  });
 
-  pShadowMapSplitDistribution.connect([this](float) { calculateCascades(); });
+  pShadowMapSplitDistribution.connect([this](float /*unused*/) { calculateCascades(); });
 
-  pShadowMapRange.connect([this](glm::vec2) { calculateCascades(); });
+  pShadowMapRange.connect([this](glm::vec2 /*unused*/) { calculateCascades(); });
 
-  pShadowMapExtension.connect([this](glm::vec2) { calculateCascades(); });
+  pShadowMapExtension.connect([this](glm::vec2 /*unused*/) { calculateCascades(); });
 
   // setup HDR buffer ------------------------------------------------------------------------------
 
@@ -70,15 +75,15 @@ GraphicsEngine::GraphicsEngine(std::shared_ptr<const core::Settings> const& sett
 
   // Create a node which clears the HDRBuffer at the beginning of a frame (this will be enabled only
   // if HDR rendering is enabled).
-  mClearNode       = std::make_shared<graphics::ClearHDRBufferNode>(mHDRBuffer);
-  auto clearGLNode = pSG->NewOpenGLNode(pSG->GetRoot(), mClearNode.get());
+  mClearNode        = std::make_shared<graphics::ClearHDRBufferNode>(mHDRBuffer);
+  auto* clearGLNode = pSG->NewOpenGLNode(pSG->GetRoot(), mClearNode.get());
   VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
       clearGLNode, static_cast<int>(utils::DrawOrder::eClearHDRBuffer));
 
   // Create a node which performas tonemapping of the HDRBuffer at the end of a frame (this will be
   // enabled only if HDR rendering is enabled).
-  mToneMappingNode       = std::make_shared<graphics::ToneMappingNode>(mHDRBuffer);
-  auto toneMappingGLNode = pSG->NewOpenGLNode(pSG->GetRoot(), mToneMappingNode.get());
+  mToneMappingNode        = std::make_shared<graphics::ToneMappingNode>(mHDRBuffer);
+  auto* toneMappingGLNode = pSG->NewOpenGLNode(pSG->GetRoot(), mToneMappingNode.get());
   VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
       toneMappingGLNode, static_cast<int>(utils::DrawOrder::eToneMapping));
 
@@ -114,7 +119,9 @@ GraphicsEngine::GraphicsEngine(std::shared_ptr<const core::Settings> const& sett
     if (pEnableAutoGlow.get()) {
       float glow = (pAutoExposureRange.get()[0] - value) /
                    (pAutoExposureRange.get()[0] - pAutoExposureRange.get()[1]);
-      pGlowIntensity = std::clamp(glow * 0.5f, 0.001f, 1.f);
+
+      float const eps = 0.001F;
+      pGlowIntensity  = std::clamp(glow * 0.5f, eps, 1.F);
     }
   });
 }
@@ -122,8 +129,10 @@ GraphicsEngine::GraphicsEngine(std::shared_ptr<const core::Settings> const& sett
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 GraphicsEngine::~GraphicsEngine() {
-  // Tell the user what's going on.
-  spdlog::debug("Deleting GraphicsEngine.");
+  try {
+    // Tell the user what's going on.
+    spdlog::debug("Deleting GraphicsEngine.");
+  } catch (...) {}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -151,14 +160,14 @@ void GraphicsEngine::update(glm::vec3 const& sunDirection) {
     int            sizeX = 0;
     int            sizeY = 0;
     pViewport->GetViewportProperties()->GetSize(sizeX, sizeY);
-    float aspect = 1.f * sizeX / sizeY;
+    double aspect = 1.0 * sizeX / sizeY;
 
     VistaProjection::VistaProjectionProperties* pProjProps =
         pViewport->GetProjection()->GetProjectionProperties();
 
-    float height = pSensorDiagonal.get() / std::sqrt(std::pow(aspect, 2.f) + 1.f);
+    double height = pSensorDiagonal.get() / std::sqrt(std::pow(aspect, 2.0) + 1.0);
     height /= pFocalLength.get();
-    float width = aspect * height;
+    double width = aspect * height;
     pProjProps->SetProjPlaneExtents(-width / 2, width / 2, -height / 2, height / 2);
     pProjProps->SetProjPlaneMidpoint(0, 0, -1);
   }
@@ -191,14 +200,22 @@ std::shared_ptr<graphics::HDRBuffer> GraphicsEngine::getHDRBuffer() const {
 
 bool glDebugOnlyErrors = true;
 
-void GLAPIENTRY oglMessageCallback(
-    GLenum, GLenum type, GLuint, GLenum severity, GLsizei, const GLchar* message, const void*) {
-  if (type == GL_DEBUG_TYPE_ERROR)
-    fprintf(
-        stderr, "GL ERROR: type = 0x%x, severity = 0x%x, message = %s\n", type, severity, message);
-  else if (!glDebugOnlyErrors)
-    fprintf(stdout, "GL WARNING: type = 0x%x, severity = 0x%x, message = %s\n", type, severity,
-        message);
+void GLAPIENTRY oglMessageCallback(GLenum /*source*/, GLenum type, GLuint /*id*/, GLenum severity,
+    GLsizei /*length*/, const GLchar* message, const void* /*userParam*/) {
+
+  if (type == GL_DEBUG_TYPE_ERROR || GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR) {
+    if (severity == GL_DEBUG_SEVERITY_HIGH) {
+      spdlog::critical(message);
+    } else {
+      spdlog::error(message);
+    }
+  } else if (!glDebugOnlyErrors) {
+    if (severity == GL_DEBUG_SEVERITY_NOTIFICATION) {
+      spdlog::debug(message);
+    } else {
+      spdlog::warn(message);
+    }
+  }
 }
 
 void GraphicsEngine::enableGLDebug(bool onlyErrors) {
@@ -220,7 +237,7 @@ void GraphicsEngine::calculateCascades() {
   int                count   = pShadowMapCascades.get();
   std::vector<float> splits(count + 1);
   for (size_t i(0); i < splits.size(); ++i) {
-    float alpha = (float)(i) / count;
+    float alpha = static_cast<float>(i) / static_cast<float>(count);
     alpha       = std::pow(alpha, pShadowMapSplitDistribution.get());
     splits[i]   = glm::mix(nearEnd, farEnd, alpha);
   }

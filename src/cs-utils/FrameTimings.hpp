@@ -11,9 +11,9 @@
 #include "cs_utils_export.hpp"
 
 #include <array>
-#include <boost/optional.hpp>
 #include <chrono>
 #include <memory>
+#include <optional>
 #include <unordered_map>
 #include <vector>
 
@@ -48,7 +48,14 @@ class CS_UTILS_EXPORT FrameTimings {
    public:
     /// @param name The name of the measured time.
     /// @param mode The mode of querying. See QueryMode for more info.
-    explicit ScopedTimer(std::string const& name, QueryMode mode = QueryMode::eBoth);
+    explicit ScopedTimer(std::string name, QueryMode mode = QueryMode::eBoth);
+
+    ScopedTimer(ScopedTimer const& other) = delete;
+    ScopedTimer(ScopedTimer&& other)      = delete;
+
+    ScopedTimer& operator=(ScopedTimer const& other) = delete;
+    ScopedTimer& operator=(ScopedTimer&& other) = delete;
+
     ~ScopedTimer();
 
    private:
@@ -63,6 +70,13 @@ class CS_UTILS_EXPORT FrameTimings {
   /// You should not need to instantiate this class. One instance will be created by the application
   /// class and is passed to each and every plugin.
   explicit FrameTimings();
+
+  FrameTimings(FrameTimings const& other) = delete;
+  FrameTimings(FrameTimings&& other)      = delete;
+
+  FrameTimings& operator=(FrameTimings const& other) = delete;
+  FrameTimings& operator=(FrameTimings&& other) = delete;
+
   ~FrameTimings() = default;
 
   /// Starts a timer with the given name and mode. You can use this interface, however the
@@ -86,12 +100,12 @@ class CS_UTILS_EXPORT FrameTimings {
   void endFullFrameTiming();
 
   /// Updates the frame timings. The application takes care of calling this on the primary instance.
-  void update();
+  void update() const;
 
   /// Once update() has been called, QueryResults most likely are available. However, we will only
   /// get results from the last frame in order to prevent any blocking. Sometimes it might also take
   /// a few frames longer to get any results from the GPU.
-  std::unordered_map<std::string, QueryResult> getCalculatedQueryResults();
+  std::unordered_map<std::string, QueryResult> getCalculatedQueryResults() const;
 
  private:
   int                                            mCurrentIndex = 0;
@@ -108,15 +122,20 @@ class CS_UTILS_EXPORT TimerQueryPool {
   TimerQueryPool(TimerQueryPool const&) = delete;
   void operator=(TimerQueryPool const&) = delete;
 
+  TimerQueryPool(TimerQueryPool&&) = delete;
+  void operator=(TimerQueryPool&&) = delete;
+
+  ~TimerQueryPool() = default;
+
   void start(std::string const& name, FrameTimings::QueryMode mode);
   void end(std::string const& name);
 
-  boost::optional<std::size_t> timestamp();
+  std::optional<std::size_t> timestamp();
 
   /// Fetch timestamps from GPU and calculate time diffs.
   void calculateQueryResults();
 
-  std::unordered_map<std::string, std::vector<FrameTimings::QueryResult>> const&
+  [[nodiscard]] std::unordered_map<std::string, std::vector<FrameTimings::QueryResult>> const&
   getQueryResults() const;
 
  private:
@@ -125,7 +144,7 @@ class CS_UTILS_EXPORT TimerQueryPool {
     std::size_t                                    mGPUEnd   = 0;
     std::chrono::high_resolution_clock::time_point mCPUStart;
     std::chrono::high_resolution_clock::time_point mCPUEnd;
-    FrameTimings::QueryMode                        mMode;
+    FrameTimings::QueryMode                        mMode{};
   };
 
   std::size_t           mMaxSize;

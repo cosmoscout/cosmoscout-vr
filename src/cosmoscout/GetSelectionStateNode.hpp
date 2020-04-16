@@ -42,16 +42,16 @@ class GetSelectionStateNode : public IVdfnNode {
  private:
   cs::core::InputManager* mInputManager;
 
-  TVdfnPort<bool> mSelectedGuiItemHasKeyboardFocus;
-  TVdfnPort<bool> mHoveredGuiItemAllowsScrolling;
+  TVdfnPort<bool>* mSelectedGuiItemHasKeyboardFocus;
+  TVdfnPort<bool>* mHoveredGuiItemAllowsScrolling;
 
-  TVdfnPort<bool> mHoveredGuiItem;
-  TVdfnPort<bool> mActiveGuiItem;
-  TVdfnPort<bool> mSelectedGuiItem;
+  TVdfnPort<bool>* mHoveredGuiItem;
+  TVdfnPort<bool>* mActiveGuiItem;
+  TVdfnPort<bool>* mSelectedGuiItem;
 
-  TVdfnPort<bool> mHoveredNode;
-  TVdfnPort<bool> mActiveNode;
-  TVdfnPort<bool> mSelectedNode;
+  TVdfnPort<bool>* mHoveredNode;
+  TVdfnPort<bool>* mActiveNode;
+  TVdfnPort<bool>* mSelectedNode;
 };
 
 class GetSelectionStateNodeCreate : public VdfnNodeFactory::IVdfnNodeCreator {

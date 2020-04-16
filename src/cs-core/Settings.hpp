@@ -77,9 +77,9 @@ class CS_CORE_EXPORT Settings {
   struct Observer {
     std::string mCenter;
     std::string mFrame;
-    double      mLongitude;
-    double      mLatitude;
-    double      mDistance;
+    double      mLongitude{};
+    double      mLatitude{};
+    double      mDistance{};
   };
 
   struct Location {
@@ -128,7 +128,7 @@ class CS_CORE_EXPORT Settings {
   Observer mObserver;
 
   /// PArameters which define how the virtual scene is scaled based on the observer position.
-  SceneScale mSceneScale;
+  SceneScale mSceneScale{};
 
   /// A list of files which shall be downloaded before the application starts.
   std::vector<DownloadData> mDownloadData;
@@ -141,18 +141,18 @@ class CS_CORE_EXPORT Settings {
   std::optional<Gui> mGui;
 
   /// A multiplicator for the size of worldspace gui-elements.
-  float mWidgetScale;
+  float mWidgetScale{};
 
   /// When set to true, HDR rendering will be enabled per default. It can still be disabled at run
   /// time. Defaults to false.
   std::optional<bool> mEnableHDR;
 
   /// When set to true, a ray is shown emerging from your input device.
-  bool mEnableMouseRay;
+  bool mEnableMouseRay{};
 
   /// When set to true, there will be controls in the user interface to control the camera's
   /// frustum. In a VR setup, this should usually be set to 'false'.
-  bool mEnableSensorSizeControl;
+  bool mEnableSensorSizeControl{};
 
   /// These set the loglevel for the output to the log file, console and on-screen output
   /// respectively.
@@ -163,9 +163,9 @@ class CS_CORE_EXPORT Settings {
   /// error:    Critical messages and errors.
   /// critical: Only critical messages.
   /// off:      No output at all.
-  spdlog::level::level_enum mFileLogLevel;
-  spdlog::level::level_enum mConsoleLogLevel;
-  spdlog::level::level_enum mScreenLogLevel;
+  spdlog::level::level_enum mFileLogLevel{};
+  spdlog::level::level_enum mConsoleLogLevel{};
+  spdlog::level::level_enum mScreenLogLevel{};
 
   /// In order to reduce duplication of code, a list of all used SPICE-frames ("Anchors") is
   /// required at the start of each configuration file. The name of each Anchor is then later used
@@ -230,7 +230,7 @@ void CS_CORE_EXPORT parseSection(std::string const& sectionName, std::function<v
 /// A settings section that is also a value.
 template <typename T>
 T parseSection(std::string const& sectionName, nlohmann::json const& j) {
-  T result;
+  T result{};
   parseSection(sectionName, [&] { result = j.at(sectionName).get<T>(); });
   return result;
 }
@@ -277,9 +277,9 @@ std::optional<T> parseOptional(std::string const& propertyName, nlohmann::json c
   auto iter = j.find(propertyName);
   if (iter != j.end()) {
     return iter->get<std::optional<T>>();
-  } else {
-    return std::nullopt;
   }
+
+  return std::nullopt;
 }
 
 } // namespace cs::core

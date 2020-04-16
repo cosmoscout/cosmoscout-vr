@@ -25,17 +25,23 @@ namespace cs::utils {
 class CS_UTILS_EXPORT ThreadPool {
  public:
   /// Creates a new ThreadPool with the specified amount of threads.
-  ThreadPool(size_t threadCount);
+  explicit ThreadPool(size_t threads);
+
+  ThreadPool(ThreadPool const& other) = delete;
+  ThreadPool(ThreadPool&& other)      = delete;
+
+  ThreadPool& operator=(ThreadPool const& other) = delete;
+  ThreadPool& operator=(ThreadPool&& other) = delete;
+
   virtual ~ThreadPool();
 
   /// Adds a new work item to the pool.
-  template <class F, class... Args>
-  auto enqueue(F&& f, Args&&... args)
-      -> std::future<typename std::invoke_result<F, Args...>::type> {
-    using return_type = typename std::invoke_result<F, Args...>::type;
+  template <class F>
+  auto enqueue(F&& f) -> std::future<typename std::invoke_result<F>::type> {
+    using return_type = typename std::invoke_result<F>::type;
 
     auto task = std::make_shared<std::packaged_task<return_type()>>(
-        std::bind(std::forward<F>(f), std::forward<Args>(args)...));
+        [Func = std::forward<F>(f)] { return Func(); });
 
     std::future<return_type> res = task->get_future();
     {

@@ -15,8 +15,7 @@
 
 ObserverNavigationNode::ObserverNavigationNode(
     cs::core::SolarSystem* pSolarSystem, VistaPropertyList const& oParams)
-    : IVdfnNode()
-    , mSolarSystem(pSolarSystem)
+    : mSolarSystem(pSolarSystem)
     , mTime(nullptr)
     , mTranslation(nullptr)
     , mRotation(nullptr)
@@ -35,9 +34,16 @@ ObserverNavigationNode::ObserverNavigationNode(
     , mLastTime(-1.0) {
   mLinearSpeed.mDirection = cs::utils::AnimationDirection::eLinear;
 
+  // NOLINTNEXTLINE(cppcoreguidelines-owning-memory): deleted in IVdfnNode::~IVdfnNode()
   RegisterInPortPrototype("time", new TVdfnPortTypeCompare<TVdfnPort<double>>);
+
+  // NOLINTNEXTLINE(cppcoreguidelines-owning-memory): deleted in IVdfnNode::~IVdfnNode()
   RegisterInPortPrototype("translation", new TVdfnPortTypeCompare<TVdfnPort<VistaVector3D>>);
+
+  // NOLINTNEXTLINE(cppcoreguidelines-owning-memory): deleted in IVdfnNode::~IVdfnNode()
   RegisterInPortPrototype("rotation", new TVdfnPortTypeCompare<TVdfnPort<VistaQuaternion>>);
+
+  // NOLINTNEXTLINE(cppcoreguidelines-owning-memory): deleted in IVdfnNode::~IVdfnNode()
   RegisterInPortPrototype("offset", new TVdfnPortTypeCompare<TVdfnPort<VistaVector3D>>);
 }
 
@@ -145,7 +151,7 @@ bool ObserverNavigationNode::DoEvalNode() {
   if (stepSize > 0.0) {
     // Ensure that an SolarSystem::updateSceneScale() is called at least at 100 Hz. If it is called
     // only once a frame, it can happen that the observer instantly travels to a planet's surface.
-    int32_t steps = static_cast<int32_t>(std::ceil(dDeltaTime * 100.0));
+    auto steps = static_cast<int32_t>(std::ceil(dDeltaTime * 100.0));
 
     for (int32_t i(1); i <= steps; ++i) {
       oObs.setAnchorPosition(oObs.getAnchorPosition() + oObs.getAnchorRotation() * vTranslation *
