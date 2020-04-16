@@ -261,20 +261,6 @@ void Application::FrameUpdate() {
     m_pAvgLoopTime->RecordTime();
   }
 
-  // hot-reloading of plugins ----------------------------------------------------------------------
-
-  for (auto const& plugin : mPluginsToUnload) {
-    deinitPlugin(plugin);
-    closePlugin(plugin);
-  }
-  mPluginsToUnload.clear();
-
-  for (auto const& plugin : mPluginsToLoad) {
-    openPlugin(plugin);
-    initPlugin(plugin);
-  }
-  mPluginsToLoad.clear();
-
   // loading and saving ----------------------------------------------------------------------------
 
   if (!mSettingsToWrite.empty()) {
@@ -293,7 +279,35 @@ void Application::FrameUpdate() {
       logger().warn("Failed to load settings from '{}': {}", mSettingsToRead, e.what());
     }
     mSettingsToRead = "";
+
+    // Unload all plugins we do not need anymore.
+    for (auto const& plugin : mPlugins) {
+      if (mSettings->mPlugins.find(plugin.first) == mSettings->mPlugins.end()) {
+        mPluginsToUnload.insert(plugin.first);
+      }
+    }
+
+    // Load all plugins which were not loaded before.
+    for (auto const& plugin : mSettings->mPlugins) {
+      if (mPlugins.find(plugin.first) == mPlugins.end()) {
+        mPluginsToLoad.insert(plugin.first);
+      }
+    }
   }
+
+  // hot-reloading of plugins ----------------------------------------------------------------------
+
+  for (auto const& plugin : mPluginsToUnload) {
+    deinitPlugin(plugin);
+    closePlugin(plugin);
+  }
+  mPluginsToUnload.clear();
+
+  for (auto const& plugin : mPluginsToLoad) {
+    openPlugin(plugin);
+    initPlugin(plugin);
+  }
+  mPluginsToLoad.clear();
 
   // download datsets at application startup -------------------------------------------------------
 
