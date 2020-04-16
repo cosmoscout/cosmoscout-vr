@@ -149,10 +149,14 @@ cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PRO
 rem spdlog -----------------------------------------------------------------------------------------
 
 echo.
-echo Installing spdlog ...
+echo Building and installing spdlog ...
 echo.
 
-cmake -E copy_directory "%EXTERNALS_DIR%/spdlog/include/spdlog" "%INSTALL_DIR%/include/spdlog" || exit /b
+cmake -E make_directory "%BUILD_DIR%/spdlog" && cd "%BUILD_DIR%/spdlog"
+cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
+      -DSPDLOG_ENABLE_PCH=On "%EXTERNALS_DIR%/spdlog" || exit /b
+
+cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS%
 
 rem doctest ----------------------------------------------------------------------------------------
 
