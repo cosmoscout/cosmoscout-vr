@@ -9,7 +9,7 @@ find_path(SPDLOG_INCLUDE_DIR spdlog/spdlog.h
     HINTS ${SPDLOG_ROOT_DIR}/include)
 
 # Locate library.
-find_library(SPDLOG_LIBRARY NAMES spdlog
+find_library(SPDLOG_LIBRARY NAMES spdlog spdlogd
     HINTS ${SPDLOG_ROOT_DIR}/lib ${SPDLOG_ROOT_DIR}/lib64)
 
 include(FindPackageHandleStandardArgs)
