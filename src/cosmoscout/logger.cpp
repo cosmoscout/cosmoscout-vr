@@ -12,7 +12,7 @@
 
 spdlog::logger& logger() {
   static auto logger = cs::utils::createLogger("cosmoscout-vr");
-  return *logger.get();
+  return *logger;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
