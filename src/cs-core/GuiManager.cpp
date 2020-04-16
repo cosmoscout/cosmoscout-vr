@@ -65,15 +65,16 @@ GuiManager::GuiManager(std::shared_ptr<Settings> settings,
     mGlobalGuiTransform = pSG->NewTransformNode(platform);
 
     mGlobalGuiTransform->Scale(static_cast<float>(mSettings->mGuiPosition->mWidthMeter),
-        static_cast<float>(mSettings->mGuiPosition->mHeightMeter), 1.0f);
-    mGlobalGuiTransform->Rotate(
-        VistaAxisAndAngle(VistaVector3D(1, 0, 0), (float)mSettings->mGuiPosition->mRotX));
-    mGlobalGuiTransform->Rotate(
-        VistaAxisAndAngle(VistaVector3D(0, 1, 0), (float)mSettings->mGuiPosition->mRotY));
-    mGlobalGuiTransform->Rotate(
-        VistaAxisAndAngle(VistaVector3D(0, 0, 1), (float)mSettings->mGuiPosition->mRotZ));
-    mGlobalGuiTransform->Translate((float)mSettings->mGuiPosition->mPosXMeter,
-        (float)mSettings->mGuiPosition->mPosYMeter, (float)mSettings->mGuiPosition->mPosZMeter);
+        static_cast<float>(mSettings->mGuiPosition->mHeightMeter), 1.0F);
+    mGlobalGuiTransform->Rotate(VistaAxisAndAngle(
+        VistaVector3D(1, 0, 0), static_cast<float>(mSettings->mGuiPosition->mRotX)));
+    mGlobalGuiTransform->Rotate(VistaAxisAndAngle(
+        VistaVector3D(0, 1, 0), static_cast<float>(mSettings->mGuiPosition->mRotY)));
+    mGlobalGuiTransform->Rotate(VistaAxisAndAngle(
+        VistaVector3D(0, 0, 1), static_cast<float>(mSettings->mGuiPosition->mRotZ)));
+    mGlobalGuiTransform->Translate(static_cast<float>(mSettings->mGuiPosition->mPosXMeter),
+        static_cast<float>(mSettings->mGuiPosition->mPosYMeter),
+        static_cast<float>(mSettings->mGuiPosition->mPosZMeter));
 
     // Create the global GUI area.
     mGlobalGuiArea = std::make_unique<gui::WorldSpaceGuiArea>(
@@ -157,7 +158,7 @@ GuiManager::GuiManager(std::shared_ptr<Settings> settings,
 
   // Restore history from saved file. Currently we don't update the history when reloading a
   // settings file at runtime, as overwriting the history feels a bit odd.
-  if (mSettings->mCommandHistory && mSettings->mCommandHistory.value().size() > 0) {
+  if (mSettings->mCommandHistory && !mSettings->mCommandHistory.value().empty()) {
     nlohmann::json array = mSettings->mCommandHistory.value();
     mCosmoScoutGui->executeJavascript("CosmoScout.statusbar.history = " + array.dump());
     mCosmoScoutGui->executeJavascript("CosmoScout.statusbar.historyIndex = " +
@@ -203,8 +204,8 @@ GuiManager::GuiManager(std::shared_ptr<Settings> settings,
   });
 
   for (const auto& mEvent : mSettings->mEvents) {
-    std::string planet = "";
-    std::string place  = "";
+    std::string planet;
+    std::string place;
     if (mEvent.mLocation.has_value()) {
       planet = mEvent.mLocation.value().mPlanet;
       place  = mEvent.mLocation.value().mPlace;

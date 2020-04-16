@@ -344,9 +344,9 @@ std::pair<double, double> Settings::Anchor::getExistence() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Settings::DeserializationException::DeserializationException(
-    std::string const& property, std::string const& jsonError)
-    : mProperty(property)
-    , mJSONError(jsonError)
+    std::string property, std::string jsonError)
+    : mProperty(std::move(property))
+    , mJSONError(std::move(jsonError))
     , mMessage("While parsing property " + mProperty + ": " + mJSONError){};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

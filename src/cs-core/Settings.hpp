@@ -381,7 +381,7 @@ class CS_CORE_EXPORT Settings {
   /// The exception can and should be nested.
   class CS_CORE_EXPORT DeserializationException : public std::exception {
    public:
-    DeserializationException(std::string const& property, std::string const& jsonError);
+    DeserializationException(std::string property, std::string jsonError);
 
     const char* what() const noexcept override;
 

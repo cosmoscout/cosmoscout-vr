@@ -83,7 +83,7 @@ MouseRay::MouseRay() {
       dynamic_cast<VistaTransformNode*>(sceneGraph->GetNode("SELECTION_NODE"));
 
   mRayTransform.reset(sceneGraph->NewTransformNode(intentionNode));
-  mRayTransform->SetScale(0.001f, 0.001f, 30.f);
+  mRayTransform->SetScale(0.001F, 0.001F, 30.F);
 
   mMouseRayNode.reset(sceneGraph->NewOpenGLNode(mRayTransform.get(), this));
 

@@ -145,8 +145,9 @@ bool Application::Init(VistaSystem* pVistaSystem) {
         "CosmoScout.gui.setCheckboxValue", "graphics.setEnableHDR", enable);
   });
 
-  mSettings->pSpiceKernel.connect(
-      [](auto) { spdlog::warn("Reloading the SPICE kernels at runtime is not yet supported!"); });
+  mSettings->pSpiceKernel.connect([](auto /*unused*/) {
+    spdlog::warn("Reloading the SPICE kernels at runtime is not yet supported!");
+  });
 
   mGuiManager->enableLoadingScreen(true);
 
@@ -748,25 +749,27 @@ void Application::closePlugin(std::string const& name) {
 void Application::connectSlots() {
 
   // Update mouse pointer coordinate display in the user interface.
-  mInputManager->pHoveredObject.connect([this](cs::core::InputManager::Intersection intersection) {
-    if (intersection.mObject) {
-      auto body = std::dynamic_pointer_cast<cs::scene::CelestialBody>(intersection.mObject);
+  mInputManager->pHoveredObject.connect(
+      [this](cs::core::InputManager::Intersection const& intersection) {
+        if (intersection.mObject) {
+          auto body = std::dynamic_pointer_cast<cs::scene::CelestialBody>(intersection.mObject);
 
-      if (body) {
-        auto radii = body->getRadii();
-        auto polar = cs::utils::convert::toLngLatHeight(intersection.mPosition, radii[0], radii[0]);
-        auto lngLat = cs::utils::convert::toDegrees(polar.xy());
+          if (body) {
+            auto radii = body->getRadii();
+            auto polar =
+                cs::utils::convert::toLngLatHeight(intersection.mPosition, radii[0], radii[0]);
+            auto lngLat = cs::utils::convert::toDegrees(polar.xy());
 
-        if (!std::isnan(lngLat.x) && !std::isnan(lngLat.y) && !std::isnan(polar.z)) {
-          mGuiManager->getGui()->executeJavascript(
-              fmt::format("CosmoScout.state.pointerPosition = [{}, {}, {}];", lngLat.x, lngLat.y,
-                  polar.z / mSettings->mGraphics.pHeightScale.get()));
-          return;
+            if (!std::isnan(lngLat.x) && !std::isnan(lngLat.y) && !std::isnan(polar.z)) {
+              mGuiManager->getGui()->executeJavascript(
+                  fmt::format("CosmoScout.state.pointerPosition = [{}, {}, {}];", lngLat.x,
+                      lngLat.y, polar.z / mSettings->mGraphics.pHeightScale.get()));
+              return;
+            }
+          }
         }
-      }
-    }
-    mGuiManager->getGui()->executeJavascript("CosmoScout.state.pointerPosition = undefined;");
-  });
+        mGuiManager->getGui()->executeJavascript("CosmoScout.state.pointerPosition = undefined;");
+      });
 
   // Update the time shown in the user interface when the simulation time changes.
   mTimeControl->pSimulationTime.connect([this](double val) {

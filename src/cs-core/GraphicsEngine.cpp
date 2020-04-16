@@ -39,7 +39,7 @@ GraphicsEngine::GraphicsEngine(std::shared_ptr<core::Settings> settings)
 
   mShadowMap->setEnabled(false);
   mShadowMap->setResolution(static_cast<uint32_t>(mSettings->mGraphics.pShadowMapResolution.get()));
-  mShadowMap->setBias(mSettings->mGraphics.pShadowMapBias.get() * 0.0001f);
+  mShadowMap->setBias(mSettings->mGraphics.pShadowMapBias.get() * 0.0001F);
   pSG->NewOpenGLNode(pSG->GetRoot(), mShadowMap.get());
 
   calculateCascades();
@@ -50,7 +50,7 @@ GraphicsEngine::GraphicsEngine(std::shared_ptr<core::Settings> settings)
       [this](bool val) { mShadowMap->setFreezeCascades(val); });
 
   mSettings->mGraphics.pShadowMapResolution.connect(
-      [this](int val) { mShadowMap->setResolution((uint32_t)val); });
+      [this](int val) { mShadowMap->setResolution(static_cast<uint32_t>(val)); });
 
   mSettings->mGraphics.pShadowMapCascades.connect([this](int /*unused*/) { calculateCascades(); });
 

@@ -10,21 +10,20 @@ namespace cs::core {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void PluginBase::setAPI(std::shared_ptr<Settings> const& settings,
-    std::shared_ptr<SolarSystem> const& solarSystem, std::shared_ptr<GuiManager> const& guiManager,
-    std::shared_ptr<InputManager> const& inputManager, VistaSceneGraph* sceneGraph,
-    std::shared_ptr<GraphicsEngine> const&      graphicsEngine,
-    std::shared_ptr<utils::FrameTimings> const& frameTimings,
-    std::shared_ptr<TimeControl> const&         timeControl) {
+void PluginBase::setAPI(std::shared_ptr<Settings> settings,
+    std::shared_ptr<SolarSystem> solarSystem, std::shared_ptr<GuiManager> guiManager,
+    std::shared_ptr<InputManager> inputManager, VistaSceneGraph* sceneGraph,
+    std::shared_ptr<GraphicsEngine>      graphicsEngine,
+    std::shared_ptr<utils::FrameTimings> frameTimings, std::shared_ptr<TimeControl> timeControl) {
 
-  mAllSettings    = settings;
-  mSolarSystem    = solarSystem;
+  mAllSettings    = std::move(settings);
+  mSolarSystem    = std::move(solarSystem);
   mSceneGraph     = sceneGraph;
-  mGuiManager     = guiManager;
-  mGraphicsEngine = graphicsEngine;
-  mInputManager   = inputManager;
-  mFrameTimings   = frameTimings;
-  mTimeControl    = timeControl;
+  mGuiManager     = std::move(guiManager);
+  mGraphicsEngine = std::move(graphicsEngine);
+  mInputManager   = std::move(inputManager);
+  mFrameTimings   = std::move(frameTimings);
+  mTimeControl    = std::move(timeControl);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
