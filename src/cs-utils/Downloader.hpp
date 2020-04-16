@@ -17,7 +17,7 @@ namespace cs::utils {
 class CS_UTILS_EXPORT Downloader {
  public:
   /// This initializes the internal thread pool with the given number of threads.
-  Downloader(size_t threadCount);
+  explicit Downloader(size_t threadCount);
 
   /// Queue a file to be downloaded. If a file with the given name already exists, nothing will be
   /// done. This method will return quickly, as the actual download is done in a separate thread.

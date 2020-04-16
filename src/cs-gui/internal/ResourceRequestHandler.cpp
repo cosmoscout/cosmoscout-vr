@@ -8,7 +8,6 @@
 
 #include <fstream>
 #include <include/wrapper/cef_stream_resource_handler.h>
-#include <iostream>
 #include <spdlog/spdlog.h>
 
 namespace cs::gui::detail {
@@ -16,13 +15,15 @@ namespace cs::gui::detail {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 CefRefPtr<CefResourceHandler> ResourceRequestHandler::GetResourceHandler(
-    CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefRequest> request) {
+    CefRefPtr<CefBrowser> /*browser*/, CefRefPtr<CefFrame> /*frame*/,
+    CefRefPtr<CefRequest> request) {
 
   std::string url(request->GetURL().ToString());
 
   if (url.find("file://") == 0) {
-    std::string path(url.substr(7));
-    std::string ext(url.substr(url.find_last_of('.')));
+    uint64_t const pathStartIndex = 7;
+    std::string    path(url.substr(pathStartIndex));
+    std::string    ext(url.substr(url.find_last_of('.')));
 
     std::ifstream input(path, std::ios::binary);
 

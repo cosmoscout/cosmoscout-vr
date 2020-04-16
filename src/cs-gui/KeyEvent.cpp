@@ -14,7 +14,6 @@ namespace cs::gui {
 
 KeyEvent::KeyEvent()
     : mType(Type::ePress)
-    , mModifiers(0)
     , mKey(Key::eUnknown) {
 }
 
@@ -119,8 +118,6 @@ KeyEvent::KeyEvent(int key, int mods) {
     mKey = Key::eRightControl;
     return;
   case VISTA_KEY_ALT_LEFT:
-    mKey = Key::eAlt;
-    return;
   case VISTA_KEY_ALT_RIGHT:
     mKey = Key::eAlt;
     return;

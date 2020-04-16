@@ -21,7 +21,7 @@
 #ifdef _WIN64
 extern "C" {
 // This tells Windows to use the dedicated NVIDIA GPU over Intel integrated graphics.
-__declspec(dllexport) unsigned long NvOptimusEnablement = 0x00000001;
+__declspec(dllexport) uint32_t NvOptimusEnablement = 0x00000001;
 
 // This tells Windows to use the dedicated AMD GPU over Intel integrated graphics.
 __declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
@@ -68,7 +68,9 @@ int main(int argc, char** argv) {
 
   // Then do the actual parsing.
   try {
-    args.parse(argc, argv);
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+    std::vector<std::string> arguments(argv + 1, argv + argc);
+    args.parse(arguments);
   } catch (std::runtime_error const& e) {
     spdlog::error("Failed to parse command line arguments: {}", e.what());
     return 1;
@@ -89,6 +91,7 @@ int main(int argc, char** argv) {
 
   // When printVistaHelp was set to true, we print a help message and exit.
   if (printVistaHelp) {
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
     VistaSystem::ArgHelpMsg(argv[0], &std::cout);
     return 0;
   }
@@ -117,7 +120,7 @@ int main(int argc, char** argv) {
 
   try {
     // First we need a VistaSystem.
-    auto pVistaSystem = new VistaSystem();
+    auto pVistaSystem = std::make_unique<VistaSystem>();
 
     // ViSTA is configured with plenty of ini files. The ini files of CosmoScout VR reside in a
     // specific directory, so we have to add this directory to the search paths.
@@ -131,6 +134,10 @@ int main(int argc, char** argv) {
     if (pVistaSystem->Init(argc, argv)) {
       pVistaSystem->Run();
     }
+
+    // We will delete the frameloop (which is our Application) ourselves when the make_unique
+    // pointer goes out of scope.
+    pVistaSystem->SetFrameLoop(nullptr, false);
 
   } catch (VistaExceptionBase& e) {
     spdlog::error("Caught unexpected VistaException: {}", e.what());

@@ -230,16 +230,22 @@ add_definitions(
 )
 
 if (MSVC)
+  add_definitions(
+    # For whatever reason ViSTA checks for 'WIN32' instead of '_WIN32' in a lot of places, which
+    # results in Linux code being included on Windows.
+    -DWIN32
+  )
+
   add_compile_options(
-    /experimental:external
-    /external:anglebrackets
-    /external:W0
-    /W3 /WX
-    /EHsc
-    /wd4251
+    -experimental:external
+    -external:anglebrackets
+    -external:W0
+    -W3 -WX
+    -EHsc
+    -wd4251
 
     # Warns about multiple inheritance problems, which we can't avoid inheriting from ViSTA classes.
-    /wd4250
+    -wd4250
   )
 else()
   add_compile_options(

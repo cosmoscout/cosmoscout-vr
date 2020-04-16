@@ -8,19 +8,17 @@
 
 #include "../cs-utils/utils.hpp"
 
-#include <VistaKernel/DisplayManager/VistaDisplayManager.h>
 #include <VistaKernel/DisplayManager/VistaProjection.h>
-#include <VistaKernel/DisplayManager/VistaViewport.h>
-#include <VistaKernel/VistaSystem.h>
 #include <VistaOGLExt/VistaBufferObject.h>
 #include <VistaOGLExt/VistaGLSLShader.h>
 #include <VistaOGLExt/VistaVertexArrayObject.h>
+#include <array>
 
 namespace cs::scene {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const std::string Trajectory::SHADER_VERT = R"(
+static const char* SHADER_VERT = R"(
 #version 330
 
 // inputs
@@ -55,7 +53,7 @@ void main()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const std::string Trajectory::SHADER_FRAG = R"(
+static const char* SHADER_FRAG = R"(
 #version 330
 
 // inputs
@@ -84,22 +82,11 @@ void main()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Trajectory::Trajectory()
-    : mShader(nullptr)
-    , mVAO(nullptr)
-    , mVBO(nullptr)
-    , mMaxAge(100000.f)
-    , mStartColor(1.f, 1.f, 1.f, 1.f)
-    , mEndColor(1.f, 1.f, 1.f, 0.f)
-    , mWidth(2.f)
+    : mMaxAge(100000.F)
+    , mStartColor(1.F, 1.F, 1.F, 1.F)
+    , mEndColor(1.F, 1.F, 1.F, 0.F)
+    , mWidth(2.F)
     , mPointCount(0) {
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-Trajectory::~Trajectory() {
-  delete mShader;
-  delete mVAO;
-  delete mVBO;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -111,16 +98,16 @@ void Trajectory::upload(glm::dmat4 const& relativeTransform, double dTime,
     std::vector<glm::vec4> points(vPoints.size());
 
     for (size_t i(0); i < vPoints.size(); ++i) {
-      int ringbufferIndex = (i + startIndex) % (int)vPoints.size();
+      int ringbufferIndex = (static_cast<int>(i) + startIndex) % static_cast<int>(vPoints.size());
 
       glm::dvec4 const& curr = vPoints[ringbufferIndex];
 
       glm::dvec4 pos(curr.x, curr.y, curr.z, 1.0);
-      auto       age = (float)((dTime - curr.w) / mMaxAge);
+      auto       age = static_cast<float>((dTime - curr.w) / mMaxAge);
 
       if (curr.w >= dTime) {
         pos = glm::dvec4(vTip, 1.0);
-        age = 0.f;
+        age = 0.F;
       }
 
       pos = relativeTransform * pos;
@@ -129,11 +116,8 @@ void Trajectory::upload(glm::dmat4 const& relativeTransform, double dTime,
     }
 
     if (mPointCount != vPoints.size()) {
-      delete mVBO;
-      delete mVAO;
-
-      mVBO = new VistaBufferObject();
-      mVAO = new VistaVertexArrayObject();
+      mVBO = std::make_unique<VistaBufferObject>();
+      mVAO = std::make_unique<VistaVertexArrayObject>();
 
       mVAO->Bind();
 
@@ -142,12 +126,12 @@ void Trajectory::upload(glm::dmat4 const& relativeTransform, double dTime,
 
       // positions
       mVAO->EnableAttributeArray(0);
-      mVAO->SpecifyAttributeArrayFloat(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec4), 0, mVBO);
+      mVAO->SpecifyAttributeArrayFloat(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec4), 0, mVBO.get());
 
       // ages
       mVAO->EnableAttributeArray(1);
       mVAO->SpecifyAttributeArrayFloat(
-          1, 1, GL_FLOAT, GL_FALSE, sizeof(glm::vec4), sizeof(glm::vec3), mVBO);
+          1, 1, GL_FLOAT, GL_FALSE, sizeof(glm::vec4), sizeof(glm::vec3), mVBO.get());
 
       mVAO->Release();
       mVBO->Release();
@@ -157,7 +141,7 @@ void Trajectory::upload(glm::dmat4 const& relativeTransform, double dTime,
       mVBO->Release();
     }
 
-    mPointCount = (int)vPoints.size();
+    mPointCount = static_cast<int>(vPoints.size());
   }
 }
 
@@ -190,11 +174,12 @@ bool Trajectory::Do() {
         mEndColor[2], mEndColor[3]);
 
     // get modelview and projection matrices
-    GLfloat glMatMV[16], glMatP[16];
-    glGetFloatv(GL_MODELVIEW_MATRIX, &glMatMV[0]);
-    glGetFloatv(GL_PROJECTION_MATRIX, &glMatP[0]);
-    glUniformMatrix4fv(mShader->GetUniformLocation("uMatModelView"), 1, GL_FALSE, glMatMV);
-    glUniformMatrix4fv(mShader->GetUniformLocation("uMatProjection"), 1, GL_FALSE, glMatP);
+    std::array<GLfloat, 16> glMatMV{};
+    std::array<GLfloat, 16> glMatP{};
+    glGetFloatv(GL_MODELVIEW_MATRIX, glMatMV.data());
+    glGetFloatv(GL_PROJECTION_MATRIX, glMatP.data());
+    glUniformMatrix4fv(mShader->GetUniformLocation("uMatModelView"), 1, GL_FALSE, glMatMV.data());
+    glUniformMatrix4fv(mShader->GetUniformLocation("uMatProjection"), 1, GL_FALSE, glMatP.data());
 
     glLineWidth(mWidth);
 
@@ -217,21 +202,20 @@ bool Trajectory::Do() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool Trajectory::GetBoundingBox(VistaBoundingBox&) {
+bool Trajectory::GetBoundingBox(VistaBoundingBox& /*bb*/) {
   return false;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Trajectory::createShader() {
-  delete mShader;
-  mShader = new VistaGLSLShader();
+  mShader = std::make_unique<VistaGLSLShader>();
 
   std::string sVert(SHADER_VERT);
   std::string sFrag(SHADER_FRAG);
 
-  utils::replaceString(sFrag, "USE_LINEARDEPTHBUFFER", mUseLinearDepthBuffer ? "1" : "0");
-  utils::replaceString(sVert, "USE_LINEARDEPTHBUFFER", mUseLinearDepthBuffer ? "1" : "0");
+  utils::replaceString(sFrag, "USE_LINEARDEPTHBUFFER", std::to_string(mUseLinearDepthBuffer));
+  utils::replaceString(sVert, "USE_LINEARDEPTHBUFFER", std::to_string(mUseLinearDepthBuffer));
 
   mShader->InitVertexShaderFromString(sVert);
   mShader->InitFragmentShaderFromString(sFrag);

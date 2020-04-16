@@ -59,8 +59,15 @@ class InputManager;
 class CS_CORE_EXPORT GuiManager {
  public:
   GuiManager(std::shared_ptr<const Settings> const& settings,
-      std::shared_ptr<InputManager> const&          pInputManager,
-      std::shared_ptr<utils::FrameTimings> const&   pFrameTimings);
+      std::shared_ptr<InputManager>                 pInputManager,
+      std::shared_ptr<utils::FrameTimings>          pFrameTimings);
+
+  GuiManager(GuiManager const& other) = delete;
+  GuiManager(GuiManager&& other)      = delete;
+
+  GuiManager& operator=(GuiManager const& other) = delete;
+  GuiManager& operator=(GuiManager&& other) = delete;
+
   virtual ~GuiManager();
 
   /// Set the cursor icon. This is usually used in the following way:
@@ -141,9 +148,9 @@ class CS_CORE_EXPORT GuiManager {
   /// @param description The description of the event.
   /// @param planet Planet the event is happening on.
   /// @parama place The location on the planet.
-  void addEventToTimenavigationBar(std::string start, std::optional<std::string> end,
-      std::string id, std::string content, std::optional<std::string> style,
-      std::string description, std::string planet, std::string place);
+  void addEventToTimenavigationBar(std::string const& start, std::optional<std::string> const& end,
+      std::string const& id, std::string const& content, std::optional<std::string> const& style,
+      std::string const& description, std::string const& planet, std::string const& place);
 
   /// Returns the CosmoScout Gui.
   gui::GuiItem* getGui() const;
@@ -173,12 +180,12 @@ class CS_CORE_EXPORT GuiManager {
   std::shared_ptr<InputManager>        mInputManager;
   std::shared_ptr<utils::FrameTimings> mFrameTimings;
 
-  VistaViewportResizeToProjectionAdapter* mViewportUpdater = nullptr;
-  gui::WorldSpaceGuiArea*                 mGlobalGuiArea   = nullptr;
-  gui::ScreenSpaceGuiArea*                mLocalGuiArea    = nullptr;
+  std::unique_ptr<VistaViewportResizeToProjectionAdapter> mViewportUpdater;
+  std::unique_ptr<gui::WorldSpaceGuiArea>                 mGlobalGuiArea;
+  std::unique_ptr<gui::ScreenSpaceGuiArea>                mLocalGuiArea;
 
-  gui::GuiItem* mCosmoScoutGui = nullptr;
-  gui::GuiItem* mStatistics    = nullptr;
+  std::unique_ptr<gui::GuiItem> mCosmoScoutGui;
+  std::unique_ptr<gui::GuiItem> mStatistics;
 
   // The global GUI is drawn in world-space.
   VistaTransformNode* mGlobalGuiTransform  = nullptr;

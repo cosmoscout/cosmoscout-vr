@@ -22,9 +22,12 @@ add_executable(cosmoscout
   ${TEST_FILES}
 )
 
-# cef needs to be linked first due to https://magpcss.org/ceforum/viewtopic.php?f=6&t=15118&start=10
-# to make sure the link order is kept, we need --no-as-needed
-set_target_properties(cosmoscout PROPERTIES LINK_WHAT_YOU_USE on)
+# This property seems to break Ninja on Windows only.
+if(NOT (${CMAKE_GENERATOR} STREQUAL "Ninja" AND WIN32))
+  # cef needs to be linked first due to https://magpcss.org/ceforum/viewtopic.php?f=6&t=15118&start=10
+  # to make sure the link order is kept, we need --no-as-needed
+  set_target_properties(cosmoscout PROPERTIES LINK_WHAT_YOU_USE on)
+endif()
 
 target_link_libraries(cosmoscout
   cef::cef

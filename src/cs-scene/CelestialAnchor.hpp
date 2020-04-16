@@ -35,8 +35,8 @@ class CelestialObserver;
 /// system of other entities.
 class CS_SCENE_EXPORT CelestialAnchor {
  public:
-  explicit CelestialAnchor(std::string const& sCenterName = "Solar System Barycenter",
-      std::string const&                      sFrameName  = "J2000");
+  explicit CelestialAnchor(
+      std::string sCenterName = "Solar System Barycenter", std::string sFrameName = "J2000");
 
   /// Returns the position of "other" in the coordinate system defined by this CelestialAnchor - the
   /// result is not affected by the additional rotation and scale of "other", as these do not change

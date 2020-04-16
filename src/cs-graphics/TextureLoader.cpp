@@ -38,20 +38,21 @@ std::unique_ptr<VistaTexture> TextureLoader::loadFromFile(std::string const& sFi
     // load with tifflib
     spdlog::debug("Loading Texture '{}' with libtiff.", sFileName);
 
-    auto data = TIFFOpen(sFileName.c_str(), "r");
+    auto* data = TIFFOpen(sFileName.c_str(), "r");
     if (!data) {
       spdlog::error("Failed to load '{}' with libtiff!", sFileName);
       return nullptr;
     }
 
-    uint32 width, height;
+    uint32 width{};
+    uint32 height{};
     TIFFGetField(data, TIFFTAG_IMAGELENGTH, &height);
     TIFFGetField(data, TIFFTAG_IMAGEWIDTH, &width);
 
-    uint16 bpp;
+    uint16 bpp{};
     TIFFGetField(data, TIFFTAG_BITSPERSAMPLE, &bpp);
 
-    int16 channels;
+    int16 channels{};
     TIFFGetField(data, TIFFTAG_SAMPLESPERPIXEL, &channels);
 
     if (bpp != 8) {
@@ -69,12 +70,13 @@ std::unique_ptr<VistaTexture> TextureLoader::loadFromFile(std::string const& sFi
 
     GLenum ePixelFormat = GL_RGBA;
 
-    if (channels == 1)
+    if (channels == 1) {
       ePixelFormat = GL_RED;
-    else if (channels == 2)
+    } else if (channels == 2) {
       ePixelFormat = GL_RG;
-    else if (channels == 3)
+    } else if (channels == 3) {
       ePixelFormat = GL_RGB;
+    }
 
     result->UploadTexture(width, height, pixels.data(), true, ePixelFormat);
 
@@ -83,7 +85,9 @@ std::unique_ptr<VistaTexture> TextureLoader::loadFromFile(std::string const& sFi
     // load with stb image
     spdlog::debug("Loading Texture '{}' with stbi.", sFileName);
 
-    int width, height, bpp;
+    int width{};
+    int height{};
+    int bpp{};
     int channels = 4;
 
     unsigned char* pixels = stbi_load(sFileName.c_str(), &width, &height, &bpp, channels);

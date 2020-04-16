@@ -33,8 +33,6 @@ class CS_GRAPHICS_EXPORT GlowMipMap : public VistaTexture {
   int    mHDRBufferHeight = 0;
 
   VistaTexture* mTemporaryTarget = nullptr;
-
-  static const std::string sGlowShader;
 };
 
 } // namespace cs::graphics

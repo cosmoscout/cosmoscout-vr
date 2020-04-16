@@ -38,8 +38,14 @@ class CS_CORE_EXPORT PluginBase {
   /// The constructor is called when the plugin is opened. This should contain no or very little
   /// code. Your heavy initialization code should be executed in init().
   PluginBase() = default;
-  virtual ~PluginBase() {
-  }
+
+  PluginBase(PluginBase const& other) = delete;
+  PluginBase(PluginBase&& other)      = delete;
+
+  PluginBase& operator=(PluginBase const& other) = delete;
+  PluginBase& operator=(PluginBase&& other) = delete;
+
+  virtual ~PluginBase() = default;
 
   /// This initializes the program state for this plugin, so it can interact with it. It will be
   /// called by the core application before the plugin initializes. There is no need to call this
@@ -67,7 +73,7 @@ class CS_CORE_EXPORT PluginBase {
  protected:
   std::shared_ptr<const Settings>      mAllSettings;
   std::shared_ptr<SolarSystem>         mSolarSystem;
-  VistaSceneGraph*                     mSceneGraph;
+  VistaSceneGraph*                     mSceneGraph{};
   std::shared_ptr<GuiManager>          mGuiManager;
   std::shared_ptr<GraphicsEngine>      mGraphicsEngine;
   std::shared_ptr<InputManager>        mInputManager;
