@@ -66,7 +66,7 @@ class SignalSink : public spdlog::sinks::base_sink<std::mutex> {
 
 spdlog::logger& logger() {
   static auto logger = createLogger("cs-utils");
-  return *logger.get();
+  return *logger;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -99,7 +99,7 @@ void initVistaLogger() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Signal<std::string, spdlog::level::level_enum, std::string> const& onLogMessage() {
-  return dynamic_cast<SignalSink*>(getLoggerSignalSink().get())->onLogMessage;
+  return std::dynamic_pointer_cast<SignalSink>(getLoggerSignalSink())->onLogMessage;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

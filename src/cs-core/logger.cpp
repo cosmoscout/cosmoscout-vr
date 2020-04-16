@@ -14,7 +14,7 @@ namespace cs::core {
 
 spdlog::logger& logger() {
   static auto logger = utils::createLogger("cs-core");
-  return *logger.get();
+  return *logger;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

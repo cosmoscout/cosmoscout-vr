@@ -14,7 +14,7 @@ namespace cs::gui {
 
 spdlog::logger& logger() {
   static auto logger = utils::createLogger("cs-gui");
-  return *logger.get();
+  return *logger;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

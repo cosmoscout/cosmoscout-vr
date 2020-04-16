@@ -14,7 +14,7 @@ namespace cs::graphics {
 
 spdlog::logger& logger() {
   static auto logger = utils::createLogger("cs-graphics");
-  return *logger.get();
+  return *logger;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -14,7 +14,7 @@ namespace cs::scene {
 
 spdlog::logger& logger() {
   static auto logger = utils::createLogger("cs-scene");
-  return *logger.get();
+  return *logger;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
