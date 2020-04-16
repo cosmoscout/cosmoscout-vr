@@ -104,14 +104,15 @@ std::vector<std::string> splitString(std::string const& s, char delim) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 float getCurrentFarClipDistance() {
-  double near, far;
+  double near{};
+  double far{};
   GetVistaSystem()
       ->GetDisplayManager()
       ->GetCurrentRenderInfo()
       ->m_pViewport->GetProjection()
       ->GetProjectionProperties()
       ->GetClippingRange(near, far);
-  return (float)far;
+  return static_cast<float>(far);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -125,7 +126,7 @@ float getCurrentFarClipDistance() {
 #endif
 
 std::string exec(std::string const& cmd) {
-  std::array<char, 128>                      buffer;
+  std::array<char, 128>                      buffer{};
   std::string                                result;
   std::unique_ptr<FILE, decltype(&CS_CLOSE)> pipe(CS_POPEN(cmd.c_str(), "r"), CS_CLOSE);
   if (!pipe) {

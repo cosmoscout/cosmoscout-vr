@@ -13,7 +13,7 @@ namespace cs::gui::detail {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void RenderProcessHandler::OnContextCreated(
-    CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefV8Context> context) {
+    CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> /*frame*/, CefRefPtr<CefV8Context> context) {
 
   CefRefPtr<CefV8Value> object = context->GetGlobal();
   CefRefPtr<CefV8Value> func   = CefV8Value::CreateFunction("callNative", new JSHandler(browser));

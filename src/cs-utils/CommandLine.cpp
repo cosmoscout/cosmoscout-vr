@@ -25,7 +25,7 @@ CommandLine::CommandLine(std::string description)
 void CommandLine::addArgument(
     std::vector<std::string> const& flags, Value value, std::string const& help) {
 
-  mArguments.emplace_back(Argument{flags, std::move(value), help});
+  mArguments.emplace_back(Argument{flags, value, help});
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -71,7 +71,8 @@ void CommandLine::printHelp(std::ostream& os) const {
       currentLineWidth += nextSpacePos - currentSpacePos;
       currentSpacePos = nextSpacePos;
 
-      if (currentLineWidth > 60) {
+      const int32_t MAX_LINE_WIDTH = 60;
+      if (currentLineWidth > MAX_LINE_WIDTH) {
         os << sstr.str() << std::endl;
         sstr = std::stringstream();
         sstr << std::left << std::setw(maxFlagLength - 1) << " ";
@@ -83,14 +84,14 @@ void CommandLine::printHelp(std::ostream& os) const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CommandLine::parse(int argc, char* argv[]) const {
+void CommandLine::parse(std::vector<std::string> args) const {
 
   // Skip the first argument (name of the program).
-  int i = 1;
-  while (i < argc) {
+  size_t i = 0;
+  while (i < args.size()) {
 
     // We assume that the entire argument is an argument flag.
-    std::string flag(argv[i]);
+    std::string flag(args[i]);
     std::string value;
     bool        valueIsSeperate = false;
 
@@ -101,8 +102,8 @@ void CommandLine::parse(int argc, char* argv[]) const {
       flag  = flag.substr(0, equalPos);
     }
     // Else the following argument is the value.
-    else if (i + 1 < argc) {
-      value           = argv[i + 1];
+    else if (i + 1 < args.size()) {
+      value           = args[i + 1];
       valueIsSeperate = true;
     }
 

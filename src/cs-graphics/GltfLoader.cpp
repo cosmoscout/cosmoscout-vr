@@ -64,10 +64,11 @@ GltfLoader::GltfLoader(
     const std::string& sGltfFile, const std::string& cubemapFilepath, bool linearDepthBuffer)
     : mShared(std::make_shared<internal::GltfShared>()) {
   tinygltf::TinyGLTF loader;
-  std::string        err, warn;
+  std::string        err;
+  std::string        warn;
   std::string        ext = GetFilePathExtension(sGltfFile);
 
-  bool ret;
+  bool ret = false;
   if (ext == "glb") {
     // Assume binary glTF.
     ret = loader.LoadBinaryFromFile(&mShared->minyGltfModel, &err, &warn, sGltfFile);
@@ -141,7 +142,8 @@ void apply_transform(VistaTransformNode& vista_transform, tinygltf::Node const& 
   } else {
     // Assume Trans x Rotate x Scale order
     if (node.scale.size() == 3) {
-      vista_transform.SetScale((float)node.scale[0], (float)node.scale[1], (float)node.scale[1]);
+      vista_transform.SetScale(static_cast<float>(node.scale[0]), static_cast<float>(node.scale[1]),
+          static_cast<float>(node.scale[1]));
     }
 
     if (node.rotation.size() == 4) {
@@ -160,7 +162,7 @@ void build_node(VistaSceneGraph& sg, std::shared_ptr<internal::GltfShared> const
     VistaTransformNode* parent, tinygltf::Node const& tinygltf_node) {
   VistaTransformNode* transform_node = sg.NewTransformNode(parent);
   if (tinygltf_node.mesh >= 0) {
-    auto draw = new internal::VistaGltfNode(tinygltf_node, shared);
+    auto* draw = new internal::VistaGltfNode(tinygltf_node, shared);
     sg.NewOpenGLNode(transform_node, draw);
   }
 

@@ -23,16 +23,16 @@ template <typename T>
 class Property {
 
  public:
-  typedef T value_type;
+  using value_type = T;
 
   /// Properties for built-in types are automatically initialized to 0.
   Property() = default;
 
-  Property(T const& val)
+  Property(T const& val) // NOLINT(hicpp-explicit-conversions)
       : mValue(val) {
   }
 
-  Property(T&& val)
+  Property(T&& val) // NOLINT(hicpp-explicit-conversions)
       : mValue(std::move(val)) {
   }
 
@@ -40,12 +40,25 @@ class Property {
       : mValue(other.mValue) {
   }
 
-  Property(Property<T>&& other)
+  Property(Property<T>&& other) noexcept
       : mOnChange(std::move(other.mOnChange))
       , mConnection(other.mConnection)
       , mConnectionID(other.mConnectionID)
       , mValue(other.mValue) {
   }
+
+  Property& operator=(Property<T>&& other) noexcept {
+    if (this != &other) {
+      mOnChange     = std::move(other.mOnChange);
+      mConnection   = other.mConnection;
+      mConnectionID = other.mConnectionID;
+      mValue        = other.mValue;
+    }
+
+    return *this;
+  }
+
+  ~Property() = default;
 
   /// The given function is called when the internal value is about to be changed. The new value
   /// is passed as parameter, to access the old value you can use the get() method, as the internal
@@ -102,9 +115,9 @@ class Property {
   }
 
   /// Sets the Property to a new value. onChange() will be emitted for all but one connections.
-  virtual void setWithEmitForAllButOne(T const& value, int excludeConnection = -1) {
+  virtual void setWithEmitForAllButOne(T const& value, int excludeConnection) {
     if (value != mValue) {
-      mOnChange.emitForAllButOne(excludeConnection, mValue);
+      mOnChange.emitForAllButOne(excludeConnection, value);
       mValue = value;
     }
   }
@@ -165,9 +178,9 @@ class Property {
  private:
   mutable Signal<T> mOnChange;
 
-  mutable Property<T> const* mConnection   = nullptr;
-  mutable int                mConnectionID = -1;
-  T                          mValue{};
+  mutable Property<T> const* mConnection{nullptr};
+  mutable int                mConnectionID{-1};
+  T                          mValue{}; // Default initialize (primitives => 0 | false).
 };
 
 /// Stream operators.

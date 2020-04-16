@@ -27,9 +27,9 @@ namespace cs::core {
 /// all plugins.
 class CS_CORE_EXPORT GraphicsEngine {
  public:
-  utils::Property<float> pApproximateSceneBrightness = 1.f;
-  utils::Property<float> pAverageLuminance           = 1.f;
-  utils::Property<float> pMaximumLuminance           = 1.f;
+  utils::Property<float> pApproximateSceneBrightness = 1.F;
+  utils::Property<float> pAverageLuminance           = 1.F;
+  utils::Property<float> pMaximumLuminance           = 1.F;
 
   GraphicsEngine(std::shared_ptr<Settings> settings);
   ~GraphicsEngine();
@@ -44,8 +44,8 @@ class CS_CORE_EXPORT GraphicsEngine {
   std::shared_ptr<graphics::ShadowMap> getShadowMap() const;
   std::shared_ptr<graphics::HDRBuffer> getHDRBuffer() const;
 
-  void enableGLDebug(bool onlyErrors = true);
-  void disableGLDebug();
+  static void enableGLDebug(bool onlyErrors = true);
+  static void disableGLDebug();
 
  private:
   void calculateCascades();

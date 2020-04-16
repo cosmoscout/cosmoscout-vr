@@ -21,8 +21,9 @@ void CelestialObserver::updateMovementAnimation(double tTime) {
     mPosition = mAnimatedPosition.get(tTime);
     mRotation = mAnimatedRotation.get(tTime);
 
-    if (mAnimatedPosition.mEndTime < tTime)
+    if (mAnimatedPosition.mEndTime < tTime) {
       mAnimationInProgress = false;
+    }
   }
 }
 
@@ -93,6 +94,12 @@ void CelestialObserver::moveTo(std::string const& sCenterName, std::string const
       startRot, rotation, dRealStartTime, dRealEndTime, utils::AnimationDirection::eInOut);
 
   mAnimationInProgress = true;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool CelestialObserver::isAnimationInProgress() const {
+  return mAnimationInProgress;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

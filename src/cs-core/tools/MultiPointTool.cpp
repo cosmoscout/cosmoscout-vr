@@ -6,6 +6,8 @@
 
 #include "MultiPointTool.hpp"
 
+#include <utility>
+
 #include "../../cs-scene/CelestialBody.hpp"
 #include "../../cs-utils/convert.hpp"
 #include "../InputManager.hpp"
@@ -14,16 +16,15 @@ namespace cs::core::tools {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-MultiPointTool::MultiPointTool(std::shared_ptr<InputManager> const& pInputManager,
-    std::shared_ptr<SolarSystem> const& pSolarSystem, std::shared_ptr<Settings> const& settings,
-    std::shared_ptr<TimeControl> const& pTimeControl, std::string const& sCenter,
-    std::string const& sFrame)
-    : mInputManager(pInputManager)
-    , mSolarSystem(pSolarSystem)
-    , mSettings(settings)
-    , mTimeControl(pTimeControl)
-    , mCenter(sCenter)
-    , mFrame(sFrame) {
+MultiPointTool::MultiPointTool(std::shared_ptr<InputManager> pInputManager,
+    std::shared_ptr<SolarSystem> pSolarSystem, std::shared_ptr<Settings> settings,
+    std::shared_ptr<TimeControl> pTimeControl, std::string sCenter, std::string sFrame)
+    : mInputManager(std::move(pInputManager))
+    , mSolarSystem(std::move(pSolarSystem))
+    , mSettings(std::move(settings))
+    , mTimeControl(std::move(pTimeControl))
+    , mCenter(std::move(sCenter))
+    , mFrame(std::move(sFrame)) {
 
   // if pAddPointMode is true, a new point will be add on left mouse button click
   mLeftButtonConnection = mInputManager->pButtons[0].connect([this](bool pressed) {
@@ -75,7 +76,7 @@ void MultiPointTool::addPoint() {
   }
 
   // register callback to update line vertices when the landmark position has been changed
-  mPoints.back()->pLngLat.connect([this](glm::dvec2 const&) { onPointMoved(); });
+  mPoints.back()->pLngLat.connect([this](glm::dvec2 const& /*unused*/) { onPointMoved(); });
 
   // call update once since new data is available
   onPointAdded();

@@ -12,6 +12,8 @@
 #include <VistaKernel/VistaSystem.h>
 #include <spdlog/spdlog.h>
 
+#include <utility>
+
 namespace cs::core {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -109,7 +111,7 @@ void TimeControl::update() {
   }
 
   mLastUpdate = now;
-}
+} // namespace cs::core
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -124,9 +126,12 @@ void TimeControl::setTime(double tTime, double duration, double threshold) {
     // Make no animation for very large time changes.
     pSimulationTime = tTime;
   } else {
+    double const reduction = 0.2;
+    double const inverse   = 1.0 - reduction;
+
     // Make smooth animation for time changes greater than the given threshold. We reduce the
     // duration up to 20% of the given value if the difference is smaller than the threshold.
-    duration = 0.2 * duration + 0.8 * duration * difference / threshold;
+    duration = reduction * duration + inverse * duration * difference / threshold;
 
     mAnimatedTime = utils::AnimatedValue<double>(
         pSimulationTime.get(), tTime, now, now + duration, utils::AnimationDirection::eInOut);

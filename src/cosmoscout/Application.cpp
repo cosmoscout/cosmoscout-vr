@@ -35,31 +35,31 @@
 #include <VistaKernel/VistaSystem.h>
 #include <VistaOGLExt/VistaShaderRegistry.h>
 #include <curlpp/cURLpp.hpp>
+#include <memory>
 #include <spdlog/spdlog.h>
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #ifdef __linux__
-#define OPENLIB(libname) dlopen((libname), RTLD_LAZY)
-#define LIBFUNC(handle, fn) dlsym((handle), (fn))
-#define CLOSELIB(handle) dlclose((handle))
-#define LIBERROR() dlerror()
-#define LIBFILETYPE ".so"
-#define PLUGIN_PATH "../share/plugins/"
+#define OPENLIB(libname) dlopen((libname), RTLD_LAZY) // NOLINT
+#define LIBFUNC(handle, fn) dlsym((handle), (fn))     // NOLINT
+#define CLOSELIB(handle) dlclose((handle))            // NOLINT
+#define LIBERROR() dlerror()                          // NOLINT
+#define LIBFILETYPE ".so"                             // NOLINT
+#define PLUGIN_PATH "../share/plugins/"               // NOLINT
 #else
-#define OPENLIB(libname) LoadLibrary((libname))
-#define LIBFUNC(handle, fn) GetProcAddress((HMODULE)(handle), (fn))
-#define CLOSELIB(handle) FreeLibrary((HMODULE)(handle))
-#define LIBERROR() GetLastError()
-#define LIBFILETYPE ".dll"
-#define PLUGIN_PATH "..\\share\\plugins\\"
+#define OPENLIB(libname) LoadLibrary((libname))                     // NOLINT
+#define LIBFUNC(handle, fn) GetProcAddress((HMODULE)(handle), (fn)) // NOLINT
+#define CLOSELIB(handle) FreeLibrary((HMODULE)(handle))             // NOLINT
+#define LIBERROR() GetLastError()                                   // NOLINT
+#define LIBFILETYPE ".dll"                                          // NOLINT
+#define PLUGIN_PATH "..\\share\\plugins\\"                          // NOLINT
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Application::Application(std::shared_ptr<cs::core::Settings> const& settings)
-    : VistaFrameLoop()
-    , mSettings(settings) {
+Application::Application(std::shared_ptr<cs::core::Settings> settings)
+    : mSettings(std::move(settings)) {
 
   mSettings->onLoad().connect([this]() { onLoad(); });
 
@@ -91,13 +91,14 @@ bool Application::Init(VistaSystem* pVistaSystem) {
   mTimeControl = std::make_shared<cs::core::TimeControl>(mSettings);
   mSolarSystem = std::make_shared<cs::core::SolarSystem>(
       mSettings, mFrameTimings, mGraphicsEngine, mTimeControl);
-  mDragNavigation.reset(new cs::core::DragNavigation(mSolarSystem, mInputManager, mTimeControl));
+  mDragNavigation =
+      std::make_unique<cs::core::DragNavigation>(mSolarSystem, mInputManager, mTimeControl);
 
   // The ObserverNavigationNode is used by several DFN networks to move the celestial observer.
   VdfnNodeFactory* pNodeFactory = VdfnNodeFactory::GetSingleton();
-  pNodeFactory->SetNodeCreator(
+  pNodeFactory->SetNodeCreator( // NOLINTNEXTLINE: TODO is this a memory leak?
       "ObserverNavigationNode", new ObserverNavigationNodeCreate(mSolarSystem.get()));
-  pNodeFactory->SetNodeCreator(
+  pNodeFactory->SetNodeCreator( // NOLINTNEXTLINE: TODO is this a memory leak?
       "GetSelectionStateNode", new GetSelectionStateNodeCreate(mInputManager.get()));
 
   // This connects several parts of CosmoScout VR to each other.
@@ -111,7 +112,7 @@ bool Application::Init(VistaSystem* pVistaSystem) {
   mSettings->pEnableMouseRay.connectAndTouch([this](bool enable) {
     // If we are running on freeglut, we can hide the mouse pointer when the mouse ray should be
     // shown. This is determined by the settings key "enableMouseRay".
-    auto windowingToolkit = dynamic_cast<VistaGlutWindowingToolkit*>(
+    auto* windowingToolkit = dynamic_cast<VistaGlutWindowingToolkit*>(
         GetVistaSystem()->GetDisplayManager()->GetWindowingToolkit());
 
     if (windowingToolkit) {
@@ -297,10 +298,11 @@ void Application::FrameUpdate() {
 
   // At frame 25 we start to download datasets. This ensures that the loading screen is actually
   // already visible.
-  if (GetFrameCount() == 25) {
-    if (mSettings->mDownloadData.size() > 0) {
+  int32_t const waitFrames = 25;
+  if (GetFrameCount() == waitFrames) {
+    if (!mSettings->mDownloadData.empty()) {
       // Download datasets in parallel. We use 10 threads to download the data.
-      mDownloader.reset(new cs::utils::Downloader(10));
+      mDownloader = std::make_unique<cs::utils::Downloader>(10);
       for (auto const& download : mSettings->mDownloadData) {
         mDownloader->download(download.mUrl, download.mFile);
       }
@@ -308,7 +310,7 @@ void Application::FrameUpdate() {
       // If all files were already downloaded, this could have gone quite quickly...
       if (mDownloader->hasFinished()) {
         mDownloadedData = true;
-        mDownloader.release();
+        mDownloader.reset(nullptr);
       } else {
         // Show to the user what's going on.
         mGuiManager->setLoadingScreenStatus("Downloading data...");
@@ -328,7 +330,7 @@ void Application::FrameUpdate() {
   // Once the data download has finished, we can delete our downloader.
   if (!mDownloadedData && mDownloader && mDownloader->hasFinished()) {
     mDownloadedData = true;
-    mDownloader.release();
+    mDownloader.reset(nullptr);
   }
 
   // If all data is available, we can initialize the SolarSystem. This can only be done after the
@@ -383,7 +385,7 @@ void Application::FrameUpdate() {
 
         // Update the loading screen status.
         mGuiManager->setLoadingScreenStatus("Ready for Takeoff");
-        mGuiManager->setLoadingScreenProgress(100.f, true);
+        mGuiManager->setLoadingScreenProgress(100.F, true);
 
         // We will keep the loading screen active for some frames, as the first frames are usually a
         // bit choppy as data is uploaded to the GPU.
@@ -399,7 +401,8 @@ void Application::FrameUpdate() {
         auto plugin = mPlugins.begin();
         std::advance(plugin, pluginToLoad + 1);
         mGuiManager->setLoadingScreenStatus("Loading " + plugin->first + " ...");
-        mGuiManager->setLoadingScreenProgress(100.f * (pluginToLoad + 1) / mPlugins.size(), true);
+        mGuiManager->setLoadingScreenProgress(
+            100.F * static_cast<float>(pluginToLoad + 1) / mPlugins.size(), true);
       }
     }
   }
@@ -460,7 +463,7 @@ void Application::FrameUpdate() {
         glm::dquat mRotation;
         double     mScale;
         double     mTime;
-      } syncMessage;
+      } syncMessage{};
 
       syncMessage.mPosition = mSolarSystem->getObserver().getAnchorPosition();
       syncMessage.mRotation = mSolarSystem->getObserver().getAnchorRotation();
@@ -507,7 +510,7 @@ void Application::FrameUpdate() {
     if (mSolarSystem->pActiveBody.get()) {
 
       // Update the user's position display in the header bar.
-      auto                pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
+      auto*               pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
       VistaTransformNode* pTrans =
           dynamic_cast<VistaTransformNode*>(pSG->GetNode("Platform-User-Node"));
 
@@ -590,8 +593,9 @@ void Application::testLoadAllPlugins() {
       COSMOSCOUT_LIBTYPE pluginHandle = OPENLIB(plugin.c_str());
 
       if (pluginHandle) {
-        cs::core::PluginBase* (*pluginConstructor)();
-        pluginConstructor = (cs::core::PluginBase * (*)()) LIBFUNC(pluginHandle, "create");
+        cs::core::PluginBase* (*pluginConstructor)(){};
+        pluginConstructor = // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+            reinterpret_cast<cs::core::PluginBase* (*)()>(LIBFUNC(pluginHandle, "create"));
 
         if (pluginConstructor) {
           spdlog::info("Plugin '{}' found.", plugin);
@@ -651,8 +655,9 @@ void Application::openPlugin(std::string const& name) {
       COSMOSCOUT_LIBTYPE pluginHandle = OPENLIB(path.c_str());
 
       if (pluginHandle) {
-        cs::core::PluginBase* (*pluginConstructor)();
-        pluginConstructor = (cs::core::PluginBase * (*)()) LIBFUNC(pluginHandle, "create");
+        cs::core::PluginBase* (*pluginConstructor)(){};
+        pluginConstructor = // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+            reinterpret_cast<cs::core::PluginBase* (*)()>(LIBFUNC(pluginHandle, "create"));
 
         spdlog::info("Opening plugin '{}'.", name);
 
@@ -724,8 +729,9 @@ void Application::closePlugin(std::string const& name) {
   if (plugin != mPlugins.end()) {
     spdlog::info("Closing plugin '{}'.", plugin->first);
 
-    auto handle           = plugin->second.mHandle;
-    auto pluginDestructor = (void (*)(cs::core::PluginBase*))LIBFUNC(handle, "destroy");
+    auto* handle           = plugin->second.mHandle;
+    auto  pluginDestructor = // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+        reinterpret_cast<void (*)(cs::core::PluginBase*)>(LIBFUNC(handle, "destroy"));
 
     pluginDestructor(plugin->second.mPlugin);
     CLOSELIB(handle);
@@ -765,7 +771,9 @@ void Application::connectSlots() {
   // Update the time shown in the user interface when the simulation time changes.
   mTimeControl->pSimulationTime.connect([this](double val) {
     std::stringstream sstr;
-    auto              facet = new boost::posix_time::time_facet();
+
+    // NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
+    auto* facet = new boost::posix_time::time_facet();
     facet->format("%d-%b-%Y %H:%M:%S.%f");
     sstr.imbue(std::locale(std::locale::classic(), facet));
     sstr << cs::utils::convert::toBoostTime(val);
@@ -832,8 +840,8 @@ void Application::connectSlots() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Application::registerGuiCallbacks() {
-
-  // core callbacks --------------------------------------------------------------------------------
+  // core callbacks
+  // --------------------------------------------------------------------------------
 
   // Saves the current scene state in a specified file.
   mGuiManager->getGui()->registerCallback("core.save",
@@ -877,7 +885,8 @@ void Application::registerGuiCallbacks() {
         }
       }));
 
-  // graphics callbacks ----------------------------------------------------------------------------
+  // graphics callbacks
+  // ----------------------------------------------------------------------------
 
   // Enables lighting computation globally.
   mGuiManager->getGui()->registerCallback("graphics.setEnableLighting",
@@ -896,7 +905,8 @@ void Application::registerGuiCallbacks() {
 
   // Freezes the shadow frustum.
   mGuiManager->getGui()->registerCallback("graphics.setEnableShadowFreeze",
-      "If enabled, the camera frustum used for the calculation of the shadow map cascades is not "
+      "If enabled, the camera frustum used for the calculation of the shadow map cascades is "
+      "not "
       "updated anymore.",
       std::function([this](bool enable) { mSettings->mGraphics.pEnableShadowsFreeze = enable; }));
 
@@ -908,7 +918,8 @@ void Application::registerGuiCallbacks() {
 
   // Adjusts the resolution of the shadowmap.
   mGuiManager->getGui()->registerCallback("graphics.setShadowmapResolution",
-      "Sets the resolution of the shadow maps. This should be a power of two, e.g. 256, 512, 1024, "
+      "Sets the resolution of the shadow maps. This should be a power of two, e.g. 256, 512, "
+      "1024, "
       "etc.",
       std::function([this](double val) {
         mSettings->mGraphics.pShadowMapResolution = static_cast<int>(val);
@@ -929,10 +940,10 @@ void Application::registerGuiCallbacks() {
         glm::vec2 range = mSettings->mGraphics.pShadowMapRange.get();
 
         if (handle == 0.0) {
-          range.x = (float)val;
+          range.x = static_cast<float>(val);
         } else {
-          range.y = (float)val;
-        };
+          range.y = static_cast<float>(val);
+        }
 
         mSettings->mGraphics.pShadowMapRange = range;
       }));
@@ -940,16 +951,17 @@ void Application::registerGuiCallbacks() {
   // Adjusts the additional frustum length for shadowmap rendering in sun space.
   mGuiManager->getGui()->registerCallback("graphics.setShadowmapExtension",
       "Sets one end of the shadow frustum range in sun direction. The first parameter is the "
-      "actual value in sunspace, the second specifies which end to set: Zero for the closer end; "
+      "actual value in sunspace, the second specifies which end to set: Zero for the closer "
+      "end; "
       "One for the farther end.",
       std::function([this](double val, double handle) {
         glm::vec2 extension = mSettings->mGraphics.pShadowMapExtension.get();
 
         if (handle == 0.0) {
-          extension.x = (float)val;
+          extension.x = static_cast<float>(val);
         } else {
-          extension.y = (float)val;
-        };
+          extension.y = static_cast<float>(val);
+        }
 
         mSettings->mGraphics.pShadowMapExtension = extension;
       }));
@@ -1036,7 +1048,8 @@ void Application::registerGuiCallbacks() {
       "If enabled, the glow amount is chosen based on the current exposure.",
       std::function([this](bool val) { mSettings->mGraphics.pEnableAutoGlow = val; }));
 
-  // If auto-glow is enabled, we update the slider in the user interface to show the current value.
+  // If auto-glow is enabled, we update the slider in the user interface to show the current
+  // value.
   mSettings->mGraphics.pGlowIntensity.connect([this](float value) {
     if (mSettings->mGraphics.pEnableAutoGlow.get()) {
       mGuiManager->getGui()->callJavascript(
@@ -1074,10 +1087,11 @@ void Application::registerGuiCallbacks() {
       std::function([this](double val, double handle) {
         glm::vec2 range = mSettings->mGraphics.pAutoExposureRange.get();
 
-        if (handle == 0.0)
+        if (handle == 0.0) {
           range.x = static_cast<float>(val);
-        else
+        } else {
           range.y = static_cast<float>(val);
+        }
 
         mSettings->mGraphics.pAutoExposureRange = range;
       }));
@@ -1098,7 +1112,8 @@ void Application::registerGuiCallbacks() {
             ->SetVSyncEnabled(value);
       }));
 
-  // Timeline callbacks ----------------------------------------------------------------------------
+  // Timeline callbacks
+  // ----------------------------------------------------------------------------
 
   // Sets the current simulation time. The argument must be a string accepted by
   // TimeControl::setTime.
@@ -1113,34 +1128,43 @@ void Application::registerGuiCallbacks() {
   // Sets the current simulation time. The argument must be a double representing Barycentric
   // Dynamical Time.
   mGuiManager->getGui()->registerCallback("time.set",
-      "Sets the current simulation time. The value must be in barycentric dynamical time. If the "
+      "Sets the current simulation time. The value must be in barycentric dynamical time. If "
+      "the "
       "absolute difference to the current simulation time is lower than the given threshold "
-      "(optionalDouble2, default is 172800s which is 48h), there will be a transition of the given "
+      "(optionalDouble2, default is 172800s which is 48h), there will be a transition of the "
+      "given "
       "duration (optionalDouble, default is 0s).",
       std::function(
           [this](double tTime, std::optional<double> duration, std::optional<double> threshold) {
-            mTimeControl->setTime(tTime, duration.value_or(0.0), threshold.value_or(48 * 60 * 60));
+            double const twoDays = 48 * 60 * 60;
+            mTimeControl->setTime(tTime, duration.value_or(0.0), threshold.value_or(twoDays));
           }));
 
   // Resets the time to the configured start time.
   mGuiManager->getGui()->registerCallback("time.reset",
-      "Resets the simulation time to the default value. If the absolute difference to the current "
+      "Resets the simulation time to the default value. If the absolute difference to the "
+      "current "
       "simulation time is lower than the given threshold (optionalDouble2, default is 172800s "
-      "which is 48h), there will be a transition of the given duration (optionalDouble, default is "
+      "which is 48h), there will be a transition of the given duration (optionalDouble, "
+      "default is "
       "0s).",
       std::function([this](std::optional<double> duration, std::optional<double> threshold) {
-        mTimeControl->resetTime(duration.value_or(0.0), threshold.value_or(48 * 60 * 60));
+        double const twoDays = 48 * 60 * 60;
+        mTimeControl->resetTime(duration.value_or(0.0), threshold.value_or(twoDays));
       }));
 
   // Modifies the current simulation time by adding some (fractional) hours.
   mGuiManager->getGui()->registerCallback("time.addHours",
-      "Adds the given amount of hours to the current simulation time. If the amount is lower than "
+      "Adds the given amount of hours to the current simulation time. If the amount is lower "
+      "than "
       "the given threshold (optionalDouble2, default is 172800s which is 48h), there will be a "
       "transition of the given duration (optionalDouble, default is 0s).",
       std::function(
           [this](double amount, std::optional<double> duration, std::optional<double> threshold) {
-            mTimeControl->setTime(mTimeControl->pSimulationTime.get() + 60.0 * 60.0 * amount,
-                duration.value_or(0.0), threshold.value_or(48 * 60 * 60));
+            double const twoDays        = 48 * 60 * 60;
+            double const hoursToSeconds = 60.0 * 60.0;
+            mTimeControl->setTime(mTimeControl->pSimulationTime.get() + hoursToSeconds * amount,
+                duration.value_or(0.0), threshold.value_or(twoDays));
           }));
 
   // Adjusts the simulation time speed.
@@ -1149,21 +1173,26 @@ void Application::registerGuiCallbacks() {
         mTimeControl->setTimeSpeed(static_cast<float>(speed));
       }));
 
-  // navigation callbacks --------------------------------------------------------------------------
+  // navigation callbacks
+  // --------------------------------------------------------------------------
 
   // Sets the observer position to the given cartesian coordinates.
   mGuiManager->getGui()->registerCallback("navigation.setPosition",
-      "Sets the observer position to the given cartesian coordinates. The optional double argument "
+      "Sets the observer position to the given cartesian coordinates. The optional double "
+      "argument "
       "specifies the transition time in seconds (default is 5s).",
       std::function([this](double x, double y, double z, std::optional<double> duration) {
+        double const animationTimeSeconds = 5.0;
         mSolarSystem->flyObserverTo(mSolarSystem->getObserver().getCenterName(),
             mSolarSystem->getObserver().getFrameName(), glm::dvec3(x, y, z),
-            mSolarSystem->getObserver().getAnchorRotation(), duration.value_or(5.0));
+            mSolarSystem->getObserver().getAnchorRotation(),
+            duration.value_or(animationTimeSeconds));
       }));
 
   // Sets the observer rotation to the given quaternion coordinates.
   mGuiManager->getGui()->registerCallback("navigation.setRotation",
-      "Sets the observer rotation to the given quaternion. The optional double argument specifies "
+      "Sets the observer rotation to the given quaternion. The optional double argument "
+      "specifies "
       "the transition time in seconds (default is 2s).",
       std::function([this](double w, double x, double y, double z, std::optional<double> duration) {
         mSolarSystem->flyObserverTo(mSolarSystem->getObserver().getCenterName(),
@@ -1189,7 +1218,8 @@ void Application::registerGuiCallbacks() {
 
   // Flies the celestial observer to the given location in space.
   mGuiManager->getGui()->registerCallback("navigation.setBodyLongLatHeightDuration",
-      "Makes the observer fly to a given postion in space. First parameter is the target bodies "
+      "Makes the observer fly to a given postion in space. First parameter is the target "
+      "bodies "
       "name, then latitude, longitude and elevation are required. The optional double argument "
       "specifies the transition time in seconds (default is 10s).",
       std::function([this](std::string&& name, double longitude, double latitude, double height,
@@ -1204,8 +1234,8 @@ void Application::registerGuiCallbacks() {
         }
       }));
 
-  // Rotates the scene in such a way, that the y-axis points towards the north pole of the currently
-  // active celestial body.
+  // Rotates the scene in such a way, that the y-axis points towards the north pole of the
+  // currently active celestial body.
   mGuiManager->getGui()->registerCallback("navigation.northUp",
       "Turns the observer so that north is facing upwards. The optional argument specifies the "
       "animation time in seconds (default is 1s).",
@@ -1230,7 +1260,8 @@ void Application::registerGuiCallbacks() {
 
   // Rotates the scene in such a way, that the currently visible horizon is levelled.
   mGuiManager->getGui()->registerCallback("navigation.fixHorizon",
-      "Turns the observer so that the horizon is horizontal. The optional argument specifies the "
+      "Turns the observer so that the horizon is horizontal. The optional argument specifies "
+      "the "
       "animation time in seconds (default is 1s).",
       std::function([this](std::optional<double> duration) {
         auto radii = cs::core::SolarSystem::getRadii(mSolarSystem->getObserver().getCenterName());
@@ -1277,7 +1308,8 @@ void Application::registerGuiCallbacks() {
             mSolarSystem->getObserver().getAnchorPosition(), radii[0], radii[0]);
 
         // fly to 0.1% of current height
-        double height = lngLatHeight.z * 0.001;
+        double const permille = 0.001;
+        double       height   = lngLatHeight.z * permille;
 
         // limit to at least 10% of planet radius and at most 2m
         height = glm::clamp(height, 2.0, radii[0] * 0.1);
@@ -1312,7 +1344,8 @@ void Application::registerGuiCallbacks() {
   // Flies the celestial observer to an orbit at three times the radius of the currently active
   // celestial body.
   mGuiManager->getGui()->registerCallback("navigation.toOrbit",
-      "Increases the altitude of the observer significantly. The optional argument specifies the "
+      "Increases the altitude of the observer significantly. The optional argument specifies "
+      "the "
       "animation time in seconds (default is 3s).",
       std::function([this](std::optional<double> duration) {
         auto observerRot = mSolarSystem->getObserver().getAnchorRotation();

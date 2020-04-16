@@ -14,31 +14,39 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 GetSelectionStateNode::GetSelectionStateNode(
-    cs::core::InputManager* pInputManager, VistaPropertyList const&)
-    : IVdfnNode()
-    , mInputManager(pInputManager) {
+    cs::core::InputManager* pInputManager, VistaPropertyList const& /*unused*/)
+    : mInputManager(pInputManager)
+    , mSelectedGuiItemHasKeyboardFocus(new TVdfnPort<bool>())
+    , mHoveredGuiItemAllowsScrolling(new TVdfnPort<bool>())
+    , mHoveredGuiItem(new TVdfnPort<bool>())
+    , mActiveGuiItem(new TVdfnPort<bool>())
+    , mSelectedGuiItem(new TVdfnPort<bool>())
+    , mHoveredNode(new TVdfnPort<bool>())
+    , mActiveNode(new TVdfnPort<bool>())
+    , mSelectedNode(new TVdfnPort<bool>()) {
 
   SetEvaluationFlag(true);
 
-  RegisterOutPort("selected_gui_item_has_keyboard_focus", &mSelectedGuiItemHasKeyboardFocus);
-  RegisterOutPort("hovered_gui_item_allows_scrolling", &mHoveredGuiItemAllowsScrolling);
-  RegisterOutPort("hovered_gui_item", &mHoveredGuiItem);
-  RegisterOutPort("active_gui_item", &mActiveGuiItem);
-  RegisterOutPort("selected_gui_item", &mSelectedGuiItem);
-  RegisterOutPort("hovered_node", &mHoveredNode);
-  RegisterOutPort("active_node", &mActiveNode);
-  RegisterOutPort("selected_node", &mSelectedNode);
+  // Ports will be deleted in the IVdfnNode's destructor.
+  RegisterOutPort("selected_gui_item_has_keyboard_focus", mSelectedGuiItemHasKeyboardFocus);
+  RegisterOutPort("hovered_gui_item_allows_scrolling", mHoveredGuiItemAllowsScrolling);
+  RegisterOutPort("hovered_gui_item", mHoveredGuiItem);
+  RegisterOutPort("active_gui_item", mActiveGuiItem);
+  RegisterOutPort("selected_gui_item", mSelectedGuiItem);
+  RegisterOutPort("hovered_node", mHoveredNode);
+  RegisterOutPort("active_node", mActiveNode);
+  RegisterOutPort("selected_node", mSelectedNode);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool GetSelectionStateNode::DoEvalNode() {
 
-  const auto updatePort = [](TVdfnPort<bool>& port, bool newVal) {
-    bool& oldVal = port.GetValueRef();
+  const auto updatePort = [](TVdfnPort<bool>* port, bool newVal) {
+    bool& oldVal = port->GetValueRef();
     if (oldVal != newVal) {
       oldVal = newVal;
-      port.IncUpdateCounter();
+      port->IncUpdateCounter();
     }
   };
 

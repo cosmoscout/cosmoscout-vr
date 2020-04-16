@@ -30,14 +30,13 @@ namespace cs::core {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-SolarSystem::SolarSystem(std::shared_ptr<Settings> const& settings,
-    std::shared_ptr<utils::FrameTimings> const&           frameTimings,
-    std::shared_ptr<GraphicsEngine> const&                graphicsEngine,
-    std::shared_ptr<TimeControl> const&                   timeControl)
-    : mSettings(settings)
-    , mFrameTimings(frameTimings)
-    , mGraphicsEngine(graphicsEngine)
-    , mTimeControl(timeControl)
+SolarSystem::SolarSystem(std::shared_ptr<Settings> settings,
+    std::shared_ptr<utils::FrameTimings>           frameTimings,
+    std::shared_ptr<GraphicsEngine> graphicsEngine, std::shared_ptr<TimeControl> timeControl)
+    : mSettings(std::move(settings))
+    , mFrameTimings(std::move(frameTimings))
+    , mGraphicsEngine(std::move(graphicsEngine))
+    , mTimeControl(std::move(timeControl))
     , mSun(std::make_shared<scene::CelestialObject>("Sun", "IAU_Sun")) {
 
   // Tell the user what's going on.
@@ -182,10 +181,10 @@ void SolarSystem::update() {
   // distance of Earth.
 
   // Sun's illuminance in lux at Earth.
-  double sunIlluminanceAtEarth = 1.1e5;
+  double const sunIlluminanceAtEarth = 1.1e5;
 
   // Average distance between Sun and Earth in meters.
-  double distEarthSun = 1.496e11;
+  double const distEarthSun = 1.496e11;
 
   // Luminous power of the Sun in lumens.
   double sunLuminousPower =
@@ -204,8 +203,9 @@ void SolarSystem::update() {
 
   // Duration is in nanoseconds so we have to multiply by 1.0e9.
   if (duration > 0) {
+    double const secToNano = 1.0e9;
     pCurrentObserverSpeed =
-        static_cast<float>(1.0e9 * glm::length(mLastPosition - observerPosition) / duration);
+        static_cast<float>(secToNano * glm::length(mLastPosition - observerPosition) / duration);
     mLastPosition = observerPosition;
     mLastTime     = now;
   }
@@ -446,18 +446,19 @@ void SolarSystem::flyObserverTo(
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void SolarSystem::printFrames() {
-  SPICEINT_CELL(ids, 1000);
+  SPICEINT_CELL(ids, 1000); // NOLINT: Creates a c-array.
   bltfrm_c(SPICE_FRMTYP_ALL, &ids);
 
   spdlog::info("-----------------------------------------");
   spdlog::info("Built-in frames:");
   spdlog::info("-----------------------------------------");
 
-  for (int i = 0; i < card_c(&ids); ++i) {
-    int obj = SPICE_CELL_ELEM_I(&ids, i);
+  int64_t const length = 50;
 
-    std::string out(50, ' ');
-    frmnam_c(obj, 50, &out[0]);
+  for (int i = 0; i < card_c(&ids); ++i) {
+    int         obj = SPICE_CELL_ELEM_I(&ids, i); // NOLINT
+    std::string out(length, ' ');
+    frmnam_c(obj, length, &out[0]);
 
     spdlog::info(out);
   }
@@ -466,12 +467,12 @@ void SolarSystem::printFrames() {
   spdlog::info("Loaded frames:");
   spdlog::info("-----------------------------------------");
 
-  kplfrm_c(SPICE_FRMTYP_ALL, &ids);
+  kplfrm_c(SPICE_FRMTYP_ALL, &ids); // NOLINT
   for (int i = 0; i < card_c(&ids); ++i) {
-    int obj = SPICE_CELL_ELEM_I(&ids, i);
+    int obj = SPICE_CELL_ELEM_I(&ids, i); // NOLINT
 
-    std::string out(50, ' ');
-    frmnam_c(obj, 50, &out[0]);
+    std::string out(length, ' ');
+    frmnam_c(obj, length, &out[0]);
 
     spdlog::info(out);
   }
@@ -481,19 +482,23 @@ void SolarSystem::printFrames() {
 
 void SolarSystem::init(std::string const& sSpiceMetaFile) {
 
+  std::string actionReturn = "RETURN";
   // Continue execution on errors.
-  erract_c("SET", 0, const_cast<char*>("RETURN"));
+  erract_c("SET", 0, actionReturn.data());
 
+  std::string actionNull = "NULL";
   // Disable default error reports.
-  errdev_c("SET", 0, const_cast<char*>("NULL"));
+  errdev_c("SET", 0, actionNull.data());
 
   // Load the spice kernels.
   furnsh_c(sSpiceMetaFile.c_str());
 
   if (failed_c()) {
-    SpiceChar msg[320];
-    getmsg_c("LONG", 320, msg);
-    throw std::runtime_error(msg);
+    int32_t const maxSpiceErrorLength = 320;
+
+    std::array<SpiceChar, maxSpiceErrorLength> msg{};
+    getmsg_c("LONG", maxSpiceErrorLength, msg.data());
+    throw std::runtime_error(msg.data());
   }
 
   mIsInitialized = true;
@@ -598,8 +603,8 @@ void SolarSystem::turnToObserver(scene::CelestialAnchor& anchor,
 
 glm::dvec3 SolarSystem::getRadii(std::string const& sCenterName) {
   // get target id code
-  SpiceInt     id;
-  SpiceBoolean found;
+  SpiceInt     id{};
+  SpiceBoolean found{};
   bodn2c_c(sCenterName.c_str(), &id, &found);
 
   // check if radius information is available
@@ -608,10 +613,11 @@ glm::dvec3 SolarSystem::getRadii(std::string const& sCenterName) {
   }
 
   // compute radius and convert it to meters
-  SpiceInt   n;
+  SpiceInt   n{};
   glm::dvec3 result;
   bodvrd_c(sCenterName.c_str(), "RADII", 3, &n, glm::value_ptr(result));
-  result = result * 1000.0;
+  double const kmToMeter = 1000.0;
+  result                 = result * kmToMeter;
 
   if (n != 3) {
     throw std::runtime_error("Failed to retrieve radii for object " + sCenterName + ".");
