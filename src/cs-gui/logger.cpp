@@ -8,14 +8,15 @@
 
 #include "../cs-utils/logger.hpp"
 
-namespace cs::gui::logger {
+namespace cs::gui {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void init() {
-  spdlog::set_default_logger(utils::logger::createLogger("cs-gui"));
+std::shared_ptr<spdlog::logger> logger() {
+  static auto logger = utils::createLogger("cs-gui");
+  return logger;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-} // namespace cs::gui::logger
+} // namespace cs::gui

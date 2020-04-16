@@ -7,10 +7,11 @@
 #include "logger.hpp"
 
 #include <VistaBase/VistaStreamUtils.h>
-#include <spdlog/sinks/base_sink.h>
+#include <spdlog/sinks/basic_file_sink.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
 #include <sstream>
 
-namespace cs::utils::logger {
+namespace cs::utils {
 
 namespace {
 
@@ -44,11 +45,11 @@ class SpdlogBuffer : public std::streambuf {
 
 class SignalSink : public spdlog::sinks::base_sink<std::mutex> {
  public:
-  Signal<std::string, spdlog::level::level_enum, std::string> onMessage;
+  Signal<std::string, spdlog::level::level_enum, std::string> onLogMessage;
 
  protected:
   void sink_it_(const spdlog::details::log_msg& msg) override {
-    onMessage.emit(std::string(msg.logger_name.begin(), msg.logger_name.end()), msg.level,
+    onLogMessage.emit(std::string(msg.logger_name.begin(), msg.logger_name.end()), msg.level,
         std::string(msg.payload.begin(), msg.payload.end()));
   }
 
@@ -58,22 +59,11 @@ class SignalSink : public spdlog::sinks::base_sink<std::mutex> {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// Setup our sinks. The logger will print to the console and store it's messages in a file called
-// cosmoscout.log.
-auto signalSink = std::make_shared<SignalSink>();
-auto fileSink   = std::make_shared<spdlog::sinks::basic_file_sink_mt>("cosmoscout.log", true);
-auto coutSink   = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
-std::vector<spdlog::sink_ptr> sinks = {signalSink, coutSink, fileSink};
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 } // namespace
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void init() {
-  spdlog::set_default_logger(createLogger("cs-utils"));
-
+void initVistaLogger() {
   // This logger will be used by vista.
   static auto vistaLogger = createLogger("vista");
 
@@ -100,8 +90,8 @@ void init() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Signal<std::string, spdlog::level::level_enum, std::string> const& onMessage() {
-  return signalSink->onMessage;
+Signal<std::string, spdlog::level::level_enum, std::string> const& onLogMessage() {
+  return dynamic_cast<SignalSink*>(getLoggerSignalSink().get())->onLogMessage;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -115,6 +105,8 @@ std::shared_ptr<spdlog::logger> createLogger(std::string const& name) {
   }
   paddedName.back() = ' ';
 
+  std::vector<spdlog::sink_ptr> sinks = {
+      getLoggerSignalSink(), getLoggerCoutSink(), getLoggerFileSink()};
   auto logger = std::make_shared<spdlog::logger>(paddedName, sinks.begin(), sinks.end());
 
   // See https://github.com/gabime/spdlog/wiki/3.-Custom-formatting for formatting options.
@@ -126,22 +118,25 @@ std::shared_ptr<spdlog::logger> createLogger(std::string const& name) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void setFileLogLevel(spdlog::level::level_enum level) {
-  fileSink->set_level(level);
+spdlog::sink_ptr getLoggerSignalSink() {
+  static auto sink = std::make_shared<SignalSink>();
+  return sink;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void setCoutLogLevel(spdlog::level::level_enum level) {
-  coutSink->set_level(level);
+spdlog::sink_ptr getLoggerCoutSink() {
+  static auto sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+  return sink;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void setSignalLogLevel(spdlog::level::level_enum level) {
-  signalSink->set_level(level);
+spdlog::sink_ptr getLoggerFileSink() {
+  static auto sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>("cosmoscout.log", true);
+  return sink;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-} // namespace cs::utils::logger
+} // namespace cs::utils

@@ -15,6 +15,7 @@
 #include "../cs-utils/logger.hpp"
 #include "Application.hpp"
 #include "cs-version.hpp"
+#include "logger.hpp"
 
 #include <VistaKernel/VistaSystem.h>
 
@@ -38,14 +39,9 @@ int main(int argc, char** argv) {
 
   // setup loggers ---------------------------------------------------------------------------------
 
-  // Create default loggers. The log level will be set once the settings are read.
-  spdlog::set_default_logger(cs::utils::logger::createLogger("cosmoscout-vr"));
-
-  cs::core::logger::init();
-  cs::graphics::logger::init();
-  cs::gui::logger::init();
-  cs::scene::logger::init();
-  cs::utils::logger::init();
+  // Create the loggers for vista. The log level will be set once the settings are read.
+  // spdlog::set_default_logger(cs::utils::logger::createLogger("cosmoscout-vr"));
+  cs::utils::initVistaLogger();
 
   // parse program options -------------------------------------------------------------------------
 
@@ -106,9 +102,9 @@ int main(int argc, char** argv) {
   // configure loggers -----------------------------------------------------------------------------
 
   // Once we have read the settings, we can set the log level.
-  cs::utils::logger::setCoutLogLevel(settings.mConsoleLogLevel);
-  cs::utils::logger::setFileLogLevel(settings.mFileLogLevel);
-  cs::utils::logger::setSignalLogLevel(settings.mScreenLogLevel);
+  cs::utils::getLoggerCoutSink()->set_level(settings.mConsoleLogLevel);
+  cs::utils::getLoggerFileSink()->set_level(settings.mFileLogLevel);
+  cs::utils::getLoggerSignalSink()->set_level(settings.mScreenLogLevel);
 
   // Print a nifty welcome message!
   spdlog::info("Welcome to CosmoScout VR v" + CS_PROJECT_VERSION + "!");

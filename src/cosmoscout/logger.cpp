@@ -4,19 +4,15 @@
 //                        Copyright: (c) 2019 German Aerospace Center (DLR)                       //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#ifndef CS_GUI_LOGGER_HPP
-#define CS_GUI_LOGGER_HPP
+#include "logger.hpp"
 
-#include "cs_gui_export.hpp"
+#include "../cs-utils/logger.hpp"
 
-#include <spdlog/spdlog.h>
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace cs::gui {
+std::shared_ptr<spdlog::logger> logger() {
+  static auto logger = utils::createLogger("cosmoscout-vr");
+  return logger;
+}
 
-/// This creates the default singleton logger for "cs-gui" when called for the first time and
-/// returns it. See cs-utils/logger.hpp for more logging details.
-CS_GUI_NO_EXPORT std::shared_ptr<spdlog::logger> logger();
-
-} // namespace cs::gui
-
-#endif // CS_GUI_LOGGER_HPP
+////////////////////////////////////////////////////////////////////////////////////////////////////

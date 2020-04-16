@@ -8,14 +8,15 @@
 
 #include "../cs-utils/logger.hpp"
 
-namespace cs::graphics::logger {
+namespace cs::graphics {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void init() {
-  spdlog::set_default_logger(utils::logger::createLogger("cs-graphics"));
+std::shared_ptr<spdlog::logger> logger() {
+  static auto logger = utils::createLogger("cs-graphics");
+  return logger;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-} // namespace cs::graphics::logger
+} // namespace cs::graphics

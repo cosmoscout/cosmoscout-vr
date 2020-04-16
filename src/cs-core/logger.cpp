@@ -8,14 +8,15 @@
 
 #include "../cs-utils/logger.hpp"
 
-namespace cs::core::logger {
+namespace cs::core {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void init() {
-  spdlog::set_default_logger(utils::logger::createLogger("cs-core"));
+std::shared_ptr<spdlog::logger> logger() {
+  static auto logger = utils::createLogger("cs-core");
+  return logger;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-} // namespace cs::core::logger
+} // namespace cs::core

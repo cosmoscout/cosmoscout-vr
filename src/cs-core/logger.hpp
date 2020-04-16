@@ -9,12 +9,14 @@
 
 #include "cs_core_export.hpp"
 
-namespace cs::core::logger {
+#include <spdlog/spdlog.h>
 
-/// This creates the default logger for "cs-core" and is called at startup by the main() method.
-/// See ../cs-utils/logger.hpp for more logging details.
-CS_CORE_EXPORT void init();
+namespace cs::core {
 
-} // namespace cs::core::logger
+/// This creates the default singleton logger for "cs-core" when called for the first time and
+/// returns it. See cs-utils/logger.hpp for more logging details.
+CS_CORE_NO_EXPORT std::shared_ptr<spdlog::logger> logger();
+
+} // namespace cs::core
 
 #endif // CS_CORE_LOGGER_HPP
