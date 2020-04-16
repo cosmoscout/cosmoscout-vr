@@ -9,6 +9,7 @@
 
 #include <GL/glew.h>
 
+#include "../logger.hpp"
 #include "pbr_fragment_shader.hpp"
 #include "pbr_vertex_shader.hpp"
 #include "stb_image_helper.hpp"
@@ -22,7 +23,6 @@
 #include <algorithm>
 #include <fstream>
 #include <gli/gli.hpp>
-#include <spdlog/spdlog.h>
 #include <utility>
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -31,8 +31,8 @@
   {                                                                                                \
     GLenum e = glGetError();                                                                       \
     if (e != GL_NO_ERROR) {                                                                        \
-      spdlog::warn("From vista-gltf: OpenGL error in \"{}\": {} ({}) {}:{}", desc, e, e, __FILE__, \
-          __LINE__);                                                                               \
+      logger().warn("From vista-gltf: OpenGL error in \"{}\": {} ({}) {}:{}", desc, e, e,          \
+          __FILE__, __LINE__);                                                                     \
     }                                                                                              \
   }
 
@@ -583,7 +583,7 @@ Buffer getOrCreateBufferObject(std::map<int, Buffer>& bufferMap, tinygltf::Model
   auto it = bufferMap.find(bufferViewIndex);
   if (it != bufferMap.end()) {
     if (it->second.target != target) {
-      spdlog::warn(
+      logger().warn(
           "Failed to create GLTF BufferObject: Target is different from Buffer.target for {}!",
           bufferViewIndex);
     }
@@ -712,7 +712,7 @@ gli::texture_cube prefilterCubemapGGX(gli::texture_cube const& inputCubemap, std
     glDrawBuffers(1, &drawBuffers);
 
     if (GL_FRAMEBUFFER_COMPLETE != glCheckFramebufferStatus(GL_FRAMEBUFFER)) {
-      spdlog::error("Failed to filter GLTF cubemap: Invalid FBO!");
+      logger().error("Failed to filter GLTF cubemap: Invalid FBO!");
     }
 
     auto inputCubemapTexVar = it->second;
@@ -814,7 +814,7 @@ gli::texture_cube irradianceCubemap(gli::texture_cube const& inputCubemap, int w
     glDrawBuffers(1, &drawBuffers);
 
     if (GL_FRAMEBUFFER_COMPLETE != glCheckFramebufferStatus(GL_FRAMEBUFFER)) {
-      spdlog::error("Failed to filter GLTF cubemap: Invalid FBO!");
+      logger().error("Failed to filter GLTF cubemap: Invalid FBO!");
     }
 
     auto inputCubemapTexVar = it->second;

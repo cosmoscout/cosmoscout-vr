@@ -5,11 +5,12 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "Settings.hpp"
+
 #include "../cs-utils/convert.hpp"
+#include "logger.hpp"
 
 #include <fstream>
 #include <iostream>
-#include <spdlog/spdlog.h>
 
 namespace cs::core {
 

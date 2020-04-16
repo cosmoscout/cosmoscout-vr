@@ -6,7 +6,7 @@
 
 #include "DisplayHandler.hpp"
 
-#include <spdlog/spdlog.h>
+#include "../logger.hpp"
 
 namespace cs::gui::detail {
 
@@ -16,17 +16,17 @@ bool DisplayHandler::OnConsoleMessage(CefRefPtr<CefBrowser> /*browser*/, cef_log
     CefString const& message, CefString const& /*source*/, int /*line*/) {
 
   if (level == LOGSEVERITY_VERBOSE) {
-    spdlog::trace(message.ToString());
+    logger().trace(message.ToString());
   } else if (level == LOGSEVERITY_DEBUG) {
-    spdlog::debug(message.ToString());
+    logger().debug(message.ToString());
   } else if (level == LOGSEVERITY_WARNING) {
-    spdlog::warn(message.ToString());
+    logger().warn(message.ToString());
   } else if (level == LOGSEVERITY_ERROR) {
-    spdlog::error(message.ToString());
+    logger().error(message.ToString());
   } else if (level == LOGSEVERITY_FATAL) {
-    spdlog::critical(message.ToString());
+    logger().critical(message.ToString());
   } else {
-    spdlog::info(message.ToString());
+    logger().info(message.ToString());
   }
 
   return true;

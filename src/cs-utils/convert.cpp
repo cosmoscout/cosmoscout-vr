@@ -6,11 +6,11 @@
 
 #include "convert.hpp"
 
-#include <cspice/SpiceUsr.h>
-#include <glm/gtc/type_ptr.hpp>
+#include "logger.hpp"
 
 #include <cmath>
-#include <spdlog/spdlog.h>
+#include <cspice/SpiceUsr.h>
+#include <glm/gtc/type_ptr.hpp>
 
 namespace cs::utils::convert {
 
@@ -165,7 +165,7 @@ double toSpiceTime(boost::posix_time::ptime const& tIn) {
   str2et_c(boost::posix_time::to_simple_string(tIn).c_str(), &dTime);
   if (failed_c()) {
     reset_c();
-    spdlog::warn("Failed to convert boost time to SPICE time!");
+    logger().warn("Failed to convert boost time to SPICE time!");
   }
   return dTime;
 }
@@ -175,7 +175,7 @@ double toSpiceTime(boost::posix_time::ptime const& tIn) {
 double toSpiceTime(std::string const& tIn) {
   try {
     return toSpiceTime(boost::posix_time::time_from_string(tIn));
-  } catch (std::exception& e) { spdlog::error("Failed to convert time: {}", e.what()); }
+  } catch (std::exception& e) { logger().error("Failed to convert time: {}", e.what()); }
 
   return 0.0;
 }

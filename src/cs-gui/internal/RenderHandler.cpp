@@ -6,9 +6,10 @@
 
 #include "RenderHandler.hpp"
 #include "../../cs-utils/FrameTimings.hpp"
+#include "../logger.hpp"
+
 #include <GL/glew.h>
 #include <deque>
-#include <spdlog/spdlog.h>
 #include <thread>
 
 namespace cs::gui::detail {

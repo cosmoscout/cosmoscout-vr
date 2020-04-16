@@ -6,11 +6,12 @@
 
 #include "Shadows.hpp"
 
+#include "logger.hpp"
+
 #include <VistaKernel/GraphicsManager/VistaOpenGLNode.h>
 #include <VistaOGLExt/VistaFramebufferObj.h>
 #include <VistaOGLExt/VistaTexture.h>
 #include <array>
-#include <spdlog/spdlog.h>
 
 namespace cs::graphics {
 
@@ -187,7 +188,7 @@ bool ShadowMap::Do() {
     cleanUp();
 
     if (mSplits.size() < 2) {
-      spdlog::warn("Shadows will be ugly: No splits have been defined!");
+      logger().warn("Shadows will be ugly: No splits have been defined!");
       mSplits = {0.1F, 5.F, 20.F, 50.F, 100.F};
     }
 

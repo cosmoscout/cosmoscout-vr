@@ -15,8 +15,10 @@
 #include "../cs-utils/logger.hpp"
 #include "Application.hpp"
 #include "cs-version.hpp"
+#include "logger.hpp"
 
 #include <VistaKernel/VistaSystem.h>
+#include <spdlog/sinks/sink.h>
 
 #ifdef _WIN64
 extern "C" {
@@ -38,14 +40,8 @@ int main(int argc, char** argv) {
 
   // setup loggers ---------------------------------------------------------------------------------
 
-  // Create default loggers. The log level will be set once the settings are read.
-  spdlog::set_default_logger(cs::utils::logger::createLogger("cosmoscout-vr"));
-
-  cs::core::logger::init();
-  cs::graphics::logger::init();
-  cs::gui::logger::init();
-  cs::scene::logger::init();
-  cs::utils::logger::init();
+  // Create the loggers for vista. The log level will be set once the settings are read.
+  cs::utils::initVistaLogger();
 
   // parse program options -------------------------------------------------------------------------
 
@@ -72,7 +68,7 @@ int main(int argc, char** argv) {
     std::vector<std::string> arguments(argv + 1, argv + argc);
     args.parse(arguments);
   } catch (std::runtime_error const& e) {
-    spdlog::error("Failed to parse command line arguments: {}", e.what());
+    logger().error("Failed to parse command line arguments: {}", e.what());
     return 1;
   }
 
@@ -102,19 +98,19 @@ int main(int argc, char** argv) {
   try {
     settings = cs::core::Settings::read(settingsFile);
   } catch (std::exception& e) {
-    spdlog::error("Failed to read settings: {}", e.what());
+    logger().error("Failed to read settings: {}", e.what());
     return 1;
   }
 
   // configure loggers -----------------------------------------------------------------------------
 
   // Once we have read the settings, we can set the log level.
-  cs::utils::logger::setCoutLogLevel(settings.mConsoleLogLevel);
-  cs::utils::logger::setFileLogLevel(settings.mFileLogLevel);
-  cs::utils::logger::setSignalLogLevel(settings.mScreenLogLevel);
+  cs::utils::getLoggerCoutSink()->set_level(settings.mConsoleLogLevel);
+  cs::utils::getLoggerFileSink()->set_level(settings.mFileLogLevel);
+  cs::utils::getLoggerSignalSink()->set_level(settings.mScreenLogLevel);
 
   // Print a nifty welcome message!
-  spdlog::info("Welcome to CosmoScout VR v" + CS_PROJECT_VERSION + "!");
+  logger().info("Welcome to CosmoScout VR v" + CS_PROJECT_VERSION + "!");
 
   // start application -----------------------------------------------------------------------------
 
@@ -140,14 +136,14 @@ int main(int argc, char** argv) {
     pVistaSystem->SetFrameLoop(nullptr, false);
 
   } catch (VistaExceptionBase& e) {
-    spdlog::error("Caught unexpected VistaException: {}", e.what());
+    logger().error("Caught unexpected VistaException: {}", e.what());
     return 1;
   } catch (std::exception& e) {
-    spdlog::error("Caught unexpected std::exception: {}", e.what());
+    logger().error("Caught unexpected std::exception: {}", e.what());
     return 1;
   }
 
-  spdlog::info("Shutdown complete. Fare well!");
+  logger().info("Shutdown complete. Fare well!");
 
   return 0;
 }
