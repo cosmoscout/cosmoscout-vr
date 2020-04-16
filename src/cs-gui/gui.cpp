@@ -19,7 +19,8 @@ CefRefPtr<detail::WebApp> app;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void executeWebProcess(int argc, char* argv[]) { // NOLINT(modernize-avoid-c-arrays)
+// NOLINTNEXTLINE(modernize-avoid-c-arrays)
+void executeWebProcess(int argc, char* argv[]) {
   // NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
   app        = new detail::WebApp(argc, argv, false);
   int result = CefExecuteProcess(app->GetArgs(), app, nullptr);
