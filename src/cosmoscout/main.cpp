@@ -18,6 +18,7 @@
 #include "logger.hpp"
 
 #include <VistaKernel/VistaSystem.h>
+#include <spdlog/sinks/sink.h>
 
 #ifdef _WIN64
 extern "C" {

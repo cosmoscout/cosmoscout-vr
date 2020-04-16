@@ -11,7 +11,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::shared_ptr<spdlog::logger> logger() {
-  static auto logger = utils::createLogger("cosmoscout-vr");
+  static auto logger = cs::utils::createLogger("cosmoscout-vr");
   return logger;
 }
 
