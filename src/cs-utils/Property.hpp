@@ -115,9 +115,9 @@ class Property {
   }
 
   /// Sets the Property to a new value. onChange() will be emitted for all but one connections.
-  virtual void setWithEmitForAllButOne(T const& value, int excludeConnection = -1) {
+  virtual void setWithEmitForAllButOne(T const& value, int excludeConnection) {
     if (value != mValue) {
-      mOnChange.emitForAllButOne(excludeConnection, mValue);
+      mOnChange.emitForAllButOne(excludeConnection, value);
       mValue = value;
     }
   }
