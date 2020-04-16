@@ -146,7 +146,7 @@ bool Application::Init(VistaSystem* pVistaSystem) {
   });
 
   mSettings->pSpiceKernel.connect([](auto /*unused*/) {
-    spdlog::warn("Reloading the SPICE kernels at runtime is not yet supported!");
+    logger().warn("Reloading the SPICE kernels at runtime is not yet supported!");
   });
 
   mGuiManager->enableLoadingScreen(true);
@@ -281,7 +281,7 @@ void Application::FrameUpdate() {
     try {
       mSettings->write(mSettingsToWrite);
     } catch (std::exception const& e) {
-      spdlog::warn("Failed to save settings to '{}': {}", mSettingsToWrite, e.what());
+      logger().warn("Failed to save settings to '{}': {}", mSettingsToWrite, e.what());
     }
     mSettingsToWrite = "";
   }
@@ -290,7 +290,7 @@ void Application::FrameUpdate() {
     try {
       mSettings->read(mSettingsToRead);
     } catch (std::exception const& e) {
-      spdlog::warn("Failed to load settings from '{}': {}", mSettingsToRead, e.what());
+      logger().warn("Failed to load settings from '{}': {}", mSettingsToRead, e.what());
     }
     mSettingsToRead = "";
   }
