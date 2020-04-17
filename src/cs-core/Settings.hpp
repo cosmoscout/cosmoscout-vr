@@ -105,11 +105,13 @@ class CS_CORE_EXPORT Settings {
   /// This Signal is emitted when the settings are reloaded from file. You can connect a function
   /// to check whether something has changed compared to the last settings state. The very first
   /// onLoad will be emitted before any Plugin or core class is initialized, so don't rely on that
-  /// one. Please catch all exceptions inside your handler, else other handlers will not be called properly!
+  /// one. Please catch all exceptions inside your handler, else other handlers will not be called
+  /// properly!
   utils::Signal<> const& onLoad() const;
 
   /// This signal is emitted before the settings are written to file. You can use this to update any
-  /// fields according to the current scene state. Please catch all exceptions inside your handler, else other handlers will not be called properly!
+  /// fields according to the current scene state. Please catch all exceptions inside your handler,
+  /// else other handlers will not be called properly!
   utils::Signal<> const& onSave() const;
 
   /// Initializes all members from a given JSON file. Once reading finished, the onLoad signal will
