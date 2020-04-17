@@ -79,7 +79,7 @@ struct adl_serializer<cs::utils::Property<T>> {
 namespace cs::core {
 
 /// Most of CosmoScout VR's configuration is done with one huge JSON file. This contains some global
-/// options and settings for each plugin. The available global options are defined below, the
+/// options and settings for each plugin. The available global options are defined below. The
 /// per-plugin settings are defined in each and every plugin (but they are also stored in this
 /// class in the mPlugins member).
 /// When the settings are loaded from file (using the read() method), all values in the class are
