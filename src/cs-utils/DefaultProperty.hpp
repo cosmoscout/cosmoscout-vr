@@ -40,7 +40,7 @@ class DefaultProperty : public Property<T> {
       , mDefaultValue(std::move(other.mDefaultValue)) {
   }
 
-  ~DefaultProperty() = default;
+  ~DefaultProperty() override = default;
 
   /// Returns true if the current value of the Property equals to the default state.
   bool isDefault() const {
