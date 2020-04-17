@@ -42,6 +42,14 @@ class CS_SCENE_EXPORT CelestialObject : public CelestialAnchor {
       double tStartExistence = std::numeric_limits<double>::lowest(),
       double tEndExistence   = std::numeric_limits<double>::max());
 
+  CelestialObject(CelestialObject const& other) = default;
+  CelestialObject(CelestialObject&& other)      = default;
+
+  CelestialObject& operator=(CelestialObject const& other) = default;
+  CelestialObject& operator=(CelestialObject&& other) = default;
+
+  virtual ~CelestialObject() = default;
+
   virtual glm::dmat4 const& getWorldTransform() const;
   virtual glm::dvec4        getWorldPosition() const;
 
