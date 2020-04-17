@@ -284,10 +284,10 @@ class CS_CORE_EXPORT Settings {
 
   struct Graphics {
     /// A multiplicator for the size of worldspace gui-elements.
-    utils::DefaultProperty<float> pWidgetScale{1.f};
+    utils::DefaultProperty<float> pWidgetScale{1.F};
 
     /// A multiplicator for terrain height.
-    utils::DefaultProperty<float> pHeightScale{1.f};
+    utils::DefaultProperty<float> pHeightScale{1.F};
 
     /// If set to true, HDR rendering will be enabled per default. It can still be disabled at run
     /// time. Defaults to false.
@@ -319,16 +319,16 @@ class CS_CORE_EXPORT Settings {
 
     /// A parameter to control shadow acne. Hight values lead to a less accurate shadow but also to
     /// less artifacts.
-    utils::DefaultProperty<float> pShadowMapBias{1.0f};
+    utils::DefaultProperty<float> pShadowMapBias{1.0F};
 
     /// The viewspace depth range to compute shadows for.
-    utils::DefaultProperty<glm::vec2> pShadowMapRange{glm::vec2(0.f, 100.f)};
+    utils::DefaultProperty<glm::vec2> pShadowMapRange{glm::vec2(0.F, 100.F)};
 
     /// The additional size of the shadow frustum in light direction.
-    utils::DefaultProperty<glm::vec2> pShadowMapExtension{glm::vec2(-100.f, 100.f)};
+    utils::DefaultProperty<glm::vec2> pShadowMapExtension{glm::vec2(-100.F, 100.F)};
 
     /// An exponent for controlling the distribution of shadow map cascades.
-    utils::DefaultProperty<float> pShadowMapSplitDistribution{1.f};
+    utils::DefaultProperty<float> pShadowMapSplitDistribution{1.F};
 
     /// If set to true, the exposure of the virtual camera will be computed automatically. Has no
     /// effect if HDR rendering is disabled.
@@ -336,35 +336,35 @@ class CS_CORE_EXPORT Settings {
 
     /// Controls the exposure of the virtual camera. This has no effect if auto exposure is enabled
     /// or if HDR rendering is disabled. Measured in exposure values (EV).
-    utils::DefaultProperty<float> pExposure{0.f};
+    utils::DefaultProperty<float> pExposure{0.F};
 
     /// The range from which to choose values for the auto exposure. Measured in exposure values
     /// (EV).
-    utils::DefaultProperty<glm::vec2> pAutoExposureRange{glm::vec2(-14.f, 10.f)};
+    utils::DefaultProperty<glm::vec2> pAutoExposureRange{glm::vec2(-14.F, 10.F)};
 
     /// An additional exposure control which is applied after auto exposure. Has no effect if HDR
     /// rendering is disabled. Measured in exposure values (EV).
-    utils::DefaultProperty<float> pExposureCompensation{0.f};
+    utils::DefaultProperty<float> pExposureCompensation{0.F};
 
     /// An exponent controlling the speed of auto exposure adaption. This has no effect if auto
     /// exposure is enabled or if HDR rendering is disabled.
-    utils::DefaultProperty<float> pExposureAdaptionSpeed{3.f};
+    utils::DefaultProperty<float> pExposureAdaptionSpeed{3.F};
 
     /// The size of the virtual camera's sensor. Measured in millimeters.
-    utils::DefaultProperty<float> pSensorDiagonal{42.f};
+    utils::DefaultProperty<float> pSensorDiagonal{42.F};
 
     /// The focal length of the virtual camera. Measured in millimeters.
-    utils::DefaultProperty<float> pFocalLength{24.f};
+    utils::DefaultProperty<float> pFocalLength{24.F};
 
     /// The amount of ambient light. This should be in the range 0-1.
-    utils::DefaultProperty<float> pAmbientBrightness{std::pow(0.25f, 10.f)};
+    utils::DefaultProperty<float> pAmbientBrightness{std::pow(0.25F, 10.F)};
 
     /// If set to true, the amount of artifical glare will be based on the current exposure. Has no
     /// effect if HDR rendering is disabled.
     utils::DefaultProperty<bool> pEnableAutoGlow{true};
 
     /// The amount of artifical glare. Has no effect if HDR rendering is disabled.
-    utils::DefaultProperty<float> pGlowIntensity{0.5f};
+    utils::DefaultProperty<float> pGlowIntensity{0.5F};
   };
 
   Graphics mGraphics;

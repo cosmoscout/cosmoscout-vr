@@ -20,20 +20,27 @@ template <typename T>
 class DefaultProperty : public Property<T> {
  public:
   /// There is no default constructor, as a default value has to be given at construction time.
-  DefaultProperty(T const& val)
+  explicit DefaultProperty(T const& val)
       : Property<T>(val)
       , mDefaultValue(val) {
   }
 
-  DefaultProperty(T&& val)
+  explicit DefaultProperty(T&& val)
       : Property<T>(val)
       , mDefaultValue(std::move(val)) {
   }
 
   DefaultProperty(DefaultProperty<T> const& other)
-      : Property<T>(other)
+      : Property<T>(other.mValue)
       , mDefaultValue(other.mDefaultValue) {
   }
+
+  DefaultProperty(DefaultProperty<T>&& other) noexcept
+      : Property<T>(std::move(other.mValue))
+      , mDefaultValue(std::move(other.mDefaultValue)) {
+  }
+
+  ~DefaultProperty() = default;
 
   /// Returns true if the current value of the Property equals to the default state.
   bool isDefault() const {
@@ -45,14 +52,20 @@ class DefaultProperty : public Property<T> {
     Property<T>::set(mDefaultValue);
   }
 
-  /// Assigns the value of another DefaultProperty.
-  virtual DefaultProperty<T>& operator=(DefaultProperty<T> const& rhs) {
+  /// Assigns the value of another DefaultProperty. The internal default value is not changed.
+  DefaultProperty<T>& operator=(DefaultProperty<T> const& rhs) {
+    Property<T>::set(rhs.get());
+    return *this;
+  }
+
+  /// Assigns the value of another DefaultProperty. The internal default value is not changed.
+  DefaultProperty<T>& operator=(DefaultProperty<T>&& rhs) noexcept {
     Property<T>::set(rhs.get());
     return *this;
   }
 
   /// Assigns a new value to this DefaultProperty.
-  virtual DefaultProperty<T>& operator=(T const& rhs) override {
+  DefaultProperty<T>& operator=(T const& rhs) override {
     Property<T>::set(rhs);
     return *this;
   }

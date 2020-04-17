@@ -176,7 +176,7 @@ std::string const& CelestialAnchor::getFrameName() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CelestialAnchor::setFrameName(std::string const& sFrameName, bool /*keepTransform*/) {
+void CelestialAnchor::setFrameName(std::string const& sFrameName) {
   mFrameName = sFrameName;
 }
 
@@ -188,7 +188,7 @@ std::string const& CelestialAnchor::getCenterName() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CelestialAnchor::setCenterName(std::string const& sCenterName, bool /*keepTransform*/) {
+void CelestialAnchor::setCenterName(std::string const& sCenterName) {
   mCenterName = sCenterName;
 }
 

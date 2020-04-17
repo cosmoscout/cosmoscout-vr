@@ -143,7 +143,7 @@ class Property {
   }
 
   /// Assigns the value of another Property.
-  virtual Property<T>& operator=(Property<T> const& rhs) {
+  Property<T>& operator=(Property<T> const& rhs) {
     set(rhs.get());
     return *this;
   }
