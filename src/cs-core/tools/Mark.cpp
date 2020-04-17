@@ -80,10 +80,10 @@ Mark::Mark(std::shared_ptr<InputManager> pInputManager, std::shared_ptr<SolarSys
     , mSolarSystem(std::move(pSolarSystem))
     , mSettings(std::move(settings))
     , mTimeControl(std::move(pTimeControl))
-    , mVAO(new VistaVertexArrayObject())
-    , mVBO(new VistaBufferObject())
-    , mIBO(new VistaBufferObject())
-    , mShader(new VistaGLSLShader()) {
+    , mVAO(std::make_unique<VistaVertexArrayObject>())
+    , mVBO(std::make_unique<VistaBufferObject>())
+    , mIBO(std::make_unique<VistaBufferObject>())
+    , mShader(std::make_unique<VistaGLSLShader>()) {
 
   initData(sCenter, sFrame);
 }
