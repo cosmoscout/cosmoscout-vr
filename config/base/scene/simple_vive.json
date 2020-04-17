@@ -166,20 +166,20 @@
   },
   "plugins": {
     "csp-stars": {
-      "backgroundColor1": [
+      "celestialGridTexture": "../share/resources/textures/celestial_grid.png",
+      "starFiguresTexture": "../share/resources/textures/constellation_figures.png",
+      "celestialGridColor": [
         0.5,
         0.8,
         1.0,
         0.3
       ],
-      "backgroundColor2": [
+      "starFiguresColor": [
         0.5,
         1.0,
         0.8,
         0.3
       ],
-      "backgroundTexture1": "../share/resources/textures/celestial_grid.png",
-      "backgroundTexture2": "../share/resources/textures/constellation_figures.png",
       "starTexture": "../share/resources/textures/star.png",
       "hipparcosCatalog": "../share/download/stars/hip_main.dat",
       "tycho2Catalog": "../share/download/stars/tyc2_main.dat"
