@@ -31,7 +31,14 @@ class CS_CORE_EXPORT GraphicsEngine {
   utils::Property<float> pAverageLuminance           = 1.F;
   utils::Property<float> pMaximumLuminance           = 1.F;
 
-  GraphicsEngine(std::shared_ptr<Settings> settings);
+  explicit GraphicsEngine(std::shared_ptr<Settings> settings);
+
+  GraphicsEngine(GraphicsEngine const& other) = default;
+  GraphicsEngine(GraphicsEngine&& other)      = default;
+
+  GraphicsEngine& operator=(GraphicsEngine const& other) = default;
+  GraphicsEngine& operator=(GraphicsEngine&& other) = default;
+
   ~GraphicsEngine();
 
   /// All objects which are able to cast shadows need to be registered.

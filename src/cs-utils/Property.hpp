@@ -28,11 +28,7 @@ class Property {
   /// Properties for built-in types are automatically initialized to 0.
   Property() = default;
 
-  Property(T const& val) // NOLINT(hicpp-explicit-conversions)
-      : mValue(val) {
-  }
-
-  Property(T&& val) // NOLINT(hicpp-explicit-conversions)
+  Property(T val) // NOLINT(hicpp-explicit-conversions)
       : mValue(std::move(val)) {
   }
 
