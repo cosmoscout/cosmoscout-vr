@@ -58,7 +58,11 @@ class Property {
     return *this;
   }
 
-  ~Property() = default;
+  virtual ~Property() {
+    if (mConnection) {
+      mConnection->disconnect(mConnectionID);
+    }
+  };
 
   /// The given function is called when the internal value is about to be changed. The new value
   /// is passed as parameter, to access the old value you can use the get() method, as the internal
