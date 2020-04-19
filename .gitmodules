@@ -73,3 +73,6 @@
 [submodule "externals/json"]
 	path = externals/json
 	url = https://github.com/nlohmann/json.git
+[submodule "externals/pistache"]
+	path = externals/pistache
+	url = https://github.com/cosmoscout/pistache

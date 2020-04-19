@@ -162,6 +162,19 @@ cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
       -DCMAKE_BUILD_TYPE=$BUILD_TYPE "$EXTERNALS_DIR/spdlog"
 cmake --build . --target install --parallel "$(nproc)"
 
+# pistache -----------------------------------------------------------------------------------------
+
+echo ""
+echo "Building and installing pistache ..."
+echo ""
+
+cmake -E make_directory "$BUILD_DIR/pistache" && cd "$BUILD_DIR/pistache"
+cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
+      -DPISTACHE_BUILD_EXAMPLES=false -DPISTACHE_BUILD_TESTS=false \
+      -DPISTACHE_BUILD_DOCS=false -DPISTACHE_USE_SSL=false \
+      -DCMAKE_BUILD_TYPE=$BUILD_TYPE "$EXTERNALS_DIR/pistache"
+cmake --build . --target install --parallel "$(nproc)"
+
 # jsonhpp ------------------------------------------------------------------------------------------
 
 echo ""

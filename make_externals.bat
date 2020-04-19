@@ -158,6 +158,20 @@ cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
 
 cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS%
 
+rem pistache -----------------------------------------------------------------------------------------
+
+echo.
+echo Building and installing pistache ...
+echo.
+
+cmake -E make_directory "%BUILD_DIR%/pistache" && cd "%BUILD_DIR%/pistache"
+cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
+      -DPISTACHE_BUILD_EXAMPLES=false -DPISTACHE_BUILD_TESTS=false^
+      -DPISTACHE_BUILD_DOCS=false -DPISTACHE_USE_SSL=false^
+      -DSPDLOG_ENABLE_PCH=On "%EXTERNALS_DIR%/pistache" || exit /b
+
+cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS%
+
 rem jsonhpp ----------------------------------------------------------------------------------------
 
 echo.
