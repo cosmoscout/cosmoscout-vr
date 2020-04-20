@@ -76,3 +76,6 @@
 [submodule "externals/pistache"]
 	path = externals/pistache
 	url = https://github.com/cosmoscout/pistache
+[submodule "plugins/csp-web-api"]
+	path = plugins/csp-web-api
+	url = ../../cosmoscout/csp-web-api.git
