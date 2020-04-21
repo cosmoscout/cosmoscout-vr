@@ -242,6 +242,8 @@
 	"csp-simple-wms-bodies": {
       "bodies": {
         "Earth": {
+          "gridResolutionX": 200,
+          "gridResolutionY": 100,
           "texture":  "../share/resources/textures/earth.jpg",
           "wms": [
             {
