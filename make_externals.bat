@@ -105,24 +105,6 @@ cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
 	  -DSQLITE3_INCLUDE_DIR="%INSTALL_DIR%/include/sqlite3" -DBUILD_TESTING=off "%EXTERNALS_DIR%/ttk"
 cmake --build . --config %BUILD_TYPE% --target install --parallel 8
 
-rem gdal 3.0.4 --------------------------------------------------------------------------------------------
-
-echo.
-echo Downloading and installing gdal ...
-echo.
-
-cmake -E make_directory "%BUILD_DIR%/gdal/extracted" && cd "%BUILD_DIR%/gdal"
-powershell.exe -command Invoke-WebRequest -Uri http://download.gisinternals.com/sdk/downloads/release-1911-x64-gdal-3-0-4-mapserver-7-4-3-libs.zip -OutFile gdal.zip
-powershell.exe -command Invoke-WebRequest -Uri http://download.gisinternals.com/sdk/downloads/release-1911-x64-gdal-3-0-4-mapserver-7-4-3.zip -OutFile gdal_bin.zip
-
-cd "%BUILD_DIR%/gdal/extracted"
-cmake -E tar xfvj ../gdal.zip
-cmake -E tar xfvj ../gdal_bin.zip
-
-cmake -E copy_directory "%BUILD_DIR%/gdal/extracted/include"                   "%INSTALL_DIR%/gdal/include/"
-cmake -E copy_directory "%BUILD_DIR%/gdal/extracted/lib"        			   "%INSTALL_DIR%/gdal/lib"
-cmake -E copy_directory "%BUILD_DIR%/gdal/extracted/bin"        			   "%INSTALL_DIR%/gdal/lib"
-
 rem glew -------------------------------------------------------------------------------------------
 
 echo.
@@ -195,10 +177,10 @@ if "%COSMOSCOUT_DEBUG_BUILD%"=="true" (
   set CURL_LIB=libcurl_imp.lib
 )
 cmake -E make_directory "%BUILD_DIR%/curlpp" && cd "%BUILD_DIR%/curlpp"
-cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
+cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%" -DCMAKE_UNITY_BUILD=On^
       -DCURL_INCLUDE_DIR="%INSTALL_DIR%/include"^
       -DCURL_LIBRARY="%INSTALL_DIR%/lib/%CURL_LIB%"^
-      -DCMAKE_INSTALL_LIBDIR=lib^
+      -DCMAKE_INSTALL_LIBDIR=lib -DCURL_NO_CURL_CMAKE=On^
       "%EXTERNALS_DIR%/curlpp" || exit /b
 
 cmake --build . --config %BUILD_TYPE% --target install --parallel 8
