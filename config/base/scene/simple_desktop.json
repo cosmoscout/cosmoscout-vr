@@ -254,7 +254,7 @@
               "height": 800,
               "time": "2000-11-01/current/P1D",
               "layers": "fires_viirs",
-              "preFetch": 0
+              "preFetch": 1
             },
             {
               "name": "Land Surface Temperature [Day] D",
