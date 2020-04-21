@@ -175,7 +175,7 @@ class Property {
     return get();
   }
 
- private:
+ protected:
   mutable Signal<T> mOnChange;
 
   mutable Property<T> const* mConnection{nullptr};
