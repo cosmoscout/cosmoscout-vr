@@ -20,7 +20,6 @@ jobs:
       - name: Download Clang-Format
         run: |
           sudo apt-get update -y
-          sudo apt-get remove -y clang-6.0 libclang-common-6.0-dev libclang1-6.0 libllvm6.0
           sudo apt-get install -y clang-format
       - name: Run Clang-Format
         run: ./clang-format.sh
@@ -93,10 +92,6 @@ jobs:
           sudo apt-get install libxi-dev libgconf-2-4 libboost1.70-dev ccache lcov xvfb
           ccache --max-size 1G
           ccache -z
-      # Workaround for https://github.com/actions/virtual-environments/issues/10
-      - name: Avoid to use GitHub Actions-installed boost
-        shell: bash
-        run: echo "::set-env name=BOOST_ROOT::"
       - name: Build Externals
         run: ./make_externals.sh -G "Unix Makefiles" -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
       - name: Build CosmoScout VR
@@ -120,7 +115,7 @@ jobs:
           path-to-lcov: ./build/linux-release/coverage.info
 
   build_linux_clang:
-    name: Linux Clang 6.0
+    name: Linux Clang 8.0
     runs-on: ubuntu-18.04
     if: >
       github.event_name == 'pull_request' ||
@@ -128,6 +123,9 @@ jobs:
       ( contains(github.ref, 'develop') && !contains(github.event.head_commit.message, '[no-ci]') ) ||
       contains(github.event.head_commit.message, '[run-ci]')
     steps:
+      - env:
+          CC: clang-8
+          CXX: clang++-8
       - name: Checkout Repository
         uses: actions/checkout@v2
       - name: Checkout Submodules
@@ -146,19 +144,9 @@ jobs:
           sudo apt-get install libxi-dev libgconf-2-4 libboost1.70-dev ccache
           ccache --max-size 1G
           ccache -z
-      # Workaround for https://github.com/actions/virtual-environments/issues/10
-      - name: Avoid to use GitHub Actions-installed boost
-        shell: bash
-        run: echo "::set-env name=BOOST_ROOT::"
       - name: Build Externals
-        env:
-          CC: clang
-          CXX: clang++
         run: ./make_externals.sh -G "Unix Makefiles" -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
       - name: Build CosmoScout VR
-        env:
-          CC: clang
-          CXX: clang++
         run: ./make.sh -G "Unix Makefiles" -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCOSMOSCOUT_UNIT_TESTS=On
       - name: Run Tests
         run: ./install/linux-release/bin/run_tests.sh
@@ -180,6 +168,8 @@ jobs:
       ( contains(github.ref, 'develop') && !contains(github.event.head_commit.message, '[no-ci]') ) ||
       contains(github.event.head_commit.message, '[run-ci]')
     steps:
+      - env:
+          BOOST_ROOT: $BOOST_ROOT_1_69_0
       - name: Checkout Repository
         uses: actions/checkout@v2
       - name: Checkout Submodules
