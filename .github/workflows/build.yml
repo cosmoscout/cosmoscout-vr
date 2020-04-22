@@ -66,7 +66,7 @@ jobs:
           fi
 
   build_linux_gcc:
-    name: Linux GCC 7.4.0
+    name: Linux GCC 7.5.0
     runs-on: ubuntu-18.04
     if: >
       github.event_name == 'pull_request' ||
@@ -160,7 +160,7 @@ jobs:
           path: install/linux-release/bin/test
 
   build_windows:
-    name: Windows MSVC 19.24.28314.0
+    name: Windows MSVC 19.25
     runs-on: windows-2019
     if: >
       github.event_name == 'pull_request' ||
@@ -168,7 +168,7 @@ jobs:
       ( contains(github.ref, 'develop') && !contains(github.event.head_commit.message, '[no-ci]') ) ||
       contains(github.event.head_commit.message, '[run-ci]')
     env:
-      BOOST_ROOT: $BOOST_ROOT_1_69_0
+      BOOST_ROOT: $BOOST_ROOT_1_72_0
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2
