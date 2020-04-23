@@ -99,7 +99,7 @@ jobs:
         run: >
           ./make.sh -G "Unix Makefiles" 
           -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache 
-          -DCOSMOSCOUT_COVERAGE_INFO=On -DCOSMOSCOUT_UNIT_TESTS=On -DBOOST_ROOT=$BOOST_ROOT_1_72_0
+          -DCOSMOSCOUT_COVERAGE_INFO=On -DCOSMOSCOUT_UNIT_TESTS=On -DBOOST_ROOT=$BOOST_ROOT_1_69_0
       - name: Run Tests
         run: ./install/linux-release/bin/run_tests.sh
       - name: Run Graphical Tests
@@ -155,7 +155,7 @@ jobs:
         run: >
           ./make.sh -G "Unix Makefiles" 
           -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache 
-          -DCOSMOSCOUT_UNIT_TESTS=On -DBOOST_ROOT=$BOOST_ROOT_1_72_0
+          -DCOSMOSCOUT_UNIT_TESTS=On -DBOOST_ROOT=$BOOST_ROOT_1_69_0
       - name: Run Tests
         run: ./install/linux-release/bin/run_tests.sh
       - name: Run Graphical Tests
@@ -205,5 +205,3 @@ jobs:
       - name: Run Tests
         shell: cmd
         run: install\\windows-release\\bin\\run_tests.bat
-      - name: Print Cache Usage
-        run: clcache -s
