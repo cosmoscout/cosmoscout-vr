@@ -69,7 +69,9 @@
   ],
   "spiceKernel": "../share/config/spice/simple.txt",
   "widgetScale": 0.6,
-  "graphics": {},
+  "graphics": {
+    "widgetScale": 0.6
+  },
   "anchors": {
     "Barycenter": {
       "center": "Solar System Barycenter",
