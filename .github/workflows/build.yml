@@ -168,7 +168,7 @@ jobs:
       ( contains(github.ref, 'develop') && !contains(github.event.head_commit.message, '[no-ci]') ) ||
       contains(github.event.head_commit.message, '[run-ci]')
     env:
-      BOOST_ROOT: $BOOST_ROOT_1_72_0
+      BOOST_ROOT: C:/hostedtoolcache/windows/Boost/1.72.0
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2
