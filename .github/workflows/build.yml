@@ -182,14 +182,12 @@ jobs:
     env:
       BOOST_ROOT: C:/hostedtoolcache/windows/Boost/1.72.0
       FOOOO1: $BOOST_ROOT_1_72_0
-      FOOOO2: ${{ $BOOST_ROOT_1_72_0 }}
       FOOOO3: $env:BOOST_ROOT_1_72_0
     steps:
       - name: Echo
         run: |
           echo $env:BOOST_ROOT
           echo $env:FOOOO1
-          echo $env:FOOOO2
           echo $env:FOOOO3
           echo $env:BOOST_ROOT_1_72_0
       - name: Checkout Repository
