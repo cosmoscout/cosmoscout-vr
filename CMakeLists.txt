@@ -163,18 +163,17 @@ install(
 # Copy boost libraries to install directory.
 foreach(BOOST_LIB ${Boost_LIBRARIES})
   if(EXISTS "${BOOST_LIB}")
+    get_filename_component(LIB_BASE_NAME ${BOOST_LIB} NAME_WE)
+    get_filename_component(LIB_PATH ${BOOST_LIB} PATH)
     if (WIN32)
-      get_filename_component(LIB_BASE_NAME ${BOOST_LIB} NAME_WE)
-      get_filename_component(LIB_PATH ${BOOST_LIB} PATH)
       install(FILES ${LIB_PATH}/${LIB_BASE_NAME}.dll DESTINATION "lib")
     endif()
     if (UNIX)
-      install(FILES ${BOOST_LIB} DESTINATION "lib")
+      file(GLOB LIB_FILES ${LIB_PATH}/${LIB_BASE_NAME}.so*)
+      install(FILES ${LIB_FILES} DESTINATION "lib")
     endif()
   endif()
 endforeach()
-
-message(${Boost_LIBRARIES})
 
 # Install documentation directory
 install(DIRECTORY

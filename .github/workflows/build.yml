@@ -118,6 +118,8 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path-to-lcov: ./build/linux-release/coverage.info
+      - name: Print ccache Statistics
+        run: ccache -s
 
   build_linux_clang:
     name: Linux Clang 8.0
@@ -167,6 +169,8 @@ jobs:
         with:
           name: graphical-test-results-clang
           path: install/linux-release/bin/test
+      - name: Print ccache Statistics
+        run: ccache -s
 
   build_windows:
     name: Windows MSVC 19.25
@@ -206,3 +210,5 @@ jobs:
       - name: Run Tests
         shell: cmd
         run: install\\windows-release\\bin\\run_tests.bat
+      - name: Print clcache Statistics
+        run: clcache -s
