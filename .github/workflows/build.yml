@@ -20,7 +20,6 @@ jobs:
       - name: Download Clang-Format
         run: |
           sudo apt-get update -y
-          sudo apt-get remove -y clang-6.0 libclang-common-6.0-dev libclang1-6.0 libllvm6.0
           sudo apt-get install -y clang-format
       - name: Run Clang-Format
         run: ./clang-format.sh
@@ -28,7 +27,7 @@ jobs:
         run: |
           DIFF=$(git diff)
           if [ ! -z "$DIFF" ]; then echo $DIFF && exit 1; fi
-  
+
   comment_percentage:
     name: Check Comment Percentage
     runs-on: ubuntu-18.04
@@ -67,7 +66,7 @@ jobs:
           fi
 
   build_linux_gcc:
-    name: Linux GCC 7.4.0
+    name: Linux GCC 7.5.0
     runs-on: ubuntu-18.04
     if: >
       github.event_name == 'pull_request' ||
@@ -87,25 +86,26 @@ jobs:
           restore-keys: gcc-
       - name: Download Dependencies
         run: |
-          sudo add-apt-repository ppa:mhier/libboost-latest
           sudo apt-get update -q
           sudo apt-get install libc++-dev libgl1-mesa-dev libglu1-mesa-dev libx11-dev
-          sudo apt-get install libxi-dev libgconf-2-4 libboost1.70-dev ccache lcov xvfb
+          sudo apt-get install libxi-dev libgconf-2-4 ccache lcov xvfb
           ccache --max-size 1G
           ccache -z
-      # Workaround for https://github.com/actions/virtual-environments/issues/10
-      - name: Avoid to use GitHub Actions-installed boost
-        shell: bash
-        run: echo "::set-env name=BOOST_ROOT::"
       - name: Build Externals
-        run: ./make_externals.sh -G "Unix Makefiles" -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
+        run: >
+          ./make_externals.sh -G "Unix Makefiles"
+          -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
       - name: Build CosmoScout VR
-        run: ./make.sh -G "Unix Makefiles" -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCOSMOSCOUT_COVERAGE_INFO=On -DCOSMOSCOUT_UNIT_TESTS=On
+        run: >
+          ./make.sh -G "Unix Makefiles"
+          -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
+          -DCOSMOSCOUT_COVERAGE_INFO=On -DCOSMOSCOUT_UNIT_TESTS=On
+          -DBOOST_ROOT=$BOOST_ROOT_1_69_0 -DBoost_ARCHITECTURE=-x64
       - name: Run Tests
         run: ./install/linux-release/bin/run_tests.sh
       - name: Run Graphical Tests
         run: ./install/linux-release/bin/run_graphical_tests.sh
-      - name: Upload Results of Failed Test 
+      - name: Upload Results of Failed Test
         uses: actions/upload-artifact@v1
         if: failure()
         with:
@@ -118,15 +118,20 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path-to-lcov: ./build/linux-release/coverage.info
+      - name: Print ccache Statistics
+        run: ccache -s
 
   build_linux_clang:
-    name: Linux Clang 6.0
+    name: Linux Clang 8.0
     runs-on: ubuntu-18.04
     if: >
       github.event_name == 'pull_request' ||
       ( contains(github.ref, 'master') && !contains(github.event.head_commit.message, '[no-ci]') ) ||
       ( contains(github.ref, 'develop') && !contains(github.event.head_commit.message, '[no-ci]') ) ||
       contains(github.event.head_commit.message, '[run-ci]')
+    env:
+      CC: clang-8
+      CXX: clang++-8
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2
@@ -140,39 +145,35 @@ jobs:
           restore-keys: clang-
       - name: Download Dependencies
         run: |
-          sudo add-apt-repository ppa:mhier/libboost-latest
           sudo apt-get update -q
           sudo apt-get install libc++-dev libgl1-mesa-dev libglu1-mesa-dev libx11-dev
-          sudo apt-get install libxi-dev libgconf-2-4 libboost1.70-dev ccache
+          sudo apt-get install libxi-dev libgconf-2-4 ccache
           ccache --max-size 1G
           ccache -z
-      # Workaround for https://github.com/actions/virtual-environments/issues/10
-      - name: Avoid to use GitHub Actions-installed boost
-        shell: bash
-        run: echo "::set-env name=BOOST_ROOT::"
       - name: Build Externals
-        env:
-          CC: clang
-          CXX: clang++
-        run: ./make_externals.sh -G "Unix Makefiles" -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
+        run: >
+          ./make_externals.sh -G "Unix Makefiles"
+          -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
       - name: Build CosmoScout VR
-        env:
-          CC: clang
-          CXX: clang++
-        run: ./make.sh -G "Unix Makefiles" -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCOSMOSCOUT_UNIT_TESTS=On
+        run: >
+          ./make.sh -G "Unix Makefiles"
+          -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
+          -DCOSMOSCOUT_UNIT_TESTS=On -DBOOST_ROOT=$BOOST_ROOT_1_69_0 -DBoost_ARCHITECTURE=-x64
       - name: Run Tests
         run: ./install/linux-release/bin/run_tests.sh
       - name: Run Graphical Tests
         run: ./install/linux-release/bin/run_graphical_tests.sh
-      - name: Upload Results of Failed Test 
+      - name: Upload Results of Failed Test
         uses: actions/upload-artifact@v1
         if: failure()
         with:
           name: graphical-test-results-clang
           path: install/linux-release/bin/test
+      - name: Print ccache Statistics
+        run: ccache -s
 
   build_windows:
-    name: Windows MSVC 19.24.28314.0
+    name: Windows MSVC 19.25
     runs-on: windows-2019
     if: >
       github.event_name == 'pull_request' ||
@@ -197,12 +198,17 @@ jobs:
           clcache -z
       - name: Build Externals
         shell: cmd
-        run: make_externals.bat -G "Visual Studio 16 2019" -A x64 -DCMAKE_VS_GLOBALS="CLToolExe=clcache.exe;TrackFileAccess=false"
+        run: >
+          make_externals.bat -G "Visual Studio 16 2019" -A x64
+          -DCMAKE_VS_GLOBALS="CLToolExe=clcache.exe;TrackFileAccess=false"
       - name: Build CosmoScout VR
         shell: cmd
-        run: make.bat -G "Visual Studio 16 2019" -A x64 -DCMAKE_VS_GLOBALS="CLToolExe=clcache.exe;TrackFileAccess=false" -DCOSMOSCOUT_UNIT_TESTS=On
+        run: >
+          make.bat -G "Visual Studio 16 2019" -A x64
+          -DCMAKE_VS_GLOBALS="CLToolExe=clcache.exe;TrackFileAccess=false"
+          -DCOSMOSCOUT_UNIT_TESTS=On -DBOOST_ROOT=%BOOST_ROOT_1_72_0%
       - name: Run Tests
         shell: cmd
         run: install\\windows-release\\bin\\run_tests.bat
-      - name: Print Cache Usage
+      - name: Print clcache Statistics
         run: clcache -s
