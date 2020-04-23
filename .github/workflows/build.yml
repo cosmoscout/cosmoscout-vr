@@ -179,17 +179,7 @@ jobs:
       ( contains(github.ref, 'master') && !contains(github.event.head_commit.message, '[no-ci]') ) ||
       ( contains(github.ref, 'develop') && !contains(github.event.head_commit.message, '[no-ci]') ) ||
       contains(github.event.head_commit.message, '[run-ci]')
-    env:
-      BOOST_ROOT: C:/hostedtoolcache/windows/Boost/1.72.0
-      FOOOO1: $BOOST_ROOT_1_72_0
-      FOOOO3: $env:BOOST_ROOT_1_72_0
     steps:
-      - name: Echo
-        run: |
-          echo $env:BOOST_ROOT
-          echo $env:FOOOO1
-          echo $env:FOOOO3
-          echo $env:BOOST_ROOT_1_72_0
       - name: Checkout Repository
         uses: actions/checkout@v2
       - name: Checkout Submodules
@@ -215,7 +205,7 @@ jobs:
         run: >
           make.bat -G "Visual Studio 16 2019" -A x64 
                    -DCMAKE_VS_GLOBALS="CLToolExe=clcache.exe;TrackFileAccess=false" 
-                   -DCOSMOSCOUT_UNIT_TESTS=On
+                   -DCOSMOSCOUT_UNIT_TESTS=On -DBOOST_ROOT=%BOOST_ROOT_1_72_0%
       - name: Run Tests
         shell: cmd
         run: install\\windows-release\\bin\\run_tests.bat
