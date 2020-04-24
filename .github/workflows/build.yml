@@ -87,11 +87,14 @@ jobs:
       - name: Download Dependencies
         run: |
           sudo apt-get update -q
-          sudo apt-get install libc++-dev libgl1-mesa-dev libglu1-mesa-dev libx11-dev
+          sudo apt-get install libgl1-mesa-dev libglu1-mesa-dev libx11-dev
           sudo apt-get install libxi-dev libgconf-2-4 ccache lcov xvfb
           ccache --max-size 1G
           ccache -z
       - name: Build Externals
+        env: #Thanks to ccache, it build actually faster without these options.
+          COSMOSCOUT_NO_PCH: true
+          COSMOSCOUT_NO_UNITY_BUILD: true
         run: >
           ./make_externals.sh -G "Unix Makefiles"
           -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
@@ -146,11 +149,14 @@ jobs:
       - name: Download Dependencies
         run: |
           sudo apt-get update -q
-          sudo apt-get install libc++-dev libgl1-mesa-dev libglu1-mesa-dev libx11-dev
+          sudo apt-get install libgl1-mesa-dev libglu1-mesa-dev libx11-dev
           sudo apt-get install libxi-dev libgconf-2-4 ccache
           ccache --max-size 1G
           ccache -z
       - name: Build Externals
+        env: #Thanks to ccache, it build actually faster without these options.
+          COSMOSCOUT_NO_PCH: true
+          COSMOSCOUT_NO_UNITY_BUILD: true
         run: >
           ./make_externals.sh -G "Unix Makefiles"
           -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
@@ -189,8 +195,8 @@ jobs:
         uses: actions/cache@v1.1.0
         with:
           path: ~/clcache
-          key: msvc19.24-${{ github.sha }}
-          restore-keys: msvc19.24-
+          key: msvc-${{ github.sha }}
+          restore-keys: msvc-
       - name: Download Dependencies
         run: |
           pip install clcache

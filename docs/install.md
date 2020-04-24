@@ -40,8 +40,16 @@ git checkout master
 
 ### Getting the dependencies
 
-Per default, CosmoScout VR and all dependencies are built in release mode.
-You can switch to debug mode by setting the environment variable `export COSMOSCOUT_DEBUG_BUILD=true` before executing the scripts below.
+Per default, CosmoScout VR and all dependencies are built in release mode using precompiled headers and unity builds where possible.
+This behavior can be adjusted using some environment variables:
+
+Variable | Default | Description
+---------|---------|------------
+`COSMOSCOUT_DEBUG_BUILD` | `false` | Set to `true` to build all dependencies and CosmoScout VR in debug mode.
+`COSMOSCOUT_NO_UNITY_BUILD` | `false` | Set to `true` to disable unity builds.
+`COSMOSCOUT_NO_PCH` | `false` | Set to `true` to prevent generation of precompiled headers.
+
+You should set these as required before executing the scripts below.
 This step only has to be done once.
 
 ```shell
@@ -120,10 +128,17 @@ MSVC | Visual Studio | File | Link
 
 
 Then you have to compile the dependencies.
-Per default, CosmoScout VR and all dependencies are built in release mode.
-You can switch to debug mode by setting the environment variable `set COSMOSCOUT_DEBUG_BUILD=true` (or `$env:COSMOSCOUT_DEBUG_BUILD = 'true'` if you are using PowerShell) before executing the scripts below.
-This step only has to be done once.
+Per default, CosmoScout VR and all dependencies are built in release mode using precompiled headers and unity builds where possible.
+This behavior can be adjusted using some environment variables:
 
+Variable | Default | Description
+---------|---------|------------
+`COSMOSCOUT_DEBUG_BUILD` | `false` | Set to `true` to build all dependencies and CosmoScout VR in debug mode.
+`COSMOSCOUT_NO_UNITY_BUILD` | `false` | Set to `true` to disable unity builds.
+`COSMOSCOUT_NO_PCH` | `false` | Set to `true` to prevent generation of precompiled headers.
+
+You should set these as required before executing the scripts below.
+This step only has to be done once.
 If you are using Visual Studio 2019, you have to replace `-G "Visual Studio 15 Win64"` with `-G "Visual Studio 16 2019" -A x64`.
 
 ```batch
