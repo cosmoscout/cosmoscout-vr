@@ -94,6 +94,7 @@ jobs:
       - name: Build Externals
         env:
           COSMOSCOUT_NO_PCH: true
+          COSMOSCOUT_NO_UNITY_BUILD: true
         run: >
           ./make_externals.sh -G "Unix Makefiles"
           -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
@@ -155,6 +156,7 @@ jobs:
       - name: Build Externals
         env:
           COSMOSCOUT_NO_PCH: true
+          COSMOSCOUT_NO_UNITY_BUILD: true
         run: >
           ./make_externals.sh -G "Unix Makefiles"
           -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
