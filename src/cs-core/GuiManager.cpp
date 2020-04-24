@@ -59,7 +59,7 @@ GuiManager::GuiManager(std::shared_ptr<Settings> settings,
 
   // The global GUI area is only created when the according settings key was specified.
   if (mSettings->mGuiPosition) {
-    auto platform = GetVistaSystem()
+    auto* platform = GetVistaSystem()
                         ->GetPlatformFor(GetVistaSystem()->GetDisplayManager()->GetDisplaySystem())
                         ->GetPlatformNode();
     mGlobalGuiTransform = pSG->NewTransformNode(platform);

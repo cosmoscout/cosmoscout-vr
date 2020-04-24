@@ -148,7 +148,7 @@ class CS_CORE_EXPORT Settings {
     std::string mEndExistence;
 
     /// Convenience method to convert the two strings above to SPICE-compatible doubles.
-    std::pair<double, double> getExistence();
+    std::pair<double, double> getExistence() const;
   };
 
   std::map<std::string, Anchor> mAnchors;

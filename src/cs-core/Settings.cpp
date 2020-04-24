@@ -318,7 +318,7 @@ void Settings::write(std::string const& fileName) const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::pair<double, double> Settings::Anchor::getExistence() {
+std::pair<double, double> Settings::Anchor::getExistence() const {
   std::pair<double, double> result;
 
   try {
