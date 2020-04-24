@@ -151,6 +151,7 @@ jobs:
           sudo apt-get install libxi-dev libgconf-2-4 ccache
           ccache --max-size 1G
           ccache --set-config=sloppiness=pch_defines,time_macros
+          ccache -C
           ccache -z
       - name: Build Externals
         run: >
@@ -191,8 +192,8 @@ jobs:
         uses: actions/cache@v1.1.0
         with:
           path: ~/clcache
-          key: msvc19.24-${{ github.sha }}
-          restore-keys: msvc19.24-
+          key: msvc-${{ github.sha }}
+          restore-keys: msvc-
       - name: Download Dependencies
         run: |
           pip install clcache
