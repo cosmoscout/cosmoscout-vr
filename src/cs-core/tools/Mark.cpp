@@ -311,15 +311,6 @@ void Mark::initData(std::string const& sCenter, std::string const& sFrame) {
     auto   cart   = cs::utils::convert::toCartesian(
         lngLat, radii[0], radii[0], height * mSettings->mGraphics.pHeightScale.get());
     mAnchor->setAnchorPosition(cart);
-
-    // This seems to be the first time the tool is moved, so we have to store the distance to the
-    // observer so that we can scale the tool later based on the observer's position.
-    if (pScaleDistance.get() < 0) {
-      double simulationTime(mTimeControl->pSimulationTime.get());
-      pScaleDistance =
-          mSolarSystem->getObserver().getAnchorScale() *
-          glm::length(mSolarSystem->getObserver().getRelativePosition(simulationTime, *mAnchor));
-    }
   });
 
   // connect the heightscale value to this object. Whenever the heightscale value changes

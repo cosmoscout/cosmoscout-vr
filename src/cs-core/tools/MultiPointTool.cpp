@@ -8,6 +8,7 @@
 
 #include <utility>
 
+#include "../../cs-scene/CelestialAnchorNode.hpp"
 #include "../../cs-scene/CelestialBody.hpp"
 #include "../../cs-utils/convert.hpp"
 #include "../InputManager.hpp"
@@ -26,7 +27,7 @@ MultiPointTool::MultiPointTool(std::shared_ptr<InputManager> pInputManager,
     , mCenter(std::move(sCenter))
     , mFrame(std::move(sFrame)) {
 
-  // if pAddPointMode is true, a new point will be add on left mouse button click
+  // If pAddPointMode is true, a new point will be add on left mouse button click.
   mLeftButtonConnection = mInputManager->pButtons[0].connect([this](bool pressed) {
     if (pAddPointMode.get() && !pressed) {
       auto planet = mInputManager->pHoveredObject.get().mObject;
@@ -36,13 +37,13 @@ MultiPointTool::MultiPointTool(std::shared_ptr<InputManager> pInputManager,
     }
   });
 
-  // if pAddPointMode is true, it will be set to false on right mouse button click
-  // the point which was currently added will be removed again
+  // If pAddPointMode is true, it will be set to false on right mouse button click
+  // the point which was currently added will be removed again.
   mRightButtonConnection = mInputManager->pButtons[1].connect([this](bool pressed) {
     if (pAddPointMode.get() && !pressed) {
       pAddPointMode = false;
+      onPointRemoved(static_cast<int32_t>(mPoints.size() - 1));
       mPoints.pop_back();
-      onPointRemoved(static_cast<int32_t>(mPoints.size()));
     }
   });
 }
@@ -50,35 +51,44 @@ MultiPointTool::MultiPointTool(std::shared_ptr<InputManager> pInputManager,
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 MultiPointTool::~MultiPointTool() {
-  // disconnect the mouse button slots
+  // Disconnect the mouse button slots.
   mInputManager->pButtons[0].disconnect(mLeftButtonConnection);
   mInputManager->pButtons[1].disconnect(mRightButtonConnection);
+
+  pColor.disconnectAll();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MultiPointTool::addPoint() {
-  // add the Mark to the list
+void MultiPointTool::addPoint(std::optional<glm::dvec2> const& lngLat) {
+  // Add the Mark to the list.
   mPoints.emplace_back(std::make_shared<DeletableMark>(
       mInputManager, mSolarSystem, mSettings, mTimeControl, mCenter, mFrame));
 
   // if there is a planet intersection, move the point to the intersection location
-  auto intersection = mInputManager->pHoveredObject.get();
-  if (intersection.mObject) {
-    auto body = std::dynamic_pointer_cast<cs::scene::CelestialBody>(intersection.mObject);
+  if (lngLat) {
+    mPoints.back()->pLngLat = lngLat.value();
+  } else {
+    auto intersection = mInputManager->pHoveredObject.get();
+    if (intersection.mObject) {
+      auto body = std::dynamic_pointer_cast<cs::scene::CelestialBody>(intersection.mObject);
 
-    if (body) {
-      auto       radii = body->getRadii();
-      glm::dvec2 pos =
-          cs::utils::convert::toLngLatHeight(intersection.mPosition, radii[0], radii[0]).xy();
-      mPoints.back()->pLngLat = pos;
+      if (body) {
+        auto       radii = body->getRadii();
+        glm::dvec2 pos =
+            cs::utils::convert::toLngLatHeight(intersection.mPosition, radii[0], radii[0]).xy();
+        mPoints.back()->pLngLat = pos;
+      }
     }
   }
 
   // register callback to update line vertices when the landmark position has been changed
   mPoints.back()->pLngLat.connect([this](glm::dvec2 const& /*unused*/) { onPointMoved(); });
 
-  // call update once since new data is available
+  // Update the color.
+  mPoints.back()->pColor.connectFrom(pColor);
+
+  // Call update once since new data is available.
   onPointAdded();
 }
 
@@ -88,11 +98,11 @@ void MultiPointTool::update() {
   bool anyPointSelected = false;
   int  index            = 0;
 
-  // update all points and remove them if required
+  // Update all points and remove them if required.
   for (auto mark = mPoints.begin(); mark != mPoints.end();) {
     if ((*mark)->pShouldDelete.get()) {
-      mark = mPoints.erase(mark);
       onPointRemoved(index);
+      mark = mPoints.erase(mark);
     } else {
       anyPointSelected |= static_cast<bool>((*mark)->pSelected.get());
       (*mark)->update();
@@ -103,13 +113,13 @@ void MultiPointTool::update() {
 
   pAnyPointSelected = anyPointSelected;
 
-  // request deletion of the tool itself if there are no points left
+  // Request deletion of the tool itself if there are no points left.
   if (mPoints.empty()) {
     pShouldDelete = true;
   }
 
-  // if pAddPointMode is true, move the last point to the current planet
-  // intersection position (if there is any)
+  // If pAddPointMode is true, move the last point to the current planet
+  // intersection position (if there is any).
   if (pAddPointMode.get()) {
     auto intersection = mInputManager->pHoveredObject.get();
     if (intersection.mObject) {
@@ -126,14 +136,72 @@ void MultiPointTool::update() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void MultiPointTool::setCenterName(std::string const& name) {
+  mCenter = name;
+
+  for (auto& p : mPoints) {
+    p->getAnchor()->setCenterName(name);
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 std::string const& MultiPointTool::getCenterName() const {
   return mCenter;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void MultiPointTool::setFrameName(std::string const& name) {
+  mFrame = name;
+
+  for (auto& p : mPoints) {
+    p->getAnchor()->setFrameName(name);
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 std::string const& MultiPointTool::getFrameName() const {
   return mFrame;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::vector<glm::dvec2> MultiPointTool::getPositions() const {
+  std::vector<glm::dvec2> result;
+  result.reserve(mPoints.size());
+
+  for (auto& p : mPoints) {
+    result.emplace_back(p->pLngLat.get());
+  }
+
+  return result;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MultiPointTool::setPositions(std::vector<glm::dvec2> const& positions) {
+
+  // We try to re-use the DeletableMarks we already have in order to make this faster. If we have
+  // more than required, delete the rest.
+  while (mPoints.size() > positions.size()) {
+    onPointRemoved(static_cast<int32_t>(mPoints.size() - 1));
+    mPoints.pop_back();
+  }
+
+  // Now update the positions of all the points we still have and then add new ones as required.
+  auto it = mPoints.begin();
+  for (size_t i(0); i < positions.size(); ++i, ++it) {
+    if (i < mPoints.size()) {
+      if ((*it)->pLngLat.get() != positions[i]) {
+        (*it)->pLngLat = positions[i];
+        onPointMoved();
+      }
+    } else {
+      addPoint(positions[i]);
+    }
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

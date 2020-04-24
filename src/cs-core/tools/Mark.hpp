@@ -38,12 +38,15 @@ namespace tools {
 class CS_CORE_EXPORT Mark : public IVistaOpenGLDraw, public Tool {
  public:
   /// Observable properties to get updates on state changes.
-  cs::utils::Property<glm::dvec2> pLngLat        = glm::dvec2(0.0);
-  cs::utils::Property<bool>       pHovered       = false;
-  cs::utils::Property<bool>       pSelected      = false;
-  cs::utils::Property<bool>       pActive        = false;
-  cs::utils::Property<glm::vec3>  pColor         = glm::vec3(0.75, 0.75, 1.0);
-  cs::utils::Property<double>     pScaleDistance = -1.0;
+  cs::utils::Property<glm::dvec2> pLngLat   = glm::dvec2(0.0);
+  cs::utils::Property<bool>       pHovered  = false;
+  cs::utils::Property<bool>       pSelected = false;
+  cs::utils::Property<bool>       pActive   = false;
+  cs::utils::Property<glm::vec3>  pColor    = glm::vec3(0.75, 0.75, 1.0);
+
+  /// This should be set to the initial distance of the tool to the observer. It will be used to
+  /// scale the tool based on the current observer distance.
+  cs::utils::Property<double> pScaleDistance = -1.0;
 
   Mark(std::shared_ptr<InputManager> pInputManager, std::shared_ptr<SolarSystem> pSolarSystem,
       std::shared_ptr<Settings> Settings, std::shared_ptr<TimeControl> pTimeControl,
