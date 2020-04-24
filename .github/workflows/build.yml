@@ -90,7 +90,6 @@ jobs:
           sudo apt-get install libgl1-mesa-dev libglu1-mesa-dev libx11-dev
           sudo apt-get install libxi-dev libgconf-2-4 ccache lcov xvfb
           ccache --max-size 1G
-          ccache --set-config=sloppiness=pch_defines,time_macros
           ccache -z
       - name: Build Externals
         run: >
@@ -150,8 +149,6 @@ jobs:
           sudo apt-get install libgl1-mesa-dev libglu1-mesa-dev libx11-dev
           sudo apt-get install libxi-dev libgconf-2-4 ccache
           ccache --max-size 1G
-          ccache --set-config=sloppiness=pch_defines,time_macros
-          ccache -C
           ccache -z
       - name: Build Externals
         run: >
