@@ -196,11 +196,11 @@ GuiManager::GuiManager(std::shared_ptr<Settings> settings,
       [this]() { mSettings->pEnableUserInterface = !mSettings->pEnableUserInterface.get(); });
 
   mSettings->pEnableUserInterface.connectAndTouch([this](bool enable) {
-    if (enable) {
-      showGui();
-    } else {
-      hideGui();
+    if (mGlobalGuiTransform) {
+      mGlobalGuiTransform->SetIsEnabled(enable);
     }
+    mLocalGuiTransform->SetIsEnabled(enable);
+    mCosmoScoutGui->setIsInteractive(enable);
   });
 
   for (const auto& mEvent : mSettings->mEvents) {
@@ -309,35 +309,6 @@ void GuiManager::setLoadingScreenStatus(std::string const& sStatus) const {
 
 void GuiManager::setLoadingScreenProgress(float percent, bool animate) const {
   mCosmoScoutGui->callJavascript("CosmoScout.loadingScreen.setProgress", percent, animate);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void GuiManager::showGui() {
-  if (mGlobalGuiTransform) {
-    mGlobalGuiTransform->SetIsEnabled(true);
-  }
-  mLocalGuiTransform->SetIsEnabled(true);
-  mCosmoScoutGui->setIsInteractive(true);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void GuiManager::hideGui() {
-  if (mGlobalGuiTransform) {
-    mGlobalGuiTransform->SetIsEnabled(false);
-  }
-  mLocalGuiTransform->SetIsEnabled(false);
-  mCosmoScoutGui->setIsInteractive(false);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void GuiManager::toggleGui() {
-  if (mGlobalGuiTransform) {
-    mGlobalGuiTransform->SetIsEnabled(!mGlobalGuiTransform->GetIsEnabled());
-  }
-  mLocalGuiTransform->SetIsEnabled(!mLocalGuiTransform->GetIsEnabled());
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

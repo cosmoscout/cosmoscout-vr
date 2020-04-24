@@ -168,11 +168,6 @@ class CS_CORE_EXPORT GuiManager {
   /// Sets the progress bar state.
   void setLoadingScreenProgress(float percent, bool animate) const;
 
-  /// Hides or shows the entire user interface. This is bound to the ESC-key.
-  void showGui();
-  void hideGui();
-  void toggleGui();
-
   /// This is called once a frame from the Application.
   void update();
 
