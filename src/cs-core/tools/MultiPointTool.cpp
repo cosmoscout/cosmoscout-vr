@@ -54,8 +54,6 @@ MultiPointTool::~MultiPointTool() {
   // Disconnect the mouse button slots.
   mInputManager->pButtons[0].disconnect(mLeftButtonConnection);
   mInputManager->pButtons[1].disconnect(mRightButtonConnection);
-
-  pColor.disconnectAll();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -87,6 +85,9 @@ void MultiPointTool::addPoint(std::optional<glm::dvec2> const& lngLat) {
 
   // Update the color.
   mPoints.back()->pColor.connectFrom(pColor);
+
+  // Update scaling distance.
+  mPoints.back()->pScaleDistance.connectFrom(pScaleDistance);
 
   // Call update once since new data is available.
   onPointAdded();

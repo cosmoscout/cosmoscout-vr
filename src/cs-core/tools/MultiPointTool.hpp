@@ -70,16 +70,16 @@ class CS_CORE_EXPORT MultiPointTool : public Tool {
   /// if the number of points changes.
   void setPositions(std::vector<glm::dvec2> const& positions);
 
+  /// A derived class may call this in order to add a new point at the given position. If no
+  /// position is given, the current pointer position will be used.
+  void addPoint(std::optional<glm::dvec2> const& lngLat = std::nullopt);
+
  protected:
   /// Derived classes should implement these - they will be called after the corresponding event
   /// happened.
   virtual void onPointMoved()            = 0;
   virtual void onPointAdded()            = 0;
   virtual void onPointRemoved(int index) = 0;
-
-  /// A derived class may call this in order to add a new point at the given position. If no
-  /// position is given, the current pointer position will be used.
-  void addPoint(std::optional<glm::dvec2> const& lngLat = std::nullopt);
 
   std::shared_ptr<InputManager> mInputManager;
   std::shared_ptr<SolarSystem>  mSolarSystem;
