@@ -27,7 +27,7 @@ MultiPointTool::MultiPointTool(std::shared_ptr<InputManager> pInputManager,
     , mCenter(std::move(sCenter))
     , mFrame(std::move(sFrame)) {
 
-  // If pAddPointMode is true, a new point will be add on left mouse button click.
+  // If pAddPointMode is true, a new point will be added on a left mouse button click.
   mLeftButtonConnection = mInputManager->pButtons[0].connect([this](bool pressed) {
     if (pAddPointMode.get() && !pressed) {
       auto planet = mInputManager->pHoveredObject.get().mObject;
@@ -37,7 +37,7 @@ MultiPointTool::MultiPointTool(std::shared_ptr<InputManager> pInputManager,
     }
   });
 
-  // If pAddPointMode is true, it will be set to false on right mouse button click
+  // If pAddPointMode is true, it will be set to false on a right mouse button click
   // the point which was currently added will be removed again.
   mRightButtonConnection = mInputManager->pButtons[1].connect([this](bool pressed) {
     if (pAddPointMode.get() && !pressed) {
@@ -119,7 +119,7 @@ void MultiPointTool::update() {
     pShouldDelete = true;
   }
 
-  // If pAddPointMode is true, move the last point to the current planet
+  // If pAddPointMode is true, move the last point to the current body
   // intersection position (if there is any).
   if (pAddPointMode.get()) {
     auto intersection = mInputManager->pHoveredObject.get();
@@ -173,7 +173,7 @@ std::vector<glm::dvec2> MultiPointTool::getPositions() const {
   std::vector<glm::dvec2> result;
   result.reserve(mPoints.size());
 
-  for (auto& p : mPoints) {
+  for (auto const& p : mPoints) {
     result.emplace_back(p->pLngLat.get());
   }
 
