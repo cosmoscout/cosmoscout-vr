@@ -12,6 +12,7 @@
 
 #include <list>
 #include <memory>
+#include <optional>
 
 namespace cs::core {
 class TimeControl;
