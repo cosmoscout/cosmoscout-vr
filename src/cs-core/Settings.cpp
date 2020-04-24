@@ -306,7 +306,8 @@ void Settings::write(std::string const& fileName) const {
   // Tell listeners that the settings are about to be saved.
   mOnSave.emit();
 
-  std::ofstream o(fileName);
+  // Write to a temporary file first.
+  std::ofstream o(fileName + ".tmp");
 
   if (!o) {
     throw std::runtime_error("Cannot open file: '" + fileName + "'!");
@@ -314,6 +315,11 @@ void Settings::write(std::string const& fileName) const {
 
   nlohmann::json settings = *this;
   o << std::setw(2) << settings;
+
+  o.close();
+
+  // All done, so we're safe to rename the file.
+  std::rename((fileName + ".tmp").c_str(), fileName.c_str());
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
