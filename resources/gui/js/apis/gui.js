@@ -130,43 +130,6 @@ class GuiApi extends IApi {
   }
 
   /**
-   * Appends a script element to the body.
-   *
-   * @param url {string} Absolute or local file path
-   * @param init {string|Function} Method gets run on script load
-   */
-  registerJavaScript(url, init) {
-    const script = document.createElement('script');
-
-    if (typeof init !== 'undefined') {
-      if (typeof init === 'string') {
-        'use strict';
-        init = eval(init);
-      }
-
-      script.addEventListener('readystatechange', init);
-    }
-
-    script.setAttribute('src', url);
-
-    document.body.appendChild(script);
-  }
-
-  /**
-   * Removes a script element by url.
-   *
-   * @param url {string}
-   */
-  unregisterJavaScript(url) {
-    document.querySelectorAll('script').forEach((element) => {
-      if (typeof element.src !== 'undefined' &&
-          (element.src === url || element.src === this._localizeUrl(url))) {
-        document.body.removeChild(element);
-      }
-    });
-  }
-
-  /**
    * Appends a link stylesheet to the head.
    *
    * @param url {string}
@@ -186,8 +149,7 @@ class GuiApi extends IApi {
    */
   unregisterCss(url) {
     document.querySelectorAll('link').forEach((element) => {
-      if (typeof element.href !== 'undefined' &&
-          (element.href === url || element.href === this._localizeUrl(url))) {
+      if (typeof element.href !== 'undefined' && element.href === url) {
         document.head.removeChild(element);
       }
     });
@@ -477,17 +439,6 @@ class GuiApi extends IApi {
     if (element !== null) {
       element.value = value;
     }
-  }
-
-  /**
-   * Localizes a filename
-   *
-   * @param url {string}
-   * @return {string}
-   * @private
-   */
-  _localizeUrl(url) {
-    return `file://../share/resources/gui/${url}`;
   }
 
   /**
