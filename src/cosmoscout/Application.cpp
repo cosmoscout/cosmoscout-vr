@@ -137,14 +137,6 @@ bool Application::Init(VistaSystem* pVistaSystem) {
         "CosmoScout.gui.hideElement", "#enableSensorSizeControl", !enable);
   });
 
-  mGuiManager->getGui()->callJavascript("CosmoScout.gui.setCheckboxValue", "graphics.setEnableHDR",
-      mSettings->mGraphics.pEnableHDR.get(), true);
-
-  mSettings->mGraphics.pEnableHDR.connect([this](bool enable) {
-    mGuiManager->getGui()->callJavascript(
-        "CosmoScout.gui.setCheckboxValue", "graphics.setEnableHDR", enable);
-  });
-
   mSettings->pSpiceKernel.connect([](auto /*unused*/) {
     logger().warn("Reloading the SPICE kernels at runtime is not yet supported!");
   });
@@ -908,29 +900,31 @@ void Application::registerGuiCallbacks() {
       "Enables or disables lighting computations for planet surfaces.",
       std::function([this](bool enable) { mSettings->mGraphics.pEnableLighting = enable; }));
   mSettings->mGraphics.pEnableLighting.connectAndTouch(
-      [this](bool enable) { mGuiManager->setCheckbox("graphics.setEnableLighting", enable); });
+      [this](bool enable) { mGuiManager->setCheckboxValue("graphics.setEnableLighting", enable); });
 
   // Shows cascaded shadow mapping debugging information on the terrain.
   mGuiManager->getGui()->registerCallback("graphics.setEnableCascadesDebug",
       "Enables or disables a debug visualization for the shadow maps.",
       std::function([this](bool enable) { mSettings->mGraphics.pEnableShadowsDebug = enable; }));
-  mSettings->mGraphics.pEnableShadowsDebug.connectAndTouch(
-      [this](bool enable) { mGuiManager->setCheckbox("graphics.setEnableCascadesDebug", enable); });
+  mSettings->mGraphics.pEnableShadowsDebug.connectAndTouch([this](bool enable) {
+    mGuiManager->setCheckboxValue("graphics.setEnableCascadesDebug", enable);
+  });
 
   // Enables the calculation of shadows.
   mGuiManager->getGui()->registerCallback("graphics.setEnableShadows",
       "Enables or disables calculation of shadow maps.",
       std::function([this](bool enable) { mSettings->mGraphics.pEnableShadows = enable; }));
   mSettings->mGraphics.pEnableShadows.connectAndTouch(
-      [this](bool enable) { mGuiManager->setCheckbox("graphics.setEnableShadows", enable); });
+      [this](bool enable) { mGuiManager->setCheckboxValue("graphics.setEnableShadows", enable); });
 
   // Freezes the shadow frustum.
   mGuiManager->getGui()->registerCallback("graphics.setEnableShadowFreeze",
       "If enabled, the camera frustum used for the calculation of the shadow map cascades is not "
       "updated anymore.",
       std::function([this](bool enable) { mSettings->mGraphics.pEnableShadowsFreeze = enable; }));
-  mSettings->mGraphics.pEnableShadowsFreeze.connectAndTouch(
-      [this](bool enable) { mGuiManager->setCheckbox("graphics.setEnableShadowFreeze", enable); });
+  mSettings->mGraphics.pEnableShadowsFreeze.connectAndTouch([this](bool enable) {
+    mGuiManager->setCheckboxValue("graphics.setEnableShadowFreeze", enable);
+  });
 
   // Sets a value which individual plugins may honor trading rendering fidelity for performance.
   mGuiManager->getGui()->registerCallback("graphics.setLightingQuality",
@@ -938,7 +932,7 @@ void Application::registerGuiCallbacks() {
       std::function(
           [this](double val) { mSettings->mGraphics.pLightingQuality = static_cast<int>(val); }));
   mSettings->mGraphics.pLightingQuality.connectAndTouch(
-      [this](int val) { mGuiManager->setSlider("graphics.setLightingQuality", val); });
+      [this](int val) { mGuiManager->setSliderValue("graphics.setLightingQuality", val); });
 
   // Adjusts the resolution of the shadowmap.
   mGuiManager->getGui()->registerCallback("graphics.setShadowmapResolution",
@@ -948,7 +942,7 @@ void Application::registerGuiCallbacks() {
         mSettings->mGraphics.pShadowMapResolution = static_cast<int>(val);
       }));
   mSettings->mGraphics.pShadowMapResolution.connectAndTouch(
-      [this](int val) { mGuiManager->setSlider("graphics.setShadowmapResolution", val); });
+      [this](int val) { mGuiManager->setSliderValue("graphics.setShadowmapResolution", val); });
 
   // Adjusts the number of shadowmap cascades.
   mGuiManager->getGui()->registerCallback("graphics.setShadowmapCascades",
@@ -956,7 +950,7 @@ void Application::registerGuiCallbacks() {
       std::function(
           [this](double val) { mSettings->mGraphics.pShadowMapCascades = static_cast<int>(val); }));
   mSettings->mGraphics.pShadowMapCascades.connectAndTouch(
-      [this](int val) { mGuiManager->setSlider("graphics.setShadowmapCascades", val); });
+      [this](int val) { mGuiManager->setSliderValue("graphics.setShadowmapCascades", val); });
 
   // Adjusts the depth range of the shadowmap.
   mGuiManager->getGui()->registerCallback("graphics.setShadowmapRange",
@@ -974,8 +968,9 @@ void Application::registerGuiCallbacks() {
 
         mSettings->mGraphics.pShadowMapRange = range;
       }));
-  mSettings->mGraphics.pShadowMapRange.connectAndTouch(
-      [this](glm::dvec2 const& val) { mGuiManager->setSlider("graphics.setShadowmapRange", val); });
+  mSettings->mGraphics.pShadowMapRange.connectAndTouch([this](glm::dvec2 const& val) {
+    mGuiManager->setSliderValue("graphics.setShadowmapRange", val);
+  });
 
   // Adjusts the additional frustum length for shadowmap rendering in sun space.
   mGuiManager->getGui()->registerCallback("graphics.setShadowmapExtension",
@@ -994,7 +989,7 @@ void Application::registerGuiCallbacks() {
         mSettings->mGraphics.pShadowMapExtension = extension;
       }));
   mSettings->mGraphics.pShadowMapExtension.connectAndTouch([this](glm::dvec2 const& val) {
-    mGuiManager->setSlider("graphics.setShadowmapExtension", val);
+    mGuiManager->setSliderValue("graphics.setShadowmapExtension", val);
   });
 
   // Adjusts the distribution of shadowmap cascades.
@@ -1003,8 +998,9 @@ void Application::registerGuiCallbacks() {
       std::function([this](double val) {
         mSettings->mGraphics.pShadowMapSplitDistribution = static_cast<float>(val);
       }));
-  mSettings->mGraphics.pShadowMapSplitDistribution.connectAndTouch(
-      [this](float val) { mGuiManager->setSlider("graphics.setShadowmapSplitDistribution", val); });
+  mSettings->mGraphics.pShadowMapSplitDistribution.connectAndTouch([this](float val) {
+    mGuiManager->setSliderValue("graphics.setShadowmapSplitDistribution", val);
+  });
 
   // Adjusts the bias to mitigate shadow acne.
   mGuiManager->getGui()->registerCallback("graphics.setShadowmapBias",
@@ -1012,7 +1008,7 @@ void Application::registerGuiCallbacks() {
         mSettings->mGraphics.pShadowMapBias = static_cast<float>(val);
       }));
   mSettings->mGraphics.pShadowMapBias.connectAndTouch(
-      [this](float val) { mGuiManager->setSlider("graphics.setShadowmapBias", val); });
+      [this](float val) { mGuiManager->setSliderValue("graphics.setShadowmapBias", val); });
 
   // A global factor which plugins may honor when they render some sort of terrain.
   mGuiManager->getGui()->registerCallback("graphics.setTerrainHeight",
@@ -1020,7 +1016,7 @@ void Application::registerGuiCallbacks() {
       std::function(
           [this](double val) { mSettings->mGraphics.pHeightScale = static_cast<float>(val); }));
   mSettings->mGraphics.pHeightScale.connectAndTouch(
-      [this](double val) { mGuiManager->setSlider("graphics.setTerrainHeight", val); });
+      [this](double val) { mGuiManager->setSliderValue("graphics.setTerrainHeight", val); });
 
   // Adjusts the global scaling of world-space widgets.
   mGuiManager->getGui()->registerCallback("graphics.setWidgetScale",
@@ -1028,7 +1024,7 @@ void Application::registerGuiCallbacks() {
       std::function(
           [this](double val) { mSettings->mGraphics.pWidgetScale = static_cast<float>(val); }));
   mSettings->mGraphics.pWidgetScale.connectAndTouch(
-      [this](double val) { mGuiManager->setSlider("graphics.setWidgetScale", val); });
+      [this](double val) { mGuiManager->setSliderValue("graphics.setWidgetScale", val); });
 
   // Adjusts the sensor diagonal of the virtual camera.
   mGuiManager->getGui()->registerCallback("graphics.setSensorDiagonal",
@@ -1036,7 +1032,7 @@ void Application::registerGuiCallbacks() {
         mSettings->mGraphics.pSensorDiagonal = static_cast<float>(val);
       }));
   mSettings->mGraphics.pSensorDiagonal.connectAndTouch(
-      [this](float val) { mGuiManager->setSlider("graphics.setSensorDiagonal", val); });
+      [this](float val) { mGuiManager->setSliderValue("graphics.setSensorDiagonal", val); });
 
   // Adjusts the foacl length of the virtual camera.
   mGuiManager->getGui()->registerCallback("graphics.setFocalLength",
@@ -1044,7 +1040,7 @@ void Application::registerGuiCallbacks() {
         mSettings->mGraphics.pFocalLength = static_cast<float>(val);
       }));
   mSettings->mGraphics.pFocalLength.connectAndTouch(
-      [this](float val) { mGuiManager->setSlider("graphics.setFocalLength", val); });
+      [this](float val) { mGuiManager->setSliderValue("graphics.setFocalLength", val); });
 
   // Toggles HDR rendering.
   mGuiManager->getGui()->registerCallback("graphics.setEnableHDR",
@@ -1053,15 +1049,16 @@ void Application::registerGuiCallbacks() {
   mSettings->mGraphics.pEnableHDR.connectAndTouch([this](bool enable) {
     // We fire callbacks (last param) to make sure that the exposure-sliders are properly activated
     // / deactivated.
-    mGuiManager->setCheckbox("graphics.setEnableHDR", enable, true);
+    mGuiManager->setCheckboxValue("graphics.setEnableHDR", enable, true);
   });
 
   // Toggles auto-exposure.
   mGuiManager->getGui()->registerCallback("graphics.setEnableAutoExposure",
       "Enables or disables automatic exposure calculation.",
       std::function([this](bool enable) { mSettings->mGraphics.pEnableAutoExposure = enable; }));
-  mSettings->mGraphics.pEnableAutoExposure.connectAndTouch(
-      [this](bool enable) { mGuiManager->setCheckbox("graphics.setEnableAutoExposure", enable); });
+  mSettings->mGraphics.pEnableAutoExposure.connectAndTouch([this](bool enable) {
+    mGuiManager->setCheckboxValue("graphics.setEnableAutoExposure", enable);
+  });
 
   // Adjusts the exposure compensation for HDR rendering.
   mGuiManager->getGui()->registerCallback("graphics.setExposureCompensation",
@@ -1069,7 +1066,7 @@ void Application::registerGuiCallbacks() {
         mSettings->mGraphics.pExposureCompensation = static_cast<float>(val);
       }));
   mSettings->mGraphics.pExposureCompensation.connectAndTouch(
-      [this](float val) { mGuiManager->setSlider("graphics.setExposureCompensation", val); });
+      [this](float val) { mGuiManager->setSliderValue("graphics.setExposureCompensation", val); });
 
   // Adjusts the exposure of the virtual camera in HDR mode.
   mGuiManager->getGui()->registerCallback("graphics.setExposure",
@@ -1077,7 +1074,7 @@ void Application::registerGuiCallbacks() {
       std::function(
           [this](double val) { mSettings->mGraphics.pExposure = static_cast<float>(val); }));
   mSettings->mGraphics.pExposure.connectAndTouch(
-      [this](float val) { mGuiManager->setSlider("graphics.setExposure", val); });
+      [this](float val) { mGuiManager->setSliderValue("graphics.setExposure", val); });
 
   // Adjusts how fast the exposure adapts to new lighting condtitions.
   mGuiManager->getGui()->registerCallback("graphics.setExposureAdaptionSpeed",
@@ -1085,7 +1082,7 @@ void Application::registerGuiCallbacks() {
         mSettings->mGraphics.pExposureAdaptionSpeed = static_cast<float>(val);
       }));
   mSettings->mGraphics.pExposureAdaptionSpeed.connectAndTouch(
-      [this](float val) { mGuiManager->setSlider("graphics.setExposureAdaptionSpeed", val); });
+      [this](float val) { mGuiManager->setSliderValue("graphics.setExposureAdaptionSpeed", val); });
 
   // Toggles auto-glow.
   mGuiManager->getGui()->registerCallback("graphics.setEnableAutoGlow",
@@ -1094,7 +1091,7 @@ void Application::registerGuiCallbacks() {
   mSettings->mGraphics.pEnableAutoGlow.connectAndTouch([this](bool enable) {
     // We fire callbacks (last param) to make sure that the glow-slider is properly activated /
     // deactivated.
-    mGuiManager->setCheckbox("graphics.setEnableAutoGlow", enable, true);
+    mGuiManager->setCheckboxValue("graphics.setEnableAutoGlow", enable, true);
   });
 
   // Adjusts the amount of artificial glare in HDR mode. If auto-glow is enabled, we update the
@@ -1104,7 +1101,7 @@ void Application::registerGuiCallbacks() {
         mSettings->mGraphics.pGlowIntensity = static_cast<float>(val);
       }));
   mSettings->mGraphics.pGlowIntensity.connect(
-      [this](float val) { mGuiManager->setSlider("graphics.setGlowIntensity", val); });
+      [this](float val) { mGuiManager->setSliderValue("graphics.setGlowIntensity", val); });
 
   // Update the side bar field showing the average luminance of the scene.
   mGraphicsEngine->pAverageLuminance.connect([this](float value) {
@@ -1122,7 +1119,7 @@ void Application::registerGuiCallbacks() {
         mSettings->mGraphics.pAmbientBrightness = static_cast<float>(std::pow(val, 10.0));
       }));
   mSettings->mGraphics.pAmbientBrightness.connect([this](float val) {
-    mGuiManager->setSlider("graphics.setAmbientLight", std::pow(val, 0.1));
+    mGuiManager->setSliderValue("graphics.setAmbientLight", std::pow(val, 0.1));
   });
 
   // Adjusts the exposure range for auto exposure.
@@ -1141,22 +1138,24 @@ void Application::registerGuiCallbacks() {
 
         mSettings->mGraphics.pAutoExposureRange = range;
       }));
-  mSettings->mGraphics.pAutoExposureRange.connectAndTouch(
-      [this](glm::dvec2 const& val) { mGuiManager->setSlider("graphics.setExposureRange", val); });
+  mSettings->mGraphics.pAutoExposureRange.connectAndTouch([this](glm::dvec2 const& val) {
+    mGuiManager->setSliderValue("graphics.setExposureRange", val);
+  });
 
   // Enables or disables the per-frame time measurements.
   mGuiManager->getGui()->registerCallback("graphics.setEnableTimerQueries",
       "Shows or hides the frame timing information.",
       std::function([this](bool enable) { mFrameTimings->pEnableMeasurements = enable; }));
-  mFrameTimings->pEnableMeasurements.connectAndTouch(
-      [this](bool enable) { mGuiManager->setCheckbox("graphics.setEnableTimerQueries", enable); });
+  mFrameTimings->pEnableMeasurements.connectAndTouch([this](bool enable) {
+    mGuiManager->setCheckboxValue("graphics.setEnableTimerQueries", enable);
+  });
 
   // Enables or disables vertical synchronization.
   mGuiManager->getGui()->registerCallback("graphics.setEnableVsync",
       "Enables or disables vertical synchronization.",
       std::function([this](bool enable) { mSettings->mGraphics.pEnableVsync = enable; }));
   mSettings->mGraphics.pEnableVsync.connectAndTouch(
-      [this](bool enable) { mGuiManager->setCheckbox("graphics.setEnableVsync", enable); });
+      [this](bool enable) { mGuiManager->setCheckboxValue("graphics.setEnableVsync", enable); });
 
   // Timeline callbacks ----------------------------------------------------------------------------
 

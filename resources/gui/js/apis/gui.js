@@ -406,8 +406,8 @@ class GuiApi extends IApi {
    * @see {setCheckboxValue}
    * @param callbackName {string} tha data-callback attribute of the radio button element
    */
-  setRadioChecked(callbackName) {
-    this.setCheckboxValue(callbackName, true);
+  setRadioChecked(callbackName, emitCallbacks) {
+    this.setCheckboxValue(callbackName, true, emitCallbacks);
   }
 
   /**

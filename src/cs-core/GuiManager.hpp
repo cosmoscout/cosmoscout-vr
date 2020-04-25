@@ -155,12 +155,17 @@ class CS_CORE_EXPORT GuiManager {
 
   /// Sets a checkbox to the given value. This is only a thin wrapper for
   /// "CosmoScout.gui.setCheckboxValue" but provides compile time type safety.
-  void setCheckbox(std::string const& name, bool val, bool emitCallbacks = false) const;
+  void setCheckboxValue(std::string const& name, bool val, bool emitCallbacks = false) const;
+
+  /// Checks a radio button. This is only a thin wrapper for "CosmoScout.gui.setRadioChecked" but
+  /// provides compile time type safety.
+  void setRadioChecked(std::string const& name, bool emitCallbacks = false) const;
 
   /// Sets a slider (with one or two handles) to the given value(s). These are only a thin wrappers
   /// for "CosmoScout.gui.setSliderValue" but provide compile time type safety.
-  void setSlider(std::string const& name, double val, bool emitCallbacks = false) const;
-  void setSlider(std::string const& name, glm::dvec2 const& val, bool emitCallbacks = false) const;
+  void setSliderValue(std::string const& name, double val, bool emitCallbacks = false) const;
+  void setSliderValue(
+      std::string const& name, glm::dvec2 const& val, bool emitCallbacks = false) const;
 
   /// Returns the CosmoScout Gui.
   gui::GuiItem* getGui() const;

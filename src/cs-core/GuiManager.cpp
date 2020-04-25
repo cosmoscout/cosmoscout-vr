@@ -423,19 +423,25 @@ void GuiManager::addEventToTimenavigationBar(std::string const& start,
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GuiManager::setCheckbox(std::string const& name, bool val, bool emitCallbacks) const {
+void GuiManager::setCheckboxValue(std::string const& name, bool val, bool emitCallbacks) const {
   mCosmoScoutGui->callJavascript("CosmoScout.gui.setCheckboxValue", name, val, emitCallbacks);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GuiManager::setSlider(std::string const& name, double val, bool emitCallbacks) const {
+void GuiManager::setRadioChecked(std::string const& name, bool emitCallbacks) const {
+  mCosmoScoutGui->callJavascript("CosmoScout.gui.setRadioChecked", name, emitCallbacks);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void GuiManager::setSliderValue(std::string const& name, double val, bool emitCallbacks) const {
   mCosmoScoutGui->callJavascript("CosmoScout.gui.setSliderValue", name, emitCallbacks, val);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GuiManager::setSlider(
+void GuiManager::setSliderValue(
     std::string const& name, glm::dvec2 const& val, bool emitCallbacks) const {
   mCosmoScoutGui->callJavascript(
       "CosmoScout.gui.setSliderValue", name, emitCallbacks, val.x, val.y);
