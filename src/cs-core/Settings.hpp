@@ -285,6 +285,9 @@ class CS_CORE_EXPORT Settings {
   // -----------------------------------------------------------------------------------------------
 
   struct Graphics {
+    /// Enables or disables vertical synchronization.
+    utils::DefaultProperty<bool> pEnableVsync{true};
+
     /// A multiplicator for the size of worldspace gui-elements.
     utils::DefaultProperty<float> pWidgetScale{1.F};
 

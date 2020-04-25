@@ -857,8 +857,7 @@ void Application::connectSlots() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Application::registerGuiCallbacks() {
-  // core callbacks
-  // --------------------------------------------------------------------------------
+  // core callbacks --------------------------------------------------------------------------------
 
   // Saves the current scene state in a specified file.
   mGuiManager->getGui()->registerCallback("core.save",
@@ -902,8 +901,7 @@ void Application::registerGuiCallbacks() {
         }
       }));
 
-  // graphics callbacks
-  // ----------------------------------------------------------------------------
+  // graphics callbacks ----------------------------------------------------------------------------
 
   // Enables lighting computation globally.
   mGuiManager->getGui()->registerCallback("graphics.setEnableLighting",
@@ -1117,17 +1115,10 @@ void Application::registerGuiCallbacks() {
 
   // Enables or disables vertical synchronization.
   mGuiManager->getGui()->registerCallback("graphics.setEnableVsync",
-      "Enables or disables vertical synchronization.", std::function([](bool value) {
-        GetVistaSystem()
-            ->GetDisplayManager()
-            ->GetWindows()
-            .begin()
-            ->second->GetWindowProperties()
-            ->SetVSyncEnabled(value);
-      }));
+      "Enables or disables vertical synchronization.",
+      std::function([this](bool enable) { mSettings->mGraphics.pEnableVsync = enable; }));
 
-  // Timeline callbacks
-  // ----------------------------------------------------------------------------
+  // Timeline callbacks ----------------------------------------------------------------------------
 
   // Sets the current simulation time. The argument must be a string accepted by
   // TimeControl::setTime.
@@ -1181,8 +1172,7 @@ void Application::registerGuiCallbacks() {
         mTimeControl->setTimeSpeed(static_cast<float>(speed));
       }));
 
-  // navigation callbacks
-  // --------------------------------------------------------------------------
+  // navigation callbacks --------------------------------------------------------------------------
 
   // Sets the observer position to the given cartesian coordinates.
   mGuiManager->getGui()->registerCallback("navigation.setPosition",
