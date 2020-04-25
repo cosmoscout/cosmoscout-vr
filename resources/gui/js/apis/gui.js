@@ -332,14 +332,16 @@ class GuiApi extends IApi {
    * @param callbackName {string} tha data-callback attribute of the slider element
    * @param value {number} Value
    */
-  setSliderValue(callbackName, ...value) {
+  setSliderValue(callbackName, emitCallbacks, ...value) {
     const slider = document.querySelector(`[data-callback="${callbackName}"]`);
 
     if (slider !== null && typeof slider.noUiSlider !== 'undefined') {
-      if (value.length === 1) {
-        slider.noUiSlider.set(value[0]);
-      } else {
-        slider.noUiSlider.set(value);
+      if (!slider.matches(":active")) {
+        if (value.length === 1) {
+          slider.noUiSlider.set(value[0], emitCallbacks);
+        } else {
+          slider.noUiSlider.set(value, emitCallbacks);
+        }
       }
     } else {
       console.warn(`Slider '${callbackName} 'not found or 'noUiSlider' not active.`);
@@ -389,12 +391,12 @@ class GuiApi extends IApi {
    * @param callbackName {string} tha data-callback attribute of the dropdown element
    * @param value {string|number}
    */
-  setDropdownValue(callbackName, value, triggerCallbacks) {
+  setDropdownValue(callbackName, value, emitCallbacks) {
     const dropdown = document.querySelector(`[data-callback="${callbackName}"]`);
     $(dropdown).selectpicker('val', value);
 
-    if (triggerCallbacks) {
-      this._triggerChangeEvent(dropdown);
+    if (emitCallbacks) {
+      this._emitChangeEvent(dropdown);
     }
   }
 
@@ -414,14 +416,14 @@ class GuiApi extends IApi {
    * @param callbackName {string} tha data-callback attribute of the radio button element
    * @param value {boolean} True = checked / False = unchecked
    */
-  setCheckboxValue(callbackName, value, triggerCallbacks) {
+  setCheckboxValue(callbackName, value, emitCallbacks) {
     const element = document.querySelector(`[data-callback="${callbackName}"]`);
 
     if (element !== null) {
       element.checked = value;
 
-      if (triggerCallbacks) {
-        this._triggerChangeEvent(element);
+      if (emitCallbacks) {
+        this._emitChangeEvent(element);
       }
     }
   }
@@ -447,7 +449,7 @@ class GuiApi extends IApi {
    * @param element {HTMLElement} The element to fire the event on
    * @private
    */
-  _triggerChangeEvent(element) {
+  _emitChangeEvent(element) {
     let evt = document.createEvent("HTMLEvents");
     evt.initEvent("change", false, true);
     element.dispatchEvent(evt);
