@@ -130,43 +130,6 @@ class GuiApi extends IApi {
   }
 
   /**
-   * Appends a script element to the body.
-   *
-   * @param url {string} Absolute or local file path
-   * @param init {string|Function} Method gets run on script load
-   */
-  registerJavaScript(url, init) {
-    const script = document.createElement('script');
-
-    if (typeof init !== 'undefined') {
-      if (typeof init === 'string') {
-        'use strict';
-        init = eval(init);
-      }
-
-      script.addEventListener('readystatechange', init);
-    }
-
-    script.setAttribute('src', url);
-
-    document.body.appendChild(script);
-  }
-
-  /**
-   * Removes a script element by url.
-   *
-   * @param url {string}
-   */
-  unregisterJavaScript(url) {
-    document.querySelectorAll('script').forEach((element) => {
-      if (typeof element.src !== 'undefined' &&
-          (element.src === url || element.src === this._localizeUrl(url))) {
-        document.body.removeChild(element);
-      }
-    });
-  }
-
-  /**
    * Appends a link stylesheet to the head.
    *
    * @param url {string}
@@ -186,8 +149,7 @@ class GuiApi extends IApi {
    */
   unregisterCss(url) {
     document.querySelectorAll('link').forEach((element) => {
-      if (typeof element.href !== 'undefined' &&
-          (element.href === url || element.href === this._localizeUrl(url))) {
+      if (typeof element.href !== 'undefined' && element.href === url) {
         document.head.removeChild(element);
       }
     });
@@ -370,14 +332,16 @@ class GuiApi extends IApi {
    * @param callbackName {string} tha data-callback attribute of the slider element
    * @param value {number} Value
    */
-  setSliderValue(callbackName, ...value) {
+  setSliderValue(callbackName, emitCallbacks, ...value) {
     const slider = document.querySelector(`[data-callback="${callbackName}"]`);
 
     if (slider !== null && typeof slider.noUiSlider !== 'undefined') {
-      if (value.length === 1) {
-        slider.noUiSlider.set(value[0]);
-      } else {
-        slider.noUiSlider.set(value);
+      if (!slider.matches(":active")) {
+        if (value.length === 1) {
+          slider.noUiSlider.set(value[0], emitCallbacks);
+        } else {
+          slider.noUiSlider.set(value, emitCallbacks);
+        }
       }
     } else {
       console.warn(`Slider '${callbackName} 'not found or 'noUiSlider' not active.`);
@@ -427,12 +391,12 @@ class GuiApi extends IApi {
    * @param callbackName {string} tha data-callback attribute of the dropdown element
    * @param value {string|number}
    */
-  setDropdownValue(callbackName, value, triggerCallbacks) {
+  setDropdownValue(callbackName, value, emitCallbacks) {
     const dropdown = document.querySelector(`[data-callback="${callbackName}"]`);
     $(dropdown).selectpicker('val', value);
 
-    if (triggerCallbacks) {
-      this._triggerChangeEvent(dropdown);
+    if (emitCallbacks) {
+      this._emitChangeEvent(dropdown);
     }
   }
 
@@ -442,8 +406,8 @@ class GuiApi extends IApi {
    * @see {setCheckboxValue}
    * @param callbackName {string} tha data-callback attribute of the radio button element
    */
-  setRadioChecked(callbackName) {
-    this.setCheckboxValue(callbackName, true);
+  setRadioChecked(callbackName, emitCallbacks) {
+    this.setCheckboxValue(callbackName, true, emitCallbacks);
   }
 
   /**
@@ -452,14 +416,14 @@ class GuiApi extends IApi {
    * @param callbackName {string} tha data-callback attribute of the radio button element
    * @param value {boolean} True = checked / False = unchecked
    */
-  setCheckboxValue(callbackName, value, triggerCallbacks) {
+  setCheckboxValue(callbackName, value, emitCallbacks) {
     const element = document.querySelector(`[data-callback="${callbackName}"]`);
 
     if (element !== null) {
       element.checked = value;
 
-      if (triggerCallbacks) {
-        this._triggerChangeEvent(element);
+      if (emitCallbacks) {
+        this._emitChangeEvent(element);
       }
     }
   }
@@ -480,23 +444,12 @@ class GuiApi extends IApi {
   }
 
   /**
-   * Localizes a filename
-   *
-   * @param url {string}
-   * @return {string}
-   * @private
-   */
-  _localizeUrl(url) {
-    return `file://../share/resources/gui/${url}`;
-  }
-
-  /**
    * Triggers an artificial change event on a given HTML element.
    *
    * @param element {HTMLElement} The element to fire the event on
    * @private
    */
-  _triggerChangeEvent(element) {
+  _emitChangeEvent(element) {
     let evt = document.createEvent("HTMLEvents");
     evt.initEvent("change", false, true);
     element.dispatchEvent(evt);

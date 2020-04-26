@@ -36,6 +36,18 @@ case "$COSMOSCOUT_DEBUG_BUILD" in
   (true) echo "CosmoScout VR debug build is enabled!"; BUILD_TYPE=debug;
 esac
 
+# Check if unity build is disabled with "export COSMOSCOUT_NO_UNITY_BUILD=true".
+UNITY_BUILD=On
+case "$COSMOSCOUT_NO_UNITY_BUILD" in
+  (true) echo "CosmoScout VR debug build is enabled!"; UNITY_BUILD=Off;
+esac
+
+# Check if precompield headers should not be used with "export COSMOSCOUT_NO_PCH=true".
+PRECOMPILED_HEADERS=On
+case "$COSMOSCOUT_NO_PCH" in
+  (true) echo "CosmoScout VR debug build is enabled!"; PRECOMPILED_HEADERS=Off;
+esac
+
 # This directory should contain all submodules - they are assumed to reside in the subdirectory 
 # "externals" next to this script.
 EXTERNALS_DIR="$( cd "$( dirname "$0" )" && pwd )/externals"
@@ -132,7 +144,7 @@ esac
 
 cmake -E make_directory "$BUILD_DIR/curlpp" && cd "$BUILD_DIR/curlpp"
 cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
-      -DCURL_INCLUDE_DIR="$INSTALL_DIR/include" -DCMAKE_UNITY_BUILD=On \
+      -DCURL_INCLUDE_DIR="$INSTALL_DIR/include" -DCMAKE_UNITY_BUILD=$UNITY_BUILD \
       -DCURL_LIBRARY="$INSTALL_DIR/lib/$CURL_LIB" \
       -DCMAKE_INSTALL_LIBDIR=lib -DCURL_NO_CURL_CMAKE=On \
       -DCMAKE_BUILD_TYPE=$BUILD_TYPE "$EXTERNALS_DIR/curlpp"
@@ -146,7 +158,7 @@ echo ""
 
 cmake -E make_directory "$BUILD_DIR/libtiff" && cd "$BUILD_DIR/libtiff"
 cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
-      -DCMAKE_INSTALL_FULL_LIBDIR=lib -DCMAKE_UNITY_BUILD=On \
+      -DCMAKE_INSTALL_FULL_LIBDIR=lib -DCMAKE_UNITY_BUILD=$UNITY_BUILD \
       -DCMAKE_BUILD_TYPE=$BUILD_TYPE "$EXTERNALS_DIR/libtiff"
 cmake --build . --target install --parallel "$(nproc)"
 
@@ -158,8 +170,7 @@ echo ""
 
 cmake -E make_directory "$BUILD_DIR/spdlog" && cd "$BUILD_DIR/spdlog"
 cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
-      -DCMAKE_POSITION_INDEPENDENT_CODE=On -DSPDLOG_ENABLE_PCH=On \
-      -DCMAKE_BUILD_TYPE=$BUILD_TYPE "$EXTERNALS_DIR/spdlog"
+      -DCMAKE_POSITION_INDEPENDENT_CODE=On -DCMAKE_BUILD_TYPE=$BUILD_TYPE "$EXTERNALS_DIR/spdlog"
 cmake --build . --target install --parallel "$(nproc)"
 
 # pistache -----------------------------------------------------------------------------------------
@@ -225,7 +236,8 @@ echo "Building and installing opensg-1.8 ..."
 echo ""
 
 cmake -E make_directory "$BUILD_DIR/opensg-1.8" && cd "$BUILD_DIR/opensg-1.8"
-cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
+cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" -DCMAKE_UNITY_BUILD=$UNITY_BUILD \
+      -DOPENSG_USE_PRECOMPILED_HEADERS=$PRECOMPILED_HEADERS \
       -DGLUT_INCLUDE_DIR="$INSTALL_DIR/include" -DGLUT_LIBRARY="$INSTALL_DIR/lib/libglut.so" \
       -DOPENSG_BUILD_TESTS=Off -DCMAKE_BUILD_TYPE=$BUILD_TYPE "$EXTERNALS_DIR/opensg-1.8"
 cmake --build . --target install --parallel "$(nproc)"
@@ -237,7 +249,8 @@ echo "Building and installing vista ..."
 echo ""
 
 cmake -E make_directory "$BUILD_DIR/vista" && cd "$BUILD_DIR/vista"
-cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
+cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" -DCMAKE_UNITY_BUILD=$UNITY_BUILD \
+      -DVISTA_USE_PRECOMPILED_HEADERS=$PRECOMPILED_HEADERS \
       -DCMAKE_CXX_FLAGS="-std=c++11" -DVISTADRIVERS_BUILD_3DCSPACENAVIGATOR=On \
       -DVISTADEMO_ENABLED=Off -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DOPENSG_ROOT_DIR="$INSTALL_DIR" \
       "$EXTERNALS_DIR/vista"
@@ -275,7 +288,7 @@ rm -rf $CEF_DIR/tests # we dont want the example applications
 cd ..
 
 cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
-      -DCEF_COMPILER_FLAGS="-Wno-undefined-var-template" -DCMAKE_UNITY_BUILD=On \
+      -DCEF_COMPILER_FLAGS="-Wno-undefined-var-template" -DCMAKE_UNITY_BUILD=$UNITY_BUILD \
       -DCMAKE_BUILD_TYPE=$BUILD_TYPE "$BUILD_DIR/cef/extracted/$CEF_DIR"
 cmake --build . --parallel "$(nproc)"
 

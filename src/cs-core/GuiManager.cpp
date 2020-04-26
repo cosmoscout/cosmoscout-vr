@@ -59,9 +59,9 @@ GuiManager::GuiManager(std::shared_ptr<Settings> settings,
 
   // The global GUI area is only created when the according settings key was specified.
   if (mSettings->mGuiPosition) {
-    auto platform = GetVistaSystem()
-                        ->GetPlatformFor(GetVistaSystem()->GetDisplayManager()->GetDisplaySystem())
-                        ->GetPlatformNode();
+    auto* platform = GetVistaSystem()
+                         ->GetPlatformFor(GetVistaSystem()->GetDisplayManager()->GetDisplaySystem())
+                         ->GetPlatformNode();
     mGlobalGuiTransform = pSG->NewTransformNode(platform);
 
     mGlobalGuiTransform->Scale(static_cast<float>(mSettings->mGuiPosition->mWidthMeter),
@@ -196,11 +196,11 @@ GuiManager::GuiManager(std::shared_ptr<Settings> settings,
       [this]() { mSettings->pEnableUserInterface = !mSettings->pEnableUserInterface.get(); });
 
   mSettings->pEnableUserInterface.connectAndTouch([this](bool enable) {
-    if (enable) {
-      showGui();
-    } else {
-      hideGui();
+    if (mGlobalGuiTransform) {
+      mGlobalGuiTransform->SetIsEnabled(enable);
     }
+    mLocalGuiTransform->SetIsEnabled(enable);
+    mCosmoScoutGui->setIsInteractive(enable);
   });
 
   for (const auto& mEvent : mSettings->mEvents) {
@@ -313,35 +313,6 @@ void GuiManager::setLoadingScreenProgress(float percent, bool animate) const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GuiManager::showGui() {
-  if (mGlobalGuiTransform) {
-    mGlobalGuiTransform->SetIsEnabled(true);
-  }
-  mLocalGuiTransform->SetIsEnabled(true);
-  mCosmoScoutGui->setIsInteractive(true);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void GuiManager::hideGui() {
-  if (mGlobalGuiTransform) {
-    mGlobalGuiTransform->SetIsEnabled(false);
-  }
-  mLocalGuiTransform->SetIsEnabled(false);
-  mCosmoScoutGui->setIsInteractive(false);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void GuiManager::toggleGui() {
-  if (mGlobalGuiTransform) {
-    mGlobalGuiTransform->SetIsEnabled(!mGlobalGuiTransform->GetIsEnabled());
-  }
-  mLocalGuiTransform->SetIsEnabled(!mLocalGuiTransform->GetIsEnabled());
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 void GuiManager::update() {
 
   // If frame timings are enabled, collect the data and send it to the statistics GuiItem.
@@ -448,6 +419,32 @@ void GuiManager::addEventToTimenavigationBar(std::string const& start,
     std::string const& planet, std::string const& place) {
   mCosmoScoutGui->callJavascript("CosmoScout.timeline.addItem", start, end.value_or(""), id,
       content, style.value_or(""), description, planet, place);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void GuiManager::setCheckboxValue(std::string const& name, bool val, bool emitCallbacks) const {
+  mCosmoScoutGui->callJavascript("CosmoScout.gui.setCheckboxValue", name, val, emitCallbacks);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void GuiManager::setRadioChecked(std::string const& name, bool emitCallbacks) const {
+  mCosmoScoutGui->callJavascript("CosmoScout.gui.setRadioChecked", name, emitCallbacks);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void GuiManager::setSliderValue(std::string const& name, double val, bool emitCallbacks) const {
+  mCosmoScoutGui->callJavascript("CosmoScout.gui.setSliderValue", name, emitCallbacks, val);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void GuiManager::setSliderValue(
+    std::string const& name, glm::dvec2 const& val, bool emitCallbacks) const {
+  mCosmoScoutGui->callJavascript(
+      "CosmoScout.gui.setSliderValue", name, emitCallbacks, val.x, val.y);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

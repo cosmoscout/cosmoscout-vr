@@ -97,11 +97,11 @@ Mark::Mark(Mark const& other)
     , pHovered(other.pHovered)
     , pSelected(other.pSelected)
     , pActive(other.pActive)
+    , pScaleDistance(other.pScaleDistance)
     , mInputManager(other.mInputManager)
     , mSolarSystem(other.mSolarSystem)
     , mSettings(other.mSettings)
     , mTimeControl(other.mTimeControl)
-    , mOriginalDistance(other.mOriginalDistance)
     , mVAO(std::make_unique<VistaVertexArrayObject>())
     , mVBO(std::make_unique<VistaBufferObject>())
     , mIBO(std::make_unique<VistaBufferObject>())
@@ -150,7 +150,7 @@ void Mark::update() {
   double simulationTime(mTimeControl->pSimulationTime.get());
 
   SolarSystem::scaleRelativeToObserver(*mAnchor, mSolarSystem->getObserver(), simulationTime,
-      mOriginalDistance, mSettings->mGraphics.pWidgetScale.get());
+      pScaleDistance.get(), mSettings->mGraphics.pWidgetScale.get());
   SolarSystem::turnToObserver(*mAnchor, mSolarSystem->getObserver(), simulationTime, false);
 }
 
@@ -311,15 +311,6 @@ void Mark::initData(std::string const& sCenter, std::string const& sFrame) {
     auto   cart   = cs::utils::convert::toCartesian(
         lngLat, radii[0], radii[0], height * mSettings->mGraphics.pHeightScale.get());
     mAnchor->setAnchorPosition(cart);
-
-    // This seems to be the first time the tool is moved, so we have to store the distance to the
-    // observer so that we can scale the tool later based on the observer's position.
-    if (mOriginalDistance < 0) {
-      double simulationTime(mTimeControl->pSimulationTime.get());
-      mOriginalDistance =
-          mSolarSystem->getObserver().getAnchorScale() *
-          glm::length(mSolarSystem->getObserver().getRelativePosition(simulationTime, *mAnchor));
-    }
   });
 
   // connect the heightscale value to this object. Whenever the heightscale value changes

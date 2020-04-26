@@ -32,6 +32,22 @@ IF "%COSMOSCOUT_DEBUG_BUILD%"=="true" (
   set BUILD_TYPE=release
 )
 
+rem Check if unity build is disabled with "set COSMOSCOUT_NO_UNITY_BUILD=true".
+IF "%COSMOSCOUT_NO_UNITY_BUILD%"=="true" (
+  echo Unity build is disabled!
+  set UNITY_BUILD=Off
+) else (
+  set UNITY_BUILD=On
+)
+
+rem Check if precompield headers should not be used with "set COSMOSCOUT_NO_PCH=true".
+IF "%COSMOSCOUT_NO_PCH%"=="true" (
+  echo Precompiled headers are disabled!
+  set PRECOMPILED_HEADERS=Off
+) else (
+  set PRECOMPILED_HEADERS=On
+)
+
 rem Create some required variables. ----------------------------------------------------------------
 
 rem This directory should contain all submodules - they are assumed to reside in the subdirectory 
@@ -125,7 +141,7 @@ if "%COSMOSCOUT_DEBUG_BUILD%"=="true" (
   set CURL_LIB=libcurl_imp.lib
 )
 cmake -E make_directory "%BUILD_DIR%/curlpp" && cd "%BUILD_DIR%/curlpp"
-cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%" -DCMAKE_UNITY_BUILD=On^
+cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%" -DCMAKE_UNITY_BUILD=%UNITY_BUILD%^
       -DCURL_INCLUDE_DIR="%INSTALL_DIR%/include"^
       -DCURL_LIBRARY="%INSTALL_DIR%/lib/%CURL_LIB%"^
       -DCMAKE_INSTALL_LIBDIR=lib -DCURL_NO_CURL_CMAKE=On^
@@ -140,7 +156,7 @@ echo Building and installing libtiff ...
 echo.
 
 cmake -E make_directory "%BUILD_DIR%/libtiff" && cd "%BUILD_DIR%/libtiff"
-cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%" -DCMAKE_UNITY_BUILD=On^
+cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%" -DCMAKE_UNITY_BUILD=%UNITY_BUILD%^
       -DCMAKE_INSTALL_FULL_LIBDIR=lib^
       "%EXTERNALS_DIR%/libtiff" || exit /b
 
@@ -222,7 +238,8 @@ echo Building and installing opensg-1.8 ...
 echo.
 
 cmake -E make_directory "%BUILD_DIR%/opensg-1.8" && cd "%BUILD_DIR%/opensg-1.8"
-cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
+cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%" -DCMAKE_UNITY_BUILD=%UNITY_BUILD%^
+      -DOPENSG_USE_PRECOMPILED_HEADERS=%PRECOMPILED_HEADERS%^
       -DGLUT_INCLUDE_DIR="%INSTALL_DIR%/include" -DGLUT_LIBRARY="%INSTALL_DIR%/lib/freeglut.lib"^
       -DCMAKE_SHARED_LINKER_FLAGS="/FORCE:MULTIPLE" -DOPENSG_BUILD_TESTS=Off^
       "%EXTERNALS_DIR%/opensg-1.8"
@@ -243,7 +260,9 @@ rem       -DVISTACORELIBS_USE_VIVE=On -DVISTADRIVERS_BUILD_VIVE=On -DOPENVR_ROOT
 rem       -DVISTADRIVERS_BUILD_3DCSPACENAVIGATOR=On^
 rem       -DCMAKE_CXX_FLAGS="-std=c++11" "%EXTERNALS_DIR%/vista" || exit /b
 
-cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%" -DVISTADEMO_ENABLED=Off "%EXTERNALS_DIR%/vista" || exit /b
+cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%" -DVISTADEMO_ENABLED=Off^
+      -DCMAKE_UNITY_BUILD=%UNITY_BUILD% -DVISTA_USE_PRECOMPILED_HEADERS=%PRECOMPILED_HEADERS%^
+      "%EXTERNALS_DIR%/vista" || exit /b
 cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS%
 
 rem cspice -----------------------------------------------------------------------------------------
@@ -303,7 +322,7 @@ rmdir %CEF_DIR%\tests /s /q
 
 cd ..
 
-cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%" -DCMAKE_UNITY_BUILD=On^
+cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%" -DCMAKE_UNITY_BUILD=%UNITY_BUILD%^
       -DCEF_RUNTIME_LIBRARY_FLAG=/MD -DCEF_DEBUG_INFO_FLAG=""^
       "%BUILD_DIR%/cef/extracted/%CEF_DIR%" || exit /b
 

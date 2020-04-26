@@ -12,6 +12,7 @@
 
 #include <list>
 #include <memory>
+#include <optional>
 
 namespace cs::core {
 class TimeControl;
@@ -26,10 +27,18 @@ namespace tools {
 class CS_CORE_EXPORT MultiPointTool : public Tool {
  public:
   /// Public properties where external can connect slots to.
-  cs::utils::Property<bool> pAddPointMode = true;
+  cs::utils::Property<bool> pAddPointMode = false;
 
   /// Consider this to be read-only.
   cs::utils::Property<bool> pAnyPointSelected = false;
+
+  /// All handels are drawn with this color.
+  cs::utils::Property<glm::vec3> pColor = glm::vec3(0.75, 0.75, 1.0);
+
+  /// Derived classes should set this to the initial distance of the tool to the observer when the
+  /// tool is first updated. It will be used to scale the handles based on the current observer
+  /// distance.
+  cs::utils::Property<double> pScaleDistance = -1.0;
 
   MultiPointTool(std::shared_ptr<InputManager> pInputManager,
       std::shared_ptr<SolarSystem> pSolarSystem, std::shared_ptr<Settings> settings,
@@ -46,11 +55,25 @@ class CS_CORE_EXPORT MultiPointTool : public Tool {
   /// Called from Tools class.
   void update() override;
 
-  /// Returns the SPICE center name of the celestial body this is attached to.
-  std::string const& getCenterName() const;
+  /// Gets or sets the SPICE center name for all points.
+  virtual void               setCenterName(std::string const& name);
+  virtual std::string const& getCenterName() const;
 
-  /// Returns the SPICE frame name of the celestial body this is attached to.
-  std::string const& getFrameName() const;
+  /// Gets or sets the SPICE frame name for all points.
+  virtual void               setFrameName(std::string const& name);
+  virtual std::string const& getFrameName() const;
+
+  /// Use this to access all point positions at once.
+  std::vector<glm::dvec2> getPositions() const;
+
+  /// Use this to modify all point positions at once. onPointMoved() will be called if this leads to
+  /// a position shift of a point; onPointAdded() and onPointRemoved() will be called respectively
+  /// if the number of points changes.
+  void setPositions(std::vector<glm::dvec2> const& positions);
+
+  /// A derived class may call this in order to add a new point at the given position. If no
+  /// position is given, the current pointer position will be used.
+  void addPoint(std::optional<glm::dvec2> const& lngLat = std::nullopt);
 
  protected:
   /// Derived classes should implement these - they will be called after the corresponding event
@@ -58,9 +81,6 @@ class CS_CORE_EXPORT MultiPointTool : public Tool {
   virtual void onPointMoved()            = 0;
   virtual void onPointAdded()            = 0;
   virtual void onPointRemoved(int index) = 0;
-
-  /// A derived class may call this in order to add a new point at the current pointer position.
-  void addPoint();
 
   std::shared_ptr<InputManager> mInputManager;
   std::shared_ptr<SolarSystem>  mSolarSystem;
@@ -70,7 +90,8 @@ class CS_CORE_EXPORT MultiPointTool : public Tool {
   std::list<std::shared_ptr<DeletableMark>> mPoints;
 
  private:
-  int         mLeftButtonConnection = -1, mRightButtonConnection = -1;
+  int         mLeftButtonConnection  = -1;
+  int         mRightButtonConnection = -1;
   std::string mCenter, mFrame;
 };
 

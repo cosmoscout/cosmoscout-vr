@@ -78,7 +78,7 @@ void main()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 MouseRay::MouseRay() {
-  auto                sceneGraph = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
+  auto*               sceneGraph = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
   VistaTransformNode* intentionNode =
       dynamic_cast<VistaTransformNode*>(sceneGraph->GetNode("SELECTION_NODE"));
 

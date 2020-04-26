@@ -216,6 +216,25 @@
                   </div>
 
                   <div class="row">
+                    <div class="col-5">
+                      3D Widget Scale
+                    </div>
+                    <div class="col-7">
+                      <div data-callback="graphics.setWidgetScale"></div>
+                    </div>
+                  </div>
+
+                  <div class="row">
+                    <div class="col-5">
+                      Elevation Scale
+                    </div>
+                    <div class="col-7">
+                      <div data-callback="graphics.setTerrainHeight">
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="row">
                     <div class="col-7 offset-5">
                       <label class="checklabel">
                         <input type="checkbox" data-callback="graphics.setEnableHDR" checked />
@@ -588,6 +607,8 @@
         CosmoScout.callbacks.graphics.setShadowmapResolution(unencoded, 0);
       });
 
+      CosmoScout.gui.initSlider('graphics.setWidgetScale', 0.2, 2.0, 0.01, [0.6]);
+      CosmoScout.gui.initSlider('graphics.setTerrainHeight', 1.0, 20.0, 0.1, [1]);
       CosmoScout.gui.initSlider("graphics.setLightingQuality", 1.0, 3.0, 1.0, [2.0]);
       CosmoScout.gui.initSlider("graphics.setShadowmapCascades", 1.0, 5.0, 1.0, [3.0]);
       CosmoScout.gui.initSlider("graphics.setShadowmapBias", 0.0, 10.0, 0.01, [1.0]);

@@ -15,6 +15,7 @@
 #include <VistaKernel/DisplayManager/VistaDisplayManager.h>
 #include <VistaKernel/DisplayManager/VistaProjection.h>
 #include <VistaKernel/DisplayManager/VistaViewport.h>
+#include <VistaKernel/DisplayManager/VistaWindow.h>
 #include <VistaKernel/GraphicsManager/VistaOpenGLNode.h>
 #include <VistaKernel/GraphicsManager/VistaSceneGraph.h>
 #include <VistaKernel/VistaSystem.h>
@@ -34,6 +35,15 @@ GraphicsEngine::GraphicsEngine(std::shared_ptr<core::Settings> settings)
   logger().info("OpenGL Version: {}", glGetString(GL_VERSION));
 
   auto* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
+
+  mSettings->mGraphics.pEnableVsync.connect([](bool value) {
+    GetVistaSystem()
+        ->GetDisplayManager()
+        ->GetWindows()
+        .begin()
+        ->second->GetWindowProperties()
+        ->SetVSyncEnabled(value);
+  });
 
   // setup shadows ---------------------------------------------------------------------------------
 

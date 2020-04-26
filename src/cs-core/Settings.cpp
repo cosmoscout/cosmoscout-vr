@@ -171,6 +171,7 @@ void to_json(nlohmann::json& j, Settings::SceneScale const& o) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void from_json(nlohmann::json const& j, Settings::Graphics& o) {
+  Settings::deserialize(j, "enableVsync", o.pEnableVsync);
   Settings::deserialize(j, "widgetScale", o.pWidgetScale);
   Settings::deserialize(j, "heightScale", o.pHeightScale);
   Settings::deserialize(j, "enableHDR", o.pEnableHDR);
@@ -198,6 +199,7 @@ void from_json(nlohmann::json const& j, Settings::Graphics& o) {
 }
 
 void to_json(nlohmann::json& j, Settings::Graphics const& o) {
+  Settings::serialize(j, "enableVsync", o.pEnableVsync);
   Settings::serialize(j, "widgetScale", o.pWidgetScale);
   Settings::serialize(j, "heightScale", o.pHeightScale);
   Settings::serialize(j, "enableHDR", o.pEnableHDR);
@@ -306,7 +308,8 @@ void Settings::write(std::string const& fileName) const {
   // Tell listeners that the settings are about to be saved.
   mOnSave.emit();
 
-  std::ofstream o(fileName);
+  // Write to a temporary file first.
+  std::ofstream o(fileName + ".tmp");
 
   if (!o) {
     throw std::runtime_error("Cannot open file: '" + fileName + "'!");
@@ -314,11 +317,16 @@ void Settings::write(std::string const& fileName) const {
 
   nlohmann::json settings = *this;
   o << std::setw(2) << settings;
+
+  o.close();
+
+  // All done, so we're safe to rename the file.
+  std::rename((fileName + ".tmp").c_str(), fileName.c_str());
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::pair<double, double> Settings::Anchor::getExistence() {
+std::pair<double, double> Settings::Anchor::getExistence() const {
   std::pair<double, double> result;
 
   try {

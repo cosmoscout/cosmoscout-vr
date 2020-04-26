@@ -69,7 +69,9 @@
   ],
   "spiceKernel": "../share/config/spice/simple.txt",
   "widgetScale": 0.6,
-  "graphics": {},
+  "graphics": {
+    "widgetScale": 0.6
+  },
   "anchors": {
     "Barycenter": {
       "center": "Solar System Barycenter",
@@ -214,20 +216,7 @@
         }
       }
     },
-    "csp-measurement-tools": {
-      "polygon": {
-        "heightDiff": 1.002,
-        "maxAttempt": 5,
-        "maxPoints": 1000,
-        "sleekness": 15
-      },
-      "ellipse": {
-        "numSamples": 360
-      },
-      "path": {
-        "numSamples": 256
-      }
-    },
+    "csp-measurement-tools": {},
     "csp-simple-bodies": {
       "bodies": {
         "Sun": {
