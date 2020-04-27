@@ -34,9 +34,10 @@ namespace cs::core {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
+GuiManager::GuiManager(std::shared_ptr<Settings> settings,
     std::shared_ptr<InputManager> pInputManager, std::shared_ptr<utils::FrameTimings> pFrameTimings)
     : mInputManager(std::move(pInputManager))
+    , mSettings(std::move(settings))
     , mFrameTimings(std::move(pFrameTimings)) {
 
   // Tell the user what's going on.
@@ -50,9 +51,6 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
   mViewportUpdater = std::make_unique<VistaViewportResizeToProjectionAdapter>(pViewport);
   mViewportUpdater->SetUpdateMode(VistaViewportResizeToProjectionAdapter::MAINTAIN_HORIZONTAL_FOV);
 
-  // Hide the user interface when ESC is pressed.
-  mInputManager->sOnEscapePressed.connect([this]() { toggleGui(); });
-
   // Create GuiAreas and attach them to the SceneGraph ---------------------------------------------
 
   // The global GUI is drawn in world-space, the local GUI is drawn in screen-space.
@@ -60,27 +58,27 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
   mLocalGuiTransform = pSG->NewTransformNode(pSG->GetRoot());
 
   // The global GUI area is only created when the according settings key was specified.
-  if (settings->mGui) {
+  if (mSettings->mGuiPosition) {
     auto* platform = GetVistaSystem()
                          ->GetPlatformFor(GetVistaSystem()->GetDisplayManager()->GetDisplaySystem())
                          ->GetPlatformNode();
     mGlobalGuiTransform = pSG->NewTransformNode(platform);
 
-    mGlobalGuiTransform->Scale(static_cast<float>(settings->mGui->mWidthMeter),
-        static_cast<float>(settings->mGui->mHeightMeter), 1.0);
-    mGlobalGuiTransform->Rotate(
-        VistaAxisAndAngle(VistaVector3D(1, 0, 0), static_cast<float>(settings->mGui->mRotX)));
-    mGlobalGuiTransform->Rotate(
-        VistaAxisAndAngle(VistaVector3D(0, 1, 0), static_cast<float>(settings->mGui->mRotY)));
-    mGlobalGuiTransform->Rotate(
-        VistaAxisAndAngle(VistaVector3D(0, 0, 1), static_cast<float>(settings->mGui->mRotZ)));
-    mGlobalGuiTransform->Translate(static_cast<float>(settings->mGui->mPosXMeter),
-        static_cast<float>(settings->mGui->mPosYMeter),
-        static_cast<float>(settings->mGui->mPosZMeter));
+    mGlobalGuiTransform->Scale(static_cast<float>(mSettings->mGuiPosition->mWidthMeter),
+        static_cast<float>(mSettings->mGuiPosition->mHeightMeter), 1.0F);
+    mGlobalGuiTransform->Rotate(VistaAxisAndAngle(
+        VistaVector3D(1, 0, 0), static_cast<float>(mSettings->mGuiPosition->mRotX)));
+    mGlobalGuiTransform->Rotate(VistaAxisAndAngle(
+        VistaVector3D(0, 1, 0), static_cast<float>(mSettings->mGuiPosition->mRotY)));
+    mGlobalGuiTransform->Rotate(VistaAxisAndAngle(
+        VistaVector3D(0, 0, 1), static_cast<float>(mSettings->mGuiPosition->mRotZ)));
+    mGlobalGuiTransform->Translate(static_cast<float>(mSettings->mGuiPosition->mPosXMeter),
+        static_cast<float>(mSettings->mGuiPosition->mPosYMeter),
+        static_cast<float>(mSettings->mGuiPosition->mPosZMeter));
 
     // Create the global GUI area.
     mGlobalGuiArea = std::make_unique<gui::WorldSpaceGuiArea>(
-        settings->mGui->mWidthPixel, settings->mGui->mHeightPixel);
+        mSettings->mGuiPosition->mWidthPixel, mSettings->mGuiPosition->mHeightPixel);
     mGlobalGuiArea->setUseLinearDepthBuffer(true);
   }
 
@@ -121,7 +119,6 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
 
   // Configure attributes of the loading screen. Per default, GuiItems are drawn full-screen in
   // their GuiAreas.
-  // mLoadingScreen->setIsInteractive(false);
 
   mCosmoScoutGui->setRelSizeX(1.F);
   mCosmoScoutGui->setRelSizeY(1.F);
@@ -130,10 +127,10 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
   mCosmoScoutGui->setCursorChangeCallback([](gui::Cursor c) { setCursor(c); });
 
   // Configure the positioning and attributes of the statistics.
-  mStatistics->setSizeX(600);    // NOLINT
-  mStatistics->setSizeY(320);    // NOLINT
-  mStatistics->setOffsetX(-300); // NOLINT
-  mStatistics->setOffsetY(500);  // NOLINT
+  mStatistics->setSizeX(600);
+  mStatistics->setSizeY(320);
+  mStatistics->setOffsetX(-300);
+  mStatistics->setOffsetY(500);
   mStatistics->setRelPositionY(0.F);
   mStatistics->setRelPositionX(1.F);
   mStatistics->setIsInteractive(false);
@@ -159,11 +156,54 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
 
   mCosmoScoutGui->callJavascript("CosmoScout.loadingScreen.setVersion", version);
 
-  // Set settings for the time Navigation
-  mCosmoScoutGui->callJavascript(
-      "CosmoScout.timeline.setTimelineRange", settings->mMinDate, settings->mMaxDate);
+  // Restore history from saved file. Currently we don't update the history when reloading a
+  // settings file at runtime, as overwriting the history feels a bit odd.
+  if (mSettings->mCommandHistory && !mSettings->mCommandHistory.value().empty()) {
+    nlohmann::json array = mSettings->mCommandHistory.value();
+    mCosmoScoutGui->executeJavascript("CosmoScout.statusbar.history = " + array.dump());
+    mCosmoScoutGui->executeJavascript("CosmoScout.statusbar.historyIndex = " +
+                                      std::to_string(mSettings->mCommandHistory.value().size()));
+  }
 
-  for (const auto& mEvent : settings->mEvents) {
+  // Register a callback which is used by the statusbur to store executed commands on the C++ side.
+  mCosmoScoutGui->registerCallback("statusbar.addCommandToHistory",
+      "Adds a string to the command history so that it can be saved between sessions.",
+      std::function([this](std::string&& command) {
+        if (!mSettings->mCommandHistory) {
+          mSettings->mCommandHistory = std::deque<std::string>();
+        }
+
+        mSettings->mCommandHistory.value().push_back(command);
+
+        if (mSettings->mCommandHistory.value().size() > 20) {
+          mSettings->mCommandHistory.value().pop_front();
+        }
+      }));
+
+  // Set settings for the time Navigation
+  mSettings->pMinDate.connectAndTouch([this](std::string const& minDate) {
+    mCosmoScoutGui->callJavascript(
+        "CosmoScout.timeline.setTimelineRange", minDate, mSettings->pMaxDate.get());
+  });
+
+  mSettings->pMaxDate.connect([this](std::string const& maxDate) {
+    mCosmoScoutGui->callJavascript(
+        "CosmoScout.timeline.setTimelineRange", mSettings->pMinDate.get(), maxDate);
+  });
+
+  // Hide the user interface when ESC is pressed.
+  mInputManager->sOnEscapePressed.connect(
+      [this]() { mSettings->pEnableUserInterface = !mSettings->pEnableUserInterface.get(); });
+
+  mSettings->pEnableUserInterface.connectAndTouch([this](bool enable) {
+    if (mGlobalGuiTransform) {
+      mGlobalGuiTransform->SetIsEnabled(enable);
+    }
+    mLocalGuiTransform->SetIsEnabled(enable);
+    mCosmoScoutGui->setIsInteractive(enable);
+  });
+
+  for (const auto& mEvent : mSettings->mEvents) {
     std::string planet;
     std::string place;
     if (mEvent.mLocation.has_value()) {
@@ -182,6 +222,8 @@ GuiManager::~GuiManager() {
     // Tell the user what's going on.
     logger().debug("Deleting GuiManager.");
   } catch (...) {}
+
+  mCosmoScoutGui->unregisterCallback("statusbar.addCommandToHistory");
 
   mInputManager->unregisterSelectable(mLocalGuiOpenGLnode);
 
@@ -267,33 +309,6 @@ void GuiManager::setLoadingScreenStatus(std::string const& sStatus) const {
 
 void GuiManager::setLoadingScreenProgress(float percent, bool animate) const {
   mCosmoScoutGui->callJavascript("CosmoScout.loadingScreen.setProgress", percent, animate);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void GuiManager::showGui() {
-  if (mGlobalGuiTransform) {
-    mGlobalGuiTransform->SetIsEnabled(true);
-  }
-  mLocalGuiTransform->SetIsEnabled(true);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void GuiManager::hideGui() {
-  if (mGlobalGuiTransform) {
-    mGlobalGuiTransform->SetIsEnabled(false);
-  }
-  mLocalGuiTransform->SetIsEnabled(false);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void GuiManager::toggleGui() {
-  if (mGlobalGuiTransform) {
-    mGlobalGuiTransform->SetIsEnabled(!mGlobalGuiTransform->GetIsEnabled());
-  }
-  mLocalGuiTransform->SetIsEnabled(!mLocalGuiTransform->GetIsEnabled());
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

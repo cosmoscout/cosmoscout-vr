@@ -36,13 +36,6 @@ class CS_CORE_EXPORT SolarSystem {
   /// The body which the observer is attached to. The observer will follow this bodies motions.
   utils::Property<std::shared_ptr<scene::CelestialBody>> pActiveBody;
 
-  /// The name of the current SPICE center of the observer. Should be the same as
-  /// pActiveBody.get()->getCenterName()
-  utils::Property<std::string> pObserverCenter;
-
-  /// The SPICE frame of reference the observer is currently in.
-  utils::Property<std::string> pObserverFrame;
-
   /// The current speed of the observer in m/s in relation to his current SPICE reference frame.
   utils::Property<float> pCurrentObserverSpeed;
 
@@ -55,8 +48,7 @@ class CS_CORE_EXPORT SolarSystem {
   /// Current position of the sun, relative to the observer.
   utils::Property<glm::dvec3> pSunPosition = glm::dvec3(0.F);
 
-  SolarSystem(std::shared_ptr<const Settings> settings,
-      std::shared_ptr<utils::FrameTimings>    frameTimings,
+  SolarSystem(std::shared_ptr<Settings> settings, std::shared_ptr<utils::FrameTimings> frameTimings,
       std::shared_ptr<GraphicsEngine> graphicsEngine, std::shared_ptr<TimeControl> timeControl);
 
   SolarSystem(SolarSystem const& other) = delete;
@@ -158,9 +150,6 @@ class CS_CORE_EXPORT SolarSystem {
   /// @param duration The duration in Barycentric Dynamical Time to move to the new location.
   void flyObserverTo(std::string const& sCenter, std::string const& sFrame, double duration);
 
-  /// DocTODO
-  void setObserverToCamera();
-
   /// The methods below can be used for being notified about new CelestialBodies being added to or
   /// removed from the SolarSystem.
   uint64_t registerAddBodyListener(
@@ -213,7 +202,7 @@ class CS_CORE_EXPORT SolarSystem {
       double dEndTime, int iSamples);
 
  private:
-  std::shared_ptr<const Settings>                   mSettings;
+  std::shared_ptr<Settings>                         mSettings;
   std::shared_ptr<utils::FrameTimings>              mFrameTimings;
   std::shared_ptr<GraphicsEngine>                   mGraphicsEngine;
   std::shared_ptr<TimeControl>                      mTimeControl;

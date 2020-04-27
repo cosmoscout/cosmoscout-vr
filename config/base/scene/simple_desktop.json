@@ -1,18 +1,23 @@
 {
   "startDate": "today",
+  "resetDate": "today",
   "minDate": "1950-01-02 00:00:00.000",
   "maxDate": "2049-12-31 00:00:00.000",
-  "fileLogLevel": "debug",
-  "consoleLogLevel": "trace",
-  "screenLogLevel": "info",
   "observer": {
     "center": "Earth",
     "frame": "IAU_Earth",
-    "distance": 10000000.0,
-    "longitude": 11.281067,
-    "latitude": 48.086709
+    "position": [
+      5915095.557596171,
+      10658059.249942748,
+      15601636.827477392
+    ],
+    "rotation": [
+      -0.27581807466282293,
+      0.1729750618085246,
+      0.05053096202800651,
+      0.9441666376006699
+    ]
   },
-  "enableHDR": false,
   "sceneScale": {
     "minScale": 5,
     "maxScale": 100000000000000000,
@@ -64,9 +69,16 @@
   ],
   "spiceKernel": "../share/config/spice/simple.txt",
   "widgetScale": 0.6,
-  "enableMouseRay": false,
-  "enableSensorSizeControl": true,
+  "graphics": {
+    "widgetScale": 0.6
+  },
   "anchors": {
+    "Barycenter": {
+      "center": "Solar System Barycenter",
+      "frame": "J2000",
+      "startExistence": "1950-01-02 00:00:00.000",
+      "endExistence": "2049-12-31 00:00:00.000"
+    },
     "Sun": {
       "center": "Sun",
       "frame": "IAU_Sun",
@@ -88,6 +100,12 @@
     "Earth": {
       "center": "Earth",
       "frame": "IAU_Earth",
+      "startExistence": "1950-01-02 00:00:00.000",
+      "endExistence": "2049-12-31 00:00:00.000"
+    },
+    "EarthJ2000": {
+      "center": "Earth",
+      "frame": "J2000",
       "startExistence": "1950-01-02 00:00:00.000",
       "endExistence": "2049-12-31 00:00:00.000"
     },
@@ -142,20 +160,20 @@
   },
   "plugins": {
     "csp-stars": {
-      "backgroundColor1": [
+      "celestialGridTexture": "../share/resources/textures/celestial_grid.png",
+      "starFiguresTexture": "../share/resources/textures/constellation_figures.png",
+      "celestialGridColor": [
         0.5,
         0.8,
         1.0,
         0.3
       ],
-      "backgroundColor2": [
+      "starFiguresColor": [
         0.5,
         1.0,
         0.8,
         0.3
       ],
-      "backgroundTexture1": "../share/resources/textures/celestial_grid.png",
-      "backgroundTexture2": "../share/resources/textures/constellation_figures.png",
       "starTexture": "../share/resources/textures/star.png",
       "hipparcosCatalog": "../share/download/stars/hip_main.dat",
       "tycho2Catalog": "../share/download/stars/tyc2_main.dat"
@@ -194,20 +212,7 @@
         }
       }
     },
-    "csp-measurement-tools": {
-      "polygon": {
-        "heightDiff": 1.002,
-        "maxAttempt": 5,
-        "maxPoints": 1000,
-        "sleekness": 15
-      },
-      "ellipse": {
-        "numSamples": 360
-      },
-      "path": {
-        "numSamples": 256
-      }
-    },
+    "csp-measurement-tools": {},
     "csp-simple-bodies": {
       "bodies": {
         "Sun": {
@@ -252,7 +257,7 @@
       }
     },
     "csp-anchor-labels": {
-      "defaultEnabled": true,
+      "enabled": true,
       "enableDepthOverlap": true,
       "ignoreOverlapThreshold": 0.1,
       "labelScale": 1.2,
@@ -278,8 +283,7 @@
           "trail": {
             "length": 87.9,
             "samples": 1000,
-            "parentCenter": "Solar System Barycenter",
-            "parentFrame": "J2000"
+            "parent": "Barycenter"
           },
           "drawDot": true
         },
@@ -292,8 +296,7 @@
           "trail": {
             "length": 224.5,
             "samples": 1000,
-            "parentCenter": "Solar System Barycenter",
-            "parentFrame": "J2000"
+            "parent": "Barycenter"
           },
           "drawDot": true
         },
@@ -306,8 +309,7 @@
           "trail": {
             "length": 365.0,
             "samples": 5000,
-            "parentCenter": "Solar System Barycenter",
-            "parentFrame": "J2000"
+            "parent": "Barycenter"
           },
           "drawDot": true
         },
@@ -320,8 +322,7 @@
           "trail": {
             "length": 28.0,
             "samples": 1000,
-            "parentCenter": "Earth",
-            "parentFrame": "J2000"
+            "parent": "EarthJ2000"
           },
           "drawDot": true
         },
@@ -334,8 +335,7 @@
           "trail": {
             "length": 686.0,
             "samples": 5000,
-            "parentCenter": "Solar System Barycenter",
-            "parentFrame": "J2000"
+            "parent": "Barycenter"
           },
           "drawDot": true
         },
@@ -348,8 +348,7 @@
           "trail": {
             "length": 4330,
             "samples": 1000,
-            "parentCenter": "Solar System Barycenter",
-            "parentFrame": "J2000"
+            "parent": "Barycenter"
           },
           "drawDot": true
         },
@@ -362,8 +361,7 @@
           "trail": {
             "length": 10749,
             "samples": 1000,
-            "parentCenter": "Solar System Barycenter",
-            "parentFrame": "J2000"
+            "parent": "Barycenter"
           },
           "drawDot": true
         },
@@ -376,8 +374,7 @@
           "trail": {
             "length": 17885,
             "samples": 1000,
-            "parentCenter": "Solar System Barycenter",
-            "parentFrame": "J2000"
+            "parent": "Barycenter"
           },
           "drawDot": true
         },
@@ -390,8 +387,7 @@
           "trail": {
             "length": 17885,
             "samples": 1000,
-            "parentCenter": "Solar System Barycenter",
-            "parentFrame": "J2000"
+            "parent": "Barycenter"
           },
           "drawDot": true
         }

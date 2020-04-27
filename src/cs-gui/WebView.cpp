@@ -15,7 +15,6 @@ namespace cs::gui {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// NOLINTNEXTLINE(fuchsia-multiple-inheritance): A clang-tidy bug?
 class DevToolsClient : public CefClient {
  public:
   IMPLEMENT_REFCOUNTING(DevToolsClient);

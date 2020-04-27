@@ -45,7 +45,8 @@ class InputManager;
 ///    item. This is for example useful for the statistics GuiItem which is in all cases shown in
 ///    screen-space.
 /// World-Space:
-///  * The UI is drawn in a fixed resolution which is specified in the "gui": {...} settings key.
+///  * The UI is drawn in a fixed resolution which is specified in the "guiPosition": {...} settings
+///    key.
 ///  * When running in a clustered setup, the UI will be displayed across multiple displays.
 ///
 /// There are several GuiItems involved: e.g. the timeline, the status-bar, the side-bar and the
@@ -58,9 +59,8 @@ class InputManager;
 /// instance is then passed to all plugins.
 class CS_CORE_EXPORT GuiManager {
  public:
-  GuiManager(std::shared_ptr<const Settings> const& settings,
-      std::shared_ptr<InputManager>                 pInputManager,
-      std::shared_ptr<utils::FrameTimings>          pFrameTimings);
+  GuiManager(std::shared_ptr<Settings> settings, std::shared_ptr<InputManager> pInputManager,
+      std::shared_ptr<utils::FrameTimings> pFrameTimings);
 
   GuiManager(GuiManager const& other) = delete;
   GuiManager(GuiManager&& other)      = delete;
@@ -168,16 +168,12 @@ class CS_CORE_EXPORT GuiManager {
   /// Sets the progress bar state.
   void setLoadingScreenProgress(float percent, bool animate) const;
 
-  /// Hides or shows the entire user interface. This is bound to the ESC-key.
-  void showGui();
-  void hideGui();
-  void toggleGui();
-
   /// This is called once a frame from the Application.
   void update();
 
  private:
   std::shared_ptr<InputManager>        mInputManager;
+  std::shared_ptr<Settings>            mSettings;
   std::shared_ptr<utils::FrameTimings> mFrameTimings;
 
   std::unique_ptr<VistaViewportResizeToProjectionAdapter> mViewportUpdater;

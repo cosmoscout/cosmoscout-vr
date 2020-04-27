@@ -297,6 +297,30 @@ class GuiApi extends IApi {
   }
 
   /**
+   * Toggle the class hidden on the given element.
+   *
+   * @param element {string|HTMLElement} Element or selector
+   * @param element {string|HTMLElement} Element or ID
+   * @return {void}
+   */
+  hideElement(element, hide) {
+    if (typeof element === 'string') {
+      // eslint-disable-next-line no-param-reassign
+      element = document.querySelector(element);
+    }
+
+    if (element !== null && element instanceof HTMLElement) {
+      if (hide) {
+        element.classList.add('hidden');
+      } else {
+        element.classList.remove('hidden');
+      }
+    } else {
+      console.warn('Element could not be shown / hidden!');
+    }
+  }
+
+  /**
    * Initialize a noUiSlider.
    *
    * @param callbackName {string} tha data-callback attribute of the slider element
@@ -432,7 +456,7 @@ class GuiApi extends IApi {
     const element = document.querySelector(`[data-callback="${callbackName}"]`);
 
     if (element !== null) {
-      element.checked = value === true;
+      element.checked = value;
 
       if (triggerCallbacks) {
         this._triggerChangeEvent(element);

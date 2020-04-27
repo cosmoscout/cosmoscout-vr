@@ -28,11 +28,7 @@ class Property {
   /// Properties for built-in types are automatically initialized to 0.
   Property() = default;
 
-  Property(T const& val) // NOLINT(hicpp-explicit-conversions)
-      : mValue(val) {
-  }
-
-  Property(T&& val) // NOLINT(hicpp-explicit-conversions)
+  Property(T val) // NOLINT(hicpp-explicit-conversions)
       : mValue(std::move(val)) {
   }
 
@@ -58,7 +54,11 @@ class Property {
     return *this;
   }
 
-  ~Property() = default;
+  virtual ~Property() {
+    if (mConnection) {
+      mConnection->disconnect(mConnectionID);
+    }
+  };
 
   /// The given function is called when the internal value is about to be changed. The new value
   /// is passed as parameter, to access the old value you can use the get() method, as the internal
@@ -143,11 +143,8 @@ class Property {
   }
 
   /// Assigns the value of another Property.
-  Property<T>& operator=(Property<T> const& rhs) { // NOLINT(bugprone-unhandled-self-assignment): ?
-    if (this != &rhs) {
-      set(rhs.mValue);
-    }
-
+  Property<T>& operator=(Property<T> const& rhs) {
+    set(rhs.get());
     return *this;
   }
 
@@ -159,26 +156,26 @@ class Property {
 
   /// Compares the values of two Properties.
   bool operator==(Property<T> const& rhs) const {
-    return Property<T>::get() == rhs.get();
+    return get() == rhs.get();
   }
   bool operator!=(Property<T> const& rhs) const {
-    return Property<T>::get() != rhs.get();
+    return get() != rhs.get();
   }
 
   /// Compares the values of the Property to another value.
   bool operator==(T const& rhs) const {
-    return Property<T>::get() == rhs;
+    return get() == rhs;
   }
   bool operator!=(T const& rhs) const {
-    return Property<T>::get() != rhs;
+    return get() != rhs;
   }
 
   /// Returns the value of this Property.
   T const& operator()() const {
-    return Property<T>::get();
+    return get();
   }
 
- private:
+ protected:
   mutable Signal<T> mOnChange;
 
   mutable Property<T> const* mConnection{nullptr};

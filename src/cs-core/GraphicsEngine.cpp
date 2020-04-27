@@ -24,8 +24,8 @@ namespace cs::core {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-GraphicsEngine::GraphicsEngine(std::shared_ptr<const core::Settings> const& settings)
-    : mSettings(settings)
+GraphicsEngine::GraphicsEngine(std::shared_ptr<core::Settings> settings)
+    : mSettings(std::move(settings))
     , mShadowMap(std::make_shared<graphics::ShadowMap>()) {
 
   // Tell the user what's going on.
@@ -35,39 +35,36 @@ GraphicsEngine::GraphicsEngine(std::shared_ptr<const core::Settings> const& sett
 
   auto* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
 
-  pWidgetScale = settings->mWidgetScale;
-  pEnableHDR   = settings->mEnableHDR.value_or(false);
-
   // setup shadows ---------------------------------------------------------------------------------
 
   mShadowMap->setEnabled(false);
-  mShadowMap->setResolution(static_cast<uint32_t>(pShadowMapResolution.get()));
-
-  float const eps = 0.0001F;
-  mShadowMap->setBias(pShadowMapBias.get() * eps);
+  mShadowMap->setResolution(static_cast<uint32_t>(mSettings->mGraphics.pShadowMapResolution.get()));
+  mShadowMap->setBias(mSettings->mGraphics.pShadowMapBias.get() * 0.0001F);
   pSG->NewOpenGLNode(pSG->GetRoot(), mShadowMap.get());
 
   calculateCascades();
 
-  pEnableShadows.connect([this](bool val) { mShadowMap->setEnabled(val); });
+  mSettings->mGraphics.pEnableShadows.connect([this](bool val) { mShadowMap->setEnabled(val); });
 
-  pEnableShadowsFreeze.connect([this](bool val) { mShadowMap->setFreezeCascades(val); });
+  mSettings->mGraphics.pEnableShadowsFreeze.connect(
+      [this](bool val) { mShadowMap->setFreezeCascades(val); });
 
-  pShadowMapResolution.connect(
+  mSettings->mGraphics.pShadowMapResolution.connect(
       [this](int val) { mShadowMap->setResolution(static_cast<uint32_t>(val)); });
 
-  pShadowMapCascades.connect([this](int /*unused*/) { calculateCascades(); });
+  mSettings->mGraphics.pShadowMapCascades.connect([this](int /*unused*/) { calculateCascades(); });
 
-  pShadowMapBias.connect([this](float val) {
-    float const eps = 0.0001F;
-    mShadowMap->setBias(val * eps);
-  });
+  mSettings->mGraphics.pShadowMapBias.connect(
+      [this](float val) { mShadowMap->setBias(val * 0.0001f); });
 
-  pShadowMapSplitDistribution.connect([this](float /*unused*/) { calculateCascades(); });
+  mSettings->mGraphics.pShadowMapSplitDistribution.connect(
+      [this](float /*unused*/) { calculateCascades(); });
 
-  pShadowMapRange.connect([this](glm::vec2 /*unused*/) { calculateCascades(); });
+  mSettings->mGraphics.pShadowMapRange.connect(
+      [this](glm::vec2 /*unused*/) { calculateCascades(); });
 
-  pShadowMapExtension.connect([this](glm::vec2 /*unused*/) { calculateCascades(); });
+  mSettings->mGraphics.pShadowMapExtension.connect(
+      [this](glm::vec2 /*unused*/) { calculateCascades(); });
 
   // setup HDR buffer ------------------------------------------------------------------------------
 
@@ -87,41 +84,41 @@ GraphicsEngine::GraphicsEngine(std::shared_ptr<const core::Settings> const& sett
   VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
       toneMappingGLNode, static_cast<int>(utils::DrawOrder::eToneMapping));
 
-  pGlowIntensity.connectAndTouch([this](float val) { mToneMappingNode->setGlowIntensity(val); });
+  mSettings->mGraphics.pGlowIntensity.connectAndTouch(
+      [this](float val) { mToneMappingNode->setGlowIntensity(val); });
 
-  pExposureCompensation.connectAndTouch(
+  mSettings->mGraphics.pExposureCompensation.connectAndTouch(
       [this](float val) { mToneMappingNode->setExposureCompensation(val); });
 
-  pExposureAdaptionSpeed.connectAndTouch(
+  mSettings->mGraphics.pExposureAdaptionSpeed.connectAndTouch(
       [this](float val) { mToneMappingNode->setExposureAdaptionSpeed(val); });
 
-  pAutoExposureRange.connectAndTouch([this](glm::vec2 val) {
+  mSettings->mGraphics.pAutoExposureRange.connectAndTouch([this](glm::vec2 val) {
     mToneMappingNode->setMinAutoExposure(val[0]);
     mToneMappingNode->setMaxAutoExposure(val[1]);
   });
 
-  pEnableHDR.connectAndTouch([clearGLNode, toneMappingGLNode](bool enabled) {
+  mSettings->mGraphics.pEnableHDR.connectAndTouch([clearGLNode, toneMappingGLNode](bool enabled) {
     clearGLNode->SetIsEnabled(enabled);
     toneMappingGLNode->SetIsEnabled(enabled);
   });
 
-  pEnableAutoExposure.connectAndTouch(
+  mSettings->mGraphics.pEnableAutoExposure.connectAndTouch(
       [this](bool enabled) { mToneMappingNode->setEnableAutoExposure(enabled); });
 
-  pExposure.connectAndTouch([this](float value) {
-    if (!pEnableAutoExposure.get()) {
+  mSettings->mGraphics.pExposure.connectAndTouch([this](float value) {
+    if (!mSettings->mGraphics.pEnableAutoExposure.get()) {
       mToneMappingNode->setExposure(value);
     }
 
     // Whenever the exposure changes, and if auto-glow is enabled, we change the glow intensity
     // based on the exposure value. The auto-glow amount is based on the current exposure relative
     // to the auto-exposure range.
-    if (pEnableAutoGlow.get()) {
-      float glow = (pAutoExposureRange.get()[0] - value) /
-                   (pAutoExposureRange.get()[0] - pAutoExposureRange.get()[1]);
-
-      float const eps = 0.001F;
-      pGlowIntensity  = std::clamp(glow * 0.5f, eps, 1.F);
+    if (mSettings->mGraphics.pEnableAutoGlow.get()) {
+      float glow = (mSettings->mGraphics.pAutoExposureRange.get()[0] - value) /
+                   (mSettings->mGraphics.pAutoExposureRange.get()[0] -
+                       mSettings->mGraphics.pAutoExposureRange.get()[1]);
+      mSettings->mGraphics.pGlowIntensity = std::clamp(glow * 0.5F, 0.001F, 1.F);
     }
   });
 }
@@ -155,7 +152,7 @@ void GraphicsEngine::update(glm::vec3 const& sunDirection) {
   // Update projection. When the sensor size control is enabled, we will calculate the projection
   // plane extents based on the screens aspect ratio, the given sensor diagonal and sensor focal
   // length.
-  if (mSettings->mEnableSensorSizeControl) {
+  if (mSettings->pEnableSensorSizeControl.get()) {
     VistaViewport* pViewport(GetVistaSystem()->GetDisplayManager()->GetViewports().begin()->second);
     int            sizeX = 0;
     int            sizeY = 0;
@@ -165,8 +162,9 @@ void GraphicsEngine::update(glm::vec3 const& sunDirection) {
     VistaProjection::VistaProjectionProperties* pProjProps =
         pViewport->GetProjection()->GetProjectionProperties();
 
-    double height = pSensorDiagonal.get() / std::sqrt(std::pow(aspect, 2.0) + 1.0);
-    height /= pFocalLength.get();
+    double height =
+        mSettings->mGraphics.pSensorDiagonal.get() / std::sqrt(std::pow(aspect, 2.0) + 1.0);
+    height /= mSettings->mGraphics.pFocalLength.get();
     double width = aspect * height;
     pProjProps->SetProjPlaneExtents(-width / 2, width / 2, -height / 2, height / 2);
     pProjProps->SetProjPlaneMidpoint(0, 0, -1);
@@ -174,11 +172,11 @@ void GraphicsEngine::update(glm::vec3 const& sunDirection) {
 
   // Update exposure. If auto exposure is enabled, the property will reflect the exposure chosen by
   // the tonemapping node.
-  if (pEnableAutoExposure.get()) {
-    pExposure = mToneMappingNode->getExposure();
+  if (mSettings->mGraphics.pEnableAutoExposure.get()) {
+    mSettings->mGraphics.pExposure = mToneMappingNode->getExposure();
   }
 
-  if (pEnableHDR.get()) {
+  if (mSettings->mGraphics.pEnableHDR.get()) {
     pAverageLuminance = mToneMappingNode->getLastAverageLuminance();
     pMaximumLuminance = mToneMappingNode->getLastMaximumLuminance();
   }
@@ -232,18 +230,18 @@ void GraphicsEngine::disableGLDebug() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void GraphicsEngine::calculateCascades() {
-  float              nearEnd = pShadowMapRange.get().x;
-  float              farEnd  = pShadowMapRange.get().y;
-  int                count   = pShadowMapCascades.get();
+  float              nearEnd = mSettings->mGraphics.pShadowMapRange.get().x;
+  float              farEnd  = mSettings->mGraphics.pShadowMapRange.get().y;
+  int                count   = mSettings->mGraphics.pShadowMapCascades.get();
   std::vector<float> splits(count + 1);
   for (size_t i(0); i < splits.size(); ++i) {
     float alpha = static_cast<float>(i) / static_cast<float>(count);
-    alpha       = std::pow(alpha, pShadowMapSplitDistribution.get());
+    alpha       = std::pow(alpha, mSettings->mGraphics.pShadowMapSplitDistribution.get());
     splits[i]   = glm::mix(nearEnd, farEnd, alpha);
   }
   mShadowMap->setCascadeSplits(splits);
-  mShadowMap->setSunNearClipOffset(pShadowMapExtension.get().x);
-  mShadowMap->setSunFarClipOffset(pShadowMapExtension.get().y);
+  mShadowMap->setSunNearClipOffset(mSettings->mGraphics.pShadowMapExtension.get().x);
+  mShadowMap->setSunFarClipOffset(mSettings->mGraphics.pShadowMapExtension.get().y);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

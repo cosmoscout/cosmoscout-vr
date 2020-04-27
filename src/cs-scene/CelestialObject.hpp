@@ -13,10 +13,6 @@
 #include <limits>
 #include <memory>
 
-#if defined(_WIN32) && defined(max)
-#undef max
-#endif
-
 class VistaOpenGLNode;
 
 namespace cs::scene {
@@ -46,11 +42,11 @@ class CS_SCENE_EXPORT CelestialObject : public CelestialAnchor {
       double tStartExistence = std::numeric_limits<double>::lowest(),
       double tEndExistence   = std::numeric_limits<double>::max());
 
-  CelestialObject(CelestialObject const& other) = delete;
-  CelestialObject(CelestialObject&& other)      = delete;
+  CelestialObject(CelestialObject const& other) = default;
+  CelestialObject(CelestialObject&& other)      = default;
 
-  CelestialObject& operator=(CelestialObject const& other) = delete;
-  CelestialObject& operator=(CelestialObject&& other) = delete;
+  CelestialObject& operator=(CelestialObject const& other) = default;
+  CelestialObject& operator=(CelestialObject&& other) = default;
 
   virtual ~CelestialObject() = default;
 
@@ -59,15 +55,13 @@ class CS_SCENE_EXPORT CelestialObject : public CelestialAnchor {
 
   /// The time (in the Barycentric Dynamical Time format) at which the object starts to exist in
   /// the universe.
-  double getStartExistence() const {
-    return mStartExistence;
-  }
+  double getStartExistence() const;
+  void   setStartExistence(double value);
 
   /// The time (in the Barycentric Dynamical Time format) at which the object ceases to exist in
   /// the universe.
-  double getEndExistence() const {
-    return mEndExistence;
-  }
+  double getEndExistence() const;
+  void   setEndExistence(double value);
 
   void update(double tTime, CelestialObserver const& oObs) override;
 

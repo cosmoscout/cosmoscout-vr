@@ -981,7 +981,7 @@ void GltfShared::buildMeshes(tinygltf::Model const& gltf) {
       }
       mesh.primitives.push_back(createMeshPrimitive(gltf, primitive));
     }
-    meshes.push_back(mesh);
+    mMeshes.push_back(mesh);
   }
 }
 
@@ -1071,7 +1071,7 @@ Primitive GltfShared::createMeshPrimitive(
       int  maybeIndex = find_texture_index(*material, pair.first);
       auto texVarIter = myPrimitive.programInfo.textures.find(pair.second);
       if (maybeIndex >= 0 && texVarIter != myPrimitive.programInfo.textures.end()) {
-        myPrimitive.textures.emplace_back(mextures[maybeIndex], texVarIter->second);
+        myPrimitive.textures.emplace_back(mTextures[maybeIndex], texVarIter->second);
       }
     }
   }
@@ -1079,17 +1079,17 @@ Primitive GltfShared::createMeshPrimitive(
   // textures used for Image Based Lighting (IBL)
   auto texVarIter = myPrimitive.programInfo.textures.find("u_brdfLUT");
   if (texVarIter != myPrimitive.programInfo.textures.end()) {
-    myPrimitive.textures.emplace_back(mextures[mrdfLUTindex], texVarIter->second);
+    myPrimitive.textures.emplace_back(mTextures[mBrdfLUTindex], texVarIter->second);
   }
 
   texVarIter = myPrimitive.programInfo.textures.find("u_DiffuseEnvSampler");
   if (texVarIter != myPrimitive.programInfo.textures.end()) {
-    myPrimitive.textures.emplace_back(mextures[miffuseEnvMapIndex], texVarIter->second);
+    myPrimitive.textures.emplace_back(mTextures[mDiffuseEnvMapIndex], texVarIter->second);
   }
 
   texVarIter = myPrimitive.programInfo.textures.find("u_SpecularEnvSampler");
   if (texVarIter != myPrimitive.programInfo.textures.end()) {
-    myPrimitive.textures.emplace_back(mextures[mpecularEnvMapIndex], texVarIter->second);
+    myPrimitive.textures.emplace_back(mTextures[mSpecularEnvMapIndex], texVarIter->second);
   }
 
   // ----------------------------------------------
@@ -1254,24 +1254,24 @@ void GltfShared::init(tinygltf::Model const& gltf, std::string const& cubemapFil
       sampler = defaultSampler;
     }
 
-    mextures.emplace_back(Texture{GL_TEXTURE_2D, sampler, sharedImages.at(t.source)});
+    mTextures.emplace_back(Texture{GL_TEXTURE_2D, sampler, sharedImages.at(t.source)});
   }
 
-  mrdfLUTindex = static_cast<int>(mextures.size());
-  mextures.push_back(createBrdfLUT(512, 512));
+  mBrdfLUTindex = static_cast<int>(mTextures.size());
+  mTextures.push_back(createBrdfLUT(512, 512));
 
   glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
   gli::texture_cube inputGliTex(gli::load(cubemapFilepath));
 
   // diffuse env map
-  miffuseEnvMapIndex = static_cast<int>(mextures.size());
-  auto diffuseGliTex = irradianceCubemap(inputGliTex, 32, 32);
-  mextures.push_back(uploadCubemap(diffuseGliTex));
+  mDiffuseEnvMapIndex = static_cast<int>(mTextures.size());
+  auto diffuseGliTex  = irradianceCubemap(inputGliTex, 32, 32);
+  mTextures.push_back(uploadCubemap(diffuseGliTex));
 
   // specular env map
-  mpecularEnvMapIndex = static_cast<int>(mextures.size());
-  auto specularGliTex = prefilterCubemapGGX(inputGliTex, 10);
-  mextures.push_back(uploadCubemap(specularGliTex));
+  mSpecularEnvMapIndex = static_cast<int>(mTextures.size());
+  auto specularGliTex  = prefilterCubemapGGX(inputGliTex, 10);
+  mTextures.push_back(uploadCubemap(specularGliTex));
 
   buildMeshes(gltf);
 
@@ -1314,7 +1314,7 @@ bool VistaGltfNode::Do() {
   glm::mat4 modelMat = glm::inverse(viewMat) * modelViewMat;
 
   if (mMeshIndex >= 0 && mShared) {
-    mShared->meshes[mMeshIndex].draw(projMat, viewMat, modelMat, *mShared);
+    mShared->mMeshes[mMeshIndex].draw(projMat, viewMat, modelMat, *mShared);
   }
 
   return true;
@@ -1324,8 +1324,8 @@ bool VistaGltfNode::Do() {
 
 bool VistaGltfNode::GetBoundingBox(VistaBoundingBox& bb) {
   if (mMeshIndex >= 0 && mShared) {
-    auto& mi = mShared->meshes[mMeshIndex].minPos;
-    auto& ma = mShared->meshes[mMeshIndex].maxPos;
+    auto& mi = mShared->mMeshes[mMeshIndex].minPos;
+    auto& ma = mShared->mMeshes[mMeshIndex].maxPos;
     bb.SetBounds(glm::value_ptr(mi), glm::value_ptr(ma));
   }
 

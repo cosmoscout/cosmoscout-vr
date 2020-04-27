@@ -23,8 +23,7 @@ class Signal {
   Signal() = default;
 
   /// Copy creates new signal.
-  Signal(Signal const& /*unused*/)
-      : mCurrentID(0) {
+  Signal(Signal const& /*unused*/) {
   }
 
   Signal(Signal&& other) noexcept

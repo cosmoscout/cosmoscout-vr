@@ -30,8 +30,8 @@ namespace cs::core {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-SolarSystem::SolarSystem(std::shared_ptr<const Settings> settings,
-    std::shared_ptr<utils::FrameTimings>                 frameTimings,
+SolarSystem::SolarSystem(std::shared_ptr<Settings> settings,
+    std::shared_ptr<utils::FrameTimings>           frameTimings,
     std::shared_ptr<GraphicsEngine> graphicsEngine, std::shared_ptr<TimeControl> timeControl)
     : mSettings(std::move(settings))
     , mFrameTimings(std::move(frameTimings))
@@ -41,14 +41,6 @@ SolarSystem::SolarSystem(std::shared_ptr<const Settings> settings,
 
   // Tell the user what's going on.
   logger().debug("Creating SolarSystem.");
-
-  pObserverCenter.connect([this](std::string const& center) {
-    mObserver.changeOrigin(center, mObserver.getFrameName(), mTimeControl->pSimulationTime.get());
-  });
-
-  pObserverFrame.connect([this](std::string const& frame) {
-    mObserver.changeOrigin(mObserver.getCenterName(), frame, mTimeControl->pSimulationTime.get());
-  });
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -217,6 +209,10 @@ void SolarSystem::update() {
     mLastPosition = observerPosition;
     mLastTime     = now;
   }
+
+  // Update settings properties.
+  mSettings->mObserver.pPosition = mObserver.getAnchorPosition();
+  mSettings->mObserver.pRotation = mObserver.getAnchorRotation();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -269,7 +265,7 @@ void SolarSystem::updateSceneScale() {
     auto lngLatHeight =
         cs::utils::convert::toLngLatHeight(vClosestPlanetObserverPosition, radii[0], radii[0]);
     double dRealDistance = lngLatHeight.z - closestBody->getHeight(lngLatHeight.xy()) *
-                                                mGraphicsEngine->pHeightScale.get();
+                                                mSettings->mGraphics.pHeightScale.get();
 
     if (std::isnan(dRealDistance)) {
       return;
@@ -363,9 +359,11 @@ void SolarSystem::updateObserverFrame() {
         sCenter = activeBody->getCenterName();
       }
 
-      pActiveBody     = activeBody;
-      pObserverCenter = sCenter;
-      pObserverFrame  = sFrame;
+      pActiveBody = activeBody;
+
+      mObserver.changeOrigin(sCenter, sFrame, mTimeControl->pSimulationTime.get());
+      mSettings->mObserver.pCenter = sCenter;
+      mSettings->mObserver.pFrame  = sFrame;
     }
   }
 }
@@ -374,7 +372,6 @@ void SolarSystem::updateObserverFrame() {
 
 void SolarSystem::flyObserverTo(std::string const& sCenter, std::string const& sFrame,
     glm::dvec3 const& position, glm::dquat const& rotation, double duration) {
-  // SetObserverToCamera();
 
   double simulationTime(mTimeControl->pSimulationTime.get());
   double startTime(
@@ -448,22 +445,6 @@ void SolarSystem::flyObserverTo(
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void SolarSystem::setObserverToCamera() {
-  double simulationTime(mTimeControl->pSimulationTime.get());
-
-  auto*         pCam = GetVistaSystem()->GetDfnObjectRegistry()->GetObjectTransform("CAM:MAIN");
-  VistaVector3D camPos;
-  pCam->GetTranslation(camPos);
-
-  scene::CelestialAnchor frame(mObserver.getCenterName(), mObserver.getFrameName());
-  auto                   mat    = frame.getRelativeTransform(simulationTime, mObserver);
-  glm::dvec3             offset = (mat * glm::dvec4(camPos[0], camPos[1], camPos[2], 1.0)).xyz();
-  mObserver.setAnchorPosition(offset);
-  pCam->SetTranslation(0, 0, 0);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 void SolarSystem::printFrames() {
   SPICEINT_CELL(ids, 1000); // NOLINT: Creates a c-array.
   bltfrm_c(SPICE_FRMTYP_ALL, &ids);
@@ -477,7 +458,7 @@ void SolarSystem::printFrames() {
   for (int i = 0; i < card_c(&ids); ++i) {
     int         obj = SPICE_CELL_ELEM_I(&ids, i); // NOLINT
     std::string out(length, ' ');
-    frmnam_c(obj, length, &out[0]);
+    frmnam_c(obj, length, out.data());
 
     logger().info(out);
   }
@@ -491,7 +472,7 @@ void SolarSystem::printFrames() {
     int obj = SPICE_CELL_ELEM_I(&ids, i); // NOLINT
 
     std::string out(length, ' ');
-    frmnam_c(obj, length, &out[0]);
+    frmnam_c(obj, length, out.data());
 
     logger().info(out);
   }

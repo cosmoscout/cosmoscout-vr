@@ -36,7 +36,7 @@ jobs:
     - name: Download Dependencies
       run: |
         sudo apt-get update -q
-        sudo apt-get install libc++-dev libgl1-mesa-dev libglu1-mesa-dev libx11-dev
+        sudo apt-get install libgl1-mesa-dev libglu1-mesa-dev libx11-dev
         sudo apt-get install libxi-dev libgconf-2-4
     - name: Build Externals
       run: ./make_externals.sh -G "Unix Makefiles"

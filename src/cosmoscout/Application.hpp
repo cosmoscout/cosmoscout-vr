@@ -33,6 +33,10 @@ class SolarSystem;
 class DragNavigation;
 } // namespace cs::core
 
+namespace cs::graphics {
+class MouseRay;
+} // namespace cs::graphics
+
 namespace cs::utils {
 class FrameTimings;
 class Downloader;
@@ -80,7 +84,7 @@ class Downloader;
 class Application : public VistaFrameLoop {
  public:
   /// This does only inititlize curl.
-  explicit Application(cs::core::Settings const& settings);
+  explicit Application(std::shared_ptr<cs::core::Settings> settings);
   ~Application() override;
 
   /// Initializes the Application. Should only be called by ViSTA.
@@ -101,6 +105,9 @@ class Application : public VistaFrameLoop {
     cs::core::PluginBase* mPlugin        = nullptr;
     bool                  mIsInitialized = false;
   };
+
+  /// Called whenever the settings are (re-)loaded;
+  void onLoad();
 
   /// Opens a plugin from a shared library. Only the create() method of the plugin is called.
   void openPlugin(std::string const& name);
@@ -159,7 +166,7 @@ class Application : public VistaFrameLoop {
   void registerGuiCallbacks();
   void unregisterGuiCallbacks();
 
-  std::shared_ptr<const cs::core::Settings> mSettings;
+  std::shared_ptr<cs::core::Settings>       mSettings;
   std::shared_ptr<cs::core::InputManager>   mInputManager;
   std::shared_ptr<cs::core::GraphicsEngine> mGraphicsEngine;
   std::shared_ptr<cs::core::GuiManager>     mGuiManager;
@@ -170,6 +177,7 @@ class Application : public VistaFrameLoop {
   std::map<std::string, Plugin>             mPlugins;
   std::unique_ptr<cs::utils::Downloader>    mDownloader;
   std::unique_ptr<IVistaClusterDataSync>    mSceneSync;
+  std::unique_ptr<cs::graphics::MouseRay>   mMouseRay;
 
   bool mDownloadedData            = false;
   bool mLoadedAllPlugins          = false;
@@ -181,6 +189,12 @@ class Application : public VistaFrameLoop {
   // For deferred hot-reloading of plugins.
   std::set<std::string> mPluginsToUnload;
   std::set<std::string> mPluginsToLoad;
+
+  // For deferred reloading of settings.
+  std::string mSettingsToRead;
+
+  // For deferred writing of settings.
+  std::string mSettingsToWrite;
 };
 
 #endif // CS_APPLICATION_HPP

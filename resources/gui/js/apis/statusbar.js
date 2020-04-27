@@ -14,6 +14,16 @@ class StatusbarApi extends IApi {
   name = 'statusbar';
 
   /**
+   * The list of previously executed commands.
+   */
+  history = [];
+
+  /**
+   * The currently selected item in the history.
+   */
+  historyIndex = 0;
+
+  /**
    * @type {HTMLElement}
    * @private
    */
@@ -31,9 +41,7 @@ class StatusbarApi extends IApi {
    */
   _speedContainer;
 
-  _history      = [];
-  _historyIndex = 0;
-  _currentCmd   = "";
+  _currentCmd = "";
   _inputField;
   _suggestionField;
   _outputField;
@@ -66,24 +74,24 @@ class StatusbarApi extends IApi {
     this._inputField.onkeydown = (e) => {
       // Up pressed - history up.
       if (e.keyCode == 38) {
-        if (this._history.length > 0) {
-          if (this._historyIndex == this._history.length) {
+        if (this.history.length > 0) {
+          if (this.historyIndex == this.history.length) {
             this._currentCmd = this._inputField.value;
           }
-          this._historyIndex     = Math.max(0, this._historyIndex - 1);
-          this._inputField.value = this._history[this._historyIndex];
+          this.historyIndex      = Math.max(0, this.historyIndex - 1);
+          this._inputField.value = this.history[this.historyIndex];
         }
         e.preventDefault();
       }
 
       // Down pressed - history down.
       if (e.keyCode == 40) {
-        if (this._history.length > 0) {
-          this._historyIndex = Math.min(this._history.length, this._historyIndex + 1);
-          if (this._historyIndex == this._history.length) {
+        if (this.history.length > 0) {
+          this.historyIndex = Math.min(this.history.length, this.historyIndex + 1);
+          if (this.historyIndex == this.history.length) {
             this._inputField.value = this._currentCmd;
           } else {
-            this._inputField.value = this._history[this._historyIndex];
+            this._inputField.value = this.history[this.historyIndex];
           }
         }
         e.preventDefault();
@@ -96,19 +104,20 @@ class StatusbarApi extends IApi {
       // Return pressed - try to execute the command!
       if (e.keyCode == 13) {
         try {
-          let result = eval(this._inputField.value);
+          let result = window.eval(this._inputField.value);
           if (result != undefined) {
             console.log(result);
           }
         } catch (error) { console.warn(error); }
 
         // Push command to history.
-        if (this._history.length == 0 ||
-            this._history[this._history.length - 1] != this._inputField.value) {
-          this._history.push(this._inputField.value);
+        if (this.history.length == 0 ||
+            this.history[this.history.length - 1] != this._inputField.value) {
+          this.history.push(this._inputField.value);
+          CosmoScout.callbacks.statusbar.addCommandToHistory(this._inputField.value);
         }
 
-        this._historyIndex     = this._history.length;
+        this.historyIndex      = this.history.length;
         this._inputField.value = ""
       }
 

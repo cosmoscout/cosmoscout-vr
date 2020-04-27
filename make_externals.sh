@@ -170,9 +170,16 @@ echo ""
 
 cmake -E make_directory "$BUILD_DIR/spdlog" && cd "$BUILD_DIR/spdlog"
 cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
-      -DCMAKE_POSITION_INDEPENDENT_CODE=On -DSPDLOG_ENABLE_PCH=On \
-      -DCMAKE_BUILD_TYPE=$BUILD_TYPE "$EXTERNALS_DIR/spdlog"
+      -DCMAKE_POSITION_INDEPENDENT_CODE=On -DCMAKE_BUILD_TYPE=$BUILD_TYPE "$EXTERNALS_DIR/spdlog"
 cmake --build . --target install --parallel "$(nproc)"
+
+# jsonhpp ------------------------------------------------------------------------------------------
+
+echo ""
+echo "Installing jsonHPP ..."
+echo ""
+
+cmake -E copy_directory "$EXTERNALS_DIR/json/include/nlohmann" "$INSTALL_DIR/include/nlohmann"
 
 # doctest ------------------------------------------------------------------------------------------
 

@@ -174,6 +174,14 @@ cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
 
 cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS%
 
+rem jsonhpp ----------------------------------------------------------------------------------------
+
+echo.
+echo Installing jsonHPP ...
+echo.
+
+cmake -E copy_directory "%EXTERNALS_DIR%/json/include/nlohmann" "%INSTALL_DIR%/include/nlohmann" || exit /b
+
 rem doctest ----------------------------------------------------------------------------------------
 
 echo.

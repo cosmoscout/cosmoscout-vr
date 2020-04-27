@@ -71,10 +71,10 @@ GltfLoader::GltfLoader(
   bool ret = false;
   if (ext == "glb") {
     // Assume binary glTF.
-    ret = loader.LoadBinaryFromFile(&mShared->minyGltfModel, &err, &warn, sGltfFile);
+    ret = loader.LoadBinaryFromFile(&mShared->mTinyGltfModel, &err, &warn, sGltfFile);
   } else {
     // Assume ascii glTF.
-    ret = loader.LoadASCIIFromFile(&mShared->minyGltfModel, &err, &warn, sGltfFile);
+    ret = loader.LoadASCIIFromFile(&mShared->mTinyGltfModel, &err, &warn, sGltfFile);
   }
 
   if (!err.empty()) {
@@ -86,7 +86,7 @@ GltfLoader::GltfLoader(
   }
 
   mShared->m_linearDepthBuffer = linearDepthBuffer;
-  mShared->init(mShared->minyGltfModel, cubemapFilepath);
+  mShared->init(mShared->mTinyGltfModel, cubemapFilepath);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -169,23 +169,23 @@ void build_node(VistaSceneGraph& sg, std::shared_ptr<internal::GltfShared> const
   apply_transform(*transform_node, tinygltf_node);
   transform_node->SetName(tinygltf_node.name);
   for (int i : tinygltf_node.children) {
-    build_node(sg, shared, transform_node, shared->minyGltfModel.nodes[i]);
+    build_node(sg, shared, transform_node, shared->mTinyGltfModel.nodes[i]);
   }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool GltfLoader::attachTo(VistaSceneGraph* pSG, VistaTransformNode* parent) {
-  if (mShared->minyGltfModel.scenes.empty()) {
+  if (mShared->mTinyGltfModel.scenes.empty()) {
     return false;
   }
 
-  auto const& scene = (mShared->minyGltfModel.defaultScene >= 0)
-                          ? mShared->minyGltfModel.scenes[mShared->minyGltfModel.defaultScene]
-                          : mShared->minyGltfModel.scenes.front();
+  auto const& scene = (mShared->mTinyGltfModel.defaultScene >= 0)
+                          ? mShared->mTinyGltfModel.scenes[mShared->mTinyGltfModel.defaultScene]
+                          : mShared->mTinyGltfModel.scenes.front();
 
   for (int i : scene.nodes) {
-    build_node(*pSG, mShared, parent, mShared->minyGltfModel.nodes[i]);
+    build_node(*pSG, mShared, parent, mShared->mTinyGltfModel.nodes[i]);
   }
   return true;
 }
