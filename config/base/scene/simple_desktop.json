@@ -68,7 +68,6 @@
     }
   ],
   "spiceKernel": "../share/config/spice/simple.txt",
-  "widgetScale": 0.6,
   "graphics": {
     "widgetScale": 0.6
   },

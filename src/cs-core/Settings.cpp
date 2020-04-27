@@ -320,6 +320,9 @@ void Settings::write(std::string const& fileName) const {
 
   o.close();
 
+  // Remove the existing file (if any).
+  std::remove(fileName.c_str());
+
   // All done, so we're safe to rename the file.
   std::rename((fileName + ".tmp").c_str(), fileName.c_str());
 }
