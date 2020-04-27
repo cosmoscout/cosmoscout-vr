@@ -240,7 +240,8 @@
       }
     },
 	"csp-simple-wms-bodies": {
-      "bodies": {
+    "mapCache": "map-cache/",  
+    "bodies": {
         "Earth": {
           "gridResolutionX": 200,
           "gridResolutionY": 100,
