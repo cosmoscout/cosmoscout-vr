@@ -173,17 +173,15 @@ cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
       -DCMAKE_POSITION_INDEPENDENT_CODE=On -DCMAKE_BUILD_TYPE=$BUILD_TYPE "$EXTERNALS_DIR/spdlog"
 cmake --build . --target install --parallel "$(nproc)"
 
-# pistache -----------------------------------------------------------------------------------------
+# civetweb -----------------------------------------------------------------------------------------
 
 echo ""
-echo "Building and installing pistache ..."
+echo "Building and installing civetweb ..."
 echo ""
 
-cmake -E make_directory "$BUILD_DIR/pistache" && cd "$BUILD_DIR/pistache"
-cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
-      -DPISTACHE_BUILD_EXAMPLES=false -DPISTACHE_BUILD_TESTS=false \
-      -DPISTACHE_BUILD_DOCS=false -DPISTACHE_USE_SSL=false \
-      -DCMAKE_BUILD_TYPE=$BUILD_TYPE "$EXTERNALS_DIR/pistache"
+cmake -E make_directory "$BUILD_DIR/civetweb" && cd "$BUILD_DIR/civetweb"
+cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" -DCIVETWEB_ENABLE_CXX=On \
+      -DBUILD_SHARED_LIBS=On -DCMAKE_BUILD_TYPE=$BUILD_TYPE "$EXTERNALS_DIR/civetweb"
 cmake --build . --target install --parallel "$(nproc)"
 
 # jsonhpp ------------------------------------------------------------------------------------------
