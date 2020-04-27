@@ -171,6 +171,7 @@ void to_json(nlohmann::json& j, Settings::SceneScale const& o) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void from_json(nlohmann::json const& j, Settings::Graphics& o) {
+  Settings::deserialize(j, "enableVsync", o.pEnableVsync);
   Settings::deserialize(j, "widgetScale", o.pWidgetScale);
   Settings::deserialize(j, "heightScale", o.pHeightScale);
   Settings::deserialize(j, "enableHDR", o.pEnableHDR);
@@ -198,6 +199,7 @@ void from_json(nlohmann::json const& j, Settings::Graphics& o) {
 }
 
 void to_json(nlohmann::json& j, Settings::Graphics const& o) {
+  Settings::serialize(j, "enableVsync", o.pEnableVsync);
   Settings::serialize(j, "widgetScale", o.pWidgetScale);
   Settings::serialize(j, "heightScale", o.pHeightScale);
   Settings::serialize(j, "enableHDR", o.pEnableHDR);
@@ -317,6 +319,9 @@ void Settings::write(std::string const& fileName) const {
   o << std::setw(2) << settings;
 
   o.close();
+
+  // Remove the existing file (if any).
+  std::remove(fileName.c_str());
 
   // All done, so we're safe to rename the file.
   std::rename((fileName + ".tmp").c_str(), fileName.c_str());

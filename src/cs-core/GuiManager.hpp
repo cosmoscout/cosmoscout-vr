@@ -17,6 +17,7 @@
 
 #include "../cs-utils/FrameTimings.hpp"
 
+#include <glm/glm.hpp>
 #include <memory>
 #include <optional>
 #include <string>
@@ -151,6 +152,20 @@ class CS_CORE_EXPORT GuiManager {
   void addEventToTimenavigationBar(std::string const& start, std::optional<std::string> const& end,
       std::string const& id, std::string const& content, std::optional<std::string> const& style,
       std::string const& description, std::string const& planet, std::string const& place);
+
+  /// Sets a checkbox to the given value. This is only a thin wrapper for
+  /// "CosmoScout.gui.setCheckboxValue" but provides compile time type safety.
+  void setCheckboxValue(std::string const& name, bool val, bool emitCallbacks = false) const;
+
+  /// Checks a radio button. This is only a thin wrapper for "CosmoScout.gui.setRadioChecked" but
+  /// provides compile time type safety.
+  void setRadioChecked(std::string const& name, bool emitCallbacks = false) const;
+
+  /// Sets a slider (with one or two handles) to the given value(s). These are only a thin wrappers
+  /// for "CosmoScout.gui.setSliderValue" but provide compile time type safety.
+  void setSliderValue(std::string const& name, double val, bool emitCallbacks = false) const;
+  void setSliderValue(
+      std::string const& name, glm::dvec2 const& val, bool emitCallbacks = false) const;
 
   /// Returns the CosmoScout Gui.
   gui::GuiItem* getGui() const;
