@@ -1119,7 +1119,7 @@ void Application::registerGuiCallbacks() {
         mSettings->mGraphics.pAmbientBrightness = static_cast<float>(std::pow(val, 10.0));
       }));
   mSettings->mGraphics.pAmbientBrightness.connect([this](float val) {
-    mGuiManager->setSliderValue("graphics.setAmbientLight", std::pow(val, 0.1));
+    mGuiManager->setSliderValue("graphics.setAmbientLight", std::pow(val, 0.1F));
   });
 
   // Adjusts the exposure range for auto exposure.
