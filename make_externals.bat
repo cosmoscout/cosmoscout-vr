@@ -182,7 +182,7 @@ echo.
 
 cmake -E make_directory "%BUILD_DIR%/civetweb" && cd "%BUILD_DIR%/civetweb"
 cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%" -DCIVETWEB_ENABLE_CXX=On ^
-      -DBUILD_SHARED_LIBS=On -DSPDLOG_ENABLE_PCH=On "%EXTERNALS_DIR%/civetweb" || exit /b
+      -DBUILD_SHARED_LIBS=On "%EXTERNALS_DIR%/civetweb" || exit /b
 
 cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS%
 
