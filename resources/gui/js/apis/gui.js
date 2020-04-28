@@ -63,7 +63,7 @@ class GuiApi extends IApi {
       if (typeof dropdown.dataset.initialized === 'undefined') {
         dropdown.addEventListener('change', eventListener);
 
-        input.dataset.initialized = 'true';
+        dropdown.dataset.initialized = 'true';
       }
     });
   }
