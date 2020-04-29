@@ -73,3 +73,9 @@
 [submodule "externals/json"]
 	path = externals/json
 	url = https://github.com/nlohmann/json.git
+[submodule "plugins/csp-web-api"]
+	path = plugins/csp-web-api
+	url = ../../cosmoscout/csp-web-api.git
+[submodule "externals/civetweb"]
+	path = externals/civetweb
+	url = https://github.com/cosmoscout/civetweb.git
