@@ -170,8 +170,8 @@ class CS_CORE_EXPORT Settings {
     utils::Property<glm::dquat> pRotation;
   } mObserver;
 
-  /// Bookmarks are managed in CosmoScout's core. Plugins can access the list of bookmarks, modify
-  /// and display them. A bookmark can have a positions in space and / or time. It may also describe
+  /// Bookmarks are managed in CosmoScout's core. Plugins can create and delete bookmars via the
+  /// GuiManager's API. A bookmark can have a positions in space and / or time. It may also describe
   /// a period in time.
   struct Bookmark {
 
@@ -205,6 +205,9 @@ class CS_CORE_EXPORT Settings {
     std::optional<Time>     mTime;
   };
 
+  /// This list of bookmarks is not updated at runtime. To create new bookmarks and receive updates
+  /// on existing bookmarks, use the API of the GuiManager. On settings save, the GuiManager will
+  /// update this list of Bookmarks.
   std::vector<Bookmark> mBookmarks;
 
   /// In order for the scientists to be able to interact with their environment, the next virtual

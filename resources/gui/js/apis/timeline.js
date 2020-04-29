@@ -256,9 +256,9 @@ class TimelineApi extends IApi {
 
   _timelineRangeFactor = 100000;
 
-  _hoveredHTMLEvent;
+  _hoveredEventDiv;
 
-  _hoveredItem;
+  _hoveredEventData;
 
   _lastPlayValue = 1;
 
@@ -348,23 +348,19 @@ class TimelineApi extends IApi {
         CosmoScout.utils.formatDateReadable(this._centerTime);
   }
 
-  addItem(start, end, id, content, style, description, planet, place) {
+  addEvent(id, name, description, start, end, color) {
     const data = {};
     data.start = new Date(start);
     data.id    = id;
     if (end !== '') {
       data.end = new Date(end);
     }
-    if (style !== '') {
-      data.style = style;
-    }
-    data.planet      = planet;
+    data.name        = name;
     data.description = description;
-    data.place       = place;
-    data.content     = content;
-    data.className   = `event ${id}`;
+    data.style       = "border-color: " + color;
+    data.className   = `event event-${id}`;
     this._items.update(data);
-    data.className = `overviewEvent ${id}`;
+    data.className = `overview-event event-${id}`;
     this._itemsOverview.update(data);
   }
 
@@ -745,8 +741,8 @@ class TimelineApi extends IApi {
    * @private
    */
   _travelToItemLocation() {
-    this.travelTo(
-        false, this._hoveredItem.planet, this._hoveredItem.place, this._hoveredItem.content);
+    this.travelTo(false, this._hoveredEventData.planet, this._hoveredEventData.place,
+        this._hoveredEventData.content);
   }
 
   /**
@@ -792,7 +788,7 @@ class TimelineApi extends IApi {
         this._parHolder.item.id = this._parHolder.item.id.replace(/\s/g, '');
       }
       if (this._parHolder.overview) {
-        this._parHolder.item.className = `overviewEvent ${this._parHolder.item.id}`;
+        this._parHolder.item.className = `overview-event ${this._parHolder.item.id}`;
       } else {
         this._parHolder.item.className = `event ${this._parHolder.item.id}`;
       }
@@ -804,7 +800,7 @@ class TimelineApi extends IApi {
         this._parHolder.item.className = `event ${this._parHolder.item.id}`;
         this._items.update(this._parHolder.item);
       } else {
-        this._parHolder.item.className = `overviewEvent ${this._parHolder.item.id}`;
+        this._parHolder.item.className = `overview-event ${this._parHolder.item.id}`;
         this._itemsOverview.update(this._parHolder.item);
       }
     } else {
@@ -1032,7 +1028,7 @@ class TimelineApi extends IApi {
     if (element !== null && element.className !== 'event-tooltip') {
       document.getElementById('event-tooltip-container').style.display = 'none';
       this._tooltipVisible                                             = false;
-      this._hoveredHTMLEvent.classList.remove('mouseOver');
+      this._hoveredEventDiv.classList.remove('mouseOver');
     }
   }
 
@@ -1074,30 +1070,26 @@ class TimelineApi extends IApi {
   _itemOverCallback(properties, overview) {
     document.getElementById('event-tooltip-container').style.display = 'block';
     this._tooltipVisible                                             = true;
-    for (const item in this._items._data) {
-      if (this._items._data[item].id === properties.item) {
-        document.getElementById('event-tooltip-content').innerHTML =
-            this._items._data[item].content;
-        document.getElementById('event-tooltip-description').innerHTML =
-            this._items._data[item].description;
-        document.getElementById('event-tooltip-location').innerHTML =
-            `<i class='material-icons'>send</i> ${this._items._data[item].planet} ${
-                this._items._data[item].place}`;
-        this._hoveredItem = this._items._data[item];
-      }
+
+    let eventData = this._items._data[properties.item];
+
+    document.getElementById('event-tooltip-name').innerHTML        = eventData.name;
+    document.getElementById('event-tooltip-description').innerHTML = eventData.description;
+    // document.getElementById('event-tooltip-location').innerHTML =
+    //     `<i class='material-icons'>send</i> ${eventData.planet} ${
+    //         eventData.place}`;
+    this._hoveredEventData = eventData;
+
+    let eventDiv;
+    if (overview) {
+      eventDiv = document.querySelector(".vis-box.overview-event.event-" + eventData.id);
+    } else {
+      eventDiv = document.querySelector(".vis-box.event.event-" + eventData.id);
     }
-    const events = document.getElementsByClassName(properties.item);
-    let event;
-    for (let i = 0; i < events.length; ++i) {
-      if (!overview && $(events[i]).hasClass('event')) {
-        event = events[i];
-      } else if (overview && $(events[i]).hasClass('overviewEvent')) {
-        event = events[i];
-      }
-    }
-    this._hoveredHTMLEvent = event;
-    this._hoveredHTMLEvent.classList.add('mouseOver');
-    const eventRect = event.getBoundingClientRect();
+
+    this._hoveredEventDiv = eventDiv;
+    this._hoveredEventDiv.classList.add('mouseOver');
+    const eventRect = eventDiv.getBoundingClientRect();
     const left      = eventRect.left - 150 < 0 ? 0 : eventRect.left - 150;
     document.getElementById('event-tooltip-container').style.top  = `${eventRect.bottom}px`;
     document.getElementById('event-tooltip-container').style.left = `${left}px`;
@@ -1110,7 +1102,7 @@ class TimelineApi extends IApi {
   _leaveCustomTooltip() {
     document.getElementById('event-tooltip-container').style.display = 'none';
     this._tooltipVisible                                             = false;
-    this._hoveredHTMLEvent.classList.remove('mouseOver');
+    this._hoveredEventDiv.classList.remove('mouseOver');
   }
 
   /**

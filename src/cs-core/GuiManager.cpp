@@ -46,6 +46,10 @@ GuiManager::GuiManager(std::shared_ptr<Settings> settings,
   // Initialize the Chromium Embedded Framework.
   gui::init();
 
+  // Connect to load and save events.
+  mOnLoadConnection = mSettings->onLoad().connect([this]() { onLoad(); });
+  mOnSaveConnection = mSettings->onSave().connect([this]() { onSave(); });
+
   // Update the main viewport when the window is resized.
   VistaViewport* pViewport(GetVistaSystem()->GetDisplayManager()->GetViewports().begin()->second);
   mViewportUpdater = std::make_unique<VistaViewportResizeToProjectionAdapter>(pViewport);
@@ -202,6 +206,9 @@ GuiManager::GuiManager(std::shared_ptr<Settings> settings,
     mLocalGuiTransform->SetIsEnabled(enable);
     mCosmoScoutGui->setIsInteractive(enable);
   });
+
+  // Trigger initial onLoad()
+  onLoad();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -260,6 +267,64 @@ void GuiManager::setCursor(gui::Cursor cursor) {
       windowingToolkit->SetCursor(window.second, glutCursor);
     }
   }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+utils::Signal<Settings::Bookmark const&> const& GuiManager::onBookmarkAdded() const {
+  return mOnBookmarkAdded;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+utils::Signal<Settings::Bookmark const&> const& GuiManager::onBookmarkRemoved() const {
+  return mOnBookmarkRemoved;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+uint32_t GuiManager::addBookmark(Settings::Bookmark bookmark) {
+  uint32_t newID = 0;
+
+  if (mBookmarks.size() > 0) {
+    newID = mBookmarks.rbegin()->first + 1;
+  }
+
+  if (bookmark.mTime) {
+    addTimelineEvent("bookmark-" + std::to_string(newID), bookmark.mName, bookmark.mDescription,
+        bookmark.mTime.value().mStart, bookmark.mTime.value().mEnd, bookmark.mColor);
+  }
+
+  mBookmarks.emplace(newID, std::move(bookmark));
+  mOnBookmarkAdded.emit(mBookmarks.rbegin()->second);
+
+  return newID;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void GuiManager::removeBookmark(uint32_t bookmarkID) {
+  auto it = mBookmarks.find(bookmarkID);
+  if (it == mBookmarks.end()) {
+    logger().warn("Failed to remove bookmark with ID '{}': There is no such bookmark!", bookmarkID);
+    return;
+  }
+
+  Settings::Bookmark bookmark = it->second;
+
+  if (bookmark.mTime) {
+    removeTimelineEvent("bookmark-" + std::to_string(bookmarkID));
+  }
+
+  mBookmarks.erase(it);
+
+  mOnBookmarkRemoved.emit(bookmark);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::map<uint32_t, const Settings::Bookmark> const& GuiManager::getBookmarks() const {
+  return mBookmarks;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -402,12 +467,19 @@ void GuiManager::addCssToGui(const std::string& fileName) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GuiManager::addEventToTimenavigationBar(std::string const& start,
-    std::optional<std::string> const& end, std::string const& id, std::string const& content,
-    std::optional<std::string> const& style, std::string const& description,
-    std::string const& planet, std::string const& place) {
-  mCosmoScoutGui->callJavascript("CosmoScout.timeline.addItem", start, end.value_or(""), id,
-      content, style.value_or(""), description, planet, place);
+void GuiManager::addTimelineEvent(std::string const& id, std::string const& name,
+    std::optional<std::string> const& description, std::string const& start,
+    std::optional<std::string> const& end, std::optional<glm::vec3> const& color) {
+
+  auto c = color.value_or(glm::vec3(0.5F, 0.6F, 0.7F)) * 255.F;
+  mCosmoScoutGui->callJavascript("CosmoScout.timeline.addEvent", id, name, description.value_or(""),
+      start, end.value_or(""), fmt::format("rgb({}, {}, {})", c.r, c.g, c.b));
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void GuiManager::removeTimelineEvent(std::string const& id) {
+  mCosmoScoutGui->callJavascript("CosmoScout.timeline.removeEvent", id);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -434,6 +506,33 @@ void GuiManager::setSliderValue(
     std::string const& name, glm::dvec2 const& val, bool emitCallbacks) const {
   mCosmoScoutGui->callJavascript(
       "CosmoScout.gui.setSliderValue", name, emitCallbacks, val.x, val.y);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void GuiManager::onLoad() {
+  // First clear all bookmarks. In theory this could be optimized by not-reloading identical
+  // bookmarks.
+  while (mBookmarks.size() > 0) {
+    removeBookmark(mBookmarks.begin()->first);
+  }
+
+  // Then add new bookmarks.
+  for (auto const& b : mSettings->mBookmarks) {
+    addBookmark(b);
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void GuiManager::onSave() {
+
+  // Store current bookmarks.
+  mSettings->mBookmarks.resize(mBookmarks.size());
+  auto it = mBookmarks.begin();
+  for (size_t i(0); it != mBookmarks.end(); ++i, ++it) {
+    mSettings->mBookmarks[i] = it->second;
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
