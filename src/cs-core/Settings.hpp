@@ -170,23 +170,42 @@ class CS_CORE_EXPORT Settings {
     utils::Property<glm::dquat> pRotation;
   } mObserver;
 
-  /// Events to show on the timenavigation bar
-  struct Event {
+  /// Bookmarks are managed in CosmoScout's core. Plugins can access the list of bookmarks, modify
+  /// and display them. A bookmark can have a positions in space and / or time. It may also describe
+  /// a period in time.
+  struct Bookmark {
+
+    /// The location of a bookmark is defined by SPICE anchor, a cartesian position and an optional
+    /// rotation.
     struct Location {
-      std::string mPlanet;
-      std::string mPlace;
+      std::string               mAnchor;
+      glm::dvec3                mPosition;
+      std::optional<glm::dquat> mRotation;
     };
 
-    std::string                mStart;
-    std::optional<std::string> mEnd;
-    std::string                mContent;
-    std::string                mId;
-    std::optional<std::string> mStyle;
-    std::string                mDescription;
-    std::optional<Location>    mLocation;
+    /// The time of a bookmark has an optional end parameter which makes the bookmark describe a
+    /// time span rather a time point.
+    struct Time {
+      std::string                mStart;
+      std::optional<std::string> mEnd;
+    };
+
+    /// The name of the bookmark is the only required field. It's not strictly required but a good
+    /// idea to keep this unique amongst the bookmarks for an anchor.
+    std::string mName;
+
+    /// Plugins may show the description. This can be a longer text.
+    std::optional<std::string> mDescription;
+
+    /// Plugins may use this to visually highlight different types of bookmarks.
+    std::optional<glm::vec3> mColor;
+
+    /// Location and Time are both optional, but omitting both results in a pretty useless bookmark.
+    std::optional<Location> mLocation;
+    std::optional<Time>     mTime;
   };
 
-  std::vector<Event> mEvents;
+  std::vector<Bookmark> mBookmarks;
 
   /// In order for the scientists to be able to interact with their environment, the next virtual
   /// celestial body must never be more than an arm’s length away.

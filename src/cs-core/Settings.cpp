@@ -92,36 +92,46 @@ void to_json(nlohmann::json& j, Settings::Observer const& o) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void from_json(nlohmann::json const& j, Settings::Event::Location& o) {
-  Settings::deserialize(j, "planet", o.mPlanet);
-  Settings::deserialize(j, "place", o.mPlace);
+void from_json(nlohmann::json const& j, Settings::Bookmark::Location& o) {
+  Settings::deserialize(j, "anchor", o.mAnchor);
+  Settings::deserialize(j, "position", o.mPosition);
+  Settings::deserialize(j, "rotation", o.mRotation);
 }
 
-void to_json(nlohmann::json& j, Settings::Event::Location const& o) {
-  Settings::serialize(j, "planet", o.mPlanet);
-  Settings::serialize(j, "place", o.mPlace);
+void to_json(nlohmann::json& j, Settings::Bookmark::Location const& o) {
+  Settings::serialize(j, "anchor", o.mAnchor);
+  Settings::serialize(j, "position", o.mPosition);
+  Settings::serialize(j, "rotation", o.mRotation);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void from_json(nlohmann::json const& j, Settings::Event& o) {
+void from_json(nlohmann::json const& j, Settings::Bookmark::Time& o) {
   Settings::deserialize(j, "start", o.mStart);
-  Settings::deserialize(j, "content", o.mContent);
-  Settings::deserialize(j, "id", o.mId);
-  Settings::deserialize(j, "description", o.mDescription);
-  Settings::deserialize(j, "style", o.mStyle);
   Settings::deserialize(j, "end", o.mEnd);
-  Settings::deserialize(j, "location", o.mLocation);
 }
 
-void to_json(nlohmann::json& j, Settings::Event const& o) {
+void to_json(nlohmann::json& j, Settings::Bookmark::Time const& o) {
   Settings::serialize(j, "start", o.mStart);
-  Settings::serialize(j, "content", o.mContent);
-  Settings::serialize(j, "id", o.mId);
-  Settings::serialize(j, "description", o.mDescription);
-  Settings::serialize(j, "style", o.mStyle);
   Settings::serialize(j, "end", o.mEnd);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void from_json(nlohmann::json const& j, Settings::Bookmark& o) {
+  Settings::deserialize(j, "name", o.mName);
+  Settings::deserialize(j, "description", o.mDescription);
+  Settings::deserialize(j, "color", o.mColor);
+  Settings::deserialize(j, "location", o.mLocation);
+  Settings::deserialize(j, "time", o.mTime);
+}
+
+void to_json(nlohmann::json& j, Settings::Bookmark const& o) {
+  Settings::serialize(j, "name", o.mName);
+  Settings::serialize(j, "description", o.mDescription);
+  Settings::serialize(j, "color", o.mColor);
   Settings::serialize(j, "location", o.mLocation);
+  Settings::serialize(j, "time", o.mTime);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -247,7 +257,7 @@ void from_json(nlohmann::json const& j, Settings& o) {
   Settings::deserialize(j, "minDate", o.pMinDate);
   Settings::deserialize(j, "maxDate", o.pMaxDate);
   Settings::deserialize(j, "downloadData", o.mDownloadData);
-  Settings::deserialize(j, "events", o.mEvents);
+  Settings::deserialize(j, "bookmarks", o.mBookmarks);
   Settings::deserialize(j, "commandHistory", o.mCommandHistory);
 }
 
@@ -270,7 +280,7 @@ void to_json(nlohmann::json& j, Settings const& o) {
   Settings::serialize(j, "minDate", o.pMinDate);
   Settings::serialize(j, "maxDate", o.pMaxDate);
   Settings::serialize(j, "downloadData", o.mDownloadData);
-  Settings::serialize(j, "events", o.mEvents);
+  Settings::serialize(j, "bookmarks", o.mBookmarks);
   Settings::serialize(j, "commandHistory", o.mCommandHistory);
 }
 

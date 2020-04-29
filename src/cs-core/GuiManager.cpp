@@ -202,17 +202,6 @@ GuiManager::GuiManager(std::shared_ptr<Settings> settings,
     mLocalGuiTransform->SetIsEnabled(enable);
     mCosmoScoutGui->setIsInteractive(enable);
   });
-
-  for (const auto& mEvent : mSettings->mEvents) {
-    std::string planet;
-    std::string place;
-    if (mEvent.mLocation.has_value()) {
-      planet = mEvent.mLocation.value().mPlanet;
-      place  = mEvent.mLocation.value().mPlace;
-    }
-    addEventToTimenavigationBar(mEvent.mStart, mEvent.mEnd, mEvent.mId, mEvent.mContent,
-        mEvent.mStyle, mEvent.mDescription, planet, place);
-  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
