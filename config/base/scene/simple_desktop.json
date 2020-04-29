@@ -158,10 +158,6 @@
     }
   },
   "plugins": {
-    "csp-web-api": {
-      "port": 9001,
-      "page": "../share/resources/gui/example-web-frontend.html"
-    },
     "csp-stars": {
       "celestialGridTexture": "../share/resources/textures/celestial_grid.png",
       "starFiguresTexture": "../share/resources/textures/constellation_figures.png",
