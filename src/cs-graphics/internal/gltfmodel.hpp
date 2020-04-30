@@ -153,13 +153,13 @@ struct GltfShared {
   bool                 m_enableHDR      = false;
   float                m_IBLIntensity   = 1.0f;
   glm::mat3            m_IBLrotation    = glm::mat3(1.0f);
-  tinygltf::Model      minyGltfModel;
-  std::vector<Texture> mextures;
-  std::vector<Mesh>    meshes;
-  int                  mrdfLUTindex        = -1;
-  int                  miffuseEnvMapIndex  = -1;
-  int                  mpecularEnvMapIndex = -1;
-  bool                 m_linearDepthBuffer = false;
+  tinygltf::Model      mTinyGltfModel;
+  std::vector<Texture> mTextures;
+  std::vector<Mesh>    mMeshes;
+  int                  mBrdfLUTindex        = -1;
+  int                  mDiffuseEnvMapIndex  = -1;
+  int                  mSpecularEnvMapIndex = -1;
+  bool                 m_linearDepthBuffer  = false;
 };
 
 /// A Vista wrapper for the GLTF model responsible for rendering.

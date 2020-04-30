@@ -17,6 +17,7 @@
 
 #include "../cs-utils/FrameTimings.hpp"
 
+#include <glm/glm.hpp>
 #include <memory>
 #include <optional>
 #include <string>
@@ -45,7 +46,8 @@ class InputManager;
 ///    item. This is for example useful for the statistics GuiItem which is in all cases shown in
 ///    screen-space.
 /// World-Space:
-///  * The UI is drawn in a fixed resolution which is specified in the "gui": {...} settings key.
+///  * The UI is drawn in a fixed resolution which is specified in the "guiPosition": {...} settings
+///    key.
 ///  * When running in a clustered setup, the UI will be displayed across multiple displays.
 ///
 /// There are several GuiItems involved: e.g. the timeline, the status-bar, the side-bar and the
@@ -58,9 +60,8 @@ class InputManager;
 /// instance is then passed to all plugins.
 class CS_CORE_EXPORT GuiManager {
  public:
-  GuiManager(std::shared_ptr<const Settings> const& settings,
-      std::shared_ptr<InputManager>                 pInputManager,
-      std::shared_ptr<utils::FrameTimings>          pFrameTimings);
+  GuiManager(std::shared_ptr<Settings> settings, std::shared_ptr<InputManager> pInputManager,
+      std::shared_ptr<utils::FrameTimings> pFrameTimings);
 
   GuiManager(GuiManager const& other) = delete;
   GuiManager(GuiManager&& other)      = delete;
@@ -152,6 +153,20 @@ class CS_CORE_EXPORT GuiManager {
       std::string const& id, std::string const& content, std::optional<std::string> const& style,
       std::string const& description, std::string const& planet, std::string const& place);
 
+  /// Sets a checkbox to the given value. This is only a thin wrapper for
+  /// "CosmoScout.gui.setCheckboxValue" but provides compile time type safety.
+  void setCheckboxValue(std::string const& name, bool val, bool emitCallbacks = false) const;
+
+  /// Checks a radio button. This is only a thin wrapper for "CosmoScout.gui.setRadioChecked" but
+  /// provides compile time type safety.
+  void setRadioChecked(std::string const& name, bool emitCallbacks = false) const;
+
+  /// Sets a slider (with one or two handles) to the given value(s). These are only a thin wrappers
+  /// for "CosmoScout.gui.setSliderValue" but provide compile time type safety.
+  void setSliderValue(std::string const& name, double val, bool emitCallbacks = false) const;
+  void setSliderValue(
+      std::string const& name, glm::dvec2 const& val, bool emitCallbacks = false) const;
+
   /// Returns the CosmoScout Gui.
   gui::GuiItem* getGui() const;
 
@@ -168,16 +183,12 @@ class CS_CORE_EXPORT GuiManager {
   /// Sets the progress bar state.
   void setLoadingScreenProgress(float percent, bool animate) const;
 
-  /// Hides or shows the entire user interface. This is bound to the ESC-key.
-  void showGui();
-  void hideGui();
-  void toggleGui();
-
   /// This is called once a frame from the Application.
   void update();
 
  private:
   std::shared_ptr<InputManager>        mInputManager;
+  std::shared_ptr<Settings>            mSettings;
   std::shared_ptr<utils::FrameTimings> mFrameTimings;
 
   std::unique_ptr<VistaViewportResizeToProjectionAdapter> mViewportUpdater;

@@ -17,8 +17,36 @@ namespace cs::core {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-TimeControl::TimeControl(std::shared_ptr<const core::Settings> settings)
+TimeControl::TimeControl(std::shared_ptr<core::Settings> settings)
     : mSettings(std::move(settings)) {
+
+  // Update the mStartDate in the settings. If the current simulation time differs less than one
+  // minute from the current system time, we write "today", else the actual simulation date.
+  mSettings->onSave().connect([this]() {
+    auto now = utils::convert::toSpiceTime(boost::posix_time::microsec_clock::universal_time());
+    if (std::abs(pSimulationTime.get() - now) < 60) {
+      mSettings->mStartDate = "today";
+    } else {
+      mSettings->mStartDate =
+          boost::posix_time::to_simple_string(utils::convert::toBoostTime(pSimulationTime.get()));
+    }
+  });
+
+  mSettings->onLoad().connect([this]() {
+    if (mSettings->mStartDate == "today") {
+      setTime(
+          utils::convert::toSpiceTime(boost::posix_time::microsec_clock::universal_time()), 5.0);
+    } else {
+      try {
+        setTime(
+            utils::convert::toSpiceTime(boost::posix_time::time_from_string(mSettings->mStartDate)),
+            5.0);
+      } catch (std::exception const&) {
+        throw std::runtime_error("Could not parse the 'startDate' setting. It should either be "
+                                 "'today' or in the format '1969-07-20 20:17:40.000'.");
+      }
+    }
+  });
 
   // Tell the user what's going on.
   logger().debug("Creating TimeControl.");
@@ -34,21 +62,35 @@ TimeControl::~TimeControl() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void TimeControl::update() {
-  // Initialize our members. This has to be done here as SPICE is not yet loaded at construction
-  // time.
-  if (mStartDate.empty()) {
-    mStartDate = mSettings->mStartDate;
-    mMaxDate =
-        utils::convert::toSpiceTime(boost::posix_time::time_from_string(mSettings->mMaxDate));
-    mMinDate =
-        utils::convert::toSpiceTime(boost::posix_time::time_from_string(mSettings->mMinDate));
-  }
 
   double now = utils::convert::toSpiceTime(boost::posix_time::microsec_clock::universal_time());
 
-  if (mLastUpdate < 0.0) {
-    resetTime();
+  // Initialize our members. This has to be done here as SPICE is not yet loaded at construction
+  // time.
+  if (!mInitialized) {
+    mSettings->pMaxDate.connectAndTouch([this](std::string const& val) {
+      pMaxDate = utils::convert::toSpiceTime(boost::posix_time::time_from_string(val));
+    });
+
+    mSettings->pMinDate.connectAndTouch([this](std::string const& val) {
+      pMinDate = utils::convert::toSpiceTime(boost::posix_time::time_from_string(val));
+    });
+
+    if (mSettings->mStartDate == "today") {
+      setTime(utils::convert::toSpiceTime(boost::posix_time::microsec_clock::universal_time()));
+    } else {
+      try {
+        setTime(utils::convert::toSpiceTime(
+            boost::posix_time::time_from_string(mSettings->mStartDate)));
+      } catch (std::exception const&) {
+        throw std::runtime_error("Could not parse the 'startDate' setting. It should either be "
+                                 "'today' or in the format '1969-07-20 20:17:40.000'.");
+      }
+    }
+
     mLastUpdate = now;
+
+    mInitialized = true;
   }
 
   if (mAnimationInProgress) {
@@ -59,8 +101,8 @@ void TimeControl::update() {
     }
   } else {
     double tTime = pSimulationTime.get() + (now - mLastUpdate) * pTimeSpeed.get();
-    if (tTime >= mMaxDate || tTime <= mMinDate) {
-      pSimulationTime = std::clamp(tTime, mMinDate, mMaxDate);
+    if (tTime >= pMaxDate || tTime <= pMinDate) {
+      pSimulationTime = std::clamp(tTime, pMinDate, pMaxDate);
       setTimeSpeed(0);
     } else {
       pSimulationTime = tTime;
@@ -68,7 +110,7 @@ void TimeControl::update() {
   }
 
   mLastUpdate = now;
-}
+} // namespace cs::core
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -76,8 +118,8 @@ void TimeControl::setTime(double tTime, double duration, double threshold) {
   double now = utils::convert::toSpiceTime(boost::posix_time::microsec_clock::universal_time());
   double difference = std::abs(pSimulationTime.get() - tTime);
 
-  if (tTime >= mMaxDate || tTime <= mMinDate) {
-    pSimulationTime = std::clamp(tTime, mMinDate, mMaxDate);
+  if (tTime >= pMaxDate || tTime <= pMinDate) {
+    pSimulationTime = std::clamp(tTime, pMinDate, pMaxDate);
     setTimeSpeed(0);
   } else if (duration <= 0.0 || difference > std::abs(threshold) || threshold <= 0) {
     // Make no animation for very large time changes.
@@ -99,20 +141,20 @@ void TimeControl::setTime(double tTime, double duration, double threshold) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void TimeControl::resetTime(double duration, double threshold) {
-  double tTime{};
 
-  if (mStartDate == "today") {
-    tTime = utils::convert::toSpiceTime(boost::posix_time::microsec_clock::universal_time());
+  if (mSettings->mResetDate == "today") {
+    setTime(utils::convert::toSpiceTime(boost::posix_time::microsec_clock::universal_time()),
+        duration, threshold);
   } else {
     try {
-      tTime = utils::convert::toSpiceTime(boost::posix_time::time_from_string(mStartDate));
+      setTime(
+          utils::convert::toSpiceTime(boost::posix_time::time_from_string(mSettings->mResetDate)),
+          duration, threshold);
     } catch (std::exception const&) {
-      throw std::runtime_error("Could not parse the 'startDate' setting. It should either be "
+      throw std::runtime_error("Could not parse the 'resetDate' setting. It should either be "
                                "'today' or in the format '1969-07-20 20:17:40.000'.");
     }
   }
-
-  setTime(tTime, duration, threshold);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

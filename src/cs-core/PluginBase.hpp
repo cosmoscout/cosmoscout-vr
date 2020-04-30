@@ -50,13 +50,10 @@ class CS_CORE_EXPORT PluginBase {
   /// This initializes the program state for this plugin, so it can interact with it. It will be
   /// called by the core application before the plugin initializes. There is no need to call this
   /// function from the plugin.
-  void setAPI(std::shared_ptr<const Settings> const& settings,
-      std::shared_ptr<SolarSystem> const&            solarSystem,
-      std::shared_ptr<GuiManager> const&             guiManager,
-      std::shared_ptr<InputManager> const& inputManager, VistaSceneGraph* sceneGraph,
-      std::shared_ptr<GraphicsEngine> const&      graphicsEngine,
-      std::shared_ptr<utils::FrameTimings> const& frameTimings,
-      std::shared_ptr<TimeControl> const&         timeControl);
+  void setAPI(std::shared_ptr<Settings> settings, std::shared_ptr<SolarSystem> solarSystem,
+      std::shared_ptr<GuiManager> guiManager, std::shared_ptr<InputManager> inputManager,
+      VistaSceneGraph* sceneGraph, std::shared_ptr<GraphicsEngine> graphicsEngine,
+      std::shared_ptr<utils::FrameTimings> frameTimings, std::shared_ptr<TimeControl> timeControl);
 
   /// Override this function to initialize your plugin. It will be called directly after
   /// application startup and before the update loop starts.
@@ -71,7 +68,7 @@ class CS_CORE_EXPORT PluginBase {
   virtual void update(){};
 
  protected:
-  std::shared_ptr<const Settings>      mAllSettings;
+  std::shared_ptr<Settings>            mAllSettings;
   std::shared_ptr<SolarSystem>         mSolarSystem;
   VistaSceneGraph*                     mSceneGraph{};
   std::shared_ptr<GuiManager>          mGuiManager;

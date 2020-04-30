@@ -78,10 +78,8 @@ class AnimatedValue {
       return updateEaseOut(state, mStartValue, mEndValue);
     case AnimationDirection::eInOut:
       return updateEaseInOut(state, mStartValue, mEndValue);
-    case AnimationDirection::eOutIn:
+    default: // AnimationDirection::eOutIn:
       return updateEaseOutIn(state, mStartValue, mEndValue);
-    default:
-      return updateLinear(state, mStartValue, mEndValue);
     }
   }
 

@@ -135,7 +135,7 @@ class CS_UTILS_EXPORT TimerQueryPool {
   /// Fetch timestamps from GPU and calculate time diffs.
   void calculateQueryResults();
 
-  [[nodiscard]] std::unordered_map<std::string, std::vector<FrameTimings::QueryResult>> const&
+  std::unordered_map<std::string, std::vector<FrameTimings::QueryResult>> const&
   getQueryResults() const;
 
  private:

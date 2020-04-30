@@ -94,10 +94,10 @@ int main(int argc, char** argv) {
 
   // read settings ---------------------------------------------------------------------------------
 
-  cs::core::Settings settings;
+  auto settings = std::make_shared<cs::core::Settings>();
   try {
-    settings = cs::core::Settings::read(settingsFile);
-  } catch (std::exception& e) {
+    settings->read(settingsFile);
+  } catch (std::exception const& e) {
     logger().error("Failed to read settings: {}", e.what());
     return 1;
   }
@@ -105,9 +105,12 @@ int main(int argc, char** argv) {
   // configure loggers -----------------------------------------------------------------------------
 
   // Once we have read the settings, we can set the log level.
-  cs::utils::getLoggerCoutSink()->set_level(settings.mConsoleLogLevel);
-  cs::utils::getLoggerFileSink()->set_level(settings.mFileLogLevel);
-  cs::utils::getLoggerSignalSink()->set_level(settings.mScreenLogLevel);
+  settings->pLogLevelConsole.connectAndTouch(
+      [](auto level) { cs::utils::getLoggerCoutSink()->set_level(level); });
+  settings->pLogLevelFile.connectAndTouch(
+      [](auto level) { cs::utils::getLoggerFileSink()->set_level(level); });
+  settings->pLogLevelScreen.connectAndTouch(
+      [](auto level) { cs::utils::getLoggerSignalSink()->set_level(level); });
 
   // Print a nifty welcome message!
   logger().info("Welcome to CosmoScout VR v" + CS_PROJECT_VERSION + "!");
