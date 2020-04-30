@@ -30,6 +30,7 @@ target_link_libraries(cs-utils
     OpenSG::base
     OpenSG::system
     Tiff::Tiff
+    Tiff::Tiffxx
     ${VISTACORELIBS_LIBRARIES}
     ${CMAKE_DL_LIBS}
     cspice::cspice
