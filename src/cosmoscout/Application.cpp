@@ -255,22 +255,22 @@ void Application::FrameUpdate() {
 
   // loading and saving ----------------------------------------------------------------------------
 
-  if (!mSettingsToWrite.empty()) {
+  if (!mSettingsToSave.empty()) {
     try {
-      mSettings->write(mSettingsToWrite);
+      mSettings->saveToFile(mSettingsToSave);
     } catch (std::exception const& e) {
-      logger().warn("Failed to save settings to '{}': {}", mSettingsToWrite, e.what());
+      logger().warn("Failed to save settings to '{}': {}", mSettingsToSave, e.what());
     }
-    mSettingsToWrite = "";
+    mSettingsToSave = "";
   }
 
-  if (!mSettingsToRead.empty()) {
+  if (!mSettingsToLoad.empty()) {
     try {
-      mSettings->read(mSettingsToRead);
+      mSettings->loadFromFile(mSettingsToLoad);
     } catch (std::exception const& e) {
-      logger().warn("Failed to load settings from '{}': {}", mSettingsToRead, e.what());
+      logger().warn("Failed to load settings from '{}': {}", mSettingsToLoad, e.what());
     }
-    mSettingsToRead = "";
+    mSettingsToLoad = "";
 
     // Unload all plugins we do not need anymore.
     for (auto const& plugin : mPlugins) {
@@ -854,11 +854,11 @@ void Application::registerGuiCallbacks() {
   // Saves the current scene state in a specified file.
   mGuiManager->getGui()->registerCallback("core.save",
       "Saves the current scene state to the given file.",
-      std::function([this](std::string&& file) { mSettingsToWrite = file; }));
+      std::function([this](std::string&& file) { mSettingsToSave = file; }));
 
   // Loads a scene state from a specified file.
   mGuiManager->getGui()->registerCallback("core.load", "Loads a scene state from the given file.",
-      std::function([this](std::string&& file) { mSettingsToRead = file; }));
+      std::function([this](std::string&& file) { mSettingsToLoad = file; }));
 
   // Unloads a plugin.
   mGuiManager->getGui()->registerCallback("core.unloadPlugin",

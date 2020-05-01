@@ -286,7 +286,7 @@ utils::Signal<> const& Settings::onSave() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Settings::read(std::string const& fileName) {
+void Settings::loadFromFile(std::string const& fileName) {
   std::ifstream i(fileName);
 
   if (!i) {
@@ -304,7 +304,18 @@ void Settings::read(std::string const& fileName) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Settings::write(std::string const& fileName) const {
+void Settings::loadFromJson(std::string const& json) {
+
+  nlohmann::json settings = nlohmann::json::parse(json);
+  from_json(settings, *this);
+
+  // Notify listeners that values might have changed.
+  mOnLoad.emit();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Settings::saveToFile(std::string const& fileName) const {
   // Tell listeners that the settings are about to be saved.
   mOnSave.emit();
 
@@ -325,6 +336,21 @@ void Settings::write(std::string const& fileName) const {
 
   // All done, so we're safe to rename the file.
   std::rename((fileName + ".tmp").c_str(), fileName.c_str());
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::string Settings::saveToJson() const {
+  // Tell listeners that the settings are about to be saved.
+  mOnSave.emit();
+
+  nlohmann::json settings = *this;
+
+  // Use an indentation of two space.
+  std::ostringstream o;
+  o << std::setw(2) << settings;
+
+  return o.str();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
