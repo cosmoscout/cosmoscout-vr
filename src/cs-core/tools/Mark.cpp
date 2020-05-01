@@ -210,7 +210,7 @@ void Mark::initData(std::string const& sCenter, std::string const& sFrame) {
   mInputManager->registerSelectable(mParent);
 
   VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
-      mAnchor.get(), static_cast<int>(cs::utils::DrawOrder::eOpaqueItems));
+      mAnchor.get(), static_cast<int>(cs::utils::DrawOrder::eOpaqueNonHDR));
 
   const std::array<glm::vec3, 26> POSITIONS = {glm::vec3(1, -1, 1), glm::vec3(-1, -1, -1),
       glm::vec3(1, -1, -1), glm::vec3(-1, 1, -1), glm::vec3(1, 1, 1), glm::vec3(1, 1, -1),
