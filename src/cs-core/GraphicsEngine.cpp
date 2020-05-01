@@ -77,8 +77,14 @@ GraphicsEngine::GraphicsEngine(std::shared_ptr<core::Settings> settings)
       [this](glm::vec2 /*unused*/) { calculateCascades(); });
 
   // setup HDR buffer ------------------------------------------------------------------------------
+  int multiSamples = GetVistaSystem()
+                         ->GetDisplayManager()
+                         ->GetWindows()
+                         .begin()
+                         ->second->GetWindowProperties()
+                         ->GetMultiSamples();
 
-  mHDRBuffer = std::make_shared<graphics::HDRBuffer>();
+  mHDRBuffer = std::make_shared<graphics::HDRBuffer>(multiSamples);
 
   // Create a node which clears the HDRBuffer at the beginning of a frame (this will be enabled only
   // if HDR rendering is enabled).

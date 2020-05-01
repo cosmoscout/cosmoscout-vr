@@ -16,18 +16,30 @@ namespace cs::graphics {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static const char* sComputeAverage = R"(
-  #version 430
-  
   layout (local_size_x = 16, local_size_y = 16) in;
 
-  layout (rg32f,   binding = 0) writeonly uniform image2D uOutLuminance;
-  layout (rgba32f, binding = 1) readonly  uniform image2D uInHDRBuffer;
-  layout (rg32f,   binding = 2) readonly  uniform image2D uInLuminance;
+  #if NUM_MULTISAMPLES > 0
+    layout (rgba32f, binding = 0) readonly uniform image2DMS uInHDRBuffer;
+  #else
+    layout (rgba32f, binding = 0) readonly uniform image2D uInHDRBuffer;
+  #endif
+
+  layout (rg32f, binding = 1) readonly uniform image2D uInLuminance;
+  layout (rg32f, binding = 2) writeonly uniform image2D uOutLuminance;
 
   uniform int uLevel;
 
   void sampleHDRBuffer(inout float oMaximumLuminance, inout float oTotalLuminance, ivec2 offset) {
-    vec3 color = imageLoad(uInHDRBuffer, ivec2(gl_GlobalInvocationID.xy*2 + offset)).rgb;
+    #if NUM_MULTISAMPLES > 0
+      vec3 color = vec3(0.0);
+      for (int i = 0; i < NUM_MULTISAMPLES; ++i) {
+        color += imageLoad(uInHDRBuffer, ivec2(gl_GlobalInvocationID.xy*2 + offset), i).rgb;
+      }
+      color /= NUM_MULTISAMPLES;
+    #else
+      vec3 color = imageLoad(uInHDRBuffer, ivec2(gl_GlobalInvocationID.xy*2 + offset)).rgb;
+    #endif
+
     float val = max(max(color.r, color.g), color.b);
     oTotalLuminance += val;
     oMaximumLuminance = max(oMaximumLuminance, val);
@@ -84,8 +96,9 @@ static const char* sComputeAverage = R"(
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-LuminanceMipMap::LuminanceMipMap(int hdrBufferWidth, int hdrBufferHeight)
+LuminanceMipMap::LuminanceMipMap(uint32_t hdrBufferSamples, int hdrBufferWidth, int hdrBufferHeight)
     : VistaTexture(GL_TEXTURE_2D)
+    , mHDRBufferSamples(hdrBufferSamples)
     , mHDRBufferWidth(hdrBufferWidth)
     , mHDRBufferHeight(hdrBufferHeight) {
 
@@ -113,8 +126,12 @@ LuminanceMipMap::LuminanceMipMap(int hdrBufferWidth, int hdrBufferHeight)
   glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 
   // Create the compute shader.
-  auto shader = glCreateShader(GL_COMPUTE_SHADER);
-  glShaderSource(shader, 1, &sComputeAverage, nullptr);
+  auto        shader = glCreateShader(GL_COMPUTE_SHADER);
+  std::string source = "#version 430\n";
+  source += "#define NUM_MULTISAMPLES " + std::to_string(mHDRBufferSamples) + "\n";
+  source += sComputeAverage;
+  const char* pSource = source.c_str();
+  glShaderSource(shader, 1, &pSource, nullptr);
   glCompileShader(shader);
 
   int rvalue = 0;
@@ -180,7 +197,7 @@ void LuminanceMipMap::update(VistaTexture* hdrBufferComposite) {
 
   glUseProgram(mComputeProgram);
 
-  glBindImageTexture(1, hdrBufferComposite->GetId(), 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
+  glBindImageTexture(0, hdrBufferComposite->GetId(), 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
 
   // We loop through all levels always reading from the last level.
   for (int i(0); i < mMaxLevels; ++i) {
@@ -190,12 +207,12 @@ void LuminanceMipMap::update(VistaTexture* hdrBufferComposite) {
         std::floor(static_cast<double>(static_cast<int>(mHDRBufferHeight / 2)) / std::pow(2, i))));
 
     glUniform1i(glGetUniformLocation(mComputeProgram, "uLevel"), i);
-    glBindImageTexture(0, GetId(), i, GL_FALSE, 0, GL_WRITE_ONLY, GL_RG32F);
+    glBindImageTexture(2, GetId(), i, GL_FALSE, 0, GL_WRITE_ONLY, GL_RG32F);
 
     // For the first level, hdrBufferComposite will be used for reading, all other levels use the
     // previous level as input.
     if (i > 0) {
-      glBindImageTexture(2, GetId(), i - 1, GL_FALSE, 0, GL_READ_ONLY, GL_RG32F);
+      glBindImageTexture(1, GetId(), i - 1, GL_FALSE, 0, GL_READ_ONLY, GL_RG32F);
     }
 
     // Make sure writing has finished.
