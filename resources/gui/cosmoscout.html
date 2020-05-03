@@ -512,10 +512,24 @@
     </div>
 
     <div id="event-tooltip-container">
-      <div class="event-tooltip">
-        <h3 id="event-tooltip-name">Name</h3>
-        <label for="description" id="event-tooltip-description"><b>description</b></label>
-        <div id="event-tooltip-location">Location</div>
+      <div id="event-tooltip-arrow"></div>
+      <div id="event-tooltip">
+        <div id="event-tooltip-header">
+          <span id="event-tooltip-name"> Name </span>
+          <a id="event-tooltip-edit" class="btn light-glass" data-toggle="tooltip-bottom"
+            title="Edit event">
+            <i class="material-icons">edit</i>
+          </a>
+          <a id="event-tooltip-goto-time" class="btn light-glass" data-toggle="tooltip-bottom"
+            title="Go to event time">
+            <i class="material-icons">update</i>
+          </a>
+          <a id="event-tooltip-goto-location" class="btn light-glass" data-toggle="tooltip-bottom"
+            title="Got to event location">
+            <i class="material-icons">pin_drop</i>
+          </a>
+        </div>
+        <div id="event-tooltip-description">Description</div>
       </div>
     </div>
 

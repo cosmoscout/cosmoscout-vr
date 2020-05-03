@@ -252,11 +252,7 @@ class TimelineApi extends IApi {
 
   _timeId = 'custom';
 
-  _tooltipVisible = false;
-
   _timelineRangeFactor = 100000;
-
-  _hoveredEventDiv;
 
   _hoveredEventData;
 
@@ -679,7 +675,7 @@ class TimelineApi extends IApi {
     document.getElementById('speed-increase-button')
         .addEventListener('click', this._increaseSpeed.bind(this));
 
-    document.getElementById('event-tooltip-location')
+    document.getElementById('event-tooltip-goto-location')
         .addEventListener('click', this._travelToItemLocation.bind(this));
 
     document.getElementById('time-reset-button')
@@ -693,9 +689,6 @@ class TimelineApi extends IApi {
     document.getElementById('event-dialog-apply-button')
         .addEventListener('click', this._applyEvent.bind(this));
 
-    document.getElementById('event-tooltip-container')
-        .addEventListener('mouseleave', this._leaveCustomTooltip.bind(this));
-
     document.getElementById('expand-button')
         .addEventListener('click', this._toggleOverview.bind(this));
 
@@ -704,8 +697,7 @@ class TimelineApi extends IApi {
     document.getElementById('dateLabel')
         .addEventListener('click', this._enterNewCenterTime.bind(this));
 
-    // toggle visibility of the increase / decrease time buttons
-    // ---------------------------------------
+    // toggle visibility of the increase / decrease time buttons -----------------------------------
     function mouseEnterTimeControl() {
       document.getElementById('increaseControl').classList.add('mouseNear');
       document.getElementById('decreaseControl').classList.add('mouseNear');
@@ -1025,10 +1017,8 @@ class TimelineApi extends IApi {
   _itemOutCallback(properties) {
     const element = properties.event.toElement;
 
-    if (element !== null && element.className !== 'event-tooltip') {
-      document.getElementById('event-tooltip-container').style.display = 'none';
-      this._tooltipVisible                                             = false;
-      this._hoveredEventDiv.classList.remove('mouseOver');
+    if (element !== null) {
+      document.getElementById('event-tooltip-container').classList.remove('visible');
     }
   }
 
@@ -1068,41 +1058,33 @@ class TimelineApi extends IApi {
    * @private
    */
   _itemOverCallback(properties, overview) {
-    document.getElementById('event-tooltip-container').style.display = 'block';
-    this._tooltipVisible                                             = true;
+    document.getElementById('event-tooltip-container').classList.add('visible');
 
     let eventData = this._items._data[properties.item];
 
     document.getElementById('event-tooltip-name').innerHTML        = eventData.name;
     document.getElementById('event-tooltip-description').innerHTML = eventData.description;
-    // document.getElementById('event-tooltip-location').innerHTML =
-    //     `<i class='material-icons'>send</i> ${eventData.planet} ${
-    //         eventData.place}`;
+
     this._hoveredEventData = eventData;
 
     let eventDiv;
     if (overview) {
-      eventDiv = document.querySelector(".vis-box.overview-event.event-" + eventData.id);
+      eventDiv = document.querySelector(".vis-foreground .overview-event.event-" + eventData.id);
     } else {
-      eventDiv = document.querySelector(".vis-box.event.event-" + eventData.id);
+      eventDiv = document.querySelector(".vis-foreground .event.event-" + eventData.id);
     }
 
-    this._hoveredEventDiv = eventDiv;
-    this._hoveredEventDiv.classList.add('mouseOver');
-    const eventRect = eventDiv.getBoundingClientRect();
-    const left      = eventRect.left - 150 < 0 ? 0 : eventRect.left - 150;
-    document.getElementById('event-tooltip-container').style.top  = `${eventRect.bottom}px`;
+    const eventRect    = eventDiv.getBoundingClientRect();
+    const tooltipWidth = 300;
+    const arrowWidth   = 10;
+    const center       = eventRect.left + eventRect.width / 2;
+    const left =
+        Math.max(0, Math.min(document.body.offsetWidth - tooltipWidth, center - tooltipWidth / 2));
+    document.getElementById('event-tooltip-container').style.top =
+        `${eventRect.bottom + arrowWidth}px`;
     document.getElementById('event-tooltip-container').style.left = `${left}px`;
-  }
-
-  /**
-   * Hide the tooltip if the mouse leaves the tooltip
-   * @private
-   */
-  _leaveCustomTooltip() {
-    document.getElementById('event-tooltip-container').style.display = 'none';
-    this._tooltipVisible                                             = false;
-    this._hoveredEventDiv.classList.remove('mouseOver');
+    document.getElementById('event-tooltip-arrow').style.left =
+        `${center - left - arrowWidth / 2}px`;
   }
 
   /**

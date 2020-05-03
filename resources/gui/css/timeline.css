@@ -35,8 +35,11 @@
   border-radius: 10px;
 }
 
-#timeline .vis-item,
 #timeline .vis-item.vis-line {
+  display: none;
+}
+
+#timeline .vis-item {
   border-width: 2px;
   border-radius: 10px;
 }
@@ -55,25 +58,27 @@
 .vis-item.vis-range {
   height: 12px !important;
   min-width: 12px !important;
-  top: 4px !important
+  top: 4px !important;
+  transition-property: height, top;
+  transition-duration: 0.1s;
+  transition-timing-function: ease;
 }
 
 #timeline .vis-item.vis-box {
   width: 12px !important;
+  transition-property: margin, width, height, top;
 }
 
-#timeline .vis-item.vis-box.mouseOver {
+#timeline .vis-item.vis-box:hover {
   width: 18px !important;
   height: 18px !important;
   margin-left: -3px;
   top: 1px !important;
 }
 
-#timeline .vis-item.vis-range.mouseOver {
+#timeline .vis-item.vis-range:hover {
   height: 18px !important;
-  margin-left: -3px;
   top: 1px !important;
-  min-width: 18px !important;
 }
 
 
@@ -180,12 +185,12 @@
   height: 43px !important;
 }
 
-#overview .vis-item {
-  background-color: rgba(0, 0, 0, 0.705);
+#overview .vis-item.vis-line {
+  display: none;
 }
 
-#overview .vis-item,
-#overview .vis-item.vis-line {
+#overview .vis-item {
+  background-color: rgba(0, 0, 0, 0.705);
   border-width: 2px;
   border-radius: 10px;
   z-index: 5;
@@ -201,7 +206,9 @@
   height: 12px !important;
   top: 13px !important;
   min-width: 12px !important;
-  margin-left: 2px;
+  transition-property: height, top;
+  transition-duration: 0.1s;
+  transition-timing-function: ease;
 }
 
 #overview .vis-panel.vis-bottom {
@@ -216,23 +223,21 @@
   z-index: 1;
 }
 
-
 #overview .vis-item.vis-box {
   width: 12px !important;
+  transition-property: width, height, margin, top;
 }
 
-#overview .vis-item.vis-box.mouseOver {
+#overview .vis-item.vis-box:hover {
   width: 18px !important;
   height: 18px !important;
-  margin-left: -1px;
+  margin-left: -3px;
   top: 10px !important;
 }
 
-#overview .vis-item.vis-range.mouseOver {
+#overview .vis-item.vis-range:hover {
   height: 18px !important;
-  margin-left: -1px;
   top: 10px !important;
-  min-width: 18px !important;
 }
 
 #overview .vis-item-content {
@@ -594,40 +599,90 @@
   background-color: #fff;
 }
 
-#event-tooltip-location {
-  text-decoration: underline;
-}
-
 /* big timeline tooltips ------------------------------------------------------------------------ */
 
+@-webkit-keyframes pointer-events-off {
+  0% {
+    pointer-events: initial;
+  }
+
+  99% {
+    pointer-events: initial;
+  }
+
+  100% {
+    pointer-events: none;
+  }
+}
+
+@-webkit-keyframes pointer-events-on {
+  0% {
+    pointer-events: initial;
+  }
+
+  100% {
+    pointer-events: initial;
+  }
+}
+
 #event-tooltip-container {
-  display: none;
   position: absolute;
   z-index: 9;
-}
-
-.event-tooltip {
-  width: 300px;
-  padding: 10px;
-  background-color: rgba(20, 20, 20, 0.8);
-  border: 2px solid var(--cs-border-color-light);
-  border-radius: 10px;
-}
-
-.event-tooltip h3 {
-  text-align: center;
-}
-
-#event-tooltip-location {
-  cursor: pointer;
-}
-
-#event-tooltip-location:hover {
-  text-shadow: 0 0 20px #fff;
-}
-
-.tooltip {
+  opacity: 0;
   pointer-events: none;
+  animation-fill-mode: both;
+  transition: opacity 0.5s linear;
+  transition-delay: 0.5s;
+  animation: pointer-events-off 0.5s linear;
+}
+
+#event-tooltip-container:hover,
+#event-tooltip-container.visible {
+  transition-delay: 0.2s;
+  animation: pointer-events-on 0.2s linear;
+  opacity: 1;
+  pointer-events: initial;
+}
+
+#event-tooltip {
+  width: 300px;
+  background-color: rgba(20, 20, 20, 0.8);
+  border: 2px solid var(--cs-text-color-darkened);
+  border-radius: 7px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+}
+
+#event-tooltip-header {
+  display: flex;
+}
+
+#event-tooltip-header i {
+  padding: 3px;
+  font-size: 18pt;
+}
+
+#event-tooltip-name {
+  padding: 5px 10px;
+  flex-grow: 1;
+  font-size: 1.1rem;
+}
+
+#event-tooltip-description {
+  padding: 0 10px 10px 10px;
+  font-size: 0.9rem;
+}
+
+#event-tooltip-arrow {
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+
+  border-bottom: 5px solid var(--cs-text-color-darkened);
+  position: absolute;
+
+  left: 150px;
+  top: -5px;
 }
 
 /* add-event dialog ----------------------------------------------------------------------------- */
