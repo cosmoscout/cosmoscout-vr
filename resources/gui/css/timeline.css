@@ -631,9 +631,9 @@
   opacity: 0;
   pointer-events: none;
   animation-fill-mode: both;
-  transition: opacity 0.5s linear;
-  transition-delay: 0.5s;
-  animation: pointer-events-off 0.5s linear;
+  transition: opacity 0.2s linear;
+  transition-delay: 0.4s;
+  animation: pointer-events-off 0.4s linear;
 }
 
 #event-tooltip-container:hover,

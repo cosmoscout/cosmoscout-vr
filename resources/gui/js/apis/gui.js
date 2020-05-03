@@ -38,6 +38,7 @@ class GuiApi extends IApi {
     this.initChecklabelInputs();
     this.initRadiolabelInputs();
     this.initTooltips();
+    this.initDraggableWindows();
   }
 
   /**
@@ -127,6 +128,49 @@ class GuiApi extends IApi {
     $('[data-toggle="tooltip"]').tooltip(config);
     config.placement = 'bottom';
     $('[data-toggle="tooltip-bottom"]').tooltip(config);
+  }
+
+  /**
+   * Initializes [class="draggable-window"] elements.
+   *
+   * @see {initInputs}
+   */
+  initDraggableWindows() {
+    const windows = document.querySelectorAll(".draggable-window");
+
+    windows.forEach((w) => {
+      // Center initially.
+      w.style.left = (document.body.offsetWidth - w.offsetWidth) / 2 + "px";
+      w.style.top  = (document.body.offsetHeight - w.offsetHeight) / 2 + "px";
+
+      // Make closable.
+      const closeButton = w.querySelector(".window-header a");
+      if (closeButton) {
+        closeButton.onmouseup = () => {
+          w.classList.remove("visible");
+        };
+      }
+
+      // Make draggable.
+      const header       = w.querySelector(".window-title");
+      header.onmousedown = (e) => {
+        w.startDragX = e.clientX;
+        w.startDragY = e.clientY;
+
+        document.onmouseup = () => {
+          document.onmouseup   = null;
+          document.onmousemove = null;
+        };
+
+        document.onmousemove = (e) => {
+          e.preventDefault();
+          w.style.left = (w.offsetLeft + e.clientX - w.startDragX) + "px";
+          w.style.top  = (w.offsetTop + e.clientY - w.startDragY) + "px";
+          w.startDragX = e.clientX;
+          w.startDragY = e.clientY;
+        };
+      };
+    });
   }
 
   /**
