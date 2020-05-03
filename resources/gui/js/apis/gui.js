@@ -136,7 +136,8 @@ class GuiApi extends IApi {
    * @see {initInputs}
    */
   initDraggableWindows() {
-    const windows = document.querySelectorAll(".draggable-window");
+    const windows     = document.querySelectorAll(".draggable-window");
+    var currentZIndex = 100;
 
     windows.forEach((w) => {
       // Center initially.
@@ -150,6 +151,11 @@ class GuiApi extends IApi {
           w.classList.remove("visible");
         };
       }
+
+      // Bring to front on click.
+      w.onmousedown = (e) => {
+        w.style.zIndex = ++currentZIndex;
+      };
 
       // Make draggable.
       const header       = w.querySelector(".window-title");
