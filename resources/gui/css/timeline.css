@@ -367,11 +367,6 @@
   display: inline-block;
 }
 
-
-#timeline-container i {
-  position: relative;
-}
-
 #timeline-container .item {
   position: absolute;
   display: inline-block;
@@ -467,9 +462,6 @@
 
 #expand-control i {
   color: rgb(20, 20, 20);
-  top: -3px;
-  margin-left: -2px;
-  font-size: 28px;
 }
 
 #decreaseControl {
@@ -517,12 +509,12 @@
   opacity: 0;
   transition: opacity 0.2s;
   line-height: 1;
-  top: -1px;
+  top: -3px;
   pointer-events: none;
 }
 
 #increaseControl i {
-  top: -6px;
+  top: -8px;
 }
 
 #timeline-container a:hover {
@@ -576,11 +568,6 @@
   transform: translate(310px);
   top: 74px;
   height: 15px;
-}
-
-#speed-increase-button-container .btn,
-#speed-decrease-button-container .btn {
-  font-size: 28px;
 }
 
 #timeline-container .noUi-target.noUi-ltr.noUi-horizontal.noUi-background {
@@ -683,67 +670,6 @@
 
   left: 150px;
   top: -5px;
-}
-
-/* add-event dialog ----------------------------------------------------------------------------- */
-
-/* The popup form - hidden by default */
-.form-popup {
-  display: none;
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 9;
-}
-
-/* Add styles to the form container */
-.form-container {
-  max-width: 300px;
-  padding: 10px;
-  background-color: rgba(20, 20, 20, 0.8);
-}
-
-/* Full-width input fields */
-.form-container input[type=text] {
-  width: 100%;
-  padding: 5px;
-  margin: 5px 0 22px 0;
-  border: none;
-  background: #f1f1f1;
-  color: rgb(63, 59, 59);
-}
-
-/* Full-width input fields */
-.form-container input[type=colorPicker] {
-  margin: 5px 0 22px 0;
-  border: none;
-  width: 100%;
-  background: #f1f1f1;
-}
-
-/* When the inputs get focus, do something */
-.form-container input[type=text]:focus,
-.form-container input[type=password]:focus {
-  background-color: #ddd;
-  outline: none;
-}
-
-
-/* Set a style for the apply/cancel button*/
-.form-container .btn {
-  background-color: #4CAF50;
-  color: #fff;
-  border: none;
-  cursor: pointer;
-  width: 100%;
-  margin-bottom: 10px;
-  opacity: 0.8;
-}
-
-/* Add a red background color to the cancel button */
-.form-container .cancel {
-  background-color: red;
 }
 
 #timeline-container #plugin-buttons {

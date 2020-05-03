@@ -39,6 +39,7 @@ class GuiApi extends IApi {
     this.initRadiolabelInputs();
     this.initTooltips();
     this.initDraggableWindows();
+    this.initColorPickers();
   }
 
   /**
@@ -122,12 +123,21 @@ class GuiApi extends IApi {
    * @see {initInputs}
    */
   initTooltips() {
-    const config = {delay: 500, placement: 'auto', html: false};
-
     /* Bootstrap Tooltips require jQuery for now */
-    $('[data-toggle="tooltip"]').tooltip(config);
-    config.placement = 'bottom';
-    $('[data-toggle="tooltip-bottom"]').tooltip(config);
+    $('[data-toggle="tooltip"]').tooltip();
+  }
+
+  initColorPickers() {
+    const pickerDivs = document.querySelectorAll(".color-input");
+
+    pickerDivs.forEach((pickerDiv) => {
+      pickerDiv.picker = new CP(pickerDiv);
+      pickerDiv.picker.on('change', (color) => {
+        const colorField            = document.getElementById('event-dialog-color');
+        colorField.style.background = `#${color}`;
+        colorField.value            = `#${color}`;
+      });
+    });
   }
 
   /**

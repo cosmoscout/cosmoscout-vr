@@ -3,77 +3,6 @@
 /* eslint-disable class-methods-use-this, max-len, max-classes-per-file, no-underscore-dangle */
 
 /**
- * https://visjs.github.io/vis-timeline/docs/timeline/#getEventProperties
- */
-class VisTimelineEvent {
-  /**
-   * @type {boolean}
-   */
-  byUser;
-
-  /**
-   * @type {Number|null}
-   */
-  group;
-
-  /**
-   * @type {Number|null}
-   */
-  item;
-
-  /**
-   * @type {Number|null}
-   */
-  customTime;
-
-  /**
-   * @type {Number}
-   */
-  pageX;
-
-  /**
-   * @type {Number}
-   */
-  pageY;
-
-  /**
-   * @type {Number}
-   */
-  x;
-
-  /**
-   * @type {Number}
-   */
-  y;
-
-  /**
-   * @type {Date}
-   */
-  time;
-
-  /**
-   * @type {Date}
-   */
-  snappedTime;
-
-  /**
-   * @type {string|null}
-   */
-  what;
-
-  /**
-   * @type {Event}
-   */
-  event;
-
-  /* Select Event */
-  /**
-   * @type {Number[]}
-   */
-  items;
-}
-
-/**
  * Timeline Api
  */
 class TimelineApi extends IApi {
@@ -240,10 +169,6 @@ class TimelineApi extends IApi {
     },
   };
 
-  _whileEditingOptions = {
-    editable: false,
-  };
-
   _firstSliderValue = true;
 
   _rightTimeId = 'rightTime';
@@ -283,7 +208,6 @@ class TimelineApi extends IApi {
     this._initTimelines();
     this._moveWindow();
     this._initEventListener();
-    this._initColorPicker();
   }
 
   /**
@@ -459,21 +383,6 @@ class TimelineApi extends IApi {
     CosmoScout.notifications.print('Travelling', `to ${location.name}`, 'send');
   }
 
-  /* Internal methods */
-
-  _initColorPicker() {
-    const picker = new CP(document.querySelector('input[type="colorPicker"]'));
-
-    picker.on('change', function change(color) {
-      this.source.value = `#${color}`;
-    });
-
-    picker.on('change', (color) => {
-      const colorField            = document.getElementById('event-dialog-color');
-      colorField.style.background = `#${color}`;
-    });
-  }
-
   /**
    * Snap back items if they were dragged with the mouse
    *
@@ -505,11 +414,9 @@ class TimelineApi extends IApi {
     document.getElementById('event-dialog-name').style.border        = '';
     document.getElementById('event-dialog-start-date').style.border  = '';
     document.getElementById('event-dialog-description').style.border = '';
-    this._timeline.setOptions(this._whileEditingOptions);
-    this._overviewTimeline.setOptions(this._whileEditingOptions);
-    document.getElementById('headlineForm').innerText         = 'Add Event';
-    document.getElementById('event-dialog-name').value        = '';
-    document.getElementById('add-event-dialog').style.display = 'block';
+    // document.getElementById('headlineForm').innerText                = 'Add Event';
+    document.getElementById('event-dialog-name').value       = '';
+    document.getElementById('bookmark-editor').style.display = 'block';
     document.getElementById('event-dialog-start-date').value =
         CosmoScout.utils.getFormattedDateWithTime(item.start);
     document.getElementById('event-dialog-end-date').value    = '';
@@ -537,11 +444,9 @@ class TimelineApi extends IApi {
     document.getElementById('event-dialog-name').style.border        = '';
     document.getElementById('event-dialog-start-date').style.border  = '';
     document.getElementById('event-dialog-description').style.border = '';
-    this._timeline.setOptions(this._whileEditingOptions);
-    this._overviewTimeline.setOptions(this._whileEditingOptions);
-    document.getElementById('headlineForm').innerText         = 'Update';
-    document.getElementById('add-event-dialog').style.display = 'block';
-    document.getElementById('event-dialog-name').value        = item.content;
+    // document.getElementById('headlineForm').innerText                = 'Update';
+    document.getElementById('bookmark-editor').style.display = 'block';
+    document.getElementById('event-dialog-name').value       = item.content;
     document.getElementById('event-dialog-start-date').value =
         CosmoScout.utils.getFormattedDateWithTime(item.start);
     document.getElementById('event-dialog-description').value = item.description;
@@ -656,8 +561,6 @@ class TimelineApi extends IApi {
     document.getElementsByClassName('range-label')[0].addEventListener(
         'mousedown', this._rangeUpdateCallback.bind(this));
 
-    document.getElementById('event-dialog-cancel-button')
-        .addEventListener('click', this._closeForm.bind(this));
     document.getElementById('event-dialog-apply-button')
         .addEventListener('click', this._applyEvent.bind(this));
 
@@ -709,17 +612,6 @@ class TimelineApi extends IApi {
         this._hoveredEventData.content);
   }
 
-  /**
-   * Close the event form
-   * @private
-   */
-  _closeForm() {
-    this._parHolder.callback(null); // cancel item creation
-    document.getElementById('add-event-dialog').style.display = 'none';
-    this._timeline.setOptions(this._editingDoneOptions);
-    this._overviewTimeline.setOptions(this._editingDoneOptions);
-  }
-
   _applyEvent() {
     /* TODO Just add a class to the parent element to indicate wrong state */
     if (document.getElementById('event-dialog-name').value !== '' &&
@@ -757,7 +649,7 @@ class TimelineApi extends IApi {
         this._parHolder.item.className = `event ${this._parHolder.item.id}`;
       }
       this._parHolder.callback(this._parHolder.item); // send back adjusted new item
-      document.getElementById('add-event-dialog').style.display = 'none';
+      document.getElementById('bookmark-editor').style.display = 'none';
       this._timeline.setOptions(this._editingDoneOptions);
       this._overviewTimeline.setOptions(this._editingDoneOptions);
       if (this._parHolder.overview) {

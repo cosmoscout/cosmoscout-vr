@@ -22,6 +22,7 @@
   <link type="text/css" rel="stylesheet" href="css/notifications.css">
   <link type="text/css" rel="stylesheet" href="css/statusbar.css">
   <link type="text/css" rel="stylesheet" href="css/logo.css">
+  <link type="text/css" rel="stylesheet" href="css/bookmark_editor.css">
 </head>
 
 <body>
@@ -61,23 +62,23 @@
         </div>
 
         <span id="time-control" class="item">
-          <a class="btn light-glass btn-main" data-toggle="tooltip-bottom"
-            title="Reset simulation time" id="time-reset-button">
+          <a class="btn light-glass btn-main" data-toggle="tooltip" title="Reset simulation time"
+            id="time-reset-button">
             <i class="material-icons">restore</i>
           </a>
-          <a class="btn light-glass" data-toggle="tooltip-bottom" title="Toggle calendar"
+          <a class="btn light-glass" data-toggle="tooltip" title="Toggle calendar"
             id="calendar-button">
             <i class="material-icons">date_range</i>
           </a>
           <span id="date-label" style="min-width: 120px">01.01.1970</span>
-          <a class="btn light-glass btn-main" data-toggle="tooltip-bottom" title="Toggle pause"
+          <a class="btn light-glass btn-main" data-toggle="tooltip" title="Toggle pause"
             id="pause-button">
             <i class="material-icons">pause</i>
           </a>
         </span>
 
         <span id="expand-control" class="item">
-          <a class="waves-effect waves-light btn light-glass" data-toggle="tooltip-bottom"
+          <a class="waves-effect waves-light btn light-glass" data-toggle="tooltip"
             title="Toggle overview" id="expand-button">
             <i class="material-icons">expand_more</i>
           </a>
@@ -138,14 +139,14 @@
         </span>
 
         <span id="speed-decrease-button-container" class="item">
-          <a class="btn light-glass" data-toggle="tooltip-bottom" title='Fast rewind'
+          <a class="btn light-glass" data-toggle="tooltip" title='Fast rewind'
             id="speed-decrease-button">
             <i class="material-icons">fast_rewind</i>
           </a>
         </span>
 
         <span id="speed-increase-button-container" class="item">
-          <a class="btn light-glass" data-toggle="tooltip-bottom" title='Fast forward'
+          <a class="btn light-glass" data-toggle="tooltip" title='Fast forward'
             id="speed-increase-button">
             <i class="material-icons">fast_forward</i>
           </a>
@@ -153,19 +154,19 @@
       </div>
 
       <div id="plugin-buttons">
-        <a class="btn light-glass" data-toggle="tooltip-bottom" title="Turn north up"
+        <a class="btn light-glass" data-toggle="tooltip" title="Turn north up"
           onclick="CosmoScout.callbacks.navigation.northUp()">
           <span id="compass-arrow"></span>
         </a>
-        <a class="btn light-glass" data-toggle="tooltip-bottom" title="Fix horizon"
+        <a class="btn light-glass" data-toggle="tooltip" title="Fix horizon"
           onclick="CosmoScout.callbacks.navigation.fixHorizon()">
           <i class="material-icons">terrain</i>
         </a>
-        <a class="btn light-glass" data-toggle="tooltip-bottom" title="Launch to orbit"
+        <a class="btn light-glass" data-toggle="tooltip" title="Launch to orbit"
           onclick="CosmoScout.callbacks.navigation.toOrbit()">
           <i class="material-icons">flight_takeoff</i>
         </a>
-        <a class="btn light-glass" data-toggle="tooltip-bottom" title="Land on surface"
+        <a class="btn light-glass" data-toggle="tooltip" title="Land on surface"
           onclick="CosmoScout.callbacks.navigation.toSurface()">
           <i class="material-icons">flight_land</i>
         </a>
@@ -492,10 +493,12 @@
 
     <div id="notifications"></div>
 
+    <!-- Calendar -->
+
     <div id="calendar" class="draggable-window resizable-window">
       <div class="window-header">
-        <div class="window-title">Calendar</div>
-        <a class="btn light-glass" data-toggle="tooltip-bottom" title="Close">
+        <div class="window-title"><i class="material-icons">date_range</i>Calendar</div>
+        <a class="btn light-glass" data-toggle="tooltip" title="Close">
           <i class="material-icons">close</i>
         </a>
       </div>
@@ -503,37 +506,106 @@
       </div>
     </div>
 
-    <div class="form-popup" id="add-event-dialog">
-      <div class="form-container">
-        <h1 id="headlineForm">Customize Event</h1>
-        <input type="text" placeholder="Event Name (required)" name="name" id="event-dialog-name">
-        <input type="colorPicker" name="color" id="event-dialog-color">
-        <input type="text" name="date" id="event-dialog-start-date">
-        <input type="text" placeholder="End date" name="date" id="event-dialog-end-date">
-        <input type="text" placeholder="Description  (required)" name="date"
-          id="event-dialog-description">
-        <input type="text" placeholder="Planet" name="date" id="event-dialog-planet">
-        <input type="text" placeholder="Place" name="date" id="event-dialog-location">
+    <!-- Bookmark Editor -->
 
-        <button type="button" class="btn" id="event-dialog-apply-button">Apply</button>
-        <button type="button" class="btn cancel" id="event-dialog-cancel-button">Close</button>
+    <div id="bookmark-editor" class="draggable-window resizable-window">
+      <div class="window-header">
+        <div class="window-title"><i class="material-icons">bookmark</i>Bookmark Editor</div>
+        <a class="btn light-glass" data-toggle="tooltip" title="Close">
+          <i class="material-icons">close</i>
+        </a>
+      </div>
+      <div class="window-content">
+
+        <div class="row mb-2">
+          <div class="col-6">
+            <input type="text" placeholder="Event Name (required)" class="form-control"
+              id="event-dialog-name">
+          </div>
+          <div class="col-6">
+            <input type="text" class="form-control color-input" id="event-dialog-color">
+          </div>
+        </div>
+
+        <div class="row mb-2">
+          <div class="col-12">
+            <input type="text" placeholder="Description (optional)" class="form-control"
+              id="event-dialog-description">
+          </div>
+        </div>
+
+        <div class="row mb-2">
+          <div class="col-6">
+            <div class="input-group">
+              <input type="text" placeholder="Start Date" class="form-control"
+                id="event-dialog-start-date">
+              <div class="input-group-append">
+                <button class="btn glass" type="button" data-toggle="tooltip"
+                  title="Use current time"><i class="material-icons">update</i></button>
+              </div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class=" input-group">
+              <input type="text" placeholder="End Date" class="form-control"
+                id="event-dialog-end-date">
+              <div class="input-group-append">
+                <button class="btn glass" type="button" data-toggle="tooltip"
+                  title="Use current time"><i class="material-icons">update</i></button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row mb-2">
+          <div class="col-12 input-group">
+            <input type="text" placeholder="Anchor" class="form-control" id="event-dialog-planet">
+            <div class="input-group-append">
+              <button class="btn glass" type="button" data-toggle="tooltip"
+                title="Use current Planet"><i class="material-icons">update</i></button>
+            </div>
+          </div>
+        </div>
+
+        <div class="row mb-2">
+          <div class="col-12 input-group">
+            <input type="text" class="form-control" placeholder="X" id="event-dialog-location">
+            <input type="text" class="form-control" placeholder="Y">
+            <input type="text" class="form-control" placeholder="Z">
+            <div class="input-group-append">
+              <button class="btn glass" type="button" data-toggle="tooltip"
+                title="Use current position"><i class="material-icons">update</i></button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="window-action-area">
+        <div class="row mb-2">
+          <div class="col-12">
+            <button class="btn glass block" id="event-dialog-apply-button">Save</button>
+          </div>
+        </div>
       </div>
     </div>
+
+    <!-- Timeline bookmark tooltip -->
 
     <div id="event-tooltip-container">
       <div id="event-tooltip-arrow"></div>
       <div id="event-tooltip">
         <div id="event-tooltip-header">
           <span id="event-tooltip-name"> Name </span>
-          <a id="event-tooltip-edit" class="btn light-glass" data-toggle="tooltip-bottom"
+          <a id="event-tooltip-edit" class="btn light-glass" data-toggle="tooltip"
             title="Edit event">
             <i class="material-icons">edit</i>
           </a>
-          <a id="event-tooltip-goto-time" class="btn light-glass" data-toggle="tooltip-bottom"
+          <a id="event-tooltip-goto-time" class="btn light-glass" data-toggle="tooltip"
             title="Go to event time">
             <i class="material-icons">update</i>
           </a>
-          <a id="event-tooltip-goto-location" class="btn light-glass" data-toggle="tooltip-bottom"
+          <a id="event-tooltip-goto-location" class="btn light-glass" data-toggle="tooltip"
             title="Got to event location">
             <i class="material-icons">pin_drop</i>
           </a>
@@ -541,6 +613,8 @@
         <div id="event-tooltip-description">Description</div>
       </div>
     </div>
+
+    <!-- Console -->
 
     <div id="console-output-wrapper">
       <div id="console-output-area"></div>
@@ -566,6 +640,8 @@
         <div id="statusbar-pointer-position"> - </div>
       </div>
     </div>
+
+    <!-- Logo -->
 
     <div id="logo">
       <div id="logo-image"></div>
@@ -602,6 +678,7 @@
   <script type="text/javascript" src="js/apis/calendar.js"></script>
   <script type="text/javascript" src="js/apis/gui.js"></script>
   <script type="text/javascript" src="js/apis/utils.js"></script>
+  <script type="text/javascript" src="js/apis/bookmarks.js"></script>
 
   <script type="text/javascript">
 
@@ -615,8 +692,9 @@
         NotificationApi,
         StatusbarApi,
         SidebarApi,
-        TimelineApi,
-        CalendarApi
+        CalendarApi,
+        BookmarksApi,
+        TimelineApi
       );
 
       const slider = document.querySelector('[data-callback="graphics.setShadowmapResolution"]');
@@ -686,7 +764,7 @@
   </script>
 
   <template id="button-template">
-    <a class="btn light-glass" data-toggle="tooltip-bottom">
+    <a class="btn light-glass" data-toggle="tooltip">
       <i class="material-icons">%ICON%</i>
     </a>
   </template>
