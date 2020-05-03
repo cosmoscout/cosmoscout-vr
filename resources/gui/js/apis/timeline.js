@@ -270,16 +270,6 @@ class TimelineApi extends IApi {
 
   _overviewVisible = false;
 
-  _calenderVisible = false;
-
-  _newCenterTimeId = 0;
-
-  _newStartDateId = 1;
-
-  _newEndDateId = 2;
-
-  _state;
-
   init() {
     this._buttonContainer = document.getElementById('plugin-buttons');
 
@@ -294,7 +284,6 @@ class TimelineApi extends IApi {
     this._moveWindow();
     this._initEventListener();
     this._initColorPicker();
-    this._initCalendar();
   }
 
   /**
@@ -340,7 +329,7 @@ class TimelineApi extends IApi {
     });
     this._timeline.setCustomTime(this._centerTime, this._timeId);
     this._setOverviewTimes();
-    document.getElementById('dateLabel').innerText =
+    document.getElementById('date-label').innerText =
         CosmoScout.utils.formatDateReadable(this._centerTime);
   }
 
@@ -483,23 +472,6 @@ class TimelineApi extends IApi {
       const colorField            = document.getElementById('event-dialog-color');
       colorField.style.background = `#${color}`;
     });
-  }
-
-  /**
-   * TODO remove jQuery
-   * @private
-   */
-  _initCalendar() {
-    $('#calendar')
-        .datepicker({
-          weekStart: 1,
-          todayHighlight: true,
-          maxViewMode: 3,
-          format: 'yyyy-mm-dd',
-          startDate: '1950-01-02',
-          endDate: '2049-12-31',
-        })
-        .on('changeDate', this._changeDateCallback.bind(this));
   }
 
   /**
@@ -692,10 +664,10 @@ class TimelineApi extends IApi {
     document.getElementById('expand-button')
         .addEventListener('click', this._toggleOverview.bind(this));
 
-    document.getElementById('calendar-button')
-        .addEventListener('click', this._enterNewCenterTime.bind(this));
-    document.getElementById('dateLabel')
-        .addEventListener('click', this._enterNewCenterTime.bind(this));
+    document.getElementById('calendar-button').addEventListener('click', () => {
+      CosmoScout.calendar.setDate(this._timeline.getCustomTime(this._timeId));
+      CosmoScout.calendar.toggle();
+    });
 
     // toggle visibility of the increase / decrease time buttons -----------------------------------
     function mouseEnterTimeControl() {
@@ -1186,7 +1158,7 @@ class TimelineApi extends IApi {
     });
     this._timeline.setCustomTime(this._centerTime, this._timeId);
     this._setOverviewTimes();
-    document.getElementById('dateLabel').innerText =
+    document.getElementById('date-label').innerText =
         CosmoScout.utils.formatDateReadable(this._centerTime);
   }
 
@@ -1378,112 +1350,6 @@ class TimelineApi extends IApi {
       return height * 3.086e16;
     default:
       return height * 3.086e19;
-    }
-  }
-
-  /**
-   * Sets the visibility of the calendar to the given value(true or false)
-   * @param visible {boolean}
-   * @private
-   */
-  _setVisible(visible) {
-    if (visible) {
-      $('#calendar').addClass('visible');
-    } else {
-      $('#calendar').removeClass('visible');
-    }
-  }
-
-  /**
-   * Toggles the calendar visibility
-   * @private
-   */
-  _toggleVisible() {
-    if (this._calenderVisible) {
-      this._calenderVisible = false;
-      this._setVisible(false);
-    } else {
-      this._calenderVisible = true;
-      this._setVisible(true);
-    }
-  }
-
-  /**
-   * Called if the Calendar is used to change the date
-   * @private
-   */
-  _enterNewCenterTime() {
-    $('#calendar').datepicker('update', this._timeline.getCustomTime(this._timeId));
-    if (this._calenderVisible && this._state === this._newCenterTimeId) {
-      this._toggleVisible();
-    } else if (!this._calenderVisible) {
-      this._state = this._newCenterTimeId;
-      this._toggleVisible();
-    }
-  }
-
-  /*
-  // Called if the Calendar is used to enter a start date of an event
-  function enter_start_date() {
-      if (state === newStartDateId) {
-          toggle_visible();
-      } else {
-          state = newStartDateId;
-          calenderVisible = true;
-          set_visible(true);
-      }
-  }
-
-
-  // Called if the Calendar is used to enter the end date of an event
-  function enter_end_date() {
-      if (state === newEndDateId) {
-          toggle_visible();
-      } else {
-          state = newEndDateId;
-          calenderVisible = true;
-          set_visible(true);
-      }
-  } */
-
-  /**
-   * Sets the time to a specific date
-   * @param date {Date}
-   * @private
-   */
-  _setTimeToDate(date) {
-    date.setHours(12);
-    CosmoScout.callbacks.time.setDate(CosmoScout.utils.formatDateCosmo(new Date(date.getTime())));
-    const startDate = new Date(date.getTime());
-    const endDate   = new Date(date.getTime());
-    startDate.setHours(0);
-    endDate.setHours(24);
-    this._setPause();
-    this._timeline.setWindow(startDate, endDate, {
-      animation: false,
-    });
-    this._setOverviewTimes();
-  }
-
-  /**
-   * Called if an Date in the Calendar is picked
-   * @param event
-   * @private
-   */
-  _changeDateCallback(event) {
-    this._toggleVisible();
-    switch (this._state) {
-    case this._newCenterTimeId:
-      this._setTimeToDate(event.date);
-      break;
-    case this._newStartDateId:
-      document.getElementById('event-dialog-start-date').value = event.format();
-      break;
-    case this._newEndDateId:
-      document.getElementById('event-dialog-end-date').value = event.format();
-      break;
-    default:
-      // code block
     }
   }
 }

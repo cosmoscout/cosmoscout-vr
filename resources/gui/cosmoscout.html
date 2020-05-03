@@ -69,7 +69,7 @@
             id="calendar-button">
             <i class="material-icons">date_range</i>
           </a>
-          <span id="dateLabel" style="min-width: 120px">01.01.1970</span>
+          <span id="date-label" style="min-width: 120px">01.01.1970</span>
           <a class="btn light-glass btn-main" data-toggle="tooltip-bottom" title="Toggle pause"
             id="pause-button">
             <i class="material-icons">pause</i>
@@ -492,7 +492,12 @@
 
     <div id="notifications"></div>
 
-    <div id="calendar"></div>
+    <div id="calendar" class="draggable-window" class="hidden">
+      <div class="window-header">
+      </div>
+      <div class="window-content">
+      </div>
+    </div>
 
     <div class="form-popup" id="add-event-dialog">
       <div class="form-container">
@@ -590,6 +595,7 @@
   <script type="text/javascript" src="js/apis/statusbar.js"></script>
   <script type="text/javascript" src="js/apis/timeline.js"></script>
   <script type="text/javascript" src="js/apis/loading_screen.js"></script>
+  <script type="text/javascript" src="js/apis/calendar.js"></script>
   <script type="text/javascript" src="js/apis/gui.js"></script>
   <script type="text/javascript" src="js/apis/utils.js"></script>
 
@@ -605,7 +611,8 @@
         NotificationApi,
         StatusbarApi,
         SidebarApi,
-        TimelineApi
+        TimelineApi,
+        CalendarApi
       );
 
       const slider = document.querySelector('[data-callback="graphics.setShadowmapResolution"]');
