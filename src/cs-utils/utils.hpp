@@ -43,6 +43,7 @@ enum class CS_UTILS_EXPORT DrawOrder : int {
   eStars            = 400,
   eAtmospheres      = 500,
   eToneMapping      = 600,
+  eOpaqueNonHDR     = 650,
   eTransparentItems = 700,
   eRay              = 800,
   eGui              = 900
