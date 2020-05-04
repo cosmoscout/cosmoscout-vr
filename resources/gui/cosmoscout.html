@@ -522,7 +522,7 @@
 
         <div class="row mb-2">
           <div class="col-6">
-            <input type="text" placeholder="Event Name (required)" class="form-control"
+            <input type="text" placeholder="Bookmark Name" class="form-control"
               id="event-dialog-name">
           </div>
           <div class="col-6">
@@ -530,14 +530,16 @@
           </div>
         </div>
 
-        <div class="row mb-2">
+        <div class="row mb-3">
           <div class="col-12">
-            <input type="text" placeholder="Description (optional)" class="form-control"
+            <input type="text" placeholder="Description" class="form-control"
               id="event-dialog-description">
+            <small class="form-text text-muted">The name is required, the description is
+              optional.</small>
           </div>
         </div>
 
-        <div class="row mb-2">
+        <div class="row mb-3">
           <div class="col-6">
             <div class="input-group">
               <input type="text" placeholder="Start Date" class="form-control"
@@ -558,27 +560,52 @@
               </div>
             </div>
           </div>
+          <div class="col-12">
+            <small class="form-text text-muted">You may either provide no date, only a start date,
+              or a start and an end date. If you provide no date, the bookmark will not be shown on
+              the timeline.</small>
+          </div>
         </div>
 
         <div class="row mb-2">
           <div class="col-12 input-group">
-            <input type="text" placeholder="Anchor" class="form-control" id="event-dialog-planet">
+            <input type="text" placeholder="Center" class="form-control" id="event-dialog-planet">
+            <input type="text" placeholder="Frame" class="form-control" id="event-dialog-location">
             <div class="input-group-append">
               <button class="btn glass" type="button" data-toggle="tooltip"
-                title="Use current Planet"><i class="material-icons">update</i></button>
+                title="Use current Planet"><i class="material-icons">my_location</i></button>
             </div>
           </div>
         </div>
 
         <div class="row mb-2">
           <div class="col-12 input-group">
-            <input type="text" class="form-control" placeholder="X" id="event-dialog-location">
-            <input type="text" class="form-control" placeholder="Y">
-            <input type="text" class="form-control" placeholder="Z">
+            <input type="text" class="form-control" placeholder="LocX">
+            <input type="text" class="form-control" placeholder="LocY">
+            <input type="text" class="form-control" placeholder="LocZ">
             <div class="input-group-append">
               <button class="btn glass" type="button" data-toggle="tooltip"
-                title="Use current position"><i class="material-icons">update</i></button>
+                title="Use current position"><i class="material-icons">my_location</i></button>
             </div>
+          </div>
+        </div>
+
+        <div class="row mb-2">
+          <div class="col-12 input-group">
+            <input type="text" class="form-control" placeholder="RotX">
+            <input type="text" class="form-control" placeholder="RotY">
+            <input type="text" class="form-control" placeholder="RotZ">
+            <input type="text" class="form-control" placeholder="RotW">
+            <div class="input-group-append">
+              <button class="btn glass" type="button" data-toggle="tooltip"
+                title="Use current rotation"><i class="material-icons">my_location</i></button>
+            </div>
+          </div>
+
+          <div class="col-12">
+            <small class="form-text text-muted">The location fields are required top to bottom: You
+              may omit them all, but if you provide coordinates also Center and Frame are required;
+              if you provide a rotation, all fields are required.</small>
           </div>
         </div>
 
