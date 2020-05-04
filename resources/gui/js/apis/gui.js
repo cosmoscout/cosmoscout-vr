@@ -59,7 +59,7 @@ class GuiApi extends IApi {
       }
     };
 
-    document.querySelectorAll('.simple-value-dropdown').forEach((dropdown) => {
+    document.querySelectorAll('div.simple-value-dropdown').forEach((dropdown) => {
       if (typeof dropdown.dataset.initialized === 'undefined') {
         dropdown.addEventListener('change', eventListener);
 
