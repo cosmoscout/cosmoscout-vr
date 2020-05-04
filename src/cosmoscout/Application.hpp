@@ -191,10 +191,10 @@ class Application : public VistaFrameLoop {
   std::set<std::string> mPluginsToLoad;
 
   // For deferred reloading of settings.
-  std::string mSettingsToRead;
+  std::string mSettingsToLoad;
 
   // For deferred writing of settings.
-  std::string mSettingsToWrite;
+  std::string mSettingsToSave;
 };
 
 #endif // CS_APPLICATION_HPP

@@ -116,11 +116,19 @@ class CS_CORE_EXPORT Settings {
 
   /// Initializes all members from a given JSON file. Once reading finished, the onLoad signal will
   /// be emitted.
-  void read(std::string const& fileName);
+  void loadFromFile(std::string const& fileName);
+
+  /// Initializes all members from a given JSON object. Once reading finished, the onLoad signal
+  /// will be emitted.
+  void loadFromJson(std::string const& json);
 
   /// Writes the current settings to a JSON file. Before the state is written to file, the onSave
   /// signal will be emitted.
-  void write(std::string const& fileName) const;
+  void saveToFile(std::string const& fileName) const;
+
+  /// Writes the current settings to a JSON object. Before the state is stored, the onSave
+  /// signal will be emitted.
+  std::string saveToJson() const;
 
   // -----------------------------------------------------------------------------------------------
 

@@ -31,7 +31,7 @@ class GlowMipMap;
 class CS_GRAPHICS_EXPORT HDRBuffer {
  public:
   /// When highPrecision is set to false, only 16bit color buffers are used.
-  explicit HDRBuffer(bool highPrecision = true);
+  explicit HDRBuffer(uint32_t multiSamples, bool highPrecision = true);
 
   HDRBuffer(HDRBuffer const& other) = delete;
   HDRBuffer(HDRBuffer&& other)      = delete;
@@ -40,6 +40,11 @@ class CS_GRAPHICS_EXPORT HDRBuffer {
   HDRBuffer& operator=(HDRBuffer&& other) = delete;
 
   virtual ~HDRBuffer();
+
+  /// Returns the number of multi-samples used by this HDRBuffer. You should check this number
+  /// before reading from the attachments. See getDepthAttachment() and getCurrentReadAttachment()
+  /// further below.
+  uint32_t getMultiSamples() const;
 
   /// Binds DEPTH and one ping-pong target for writing.
   void bind();
@@ -69,7 +74,8 @@ class CS_GRAPHICS_EXPORT HDRBuffer {
   void          updateGlowMipMap();
   VistaTexture* getGlowMipMap() const;
 
-  /// Returns the depth attachment for the currently rendered viewport.
+  /// Returns the depth attachment for the currently rendered viewport. Be aware, that this can be
+  /// texture with the target GL_TEXTURE_2D_MULTISAMPLE if getMultiSamples() > 0.
   VistaTexture* getDepthAttachment() const;
 
   /// Returns the color attachment which is currently bound for writing for the currently rendered
@@ -77,7 +83,8 @@ class CS_GRAPHICS_EXPORT HDRBuffer {
   VistaTexture* getCurrentWriteAttachment() const;
 
   /// Returns the color attachment which is currently bound for reading for the currently rendered
-  /// viewport.
+  /// viewport. Be aware, that this can be texture with the target GL_TEXTURE_2D_MULTISAMPLE if
+  /// getMultiSamples() > 0.
   VistaTexture* getCurrentReadAttachment() const;
 
   /// Helper methods to access the size and position of the viewports we are currently rendering to.
@@ -112,7 +119,8 @@ class CS_GRAPHICS_EXPORT HDRBuffer {
   float                                             mTotalLuminance   = 1.F;
   float                                             mMaximumLuminance = 1.F;
 
-  const bool mHighPrecision;
+  const uint32_t mMultiSamples;
+  const bool     mHighPrecision;
 };
 
 } // namespace cs::graphics

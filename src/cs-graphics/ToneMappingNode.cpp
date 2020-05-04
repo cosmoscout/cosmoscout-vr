@@ -121,8 +121,6 @@ void ApplyProgramAuto(
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static const char* sVertexShader = R"(
-  #version 430
-
   out vec2 vTexcoords;
 
   void main()
@@ -135,15 +133,19 @@ static const char* sVertexShader = R"(
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static const char* sFragmentShader = R"(
-  #version 430
-  
   in vec2 vTexcoords;
 
   layout(pixel_center_integer) in vec4 gl_FragCoord;
 
-  layout(binding = 0) uniform sampler2D uDepth;
-  layout(binding = 1) uniform sampler2D uComposite;
-  layout(binding = 2) uniform sampler2D uGlowMipMap;
+  #if NUM_MULTISAMPLES > 0
+    layout (binding = 0) uniform sampler2DMS uComposite;
+    layout (binding = 1) uniform sampler2DMS uDepth;
+  #else
+    layout (binding = 0) uniform sampler2D uComposite;
+    layout (binding = 1) uniform sampler2D uDepth;
+  #endif
+
+  layout (binding = 2) uniform sampler2D uGlowMipMap;
 
   uniform float uExposure;
   uniform float uGlowIntensity;
@@ -234,7 +236,22 @@ static const char* sFragmentShader = R"(
   }
 
   void main() {
-    vec3 color = texelFetch(uComposite, ivec2(vTexcoords * textureSize(uComposite, 0)), 0).rgb;
+    #if NUM_MULTISAMPLES > 0
+      vec3 color = vec3(0.0);
+      for (int i = 0; i < NUM_MULTISAMPLES; ++i) {
+        color += texelFetch(uComposite, ivec2(vTexcoords * textureSize(uComposite)), i).rgb;
+      }
+      color /= NUM_MULTISAMPLES;
+
+      float depth = 1.0;
+      for (int i = 0; i < NUM_MULTISAMPLES; ++i) {
+        depth = min(depth, texelFetch(uDepth, ivec2(vTexcoords * textureSize(uDepth)), i).r);
+      }
+      gl_FragDepth = depth;
+    #else
+      vec3 color = texelFetch(uComposite, ivec2(vTexcoords * textureSize(uComposite, 0)), 0).rgb;
+      gl_FragDepth = texelFetch(uDepth, ivec2(vTexcoords * textureSize(uDepth, 0)), 0).r;
+    #endif
 
     vec3  glow = vec3(0);
     int maxLevels = textureQueryLevels(uGlowMipMap);
@@ -247,8 +264,6 @@ static const char* sFragmentShader = R"(
       color = mix(color, glow / maxLevels, uGlowIntensity);
     }
 
-    gl_FragDepth = texelFetch(uDepth, ivec2(vTexcoords * textureSize(uDepth, 0)), 0).r;
-    
     color = Uncharted2Tonemap(uExposure*color);
 
     vec3 whiteScale = vec3(1.0)/Uncharted2Tonemap(vec3(W));
@@ -262,8 +277,12 @@ static const char* sFragmentShader = R"(
 ToneMappingNode::ToneMappingNode(std::shared_ptr<HDRBuffer> hdrBuffer)
     : mHDRBuffer(std::move(hdrBuffer))
     , mShader(new VistaGLSLShader()) {
-  mShader->InitVertexShaderFromString(sVertexShader);
-  mShader->InitFragmentShaderFromString(sFragmentShader);
+
+  std::string defines = "#version 430\n";
+  defines += "#define NUM_MULTISAMPLES " + std::to_string(mHDRBuffer->getMultiSamples()) + "\n";
+
+  mShader->InitVertexShaderFromString(defines + sVertexShader);
+  mShader->InitFragmentShaderFromString(defines + sFragmentShader);
   mShader->Link();
 
   // Connect to the VSE_POSTGRAPHICS event. When this event is emitted, we will collect all
@@ -433,8 +452,8 @@ bool ToneMappingNode::ToneMappingNode::Do() {
   float exposure = std::pow(2.F, mExposure + mExposureCompensation);
 
   mHDRBuffer->unbind();
-  mHDRBuffer->getDepthAttachment()->Bind(GL_TEXTURE0);
-  mHDRBuffer->getCurrentWriteAttachment()->Bind(GL_TEXTURE1);
+  mHDRBuffer->getCurrentWriteAttachment()->Bind(GL_TEXTURE0);
+  mHDRBuffer->getDepthAttachment()->Bind(GL_TEXTURE1);
   mHDRBuffer->getGlowMipMap()->Bind(GL_TEXTURE2);
 
   glPushAttrib(GL_ENABLE_BIT | GL_DEPTH_BUFFER_BIT);

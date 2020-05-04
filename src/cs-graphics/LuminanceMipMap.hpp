@@ -19,7 +19,7 @@ namespace cs::graphics {
 /// half the given width and height.
 class CS_GRAPHICS_EXPORT LuminanceMipMap : public VistaTexture {
  public:
-  LuminanceMipMap(int hdrBufferWidth, int hdrBufferHeight);
+  LuminanceMipMap(uint32_t hdrBufferSamples, int hdrBufferWidth, int hdrBufferHeight);
   virtual ~LuminanceMipMap();
 
   /// Perform the parallel reduction of luminance values. This is a costly operation and should only
@@ -38,14 +38,15 @@ class CS_GRAPHICS_EXPORT LuminanceMipMap : public VistaTexture {
   float getLastMaximumLuminance() const;
 
  private:
-  GLuint mPBO                  = 0;
-  GLuint mComputeProgram       = 0;
-  float  mLastTotalLuminance   = 0.f;
-  float  mLastMaximumLuminance = 0.f;
-  int    mMaxLevels            = 0;
-  int    mHDRBufferWidth       = 0;
-  int    mHDRBufferHeight      = 0;
-  bool   mDataAvailable        = false;
+  GLuint   mPBO                  = 0;
+  GLuint   mComputeProgram       = 0;
+  uint32_t mHDRBufferSamples     = 0;
+  float    mLastTotalLuminance   = 0.f;
+  float    mLastMaximumLuminance = 0.f;
+  int      mMaxLevels            = 0;
+  int      mHDRBufferWidth       = 0;
+  int      mHDRBufferHeight      = 0;
+  bool     mDataAvailable        = false;
 };
 
 } // namespace cs::graphics

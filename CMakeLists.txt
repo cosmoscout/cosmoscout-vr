@@ -127,6 +127,12 @@ else()
   SET(OPENSG_ROOT_DIR ${COSMOSCOUT_EXTERNALS_DIR})
 endif()
 
+if (DEFINED ENV{CIVETWEB_ROOT_DIR})
+  SET(CIVETWEB_ROOT_DIR "$ENV{CIVETWEB_ROOT_DIR}")
+else()
+  SET(CIVETWEB_ROOT_DIR ${COSMOSCOUT_EXTERNALS_DIR})
+endif()
+
 if (DEFINED ENV{VISTA_CMAKE_CONFIG_DIR})
   SET(VistaCoreLibs_DIR "$ENV{VISTA_CMAKE_CONFIG_DIR}")
 else()
@@ -147,6 +153,7 @@ find_package(TIFF REQUIRED)
 find_package(GLEW REQUIRED)
 find_package(GLUT REQUIRED)
 find_package(OPENSG REQUIRED)
+find_package(CIVETWEB REQUIRED)
 find_package(VistaCoreLibs REQUIRED 
   COMPONENTS "VistaBase" "VistaKernel" "VistaKernelOpenSGExt" "VistaOGLExt"
 )

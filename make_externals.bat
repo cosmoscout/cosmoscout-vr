@@ -157,7 +157,7 @@ echo.
 
 cmake -E make_directory "%BUILD_DIR%/libtiff" && cd "%BUILD_DIR%/libtiff"
 cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%" -DCMAKE_UNITY_BUILD=%UNITY_BUILD%^
-      -DCMAKE_INSTALL_FULL_LIBDIR=lib^
+      -DBUILD_SHARED_LIBS=Off -DCMAKE_INSTALL_FULL_LIBDIR=lib^
       "%EXTERNALS_DIR%/libtiff" || exit /b
 
 cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS%
@@ -171,6 +171,18 @@ echo.
 cmake -E make_directory "%BUILD_DIR%/spdlog" && cd "%BUILD_DIR%/spdlog"
 cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
       -DSPDLOG_ENABLE_PCH=On "%EXTERNALS_DIR%/spdlog" || exit /b
+
+cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS%
+
+rem civetweb -----------------------------------------------------------------------------------------
+
+echo.
+echo Building and installing civetweb ...
+echo.
+
+cmake -E make_directory "%BUILD_DIR%/civetweb" && cd "%BUILD_DIR%/civetweb"
+cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%" -DCIVETWEB_ENABLE_CXX=On ^
+      -DBUILD_SHARED_LIBS=On "%EXTERNALS_DIR%/civetweb" || exit /b
 
 cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS%
 
