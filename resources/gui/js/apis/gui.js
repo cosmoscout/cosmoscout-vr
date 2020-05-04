@@ -131,20 +131,22 @@ class GuiApi extends IApi {
     const pickerDivs = document.querySelectorAll(".color-input");
 
     pickerDivs.forEach((pickerDiv) => {
-      pickerDiv.picker = new CP(pickerDiv, {alpha: false});
-      pickerDiv.picker.self.classList.add('no-alpha');
-      pickerDiv.picker.on('change', (r, g, b, a) => {
-        const color                = CP.HEX([r, g, b, 1]);
-        pickerDiv.style.background = color;
+      if (!pickerDiv.picker) {
+        pickerDiv.picker = new CP(pickerDiv);
+        pickerDiv.picker.self.classList.add('no-alpha');
+        pickerDiv.picker.on('change', (r, g, b, a) => {
+          const color                = CP.HEX([r, g, b, 1]);
+          pickerDiv.style.background = color;
 
-        pickerDiv.value = color;
-      });
+          pickerDiv.value = color;
+        });
 
-      pickerDiv.oninput = (e) => {
-        const color = CP.HEX(e.target.value);
-        pickerDiv.picker.set(color[0], color[1], color[2], 1);
-        pickerDiv.style.background = CP.HEX(color[0], color[1], color[2], 1);
-      };
+        pickerDiv.oninput = (e) => {
+          const color = CP.HEX(e.target.value);
+          pickerDiv.picker.set(color[0], color[1], color[2], 1);
+          pickerDiv.style.background = CP.HEX([color[0], color[1], color[2], 1]);
+        };
+      }
     });
   }
 
@@ -175,7 +177,6 @@ class GuiApi extends IApi {
       if (lockButton) {
         w.locked             = false;
         lockButton.onmouseup = () => {
-          console.log("huhu");
           w.locked = !w.locked;
           if (w.locked) {
             lockButton.querySelector("i").innerText = "lock";
