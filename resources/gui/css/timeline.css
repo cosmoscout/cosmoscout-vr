@@ -631,8 +631,8 @@
   pointer-events: initial;
 }
 
-#event-tooltip {
-  width: 300px;
+#bookmark-tooltip {
+  width: 400px;
   background-color: rgba(20, 20, 20, 0.8);
   border: 2px solid var(--cs-text-color-darkened);
   border-radius: 7px;
@@ -662,14 +662,13 @@
 #timeline-bookmark-tooltip-arrow {
   width: 0;
   height: 0;
-  border-left: 5px solid transparent;
-  border-right: 5px solid transparent;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
 
-  border-bottom: 5px solid var(--cs-text-color-darkened);
+  border-bottom: 10px solid var(--cs-text-color-darkened);
   position: absolute;
 
-  left: 150px;
-  top: -5px;
+  top: -10px;
 }
 
 #timeline-container #plugin-buttons {

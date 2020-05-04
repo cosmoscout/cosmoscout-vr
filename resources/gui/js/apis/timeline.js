@@ -679,16 +679,16 @@ class TimelineApi extends IApi {
     }
 
     const eventRect    = eventDiv.getBoundingClientRect();
-    const tooltipWidth = 300;
+    const tooltipWidth = 400;
     const arrowWidth   = 10;
     const center       = eventRect.left + eventRect.width / 2;
     const left =
         Math.max(0, Math.min(document.body.offsetWidth - tooltipWidth, center - tooltipWidth / 2));
     document.getElementById('timeline-bookmark-tooltip-container').style.top =
-        `${eventRect.bottom + arrowWidth}px`;
+        `${eventRect.bottom + arrowWidth + 5}px`;
     document.getElementById('timeline-bookmark-tooltip-container').style.left = `${left}px`;
     document.getElementById('timeline-bookmark-tooltip-arrow').style.left =
-        `${center - left - arrowWidth / 2}px`;
+        `${center - left - arrowWidth}px`;
   }
 
   /**
