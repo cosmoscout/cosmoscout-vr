@@ -37,7 +37,9 @@ class CalendarApi extends IApi {
                            event.date.setHours(12);
                            CosmoScout.callbacks.time.setDate(
                                CosmoScout.utils.formatDateCosmo(new Date(event.date.getTime())));
-                           this.setVisible(false);
+                           if (!this._calendarWindow.locked) {
+                             this.setVisible(false);
+                           }
                          });
   }
 

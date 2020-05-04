@@ -155,10 +155,25 @@ class GuiApi extends IApi {
       w.style.top  = (document.body.offsetHeight - w.offsetHeight) / 2 + "px";
 
       // Make closable.
-      const closeButton = w.querySelector(".window-header a");
+      const closeButton = w.querySelector(".window-header a[data-action='close']");
       if (closeButton) {
         closeButton.onmouseup = () => {
           w.classList.remove("visible");
+        };
+      }
+
+      // Make lockable. Locked windows shall not automatically close.
+      const lockButton = w.querySelector(".window-header a[data-action='lock']");
+      if (lockButton) {
+        w.locked             = false;
+        lockButton.onmouseup = () => {
+          console.log("huhu");
+          w.locked = !w.locked;
+          if (w.locked) {
+            lockButton.querySelector("i").innerText = "lock";
+          } else {
+            lockButton.querySelector("i").innerText = "lock_open";
+          }
         };
       }
 
