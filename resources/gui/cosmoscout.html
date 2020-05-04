@@ -521,9 +521,19 @@
       <div class="window-content">
 
         <div class="row mb-2">
+          <div class="col-12 mb-1">
+            <div class="invalid-feedback" id="bookmark-editor-nothing-given-error">
+              You should either specify a time or a location for the bookmark.
+            </div>
+            <small class="form-text text-muted">The name is required, the description is
+              optional.</small>
+          </div>
           <div class="col-6">
             <input type="text" placeholder="Bookmark Name" class="form-control"
               id="bookmark-editor-name">
+            <div class="invalid-feedback">
+              Please choose a name.
+            </div>
           </div>
           <div class="col-6">
             <input type="text" class="form-control color-input" id="bookmark-editor-color">
@@ -534,12 +544,14 @@
           <div class="col-12">
             <input type="text" placeholder="Description" class="form-control"
               id="bookmark-editor-description">
-            <small class="form-text text-muted">The name is required, the description is
-              optional.</small>
           </div>
         </div>
 
         <div class="row mb-3">
+          <div class="col-12 mb-1">
+            <small class="form-text text-muted">If you specify one or two dates, the bookmark will
+              be shown on the timeline.</small>
+          </div>
           <div class="col-6">
             <div class="input-group">
               <input type="text" placeholder="Start Date" class="form-control"
@@ -547,6 +559,9 @@
               <div class="input-group-append">
                 <button class="btn glass" type="button" data-toggle="tooltip"
                   title="Use current time"><i class="material-icons">update</i></button>
+              </div>
+              <div class="invalid-feedback">
+                You have to specify a start date if you set an end date.
               </div>
             </div>
           </div>
@@ -560,14 +575,14 @@
               </div>
             </div>
           </div>
-          <div class="col-12">
-            <small class="form-text text-muted">You may either provide no date, only a start date,
-              or a start and an end date. If you provide no date, the bookmark will not be shown on
-              the timeline.</small>
-          </div>
         </div>
 
         <div class="row mb-2">
+          <div class="col-12 mb-1">
+            <small class="form-text text-muted">The location fields are required top to bottom: You
+              may omit them all, but if you provide a rotation, all fields are required.</small>
+          </div>
+
           <div class="col-12 input-group">
             <input type="text" placeholder="Center" class="form-control"
               id="bookmark-editor-center">
@@ -575,6 +590,9 @@
             <div class="input-group-append">
               <button class="btn glass" type="button" data-toggle="tooltip"
                 title="Use current Planet"><i class="material-icons">my_location</i></button>
+            </div>
+            <div class="invalid-feedback">
+              Both are required.
             </div>
           </div>
         </div>
@@ -591,6 +609,9 @@
               <button class="btn glass" type="button" data-toggle="tooltip"
                 title="Use current position"><i class="material-icons">my_location</i></button>
             </div>
+            <div class="invalid-feedback">
+              All are required.
+            </div>
           </div>
         </div>
 
@@ -602,19 +623,17 @@
               placeholder="RotY">
             <input id="bookmark-editor-rotation-z" type="text" class="form-control"
               placeholder="RotZ">
-            <input id="bookmark-editor-rotation-w" type="text" class="form-control"
+            <input id="bookmark-editor-rotation-w" type="text" class="form-control "
               placeholder="RotW">
             <div class="input-group-append">
               <button class="btn glass" type="button" data-toggle="tooltip"
                 title="Use current rotation"><i class="material-icons">my_location</i></button>
             </div>
+            <div class="invalid-feedback">
+              Provide all or none.
+            </div>
           </div>
 
-          <div class="col-12">
-            <small class="form-text text-muted">The location fields are required top to bottom: You
-              may omit them all, but if you provide coordinates also Center and Frame are required;
-              if you provide a rotation, all fields are required.</small>
-          </div>
         </div>
 
       </div>

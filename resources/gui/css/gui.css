@@ -172,6 +172,11 @@ textarea {
   color: #fff;
 }
 
+.form-control.is-invalid,
+.was-validated .form-control:invalid {
+  border-bottom: 2px solid red !important;
+}
+
 .unresponsive {
   pointer-events: none;
   opacity: 0.5;
