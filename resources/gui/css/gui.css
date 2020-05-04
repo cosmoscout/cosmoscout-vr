@@ -146,6 +146,7 @@ input[type="search"]:not(.browser-default),
   border-bottom: 2px solid var(--cs-border-color);
   color: var(--cs-text-color-darkened);
   background: #ccccff08;
+  border-radius: 0;
 }
 
 
@@ -835,4 +836,10 @@ hr {
 
 .draggable-window .window-title i {
   padding: 0 10px;
+}
+
+/* color picker --------------------------------------------------------------------------------- */
+
+.color-picker.no-alpha .color-picker\:a {
+  display: none;
 }
