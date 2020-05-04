@@ -32,15 +32,9 @@ class TimelineApi extends IApi {
    */
   _itemsOverview;
 
-  _pauseOptions = {
-    moveable: true,
-    zoomable: true,
-  };
+  _pauseOptions = {moveable: true};
 
-  _playingOptions = {
-    moveable: false,
-    zoomable: false,
-  };
+  _playingOptions = {moveable: true};
 
   /**
    * @type {Timeline}
@@ -54,18 +48,16 @@ class TimelineApi extends IApi {
     max: new Date(2030, 12),
     min: new Date(1950, 1),
     zoomable: false,
-    moveable: false,
+    moveable: true,
     showCurrentTime: false,
     editable: {
       add: true,            // add new items by double tapping
-      updateTime: true,     // drag items horizontally
+      updateTime: false,    // drag items horizontally
       updateGroup: false,   // drag items from one group to another
       remove: false,        // delete an item by tapping the delete button top right
       overrideItems: false, // allow these options to override item.editable
     },
     onAdd: this._onAddCallback.bind(this),
-    onUpdate: this._onUpdateCallback.bind(this),
-    onMove: this._onItemMoveCallback.bind(this),
     format: {
       minorLabels: {
         millisecond: 'SSS[ms]',
@@ -113,9 +105,7 @@ class TimelineApi extends IApi {
       remove: false,        // delete an item by tapping the delete button top right
       overrideItems: false, // allow these options to override item.editable
     },
-    onAdd: this._overviewOnAddCallback.bind(this),
-    onUpdate: this._overviewOnUpdateCallback.bind(this),
-    onMove: this._onItemMoveCallback.bind(this),
+    onAdd: this._overviewOnAddCallback.bind(this)
   };
 
   /**
@@ -171,9 +161,7 @@ class TimelineApi extends IApi {
 
   _lastPlayValue = 1;
 
-  _timelineZoomBlocked = true;
-
-  _zoomPercentage = 0.2;
+  _zoomPercentage = 0.002;
 
   _minRangeFactor = 5;
 
@@ -194,6 +182,10 @@ class TimelineApi extends IApi {
     this._initTimelines();
     this._moveWindow();
     this._initEventListener();
+  }
+
+  update() {
+    this.setDate(CosmoScout.state.simulationTime);
   }
 
   /**
@@ -232,15 +224,20 @@ class TimelineApi extends IApi {
     document.getElementById('compass-arrow').style.transform = `rotateZ(${angle}rad)`;
   }
 
-  setDate(date) {
-    this._centerTime = new Date(date);
-    this._timeline.moveTo(this._centerTime, {
-      animation: false,
-    });
-    this._timeline.setCustomTime(this._centerTime, this._timeId);
-    this._setOverviewTimes();
-    document.getElementById('date-label').innerText =
-        CosmoScout.utils.formatDateReadable(this._centerTime);
+  setDate(dateString) {
+    let date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+      console.warning(`Failed to parse simulation time string: '${dateString}'!`);
+    } else {
+      this._centerTime = date;
+      this._timeline.moveTo(this._centerTime, {
+        animation: false,
+      });
+      this._timeline.setCustomTime(this._centerTime, this._timeId);
+      this._setOverviewTimes();
+      document.getElementById('date-label').innerText =
+          CosmoScout.utils.formatDateReadable(this._centerTime);
+    }
   }
 
   addEvent(id, name, description, start, end, color) {
@@ -277,88 +274,6 @@ class TimelineApi extends IApi {
     this._initialOverviewWindow(new Date(min), new Date(max));
   }
 
-  /**
-   * Called from Application.cpp 622/816
-   *
-   * @param speed {number}
-   */
-  setTimeSpeed(speed) {
-    let notification = [];
-
-    switch (speed) {
-    case this.PAUSE:
-      this._setPause();
-      notification = ['Pause', 'Time is paused.', 'pause'];
-      break;
-
-    case this.REALTIME:
-      notification = ['Speed: Realtime', 'Time runs in realtime.', 'play_arrow'];
-      break;
-
-    case this.MINUTES:
-      notification = ['Speed: Min/s', 'Time runs at one minute per second.', 'fast_forward'];
-      break;
-
-    case this.HOURS:
-      notification = ['Speed: Hour/s', 'Time runs at one hour per second.', 'fast_forward'];
-      break;
-
-    case this.DAYS:
-      notification = ['Speed: Day/s', 'Time runs at one day per second.', 'fast_forward'];
-      break;
-
-    case this.MONTHS:
-      notification = ['Speed: Month/s', 'Time runs at one month per second.', 'fast_forward'];
-      break;
-
-    /* Negative times */
-    case -this.REALTIME:
-      notification = ['Speed: -Realtime', 'Time runs backwards in realtime.', 'fast_rewind'];
-      break;
-
-    case -this.MINUTES:
-      notification =
-          ['Speed: -Min/s', 'Time runs backwards at one minute per second.', 'fast_rewind'];
-      break;
-
-    case -this.HOURS:
-      notification =
-          ['Speed: -Hour/s', 'Time runs backwards at one hour per second.', 'fast_rewind'];
-      break;
-
-    case -this.DAYS:
-      notification = ['Speed: -Day/s', 'Time runs backwards at one day per second.', 'fast_rewind'];
-      break;
-
-    case -this.MONTHS:
-      notification =
-          ['Speed: -Month/s', 'Time runs backwards at one month per second.', 'fast_rewind'];
-      break;
-
-    default:
-      break;
-    }
-
-    if (notification.length > 0) {
-      CosmoScout.notifications.print(...notification);
-    }
-  }
-
-  /**
-   * Snap back items if they were dragged with the mouse
-   *
-   * @param item
-   * @param callback
-   * @private
-   */
-  _onItemMoveCallback(item, callback) {
-    callback(null);
-  }
-
-  _overviewOnUpdateCallback(item, callback) {
-    this._onUpdateCallback(item, callback, true);
-  }
-
   _overviewOnAddCallback(item, callback) {
     this._onAddCallback(item, callback, true);
   }
@@ -372,53 +287,7 @@ class TimelineApi extends IApi {
    * @private
    */
   _onAddCallback(item, callback, overview) {
-    document.getElementById('event-dialog-name').style.border        = '';
-    document.getElementById('event-dialog-start-date').style.border  = '';
-    document.getElementById('event-dialog-description').style.border = '';
-    // document.getElementById('headlineForm').innerText                = 'Add Event';
-    document.getElementById('event-dialog-name').value       = '';
-    document.getElementById('bookmark-editor').style.display = 'block';
-    document.getElementById('event-dialog-start-date').value =
-        CosmoScout.utils.getFormattedDateWithTime(item.start);
-    document.getElementById('event-dialog-end-date').value    = '';
-    document.getElementById('event-dialog-description').value = '';
-    document.getElementById('event-dialog-planet').value      = CosmoScout.state.activePlanetCenter;
-
-    let userPos = CosmoScout.state.observerPosition;
-    document.getElementById('event-dialog-location').value =
-        CosmoScout.utils.formatLongitude(userPos[1]) + CosmoScout.utils.formatLatitude(userPos[0]) +
-        CosmoScout.utils.formatHeight(userPos[2]);
-    this._parHolder.item     = item;
-    this._parHolder.callback = callback;
-    this._parHolder.overview = overview;
-    this._setPause();
-  }
-
-  /**
-   * Called when an item is about to be updated
-   * @param item
-   * @param callback
-   * @param overview
-   * @private
-   */
-  _onUpdateCallback(item, callback, overview) {
-    document.getElementById('event-dialog-name').style.border        = '';
-    document.getElementById('event-dialog-start-date').style.border  = '';
-    document.getElementById('event-dialog-description').style.border = '';
-    // document.getElementById('headlineForm').innerText                = 'Update';
-    document.getElementById('bookmark-editor').style.display = 'block';
-    document.getElementById('event-dialog-name').value       = item.content;
-    document.getElementById('event-dialog-start-date').value =
-        CosmoScout.utils.getFormattedDateWithTime(item.start);
-    document.getElementById('event-dialog-description').value = item.description;
-    document.getElementById('event-dialog-planet').value      = item.planet;
-    document.getElementById('event-dialog-location').value    = item.place;
-    if (item.end) {
-      document.getElementById('event-dialog-end-date').value =
-          CosmoScout.utils.getFormattedDateWithTime(item.end);
-    } else {
-      document.getElementById('event-dialog-end-date').value = '';
-    }
+    CosmoScout.bookmarks.setVisible(true);
     this._parHolder.item     = item;
     this._parHolder.callback = callback;
     this._parHolder.overview = overview;
@@ -432,7 +301,6 @@ class TimelineApi extends IApi {
     document.getElementsByClassName('range-label')[0].innerHTML =
         '<i class="material-icons">pause</i>';
     this._timeline.setOptions(this._pauseOptions);
-    this._timelineZoomBlocked = false;
   }
 
   /**
@@ -660,7 +528,6 @@ class TimelineApi extends IApi {
 
     document.getElementById('pause-button').innerHTML = '<i class="material-icons">pause</i>';
     this._timeline.setOptions(this._playingOptions);
-    this._timelineZoomBlocked = true;
     if (parseInt(this._currentSpeed, 10) < 0) {
       document.getElementsByClassName('range-label')[0].innerHTML =
           '<i class="material-icons">chevron_left</i>';
@@ -711,8 +578,6 @@ class TimelineApi extends IApi {
    * @private
    */
   _initTimelines() {
-    this._timelineContainer.addEventListener('wheel', this._manualZoomTimeline.bind(this), true);
-
     const overviewContainer = document.getElementById('overview');
 
     this._timeline = new vis.Timeline(this._timelineContainer, this._items, this._timelineOptions);
@@ -748,7 +613,7 @@ class TimelineApi extends IApi {
 
   _initialOverviewWindow(start, end) {
     this._overviewTimeline.setWindow(start, end, {
-      animations: false,
+      animation: false,
     });
   }
 
@@ -789,7 +654,7 @@ class TimelineApi extends IApi {
     endDate = CosmoScout.utils.increaseDate(
         endDate, step.days, step.hours, step.minutes, step.seconds, step.milliSec);
     this._timeline.setWindow(startDate, endDate, {
-      animations: false,
+      animation: false,
     });
   }
 
@@ -911,26 +776,17 @@ class TimelineApi extends IApi {
       let date   = new Date(this._centerTime.getTime());
       date       = CosmoScout.utils.increaseDate(
           date, step.days, step.hours, step.minutes, step.seconds, step.milliSec);
-      this._setDateLocal(date);
+      this._centerTime = new Date(date);
+      this._timeline.moveTo(this._centerTime, {
+        animation: false,
+      });
+      this._timeline.setCustomTime(this._centerTime, this._timeId);
+      this._setOverviewTimes();
+      document.getElementById('date-label').innerText =
+          CosmoScout.utils.formatDateReadable(this._centerTime);
       this._mouseDownLeftTime = new Date(properties.start.getTime());
       CosmoScout.callbacks.time.addHours(hoursDif);
     }
-  }
-
-  /**
-   * Changes the shown date to a given date without synchronizing with CosmoScout VR
-   * @param date {string} Date string
-   * @private
-   */
-  _setDateLocal(date) {
-    this._centerTime = new Date(date);
-    this._timeline.moveTo(this._centerTime, {
-      animation: false,
-    });
-    this._timeline.setCustomTime(this._centerTime, this._timeId);
-    this._setOverviewTimes();
-    document.getElementById('date-label').innerText =
-        CosmoScout.utils.formatDateReadable(this._centerTime);
   }
 
   _drawFocusLens() {
@@ -989,20 +845,10 @@ class TimelineApi extends IApi {
    * @private
    */
   _manualZoomTimeline(event) {
-    if (this._timelineZoomBlocked) {
-      if (event.deltaY < 0) {
-        this._timelineRangeFactor -= this._timelineRangeFactor * this._zoomPercentage;
-        if (this._timelineRangeFactor < this._minRangeFactor) {
-          this._timelineRangeFactor = this._minRangeFactor;
-        }
-      } else {
-        this._timelineRangeFactor += this._timelineRangeFactor * this._zoomPercentage;
-        if (this._timelineRangeFactor > this._maxRangeFactor) {
-          this._timelineRangeFactor = this._maxRangeFactor;
-        }
-      }
-      this._rangeUpdateCallback();
-    }
+    this._timelineRangeFactor += this._timelineRangeFactor * this._zoomPercentage * event.deltaY;
+    this._timelineRangeFactor =
+        Math.max(this._minRangeFactor, Math.min(this._maxRangeFactor, this._timelineRangeFactor));
+    this._rangeUpdateCallback();
   }
 
   /**
