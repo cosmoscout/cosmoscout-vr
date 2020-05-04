@@ -24,23 +24,23 @@ class CalendarApi extends IApi {
    */
   init() {
     this._calendarWindow = document.querySelector("#calendar");
-    this._calendar       = $('#calendar .window-content')
-                         .datepicker({
-                           weekStart: 1,
-                           todayHighlight: true,
-                           maxViewMode: 3,
-                           format: 'yyyy-mm-dd',
-                           startDate: '1950-01-02',
-                           endDate: '2049-12-31',
-                         })
-                         .on('changeDate', (event) => {
-                           event.date.setHours(12);
-                           CosmoScout.callbacks.time.setDate(
-                               CosmoScout.utils.formatDateCosmo(new Date(event.date.getTime())));
-                           if (!this._calendarWindow.locked) {
-                             this.setVisible(false);
-                           }
-                         });
+    this._calendar =
+        $('#calendar .window-content')
+            .datepicker({
+              weekStart: 1,
+              todayHighlight: true,
+              maxViewMode: 3,
+              format: 'yyyy-mm-dd',
+              startDate: '1950-01-02',
+              endDate: '2049-12-31',
+            })
+            .on('changeDate', (event) => {
+              event.date.setHours(12);
+              CosmoScout.callbacks.time.setDate(CosmoScout.utils.formatDateCosmo(event.date));
+              if (!this._calendarWindow.locked) {
+                this.setVisible(false);
+              }
+            });
   }
 
   /**

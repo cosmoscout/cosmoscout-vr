@@ -113,7 +113,7 @@
   top: 3px;
 }
 
-#timeline .vis-custom-time.custom {
+#timeline .vis-custom-time.center-time {
   background-color: var(--cs-background-color-light);
   width: 16px !important;
   height: 16px !important;
