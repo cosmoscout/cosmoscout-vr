@@ -533,7 +533,7 @@ void Application::FrameUpdate() {
 
       if (!std::isnan(polar.x) && !std::isnan(polar.y) && !std::isnan(heightDiff)) {
         mGuiManager->getGui()->executeJavascript(
-            fmt::format("CosmoScout.state.observerPosition = [{}, {}, {}]",
+            fmt::format("CosmoScout.state.observerLngLatHeight = [{}, {}, {}]",
                 cs::utils::convert::toDegrees(polar.x), cs::utils::convert::toDegrees(polar.y),
                 heightDiff));
       }
@@ -778,50 +778,68 @@ void Application::connectSlots() {
       });
 
   // Update the time shown in the user interface when the simulation time changes.
-  mTimeControl->pSimulationTime.connect([this](double val) {
+  mTimeControl->pSimulationTime.connectAndTouch([this](double val) {
     std::stringstream sstr;
 
     // NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
     auto* facet = new boost::posix_time::time_facet();
-    facet->format("%d-%b-%Y %H:%M:%S.%f");
+    facet->format("%Y-%m-%d %H:%M:%S.%f");
     sstr.imbue(std::locale(std::locale::classic(), facet));
     sstr << cs::utils::convert::toBoostTime(val);
-    mGuiManager->getGui()->callJavascript("CosmoScout.timeline.setDate", sstr.str());
+    mGuiManager->getGui()->executeJavascript(
+        fmt::format("CosmoScout.state.simulationTime = '{}';", sstr.str()));
   });
 
   // Update the simulation time speed shown in the user interface.
-  mTimeControl->pTimeSpeed.connect([this](float val) {
-    mGuiManager->getGui()->callJavascript("CosmoScout.timeline.setTimeSpeed", val);
+  mTimeControl->pTimeSpeed.connectAndTouch([this](float val) {
+    mGuiManager->getGui()->executeJavascript(fmt::format("CosmoScout.state.timeSpeed = {};", val));
   });
 
   // Show notification when the center name of the celestial observer changes.
-  mSettings->mObserver.pCenter.connect([this](std::string const& center) {
-    if (center == "Solar System Barycenter") {
-      mGuiManager->showNotification("Leaving " + mSolarSystem->pActiveBody.get()->getCenterName(),
-          "Now travelling in free space.", "star");
-    } else {
-      mGuiManager->showNotification(
-          "Approaching " + mSolarSystem->pActiveBody.get()->getCenterName(),
-          "Position is locked to " + mSolarSystem->pActiveBody.get()->getCenterName() + ".",
-          "public");
+  mSettings->mObserver.pCenter.connectAndTouch([this](std::string const& center) {
+    if (mSolarSystem->pActiveBody.get() != nullptr) {
+      if (center == "Solar System Barycenter") {
+        mGuiManager->showNotification("Leaving " + mSolarSystem->pActiveBody.get()->getCenterName(),
+            "Now travelling in free space.", "star");
+      } else {
+        mGuiManager->showNotification(
+            "Approaching " + mSolarSystem->pActiveBody.get()->getCenterName(),
+            "Position is locked to " + mSolarSystem->pActiveBody.get()->getCenterName() + ".",
+            "public");
+      }
     }
     mGuiManager->getGui()->executeJavascript(
         fmt::format("CosmoScout.state.activePlanetCenter = '{}';", center));
   });
 
   // Show notification when the frame name of the celestial observer changes.
-  mSettings->mObserver.pFrame.connect([this](std::string const& frame) {
-    if (frame == "J2000") {
-      mGuiManager->showNotification(
-          "Stop tracking " + mSolarSystem->pActiveBody.get()->getCenterName(),
-          "Orbit is not synced anymore.", "vpn_lock");
-    } else {
-      mGuiManager->showNotification("Tracking " + mSolarSystem->pActiveBody.get()->getCenterName(),
-          "Orbit in sync with " + mSolarSystem->pActiveBody.get()->getCenterName() + ".",
-          "vpn_lock");
+  mSettings->mObserver.pFrame.connectAndTouch([this](std::string const& frame) {
+    if (mSolarSystem->pActiveBody.get() != nullptr) {
+      if (frame == "J2000") {
+        mGuiManager->showNotification(
+            "Stop tracking " + mSolarSystem->pActiveBody.get()->getCenterName(),
+            "Orbit is not synced anymore.", "vpn_lock");
+      } else {
+        mGuiManager->showNotification(
+            "Tracking " + mSolarSystem->pActiveBody.get()->getCenterName(),
+            "Orbit in sync with " + mSolarSystem->pActiveBody.get()->getCenterName() + ".",
+            "vpn_lock");
+      }
     }
     mGuiManager->getGui()->executeJavascript(
         fmt::format("CosmoScout.state.activePlanetFrame = '{}';", frame));
+  });
+
+  // Set the observer position state.
+  mSettings->mObserver.pPosition.connectAndTouch([this](glm::dvec3 const& p) {
+    mGuiManager->getGui()->executeJavascript(
+        fmt::format("CosmoScout.state.observerPosition = [{}, {}, {}];", p.x, p.y, p.z));
+  });
+
+  // Set the observer rotation state.
+  mSettings->mObserver.pRotation.connectAndTouch([this](glm::dquat const& r) {
+    mGuiManager->getGui()->executeJavascript(
+        fmt::format("CosmoScout.state.observerRotation = [{}, {}, {}, {}];", r.x, r.y, r.z, r.w));
   });
 
   // Show the current speed of the celestial observer in the user interface.
