@@ -1180,10 +1180,15 @@ void Application::registerGuiCallbacks() {
   // Sets the current simulation time. The argument must be a string accepted by
   // TimeControl::setTime.
   mGuiManager->getGui()->registerCallback("time.setDate",
-      "Sets the current simulation time. Format must be in the format '2002-01-20 23:59:59.000'.",
-      std::function([this](std::string&& sDate) {
+      "Sets the current simulation time. Format must be in the format '2002-01-20 23:59:59.000'. "
+      "If the absolute difference to the current simulation time is lower than the given threshold "
+      "(optionalDouble2, default is 172800s which is 48h), there will be a transition of the given "
+      "duration (optionalDouble, default is 0s).",
+      std::function([this](std::string&& sDate, std::optional<double> duration,
+                        std::optional<double> threshold) {
         double time = cs::utils::convert::toSpiceTime(boost::posix_time::time_from_string(sDate));
-        mTimeControl->setTime(time);
+        double const twoDays = 48 * 60 * 60;
+        mTimeControl->setTime(time, duration.value_or(0.0), threshold.value_or(twoDays));
       }));
 
   // Sets the current simulation time. The argument must be a double representing Barycentric
