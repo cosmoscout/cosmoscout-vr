@@ -612,7 +612,7 @@
   }
 }
 
-#event-tooltip-container {
+#timeline-bookmark-tooltip-container {
   position: absolute;
   z-index: 9;
   opacity: 0;
@@ -623,8 +623,8 @@
   animation: pointer-events-off 0.4s linear;
 }
 
-#event-tooltip-container:hover,
-#event-tooltip-container.visible {
+#timeline-bookmark-tooltip-container:hover,
+#timeline-bookmark-tooltip-container.visible {
   transition-delay: 0.2s;
   animation: pointer-events-on 0.2s linear;
   opacity: 1;
@@ -639,27 +639,27 @@
   box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
 }
 
-#event-tooltip-header {
+#timeline-bookmark-tooltip-header {
   display: flex;
 }
 
-#event-tooltip-header i {
+#timeline-bookmark-tooltip-header i {
   padding: 3px;
   font-size: 18pt;
 }
 
-#event-tooltip-name {
+#timeline-bookmark-tooltip-name {
   padding: 5px 10px;
   flex-grow: 1;
   font-size: 1.1rem;
 }
 
-#event-tooltip-description {
+#timeline-bookmark-tooltip-description {
   padding: 0 10px 10px 10px;
   font-size: 0.9rem;
 }
 
-#event-tooltip-arrow {
+#timeline-bookmark-tooltip-arrow {
   width: 0;
   height: 0;
   border-left: 5px solid transparent;

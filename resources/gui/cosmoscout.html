@@ -523,17 +523,17 @@
         <div class="row mb-2">
           <div class="col-6">
             <input type="text" placeholder="Bookmark Name" class="form-control"
-              id="event-dialog-name">
+              id="bookmark-editor-name">
           </div>
           <div class="col-6">
-            <input type="text" class="form-control color-input" id="event-dialog-color">
+            <input type="text" class="form-control color-input" id="bookmark-editor-color">
           </div>
         </div>
 
         <div class="row mb-3">
           <div class="col-12">
             <input type="text" placeholder="Description" class="form-control"
-              id="event-dialog-description">
+              id="bookmark-editor-description">
             <small class="form-text text-muted">The name is required, the description is
               optional.</small>
           </div>
@@ -543,7 +543,7 @@
           <div class="col-6">
             <div class="input-group">
               <input type="text" placeholder="Start Date" class="form-control"
-                id="event-dialog-start-date">
+                id="bookmark-editor-start-date">
               <div class="input-group-append">
                 <button class="btn glass" type="button" data-toggle="tooltip"
                   title="Use current time"><i class="material-icons">update</i></button>
@@ -553,7 +553,7 @@
           <div class="col-6">
             <div class=" input-group">
               <input type="text" placeholder="End Date" class="form-control"
-                id="event-dialog-end-date">
+                id="bookmark-editor-end-date">
               <div class="input-group-append">
                 <button class="btn glass" type="button" data-toggle="tooltip"
                   title="Use current time"><i class="material-icons">update</i></button>
@@ -569,8 +569,9 @@
 
         <div class="row mb-2">
           <div class="col-12 input-group">
-            <input type="text" placeholder="Center" class="form-control" id="event-dialog-planet">
-            <input type="text" placeholder="Frame" class="form-control" id="event-dialog-location">
+            <input type="text" placeholder="Center" class="form-control"
+              id="bookmark-editor-center">
+            <input type="text" placeholder="Frame" class="form-control" id="bookmark-editor-frame">
             <div class="input-group-append">
               <button class="btn glass" type="button" data-toggle="tooltip"
                 title="Use current Planet"><i class="material-icons">my_location</i></button>
@@ -580,9 +581,12 @@
 
         <div class="row mb-2">
           <div class="col-12 input-group">
-            <input type="text" class="form-control" placeholder="LocX">
-            <input type="text" class="form-control" placeholder="LocY">
-            <input type="text" class="form-control" placeholder="LocZ">
+            <input id="bookmark-editor-location-x" type="text" class="form-control"
+              placeholder="LocX">
+            <input id="bookmark-editor-location-y" type="text" class="form-control"
+              placeholder="LocY">
+            <input id="bookmark-editor-location-z" type="text" class="form-control"
+              placeholder="LocZ">
             <div class="input-group-append">
               <button class="btn glass" type="button" data-toggle="tooltip"
                 title="Use current position"><i class="material-icons">my_location</i></button>
@@ -592,10 +596,14 @@
 
         <div class="row mb-2">
           <div class="col-12 input-group">
-            <input type="text" class="form-control" placeholder="RotX">
-            <input type="text" class="form-control" placeholder="RotY">
-            <input type="text" class="form-control" placeholder="RotZ">
-            <input type="text" class="form-control" placeholder="RotW">
+            <input id="bookmark-editor-rotation-x" type="text" class="form-control"
+              placeholder="RotX">
+            <input id="bookmark-editor-rotation-y" type="text" class="form-control"
+              placeholder="RotY">
+            <input id="bookmark-editor-rotation-z" type="text" class="form-control"
+              placeholder="RotZ">
+            <input id="bookmark-editor-rotation-w" type="text" class="form-control"
+              placeholder="RotW">
             <div class="input-group-append">
               <button class="btn glass" type="button" data-toggle="tooltip"
                 title="Use current rotation"><i class="material-icons">my_location</i></button>
@@ -614,7 +622,7 @@
       <div class="window-action-area">
         <div class="row mb-2">
           <div class="col-12">
-            <button class="btn glass block" id="event-dialog-apply-button">Save</button>
+            <button class="btn glass block" id="bookmark-editor-save-button">Save</button>
           </div>
         </div>
       </div>
@@ -622,25 +630,25 @@
 
     <!-- Timeline bookmark tooltip -->
 
-    <div id="event-tooltip-container">
-      <div id="event-tooltip-arrow"></div>
+    <div id="timeline-bookmark-tooltip-container">
+      <div id="timeline-bookmark-tooltip-arrow"></div>
       <div id="event-tooltip">
-        <div id="event-tooltip-header">
-          <span id="event-tooltip-name"> Name </span>
-          <a id="event-tooltip-edit" class="btn light-glass" data-toggle="tooltip"
+        <div id="timeline-bookmark-tooltip-header">
+          <span id="timeline-bookmark-tooltip-name"> Name </span>
+          <a id="timeline-bookmark-tooltip-edit" class="btn light-glass" data-toggle="tooltip"
             title="Edit event">
             <i class="material-icons">edit</i>
           </a>
-          <a id="event-tooltip-goto-time" class="btn light-glass" data-toggle="tooltip"
+          <a id="timeline-bookmark-tooltip-goto-time" class="btn light-glass" data-toggle="tooltip"
             title="Go to event time">
             <i class="material-icons">update</i>
           </a>
-          <a id="event-tooltip-goto-location" class="btn light-glass" data-toggle="tooltip"
-            title="Got to event location">
+          <a id="timeline-bookmark-tooltip-goto-location" class="btn light-glass"
+            data-toggle="tooltip" title="Got to event location">
             <i class="material-icons">pin_drop</i>
           </a>
         </div>
-        <div id="event-tooltip-description">Description</div>
+        <div id="timeline-bookmark-tooltip-description">Description</div>
       </div>
     </div>
 

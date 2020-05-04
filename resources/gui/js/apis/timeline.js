@@ -159,16 +159,6 @@ class TimelineApi extends IApi {
 
   _timelineContainer;
 
-  _editingDoneOptions = {
-    editable: {
-      add: true,            // add new items by double tapping
-      updateTime: false,    // drag items horizontally
-      updateGroup: false,   // drag items from one group to another
-      remove: false,        // delete an item by tapping the delete button top right
-      overrideItems: false, // allow these options to override item.editable
-    },
-  };
-
   _firstSliderValue = true;
 
   _rightTimeId = 'rightTime';
@@ -179,8 +169,6 @@ class TimelineApi extends IApi {
 
   _timelineRangeFactor = 100000;
 
-  _hoveredEventData;
-
   _lastPlayValue = 1;
 
   _timelineZoomBlocked = true;
@@ -190,8 +178,6 @@ class TimelineApi extends IApi {
   _minRangeFactor = 5;
 
   _maxRangeFactor = 100000000;
-
-  _wrongInputStyle = '2px solid red';
 
   _overviewVisible = false;
 
@@ -356,31 +342,6 @@ class TimelineApi extends IApi {
     if (notification.length > 0) {
       CosmoScout.notifications.print(...notification);
     }
-  }
-
-  /**
-   * Extracts the needed information out of the human readable place string
-   * and calls fly_to_location for the given location.
-   *
-   * @param direct {boolean}
-   * @param planet {string}
-   * @param place {string} Location string in the form of '3.635° E 26.133° S 10.0 Tsd km'
-   * @param name {string}
-   */
-  travelTo(direct, planet, place, name) {
-    const placeArr = place.split(' ');
-
-    const animationTime = direct ? 0 : 5;
-    const location      = {
-      longitude: this._parseLongitude(placeArr[0], placeArr[1]),
-      latitude: this._parseLatitude(placeArr[2], placeArr[3]),
-      height: this._parseHeight(placeArr[4], placeArr[5]),
-      name,
-    };
-
-    CosmoScout.callbacks.navigation.setBodyLongLatHeightDuration(
-        planet, location.longitude, location.latitude, location.height, animationTime);
-    CosmoScout.notifications.print('Travelling', `to ${location.name}`, 'send');
   }
 
   /**
@@ -552,17 +513,11 @@ class TimelineApi extends IApi {
     document.getElementById('speed-increase-button')
         .addEventListener('click', this._increaseSpeed.bind(this));
 
-    document.getElementById('event-tooltip-goto-location')
-        .addEventListener('click', this._travelToItemLocation.bind(this));
-
     document.getElementById('time-reset-button')
         .addEventListener('click', this._resetTime.bind(this));
 
     document.getElementsByClassName('range-label')[0].addEventListener(
         'mousedown', this._rangeUpdateCallback.bind(this));
-
-    document.getElementById('event-dialog-apply-button')
-        .addEventListener('click', this._applyEvent.bind(this));
 
     document.getElementById('expand-button')
         .addEventListener('click', this._toggleOverview.bind(this));
@@ -601,81 +556,6 @@ class TimelineApi extends IApi {
 
     document.getElementById('decreaseControl').onmouseenter = enterTimeButtons;
     document.getElementById('decreaseControl').onmouseleave = leaveTimeButtons;
-  }
-
-  /**
-   * Flies the observer to the location of the hovered item
-   * @private
-   */
-  _travelToItemLocation() {
-    this.travelTo(false, this._hoveredEventData.planet, this._hoveredEventData.place,
-        this._hoveredEventData.content);
-  }
-
-  _applyEvent() {
-    /* TODO Just add a class to the parent element to indicate wrong state */
-    if (document.getElementById('event-dialog-name').value !== '' &&
-        document.getElementById('event-dialog-start-date').value !== '' &&
-        document.getElementById('event-dialog-description').value !== '') {
-      document.getElementById('event-dialog-name').style.border        = '';
-      document.getElementById('event-dialog-start-date').style.border  = '';
-      document.getElementById('event-dialog-description').style.border = '';
-      this._parHolder.item.style =
-          `border-color: ${document.getElementById('event-dialog-color').value}`;
-      this._parHolder.item.content = document.getElementById('event-dialog-name').value;
-      this._parHolder.item.start =
-          new Date(document.getElementById('event-dialog-start-date').value);
-      this._parHolder.item.description = document.getElementById('event-dialog-description').value;
-      if (document.getElementById('event-dialog-end-date').value !== '') {
-        this._parHolder.item.end = new Date(document.getElementById('event-dialog-end-date').value);
-        const diff               = this._parHolder.item.start - this._parHolder.item.end;
-        if (diff >= 0) {
-          this._parHolder.item.end                                      = null;
-          document.getElementById('event-dialog-end-date').style.border = this._wrongInputStyle;
-          return;
-        }
-        document.getElementById('event-dialog-end-date').style.border = '';
-      }
-      this._parHolder.item.planet = document.getElementById('event-dialog-planet').value;
-      this._parHolder.item.place  = document.getElementById('event-dialog-location').value;
-      if (this._parHolder.item.id == null) {
-        this._parHolder.item.id =
-            this._parHolder.item.content + this._parHolder.item.start + this._parHolder.item.end;
-        this._parHolder.item.id = this._parHolder.item.id.replace(/\s/g, '');
-      }
-      if (this._parHolder.overview) {
-        this._parHolder.item.className = `overview-event ${this._parHolder.item.id}`;
-      } else {
-        this._parHolder.item.className = `event ${this._parHolder.item.id}`;
-      }
-      this._parHolder.callback(this._parHolder.item); // send back adjusted new item
-      document.getElementById('bookmark-editor').style.display = 'none';
-      this._timeline.setOptions(this._editingDoneOptions);
-      this._overviewTimeline.setOptions(this._editingDoneOptions);
-      if (this._parHolder.overview) {
-        this._parHolder.item.className = `event ${this._parHolder.item.id}`;
-        this._items.update(this._parHolder.item);
-      } else {
-        this._parHolder.item.className = `overview-event ${this._parHolder.item.id}`;
-        this._itemsOverview.update(this._parHolder.item);
-      }
-    } else {
-      if (document.getElementById('event-dialog-name').value === '') {
-        document.getElementById('event-dialog-name').style.border = this._wrongInputStyle;
-      } else {
-        document.getElementById('event-dialog-name').style.border = '';
-      }
-      if (document.getElementById('event-dialog-start-date').value === '') {
-        document.getElementById('event-dialog-start-date').style.border = this._wrongInputStyle;
-      } else {
-        document.getElementById('event-dialog-start-date').style.border = '';
-      }
-      if (document.getElementById('event-dialog-description').value === '') {
-        document.getElementById('event-dialog-description').style.border = this._wrongInputStyle;
-      } else {
-        document.getElementById('event-dialog-description').style.border = '';
-      }
-    }
   }
 
   _toggleOverview() {
@@ -882,7 +762,7 @@ class TimelineApi extends IApi {
     const element = properties.event.toElement;
 
     if (element !== null) {
-      document.getElementById('event-tooltip-container').classList.remove('visible');
+      document.getElementById('timeline-bookmark-tooltip-container').classList.remove('visible');
     }
   }
 
@@ -922,14 +802,13 @@ class TimelineApi extends IApi {
    * @private
    */
   _itemOverCallback(properties, overview) {
-    document.getElementById('event-tooltip-container').classList.add('visible');
+    document.getElementById('timeline-bookmark-tooltip-container').classList.add('visible');
 
     let eventData = this._items._data[properties.item];
 
-    document.getElementById('event-tooltip-name').innerHTML        = eventData.name;
-    document.getElementById('event-tooltip-description').innerHTML = eventData.description;
-
-    this._hoveredEventData = eventData;
+    document.getElementById('timeline-bookmark-tooltip-name').innerHTML = eventData.name;
+    document.getElementById('timeline-bookmark-tooltip-description').innerHTML =
+        eventData.description;
 
     let eventDiv;
     if (overview) {
@@ -944,10 +823,10 @@ class TimelineApi extends IApi {
     const center       = eventRect.left + eventRect.width / 2;
     const left =
         Math.max(0, Math.min(document.body.offsetWidth - tooltipWidth, center - tooltipWidth / 2));
-    document.getElementById('event-tooltip-container').style.top =
+    document.getElementById('timeline-bookmark-tooltip-container').style.top =
         `${eventRect.bottom + arrowWidth}px`;
-    document.getElementById('event-tooltip-container').style.left = `${left}px`;
-    document.getElementById('event-tooltip-arrow').style.left =
+    document.getElementById('timeline-bookmark-tooltip-container').style.left = `${left}px`;
+    document.getElementById('timeline-bookmark-tooltip-arrow').style.left =
         `${center - left - arrowWidth / 2}px`;
   }
 
@@ -1149,8 +1028,6 @@ class TimelineApi extends IApi {
         }
 
         CosmoScout.callbacks.time.addHours(hoursDif, 3.0);
-        this.travelTo(true, this._items._data[item].planet, this._items._data[item].place,
-            this._items._data[item].content);
       }
     }
   }
@@ -1173,75 +1050,6 @@ class TimelineApi extends IApi {
         hoursDif += 1;
       }
       CosmoScout.callbacks.time.addHours(hoursDif, 3.0);
-    }
-  }
-
-  /**
-   * Parses a latitude string for travelTo
-   *
-   * @see {travelTo}
-   * @param lat {string}
-   * @param half {string}
-   * @return {number}
-   * @private
-   */
-  _parseLatitude(lat, half) {
-    let latitude = parseFloat(lat);
-    if (half === 'S') {
-      latitude = -latitude;
-    }
-
-    return latitude;
-  }
-
-  /**
-   * Parses a longitude string for travelTo
-   *
-   * @see {travelTo}
-   * @param lon {string}
-   * @param half {string}
-   * @return {number}
-   * @private
-   */
-  _parseLongitude(lon, half) {
-    let longitude = parseFloat(lon);
-    if (half === 'W') {
-      longitude = -longitude;
-    }
-
-    return longitude;
-  }
-
-  /**
-   * Parses a height string
-   *
-   * @param heightStr {string}
-   * @param unit {string}
-   * @return {number}
-   * @private
-   */
-  _parseHeight(heightStr, unit) {
-    const height = parseFloat(heightStr);
-
-    switch (unit) {
-    case 'mm':
-      return height / 1000;
-    case 'cm':
-      return height / 100;
-    case 'm':
-      return height;
-    case 'km':
-      return height * 1e3;
-    case 'Tsd':
-      return height * 1e6;
-    case 'AU':
-      return height * 1.496e11;
-    case 'ly':
-      return height * 9.461e15;
-    case 'pc':
-      return height * 3.086e16;
-    default:
-      return height * 3.086e19;
     }
   }
 }

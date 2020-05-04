@@ -795,7 +795,7 @@ hr {
   opacity: 0;
   transition: opacity 0.2s ease-out;
   pointer-events: none;
-  background: rgba(20, 20, 20, 0.8);
+  background: rgba(10, 10, 10, 0.9);
   border: 2px solid var(--cs-border-color);
   border-radius: 5px;
   box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
