@@ -78,12 +78,7 @@
 #sidebar .card-header i {
   position: absolute;
   left: 9px;
-  font-size: 35px;
-  top: 10px;
-  width: 2rem;
-  margin-right: 1rem;
-  display: inline-block;
-  text-align: center;
+  top: 5px;
 }
 
 #sidebar .card .card-body {
@@ -132,9 +127,8 @@
 
 #sidebar .settings-section .card-header i {
   width: 2rem;
-  font-size: 1.6rem;
   display: inline-block;
-  line-height: 2rem;
+  top: 7px;
 }
 
 #sidebar .settings-section .card-header span {

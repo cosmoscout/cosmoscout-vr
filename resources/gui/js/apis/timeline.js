@@ -383,36 +383,6 @@ class TimelineApi extends IApi {
       CosmoScout.calendar.setDate(this._timeline.getCustomTime(this._timeId));
       CosmoScout.calendar.toggle();
     });
-
-    // toggle visibility of the increase / decrease time buttons -----------------------------------
-    function mouseEnterTimeControl() {
-      document.getElementById('increaseControl').classList.add('mouseNear');
-      document.getElementById('decreaseControl').classList.add('mouseNear');
-    }
-
-    function mouseLeaveTimeControl() {
-      document.getElementById('increaseControl').classList.remove('mouseNear');
-      document.getElementById('decreaseControl').classList.remove('mouseNear');
-    }
-
-    function enterTimeButtons() {
-      document.getElementById('increaseControl').classList.add('mouseNear');
-      document.getElementById('decreaseControl').classList.add('mouseNear');
-    }
-
-    function leaveTimeButtons() {
-      document.getElementById('increaseControl').classList.remove('mouseNear');
-      document.getElementById('decreaseControl').classList.remove('mouseNear');
-    }
-
-    document.getElementById('time-control').onmouseenter = mouseEnterTimeControl;
-    document.getElementById('time-control').onmouseleave = mouseLeaveTimeControl;
-
-    document.getElementById('increaseControl').onmouseenter = enterTimeButtons;
-    document.getElementById('increaseControl').onmouseleave = leaveTimeButtons;
-
-    document.getElementById('decreaseControl').onmouseenter = enterTimeButtons;
-    document.getElementById('decreaseControl').onmouseleave = leaveTimeButtons;
   }
 
   _toggleOverview() {
