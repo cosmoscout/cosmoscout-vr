@@ -154,6 +154,7 @@ class BookmarksApi extends IApi {
       if (nameGiven && !(startDateGiven || endDateGiven || centerGiven || frameGiven ||
                            anyLocationGiven || anyRotationGiven)) {
         this._nothingGivenError.style.display = "block";
+        allCorrect                            = false;
       } else {
         this._nothingGivenError.style.display = "none";
       }
@@ -179,7 +180,7 @@ class BookmarksApi extends IApi {
         markInvalid(this._endDateDiv, !this._endDateDiv.value.match(dateRegex), dateError);
       }
 
-      let numRegex = /^[0-9]+(\.[0-9]*)?$/;
+      let numRegex = /^[-+]?[0-9]+(\.[0-9]*)?$/;
       let numError = "Must be a number.";
 
       if (anyLocationGiven) {
@@ -199,6 +200,42 @@ class BookmarksApi extends IApi {
       if (!allCorrect) {
         return;
       }
+
+      // Now create the bookmark!
+      let bookmark = {name: this._nameDiv.value, description: this._descriptionDiv.value};
+
+      if (centerGiven) {
+        bookmark.location = {center: this._centerDiv.value, frame: this._frameDiv.value};
+
+        if (anyLocationGiven) {
+          bookmark.location.position = [
+            parseFloat(this._locationXDiv.value), parseFloat(this._locationYDiv.value),
+            parseFloat(this._locationZDiv.value)
+          ];
+        }
+
+        if (anyRotationGiven) {
+          bookmark.location.rotation = [
+            parseFloat(this._rotationXDiv.value), parseFloat(this._rotationYDiv.value),
+            parseFloat(this._rotationZDiv.value), parseFloat(this._rotationWDiv.value)
+          ];
+        }
+      }
+
+      if (startDateGiven) {
+        bookmark.time = {start: this._startDateDiv.value};
+
+        if (endDateGiven) {
+          bookmark.time.end = this._endDateDiv.value;
+        }
+      }
+
+      let color      = CP.HEX(this._colorDiv.value);
+      bookmark.color = [color[0] / 255.0, color[1] / 255.0, color[2] / 255.0];
+
+      CosmoScout.callbacks.bookmark.add(JSON.stringify(bookmark));
+
+      this.toggle();
     });
   }
 

@@ -183,11 +183,12 @@ class CS_CORE_EXPORT Settings {
   /// a period in time.
   struct Bookmark {
 
-    /// The location of a bookmark is defined by SPICE anchor, a cartesian position and an optional
-    /// rotation.
+    /// The location of a bookmark is defined by a SPICE anchor, an optional cartesian position and
+    /// an optional rotation.
     struct Location {
-      std::string               mAnchor;
-      glm::dvec3                mPosition;
+      std::string               mCenter;
+      std::string               mFrame;
+      std::optional<glm::dvec3> mPosition;
       std::optional<glm::dquat> mRotation;
     };
 
@@ -202,10 +203,10 @@ class CS_CORE_EXPORT Settings {
     /// idea to keep this unique amongst the bookmarks for an anchor.
     std::string mName;
 
-    /// Plugins may show the description. This can be a longer text.
+    /// This can be a longer text.
     std::optional<std::string> mDescription;
 
-    /// Plugins may use this to visually highlight different types of bookmarks.
+    /// You may use this to visually highlight different types of bookmarks.
     std::optional<glm::vec3> mColor;
 
     /// Location and Time are both optional, but omitting both results in a pretty useless bookmark.
@@ -474,6 +475,29 @@ class CS_CORE_EXPORT Settings {
   mutable utils::Signal<> mOnLoad;
   mutable utils::Signal<> mOnSave;
 };
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+CS_CORE_EXPORT void from_json(nlohmann::json const& j, Settings::Anchor& o);
+CS_CORE_EXPORT void to_json(nlohmann::json& j, Settings::Anchor const& o);
+CS_CORE_EXPORT void from_json(nlohmann::json const& j, Settings::GuiPosition& o);
+CS_CORE_EXPORT void to_json(nlohmann::json& j, Settings::GuiPosition const& o);
+CS_CORE_EXPORT void from_json(nlohmann::json const& j, Settings::Observer& o);
+CS_CORE_EXPORT void to_json(nlohmann::json& j, Settings::Observer const& o);
+CS_CORE_EXPORT void from_json(nlohmann::json const& j, Settings::Bookmark::Location& o);
+CS_CORE_EXPORT void to_json(nlohmann::json& j, Settings::Bookmark::Location const& o);
+CS_CORE_EXPORT void from_json(nlohmann::json const& j, Settings::Bookmark::Time& o);
+CS_CORE_EXPORT void to_json(nlohmann::json& j, Settings::Bookmark::Time const& o);
+CS_CORE_EXPORT void from_json(nlohmann::json const& j, Settings::Bookmark& o);
+CS_CORE_EXPORT void to_json(nlohmann::json& j, Settings::Bookmark const& o);
+CS_CORE_EXPORT void from_json(nlohmann::json const& j, Settings::DownloadData& o);
+CS_CORE_EXPORT void to_json(nlohmann::json& j, Settings::DownloadData const& o);
+CS_CORE_EXPORT void from_json(nlohmann::json const& j, Settings::SceneScale& o);
+CS_CORE_EXPORT void to_json(nlohmann::json& j, Settings::SceneScale const& o);
+CS_CORE_EXPORT void from_json(nlohmann::json const& j, Settings::Graphics& o);
+CS_CORE_EXPORT void to_json(nlohmann::json& j, Settings::Graphics const& o);
+CS_CORE_EXPORT void from_json(nlohmann::json const& j, Settings& o);
+CS_CORE_EXPORT void to_json(nlohmann::json& j, Settings const& o);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 

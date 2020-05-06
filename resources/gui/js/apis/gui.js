@@ -137,8 +137,7 @@ class GuiApi extends IApi {
         pickerDiv.picker.on('change', (r, g, b, a) => {
           const color                = CP.HEX([r, g, b, 1]);
           pickerDiv.style.background = color;
-
-          pickerDiv.value = color;
+          pickerDiv.value            = color;
         });
 
         pickerDiv.oninput = (e) => {

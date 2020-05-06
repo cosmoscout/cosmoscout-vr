@@ -1171,6 +1171,24 @@ void Application::registerGuiCallbacks() {
   mSettings->mGraphics.pEnableVsync.connectAndTouch(
       [this](bool enable) { mGuiManager->setCheckboxValue("graphics.setEnableVsync", enable); });
 
+  // Bookmark callbacks ----------------------------------------------------------------------------
+
+  // Remove bookmarks.
+  mGuiManager->getGui()->registerCallback("bookmark.remove",
+      "Removes the bookmark with the given ID.", std::function([this](double bookmarkID) {
+        mGuiManager->removeBookmark(static_cast<uint32_t>(bookmarkID));
+      }));
+
+  // Add new bookmarks.
+  mGuiManager->getGui()->registerCallback("bookmark.add",
+      "Adds a new bookmark. The parameter is a JSON string as in CosmoScout's settings.",
+      std::function([this](std::string&& jsonString) {
+        cs::core::Settings::Bookmark bookmark;
+        auto                         json = nlohmann::json::parse(jsonString);
+        json.get_to(bookmark);
+        mGuiManager->addBookmark(bookmark);
+      }));
+
   // Timeline callbacks ----------------------------------------------------------------------------
 
   // Sets the current simulation time. The argument must be a string accepted by

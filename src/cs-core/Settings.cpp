@@ -93,13 +93,15 @@ void to_json(nlohmann::json& j, Settings::Observer const& o) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void from_json(nlohmann::json const& j, Settings::Bookmark::Location& o) {
-  Settings::deserialize(j, "anchor", o.mAnchor);
+  Settings::deserialize(j, "center", o.mCenter);
+  Settings::deserialize(j, "frame", o.mFrame);
   Settings::deserialize(j, "position", o.mPosition);
   Settings::deserialize(j, "rotation", o.mRotation);
 }
 
 void to_json(nlohmann::json& j, Settings::Bookmark::Location const& o) {
-  Settings::serialize(j, "anchor", o.mAnchor);
+  Settings::serialize(j, "center", o.mCenter);
+  Settings::serialize(j, "frame", o.mFrame);
   Settings::serialize(j, "position", o.mPosition);
   Settings::serialize(j, "rotation", o.mRotation);
 }
