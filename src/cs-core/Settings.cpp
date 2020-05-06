@@ -369,20 +369,19 @@ std::pair<double, double> Settings::Anchor::getExistence() const {
   std::pair<double, double> result;
 
   try {
-    result.first =
-        utils::convert::toSpiceTime(boost::posix_time::time_from_string(mStartExistence));
+    result.first = utils::convert::time::toSpice(mStartExistence);
   } catch (std::exception const&) {
-    throw std::runtime_error("Failed to parse the 'startExistence' property of the anchor '" +
-                             mCenter +
-                             "'. The dates should be given in the format: 1969-07-20 20:17:40.000");
+    throw std::runtime_error(
+        "Failed to parse the 'startExistence' property of the anchor '" + mCenter +
+        "'. The dates should be given in the format: 1969-07-20T20:17:40.000Z");
   }
 
   try {
-    result.second = utils::convert::toSpiceTime(boost::posix_time::time_from_string(mEndExistence));
+    result.second = utils::convert::time::toSpice(mEndExistence);
   } catch (std::exception const&) {
-    throw std::runtime_error("Failed to parse the 'endExistence' property of the anchor '" +
-                             mCenter +
-                             "'. The dates should be given in the format: 1969-07-20 20:17:40.000");
+    throw std::runtime_error(
+        "Failed to parse the 'endExistence' property of the anchor '" + mCenter +
+        "'. The dates should be given in the format: 1969-07-20T20:17:40.000Z");
   }
 
   return result;

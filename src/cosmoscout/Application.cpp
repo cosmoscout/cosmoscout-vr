@@ -101,9 +101,6 @@ bool Application::Init(VistaSystem* pVistaSystem) {
   pNodeFactory->SetNodeCreator( // NOLINTNEXTLINE: TODO is this a memory leak?
       "GetSelectionStateNode", new GetSelectionStateNodeCreate(mInputManager.get()));
 
-  // This connects several parts of CosmoScout VR to each other.
-  connectSlots();
-
   // Setup user interface callbacks.
   registerGuiCallbacks();
 
@@ -350,6 +347,9 @@ void Application::FrameUpdate() {
       Quit();
     }
 
+    // Now that SPICE is loaded, we can connect several parts of the application together.
+    connectSlots();
+
     // Store the frame at which we should start loading the plugins.
     mStartPluginLoadingAtFrame = GetFrameCount();
   }
@@ -512,7 +512,9 @@ void Application::FrameUpdate() {
     cs::utils::FrameTimings::ScopedTimer timer("User Interface");
 
     // Call update on all APIs
-    mGuiManager->getGui()->callJavascript("CosmoScout.update");
+    if (mLoadedAllPlugins) {
+      mGuiManager->getGui()->callJavascript("CosmoScout.update");
+    }
 
     if (mSolarSystem->pActiveBody.get()) {
 
@@ -779,15 +781,9 @@ void Application::connectSlots() {
 
   // Update the time shown in the user interface when the simulation time changes.
   mTimeControl->pSimulationTime.connectAndTouch([this](double val) {
-    std::stringstream sstr;
-
-    // NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
-    auto* facet = new boost::posix_time::time_facet();
-    facet->format("%Y-%m-%d %H:%M:%S.%f");
-    sstr.imbue(std::locale(std::locale::classic(), facet));
-    sstr << cs::utils::convert::toBoostTime(val);
     mGuiManager->getGui()->executeJavascript(
-        fmt::format("CosmoScout.state.simulationTime = '{}';", sstr.str()));
+        fmt::format("CosmoScout.state.simulationTime = new Date('{}');",
+            cs::utils::convert::time::toString(val)));
   });
 
   // Update the simulation time speed shown in the user interface.
@@ -1180,13 +1176,13 @@ void Application::registerGuiCallbacks() {
   // Sets the current simulation time. The argument must be a string accepted by
   // TimeControl::setTime.
   mGuiManager->getGui()->registerCallback("time.setDate",
-      "Sets the current simulation time. Format must be in the format '2002-01-20 23:59:59.000'. "
+      "Sets the current simulation time. Format must be in the format '2002-01-20T23:59:59.000Z'. "
       "If the absolute difference to the current simulation time is lower than the given threshold "
       "(optionalDouble2, default is 172800s which is 48h), there will be a transition of the given "
       "duration (optionalDouble, default is 0s).",
       std::function([this](std::string&& sDate, std::optional<double> duration,
                         std::optional<double> threshold) {
-        double time = cs::utils::convert::toSpiceTime(boost::posix_time::time_from_string(sDate));
+        double       time    = cs::utils::convert::time::toSpice(sDate);
         double const twoDays = 48 * 60 * 60;
         mTimeControl->setTime(time, duration.value_or(0.0), threshold.value_or(twoDays));
       }));

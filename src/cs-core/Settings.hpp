@@ -132,9 +132,9 @@ class CS_CORE_EXPORT Settings {
 
   // -----------------------------------------------------------------------------------------------
 
-  /// Defines the initial simulation time. Should be either "today" or in the format "1950-01-02
-  /// 00:00:00.000". When the settings are saved, mStartDate will be set to "today" if the current
-  /// simulation time is very similar to the actual system time.
+  /// Defines the initial simulation time. Should be either "today" or in the format
+  /// "1950-01-02T00:00:00.000Z". When the settings are saved, mStartDate will be set to "today" if
+  /// the current simulation time is very similar to the actual system time.
   std::string mStartDate;
 
   /// When the simulation time is resetted, this date will be used. Should be either "today" or in
@@ -142,7 +142,7 @@ class CS_CORE_EXPORT Settings {
   std::string mResetDate;
 
   /// Defines the min and max date on the timebar. Changing these values will be directly reflected
-  /// in the user interface. Should be in the format "1950-01-02 00:00:00.000".
+  /// in the user interface. Should be in the format "1950-01-02T00:00:00.000Z".
   utils::Property<std::string> pMinDate;
   utils::Property<std::string> pMaxDate;
 

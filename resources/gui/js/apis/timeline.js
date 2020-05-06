@@ -231,12 +231,8 @@ class TimelineApi extends IApi {
    * @param date {Date or string}
    */
   setDate(date) {
-    if (!(date instanceof Date)) {
-      date = new Date(date);
-    }
-
     if (isNaN(date.getTime())) {
-      console.warning(`Failed to parse simulation time string: '${dateString}'!`);
+      console.warn("Invalid date given to timeline!");
     } else {
       this._centerTime = date;
       this._timeline.moveTo(this._centerTime, {
@@ -244,8 +240,9 @@ class TimelineApi extends IApi {
       });
       this._timeline.setCustomTime(this._centerTime, this._timeId);
       this._updateOverviewLens();
-      document.getElementById('date-label').innerText =
-          CosmoScout.utils.formatDateReadable(this._centerTime);
+
+      let dateText = this._centerTime.toISOString().replace('T', ' ').slice(0, 19);
+      document.getElementById('date-label').innerText = dateText;
     }
   }
 
@@ -318,27 +315,27 @@ class TimelineApi extends IApi {
 
     switch (type) {
     case 'year':
-      newDate.setFullYear(newDate.getFullYear() + times);
+      newDate.setUTCFullYear(newDate.getUTCFullYear() + times);
       break;
 
     case 'month':
-      newDate.setMonth(newDate.getMonth() + times);
+      newDate.setUTCMonth(newDate.getUTCMonth() + times);
       break;
 
     case 'day':
-      newDate.setDate(newDate.getDate() + times);
+      newDate.setUTCDate(newDate.getUTCDate() + times);
       break;
 
     case 'hour':
-      newDate.setHours(newDate.getHours() + times);
+      newDate.setUTCHours(newDate.getUTCHours() + times);
       break;
 
     case 'minute':
-      newDate.setMinutes(newDate.getMinutes() + times);
+      newDate.setUTCMinutes(newDate.getUTCMinutes() + times);
       break;
 
     case 'second':
-      newDate.setSeconds(newDate.getSeconds() + times);
+      newDate.setUTCSeconds(newDate.getUTCSeconds() + times);
       break;
 
     default:
@@ -348,7 +345,7 @@ class TimelineApi extends IApi {
 
     const diff = newDate.getTime() - oldDate.getTime();
 
-    this._centerTime.setSeconds(diff);
+    this._centerTime.setUTCSeconds(diff);
 
     const hoursDiff = diff / 1000 / 60 / 60;
     CosmoScout.callbacks.time.addHours(hoursDiff);
@@ -723,7 +720,7 @@ class TimelineApi extends IApi {
       this._timeline.setCustomTime(this._centerTime, this._timeId);
       this._updateOverviewLens();
 
-      CosmoScout.callbacks.time.setDate(CosmoScout.utils.formatDateCosmo(this._centerTime));
+      window.callNative("time.setDate", this._centerTime.toISOString());
     }
   }
 
@@ -750,10 +747,9 @@ class TimelineApi extends IApi {
     if (this._dragDistance < 10) {
       if (properties.item != null) {
         let eventData = this._items._data[properties.item];
-        CosmoScout.callbacks.time.setDate(CosmoScout.utils.formatDateCosmo(eventData.start), 3.0);
+        CosmoScout.callbacks.time.setDate(eventData.start.toISOString(), 3.0);
       } else if (properties.time != null) {
-        CosmoScout.callbacks.time.setDate(
-            CosmoScout.utils.formatDateCosmo(new Date(properties.time.getTime())), 3.0);
+        CosmoScout.callbacks.time.setDate(new Date(properties.time.getTime()).toISOString(), 3.0);
       }
     }
   }

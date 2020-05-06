@@ -165,7 +165,8 @@ std::shared_ptr<scene::CelestialBody> SolarSystem::getBody(std::string const& sC
 
 void SolarSystem::update() {
   double simulationTime(mTimeControl->pSimulationTime.get());
-  double realTime(utils::convert::toSpiceTime(boost::posix_time::microsec_clock::universal_time()));
+  double realTime(
+      utils::convert::time::toSpice(boost::posix_time::microsec_clock::universal_time()));
   mObserver.updateMovementAnimation(realTime);
 
   mSun->update(simulationTime, mObserver);
@@ -375,7 +376,7 @@ void SolarSystem::flyObserverTo(std::string const& sCenter, std::string const& s
 
   double simulationTime(mTimeControl->pSimulationTime.get());
   double startTime(
-      utils::convert::toSpiceTime(boost::posix_time::microsec_clock::universal_time()));
+      utils::convert::time::toSpice(boost::posix_time::microsec_clock::universal_time()));
   double endTime(startTime + duration);
 
   if (GetVistaSystem()->GetClusterMode()->GetIsLeader()) {

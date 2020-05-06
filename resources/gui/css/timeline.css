@@ -433,7 +433,7 @@
 #date-label {
   font-size: 20px;
   top: 5px;
-  padding-left: 5px;
+  padding-right: 5px;
   position: relative;
 }
 
@@ -520,22 +520,22 @@
 
 #increase-day-button,
 #decrease-day-button {
-  left: -1px;
+  left: 72px;
 }
 
 #increase-month-button,
 #decrease-month-button {
-  left: 27px;
+  left: 45px;
 }
 
 #increase-year-button,
 #decrease-year-button {
-  left: 65px;
+  left: 7px;
 }
 
 #increase-hour-button,
 #decrease-hour-button {
-  left: 102px;
+  left: 104px;
 }
 
 #increase-minute-button,
@@ -545,7 +545,7 @@
 
 #increase-second-button,
 #decrease-second-button {
-  left: 157px;
+  left: 155px;
 }
 
 #time-control:hover #decreaseControl i,
