@@ -50,8 +50,11 @@
 }
 
 #timeline .vis-item.vis-selected {
-  border-color: rgba(70, 70, 70, 0.308);
-  background-color: rgba(70, 70, 70, .247);
+  border-color: rgba(20, 20, 20, 0.5);
+  background-color: rgba(20, 20, 20, 0.5);
+
+  /* For some reason active items are translate 3 pixels to the left. We compensate for that here. */
+  transform: translateX(3px);
 }
 
 #timeline .vis-item.vis-box,
@@ -140,6 +143,7 @@
   height: 12px !important;
   top: 22px !important;
   border-width: 2px;
+  margin-left: -1px;
 }
 
 #timeline .vis-grid.vis-vertical.vis-major {
@@ -147,6 +151,7 @@
   height: 30px !important;
   top: 4px !important;
   border-width: 2px;
+  margin-left: -1px;
 }
 
 #timeline .vis-panel.vis-center {
@@ -225,13 +230,14 @@
 
 #overview .vis-item.vis-box {
   width: 12px !important;
+  margin-left: 4px;
   transition-property: width, height, margin, top;
 }
 
 #overview .vis-item.vis-box:hover {
   width: 18px !important;
   height: 18px !important;
-  margin-left: -3px;
+  margin-left: 1px;
   top: 10px !important;
 }
 
