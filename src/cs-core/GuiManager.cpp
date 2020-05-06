@@ -291,8 +291,17 @@ uint32_t GuiManager::addBookmark(Settings::Bookmark bookmark) {
   }
 
   if (bookmark.mTime) {
+    // Make sure that the times have the 'Z' at the end to mark them as UTC.
+    auto start = bookmark.mTime.value().mStart;
+    if (start.size() > 0 && start.back() != 'Z') {
+      start += "Z";
+    }
+    auto end = bookmark.mTime.value().mEnd.value_or("");
+    if (end.size() > 0 && end.back() != 'Z') {
+      end += "Z";
+    }
     addTimelineEvent("bookmark-" + std::to_string(newID), bookmark.mName, bookmark.mDescription,
-        bookmark.mTime.value().mStart, bookmark.mTime.value().mEnd, bookmark.mColor);
+        start, end, bookmark.mColor);
   }
 
   mBookmarks.emplace(newID, std::move(bookmark));

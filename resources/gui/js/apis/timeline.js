@@ -39,6 +39,10 @@ class TimelineApi extends IApi {
     stack: false,
     max: new Date(2030, 12),
     min: new Date(1950, 1),
+    moment:
+        function(date) {
+          return vis.moment(date).utc(); // Use UTC
+        },
     zoomable: false,
     moveable: true,
     showCurrentTime: false,
@@ -87,6 +91,11 @@ class TimelineApi extends IApi {
     stack: false,
     max: new Date(2030, 12),
     min: new Date(1950, 1),
+    moment:
+        function(date) {
+          return vis.moment(date).utc(); // Use UTC
+        },
+    zoomMin: 100000, // Do not zoom to milliseconds on the overview timeline
     zoomable: true,
     moveable: true,
     showCurrentTime: false,
@@ -124,7 +133,7 @@ class TimelineApi extends IApi {
   /**
    * Stores one of the values above.
    */
-  _currentSpeed = this._timeSpeedSteps.pause;
+  _currentSpeed = this._timeSpeedSteps.secForward;
 
   /**
    * Used to restore playback state after a timeline drag.

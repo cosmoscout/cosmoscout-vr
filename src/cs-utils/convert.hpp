@@ -81,8 +81,10 @@ CS_UTILS_EXPORT glm::dvec2 normalToLngLat(glm::dvec3 const& normal, double radiu
 
 /// Time in CosmoScout VR is passed around in different formats.
 /// * Strings usually store time in the ISO format YYYY-MM-DDTHH:MM:SS.fffZ. The 'Z' suffix is not
-///   really required as time strings are always considered to be in UTC. This format is also
-///   directly convertible to JavaScript Dates
+///   really required on the C++ side, as time strings are always considered to be in UTC. This
+///   format is also directly convertible to JavaScript Dates, here however the 'Z' is required!
+///   Else the Date object will be in your local time zone. So it's a good practive to always append
+///   the 'Z'.
 /// * boost::posix_time::ptime is used for conversions and is also always in UTC.
 /// * SPICE time is stored in doubles representing Barycentric Dynamical Time (seconds since
 ///   2000-01-01 12:00:00). This however differs from the number of UTC seconds since that date
