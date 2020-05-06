@@ -317,45 +317,33 @@ class TimelineApi extends IApi {
       times = -times;
     }
 
-    const oldDate = new Date(this._centerTime.getTime());
     const newDate = new Date(this._centerTime.getTime());
 
     switch (type) {
     case 'year':
       newDate.setUTCFullYear(newDate.getUTCFullYear() + times);
       break;
-
     case 'month':
       newDate.setUTCMonth(newDate.getUTCMonth() + times);
       break;
-
     case 'day':
       newDate.setUTCDate(newDate.getUTCDate() + times);
       break;
-
     case 'hour':
       newDate.setUTCHours(newDate.getUTCHours() + times);
       break;
-
     case 'minute':
       newDate.setUTCMinutes(newDate.getUTCMinutes() + times);
       break;
-
     case 'second':
       newDate.setUTCSeconds(newDate.getUTCSeconds() + times);
       break;
-
     default:
       console.error('[data-type] not in [year, month, day, hour, second]');
       break;
     }
 
-    const diff = newDate.getTime() - oldDate.getTime();
-
-    this._centerTime.setUTCSeconds(diff);
-
-    const hoursDiff = diff / 1000 / 60 / 60;
-    CosmoScout.callbacks.time.addHours(hoursDiff);
+    CosmoScout.callbacks.time.setDate(newDate.toISOString());
   }
 
   _initEventListener() {
