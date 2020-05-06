@@ -246,19 +246,17 @@ class TimelineApi extends IApi {
     }
   }
 
-  addEvent(id, name, description, start, end, color) {
-    const data = {};
+  addBookmark(id, name, description, start, end, color) {
+    let data   = {};
     data.start = new Date(start);
-    data.id    = id;
     if (end !== '') {
       data.end = new Date(end);
     }
+    data.id          = id;
     data.name        = name;
     data.description = description;
     data.style       = "border-color: " + color;
-    data.className   = `event event-${id}`;
     this._items.update(data);
-    data.className = `overview-event event-${id}`;
     this._itemsOverview.update(data);
   }
 
@@ -354,6 +352,7 @@ class TimelineApi extends IApi {
   _initEventListener() {
     this._timelineContainer.addEventListener('wheel', this._manualZoomTimeline.bind(this), true);
 
+    // Handlers for the year / month / day / hour / ... -up-and-down-buttons.
     document.querySelectorAll('[data-change="time"]').forEach((element) => {
       if (element instanceof HTMLElement) {
         element.addEventListener('click', this._changeTime.bind(this));
@@ -361,75 +360,60 @@ class TimelineApi extends IApi {
       }
     });
 
-    document.getElementById('pause-button').addEventListener('click', this._togglePause.bind(this));
-    document.getElementById('speed-decrease-button')
-        .addEventListener('click', this._decreaseSpeed.bind(this));
-    document.getElementById('speed-increase-button')
-        .addEventListener('click', this._increaseSpeed.bind(this));
+    // Toggle pause.
+    document.getElementById('pause-button').addEventListener('click', () => this._togglePause());
 
-    document.getElementById('time-reset-button')
-        .addEventListener('click', this._resetTime.bind(this));
+    // Handler for speed-decrease button.
+    document.getElementById('speed-decrease-button').addEventListener('click', () => {
+      if (this._timeSpeedSlider.noUiSlider.get() > 0) {
+        this._timeSpeedSlider.noUiSlider.set(-1);
+      } else if (this._currentSpeed === 0) {
+        this._togglePause();
+      } else {
+        this._timeSpeedSlider.noUiSlider.set(this._currentSpeed - 1);
+      }
+    });
 
+    // Handler for speed-increase button.
+    document.getElementById('speed-increase-button').addEventListener('click', () => {
+      if (this._timeSpeedSlider.noUiSlider.get() < 0) {
+        this._timeSpeedSlider.noUiSlider.set(1);
+      } else if (this._currentSpeed === 0) {
+        this._togglePause();
+      } else {
+        this._timeSpeedSlider.noUiSlider.set(this._currentSpeed - (-1));
+      }
+    });
+
+    // Reset timeline state with the reset button.
+    document.getElementById('time-reset-button').addEventListener('click', () => {
+      this._overviewTimeline.setWindow(this._minDate, this._maxDate);
+      this._timeSpeedSlider.noUiSlider.set(1);
+      CosmoScout.callbacks.time.reset(3.0);
+    });
+
+    // Start the simulation time when clicking on the speed slider.
     document.getElementsByClassName('range-label')[0].addEventListener(
         'mousedown', () => this._setSpeed(this._timeSpeedSlider.noUiSlider.get()));
 
-    document.getElementById('expand-button')
-        .addEventListener('click', this._toggleOverview.bind(this));
+    // Toggle the overview with the tiny button on the right.
+    document.getElementById('expand-button').addEventListener('click', () => {
+      this._overviewVisible = !this._overviewVisible;
+      document.getElementById('timeline-container').classList.toggle('overview-visible');
+      if (this._overviewVisible) {
+        document.getElementById('expand-button').innerHTML =
+            '<i class="material-icons">expand_less</i>';
+      } else {
+        document.getElementById('expand-button').innerHTML =
+            '<i class="material-icons">expand_more</i>';
+      }
+    });
 
+    // Show calendar on calender button clicks.
     document.getElementById('calendar-button').addEventListener('click', () => {
       CosmoScout.calendar.setDate(this._timeline.getCustomTime(this._timeId));
       CosmoScout.calendar.toggle();
     });
-  }
-
-  _toggleOverview() {
-    this._overviewVisible = !this._overviewVisible;
-    document.getElementById('timeline-container').classList.toggle('overview-visible');
-    if (this._overviewVisible) {
-      document.getElementById('expand-button').innerHTML =
-          '<i class="material-icons">expand_less</i>';
-    } else {
-      document.getElementById('expand-button').innerHTML =
-          '<i class="material-icons">expand_more</i>';
-    }
-  }
-
-  /**
-   * Rewinds the simulation and increases the speed if the simulation is already running backwards
-   * @private
-   */
-  _decreaseSpeed() {
-    if (this._timeSpeedSlider.noUiSlider.get() > 0) {
-      this._timeSpeedSlider.noUiSlider.set(-1);
-    } else if (this._currentSpeed === 0) {
-      this._togglePause();
-    } else {
-      this._timeSpeedSlider.noUiSlider.set(this._currentSpeed - 1);
-    }
-  }
-
-  /**
-   * Increases the speed of the simulation
-   * @private
-   */
-  _increaseSpeed() {
-    if (this._timeSpeedSlider.noUiSlider.get() < 0) {
-      this._timeSpeedSlider.noUiSlider.set(1);
-    } else if (this._currentSpeed === 0) {
-      this._togglePause();
-    } else {
-      this._timeSpeedSlider.noUiSlider.set(this._currentSpeed - (-1));
-    }
-  }
-
-  /**
-   * Resets the simulation time
-   * @private
-   */
-  _resetTime() {
-    this._overviewTimeline.setWindow(this._minDate, this._maxDate);
-    this._timeSpeedSlider.noUiSlider.set(1);
-    CosmoScout.callbacks.time.reset(3.0);
   }
 
   _togglePause() {
@@ -569,7 +553,7 @@ class TimelineApi extends IApi {
     this._overviewTimeline.on('mouseDown', () => this._dragDistance = 0);
     this._overviewTimeline.on(
         'mouseMove', (e) => this._dragDistance += Math.abs(e.event.movementX));
-    this._overviewTimeline.on('itemover', this._itemOverOverviewCallback.bind(this));
+    this._overviewTimeline.on('itemover', this._itemOverCallback.bind(this));
     this._overviewTimeline.on('itemout', this._itemOutCallback.bind(this));
     this._initialOverviewWindow(new Date(1950, 1), new Date(2030, 12));
   }
@@ -592,16 +576,6 @@ class TimelineApi extends IApi {
     if (element !== null) {
       document.getElementById('timeline-bookmark-tooltip-container').classList.remove('visible');
     }
-  }
-
-  /**
-   * Shows a tooltip if an item is hovered
-   *
-   * @param properties
-   * @private
-   */
-  _itemOverOverviewCallback(properties) {
-    this._itemOverCallback(properties, true);
   }
 
   /**
@@ -629,7 +603,7 @@ class TimelineApi extends IApi {
    * @param overview {boolean} True if target is the upper timeline
    * @private
    */
-  _itemOverCallback(properties, overview) {
+  _itemOverCallback(properties) {
     document.getElementById('timeline-bookmark-tooltip-container').classList.add('visible');
 
     let eventData = this._items._data[properties.item];
@@ -638,14 +612,7 @@ class TimelineApi extends IApi {
     document.getElementById('timeline-bookmark-tooltip-description').innerHTML =
         eventData.description;
 
-    let eventDiv;
-    if (overview) {
-      eventDiv = document.querySelector(".vis-foreground .overview-event.event-" + eventData.id);
-    } else {
-      eventDiv = document.querySelector(".vis-foreground .event.event-" + eventData.id);
-    }
-
-    const eventRect    = eventDiv.getBoundingClientRect();
+    const eventRect    = properties.event.target.getBoundingClientRect();
     const tooltipWidth = 400;
     const arrowWidth   = 10;
     const center       = eventRect.left + eventRect.width / 2;

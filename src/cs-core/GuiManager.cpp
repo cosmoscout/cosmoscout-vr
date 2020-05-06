@@ -472,8 +472,9 @@ void GuiManager::addTimelineEvent(std::string const& id, std::string const& name
     std::optional<std::string> const& end, std::optional<glm::vec3> const& color) {
 
   auto c = color.value_or(glm::vec3(0.5F, 0.6F, 0.7F)) * 255.F;
-  mCosmoScoutGui->callJavascript("CosmoScout.timeline.addEvent", id, name, description.value_or(""),
-      start, end.value_or(""), fmt::format("rgb({}, {}, {})", c.r, c.g, c.b));
+  mCosmoScoutGui->callJavascript("CosmoScout.timeline.addBookmark", id, name,
+      description.value_or(""), start, end.value_or(""),
+      fmt::format("rgb({}, {}, {})", c.r, c.g, c.b));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
