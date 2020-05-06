@@ -56,11 +56,13 @@ class BookmarksApi extends IApi {
     // Connect buttons setting fields to current values --------------------------------------------
 
     document.querySelector("#bookmark-editor-start-date + div > button").onmouseup = () => {
-      this._startDateDiv.value = CosmoScout.state.simulationTime.toISOString();
+      this._startDateDiv.value =
+          CosmoScout.state.simulationTime.toISOString().replace('T', ' ').slice(0, 19);
     };
 
     document.querySelector("#bookmark-editor-end-date + div > button").onmouseup = () => {
-      this._endDateDiv.value = CosmoScout.state.simulationTime.toISOString();
+      this._endDateDiv.value =
+          CosmoScout.state.simulationTime.toISOString().replace('T', ' ').slice(0, 19);
     };
 
     document.querySelector("#bookmark-editor-frame + div > button").onmouseup = () => {
