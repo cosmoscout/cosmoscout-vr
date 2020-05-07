@@ -34,22 +34,83 @@
   },
   "bookmarks": [
     {
-      "name": "Apollo 17 landing",
-      "description": "Last human landing on the Moon.",
+      "name": "Apollo 17 Start",
+      "description": "Start of the Apollo 17 mission from the Kennedy Space Center.",
       "color": [
-        0.9,
         0.8,
-        0.1
+        0.8,
+        0.8
       ],
       "time": {
-        "start": "1972-12-11 19:54:57.000"
+        "start": "1972-12-07 05:33:57"
       },
       "location": {
-        "anchor": "Moon",
+        "center": "Earth",
+        "frame": "IAU_Earth",
         "position": [
-          5915095.557596171,
-          10658059.249942748,
-          15601636.827477392
+          -6717320.585750769,
+          3677613.991761727,
+          1137577.1784918148
+        ],
+        "rotation": [
+          0.15376949893337843,
+          0.63437440894638,
+          0.18263787000493972,
+          -0.7352329283375216
+        ]
+      }
+    },
+    {
+      "name": "Apollo 17 Landing",
+      "description": "Last human landing on the Moon.",
+      "color": [
+        0.8,
+        0.8,
+        0.8
+      ],
+      "time": {
+        "start": "1973-01-11 19:54:57"
+      },
+      "location": {
+        "center": "Moon",
+        "frame": "IAU_Moon",
+        "position": [
+          1134055.9325384551,
+          819870.7766710989,
+          1933670.8174134232
+        ],
+        "rotation": [
+          -0.16576540501128123,
+          0.24287410049335084,
+          0.02264905472337545,
+          0.9555213352569
+        ]
+      }
+    },
+    {
+      "name": "Curiosity Landing",
+      "description": "Landing of the Rover for the Mars Science Laboratory.",
+      "color": [
+        0.9,
+        0.7,
+        0.3
+      ],
+      "time": {
+        "start": "2012-08-06 05:31:00"
+      },
+      "location": {
+        "center": "Mars",
+        "frame": "IAU_Mars",
+        "position": [
+          2355817.1503860787,
+          -717233.1853627029,
+          -2744165.4025669894
+        ],
+        "rotation": [
+          0.29703477878551815,
+          0.7983366317584811,
+          -0.46250011374371464,
+          0.24601342925013817
         ]
       }
     }
