@@ -300,8 +300,11 @@ uint32_t GuiManager::addBookmark(Settings::Bookmark bookmark) {
     if (end.size() > 0 && end.back() != 'Z') {
       end += "Z";
     }
-    addTimelineEvent("bookmark-" + std::to_string(newID), bookmark.mName, bookmark.mDescription,
-        start, end, bookmark.mColor);
+
+    auto c = bookmark.mColor.value_or(glm::vec3(0.5F, 0.6F, 0.7F)) * 255.F;
+    mCosmoScoutGui->callJavascript("CosmoScout.timeline.addBookmark", newID, bookmark.mName,
+        bookmark.mDescription.value_or(""), start, end,
+        fmt::format("rgb({}, {}, {})", c.r, c.g, c.b), bookmark.mLocation.has_value());
   }
 
   mBookmarks.emplace(newID, std::move(bookmark));
@@ -322,7 +325,7 @@ void GuiManager::removeBookmark(uint32_t bookmarkID) {
   Settings::Bookmark bookmark = it->second;
 
   if (bookmark.mTime) {
-    removeTimelineEvent("bookmark-" + std::to_string(bookmarkID));
+    mCosmoScoutGui->callJavascript("CosmoScout.timeline.removeBookmark", bookmarkID);
   }
 
   mBookmarks.erase(it);
@@ -472,24 +475,6 @@ void GuiManager::addHtmlToGui(std::string const& id, std::string const& src) {
 
 void GuiManager::addCssToGui(const std::string& fileName) {
   mCosmoScoutGui->callJavascript("CosmoScout.gui.registerCss", fileName);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void GuiManager::addTimelineEvent(std::string const& id, std::string const& name,
-    std::optional<std::string> const& description, std::string const& start,
-    std::optional<std::string> const& end, std::optional<glm::vec3> const& color) {
-
-  auto c = color.value_or(glm::vec3(0.5F, 0.6F, 0.7F)) * 255.F;
-  mCosmoScoutGui->callJavascript("CosmoScout.timeline.addBookmark", id, name,
-      description.value_or(""), start, end.value_or(""),
-      fmt::format("rgb({}, {}, {})", c.r, c.g, c.b));
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void GuiManager::removeTimelineEvent(std::string const& id) {
-  mCosmoScoutGui->callJavascript("CosmoScout.timeline.removeEvent", id);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

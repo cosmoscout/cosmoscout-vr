@@ -174,23 +174,6 @@ class CS_CORE_EXPORT GuiManager {
   /// @param fileName The filename in the css folder
   void addCssToGui(std::string const& fileName);
 
-  /// Adds an event item to the timeline.
-  ///
-  /// @param id          A unique ID for the event.
-  /// @param name        The name or content for the event.
-  /// @param description The optional description for the event.
-  /// @param start       The start date for the event.
-  /// @param end         The optional end date for the event.
-  /// @param color       The optional color for the event.
-  void addTimelineEvent(std::string const& id, std::string const& name,
-      std::optional<std::string> const& description, std::string const& start,
-      std::optional<std::string> const& end, std::optional<glm::vec3> const& color);
-
-  /// Removes an event item to the timeline.
-  ///
-  /// @param id          The unique ID of the event.
-  void removeTimelineEvent(std::string const& id);
-
   /// Sets a checkbox to the given value. This is only a thin wrapper for
   /// "CosmoScout.gui.setCheckboxValue" but provides compile time type safety.
   void setCheckboxValue(std::string const& name, bool val, bool emitCallbacks = false) const;

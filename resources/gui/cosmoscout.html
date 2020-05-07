@@ -518,7 +518,8 @@
 
     <div id="bookmark-editor" class="draggable-window resizable-window">
       <div class="window-header">
-        <div class="window-title"><i class="material-icons">bookmark</i><span>Bookmark Editor</span>
+        <div class="window-title"><i class="material-icons">bookmark</i><span
+            id="bookmark-editor-title">Bookmark Editor</span>
         </div>
         <a class="btn light-glass" data-action="close" data-toggle="tooltip" title="Close">
           <i class="material-icons">close</i>
@@ -540,7 +541,8 @@
             <div class="invalid-feedback"></div>
           </div>
           <div class="col-6">
-            <input type="text" class="form-control color-input" id="bookmark-editor-color">
+            <input type="text" class="form-control color-input" id="bookmark-editor-color"
+              style="color: black;" value="">
           </div>
         </div>
 
@@ -592,7 +594,7 @@
             <input type="text" placeholder="Frame" class="form-control" id="bookmark-editor-frame">
             <div class="input-group-append">
               <button class="btn glass" type="button" data-toggle="tooltip"
-                title="Use current Planet"><i class="material-icons">my_location</i></button>
+                title="Use current Planet"><i class="material-icons">place</i></button>
             </div>
             <div class="invalid-feedback"></div>
           </div>
@@ -608,7 +610,7 @@
               placeholder="LocZ">
             <div class="input-group-append">
               <button class="btn glass" type="button" data-toggle="tooltip"
-                title="Use current position"><i class="material-icons">my_location</i></button>
+                title="Use current position"><i class="material-icons">place</i></button>
             </div>
             <div class="invalid-feedback"></div>
           </div>
@@ -626,7 +628,7 @@
               placeholder="RotW">
             <div class="input-group-append">
               <button class="btn glass" type="button" data-toggle="tooltip"
-                title="Use current rotation"><i class="material-icons">my_location</i></button>
+                title="Use current rotation"><i class="material-icons">place</i></button>
             </div>
             <div class="invalid-feedback"></div>
           </div>
@@ -668,7 +670,7 @@
           </a>
           <a id="timeline-bookmark-tooltip-goto-location" class="btn light-glass"
             data-toggle="tooltip" title="Got to Bookmark location">
-            <i class="material-icons">pin_drop</i>
+            <i class="material-icons">place</i>
           </a>
         </div>
         <div id="timeline-bookmark-tooltip-description">Description</div>
@@ -739,7 +741,7 @@
   <script type="text/javascript" src="js/apis/calendar.js"></script>
   <script type="text/javascript" src="js/apis/gui.js"></script>
   <script type="text/javascript" src="js/apis/utils.js"></script>
-  <script type="text/javascript" src="js/apis/bookmarks.js"></script>
+  <script type="text/javascript" src="js/apis/bookmark_editor.js"></script>
 
   <script type="text/javascript">
 
@@ -754,7 +756,7 @@
         StatusbarApi,
         SidebarApi,
         CalendarApi,
-        BookmarksApi,
+        BookmarkEditorApi,
         TimelineApi
       );
 

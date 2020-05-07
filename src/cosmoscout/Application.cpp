@@ -1189,6 +1189,74 @@ void Application::registerGuiCallbacks() {
         mGuiManager->addBookmark(bookmark);
       }));
 
+  // Show the Bookmar-Editor for the given bookmark.
+  mGuiManager->getGui()->registerCallback("bookmark.edit",
+      "Opens the bookmark editor for the bookmark with the given ID.",
+      std::function([this](double bookmarkID) {
+        auto bookmark = mGuiManager->getBookmarks().find(static_cast<uint32_t>(bookmarkID));
+        if (bookmark != mGuiManager->getBookmarks().end()) {
+          nlohmann::json json = bookmark->second;
+          mGuiManager->getGui()->callJavascript(
+              "CosmoScout.bookmarkEditor.editBookmark", bookmarkID, json.dump());
+        } else {
+          logger().warn("Failed to execute 'bookmark.edit' for bookmark ID '{}': No such "
+                        "bookmark registered!",
+              bookmarkID);
+        }
+      }));
+
+  // Set the simulation time to the start date of the given bookmark.
+  mGuiManager->getGui()->registerCallback("bookmark.gotoTime",
+      "Sets the time to the start date of the bookmark with the given ID. If the absolute "
+      "difference to the current simulation time is lower than the given threshold "
+      "(optionalDouble2, default is 172800s which is 48h), there will be a transition of the given "
+      "duration (optionalDouble, default is 0s).",
+      std::function([this](double bookmarkID, std::optional<double> duration,
+                        std::optional<double> threshold) {
+        auto bookmark = mGuiManager->getBookmarks().find(static_cast<uint32_t>(bookmarkID));
+        if (bookmark != mGuiManager->getBookmarks().end()) {
+          if (bookmark->second.mTime) {
+            const double time =
+                cs::utils::convert::time::toSpice(bookmark->second.mTime.value().mStart);
+            const double twoDays = 48 * 60 * 60;
+            mTimeControl->setTime(time, duration.value_or(0.0), threshold.value_or(twoDays));
+          } else {
+            logger().warn("Failed to execute 'bookmark.gotoTime' for bookmark '{}': Bookmark does "
+                          "not have a time setting!",
+                bookmark->second.mName);
+          }
+        } else {
+          logger().warn("Failed to execute 'bookmark.gotoTime' for bookmark ID '{}': No such "
+                        "bookmark registered!",
+              bookmarkID);
+        }
+      }));
+
+  // Sets the observer position and rotation to the given bookmark.
+  mGuiManager->getGui()->registerCallback("bookmark.gotoLocation",
+      "Sets the observer position and rotation to the given bookmark coordinates. The optional "
+      "double argument specifies the transition time in seconds (default is 5s).",
+      std::function([this](double bookmarkID, std::optional<double> duration) {
+        auto bookmark = mGuiManager->getBookmarks().find(static_cast<uint32_t>(bookmarkID));
+        if (bookmark != mGuiManager->getBookmarks().end()) {
+          if (bookmark->second.mLocation) {
+            auto loc = bookmark->second.mLocation.value();
+            mSolarSystem->flyObserverTo(loc.mCenter, loc.mFrame,
+                loc.mPosition.value_or(mSolarSystem->getObserver().getAnchorPosition()),
+                loc.mRotation.value_or(mSolarSystem->getObserver().getAnchorRotation()),
+                duration.value_or(5.0));
+          } else {
+            logger().warn("Failed to execute 'bookmark.gotoLocation' for bookmark '{}': Bookmark "
+                          "does not have a location setting!",
+                bookmark->second.mName);
+          }
+        } else {
+          logger().warn("Failed to execute 'bookmark.gotoLocation' for bookmark ID '{}': No such "
+                        "bookmark registered!",
+              bookmarkID);
+        }
+      }));
+
   // Timeline callbacks ----------------------------------------------------------------------------
 
   // Sets the current simulation time. The argument must be a string accepted by
