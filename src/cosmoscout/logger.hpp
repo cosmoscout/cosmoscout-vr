@@ -4,19 +4,13 @@
 //                        Copyright: (c) 2019 German Aerospace Center (DLR)                       //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#include "logger.hpp"
+#ifndef CS_LOGGER_HPP
+#define CS_LOGGER_HPP
 
-#include "../cs-utils/logger.hpp"
+#include <spdlog/spdlog.h>
 
-namespace cs::core {
+/// This creates the default singleton logger for "cosmoscout-vr" when called for the first time and
+/// returns it. See cs-utils/logger.hpp for more logging details.
+spdlog::logger& logger();
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-spdlog::logger& logger() {
-  static auto logger = utils::createLogger("cs-core");
-  return *logger;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-} // namespace cs::core
+#endif // CS_LOGGER_HPP

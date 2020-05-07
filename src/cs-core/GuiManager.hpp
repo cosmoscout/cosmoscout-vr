@@ -17,6 +17,7 @@
 
 #include "../cs-utils/FrameTimings.hpp"
 
+#include <glm/glm.hpp>
 #include <memory>
 #include <optional>
 #include <string>
@@ -45,7 +46,8 @@ class InputManager;
 ///    item. This is for example useful for the statistics GuiItem which is in all cases shown in
 ///    screen-space.
 /// World-Space:
-///  * The UI is drawn in a fixed resolution which is specified in the "gui": {...} settings key.
+///  * The UI is drawn in a fixed resolution which is specified in the "guiPosition": {...} settings
+///    key.
 ///  * When running in a clustered setup, the UI will be displayed across multiple displays.
 ///
 /// There are several GuiItems involved: e.g. the timeline, the status-bar, the side-bar and the
@@ -58,9 +60,15 @@ class InputManager;
 /// instance is then passed to all plugins.
 class CS_CORE_EXPORT GuiManager {
  public:
-  GuiManager(std::shared_ptr<const Settings> const& settings,
-      std::shared_ptr<InputManager> const&          pInputManager,
-      std::shared_ptr<utils::FrameTimings> const&   pFrameTimings);
+  GuiManager(std::shared_ptr<Settings> settings, std::shared_ptr<InputManager> pInputManager,
+      std::shared_ptr<utils::FrameTimings> pFrameTimings);
+
+  GuiManager(GuiManager const& other) = delete;
+  GuiManager(GuiManager&& other)      = delete;
+
+  GuiManager& operator=(GuiManager const& other) = delete;
+  GuiManager& operator=(GuiManager&& other) = delete;
+
   virtual ~GuiManager();
 
   /// Set the cursor icon. This is usually used in the following way:
@@ -141,9 +149,23 @@ class CS_CORE_EXPORT GuiManager {
   /// @param description The description of the event.
   /// @param planet Planet the event is happening on.
   /// @parama place The location on the planet.
-  void addEventToTimenavigationBar(std::string start, std::optional<std::string> end,
-      std::string id, std::string content, std::optional<std::string> style,
-      std::string description, std::string planet, std::string place);
+  void addEventToTimenavigationBar(std::string const& start, std::optional<std::string> const& end,
+      std::string const& id, std::string const& content, std::optional<std::string> const& style,
+      std::string const& description, std::string const& planet, std::string const& place);
+
+  /// Sets a checkbox to the given value. This is only a thin wrapper for
+  /// "CosmoScout.gui.setCheckboxValue" but provides compile time type safety.
+  void setCheckboxValue(std::string const& name, bool val, bool emitCallbacks = false) const;
+
+  /// Checks a radio button. This is only a thin wrapper for "CosmoScout.gui.setRadioChecked" but
+  /// provides compile time type safety.
+  void setRadioChecked(std::string const& name, bool emitCallbacks = false) const;
+
+  /// Sets a slider (with one or two handles) to the given value(s). These are only a thin wrappers
+  /// for "CosmoScout.gui.setSliderValue" but provide compile time type safety.
+  void setSliderValue(std::string const& name, double val, bool emitCallbacks = false) const;
+  void setSliderValue(
+      std::string const& name, glm::dvec2 const& val, bool emitCallbacks = false) const;
 
   /// Removes an existing event item from the timenavigation.
   ///
@@ -166,24 +188,20 @@ class CS_CORE_EXPORT GuiManager {
   /// Sets the progress bar state.
   void setLoadingScreenProgress(float percent, bool animate) const;
 
-  /// Hides or shows the entire user interface. This is bound to the ESC-key.
-  void showGui();
-  void hideGui();
-  void toggleGui();
-
   /// This is called once a frame from the Application.
   void update();
 
  private:
   std::shared_ptr<InputManager>        mInputManager;
+  std::shared_ptr<Settings>            mSettings;
   std::shared_ptr<utils::FrameTimings> mFrameTimings;
 
-  VistaViewportResizeToProjectionAdapter* mViewportUpdater = nullptr;
-  gui::WorldSpaceGuiArea*                 mGlobalGuiArea   = nullptr;
-  gui::ScreenSpaceGuiArea*                mLocalGuiArea    = nullptr;
+  std::unique_ptr<VistaViewportResizeToProjectionAdapter> mViewportUpdater;
+  std::unique_ptr<gui::WorldSpaceGuiArea>                 mGlobalGuiArea;
+  std::unique_ptr<gui::ScreenSpaceGuiArea>                mLocalGuiArea;
 
-  gui::GuiItem* mCosmoScoutGui = nullptr;
-  gui::GuiItem* mStatistics    = nullptr;
+  std::unique_ptr<gui::GuiItem> mCosmoScoutGui;
+  std::unique_ptr<gui::GuiItem> mStatistics;
 
   // The global GUI is drawn in world-space.
   VistaTransformNode* mGlobalGuiTransform  = nullptr;

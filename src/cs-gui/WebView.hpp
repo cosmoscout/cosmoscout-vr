@@ -10,12 +10,12 @@
 #include "../cs-utils/utils.hpp"
 #include "KeyEvent.hpp"
 #include "MouseEvent.hpp"
+#include "logger.hpp"
 
 #include <chrono>
 #include <include/cef_client.h>
 #include <iostream>
 #include <optional>
-#include <spdlog/spdlog.h>
 #include <typeindex>
 
 namespace cs::gui {
@@ -31,6 +31,13 @@ class CS_GUI_EXPORT WebView {
  public:
   /// Creates a new WebView for the given page at the location of the URL.
   WebView(const std::string& url, int width, int height, bool allowLocalFileAccess = false);
+
+  WebView(WebView const& other) = delete;
+  WebView(WebView&& other)      = delete;
+
+  WebView& operator=(WebView const& other) = delete;
+  WebView& operator=(WebView&& other) = delete;
+
   virtual ~WebView();
 
   /// Registers a callback that is called, when the page is redrawn.
@@ -51,6 +58,7 @@ class CS_GUI_EXPORT WebView {
   ///                 implementing the operator<<() for that type.
   template <typename... Args>
   void callJavascript(std::string const& function, Args&&... a) const {
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-array-to-pointer-decay)
     std::vector<std::string> args = {(utils::toString(a))...};
     callJavascriptImpl(function, args);
   }
@@ -120,7 +128,7 @@ class CS_GUI_EXPORT WebView {
   /// Reloads the page.
   ///
   /// @param ignoreCache If set to true the site will not be using cached data.
-  virtual void reload(bool ignoreCache = false) const;
+  virtual void reload(bool ignoreCache) const;
 
   /// When the user clicked on a hyperlink on the web page, this functionality can be used to move
   /// forward or backwards in the history.
@@ -202,7 +210,7 @@ class CS_GUI_EXPORT WebView {
   /// be casted to the required paramater types of the given callback.
   template <typename... Args, std::size_t... Is>
   void registerCallbackWrapper(std::string const& name, std::string const& comment,
-      std::function<void(Args...)> const& callback, std::index_sequence<Is...>) {
+      std::function<void(Args...)> const& callback, std::index_sequence<Is...> /*unused*/) {
 
     // The types vector is required to name the JavaScript function's arguments depending on its
     // type.
@@ -220,8 +228,8 @@ class CS_GUI_EXPORT WebView {
             // value in the std::optional<JSType>. See its implementation above.
             callback(UnderlyingValue<Args>::get(std::move(args[Is]))...);
           } catch (std::exception const&) {
-            spdlog::error("Cannot execute javascript call '{}': Parameters do not match to the "
-                          "registered callback!",
+            logger().error("Cannot execute javascript call '{}': Parameters do not match to the "
+                           "registered callback!",
                 name);
           }
         });

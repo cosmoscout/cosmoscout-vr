@@ -101,6 +101,7 @@ Official Plugins | Description | Screenshot
 [csp-simple-wms-bodies](https://github.com/cosmoscout/csp-simple-wms-bodies) | Renders simple spherical celestial bodies using a background surface texture and overlays it with time dependent WMS based textures. The bodies are drawn as an ellipsoid with an equirectangular texture. | ![screenshot](docs/img/csp-simple-wms-bodies.jpg)
 [csp-stars](https://github.com/cosmoscout/csp-stars) | Draws 3D-stars loaded from catalogues. For now Tycho, Tycho2 and the Hipparcos catalogue are supported. | ![screenshot](docs/img/csp-stars.jpg)
 [csp-trajectories](https://github.com/cosmoscout/csp-trajectories) | Draws trajectories of celestial bodies and spacecrafts based on SPICE. The color, length, number of samples and the reference frame can be configured. | ![screenshot](docs/img/csp-trajectories.jpg)
+[csp-web-api](https://github.com/cosmoscout/csp-web-api) | Allows to control CosmoScout VR via an HTTP protocol. It also allows capturing screenshots over HTTP. | ![screenshot](docs/img/csp-web-api.jpg)
 
 # License
 

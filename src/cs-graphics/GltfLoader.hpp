@@ -40,6 +40,12 @@ class CS_GRAPHICS_EXPORT GltfLoader {
   GltfLoader(const std::string& sGltfFile, const std::string& cubemapFilepath,
       bool linearDepthBuffer = false);
 
+  GltfLoader(GltfLoader const& other) = delete;
+  GltfLoader(GltfLoader&& other)      = delete;
+
+  GltfLoader& operator=(GltfLoader const& other) = delete;
+  GltfLoader& operator=(GltfLoader&& other) = delete;
+
   ~GltfLoader() = default;
 
   void setLightColor(float r, float g, float b);
@@ -55,7 +61,7 @@ class CS_GRAPHICS_EXPORT GltfLoader {
   void rotateIBL(glm::mat3 const& m);
 
   /// Attaches the model to the VistaSceneGraph for rendering.
-  bool attachTo(VistaSceneGraph* sg, VistaTransformNode* node);
+  bool attachTo(VistaSceneGraph* sg, VistaTransformNode* parent);
 
  private:
   std::shared_ptr<internal::GltfShared> mShared;

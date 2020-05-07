@@ -22,6 +22,7 @@
 !/plugins/csp-simple-wms-bodies
 !/plugins/csp-stars
 !/plugins/csp-trajectories
+!/plugins/csp-web-api
 
 *.sublime*
 .vscode

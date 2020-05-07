@@ -6,9 +6,9 @@
 
 #include "WebViewClient.hpp"
 
+#include "../logger.hpp"
+
 #include <fstream>
-#include <iostream>
-#include <spdlog/spdlog.h>
 #include <utility>
 
 namespace cs::gui::detail {
@@ -16,21 +16,24 @@ namespace cs::gui::detail {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 WebViewClient::~WebViewClient() {
-  if (mJSCallbacks.size() > 0) {
-    spdlog::warn(
-        "While destructing a WebViewClient there were still JavaScript callbacks registered:");
+  try {
+    if (!mJSCallbacks.empty()) {
+      logger().warn(
+          "While destructing a WebViewClient there were still JavaScript callbacks registered:");
 
-    for (auto&& i : mJSCallbacks) {
-      spdlog::warn(" - {}", i.first);
-      i.second = [](auto) {};
+      for (auto&& i : mJSCallbacks) {
+        logger().warn(" - {}", i.first);
+        i.second = [](auto /*unused*/) {};
+      }
     }
-  }
+  } catch (...) {}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool WebViewClient::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
-    CefRefPtr<CefFrame> frame, CefProcessId, CefRefPtr<CefProcessMessage> message) {
+bool WebViewClient::OnProcessMessageReceived(CefRefPtr<CefBrowser> /*browser*/,
+    CefRefPtr<CefFrame> /*frame*/, CefProcessId /*source_process*/,
+    CefRefPtr<CefProcessMessage> message) {
 
   if (message->GetName() == "callNative") {
 
@@ -38,7 +41,7 @@ bool WebViewClient::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
     auto        callback(mJSCallbacks.find(name));
 
     if (callback == mJSCallbacks.end()) {
-      spdlog::warn(
+      logger().warn(
           "Cannot call function '{}': No callback is registered for this function name!", name);
       return true;
     }
@@ -62,7 +65,7 @@ bool WebViewClient::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
         args.emplace_back(std::nullopt);
         break;
       default:
-        spdlog::warn("Failed to parse argument {} of callback '{}': Unsupported type!", i, name);
+        logger().warn("Failed to parse argument {} of callback '{}': Unsupported type!", i, name);
         break;
       }
     }
@@ -70,8 +73,10 @@ bool WebViewClient::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
     callback->second(std::move(args));
 
     return true;
-  } else if (message->GetName() == "error") {
-    spdlog::error(message->GetArgumentList()->GetString(0).ToString());
+  }
+
+  if (message->GetName() == "error") {
+    logger().error(message->GetArgumentList()->GetString(0).ToString());
   }
 
   return false;

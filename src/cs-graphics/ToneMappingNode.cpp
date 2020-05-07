@@ -22,6 +22,7 @@
 
 #include <glm/glm.hpp>
 #include <limits>
+#include <utility>
 
 namespace cs::graphics {
 
@@ -39,33 +40,33 @@ namespace internal {
 // Notes:
 // EV below refers to EV at ISO 100
 
-const float MIN_ISO      = 100;
-const float MAX_ISO      = 6400;
-const float MIN_SHUTTER  = 1.f / 4000.f;
-const float MAX_SHUTTER  = 1.f / 30.f;
-const float MIN_APERTURE = 1.8f;
+const float MIN_ISO      = 100.F;
+const float MAX_ISO      = 6400.F;
+const float MIN_SHUTTER  = 1.F / 4000.F;
+const float MAX_SHUTTER  = 1.F / 30.F;
+const float MIN_APERTURE = 1.8F;
 
 // Given an aperture, shutter speed, and exposure value compute the required ISO value
 float ComputeISO(float aperture, float shutterSpeed, float ev) {
-  return (std::pow(aperture, 2.f) * 100.0f) / (shutterSpeed * std::pow(2.0f, ev));
+  return (std::pow(aperture, 2.F) * 100.0F) / (shutterSpeed * std::pow(2.0F, ev));
 }
 
 // Given the camera settings compute the current exposure value
 float ComputeEV(float aperture, float shutterSpeed, float iso) {
-  return std::log2((std::pow(aperture, 2.f) * 100.0f) / (shutterSpeed * iso));
+  return std::log2((std::pow(aperture, 2.F) * 100.0F) / (shutterSpeed * iso));
 }
 
 // Using the light metering equation compute the target exposure value
 float ComputeTargetEV(float luminance) {
   // K is a light meter calibration constant
-  const float K = 12.5f;
-  return std::log2(luminance * 100.0f / K);
+  const float K = 12.5F;
+  return std::log2(luminance * 100.0F / K);
 }
 
 void ApplyAperturePriority(
     float focalLength, float targetEV, float& aperture, float& shutterSpeed, float& iso) {
   // Start with the assumption that we want a shutter speed of 1/f
-  shutterSpeed = 1.0f / (focalLength * 1000.0f);
+  shutterSpeed = 1.0F / (focalLength * 1000.0F);
 
   // Compute the resulting ISO if we left the shutter speed here
   iso = glm::clamp(ComputeISO(aperture, shutterSpeed, targetEV), MIN_ISO, MAX_ISO);
@@ -74,12 +75,13 @@ void ApplyAperturePriority(
   float evDiff = targetEV - ComputeEV(aperture, shutterSpeed, iso);
 
   // Compute the final shutter speed
-  shutterSpeed = glm::clamp(shutterSpeed * std::pow(2.0f, -evDiff), MIN_SHUTTER, MAX_SHUTTER);
+  shutterSpeed = glm::clamp(shutterSpeed * std::pow(2.0F, -evDiff), MIN_SHUTTER, MAX_SHUTTER);
 }
 
-void ApplyShutterPriority(float, float targetEV, float& aperture, float& shutterSpeed, float& iso) {
+void ApplyShutterPriority(
+    float /*unused*/, float targetEV, float& aperture, float& shutterSpeed, float& iso) {
   // Start with the assumption that we want an aperture of 4.0
-  aperture = 4.0f;
+  aperture = 4.0F;
 
   // Compute the resulting ISO if we left the aperture here
   iso = glm::clamp(ComputeISO(aperture, shutterSpeed, targetEV), MIN_ISO, MAX_ISO);
@@ -88,16 +90,16 @@ void ApplyShutterPriority(float, float targetEV, float& aperture, float& shutter
   float evDiff = targetEV - ComputeEV(aperture, shutterSpeed, iso);
 
   // Compute the final aperture
-  aperture = glm::clamp(aperture * std::pow(std::sqrt(2.0f), evDiff), MIN_APERTURE, MIN_APERTURE);
+  aperture = glm::clamp(aperture * std::pow(std::sqrt(2.0F), evDiff), MIN_APERTURE, MIN_APERTURE);
 }
 
 void ApplyProgramAuto(
     float focalLength, float targetEV, float& aperture, float& shutterSpeed, float& iso) {
   // Start with the assumption that we want an aperture of 4.0
-  aperture = 4.0f;
+  aperture = 4.0F;
 
   // Start with the assumption that we want a shutter speed of 1/f
-  shutterSpeed = 1.0f / (focalLength * 1000.0f);
+  shutterSpeed = 1.0F / (focalLength * 1000.0F);
 
   // Compute the resulting ISO if we left both shutter and aperture here
   iso = glm::clamp(ComputeISO(aperture, shutterSpeed, targetEV), MIN_ISO, MAX_ISO);
@@ -105,11 +107,11 @@ void ApplyProgramAuto(
   // Apply half the difference in EV to the aperture
   float evDiff = targetEV - ComputeEV(aperture, shutterSpeed, iso);
   aperture =
-      glm::clamp(aperture * std::pow(std::sqrt(2.0f), evDiff * 0.5f), MIN_APERTURE, MIN_APERTURE);
+      glm::clamp(aperture * std::pow(std::sqrt(2.0F), evDiff * 0.5F), MIN_APERTURE, MIN_APERTURE);
 
   // Apply the remaining difference to the shutter speed
   evDiff       = targetEV - ComputeEV(aperture, shutterSpeed, iso);
-  shutterSpeed = glm::clamp(shutterSpeed * std::pow(2.0f, -evDiff), MIN_SHUTTER, MAX_SHUTTER);
+  shutterSpeed = glm::clamp(shutterSpeed * std::pow(2.0F, -evDiff), MIN_SHUTTER, MAX_SHUTTER);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -118,9 +120,7 @@ void ApplyProgramAuto(
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const std::string ToneMappingNode::sVertexShader = R"(
-  #version 430
-
+static const char* sVertexShader = R"(
   out vec2 vTexcoords;
 
   void main()
@@ -132,16 +132,20 @@ const std::string ToneMappingNode::sVertexShader = R"(
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const std::string ToneMappingNode::sFragmentShader = R"(
-  #version 430
-  
+static const char* sFragmentShader = R"(
   in vec2 vTexcoords;
 
   layout(pixel_center_integer) in vec4 gl_FragCoord;
 
-  layout(binding = 0) uniform sampler2D uDepth;
-  layout(binding = 1) uniform sampler2D uComposite;
-  layout(binding = 2) uniform sampler2D uGlowMipMap;
+  #if NUM_MULTISAMPLES > 0
+    layout (binding = 0) uniform sampler2DMS uComposite;
+    layout (binding = 1) uniform sampler2DMS uDepth;
+  #else
+    layout (binding = 0) uniform sampler2D uComposite;
+    layout (binding = 1) uniform sampler2D uDepth;
+  #endif
+
+  layout (binding = 2) uniform sampler2D uGlowMipMap;
 
   uniform float uExposure;
   uniform float uGlowIntensity;
@@ -232,7 +236,22 @@ const std::string ToneMappingNode::sFragmentShader = R"(
   }
 
   void main() {
-    vec3 color = texelFetch(uComposite, ivec2(vTexcoords * textureSize(uComposite, 0)), 0).rgb;
+    #if NUM_MULTISAMPLES > 0
+      vec3 color = vec3(0.0);
+      for (int i = 0; i < NUM_MULTISAMPLES; ++i) {
+        color += texelFetch(uComposite, ivec2(vTexcoords * textureSize(uComposite)), i).rgb;
+      }
+      color /= NUM_MULTISAMPLES;
+
+      float depth = 1.0;
+      for (int i = 0; i < NUM_MULTISAMPLES; ++i) {
+        depth = min(depth, texelFetch(uDepth, ivec2(vTexcoords * textureSize(uDepth)), i).r);
+      }
+      gl_FragDepth = depth;
+    #else
+      vec3 color = texelFetch(uComposite, ivec2(vTexcoords * textureSize(uComposite, 0)), 0).rgb;
+      gl_FragDepth = texelFetch(uDepth, ivec2(vTexcoords * textureSize(uDepth, 0)), 0).r;
+    #endif
 
     vec3  glow = vec3(0);
     int maxLevels = textureQueryLevels(uGlowMipMap);
@@ -245,8 +264,6 @@ const std::string ToneMappingNode::sFragmentShader = R"(
       color = mix(color, glow / maxLevels, uGlowIntensity);
     }
 
-    gl_FragDepth = texelFetch(uDepth, ivec2(vTexcoords * textureSize(uDepth, 0)), 0).r;
-    
     color = Uncharted2Tonemap(uExposure*color);
 
     vec3 whiteScale = vec3(1.0)/Uncharted2Tonemap(vec3(W));
@@ -257,11 +274,15 @@ const std::string ToneMappingNode::sFragmentShader = R"(
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-ToneMappingNode::ToneMappingNode(std::shared_ptr<HDRBuffer> const& hdrBuffer)
-    : mHDRBuffer(hdrBuffer)
+ToneMappingNode::ToneMappingNode(std::shared_ptr<HDRBuffer> hdrBuffer)
+    : mHDRBuffer(std::move(hdrBuffer))
     , mShader(new VistaGLSLShader()) {
-  mShader->InitVertexShaderFromString(sVertexShader);
-  mShader->InitFragmentShaderFromString(sFragmentShader);
+
+  std::string defines = "#version 430\n";
+  defines += "#define NUM_MULTISAMPLES " + std::to_string(mHDRBuffer->getMultiSamples()) + "\n";
+
+  mShader->InitVertexShaderFromString(defines + sVertexShader);
+  mShader->InitFragmentShaderFromString(defines + sFragmentShader);
   mShader->Link();
 
   // Connect to the VSE_POSTGRAPHICS event. When this event is emitted, we will collect all
@@ -375,7 +396,8 @@ float ToneMappingNode::getGlowIntensity() const {
 
 float ToneMappingNode::getLastAverageLuminance() const {
   if (mGlobalLuminanceData.mPixelCount > 0 && mGlobalLuminanceData.mTotalLuminance > 0) {
-    return mGlobalLuminanceData.mTotalLuminance / mGlobalLuminanceData.mPixelCount;
+    return mGlobalLuminanceData.mTotalLuminance /
+           static_cast<float>(mGlobalLuminanceData.mPixelCount);
   }
   return 0;
 }
@@ -405,17 +427,17 @@ bool ToneMappingNode::ToneMappingNode::Do() {
     // clients. The result is stored in mGlobalLuminanceData and is in the next frame used for
     // exposure calculation
     auto size = mHDRBuffer->getCurrentViewPortSize();
-    mLocalLuminanceData.mPixelCount += size[0] * size[1];
+    mLocalLuminanceData.mPixelCount += size.at(0) * size.at(1);
     mLocalLuminanceData.mTotalLuminance += mHDRBuffer->getTotalLuminance();
     mLocalLuminanceData.mMaximumLuminance += mHDRBuffer->getMaximumLuminance();
 
     // Calculate exposure based on last frame's average luminance Time-dependent visual adaptation
     // for fast realistic image display (https://dl.acm.org/citation.cfm?id=344810).
     if (mGlobalLuminanceData.mPixelCount > 0 && mGlobalLuminanceData.mTotalLuminance > 0) {
-      float frameTime = static_cast<float>(GetVistaSystem()->GetFrameLoop()->GetAverageLoopTime());
+      auto  frameTime = static_cast<float>(GetVistaSystem()->GetFrameLoop()->GetAverageLoopTime());
       float averageLuminance = getLastAverageLuminance();
-      mAutoExposure += (std::log2(1.f / averageLuminance) - mAutoExposure) *
-                       (1.f - std::exp(-mExposureAdaptionSpeed * frameTime));
+      mAutoExposure += (std::log2(1.F / averageLuminance) - mAutoExposure) *
+                       (1.F - std::exp(-mExposureAdaptionSpeed * frameTime));
     }
   }
 
@@ -427,11 +449,11 @@ bool ToneMappingNode::ToneMappingNode::Do() {
     mExposure = glm::clamp(mAutoExposure, mMinAutoExposure, mMaxAutoExposure);
   }
 
-  float exposure = std::pow(2.f, mExposure + mExposureCompensation);
+  float exposure = std::pow(2.F, mExposure + mExposureCompensation);
 
   mHDRBuffer->unbind();
-  mHDRBuffer->getDepthAttachment()->Bind(GL_TEXTURE0);
-  mHDRBuffer->getCurrentWriteAttachment()->Bind(GL_TEXTURE1);
+  mHDRBuffer->getCurrentWriteAttachment()->Bind(GL_TEXTURE0);
+  mHDRBuffer->getDepthAttachment()->Bind(GL_TEXTURE1);
   mHDRBuffer->getGlowMipMap()->Bind(GL_TEXTURE2);
 
   glPushAttrib(GL_ENABLE_BIT | GL_DEPTH_BUFFER_BIT);
@@ -453,12 +475,12 @@ bool ToneMappingNode::ToneMappingNode::Do() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool ToneMappingNode::GetBoundingBox(VistaBoundingBox& oBoundingBox) {
-  float min(std::numeric_limits<float>::min());
-  float max(std::numeric_limits<float>::max());
-  float fMin[3] = {min, min, min};
-  float fMax[3] = {max, max, max};
+  float      min(std::numeric_limits<float>::min());
+  float      max(std::numeric_limits<float>::max());
+  std::array fMin{min, min, min};
+  std::array fMax{max, max, max};
 
-  oBoundingBox.SetBounds(fMin, fMax);
+  oBoundingBox.SetBounds(fMin.data(), fMax.data());
 
   return true;
 }

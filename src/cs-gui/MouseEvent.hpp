@@ -23,14 +23,12 @@ struct CS_GUI_EXPORT MouseEvent {
     eLeave    ///< The mouse left the window
   };
 
-  MouseEvent()
-      : mType(Type::eMove)
-      , mX(0)
-      , mY(0) {
+  MouseEvent() // NOLINT(cppcoreguidelines-pro-type-member-init): Can't init both union types.
+      : mX(0) {
   }
 
   /// Either eMove, eScroll, ePress or eRelease.
-  Type mType;
+  Type mType{Type::eMove};
 
   union {
     /// X-position for eMove, x-direction for eScroll.
@@ -41,7 +39,7 @@ struct CS_GUI_EXPORT MouseEvent {
   };
 
   /// Y-position for eMove, y-direction for eScroll.
-  int mY;
+  int mY{0};
 };
 
 } // namespace cs::gui

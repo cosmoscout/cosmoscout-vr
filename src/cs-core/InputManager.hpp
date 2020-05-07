@@ -119,6 +119,13 @@ class CS_CORE_EXPORT InputManager : public VistaKeyboardSystemControl::IVistaDir
   /// Creates a new instance of this class. As a user, you will not need to call this directly, as
   /// an instance is created by CosmoScout's Application class.
   explicit InputManager();
+
+  InputManager(InputManager const& other) = delete;
+  InputManager(InputManager&& other)      = delete;
+
+  InputManager& operator=(InputManager const& other) = delete;
+  InputManager& operator=(InputManager&& other) = delete;
+
   ~InputManager() override;
 
   /// Register an object to be selectable. You can register different types:
@@ -163,7 +170,7 @@ class CS_CORE_EXPORT InputManager : public VistaKeyboardSystemControl::IVistaDir
   std::unordered_set<gui::ScreenSpaceGuiArea*>                    mScreenSpaceGuis;
   boost::posix_time::ptime                                        mClickTime;
 
-  VistaOpenGLNode* mActiveWorldSpaceGuiNode;
+  VistaOpenGLNode* mActiveWorldSpaceGuiNode{};
 };
 
 } // namespace cs::core

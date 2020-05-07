@@ -11,6 +11,7 @@
 
 #include <VistaAspects/VistaObserver.h>
 #include <VistaKernel/GraphicsManager/VistaOpenGLDraw.h>
+#include <VistaOGLExt/VistaGLSLShader.h>
 #include <vector>
 
 class VistaTransformNode;
@@ -19,7 +20,6 @@ class VistaVector3D;
 class VistaQuaternion;
 class VistaProjection;
 class VistaViewport;
-class VistaGLSLShader;
 class VistaVertexArrayObject;
 class VistaBufferObject;
 
@@ -31,8 +31,15 @@ class GuiItem;
 class CS_GUI_EXPORT GuiArea {
 
  public:
-  GuiArea()          = default;
-  virtual ~GuiArea() = default;
+  GuiArea() = default;
+
+  GuiArea(GuiArea const& other) = delete;
+  GuiArea(GuiArea&& other)      = delete;
+
+  GuiArea& operator=(GuiArea const& other) = delete;
+  GuiArea& operator=(GuiArea&& other) = delete;
+
+  ~GuiArea() = default;
 
   virtual int getWidth() const  = 0;
   virtual int getHeight() const = 0;

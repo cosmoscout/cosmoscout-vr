@@ -22,6 +22,7 @@
 #include "../cs-utils/utils.hpp"
 #include "GetSelectionStateNode.hpp"
 #include "ObserverNavigationNode.hpp"
+#include "logger.hpp"
 
 #include <VistaBase/VistaTimeUtils.h>
 #include <VistaInterProcComm/Cluster/VistaClusterDataSync.h>
@@ -30,38 +31,37 @@
 #include <VistaKernel/DisplayManager/VistaDisplayManager.h>
 #include <VistaKernel/EventManager/VistaEventManager.h>
 #include <VistaKernel/EventManager/VistaSystemEvent.h>
-#include <VistaKernel/GraphicsManager/VistaOpenGLNode.h>
 #include <VistaKernel/GraphicsManager/VistaSceneGraph.h>
 #include <VistaKernel/GraphicsManager/VistaTransformNode.h>
 #include <VistaKernel/VistaSystem.h>
-#include <VistaKernelOpenSGExt/VistaOpenSGMaterialTools.h>
 #include <VistaOGLExt/VistaShaderRegistry.h>
 #include <curlpp/cURLpp.hpp>
-#include <spdlog/spdlog.h>
+#include <memory>
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #ifdef __linux__
-#define OPENLIB(libname) dlopen((libname), RTLD_LAZY)
-#define LIBFUNC(handle, fn) dlsym((handle), (fn))
-#define CLOSELIB(handle) dlclose((handle))
-#define LIBERROR() dlerror()
-#define LIBFILETYPE ".so"
-#define PLUGIN_PATH "../share/plugins/"
+#define OPENLIB(libname) dlopen((libname), RTLD_LAZY) // NOLINT
+#define LIBFUNC(handle, fn) dlsym((handle), (fn))     // NOLINT
+#define CLOSELIB(handle) dlclose((handle))            // NOLINT
+#define LIBERROR() dlerror()                          // NOLINT
+#define LIBFILETYPE ".so"                             // NOLINT
+#define PLUGIN_PATH "../share/plugins/"               // NOLINT
 #else
-#define OPENLIB(libname) LoadLibrary((libname))
-#define LIBFUNC(handle, fn) GetProcAddress((HMODULE)(handle), (fn))
-#define CLOSELIB(handle) FreeLibrary((HMODULE)(handle))
-#define LIBERROR() GetLastError()
-#define LIBFILETYPE ".dll"
-#define PLUGIN_PATH "..\\share\\plugins\\"
+#define OPENLIB(libname) LoadLibrary((libname))                     // NOLINT
+#define LIBFUNC(handle, fn) GetProcAddress((HMODULE)(handle), (fn)) // NOLINT
+#define CLOSELIB(handle) FreeLibrary((HMODULE)(handle))             // NOLINT
+#define LIBERROR() GetLastError()                                   // NOLINT
+#define LIBFILETYPE ".dll"                                          // NOLINT
+#define PLUGIN_PATH "..\\share\\plugins\\"                          // NOLINT
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Application::Application(cs::core::Settings const& settings)
-    : VistaFrameLoop()
-    , mSettings(std::make_shared<cs::core::Settings>(settings)) {
+Application::Application(std::shared_ptr<cs::core::Settings> settings)
+    : mSettings(std::move(settings)) {
+
+  mSettings->onLoad().connect([this]() { onLoad(); });
 
   // Initialize curl.
   cURLpp::initialize();
@@ -91,13 +91,14 @@ bool Application::Init(VistaSystem* pVistaSystem) {
   mTimeControl = std::make_shared<cs::core::TimeControl>(mSettings);
   mSolarSystem = std::make_shared<cs::core::SolarSystem>(
       mSettings, mFrameTimings, mGraphicsEngine, mTimeControl);
-  mDragNavigation.reset(new cs::core::DragNavigation(mSolarSystem, mInputManager, mTimeControl));
+  mDragNavigation =
+      std::make_unique<cs::core::DragNavigation>(mSolarSystem, mInputManager, mTimeControl);
 
   // The ObserverNavigationNode is used by several DFN networks to move the celestial observer.
   VdfnNodeFactory* pNodeFactory = VdfnNodeFactory::GetSingleton();
-  pNodeFactory->SetNodeCreator(
+  pNodeFactory->SetNodeCreator( // NOLINTNEXTLINE: TODO is this a memory leak?
       "ObserverNavigationNode", new ObserverNavigationNodeCreate(mSolarSystem.get()));
-  pNodeFactory->SetNodeCreator(
+  pNodeFactory->SetNodeCreator( // NOLINTNEXTLINE: TODO is this a memory leak?
       "GetSelectionStateNode", new GetSelectionStateNodeCreate(mInputManager.get()));
 
   // This connects several parts of CosmoScout VR to each other.
@@ -108,48 +109,37 @@ bool Application::Init(VistaSystem* pVistaSystem) {
 
   // initialize the mouse pointer state ------------------------------------------------------------
 
-  // If we are running on freeglut, we can hide the mouse pointer when the mouse ray should be
-  // shown. This is determined by the settings key "enableMouseRay".
-  auto windowingToolkit = dynamic_cast<VistaGlutWindowingToolkit*>(
-      GetVistaSystem()->GetDisplayManager()->GetWindowingToolkit());
+  mSettings->pEnableMouseRay.connectAndTouch([this](bool enable) {
+    // If we are running on freeglut, we can hide the mouse pointer when the mouse ray should be
+    // shown. This is determined by the settings key "enableMouseRay".
+    auto* windowingToolkit = dynamic_cast<VistaGlutWindowingToolkit*>(
+        GetVistaSystem()->GetDisplayManager()->GetWindowingToolkit());
 
-  if (windowingToolkit) {
-    for (auto const& window : GetVistaSystem()->GetDisplayManager()->GetWindows()) {
-      windowingToolkit->SetCursorIsEnabled(window.second, !mSettings->mEnableMouseRay);
+    if (windowingToolkit) {
+      for (auto const& window : GetVistaSystem()->GetDisplayManager()->GetWindows()) {
+        windowingToolkit->SetCursorIsEnabled(window.second, !enable);
+      }
     }
-  }
 
-  // If the settings key "enableMouseRay" is set to true, we add a cone geometry to the
-  // SELECTION_NODE. The SELECTION_NODE is controlled by the users input device (via the DFN).
-  if (mSettings->mEnableMouseRay) {
-    auto                sceneGraph = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
-    VistaTransformNode* pIntentionNode =
-        dynamic_cast<VistaTransformNode*>(sceneGraph->GetNode("SELECTION_NODE"));
-
-    VistaTransformNode* mRayTrans = sceneGraph->NewTransformNode(pIntentionNode);
-    mRayTrans->SetScale(0.001f, 0.001f, 30.0f);
-    mRayTrans->SetName("Ray_Trans");
-
-    auto ray      = new cs::graphics::MouseRay();
-    auto coneNode = sceneGraph->NewOpenGLNode(mRayTrans, ray);
-    coneNode->SetName("Cone_Node");
-
-    VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
-        pIntentionNode, static_cast<int>(cs::utils::DrawOrder::eRay));
-  } else {
-    cs::core::GuiManager::setCursor(cs::gui::Cursor::ePointer);
-  }
+    // If the settings key "enableMouseRay" is set to true, we add a cone geometry to the
+    // SELECTION_NODE. The SELECTION_NODE is controlled by the users input device (via the DFN).
+    if (enable) {
+      mMouseRay = std::make_unique<cs::graphics::MouseRay>();
+    } else {
+      mMouseRay.reset();
+      cs::core::GuiManager::setCursor(cs::gui::Cursor::ePointer);
+    }
+  });
 
   // Initialize some gui components
-  if (!mSettings->mEnableSensorSizeControl) {
-    mGuiManager->getGui()->executeJavascript(
-        "document.querySelector('#enableSensorSizeControl').classList.add('hidden')");
-  }
-
-  if (!mSettings->mEnableHDR.value_or(false)) {
+  mSettings->pEnableSensorSizeControl.connectAndTouch([this](bool enable) {
     mGuiManager->getGui()->callJavascript(
-        "CosmoScout.gui.setCheckboxValue", "graphics.setEnableHDR", false, true);
-  }
+        "CosmoScout.gui.hideElement", "#enableSensorSizeControl", !enable);
+  });
+
+  mSettings->pSpiceKernel.connect([](auto /*unused*/) {
+    logger().warn("Reloading the SPICE kernels at runtime is not yet supported!");
+  });
 
   mGuiManager->enableLoadingScreen(true);
 
@@ -166,7 +156,7 @@ bool Application::Init(VistaSystem* pVistaSystem) {
 void Application::Quit() {
 
   // Do not attempt to print anything to the on-screen console.
-  cs::utils::logger::onMessage().disconnect(mOnMessageConnection);
+  cs::utils::onLogMessage().disconnect(mOnMessageConnection);
 
   // De-init all plugins first.
   for (auto const& plugin : mPlugins) {
@@ -189,7 +179,7 @@ void Application::Quit() {
 
   auto assertCleanUp = [](std::string const& name, size_t count) {
     if (count > 1) {
-      spdlog::warn(
+      logger().warn(
           "Failed to properly cleanup the Application: Use count of '{}' is {} but should be 0.",
           name, count - 1);
     }
@@ -214,9 +204,6 @@ void Application::Quit() {
 
   assertCleanUp("mInputManager", mInputManager.use_count());
   mInputManager.reset();
-
-  assertCleanUp("mSettings", mSettings.use_count());
-  mSettings.reset();
 
   VistaFrameLoop::Quit();
 }
@@ -266,6 +253,40 @@ void Application::FrameUpdate() {
     m_pAvgLoopTime->RecordTime();
   }
 
+  // loading and saving ----------------------------------------------------------------------------
+
+  if (!mSettingsToSave.empty()) {
+    try {
+      mSettings->saveToFile(mSettingsToSave);
+    } catch (std::exception const& e) {
+      logger().warn("Failed to save settings to '{}': {}", mSettingsToSave, e.what());
+    }
+    mSettingsToSave = "";
+  }
+
+  if (!mSettingsToLoad.empty()) {
+    try {
+      mSettings->loadFromFile(mSettingsToLoad);
+    } catch (std::exception const& e) {
+      logger().warn("Failed to load settings from '{}': {}", mSettingsToLoad, e.what());
+    }
+    mSettingsToLoad = "";
+
+    // Unload all plugins we do not need anymore.
+    for (auto const& plugin : mPlugins) {
+      if (mSettings->mPlugins.find(plugin.first) == mSettings->mPlugins.end()) {
+        mPluginsToUnload.insert(plugin.first);
+      }
+    }
+
+    // Load all plugins which were not loaded before.
+    for (auto const& plugin : mSettings->mPlugins) {
+      if (mPlugins.find(plugin.first) == mPlugins.end()) {
+        mPluginsToLoad.insert(plugin.first);
+      }
+    }
+  }
+
   // hot-reloading of plugins ----------------------------------------------------------------------
 
   for (auto const& plugin : mPluginsToUnload) {
@@ -284,10 +305,11 @@ void Application::FrameUpdate() {
 
   // At frame 25 we start to download datasets. This ensures that the loading screen is actually
   // already visible.
-  if (GetFrameCount() == 25) {
-    if (mSettings->mDownloadData.size() > 0) {
+  int32_t const waitFrames = 25;
+  if (GetFrameCount() == waitFrames) {
+    if (!mSettings->mDownloadData.empty()) {
       // Download datasets in parallel. We use 10 threads to download the data.
-      mDownloader.reset(new cs::utils::Downloader(10));
+      mDownloader = std::make_unique<cs::utils::Downloader>(10);
       for (auto const& download : mSettings->mDownloadData) {
         mDownloader->download(download.mUrl, download.mFile);
       }
@@ -295,7 +317,7 @@ void Application::FrameUpdate() {
       // If all files were already downloaded, this could have gone quite quickly...
       if (mDownloader->hasFinished()) {
         mDownloadedData = true;
-        mDownloader.release();
+        mDownloader.reset(nullptr);
       } else {
         // Show to the user what's going on.
         mGuiManager->setLoadingScreenStatus("Downloading data...");
@@ -315,16 +337,16 @@ void Application::FrameUpdate() {
   // Once the data download has finished, we can delete our downloader.
   if (!mDownloadedData && mDownloader && mDownloader->hasFinished()) {
     mDownloadedData = true;
-    mDownloader.release();
+    mDownloader.reset(nullptr);
   }
 
   // If all data is available, we can initialize the SolarSystem. This can only be done after the
   // data download, as it requires SPICE kernels which might be part of the download.
   if (mDownloadedData && !mSolarSystem->getIsInitialized()) {
     try {
-      mSolarSystem->init(mSettings->mSpiceKernel);
+      mSolarSystem->init(mSettings->pSpiceKernel.get());
     } catch (std::runtime_error const& e) {
-      spdlog::error("Failed to initialize the SolarSystem: {}", e.what());
+      logger().error("Failed to initialize the SolarSystem: {}", e.what());
       Quit();
     }
 
@@ -363,55 +385,21 @@ void Application::FrameUpdate() {
 
       } else if (pluginToLoad == static_cast<int32_t>(mPlugins.size())) {
 
-        spdlog::info("Ready for Takeoff!");
+        logger().info("Ready for Takeoff!");
 
         // Once all plugins have been loaded, we set a boolean indicating this state.
         mLoadedAllPlugins = true;
 
         // Update the loading screen status.
         mGuiManager->setLoadingScreenStatus("Ready for Takeoff");
-        mGuiManager->setLoadingScreenProgress(100.f, true);
+        mGuiManager->setLoadingScreenProgress(100.F, true);
 
         // We will keep the loading screen active for some frames, as the first frames are usually a
         // bit choppy as data is uploaded to the GPU.
         mHideLoadingScreenAtFrame = GetFrameCount() + cLoadingDelay;
 
-        // initial observer animation --------------------------------------------------------------
-
-        // At application startup, the celestial observer is transitioned to its position specified
-        // in the setting json file.
-        auto const& observerSettings = mSettings->mObserver;
-        glm::dvec2  lonLat(observerSettings.mLongitude, observerSettings.mLatitude);
-        lonLat = cs::utils::convert::toRadians(lonLat);
-
-        auto radii = cs::core::SolarSystem::getRadii(observerSettings.mCenter);
-
-        if (radii[0] == 0.0 || radii[2] == 0.0) {
-          radii = glm::dvec3(1, 1, 1);
-        }
-
-        // Multiply longitude and latitude of start location by 0.5 to create more interesting start
-        // animation.
-        auto cart = cs::utils::convert::toCartesian(
-            lonLat * 0.5, radii[0], radii[0], observerSettings.mDistance * 5);
-
-        glm::dvec3 y = glm::dvec3(0, -1, 0);
-        glm::dvec3 z = cart;
-        glm::dvec3 x = glm::cross(z, y);
-        y            = glm::cross(z, x);
-
-        x = glm::normalize(x);
-        y = glm::normalize(y);
-        z = glm::normalize(z);
-
-        auto rotation = glm::toQuat(glm::dmat3(x, y, z));
-        mSolarSystem->getObserver().setCenterName(observerSettings.mCenter);
-        mSolarSystem->getObserver().setFrameName(observerSettings.mFrame);
-        mSolarSystem->getObserver().setAnchorPosition(cart);
-        mSolarSystem->getObserver().setAnchorRotation(rotation);
-
-        mSolarSystem->flyObserverTo(observerSettings.mCenter, observerSettings.mFrame, lonLat,
-            observerSettings.mDistance, 5.0);
+        // Call code which has to be executed whenever the settings are reloaded.
+        onLoad();
       }
 
       // If there is a plugin going to be loaded after the next cLoadingDelay frames, display its
@@ -420,7 +408,8 @@ void Application::FrameUpdate() {
         auto plugin = mPlugins.begin();
         std::advance(plugin, pluginToLoad + 1);
         mGuiManager->setLoadingScreenStatus("Loading " + plugin->first + " ...");
-        mGuiManager->setLoadingScreenProgress(100.f * (pluginToLoad + 1) / mPlugins.size(), true);
+        mGuiManager->setLoadingScreenProgress(
+            100.F * static_cast<float>(pluginToLoad + 1) / mPlugins.size(), true);
       }
     }
   }
@@ -449,18 +438,6 @@ void Application::FrameUpdate() {
       mTimeControl->update();
     }
 
-    // Update the individual plugins.
-    for (auto const& plugin : mPlugins) {
-      cs::utils::FrameTimings::ScopedTimer timer(
-          plugin.first, cs::utils::FrameTimings::QueryMode::eBoth);
-
-      try {
-        plugin.second.mPlugin->update();
-      } catch (std::runtime_error const& e) {
-        spdlog::error("Error updating plugin '{}': {}", plugin.first, e.what());
-      }
-    }
-
     // Update the navigation, SolarSystem and scene scale.
     {
       cs::utils::FrameTimings::ScopedTimer timer(
@@ -469,6 +446,18 @@ void Application::FrameUpdate() {
       mSolarSystem->update();
       mSolarSystem->updateSceneScale();
       mSolarSystem->updateObserverFrame();
+    }
+
+    // Update the individual plugins.
+    for (auto const& plugin : mPlugins) {
+      cs::utils::FrameTimings::ScopedTimer timer(
+          plugin.first, cs::utils::FrameTimings::QueryMode::eBoth);
+
+      try {
+        plugin.second.mPlugin->update();
+      } catch (std::runtime_error const& e) {
+        logger().error("Error updating plugin '{}': {}", plugin.first, e.what());
+      }
     }
 
     // Synchronize the observer position and simulation time across the network.
@@ -481,7 +470,7 @@ void Application::FrameUpdate() {
         glm::dquat mRotation;
         double     mScale;
         double     mTime;
-      } syncMessage;
+      } syncMessage{};
 
       syncMessage.mPosition = mSolarSystem->getObserver().getAnchorPosition();
       syncMessage.mRotation = mSolarSystem->getObserver().getAnchorRotation();
@@ -528,7 +517,7 @@ void Application::FrameUpdate() {
     if (mSolarSystem->pActiveBody.get()) {
 
       // Update the user's position display in the header bar.
-      auto                pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
+      auto*               pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
       VistaTransformNode* pTrans =
           dynamic_cast<VistaTransformNode*>(pSG->GetNode("Platform-User-Node"));
 
@@ -540,7 +529,7 @@ void Application::FrameUpdate() {
           glm::inverse(mSolarSystem->pActiveBody.get()->getWorldTransform()) * vWorldPos;
       auto   polar = cs::utils::convert::toLngLatHeight(vPlanetPos.xyz(), radii[0], radii[0]);
       double surfaceHeight = mSolarSystem->pActiveBody.get()->getHeight(polar.xy());
-      double heightDiff    = polar.z / mGraphicsEngine->pHeightScale.get() - surfaceHeight;
+      double heightDiff    = polar.z / mSettings->mGraphics.pHeightScale.get() - surfaceHeight;
 
       if (!std::isnan(polar.x) && !std::isnan(polar.y) && !std::isnan(heightDiff)) {
         mGuiManager->getGui()->executeJavascript(
@@ -611,20 +600,46 @@ void Application::testLoadAllPlugins() {
       COSMOSCOUT_LIBTYPE pluginHandle = OPENLIB(plugin.c_str());
 
       if (pluginHandle) {
-        cs::core::PluginBase* (*pluginConstructor)();
-        pluginConstructor = (cs::core::PluginBase * (*)()) LIBFUNC(pluginHandle, "create");
+        cs::core::PluginBase* (*pluginConstructor)(){};
+        pluginConstructor = // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+            reinterpret_cast<cs::core::PluginBase* (*)()>(LIBFUNC(pluginHandle, "create"));
 
         if (pluginConstructor) {
-          spdlog::info("Plugin '{}' found.", plugin);
+          logger().info("Plugin '{}' found.", plugin);
         } else {
-          spdlog::error("Failed to load plugin '{}': Plugin has no 'create' method.", plugin);
+          logger().error("Failed to load plugin '{}': Plugin has no 'create' method.", plugin);
         }
 
       } else {
-        spdlog::error("Failed to load plugin '{}': {}", plugin, LIBERROR());
+        logger().error("Failed to load plugin '{}': {}", plugin, LIBERROR());
       }
     }
   }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Application::onLoad() {
+
+  // First unload all plugins which are not required anymore.
+  for (auto const& plugin : mPlugins) {
+    if (mSettings->mPlugins.find(plugin.first) == mSettings->mPlugins.end()) {
+      deinitPlugin(plugin.first);
+      closePlugin(plugin.first);
+    }
+  }
+
+  // Then load new plugins.
+  for (auto const& plugin : mSettings->mPlugins) {
+    if (mPlugins.find(plugin.first) == mPlugins.end()) {
+      openPlugin(plugin.first);
+      initPlugin(plugin.first);
+    }
+  }
+
+  // Move the observer to the new position.
+  mSolarSystem->flyObserverTo(mSettings->mObserver.pCenter.get(), mSettings->mObserver.pFrame.get(),
+      mSettings->mObserver.pPosition.get(), mSettings->mObserver.pRotation.get(), 5.0);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -647,21 +662,22 @@ void Application::openPlugin(std::string const& name) {
       COSMOSCOUT_LIBTYPE pluginHandle = OPENLIB(path.c_str());
 
       if (pluginHandle) {
-        cs::core::PluginBase* (*pluginConstructor)();
-        pluginConstructor = (cs::core::PluginBase * (*)()) LIBFUNC(pluginHandle, "create");
+        cs::core::PluginBase* (*pluginConstructor)(){};
+        pluginConstructor = // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+            reinterpret_cast<cs::core::PluginBase* (*)()>(LIBFUNC(pluginHandle, "create"));
 
-        spdlog::info("Opening plugin '{}'.", name);
+        logger().info("Opening plugin '{}'.", name);
 
         // Actually call the plugin's constructor and add the returned pointer to out list.
         mPlugins.insert(std::pair<std::string, Plugin>(name, {pluginHandle, pluginConstructor()}));
       } else {
-        spdlog::error("Failed to load plugin '{}': {}", name, LIBERROR());
+        logger().error("Failed to load plugin '{}': {}", name, LIBERROR());
       }
     } catch (std::exception const& e) {
-      spdlog::error("Failed to load plugin '{}': {}", name, e.what());
+      logger().error("Failed to load plugin '{}': {}", name, e.what());
     }
   } else {
-    spdlog::warn("Cannot open plugin '{}': Plugin is already opened!", name);
+    logger().warn("Cannot open plugin '{}': Plugin is already opened!", name);
   }
 }
 
@@ -678,8 +694,8 @@ void Application::initPlugin(std::string const& name) {
           GetVistaSystem()->GetGraphicsManager()->GetSceneGraph(), mGraphicsEngine, mFrameTimings,
           mTimeControl);
 
-      // Then do the actual initialization. This may actually take a while and the application
-      // will become unresponsive in the meantime.
+      // Then do the actual initialization. This may actually take a while and the application will
+      // become unresponsive in the meantime.
       try {
         plugin->second.mPlugin->init();
         plugin->second.mIsInitialized = true;
@@ -687,10 +703,10 @@ void Application::initPlugin(std::string const& name) {
         // Plugin finished loading -> init its custom components.
         mGuiManager->getGui()->callJavascript("CosmoScout.gui.initInputs");
       } catch (std::exception const& e) {
-        spdlog::error("Failed to initialize plugin '{}': {}", plugin->first, e.what());
+        logger().error("Failed to initialize plugin '{}': {}", plugin->first, e.what());
       }
     } else {
-      spdlog::warn("Cannot initialize plugin '{}': Plugin is already initialized!", name);
+      logger().warn("Cannot initialize plugin '{}': Plugin is already initialized!", name);
     }
   }
 }
@@ -705,10 +721,10 @@ void Application::deinitPlugin(std::string const& name) {
       plugin->second.mPlugin->deInit();
       plugin->second.mIsInitialized = false;
     } else {
-      spdlog::warn("Cannot deinitialize plugin '{}': Plugin is not initialized!", name);
+      logger().warn("Cannot deinitialize plugin '{}': Plugin is not initialized!", name);
     }
   } else {
-    spdlog::warn("Cannot unload plugin '{}': No plugin loaded with this name!", name);
+    logger().warn("Cannot unload plugin '{}': No plugin loaded with this name!", name);
   }
 }
 
@@ -718,10 +734,11 @@ void Application::closePlugin(std::string const& name) {
   auto plugin = mPlugins.find(name);
 
   if (plugin != mPlugins.end()) {
-    spdlog::info("Closing plugin '{}'.", plugin->first);
+    logger().info("Closing plugin '{}'.", plugin->first);
 
-    auto handle           = plugin->second.mHandle;
-    auto pluginDestructor = (void (*)(cs::core::PluginBase*))LIBFUNC(handle, "destroy");
+    auto* handle           = plugin->second.mHandle;
+    auto  pluginDestructor = // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+        reinterpret_cast<void (*)(cs::core::PluginBase*)>(LIBFUNC(handle, "destroy"));
 
     pluginDestructor(plugin->second.mPlugin);
     CLOSELIB(handle);
@@ -729,7 +746,7 @@ void Application::closePlugin(std::string const& name) {
     mPlugins.erase(plugin);
 
   } else {
-    spdlog::warn("Failed to close plugin '{}': No plugin loaded with this name!", name);
+    logger().warn("Failed to close plugin '{}': No plugin loaded with this name!", name);
   }
 }
 
@@ -738,30 +755,34 @@ void Application::closePlugin(std::string const& name) {
 void Application::connectSlots() {
 
   // Update mouse pointer coordinate display in the user interface.
-  mInputManager->pHoveredObject.connect([this](cs::core::InputManager::Intersection intersection) {
-    if (intersection.mObject) {
-      auto body = std::dynamic_pointer_cast<cs::scene::CelestialBody>(intersection.mObject);
+  mInputManager->pHoveredObject.connect(
+      [this](cs::core::InputManager::Intersection const& intersection) {
+        if (intersection.mObject) {
+          auto body = std::dynamic_pointer_cast<cs::scene::CelestialBody>(intersection.mObject);
 
-      if (body) {
-        auto radii = body->getRadii();
-        auto polar = cs::utils::convert::toLngLatHeight(intersection.mPosition, radii[0], radii[0]);
-        auto lngLat = cs::utils::convert::toDegrees(polar.xy());
+          if (body) {
+            auto radii = body->getRadii();
+            auto polar =
+                cs::utils::convert::toLngLatHeight(intersection.mPosition, radii[0], radii[0]);
+            auto lngLat = cs::utils::convert::toDegrees(polar.xy());
 
-        if (!std::isnan(lngLat.x) && !std::isnan(lngLat.y) && !std::isnan(polar.z)) {
-          mGuiManager->getGui()->executeJavascript(
-              fmt::format("CosmoScout.state.pointerPosition = [{}, {}, {}];", lngLat.x, lngLat.y,
-                  polar.z / mGraphicsEngine->pHeightScale.get()));
-          return;
+            if (!std::isnan(lngLat.x) && !std::isnan(lngLat.y) && !std::isnan(polar.z)) {
+              mGuiManager->getGui()->executeJavascript(
+                  fmt::format("CosmoScout.state.pointerPosition = [{}, {}, {}];", lngLat.x,
+                      lngLat.y, polar.z / mSettings->mGraphics.pHeightScale.get()));
+              return;
+            }
+          }
         }
-      }
-    }
-    mGuiManager->getGui()->executeJavascript("CosmoScout.state.pointerPosition = undefined;");
-  });
+        mGuiManager->getGui()->executeJavascript("CosmoScout.state.pointerPosition = undefined;");
+      });
 
   // Update the time shown in the user interface when the simulation time changes.
   mTimeControl->pSimulationTime.connect([this](double val) {
     std::stringstream sstr;
-    auto              facet = new boost::posix_time::time_facet();
+
+    // NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
+    auto* facet = new boost::posix_time::time_facet();
     facet->format("%d-%b-%Y %H:%M:%S.%f");
     sstr.imbue(std::locale(std::locale::classic(), facet));
     sstr << cs::utils::convert::toBoostTime(val);
@@ -774,7 +795,7 @@ void Application::connectSlots() {
   });
 
   // Show notification when the center name of the celestial observer changes.
-  mSolarSystem->pObserverCenter.connect([this](std::string const& center) {
+  mSettings->mObserver.pCenter.connect([this](std::string const& center) {
     if (center == "Solar System Barycenter") {
       mGuiManager->showNotification("Leaving " + mSolarSystem->pActiveBody.get()->getCenterName(),
           "Now travelling in free space.", "star");
@@ -789,7 +810,7 @@ void Application::connectSlots() {
   });
 
   // Show notification when the frame name of the celestial observer changes.
-  mSolarSystem->pObserverFrame.connect([this](std::string const& frame) {
+  mSettings->mObserver.pFrame.connect([this](std::string const& frame) {
     if (frame == "J2000") {
       mGuiManager->showNotification(
           "Stop tracking " + mSolarSystem->pActiveBody.get()->getCenterName(),
@@ -813,7 +834,7 @@ void Application::connectSlots() {
   mFrameTimings->pEnableMeasurements.connect(
       [this](bool enable) { mGuiManager->getStatistics()->setIsEnabled(enable); });
 
-  mOnMessageConnection = cs::utils::logger::onMessage().connect(
+  mOnMessageConnection = cs::utils::onLogMessage().connect(
       [this](
           std::string const& logger, spdlog::level::level_enum level, std::string const& message) {
         const std::unordered_map<spdlog::level::level_enum, std::string> mapping = {
@@ -828,6 +849,16 @@ void Application::connectSlots() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Application::registerGuiCallbacks() {
+  // core callbacks --------------------------------------------------------------------------------
+
+  // Saves the current scene state in a specified file.
+  mGuiManager->getGui()->registerCallback("core.save",
+      "Saves the current scene state to the given file.",
+      std::function([this](std::string&& file) { mSettingsToSave = file; }));
+
+  // Loads a scene state from a specified file.
+  mGuiManager->getGui()->registerCallback("core.load", "Loads a scene state from the given file.",
+      std::function([this](std::string&& file) { mSettingsToLoad = file; }));
 
   // Unloads a plugin.
   mGuiManager->getGui()->registerCallback("core.unloadPlugin",
@@ -858,7 +889,7 @@ void Application::registerGuiCallbacks() {
   mGuiManager->getGui()->registerCallback(
       "core.listPlugins", "Lists all loaded plugins.", std::function([this]() {
         for (auto const& plugin : mPlugins) {
-          spdlog::info(plugin.first);
+          logger().info(plugin.first);
         }
       }));
 
@@ -867,42 +898,59 @@ void Application::registerGuiCallbacks() {
   // Enables lighting computation globally.
   mGuiManager->getGui()->registerCallback("graphics.setEnableLighting",
       "Enables or disables lighting computations for planet surfaces.",
-      std::function([this](bool enable) { mGraphicsEngine->pEnableLighting = enable; }));
+      std::function([this](bool enable) { mSettings->mGraphics.pEnableLighting = enable; }));
+  mSettings->mGraphics.pEnableLighting.connectAndTouch(
+      [this](bool enable) { mGuiManager->setCheckboxValue("graphics.setEnableLighting", enable); });
 
   // Shows cascaded shadow mapping debugging information on the terrain.
   mGuiManager->getGui()->registerCallback("graphics.setEnableCascadesDebug",
       "Enables or disables a debug visualization for the shadow maps.",
-      std::function([this](bool enable) { mGraphicsEngine->pEnableShadowsDebug = enable; }));
+      std::function([this](bool enable) { mSettings->mGraphics.pEnableShadowsDebug = enable; }));
+  mSettings->mGraphics.pEnableShadowsDebug.connectAndTouch([this](bool enable) {
+    mGuiManager->setCheckboxValue("graphics.setEnableCascadesDebug", enable);
+  });
 
   // Enables the calculation of shadows.
   mGuiManager->getGui()->registerCallback("graphics.setEnableShadows",
       "Enables or disables calculation of shadow maps.",
-      std::function([this](bool enable) { mGraphicsEngine->pEnableShadows = enable; }));
+      std::function([this](bool enable) { mSettings->mGraphics.pEnableShadows = enable; }));
+  mSettings->mGraphics.pEnableShadows.connectAndTouch(
+      [this](bool enable) { mGuiManager->setCheckboxValue("graphics.setEnableShadows", enable); });
 
   // Freezes the shadow frustum.
   mGuiManager->getGui()->registerCallback("graphics.setEnableShadowFreeze",
       "If enabled, the camera frustum used for the calculation of the shadow map cascades is not "
       "updated anymore.",
-      std::function([this](bool enable) { mGraphicsEngine->pEnableShadowsFreeze = enable; }));
+      std::function([this](bool enable) { mSettings->mGraphics.pEnableShadowsFreeze = enable; }));
+  mSettings->mGraphics.pEnableShadowsFreeze.connectAndTouch([this](bool enable) {
+    mGuiManager->setCheckboxValue("graphics.setEnableShadowFreeze", enable);
+  });
 
   // Sets a value which individual plugins may honor trading rendering fidelity for performance.
   mGuiManager->getGui()->registerCallback("graphics.setLightingQuality",
       "Sets the quality for lighting computations. This can be either 0, 1 or 2.",
       std::function(
-          [this](double value) { mGraphicsEngine->pLightingQuality = static_cast<int>(value); }));
+          [this](double val) { mSettings->mGraphics.pLightingQuality = static_cast<int>(val); }));
+  mSettings->mGraphics.pLightingQuality.connectAndTouch(
+      [this](int val) { mGuiManager->setSliderValue("graphics.setLightingQuality", val); });
 
   // Adjusts the resolution of the shadowmap.
   mGuiManager->getGui()->registerCallback("graphics.setShadowmapResolution",
       "Sets the resolution of the shadow maps. This should be a power of two, e.g. 256, 512, 1024, "
       "etc.",
-      std::function(
-          [this](double val) { mGraphicsEngine->pShadowMapResolution = static_cast<int>(val); }));
+      std::function([this](double val) {
+        mSettings->mGraphics.pShadowMapResolution = static_cast<int>(val);
+      }));
+  mSettings->mGraphics.pShadowMapResolution.connectAndTouch(
+      [this](int val) { mGuiManager->setSliderValue("graphics.setShadowmapResolution", val); });
 
   // Adjusts the number of shadowmap cascades.
   mGuiManager->getGui()->registerCallback("graphics.setShadowmapCascades",
       "Sets the number of shadow map cascades. Should be in the range of 1-5.",
       std::function(
-          [this](double val) { mGraphicsEngine->pShadowMapCascades = static_cast<int>(val); }));
+          [this](double val) { mSettings->mGraphics.pShadowMapCascades = static_cast<int>(val); }));
+  mSettings->mGraphics.pShadowMapCascades.connectAndTouch(
+      [this](int val) { mGuiManager->setSliderValue("graphics.setShadowmapCascades", val); });
 
   // Adjusts the depth range of the shadowmap.
   mGuiManager->getGui()->registerCallback("graphics.setShadowmapRange",
@@ -910,16 +958,19 @@ void Application::registerGuiCallbacks() {
       "viewspace, the second specifies which end to set: Zero for the closer end; One for the "
       "farther end.",
       std::function([this](double val, double handle) {
-        glm::vec2 range = mGraphicsEngine->pShadowMapRange.get();
+        glm::vec2 range = mSettings->mGraphics.pShadowMapRange.get();
 
         if (handle == 0.0) {
-          range.x = (float)val;
+          range.x = static_cast<float>(val);
         } else {
-          range.y = (float)val;
-        };
+          range.y = static_cast<float>(val);
+        }
 
-        mGraphicsEngine->pShadowMapRange = range;
+        mSettings->mGraphics.pShadowMapRange = range;
       }));
+  mSettings->mGraphics.pShadowMapRange.connectAndTouch([this](glm::dvec2 const& val) {
+    mGuiManager->setSliderValue("graphics.setShadowmapRange", val);
+  });
 
   // Adjusts the additional frustum length for shadowmap rendering in sun space.
   mGuiManager->getGui()->registerCallback("graphics.setShadowmapExtension",
@@ -927,106 +978,130 @@ void Application::registerGuiCallbacks() {
       "actual value in sunspace, the second specifies which end to set: Zero for the closer end; "
       "One for the farther end.",
       std::function([this](double val, double handle) {
-        glm::vec2 extension = mGraphicsEngine->pShadowMapExtension.get();
+        glm::vec2 extension = mSettings->mGraphics.pShadowMapExtension.get();
 
         if (handle == 0.0) {
-          extension.x = (float)val;
+          extension.x = static_cast<float>(val);
         } else {
-          extension.y = (float)val;
-        };
+          extension.y = static_cast<float>(val);
+        }
 
-        mGraphicsEngine->pShadowMapExtension = extension;
+        mSettings->mGraphics.pShadowMapExtension = extension;
       }));
+  mSettings->mGraphics.pShadowMapExtension.connectAndTouch([this](glm::dvec2 const& val) {
+    mGuiManager->setSliderValue("graphics.setShadowmapExtension", val);
+  });
 
   // Adjusts the distribution of shadowmap cascades.
   mGuiManager->getGui()->registerCallback("graphics.setShadowmapSplitDistribution",
       "Defines an exponent for the distribution of the shadowmap cascades.",
       std::function([this](double val) {
-        mGraphicsEngine->pShadowMapSplitDistribution = static_cast<float>(val);
+        mSettings->mGraphics.pShadowMapSplitDistribution = static_cast<float>(val);
       }));
+  mSettings->mGraphics.pShadowMapSplitDistribution.connectAndTouch([this](float val) {
+    mGuiManager->setSliderValue("graphics.setShadowmapSplitDistribution", val);
+  });
 
   // Adjusts the bias to mitigate shadow acne.
   mGuiManager->getGui()->registerCallback("graphics.setShadowmapBias",
       "Sets the bias for the shadow map lookups.", std::function([this](double val) {
-        mGraphicsEngine->pShadowMapBias = static_cast<float>(val);
+        mSettings->mGraphics.pShadowMapBias = static_cast<float>(val);
       }));
+  mSettings->mGraphics.pShadowMapBias.connectAndTouch(
+      [this](float val) { mGuiManager->setSliderValue("graphics.setShadowmapBias", val); });
 
   // A global factor which plugins may honor when they render some sort of terrain.
   mGuiManager->getGui()->registerCallback("graphics.setTerrainHeight",
       "Sets a factor for the height exaggeration of the planet's surface.",
       std::function(
-          [this](double value) { mGraphicsEngine->pHeightScale = static_cast<float>(value); }));
+          [this](double val) { mSettings->mGraphics.pHeightScale = static_cast<float>(val); }));
+  mSettings->mGraphics.pHeightScale.connectAndTouch(
+      [this](double val) { mGuiManager->setSliderValue("graphics.setTerrainHeight", val); });
 
   // Adjusts the global scaling of world-space widgets.
   mGuiManager->getGui()->registerCallback("graphics.setWidgetScale",
       "Sets a factor for the scaling of world space user interface elements.",
       std::function(
-          [this](double value) { mGraphicsEngine->pWidgetScale = static_cast<float>(value); }));
+          [this](double val) { mSettings->mGraphics.pWidgetScale = static_cast<float>(val); }));
+  mSettings->mGraphics.pWidgetScale.connectAndTouch(
+      [this](double val) { mGuiManager->setSliderValue("graphics.setWidgetScale", val); });
 
   // Adjusts the sensor diagonal of the virtual camera.
   mGuiManager->getGui()->registerCallback("graphics.setSensorDiagonal",
       "Sets the sensor diagonal of the virtual camera in [mm].", std::function([this](double val) {
-        mGraphicsEngine->pSensorDiagonal = static_cast<float>(val);
+        mSettings->mGraphics.pSensorDiagonal = static_cast<float>(val);
       }));
+  mSettings->mGraphics.pSensorDiagonal.connectAndTouch(
+      [this](float val) { mGuiManager->setSliderValue("graphics.setSensorDiagonal", val); });
 
   // Adjusts the foacl length of the virtual camera.
   mGuiManager->getGui()->registerCallback("graphics.setFocalLength",
       "Sets the focal length of the virtual camera in [mm].", std::function([this](double val) {
-        mGraphicsEngine->pFocalLength = static_cast<float>(val);
+        mSettings->mGraphics.pFocalLength = static_cast<float>(val);
       }));
+  mSettings->mGraphics.pFocalLength.connectAndTouch(
+      [this](float val) { mGuiManager->setSliderValue("graphics.setFocalLength", val); });
 
   // Toggles HDR rendering.
   mGuiManager->getGui()->registerCallback("graphics.setEnableHDR",
       "Enables or disables HDR rendering.",
-      std::function([this](bool val) { mGraphicsEngine->pEnableHDR = val; }));
+      std::function([this](bool enable) { mSettings->mGraphics.pEnableHDR = enable; }));
+  mSettings->mGraphics.pEnableHDR.connectAndTouch([this](bool enable) {
+    // We fire callbacks (last param) to make sure that the exposure-sliders are properly activated
+    // / deactivated.
+    mGuiManager->setCheckboxValue("graphics.setEnableHDR", enable, true);
+  });
 
   // Toggles auto-exposure.
   mGuiManager->getGui()->registerCallback("graphics.setEnableAutoExposure",
       "Enables or disables automatic exposure calculation.",
-      std::function([this](bool val) { mGraphicsEngine->pEnableAutoExposure = val; }));
+      std::function([this](bool enable) { mSettings->mGraphics.pEnableAutoExposure = enable; }));
+  mSettings->mGraphics.pEnableAutoExposure.connectAndTouch([this](bool enable) {
+    mGuiManager->setCheckboxValue("graphics.setEnableAutoExposure", enable);
+  });
 
   // Adjusts the exposure compensation for HDR rendering.
   mGuiManager->getGui()->registerCallback("graphics.setExposureCompensation",
       "Adds some additional exposure in [EV].", std::function([this](double val) {
-        mGraphicsEngine->pExposureCompensation = static_cast<float>(val);
+        mSettings->mGraphics.pExposureCompensation = static_cast<float>(val);
       }));
+  mSettings->mGraphics.pExposureCompensation.connectAndTouch(
+      [this](float val) { mGuiManager->setSliderValue("graphics.setExposureCompensation", val); });
 
   // Adjusts the exposure of the virtual camera in HDR mode.
   mGuiManager->getGui()->registerCallback("graphics.setExposure",
       "Sets the exposure of the image in [EV]. Only available if auto-exposure is disabled.",
-      std::function([this](double val) {
-        if (!mGraphicsEngine->pEnableAutoExposure.get()) {
-          mGraphicsEngine->pExposure = static_cast<float>(val);
-        }
-      }));
+      std::function(
+          [this](double val) { mSettings->mGraphics.pExposure = static_cast<float>(val); }));
+  mSettings->mGraphics.pExposure.connectAndTouch(
+      [this](float val) { mGuiManager->setSliderValue("graphics.setExposure", val); });
 
   // Adjusts how fast the exposure adapts to new lighting condtitions.
   mGuiManager->getGui()->registerCallback("graphics.setExposureAdaptionSpeed",
       "Adjust the quickness of auto-exposure.", std::function([this](double val) {
-        mGraphicsEngine->pExposureAdaptionSpeed = static_cast<float>(val);
+        mSettings->mGraphics.pExposureAdaptionSpeed = static_cast<float>(val);
       }));
-
-  // If auto-exposure is enabled, we update the slider in the user interface to show the current
-  // value.
-  mGraphicsEngine->pExposure.connect([this](float value) {
-    if (mGraphicsEngine->pEnableAutoExposure.get()) {
-      mGuiManager->getGui()->callJavascript(
-          "CosmoScout.gui.setSliderValue", "graphics.setExposure", value);
-    }
-  });
+  mSettings->mGraphics.pExposureAdaptionSpeed.connectAndTouch(
+      [this](float val) { mGuiManager->setSliderValue("graphics.setExposureAdaptionSpeed", val); });
 
   // Toggles auto-glow.
   mGuiManager->getGui()->registerCallback("graphics.setEnableAutoGlow",
       "If enabled, the glow amount is chosen based on the current exposure.",
-      std::function([this](bool val) { mGraphicsEngine->pEnableAutoGlow = val; }));
-
-  // If auto-glow is enabled, we update the slider in the user interface to show the current value.
-  mGraphicsEngine->pGlowIntensity.connect([this](float value) {
-    if (mGraphicsEngine->pEnableAutoGlow.get()) {
-      mGuiManager->getGui()->callJavascript(
-          "CosmoScout.gui.setSliderValue", "graphics.setGlowIntensity", value);
-    }
+      std::function([this](bool enable) { mSettings->mGraphics.pEnableAutoGlow = enable; }));
+  mSettings->mGraphics.pEnableAutoGlow.connectAndTouch([this](bool enable) {
+    // We fire callbacks (last param) to make sure that the glow-slider is properly activated /
+    // deactivated.
+    mGuiManager->setCheckboxValue("graphics.setEnableAutoGlow", enable, true);
   });
+
+  // Adjusts the amount of artificial glare in HDR mode. If auto-glow is enabled, we update the
+  // slider in the user interface to show the current value.
+  mGuiManager->getGui()->registerCallback("graphics.setGlowIntensity",
+      "Adjusts the amount of glow of overexposed areas.", std::function([this](double val) {
+        mSettings->mGraphics.pGlowIntensity = static_cast<float>(val);
+      }));
+  mSettings->mGraphics.pGlowIntensity.connect(
+      [this](float val) { mGuiManager->setSliderValue("graphics.setGlowIntensity", val); });
 
   // Update the side bar field showing the average luminance of the scene.
   mGraphicsEngine->pAverageLuminance.connect([this](float value) {
@@ -1041,14 +1116,11 @@ void Application::registerGuiCallbacks() {
   // Adjusts the amount of ambient lighting.
   mGuiManager->getGui()->registerCallback("graphics.setAmbientLight",
       "Sets the amount of ambient light.", std::function([this](double val) {
-        mGraphicsEngine->pAmbientBrightness = static_cast<float>(std::pow(val, 10.0));
+        mSettings->mGraphics.pAmbientBrightness = static_cast<float>(std::pow(val, 10.0));
       }));
-
-  // Adjusts the amount of artificial glare in HDR mode.
-  mGuiManager->getGui()->registerCallback("graphics.setGlowIntensity",
-      "Adjusts the amount of glow of overexposed areas.", std::function([this](double val) {
-        mGraphicsEngine->pGlowIntensity = static_cast<float>(val);
-      }));
+  mSettings->mGraphics.pAmbientBrightness.connect([this](float val) {
+    mGuiManager->setSliderValue("graphics.setAmbientLight", std::pow(val, 0.1F));
+  });
 
   // Adjusts the exposure range for auto exposure.
   mGuiManager->getGui()->registerCallback("graphics.setExposureRange",
@@ -1056,39 +1128,41 @@ void Application::registerGuiCallbacks() {
       "value in [EV], the second determines which to sets: Zero for the lower end; one for the "
       "upper end.",
       std::function([this](double val, double handle) {
-        glm::vec2 range = mGraphicsEngine->pAutoExposureRange.get();
+        glm::vec2 range = mSettings->mGraphics.pAutoExposureRange.get();
 
-        if (handle == 0.0)
+        if (handle == 0.0) {
           range.x = static_cast<float>(val);
-        else
+        } else {
           range.y = static_cast<float>(val);
+        }
 
-        mGraphicsEngine->pAutoExposureRange = range;
+        mSettings->mGraphics.pAutoExposureRange = range;
       }));
+  mSettings->mGraphics.pAutoExposureRange.connectAndTouch([this](glm::dvec2 const& val) {
+    mGuiManager->setSliderValue("graphics.setExposureRange", val);
+  });
 
   // Enables or disables the per-frame time measurements.
   mGuiManager->getGui()->registerCallback("graphics.setEnableTimerQueries",
       "Shows or hides the frame timing information.",
-      std::function([this](bool value) { mFrameTimings->pEnableMeasurements = value; }));
+      std::function([this](bool enable) { mFrameTimings->pEnableMeasurements = enable; }));
+  mFrameTimings->pEnableMeasurements.connectAndTouch([this](bool enable) {
+    mGuiManager->setCheckboxValue("graphics.setEnableTimerQueries", enable);
+  });
 
   // Enables or disables vertical synchronization.
   mGuiManager->getGui()->registerCallback("graphics.setEnableVsync",
-      "Enables or disables vertical synchronization.", std::function([](bool value) {
-        GetVistaSystem()
-            ->GetDisplayManager()
-            ->GetWindows()
-            .begin()
-            ->second->GetWindowProperties()
-            ->SetVSyncEnabled(value);
-      }));
+      "Enables or disables vertical synchronization.",
+      std::function([this](bool enable) { mSettings->mGraphics.pEnableVsync = enable; }));
+  mSettings->mGraphics.pEnableVsync.connectAndTouch(
+      [this](bool enable) { mGuiManager->setCheckboxValue("graphics.setEnableVsync", enable); });
 
   // Timeline callbacks ----------------------------------------------------------------------------
 
   // Sets the current simulation time. The argument must be a string accepted by
   // TimeControl::setTime.
   mGuiManager->getGui()->registerCallback("time.setDate",
-      "Sets the current simulation time. Format must be in the format '2002-01-20 "
-      "23:59:59.000'.",
+      "Sets the current simulation time. Format must be in the format '2002-01-20 23:59:59.000'.",
       std::function([this](std::string&& sDate) {
         double time = cs::utils::convert::toSpiceTime(boost::posix_time::time_from_string(sDate));
         mTimeControl->setTime(time);
@@ -1103,7 +1177,8 @@ void Application::registerGuiCallbacks() {
       "duration (optionalDouble, default is 0s).",
       std::function(
           [this](double tTime, std::optional<double> duration, std::optional<double> threshold) {
-            mTimeControl->setTime(tTime, duration.value_or(0.0), threshold.value_or(48 * 60 * 60));
+            double const twoDays = 48 * 60 * 60;
+            mTimeControl->setTime(tTime, duration.value_or(0.0), threshold.value_or(twoDays));
           }));
 
   // Resets the time to the configured start time.
@@ -1113,7 +1188,8 @@ void Application::registerGuiCallbacks() {
       "which is 48h), there will be a transition of the given duration (optionalDouble, default is "
       "0s).",
       std::function([this](std::optional<double> duration, std::optional<double> threshold) {
-        mTimeControl->resetTime(duration.value_or(0.0), threshold.value_or(48 * 60 * 60));
+        double const twoDays = 48 * 60 * 60;
+        mTimeControl->resetTime(duration.value_or(0.0), threshold.value_or(twoDays));
       }));
 
   // Modifies the current simulation time by adding some (fractional) hours.
@@ -1123,8 +1199,10 @@ void Application::registerGuiCallbacks() {
       "transition of the given duration (optionalDouble, default is 0s).",
       std::function(
           [this](double amount, std::optional<double> duration, std::optional<double> threshold) {
-            mTimeControl->setTime(mTimeControl->pSimulationTime.get() + 60.0 * 60.0 * amount,
-                duration.value_or(0.0), threshold.value_or(48 * 60 * 60));
+            double const twoDays        = 48 * 60 * 60;
+            double const hoursToSeconds = 60.0 * 60.0;
+            mTimeControl->setTime(mTimeControl->pSimulationTime.get() + hoursToSeconds * amount,
+                duration.value_or(0.0), threshold.value_or(twoDays));
           }));
 
   // Adjusts the simulation time speed.
@@ -1140,9 +1218,11 @@ void Application::registerGuiCallbacks() {
       "Sets the observer position to the given cartesian coordinates. The optional double argument "
       "specifies the transition time in seconds (default is 5s).",
       std::function([this](double x, double y, double z, std::optional<double> duration) {
+        double const animationTimeSeconds = 5.0;
         mSolarSystem->flyObserverTo(mSolarSystem->getObserver().getCenterName(),
             mSolarSystem->getObserver().getFrameName(), glm::dvec3(x, y, z),
-            mSolarSystem->getObserver().getAnchorRotation(), duration.value_or(5.0));
+            mSolarSystem->getObserver().getAnchorRotation(),
+            duration.value_or(animationTimeSeconds));
       }));
 
   // Sets the observer rotation to the given quaternion coordinates.
@@ -1188,8 +1268,8 @@ void Application::registerGuiCallbacks() {
         }
       }));
 
-  // Rotates the scene in such a way, that the y-axis points towards the north pole of the currently
-  // active celestial body.
+  // Rotates the scene in such a way, that the y-axis points towards the north pole of the
+  // currently active celestial body.
   mGuiManager->getGui()->registerCallback("navigation.northUp",
       "Turns the observer so that north is facing upwards. The optional argument specifies the "
       "animation time in seconds (default is 1s).",
@@ -1261,7 +1341,8 @@ void Application::registerGuiCallbacks() {
             mSolarSystem->getObserver().getAnchorPosition(), radii[0], radii[0]);
 
         // fly to 0.1% of current height
-        double height = lngLatHeight.z * 0.001;
+        double const permille = 0.001;
+        double       height   = lngLatHeight.z * permille;
 
         // limit to at least 10% of planet radius and at most 2m
         height = glm::clamp(height, 2.0, radii[0] * 0.1);
@@ -1270,7 +1351,7 @@ void Application::registerGuiCallbacks() {
           height += mSolarSystem->pActiveBody.get()->getHeight(lngLatHeight.xy());
         }
 
-        height *= mGraphicsEngine->pHeightScale.get();
+        height *= mSettings->mGraphics.pHeightScale.get();
 
         auto observerPos =
             cs::utils::convert::toCartesian(lngLatHeight.xy(), radii[0], radii[0], height);
@@ -1328,6 +1409,8 @@ void Application::registerGuiCallbacks() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Application::unregisterGuiCallbacks() {
+  mGuiManager->getGui()->unregisterCallback("core.save");
+  mGuiManager->getGui()->unregisterCallback("core.load");
   mGuiManager->getGui()->unregisterCallback("core.listPlugins");
   mGuiManager->getGui()->unregisterCallback("core.loadPlugin");
   mGuiManager->getGui()->unregisterCallback("core.reloadPlugin");

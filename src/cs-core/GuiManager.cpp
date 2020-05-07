@@ -12,6 +12,7 @@
 #include "../cs-utils/utils.hpp"
 #include "InputManager.hpp"
 #include "cs-version.hpp"
+#include "logger.hpp"
 #include "tools/Tool.hpp"
 
 #include <VistaKernel/DisplayManager/GlutWindowImp/VistaGlutWindowingToolkit.h>
@@ -27,76 +28,74 @@
 #include <VistaKernel/VistaSystem.h>
 #include <VistaKernelOpenSGExt/VistaOpenSGMaterialTools.h>
 #include <fstream>
-#include <spdlog/spdlog.h>
+#include <utility>
 
 namespace cs::core {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
-    std::shared_ptr<InputManager> const&                      pInputManager,
-    std::shared_ptr<utils::FrameTimings> const&               pFrameTimings)
-    : mInputManager(pInputManager)
-    , mFrameTimings(pFrameTimings) {
+GuiManager::GuiManager(std::shared_ptr<Settings> settings,
+    std::shared_ptr<InputManager> pInputManager, std::shared_ptr<utils::FrameTimings> pFrameTimings)
+    : mInputManager(std::move(pInputManager))
+    , mSettings(std::move(settings))
+    , mFrameTimings(std::move(pFrameTimings)) {
 
   // Tell the user what's going on.
-  spdlog::debug("Creating GuiManager.");
+  logger().debug("Creating GuiManager.");
 
   // Initialize the Chromium Embedded Framework.
   gui::init();
 
   // Update the main viewport when the window is resized.
   VistaViewport* pViewport(GetVistaSystem()->GetDisplayManager()->GetViewports().begin()->second);
-  mViewportUpdater = new VistaViewportResizeToProjectionAdapter(pViewport);
+  mViewportUpdater = std::make_unique<VistaViewportResizeToProjectionAdapter>(pViewport);
   mViewportUpdater->SetUpdateMode(VistaViewportResizeToProjectionAdapter::MAINTAIN_HORIZONTAL_FOV);
-
-  // Hide the user interface when ESC is pressed.
-  mInputManager->sOnEscapePressed.connect([this]() { toggleGui(); });
 
   // Create GuiAreas and attach them to the SceneGraph ---------------------------------------------
 
   // The global GUI is drawn in world-space, the local GUI is drawn in screen-space.
-  auto pSG           = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
+  auto* pSG          = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
   mLocalGuiTransform = pSG->NewTransformNode(pSG->GetRoot());
 
   // The global GUI area is only created when the according settings key was specified.
-  if (settings->mGui) {
-    auto platform = GetVistaSystem()
-                        ->GetPlatformFor(GetVistaSystem()->GetDisplayManager()->GetDisplaySystem())
-                        ->GetPlatformNode();
+  if (mSettings->mGuiPosition) {
+    auto* platform = GetVistaSystem()
+                         ->GetPlatformFor(GetVistaSystem()->GetDisplayManager()->GetDisplaySystem())
+                         ->GetPlatformNode();
     mGlobalGuiTransform = pSG->NewTransformNode(platform);
 
-    mGlobalGuiTransform->Scale(
-        (float)settings->mGui->mWidthMeter, (float)settings->mGui->mHeightMeter, 1.0);
-    mGlobalGuiTransform->Rotate(
-        VistaAxisAndAngle(VistaVector3D(1, 0, 0), (float)settings->mGui->mRotX));
-    mGlobalGuiTransform->Rotate(
-        VistaAxisAndAngle(VistaVector3D(0, 1, 0), (float)settings->mGui->mRotY));
-    mGlobalGuiTransform->Rotate(
-        VistaAxisAndAngle(VistaVector3D(0, 0, 1), (float)settings->mGui->mRotZ));
-    mGlobalGuiTransform->Translate((float)settings->mGui->mPosXMeter,
-        (float)settings->mGui->mPosYMeter, (float)settings->mGui->mPosZMeter);
+    mGlobalGuiTransform->Scale(static_cast<float>(mSettings->mGuiPosition->mWidthMeter),
+        static_cast<float>(mSettings->mGuiPosition->mHeightMeter), 1.0F);
+    mGlobalGuiTransform->Rotate(VistaAxisAndAngle(
+        VistaVector3D(1, 0, 0), static_cast<float>(mSettings->mGuiPosition->mRotX)));
+    mGlobalGuiTransform->Rotate(VistaAxisAndAngle(
+        VistaVector3D(0, 1, 0), static_cast<float>(mSettings->mGuiPosition->mRotY)));
+    mGlobalGuiTransform->Rotate(VistaAxisAndAngle(
+        VistaVector3D(0, 0, 1), static_cast<float>(mSettings->mGuiPosition->mRotZ)));
+    mGlobalGuiTransform->Translate(static_cast<float>(mSettings->mGuiPosition->mPosXMeter),
+        static_cast<float>(mSettings->mGuiPosition->mPosYMeter),
+        static_cast<float>(mSettings->mGuiPosition->mPosZMeter));
 
     // Create the global GUI area.
-    mGlobalGuiArea =
-        new gui::WorldSpaceGuiArea(settings->mGui->mWidthPixel, settings->mGui->mHeightPixel);
+    mGlobalGuiArea = std::make_unique<gui::WorldSpaceGuiArea>(
+        mSettings->mGuiPosition->mWidthPixel, mSettings->mGuiPosition->mHeightPixel);
     mGlobalGuiArea->setUseLinearDepthBuffer(true);
   }
 
   // Create the local GUI area.
-  mLocalGuiArea = new gui::ScreenSpaceGuiArea(pViewport);
+  mLocalGuiArea = std::make_unique<gui::ScreenSpaceGuiArea>(pViewport);
 
   // Make sure that the GUI is drawn at the correct position in the draw order.
-  mLocalGuiOpenGLnode = pSG->NewOpenGLNode(mLocalGuiTransform, mLocalGuiArea);
+  mLocalGuiOpenGLnode = pSG->NewOpenGLNode(mLocalGuiTransform, mLocalGuiArea.get());
   VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
       mLocalGuiOpenGLnode, static_cast<int>(utils::DrawOrder::eGui));
 
   // Make the local GuiArea receive input events.
-  mInputManager->registerSelectable(mLocalGuiArea);
+  mInputManager->registerSelectable(mLocalGuiArea.get());
 
   if (mGlobalGuiArea) {
     // Make sure that the GUI is drawn at the correct position in the draw order.
-    mGlobalGuiOpenGLnode = pSG->NewOpenGLNode(mGlobalGuiTransform, mGlobalGuiArea);
+    mGlobalGuiOpenGLnode = pSG->NewOpenGLNode(mGlobalGuiTransform, mGlobalGuiArea.get());
     VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
         mGlobalGuiTransform, static_cast<int>(utils::DrawOrder::eGui));
 
@@ -105,27 +104,26 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
   }
 
   // Now create the actual Gui and add it to the previously created GuiAreas ----------------
-  mCosmoScoutGui = new gui::GuiItem("file://../share/resources/gui/cosmoscout.html");
-  mStatistics    = new gui::GuiItem("file://../share/resources/gui/statistics.html");
+  mCosmoScoutGui = std::make_unique<gui::GuiItem>("file://../share/resources/gui/cosmoscout.html");
+  mStatistics    = std::make_unique<gui::GuiItem>("file://../share/resources/gui/statistics.html");
 
   // Except for mStatistics, all GuiItems are attached to the global world-space GuiArea if it is
   // available. If not, they are added to the local screen-space GuiArea.
   if (mGlobalGuiArea) {
-    mGlobalGuiArea->addItem(mCosmoScoutGui);
+    mGlobalGuiArea->addItem(mCosmoScoutGui.get());
   } else {
-    mLocalGuiArea->addItem(mCosmoScoutGui);
+    mLocalGuiArea->addItem(mCosmoScoutGui.get());
   }
 
-  mLocalGuiArea->addItem(mStatistics);
+  mLocalGuiArea->addItem(mStatistics.get());
 
   // Configure attributes of the loading screen. Per default, GuiItems are drawn full-screen in
   // their GuiAreas.
-  // mLoadingScreen->setIsInteractive(false);
 
-  mCosmoScoutGui->setRelSizeX(1.f);
-  mCosmoScoutGui->setRelSizeY(1.f);
-  mCosmoScoutGui->setRelPositionX(0.5f);
-  mCosmoScoutGui->setRelPositionY(0.5f);
+  mCosmoScoutGui->setRelSizeX(1.F);
+  mCosmoScoutGui->setRelSizeY(1.F);
+  mCosmoScoutGui->setRelPositionX(0.5F);
+  mCosmoScoutGui->setRelPositionY(0.5F);
   mCosmoScoutGui->setCursorChangeCallback([](gui::Cursor c) { setCursor(c); });
 
   // Configure the positioning and attributes of the statistics.
@@ -133,8 +131,8 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
   mStatistics->setSizeY(320);
   mStatistics->setOffsetX(-300);
   mStatistics->setOffsetY(500);
-  mStatistics->setRelPositionY(0.f);
-  mStatistics->setRelPositionX(1.f);
+  mStatistics->setRelPositionY(0.F);
+  mStatistics->setRelPositionX(1.F);
   mStatistics->setIsInteractive(false);
   mStatistics->setCanScroll(false);
 
@@ -148,9 +146,9 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
 
   if (CS_GIT_BRANCH == "HEAD") {
     version += " (@" + CS_GIT_COMMIT_HASH + ")";
-  } else if (CS_GIT_BRANCH != "") {
+  } else if (!CS_GIT_BRANCH.empty()) {
     version += " (" + CS_GIT_BRANCH;
-    if (CS_GIT_COMMIT_HASH != "") {
+    if (!CS_GIT_COMMIT_HASH.empty()) {
       version += " @" + CS_GIT_COMMIT_HASH;
     }
     version += ")";
@@ -158,13 +156,56 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
 
   mCosmoScoutGui->callJavascript("CosmoScout.loadingScreen.setVersion", version);
 
-  // Set settings for the time Navigation
-  mCosmoScoutGui->callJavascript(
-      "CosmoScout.timeline.setTimelineRange", settings->mMinDate, settings->mMaxDate);
+  // Restore history from saved file. Currently we don't update the history when reloading a
+  // settings file at runtime, as overwriting the history feels a bit odd.
+  if (mSettings->mCommandHistory && !mSettings->mCommandHistory.value().empty()) {
+    nlohmann::json array = mSettings->mCommandHistory.value();
+    mCosmoScoutGui->executeJavascript("CosmoScout.statusbar.history = " + array.dump());
+    mCosmoScoutGui->executeJavascript("CosmoScout.statusbar.historyIndex = " +
+                                      std::to_string(mSettings->mCommandHistory.value().size()));
+  }
 
-  for (const auto& mEvent : settings->mEvents) {
-    std::string planet = "";
-    std::string place  = "";
+  // Register a callback which is used by the statusbur to store executed commands on the C++ side.
+  mCosmoScoutGui->registerCallback("statusbar.addCommandToHistory",
+      "Adds a string to the command history so that it can be saved between sessions.",
+      std::function([this](std::string&& command) {
+        if (!mSettings->mCommandHistory) {
+          mSettings->mCommandHistory = std::deque<std::string>();
+        }
+
+        mSettings->mCommandHistory.value().push_back(command);
+
+        if (mSettings->mCommandHistory.value().size() > 20) {
+          mSettings->mCommandHistory.value().pop_front();
+        }
+      }));
+
+  // Set settings for the time Navigation
+  mSettings->pMinDate.connectAndTouch([this](std::string const& minDate) {
+    mCosmoScoutGui->callJavascript(
+        "CosmoScout.timeline.setTimelineRange", minDate, mSettings->pMaxDate.get());
+  });
+
+  mSettings->pMaxDate.connect([this](std::string const& maxDate) {
+    mCosmoScoutGui->callJavascript(
+        "CosmoScout.timeline.setTimelineRange", mSettings->pMinDate.get(), maxDate);
+  });
+
+  // Hide the user interface when ESC is pressed.
+  mInputManager->sOnEscapePressed.connect(
+      [this]() { mSettings->pEnableUserInterface = !mSettings->pEnableUserInterface.get(); });
+
+  mSettings->pEnableUserInterface.connectAndTouch([this](bool enable) {
+    if (mGlobalGuiTransform) {
+      mGlobalGuiTransform->SetIsEnabled(enable);
+    }
+    mLocalGuiTransform->SetIsEnabled(enable);
+    mCosmoScoutGui->setIsInteractive(enable);
+  });
+
+  for (const auto& mEvent : mSettings->mEvents) {
+    std::string planet;
+    std::string place;
     if (mEvent.mLocation.has_value()) {
       planet = mEvent.mLocation.value().mPlanet;
       place  = mEvent.mLocation.value().mPlace;
@@ -177,12 +218,12 @@ GuiManager::GuiManager(std::shared_ptr<const Settings> const& settings,
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 GuiManager::~GuiManager() {
-  // Tell the user what's going on.
-  spdlog::debug("Deleting GuiManager.");
+  try {
+    // Tell the user what's going on.
+    logger().debug("Deleting GuiManager.");
+  } catch (...) {}
 
-  delete mGlobalGuiArea;
-  delete mViewportUpdater;
-  delete mCosmoScoutGui;
+  mCosmoScoutGui->unregisterCallback("statusbar.addCommandToHistory");
 
   mInputManager->unregisterSelectable(mLocalGuiOpenGLnode);
 
@@ -197,7 +238,7 @@ GuiManager::~GuiManager() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void GuiManager::setCursor(gui::Cursor cursor) {
-  auto windowingToolkit = dynamic_cast<VistaGlutWindowingToolkit*>(
+  auto* windowingToolkit = dynamic_cast<VistaGlutWindowingToolkit*>(
       GetVistaSystem()->GetDisplayManager()->GetWindowingToolkit());
 
   int glutCursor = GLUT_CURSOR_LEFT_ARROW;
@@ -243,13 +284,13 @@ void GuiManager::showNotification(std::string const& sTitle, std::string const& 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 gui::GuiItem* GuiManager::getGui() const {
-  return mCosmoScoutGui;
+  return mCosmoScoutGui.get();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 gui::GuiItem* GuiManager::getStatistics() const {
-  return mStatistics;
+  return mStatistics.get();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -272,33 +313,6 @@ void GuiManager::setLoadingScreenProgress(float percent, bool animate) const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GuiManager::showGui() {
-  if (mGlobalGuiTransform) {
-    mGlobalGuiTransform->SetIsEnabled(true);
-  }
-  mLocalGuiTransform->SetIsEnabled(true);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void GuiManager::hideGui() {
-  if (mGlobalGuiTransform) {
-    mGlobalGuiTransform->SetIsEnabled(false);
-  }
-  mLocalGuiTransform->SetIsEnabled(false);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void GuiManager::toggleGui() {
-  if (mGlobalGuiTransform) {
-    mGlobalGuiTransform->SetIsEnabled(!mGlobalGuiTransform->GetIsEnabled());
-  }
-  mLocalGuiTransform->SetIsEnabled(!mLocalGuiTransform->GetIsEnabled());
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 void GuiManager::update() {
 
   // If frame timings are enabled, collect the data and send it to the statistics GuiItem.
@@ -306,9 +320,11 @@ void GuiManager::update() {
   if (mFrameTimings->pEnableMeasurements.get()) {
     std::string json("{");
     for (auto const& timings : mFrameTimings->getCalculatedQueryResults()) {
-      uint64_t timeGPU(timings.second.mGPUTime), timeCPU(timings.second.mCPUTime);
+      uint64_t timeGPU(timings.second.mGPUTime);
+      uint64_t timeCPU(timings.second.mCPUTime);
 
-      if (timeGPU > 100000 || timeCPU > 100000) {
+      uint64_t const waitNanos = 100000;
+      if (timeGPU > waitNanos || timeCPU > waitNanos) {
         json += "\"" + timings.first + "\":[" + std::to_string(timeGPU) + "," +
                 std::to_string(timeCPU) + "],";
       }
@@ -397,9 +413,10 @@ void GuiManager::addCssToGui(const std::string& fileName) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GuiManager::addEventToTimenavigationBar(std::string start, std::optional<std::string> end,
-    std::string id, std::string content, std::optional<std::string> style, std::string description,
-    std::string planet, std::string place) {
+void GuiManager::addEventToTimenavigationBar(std::string const& start,
+    std::optional<std::string> const& end, std::string const& id, std::string const& content,
+    std::optional<std::string> const& style, std::string const& description,
+    std::string const& planet, std::string const& place) {
   mCosmoScoutGui->callJavascript("CosmoScout.timeline.addItem", start, end.value_or(""), id,
       content, style.value_or(""), description, planet, place);
 }
@@ -408,6 +425,32 @@ void GuiManager::addEventToTimenavigationBar(std::string start, std::optional<st
 
 void GuiManager::removeEventFromTimenavigationBar(std::string id) {
   mCosmoScoutGui->callJavascript("CosmoScout.timeline.removeItem", id);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void GuiManager::setCheckboxValue(std::string const& name, bool val, bool emitCallbacks) const {
+  mCosmoScoutGui->callJavascript("CosmoScout.gui.setCheckboxValue", name, val, emitCallbacks);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void GuiManager::setRadioChecked(std::string const& name, bool emitCallbacks) const {
+  mCosmoScoutGui->callJavascript("CosmoScout.gui.setRadioChecked", name, emitCallbacks);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void GuiManager::setSliderValue(std::string const& name, double val, bool emitCallbacks) const {
+  mCosmoScoutGui->callJavascript("CosmoScout.gui.setSliderValue", name, emitCallbacks, val);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void GuiManager::setSliderValue(
+    std::string const& name, glm::dvec2 const& val, bool emitCallbacks) const {
+  mCosmoScoutGui->callJavascript(
+      "CosmoScout.gui.setSliderValue", name, emitCallbacks, val.x, val.y);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

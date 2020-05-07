@@ -35,15 +35,13 @@ jobs:
       run: git submodule update --init
     - name: Download Dependencies
       run: |
-        sudo add-apt-repository ppa:mhier/libboost-latest
         sudo apt-get update -q
-        sudo apt-get install libc++-dev libgl1-mesa-dev libglu1-mesa-dev libx11-dev
-        sudo apt-get install libxi-dev libgconf-2-4 libboost1.70-dev
-        sudo pip install cmake==3.13.3
+        sudo apt-get install libgl1-mesa-dev libglu1-mesa-dev libx11-dev
+        sudo apt-get install libxi-dev libgconf-2-4
     - name: Build Externals
-      run: ./make_externals.sh
+      run: ./make_externals.sh -G "Unix Makefiles"
     - name: Build CosmoScout VR
-      run: ./make.sh
+      run: ./make.sh -G "Unix Makefiles" -DBOOST_ROOT=$BOOST_ROOT_1_69_0 -DBoost_ARCHITECTURE=-x64
     - name: Create Release
       run: | 
         mv install/linux-release cosmoscout-vr
@@ -67,10 +65,10 @@ jobs:
       run: git submodule update --init
     - name: Build Externals
       shell: cmd
-      run: make_externals.bat
+      run: make_externals.bat -G "Visual Studio 16 2019" -A x64 
     - name: Build CosmoScout VR
       shell: cmd
-      run: make.bat
+      run: make.bat -G "Visual Studio 16 2019" -A x64 -DBOOST_ROOT=%BOOST_ROOT_1_72_0%
     - name: Create Release
       run: | 
         move install\windows-release cosmoscout-vr

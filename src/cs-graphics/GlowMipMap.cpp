@@ -9,22 +9,44 @@
 #include <algorithm>
 #include <cmath>
 #include <iostream>
+#include <string>
 #include <vector>
 
 namespace cs::graphics {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const std::string GlowMipMap::sGlowShader = R"(
-  #version 430
-  
+static const char* sGlowShader = R"(
   layout (local_size_x = 16, local_size_y = 16) in;
 
-  layout (rgba32f, binding = 0) writeonly uniform image2D uOutColor;
+  #if NUM_MULTISAMPLES > 0
+    layout (rgba32f, binding = 0) readonly uniform image2DMS uInHDRBuffer;
+  #else
+    layout (rgba32f, binding = 0) readonly uniform image2D uInHDRBuffer;
+  #endif
+
   layout (rgba32f, binding = 1) readonly  uniform image2D uInColor;
+  layout (rgba32f, binding = 2) writeonly uniform image2D uOutColor;
 
   uniform int uPass;
+  uniform int uLevel;
   uniform float uThreshold;
+
+  vec3 sampleHDRBuffer(ivec2 offset) {
+    #if NUM_MULTISAMPLES > 0
+      // For performance reasons, we only use one sample for the glow.
+      vec3 col = imageLoad(uInHDRBuffer, ivec2((gl_GlobalInvocationID.xy+offset)*2 + ivec2(0,0)), 0).rgb * 0.25
+               + imageLoad(uInHDRBuffer, ivec2((gl_GlobalInvocationID.xy+offset)*2 + ivec2(1,0)), 0).rgb * 0.25
+               + imageLoad(uInHDRBuffer, ivec2((gl_GlobalInvocationID.xy+offset)*2 + ivec2(0,1)), 0).rgb * 0.25
+               + imageLoad(uInHDRBuffer, ivec2((gl_GlobalInvocationID.xy+offset)*2 + ivec2(1,1)), 0).rgb * 0.25;
+    #else
+      vec3 col = imageLoad(uInHDRBuffer, ivec2((gl_GlobalInvocationID.xy+offset)*2 + ivec2(0,0))).rgb * 0.25
+               + imageLoad(uInHDRBuffer, ivec2((gl_GlobalInvocationID.xy+offset)*2 + ivec2(1,0))).rgb * 0.25
+               + imageLoad(uInHDRBuffer, ivec2((gl_GlobalInvocationID.xy+offset)*2 + ivec2(0,1))).rgb * 0.25
+               + imageLoad(uInHDRBuffer, ivec2((gl_GlobalInvocationID.xy+offset)*2 + ivec2(1,1))).rgb * 0.25;
+    #endif
+    return col;
+  }
 
   vec3 sampleHigherLevel(ivec2 offset) {
     vec3 col = imageLoad(uInColor, ivec2((gl_GlobalInvocationID.xy+offset)*2 + ivec2(0,0))).rgb * 0.25
@@ -48,7 +70,11 @@ const std::string GlowMipMap::sGlowShader = R"(
 
     vec3 oColor = vec3(0);
 
-    if (uPass == 0) {
+    if (uPass == 0 && uLevel == 0) {
+      oColor += sampleHDRBuffer(ivec2(-1, 0)) * 0.25;
+      oColor += sampleHDRBuffer(ivec2( 0, 0)) * 0.5;
+      oColor += sampleHDRBuffer(ivec2( 1, 0)) * 0.25;
+    } else if (uPass == 0) {
       oColor += sampleHigherLevel(ivec2(-1, 0)) * 0.25;
       oColor += sampleHigherLevel(ivec2( 0, 0)) * 0.5;
       oColor += sampleHigherLevel(ivec2( 1, 0)) * 0.25;
@@ -64,8 +90,9 @@ const std::string GlowMipMap::sGlowShader = R"(
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-GlowMipMap::GlowMipMap(int hdrBufferWidth, int hdrBufferHeight)
+GlowMipMap::GlowMipMap(uint32_t hdrBufferSamples, int hdrBufferWidth, int hdrBufferHeight)
     : VistaTexture(GL_TEXTURE_2D)
+    , mHDRBufferSamples(hdrBufferSamples)
     , mHDRBufferWidth(hdrBufferWidth)
     , mHDRBufferHeight(hdrBufferHeight)
     , mTemporaryTarget(new VistaTexture(GL_TEXTURE_2D)) {
@@ -93,8 +120,11 @@ GlowMipMap::GlowMipMap(int hdrBufferWidth, int hdrBufferHeight)
 
   // Create the compute shader.
   auto        shader = glCreateShader(GL_COMPUTE_SHADER);
-  const char* c_str  = sGlowShader.c_str();
-  glShaderSource(shader, 1, &c_str, nullptr);
+  std::string source = "#version 430\n";
+  source += "#define NUM_MULTISAMPLES " + std::to_string(mHDRBufferSamples) + "\n";
+  source += sGlowShader;
+  const char* pSource = source.c_str();
+  glShaderSource(shader, 1, &pSource, nullptr);
   glCompileShader(shader);
 
   auto val = 0;
@@ -143,10 +173,16 @@ void GlowMipMap::update(VistaTexture* hdrBufferComposite) {
 
   glUseProgram(mComputeProgram);
 
+  glBindImageTexture(0, hdrBufferComposite->GetId(), 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
+
   for (int level(0); level < mMaxLevels; ++level) {
+    glUniform1i(glGetUniformLocation(mComputeProgram, "uLevel"), level);
+
     for (int pass(0); pass < 2; ++pass) {
-      VistaTexture *input = this, *output = this;
-      int           inputLevel = level, outputLevel = level;
+      VistaTexture* input       = this;
+      VistaTexture* output      = this;
+      int           inputLevel  = level;
+      int           outputLevel = level;
 
       // level  pass   input   inputLevel output outputLevel     blur      samplesHigherLevel
       //   0     0   hdrbuffer    0        temp      0        horizontal          true
@@ -165,19 +201,19 @@ void GlowMipMap::update(VistaTexture* hdrBufferComposite) {
 
       if (pass == 1) {
         input = mTemporaryTarget;
-      } else if (level == 0) {
-        input = hdrBufferComposite;
       }
 
       glUniform1i(glGetUniformLocation(mComputeProgram, "uPass"), pass);
 
       int width = static_cast<int>(
-          std::max(1.0, std::floor(static_cast<double>(mHDRBufferWidth / 2) / std::pow(2, level))));
-      int height = static_cast<int>(std::max(
-          1.0, std::floor(static_cast<double>(mHDRBufferHeight / 2) / std::pow(2, level))));
+          std::max(1.0, std::floor(static_cast<double>(static_cast<int>(mHDRBufferWidth / 2)) /
+                                   std::pow(2, level))));
+      int height = static_cast<int>(
+          std::max(1.0, std::floor(static_cast<double>(static_cast<int>(mHDRBufferHeight / 2)) /
+                                   std::pow(2, level))));
 
-      glBindImageTexture(0, output->GetId(), outputLevel, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
       glBindImageTexture(1, input->GetId(), inputLevel, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
+      glBindImageTexture(2, output->GetId(), outputLevel, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
 
       glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
       glDispatchCompute(static_cast<uint32_t>(std::ceil(1.0 * width / 16)),

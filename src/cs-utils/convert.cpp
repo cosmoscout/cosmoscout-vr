@@ -6,9 +6,11 @@
 
 #include "convert.hpp"
 
+#include "logger.hpp"
+
+#include <cmath>
 #include <cspice/SpiceUsr.h>
 #include <glm/gtc/type_ptr.hpp>
-#include <spdlog/spdlog.h>
 
 namespace cs::utils::convert {
 
@@ -159,11 +161,11 @@ glm::dvec2 normalToLngLat(glm::dvec3 const& normal, double radiusE, double radiu
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 double toSpiceTime(boost::posix_time::ptime const& tIn) {
-  double dTime;
+  double dTime{};
   str2et_c(boost::posix_time::to_simple_string(tIn).c_str(), &dTime);
   if (failed_c()) {
     reset_c();
-    spdlog::warn("Failed to convert boost time to SPICE time!");
+    logger().warn("Failed to convert boost time to SPICE time!");
   }
   return dTime;
 }
@@ -173,7 +175,7 @@ double toSpiceTime(boost::posix_time::ptime const& tIn) {
 double toSpiceTime(std::string const& tIn) {
   try {
     return toSpiceTime(boost::posix_time::time_from_string(tIn));
-  } catch (std::exception& e) { spdlog::error("Failed to convert time: {}", e.what()); }
+  } catch (std::exception& e) { logger().error("Failed to convert time: {}", e.what()); }
 
   return 0.0;
 }
@@ -181,9 +183,12 @@ double toSpiceTime(std::string const& tIn) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 boost::posix_time::ptime toBoostTime(double tIn) {
-  return boost::posix_time::ptime(boost::gregorian::date(2000, 1, 1),
-      boost::posix_time::hours(12) +
-          boost::posix_time::milliseconds(static_cast<int64_t>(tIn * 1000)));
+  auto const startYear       = 2000;
+  auto const noon            = 12;
+  auto const secondsToMillis = 1000;
+  return boost::posix_time::ptime(boost::gregorian::date(startYear, 1, 1),
+      boost::posix_time::hours(noon) +
+          boost::posix_time::milliseconds(static_cast<int64_t>(tIn * secondsToMillis)));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

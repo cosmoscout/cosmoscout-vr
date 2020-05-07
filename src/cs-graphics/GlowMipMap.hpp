@@ -19,7 +19,7 @@ namespace cs::graphics {
 /// mipmap level.
 class CS_GRAPHICS_EXPORT GlowMipMap : public VistaTexture {
  public:
-  GlowMipMap(int hdrBufferWidth, int hdrBufferHeight);
+  GlowMipMap(uint32_t hdrBufferSamples, int hdrBufferWidth, int hdrBufferHeight);
   virtual ~GlowMipMap();
 
   /// Perform the glow calculation by parallel reduction of the HDR values. This is a costly
@@ -27,14 +27,13 @@ class CS_GRAPHICS_EXPORT GlowMipMap : public VistaTexture {
   void update(VistaTexture* hdrBufferComposite);
 
  private:
-  GLuint mComputeProgram  = 0;
-  int    mMaxLevels       = 0;
-  int    mHDRBufferWidth  = 0;
-  int    mHDRBufferHeight = 0;
+  GLuint   mComputeProgram   = 0;
+  uint32_t mHDRBufferSamples = 0;
+  int      mMaxLevels        = 0;
+  int      mHDRBufferWidth   = 0;
+  int      mHDRBufferHeight  = 0;
 
   VistaTexture* mTemporaryTarget = nullptr;
-
-  static const std::string sGlowShader;
 };
 
 } // namespace cs::graphics

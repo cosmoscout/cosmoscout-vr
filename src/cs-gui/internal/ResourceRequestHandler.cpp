@@ -6,28 +6,30 @@
 
 #include "ResourceRequestHandler.hpp"
 
+#include "../logger.hpp"
+
 #include <fstream>
 #include <include/wrapper/cef_stream_resource_handler.h>
-#include <iostream>
-#include <spdlog/spdlog.h>
 
 namespace cs::gui::detail {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 CefRefPtr<CefResourceHandler> ResourceRequestHandler::GetResourceHandler(
-    CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefRequest> request) {
+    CefRefPtr<CefBrowser> /*browser*/, CefRefPtr<CefFrame> /*frame*/,
+    CefRefPtr<CefRequest> request) {
 
   std::string url(request->GetURL().ToString());
 
   if (url.find("file://") == 0) {
-    std::string path(url.substr(7));
-    std::string ext(url.substr(url.find_last_of('.')));
+    uint64_t const pathStartIndex = 7;
+    std::string    path(url.substr(pathStartIndex));
+    std::string    ext(url.substr(url.find_last_of('.')));
 
     std::ifstream input(path, std::ios::binary);
 
     if (!input) {
-      spdlog::error("Failed to open gui resource: Cannot open file '{}'!", path);
+      logger().error("Failed to open gui resource: Cannot open file '{}'!", path);
       return nullptr;
     }
 
@@ -51,7 +53,7 @@ CefRefPtr<CefResourceHandler> ResourceRequestHandler::GetResourceHandler(
     } else if (ext == ".woff" || ext == ".woff2") {
       mime = "application/x-font-woff";
     } else if (ext != ".html") {
-      spdlog::warn("Opening file with unknown extension '{}'!", ext);
+      logger().warn("Opening file with unknown extension '{}'!", ext);
     }
 
     return new CefStreamResourceHandler(mime, stream);

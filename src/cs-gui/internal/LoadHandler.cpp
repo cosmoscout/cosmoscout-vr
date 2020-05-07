@@ -20,7 +20,8 @@ void LoadHandler::WaitForFinishedLoading() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void LoadHandler::OnLoadingStateChange(CefRefPtr<CefBrowser> browser, bool isLoading, bool, bool) {
+void LoadHandler::OnLoadingStateChange(
+    CefRefPtr<CefBrowser> /*browser*/, bool isLoading, bool /*canGoBack*/, bool /*canGoForward*/) {
   if (!isLoading) {
     mInitialized = true;
   }

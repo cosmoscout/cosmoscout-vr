@@ -9,12 +9,14 @@
 
 #include "cs_scene_export.hpp"
 
-namespace cs::scene::logger {
+#include <spdlog/spdlog.h>
 
-/// This creates the default logger for "cs-scene" and is called at startup by the main() method.
-/// See ../cs-utils/logger.hpp for more logging details.
-CS_SCENE_EXPORT void init();
+namespace cs::scene {
 
-} // namespace cs::scene::logger
+/// This creates the default singleton logger for "cs-scene" when called for the first time and
+/// returns it. See cs-utils/logger.hpp for more logging details.
+CS_SCENE_EXPORT spdlog::logger& logger();
+
+} // namespace cs::scene
 
 #endif // CS_SCENE_LOGGER_HPP

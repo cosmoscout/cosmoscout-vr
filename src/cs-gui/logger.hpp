@@ -9,12 +9,14 @@
 
 #include "cs_gui_export.hpp"
 
-namespace cs::gui::logger {
+#include <spdlog/spdlog.h>
 
-/// This creates the default logger for "cs-gui" and is called at startup by the main() method.
-/// See ../cs-utils/logger.hpp for more logging details.
-CS_GUI_EXPORT void init();
+namespace cs::gui {
 
-} // namespace cs::gui::logger
+/// This creates the default singleton logger for "cs-gui" when called for the first time and
+/// returns it. See cs-utils/logger.hpp for more logging details.
+CS_GUI_EXPORT spdlog::logger& logger();
+
+} // namespace cs::gui
 
 #endif // CS_GUI_LOGGER_HPP

@@ -11,6 +11,7 @@
 
 #include <VistaKernel/EventManager/VistaEventHandler.h>
 
+#include <VistaKernel/VistaSystem.h>
 #include <sstream>
 #include <string>
 
@@ -30,8 +31,14 @@ class CS_UTILS_EXPORT TestImageCompare {
   /// The VistaSystem is configured to use the vista_test.ini in config/base/vista.
   TestImageCompare(std::string const& imageName, int32_t frame);
 
+  TestImageCompare(TestImageCompare const& other) = delete;
+  TestImageCompare(TestImageCompare&& other)      = delete;
+
+  TestImageCompare& operator=(TestImageCompare const& other) = delete;
+  TestImageCompare& operator=(TestImageCompare&& other) = delete;
+
   /// This deletes the VistaSystem created by the constructor.
-  ~TestImageCompare();
+  virtual ~TestImageCompare() = default;
 
   /// This method assumes that a reference image is stored in test/reference/<imageName>.png. It
   /// will create a test/<imageName>-diff.png showing which pixels of the test image differ. The
@@ -42,8 +49,8 @@ class CS_UTILS_EXPORT TestImageCompare {
  private:
   class FrameCapture : public VistaEventHandler {
    public:
-    FrameCapture(std::string const& fileName, int32_t frame);
-    virtual void HandleEvent(VistaEvent* pEvent);
+    FrameCapture(std::string fileName, int32_t frame);
+    void HandleEvent(VistaEvent* pEvent) override;
 
    private:
     std::string mFileName;
@@ -52,6 +59,8 @@ class CS_UTILS_EXPORT TestImageCompare {
 
   std::ostringstream mVistaOutput;
   std::string        mImageName;
+
+  std::unique_ptr<VistaSystem> mVS;
 };
 
 } // namespace cs::utils

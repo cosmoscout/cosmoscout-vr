@@ -24,12 +24,12 @@ GuiItem::GuiItem(std::string const& url, bool allowLocalFileAccess)
     , mPositionY(0)
     , mOffsetX(0)
     , mOffsetY(0)
-    , mRelSizeX(1.f)
-    , mRelSizeY(1.f)
-    , mRelPositionX(0.5f)
-    , mRelPositionY(0.5f)
-    , mRelOffsetX(0.f)
-    , mRelOffsetY(0.f)
+    , mRelSizeX(1.F)
+    , mRelSizeY(1.F)
+    , mRelPositionX(0.5F)
+    , mRelPositionY(0.5F)
+    , mRelOffsetX(0.F)
+    , mRelOffsetY(0.F)
     , mIsRelSizeX(true)
     , mIsRelSizeY(true)
     , mIsRelPositionX(true)
@@ -67,7 +67,7 @@ GuiItem::~GuiItem() {
   glDeleteTextures(1, &mTexture);
   // seems to be necessary as OnPaint can be called by some other thread even
   // if this object is already deleted
-  setDrawCallback([](DrawEvent const&) { return nullptr; });
+  setDrawCallback([](DrawEvent const& /*unused*/) { return nullptr; });
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -203,10 +203,13 @@ bool GuiItem::calculateMousePosition(int areaX, int areaY, int& x, int& y) {
   x = tmpX;
   y = tmpY;
 
-  if (tmpX > static_cast<int>(mSizeX) - 1 || tmpX < 0)
+  if (tmpX > static_cast<int>(mSizeX) - 1 || tmpX < 0) {
     return false;
-  if (tmpY > static_cast<int>(mSizeY) - 1 || tmpY < 0)
+  }
+
+  if (tmpY > static_cast<int>(mSizeY) - 1 || tmpY < 0) {
     return false;
+  }
 
   return true;
 }
@@ -253,42 +256,42 @@ void GuiItem::onAreaResize(int width, int height) {
 
 void GuiItem::updateSizes() {
   if (mIsRelSizeX) {
-    mSizeX = static_cast<uint32_t>(mRelSizeX * mAreaWidth);
+    mSizeX = static_cast<uint32_t>(mRelSizeX * static_cast<float>(mAreaWidth));
   } else {
-    mRelSizeX = 1.f * mSizeX / mAreaWidth;
+    mRelSizeX = static_cast<float>(1.0 * mSizeX / mAreaWidth);
   }
 
   if (mIsRelSizeY) {
-    mSizeY = static_cast<uint32_t>(mRelSizeY * mAreaHeight);
+    mSizeY = static_cast<uint32_t>(mRelSizeY * static_cast<float>(mAreaHeight));
   } else {
-    mRelSizeY = 1.f * mSizeY / mAreaHeight;
+    mRelSizeY = static_cast<float>(1.0 * mSizeY / mAreaHeight);
   }
 
   if (mIsRelPositionX) {
-    mPositionX = static_cast<uint32_t>(mRelPositionX * mAreaWidth);
+    mPositionX = static_cast<uint32_t>(mRelPositionX * static_cast<float>(mAreaWidth));
   } else {
-    mRelPositionX = 1.f * mPositionX / mAreaWidth;
+    mRelPositionX = static_cast<float>(1.0 * mPositionX / mAreaWidth);
   }
 
   if (mIsRelPositionY) {
-    mPositionY = static_cast<uint32_t>(mRelPositionY * mAreaHeight);
+    mPositionY = static_cast<uint32_t>(mRelPositionY * static_cast<float>(mAreaHeight));
   } else {
-    mRelPositionY = 1.f * mPositionY / mAreaHeight;
+    mRelPositionY = static_cast<float>(1.0 * mPositionY / mAreaHeight);
   }
 
   if (mIsRelOffsetX) {
-    mOffsetX = static_cast<uint32_t>(mRelOffsetX * mAreaWidth);
+    mOffsetX = static_cast<uint32_t>(mRelOffsetX * static_cast<float>(mAreaWidth));
   } else {
-    mRelOffsetX = 1.f * mOffsetX / mAreaWidth;
+    mRelOffsetX = static_cast<float>(1.0 * mOffsetX / mAreaWidth);
   }
 
   if (mIsRelOffsetY) {
-    mOffsetY = static_cast<uint32_t>(mRelOffsetY * mAreaHeight);
+    mOffsetY = static_cast<uint32_t>(mRelOffsetY * static_cast<float>(mAreaHeight));
   } else {
-    mRelOffsetY = 1.f * mOffsetY / mAreaHeight;
+    mRelOffsetY = static_cast<float>(1.0 * mOffsetY / mAreaHeight);
   }
 
-  resize(mSizeX, mSizeY);
+  resize(static_cast<int>(mSizeX), static_cast<int>(mSizeY));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

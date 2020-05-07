@@ -9,8 +9,6 @@
 
 #include "cs_graphics_export.hpp"
 
-#include <VistaOGLExt/VistaTexture.h>
-
 #include <array>
 #include <unordered_map>
 #include <vector>
@@ -33,8 +31,20 @@ class GlowMipMap;
 class CS_GRAPHICS_EXPORT HDRBuffer {
  public:
   /// When highPrecision is set to false, only 16bit color buffers are used.
-  HDRBuffer(bool highPrecision = true);
+  explicit HDRBuffer(uint32_t multiSamples, bool highPrecision = true);
+
+  HDRBuffer(HDRBuffer const& other) = delete;
+  HDRBuffer(HDRBuffer&& other)      = delete;
+
+  HDRBuffer& operator=(HDRBuffer const& other) = delete;
+  HDRBuffer& operator=(HDRBuffer&& other) = delete;
+
   virtual ~HDRBuffer();
+
+  /// Returns the number of multi-samples used by this HDRBuffer. You should check this number
+  /// before reading from the attachments. See getDepthAttachment() and getCurrentReadAttachment()
+  /// further below.
+  uint32_t getMultiSamples() const;
 
   /// Binds DEPTH and one ping-pong target for writing.
   void bind();
@@ -64,7 +74,8 @@ class CS_GRAPHICS_EXPORT HDRBuffer {
   void          updateGlowMipMap();
   VistaTexture* getGlowMipMap() const;
 
-  /// Returns the depth attachment for the currently rendered viewport.
+  /// Returns the depth attachment for the currently rendered viewport. Be aware, that this can be
+  /// texture with the target GL_TEXTURE_2D_MULTISAMPLE if getMultiSamples() > 0.
   VistaTexture* getDepthAttachment() const;
 
   /// Returns the color attachment which is currently bound for writing for the currently rendered
@@ -72,30 +83,31 @@ class CS_GRAPHICS_EXPORT HDRBuffer {
   VistaTexture* getCurrentWriteAttachment() const;
 
   /// Returns the color attachment which is currently bound for reading for the currently rendered
-  /// viewport.
+  /// viewport. Be aware, that this can be texture with the target GL_TEXTURE_2D_MULTISAMPLE if
+  /// getMultiSamples() > 0.
   VistaTexture* getCurrentReadAttachment() const;
 
   /// Helper methods to access the size and position of the viewports we are currently rendering to.
-  std::array<int, 2> getCurrentViewPortSize() const;
-  std::array<int, 2> getCurrentViewPortPos() const;
+  static std::array<int, 2> getCurrentViewPortSize();
+  static std::array<int, 2> getCurrentViewPortPos();
 
  private:
   // There is one of these structs for each viewport. That means, we have a separate framebuffer
   // object, GlowMipMap and LuminanceMipMap for each viewport. This is mainly because viewports
   // often have different sizes.
   struct HDRBufferData {
-    VistaFramebufferObj*         mFBO              = nullptr;
-    std::array<VistaTexture*, 2> mColorAttachments = {{nullptr, nullptr}};
-    VistaTexture*                mDepthAttachment  = nullptr;
-    LuminanceMipMap*             mLuminanceMipMap  = nullptr;
-    GlowMipMap*                  mGlowMipMap       = nullptr;
+    VistaFramebufferObj*         mFBO{};
+    std::array<VistaTexture*, 2> mColorAttachments{};
+    VistaTexture*                mDepthAttachment{};
+    LuminanceMipMap*             mLuminanceMipMap{};
+    GlowMipMap*                  mGlowMipMap{};
 
     // Stores the original viewport position and size.
-    int  mCachedViewport[4];
-    int  mWidth                 = 0;
-    int  mHeight                = 0;
-    int  mCompositePinpongState = 0;
-    bool mIsBound               = false;
+    std::array<int, 4> mCachedViewport{};
+    int                mWidth                 = 0;
+    int                mHeight                = 0;
+    int                mCompositePinpongState = 0;
+    bool               mIsBound               = false;
   };
 
   // Helper methods to retrieve the current HDRBufferData struct based on the viewport we are
@@ -104,10 +116,11 @@ class CS_GRAPHICS_EXPORT HDRBuffer {
   HDRBufferData const& getCurrentHDRBuffer() const;
 
   std::unordered_map<VistaViewport*, HDRBufferData> mHDRBufferData;
-  float                                             mTotalLuminance   = 1.f;
-  float                                             mMaximumLuminance = 1.f;
+  float                                             mTotalLuminance   = 1.F;
+  float                                             mMaximumLuminance = 1.F;
 
-  const float mHighPrecision;
+  const uint32_t mMultiSamples;
+  const bool     mHighPrecision;
 };
 
 } // namespace cs::graphics

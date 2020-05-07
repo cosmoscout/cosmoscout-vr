@@ -26,9 +26,16 @@ class CS_CORE_EXPORT TimeControl {
   utils::Property<double> pSimulationTime = 0.0;
 
   /// The current speed of the simulation.
-  utils::Property<float> pTimeSpeed = 1.f;
+  utils::Property<float> pTimeSpeed = 1.F;
 
-  TimeControl(std::shared_ptr<const Settings> const& settings);
+  explicit TimeControl(std::shared_ptr<Settings> settings);
+
+  TimeControl(TimeControl const& other) = delete;
+  TimeControl(TimeControl&& other)      = delete;
+
+  TimeControl& operator=(TimeControl const& other) = delete;
+  TimeControl& operator=(TimeControl&& other) = delete;
+
   ~TimeControl();
 
   /// Updates the simulation time based on the current time speed. This is called once a frame by
@@ -65,16 +72,15 @@ class CS_CORE_EXPORT TimeControl {
   void setTimeSpeed(float speed);
 
  private:
-  double mLastUpdate = -1.0;
-
-  std::string mStartDate;
-  double      mMaxDate = 0.0;
-  double      mMinDate = 0.0;
+  bool   mInitialized = false;
+  double mLastUpdate  = 0.0;
+  double pMaxDate     = 0.0;
+  double pMinDate     = 0.0;
 
   utils::AnimatedValue<double> mAnimatedTime;
   bool                         mAnimationInProgress = false;
 
-  std::shared_ptr<const Settings> mSettings;
+  std::shared_ptr<Settings> mSettings;
 };
 
 } // namespace cs::core

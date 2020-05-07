@@ -11,9 +11,11 @@ find_path(TIFF_INCLUDE_DIR tiff.h
 # Locate library.
 find_library(TIFF_LIBRARY NAMES tiff tiffd
     HINTS ${TIFF_ROOT_DIR}/lib ${TIFF_ROOT_DIR}/lib64)
+find_library(TIFFXX_LIBRARY NAMES tiffxx tiffxxd
+    HINTS ${TIFF_ROOT_DIR}/lib ${TIFF_ROOT_DIR}/lib64)
 
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(TIFF DEFAULT_MSG TIFF_INCLUDE_DIR TIFF_LIBRARY)
+find_package_handle_standard_args(TIFF DEFAULT_MSG TIFF_INCLUDE_DIR TIFF_LIBRARY TIFFXX_LIBRARY)
 
 # Add imported target.
 if(TIFF_FOUND)
@@ -22,6 +24,7 @@ if(TIFF_FOUND)
     if(NOT TIFF_FIND_QUIETLY)
         message(STATUS "TIFF_INCLUDE_DIRS ............. ${TIFF_INCLUDE_DIR}")
         message(STATUS "TIFF_LIBRARY .................. ${TIFF_LIBRARY}")
+        message(STATUS "TIFFXX_LIBRARY ................ ${TIFFXX_LIBRARY}")
     endif()
 
     if(NOT TARGET Tiff::Tiff)
@@ -31,5 +34,14 @@ if(TIFF_FOUND)
 
         set_property(TARGET Tiff::Tiff APPEND PROPERTY
             IMPORTED_LOCATION "${TIFF_LIBRARY}")
+    endif()
+
+    if(NOT TARGET Tiff::Tiffxx)
+        add_library(Tiff::Tiffxx UNKNOWN IMPORTED)
+        set_target_properties(Tiff::Tiffxx PROPERTIES
+            INTERFACE_INCLUDE_DIRECTORIES "${TIFF_INCLUDE_DIRS}")
+
+        set_property(TARGET Tiff::Tiffxx APPEND PROPERTY
+            IMPORTED_LOCATION "${TIFFXX_LIBRARY}")
     endif()
 endif()

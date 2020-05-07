@@ -8,14 +8,15 @@
 
 #include "../cs-utils/logger.hpp"
 
-namespace cs::scene::logger {
+namespace cs::scene {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void init() {
-  spdlog::set_default_logger(utils::logger::createLogger("cs-scene"));
+spdlog::logger& logger() {
+  static auto logger = utils::createLogger("cs-scene");
+  return *logger;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-} // namespace cs::scene::logger
+} // namespace cs::scene

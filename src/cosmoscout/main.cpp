@@ -15,13 +15,15 @@
 #include "../cs-utils/logger.hpp"
 #include "Application.hpp"
 #include "cs-version.hpp"
+#include "logger.hpp"
 
 #include <VistaKernel/VistaSystem.h>
+#include <spdlog/sinks/sink.h>
 
 #ifdef _WIN64
 extern "C" {
 // This tells Windows to use the dedicated NVIDIA GPU over Intel integrated graphics.
-__declspec(dllexport) unsigned long NvOptimusEnablement = 0x00000001;
+__declspec(dllexport) uint32_t NvOptimusEnablement = 0x00000001;
 
 // This tells Windows to use the dedicated AMD GPU over Intel integrated graphics.
 __declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
@@ -38,14 +40,8 @@ int main(int argc, char** argv) {
 
   // setup loggers ---------------------------------------------------------------------------------
 
-  // Create default loggers. The log level will be set once the settings are read.
-  spdlog::set_default_logger(cs::utils::logger::createLogger("cosmoscout-vr"));
-
-  cs::core::logger::init();
-  cs::graphics::logger::init();
-  cs::gui::logger::init();
-  cs::scene::logger::init();
-  cs::utils::logger::init();
+  // Create the loggers for vista. The log level will be set once the settings are read.
+  cs::utils::initVistaLogger();
 
   // parse program options -------------------------------------------------------------------------
 
@@ -68,9 +64,11 @@ int main(int argc, char** argv) {
 
   // Then do the actual parsing.
   try {
-    args.parse(argc, argv);
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+    std::vector<std::string> arguments(argv + 1, argv + argc);
+    args.parse(arguments);
   } catch (std::runtime_error const& e) {
-    spdlog::error("Failed to parse command line arguments: {}", e.what());
+    logger().error("Failed to parse command line arguments: {}", e.what());
     return 1;
   }
 
@@ -89,35 +87,39 @@ int main(int argc, char** argv) {
 
   // When printVistaHelp was set to true, we print a help message and exit.
   if (printVistaHelp) {
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
     VistaSystem::ArgHelpMsg(argv[0], &std::cout);
     return 0;
   }
 
   // read settings ---------------------------------------------------------------------------------
 
-  cs::core::Settings settings;
+  auto settings = std::make_shared<cs::core::Settings>();
   try {
-    settings = cs::core::Settings::read(settingsFile);
-  } catch (std::exception& e) {
-    spdlog::error("Failed to read settings: {}", e.what());
+    settings->loadFromFile(settingsFile);
+  } catch (std::exception const& e) {
+    logger().error("Failed to read settings: {}", e.what());
     return 1;
   }
 
   // configure loggers -----------------------------------------------------------------------------
 
   // Once we have read the settings, we can set the log level.
-  cs::utils::logger::setCoutLogLevel(settings.mConsoleLogLevel);
-  cs::utils::logger::setFileLogLevel(settings.mFileLogLevel);
-  cs::utils::logger::setSignalLogLevel(settings.mScreenLogLevel);
+  settings->pLogLevelConsole.connectAndTouch(
+      [](auto level) { cs::utils::getLoggerCoutSink()->set_level(level); });
+  settings->pLogLevelFile.connectAndTouch(
+      [](auto level) { cs::utils::getLoggerFileSink()->set_level(level); });
+  settings->pLogLevelScreen.connectAndTouch(
+      [](auto level) { cs::utils::getLoggerSignalSink()->set_level(level); });
 
   // Print a nifty welcome message!
-  spdlog::info("Welcome to CosmoScout VR v" + CS_PROJECT_VERSION + "!");
+  logger().info("Welcome to CosmoScout VR v" + CS_PROJECT_VERSION + "!");
 
   // start application -----------------------------------------------------------------------------
 
   try {
     // First we need a VistaSystem.
-    auto pVistaSystem = new VistaSystem();
+    auto pVistaSystem = std::make_unique<VistaSystem>();
 
     // ViSTA is configured with plenty of ini files. The ini files of CosmoScout VR reside in a
     // specific directory, so we have to add this directory to the search paths.
@@ -132,15 +134,19 @@ int main(int argc, char** argv) {
       pVistaSystem->Run();
     }
 
+    // We will delete the frameloop (which is our Application) ourselves when the make_unique
+    // pointer goes out of scope.
+    pVistaSystem->SetFrameLoop(nullptr, false);
+
   } catch (VistaExceptionBase& e) {
-    spdlog::error("Caught unexpected VistaException: {}", e.what());
+    logger().error("Caught unexpected VistaException: {}", e.what());
     return 1;
   } catch (std::exception& e) {
-    spdlog::error("Caught unexpected std::exception: {}", e.what());
+    logger().error("Caught unexpected std::exception: {}", e.what());
     return 1;
   }
 
-  spdlog::info("Shutdown complete. Fare well!");
+  logger().info("Shutdown complete. Fare well!");
 
   return 0;
 }

@@ -4,22 +4,15 @@
 //                        Copyright: (c) 2019 German Aerospace Center (DLR)                       //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#include "RenderProcessHandler.hpp"
+#include "logger.hpp"
 
-#include "JSHandler.hpp"
-
-namespace cs::gui::detail {
+#include "../cs-utils/logger.hpp"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void RenderProcessHandler::OnContextCreated(
-    CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> /*frame*/, CefRefPtr<CefV8Context> context) {
-
-  CefRefPtr<CefV8Value> object = context->GetGlobal();
-  CefRefPtr<CefV8Value> func   = CefV8Value::CreateFunction("callNative", new JSHandler(browser));
-  object->SetValue("callNative", func, V8_PROPERTY_ATTRIBUTE_NONE);
+spdlog::logger& logger() {
+  static auto logger = cs::utils::createLogger("cosmoscout-vr");
+  return *logger;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-
-} // namespace cs::gui::detail
