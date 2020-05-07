@@ -96,12 +96,12 @@ strong {
 }
 
 .row {
-  margin: 0 0 2px;
-  padding: 0 0.25rem;
+  /* margin: 0 0 2px;
+padding: 0 0.25rem; */
 }
 
 .row .col {
-  padding: 0 0.2rem;
+  /* padding: 0 0.2rem; */
 }
 
 .text-right {
@@ -398,12 +398,13 @@ input[type=checkbox] {
 label input[type=checkbox]+i::before {
   position: absolute;
   font-size: 24px;
-  bottom: -15px;
+  bottom: -16px;
+  left: -2px;
   content: "check_box_outline_blank";
 }
 
 label.checklabel span {
-  padding-left: 35px;
+  padding-left: 32px;
 }
 
 label input[type=checkbox]:checked+i::before {

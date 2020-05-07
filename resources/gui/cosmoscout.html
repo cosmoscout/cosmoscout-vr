@@ -179,25 +179,25 @@
 
     <div id="sidebar">
       <div class="accordion" id="sidebar-accordion">
-        <div class="card sidebar-tab">
-          <div class="card-header collapsed tab" id="heading-GeneralSettings" data-toggle="collapse"
-            data-target="#collapse-GeneralSettings" aria-expanded="false"
+        <div class="sidebar-tab">
+          <div class="section-header collapsed tab" id="heading-GeneralSettings"
+            data-toggle="collapse" data-target="#collapse-GeneralSettings" aria-expanded="false"
             aria-controls="collapse-GeneralSettings" type="button">
             <i class="material-icons">settings</i>
             <span class="header-name">Advanced Settings</span>
           </div>
-          <div class="card-body collapse" id="collapse-GeneralSettings"
+          <div class="section-body collapse" id="collapse-GeneralSettings"
             aria-labelledby="heading-GeneralSettings" data-parent="#sidebar-accordion">
             <div class="accordion" id="settings-accordion">
-              <div class="card settings-section">
-                <div class="card-header collapsed" id="headingSettings-Graphics"
+              <div class="settings-section">
+                <div class="section-header collapsed" id="headingSettings-Graphics"
                   data-toggle="collapse" data-target="#collapseSettings-Graphics"
                   aria-expanded="false" aria-controls="collapseSettings-Graphics" type="button">
                   <i class="material-icons">trending_up</i>
                   <span>Graphics</span>
                   <i class="material-icons caret-icon">keyboard_arrow_left</i>
                 </div>
-                <div class="card-body collapse" id="collapseSettings-Graphics"
+                <div class="section-body collapse container-fluid" id="collapseSettings-Graphics"
                   aria-labelledby="headingSettings-Graphics" data-parent="#settings-accordion">
 
                   <div class="row">
@@ -336,14 +336,14 @@
               </div>
 
               <div id="enableSensorSizeControl">
-                <div class="card settings-section">
-                  <div class="card-header collapsed" id="headingSettings-Optics"
+                <div class="settings-section">
+                  <div class="section-header collapsed" id="headingSettings-Optics"
                     data-toggle="collapse" data-target="#collapseSettings-Optics"
                     aria-expanded="false" aria-controls="collapseSettings-Optics" type="button">
                     <i class="material-icons">camera</i><span>Optics</span><i
                       class="material-icons caret-icon">keyboard_arrow_left</i>
                   </div>
-                  <div class="card-body collapse" id="collapseSettings-Optics"
+                  <div class="section-body collapse container-fluid" id="collapseSettings-Optics"
                     aria-labelledby="headingSettings-Optics" data-parent="#settings-accordion">
 
                     <div class="row">
@@ -370,14 +370,14 @@
                 </div>
               </div>
 
-              <div class="card settings-section">
-                <div class="card-header collapsed" id="headingSettings-LightShadow"
+              <div class="settings-section">
+                <div class="section-header collapsed" id="headingSettings-LightShadow"
                   data-toggle="collapse" data-target="#collapseSettings-LightShadow"
                   aria-expanded="false" aria-controls="collapseSettings-LightShadow" type="button">
                   <i class="material-icons">brightness_medium</i><span>Light & Shadow</span><i
                     class="material-icons caret-icon">keyboard_arrow_left</i>
                 </div>
-                <div class="card-body collapse" id="collapseSettings-LightShadow"
+                <div class="section-body collapse container-fluid" id="collapseSettings-LightShadow"
                   aria-labelledby="headingSettings-LightShadow" data-parent="#settings-accordion">
 
                   <div class="row">
@@ -525,9 +525,10 @@
           <i class="material-icons">close</i>
         </a>
       </div>
-      <div class="window-content">
+      <div class="window-content container-fluid">
 
-        <div class="row mb-2">
+        <div class="row mb-3">
+
           <div class="col-12 mb-1">
             <div class="invalid-feedback" id="bookmark-editor-nothing-given-error">
               You should either specify a time or a location for the bookmark.
@@ -535,21 +536,24 @@
             <small class="form-text text-muted">The name is required, the description is
               optional.</small>
           </div>
-          <div class="col-6">
-            <input type="text" placeholder="Bookmark Name" class="form-control"
-              id="bookmark-editor-name">
-            <div class="invalid-feedback"></div>
-          </div>
-          <div class="col-6">
-            <input type="text" class="form-control color-input" id="bookmark-editor-color"
-              style="color: black;" value="">
-          </div>
-        </div>
 
-        <div class="row mb-3">
           <div class="col-12">
-            <input type="text" placeholder="Description" class="form-control"
-              id="bookmark-editor-description">
+            <div class="row">
+              <div class="col-8">
+                <input type="text" placeholder="Bookmark Name" class="form-control"
+                  id="bookmark-editor-name">
+                <div class="invalid-feedback"></div>
+              </div>
+              <div class="col-4">
+                <input type="text" class="form-control color-input" id="bookmark-editor-color"
+                  style="color: black;" value="">
+              </div>
+
+              <div class="col-12">
+                <input type="text" placeholder="Description" class="form-control"
+                  id="bookmark-editor-description">
+              </div>
+            </div>
           </div>
         </div>
 
@@ -637,7 +641,7 @@
 
       </div>
 
-      <div class="window-action-area">
+      <div class="window-action-area container-fluid">
         <div class="row mb-2">
           <div class="col-5">
             <button class="btn glass btn-danger block" id="bookmark-editor-delete-button">
@@ -845,29 +849,29 @@
   </template>
 
   <template id="sidebar-plugin-tab-template">
-    <div class="card sidebar-tab">
-      <div class="card-header collapsed tab" id="heading-%ID%" data-toggle="collapse"
+    <div class="sidebar-tab">
+      <div class="section-header collapsed tab" id="heading-%ID%" data-toggle="collapse"
         data-target="#collapse-%ID%" aria-expanded="false" aria-controls="collapse-%ID%"
         type="button">
         <i class="material-icons">%ICON%</i><span class="header-name font-alegreya">%NAME%</span>
       </div>
-      <div class="card-body collapse" id="collapse-%ID%" aria-labelledby="heading-%ID%"
-        data-parent="#sidebar-accordion">
+      <div class="section-body collapse container-fluid" id="collapse-%ID%"
+        aria-labelledby="heading-%ID%" data-parent="#sidebar-accordion">
         %CONTENT%
       </div>
     </div>
   </template>
 
   <template id="sidebar-settings-section-template">
-    <div class="card settings-section">
-      <div class="card-header collapsed font-alegreya" id="headingSettings-%ID%"
+    <div class="settings-section">
+      <div class="section-header collapsed font-alegreya" id="headingSettings-%ID%"
         data-toggle="collapse" data-target="#collapseSettings-%ID%" aria-expanded="false"
         aria-controls="collapseSettings-%ID%" type="button">
         <i class="material-icons">%ICON%</i>
         <span>%NAME%</span>
         <i class="material-icons caret-icon">keyboard_arrow_left</i>
       </div>
-      <div class="card-body collapse" id="collapseSettings-%ID%"
+      <div class="section-body collapse container-fluid" id="collapseSettings-%ID%"
         aria-labelledby="headingSettings-%ID%" data-parent="#settings-accordion">
         %CONTENT%
       </div>
