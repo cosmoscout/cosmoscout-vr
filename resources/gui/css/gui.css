@@ -864,3 +864,42 @@ hr {
 .color-picker.no-alpha .color-picker\:a {
   display: none;
 }
+
+/* Popovers ------------------------------------------------------------------------------------- */
+
+.popover {
+  background: rgba(10, 10, 10, 0.9);
+  border: 2px solid var(--cs-border-color);
+  border-radius: 5px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+}
+
+.popover-header {
+  background: transparent;
+  border: none;
+  padding-bottom: 0;
+}
+
+.popover-body {
+  color: var(--cs-text-color);
+}
+
+.bs-popover-auto[x-placement^=right]>.arrow::after,
+.bs-popover-right>.arrow::after {
+  border-right-color: var(--cs-border-color);
+}
+
+.bs-popover-auto[x-placement^=left]>.arrow::after,
+.bs-popover-left>.arrow::after {
+  border-left-color: var(--cs-border-color);
+}
+
+.bs-popover-auto[x-placement^=top]>.arrow::after,
+.bs-popover-top>.arrow::after {
+  border-top-color: var(--cs-border-color);
+}
+
+.bs-popover-auto[x-placement^=bottom]>.arrow::after,
+.bs-popover-bottom>.arrow::after {
+  border-bottom-color: var(--cs-border-color);
+}

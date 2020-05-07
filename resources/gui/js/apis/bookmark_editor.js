@@ -15,6 +15,7 @@ class BookmarkEditorApi extends IApi {
    */
   _title;
   _editor;
+  _iconButton;
   _saveButton;
   _deleteButton;
   _nothingGivenError;
@@ -42,6 +43,7 @@ class BookmarkEditorApi extends IApi {
     this._title             = document.getElementById("bookmark-editor-title");
     this._editor            = document.getElementById("bookmark-editor");
     this._nothingGivenError = document.getElementById("bookmark-editor-nothing-given-error");
+    this._iconButton        = document.querySelector("#bookmark-editor-icon-select-button img");
     this._saveButton        = document.getElementById("bookmark-editor-save-button");
     this._deleteButton      = document.getElementById("bookmark-editor-delete-button");
     this._nameDiv           = document.getElementById("bookmark-editor-name");
@@ -88,6 +90,22 @@ class BookmarkEditorApi extends IApi {
       this._rotationZDiv.value = CosmoScout.state.observerRotation[2];
       this._rotationWDiv.value = CosmoScout.state.observerRotation[3];
     };
+
+    // Initialize Icon Select Popover --------------------------------------------------------------
+
+    $("#bookmark-editor-icon-select-button").on("shown.bs.popover", () => {
+      let buttons = document.querySelectorAll("#bookmark-editor-icon-select-list a");
+      buttons.forEach((b) => {
+        b.onclick = () => {
+          if (b.children.length > 0) {
+            this.selectIcon(b.children[0].getAttribute("src"));
+          } else {
+            this.selectIcon("");
+          }
+          $("#bookmark-editor-icon-select-button").popover("hide");
+        };
+      });
+    });
 
     // Delete bookmarks on delete button click -----------------------------------------------------
 
@@ -244,7 +262,10 @@ class BookmarkEditorApi extends IApi {
       let color      = CP.HEX(this._colorDiv.value);
       bookmark.color = [color[0] / 255.0, color[1] / 255.0, color[2] / 255.0];
 
-      // If we were editing a bookmar, remove this.
+      // Remove leading "../icons/" for the icon files.
+      bookmark.icon = this._iconButton.getAttribute("src").slice(9);
+
+      // If we were editing a bookmark, remove this.
       if (this._editBookmarkID != null) {
         CosmoScout.callbacks.bookmark.remove(this._editBookmarkID);
         this._editBookmarkID = null;
@@ -255,6 +276,29 @@ class BookmarkEditorApi extends IApi {
 
       this._editor.classList.remove("visible");
     };
+  }
+
+  /**
+   * Adds a possible icon to the icon select popover.
+   *
+   * @param path {string}
+   */
+  addIcon(path) {
+    document.getElementById("bookmark-editor-icon-select-list").innerHTML +=
+        `<div class="col-3 p-1">
+          <a class="btn block glass">
+            <img class="img-fluid" src="../icons/${path}">
+          </a>
+        </div>`;
+  }
+
+  /**
+   * Selects an icon for the current bookmark.
+   *
+   * @param path {string}
+   */
+  selectIcon(path) {
+    document.querySelector("#bookmark-editor-icon-select-button img").setAttribute("src", path);
   }
 
   /**
@@ -274,6 +318,10 @@ class BookmarkEditorApi extends IApi {
 
     this._colorDiv.picker.value(
         bookmark.color[0] * 255, bookmark.color[1] * 255, bookmark.color[2] * 255, 1);
+
+    if (bookmark.icon) {
+      this._iconButton.setAttribute("src", "../icons/" + bookmark.icon);
+    }
 
     this._nameDiv.value        = bookmark.name;
     this._descriptionDiv.value = bookmark.description;
@@ -321,6 +369,7 @@ class BookmarkEditorApi extends IApi {
 
   _resetFields() {
     this._colorDiv.picker.value(220, 170, 255, 1);
+    this._iconButton.setAttribute("src", "");
     this._nameDiv.value        = "";
     this._descriptionDiv.value = "";
     this._startDateDiv.value   = "";

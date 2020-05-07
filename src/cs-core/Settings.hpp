@@ -206,6 +206,9 @@ class CS_CORE_EXPORT Settings {
     /// This can be a longer text.
     std::optional<std::string> mDescription;
 
+    /// This can be a name of a png file in share/ressources/icons.
+    std::optional<std::string> mIcon;
+
     /// You may use this to visually highlight different types of bookmarks.
     std::optional<glm::vec3> mColor;
 

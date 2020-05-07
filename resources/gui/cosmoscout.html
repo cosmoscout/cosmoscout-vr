@@ -527,7 +527,7 @@
       </div>
       <div class="window-content container-fluid">
 
-        <div class="row mb-3">
+        <div class="row">
 
           <div class="col-12 mb-1">
             <div class="invalid-feedback" id="bookmark-editor-nothing-given-error">
@@ -536,9 +536,35 @@
             <small class="form-text text-muted">The name is required, the description is
               optional.</small>
           </div>
+        </div>
 
-          <div class="col-12">
-            <div class="row">
+        <div class="row mb-3">
+          <div class="col" style="flex-grow: 0;">
+            <a tabindex="0" id="bookmark-editor-icon-select-button" class="btn block glass"
+              data-trigger="focus" data-toggle="popover"
+              data-popover-content="#bookmark-editor-icon-select-popover">
+              <span>Icon</span>
+              <img class="img-fluid" src="">
+            </a>
+          </div>
+
+          <div class="hidden" id="bookmark-editor-icon-select-popover">
+            <div class="data-popover-header"> </div>
+            <div class="data-popover-body">
+              <div id="bookmark-editor-icon-select-list" class="row px-2">
+                <div class="col-3 p-1 d-flex">
+                  <a class="btn block glass pt-3" data-icon="none">
+                    None
+                  </a>
+                </div>
+              </div>
+              <small class="muted">Place PNG images into ../share/resources/icons to make
+                them available here.</small>
+            </div>
+          </div>
+
+          <div class="col">
+            <div class="row mb-1">
               <div class="col-8">
                 <input type="text" placeholder="Bookmark Name" class="form-control"
                   id="bookmark-editor-name">
@@ -548,7 +574,9 @@
                 <input type="text" class="form-control color-input" id="bookmark-editor-color"
                   style="color: black;" value="">
               </div>
+            </div>
 
+            <div class="row">
               <div class="col-12">
                 <input type="text" placeholder="Description" class="form-control"
                   id="bookmark-editor-description">

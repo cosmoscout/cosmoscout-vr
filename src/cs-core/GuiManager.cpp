@@ -207,6 +207,12 @@ GuiManager::GuiManager(std::shared_ptr<Settings> settings,
     mCosmoScoutGui->setIsInteractive(enable);
   });
 
+  // Add icons to the Bookmark Editor.
+  auto icons = utils::filesystem::listFiles("../share/resources/icons", std::regex("^.*\\.png$"));
+  for (auto icon : icons) {
+    mCosmoScoutGui->callJavascript("CosmoScout.bookmarkEditor.addIcon", icon.substr(25));
+  }
+
   // Trigger initial onLoad()
   onLoad();
 }

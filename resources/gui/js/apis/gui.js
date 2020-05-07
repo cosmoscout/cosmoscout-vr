@@ -38,6 +38,7 @@ class GuiApi extends IApi {
     this.initChecklabelInputs();
     this.initRadiolabelInputs();
     this.initTooltips();
+    this.initPopovers();
     this.initDraggableWindows();
     this.initColorPickers();
   }
@@ -125,6 +126,26 @@ class GuiApi extends IApi {
   initTooltips() {
     /* Bootstrap Tooltips require jQuery for now */
     $('[data-toggle="tooltip"]').tooltip();
+  }
+
+  /**
+   * Initializes [data-toggle="popover"] elements.
+   *
+   * @see {initInputs}
+   */
+  initPopovers() {
+    /* Bootstrap Popovers require jQuery for now */
+    $('[data-toggle="popover"]').popover({
+      html: true,
+      content: function() {
+        var content = this.getAttribute("data-popover-content");
+        return document.querySelector(content).querySelector(".data-popover-body").innerHTML;
+      },
+      title: function() {
+        var title = this.getAttribute("data-popover-content");
+        return document.querySelector(title).querySelector(".data-popover-header").innerHTML;
+      }
+    })
   }
 
   initColorPickers() {

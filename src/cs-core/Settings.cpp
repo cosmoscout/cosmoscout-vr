@@ -123,6 +123,7 @@ void to_json(nlohmann::json& j, Settings::Bookmark::Time const& o) {
 void from_json(nlohmann::json const& j, Settings::Bookmark& o) {
   Settings::deserialize(j, "name", o.mName);
   Settings::deserialize(j, "description", o.mDescription);
+  Settings::deserialize(j, "icon", o.mIcon);
   Settings::deserialize(j, "color", o.mColor);
   Settings::deserialize(j, "location", o.mLocation);
   Settings::deserialize(j, "time", o.mTime);
@@ -131,6 +132,7 @@ void from_json(nlohmann::json const& j, Settings::Bookmark& o) {
 void to_json(nlohmann::json& j, Settings::Bookmark const& o) {
   Settings::serialize(j, "name", o.mName);
   Settings::serialize(j, "description", o.mDescription);
+  Settings::serialize(j, "icon", o.mIcon);
   Settings::serialize(j, "color", o.mColor);
   Settings::serialize(j, "location", o.mLocation);
   Settings::serialize(j, "time", o.mTime);
