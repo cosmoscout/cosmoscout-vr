@@ -189,6 +189,7 @@ class TimelineApi extends IApi {
     this._initTimelines();
     this._moveWindow();
     this._initEventListener();
+    this._updateOverviewLens();
   }
 
   /**

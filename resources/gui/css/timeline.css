@@ -1,52 +1,82 @@
-/* main timeline styles ------------------------------------------------------------------------- */
+/* generic timeline styles ---------------------------------------------------------------------- */
 
 :root {
   --center-element-width: 340px;
 }
 
-#timeline {
-  -webkit-font-smoothing: subpixel-antialiased;
+#timeline-container .vis-timeline {
+  border-width: 0;
 }
 
-.vis-timeline {
-  border-width: 0;
-  background-color: rgba(20, 20, 20, 0.5);
+#timeline-container .vis-timeline:active {
+  top: 1px;
 }
+
+#timeline-container .vis-time-axis .vis-text {
+  padding: 1px;
+  color: var(--cs-text-color);
+}
+
+#timeline-container .vis-content {
+  top: 0 !important;
+}
+
+/* generic timeline item styles ----------------------------------------------------------------- */
+
+#timeline-container .vis-item {
+  background-color: rgba(20, 20, 20, 0.5);
+  color: var(--cs-text-color);
+  border-width: 2px;
+  border-radius: 10px;
+  z-index: 5;
+}
+
+#timeline-container .vis-item-content {
+  visibility: hidden;
+}
+
+#timeline-container .vis-item.vis-line {
+  display: none;
+}
+
+#timeline-container .vis-item.vis-dot {
+  border-width: 0;
+  border-radius: 0;
+}
+
+#timeline-container .vis-item.vis-box,
+#timeline-container .vis-item.vis-range {
+  height: 12px !important;
+  min-width: 12px !important;
+  transition-property: height, top;
+  transition-duration: 0.1s;
+  transition-timing-function: ease;
+}
+
+#timeline-container .vis-item.vis-box {
+  width: 12px !important;
+  transition-property: margin, width, height, top;
+}
+
+#timeline-container .vis-item.vis-box:hover {
+  width: 18px !important;
+  height: 18px !important;
+}
+
+#timeline-container .vis-item.vis-range:hover {
+  height: 18px !important;
+}
+
+/* main timeline styles ------------------------------------------------------------------------- */
 
 #timeline .vis-timeline {
-  border-width: 0;
+  background-color: rgba(20, 20, 20, 0.5);
   border-color: var(--cs-border-color-light);
   overflow: visible !important;
 }
 
 #timeline .vis-time-axis {
   pointer-events: none;
-}
-
-.vis-time-axis .vis-text {
-  padding: 1px;
-  color: var(--cs-text-color);
-}
-
-#timeline .vis-item {
-  border-color: rgba(20, 20, 20, 0.308);
-  background-color: rgba(20, 20, 20, 0.5);
-  color: var(--cs-text-color);
-  border-radius: 10px;
-}
-
-#timeline .vis-item.vis-line {
-  display: none;
-}
-
-#timeline .vis-item {
-  border-width: 2px;
-  border-radius: 10px;
-}
-
-#timeline .vis-item.vis-dot {
-  border-width: 0;
-  border-radius: 0;
 }
 
 #timeline .vis-item.vis-selected {
@@ -58,37 +88,18 @@
 }
 
 #timeline .vis-item.vis-box,
-.vis-item.vis-range {
-  height: 12px !important;
-  min-width: 12px !important;
+#timeline .vis-item.vis-range {
   top: 4px !important;
-  transition-property: height, top;
-  transition-duration: 0.1s;
-  transition-timing-function: ease;
-}
-
-#timeline .vis-item.vis-box {
-  width: 12px !important;
-  transition-property: margin, width, height, top;
 }
 
 #timeline .vis-item.vis-box:hover {
-  width: 18px !important;
-  height: 18px !important;
   margin-left: -3px;
   top: 1px !important;
 }
 
 #timeline .vis-item.vis-range:hover {
-  height: 18px !important;
   top: 1px !important;
 }
-
-
-#timeline .vis-item-content {
-  visibility: hidden;
-}
-
 
 #timeline .vis-panel.vis-bottom {
   height: 35px !important;
@@ -134,10 +145,6 @@
   margin-left: 4px;
 }
 
-#timeline .vis-content {
-  top: 0 !important;
-}
-
 #timeline .vis-grid.vis-vertical.vis-minor {
   border-color: var(--cs-border-color-light);
   height: 12px !important;
@@ -162,16 +169,7 @@
   background-color: rgba(230, 230, 255, 0.3);
 }
 
-#timeline:active {
-  top: 1px;
-}
-
 /* overview timeline styles --------------------------------------------------------------------- */
-
-#overview .vis-timeline {
-  border-width: 0;
-  background: rgba(20, 20, 20, 0);
-}
 
 #overview .vis-custom-time {
   background-color: rgba(0, 110, 255, 0);
@@ -190,30 +188,9 @@
   height: 43px !important;
 }
 
-#overview .vis-item.vis-line {
-  display: none;
-}
-
-#overview .vis-item {
-  background-color: rgba(0, 0, 0, 0.705);
-  border-width: 2px;
-  border-radius: 10px;
-  z-index: 5;
-}
-
-#overview .vis-item.vis-dot {
-  border-width: 0;
-  border-radius: 0;
-}
-
 #overview .vis-item.vis-box,
 #overview .vis-item.vis-range {
-  height: 12px !important;
   top: 13px !important;
-  min-width: 12px !important;
-  transition-property: height, top;
-  transition-duration: 0.1s;
-  transition-timing-function: ease;
 }
 
 #overview .vis-panel.vis-bottom {
@@ -229,25 +206,16 @@
 }
 
 #overview .vis-item.vis-box {
-  width: 12px !important;
   margin-left: 4px;
-  transition-property: width, height, margin, top;
 }
 
 #overview .vis-item.vis-box:hover {
-  width: 18px !important;
-  height: 18px !important;
   margin-left: 1px;
   top: 10px !important;
 }
 
 #overview .vis-item.vis-range:hover {
-  height: 18px !important;
   top: 10px !important;
-}
-
-#overview .vis-item-content {
-  visibility: hidden;
 }
 
 #overview .vis-text.vis-major {
@@ -266,10 +234,6 @@
 
 #overview .vis-group {
   top: 6px;
-}
-
-#overview .vis-content {
-  top: 0 !important;
 }
 
 #overview .vis-minor.vis-text {
@@ -291,11 +255,6 @@
 }
 
 #overview:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-}
-
-#overview:active {
-  top: 1px;
   background-color: rgba(255, 255, 255, 0.1);
 }
 
@@ -634,7 +593,7 @@
   pointer-events: initial;
 }
 
-#bookmark-tooltip {
+#timeline-bookmark-tooltip {
   width: 400px;
   background-color: rgba(20, 20, 20, 0.8);
   border: 2px solid var(--cs-text-color-darkened);
