@@ -224,10 +224,15 @@ class GuiApi extends IApi {
 
         document.onmousemove = (e) => {
           e.preventDefault();
-          w.style.left = (w.offsetLeft + e.clientX - w.startDragX) + "px";
-          w.style.top  = (w.offsetTop + e.clientY - w.startDragY) + "px";
-          w.startDragX = e.clientX;
-          w.startDragY = e.clientY;
+
+          // Do not move outside CosmoScout's window.
+          if (e.clientX >= 0 && e.clientX < document.body.offsetWidth && e.clientY >= 0 &&
+              e.clientY < document.body.offsetHeight) {
+            w.style.left = (w.offsetLeft + e.clientX - w.startDragX) + "px";
+            w.style.top  = (w.offsetTop + e.clientY - w.startDragY) + "px";
+            w.startDragX = e.clientX;
+            w.startDragY = e.clientY;
+          }
         };
       };
     });
