@@ -58,6 +58,14 @@
       }
     },
     {
+      "name": "Moon",
+      "icon": "moon.png",
+      "location": {
+        "center": "Moon",
+        "frame": "IAU_Moon"
+      }
+    },
+    {
       "name": "Mars",
       "icon": "mars.png",
       "location": {
@@ -95,6 +103,54 @@
       "location": {
         "center": "Neptune",
         "frame": "IAU_Neptune"
+      }
+    },
+    {
+      "name": "Europe",
+      "location": {
+        "center": "Earth",
+        "frame": "IAU_Earth",
+        "position": [
+          650049.6197706065,
+          9169440.98335226,
+          8121638.922577351
+        ]
+      }
+    },
+    {
+      "name": "Gale Crater",
+      "location": {
+        "center": "Mars",
+        "frame": "IAU_Mars",
+        "position": [
+          2447738.8308155183,
+          -342371.7680597744,
+          -2685067.930247649
+        ]
+      }
+    },
+    {
+      "name": "Olympus Mons",
+      "location": {
+        "center": "Mars",
+        "frame": "IAU_Mars",
+        "position": [
+          -3307330.802331851,
+          1554571.0056051295,
+          -3226294.561073318
+        ]
+      }
+    },
+    {
+      "name": "Valles Marineris",
+      "location": {
+        "center": "Mars",
+        "frame": "IAU_Mars",
+        "position": [
+          -6428254.120880801,
+          -954592.0696965504,
+          1953664.233154953
+        ]
       }
     },
     {
