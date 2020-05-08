@@ -32,6 +32,10 @@
   display: none;
 }
 
+#sidebar .sidebar-tab {
+  margin-bottom: 10px;
+}
+
 #sidebar .tab {
   color: #fff;
   background-color: rgba(0, 0, 0, 0.5);
