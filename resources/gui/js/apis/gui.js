@@ -38,6 +38,9 @@ class GuiApi extends IApi {
     this.initChecklabelInputs();
     this.initRadiolabelInputs();
     this.initTooltips();
+    this.initPopovers();
+    this.initDraggableWindows();
+    this.initColorPickers();
   }
 
   /**
@@ -121,12 +124,118 @@ class GuiApi extends IApi {
    * @see {initInputs}
    */
   initTooltips() {
-    const config = {delay: 500, placement: 'auto', html: false};
-
     /* Bootstrap Tooltips require jQuery for now */
-    $('[data-toggle="tooltip"]').tooltip(config);
-    config.placement = 'bottom';
-    $('[data-toggle="tooltip-bottom"]').tooltip(config);
+    $('[data-toggle="tooltip"]').tooltip({delay: 500});
+  }
+
+  /**
+   * Initializes [data-toggle="popover"] elements.
+   *
+   * @see {initInputs}
+   */
+  initPopovers() {
+    /* Bootstrap Popovers require jQuery for now */
+    $('[data-toggle="popover"]').popover({
+      html: true,
+      content: function() {
+        var content = this.getAttribute("data-popover-content");
+        return document.querySelector(content).querySelector(".data-popover-body").innerHTML;
+      },
+      title: function() {
+        var title = this.getAttribute("data-popover-content");
+        return document.querySelector(title).querySelector(".data-popover-header").innerHTML;
+      }
+    })
+  }
+
+  initColorPickers() {
+    const pickerDivs = document.querySelectorAll(".color-input");
+
+    pickerDivs.forEach((pickerDiv) => {
+      if (!pickerDiv.picker) {
+        pickerDiv.picker = new CP(pickerDiv);
+        pickerDiv.picker.self.classList.add('no-alpha');
+        pickerDiv.picker.on('change', (r, g, b, a) => {
+          const color                = CP.HEX([r, g, b, 1]);
+          pickerDiv.style.background = color;
+          pickerDiv.value            = color;
+        });
+
+        pickerDiv.oninput = (e) => {
+          const color = CP.HEX(e.target.value);
+          pickerDiv.picker.set(color[0], color[1], color[2], 1);
+          pickerDiv.style.background = CP.HEX([color[0], color[1], color[2], 1]);
+        };
+      }
+    });
+  }
+
+  /**
+   * Initializes [class="draggable-window"] elements.
+   *
+   * @see {initInputs}
+   */
+  initDraggableWindows() {
+    const windows     = document.querySelectorAll(".draggable-window");
+    var currentZIndex = 100;
+
+    windows.forEach((w) => {
+      // Center initially.
+      w.style.left = (document.body.offsetWidth - w.offsetWidth) / 2 + "px";
+      w.style.top  = (document.body.offsetHeight - w.offsetHeight) / 2 + "px";
+
+      // Make closable.
+      const closeButton = w.querySelector(".window-header a[data-action='close']");
+      if (closeButton) {
+        closeButton.onmouseup = () => {
+          w.classList.remove("visible");
+        };
+      }
+
+      // Make lockable. Locked windows shall not automatically close.
+      const lockButton = w.querySelector(".window-header a[data-action='lock']");
+      if (lockButton) {
+        w.locked             = false;
+        lockButton.onmouseup = () => {
+          w.locked = !w.locked;
+          if (w.locked) {
+            lockButton.querySelector("i").innerText = "lock";
+          } else {
+            lockButton.querySelector("i").innerText = "lock_open";
+          }
+        };
+      }
+
+      // Bring to front on click.
+      w.onmousedown = (e) => {
+        w.style.zIndex = ++currentZIndex;
+      };
+
+      // Make draggable.
+      const header       = w.querySelector(".window-title");
+      header.onmousedown = (e) => {
+        w.startDragX = e.clientX;
+        w.startDragY = e.clientY;
+
+        document.onmouseup = () => {
+          document.onmouseup   = null;
+          document.onmousemove = null;
+        };
+
+        document.onmousemove = (e) => {
+          e.preventDefault();
+
+          // Do not move outside CosmoScout's window.
+          if (e.clientX >= 0 && e.clientX < document.body.offsetWidth && e.clientY >= 0 &&
+              e.clientY < document.body.offsetHeight) {
+            w.style.left = (w.offsetLeft + e.clientX - w.startDragX) + "px";
+            w.style.top  = (w.offsetTop + e.clientY - w.startDragY) + "px";
+            w.startDragX = e.clientX;
+            w.startDragY = e.clientY;
+          }
+        };
+      };
+    });
   }
 
   /**

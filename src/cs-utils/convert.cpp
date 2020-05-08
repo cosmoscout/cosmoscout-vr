@@ -160,21 +160,33 @@ glm::dvec2 normalToLngLat(glm::dvec3 const& normal, double radiusE, double radiu
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-double toSpiceTime(boost::posix_time::ptime const& tIn) {
-  double dTime{};
-  str2et_c(boost::posix_time::to_simple_string(tIn).c_str(), &dTime);
-  if (failed_c()) {
-    reset_c();
-    logger().warn("Failed to convert boost time to SPICE time!");
-  }
-  return dTime;
+namespace time {
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+double toSpice(boost::posix_time::ptime const& tIn) {
+
+  auto const startYear       = 2000;
+  auto const noon            = 12;
+  auto const secondsToMillis = 1000.0;
+
+  auto j2000 = boost::posix_time::ptime(
+      boost::gregorian::date(startYear, 1, 1), boost::posix_time::hours(noon));
+
+  double dTime = (tIn - j2000).total_milliseconds() / secondsToMillis;
+
+  // Incorporate delta between ET and UTC.
+  double ETUTCDelta = 0.0;
+  deltet_c(dTime, "UTC", &ETUTCDelta);
+
+  return dTime + ETUTCDelta;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-double toSpiceTime(std::string const& tIn) {
+double toSpice(std::string const& tIn) {
   try {
-    return toSpiceTime(boost::posix_time::time_from_string(tIn));
+    return toSpice(toPosix(tIn));
   } catch (std::exception& e) { logger().error("Failed to convert time: {}", e.what()); }
 
   return 0.0;
@@ -182,14 +194,65 @@ double toSpiceTime(std::string const& tIn) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-boost::posix_time::ptime toBoostTime(double tIn) {
+boost::posix_time::ptime toPosix(std::string const& tIn) {
+
+  // We need at least a length of 19 chracters
+  if (tIn.length() < 19) {
+    logger().error("Failed to convert '{}' to boost::posix_time::ptime!", tIn);
+    return boost::posix_time::ptime();
+  }
+
+  // Remove potential Z in YYYY-MM-DDTHH:MM:SS.fffZ
+  auto copy = tIn;
+  if (copy.back() == 'Z') {
+    copy.back() = '0';
+  }
+
+  // Remove potential T in YYYY-MM-DDTHH:MM:SS.fff
+  copy[10] = ' ';
+
+  try {
+    // Let boost do the parsing
+    return boost::posix_time::time_from_string(copy);
+
+  } catch (std::exception& e) {
+    logger().error("Failed to convert '{}' to boost::posix_time::ptime: {}!", tIn, e.what());
+  }
+
+  return boost::posix_time::ptime();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+boost::posix_time::ptime toPosix(double tIn) {
   auto const startYear       = 2000;
   auto const noon            = 12;
   auto const secondsToMillis = 1000;
+
+  // Incorporate delta between ET and UTC.
+  double ETUTCDelta = 0.0;
+  deltet_c(tIn, "ET", &ETUTCDelta);
+
   return boost::posix_time::ptime(boost::gregorian::date(startYear, 1, 1),
-      boost::posix_time::hours(noon) +
-          boost::posix_time::milliseconds(static_cast<int64_t>(tIn * secondsToMillis)));
+      boost::posix_time::hours(noon) + boost::posix_time::milliseconds(static_cast<int64_t>(
+                                           (tIn - ETUTCDelta) * secondsToMillis)));
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::string toString(double tIn) {
+  return toString(toPosix(tIn));
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::string toString(boost::posix_time::ptime const& tIn) {
+  return boost::posix_time::to_iso_extended_string(tIn).substr(0, 23) + "Z";
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+} // namespace time
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 

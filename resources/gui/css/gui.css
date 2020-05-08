@@ -1,4 +1,4 @@
-/* Global Colors------------------------------------------------------------- */
+/* Global Colors--------------------------------------------------------------------------------- */
 :root {
   --cs-text-color: #ddf;
   --cs-text-color-darkened: #ccf;
@@ -10,7 +10,7 @@
   --cs-background-color: #ccf;
 }
 
-/* Resources ---------------------------------------------------------------- */
+/* Resources ------------------------------------------------------------------------------------ */
 
 @font-face {
   font-family: 'Ubuntu';
@@ -44,17 +44,16 @@
   font-family: 'Material Icons', sans-serif;
   font-weight: normal;
   font-style: normal;
-  font-size: 24px;
-  /* Preferred icon size */
+  vertical-align: middle;
   display: inline-block;
-  line-height: 1;
   text-transform: none;
   letter-spacing: normal;
   word-wrap: normal;
   white-space: nowrap;
+  position: relative;
 }
 
-/* Basic Containers --------------------------------------------------------- */
+/* Basic Containers ----------------------------------------------------------------------------- */
 
 html {
   overflow: hidden;
@@ -97,12 +96,12 @@ strong {
 }
 
 .row {
-  margin: 0 0 2px;
-  padding: 0 0.25rem;
+  /* margin: 0 0 2px;
+padding: 0 0.25rem; */
 }
 
 .row .col {
-  padding: 0 0.2rem;
+  /* padding: 0 0.2rem; */
 }
 
 .text-right {
@@ -144,11 +143,8 @@ input[type="search"]:not(.browser-default),
   border: none;
   border-bottom: 2px solid var(--cs-border-color);
   color: var(--cs-text-color-darkened);
-  margin: 0 0 5px 0;
-  height: auto;
-  line-height: 1.5;
-  background: transparent;
-  width: 100%;
+  background: #ccccff08;
+  border-radius: 0;
 }
 
 
@@ -166,11 +162,17 @@ input[type="number"]:focus:not(.browser-default):not([readonly]),
 input[type="search"]:focus:not(.browser-default):not([readonly]) {
   border-bottom: 2px solid #fff;
   box-shadow: none;
+  background: #ccccff1f;
 }
 
 input,
 textarea {
   color: #fff;
+}
+
+.form-control.is-invalid,
+.was-validated .form-control:invalid {
+  border-bottom: 2px solid red !important;
 }
 
 .unresponsive {
@@ -225,7 +227,7 @@ textarea {
   line-height: 2.1rem;
 }
 
-/* Scroll box --------------------------------------------------------------- */
+/* Scroll box ----------------------------------------------------------------------------------- */
 
 .scroll-box {
   -webkit-mask-image: -webkit-linear-gradient(rgba(255, 255, 255, 0) 0, rgba(255, 255, 255, 1) 20px, rgba(255, 255, 255, 1) 40%, rgba(255, 255, 255, 0) 49%), -webkit-linear-gradient(bottom, rgba(255, 255, 255, 0) 0, rgba(255, 255, 255, 1) 20px, rgba(255, 255, 255, 1) 49%, rgba(255, 255, 255, 0) 49%), -webkit-linear-gradient(rgba(255, 255, 255, 0) 30%, rgba(255, 255, 255, 1) 40%, rgba(255, 255, 255, 1) 60%, rgba(255, 255, 255, 0) 70%);
@@ -257,12 +259,11 @@ textarea {
   background-color: rgba(230, 230, 255, 0.9);
 }
 
-/* Buttons ------------------------------------------------------------------ */
+/* Buttons -------------------------------------------------------------------------------------- */
 
 .btn {
-  margin-bottom: 2px;
   position: relative;
-  padding: 0;
+  padding: 0 7px;
   color: #fff;
   border-radius: 0;
 }
@@ -288,6 +289,12 @@ textarea {
   box-shadow: none;
 }
 
+.btn.glass.btn-danger {
+  background-color: rgba(255, 8, 8, 0.1);
+  border: 2px solid rgba(255, 0, 0, 0.1);
+  border-bottom: 2px solid rgba(255, 0, 0, 0.8);
+}
+
 .btn.glass.unresponsive,
 .unresponsive .glass {
   border-bottom: 2px solid rgb(167, 167, 167);
@@ -300,6 +307,11 @@ textarea {
   color: #fff;
 }
 
+.btn.glass.btn-danger:hover {
+  background-color: rgba(255, 50, 50, 0.2);
+  border-bottom: 2px solid rgba(255, 50, 50, 0.8);
+}
+
 .btn.light-glass {
   background-color: transparent;
   box-shadow: none;
@@ -310,7 +322,7 @@ textarea {
   box-shadow: none;
 }
 
-/* Tabs --------------------------------------------------------------------- */
+/* Tabs ----------------------------------------------------------------------------------------- */
 
 .tabs {
   background-color: transparent;
@@ -376,7 +388,7 @@ textarea {
   margin: 10px;
 }
 
-/* Check Boxes -------------------------------------------------------------- */
+/* Check Boxes ---------------------------------------------------------------------------------- */
 
 input[type=checkbox] {
   /* to hide the checkbox itself */
@@ -384,16 +396,15 @@ input[type=checkbox] {
 }
 
 label input[type=checkbox]+i::before {
-  display: inline-block;
   position: absolute;
-  left: 0;
-  top: 0;
-  margin: 2px 0 4px 0;
+  font-size: 24px;
+  bottom: -16px;
+  left: -2px;
   content: "check_box_outline_blank";
 }
 
 label.checklabel span {
-  padding-left: 35px;
+  padding-left: 32px;
 }
 
 label input[type=checkbox]:checked+i::before {
@@ -417,7 +428,7 @@ label.checklabel:active {
 }
 
 
-/* Radio Buttons ------------------------------------------------------------ */
+/* Radio Buttons -------------------------------------------------------------------------------- */
 
 input[type=radio] {
   /* to hide the radio button itself */
@@ -471,7 +482,7 @@ input[type=checkbox]:checked+span.btn {
   border-left: 1px dashed rgba(230, 230, 255, 0.5);
 }
 
-/* Utilities ---------------------------------------------------------------- */
+/* Utilities ------------------------------------------------------------------------------------ */
 
 hr {
   margin-top: 0;
@@ -508,7 +519,6 @@ hr {
 
 .noUi-target .noUi-active .range-label {
   transform: translate(-50%, -16px);
-  //transform: translate(-50%, -40px);
   border-radius: 50% !important;
 }
 
@@ -540,7 +550,7 @@ hr {
   box-shadow: none;
 }
 
-/* Collapsibles ------------------------------------------------------------- */
+/* Collapsibles --------------------------------------------------------------------------------- */
 
 .collapsible-header,
 .collapsible-body {
@@ -625,7 +635,7 @@ hr {
   border-top: 2px solid var(--cs-border-color);
 }
 
-/* Strike ------------------------------------------------------------------- */
+/* Strike --------------------------------------------------------------------------------------- */
 
 .strike {
   display: block;
@@ -670,7 +680,7 @@ hr {
   margin-left: 15px;
 }
 
-/* Dropdowns ---------------------------------------------------------------- */
+/* Dropdowns ------------------------------------------------------------------------------------ */
 
 .bootstrap-select:not([class*=col-]):not([class*=form-control]):not(.input-group-btn) {
   width: 100%;
@@ -739,7 +749,7 @@ hr {
   color: #fff;
 }
 
-/* Tooltips --------------------------------------------------------------------------------------------------------- */
+/* Tooltips ------------------------------------------------------------------------------------- */
 
 .bs-tooltip-auto[x-placement^=top] .arrow::before,
 .bs-tooltip-top .arrow::before {
@@ -766,4 +776,130 @@ hr {
   background: rgba(20, 20, 20, 0.8);
   border: 2px solid var(--cs-border-color);
   border-radius: 5px;
+}
+
+/* Resizable Windows ---------------------------------------------------------------------------- */
+
+.resizable-window {
+  resize: both;
+  overflow: hidden;
+}
+
+/* This thing is required to make the resize-grip clickable even if a link is beneath it */
+.resizable-window::after {
+  content: '';
+  width: 15px;
+  height: 15px;
+  position: absolute;
+  bottom: 0;
+  right: 0;
+}
+
+::-webkit-resizer {
+  border-style: solid;
+  border-width: 0 0 20px 20px;
+  border-color: transparent transparent #ccf transparent;
+  background: transparent;
+}
+
+/* Movable Windows ------------------------------------------------------------------------------ */
+
+.draggable-window {
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  opacity: 0;
+  transition: opacity 0.2s ease-out;
+  pointer-events: none;
+  background: rgba(10, 10, 10, 0.9);
+  border: 2px solid var(--cs-border-color);
+  border-radius: 5px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+}
+
+.draggable-window.visible {
+  pointer-events: all;
+  opacity: 1;
+}
+
+.draggable-window .window-header {
+  display: flex;
+  font-size: 1.2rem;
+  border-bottom: 1px dashed rgba(230, 230, 255, 0.3);
+}
+
+.draggable-window .window-header:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.draggable-window .window-title {
+  position: relative;
+  flex-grow: 1;
+  padding: 5px;
+}
+
+.draggable-window .window-content {
+  flex-grow: 1;
+}
+
+.draggable-window .window-title:active {
+  top: 1px;
+}
+
+.draggable-window .window-header i {
+  padding: 2px;
+  font-size: 24px;
+}
+
+.draggable-window .window-header span {
+  vertical-align: middle;
+}
+
+.draggable-window .window-title i {
+  padding: 0 10px;
+}
+
+/* color picker --------------------------------------------------------------------------------- */
+
+.color-picker.no-alpha .color-picker\:a {
+  display: none;
+}
+
+/* Popovers ------------------------------------------------------------------------------------- */
+
+.popover {
+  background: rgba(10, 10, 10, 0.9);
+  border: 2px solid var(--cs-border-color);
+  border-radius: 5px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+}
+
+.popover-header {
+  background: transparent;
+  border: none;
+  padding-bottom: 0;
+}
+
+.popover-body {
+  color: var(--cs-text-color);
+}
+
+.bs-popover-auto[x-placement^=right]>.arrow::after,
+.bs-popover-right>.arrow::after {
+  border-right-color: var(--cs-border-color);
+}
+
+.bs-popover-auto[x-placement^=left]>.arrow::after,
+.bs-popover-left>.arrow::after {
+  border-left-color: var(--cs-border-color);
+}
+
+.bs-popover-auto[x-placement^=top]>.arrow::after,
+.bs-popover-top>.arrow::after {
+  border-top-color: var(--cs-border-color);
+}
+
+.bs-popover-auto[x-placement^=bottom]>.arrow::after,
+.bs-popover-bottom>.arrow::after {
+  border-bottom-color: var(--cs-border-color);
 }

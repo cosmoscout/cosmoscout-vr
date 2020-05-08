@@ -23,27 +23,24 @@ TimeControl::TimeControl(std::shared_ptr<core::Settings> settings)
   // Update the mStartDate in the settings. If the current simulation time differs less than one
   // minute from the current system time, we write "today", else the actual simulation date.
   mSettings->onSave().connect([this]() {
-    auto now = utils::convert::toSpiceTime(boost::posix_time::microsec_clock::universal_time());
+    auto now = utils::convert::time::toSpice(boost::posix_time::microsec_clock::universal_time());
     if (std::abs(pSimulationTime.get() - now) < 60) {
       mSettings->mStartDate = "today";
     } else {
-      mSettings->mStartDate =
-          boost::posix_time::to_simple_string(utils::convert::toBoostTime(pSimulationTime.get()));
+      mSettings->mStartDate = utils::convert::time::toString(pSimulationTime.get());
     }
   });
 
   mSettings->onLoad().connect([this]() {
     if (mSettings->mStartDate == "today") {
       setTime(
-          utils::convert::toSpiceTime(boost::posix_time::microsec_clock::universal_time()), 5.0);
+          utils::convert::time::toSpice(boost::posix_time::microsec_clock::universal_time()), 5.0);
     } else {
       try {
-        setTime(
-            utils::convert::toSpiceTime(boost::posix_time::time_from_string(mSettings->mStartDate)),
-            5.0);
+        setTime(utils::convert::time::toSpice(mSettings->mStartDate), 5.0);
       } catch (std::exception const&) {
         throw std::runtime_error("Could not parse the 'startDate' setting. It should either be "
-                                 "'today' or in the format '1969-07-20 20:17:40.000'.");
+                                 "'today' or in the format '1969-07-20T20:17:40.000Z'.");
       }
     }
   });
@@ -63,28 +60,25 @@ TimeControl::~TimeControl() {
 
 void TimeControl::update() {
 
-  double now = utils::convert::toSpiceTime(boost::posix_time::microsec_clock::universal_time());
+  double now = utils::convert::time::toSpice(boost::posix_time::microsec_clock::universal_time());
 
   // Initialize our members. This has to be done here as SPICE is not yet loaded at construction
   // time.
   if (!mInitialized) {
-    mSettings->pMaxDate.connectAndTouch([this](std::string const& val) {
-      pMaxDate = utils::convert::toSpiceTime(boost::posix_time::time_from_string(val));
-    });
+    mSettings->pMaxDate.connectAndTouch(
+        [this](std::string const& val) { pMaxDate = utils::convert::time::toSpice(val); });
 
-    mSettings->pMinDate.connectAndTouch([this](std::string const& val) {
-      pMinDate = utils::convert::toSpiceTime(boost::posix_time::time_from_string(val));
-    });
+    mSettings->pMinDate.connectAndTouch(
+        [this](std::string const& val) { pMinDate = utils::convert::time::toSpice(val); });
 
     if (mSettings->mStartDate == "today") {
-      setTime(utils::convert::toSpiceTime(boost::posix_time::microsec_clock::universal_time()));
+      setTime(utils::convert::time::toSpice(boost::posix_time::microsec_clock::universal_time()));
     } else {
       try {
-        setTime(utils::convert::toSpiceTime(
-            boost::posix_time::time_from_string(mSettings->mStartDate)));
+        setTime(utils::convert::time::toSpice(mSettings->mStartDate));
       } catch (std::exception const&) {
         throw std::runtime_error("Could not parse the 'startDate' setting. It should either be "
-                                 "'today' or in the format '1969-07-20 20:17:40.000'.");
+                                 "'today' or in the format '1969-07-20T20:17:40.000Z'.");
       }
     }
 
@@ -115,7 +109,7 @@ void TimeControl::update() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void TimeControl::setTime(double tTime, double duration, double threshold) {
-  double now = utils::convert::toSpiceTime(boost::posix_time::microsec_clock::universal_time());
+  double now = utils::convert::time::toSpice(boost::posix_time::microsec_clock::universal_time());
   double difference = std::abs(pSimulationTime.get() - tTime);
 
   if (tTime >= pMaxDate || tTime <= pMinDate) {
@@ -143,16 +137,14 @@ void TimeControl::setTime(double tTime, double duration, double threshold) {
 void TimeControl::resetTime(double duration, double threshold) {
 
   if (mSettings->mResetDate == "today") {
-    setTime(utils::convert::toSpiceTime(boost::posix_time::microsec_clock::universal_time()),
+    setTime(utils::convert::time::toSpice(boost::posix_time::microsec_clock::universal_time()),
         duration, threshold);
   } else {
     try {
-      setTime(
-          utils::convert::toSpiceTime(boost::posix_time::time_from_string(mSettings->mResetDate)),
-          duration, threshold);
+      setTime(utils::convert::time::toSpice(mSettings->mResetDate), duration, threshold);
     } catch (std::exception const&) {
       throw std::runtime_error("Could not parse the 'resetDate' setting. It should either be "
-                               "'today' or in the format '1969-07-20 20:17:40.000'.");
+                               "'today' or in the format '1969-07-20T20:17:40.000Z'.");
     }
   }
 }

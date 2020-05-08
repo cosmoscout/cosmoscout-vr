@@ -22,6 +22,7 @@
   <link type="text/css" rel="stylesheet" href="css/notifications.css">
   <link type="text/css" rel="stylesheet" href="css/statusbar.css">
   <link type="text/css" rel="stylesheet" href="css/logo.css">
+  <link type="text/css" rel="stylesheet" href="css/bookmark_editor.css">
 </head>
 
 <body>
@@ -61,91 +62,95 @@
         </div>
 
         <span id="time-control" class="item">
-          <a class="btn light-glass btn-main" data-toggle="tooltip-bottom"
-            title="Reset simulation time" id="time-reset-button">
+          <a class="btn light-glass btn-main" data-toggle="tooltip" title="Reset simulation time"
+            id="time-reset-button">
             <i class="material-icons">restore</i>
           </a>
-          <a class="btn light-glass" data-toggle="tooltip-bottom" title="Toggle calendar"
+          <a class="btn light-glass" data-toggle="tooltip" title="Toggle calendar"
             id="calendar-button">
             <i class="material-icons">date_range</i>
           </a>
-          <span id="dateLabel" style="min-width: 120px">01.01.1970</span>
-          <a class="btn light-glass btn-main" data-toggle="tooltip-bottom" title="Toggle pause"
+          <div id="date-label-container">
+            <span id="date-label">
+              1970-01-01 12:34:56
+            </span>
+
+            <span id="decreaseControl" class="item">
+              <a class="btn light-glass" id="decrease-year-button" data-change="time"
+                data-type="year" data-direction="decrease">
+                <i class="material-icons">expand_more</i>
+              </a>
+              <a class="btn light-glass" id="decrease-month-button" data-change="time"
+                data-type="month" data-direction="decrease">
+                <i class="material-icons">expand_more</i>
+              </a>
+              <a class="btn light-glass" id="decrease-day-button" data-change="time" data-type="day"
+                data-direction="decrease">
+                <i class="material-icons">expand_more</i>
+              </a>
+              <a class="btn light-glass" id="decrease-hour-button" data-change="time"
+                data-type="hour" data-direction="decrease">
+                <i class="material-icons">expand_more</i>
+              </a>
+              <a class="btn light-glass" id="decrease-minute-button" data-change="time"
+                data-type="minute" data-direction="decrease">
+                <i class="material-icons">expand_more</i>
+              </a>
+              <a class="btn light-glass" id="decrease-second-button" data-change="time"
+                data-type="second" data-direction="decrease">
+                <i class="material-icons">expand_more</i>
+              </a>
+            </span>
+
+            <span id="increaseControl" class="item">
+              <a class="btn light-glass" id="increase-year-button" data-change="time"
+                data-type="year" data-direction="increase">
+                <i class="material-icons">expand_less</i>
+              </a>
+              <a class="btn light-glass" id="increase-month-button" data-change="time"
+                data-type="month" data-direction="increase">
+                <i class="material-icons">expand_less</i>
+              </a>
+              <a class="btn light-glass" id="increase-day-button" data-change="time" data-type="day"
+                data-direction="increase">
+                <i class="material-icons">expand_less</i>
+              </a>
+              <a class="btn light-glass" id="increase-hour-button" data-change="time"
+                data-type="hour" data-direction="increase">
+                <i class="material-icons">expand_less</i>
+              </a>
+              <a class="btn light-glass" id="increase-minute-button" data-change="time"
+                data-type="minute" data-direction="increase">
+                <i class="material-icons">expand_less</i>
+              </a>
+              <a class="btn light-glass" id="increase-second-button" data-change="time"
+                data-type="second" data-direction="increase">
+                <i class="material-icons">expand_less</i>
+              </a>
+            </span>
+          </div>
+
+          <a class="btn light-glass btn-main" data-toggle="tooltip" title="Toggle pause"
             id="pause-button">
             <i class="material-icons">pause</i>
           </a>
         </span>
 
         <span id="expand-control" class="item">
-          <a class="waves-effect waves-light btn light-glass" data-toggle="tooltip-bottom"
-            title="Toggle overview" id="expand-button">
+          <a data-toggle="tooltip" title="Toggle overview" id="expand-button">
             <i class="material-icons">expand_more</i>
-          </a>
-        </span>
-
-        <span id="decreaseControl" class="item">
-          <a class="btn light-glass" id="decrease-day-button" data-change="time" data-type="day"
-            data-direction="decrease">
-            <i class="material-icons">expand_more</i>
-          </a>
-          <a class="btn light-glass" id="decrease-month-button" data-change="time" data-type="month"
-            data-direction="decrease">
-            <i class="material-icons">expand_more</i>
-          </a>
-          <a class="btn light-glass" id="decrease-year-button" data-change="time" data-type="year"
-            data-direction="decrease">
-            <i class="material-icons">expand_more</i>
-          </a>
-          <a class="btn light-glass" id="decrease-hour-button" data-change="time" data-type="hour"
-            data-direction="decrease">
-            <i class="material-icons">expand_more</i>
-          </a>
-          <a class="btn light-glass" id="decrease-minute-button" data-change="time"
-            data-type="minute" data-direction="decrease">
-            <i class="material-icons">expand_more</i>
-          </a>
-          <a class="btn light-glass" id="decrease-second-button" data-change="time"
-            data-type="second" data-direction="decrease">
-            <i class="material-icons">expand_more</i>
-          </a>
-        </span>
-
-        <span id="increaseControl" class="item">
-          <a class="btn light-glass" id="increase-day-button" data-change="time" data-type="day"
-            data-direction="increase">
-            <i class="material-icons">expand_less</i>
-          </a>
-          <a class="btn light-glass" id="increase-month-button" data-change="time" data-type="month"
-            data-direction="increase">
-            <i class="material-icons">expand_less</i>
-          </a>
-          <a class="btn light-glass" id="increase-year-button" data-change="time" data-type="year"
-            data-direction="increase">
-            <i class="material-icons">expand_less</i>
-          </a>
-          <a class="btn light-glass" id="increase-hour-button" data-change="time" data-type="hour"
-            data-direction="increase">
-            <i class="material-icons">expand_less</i>
-          </a>
-          <a class="btn light-glass" id="increase-minute-button" data-change="time"
-            data-type="minute" data-direction="increase">
-            <i class="material-icons">expand_less</i>
-          </a>
-          <a class="btn light-glass" id="increase-second-button" data-change="time"
-            data-type="second" data-direction="increase">
-            <i class="material-icons">expand_less</i>
           </a>
         </span>
 
         <span id="speed-decrease-button-container" class="item">
-          <a class="btn light-glass" data-toggle="tooltip-bottom" title='Fast rewind'
+          <a class="btn light-glass" data-toggle="tooltip" title='Fast rewind'
             id="speed-decrease-button">
             <i class="material-icons">fast_rewind</i>
           </a>
         </span>
 
         <span id="speed-increase-button-container" class="item">
-          <a class="btn light-glass" data-toggle="tooltip-bottom" title='Fast forward'
+          <a class="btn light-glass" data-toggle="tooltip" title='Fast forward'
             id="speed-increase-button">
             <i class="material-icons">fast_forward</i>
           </a>
@@ -153,19 +158,19 @@
       </div>
 
       <div id="plugin-buttons">
-        <a class="btn light-glass" data-toggle="tooltip-bottom" title="Turn north up"
+        <a class="btn light-glass" data-toggle="tooltip" title="Turn north up"
           onclick="CosmoScout.callbacks.navigation.northUp()">
           <span id="compass-arrow"></span>
         </a>
-        <a class="btn light-glass" data-toggle="tooltip-bottom" title="Fix horizon"
+        <a class="btn light-glass" data-toggle="tooltip" title="Fix horizon"
           onclick="CosmoScout.callbacks.navigation.fixHorizon()">
           <i class="material-icons">terrain</i>
         </a>
-        <a class="btn light-glass" data-toggle="tooltip-bottom" title="Launch to orbit"
+        <a class="btn light-glass" data-toggle="tooltip" title="Launch to orbit"
           onclick="CosmoScout.callbacks.navigation.toOrbit()">
           <i class="material-icons">flight_takeoff</i>
         </a>
-        <a class="btn light-glass" data-toggle="tooltip-bottom" title="Land on surface"
+        <a class="btn light-glass" data-toggle="tooltip" title="Land on surface"
           onclick="CosmoScout.callbacks.navigation.toSurface()">
           <i class="material-icons">flight_land</i>
         </a>
@@ -174,25 +179,25 @@
 
     <div id="sidebar">
       <div class="accordion" id="sidebar-accordion">
-        <div class="card sidebar-tab">
-          <div class="card-header collapsed tab" id="heading-GeneralSettings" data-toggle="collapse"
-            data-target="#collapse-GeneralSettings" aria-expanded="false"
+        <div class="sidebar-tab">
+          <div class="section-header collapsed tab" id="heading-GeneralSettings"
+            data-toggle="collapse" data-target="#collapse-GeneralSettings" aria-expanded="false"
             aria-controls="collapse-GeneralSettings" type="button">
             <i class="material-icons">settings</i>
             <span class="header-name">Advanced Settings</span>
           </div>
-          <div class="card-body collapse" id="collapse-GeneralSettings"
+          <div class="section-body collapse" id="collapse-GeneralSettings"
             aria-labelledby="heading-GeneralSettings" data-parent="#sidebar-accordion">
             <div class="accordion" id="settings-accordion">
-              <div class="card settings-section">
-                <div class="card-header collapsed" id="headingSettings-Graphics"
+              <div class="settings-section">
+                <div class="section-header collapsed" id="headingSettings-Graphics"
                   data-toggle="collapse" data-target="#collapseSettings-Graphics"
                   aria-expanded="false" aria-controls="collapseSettings-Graphics" type="button">
                   <i class="material-icons">trending_up</i>
                   <span>Graphics</span>
                   <i class="material-icons caret-icon">keyboard_arrow_left</i>
                 </div>
-                <div class="card-body collapse" id="collapseSettings-Graphics"
+                <div class="section-body collapse container-fluid" id="collapseSettings-Graphics"
                   aria-labelledby="headingSettings-Graphics" data-parent="#settings-accordion">
 
                   <div class="row">
@@ -331,14 +336,14 @@
               </div>
 
               <div id="enableSensorSizeControl">
-                <div class="card settings-section">
-                  <div class="card-header collapsed" id="headingSettings-Optics"
+                <div class="settings-section">
+                  <div class="section-header collapsed" id="headingSettings-Optics"
                     data-toggle="collapse" data-target="#collapseSettings-Optics"
                     aria-expanded="false" aria-controls="collapseSettings-Optics" type="button">
                     <i class="material-icons">camera</i><span>Optics</span><i
                       class="material-icons caret-icon">keyboard_arrow_left</i>
                   </div>
-                  <div class="card-body collapse" id="collapseSettings-Optics"
+                  <div class="section-body collapse container-fluid" id="collapseSettings-Optics"
                     aria-labelledby="headingSettings-Optics" data-parent="#settings-accordion">
 
                     <div class="row">
@@ -365,14 +370,14 @@
                 </div>
               </div>
 
-              <div class="card settings-section">
-                <div class="card-header collapsed" id="headingSettings-LightShadow"
+              <div class="settings-section">
+                <div class="section-header collapsed" id="headingSettings-LightShadow"
                   data-toggle="collapse" data-target="#collapseSettings-LightShadow"
                   aria-expanded="false" aria-controls="collapseSettings-LightShadow" type="button">
                   <i class="material-icons">brightness_medium</i><span>Light & Shadow</span><i
                     class="material-icons caret-icon">keyboard_arrow_left</i>
                 </div>
-                <div class="card-body collapse" id="collapseSettings-LightShadow"
+                <div class="section-body collapse container-fluid" id="collapseSettings-LightShadow"
                   aria-labelledby="headingSettings-LightShadow" data-parent="#settings-accordion">
 
                   <div class="row">
@@ -492,32 +497,220 @@
 
     <div id="notifications"></div>
 
-    <div id="calendar"></div>
+    <!-- Calendar -->
 
-    <div class="form-popup" id="add-event-dialog">
-      <div class="form-container">
-        <h1 id="headlineForm">Customize Event</h1>
-        <input type="text" placeholder="Event Name (required)" name="name" id="event-dialog-name">
-        <input type="colorPicker" name="color" id="event-dialog-color">
-        <input type="text" name="date" id="event-dialog-start-date">
-        <input type="text" placeholder="End date" name="date" id="event-dialog-end-date">
-        <input type="text" placeholder="Description  (required)" name="date"
-          id="event-dialog-description">
-        <input type="text" placeholder="Planet" name="date" id="event-dialog-planet">
-        <input type="text" placeholder="Place" name="date" id="event-dialog-location">
-
-        <button type="button" class="btn" id="event-dialog-apply-button">Apply</button>
-        <button type="button" class="btn cancel" id="event-dialog-cancel-button">Close</button>
+    <div id="calendar" class="draggable-window resizable-window">
+      <div class="window-header">
+        <span class="window-title"><i
+            class="material-icons">date_range</i><span>Calendar</span></span>
+        <a class="btn light-glass" data-action="lock" data-toggle="tooltip" title="Keep open">
+          <i class="material-icons">lock_open</i>
+        </a>
+        <a class="btn light-glass" data-action="close" data-toggle="tooltip" title="Close">
+          <i class="material-icons">close</i>
+        </a>
+      </div>
+      <div class="window-content">
       </div>
     </div>
 
-    <div id="event-tooltip-container">
-      <div class="event-tooltip">
-        <h3 id="event-tooltip-content">Content</h3>
-        <label for="description" id="event-tooltip-description"><b>description</b></label>
-        <div id="event-tooltip-location">Location</div>
+    <!-- Bookmark Editor -->
+
+    <div id="bookmark-editor" class="draggable-window resizable-window">
+      <div class="window-header">
+        <div class="window-title"><i class="material-icons">bookmark</i><span
+            id="bookmark-editor-title">Bookmark Editor</span>
+        </div>
+        <a class="btn light-glass" data-action="close" data-toggle="tooltip" title="Close">
+          <i class="material-icons">close</i>
+        </a>
+      </div>
+      <div class="window-content container-fluid">
+
+        <div class="row">
+
+          <div class="col-12 mb-1">
+            <div class="invalid-feedback" id="bookmark-editor-nothing-given-error">
+              You should either specify a time or a location for the bookmark.
+            </div>
+            <small class="form-text text-muted">The name is required, the description is
+              optional.</small>
+          </div>
+        </div>
+
+        <div class="row mb-3">
+          <div class="col" style="flex-grow: 0;">
+            <a tabindex="0" id="bookmark-editor-icon-select-button" class="btn block glass"
+              data-trigger="focus" data-toggle="popover"
+              data-popover-content="#bookmark-editor-icon-select-popover">
+              <span>Icon</span>
+              <img class="img-fluid" src="">
+            </a>
+          </div>
+
+          <div class="hidden" id="bookmark-editor-icon-select-popover">
+            <div class="data-popover-header"> </div>
+            <div class="data-popover-body">
+              <div id="bookmark-editor-icon-select-list" class="row px-2">
+                <div class="col-3 p-1 d-flex">
+                  <a class="btn block glass pt-3" data-icon="none">
+                    None
+                  </a>
+                </div>
+              </div>
+              <small class="muted">Place PNG images into ../share/resources/icons to make
+                them available here.</small>
+            </div>
+          </div>
+
+          <div class="col">
+            <div class="row mb-1">
+              <div class="col-8">
+                <input type="text" placeholder="Bookmark Name" class="form-control"
+                  id="bookmark-editor-name">
+                <div class="invalid-feedback"></div>
+              </div>
+              <div class="col-4">
+                <input type="text" class="form-control color-input" id="bookmark-editor-color"
+                  style="color: black;" value="">
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-12">
+                <input type="text" placeholder="Description" class="form-control"
+                  id="bookmark-editor-description">
+                <div class="invalid-feedback"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row mb-3">
+          <div class="col-12 mb-1">
+            <small class="form-text text-muted">If you specify one or two dates, the bookmark will
+              be shown on the timeline.</small>
+          </div>
+          <div class="col-6">
+            <div class="input-group">
+              <input type="text" placeholder="Start Date" class="form-control"
+                id="bookmark-editor-start-date">
+              <div class="input-group-append">
+                <button class="btn glass" type="button" data-toggle="tooltip"
+                  title="Use current time"><i class="material-icons">update</i></button>
+              </div>
+              <div class="invalid-feedback"></div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class=" input-group">
+              <input type="text" placeholder="End Date" class="form-control"
+                id="bookmark-editor-end-date">
+              <div class="input-group-append">
+                <button class="btn glass" type="button" data-toggle="tooltip"
+                  title="Use current time"><i class="material-icons">update</i></button>
+              </div>
+              <div class="invalid-feedback"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row mb-2">
+          <div class="col-12 mb-1">
+            <small class="form-text text-muted">The location fields are required top to bottom: You
+              may omit them all, but if you provide a rotation, all fields are required.</small>
+          </div>
+
+          <div class="col-12 input-group">
+            <input type="text" placeholder="Center" class="form-control"
+              id="bookmark-editor-center">
+            <input type="text" placeholder="Frame" class="form-control" id="bookmark-editor-frame">
+            <div class="input-group-append">
+              <button class="btn glass" type="button" data-toggle="tooltip"
+                title="Use current Planet"><i class="material-icons">place</i></button>
+            </div>
+            <div class="invalid-feedback"></div>
+          </div>
+        </div>
+
+        <div class="row mb-2">
+          <div class="col-12 input-group">
+            <input id="bookmark-editor-location-x" type="text" class="form-control"
+              placeholder="LocX">
+            <input id="bookmark-editor-location-y" type="text" class="form-control"
+              placeholder="LocY">
+            <input id="bookmark-editor-location-z" type="text" class="form-control"
+              placeholder="LocZ">
+            <div class="input-group-append">
+              <button class="btn glass" type="button" data-toggle="tooltip"
+                title="Use current position"><i class="material-icons">place</i></button>
+            </div>
+            <div class="invalid-feedback"></div>
+          </div>
+        </div>
+
+        <div class="row mb-2">
+          <div class="col-12 input-group">
+            <input id="bookmark-editor-rotation-x" type="text" class="form-control"
+              placeholder="RotX">
+            <input id="bookmark-editor-rotation-y" type="text" class="form-control"
+              placeholder="RotY">
+            <input id="bookmark-editor-rotation-z" type="text" class="form-control"
+              placeholder="RotZ">
+            <input id="bookmark-editor-rotation-w" type="text" class="form-control "
+              placeholder="RotW">
+            <div class="input-group-append">
+              <button class="btn glass" type="button" data-toggle="tooltip"
+                title="Use current rotation"><i class="material-icons">place</i></button>
+            </div>
+            <div class="invalid-feedback"></div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <div class="window-action-area container-fluid">
+        <div class="row mb-2">
+          <div class="col-5">
+            <button class="btn glass btn-danger block" id="bookmark-editor-delete-button">
+              Delete Bookmark
+            </button>
+          </div>
+          <div class="col-7">
+            <button class="btn glass block" id="bookmark-editor-save-button">
+              Save Bookmark
+            </button>
+          </div>
+        </div>
       </div>
     </div>
+
+    <!-- Timeline bookmark tooltip -->
+
+    <div id="timeline-bookmark-tooltip-container">
+      <div id="timeline-bookmark-tooltip-arrow"></div>
+      <div id="timeline-bookmark-tooltip">
+        <div id="timeline-bookmark-tooltip-header">
+          <span id="timeline-bookmark-tooltip-name"> Name </span>
+          <a id="timeline-bookmark-tooltip-edit" class="btn light-glass" data-toggle="tooltip"
+            title="Edit Bookmark">
+            <i class="material-icons">edit</i>
+          </a>
+          <a id="timeline-bookmark-tooltip-goto-time" class="btn light-glass" data-toggle="tooltip"
+            title="Go to Bookmark time">
+            <i class="material-icons">update</i>
+          </a>
+          <a id="timeline-bookmark-tooltip-goto-location" class="btn light-glass"
+            data-toggle="tooltip" title="Got to Bookmark location">
+            <i class="material-icons">place</i>
+          </a>
+        </div>
+        <div id="timeline-bookmark-tooltip-description">Description</div>
+      </div>
+    </div>
+
+    <!-- Console -->
 
     <div id="console-output-wrapper">
       <div id="console-output-area"></div>
@@ -543,6 +736,8 @@
         <div id="statusbar-pointer-position"> - </div>
       </div>
     </div>
+
+    <!-- Logo -->
 
     <div id="logo">
       <div id="logo-image"></div>
@@ -576,8 +771,10 @@
   <script type="text/javascript" src="js/apis/statusbar.js"></script>
   <script type="text/javascript" src="js/apis/timeline.js"></script>
   <script type="text/javascript" src="js/apis/loading_screen.js"></script>
+  <script type="text/javascript" src="js/apis/calendar.js"></script>
   <script type="text/javascript" src="js/apis/gui.js"></script>
   <script type="text/javascript" src="js/apis/utils.js"></script>
+  <script type="text/javascript" src="js/apis/bookmark_editor.js"></script>
 
   <script type="text/javascript">
 
@@ -591,6 +788,8 @@
         NotificationApi,
         StatusbarApi,
         SidebarApi,
+        CalendarApi,
+        BookmarkEditorApi,
         TimelineApi
       );
 
@@ -661,47 +860,47 @@
   </script>
 
   <template id="button-template">
-    <a class="btn light-glass" data-toggle="tooltip-bottom">
+    <a class="btn light-glass" data-toggle="tooltip">
       <i class="material-icons">%ICON%</i>
     </a>
   </template>
 
   <template id="notification-template">
     <div class="notification row">
-      <div class="col-2">
+      <div class="col-2 align-self-center">
         <i class="material-icons">%ICON%</i>
       </div>
       <div class="col-10">
-        <div class="notification-title font-alegreya">%TITLE%</div>
-        <div class="notification-content">%CONTENT%</div>
+        <div class="notification-title font-alegreya pt-1">%TITLE%</div>
+        <div class="notification-content pb-2">%CONTENT%</div>
       </div>
     </div>
   </template>
 
   <template id="sidebar-plugin-tab-template">
-    <div class="card sidebar-tab">
-      <div class="card-header collapsed tab" id="heading-%ID%" data-toggle="collapse"
+    <div class="sidebar-tab">
+      <div class="section-header collapsed tab" id="heading-%ID%" data-toggle="collapse"
         data-target="#collapse-%ID%" aria-expanded="false" aria-controls="collapse-%ID%"
         type="button">
         <i class="material-icons">%ICON%</i><span class="header-name font-alegreya">%NAME%</span>
       </div>
-      <div class="card-body collapse" id="collapse-%ID%" aria-labelledby="heading-%ID%"
-        data-parent="#sidebar-accordion">
+      <div class="section-body collapse container-fluid" id="collapse-%ID%"
+        aria-labelledby="heading-%ID%" data-parent="#sidebar-accordion">
         %CONTENT%
       </div>
     </div>
   </template>
 
   <template id="sidebar-settings-section-template">
-    <div class="card settings-section">
-      <div class="card-header collapsed font-alegreya" id="headingSettings-%ID%"
+    <div class="settings-section">
+      <div class="section-header collapsed font-alegreya" id="headingSettings-%ID%"
         data-toggle="collapse" data-target="#collapseSettings-%ID%" aria-expanded="false"
         aria-controls="collapseSettings-%ID%" type="button">
         <i class="material-icons">%ICON%</i>
         <span>%NAME%</span>
         <i class="material-icons caret-icon">keyboard_arrow_left</i>
       </div>
-      <div class="card-body collapse" id="collapseSettings-%ID%"
+      <div class="section-body collapse container-fluid" id="collapseSettings-%ID%"
         aria-labelledby="headingSettings-%ID%" data-parent="#settings-accordion">
         %CONTENT%
       </div>

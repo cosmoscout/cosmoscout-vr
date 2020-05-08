@@ -165,7 +165,8 @@ std::shared_ptr<scene::CelestialBody> SolarSystem::getBody(std::string const& sC
 
 void SolarSystem::update() {
   double simulationTime(mTimeControl->pSimulationTime.get());
-  double realTime(utils::convert::toSpiceTime(boost::posix_time::microsec_clock::universal_time()));
+  double realTime(
+      utils::convert::time::toSpice(boost::posix_time::microsec_clock::universal_time()));
   mObserver.updateMovementAnimation(realTime);
 
   mSun->update(simulationTime, mObserver);
@@ -375,12 +376,31 @@ void SolarSystem::flyObserverTo(std::string const& sCenter, std::string const& s
 
   double simulationTime(mTimeControl->pSimulationTime.get());
   double startTime(
-      utils::convert::toSpiceTime(boost::posix_time::microsec_clock::universal_time()));
+      utils::convert::time::toSpice(boost::posix_time::microsec_clock::universal_time()));
   double endTime(startTime + duration);
 
   if (GetVistaSystem()->GetClusterMode()->GetIsLeader()) {
     mObserver.moveTo(sCenter, sFrame, position, rotation, simulationTime, startTime, endTime);
   }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void SolarSystem::flyObserverTo(std::string const& sCenter, std::string const& sFrame,
+    glm::dvec3 const& position, double duration) {
+
+  glm::dvec3 y = glm::dvec3(0, -1, 0);
+  glm::dvec3 z = position;
+  glm::dvec3 x = glm::cross(z, y);
+  y            = glm::cross(z, x);
+
+  x = glm::normalize(x);
+  y = glm::normalize(y);
+  z = glm::normalize(z);
+
+  auto rotation = glm::toQuat(glm::dmat3(x, y, z));
+
+  flyObserverTo(sCenter, sFrame, position, rotation, duration);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -395,18 +415,7 @@ void SolarSystem::flyObserverTo(std::string const& sCenter, std::string const& s
 
   auto cart = utils::convert::toCartesian(lngLat, radii[0], radii[0], height);
 
-  glm::dvec3 y = glm::dvec3(0, -1, 0);
-  glm::dvec3 z = cart;
-  glm::dvec3 x = glm::cross(z, y);
-  y            = glm::cross(z, x);
-
-  x = glm::normalize(x);
-  y = glm::normalize(y);
-  z = glm::normalize(z);
-
-  auto rotation = glm::toQuat(glm::dmat3(x, y, z));
-
-  flyObserverTo(sCenter, sFrame, cart, rotation, duration);
+  flyObserverTo(sCenter, sFrame, cart, duration);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
