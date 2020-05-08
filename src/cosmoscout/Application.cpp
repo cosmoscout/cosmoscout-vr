@@ -1241,10 +1241,18 @@ void Application::registerGuiCallbacks() {
         if (bookmark != mGuiManager->getBookmarks().end()) {
           if (bookmark->second.mLocation) {
             auto loc = bookmark->second.mLocation.value();
-            mSolarSystem->flyObserverTo(loc.mCenter, loc.mFrame,
-                loc.mPosition.value_or(mSolarSystem->getObserver().getAnchorPosition()),
-                loc.mRotation.value_or(mSolarSystem->getObserver().getAnchorRotation()),
-                duration.value_or(5.0));
+
+            if (loc.mRotation.has_value() && loc.mPosition.has_value()) {
+              mSolarSystem->flyObserverTo(loc.mCenter, loc.mFrame, loc.mPosition.value(),
+                  loc.mRotation.value(), duration.value_or(5.0));
+            } else if (loc.mPosition.has_value()) {
+              mSolarSystem->flyObserverTo(
+                  loc.mCenter, loc.mFrame, loc.mPosition.value(), duration.value_or(5.0));
+              return;
+            } else {
+              mSolarSystem->flyObserverTo(loc.mCenter, loc.mFrame, duration.value_or(5.0));
+            }
+
           } else {
             logger().warn("Failed to execute 'bookmark.gotoLocation' for bookmark '{}': Bookmark "
                           "does not have a location setting!",
