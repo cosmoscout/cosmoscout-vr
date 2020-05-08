@@ -209,6 +209,11 @@ class BookmarkEditorApi extends IApi {
         markInvalid(this._endDateDiv, !this._endDateDiv.value.match(dateRegex), dateError);
       }
 
+      var textRegex = /[\\"<>]/;
+      let textError = "This shouldn't contain special characters like \\, \", < or >.";
+      markInvalid(this._nameDiv, this._nameDiv.value.match(textRegex), textError);
+      markInvalid(this._descriptionDiv, this._descriptionDiv.value.match(textRegex), textError);
+
       let numRegex = /^[-+]?[0-9]+(\.[0-9]*)?$/;
       let numError = "Must be a number.";
 
