@@ -125,7 +125,7 @@ class GuiApi extends IApi {
    */
   initTooltips() {
     /* Bootstrap Tooltips require jQuery for now */
-    $('[data-toggle="tooltip"]').tooltip();
+    $('[data-toggle="tooltip"]').tooltip({delay: 500});
   }
 
   /**
