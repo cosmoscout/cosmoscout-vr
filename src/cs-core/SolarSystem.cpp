@@ -387,17 +387,10 @@ void SolarSystem::flyObserverTo(std::string const& sCenter, std::string const& s
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void SolarSystem::flyObserverTo(std::string const& sCenter, std::string const& sFrame,
-    glm::dvec2 const& lngLat, double height, double duration) {
-  auto radii = getRadii(sCenter);
-
-  if (radii[0] == 0.0 || radii[2] == 0.0) {
-    radii = glm::dvec3(1, 1, 1);
-  }
-
-  auto cart = utils::convert::toCartesian(lngLat, radii[0], radii[0], height);
+    glm::dvec3 const& position, double duration) {
 
   glm::dvec3 y = glm::dvec3(0, -1, 0);
-  glm::dvec3 z = cart;
+  glm::dvec3 z = position;
   glm::dvec3 x = glm::cross(z, y);
   y            = glm::cross(z, x);
 
@@ -407,7 +400,22 @@ void SolarSystem::flyObserverTo(std::string const& sCenter, std::string const& s
 
   auto rotation = glm::toQuat(glm::dmat3(x, y, z));
 
-  flyObserverTo(sCenter, sFrame, cart, rotation, duration);
+  flyObserverTo(sCenter, sFrame, position, rotation, duration);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void SolarSystem::flyObserverTo(std::string const& sCenter, std::string const& sFrame,
+    glm::dvec2 const& lngLat, double height, double duration) {
+  auto radii = getRadii(sCenter);
+
+  if (radii[0] == 0.0 || radii[2] == 0.0) {
+    radii = glm::dvec3(1, 1, 1);
+  }
+
+  auto cart = utils::convert::toCartesian(lngLat, radii[0], radii[0], height);
+
+  flyObserverTo(sCenter, sFrame, cart, duration);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
