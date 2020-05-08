@@ -27,7 +27,7 @@ DeletableMark::DeletableMark(std::shared_ptr<InputManager> const& pInputManager,
     std::shared_ptr<TimeControl> const& pTimeControl, std::string const& sCenter,
     std::string const& sFrame)
     : Mark(pInputManager, pSolarSystem, settings, pTimeControl, sCenter, sFrame)
-    , mGuiArea(new cs::gui::WorldSpaceGuiArea(80, 90))
+    , mGuiArea(new cs::gui::WorldSpaceGuiArea(60, 80))
     , mGuiItem(new cs::gui::GuiItem("file://../share/resources/gui/deletable_mark.html")) {
 
   initData();
@@ -52,7 +52,7 @@ void DeletableMark::initData() {
 
   auto* pGuiTransform = pSG->NewTransformNode(mAnchor.get());
 
-  float const offsetY = 0.4F;
+  float const offsetY = 0.5F;
   pGuiTransform->Translate(0.F, offsetY, 0.F);
 
   float const scale = 0.001F;

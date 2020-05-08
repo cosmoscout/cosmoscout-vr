@@ -1,42 +1,27 @@
-.col,
-.col-1,
-.col-10,
-.col-11,
-.col-12,
-.col-2,
-.col-3,
-.col-4,
-.col-5,
-.col-6,
-.col-7,
-.col-8,
-.col-9 {
-  padding-right: 3px;
-  padding-left: 3px;
-}
-
 .btn i {
   font-size: 40px;
 }
 
-.deletable-mark {
-  position: absolute;
-  top: 0;
-  width: 100%;
-  padding-bottom: 30px;
-  transition: opacity 0.3s linear, top 0.3s ease;
+.deletable-mark i {
+  line-height: 40px;
 }
 
-.deletable-mark a.btn.glass {
+.deletable-mark {
+  transition: opacity 0.3s linear, top 0.3s ease;
+  border: 3px solid var(--cs-border-color);
+  border-radius: 8px;
   background: rgba(0, 0, 0, 0.5);
 }
 
-.triangle {
+.deletable-mark .triangle {
+  position: absolute;
   width: 0;
   height: 0;
-  margin: -5px auto;
+  left: 50%;
+  margin-left: -10px;
+  bottom: 12px;
   border-style: solid;
-  border-width: 20px 10px 0 10px;
+  border-width: 10px 10px 0 10px;
   border-color: var(--cs-border-color) transparent transparent transparent;
 }
 
