@@ -316,15 +316,20 @@ class BookmarkEditorApi extends IApi {
 
     let bookmark = JSON.parse(bookmarkJSON);
 
-    this._colorDiv.picker.value(
-        bookmark.color[0] * 255, bookmark.color[1] * 255, bookmark.color[2] * 255, 1);
+    if (bookmark.color) {
+      this._colorDiv.picker.value(
+          bookmark.color[0] * 255, bookmark.color[1] * 255, bookmark.color[2] * 255, 1);
+    }
 
     if (bookmark.icon) {
       this._iconButton.setAttribute("src", "../icons/" + bookmark.icon);
     }
 
-    this._nameDiv.value        = bookmark.name;
-    this._descriptionDiv.value = bookmark.description;
+    this._nameDiv.value = bookmark.name;
+
+    if (bookmark.description) {
+      this._descriptionDiv.value = bookmark.description;
+    }
 
     if (bookmark.time) {
       this._startDateDiv.value = bookmark.time.start;
