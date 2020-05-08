@@ -86,9 +86,9 @@ CS_UTILS_EXPORT glm::dvec2 normalToLngLat(glm::dvec3 const& normal, double radiu
 ///   Else the Date object will be in your local time zone. So it's a good practice to always append
 ///   the 'Z'.
 /// * boost::posix_time::ptime is used for conversions and is also always in UTC.
-/// * SPICE time is stored in doubles representing Barycentric Dynamical Time (BDT, seconds since
+/// * SPICE time is stored in doubles representing Barycentric Dynamical Time (TDB, seconds since
 ///   2000-01-01 12:00:00). Note that this is not the same as UTC seconds since 2000-01-01 12:00:00
-///   because BDT considers leap seconds. The conversion methods below take this into account.
+///   because TDB considers leap seconds. The conversion methods below take this into account.
 namespace time {
 
 /// Converts boost::posix_time::ptime to spice time, which is defined by the Barycentric Dynamical
