@@ -83,13 +83,12 @@ CS_UTILS_EXPORT glm::dvec2 normalToLngLat(glm::dvec3 const& normal, double radiu
 /// * Strings usually store time in the ISO format YYYY-MM-DDTHH:MM:SS.fffZ. The 'Z' suffix is not
 ///   really required on the C++ side, as time strings are always considered to be in UTC. This
 ///   format is also directly convertible to JavaScript Dates, here however the 'Z' is required!
-///   Else the Date object will be in your local time zone. So it's a good practive to always append
+///   Else the Date object will be in your local time zone. So it's a good practice to always append
 ///   the 'Z'.
 /// * boost::posix_time::ptime is used for conversions and is also always in UTC.
-/// * SPICE time is stored in doubles representing Barycentric Dynamical Time (seconds since
-///   2000-01-01 12:00:00). This however differs from the number of UTC seconds since that date
-///   as some leap seconds are taken into account. The conversion methods below take this into
-///   account.
+/// * SPICE time is stored in doubles representing Barycentric Dynamical Time (BDT, seconds since
+///   2000-01-01 12:00:00). Note that this is not the same as UTC seconds since 2000-01-01 12:00:00
+///   because BDT considers leap seconds. The conversion methods below take this into account.
 namespace time {
 
 /// Converts boost::posix_time::ptime to spice time, which is defined by the Barycentric Dynamical
