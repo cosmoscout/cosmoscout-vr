@@ -178,8 +178,8 @@ class CS_CORE_EXPORT Settings {
     utils::Property<glm::dquat> pRotation;
   } mObserver;
 
-  /// Bookmarks are managed in CosmoScout's core. Plugins can create and delete bookmars via the
-  /// GuiManager's API. A bookmark can have a positions in space and / or time. It may also describe
+  /// Bookmarks are managed in CosmoScout's core. Plugins can create and delete bookmarks via the
+  /// GuiManager's API. A bookmark can have a position in space and / or time. It may also describe
   /// a period in time.
   struct Bookmark {
 
@@ -206,7 +206,7 @@ class CS_CORE_EXPORT Settings {
     /// This can be a longer text.
     std::optional<std::string> mDescription;
 
-    /// This can be a name of a png file in share/ressources/icons.
+    /// This can be a name of a png file in share/resources/icons.
     std::optional<std::string> mIcon;
 
     /// You may use this to visually highlight different types of bookmarks.

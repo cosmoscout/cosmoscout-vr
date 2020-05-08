@@ -1189,7 +1189,7 @@ void Application::registerGuiCallbacks() {
         mGuiManager->addBookmark(bookmark);
       }));
 
-  // Show the Bookmar-Editor for the given bookmark.
+  // Show the Bookmark-Editor for the given bookmark.
   mGuiManager->getGui()->registerCallback("bookmark.edit",
       "Opens the bookmark editor for the bookmark with the given ID.",
       std::function([this](double bookmarkID) {
@@ -1270,7 +1270,7 @@ void Application::registerGuiCallbacks() {
   // Sets the current simulation time. The argument must be a string accepted by
   // TimeControl::setTime.
   mGuiManager->getGui()->registerCallback("time.setDate",
-      "Sets the current simulation time. Format must be in the format '2002-01-20T23:59:59.000Z'. "
+      "Sets the current simulation time. Format must be: '2002-01-20T23:59:59.000Z'. "
       "If the absolute difference to the current simulation time is lower than the given threshold "
       "(optionalDouble2, default is 172800s which is 48h), there will be a transition of the given "
       "duration (optionalDouble, default is 0s).",

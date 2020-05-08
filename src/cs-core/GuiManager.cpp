@@ -512,7 +512,7 @@ void GuiManager::setSliderValue(
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void GuiManager::onLoad() {
-  // First clear all bookmarks. In theory this could be optimized by not-reloading identical
+  // First clear all bookmarks. In theory this could be optimized by not reloading identical
   // bookmarks.
   while (mBookmarks.size() > 0) {
     removeBookmark(mBookmarks.begin()->first);

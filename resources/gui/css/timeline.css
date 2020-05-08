@@ -83,7 +83,7 @@
   border-color: rgba(20, 20, 20, 0.5);
   background-color: rgba(20, 20, 20, 0.5);
 
-  /* For some reason active items are translate 3 pixels to the left. We compensate for that here. */
+  /* For some reason active items are translated 3 pixels to the left. We compensate for that here. */
   transform: translateX(3px);
 }
 

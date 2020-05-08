@@ -132,7 +132,7 @@ class CS_CORE_EXPORT SolarSystem {
       glm::dvec3 const& position, glm::dquat const& rotation, double duration);
 
   /// Gradually moves the observer's position from its current value to the given values. The
-  /// rotation will be chosen automatically to be donward-facing.
+  /// rotation will be chosen automatically to be downward-facing.
   ///
   /// @param sCenter  The SPICE name of the targets center.
   /// @param sFrame   The SPICE reference frame of the targets location.
