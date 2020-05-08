@@ -277,13 +277,13 @@ void GuiManager::setCursor(gui::Cursor cursor) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-utils::Signal<Settings::Bookmark const&> const& GuiManager::onBookmarkAdded() const {
+utils::Signal<uint32_t, Settings::Bookmark const&> const& GuiManager::onBookmarkAdded() const {
   return mOnBookmarkAdded;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-utils::Signal<Settings::Bookmark const&> const& GuiManager::onBookmarkRemoved() const {
+utils::Signal<uint32_t, Settings::Bookmark const&> const& GuiManager::onBookmarkRemoved() const {
   return mOnBookmarkRemoved;
 }
 
@@ -314,7 +314,7 @@ uint32_t GuiManager::addBookmark(Settings::Bookmark bookmark) {
   }
 
   mBookmarks.emplace(newID, std::move(bookmark));
-  mOnBookmarkAdded.emit(mBookmarks.rbegin()->second);
+  mOnBookmarkAdded.emit(newID, mBookmarks.rbegin()->second);
 
   return newID;
 }
@@ -336,7 +336,7 @@ void GuiManager::removeBookmark(uint32_t bookmarkID) {
 
   mBookmarks.erase(it);
 
-  mOnBookmarkRemoved.emit(bookmark);
+  mOnBookmarkRemoved.emit(bookmarkID, bookmark);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

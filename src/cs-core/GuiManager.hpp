@@ -88,10 +88,10 @@ class CS_CORE_EXPORT GuiManager {
   /// Bookmarks API --------------------------------------------------------------------------------
 
   /// Emitted after a bookmark has been added to the internal list.
-  utils::Signal<Settings::Bookmark const&> const& onBookmarkAdded() const;
+  utils::Signal<uint32_t, Settings::Bookmark const&> const& onBookmarkAdded() const;
 
   /// Emitted after a bookmark has been removed from the internal list.
-  utils::Signal<Settings::Bookmark const&> const& onBookmarkRemoved() const;
+  utils::Signal<uint32_t, Settings::Bookmark const&> const& onBookmarkRemoved() const;
 
   /// Adds a new bookmark. If it has a location in time, it will be added to the timeline. The
   /// returned unique identifier can be used to delete the bookmark again.
@@ -224,9 +224,9 @@ class CS_CORE_EXPORT GuiManager {
   VistaTransformNode* mLocalGuiTransform  = nullptr;
   VistaOpenGLNode*    mLocalGuiOpenGLnode = nullptr;
 
-  std::map<uint32_t, const Settings::Bookmark> mBookmarks;
-  utils::Signal<Settings::Bookmark const&>     mOnBookmarkAdded;
-  utils::Signal<Settings::Bookmark const&>     mOnBookmarkRemoved;
+  std::map<uint32_t, const Settings::Bookmark>       mBookmarks;
+  utils::Signal<uint32_t, Settings::Bookmark const&> mOnBookmarkAdded;
+  utils::Signal<uint32_t, Settings::Bookmark const&> mOnBookmarkRemoved;
 };
 
 } // namespace cs::core

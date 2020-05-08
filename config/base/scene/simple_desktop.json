@@ -34,6 +34,70 @@
   },
   "bookmarks": [
     {
+      "name": "Mercury",
+      "icon": "mercury.png",
+      "location": {
+        "center": "Mercury",
+        "frame": "IAU_Mercury"
+      }
+    },
+    {
+      "name": "Venus",
+      "icon": "venus.png",
+      "location": {
+        "center": "Venus",
+        "frame": "IAU_Venus"
+      }
+    },
+    {
+      "name": "Earth",
+      "icon": "earth.png",
+      "location": {
+        "center": "Earth",
+        "frame": "IAU_Earth"
+      }
+    },
+    {
+      "name": "Mars",
+      "icon": "mars.png",
+      "location": {
+        "center": "Mars",
+        "frame": "IAU_Mars"
+      }
+    },
+    {
+      "name": "Jupiter",
+      "icon": "jupiter.png",
+      "location": {
+        "center": "Jupiter",
+        "frame": "IAU_Jupiter"
+      }
+    },
+    {
+      "name": "Saturn",
+      "icon": "saturn.png",
+      "location": {
+        "center": "Saturn",
+        "frame": "IAU_Saturn"
+      }
+    },
+    {
+      "name": "Uranus",
+      "icon": "uranus.png",
+      "location": {
+        "center": "Uranus",
+        "frame": "IAU_Uranus"
+      }
+    },
+    {
+      "name": "Neptune",
+      "icon": "neptune.png",
+      "location": {
+        "center": "Neptune",
+        "frame": "IAU_Neptune"
+      }
+    },
+    {
       "name": "Apollo 17 Start",
       "description": "Start of the Apollo 17 mission from the Kennedy Space Center.",
       "color": [
@@ -462,180 +526,6 @@
         }
       }
     },
-    "csp-fly-to-locations": {
-      "targets": {
-        "Mercury": {
-          "icon": "mercury.png"
-        },
-        "Venus": {
-          "icon": "venus.png"
-        },
-        "Earth": {
-          "icon": "earth.png",
-          "locations": {
-            "Africa": {
-              "group": "Continents",
-              "latitude": 2.0,
-              "longitude": 16.0,
-              "extent": 10000000
-            },
-            "Asia": {
-              "group": "Continents",
-              "latitude": 56.0,
-              "longitude": 104.0,
-              "extent": 10000000
-            },
-            "Australia": {
-              "group": "Continents",
-              "latitude": -24.0,
-              "longitude": 135.0,
-              "extent": 10000000
-            },
-            "Braunschweig": {
-              "group": "Cities",
-              "latitude": 52.26,
-              "longitude": 10.53,
-              "extent": 10000
-            },
-            "Europe": {
-              "group": "Continents",
-              "latitude": 51.0,
-              "longitude": 10.0,
-              "extent": 10000000
-            },
-            "New York": {
-              "group": "Cities",
-              "latitude": 40.7,
-              "longitude": -73.99,
-              "extent": 30000
-            },
-            "North America": {
-              "group": "Continents",
-              "latitude": 39.78,
-              "longitude": -100.0,
-              "extent": 10000000
-            },
-            "South America": {
-              "group": "Continents",
-              "latitude": -10.3,
-              "longitude": -53.2,
-              "extent": 10000000
-            }
-          }
-        },
-        "Moon": {
-          "icon": "moon.png",
-          "locations": {
-            "Apollo 11": {
-              "group": "Landings",
-              "latitude": 0.675,
-              "longitude": 23.475,
-              "extent": 250
-            },
-            "Apollo 15": {
-              "group": "Landings",
-              "latitude": 26.133,
-              "longitude": 3.635,
-              "extent": 250
-            },
-            "Apollo 16": {
-              "group": "Landings",
-              "latitude": -8.975,
-              "longitude": 15.5,
-              "extent": 250
-            },
-            "Apollo 17": {
-              "group": "Landings",
-              "latitude": 20.192,
-              "longitude": 30.774,
-              "extent": 250
-            }
-          }
-        },
-        "Mars": {
-          "icon": "mars.png",
-          "locations": {
-            "Adams": {
-              "group": "Craters",
-              "latitude": 30.91,
-              "longitude": 163.1,
-              "extent": 200000
-            },
-            "Ares Vallis": {
-              "group": "Canyons",
-              "latitude": 10.29,
-              "longitude": 334.2,
-              "extent": 100000
-            },
-            "Bond": {
-              "group": "Craters",
-              "latitude": -32.79,
-              "longitude": 324.06,
-              "extent": 200000
-            },
-            "Caxias": {
-              "group": "Craters",
-              "latitude": -28.95,
-              "longitude": 259.32,
-              "extent": 300000
-            },
-            "Ceraunius Tholus": {
-              "group": "Volcanoes",
-              "latitude": 23,
-              "longitude": 263.0,
-              "extent": 300000
-            },
-            "Gale": {
-              "group": "Craters",
-              "latitude": -5.4,
-              "longitude": 137.8,
-              "extent": 300000
-            },
-            "Curiosity": {
-              "group": "Rover",
-              "latitude": -4.63,
-              "longitude": 137.3528,
-              "extent": 100
-            },
-            "Hadriacus Mons": {
-              "group": "Volcanoes",
-              "latitude": -30,
-              "longitude": 92.0,
-              "extent": 500000
-            },
-            "Marikh Vallis": {
-              "group": "Canyons",
-              "latitude": -19.25,
-              "longitude": 3.9,
-              "extent": 1000000
-            },
-            "Olympus Mons": {
-              "group": "Volcanoes",
-              "latitude": 18,
-              "longitude": 226.0,
-              "extent": 800000
-            },
-            "Valles Marineris": {
-              "group": "Canyons",
-              "latitude": -10,
-              "longitude": 290.0,
-              "extent": 2000000
-            }
-          }
-        },
-        "Jupiter": {
-          "icon": "jupiter.png"
-        },
-        "Saturn": {
-          "icon": "saturn.png"
-        },
-        "Uranus": {
-          "icon": "uranus.png"
-        },
-        "Neptune": {
-          "icon": "neptune.png"
-        }
-      }
-    }
+    "csp-fly-to-locations": {}
   }
 }
