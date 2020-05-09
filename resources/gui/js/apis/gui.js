@@ -267,6 +267,32 @@ class GuiApi extends IApi {
   /**
    * Append HTML to the body (default) or element with id containerId.
    *
+   * @param content {string} Html content
+   * @param containerId {string} ['body'] Container ID to append the HTML to. Defaults to body
+   * element if omitted
+   */
+  addHtml(content, containerId = 'body') {
+    let container = document.body;
+    if (containerId !== 'body') {
+      container = document.getElementById(containerId);
+    }
+
+    if (container === null) {
+      console.warn(`Cannot add HTML to container #${containerId}!`);
+      return;
+    }
+
+    let tmp       = document.createElement('div');
+    tmp.innerHTML = content;
+
+    while (tmp.firstChild) {
+      container.appendChild(tmp.firstChild);
+    }
+  }
+
+  /**
+   * Append HTML to the body (default) or element with id containerId.
+   *
    * @param id {string} Id for de-registering
    * @param content {string} Html content
    * @param containerId {string} ['body'] Container ID to append the HTML to. Defaults to body

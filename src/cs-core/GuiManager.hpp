@@ -119,9 +119,22 @@ class CS_CORE_EXPORT GuiManager {
   void showNotification(std::string const& sTitle, std::string const& sText,
       std::string const& sIcon, std::string const& sFlyToOnClick = "") const;
 
+  /// Adds button to the row of buttons beneath the timeline.
+  ///
+  /// @param name      The name of the button; this will be shown as tooltip.
+  /// @param icon      The name of the Material icon.
+  /// @param callback  This callback will be fired on a click.
+  void addTimelineButton(
+      std::string const& name, std::string const& icon, std::string const& callback) const;
+
+  /// Removes a previously added button from the row of buttons beneath the timeline.
+  ///
+  /// @param name      The name of the button; this will be shown as tooltip.
+  void removeTimelineButton(std::string const& name) const;
+
   /// Adds a new tab to the side bar.
   ///
-  /// @param name     The nam/title of the tab.
+  /// @param name     The title of the tab.
   /// @param icon     The name of the Material icon.
   /// @param content  The HTML that describes the tabs contents.
   void addPluginTabToSideBar(
@@ -129,7 +142,7 @@ class CS_CORE_EXPORT GuiManager {
 
   /// Adds a new tab to the side bar.
   ///
-  /// @param name      The nam/title of the tab.
+  /// @param name      The title of the tab.
   /// @param icon      The name of the Material icon.
   /// @param htmlFile  The HTML file that describes the tabs contents.
   void addPluginTabToSideBarFromHTML(
@@ -137,14 +150,14 @@ class CS_CORE_EXPORT GuiManager {
 
   /// Adds a new section to the settings tab.
   ///
-  /// @param name     The name/title of the section.
+  /// @param name     The title of the section.
   /// @param content  The HTML that describes the sections contents.
   void addSettingsSectionToSideBar(
       std::string const& name, std::string const& icon, std::string const& content);
 
   /// Adds a new section to the settings tab.
   ///
-  /// @param name      The name/title of the section.
+  /// @param name      The title of the section.
   /// @param htmlFile  The HTML file that describes the sections contents.
   void addSettingsSectionToSideBarFromHTML(
       std::string const& name, std::string const& icon, std::string const& htmlFile);

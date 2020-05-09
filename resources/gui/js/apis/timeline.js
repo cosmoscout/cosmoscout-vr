@@ -200,23 +200,16 @@ class TimelineApi extends IApi {
   }
 
   /**
-   * Adds a button to the button bar
+   * Adds a button to the button bar.
    *
+   * @param name {string} Tooltip text that gets shown if the button is hovered
    * @param icon {string} Materialize icon name
-   * @param tooltip {string} Tooltip text that gets shown if the button is hovered
    * @param callback {string} Name of callback on CosmoScout.callbacks
    */
-  addButton(icon, tooltip, callback) {
-    const button = CosmoScout.gui.loadTemplateContent('button');
-
-    if (button === false) {
-      return;
-    }
-
+  addButton(name, icon, callback) {
+    const button     = CosmoScout.gui.loadTemplateContent('button');
     button.innerHTML = button.innerHTML.replace('%ICON%', icon).trim();
-
-    button.setAttribute('title', tooltip);
-
+    button.setAttribute('title', name);
     button.onclick = () => {
       CosmoScout.callbacks.find(callback)();
     };
@@ -224,6 +217,19 @@ class TimelineApi extends IApi {
     this._buttonContainer.appendChild(button);
 
     CosmoScout.gui.initTooltips();
+  }
+
+  /**
+   * Removes a button from the button bar.
+   *
+   * @param name {string} Tooltip text that gets shown if the button is hovered
+   */
+  removeButton(name) {
+    const button = this._buttonContainer.querySelector(`[data-original-title="${name}"]`);
+
+    if (button) {
+      button.remove();
+    }
   }
 
   /**
