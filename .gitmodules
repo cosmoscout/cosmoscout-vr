@@ -79,3 +79,6 @@
 [submodule "externals/civetweb"]
 	path = externals/civetweb
 	url = https://github.com/cosmoscout/civetweb.git
+[submodule "plugins/csp-custom-web-ui"]
+	path = plugins/csp-custom-web-ui
+	url = https://github.com/cosmoscout/csp-custom-web-ui
