@@ -783,6 +783,7 @@ hr {
 .resizable-window {
   resize: both;
   overflow: hidden;
+  border-radius: 5px;
 }
 
 /* This thing is required to make the resize-grip clickable even if a link is beneath it */
@@ -805,16 +806,11 @@ hr {
 /* Movable Windows ------------------------------------------------------------------------------ */
 
 .draggable-window {
-  display: flex;
-  flex-direction: column;
-  position: absolute;
+  padding-top: 20px;
   opacity: 0;
+  position: absolute;
   transition: opacity 0.2s ease-out;
   pointer-events: none;
-  background: rgba(10, 10, 10, 0.9);
-  border: 2px solid var(--cs-border-color);
-  border-radius: 5px;
-  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
 }
 
 .draggable-window.visible {
@@ -822,10 +818,22 @@ hr {
   opacity: 1;
 }
 
+.draggable-window .window-wrapper {
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: rgba(10, 10, 10, 0.9);
+  border: 2px solid var(--cs-border-color);
+  border-radius: 5px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+}
+
 .draggable-window .window-header {
   display: flex;
   font-size: 1.2rem;
   border-bottom: 1px dashed rgba(230, 230, 255, 0.3);
+  height: 47px;
 }
 
 .draggable-window .window-header:hover {
@@ -833,6 +841,9 @@ hr {
 }
 
 .draggable-window .window-title {
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
   position: relative;
   flex-grow: 1;
   padding: 5px;
@@ -857,6 +868,27 @@ hr {
 
 .draggable-window .window-title i {
   padding: 0 10px;
+}
+
+
+.draggable-window.auto-hide-header .window-header::before {
+  content: '';
+  position: absolute;
+  top: -20px;
+  height: 20px;
+  width: 100%;
+}
+
+.draggable-window.auto-hide-header .window-header {
+  border-bottom-width: 0px;
+  height: 0px;
+  overflow: hidden;
+  transition: height 0.2s ease, border-width 0.2s ease;
+}
+
+.draggable-window.auto-hide-header .window-header:hover {
+  height: 47px;
+  border-bottom-width: 1px;
 }
 
 /* color picker --------------------------------------------------------------------------------- */

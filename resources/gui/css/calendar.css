@@ -1,5 +1,6 @@
 #calendar {
-  width: 500px;
+  width: 400px;
+  height: 400px;
 }
 
 .datepicker table,
@@ -14,10 +15,14 @@
   opacity: 0.2;
 }
 
-.datepicker table tr th,
-.datepicker table tr td {
+.datepicker table tr th {
   text-align: center;
   padding: 10px 5px;
+}
+
+.datepicker table tr td {
+  text-align: center;
+  padding: 0px;
 }
 
 .datepicker .datepicker-switch,
