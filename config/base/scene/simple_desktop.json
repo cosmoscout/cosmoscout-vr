@@ -582,6 +582,7 @@
         }
       }
     },
-    "csp-fly-to-locations": {}
+    "csp-fly-to-locations": {},
+    "csp-minimap": {}
   }
 }
