@@ -37,6 +37,12 @@
 [submodule "externals/spdlog"]
 	path = externals/spdlog
 	url = https://github.com/cosmoscout/spdlog.git
+[submodule "externals/civetweb"]
+	path = externals/civetweb
+	url = https://github.com/cosmoscout/civetweb.git
+[submodule "externals/json"]
+	path = externals/json
+	url = https://github.com/nlohmann/json.git
 [submodule "plugins/csp-trajectories"]
 	path = plugins/csp-trajectories
 	url = ../../cosmoscout/csp-trajectories.git
@@ -70,18 +76,12 @@
 [submodule "plugins/csp-atmospheres"]
 	path = plugins/csp-atmospheres
 	url = ../../cosmoscout/csp-atmospheres.git
-[submodule "externals/json"]
-	path = externals/json
-	url = https://github.com/nlohmann/json.git
 [submodule "plugins/csp-web-api"]
 	path = plugins/csp-web-api
 	url = ../../cosmoscout/csp-web-api.git
-[submodule "externals/civetweb"]
-	path = externals/civetweb
-	url = https://github.com/cosmoscout/civetweb.git
 [submodule "plugins/csp-custom-web-ui"]
 	path = plugins/csp-custom-web-ui
-	url = https://github.com/cosmoscout/csp-custom-web-ui
+	url = ../../cosmoscout/csp-custom-web-ui.git
 [submodule "plugins/csp-minimap"]
 	path = plugins/csp-minimap
 	url = ../../cosmoscout/csp-minimap.git
