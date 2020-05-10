@@ -118,6 +118,15 @@ float CS_UTILS_EXPORT getCurrentFarClipDistance();
 /// Executes a system command and returns the output.
 std::string exec(std::string const& cmd);
 
+/// Can be used to check the operating system at compile time.
+enum class OS { eLinux, eMac, eWindows };
+
+#ifdef __linux__
+constexpr OS HostOS = OS::eLinux;
+#elif __WIN32
+constexpr OS HostOS = OS::eWindows;
+#endif
+
 } // namespace cs::utils
 
 #endif // CS_UTILS_UTILS_HPP
