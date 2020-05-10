@@ -369,7 +369,7 @@ void Application::FrameUpdate() {
     // Every 25th frame something happens. At frame X we will show the name of the plugin on the
     // loading screen which will be loaded at frame X+25. At frame X+25 we will load the according
     // plugin and also update the loading screen to display the name of the plugin which is going to
-    // be loaded at fram X+50. And so on.
+    // be loaded at frame X+50. And so on.
     if (((GetFrameCount() - mStartPluginLoadingAtFrame) % cLoadingDelay) == 0) {
 
       // Calculate the index of the plugin which should be loaded this frame.
