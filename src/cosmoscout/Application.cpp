@@ -806,6 +806,10 @@ void Application::connectSlots() {
     }
     mGuiManager->getGui()->executeJavascript(
         fmt::format("CosmoScout.state.activePlanetCenter = '{}';", center));
+
+    auto radii = cs::core::SolarSystem::getRadii(center);
+    mGuiManager->getGui()->executeJavascript(
+        fmt::format("CosmoScout.state.activePlanetRadius = [{}, {}];", radii[0], radii[1]));
   });
 
   // Show notification when the frame name of the celestial observer changes.
