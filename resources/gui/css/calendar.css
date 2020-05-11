@@ -1,4 +1,4 @@
-#calendar {
+#calendar .window-wrapper {
   width: 400px;
   height: 400px;
 }
@@ -98,6 +98,6 @@
 .datepicker .century,
 .datepicker .month {
   width: 25%;
-  padding: 37px 0;
+  padding: 20px 0;
   display: inline-block;
 }
