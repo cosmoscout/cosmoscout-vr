@@ -49,7 +49,7 @@ class GuiApi extends IApi {
    * @see {initInputs}
    */
   initDropDowns() {
-    const dropdowns = $('.simple-value-dropdown');
+    const dropdowns = $('select.simple-value-dropdown:not(div.dropdown > select)');
     dropdowns.selectpicker();
 
     const eventListener = (event) => {
@@ -62,9 +62,11 @@ class GuiApi extends IApi {
       }
     };
 
-    document.querySelectorAll('.simple-value-dropdown').forEach((dropdown) => {
+    document.querySelectorAll('select.simple-value-dropdown').forEach((dropdown) => {
       if (typeof dropdown.dataset.initialized === 'undefined') {
         dropdown.addEventListener('change', eventListener);
+
+        dropdown.dataset.initialized = 'true';
       }
     });
   }
