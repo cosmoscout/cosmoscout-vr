@@ -826,7 +826,7 @@ hr {
   background: rgba(10, 10, 10, 0.9);
   border: 2px solid var(--cs-border-color);
   border-radius: 5px;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
 }
 
 .draggable-window .window-header {
