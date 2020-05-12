@@ -584,7 +584,42 @@
     },
     "csp-fly-to-locations": {},
     "csp-minimap": {
-      "targets": {}
+      "defaultMap": {
+        "projection": "equirectangular",
+        "type": "wms",
+        "url": "https://geoservice.dlr.de/eoc/basemap/wms?",
+        "config": {
+          "attribution": "&copy; DLR",
+          "layers": "ne:ne_graticules",
+          "BGCOLOR": "0x000000"
+        }
+      },
+      "maps": {
+        "Earth": {
+          "projection": "mercator",
+          "type": "wmts",
+          "url": "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+          "config": {
+            "attribution": "&copy; OpenStreetMap contributors"
+          }
+        },
+        "Moon": {
+          "projection": "mercator",
+          "type": "wmts",
+          "url": "https://cartocdn-gusc.global.ssl.fastly.net/opmbuilder/api/v1/map/named/opm-moon-basemap-v0-1/all/{z}/{x}/{y}.png",
+          "config": {
+            "attribution": "&copy; OpenPlanetary"
+          }
+        },
+        "Mars": {
+          "projection": "mercator",
+          "type": "wmts",
+          "url": "https://cartocdn-gusc.global.ssl.fastly.net/opmbuilder/api/v1/map/named/opm-mars-basemap-v0-2/all/{z}/{x}/{y}.png",
+          "config": {
+            "attribution": "&copy; OpenPlanetary"
+          }
+        }
+      }
     }
   }
 }
