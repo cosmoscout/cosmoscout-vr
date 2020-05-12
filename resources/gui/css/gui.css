@@ -778,6 +778,10 @@ hr {
   border-radius: 5px;
 }
 
+.tooltip {
+  z-index: 100000;
+}
+
 /* Resizable Windows ---------------------------------------------------------------------------- */
 
 .resizable-window .window-wrapper {

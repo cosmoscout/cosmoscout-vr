@@ -209,7 +209,7 @@ class GuiApi extends IApi {
       }
 
       // Bring to front on click.
-      w.onmousedown = (e) => {
+      w.onmousedown = () => {
         w.style.zIndex = ++currentZIndex;
       };
 

@@ -34,6 +34,14 @@ class BookmarkEditorApi extends IApi {
   _rotationZDiv;
   _rotationWDiv;
 
+  _bookmarkTooltipContainer;
+  _bookmarkTooltipGotoLocation;
+  _bookmarkTooltipGotoTime;
+  _bookmarkTooltipEdit;
+  _bookmarkTooltipName;
+  _bookmarkTooltipDescription;
+  _bookmarkTooltipArrow;
+
   _editBookmarkID = null;
 
   /**
@@ -60,6 +68,14 @@ class BookmarkEditorApi extends IApi {
     this._rotationYDiv      = document.getElementById("bookmark-editor-rotation-y");
     this._rotationZDiv      = document.getElementById("bookmark-editor-rotation-z");
     this._rotationWDiv      = document.getElementById("bookmark-editor-rotation-w");
+
+    this._bookmarkTooltipContainer    = document.getElementById('bookmark-tooltip-container');
+    this._bookmarkTooltipGotoLocation = document.getElementById('bookmark-tooltip-goto-location');
+    this._bookmarkTooltipGotoTime     = document.getElementById('bookmark-tooltip-goto-time');
+    this._bookmarkTooltipEdit         = document.getElementById('bookmark-tooltip-edit');
+    this._bookmarkTooltipName         = document.getElementById('bookmark-tooltip-name');
+    this._bookmarkTooltipDescription  = document.getElementById('bookmark-tooltip-description');
+    this._bookmarkTooltipArrow        = document.getElementById('bookmark-tooltip-arrow');
 
     // Connect buttons setting fields to current values --------------------------------------------
 
@@ -309,7 +325,8 @@ class BookmarkEditorApi extends IApi {
   /**
    * Shows the editor and fills all fields with the values of the given bookmark.
    *
-   * @param visible {boolean}
+   * @param bookmarkID {number}
+   * @param bookmarkJSON {string}
    */
   editBookmark(bookmarkID, bookmarkJSON) {
     this._editor.classList.add("visible");
@@ -365,8 +382,6 @@ class BookmarkEditorApi extends IApi {
 
   /**
    * Opens the editor and clears all fields to create a new bookmark.
-   *
-   * @param visible {boolean}
    */
   addNewBookmark() {
     this._editor.classList.add("visible");
@@ -375,6 +390,73 @@ class BookmarkEditorApi extends IApi {
     this._title.textContent = "Add New Bookmark";
 
     this._resetFields();
+  }
+
+  /**
+   * Use this to show a bookmark tooltip somewhere. This is, for example, used by the timeline.
+   *
+   * @param id              {number}
+   * @param name            {string}
+   * @param description     {string}
+   * @param hasLocation     {boolean}
+   * @param hasTime         {boolean}
+   * @param tooltipPosition {Array}
+   */
+  showBookmarkTooltip(id, name, description, hasLocation, hasTime, tooltipX, tooltipY) {
+
+    // Show the tooltip.
+    this._bookmarkTooltipContainer.classList.add('visible');
+
+    // Fill all the fields.
+    if (hasLocation) {
+      this._bookmarkTooltipGotoLocation.classList.remove('hidden');
+      this._bookmarkTooltipGotoLocation.onclick = () => {
+        CosmoScout.callbacks.bookmark.gotoLocation(id);
+      };
+    } else {
+      this._bookmarkTooltipGotoLocation.classList.add('hidden');
+    }
+
+    if (hasTime) {
+      this._bookmarkTooltipGotoTime.classList.remove('hidden');
+      this._bookmarkTooltipGotoTime.onclick = () => {
+        CosmoScout.callbacks.bookmark.gotoTime(id, 2.0);
+      };
+    } else {
+      this._bookmarkTooltipGotoTime.classList.add('hidden');
+    }
+
+    this._bookmarkTooltipEdit.onclick = () => {
+      CosmoScout.callbacks.bookmark.edit(id);
+    };
+
+    this._bookmarkTooltipName.innerHTML        = name;
+    this._bookmarkTooltipDescription.innerHTML = description;
+
+    // Calculate a position.
+    const tooltipWidth  = this._bookmarkTooltipContainer.offsetWidth;
+    const tooltipHeight = this._bookmarkTooltipContainer.offsetHeight;
+    const arrowWidth    = 10;
+    const tooltipOffset = 20;
+
+    const left = Math.max(
+        0, Math.min(document.body.offsetWidth - tooltipWidth, tooltipX - tooltipWidth / 2));
+    this._bookmarkTooltipArrow.style.left     = `${tooltipX - left - arrowWidth}px`;
+    this._bookmarkTooltipContainer.style.left = `${left}px`;
+
+    if (tooltipHeight + tooltipOffset < tooltipY) {
+      // Position above.
+      this._bookmarkTooltipContainer.style.top = `${tooltipY - tooltipOffset - tooltipHeight}px`;
+      this._bookmarkTooltipArrow.classList     = ["top"];
+    } else {
+      // Position below.
+      this._bookmarkTooltipContainer.style.top = `${tooltipY + tooltipOffset}px`;
+      this._bookmarkTooltipArrow.classList     = ["bottom"];
+    }
+  }
+
+  hideBookmarkTooltip() {
+    this._bookmarkTooltipContainer.classList.remove('visible');
   }
 
   _resetFields() {

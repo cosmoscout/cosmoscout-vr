@@ -307,10 +307,9 @@ uint32_t GuiManager::addBookmark(Settings::Bookmark bookmark) {
       end += "Z";
     }
 
-    auto c = bookmark.mColor.value_or(glm::vec3(0.5F, 0.6F, 0.7F)) * 255.F;
-    mCosmoScoutGui->callJavascript("CosmoScout.timeline.addBookmark", newID, bookmark.mName,
-        bookmark.mDescription.value_or(""), start, end,
-        fmt::format("rgb({}, {}, {})", c.r, c.g, c.b), bookmark.mLocation.has_value());
+    auto c = bookmark.mColor.value_or(glm::vec3(0.8F, 0.8F, 1.0F)) * 255.F;
+    mCosmoScoutGui->callJavascript("CosmoScout.timeline.addBookmark", newID, start, end,
+        fmt::format("rgb({}, {}, {})", c.r, c.g, c.b));
   }
 
   mBookmarks.emplace(newID, std::move(bookmark));
