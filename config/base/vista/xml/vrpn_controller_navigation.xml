@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<module>
+    <nodespace>
+    </nodespace>
+    <graph>
+        <!-- Debug Text Node -->
+        <node name="debug_text" type="SimpleText"/>
+
+        <!-- Buttons -->
+        <node name="vrpn_button_driver" type="DriverSensor">
+            <param name="driver" value="XBOXCONTROLLER" />
+            <param name="sensor" value="0" />
+            <param name="type" value="BUTTON" />
+        </node>
+        <node name="vrpn_button_data" type="HistoryProject">
+            <param name="project">BTMASK, NUMBER, STATE</param>
+        </node>
+
+        <!-- Analogs -->
+        <node name="vrpn_analog_driver" type="DriverSensor">
+            <param name="driver" value="XBOXCONTROLLER" />
+            <param name="sensor" value="0" />
+            <param name="type" value="ANALOG" />
+        </node>
+        <node name="vrpn_analog_data" type="HistoryProject">
+            <param name="project">VALUE, CHANNELS</param>
+        </node>
+    </graph>
+    <edges>
+        <!-- Buttons Driver -> History -->
+        <edge fromnode="vrpn_button_driver" fromport="history"
+              tonode="vrpn_button_data" toport="history" />
+
+        <!-- Analogs Driver -> History -->
+        <edge fromnode="vrpn_analog_driver" fromport="history"
+              tonode="vrpn_analog_data" toport="history" />
+
+        <!-- Debugging -
+        <edge fromnode="vrpn_button_data" fromport="history"
+              tonode="debug_text" toport="buttonhist" />
+        -->
+    </edges>
+</module>
+<!-- For Xbox 360 Controller:
+Analog channel assignments:
+ 0=left joystick X
+ 1=left joystick Y
+ 2=right joystick X
+ 3=right joystick Y
+ 4=triggers (left goes positive, right goes negative)
+ 5=Point of View Hat heading (-1=nothing, 0=North, 45=Northeast, etc.)
+Button number assignments
+ 0=A
+ 1=B
+ 2=X
+ 3=Y
+ 4=left bump
+ 5=right bump
+ 6=Back
+ 7=Start
+ 8=left joystick
+ 9=right joytick
+ Next four are point of view hat buttons
+ 10=Up
+ 11=Right
+ 12=Down
+ 13=Left
+-->
