@@ -77,6 +77,11 @@ class BookmarkEditorApi extends IApi {
     this._bookmarkTooltipDescription  = document.getElementById('bookmark-tooltip-description');
     this._bookmarkTooltipArrow        = document.getElementById('bookmark-tooltip-arrow');
 
+    // Make sure that the tooltip is hidden.
+    this._bookmarkTooltipContainer.onmouseout = () => {
+      this.hideBookmarkTooltip();
+    };
+
     // Connect buttons setting fields to current values --------------------------------------------
 
     document.querySelector("#bookmark-editor-start-date + div > button").onclick = () => {
@@ -455,6 +460,9 @@ class BookmarkEditorApi extends IApi {
     }
   }
 
+  // The tooltip will be hidden when the pointer leaves it, but it may stay open indefinitely if the
+  // user never hovers it. So you should call this if once the bookmark for which the tooltip is
+  // shown is not hovered anymore.
   hideBookmarkTooltip() {
     this._bookmarkTooltipContainer.classList.remove('visible');
   }
