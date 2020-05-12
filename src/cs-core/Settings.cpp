@@ -407,4 +407,17 @@ const char* Settings::DeserializationException::what() const noexcept {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void Settings::deserialize(
+    nlohmann::json const& j, std::string const& property, nlohmann::json& target) {
+  try {
+    target = j.at(property);
+  } catch (DeserializationException const& e) {
+    throw DeserializationException(e.mProperty + " in '" + property + "'", e.mJSONError);
+  } catch (std::exception const& e) {
+    throw DeserializationException("'" + property + "'", e.what());
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 } // namespace cs::core
