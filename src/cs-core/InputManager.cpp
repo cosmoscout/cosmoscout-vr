@@ -573,9 +573,7 @@ void InputManager::HandleEvent(VistaEvent* pEvent) {
         if (port && item && item->getCanScroll()) {
           gui::MouseEvent mouseEvent;
           mouseEvent.mType = gui::MouseEvent::Type::eScroll;
-
-          int const scrollSpeed = 20;
-          mouseEvent.mY         = port->GetValue() * scrollSpeed;
+          mouseEvent.mY    = port->GetValue() * 20;
           item->injectMouseEvent(mouseEvent);
         }
       }
