@@ -28,9 +28,6 @@ class RequestHandler : public CefRequestHandler {
     return mResourceRequestHandler;
   };
 
-  bool OnBeforeBrowse(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame,
-      CefRefPtr<CefRequest> request, bool user_gesture, bool is_redirect) override;
-
  private:
   IMPLEMENT_REFCOUNTING(RequestHandler);
   CefRefPtr<CefResourceRequestHandler> mResourceRequestHandler = new ResourceRequestHandler();
