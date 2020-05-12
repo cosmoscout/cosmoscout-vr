@@ -227,10 +227,8 @@ class CS_GUI_EXPORT WebView {
             // Now call the actual callback. The UnderlyingValue struct is used to access the actual
             // value in the std::optional<JSType>. See its implementation above.
             callback(UnderlyingValue<Args>::get(std::move(args[Is]))...);
-          } catch (std::exception const&) {
-            logger().error("Cannot execute javascript call '{}': Parameters do not match to the "
-                           "registered callback!",
-                name);
+          } catch (std::exception const& e) {
+            logger().error("Cannot execute javascript callback '{}': {}!", name, e.what());
           }
         });
   }

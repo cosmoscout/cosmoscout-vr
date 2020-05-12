@@ -131,6 +131,16 @@ class CS_CORE_EXPORT SolarSystem {
   void flyObserverTo(std::string const& sCenter, std::string const& sFrame,
       glm::dvec3 const& position, glm::dquat const& rotation, double duration);
 
+  /// Gradually moves the observer's position from its current value to the given values. The
+  /// rotation will be chosen automatically to be downward-facing.
+  ///
+  /// @param sCenter  The SPICE name of the targets center.
+  /// @param sFrame   The SPICE reference frame of the targets location.
+  /// @param position The target position in the targets coordinate system.
+  /// @param duration The duration in Barycentric Dynamical Time to move to the new location.
+  void flyObserverTo(std::string const& sCenter, std::string const& sFrame,
+      glm::dvec3 const& position, double duration);
+
   /// Gradually moves the observer's position and rotation from their current values to the values
   /// matching the geographic coordinate system coordinates given.
   ///

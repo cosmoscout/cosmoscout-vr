@@ -18,6 +18,11 @@
   opacity: 1;
 }
 
+#sidebar .container-fluid {
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
 #sidebar-accordion {
   padding-top: 50px;
   padding-bottom: 50px;
@@ -25,6 +30,10 @@
 
 #sidebar::-webkit-scrollbar {
   display: none;
+}
+
+#sidebar .sidebar-tab {
+  margin-bottom: 10px;
 }
 
 #sidebar .tab {
@@ -75,23 +84,17 @@
   transition-delay: 0.1s;
 }
 
-#sidebar .card-header i {
+#sidebar .section-header i {
   position: absolute;
   left: 9px;
-  font-size: 35px;
-  top: 10px;
-  width: 2rem;
-  margin-right: 1rem;
-  display: inline-block;
-  text-align: center;
+  top: 5px;
 }
 
-#sidebar .card .card-body {
+#sidebar .section-body {
   background-color: rgba(0, 0, 0, 0.5);
-  padding: 0;
 }
 
-#sidebar .card {
+#sidebar {
   background: transparent;
   padding: 5px 0;
   margin: 0;
@@ -100,11 +103,7 @@
   border-radius: 0;
 }
 
-.accordion>.card .card-header {
-  margin: 0;
-  border: none;
-  border-radius: 0;
-}
+
 
 #sidebar *[type=button] {
   -webkit-appearance: none;
@@ -112,7 +111,7 @@
 
 /* Setting Sections --------------------------------------------------------- */
 
-#sidebar .settings-section .card-header {
+#sidebar .settings-section .section-header {
   font-family: 'AlegreyaSansSC', sans-serif;
   width: 100%;
   font-size: 1.5rem;
@@ -126,33 +125,32 @@
   padding: 0.5rem 1.7rem;
 }
 
-#sidebar .settings-section .card-header:active {
+#sidebar .settings-section .section-header:active {
   top: 1px;
 }
 
-#sidebar .settings-section .card-header i {
+#sidebar .settings-section .section-header i {
   width: 2rem;
-  font-size: 1.6rem;
   display: inline-block;
-  line-height: 2rem;
+  top: 7px;
 }
 
-#sidebar .settings-section .card-header span {
+#sidebar .settings-section .section-header span {
   text-align: center;
   display: inline-block;
   padding-left: 25px;
 }
 
-#sidebar .settings-section .card-body {
+#sidebar .settings-section .section-body {
   background-color: transparent !important;
   width: 100%;
 }
 
-#sidebar .settings-section .card-header:hover {
+#sidebar .settings-section .section-header:hover {
   background: rgba(255, 255, 255, 0.1);
 }
 
-#sidebar .settings-section .card-header .caret-icon {
+#sidebar .settings-section .section-header .caret-icon {
   position: absolute;
   left: auto;
   right: 0;
@@ -160,11 +158,11 @@
   transition: 100ms transform;
 }
 
-#sidebar .settings-section .card-header:not(.collapsed) .caret-icon {
+#sidebar .settings-section .section-header:not(.collapsed) .caret-icon {
   transform: rotate(-90deg);
 }
 
-#sidebar .card.settings-section {
+#sidebar .settings-section {
   border-style: dashed;
   border-width: 1px 0 0 0;
   border-color: rgba(255, 255, 255, 0.4);

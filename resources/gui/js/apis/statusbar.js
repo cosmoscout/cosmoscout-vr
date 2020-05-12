@@ -255,7 +255,7 @@ class StatusbarApi extends IApi {
       this._pointerContainer.innerText = ' - ';
     }
 
-    pos = CosmoScout.state.observerPosition;
+    pos = CosmoScout.state.observerLngLatHeight;
     if (pos !== undefined) {
       this._userContainer.innerText =
           `${CosmoScout.utils.formatLongitude(pos[0]) + CosmoScout.utils.formatLatitude(pos[1])}(${
