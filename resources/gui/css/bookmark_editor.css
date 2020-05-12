@@ -102,10 +102,12 @@
 
 #bookmark-tooltip-arrow.top {
   border-color: var(--cs-text-color-darkened) transparent transparent transparent;
-  bottom: -20px;
+  border-bottom-width: 0;
+  bottom: -10px;
 }
 
 #bookmark-tooltip-arrow.bottom {
   border-color: transparent transparent var(--cs-text-color-darkened) transparent;
-  top: -20px;
+  border-top-width: 0;
+  top: -10px;
 }
