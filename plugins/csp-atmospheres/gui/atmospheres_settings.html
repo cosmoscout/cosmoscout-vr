@@ -1,0 +1,49 @@
+<div class="row">
+  <div class="col-5">
+    <label class="checklabel">
+      <input type="checkbox" data-callback="atmosphere.setEnable" checked />
+      <i class="material-icons"></i>
+      <span>Enabled</span>
+    </label>
+  </div>
+  <div class="col-7">
+    <label class="checklabel">
+      <input type="checkbox" data-callback="atmosphere.setEnableWater" />
+      <i class="material-icons"></i>
+      <span>Water</span>
+    </label>
+  </div>
+  <div class="col-7 offset-5">
+    <label class="checklabel">
+      <input type="checkbox" data-callback="atmosphere.setEnableLightShafts" />
+      <i class="material-icons"></i>
+      <span>Light Shafts</span>
+    </label>
+  </div>
+  <div class="col-7 offset-5">
+    <label class="checklabel">
+      <input type="checkbox" data-callback="atmosphere.setEnableClouds" checked />
+      <i class="material-icons"></i>
+      <span>Clouds</span>
+    </label>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-5">
+    Water Level
+  </div>
+  <div class="col-7">
+    <div data-callback="atmosphere.setWaterLevel">
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-5">
+    Quality
+  </div>
+  <div class="col-7">
+    <div data-callback="atmosphere.setQuality"></div>
+  </div>
+</div>
