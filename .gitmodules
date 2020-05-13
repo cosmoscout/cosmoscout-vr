@@ -82,3 +82,6 @@
 [submodule "plugins/csp-custom-web-ui"]
 	path = plugins/csp-custom-web-ui
 	url = ../../cosmoscout/csp-custom-web-ui.git
+[submodule "plugins/csp-minimap"]
+	path = plugins/csp-minimap
+	url = ../../cosmoscout/csp-minimap.git

@@ -778,16 +778,19 @@ hr {
   border-radius: 5px;
 }
 
+.tooltip {
+  z-index: 100000;
+}
+
 /* Resizable Windows ---------------------------------------------------------------------------- */
 
-.resizable-window {
+.resizable-window .window-wrapper {
   resize: both;
   overflow: hidden;
-  border-radius: 5px;
 }
 
 /* This thing is required to make the resize-grip clickable even if a link is beneath it */
-.resizable-window::after {
+.resizable-window .window-wrapper::after {
   content: '';
   width: 15px;
   height: 15px;
@@ -795,15 +798,16 @@ hr {
   bottom: 0;
   right: 0;
   border-style: solid;
-  border-width: 0 0 20px 20px;
-  border-color: transparent transparent #ccf transparent;
+  border-width: 8px;
+  border-bottom-right-radius: 5px;
+  border-color: transparent #ccf #ccf transparent;
   background: transparent;
+  z-index: 99999;
 }
 
 /* Movable Windows ------------------------------------------------------------------------------ */
 
 .draggable-window {
-  padding-top: 20px;
   opacity: 0;
   position: absolute;
   transition: opacity 0.2s ease-out;
@@ -816,14 +820,13 @@ hr {
 }
 
 .draggable-window .window-wrapper {
-  position: relative;
   height: 100%;
   display: flex;
   flex-direction: column;
   background: rgba(10, 10, 10, 0.9);
   border: 2px solid var(--cs-border-color);
   border-radius: 5px;
-  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
 }
 
 .draggable-window .window-header {
@@ -873,7 +876,7 @@ hr {
   content: '';
   position: absolute;
   top: -20px;
-  height: 20px;
+  height: 22px;
   width: 100%;
 }
 

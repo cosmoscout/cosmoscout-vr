@@ -262,17 +262,14 @@ class TimelineApi extends IApi {
     }
   }
 
-  addBookmark(id, name, description, start, end, color, hasLocation) {
+  addBookmark(id, start, end, color) {
     let data   = {};
     data.start = new Date(start);
     if (end !== '') {
       data.end = new Date(end);
     }
-    data.id          = id;
-    data.name        = name;
-    data.description = description;
-    data.style       = "border-color: " + color;
-    data.hasLocation = hasLocation == true;
+    data.id    = id;
+    data.style = "border-color: " + color;
     this._bookmarks.update(data);
     this._bookmarksOverview.update(data);
   }
@@ -576,21 +573,15 @@ class TimelineApi extends IApi {
   }
 
   /**
-   * Closes the tooltip if the mouse leaves the item and tooltip
-   *
-   * @param properties {VisTimelineEvent}
+   * Closes the tooltip if the mouse leaves the item and tooltip.
    * @private
    */
-  _itemOutCallback(properties) {
-    const element = properties.event.toElement;
-
-    if (element !== null) {
-      document.getElementById('timeline-bookmark-tooltip-container').classList.remove('visible');
-    }
+  _itemOutCallback() {
+    CosmoScout.callbacks.bookmark.hideTooltip();
   }
 
   /**
-   * Moves the displayed time window and sizes the time range according to the zoom factor
+   * Moves the displayed time window and sizes the time range according to the zoom factor.
    * @private
    */
   _moveWindow() {
@@ -608,49 +599,17 @@ class TimelineApi extends IApi {
 
   /**
    * TODO this iterates over the private _data field from DataSet
-   * Shows a tooltip if an item is hovered
+   * Shows a tooltip if an item is hovered.
    *
    * @param properties {VisTimelineEvent}
-   * @param overview {boolean} True if target is the upper timeline
    * @private
    */
   _itemOverCallback(properties) {
-    document.getElementById('timeline-bookmark-tooltip-container').classList.add('visible');
+    let bookmark    = this._bookmarks._data[properties.item];
+    const eventRect = properties.event.target.getBoundingClientRect();
 
-    let bookmark = this._bookmarks._data[properties.item];
-
-    if (bookmark.hasLocation) {
-      document.getElementById('timeline-bookmark-tooltip-goto-location').classList.remove('hidden');
-      document.getElementById('timeline-bookmark-tooltip-goto-location').onclick = () => {
-        CosmoScout.callbacks.bookmark.gotoLocation(bookmark.id);
-      };
-    } else {
-      document.getElementById('timeline-bookmark-tooltip-goto-location').classList.add('hidden');
-    }
-
-    document.getElementById('timeline-bookmark-tooltip-goto-time').onclick = () => {
-      CosmoScout.callbacks.bookmark.gotoTime(bookmark.id, 2.0);
-    };
-
-    document.getElementById('timeline-bookmark-tooltip-edit').onclick = () => {
-      CosmoScout.callbacks.bookmark.edit(bookmark.id);
-    };
-
-    document.getElementById('timeline-bookmark-tooltip-name').innerHTML = bookmark.name;
-    document.getElementById('timeline-bookmark-tooltip-description').innerHTML =
-        bookmark.description;
-
-    const eventRect    = properties.event.target.getBoundingClientRect();
-    const tooltipWidth = 400;
-    const arrowWidth   = 10;
-    const center       = eventRect.left + eventRect.width / 2;
-    const left =
-        Math.max(0, Math.min(document.body.offsetWidth - tooltipWidth, center - tooltipWidth / 2));
-    document.getElementById('timeline-bookmark-tooltip-container').style.top =
-        `${eventRect.bottom + arrowWidth + 5}px`;
-    document.getElementById('timeline-bookmark-tooltip-container').style.left = `${left}px`;
-    document.getElementById('timeline-bookmark-tooltip-arrow').style.left =
-        `${center - left - arrowWidth}px`;
+    CosmoScout.callbacks.bookmark.showTooltip(
+        bookmark.id, eventRect.left + eventRect.width / 2, eventRect.top + eventRect.height / 2);
   }
 
   /**

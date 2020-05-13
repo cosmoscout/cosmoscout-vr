@@ -456,6 +456,11 @@ class CS_CORE_EXPORT Settings {
   static void deserialize(
       nlohmann::json const& j, std::string const& property, utils::DefaultProperty<T>& target);
 
+  /// Overload for nlohmann::json. While this seems a bit funny, it is quite useful if you want to
+  /// actually save / load json data.
+  static void deserialize(
+      nlohmann::json const& j, std::string const& property, nlohmann::json& target);
+
   /// This template is used to set values in json objects. The main reasons not to directly use the
   /// interface of nlohmann::json is that we can overload the serialize() method to accept
   /// std::optionals and utils::DefaultProperties which behave specially (see class description at

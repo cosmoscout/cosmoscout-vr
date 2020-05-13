@@ -806,6 +806,10 @@ void Application::connectSlots() {
     }
     mGuiManager->getGui()->executeJavascript(
         fmt::format("CosmoScout.state.activePlanetCenter = '{}';", center));
+
+    auto radii = cs::core::SolarSystem::getRadii(center);
+    mGuiManager->getGui()->executeJavascript(
+        fmt::format("CosmoScout.state.activePlanetRadius = [{}, {}];", radii[0], radii[1]));
   });
 
   // Show notification when the frame name of the celestial observer changes.
@@ -1263,6 +1267,29 @@ void Application::registerGuiCallbacks() {
                         "bookmark registered!",
               bookmarkID);
         }
+      }));
+
+  // Show the bookmark tooltip.
+  mGuiManager->getGui()->registerCallback("bookmark.showTooltip",
+      "Shows a tooltip for the given bookmark ID at the given pixel position on the screen.",
+      std::function([this](double bookmarkID, double x, double y) {
+        auto bookmark = mGuiManager->getBookmarks().find(static_cast<uint32_t>(bookmarkID));
+        if (bookmark != mGuiManager->getBookmarks().end()) {
+          mGuiManager->getGui()->callJavascript("CosmoScout.bookmarkEditor.showBookmarkTooltip",
+              bookmarkID, bookmark->second.mName, bookmark->second.mDescription.value_or(""),
+              bookmark->second.mLocation.has_value(), bookmark->second.mTime.has_value(), x, y);
+        } else {
+          logger().warn("Failed to execute 'bookmark.showTooltip' for bookmark ID '{}': No such "
+                        "bookmark registered!",
+              bookmarkID);
+        }
+      }));
+
+  // This is the same as calling CosmoScout.bookmarkEditor.hideBookmarkTooltip directly, but we keep
+  // it for API consistency when just in conjuntion with CosmoScout.callbacks.bookmark.showTooltip.
+  mGuiManager->getGui()->registerCallback("bookmark.hideTooltip",
+      "Hides the previously shown bookmark tooltip.", std::function([this]() {
+        mGuiManager->getGui()->callJavascript("CosmoScout.bookmarkEditor.hideBookmarkTooltip");
       }));
 
   // Timeline callbacks ----------------------------------------------------------------------------
