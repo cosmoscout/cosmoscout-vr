@@ -119,11 +119,11 @@ float CS_UTILS_EXPORT getCurrentFarClipDistance();
 std::string exec(std::string const& cmd);
 
 /// Can be used to check the operating system at compile time.
-enum class OS { eLinux, eMac, eWindows };
+enum class OS { eLinux, eWindows };
 
 #ifdef __linux__
 constexpr OS HostOS = OS::eLinux;
-#elif __WIN32
+#elif _WIN32
 constexpr OS HostOS = OS::eWindows;
 #endif
 
