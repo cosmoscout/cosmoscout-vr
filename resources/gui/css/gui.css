@@ -794,9 +794,6 @@ hr {
   position: absolute;
   bottom: 0;
   right: 0;
-}
-
-::-webkit-resizer {
   border-style: solid;
   border-width: 0 0 20px 20px;
   border-color: transparent transparent #ccf transparent;
@@ -850,6 +847,7 @@ hr {
 }
 
 .draggable-window .window-content {
+  position: relative;
   flex-grow: 1;
 }
 

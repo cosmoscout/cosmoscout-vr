@@ -275,10 +275,10 @@ echo ""
 echo "Downloading, building and installing cef ..."
 echo ""
 
-CEF_DIR=cef_binary_79.1.36+g90301bd+chromium-79.0.3945.130_linux64_minimal
+CEF_DIR=cef_binary_81.3.3+g072a5f5+chromium-81.0.4044.138_linux64_minimal
 
 cmake -E make_directory "$BUILD_DIR/cef/extracted" && cd "$BUILD_DIR/cef"
-wget -nc http://opensource.spotify.com/cefbuilds/cef_binary_79.1.36%2Bg90301bd%2Bchromium-79.0.3945.130_linux64_minimal.tar.bz2
+wget -nc http://opensource.spotify.com/cefbuilds/cef_binary_81.3.3%2Bg072a5f5%2Bchromium-81.0.4044.138_linux64_minimal.tar.bz2
 
 cd "$BUILD_DIR/cef/extracted"
 cmake -E tar xfj ../$CEF_DIR.tar.bz2

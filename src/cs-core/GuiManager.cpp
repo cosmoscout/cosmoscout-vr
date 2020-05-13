@@ -355,6 +355,19 @@ void GuiManager::showNotification(std::string const& sTitle, std::string const& 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void GuiManager::addTimelineButton(
+    std::string const& name, std::string const& icon, std::string const& callback) const {
+  mCosmoScoutGui->callJavascript("CosmoScout.timeline.addButton", name, icon, callback);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void GuiManager::removeTimelineButton(std::string const& name) const {
+  mCosmoScoutGui->callJavascript("CosmoScout.timeline.removeButton", name);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 gui::GuiItem* GuiManager::getGui() const {
   return mCosmoScoutGui.get();
 }
