@@ -6,6 +6,7 @@
 
 #timeline-container .vis-timeline {
   border-width: 0;
+  cursor: pointer !important;
 }
 
 #timeline-container .vis-timeline:active {
@@ -29,6 +30,7 @@
   border-width: 2px;
   border-radius: 10px;
   z-index: 5;
+  cursor: pointer;
 }
 
 #timeline-container .vis-item-content {
@@ -418,6 +420,7 @@
   background-color: var(--cs-background-color-light);
   border-radius: 0 0 5px 5px;
   top: 75px;
+  cursor: pointer;
 }
 
 #expand-control i {
