@@ -9,13 +9,14 @@ rem ----------------------------------------------------------------------------
 rem ---------------------------------------------------------------------------------------------- #
 rem Make sure to run "git submodule update --init" before executing this script!                   #
 rem Default build mode is release, if "set COSMOSCOUT_DEBUG_BUILD=true" is executed before, all    #
-rem dependecies will be built in debug mode.                                                       #
+rem dependencies will be built in debug mode.                                                      #
 rem Usage:                                                                                         #
 rem    make_externals.bat [additional CMake flags, defaults to -G "Visual Studio 15 Win64"]        #
 rem Examples:                                                                                      #
 rem    make_externals.bat                                                                          #
 rem    make_externals.bat -G "Visual Studio 15 Win64"                                              #
 rem    make_externals.bat -G "Visual Studio 16 2019" -A x64                                        #
+rem    make_externals.bat -GNinja -DCMAKE_C_COMPILER=cl.exe -DCMAKE_CXX_COMPILER=cl.exe            #
 rem ---------------------------------------------------------------------------------------------- #
 
 rem The CMake generator and other flags can be passed as parameters.
@@ -24,6 +25,7 @@ IF NOT "%~1"=="" (
   SET CMAKE_FLAGS=%*
 )
 
+rem We need to check if Ninja is used as a generator, since there are some minor differences in generation paths.
 echo.%CMAKE_FLAGS%|findstr /C:"Ninja" >nul 2>&1
 IF NOT errorlevel 1 (
    set USING_NINJA=true
@@ -83,7 +85,12 @@ echo Downloading, building and installing GLEW ...
 echo.
 
 cmake -E make_directory "%BUILD_DIR%/glew/extracted" && cd "%BUILD_DIR%/glew"
-powershell.exe -command Invoke-WebRequest -Uri https://netcologne.dl.sourceforge.net/project/glew/glew/2.1.0/glew-2.1.0-win32.zip -OutFile glew-2.1.0-win32.zip
+
+IF NOT EXIST glew-2.1.0-win32.zip (
+  powershell.exe -command Invoke-WebRequest -Uri https://netcologne.dl.sourceforge.net/project/glew/glew/2.1.0/glew-2.1.0-win32.zip -OutFile glew-2.1.0-win32.zip
+) else (
+  echo File 'glew-2.1.0-win32.zip' already exists, no download required.
+)
 
 cd "%BUILD_DIR%/glew/extracted"
 cmake -E tar xfvj ../glew-2.1.0-win32.zip
@@ -283,7 +290,13 @@ echo Downloading and installing cspice ...
 echo.
 
 cmake -E make_directory "%BUILD_DIR%/cspice/extracted" && cd "%BUILD_DIR%/cspice"
-powershell.exe -command $AllProtocols = [System.Net.SecurityProtocolType]'Tls11,Tls12'; [System.Net.ServicePointManager]::SecurityProtocol = $AllProtocols; Invoke-WebRequest -Uri https://naif.jpl.nasa.gov/pub/naif/toolkit//C/PC_Windows_VisualC_64bit/packages/cspice.zip -OutFile cspice.zip
+
+IF NOT EXIST cspice.zip (
+  powershell.exe -command $AllProtocols = [System.Net.SecurityProtocolType]'Tls11,Tls12'; [System.Net.ServicePointManager]::SecurityProtocol = $AllProtocols; Invoke-WebRequest -Uri https://naif.jpl.nasa.gov/pub/naif/toolkit//C/PC_Windows_VisualC_64bit/packages/cspice.zip -OutFile cspice.zip
+) else (
+  echo File 'cspice.zip' already exists no, download required.
+)
+
 cd "%BUILD_DIR%/cspice/extracted"
 cmake -E tar xfvj ../cspice.zip
 cd cspice
@@ -302,11 +315,11 @@ cmake --build . --config %BUILD_TYPE% --parallel %NUMBER_OF_PROCESSORS% || exit 
 cmake -E copy_directory "%BUILD_DIR%/cspice/extracted/cspice/include" "%INSTALL_DIR%/include/cspice"
 
 if %USING_NINJA%==true (
-   cmake -E copy "%BUILD_DIR%/cspice/extracted/cspice/cspice.lib" "%INSTALL_DIR%/lib"
-   cmake -E copy "%BUILD_DIR%/cspice/extracted/cspice/cspice.dll" "%INSTALL_DIR%/lib"
+  cmake -E copy "%BUILD_DIR%/cspice/extracted/cspice/cspice.lib" "%INSTALL_DIR%/lib"
+  cmake -E copy "%BUILD_DIR%/cspice/extracted/cspice/cspice.dll" "%INSTALL_DIR%/lib"
 ) else (
-   cmake -E copy "%BUILD_DIR%/cspice/extracted/cspice/%BUILD_TYPE%/cspice.lib" "%INSTALL_DIR%/lib"
-   cmake -E copy "%BUILD_DIR%/cspice/extracted/cspice/%BUILD_TYPE%/cspice.dll" "%INSTALL_DIR%/lib"
+  cmake -E copy "%BUILD_DIR%/cspice/extracted/cspice/%BUILD_TYPE%/cspice.lib" "%INSTALL_DIR%/lib"
+  cmake -E copy "%BUILD_DIR%/cspice/extracted/cspice/%BUILD_TYPE%/cspice.dll" "%INSTALL_DIR%/lib"
 )
 
 rem cef --------------------------------------------------------------------------------------------
@@ -316,7 +329,13 @@ echo Downloading bzip2 ...
 echo.
 
 cmake -E make_directory "%BUILD_DIR%/cef/bzip2" && cd "%BUILD_DIR%/cef"
-powershell.exe -command Invoke-WebRequest -Uri https://netcologne.dl.sourceforge.net/project/gnuwin32/bzip2/1.0.5/bzip2-1.0.5-bin.zip -OutFile bzip2.zip
+
+IF NOT EXIST bzip2.zip (
+  powershell.exe -command Invoke-WebRequest -Uri https://netcologne.dl.sourceforge.net/project/gnuwin32/bzip2/1.0.5/bzip2-1.0.5-bin.zip -OutFile bzip2.zip
+) else (
+  echo File 'bzip2.zip' already exists, no download required.
+)
+
 cd "%BUILD_DIR%/cef/bzip2"
 cmake -E tar xfvj ../bzip2.zip
 cd ..
@@ -328,7 +347,12 @@ echo.
 set CEF_DIR=cef_binary_81.3.3+g072a5f5+chromium-81.0.4044.138_windows64_minimal
 
 cmake -E make_directory "%BUILD_DIR%/cef/extracted" && cd "%BUILD_DIR%/cef"
-powershell.exe -command Invoke-WebRequest -Uri http://opensource.spotify.com/cefbuilds/cef_binary_81.3.3%%2Bg072a5f5%%2Bchromium-81.0.4044.138_windows64_minimal.tar.bz2 -OutFile cef.tar.bz2
+
+IF NOT EXIST cef.tar.bz2 (
+  powershell.exe -command Invoke-WebRequest -Uri http://opensource.spotify.com/cefbuilds/cef_binary_81.3.3%%2Bg072a5f5%%2Bchromium-81.0.4044.138_windows64_minimal.tar.bz2 -OutFile cef.tar.bz2
+) else (
+  echo File 'cef.tar.bz2' already exists, no download required.
+)
 
 cd "%BUILD_DIR%/cef/extracted"
 "%BUILD_DIR%/cef/bzip2/bin/bunzip2.exe" -v ../cef.tar.bz2
@@ -352,9 +376,9 @@ cmake -E copy_directory "%BUILD_DIR%/cef/extracted/%CEF_DIR%/Resources"         
 cmake -E copy_directory "%BUILD_DIR%/cef/extracted/%CEF_DIR%/Release"                   "%INSTALL_DIR%/lib"
 
 if %USING_NINJA%==true (
-   cmake -E copy "%BUILD_DIR%/cef/libcef_dll_wrapper/libcef_dll_wrapper.lib"  "%INSTALL_DIR%/lib"
+  cmake -E copy "%BUILD_DIR%/cef/libcef_dll_wrapper/libcef_dll_wrapper.lib"  "%INSTALL_DIR%/lib"
 ) else (
-   cmake -E copy "%BUILD_DIR%/cef/libcef_dll_wrapper/%BUILD_TYPE%/libcef_dll_wrapper.lib"  "%INSTALL_DIR%/lib"
+  cmake -E copy "%BUILD_DIR%/cef/libcef_dll_wrapper/%BUILD_TYPE%/libcef_dll_wrapper.lib"  "%INSTALL_DIR%/lib"
 )
 
 rem ------------------------------------------------------------------------------------------------
