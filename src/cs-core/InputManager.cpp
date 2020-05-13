@@ -10,6 +10,7 @@
 #include "../cs-gui/ScreenSpaceGuiArea.hpp"
 #include "../cs-gui/WorldSpaceGuiArea.hpp"
 #include "../cs-utils/utils.hpp"
+#include "GuiManager.hpp"
 #include "logger.hpp"
 
 #include <VistaDataFlowNet/VdfnNode.h>
@@ -438,6 +439,7 @@ void InputManager::update() {
         event.mType = gui::MouseEvent::Type::eLeave;
         pHoveredGuiItem.get()->injectMouseEvent(event);
         pHoveredGuiItem = nullptr;
+        GuiManager::setCursor(gui::Cursor::ePointer);
       }
 
       return;
@@ -450,6 +452,7 @@ void InputManager::update() {
     event.mType = gui::MouseEvent::Type::eLeave;
     pHoveredGuiItem.get()->injectMouseEvent(event);
     pHoveredGuiItem = nullptr;
+    GuiManager::setCursor(gui::Cursor::ePointer);
   }
 
   pHoveredNode = nullptr;

@@ -266,6 +266,7 @@ textarea {
   padding: 0 7px;
   color: #fff;
   border-radius: 0;
+  cursor: pointer;
 }
 
 .btn.unresponsive,
@@ -540,6 +541,11 @@ hr {
 
 .noUi-base {
   margin-top: 5px;
+  cursor: pointer;
+}
+
+.unresponsive .noUi-base {
+  cursor: default;
 }
 
 .noUi-background {
