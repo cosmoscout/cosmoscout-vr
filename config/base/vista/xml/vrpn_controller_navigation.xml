@@ -6,6 +6,16 @@
         <!-- Debug Text Node -->
         <node name="debug_text" type="SimpleText"/>
 
+        <!-- Analogs -->
+        <node name="vrpn_analog_driver" type="DriverSensor">
+            <param name="driver" value="XBOXCONTROLLER" />
+            <param name="sensor" value="0" />
+            <param name="type" value="ANALOG" />
+        </node>
+        <node name="vrpn_analog_data" type="HistoryProject">
+            <param name="project">VALUE, CHANNELS</param>
+        </node>
+
         <!-- Buttons -->
         <node name="vrpn_button_driver" type="DriverSensor">
             <param name="driver" value="XBOXCONTROLLER" />
@@ -15,15 +25,12 @@
         <node name="vrpn_button_data" type="HistoryProject">
             <param name="project">BTMASK, NUMBER, STATE</param>
         </node>
-
-        <!-- Analogs -->
-        <node name="vrpn_analog_driver" type="DriverSensor">
-            <param name="driver" value="XBOXCONTROLLER" />
-            <param name="sensor" value="0" />
-            <param name="type" value="ANALOG" />
+        <!--    Button assignment -->
+        <node name="split_buttons" type="Demultiplex[unsigned int]">
+            <param name="num_outports">14</param>
         </node>
-        <node name="vrpn_analog_data" type="HistoryProject">
-            <param name="project">VALUE, CHANNELS</param>
+        <!--        converter for select inport on Demultiplexer -->
+        <node name="btn_number_toint" type="TypeConvert[unsigned int,int]">
         </node>
     </graph>
     <edges>
@@ -35,10 +42,82 @@
         <edge fromnode="vrpn_analog_driver" fromport="history"
               tonode="vrpn_analog_data" toport="history" />
 
-        <!-- Debugging -
-        <edge fromnode="vrpn_button_data" fromport="history"
-              tonode="debug_text" toport="buttonhist" />
-        -->
+        <!-- DeMUX Buttons -->
+        <!--    convert vrpn_button_data::NUMBER to int for Demultiplex::select -->
+        <edge fromnode="vrpn_button_data" fromport="NUMBER"
+              tonode="btn_number_toint" toport="in" />
+        <!--    demultiplex buttons -->
+        <edge fromnode="btn_number_toint" fromport="out"
+              tonode="split_buttons" toport="select" />
+        <edge fromnode="vrpn_button_data" fromport="STATE"
+              tonode="split_buttons" toport="value" />
+
+        <!-- Debugging -->
+        <!--    Analog Data -->
+        <!--    Analog channel assignments:
+                    0=left joystick X
+                    1=left joystick Y
+                    2=right joystick X
+                    3=right joystick Y
+                    4=triggers (left goes positive, right goes negative)
+                    5=Point of View Hat heading (-1=nothing, 0=North, 45=Northeast, etc.) -->
+        <edge fromnode="vrpn_analog_data" fromport="VALUE_0"
+              tonode="debug_text" toport="LstickX" />
+        <edge fromnode="vrpn_analog_data" fromport="VALUE_1"
+              tonode="debug_text" toport="LstickY" />
+        <edge fromnode="vrpn_analog_data" fromport="VALUE_2"
+              tonode="debug_text" toport="RstickX" />
+        <edge fromnode="vrpn_analog_data" fromport="VALUE_3"
+              tonode="debug_text" toport="RstickY" />
+        <edge fromnode="vrpn_analog_data" fromport="VALUE_4"
+              tonode="debug_text" toport="Triggers(LT>0>RT)" />
+        <edge fromnode="vrpn_analog_data" fromport="VALUE_5"
+              tonode="debug_text" toport="Dpad(-1=nothing, 0°=up)" />
+
+        <!--    Button Data -->
+        <!--    Button number assignments:
+                    0=A
+                    1=B
+                    2=X
+                    3=Y
+                    4=LB (left bumper)
+                    5=RB (right bumper)
+                    6=Back
+                    7=Start
+                    8=LS (left joystick)
+                    9=RS (right joystick)
+                    10=UP (d-pad)
+                    11=Right (d-pad)
+                    12=Down (d-pad)
+                    13=Left (d-pad) -->
+        <edge fromnode="split_buttons" fromport="0"
+              tonode="debug_text" toport="BtnA" />
+        <edge fromnode="split_buttons" fromport="1"
+              tonode="debug_text" toport="BtnB" />
+        <edge fromnode="split_buttons" fromport="2"
+              tonode="debug_text" toport="BtnX" />
+        <edge fromnode="split_buttons" fromport="3"
+              tonode="debug_text" toport="BtnY" />
+        <edge fromnode="split_buttons" fromport="4"
+              tonode="debug_text" toport="BtnLB" />
+        <edge fromnode="split_buttons" fromport="5"
+              tonode="debug_text" toport="BtnRB" />
+        <edge fromnode="split_buttons" fromport="6"
+              tonode="debug_text" toport="BtnBack" />
+        <edge fromnode="split_buttons" fromport="7"
+              tonode="debug_text" toport="BtnStart" />
+        <edge fromnode="split_buttons" fromport="8"
+              tonode="debug_text" toport="BtnLS" />
+        <edge fromnode="split_buttons" fromport="9"
+              tonode="debug_text" toport="BtnRS" />
+        <edge fromnode="split_buttons" fromport="10"
+              tonode="debug_text" toport="BtnUP" />
+        <edge fromnode="split_buttons" fromport="11"
+              tonode="debug_text" toport="BtnRight" />
+        <edge fromnode="split_buttons" fromport="12"
+              tonode="debug_text" toport="BtnDown" />
+        <edge fromnode="split_buttons" fromport="13"
+              tonode="debug_text" toport="BtnLeft" />
     </edges>
 </module>
 <!-- For Xbox 360 Controller:
@@ -49,7 +128,7 @@ Analog channel assignments:
  3=right joystick Y
  4=triggers (left goes positive, right goes negative)
  5=Point of View Hat heading (-1=nothing, 0=North, 45=Northeast, etc.)
-Button number assignments
+Button number assignments:
  0=A
  1=B
  2=X
