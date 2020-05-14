@@ -26,12 +26,21 @@
             <param name="project">BTMASK, NUMBER, STATE</param>
         </node>
         <!--    Button assignment -->
-        <node name="split_buttons" type="Demultiplex[unsigned int]">
+        <node name="get_button" type="Demultiplex[unsigned int]">
             <param name="num_outports">14</param>
         </node>
         <!--        converter for select inport on Demultiplexer -->
-        <node name="btn_number_toint" type="TypeConvert[unsigned int,int]">
-        </node>
+        <node name="btn_number_toint" type="TypeConvert[unsigned int,int]" />
+
+        <!-- LB Button to button_01 event source -->
+        <node name="LB_to_bool" type="TypeConvert[unsigned int,bool]" />
+        <node name="LB_change_detect" type="ChangeDetect[bool]" />
+        <node name="button_01" tag="button_01" type="EventSource" />
+
+        <!-- RB Button to button_02 event source -->
+        <node name="RB_to_bool" type="TypeConvert[unsigned int,bool]" />
+        <node name="RB_change_detect" type="ChangeDetect[bool]" />
+        <node name="button_02" tag="button_02" type="EventSource" />
     </graph>
     <edges>
         <!-- Buttons Driver -> History -->
@@ -48,75 +57,89 @@
               tonode="btn_number_toint" toport="in" />
         <!--    demultiplex buttons -->
         <edge fromnode="btn_number_toint" fromport="out"
-              tonode="split_buttons" toport="select" />
+              tonode="get_button" toport="select" />
         <edge fromnode="vrpn_button_data" fromport="STATE"
-              tonode="split_buttons" toport="value" />
+              tonode="get_button" toport="value" />
+
+        <!-- LB Button to button_01 event source -->
+        <edge fromnode="get_button" fromport="4"
+              tonode="LB_to_bool" toport="in" />
+        <edge fromnode="LB_to_bool" fromport="out"
+              tonode="LB_change_detect" toport="in" />
+        <edge fromnode="LB_change_detect" fromport="out"
+              tonode="button_01" toport="value" />
+
+        <!-- RB Button to button_02 event source -->
+        <edge fromnode="get_button" fromport="5"
+              tonode="RB_to_bool" toport="in" />
+        <edge fromnode="RB_to_bool" fromport="out"
+              tonode="RB_change_detect" toport="in" />
+        <edge fromnode="RB_change_detect" fromport="out"
+              tonode="button_02" toport="value" />
 
         <!-- Debugging -->
         <!--    Analog Data -->
-        <!--    Analog channel assignments:
-                    0=left joystick X
-                    1=left joystick Y
-                    2=right joystick X
-                    3=right joystick Y
-                    4=triggers (left goes positive, right goes negative)
-                    5=Point of View Hat heading (-1=nothing, 0=North, 45=Northeast, etc.) -->
+        <!--        0 = Left Stick X -->
         <edge fromnode="vrpn_analog_data" fromport="VALUE_0"
               tonode="debug_text" toport="LstickX" />
+        <!--        1 = Left Stick Y -->
         <edge fromnode="vrpn_analog_data" fromport="VALUE_1"
               tonode="debug_text" toport="LstickY" />
+        <!--        2 = Right Stick X -->
         <edge fromnode="vrpn_analog_data" fromport="VALUE_2"
               tonode="debug_text" toport="RstickX" />
+        <!--        3 = Right Stick Y -->
         <edge fromnode="vrpn_analog_data" fromport="VALUE_3"
               tonode="debug_text" toport="RstickY" />
+        <!--        4 = Triggers (Left positive, Right negative) -->
         <edge fromnode="vrpn_analog_data" fromport="VALUE_4"
               tonode="debug_text" toport="Triggers(LT>0>RT)" />
+        <!--        5 = D-Pad (-1 = nothing, 0 = up, 45 = up-right, 90 = right, etc...) -->
         <edge fromnode="vrpn_analog_data" fromport="VALUE_5"
               tonode="debug_text" toport="Dpad(-1=nothing, 0°=up)" />
 
         <!--    Button Data -->
-        <!--    Button number assignments:
-                    0=A
-                    1=B
-                    2=X
-                    3=Y
-                    4=LB (left bumper)
-                    5=RB (right bumper)
-                    6=Back
-                    7=Start
-                    8=LS (left joystick)
-                    9=RS (right joystick)
-                    10=UP (d-pad)
-                    11=Right (d-pad)
-                    12=Down (d-pad)
-                    13=Left (d-pad) -->
-        <edge fromnode="split_buttons" fromport="0"
+        <!--        0 = A -->
+        <edge fromnode="get_button" fromport="0"
               tonode="debug_text" toport="BtnA" />
-        <edge fromnode="split_buttons" fromport="1"
+        <!--        1 = B -->
+        <edge fromnode="get_button" fromport="1"
               tonode="debug_text" toport="BtnB" />
-        <edge fromnode="split_buttons" fromport="2"
+        <!--        2 = X -->
+        <edge fromnode="get_button" fromport="2"
               tonode="debug_text" toport="BtnX" />
-        <edge fromnode="split_buttons" fromport="3"
+        <!--        3 = Y -->
+        <edge fromnode="get_button" fromport="3"
               tonode="debug_text" toport="BtnY" />
-        <edge fromnode="split_buttons" fromport="4"
+        <!--        4 = LB (Left Bumper) -->
+        <edge fromnode="get_button" fromport="4"
               tonode="debug_text" toport="BtnLB" />
-        <edge fromnode="split_buttons" fromport="5"
+        <!--        5 = RB (Right Bumper) -->
+        <edge fromnode="get_button" fromport="5"
               tonode="debug_text" toport="BtnRB" />
-        <edge fromnode="split_buttons" fromport="6"
+        <!--        6 = Back -->
+        <edge fromnode="get_button" fromport="6"
               tonode="debug_text" toport="BtnBack" />
-        <edge fromnode="split_buttons" fromport="7"
+        <!--        7 = Start -->
+        <edge fromnode="get_button" fromport="7"
               tonode="debug_text" toport="BtnStart" />
-        <edge fromnode="split_buttons" fromport="8"
+        <!--        8 = LS (Left Stick) -->
+        <edge fromnode="get_button" fromport="8"
               tonode="debug_text" toport="BtnLS" />
-        <edge fromnode="split_buttons" fromport="9"
+        <!--        9 = RS (Right Stick) -->
+        <edge fromnode="get_button" fromport="9"
               tonode="debug_text" toport="BtnRS" />
-        <edge fromnode="split_buttons" fromport="10"
+        <!--       10 = Up (D-Pad Up) -->
+        <edge fromnode="get_button" fromport="10"
               tonode="debug_text" toport="BtnUP" />
-        <edge fromnode="split_buttons" fromport="11"
+        <!--       11 = Right (D-Pad Right) -->
+        <edge fromnode="get_button" fromport="11"
               tonode="debug_text" toport="BtnRight" />
-        <edge fromnode="split_buttons" fromport="12"
+        <!--       12 = Down (D-Pad Down) -->
+        <edge fromnode="get_button" fromport="12"
               tonode="debug_text" toport="BtnDown" />
-        <edge fromnode="split_buttons" fromport="13"
+        <!--       13 = Left (D-Pad Left) -->
+        <edge fromnode="get_button" fromport="13"
               tonode="debug_text" toport="BtnLeft" />
     </edges>
 </module>
