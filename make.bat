@@ -15,6 +15,7 @@ rem Examples:                                                                   
 rem    make.bat                                                                                    #
 rem    make.bat -G "Visual Studio 15 Win64"                                                        #
 rem    make.bat -G "Visual Studio 16 2019" -A x64                                                  #
+rem    make.bat -GNinja -DCMAKE_C_COMPILER=cl.exe -DCMAKE_CXX_COMPILER=cl.exe                      #
 rem ---------------------------------------------------------------------------------------------- #
 
 rem create some required variables -----------------------------------------------------------------
