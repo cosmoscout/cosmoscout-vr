@@ -22,7 +22,21 @@
   top: 0 !important;
 }
 
+.vis-panel .vis-shadow {
+  box-shadow: none;
+}
+
 /* generic timeline item styles ----------------------------------------------------------------- */
+
+#overview,
+#timeline {
+  background-color: rgba(20, 20, 20, 0.5);
+}
+
+#overview .vis-timeline:hover,
+#timeline .vis-timeline:hover {
+  background-color: rgba(230, 230, 255, 0.1);
+}
 
 #timeline-container .vis-item {
   background-color: rgba(20, 20, 20, 0.5);
@@ -70,12 +84,6 @@
 }
 
 /* main timeline styles ------------------------------------------------------------------------- */
-
-#timeline .vis-timeline {
-  background-color: rgba(20, 20, 20, 0.5);
-  border-color: var(--cs-border-color-light);
-  overflow: visible !important;
-}
 
 #timeline .vis-time-axis {
   pointer-events: none;
@@ -167,23 +175,17 @@
   border-width: 0;
 }
 
-#timeline:hover {
-  background-color: rgba(230, 230, 255, 0.3);
-}
-
 /* overview timeline styles --------------------------------------------------------------------- */
 
-#overview .vis-custom-time {
-  background-color: rgba(0, 110, 255, 0);
-  width: 2px;
-  cursor: move;
-  z-index: 1;
-  pointer-events: none;
+#overview {
+  margin-top: -1px;
 }
 
 #overview .vis-time-axis.vis-background {
   height: 5px;
   top: 22px;
+  z-index: 2;
+  pointer-events: none;
 }
 
 #overview .vis-time-axis.vis-foreground {
@@ -256,40 +258,34 @@
   top: 0 !important;
 }
 
-#overview:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-}
 
 /* overview focus rect -------------------------------------------------------------------------- */
 
-#focus-lens {
+#overview .vis-custom-time {
+  pointer-events: none;
+  background-color: transparent;
+}
+
+#overview .vis-custom-time.overview-lens-right-time div,
+#overview .vis-custom-time.overview-lens-left-time div {
+  background-color: rgba(0, 0, 0, 0.3);
+  border-color: var(--cs-background-color-light);
   border-style: solid;
-  border-width: 3px 3px 0 3px;
-  border-top-left-radius: 10px;
-  border-top-right-radius: 10px;
-  border-color: var(--cs-border-color-light);
-  pointer-events: none;
-  background-color: rgba(20, 20, 20, 0.5);
-  top: 2px;
-  z-index: 1;
-  position: absolute;
+  width: 200vw !important;
+  box-shadow: 0 -1px 3px black inset;
 }
 
-#focus-lens-left,
-#focus-lens-right {
-  height: 1px;
-  border-bottom: 2px solid var(--cs-border-color-light);
-  position: absolute;
-  pointer-events: none;
-  z-index: 1;
+#overview .vis-custom-time.overview-lens-right-time div {
+  left: 3px !important;
+  border-bottom-left-radius: 15px;
+  border-width: 0 0 2px 2px;
 }
 
-#focus-lens-left {
-  left: 0;
-}
-
-#focus-lens-right {
-  right: 0;
+#overview .vis-custom-time.overview-lens-left-time div {
+  right: calc(200vw + 3px) !important;
+  left: unset !important;
+  border-bottom-right-radius: 15px;
+  border-width: 0 2px 2px 0;
 }
 
 /* timeline control items ----------------------------------------------------------------------- */
@@ -301,7 +297,7 @@
   padding: 0;
   transition: margin-top 0.3s ease;
   background-image: linear-gradient(180deg, rgba(20, 20, 20, 0.4) 80%, rgba(20, 20, 20, 0.0) 100%);
-  margin: -43px 0 0;
+  margin: -39px 0 0;
 }
 
 #timeline-container.overview-visible {
@@ -309,21 +305,23 @@
 }
 
 #bottom-border-left {
-  top: 75px;
+  top: 74px;
   height: 2px;
   position: absolute;
   background-color: var(--cs-background-color-light);
   width: calc(50% - 0.5*var(--center-element-width));
   left: 0;
+  box-shadow: 0 1px 5px black;
 }
 
 #bottom-border-right {
-  top: 75px;
+  top: 74px;
   height: 2px;
   position: absolute;
   background-color: var(--cs-background-color-light);
   width: calc(50% - 0.5*var(--center-element-width));
   right: 0;
+  box-shadow: 0 1px 5px black;
 }
 
 #compass-arrow {
@@ -359,6 +357,7 @@
   width: var(--center-element-width);
   display: flex;
   height: 40px;
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.3);
 }
 
 #timeline-container #time-reset-button {

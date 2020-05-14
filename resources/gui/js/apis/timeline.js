@@ -189,7 +189,6 @@ class TimelineApi extends IApi {
     this._initTimelines();
     this._moveWindow();
     this._initEventListener();
-    this._updateOverviewLens();
   }
 
   /**
@@ -418,7 +417,7 @@ class TimelineApi extends IApi {
 
     // Show calendar on calender button clicks.
     document.getElementById('calendar-button').onclick = () => {
-      CosmoScout.calendar.setDate(this._timeline.getCustomTime(this._timeId));
+      CosmoScout.calendar.setDate(this._centerTime);
       CosmoScout.calendar.toggle();
     };
   }
@@ -557,6 +556,7 @@ class TimelineApi extends IApi {
         new vis.Timeline(overviewContainer, this._bookmarksOverview, this._overviewTimelineOptions);
     this._overviewTimeline.addCustomTime(this._timeline.getWindow().end, this._rightTimeId);
     this._overviewTimeline.addCustomTime(this._timeline.getWindow().start, this._leftTimeId);
+    this._overviewTimeline.on('rangechange', this._overviewDragCallback.bind(this));
     this._overviewTimeline.on('mouseUp', this._onMouseUp.bind(this));
     this._overviewTimeline.on('mouseDown', () => this._dragDistance = 0);
     this._overviewTimeline.on(
@@ -592,6 +592,7 @@ class TimelineApi extends IApi {
         startDate, step.days, step.hours, step.minutes, step.seconds, step.milliSec);
     endDate = CosmoScout.utils.increaseDate(
         endDate, step.days, step.hours, step.minutes, step.seconds, step.milliSec);
+    this._updateOverviewLens();
     this._timeline.setWindow(startDate, endDate, {
       animation: false,
     });
@@ -613,48 +614,34 @@ class TimelineApi extends IApi {
   }
 
   /**
-   * Sets the custom times on the overview that represent the left and right time on the timeline
+   * Called when the user moves the overview timeline.
+   * @param properties {VisTimelineEvent}
+   * @private
+   */
+  _overviewDragCallback(properties) {
+    if (properties.byUser) {
+      this._updateOverviewLens();
+    }
+  }
+
+  /**
+   * Sets the custom times on the overview that represent the left and right time on the timeline.
+   * This clamps the start and end date of the overview lens so that they are not moved outside of
+   * the screen to much.
    * @private
    */
   _updateOverviewLens() {
-    this._overviewTimeline.setCustomTime(this._timeline.getWindow().end, this._rightTimeId);
-    this._overviewTimeline.setCustomTime(this._timeline.getWindow().start, this._leftTimeId);
+    let overviewWindow = this._overviewTimeline.getWindow();
+    let overviewRange  = overviewWindow.end.getTime() - overviewWindow.start.getTime();
 
-    const leftCustomTime  = document.getElementsByClassName(this._leftTimeId)[0];
-    const leftRect        = leftCustomTime.getBoundingClientRect();
-    const rightCustomTime = document.getElementsByClassName(this._rightTimeId)[0];
-    const rightRect       = rightCustomTime.getBoundingClientRect();
+    let endTime = this._timeline.getWindow().end.getTime();
+    endTime     = Math.max(endTime, overviewWindow.start.getTime() - overviewRange / 2);
 
-    let divElement        = document.getElementById('focus-lens');
-    divElement.style.left = `${leftRect.right}px`;
+    let startTime = this._timeline.getWindow().start.getTime();
+    startTime     = Math.min(startTime, overviewWindow.end.getTime() + overviewRange / 2);
 
-    const height = leftRect.bottom - leftRect.top - 2;
-    let width    = rightRect.right - leftRect.left;
-
-    let xValue = 0;
-    if (width < this._minWidth) {
-      width  = this._minWidth + 2 * this._borderWidth;
-      xValue = -(leftRect.left + this._minWidth - rightRect.right) / 2 - this._borderWidth;
-      xValue = Math.round(xValue);
-      divElement.style.transform = ` translate(${xValue}px, 0px)`;
-    } else {
-      divElement.style.transform = ' translate(0px, 0px)';
-    }
-
-    divElement.style.height = `${height}px`;
-    divElement.style.width  = `${width}px`;
-
-    divElement             = document.getElementById('focus-lens-left');
-    width                  = leftRect.right + xValue + this._borderWidth;
-    width                  = width < 0 ? 0 : width;
-    divElement.style.width = `${width}px`;
-    const body             = document.getElementsByTagName('body')[0];
-    const bodyRect         = body.getBoundingClientRect();
-
-    divElement             = document.getElementById('focus-lens-right');
-    width                  = bodyRect.right - rightRect.right + xValue + 1;
-    width                  = width < 0 ? 0 : width;
-    divElement.style.width = `${width}px`;
+    this._overviewTimeline.setCustomTime(new Date(endTime), this._rightTimeId);
+    this._overviewTimeline.setCustomTime(new Date(startTime), this._leftTimeId);
   }
 
   /**
@@ -672,7 +659,6 @@ class TimelineApi extends IApi {
 
       this._centerTime = new Date(properties.start.getTime() / 2 + properties.end.getTime() / 2);
       this._timeline.setCustomTime(this._centerTime, this._timeId);
-      this._updateOverviewLens();
 
       window.callNative("time.setDate", this._centerTime.toISOString());
     }
