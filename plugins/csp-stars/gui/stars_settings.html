@@ -1,0 +1,91 @@
+<div class="row">
+  <div class="col-5">
+    <label class="checklabel">
+      <input type="checkbox" data-callback="stars.setEnabled" checked />
+      <i class="material-icons"></i>
+      <span>Enabled</span>
+    </label>
+  </div>
+
+  <div class="col-7">
+    <label class="checklabel">
+      <input type="checkbox" data-callback="stars.setEnableFigures" />
+      <i class="material-icons"></i>
+      <span>Constellations</span>
+    </label>
+  </div>
+
+  <div class="col-7 offset-5">
+    <label class="checklabel">
+      <input type="checkbox" data-callback="stars.setEnableGrid" />
+      <i class="material-icons"></i>
+      <span>Coordinate System</span>
+    </label>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-5">
+    Draw Mode
+  </div>
+  <div class="col-7">
+    <label class="radiolabel">
+      <input name="star_draw_mode" type="radio" data-callback="stars.setDrawMode0" />
+      <span>Points</span>
+    </label>
+  </div>
+  <div class="col-7 offset-5">
+    <label class="radiolabel">
+      <input name="star_draw_mode" type="radio" data-callback="stars.setDrawMode1" />
+      <span>Smooth Points</span>
+    </label>
+  </div>
+  <div class="col-7 offset-5">
+    <label class="radiolabel">
+      <input name="star_draw_mode" type="radio" data-callback="stars.setDrawMode2" />
+      <span>Discs</span>
+    </label>
+  </div>
+  <div class="col-7 offset-5">
+    <label class="radiolabel">
+      <input name="star_draw_mode" type="radio" data-callback="stars.setDrawMode3" checked />
+      <span>Smooth Discs</span>
+    </label>
+  </div>
+  <div class="col-7 offset-5">
+    <label class="radiolabel">
+      <input name="star_draw_mode" type="radio" data-callback="stars.setDrawMode4" />
+      <span>Textured Sprites</span>
+    </label>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-5">
+    Display Magnitude
+  </div>
+  <div class="col-7">
+    <div data-callback="stars.setMagnitude">
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-5">
+    Star Size
+  </div>
+  <div class="col-7">
+    <div data-callback="stars.setSize">
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-5">
+    Luminance Boost
+  </div>
+  <div class="col-7">
+    <div data-callback="stars.setLuminanceBoost">
+    </div>
+  </div>
+</div>
