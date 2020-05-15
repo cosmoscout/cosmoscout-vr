@@ -348,14 +348,15 @@ set CEF_DIR=cef_binary_81.3.3+g072a5f5+chromium-81.0.4044.138_windows64_minimal
 
 cmake -E make_directory "%BUILD_DIR%/cef/extracted" && cd "%BUILD_DIR%/cef"
 
-IF NOT EXIST cef.tar.bz2 (
+IF NOT EXIST cef.tar (
   powershell.exe -command Invoke-WebRequest -Uri http://opensource.spotify.com/cefbuilds/cef_binary_81.3.3%%2Bg072a5f5%%2Bchromium-81.0.4044.138_windows64_minimal.tar.bz2 -OutFile cef.tar.bz2
+  cd "%BUILD_DIR%/cef/extracted"
+  "%BUILD_DIR%/cef/bzip2/bin/bunzip2.exe" -v ../cef.tar.bz2
 ) else (
-  echo File 'cef.tar.bz2' already exists, no download required.
+  echo File 'cef.tar' already exists, no download required.
 )
 
 cd "%BUILD_DIR%/cef/extracted"
-"%BUILD_DIR%/cef/bzip2/bin/bunzip2.exe" -v ../cef.tar.bz2
 cmake -E tar xfvj ../cef.tar
 
 rem We don't want the example applications.
