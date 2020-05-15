@@ -138,7 +138,7 @@
 }
 
 #timeline .vis-custom-time.center-time {
-  background-color: var(--cs-background-color-light);
+  background-color: var(--cs-background-color);
   width: 16px !important;
   height: 16px !important;
   cursor: inherit;
@@ -269,7 +269,7 @@
 #overview .vis-custom-time.overview-lens-right-time div,
 #overview .vis-custom-time.overview-lens-left-time div {
   background-color: rgba(0, 0, 0, 0.3);
-  border-color: var(--cs-background-color-light);
+  border-color: var(--cs-background-color);
   border-style: solid;
   width: 200vw !important;
   box-shadow: 0 -1px 3px black inset;
@@ -295,7 +295,7 @@
   z-index: 2;
   position: relative;
   padding: 0;
-  transition: margin-top 0.3s ease;
+  transition: margin-top 0.2s ease;
   background-image: linear-gradient(180deg, rgba(20, 20, 20, 0.4) 80%, rgba(20, 20, 20, 0.0) 100%);
   margin: -39px 0 0;
 }
@@ -308,7 +308,7 @@
   top: 74px;
   height: 2px;
   position: absolute;
-  background-color: var(--cs-background-color-light);
+  background-color: var(--cs-background-color);
   width: calc(50% - 0.5*var(--center-element-width));
   left: 0;
   box-shadow: 0 1px 5px black;
@@ -318,7 +318,7 @@
   top: 74px;
   height: 2px;
   position: absolute;
-  background-color: var(--cs-background-color-light);
+  background-color: var(--cs-background-color);
   width: calc(50% - 0.5*var(--center-element-width));
   right: 0;
   box-shadow: 0 1px 5px black;
@@ -351,7 +351,7 @@
   transform: translateX(-50%);
   background-color: rgba(20, 20, 20, 0.5);
   border-radius: 0 0 50px 50px;
-  border-bottom-color: var(--cs-border-color-light);
+  border-bottom-color: var(--cs-border-color);
   border-bottom-width: 2px;
   border-bottom-style: solid;
   width: var(--center-element-width);
@@ -369,7 +369,7 @@
 }
 
 #timeline-container .btn-main {
-  background-color: var(--cs-background-color-light);
+  background-color: var(--cs-background-color);
   width: 60px;
   height: 40px;
 }
@@ -416,7 +416,7 @@
 
 #expand-control {
   right: 20px;
-  background-color: var(--cs-background-color-light);
+  background-color: var(--cs-background-color);
   border-radius: 0 0 5px 5px;
   top: 75px;
   cursor: pointer;
@@ -542,7 +542,7 @@
 }
 
 #timeline-container .noUi-target .range-label {
-  background-color: var(--cs-background-color-light);
+  background-color: var(--cs-background-color);
 }
 
 #timeline-container .noUi-target:hover .range-label,

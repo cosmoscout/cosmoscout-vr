@@ -52,9 +52,13 @@
   transition: opacity 0.2s linear;
 }
 
-.leaflet-container:hover .leaflet-control-container>div {
+.visible .leaflet-container:hover .leaflet-control-container>div {
   opacity: 1;
   pointer-events: all;
+}
+
+.draggable-window:not(.visible) .leaflet-control {
+  pointer-events: none;
 }
 
 .leaflet-bar {
