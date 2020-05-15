@@ -782,6 +782,7 @@ hr {
   background: rgba(20, 20, 20, 0.8);
   border: 2px solid var(--cs-border-color);
   border-radius: 5px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
 }
 
 .tooltip {
@@ -805,8 +806,8 @@ hr {
   right: 0;
   border-style: solid;
   border-width: 8px;
-  border-bottom-right-radius: 5px;
-  border-color: transparent #ccf #ccf transparent;
+  border-bottom-right-radius: 8px;
+  border-color: transparent var(--cs-background-color) var(--cs-background-color) transparent;
   background: transparent;
   z-index: 99999;
 }
@@ -829,9 +830,10 @@ hr {
   height: 100%;
   display: flex;
   flex-direction: column;
-  background: rgba(10, 10, 10, 0.9);
-  border: 2px solid var(--cs-border-color);
-  border-radius: 5px;
+  background: rgba(10, 10, 10, 0.7);
+  border-top: 2px solid var(--cs-border-color);
+  border-bottom: 2px solid var(--cs-border-color);
+  border-radius: 8px;
   box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
 }
 
@@ -852,7 +854,7 @@ hr {
   overflow: hidden;
   position: relative;
   flex-grow: 1;
-  padding: 5px;
+  padding: 5px 5px 5px 0;
 }
 
 .draggable-window .window-content {
@@ -860,8 +862,15 @@ hr {
   flex-grow: 1;
 }
 
-.draggable-window .window-title:active {
-  top: 1px;
+.draggable-window .window-title span {
+  position: relative;
+  padding-left: 80px;
+  top: 3px;
+  font-size: 1.3rem;
+}
+
+.draggable-window .window-title:active span {
+  top: 4px;
 }
 
 .draggable-window .window-header i {
@@ -869,14 +878,16 @@ hr {
   font-size: 24px;
 }
 
-.draggable-window .window-header span {
-  vertical-align: middle;
-}
-
 .draggable-window .window-title i {
-  padding: 0 10px;
+  position: absolute;
+  color: black;
+  text-shadow: none;
+  background-color: #ccf;
+  top: -8px;
+  font-size: 2.2rem;
+  border-radius: 0 0 80% 0;
+  padding: 5px 20px 5px 15px;
 }
-
 
 .draggable-window.auto-hide-header .window-header::before {
   content: '';
