@@ -563,12 +563,12 @@ Plugin::Settings::Body& Plugin::getBodySettings(std::shared_ptr<LodBody> const& 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Plugin::setImageSource(std::shared_ptr<LodBody> const& body, std::string const& name) const {
-  auto& settings             = getBodySettings(body);
-  settings.mActiveImgDataset = name;
+  auto& settings = getBodySettings(body);
 
   if (name == "None") {
     body->setIMGtileSource(nullptr);
     mGuiManager->getGui()->callJavascript("CosmoScout.lodBodies.setMapDataCopyright", "");
+    settings.mActiveImgDataset = "None";
   } else {
     auto dataset = settings.mImgDatasets.find(name);
     if (dataset == settings.mImgDatasets.end()) {
@@ -577,6 +577,8 @@ void Plugin::setImageSource(std::shared_ptr<LodBody> const& body, std::string co
           name);
       dataset = settings.mImgDatasets.begin();
     }
+
+    settings.mActiveImgDataset = dataset->first;
 
     auto source = std::make_shared<TileSourceWebMapService>();
     source->setCacheDirectory(mPluginSettings->mMapCache.get());
@@ -606,7 +608,7 @@ void Plugin::setElevationSource(
     dataset = settings.mDemDatasets.begin();
   }
 
-  settings.mActiveDemDataset = name;
+  settings.mActiveDemDataset = dataset->first;
 
   auto source = std::make_shared<TileSourceWebMapService>();
   source->setCacheDirectory(mPluginSettings->mMapCache.get());
