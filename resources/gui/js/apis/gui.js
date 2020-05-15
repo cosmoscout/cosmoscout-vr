@@ -494,7 +494,7 @@ class GuiApi extends IApi {
     const dropdown = document.querySelector(`[data-callback="${callbackName}"]`);
     CosmoScout.gui.clearHtml(dropdown);
 
-    $(dropdown).selectpicker('render');
+    $(dropdown).selectpicker('refresh');
   }
 
   /**

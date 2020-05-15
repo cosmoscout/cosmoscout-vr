@@ -2,15 +2,16 @@
   <span>Dataset Selection</span>
 </div>
 
-<div class="row">
+<div class="row mb-1">
   <div class="col-5">
     <label>Image Channel</label>
   </div>
   <div class="col-1">
-    <i class="material-icons" id="lodbodies-img-data-copyright">info</i>
+    <i class="material-icons" style="font-size: 22px; top:-3px;" id="lodbodies-img-data-copyright">info</i>
   </div>
   <div class="col-6">
-    <select data-callback="lodBodies.setTilesImg" class="simple-value-dropdown">
+    <select data-callback="lodBodies.setTilesImg" data-container="#cosmoscout" data-width="100%"
+      class="simple-value-dropdown">
       <!-- Filled by JavaScript Function called from DataBase Manager -->
       <option value="-1">None</option>
     </select>
@@ -22,10 +23,11 @@
     <label>Elevation Channel</label>
   </div>
   <div class="col-1">
-    <i class="material-icons" id="lodbodies-dem-data-copyright">info</i>
+    <i class="material-icons" style="font-size: 22px; top:-3px;" id="lodbodies-dem-data-copyright">info</i>
   </div>
   <div class="col-6">
-    <select data-callback="lodBodies.setTilesDem" class="simple-value-dropdown">
+    <select data-callback="lodBodies.setTilesDem" data-container="#cosmoscout" data-width="100%"
+      class="simple-value-dropdown">
       <!-- Filled by JavaScript Function called from DataBase Manager -->
     </select>
   </div>
@@ -36,12 +38,13 @@
   <span>Color Mapping</span>
 </div>
 
-<div class="row">
+<div class="row mb-1">
   <div class="col-6">
     <span>Colormap</span>
   </div>
   <div class="col-6">
-    <select data-callback="lodBodies.setColormap" class="simple-value-dropdown">
+    <select data-callback="lodBodies.setColormap" data-container="#cosmoscout" data-width="100%"
+      class="simple-value-dropdown">
       <!-- Filled by JavaScript Function -->
     </select>
   </div>
