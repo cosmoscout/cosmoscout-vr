@@ -5,7 +5,7 @@
   top: 0;
   font-size: 1.4rem;
   background-color: rgba(20, 20, 20, 0.5);
-  border: 3px solid var(--cs-border-color);
+  border: 3px solid var(--cs-color-primary);
   border-radius: 8px;
 }
 
@@ -37,7 +37,7 @@
   left: 5px;
   height: 400px;
   width: 5px;
-  background-color: var(--cs-background-color);
+  background-color: var(--cs-color-primary);
 }
 
 .flag .banner {
@@ -45,7 +45,7 @@
   left: 15px;
   right: 0;
   background-color: rgba(20, 20, 20, 0.5);
-  border-top: 5px solid var(--cs-border-color);
+  border-top: 5px solid var(--cs-color-primary);
 }
 
 /* Charts ------------------------------------------------------------------- */
@@ -57,12 +57,12 @@ svg:not(:root) {
 svg .axis path,
 svg .axis line {
   fill: none;
-  stroke: var(--cs-border-color-light);
+  stroke: var(--cs-color-primary);
   shape-rendering: crispEdges;
 }
 
 svg text {
-  fill: var(--cs-border-color-light);
+  fill: var(--cs-color-primary);
 }
 
 .tick line {

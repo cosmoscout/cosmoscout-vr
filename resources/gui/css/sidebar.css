@@ -58,13 +58,13 @@
 #sidebar .sidebar-tab {
   margin-bottom: 10px;
   margin-right: 10px;
-  background-color: rgba(0, 0, 0, 0.6);
-  border-top-right-radius: 8px;
-  border-bottom-right-radius: 8px;
+  background-color: var(--cs-color-background-dark);
+  border-top-right-radius: var(--cs-border-radius-large);
+  border-bottom-right-radius: var(--cs-border-radius-large);
   overflow: hidden;
-  border-bottom: 2px solid var(--cs-background-color);
-  border-top: 2px solid var(--cs-background-color);
-  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.5);
+  border-bottom: 2px solid var(--cs-color-primary);
+  border-top: 2px solid var(--cs-color-primary);
+  box-shadow: var(--cs-box-shadow-medium);
   width: fit-content;
 }
 
@@ -81,7 +81,7 @@
 #sidebar .sidebar-tab:hover>.section-header i {
   color: black;
   text-shadow: none;
-  background-color: var(--cs-background-color);
+  background-color: var(--cs-color-primary);
   top: -15px;
   font-size: 3rem;
 }
@@ -92,8 +92,6 @@
 
 #sidebar .section-header {
   position: relative;
-  color: #fff;
-  text-shadow: 0 0 5px rgba(255, 255, 255, 0.4), 0 0 10px #aaf;
   padding: 4px 10px;
   font-family: 'AlegreyaSansSC', sans-serif;
   overflow-x: hidden;
@@ -144,5 +142,5 @@
 #sidebar .settings-section {
   border-style: dashed;
   border-width: 1px 0 0 0;
-  border-color: rgba(255, 255, 255, 0.4);
+  border-color: var(--cs-color-background-lightest)
 }

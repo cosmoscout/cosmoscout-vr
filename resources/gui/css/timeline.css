@@ -15,7 +15,7 @@
 
 #timeline-container .vis-time-axis .vis-text {
   padding: 1px;
-  color: var(--cs-text-color);
+  color: var(--cs-color-text);
 }
 
 #timeline-container .vis-content {
@@ -30,7 +30,7 @@
 
 #overview,
 #timeline {
-  background-color: rgba(20, 20, 20, 0.5);
+  background-color: var(--cs-color-background-dark);
 }
 
 #overview .vis-timeline:hover,
@@ -39,8 +39,8 @@
 }
 
 #timeline-container .vis-item {
-  background-color: rgba(20, 20, 20, 0.5);
-  color: var(--cs-text-color);
+  background-color: var(--cs-color-background-dark);
+  color: var(--cs-color-text);
   border-width: 2px;
   border-radius: 10px;
   z-index: 5;
@@ -90,9 +90,6 @@
 }
 
 #timeline .vis-item.vis-selected {
-  border-color: rgba(20, 20, 20, 0.5);
-  background-color: rgba(20, 20, 20, 0.5);
-
   /* For some reason active items are translated 3 pixels to the left. We compensate for that here. */
   transform: translateX(3px);
 }
@@ -138,7 +135,7 @@
 }
 
 #timeline .vis-custom-time.center-time {
-  background-color: var(--cs-background-color);
+  background-color: var(--cs-color-primary);
   width: 16px !important;
   height: 16px !important;
   cursor: inherit;
@@ -156,7 +153,7 @@
 }
 
 #timeline .vis-grid.vis-vertical.vis-minor {
-  border-color: var(--cs-border-color-light);
+  border-color: var(--cs-color-primary);
   height: 12px !important;
   top: 22px !important;
   border-width: 2px;
@@ -164,7 +161,7 @@
 }
 
 #timeline .vis-grid.vis-vertical.vis-major {
-  border-color: var(--cs-border-color-light);
+  border-color: var(--cs-color-primary);
   height: 30px !important;
   top: 4px !important;
   border-width: 2px;
@@ -253,7 +250,7 @@
   width: 5px !important;
   height: 5px !important;
   border-radius: 50% !important;
-  background-color: var(--cs-background-color-light);
+  background-color: var(--cs-color-primary-light);
   z-index: 1;
   top: 0 !important;
 }
@@ -268,11 +265,10 @@
 
 #overview .vis-custom-time.overview-lens-right-time div,
 #overview .vis-custom-time.overview-lens-left-time div {
-  background-color: rgba(0, 0, 0, 0.3);
-  border-color: var(--cs-background-color);
+  background-color: var(--cs-color-background-darker);
+  border-color: var(--cs-color-primary);
   border-style: solid;
   width: 200vw !important;
-  box-shadow: 0 -1px 3px black inset;
 }
 
 #overview .vis-custom-time.overview-lens-right-time div {
@@ -308,7 +304,7 @@
   top: 74px;
   height: 2px;
   position: absolute;
-  background-color: var(--cs-background-color);
+  background-color: var(--cs-color-primary);
   width: calc(50% - 0.5*var(--center-element-width));
   left: 0;
   box-shadow: 0 1px 5px black;
@@ -318,7 +314,7 @@
   top: 74px;
   height: 2px;
   position: absolute;
-  background-color: var(--cs-background-color);
+  background-color: var(--cs-color-primary);
   width: calc(50% - 0.5*var(--center-element-width));
   right: 0;
   box-shadow: 0 1px 5px black;
@@ -343,15 +339,14 @@
   font-size: 20px;
   line-height: 35px;
   border-radius: 0;
-  color: var(--cs-text-color);
 }
 
 #time-control {
   left: 50%;
   transform: translateX(-50%);
-  background-color: rgba(20, 20, 20, 0.5);
+  background-color: var(--cs-color-background-dark);
   border-radius: 0 0 50px 50px;
-  border-bottom-color: var(--cs-border-color);
+  border-bottom-color: var(--cs-color-primary);
   border-bottom-width: 2px;
   border-bottom-style: solid;
   width: var(--center-element-width);
@@ -369,7 +364,7 @@
 }
 
 #timeline-container .btn-main {
-  background-color: var(--cs-background-color);
+  background-color: var(--cs-color-primary);
   width: 60px;
   height: 40px;
 }
@@ -416,7 +411,7 @@
 
 #expand-control {
   right: 20px;
-  background-color: var(--cs-background-color);
+  background-color: var(--cs-color-primary);
   border-radius: 0 0 5px 5px;
   top: 75px;
   cursor: pointer;
@@ -542,7 +537,7 @@
 }
 
 #timeline-container .noUi-target .range-label {
-  background-color: var(--cs-background-color);
+  background-color: var(--cs-color-primary);
 }
 
 #timeline-container .noUi-target:hover .range-label,

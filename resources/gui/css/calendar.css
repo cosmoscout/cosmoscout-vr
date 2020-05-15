@@ -27,7 +27,7 @@
 
 .datepicker .datepicker-switch,
 .datepicker .dow {
-  text-shadow: 0 0 5px rgba(255, 255, 255, 0.4), 0 0 10px #aaf;
+  text-shadow: var(--cs-text-glow);
   color: #fff;
   text-transform: uppercase;
 }

@@ -8,7 +8,7 @@
 
 .deletable-mark {
   transition: opacity 0.3s linear, top 0.3s ease;
-  border: 3px solid var(--cs-border-color);
+  border: 3px solid var(--cs-color-primary);
   border-radius: 8px;
   background: rgba(0, 0, 0, 0.5);
 }
@@ -22,7 +22,7 @@
   bottom: 12px;
   border-style: solid;
   border-width: 10px 10px 0 10px;
-  border-color: var(--cs-border-color) transparent transparent transparent;
+  border-color: var(--cs-color-primary) transparent transparent transparent;
 }
 
 .deletable-mark.minimized {
