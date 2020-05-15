@@ -174,8 +174,17 @@ void SolarSystem::update() {
     object->update(simulationTime, mObserver);
   }
 
-  // Update sun position.
-  pSunPosition = mSun->getWorldTransform()[3].xyz();
+  // Update sun position. If a fixed Sun direction is enabled, we must calculate an artificial
+  // position in the current SPICE frame at the same distance as the true Sun would be.
+  auto fixedSunDist2 = glm::length2(mSettings->mGraphics.pFixedSunDirection.get());
+  if (fixedSunDist2 > 0.0 && pActiveBody.get()) {
+    auto trueSunDist = glm::length(mSun->getWorldTransform()[3].xyz());
+    auto fixedSunDir = glm::dvec4(mSettings->mGraphics.pFixedSunDirection.get(), 0.0);
+    pSunPosition =
+        glm::normalize((pActiveBody()->getWorldTransform() * fixedSunDir).xyz()) * trueSunDist;
+  } else {
+    pSunPosition = mSun->getWorldTransform()[3].xyz();
+  }
 
   // Calculate luminous power of the Sun. This can be calculated by multiplying the illuminance at
   // the average distance of Earth with the surface area of a sphere with a radius of the average
@@ -188,7 +197,7 @@ void SolarSystem::update() {
   double const distEarthSun = 1.496e11;
 
   // Luminous power of the Sun in lumens.
-  double sunLuminousPower =
+  double const sunLuminousPower =
       4.0 * glm::pi<double>() * distEarthSun * distEarthSun * sunIlluminanceAtEarth;
 
   // As our scene is always scaled, we have to scale the luminous power of the sun accordingly.

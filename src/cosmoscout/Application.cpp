@@ -1175,6 +1175,14 @@ void Application::registerGuiCallbacks() {
   mSettings->mGraphics.pEnableVsync.connectAndTouch(
       [this](bool enable) { mGuiManager->setCheckboxValue("graphics.setEnableVsync", enable); });
 
+  // Enables or disables the fixed sun position.
+  mGuiManager->getGui()->registerCallback("graphics.setFixedSunDirection",
+      "This makes illumination calculations assume a fixed sun direction in the current SPICE "
+      "frame. Using three zeros disables this feature.",
+      std::function([this](double x, double y, double z) {
+        mSettings->mGraphics.pFixedSunDirection = glm::dvec3(x, y, z);
+      }));
+
   // Bookmark callbacks ----------------------------------------------------------------------------
 
   // Remove bookmarks.
@@ -1581,6 +1589,7 @@ void Application::unregisterGuiCallbacks() {
   mGuiManager->getGui()->unregisterCallback("graphics.setEnableAutoGlow");
   mGuiManager->getGui()->unregisterCallback("graphics.setGlowIntensity");
   mGuiManager->getGui()->unregisterCallback("graphics.setExposureRange");
+  mGuiManager->getGui()->unregisterCallback("graphics.setFixedSunPosition");
   mGuiManager->getGui()->unregisterCallback("navigation.fixHorizon");
   mGuiManager->getGui()->unregisterCallback("navigation.northUp");
   mGuiManager->getGui()->unregisterCallback("navigation.setBody");
