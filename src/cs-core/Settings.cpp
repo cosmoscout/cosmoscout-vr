@@ -210,6 +210,7 @@ void from_json(nlohmann::json const& j, Settings::Graphics& o) {
   Settings::deserialize(j, "ambientBrightness", o.pAmbientBrightness);
   Settings::deserialize(j, "enableAutoGlow", o.pEnableAutoGlow);
   Settings::deserialize(j, "glowIntensity", o.pGlowIntensity);
+  Settings::deserialize(j, "fixedSunDirection", o.pFixedSunDirection);
 }
 
 void to_json(nlohmann::json& j, Settings::Graphics const& o) {
@@ -238,6 +239,7 @@ void to_json(nlohmann::json& j, Settings::Graphics const& o) {
   Settings::serialize(j, "ambientBrightness", o.pAmbientBrightness);
   Settings::serialize(j, "enableAutoGlow", o.pEnableAutoGlow);
   Settings::serialize(j, "glowIntensity", o.pGlowIntensity);
+  Settings::serialize(j, "fixedSunDirection", o.pFixedSunDirection);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
