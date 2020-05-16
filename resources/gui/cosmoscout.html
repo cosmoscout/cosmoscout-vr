@@ -218,10 +218,19 @@
 
                   <div class="row">
                     <div class="col-5">
-                      3D Widget Scale
+                      Main UI Scale
                     </div>
                     <div class="col-7">
-                      <div data-callback="graphics.setWidgetScale"></div>
+                      <div data-callback="graphics.setMainUIScale"></div>
+                    </div>
+                  </div>
+
+                  <div class="row">
+                    <div class="col-5">
+                      World UI Scale
+                    </div>
+                    <div class="col-7">
+                      <div data-callback="graphics.setWorldUIScale"></div>
                     </div>
                   </div>
 
@@ -808,7 +817,8 @@
         CosmoScout.callbacks.graphics.setShadowmapResolution(unencoded, 0);
       });
 
-      CosmoScout.gui.initSlider('graphics.setWidgetScale', 0.2, 2.0, 0.01, [0.6]);
+      CosmoScout.gui.initSlider('graphics.setMainUIScale', 0.2, 4.0, 0.1, [1.0]);
+      CosmoScout.gui.initSlider('graphics.setWorldUIScale', 0.2, 4.0, 0.1, [1.0]);
       CosmoScout.gui.initSlider('graphics.setTerrainHeight', 1.0, 20.0, 0.1, [1]);
       CosmoScout.gui.initSlider("graphics.setLightingQuality", 1.0, 3.0, 1.0, [2.0]);
       CosmoScout.gui.initSlider("graphics.setShadowmapCascades", 1.0, 5.0, 1.0, [3.0]);

@@ -98,6 +98,9 @@ class CS_GUI_EXPORT WebView {
   /// Resize the pages contents to match the given width and height.
   virtual void resize(int width, int height) const;
 
+  /// Sets a scale multiplicator. Should be greater than zero; one is the default level.
+  virtual void setZoomLevel(double level) const;
+
   /// Gives back the color information for the given pixel.
   ///
   /// @return false if the information is not available.

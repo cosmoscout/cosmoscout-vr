@@ -184,6 +184,10 @@ GuiManager::GuiManager(std::shared_ptr<Settings> settings,
         }
       }));
 
+  // Set main UI zoom level.
+  mSettings->mGraphics.pMainUIScale.connectAndTouch(
+      [this](double scale) { mCosmoScoutGui->setZoomLevel(scale); });
+
   // Set settings for the time Navigation
   mSettings->pMinDate.connectAndTouch([this](std::string const& minDate) {
     mCosmoScoutGui->callJavascript(

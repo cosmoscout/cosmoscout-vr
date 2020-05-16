@@ -89,6 +89,14 @@ void WebView::resize(int width, int height) const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void WebView::setZoomLevel(double level) const {
+  if (mBrowser) {
+    mBrowser->GetHost()->SetZoomLevel(std::log2(level));
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 bool WebView::getColor(int x, int y, uint8_t& r, uint8_t& g, uint8_t& b, uint8_t& a) const {
   return mClient->GetInternalRenderHandler()->GetColor(x, y, r, g, b, a);
 }

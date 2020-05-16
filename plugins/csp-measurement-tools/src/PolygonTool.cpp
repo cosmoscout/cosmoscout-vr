@@ -1371,7 +1371,7 @@ void PolygonTool::update() {
   double simulationTime(mTimeControl->pSimulationTime.get());
 
   cs::core::SolarSystem::scaleRelativeToObserver(*mGuiAnchor, mSolarSystem->getObserver(),
-      simulationTime, pScaleDistance.get(), mSettings->mGraphics.pWidgetScale.get());
+      simulationTime, pScaleDistance.get(), mSettings->mGraphics.pWorldUIScale.get());
   cs::core::SolarSystem::turnToObserver(
       *mGuiAnchor, mSolarSystem->getObserver(), simulationTime, false);
 }

@@ -1037,12 +1037,18 @@ void Application::registerGuiCallbacks() {
       [this](double val) { mGuiManager->setSliderValue("graphics.setTerrainHeight", val); });
 
   // Adjusts the global scaling of world-space widgets.
-  mGuiManager->getGui()->registerCallback("graphics.setWidgetScale",
+  mGuiManager->getGui()->registerCallback("graphics.setWorldUIScale",
       "Sets a factor for the scaling of world space user interface elements.",
-      std::function(
-          [this](double val) { mSettings->mGraphics.pWidgetScale = static_cast<float>(val); }));
-  mSettings->mGraphics.pWidgetScale.connectAndTouch(
-      [this](double val) { mGuiManager->setSliderValue("graphics.setWidgetScale", val); });
+      std::function([this](double val) { mSettings->mGraphics.pWorldUIScale = val; }));
+  mSettings->mGraphics.pWorldUIScale.connectAndTouch(
+      [this](double val) { mGuiManager->setSliderValue("graphics.setWorldUIScale", val); });
+
+  // Adjusts the global scaling of screen-space widgets.
+  mGuiManager->getGui()->registerCallback("graphics.setMainUIScale",
+      "Sets a factor for the scaling of main user interface elements.",
+      std::function([this](double val) { mSettings->mGraphics.pMainUIScale = val; }));
+  mSettings->mGraphics.pMainUIScale.connectAndTouch(
+      [this](double val) { mGuiManager->setSliderValue("graphics.setMainUIScale", val); });
 
   // Adjusts the sensor diagonal of the virtual camera.
   mGuiManager->getGui()->registerCallback("graphics.setSensorDiagonal",
@@ -1578,7 +1584,8 @@ void Application::unregisterGuiCallbacks() {
   mGuiManager->getGui()->unregisterCallback("graphics.setShadowmapResolution");
   mGuiManager->getGui()->unregisterCallback("graphics.setShadowmapSplitDistribution");
   mGuiManager->getGui()->unregisterCallback("graphics.setTerrainHeight");
-  mGuiManager->getGui()->unregisterCallback("graphics.setWidgetScale");
+  mGuiManager->getGui()->unregisterCallback("graphics.setMainUIScale");
+  mGuiManager->getGui()->unregisterCallback("graphics.setWorldUIScale");
   mGuiManager->getGui()->unregisterCallback("graphics.setFocalLength");
   mGuiManager->getGui()->unregisterCallback("graphics.setEnableAutoExposure");
   mGuiManager->getGui()->unregisterCallback("graphics.setEnableHDR");

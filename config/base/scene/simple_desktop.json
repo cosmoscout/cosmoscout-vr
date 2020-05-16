@@ -259,7 +259,7 @@
   ],
   "spiceKernel": "../share/config/spice/simple.txt",
   "graphics": {
-    "widgetScale": 0.6
+    "worldUIScale": 0.6
   },
   "anchors": {
     "Barycenter": {
