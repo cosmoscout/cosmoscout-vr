@@ -4,9 +4,19 @@
   --center-element-width: 340px;
 }
 
+#overview,
+#timeline {
+  background-color: var(--cs-color-background-dark);
+}
+
 #timeline-container .vis-timeline {
   border-width: 0;
   cursor: pointer !important;
+}
+
+
+#timeline-container .vis-timeline:hover {
+  background-color: rgba(230, 230, 255, 0.1);
 }
 
 #timeline-container .vis-timeline:active {
@@ -15,28 +25,32 @@
 
 #timeline-container .vis-time-axis .vis-text {
   padding: 1px;
+  pointer-events: none;
   color: var(--cs-color-text);
 }
 
-#timeline-container .vis-content {
-  top: 0 !important;
+.vis-shadow {
+  display: none !important;
 }
 
-.vis-panel .vis-shadow {
-  box-shadow: none;
+.vis-panel {
+  border: none !important;
+}
+
+.vis-panel.vis-center {
+  z-index: 1;
+  height: auto !important;
+}
+
+.vis-background .vis-item {
+  display: none;
+}
+
+.vis-panel>.vis-content {
+  transform: none !important;
 }
 
 /* generic timeline item styles ----------------------------------------------------------------- */
-
-#overview,
-#timeline {
-  background-color: var(--cs-color-background-dark);
-}
-
-#overview .vis-timeline:hover,
-#timeline .vis-timeline:hover {
-  background-color: rgba(230, 230, 255, 0.1);
-}
 
 #timeline-container .vis-item {
   background-color: var(--cs-color-background-dark);
@@ -62,76 +76,37 @@
 
 #timeline-container .vis-item.vis-box,
 #timeline-container .vis-item.vis-range {
-  height: 12px !important;
-  min-width: 12px !important;
-  transition-property: height, top;
+  height: 13px !important;
+  min-width: 13px !important;
+  transition-property: margin, height;
   transition-duration: 0.1s;
   transition-timing-function: ease;
 }
 
 #timeline-container .vis-item.vis-box {
-  width: 12px !important;
-  transition-property: margin, width, height, top;
+  width: 13px !important;
+  transition-property: margin, width, height;
+  margin-left: 1px;
 }
 
 #timeline-container .vis-item.vis-box:hover {
-  width: 18px !important;
-  height: 18px !important;
+  width: 17px !important;
+  height: 17px !important;
+  margin-left: -1px;
+  margin-top: -2px;
 }
 
 #timeline-container .vis-item.vis-range:hover {
-  height: 18px !important;
+  height: 17px !important;
+  margin-top: -2px;
 }
 
 /* main timeline styles ------------------------------------------------------------------------- */
 
-#timeline .vis-time-axis {
-  pointer-events: none;
-}
-
-#timeline .vis-item.vis-selected {
-  /* For some reason active items are translated 3 pixels to the left. We compensate for that here. */
-  transform: translateX(3px);
-}
-
-#timeline .vis-item.vis-box,
-#timeline .vis-item.vis-range {
-  top: 4px !important;
-}
-
-#timeline .vis-item.vis-box:hover {
-  margin-left: -3px;
-  top: 1px !important;
-}
-
-#timeline .vis-item.vis-range:hover {
-  top: 1px !important;
-}
-
-#timeline .vis-panel.vis-bottom {
-  height: 35px !important;
-  top: 0 !important;
-  pointer-events: none;
-  border-left-style: hidden;
-  border-right-style: hidden;
-}
-
 #timeline .vis-text.vis-major {
-  top: 7px !important;
+  top: -16px !important;
   font-size: 9px;
   margin-left: 4px;
-}
-
-#timeline .vis-panel.vis-background.vis-horizontal,
-#timeline .vis-panel.vis-center,
-#timeline .vis-panel.vis-left,
-#timeline .vis-panel.vis-right,
-#timeline .vis-grid.vis-minor {
-  height: 35px !important;
-}
-
-#timeline .vis-group {
-  top: 3px;
 }
 
 #timeline .vis-custom-time.center-time {
@@ -147,7 +122,7 @@
 
 #timeline .vis-minor.vis-text {
   z-index: 1;
-  top: 18px !important;
+  top: 17px !important;
   font-size: 12px;
   margin-left: 4px;
 }
@@ -168,80 +143,25 @@
   margin-left: -1px;
 }
 
-#timeline .vis-panel.vis-center {
-  border-width: 0;
-}
-
 /* overview timeline styles --------------------------------------------------------------------- */
 
 #overview {
   margin-top: -1px;
 }
 
-#overview .vis-time-axis.vis-background {
-  height: 5px;
-  top: 22px;
-  z-index: 2;
-  pointer-events: none;
-}
-
-#overview .vis-time-axis.vis-foreground {
-  height: 43px !important;
-}
-
-#overview .vis-item.vis-box,
-#overview .vis-item.vis-range {
-  top: 13px !important;
-}
-
-#overview .vis-panel.vis-bottom {
-  height: 40px !important;
-  top: -2px !important;
-  pointer-events: none;
-}
-
-#overview .vis-panel.vis-center {
-  border-style: dashed;
-  overflow: visible;
-  z-index: 1;
-}
-
-#overview .vis-item.vis-box {
-  margin-left: 4px;
-}
-
-#overview .vis-item.vis-box:hover {
-  margin-left: 1px;
-  top: 10px !important;
-}
-
-#overview .vis-item.vis-range:hover {
-  top: 10px !important;
-}
-
 #overview .vis-text.vis-major {
-  top: 26px !important;
+  top: -2px;
   font-size: 10px;
   z-index: 1;
 }
 
-#overview .vis-panel.vis-background.vis-horizontal,
-#overview .vis-panel.vis-center,
-#overview .vis-panel.vis-left,
-#overview .vis-panel.vis-right,
-#overview .vis-grid.vis-minor {
-  height: 26px !important;
-}
-
 #overview .vis-group {
-  top: 6px;
+  top: 5px;
 }
 
 #overview .vis-minor.vis-text {
   text-align: center;
-  transform: translate(-50%);
-  z-index: 1;
-  top: 8px !important;
+  top: -3px;
   font-size: 10px;
 }
 
@@ -250,17 +170,25 @@
   width: 5px !important;
   height: 5px !important;
   border-radius: 50% !important;
-  background-color: var(--cs-color-primary-light);
+  background-color: var(--cs-color-text);
   z-index: 1;
-  top: 0 !important;
+  top: 19px !important;
+  border: none;
 }
 
+#overview .vis-panel .vis-axis {
+  border-width: 1px;
+  border-style: dashed;
+  border-color: var(--cs-color-background-lightest) transparent transparent transparent;
+  top: 20px !important;
+}
 
 /* overview focus rect -------------------------------------------------------------------------- */
 
 #overview .vis-custom-time {
   pointer-events: none;
   background-color: transparent;
+  z-index: 0;
 }
 
 #overview .vis-custom-time.overview-lens-right-time div,
