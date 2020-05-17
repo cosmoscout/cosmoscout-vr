@@ -224,10 +224,10 @@ void Plugin::init() {
       [this](float value) { mGuiManager->setSliderValue("lodBodies.setTextureGamma", value); });
 
   mGuiManager->getGui()->registerCallback("lodBodies.setHeightRange",
-      "Sets the height range for the color mapping in kilometers." std::function(
-          [this](double val1, double val2) {
-            mPluginSettings->mHeightRange = glm::vec2(val1, val2);
-          }));
+      "Sets the height range for the color mapping in kilometers.",
+      std::function([this](double val1, double val2) {
+        mPluginSettings->mHeightRange = glm::vec2(val1, val2);
+      }));
   mPluginSettings->mHeightRange.connectAndTouch([this](glm::vec2 const& value) {
     mGuiManager->setSliderValue("lodBodies.setHeightRange", value);
   });
