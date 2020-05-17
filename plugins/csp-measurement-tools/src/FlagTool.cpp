@@ -29,14 +29,15 @@ FlagTool::FlagTool(std::shared_ptr<cs::core::InputManager> const& pInputManager,
     std::shared_ptr<cs::core::TimeControl> const& pTimeControl, std::string const& sCenter,
     std::string const& sFrame)
     : Mark(pInputManager, pSolarSystem, settings, pTimeControl, sCenter, sFrame)
-    , mGuiArea(std::make_unique<cs::gui::WorldSpaceGuiArea>(420, 400))
-    , mGuiItem(std::make_unique<cs::gui::GuiItem>("file://../share/resources/gui/flag.html")) {
+    , mGuiArea(std::make_unique<cs::gui::WorldSpaceGuiArea>(600, 400))
+    , mGuiItem(
+          std::make_unique<cs::gui::GuiItem>("file://{toolZoom}../share/resources/gui/flag.html")) {
   auto* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
 
   mGuiTransform.reset(pSG->NewTransformNode(mAnchor.get()));
-  mGuiTransform->Translate(0.5F - 7.5F / 500.F, 0.5F, 0.F);
-  mGuiTransform->Scale(0.001F * static_cast<float>(mGuiArea->getWidth()),
-      0.001F * static_cast<float>(mGuiArea->getHeight()), 1.F);
+  mGuiTransform->Translate(0.5F, 0.5F, 0.F);
+  mGuiTransform->Scale(0.0005F * static_cast<float>(mGuiArea->getWidth()),
+      0.0005F * static_cast<float>(mGuiArea->getHeight()), 1.F);
   mGuiTransform->Rotate(VistaAxisAndAngle(VistaVector3D(0.0, 1.0, 0.0), -glm::pi<float>() / 2.F));
   mGuiArea->addItem(mGuiItem.get());
   mGuiArea->setUseLinearDepthBuffer(true);
@@ -49,6 +50,10 @@ FlagTool::FlagTool(std::shared_ptr<cs::core::InputManager> const& pInputManager,
 
   mGuiItem->setCanScroll(false);
   mGuiItem->waitForFinishedLoading();
+
+  // We use a zoom factor of 2.0 in order to increae the DPI of our world space UIs.
+  mGuiItem->setZoomFactor(2.0);
+
   mGuiItem->registerCallback("deleteMe", "Call this to delete the tool.",
       std::function([this]() { pShouldDelete = true; }));
   mGuiItem->setCursorChangeCallback([](cs::gui::Cursor c) { cs::core::GuiManager::setCursor(c); });

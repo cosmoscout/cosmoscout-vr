@@ -99,8 +99,9 @@ DipStrikeTool::DipStrikeTool(std::shared_ptr<cs::core::InputManager> const& pInp
     std::shared_ptr<cs::core::TimeControl> const& pTimeControl, std::string const& sCenter,
     std::string const& sFrame)
     : MultiPointTool(pInputManager, pSolarSystem, settings, pTimeControl, sCenter, sFrame)
-    , mGuiArea(std::make_unique<cs::gui::WorldSpaceGuiArea>(420, 225))
-    , mGuiItem(std::make_unique<cs::gui::GuiItem>("file://../share/resources/gui/dipstrike.html")) {
+    , mGuiArea(std::make_unique<cs::gui::WorldSpaceGuiArea>(600, 260))
+    , mGuiItem(std::make_unique<cs::gui::GuiItem>(
+          "file://{toolZoom}../share/resources/gui/dipstrike.html")) {
 
   // create the shader
   mShader.InitVertexShaderFromString(SHADER_VERT);
@@ -132,8 +133,8 @@ DipStrikeTool::DipStrikeTool(std::shared_ptr<cs::core::InputManager> const& pInp
   // create the user interface
   mGuiTransform.reset(pSG->NewTransformNode(mGuiAnchor.get()));
   mGuiTransform->Translate(0.F, 0.9F, 0.F);
-  mGuiTransform->Scale(0.001F * static_cast<float>(mGuiArea->getWidth()),
-      0.001F * static_cast<float>(mGuiArea->getHeight()), 1.F);
+  mGuiTransform->Scale(0.0005F * static_cast<float>(mGuiArea->getWidth()),
+      0.0005F * static_cast<float>(mGuiArea->getHeight()), 1.F);
   mGuiTransform->Rotate(VistaAxisAndAngle(VistaVector3D(0.F, 1.F, 0.F), -glm::pi<float>() / 2.F));
   mGuiArea->addItem(mGuiItem.get());
   mGuiArea->setUseLinearDepthBuffer(true);
@@ -143,6 +144,9 @@ DipStrikeTool::DipStrikeTool(std::shared_ptr<cs::core::InputManager> const& pInp
 
   mGuiItem->setCanScroll(false);
   mGuiItem->waitForFinishedLoading();
+
+  // We use a zoom factor of 2.0 in order to increae the DPI of our world space UIs.
+  mGuiItem->setZoomFactor(2.0);
 
   mGuiItem->registerCallback("deleteMe", "Call this to delete the tool.",
       std::function([this]() { pShouldDelete = true; }));

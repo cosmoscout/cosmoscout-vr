@@ -51,12 +51,12 @@
 
     function initProfileLineGraph() {
 
-      var height = 250;
-      var width = 500;
-      var marginLeft = 110;
-      var marginBottom = 40;
-      var marginRight = 0;
-      var marginTop = 80;
+      var height = 125;
+      var width = 345;
+      var marginLeft = 20;
+      var marginBottom = 30;
+      var marginRight = 20;
+      var marginTop = 35;
 
       var chart_container = d3.select("svg#profile-line-chart")
         .attr("width", width + marginLeft + marginRight)
@@ -75,9 +75,8 @@
 
       // define the y axis
       graph.yAxisPrimary = d3.svg.axis()
-        .innerTickSize(-width)
         .ticks(5)
-        .orient("left")
+        .orient("right")
         .scale(graph.yScalePrimary)
         .tickFormat(function (d) {
           return formatHeight(d);
@@ -95,7 +94,7 @@
       // define the y axis
       graph.yAxisSecondary = d3.svg.axis()
         .ticks(5)
-        .orient("right")
+        .orient("left")
         .scale(graph.yScaleSecondary)
         .tickFormat(function (d) {
           return formatHeight(d);
@@ -116,6 +115,7 @@
       graph.xAxis = d3.svg.axis()
         .ticks(4)
         .innerTickSize(-height)
+        .tickPadding(8)
         .orient("bottom")
         .scale(graph.xScale)
         .tickFormat(function (d) {
@@ -130,15 +130,14 @@
       // now add titles to the y axis
       graph.append("text")
         .attr("class", "yaxis_label")
-        .attr("text-anchor", "middle")
-        .attr("transform", "translate(0,-30)")
+        .attr("transform", "translate(10,-15)")
         .text("Absolute Height");
 
       // now add titles to the secondary y axis
       graph.append("text")
         .attr("class", "xaxis_label")
-        .attr("text-anchor", "middle")
-        .attr("transform", "translate(" + width + ", -30)")
+        .attr("text-anchor", "end")
+        .attr("transform", "translate(" + (width - 10) + ", -15)")
         .text("Relative Height");
 
       // add profile line
@@ -207,8 +206,8 @@
 </head>
 
 <body class="loaded" style="overflow: hidden">
-  <div class="tool-body" style="width: 750px">
-    <div class="d-flex mb-3">
+  <div class="tool-body">
+    <div class="d-flex mb-1">
       <input type='text' class='text-input form-control flex-grow-1' value='Path' />
       <a class="btn light-glass" data-toggle="tooltip" title='Add new Points'
         onclick="window.callNative('setAddPointMode', true)">

@@ -20,12 +20,12 @@
 
   <script type="text/javascript">
 
-    // API calls -----------------------------------------------------------
+    // Private methods used in this file only ------------------------------------------------------
+
     function setHeader(xhr) {
       xhr.setRequestHeader('Access-Control-Allow-Origin', '*');
     }
 
-    // private methods used in this file only ------------------------------
     function formatHeight(height) {
       height = Math.round(height);
       if (height >= 1000000) {
@@ -138,8 +138,9 @@
       }
     }
 
-    // overridden API calls ------------------------------------------------
-    var requestTimer;                //timer identifier
+    // API calls -----------------------------------------------------------------------------------
+
+    var requestTimer;
     function setPosition(long, lat, height) {
       $("#placeholder-1").text(formatLongitude(long) + formatLatitude(lat) + formatHeight(height));
 
