@@ -972,19 +972,8 @@ void Application::registerGuiCallbacks() {
 
   // Adjusts the depth range of the shadowmap.
   mGuiManager->getGui()->registerCallback("graphics.setShadowmapRange",
-      "Sets one end of the shadow distance range. The first parameter is the actual value in "
-      "viewspace, the second specifies which end to set: Zero for the closer end; One for the "
-      "farther end.",
-      std::function([this](double val, double handle) {
-        glm::vec2 range = mSettings->mGraphics.pShadowMapRange.get();
-
-        if (handle == 0.0) {
-          range.x = static_cast<float>(val);
-        } else {
-          range.y = static_cast<float>(val);
-        }
-
-        mSettings->mGraphics.pShadowMapRange = range;
+      "Sets the viewspace shadow distance range.", std::function([this](double val1, double val2) {
+        mSettings->mGraphics.pShadowMapRange = glm::vec2(val1, val2);
       }));
   mSettings->mGraphics.pShadowMapRange.connectAndTouch([this](glm::dvec2 const& val) {
     mGuiManager->setSliderValue("graphics.setShadowmapRange", val);
@@ -992,19 +981,9 @@ void Application::registerGuiCallbacks() {
 
   // Adjusts the additional frustum length for shadowmap rendering in sun space.
   mGuiManager->getGui()->registerCallback("graphics.setShadowmapExtension",
-      "Sets one end of the shadow frustum range in sun direction. The first parameter is the "
-      "actual value in sunspace, the second specifies which end to set: Zero for the closer end; "
-      "One for the farther end.",
-      std::function([this](double val, double handle) {
-        glm::vec2 extension = mSettings->mGraphics.pShadowMapExtension.get();
-
-        if (handle == 0.0) {
-          extension.x = static_cast<float>(val);
-        } else {
-          extension.y = static_cast<float>(val);
-        }
-
-        mSettings->mGraphics.pShadowMapExtension = extension;
+      "Sets the shadow frustum range in sun direction.",
+      std::function([this](double val1, double val2) {
+        mSettings->mGraphics.pShadowMapExtension = glm::vec2(val1, val2);
       }));
   mSettings->mGraphics.pShadowMapExtension.connectAndTouch([this](glm::dvec2 const& val) {
     mGuiManager->setSliderValue("graphics.setShadowmapExtension", val);
@@ -1148,19 +1127,9 @@ void Application::registerGuiCallbacks() {
 
   // Adjusts the exposure range for auto exposure.
   mGuiManager->getGui()->registerCallback("graphics.setExposureRange",
-      "Sets the minimum and maximum value for auto-exposure. The first paramater is the actual "
-      "value in [EV], the second determines which to sets: Zero for the lower end; one for the "
-      "upper end.",
-      std::function([this](double val, double handle) {
-        glm::vec2 range = mSettings->mGraphics.pAutoExposureRange.get();
-
-        if (handle == 0.0) {
-          range.x = static_cast<float>(val);
-        } else {
-          range.y = static_cast<float>(val);
-        }
-
-        mSettings->mGraphics.pAutoExposureRange = range;
+      "Sets the minimum and maximum value in [EV] for auto-exposure.",
+      std::function([this](double val1, double val2) {
+        mSettings->mGraphics.pAutoExposureRange = glm::vec2(val1, val2);
       }));
   mSettings->mGraphics.pAutoExposureRange.connectAndTouch([this](glm::dvec2 const& val) {
     mGuiManager->setSliderValue("graphics.setExposureRange", val);

@@ -455,9 +455,9 @@ class GuiApi extends IApi {
       let callback = CosmoScout.callbacks.find(callbackName);
       if (callback !== undefined) {
         if (Array.isArray(unencoded)) {
-          callback(unencoded[handle], handle);
+          callback(unencoded[0], unencoded[1]);
         } else {
-          callback(unencoded, 0);
+          callback(unencoded);
         }
       }
     });
