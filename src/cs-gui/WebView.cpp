@@ -89,10 +89,9 @@ void WebView::resize(int width, int height) const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void WebView::setZoomLevel(double level) const {
-  if (mBrowser) {
-    mBrowser->GetHost()->SetZoomLevel(std::log2(level * level));
-  }
+void WebView::setZoomFactor(double factor) const {
+  // Each zoom level increses the scale by 20%.
+  mBrowser->GetHost()->SetZoomLevel(std::log(factor) / std::log(1.2));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
