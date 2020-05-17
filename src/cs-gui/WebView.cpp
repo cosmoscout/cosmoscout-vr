@@ -91,7 +91,7 @@ void WebView::resize(int width, int height) const {
 
 void WebView::setZoomLevel(double level) const {
   if (mBrowser) {
-    mBrowser->GetHost()->SetZoomLevel(std::log2(level));
+    mBrowser->GetHost()->SetZoomLevel(std::log2(level * level));
   }
 }
 
