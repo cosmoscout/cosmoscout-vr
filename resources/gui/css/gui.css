@@ -8,8 +8,8 @@
   --cs-color-background-darker: #000000aa;
 
   --cs-color-background-light: #ccccff08;
-  --cs-color-background-lighter: #ccccff15;
-  --cs-color-background-lightest: #ccccff40;
+  --cs-color-background-lighter: #ccccff20;
+  --cs-color-background-lightest: #ccccff60;
 
   --cs-border-radius-small: 3px;
   --cs-border-radius-medium: 5px;
@@ -416,6 +416,16 @@ label.radiolabel:hover {
 label.radiolabel:active {
   top: 1px;
 }
+
+input[type=checkbox]:checked+span.btn {
+  background-color: var(--cs-color-background-lightest);
+  color: var(--cs-color-text-highlight);
+  text-shadow: var(--cs-text-glow);
+  border-top: 1px dashed var(--cs-color-background-lightest);
+  border-right: 1px dashed var(--cs-color-background-lightest);
+  border-left: 1px dashed var(--cs-color-background-lightest);
+}
+
 
 /* Utilities ------------------------------------------------------------------------------------ */
 
