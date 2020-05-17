@@ -451,7 +451,12 @@ class GuiApi extends IApi {
       },
     });
 
-    slider.noUiSlider.on('slide', (values, handle, unencoded) => {
+    var event = 'slide';
+    if (slider.dataset.event) {
+      event = slider.dataset.event;
+    }
+
+    slider.noUiSlider.on(event, (values, handle, unencoded) => {
       let callback = CosmoScout.callbacks.find(callbackName);
       if (callback !== undefined) {
         if (Array.isArray(unencoded)) {
