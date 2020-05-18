@@ -70,12 +70,15 @@ VistaPlanet::~VistaPlanet() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /* virtual */ void VistaPlanet::doShadows() {
-  mLodVisitor.visit();
 
   // get matrices and viewport
   int          frameCount = GetVistaSystem()->GetFrameLoop()->GetFrameCount();
   glm::dmat4   matVM      = getModelviewMatrix();
   glm::fmat4x4 matP       = getProjectionMatrix();
+  glm::ivec4   viewport   = getViewport();
+
+  traverseTileTrees(frameCount, matVM, matP, viewport);
+
   renderTiles(frameCount, matVM, matP, nullptr);
 }
 
