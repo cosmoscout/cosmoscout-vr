@@ -198,15 +198,11 @@
               --output image.png
             </div>
 
-            Color images will be returned in png format with 8 bits per RGB channel.
-            Depth images will be returned as 32 bit floating point grayscale tiff image.
-            Since most image viewers will display this as pure white, you may convert it to 8 bit
-            for visualization. With <a href="https://imagemagick.org/index.php">imagemagick</a>,
-            this can be done like this:
-
-            <div class="card-panel blue-grey darken-3 white-text code">
-              magick capture.tiff -auto-level -auto-gamma normalized.png
-            </div>
+            Images can be retrieved in the png, jpeg, and tiff formats.
+            Color images will always be returned with three 8 bits channels.
+            Depth images will be returned as 32 bit floating point grayscale if the tiff format is
+            used (which is default for depth image requests). If depth images are requested as png
+            or jpeg file, they will be normalized to the 8 bit range.
 
             <table>
               <thead>
@@ -238,6 +234,12 @@
                   <td>50</td>
                   <td>The application will wait this many frames before capturing the image.
                     Increase this, if something seems to be not properly loaded.</td>
+                </tr>
+                <tr>
+                  <td>format</td>
+                  <td>png <br> tiff</td>
+                  <td>This can be either 'png', 'jpeg', or 'tiff'. It defaults to 'png' for color
+                    images and to 'tiff' for depth images.</td>
                 </tr>
                 <tr>
                   <td>depth</td>
