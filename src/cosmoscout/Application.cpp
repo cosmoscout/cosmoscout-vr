@@ -836,7 +836,7 @@ void Application::connectSlots() {
   // Set the observer rotation state.
   mSettings->mObserver.pRotation.connectAndTouch([this](glm::dquat const& r) {
     mGuiManager->getGui()->executeJavascript(
-        fmt::format("CosmoScout.state.observerRotation = [{}, {}, {}, {}];", r.x, r.y, r.z, r.w));
+        fmt::format("CosmoScout.state.observerRotation = [{}, {}, {}, {}];", r.w, r.x, r.y, r.z));
   });
 
   // Show the current speed of the celestial observer in the user interface.
