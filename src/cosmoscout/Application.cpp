@@ -1589,7 +1589,7 @@ void Application::unregisterGuiCallbacks() {
   mGuiManager->getGui()->unregisterCallback("graphics.setEnableAutoGlow");
   mGuiManager->getGui()->unregisterCallback("graphics.setGlowIntensity");
   mGuiManager->getGui()->unregisterCallback("graphics.setExposureRange");
-  mGuiManager->getGui()->unregisterCallback("graphics.setFixedSunPosition");
+  mGuiManager->getGui()->unregisterCallback("graphics.setFixedSunDirection");
   mGuiManager->getGui()->unregisterCallback("navigation.fixHorizon");
   mGuiManager->getGui()->unregisterCallback("navigation.northUp");
   mGuiManager->getGui()->unregisterCallback("navigation.setBody");
