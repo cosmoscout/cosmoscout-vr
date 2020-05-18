@@ -32,14 +32,14 @@
         <!--        converter for select inport on Demultiplexer -->
         <node name="btn_number_toint" type="TypeConvert[unsigned int,int]" />
 
-        <!-- LB Button to button_01 event source -->
-        <node name="LB_to_bool" type="TypeConvert[unsigned int,bool]" />
-        <node name="LB_change_detect" type="ChangeDetect[bool]" />
+        <!-- A Button to button_01 event source -->
+        <node name="A_to_bool" type="TypeConvert[unsigned int,bool]" />
+        <node name="A_change_detect" type="ChangeDetect[bool]" />
         <node name="button_01" tag="button_01" type="EventSource" />
 
-        <!-- RB Button to button_02 event source -->
-        <node name="RB_to_bool" type="TypeConvert[unsigned int,bool]" />
-        <node name="RB_change_detect" type="ChangeDetect[bool]" />
+        <!-- B Button to button_02 event source -->
+        <node name="B_to_bool" type="TypeConvert[unsigned int,bool]" />
+        <node name="B_change_detect" type="ChangeDetect[bool]" />
         <node name="button_02" tag="button_02" type="EventSource" />
     </graph>
     <edges>
@@ -61,20 +61,20 @@
         <edge fromnode="vrpn_button_data" fromport="STATE"
               tonode="get_button" toport="value" />
 
-        <!-- LB Button to button_01 event source -->
-        <edge fromnode="get_button" fromport="4"
-              tonode="LB_to_bool" toport="in" />
-        <edge fromnode="LB_to_bool" fromport="out"
-              tonode="LB_change_detect" toport="in" />
-        <edge fromnode="LB_change_detect" fromport="out"
+        <!-- A Button to button_01 event source -->
+        <edge fromnode="get_button" fromport="0"
+              tonode="A_to_bool" toport="in" />
+        <edge fromnode="A_to_bool" fromport="out"
+              tonode="A_change_detect" toport="in" />
+        <edge fromnode="A_change_detect" fromport="out"
               tonode="button_01" toport="value" />
 
-        <!-- RB Button to button_02 event source -->
-        <edge fromnode="get_button" fromport="5"
-              tonode="RB_to_bool" toport="in" />
-        <edge fromnode="RB_to_bool" fromport="out"
-              tonode="RB_change_detect" toport="in" />
-        <edge fromnode="RB_change_detect" fromport="out"
+        <!-- B Button to button_02 event source -->
+        <edge fromnode="get_button" fromport="1"
+              tonode="B_to_bool" toport="in" />
+        <edge fromnode="B_to_bool" fromport="out"
+              tonode="B_change_detect" toport="in" />
+        <edge fromnode="B_change_detect" fromport="out"
               tonode="button_02" toport="value" />
 
         <!-- Debugging -->
