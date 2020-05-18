@@ -13,12 +13,13 @@
 
 .deletable-mark {
   position: relative;
-  transition: opacity 0.3s linear, top 0.3s ease;
+  transition: opacity 0.2s linear, top 0.2s ease;
   width: 65px;
   border: 4px solid var(--cs-color-primary);
   border-radius: calc(2 * var(--cs-border-radius-large));
   background: var(--cs-color-background-dark);
   margin-bottom: 20px;
+  top: 0;
 }
 
 .deletable-mark .triangle {
@@ -35,5 +36,5 @@
 
 .deletable-mark.minimized {
   opacity: 0;
-  top: 30px
+  top: 10px
 }

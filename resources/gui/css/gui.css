@@ -3,13 +3,14 @@
   --cs-color-text: #ddf;
   --cs-color-text-highlight: #fff;
   --cs-color-primary: #ccf;
+  --cs-color-primary-transparent: #ccccff88;
 
   --cs-color-background-dark: #181818aa;
   --cs-color-background-darker: #000000aa;
 
   --cs-color-background-light: #ccccff08;
   --cs-color-background-lighter: #ccccff20;
-  --cs-color-background-lightest: #ccccff60;
+  --cs-color-background-lightest: #ccccff50;
 
   --cs-border-radius-small: 3px;
   --cs-border-radius-medium: 5px;

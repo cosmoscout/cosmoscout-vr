@@ -59,7 +59,7 @@ svg .axis line {
 }
 
 svg text {
-  fill: var(--cs-color-primary);
+  fill: var(--cs-color-primary-transparent);
 }
 
 .tick line {

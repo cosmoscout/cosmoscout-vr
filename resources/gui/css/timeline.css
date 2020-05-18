@@ -179,7 +179,7 @@
 #overview .vis-panel .vis-axis {
   border-width: 1px;
   border-style: dashed;
-  border-color: var(--cs-color-background-lightest) transparent transparent transparent;
+  border-color: var(--cs-color-primary-transparent) transparent transparent transparent;
   top: 20px !important;
 }
 
