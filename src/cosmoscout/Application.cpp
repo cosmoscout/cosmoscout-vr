@@ -501,10 +501,7 @@ void Application::FrameUpdate() {
     }
 
     // Update the GraphicsEngine.
-    {
-      auto sunTransform = mSolarSystem->getSun()->getWorldTransform();
-      mGraphicsEngine->update(glm::normalize(sunTransform[3].xyz()));
-    }
+    mGraphicsEngine->update(glm::normalize(mSolarSystem->pSunPosition.get()));
   }
 
   // Update the user interface.
