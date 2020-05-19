@@ -11,6 +11,7 @@ install(DIRECTORY "models"    DESTINATION "share/resources")
 install(DIRECTORY "textures"  DESTINATION "share/resources")
 install(DIRECTORY "gui"       DESTINATION "share/resources")
 install(DIRECTORY "icons"     DESTINATION "share/resources")
+install(DIRECTORY "locations" DESTINATION "share/resources")
 
 # chromium embedded framework ----------------------------------------------------------------------
 
