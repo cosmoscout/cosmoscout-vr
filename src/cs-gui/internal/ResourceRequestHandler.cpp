@@ -21,10 +21,23 @@ CefRefPtr<CefResourceHandler> ResourceRequestHandler::GetResourceHandler(
 
   std::string url(request->GetURL().ToString());
 
+  size_t pathStartIndex = 0;
+
+  // We handle requests for local files.
   if (url.find("file://") == 0) {
-    uint64_t const pathStartIndex = 7;
-    std::string    path(url.substr(pathStartIndex));
-    std::string    ext(url.substr(url.find_last_of('.')));
+    pathStartIndex = 7;
+  }
+
+  // Here we skip anything marked with { ... } at the beginning of a file URL. This is explained in
+  // the documentation of WebView::setZoomLevel in great detail. The curly braces are %7B and %7D in
+  // encoded URLs.
+  if (url.find("file://%7B") == 0) {
+    pathStartIndex = url.find("%7D") + 3;
+  }
+
+  if (pathStartIndex > 0) {
+    std::string path(url.substr(pathStartIndex));
+    std::string ext(url.substr(url.find_last_of('.')));
 
     std::ifstream input(path, std::ios::binary);
 

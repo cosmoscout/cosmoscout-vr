@@ -98,6 +98,21 @@ class CS_GUI_EXPORT WebView {
   /// Resize the pages contents to match the given width and height.
   virtual void resize(int width, int height) const;
 
+  /// Sets a scale / zoom multiplicator. Should be greater than zero; one is the default level.
+  /// You should waitForFinishedLoading() before calling this method.
+  ///
+  /// Due to a 'feature' of the Chromium Embedded Framework, all WebViews sharing the same host and
+  /// scheme are zoomed simultaneously. See the below link for a discussion:
+  /// www.magpcss.org/ceforum/viewtopic.php?f=6&t=15167&sid=a17633152e4f453b651d898231f0e76d
+  ///
+  /// Because all WebViews using a "file://../..." URL effectively share the same 'host' and scheme,
+  /// all will be affected by a call to this method. As a workaround, our
+  /// internal/ResourceRequestHandler.cpp will ignore any leading "{...}" in paths when loading
+  /// local files. This way, if you want to load the files "file://../gui/a.html" and
+  /// "file://../gui/b.html", you could load them for example with "file://{zoomA}../gui/a.html" and
+  /// "file://{zoomB}../gui/b.html" in order to prevent simultaneous zooming.
+  virtual void setZoomFactor(double factor) const;
+
   /// Gives back the color information for the given pixel.
   ///
   /// @return false if the information is not available.

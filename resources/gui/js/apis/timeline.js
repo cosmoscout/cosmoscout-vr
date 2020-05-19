@@ -45,7 +45,11 @@ class TimelineApi extends IApi {
         },
     zoomable: false,
     moveable: true,
+    selectable: false,
     showCurrentTime: false,
+    showTooltips: false,
+    showWeekScale: true,
+    orientation: {item: "top"},
     editable: {
       add: true,            // add new items by double tapping
       updateTime: false,    // drag items horizontally
@@ -98,7 +102,12 @@ class TimelineApi extends IApi {
     zoomMin: 100000, // Do not zoom to milliseconds on the overview timeline
     zoomable: true,
     moveable: true,
+    selectable: false,
     showCurrentTime: false,
+    showWeekScale: true,
+    showTooltips: false,
+    zoomFriction: 3,
+    orientation: {item: "top"},
     editable: {
       add: true,            // add new items by double tapping
       updateTime: false,    // drag items horizontally
@@ -170,7 +179,7 @@ class TimelineApi extends IApi {
    * Zoom parameters.
    */
   _timelineRangeFactor = 100000;
-  _zoomPercentage      = 0.002;
+  _zoomPercentage      = 0.004;
   _minRangeFactor      = 5;
   _maxRangeFactor      = 100000000;
 
@@ -599,14 +608,13 @@ class TimelineApi extends IApi {
   }
 
   /**
-   * TODO this iterates over the private _data field from DataSet
    * Shows a tooltip if an item is hovered.
    *
    * @param properties {VisTimelineEvent}
    * @private
    */
   _itemOverCallback(properties) {
-    let bookmark    = this._bookmarks._data[properties.item];
+    let bookmark    = this._bookmarks.get(properties.item);
     const eventRect = properties.event.target.getBoundingClientRect();
 
     CosmoScout.callbacks.bookmark.showTooltip(
@@ -686,7 +694,7 @@ class TimelineApi extends IApi {
   _onMouseUp(properties) {
     if (this._dragDistance < 10) {
       if (properties.item != null) {
-        let bookmark = this._bookmarks._data[properties.item];
+        let bookmark = this._bookmarks.get(properties.item);
         CosmoScout.callbacks.time.setDate(bookmark.start.toISOString(), 3.0);
       } else if (properties.time != null) {
         CosmoScout.callbacks.time.setDate(new Date(properties.time.getTime()).toISOString(), 3.0);

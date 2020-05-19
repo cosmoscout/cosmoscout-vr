@@ -150,7 +150,7 @@ void Mark::update() {
   double simulationTime(mTimeControl->pSimulationTime.get());
 
   SolarSystem::scaleRelativeToObserver(*mAnchor, mSolarSystem->getObserver(), simulationTime,
-      pScaleDistance.get(), mSettings->mGraphics.pWidgetScale.get());
+      pScaleDistance.get(), mSettings->mGraphics.pWorldUIScale.get());
   SolarSystem::turnToObserver(*mAnchor, mSolarSystem->getObserver(), simulationTime, false);
 }
 

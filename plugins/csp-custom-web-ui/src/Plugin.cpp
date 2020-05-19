@@ -138,7 +138,7 @@ void Plugin::update() {
   // Rotate the space items to face the observer.
   for (auto& item : mSpaceItems) {
     cs::core::SolarSystem::scaleRelativeToObserver(*item.mAnchor, mSolarSystem->getObserver(),
-        simulationTime, item.mScale, mAllSettings->mGraphics.pWidgetScale.get());
+        simulationTime, item.mScale, mAllSettings->mGraphics.pWorldUIScale.get());
     cs::core::SolarSystem::turnToObserver(
         *item.mAnchor, mSolarSystem->getObserver(), simulationTime, false);
   }

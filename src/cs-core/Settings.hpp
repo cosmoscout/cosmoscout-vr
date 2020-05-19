@@ -323,7 +323,10 @@ class CS_CORE_EXPORT Settings {
     utils::DefaultProperty<bool> pEnableVsync{true};
 
     /// A multiplicator for the size of worldspace gui-elements.
-    utils::DefaultProperty<float> pWidgetScale{1.F};
+    utils::DefaultProperty<double> pWorldUIScale{1.F};
+
+    /// A multiplicator for the size of screenspace gui-elements.
+    utils::DefaultProperty<double> pMainUIScale{1.F};
 
     /// A multiplicator for terrain height.
     utils::DefaultProperty<float> pHeightScale{1.F};

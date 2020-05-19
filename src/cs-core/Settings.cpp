@@ -186,7 +186,8 @@ void to_json(nlohmann::json& j, Settings::SceneScale const& o) {
 
 void from_json(nlohmann::json const& j, Settings::Graphics& o) {
   Settings::deserialize(j, "enableVsync", o.pEnableVsync);
-  Settings::deserialize(j, "widgetScale", o.pWidgetScale);
+  Settings::deserialize(j, "worldUIScale", o.pWorldUIScale);
+  Settings::deserialize(j, "mainUIScale", o.pMainUIScale);
   Settings::deserialize(j, "heightScale", o.pHeightScale);
   Settings::deserialize(j, "enableHDR", o.pEnableHDR);
   Settings::deserialize(j, "enableLighting", o.pEnableLighting);
@@ -215,7 +216,8 @@ void from_json(nlohmann::json const& j, Settings::Graphics& o) {
 
 void to_json(nlohmann::json& j, Settings::Graphics const& o) {
   Settings::serialize(j, "enableVsync", o.pEnableVsync);
-  Settings::serialize(j, "widgetScale", o.pWidgetScale);
+  Settings::serialize(j, "worldUIScale", o.pWorldUIScale);
+  Settings::serialize(j, "mainUIScale", o.pMainUIScale);
   Settings::serialize(j, "heightScale", o.pHeightScale);
   Settings::serialize(j, "enableHDR", o.pEnableHDR);
   Settings::serialize(j, "enableLighting", o.pEnableLighting);

@@ -63,7 +63,7 @@
     }
   ],
   "spiceKernel": "../share/config/spice/simple.txt",
-  "widgetScale": 0.8,
+  "graphics": {},
   "enableMouseRay": true,
   "enableSensorSizeControl": false,
   "gui": {

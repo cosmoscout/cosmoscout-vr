@@ -224,34 +224,18 @@ void Plugin::init() {
       [this](float value) { mGuiManager->setSliderValue("lodBodies.setTextureGamma", value); });
 
   mGuiManager->getGui()->registerCallback("lodBodies.setHeightRange",
-      "Sets one end of the height range for the color mapping. The first parameter is the actual "
-      "value, the second specifies which end to set: Zero for the lower end; One for the upper "
-      "end.",
-      std::function([this](double val, double handle) {
-        auto range = mPluginSettings->mHeightRange.get();
-        if (handle == 0.0) {
-          range.x = static_cast<float>(val * 1000);
-        } else {
-          range.y = static_cast<float>(val * 1000);
-        }
-        mPluginSettings->mHeightRange = range;
+      "Sets the height range for the color mapping in kilometers.",
+      std::function([this](double val1, double val2) {
+        mPluginSettings->mHeightRange = glm::vec2(val1, val2);
       }));
   mPluginSettings->mHeightRange.connectAndTouch([this](glm::vec2 const& value) {
     mGuiManager->setSliderValue("lodBodies.setHeightRange", value);
   });
 
   mGuiManager->getGui()->registerCallback("lodBodies.setSlopeRange",
-      "Sets one end of the slope range for the color mapping. The first parameter is the actual "
-      "value, the second specifies which end to set: Zero for the lower end; One for the upper "
-      "end.",
-      std::function([this](double val, double handle) {
-        auto range = mPluginSettings->mSlopeRange.get();
-        if (handle == 0.0) {
-          range.x = static_cast<float>(cs::utils::convert::toRadians(val));
-        } else {
-          range.y = static_cast<float>(cs::utils::convert::toRadians(val));
-        }
-        mPluginSettings->mSlopeRange = range;
+      "Sets the slope range for the color mapping in degrees.",
+      std::function([this](double val1, double val2) {
+        mPluginSettings->mSlopeRange = glm::vec2(val1, val2);
       }));
   mPluginSettings->mSlopeRange.connectAndTouch([this](glm::vec2 const& value) {
     mGuiManager->setSliderValue("lodBodies.setSlopeRange", value);

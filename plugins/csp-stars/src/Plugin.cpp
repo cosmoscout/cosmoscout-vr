@@ -145,17 +145,8 @@ void Plugin::init() {
       [this](float value) { mGuiManager->setSliderValue("stars.setSize", value); });
 
   mGuiManager->getGui()->registerCallback("stars.setMagnitude",
-      "Sets the maximum or minimum magnitude for stars. The first value is the magnitude, the "
-      "second determines wich end to set: Zero for the minimum magnitude; one for the maximum "
-      "magnitude.",
-      std::function([this](double val, double handle) {
-        auto range = mPluginSettings.mMagnitudeRange.get();
-        if (handle == 0.0) {
-          range.x = static_cast<float>(val);
-        } else {
-          range.y = static_cast<float>(val);
-        }
-        mPluginSettings.mMagnitudeRange = range;
+      "Sets the magnitude range for stars.", std::function([this](double val1, double val2) {
+        mPluginSettings.mMagnitudeRange = glm::vec2(val1, val2);
       }));
   mPluginSettings.mMagnitudeRange.connectAndTouch(
       [this](glm::vec2 const& value) { mGuiManager->setSliderValue("stars.setMagnitude", value); });

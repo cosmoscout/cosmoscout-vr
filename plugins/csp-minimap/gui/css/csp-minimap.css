@@ -63,7 +63,7 @@
 
 .leaflet-bar {
   background-color: rgba(20, 20, 20, 0.8);
-  border: 2px solid var(--cs-text-color-darkened);
+  border: 2px solid var(--cs-color-primary);
   box-shadow: 0 1px 5px rgba(0, 0, 0, 0.3);
 }
 
@@ -74,7 +74,7 @@
 .leaflet-bar a.leaflet-disabled,
 .leaflet-bar a {
   position: relative;
-  color: var(--cs-text-color);
+  color: var(--cs-color-text);
   border: none !important;
   border-radius: 0 !important;
   background-color: rgba(230, 230, 255, 0.1);

@@ -69,8 +69,9 @@ PathTool::PathTool(std::shared_ptr<cs::core::InputManager> const& pInputManager,
     std::shared_ptr<cs::core::TimeControl> const& pTimeControl, std::string const& sCenter,
     std::string const& sFrame)
     : MultiPointTool(pInputManager, pSolarSystem, settings, pTimeControl, sCenter, sFrame)
-    , mGuiArea(std::make_unique<cs::gui::WorldSpaceGuiArea>(760, 475))
-    , mGuiItem(std::make_unique<cs::gui::GuiItem>("file://../share/resources/gui/path.html")) {
+    , mGuiArea(std::make_unique<cs::gui::WorldSpaceGuiArea>(800, 475))
+    , mGuiItem(
+          std::make_unique<cs::gui::GuiItem>("file://{toolZoom}../share/resources/gui/path.html")) {
 
   // create the shader
   mShader.InitVertexShaderFromString(SHADER_VERT);
@@ -97,8 +98,8 @@ PathTool::PathTool(std::shared_ptr<cs::core::InputManager> const& pInputManager,
   // create the user interface
   mGuiTransform.reset(pSG->NewTransformNode(mGuiAnchor.get()));
   mGuiTransform->Translate(0.F, 0.9F, 0.F);
-  mGuiTransform->Scale(0.001F * static_cast<float>(mGuiArea->getWidth()),
-      0.001F * static_cast<float>(mGuiArea->getHeight()), 1.F);
+  mGuiTransform->Scale(0.0005F * static_cast<float>(mGuiArea->getWidth()),
+      0.0005F * static_cast<float>(mGuiArea->getHeight()), 1.F);
   mGuiTransform->Rotate(VistaAxisAndAngle(VistaVector3D(0.0, 1.0, 0.0), -glm::pi<float>() / 2.F));
   mGuiArea->addItem(mGuiItem.get());
   mGuiArea->setUseLinearDepthBuffer(true);
@@ -108,6 +109,9 @@ PathTool::PathTool(std::shared_ptr<cs::core::InputManager> const& pInputManager,
 
   mGuiItem->setCanScroll(false);
   mGuiItem->waitForFinishedLoading();
+
+  // We use a zoom factor of 2.0 in order to increae the DPI of our world space UIs.
+  mGuiItem->setZoomFactor(2.0);
 
   mGuiItem->registerCallback("deleteMe", "Call this to delete the tool.",
       std::function([this]() { pShouldDelete = true; }));
@@ -317,7 +321,7 @@ void PathTool::update() {
   double simulationTime(mTimeControl->pSimulationTime.get());
 
   cs::core::SolarSystem::scaleRelativeToObserver(*mGuiAnchor, mSolarSystem->getObserver(),
-      simulationTime, pScaleDistance.get(), mSettings->mGraphics.pWidgetScale.get());
+      simulationTime, pScaleDistance.get(), mSettings->mGraphics.pWorldUIScale.get());
   cs::core::SolarSystem::turnToObserver(
       *mGuiAnchor, mSolarSystem->getObserver(), simulationTime, false);
 }

@@ -65,13 +65,17 @@
 #bookmark-tooltip {
   max-width: 300px;
   background-color: rgba(20, 20, 20, 0.8);
-  border: 2px solid var(--cs-text-color-darkened);
+  border: 2px solid var(--cs-color-primary);
   border-radius: 7px;
   box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
 }
 
 #bookmark-tooltip-header {
   display: flex;
+}
+
+#bookmark-tooltip-header a {
+  border-radius: 0;
 }
 
 #bookmark-tooltip-header i {
@@ -101,13 +105,13 @@
 }
 
 #bookmark-tooltip-arrow.top {
-  border-color: var(--cs-text-color-darkened) transparent transparent transparent;
+  border-color: var(--cs-color-primary) transparent transparent transparent;
   border-bottom-width: 0;
   bottom: -10px;
 }
 
 #bookmark-tooltip-arrow.bottom {
-  border-color: transparent transparent var(--cs-text-color-darkened) transparent;
+  border-color: transparent transparent var(--cs-color-primary) transparent;
   border-top-width: 0;
   top: -10px;
 }

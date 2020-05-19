@@ -969,19 +969,8 @@ void Application::registerGuiCallbacks() {
 
   // Adjusts the depth range of the shadowmap.
   mGuiManager->getGui()->registerCallback("graphics.setShadowmapRange",
-      "Sets one end of the shadow distance range. The first parameter is the actual value in "
-      "viewspace, the second specifies which end to set: Zero for the closer end; One for the "
-      "farther end.",
-      std::function([this](double val, double handle) {
-        glm::vec2 range = mSettings->mGraphics.pShadowMapRange.get();
-
-        if (handle == 0.0) {
-          range.x = static_cast<float>(val);
-        } else {
-          range.y = static_cast<float>(val);
-        }
-
-        mSettings->mGraphics.pShadowMapRange = range;
+      "Sets the viewspace shadow distance range.", std::function([this](double val1, double val2) {
+        mSettings->mGraphics.pShadowMapRange = glm::vec2(val1, val2);
       }));
   mSettings->mGraphics.pShadowMapRange.connectAndTouch([this](glm::dvec2 const& val) {
     mGuiManager->setSliderValue("graphics.setShadowmapRange", val);
@@ -989,19 +978,9 @@ void Application::registerGuiCallbacks() {
 
   // Adjusts the additional frustum length for shadowmap rendering in sun space.
   mGuiManager->getGui()->registerCallback("graphics.setShadowmapExtension",
-      "Sets one end of the shadow frustum range in sun direction. The first parameter is the "
-      "actual value in sunspace, the second specifies which end to set: Zero for the closer end; "
-      "One for the farther end.",
-      std::function([this](double val, double handle) {
-        glm::vec2 extension = mSettings->mGraphics.pShadowMapExtension.get();
-
-        if (handle == 0.0) {
-          extension.x = static_cast<float>(val);
-        } else {
-          extension.y = static_cast<float>(val);
-        }
-
-        mSettings->mGraphics.pShadowMapExtension = extension;
+      "Sets the shadow frustum range in sun direction.",
+      std::function([this](double val1, double val2) {
+        mSettings->mGraphics.pShadowMapExtension = glm::vec2(val1, val2);
       }));
   mSettings->mGraphics.pShadowMapExtension.connectAndTouch([this](glm::dvec2 const& val) {
     mGuiManager->setSliderValue("graphics.setShadowmapExtension", val);
@@ -1034,12 +1013,18 @@ void Application::registerGuiCallbacks() {
       [this](double val) { mGuiManager->setSliderValue("graphics.setTerrainHeight", val); });
 
   // Adjusts the global scaling of world-space widgets.
-  mGuiManager->getGui()->registerCallback("graphics.setWidgetScale",
+  mGuiManager->getGui()->registerCallback("graphics.setWorldUIScale",
       "Sets a factor for the scaling of world space user interface elements.",
-      std::function(
-          [this](double val) { mSettings->mGraphics.pWidgetScale = static_cast<float>(val); }));
-  mSettings->mGraphics.pWidgetScale.connectAndTouch(
-      [this](double val) { mGuiManager->setSliderValue("graphics.setWidgetScale", val); });
+      std::function([this](double val) { mSettings->mGraphics.pWorldUIScale = val; }));
+  mSettings->mGraphics.pWorldUIScale.connectAndTouch(
+      [this](double val) { mGuiManager->setSliderValue("graphics.setWorldUIScale", val); });
+
+  // Adjusts the global scaling of screen-space widgets.
+  mGuiManager->getGui()->registerCallback("graphics.setMainUIScale",
+      "Sets a factor for the scaling of main user interface elements.",
+      std::function([this](double val) { mSettings->mGraphics.pMainUIScale = val; }));
+  mSettings->mGraphics.pMainUIScale.connectAndTouch(
+      [this](double val) { mGuiManager->setSliderValue("graphics.setMainUIScale", val); });
 
   // Adjusts the sensor diagonal of the virtual camera.
   mGuiManager->getGui()->registerCallback("graphics.setSensorDiagonal",
@@ -1139,19 +1124,9 @@ void Application::registerGuiCallbacks() {
 
   // Adjusts the exposure range for auto exposure.
   mGuiManager->getGui()->registerCallback("graphics.setExposureRange",
-      "Sets the minimum and maximum value for auto-exposure. The first paramater is the actual "
-      "value in [EV], the second determines which to sets: Zero for the lower end; one for the "
-      "upper end.",
-      std::function([this](double val, double handle) {
-        glm::vec2 range = mSettings->mGraphics.pAutoExposureRange.get();
-
-        if (handle == 0.0) {
-          range.x = static_cast<float>(val);
-        } else {
-          range.y = static_cast<float>(val);
-        }
-
-        mSettings->mGraphics.pAutoExposureRange = range;
+      "Sets the minimum and maximum value in [EV] for auto-exposure.",
+      std::function([this](double val1, double val2) {
+        mSettings->mGraphics.pAutoExposureRange = glm::vec2(val1, val2);
       }));
   mSettings->mGraphics.pAutoExposureRange.connectAndTouch([this](glm::dvec2 const& val) {
     mGuiManager->setSliderValue("graphics.setExposureRange", val);
@@ -1575,7 +1550,8 @@ void Application::unregisterGuiCallbacks() {
   mGuiManager->getGui()->unregisterCallback("graphics.setShadowmapResolution");
   mGuiManager->getGui()->unregisterCallback("graphics.setShadowmapSplitDistribution");
   mGuiManager->getGui()->unregisterCallback("graphics.setTerrainHeight");
-  mGuiManager->getGui()->unregisterCallback("graphics.setWidgetScale");
+  mGuiManager->getGui()->unregisterCallback("graphics.setMainUIScale");
+  mGuiManager->getGui()->unregisterCallback("graphics.setWorldUIScale");
   mGuiManager->getGui()->unregisterCallback("graphics.setFocalLength");
   mGuiManager->getGui()->unregisterCallback("graphics.setEnableAutoExposure");
   mGuiManager->getGui()->unregisterCallback("graphics.setEnableHDR");

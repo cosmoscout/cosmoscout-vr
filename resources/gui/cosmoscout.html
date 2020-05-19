@@ -218,10 +218,19 @@
 
                   <div class="row">
                     <div class="col-5">
-                      3D Widget Scale
+                      Main UI Scale
                     </div>
                     <div class="col-7">
-                      <div data-callback="graphics.setWidgetScale"></div>
+                      <div data-callback="graphics.setMainUIScale" data-event="change"></div>
+                    </div>
+                  </div>
+
+                  <div class="row">
+                    <div class="col-5">
+                      World UI Scale
+                    </div>
+                    <div class="col-7">
+                      <div data-callback="graphics.setWorldUIScale"></div>
                     </div>
                   </div>
 
@@ -595,7 +604,7 @@
                 <input type="text" placeholder="Start Date" class="form-control"
                   id="bookmark-editor-start-date">
                 <div class="input-group-append">
-                  <button class="btn glass" type="button" data-toggle="tooltip"
+                  <button class="btn glass fix-rounded-right" type="button" data-toggle="tooltip"
                     title="Use current time"><i class="material-icons">update</i></button>
                 </div>
                 <div class="invalid-feedback"></div>
@@ -606,7 +615,7 @@
                 <input type="text" placeholder="End Date" class="form-control"
                   id="bookmark-editor-end-date">
                 <div class="input-group-append">
-                  <button class="btn glass" type="button" data-toggle="tooltip"
+                  <button class="btn glass fix-rounded-right" type="button" data-toggle="tooltip"
                     title="Use current time"><i class="material-icons">update</i></button>
                 </div>
                 <div class="invalid-feedback"></div>
@@ -627,7 +636,7 @@
               <input type="text" placeholder="Frame" class="form-control"
                 id="bookmark-editor-frame">
               <div class="input-group-append">
-                <button class="btn glass" type="button" data-toggle="tooltip"
+                <button class="btn glass fix-rounded-right" type="button" data-toggle="tooltip"
                   title="Use current Body"><i class="material-icons">place</i></button>
               </div>
               <div class="invalid-feedback"></div>
@@ -643,7 +652,7 @@
               <input id="bookmark-editor-location-z" type="text" class="form-control"
                 placeholder="LocZ">
               <div class="input-group-append">
-                <button class="btn glass" type="button" data-toggle="tooltip"
+                <button class="btn glass fix-rounded-right" type="button" data-toggle="tooltip"
                   title="Use current position"><i class="material-icons">place</i></button>
               </div>
               <div class="invalid-feedback"></div>
@@ -661,7 +670,7 @@
               <input id="bookmark-editor-rotation-w" type="text" class="form-control "
                 placeholder="RotW">
               <div class="input-group-append">
-                <button class="btn glass" type="button" data-toggle="tooltip"
+                <button class="btn glass fix-rounded-right" type="button" data-toggle="tooltip"
                   title="Use current rotation"><i class="material-icons">place</i></button>
               </div>
               <div class="invalid-feedback"></div>
@@ -808,7 +817,8 @@
         CosmoScout.callbacks.graphics.setShadowmapResolution(unencoded, 0);
       });
 
-      CosmoScout.gui.initSlider('graphics.setWidgetScale', 0.2, 2.0, 0.01, [0.6]);
+      CosmoScout.gui.initSlider('graphics.setMainUIScale', 0.5, 3.0, 0.1, [1.0]);
+      CosmoScout.gui.initSlider('graphics.setWorldUIScale', 0.5, 3.0, 0.1, [1.0]);
       CosmoScout.gui.initSlider('graphics.setTerrainHeight', 1.0, 20.0, 0.1, [1]);
       CosmoScout.gui.initSlider("graphics.setLightingQuality", 1.0, 3.0, 1.0, [2.0]);
       CosmoScout.gui.initSlider("graphics.setShadowmapCascades", 1.0, 5.0, 1.0, [3.0]);
