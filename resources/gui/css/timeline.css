@@ -486,7 +486,7 @@
   margin-top: 7px;
   color: var(--cs-color-text);
   font-size: 11pt;
-  border-radius: 2px;
+  border-radius: 4px;
   overflow: hidden;
   background-color: rgba(0, 0, 0, 0.2);
 }
@@ -494,15 +494,14 @@
 #timeline-search-area .btn {
   position: absolute;
   right: 0;
-  line-height: 19px;
+  line-height: 21px;
 }
 
 #timeline-search-area input {
   text-shadow: 1px 1px 1px #000, 0px 0px 1px #000, 1px 1px 5px rgba(0, 0, 0, 0.75);
   transition: width 0.3s ease;
   width: 150px;
-  height: 22px;
-  padding: 0 0 0 3px;
+  padding: 2px 0 2px 5px;
   border: none;
   background: none;
   outline: none;
