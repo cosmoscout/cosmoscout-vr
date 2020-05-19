@@ -1361,13 +1361,11 @@ void Application::registerGuiCallbacks() {
       "Makes the observer fly to the celestial body with the given name. The optional argument "
       "specifies the travel time in seconds (default is 10s).",
       std::function([this](std::string&& name, std::optional<double> duration) {
-        for (auto const& body : mSolarSystem->getBodies()) {
-          if (body->getCenterName() == name) {
-            mSolarSystem->flyObserverTo(
-                body->getCenterName(), body->getFrameName(), duration.value_or(10.0));
-            mGuiManager->showNotification("Travelling", "to " + name, "send");
-            break;
-          }
+        auto body = mSolarSystem->getBody(name);
+        if (body != nullptr) {
+          mSolarSystem->flyObserverTo(
+              body->getCenterName(), body->getFrameName(), duration.value_or(10.0));
+          mGuiManager->showNotification("Travelling", "to " + name, "send");
         }
       }));
 
@@ -1378,13 +1376,12 @@ void Application::registerGuiCallbacks() {
       "specifies the transition time in seconds (default is 10s).",
       std::function([this](std::string&& name, double longitude, double latitude, double height,
                         std::optional<double> duration) {
-        for (auto const& body : mSolarSystem->getBodies()) {
-          if (body->getCenterName() == name) {
-            mSolarSystem->pActiveBody = body;
-            mSolarSystem->flyObserverTo(body->getCenterName(), body->getFrameName(),
-                cs::utils::convert::toRadians(glm::dvec2(longitude, latitude)), height,
-                duration.value_or(10.0));
-          }
+        auto body = mSolarSystem->getBody(name);
+        if (body != nullptr) {
+          mSolarSystem->pActiveBody = body;
+          mSolarSystem->flyObserverTo(body->getCenterName(), body->getFrameName(),
+              cs::utils::convert::toRadians(glm::dvec2(longitude, latitude)), height,
+              duration.value_or(10.0));
         }
       }));
 
