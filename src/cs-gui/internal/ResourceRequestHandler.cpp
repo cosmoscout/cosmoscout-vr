@@ -59,6 +59,8 @@ CefRefPtr<CefResourceHandler> ResourceRequestHandler::GetResourceHandler(
       mime = "image/jpg";
     } else if (ext == ".js") {
       mime = "text/javascript";
+    } else if (ext == ".csv") {
+      mime = "text/csv";
     } else if (ext == ".css") {
       mime = "text/css";
     } else if (ext == ".ttf") {
