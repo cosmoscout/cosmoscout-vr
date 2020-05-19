@@ -41,6 +41,39 @@
         <node name="B_to_bool" type="TypeConvert[unsigned int,bool]" />
         <node name="B_change_detect" type="ChangeDetect[bool]" />
         <node name="button_02" tag="button_02" type="EventSource" />
+
+        <!-- transform x value of orientation Quaternion from LStick Y (-1..1 to 0.2...-0.2) -->
+        <node name="LStickY_to_float" type="TypeConvert[double,float]" />
+        <node name="neg_LStickY" type="Negate[float]" />
+        <node name="orientationXmax" type="ConstantValue[float]" >
+            <param name="value" value="0.2" />
+        </node>
+        <node name="scale_LStickY_to_Xmax" type="Multiply[float]" />
+
+        <!-- transform y value of orientation Quaternion from LStick X (-1..1 to 0.3...-0.3) -->
+        <node name="LStickX_to_float" type="TypeConvert[double,float]" />
+        <node name="neg_LStickX" type="Negate[float]" />
+        <node name="orientationYmax" type="ConstantValue[float]" >
+            <param name="value" value="0.3" />
+        </node>
+        <node name="scale_LStickX_to_Ymax" type="Multiply[float]" />
+
+        <!-- compose orientation Quaternion and translation for intention_transform -->
+        <node name="orientationQuaternion" type="ComposeQuaternion" />
+        <node name="orientationZvalue" type="ConstantValue[float]" >
+            <param name="value" value="0.0" />
+        </node>
+        <node name="orientationWvalue" type="ConstantValue[float]" >
+            <param name="value" value="1.0" />
+        </node>
+        <node name="translationVector" type="ConstantValue[VistaVector3D]" >
+            <param name="value" value="0,0,0" />
+        </node>
+        <node name="pointer_matrix" type="MatrixCompose" />
+        <node name="intention_transform" type="SetTransform" >
+            <param name="object" value="SELECTION_NODE" />
+        </node>
+
     </graph>
     <edges>
         <!-- Buttons Driver -> History -->
@@ -77,69 +110,109 @@
         <edge fromnode="B_change_detect" fromport="out"
               tonode="button_02" toport="value" />
 
+        <!-- transform x value of orientation Quaternion from LStick Y (-1..1 to 0.2...-0.2) -->
+        <edge fromnode="vrpn_analog_data" fromport="VALUE_1"
+              tonode="LStickY_to_float" toport="in" />
+        <edge fromnode="LStickY_to_float" fromport="out"
+              tonode="neg_LStickY" toport="in" />
+        <edge fromnode="neg_LStickY" fromport="out"
+              tonode="scale_LStickY_to_Xmax" toport="first" />
+        <edge fromnode="orientationXmax" fromport="value"
+              tonode="scale_LStickY_to_Xmax" toport="second" />
+
+        <!-- transform y value of orientation Quaternion from LStick X (-1..1 to 0.3...-0.3) -->
+        <edge fromnode="vrpn_analog_data" fromport="VALUE_0"
+              tonode="LStickX_to_float" toport="in" />
+        <edge fromnode="LStickX_to_float" fromport="out"
+              tonode="neg_LStickX" toport="in" />
+        <edge fromnode="neg_LStickX" fromport="out"
+              tonode="scale_LStickX_to_Ymax" toport="first" />
+        <edge fromnode="orientationYmax" fromport="value"
+              tonode="scale_LStickX_to_Ymax" toport="second" />
+
+        <!-- compose orientation Quaternion and translation for intention_transform -->
+        <edge fromnode="scale_LStickY_to_Xmax" fromport="out"
+              tonode="orientationQuaternion" toport="x" />
+        <edge fromnode="scale_LStickX_to_Ymax" fromport="out"
+              tonode="orientationQuaternion" toport="y" />
+        <edge fromnode="orientationZvalue" fromport="value"
+              tonode="orientationQuaternion" toport="z" />
+        <edge fromnode="orientationWvalue" fromport="value"
+              tonode="orientationQuaternion" toport="w" />
+        <!--    compose pointer_matrix and intention_transform from orientationQuaternion and translationVector -->
+        <edge fromnode="orientationQuaternion" fromport="out"
+              tonode="pointer_matrix" toport="orientation" />
+        <edge fromnode="translationVector" fromport="value"
+              tonode="pointer_matrix" toport="translation" />
+        <edge fromnode="pointer_matrix" fromport="out"
+              tonode="intention_transform" toport="in" />
+
+        <!-- TODO: fix: EITHER gamepad or mouse standardinput -->
+
         <!-- Debugging -->
         <!--    Analog Data -->
-        <!--        0 = Left Stick X -->
+        <!--        0 = Left Stick X --
         <edge fromnode="vrpn_analog_data" fromport="VALUE_0"
-              tonode="debug_text" toport="LstickX" />
-        <!--        1 = Left Stick Y -->
+              tonode="debug_text" toport="LStickX" />
+        <!--        1 = Left Stick Y --
         <edge fromnode="vrpn_analog_data" fromport="VALUE_1"
-              tonode="debug_text" toport="LstickY" />
-        <!--        2 = Right Stick X -->
+              tonode="debug_text" toport="LStickY" />
+        <!--        2 = Right Stick X --
         <edge fromnode="vrpn_analog_data" fromport="VALUE_2"
-              tonode="debug_text" toport="RstickX" />
-        <!--        3 = Right Stick Y -->
+              tonode="debug_text" toport="RStickX" />
+        <!--        3 = Right Stick Y --
         <edge fromnode="vrpn_analog_data" fromport="VALUE_3"
-              tonode="debug_text" toport="RstickY" />
-        <!--        4 = Triggers (Left positive, Right negative) -->
+              tonode="debug_text" toport="RStickY" />
+        <!--        4 = Triggers (Left positive, Right negative) --
         <edge fromnode="vrpn_analog_data" fromport="VALUE_4"
               tonode="debug_text" toport="Triggers(LT>0>RT)" />
-        <!--        5 = D-Pad (-1 = nothing, 0 = up, 45 = up-right, 90 = right, etc...) -->
+        <!--        5 = D-Pad (-1 = nothing, 0 = up, 45 = up-right, 90 = right, etc...) --
         <edge fromnode="vrpn_analog_data" fromport="VALUE_5"
               tonode="debug_text" toport="Dpad(-1=nothing, 0°=up)" />
 
         <!--    Button Data -->
-        <!--        0 = A -->
+        <!--        0 = A --
         <edge fromnode="get_button" fromport="0"
               tonode="debug_text" toport="BtnA" />
-        <!--        1 = B -->
+        <!--        1 = B --
         <edge fromnode="get_button" fromport="1"
               tonode="debug_text" toport="BtnB" />
-        <!--        2 = X -->
+        <!--        2 = X --
         <edge fromnode="get_button" fromport="2"
               tonode="debug_text" toport="BtnX" />
-        <!--        3 = Y -->
+        <!--        3 = Y --
         <edge fromnode="get_button" fromport="3"
               tonode="debug_text" toport="BtnY" />
-        <!--        4 = LB (Left Bumper) -->
+        <!--        4 = LB (Left Bumper) --
         <edge fromnode="get_button" fromport="4"
               tonode="debug_text" toport="BtnLB" />
-        <!--        5 = RB (Right Bumper) -->
+        <!--        5 = RB (Right Bumper) --
         <edge fromnode="get_button" fromport="5"
               tonode="debug_text" toport="BtnRB" />
-        <!--        6 = Back -->
+        <!--        6 = Back --
         <edge fromnode="get_button" fromport="6"
               tonode="debug_text" toport="BtnBack" />
-        <!--        7 = Start -->
+        <!--        7 = Start --
         <edge fromnode="get_button" fromport="7"
               tonode="debug_text" toport="BtnStart" />
-        <!--        8 = LS (Left Stick) -->
+        <!--        8 = LS (Left Stick) --
         <edge fromnode="get_button" fromport="8"
               tonode="debug_text" toport="BtnLS" />
-        <!--        9 = RS (Right Stick) -->
+        <!--        9 = RS (Right Stick) --
         <edge fromnode="get_button" fromport="9"
               tonode="debug_text" toport="BtnRS" />
-        <!--       10 = Up (D-Pad Up) -->
+        <!--       10 = Up (D-Pad Up) --
         <edge fromnode="get_button" fromport="10"
               tonode="debug_text" toport="BtnUP" />
-        <!--       11 = Right (D-Pad Right) -->
+        <!--       11 = Right (D-Pad Right) --
         <edge fromnode="get_button" fromport="11"
               tonode="debug_text" toport="BtnRight" />
-        <!--       12 = Down (D-Pad Down) -->
+        <!--       12 = Down (D-Pad Down) --
         <edge fromnode="get_button" fromport="12"
               tonode="debug_text" toport="BtnDown" />
-        <!--       13 = Left (D-Pad Left) -->
+        <!--       13 = Left (D-Pad Left) --
         <edge fromnode="get_button" fromport="13"
               tonode="debug_text" toport="BtnLeft" />
+        <!---->
     </edges>
 </module>
