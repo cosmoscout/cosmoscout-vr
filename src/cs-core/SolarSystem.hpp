@@ -97,8 +97,13 @@ class CS_CORE_EXPORT SolarSystem {
   /// Removes a CelestialBody from the SolarSystem. A call to unregisterAnchor() is not needed,
   /// because it is done automatically.
   void unregisterBody(std::shared_ptr<scene::CelestialBody> const& body);
+
+  /// Returns all registered bodies.
   std::set<std::shared_ptr<scene::CelestialBody>> const& getBodies() const;
-  std::shared_ptr<scene::CelestialBody>                  getBody(std::string const& sCenter) const;
+
+  /// Returns one specific body from the set above. This query ignores the case. So
+  /// getBody("Earth"), getBody("EARTH") or getBody("EaRTh") will all behave the same.
+  std::shared_ptr<scene::CelestialBody> getBody(std::string sCenter) const;
 
   /// Updates all CelestialAnchors, the Sun and the CelestialObservers animations.
   void update();
