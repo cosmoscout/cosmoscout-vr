@@ -12,19 +12,13 @@
   <script type="text/javascript" src="third-party/js/jquery-2.2.3.min.js"></script>
   <script type="text/javascript" src="third-party/js/bootstrap.bundle.min.js"></script>
 
-  <script type="text/javascript" src="js/mars.js"></script>
-  <script type="text/javascript" src="js/moon.js"></script>
-
   <script type="text/javascript" src="js/api.js"></script>
-  <script type="text/javascript" src="js/apis/timeline.js"></script>
+  <script type="text/javascript" src="js/cosmoscout.js"></script>
+  <script type="text/javascript" src="js/apis/geocode.js"></script>
 
   <script type="text/javascript">
 
     // Private methods used in this file only ------------------------------------------------------
-
-    function setHeader(xhr) {
-      xhr.setRequestHeader('Access-Control-Allow-Origin', '*');
-    }
 
     function formatHeight(height) {
       height = Math.round(height);
@@ -53,101 +47,22 @@
         return (long).toFixed(4) + "° E ";
     }
 
-    function toCartesian(longitude, latitude) {
-      var lon = longitude * Math.PI / 180.0;
-      var lat = latitude * Math.PI / 180.0;
-
-      var x = Math.cos(lat) * Math.sin(lon);
-      var y = Math.sin(lat);
-      var z = Math.cos(lat) * Math.cos(lon);
-
-      return [x, y, z];
-    }
-
-    function distSquared(a, b) {
-      return Math.pow(a[0] - b[0], 2) + Math.pow(a[1] - b[1], 2) + Math.pow(a[2] - b[2], 2);
-    }
-
-    function geoCodeReverse(longitude, latitude, callback) {
-      var planet = activePlanetCenter.toLowerCase();
-
-      if (planet === "earth") {
-        $.ajax({
-          url: "https://nominatim.openstreetmap.org/reverse?format=json&lat=" + latitude + "&lon=" + longitude,
-          type: 'GET',
-          dataType: 'json',
-          success: function (data) {
-            var location = "Unknown Location";
-            var a = data.address;
-
-            if (a) {
-              if (a.country) {
-                location = a.country;
-              }
-
-              if (a.city) {
-                location = a.city + ", " + location;
-              } else if (a.town) {
-                location = a.town + ", " + location;
-              }
-
-              var street = a.road;
-
-              if (!street) {
-                street = a.pedestrian;
-              }
-
-              if (street) {
-                if (a.house_number) {
-                  location = street + " " + a.house_number + ", " + location;
-                } else {
-                  location = street + ", " + location;
-                }
-              }
-            }
-
-            callback(location);
-          },
-          error: function () {
-            console.log("Error requesting Data from openstreetmap")
-          },
-          beforeSend: setHeader
-        });
-      } else {
-        if (locations[planet]) {
-          var bestScore;
-          var location = "Unknown Location";
-
-          var queryPos = toCartesian(longitude, latitude);
-
-          var all = Object.keys(locations[planet]);
-          for (var i = all.length - 1; i >= 0; i--) {
-            var loc = locations[planet][all[i]];
-            var pos = toCartesian(loc[2], loc[1]);
-            var dist = distSquared(pos, queryPos);
-
-            if (!bestScore || dist < bestScore) {
-              bestScore = dist;
-              location = all[i];
-            }
-
-          }
-
-          callback(location);
-        }
-      }
-    }
-
     // API calls -----------------------------------------------------------------------------------
 
+    var activePlanetCenter = "";
     var requestTimer;
+
     function setPosition(long, lat, height) {
       $("#placeholder-1").text(formatLongitude(long) + formatLatitude(lat) + formatHeight(height));
 
       clearTimeout(requestTimer);
       requestTimer = setTimeout(function () {
-        geoCodeReverse(long, lat, function (location) {
-          $("#placeholder-2").text(location);
+        CosmoScout.geocode.reverse(activePlanetCenter, long, lat, (location) => {
+          if (location) {
+            $("#placeholder-2").text(location);
+          } else {
+            $("#placeholder-2").text(activePlanetCenter);
+          }
         });
       }, 500);
     }
@@ -156,12 +71,8 @@
       $(".text-input").val(text);
     }
 
-    var activePlanetCenter = "";
-    var activePlanetFrame = "";
-
-    function setActivePlanet(center, frame) {
+    function setActivePlanet(center) {
       activePlanetCenter = center;
-      activePlanetFrame = frame;
     }
 
     function setMinimized(minimize) {
@@ -170,7 +81,13 @@
     }
 
     // entry point ---------------------------------------------------------
-    $(document).ready(function () {
+    var CosmoScout = new CosmoScoutAPI();
+
+    document.addEventListener('DOMContentLoaded', () => {
+      CosmoScout.init(
+        GeoCodeApi
+      );
+
       $('[data-toggle="tooltip"]').tooltip({ delay: 500, placement: "auto", html: false });
       $(".text-input").on("input", () => window.callNative("onSetText", $(".text-input").val()));
     });
