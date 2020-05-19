@@ -49,13 +49,52 @@ namespace {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// Converts a void* to a std::vector<std::byte> (which is given through a void* as well). So this is
-// pretty unsafe, but I think it's the only way to make stb_image write to a std::vector<std::byte>.
-void pngWriteToVector(void* context, void* data, int len) {
+// Appends void* data to a std::vector<std::byte> (which is given through a void* as well). So this
+// is pretty unsafe, but I think it's the only way to make stb_image write to a
+// std::vector<std::byte>.
+void stbWriteToVector(void* context, void* data, int len) {
   auto* vector   = static_cast<std::vector<std::byte>*>(context);
   auto* charData = static_cast<std::byte*>(data);
   // NOLINTNEXTLINE (cppcoreguidelines-pro-bounds-pointer-arithmetic)
-  *vector = std::vector<std::byte>(charData, charData + len);
+  vector->insert(vector->end(), charData, charData + len);
+}
+
+// Encodes the pixel data in "in" to a in-memory tiff in "out".
+template <typename T>
+void tiffWriteToVector(std::vector<std::byte>& out, std::vector<T>& in, uint32_t width,
+    uint32_t height, uint32_t samples, uint32_t bits) {
+
+  std::ostringstream oStream;
+  TIFF*              tiff = TIFFStreamOpen("MemTIFF", &oStream);
+
+  TIFFSetField(tiff, TIFFTAG_IMAGEWIDTH, width);
+  TIFFSetField(tiff, TIFFTAG_IMAGELENGTH, height);
+  TIFFSetField(tiff, TIFFTAG_SAMPLESPERPIXEL, samples);
+  TIFFSetField(tiff, TIFFTAG_BITSPERSAMPLE, bits);
+  TIFFSetField(tiff, TIFFTAG_ORIENTATION, ORIENTATION_TOPLEFT);
+  TIFFSetField(tiff, TIFFTAG_ROWSPERSTRIP, 16);
+  TIFFSetField(tiff, TIFFTAG_COMPRESSION, COMPRESSION_NONE);
+  TIFFSetField(tiff, TIFFTAG_PLANARCONFIG, PLANARCONFIG_CONTIG);
+  TIFFSetField(tiff, TIFFTAG_SAMPLEFORMAT, SAMPLEFORMAT_IEEEFP);
+
+  if (samples == 3) {
+    TIFFSetField(tiff, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_RGB);
+  } else {
+    TIFFSetField(tiff, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_MINISBLACK);
+  }
+
+  for (uint32_t i(0); i < height; ++i) {
+    TIFFWriteScanline(tiff, &in.at((height - i - 1) * width * samples), i);
+  }
+
+  TIFFClose(tiff);
+
+  // Convert the stringstream to a std::vector<std::byte>.
+  std::string s = oStream.str();
+  out.reserve(s.size());
+
+  std::transform(s.begin(), s.end(), std::back_inserter(out),
+      [](char& c) { return static_cast<std::byte>(c); });
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -230,6 +269,13 @@ void Plugin::init() {
     mCaptureHeight = std::clamp(getParam<int32_t>(conn, "height", 600), 10, 2000);
     mCaptureGui    = getParam<std::string>(conn, "gui", "false") == "true";
     mCaptureDepth  = getParam<std::string>(conn, "depth", "false") == "true";
+    mCaptureFormat = getParam<std::string>(conn, "format", mCaptureDepth ? "tiff" : "png");
+
+    if (mCaptureFormat != "png" && mCaptureFormat != "jpeg" && mCaptureFormat != "tiff") {
+      mg_send_http_error(
+          conn, 422, "Only 'png', 'jpeg', or 'tiff' are allowed for the format parameter!");
+      return;
+    }
 
     // This tells the main thread that a capture request is pending.
     mCaptureRequested = true;
@@ -239,11 +285,7 @@ void Plugin::init() {
     mCaptureDone.wait(lock);
 
     // The capture has been captured, return the result!
-    if (mCaptureDepth) {
-      mg_send_http_ok(conn, "image/tiff", mCapture.size());
-    } else {
-      mg_send_http_ok(conn, "image/png", mCapture.size());
-    }
+    mg_send_http_ok(conn, ("image/" + mCaptureFormat).c_str(), mCapture.size());
     mg_write(conn, mCapture.data(), mCapture.size());
   }));
 
@@ -331,7 +373,6 @@ void Plugin::update() {
   // If a screen shot has been requested, we first resize the image to the given size. Then we wait
   // mCaptureDelay frames until we actually read the pixels.
   {
-
     std::lock_guard<std::mutex> lock(mCaptureMutex);
     if (mCaptureRequested) {
       auto* window = GetVistaSystem()->GetDisplayManager()->GetWindows().begin()->second;
@@ -345,73 +386,81 @@ void Plugin::update() {
     // server's worker thread that the screen shot is done.
     if (mCaptureAtFrame > 0 &&
         mCaptureAtFrame == GetVistaSystem()->GetFrameLoop()->GetFrameCount()) {
-      logger().debug("Capturing capture for /capture request: resolution = {}x{}, show gui = {}",
-          mCaptureWidth, mCaptureHeight, mCaptureGui);
+      logger().debug("Capturing capture for /capture request: resolution = {}x{}, show gui = {}, "
+                     "depth = {}, format = {}",
+          mCaptureWidth, mCaptureHeight, mCaptureGui, mCaptureDepth, mCaptureFormat);
 
       auto* window = GetVistaSystem()->GetDisplayManager()->GetWindows().begin()->second;
       window->GetWindowProperties()->GetSize(mCaptureWidth, mCaptureHeight);
 
+      // We encode image data in the main thread as this is not thread-safe.
+      stbi_flip_vertically_on_write(1);
+
+      // Clear last data first.
+      mCapture.clear();
+
       if (mCaptureDepth) {
 
-        // capture the depth component.
+        // Capture the depth component.
         std::vector<float> capture(mCaptureWidth * mCaptureHeight);
         glReadPixels(
             0, 0, mCaptureWidth, mCaptureHeight, GL_DEPTH_COMPONENT, GL_FLOAT, &capture[0]);
 
-        // We retrieve the current scene scale and far-clip distance in order to scale the depth
-        // values to meters.
-        double      nearClip{};
-        double      farClip{};
-        auto const& p = *GetVistaSystem()->GetDisplayManager()->GetProjectionsConstRef().begin();
-        p.second->GetProjectionProperties()->GetClippingRange(nearClip, farClip);
+        if (mCaptureFormat == "tiff") {
+          // We retrieve the current scene scale and far-clip distance in order to scale the depth
+          // values to meters.
+          double      nearClip{};
+          double      farClip{};
+          auto const& p = *GetVistaSystem()->GetDisplayManager()->GetProjectionsConstRef().begin();
+          p.second->GetProjectionProperties()->GetClippingRange(nearClip, farClip);
 
-        float scale = static_cast<float>(farClip * mSolarSystem->getObserver().getAnchorScale());
-        for (auto& f : capture) {
-          f *= scale;
+          float scale = static_cast<float>(farClip * mSolarSystem->getObserver().getAnchorScale());
+          for (auto& f : capture) {
+            f *= scale;
+          }
+
+          // Now write the tiff image.
+          tiffWriteToVector(mCapture, capture, mCaptureWidth, mCaptureHeight, 1, 32);
+
+        } else {
+          // Capture format is png or jpeg, let's convert the depth to 8-bit.
+          std::vector<std::byte> captureByte(mCaptureWidth * mCaptureHeight);
+          for (size_t i(0); i < capture.size(); ++i) {
+            captureByte[i] = static_cast<std::byte>(capture[i] * 255.0);
+          }
+
+          if (mCaptureFormat == "png") {
+            stbi_write_png_to_func(&stbWriteToVector, &mCapture, mCaptureWidth, mCaptureHeight, 1,
+                captureByte.data(), mCaptureWidth);
+          } else {
+            stbi_write_jpg_to_func(&stbWriteToVector, &mCapture, mCaptureWidth, mCaptureHeight, 1,
+                captureByte.data(), 80);
+          }
         }
-
-        // Now write the tiff image.
-        std::ostringstream oStream;
-        TIFF*              out = TIFFStreamOpen("MemTIFF", &oStream);
-
-        TIFFSetField(out, TIFFTAG_IMAGEWIDTH, mCaptureWidth);
-        TIFFSetField(out, TIFFTAG_IMAGELENGTH, mCaptureHeight);
-        TIFFSetField(out, TIFFTAG_SAMPLESPERPIXEL, 1);
-        TIFFSetField(out, TIFFTAG_BITSPERSAMPLE, 32);
-        TIFFSetField(out, TIFFTAG_ORIENTATION, ORIENTATION_TOPLEFT);
-        TIFFSetField(out, TIFFTAG_ROWSPERSTRIP, 16);
-        TIFFSetField(out, TIFFTAG_COMPRESSION, COMPRESSION_NONE);
-        TIFFSetField(out, TIFFTAG_PLANARCONFIG, PLANARCONFIG_CONTIG);
-        TIFFSetField(out, TIFFTAG_SAMPLEFORMAT, SAMPLEFORMAT_IEEEFP);
-        TIFFSetField(out, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_MINISBLACK);
-
-        for (int32_t i(0); i < mCaptureHeight; ++i) {
-          TIFFWriteScanline(out, &capture.at((mCaptureHeight - i - 1) * mCaptureWidth), i);
-        }
-
-        TIFFClose(out);
-
-        // Convert the stringstream to a std::vector<std::byte>.
-        std::string s = oStream.str();
-        mCapture.clear();
-        mCapture.reserve(s.size());
-
-        std::transform(s.begin(), s.end(), std::back_inserter(mCapture),
-            [](char& c) { return static_cast<std::byte>(c); });
 
       } else {
-        // Writing pngs is simpler.
+
+        // Capturing color images is pretty straight-forward.
         std::vector<std::byte> capture(mCaptureWidth * mCaptureHeight * 3);
         glReadPixels(0, 0, mCaptureWidth, mCaptureHeight, GL_RGB, GL_UNSIGNED_BYTE, &capture[0]);
 
-        // We encode the png data in the main thread as this is not thread-safe.
-        stbi_flip_vertically_on_write(1);
-        stbi_write_png_to_func(&pngWriteToVector, &mCapture, mCaptureWidth, mCaptureHeight, 3,
-            capture.data(), mCaptureWidth * 3);
-        stbi_flip_vertically_on_write(0);
+        if (mCaptureFormat == "tiff") {
+          tiffWriteToVector(mCapture, capture, mCaptureWidth, mCaptureHeight, 3, 8);
+        } else if (mCaptureFormat == "png") {
+          stbi_write_png_to_func(&stbWriteToVector, &mCapture, mCaptureWidth, mCaptureHeight, 3,
+              capture.data(), mCaptureWidth * 3);
+        } else {
+          stbi_write_jpg_to_func(
+              &stbWriteToVector, &mCapture, mCaptureWidth, mCaptureHeight, 3, capture.data(), 80);
+        }
       }
 
+      // Restore stb image state to default.
+      stbi_flip_vertically_on_write(0);
+
       mCaptureAtFrame = 0;
+
+      // The capture has been done, notify the worker thread,
       mCaptureDone.notify_one();
     }
   }
