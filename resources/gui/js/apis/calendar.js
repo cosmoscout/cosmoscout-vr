@@ -1,7 +1,7 @@
 /* global IApi, CosmoScout */
 
 /**
- * The loading screen
+ * The Calendar API
  */
 class CalendarApi extends IApi {
   /**
