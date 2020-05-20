@@ -30,7 +30,7 @@
             <param name="num_outports">14</param>
         </node>
         <!--        converter for select inport on Demultiplexer -->
-        <node name="btn_number_toint" type="TypeConvert[unsigned int,int]" />
+        <node name="btn_number_to_int" type="TypeConvert[unsigned int,int]" />
 
         <!-- A Button to button_01 event source -->
         <node name="A_to_bool" type="TypeConvert[unsigned int,bool]" />
@@ -87,9 +87,9 @@
         <!-- DeMUX Buttons -->
         <!--    convert vrpn_button_data::NUMBER to int for Demultiplex::select -->
         <edge fromnode="vrpn_button_data" fromport="NUMBER"
-              tonode="btn_number_toint" toport="in" />
+              tonode="btn_number_to_int" toport="in" />
         <!--    demultiplex buttons -->
-        <edge fromnode="btn_number_toint" fromport="out"
+        <edge fromnode="btn_number_to_int" fromport="out"
               tonode="get_button" toport="select" />
         <edge fromnode="vrpn_button_data" fromport="STATE"
               tonode="get_button" toport="value" />
