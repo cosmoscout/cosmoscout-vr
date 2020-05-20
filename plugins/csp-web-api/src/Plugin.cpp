@@ -426,7 +426,9 @@ void Plugin::update() {
           // Capture format is png or jpeg, let's convert the depth to 8-bit.
           std::vector<std::byte> captureByte(mCaptureWidth * mCaptureHeight);
           for (size_t i(0); i < capture.size(); ++i) {
-            captureByte[i] = static_cast<std::byte>(capture[i] * 255.0);
+            // The funny cast is required for MSVC 14.1 which does not like casting floating point
+            // numbers to std::byte.
+            captureByte[i] = static_cast<std::byte>(static_cast<uint8_t>(capture[i] * 255.0));
           }
 
           if (mCaptureFormat == "png") {

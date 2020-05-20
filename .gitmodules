@@ -43,3 +43,6 @@
 [submodule "externals/json"]
 	path = externals/json
 	url = https://github.com/nlohmann/json.git
+[submodule "externals/stb"]
+	path = externals/stb
+	url = https://github.com/nothings/stb

@@ -23,6 +23,7 @@
 #include "GetSelectionStateNode.hpp"
 #include "ObserverNavigationNode.hpp"
 #include "logger.hpp"
+#include "x11utils.hpp"
 
 #include <VistaBase/VistaTimeUtils.h>
 #include <VistaInterProcComm/Cluster/VistaClusterDataSync.h>
@@ -77,6 +78,26 @@ Application::~Application() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool Application::Init(VistaSystem* pVistaSystem) {
+
+#ifdef HAVE_X11
+  // Setup window Icon and Title on X11. Freeglut does not support setting a window's icon on X11.
+  // It also does not set the XClassHint which is required to properly show the application's name
+  // in various places.
+  auto* glutWindowingToolkit = dynamic_cast<VistaGlutWindowingToolkit*>(
+      GetVistaSystem()->GetDisplayManager()->GetWindowingToolkit());
+
+  // We start with a quick check whether we are actually using freeglut.
+  if (glutWindowingToolkit) {
+
+    // Set the icon.
+    x11utils::setAppIcon("../share/resources/icons/icon.png");
+
+    // Set the title.
+    auto window       = GetVistaSystem()->GetDisplayManager()->GetWindowsConstRef().begin()->second;
+    std::string title = window->GetWindowProperties()->GetTitle();
+    x11utils::setXClassHint(title);
+  }
+#endif
 
   // Make sure that our shaders are found by ViSTA.
   VistaShaderRegistry::GetInstance().AddSearchDirectory("../share/resources/shaders");
