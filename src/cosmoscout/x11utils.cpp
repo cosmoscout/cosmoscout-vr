@@ -22,8 +22,8 @@ namespace x11utils {
 
 void setXClassHint(std::string title) {
 #ifdef HAVE_X11
-  // Setting both, res_name and res_class of the XClassHint structure seems to the window's title
-  // makes it appear in Unity's dash and Gnome Shell's Alt-Tab switcher.
+  // Setting both, res_name and res_class of the XClassHint structure seems to make it appear in
+  // Unity's dash and Gnome Shell's Alt-Tab switcher.
   XClassHint hints;
   hints.res_name  = title.data();
   hints.res_class = title.data();
