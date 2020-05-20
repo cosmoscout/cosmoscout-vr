@@ -222,10 +222,18 @@ echo ""
 echo "Installing tinygltf ..."
 echo ""
 
-cmake -E copy "$EXTERNALS_DIR/tinygltf/json.hpp"          "$INSTALL_DIR/include"
-cmake -E copy "$EXTERNALS_DIR/tinygltf/stb_image.h"       "$INSTALL_DIR/include"
-cmake -E copy "$EXTERNALS_DIR/tinygltf/stb_image_write.h" "$INSTALL_DIR/include"
-cmake -E copy "$EXTERNALS_DIR/tinygltf/tiny_gltf.h"       "$INSTALL_DIR/include"
+cmake -E copy "$EXTERNALS_DIR/tinygltf/json.hpp"    "$INSTALL_DIR/include"
+cmake -E copy "$EXTERNALS_DIR/tinygltf/tiny_gltf.h" "$INSTALL_DIR/include"
+
+# stb ----------------------------------------------------------------------------------------------
+
+echo ""
+echo "Installing stb ..."
+echo ""
+
+cmake -E copy "$EXTERNALS_DIR/stb/stb_image.h"        "$INSTALL_DIR/include"
+cmake -E copy "$EXTERNALS_DIR/stb/stb_image_write.h"  "$INSTALL_DIR/include"
+cmake -E copy "$EXTERNALS_DIR/stb/stb_image_resize.h" "$INSTALL_DIR/include"
 
 # opensg -------------------------------------------------------------------------------------------
 
