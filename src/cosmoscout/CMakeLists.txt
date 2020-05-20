@@ -34,6 +34,16 @@ target_link_libraries(cosmoscout
   cs-core
 )
 
+# X11 is used on Linux to set the application window's name and icon.
+if (X11_FOUND)
+  target_link_libraries(cosmoscout
+    X11::X11
+  )
+  target_compile_options(cosmoscout
+    PRIVATE -DHAVE_X11
+  )
+endif()
+
 # We mark all resource and config files as "header"
 # in order to make sure that no one tries to compile them.
 set_source_files_properties(${RESOUCRE_FILES} PROPERTIES HEADER_FILE_ONLY TRUE)

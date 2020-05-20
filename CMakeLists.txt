@@ -155,8 +155,13 @@ find_package(GLUT REQUIRED)
 find_package(OPENSG REQUIRED)
 find_package(CIVETWEB REQUIRED)
 find_package(VistaCoreLibs REQUIRED 
-  COMPONENTS "VistaBase" "VistaKernel" "VistaKernelOpenSGExt" "VistaOGLExt"
+COMPONENTS "VistaBase" "VistaKernel" "VistaKernelOpenSGExt" "VistaOGLExt"
 )
+
+# X11 is used on Linux to set the application window's name and icon.
+if (UNIX)
+  find_package(X11)
+endif()
 
 # install some files -------------------------------------------------------------------------------
 
