@@ -81,7 +81,7 @@ bool Application::Init(VistaSystem* pVistaSystem) {
 
 #ifdef HAVE_X11
   // Setup window Icon and Title on X11. Freeglut does not support setting a window's icon on X11.
-  // It also does not set the XClassHint which are required to properly show the application's name
+  // It also does not set the XClassHint which is required to properly show the application's name
   // in various places.
   auto* glutWindowingToolkit = dynamic_cast<VistaGlutWindowingToolkit*>(
       GetVistaSystem()->GetDisplayManager()->GetWindowingToolkit());
