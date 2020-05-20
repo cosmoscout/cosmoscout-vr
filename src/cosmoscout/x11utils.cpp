@@ -20,13 +20,17 @@ namespace x11utils {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void setXClassHint(std::string title) {
+void setXClassHint(std::string const& title) {
 #ifdef HAVE_X11
   // Setting both, res_name and res_class of the XClassHint structure seems to make it appear in
   // Unity's dash and Gnome Shell's Alt-Tab switcher.
   XClassHint hints;
-  hints.res_name  = title.data();
-  hints.res_class = title.data();
+
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-const-cast)
+  hints.res_name = const_cast<char*>(title.data());
+
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-const-cast)
+  hints.res_class = const_cast<char*>(title.data());
 
   // Freeglut also does not give access to the native XWindow and XDisplay handles. We use GLX
   // here and hope for the best...

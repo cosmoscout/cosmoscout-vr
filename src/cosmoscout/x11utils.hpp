@@ -13,7 +13,7 @@ namespace x11utils {
 
 /// Freeglut does not set the XClassHint which is required to properly show the application's name
 /// in various places under X11 (for example in Gnome Shell's application switcher).
-void setXClassHint(std::string title);
+void setXClassHint(std::string const& title);
 
 /// Freeglut does not support setting a window's icon on X11. If no .desktop file is used, this
 /// results in empty icons in various places (for example in Gnome Shell's application switcher).
