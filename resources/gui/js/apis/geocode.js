@@ -206,12 +206,12 @@ class GeoCodeApi extends IApi {
    * @private
    */
   _toCartesian(longitude, latitude) {
-    var lon = longitude * Math.PI / 180.0;
-    var lat = latitude * Math.PI / 180.0;
+    const lon = longitude * Math.PI / 180.0;
+    const lat = latitude * Math.PI / 180.0;
 
-    var x = Math.cos(lat) * Math.sin(lon);
-    var y = Math.sin(lat);
-    var z = Math.cos(lat) * Math.cos(lon);
+    const x = Math.cos(lat) * Math.sin(lon);
+    const y = Math.sin(lat);
+    const z = Math.cos(lat) * Math.cos(lon);
 
     return [x, y, z];
   }
