@@ -30,8 +30,8 @@ FlagTool::FlagTool(std::shared_ptr<cs::core::InputManager> const& pInputManager,
     std::string const& sFrame)
     : Mark(pInputManager, pSolarSystem, settings, pTimeControl, sCenter, sFrame)
     , mGuiArea(std::make_unique<cs::gui::WorldSpaceGuiArea>(600, 400))
-    , mGuiItem(
-          std::make_unique<cs::gui::GuiItem>("file://{toolZoom}../share/resources/gui/flag.html")) {
+    , mGuiItem(std::make_unique<cs::gui::GuiItem>(
+          "file://{toolZoom}../share/resources/gui/flag.html", true)) {
   auto* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
 
   mGuiTransform.reset(pSG->NewTransformNode(mAnchor.get()));
@@ -88,7 +88,7 @@ FlagTool::FlagTool(std::shared_ptr<cs::core::InputManager> const& pInputManager,
 
   mGuiItem->registerCallback("minimizeMe", "Call this to minimize the flag.",
       std::function([this]() { pMinimized = true; }));
-  mGuiItem->callJavascript("setActivePlanet", sCenter, sFrame);
+  mGuiItem->callJavascript("setActivePlanet", sCenter);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

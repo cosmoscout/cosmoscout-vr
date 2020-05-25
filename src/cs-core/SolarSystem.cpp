@@ -151,9 +151,16 @@ std::set<std::shared_ptr<scene::CelestialBody>> const& SolarSystem::getBodies() 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::shared_ptr<scene::CelestialBody> SolarSystem::getBody(std::string const& sCenter) const {
+std::shared_ptr<scene::CelestialBody> SolarSystem::getBody(std::string sCenter) const {
+  std::transform(sCenter.begin(), sCenter.end(), sCenter.begin(),
+      [](unsigned char c) { return std::tolower(c); });
+
   for (auto body : mBodies) {
-    if (body->getCenterName() == sCenter) {
+    auto name = body->getCenterName();
+    std::transform(
+        name.begin(), name.end(), name.begin(), [](unsigned char c) { return std::tolower(c); });
+
+    if (name == sCenter) {
       return body;
     }
   }

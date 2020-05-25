@@ -186,8 +186,7 @@ class TimelineApi extends IApi {
   _overviewVisible = false;
 
   init() {
-    this._buttonContainer = document.getElementById('plugin-buttons');
-
+    this._buttonContainer   = document.getElementById('plugin-buttons');
     this._timelineContainer = document.getElementById('timeline');
 
     this._initTimeSpeedSlider();
@@ -365,6 +364,7 @@ class TimelineApi extends IApi {
   }
 
   _initEventListener() {
+    // Zoom main timeline.
     this._timelineContainer.addEventListener('wheel', this._manualZoomTimeline.bind(this), true);
 
     // Handlers for the year / month / day / hour / ... -up-and-down-buttons.
@@ -429,6 +429,45 @@ class TimelineApi extends IApi {
       CosmoScout.calendar.setDate(this._centerTime);
       CosmoScout.calendar.toggle();
     };
+
+    // Search functionality.
+    document.getElementById('timeline-search-button').onclick = ()   => this._executeSearch();
+    document.querySelector('#timeline-search-area input').onkeypress = (e) => {
+      if (e.keyCode == 13) {
+        // Return pressed - try to travel to the location!
+        this._executeSearch();
+      }
+    };
+  }
+
+  _executeSearch() {
+    let query      = document.querySelector('#timeline-search-area input').value;
+    let components = query.split(':');
+    let planet     = CosmoScout.state.activePlanetCenter;
+
+    if (components.length > 1) {
+      if (components[0] != "") {
+        planet = components[0];
+      }
+
+      if (components[1] != "") {
+        query = components[1];
+      } else {
+        // The user entered only a body but no query. Fly to the body!
+        CosmoScout.callbacks.navigation.setBody(planet, 5.0);
+        return;
+      }
+    }
+
+    CosmoScout.geocode.forward(planet, query, (location) => {
+      if (location) {
+        CosmoScout.callbacks.navigation.setBodyLongLatHeightDuration(
+            planet, location.longitude, location.latitude, location.diameter * 1000, 5.0);
+        CosmoScout.notifications.print("Travelling", "to " + location.name, "send");
+      } else {
+        CosmoScout.notifications.print("Not found", "No location matched the query", "error");
+      }
+    });
   }
 
   _togglePause() {
