@@ -84,6 +84,7 @@ MouseRay::MouseRay() {
 
   mRayTransform.reset(sceneGraph->NewTransformNode(intentionNode));
   mRayTransform->SetScale(0.001F, 0.001F, 30.F);
+  mRayTransform->SetTranslation(0.F,0.F,-1.F);
 
   mMouseRayNode.reset(sceneGraph->NewOpenGLNode(mRayTransform.get(), this));
 
