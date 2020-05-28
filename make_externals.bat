@@ -79,6 +79,7 @@ cmake -E make_directory "%INSTALL_DIR%/bin"
 cmake -E make_directory "%INSTALL_DIR%/include"
 
 rem glew -------------------------------------------------------------------------------------------
+:glew
 
 echo.
 echo Downloading, building and installing GLEW ...
@@ -101,6 +102,7 @@ cmake -E copy_directory "%BUILD_DIR%/glew/extracted/glew-2.1.0/lib/Release/x64" 
 cmake -E copy_directory "%BUILD_DIR%/glew/extracted/glew-2.1.0/bin/Release/x64" "%INSTALL_DIR%/bin"     || exit /b
 
 rem  freeglut ---------------------------------------------------------------------------------------
+:freeglut
 
 echo.
 echo Building and installing freeglut ...
@@ -116,6 +118,7 @@ cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PRO
 cmake -E copy_directory "%EXTERNALS_DIR%/freeglut/freeglut/freeglut/include/GL" "%INSTALL_DIR%/include/GL"
 
 rem c-ares -----------------------------------------------------------------------------------------
+:c-ares
 
 echo.
 echo Building and installing c-ares ...
@@ -129,6 +132,7 @@ cmake %CMAKE_FLAGS% -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DCARES_BUILD_TOOLS=OFF^
 cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS%
 
 rem curl -------------------------------------------------------------------------------------------
+:curl
 
 echo.
 echo Building and installing curl ...
@@ -146,6 +150,7 @@ cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
 cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS%
 
 rem curlpp -----------------------------------------------------------------------------------------
+:curlpp
 
 echo.
 echo Building and installing curlpp ...
@@ -167,6 +172,7 @@ cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%" -DCMAKE_UNITY_BUILD=%
 cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS%
 
 rem libtiff ----------------------------------------------------------------------------------------
+:libtiff
 
 echo.
 echo Building and installing libtiff ...
@@ -180,6 +186,7 @@ cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%" -DCMAKE_UNITY_BUILD=%
 cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS%
 
 rem spdlog -----------------------------------------------------------------------------------------
+:spdlog
 
 echo.
 echo Building and installing spdlog ...
@@ -192,6 +199,7 @@ cmake %CMAKE_FLAGS% -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DCMAKE_INSTALL_PREFIX="%INS
 cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS%
 
 rem civetweb -----------------------------------------------------------------------------------------
+:civetweb
 
 echo.
 echo Building and installing civetweb ...
@@ -205,6 +213,7 @@ cmake %CMAKE_FLAGS% -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DCMAKE_INSTALL_PREFIX="%INS
 cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS%
 
 rem jsonhpp ----------------------------------------------------------------------------------------
+:jsonhpp
 
 echo.
 echo Installing jsonHPP ...
@@ -213,6 +222,7 @@ echo.
 cmake -E copy_directory "%EXTERNALS_DIR%/json/include/nlohmann" "%INSTALL_DIR%/include/nlohmann" || exit /b
 
 rem doctest ----------------------------------------------------------------------------------------
+:doctest
 
 echo.
 echo Installing doctest ...
@@ -221,6 +231,7 @@ echo.
 cmake -E copy_directory "%EXTERNALS_DIR%/doctest/doctest" "%INSTALL_DIR%/include/doctest" || exit /b
 
 rem gli --------------------------------------------------------------------------------------------
+:gli
 
 echo.
 echo Installing gli ...
@@ -229,6 +240,7 @@ echo.
 cmake -E copy_directory "%EXTERNALS_DIR%/gli/gli" "%INSTALL_DIR%/include/gli" || exit /b
 
 rem glm --------------------------------------------------------------------------------------------
+:glm
 
 echo.
 echo Installing glm ...
@@ -237,6 +249,7 @@ echo.
 cmake -E copy_directory "%EXTERNALS_DIR%/glm/glm" "%INSTALL_DIR%/include/glm" || exit /b
 
 rem tinygltf ---------------------------------------------------------------------------------------
+:tinygltf
 
 echo.
 echo Installing tinygltf ...
@@ -246,6 +259,7 @@ cmake -E copy "%EXTERNALS_DIR%/tinygltf/json.hpp"    "%INSTALL_DIR%/include" || 
 cmake -E copy "%EXTERNALS_DIR%/tinygltf/tiny_gltf.h" "%INSTALL_DIR%/include" || exit /b
 
 rem stb --------------------------------------------------------------------------------------------
+:stb
 
 echo.
 echo Installing stb ...
@@ -256,6 +270,7 @@ cmake -E copy "%EXTERNALS_DIR%/stb/stb_image_write.h"  "%INSTALL_DIR%/include" |
 cmake -E copy "%EXTERNALS_DIR%/stb/stb_image_resize.h" "%INSTALL_DIR%/include" || exit /b
 
 rem opensg -----------------------------------------------------------------------------------------
+:opensg
 
 echo.
 echo Building and installing opensg-1.8 ...
@@ -272,6 +287,7 @@ cmake %CMAKE_FLAGS% -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DCMAKE_INSTALL_PREFIX="%INS
 cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS%
 
 rem vista ------------------------------------------------------------------------------------------
+:vista
 
 echo.
 echo Building and installing vista ...
@@ -292,6 +308,7 @@ cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%" -DVISTADEMO_ENABLED=O
 cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS%
 
 rem cspice -----------------------------------------------------------------------------------------
+:cspice
 
 echo.
 echo Downloading and installing cspice ...
@@ -331,6 +348,7 @@ if %USING_NINJA%==true (
 )
 
 rem cef --------------------------------------------------------------------------------------------
+:cef
 
 echo.
 echo Downloading bzip2 ...
@@ -391,6 +409,8 @@ if %USING_NINJA%==true (
 )
 
 rem ------------------------------------------------------------------------------------------------
+
+:finish
 
 cd "%CURRENT_DIR%"
 echo Finished successfully.
