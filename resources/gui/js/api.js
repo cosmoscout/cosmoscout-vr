@@ -27,3 +27,5 @@ class IApi {
   update() {
   }
 }
+
+//# sourceLocation=api.js

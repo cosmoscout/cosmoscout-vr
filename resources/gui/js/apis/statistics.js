@@ -173,3 +173,5 @@ class StatisticsApi extends IApi {
     }
   }
 }
+
+//# sourceLocation=statistics.js

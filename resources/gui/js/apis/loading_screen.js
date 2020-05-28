@@ -94,3 +94,5 @@ class LoadingScreenApi extends IApi {
     this._version.innerHTML = text;
   }
 }
+
+//# sourceLocation=loading_screen.js

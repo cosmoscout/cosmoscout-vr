@@ -72,3 +72,5 @@ class CalendarApi extends IApi {
     this._calendar.datepicker('update', date);
   }
 }
+
+//# sourceLocation=calendar.js

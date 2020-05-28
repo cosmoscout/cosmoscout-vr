@@ -315,3 +315,5 @@ class StatusbarApi extends IApi {
     this._enableSuggestionArea(false);
   }
 }
+
+//# sourceLocation=statusbar.js

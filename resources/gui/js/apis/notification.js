@@ -102,3 +102,5 @@ class NotificationApi extends IApi {
     return notification;
   }
 }
+
+//# sourceLocation=notification.js

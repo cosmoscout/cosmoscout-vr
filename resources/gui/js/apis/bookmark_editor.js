@@ -485,3 +485,5 @@ class BookmarkEditorApi extends IApi {
     this._rotationWDiv.value   = "";
   }
 }
+
+//# sourceLocation=bookmark_editor.js

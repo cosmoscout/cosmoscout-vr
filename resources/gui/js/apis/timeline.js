@@ -754,3 +754,5 @@ class TimelineApi extends IApi {
     this._moveWindow();
   }
 }
+
+//# sourceLocation=timeline.js

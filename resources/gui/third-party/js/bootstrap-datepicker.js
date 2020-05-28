@@ -2046,3 +2046,5 @@
 	});
 
 }));
+
+//# sourceLocation=bootstrap-datepicker.js

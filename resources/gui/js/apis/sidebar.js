@@ -145,3 +145,5 @@ class SidebarApi extends IApi {
     return name.split(' ').join('-');
   }
 }
+
+//# sourceLocation=sidebar.js

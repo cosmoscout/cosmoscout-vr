@@ -105,3 +105,5 @@ class CosmoScoutAPI {
     delete this[name];
   }
 }
+
+//# sourceLocation=cosmoscout.js

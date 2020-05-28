@@ -597,3 +597,5 @@ class GuiApi extends IApi {
     element.dispatchEvent(evt);
   }
 }
+
+//# sourceLocation=gui.js

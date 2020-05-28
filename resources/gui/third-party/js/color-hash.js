@@ -171,3 +171,5 @@ module.exports = ColorHash;
 
 },{"./bkdr-hash":1}]},{},[2])(2)
 });
+
+//# sourceLocation=color-hash.js

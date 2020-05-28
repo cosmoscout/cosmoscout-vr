@@ -293,3 +293,5 @@ if (typeof module !== 'undefined' && module.exports) {
 }
 
 })();
+
+//# sourceLocation=fuzzyset.js
