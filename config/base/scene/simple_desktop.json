@@ -454,35 +454,72 @@
               "url": "https://neo.sci.gsfc.nasa.gov/wms/wms?SERVICE=WMS&REQUEST=GetMap&VERSION=1.3.0&CRS=CRS:84&BBOX=-180,-90,180,90&FORMAT=image/png",
               "width": 1600,
               "height": 800,
-              "time": "2000-02-24/2000-04-25/P1D,2000-04-28/2000-08-05/P1D,2000-08-18/2000-12-30/P1D,2001-01-01/2001-06-15/P1D,2001-07-03/2002-03-19/P1D,2002-03-29/2002-04-14/P1D,2002-04-16/2003-12-16/P1D,2003-12-24/2004-12-30/P1D,2005-01-01/2008-12-20/P1D,2008-12-23/2008-12-30/P1D,2009-01-01/2012-12-30/P1D,2013-01-01/2016-02-18/P1D,2016-02-28/2016-12-30/P1D,2017-01-01/2019-11-30/P1D",
+              "time": "2000-02-24/2000-04-25/P1D,2000-04-28/2000-08-05/P1D,2000-08-18/2000-12-30/P1D,2001-01-01/2001-06-15/P1D,2001-07-03/2002-03-19/P1D,2002-03-29/2002-04-14/P1D,2002-04-16/2003-12-16/P1D,2003-12-24/2004-12-30/P1D,2005-01-01/2008-12-20/P1D,2008-12-23/2008-12-30/P1D,2009-01-01/2012-12-30/P1D,2013-01-01/2016-02-18/P1D,2016-02-28/2016-12-30/P1D,2017-01-01/2020-05-27/P1D",
               "layers": "MOD_LSTD_D",
-              "preFetch": 5
+              "preFetch": 1
             },
             "Land Surface Temperature [Day] (1 Month - MODIS)": {
               "copyright": "NASA",
               "url": "https://neo.sci.gsfc.nasa.gov/wms/wms?SERVICE=WMS&REQUEST=GetMap&VERSION=1.3.0&CRS=CRS:84&BBOX=-180,-90,180,90&FORMAT=image/png",
               "width": 1600,
               "height": 800,
-              "time": "2000-02-01/2019-11-01/P1M",
+              "time": "2000-02-01/2020-04-01/P1M",
               "layers": "MOD_LSTD_M",
-              "preFetch": 5
+              "preFetch": 1
             },
-            "Calibrated Radar Composite (RW)": {
-              "copyright": "DWD",
-              "url": "https://maps.dwd.de/geoserver/ows?service=wms&version=1.3.0&request=GetMap&CRS=EPSG:1000001&BBOX=-180,-90,180,90&FORMAT=image/png",
+            "Vegetation Index (Monthly, Best Available, MODIS, Aqua)": {
+              "copyright": "NASA",
+              "url": "https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi?SERVICE=WMS&REQUEST=GetMap&VERSION=1.3.0&CRS=EPSG:4326&BBOX=-90,-180,90,180&TRANSPARENT=true&FORMAT=image%2Fpng",
               "width": 1600,
               "height": 800,
-              "time": "2020-05-27T13:00:00.000Z/2020-05-28T13:00:00.000Z/PT10M",
-              "layers": "dwd:RADOLAN-RW",
-              "preFetch": 5
+              "time": "2002-07-01/2020-04-01/P1M",
+              "layers": "MODIS_Aqua_L3_NDVI_Monthly",
+              "preFetch": 1
             },
-            "Radar Forecast (RX Basis)": {
-              "copyright": "DWD",
-              "url": "https://maps.dwd.de/geoserver/ows?service=wms&version=1.3.0&request=GetMap&CRS=EPSG:1000001&BBOX=-180,-90,180,90&FORMAT=image/png",
+            "Nitrogen Dioxide (Tropospheric Column, OMI, Aura)": {
+              "copyright": "NASA",
+              "url": "https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi?SERVICE=WMS&REQUEST=GetMap&VERSION=1.3.0&CRS=EPSG:4326&BBOX=-90,-180,90,180&TRANSPARENT=true&FORMAT=image%2Fpng",
               "width": 1600,
               "height": 800,
-              "time": "2020-05-28T13:20:00.000Z,2020-05-28T13:25:00.000Z,2020-05-28T13:30:00.000Z,2020-05-28T13:35:00.000Z,2020-05-28T13:40:00.000Z,2020-05-28T13:45:00.000Z,2020-05-28T13:50:00.000Z,2020-05-28T13:55:00.000Z,2020-05-28T14:00:00.000Z,2020-05-28T14:05:00.000Z,2020-05-28T14:10:00.000Z,2020-05-28T14:15:00.000Z,2020-05-28T14:20:00.000Z,2020-05-28T14:25:00.000Z,2020-05-28T14:30:00.000Z,2020-05-28T14:35:00.000Z,2020-05-28T14:40:00.000Z,2020-05-28T14:45:00.000Z,2020-05-28T14:50:00.000Z,2020-05-28T14:55:00.000Z,2020-05-28T15:00:00.000Z,2020-05-28T15:05:00.000Z,2020-05-28T15:10:00.000Z,2020-05-28T15:15:00.000Z,2020-05-28T15:20:00.000Z,2020-05-28T15:25:00.000Z",
-              "layers": "dwd:FX-Produkt"
+              "time": "2004-10-01/current/P1D",
+              "layers": "OMI_Nitrogen_Dioxide_Tropo_Column",
+              "preFetch": 1
+            },
+            "Ozone (DOAS, v3, Standard, OMI, Aura)": {
+              "copyright": "NASA",
+              "url": "https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi?SERVICE=WMS&REQUEST=GetMap&VERSION=1.3.0&CRS=EPSG:4326&BBOX=-90,-180,90,180&TRANSPARENT=true&FORMAT=image%2Fpng",
+              "width": 1600,
+              "height": 800,
+              "time": "2004-10-01/current/P1D",
+              "layers": "OMI_Ozone_DOAS_Total_Column",
+              "preFetch": 1
+            },
+            "Snowfall (Monthly, MERRA2)": {
+              "copyright": "NASA",
+              "url": "https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi?SERVICE=WMS&REQUEST=GetMap&VERSION=1.3.0&CRS=EPSG:4326&BBOX=-90,-180,90,180&TRANSPARENT=true&FORMAT=image%2Fpng",
+              "width": 1600,
+              "height": 800,
+              "time": "1980-01-01/2020-04-01/P1M",
+              "layers": "MERRA2_Snowfall_Monthly",
+              "preFetch": 1
+            },
+            "Precipitation Rate": {
+              "copyright": "NASA",
+              "url": "https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi?SERVICE=WMS&REQUEST=GetMap&VERSION=1.3.0&CRS=EPSG:4326&BBOX=-90,-180,90,180&TRANSPARENT=true&FORMAT=image%2Fpng",
+              "width": 1600,
+              "height": 800,
+              "time": "2000-06-01/current/P1D",
+              "layers": "IMERG_Precipitation_Rate",
+              "preFetch": 1
+            },
+            "Total Precipitation Bias Corrected (Monthly, MERRA2)": {
+              "copyright": "NASA",
+              "url": "https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi?SERVICE=WMS&REQUEST=GetMap&VERSION=1.3.0&CRS=EPSG:4326&BBOX=-90,-180,90,180&TRANSPARENT=true&FORMAT=image%2Fpng",
+              "width": 1600,
+              "height": 800,
+              "time": "1980-01-01/2020-04-01/P1M",
+              "layers": "MERRA2_Precipitation_Bias_Corrected_Monthly",
+              "preFetch": 1
             }
           }
         }
