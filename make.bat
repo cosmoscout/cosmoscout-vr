@@ -26,12 +26,12 @@ IF NOT "%~1"=="" (
   SET CMAKE_FLAGS=%*
 )
 
-rem Check if ComoScout VR debug build is set with the environment variable
+rem Check if ComoScout VR Debug build is set with the environment variable
 IF "%COSMOSCOUT_DEBUG_BUILD%"=="true" (
   ECHO CosmoScout VR debug build is enabled!
-  set BUILD_TYPE=debug
+  set BUILD_TYPE=Debug
 ) else (
-  set BUILD_TYPE=release
+  set BUILD_TYPE=Release
 )
 
 rem This directory should contain the top-level CMakeLists.txt - it is assumed to reside in the same
