@@ -37,7 +37,7 @@ vec2 VP_getXY(ivec2 iPosition)
 // @a vtxPos (in [0,256]^2).
 vec2 VP_getTexCoordDEM(vec2 iPosition)
 {
-    return (iPosition + 0.5) / (VP_MAXVERTEX + 1.0);
+    return iPosition / VP_MAXVERTEX;
 }
 
 // Find IMG texture coordinates given integer vertex coordinates
@@ -293,10 +293,10 @@ vec3 VP_getVertexPosition(ivec2 iPosition, int mode)
 vec3 VP_getVertexNormal(ivec2 iPosition, int mode)
 {
     // neighbour vertices (p: positive direction, n: negative direction)
-    ivec2 pp = ivec2(iPosition.x + 1, iPosition.y + 1);
-    ivec2 nn = ivec2(iPosition.x - 1, iPosition.y - 1);
-    ivec2 np = ivec2(iPosition.x - 1, iPosition.y + 1);
-    ivec2 pn = ivec2(iPosition.x + 1, iPosition.y - 1);
+    ivec2 pp = ivec2(iPosition.x + 1, iPosition.y);
+    ivec2 nn = ivec2(iPosition.x - 1, iPosition.y);
+    ivec2 np = ivec2(iPosition.x, iPosition.y + 1);
+    ivec2 pn = ivec2(iPosition.x, iPosition.y - 1);
 
     // euclidian position of neighbour vertices
     vec3 p_pp = VP_getVertexPosition(pp, mode);
@@ -305,11 +305,11 @@ vec3 VP_getVertexNormal(ivec2 iPosition, int mode)
     vec3 p_pn = VP_getVertexPosition(pn, mode);
 
     // central differences as approximation for surface tangents
-    vec3 dx = normalize(p_pp - p_nn);
-    vec3 dy = normalize(p_np - p_pn);
+    vec3 dx = p_pp - p_nn;
+    vec3 dy = p_np - p_pn;
 
     // cross product of tangents -> normal
-    return cross(dx, dy);
+    return normalize(cross(dx, dy));
 }
 
 // Given integer vertex coordinates @a vtxPos calculate model space normal
@@ -326,9 +326,9 @@ vec3 VP_getVertexNormalLow(vec3 centerPos, ivec2 iPosition, int mode)
     vec3 p_py = VP_getVertexPosition(py, mode);
 
     // central differences as approximation for surface tangents
-    vec3 dx = normalize(p_px - centerPos);
-    vec3 dy = normalize(p_py - centerPos);
+    vec3 dx = p_px - centerPos;
+    vec3 dy = p_py - centerPos;
 
     // cross product of tangents -> normal
-    return cross(dx, dy);
+    return normalize(cross(dx, dy));
 }

@@ -184,7 +184,7 @@ class CS_CORE_EXPORT GuiManager {
 
   /// Adds a link element to the head with a local file href.
   ///
-  /// @param fileName The filename in the css folder.
+  /// @param fileName The filename in the css folder
   void addCssToGui(std::string const& fileName);
 
   /// Sets a checkbox to the given value. This is only a thin wrapper for

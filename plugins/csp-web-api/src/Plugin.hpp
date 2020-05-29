@@ -59,7 +59,8 @@ class Plugin : public cs::core::PluginBase {
   int32_t                 mCaptureDelay     = 0;
   bool                    mCaptureGui       = false;
   bool                    mCaptureDepth     = false;
-  int32_t                 mCaptureAtFrame   = 0;
+  std::string             mCaptureFormat;
+  int32_t                 mCaptureAtFrame = 0;
   std::vector<std::byte>  mCapture;
 
   // Members for the /log endpoint

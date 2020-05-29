@@ -108,7 +108,7 @@ void main()
     if (uUseTexture) {
       // WMS texture
       vec4 texColor = texture(uWMSTexture, vTexCoords);
-      oColor = mix(oColor, texColor.rgb, texColor.a); 
+      oColor = mix(oColor, texColor.rgb, texColor.a);
 
       // Fade second texture in.
       if(uUseSecondTexture) {

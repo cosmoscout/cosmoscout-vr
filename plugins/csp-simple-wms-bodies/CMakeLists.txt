@@ -36,7 +36,7 @@ set_property(TARGET csp-simple-wms-bodies PROPERTY FOLDER "plugins")
 set_source_files_properties(${RESOUCRE_FILES} PROPERTIES HEADER_FILE_ONLY TRUE)
 
 # Make directory structure available in your IDE.
-source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES 
+source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES
   ${SOURCE_FILES} ${HEADER_FILES} ${RESOUCRE_FILES}
 )
 

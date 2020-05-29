@@ -432,7 +432,7 @@
       }
     },
     "csp-simple-wms-bodies": {
-      "mapCache": "texture-cache",  
+      "mapCache": "texture-cache",
       "bodies": {
         "Earth": {
           "gridResolutionX": 200,

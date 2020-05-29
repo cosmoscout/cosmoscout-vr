@@ -45,8 +45,9 @@
      */
     // eslint-disable-next-line class-methods-use-this
     deselect() {
-      document.querySelectorAll('#measurement-tools .radio-button')
-          .forEach((node) => { node.checked = false; });
+      document.querySelectorAll('#measurement-tools .radio-button').forEach((node) => {
+        node.checked = false;
+      });
     }
   }
 
