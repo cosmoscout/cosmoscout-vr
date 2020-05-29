@@ -186,7 +186,8 @@ void to_json(nlohmann::json& j, Settings::SceneScale const& o) {
 
 void from_json(nlohmann::json const& j, Settings::Graphics& o) {
   Settings::deserialize(j, "enableVsync", o.pEnableVsync);
-  Settings::deserialize(j, "widgetScale", o.pWidgetScale);
+  Settings::deserialize(j, "worldUIScale", o.pWorldUIScale);
+  Settings::deserialize(j, "mainUIScale", o.pMainUIScale);
   Settings::deserialize(j, "heightScale", o.pHeightScale);
   Settings::deserialize(j, "enableHDR", o.pEnableHDR);
   Settings::deserialize(j, "enableLighting", o.pEnableLighting);
@@ -210,11 +211,13 @@ void from_json(nlohmann::json const& j, Settings::Graphics& o) {
   Settings::deserialize(j, "ambientBrightness", o.pAmbientBrightness);
   Settings::deserialize(j, "enableAutoGlow", o.pEnableAutoGlow);
   Settings::deserialize(j, "glowIntensity", o.pGlowIntensity);
+  Settings::deserialize(j, "fixedSunDirection", o.pFixedSunDirection);
 }
 
 void to_json(nlohmann::json& j, Settings::Graphics const& o) {
   Settings::serialize(j, "enableVsync", o.pEnableVsync);
-  Settings::serialize(j, "widgetScale", o.pWidgetScale);
+  Settings::serialize(j, "worldUIScale", o.pWorldUIScale);
+  Settings::serialize(j, "mainUIScale", o.pMainUIScale);
   Settings::serialize(j, "heightScale", o.pHeightScale);
   Settings::serialize(j, "enableHDR", o.pEnableHDR);
   Settings::serialize(j, "enableLighting", o.pEnableLighting);
@@ -238,6 +241,7 @@ void to_json(nlohmann::json& j, Settings::Graphics const& o) {
   Settings::serialize(j, "ambientBrightness", o.pAmbientBrightness);
   Settings::serialize(j, "enableAutoGlow", o.pEnableAutoGlow);
   Settings::serialize(j, "glowIntensity", o.pGlowIntensity);
+  Settings::serialize(j, "fixedSunDirection", o.pFixedSunDirection);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -403,6 +407,19 @@ Settings::DeserializationException::DeserializationException(
 
 const char* Settings::DeserializationException::what() const noexcept {
   return mMessage.c_str();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Settings::deserialize(
+    nlohmann::json const& j, std::string const& property, nlohmann::json& target) {
+  try {
+    target = j.at(property);
+  } catch (DeserializationException const& e) {
+    throw DeserializationException(e.mProperty + " in '" + property + "'", e.mJSONError);
+  } catch (std::exception const& e) {
+    throw DeserializationException("'" + property + "'", e.what());
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

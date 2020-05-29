@@ -1,0 +1,12 @@
+.measurement-tool {
+  padding: 0 5px;
+}
+
+.measurement-tool label {
+  width: 100%;
+  height: 100%
+}
+
+.measurement-tool i {
+  font-size: 60px;
+}

@@ -158,6 +158,11 @@ find_package(VistaCoreLibs REQUIRED
   COMPONENTS "VistaBase" "VistaKernel" "VistaKernelOpenSGExt" "VistaOGLExt"
 )
 
+# X11 is used on Linux to set the application window's name and icon.
+if (UNIX)
+  find_package(X11)
+endif()
+
 # install some files -------------------------------------------------------------------------------
 
 # Copy all third-party libraries to install directory.

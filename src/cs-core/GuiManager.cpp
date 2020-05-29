@@ -107,9 +107,17 @@ GuiManager::GuiManager(std::shared_ptr<Settings> settings,
     mInputManager->registerSelectable(mGlobalGuiOpenGLnode);
   }
 
-  // Now create the actual Gui and add it to the previously created GuiAreas ----------------
-  mCosmoScoutGui = std::make_unique<gui::GuiItem>("file://../share/resources/gui/cosmoscout.html");
-  mStatistics    = std::make_unique<gui::GuiItem>("file://../share/resources/gui/statistics.html");
+  // Now create the actual Gui and add it to the previously created GuiAreas -----------------------
+
+  // The {mainUIZoom} will be ignored when loading the file from disc. This basically prevents all
+  // other WebViews to be affected by the pMainUIScale factor. Why that is, is explained in the
+  // documentation of cs::gui::WebView::setZoomLevel in great detail. This also means that all other
+  // WebViews with an URL starting with "file://{mainUIZoom}../" will be automatically affected by
+  // the pMainUIScale factor.
+  mCosmoScoutGui = std::make_unique<gui::GuiItem>(
+      "file://{mainUIZoom}../share/resources/gui/cosmoscout.html", true);
+  mStatistics = std::make_unique<gui::GuiItem>(
+      "file://{mainUIZoom}../share/resources/gui/statistics.html", false);
 
   // Except for mStatistics, all GuiItems are attached to the global world-space GuiArea if it is
   // available. If not, they are added to the local screen-space GuiArea.
@@ -183,6 +191,10 @@ GuiManager::GuiManager(std::shared_ptr<Settings> settings,
           mSettings->mCommandHistory.value().pop_front();
         }
       }));
+
+  // Set main UI zoom level.
+  mSettings->mGraphics.pMainUIScale.connectAndTouch(
+      [this](double scale) { mCosmoScoutGui->setZoomFactor(scale); });
 
   // Set settings for the time Navigation
   mSettings->pMinDate.connectAndTouch([this](std::string const& minDate) {
@@ -307,10 +319,9 @@ uint32_t GuiManager::addBookmark(Settings::Bookmark bookmark) {
       end += "Z";
     }
 
-    auto c = bookmark.mColor.value_or(glm::vec3(0.5F, 0.6F, 0.7F)) * 255.F;
-    mCosmoScoutGui->callJavascript("CosmoScout.timeline.addBookmark", newID, bookmark.mName,
-        bookmark.mDescription.value_or(""), start, end,
-        fmt::format("rgb({}, {}, {})", c.r, c.g, c.b), bookmark.mLocation.has_value());
+    auto c = bookmark.mColor.value_or(glm::vec3(0.8F, 0.8F, 1.0F)) * 255.F;
+    mCosmoScoutGui->callJavascript("CosmoScout.timeline.addBookmark", newID, start, end,
+        fmt::format("rgb({}, {}, {})", c.r, c.g, c.b));
   }
 
   mBookmarks.emplace(newID, std::move(bookmark));
@@ -351,6 +362,19 @@ void GuiManager::showNotification(std::string const& sTitle, std::string const& 
     std::string const& sIcon, std::string const& sFlyToOnClick) const {
   mCosmoScoutGui->callJavascript(
       "CosmoScout.notifications.print", sTitle, sText, sIcon, sFlyToOnClick);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void GuiManager::addTimelineButton(
+    std::string const& name, std::string const& icon, std::string const& callback) const {
+  mCosmoScoutGui->callJavascript("CosmoScout.timeline.addButton", name, icon, callback);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void GuiManager::removeTimelineButton(std::string const& name) const {
+  mCosmoScoutGui->callJavascript("CosmoScout.timeline.removeButton", name);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

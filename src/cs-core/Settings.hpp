@@ -323,7 +323,10 @@ class CS_CORE_EXPORT Settings {
     utils::DefaultProperty<bool> pEnableVsync{true};
 
     /// A multiplicator for the size of worldspace gui-elements.
-    utils::DefaultProperty<float> pWidgetScale{1.F};
+    utils::DefaultProperty<double> pWorldUIScale{1.F};
+
+    /// A multiplicator for the size of screenspace gui-elements.
+    utils::DefaultProperty<double> pMainUIScale{1.F};
 
     /// A multiplicator for terrain height.
     utils::DefaultProperty<float> pHeightScale{1.F};
@@ -404,6 +407,10 @@ class CS_CORE_EXPORT Settings {
 
     /// The amount of artifical glare. Has no effect if HDR rendering is disabled.
     utils::DefaultProperty<float> pGlowIntensity{0.5F};
+
+    /// This makes illumination calculations assume a fixed sun position in the current SPICE frame.
+    /// Using the default value glm::dvec3(0.0) disables this feature.
+    utils::DefaultProperty<glm::dvec3> pFixedSunDirection{glm::dvec3(0.0, 0.0, 0.0)};
   };
 
   Graphics mGraphics;
@@ -455,6 +462,11 @@ class CS_CORE_EXPORT Settings {
   template <typename T>
   static void deserialize(
       nlohmann::json const& j, std::string const& property, utils::DefaultProperty<T>& target);
+
+  /// Overload for nlohmann::json. While this seems a bit funny, it is quite useful if you want to
+  /// actually save / load json data.
+  static void deserialize(
+      nlohmann::json const& j, std::string const& property, nlohmann::json& target);
 
   /// This template is used to set values in json objects. The main reasons not to directly use the
   /// interface of nlohmann::json is that we can overload the serialize() method to accept

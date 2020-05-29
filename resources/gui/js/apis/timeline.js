@@ -45,7 +45,11 @@ class TimelineApi extends IApi {
         },
     zoomable: false,
     moveable: true,
+    selectable: false,
     showCurrentTime: false,
+    showTooltips: false,
+    showWeekScale: true,
+    orientation: {item: "top"},
     editable: {
       add: true,            // add new items by double tapping
       updateTime: false,    // drag items horizontally
@@ -98,7 +102,12 @@ class TimelineApi extends IApi {
     zoomMin: 100000, // Do not zoom to milliseconds on the overview timeline
     zoomable: true,
     moveable: true,
+    selectable: false,
     showCurrentTime: false,
+    showWeekScale: true,
+    showTooltips: false,
+    zoomFriction: 3,
+    orientation: {item: "top"},
     editable: {
       add: true,            // add new items by double tapping
       updateTime: false,    // drag items horizontally
@@ -170,15 +179,14 @@ class TimelineApi extends IApi {
    * Zoom parameters.
    */
   _timelineRangeFactor = 100000;
-  _zoomPercentage      = 0.002;
+  _zoomPercentage      = 0.004;
   _minRangeFactor      = 5;
   _maxRangeFactor      = 100000000;
 
   _overviewVisible = false;
 
   init() {
-    this._buttonContainer = document.getElementById('plugin-buttons');
-
+    this._buttonContainer   = document.getElementById('plugin-buttons');
     this._timelineContainer = document.getElementById('timeline');
 
     this._initTimeSpeedSlider();
@@ -189,7 +197,6 @@ class TimelineApi extends IApi {
     this._initTimelines();
     this._moveWindow();
     this._initEventListener();
-    this._updateOverviewLens();
   }
 
   /**
@@ -200,23 +207,16 @@ class TimelineApi extends IApi {
   }
 
   /**
-   * Adds a button to the button bar
+   * Adds a button to the button bar.
    *
+   * @param name {string} Tooltip text that gets shown if the button is hovered
    * @param icon {string} Materialize icon name
-   * @param tooltip {string} Tooltip text that gets shown if the button is hovered
    * @param callback {string} Name of callback on CosmoScout.callbacks
    */
-  addButton(icon, tooltip, callback) {
-    const button = CosmoScout.gui.loadTemplateContent('button');
-
-    if (button === false) {
-      return;
-    }
-
+  addButton(name, icon, callback) {
+    const button     = CosmoScout.gui.loadTemplateContent('button');
     button.innerHTML = button.innerHTML.replace('%ICON%', icon).trim();
-
-    button.setAttribute('title', tooltip);
-
+    button.setAttribute('title', name);
     button.onclick = () => {
       CosmoScout.callbacks.find(callback)();
     };
@@ -224,6 +224,19 @@ class TimelineApi extends IApi {
     this._buttonContainer.appendChild(button);
 
     CosmoScout.gui.initTooltips();
+  }
+
+  /**
+   * Removes a button from the button bar.
+   *
+   * @param name {string} Tooltip text that gets shown if the button is hovered
+   */
+  removeButton(name) {
+    const button = this._buttonContainer.querySelector(`[data-original-title="${name}"]`);
+
+    if (button) {
+      button.remove();
+    }
   }
 
   /**
@@ -256,17 +269,14 @@ class TimelineApi extends IApi {
     }
   }
 
-  addBookmark(id, name, description, start, end, color, hasLocation) {
+  addBookmark(id, start, end, color) {
     let data   = {};
     data.start = new Date(start);
     if (end !== '') {
       data.end = new Date(end);
     }
-    data.id          = id;
-    data.name        = name;
-    data.description = description;
-    data.style       = "border-color: " + color;
-    data.hasLocation = hasLocation == true;
+    data.id    = id;
+    data.style = "border-color: " + color;
     this._bookmarks.update(data);
     this._bookmarksOverview.update(data);
   }
@@ -354,6 +364,7 @@ class TimelineApi extends IApi {
   }
 
   _initEventListener() {
+    // Zoom main timeline.
     this._timelineContainer.addEventListener('wheel', this._manualZoomTimeline.bind(this), true);
 
     // Handlers for the year / month / day / hour / ... -up-and-down-buttons.
@@ -415,9 +426,48 @@ class TimelineApi extends IApi {
 
     // Show calendar on calender button clicks.
     document.getElementById('calendar-button').onclick = () => {
-      CosmoScout.calendar.setDate(this._timeline.getCustomTime(this._timeId));
+      CosmoScout.calendar.setDate(this._centerTime);
       CosmoScout.calendar.toggle();
     };
+
+    // Search functionality.
+    document.getElementById('timeline-search-button').onclick = ()   => this._executeSearch();
+    document.querySelector('#timeline-search-area input').onkeypress = (e) => {
+      if (e.keyCode == 13) {
+        // Return pressed - try to travel to the location!
+        this._executeSearch();
+      }
+    };
+  }
+
+  _executeSearch() {
+    let query      = document.querySelector('#timeline-search-area input').value;
+    let components = query.split(':');
+    let planet     = CosmoScout.state.activePlanetCenter;
+
+    if (components.length > 1) {
+      if (components[0] != "") {
+        planet = components[0];
+      }
+
+      if (components[1] != "") {
+        query = components[1];
+      } else {
+        // The user entered only a body but no query. Fly to the body!
+        CosmoScout.callbacks.navigation.setBody(planet, 5.0);
+        return;
+      }
+    }
+
+    CosmoScout.geocode.forward(planet, query, (location) => {
+      if (location) {
+        CosmoScout.callbacks.navigation.setBodyLongLatHeightDuration(
+            planet, location.longitude, location.latitude, location.diameter * 1000, 5.0);
+        CosmoScout.notifications.print("Travelling", "to " + location.name, "send");
+      } else {
+        CosmoScout.notifications.print("Not found", "No location matched the query", "error");
+      }
+    });
   }
 
   _togglePause() {
@@ -554,6 +604,7 @@ class TimelineApi extends IApi {
         new vis.Timeline(overviewContainer, this._bookmarksOverview, this._overviewTimelineOptions);
     this._overviewTimeline.addCustomTime(this._timeline.getWindow().end, this._rightTimeId);
     this._overviewTimeline.addCustomTime(this._timeline.getWindow().start, this._leftTimeId);
+    this._overviewTimeline.on('rangechange', this._overviewDragCallback.bind(this));
     this._overviewTimeline.on('mouseUp', this._onMouseUp.bind(this));
     this._overviewTimeline.on('mouseDown', () => this._dragDistance = 0);
     this._overviewTimeline.on(
@@ -570,21 +621,15 @@ class TimelineApi extends IApi {
   }
 
   /**
-   * Closes the tooltip if the mouse leaves the item and tooltip
-   *
-   * @param properties {VisTimelineEvent}
+   * Closes the tooltip if the mouse leaves the item and tooltip.
    * @private
    */
-  _itemOutCallback(properties) {
-    const element = properties.event.toElement;
-
-    if (element !== null) {
-      document.getElementById('timeline-bookmark-tooltip-container').classList.remove('visible');
-    }
+  _itemOutCallback() {
+    CosmoScout.callbacks.bookmark.hideTooltip();
   }
 
   /**
-   * Moves the displayed time window and sizes the time range according to the zoom factor
+   * Moves the displayed time window and sizes the time range according to the zoom factor.
    * @private
    */
   _moveWindow() {
@@ -595,101 +640,55 @@ class TimelineApi extends IApi {
         startDate, step.days, step.hours, step.minutes, step.seconds, step.milliSec);
     endDate = CosmoScout.utils.increaseDate(
         endDate, step.days, step.hours, step.minutes, step.seconds, step.milliSec);
+    this._updateOverviewLens();
     this._timeline.setWindow(startDate, endDate, {
       animation: false,
     });
   }
 
   /**
-   * TODO this iterates over the private _data field from DataSet
-   * Shows a tooltip if an item is hovered
+   * Shows a tooltip if an item is hovered.
    *
    * @param properties {VisTimelineEvent}
-   * @param overview {boolean} True if target is the upper timeline
    * @private
    */
   _itemOverCallback(properties) {
-    document.getElementById('timeline-bookmark-tooltip-container').classList.add('visible');
+    let bookmark    = this._bookmarks.get(properties.item);
+    const eventRect = properties.event.target.getBoundingClientRect();
 
-    let bookmark = this._bookmarks._data[properties.item];
-
-    if (bookmark.hasLocation) {
-      document.getElementById('timeline-bookmark-tooltip-goto-location').classList.remove('hidden');
-      document.getElementById('timeline-bookmark-tooltip-goto-location').onclick = () => {
-        CosmoScout.callbacks.bookmark.gotoLocation(bookmark.id);
-      };
-    } else {
-      document.getElementById('timeline-bookmark-tooltip-goto-location').classList.add('hidden');
-    }
-
-    document.getElementById('timeline-bookmark-tooltip-goto-time').onclick = () => {
-      CosmoScout.callbacks.bookmark.gotoTime(bookmark.id, 2.0);
-    };
-
-    document.getElementById('timeline-bookmark-tooltip-edit').onclick = () => {
-      CosmoScout.callbacks.bookmark.edit(bookmark.id);
-    };
-
-    document.getElementById('timeline-bookmark-tooltip-name').innerHTML = bookmark.name;
-    document.getElementById('timeline-bookmark-tooltip-description').innerHTML =
-        bookmark.description;
-
-    const eventRect    = properties.event.target.getBoundingClientRect();
-    const tooltipWidth = 400;
-    const arrowWidth   = 10;
-    const center       = eventRect.left + eventRect.width / 2;
-    const left =
-        Math.max(0, Math.min(document.body.offsetWidth - tooltipWidth, center - tooltipWidth / 2));
-    document.getElementById('timeline-bookmark-tooltip-container').style.top =
-        `${eventRect.bottom + arrowWidth + 5}px`;
-    document.getElementById('timeline-bookmark-tooltip-container').style.left = `${left}px`;
-    document.getElementById('timeline-bookmark-tooltip-arrow').style.left =
-        `${center - left - arrowWidth}px`;
+    CosmoScout.callbacks.bookmark.showTooltip(
+        bookmark.id, eventRect.left + eventRect.width / 2, eventRect.top + eventRect.height / 2);
   }
 
   /**
-   * Sets the custom times on the overview that represent the left and right time on the timeline
+   * Called when the user moves the overview timeline.
+   * @param properties {VisTimelineEvent}
+   * @private
+   */
+  _overviewDragCallback(properties) {
+    if (properties.byUser) {
+      this._updateOverviewLens();
+    }
+  }
+
+  /**
+   * Sets the custom times on the overview that represent the left and right time on the timeline.
+   * This clamps the start and end date of the overview lens so that they are not moved outside of
+   * the screen to much.
    * @private
    */
   _updateOverviewLens() {
-    this._overviewTimeline.setCustomTime(this._timeline.getWindow().end, this._rightTimeId);
-    this._overviewTimeline.setCustomTime(this._timeline.getWindow().start, this._leftTimeId);
+    let overviewWindow = this._overviewTimeline.getWindow();
+    let overviewRange  = overviewWindow.end.getTime() - overviewWindow.start.getTime();
 
-    const leftCustomTime  = document.getElementsByClassName(this._leftTimeId)[0];
-    const leftRect        = leftCustomTime.getBoundingClientRect();
-    const rightCustomTime = document.getElementsByClassName(this._rightTimeId)[0];
-    const rightRect       = rightCustomTime.getBoundingClientRect();
+    let endTime = this._timeline.getWindow().end.getTime();
+    endTime     = Math.max(endTime, overviewWindow.start.getTime() - overviewRange / 2);
 
-    let divElement        = document.getElementById('focus-lens');
-    divElement.style.left = `${leftRect.right}px`;
+    let startTime = this._timeline.getWindow().start.getTime();
+    startTime     = Math.min(startTime, overviewWindow.end.getTime() + overviewRange / 2);
 
-    const height = leftRect.bottom - leftRect.top - 2;
-    let width    = rightRect.right - leftRect.left;
-
-    let xValue = 0;
-    if (width < this._minWidth) {
-      width  = this._minWidth + 2 * this._borderWidth;
-      xValue = -(leftRect.left + this._minWidth - rightRect.right) / 2 - this._borderWidth;
-      xValue = Math.round(xValue);
-      divElement.style.transform = ` translate(${xValue}px, 0px)`;
-    } else {
-      divElement.style.transform = ' translate(0px, 0px)';
-    }
-
-    divElement.style.height = `${height}px`;
-    divElement.style.width  = `${width}px`;
-
-    divElement             = document.getElementById('focus-lens-left');
-    width                  = leftRect.right + xValue + this._borderWidth;
-    width                  = width < 0 ? 0 : width;
-    divElement.style.width = `${width}px`;
-    const body             = document.getElementsByTagName('body')[0];
-    const bodyRect         = body.getBoundingClientRect();
-
-    divElement             = document.getElementById('focus-lens-right');
-    width                  = bodyRect.right - rightRect.right + xValue + 1;
-    width                  = width < 0 ? 0 : width;
-    divElement.style.width = `${width}px`;
+    this._overviewTimeline.setCustomTime(new Date(endTime), this._rightTimeId);
+    this._overviewTimeline.setCustomTime(new Date(startTime), this._leftTimeId);
   }
 
   /**
@@ -707,7 +706,6 @@ class TimelineApi extends IApi {
 
       this._centerTime = new Date(properties.start.getTime() / 2 + properties.end.getTime() / 2);
       this._timeline.setCustomTime(this._centerTime, this._timeId);
-      this._updateOverviewLens();
 
       window.callNative("time.setDate", this._centerTime.toISOString());
     }
@@ -735,7 +733,7 @@ class TimelineApi extends IApi {
   _onMouseUp(properties) {
     if (this._dragDistance < 10) {
       if (properties.item != null) {
-        let bookmark = this._bookmarks._data[properties.item];
+        let bookmark = this._bookmarks.get(properties.item);
         CosmoScout.callbacks.time.setDate(bookmark.start.toISOString(), 3.0);
       } else if (properties.time != null) {
         CosmoScout.callbacks.time.setDate(new Date(properties.time.getTime()).toISOString(), 3.0);

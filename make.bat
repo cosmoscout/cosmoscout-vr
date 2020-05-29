@@ -15,6 +15,7 @@ rem Examples:                                                                   
 rem    make.bat                                                                                    #
 rem    make.bat -G "Visual Studio 15 Win64"                                                        #
 rem    make.bat -G "Visual Studio 16 2019" -A x64                                                  #
+rem    make.bat -GNinja -DCMAKE_C_COMPILER=cl.exe -DCMAKE_CXX_COMPILER=cl.exe                      #
 rem ---------------------------------------------------------------------------------------------- #
 
 rem create some required variables -----------------------------------------------------------------
@@ -58,7 +59,7 @@ if exist "%BUILD_DIR%" goto BUILD_DIR_CREATED
 rem configure, compile & install -------------------------------------------------------------------
 
 cd "%BUILD_DIR%"
-cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
+cmake %CMAKE_FLAGS% -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
       -DCOSMOSCOUT_EXTERNALS_DIR="%EXTERNALS_INSTALL_DIR%" "%CMAKE_DIR%"  || exit /b
 
 cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS% || exit /b

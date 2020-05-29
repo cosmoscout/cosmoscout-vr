@@ -209,7 +209,7 @@ class GuiApi extends IApi {
       }
 
       // Bring to front on click.
-      w.onmousedown = (e) => {
+      w.onmousedown = () => {
         w.style.zIndex = ++currentZIndex;
       };
 
@@ -264,6 +264,32 @@ class GuiApi extends IApi {
         document.head.removeChild(element);
       }
     });
+  }
+
+  /**
+   * Append HTML to the body (default) or element with id containerId.
+   *
+   * @param content {string} Html content
+   * @param containerId {string} ['body'] Container ID to append the HTML to. Defaults to body
+   * element if omitted
+   */
+  addHtml(content, containerId = 'body') {
+    let container = document.body;
+    if (containerId !== 'body') {
+      container = document.getElementById(containerId);
+    }
+
+    if (container === null) {
+      console.warn(`Cannot add HTML to container #${containerId}!`);
+      return;
+    }
+
+    let tmp       = document.createElement('div');
+    tmp.innerHTML = content;
+
+    while (tmp.firstChild) {
+      container.appendChild(tmp.firstChild);
+    }
   }
 
   /**
@@ -425,13 +451,18 @@ class GuiApi extends IApi {
       },
     });
 
-    slider.noUiSlider.on('slide', (values, handle, unencoded) => {
+    var event = 'slide';
+    if (slider.dataset.event) {
+      event = slider.dataset.event;
+    }
+
+    slider.noUiSlider.on(event, (values, handle, unencoded) => {
       let callback = CosmoScout.callbacks.find(callbackName);
       if (callback !== undefined) {
         if (Array.isArray(unencoded)) {
-          callback(unencoded[handle], handle);
+          callback(unencoded[0], unencoded[1]);
         } else {
-          callback(unencoded, 0);
+          callback(unencoded);
         }
       }
     });
@@ -468,7 +499,7 @@ class GuiApi extends IApi {
     const dropdown = document.querySelector(`[data-callback="${callbackName}"]`);
     CosmoScout.gui.clearHtml(dropdown);
 
-    $(dropdown).selectpicker('render');
+    $(dropdown).selectpicker('refresh');
   }
 
   /**

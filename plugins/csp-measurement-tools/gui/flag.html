@@ -1,0 +1,212 @@
+﻿<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+
+  <link type="text/css" rel="stylesheet" href="third-party/css/bootstrap.min.css" />
+  <link type="text/css" rel="stylesheet" href="css/gui.css">
+  <link type="text/css" rel="stylesheet" href="css/tools.css">
+  <link type="text/css" rel="stylesheet" href="css/csp-measurement-tools.css">
+
+  <script type="text/javascript" src="third-party/js/jquery-2.2.3.min.js"></script>
+  <script type="text/javascript" src="third-party/js/bootstrap.bundle.min.js"></script>
+
+  <script type="text/javascript" src="js/mars.js"></script>
+  <script type="text/javascript" src="js/moon.js"></script>
+
+  <script type="text/javascript" src="js/api.js"></script>
+  <script type="text/javascript" src="js/apis/timeline.js"></script>
+
+  <script type="text/javascript">
+
+    // API calls -----------------------------------------------------------
+    function setHeader(xhr) {
+      xhr.setRequestHeader('Access-Control-Allow-Origin', '*');
+    }
+
+    // private methods used in this file only ------------------------------
+    function formatHeight(height) {
+      height = Math.round(height);
+      if (height >= 1000000) {
+        return '(' + (height * 0.001).toFixed(0) + ' km)';
+      } else if (height >= 100000) {
+        return '(' + (height * 0.001).toFixed(1) + ' km)';
+      } else if (height >= 10000) {
+        return '(' + (height * 0.001).toFixed(2) + ' km)';
+      } else {
+        return '(' + (height * 1.000) + ' m)';
+      }
+    }
+
+    function formatLatitude(lat) {
+      if (lat < 0)
+        return (-lat).toFixed(4) + "° S ";
+      else
+        return (lat).toFixed(4) + "° N ";
+    }
+
+    function formatLongitude(long) {
+      if (long < 0)
+        return (-long).toFixed(4) + "° W ";
+      else
+        return (long).toFixed(4) + "° E ";
+    }
+
+    function toCartesian(longitude, latitude) {
+      var lon = longitude * Math.PI / 180.0;
+      var lat = latitude * Math.PI / 180.0;
+
+      var x = Math.cos(lat) * Math.sin(lon);
+      var y = Math.sin(lat);
+      var z = Math.cos(lat) * Math.cos(lon);
+
+      return [x, y, z];
+    }
+
+    function distSquared(a, b) {
+      return Math.pow(a[0] - b[0], 2) + Math.pow(a[1] - b[1], 2) + Math.pow(a[2] - b[2], 2);
+    }
+
+    function geoCodeReverse(longitude, latitude, callback) {
+      var planet = activePlanetCenter.toLowerCase();
+
+      if (planet === "earth") {
+        $.ajax({
+          url: "https://nominatim.openstreetmap.org/reverse?format=json&lat=" + latitude + "&lon=" + longitude,
+          type: 'GET',
+          dataType: 'json',
+          success: function (data) {
+            var location = "Unknown Location";
+            var a = data.address;
+
+            if (a) {
+              if (a.country) {
+                location = a.country;
+              }
+
+              if (a.city) {
+                location = a.city + ", " + location;
+              } else if (a.town) {
+                location = a.town + ", " + location;
+              }
+
+              var street = a.road;
+
+              if (!street) {
+                street = a.pedestrian;
+              }
+
+              if (street) {
+                if (a.house_number) {
+                  location = street + " " + a.house_number + ", " + location;
+                } else {
+                  location = street + ", " + location;
+                }
+              }
+            }
+
+            callback(location);
+          },
+          error: function () {
+            console.log("Error requesting Data from openstreetmap")
+          },
+          beforeSend: setHeader
+        });
+      } else {
+        if (locations[planet]) {
+          var bestScore;
+          var location = "Unknown Location";
+
+          var queryPos = toCartesian(longitude, latitude);
+
+          var all = Object.keys(locations[planet]);
+          for (var i = all.length - 1; i >= 0; i--) {
+            var loc = locations[planet][all[i]];
+            var pos = toCartesian(loc[2], loc[1]);
+            var dist = distSquared(pos, queryPos);
+
+            if (!bestScore || dist < bestScore) {
+              bestScore = dist;
+              location = all[i];
+            }
+
+          }
+
+          callback(location);
+        }
+      }
+    }
+
+    // overridden API calls ------------------------------------------------
+    var requestTimer;                //timer identifier
+    function setPosition(long, lat, height) {
+      $("#placeholder-1").text(formatLongitude(long) + formatLatitude(lat) + formatHeight(height));
+
+      clearTimeout(requestTimer);
+      requestTimer = setTimeout(function () {
+        geoCodeReverse(long, lat, function (location) {
+          $("#placeholder-2").text(location);
+        });
+      }, 500);
+    }
+
+    function setText(text) {
+      $(".text-input").val(text);
+    }
+
+    var activePlanetCenter = "";
+    var activePlanetFrame = "";
+
+    function setActivePlanet(center, frame) {
+      activePlanetCenter = center;
+      activePlanetFrame = frame;
+    }
+
+    function setMinimized(minimize) {
+      if (minimize) $('.flag').addClass('minimized');
+      else $('.flag').removeClass('minimized');
+    }
+
+    // entry point ---------------------------------------------------------
+    $(document).ready(function () {
+      $('[data-toggle="tooltip"]').tooltip({ delay: 500, placement: "auto", html: false });
+      $(".text-input").on("input", () => window.callNative("onSetText", $(".text-input").val()));
+    });
+
+  </script>
+
+</head>
+
+<body style="overflow: hidden">
+  <div class="flag">
+    <div class="pole"></div>
+    <div class="banner">
+      <div class="d-flex">
+        <input type='text' class='text-input form-control flex-grow-1' />
+        <a class="btn light-glass" data-toggle="tooltip" title='Minimize'
+          onclick="window.callNative('minimizeMe')">
+          <i class=" material-icons">file_download</i>
+        </a>
+        <a class="btn light-glass" data-toggle="tooltip" title='Delete'
+          onclick="window.callNative('deleteMe')">
+          <i class=" material-icons">close</i>
+        </a>
+      </div>
+      <div class="container-fluid pb-1">
+        <div class="row">
+          <div class="col-12">
+            <i style="top: -2px" class="material-icons">language</i>
+            <span id="placeholder-1">0° 0° 0m</span>
+          </div>
+          <div class="col-12" style="font-size: 80%">
+            <i style="top: -2px" class="material-icons">location_on</i>
+            <span id="placeholder-2">Unknown Location</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>

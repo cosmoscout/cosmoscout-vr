@@ -12,7 +12,7 @@ find_path(CEF_INCLUDE_DIR include/cef_version.h
 find_path(CEF_RESOURCE_DIR cef.pak
     HINTS ${CEF_ROOT_DIR}/share/cef)
 
-find_path(CEF_LIBRARY_DIR natives_blob.bin
+find_path(CEF_LIBRARY_DIR snapshot_blob.bin
     HINTS ${CEF_ROOT_DIR}/lib)
 
 find_library(CEF_LIBRARY NAMES cef libcef
@@ -29,6 +29,8 @@ if(CEF_FOUND)
     set(CEF_INCLUDE_DIRS "${CEF_INCLUDE_DIR}")
 
     if(NOT CEF_FIND_QUIETLY)
+        message(STATUS "CEF_RESOURCE_DIR .............. ${CEF_RESOURCE_DIR}")
+        message(STATUS "CEF_LIBRARY_DIR ............... ${CEF_LIBRARY_DIR}")
         message(STATUS "CEF_INCLUDE_DIRS .............. ${CEF_INCLUDE_DIR}")
         message(STATUS "CEF_LIBRARY ................... ${CEF_LIBRARY}")
         message(STATUS "CEF_WRAPPER_LIBRARY ........... ${CEF_WRAPPER_LIBRARY}")

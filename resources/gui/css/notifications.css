@@ -14,7 +14,7 @@
   width: calc(100% - 50px);
   font-size: 1rem;
   transform: translate(330px, 5px);
-  color: var(--cs-text-color-darkened);
+  color: var(--cs-color-primary);
   background: linear-gradient(to right, rgba(20, 20, 20, 0.8), rgba(20, 20, 20, 0.4));
   line-height: 15px;
   border-radius: 5px;
@@ -84,25 +84,25 @@
 
 @-webkit-keyframes flash {
   0% {
-    color: var(--cs-text-color-darkened);
+    color: var(--cs-color-primary);
     opacity: 0;
   }
 
   50% {
-    color: var(--cs-text-color-darkened);
+    color: var(--cs-color-primary);
     opacity: 0.8;
-    text-shadow: 0 0 0 var(--cs-text-color-darkened);
+    text-shadow: 0 0 0 var(--cs-color-primary);
   }
 
   60% {
     color: #fff;
     opacity: 1;
-    text-shadow: 0 0 30px var(--cs-text-color-darkened);
+    text-shadow: 0 0 30px var(--cs-color-primary);
   }
 
   100% {
-    color: var(--cs-text-color-darkened);
-    text-shadow: 0 0 0 var(--cs-text-color-darkened);
+    color: var(--cs-color-primary);
+    text-shadow: 0 0 0 var(--cs-color-primary);
   }
 }
 

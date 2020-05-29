@@ -181,6 +181,11 @@ install\linux-release\bin\run_tests.bat
 
 :information_source: _**Tip:** You can use [clcache](https://github.com/frerich/clcache) to considerably speed up build times. You just need to call `make_externals.bat -G "Visual Studio 15 Win64" -DCMAKE_VS_GLOBALS="CLToolExe=clcache.exe;TrackFileAccess=false"` and `make.bat -G "Visual Studio 15 Win64" -DCMAKE_VS_GLOBALS=CLToolExe"=clcache.exe;TrackFileAccess=false"` respectively._
 
+:information_source: _**Tip:** You can use Ninja as a generator. You need to run the following commands from the `x64 Native Tools Command Prompt for VS 20XX`:
+`.\make_externals.bat -GNinja -DCMAKE_C_COMPILER=cl.exe -DCMAKE_CXX_COMPILER=cl.exe` and `.\make.bat -GNinja -DCMAKE_C_COMPILER=cl.exe -DCMAKE_CXX_COMPILER=cl.exe`.
+This can reduce the compile times by a lot._
+
+
 <p align="center"><img src ="img/hr.svg"/></p>
 <p align="center">
   <a href="README.md">&#8962; Help Index</a>

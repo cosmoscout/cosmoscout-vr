@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   height="36"
+   viewBox="0 0 36 36"
+   width="36"
+   version="1.1"
+   id="svg6"
+   sodipodi:docname="observer.svg"
+   inkscape:export-filename="/home/simon/Projects/cosmoscout/cosmoscout-vr/plugins/csp-minimap/gui/img/target.png"
+   inkscape:export-xdpi="96"
+   inkscape:export-ydpi="96"
+   inkscape:version="0.92.4 (5da689c313, 2019-01-14)">
+  <metadata
+     id="metadata12">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs10">
+    <filter
+       inkscape:collect="always"
+       style="color-interpolation-filters:sRGB"
+       id="filter5187"
+       x="-0.1008"
+       width="1.2016"
+       y="-0.1008"
+       height="1.2016">
+      <feGaussianBlur
+         inkscape:collect="always"
+         stdDeviation="0.83641464"
+         id="feGaussianBlur5189" />
+    </filter>
+  </defs>
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1920"
+     inkscape:window-height="1005"
+     id="namedview8"
+     showgrid="false"
+     inkscape:zoom="13.906434"
+     inkscape:cx="17.697143"
+     inkscape:cy="10.976928"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg6" />
+  <path
+     sodipodi:nodetypes="cccccccccccccccccsssss"
+     style="opacity:0.54299999;fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:1.76276898;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;filter:url(#filter5187)"
+     inkscape:connector-curvature="0"
+     id="path4526"
+     d="M 20.092583,15.813881 C 19.676186,12.039153 16.679939,9.0429053 12.905211,8.6265084 v -1.864734 h -1.810422 v 1.864734 C 7.3200609,9.0429053 4.3238137,12.039153 3.9074168,15.813881 h -1.864734 v 1.810422 h 1.864734 c 0.4163969,3.774728 3.4126441,6.770975 7.1873722,7.187372 v 1.864734 h 1.810422 v -1.864734 c 3.774728,-0.416397 6.770975,-3.412644 7.187372,-7.187372 h 1.864734 V 15.813881 Z M 12,23.055567 c -3.5031652,0 -6.3364746,-2.83331 -6.3364746,-6.336475 0,-3.503166 2.8333094,-6.336475 6.3364746,-6.336475 3.503165,0 6.336475,2.833309 6.336475,6.336475 0,3.503165 -2.83331,6.336475 -6.336475,6.336475 z"
+     transform="matrix(1.462753,0,0,1.462753,0.486941,-5.9635013)" />
+  <path
+     d="M 29.673029,16.514183 C 29.07446,11.088028 24.767369,6.7809369 19.341214,6.1823675 V 3.5018214 H 16.73874 V 6.1823675 C 11.312586,6.7809369 7.0054944,11.088028 6.4069256,16.514183 H 3.726379 v 2.602473 H 6.4069256 C 7.0054944,24.54281 11.312586,28.849901 16.73874,29.44847 v 2.680547 h 2.602474 V 29.44847 c 5.426155,-0.598569 9.733246,-4.90566 10.331815,-10.331814 h 2.680546 v -2.602473 z m -11.633052,10.40989 c -5.035784,0 -9.1086533,-4.072871 -9.1086533,-9.108653 0,-5.035784 4.0728693,-9.1086536 9.1086533,-9.1086536 5.035784,0 9.108655,4.0728696 9.108655,9.1086536 0,5.035782 -4.072871,9.108653 -9.108655,9.108653 z"
+     id="path4"
+     inkscape:connector-curvature="0"
+     style="fill:#00001b;fill-opacity:1;stroke:#ccccff;stroke-width:3.2231195;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;paint-order:markers stroke fill"
+     sodipodi:nodetypes="cccccccccccccccccsssss" />
+  <path
+     d="M 0,-0.22455771 H 36.079954 V 35.855397 H 0 Z"
+     id="path2"
+     inkscape:connector-curvature="0"
+     style="fill:none;stroke-width:1.28924787" />
+</svg>

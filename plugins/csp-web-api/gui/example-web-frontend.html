@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>CosmoScout VR</title>
+
+  <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link rel="stylesheet"
+    href="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@10.0.1/build/styles/default.min.css">
+
+
+  <style>
+    .monospace {
+      font-family: monospace;
+    }
+
+    .code {
+      font-family: monospace;
+      white-space: nowrap;
+      overflow-x: auto;
+      padding: 5px;
+    }
+
+    .collapsible-header {
+      justify-content: space-between;
+    }
+
+    .page-footer .footer-copyright {
+      justify-content: space-around;
+    }
+
+    .material-tooltip {
+      max-width: 400px;
+      text-align: left;
+    }
+
+    .btn-block {
+      width: 100%;
+    }
+
+    .aspect-ratio-box {
+      height: 0;
+      overflow: hidden;
+      padding-top: calc(1 / 2 * 100%);
+      background: white;
+      position: relative;
+    }
+
+    .aspect-ratio-box-inside {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .flexbox-centering {
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    #log div {
+      white-space: pre-line;
+      text-indent: -35px;
+      padding-left: 35px;
+      font-size: 0.9rem;
+    }
+
+    body {
+      display: flex;
+      min-height: 100vh;
+      flex-direction: column;
+    }
+
+    main {
+      min-width: 0;
+      flex: 1 0 auto;
+      position: relative;
+      width: 100%;
+      min-height: 100%;
+    }
+  </style>
+</head>
+
+<body class=" blue-grey lighten-5">
+  <main class="row">
+    <div class="col s6">
+
+      <!-- Screenshot Card -->
+      <div class="card hoverable">
+        <div class="card-image">
+          <div class="aspect-ratio-box">
+
+            <div class="aspect-ratio-box-inside">
+              <div class="flexbox-centering black">
+
+                <!-- Spinner -->
+                <div class="preloader-wrapper big active">
+                  <div class="spinner-layer spinner-blue-only">
+                    <div class="circle-clipper left">
+                      <div class="circle"></div>
+                    </div>
+                    <div class="gap-patch">
+                      <div class="circle"></div>
+                    </div>
+                    <div class="circle-clipper right">
+                      <div class="circle"></div>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+
+            <img id="screenshot" style="position: absolute;" src="">
+
+          </div>
+          <a class="btn-floating halfway-fab waves-effect waves-light teal"
+            onclick="reloadScreenshot()"><i class="material-icons">refresh</i></a>
+        </div>
+        <div class="card-content blue-grey darken-1 white-text">
+          <p>This is a screenshot of CosmoScout VR, retrieved with a /capture request.
+            You can hit the refresh button to request a new screenshot.</p>
+        </div>
+      </div>
+
+      <!-- JavaScript Console Card -->
+      <div class="card hoverable">
+
+        <div class="card-content">
+          <form style="display: flex; margin-bottom: -20px;">
+            <div style="flex-grow: 1;">
+              <div class="input-field">
+                <i class="material-icons prefix">code</i>
+                <textarea id="jsCode" class="materialize-textarea monospace"></textarea>
+                <label for="jsCode">JavaScript Code</label>
+              </div>
+            </div>
+            <div style="align-self:center;margin-left: 5px;">
+              <a type="button" class="waves-effect waves-light btn center-align"
+                onclick="runJS($('#jsCode').val())">
+                <i class="material-icons left">play_arrow</i>
+                <span class="hide-on-small-only">Run</span>
+              </a>
+            </div>
+          </form>
+        </div>
+
+        <div class="card-content blue-grey darken-1 white-text">
+          <span class="card-title">Output</span>
+          <p id="log" class="monospace"> </p>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="col s6">
+
+      <!-- Welcome Card -->
+      <div class="card hoverable blue-grey darken-1 white-text">
+        <div class="card-content">
+          <span class="card-title">Welcome to the demo page of the Web-API of CosmoScout VR!</span>
+          <p>This page serves as a basis for you to experiment with. You can replace this page by
+            setting the "page" key in the configuration of "csp-web-api". Below you find a
+            description of each API endpoint together with some examples.</p>
+        </div>
+      </div>
+
+      <!-- Documentation Card -->
+      <ul class="collapsible hoverable">
+
+        <!-- Help on /capture -->
+        <li>
+          <div class="collapsible-header">
+            <i class="material-icons">wallpaper</i>
+            <span style="flex-grow: 1;">/capture</span>
+            <span class="grey-text">[GET]</span>
+          </div>
+          <div class="collapsible-body white">
+            The /capture endpoint can be used to capture a color or a depth image
+            . Here is an example URL: <a href="/capture?width=1200&height=800&gui=true"
+              target="_blank"><span
+                class="document-location"></span>capture?width=1200&height=800&gui=true</a>. To
+            retrieve images with the command line, you could use curl:
+
+            <div class="card-panel blue-grey darken-3 white-text code">
+              curl <span class="document-location"></span>capture --output image.png
+            </div>
+
+            <div class="card-panel blue-grey darken-3 white-text code">
+              curl <span class="document-location"></span>capture?width=1200&height=800&gui=true
+              --output image.png
+            </div>
+
+            Color images will be returned in png format with 8 bits per RGB channel.
+            Depth images will be returned as 32 bit floating point grayscale tiff image.
+            Since most image viewers will display this as pure white, you may convert it to 8 bit
+            for visualization. With <a href="https://imagemagick.org/index.php">imagemagick</a>,
+            this can be done like this:
+
+            <div class="card-panel blue-grey darken-3 white-text code">
+              magick capture.tiff -auto-level -auto-gamma normalized.png
+            </div>
+
+            <table>
+              <thead>
+                <tr>
+                  <th>Parameter</th>
+                  <th>Default</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>width</td>
+                  <td>800</td>
+                  <td>Specifies the desired image width in pixels.</td>
+                </tr>
+                <tr>
+                  <td>height</td>
+                  <td>600</td>
+                  <td>Specifies the desired image height in pixels.</td>
+                </tr>
+                <tr>
+                  <td>gui</td>
+                  <td>false</td>
+                  <td>If set to true, the user interface will be included in the captured image.
+                  </td>
+                </tr>
+                <tr>
+                  <td>delay</td>
+                  <td>50</td>
+                  <td>The application will wait this many frames before capturing the image.
+                    Increase this, if something seems to be not properly loaded.</td>
+                </tr>
+                <tr>
+                  <td>depth</td>
+                  <td>false</td>
+                  <td>If set to true, a 32 bit floating point grayscale range image in meters will
+                    be generated instead of a color image.</td>
+                </tr>
+              </tbody>
+            </table>
+
+          </div>
+        </li>
+
+        <!-- Help on /log -->
+        <li>
+          <div class="collapsible-header">
+            <i class="material-icons">list</i>
+            <span style="flex-grow: 1;">/log</span>
+            <span class="grey-text">[GET]</span>
+          </div>
+          <div class="collapsible-body white">
+
+            The /log endpoint can be used to retrieve the commandline output of CosmoScout VR in a
+            json file. Note that this log only contains messages logged after the web-api plugin has
+            been loaded. Here is an example URL: <a href="/log?length=10" target="_blank"><span
+                class="document-location"></span>log?length=10</a>. You could retrieve the log
+            messages also with
+            curl:
+
+            <div class="card-panel blue-grey darken-3 white-text code">
+              curl <span class="document-location"></span>log --output log.json
+            </div>
+
+            <div class="card-panel blue-grey darken-3 white-text code">
+              curl <span class="document-location"></span>log?length=10 --output log.json
+            </div>
+
+            <table>
+              <thead>
+                <tr>
+                  <th>Parameter</th>
+                  <th>Default</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>length</td>
+                  <td>100</td>
+                  <td>Specifies the maximum number of log entries to retrieve. There is an internal
+                    maximum of 1000.</td>
+                </tr>
+              </tbody>
+            </table>
+
+          </div>
+        </li>
+
+        <!-- Help on /save -->
+        <li>
+          <div class="collapsible-header">
+            <i class="material-icons">cloud_download</i>
+            <span style="flex-grow: 1;">/save</span>
+            <span class="grey-text">[GET]</span>
+          </div>
+          <div class="collapsible-body white">
+
+            The /save endpoint can be used to retrieve the current settings of CosmoScout VR as a
+            huge JSON file. Here is an example URL: <a href="/save" target="_blank"><span
+                class="document-location"></span>save</a> (You may use right-click, Save As...). You
+            later use the /load endpoint to restore the retrieved state. With curl you can save the
+            scene like this:
+
+            <div class="card-panel blue-grey darken-3 white-text code">
+              curl <span class="document-location"></span>save --output save01.json
+            </div>
+
+          </div>
+        </li>
+
+        <!-- Help on /load -->
+        <li>
+          <div class="collapsible-header">
+            <i class="material-icons">cloud_upload</i>
+            <span style="flex-grow: 1;">/load</span>
+            <span class="grey-text">[POST]</span>
+          </div>
+          <div class="collapsible-body white">
+
+            The /load endpoint can be used to restore the settings of CosmoScout VR to a state which
+            has been saved previously with /save.
+
+            <div class="file-field" style="display: flex; margin: 10px 0">
+              <div class="btn">
+                <span>Select JSON</span>
+                <input type="file" id="settings-file" accept="application/json">
+              </div>
+              <div class="file-path-wrapper" style="flex-grow: 1;">
+                <input class="file-path validate" type="text">
+              </div>
+              <a class="btn waves-effect waves-light white-text" style="margin-left: 5px;"
+                type="button"
+                onclick="loadSettings(document.querySelector('#settings-file').files[0])">
+                <i class="material-icons left">play_arrow</i>
+              </a>
+            </div>
+
+            Here is an example with curl.
+
+            <div class="card-panel blue-grey darken-3 white-text code">
+              curl --data "@save01.json" <span class="document-location"></span>load
+            </div>
+
+          </div>
+        </li>
+
+        <!-- Help on /run-js -->
+        <li>
+          <div class="collapsible-header">
+            <i class="material-icons">code</i>
+            <span style="flex-grow: 1;">/run-js</span>
+            <span class="grey-text">[POST]</span>
+          </div>
+          <div class="collapsible-body white">
+            The /run-js endpoint can be used to execute JavaScript code in CosmoScout VR.
+            Due to cross-origin security restrictions, your browser only allows POST requests
+            to servers from sites served by the same server. So in order to use this endpoint,
+            you may either use the console on the left hand side, or you use your command line:
+
+            <div class="card-panel blue-grey darken-3 white-text code">
+              curl --data "console.log('huhu')" <span class="document-location"></span>run-js
+            </div>
+
+            you can also execute an entire script from a file. This can be done with a form or with
+            curl:
+
+            <div class="file-field" style="display: flex; margin: 10px 0">
+              <div class="btn">
+                <span>Select Script</span>
+                <input type="file" id="js-file" accept="application/javascript">
+              </div>
+              <div class="file-path-wrapper" style="flex-grow: 1;">
+                <input class="file-path validate" type="text">
+              </div>
+              <a class="btn waves-effect waves-light white-text" style="margin-left: 5px;"
+                type="button" onclick="loadJS(document.querySelector('#js-file').files[0])">
+                <i class="material-icons left">play_arrow</i>
+              </a>
+            </div>
+
+            <div class="card-panel blue-grey darken-3 white-text code">
+              curl --data "@script.js" <span class="document-location"></span>run-js
+            </div>
+
+            Here are some copy-paste examples of CosmoScout's JavaScript API. Feel free to refresh
+            the screenshot on the left hand side whenever you want.
+
+            <pre><code class="tooltipped javascript" data-position="left"
+              data-tooltip="This simple prints 'Hello World' to the console."
+              class="">console.log("Hello World");</code></pre>
+
+            <pre><code class="tooltipped javascript" data-position="left"
+              data-tooltip="You can use code like this to list all properties of an object. 
+              This is similar to the functionality used to suggest candidates for auto-completion 
+              in CosmoScout's on-screen console. In this example we list all methods of
+              'CosmoScout.callbacks.navigation'.">let properties = Object.getOwnPropertyNames(CosmoScout.callbacks.navigation);
+properties.forEach(element => {
+  console.log(element);
+});</code></pre>
+
+            <pre><code class="tooltipped javascript" data-position="left"
+              data-tooltip="To learn something about a specific CosmoScout callback,
+              you can log it to the command line (without calling it).">console.log(CosmoScout.callbacks.navigation.setBody);</code></pre>
+
+            <pre><code class="tooltipped javascript" data-position="left"
+              data-tooltip="Here we use the 'setBody' callback to fly the observer to the Moon.
+              The travel duration is set to zero, so you can request a new screenshot immediately
+              after executing this line.">CosmoScout.callbacks.navigation.setBody("Moon", 0);</code></pre>
+
+            <pre><code class="tooltipped javascript" data-position="left"
+              data-tooltip="Many parameters are configured via the 'graphics' object.">CosmoScout.callbacks.graphics.setEnableHDR(true);</code></pre>
+
+            <pre><code class="tooltipped javascript" data-position="left"
+              data-tooltip="Time is controlled via the 'time' object.">CosmoScout.callbacks.time.setDate("2020-01-01 12:42");</code></pre>
+
+            <pre><code class="tooltipped javascript" data-position="left"
+              data-tooltip="All plugins of CosmoScout VR can be reloaded at runtime.
+              This example unloads the atmosphers plugin.">CosmoScout.callbacks.core.unloadPlugin("csp-atmospheres");</code></pre>
+
+            <pre><code class="tooltipped javascript" data-position="left"
+              data-tooltip="You can save the current scene to a file, which is stored on the
+              backend.">CosmoScout.callbacks.core.save("scene01.json");</code></pre>
+
+            <pre><code class="tooltipped javascript" data-position="left"
+              data-tooltip="You can restore a previously stored scene with the 'load'
+              callback.">CosmoScout.callbacks.core.load("scene01.json");</code></pre>
+
+            If you create your own site for the Web-API plugin of CosmoScout VR, you can of course
+            hide the JavaScript calls behind some buttons and switches.
+
+            <div class="card blue-grey darken-1 white-text">
+              <div class="card-content">
+                <span class="card-title">CosmoScout VR Remote v0.1</span>
+
+                <div class="row">
+                  <div class="col s4">
+                    <a onclick="runJS('CosmoScout.callbacks.navigation.setBody(\'Mars\', 0);')"
+                      class="waves-effect waves-light btn btn-block">to Mars</a>
+                  </div>
+                  <div class="col s4">
+                    <a onclick="runJS('CosmoScout.callbacks.navigation.setBody(\'Earth\', 0);')"
+                      class="waves-effect waves-light btn btn-block">to Earth</a>
+                  </div>
+                  <div class="col s4">
+                    <a onclick="runJS('CosmoScout.callbacks.navigation.setBody(\'Moon\', 0);')"
+                      class="waves-effect waves-light btn btn-block">to Moon</a>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col s7">
+                    Trajectory Rendering
+                  </div>
+                  <div class="col s5 align right-align">
+                    <div class="switch">
+                      <label>
+                        Off
+                        <input type="checkbox" checked
+                          onclick="runJS(`CosmoScout.callbacks.trajectories.setEnableTrajectories(${this.checked})`)">
+                        <span class="lever"></span>
+                        On
+                      </label>
+                    </div>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col s7">
+                    Star Rendering
+                  </div>
+                  <div class="col s5 align right-align">
+                    <div class="switch">
+                      <label>
+                        Off
+                        <input type="checkbox" checked
+                          onclick="runJS(`CosmoScout.callbacks.stars.setEnabled(${this.checked})`)">
+                        <span class="lever"></span>
+                        On
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            The here is the required HTML / JavaScript code for a basic button or checkbox:
+
+            <pre><code class="html">&lt;a onclick="runJS(`CosmoScout.callbacks.navigation.setBody('Moon', 0);`)"&gt;to Moon&lt;/a&gt;</code></pre>
+            <pre><code class="html">&lt;input type="checkbox" onclick="runJS(`CosmoScout.callbacks.stars.setEnabled(${this.checked})`)"&gt;</code></pre>
+
+            Where the runJS() method in this example is simply defined as:
+
+            <pre><code class="javascript">// Runs the given JavaScript code on the CosmoScout VR backend.
+function runJS(code) {
+  jQuery.post('/run-js', code);
+}</code></pre>
+
+          </div>
+        </li>
+      </ul>
+
+    </div>
+  </main>
+
+  <footer class="page-footer blue-grey center-align">
+    <div class="footer-copyright blue-grey darken-1">
+      <div>
+        © 2020 German Aerospace Center (<a class=" orange-text text-accent-24"
+          href="https://www.dlr.de" target="_blank">DLR</a>)
+      </div>
+      <div>
+        Made with
+        <a class=" orange-text text-accent-24" href="https://materializecss.com"
+          target="_blank">materializecss</a>,
+        <a class=" orange-text text-accent-24" href="https://material.io" target="_blank">Material
+          Icons</a>,
+        <a class=" orange-text text-accent-24" href="https://jquery.com" target="_blank">jQuery</a>,
+        and
+        <a class=" orange-text text-accent-24" href="https://highlightjs.org/"
+          target="_blank">highlight.js</a>.
+      </div>
+      <div>
+        Visit CosmoScout VR on <a class=" orange-text text-accent-24"
+          href="https://github.com/cosmoscout/cosmoscout-vr/tree/develop"
+          target="_blank">GitHub.com</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Third Party-->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+  <script
+    src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+  <script
+    src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@10.0.1/build/highlight.min.js"></script>
+
+  <script type="text/javascript">
+    // Reloads the log every second.
+    window.setInterval(function () {
+      jQuery.getJSON("/log?length=50", function (result) {
+        $("#log").empty();
+        jQuery.each(result, function (i, item) {
+          $("#log").append("<div>" + item + "</pre>");
+        });
+      });
+    }, 1000);
+
+    // Reloads the screenshot. We first set the source to an empty string so that the spinner in
+    // the background gets visible.
+    function reloadScreenshot() {
+      document.getElementById('screenshot').src = "";
+      document.getElementById('screenshot').src =
+        "/capture?width=1200&height=600&delay=10&gui=false?random=" + new Date().getTime();
+    }
+
+    // Initial loading.
+    reloadScreenshot();
+
+    // Runs the given JavaScript code on the CosmoScout VR backend.
+    function runJS(code) {
+      jQuery.post('/run-js', code);
+    }
+
+    // Loads the given script file and executes it on the CosmoScout VR backend.
+    function loadJS(file) {
+      if (file) {
+        var reader = new FileReader();
+        reader.onload = function (evt) {
+          jQuery.post('/run-js', evt.target.result);
+        };
+        reader.readAsText(file);
+      }
+    }
+
+    // Loads the given file and sends it to the CosmoScout VR backend.
+    function loadSettings(file) {
+      if (file) {
+        var reader = new FileReader();
+        reader.onload = function (evt) {
+          jQuery.post('/load', evt.target.result);
+        };
+        reader.readAsText(file);
+      }
+    }
+
+    // The URL to this site is used in several places throughout the page.
+    $(".document-location").text(document.location);
+
+    // Initialize materializecss.
+    M.AutoInit();
+
+    // Initialize code highlight
+    hljs.initHighlightingOnLoad();
+  </script>
+
+</body>
+
+</html>
