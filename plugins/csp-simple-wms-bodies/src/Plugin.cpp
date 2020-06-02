@@ -153,8 +153,8 @@ void Plugin::init() {
             mGuiManager->getGui()->callJavascript(
                 "CosmoScout.simpleWMSBodies.setWMSDataCopyright", wms.second.mCopyright);
 
-			// Only allow setting timespan if it is specified for the WMS data set.
-			mGuiManager->getGui()->callJavascript(
+            // Only allow setting timespan if it is specified for the WMS data set.
+            mGuiManager->getGui()->callJavascript(
                 "CosmoScout.simpleWMSBodies.enableCheckBox", wms.second.mTimespan.value_or(false));
             if (!wms.second.mTimespan.value_or(false)) {
               mGuiManager->setCheckboxValue("simpleWMSBodies.setEnableTimeSpan", false);
@@ -340,7 +340,7 @@ void Plugin::setWMSSource(
 
   mGuiManager->getGui()->callJavascript(
       "CosmoScout.simpleWMSBodies.setWMSDataCopyright", dataset->second.mCopyright);
-  
+
   // Only allow setting timespan if it is specified for the WMS data set.
   mGuiManager->getGui()->callJavascript(
       "CosmoScout.simpleWMSBodies.enableCheckBox", dataset->second.mTimespan.value_or(false));

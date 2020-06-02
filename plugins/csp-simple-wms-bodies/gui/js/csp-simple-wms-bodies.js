@@ -36,8 +36,8 @@
      */
     // eslint-disable-next-line class-methods-use-this
     enableCheckBox(enable) {
-      document.querySelector('[data-callback="simpleWMSBodies.setEnableTimeSpan"]')
-          .disabled = !enable;
+      document.querySelector('[data-callback="simpleWMSBodies.setEnableTimeSpan"]').disabled =
+          !enable;
     }
   }
 
