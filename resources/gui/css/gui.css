@@ -1,16 +1,29 @@
-/* Global Colors------------------------------------------------------------- */
+/* Global Colors--------------------------------------------------------------------------------- */
 :root {
-  --cs-text-color: #ddf;
-  --cs-text-color-darkened: #ccf;
+  --cs-color-text: #ddf;
+  --cs-color-text-highlight: #fff;
+  --cs-color-primary: #ccf;
+  --cs-color-primary-transparent: #ccccff88;
 
-  --cs-border-color-light: #ddf;
-  --cs-border-color: #ccf;
+  --cs-color-background-dark: #181818aa;
+  --cs-color-background-darker: #000000aa;
 
-  --cs-background-color-light: #ddf;
-  --cs-background-color: #ccf;
+  --cs-color-background-light: #ccccff08;
+  --cs-color-background-lighter: #ccccff20;
+  --cs-color-background-lightest: #ccccff50;
+
+  --cs-border-radius-small: 3px;
+  --cs-border-radius-medium: 5px;
+  --cs-border-radius-large: 8px;
+
+  --cs-box-shadow-small: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --cs-box-shadow-medium: 0 2px 8px rgba(0, 0, 0, 0.4);
+  --cs-box-shadow-large: 0 5px 20px rgba(0, 0, 0, 0.5);
+
+  --cs-text-glow: 0 0 3px var(--cs-color-primary), 0 0 10px var(--cs-color-background-lightest);
 }
 
-/* Resources ---------------------------------------------------------------- */
+/* Resources ------------------------------------------------------------------------------------ */
 
 @font-face {
   font-family: 'Ubuntu';
@@ -44,17 +57,16 @@
   font-family: 'Material Icons', sans-serif;
   font-weight: normal;
   font-style: normal;
-  font-size: 24px;
-  /* Preferred icon size */
+  vertical-align: middle;
   display: inline-block;
-  line-height: 1;
   text-transform: none;
   letter-spacing: normal;
   word-wrap: normal;
   white-space: nowrap;
+  position: relative;
 }
 
-/* Basic Containers --------------------------------------------------------- */
+/* Basic Containers ----------------------------------------------------------------------------- */
 
 html {
   overflow: hidden;
@@ -62,7 +74,7 @@ html {
 
 body {
   font-family: 'Ubuntu', sans-serif;
-  color: var(--cs-text-color);
+  color: var(--cs-color-text);
   font-size: 1rem;
   -webkit-user-select: none !important;
   -webkit-font-smoothing: antialiased;
@@ -73,40 +85,17 @@ body {
   display: none !important;
 }
 
-.small {
-  font-size: 80%;
-}
-
 code,
 pre {
-  background-color: rgba(0, 0, 0, 0.4);
+  background-color: var(--cs-color-background-dark);
   padding: 5px;
-  border-radius: 3px;
+  border-radius: var(--cs-border-radius-small);
   overflow: auto;
 }
 
-.important {
-  background-color: rgba(200, 200, 255, 0.2);
-  padding: 5px;
-  border-radius: 3px;
-}
-
 strong {
-  color: #fff;
+  color: var(--cs-color-text-highlight);
   font-weight: bold;
-}
-
-.row {
-  margin: 0 0 2px;
-  padding: 0 0.25rem;
-}
-
-.row .col {
-  padding: 0 0.2rem;
-}
-
-.text-right {
-  text-align: right;
 }
 
 .col,
@@ -142,15 +131,11 @@ input[type="search"]:not(.browser-default),
 .select-wrapper input.select-dropdown,
 .select-wrapper input.select-dropdown:focus {
   border: none;
-  border-bottom: 2px solid var(--cs-border-color);
-  color: var(--cs-text-color-darkened);
-  margin: 0 0 5px 0;
-  height: auto;
-  line-height: 1.5;
-  background: transparent;
-  width: 100%;
+  border-bottom: 2px solid var(--cs-color-primary);
+  color: var(--cs-color-text);
+  background: var(--cs-color-background-light);
+  border-radius: var(--cs-border-radius-small);
 }
-
 
 input:focus:not([type]):not([readonly]),
 input[type="text"]:focus:not(.browser-default):not([readonly]),
@@ -166,11 +151,12 @@ input[type="number"]:focus:not(.browser-default):not([readonly]),
 input[type="search"]:focus:not(.browser-default):not([readonly]) {
   border-bottom: 2px solid #fff;
   box-shadow: none;
+  background: var(--cs-color-background-lighter);
 }
 
-input,
-textarea {
-  color: #fff;
+.form-control.is-invalid,
+.was-validated .form-control:invalid {
+  border-bottom: 2px solid red !important;
 }
 
 .unresponsive {
@@ -178,54 +164,12 @@ textarea {
   opacity: 0.5;
 }
 
-.item-list.big-items>.row {
-  background-color: rgba(255, 255, 255, 0.1);
-  margin-bottom: 10px;
-  border-top: 2px solid var(--cs-border-color);
-  padding: 5px;
+.fix-rounded-right {
+  border-top-right-radius: var(--cs-border-radius-small) !important;
+  border-bottom-right-radius: var(--cs-border-radius-small) !important;
 }
 
-.item-list>.row {
-  padding: 0 2px;
-  line-height: 3rem;
-  margin: 0;
-  cursor: pointer;
-  position: relative;
-  transition: background-color 0.1s linear;
-}
-
-.item-list>.row:hover {
-  background-color: rgba(255, 255, 255, 0.15);
-}
-
-.item-list .info {
-  display: none;
-}
-
-.item-list .info:only-child {
-  display: inline;
-}
-
-.item-list .col {
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
-.item-list>.row.selectable-item:active {
-  top: 1px;
-}
-
-.item-list>.row.selected {
-  color: #fff;
-  background-color: rgba(230, 230, 255, 0.2);
-  text-shadow: 0 0 3px rgba(255, 255, 255, 0.4), 0 0 10px rgba(255, 255, 255, 0.4);
-}
-
-.item-list .text-input {
-  line-height: 2.1rem;
-}
-
-/* Scroll box --------------------------------------------------------------- */
+/* Scroll box ----------------------------------------------------------------------------------- */
 
 .scroll-box {
   -webkit-mask-image: -webkit-linear-gradient(rgba(255, 255, 255, 0) 0, rgba(255, 255, 255, 1) 20px, rgba(255, 255, 255, 1) 40%, rgba(255, 255, 255, 0) 49%), -webkit-linear-gradient(bottom, rgba(255, 255, 255, 0) 0, rgba(255, 255, 255, 1) 20px, rgba(255, 255, 255, 1) 49%, rgba(255, 255, 255, 0) 49%), -webkit-linear-gradient(rgba(255, 255, 255, 0) 30%, rgba(255, 255, 255, 1) 40%, rgba(255, 255, 255, 1) 60%, rgba(255, 255, 255, 0) 70%);
@@ -243,13 +187,13 @@ textarea {
 }
 
 ::-webkit-scrollbar-track {
-  border-radius: 3px;
+  border-radius: var(--cs-border-radius-small);
   background-color: rgba(230, 230, 255, 0.1);
   margin: 15px 0;
 }
 
 ::-webkit-scrollbar-thumb {
-  border-radius: 3px;
+  border-radius: var(--cs-border-radius-small);
   background-color: rgba(230, 230, 255, 0.6);
 }
 
@@ -257,14 +201,15 @@ textarea {
   background-color: rgba(230, 230, 255, 0.9);
 }
 
-/* Buttons ------------------------------------------------------------------ */
+/* Buttons -------------------------------------------------------------------------------------- */
 
 .btn {
-  margin-bottom: 2px;
   position: relative;
-  padding: 0;
-  color: #fff;
-  border-radius: 0;
+  padding: 0 7px;
+  color: var(--cs-color-text);
+  border-radius: var(--cs-border-radius-small);
+  cursor: pointer;
+  transition: none;
 }
 
 .btn.unresponsive,
@@ -284,8 +229,14 @@ textarea {
 
 .btn.glass {
   background-color: rgba(230, 230, 255, 0.1);
-  border-bottom: 2px solid var(--cs-border-color);
+  border-bottom: 2px solid var(--cs-color-primary);
   box-shadow: none;
+}
+
+.btn.glass.btn-danger {
+  background-color: rgba(255, 8, 8, 0.1);
+  border: 2px solid rgba(255, 0, 0, 0.1);
+  border-bottom: 2px solid rgba(255, 0, 0, 0.8);
 }
 
 .btn.glass.unresponsive,
@@ -294,10 +245,15 @@ textarea {
 }
 
 .btn.glass:hover {
-  background-color: rgba(230, 230, 255, 0.3);
-  border-bottom: 2px solid #fff;
+  background-color: var(--cs-color-background-lightest);
+  border-bottom: 2px solid var(--cs-color-text-highlight);
   box-shadow: none;
-  color: #fff;
+  color: var(--cs-color-text-highlight);
+}
+
+.btn.glass.btn-danger:hover {
+  background-color: rgba(255, 50, 50, 0.2);
+  border-bottom: 2px solid rgba(255, 50, 50, 0.8);
 }
 
 .btn.light-glass {
@@ -310,11 +266,11 @@ textarea {
   box-shadow: none;
 }
 
-/* Tabs --------------------------------------------------------------------- */
+/* Tabs ----------------------------------------------------------------------------------------- */
 
 .tabs {
   background-color: transparent;
-  border-bottom: 2px solid var(--cs-border-color);
+  border-bottom: 2px solid var(--cs-color-primary);
   margin-bottom: 5px;
 }
 
@@ -323,7 +279,7 @@ textarea {
 }
 
 .tabs .tab a {
-  color: var(--cs-text-color-darkened) !important;
+  color: var(--cs-color-primary) !important;
   position: relative;
 }
 
@@ -334,16 +290,16 @@ textarea {
 .tabs .tab a.active,
 .tabs .tab a:hover {
   color: #fff !important;
-  text-shadow: 0 0 3px rgba(255, 255, 255, 0.4), 0 0 10px rgba(255, 255, 255, 0.4);
+  text-shadow: var(--cs-text-glow);
 }
 
 .tabs .indicator {
-  background-color: var(--cs-text-color-darkened);
+  background-color: var(--cs-color-primary);
   height: 3px;
 }
 
 .nav-tabs {
-  border-bottom: 1px dashed rgba(230, 230, 255, 0.3);
+  border-bottom: 1px dashed var(--cs-color-background-lightest);
 }
 
 .nav.nav-tabs {
@@ -353,7 +309,7 @@ textarea {
 .nav-tabs .nav-item {
   font-family: 'AlegreyaSansSC', sans-serif;
   text-align: center;
-  color: var(--cs-text-color-darkened);
+  color: var(--cs-color-primary);
   padding: 2px;
   border: none;
   font-size: 1.5rem;
@@ -361,22 +317,22 @@ textarea {
 
 .nav-tabs .nav-link:hover {
   border: none;
-  text-shadow: 0 0 3px rgba(255, 255, 255, 0.4), 0 0 10px rgba(255, 255, 255, 0.4);
+  text-shadow: var(--cs-text-glow);
   color: #fff;
 }
 
 .nav-tabs .nav-link.active {
-  color: var(--cs-text-color-darkened);
-  background-color: rgba(255, 255, 255, 0.1);
+  color: var(--cs-color-primary);
+  background-color: var(--cs-color-background-lightest);
   border: none;
-  border-bottom: 1px solid var(--cs-border-color);
+  border-bottom: 1px solid var(--cs-color-primary);
 }
 
 .tab-content {
   margin: 10px;
 }
 
-/* Check Boxes -------------------------------------------------------------- */
+/* Check Boxes ---------------------------------------------------------------------------------- */
 
 input[type=checkbox] {
   /* to hide the checkbox itself */
@@ -384,20 +340,19 @@ input[type=checkbox] {
 }
 
 label input[type=checkbox]+i::before {
-  display: inline-block;
   position: absolute;
-  left: 0;
-  top: 0;
-  margin: 2px 0 4px 0;
+  font-size: 24px;
+  bottom: -16px;
+  left: -2px;
   content: "check_box_outline_blank";
 }
 
 label.checklabel span {
-  padding-left: 35px;
+  padding-left: 32px;
 }
 
 label input[type=checkbox]:checked+i::before {
-  color: #fff;
+  color: var(--cs-color-text-highlight);
   content: "check_box";
 }
 
@@ -407,8 +362,8 @@ label.checklabel {
 }
 
 label.checklabel:hover {
-  color: #fff;
-  text-shadow: 0 0 3px rgba(255, 255, 255, 0.4), 0 0 10px rgba(255, 255, 255, 0.4);
+  color: var(--cs-color-text-highlight);
+  text-shadow: var(--cs-text-glow);
   cursor: pointer;
 }
 
@@ -417,7 +372,7 @@ label.checklabel:active {
 }
 
 
-/* Radio Buttons ------------------------------------------------------------ */
+/* Radio Buttons -------------------------------------------------------------------------------- */
 
 input[type=radio] {
   /* to hide the radio button itself */
@@ -435,7 +390,7 @@ input[type=radio]+span::before {
   width: 16px;
   height: 16px;
   vertical-align: sub;
-  border: 2px solid var(--cs-border-color);
+  border: 2px solid var(--cs-color-primary);
   border-radius: 50%;
 }
 
@@ -455,7 +410,7 @@ label.radiolabel {
 
 label.radiolabel:hover {
   color: #fff;
-  text-shadow: 0 0 3px rgba(255, 255, 255, 0.4), 0 0 10px rgba(255, 255, 255, 0.4);
+  text-shadow: var(--cs-text-glow);
   cursor: pointer;
 }
 
@@ -464,20 +419,22 @@ label.radiolabel:active {
 }
 
 input[type=checkbox]:checked+span.btn {
-  background-color: rgba(230, 230, 255, 0.5);
-  text-shadow: 0 0 5px rgba(255, 255, 255, 0.4), 0 0 10px #aaf;
-  border-top: 1px dashed rgba(230, 230, 255, 0.5);
-  border-right: 1px dashed rgba(230, 230, 255, 0.5);
-  border-left: 1px dashed rgba(230, 230, 255, 0.5);
+  background-color: var(--cs-color-background-lightest);
+  color: var(--cs-color-text-highlight);
+  text-shadow: var(--cs-text-glow);
+  border-top: 1px dashed var(--cs-color-background-lightest);
+  border-right: 1px dashed var(--cs-color-background-lightest);
+  border-left: 1px dashed var(--cs-color-background-lightest);
 }
 
-/* Utilities ---------------------------------------------------------------- */
+
+/* Utilities ------------------------------------------------------------------------------------ */
 
 hr {
   margin-top: 0;
   margin-bottom: 10px;
   border: 0;
-  border-top: 1px dashed rgba(230, 230, 255, 0.3);
+  border-top: 1px dashed var(--cs-color-background-lightest);
 }
 
 /* Sliders ------------------------------------------------------------------ */
@@ -485,13 +442,7 @@ hr {
 .noUi-horizontal .noUi-handle,
 .noUi-connect,
 .noUi-target .range-label {
-  background-color: #fff;
-}
-
-.unresponsive .noUi-horizontal .noUi-handle,
-.unresponsive .noUi-connect,
-.unresponsive .noUi-target .range-label {
-  background-color: rgb(167, 167, 167);
+  background-color: var(--cs-color-text-highlight)
 }
 
 .noUi-target .range-label {
@@ -508,7 +459,6 @@ hr {
 
 .noUi-target .noUi-active .range-label {
   transform: translate(-50%, -16px);
-  //transform: translate(-50%, -40px);
   border-radius: 50% !important;
 }
 
@@ -530,6 +480,11 @@ hr {
 
 .noUi-base {
   margin-top: 5px;
+  cursor: pointer;
+}
+
+.unresponsive .noUi-base {
+  cursor: default;
 }
 
 .noUi-background {
@@ -540,7 +495,7 @@ hr {
   box-shadow: none;
 }
 
-/* Collapsibles ------------------------------------------------------------- */
+/* Collapsibles --------------------------------------------------------------------------------- */
 
 .collapsible-header,
 .collapsible-body {
@@ -554,11 +509,9 @@ hr {
 }
 
 .collapsible-header {
-  color: #fff;
   display: block;
   font-size: 1.8rem;
   line-height: 3.4rem;
-  text-shadow: 0 0 5px rgba(255, 255, 255, 0.4), 0 0 10px #aaf;
   white-space: nowrap;
   overflow: hidden;
   text-align: center;
@@ -622,10 +575,10 @@ hr {
 }
 
 .collapsible>li {
-  border-top: 2px solid var(--cs-border-color);
+  border-top: 2px solid var(--cs-color-primary);
 }
 
-/* Strike ------------------------------------------------------------------- */
+/* Strike --------------------------------------------------------------------------------------- */
 
 .strike {
   display: block;
@@ -645,7 +598,7 @@ hr {
   display: inline-block;
   font-size: 1.5rem;
   color: #fff;
-  text-shadow: 0 0 5px rgba(255, 255, 255, 0.4), 0 0 10px #aaf;
+  text-shadow: var(--cs-text-glow);
 }
 
 .strike>*:before,
@@ -670,100 +623,256 @@ hr {
   margin-left: 15px;
 }
 
-/* Dropdowns ---------------------------------------------------------------- */
-
-.bootstrap-select:not([class*=col-]):not([class*=form-control]):not(.input-group-btn) {
-  width: 100%;
-}
-
-.btn-light:not(:disabled):not(.disabled).active,
-.btn-light:not(:disabled):not(.disabled):active,
-.show>.btn-light.dropdown-toggle {
-  background-color: transparent;
-  color: #fff;
-  text-shadow: 0 0 3px rgba(255, 255, 255, 0.4), 0 0 10px rgba(255, 255, 255, 0.4) !important;
-}
-
-.dropdown-toggle {
-  background: transparent;
-  color: var(--cs-text-color-darkened);
-  border: none;
-  border-bottom: 2px solid var(--cs-border-color);
-}
-
-.dropdown-toggle.show {
-  background-color: transparent !important;
-  color: #fff !important;
-  text-shadow: 0 0 3px rgba(255, 255, 255, 0.4), 0 0 10px rgba(255, 255, 255, 0.4) !important;
-}
-
-.show>.btn-light.dropdown-toggle:focus,
-.dropdown-toggle:hover {
-  color: #fff;
-  text-shadow: 0 0 3px rgba(255, 255, 255, 0.4), 0 0 10px rgba(255, 255, 255, 0.4);
-  background: transparent;
-  box-shadow: none;
-}
+/* Dropdowns ------------------------------------------------------------------------------------ */
 
 .dropdown-menu {
-  background: #000;
-  border: 1px solid var(--cs-border-color)
+  padding: 0;
+  background-color: var(--cs-color-background-dark);
+  border: 2px solid var(--cs-color-primary);
+  box-shadow: var(--cs-box-shadow-medium);
 }
 
-.dropdown-item,
-.dropdown-option {
-  background: #000;
-  color: var(--cs-text-color-darkened);
-}
-
-.dropdown-item:hover,
-.dropdown-item:focus,
-.dropdown-option:focus,
-.dropdown-option:hover {
-  background: #000;
-  color: var(--cs-text-color-darkened);
-  text-shadow: 0 0 3px rgba(255, 255, 255, 0.4), 0 0 10px rgba(255, 255, 255, 0.4);
-  outline: none;
-}
-
-.bootstrap-select .dropdown-toggle:focus,
-.bootstrap-select>select.mobile-device:focus+.dropdown-toggle {
-  outline: none !important;
-  box-shadow: none;
+.dropdown-item {
+  padding: 0.25rem 0.5rem;
+  color: var(--cs-color-text);
 }
 
 .dropdown-item.active,
-.dropdown-option:active {
-  background-color: #000;
-  text-shadow: 0 0 3px rgba(255, 255, 255, 0.4), 0 0 10px rgba(255, 255, 255, 0.4);
-  color: #fff;
+.dropdown-item:active {
+  background-color: rgba(255, 255, 255, 0.3);
+  color: white;
 }
 
-/* Tooltips --------------------------------------------------------------------------------------------------------- */
+.dropdown-item.active:hover {
+  background-color: var(--cs-color-background-lightest);
+  color: white;
+}
+
+.dropdown-item:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.dropdown-toggle {
+  border: none !important;
+  background-color: rgba(230, 230, 255, 0.1) !important;
+  border-bottom: 2px solid var(--cs-color-primary) !important;
+  padding: 3px 7px;
+  box-shadow: none !important;
+  color: var(--cs-color-text) !important;
+}
+
+.dropdown-toggle:hover {
+  background-color: rgba(230, 230, 255, 0.3) !important;
+  border-bottom: 2px solid #fff !important;
+  box-shadow: none !important;
+  color: #fff !important;
+}
+
+.bootstrap-select .dropdown-item:focus,
+.bootstrap-select .dropdown-toggle:focus {
+  outline: none !important;
+}
+
+/* Tooltips ------------------------------------------------------------------------------------- */
 
 .bs-tooltip-auto[x-placement^=top] .arrow::before,
 .bs-tooltip-top .arrow::before {
-  border-top-color: var(--cs-text-color-darkened) !important;
+  border-top-color: var(--cs-color-primary) !important;
 }
 
 .bs-tooltip-auto[x-placement^=right] .arrow::before,
 .bs-tooltip-right .arrow::before {
-  border-right-color: var(--cs-text-color-darkened) !important;
+  border-right-color: var(--cs-color-primary) !important;
 }
 
 .bs-tooltip-auto[x-placement^=bottom] .arrow::before,
 .bs-tooltip-bottom .arrow::before {
-  border-bottom-color: var(--cs-text-color-darkened) !important;
+  border-bottom-color: var(--cs-color-primary) !important;
 }
 
 .bs-tooltip-auto[x-placement^=left] .arrow::before,
 .bs-tooltip-left .arrow::before {
-  border-left-color: var(--cs-text-color-darkened) !important;
+  border-left-color: var(--cs-color-primary) !important;
 }
 
 .tooltip .tooltip-inner {
-  color: var(--cs-text-color);
+  color: var(--cs-color-text);
   background: rgba(20, 20, 20, 0.8);
-  border: 2px solid var(--cs-border-color);
-  border-radius: 5px;
+  border: 2px solid var(--cs-color-primary);
+  border-radius: var(--cs-border-radius-medium);
+  box-shadow: var(--cs-box-shadow-small);
+}
+
+.tooltip {
+  z-index: 100000;
+}
+
+/* Resizable Windows ---------------------------------------------------------------------------- */
+
+.resizable-window .window-wrapper {
+  resize: both;
+  overflow: hidden;
+}
+
+/* This thing is required to make the resize-grip clickable even if a link is beneath it */
+.resizable-window .window-wrapper::after {
+  content: '';
+  width: 15px;
+  height: 15px;
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  border-style: solid;
+  border-width: 8px;
+  border-bottom-right-radius: 8px;
+  border-color: transparent var(--cs-color-primary) var(--cs-color-primary) transparent;
+  background: transparent;
+  z-index: 99999;
+}
+
+/* Movable Windows ------------------------------------------------------------------------------ */
+
+.draggable-window {
+  opacity: 0;
+  position: absolute;
+  transition: opacity 0.2s ease-out;
+  pointer-events: none;
+}
+
+.draggable-window.visible {
+  pointer-events: all;
+  opacity: 1;
+}
+
+.draggable-window .window-wrapper {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--cs-color-background-dark);
+  border-top: 2px solid var(--cs-color-primary);
+  border-bottom: 2px solid var(--cs-color-primary);
+  border-radius: var(--cs-border-radius-large);
+  box-shadow: var(--cs-box-shadow-large);
+}
+
+.draggable-window .window-header {
+  display: flex;
+  font-size: 1.8rem;
+  font-family: 'AlegreyaSansSC', sans-serif;
+  border-bottom: 1px dashed var(--cs-color-background-lightest);
+  height: 47px;
+}
+
+.draggable-window .window-header a {
+  border-radius: 0;
+}
+
+.draggable-window .window-header:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.draggable-window .window-title {
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  position: relative;
+  flex-grow: 1;
+  padding: 5px 5px 5px 0;
+}
+
+.draggable-window .window-content {
+  position: relative;
+  flex-grow: 1;
+}
+
+.draggable-window .window-title span {
+  position: relative;
+  padding-left: 80px;
+  top: -3px;
+}
+
+.draggable-window .window-title:active span {
+  top: -2px;
+}
+
+.draggable-window .window-header i {
+  padding: 2px;
+  font-size: 24px;
+}
+
+.draggable-window .window-title i {
+  position: absolute;
+  color: black;
+  text-shadow: none;
+  background-color: var(--cs-color-primary);
+  top: -8px;
+  font-size: 2.2rem;
+  border-radius: 0 0 80% 0;
+  padding: 5px 20px 5px 15px;
+}
+
+.draggable-window.auto-hide-header .window-header::before {
+  content: '';
+  position: absolute;
+  top: -20px;
+  height: 22px;
+  width: 100%;
+}
+
+.draggable-window.auto-hide-header .window-header {
+  border-bottom-width: 0px;
+  height: 0px;
+  overflow: hidden;
+  transition: height 0.2s ease, border-width 0.2s ease;
+}
+
+.draggable-window.auto-hide-header .window-header:hover {
+  height: 47px;
+  border-bottom-width: 1px;
+}
+
+/* color picker --------------------------------------------------------------------------------- */
+
+.color-picker.no-alpha .color-picker\:a {
+  display: none;
+}
+
+/* Popovers ------------------------------------------------------------------------------------- */
+
+.popover {
+  background: var(--cs-color-background-darker);
+  border: 2px solid var(--cs-color-primary);
+  border-radius: var(--cs-border-radius-medium);
+  box-shadow: var(--cs-box-shadow-medium);
+}
+
+.popover-header {
+  background: transparent;
+  border: none;
+  padding-bottom: 0;
+}
+
+.popover-body {
+  color: var(--cs-color-text);
+}
+
+.bs-popover-auto[x-placement^=right]>.arrow::after,
+.bs-popover-right>.arrow::after {
+  border-right-color: var(--cs-color-primary);
+}
+
+.bs-popover-auto[x-placement^=left]>.arrow::after,
+.bs-popover-left>.arrow::after {
+  border-left-color: var(--cs-color-primary);
+}
+
+.bs-popover-auto[x-placement^=top]>.arrow::after,
+.bs-popover-top>.arrow::after {
+  border-top-color: var(--cs-color-primary);
+}
+
+.bs-popover-auto[x-placement^=bottom]>.arrow::after,
+.bs-popover-bottom>.arrow::after {
+  border-bottom-color: var(--cs-color-primary);
 }

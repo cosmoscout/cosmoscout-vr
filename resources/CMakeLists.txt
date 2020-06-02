@@ -11,12 +11,12 @@ install(DIRECTORY "models"    DESTINATION "share/resources")
 install(DIRECTORY "textures"  DESTINATION "share/resources")
 install(DIRECTORY "gui"       DESTINATION "share/resources")
 install(DIRECTORY "icons"     DESTINATION "share/resources")
+install(DIRECTORY "locations" DESTINATION "share/resources")
 
 # chromium embedded framework ----------------------------------------------------------------------
 
 if(${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC)
     set(CEF_RESOURCES
-        "${CEF_LIBRARY_DIR}/natives_blob.bin"
         "${CEF_LIBRARY_DIR}/snapshot_blob.bin"
         "${CEF_LIBRARY_DIR}/v8_context_snapshot.bin"
         "${CEF_LIBRARY_DIR}/libcef.dll"
@@ -27,7 +27,6 @@ if(${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC)
     install(DIRECTORY "${CEF_RESOURCE_DIR}/" DESTINATION "bin")
 else()
     set(CEF_RESOURCES
-        "${CEF_LIBRARY_DIR}/natives_blob.bin"
         "${CEF_LIBRARY_DIR}/snapshot_blob.bin"
         "${CEF_LIBRARY_DIR}/v8_context_snapshot.bin"
     )

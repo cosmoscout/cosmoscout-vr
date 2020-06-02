@@ -10,6 +10,7 @@
 #include "../cs-gui/ScreenSpaceGuiArea.hpp"
 #include "../cs-gui/WorldSpaceGuiArea.hpp"
 #include "../cs-utils/utils.hpp"
+#include "GuiManager.hpp"
 #include "logger.hpp"
 
 #include <VistaDataFlowNet/VdfnNode.h>
@@ -438,6 +439,7 @@ void InputManager::update() {
         event.mType = gui::MouseEvent::Type::eLeave;
         pHoveredGuiItem.get()->injectMouseEvent(event);
         pHoveredGuiItem = nullptr;
+        GuiManager::setCursor(gui::Cursor::ePointer);
       }
 
       return;
@@ -450,6 +452,7 @@ void InputManager::update() {
     event.mType = gui::MouseEvent::Type::eLeave;
     pHoveredGuiItem.get()->injectMouseEvent(event);
     pHoveredGuiItem = nullptr;
+    GuiManager::setCursor(gui::Cursor::ePointer);
   }
 
   pHoveredNode = nullptr;
@@ -539,18 +542,17 @@ void InputManager::HandleEvent(VistaEvent* pEvent) {
             handleButtonEvent(port->GetValue(), pHoveredGuiItem, pActiveGuiItem, pSelectedGuiItem);
             handleButtonEvent(port->GetValue(), pHoveredNode, pActiveNode, pSelectedNode);
 
-            gui::MouseEvent mouseEvent;
-            mouseEvent.mButton = gui::Button::eLeft;
+            // Now inject the button press event.
             if (port->GetValue()) {
-              mouseEvent.mType = gui::MouseEvent::Type::ePress;
-            } else {
-              mouseEvent.mType = gui::MouseEvent::Type::eRelease;
-            }
+              gui::MouseEvent mouseEvent;
+              mouseEvent.mButton = gui::Button::eLeft;
+              mouseEvent.mType   = gui::MouseEvent::Type::ePress;
 
-            if (pActiveGuiItem.get()) {
-              pActiveGuiItem.get()->injectMouseEvent(mouseEvent);
-            } else if (pHoveredGuiItem.get()) {
-              pHoveredGuiItem.get()->injectMouseEvent(mouseEvent);
+              if (pActiveGuiItem.get()) {
+                pActiveGuiItem.get()->injectMouseEvent(mouseEvent);
+              } else if (pHoveredGuiItem.get()) {
+                pHoveredGuiItem.get()->injectMouseEvent(mouseEvent);
+              }
             }
 
             if (!port->GetValue()) {
@@ -574,9 +576,7 @@ void InputManager::HandleEvent(VistaEvent* pEvent) {
         if (port && item && item->getCanScroll()) {
           gui::MouseEvent mouseEvent;
           mouseEvent.mType = gui::MouseEvent::Type::eScroll;
-
-          int const scrollSpeed = 20;
-          mouseEvent.mY         = port->GetValue() * scrollSpeed;
+          mouseEvent.mY    = port->GetValue() * 20;
           item->injectMouseEvent(mouseEvent);
         }
       }

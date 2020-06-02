@@ -204,7 +204,7 @@
         <!--        3 = Right Stick Y --
         <edge fromnode="vrpn_analog_data" fromport="VALUE_3"
               tonode="debug_text" toport="RStickY" />
-        <!--        4 = Triggers (Left positive, Right negative) --
+        <!--        4 = Triggers (Left positive, Right negative) -->
         <edge fromnode="vrpn_analog_data" fromport="VALUE_4"
               tonode="debug_text" toport="Triggers(LT>0>RT)" />
         <!--        5 = D-Pad (-1 = nothing, 0 = up, 45 = up-right, 90 = right, etc...) --

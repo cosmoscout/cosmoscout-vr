@@ -43,6 +43,7 @@ enum class CS_UTILS_EXPORT DrawOrder : int {
   eStars            = 400,
   eAtmospheres      = 500,
   eToneMapping      = 600,
+  eOpaqueNonHDR     = 650,
   eTransparentItems = 700,
   eRay              = 800,
   eGui              = 900
@@ -116,6 +117,15 @@ float CS_UTILS_EXPORT getCurrentFarClipDistance();
 
 /// Executes a system command and returns the output.
 std::string exec(std::string const& cmd);
+
+/// Can be used to check the operating system at compile time.
+enum class OS { eLinux, eWindows };
+
+#ifdef __linux__
+constexpr OS HostOS = OS::eLinux;
+#elif _WIN32
+constexpr OS HostOS = OS::eWindows;
+#endif
 
 } // namespace cs::utils
 

@@ -82,3 +82,6 @@
 [submodule "externals/civetweb"]
 	path = externals/civetweb
 	url = https://github.com/cosmoscout/civetweb.git
+[submodule "externals/stb"]
+	path = externals/stb
+	url = https://github.com/nothings/stb

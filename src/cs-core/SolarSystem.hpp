@@ -97,8 +97,13 @@ class CS_CORE_EXPORT SolarSystem {
   /// Removes a CelestialBody from the SolarSystem. A call to unregisterAnchor() is not needed,
   /// because it is done automatically.
   void unregisterBody(std::shared_ptr<scene::CelestialBody> const& body);
+
+  /// Returns all registered bodies.
   std::set<std::shared_ptr<scene::CelestialBody>> const& getBodies() const;
-  std::shared_ptr<scene::CelestialBody>                  getBody(std::string const& sCenter) const;
+
+  /// Returns one specific body from the set above. This query ignores the case. So
+  /// getBody("Earth"), getBody("EARTH") or getBody("EaRTh") will all behave the same.
+  std::shared_ptr<scene::CelestialBody> getBody(std::string sCenter) const;
 
   /// Updates all CelestialAnchors, the Sun and the CelestialObservers animations.
   void update();
@@ -130,6 +135,16 @@ class CS_CORE_EXPORT SolarSystem {
   /// @param duration The duration in Barycentric Dynamical Time to move to the new location.
   void flyObserverTo(std::string const& sCenter, std::string const& sFrame,
       glm::dvec3 const& position, glm::dquat const& rotation, double duration);
+
+  /// Gradually moves the observer's position from its current value to the given values. The
+  /// rotation will be chosen automatically to be downward-facing.
+  ///
+  /// @param sCenter  The SPICE name of the targets center.
+  /// @param sFrame   The SPICE reference frame of the targets location.
+  /// @param position The target position in the targets coordinate system.
+  /// @param duration The duration in Barycentric Dynamical Time to move to the new location.
+  void flyObserverTo(std::string const& sCenter, std::string const& sFrame,
+      glm::dvec3 const& position, double duration);
 
   /// Gradually moves the observer's position and rotation from their current values to the values
   /// matching the geographic coordinate system coordinates given.

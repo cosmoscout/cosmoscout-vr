@@ -116,17 +116,25 @@ class CS_CORE_EXPORT Settings {
 
   /// Initializes all members from a given JSON file. Once reading finished, the onLoad signal will
   /// be emitted.
-  void read(std::string const& fileName);
+  void loadFromFile(std::string const& fileName);
+
+  /// Initializes all members from a given JSON object. Once reading finished, the onLoad signal
+  /// will be emitted.
+  void loadFromJson(std::string const& json);
 
   /// Writes the current settings to a JSON file. Before the state is written to file, the onSave
   /// signal will be emitted.
-  void write(std::string const& fileName) const;
+  void saveToFile(std::string const& fileName) const;
+
+  /// Writes the current settings to a JSON object. Before the state is stored, the onSave
+  /// signal will be emitted.
+  std::string saveToJson() const;
 
   // -----------------------------------------------------------------------------------------------
 
-  /// Defines the initial simulation time. Should be either "today" or in the format "1950-01-02
-  /// 00:00:00.000". When the settings are saved, mStartDate will be set to "today" if the current
-  /// simulation time is very similar to the actual system time.
+  /// Defines the initial simulation time. Should be either "today" or in the format
+  /// "1950-01-02T00:00:00.000Z". When the settings are saved, mStartDate will be set to "today" if
+  /// the current simulation time is very similar to the actual system time.
   std::string mStartDate;
 
   /// When the simulation time is resetted, this date will be used. Should be either "today" or in
@@ -134,7 +142,7 @@ class CS_CORE_EXPORT Settings {
   std::string mResetDate;
 
   /// Defines the min and max date on the timebar. Changing these values will be directly reflected
-  /// in the user interface. Should be in the format "1950-01-02 00:00:00.000".
+  /// in the user interface. Should be in the format "1950-01-02T00:00:00.000Z".
   utils::Property<std::string> pMinDate;
   utils::Property<std::string> pMaxDate;
 
@@ -170,23 +178,49 @@ class CS_CORE_EXPORT Settings {
     utils::Property<glm::dquat> pRotation;
   } mObserver;
 
-  /// Events to show on the timenavigation bar
-  struct Event {
+  /// Bookmarks are managed in CosmoScout's core. Plugins can create and delete bookmarks via the
+  /// GuiManager's API. A bookmark can have a position in space and / or time. It may also describe
+  /// a period in time.
+  struct Bookmark {
+
+    /// The location of a bookmark is defined by a SPICE anchor, an optional cartesian position and
+    /// an optional rotation.
     struct Location {
-      std::string mPlanet;
-      std::string mPlace;
+      std::string               mCenter;
+      std::string               mFrame;
+      std::optional<glm::dvec3> mPosition;
+      std::optional<glm::dquat> mRotation;
     };
 
-    std::string                mStart;
-    std::optional<std::string> mEnd;
-    std::string                mContent;
-    std::string                mId;
-    std::optional<std::string> mStyle;
-    std::string                mDescription;
-    std::optional<Location>    mLocation;
+    /// The time of a bookmark has an optional end parameter which makes the bookmark describe a
+    /// time span rather a time point.
+    struct Time {
+      std::string                mStart;
+      std::optional<std::string> mEnd;
+    };
+
+    /// The name of the bookmark is the only required field. It's not strictly required but a good
+    /// idea to keep this unique amongst the bookmarks for an anchor.
+    std::string mName;
+
+    /// This can be a longer text.
+    std::optional<std::string> mDescription;
+
+    /// This can be a name of a png file in share/resources/icons.
+    std::optional<std::string> mIcon;
+
+    /// You may use this to visually highlight different types of bookmarks.
+    std::optional<glm::vec3> mColor;
+
+    /// Location and Time are both optional, but omitting both results in a pretty useless bookmark.
+    std::optional<Location> mLocation;
+    std::optional<Time>     mTime;
   };
 
-  std::vector<Event> mEvents;
+  /// This list of bookmarks is not updated at runtime. To create new bookmarks and receive updates
+  /// on existing bookmarks, use the API of the GuiManager. On settings save, the GuiManager will
+  /// update this list of Bookmarks.
+  std::vector<Bookmark> mBookmarks;
 
   /// In order for the scientists to be able to interact with their environment, the next virtual
   /// celestial body must never be more than an arm’s length away.
@@ -289,7 +323,10 @@ class CS_CORE_EXPORT Settings {
     utils::DefaultProperty<bool> pEnableVsync{true};
 
     /// A multiplicator for the size of worldspace gui-elements.
-    utils::DefaultProperty<float> pWidgetScale{1.F};
+    utils::DefaultProperty<double> pWorldUIScale{1.F};
+
+    /// A multiplicator for the size of screenspace gui-elements.
+    utils::DefaultProperty<double> pMainUIScale{1.F};
 
     /// A multiplicator for terrain height.
     utils::DefaultProperty<float> pHeightScale{1.F};
@@ -370,6 +407,10 @@ class CS_CORE_EXPORT Settings {
 
     /// The amount of artifical glare. Has no effect if HDR rendering is disabled.
     utils::DefaultProperty<float> pGlowIntensity{0.5F};
+
+    /// This makes illumination calculations assume a fixed sun position in the current SPICE frame.
+    /// Using the default value glm::dvec3(0.0) disables this feature.
+    utils::DefaultProperty<glm::dvec3> pFixedSunDirection{glm::dvec3(0.0, 0.0, 0.0)};
   };
 
   Graphics mGraphics;
@@ -422,6 +463,11 @@ class CS_CORE_EXPORT Settings {
   static void deserialize(
       nlohmann::json const& j, std::string const& property, utils::DefaultProperty<T>& target);
 
+  /// Overload for nlohmann::json. While this seems a bit funny, it is quite useful if you want to
+  /// actually save / load json data.
+  static void deserialize(
+      nlohmann::json const& j, std::string const& property, nlohmann::json& target);
+
   /// This template is used to set values in json objects. The main reasons not to directly use the
   /// interface of nlohmann::json is that we can overload the serialize() method to accept
   /// std::optionals and utils::DefaultProperties which behave specially (see class description at
@@ -444,6 +490,29 @@ class CS_CORE_EXPORT Settings {
   mutable utils::Signal<> mOnLoad;
   mutable utils::Signal<> mOnSave;
 };
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+CS_CORE_EXPORT void from_json(nlohmann::json const& j, Settings::Anchor& o);
+CS_CORE_EXPORT void to_json(nlohmann::json& j, Settings::Anchor const& o);
+CS_CORE_EXPORT void from_json(nlohmann::json const& j, Settings::GuiPosition& o);
+CS_CORE_EXPORT void to_json(nlohmann::json& j, Settings::GuiPosition const& o);
+CS_CORE_EXPORT void from_json(nlohmann::json const& j, Settings::Observer& o);
+CS_CORE_EXPORT void to_json(nlohmann::json& j, Settings::Observer const& o);
+CS_CORE_EXPORT void from_json(nlohmann::json const& j, Settings::Bookmark::Location& o);
+CS_CORE_EXPORT void to_json(nlohmann::json& j, Settings::Bookmark::Location const& o);
+CS_CORE_EXPORT void from_json(nlohmann::json const& j, Settings::Bookmark::Time& o);
+CS_CORE_EXPORT void to_json(nlohmann::json& j, Settings::Bookmark::Time const& o);
+CS_CORE_EXPORT void from_json(nlohmann::json const& j, Settings::Bookmark& o);
+CS_CORE_EXPORT void to_json(nlohmann::json& j, Settings::Bookmark const& o);
+CS_CORE_EXPORT void from_json(nlohmann::json const& j, Settings::DownloadData& o);
+CS_CORE_EXPORT void to_json(nlohmann::json& j, Settings::DownloadData const& o);
+CS_CORE_EXPORT void from_json(nlohmann::json const& j, Settings::SceneScale& o);
+CS_CORE_EXPORT void to_json(nlohmann::json& j, Settings::SceneScale const& o);
+CS_CORE_EXPORT void from_json(nlohmann::json const& j, Settings::Graphics& o);
+CS_CORE_EXPORT void to_json(nlohmann::json& j, Settings::Graphics const& o);
+CS_CORE_EXPORT void from_json(nlohmann::json const& j, Settings& o);
+CS_CORE_EXPORT void to_json(nlohmann::json& j, Settings const& o);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
