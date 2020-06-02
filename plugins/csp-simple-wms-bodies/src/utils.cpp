@@ -75,14 +75,13 @@ void timeDuration(std::string const& isoString, int& duration, std::string& form
     matchDuration(isoString, r, duration);
   }
 
-  // TODO: base format on the time format in config.
   // Create string format based on interval duration (day / month / year / time).
-  if (duration % 86400 == 0 || duration % 2629744 == 0 || duration % 31556926 == 0) {
+  if (duration % 86400 == 0) {
     format = "%Y-%m-%d";
   } else if (duration % 2629744 == 0) {
-    format = "%Y-%m";
+    format = "%Y-%m-01";
   } else if (duration % 31556926 == 0) {
-    format = "%Y";
+    format = "%Y-01-01";
   } else {
     format = "%Y-%m-%dT%H:%MZ";
   }
