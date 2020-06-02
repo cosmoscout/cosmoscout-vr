@@ -316,18 +316,17 @@ bool SimpleWMSBody::Do() {
       auto texture1 = mTextureFilesBuffer.find(timeString);
       auto texture2 = mTexturesBuffer.find(timeString);
       auto texture3 = mTextures.find(timeString);
+      auto texture4 = std::find(mWrongTextures.begin(), mWrongTextures.end(), timeString);
 
       // Only load textures those aren't stored yet.
       if (texture1 == mTextureFilesBuffer.end() && texture2 == mTexturesBuffer.end() &&
-          texture3 == mTextures.end() && inInterval) {
+          texture3 == mTextures.end() && texture4 == mWrongTextures.end() && inInterval) {
         // Load WMS texture to the disk.
         mTextureFilesBuffer.insert(std::pair<std::string, std::future<std::string>>(
             timeString, mTextureLoader.loadTextureAsync(timeString, mRequest, mActiveWMS.mLayers,
                             mPluginSettings->mMapCache.get())));
       }
     }
-
-    bool fileError = false;
 
     // Check whether the WMS textures are loaded to the disk.
     auto fileIt = mTextureFilesBuffer.begin();
@@ -340,7 +339,7 @@ bool SimpleWMSBody::Do() {
           mTexturesBuffer.insert(std::pair<std::string, std::future<unsigned char*>>(
               fileIt->first, mTextureLoader.loadTextureFromFileAsync(fileName)));
         } else {
-          fileError = true;
+          mWrongTextures.emplace_back(fileIt->first);
         }
 
         fileIt = mTextureFilesBuffer.erase(fileIt);
@@ -380,9 +379,9 @@ bool SimpleWMSBody::Do() {
     auto tex = mTextures.find(timeString);
 
     // Use Wms texture inside the interval.
-    if (inInterval && !fileError) {
+    if (inInterval && tex != mTextures.end()) {
       // Only update if we have a new texture.
-      if (mCurrentTexture != timeString && tex != mTextures.end()) {
+      if (mCurrentTexture != timeString) {
         mWMSTextureUsed = true;
         mWMSTexture->UploadTexture(mActiveWMS.mWidth, mActiveWMS.mHeight, tex->second, false);
         mCurrentTexture = timeString;
@@ -390,6 +389,7 @@ bool SimpleWMSBody::Do() {
     } // Use default planet texture instead.
     else {
       mWMSTextureUsed = false;
+      mCurrentTexture = "";
     }
 
     if (!mWMSTextureUsed || !mPluginSettings->mEnableInterpolation.get() ||
@@ -550,8 +550,9 @@ boost::posix_time::ptime SimpleWMSBody::getStartTime(boost::posix_time::ptime ti
 
 void SimpleWMSBody::setActiveWMS(Plugin::Settings::WMSConfig const& wms) {
   mTextures.clear();
-  mTextureFilesBuffer.clear();
   mTexturesBuffer.clear();
+  mTextureFilesBuffer.clear();
+  mWrongTextures.clear();
   mTimeIntervals.clear();
   mWMSTextureUsed       = false;
   mSecondWMSTextureUsed = false;

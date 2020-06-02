@@ -118,12 +118,17 @@ std::string WebMapTextureLoader::loadTexture(std::string time, std::string reque
     return "Error";
   }
 
-  out.close();
+  bool fail =
+      curlpp::Info<CURLINFO_CONTENT_TYPE, std::string>::get(request).substr(0, 9) != "image/png";
 
-  if (curlpp::infos::ResponseCode::get(request) == 400) {
+  if (fail) {
+    logger().error("Failed to load '{}'!", requestStr);
+    out.close();
     remove(cacheFile.c_str());
     return "Error";
   }
+
+  out.close();
 
   return cacheFile;
 }

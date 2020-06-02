@@ -101,6 +101,7 @@ class SimpleWMSBody : public cs::scene::CelestialBody, public IVistaOpenGLDraw {
   std::map<std::string, std::future<std::string>>    mTextureFilesBuffer;
   std::map<std::string, std::future<unsigned char*>> mTexturesBuffer;
   std::map<std::string, unsigned char*>              mTextures;
+  std::vector<std::string>                           mWrongTextures;
 
   VistaGLSLShader        mShader;
   VistaVertexArrayObject mSphereVAO;
