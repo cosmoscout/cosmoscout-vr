@@ -28,39 +28,39 @@ export VISTACORELIBS_DRIVER_PLUGIN_DIRS=../lib/DriverPlugins
 - Run: `./make.sh`
 - Go to: _Settings_ -> _Build, Execution, Deployment_ -> _CMake_
 - Release Profile
-  - _Generation path_: `build/linux-release`
+  - _Generation path_: `build/linux-Release`
   - _Build options_: `--parallel 8`
   - _CMAKE options_:
     ```bash
     -DCMAKE_BUILD_TYPE=Release
-    -DCMAKE_INSTALL_PREFIX="<path to cosmoscout>/install/linux-release"
-    -DCOSMOSCOUT_EXTERNALS_DIR="<path to cosmoscout>/install/linux-externals-release"
+    -DCMAKE_INSTALL_PREFIX="<path to cosmoscout>/install/linux-Release"
+    -DCOSMOSCOUT_EXTERNALS_DIR="<path to cosmoscout>/install/linux-externals-Release"
     -DCMAKE_EXPORT_COMPILE_COMMANDS=On
     ```
 
 - Debug Profile
-  - _Generation path_: `build/linux-debug`
+  - _Generation path_: `build/linux-Debug`
   - _Build options_: `--parallel 8`
   - _CMAKE options_:
     ```
     -DCMAKE_BUILD_TYPE=Debug
-    -DCMAKE_INSTALL_PREFIX="<path to cosmoscout>/install/linux-debug"
-    -DCOSMOSCOUT_EXTERNALS_DIR="<path to cosmoscout>/install/linux-externals-release"
+    -DCMAKE_INSTALL_PREFIX="<path to cosmoscout>/install/linux-Debug"
+    -DCOSMOSCOUT_EXTERNALS_DIR="<path to cosmoscout>/install/linux-externals-Release"
     -DCMAKE_EXPORT_COMPILE_COMMANDS=On
     ```
 
 - Go to: _Run/Debug Configuration_ -> _CMake Application_ -> _cosmoscout_
 - Release profile
   - _Target_: `cosmoscout`
-  - _Executable_ -> _Select other_: `<path to cosmoscout>/install/linux-release/bin/cosmoscout`
+  - _Executable_ -> _Select other_: `<path to cosmoscout>/install/linux-Release/bin/cosmoscout`
   - _Program arguments_: `--settings=../share/config/simple_desktop.json -vista vista.ini`
-  - _Working directory_: `<path to cosmoscout>/install/linux-release/bin`
+  - _Working directory_: `<path to cosmoscout>/install/linux-Release/bin`
   - _Before launch_ -> __+__ -> _Install_
 - Debug profile
   - _Target_: `cosmoscout`
-  - _Executable_ -> _Select other_: `<path to cosmoscout>/install/linux-debug/bin/cosmoscout`
+  - _Executable_ -> _Select other_: `<path to cosmoscout>/install/linux-Debug/bin/cosmoscout`
   - _Program arguments_: `--settings=../share/config/simple_desktop.json -vista vista.ini`
-  - _Working directory_: `<path to cosmoscout>/install/linux-debug/bin`
+  - _Working directory_: `<path to cosmoscout>/install/linux-Debug/bin`
   - _Before launch_ -> __+__ -> _Install_
 
 ### Windows
@@ -80,21 +80,21 @@ highest available (and supported) version.
   - If Visual Studio is installed correctly everything else here should be set automagically.
 - Go to: _Settings_ -> _Build, Execution, Deployment_ -> _CMake_
 - Release Profile
-  - _Generation path_: `build\windows-release`
+  - _Generation path_: `build\windows-Release`
   - _Build options_: `--parallel 8`
   - _CMAKE options_:
     ```
     -DCMAKE_BUILD_TYPE=Release
     -G "Visual Studio 16 2019" -A x64
-    -DCMAKE_INSTALL_PREFIX="<path to cosmoscout>\install\windows-release"
-    -DCOSMOSCOUT_EXTERNALS_DIR="<path to cosmoscout>\install\windows-externals-release"
+    -DCMAKE_INSTALL_PREFIX="<path to cosmoscout>\install\windows-Release"
+    -DCOSMOSCOUT_EXTERNALS_DIR="<path to cosmoscout>\install\windows-externals-Release"
     ```
 
 - Go to: _Run/Debug Configuration_ -> _CMake Application_ -> _cosmoscout_
   - _Target_: `cosmoscout`
-  - _Executable_ -> _Select other_: `<path to cosmoscout>\install\windows-release\bin\cosmoscout.exe`
+  - _Executable_ -> _Select other_: `<path to cosmoscout>\install\windows-Release\bin\cosmoscout.exe`
   - _Program arguments_: `--settings=../share/config/simple_desktop.json -vista vista.ini`
-  - _Working directory_: `<path to cosmoscout>\install\windows-release\bin`
+  - _Working directory_: `<path to cosmoscout>\install\windows-Release\bin`
   - _Environment variables_: `VISTACORELIBS_DRIVER_PLUGIN_DIRS=..\lib\DriverPlugins;PATH=..\lib\;%PATH%`
     - (If you haven't set `BOOST_ROOT` as a system wide environment variable you need to add that too here.)
   - _Before launch_ -> __+__ -> _Install_
@@ -165,10 +165,10 @@ To get started with Sublime Text 3, you can create a project file in the root di
         },
         {
             "name": "Run CosmoScout VR",
-            "cmd": "install/linux-release/bin/start.sh",
+            "cmd": "install/linux-Release/bin/start.sh",
             "working_dir": "$project_path",
             "windows": {
-                "cmd": "install\\windows-release\\bin\\start.bat"
+                "cmd": "install\\windows-Release\\bin\\start.bat"
             }
         }
     ],
@@ -190,7 +190,7 @@ While this will give you a basic build system, it will not allow for auto-comple
 
 ## <img src="https://simpleicons.org/icons/visualstudio.svg" alt="Simple Icons" width=24 height=18> Visual Studio (Windows only)
 
-First, you should follow the [Generic Build Instructions](install.md) for Windows. Once CosmoScout VR has been compiled successfully, you can simply open the `cosmoscout-vr.sln` solution in either `build\windows-debug` or `build\windows-release`.
+First, you should follow the [Generic Build Instructions](install.md) for Windows. Once CosmoScout VR has been compiled successfully, you can simply open the `cosmoscout-vr.sln` solution in either `build\windows-Debug` or `build\windows-Release`.
 
 Due to the build process of CosmoScout VR, this solution can only be used for Debug or Release mode respectively. Therefore you have to select the corresponding configuration type in Visual Studio.
 
@@ -283,49 +283,49 @@ We will discuss these files in the following.
     {
       "label": "Run CosmoScout VR (Release)",
       "type": "shell",
-      "command": "install/linux-release/bin/start.sh",
+      "command": "install/linux-Release/bin/start.sh",
       "options": {
         "cwd": "${workspaceFolder}"
       },
       "problemMatcher": [],
       "windows": {
-        "command": ".\\install/windows-release/bin/start.bat"
+        "command": ".\\install/windows-Release/bin/start.bat"
       }
     },
     {
       "label": "Run CosmoScout VR (Debug)",
       "type": "shell",
-      "command": "install/linux-debug/bin/start.sh",
+      "command": "install/linux-Debug/bin/start.sh",
       "options": {
         "cwd": "${workspaceFolder}"
       },
       "problemMatcher": [],
       "windows": {
-        "command": ".\\install/windows-debug/bin/start.bat"
+        "command": ".\\install/windows-Debug/bin/start.bat"
       }
     },
     {
       "label": "Run Tests (Release)",
       "type": "shell",
-      "command": "install/linux-release/bin/run_tests.sh",
+      "command": "install/linux-Release/bin/run_tests.sh",
       "options": {
         "cwd": "${workspaceFolder}"
       },
       "problemMatcher": [],
       "windows": {
-        "command": ".\\install/windows-release/bin/run_tests.bat"
+        "command": ".\\install/windows-Release/bin/run_tests.bat"
       }
     },
     {
       "label": "Run Tests (Debug)",
       "type": "shell",
-      "command": "install/linux-debug/bin/run_tests.sh",
+      "command": "install/linux-Debug/bin/run_tests.sh",
       "options": {
         "cwd": "${workspaceFolder}"
       },
       "problemMatcher": [],
       "windows": {
-        "command": ".\\install/windows-debug/bin/run_tests.bat"
+        "command": ".\\install/windows-Debug/bin/run_tests.bat"
       }
     }
   ]
@@ -347,12 +347,12 @@ With this file in place, you can press `Ctrl+Shift+P` and select `Tasks: Run Tas
     "configurations": [
         {
             "name": "Linux",
-            "compileCommands": "${workspaceRoot}/build/linux-release/compile_commands.json",
+            "compileCommands": "${workspaceRoot}/build/linux-Release/compile_commands.json",
             "browse": {
                 "databaseFilename": "${workspaceRoot}/.vscode/browse-linux.VC.db"
             },
             "includePath": [
-                "${workspaceRoot}/build/linux-release/**"
+                "${workspaceRoot}/build/linux-Release/**"
             ],
             "defines": [],
             "cStandard": "c11",
@@ -365,8 +365,8 @@ With this file in place, you can press `Ctrl+Shift+P` and select `Tasks: Run Tas
                 "databaseFilename": "${workspaceRoot}/.vscode/browse-windows.VC.db"
             },
             "includePath": [
-                "${workspaceRoot}/build/windows-release/**",
-                "${workspaceRoot}/install/windows-externals-release/include"
+                "${workspaceRoot}/build/windows-Release/**",
+                "${workspaceRoot}/install/windows-externals-Release/include"
             ],
             "defines": [],
             "cStandard": "c11",
@@ -389,13 +389,13 @@ This file configures Intellisense. On Linux, the CMake flag `-DCMAKE_EXPORT_COMP
       "name": "Debugger (Linux)",
       "type": "cppdbg",
       "request": "launch",
-      "program": "${workspaceFolder}/install/linux-debug/bin/cosmoscout",
+      "program": "${workspaceFolder}/install/linux-Debug/bin/cosmoscout",
       "args": [
         "--settings=../share/config/simple_desktop.json",
         "-vistaini vista.ini"
       ],
       "stopAtEntry": false,
-      "cwd": "${workspaceFolder}/install/linux-debug/bin",
+      "cwd": "${workspaceFolder}/install/linux-Debug/bin",
       "environment": [
         {
           "name": "VISTACORELIBS_DRIVER_PLUGIN_DIRS",
@@ -420,13 +420,13 @@ This file configures Intellisense. On Linux, the CMake flag `-DCMAKE_EXPORT_COMP
       "name": "Debugger (Windows)",
       "type": "cppvsdbg",
       "request": "launch",
-      "program": "${workspaceFolder}/install/windows-debug/bin/cosmoscout",
+      "program": "${workspaceFolder}/install/windows-Debug/bin/cosmoscout",
       "args": [
         "--settings=../share/config/simple_desktop.json",
         "-vistaini vista.ini"
       ],
       "stopAtEntry": false,
-      "cwd": "${workspaceFolder}/install/windows-debug/bin",
+      "cwd": "${workspaceFolder}/install/windows-Debug/bin",
       "environment": [
         {
           "name": "VISTACORELIBS_DRIVER_PLUGIN_DIRS",

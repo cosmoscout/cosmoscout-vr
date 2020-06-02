@@ -31,9 +31,9 @@ if [ $# -ne 0 ]; then
 fi
 
 # Check if ComoScout VR debug build is enabled with "export COSMOSCOUT_DEBUG_BUILD=true".
-BUILD_TYPE=release
+BUILD_TYPE=Release
 case "$COSMOSCOUT_DEBUG_BUILD" in
-  (true) echo "CosmoScout VR debug build is enabled!"; BUILD_TYPE=debug;
+  (true) echo "CosmoScout VR debug build is enabled!"; BUILD_TYPE=Debug;
 esac
 
 # Check if unity build is disabled with "export COSMOSCOUT_NO_UNITY_BUILD=true".

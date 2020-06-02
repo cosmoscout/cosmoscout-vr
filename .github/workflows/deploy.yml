@@ -44,7 +44,7 @@ jobs:
       run: ./make.sh -G "Unix Makefiles" -DBOOST_ROOT=$BOOST_ROOT_1_69_0 -DBoost_ARCHITECTURE=-x64
     - name: Create Release
       run: | 
-        mv install/linux-release cosmoscout-vr
+        mv install/linux-Release cosmoscout-vr
         cmake -E tar cv cosmoscout-vr-linux64.tar.gz cosmoscout-vr
     - name: Upload Release
       uses: svenstaro/upload-release-action@v1-release
@@ -71,7 +71,7 @@ jobs:
       run: make.bat -G "Visual Studio 16 2019" -A x64 -DBOOST_ROOT=%BOOST_ROOT_1_72_0%
     - name: Create Release
       run: | 
-        move install\windows-release cosmoscout-vr
+        move install\windows-Release cosmoscout-vr
         cmake -E tar cv cosmoscout-vr-win64.zip --format=zip cosmoscout-vr
     - name: Upload Release
       uses: svenstaro/upload-release-action@v1-release

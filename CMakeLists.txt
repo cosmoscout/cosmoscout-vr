@@ -16,10 +16,10 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 # CMAKE_BUILD_TYPE must be set (except for Visual Studio).
 if(NOT MSVC)
   if(NOT CMAKE_BUILD_TYPE OR
-    (NOT ${CMAKE_BUILD_TYPE} STREQUAL "release" AND
-    NOT ${CMAKE_BUILD_TYPE} STREQUAL "debug"))
+    (NOT ${CMAKE_BUILD_TYPE} STREQUAL "Release" AND
+    NOT ${CMAKE_BUILD_TYPE} STREQUAL "Debug"))
 
-    set(CMAKE_BUILD_TYPE "release" CACHE STRING "release or debug" FORCE)
+    set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Release or Debug" FORCE)
   endif()
 endif()
 

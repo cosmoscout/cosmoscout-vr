@@ -24,9 +24,9 @@ SCRIPT_DIR="$( cd "$( dirname "$0" )" && pwd )"
 cd $SCRIPT_DIR
 
 # Check if ComoScout VR debug build is enabled with "export COSMOSCOUT_DEBUG_BUILD=true".
-BUILD_TYPE=release
+BUILD_TYPE=Release
 case "$COSMOSCOUT_DEBUG_BUILD" in
-  (true) echo "CosmoScout VR debug build is enabled!"; BUILD_TYPE=debug;
+  (true) echo "CosmoScout VR debug build is enabled!"; BUILD_TYPE=Debug;
 esac
 
 # Get the current directory - this should contain the build and install directory.
