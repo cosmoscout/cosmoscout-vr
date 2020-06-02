@@ -41,6 +41,7 @@ void from_json(nlohmann::json const& j, Plugin::Settings::WMSConfig& o) {
   cs::core::Settings::deserialize(j, "time", o.mTime);
   cs::core::Settings::deserialize(j, "preFetch", o.mPrefetchCount);
   cs::core::Settings::deserialize(j, "layers", o.mLayers);
+  cs::core::Settings::deserialize(j, "timeSpan", o.mTimespan);
 }
 
 void to_json(nlohmann::json& j, Plugin::Settings::WMSConfig const& o) {
@@ -51,6 +52,7 @@ void to_json(nlohmann::json& j, Plugin::Settings::WMSConfig const& o) {
   cs::core::Settings::serialize(j, "time", o.mTime);
   cs::core::Settings::serialize(j, "preFetch", o.mPrefetchCount);
   cs::core::Settings::serialize(j, "layers", o.mLayers);
+  cs::core::Settings::serialize(j, "timeSpan", o.mTimespan);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -102,17 +104,17 @@ void Plugin::init() {
 
   // Set whether to interpolate textures between timesteps (does not work when pre-fetch is
   // inactive).
-  mGuiManager->getGui()->registerCallback("simpleWmsBodies.setEnableTimeInterpolation",
+  mGuiManager->getGui()->registerCallback("simpleWMSBodies.setEnableTimeInterpolation",
       "Enables or disables interpolation.",
       std::function([this](bool enable) { mPluginSettings->mEnableInterpolation = enable; }));
 
   // Set whether to display timespan.
-  mGuiManager->getGui()->registerCallback("simpleWmsBodies.setEnableTimeSpan",
+  mGuiManager->getGui()->registerCallback("simpleWMSBodies.setEnableTimeSpan",
       "Enables or disables timespan.",
       std::function([this](bool enable) { mPluginSettings->mEnableTimespan = enable; }));
 
   // Set WMS source.
-  mGuiManager->getGui()->registerCallback("simpleWmsBodies.setWMS",
+  mGuiManager->getGui()->registerCallback("simpleWMSBodies.setWMS",
       "Set the current planet's WMS source to the one with the given name.",
       std::function([this](std::string&& name) {
         auto body = std::dynamic_pointer_cast<SimpleWMSBody>(mSolarSystem->pActiveBody.get());
@@ -140,16 +142,23 @@ void Plugin::init() {
         }
 
         mGuiManager->getGui()->callJavascript(
-            "CosmoScout.gui.clearDropdown", "simpleWmsBodies.setWMS");
+            "CosmoScout.gui.clearDropdown", "simpleWMSBodies.setWMS");
 
         auto const& settings = getBodySettings(simpleWMSBody);
         for (auto const& wms : settings.mWMS) {
           bool active = wms.first == settings.mActiveWMS;
           mGuiManager->getGui()->callJavascript("CosmoScout.gui.addDropdownValue",
-              "simpleWmsBodies.setWMS", wms.first, wms.first, active);
+              "simpleWMSBodies.setWMS", wms.first, wms.first, active);
           if (active) {
             mGuiManager->getGui()->callJavascript(
                 "CosmoScout.simpleWMSBodies.setWMSDataCopyright", wms.second.mCopyright);
+
+			// Only allow setting timespan if it is specified for the WMS data set.
+			mGuiManager->getGui()->callJavascript(
+                "CosmoScout.simpleWMSBodies.enableCheckBox", wms.second.mTimespan.value_or(false));
+            if (!wms.second.mTimespan.value_or(false)) {
+              mGuiManager->setCheckboxValue("simpleWMSBodies.setEnableTimeSpan", false);
+            }
 
             // Add bookmarks to timeline from the intervals of the active WMS.
             addBookmarks(simpleWMSBody->getTimeIntervals(), wms.first,
@@ -176,9 +185,9 @@ void Plugin::deInit() {
 
   mSolarSystem->pActiveBody.disconnect(mActiveBodyConnection);
 
-  mGuiManager->getGui()->unregisterCallback("simpleWmsBodies.setEnableTimeInterpolation");
-  mGuiManager->getGui()->unregisterCallback("simpleWmsBodies.setEnableTimeSpan");
-  mGuiManager->getGui()->unregisterCallback("simpleWmsBodies.setWMS");
+  mGuiManager->getGui()->unregisterCallback("simpleWMSBodies.setEnableTimeInterpolation");
+  mGuiManager->getGui()->unregisterCallback("simpleWMSBodies.setEnableTimeSpan");
+  mGuiManager->getGui()->unregisterCallback("simpleWMSBodies.setWMS");
 
   mGuiManager->getGui()->callJavascript(
       "CosmoScout.gui.unregisterCss", "css/csp-simple-wms-bodies.css");
@@ -331,6 +340,13 @@ void Plugin::setWMSSource(
 
   mGuiManager->getGui()->callJavascript(
       "CosmoScout.simpleWMSBodies.setWMSDataCopyright", dataset->second.mCopyright);
+  
+  // Only allow setting timespan if it is specified for the WMS data set.
+  mGuiManager->getGui()->callJavascript(
+      "CosmoScout.simpleWMSBodies.enableCheckBox", dataset->second.mTimespan.value_or(false));
+  if (!dataset->second.mTimespan.value_or(false)) {
+    mGuiManager->setCheckboxValue("simpleWMSBodies.setEnableTimeSpan", false);
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

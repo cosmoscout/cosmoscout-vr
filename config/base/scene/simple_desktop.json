@@ -447,7 +447,8 @@
               "height": 800,
               "time": "2000-11-01/current/P1D",
               "layers": "fires_viirs",
-              "preFetch": 2
+              "preFetch": 2,
+              "timeSpan" : true
             },
             "Land Surface Temperature [Day] (1 Day - MODIS)": {
               "copyright": "NASA",

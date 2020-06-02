@@ -28,6 +28,17 @@
           .tooltip({placement: 'top'})
           .attr('data-original-title', `© ${copyright}`);
     }
+
+    /**
+     * Enables or disables timespan checkbox
+     *
+     * @param enable {bool}
+     */
+    // eslint-disable-next-line class-methods-use-this
+    enableCheckBox(enable) {
+      document.querySelector('[data-callback="simpleWMSBodies.setEnableTimeSpan"]')
+          .disabled = !enable;
+    }
   }
 
   CosmoScout.init(SimpleWMSBodiesApi);

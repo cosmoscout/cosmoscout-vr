@@ -27,7 +27,8 @@ This plugin can be enabled with the following configuration in your `settings.js
               "height": <int>,        // The height of the WMS image.
               "time": <string>,       // Time intervals of WMS images, optional.
               "layers": <string>,     // A comma,separated list of WMS layers.
-              "preFetch": <int>       // The amount of textures that gets pre-fetched in every time direction, optional.
+              "preFetch": <int>,      // The amount of textures that gets pre-fetched in every time direction, optional.
+              "timeSpan": <bool>      // True if the WMS server enables the use of timespan, optional.
             },
             ... <more WMS datasets> ...
           }

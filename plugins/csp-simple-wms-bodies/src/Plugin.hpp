@@ -46,6 +46,7 @@ class Plugin : public cs::core::PluginBase {
       std::string                mLayers; ///< A comma,seperated list of WMS layers.
       std::optional<int>
           mPrefetchCount; ///< The amount of textures that gets pre-fetched in every time direction.
+      std::optional<bool> mTimespan; ///< True if the WMS server enables the use of timespan.
     };
 
     /// The startup settings for a planet.
