@@ -144,8 +144,8 @@ SimpleWMSBody::SimpleWMSBody(std::shared_ptr<cs::core::Settings> const& settings
     : cs::scene::CelestialBody(sCenterName, sFrameName, tStartExistence, tEndExistence)
     , mSettings(settings)
     , mSolarSystem(solarSystem)
-    , mPluginSettings(pluginSettings)
     , mRadii(cs::core::SolarSystem::getRadii(sCenterName))
+    , mPluginSettings(pluginSettings)
     , mWMSTexture(new VistaTexture(GL_TEXTURE_2D))
     , mSecondWMSTexture(new VistaTexture(GL_TEXTURE_2D)) {
   pVisibleRadius = mRadii[0];
@@ -531,10 +531,18 @@ bool SimpleWMSBody::GetBoundingBox(VistaBoundingBox& bb) {
 
 boost::posix_time::ptime SimpleWMSBody::getStartTime(boost::posix_time::ptime time) {
   boost::posix_time::time_duration timeSinceStart;
-  bool                             inInterval =
+  boost::posix_time::ptime         startTime;
+
+  bool inInterval =
       utils::timeInIntervals(time, mTimeIntervals, timeSinceStart, mIntervalDuration, mFormat);
-  boost::posix_time::ptime startTime =
-      time - boost::posix_time::seconds(timeSinceStart.total_seconds() % mIntervalDuration);
+
+  if (inInterval) {
+    startTime =
+        time - boost::posix_time::seconds(timeSinceStart.total_seconds() % mIntervalDuration);
+  } else {
+    startTime = time;
+  }
+  
   return startTime;
 }
 

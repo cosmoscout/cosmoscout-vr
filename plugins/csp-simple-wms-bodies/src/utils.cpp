@@ -153,14 +153,13 @@ void parseIsoString(std::string const& isoString, std::vector<TimeInterval>& tim
 bool timeInIntervals(boost::posix_time::ptime time, std::vector<TimeInterval>& timeIntervals,
     boost::posix_time::time_duration& timeSinceStart, int& intervalDuration, std::string& format) {
   // Check each interval whether the given time is inside or not..
-  for (int i = 0; i < timeIntervals.size(); i++) {
-    boost::posix_time::time_duration td =
-        boost::posix_time::seconds(timeIntervals.at(i).mIntervalDuration);
+  for (auto const& interval : timeIntervals) {
+    boost::posix_time::time_duration td = boost::posix_time::seconds(interval.mIntervalDuration);
 
-    if (timeIntervals.at(i).mStartTime <= time && timeIntervals.at(i).mEndTime + td >= time) {
-      timeSinceStart   = time - timeIntervals.at(i).mStartTime;
-      intervalDuration = timeIntervals.at(i).mIntervalDuration;
-      format           = timeIntervals.at(i).mFormat;
+    if (interval.mStartTime <= time && interval.mEndTime + td >= time) {
+      timeSinceStart   = time - interval.mStartTime;
+      intervalDuration = interval.mIntervalDuration;
+      format           = interval.mFormat;
       return true;
     }
   }

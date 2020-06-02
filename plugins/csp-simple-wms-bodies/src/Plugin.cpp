@@ -276,9 +276,9 @@ void Plugin::removeBookmarks() {
 
 void Plugin::addBookmarks(std::vector<TimeInterval> timeIntervals, std::string wmsName,
     std::string planetName, std::string frameName) {
-  for (int i = 0; i < timeIntervals.size(); i++) {
-    std::string start = utils::timeToString("%Y-%m-%d %H:%M:%S", timeIntervals.at(i).mStartTime);
-    std::string end   = utils::timeToString("%Y-%m-%d %H:%M:%S", timeIntervals.at(i).mEndTime);
+  for (auto const& interval : timeIntervals) {
+    std::string start = utils::timeToString("%Y-%m-%d %H:%M:%S", interval.mStartTime);
+    std::string end   = utils::timeToString("%Y-%m-%d %H:%M:%S", interval.mEndTime);
 
     cs::core::Settings::Bookmark::Location bookmarkLocation;
     bookmarkLocation.mCenter = planetName;
