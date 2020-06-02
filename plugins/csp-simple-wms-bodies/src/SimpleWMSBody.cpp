@@ -542,7 +542,7 @@ boost::posix_time::ptime SimpleWMSBody::getStartTime(boost::posix_time::ptime ti
   } else {
     startTime = time;
   }
-  
+
   return startTime;
 }
 
