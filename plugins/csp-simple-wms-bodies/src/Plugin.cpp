@@ -158,6 +158,7 @@ void Plugin::init() {
                 "CosmoScout.simpleWMSBodies.enableCheckBox", wms.second.mTimespan.value_or(false));
             if (!wms.second.mTimespan.value_or(false)) {
               mGuiManager->setCheckboxValue("simpleWMSBodies.setEnableTimeSpan", false);
+              mPluginSettings->mEnableTimespan = false;
             }
 
             // Add bookmarks to timeline from the intervals of the active WMS.
@@ -346,6 +347,7 @@ void Plugin::setWMSSource(
       "CosmoScout.simpleWMSBodies.enableCheckBox", dataset->second.mTimespan.value_or(false));
   if (!dataset->second.mTimespan.value_or(false)) {
     mGuiManager->setCheckboxValue("simpleWMSBodies.setEnableTimeSpan", false);
+    mPluginSettings->mEnableTimespan = false;
   }
 }
 
