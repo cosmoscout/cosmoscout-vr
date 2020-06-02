@@ -1,0 +1,64 @@
+<div class="row">
+  <div class="col-5">
+    Automatic LOD
+  </div>
+  <div class="col-1">
+    <label class="checklabel" data-toggle="tooltip" title='Select level-of-detail automatically'>
+      <input type="checkbox" data-callback="lodBodies.setEnableAutoTerrainLod" checked />
+      <i class="material-icons"></i>
+    </label>
+  </div>
+  <div class="col-6">
+    <div data-callback="lodBodies.setTerrainLod" class="unresponsive">
+    </div>
+  </div>
+</div>
+<div class="row">
+  <div class="col-7 offset-5">
+    <label class="checklabel">
+      <input type="checkbox" data-callback="lodBodies.setEnableTilesDebug" />
+      <i class="material-icons"></i>
+      <span>Show Terrain LOD</span>
+    </label>
+  </div>
+  <div class="col-7 offset-5">
+    <label class="checklabel">
+      <input type="checkbox" data-callback="lodBodies.setEnableTilesFreeze" />
+      <i class="material-icons"></i>
+      <span>Freeze Terrain LOD</span>
+    </label>
+  </div>
+  <div class="col-7 offset-5">
+    <label class="checklabel">
+      <input type="checkbox" data-callback="lodBodies.setEnableWireframe" />
+      <i class="material-icons"></i>
+      <span>Wireframe Planets</span>
+    </label>
+  </div>
+</div>
+<div class="row">
+  <div class="col-5">
+    Projection Type
+  </div>
+  <div class="col-7">
+    <label class="radiolabel">
+      <input name="terrain_projection" type="radio"
+        data-callback="lodBodies.setTerrainProjectionMode0" />
+      <span>HEALPix</span>
+    </label>
+  </div>
+  <div class="col-7 offset-5">
+    <label class="radiolabel">
+      <input name="terrain_projection" type="radio"
+        data-callback="lodBodies.setTerrainProjectionMode1" />
+      <span>Linear Interpolation</span>
+    </label>
+  </div>
+  <div class="col-7 offset-5">
+    <label class="radiolabel">
+      <input name="terrain_projection" type="radio"
+        data-callback="lodBodies.setTerrainProjectionMode2" checked />
+      <span>Hybrid</span>
+    </label>
+  </div>
+</div>

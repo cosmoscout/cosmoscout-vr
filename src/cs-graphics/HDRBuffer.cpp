@@ -8,6 +8,7 @@
 
 #include "GlowMipMap.hpp"
 #include "LuminanceMipMap.hpp"
+#include "logger.hpp"
 
 #include <VistaKernel/DisplayManager/VistaDisplayManager.h>
 #include <VistaKernel/DisplayManager/VistaViewport.h>
@@ -21,8 +22,9 @@ namespace cs::graphics {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-HDRBuffer::HDRBuffer(bool highPrecision)
-    : mHighPrecision(highPrecision) {
+HDRBuffer::HDRBuffer(uint32_t multiSamples, bool highPrecision)
+    : mMultiSamples(multiSamples)
+    , mHighPrecision(highPrecision) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -36,6 +38,12 @@ HDRBuffer::~HDRBuffer() {
 
     delete hdrBuffer.second.mLuminanceMipMap; // NOLINT(cppcoreguidelines-owning-memory)
   }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+uint32_t HDRBuffer::getMultiSamples() const {
+  return mMultiSamples;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -56,19 +64,27 @@ void HDRBuffer::bind() {
     hdrBuffer.mFBO = new VistaFramebufferObj(); // NOLINT(cppcoreguidelines-owning-memory)
 
     // Attaches a new texture to the hdrBuffer framebuffer object.
-    auto addAttachment = [&hdrBuffer](VistaTexture*& texture, int attachment, int internalFormat,
-                             int format, int type) {
+    auto addAttachment = [&hdrBuffer, this](VistaTexture*& texture, int attachment,
+                             int internalFormat, int format, int type) {
+      auto target = (mMultiSamples > 0) ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D;
+
       if (!texture) {
-        texture = new VistaTexture(GL_TEXTURE_2D); // NOLINT(cppcoreguidelines-owning-memory)
+        texture = new VistaTexture(target); // NOLINT(cppcoreguidelines-owning-memory)
       }
 
       texture->Bind();
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-      glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, hdrBuffer.mWidth, hdrBuffer.mHeight, 0, format,
-          type, nullptr);
+
+      if (mMultiSamples > 0) {
+        glTexImage2DMultisample(
+            target, mMultiSamples, internalFormat, hdrBuffer.mWidth, hdrBuffer.mHeight, false);
+      } else {
+        glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexImage2D(target, 0, internalFormat, hdrBuffer.mWidth, hdrBuffer.mHeight, 0, format,
+            type, nullptr);
+      }
       hdrBuffer.mFBO->Attach(texture, attachment);
     };
 
@@ -87,12 +103,12 @@ void HDRBuffer::bind() {
     // Create luminance mipmaps.
     delete hdrBuffer.mLuminanceMipMap; // NOLINT(cppcoreguidelines-owning-memory)
     // NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
-    hdrBuffer.mLuminanceMipMap = new LuminanceMipMap(size[0], size[1]);
+    hdrBuffer.mLuminanceMipMap = new LuminanceMipMap(mMultiSamples, size[0], size[1]);
 
     // Create glow mipmaps.
     delete hdrBuffer.mGlowMipMap; // NOLINT(cppcoreguidelines-owning-memory)
     // NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
-    hdrBuffer.mGlowMipMap = new GlowMipMap(size[0], size[1]);
+    hdrBuffer.mGlowMipMap = new GlowMipMap(mMultiSamples, size[0], size[1]);
   }
 
   // Bind the framebuffer object for writing.

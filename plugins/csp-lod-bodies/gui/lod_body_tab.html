@@ -1,0 +1,125 @@
+<div class="strike">
+  <span>Dataset Selection</span>
+</div>
+
+<div class="row mb-1">
+  <div class="col-5">
+    <label>Image Channel</label>
+  </div>
+  <div class="col-1">
+    <i class="material-icons" style="font-size: 22px; top:-3px;" id="lodbodies-img-data-copyright">info</i>
+  </div>
+  <div class="col-6">
+    <select data-callback="lodBodies.setTilesImg" data-container="#cosmoscout" data-width="100%"
+      class="simple-value-dropdown">
+      <!-- Filled by JavaScript Function called from DataBase Manager -->
+      <option value="-1">None</option>
+    </select>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-5">
+    <label>Elevation Channel</label>
+  </div>
+  <div class="col-1">
+    <i class="material-icons" style="font-size: 22px; top:-3px;" id="lodbodies-dem-data-copyright">info</i>
+  </div>
+  <div class="col-6">
+    <select data-callback="lodBodies.setTilesDem" data-container="#cosmoscout" data-width="100%"
+      class="simple-value-dropdown">
+      <!-- Filled by JavaScript Function called from DataBase Manager -->
+    </select>
+  </div>
+</div>
+
+
+<div class="strike">
+  <span>Color Mapping</span>
+</div>
+
+<div class="row mb-1">
+  <div class="col-6">
+    <span>Colormap</span>
+  </div>
+  <div class="col-6">
+    <select data-callback="lodBodies.setColormap" data-container="#cosmoscout" data-width="100%"
+      class="simple-value-dropdown">
+      <!-- Filled by JavaScript Function -->
+    </select>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-6">
+    <label class="radiolabel">
+      <input name="surface_coloring" type="radio" data-callback="lodBodies.setSurfaceColoringMode0"
+        checked />
+      <span>Off</span>
+    </label>
+  </div>
+  <div class="col-6">
+    <label class="checklabel">
+      <input type="checkbox" data-callback="lodBodies.setEnableColorMixing" checked />
+      <i class="material-icons"></i>
+      <span>Mix with IMG</span>
+    </label>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-6">
+    <label class="radiolabel">
+      <input name="surface_coloring" type="radio"
+        data-callback="lodBodies.setSurfaceColoringMode1" />
+      <span>Map on Height [km]</span>
+    </label>
+  </div>
+  <div class="col-6">
+    <div data-callback="lodBodies.setHeightRange"></div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-6">
+    <label class="radiolabel">
+      <input name="surface_coloring" type="radio"
+        data-callback="lodBodies.setSurfaceColoringMode2" />
+      <span>Map on Slope [°]</span>
+    </label>
+  </div>
+  <div class="col-6">
+    <div data-callback="lodBodies.setSlopeRange"></div>
+  </div>
+</div>
+
+<div class="strike">
+  <span>Terrain Visualization</span>
+</div>
+
+<div class="row">
+  <div class="col-6">
+    <label class="checklabel">
+      <input type="checkbox" data-callback="lodBodies.setEnableLatLongGrid" />
+      <i class="material-icons"></i>
+      <span>Coordinates</span>
+    </label>
+  </div>
+  <div class="col-6">
+    <label class="checklabel">
+      <input type="checkbox" data-callback="lodBodies.setEnableHeightlines" />
+      <i class="material-icons"></i>
+      <span>Contourlines</span>
+    </label>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-6">
+    Texture Gamma
+  </div>
+  <div class="col-6">
+    <div data-callback="lodBodies.setTextureGamma">
+    </div>
+  </div>
+</div>

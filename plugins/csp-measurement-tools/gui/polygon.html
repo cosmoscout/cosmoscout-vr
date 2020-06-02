@@ -1,0 +1,133 @@
+﻿<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+
+  <link type="text/css" rel="stylesheet" href="third-party/css/bootstrap.min.css" />
+  <link type="text/css" rel="stylesheet" href="third-party/css/nouislider.css" />
+  <link type="text/css" rel="stylesheet" href="css/gui.css">
+  <link type="text/css" rel="stylesheet" href="css/tools.css">
+  <link type="text/css" rel="stylesheet" href="css/csp-measurement-tools.css">
+
+  <script type="text/javascript" src="third-party/js/jquery-2.2.3.min.js"></script>
+  <script type="text/javascript" src="third-party/js/bootstrap.bundle.min.js"></script>
+  <script type="text/javascript" src="third-party/js/nouislider.min.js"></script>
+
+
+  <script type="text/javascript">
+
+    function formatNumber(number) {
+      if (Math.abs(number) < 10) return number.toFixed(2);
+      else if (Math.abs(number) < 100) return number.toFixed(1);
+      else return number.toFixed(0)
+    }
+
+    function formatArea(area) {
+      if (Math.abs(area) == 0) return '0 km²';
+      else if (Math.abs(area) < 0.001) return formatNumber(area * 1e6) + ' mm²';
+      else if (Math.abs(area) < 1) return formatNumber(area * 1e4) + ' cm²';
+      else if (Math.abs(area) < 1e6) return formatNumber(area) + ' m²';
+      else if (Math.abs(area) < 1e13) return formatNumber(area / 1e6) + ' km²';
+
+      return formatNumber(area / 1e12) + ' Tsd km²';
+    }
+
+    function setArea(area) {
+      $("#area-value").text(formatArea(area));
+    }
+
+    function formatVolume(volume) {
+      if (Math.abs(volume) == 0) return '0 km³';
+      else if (Math.abs(volume) < 1e-5) return formatNumber(volume * 1e9) + ' mm³';
+      else if (Math.abs(volume) < 1) return formatNumber(volume * 1e6) + ' cm³';
+      else if (Math.abs(volume) < 1e9) return formatNumber(volume) + ' m³';
+      else if (Math.abs(volume) < 1e18) return formatNumber(volume / 1e9) + ' km³';
+
+      return formatNumber(volume / 1e18) + ' Tsd km³';
+    }
+
+    function setVolume(volume1, volume2) {
+      $("#volume-value").text('+' + formatVolume(volume1) + ',     ' + formatVolume(volume2));
+    }
+
+    function setMinimized(minimize) {
+      if (minimize) $('.tool-body').addClass('minimized');
+      else $('.tool-body').removeClass('minimized');
+    }
+
+    function formatLatitude(lat) {
+      if (lat < 0)
+        return (-lat).toFixed(4) + "° S ";
+      else
+        return (lat).toFixed(4) + "° N ";
+    }
+
+    function formatLongitude(long) {
+      if (long < 0)
+        return (-long).toFixed(4) + "° W ";
+      else
+        return (long).toFixed(4) + "° E ";
+    }
+
+    function setBoundaryPosition(minLong, minLat, maxLong, maxLat) {
+      $("#placeholder-1").text(formatLongitude(minLong) + formatLatitude(minLat));
+      $("#placeholder-2").text(formatLongitude(maxLong) + formatLatitude(maxLat));
+    }
+
+    function setText(text) {
+      $(".text-input").val(text);
+    }
+
+    $(document).ready(function () {
+      $('[data-toggle="tooltip"]').tooltip({ delay: 500, placement: "auto", html: false });
+      $(".text-input").on("input", () => window.callNative("onSetText", $(".text-input").val()));
+    })
+  </script>
+
+</head>
+
+<body style="overflow: hidden">
+  <div class="tool-body">
+    <div class="d-flex mb-1">
+      <input type='text' class='text-input form-control flex-grow-1' value='Polygon' />
+      <a class="btn light-glass" data-toggle="tooltip" title='Show Delaunay-Triangulation mesh'
+        onclick="window.callNative('showMesh', true)">
+        <i class=" material-icons">ac_unit</i>
+      </a>
+      <a class="btn light-glass" data-toggle="tooltip" title='Add new Points'
+        onclick="window.callNative('setAddPointMode', true)">
+        <i class=" material-icons">add_circle</i>
+      </a>
+      <a class="btn light-glass" data-toggle="tooltip" title='Delete'
+        onclick="window.callNative('deleteMe')">
+        <i class=" material-icons">close</i>
+      </a>
+    </div>
+
+    <div class="container-fluid pb-2">
+      <div class="row">
+        <div class="col-5">Area:</div>
+        <div class="col-7" align="right"><span id="area-value">0 km²</span></div>
+      </div>
+      <div class="row">
+        <div class="col-3">Volume:</div>
+        <div class="col-9" align="right"><span id="volume-value">0 km³</span></div>
+      </div>
+      <div class="row">
+        <div class="col-5">Bounding box:</div>
+        <div class="col-7" align="right">
+          <i class="material-icons">language</i> <span id="placeholder-1">0° 0°</span>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-5"></div>
+        <div class="col-7" align="right">
+          <i class="material-icons">language</i> <span id="placeholder-2">0° 0°</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>

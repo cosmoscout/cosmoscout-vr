@@ -1,0 +1,117 @@
+#bookmark-editor .window-wrapper {
+  width: 500px;
+}
+
+#bookmark-editor-icon-select-button {
+  width: 80px;
+  height: 80px;
+}
+
+#bookmark-editor-icon-select-button img {
+  position: relative;
+}
+
+#bookmark-editor-icon-select-button span {
+  position: absolute;
+  left: 22px;
+  top: 25px;
+}
+
+/* Bookmark Tooltip */
+
+@-webkit-keyframes pointer-events-off {
+  0% {
+    pointer-events: initial;
+  }
+
+  99% {
+    pointer-events: initial;
+  }
+
+  100% {
+    pointer-events: none;
+  }
+}
+
+@-webkit-keyframes pointer-events-on {
+  0% {
+    pointer-events: initial;
+  }
+
+  100% {
+    pointer-events: initial;
+  }
+}
+
+#bookmark-tooltip-container {
+  position: absolute;
+  z-index: 10000;
+  opacity: 0;
+  pointer-events: none;
+  animation-fill-mode: both;
+  transition: opacity 0.2s linear;
+  transition-delay: 0.4s;
+  animation: pointer-events-off 0.4s linear;
+}
+
+#bookmark-tooltip-container:hover,
+#bookmark-tooltip-container.visible {
+  transition-delay: 0.2s;
+  animation: pointer-events-on 0.2s linear;
+  opacity: 1;
+  pointer-events: initial;
+}
+
+#bookmark-tooltip {
+  max-width: 300px;
+  background-color: rgba(20, 20, 20, 0.8);
+  border: 2px solid var(--cs-color-primary);
+  border-radius: 7px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+}
+
+#bookmark-tooltip-header {
+  display: flex;
+}
+
+#bookmark-tooltip-header a {
+  border-radius: 0;
+}
+
+#bookmark-tooltip-header i {
+  font-size: 15pt;
+}
+
+#bookmark-tooltip-name {
+  padding: 5px 10px;
+  flex-grow: 1;
+  font-size: 1.1rem;
+}
+
+#bookmark-tooltip-description {
+  padding: 0 10px 10px 10px;
+  font-size: 0.9rem;
+}
+
+#bookmark-tooltip-description:empty {
+  padding: 0;
+}
+
+#bookmark-tooltip-arrow {
+  width: 0;
+  height: 0;
+  border: 10px solid;
+  position: absolute;
+}
+
+#bookmark-tooltip-arrow.top {
+  border-color: var(--cs-color-primary) transparent transparent transparent;
+  border-bottom-width: 0;
+  bottom: -10px;
+}
+
+#bookmark-tooltip-arrow.bottom {
+  border-color: transparent transparent var(--cs-color-primary) transparent;
+  border-top-width: 0;
+  top: -10px;
+}

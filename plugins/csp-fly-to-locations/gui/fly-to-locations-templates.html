@@ -1,0 +1,42 @@
+<template id="flytolocations-bookmarks-grid-button-template">
+  <div class="col-3 center flytolocations-bookmarks-grid-body-button p-1">
+    <a class="block btn glass" onclick="CosmoScout.callbacks.bookmark.gotoLocation(%ID%)">
+      <img src="../icons/%ICON%" height="80" width="80">
+      <span class="flytolocations-bookmarks-name">%NAME%</span>
+      <a class="flytolocations-bookmarks-grid-edit-button btn light-glass px-1"
+        onclick="CosmoScout.callbacks.bookmark.edit(%ID%)">
+        <i class="material-icons">edit</i>
+      </a>
+      <a class="flytolocations-bookmarks-grid-delete-button btn light-glass px-1"
+        onclick="CosmoScout.callbacks.bookmark.remove(%ID%)">
+        <i class="material-icons">close</i>
+      </a>
+    </a>
+  </div>
+</template>
+
+<template id="flytolocations-bookmarks-list-item-template">
+  <div class="row px-0 mx-0">
+    <div class="flex-grow-1 py-2">
+      <span class="flytolocations-bookmarks-name">%NAME%</span>
+    </div>
+    <div class="px-1">
+      <a class="btn glass block px-3" data-toggle="tooltip" title="Edit Bookmark"
+        data-boundary="window" onclick="CosmoScout.callbacks.bookmark.edit(%ID%)">
+        <i class="material-icons">edit</i>
+      </a>
+    </div>
+    <div class="px-1 flytolocations-bookmarks-time-button">
+      <a class="btn glass block px-3" data-toggle="tooltip" title="Go to Bookmark time"
+        data-boundary="window" onclick="CosmoScout.callbacks.bookmark.gotoTime(%ID%)">
+        <i class="material-icons">update</i>
+      </a>
+    </div>
+    <div class="px-1">
+      <a class="btn glass block px-3" data-toggle="tooltip" title="Go to Bookmark location"
+        data-boundary="window" onclick="CosmoScout.callbacks.bookmark.gotoLocation(%ID%)">
+        <i class="material-icons">place</i>
+      </a>
+    </div>
+  </div>
+</template>

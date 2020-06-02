@@ -57,12 +57,12 @@ git submodule update --init
 ./make_externals.sh -G "Unix Makefiles"
 ```
 
-This will clone the repository to `cosmoscout-vr` configure and build all externals in `cosmoscout-vr/build/linux-externals-release` and will install them to `cosmoscout-vr/install/linux-externals-release`.
+This will clone the repository to `cosmoscout-vr` configure and build all externals in `cosmoscout-vr/build/linux-externals-Release` and will install them to `cosmoscout-vr/install/linux-externals-Release`.
 All parameters given to `make_externals.bat` will be forwarded to CMake. For example, you can change the CMake generator this way.
 
 ### Compiling CosmoScout VR
 
-This will configure and build CosmoScout VR in `cosmoscout-vr/build/linux-release` and will install it to `cosmoscout-vr/install/linux-release`.
+This will configure and build CosmoScout VR in `cosmoscout-vr/build/linux-Release` and will install it to `cosmoscout-vr/install/linux-Release`.
 Again, all parameters given to `make.sh` will be forwarded to CMake:
 
 ```shell
@@ -73,7 +73,7 @@ Again, all parameters given to `make.sh` will be forwarded to CMake:
 The application can be executed with:
 
 ```shell
-./install/linux-release/bin/start.sh
+./install/linux-Release/bin/start.sh
 ```
 
 When started for the very first time, some example datasets will be downloaded from the internet.
@@ -83,8 +83,8 @@ The progress of this operation is shown on the loading screen.
 Since you specified `-DCOSMOSCOUT_UNIT_TESTS=On` at build time, you can now execute the unit tests with (the _graphical tests_ require [Xvfb](https://en.wikipedia.org/wiki/Xvfb) and [imagemagick](https://imagemagick.org/index.php) to be installed on your system. On Ubuntu: `sudo apt-get install xvfb imagemagick`):
 
 ```shell
-./install/linux-release/bin/run_tests.sh
-./install/linux-release/bin/run_graphical_tests.sh
+./install/linux-Release/bin/run_tests.sh
+./install/linux-Release/bin/run_graphical_tests.sh
 ```
 
 :information_source: _**Tip:** If you wish, you can delete the directories `build` and `install` at any time in order to force a complete reconfiguration or re-installation._
@@ -146,7 +146,7 @@ git submodule update --init
 make_externals.bat -G "Visual Studio 15 Win64"
 ```
 
-This will clone the repository to `cosmoscout-vr` configure and build all externals in `cosmoscout-vr\build\windows-externals-release` and will install them to `cosmoscout-vr\install\windows-externals-release`.
+This will clone the repository to `cosmoscout-vr` configure and build all externals in `cosmoscout-vr\build\windows-externals-Release` and will install them to `cosmoscout-vr\install\windows-externals-Release`.
 All parameters given to `make_externals.bat` will be forwarded to CMake. For example, you can change the CMake generator this way.
 
 ### Compiling CosmoScout VR
@@ -159,11 +159,11 @@ set BOOST_ROOT=C:\local\boost_1_69_0
 make.bat -G "Visual Studio 15 Win64" -DCOSMOSCOUT_UNIT_TESTS=On
 ```
 
-This will configure and build CosmoScout VR in `cosmoscout-vr\build\windows-release` and will install it to `cosmoscout-vr\install\windows-release`.
+This will configure and build CosmoScout VR in `cosmoscout-vr\build\windows-Release` and will install it to `cosmoscout-vr\install\windows-Release`.
 The application can be executed with:
 
 ```batch
-cd install\windows-release\bin
+cd install\windows-Release\bin
 start.bat
 ```
 
@@ -174,12 +174,17 @@ The progress of this operation is shown on the loading screen.
 Since you specified `-DCOSMOSCOUT_UNIT_TESTS=On` at build time, you can now execute the unit tests with:
 
 ```batch
-install\linux-release\bin\run_tests.bat
+install\linux-Release\bin\run_tests.bat
 ```
 
 :information_source: _**Tip:** If you wish, you can delete the directories `build` and `install` at any time in order to force a complete reconfiguration or re-installation._
 
 :information_source: _**Tip:** You can use [clcache](https://github.com/frerich/clcache) to considerably speed up build times. You just need to call `make_externals.bat -G "Visual Studio 15 Win64" -DCMAKE_VS_GLOBALS="CLToolExe=clcache.exe;TrackFileAccess=false"` and `make.bat -G "Visual Studio 15 Win64" -DCMAKE_VS_GLOBALS=CLToolExe"=clcache.exe;TrackFileAccess=false"` respectively._
+
+:information_source: _**Tip:** You can use Ninja as a generator. You need to run the following commands from the `x64 Native Tools Command Prompt for VS 20XX`:
+`.\make_externals.bat -GNinja -DCMAKE_C_COMPILER=cl.exe -DCMAKE_CXX_COMPILER=cl.exe` and `.\make.bat -GNinja -DCMAKE_C_COMPILER=cl.exe -DCMAKE_CXX_COMPILER=cl.exe`.
+This can reduce the compile times by a lot._
+
 
 <p align="center"><img src ="img/hr.svg"/></p>
 <p align="center">

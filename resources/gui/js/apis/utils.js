@@ -10,57 +10,6 @@ class UtilsApi extends IApi {
    */
   name = 'utils';
 
-  _defaultLocale = 'de-de';
-
-  _defaultDateOptions = {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  };
-
-  /**
-   * Format a Date to a for a human readable string DD.MM.YYYY HH:MM:SS.
-   *
-   * @param date {Date}
-   * @return {string}
-   */
-  formatDateReadable(date) {
-    return `${date.toLocaleDateString(this._defaultLocale, this._defaultDateOptions)} ${
-        date.toLocaleTimeString(this._defaultLocale)}`;
-  }
-
-  /**
-   * Format a Date to YYYY-MM-DD
-   *
-   * @param date {Date}
-   * @return {string}
-   */
-  getFormattedDate(date) {
-    return date.toISOString().split('T')[0];
-  }
-
-  /**
-   * Format a Date to YYYY-MM-DD HH:MM:SS.
-   *
-   * @param date {Date}
-   * @return {string}
-   */
-  getFormattedDateWithTime(date) {
-    return `${this.getFormattedDate(date)} ${date.toLocaleTimeString(this._defaultLocale)}`;
-  }
-
-  /**
-   * Format a Date to a readable format for CosmoScout VR YYYY-MM-DD HH:MM:SS.sss.
-   *
-   * @param date {Date}
-   * @return {string}
-   */
-  formatDateCosmo(date) {
-    const milli = date.getMilliseconds().toString().padStart(3, '0');
-
-    return `${this.getFormattedDateWithTime(date)}.${milli}`;
-  }
-
   /**
    * Convert seconds into an object containing the duration in days, hours, minutes, seconds,
    * and milliseconds.
@@ -103,11 +52,11 @@ class UtilsApi extends IApi {
    * @return {Date}
    */
   increaseDate(date, days, hours, minutes, seconds, milliSec) {
-    date.setDate(date.getDate() + days);
-    date.setHours(date.getHours() + hours);
-    date.setMinutes(date.getMinutes() + minutes);
-    date.setSeconds(date.getSeconds() + seconds);
-    date.setMilliseconds(date.getMilliseconds() + milliSec);
+    date.setUTCDate(date.getUTCDate() + days);
+    date.setUTCHours(date.getUTCHours() + hours);
+    date.setUTCMinutes(date.getUTCMinutes() + minutes);
+    date.setUTCSeconds(date.getUTCSeconds() + seconds);
+    date.setUTCMilliseconds(date.getUTCMilliseconds() + milliSec);
     return date;
   }
 

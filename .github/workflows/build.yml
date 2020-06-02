@@ -105,22 +105,22 @@ jobs:
           -DCOSMOSCOUT_COVERAGE_INFO=On -DCOSMOSCOUT_UNIT_TESTS=On
           -DBOOST_ROOT=$BOOST_ROOT_1_69_0 -DBoost_ARCHITECTURE=-x64
       - name: Run Tests
-        run: ./install/linux-release/bin/run_tests.sh
+        run: ./install/linux-Release/bin/run_tests.sh
       - name: Run Graphical Tests
-        run: ./install/linux-release/bin/run_graphical_tests.sh
+        run: ./install/linux-Release/bin/run_graphical_tests.sh
       - name: Upload Results of Failed Test
         uses: actions/upload-artifact@v1
         if: failure()
         with:
           name: graphical-test-results-gcc
-          path: install/linux-release/bin/test
+          path: install/linux-Release/bin/test
       - name: Calculate Test Coverage
         run: ./lcov.sh
       - name: Upload Coverage Info
         uses: coverallsapp/github-action@master
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          path-to-lcov: ./build/linux-release/coverage.info
+          path-to-lcov: ./build/linux-Release/coverage.info
       - name: Print ccache Statistics
         run: ccache -s
 
@@ -166,15 +166,15 @@ jobs:
           -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
           -DCOSMOSCOUT_UNIT_TESTS=On -DBOOST_ROOT=$BOOST_ROOT_1_69_0 -DBoost_ARCHITECTURE=-x64
       - name: Run Tests
-        run: ./install/linux-release/bin/run_tests.sh
+        run: ./install/linux-Release/bin/run_tests.sh
       - name: Run Graphical Tests
-        run: ./install/linux-release/bin/run_graphical_tests.sh
+        run: ./install/linux-Release/bin/run_graphical_tests.sh
       - name: Upload Results of Failed Test
         uses: actions/upload-artifact@v1
         if: failure()
         with:
           name: graphical-test-results-clang
-          path: install/linux-release/bin/test
+          path: install/linux-Release/bin/test
       - name: Print ccache Statistics
         run: ccache -s
 
@@ -215,6 +215,6 @@ jobs:
           -DCOSMOSCOUT_UNIT_TESTS=On -DBOOST_ROOT=%BOOST_ROOT_1_72_0%
       - name: Run Tests
         shell: cmd
-        run: install\\windows-release\\bin\\run_tests.bat
+        run: install\\windows-Release\\bin\\run_tests.bat
       - name: Print clcache Statistics
         run: clcache -s

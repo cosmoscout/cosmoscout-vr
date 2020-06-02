@@ -1,39 +1,13 @@
-#calendar {
-  pointer-events: none;
-  z-index: -1;
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 500px;
-  height: 382px;
-  top: 150px;
-  transition-timing-function: ease-out;
-  opacity: 0;
-  transition: opacity 0.4s;
+#calendar .window-wrapper {
+  width: 400px;
+  height: 400px;
 }
 
-.datepicker-inline {
-  height: 382px;
-}
-
-#calendar.visible {
-  z-index: 10;
-  pointer-events: all;
-  opacity: 1;
-}
-
-.datepicker {
-  background-color: rgba(20, 20, 20, 0.5);
-  border-bottom: 3px solid var(--cs-border-color);
-}
-
-.datepicker-inline {
+.datepicker table,
+.datepicker-inline,
+.datepicker-inline>div {
   width: 100%;
-  /*height: 100vh;*/
-}
-
-.datepicker table {
-  width: 100%;
+  height: 100%;
 }
 
 .datepicker .disabled {
@@ -41,21 +15,25 @@
   opacity: 0.2;
 }
 
-.datepicker table tr th,
-.datepicker table tr td {
+.datepicker table tr th {
   text-align: center;
   padding: 10px 5px;
 }
 
+.datepicker table tr td {
+  text-align: center;
+  padding: 0px;
+}
+
 .datepicker .datepicker-switch,
 .datepicker .dow {
-  text-shadow: 0 0 5px rgba(255, 255, 255, 0.4), 0 0 10px #aaf;
+  text-shadow: var(--cs-text-glow);
   color: #fff;
   text-transform: uppercase;
 }
 
 .datepicker .datepicker-switch {
-  font-size: 1.8rem;
+  font-size: 1.4rem;
 }
 
 .datepicker .datepicker-switch,
@@ -115,15 +93,11 @@
   background-color: rgba(230, 230, 255, 0.3);
 }
 
-.datepicker thead {
-  border-bottom: 1px dashed rgba(230, 230, 255, 0.3);
-}
-
 .datepicker .year,
 .datepicker .decade,
 .datepicker .century,
 .datepicker .month {
   width: 25%;
-  padding: 37px 0;
+  padding: 20px 0;
   display: inline-block;
 }

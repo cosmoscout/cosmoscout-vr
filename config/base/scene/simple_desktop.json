@@ -32,16 +32,206 @@
     "minFarClip": 200.0,
     "maxFarClip": 20000.0
   },
-  "events": [
+  "bookmarks": [
     {
-      "id": "1",
-      "content": "Apollo 17 landing",
-      "start": "1972-12-11T19:54:57",
-      "description": "Last human landing on the Moon.",
-      "style": "border-color: yellow",
+      "name": "Mercury",
+      "icon": "mercury.png",
       "location": {
-        "planet": "Moon",
-        "place": "3.635° E 26.133° S 10.0 Tsd km"
+        "center": "Mercury",
+        "frame": "IAU_Mercury"
+      }
+    },
+    {
+      "name": "Venus",
+      "icon": "venus.png",
+      "location": {
+        "center": "Venus",
+        "frame": "IAU_Venus"
+      }
+    },
+    {
+      "name": "Earth",
+      "icon": "earth.png",
+      "location": {
+        "center": "Earth",
+        "frame": "IAU_Earth"
+      }
+    },
+    {
+      "name": "Moon",
+      "icon": "moon.png",
+      "location": {
+        "center": "Moon",
+        "frame": "IAU_Moon"
+      }
+    },
+    {
+      "name": "Mars",
+      "icon": "mars.png",
+      "location": {
+        "center": "Mars",
+        "frame": "IAU_Mars"
+      }
+    },
+    {
+      "name": "Jupiter",
+      "icon": "jupiter.png",
+      "location": {
+        "center": "Jupiter",
+        "frame": "IAU_Jupiter"
+      }
+    },
+    {
+      "name": "Saturn",
+      "icon": "saturn.png",
+      "location": {
+        "center": "Saturn",
+        "frame": "IAU_Saturn"
+      }
+    },
+    {
+      "name": "Uranus",
+      "icon": "uranus.png",
+      "location": {
+        "center": "Uranus",
+        "frame": "IAU_Uranus"
+      }
+    },
+    {
+      "name": "Neptune",
+      "icon": "neptune.png",
+      "location": {
+        "center": "Neptune",
+        "frame": "IAU_Neptune"
+      }
+    },
+    {
+      "name": "Europe",
+      "location": {
+        "center": "Earth",
+        "frame": "IAU_Earth",
+        "position": [
+          650049.6197706065,
+          9169440.98335226,
+          8121638.922577351
+        ]
+      }
+    },
+    {
+      "name": "Gale Crater",
+      "location": {
+        "center": "Mars",
+        "frame": "IAU_Mars",
+        "position": [
+          2447738.8308155183,
+          -342371.7680597744,
+          -2685067.930247649
+        ]
+      }
+    },
+    {
+      "name": "Olympus Mons",
+      "location": {
+        "center": "Mars",
+        "frame": "IAU_Mars",
+        "position": [
+          -3307330.802331851,
+          1554571.0056051295,
+          -3226294.561073318
+        ]
+      }
+    },
+    {
+      "name": "Valles Marineris",
+      "location": {
+        "center": "Mars",
+        "frame": "IAU_Mars",
+        "position": [
+          -6428254.120880801,
+          -954592.0696965504,
+          1953664.233154953
+        ]
+      }
+    },
+    {
+      "name": "Apollo 17 Start",
+      "description": "Start of the Apollo 17 mission from the Kennedy Space Center.",
+      "color": [
+        0.8,
+        0.8,
+        0.8
+      ],
+      "time": {
+        "start": "1972-12-07 05:33:57"
+      },
+      "location": {
+        "center": "Earth",
+        "frame": "IAU_Earth",
+        "position": [
+          -6717320.585750769,
+          3677613.991761727,
+          1137577.1784918148
+        ],
+        "rotation": [
+          0.15376949893337843,
+          0.63437440894638,
+          0.18263787000493972,
+          -0.7352329283375216
+        ]
+      }
+    },
+    {
+      "name": "Apollo 17 Landing",
+      "description": "Last human landing on the Moon.",
+      "color": [
+        0.8,
+        0.8,
+        0.8
+      ],
+      "time": {
+        "start": "1972-12-11 19:54:57"
+      },
+      "location": {
+        "center": "Moon",
+        "frame": "IAU_Moon",
+        "position": [
+          1134055.9325384551,
+          819870.7766710989,
+          1933670.8174134232
+        ],
+        "rotation": [
+          -0.16576540501128123,
+          0.24287410049335084,
+          0.02264905472337545,
+          0.9555213352569
+        ]
+      }
+    },
+    {
+      "name": "Curiosity Landing",
+      "description": "Landing of the Rover for the Mars Science Laboratory.",
+      "color": [
+        0.9,
+        0.7,
+        0.3
+      ],
+      "time": {
+        "start": "2012-08-06 05:31:00"
+      },
+      "location": {
+        "center": "Mars",
+        "frame": "IAU_Mars",
+        "position": [
+          2355817.1503860787,
+          -717233.1853627029,
+          -2744165.4025669894
+        ],
+        "rotation": [
+          0.29703477878551815,
+          0.7983366317584811,
+          -0.46250011374371464,
+          0.24601342925013817
+        ]
       }
     }
   ],
@@ -68,9 +258,7 @@
     }
   ],
   "spiceKernel": "../share/config/spice/simple.txt",
-  "graphics": {
-    "widgetScale": 0.6
-  },
+  "graphics": {},
   "anchors": {
     "Barycenter": {
       "center": "Solar System Barycenter",
@@ -392,178 +580,42 @@
         }
       }
     },
-    "csp-fly-to-locations": {
-      "targets": {
-        "Mercury": {
-          "icon": "mercury.png"
-        },
-        "Venus": {
-          "icon": "venus.png"
-        },
+    "csp-fly-to-locations": {},
+    "csp-minimap": {
+      "defaultMap": {
+        "projection": "equirectangular",
+        "type": "wms",
+        "url": "https://geoservice.dlr.de/eoc/basemap/wms?",
+        "config": {
+          "attribution": "&copy; DLR",
+          "layers": "ne:ne_graticules",
+          "BGCOLOR": "0x000000"
+        }
+      },
+      "maps": {
         "Earth": {
-          "icon": "earth.png",
-          "locations": {
-            "Africa": {
-              "group": "Continents",
-              "latitude": 2.0,
-              "longitude": 16.0,
-              "extent": 10000000
-            },
-            "Asia": {
-              "group": "Continents",
-              "latitude": 56.0,
-              "longitude": 104.0,
-              "extent": 10000000
-            },
-            "Australia": {
-              "group": "Continents",
-              "latitude": -24.0,
-              "longitude": 135.0,
-              "extent": 10000000
-            },
-            "Braunschweig": {
-              "group": "Cities",
-              "latitude": 52.26,
-              "longitude": 10.53,
-              "extent": 10000
-            },
-            "Europe": {
-              "group": "Continents",
-              "latitude": 51.0,
-              "longitude": 10.0,
-              "extent": 10000000
-            },
-            "New York": {
-              "group": "Cities",
-              "latitude": 40.7,
-              "longitude": -73.99,
-              "extent": 30000
-            },
-            "North America": {
-              "group": "Continents",
-              "latitude": 39.78,
-              "longitude": -100.0,
-              "extent": 10000000
-            },
-            "South America": {
-              "group": "Continents",
-              "latitude": -10.3,
-              "longitude": -53.2,
-              "extent": 10000000
-            }
+          "projection": "mercator",
+          "type": "wmts",
+          "url": "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+          "config": {
+            "attribution": "&copy; OpenStreetMap contributors"
           }
         },
         "Moon": {
-          "icon": "moon.png",
-          "locations": {
-            "Apollo 11": {
-              "group": "Landings",
-              "latitude": 0.675,
-              "longitude": 23.475,
-              "extent": 250
-            },
-            "Apollo 15": {
-              "group": "Landings",
-              "latitude": 26.133,
-              "longitude": 3.635,
-              "extent": 250
-            },
-            "Apollo 16": {
-              "group": "Landings",
-              "latitude": -8.975,
-              "longitude": 15.5,
-              "extent": 250
-            },
-            "Apollo 17": {
-              "group": "Landings",
-              "latitude": 20.192,
-              "longitude": 30.774,
-              "extent": 250
-            }
+          "projection": "mercator",
+          "type": "wmts",
+          "url": "https://cartocdn-gusc.global.ssl.fastly.net/opmbuilder/api/v1/map/named/opm-moon-basemap-v0-1/all/{z}/{x}/{y}.png",
+          "config": {
+            "attribution": "&copy; OpenPlanetary"
           }
         },
         "Mars": {
-          "icon": "mars.png",
-          "locations": {
-            "Adams": {
-              "group": "Craters",
-              "latitude": 30.91,
-              "longitude": 163.1,
-              "extent": 200000
-            },
-            "Ares Vallis": {
-              "group": "Canyons",
-              "latitude": 10.29,
-              "longitude": 334.2,
-              "extent": 100000
-            },
-            "Bond": {
-              "group": "Craters",
-              "latitude": -32.79,
-              "longitude": 324.06,
-              "extent": 200000
-            },
-            "Caxias": {
-              "group": "Craters",
-              "latitude": -28.95,
-              "longitude": 259.32,
-              "extent": 300000
-            },
-            "Ceraunius Tholus": {
-              "group": "Volcanoes",
-              "latitude": 23,
-              "longitude": 263.0,
-              "extent": 300000
-            },
-            "Gale": {
-              "group": "Craters",
-              "latitude": -5.4,
-              "longitude": 137.8,
-              "extent": 300000
-            },
-            "Curiosity": {
-              "group": "Rover",
-              "latitude": -4.63,
-              "longitude": 137.3528,
-              "extent": 100
-            },
-            "Hadriacus Mons": {
-              "group": "Volcanoes",
-              "latitude": -30,
-              "longitude": 92.0,
-              "extent": 500000
-            },
-            "Marikh Vallis": {
-              "group": "Canyons",
-              "latitude": -19.25,
-              "longitude": 3.9,
-              "extent": 1000000
-            },
-            "Olympus Mons": {
-              "group": "Volcanoes",
-              "latitude": 18,
-              "longitude": 226.0,
-              "extent": 800000
-            },
-            "Valles Marineris": {
-              "group": "Canyons",
-              "latitude": -10,
-              "longitude": 290.0,
-              "extent": 2000000
-            }
+          "projection": "mercator",
+          "type": "wmts",
+          "url": "https://cartocdn-gusc.global.ssl.fastly.net/opmbuilder/api/v1/map/named/opm-mars-basemap-v0-2/all/{z}/{x}/{y}.png",
+          "config": {
+            "attribution": "&copy; OpenPlanetary"
           }
-        },
-        "Jupiter": {
-          "icon": "jupiter.png"
-        },
-        "Saturn": {
-          "icon": "saturn.png"
-        },
-        "Uranus": {
-          "icon": "uranus.png"
-        },
-        "Neptune": {
-          "icon": "neptune.png"
         }
       }
     }

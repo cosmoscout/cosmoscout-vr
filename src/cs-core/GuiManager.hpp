@@ -14,6 +14,7 @@
 #include "../cs-gui/WorldSpaceGuiArea.hpp"
 #include "../cs-gui/gui.hpp"
 #include "../cs-gui/types.hpp"
+#include "Settings.hpp"
 
 #include "../cs-utils/FrameTimings.hpp"
 
@@ -75,6 +76,40 @@ class CS_CORE_EXPORT GuiManager {
   /// guiItem->setCursorChangeCallback([](cs::gui::Cursor c) { GuiManager::setCursor(c); });
   static void setCursor(gui::Cursor cursor);
 
+  /// Returns the CosmoScout Gui.
+  gui::GuiItem* getGui() const;
+
+  /// Returns the CosmoScout Statistics Gui.
+  gui::GuiItem* getStatistics() const;
+
+  /// This is called once a frame from the Application.
+  void update();
+
+  /// Bookmarks API --------------------------------------------------------------------------------
+
+  /// Emitted after a bookmark has been added to the internal list.
+  utils::Signal<uint32_t, Settings::Bookmark const&> const& onBookmarkAdded() const;
+
+  /// Emitted after a bookmark has been removed from the internal list.
+  utils::Signal<uint32_t, Settings::Bookmark const&> const& onBookmarkRemoved() const;
+
+  /// Adds a new bookmark. If it has a location in time, it will be added to the timeline. The
+  /// returned unique identifier can be used to delete the bookmark again.
+  uint32_t addBookmark(Settings::Bookmark bookmark);
+
+  /// Removes a bookmark from the internal map. It will also be removed from the timeline.
+  void removeBookmark(uint32_t bookmarkID);
+
+  /// Returns a reference to a map containing all bookmarks. As the identifiers are incremented
+  /// sequentially, the map is sorted by bookmark creation time. The Bookmarks cannot be modified at
+  /// run-time; if you want to modify an existing bookmark you have to re-create it.
+  std::map<uint32_t, const Settings::Bookmark> const& getBookmarks() const;
+
+  /// JavaScript API Wrapping ----------------------------------------------------------------------
+
+  /// All methods below are thin wrappers around the corresponding JavaScript methods of
+  /// 'CosmoScout.callbacks.gui'. Using the wrappers provides some compile-time type safety.
+
   /// Shows a notification in the top right corner.
   ///
   /// @param sTitle        The first line of the notification.
@@ -84,9 +119,22 @@ class CS_CORE_EXPORT GuiManager {
   void showNotification(std::string const& sTitle, std::string const& sText,
       std::string const& sIcon, std::string const& sFlyToOnClick = "") const;
 
+  /// Adds button to the row of buttons beneath the timeline.
+  ///
+  /// @param name      The name of the button; this will be shown as tooltip.
+  /// @param icon      The name of the Material icon.
+  /// @param callback  This callback will be fired on a click.
+  void addTimelineButton(
+      std::string const& name, std::string const& icon, std::string const& callback) const;
+
+  /// Removes a previously added button from the row of buttons beneath the timeline.
+  ///
+  /// @param name      The name of the button; this will be shown as tooltip.
+  void removeTimelineButton(std::string const& name) const;
+
   /// Adds a new tab to the side bar.
   ///
-  /// @param name     The nam/title of the tab.
+  /// @param name     The title of the tab.
   /// @param icon     The name of the Material icon.
   /// @param content  The HTML that describes the tabs contents.
   void addPluginTabToSideBar(
@@ -94,7 +142,7 @@ class CS_CORE_EXPORT GuiManager {
 
   /// Adds a new tab to the side bar.
   ///
-  /// @param name      The nam/title of the tab.
+  /// @param name      The title of the tab.
   /// @param icon      The name of the Material icon.
   /// @param htmlFile  The HTML file that describes the tabs contents.
   void addPluginTabToSideBarFromHTML(
@@ -102,14 +150,14 @@ class CS_CORE_EXPORT GuiManager {
 
   /// Adds a new section to the settings tab.
   ///
-  /// @param name     The name/title of the section.
+  /// @param name     The title of the section.
   /// @param content  The HTML that describes the sections contents.
   void addSettingsSectionToSideBar(
       std::string const& name, std::string const& icon, std::string const& content);
 
   /// Adds a new section to the settings tab.
   ///
-  /// @param name      The name/title of the section.
+  /// @param name      The title of the section.
   /// @param htmlFile  The HTML file that describes the sections contents.
   void addSettingsSectionToSideBarFromHTML(
       std::string const& name, std::string const& icon, std::string const& htmlFile);
@@ -139,20 +187,6 @@ class CS_CORE_EXPORT GuiManager {
   /// @param fileName The filename in the css folder
   void addCssToGui(std::string const& fileName);
 
-  /// Adds an event item to the timenavigation
-  ///
-  /// @param start The start date of the event.
-  /// @param end The optional end date of the event.
-  /// @param id The id of the event.
-  /// @param content The name or content of the event.
-  /// @param style The optional css of the event.
-  /// @param description The description of the event.
-  /// @param planet Planet the event is happening on.
-  /// @parama place The location on the planet.
-  void addEventToTimenavigationBar(std::string const& start, std::optional<std::string> const& end,
-      std::string const& id, std::string const& content, std::optional<std::string> const& style,
-      std::string const& description, std::string const& planet, std::string const& place);
-
   /// Sets a checkbox to the given value. This is only a thin wrapper for
   /// "CosmoScout.gui.setCheckboxValue" but provides compile time type safety.
   void setCheckboxValue(std::string const& name, bool val, bool emitCallbacks = false) const;
@@ -167,12 +201,6 @@ class CS_CORE_EXPORT GuiManager {
   void setSliderValue(
       std::string const& name, glm::dvec2 const& val, bool emitCallbacks = false) const;
 
-  /// Returns the CosmoScout Gui.
-  gui::GuiItem* getGui() const;
-
-  /// Returns the CosmoScout Statistics Gui.
-  gui::GuiItem* getStatistics() const;
-
   /// Shows or hides the loading screen.
   void enableLoadingScreen(bool enable);
 
@@ -183,10 +211,10 @@ class CS_CORE_EXPORT GuiManager {
   /// Sets the progress bar state.
   void setLoadingScreenProgress(float percent, bool animate) const;
 
-  /// This is called once a frame from the Application.
-  void update();
-
  private:
+  void onLoad();
+  void onSave();
+
   std::shared_ptr<InputManager>        mInputManager;
   std::shared_ptr<Settings>            mSettings;
   std::shared_ptr<utils::FrameTimings> mFrameTimings;
@@ -198,6 +226,9 @@ class CS_CORE_EXPORT GuiManager {
   std::unique_ptr<gui::GuiItem> mCosmoScoutGui;
   std::unique_ptr<gui::GuiItem> mStatistics;
 
+  int mOnLoadConnection = -1;
+  int mOnSaveConnection = -1;
+
   // The global GUI is drawn in world-space.
   VistaTransformNode* mGlobalGuiTransform  = nullptr;
   VistaOpenGLNode*    mGlobalGuiOpenGLnode = nullptr;
@@ -205,6 +236,10 @@ class CS_CORE_EXPORT GuiManager {
   // The local GUI is drawn in screen-space.
   VistaTransformNode* mLocalGuiTransform  = nullptr;
   VistaOpenGLNode*    mLocalGuiOpenGLnode = nullptr;
+
+  std::map<uint32_t, const Settings::Bookmark>       mBookmarks;
+  utils::Signal<uint32_t, Settings::Bookmark const&> mOnBookmarkAdded;
+  utils::Signal<uint32_t, Settings::Bookmark const&> mOnBookmarkRemoved;
 };
 
 } // namespace cs::core

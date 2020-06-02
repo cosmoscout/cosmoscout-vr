@@ -31,9 +31,9 @@ if [ $# -ne 0 ]; then
 fi
 
 # Check if ComoScout VR debug build is enabled with "export COSMOSCOUT_DEBUG_BUILD=true".
-BUILD_TYPE=release
+BUILD_TYPE=Release
 case "$COSMOSCOUT_DEBUG_BUILD" in
-  (true) echo "CosmoScout VR debug build is enabled!"; BUILD_TYPE=debug;
+  (true) echo "CosmoScout VR debug build is enabled!"; BUILD_TYPE=Debug;
 esac
 
 # Check if unity build is disabled with "export COSMOSCOUT_NO_UNITY_BUILD=true".
@@ -222,10 +222,18 @@ echo ""
 echo "Installing tinygltf ..."
 echo ""
 
-cmake -E copy "$EXTERNALS_DIR/tinygltf/json.hpp"          "$INSTALL_DIR/include"
-cmake -E copy "$EXTERNALS_DIR/tinygltf/stb_image.h"       "$INSTALL_DIR/include"
-cmake -E copy "$EXTERNALS_DIR/tinygltf/stb_image_write.h" "$INSTALL_DIR/include"
-cmake -E copy "$EXTERNALS_DIR/tinygltf/tiny_gltf.h"       "$INSTALL_DIR/include"
+cmake -E copy "$EXTERNALS_DIR/tinygltf/json.hpp"    "$INSTALL_DIR/include"
+cmake -E copy "$EXTERNALS_DIR/tinygltf/tiny_gltf.h" "$INSTALL_DIR/include"
+
+# stb ----------------------------------------------------------------------------------------------
+
+echo ""
+echo "Installing stb ..."
+echo ""
+
+cmake -E copy "$EXTERNALS_DIR/stb/stb_image.h"        "$INSTALL_DIR/include"
+cmake -E copy "$EXTERNALS_DIR/stb/stb_image_write.h"  "$INSTALL_DIR/include"
+cmake -E copy "$EXTERNALS_DIR/stb/stb_image_resize.h" "$INSTALL_DIR/include"
 
 # opensg -------------------------------------------------------------------------------------------
 
@@ -275,10 +283,10 @@ echo ""
 echo "Downloading, building and installing cef ..."
 echo ""
 
-CEF_DIR=cef_binary_79.1.36+g90301bd+chromium-79.0.3945.130_linux64_minimal
+CEF_DIR=cef_binary_81.3.3+g072a5f5+chromium-81.0.4044.138_linux64_minimal
 
 cmake -E make_directory "$BUILD_DIR/cef/extracted" && cd "$BUILD_DIR/cef"
-wget -nc http://opensource.spotify.com/cefbuilds/cef_binary_79.1.36%2Bg90301bd%2Bchromium-79.0.3945.130_linux64_minimal.tar.bz2
+wget -nc http://opensource.spotify.com/cefbuilds/cef_binary_81.3.3%2Bg072a5f5%2Bchromium-81.0.4044.138_linux64_minimal.tar.bz2
 
 cd "$BUILD_DIR/cef/extracted"
 cmake -E tar xfj ../$CEF_DIR.tar.bz2

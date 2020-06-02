@@ -150,7 +150,7 @@ void Mark::update() {
   double simulationTime(mTimeControl->pSimulationTime.get());
 
   SolarSystem::scaleRelativeToObserver(*mAnchor, mSolarSystem->getObserver(), simulationTime,
-      pScaleDistance.get(), mSettings->mGraphics.pWidgetScale.get());
+      pScaleDistance.get(), mSettings->mGraphics.pWorldUIScale.get());
   SolarSystem::turnToObserver(*mAnchor, mSolarSystem->getObserver(), simulationTime, false);
 }
 
@@ -210,7 +210,7 @@ void Mark::initData(std::string const& sCenter, std::string const& sFrame) {
   mInputManager->registerSelectable(mParent);
 
   VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
-      mAnchor.get(), static_cast<int>(cs::utils::DrawOrder::eOpaqueItems));
+      mAnchor.get(), static_cast<int>(cs::utils::DrawOrder::eOpaqueNonHDR));
 
   const std::array<glm::vec3, 26> POSITIONS = {glm::vec3(1, -1, 1), glm::vec3(-1, -1, -1),
       glm::vec3(1, -1, -1), glm::vec3(-1, 1, -1), glm::vec3(1, 1, 1), glm::vec3(1, 1, -1),
