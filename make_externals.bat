@@ -36,9 +36,9 @@ IF NOT errorlevel 1 (
 rem Check if ComoScout VR debug build is enabled with "set COSMOSCOUT_DEBUG_BUILD=true".
 IF "%COSMOSCOUT_DEBUG_BUILD%"=="true" (
   echo CosmoScout VR debug build is enabled!
-  set BUILD_TYPE=debug
+  set BUILD_TYPE=Debug
 ) else (
-  set BUILD_TYPE=release
+  set BUILD_TYPE=Release
 )
 
 rem Check if unity build is disabled with "set COSMOSCOUT_NO_UNITY_BUILD=true".
