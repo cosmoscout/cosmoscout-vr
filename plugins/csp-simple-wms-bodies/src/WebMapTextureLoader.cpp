@@ -112,7 +112,7 @@ std::string WebMapTextureLoader::loadTexture(std::string time, std::string reque
   try {
     request.perform();
   } catch (std::exception& e) {
-    logger().error("Failed to load '{}'! Exception: '{}'", requestStr, e.what());
+    logger().error("Failed to perform WMS request: '{}'! Exception: '{}'", requestStr, e.what());
     out.close();
     remove(cacheFile.c_str());
     return "Error";
@@ -122,7 +122,7 @@ std::string WebMapTextureLoader::loadTexture(std::string time, std::string reque
       curlpp::Info<CURLINFO_CONTENT_TYPE, std::string>::get(request).substr(0, 9) != "image/png";
 
   if (fail) {
-    logger().error("Failed to load '{}'!", requestStr);
+    logger().warn("There is no image to load for time {}.", time);
     out.close();
     remove(cacheFile.c_str());
     return "Error";
