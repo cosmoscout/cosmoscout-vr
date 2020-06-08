@@ -66,7 +66,7 @@ class SimpleWMSBody : public cs::scene::CelestialBody, public IVistaOpenGLDraw {
   bool GetBoundingBox(VistaBoundingBox& bb) override;
 
   /// Set the active WMS data set.
-  void setActiveWMS(Plugin::Settings::WMSConfig const& wms);
+  void setActiveWMS(std::shared_ptr<Plugin::Settings::WMSConfig> wms);
 
   std::vector<TimeInterval> getTimeIntervals();
 
@@ -83,7 +83,7 @@ class SimpleWMSBody : public cs::scene::CelestialBody, public IVistaOpenGLDraw {
 
   std::shared_ptr<Plugin::Settings> mPluginSettings;
   Plugin::Settings::SimpleWMSBody   mSimpleWMSBodySettings;
-  Plugin::Settings::WMSConfig       mActiveWMS; ///< WMS config of the active WMS data set.
+  std::shared_ptr<Plugin::Settings::WMSConfig> mActiveWMS; ///< WMS config of the active WMS data set.
 
   std::shared_ptr<VistaTexture> mBackgroundTexture; ///< The background texture of the body.
   std::shared_ptr<VistaTexture> mWMSTexture;        ///< The WMS texture.

@@ -284,14 +284,14 @@ bool SimpleWMSBody::Do() {
 
   cs::utils::FrameTimings::ScopedTimer timer("Simple WMS Bodies");
 
-  if (mActiveWMS.mTime.has_value()) {
+  if (mActiveWMS && mActiveWMS->mTime.has_value()) {
     boost::posix_time::ptime time =
         cs::utils::convert::time::toPosix(mTimeControl->pSimulationTime.get());
 
     // Select WMS textures to be downloaded. If no pre-fetch is set, only sellect the texture for
     // the current timestep.
-    for (int preFetch = -mActiveWMS.mPrefetchCount.value_or(0);
-         preFetch <= mActiveWMS.mPrefetchCount.value_or(0); preFetch++) {
+    for (int preFetch = -mActiveWMS->mPrefetchCount.value_or(0);
+         preFetch <= mActiveWMS->mPrefetchCount.value_or(0); preFetch++) {
       boost::posix_time::time_duration td = boost::posix_time::seconds(mIntervalDuration);
       time = cs::utils::convert::time::toPosix(mTimeControl->pSimulationTime.get()) + td * preFetch;
       boost::posix_time::time_duration timeSinceStart;
@@ -326,7 +326,7 @@ bool SimpleWMSBody::Do() {
           texture3 == mTextures.end() && texture4 == mWrongTextures.end() && inInterval) {
         // Load WMS texture to the disk.
         mTextureFilesBuffer.insert(std::pair<std::string, std::future<std::string>>(
-            timeString, mTextureLoader.loadTextureAsync(timeString, mRequest, mActiveWMS.mLayers,
+            timeString, mTextureLoader.loadTextureAsync(timeString, mRequest, mActiveWMS->mLayers,
                             mPluginSettings->mMapCache.get())));
       }
     }
@@ -389,7 +389,7 @@ bool SimpleWMSBody::Do() {
       if (mCurrentTexture != timeString) {
         mWMSTextureUsed = true;
         // TODO: fix crash
-        mWMSTexture->UploadTexture(mActiveWMS.mWidth, mActiveWMS.mHeight, tex->second, false);
+        mWMSTexture->UploadTexture(mActiveWMS->mWidth, mActiveWMS->mHeight, tex->second, false);
         mCurrentTexture = timeString;
       }
     } // Use default planet texture instead.
@@ -411,7 +411,7 @@ bool SimpleWMSBody::Do() {
         // Only update if we ha a new second texture.
         if (mCurrentSecondTexture != utils::timeToString(mFormat.c_str(), intervalAfter)) {
           mSecondWMSTexture->UploadTexture(
-              mActiveWMS.mWidth, mActiveWMS.mHeight, tex->second, false);
+              mActiveWMS->mWidth, mActiveWMS->mHeight, tex->second, false);
           mCurrentSecondTexture = utils::timeToString(mFormat.c_str(), intervalAfter);
           mSecondWMSTextureUsed = true;
         }
@@ -555,7 +555,7 @@ boost::posix_time::ptime SimpleWMSBody::getStartTime(boost::posix_time::ptime ti
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void SimpleWMSBody::setActiveWMS(Plugin::Settings::WMSConfig const& wms) {
+void SimpleWMSBody::setActiveWMS(std::shared_ptr<Plugin::Settings::WMSConfig> wms) {
   mTextures.clear();
   mTexturesBuffer.clear();
   mTextureFilesBuffer.clear();
@@ -567,24 +567,26 @@ void SimpleWMSBody::setActiveWMS(Plugin::Settings::WMSConfig const& wms) {
   mCurrentSecondTexture = "";
   mActiveWMS            = wms;
 
-  // Create request URL for map server.
-  std::stringstream url;
-  url << mActiveWMS.mUrl << "&WIDTH=" << mActiveWMS.mWidth << "&HEIGHT=" << mActiveWMS.mHeight
-      << "&LAYERS=" << mActiveWMS.mLayers;
-  mRequest = url.str();
+  if (mActiveWMS) {
+    // Create request URL for map server.
+    std::stringstream url;
+    url << mActiveWMS->mUrl << "&WIDTH=" << mActiveWMS->mWidth << "&HEIGHT=" << mActiveWMS->mHeight
+        << "&LAYERS=" << mActiveWMS->mLayers;
+    mRequest = url.str();
 
-  // Set time intervals and format if it is defined in config.
-  if (mActiveWMS.mTime.has_value()) {
-    utils::parseIsoString(mActiveWMS.mTime.value(), mTimeIntervals);
-    mIntervalDuration = mTimeIntervals.at(0).mIntervalDuration;
-    mFormat           = mTimeIntervals.at(0).mFormat;
-  } // Download WMS texture without timestep.
-  else {
-    std::string cacheFile = mTextureLoader.loadTexture(
-        "", mRequest, mActiveWMS.mLayers, mPluginSettings->mMapCache.get());
-    if (cacheFile != "Error") {
-      mWMSTexture     = cs::graphics::TextureLoader::loadFromFile(cacheFile);
-      mWMSTextureUsed = true;
+    // Set time intervals and format if it is defined in config.
+    if (mActiveWMS->mTime.has_value()) {
+      utils::parseIsoString(mActiveWMS->mTime.value(), mTimeIntervals);
+      mIntervalDuration = mTimeIntervals.at(0).mIntervalDuration;
+      mFormat           = mTimeIntervals.at(0).mFormat;
+    } // Download WMS texture without timestep.
+    else {
+      std::string cacheFile = mTextureLoader.loadTexture(
+          "", mRequest, mActiveWMS->mLayers, mPluginSettings->mMapCache.get());
+      if (cacheFile != "Error") {
+        mWMSTexture     = cs::graphics::TextureLoader::loadFromFile(cacheFile);
+        mWMSTextureUsed = true;
+      }
     }
   }
 }

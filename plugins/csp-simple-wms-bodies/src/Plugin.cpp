@@ -143,6 +143,8 @@ void Plugin::init() {
 
         mGuiManager->getGui()->callJavascript(
             "CosmoScout.gui.clearDropdown", "simpleWMSBodies.setWMS");
+        mGuiManager->getGui()->callJavascript(
+            "CosmoScout.gui.addDropdownValue", "simpleWMSBodies.setWMS", "None", "None", "false");
 
         auto const& settings = getBodySettings(simpleWMSBody);
         for (auto const& wms : settings.mWMS) {
@@ -327,27 +329,33 @@ void Plugin::setWMSSource(
 
   auto& settings = getBodySettings(simpleWMSBody);
 
-  auto dataset = settings.mWMS.find(name);
-  if (dataset == settings.mWMS.end()) {
-    logger().warn("Cannot set WMS dataset '{}': There is no dataset defined with this name! "
-                  "Using first dataset instead...",
-        name);
-    dataset = settings.mWMS.begin();
-  }
+  if (name == "None") {
+    simpleWMSBody->setActiveWMS(nullptr);
+    mGuiManager->getGui()->callJavascript("CosmoScout.simpleWMSBodies.setWMSDataCopyright", "");
+    settings.mActiveWMS = "None";
+  } else {
+    auto dataset = settings.mWMS.find(name);
+    if (dataset == settings.mWMS.end()) {
+      logger().warn("Cannot set WMS dataset '{}': There is no dataset defined with this name! "
+                    "Using first dataset instead...",
+          name);
+      dataset = settings.mWMS.begin();
+    }
 
-  settings.mActiveWMS = name;
+    settings.mActiveWMS = name;
 
-  simpleWMSBody->setActiveWMS(dataset->second);
+    simpleWMSBody->setActiveWMS(std::make_shared<Plugin::Settings::WMSConfig>(dataset->second));
 
-  mGuiManager->getGui()->callJavascript(
-      "CosmoScout.simpleWMSBodies.setWMSDataCopyright", dataset->second.mCopyright);
+    mGuiManager->getGui()->callJavascript(
+        "CosmoScout.simpleWMSBodies.setWMSDataCopyright", dataset->second.mCopyright);
 
-  // Only allow setting timespan if it is specified for the WMS data set.
-  mGuiManager->getGui()->callJavascript(
-      "CosmoScout.simpleWMSBodies.enableCheckBox", dataset->second.mTimespan.value_or(false));
-  if (!dataset->second.mTimespan.value_or(false)) {
-    mGuiManager->setCheckboxValue("simpleWMSBodies.setEnableTimeSpan", false);
-    mPluginSettings->mEnableTimespan = false;
+    // Only allow setting timespan if it is specified for the WMS data set.
+    mGuiManager->getGui()->callJavascript(
+        "CosmoScout.simpleWMSBodies.enableCheckBox", dataset->second.mTimespan.value_or(false));
+    if (!dataset->second.mTimespan.value_or(false)) {
+      mGuiManager->setCheckboxValue("simpleWMSBodies.setEnableTimeSpan", false);
+      mPluginSettings->mEnableTimespan = false;
+    }
   }
 }
 
