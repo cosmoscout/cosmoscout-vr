@@ -445,7 +445,7 @@
               "url": "https://firms.modaps.eosdis.nasa.gov/wms/key/ab4af1f771b9952dc49660c7b1aa53b8/?REQUEST=GetMap&BBOX=-180,-90,180,90",
               "width": 1600,
               "height": 800,
-              "time": "2000-11-01/current/P1D",
+              "time": "2019-09-01/current/P1D",
               "layers": "fires_viirs",
               "preFetch": 2,
               "timeSpan" : true
