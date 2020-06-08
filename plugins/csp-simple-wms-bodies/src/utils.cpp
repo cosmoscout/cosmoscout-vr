@@ -90,11 +90,6 @@ void timeDuration(std::string const& isoString, int& duration, std::string& form
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void convertIsoDate(std::string& date, boost::posix_time::ptime& time) {
-  if (date == "current") {
-    time = boost::posix_time::microsec_clock::universal_time();
-    return;
-  }
-
   date.erase(
       std::remove_if(date.begin(), date.end(), [](unsigned char x) { return std::ispunct(x); }),
       date.end());
@@ -138,7 +133,22 @@ void parseIsoString(std::string const& isoString, std::vector<TimeInterval>& tim
       tmp.mFormat           = "%Y-%m-%dT%H:%M:%SZ";
     } else {
       timeDuration(duration, tmp.mIntervalDuration, tmp.mFormat);
-      convertIsoDate(endDate, end);
+
+      // If end date is set to currect, select it according to the time format.
+      if (endDate == "current") {
+        if (tmp.mFormat == "%Y-01-01") {
+          end = boost::posix_time::ptime(boost::gregorian::date(
+            boost::posix_time::microsec_clock::universal_time().date().year(), 1, 1));
+        } else if (tmp.mFormat == "%Y-%m-01") {
+          end = boost::posix_time::ptime(boost::gregorian::date(
+            boost::posix_time::microsec_clock::universal_time().date().year(),
+            boost::posix_time::microsec_clock::universal_time().date().month(), 1));
+        } else {
+          end = boost::posix_time::microsec_clock::universal_time();    
+        }
+      } else {
+        convertIsoDate(endDate, end);
+      }
     }
 
     tmp.mEndTime   = end;
