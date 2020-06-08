@@ -545,7 +545,7 @@ boost::posix_time::ptime SimpleWMSBody::getStartTime(boost::posix_time::ptime ti
   if (inInterval) {
     /*startTime =
         time - boost::posix_time::seconds(timeSinceStart.total_seconds() % mIntervalDuration);*/
-    startTime = time;	// TODO: fix interval duration
+    startTime = time; // TODO: fix interval duration
   } else {
     startTime = time;
   }

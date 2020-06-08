@@ -138,13 +138,13 @@ void parseIsoString(std::string const& isoString, std::vector<TimeInterval>& tim
       if (endDate == "current") {
         if (tmp.mFormat == "%Y-01-01") {
           end = boost::posix_time::ptime(boost::gregorian::date(
-            boost::posix_time::microsec_clock::universal_time().date().year(), 1, 1));
+              boost::posix_time::microsec_clock::universal_time().date().year(), 1, 1));
         } else if (tmp.mFormat == "%Y-%m-01") {
           end = boost::posix_time::ptime(boost::gregorian::date(
-            boost::posix_time::microsec_clock::universal_time().date().year(),
-            boost::posix_time::microsec_clock::universal_time().date().month(), 1));
+              boost::posix_time::microsec_clock::universal_time().date().year(),
+              boost::posix_time::microsec_clock::universal_time().date().month(), 1));
         } else {
-          end = boost::posix_time::microsec_clock::universal_time();    
+          end = boost::posix_time::microsec_clock::universal_time();
         }
       } else {
         convertIsoDate(endDate, end);
