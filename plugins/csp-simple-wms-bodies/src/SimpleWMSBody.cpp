@@ -300,9 +300,12 @@ bool SimpleWMSBody::Do() {
       bool inInterval = utils::timeInIntervals(
           startTime, mTimeIntervals, timeSinceStart, mIntervalDuration, mFormat);
 
-      if (mIntervalDuration != 0) {
+      // TODO: fix interval duration
+      // mIntervalDuration contains seconds, which are only approx. for months and years.
+      // It handles only 1 day/ 1 month/ 1 year intervals for now (with formatting).
+      /*if (mIntervalDuration != 0) {
         startTime -= boost::posix_time::seconds(timeSinceStart.total_seconds() % mIntervalDuration);
-      }
+      }*/
       std::string timeString = utils::timeToString(mFormat.c_str(), startTime);
 
       // Select a WMS texture over the period of timeDuration if timespan is enabled.
@@ -366,9 +369,11 @@ bool SimpleWMSBody::Do() {
     bool inInterval = utils::timeInIntervals(
         startTime, mTimeIntervals, timeSinceStart, mIntervalDuration, mFormat);
 
-    if (mIntervalDuration != 0) {
+    // TODO: fix interval duration
+    /*if (mIntervalDuration != 0) {
       startTime -= boost::posix_time::seconds(timeSinceStart.total_seconds() % mIntervalDuration);
-    }
+    }*/
+
     boost::posix_time::time_duration timeDuration = boost::posix_time::seconds(mIntervalDuration);
     std::string                      timeString   = utils::timeToString(mFormat.c_str(), startTime);
 
@@ -383,6 +388,7 @@ bool SimpleWMSBody::Do() {
       // Only update if we have a new texture.
       if (mCurrentTexture != timeString) {
         mWMSTextureUsed = true;
+        // TODO: fix crash
         mWMSTexture->UploadTexture(mActiveWMS.mWidth, mActiveWMS.mHeight, tex->second, false);
         mCurrentTexture = timeString;
       }
@@ -537,8 +543,9 @@ boost::posix_time::ptime SimpleWMSBody::getStartTime(boost::posix_time::ptime ti
       utils::timeInIntervals(time, mTimeIntervals, timeSinceStart, mIntervalDuration, mFormat);
 
   if (inInterval) {
-    startTime =
-        time - boost::posix_time::seconds(timeSinceStart.total_seconds() % mIntervalDuration);
+    /*startTime =
+        time - boost::posix_time::seconds(timeSinceStart.total_seconds() % mIntervalDuration);*/
+    startTime = time;	// TODO: fix interval duration
   } else {
     startTime = time;
   }
