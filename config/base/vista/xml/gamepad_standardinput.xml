@@ -3,6 +3,9 @@
     <nodespace>
     </nodespace>
     <graph>
+        <!-- Debugging -->
+        <node name="debug_text" type="SimpleText" />
+
         <!-- Analogs -->
         <node name="vrpn_analog_driver" type="DriverSensor">
             <param name="driver" value="XBOXCONTROLLER" />
@@ -39,46 +42,67 @@
         <node name="B_change_detect" type="ChangeDetect[bool]" />
         <node name="button_02" tag="button_02" type="EventSource" />
 
-        <!-- LS Button to button_03 event source -->
-        <node name="LS_to_bool" type="TypeConvert[unsigned int,bool]" />
-        <node name="LS_change_detect" type="ChangeDetect[bool]" />
+        <!-- X Button to button_03 event source -->
+        <node name="X_to_bool" type="TypeConvert[unsigned int,bool]" />
+        <node name="X_change_detect" type="ChangeDetect[bool]" />
         <node name="button_03" tag="button_03" type="EventSource" />
 
-        <!-- node to get Viewport width & height and type convert -->
+        <!-- D-Pad to mouse movement -->
+        <!--    Horizontal movement -->
+        <node name="left_to_int" type="TypeConvert[unsigned int,int]" />
+        <node name="right_to_int" type="TypeConvert[unsigned int,int]" />
+        <node name="x_movement" type="Substract[int]" />
+
+        <!--    Vertical movement -->
+        <node name="up_to_int" type="TypeConvert[unsigned int,int]" />
+        <node name="down_to_int" type="TypeConvert[unsigned int,int]" />
+        <node name="y_movement" type="Substract[int]" />
+
+        <!--    Apply flat multiplier to movement -->
+        <node name="const_multiplier" type="ConstantValue[int]">
+            <param name="value" value="3" />
+        </node>
+        <node name="multiply_x_movement" type="Multiply[int]" />
+        <node name="multiply_y_movement" type="Multiply[int]" />
+
+        <!-- Calculate viewport center -->
         <node name="viewport" type="ViewportSource">
             <param name="value" value="MAIN_VIEWPORT" />
         </node>
-        <node name="VPwidth_to_double" type="TypeConvert[int,double]" />
-        <node name="VPheight_to_double" type="TypeConvert[int,double]" />
+        <node name="const_2" type="ConstantValue[int]">
+            <param name="value" value="2" />
+        </node>
+        <node name="divide_viewport_width" type="Divide[int]" />
+        <node name="divide_viewport_height" type="Divide[int]" />
 
-        <!-- Constant value 05 for calculating scalings -->
-        <node name="const_05" type="ConstantValue[double]">
-            <param name="value" value="0.5" />
+        <!-- Update position with movement -->
+        <node name="latest_xpos" type="LatestUpdate[int]" />
+        <node name="latest_ypos" type="LatestUpdate[int]" />
+        <node name="add_xpos_xmove" type="Add[int]" />
+        <node name="add_ypos_ymove" type="Add[int]" />
+
+        <!-- Limit position to stay inside viewport -->
+        <node name="const_0" type="ConstantValue[int]">
+            <param name="value" value="0" />
         </node>
 
-        <!-- LStick X scale [-1..1] to [0..ViewportWidth] -->
-        <!--    (LSx * 05 + 05) * VPw -->
-        <node name="LSx_times_05" type="Multiply[double]" />
-        <node name="LSx_scale_0to1" type="Add[double]" />
-        <node name="LSxVPw" type="Multiply[double]" />
-        <node name="LSxVPw_to_int" type="TypeConvert[double,int]" />
+        <!--    cutoff position at lower limit (0) -->
+        <node name="lower_limit_xpos" type="Max[int]" />
+        <node name="lower_limit_ypos" type="Max[int]" />
 
-        <!-- LStick Y scale [-1..1] to [0..ViewportHeight] -->
-        <!--    (LSy * 05 + 05) * VPh -->
-        <node name="LSy_times_05" type="Multiply[double]" />
-        <node name="LSy_scale_0to1" type="Add[double]" />
-        <node name="LSyVPh" type="Multiply[double]" />
-        <node name="LSyVPh_to_int" type="TypeConvert[double,int]" />
+        <!--    cutoff position at upper limit (viewport dimensions) -->
+        <node name="upper_limit_xpos" type="Min[int]" />
+        <node name="upper_limit_ypos" type="Min[int]" />
 
-        <!-- 3DMouseTransform => MatrixCompose => SetTransform -->
+        <!-- Transform Positions to Selection node via 3dmouse -->
         <node name="3dmouse" type="3DMouseTransform">
-            <param name="displaysystem" value="MAIN"/>
-            <param name="viewport" value="MAIN_VIEWPORT"/>
-            <param name="in_world_coordinates" value="FALSE"/>
-            <param name="origin_offset_along_ray" value="0"/>
+            <param name="displaysystem" value="MAIN" />
+            <param name="viewport" value="MAIN_VIEWPORT" />
+            <param name="in_world_coordinates" value="FALSE" />
+            <param name="origin_offset_along_ray" value="0" />
         </node>
         <node name="3dmouse_matrix" type="MatrixCompose" />
-        <node name="intention_transform" type="SetTransform" >
+        <node name="intention_transform" type="SetTransform">
             <param name="object" value="SELECTION_NODE" />
         </node>
 
@@ -96,6 +120,7 @@
         <!--    convert vrpn_button_data::NUMBER to int for Demultiplex::select -->
         <edge fromnode="vrpn_button_data" fromport="NUMBER"
               tonode="btn_number_to_int" toport="in" />
+
         <!--    demultiplex buttons -->
         <edge fromnode="btn_number_to_int" fromport="out"
               tonode="get_button" toport="select" />
@@ -118,74 +143,131 @@
         <edge fromnode="B_change_detect" fromport="out"
               tonode="button_02" toport="value" />
 
-        <!-- LS Button to button_03 event source -->
-        <edge fromnode="get_button" fromport="8"
-              tonode="LS_to_bool" toport="in" />
-        <edge fromnode="LS_to_bool" fromport="out"
-              tonode="LS_change_detect" toport="in" />
-        <edge fromnode="LS_change_detect" fromport="out"
+        <!-- X Button to button_03 event source -->
+        <edge fromnode="get_button" fromport="2"
+              tonode="X_to_bool" toport="in" />
+        <edge fromnode="X_to_bool" fromport="out"
+              tonode="X_change_detect" toport="in" />
+        <edge fromnode="X_change_detect" fromport="out"
               tonode="button_03" toport="value" />
 
-        <!-- node to get Viewport width & height and type convert -->
+        <!-- D-Pad to mouse movement -->
+        <!--    Horizontal movement -->
+        <!--        convert to int -->
+        <edge fromnode="get_button" fromport="13"
+              tonode="left_to_int" toport="in" />
+        <edge fromnode="get_button" fromport="11"
+              tonode="right_to_int" toport="in" />
+
+        <!--        subtract to get movement (1 = right, -1 = left) -->
+        <edge fromnode="left_to_int" fromport="out"
+              tonode="x_movement" toport="second" />
+        <edge fromnode="right_to_int" fromport="out"
+              tonode="x_movement" toport="first" />
+
+        <!--    Vertical movement -->
+        <!--        convert to int -->
+        <edge fromnode="get_button" fromport="10"
+              tonode="up_to_int" toport="in" />
+        <edge fromnode="get_button" fromport="12"
+              tonode="down_to_int" toport="in" />
+
+        <!--        subtract to get movement (1 = down, -1 = up) -->
+        <edge fromnode="up_to_int" fromport="out"
+              tonode="y_movement" toport="second" />
+        <edge fromnode="down_to_int" fromport="out"
+              tonode="y_movement" toport="first" />
+
+        <!--    Apply movement multiplier -->
+        <!--        horizontal movement -->
+        <edge fromnode="x_movement" fromport="out"
+              tonode="multiply_x_movement" toport="first" />
+        <edge fromnode="const_multiplier" fromport="value"
+              tonode="multiply_x_movement" toport="second" />
+
+        <!--        vertical movement -->
+        <edge fromnode="y_movement" fromport="out"
+              tonode="multiply_y_movement" toport="first" />
+        <edge fromnode="const_multiplier" fromport="value"
+              tonode="multiply_y_movement" toport="second" />
+
+        <!-- Calculate viewport center -->
         <edge fromnode="viewport" fromport="vp_w"
-              tonode="VPwidth_to_double" toport="in" />
+              tonode="divide_viewport_width" toport="first" />
+        <edge fromnode="const_2" fromport="value"
+              tonode="divide_viewport_width" toport="second" />
+
         <edge fromnode="viewport" fromport="vp_h"
-              tonode="VPheight_to_double" toport="in" />
+              tonode="divide_viewport_height" toport="first" />
+        <edge fromnode="const_2" fromport="value"
+              tonode="divide_viewport_height" toport="second" />
 
-        <!-- LStick X scale [-1..1] to [0..ViewportWidth] -->
-        <!--     LSx * 05              -->
-        <edge fromnode="vrpn_analog_data" fromport="VALUE_0"
-              tonode="LSx_times_05" toport="first" />
-        <edge fromnode="const_05" fromport="value"
-              tonode="LSx_times_05" toport="second" />
-        <!--    (LSx * 05 + 05)       -->
-        <edge fromnode="LSx_times_05" fromport="out"
-              tonode="LSx_scale_0to1" toport="first" />
-        <edge fromnode="const_05" fromport="value"
-              tonode="LSx_scale_0to1" toport="second" />
-        <!--    (LSx * 05 + 05) * VPw -->
-        <edge fromnode="LSx_scale_0to1" fromport="out"
-              tonode="LSxVPw" toport="first" />
-        <edge fromnode="VPwidth_to_double" fromport="out"
-              tonode="LSxVPw" toport="second" />
+        <!-- Update position with movement -->
+        <!--    feed viewport center as initial value into latest position -->
+        <edge fromnode="divide_viewport_width" fromport="out"
+              tonode="latest_xpos" toport="1" />
+        <edge fromnode="divide_viewport_height" fromport="out"
+              tonode="latest_ypos" toport="1" />
 
-        <!-- LStick Y scale [-1..1] to [0..ViewportHeight] -->
-        <!--     LSy * 05              -->
-        <edge fromnode="vrpn_analog_data" fromport="VALUE_1"
-              tonode="LSy_times_05" toport="first" />
-        <edge fromnode="const_05" fromport="value"
-              tonode="LSy_times_05" toport="second" />
-        <!--    (LSy * 05 + 05)       -->
-        <edge fromnode="LSy_times_05" fromport="out"
-              tonode="LSy_scale_0to1" toport="first" />
-        <edge fromnode="const_05" fromport="value"
-              tonode="LSy_scale_0to1" toport="second" />
-        <!--    (LSy * 05 + 05) * VPh -->
-        <edge fromnode="LSy_scale_0to1" fromport="out"
-              tonode="LSyVPh" toport="first" />
-        <edge fromnode="VPheight_to_double" fromport="out"
-              tonode="LSyVPh" toport="second" />
+        <!--    add movement to latest position -->
+        <!--        horizontal movement -->
+        <edge fromnode="latest_xpos" fromport="out"
+              tonode="add_xpos_xmove" toport="first" />
+        <edge fromnode="multiply_x_movement" fromport="out"
+              tonode="add_xpos_xmove" toport="second" />
 
-        <!-- x/y to int => 3DMouseTransform -->
-        <edge fromnode="LSxVPw" fromport="out"
-              tonode="LSxVPw_to_int" toport="in" />
-        <edge fromnode="LSyVPh" fromport="out"
-              tonode="LSyVPh_to_int" toport="in" />
+        <!--        vertical movement -->
+        <edge fromnode="latest_ypos" fromport="out"
+              tonode="add_ypos_ymove" toport="first" />
+        <edge fromnode="multiply_y_movement" fromport="out"
+              tonode="add_ypos_ymove" toport="second" />
 
-        <edge fromnode="LSxVPw_to_int" fromport="out"
+        <!-- Limit position to stay inside viewport -->
+        <!--    cutoff position at lower limit (0) -->
+        <!--        horizontal position -->
+        <edge fromnode="add_xpos_xmove" fromport="out"
+              tonode="lower_limit_xpos" toport="first" />
+        <edge fromnode="const_0" fromport="value"
+              tonode="lower_limit_xpos" toport="second" />
+
+        <!--        vertical position -->
+        <edge fromnode="add_ypos_ymove" fromport="out"
+              tonode="lower_limit_ypos" toport="first" />
+        <edge fromnode="const_0" fromport="value"
+              tonode="lower_limit_ypos" toport="second" />
+
+        <!--    cutoff position at upper limit (viewport dimensions) -->
+        <!--        horizontal position -->
+        <edge fromnode="viewport" fromport="vp_w"
+              tonode="upper_limit_xpos" toport="first" />
+        <edge fromnode="lower_limit_xpos" fromport="out"
+              tonode="upper_limit_xpos" toport="second" />
+
+        <!--        vertical position -->
+        <edge fromnode="viewport" fromport="vp_h"
+              tonode="upper_limit_ypos" toport="first" />
+        <edge fromnode="lower_limit_ypos" fromport="out"
+              tonode="upper_limit_ypos" toport="second" />
+
+        <!-- Feed result back into latest position -->
+        <edge fromnode="upper_limit_xpos" fromport="out"
+              tonode="latest_xpos" toport="current" />
+        <edge fromnode="upper_limit_ypos" fromport="out"
+              tonode="latest_ypos" toport="current" />
+
+        <!-- Transform Positions to Selection node via 3dmouse -->
+        <edge fromnode="latest_xpos" fromport="out"
               tonode="3dmouse" toport="x_pos" />
-        <edge fromnode="LSyVPh_to_int" fromport="out"
+        <edge fromnode="latest_ypos" fromport="out"
               tonode="3dmouse" toport="y_pos" />
-        <!--              3DMouseTransform => MatrixCompose -->
+
         <edge fromnode="3dmouse" fromport="orientation"
               tonode="3dmouse_matrix" toport="orientation" />
-        <edge  fromnode="3dmouse" fromport="position"
-               tonode="3dmouse_matrix" toport="translation" />
-        <!--                                  MatrixCompose => SetTransform -->
+        <edge fromnode="3dmouse" fromport="position"
+              tonode="3dmouse_matrix" toport="translation" />
+
         <edge fromnode="3dmouse_matrix" fromport="out"
               tonode="intention_transform" toport="in" />
 
-        <!-- TODO: fix: EITHER gamepad or mouse standardinput -->
-
-        </edges>
+    </edges>
 </module>
