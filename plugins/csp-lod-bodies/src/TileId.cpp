@@ -6,6 +6,8 @@
 
 #include "TileId.hpp"
 
+#include <cstring>
+#include <sstream>
 #include <string>
 
 namespace csp::lodbodies {
