@@ -7,7 +7,7 @@
 #include "TileId.hpp"
 
 // This is required for the << operator with const char[] with some MSVC versions.
-#include <cstring>
+#include <sstream>
 
 namespace csp::lodbodies {
 
