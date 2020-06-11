@@ -94,16 +94,14 @@
         <node name="upper_limit_xpos" type="Min[int]" />
         <node name="upper_limit_ypos" type="Min[int]" />
 
-        <!-- Transform Positions to Selection node via 3dmouse -->
-        <node name="3dmouse" type="3DMouseTransform">
-            <param name="displaysystem" value="MAIN" />
-            <param name="viewport" value="MAIN_VIEWPORT" />
-            <param name="in_world_coordinates" value="FALSE" />
-            <param name="origin_offset_along_ray" value="0" />
-        </node>
-        <node name="3dmouse_matrix" type="MatrixCompose" />
-        <node name="intention_transform" type="SetTransform">
-            <param name="object" value="SELECTION_NODE" />
+        <!-- Store positions for selection between mouse and controller -->
+        <node name="0_to_float" type="TypeConvert[int,float]" />
+        <node name="xpos_to_float" type="TypeConvert[int,float]" />
+        <node name="ypos_to_float" type="TypeConvert[int,float]" />
+
+        <node name="compose_pos_vector" type="Compose3DVector" />
+        <node name="set_gamepad_pos" type="SetVariable[VistaVector3D]">
+            <param name="variable" value="gamepad_pos" />
         </node>
 
     </graph>
@@ -255,19 +253,24 @@
         <edge fromnode="upper_limit_ypos" fromport="out"
               tonode="latest_ypos" toport="current" />
 
-        <!-- Transform Positions to Selection node via 3dmouse -->
+        <!-- Store positions for selection between mouse and controller -->
+        <!--    convert to float -->
         <edge fromnode="latest_xpos" fromport="out"
-              tonode="3dmouse" toport="x_pos" />
+              tonode="xpos_to_float" toport="in" />
         <edge fromnode="latest_ypos" fromport="out"
-              tonode="3dmouse" toport="y_pos" />
-
-        <edge fromnode="3dmouse" fromport="orientation"
-              tonode="3dmouse_matrix" toport="orientation" />
-        <edge fromnode="3dmouse" fromport="position"
-              tonode="3dmouse_matrix" toport="translation" />
-
-        <edge fromnode="3dmouse_matrix" fromport="out"
-              tonode="intention_transform" toport="in" />
+              tonode="ypos_to_float" toport="in" />
+        <edge fromnode="const_0" fromport="value"
+              tonode="0_to_float" toport="in" />
+        <!--    compose to vector -->
+        <edge fromnode="xpos_to_float" fromport="out"
+              tonode="compose_pos_vector" toport="x" />
+        <edge fromnode="ypos_to_float" fromport="out"
+              tonode="compose_pos_vector" toport="y" />
+        <edge fromnode="0_to_float" fromport="out"
+              tonode="compose_pos_vector" toport="z" />
+        <!--    send position vector to variable -->
+        <edge fromnode="compose_pos_vector" fromport="out"
+              tonode="set_gamepad_pos" toport="value" />
 
     </edges>
 </module>
