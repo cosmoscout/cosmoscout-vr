@@ -811,17 +811,6 @@ void Application::connectSlots() {
 
   // Show notification when the center name of the celestial observer changes.
   mSettings->mObserver.pCenter.connectAndTouch([this](std::string const& center) {
-    if (mSolarSystem->pActiveBody.get() != nullptr) {
-      if (center == "Solar System Barycenter") {
-        mGuiManager->showNotification("Leaving " + mSolarSystem->pActiveBody.get()->getCenterName(),
-            "Now travelling in free space.", "star");
-      } else {
-        mGuiManager->showNotification(
-            "Approaching " + mSolarSystem->pActiveBody.get()->getCenterName(),
-            "Position is locked to " + mSolarSystem->pActiveBody.get()->getCenterName() + ".",
-            "public");
-      }
-    }
     mGuiManager->getGui()->executeJavascript(
         fmt::format("CosmoScout.state.activePlanetCenter = '{}';", center));
 
@@ -832,18 +821,6 @@ void Application::connectSlots() {
 
   // Show notification when the frame name of the celestial observer changes.
   mSettings->mObserver.pFrame.connectAndTouch([this](std::string const& frame) {
-    if (mSolarSystem->pActiveBody.get() != nullptr) {
-      if (frame == "J2000") {
-        mGuiManager->showNotification(
-            "Stop tracking " + mSolarSystem->pActiveBody.get()->getCenterName(),
-            "Orbit is not synced anymore.", "vpn_lock");
-      } else {
-        mGuiManager->showNotification(
-            "Tracking " + mSolarSystem->pActiveBody.get()->getCenterName(),
-            "Orbit in sync with " + mSolarSystem->pActiveBody.get()->getCenterName() + ".",
-            "vpn_lock");
-      }
-    }
     mGuiManager->getGui()->executeJavascript(
         fmt::format("CosmoScout.state.activePlanetFrame = '{}';", frame));
   });
