@@ -44,6 +44,8 @@ Below you find some instructions on how to setup your preferred IDE for CosmoSco
     -DCMAKE_EXPORT_COMPILE_COMMANDS=On
     ```
 
+- Wait for CMake to be configured.
+- Run the `Install` task. It can be found under `Build` in the menubar.
 - Go to: _Run/Debug Configuration_ -> _CMake Application_ -> _cosmoscout_
 - Release profile
   - **Target**: `cosmoscout`
@@ -97,6 +99,8 @@ highest available (and supported) version.
     -DCOSMOSCOUT_EXTERNALS_DIR="<path to cosmoscout>\install\windows-externals-Debug"
     ```
 
+- Wait for CMake to be configured.
+- Run the `Install` task. It can be found under `Build` in the menubar.
 - Go to: _Run/Debug Configuration_ -> _CMake Application_ -> _cosmoscout_
 - Release profile
   - **Target**: `cosmoscout`
