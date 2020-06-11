@@ -40,14 +40,11 @@
 		<node name="button_03"    tag="button_03"    type="EventSource"/>
 
 		<!-- Store mouse position for selection between mouse and gamepad -->
-		<node name="const_0" type="ConstantValue[float]">
-			<param name="value" value="0" />
+		<node name="set_mouse_xpos" type="SetVariable[int]">
+			<param name="variable" value="mouse_xpos" />
 		</node>
-		<node name="xpos_to_float" type="TypeConvert[int,float]" />
-		<node name="ypos_to_float" type="TypeConvert[int,float]" />
-		<node name="compose_pos_vector" type="Compose3DVector" />
-		<node name="set_mouse_pos" type="SetVariable[VistaVector3D]">
-			<param name="variable" value="mouse_pos" />
+		<node name="set_mouse_ypos" type="SetVariable[int]">
+			<param name="variable" value="mouse_ypos" />
 		</node>
 
 		<!-- <node name="debug_text" type="SimpleText"/> -->
@@ -76,23 +73,10 @@
 		<edge fromnode="3dmouse_matrix" tonode="intention_transform" fromport="out" toport="in"/>
 
 		<!-- Store mouse position for selection between mouse and gamepad -->
-		<!--	convert positions to float -->
 		<edge fromnode="project_mouse" fromport="X_POS"
-			  tonode="xpos_to_float" toport="in" />
+			  tonode="set_mouse_xpos" toport="value" />
 		<edge fromnode="project_mouse" fromport="Y_POS"
-			  tonode="ypos_to_float" toport="in" />
-
-		<!--	compose positions into vector -->
-		<edge fromnode="xpos_to_float" fromport="out"
-			  tonode="compose_pos_vector" toport="x" />
-		<edge fromnode="ypos_to_float" fromport="out"
-			  tonode="compose_pos_vector" toport="y" />
-		<edge fromnode="const_0" fromport="value"
-			  tonode="compose_pos_vector" toport="z" />
-
-		<!--	store vector in variable -->
-		<edge fromnode="compose_pos_vector" fromport="out"
-			  tonode="set_mouse_pos" toport="value" />
+			  tonode="set_mouse_ypos" toport="value" />
 
 		<!--<edge fromnode="middle_button_change_detect" tonode="debug_text" fromport="out" toport="p" />-->
 	</edges>
