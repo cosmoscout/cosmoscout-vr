@@ -1390,6 +1390,18 @@ void Application::registerGuiCallbacks() {
         }
       }));
 
+  // Flies the observer to the given celestial body.
+  mGuiManager->getGui()->registerCallback("navigation.setBodyFull",
+      "Makes the observer fly to the celestial body with the given center and frame. The first "
+      "three doubles are the position, the next four doubles are the elements of the rotation "
+      "quaternion. The optional argument specifies the travel time in seconds (default is 10s).",
+      std::function(
+          [this](std::string&& center, std::string&& frame, double px, double py, double pz,
+              double rw, double rx, double ry, double rz, std::optional<double> duration) {
+            mSolarSystem->flyObserverTo(center, frame, glm::dvec3(px, py, pz),
+                glm::dquat(rw, rx, ry, rz), duration.value_or(10.0));
+          }));
+
   // Flies the celestial observer to the given location in space.
   mGuiManager->getGui()->registerCallback("navigation.setBodyLongLatHeightDuration",
       "Makes the observer fly to a given postion in space. First parameter is the target bodies "
