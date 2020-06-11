@@ -166,7 +166,7 @@ def capture(file):
                << mAllSettings->mGraphics.pExposure.get() << ");\")" << std::endl;
     }
 
-    mOutFile << "capture('frame_" << mFrameCounter++ << ".jpg')" << std::endl << std::endl;
+    mOutFile << "capture('frame_" << mFrameCounter++ << ".png')" << std::endl << std::endl;
 
   } else {
 
