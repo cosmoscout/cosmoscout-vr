@@ -355,7 +355,15 @@ bool SimpleWMSBody::Do() {
     auto texIt = mTexturesBuffer.begin();
     while (texIt != mTexturesBuffer.end()) {
       if (texIt->second.wait_for(std::chrono::seconds(0)) == std::future_status::ready) {
-        mTextures.insert(std::pair<std::string, unsigned char*>(texIt->first, texIt->second.get()));
+        unsigned char* texture = texIt->second.get();
+		  
+		if (texture) {
+          mTextures.insert(std::pair<std::string, unsigned char*>(texIt->first, texture));
+		} else {
+          mWrongTextures.emplace_back(texIt->first);
+		}
+   
+		//mTextures.insert(std::pair<std::string, unsigned char*>(texIt->first, texIt->second.get()));
         texIt = mTexturesBuffer.erase(texIt);
       } else {
         ++texIt;

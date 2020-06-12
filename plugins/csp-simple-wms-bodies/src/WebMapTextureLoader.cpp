@@ -161,7 +161,14 @@ std::future<unsigned char*> WebMapTextureLoader::loadTextureFromFileAsync(
   return mThreadPool.enqueue([=]() {
     int width, height, bpp;
     int channels = 4;
-    return stbi_load(fileName.c_str(), &width, &height, &bpp, channels);
+
+	unsigned char* pixels = stbi_load(fileName.c_str(), &width, &height, &bpp, channels);
+
+    if (!pixels) {
+      logger().error("Failed to load '{}' with stbi!", fileName.c_str());
+    }
+
+    return pixels;
   });
 }
 
