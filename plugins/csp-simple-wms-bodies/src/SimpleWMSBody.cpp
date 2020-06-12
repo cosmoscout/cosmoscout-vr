@@ -388,7 +388,6 @@ bool SimpleWMSBody::Do() {
       // Only update if we have a new texture.
       if (mCurrentTexture != timeString) {
         mWMSTextureUsed = true;
-        // TODO: fix crash
         mWMSTexture->UploadTexture(mActiveWMS->mWidth, mActiveWMS->mHeight, tex->second, false);
         mCurrentTexture = timeString;
       }
