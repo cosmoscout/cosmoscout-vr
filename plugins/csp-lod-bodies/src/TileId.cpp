@@ -6,6 +6,9 @@
 
 #include "TileId.hpp"
 
+// This is required for the << operator with const char[] with some MSVC versions.
+#include <sstream>
+
 namespace csp::lodbodies {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -72,12 +75,14 @@ bool operator==(TileId const& lhs, TileId const& rhs) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+
 // Print Method (not in class)
 std::ostream& operator<<(std::ostream& os, TileId const& tileId) {
   os << "(" << tileId.level() << " - " << tileId.patchIdx() << ")";
 
   return os;
 }
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 } // namespace csp::lodbodies
