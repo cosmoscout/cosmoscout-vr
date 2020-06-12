@@ -5,8 +5,10 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "tiny_gltf_helper.hpp"
+
 #include <memory>
 #include <stb_image.h>
+#include <stdexcept>
 
 namespace cs::graphics::internal {
 

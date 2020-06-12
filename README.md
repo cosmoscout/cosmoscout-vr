@@ -9,9 +9,9 @@ It lets you explore, analyze and present huge planetary data sets and large simu
 [![Coverage Status](https://coveralls.io/repos/github/cosmoscout/cosmoscout-vr/badge.svg?branch=develop)](https://coveralls.io/github/cosmoscout/cosmoscout-vr?branch=develop)
 [![documentation](https://img.shields.io/badge/Docs-online-34D058.svg)](docs/README.md)
 [![license](https://img.shields.io/badge/License-MIT-purple.svg)](LICENSE)
-[![source loc](https://img.shields.io/badge/LoC-10.4k-green.svg)](cloc.sh)
-[![plugin loc](https://img.shields.io/badge/LoC_Plugins-13.7k-green.svg)](cloc.sh)
-[![comments](https://img.shields.io/badge/Comments-3.0k-yellow.svg)](cloc.sh)
+[![source loc](https://img.shields.io/badge/LoC-15.4k-green.svg)](cloc.sh)
+[![plugin loc](https://img.shields.io/badge/LoC_Plugins-16.3k-green.svg)](cloc.sh)
+[![comments](https://img.shields.io/badge/Comments-5.6k-yellow.svg)](cloc.sh)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3381953.svg)](https://doi.org/10.5281/zenodo.3381953)
 
 The software can be build on Linux (gcc or clang) and Windows (msvc).

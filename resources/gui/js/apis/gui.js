@@ -227,11 +227,14 @@ class GuiApi extends IApi {
         document.onmousemove = (e) => {
           e.preventDefault();
 
-          // Do not move outside CosmoScout's window.
-          if (e.clientX >= 0 && e.clientX < document.body.offsetWidth && e.clientY >= 0 &&
-              e.clientY < document.body.offsetHeight) {
+          // Do not move outside CosmoScout's window and leave some margin at the top and the bottom
+          // of the screen so that we do not loose the window.
+          const newTop = w.offsetTop + e.clientY - w.startDragY;
+
+          if (e.clientX >= 0 && e.clientX < document.body.offsetWidth && newTop >= 20 &&
+              newTop + 50 < document.body.offsetHeight) {
             w.style.left = (w.offsetLeft + e.clientX - w.startDragX) + "px";
-            w.style.top  = (w.offsetTop + e.clientY - w.startDragY) + "px";
+            w.style.top  = newTop + "px";
             w.startDragX = e.clientX;
             w.startDragY = e.clientY;
           }
