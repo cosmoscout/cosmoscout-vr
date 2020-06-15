@@ -35,12 +35,14 @@ namespace csp::recorder {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void from_json(nlohmann::json const& j, Plugin::Settings& o) {
+  cs::core::Settings::deserialize(j, "webAPIPort", o.mWebAPIPort);
   cs::core::Settings::deserialize(j, "recordObserver", o.mRecordObserver);
   cs::core::Settings::deserialize(j, "recordTime", o.mRecordTime);
   cs::core::Settings::deserialize(j, "recordExposure", o.mRecordExposure);
 }
 
 void to_json(nlohmann::json& j, Plugin::Settings const& o) {
+  cs::core::Settings::serialize(j, "webAPIPort", o.mWebAPIPort);
   cs::core::Settings::serialize(j, "recordObserver", o.mRecordObserver);
   cs::core::Settings::serialize(j, "recordTime", o.mRecordTime);
   cs::core::Settings::serialize(j, "recordExposure", o.mRecordExposure);
@@ -56,8 +58,14 @@ void Plugin::init() {
   mOnSaveConnection = mAllSettings->onSave().connect(
       [this]() { mAllSettings->mPlugins["csp-recorder"] = mPluginSettings; });
 
+  // Add the settings section to the side-bar.
   mGuiManager->addSettingsSectionToSideBarFromHTML(
       "Recorder", "fiber_manual_record", "../share/resources/gui/recorder_settings.html");
+
+  // Add the record-button to the timeline. We remove / add the button every time it's pressed in
+  // order to change its icon from a circle to a square and back again.
+  mGuiManager->addTimelineButton(
+      "Start Recording", "fiber_manual_record", "recorder.toggleRecording");
 
   mGuiManager->getGui()->registerCallback(
       "recorder.toggleRecording", "Enables or disables recording.", std::function([this]() {
@@ -73,27 +81,28 @@ void Plugin::init() {
         }
       }));
 
+  // Add a callback to toggle recording of the observer transformation.
   mGuiManager->getGui()->registerCallback("recorder.setRecordObserver",
       "Enables or disables recording of the observer transformation.",
       std::function([this](bool value) { mPluginSettings.mRecordObserver = value; }));
   mPluginSettings.mRecordObserver.connectAndTouch(
       [this](bool enable) { mGuiManager->setCheckboxValue("recorder.setRecordObserver", enable); });
 
+  // Add a callback to toggle recording of the simulation time.
   mGuiManager->getGui()->registerCallback("recorder.setRecordTime",
       "Enables or disables recording of the current simulation time.",
       std::function([this](bool value) { mPluginSettings.mRecordTime = value; }));
   mPluginSettings.mRecordTime.connectAndTouch(
       [this](bool enable) { mGuiManager->setCheckboxValue("recorder.setRecordTime", enable); });
 
+  // Add a callback to toggle recording of the HDR exposure.
   mGuiManager->getGui()->registerCallback("recorder.setRecordExposure",
       "Enables or disables recording of the current camera exposure.",
       std::function([this](bool value) { mPluginSettings.mRecordExposure = value; }));
   mPluginSettings.mRecordExposure.connectAndTouch(
       [this](bool enable) { mGuiManager->setCheckboxValue("recorder.setRecordExposure", enable); });
 
-  mGuiManager->addTimelineButton(
-      "Start Recording", "fiber_manual_record", "recorder.toggleRecording");
-
+  // Load initial settings.
   onLoad();
 
   logger().info("Loading done.");
@@ -102,12 +111,17 @@ void Plugin::init() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Plugin::update() {
+
   if (mRecording) {
 
+    // We are recording but haven't opened the output file - that means it's the very first frame of
+    // the current recording session. So open the file!
     if (!mOutFile.is_open()) {
 
+      // Reset the frame counter.
       mFrameCounter = 0;
 
+      // We use the current date as a filename.
       std::string fileName =
           "recording-" +
           cs::utils::convert::time::toString(boost::posix_time::microsec_clock::local_time()) +
@@ -115,6 +129,8 @@ void Plugin::update() {
 
       mOutFile.open(fileName);
 
+      // Write the header of the file. This contains the functions which are then called for each
+      // recorded frame.
       mOutFile << R"(#! python3
 
 # This file has been automatically created by the csp-recorder plugin of CosmoScout VR.
@@ -122,10 +138,10 @@ void Plugin::update() {
 # plugin to capture an image for each recorded frame.
 
 import requests
-import time
 
 # The CosmoScout server instance.
-cosmoscout = "http://localhost:9001"
+cosmoscout = "http://localhost:)" +
+                      std::to_string(mPluginSettings.mWebAPIPort.get()) + R"("
 
 # Simple one-liner to call JavaScript code on the CosmoScout VR side.
 def runJS(code):
@@ -141,6 +157,8 @@ def capture(file):
 )" << std::endl;
     }
 
+    // Now that the output file is initialized, we can write the information for each frame. Here we
+    // write a call navigation.setBodyFull() setting the current full observer transformation.
     if (mPluginSettings.mRecordTime.get()) {
       mOutFile << fmt::format("runJS(\"CosmoScout.callbacks.navigation.setBodyFull('{}', '{}', "
                               "{}, {}, {}, {}, {}, {}, {}, 0);\")",
@@ -155,21 +173,25 @@ def capture(file):
                << std::endl;
     }
 
+    // Record the time if required.
     if (mPluginSettings.mRecordTime.get()) {
       mOutFile << "runJS(\"CosmoScout.callbacks.time.setDate('"
                << cs::utils::convert::time::toString(mTimeControl->pSimulationTime.get())
                << "');\")" << std::endl;
     }
 
+    // Record the HDR exposure if required.
     if (mPluginSettings.mRecordExposure.get()) {
       mOutFile << "runJS(\"CosmoScout.callbacks.graphics.setExposure("
                << mAllSettings->mGraphics.pExposure.get() << ");\")" << std::endl;
     }
 
+    // In any case, capture an image.
     mOutFile << "capture('frame_" << mFrameCounter++ << ".png')" << std::endl << std::endl;
 
   } else {
 
+    // Recording has stopped last frame, so close the output file.
     if (mOutFile.is_open()) {
       mOutFile.close();
     }
@@ -181,19 +203,23 @@ def capture(file):
 void Plugin::deInit() {
   logger().info("Unloading plugin...");
 
+  // Clean up the side-bar.
   mGuiManager->removeSettingsSection("Recorder");
 
+  // Unregister all callbacks.
   mGuiManager->getGui()->unregisterCallback("recorder.toggleRecording");
   mGuiManager->getGui()->unregisterCallback("recorder.setRecordObserver");
   mGuiManager->getGui()->unregisterCallback("recorder.setRecordTime");
   mGuiManager->getGui()->unregisterCallback("recorder.setRecordExposure");
 
+  // Remove the record button.
   if (mRecording) {
     mGuiManager->removeTimelineButton("Stop Recording");
   } else {
     mGuiManager->removeTimelineButton("Start Recording");
   }
 
+  // Disconnect all signals.
   mAllSettings->onLoad().disconnect(mOnLoadConnection);
   mAllSettings->onSave().disconnect(mOnSaveConnection);
 

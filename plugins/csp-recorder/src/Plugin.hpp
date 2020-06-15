@@ -15,9 +15,21 @@
 
 namespace csp::recorder {
 
+/// This plugin allows basic capturing of high-quality videos using csp-web-api. 'Basic' means that
+/// (for now) only the observer transformation, the simulation time and the exposure of the HDR mode
+/// is captured. This however, can be changed in future.
+/// Capturing works in two phases: First, the user navigates through space while 'recording'. This
+/// produces a python script in the bin/ directory which can be executed to capture the individual
+/// frame using csp-web-api. This two-step approach has the advantage that recording can be done at
+/// high frame rates (with all settings reduced to the bare minimum) while capturing can be done at
+/// high resolution and high quality.
 class Plugin : public cs::core::PluginBase {
  public:
   struct Settings {
+    /// This should be set to the port of csp-web-api.
+    cs::utils::Property<uint16_t> mWebAPIPort;
+
+    /// These can be toggled via the user interface.
     cs::utils::DefaultProperty<bool> mRecordObserver{true};
     cs::utils::DefaultProperty<bool> mRecordTime{true};
     cs::utils::DefaultProperty<bool> mRecordExposure{false};
