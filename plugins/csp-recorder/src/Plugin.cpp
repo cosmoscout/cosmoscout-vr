@@ -122,13 +122,14 @@ void Plugin::update() {
       mFrameCounter = 0;
 
       // We use the current date as a filename.
-      std::string fileName =
-          "recording-" +
-          cs::utils::convert::time::toString(boost::posix_time::microsec_clock::local_time()) +
-          ".py";
-      cs::utils::replaceString(fileName, ":", "-");
+      auto timeString =
+          cs::utils::convert::time::toString(boost::posix_time::microsec_clock::local_time());
+      cs::utils::replaceString(timeString, ":", "-");
+      cs::utils::replaceString(timeString, ".", "-");
+      cs::utils::replaceString(timeString, "T", "-");
+      cs::utils::replaceString(timeString, "Z", "");
 
-      mOutFile.open(fileName);
+      mOutFile.open("recording-" + timeString + ".py");
 
       // Write the header of the file. This contains the functions which are then called for each
       // recorded frame.
