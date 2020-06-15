@@ -13,9 +13,13 @@ The given values present the default values and are all optional:
   "plugins": {
     ...
     "csp-recorder": {
+      "webAPIPort":     9001    // Port of csp-web-api.
       "recordObserver": true,   // If true, the observer transformation will be recorded for each frame.
       "recordTime":     true,   // If true, the simulation time will be recorded for each frame.
       "recordExposure": false,  // If true, the exposure of each frame will be recorded. Requires HDR mode.
+     },
+     "csp-web-api": {           // This plugin is required by csp-recorder.
+      "port": 9001
      }
   }
 }
