@@ -17,7 +17,7 @@ namespace csp::recorder {
 
 /// This plugin allows basic capturing of high-quality videos using csp-web-api. 'Basic' means that
 /// (for now) only the observer transformation, the simulation time and the exposure of the HDR mode
-/// is captured. This however, can be changed in future.
+/// is captured. This however, can be changed in the future.
 /// Capturing works in two phases: First, the user navigates through space while 'recording'. This
 /// produces a python script in the bin/ directory which can be executed to capture the individual
 /// frame using csp-web-api. This two-step approach has the advantage that recording can be done at

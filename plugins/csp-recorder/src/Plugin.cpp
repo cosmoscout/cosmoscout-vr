@@ -126,6 +126,7 @@ void Plugin::update() {
           "recording-" +
           cs::utils::convert::time::toString(boost::posix_time::microsec_clock::local_time()) +
           ".py";
+      cs::utils::replaceString(fileName, ":", "-");
 
       mOutFile.open(fileName);
 

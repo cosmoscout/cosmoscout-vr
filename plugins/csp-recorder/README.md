@@ -13,10 +13,10 @@ The given values present the default values and are all optional:
   "plugins": {
     ...
     "csp-recorder": {
-      "webAPIPort":     9001    // Port of csp-web-api.
+      "webAPIPort":     9001,    // Port of csp-web-api.
       "recordObserver": true,   // If true, the observer transformation will be recorded for each frame.
       "recordTime":     true,   // If true, the simulation time will be recorded for each frame.
-      "recordExposure": false,  // If true, the exposure of each frame will be recorded. Requires HDR mode.
+      "recordExposure": false  // If true, the exposure of each frame will be recorded. Requires HDR mode.
      },
      "csp-web-api": {           // This plugin is required by csp-recorder.
       "port": 9001
@@ -32,7 +32,7 @@ The capturing is done in three steps:
 Maybe it's a good idea to only render simple planets.
 The hit the record button beneath the timeline and fly around.
 When finished, hit the record button once more.
-2. **Capture the Frames:** Step 1 has produced a python script called `recording-<current date>.py`.
+2. **Capture the Frames:** Step 1 has produced a python script called `recording-<current date>.py` next to the cosmoscout executable.
 This can be executed to capture the frames!
 Configure now your scene to look as good as possible - enable all the fancy plugins!
 Move all quality sliders to their upper limit!
@@ -50,4 +50,3 @@ Here is an example:
    ```bash
    ffmpeg -f image2 -framerate 60 -i frame_%d.png -c:v libx264 -preset veryslow  -qp 8 -pix_fmt yuv420p recording.mp4
    ```
-
