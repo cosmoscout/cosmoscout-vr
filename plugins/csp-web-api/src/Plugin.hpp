@@ -57,7 +57,7 @@ class Plugin : public cs::core::PluginBase {
   int32_t                 mCaptureWidth     = 0;
   int32_t                 mCaptureHeight    = 0;
   int32_t                 mCaptureDelay     = 0;
-  bool                    mCaptureGui       = false;
+  std::string             mCaptureGui       = "auto";
   bool                    mCaptureDepth     = false;
   std::string             mCaptureFormat;
   int32_t                 mCaptureAtFrame = 0;

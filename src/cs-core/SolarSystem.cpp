@@ -228,6 +228,8 @@ void SolarSystem::update() {
   }
 
   // Update settings properties.
+  mSettings->mObserver.pCenter   = mObserver.getCenterName();
+  mSettings->mObserver.pFrame    = mObserver.getFrameName();
   mSettings->mObserver.pPosition = mObserver.getAnchorPosition();
   mSettings->mObserver.pRotation = mObserver.getAnchorRotation();
 }
@@ -379,8 +381,6 @@ void SolarSystem::updateObserverFrame() {
       pActiveBody = activeBody;
 
       mObserver.changeOrigin(sCenter, sFrame, mTimeControl->pSimulationTime.get());
-      mSettings->mObserver.pCenter = sCenter;
-      mSettings->mObserver.pFrame  = sFrame;
     }
   }
 }
