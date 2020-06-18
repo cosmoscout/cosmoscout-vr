@@ -96,6 +96,7 @@ Official Plugins | Description | Screenshot
 [csp-lod-bodies](plugins/csp-lod-bodies) | Draws level-of-detail planets and moons. This plugin supports the visualization of entire planets in a 1:1 scale. The data is streamed via Web-Map-Services (WMS) over the internet. A dedicated MapServer is required to use this plugin. | ![screenshot](docs/img/csp-lod-bodies.jpg)
 [csp-measurement-tools](plugins/csp-measurement-tools) | Provides several tools for terrain measurements. Like measurement of distances, height profiles, volumes or areas. | ![screenshot](docs/img/csp-measurement-tools.jpg)
 [csp-minimap](plugins/csp-minimap) | Displays a configurable 2D-Minimap in the user interface. | ![screenshot](docs/img/csp-minimap.jpg)
+[csp-recorder](plugins/csp-recorder) | A CosmoScout VR plugin which allows basic capturing of high-quality videos. Requires that `csp-web-api` is enabled. | ![screenshot](docs/img/csp-recorder.jpg)
 [csp-rings](plugins/csp-rings) | Draws simple rings around celestial bodies. The rings can be configured with an inner and an outer radius and a texture. | ![screenshot](docs/img/csp-rings.jpg)
 [csp-satellites](plugins/csp-satellites) | Draws GTLF models at positions based on SPICE data. It uses physically based rendering for surface shading. | ![screenshot](docs/img/csp-satellites.jpg)
 [csp-sharad](plugins/csp-sharad) | Renders radar datasets acquired by the Mars Reconnaissance Orbiter. The SHARAD profiles are rendered inside of Mars, the Martian surface is made translucent in front of the profiles. | ![screenshot](docs/img/csp-sharad.jpg)
