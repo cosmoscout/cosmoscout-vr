@@ -287,6 +287,20 @@ cmake %CMAKE_FLAGS% -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DCMAKE_INSTALL_PREFIX="%INS
 
 cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS%
 
+rem vrpn -------------------------------------------------------------------------------------------
+:vrpn
+
+echo.
+echo Building and installing vrpn ...
+echo.
+
+cmake -E make_directory "%BUILD_DIR%/vrpn" && cd "%BUILD_DIR%/vrpn"
+
+cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
+      -DCMAKE_BUILD_TYPE=%BUILD_TYPE%^
+      "%EXTERNALS_DIR%/vrpn" || exit /b
+cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS% || exit /b
+
 rem vista ------------------------------------------------------------------------------------------
 :vista
 
@@ -305,7 +319,9 @@ rem       -DCMAKE_CXX_FLAGS="-std=c++11" "%EXTERNALS_DIR%/vista" || exit /b
 cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%" -DVISTADEMO_ENABLED=Off^
       -DCMAKE_BUILD_TYPE=%BUILD_TYPE%^
       -DCMAKE_UNITY_BUILD=%UNITY_BUILD% -DVISTA_USE_PRECOMPILED_HEADERS=%PRECOMPILED_HEADERS%^
+      -DVRPN_ROOT=%INSTALL_DIR% -DVISTADRIVERS_BUILD_VRPN=On -DVRPN_BUILD_TESTAPPS=Off^
       "%EXTERNALS_DIR%/vista" || exit /b
+
 cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS%
 
 rem cspice -----------------------------------------------------------------------------------------

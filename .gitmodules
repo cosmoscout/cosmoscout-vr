@@ -37,12 +37,15 @@
 [submodule "externals/spdlog"]
 	path = externals/spdlog
 	url = https://github.com/cosmoscout/spdlog.git
-[submodule "externals/civetweb"]
-	path = externals/civetweb
-	url = https://github.com/cosmoscout/civetweb.git
+[submodule "externals/vrpn"]
+	path = externals/vrpn
+	url = https://github.com/vrpn/vrpn.git
 [submodule "externals/json"]
 	path = externals/json
 	url = https://github.com/nlohmann/json.git
+[submodule "externals/civetweb"]
+	path = externals/civetweb
+	url = https://github.com/cosmoscout/civetweb.git
 [submodule "externals/stb"]
 	path = externals/stb
 	url = https://github.com/nothings/stb

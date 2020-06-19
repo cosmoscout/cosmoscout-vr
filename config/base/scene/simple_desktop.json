@@ -1,4 +1,5 @@
 {
+  "enableMouseRay": true,
   "startDate": "today",
   "resetDate": "today",
   "minDate": "1950-01-02 00:00:00.000",
