@@ -39,10 +39,10 @@ class SimpleWMSBody : public cs::scene::CelestialBody, public IVistaOpenGLDraw {
       std::string const& sFrameName, double tStartExistence, double tEndExistence);
 
   SimpleWMSBody(SimpleWMSBody const& other) = delete;
-  SimpleWMSBody(SimpleWMSBody&& other)      = default;
+  SimpleWMSBody(SimpleWMSBody&& other)      = delete;
 
   SimpleWMSBody& operator=(SimpleWMSBody const& other) = delete;
-  SimpleWMSBody& operator=(SimpleWMSBody&& other) = default;
+  SimpleWMSBody& operator=(SimpleWMSBody&& other) = delete;
 
   ~SimpleWMSBody() override;
 
