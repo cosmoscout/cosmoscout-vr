@@ -51,8 +51,7 @@ LodBody::LodBody(std::shared_ptr<cs::core::Settings> const& settings,
   mPlanet.setTerrainShader(&mShader);
 
   // per-planet settings -----------------------------------------------------
-  mPlanet.setEquatorialRadius(static_cast<float>(mRadii[0]));
-  mPlanet.setPolarRadius(static_cast<float>(mRadii[0]));
+  mPlanet.setRadii(mRadii);
   pVisibleRadius = mRadii[0];
 
   // scene-wide settings -----------------------------------------------------

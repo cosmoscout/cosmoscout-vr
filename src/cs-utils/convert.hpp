@@ -55,29 +55,27 @@ T toDegrees(T radians) {
 
 /// Transform cartesian (x,y,z) coordinates to geodetic (lng, lat, height above surface)
 /// coordinates.
-CS_UTILS_EXPORT glm::dvec3 toLngLatHeight(
-    glm::dvec3 const& cartesian, double radiusE, double radiusP);
+CS_UTILS_EXPORT glm::dvec3 toLngLatHeight(glm::dvec3 const& cartesian, glm::dvec3 const& radii);
+
+CS_UTILS_EXPORT glm::dvec3 scaleToGeocentricSurface(
+    glm::dvec3 const& cartesian, glm::dvec3 const& radii);
+
+CS_UTILS_EXPORT glm::dvec3 scaleToGeodeticSurface(
+    glm::dvec3 const& cartesian, glm::dvec3 const& radii);
 
 /// Transform geodetic coordinates (lng, lat) LngLat and elevation height to cartesian (x,y,z)
 /// coordinates for an ellipsoid of equatorial radius radiusE and polar radius radiusP. Height is an
 /// offset along the normal of the ellipsoid at (lng, lat).
 CS_UTILS_EXPORT glm::dvec3 toCartesian(
-    glm::dvec2 const& lngLat, double radiusE, double radiusP, double height = 0.0);
-
-/// Convert latitudes.
-CS_UTILS_EXPORT double geocentricToGeodetic(double lat, double radiusE, double radiusP);
-CS_UTILS_EXPORT double geocentricToParametric(double lat, double radiusE, double radiusP);
-CS_UTILS_EXPORT double geodeticToGeocentric(double lat, double radiusE, double radiusP);
-CS_UTILS_EXPORT double geodeticToParametric(double lat, double radiusE, double radiusP);
-CS_UTILS_EXPORT double parametricToGeocentric(double lat, double radiusE, double radiusP);
-CS_UTILS_EXPORT double parametricToGeodetic(double lat, double radiusE, double radiusP);
+    glm::dvec2 const& lngLat, glm::dvec3 const& radii, double height = 0.0);
 
 /// Returns the normal vector (unit length) to the ellipsoid with equatorial radius radiusE and
 /// polar radius radiusP at geodetic coordinates (lng, lat) LngLat.
-CS_UTILS_EXPORT glm::dvec3 lngLatToNormal(glm::dvec2 const& lngLat, double radiusE, double radiusP);
+CS_UTILS_EXPORT glm::dvec3 lngLatToNormal(glm::dvec2 const& lngLat, glm::dvec3 const& radii);
 
-/// Returns the geodetic coordinates (lng, lat) for a given normal vector.
-CS_UTILS_EXPORT glm::dvec2 normalToLngLat(glm::dvec3 const& normal, double radiusE, double radiusP);
+CS_UTILS_EXPORT glm::dvec3 surfacePosToNormal(
+    glm::dvec3 const& surfacePos, glm::dvec3 const& radii);
+CS_UTILS_EXPORT glm::dvec3 cartesianToNormal(glm::dvec3 const& cartesian, glm::dvec3 const& radii);
 
 /// Time in CosmoScout VR is passed around in different formats.
 /// * Strings usually store time in the ISO format YYYY-MM-DDTHH:MM:SS.fffZ. The 'Z' suffix is not

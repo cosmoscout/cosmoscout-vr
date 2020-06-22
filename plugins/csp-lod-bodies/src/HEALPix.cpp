@@ -158,9 +158,8 @@ glm::dvec2 HEALPixLevel::getCenterLngLat(glm::int64 patchIdx) const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-glm::dvec3 HEALPixLevel::getCenterCartesian(
-    glm::int64 patchIdx, double radiusE, double radiusP) const {
-  return cs::utils::convert::toCartesian(getCenterLngLat(patchIdx), radiusE, radiusP);
+glm::dvec3 HEALPixLevel::getCenterCartesian(glm::int64 patchIdx, glm::dvec3 const& radii) const {
+  return cs::utils::convert::toCartesian(getCenterLngLat(patchIdx), radii);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -184,14 +183,14 @@ std::array<glm::dvec2, 4> HEALPixLevel::getCornersLngLat(glm::int64 patchIdx) co
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::array<glm::dvec3, 4> HEALPixLevel::getCornersCartesian(
-    glm::int64 patchIdx, double radiusE, double radiusP) const {
+    glm::int64 patchIdx, glm::dvec3 const& radii) const {
   std::array<glm::dvec3, 4> result{};
   std::array<glm::dvec2, 4> corners = getCornersLngLat(patchIdx);
 
-  result[0] = cs::utils::convert::toCartesian(corners[0], radiusE, radiusP);
-  result[1] = cs::utils::convert::toCartesian(corners[1], radiusE, radiusP);
-  result[2] = cs::utils::convert::toCartesian(corners[2], radiusE, radiusP);
-  result[3] = cs::utils::convert::toCartesian(corners[3], radiusE, radiusP);
+  result[0] = cs::utils::convert::toCartesian(corners[0], radii);
+  result[1] = cs::utils::convert::toCartesian(corners[1], radii);
+  result[2] = cs::utils::convert::toCartesian(corners[2], radii);
+  result[3] = cs::utils::convert::toCartesian(corners[3], radii);
 
   return result;
 }
@@ -217,14 +216,14 @@ std::array<glm::dvec2, 4> HEALPixLevel::getEdgeCentersLngLat(glm::int64 patchIdx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::array<glm::dvec3, 4> HEALPixLevel::getEdgeCentersCartesian(
-    glm::int64 patchIdx, double radiusE, double radiusP) const {
+    glm::int64 patchIdx, glm::dvec3 const& radii) const {
   std::array<glm::dvec3, 4> result{};
   std::array<glm::dvec2, 4> edges = getEdgeCentersLngLat(patchIdx);
 
-  result[0] = cs::utils::convert::toCartesian(edges[0], radiusE, radiusP);
-  result[1] = cs::utils::convert::toCartesian(edges[1], radiusE, radiusP);
-  result[2] = cs::utils::convert::toCartesian(edges[2], radiusE, radiusP);
-  result[3] = cs::utils::convert::toCartesian(edges[3], radiusE, radiusP);
+  result[0] = cs::utils::convert::toCartesian(edges[0], radii);
+  result[1] = cs::utils::convert::toCartesian(edges[1], radii);
+  result[2] = cs::utils::convert::toCartesian(edges[2], radii);
+  result[3] = cs::utils::convert::toCartesian(edges[3], radii);
 
   return result;
 }
@@ -467,9 +466,8 @@ glm::int64 HEALPixLevel::replaceBits(glm::int64 evenBits, glm::int64 oddBits) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/* static */ glm::dvec3 HEALPix::getCenterCartesian(
-    TileId const& tileId, double radiusE, double radiusP) {
-  return getLevel(tileId.level()).getCenterCartesian(tileId.patchIdx(), radiusE, radiusP);
+/* static */ glm::dvec3 HEALPix::getCenterCartesian(TileId const& tileId, glm::dvec3 const& radii) {
+  return getLevel(tileId.level()).getCenterCartesian(tileId.patchIdx(), radii);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -481,8 +479,8 @@ glm::int64 HEALPixLevel::replaceBits(glm::int64 evenBits, glm::int64 oddBits) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /* static */ std::array<glm::dvec3, 4> HEALPix::getCornersCartesian(
-    TileId const& tileId, double radiusE, double radiusP) {
-  return getLevel(tileId.level()).getCornersCartesian(tileId.patchIdx(), radiusE, radiusP);
+    TileId const& tileId, glm::dvec3 const& radii) {
+  return getLevel(tileId.level()).getCornersCartesian(tileId.patchIdx(), radii);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -494,8 +492,8 @@ glm::int64 HEALPixLevel::replaceBits(glm::int64 evenBits, glm::int64 oddBits) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /* static */ std::array<glm::dvec3, 4> HEALPix::getEdgeCentersCartesian(
-    TileId const& tileId, double radiusE, double radiusP) {
-  return getLevel(tileId.level()).getEdgeCentersCartesian(tileId.patchIdx(), radiusE, radiusP);
+    TileId const& tileId, glm::dvec3 const& radii) {
+  return getLevel(tileId.level()).getEdgeCentersCartesian(tileId.patchIdx(), radii);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

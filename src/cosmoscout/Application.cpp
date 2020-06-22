@@ -547,7 +547,7 @@ void Application::FrameUpdate() {
       auto radii = mSolarSystem->pActiveBody.get()->getRadii();
       auto vPlanetPos =
           glm::inverse(mSolarSystem->pActiveBody.get()->getWorldTransform()) * vWorldPos;
-      auto   polar = cs::utils::convert::toLngLatHeight(vPlanetPos.xyz(), radii[0], radii[0]);
+      auto   polar         = cs::utils::convert::toLngLatHeight(vPlanetPos.xyz(), radii);
       double surfaceHeight = mSolarSystem->pActiveBody.get()->getHeight(polar.xy());
       double heightDiff    = polar.z / mSettings->mGraphics.pHeightScale.get() - surfaceHeight;
 
@@ -781,9 +781,8 @@ void Application::connectSlots() {
           auto body = std::dynamic_pointer_cast<cs::scene::CelestialBody>(intersection.mObject);
 
           if (body) {
-            auto radii = body->getRadii();
-            auto polar =
-                cs::utils::convert::toLngLatHeight(intersection.mPosition, radii[0], radii[0]);
+            auto radii  = body->getRadii();
+            auto polar  = cs::utils::convert::toLngLatHeight(intersection.mPosition, radii);
             auto lngLat = cs::utils::convert::toDegrees(polar.xy());
 
             if (!std::isnan(lngLat.x) && !std::isnan(lngLat.y) && !std::isnan(polar.z)) {
@@ -1433,7 +1432,7 @@ void Application::registerGuiCallbacks() {
         auto observerPos = mSolarSystem->getObserver().getAnchorPosition();
         auto observerRot = mSolarSystem->getObserver().getAnchorRotation();
 
-        glm::dvec3 y = observerPos;
+        glm::dvec3 y = cs::utils::convert::cartesianToNormal(observerPos, radii);
         glm::dvec3 z = (observerRot * glm::dvec4(0, 0.1, -1, 0)).xyz();
         glm::dvec3 x = glm::cross(z, y);
         z            = glm::cross(x, y);
@@ -1465,7 +1464,7 @@ void Application::registerGuiCallbacks() {
         }
 
         auto lngLatHeight = cs::utils::convert::toLngLatHeight(
-            mSolarSystem->getObserver().getAnchorPosition(), radii[0], radii[0]);
+            mSolarSystem->getObserver().getAnchorPosition(), radii);
 
         // fly to 0.1% of current height
         double const permille = 0.001;
@@ -1480,8 +1479,7 @@ void Application::registerGuiCallbacks() {
 
         height *= mSettings->mGraphics.pHeightScale.get();
 
-        auto observerPos =
-            cs::utils::convert::toCartesian(lngLatHeight.xy(), radii[0], radii[0], height);
+        auto observerPos = cs::utils::convert::toCartesian(lngLatHeight.xy(), radii, height);
         auto observerRot = mSolarSystem->getObserver().getAnchorRotation();
 
         glm::dvec3 y = observerPos;

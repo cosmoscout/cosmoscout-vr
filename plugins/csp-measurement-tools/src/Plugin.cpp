@@ -331,7 +331,7 @@ void Plugin::init() {
           auto tool     = std::make_shared<FlagTool>(mInputManager, mSolarSystem, mAllSettings,
               mTimeControl, body->getCenterName(), body->getFrameName());
           tool->pLngLat = cs::utils::convert::toLngLatHeight(
-              mInputManager->pHoveredObject.get().mPosition, radii[0], radii[0])
+              mInputManager->pHoveredObject.get().mPosition, radii)
                               .xy();
           mPluginSettings.mFlags.push_back(tool);
 
@@ -339,7 +339,7 @@ void Plugin::init() {
           auto tool = std::make_shared<EllipseTool>(mInputManager, mSolarSystem, mAllSettings,
               mTimeControl, body->getCenterName(), body->getFrameName());
           tool->getCenterHandle().pLngLat = cs::utils::convert::toLngLatHeight(
-              mInputManager->pHoveredObject.get().mPosition, radii[0], radii[0])
+              mInputManager->pHoveredObject.get().mPosition, radii)
                                                 .xy();
           tool->setNumSamples(mPluginSettings.mEllipseSamples.get());
           mPluginSettings.mEllipses.push_back(tool);

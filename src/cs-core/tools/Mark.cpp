@@ -295,9 +295,9 @@ void Mark::initData(std::string const& sCenter, std::string const& sFrame) {
         if (pActive.get() && i.mObject) {
           auto body = std::dynamic_pointer_cast<cs::scene::CelestialBody>(i.mObject);
           if (body && body->getCenterName() == mAnchor->getCenterName()) {
-            auto lngLatHeight = cs::utils::convert::toLngLatHeight(
-                i.mPosition, body->getRadii()[0], body->getRadii()[0]);
-            pLngLat = lngLatHeight.xy();
+            auto radii        = body->getRadii();
+            auto lngLatHeight = cs::utils::convert::toLngLatHeight(i.mPosition, radii);
+            pLngLat           = lngLatHeight.xy();
           }
         }
       });
@@ -309,7 +309,7 @@ void Mark::initData(std::string const& sCenter, std::string const& sFrame) {
     double height = body->getHeight(lngLat);
     auto   radii  = body->getRadii();
     auto   cart   = cs::utils::convert::toCartesian(
-        lngLat, radii[0], radii[0], height * mSettings->mGraphics.pHeightScale.get());
+        lngLat, radii, height * mSettings->mGraphics.pHeightScale.get());
     mAnchor->setAnchorPosition(cart);
   });
 
@@ -319,7 +319,7 @@ void Mark::initData(std::string const& sCenter, std::string const& sFrame) {
     auto   body   = mSolarSystem->getBody(mAnchor->getCenterName());
     double height = body->getHeight(pLngLat.get()) * h;
     auto   radii  = body->getRadii();
-    auto   cart   = cs::utils::convert::toCartesian(pLngLat.get(), radii[0], radii[0], height);
+    auto   cart   = cs::utils::convert::toCartesian(pLngLat.get(), radii, height);
     mAnchor->setAnchorPosition(cart);
   });
 }

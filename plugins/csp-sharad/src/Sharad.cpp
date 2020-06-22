@@ -222,7 +222,7 @@ Sharad::Sharad(std::shared_ptr<cs::core::Settings> settings, std::string const& 
 
     glm::dvec2 lngLat(
         cs::utils::convert::toRadians(glm::dvec2(meta[i].Longitude, meta[i].Latitude)));
-    glm::dvec3 point = cs::utils::convert::toCartesian(lngLat, 1.0, 1.0);
+    glm::dvec3 point = cs::utils::convert::toCartesian(lngLat, glm::dvec3(1.0));
 
     float x    = 1.F * static_cast<float>(i) / (static_cast<float>(mSamples) - 1.F);
     auto  time = static_cast<float>(tTime - mStartExistence);

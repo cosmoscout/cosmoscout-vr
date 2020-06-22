@@ -98,9 +98,9 @@ bool testFrontFacing(glm::dvec3 const& camPos, PlanetParameters const* params,
     minHeight              = std::min(minHeight, castedTile.getMinMaxPyramid()->getMin());
   }
 
-  double dScaledPolarRadius = params->mPolarRadius + (minHeight * params->mHeightScale);
-  double dProxyRadius =
-      std::min(dScaledPolarRadius, params->mEquatorialRadius + (minHeight * params->mHeightScale));
+  double dScaledPolarRadius = params->mRadii.y + (minHeight * params->mHeightScale);
+  double dProxyRadius       = std::min(dScaledPolarRadius,
+      std::max(params->mRadii.x, params->mRadii.y) + (minHeight * params->mHeightScale));
 
   glm::dvec3 const& tbMin = tb.getMin();
   glm::dvec3 const& tbMax = tb.getMax();
@@ -624,8 +624,8 @@ bool LODVisitor::testVisible(TileId const& tileId, TreeManagerBase* treeMgrDEM) 
 
         // Calculate an optimistic bounding box from the the height values in range of the
         // IMG tile
-        tb = csp::lodbodies::calcTileBounds(minHeight, maxHeight, lvl, tileId.patchIdx(),
-            mParams->mEquatorialRadius, mParams->mPolarRadius, mParams->mHeightScale);
+        tb = csp::lodbodies::calcTileBounds(
+            minHeight, maxHeight, lvl, tileId.patchIdx(), mParams->mRadii, mParams->mHeightScale);
 
         // Save for renderBounds() in TileRenderer
         state.mRdIMG->setBounds(tb);

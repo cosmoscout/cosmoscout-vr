@@ -194,14 +194,14 @@ glm::dvec4 PathTool::getInterpolatedPosBetweenTwoMarks(cs::core::tools::Deletabl
   double h1 = body->getHeight(l1.pLngLat.get()) * scale;
 
   // Get cartesian coordinates for interpolation
-  glm::dvec3 p0 = cs::utils::convert::toCartesian(l0.pLngLat.get(), radii[0], radii[0], h0);
-  glm::dvec3 p1 = cs::utils::convert::toCartesian(l1.pLngLat.get(), radii[0], radii[0], h1);
+  glm::dvec3 p0              = cs::utils::convert::toCartesian(l0.pLngLat.get(), radii, h0);
+  glm::dvec3 p1              = cs::utils::convert::toCartesian(l1.pLngLat.get(), radii, h1);
   glm::dvec3 interpolatedPos = p0 + (value * (p1 - p0));
 
   // Calc final position
-  glm::dvec2 ll     = cs::utils::convert::toLngLatHeight(interpolatedPos, radii[0], radii[0]).xy();
+  glm::dvec2 ll     = cs::utils::convert::toLngLatHeight(interpolatedPos, radii).xy();
   double     height = body->getHeight(ll) * scale;
-  glm::dvec3 pos    = cs::utils::convert::toCartesian(ll, radii[0], radii[0], height);
+  glm::dvec3 pos    = cs::utils::convert::toCartesian(ll, radii, height);
 
   return glm::dvec4(pos, height);
 }
@@ -243,9 +243,9 @@ void PathTool::updateLineVertices() {
 
   double h_scale      = mSettings->mGraphics.pHeightScale.get();
   auto   radii        = cs::core::SolarSystem::getRadii(getCenterName());
-  auto   lngLatHeight = cs::utils::convert::toLngLatHeight(averagePosition, radii[0], radii[0]);
+  auto   lngLatHeight = cs::utils::convert::toLngLatHeight(averagePosition, radii);
   double height       = body ? body->getHeight(lngLatHeight.xy()) * h_scale : 0.0;
-  auto   center = cs::utils::convert::toCartesian(lngLatHeight.xy(), radii[0], radii[0], height);
+  auto   center       = cs::utils::convert::toCartesian(lngLatHeight.xy(), radii, height);
 
   mGuiAnchor->setAnchorPosition(center);
 

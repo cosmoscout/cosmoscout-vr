@@ -16,146 +16,114 @@ namespace cs::utils::convert {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-glm::dvec3 toLngLatHeight(glm::dvec3 const& cartesian, double radiusE, double radiusP) {
-  // Calculate longitude.
-  double longitude = 0.0;
+glm::dvec3 toLngLatHeight(glm::dvec3 const& cartesian, glm::dvec3 const& radii) {
 
-  if (cartesian.z != 0.0) {
-    longitude = std::atan(cartesian.x / cartesian.z);
+  auto   surfacePoint   = scaleToGeodeticSurface(cartesian, radii);
+  auto   dir            = cartesian - surfacePoint;
+  double height         = std::copysign(1.0, glm::dot(dir, cartesian)) * glm::length(dir);
+  auto   geodeticNormal = cartesianToNormal(surfacePoint, radii);
 
-    if (cartesian.z < 0 && cartesian.x < 0) {
-      longitude -= glm::pi<double>();
-    }
-
-    if (cartesian.z < 0 && cartesian.x >= 0) {
-      longitude += glm::pi<double>();
-    }
-  } else if (cartesian.x == 0) {
-    longitude = 0.0;
-  } else if (cartesian.x < 0) {
-    longitude = -glm::pi<double>() * 0.5;
-  } else {
-    longitude = glm::pi<double>() * 0.5;
-  }
-
-  // Geocentric latitude of the input point.
-  double latitude = std::asin(cartesian.y / glm::length(cartesian));
-
-  // This latitude corresponds to the geocentric latitude of the intersection point of the ellipsoid
-  // with the line between it's center and the cartesian input location. We can calculate the
-  // cartesian position of this intersection.
-  latitude = geocentricToGeodetic(latitude, radiusE, radiusP);
-  glm::dvec2 lngLatIntersection(longitude, latitude);
-  glm::dvec3 intersection = toCartesian(lngLatIntersection, radiusE, radiusP);
-
-  // We assume the distance between this intersection and the input point to be the height. This is
-  // actually wrong and needs to be fixed! (issue #28)
-  double height = glm::length(cartesian) - glm::length(intersection);
-
-  // We return here the geodetic latitude of the surface point which has the same geocentric
-  // latitude as the input point - this is wrong too, and should be fixed (issue #28)
-  return glm::dvec3(lngLatIntersection, height);
+  return glm::dvec3(
+      std::atan2(geodeticNormal.x, geodeticNormal.z), std::asin(geodeticNormal.y), height);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-glm::dvec3 toCartesian(glm::dvec2 const& lngLat, double radiusE, double radiusP, double height) {
-  glm::dvec2 lngLatGeoCentric(lngLat.x, geodeticToGeocentric(lngLat.y, radiusE, radiusP));
-
-  glm::dvec2 c = glm::cos(lngLatGeoCentric);
-  glm::dvec2 s = glm::sin(lngLatGeoCentric);
-
-  glm::dvec3 cartesian;
-  cartesian.x = radiusE * c[1] * s[0];
-  cartesian.y = radiusP * s[1];
-  cartesian.z = radiusE * c[1] * c[0];
-
-  if (height != 0.0) {
-    cartesian += height * lngLatToNormal(lngLat, radiusE, radiusP);
-  }
-
-  return cartesian;
+glm::dvec3 scaleToGeocentricSurface(glm::dvec3 const& cartesian, glm::dvec3 const& radii) {
+  double beta = 1.0 / std::sqrt(cartesian.x * cartesian.x / (radii.x * radii.x) +
+                                cartesian.y * cartesian.y / (radii.y * radii.y) +
+                                cartesian.z * cartesian.z / (radii.z * radii.z));
+  return cartesian * beta;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-double geocentricToGeodetic(double lat, double radiusE, double radiusP) {
-  double f = (radiusE - radiusP) / radiusE;
-  return std::atan(std::tan(lat) / std::pow(1.0 - f, 2.0));
+glm::dvec3 scaleToGeodeticSurface(glm::dvec3 const& cartesian, glm::dvec3 const& radii) {
+
+  auto radiiSquared        = radii * radii;
+  auto oneOverRadiiSquared = 1.0 / radiiSquared;
+  auto radiiToTheFourth    = radiiSquared * radiiSquared;
+
+  double beta = 1.0 / std::sqrt((cartesian.x * cartesian.x) * oneOverRadiiSquared.x +
+                                (cartesian.y * cartesian.y) * oneOverRadiiSquared.y +
+                                (cartesian.z * cartesian.z) * oneOverRadiiSquared.z);
+
+  double n = glm::length(beta * cartesian * oneOverRadiiSquared);
+
+  double alpha = (1.0 - beta) * (glm::length(cartesian) / n);
+
+  double x2 = cartesian.x * cartesian.x;
+  double y2 = cartesian.y * cartesian.y;
+  double z2 = cartesian.z * cartesian.z;
+
+  double da = 0.0;
+  double db = 0.0;
+  double dc = 0.0;
+
+  double s    = 0.0;
+  double dSdA = 1.0;
+
+  do {
+    alpha -= (s / dSdA);
+
+    da = 1.0 + (alpha * oneOverRadiiSquared.x);
+    db = 1.0 + (alpha * oneOverRadiiSquared.y);
+    dc = 1.0 + (alpha * oneOverRadiiSquared.z);
+
+    double da2 = da * da;
+    double db2 = db * db;
+    double dc2 = dc * dc;
+
+    double da3 = da * da2;
+    double db3 = db * db2;
+    double dc3 = dc * dc2;
+
+    s = x2 / (radiiSquared.x * da2) + y2 / (radiiSquared.y * db2) + z2 / (radiiSquared.z * dc2) -
+        1.0;
+
+    dSdA = -2.0 * (x2 / (radiiToTheFourth.x * da3) + y2 / (radiiToTheFourth.y * db3) +
+                      z2 / (radiiToTheFourth.z * dc3));
+
+  } while (std::abs(s) > 1e-10);
+
+  return glm::dvec3(cartesian.x / da, cartesian.y / db, cartesian.z / dc);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-double geocentricToParametric(double lat, double radiusE, double radiusP) {
-  double f = (radiusE - radiusP) / radiusE;
-  return std::atan(std::tan(lat) / (1.0 - f));
+glm::dvec3 toCartesian(glm::dvec2 const& lngLat, glm::dvec3 const& radii, double height) {
+
+  auto normal = lngLatToNormal(lngLat, radii);
+  auto rX2    = radii.x * radii.x;
+  auto rY2    = radii.y * radii.y;
+  auto rZ2    = radii.z * radii.z;
+
+  double gamma =
+      std::sqrt(rX2 * normal.x * normal.x + rY2 * normal.y * normal.y + rZ2 * normal.z * normal.z);
+
+  auto point = glm::dvec3(rX2 * normal.x, rY2 * normal.y, rZ2 * normal.z) / gamma;
+
+  return point + normal * height;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-double geodeticToGeocentric(double lat, double radiusE, double radiusP) {
-  double f = (radiusE - radiusP) / radiusE;
-  return std::atan(std::tan(lat) * std::pow(1.0 - f, 2.0));
+glm::dvec3 lngLatToNormal(glm::dvec2 const& lngLat, glm::dvec3 const& radii) {
+  return glm::dvec3(std::cos(lngLat.y) * std::sin(lngLat.x), std::sin(lngLat.y),
+      std::cos(lngLat.y) * std::cos(lngLat.x));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-double geodeticToParametric(double lat, double radiusE, double radiusP) {
-  double f = (radiusE - radiusP) / radiusE;
-  return std::atan(std::tan(lat) * (1.0 - f));
+glm::dvec3 surfacePosToNormal(glm::dvec3 const& surfacePos, glm::dvec3 const& radii) {
+  auto radiiSquared        = radii * radii;
+  auto oneOverRadiiSquared = 1.0 / radiiSquared;
+  return glm::normalize(surfacePos * oneOverRadiiSquared);
 }
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-double parametricToGeocentric(double lat, double radiusE, double radiusP) {
-  double f = (radiusE - radiusP) / radiusE;
-  return std::atan(std::tan(lat) * (1.0 - f));
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-double parametricToGeodetic(double lat, double radiusE, double radiusP) {
-  double f = (radiusE - radiusP) / radiusE;
-  return std::atan(std::tan(lat) / (1.0 - f));
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-glm::dvec3 lngLatToNormal(glm::dvec2 const& lngLat, double radiusE, double radiusP) {
-  glm::dvec3 cart = toCartesian(lngLat, radiusE, radiusP);
-  glm::dvec3 n    = cart / glm::dvec3(radiusE * radiusE, radiusP * radiusP, radiusE * radiusE);
-  return glm::normalize(n);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-glm::dvec2 normalToLngLat(glm::dvec3 const& normal, double radiusE, double radiusP) {
-  glm::dvec3 cart = glm::normalize(normal * glm::dvec3(radiusE, radiusP, radiusE));
-
-  glm::dvec2 lngLat;
-  lngLat.y = std::asin(cart.y);
-
-  if (cart.z != 0.0) {
-    lngLat.x = std::atan(cart.x / cart.z);
-
-    if (cart.z < 0 && cart.x < 0) {
-      lngLat.x -= glm::pi<double>();
-    }
-
-    if (cart.z < 0 && cart.x >= 0) {
-      lngLat.x += glm::pi<double>();
-    }
-  } else if (cart.x == 0) {
-    lngLat.x = 0.0;
-  } else if (cart.x < 0) {
-    lngLat.x = -glm::pi<double>() * 0.5;
-  } else {
-    lngLat.x = glm::pi<double>() * 0.5;
-  }
-
-  lngLat.y = geocentricToGeodetic(lngLat.y, radiusE, radiusP);
-
-  return lngLat;
+glm::dvec3 cartesianToNormal(glm::dvec3 const& cartesian, glm::dvec3 const& radii) {
+  return surfacePosToNormal(scaleToGeodeticSurface(cartesian, radii), radii);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
