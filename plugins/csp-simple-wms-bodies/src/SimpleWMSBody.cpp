@@ -424,7 +424,7 @@ bool SimpleWMSBody::Do() {
       // Find texture for the following sample.
       tex = mTextures.find(utils::timeToString(mFormat.c_str(), sampleAfter));
 
-      if (tex != mTextures.end()) {
+      if (isAfterInInterval && tex != mTextures.end()) {
         // Only update if we ha a new second texture.
         if (mCurrentSecondTexture != utils::timeToString(mFormat.c_str(), sampleAfter)) {
           mSecondWMSTexture->UploadTexture(
