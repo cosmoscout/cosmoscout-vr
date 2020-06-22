@@ -199,7 +199,7 @@ glm::dvec4 PathTool::getInterpolatedPosBetweenTwoMarks(cs::core::tools::Deletabl
   glm::dvec3 interpolatedPos = p0 + (value * (p1 - p0));
 
   // Calc final position
-  glm::dvec2 ll     = cs::utils::convert::toLngLatHeight(interpolatedPos, radii).xy();
+  glm::dvec2 ll     = cs::utils::convert::cartesianToLngLat(interpolatedPos, radii);
   double     height = body->getHeight(ll) * scale;
   glm::dvec3 pos    = cs::utils::convert::toCartesian(ll, radii, height);
 
@@ -241,11 +241,11 @@ void PathTool::updateLineVertices() {
     averagePosition += mark->getAnchor()->getAnchorPosition() / static_cast<double>(mPoints.size());
   }
 
-  double h_scale      = mSettings->mGraphics.pHeightScale.get();
-  auto   radii        = cs::core::SolarSystem::getRadii(getCenterName());
-  auto   lngLatHeight = cs::utils::convert::toLngLatHeight(averagePosition, radii);
-  double height       = body ? body->getHeight(lngLatHeight.xy()) * h_scale : 0.0;
-  auto   center       = cs::utils::convert::toCartesian(lngLatHeight.xy(), radii, height);
+  double h_scale = mSettings->mGraphics.pHeightScale.get();
+  auto   radii   = cs::core::SolarSystem::getRadii(getCenterName());
+  auto   lngLat  = cs::utils::convert::cartesianToLngLat(averagePosition, radii);
+  double height  = body ? body->getHeight(lngLat) * h_scale : 0.0;
+  auto   center  = cs::utils::convert::toCartesian(lngLat, radii, height);
 
   mGuiAnchor->setAnchorPosition(center);
 

@@ -295,9 +295,8 @@ void Mark::initData(std::string const& sCenter, std::string const& sFrame) {
         if (pActive.get() && i.mObject) {
           auto body = std::dynamic_pointer_cast<cs::scene::CelestialBody>(i.mObject);
           if (body && body->getCenterName() == mAnchor->getCenterName()) {
-            auto radii        = body->getRadii();
-            auto lngLatHeight = cs::utils::convert::toLngLatHeight(i.mPosition, radii);
-            pLngLat           = lngLatHeight.xy();
+            auto radii = body->getRadii();
+            pLngLat    = cs::utils::convert::cartesianToLngLat(i.mPosition, radii);
           }
         }
       });

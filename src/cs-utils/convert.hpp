@@ -53,14 +53,17 @@ T toDegrees(T radians) {
   return static_cast<T>(radians * 180.0 / glm::pi<double>());
 }
 
-/// Transform cartesian (x,y,z) coordinates to geodetic (lng, lat, height above surface)
-/// coordinates.
-CS_UTILS_EXPORT glm::dvec3 toLngLatHeight(glm::dvec3 const& cartesian, glm::dvec3 const& radii);
-
 CS_UTILS_EXPORT glm::dvec3 scaleToGeocentricSurface(
     glm::dvec3 const& cartesian, glm::dvec3 const& radii);
 
 CS_UTILS_EXPORT glm::dvec3 scaleToGeodeticSurface(
+    glm::dvec3 const& cartesian, glm::dvec3 const& radii);
+
+/// Transform cartesian (x,y,z) coordinates to geodetic (lng, lat, height above surface)
+/// coordinates.
+CS_UTILS_EXPORT glm::dvec2 surfaceToLngLat(glm::dvec3 const& cartesian, glm::dvec3 const& radii);
+CS_UTILS_EXPORT glm::dvec2 cartesianToLngLat(glm::dvec3 const& cartesian, glm::dvec3 const& radii);
+CS_UTILS_EXPORT glm::dvec3 cartesianToLngLatHeight(
     glm::dvec3 const& cartesian, glm::dvec3 const& radii);
 
 /// Transform geodetic coordinates (lng, lat) LngLat and elevation height to cartesian (x,y,z)
@@ -72,9 +75,7 @@ CS_UTILS_EXPORT glm::dvec3 toCartesian(
 /// Returns the normal vector (unit length) to the ellipsoid with equatorial radius radiusE and
 /// polar radius radiusP at geodetic coordinates (lng, lat) LngLat.
 CS_UTILS_EXPORT glm::dvec3 lngLatToNormal(glm::dvec2 const& lngLat, glm::dvec3 const& radii);
-
-CS_UTILS_EXPORT glm::dvec3 surfacePosToNormal(
-    glm::dvec3 const& surfacePos, glm::dvec3 const& radii);
+CS_UTILS_EXPORT glm::dvec3 surfaceToNormal(glm::dvec3 const& cartesian, glm::dvec3 const& radii);
 CS_UTILS_EXPORT glm::dvec3 cartesianToNormal(glm::dvec3 const& cartesian, glm::dvec3 const& radii);
 
 /// Time in CosmoScout VR is passed around in different formats.

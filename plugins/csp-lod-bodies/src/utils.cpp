@@ -313,7 +313,7 @@ bool intersectPlanet(
                               (step / step_nr) * sampleDir[1], (step / step_nr) * sampleDir[2]);
 
         sampleLngLatHeight =
-            cs::utils::convert::toLngLatHeight(sampleCartesian, planet->getRadii());
+            cs::utils::convert::cartesianToLngLatHeight(sampleCartesian, planet->getRadii());
 
         // Calc correct HPix coordinate for child patch in relation to base batch
         int        base   = HEALPix::getBasePatch(parent->getTileId());

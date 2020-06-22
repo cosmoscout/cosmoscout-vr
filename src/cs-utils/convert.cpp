@@ -16,23 +16,8 @@ namespace cs::utils::convert {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-glm::dvec3 toLngLatHeight(glm::dvec3 const& cartesian, glm::dvec3 const& radii) {
-
-  auto   surfacePoint   = scaleToGeodeticSurface(cartesian, radii);
-  auto   dir            = cartesian - surfacePoint;
-  double height         = std::copysign(1.0, glm::dot(dir, cartesian)) * glm::length(dir);
-  auto   geodeticNormal = cartesianToNormal(surfacePoint, radii);
-
-  return glm::dvec3(
-      std::atan2(geodeticNormal.x, geodeticNormal.z), std::asin(geodeticNormal.y), height);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 glm::dvec3 scaleToGeocentricSurface(glm::dvec3 const& cartesian, glm::dvec3 const& radii) {
-  double beta = 1.0 / std::sqrt(cartesian.x * cartesian.x / (radii.x * radii.x) +
-                                cartesian.y * cartesian.y / (radii.y * radii.y) +
-                                cartesian.z * cartesian.z / (radii.z * radii.z));
+  double beta = 1.0 / std::sqrt(glm::dot(cartesian * cartesian, 1.0 / (radii * radii)));
   return cartesian * beta;
 }
 
@@ -57,12 +42,36 @@ glm::dvec3 scaleToGeodeticSurface(glm::dvec3 const& cartesian, glm::dvec3 const&
     alpha -= (s / dSdA);
 
     d    = glm::dvec3(1.0) + (alpha * oneOverRadii2);
-    s    = glm::dot(cartesian2, glm::dvec3(1.0) / (radii2 * d * d)) - 1.0;
-    dSdA = glm::dot(cartesian2, glm::dvec3(1.0) / (radii4 * d * d * d)) * -2.0;
+    s    = glm::dot(cartesian2, 1.0 / (radii2 * d * d)) - 1.0;
+    dSdA = glm::dot(cartesian2, 1.0 / (radii4 * d * d * d)) * -2.0;
 
   } while (std::abs(s) > 1e-10);
 
   return cartesian / d;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+glm::dvec2 surfaceToLngLat(glm::dvec3 const& cartesian, glm::dvec3 const& radii) {
+  auto geodeticNormal = cartesianToNormal(cartesian, radii);
+  return glm::dvec2(std::atan2(geodeticNormal.x, geodeticNormal.z), std::asin(geodeticNormal.y));
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+glm::dvec2 cartesianToLngLat(glm::dvec3 const& cartesian, glm::dvec3 const& radii) {
+  auto surfacePoint = scaleToGeodeticSurface(cartesian, radii);
+  return surfaceToLngLat(surfacePoint, radii);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+glm::dvec3 cartesianToLngLatHeight(glm::dvec3 const& cartesian, glm::dvec3 const& radii) {
+  auto   surfacePoint = scaleToGeodeticSurface(cartesian, radii);
+  auto   dir          = cartesian - surfacePoint;
+  double height       = std::copysign(1.0, glm::dot(dir, cartesian)) * glm::length(dir);
+
+  return glm::dvec3(surfaceToLngLat(surfacePoint, radii), height);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -86,15 +95,15 @@ glm::dvec3 lngLatToNormal(glm::dvec2 const& lngLat, glm::dvec3 const& radii) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-glm::dvec3 surfacePosToNormal(glm::dvec3 const& surfacePos, glm::dvec3 const& radii) {
+glm::dvec3 surfaceToNormal(glm::dvec3 const& cartesian, glm::dvec3 const& radii) {
   auto radii2        = radii * radii;
   auto oneOverRadii2 = 1.0 / radii2;
-  return glm::normalize(surfacePos * oneOverRadii2);
+  return glm::normalize(cartesian * oneOverRadii2);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 glm::dvec3 cartesianToNormal(glm::dvec3 const& cartesian, glm::dvec3 const& radii) {
-  return surfacePosToNormal(scaleToGeodeticSurface(cartesian, radii), radii);
+  return surfaceToNormal(scaleToGeodeticSurface(cartesian, radii), radii);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

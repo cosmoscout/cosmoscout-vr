@@ -73,7 +73,7 @@ void MultiPointTool::addPoint(std::optional<glm::dvec2> const& lngLat) {
 
       if (body) {
         auto       radii = body->getRadii();
-        glm::dvec2 pos   = cs::utils::convert::toLngLatHeight(intersection.mPosition, radii).xy();
+        glm::dvec2 pos   = cs::utils::convert::cartesianToLngLat(intersection.mPosition, radii);
         mPoints.back()->pLngLat = pos;
       }
     }
@@ -128,7 +128,7 @@ void MultiPointTool::update() {
       if (body) {
         auto radii = body->getRadii();
         mPoints.back()->pLngLat =
-            cs::utils::convert::toLngLatHeight(intersection.mPosition, radii).xy();
+            cs::utils::convert::cartesianToLngLat(intersection.mPosition, radii);
       }
     }
   }

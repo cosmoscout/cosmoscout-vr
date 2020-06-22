@@ -105,7 +105,7 @@ EllipseTool::EllipseTool(std::shared_ptr<cs::core::InputManager> const& pInputMa
 
     if (mFirstUpdate) {
       for (int i(0); i < 2; ++i) {
-        glm::dvec2 lngLat2 = cs::utils::convert::toLngLatHeight(center + mAxes.at(i), radii).xy();
+        glm::dvec2 lngLat2 = cs::utils::convert::cartesianToLngLat(center + mAxes.at(i), radii);
 
         mHandles.at(i)->pLngLat.setWithEmitForAllButOne(lngLat2, mHandleConnections.at(i));
       }
@@ -249,13 +249,13 @@ void EllipseTool::calculateVertices() {
     double x   = std::sin(phi);
     double y   = std::cos(phi);
 
-    glm::dvec3 absPosition  = center + x * mAxes[0] + y * mAxes[1];
-    glm::dvec3 lngLatHeight = cs::utils::convert::toLngLatHeight(absPosition, radii);
+    glm::dvec3 absPosition = center + x * mAxes[0] + y * mAxes[1];
+    glm::dvec2 lngLat      = cs::utils::convert::cartesianToLngLat(absPosition, radii);
 
-    double height = mSolarSystem->getBody(mCenterHandle.getAnchor()->getCenterName())
-                        ->getHeight(lngLatHeight.xy());
+    double height =
+        mSolarSystem->getBody(mCenterHandle.getAnchor()->getCenterName())->getHeight(lngLat);
     height *= mSettings->mGraphics.pHeightScale.get();
-    absPosition = cs::utils::convert::toCartesian(lngLatHeight.xy(), radii, height);
+    absPosition = cs::utils::convert::toCartesian(lngLat, radii, height);
 
     vRelativePositions[i] = absPosition - center;
   }

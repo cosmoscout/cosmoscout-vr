@@ -235,7 +235,7 @@ glm::dvec4 PolygonTool::getInterpolatedPosBetweenTwoMarks(cs::core::tools::Delet
   glm::dvec3 interpolatedPos = p0 + (value * (p1 - p0));
 
   // Calculates final position
-  glm::dvec2 ll     = cs::utils::convert::toLngLatHeight(interpolatedPos, radii).xy();
+  glm::dvec2 ll     = cs::utils::convert::cartesianToLngLat(interpolatedPos, radii);
   double     height = mSolarSystem->pActiveBody.get()->getHeight(ll) * h_scale;
   glm::dvec3 pos    = cs::utils::convert::toCartesian(ll, radii, height);
   return glm::dvec4(pos, height);
@@ -674,8 +674,8 @@ void PolygonTool::displayMesh(Edge2 const& edge, double mdist, glm::dvec3 const&
       radii[0];
 
   // LongLat coordinates
-  glm::dvec3 l1 = cs::utils::convert::toLngLatHeight(p1, radii);
-  glm::dvec3 l2 = cs::utils::convert::toLngLatHeight(p2, radii);
+  glm::dvec2 l1 = cs::utils::convert::cartesianToLngLat(p1, radii);
+  glm::dvec2 l2 = cs::utils::convert::cartesianToLngLat(p2, radii);
 
   // Heights of the points
   h1 = mSolarSystem->pActiveBody.get()->getHeight(l1.xy());
@@ -704,7 +704,7 @@ void PolygonTool::refineMesh(Edge2 const& edge, double mdist, glm::dvec3 const& 
 
   // Heights of the points over see level
   double hAvg = mSolarSystem->pActiveBody.get()->getHeight(
-      cs::utils::convert::toLngLatHeight(pAvg, radii).xy());
+      cs::utils::convert::cartesianToLngLat(pAvg, radii));
 
   // Checks height of the middle point
   if ((hAvg / ((h1 + h2) / 2) > mHeightDiff) || (((h1 + h2) / 2) / hAvg > mHeightDiff)) {
@@ -728,7 +728,7 @@ void PolygonTool::refineMesh(Edge2 const& edge, double mdist, glm::dvec3 const& 
               radii[0];
           // Height of the point
           double heAvg3 = mSolarSystem->pActiveBody.get()->getHeight(
-              cs::utils::convert::toLngLatHeight(cAvg3, radii).xy());
+              cs::utils::convert::cartesianToLngLat(cAvg3, radii));
 
           if ((heAvg3 / ((i * h1 + (j - i) * h2) / j) > mHeightDiff) ||
               (((i * h1 + (j - i) * h2) / j) / heAvg3 > mHeightDiff)) {
@@ -764,14 +764,14 @@ void PolygonTool::calculateAreaAndVolume(std::vector<Triangle> const& triangles,
         glm::normalize(mMiddlePoint + mdist * si3.mX * e + mdist * si3.mY * n) * radii[0];
 
     // LongLat coordinates
-    glm::dvec3 l1 = cs::utils::convert::toLngLatHeight(p1, radii);
-    glm::dvec3 l2 = cs::utils::convert::toLngLatHeight(p2, radii);
-    glm::dvec3 l3 = cs::utils::convert::toLngLatHeight(p3, radii);
+    glm::dvec2 l1 = cs::utils::convert::cartesianToLngLat(p1, radii);
+    glm::dvec2 l2 = cs::utils::convert::cartesianToLngLat(p2, radii);
+    glm::dvec2 l3 = cs::utils::convert::cartesianToLngLat(p3, radii);
 
     // Heights of the points
-    double h1 = mSolarSystem->pActiveBody.get()->getHeight(l1.xy());
-    double h2 = mSolarSystem->pActiveBody.get()->getHeight(l2.xy());
-    double h3 = mSolarSystem->pActiveBody.get()->getHeight(l3.xy());
+    double h1 = mSolarSystem->pActiveBody.get()->getHeight(l1);
+    double h2 = mSolarSystem->pActiveBody.get()->getHeight(l2);
+    double h3 = mSolarSystem->pActiveBody.get()->getHeight(l3);
 
     // Cartesian coordinates with height
     glm::dvec3 r1 = cs::utils::convert::toCartesian(l1, radii, h1);
@@ -818,7 +818,7 @@ void PolygonTool::calculateAreaAndVolume(std::vector<Triangle> const& triangles,
       auto   pM3    = glm::dvec3(0.0);
       auto   pM     = glm::dvec3(0.0);
       auto   pMOld  = glm::dvec3(0.0);
-      auto   lM     = glm::dvec3(0.0);
+      auto   lM     = glm::dvec2(0.0);
       double hM     = 0;
       double hlM    = 0;
       double hlMOld = 0;
@@ -841,9 +841,9 @@ void PolygonTool::calculateAreaAndVolume(std::vector<Triangle> const& triangles,
           pM = glm::normalize((1 - frac) * p1 + frac * p2) * radii[0];
 
           // LongLat
-          lM = cs::utils::convert::toLngLatHeight(pM, radii);
+          lM = cs::utils::convert::cartesianToLngLat(pM, radii);
           // Height
-          hM = mSolarSystem->pActiveBody.get()->getHeight(lM.xy());
+          hM = mSolarSystem->pActiveBody.get()->getHeight(lM);
           // Height over least square plane
           hlM = hM - (glm::dot(mNormal2, mMiddlePoint2) / glm::dot(mNormal2, pM) - 1) *
                          glm::length(mMiddlePoint2);
@@ -866,8 +866,8 @@ void PolygonTool::calculateAreaAndVolume(std::vector<Triangle> const& triangles,
         for (int i = 0; i < res; i++) {
           frac = static_cast<double>(i) / res;
           pM   = glm::normalize((1 - frac) * p1 + frac * p3) * radii[0];
-          lM   = cs::utils::convert::toLngLatHeight(pM, radii);
-          hM   = mSolarSystem->pActiveBody.get()->getHeight(lM.xy());
+          lM   = cs::utils::convert::cartesianToLngLat(pM, radii);
+          hM   = mSolarSystem->pActiveBody.get()->getHeight(lM);
           hlM  = hM - (glm::dot(mNormal2, mMiddlePoint2) / glm::dot(mNormal2, pM) - 1) *
                          glm::length(mMiddlePoint2);
           if ((hl1 > 0) != (hlM > 0)) {
@@ -885,8 +885,8 @@ void PolygonTool::calculateAreaAndVolume(std::vector<Triangle> const& triangles,
         for (int i = 0; i < res; i++) {
           frac = static_cast<double>(i) / res;
           pM   = glm::normalize((1 - frac) * p2 + frac * p3) * radii[0];
-          lM   = cs::utils::convert::toLngLatHeight(pM, radii);
-          hM   = mSolarSystem->pActiveBody.get()->getHeight(lM.xy());
+          lM   = cs::utils::convert::cartesianToLngLat(pM, radii);
+          hM   = mSolarSystem->pActiveBody.get()->getHeight(lM);
           hlM  = hM - (glm::dot(mNormal2, mMiddlePoint2) / glm::dot(mNormal2, pM) - 1) *
                          glm::length(mMiddlePoint2);
           if ((hl2 > 0) != (hlM > 0)) {
@@ -1017,10 +1017,10 @@ void PolygonTool::updateLineVertices() {
 
   auto radii = mSolarSystem->getRadii(mGuiAnchor->getCenterName());
 
-  auto   lngLatHeight = cs::utils::convert::toLngLatHeight(averagePosition, radii);
-  double height = mSolarSystem->getBody(mGuiAnchor->getCenterName())->getHeight(lngLatHeight.xy());
+  auto   lngLat = cs::utils::convert::cartesianToLngLat(averagePosition, radii);
+  double height = mSolarSystem->getBody(mGuiAnchor->getCenterName())->getHeight(lngLat);
   height *= mSettings->mGraphics.pHeightScale.get();
-  auto center = cs::utils::convert::toCartesian(lngLatHeight.xy(), radii, height);
+  auto center = cs::utils::convert::toCartesian(lngLat, radii, height);
   mGuiAnchor->setAnchorPosition(center);
 
   // This seems to be the first time the tool is moved, so we have to store the distance to the
@@ -1124,9 +1124,9 @@ void PolygonTool::updateCalculation() {
   for (auto const& mark : mPoints) {
     glm::dvec3 pos = glm::normalize(mark->getAnchor()->getAnchorPosition()) * radii[0];
     // LongLat coordinate
-    glm::dvec3 l = cs::utils::convert::toLngLatHeight(pos, radii);
+    glm::dvec2 l = cs::utils::convert::cartesianToLngLat(pos, radii);
     // Height of the point
-    double h = mSolarSystem->pActiveBody.get()->getHeight(l.xy());
+    double h = mSolarSystem->pActiveBody.get()->getHeight(l);
     // Cartesian coordinate with height
     glm::dvec3 posNorm = cs::utils::convert::toCartesian(l, radii, h);
 
@@ -1187,8 +1187,8 @@ void PolygonTool::updateCalculation() {
 
   for (auto const& p : mPoints) {
     glm::dvec3 pos     = glm::normalize(p->getAnchor()->getAnchorPosition()) * radii[0];
-    glm::dvec3 l       = cs::utils::convert::toLngLatHeight(pos, radii);
-    double     h       = mSolarSystem->pActiveBody.get()->getHeight(l.xy());
+    glm::dvec2 l       = cs::utils::convert::cartesianToLngLat(pos, radii);
+    double     h       = mSolarSystem->pActiveBody.get()->getHeight(l);
     glm::dvec3 posNorm = cs::utils::convert::toCartesian(l, radii, h);
 
     glm::dvec3 realtivePosition = posNorm - averagePositionNorm;

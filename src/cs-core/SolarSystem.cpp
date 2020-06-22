@@ -280,8 +280,9 @@ void SolarSystem::updateSceneScale() {
 
     // First we calculate the *real* world-space distance to the planet (incorporating surface
     // elevation).
-    auto   radii        = closestBody->getRadii();
-    auto   lngLatHeight = cs::utils::convert::toLngLatHeight(vClosestPlanetObserverPosition, radii);
+    auto radii = closestBody->getRadii();
+    auto lngLatHeight =
+        cs::utils::convert::cartesianToLngLatHeight(vClosestPlanetObserverPosition, radii);
     double dRealDistance = lngLatHeight.z - closestBody->getHeight(lngLatHeight.xy()) *
                                                 mSettings->mGraphics.pHeightScale.get();
 
@@ -607,8 +608,8 @@ void SolarSystem::turnToObserver(scene::CelestialAnchor& anchor,
 
   if (upIsNormal) {
     auto radii  = getRadii(anchor.getCenterName());
-    auto lngLat = cs::utils::convert::toLngLatHeight(anchor.getAnchorPosition(), radii);
-    y           = cs::utils::convert::lngLatToNormal(lngLat.xy(), radii);
+    auto lngLat = cs::utils::convert::cartesianToLngLat(anchor.getAnchorPosition(), radii);
+    y           = cs::utils::convert::lngLatToNormal(lngLat, radii);
   }
 
   glm::dvec3 z = glm::cross(y, camDir);
@@ -646,8 +647,8 @@ glm::dvec3 SolarSystem::getRadii(std::string const& sCenterName) {
     throw std::runtime_error("Failed to retrieve radii for object " + sCenterName + ".");
   }
 
-  result.y *= 0.8;
-  result.x *= 2.0;
+  result.y *= 0.5;
+  result.x *= 1.0;
 
   return result;
 }

@@ -275,7 +275,7 @@ void DipStrikeTool::calculateDipAndStrike() {
   for (auto const& mark : mPoints) {
     // LongLat coordinate
     glm::dvec2 l =
-        cs::utils::convert::toLngLatHeight(mark->getAnchor()->getAnchorPosition(), radii).xy();
+        cs::utils::convert::cartesianToLngLat(mark->getAnchor()->getAnchorPosition(), radii);
     // Height of the point
     double h = body ? body->getHeight(l) : 0.0;
     // Cartesian coordinate with height
@@ -308,7 +308,7 @@ void DipStrikeTool::calculateDipAndStrike() {
 
   for (auto const& p : mPoints) {
     glm::dvec2 l =
-        cs::utils::convert::toLngLatHeight(p->getAnchor()->getAnchorPosition(), radii).xy();
+        cs::utils::convert::cartesianToLngLat(p->getAnchor()->getAnchorPosition(), radii);
     double     h       = body ? body->getHeight(l) : 0.0;
     glm::dvec3 posNorm = cs::utils::convert::toCartesian(l, radii, h);
 
