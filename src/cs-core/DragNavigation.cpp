@@ -188,13 +188,17 @@ void DragNavigation::update() {
 
         // reduce rotation speed close to planet
         if (!mDraggingPlanet && !mLocalRotation) {
+          double fac = 0.5;
           auto radii = cs::core::SolarSystem::getRadii(mSolarSystem->getObserver().getCenterName());
-          auto surfacePos = utils::convert::scaleToGeodeticSurface(observerPos, radii);
-          auto distance   = observerPos - surfacePos;
+          if (radii[0] > 0) {
+            auto surfacePos = utils::convert::scaleToGeodeticSurface(observerPos, radii);
+            auto distance   = observerPos - surfacePos;
+            fac             = glm::length(distance) / glm::length(surfacePos);
+          }
 
           // some magic numbers here to achieve 'good' dragging speeds
           // regardless of the surface distance when 'grabbing the sky'
-          double fac = glm::clamp(glm::length(distance) / glm::length(surfacePos), 0.0001, 0.5);
+          fac = glm::clamp(fac, 0.0001, 0.5);
           targetAngle *= fac * 4;
         }
 
