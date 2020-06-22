@@ -40,68 +40,39 @@ glm::dvec3 scaleToGeocentricSurface(glm::dvec3 const& cartesian, glm::dvec3 cons
 
 glm::dvec3 scaleToGeodeticSurface(glm::dvec3 const& cartesian, glm::dvec3 const& radii) {
 
-  auto radiiSquared        = radii * radii;
-  auto oneOverRadiiSquared = 1.0 / radiiSquared;
-  auto radiiToTheFourth    = radiiSquared * radiiSquared;
+  auto radii2        = radii * radii;
+  auto radii4        = radii2 * radii2;
+  auto oneOverRadii2 = 1.0 / radii2;
+  auto cartesian2    = cartesian * cartesian;
 
-  double beta = 1.0 / std::sqrt((cartesian.x * cartesian.x) * oneOverRadiiSquared.x +
-                                (cartesian.y * cartesian.y) * oneOverRadiiSquared.y +
-                                (cartesian.z * cartesian.z) * oneOverRadiiSquared.z);
-
-  double n = glm::length(beta * cartesian * oneOverRadiiSquared);
-
+  double beta  = 1.0 / std::sqrt(glm::dot(cartesian2, oneOverRadii2));
+  double n     = glm::length(beta * cartesian * oneOverRadii2);
   double alpha = (1.0 - beta) * (glm::length(cartesian) / n);
+  double s     = 0.0;
+  double dSdA  = 1.0;
 
-  double x2 = cartesian.x * cartesian.x;
-  double y2 = cartesian.y * cartesian.y;
-  double z2 = cartesian.z * cartesian.z;
-
-  double da = 0.0;
-  double db = 0.0;
-  double dc = 0.0;
-
-  double s    = 0.0;
-  double dSdA = 1.0;
+  glm::dvec3 d;
 
   do {
     alpha -= (s / dSdA);
 
-    da = 1.0 + (alpha * oneOverRadiiSquared.x);
-    db = 1.0 + (alpha * oneOverRadiiSquared.y);
-    dc = 1.0 + (alpha * oneOverRadiiSquared.z);
-
-    double da2 = da * da;
-    double db2 = db * db;
-    double dc2 = dc * dc;
-
-    double da3 = da * da2;
-    double db3 = db * db2;
-    double dc3 = dc * dc2;
-
-    s = x2 / (radiiSquared.x * da2) + y2 / (radiiSquared.y * db2) + z2 / (radiiSquared.z * dc2) -
-        1.0;
-
-    dSdA = -2.0 * (x2 / (radiiToTheFourth.x * da3) + y2 / (radiiToTheFourth.y * db3) +
-                      z2 / (radiiToTheFourth.z * dc3));
+    d    = glm::dvec3(1.0) + (alpha * oneOverRadii2);
+    s    = glm::dot(cartesian2, glm::dvec3(1.0) / (radii2 * d * d)) - 1.0;
+    dSdA = glm::dot(cartesian2, glm::dvec3(1.0) / (radii4 * d * d * d)) * -2.0;
 
   } while (std::abs(s) > 1e-10);
 
-  return glm::dvec3(cartesian.x / da, cartesian.y / db, cartesian.z / dc);
+  return cartesian / d;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 glm::dvec3 toCartesian(glm::dvec2 const& lngLat, glm::dvec3 const& radii, double height) {
 
-  auto normal = lngLatToNormal(lngLat, radii);
-  auto rX2    = radii.x * radii.x;
-  auto rY2    = radii.y * radii.y;
-  auto rZ2    = radii.z * radii.z;
-
-  double gamma =
-      std::sqrt(rX2 * normal.x * normal.x + rY2 * normal.y * normal.y + rZ2 * normal.z * normal.z);
-
-  auto point = glm::dvec3(rX2 * normal.x, rY2 * normal.y, rZ2 * normal.z) / gamma;
+  auto normal  = lngLatToNormal(lngLat, radii);
+  auto normal2 = normal * normal;
+  auto radii2  = radii * radii;
+  auto point   = (radii2 * normal) / std::sqrt(glm::dot(radii2, normal2));
 
   return point + normal * height;
 }
@@ -116,9 +87,9 @@ glm::dvec3 lngLatToNormal(glm::dvec2 const& lngLat, glm::dvec3 const& radii) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 glm::dvec3 surfacePosToNormal(glm::dvec3 const& surfacePos, glm::dvec3 const& radii) {
-  auto radiiSquared        = radii * radii;
-  auto oneOverRadiiSquared = 1.0 / radiiSquared;
-  return glm::normalize(surfacePos * oneOverRadiiSquared);
+  auto radii2        = radii * radii;
+  auto oneOverRadii2 = 1.0 / radii2;
+  return glm::normalize(surfacePos * oneOverRadii2);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
