@@ -647,9 +647,6 @@ glm::dvec3 SolarSystem::getRadii(std::string const& sCenterName) {
     throw std::runtime_error("Failed to retrieve radii for object " + sCenterName + ".");
   }
 
-  result.y *= 0.5;
-  result.x *= 1.0;
-
   return result;
 }
 
