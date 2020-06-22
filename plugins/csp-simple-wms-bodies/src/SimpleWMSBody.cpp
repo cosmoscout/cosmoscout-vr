@@ -285,7 +285,7 @@ bool SimpleWMSBody::Do() {
   cs::utils::FrameTimings::ScopedTimer timer("Simple WMS Bodies");
 
   if (mActiveWMS && mActiveWMS->mTime.has_value()) {
-	// Get the current time. Pre-fetch times are related to this.
+    // Get the current time. Pre-fetch times are related to this.
     boost::posix_time::ptime time =
         cs::utils::convert::time::toPosix(mTimeControl->pSimulationTime.get());
 
@@ -294,13 +294,14 @@ bool SimpleWMSBody::Do() {
     for (int preFetch = -mActiveWMS->mPrefetchCount.value_or(0);
          preFetch <= mActiveWMS->mPrefetchCount.value_or(0); preFetch++) {
 
-	  // Get the start time of the WMS sample.
-	  boost::posix_time::ptime sampleStartTime =
-              utils::addDurationToTime(time, mSampleDuration, preFetch);
-	  sampleStartTime -= boost::posix_time::microseconds(time.time_of_day().fractional_seconds());
-      bool inInterval = utils::timeInIntervals(sampleStartTime, mTimeIntervals, mSampleDuration, mFormat);
+      // Get the start time of the WMS sample.
+      boost::posix_time::ptime sampleStartTime =
+          utils::addDurationToTime(time, mSampleDuration, preFetch);
+      sampleStartTime -= boost::posix_time::microseconds(time.time_of_day().fractional_seconds());
+      bool inInterval =
+          utils::timeInIntervals(sampleStartTime, mTimeIntervals, mSampleDuration, mFormat);
 
-	  // Create identifier for the sample start time.
+      // Create identifier for the sample start time.
       std::string timeString = utils::timeToString(mFormat.c_str(), sampleStartTime);
 
       // Select a WMS texture over the period of timeDuration if timespan is enabled.
@@ -310,10 +311,10 @@ bool SimpleWMSBody::Do() {
         bool isAfterInInterval =
             utils::timeInIntervals(sampleAfter, mTimeIntervals, mSampleDuration, mFormat);
 
-		// Select timespan only when the sample after is also in the intervals.
-		if (isAfterInInterval) {
+        // Select timespan only when the sample after is also in the intervals.
+        if (isAfterInInterval) {
           timeString += "/" + utils::timeToString(mFormat.c_str(), sampleAfter);
-		}
+        }
       }
 
       auto texture1 = mTextureFilesBuffer.find(timeString);
@@ -369,16 +370,17 @@ bool SimpleWMSBody::Do() {
       }
     }
 
-	// Get the current time.
+    // Get the current time.
     time = cs::utils::convert::time::toPosix(mTimeControl->pSimulationTime.get());
-    boost::posix_time::ptime         sampleStartTime =
+    boost::posix_time::ptime sampleStartTime =
         time - boost::posix_time::microseconds(time.time_of_day().fractional_seconds());
-    bool inInterval = utils::timeInIntervals(sampleStartTime, mTimeIntervals, mSampleDuration, mFormat);
+    bool inInterval =
+        utils::timeInIntervals(sampleStartTime, mTimeIntervals, mSampleDuration, mFormat);
 
-	// Create identifier for the sample start time.
+    // Create identifier for the sample start time.
     std::string timeString = utils::timeToString(mFormat.c_str(), sampleStartTime);
 
-	// Select a WMS texture over the period of timeDuration if timespan is enabled.
+    // Select a WMS texture over the period of timeDuration if timespan is enabled.
     if (mPluginSettings->mEnableTimespan.get() && mSampleDuration.isDuration()) {
       boost::posix_time::ptime sampleAfter =
           utils::addDurationToTime(sampleStartTime, mSampleDuration);
@@ -391,7 +393,7 @@ bool SimpleWMSBody::Do() {
       }
     }
 
-	// Find the current texture.
+    // Find the current texture.
     auto tex = mTextures.find(timeString);
 
     // Use Wms texture inside the interval.
@@ -414,13 +416,13 @@ bool SimpleWMSBody::Do() {
       mCurrentSecondTexture = "";
     } // Create fading between Wms textures when interpolation is enabled.
     else {
-	  boost::posix_time::ptime sampleAfter =
+      boost::posix_time::ptime sampleAfter =
           utils::addDurationToTime(sampleStartTime, mSampleDuration);
       bool isAfterInInterval =
           utils::timeInIntervals(sampleAfter, mTimeIntervals, mSampleDuration, mFormat);
 
-	  // Find texture for the following sample.
-	  tex = mTextures.find(utils::timeToString(mFormat.c_str(), sampleAfter));
+      // Find texture for the following sample.
+      tex = mTextures.find(utils::timeToString(mFormat.c_str(), sampleAfter));
 
       if (tex != mTextures.end()) {
         // Only update if we ha a new second texture.

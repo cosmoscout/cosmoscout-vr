@@ -26,10 +26,10 @@ struct Duration {
 
 /// Struct of timeintervals of the data set.
 struct TimeInterval {
-  boost::posix_time::ptime mStartTime;        ///< The beginning of the interval.
-  boost::posix_time::ptime mEndTime;          ///< The end of the interval.
-  std::string              mFormat;           ///< The string format of time values.
-  Duration                 mSampleDuration;   ///< The duration of one sample in WMS interval.
+  boost::posix_time::ptime mStartTime;      ///< The beginning of the interval.
+  boost::posix_time::ptime mEndTime;        ///< The end of the interval.
+  std::string              mFormat;         ///< The string format of time values.
+  Duration                 mSampleDuration; ///< The duration of one sample in WMS interval.
 };
 
 namespace utils {
