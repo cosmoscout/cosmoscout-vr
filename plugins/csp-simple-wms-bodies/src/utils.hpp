@@ -14,12 +14,22 @@
 
 namespace csp::simplewmsbodies {
 
+/// Struct for the duration of the WMS time step.
+///	Ideally only one of the members should be non-zero.
+struct Duration {
+  int                              mYears        = 0;
+  int                              mMonths       = 0;
+  boost::posix_time::time_duration mTimeDuration = boost::posix_time::seconds(0);
+
+  bool isDuration() const;
+};
+
 /// Struct of timeintervals of the data set.
 struct TimeInterval {
   boost::posix_time::ptime mStartTime;        ///< The beginning of the interval.
   boost::posix_time::ptime mEndTime;          ///< The end of the interval.
   std::string              mFormat;           ///< The string format of time values.
-  int                      mIntervalDuration; ///< The duration of the interval in seconds.
+  Duration                 mSampleDuration;   ///< The duration of one sample in WMS interval.
 };
 
 namespace utils {
@@ -28,10 +38,10 @@ namespace utils {
 std::string timeToString(std::string const& format, boost::posix_time::ptime time);
 
 /// Match years, months, days, etc. in regex input string and calculate duration.
-void matchDuration(std::string const& input, std::regex const& re, int& duration);
+void matchDuration(std::string const& input, std::regex const& re, Duration& duration);
 
 /// Determine time format and interval duration from string regex.
-void timeDuration(std::string const& isoString, int& duration, std::string& format);
+void timeDuration(std::string const& isoString, Duration& duration, std::string& format);
 
 /// Convert date from string to time.
 void convertIsoDate(std::string& date, boost::posix_time::ptime& time);
@@ -40,8 +50,15 @@ void convertIsoDate(std::string& date, boost::posix_time::ptime& time);
 void parseIsoString(std::string const& isoString, std::vector<TimeInterval>& timeIntervals);
 
 /// Check whether the given time is inside one of the time intervals.
-bool timeInIntervals(boost::posix_time::ptime time, std::vector<TimeInterval>& timeIntervals,
-    boost::posix_time::time_duration& timeSinceStart, int& intervalDuration, std::string& format);
+/// Then calculate the start time of the current sample if it is in the interval.
+bool timeInIntervals(boost::posix_time::ptime& time, std::vector<TimeInterval>& timeIntervals,
+    Duration& sampleDuration, std::string& format);
+
+/// Adds the interval duration to the given time.
+/// The duration can be either in years, months or in time_duration.
+/// Adds the interval multiple times, if it is specified (for e.g. for pre-fetch).
+boost::posix_time::ptime addDurationToTime(
+    boost::posix_time::ptime time, Duration duration, int multiplier = 1);
 
 } // namespace utils
 

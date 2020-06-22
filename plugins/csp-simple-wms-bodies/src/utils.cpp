@@ -9,7 +9,17 @@
 #include "../../../src/cs-utils/logger.hpp"
 #include "../../../src/cs-utils/utils.hpp"
 
-namespace csp::simplewmsbodies::utils {
+namespace csp::simplewmsbodies {
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool Duration::isDuration() const {
+  return mYears + mMonths + mTimeDuration.total_seconds() != 0;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+namespace utils {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -25,7 +35,7 @@ std::string timeToString(std::string const& format, boost::posix_time::ptime tim
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void matchDuration(std::string const& input, std::regex const& re, int& duration) {
+void matchDuration(std::string const& input, std::regex const& re, Duration& duration) {
   std::smatch match;
   std::regex_search(input, match, re);
 
@@ -44,14 +54,14 @@ void matchDuration(std::string const& input, std::regex const& re, int& duration
     }
   }
 
-  duration = 31556926 * vec[0] + // years
-             2629744 * vec[1] +  // months
-             86400 * vec[2] +    // days
-             3600 * vec[3] +     // hours
-             60 * vec[4] +       // minutes
-             1 * vec[5];         // seconds
+  duration.mYears = vec[0];                                        // years
+  duration.mMonths = vec[1];                                       // months
+  duration.mTimeDuration = boost::posix_time::hours(24 * vec[2]) + // days
+                           boost::posix_time::hours(vec[3]) +      // hours
+	                       boost::posix_time::minutes(vec[4]) +    // minutes
+                           boost::posix_time::seconds(vec[5]);     // seconds
 
-  if (duration == 0) {
+  if (!duration.isDuration()) {
     spdlog::debug("Input is not valid!");
     return;
   }
@@ -59,9 +69,8 @@ void matchDuration(std::string const& input, std::regex const& re, int& duration
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void timeDuration(std::string const& isoString, int& duration, std::string& format) {
+void timeDuration(std::string const& isoString, Duration& duration, std::string& format) {
   std::regex rshort("^((?!T).)*$");
-  duration = 0;
   format   = "";
 
   // Check if isoString matches rshort.
@@ -75,13 +84,13 @@ void timeDuration(std::string const& isoString, int& duration, std::string& form
     matchDuration(isoString, r, duration);
   }
 
-  // Create string format based on interval duration (day / month / year / time).
-  if (duration % 86400 == 0) {
-    format = "%Y-%m-%d";
-  } else if (duration % 2629744 == 0) {
-    format = "%Y-%m-01";
-  } else if (duration % 31556926 == 0) {
+  // Create string format based on the sample duration (year / month / day / time).
+  if (duration.mYears != 0) {
     format = "%Y-01-01";
+  } else if (duration.mMonths != 0) {
+    format = "%Y-%m-01";
+  } else if (duration.mTimeDuration.total_seconds() % 86400 == 0) {
+    format = "%Y-%m-%d";
   } else {
     format = "%Y-%m-%dT%H:%MZ";
   }
@@ -129,10 +138,9 @@ void parseIsoString(std::string const& isoString, std::vector<TimeInterval>& tim
     // If there is no end date, just a single timestep.
     if (endDate == "") {
       end                   = start;
-      tmp.mIntervalDuration = 0;
       tmp.mFormat           = "%Y-%m-%dT%H:%M:%SZ";
     } else {
-      timeDuration(duration, tmp.mIntervalDuration, tmp.mFormat);
+      timeDuration(duration, tmp.mSampleDuration, tmp.mFormat);
 
       // If end date is set to currect, select it according to the time format.
       if (endDate == "current") {
@@ -159,16 +167,55 @@ void parseIsoString(std::string const& isoString, std::vector<TimeInterval>& tim
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool timeInIntervals(boost::posix_time::ptime time, std::vector<TimeInterval>& timeIntervals,
-    boost::posix_time::time_duration& timeSinceStart, int& intervalDuration, std::string& format) {
+bool timeInIntervals(boost::posix_time::ptime& time, std::vector<TimeInterval>& timeIntervals,
+    Duration& sampleDuration, std::string& format) {
   // Check each interval whether the given time is inside or not..
   for (auto const& interval : timeIntervals) {
-    boost::posix_time::time_duration td = boost::posix_time::seconds(interval.mIntervalDuration);
+    // In order to check if there is data for the current time, the length of the WMS interval 
+	// (duration of one sample) is added to the current interval. 
+	boost::posix_time::ptime intervalEndTime =
+        addDurationToTime(interval.mEndTime, interval.mSampleDuration);
 
-    if (interval.mStartTime <= time && interval.mEndTime + td >= time) {
-      timeSinceStart   = time - interval.mStartTime;
-      intervalDuration = interval.mIntervalDuration;
-      format           = interval.mFormat;
+	// Sample time of the current time is inside the time interval.
+    if (interval.mStartTime <= time && intervalEndTime >= time) {
+
+	  // Find the last sample time before the current time.
+	  if (interval.mSampleDuration.mYears != 0) {
+        // Sample rate is in years.
+
+		// Substract years when sample rate is more than one year.
+        int year = time.date().year() - ((time.date().year() - interval.mStartTime.date().year()) %
+                                            interval.mSampleDuration.mYears);
+
+		// Construct a new time for sample start time.
+		time = boost::posix_time::ptime(boost::gregorian::date(year, 1, 1));
+	  } else if (interval.mSampleDuration.mMonths != 0) {
+        // Sample rate is in months.
+
+		// Substract months when sample rate is more than one month.
+        int month =
+            time.date().month() - ((time.date().month() - interval.mStartTime.date().month()) %
+                                      interval.mSampleDuration.mMonths);
+        int year = time.date().year();
+
+		// When month is in the previous year.
+		if (month > time.date().month()) {
+          year -= 1;
+		}
+
+		// Construct a new time for sample start time.
+		time = boost::posix_time::ptime(boost::gregorian::date(year, month, 1));
+	  } else {
+	    // Sample rate is in days or time.
+
+		// Necessary when sample rate is more than 1 day.
+        time -= boost::posix_time::seconds((time - interval.mStartTime).total_seconds() %
+                                 interval.mSampleDuration.mTimeDuration.total_seconds());
+	  }
+
+      sampleDuration = interval.mSampleDuration;
+      format         = interval.mFormat;
+
       return true;
     }
   }
@@ -179,4 +226,21 @@ bool timeInIntervals(boost::posix_time::ptime time, std::vector<TimeInterval>& t
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-} // namespace csp::simplewmsbodies::utils
+boost::posix_time::ptime addDurationToTime(
+    boost::posix_time::ptime time, Duration duration, int multiplier) {
+
+  // Check which unit the interval contatins.
+  if (duration.mYears != 0) {
+    return time + boost::gregorian::years(multiplier * duration.mYears);
+  } else if (duration.mMonths != 0) {
+    return time + boost::gregorian::months(multiplier * duration.mMonths);
+  } else {
+    return time + duration.mTimeDuration * multiplier;
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+} // namespace utils
+
+} // namespace csp::simplewmsbodies

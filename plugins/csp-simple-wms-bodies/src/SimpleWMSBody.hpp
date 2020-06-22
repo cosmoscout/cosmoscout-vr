@@ -96,7 +96,7 @@ class SimpleWMSBody : public cs::scene::CelestialBody, public IVistaOpenGLDraw {
   float       mFade;                                ///< Fading value between WMS textures.
   std::string mRequest;                             ///< WMS server request URL.
   std::string mFormat;                              ///< Time format style.
-  int         mIntervalDuration;                    ///< Duration of the current time interval.
+  Duration    mSampleDuration;                      ///< Sample rate of the current WMS data set.
   std::vector<TimeInterval> mTimeIntervals;         ///< Time intervals of data set.
 
   std::map<std::string, std::future<std::string>>    mTextureFilesBuffer;
@@ -120,8 +120,6 @@ class SimpleWMSBody : public cs::scene::CelestialBody, public IVistaOpenGLDraw {
 
   static const std::string SPHERE_VERT;
   static const std::string SPHERE_FRAG;
-
-  boost::posix_time::ptime getStartTime(boost::posix_time::ptime time);
 };
 
 } // namespace csp::simplewmsbodies

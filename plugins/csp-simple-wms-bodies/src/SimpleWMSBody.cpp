@@ -285,6 +285,7 @@ bool SimpleWMSBody::Do() {
   cs::utils::FrameTimings::ScopedTimer timer("Simple WMS Bodies");
 
   if (mActiveWMS && mActiveWMS->mTime.has_value()) {
+	// Get the current time. Pre-fetch times are related to this.
     boost::posix_time::ptime time =
         cs::utils::convert::time::toPosix(mTimeControl->pSimulationTime.get());
 
@@ -292,28 +293,27 @@ bool SimpleWMSBody::Do() {
     // the current timestep.
     for (int preFetch = -mActiveWMS->mPrefetchCount.value_or(0);
          preFetch <= mActiveWMS->mPrefetchCount.value_or(0); preFetch++) {
-      boost::posix_time::time_duration td = boost::posix_time::seconds(mIntervalDuration);
-      time = cs::utils::convert::time::toPosix(mTimeControl->pSimulationTime.get()) + td * preFetch;
-      boost::posix_time::time_duration timeSinceStart;
-      boost::posix_time::ptime         startTime =
-          time - boost::posix_time::microseconds(time.time_of_day().fractional_seconds());
-      bool inInterval = utils::timeInIntervals(
-          startTime, mTimeIntervals, timeSinceStart, mIntervalDuration, mFormat);
 
-      // TODO: fix interval duration
-      // mIntervalDuration contains seconds, which are only approx. for months and years.
-      // It handles only 1 day/ 1 month/ 1 year intervals for now (with formatting).
-      /*if (mIntervalDuration != 0) {
-        startTime -= boost::posix_time::seconds(timeSinceStart.total_seconds() % mIntervalDuration);
-      }*/
-      std::string timeString = utils::timeToString(mFormat.c_str(), startTime);
+	  // Get the start time of the WMS sample.
+	  boost::posix_time::ptime sampleStartTime =
+              utils::addDurationToTime(time, mSampleDuration, preFetch);
+	  sampleStartTime -= boost::posix_time::microseconds(time.time_of_day().fractional_seconds());
+      bool inInterval = utils::timeInIntervals(sampleStartTime, mTimeIntervals, mSampleDuration, mFormat);
+
+	  // Create identifier for the sample start time.
+      std::string timeString = utils::timeToString(mFormat.c_str(), sampleStartTime);
 
       // Select a WMS texture over the period of timeDuration if timespan is enabled.
-      if (mPluginSettings->mEnableTimespan.get() && mIntervalDuration != 0) {
-        boost::posix_time::time_duration timeDuration =
-            boost::posix_time::seconds(mIntervalDuration);
-        boost::posix_time::ptime intervalAfter = getStartTime(startTime + timeDuration);
-        timeString += "/" + utils::timeToString(mFormat.c_str(), intervalAfter);
+      if (mPluginSettings->mEnableTimespan.get() && mSampleDuration.isDuration()) {
+        boost::posix_time::ptime sampleAfter =
+            utils::addDurationToTime(sampleStartTime, mSampleDuration);
+        bool isAfterInInterval =
+            utils::timeInIntervals(sampleAfter, mTimeIntervals, mSampleDuration, mFormat);
+
+		// Select timespan only when the sample after is also in the intervals.
+		if (isAfterInInterval) {
+          timeString += "/" + utils::timeToString(mFormat.c_str(), sampleAfter);
+		}
       }
 
       auto texture1 = mTextureFilesBuffer.find(timeString);
@@ -369,25 +369,29 @@ bool SimpleWMSBody::Do() {
       }
     }
 
+	// Get the current time.
     time = cs::utils::convert::time::toPosix(mTimeControl->pSimulationTime.get());
-    boost::posix_time::time_duration timeSinceStart;
-    boost::posix_time::ptime         startTime =
+    boost::posix_time::ptime         sampleStartTime =
         time - boost::posix_time::microseconds(time.time_of_day().fractional_seconds());
-    bool inInterval = utils::timeInIntervals(
-        startTime, mTimeIntervals, timeSinceStart, mIntervalDuration, mFormat);
+    bool inInterval = utils::timeInIntervals(sampleStartTime, mTimeIntervals, mSampleDuration, mFormat);
 
-    // TODO: fix interval duration
-    /*if (mIntervalDuration != 0) {
-      startTime -= boost::posix_time::seconds(timeSinceStart.total_seconds() % mIntervalDuration);
-    }*/
+	// Create identifier for the sample start time.
+    std::string timeString = utils::timeToString(mFormat.c_str(), sampleStartTime);
 
-    boost::posix_time::time_duration timeDuration = boost::posix_time::seconds(mIntervalDuration);
-    std::string                      timeString   = utils::timeToString(mFormat.c_str(), startTime);
+	// Select a WMS texture over the period of timeDuration if timespan is enabled.
+    if (mPluginSettings->mEnableTimespan.get() && mSampleDuration.isDuration()) {
+      boost::posix_time::ptime sampleAfter =
+          utils::addDurationToTime(sampleStartTime, mSampleDuration);
+      bool isAfterInInterval =
+          utils::timeInIntervals(sampleAfter, mTimeIntervals, mSampleDuration, mFormat);
 
-    if (mPluginSettings->mEnableTimespan.get() && mIntervalDuration != 0) {
-      boost::posix_time::ptime intervalAfter = getStartTime(startTime + timeDuration);
-      timeString += "/" + utils::timeToString(mFormat.c_str(), intervalAfter);
+      // Select timespan only when the sample after is also in the intervals.
+      if (isAfterInInterval) {
+        timeString += "/" + utils::timeToString(mFormat.c_str(), sampleAfter);
+      }
     }
+
+	// Find the current texture.
     auto tex = mTextures.find(timeString);
 
     // Use Wms texture inside the interval.
@@ -405,25 +409,30 @@ bool SimpleWMSBody::Do() {
     }
 
     if (!mWMSTextureUsed || !mPluginSettings->mEnableInterpolation.get() ||
-        mIntervalDuration == 0) {
+        !mSampleDuration.isDuration()) {
       mSecondWMSTextureUsed = false;
       mCurrentSecondTexture = "";
     } // Create fading between Wms textures when interpolation is enabled.
     else {
-      boost::posix_time::ptime intervalAfter = getStartTime(startTime + timeDuration);
-      tex = mTextures.find(utils::timeToString(mFormat.c_str(), intervalAfter));
+	  boost::posix_time::ptime sampleAfter =
+          utils::addDurationToTime(sampleStartTime, mSampleDuration);
+      bool isAfterInInterval =
+          utils::timeInIntervals(sampleAfter, mTimeIntervals, mSampleDuration, mFormat);
+
+	  // Find texture for the following sample.
+	  tex = mTextures.find(utils::timeToString(mFormat.c_str(), sampleAfter));
 
       if (tex != mTextures.end()) {
         // Only update if we ha a new second texture.
-        if (mCurrentSecondTexture != utils::timeToString(mFormat.c_str(), intervalAfter)) {
+        if (mCurrentSecondTexture != utils::timeToString(mFormat.c_str(), sampleAfter)) {
           mSecondWMSTexture->UploadTexture(
               mActiveWMS->mWidth, mActiveWMS->mHeight, tex->second, false);
-          mCurrentSecondTexture = utils::timeToString(mFormat.c_str(), intervalAfter);
+          mCurrentSecondTexture = utils::timeToString(mFormat.c_str(), sampleAfter);
           mSecondWMSTextureUsed = true;
         }
         // Interpolate fade value between the 2 WMS textures.
-        mFade = static_cast<float>((double)(intervalAfter - time).total_seconds() /
-                                   (double)(intervalAfter - startTime).total_seconds());
+        mFade = static_cast<float>((double)(sampleAfter - time).total_seconds() /
+                                   (double)(sampleAfter - sampleStartTime).total_seconds());
       }
     }
   }
@@ -541,26 +550,6 @@ bool SimpleWMSBody::GetBoundingBox(VistaBoundingBox& bb) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-boost::posix_time::ptime SimpleWMSBody::getStartTime(boost::posix_time::ptime time) {
-  boost::posix_time::time_duration timeSinceStart;
-  boost::posix_time::ptime         startTime;
-
-  bool inInterval =
-      utils::timeInIntervals(time, mTimeIntervals, timeSinceStart, mIntervalDuration, mFormat);
-
-  if (inInterval) {
-    /*startTime =
-        time - boost::posix_time::seconds(timeSinceStart.total_seconds() % mIntervalDuration);*/
-    startTime = time; // TODO: fix interval duration
-  } else {
-    startTime = time;
-  }
-
-  return startTime;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 void SimpleWMSBody::setActiveWMS(std::shared_ptr<Plugin::Settings::WMSConfig> wms) {
   mTextures.clear();
   mTexturesBuffer.clear();
@@ -583,8 +572,8 @@ void SimpleWMSBody::setActiveWMS(std::shared_ptr<Plugin::Settings::WMSConfig> wm
     // Set time intervals and format if it is defined in config.
     if (mActiveWMS->mTime.has_value()) {
       utils::parseIsoString(mActiveWMS->mTime.value(), mTimeIntervals);
-      mIntervalDuration = mTimeIntervals.at(0).mIntervalDuration;
-      mFormat           = mTimeIntervals.at(0).mFormat;
+      mSampleDuration = mTimeIntervals.at(0).mSampleDuration;
+      mFormat         = mTimeIntervals.at(0).mFormat;
     } // Download WMS texture without timestep.
     else {
       std::string cacheFile = mTextureLoader.loadTexture(
