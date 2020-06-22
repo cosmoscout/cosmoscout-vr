@@ -9,6 +9,7 @@
 #include "../cs-core/InputManager.hpp"
 #include "../cs-core/SolarSystem.hpp"
 #include "../cs-core/TimeControl.hpp"
+#include "../cs-utils/convert.hpp"
 
 #include <VistaDataFlowNet/VdfnObjectRegistry.h>
 #include <VistaKernel/GraphicsManager/VistaSceneGraph.h>
@@ -149,8 +150,10 @@ void DragNavigation::update() {
       end_vec          = rayDir;
       bPerformRotation = true;
     } else if (mDraggingPlanet) {
-      // The radius is used to rotate the camera around camlanetCenter on a sphere of this exact
-      // size
+      // The radius is used to rotate the camera around the target body on a sphere of this exact
+      // size. This works well in most cases, however, if the target body is a rather extreme
+      // ellipsoid, this actually changes the observer altitude which is not-so-nice. But for most
+      // bodies in the Solar System this method works well.
       double radius = glm::length(mStartIntersection - rotationCenter);
 
       // Coefficient of the nearest hit-point along the ray
@@ -186,13 +189,12 @@ void DragNavigation::update() {
         // reduce rotation speed close to planet
         if (!mDraggingPlanet && !mLocalRotation) {
           auto radii = cs::core::SolarSystem::getRadii(mSolarSystem->getObserver().getCenterName());
-          double distance = glm::length(mSolarSystem->getObserver().getAnchorPosition());
-
-          double const epsilon = 0.0001;
+          auto surfacePos = utils::convert::scaleToGeodeticSurface(observerPos, radii);
+          auto distance   = observerPos - surfacePos;
 
           // some magic numbers here to achieve 'good' dragging speeds
           // regardless of the surface distance when 'grabbing the sky'
-          double fac = glm::clamp((distance - radii[0]) / radii[0], epsilon, 0.5);
+          double fac = glm::clamp(glm::length(distance) / glm::length(surfacePos), 0.0001, 0.5);
           targetAngle *= fac * 4;
         }
 
@@ -266,14 +268,15 @@ void DragNavigation::update() {
     // or if the orthogonal on planet normal and up vector is
     // close to the viewers x axis (e.g. if the user is looking down or
     // upwards but the horizon is still straight)
-    auto   radii    = cs::core::SolarSystem::getRadii(mSolarSystem->getObserver().getCenterName());
-    double distance = glm::length(mSolarSystem->getObserver().getAnchorPosition());
+    auto radii      = cs::core::SolarSystem::getRadii(mSolarSystem->getObserver().getCenterName());
+    auto surfacePos = utils::convert::scaleToGeodeticSurface(observerPos, radii);
+    auto distance   = observerPos - surfacePos;
 
-    double const upscale = 1.1;
-    if (distance < radii[0] * upscale) {
-      glm::dvec3 normal = mSolarSystem->getObserver().getAnchorPosition() / distance;
-      glm::dvec3 y      = glm::normalize((newObserverRot * glm::dvec4(0, 1, 0, 0)).xyz());
-      glm::dvec3 x      = glm::normalize((newObserverRot * glm::dvec4(1, 0, 0, 0)).xyz());
+    glm::dvec3 normal = glm::normalize(distance);
+
+    if (glm::length(observerPos) < glm::length(surfacePos) * 1.1) {
+      glm::dvec3 y = glm::normalize((newObserverRot * glm::dvec4(0, 1, 0, 0)).xyz());
+      glm::dvec3 x = glm::normalize((newObserverRot * glm::dvec4(1, 0, 0, 0)).xyz());
 
       double const epsilon = 0.999;
       if (glm::dot(normal, y) > epsilon ||
@@ -284,10 +287,9 @@ void DragNavigation::update() {
     }
 
     if (mDoRollCorrection) {
-      glm::dvec3 normal = glm::normalize(mSolarSystem->getObserver().getAnchorPosition());
-      glm::dvec3 z      = (newObserverRot * glm::dvec4(0, 0, 1, 0)).xyz();
-      glm::dvec3 x      = -glm::cross(z, normal);
-      glm::dvec3 y      = -glm::cross(x, z);
+      glm::dvec3 z = (newObserverRot * glm::dvec4(0, 0, 1, 0)).xyz();
+      glm::dvec3 x = -glm::cross(z, normal);
+      glm::dvec3 y = -glm::cross(x, z);
 
       x = glm::normalize(x);
       y = glm::normalize(y);
