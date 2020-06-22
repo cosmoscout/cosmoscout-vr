@@ -393,9 +393,9 @@ void TileRenderer::preRenderTiles(cs::graphics::ShadowMap* shadowMap) {
   glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(glm::fmat4x4(mMatVM)));
   loc = shader.GetUniformLocation("VP_heightScale");
   shader.SetUniform(loc, static_cast<float>(mParams->mHeightScale));
-  loc = shader.GetUniformLocation("VP_radius");
+  loc = shader.GetUniformLocation("VP_radii");
   shader.SetUniform(
-      loc, static_cast<float>(mParams->mRadii.x), static_cast<float>(mParams->mRadii.y));
+      loc, static_cast<float>(mParams->mRadii.x), static_cast<float>(mParams->mRadii.y),  static_cast<float>(mParams->mRadii.z));
   loc = shader.GetUniformLocation("VP_texDEM");
   shader.SetUniform(loc, texUnitDEM);
   loc = shader.GetUniformLocation("VP_texIMG");

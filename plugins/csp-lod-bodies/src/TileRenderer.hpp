@@ -53,7 +53,7 @@ class TileRenderer : private boost::noncopyable {
   /// | uniform | ivec2          | VP_f1f2              |             |
   /// | uniform | int            | VP_LayerDEM          |             |
   /// | uniform | int            | VP_LayerIMG          |             |
-  /// | uniform | vec3           | VP_Radius            |             |
+  /// | uniform | vec3           | VP_Radii             |             |
   /// | uniform | float          | VP_HeightScale       |             |
   /// | uniform | sampler2DArray | VP_TexDEM            |             |
   /// | uniform | sampler2DArray | VP_TexIMG            |             |
