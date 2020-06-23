@@ -188,12 +188,15 @@ void Plugin::deInit() {
 
   mSolarSystem->pActiveBody.disconnect(mActiveBodyConnection);
 
+  mGuiManager->removePluginTab("WMS");
+  mGuiManager->removeSettingsSection("WMS");
+  
+  mGuiManager->getGui()->callJavascript(
+      "CosmoScout.gui.unregisterCss", "css/csp-simple-wms-bodies.css");
+
   mGuiManager->getGui()->unregisterCallback("simpleWMSBodies.setEnableTimeInterpolation");
   mGuiManager->getGui()->unregisterCallback("simpleWMSBodies.setEnableTimeSpan");
   mGuiManager->getGui()->unregisterCallback("simpleWMSBodies.setWMS");
-
-  mGuiManager->getGui()->callJavascript(
-      "CosmoScout.gui.unregisterCss", "css/csp-simple-wms-bodies.css");
 
   mAllSettings->onLoad().disconnect(mOnLoadConnection);
   mAllSettings->onSave().disconnect(mOnSaveConnection);
