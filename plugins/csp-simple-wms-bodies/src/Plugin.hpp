@@ -31,6 +31,7 @@ class Plugin : public cs::core::PluginBase {
     cs::utils::DefaultProperty<bool> mEnableInterpolation{true};
 
     /// Specifies whether to display timespan.
+    /// Needs to be specified true in config for a data set which enables it in order to be used.
     cs::utils::DefaultProperty<bool> mEnableTimespan{false};
 
     /// Path to the map cache folder, can be absolute or relative to the cosmoscout executable.
