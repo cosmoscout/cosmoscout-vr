@@ -169,7 +169,7 @@ std::future<unsigned char*> WebMapTextureLoader::loadTextureFromFileAsync(
 
     if (!pixels) {
       logger().error("Failed to load '{}' with stbi!", fileName.c_str());
-      pixels = reinterpret_cast<unsigned char*>("Error");
+      pixels = reinterpret_cast<unsigned char*>(const_cast<char*>("Error"));
     }
 
     return pixels;
