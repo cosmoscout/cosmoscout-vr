@@ -118,6 +118,7 @@ std::string WebMapTextureLoader::loadTexture(std::string time, std::string const
     request.setOpt(curlpp::options::Url(url.str()));
     request.setOpt(curlpp::options::WriteStream(&out));
     request.setOpt(curlpp::options::NoSignal(true));
+    request.setOpt(curlpp::options::SslVerifyPeer(false));
 
     // Load to cache file.
     try {
