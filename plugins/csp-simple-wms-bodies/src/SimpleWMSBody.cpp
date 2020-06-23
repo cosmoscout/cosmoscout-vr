@@ -358,7 +358,7 @@ bool SimpleWMSBody::Do() {
       if (texIt->second.wait_for(std::chrono::seconds(0)) == std::future_status::ready) {
         unsigned char* texture = texIt->second.get();
 
-        if (texture) {
+        if (texture != reinterpret_cast<unsigned char*>("Error")) {
           mTextures.insert(std::pair<std::string, unsigned char*>(texIt->first, texture));
         } else {
           mWrongTextures.emplace_back(texIt->first);

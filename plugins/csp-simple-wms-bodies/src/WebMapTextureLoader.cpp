@@ -128,8 +128,11 @@ std::string WebMapTextureLoader::loadTexture(std::string time, std::string const
       return "Error";
     }
 
-    fail =
-        curlpp::Info<CURLINFO_CONTENT_TYPE, std::string>::get(request).substr(0, 9) != "image/png";
+    // Check if the output is png.
+    std::string contentType = curlpp::Info<CURLINFO_CONTENT_TYPE, std::string>::get(request);
+    if (contentType == "NULL" || contentType.substr(0, 9) != "image/png") {
+      fail = true;
+    }
   }
 
   if (fail) {
@@ -166,6 +169,7 @@ std::future<unsigned char*> WebMapTextureLoader::loadTextureFromFileAsync(
 
     if (!pixels) {
       logger().error("Failed to load '{}' with stbi!", fileName.c_str());
+      pixels = reinterpret_cast<unsigned char*>("Error");
     }
 
     return pixels;
