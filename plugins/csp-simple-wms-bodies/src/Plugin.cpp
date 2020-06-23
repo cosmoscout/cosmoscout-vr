@@ -122,8 +122,8 @@ void Plugin::init() {
           setWMSSource(body, name);
 
           // Replace bookmarks with timeintervals of the new WMS data set.
-          removeBookmarks();
-          addBookmarks(body->getTimeIntervals(), name, body->getCenterName(), body->getFrameName());
+          // removeBookmarks();
+          // addBookmarks(body->getTimeIntervals(), name, body->getCenterName(), body->getFrameName());
         }
       }));
 
@@ -132,7 +132,7 @@ void Plugin::init() {
         auto simpleWMSBody = std::dynamic_pointer_cast<SimpleWMSBody>(body);
 
         // Remove bookmarks from the old body.
-        removeBookmarks();
+        // removeBookmarks();
 
         mGuiManager->getGui()->callJavascript(
             "CosmoScout.sidebar.setTabEnabled", "WMS", simpleWMSBody != nullptr);
@@ -164,8 +164,8 @@ void Plugin::init() {
             }
 
             // Add bookmarks to timeline from the intervals of the active WMS.
-            addBookmarks(simpleWMSBody->getTimeIntervals(), wms.first,
-                simpleWMSBody->getCenterName(), simpleWMSBody->getFrameName());
+            // addBookmarks(simpleWMSBody->getTimeIntervals(), wms.first,
+            //     simpleWMSBody->getCenterName(), simpleWMSBody->getFrameName());
           }
         }
       });
@@ -230,8 +230,8 @@ void Plugin::onLoad() {
       setWMSSource(simpleWMSBody->second, settings->second.mActiveWMS);
 
       // Add bookmarks to timeline from the intervals of the active WMS.
-      addBookmarks(simpleWMSBody->second->getTimeIntervals(), settings->second.mActiveWMS,
-          simpleWMSBody->second->getCenterName(), simpleWMSBody->second->getFrameName());
+      // addBookmarks(simpleWMSBody->second->getTimeIntervals(), settings->second.mActiveWMS,
+      //     simpleWMSBody->second->getCenterName(), simpleWMSBody->second->getFrameName());
 
       ++simpleWMSBody;
     } else {
@@ -268,8 +268,8 @@ void Plugin::onLoad() {
     simpleWMSBody->setSun(mSolarSystem->getSun());
 
     // Add bookmarks to timeline from the intervals of the active WMS.
-    addBookmarks(simpleWMSBody->getTimeIntervals(), settings.second.mActiveWMS,
-        simpleWMSBody->getCenterName(), simpleWMSBody->getFrameName());
+    // addBookmarks(simpleWMSBody->getTimeIntervals(), settings.second.mActiveWMS,
+    //     simpleWMSBody->getCenterName(), simpleWMSBody->getFrameName());
 
     mSolarSystem->registerBody(simpleWMSBody);
     mInputManager->registerSelectable(simpleWMSBody);
