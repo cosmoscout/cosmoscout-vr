@@ -123,7 +123,8 @@ void Plugin::init() {
 
           // Replace bookmarks with timeintervals of the new WMS data set.
           // removeBookmarks();
-          // addBookmarks(body->getTimeIntervals(), name, body->getCenterName(), body->getFrameName());
+          // addBookmarks(body->getTimeIntervals(), name, body->getCenterName(),
+          // body->getFrameName());
         }
       }));
 
@@ -190,7 +191,7 @@ void Plugin::deInit() {
 
   mGuiManager->removePluginTab("WMS");
   mGuiManager->removeSettingsSection("WMS");
-  
+
   mGuiManager->getGui()->callJavascript(
       "CosmoScout.gui.unregisterCss", "css/csp-simple-wms-bodies.css");
 
