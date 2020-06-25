@@ -63,7 +63,7 @@ class HEALPixLevel {
   glm::dvec2 getCenterLngLat(glm::int64 patchIdx) const;
 
   /// Returns center of patch patchIdx in cartesian coordinates (x, y, z).
-  glm::dvec3 getCenterCartesian(glm::int64 patchIdx, double radiusE, double radiusP) const;
+  glm::dvec3 getCenterCartesian(glm::int64 patchIdx, glm::dvec3 const& radii) const;
 
   /// Returns corners of patch patchIdx in the order N, W, S, E in geodetic coordinates (lng, lat)
   /// in radians.
@@ -72,8 +72,7 @@ class HEALPixLevel {
   /// Returns corners of patch patchIdx in the order N, W, S, E in cartesian coordinates (x, y, z).
   ///
   /// The vectors have unit length.
-  std::array<glm::dvec3, 4> getCornersCartesian(
-      glm::int64 patchIdx, double radiusE, double radiusP) const;
+  std::array<glm::dvec3, 4> getCornersCartesian(glm::int64 patchIdx, glm::dvec3 const& radii) const;
 
   /// Returns the center points of the edges of patch patchIdx in the order NE, NW, SW, SE in
   /// geodetic coordinates (lng, lat) in radians.
@@ -82,7 +81,7 @@ class HEALPixLevel {
   /// Returns the center points of the edges of patch patchIdx in the order NE, NW, SW, SE in
   /// cartesian coordinates (x, y, z).
   std::array<glm::dvec3, 4> getEdgeCentersCartesian(
-      glm::int64 patchIdx, double radiusE, double radiusP) const;
+      glm::int64 patchIdx, glm::dvec3 const& radii) const;
 
   /// Returns the patch indices of the NE (+X), NW (+Y), SW (-X), SE (-Y) neighbours of patch
   /// patchIdx.
@@ -147,15 +146,15 @@ class HEALPix {
   static glm::i64vec3 getBaseXY(TileId const& tileId);
 
   static glm::dvec2 getCenterLngLat(TileId const& tileId);
-  static glm::dvec3 getCenterCartesian(TileId const& tileId, double radiusE, double radiusP);
+  static glm::dvec3 getCenterCartesian(TileId const& tileId, glm::dvec3 const& radii);
 
   static std::array<glm::dvec2, 4> getCornersLngLat(TileId const& tileId);
   static std::array<glm::dvec3, 4> getCornersCartesian(
-      TileId const& tileId, double radiusE, double radiusP);
+      TileId const& tileId, glm::dvec3 const& radii);
 
   static std::array<glm::dvec2, 4> getEdgeCentersLngLat(TileId const& tileId);
   static std::array<glm::dvec3, 4> getEdgeCentersCartesian(
-      TileId const& tileId, double radiusE, double radiusP);
+      TileId const& tileId, glm::dvec3 const& radii);
 
   static std::array<glm::int64, 4> getNeighbours(TileId const& tileId);
   static std::array<TileId, 4>     getNeighbourIds(TileId const& tileId);

@@ -20,8 +20,7 @@ template <>
   rdata->setNode(node);
   rdata->setLastFrame(0);
 
-  rdata->setBounds(calcTileBounds(
-      *node->getTile(), mParams->mEquatorialRadius, mParams->mPolarRadius, mParams->mHeightScale));
+  rdata->setBounds(calcTileBounds(*node->getTile(), mParams->mRadii, mParams->mHeightScale));
 
   return rdata;
 }

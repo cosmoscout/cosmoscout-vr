@@ -24,7 +24,7 @@ uniform float VP_blendStart = 0.02;
 
 // planet parameters, radius and scale factor for height values
 uniform float VP_heightScale;
-uniform vec2 VP_radius;
+uniform vec3 VP_radii;
 
 // texture storing elevation data for all patches
 uniform sampler2DArray VP_texDEM;

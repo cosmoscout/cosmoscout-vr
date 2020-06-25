@@ -547,7 +547,7 @@ void Application::FrameUpdate() {
       auto radii = mSolarSystem->pActiveBody.get()->getRadii();
       auto vPlanetPos =
           glm::inverse(mSolarSystem->pActiveBody.get()->getWorldTransform()) * vWorldPos;
-      auto   polar = cs::utils::convert::toLngLatHeight(vPlanetPos.xyz(), radii[0], radii[0]);
+      auto   polar         = cs::utils::convert::cartesianToLngLatHeight(vPlanetPos.xyz(), radii);
       double surfaceHeight = mSolarSystem->pActiveBody.get()->getHeight(polar.xy());
       double heightDiff    = polar.z / mSettings->mGraphics.pHeightScale.get() - surfaceHeight;
 
@@ -782,8 +782,7 @@ void Application::connectSlots() {
 
           if (body) {
             auto radii = body->getRadii();
-            auto polar =
-                cs::utils::convert::toLngLatHeight(intersection.mPosition, radii[0], radii[0]);
+            auto polar = cs::utils::convert::cartesianToLngLatHeight(intersection.mPosition, radii);
             auto lngLat = cs::utils::convert::toDegrees(polar.xy());
 
             if (!std::isnan(lngLat.x) && !std::isnan(lngLat.y) && !std::isnan(polar.z)) {
@@ -1402,9 +1401,10 @@ void Application::registerGuiCallbacks() {
       "animation time in seconds (default is 1s).",
       std::function([this](std::optional<double> duration) {
         auto observerPos = mSolarSystem->getObserver().getAnchorPosition();
+        auto radii = cs::core::SolarSystem::getRadii(mSolarSystem->getObserver().getCenterName());
 
         glm::dvec3 y = glm::vec3(0, -1, 0);
-        glm::dvec3 z = observerPos;
+        glm::dvec3 z = cs::utils::convert::cartesianToNormal(observerPos, radii);
         glm::dvec3 x = glm::cross(z, y);
         y            = glm::cross(z, x);
 
@@ -1433,7 +1433,7 @@ void Application::registerGuiCallbacks() {
         auto observerPos = mSolarSystem->getObserver().getAnchorPosition();
         auto observerRot = mSolarSystem->getObserver().getAnchorRotation();
 
-        glm::dvec3 y = observerPos;
+        glm::dvec3 y = cs::utils::convert::cartesianToNormal(observerPos, radii);
         glm::dvec3 z = (observerRot * glm::dvec4(0, 0.1, -1, 0)).xyz();
         glm::dvec3 x = glm::cross(z, y);
         z            = glm::cross(x, y);
@@ -1464,8 +1464,8 @@ void Application::registerGuiCallbacks() {
           radii = glm::dvec3(1, 1, 1);
         }
 
-        auto lngLatHeight = cs::utils::convert::toLngLatHeight(
-            mSolarSystem->getObserver().getAnchorPosition(), radii[0], radii[0]);
+        auto lngLatHeight = cs::utils::convert::cartesianToLngLatHeight(
+            mSolarSystem->getObserver().getAnchorPosition(), radii);
 
         // fly to 0.1% of current height
         double const permille = 0.001;
@@ -1480,11 +1480,10 @@ void Application::registerGuiCallbacks() {
 
         height *= mSettings->mGraphics.pHeightScale.get();
 
-        auto observerPos =
-            cs::utils::convert::toCartesian(lngLatHeight.xy(), radii[0], radii[0], height);
+        auto observerPos = cs::utils::convert::toCartesian(lngLatHeight.xy(), radii, height);
         auto observerRot = mSolarSystem->getObserver().getAnchorRotation();
 
-        glm::dvec3 y = observerPos;
+        glm::dvec3 y = cs::utils::convert::cartesianToNormal(observerPos, radii);
         glm::dvec3 z = (observerRot * glm::dvec4(0, 0.1, -1, 0)).xyz();
         glm::dvec3 x = glm::cross(z, y);
         z            = glm::cross(x, y);
@@ -1507,6 +1506,7 @@ void Application::registerGuiCallbacks() {
       "Increases the altitude of the observer significantly. The optional argument specifies the "
       "animation time in seconds (default is 3s).",
       std::function([this](std::optional<double> duration) {
+        auto observerPos = mSolarSystem->getObserver().getAnchorPosition();
         auto observerRot = mSolarSystem->getObserver().getAnchorRotation();
         auto radii = cs::core::SolarSystem::getRadii(mSolarSystem->getObserver().getCenterName());
 
@@ -1514,7 +1514,7 @@ void Application::registerGuiCallbacks() {
           radii = glm::dvec3(1, 1, 1);
         }
 
-        auto dir  = glm::normalize(mSolarSystem->getObserver().getAnchorPosition());
+        auto dir  = cs::utils::convert::cartesianToNormal(observerPos, radii);
         auto cart = radii[0] * 3.0 * dir;
 
         glm::dvec3 y = (observerRot * glm::dvec4(0, -0.1, 1, 0)).xyz();

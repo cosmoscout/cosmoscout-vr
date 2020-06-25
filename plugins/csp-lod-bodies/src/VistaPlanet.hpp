@@ -85,15 +85,10 @@ class VistaPlanet : public IVistaOpenGLDraw, public cs::graphics::ShadowCaster {
   /// Returns the currently active source for image data.
   TileSource* getIMGSource() const;
 
-  /// Set planet equatorial radius. This is a potentially expensive operation since it invalidates
+  /// Set planet radii. This is a potentially expensive operation since it invalidates
   /// the cached bounding volume for all tiles and requires recalculating them.
-  void   setEquatorialRadius(float radius);
-  double getEquatorialRadius() const;
-
-  /// Set planet polar radius. This is a potentially expensive operation since it invalidates
-  /// the cached bounding volume for all tiles and requires recalculating them.
-  void   setPolarRadius(float radius);
-  double getPolarRadius() const;
+  void              setRadii(glm::dvec3 const& radii);
+  glm::dvec3 const& getRadii() const;
 
   /// Set factor by which to scale height data. This is a potentially expensive operation since it
   /// invalidates the cached bounding volume for all tiles and requires recalculating them.

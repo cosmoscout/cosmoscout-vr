@@ -282,7 +282,7 @@ void SolarSystem::updateSceneScale() {
     // elevation).
     auto radii = closestBody->getRadii();
     auto lngLatHeight =
-        cs::utils::convert::toLngLatHeight(vClosestPlanetObserverPosition, radii[0], radii[0]);
+        cs::utils::convert::cartesianToLngLatHeight(vClosestPlanetObserverPosition, radii);
     double dRealDistance = lngLatHeight.z - closestBody->getHeight(lngLatHeight.xy()) *
                                                 mSettings->mGraphics.pHeightScale.get();
 
@@ -429,7 +429,7 @@ void SolarSystem::flyObserverTo(std::string const& sCenter, std::string const& s
     radii = glm::dvec3(1, 1, 1);
   }
 
-  auto cart = utils::convert::toCartesian(lngLat, radii[0], radii[0], height);
+  auto cart = utils::convert::toCartesian(lngLat, radii, height);
 
   flyObserverTo(sCenter, sFrame, cart, duration);
 }
@@ -607,10 +607,9 @@ void SolarSystem::turnToObserver(scene::CelestialAnchor& anchor,
   glm::dvec3 camDir            = glm::normalize(observerPos);
 
   if (upIsNormal) {
-    auto radii = getRadii(anchor.getCenterName());
-    auto lngLat =
-        cs::utils::convert::toLngLatHeight(anchor.getAnchorPosition(), radii[0], radii[0]);
-    y = cs::utils::convert::lngLatToNormal(lngLat.xy(), radii[0], radii[0]);
+    auto radii  = getRadii(anchor.getCenterName());
+    auto lngLat = cs::utils::convert::cartesianToLngLat(anchor.getAnchorPosition(), radii);
+    y           = cs::utils::convert::lngLatToNormal(lngLat, radii);
   }
 
   glm::dvec3 z = glm::cross(y, camDir);

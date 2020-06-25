@@ -185,31 +185,20 @@ vec2 VP_convertXY2lnglat(vec2 posXY)
     return result;
 }
 
-float VP_toGeocentricLat(float geodeticLat, vec2 radius)
-{
-    float f = (radius.x - radius.y) / radius.x;
-    return atan(pow(1.0 - f, 2.0) * tan(geodeticLat));
+vec3 VP_toNormal(vec2 lnglat, vec3 radii) {
+  return vec3(cos(lnglat.y) * sin(lnglat.x), 
+              sin(lnglat.y),
+              cos(lnglat.y) * cos(lnglat.x));
 }
 
 // Converts point @a lnglat from geodetic (lat,lng) to cartesian
-// coordinates (x,y,z) for an ellipsoid with radii @a radius.
-vec3 VP_toCartesian(vec2 lnglat, vec2 radius)
+// coordinates (x,y,z) for an ellipsoid with radii @a radii.
+vec3 VP_toCartesian(vec2 lnglat, vec3 radii)
 {
-    lnglat.y = VP_toGeocentricLat(lnglat.y, radius);
-    
-    vec2  c   = cos(lnglat);
-    vec2  s   = sin(lnglat);
-
-    // point on ellipsoid surface
-    return vec3(c.y * s.x * radius.x,
-                  s.y * radius.y,
-                  c.y * c.x * radius.x);
-}
-
-vec3 VP_toNormal(vec2 lnglat, vec2 radius)
-{
-    vec3 cart = VP_toCartesian(lnglat, radius);
-    return normalize(cart / vec3(radius.x * radius.x, radius.y * radius.y, radius.x * radius.x));
+  vec3 normal  = VP_toNormal(lnglat, radii);
+  vec3 normal2 = normal * normal;
+  vec3 radii2  = radii * radii;
+  return (radii2 * normal) / sqrt(dot(radii2, normal2));
 }
 
 vec3 VP_getVertexPositionHEALPix(ivec2 iPosition)
@@ -217,8 +206,8 @@ vec3 VP_getVertexPositionHEALPix(ivec2 iPosition)
     vec2  posXY  = VP_getXY(iPosition);
     vec2  lnglat = VP_convertXY2lnglat(posXY);
     float height = VP_heightScale * VP_getVertexHeight(iPosition);
-    vec3 normal  = VP_toNormal(lnglat, VP_radius);
-    vec3  posXYZ = VP_toCartesian(lnglat, VP_radius);
+    vec3 normal  = VP_toNormal(lnglat, VP_radii);
+    vec3  posXYZ = VP_toCartesian(lnglat, VP_radii);
 
     posXYZ += height * normal;
 

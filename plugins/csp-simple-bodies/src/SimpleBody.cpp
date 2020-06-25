@@ -42,22 +42,32 @@ layout(location = 0) in vec2 iGridPos;
 
 // outputs
 out vec2 vTexCoords;
+out vec3 vNormal;
 out vec3 vPosition;
 out vec3 vCenter;
-out vec2 vLonLat;
+out vec2 vLngLat;
 
 const float PI = 3.141592654;
+
+vec3 geodeticSurfaceNormal(vec2 lngLat) {
+  return vec3(cos(lngLat.y) * sin(lngLat.x), sin(lngLat.y),
+      cos(lngLat.y) * cos(lngLat.x));
+}
+
+vec3 toCartesian(vec2 lonLat) {
+  vec3 n = geodeticSurfaceNormal(lonLat);
+  vec3 k = n * uRadii * uRadii;
+  float gamma = sqrt(dot(k, n));
+  return k / gamma;
+}
 
 void main()
 {
     vTexCoords = vec2(iGridPos.x, 1-iGridPos.y);
-    vLonLat.x = iGridPos.x * 2.0 * PI;
-    vLonLat.y = (iGridPos.y-0.5) * PI;
-    vPosition = uRadii * vec3(
-        -sin(vLonLat.x) * cos(vLonLat.y),
-        -cos(vLonLat.y+PI*0.5),
-        -cos(vLonLat.x) * cos(vLonLat.y)
-    );
+    vLngLat.x = iGridPos.x * 2.0 * PI - PI;
+    vLngLat.y = iGridPos.y * PI - PI/2;
+    vPosition = toCartesian(vLngLat);
+    vNormal    = (uMatModelView * vec4(geodeticSurfaceNormal(vLngLat), 0.0)).xyz;
     vPosition   = (uMatModelView * vec4(vPosition, 1.0)).xyz;
     vCenter     = (uMatModelView * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
     gl_Position =  uMatProjection * vec4(vPosition, 1);
@@ -82,10 +92,10 @@ uniform float uFarClip;
 
 // inputs
 in vec2 vTexCoords;
-in vec3 vSunDirection;
+in vec3 vNormal;
 in vec3 vPosition;
 in vec3 vCenter;
-in vec2 vLonLat;
+in vec2 vLngLat;
 
 // outputs
 layout(location = 0) out vec3 oColor;
@@ -107,7 +117,7 @@ void main()
     oColor = oColor * uSunIlluminance;
 
     #ifdef ENABLE_LIGHTING
-      vec3 normal = normalize(vPosition - vCenter);
+      vec3 normal = normalize(vNormal);
       float light = max(dot(normal, uSunDirection), 0.0);
       oColor = mix(oColor*uAmbientBrightness, oColor, light);
     #endif
@@ -210,18 +220,18 @@ void SimpleBody::setSun(std::shared_ptr<const cs::scene::CelestialObject> const&
 bool SimpleBody::getIntersection(
     glm::dvec3 const& rayOrigin, glm::dvec3 const& rayDir, glm::dvec3& pos) const {
 
-  glm::dmat4 transform = glm::inverse(getWorldTransform());
+  auto invTransform = glm::inverse(getWorldTransform());
 
   // Transform ray into planet coordinate system.
   glm::dvec4 origin(rayOrigin, 1.0);
-  origin = transform * origin;
+  origin = (invTransform * origin) / glm::dvec4(mRadii, 1.0);
 
   glm::dvec4 direction(rayDir, 0.0);
-  direction = transform * direction;
+  direction = (invTransform * direction) / glm::dvec4(mRadii, 1.0);
   direction = glm::normalize(direction);
 
-  double b    = glm::dot(origin, direction);
-  double c    = glm::dot(origin, origin) - mRadii[0] * mRadii[0];
+  double b    = glm::dot(origin.xyz(), direction.xyz());
+  double c    = glm::dot(origin.xyz(), origin.xyz()) - 1.0;
   double fDet = b * b - c;
 
   if (fDet < 0.0) {
@@ -230,6 +240,7 @@ bool SimpleBody::getIntersection(
 
   fDet = std::sqrt(fDet);
   pos  = (origin + direction * (-b - fDet));
+  pos *= mRadii;
 
   return true;
 }
@@ -320,7 +331,7 @@ bool SimpleBody::Do() {
 
   mShader.SetUniform(mShader.GetUniformLocation("uSurfaceTexture"), 0);
   mShader.SetUniform(mShader.GetUniformLocation("uRadii"), static_cast<float>(mRadii[0]),
-      static_cast<float>(mRadii[0]), static_cast<float>(mRadii[0]));
+      static_cast<float>(mRadii[1]), static_cast<float>(mRadii[2]));
   mShader.SetUniform(
       mShader.GetUniformLocation("uFarClip"), cs::utils::getCurrentFarClipDistance());
 
