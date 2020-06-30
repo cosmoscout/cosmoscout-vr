@@ -6,18 +6,16 @@
 
 #include "ObserverNavigationNode.hpp"
 
-#include "../cs-core/InputManager.hpp"
 #include "../cs-core/SolarSystem.hpp"
+#include "../cs-gui/GuiItem.hpp"
 
 #include <VistaAspects/VistaPropertyAwareable.h>
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-ObserverNavigationNode::ObserverNavigationNode(cs::core::SolarSystem* pSolarSystem,
-    cs::core::InputManager* pInputManager, VistaPropertyList const& oParams)
-    : IVdfnNode()
-    , mSolarSystem(pSolarSystem)
-    , mInputManager(pInputManager)
+ObserverNavigationNode::ObserverNavigationNode(
+    cs::core::SolarSystem* pSolarSystem, VistaPropertyList const& oParams)
+    : mSolarSystem(pSolarSystem)
     , mTime(nullptr)
     , mTranslation(nullptr)
     , mRotation(nullptr)
@@ -36,9 +34,16 @@ ObserverNavigationNode::ObserverNavigationNode(cs::core::SolarSystem* pSolarSyst
     , mLastTime(-1.0) {
   mLinearSpeed.mDirection = cs::utils::AnimationDirection::eLinear;
 
+  // NOLINTNEXTLINE(cppcoreguidelines-owning-memory): deleted in IVdfnNode::~IVdfnNode()
   RegisterInPortPrototype("time", new TVdfnPortTypeCompare<TVdfnPort<double>>);
+
+  // NOLINTNEXTLINE(cppcoreguidelines-owning-memory): deleted in IVdfnNode::~IVdfnNode()
   RegisterInPortPrototype("translation", new TVdfnPortTypeCompare<TVdfnPort<VistaVector3D>>);
+
+  // NOLINTNEXTLINE(cppcoreguidelines-owning-memory): deleted in IVdfnNode::~IVdfnNode()
   RegisterInPortPrototype("rotation", new TVdfnPortTypeCompare<TVdfnPort<VistaQuaternion>>);
+
+  // NOLINTNEXTLINE(cppcoreguidelines-owning-memory): deleted in IVdfnNode::~IVdfnNode()
   RegisterInPortPrototype("offset", new TVdfnPortTypeCompare<TVdfnPort<VistaVector3D>>);
 }
 
@@ -83,13 +88,11 @@ bool ObserverNavigationNode::DoEvalNode() {
 
     // update velocities
     if (glm::length(vLinearDirection) > 0.0) {
-      if (!mInputManager->pHoveredGuiNode.get() || !mPreventNavigationWhenHoveredGui) {
-        mLinearDirection = vLinearDirection;
+      mLinearDirection = vLinearDirection;
 
-        if (mLinearSpeed.mEndValue == 0.0) {
-          mLinearSpeed.mStartValue = 1.0;
-          mLinearSpeed.mEndValue   = 1.0;
-        }
+      if (mLinearSpeed.mEndValue == 0.0) {
+        mLinearSpeed.mStartValue = 1.0;
+        mLinearSpeed.mEndValue   = 1.0;
       }
     } else {
       if (mLinearSpeed.mEndValue == 1.0) {
@@ -109,13 +112,11 @@ bool ObserverNavigationNode::DoEvalNode() {
 
     // update velocities
     if (angle > 0.0) {
-      if (!mInputManager->pHoveredGuiNode.get() || !mPreventNavigationWhenHoveredGui) {
-        mAngularDirection = qRotation;
+      mAngularDirection = qRotation;
 
-        if (mAngularSpeed.mEndValue == 0.0) {
-          mAngularSpeed.mStartValue = 1.0;
-          mAngularSpeed.mEndValue   = 1.0;
-        }
+      if (mAngularSpeed.mEndValue == 0.0) {
+        mAngularSpeed.mStartValue = 1.0;
+        mAngularSpeed.mEndValue   = 1.0;
       }
     } else {
       if (mAngularSpeed.mEndValue == 1.0) {
@@ -134,33 +135,42 @@ bool ObserverNavigationNode::DoEvalNode() {
     vOffset  = glm::dvec3(tmp[0], tmp[1], tmp[2]);
   }
 
-  auto&      oObs              = mSolarSystem->getObserver();
-  glm::dvec3 vObserverPosition = oObs.getAnchorPosition();
-  glm::dquat qObserverRotation = oObs.getAnchorRotation();
-  double     dObserverScale    = oObs.getAnchorScale();
-
   auto vTranslation = mLinearDirection;
 
   vTranslation.x *= mMaxLinearSpeed[0];
   vTranslation.y *= mMaxLinearSpeed[1];
   vTranslation.z *= mMaxLinearSpeed[2];
-  vTranslation *= dObserverScale;
   vTranslation *= mLinearSpeed.get(dTtime);
 
   vTranslation *= dDeltaTime;
-  vTranslation += vOffset * dObserverScale;
+  vTranslation += vOffset;
+
+  auto&  oObs     = mSolarSystem->getObserver();
+  double stepSize = glm::length(vTranslation);
+
+  if (stepSize > 0.0) {
+    // Ensure that an SolarSystem::updateSceneScale() is called at least at 100 Hz. If it is called
+    // only once a frame, it can happen that the observer instantly travels to a planet's surface.
+    auto steps = static_cast<int32_t>(std::ceil(dDeltaTime * 100.0));
+
+    for (int32_t i(1); i <= steps; ++i) {
+      oObs.setAnchorPosition(oObs.getAnchorPosition() + oObs.getAnchorRotation() * vTranslation *
+                                                            oObs.getAnchorScale() /
+                                                            static_cast<double>(steps));
+      if (i < steps) {
+        mSolarSystem->updateSceneScale();
+      }
+    }
+  }
 
   auto       qRotation     = mAngularDirection;
   glm::dvec3 vRotationAxis = glm::axis(qRotation);
   double     dRotationAngle =
       glm::angle(qRotation) * dDeltaTime * mMaxAngularSpeed * mAngularSpeed.get(dTtime);
 
-  if (glm::length(vTranslation) > 0.0) {
-    oObs.setAnchorPosition(vObserverPosition + qObserverRotation * vTranslation);
-  }
-
   if (dRotationAngle != 0.0) {
-    oObs.setAnchorRotation(qObserverRotation * glm::angleAxis(dRotationAngle, vRotationAxis));
+    oObs.setAnchorRotation(
+        oObs.getAnchorRotation() * glm::angleAxis(dRotationAngle, vRotationAxis));
   }
 
   return true;
@@ -168,17 +178,14 @@ bool ObserverNavigationNode::DoEvalNode() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-ObserverNavigationNodeCreate::ObserverNavigationNodeCreate(
-    cs::core::SolarSystem* pSolarSystem, cs::core::InputManager* pInputManager)
-    : mSolarSystem(pSolarSystem)
-    , mInputManager(pInputManager) {
+ObserverNavigationNodeCreate::ObserverNavigationNodeCreate(cs::core::SolarSystem* pSolarSystem)
+    : mSolarSystem(pSolarSystem) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 IVdfnNode* ObserverNavigationNodeCreate::CreateNode(const VistaPropertyList& oParams) const {
-  return new ObserverNavigationNode(
-      mSolarSystem, mInputManager, oParams.GetSubListConstRef("param"));
+  return new ObserverNavigationNode(mSolarSystem, oParams.GetSubListConstRef("param"));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

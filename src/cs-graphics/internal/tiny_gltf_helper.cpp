@@ -5,7 +5,10 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "tiny_gltf_helper.hpp"
+
+#include <memory>
 #include <stb_image.h>
+#include <stdexcept>
 
 namespace cs::graphics::internal {
 
@@ -21,10 +24,10 @@ auto find_material_parameter(
   }
 
   if (found && it->second.has_number_value) {
-    return (float)it->second.number_value; // array.front();
-  } else {
-    return def;
+    return static_cast<float>(it->second.number_value); // array.front();
   }
+
+  return def;
 }
 
 int find_texture_index(tinygltf::Material const& material, std::string const& name) {
@@ -52,22 +55,25 @@ int find_texture_index(tinygltf::Material const& material, std::string const& na
     auto jIt = it->second.json_double_value.find("index");
 
     if (jIt != it->second.json_double_value.end()) {
-      return (int)jIt->second;
-    } else {
-      return -1;
+      return static_cast<int>(jIt->second);
     }
-  } else {
+
     return -1;
   }
+
+  return -1;
 }
 
 tinygltf::Image loadImage(std::string const& filepath) {
   tinygltf::Image img;
-  unsigned char*  data = stbi_load(filepath.c_str(), &img.width, &img.height, &img.component, 0);
+
+  std::unique_ptr<unsigned char> data(
+      stbi_load(filepath.c_str(), &img.width, &img.height, &img.component, 0));
   if (data != nullptr) {
-    img.image.resize(static_cast<size_t>(img.width * img.height * img.component));
-    std::copy(data, data + img.width * img.height * img.component, img.image.begin());
-    std::free(data);
+    img.image.resize(img.width * img.height * img.component);
+
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+    std::copy(data.get(), data.get() + img.width * img.height * img.component, img.image.begin());
   } else {
     throw std::runtime_error(std::string("loadImage: Unable to load ") + filepath);
   }

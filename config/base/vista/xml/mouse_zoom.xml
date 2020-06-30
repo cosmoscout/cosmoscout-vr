@@ -15,24 +15,14 @@
             <param name="sensor_index" value="0"/>
             <param name="driver" value="MOUSE"/>
         </node>
+
         <!-- project the necessary information from the mouse history -->
-        <!-- in this demo, we are not interested in the mouse history,
-                 but only in the last value (LAZYSAMPLING), but for demonstration
-                 purposes, we simply extract every attribute we can get from
-                 the mouse driver -->
         <node name="project_mouse" type="HistoryProject">
             <param name="project">WHEEL_STATE, X_POS, Y_POS</param>
-        </node>
-        <!-- this will give the sampling mode to the history project
-                 node, a value of "0" means "LAZY" while a value of "1"
-                 means "HOT". There is no other sampling value currently -->
-        <node name="project_mode" type="ConstantValue[int]">
-            <param name="value" value="0"/>
         </node>
 
         <!-- time input -->
         <node name="timer" type="Timer" />
-
         <node name="force_evaluation_wheel" type="Sampler"/>
 
         <!-- forward movement -->
@@ -50,9 +40,15 @@
         <node name="forward_translation" type="Multiply[int,VistaVector3D]"/>
         <node name="zoom_translation" type="Transform[VistaQuaternion,VistaVector3D]"/>
 
+        <node name="get_selection_state" type="GetSelectionStateNode" />
+        <node name="get_selection_state_invert" type="Invert[bool]"/>
+        <node name="convert_get_selection_state_to_int" type="TypeConvert[bool,int]" />
+
+        <node name="zoom_value" type="Multiply[int]"/>
+
         <!-- observer output -->
         <node name="observer" type="ObserverNavigationNode">
-            <param name="max_linear_speed" value="30, 30, 30" />
+            <param name="max_linear_speed" value="50, 50, 50" />
         </node>
 
         <!-- Debugging -->
@@ -63,16 +59,22 @@
 
         <!-- hardware stuff -->
         <edge fromnode="mouse" tonode="project_mouse" fromport="history" toport="history"/>
-        <edge fromnode="project_mode" tonode="project_mouse" fromport="value" toport="sampling_mode"/>
 
         <!-- forward movement -->
         <edge fromnode="project_mouse" tonode="3dmouse" fromport="X_POS" toport="x_pos"/>
         <edge fromnode="project_mouse" tonode="3dmouse" fromport="Y_POS" toport="y_pos"/>
 
         <edge fromnode="project_mouse" tonode="force_evaluation_wheel" fromport="WHEEL_STATE" toport="WHEEL_STATE"/>
-        <edge fromnode="force_evaluation_wheel" tonode="wheel_value" fromport="WHEEL_STATE" toport="in"/>
         <edge fromnode="timer" tonode="force_evaluation_wheel" fromport="time" toport="time"/>
-        <edge fromnode="wheel_value"  tonode="forward_translation" fromport="out" toport="first"/>
+        <edge fromnode="force_evaluation_wheel" tonode="wheel_value" fromport="WHEEL_STATE" toport="in"/>
+        
+        <edge fromnode="get_selection_state" tonode="get_selection_state_invert" fromport="hovered_gui_item_allows_scrolling" toport="in"/>
+        <edge fromnode="get_selection_state_invert" tonode="convert_get_selection_state_to_int" fromport="out" toport="in"/>
+        <edge fromnode="convert_get_selection_state_to_int" tonode="zoom_value" fromport="out" toport="first"/>
+
+        <edge fromnode="wheel_value" tonode="zoom_value" fromport="out" toport="second"/>
+
+        <edge fromnode="zoom_value" tonode="forward_translation" fromport="out" toport="first"/>
         <edge fromnode="forward_direction"  tonode="zoom_translation" fromport="value" toport="second"/>
 
         <edge fromnode="3dmouse"  tonode="zoom_translation" fromport="orientation" toport="first"/>

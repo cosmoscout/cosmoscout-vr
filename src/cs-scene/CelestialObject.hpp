@@ -41,22 +41,27 @@ class CS_SCENE_EXPORT CelestialObject : public CelestialAnchor {
   CelestialObject(std::string const& sCenterName, std::string const& sFrameName,
       double tStartExistence = std::numeric_limits<double>::lowest(),
       double tEndExistence   = std::numeric_limits<double>::max());
-  ~CelestialObject() = default;
+
+  CelestialObject(CelestialObject const& other) = default;
+  CelestialObject(CelestialObject&& other)      = default;
+
+  CelestialObject& operator=(CelestialObject const& other) = default;
+  CelestialObject& operator=(CelestialObject&& other) = default;
+
+  virtual ~CelestialObject() = default;
 
   virtual glm::dmat4 const& getWorldTransform() const;
   virtual glm::dvec4        getWorldPosition() const;
 
   /// The time (in the Barycentric Dynamical Time format) at which the object starts to exist in
   /// the universe.
-  double getStartExistence() const {
-    return mStartExistence;
-  }
+  double getStartExistence() const;
+  void   setStartExistence(double value);
 
   /// The time (in the Barycentric Dynamical Time format) at which the object ceases to exist in
   /// the universe.
-  double getEndExistence() const {
-    return mEndExistence;
-  }
+  double getEndExistence() const;
+  void   setEndExistence(double value);
 
   void update(double tTime, CelestialObserver const& oObs) override;
 

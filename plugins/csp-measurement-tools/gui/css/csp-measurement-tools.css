@@ -1,0 +1,67 @@
+.tool-body {
+  position: absolute;
+  transition: opacity 0.3s linear, top 0.3s ease;
+  opacity: 1;
+  top: 0;
+  background-color: var(--cs-color-background-dark);
+  border-top: 2px solid var(--cs-color-primary);
+  border-bottom: 2px solid var(--cs-color-primary);
+  border-radius: var(--cs-border-radius-large);
+}
+
+.tool-body.minimized {
+  opacity: 0;
+  top: 50px
+}
+
+.flag {
+  position: relative;
+  width: 300px;
+  height: 200px;
+  top: 0;
+  transition: opacity 0.3s linear, top 0.3s ease;
+}
+
+.flag.minimized {
+  opacity: 0;
+  top: 50px
+}
+
+.flag .pole {
+  position: absolute;
+  left: 0px;
+  height: 400px;
+  width: 3px;
+  background-color: var(--cs-color-primary);
+}
+
+.flag .banner {
+  position: absolute;
+  left: 3px;
+  right: 0;
+  background-color: rgba(20, 20, 20, 0.5);
+  border-top: 3px solid var(--cs-color-primary);
+  border-top-right-radius: var(--cs-border-radius-medium);
+  border-bottom-right-radius: var(--cs-border-radius-medium);
+}
+
+/* Charts ------------------------------------------------------------------- */
+
+svg:not(:root) {
+  overflow: visible;
+}
+
+svg .axis path,
+svg .axis line {
+  fill: none;
+  stroke: var(--cs-color-primary);
+  shape-rendering: crispEdges;
+}
+
+svg text {
+  fill: var(--cs-color-primary-transparent);
+}
+
+.tick line {
+  opacity: 0.2;
+}

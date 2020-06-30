@@ -30,12 +30,14 @@ target_link_libraries(cs-utils
     OpenSG::base
     OpenSG::system
     Tiff::Tiff
+    Tiff::Tiffxx
     ${VISTACORELIBS_LIBRARIES}
     ${CMAKE_DL_LIBS}
     cspice::cspice
     curl::curl
     curlpp::curlpp
     c-ares::c-ares
+    spdlog::spdlog
 )
 
 target_include_directories(cs-utils

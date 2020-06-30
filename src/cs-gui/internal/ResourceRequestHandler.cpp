@@ -6,28 +6,43 @@
 
 #include "ResourceRequestHandler.hpp"
 
-#include <include/wrapper/cef_stream_resource_handler.h>
+#include "../logger.hpp"
 
 #include <fstream>
-#include <iostream>
+#include <include/wrapper/cef_stream_resource_handler.h>
 
 namespace cs::gui::detail {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 CefRefPtr<CefResourceHandler> ResourceRequestHandler::GetResourceHandler(
-    CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefRequest> request) {
+    CefRefPtr<CefBrowser> /*browser*/, CefRefPtr<CefFrame> /*frame*/,
+    CefRefPtr<CefRequest> request) {
 
   std::string url(request->GetURL().ToString());
 
+  size_t pathStartIndex = 0;
+
+  // We handle requests for local files.
   if (url.find("file://") == 0) {
-    std::string path(url.substr(7));
+    pathStartIndex = 7;
+  }
+
+  // Here we skip anything marked with { ... } at the beginning of a file URL. This is explained in
+  // the documentation of WebView::setZoomLevel in great detail. The curly braces are %7B and %7D in
+  // encoded URLs.
+  if (url.find("file://%7B") == 0) {
+    pathStartIndex = url.find("%7D") + 3;
+  }
+
+  if (pathStartIndex > 0) {
+    std::string path(url.substr(pathStartIndex));
     std::string ext(url.substr(url.find_last_of('.')));
 
     std::ifstream input(path, std::ios::binary);
 
     if (!input) {
-      std::cout << "Failed to open file '" << path << "'!" << std::endl;
+      logger().error("Failed to open gui resource: Cannot open file '{}'!", path);
       return nullptr;
     }
 
@@ -44,6 +59,8 @@ CefRefPtr<CefResourceHandler> ResourceRequestHandler::GetResourceHandler(
       mime = "image/jpg";
     } else if (ext == ".js") {
       mime = "text/javascript";
+    } else if (ext == ".csv") {
+      mime = "text/csv";
     } else if (ext == ".css") {
       mime = "text/css";
     } else if (ext == ".ttf") {
@@ -51,7 +68,7 @@ CefRefPtr<CefResourceHandler> ResourceRequestHandler::GetResourceHandler(
     } else if (ext == ".woff" || ext == ".woff2") {
       mime = "application/x-font-woff";
     } else if (ext != ".html") {
-      std::cout << "Opening file with unknown extension '" << ext << "'!" << std::endl;
+      logger().warn("Opening file with unknown extension '{}'!", ext);
     }
 
     return new CefStreamResourceHandler(mime, stream);

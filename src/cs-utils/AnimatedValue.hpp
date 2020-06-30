@@ -78,7 +78,7 @@ class AnimatedValue {
       return updateEaseOut(state, mStartValue, mEndValue);
     case AnimationDirection::eInOut:
       return updateEaseInOut(state, mStartValue, mEndValue);
-    case AnimationDirection::eOutIn:
+    default: // AnimationDirection::eOutIn:
       return updateEaseOutIn(state, mStartValue, mEndValue);
     }
   }
@@ -97,17 +97,19 @@ class AnimatedValue {
   }
 
   T updateEaseInOut(double a, T const& s, T const& e) {
-    if (a < 0.5f)
+    if (a < 0.5F) {
       return updateEaseIn(a * 2, s, glm::mix(s, e, 0.5));
-    else
-      return updateEaseOut(a * 2 - 1, glm::mix(s, e, 0.5), e);
+    }
+
+    return updateEaseOut(a * 2 - 1, glm::mix(s, e, 0.5), e);
   }
 
   T updateEaseOutIn(double a, T const& s, T const& e) {
-    if (a < 0.5f)
+    if (a < 0.5F) {
       return updateEaseOut(a * 2, s, glm::mix(s, e, 0.5));
-    else
-      return updateEaseIn(a * 2 - 1, glm::mix(s, e, 0.5), e);
+    }
+
+    return updateEaseIn(a * 2 - 1, glm::mix(s, e, 0.5), e);
   }
 };
 

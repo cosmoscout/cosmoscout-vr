@@ -18,18 +18,35 @@
 #include <unordered_map>
 #include <vector>
 
+/// These macros can be used to selectively disable specific gcc / clang or msvc warnings.
+#if defined(__clang__) || defined(__GNUC__)
+#define CS_DO_PRAGMA(X) _Pragma(#X)
+#define CS_WARNINGS_PUSH _Pragma("GCC diagnostic push")
+#define CS_WARNINGS_POP _Pragma("GCC diagnostic pop")
+#define CS_DISABLE_GCC_WARNING(warningName) CS_DO_PRAGMA(GCC diagnostic ignored warningName)
+#define CS_DISABLE_MSVC_WARNING(warningNumber)
+#elif defined(_MSC_VER)
+#define CS_WARNINGS_PUSH __pragma(warning(push))
+#define CS_WARNINGS_POP __pragma(warning(pop))
+#define CS_DISABLE_MSVC_WARNING(warningNumber) __pragma(warning(disable : warningNumber))
+#define CS_DISABLE_GCC_WARNING(warningName)
+#endif
+
 /// Utility functions for all sorts of stuff.
 namespace cs::utils {
 
 /// Defines the order in which objects will be rendered.
 enum class CS_UTILS_EXPORT DrawOrder : int {
-  ePlanets          = 100,
-  eOpaqueItems      = 200,
-  eStars            = 300,
-  eAtmospheres      = 400,
-  eTransparentItems = 500,
-  eRay              = 600,
-  eGui              = 700
+  eClearHDRBuffer   = 100,
+  ePlanets          = 200,
+  eOpaqueItems      = 300,
+  eStars            = 400,
+  eAtmospheres      = 500,
+  eToneMapping      = 600,
+  eOpaqueNonHDR     = 650,
+  eTransparentItems = 700,
+  eRay              = 800,
+  eGui              = 900
 };
 
 template <typename T>
@@ -100,6 +117,15 @@ float CS_UTILS_EXPORT getCurrentFarClipDistance();
 
 /// Executes a system command and returns the output.
 std::string exec(std::string const& cmd);
+
+/// Can be used to check the operating system at compile time.
+enum class OS { eLinux, eWindows };
+
+#ifdef __linux__
+constexpr OS HostOS = OS::eLinux;
+#elif _WIN32
+constexpr OS HostOS = OS::eWindows;
+#endif
 
 } // namespace cs::utils
 

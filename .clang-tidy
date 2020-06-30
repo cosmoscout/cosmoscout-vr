@@ -1,0 +1,64 @@
+Checks: '-*,
+-clang-diagnostic-inconsistent-dllimport,
+bugprone-*,
+-bugprone-exception-escape,
+-bugprone-narrowing-conversions,
+cert-*,
+-cert-oop54-cpp,
+clang-analyzer-*,
+cppcoreguidelines-*,
+-cppcoreguidelines-avoid-c-arrays,
+-cppcoreguidelines-avoid-magic-numbers,
+-cppcoreguidelines-explicit-virtual-functions,
+-cppcoreguidelines-macro-usage,
+-cppcoreguidelines-non-private-member-variables-in-classes,
+-cppcoreguidelines-pro-type-vararg,
+-cppcoreguidelines-pro-type-union-access,
+google-*,
+-google-explicit-constructor,
+-google-readability-todo,
+-google-readability-braces-around-statements,
+-google-runtime-references,
+hicpp-*,
+-hicpp-avoid-c-arrays,
+-hicpp-braces-around-statements,
+-hicpp-member-init,
+-hicpp-noexcept-move,
+-hicpp-no-array-decay,
+-hicpp-signed-bitwise,
+-hicpp-special-member-functions,
+-hicpp-uppercase-literal-suffix,
+-hicpp-use-equals-default,
+-hicpp-use-override,
+-hicpp-vararg,
+misc-*,
+-misc-non-private-member-variables-in-classes,
+modernize-*,
+-modernize-use-nodiscard,
+-modernize-use-trailing-return-type,
+performance-*,
+portability-*,
+readability-*,
+-readability-implicit-bool-conversion,
+-readability-magic-numbers'
+
+WarningsAsErrors: '*,
+-cert-env33-c,
+-cert-err58-cpp,
+-clang-analyzer-cplusplus.Move,
+-clang-analyzer-cplusplus.NewDeleteLeaks,
+-cppcoreguidelines-pro-type-reinterpret-cast,
+-google-default-arguments'
+
+HeaderFilterRegex: '.*/csp?-.*\.hpp'
+
+AnalyzeTemporaryDtors: false
+FormatStyle: 'file'
+
+CheckOptions:
+  - key: readability-magic-numbers.IgnoredFloatingPointValues
+    value: '0.0;0.1;0.2;0.5;1.0;2.0;3.0;4.0;5.0;10.0;100.0;45.0;90.0;180.0;360.0'
+  - key: readability-magic-numbers.IgnoredIntegerValues
+    value: '-2;-1;0;1;2;3;4;5;10;100;1000'
+  - key: readability-magic-numbers.IgnorePowersOf2IntegerValues
+    value: '1'

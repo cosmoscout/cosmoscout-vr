@@ -11,7 +11,7 @@
 
 namespace cs::gui::detail {
 
-/// Handles function calls from Javascript. Only functions with the name "call_native" and at
+/// Handles function calls from Javascript. Only functions with the name "callNative" and at
 /// least one argument are accepted.
 class JSHandler : public CefV8Handler {
 
@@ -20,7 +20,7 @@ class JSHandler : public CefV8Handler {
       : mBrowser(browser) {
   }
 
-  /// Handles function calls from Javascript. Only functions with the name "call_native" and at
+  /// Handles function calls from Javascript. Only functions with the name "callNative" and at
   /// least one argument are accepted.
   bool Execute(const CefString& name, CefRefPtr<CefV8Value> object, const CefV8ValueList& arguments,
       CefRefPtr<CefV8Value>& retval, CefString& exception) override;

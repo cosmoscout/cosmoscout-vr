@@ -9,9 +9,9 @@
 #include "../../cs-scene/CelestialAnchorNode.hpp"
 #include "../../cs-utils/convert.hpp"
 #include "../../cs-utils/utils.hpp"
-#include "../GraphicsEngine.hpp"
 #include "../GuiManager.hpp"
 #include "../InputManager.hpp"
+#include "../Settings.hpp"
 #include "../SolarSystem.hpp"
 #include "../TimeControl.hpp"
 
@@ -22,12 +22,13 @@
 #include <VistaKernelOpenSGExt/VistaOpenSGMaterialTools.h>
 
 #include <glm/gtc/type_ptr.hpp>
+#include <utility>
 
 namespace cs::core::tools {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const std::string Mark::SHADER_VERT = R"(
+static const char* SHADER_VERT = R"(
 #version 330
 
 layout(location=0) in vec3 iPosition;
@@ -47,7 +48,7 @@ void main()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const std::string Mark::SHADER_FRAG = R"(
+static const char* SHADER_FRAG = R"(
 #version 330
 
 uniform vec3 uHoverSelectActive;
@@ -72,19 +73,17 @@ void main()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Mark::Mark(std::shared_ptr<InputManager> const& pInputManager,
-    std::shared_ptr<SolarSystem> const&         pSolarSystem,
-    std::shared_ptr<GraphicsEngine> const&      graphicsEngine,
-    std::shared_ptr<TimeControl> const& pTimeControl, std::string const& sCenter,
-    std::string const& sFrame)
-    : mInputManager(pInputManager)
-    , mSolarSystem(pSolarSystem)
-    , mGraphicsEngine(graphicsEngine)
-    , mTimeControl(pTimeControl)
-    , mVAO(new VistaVertexArrayObject())
-    , mVBO(new VistaBufferObject())
-    , mIBO(new VistaBufferObject())
-    , mShader(new VistaGLSLShader()) {
+Mark::Mark(std::shared_ptr<InputManager> pInputManager, std::shared_ptr<SolarSystem> pSolarSystem,
+    std::shared_ptr<Settings> settings, std::shared_ptr<TimeControl> pTimeControl,
+    std::string const& sCenter, std::string const& sFrame)
+    : mInputManager(std::move(pInputManager))
+    , mSolarSystem(std::move(pSolarSystem))
+    , mSettings(std::move(settings))
+    , mTimeControl(std::move(pTimeControl))
+    , mVAO(std::make_unique<VistaVertexArrayObject>())
+    , mVBO(std::make_unique<VistaBufferObject>())
+    , mIBO(std::make_unique<VistaBufferObject>())
+    , mShader(std::make_unique<VistaGLSLShader>()) {
 
   initData(sCenter, sFrame);
 }
@@ -92,19 +91,21 @@ Mark::Mark(std::shared_ptr<InputManager> const& pInputManager,
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Mark::Mark(Mark const& other)
-    : pLngLat(other.pLngLat)
+    : IVistaOpenGLDraw(other)
+    , Tool(other)
+    , pLngLat(other.pLngLat)
     , pHovered(other.pHovered)
     , pSelected(other.pSelected)
     , pActive(other.pActive)
+    , pScaleDistance(other.pScaleDistance)
     , mInputManager(other.mInputManager)
     , mSolarSystem(other.mSolarSystem)
-    , mGraphicsEngine(other.mGraphicsEngine)
+    , mSettings(other.mSettings)
     , mTimeControl(other.mTimeControl)
-    , mVAO(new VistaVertexArrayObject())
-    , mVBO(new VistaBufferObject())
-    , mIBO(new VistaBufferObject())
-    , mShader(new VistaGLSLShader())
-    , mOriginalDistance(other.mOriginalDistance) {
+    , mVAO(std::make_unique<VistaVertexArrayObject>())
+    , mVBO(std::make_unique<VistaBufferObject>())
+    , mIBO(std::make_unique<VistaBufferObject>())
+    , mShader(std::make_unique<VistaGLSLShader>()) {
 
   initData(other.getAnchor()->getCenterName(), other.getAnchor()->getFrameName());
 }
@@ -112,14 +113,14 @@ Mark::Mark(Mark const& other)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Mark::~Mark() {
-  mInputManager->pHoveredNode.onChange().disconnect(mHoveredNodeConnection);
-  mInputManager->pSelectedNode.onChange().disconnect(mSelectedNodeConnection);
-  mInputManager->pButtons[0].onChange().disconnect(mButtonsConnection);
-  mInputManager->pHoveredObject.onChange().disconnect(mHoveredPlanetConnection);
-  mGraphicsEngine->pHeightScale.onChange().disconnect(mHeightScaleConnection);
+  mInputManager->pHoveredNode.disconnect(mHoveredNodeConnection);
+  mInputManager->pSelectedNode.disconnect(mSelectedNodeConnection);
+  mInputManager->pButtons[0].disconnect(mButtonsConnection);
+  mInputManager->pHoveredObject.disconnect(mHoveredPlanetConnection);
+  mSettings->mGraphics.pHeightScale.disconnect(mHeightScaleConnection);
 
   mInputManager->pHoveredNode    = nullptr;
-  mInputManager->pHoveredGuiNode = nullptr;
+  mInputManager->pHoveredGuiItem = nullptr;
 
   if (mParent) {
     mInputManager->unregisterSelectable(mParent);
@@ -149,29 +150,30 @@ void Mark::update() {
   double simulationTime(mTimeControl->pSimulationTime.get());
 
   SolarSystem::scaleRelativeToObserver(*mAnchor, mSolarSystem->getObserver(), simulationTime,
-      mOriginalDistance, mGraphicsEngine->pWidgetScale.get());
+      pScaleDistance.get(), mSettings->mGraphics.pWorldUIScale.get());
   SolarSystem::turnToObserver(*mAnchor, mSolarSystem->getObserver(), simulationTime, false);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool Mark::Do() {
-  GLfloat glMatMV[16], glMatP[16];
-  glGetFloatv(GL_MODELVIEW_MATRIX, &glMatMV[0]);
-  glGetFloatv(GL_PROJECTION_MATRIX, &glMatP[0]);
+  std::array<GLfloat, 16> glMatMV{};
+  std::array<GLfloat, 16> glMatP{};
+  glGetFloatv(GL_MODELVIEW_MATRIX, glMatMV.data());
+  glGetFloatv(GL_PROJECTION_MATRIX, glMatP.data());
 
   mShader->Bind();
   mVAO->Bind();
-  glUniformMatrix4fv(mShader->GetUniformLocation("uMatModelView"), 1, GL_FALSE, glMatMV);
-  glUniformMatrix4fv(mShader->GetUniformLocation("uMatProjection"), 1, GL_FALSE, glMatP);
-  mShader->SetUniform(mShader->GetUniformLocation("uHoverSelectActive"), pHovered.get() ? 1.f : 0.f,
-      pSelected.get() ? 1.f : 0.f, pActive.get() ? 1.f : 0.f);
+  glUniformMatrix4fv(mShader->GetUniformLocation("uMatModelView"), 1, GL_FALSE, glMatMV.data());
+  glUniformMatrix4fv(mShader->GetUniformLocation("uMatProjection"), 1, GL_FALSE, glMatP.data());
+  mShader->SetUniform(mShader->GetUniformLocation("uHoverSelectActive"), pHovered.get() ? 1.F : 0.F,
+      pSelected.get() ? 1.F : 0.F, pActive.get() ? 1.F : 0.F);
   mShader->SetUniform(
       mShader->GetUniformLocation("uFarClip"), cs::utils::getCurrentFarClipDistance());
   mShader->SetUniform(
       mShader->GetUniformLocation("uColor"), pColor.get().x, pColor.get().y, pColor.get().z);
 
-  glDrawElements(GL_TRIANGLES, (GLsizei)mIndexCount, GL_UNSIGNED_INT, nullptr);
+  glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(mIndexCount), GL_UNSIGNED_INT, nullptr);
   mVAO->Release();
   mShader->Release();
 
@@ -181,10 +183,12 @@ bool Mark::Do() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool Mark::GetBoundingBox(VistaBoundingBox& bb) {
-  float fMin[3] = {-0.01f, -0.01f, -0.01f};
-  float fMax[3] = {0.01f, 0.01f, 0.01f};
+  float extend = 0.01F;
 
-  bb.SetBounds(fMin, fMax);
+  std::array fMin{-extend, -extend, -extend};
+  std::array fMax{extend, extend, extend};
+
+  bb.SetBounds(fMin.data(), fMax.data());
 
   return true;
 }
@@ -196,7 +200,7 @@ void Mark::initData(std::string const& sCenter, std::string const& sFrame) {
   mShader->InitFragmentShaderFromString(SHADER_FRAG);
   mShader->Link();
 
-  auto pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
+  auto* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
 
   mAnchor = std::make_shared<cs::scene::CelestialAnchorNode>(
       pSG->GetRoot(), pSG->GetNodeBridge(), "", sCenter, sFrame);
@@ -206,7 +210,7 @@ void Mark::initData(std::string const& sCenter, std::string const& sFrame) {
   mInputManager->registerSelectable(mParent);
 
   VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
-      mAnchor.get(), static_cast<int>(cs::utils::DrawOrder::eOpaqueItems));
+      mAnchor.get(), static_cast<int>(cs::utils::DrawOrder::eOpaqueNonHDR));
 
   const std::array<glm::vec3, 26> POSITIONS = {glm::vec3(1, -1, 1), glm::vec3(-1, -1, -1),
       glm::vec3(1, -1, -1), glm::vec3(-1, 1, -1), glm::vec3(1, 1, 1), glm::vec3(1, 1, -1),
@@ -270,7 +274,7 @@ void Mark::initData(std::string const& sCenter, std::string const& sFrame) {
   mVAO->SpecifyAttributeArrayFloat(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), 0, mVBO.get());
 
   // update hover state
-  mHoveredNodeConnection = mInputManager->pHoveredNode.onChange().connect([this](IVistaNode* node) {
+  mHoveredNodeConnection = mInputManager->pHoveredNode.connect([this](IVistaNode* node) {
     if (node == mParent && !pHovered.get()) {
       pHovered = true;
       cs::core::GuiManager::setCursor(cs::gui::Cursor::eHand);
@@ -280,51 +284,41 @@ void Mark::initData(std::string const& sCenter, std::string const& sFrame) {
     }
   });
 
-  mSelectedNodeConnection = mInputManager->pSelectedNode.onChange().connect(
+  mSelectedNodeConnection = mInputManager->pSelectedNode.connect(
       [this](IVistaNode* node) { pSelected = (node == mParent); });
 
-  mButtonsConnection = mInputManager->pButtons[0].onChange().connect(
+  mButtonsConnection = mInputManager->pButtons[0].connect(
       [this](bool press) { pActive = (press && pHovered.get()); });
 
   mHoveredPlanetConnection =
-      mInputManager->pHoveredObject.onChange().connect([this](InputManager::Intersection const& i) {
+      mInputManager->pHoveredObject.connect([this](InputManager::Intersection const& i) {
         if (pActive.get() && i.mObject) {
           auto body = std::dynamic_pointer_cast<cs::scene::CelestialBody>(i.mObject);
           if (body && body->getCenterName() == mAnchor->getCenterName()) {
-            auto lngLatHeight = cs::utils::convert::toLngLatHeight(
-                i.mPosition, body->getRadii()[0], body->getRadii()[0]);
-            pLngLat = lngLatHeight.xy();
+            auto radii = body->getRadii();
+            pLngLat    = cs::utils::convert::cartesianToLngLat(i.mPosition, radii);
           }
         }
       });
 
   // update position
-  mSelfLngLatConnection = pLngLat.onChange().connect([this](glm::dvec2 const& lngLat) {
+  mSelfLngLatConnection = pLngLat.connect([this](glm::dvec2 const& lngLat) {
     // Request the height under the Mark and add it
     auto   body   = mSolarSystem->getBody(mAnchor->getCenterName());
     double height = body->getHeight(lngLat);
     auto   radii  = body->getRadii();
     auto   cart   = cs::utils::convert::toCartesian(
-        lngLat, radii[0], radii[0], height * mGraphicsEngine->pHeightScale.get());
+        lngLat, radii, height * mSettings->mGraphics.pHeightScale.get());
     mAnchor->setAnchorPosition(cart);
-
-    // This seems to be the first time the tool is moved, so we have to store the distance to the
-    // observer so that we can scale the tool later based on the observer's position.
-    if (mOriginalDistance < 0) {
-      double simulationTime(mTimeControl->pSimulationTime.get());
-      mOriginalDistance =
-          mSolarSystem->getObserver().getAnchorScale() *
-          glm::length(mSolarSystem->getObserver().getRelativePosition(simulationTime, *mAnchor));
-    }
   });
 
   // connect the heightscale value to this object. Whenever the heightscale value changes
   // the landmark will be set to the correct height value
-  mHeightScaleConnection = mGraphicsEngine->pHeightScale.onChange().connect([this](float const& h) {
+  mHeightScaleConnection = mSettings->mGraphics.pHeightScale.connect([this](float h) {
     auto   body   = mSolarSystem->getBody(mAnchor->getCenterName());
     double height = body->getHeight(pLngLat.get()) * h;
     auto   radii  = body->getRadii();
-    auto   cart   = cs::utils::convert::toCartesian(pLngLat.get(), radii[0], radii[0], height);
+    auto   cart   = cs::utils::convert::toCartesian(pLngLat.get(), radii, height);
     mAnchor->setAnchorPosition(cart);
   });
 }

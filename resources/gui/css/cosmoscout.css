@@ -1,0 +1,21 @@
+/* The main user interface of CosmoScout VR consists of a three by three grid. The top row is
+ * filled with the timeline, the bottom row with the status bar, the central row with the sidebar,
+ * an empty cell and the notifications area.
+ */
+
+#cosmoscout {
+  opacity: 0;
+  transition: opacity .75s;
+  display: grid;
+  height: 100vh;
+  grid-template-columns: auto 1fr 400px;
+  grid-template-rows: auto 1fr 30px;
+  grid-template-areas:
+    "timeline timeline timeline"
+    "sidebar main notifications"
+    "statusbar statusbar statusbar";
+}
+
+.loaded #cosmoscout {
+  opacity: 1;
+}

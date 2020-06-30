@@ -20,14 +20,17 @@ namespace cs::core::tools {
 class CS_CORE_EXPORT DeletableMark : public Mark {
  public:
   DeletableMark(std::shared_ptr<InputManager> const& pInputManager,
-      std::shared_ptr<SolarSystem> const&            pSolarSystem,
-      std::shared_ptr<GraphicsEngine> const&         graphicsEngine,
+      std::shared_ptr<SolarSystem> const& pSolarSystem, std::shared_ptr<Settings> const& settings,
       std::shared_ptr<TimeControl> const& pTimeControl, std::string const& sCenter,
       std::string const& sFrame);
 
-  DeletableMark(DeletableMark const& other);
+  DeletableMark(DeletableMark const& other) = delete;
+  DeletableMark(DeletableMark&& other)      = delete;
 
-  virtual ~DeletableMark();
+  DeletableMark& operator=(DeletableMark const& other) = delete;
+  DeletableMark& operator=(DeletableMark&& other) = delete;
+
+  ~DeletableMark() override;
 
  private:
   void initData();

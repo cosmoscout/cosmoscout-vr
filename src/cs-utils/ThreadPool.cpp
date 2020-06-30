@@ -14,7 +14,7 @@ namespace cs::utils {
 
 ThreadPool::ThreadPool(size_t threads)
     : mStop(false) {
-  for (size_t i = 0; i < threads; ++i)
+  for (size_t i = 0; i < threads; ++i) {
     mWorkers.emplace_back([this] {
       while (true) {
         std::function<void()> task;
@@ -38,6 +38,7 @@ ThreadPool::ThreadPool(size_t threads)
         --mRunningTasks;
       }
     });
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

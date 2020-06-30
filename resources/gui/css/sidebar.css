@@ -1,171 +1,146 @@
-.side-bar {
-    width: 450px;
-    position: absolute;
-    height: 100%;
-    overflow-x: hidden;
-    overflow-y: scroll;
-    padding-top: 140px;
-    opacity: 0;
-    transition: opacity 0.2s linear;
+#sidebar {
+  grid-area: sidebar;
+  z-index: 1;
+  overflow-x: hidden;
+  overflow-y: scroll;
+  -webkit-mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0) 0px, rgba(0, 0, 0, 1) 50px),
+    linear-gradient(180deg, rgba(0, 0, 0, 0) calc(100% - 30px), rgba(0, 0, 0, 1) 100%);
+  -webkit-mask-composite: xor;
 }
 
-.side-bar.visible {
-    opacity: 1;
+/* Shrink-to-left-side functionality ------------------------------------------------------------ */
+
+#sidebar .sidebar-tab>.section-header,
+#sidebar .sidebar-tab>.section-body {
+  width: 50px;
+  overflow: hidden;
+  transition: width 0.3s ease, height 0.3s ease;
 }
 
-.side-bar::-webkit-scrollbar { 
-    display: none;
+#sidebar .sidebar-tab>.section-header:not(.collapsed),
+#sidebar .sidebar-tab:hover>.section-header,
+#sidebar .sidebar-tab>.section-header:not(.collapsed)+.section-body,
+#sidebar .sidebar-tab:hover>.section-header+.section-body {
+  width: 450px;
 }
 
-.side-bar.right {
-    right: 0;
+#sidebar .sidebar-tab>.section-header span {
+  opacity: 0;
+  transition: opacity 0.1s linear;
 }
 
-.side-bar .tab {
-    color: #fff;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: block;
-    font-size: 2rem;
-    line-height: 2.5rem;
-    transition: width 0.3s ease, background 0.1s linear;
-    width: 55px;
-    height: 55px;
-    overflow: hidden;
-    white-space: nowrap;
-    text-shadow: 0 0 5px rgba(255, 255, 255, 0.4), 0 0 10px #aaf;
-    text-align: center;
-    padding: 3px;
-    border-top: 2px solid #ccf !important;
-    position: relative;
-}
-
-.side-bar .tab:active {
-    top: 1px;
-}
-
-.side-bar .tab .header-name {
-    font-family: 'AlegreyaSansSC';
-    opacity: 0;
-    transition: opacity 0.1s linear;
-    overflow-x: hidden;
-    text-overflow: clip;
-    white-space: nowrap;
+#sidebar .sidebar-tab>.section-header:not(.collapsed) span,
+#sidebar .sidebar-tab:hover>.section-header span {
+  transition-delay: 0.2s;
+  transition-duration: 0.3s;
+  opacity: 1;
 }
 
 
-.side-bar .tab:not(.collapsed),
-.side-bar .tab:hover {
-    width: 450px;
+/* Sidebar styling ------------------------------------------------------------------------------ */
+
+#sidebar .container-fluid>*:first-child {
+  padding-top: 10px;
 }
 
-.side-bar .tab:hover {
-    background-color: rgba(50, 50, 50, 0.5);
+#sidebar .container-fluid>*:last-child {
+  padding-bottom: 10px;
 }
 
-.side-bar .tab:not(.collapsed) .header-name,
-.side-bar .tab:hover .header-name {
-    opacity: 1;
-    transition: opacity 0.2s linear;
-    transition-delay: 0.1s;
+#sidebar-accordion {
+  padding: 50px 0;
 }
 
-.side-bar .card-header i {
-    position: absolute;
-    left: 9px;
-    font-size: 35px;
-    top: 10px;
-    width: 2rem;
-    margin-right: 1rem;
-    display: inline-block;
-    text-align: center;
+#sidebar::-webkit-scrollbar {
+  display: none;
 }
 
-.side-bar .card .card-body {
-    background-color: rgba(0, 0, 0, 0.5);
-    padding: 0;
+#sidebar .sidebar-tab {
+  margin-bottom: 10px;
+  margin-right: 10px;
+  background-color: var(--cs-color-background-dark);
+  border-top-right-radius: var(--cs-border-radius-large);
+  border-bottom-right-radius: var(--cs-border-radius-large);
+  overflow: hidden;
+  border-bottom: 2px solid var(--cs-color-primary);
+  border-top: 2px solid var(--cs-color-primary);
+  box-shadow: var(--cs-box-shadow-medium);
+  width: fit-content;
 }
 
-.side-bar .card {
-    background: transparent;
-    padding: 5px 0;
-    margin: 0;
-    box-shadow: none;
-    border: none;
-    border-radius: 0;
+#sidebar .sidebar-tab>.section-header i {
+  position: absolute;
+  left: 0;
+  top: 0;
+  border-radius: 0 0 70% 0;
+  padding: 4px 15px 4px 10px;
+  transition: all 0.2s ease;
 }
 
-.accordion>.card .card-header  {
-    margin: 0;
-    border: none;
-    border-radius: 0;
+#sidebar .sidebar-tab>.section-header:not(.collapsed) i,
+#sidebar .sidebar-tab:hover>.section-header i {
+  color: black;
+  text-shadow: none;
+  background-color: var(--cs-color-primary);
+  top: -15px;
+  font-size: 3rem;
 }
 
-.side-bar *[type=button] {
-    -webkit-appearance: none;
+#sidebar .sidebar-tab>.section-header {
+  text-align: center;
 }
 
-/* Setting Sections --------------------------------------------------------- */
-
-.settings-section .card-header {
-    font-family: 'AlegreyaSansSC';
-    width: 100%;
-    font-size: 1.5rem;
-    background: transparent;
-    border: none;
-    margin: 0;
-    color: #fff;
-    text-shadow: 0 0 5px rgba(255, 255, 255, 0.4), 0 0 10px #aaf;
-    position: relative;
-    width: 100%;
-    transition: 100ms background;
-    padding: 0.5rem 1.7rem;
+#sidebar .section-header {
+  position: relative;
+  padding: 4px 10px;
+  font-family: 'AlegreyaSansSC', sans-serif;
+  overflow-x: hidden;
+  font-size: 1.8rem;
+  text-overflow: clip;
+  white-space: nowrap;
 }
 
-.settings-section .card-header:active {
-    top: 1px;
+#sidebar .section-header span {
+  padding-top: 2px;
+  position: relative;
+  top: 2px;
 }
 
-.settings-section .card-header i {
-    width: 2rem;
-    font-size: 1.6rem;
-    display: inline-block;
-    line-height: 2rem;
+#sidebar .section-header:hover {
+  background: rgba(255, 255, 255, 0.1);
 }
 
-.settings-section .card-header span {
-    text-align: center;
-    display: inline-block;
-    padding-left: 25px;
+#sidebar .section-header:active {
+  top: 1px;
 }
 
-.settings-section .card-body {
-    background-color: transparent !important;
-    width: 100%;
+#sidebar *[type=button] {
+  -webkit-appearance: none;
 }
 
-.settings-section .card-header:hover {
-    background: rgba(255, 255, 255, 0.1);
+/* Setting Sections ----------------------------------------------------------------------------- */
+
+#sidebar .settings-section .section-header {
+  font-size: 1.5rem;
 }
 
-.settings-section .card-header .caret-icon {
-    position: absolute;
-    left: auto;
-    right: 0;
-    transform: rotate(0deg);
-    transition: 100ms transform;
+#sidebar .settings-section .section-header span {
+  padding-left: 20px;
 }
 
-.settings-section .card-header:not(.collapsed) .caret-icon {
-    transform: rotate(-90deg);
+#sidebar .settings-section .section-header .caret-icon {
+  position: absolute;
+  right: 5px;
+  transform: rotate(0deg);
+  transition: 100ms transform;
 }
 
-.side-bar .card.settings-section {
-    border-style: dashed;
-    border-width: 1px 0 0 0;
-    border-color: rgba(255, 255, 255, 0.4);
+#sidebar .settings-section .section-header:not(.collapsed) .caret-icon {
+  transform: rotate(-90deg);
 }
 
-
-.settings-accordion {
-    margin-bottom: 0;
+#sidebar .settings-section {
+  border-style: dashed;
+  border-width: 1px 0 0 0;
+  border-color: var(--cs-color-background-lightest)
 }

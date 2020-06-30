@@ -11,6 +11,7 @@
 
 #include <cstdint>
 #include <functional>
+#include <variant>
 #include <vector>
 
 namespace cs::gui {
@@ -25,7 +26,9 @@ struct CS_GUI_EXPORT DrawEvent {
   const uint8_t* mData;    ///< The new pixel data of the redrawn area.
 };
 
-typedef std::function<void(DrawEvent const&)> DrawCallback;
+using DrawCallback = std::function<uint8_t*(const DrawEvent&)>;
+
+using JSType = std::variant<double, bool, std::string>;
 
 /// The visual appearance of the cursor.
 enum class CS_GUI_EXPORT Cursor : int {
@@ -75,7 +78,8 @@ enum class CS_GUI_EXPORT Cursor : int {
   eCustom
 };
 
-typedef std::function<void(Cursor)> CursorChangeCallback;
+using CursorChangeCallback         = std::function<void(Cursor)>;
+using RequestKeyboardFocusCallback = std::function<void(bool)>;
 
 /// The mouse button that was interacted with.
 enum class CS_GUI_EXPORT Button : int {

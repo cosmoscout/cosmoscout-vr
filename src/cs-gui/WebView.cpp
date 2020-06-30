@@ -23,20 +23,23 @@ class DevToolsClient : public CefClient {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 WebView::WebView(const std::string& url, int width, int height, bool allowLocalFileAccess)
-    : mClient(new detail::WebViewClient())
-    , mInteractive(true)
-    , mMouseX(0)
-    , mMouseY(0)
-    , mMouseModifiers(0) {
-  resize(width, height);
+    : mClient(new detail::WebViewClient()) {
+  WebView::resize(width, height);
 
   CefWindowInfo info;
   info.width  = width;
   info.height = height;
+
+#ifdef _MSC_VER
+  info.SetAsWindowless(nullptr);
+#else
   info.SetAsWindowless(0);
+#endif
 
   CefBrowserSettings browserSettings;
-  browserSettings.windowless_frame_rate = 60;
+
+  int const targetFrameRate             = 60;
+  browserSettings.windowless_frame_rate = targetFrameRate;
   browserSettings.web_security          = allowLocalFileAccess ? STATE_DISABLED : STATE_ENABLED;
 
   mBrowser =
@@ -70,12 +73,25 @@ void WebView::setCursorChangeCallback(CursorChangeCallback const& callback) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void WebView::setRequestKeyboardFocusCallback(RequestKeyboardFocusCallback const& callback) {
+  mClient->GetInternalRenderHandler()->SetRequestKeyboardFocusCallback(callback);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void WebView::resize(int width, int height) const {
   mClient->GetInternalRenderHandler()->Resize(width, height);
 
   if (mBrowser) {
     mBrowser->GetHost()->WasResized();
   }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void WebView::setZoomFactor(double factor) const {
+  // Each zoom level increses the scale by 20%.
+  mBrowser->GetHost()->SetZoomLevel(std::log(factor) / std::log(1.2));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -87,7 +103,8 @@ bool WebView::getColor(int x, int y, uint8_t& r, uint8_t& g, uint8_t& b, uint8_t
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 uint8_t WebView::getRed(int x, int y) const {
-  uint8_t value(0), tmp(0);
+  uint8_t value(0);
+  uint8_t tmp(0);
   mClient->GetInternalRenderHandler()->GetColor(x, y, value, tmp, tmp, tmp);
   return value;
 }
@@ -95,7 +112,8 @@ uint8_t WebView::getRed(int x, int y) const {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 uint8_t WebView::getGreen(int x, int y) const {
-  uint8_t value(0), tmp(0);
+  uint8_t value(0);
+  uint8_t tmp(0);
   mClient->GetInternalRenderHandler()->GetColor(x, y, tmp, value, tmp, tmp);
   return value;
 }
@@ -103,7 +121,8 @@ uint8_t WebView::getGreen(int x, int y) const {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 uint8_t WebView::getBlue(int x, int y) const {
-  uint8_t value(0), tmp(0);
+  uint8_t value(0);
+  uint8_t tmp(0);
   mClient->GetInternalRenderHandler()->GetColor(x, y, tmp, tmp, value, tmp);
   return value;
 }
@@ -111,7 +130,8 @@ uint8_t WebView::getBlue(int x, int y) const {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 uint8_t WebView::getAlpha(int x, int y) const {
-  uint8_t value(0), tmp(0);
+  uint8_t value(0);
+  uint8_t tmp(0);
   mClient->GetInternalRenderHandler()->GetColor(x, y, tmp, tmp, tmp, value);
   return value;
 }
@@ -126,6 +146,18 @@ bool WebView::getIsInteractive() const {
 
 void WebView::setIsInteractive(bool interactive) {
   mInteractive = interactive;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool WebView::getCanScroll() const {
+  return mCanScroll;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void WebView::setCanScroll(bool canScroll) {
+  mCanScroll = canScroll;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -149,10 +181,11 @@ void WebView::waitForFinishedLoading() const {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void WebView::reload(bool ignoreCache) const {
-  if (ignoreCache)
+  if (ignoreCache) {
     mBrowser->ReloadIgnoreCache();
-  else
+  } else {
     mBrowser->Reload();
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -206,19 +239,20 @@ void WebView::redo() const {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void WebView::injectFocusEvent(bool focus) {
-  if (!mInteractive)
-    return;
-  mBrowser->GetHost()->SendFocusEvent(focus);
+  if (mInteractive) {
+    mBrowser->GetHost()->SendFocusEvent(focus);
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void WebView::injectMouseEvent(MouseEvent const& event) {
-  if (!mInteractive)
+  if (!mInteractive || (!mCanScroll && event.mType == MouseEvent::Type::eScroll)) {
     return;
+  }
 
   CefMouseEvent cef_event;
-  cef_event.modifiers = (uint32)mMouseModifiers;
+  cef_event.modifiers = static_cast<uint32>(mMouseModifiers);
   cef_event.x         = mMouseX;
   cef_event.y         = mMouseY;
 
@@ -240,10 +274,12 @@ void WebView::injectMouseEvent(MouseEvent const& event) {
   case MouseEvent::Type::ePress:
     if (event.mButton == Button::eLeft) {
       mMouseModifiers |= int(Modifier::eLeftButton);
-      double elpasedTime = std::chrono::duration_cast<std::chrono::milliseconds>(
+      auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(
           std::chrono::steady_clock::now() - mLastClick)
-                               .count();
-      if (elpasedTime < 200) {
+                             .count();
+
+      int const doubleClickWindowMillis = 200;
+      if (elapsedTime < doubleClickWindowMillis) {
         mClickCount++;
       } else {
         mClickCount = 1;
@@ -255,9 +291,9 @@ void WebView::injectMouseEvent(MouseEvent const& event) {
       mMouseModifiers |= int(Modifier::eMiddleButton);
     }
 
-    cef_event.modifiers = (uint32)mMouseModifiers;
+    cef_event.modifiers = static_cast<uint32>(mMouseModifiers);
     mBrowser->GetHost()->SendMouseClickEvent(
-        cef_event, (cef_mouse_button_type_t)event.mButton, false, mClickCount);
+        cef_event, static_cast<cef_mouse_button_type_t>(event.mButton), false, mClickCount);
     break;
 
   case MouseEvent::Type::eRelease:
@@ -269,9 +305,9 @@ void WebView::injectMouseEvent(MouseEvent const& event) {
       mMouseModifiers &= ~int(Modifier::eMiddleButton);
     }
 
-    cef_event.modifiers = (uint32)mMouseModifiers;
+    cef_event.modifiers = static_cast<uint32>(mMouseModifiers);
     mBrowser->GetHost()->SendMouseClickEvent(
-        cef_event, (cef_mouse_button_type_t)event.mButton, true, mClickCount);
+        cef_event, static_cast<cef_mouse_button_type_t>(event.mButton), true, mClickCount);
     break;
   }
 }
@@ -287,7 +323,7 @@ void WebView::injectKeyEvent(KeyEvent const& event) {
   cef_event.modifiers               = event.mModifiers;
   cef_event.character               = event.mCharacter;
   cef_event.is_system_key           = false;
-  cef_event.windows_key_code        = (int)event.mKey;
+  cef_event.windows_key_code        = static_cast<int>(event.mKey);
   cef_event.focus_on_editable_field = true;
 
   if (event.mType == KeyEvent::Type::ePress) {
@@ -306,7 +342,7 @@ void WebView::injectKeyEvent(KeyEvent const& event) {
 void WebView::callJavascriptImpl(
     std::string const& function, std::vector<std::string> const& args) const {
   std::string call(function + "( ");
-  for (auto& s : args) {
+  for (auto&& s : args) {
     call += s + ",";
   }
   call.back() = ')';
@@ -324,14 +360,103 @@ void WebView::executeJavascript(std::string const& code) const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void WebView::unregisterCallback(std::string const& name) {
-  mClient->UnregisterJSCallback(name);
+void WebView::registerCallback(
+    std::string const& name, std::string const& comment, std::function<void()> const& callback) {
+  registerJSCallbackImpl(name, comment, {},
+      [callback](std::vector<std::optional<JSType>> const& /*unused*/) { callback(); });
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void WebView::registerJSCallbackImpl(
-    std::string const& name, std::function<void(std::vector<std::any> const&)> const& callback) {
+void WebView::unregisterCallback(std::string const& name) {
+  mClient->UnregisterJSCallback(name);
+
+  // Also remove the function property on the CosmoScout.callbacks property.
+  std::string cmd = R"(
+    if (typeof CosmoScout !== 'undefined') {
+      delete CosmoScout.callbacks.$name;
+    }
+  )";
+
+  utils::replaceString(cmd, "$name", name);
+  executeJavascript(cmd);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void WebView::registerJSCallbackImpl(std::string const& name, std::string const& comment,
+    std::vector<std::type_index>&&                                   types,
+    std::function<void(std::vector<std::optional<JSType>>&&)> const& callback) {
+
+  // To increase the readability of the callback signature when inspected via an interactive
+  // console, we name every argument depending on its type.
+  std::string signature;
+
+  const std::unordered_map<std::type_index, std::string> typeNames = {
+      {std::type_index(typeid(double)), "double"}, {std::type_index(typeid(bool)), "bool"},
+      {std::type_index(typeid(std::string)), "string"},
+      {std::type_index(typeid(std::optional<double>)), "optionalDouble"},
+      {std::type_index(typeid(std::optional<bool>)), "optionalBool"},
+      {std::type_index(typeid(std::optional<std::string>)), "optionalString"}};
+
+  std::unordered_map<std::type_index, int> typeCounts;
+
+  for (size_t i(0); i < types.size(); ++i) {
+    signature += typeNames.at(types[i]);
+
+    if (typeCounts[types[i]]++ > 0) {
+      signature += std::to_string(typeCounts[types[i]]);
+    }
+
+    if (i + 1 < types.size()) {
+      signature += ", ";
+    }
+  }
+
+  // When executing the 'window.callNative()' method, we need the callback's name as first
+  // parameter.
+  std::string callSignature = "'" + name + "'" + (signature.empty() ? "" : ", " + signature);
+
+  // Format the comment. This is a bit more involved since we do line wrapping for long comments.
+  std::string formattedComment = "  // ";
+  size_t      currentSpacePos  = 0;
+  size_t      currentLineWidth = 0;
+  while (currentSpacePos != std::string::npos) {
+    size_t nextSpacePos = comment.find_first_of(' ', currentSpacePos + 1);
+    formattedComment += comment.substr(currentSpacePos, nextSpacePos - currentSpacePos);
+    currentLineWidth += nextSpacePos - currentSpacePos;
+    currentSpacePos = nextSpacePos;
+
+    size_t const maxLineWidth = 40;
+    if (currentSpacePos != std::string::npos && currentLineWidth > maxLineWidth) {
+      formattedComment += "\n  //";
+      currentLineWidth = 0;
+    }
+  }
+
+  // This registers the callback as a property of the CosmoScout.callbacks object. As the name may
+  // contain multiple dots, this is a little tricky. We have to create multiple chained objects;
+  // e.g. for the callback "notifications.print.warning", we first have to create the object
+  // "notifications", then "print" and then the function "warning".
+  std::string cmd = R"(
+if (typeof CosmoScout !== 'undefined') {
+let components = '$name'.split('.');
+components.reduce((a, b) => a[b] = a[b] || {}, CosmoScout.callbacks);
+CosmoScout.callbacks.$name = ($signature) => {
+
+$comment
+
+  window.callNative($callSignature);
+}
+})";
+
+  utils::replaceString(cmd, "$name", name);
+  utils::replaceString(cmd, "$comment", formattedComment);
+  utils::replaceString(cmd, "$signature", signature);
+  utils::replaceString(cmd, "$callSignature", callSignature);
+  executeJavascript(cmd);
+
+  // Register the actual 'window.callNative()' handler.
   mClient->RegisterJSCallback(name, callback);
 }
 

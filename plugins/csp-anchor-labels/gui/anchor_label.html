@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+
+  <link type="text/css" rel="stylesheet" href="css/gui.css">
+
+  <style>
+    body {
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100vw;
+      height: 100vh;
+      margin: 0;
+    }
+
+    #anchor-label {
+      position: relative;
+      text-align: center;
+      font-size: 16pt;
+      background: radial-gradient(hsla(0, 0%, 0%, 0.01), hsla(0, 0%, 0%, 0), hsla(0, 0%, 0%, 0));
+    }
+
+    #anchor-label:hover {
+      color: white;
+      background: radial-gradient(hsla(0, 0%, 75%, 0.8), hsla(0, 0%, 60%, 0.4), hsla(0, 0%, 40%, 0.2), hsla(0, 0%, 10%, 0.1), transparent);
+    }
+
+    #anchor-label:active {
+      top: 1px;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="anchor-label" onclick="window.callNative('flyToBody')">
+    PLACEHOLDER
+  </div>
+
+  <script type="text/javascript">
+    function setLabelText(text) {
+      document.getElementById("anchor-label").innerText = text;
+    }
+  </script>
+</body>
+
+</html>

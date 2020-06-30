@@ -4,7 +4,7 @@
 
 # Continuous Integration
 
-[Github Actions](https://github.com/cosmoscout/cosmoscout-vr/actions) is used for contiuous integration of CosmoScout VR.
+[Github Actions](https://github.com/cosmoscout/cosmoscout-vr/actions) is used for continuous integration of CosmoScout VR.
 The file [`build.yml`](../.github/workflows/build.yml) describes which jobs are run whenever a commit is pushed or a pull request is opened.
 
 ## Clang-Format Check
@@ -46,12 +46,12 @@ You can run them with the following scripts.
 #### Linux:
 
 ```shell
-./install/linux-release/run_tests.sh
+./install/linux-Release/run_tests.sh
 ```
 
 #### Windows:
 ```batch
-install\linux-release\run_tests.bat
+install\windows-Release\run_tests.bat
 ```
 
 ### Graphical Tests
@@ -63,7 +63,7 @@ In order to make them possible even if there is no graphics card or display atta
 Graphical tests can only be executed on Linux for now:
 
 ```shell
-./install/linux-release/run_graphical_tests.sh
+./install/linux-Release/run_graphical_tests.sh
 ```
 
 <p align="center"><img src ="img/hr.svg"/></p>

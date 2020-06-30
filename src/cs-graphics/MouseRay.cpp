@@ -8,25 +8,31 @@
 
 #include "../cs-utils/utils.hpp"
 
+#include <VistaKernel/GraphicsManager/VistaSceneGraph.h>
+#include <VistaKernel/GraphicsManager/VistaTransformNode.h>
+#include <VistaKernel/VistaSystem.h>
+#include <VistaKernelOpenSGExt/VistaOpenSGMaterialTools.h>
 #include <VistaMath/VistaBoundingBox.h>
 
 #include <glm/gtc/type_ptr.hpp>
+
+#include <array>
 
 namespace cs::graphics {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const std::vector<float> VERTICES = {-0.5f, -0.5f, 0.f, -0.5f, 0.5f, 0.f, 0.5f, 0.5f, 0.f, 0.5f,
-    -0.5f, 0.f, -0.5f, -0.5f, -1.f, -0.5f, 0.5f, -1.f, 0.5f, 0.5f, -1.f, 0.5f, -0.5f, -1.f};
+const std::array VERTICES{-0.5F, -0.5F, 0.F, -0.5F, 0.5F, 0.F, 0.5F, 0.5F, 0.F, 0.5F, -0.5F, 0.F,
+    -0.5F, -0.5F, -1.F, -0.5F, 0.5F, -1.F, 0.5F, 0.5F, -1.F, 0.5F, -0.5F, -1.F};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const std::vector<unsigned> INDICES = {0, 1, 2, 2, 3, 0, 0, 4, 5, 5, 1, 0, 4, 7, 6, 6, 5, 4, 2, 6,
-    7, 7, 3, 2, 1, 5, 6, 6, 2, 1, 0, 3, 7, 7, 4, 0};
+const std::array INDICES{0U, 1U, 2U, 2U, 3U, 0U, 0U, 4U, 5U, 5U, 1U, 0U, 4U, 7U, 6U, 6U, 5U, 4U, 2U,
+    6U, 7U, 7U, 3U, 2U, 1U, 5U, 6U, 6U, 2U, 1U, 0U, 3U, 7U, 7U, 4U, 0U};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const std::string MouseRay::SHADER_VERT = R"(
+static const char* SHADER_VERT = R"(
 #version 330
 
 uniform mat4 uMatModelView;
@@ -49,7 +55,7 @@ void main()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const std::string MouseRay::SHADER_FRAG = R"(
+static const char* SHADER_FRAG = R"(
 #version 330
 
 // inputs
@@ -72,6 +78,18 @@ void main()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 MouseRay::MouseRay() {
+  auto*               sceneGraph = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
+  VistaTransformNode* intentionNode =
+      dynamic_cast<VistaTransformNode*>(sceneGraph->GetNode("SELECTION_NODE"));
+
+  mRayTransform.reset(sceneGraph->NewTransformNode(intentionNode));
+  mRayTransform->SetScale(0.001F, 0.001F, 30.F);
+
+  mMouseRayNode.reset(sceneGraph->NewOpenGLNode(mRayTransform.get(), this));
+
+  VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
+      intentionNode, static_cast<int>(cs::utils::DrawOrder::eRay));
+
   // Create box shader.
   mShader.InitVertexShaderFromString(SHADER_VERT);
   mShader.InitFragmentShaderFromString(SHADER_FRAG);
@@ -102,18 +120,19 @@ bool MouseRay::Do() {
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 
-  GLfloat glMatMV[16], glMatP[16];
-  glGetFloatv(GL_MODELVIEW_MATRIX, &glMatMV[0]);
-  glGetFloatv(GL_PROJECTION_MATRIX, &glMatP[0]);
+  std::array<GLfloat, 16> glMatMV{};
+  std::array<GLfloat, 16> glMatP{};
+  glGetFloatv(GL_MODELVIEW_MATRIX, glMatMV.data());
+  glGetFloatv(GL_PROJECTION_MATRIX, glMatP.data());
 
   mShader.Bind();
   mRayVAO.Bind();
-  glUniformMatrix4fv(mShader.GetUniformLocation("uMatModelView"), 1, GL_FALSE, glMatMV);
-  glUniformMatrix4fv(mShader.GetUniformLocation("uMatProjection"), 1, GL_FALSE, glMatP);
+  glUniformMatrix4fv(mShader.GetUniformLocation("uMatModelView"), 1, GL_FALSE, glMatMV.data());
+  glUniformMatrix4fv(mShader.GetUniformLocation("uMatProjection"), 1, GL_FALSE, glMatP.data());
 
   mShader.SetUniform(mShader.GetUniformLocation("uFarClip"), utils::getCurrentFarClipDistance());
 
-  glDrawElements(GL_TRIANGLES, (GLsizei)INDICES.size(), GL_UNSIGNED_INT, nullptr);
+  glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(INDICES.size()), GL_UNSIGNED_INT, nullptr);
   mRayVAO.Release();
   mShader.Release();
 
@@ -125,10 +144,10 @@ bool MouseRay::Do() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool MouseRay::GetBoundingBox(VistaBoundingBox& bb) {
-  float fMin[3] = {-0.5f, -0.5f, -0.1f};
-  float fMax[3] = {0.5f, 0.5f, 0.0f};
+  std::array fMin{-0.5F, -0.5F, -0.1F};
+  std::array fMax{0.5F, 0.5F, 0.0F};
 
-  bb.SetBounds(fMin, fMax);
+  bb.SetBounds(fMin.data(), fMax.data());
 
   return true;
 }

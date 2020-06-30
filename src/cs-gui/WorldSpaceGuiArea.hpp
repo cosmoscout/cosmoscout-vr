@@ -26,7 +26,14 @@ class CS_GUI_EXPORT WorldSpaceGuiArea : public GuiArea, public IVistaOpenGLDraw 
 
  public:
   explicit WorldSpaceGuiArea(int width = 640, int height = 480);
-  ~WorldSpaceGuiArea() override;
+
+  WorldSpaceGuiArea(WorldSpaceGuiArea const& other) = delete;
+  WorldSpaceGuiArea(WorldSpaceGuiArea&& other)      = delete;
+
+  WorldSpaceGuiArea& operator=(WorldSpaceGuiArea const& other) = delete;
+  WorldSpaceGuiArea& operator=(WorldSpaceGuiArea&& other) = delete;
+
+  ~WorldSpaceGuiArea() override = default;
 
   void setWidth(int width);
   void setHeight(int height);
@@ -51,15 +58,15 @@ class CS_GUI_EXPORT WorldSpaceGuiArea : public GuiArea, public IVistaOpenGLDraw 
 
   /// Draws the GuiElements to the screen.
   bool Do() override;
-  bool GetBoundingBox(VistaBoundingBox& bb) override;
+  bool GetBoundingBox(VistaBoundingBox& oBoundingBox) override;
 
  private:
-  VistaGLSLShader* mShader               = nullptr;
-  bool             mShaderDirty          = true;
-  bool             mIgnoreDepth          = false;
-  bool             mUseLinearDepthBuffer = false;
-  int              mWidth                = 0;
-  int              mHeight               = 0;
+  VistaGLSLShader mShader;
+  bool            mShaderDirty          = true;
+  bool            mIgnoreDepth          = false;
+  bool            mUseLinearDepthBuffer = false;
+  int             mWidth                = 0;
+  int             mHeight               = 0;
 };
 
 } // namespace cs::gui

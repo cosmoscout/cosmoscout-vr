@@ -22,14 +22,27 @@ add_executable(cosmoscout
   ${TEST_FILES}
 )
 
-# cef needs to be linked first due to https://magpcss.org/ceforum/viewtopic.php?f=6&t=15118&start=10
-# to make sure the link order is kept, we need --no-as-needed
-set_target_properties(cosmoscout PROPERTIES LINK_WHAT_YOU_USE on)
+# This property seems to break Ninja on Windows only.
+if(NOT (${CMAKE_GENERATOR} STREQUAL "Ninja" AND WIN32))
+  # cef needs to be linked first due to https://magpcss.org/ceforum/viewtopic.php?f=6&t=15118&start=10
+  # to make sure the link order is kept, we need --no-as-needed
+  set_target_properties(cosmoscout PROPERTIES LINK_WHAT_YOU_USE on)
+endif()
 
 target_link_libraries(cosmoscout
   cef::cef
   cs-core
 )
+
+# X11 is used on Linux to set the application window's name and icon.
+if (X11_FOUND)
+  target_link_libraries(cosmoscout
+    X11::X11
+  )
+  target_compile_options(cosmoscout
+    PRIVATE -DHAVE_X11
+  )
+endif()
 
 # We mark all resource and config files as "header"
 # in order to make sure that no one tries to compile them.

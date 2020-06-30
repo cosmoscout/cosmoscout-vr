@@ -10,6 +10,7 @@
 #include <VistaKernel/VistaFrameLoop.h>
 #include <map>
 #include <memory>
+#include <set>
 
 #ifdef __linux__
 #include "dlfcn.h"
@@ -31,6 +32,10 @@ class TimeControl;
 class SolarSystem;
 class DragNavigation;
 } // namespace cs::core
+
+namespace cs::graphics {
+class MouseRay;
+} // namespace cs::graphics
 
 namespace cs::utils {
 class FrameTimings;
@@ -79,7 +84,7 @@ class Downloader;
 class Application : public VistaFrameLoop {
  public:
   /// This does only inititlize curl.
-  explicit Application(cs::core::Settings const& settings);
+  explicit Application(std::shared_ptr<cs::core::Settings> settings);
   ~Application() override;
 
   /// Initializes the Application. Should only be called by ViSTA.
@@ -91,13 +96,30 @@ class Application : public VistaFrameLoop {
   /// Called every frame by ViSTA. The whole application logic is executed here.
   void FrameUpdate() override;
 
+  /// This is used by the test runners to load tests from the plugins.
   static void testLoadAllPlugins();
 
  private:
   struct Plugin {
     COSMOSCOUT_LIBTYPE    mHandle;
-    cs::core::PluginBase* mPlugin = nullptr;
+    cs::core::PluginBase* mPlugin        = nullptr;
+    bool                  mIsInitialized = false;
   };
+
+  /// Called whenever the settings are (re-)loaded;
+  void onLoad();
+
+  /// Opens a plugin from a shared library. Only the create() method of the plugin is called.
+  void openPlugin(std::string const& name);
+
+  /// Calls setAPI() and init() on the given plugin. openPlugin() has to be called before.
+  void initPlugin(std::string const& name);
+
+  /// Calls deinit() on the given plugin. initPlugin() has to be called before.
+  void deinitPlugin(std::string const& name);
+
+  /// Calls the destroy() method from the plugin shared object and unloads the library.
+  void closePlugin(std::string const& name);
 
   /// This connects several parts of CosmoScout VR to each other. For example, when the InputManager
   /// calculates a new intersection between the mouse-ray and the currently active planet, the
@@ -105,44 +127,46 @@ class Application : public VistaFrameLoop {
   /// no access to the GUI, this connection is established in this method.
   void connectSlots();
 
-  /// There are several C++ callbacks available in the JavaScript code of the user interface. In
-  /// this method those callbacks are set up. Here are all registered callbacks, sorted by GuiArea:
-  /// SideBar:
-  ///  - print_notification
-  ///  - set_celestial_body
-  ///  - set_date
-  ///  - set_time
-  ///  - set_enable_cascades_debug
-  ///  - set_ambient_light
-  ///  - set_enable_lighting
-  ///  - set_enable_shadow_freeze
-  ///  - set_enable_shadows
-  ///  - set_enable_timer_queries
-  ///  - set_enable_vsync
-  ///  - set_lighting_quality
-  ///  - set_shadowmap_bias
-  ///  - set_shadowmap_cascades
-  ///  - set_shadowmap_extension
-  ///  - set_shadowmap_range
-  ///  - set_shadowmap_resolution
-  ///  - set_shadowmap_split_distribution
-  ///  - set_terrain_height
-  ///  - set_widget_scale
-  /// Timeline:
-  ///  - print_notification
-  ///  - reset_time
-  ///  - add_hours
-  ///  - add_hours_without_animation
-  ///  - set_date
-  ///  - set_time_speed
-  ///  - fly_to
-  ///  - navigate_north_up
-  ///  - navigate_fix_horizon
-  ///  - navigate_to_surface
-  ///  - navigate_to_orbit
+  /// There are several default C++ callbacks available in the JavaScript code of the user
+  /// interface. You can also explore them with the onscreen JavaScript console. In this method
+  /// those callbacks are set up. Here are all registered callbacks:
+  /// "core.listPlugins"
+  /// "core.loadPlugin"
+  /// "core.reloadPlugin"
+  /// "core.unloadPlugin"
+  /// "graphics.setAmbientLight"
+  /// "graphics.setEnableCascadesDebug"
+  /// "graphics.setEnableLighting"
+  /// "graphics.setEnableShadowFreeze"
+  /// "graphics.setEnableShadows"
+  /// "graphics.setEnableTimerQueries"
+  /// "graphics.setEnableVsync"
+  /// "graphics.setLightingQuality"
+  /// "graphics.setShadowmapBias"
+  /// "graphics.setShadowmapCascades"
+  /// "graphics.setShadowmapExtension"
+  /// "graphics.setShadowmapRange"
+  /// "graphics.setShadowmapResolution"
+  /// "graphics.setShadowmapSplitDistribution"
+  /// "graphics.setTerrainHeight"
+  /// "graphics.setWidgetScale"
+  /// "navigation.fixHorizon"
+  /// "navigation.northUp"
+  /// "navigation.setBody"
+  /// "navigation.setBodyLongLatHeightDuration"
+  /// "navigation.setPosition"
+  /// "navigation.setRotation"
+  /// "navigation.toOrbit"
+  /// "navigation.toSurface"
+  /// "time.addHours"
+  /// "time.reset"
+  /// "time.set"
+  /// "time.setDate"
+  /// "time.setSpeed"
   void registerGuiCallbacks();
+  void unregisterGuiCallbacks();
 
-  std::shared_ptr<const cs::core::Settings> mSettings;
+  std::shared_ptr<cs::core::Settings>       mSettings;
   std::shared_ptr<cs::core::InputManager>   mInputManager;
   std::shared_ptr<cs::core::GraphicsEngine> mGraphicsEngine;
   std::shared_ptr<cs::core::GuiManager>     mGuiManager;
@@ -153,11 +177,24 @@ class Application : public VistaFrameLoop {
   std::map<std::string, Plugin>             mPlugins;
   std::unique_ptr<cs::utils::Downloader>    mDownloader;
   std::unique_ptr<IVistaClusterDataSync>    mSceneSync;
+  std::unique_ptr<cs::graphics::MouseRay>   mMouseRay;
 
   bool mDownloadedData            = false;
   bool mLoadedAllPlugins          = false;
   int  mStartPluginLoadingAtFrame = 0;
   int  mHideLoadingScreenAtFrame  = 0;
+
+  int mOnMessageConnection = -1;
+
+  // For deferred hot-reloading of plugins.
+  std::set<std::string> mPluginsToUnload;
+  std::set<std::string> mPluginsToLoad;
+
+  // For deferred reloading of settings.
+  std::string mSettingsToLoad;
+
+  // For deferred writing of settings.
+  std::string mSettingsToSave;
 };
 
 #endif // CS_APPLICATION_HPP
