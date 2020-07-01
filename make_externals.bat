@@ -78,6 +78,8 @@ cmake -E make_directory "%INSTALL_DIR%/share"
 cmake -E make_directory "%INSTALL_DIR%/bin"
 cmake -E make_directory "%INSTALL_DIR%/include"
 
+goto :openvr
+
 rem glew -------------------------------------------------------------------------------------------
 :glew
 
@@ -287,6 +289,24 @@ cmake %CMAKE_FLAGS% -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DCMAKE_INSTALL_PREFIX="%INS
 
 cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS%
 
+rem OpenVR ----------------------------------------------------------------------------------------
+:openvr
+
+echo.
+echo Building and installing OpenVR ...
+echo.
+
+rem cmake -E make_directory "%BUILD_DIR%/openvr" && cd "%BUILD_DIR%/openvr"
+
+rem cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%" -DBUILD_SHARED=On^
+rem       -DCMAKE_UNITY_BUILD=%UNITY_BUILD%^
+rem       "%EXTERNALS_DIR%/openvr" || exit /b
+rem cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS%
+
+cmake -E copy_directory "%EXTERNALS_DIR%/openvr/bin/win64" "%INSTALL_DIR%/bin"
+cmake -E copy_directory "%EXTERNALS_DIR%/openvr/lib/win64" "%INSTALL_DIR%/lib"
+cmake -E copy_directory "%EXTERNALS_DIR%/openvr/headers"   "%INSTALL_DIR%/include/openvr"
+
 rem vista ------------------------------------------------------------------------------------------
 :vista
 
@@ -303,10 +323,13 @@ rem       -DVISTADRIVERS_BUILD_3DCSPACENAVIGATOR=On^
 rem       -DCMAKE_CXX_FLAGS="-std=c++11" "%EXTERNALS_DIR%/vista" || exit /b
 
 cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%" -DVISTADEMO_ENABLED=Off^
-      -DCMAKE_BUILD_TYPE=%BUILD_TYPE%^
+      -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DVISTACORELIBS_USE_VIVE=On -DVISTADRIVERS_BUILD_VIVE=On^
+      -DOPENVR_ROOT_DIR=%INSTALL_DIR%^
       -DCMAKE_UNITY_BUILD=%UNITY_BUILD% -DVISTA_USE_PRECOMPILED_HEADERS=%PRECOMPILED_HEADERS%^
       "%EXTERNALS_DIR%/vista" || exit /b
 cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS%
+
+goto :finish
 
 rem cspice -----------------------------------------------------------------------------------------
 :cspice
