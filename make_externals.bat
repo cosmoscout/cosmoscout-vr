@@ -294,13 +294,6 @@ echo.
 echo Building and installing OpenVR ...
 echo.
 
-rem cmake -E make_directory "%BUILD_DIR%/openvr" && cd "%BUILD_DIR%/openvr"
-
-rem cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%" -DBUILD_SHARED=On^
-rem       -DCMAKE_UNITY_BUILD=%UNITY_BUILD%^
-rem       "%EXTERNALS_DIR%/openvr" || exit /b
-rem cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS%
-
 cmake -E copy_directory "%EXTERNALS_DIR%/openvr/bin/win64" "%INSTALL_DIR%/bin"
 cmake -E copy_directory "%EXTERNALS_DIR%/openvr/lib/win64" "%INSTALL_DIR%/lib"
 cmake -E copy_directory "%EXTERNALS_DIR%/openvr/headers"   "%INSTALL_DIR%/include/openvr"
