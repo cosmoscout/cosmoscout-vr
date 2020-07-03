@@ -307,18 +307,13 @@ echo.
 
 cmake -E make_directory "%BUILD_DIR%/vista" && cd "%BUILD_DIR%/vista"
 
-rem set OPENVR="T:/modulesystem/tools/openvr/OpenVR_SDK_1.0.3/install/win7.x86_64.msvc14.release"
-rem cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
-rem       -DVISTACORELIBS_USE_VIVE=On -DVISTADRIVERS_BUILD_VIVE=On -DOPENVR_ROOT_DIR=%OPENVR%^
-rem       -DVISTADRIVERS_BUILD_3DCSPACENAVIGATOR=On^
-rem       -DCMAKE_CXX_FLAGS="-std=c++11" "%EXTERNALS_DIR%/vista" || exit /b
-
 cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%" -DVISTADEMO_ENABLED=Off^
       -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DVISTACORELIBS_USE_VIVE=On -DVISTADRIVERS_BUILD_VIVE=On^
-      -DOPENVR_ROOT_DIR=%INSTALL_DIR%^
+      -DOPENVR_ROOT_DIR="%INSTALL_DIR%"^
       -DCMAKE_UNITY_BUILD=%UNITY_BUILD% -DVISTA_USE_PRECOMPILED_HEADERS=%PRECOMPILED_HEADERS%^
       "%EXTERNALS_DIR%/vista" || exit /b
 cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS%
+
 rem cspice -----------------------------------------------------------------------------------------
 :cspice
 
