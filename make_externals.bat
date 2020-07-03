@@ -60,17 +60,19 @@ IF "%COSMOSCOUT_NO_PCH%"=="true" (
 rem Create some required variables. ----------------------------------------------------------------
 
 rem This directory should contain all submodules - they are assumed to reside in the subdirectory 
-rem "externals" next to this script.
+rem "externals" next to this script. We replace all \ with /.
 set EXTERNALS_DIR=%~dp0\externals
+set EXTERNALS_DIR=%EXTERNALS_DIR:\=/%
 
 rem Get the current directory - this is the default location for the build and install directory.
-set CURRENT_DIR=%cd%
+rem We replace all \ with /.
+set CURRENT_DIR=%cd:\=/%
 
 rem The build directory.
-set BUILD_DIR=%CURRENT_DIR%\build\windows-externals-%BUILD_TYPE%
+set BUILD_DIR=%CURRENT_DIR%/build/windows-externals-%BUILD_TYPE%
 
 rem The install directory.
-set INSTALL_DIR=%CURRENT_DIR%\install\windows-externals-%BUILD_TYPE%
+set INSTALL_DIR=%CURRENT_DIR%/install/windows-externals-%BUILD_TYPE%
 
 rem Create some default installation directories.
 cmake -E make_directory "%INSTALL_DIR%/lib"
@@ -393,7 +395,7 @@ cd "%BUILD_DIR%/cef/extracted"
 cmake -E tar xfvj ../cef.tar
 
 rem We don't want the example applications.
-rmdir %CEF_DIR%\tests /s /q
+cmake -E remove_directory %CEF_DIR%/tests
 
 cd ..
 
