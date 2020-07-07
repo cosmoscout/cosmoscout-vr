@@ -265,15 +265,23 @@ void Plugin::init() {
 
     // Read all paramters.
     mCaptureDelay  = std::clamp(getParam<int32_t>(conn, "delay", 50), 1, 200);
-    mCaptureWidth  = std::clamp(getParam<int32_t>(conn, "width", 800), 10, 2000);
-    mCaptureHeight = std::clamp(getParam<int32_t>(conn, "height", 600), 10, 2000);
-    mCaptureGui    = getParam<std::string>(conn, "gui", "false") == "true";
+    mCaptureWidth  = std::clamp(getParam<int32_t>(conn, "width", 0), 0, 2000);
+    mCaptureHeight = std::clamp(getParam<int32_t>(conn, "height", 0), 0, 2000);
+    mCaptureGui    = getParam<std::string>(conn, "gui", "auto");
     mCaptureDepth  = getParam<std::string>(conn, "depth", "false") == "true";
     mCaptureFormat = getParam<std::string>(conn, "format", mCaptureDepth ? "tiff" : "png");
 
+    // Validate format parameter.
     if (mCaptureFormat != "png" && mCaptureFormat != "jpeg" && mCaptureFormat != "tiff") {
       mg_send_http_error(
           conn, 422, "Only 'png', 'jpeg', or 'tiff' are allowed for the format parameter!");
+      return;
+    }
+
+    // Validate gui parameter.
+    if (mCaptureGui != "auto" && mCaptureGui != "true" && mCaptureGui != "false") {
+      mg_send_http_error(
+          conn, 422, "Only 'auto', 'true', or 'false' are allowed for the gui parameter!");
       return;
     }
 
@@ -375,23 +383,28 @@ void Plugin::update() {
   {
     std::lock_guard<std::mutex> lock(mCaptureMutex);
     if (mCaptureRequested) {
-      auto* window = GetVistaSystem()->GetDisplayManager()->GetWindows().begin()->second;
-      window->GetWindowProperties()->SetSize(mCaptureWidth, mCaptureHeight);
+      if (mCaptureWidth > 0 && mCaptureHeight > 0) {
+        auto* window = GetVistaSystem()->GetDisplayManager()->GetWindows().begin()->second;
+        window->GetWindowProperties()->SetSize(mCaptureWidth, mCaptureHeight);
+      }
       mCaptureAtFrame = GetVistaSystem()->GetFrameLoop()->GetFrameCount() + mCaptureDelay;
-      mAllSettings->pEnableUserInterface = mCaptureGui;
-      mCaptureRequested                  = false;
+      if (mCaptureGui != "auto") {
+        mAllSettings->pEnableUserInterface = mCaptureGui == "true";
+      }
+      mCaptureRequested = false;
     }
 
     // Now we waited several frames. We read the pixels, encode the data as png and notify the
     // server's worker thread that the screen shot is done.
     if (mCaptureAtFrame > 0 &&
         mCaptureAtFrame == GetVistaSystem()->GetFrameLoop()->GetFrameCount()) {
-      logger().debug("Capturing capture for /capture request: resolution = {}x{}, show gui = {}, "
-                     "depth = {}, format = {}",
-          mCaptureWidth, mCaptureHeight, mCaptureGui, mCaptureDepth, mCaptureFormat);
 
       auto* window = GetVistaSystem()->GetDisplayManager()->GetWindows().begin()->second;
       window->GetWindowProperties()->GetSize(mCaptureWidth, mCaptureHeight);
+
+      logger().debug("Capturing capture for /capture request: resolution = {}x{}, show gui = {}, "
+                     "depth = {}, format = {}",
+          mCaptureWidth, mCaptureHeight, mCaptureGui, mCaptureDepth, mCaptureFormat);
 
       // We encode image data in the main thread as this is not thread-safe.
       stbi_flip_vertically_on_write(1);

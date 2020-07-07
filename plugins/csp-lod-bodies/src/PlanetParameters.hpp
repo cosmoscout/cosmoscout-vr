@@ -7,15 +7,15 @@
 #ifndef CSP_LOD_BODIES_PLANETPARAMETERS_HPP
 #define CSP_LOD_BODIES_PLANETPARAMETERS_HPP
 
+#include <glm/glm.hpp>
+
 namespace csp::lodbodies {
 
 /// Holds values describing a planets parameters.
 struct PlanetParameters {
-  double mPolarRadius      = 1.0;
-  double mEquatorialRadius = 1.0;
-
-  double mHeightScale = 1.0;  ///< The level of exaggeration of the surface height.
-  double mLodFactor   = 50.0; ///< DocTODO
+  glm::dvec3 mRadii       = glm::dvec3(1.0);
+  double     mHeightScale = 1.0;  ///< The level of exaggeration of the surface height.
+  double     mLodFactor   = 50.0; ///< DocTODO
 
   int mMinLevel = 0; ///< The minimum LOD level.
 };

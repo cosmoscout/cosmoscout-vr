@@ -273,14 +273,13 @@ void DipStrikeTool::calculateDipAndStrike() {
   // average position of the coordinates without height exaggeration
   glm::dvec3 averagePositionNorm(0.0);
   for (auto const& mark : mPoints) {
-    // Cartesian coordinate without height
-    glm::dvec3 pos = glm::normalize(mark->getAnchor()->getAnchorPosition()) * radii[0];
     // LongLat coordinate
-    glm::dvec3 l = cs::utils::convert::toLngLatHeight(pos, radii[0], radii[0]);
+    glm::dvec2 l =
+        cs::utils::convert::cartesianToLngLat(mark->getAnchor()->getAnchorPosition(), radii);
     // Height of the point
-    double h = body ? body->getHeight(l.xy()) : 0.0;
+    double h = body ? body->getHeight(l) : 0.0;
     // Cartesian coordinate with height
-    glm::dvec3 posNorm = cs::utils::convert::toCartesian(l, radii[0], radii[0], h);
+    glm::dvec3 posNorm = cs::utils::convert::toCartesian(l, radii, h);
 
     averagePositionNorm += posNorm / static_cast<double>(mPoints.size());
   }
@@ -302,16 +301,16 @@ void DipStrikeTool::calculateDipAndStrike() {
   glm::dvec3 vec(0);
 
   auto      center      = mPlaneAnchor->getAnchorPosition();
-  glm::vec3 idealNormal = glm::normalize(center);
+  glm::vec3 idealNormal = cs::utils::convert::cartesianToNormal(center, radii);
   mNormal               = idealNormal;
   mSize                 = 0;
   mOffset               = 0.F;
 
   for (auto const& p : mPoints) {
-    glm::dvec3 pos     = glm::normalize(p->getAnchor()->getAnchorPosition()) * radii[0];
-    glm::dvec3 l       = cs::utils::convert::toLngLatHeight(pos, radii[0], radii[0]);
-    double     h       = body ? body->getHeight(l.xy()) : 0.0;
-    glm::dvec3 posNorm = cs::utils::convert::toCartesian(l, radii[0], radii[0], h);
+    glm::dvec2 l =
+        cs::utils::convert::cartesianToLngLat(p->getAnchor()->getAnchorPosition(), radii);
+    double     h       = body ? body->getHeight(l) : 0.0;
+    glm::dvec3 posNorm = cs::utils::convert::toCartesian(l, radii, h);
 
     glm::dvec3 realtivePosition = posNorm - averagePositionNorm;
 

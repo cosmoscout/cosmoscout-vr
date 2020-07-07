@@ -46,3 +46,6 @@
 [submodule "externals/stb"]
 	path = externals/stb
 	url = https://github.com/nothings/stb
+[submodule "externals/openvr"]
+	path = externals/openvr
+	url = https://github.com/ValveSoftware/openvr.git

@@ -4,27 +4,19 @@
 //                        Copyright: (c) 2019 German Aerospace Center (DLR)                       //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#include "TreeManager.hpp"
+#include "logger.hpp"
 
-#include "PlanetParameters.hpp"
+#include "../../../src/cs-utils/logger.hpp"
 
-namespace csp::lodbodies {
+namespace csp::recorder {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-template <>
-/* virtual */ RenderData* TreeManager<RenderDataDEM>::allocateRenderData(TileNode* node) {
-  RenderDataDEM* rdata = mPool.construct();
-
-  // init rdata
-  rdata->setNode(node);
-  rdata->setLastFrame(0);
-
-  rdata->setBounds(calcTileBounds(*node->getTile(), mParams->mRadii, mParams->mHeightScale));
-
-  return rdata;
+spdlog::logger& logger() {
+  static auto logger = cs::utils::createLogger("csp-recorder");
+  return *logger;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-} // namespace csp::lodbodies
+} // namespace csp::recorder

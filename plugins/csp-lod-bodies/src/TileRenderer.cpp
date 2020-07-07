@@ -393,9 +393,9 @@ void TileRenderer::preRenderTiles(cs::graphics::ShadowMap* shadowMap) {
   glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(glm::fmat4x4(mMatVM)));
   loc = shader.GetUniformLocation("VP_heightScale");
   shader.SetUniform(loc, static_cast<float>(mParams->mHeightScale));
-  loc = shader.GetUniformLocation("VP_radius");
-  shader.SetUniform(loc, static_cast<float>(mParams->mEquatorialRadius),
-      static_cast<float>(mParams->mPolarRadius));
+  loc = shader.GetUniformLocation("VP_radii");
+  shader.SetUniform(loc, static_cast<float>(mParams->mRadii.x),
+      static_cast<float>(mParams->mRadii.y), static_cast<float>(mParams->mRadii.z));
   loc = shader.GetUniformLocation("VP_texDEM");
   shader.SetUniform(loc, texUnitDEM);
   loc = shader.GetUniformLocation("VP_texIMG");
@@ -544,12 +544,11 @@ void TileRenderer::renderTile(RenderDataDEM* rdDEM, RenderDataImg* rdIMG, Unifor
   glm::dmat4 matNormal = glm::transpose(glm::inverse(mMatVM));
 
   for (int i(0); i < 4; ++i) {
-    corners.at(i) = cs::utils::convert::toCartesian(cornersLngLat.at(i), mParams->mEquatorialRadius,
-        mParams->mPolarRadius, averageHeight * static_cast<float>(mParams->mHeightScale));
+    corners.at(i)          = cs::utils::convert::toCartesian(cornersLngLat.at(i), mParams->mRadii,
+        averageHeight * static_cast<float>(mParams->mHeightScale));
     cornersViewSpace.at(i) = glm::fvec3(mMatVM * glm::dvec4(corners.at(i), 1.0));
 
-    normals.at(i) = cs::utils::convert::lngLatToNormal(
-        cornersLngLat.at(i), mParams->mEquatorialRadius, mParams->mPolarRadius);
+    normals.at(i) = cs::utils::convert::lngLatToNormal(cornersLngLat.at(i), mParams->mRadii);
     normalsViewSpace.at(i) = glm::fvec3(matNormal * glm::dvec4(normals.at(i), 0.0));
   }
 

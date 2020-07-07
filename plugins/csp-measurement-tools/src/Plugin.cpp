@@ -330,17 +330,15 @@ void Plugin::init() {
         if (mNextTool == "Location Flag") {
           auto tool     = std::make_shared<FlagTool>(mInputManager, mSolarSystem, mAllSettings,
               mTimeControl, body->getCenterName(), body->getFrameName());
-          tool->pLngLat = cs::utils::convert::toLngLatHeight(
-              mInputManager->pHoveredObject.get().mPosition, radii[0], radii[0])
-                              .xy();
+          tool->pLngLat = cs::utils::convert::cartesianToLngLat(
+              mInputManager->pHoveredObject.get().mPosition, radii);
           mPluginSettings.mFlags.push_back(tool);
 
         } else if (mNextTool == "Landing Ellipse") {
           auto tool = std::make_shared<EllipseTool>(mInputManager, mSolarSystem, mAllSettings,
               mTimeControl, body->getCenterName(), body->getFrameName());
-          tool->getCenterHandle().pLngLat = cs::utils::convert::toLngLatHeight(
-              mInputManager->pHoveredObject.get().mPosition, radii[0], radii[0])
-                                                .xy();
+          tool->getCenterHandle().pLngLat = cs::utils::convert::cartesianToLngLat(
+              mInputManager->pHoveredObject.get().mPosition, radii);
           tool->setNumSamples(mPluginSettings.mEllipseSamples.get());
           mPluginSettings.mEllipses.push_back(tool);
 
