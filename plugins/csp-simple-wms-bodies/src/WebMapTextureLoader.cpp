@@ -162,7 +162,8 @@ std::string WebMapTextureLoader::loadTexture(std::string time, std::string const
 std::future<std::string> WebMapTextureLoader::loadTextureAsync(std::string time,
     std::string const& requestStr, std::string const& format, std::string const& layer,
     std::string const& mapCache) {
-  return mThreadPool.enqueue([=]() { return loadTexture(time, requestStr, format, layer, mapCache); });
+  return mThreadPool.enqueue(
+      [=]() { return loadTexture(time, requestStr, format, layer, mapCache); });
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
