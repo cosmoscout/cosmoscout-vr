@@ -38,8 +38,7 @@ bool UpdateBoundsVisitor::preVisitRoot(TileId const& tileId) {
     TileBase* tile  = node->getTile();
     auto*     rdDEM = mTreeMgrDEM->find<RenderDataDEM>(tileId);
 
-    rdDEM->setBounds(calcTileBounds(
-        *tile, mParams->mEquatorialRadius, mParams->mPolarRadius, mParams->mHeightScale));
+    rdDEM->setBounds(calcTileBounds(*tile, mParams->mRadii, mParams->mHeightScale));
 
     result = true;
   }
@@ -54,8 +53,7 @@ bool UpdateBoundsVisitor::preVisit(TileId const& tileId) {
   TileBase* tile  = node->getTile();
   auto*     rdDEM = mTreeMgrDEM->find<RenderDataDEM>(tileId);
 
-  rdDEM->setBounds(calcTileBounds(
-      *tile, mParams->mEquatorialRadius, mParams->mPolarRadius, mParams->mHeightScale));
+  rdDEM->setBounds(calcTileBounds(*tile, mParams->mRadii, mParams->mHeightScale));
 
   return true;
 }

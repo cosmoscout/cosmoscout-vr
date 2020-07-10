@@ -240,8 +240,7 @@ void Plugin::onLoad() {
         height = parent->getHeight(lngLat);
       }
       auto radii = mSolarSystem->getRadii(settings.mCenter);
-      item.mAnchor->setAnchorPosition(
-          cs::utils::convert::toCartesian(lngLat, radii[0], radii[0], height));
+      item.mAnchor->setAnchorPosition(cs::utils::convert::toCartesian(lngLat, radii, height));
 
       // Create the WorldSpaceGuiArea for the gui element.
       item.mGuiArea =

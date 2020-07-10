@@ -14,7 +14,7 @@ namespace csp::lodbodies {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 BoundingBox<double> calcTileBounds(double tmin, double tmax, int tileLevel, glm::int64 patchIdx,
-    double radiusE, double radiusP, double heightScale) {
+    glm::dvec3 const& radii, double heightScale) {
   BoundingBox<double> result;
 
   // min/max elevation of tile, adjusted for heightScale
@@ -37,8 +37,8 @@ BoundingBox<double> calcTileBounds(double tmin, double tmax, int tileLevel, glm:
   // tile center
   {
     // lowest/highest point at the center
-    glm::dvec3 pMin(cs::utils::convert::toCartesian(center, radiusE, radiusP, tMin));
-    glm::dvec3 pMax(cs::utils::convert::toCartesian(center, radiusE, radiusP, tMax));
+    glm::dvec3 pMin(cs::utils::convert::toCartesian(center, radii, tMin));
+    glm::dvec3 pMax(cs::utils::convert::toCartesian(center, radii, tMax));
 
     bbMin = glm::min(bbMin, pMin);
     bbMin = glm::min(bbMin, pMax);
@@ -51,8 +51,8 @@ BoundingBox<double> calcTileBounds(double tmin, double tmax, int tileLevel, glm:
 
   for (auto const& corner : corners) {
     // lowest/highest point at corner
-    glm::dvec3 pMin(cs::utils::convert::toCartesian(corner, radiusE, radiusP, tMin));
-    glm::dvec3 pMax(cs::utils::convert::toCartesian(corner, radiusE, radiusP, tMax));
+    glm::dvec3 pMin(cs::utils::convert::toCartesian(corner, radii, tMin));
+    glm::dvec3 pMax(cs::utils::convert::toCartesian(corner, radii, tMax));
 
     bbMin = glm::min(bbMin, pMin);
     bbMin = glm::min(bbMin, pMax);
@@ -65,8 +65,8 @@ BoundingBox<double> calcTileBounds(double tmin, double tmax, int tileLevel, glm:
 
   for (auto const& edge : edges) {
     // lowest/highest point at edge center
-    glm::dvec3 pMin(cs::utils::convert::toCartesian(edge, radiusE, radiusP, tMin));
-    glm::dvec3 pMax(cs::utils::convert::toCartesian(edge, radiusE, radiusP, tMax));
+    glm::dvec3 pMin(cs::utils::convert::toCartesian(edge, radii, tMin));
+    glm::dvec3 pMax(cs::utils::convert::toCartesian(edge, radii, tMax));
 
     bbMin = glm::min(bbMin, pMin);
     bbMin = glm::min(bbMin, pMax);
@@ -89,13 +89,13 @@ BoundingBox<double> calcTileBounds(double tmin, double tmax, int tileLevel, glm:
 // @note Assumes that @a tile stores elevation data (i.e. a single scalar) and
 // has valid min/max values set.
 BoundingBox<double> calcTileBounds(
-    TileBase const& tile, double radiusE, double radiusP, double heightScale) {
+    TileBase const& tile, glm::dvec3 const& radii, double heightScale) {
   switch (tile.getDataType()) {
   case TileDataType::eFloat32: {
     auto const& casted_tile = dynamic_cast<Tile<float> const&>(tile);
     return calcTileBounds(casted_tile.getMinMaxPyramid()->getMin(),
         casted_tile.getMinMaxPyramid()->getMax(), casted_tile.getLevel(), casted_tile.getPatchIdx(),
-        radiusE, radiusP, heightScale);
+        radii, heightScale);
     break;
   }
 

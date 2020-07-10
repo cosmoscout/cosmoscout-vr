@@ -312,8 +312,8 @@ bool intersectPlanet(
                           glm::dvec3((step / step_nr) * sampleDir[0],
                               (step / step_nr) * sampleDir[1], (step / step_nr) * sampleDir[2]);
 
-        sampleLngLatHeight = cs::utils::convert::toLngLatHeight(
-            sampleCartesian, planet->getEquatorialRadius(), planet->getPolarRadius());
+        sampleLngLatHeight =
+            cs::utils::convert::cartesianToLngLatHeight(sampleCartesian, planet->getRadii());
 
         // Calc correct HPix coordinate for child patch in relation to base batch
         int        base   = HEALPix::getBasePatch(parent->getTileId());

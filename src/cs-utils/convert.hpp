@@ -16,7 +16,9 @@
 #include <glm/gtc/quaternion.hpp>
 
 /// This namespace contains utility functions for converting numbers between different units of
-/// measuring.
+/// measuring. Most of the coordinate system conversion methods are based on the code from the
+/// excellent book "3D Engine Design for Virtual Globes" by Patrick Cozzi and Kevin Ring
+/// (http://virtualglobebook.com/).
 namespace cs::utils::convert {
 
 template <typename T>
@@ -53,31 +55,49 @@ T toDegrees(T radians) {
   return static_cast<T>(radians * 180.0 / glm::pi<double>());
 }
 
-/// Transform cartesian (x,y,z) coordinates to geodetic (lng, lat, height above surface)
-/// coordinates.
-CS_UTILS_EXPORT glm::dvec3 toLngLatHeight(
-    glm::dvec3 const& cartesian, double radiusE, double radiusP);
+/// Projects an arbitrary cartesian point to the surface of an origin-centered ellipsoid with the
+/// given radii. The projection happens towards the center of the ellipsoid.
+CS_UTILS_EXPORT glm::dvec3 scaleToGeocentricSurface(
+    glm::dvec3 const& cartesian, glm::dvec3 const& radii);
 
-/// Transform geodetic coordinates (lng, lat) LngLat and elevation height to cartesian (x,y,z)
-/// coordinates for an ellipsoid of equatorial radius radiusE and polar radius radiusP. Height is an
-/// offset along the normal of the ellipsoid at (lng, lat).
+/// Projects an arbitrary cartesian point to the surface of an origin-centered ellipsoid with the
+/// given radii. The projection happens along the surface normal of the ellipsoid. This is
+/// potentially a rather expensive operation, as it involes an iterative search for the correct
+/// surface normal.
+CS_UTILS_EXPORT glm::dvec3 scaleToGeodeticSurface(
+    glm::dvec3 const& cartesian, glm::dvec3 const& radii);
+
+/// Computes longitude and geodetic latitude for a given surface point on an origin-centered
+/// ellipsoid with the given radii.
+CS_UTILS_EXPORT glm::dvec2 surfaceToLngLat(glm::dvec3 const& cartesian, glm::dvec3 const& radii);
+
+/// Computes longitude and geodetic latitude for an arbitrary cartesian point relative to a
+/// origin-centered ellipsoid with the given radii. This is potentially a rather expensive
+/// operation, as it involes scaleToGeodeticSurface().
+CS_UTILS_EXPORT glm::dvec2 cartesianToLngLat(glm::dvec3 const& cartesian, glm::dvec3 const& radii);
+
+/// Same as above, but returns the distance to the surface of the ellipsoid as well.
+CS_UTILS_EXPORT glm::dvec3 cartesianToLngLatHeight(
+    glm::dvec3 const& cartesian, glm::dvec3 const& radii);
+
+/// Transforms longitude and geodetic latitude and elevation height to cartesian (x,y,z)
+/// coordinates for an origin-centered ellipsoid with the given radii. Height is an
+/// offset along the geodetic normal of the ellipsoid at lngLat.
 CS_UTILS_EXPORT glm::dvec3 toCartesian(
-    glm::dvec2 const& lngLat, double radiusE, double radiusP, double height = 0.0);
+    glm::dvec2 const& lngLat, glm::dvec3 const& radii, double height = 0.0);
 
-/// Convert latitudes.
-CS_UTILS_EXPORT double geocentricToGeodetic(double lat, double radiusE, double radiusP);
-CS_UTILS_EXPORT double geocentricToParametric(double lat, double radiusE, double radiusP);
-CS_UTILS_EXPORT double geodeticToGeocentric(double lat, double radiusE, double radiusP);
-CS_UTILS_EXPORT double geodeticToParametric(double lat, double radiusE, double radiusP);
-CS_UTILS_EXPORT double parametricToGeocentric(double lat, double radiusE, double radiusP);
-CS_UTILS_EXPORT double parametricToGeodetic(double lat, double radiusE, double radiusP);
+/// Returns the geodetic normal vector with unit length to the ellipsoid with the given radii at
+/// geodetic coordinates (lng, lat) lngLat.
+CS_UTILS_EXPORT glm::dvec3 lngLatToNormal(glm::dvec2 const& lngLat, glm::dvec3 const& radii);
 
-/// Returns the normal vector (unit length) to the ellipsoid with equatorial radius radiusE and
-/// polar radius radiusP at geodetic coordinates (lng, lat) LngLat.
-CS_UTILS_EXPORT glm::dvec3 lngLatToNormal(glm::dvec2 const& lngLat, double radiusE, double radiusP);
+/// Returns the geodetic normal vector with unit length for a given point on the surface of an
+/// origin-centered ellipsoid with the given radii.
+CS_UTILS_EXPORT glm::dvec3 surfaceToNormal(glm::dvec3 const& cartesian, glm::dvec3 const& radii);
 
-/// Returns the geodetic coordinates (lng, lat) for a given normal vector.
-CS_UTILS_EXPORT glm::dvec2 normalToLngLat(glm::dvec3 const& normal, double radiusE, double radiusP);
+/// Returns the geodetic normal vector with unit length for an arbitrary cartesian point relative to
+/// an origin-centered ellipsoid with the given radii. This is potentially a rather expensive
+/// operation, as it involes scaleToGeodeticSurface().
+CS_UTILS_EXPORT glm::dvec3 cartesianToNormal(glm::dvec3 const& cartesian, glm::dvec3 const& radii);
 
 /// Time in CosmoScout VR is passed around in different formats.
 /// * Strings usually store time in the ISO format YYYY-MM-DDTHH:MM:SS.fffZ. The 'Z' suffix is not
