@@ -216,6 +216,8 @@ SimpleWMSBody::SimpleWMSBody(std::shared_ptr<cs::core::Settings> const& settings
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 SimpleWMSBody::~SimpleWMSBody() {
+  clearTextures();
+
   mSettings->mGraphics.pEnableLighting.disconnect(mEnableLightingConnection);
   mSettings->mGraphics.pEnableHDR.disconnect(mEnableHDRConnection);
 
@@ -290,6 +292,11 @@ bool SimpleWMSBody::Do() {
   std::lock_guard<std::mutex> guard(mWMSMutex);
 
   if (!getIsInExistence() || !pVisible.get()) {
+    // Clear textures to save up memory when planet is not visible.
+    if (mTextures.size() != 0) {
+      clearTextures();
+    }
+
     return true;
   }
 
@@ -564,11 +571,9 @@ bool SimpleWMSBody::GetBoundingBox(VistaBoundingBox& bb) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void SimpleWMSBody::setActiveWMS(std::shared_ptr<Plugin::Settings::WMSConfig> wms) {
-  mTextures.clear();
-  mTexturesBuffer.clear();
-  mTextureFilesBuffer.clear();
-  mWrongTextures.clear();
+  clearTextures();
   mTimeIntervals.clear();
+
   mWMSTextureUsed       = false;
   mSecondWMSTextureUsed = false;
   mCurrentTexture       = "";
@@ -603,6 +608,21 @@ void SimpleWMSBody::setActiveWMS(std::shared_ptr<Plugin::Settings::WMSConfig> wm
 
 std::vector<TimeInterval> SimpleWMSBody::getTimeIntervals() {
   return mTimeIntervals;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void SimpleWMSBody::clearTextures() {
+  auto texIt = mTextures.begin();
+  while (texIt != mTextures.end()) {
+    delete texIt->second;
+    texIt++;
+  }
+
+  mTextures.clear();
+  mTexturesBuffer.clear();
+  mTextureFilesBuffer.clear();
+  mWrongTextures.clear();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

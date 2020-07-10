@@ -68,9 +68,13 @@ class SimpleWMSBody : public cs::scene::CelestialBody, public IVistaOpenGLDraw {
   /// Set the active WMS data set.
   void setActiveWMS(std::shared_ptr<Plugin::Settings::WMSConfig> wms);
 
+  /// Returns the time intervals of the active data set.
   std::vector<TimeInterval> getTimeIntervals();
 
  private:
+  /// Delete stored textures.
+  void clearTextures();
+
   std::shared_ptr<cs::core::Settings>               mSettings;
   std::shared_ptr<cs::core::SolarSystem>            mSolarSystem;
   std::shared_ptr<const cs::scene::CelestialObject> mSun;
