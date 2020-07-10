@@ -345,8 +345,8 @@ bool SimpleWMSBody::Do() {
           texture3 == mTextures.end() && texture4 == mWrongTextures.end() && inInterval) {
         // Load WMS texture to the disk.
         mTextureFilesBuffer.insert(std::pair<std::string, std::future<std::string>>(
-            timeString, mTextureLoader.loadTextureAsync(timeString, mRequest, mActiveWMS->mLayers,
-                            mPluginSettings->mMapCache.get())));
+            timeString, mTextureLoader.loadTextureAsync(timeString, mRequest, mActiveWMS->mFormat,
+                            mActiveWMS->mLayers, mPluginSettings->mMapCache.get())));
       }
     }
 
@@ -595,7 +595,7 @@ void SimpleWMSBody::setActiveWMS(std::shared_ptr<Plugin::Settings::WMSConfig> wm
     } // Download WMS texture without timestep.
     else {
       std::string cacheFile = mTextureLoader.loadTexture(
-          "", mRequest, mActiveWMS->mLayers, mPluginSettings->mMapCache.get());
+          "", mRequest, mActiveWMS->mFormat, mActiveWMS->mLayers, mPluginSettings->mMapCache.get());
       if (cacheFile != "Error") {
         mWMSTexture     = cs::graphics::TextureLoader::loadFromFile(cacheFile);
         mWMSTextureUsed = true;

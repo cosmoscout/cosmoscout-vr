@@ -23,6 +23,7 @@ This plugin can be enabled with the following configuration in your `settings.js
             <dataset name> : {
               "copyright": <string>,  // The copyright holder of the data set (also shown in the UI).
               "url": <string>,        // The URL of the map server including the "SERVICE=wms" parameter.
+              "format": <string>,     // Download image file format: png or jpeg.
               "width": <int>,         // The width of the WMS image.
               "height": <int>,        // The height of the WMS image.
               "time": <string>,       // Time intervals of WMS images, optional.

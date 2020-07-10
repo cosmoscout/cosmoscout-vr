@@ -36,6 +36,7 @@ namespace csp::simplewmsbodies {
 void from_json(nlohmann::json const& j, Plugin::Settings::WMSConfig& o) {
   cs::core::Settings::deserialize(j, "copyright", o.mCopyright);
   cs::core::Settings::deserialize(j, "url", o.mUrl);
+  cs::core::Settings::deserialize(j, "format", o.mFormat);
   cs::core::Settings::deserialize(j, "width", o.mWidth);
   cs::core::Settings::deserialize(j, "height", o.mHeight);
   cs::core::Settings::deserialize(j, "time", o.mTime);
@@ -47,6 +48,7 @@ void from_json(nlohmann::json const& j, Plugin::Settings::WMSConfig& o) {
 void to_json(nlohmann::json& j, Plugin::Settings::WMSConfig const& o) {
   cs::core::Settings::serialize(j, "copyright", o.mCopyright);
   cs::core::Settings::serialize(j, "url", o.mUrl);
+  cs::core::Settings::serialize(j, "format", o.mFormat);
   cs::core::Settings::serialize(j, "width", o.mWidth);
   cs::core::Settings::serialize(j, "height", o.mHeight);
   cs::core::Settings::serialize(j, "time", o.mTime);

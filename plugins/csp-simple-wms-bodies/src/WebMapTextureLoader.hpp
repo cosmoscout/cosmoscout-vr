@@ -20,11 +20,11 @@ class WebMapTextureLoader {
 
   /// Async WMS texture loader.
   std::future<std::string> loadTextureAsync(std::string time, std::string const& requestStr,
-      std::string const& layer, std::string const& mapCache);
+	  std::string const& format, std::string const& layer, std::string const& mapCache);
 
   /// WMS texture loader.
-  std::string loadTexture(std::string time, std::string const& requestStr, std::string const& layer,
-      std::string const& mapCache);
+  std::string loadTexture(std::string time, std::string const& requestStr,
+      std::string const& format, std::string const& layer, std::string const& mapCache);
 
   /// Load WMS texture from file using stbi.
   std::future<unsigned char*> loadTextureFromFileAsync(std::string const& fileName);

@@ -41,6 +41,7 @@ class Plugin : public cs::core::PluginBase {
     struct WMSConfig {
       std::string mCopyright; ///< The copyright holder of the data set (also shown in the UI).
       std::string mUrl;       ///< The URL of the map server including the "SERVICE=wms" parameter.
+      std::string mFormat;    ///< Download image file format: png or jpeg.
       int         mWidth;     ///< The width of the WMS image.
       int         mHeight;    ///< The height of the WMS image.
       std::optional<std::string> mTime;   ///< Time intervals of WMS images.

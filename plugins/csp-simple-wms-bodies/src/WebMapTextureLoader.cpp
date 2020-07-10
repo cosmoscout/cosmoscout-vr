@@ -38,11 +38,17 @@ WebMapTextureLoader::~WebMapTextureLoader() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::string WebMapTextureLoader::loadTexture(std::string time, std::string const& requestStr,
-    std::string const& layer, std::string const& mapCache) {
+    std::string const& format, std::string const& layer, std::string const& mapCache) {
 
   // Replace forbidden characters in layer string before creating cache dir.
   std::string layerFixed;
   boost::replace_copy_if(layer, std::back_inserter(layerFixed), boost::is_any_of("*.,:[|]\""), '_');
+
+  // Set file format to three caracters.
+  std::string fileFormat = format;
+  if (format == "jpeg") {
+    fileFormat = "jpg";
+  }
 
   std::stringstream cacheDir;
   cacheDir << mapCache << "/" << layerFixed << "/";
@@ -65,14 +71,14 @@ std::string WebMapTextureLoader::loadTexture(std::string time, std::string const
 
   // Add time string to map server request if time is specified
   if (time != "") {
-    url << "&TIME=" << time;
+    url << "&TIME=" << time << "&FORMAT=image/" << format;
 
     std::replace(time.begin(), time.end(), '/', '-');
     std::replace(time.begin(), time.end(), ':', '-');
 
-    cacheFile << cacheDir.str() << time << ".png";
+    cacheFile << cacheDir.str() << time << "." << fileFormat;
   } else {
-    cacheFile << cacheDir.str() << layerFixed << ".png";
+    cacheFile << cacheDir.str() << layerFixed << "." << fileFormat;
   }
 
   auto cacheFilePath(boost::filesystem::path(cacheFile.str()));
@@ -131,7 +137,7 @@ std::string WebMapTextureLoader::loadTexture(std::string time, std::string const
 
     // Check if the output is png.
     std::string contentType = curlpp::Info<CURLINFO_CONTENT_TYPE, std::string>::get(request);
-    if (contentType == "NULL" || contentType.substr(0, 9) != "image/png") {
+    if (contentType == "NULL" || contentType.substr(0, 6 + format.length()) != "image/" + format) {
       fail = true;
     }
   }
@@ -154,8 +160,9 @@ std::string WebMapTextureLoader::loadTexture(std::string time, std::string const
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::future<std::string> WebMapTextureLoader::loadTextureAsync(std::string time,
-    std::string const& requestStr, std::string const& layer, std::string const& mapCache) {
-  return mThreadPool.enqueue([=]() { return loadTexture(time, requestStr, layer, mapCache); });
+    std::string const& requestStr, std::string const& format, std::string const& layer,
+    std::string const& mapCache) {
+  return mThreadPool.enqueue([=]() { return loadTexture(time, requestStr, format, layer, mapCache); });
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
