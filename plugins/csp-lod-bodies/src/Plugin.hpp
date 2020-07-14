@@ -76,6 +76,9 @@ class Plugin : public cs::core::PluginBase {
     /// Enables or disables wireframe rendering of the planet.
     cs::utils::DefaultProperty<bool> mEnableWireframe{false};
 
+    /// Enables or disables bounding box rendering of the planet's tiles.
+    cs::utils::DefaultProperty<bool> mEnableBounds{false};
+
     /// Enables or disables debug coloring of the planet's tiles.
     cs::utils::DefaultProperty<bool> mEnableTilesDebug{false};
 

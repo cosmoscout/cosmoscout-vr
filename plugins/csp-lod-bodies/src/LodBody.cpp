@@ -63,6 +63,9 @@ LodBody::LodBody(std::shared_ptr<cs::core::Settings> const& settings,
   mPluginSettings->mEnableWireframe.connectAndTouch(
       [this](bool val) { mPlanet.getTileRenderer().setWireframe(val); });
 
+  mPluginSettings->mEnableBounds.connectAndTouch(
+      [this](bool val) { mPlanet.getTileRenderer().setDrawBounds(val); });
+
   mPluginSettings->mEnableTilesFreeze.connectAndTouch([this](bool val) {
     mPlanet.getLODVisitor().setUpdateLOD(!val);
     mPlanet.getLODVisitor().setUpdateCulling(!val);

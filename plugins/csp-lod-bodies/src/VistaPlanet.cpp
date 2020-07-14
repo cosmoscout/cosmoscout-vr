@@ -9,6 +9,8 @@
 #include "TileSource.hpp"
 #include "UpdateBoundsVisitor.hpp"
 
+#include <../../../src/cs-utils/utils.hpp>
+
 #include <VistaBase/VistaStreamUtils.h>
 #include <VistaKernel/DisplayManager/VistaDisplayManager.h>
 #include <VistaKernel/DisplayManager/VistaDisplaySystem.h>
@@ -343,6 +345,7 @@ void VistaPlanet::renderTiles(int frameCount, glm::dmat4 const& matVM, glm::fmat
   mRenderer.setFrameCount(frameCount);
   mRenderer.setModelview(matVM);
   mRenderer.setProjection(matP);
+  mRenderer.setFarClip(cs::utils::getCurrentFarClipDistance());
   mRenderer.render(mLodVisitor.getRenderDEM(), mLodVisitor.getRenderIMG(), shadowMap);
 }
 
