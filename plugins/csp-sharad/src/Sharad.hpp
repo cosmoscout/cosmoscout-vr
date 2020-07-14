@@ -67,6 +67,8 @@ class Sharad : public cs::scene::CelestialObject, public IVistaOpenGLDraw {
   VistaVertexArrayObject mVAO;
   VistaBufferObject      mVBO;
 
+  glm::dvec3 mRadii;
+
   int    mSamples;
   double mCurrTime   = -1.0;
   double mSceneScale = -1.0;

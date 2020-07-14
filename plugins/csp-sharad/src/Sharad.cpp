@@ -33,10 +33,10 @@ const char* Sharad::VERT = R"(
 uniform mat4 uMatModelView;
 uniform mat4 uMatProjection;
 uniform float uHeightScale;
-uniform float uRadius;
+uniform vec3 uRadii;
 
 // inputs
-layout(location = 0) in vec3  iPosition;
+layout(location = 0) in vec2  iLngLat;
 layout(location = 1) in vec2  iTexCoords;
 layout(location = 2) in float iTime;
 
@@ -45,17 +45,26 @@ out vec3  vPosition;
 out vec2  vTexCoords;
 out float vTime;
 
+vec3 geodeticSurfaceNormal(vec2 lngLat) {
+  return vec3(cos(lngLat.y) * sin(lngLat.x), sin(lngLat.y),
+      cos(lngLat.y) * cos(lngLat.x));
+}
+
+vec3 toCartesian(vec2 lonLat, float height) {
+  vec3 n = geodeticSurfaceNormal(lonLat);
+  vec3 k = n * uRadii * uRadii;
+  float gamma = sqrt(dot(k, n));
+  return k / gamma + height * n;
+}
+
 void main()
 {
     vTexCoords = iTexCoords;
     vTime      = iTime;
 
-    float height = vTexCoords.y < 0.5 ? 
-                        uRadius + 10000 * uHeightScale : 
-                        uRadius - 10100 * uHeightScale ;
-
-    vPosition   = (uMatModelView * vec4(iPosition * height, 1.0)).xyz;
-    gl_Position =  uMatProjection * vec4(vPosition, 1);
+    float height = vTexCoords.y < 0.5 ? 10000 * uHeightScale: -10100 * uHeightScale;
+    vPosition    = (uMatModelView * vec4(toCartesian(iLngLat, height), 1.0)).xyz;
+    gl_Position  =  uMatProjection * vec4(vPosition, 1);
 }
 )";
 
@@ -141,7 +150,8 @@ Sharad::Sharad(std::shared_ptr<cs::core::Settings> settings, std::string const& 
     std::string const& sFrameName, std::string const& sTiffFile, std::string const& sTabFile)
     : cs::scene::CelestialObject(sCenterName, sFrameName, 0, 0)
     , mSettings(std::move(settings))
-    , mTexture(cs::graphics::TextureLoader::loadFromFile(sTiffFile)) {
+    , mTexture(cs::graphics::TextureLoader::loadFromFile(sTiffFile))
+    , mRadii(cs::core::SolarSystem::getRadii(sCenterName)) {
   // arbitray date in future
   mEndExistence = cs::utils::convert::time::toSpice("2040-01-01T00:00:00.000Z");
 
@@ -202,7 +212,7 @@ Sharad::Sharad(std::shared_ptr<cs::core::Settings> settings, std::string const& 
 
   // create geometry ---------------------------------------------------------
   struct Vertex {
-    glm::vec3 pos;
+    glm::vec2 lngLat;
     glm::vec2 tc;
     float     time;
   };
@@ -220,19 +230,18 @@ Sharad::Sharad(std::shared_ptr<cs::core::Settings> settings, std::string const& 
       mStartExistence = tTime;
     }
 
-    glm::dvec2 lngLat(
+    glm::vec2 lngLat(
         cs::utils::convert::toRadians(glm::dvec2(meta[i].Longitude, meta[i].Latitude)));
-    glm::dvec3 point = cs::utils::convert::toCartesian(lngLat, glm::dvec3(1.0));
 
     float x    = 1.F * static_cast<float>(i) / (static_cast<float>(mSamples) - 1.F);
     auto  time = static_cast<float>(tTime - mStartExistence);
 
-    vertices[i * 2 + 0].pos  = point;
-    vertices[i * 2 + 0].tc   = glm::vec2(x, 1.F);
-    vertices[i * 2 + 0].time = time;
-    vertices[i * 2 + 1].pos  = point;
-    vertices[i * 2 + 1].tc   = glm::vec2(x, 0.F);
-    vertices[i * 2 + 1].time = time;
+    vertices[i * 2 + 0].lngLat = lngLat;
+    vertices[i * 2 + 0].tc     = glm::vec2(x, 1.F);
+    vertices[i * 2 + 0].time   = time;
+    vertices[i * 2 + 1].lngLat = lngLat;
+    vertices[i * 2 + 1].tc     = glm::vec2(x, 0.F);
+    vertices[i * 2 + 1].time   = time;
   }
 
   mVBO.Bind(GL_ARRAY_BUFFER);
@@ -240,7 +249,7 @@ Sharad::Sharad(std::shared_ptr<cs::core::Settings> settings, std::string const& 
   mVBO.Release();
 
   mVAO.EnableAttributeArray(0);
-  mVAO.SpecifyAttributeArrayFloat(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), 0, &mVBO);
+  mVAO.SpecifyAttributeArrayFloat(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), 0, &mVBO);
 
   mVAO.EnableAttributeArray(1);
   mVAO.SpecifyAttributeArrayFloat(
@@ -308,8 +317,8 @@ bool Sharad::Do() {
     mShader.SetUniform(mShader.GetUniformLocation("uSceneScale"), static_cast<float>(mSceneScale));
     mShader.SetUniform(
         mShader.GetUniformLocation("uHeightScale"), mSettings->mGraphics.pHeightScale.get());
-    mShader.SetUniform(mShader.GetUniformLocation("uRadius"),
-        static_cast<float>(cs::core::SolarSystem::getRadii(getCenterName())[0]));
+    mShader.SetUniform(mShader.GetUniformLocation("uRadii"), static_cast<float>(mRadii[0]),
+        static_cast<float>(mRadii[1]), static_cast<float>(mRadii[2]));
     mShader.SetUniform(
         mShader.GetUniformLocation("uTime"), static_cast<float>(mCurrTime - mStartExistence));
     mShader.SetUniform(
