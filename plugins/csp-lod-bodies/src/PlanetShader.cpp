@@ -194,9 +194,6 @@ void PlanetShader::bind() {
   loc = mShader.GetUniformLocation("uSunDirIlluminance");
   mShader.SetUniform(loc, mSunDirection.x, mSunDirection.y, mSunDirection.z, mSunIlluminance);
 
-  loc = mShader.GetUniformLocation("farClip");
-  mShader.SetUniform(loc, cs::utils::getCurrentFarClipDistance());
-
   mFontTexture->Bind(TEXUNITNAMEFONT);
 
   auto it(mColorMaps.find(mPluginSettings->mTerrainColorMap.get()));
