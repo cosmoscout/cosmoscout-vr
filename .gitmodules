@@ -69,7 +69,7 @@
 	url = ../../cosmoscout/csp-atmospheres.git
 [submodule "plugins/csp-vestec"]
 	path = plugins/csp-vestec
-	url = https://github.com/cosmoscout/csp-vestec.git
+	url = git@github.com:cosmoscout/csp-vestec.git
 [submodule "externals/vtk"]
 	path = externals/vtk
 	url = https://github.com/Kitware/VTK.git
