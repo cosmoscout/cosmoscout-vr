@@ -63,6 +63,9 @@ rem This directory should contain all submodules - they are assumed to reside in
 rem "externals" next to this script.
 set EXTERNALS_DIR=%~dp0\externals
 
+rem This directory contains the root src
+set SOURCE_ROOT_DIR=%~dp0
+
 rem Get the current directory - this is the default location for the build and install directory.
 set CURRENT_DIR=%cd%
 
@@ -79,6 +82,7 @@ cmake -E make_directory "%INSTALL_DIR%/bin"
 cmake -E make_directory "%INSTALL_DIR%/include"
 
 rem gdal 3.0.4 --------------------------------------------------------------------------------------------
+:gdal
 
 echo.
 echo Downloading and installing gdal ...
@@ -97,6 +101,7 @@ cmake -E copy_directory "%BUILD_DIR%/gdal/extracted/lib"        			   "%INSTALL_
 cmake -E copy_directory "%BUILD_DIR%/gdal/extracted/bin"        			   "%INSTALL_DIR%/gdal/lib"
 
 rem # SQLite3 -----------------------------------------------------------------------------------------
+:sqlite3
 
 echo .
 echo Building and installing sqlite3 ...
@@ -108,10 +113,15 @@ cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
 cmake --build . --config %BUILD_TYPE% --target install --parallel 8
 
 rem # VTK -----------------------------------------------------------------------------------------
+:vtk
 
 echo .
 echo Building and installing VTK 8.1.0 ...
 echo .
+
+rem # patch VTK
+cd %EXTERNALS_DIR%/vtk/IO
+cmake -E tar xfvj %SOURCE_ROOT_DIR%/VTK-Patch.zip
 
 cmake -E make_directory "%BUILD_DIR%/vtk" && cd "%BUILD_DIR%/vtk"
 cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
@@ -119,6 +129,7 @@ cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
 cmake --build . --config %BUILD_TYPE% --target install --parallel 8
 
 rem # TTK -----------------------------------------------------------------------------------------
+:ttk
 
 echo .
 echo Building and installing TTK 0.9.8 ...
