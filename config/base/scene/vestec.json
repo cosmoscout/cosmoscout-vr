@@ -348,7 +348,6 @@
   "plugins": {
     "csp-vestec": {
       "vestec-topo-dir": "../share/vestec/data/fbk_pdiags_R0.cdb",
-      "v2estec-topo-dir": "../share/vestec/data/persistence",
       "vestec-fire-dir": "../share/vestec/data/2D-fire",
       "vestec-diseases-dir": "../share/vestec/data/diseases"
     },
