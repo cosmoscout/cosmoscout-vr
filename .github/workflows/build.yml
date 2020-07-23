@@ -98,6 +98,7 @@ jobs:
         run: >
           ./make_externals.sh -G "Unix Makefiles"
           -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
+          -DBOOST_ROOT=$BOOST_ROOT_1_69_0
       - name: Build CosmoScout VR
         run: >
           ./make.sh -G "Unix Makefiles"
