@@ -466,6 +466,11 @@ bool InputManager::HandleKeyPress(int key, int mods, bool /*bIsKeyRepeat*/) {
     return true;
   }
 
+  if (key == VISTA_KEY_DELETE) {
+    pSelectedGuiItem.get()->injectKeyEvent(gui::KeyEvent(key, mods));
+    return true;
+  }
+
   if (pSelectedGuiItem.get() && pSelectedGuiItem.get()->getIsKeyboardInputElementFocused()) {
     pSelectedGuiItem.get()->injectKeyEvent(gui::KeyEvent(key, mods));
 
