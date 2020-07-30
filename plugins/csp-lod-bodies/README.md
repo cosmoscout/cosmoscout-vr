@@ -114,7 +114,7 @@ Then, add the following lines to the end of this file.
 
 ```
 # custom rotated and scaled HEALPix, magic number is sqrt(2) * 2/pi
-<900914> +proj=healpix +lon_0=0 +x_0=2.5 +y_0=2.5 +a=0.900316316 +rot_xy=45 +no_defs <>
+<900914> +proj=healpix +lon_0=0 +x_0=2.5 +y_0=2.5 +a=0.900316316157106 +rot_xy=45 +no_defs <>
 # standard HEALPix on unit sphere
 <900915> +proj=healpix +a=1 +b=1 <>
 ```
