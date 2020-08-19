@@ -110,6 +110,7 @@ void from_json(nlohmann::json const& j, Plugin::Settings& o) {
   cs::core::Settings::deserialize(j, "heightRange", o.mHeightRange);
   cs::core::Settings::deserialize(j, "slopeRange", o.mSlopeRange);
   cs::core::Settings::deserialize(j, "enableWireframe", o.mEnableWireframe);
+  cs::core::Settings::deserialize(j, "enableBounds", o.mEnableBounds);
   cs::core::Settings::deserialize(j, "enableTilesDebug", o.mEnableTilesDebug);
   cs::core::Settings::deserialize(j, "enableTilesFreeze", o.mEnableTilesFreeze);
   cs::core::Settings::deserialize(j, "maxGPUTilesColor", o.mMaxGPUTilesColor);
@@ -132,6 +133,7 @@ void to_json(nlohmann::json& j, Plugin::Settings const& o) {
   cs::core::Settings::serialize(j, "heightRange", o.mHeightRange);
   cs::core::Settings::serialize(j, "slopeRange", o.mSlopeRange);
   cs::core::Settings::serialize(j, "enableWireframe", o.mEnableWireframe);
+  cs::core::Settings::serialize(j, "enableBounds", o.mEnableBounds);
   cs::core::Settings::serialize(j, "enableTilesDebug", o.mEnableTilesDebug);
   cs::core::Settings::serialize(j, "enableTilesFreeze", o.mEnableTilesFreeze);
   cs::core::Settings::serialize(j, "maxGPUTilesColor", o.mMaxGPUTilesColor);
@@ -179,6 +181,12 @@ void Plugin::init() {
   mPluginSettings->mEnableWireframe.connectAndTouch([this](bool enable) {
     mGuiManager->setCheckboxValue("lodBodies.setEnableWireframe", enable);
   });
+
+  mGuiManager->getGui()->registerCallback("lodBodies.setEnableBounds",
+      "Enables or disables bounding box rendering of the planet's tiles.",
+      std::function([this](bool enable) { mPluginSettings->mEnableBounds = enable; }));
+  mPluginSettings->mEnableBounds.connectAndTouch(
+      [this](bool enable) { mGuiManager->setCheckboxValue("lodBodies.setEnableBounds", enable); });
 
   mGuiManager->getGui()->registerCallback("lodBodies.setEnableHeightlines",
       "Enables or disables rendering of iso-altitude lines.",
@@ -403,6 +411,7 @@ void Plugin::deInit() {
   mGuiManager->getGui()->unregisterCallback("lodBodies.setEnableTilesFreeze");
   mGuiManager->getGui()->unregisterCallback("lodBodies.setEnableTilesDebug");
   mGuiManager->getGui()->unregisterCallback("lodBodies.setEnableWireframe");
+  mGuiManager->getGui()->unregisterCallback("lodBodies.setEnableBounds");
   mGuiManager->getGui()->unregisterCallback("lodBodies.setEnableHeightlines");
   mGuiManager->getGui()->unregisterCallback("lodBodies.setEnableLatLongGrid");
   mGuiManager->getGui()->unregisterCallback("lodBodies.setEnableLatLongGridLabels");
