@@ -273,7 +273,7 @@ cmake -E make_directory "$BUILD_DIR/cspice/extracted" && cd "$BUILD_DIR/cspice"
 wget -nc http://naif.jpl.nasa.gov/pub/naif/toolkit//C/PC_Linux_GCC_64bit/packages/cspice.tar.Z
 
 cd "$BUILD_DIR/cspice/extracted"
-cmake -E tar xzf ../cspice.tar.Z
+cmake -E tar xzf ../cspice.tar.Z -- cspice/src/cspice cspice/include
 
 cmake -E copy_directory "$BUILD_DIR/cspice/extracted/cspice/include" "$INSTALL_DIR/include/cspice"
 cmake -E copy "$BUILD_DIR/cspice/extracted/cspice/lib/cspice.a" "$INSTALL_DIR/lib"
