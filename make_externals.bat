@@ -332,7 +332,7 @@ IF NOT EXIST cspice.zip (
 )
 
 cd "%BUILD_DIR%/cspice/extracted"
-cmake -E tar xfvj ../cspice.zip
+cmake -E tar xfvj ../cspice.zip -- cspice/src/cspice cspice/include
 cd cspice
 
 echo project(cspice C) > "CMakeLists.txt"
