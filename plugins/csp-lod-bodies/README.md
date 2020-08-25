@@ -68,16 +68,16 @@ Then enable `cgi` and `fastcgi` of Apache:
 sudo a2enmod cgi fcgid
 ```
 
-Then add `/usr/lib/cgi-bin` directory to Apache. To do this, add the following lines on Apache2 configuration file (e.g. `/etc/apache2/sites-available/000-default.conf`):
+Then add `/usr/lib/cgi-bin` directory to Apache. To do this, add the following lines to the end of the Apache2 configuration file (e.g. `/etc/apache2/sites-available/000-default.conf`):
 
 ```
-         ScriptAlias /cgi-bin/ /usr/lib/cgi-bin/
-         <Directory "/usr/lib/cgi-bin/">
-                 AllowOverride All
-                 Options +ExecCGI -MultiViews +FollowSymLinks
-                 AddHandler fcgid-script .fcgi
-                 Require all granted
-         </Directory>
+ScriptAlias /cgi-bin/ /usr/lib/cgi-bin/
+<Directory "/usr/lib/cgi-bin/">
+        AllowOverride All
+        Options +ExecCGI -MultiViews +FollowSymLinks
+        AddHandler fcgid-script .fcgi
+        Require all granted
+</Directory>
 ```
 
 Finally, restart `apache2` Daemon.
