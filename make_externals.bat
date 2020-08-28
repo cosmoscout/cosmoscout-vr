@@ -90,7 +90,7 @@ echo.
 cmake -E make_directory "%BUILD_DIR%/glew/extracted" && cd "%BUILD_DIR%/glew"
 
 IF NOT EXIST glew-2.1.0-win32.zip (
-  powershell.exe -command Invoke-WebRequest -Uri https://netcologne.dl.sourceforge.net/project/glew/glew/2.1.0/glew-2.1.0-win32.zip -OutFile glew-2.1.0-win32.zip
+  curl.exe https://netcologne.dl.sourceforge.net/project/glew/glew/2.1.0/glew-2.1.0-win32.zip --output glew-2.1.0-win32.zip
 ) else (
   echo File 'glew-2.1.0-win32.zip' already exists, no download required.
 )
@@ -326,13 +326,13 @@ echo.
 cmake -E make_directory "%BUILD_DIR%/cspice/extracted" && cd "%BUILD_DIR%/cspice"
 
 IF NOT EXIST cspice.zip (
-  powershell.exe -command $AllProtocols = [System.Net.SecurityProtocolType]'Tls11,Tls12'; [System.Net.ServicePointManager]::SecurityProtocol = $AllProtocols; Invoke-WebRequest -Uri https://naif.jpl.nasa.gov/pub/naif/toolkit//C/PC_Windows_VisualC_64bit/packages/cspice.zip -OutFile cspice.zip
+  curl.exe https://naif.jpl.nasa.gov/pub/naif/toolkit//C/PC_Windows_VisualC_64bit/packages/cspice.zip --output cspice.zip
 ) else (
   echo File 'cspice.zip' already exists no, download required.
 )
 
 cd "%BUILD_DIR%/cspice/extracted"
-cmake -E tar xfvj ../cspice.zip
+cmake -E tar xfvj ../cspice.zip -- cspice/src/cspice cspice/include
 cd cspice
 
 echo project(cspice C) > "CMakeLists.txt"
@@ -366,7 +366,7 @@ echo.
 cmake -E make_directory "%BUILD_DIR%/cef/bzip2" && cd "%BUILD_DIR%/cef"
 
 IF NOT EXIST bzip2.zip (
-  powershell.exe -command Invoke-WebRequest -Uri https://netcologne.dl.sourceforge.net/project/gnuwin32/bzip2/1.0.5/bzip2-1.0.5-bin.zip -OutFile bzip2.zip
+  curl.exe https://netcologne.dl.sourceforge.net/project/gnuwin32/bzip2/1.0.5/bzip2-1.0.5-bin.zip --output bzip2.zip
 ) else (
   echo File 'bzip2.zip' already exists, no download required.
 )
@@ -384,7 +384,7 @@ set CEF_DIR=cef_binary_81.3.3+g072a5f5+chromium-81.0.4044.138_windows64_minimal
 cmake -E make_directory "%BUILD_DIR%/cef/extracted" && cd "%BUILD_DIR%/cef"
 
 IF NOT EXIST cef.tar (
-  powershell.exe -command Invoke-WebRequest -Uri http://opensource.spotify.com/cefbuilds/cef_binary_81.3.3%%2Bg072a5f5%%2Bchromium-81.0.4044.138_windows64_minimal.tar.bz2 -OutFile cef.tar.bz2
+  curl.exe http://opensource.spotify.com/cefbuilds/cef_binary_81.3.3%%2Bg072a5f5%%2Bchromium-81.0.4044.138_windows64_minimal.tar.bz2 --output cef.tar.bz2
   cd "%BUILD_DIR%/cef/extracted"
   "%BUILD_DIR%/cef/bzip2/bin/bunzip2.exe" -v ../cef.tar.bz2
 ) else (
