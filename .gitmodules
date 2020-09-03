@@ -91,3 +91,6 @@
 [submodule "externals/stb"]
 	path = externals/stb
 	url = https://github.com/nothings/stb
+[submodule "plugins/csp-simple-wms-bodies"]
+	path = plugins/csp-simple-wms-bodies
+	url = https://github.com/cosmoscout/csp-simple-wms-bodies.git
