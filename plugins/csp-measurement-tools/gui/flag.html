@@ -1,0 +1,130 @@
+﻿<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+
+  <link type="text/css" rel="stylesheet" href="third-party/css/bootstrap.min.css" />
+  <link type="text/css" rel="stylesheet" href="css/gui.css">
+  <link type="text/css" rel="stylesheet" href="css/tools.css">
+  <link type="text/css" rel="stylesheet" href="css/csp-measurement-tools.css">
+
+  <script type="text/javascript" src="third-party/js/jquery-2.2.3.min.js"></script>
+  <script type="text/javascript" src="third-party/js/bootstrap.bundle.min.js"></script>
+
+  <script type="text/javascript" src="js/api.js"></script>
+  <script type="text/javascript" src="js/cosmoscout.js"></script>
+  <script type="text/javascript" src="js/apis/geocode.js"></script>
+
+  <script type="text/javascript">
+
+    // Private methods used in this file only ------------------------------------------------------
+
+    function formatHeight(height) {
+      height = Math.round(height);
+      if (height >= 1000000) {
+        return '(' + (height * 0.001).toFixed(0) + ' km)';
+      } else if (height >= 100000) {
+        return '(' + (height * 0.001).toFixed(1) + ' km)';
+      } else if (height >= 10000) {
+        return '(' + (height * 0.001).toFixed(2) + ' km)';
+      } else {
+        return '(' + (height * 1.000) + ' m)';
+      }
+    }
+
+    function formatLatitude(lat) {
+      if (lat < 0)
+        return (-lat).toFixed(4) + "° S ";
+      else
+        return (lat).toFixed(4) + "° N ";
+    }
+
+    function formatLongitude(long) {
+      if (long < 0)
+        return (-long).toFixed(4) + "° W ";
+      else
+        return (long).toFixed(4) + "° E ";
+    }
+
+    // API calls -----------------------------------------------------------------------------------
+
+    var activePlanetCenter = "";
+    var requestTimer;
+
+    function setPosition(long, lat, height) {
+      $("#placeholder-1").text(formatLongitude(long) + formatLatitude(lat) + formatHeight(height));
+
+      clearTimeout(requestTimer);
+      requestTimer = setTimeout(function () {
+        CosmoScout.geocode.reverse(activePlanetCenter, long, lat, (location) => {
+          if (location) {
+            $("#placeholder-2").text(location);
+          } else {
+            $("#placeholder-2").text(activePlanetCenter);
+          }
+        });
+      }, 500);
+    }
+
+    function setText(text) {
+      $(".text-input").val(text);
+    }
+
+    function setActivePlanet(center) {
+      activePlanetCenter = center;
+    }
+
+    function setMinimized(minimize) {
+      if (minimize) $('.flag').addClass('minimized');
+      else $('.flag').removeClass('minimized');
+    }
+
+    // entry point ---------------------------------------------------------
+    var CosmoScout = new CosmoScoutAPI();
+
+    document.addEventListener('DOMContentLoaded', () => {
+      CosmoScout.init(
+        GeoCodeApi
+      );
+
+      $('[data-toggle="tooltip"]').tooltip({ delay: 500, placement: "auto", html: false });
+      $(".text-input").on("input", () => window.callNative("onSetText", $(".text-input").val()));
+    });
+
+  </script>
+
+</head>
+
+<body style="overflow: hidden">
+  <div class="flag">
+    <div class="pole"></div>
+    <div class="banner">
+      <div class="d-flex">
+        <input type='text' class='text-input form-control flex-grow-1' />
+        <a class="btn light-glass" data-toggle="tooltip" title='Minimize'
+          onclick="window.callNative('minimizeMe')">
+          <i class=" material-icons">file_download</i>
+        </a>
+        <a class="btn light-glass" data-toggle="tooltip" title='Delete'
+          onclick="window.callNative('deleteMe')">
+          <i class=" material-icons">close</i>
+        </a>
+      </div>
+      <div class="container-fluid pb-1">
+        <div class="row">
+          <div class="col-12">
+            <i style="top: -2px" class="material-icons">language</i>
+            <span id="placeholder-1">0° 0° 0m</span>
+          </div>
+          <div class="col-12" style="font-size: 80%">
+            <i style="top: -2px" class="material-icons">location_on</i>
+            <span id="placeholder-2">Unknown Location</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>

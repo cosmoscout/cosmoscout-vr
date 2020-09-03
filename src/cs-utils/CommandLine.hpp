@@ -55,7 +55,7 @@ class CS_UTILS_EXPORT CommandLine {
   /// The command line arguments are traversed from start to end. That means, if an option is set
   /// multiple times, the last will be the one which is finally used. This call will throw a
   /// std::runtime_error if a value is missing for a given option.
-  void parse(int argc, char* argv[]) const;
+  void parse(std::vector<std::string> args) const;
 
  private:
   struct Argument {

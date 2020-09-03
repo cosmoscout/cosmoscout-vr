@@ -6,8 +6,9 @@
 
 #include "WebViewClient.hpp"
 
+#include "../logger.hpp"
+
 #include <fstream>
-#include <iostream>
 #include <utility>
 
 namespace cs::gui::detail {
@@ -15,57 +16,67 @@ namespace cs::gui::detail {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 WebViewClient::~WebViewClient() {
-  if (js_callbacks_.size() > 0) {
-    std::cout << "[~WebViewClient] Warning: There are still JavaScript callbacks registered!"
-              << std::endl;
+  try {
+    if (!mJSCallbacks.empty()) {
+      logger().warn(
+          "While destructing a WebViewClient there were still JavaScript callbacks registered:");
 
-    for (auto&& i : js_callbacks_) {
-      std::cout << " - " << i.first << std::endl;
-      i.second = [](std::vector<std::any> const&) {};
+      for (auto&& i : mJSCallbacks) {
+        logger().warn(" - {}", i.first);
+        i.second = [](auto /*unused*/) {};
+      }
     }
-  }
+  } catch (...) {}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool WebViewClient::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
-    CefRefPtr<CefFrame> frame, CefProcessId source_process, CefRefPtr<CefProcessMessage> message) {
+bool WebViewClient::OnProcessMessageReceived(CefRefPtr<CefBrowser> /*browser*/,
+    CefRefPtr<CefFrame> /*frame*/, CefProcessId /*source_process*/,
+    CefRefPtr<CefProcessMessage> message) {
 
-  if (message->GetName() == "call_native") {
+  if (message->GetName() == "callNative") {
 
     std::string name(message->GetArgumentList()->GetString(0).ToString());
-    auto        callback(js_callbacks_.find(name));
+    auto        callback(mJSCallbacks.find(name));
 
-    if (callback == js_callbacks_.end()) {
-      std::cout << "Cannot call function '" << name
-                << "': No callback is registered for this function name!" << std::endl;
+    if (callback == mJSCallbacks.end()) {
+      logger().warn(
+          "Cannot call function '{}': No callback is registered for this function name!", name);
       return true;
     }
 
-    std::vector<std::any> args;
+    std::vector<std::optional<JSType>> args;
 
-    for (int i(1); i < message->GetArgumentList()->GetSize(); ++i) {
-      CefValueType type(message->GetArgumentList()->GetType((size_t)i));
+    for (size_t i(1); i < message->GetArgumentList()->GetSize(); ++i) {
+      CefValueType type(message->GetArgumentList()->GetType(i));
       switch (type) {
       case VTYPE_DOUBLE:
-        args.emplace_back(message->GetArgumentList()->GetDouble((size_t)i));
+        args.emplace_back(message->GetArgumentList()->GetDouble(i));
         break;
       case VTYPE_BOOL:
-        args.emplace_back(message->GetArgumentList()->GetBool((size_t)i));
+        args.emplace_back(message->GetArgumentList()->GetBool(i));
         break;
       case VTYPE_STRING:
-        args.emplace_back(message->GetArgumentList()->GetString((size_t)i).ToString());
+        args.emplace_back(message->GetArgumentList()->GetString(i).ToString());
+        break;
+      case VTYPE_INVALID:
+      case VTYPE_NULL:
+        args.emplace_back(std::nullopt);
         break;
       default:
+        logger().warn("Failed to parse argument {} of callback '{}': Unsupported type!", i, name);
         break;
       }
     }
 
-    callback->second(args);
+    callback->second(std::move(args));
 
     return true;
-  } else if (message->GetName() == "error") {
-    std::cerr << message->GetArgumentList()->GetString(0).ToString() << std::endl;
+  }
+
+  if (message->GetName() == "error") {
+    logger().error(message->GetArgumentList()->GetString(0).ToString());
   }
 
   return false;
@@ -74,14 +85,14 @@ bool WebViewClient::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void WebViewClient::RegisterJSCallback(
-    std::string const& name, std::function<void(std::vector<std::any> const&)> callback) {
-  js_callbacks_[name] = std::move(callback);
+    std::string const& name, std::function<void(std::vector<std::optional<JSType>>&&)> callback) {
+  mJSCallbacks[name] = std::move(callback);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void WebViewClient::UnregisterJSCallback(std::string const& name) {
-  js_callbacks_.erase(name);
+  mJSCallbacks.erase(name);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -7,12 +7,18 @@
 #ifndef CS_CORE_GRAPHICS_GraphicsEngine_HPP
 #define CS_CORE_GRAPHICS_GraphicsEngine_HPP
 
+#include "../cs-graphics/HDRBuffer.hpp"
 #include "../cs-graphics/Shadows.hpp"
 #include "../cs-utils/Property.hpp"
 #include "Settings.hpp"
 
 #include <glm/glm.hpp>
 #include <memory>
+
+namespace cs::graphics {
+class ClearHDRBufferNode;
+class ToneMappingNode;
+} // namespace cs::graphics
 
 namespace cs::core {
 
@@ -21,37 +27,41 @@ namespace cs::core {
 /// all plugins.
 class CS_CORE_EXPORT GraphicsEngine {
  public:
-  utils::Property<float>     pHeightScale                = 1.f;
-  utils::Property<float>     pWidgetScale                = 1.f;
-  utils::Property<float>     pApproximateSceneBrightness = 1.f;
-  utils::Property<bool>      pEnableLighting             = false;
-  utils::Property<int>       pLightingQuality            = 2;
-  utils::Property<float>     pAmbientBrightness          = 0.5f;
-  utils::Property<bool>      pEnableShadows              = false;
-  utils::Property<bool>      pEnableShadowsDebug         = false;
-  utils::Property<bool>      pEnableShadowsFreeze        = false;
-  utils::Property<int>       pShadowMapResolution        = 2048;
-  utils::Property<int>       pShadowMapCascades          = 3;
-  utils::Property<float>     pShadowMapBias              = 1.0f;
-  utils::Property<glm::vec2> pShadowMapRange             = glm::vec2(0.f, 100.f);
-  utils::Property<glm::vec2> pShadowMapExtension         = glm::vec2(-100.f, 100.f);
-  utils::Property<float>     pShadowMapSplitDistribution = 1.f;
+  utils::Property<float> pApproximateSceneBrightness = 1.F;
+  utils::Property<float> pAverageLuminance           = 1.F;
+  utils::Property<float> pMaximumLuminance           = 1.F;
 
-  GraphicsEngine(std::shared_ptr<const Settings> const& settings);
+  explicit GraphicsEngine(std::shared_ptr<Settings> settings);
+
+  GraphicsEngine(GraphicsEngine const& other) = default;
+  GraphicsEngine(GraphicsEngine&& other)      = default;
+
+  GraphicsEngine& operator=(GraphicsEngine const& other) = default;
+  GraphicsEngine& operator=(GraphicsEngine&& other) = default;
+
+  ~GraphicsEngine();
 
   /// All objects which are able to cast shadows need to be registered.
   void registerCaster(graphics::ShadowCaster* caster);
   void unregisterCaster(graphics::ShadowCaster* caster);
 
   /// The light direction in world space.
-  void setSunDirection(glm::vec3 const& direction);
+  void update(glm::vec3 const& sunDirection);
 
-  graphics::ShadowMap const* getShadowMap() const;
+  std::shared_ptr<graphics::ShadowMap> getShadowMap() const;
+  std::shared_ptr<graphics::HDRBuffer> getHDRBuffer() const;
+
+  static void enableGLDebug(bool onlyErrors = true);
+  static void disableGLDebug();
 
  private:
   void calculateCascades();
 
-  graphics::ShadowMap mShadowMap;
+  std::shared_ptr<core::Settings>               mSettings;
+  std::shared_ptr<graphics::ShadowMap>          mShadowMap;
+  std::shared_ptr<graphics::HDRBuffer>          mHDRBuffer;
+  std::shared_ptr<graphics::ClearHDRBufferNode> mClearNode;
+  std::shared_ptr<graphics::ToneMappingNode>    mToneMappingNode;
 };
 
 } // namespace cs::core

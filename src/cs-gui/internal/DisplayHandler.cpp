@@ -6,19 +6,29 @@
 
 #include "DisplayHandler.hpp"
 
-#include <iostream>
+#include "../logger.hpp"
 
 namespace cs::gui::detail {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool DisplayHandler::OnConsoleMessage(CefRefPtr<CefBrowser> browser, cef_log_severity_t level,
-    CefString const& message, CefString const& source, int line) {
+bool DisplayHandler::OnConsoleMessage(CefRefPtr<CefBrowser> /*browser*/, cef_log_severity_t level,
+    CefString const& message, CefString const& /*source*/, int /*line*/) {
 
-  std::string path(source.ToString());
-  int         pos((int)path.find_last_of("/\\"));
-  std::cout << "[" << path.substr(pos == std::string::npos ? 0 : pos + 1) << ":" << line << "] "
-            << message.ToString() << std::endl;
+  if (level == LOGSEVERITY_VERBOSE) {
+    logger().trace(message.ToString());
+  } else if (level == LOGSEVERITY_DEBUG) {
+    logger().debug(message.ToString());
+  } else if (level == LOGSEVERITY_WARNING) {
+    logger().warn(message.ToString());
+  } else if (level == LOGSEVERITY_ERROR) {
+    logger().error(message.ToString());
+  } else if (level == LOGSEVERITY_FATAL) {
+    logger().critical(message.ToString());
+  } else {
+    logger().info(message.ToString());
+  }
+
   return true;
 }
 

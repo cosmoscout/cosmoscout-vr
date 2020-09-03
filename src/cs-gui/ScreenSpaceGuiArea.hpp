@@ -11,6 +11,7 @@
 
 #include <VistaAspects/VistaObserver.h>
 #include <VistaKernel/GraphicsManager/VistaOpenGLDraw.h>
+#include <VistaOGLExt/VistaGLSLShader.h>
 #include <vector>
 
 class VistaTransformNode;
@@ -33,14 +34,21 @@ class CS_GUI_EXPORT ScreenSpaceGuiArea : public GuiArea,
 
  public:
   explicit ScreenSpaceGuiArea(VistaViewport* pViewport);
-  ~ScreenSpaceGuiArea() override;
+
+  ScreenSpaceGuiArea(ScreenSpaceGuiArea const& other) = delete;
+  ScreenSpaceGuiArea(ScreenSpaceGuiArea&& other)      = delete;
+
+  ScreenSpaceGuiArea& operator=(ScreenSpaceGuiArea const& other) = delete;
+  ScreenSpaceGuiArea& operator=(ScreenSpaceGuiArea&& other) = delete;
+
+  ~ScreenSpaceGuiArea() override = default;
 
   int getWidth() const override;
   int getHeight() const override;
 
   /// Draws the UI to screen.
   bool Do() override;
-  bool GetBoundingBox(VistaBoundingBox& bb) override;
+  bool GetBoundingBox(VistaBoundingBox& oBoundingBox) override;
 
   /// Handles changes to the screen size.
   void ObserverUpdate(IVistaObserveable* pObserveable, int nMsg, int nTicket) override;
@@ -48,12 +56,12 @@ class CS_GUI_EXPORT ScreenSpaceGuiArea : public GuiArea,
  private:
   virtual void onViewportChange();
 
-  VistaViewport*   mViewport;
-  VistaGLSLShader* mShader                = nullptr;
-  bool             mShaderDirty           = true;
-  int              mWidth                 = 0;
-  int              mHeight                = 0;
-  int              mDelayedViewportUpdate = 0;
+  VistaViewport*  mViewport;
+  VistaGLSLShader mShader;
+  bool            mShaderDirty           = true;
+  int             mWidth                 = 0;
+  int             mHeight                = 0;
+  int             mDelayedViewportUpdate = 0;
 };
 
 } // namespace cs::gui

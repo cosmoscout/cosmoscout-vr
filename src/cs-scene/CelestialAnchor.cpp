@@ -8,10 +8,13 @@
 
 #include <VistaKernel/GraphicsManager/VistaNodeBridge.h>
 
-#include <boost/optional.hpp>
+#include <array>
 #include <cspice/SpiceUsr.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <optional>
+#include <unordered_map>
+#include <utility>
 
 namespace cs::scene {
 
@@ -26,15 +29,15 @@ namespace {
 template <typename K, typename V>
 class Cache {
  public:
-  boost::optional<V> get(double tTime, K const& key) {
+  std::optional<V> get(double tTime, K const& key) {
     if (tTime != mLastTime) {
-      return boost::none;
+      return std::nullopt;
     }
 
     auto value = mache.find(key);
 
     if (value == mache.end()) {
-      return boost::none;
+      return std::nullopt;
     }
 
     return value->second;
@@ -60,12 +63,12 @@ class Cache {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-CelestialAnchor::CelestialAnchor(std::string const& sCenterName, std::string const& sFrameName)
+CelestialAnchor::CelestialAnchor(std::string sCenterName, std::string sFrameName)
     : mPosition(0.0, 0.0, 0.0)
     , mRotation(1.0, 0.0, 0.0, 0.0)
     , mScale(1.0)
-    , mCenterName(sCenterName)
-    , mFrameName(sFrameName) {
+    , mCenterName(std::move(sCenterName))
+    , mFrameName(std::move(sFrameName)) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -84,15 +87,19 @@ glm::dvec3 CelestialAnchor::getRelativePosition(double tTime, CelestialAnchor co
   glm::dvec3 vRelPos;
 
   if (cacheValue) {
-    vRelPos = cacheValue.get();
+    vRelPos = cacheValue.value();
   } else {
-    double relPos[6], timeOfLight, otherPos[] = {vOtherPos[2], vOtherPos[0], vOtherPos[1]};
-    spkcpt_c(otherPos, other.getCenterName().c_str(), other.getFrameName().c_str(), tTime,
-        mFrameName.c_str(), "OBSERVER", "NONE", mCenterName.c_str(), relPos, &timeOfLight);
+    std::array<double, 6> relPos{};
+    double                timeOfLight{};
+    std::array            otherPos{vOtherPos[2], vOtherPos[0], vOtherPos[1]};
+    spkcpt_c(otherPos.data(), other.getCenterName().c_str(), other.getFrameName().c_str(), tTime,
+        mFrameName.c_str(), "OBSERVER", "NONE", mCenterName.c_str(), relPos.data(), &timeOfLight);
 
     if (failed_c()) {
+      std::array<SpiceChar, 320> msg{};
+      getmsg_c("LONG", 320, msg.data());
       reset_c();
-      throw std::runtime_error("Failed to update spice frame.");
+      throw std::runtime_error(msg.data());
     }
 
     vRelPos = glm::dvec3(relPos[1], relPos[2], relPos[0]) * 1000.0;
@@ -116,15 +123,18 @@ glm::dquat CelestialAnchor::getRelativeRotation(double tTime, CelestialAnchor co
 
   glm::dquat qRot;
   if (cacheValue) {
-    qRot = cacheValue.get();
+    qRot = cacheValue.value();
   } else {
     // get rotation from self to other
-    double rotMat[3][3];
-    pxform_c(other.getFrameName().c_str(), mFrameName.c_str(), tTime, rotMat);
+    std::array<double[3], 3> rotMat{}; // NOLINT(modernize-avoid-c-arrays)
+    pxform_c(other.getFrameName().c_str(), mFrameName.c_str(), tTime, rotMat.data());
 
     // convert to quaternion
-    double axis[3], angle;
-    raxisa_c(rotMat, axis, &angle);
+    double axis[3]; // NOLINT(modernize-avoid-c-arrays)
+    double angle{};
+
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-array-to-pointer-decay, modernize-avoid-c-arrays)
+    raxisa_c(rotMat.data(), axis, &angle);
 
     qRot = glm::angleAxis(angle, glm::dvec3(axis[1], axis[2], axis[0]));
 
@@ -166,7 +176,7 @@ std::string const& CelestialAnchor::getFrameName() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CelestialAnchor::setFrameName(std::string const& sFrameName, bool keepTransform) {
+void CelestialAnchor::setFrameName(std::string const& sFrameName) {
   mFrameName = sFrameName;
 }
 
@@ -178,7 +188,7 @@ std::string const& CelestialAnchor::getCenterName() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CelestialAnchor::setCenterName(std::string const& sCenterName, bool keepTransform) {
+void CelestialAnchor::setCenterName(std::string const& sCenterName) {
   mCenterName = sCenterName;
 }
 
@@ -216,6 +226,11 @@ double CelestialAnchor::getAnchorScale() const {
 
 void CelestialAnchor::setAnchorScale(double dScale) {
   mScale = dScale;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void CelestialAnchor::update(double time, const CelestialObserver& observer) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

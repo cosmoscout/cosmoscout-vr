@@ -34,6 +34,26 @@ glm::dvec4 CelestialObject::getWorldPosition() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+double CelestialObject::getStartExistence() const {
+  return mStartExistence;
+}
+
+void CelestialObject::setStartExistence(double value) {
+  mStartExistence = value;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+double CelestialObject::getEndExistence() const {
+  return mEndExistence;
+}
+
+void CelestialObject::setEndExistence(double value) {
+  mEndExistence = value;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void CelestialObject::update(double tTime, cs::scene::CelestialObserver const& oObs) {
   mIsInExistence = (tTime > mStartExistence && tTime < mEndExistence);
 

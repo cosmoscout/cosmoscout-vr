@@ -6,10 +6,11 @@
 
 #include "Shadows.hpp"
 
+#include "logger.hpp"
+
 #include <VistaKernel/GraphicsManager/VistaOpenGLNode.h>
 #include <VistaOGLExt/VistaFramebufferObj.h>
 #include <VistaOGLExt/VistaTexture.h>
-
 #include <array>
 
 namespace cs::graphics {
@@ -187,14 +188,16 @@ bool ShadowMap::Do() {
     cleanUp();
 
     if (mSplits.size() < 2) {
-      std::cout << "Shadow Warning: No splits have been defined, shadows will be ugly!"
-                << std::endl;
-      mSplits = {0.1f, 5.f, 20.f, 50.f, 100.f};
+      logger().warn("Shadows will be ugly: No splits have been defined!");
+      mSplits = {0.1F, 5.F, 20.F, 50.F, 100.F};
     }
 
     // create shadow maps for all cascades
-    for (int i = 0; i < mSplits.size() - 1; ++i) {
+    for (size_t i = 0; i < mSplits.size() - 1; ++i) {
+      // NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
       mShadowMapFBOs.push_back(new VistaFramebufferObj());
+
+      // NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
       mShadowMaps.push_back(new VistaTexture(GL_TEXTURE_2D));
       mShadowMatrices.emplace_back(VistaTransformMatrix());
 
@@ -215,23 +218,23 @@ bool ShadowMap::Do() {
   }
 
   // save current viewport
-  GLint iOrigViewport[4];
-  glGetIntegerv(GL_VIEWPORT, iOrigViewport);
+  std::array<GLint, 4> iOrigViewport{};
+  glGetIntegerv(GL_VIEWPORT, iOrigViewport.data());
 
   // get view matrix - as this shadowmap should be attached to
   // scenegraph root, we can just use the modelview matrix here
-  GLfloat glViewMat[16];
-  glGetFloatv(GL_MODELVIEW_MATRIX, &glViewMat[0]);
-  VistaTransformMatrix currMatView = VistaTransformMatrix(glViewMat, true);
+  std::array<GLfloat, 16> glViewMat{};
+  glGetFloatv(GL_MODELVIEW_MATRIX, glViewMat.data());
+  VistaTransformMatrix currMatView = VistaTransformMatrix(glViewMat.data(), true);
 
   // update projection and view matrix only if update is not frozen
   if (!mFreezeCascades) {
     matView = currMatView;
 
     // get projection matrix
-    GLfloat glProjectionMat[16];
-    glGetFloatv(GL_PROJECTION_MATRIX, &glProjectionMat[0]);
-    matProjection = VistaTransformMatrix(glProjectionMat, true);
+    std::array<GLfloat, 16> glProjectionMat{};
+    glGetFloatv(GL_PROJECTION_MATRIX, glProjectionMat.data());
+    matProjection = VistaTransformMatrix(glProjectionMat.data(), true);
   }
 
   // setup sun view matrix
@@ -269,18 +272,22 @@ bool ShadowMap::Do() {
   }
 
   // ow we render all registered shadow casters into the shadow maps
-  for (int i = 0; i < mSplits.size() - 1; ++i) {
+  for (size_t i = 0; i < mSplits.size() - 1; ++i) {
     // bind the fbo
     mShadowMapFBOs[i]->Bind();
 
     // setup sun projection matrix
-    float r, l, t, b, n, f;
-    r = t = n = std::numeric_limits<float>::lowest();
-    l = b = f = std::numeric_limits<float>::max();
+    float r = std::numeric_limits<float>::lowest();
+    float t = std::numeric_limits<float>::lowest();
+    float n = std::numeric_limits<float>::lowest();
+
+    float l = std::numeric_limits<float>::max();
+    float b = std::numeric_limits<float>::max();
+    float f = std::numeric_limits<float>::max();
 
     // as slice corners are in light space alreay, we can just calculate the
     // bounding box of each frustum slice by min and max
-    for (int s = i; s < i + 2; ++s) {
+    for (size_t s = i; s < i + 2; ++s) {
       for (auto const& p : splitSlices[s]) {
         r = std::max(r, p[0]);
         l = std::min(l, p[0]);
@@ -297,25 +304,25 @@ bool ShadowMap::Do() {
 
     // eliminate supixel movement
     float w = r - l;
-    float x = (l + r) * 0.5f;
-    x -= std::fmod(x, w / mResolution);
-    l = x - w * 0.5f;
-    r = x + w * 0.5f;
+    float x = (l + r) * 0.5F;
+    x -= std::fmod(x, w / static_cast<float>(mResolution));
+    l = x - w * 0.5F;
+    r = x + w * 0.5F;
 
     float h = t - b;
-    float y = (b + t) * 0.5f;
-    y -= std::fmod(y, h / mResolution);
-    b = y - h * 0.5f;
-    t = y + h * 0.5f;
+    float y = (b + t) * 0.5F;
+    y -= std::fmod(y, h / static_cast<float>(mResolution));
+    b = y - h * 0.5F;
+    t = y + h * 0.5F;
 
     // create the orthographic projection matrix
-    VistaTransformMatrix projection(2.0f / (r - l), 0.0, 0.0, -(r + l) / (r - l), 0.0,
-        2.0f / (t - b), 0.0, -(t + b) / (t - b), 0.0, 0.0, -2.0f / (n - f), -(n + f) / (n - f), 0.0,
+    VistaTransformMatrix projection(2.0F / (r - l), 0.0, 0.0, -(r + l) / (r - l), 0.0,
+        2.0F / (t - b), 0.0, -(t + b) / (t - b), 0.0, 0.0, -2.0F / (n - f), -(n + f) / (n - f), 0.0,
         0.0, 0.0, 1.0);
 
     // these matrices are used by the shadow receivers to calculate the
     // lookup position in the shadow maps
-    mShadowMatrices[i] = projection * lightMatrix * currMatView.GetInverted();
+    mShadowMatrices.at(i) = projection * lightMatrix * currMatView.GetInverted();
 
     // save current projection matrix
     glMatrixMode(GL_PROJECTION);
@@ -335,7 +342,7 @@ bool ShadowMap::Do() {
     glClear(GL_DEPTH_BUFFER_BIT);
 
     // draw all shadow casters
-    for (auto caster : mShadowCasters) {
+    for (auto* caster : mShadowCasters) {
       VistaTransformMatrix mat;
       caster->getWorldTransform(mat);
       glLoadMatrixf((lightMatrix * mat).GetData());
@@ -355,7 +362,7 @@ bool ShadowMap::Do() {
   }
 
   // restore previous viewport
-  glViewport(iOrigViewport[0], iOrigViewport[1], iOrigViewport[2], iOrigViewport[3]);
+  glViewport(iOrigViewport.at(0), iOrigViewport.at(1), iOrigViewport.at(2), iOrigViewport.at(3));
 
   return true;
 }
@@ -363,12 +370,12 @@ bool ShadowMap::Do() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool ShadowMap::GetBoundingBox(VistaBoundingBox& oBoundingBox) {
-  float min(std::numeric_limits<float>::min());
-  float max(std::numeric_limits<float>::max());
-  float fMin[3] = {min, min, min};
-  float fMax[3] = {max, max, max};
+  float      min(std::numeric_limits<float>::min());
+  float      max(std::numeric_limits<float>::max());
+  std::array fMin{min, min, min};
+  std::array fMax{max, max, max};
 
-  oBoundingBox.SetBounds(fMin, fMax);
+  oBoundingBox.SetBounds(fMin.data(), fMax.data());
 
   return true;
 }
@@ -377,11 +384,11 @@ bool ShadowMap::GetBoundingBox(VistaBoundingBox& oBoundingBox) {
 
 void ShadowMap::cleanUp() {
   for (auto& map : mShadowMaps) {
-    delete map;
+    delete map; // NOLINT(cppcoreguidelines-owning-memory)
   }
 
   for (auto& fbo : mShadowMapFBOs) {
-    delete fbo;
+    delete fbo; // NOLINT(cppcoreguidelines-owning-memory)
   }
 
   mShadowMapFBOs.clear();

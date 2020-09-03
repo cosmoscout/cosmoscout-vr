@@ -7,6 +7,7 @@
 #include "Downloader.hpp"
 
 #include "../cs-utils/filesystem.hpp"
+#include "logger.hpp"
 
 namespace cs::utils {
 
@@ -25,13 +26,21 @@ void Downloader::download(std::string const& url, std::string const& file) {
 
   std::unique_lock<std::mutex> lock(mProgressMutex);
   size_t                       progressIndex = mProgress.size();
-  mProgress.push_back({0.0, 0.0});
+  mProgress.emplace_back(0.0, 0.0);
 
+  // We download to a file with a .part suffix. Once the download is done, we will remove the
+  // suffix.
   mThreadPool.enqueue([this, file, url, progressIndex]() {
-    filesystem::downloadFile(url, file, [this, progressIndex](double progress, double total) {
-      std::unique_lock<std::mutex> lock(mProgressMutex);
-      mProgress[progressIndex] = {progress, total};
-    });
+    logger().info("Downloading file '{}'...", file);
+
+    filesystem::downloadFile(
+        url, file + ".part", [this, progressIndex](double progress, double total) {
+          std::unique_lock<std::mutex> lock(mProgressMutex);
+          mProgress[progressIndex] = {progress, total};
+        });
+
+    std::rename((file + ".part").c_str(), file.c_str());
+    logger().info("Finished downloading file '{}'.", file);
   });
 }
 
@@ -40,7 +49,8 @@ void Downloader::download(std::string const& url, std::string const& file) {
 double Downloader::getProgress() const {
   std::unique_lock<std::mutex> lock(mProgressMutex);
 
-  double progress = 0.0, total = 0.0;
+  double progress = 0.0;
+  double total    = 0.0;
 
   for (auto const& p : mProgress) {
     progress += p.first;

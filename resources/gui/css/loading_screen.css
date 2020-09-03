@@ -1,0 +1,78 @@
+#loading-screen {
+  margin: 0;
+  overflow: hidden;
+  font-family: 'AlegreyaSansSC', sans-serif;
+  color: #fff;
+  text-shadow: 0 0 3vmin rgba(255, 255, 255, 0.5), 0 0 1vmin rgba(255, 255, 255, 0.5);
+  z-index: 1;
+  opacity: 1;
+}
+
+body.loaded #loading-screen {
+  opacity: 0;
+  transition: opacity 1.5s;
+}
+
+#background {
+  position: absolute;
+  width: 100vw;
+  height: 100vh;
+  background: url(../img/splash_bg.jpg) center center;
+  background-size: cover;
+  box-shadow: inset 0 0 50vmin #000, inset 0 0 10vmin #000;
+}
+
+#image {
+  position: absolute;
+  left: calc(50vw - 40vmin);
+  top: calc(50vh - 49vmin);
+  width: 80vmin;
+  height: 80vmin;
+  background: url(../img/splash_logo.png) center center;
+  background-size: contain;
+}
+
+#upper {
+  font-size: 12vmin;
+  line-height: 12vmin;
+}
+
+#progress {
+  width: 80%;
+  margin: auto;
+  height: 0.15vmin;
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+#progress-bar {
+  width: 0;
+  height: 100%;
+  background: linear-gradient(to right, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.7));
+  box-shadow: 0 0 3vmin rgba(255, 255, 255, 0.5), 0 0 1vmin rgba(255, 255, 255, 0.5);
+}
+
+.animated {
+  transition: width 0.3s ease;
+}
+
+#lower {
+  font-size: 2.2vmin;
+  text-transform: uppercase;
+  letter-spacing: 0.8vmin;
+  line-height: 7vmin;
+}
+
+#text {
+  position: absolute;
+  left: calc(50vw - 40vmin);
+  top: calc(50vh + 5vmin);
+  width: 80vmin;
+  height: 20vmin;
+  text-align: center;
+}
+
+#version {
+  position: absolute;
+  right: 20px;
+  bottom: 10px;
+}

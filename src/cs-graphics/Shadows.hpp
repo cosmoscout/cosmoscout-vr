@@ -46,6 +46,14 @@ class CS_GRAPHICS_EXPORT ShadowCaster {
 /// filtering.
 class CS_GRAPHICS_EXPORT ShadowMap : public IVistaOpenGLDraw {
  public:
+  ShadowMap() = default;
+
+  ShadowMap(ShadowMap const& other) = delete;
+  ShadowMap(ShadowMap&& other)      = delete;
+
+  ShadowMap& operator=(ShadowMap const& other) = delete;
+  ShadowMap& operator=(ShadowMap&& other) = delete;
+
   ~ShadowMap() override;
 
   /// All objects which are able to cast shadows need to be registered.
@@ -90,7 +98,7 @@ class CS_GRAPHICS_EXPORT ShadowMap : public IVistaOpenGLDraw {
   std::vector<VistaTransformMatrix> const& getShadowMatrices() const;
 
   bool Do() override;
-  bool GetBoundingBox(VistaBoundingBox& bb) override;
+  bool GetBoundingBox(VistaBoundingBox& oBoundingBox) override;
 
  private:
   void cleanUp();
@@ -102,9 +110,9 @@ class CS_GRAPHICS_EXPORT ShadowMap : public IVistaOpenGLDraw {
   VistaVector3D                     mSunDirection = VistaVector3D(0, 1, 0);
   unsigned                          mResolution   = 1024;
   std::vector<float>                mSplits;
-  float                             mSunNearClipOffset = -500;
-  float                             mSunFarClipOffset  = 500;
-  float                             mBias              = 0.0001;
+  float                             mSunNearClipOffset = -500.0F;
+  float                             mSunFarClipOffset  = 500.0F;
+  float                             mBias              = 0.0001F;
   bool                              mFreezeCascades    = false;
   bool                              mEnabled           = true;
 

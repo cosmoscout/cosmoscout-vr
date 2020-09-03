@@ -15,11 +15,11 @@ namespace cs::gui::detail {
 class ScopedTimer {
 
  public:
-  explicit ScopedTimer(std::string const& name);
+  explicit ScopedTimer(std::string name);
   ~ScopedTimer();
 
  private:
-  double GetNow();
+  static double GetNow();
 
   std::string mName;
   double      mStartTime;

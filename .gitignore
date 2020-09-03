@@ -12,17 +12,22 @@
 !/plugins/CMakeLists.txt
 !/plugins/csp-anchor-labels
 !/plugins/csp-atmospheres
+!/plugins/csp-custom-web-ui
 !/plugins/csp-fly-to-locations
 !/plugins/csp-lod-bodies
 !/plugins/csp-measurement-tools
+!/plugins/csp-minimap
+!/plugins/csp-recorder
 !/plugins/csp-rings
 !/plugins/csp-satellites
 !/plugins/csp-sharad
 !/plugins/csp-simple-bodies
 !/plugins/csp-stars
 !/plugins/csp-trajectories
+!/plugins/csp-web-api
 
 *.sublime*
 .vscode
+.idea
 
 *.nfs*

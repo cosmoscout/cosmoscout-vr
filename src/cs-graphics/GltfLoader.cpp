@@ -7,7 +7,11 @@
 #include "GltfLoader.hpp"
 
 #ifdef _WIN32
+
+#ifndef NOMINMAX
 #define NOMINMAX
+#endif
+
 #include <Windows.h>
 #endif
 
@@ -60,16 +64,17 @@ GltfLoader::GltfLoader(
     const std::string& sGltfFile, const std::string& cubemapFilepath, bool linearDepthBuffer)
     : mShared(std::make_shared<internal::GltfShared>()) {
   tinygltf::TinyGLTF loader;
-  std::string        err, warn;
+  std::string        err;
+  std::string        warn;
   std::string        ext = GetFilePathExtension(sGltfFile);
 
-  bool ret;
+  bool ret = false;
   if (ext == "glb") {
     // Assume binary glTF.
-    ret = loader.LoadBinaryFromFile(&mShared->minyGltfModel, &err, &warn, sGltfFile);
+    ret = loader.LoadBinaryFromFile(&mShared->mTinyGltfModel, &err, &warn, sGltfFile);
   } else {
     // Assume ascii glTF.
-    ret = loader.LoadASCIIFromFile(&mShared->minyGltfModel, &err, &warn, sGltfFile);
+    ret = loader.LoadASCIIFromFile(&mShared->mTinyGltfModel, &err, &warn, sGltfFile);
   }
 
   if (!err.empty()) {
@@ -81,7 +86,7 @@ GltfLoader::GltfLoader(
   }
 
   mShared->m_linearDepthBuffer = linearDepthBuffer;
-  mShared->init(mShared->minyGltfModel, cubemapFilepath);
+  mShared->init(mShared->mTinyGltfModel, cubemapFilepath);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -116,6 +121,12 @@ void GltfLoader::setLightIntensity(float intensity) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void GltfLoader::setEnableHDR(bool enable) {
+  mShared->m_enableHDR = enable;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void GltfLoader::setIBLIntensity(float intensity) {
   mShared->m_IBLIntensity = intensity;
 }
@@ -131,7 +142,8 @@ void apply_transform(VistaTransformNode& vista_transform, tinygltf::Node const& 
   } else {
     // Assume Trans x Rotate x Scale order
     if (node.scale.size() == 3) {
-      vista_transform.SetScale((float)node.scale[0], (float)node.scale[1], (float)node.scale[1]);
+      vista_transform.SetScale(static_cast<float>(node.scale[0]), static_cast<float>(node.scale[1]),
+          static_cast<float>(node.scale[1]));
     }
 
     if (node.rotation.size() == 4) {
@@ -150,30 +162,30 @@ void build_node(VistaSceneGraph& sg, std::shared_ptr<internal::GltfShared> const
     VistaTransformNode* parent, tinygltf::Node const& tinygltf_node) {
   VistaTransformNode* transform_node = sg.NewTransformNode(parent);
   if (tinygltf_node.mesh >= 0) {
-    auto draw = new internal::VistaGltfNode(tinygltf_node, shared);
+    auto* draw = new internal::VistaGltfNode(tinygltf_node, shared);
     sg.NewOpenGLNode(transform_node, draw);
   }
 
   apply_transform(*transform_node, tinygltf_node);
   transform_node->SetName(tinygltf_node.name);
   for (int i : tinygltf_node.children) {
-    build_node(sg, shared, transform_node, shared->minyGltfModel.nodes[i]);
+    build_node(sg, shared, transform_node, shared->mTinyGltfModel.nodes[i]);
   }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool GltfLoader::attachTo(VistaSceneGraph* pSG, VistaTransformNode* parent) {
-  if (mShared->minyGltfModel.scenes.empty()) {
+  if (mShared->mTinyGltfModel.scenes.empty()) {
     return false;
   }
 
-  auto const& scene = (mShared->minyGltfModel.defaultScene >= 0)
-                          ? mShared->minyGltfModel.scenes[mShared->minyGltfModel.defaultScene]
-                          : mShared->minyGltfModel.scenes.front();
+  auto const& scene = (mShared->mTinyGltfModel.defaultScene >= 0)
+                          ? mShared->mTinyGltfModel.scenes[mShared->mTinyGltfModel.defaultScene]
+                          : mShared->mTinyGltfModel.scenes.front();
 
   for (int i : scene.nodes) {
-    build_node(*pSG, mShared, parent, mShared->minyGltfModel.nodes[i]);
+    build_node(*pSG, mShared, parent, mShared->mTinyGltfModel.nodes[i]);
   }
   return true;
 }

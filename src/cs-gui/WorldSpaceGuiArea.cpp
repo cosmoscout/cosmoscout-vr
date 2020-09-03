@@ -26,7 +26,7 @@ namespace {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const std::string QUAD_VERT = R"(
+const char* QUAD_VERT = R"(
 vec2 positions[4] = vec2[](
     vec2(-0.5, -0.5),
     vec2(0.5, -0.5),
@@ -62,19 +62,42 @@ void main()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const std::string QUAD_FRAG = R"(
-in vec2 vTexCoords;                                                             
+const char* QUAD_FRAG = R"(
+in vec2 vTexCoords;
 in vec4 vPosition;
 
-uniform sampler2D iTexture;                                                
-uniform float iFarClip;                                                
-                                                                           
-layout(location = 0) out vec4 vOutColor;                                   
-                                                                           
-void main()                                                                
-{                                                                                                    
-  vOutColor = texture(iTexture, vTexCoords); 
-  if (vOutColor.a == 0.0) discard; 
+uniform float iFarClip;
+
+uniform samplerBuffer texture;
+uniform ivec2 texSize;
+
+layout(location = 0) out vec4 vOutColor;
+
+vec4 getTexel(ivec2 p) {
+  p = clamp(p, ivec2(0), texSize - ivec2(1));
+  return texelFetch(texture, p.y * texSize.x + p.x).bgra;
+}
+
+vec4 getPixel(vec2 position) {
+  vec2 absolutePosition = position * texSize - 0.5;
+  ivec2 iPosition = ivec2(absolutePosition);
+
+  vec4 tl = getTexel(iPosition);
+  vec4 tr = getTexel(iPosition + ivec2(1, 0));
+  vec4 bl = getTexel(iPosition + ivec2(0, 1));
+  vec4 br = getTexel(iPosition + ivec2(1, 1));
+
+  vec2 d = fract(absolutePosition);
+
+  vec4 top = mix(tl, tr, d.x);
+  vec4 bot = mix(bl, br, d.x);
+
+  return mix(top, bot, d.y);
+}
+
+void main() {
+  vOutColor = getPixel(vTexCoords);
+  if (vOutColor.a == 0.0) discard;
 
   vOutColor.rgb /= vOutColor.a;
 
@@ -82,7 +105,7 @@ void main()
     // write linear depth
     gl_FragDepth = length(vPosition.xyz) / iFarClip;
   #endif
-}  
+}
 )";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -94,15 +117,8 @@ namespace cs::gui {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 WorldSpaceGuiArea::WorldSpaceGuiArea(int width, int height)
-    : mShader(new VistaGLSLShader())
-    , mWidth(width)
+    : mWidth(width)
     , mHeight(height) {
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-WorldSpaceGuiArea::~WorldSpaceGuiArea() {
-  delete mShader;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -170,15 +186,11 @@ bool WorldSpaceGuiArea::calculateMousePosition(
     return false;
   }
 
-  x = (int)((intersection[0] + 0.5) * mWidth);
-  y = (int)((-intersection[1] + 0.5) * mHeight);
+  x = static_cast<int>((intersection[0] + 0.5) * mWidth);
+  y = static_cast<int>((-intersection[1] + 0.5) * mHeight);
 
-  if (intersection[0] >= -0.5f && intersection[0] <= 0.5f && intersection[1] >= -0.5f &&
-      intersection[1] <= 0.5f) {
-    return true;
-  }
-
-  return false;
+  return intersection[0] >= -0.5F && intersection[0] <= 0.5F && intersection[1] >= -0.5F &&
+         intersection[1] <= 0.5F;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -186,8 +198,7 @@ bool WorldSpaceGuiArea::calculateMousePosition(
 bool WorldSpaceGuiArea::Do() {
   utils::FrameTimings::ScopedTimer timer("User Interface");
   if (mShaderDirty) {
-    delete mShader;
-    mShader = new VistaGLSLShader();
+    mShader = VistaGLSLShader();
 
     std::string defines = "#version 330\n";
 
@@ -195,17 +206,18 @@ bool WorldSpaceGuiArea::Do() {
       defines += "#define USE_LINEARDEPTHBUFFER\n";
     }
 
-    mShader->InitVertexShaderFromString(defines + QUAD_VERT);
-    mShader->InitFragmentShaderFromString(defines + QUAD_FRAG);
-    mShader->Link();
+    mShader.InitVertexShaderFromString(defines + QUAD_VERT);
+    mShader.InitFragmentShaderFromString(defines + QUAD_FRAG);
+    mShader.Link();
 
     mShaderDirty = false;
   }
 
-  if (mIgnoreDepth)
+  if (mIgnoreDepth) {
     glPushAttrib(GL_ENABLE_BIT | GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-  else
+  } else {
     glPushAttrib(GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT);
+  }
 
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -215,47 +227,52 @@ bool WorldSpaceGuiArea::Do() {
     glDisable(GL_DEPTH_TEST);
   }
 
-  mShader->Bind();
+  mShader.Bind();
 
   if (mUseLinearDepthBuffer) {
-    double nearClip, farClip;
-    GetVistaSystem()
-        ->GetDisplayManager()
-        ->GetCurrentRenderInfo()
-        ->m_pViewport->GetProjection()
-        ->GetProjectionProperties()
-        ->GetClippingRange(nearClip, farClip);
-    mShader->SetUniform(mShader->GetUniformLocation("iFarClip"), (float)farClip);
+    mShader.SetUniform(mShader.GetUniformLocation("iFarClip"), utils::getCurrentFarClipDistance());
   }
 
   // get modelview and projection matrices
-  GLfloat glMat[16];
-  glGetFloatv(GL_MODELVIEW_MATRIX, &glMat[0]);
-  glm::mat4 modelViewMat = glm::make_mat4(glMat);
+  std::array<GLfloat, 16> glMat{};
+  glGetFloatv(GL_MODELVIEW_MATRIX, glMat.data());
+  glm::mat4 modelViewMat = glm::make_mat4(glMat.data());
 
-  glGetFloatv(GL_PROJECTION_MATRIX, &glMat[0]);
-  glUniformMatrix4fv(mShader->GetUniformLocation("uMatProjection"), 1, GL_FALSE, glMat);
+  glGetFloatv(GL_PROJECTION_MATRIX, glMat.data());
+  glUniformMatrix4fv(mShader.GetUniformLocation("uMatProjection"), 1, GL_FALSE, glMat.data());
 
   // draw back-to-front
   auto const& items = getItems();
   for (auto item = items.rbegin(); item != items.rend(); ++item) {
-    if ((*item)->getIsEnabled()) {
-      auto localMat = glm::translate(
-          modelViewMat, glm::vec3((*item)->getRelPositionX() + (*item)->getRelOffsetX() - 0.5,
-                            -(*item)->getRelPositionY() - (*item)->getRelOffsetY() + 0.5, 0.0));
-      localMat =
-          glm::scale(localMat, glm::vec3((*item)->getRelSizeX(), (*item)->getRelSizeY(), 1.f));
+    auto* guiItem = *item;
 
-      (*item)->getTexture()->Bind(GL_TEXTURE0);
+    bool textureRightSize = guiItem->getWidth() == guiItem->getTextureSizeX() &&
+                            guiItem->getHeight() == guiItem->getTextureSizeY();
+
+    if (guiItem->getIsEnabled() && textureRightSize) {
+      auto localMat = glm::translate(
+          modelViewMat, glm::vec3(guiItem->getRelPositionX() + guiItem->getRelOffsetX() - 0.5,
+                            -guiItem->getRelPositionY() - guiItem->getRelOffsetY() + 0.5, 0.0));
+      localMat =
+          glm::scale(localMat, glm::vec3(guiItem->getRelSizeX(), guiItem->getRelSizeY(), 1.F));
+
       glUniformMatrix4fv(
-          mShader->GetUniformLocation("uMatModelView"), 1, GL_FALSE, glm::value_ptr(localMat));
-      mShader->SetUniform(mShader->GetUniformLocation("iTexture"), 0);
+          mShader.GetUniformLocation("uMatModelView"), 1, GL_FALSE, glm::value_ptr(localMat));
+
+      glUniform2i(mShader.GetUniformLocation("texSize"), guiItem->getTextureSizeX(),
+          guiItem->getTextureSizeY());
+
+      glActiveTexture(GL_TEXTURE0);
+      glBindTexture(GL_TEXTURE_BUFFER, guiItem->getTexture());
+      mShader.SetUniform(mShader.GetUniformLocation("texture"), 0);
+
       glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-      (*item)->getTexture()->Unbind(GL_TEXTURE0);
+
+      glBindTexture(GL_TEXTURE_BUFFER, 0);
     }
   }
 
-  mShader->Release();
+  mShader.Release();
 
   if (mIgnoreDepth) {
     glDepthMask(GL_TRUE);
@@ -269,10 +286,11 @@ bool WorldSpaceGuiArea::Do() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool WorldSpaceGuiArea::GetBoundingBox(VistaBoundingBox& oBoundingBox) {
-  float fMin[3] = {-1.f, -1.f, -0.000001f};
-  float fMax[3] = {1.f, 1.f, 0.000001f};
+  float const          epsilon = 0.000001F;
+  std::array<float, 3> fMin    = {-1.F, -1.F, -epsilon};
+  std::array<float, 3> fMax    = {1.F, 1.F, epsilon};
 
-  oBoundingBox.SetBounds(fMin, fMax);
+  oBoundingBox.SetBounds(fMin.data(), fMax.data());
 
   return true;
 }

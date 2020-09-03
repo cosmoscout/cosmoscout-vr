@@ -18,7 +18,7 @@ namespace cs::graphics {
 class CS_GRAPHICS_EXPORT TextureLoader {
  public:
   /// Loads a VistaTexture from the given file.
-  static std::shared_ptr<VistaTexture> loadFromFile(std::string const& sFileName);
+  static std::unique_ptr<VistaTexture> loadFromFile(std::string const& sFileName);
 };
 
 } // namespace cs::graphics

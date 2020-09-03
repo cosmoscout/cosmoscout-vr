@@ -30,9 +30,9 @@ if [ $# -ne 0 ]; then
 fi
 
 # Check if ComoScout VR debug build is enabled with "export COSMOSCOUT_DEBUG_BUILD=true".
-BUILD_TYPE=release
+BUILD_TYPE=Release
 case "$COSMOSCOUT_DEBUG_BUILD" in
-  (true) echo "CosmoScout VR debug build is enabled!"; BUILD_TYPE=debug;
+  (true) echo "CosmoScout VR debug build is enabled!"; BUILD_TYPE=Debug;
 esac
 
 # This directory should contain the top-level CMakeLists.txt - it is assumed to reside in the same
@@ -64,7 +64,7 @@ cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
       -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCOSMOSCOUT_EXTERNALS_DIR="$EXTERNALS_INSTALL_DIR" \
       -DCMAKE_EXPORT_COMPILE_COMMANDS=On "$CMAKE_DIR"
 
-cmake --build . --target install --parallel 8
+cmake --build . --target install --parallel "$(nproc)"
 
 # Delete empty files installed by cmake
 find "$INSTALL_DIR" -type d -empty -delete

@@ -1,0 +1,109 @@
+/* Initial minimap size */
+
+#minimap .window-wrapper {
+  height: 250px;
+  width: 300px;
+}
+
+/* Bookmark icon style */
+
+.minimap-bookmark-icon div {
+  height: 100%;
+  border-radius: 50% 50% 50% 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  transform: rotate(-45deg);
+}
+
+.minimap-bookmark-icon div::after {
+  content: '';
+  border-radius: 50%;
+  background-color: rgba(0, 0, 0, 0.8);
+  position: absolute;
+  left: 4px;
+  top: 4px;
+  bottom: 4px;
+  right: 4px;
+}
+
+.minimap-bookmark-cluster div {
+  height: 100%;
+  border-radius: 50%;
+  border: 3px double #ccf;
+  text-align: center;
+  background-color: rgba(0, 0, 0, 0.8);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.minimap-bookmark-cluster:hover div,
+.minimap-bookmark-icon:hover div::after {
+  background-color: #555;
+}
+
+
+/* Leaflet style overrides */
+
+.leaflet-container {
+  background: none;
+}
+
+.leaflet-container .leaflet-control-container>div {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s linear;
+}
+
+.visible .leaflet-container:hover .leaflet-control-container>div {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.draggable-window:not(.visible) .leaflet-control {
+  pointer-events: none;
+}
+
+.leaflet-bar {
+  background-color: rgba(20, 20, 20, 0.8);
+  border: 2px solid var(--cs-color-primary);
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.3);
+}
+
+.leaflet-bar i {
+  pointer-events: none;
+}
+
+.leaflet-bar a.leaflet-disabled,
+.leaflet-bar a {
+  position: relative;
+  color: var(--cs-color-text);
+  border: none !important;
+  border-radius: 0 !important;
+  background-color: rgba(230, 230, 255, 0.1);
+  font-size: 18px;
+  line-height: 24px !important;
+}
+
+.leaflet-bar a:not(.leaflet-disabled) {
+  cursor: pointer;
+}
+
+.leaflet-bar a:not(.leaflet-disabled):hover {
+  color: #fff;
+  background-color: rgba(230, 230, 255, 0.3);
+}
+
+.leaflet-bar a:not(.leaflet-disabled):active {
+  top: 1px;
+}
+
+.leaflet-bar a.leaflet-disabled {
+  color: rgb(121, 121, 121);
+}
+
+.leaflet-cluster-anim .leaflet-marker-icon,
+.leaflet-cluster-anim .leaflet-marker-shadow {
+  transition: transform 0.3s ease-out, opacity 0.3s ease-in;
+}
+
+.leaflet-cluster-spider-leg {
+  transition: stroke-dashoffset 0.3s ease-out, stroke-opacity 0.3s ease-in;
+}

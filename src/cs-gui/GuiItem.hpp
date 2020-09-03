@@ -20,7 +20,14 @@ class CS_GUI_EXPORT GuiItem : public WebView {
  public:
   /// Creates a new GuiItem for the given page at the location of the URL.
   explicit GuiItem(std::string const& url, bool allowLocalFileAccess = false);
-  virtual ~GuiItem();
+
+  GuiItem(GuiItem const& other) = delete;
+  GuiItem(GuiItem&& other)      = delete;
+
+  GuiItem& operator=(GuiItem const& other) = delete;
+  GuiItem& operator=(GuiItem&& other) = delete;
+
+  ~GuiItem() override;
 
   void setSizeX(unsigned int value); ///< Sets the width of the item in pixels.
   void setSizeY(unsigned int value); ///< Sets the height of the item in pixels.
@@ -48,9 +55,18 @@ class CS_GUI_EXPORT GuiItem : public WebView {
   float        getRelOffsetX() const;   ///< Get the x offset of the item in screen space [0..1].
   float        getRelOffsetY() const;   ///< Get the y offset of the item in screen space [0..1].
 
+  /// Returns the current width and height of the internal texture. This may differ from getSizeX()
+  /// and getSizeY() as the texture is updated asynchronously and therfore it may take some frames
+  /// to reflect size changes.
+  int getTextureSizeX() const;
+  int getTextureSizeY() const;
+
   /// The enabled flag determines if the item will be rendered.
   void setIsEnabled(bool bEnabled);
   bool getIsEnabled() const;
+
+  /// Returns true when an HTML element is focused which can receive keyboard input.
+  bool getIsKeyboardInputElementFocused() const;
 
   /// Calculates the position of the mouse within this items bounds.
   ///
@@ -66,15 +82,21 @@ class CS_GUI_EXPORT GuiItem : public WebView {
   void onAreaResize(int width, int height);
 
   /// @return The current HTML output as an OpenGL texture.
-  VistaTexture* getTexture() const;
+  uint32_t getTexture() const;
 
  private:
-  void updateTexture(DrawEvent const& event);
-  void updateSizes();
+  uint8_t* updateTexture(DrawEvent const& event);
+  void     updateSizes();
 
-  VistaTexture* mTexture;
+  uint32_t mTextureBuffer{};
+  uint32_t mTexture{};
+  uint8_t* mBufferData = nullptr;
 
-  int mAreaWidth, mAreaHeight; // in pixels
+  // in pixels
+  int mTextureSizeX = 0;
+  int mTextureSizeY = 0;
+  int mAreaWidth    = 0;
+  int mAreaHeight   = 0;
 
   unsigned int mSizeX, mSizeY;               // in pixels
   int          mPositionX, mPositionY;       // in pixels
@@ -83,7 +105,8 @@ class CS_GUI_EXPORT GuiItem : public WebView {
   float        mRelPositionX, mRelPositionY; // in [0..1]
   float        mRelOffsetX, mRelOffsetY;     // in [0..1]
   bool mIsRelSizeX, mIsRelSizeY, mIsRelPositionX, mIsRelPositionY, mIsRelOffsetX, mIsRelOffsetY;
-  bool mIsEnabled = true;
+  bool mIsEnabled                     = true;
+  bool mIsKeyboardInputElementFocused = false;
 };
 
 } // namespace cs::gui

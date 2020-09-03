@@ -10,11 +10,13 @@
 #include "../cs-utils/utils.hpp"
 #include "KeyEvent.hpp"
 #include "MouseEvent.hpp"
+#include "logger.hpp"
 
-#include <any>
 #include <chrono>
 #include <include/cef_client.h>
 #include <iostream>
+#include <optional>
+#include <typeindex>
 
 namespace cs::gui {
 
@@ -29,13 +31,23 @@ class CS_GUI_EXPORT WebView {
  public:
   /// Creates a new WebView for the given page at the location of the URL.
   WebView(const std::string& url, int width, int height, bool allowLocalFileAccess = false);
+
+  WebView(WebView const& other) = delete;
+  WebView(WebView&& other)      = delete;
+
+  WebView& operator=(WebView const& other) = delete;
+  WebView& operator=(WebView&& other) = delete;
+
   virtual ~WebView();
 
   /// Registers a callback that is called, when the page is redrawn.
   void setDrawCallback(DrawCallback const& callback);
 
-  /// Registers a callback, that is called, when the cursor changes its appearance.
+  /// The given callback is fired when the cursor icon should change.
   void setCursorChangeCallback(CursorChangeCallback const& callback);
+
+  /// The given callback is fired when the active gui element wants to receive keyboard events.
+  void setRequestKeyboardFocusCallback(RequestKeyboardFocusCallback const& callback);
 
   /// Calls an existing Javascript function. You can pass as many arguments as you like. They will
   /// be converted to std::strings, so on the JavaScript side you will have to convert them back.
@@ -46,6 +58,7 @@ class CS_GUI_EXPORT WebView {
   ///                 implementing the operator<<() for that type.
   template <typename... Args>
   void callJavascript(std::string const& function, Args&&... a) const {
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-array-to-pointer-decay)
     std::vector<std::string> args = {(utils::toString(a))...};
     callJavascriptImpl(function, args);
   }
@@ -54,101 +67,29 @@ class CS_GUI_EXPORT WebView {
   void executeJavascript(std::string const& code) const;
 
   /// Register a callback which can be called from Javascript with the
-  /// "window.call_native('callback_name', ... args ...)" function. Registering the same name twice
-  /// will override the first callback.
-  /// This first version takes no arguments from the JavaScript side. There are other versions
-  /// below, which take up to six arguments. JavaScript variables passed to the window.call_native
-  /// function will be converted to C++ types. This works for integer, doubles, booleans and
+  /// "window.callNative('callback_name', ... args ...)" function. Callbacks are also registered as
+  /// CosmoScout.callbacks.callback_name(... args ...). For the latter to work, the WebView has to
+  /// have finished loading. So please call waitForFinishedLoading() before calling these methods.
+  /// It is fine (and encouraged) to have dots in the callback name in order to create scopes.
+  /// Registering the same name twice will override the first callback. The first version of
+  /// registerCallback() takes no arguments from the JavaScript side. There is another other
+  /// versions below, which takes arbitrary arguments. JavaScript variables passed to the
+  /// window.callNative function will be converted to C++ types. This works for doubles, bools and
   /// std::strings.
   ///
   /// @param name     Name of the callback.
+  /// @param comment  The comment will be visible when inspecting the CosmoScout.callbacks object
+  ///                 in a interactive console.
   /// @param callback The function to execute when the HTML-Element fires a change event.
-  void registerCallback(std::string const& name, std::function<void()> const& callback) {
-    registerJSCallbackImpl(
-        name, [this, callback](std::vector<std::any> const& args) { callback(); });
-  }
-
-  /// See documentation above.
-  template <typename A>
-  void registerCallback(std::string const& name, std::function<void(A)> const& callback) {
-    registerJSCallbackImpl(name, [this, name, callback](std::vector<std::any> const& args) {
-      try {
-        callback(std::any_cast<A>(args[0]));
-      } catch (std::bad_any_cast const& e) {
-        std::cerr << "Cannot execute javascript call \"" << name << "\": " << e.what() << "!"
-                  << std::endl;
-      }
-    });
-  }
-
-  /// See documentation above.
-  template <typename A, typename B>
-  void registerCallback(std::string const& name, std::function<void(A, B)> const& callback) {
-    registerJSCallbackImpl(name, [this, name, callback](std::vector<std::any> const& args) {
-      try {
-        callback(std::any_cast<A>(args[0]), std::any_cast<B>(args[1]));
-      } catch (std::bad_any_cast const& e) {
-        std::cerr << "Cannot execute javascript call \"" << name << "\": " << e.what() << "!"
-                  << std::endl;
-      }
-    });
-  }
-
-  /// See documentation above.
-  template <typename A, typename B, typename C>
-  void registerCallback(std::string const& name, std::function<void(A, B, C)> const& callback) {
-    registerJSCallbackImpl(name, [this, name, callback](std::vector<std::any> const& args) {
-      try {
-        callback(std::any_cast<A>(args[0]), std::any_cast<B>(args[1]), std::any_cast<C>(args[2]));
-      } catch (std::bad_any_cast const& e) {
-        std::cerr << "Cannot execute javascript call \"" << name << "\": " << e.what() << "!"
-                  << std::endl;
-      }
-    });
-  }
-
-  /// See documentation above.
-  template <typename A, typename B, typename C, typename D>
-  void registerCallback(std::string const& name, std::function<void(A, B, C, D)> const& callback) {
-    registerJSCallbackImpl(name, [this, name, callback](std::vector<std::any> const& args) {
-      try {
-        callback(std::any_cast<A>(args[0]), std::any_cast<B>(args[1]), std::any_cast<C>(args[2]),
-            std::any_cast<D>(args[3]));
-      } catch (std::bad_any_cast const& e) {
-        std::cerr << "Cannot execute javascript call \"" << name << "\": " << e.what() << "!"
-                  << std::endl;
-      }
-    });
-  }
-
-  /// See documentation above.
-  template <typename A, typename B, typename C, typename D, typename E>
   void registerCallback(
-      std::string const& name, std::function<void(A, B, C, D, E)> const& callback) {
-    registerJSCallbackImpl(name, [this, name, callback](std::vector<std::any> const& args) {
-      try {
-        callback(std::any_cast<A>(args[0]), std::any_cast<B>(args[1]), std::any_cast<C>(args[2]),
-            std::any_cast<D>(args[3]), std::any_cast<E>(args[4]));
-      } catch (std::bad_any_cast const& e) {
-        std::cerr << "Cannot execute javascript call \"" << name << "\": " << e.what() << "!"
-                  << std::endl;
-      }
-    });
-  }
+      std::string const& name, std::string const& comment, std::function<void()> const& callback);
 
   /// See documentation above.
-  template <typename A, typename B, typename C, typename D, typename E, typename F>
-  void registerCallback(
-      std::string const& name, std::function<void(A, B, C, D, E, F)> const& callback) {
-    registerJSCallbackImpl(name, [this, name, callback](std::vector<std::any> const& args) {
-      try {
-        callback(std::any_cast<A>(args[0]), std::any_cast<B>(args[1]), std::any_cast<C>(args[2]),
-            std::any_cast<D>(args[3]), std::any_cast<E>(args[4]), std::any_cast<F>(args[5]));
-      } catch (std::bad_any_cast const& e) {
-        std::cerr << "Cannot execute javascript call \"" << name << "\": " << e.what() << "!"
-                  << std::endl;
-      }
-    });
+  template <typename... Args>
+  void registerCallback(std::string const& name, std::string const& comment,
+      std::function<void(Args...)> const& callback) {
+    assertJavaScriptTypes<Args...>();
+    registerCallbackWrapper(name, comment, callback, std::index_sequence_for<Args...>{});
   }
 
   /// Unregisters a JavaScript callback.
@@ -156,6 +97,21 @@ class CS_GUI_EXPORT WebView {
 
   /// Resize the pages contents to match the given width and height.
   virtual void resize(int width, int height) const;
+
+  /// Sets a scale / zoom multiplicator. Should be greater than zero; one is the default level.
+  /// You should waitForFinishedLoading() before calling this method.
+  ///
+  /// Due to a 'feature' of the Chromium Embedded Framework, all WebViews sharing the same host and
+  /// scheme are zoomed simultaneously. See the below link for a discussion:
+  /// www.magpcss.org/ceforum/viewtopic.php?f=6&t=15167&sid=a17633152e4f453b651d898231f0e76d
+  ///
+  /// Because all WebViews using a "file://../..." URL effectively share the same 'host' and scheme,
+  /// all will be affected by a call to this method. As a workaround, our
+  /// internal/ResourceRequestHandler.cpp will ignore any leading "{...}" in paths when loading
+  /// local files. This way, if you want to load the files "file://../gui/a.html" and
+  /// "file://../gui/b.html", you could load them for example with "file://{zoomA}../gui/a.html" and
+  /// "file://{zoomB}../gui/b.html" in order to prevent simultaneous zooming.
+  virtual void setZoomFactor(double factor) const;
 
   /// Gives back the color information for the given pixel.
   ///
@@ -167,9 +123,14 @@ class CS_GUI_EXPORT WebView {
   virtual uint8_t getAlpha(int x, int y) const; ///< Gives the alpha value at the given coordinates.
 
   /// The interactive state determines if a user can interact with the HTML contents. If set to
-  /// false all inputs will be ignored. This might increase performance.
+  /// false all inputs will be ignored. This might increase performance. Default is true.
   virtual bool getIsInteractive() const;
   virtual void setIsInteractive(bool interactive);
+
+  /// If set to false, all mouse scroll events will be ignored. This may increase performance but
+  /// more importantly, things like zooming will work even if the mouse is hovering this webview.
+  virtual bool getCanScroll() const;
+  virtual void setCanScroll(bool canScroll);
 
   /// Returns the current size of the web page.
   virtual int getWidth() const;
@@ -182,7 +143,7 @@ class CS_GUI_EXPORT WebView {
   /// Reloads the page.
   ///
   /// @param ignoreCache If set to true the site will not be using cached data.
-  virtual void reload(bool ignoreCache = false) const;
+  virtual void reload(bool ignoreCache) const;
 
   /// When the user clicked on a hyperlink on the web page, this functionality can be used to move
   /// forward or backwards in the history.
@@ -190,8 +151,8 @@ class CS_GUI_EXPORT WebView {
   virtual void goForward() const;
 
   /// These could be executed when the according hot keys are pressed. The system's clipboard will
-  /// be used. So the user can actually copy-paste from one WebView to another or even from an to
-  /// third-party applications.
+  /// be used. So the user can actually copy-paste from one WebView to another or even from a
+  /// WebView to third-party applications.
   virtual void cut() const;
   virtual void copy() const;
   virtual void paste() const;
@@ -215,19 +176,93 @@ class CS_GUI_EXPORT WebView {
   void closeDevTools();
 
  private:
+  /// This ensures statically that all given template types are either bool, double, std::string or
+  /// std::string&&.
+  template <typename... Args>
+  static constexpr void assertJavaScriptTypes() {
+    CS_WARNINGS_PUSH
+    CS_DISABLE_GCC_WARNING("-Wunused-value")
+    // Call assertJavaScriptType() for each Arg of Args.
+    std::initializer_list<int>{(assertJavaScriptType<Args>(), 0)...};
+    CS_WARNINGS_POP
+  }
+
+  /// This ensures statically that the given template type is either bool, double, std::string or
+  /// std::string&&.
+  template <typename T>
+  static constexpr void assertJavaScriptType() {
+    static_assert(
+        std::is_same<T, double>() || std::is_same<T, bool>() || std::is_same<T, std::string>() ||
+            std::is_same<T, std::string&&>() || std::is_same<T, std::optional<double>>() ||
+            std::is_same<T, std::optional<bool>>() || std::is_same<T, std::optional<std::string>>(),
+        "Only doubles, bools and std::strings are supported for JavaScript callback parameters "
+        "(and std::optionals thereof)!");
+  }
+
+  /// The UnderlyingValue struct is used to access the actual value in a std::optional<JSType>.
+  /// There are two variants of the struct as we may want to have the actual value (a bool, double
+  /// or std::string) contained in the std::optional<JSType>, or a std::optional thereof (either a
+  /// std::optional<bool>, std::optional<double>, or std::optional<std::string>).
+  template <typename T>
+  struct UnderlyingValue {
+    static inline constexpr T get(std::optional<JSType>&& value) {
+      return std::get<typename std::remove_reference<T>::type>(std::move(value.value()));
+    }
+  };
+
+  template <typename T>
+  struct UnderlyingValue<std::optional<T>> {
+    static inline constexpr std::optional<T> get(std::optional<JSType>&& value) {
+      if (value.has_value()) {
+        return std::get<T>(std::move(value.value()));
+      }
+      return std::nullopt;
+    }
+  };
+
+  /// This wraps the given callback in a lambda which will be stored in an internal map. This lambda
+  /// receives its arguments as a std::vector<std::optional<JSType>>, each item in this vector will
+  /// be casted to the required paramater types of the given callback.
+  template <typename... Args, std::size_t... Is>
+  void registerCallbackWrapper(std::string const& name, std::string const& comment,
+      std::function<void(Args...)> const& callback, std::index_sequence<Is...> /*unused*/) {
+
+    // The types vector is required to name the JavaScript function's arguments depending on its
+    // type.
+    std::vector<std::type_index> types = {std::type_index(typeid(Args))...};
+
+    registerJSCallbackImpl(name, comment, std::move(types),
+        [name, callback](std::vector<std::optional<JSType>>&& args) {
+          // It is possible that the JavaScript method was called with less arguments than we expect
+          // (if some of our arguments are optional). Therefore we pad the args vector with
+          // std::nullopts.
+          args.resize(sizeof...(Args));
+
+          try {
+            // Now call the actual callback. The UnderlyingValue struct is used to access the actual
+            // value in the std::optional<JSType>. See its implementation above.
+            callback(UnderlyingValue<Args>::get(std::move(args[Is]))...);
+          } catch (std::exception const& e) {
+            logger().error("Cannot execute javascript callback '{}': {}!", name, e.what());
+          }
+        });
+  }
+
   void callJavascriptImpl(std::string const& function, std::vector<std::string> const& args) const;
-  void registerJSCallbackImpl(
-      std::string const& name, std::function<void(std::vector<std::any> const&)> const& callback);
+  void registerJSCallbackImpl(std::string const& name, std::string const& comment,
+      std::vector<std::type_index>&&                                   types,
+      std::function<void(std::vector<std::optional<JSType>>&&)> const& callback);
 
   detail::WebViewClient* mClient;
   CefRefPtr<CefBrowser>  mBrowser;
 
-  bool mInteractive;
+  bool mInteractive = true;
+  bool mCanScroll   = true;
 
   // Input state.
-  int mMouseX;
-  int mMouseY;
-  int mMouseModifiers;
+  int mMouseX         = 0;
+  int mMouseY         = 0;
+  int mMouseModifiers = 0;
 
   // Time point for the last left mouse click
   std::chrono::steady_clock::time_point mLastClick;

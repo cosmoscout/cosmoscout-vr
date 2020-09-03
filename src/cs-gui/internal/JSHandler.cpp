@@ -10,16 +10,16 @@ namespace cs::gui::detail {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool JSHandler::Execute(const CefString& name, CefRefPtr<CefV8Value> object,
-    const CefV8ValueList& arguments, CefRefPtr<CefV8Value>& retval, CefString& exception) {
+bool JSHandler::Execute(const CefString& name, CefRefPtr<CefV8Value> /*object*/,
+    const CefV8ValueList& arguments, CefRefPtr<CefV8Value>& /*retval*/, CefString& /*exception*/) {
 
-  if (name != "call_native") {
+  if (name != "callNative") {
     SendError("Unknown Javascript function name!");
     return false;
   }
 
   if (arguments.empty()) {
-    SendError("window.call_native function requires at least one argument!");
+    SendError("window.callNative function requires at least one argument!");
     return false;
   }
 
@@ -35,9 +35,11 @@ bool JSHandler::Execute(const CefString& name, CefRefPtr<CefV8Value> object,
       msg->GetArgumentList()->SetBool(i, arguments[i]->GetBoolValue());
     } else if (arguments[i]->IsString()) {
       msg->GetArgumentList()->SetString(i, arguments[i]->GetStringValue());
+    } else if (arguments[i]->IsNull() || arguments[i]->IsUndefined()) {
+      msg->GetArgumentList()->SetNull(i);
     } else {
       std::stringstream sstr;
-      sstr << "Failed to handle window.call_native call. Argument " << i
+      sstr << "Failed to handle window.callNative call. Argument " << i
            << " has an unsupported type. Only Double, Bool and String are "
            << "supported.";
       SendError(sstr.str());

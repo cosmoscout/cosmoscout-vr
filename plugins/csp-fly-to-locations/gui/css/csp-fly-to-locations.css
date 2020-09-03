@@ -1,0 +1,32 @@
+#flytolocations-bookmarks-list {
+  max-height: 250px;
+}
+
+.flytolocations-bookmarks-grid-edit-button,
+.flytolocations-bookmarks-grid-delete-button {
+  position: absolute;
+  opacity: 0;
+  transition: opacity 0.2s linear;
+  top: .25rem;
+}
+
+.flytolocations-bookmarks-grid-delete-button {
+  right: .25rem;
+}
+
+.flytolocations-bookmarks-grid-delete-button:hover {
+  background-color: rgba(255, 0, 0, 0.3) !important;
+}
+
+.flytolocations-bookmarks-grid-edit-button {
+  right: calc(.25rem + 26px);
+}
+
+.flytolocations-bookmarks-grid-edit-button:active,
+.flytolocations-bookmarks-grid-delete-button:active {
+  top: calc(.25rem + 1px);
+}
+
+.flytolocations-bookmarks-grid-body-button:hover .light-glass {
+  opacity: 1;
+}
