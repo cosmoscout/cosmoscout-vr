@@ -61,3 +61,6 @@
 [submodule "plugins/csp-vestec"]
 	path = plugins/csp-vestec
 	url = https://github.com/cosmoscout/csp-vestec.git
+[submodule "plugins/csp-simple-wms-bodies"]
+	path = plugins/csp-simple-wms-bodies
+	url = https://github.com/cosmoscout/csp-simple-wms-bodies.git
