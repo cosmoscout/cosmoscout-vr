@@ -11,7 +11,7 @@
 
 namespace csp::lodbodies {
 
-/// This creates the default singleton logger for "csp-lodbodies" when called for the first time
+/// This creates the default singleton logger for "csp-lod-bodies" when called for the first time
 /// and returns it. See cs-utils/logger.hpp for more logging details.
 spdlog::logger& logger();
 
