@@ -13,6 +13,7 @@
 
 #include <VistaBase/VistaStreamUtils.h>
 
+#include <algorithm>
 #include <utility>
 
 namespace csp::lodbodies {
