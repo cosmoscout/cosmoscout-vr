@@ -45,21 +45,32 @@ bool loadImpl(
   auto        tile = static_cast<Tile<T>*>(node->getTile());
   std::string cacheFile;
 
+  // First we download the tile data to a local cache file. This will return quickly if the file is
+  // already downloaded but will take some time if it needs to be fetched from the server.
   try {
     cacheFile = source->loadData(level, x, y);
   } catch (std::exception const& e) {
-    logger().error("Tile loading failed: {}", e.what());
+    // This is not critical, the planet will just not refine any further.
+    logger().debug("Tile loading failed: {}", e.what());
     return false;
   }
 
+  // Now the cache file is available, try to load it with libtiff if it's elevation data.
   if (tile->getDataType() == TileDataType::eFloat32) {
     TIFFSetWarningHandler(nullptr);
     auto* data = TIFFOpen(cacheFile.c_str(), "r");
     if (!data) {
-      logger().error("Tile loading failed: Cannot open '{}' with libtiff!", cacheFile);
+
+      // This is also not critical. Something went wrong - we will just remove the cache file and
+      // will try to download it later again if it's requested once more.
+      logger().debug("Tile loading failed: Removing invalid cache file '{}'.", cacheFile);
+      boost::filesystem::remove(cacheFile);
       return false;
     }
 
+    // The elevation data can be read. For some patches (those at the international date boundary)
+    // two requests are made. For those, only half of the pixels contain valid data (above or below
+    // the diagonal).
     int imagelength{};
     TIFFGetField(data, TIFFTAG_IMAGELENGTH, &imagelength);
     for (int y = 0; y < imagelength; y++) {
@@ -85,6 +96,8 @@ bool loadImpl(
     }
     TIFFClose(data);
   } else {
+
+    // Image tiles are loaded with stbi.
     int width{};
     int height{};
     int bpp{};
@@ -94,10 +107,17 @@ bool loadImpl(
         reinterpret_cast<T*>(stbi_load(cacheFile.c_str(), &width, &height, &bpp, channels));
 
     if (!data) {
-      logger().error("Tile loading failed: Cannot open '{}' with stbi!", cacheFile);
+
+      // This is also not critical. Something went wrong - we will just remove the cache file and
+      // will try to download it later again if it's requested once more.
+      logger().debug("Tile loading failed: Removing invalid cache file '{}'.", cacheFile);
+      boost::filesystem::remove(cacheFile);
       return false;
     }
 
+    // The image data can be read. For some patches (those at the international date boundary)
+    // two requests are made. For those, only half of the pixels contain valid data (above or below
+    // the diagonal).
     if (which == CopyPixels::eAll) {
       std::memcpy(tile->data().data(), data, channels * width * height);
     } else if (which == CopyPixels::eAboveDiagonal) {
@@ -336,7 +356,7 @@ std::string TileSourceWebMapService::loadData(int level, int x, int y) {
         cs::utils::filesystem::createDirectoryRecursively(
             cacheDirPath, boost::filesystem::perms::all_all);
       } catch (std::exception& e) {
-        logger().error("Failed to create cache directory: {}", e.what());
+        throw std::runtime_error(fmt::format("Failed to create cache directory '{}'!", e.what()));
       }
     }
   }
@@ -347,8 +367,8 @@ std::string TileSourceWebMapService::loadData(int level, int x, int y) {
     out.open(cacheFile.str(), std::ofstream::out | std::ofstream::binary);
 
     if (!out) {
-      logger().error(
-          "Failed to download tile data: Cannot open '{}' for writing!", cacheFile.str());
+      throw std::runtime_error(fmt::format(
+          "Failed to download tile data: Cannot open '{}' for writing!", cacheFile.str()));
     }
 
     curlpp::Easy request;
