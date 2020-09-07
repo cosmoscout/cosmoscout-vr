@@ -10,6 +10,7 @@
 #include <glm/glm.hpp>
 
 #include <array>
+#include <ostream>
 
 namespace csp::lodbodies {
 
