@@ -13,7 +13,7 @@ namespace csp::lodbodies {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 spdlog::logger& logger() {
-  static auto logger = cs::utils::createLogger("csp-lodbodies");
+  static auto logger = cs::utils::createLogger("csp-lod-bodies");
   return *logger;
 }
 
