@@ -23,6 +23,7 @@ This plugin can be enabled with the following configuration in your `settings.js
               "copyright": <string>, // The copyright holder of the data set (also shown in the UI).
               "format": <string>,    // "Float32", "UInt8" or "U8Vec3".
               "url": <string>,       // The URL of the mapserver including the "SERVICE=wms" parameter.
+                                     // Use "offline" to only use cached data for this dataset.
               "layers": <string>,    // A comma,seperated list of WMS layers.
               "maxLevel": <int>      // The maximum quadtree depth to load.
             },
@@ -33,6 +34,7 @@ This plugin can be enabled with the following configuration in your `settings.js
               "copyright": <string>, // The copyright holder of the data set (also shown in the UI).
               "format": <string>,    // "Float32", "UInt8" or "U8Vec3".
               "url": <string>,       // The URL of the mapserver including the "SERVICE=wms" parameter.
+                                     // Use "offline" to only use cached data for this dataset.
               "layers": <string>,    // A comma,seperated list of WMS layers.
               "maxLevel": <int>      // The maximum quadtree depth to load.
             },

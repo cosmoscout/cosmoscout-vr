@@ -42,8 +42,8 @@ enum class CopyPixels { eAll, eAboveDiagonal, eBelowDiagonal };
 template <typename T>
 bool loadImpl(
     TileSourceWebMapService* source, TileNode* node, int level, int x, int y, CopyPixels which) {
-  auto        tile = static_cast<Tile<T>*>(node->getTile());
-  std::string cacheFile;
+  auto                       tile = static_cast<Tile<T>*>(node->getTile());
+  std::optional<std::string> cacheFile;
 
   // First we download the tile data to a local cache file. This will return quickly if the file is
   // already downloaded but will take some time if it needs to be fetched from the server.
@@ -55,16 +55,21 @@ bool loadImpl(
     return false;
   }
 
+  // Data is not available. That's most likely do to our server being offline.
+  if (!cacheFile) {
+    return false;
+  }
+
   // Now the cache file is available, try to load it with libtiff if it's elevation data.
   if (tile->getDataType() == TileDataType::eFloat32) {
     TIFFSetWarningHandler(nullptr);
-    auto* data = TIFFOpen(cacheFile.c_str(), "r");
+    auto* data = TIFFOpen(cacheFile->c_str(), "r");
     if (!data) {
 
       // This is also not critical. Something went wrong - we will just remove the cache file and
       // will try to download it later again if it's requested once more.
-      logger().debug("Tile loading failed: Removing invalid cache file '{}'.", cacheFile);
-      boost::filesystem::remove(cacheFile);
+      logger().debug("Tile loading failed: Removing invalid cache file '{}'.", *cacheFile);
+      boost::filesystem::remove(*cacheFile);
       return false;
     }
 
@@ -104,14 +109,14 @@ bool loadImpl(
     int channels = tile->getDataType() == TileDataType::eU8Vec3 ? 3 : 1;
 
     auto* data =
-        reinterpret_cast<T*>(stbi_load(cacheFile.c_str(), &width, &height, &bpp, channels));
+        reinterpret_cast<T*>(stbi_load(cacheFile->c_str(), &width, &height, &bpp, channels));
 
     if (!data) {
 
       // This is also not critical. Something went wrong - we will just remove the cache file and
       // will try to download it later again if it's requested once more.
-      logger().debug("Tile loading failed: Removing invalid cache file '{}'.", cacheFile);
-      boost::filesystem::remove(cacheFile);
+      logger().debug("Tile loading failed: Removing invalid cache file '{}'.", *cacheFile);
+      boost::filesystem::remove(*cacheFile);
       return false;
     }
 
@@ -303,7 +308,7 @@ bool TileSourceWebMapService::getXY(int level, glm::int64 patchIdx, int& x, int&
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::string TileSourceWebMapService::loadData(int level, int x, int y) {
+std::optional<std::string> TileSourceWebMapService::loadData(int level, int x, int y) {
 
   std::string format;
   std::string type;
@@ -335,21 +340,22 @@ std::string TileSourceWebMapService::loadData(int level, int x, int y) {
 
   auto cacheFilePath(boost::filesystem::path(cacheFile.str()));
 
-  // the file is already there, we can return it
+  // The file is already there, we can return it.
   if (boost::filesystem::exists(cacheFilePath) &&
       boost::filesystem::file_size(cacheFile.str()) > 0) {
     return cacheFile.str();
   }
 
-  // the file is corrupt not available
+  // The file is not available but the server is marked as 'offline'. In this case we can do nothing
+  // but return std::nullopt.
+  if (mUrl == "offline") {
+    return std::nullopt;
+  }
+
   {
     std::unique_lock<std::mutex> lock(mTileSystemMutex);
 
-    if (boost::filesystem::exists(cacheFilePath) &&
-        boost::filesystem::file_size(cacheFile.str()) == 0) {
-      boost::filesystem::remove(cacheFilePath);
-    }
-
+    // Try to create the cache directory if necessary.
     auto cacheDirPath(boost::filesystem::absolute(boost::filesystem::path(cacheDir.str())));
     if (!(boost::filesystem::exists(cacheDirPath))) {
       try {
@@ -358,6 +364,12 @@ std::string TileSourceWebMapService::loadData(int level, int x, int y) {
       } catch (std::exception& e) {
         throw std::runtime_error(fmt::format("Failed to create cache directory '{}'!", e.what()));
       }
+    }
+
+    // The file is there but obviously corrupt. Remove it.
+    if (boost::filesystem::exists(cacheFilePath) &&
+        boost::filesystem::file_size(cacheFile.str()) == 0) {
+      boost::filesystem::remove(cacheFilePath);
     }
   }
 
@@ -378,8 +390,8 @@ std::string TileSourceWebMapService::loadData(int level, int x, int y) {
 
     request.perform();
 
-    fail = curlpp::Info<CURLINFO_CONTENT_TYPE, std::string>::get(request).substr(0, 11) ==
-           "application";
+    auto contentType = curlpp::Info<CURLINFO_CONTENT_TYPE, std::string>::get(request);
+    fail             = contentType != "image/png" && contentType != "image/tiff";
   }
 
   if (fail) {
