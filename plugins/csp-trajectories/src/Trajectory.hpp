@@ -71,8 +71,6 @@ class Trajectory : public cs::scene::CelestialObject, public IVistaOpenGLDraw {
   double                  mLastSampleTime{};
   double                  mLastUpdateTime;
   double                  mLastFrameTime{};
-
-  bool mTrailIsInExistence = false;
 };
 
 } // namespace csp::trajectories
