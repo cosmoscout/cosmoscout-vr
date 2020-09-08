@@ -52,6 +52,7 @@
 * It's now possible to zoom on the timeline even if time is playing.
 * Vertex position and normal calculation for `csp-lod-bodies` have been improved slightly.
 * Vista and OpenSG are now built with **precompiled headers and unity builds** improving the build time significantly.
+* Vista's **HTC Vive Driver** has been updated to work with the latest SteamVR.
 * The **Optitrack** device driver of Vista works now with the latest version of NatNet SDK.
 * CosmoScout VR is now build with MSVC, Clang and GCC with **all warnings enabled** and any warnings are treated as errors.
 
