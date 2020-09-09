@@ -107,6 +107,8 @@ class StatusbarApi extends IApi {
           let result = window.eval(this._inputField.value);
           if (result != undefined) {
             console.log(result);
+          } else {
+            console.log(this._inputField.value);
           }
         } catch (error) { console.warn(error); }
 
