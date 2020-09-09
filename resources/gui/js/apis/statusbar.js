@@ -224,7 +224,7 @@ class StatusbarApi extends IApi {
             // as possible (the longest prefix shared by all suggestions).
             this._suggestionField.innerHTML = "";
 
-            // This will be truncated to the longest shared refix.
+            // This will be truncated to the longest shared prefix.
             let maximumCompletion = properties[0];
 
             properties.forEach(element => {
@@ -255,8 +255,11 @@ class StatusbarApi extends IApi {
                 </span>`);
             });
 
+            // Set the longest shared prefix as completion and place the cursor to the end.
             this._setCompletion(
                 prefixBegin, prefixEnd, prefixBegin + maximumCompletion.length, maximumCompletion);
+
+            // Finally show the completion area.
             this._enableSuggestionArea(true);
           }
         }
