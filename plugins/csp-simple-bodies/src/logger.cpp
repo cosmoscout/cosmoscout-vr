@@ -13,7 +13,7 @@ namespace csp::simplebodies {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 spdlog::logger& logger() {
-  static auto logger = cs::utils::createLogger("csp-simplebodies");
+  static auto logger = cs::utils::createLogger("csp-simple-bodies");
   return *logger;
 }
 
