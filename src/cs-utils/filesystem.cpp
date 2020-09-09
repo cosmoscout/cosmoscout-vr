@@ -37,9 +37,10 @@ std::set<std::string> listFiles(std::string const& directory, std::regex const& 
   std::set<std::string> result;
 
   for (auto& p : boost::filesystem::directory_iterator(directory)) {
-    if (std::regex_match(p.path().string(), regex) &&
-        boost::filesystem::is_regular_file(p.path())) {
-      result.insert(p.path().string());
+    auto path = p.path().generic_path();
+
+    if (std::regex_match(path.string(), regex) && boost::filesystem::is_regular_file(path)) {
+      result.insert(path.string());
     }
   }
 
@@ -52,8 +53,9 @@ std::set<std::string> listDirs(std::string const& directory, std::regex const& r
   std::set<std::string> result;
 
   for (auto& p : boost::filesystem::directory_iterator(directory)) {
-    if (std::regex_match(p.path().string(), regex) && boost::filesystem::is_directory(p.path())) {
-      result.insert(p.path().string());
+    auto path = p.path().generic_path();
+    if (std::regex_match(path.string(), regex) && boost::filesystem::is_directory(path)) {
+      result.insert(path.string());
     }
   }
 
