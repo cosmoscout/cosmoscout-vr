@@ -64,9 +64,8 @@ void Trajectory::update(double tTime, cs::scene::CelestialObserver const& oObs) 
   cs::scene::CelestialObject::update(tTime, oObs);
 
   double dLengthSeconds = pLength.get() * 24.0 * 60.0 * 60.0;
-  mTrailIsInExistence   = (tTime > mStartExistence && tTime < mEndExistence + dLengthSeconds);
 
-  if (mPluginSettings->mEnableTrajectories.get() && mTrailIsInExistence) {
+  if (mPluginSettings->mEnableTrajectories.get() && getIsInExistence()) {
     double dSampleLength = dLengthSeconds / pSamples.get();
 
     cs::scene::CelestialAnchor target(mTargetCenter, mTargetFrame);
@@ -198,7 +197,7 @@ void Trajectory::setFrameName(std::string const& sFrameName) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool Trajectory::Do() {
-  if (mPluginSettings->mEnableTrajectories.get() && pVisible.get() && mTrailIsInExistence) {
+  if (mPluginSettings->mEnableTrajectories.get() && pVisible.get() && getIsInExistence()) {
     cs::utils::FrameTimings::ScopedTimer timer("Trajectories");
     mTrajectory.Do();
   }
