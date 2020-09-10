@@ -22,6 +22,8 @@
   - The location of a bookmark is defined by a SPICE anchor, an optional cartesian position and an optional rotation.
   - The time of a bookmark has an optional end parameter which makes the bookmark describe a time span rather a time point.
   - Location and time are both optional, but omitting both results in a pretty useless bookmark.
+* Optional **High Dynamic Range Rendering** (HDR) which uses true luminance values has been added. This can be toggled at runtime.
+* You can now **modify the field of view** by choosing a sensor size and a focal length.
 * [spdlog](https://github.com/gabime/spdlog) is now our **new logging library**. The logger will print colourful messages to the console and store it's messages in a file called `cosmoscout.log`. 
 * A new javascript API has been added which can be used to perform **forward and reverse geocoding**. This is used by `csp-measurement-tools` to show address information and by a new search bar below the timeline. The geo-coding for Earth uses OpenStreetMap, all other planets use CSV files obtained from https://planetarynames.wr.usgs.gov/AdvancedSearch. The search bar beneath the timeline which supports queries like
   - "berlin" Fly to something called like "Berlin" on the current planet.
@@ -34,6 +36,7 @@
 
 #### Other Enhancements
 
+* Significantly improved star rendering. Several rendering modes are implemented and can be toggled at runtime.
 * The plugins `csp-atmospheres`, `csp-sharad`, `csp-measurement-tools`, `csp-simple-bodies` and `csp-lod-bodies` now use **true three-axes ellipsoids** for rendering. Before they used to perform math on spheres.
 * All default **plugins are now part of the source tree** and no individual submodules anymore. This simplifies the software development cycle significantly.
 * **Plugins can now be reloaded at run time**. This allows faster development cycles as code modifications can be injected while CosmoScout VR is running.
