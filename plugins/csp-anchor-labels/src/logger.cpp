@@ -13,7 +13,7 @@ namespace csp::anchorlabels {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 spdlog::logger& logger() {
-  static auto logger = cs::utils::createLogger("csp-anchorlabels");
+  static auto logger = cs::utils::createLogger("csp-anchor-labels");
   return *logger;
 }
 

@@ -11,7 +11,7 @@
 
 namespace csp::anchorlabels {
 
-/// This creates the default singleton logger for "csp-anchorlabels" when called for the first time
+/// This creates the default singleton logger for "csp-anchor-labels" when called for the first time
 /// and returns it. See cs-utils/logger.hpp for more logging details.
 spdlog::logger& logger();
 
