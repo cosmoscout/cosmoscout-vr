@@ -55,7 +55,7 @@ bool loadImpl(
     return false;
   }
 
-  // Data is not available. That's most likely do to our server being offline.
+  // Data is not available. That's most likely due to our server being offline.
   if (!cacheFile) {
     return false;
   }
