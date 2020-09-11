@@ -102,7 +102,7 @@ void Trajectory::update(double tTime, cs::scene::CelestialObserver const& oObs) 
 
             mStartIndex = (mStartIndex + 1) % static_cast<int>(pSamples.get());
           } catch (...) {
-            // data might be unavailable
+            // Getting the relative transformation may fail due to insufficient SPICE data.
           }
         }
       } else {
@@ -125,7 +125,7 @@ void Trajectory::update(double tTime, cs::scene::CelestialObserver const& oObs) 
                           static_cast<int>(pSamples.get());
             pVisibleRadius = std::max(glm::length(pos), pVisibleRadius.get());
           } catch (...) {
-            // data might be unavailable
+            // Getting the relative transformation may fail due to insufficient SPICE data.
           }
         }
       }
@@ -140,7 +140,13 @@ void Trajectory::update(double tTime, cs::scene::CelestialObserver const& oObs) 
     mLastFrameTime = tTime;
 
     if (pVisible.get()) {
-      glm::dvec3 tip = getRelativePosition(tTime, target);
+      glm::dvec3 tip = mPoints[mStartIndex];
+      try {
+        tip = getRelativePosition(tTime, target);
+      } catch (...) {
+        // Getting the relative transformation may fail due to insufficient SPICE data.
+      }
+
       mTrajectory.upload(matWorldTransform, tTime, mPoints, tip, mStartIndex);
     }
   }

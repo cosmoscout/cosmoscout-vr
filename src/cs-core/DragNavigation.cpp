@@ -6,6 +6,8 @@
 
 #include "DragNavigation.hpp"
 
+#include "logger.hpp"
+
 #include "../cs-core/InputManager.hpp"
 #include "../cs-core/SolarSystem.hpp"
 #include "../cs-core/TimeControl.hpp"
@@ -114,8 +116,13 @@ void DragNavigation::update() {
           pickedPlanet->getCenterName(), pickedPlanet->getFrameName());
       anchor.setAnchorPosition(mInputManager->pHoveredObject.get().mPosition);
 
-      mStartIntersection = GetPositionInObserverFrame(anchor, mSolarSystem, mTimeControl);
-      mDraggingPlanet    = true;
+      try {
+        mStartIntersection = GetPositionInObserverFrame(anchor, mSolarSystem, mTimeControl);
+        mDraggingPlanet    = true;
+      } catch (std::exception const& e) {
+        // Getting the position in observer coordinates may fail due to insufficient SPICE data.
+        logger().warn("Failed to grab '{}': {}", pickedPlanet->getCenterName(), e.what());
+      }
     }
 
     float const epsilon = 0.05F;

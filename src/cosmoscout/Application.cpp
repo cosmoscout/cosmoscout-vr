@@ -559,18 +559,24 @@ void Application::FrameUpdate() {
       }
 
       // Update the compass in the header bar.
-      auto rot = mSolarSystem->getObserver().getRelativeRotation(
-          mTimeControl->pSimulationTime.get(), *mSolarSystem->pActiveBody.get());
-      glm::dvec4 up(0.0, 1.0, 0.0, 0.0);
-      glm::dvec4 north = rot * up;
-      north.z          = 0.0;
+      try {
+        auto rot = mSolarSystem->getObserver().getRelativeRotation(
+            mTimeControl->pSimulationTime.get(), *mSolarSystem->pActiveBody.get());
+        glm::dvec4 up(0.0, 1.0, 0.0, 0.0);
+        glm::dvec4 north = rot * up;
+        north.z          = 0.0;
 
-      double angle = std::acos(glm::dot(up, glm::normalize(north)));
-      if (north.x < 0.0) {
-        angle = -angle;
+        double angle = std::acos(glm::dot(up, glm::normalize(north)));
+        if (north.x < 0.0) {
+          angle = -angle;
+        }
+
+        mGuiManager->getGui()->callJavascript("CosmoScout.timeline.setNorthDirection", angle);
+
+      } catch (std::exception const& e) {
+        // Getting the relative transformation may fail due to insufficient SPICE data.
+        logger().warn("Failed to update UI compass: {}", e.what());
       }
-
-      mGuiManager->getGui()->callJavascript("CosmoScout.timeline.setNorthDirection", angle);
     }
 
     mGuiManager->update();

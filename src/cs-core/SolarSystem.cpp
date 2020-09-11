@@ -439,33 +439,39 @@ void SolarSystem::flyObserverTo(std::string const& sCenter, std::string const& s
 void SolarSystem::flyObserverTo(
     std::string const& sCenter, std::string const& sFrame, double duration) {
 
-  auto radii = getRadii(sCenter);
+  try {
+    auto radii = getRadii(sCenter);
 
-  if (radii[0] == 0.0) {
-    radii = glm::dvec3(1, 1, 1);
+    if (radii[0] == 0.0) {
+      radii = glm::dvec3(1, 1, 1);
+    }
+
+    scene::CelestialAnchor target(sCenter, sFrame);
+
+    auto targetDir =
+        glm::normalize(target.getRelativePosition(mTimeControl->pSimulationTime.get(), mObserver));
+    auto targetRot =
+        glm::normalize(target.getRelativeRotation(mTimeControl->pSimulationTime.get(), mObserver));
+
+    auto cart = targetDir * radii[0] * 3.0;
+
+    glm::dvec3 y = targetRot * glm::dvec3(0, -1, 0);
+    glm::dvec3 z = cart;
+    glm::dvec3 x = glm::cross(z, y);
+    y            = glm::cross(z, x);
+
+    x = glm::normalize(x);
+    y = glm::normalize(y);
+    z = glm::normalize(z);
+
+    auto rotation = glm::toQuat(glm::dmat3(x, y, z));
+
+    flyObserverTo(sCenter, sFrame, cart, rotation, duration);
+
+  } catch (std::exception const& e) {
+    // Getting the relative transformation may fail due to insufficient SPICE data.
+    logger().warn("SolarSystem::flyObserverTo failed: {}", e.what());
   }
-
-  scene::CelestialAnchor target(sCenter, sFrame);
-
-  auto targetDir =
-      glm::normalize(target.getRelativePosition(mTimeControl->pSimulationTime.get(), mObserver));
-  auto targetRot =
-      glm::normalize(target.getRelativeRotation(mTimeControl->pSimulationTime.get(), mObserver));
-
-  auto cart = targetDir * radii[0] * 3.0;
-
-  glm::dvec3 y = targetRot * glm::dvec3(0, -1, 0);
-  glm::dvec3 z = cart;
-  glm::dvec3 x = glm::cross(z, y);
-  y            = glm::cross(z, x);
-
-  x = glm::normalize(x);
-  y = glm::normalize(y);
-  z = glm::normalize(z);
-
-  auto rotation = glm::toQuat(glm::dmat3(x, y, z));
-
-  flyObserverTo(sCenter, sFrame, cart, rotation, duration);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -578,19 +584,24 @@ void SolarSystem::scaleRelativeToObserver(scene::CelestialAnchor& anchor,
     scene::CelestialObserver const& observer, double simulationTime, double baseDistance,
     double scaleFactor) {
 
-  double observerDistance =
-      observer.getAnchorScale() * glm::length(observer.getRelativePosition(simulationTime, anchor));
+  try {
+    double observerDistance = observer.getAnchorScale() *
+                              glm::length(observer.getRelativePosition(simulationTime, anchor));
 
-  double scale = scaleFactor;
+    double scale = scaleFactor;
 
-  if (baseDistance > 0 && observerDistance > baseDistance) {
-    double diff = baseDistance * 10 - baseDistance;
-    scale *= baseDistance + (1 - std::exp(-(observerDistance - baseDistance) / diff)) * diff;
-  } else {
-    scale *= observerDistance;
+    if (baseDistance > 0 && observerDistance > baseDistance) {
+      double diff = baseDistance * 10 - baseDistance;
+      scale *= baseDistance + (1 - std::exp(-(observerDistance - baseDistance) / diff)) * diff;
+    } else {
+      scale *= observerDistance;
+    }
+
+    anchor.setAnchorScale(scale);
+  } catch (std::exception const& e) {
+    // Getting the relative transformation may fail due to insufficient SPICE data.
+    logger().warn("SolarSystem::scaleRelativeToObserver failed: {}", e.what());
   }
-
-  anchor.setAnchorScale(scale);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -601,26 +612,32 @@ void SolarSystem::turnToObserver(scene::CelestialAnchor& anchor,
   scene::CelestialAnchor rawAnchor(anchor.getCenterName(), anchor.getFrameName());
   rawAnchor.setAnchorPosition(anchor.getAnchorPosition());
 
-  auto       observerTransform = rawAnchor.getRelativeTransform(simulationTime, observer);
-  glm::dvec3 observerPos       = observerTransform[3];
-  glm::dvec3 y                 = observerTransform * glm::dvec4(0, 1, 0, 0);
-  glm::dvec3 camDir            = glm::normalize(observerPos);
+  try {
+    auto       observerTransform = rawAnchor.getRelativeTransform(simulationTime, observer);
+    glm::dvec3 observerPos       = observerTransform[3];
+    glm::dvec3 y                 = observerTransform * glm::dvec4(0, 1, 0, 0);
+    glm::dvec3 camDir            = glm::normalize(observerPos);
 
-  if (upIsNormal) {
-    auto radii  = getRadii(anchor.getCenterName());
-    auto lngLat = cs::utils::convert::cartesianToLngLat(anchor.getAnchorPosition(), radii);
-    y           = cs::utils::convert::lngLatToNormal(lngLat, radii);
+    if (upIsNormal) {
+      auto radii  = getRadii(anchor.getCenterName());
+      auto lngLat = cs::utils::convert::cartesianToLngLat(anchor.getAnchorPosition(), radii);
+      y           = cs::utils::convert::lngLatToNormal(lngLat, radii);
+    }
+
+    glm::dvec3 z = glm::cross(y, camDir);
+    glm::dvec3 x = glm::cross(y, z);
+
+    x = glm::normalize(x);
+    y = glm::normalize(y);
+    z = glm::normalize(z);
+
+    auto rot = glm::toQuat(glm::dmat3(x, y, z));
+    anchor.setAnchorRotation(rot);
+
+  } catch (std::exception const& e) {
+    // Getting the relative transformation may fail due to insufficient SPICE data.
+    logger().warn("SolarSystem::turnToObserver failed: {}", e.what());
   }
-
-  glm::dvec3 z = glm::cross(y, camDir);
-  glm::dvec3 x = glm::cross(y, z);
-
-  x = glm::normalize(x);
-  y = glm::normalize(y);
-  z = glm::normalize(z);
-
-  auto rot = glm::toQuat(glm::dmat3(x, y, z));
-  anchor.setAnchorRotation(rot);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -647,7 +664,8 @@ glm::dvec3 SolarSystem::getRadii(std::string const& sCenterName) {
     throw std::runtime_error("Failed to retrieve radii for object " + sCenterName + ".");
   }
 
-  return result;
+  // SPICE coordinates are different.
+  return glm::dvec3(result[1], result[2], result[0]);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
