@@ -109,11 +109,9 @@ void main()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 SunFlare::SunFlare(std::shared_ptr<cs::core::Settings> settings,
-    std::shared_ptr<Plugin::Settings>                  pluginSettings,
-    std::shared_ptr<cs::core::SolarSystem> solarSystem, std::string const& anchorName)
-    : cs::scene::CelestialObject(solarSystem->getCenter(anchorName),
-          solarSystem->getFrame(anchorName), solarSystem->getRadii(anchorName),
-          solarSystem->getStartExistence(anchorName), solarSystem->getEndExistence(anchorName))
+    std::shared_ptr<Plugin::Settings> pluginSettings, std::string const& anchorName)
+    : cs::scene::CelestialObject(settings->getCenter(anchorName), settings->getFrame(anchorName),
+          settings->getRadii(anchorName), settings->getExistence(anchorName))
     , mSettings(std::move(settings))
     , mPluginSettings(std::move(pluginSettings)) {
   mShader.InitVertexShaderFromString(QUAD_VERT);

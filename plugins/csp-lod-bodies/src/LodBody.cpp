@@ -29,9 +29,8 @@ LodBody::LodBody(std::shared_ptr<cs::core::Settings> const& settings,
     std::shared_ptr<Plugin::Settings> const&                pluginSettings,
     std::shared_ptr<cs::core::GuiManager> const&            pGuiManager,
     std::shared_ptr<GLResources> const& glResources, std::string const& anchorName)
-    : cs::scene::CelestialBody(solarSystem->getCenter(anchorName),
-          solarSystem->getFrame(anchorName), solarSystem->getRadii(anchorName),
-          solarSystem->getStartExistence(anchorName), solarSystem->getEndExistence(anchorName))
+    : cs::scene::CelestialBody(settings->getCenter(anchorName), settings->getFrame(anchorName),
+          settings->getRadii(anchorName), settings->getExistence(anchorName))
     , mSettings(settings)
     , mGraphicsEngine(std::move(graphicsEngine))
     , mSolarSystem(std::move(solarSystem))

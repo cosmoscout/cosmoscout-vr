@@ -59,28 +59,6 @@ class CS_CORE_EXPORT SolarSystem {
 
   ~SolarSystem();
 
-  // Named Anchor API ------------------------------------------------------------------------------
-
-  /// The methods below directly return the corresponding values from the current scene's settings.
-  /// All methods may throw a std::runtime_error if the given anchor name is not present in the
-  /// current scene settings.
-
-  /// Reads the optional mRadii member of the configured anchors. If mRadii is not given,
-  /// SPICE is used to retrieve the values.
-  glm::dvec3 getRadii(std::string const& anchorName) const;
-
-  // Returns the SPICE center name of the anchor with the given name.
-  std::string getCenter(std::string const& anchorName) const;
-
-  // Returns the SPICE frame name of the anchor with the given name.
-  std::string getFrame(std::string const& anchorName) const;
-
-  /// These convert the two existence strings of the configured anchor to SPICE-compatible TDB
-  /// doubles.
-  std::pair<double, double> getExistence(std::string const& anchorName) const;
-  double                    getStartExistence(std::string const& anchorName) const;
-  double                    getEndExistence(std::string const& anchorName) const;
-
   // Illumination API ------------------------------------------------------------------------------
 
   /// The Sun which is at the center of the SolarSystem.
@@ -223,12 +201,13 @@ class CS_CORE_EXPORT SolarSystem {
       scene::CelestialObserver const& observer, double simulationTime, bool upIsNormal);
 
   /// Gives the radii of a given SPICE object.
-  /// Mind the difference to the getRadii() above: getSpiceRadii() takes a SPICE center name and
-  /// makes a lookup into the loaded SPICE kernels to retrieve the radii. getRadii() on the other
-  /// hand takes an anchor name will first check the loaded scene configuration for any radii
-  /// overides. If non is found, getRadii() will call getSpiceRadii() internally.
+  /// Mind the difference to the Settings::getRadii(): SolarSystem::getRadii() takes a SPICE center
+  /// name and makes a lookup into the loaded SPICE kernels to retrieve the radii.
+  /// Settings::getRadii() on the other hand will first check the loaded scene configuration for any
+  /// radii overides. If non is found, Settings::getRadii() will call SolarSystem::getRadii()
+  /// internally.
   /// @param sCenterName The name of the SPICE object from which the radii are requested.
-  static glm::dvec3 getSpiceRadii(std::string const& sCenterName);
+  static glm::dvec3 getRadii(std::string const& sCenterName);
 
   /// Generates a trail of points representing the given SPICE objects past movements.
   ///

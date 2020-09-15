@@ -31,8 +31,7 @@ class SunFlare : public cs::scene::CelestialObject, public IVistaOpenGLDraw {
   cs::utils::Property<VistaColor> pColor = VistaColor(1, 1, 1);
 
   SunFlare(std::shared_ptr<cs::core::Settings> settings,
-      std::shared_ptr<Plugin::Settings>        pluginSettings,
-      std::shared_ptr<cs::core::SolarSystem> solarSystem, std::string const& anchorName);
+      std::shared_ptr<Plugin::Settings> pluginSettings, std::string const& anchorName);
 
   SunFlare(SunFlare const& other) = delete;
   SunFlare(SunFlare&& other)      = default;

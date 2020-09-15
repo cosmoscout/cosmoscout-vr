@@ -491,11 +491,10 @@ void Plugin::onLoad() {
     auto settings = mPluginSettings->mBodies.find(lodBody->first);
     if (settings != mPluginSettings->mBodies.end()) {
       // If there are settings for this lodBody, reconfigure it.
-      lodBody->second->setStartExistence(mSolarSystem->getStartExistence(settings->first));
-      lodBody->second->setEndExistence(mSolarSystem->getEndExistence(settings->first));
-      lodBody->second->setRadii(mSolarSystem->getRadii(settings->first));
-      lodBody->second->setCenterName(mSolarSystem->getCenter(settings->first));
-      lodBody->second->setFrameName(mSolarSystem->getFrame(settings->first));
+      lodBody->second->setExistence(mAllSettings->getExistence(settings->first));
+      lodBody->second->setRadii(mAllSettings->getRadii(settings->first));
+      lodBody->second->setCenterName(mAllSettings->getCenter(settings->first));
+      lodBody->second->setFrameName(mAllSettings->getFrame(settings->first));
 
       setImageSource(lodBody->second, settings->second.mActiveImgDataset);
       setElevationSource(lodBody->second, settings->second.mActiveDemDataset);

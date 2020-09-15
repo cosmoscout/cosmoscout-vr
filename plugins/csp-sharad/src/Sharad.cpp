@@ -149,13 +149,10 @@ struct ProfileRadarData {
 Sharad::Sharad(std::shared_ptr<cs::core::Settings> settings,
     std::shared_ptr<cs::core::SolarSystem> solarSystem, std::string const& anchorName,
     std::string const& sTiffFile, std::string const& sTabFile)
-    : cs::scene::CelestialObject(solarSystem->getCenter(anchorName),
-          solarSystem->getFrame(anchorName), solarSystem->getRadii(anchorName),
-          solarSystem->getStartExistence(anchorName), solarSystem->getEndExistence(anchorName))
+    : cs::scene::CelestialObject(settings->getCenter(anchorName), settings->getFrame(anchorName),
+          settings->getRadii(anchorName), settings->getExistence(anchorName))
     , mSettings(std::move(settings))
     , mTexture(cs::graphics::TextureLoader::loadFromFile(sTiffFile)) {
-  // arbitray date in future
-  mEndExistence = cs::utils::convert::time::toSpice("2040-01-01T00:00:00.000Z");
 
   if (mInstanceCount == 0) {
     mDepthBuffer = std::make_unique<VistaTexture>(GL_TEXTURE_RECTANGLE);
@@ -229,14 +226,14 @@ Sharad::Sharad(std::shared_ptr<cs::core::Settings> settings,
                 boost::posix_time::milliseconds(meta[i].Millisecond)));
 
     if (i == 0) {
-      mStartExistence = tTime;
+      mExistence[0] = tTime;
     }
 
     glm::vec2 lngLat(
         cs::utils::convert::toRadians(glm::dvec2(meta[i].Longitude, meta[i].Latitude)));
 
     float x    = 1.F * static_cast<float>(i) / (static_cast<float>(mSamples) - 1.F);
-    auto  time = static_cast<float>(tTime - mStartExistence);
+    auto  time = static_cast<float>(tTime - mExistence[0]);
 
     vertices[i * 2 + 0].lngLat = lngLat;
     vertices[i * 2 + 0].tc     = glm::vec2(x, 1.F);
@@ -322,7 +319,7 @@ bool Sharad::Do() {
     mShader.SetUniform(mShader.GetUniformLocation("uRadii"), static_cast<float>(mRadii[0]),
         static_cast<float>(mRadii[1]), static_cast<float>(mRadii[2]));
     mShader.SetUniform(
-        mShader.GetUniformLocation("uTime"), static_cast<float>(mCurrTime - mStartExistence));
+        mShader.GetUniformLocation("uTime"), static_cast<float>(mCurrTime - mExistence[0]));
     mShader.SetUniform(
         mShader.GetUniformLocation("uFarClip"), cs::utils::getCurrentFarClipDistance());
 

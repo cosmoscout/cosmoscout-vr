@@ -18,18 +18,16 @@ class CS_SCENE_EXPORT CelestialBody : public CelestialObject, public utils::Inte
  public:
   /// Creates a new CelestialBody.
   ///
-  /// @param sCenterName      The SPICE name of the object.
-  /// @param sFrameName       The SPICE name of the reference frame.
-  /// @param radii            These will be used for visibility culling. If set to glm::dvec3(0.0),
-  ///                         pVisible will not change during update().
-  /// @param tStartExistence  The point in Barycentric Dynamical Time in which the object started
-  ///                         existing.
-  /// @param tEndExistence    The point in Barycentric Dynamical Time in which the object ceased
-  ///                         existing.
-  CelestialBody(std::string const& sCenterName, std::string const& sFrameName,
-      glm::dvec3 const& radii           = glm::dvec3(0.0),
-      double            tStartExistence = std::numeric_limits<double>::lowest(),
-      double            tEndExistence   = std::numeric_limits<double>::max());
+  /// @param centerName  The SPICE name of the object.
+  /// @param frameName   The SPICE name of the reference frame.
+  /// @param radii       These will be used for visibility culling. If set to glm::dvec3(0.0),
+  ///                    pVisible will not change during update().
+  /// @param existence   The time range in Barycentric Dynamical Time in which the object existed.
+  ///                    This should match the time coverage of the loaded SPICE kernels.
+  CelestialBody(std::string const& centerName, std::string const& frameName,
+      glm::dvec3 const& radii     = glm::dvec3(0.0),
+      glm::dvec2 const& existence = glm::dvec2(
+          std::numeric_limits<double>::lowest(), std::numeric_limits<double>::max()));
 
   /// Returns the elevation in meters at a specific point on the surface.
   ///

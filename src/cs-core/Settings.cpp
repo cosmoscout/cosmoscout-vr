@@ -36,16 +36,14 @@ namespace cs::core {
 void from_json(nlohmann::json const& j, Settings::Anchor& o) {
   Settings::deserialize(j, "center", o.mCenter);
   Settings::deserialize(j, "frame", o.mFrame);
-  Settings::deserialize(j, "startExistence", o.mStartExistence);
-  Settings::deserialize(j, "endExistence", o.mEndExistence);
+  Settings::deserialize(j, "existence", o.mExistence);
   Settings::deserialize(j, "radii", o.mRadii);
 }
 
 void to_json(nlohmann::json& j, Settings::Anchor const& o) {
   Settings::serialize(j, "center", o.mCenter);
   Settings::serialize(j, "frame", o.mFrame);
-  Settings::serialize(j, "startExistence", o.mStartExistence);
-  Settings::serialize(j, "endExistence", o.mEndExistence);
+  Settings::serialize(j, "existence", o.mExistence);
   Settings::serialize(j, "radii", o.mRadii);
 }
 
@@ -372,6 +370,65 @@ std::string Settings::saveToJson() const {
   o << std::setw(2) << settings;
 
   return o.str();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+glm::dvec2 Settings::getExistence(std::string const& anchorName) const {
+  auto anchor = mAnchors.find(anchorName);
+  if (anchor == mAnchors.end()) {
+    throw std::runtime_error("Failed to parse the 'existence' property of the anchor '" +
+                             anchorName + "': No anchor with this name found in the settings!");
+  }
+
+  try {
+    return glm::dvec2(utils::convert::time::toSpice(anchor->second.mExistence[0]),
+        utils::convert::time::toSpice(anchor->second.mExistence[1]));
+  } catch (std::exception const&) {
+    throw std::runtime_error(
+        "Failed to parse the 'existence' property of the anchor '" + anchorName +
+        "': The dates should be given in the format: 1969-07-20T20:17:40.000Z");
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+glm::dvec3 Settings::getRadii(std::string const& anchorName) const {
+  auto anchor = mAnchors.find(anchorName);
+  if (anchor == mAnchors.end()) {
+    throw std::runtime_error("Failed to read the 'radii' property of the anchor '" + anchorName +
+                             "': No anchor with this name found in the settings!");
+  }
+
+  if (anchor->second.mRadii) {
+    return *anchor->second.mRadii;
+  }
+
+  return SolarSystem::getRadii(anchor->second.mCenter);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::string Settings::getCenter(std::string const& anchorName) const {
+  auto anchor = mAnchors.find(anchorName);
+  if (anchor == mAnchors.end()) {
+    throw std::runtime_error("Failed to get the 'center' property of the anchor '" + anchorName +
+                             "': No anchor with this name found in the settings!");
+  }
+
+  return anchor->second.mCenter;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::string Settings::getFrame(std::string const& anchorName) const {
+  auto anchor = mAnchors.find(anchorName);
+  if (anchor == mAnchors.end()) {
+    throw std::runtime_error("Failed to get the 'frame' property of the anchor '" + anchorName +
+                             "': No anchor with this name found in the settings!");
+  }
+
+  return anchor->second.mFrame;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

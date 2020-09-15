@@ -14,13 +14,12 @@ namespace cs::scene {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-CelestialObject::CelestialObject(std::string const& sCenterName, std::string const& sFrameName,
-    glm::dvec3 radii, double tStartExistence, double tEndExistence)
-    : CelestialAnchor(sCenterName, sFrameName)
+CelestialObject::CelestialObject(std::string const& centerName, std::string const& frameName,
+    glm::dvec3 radii, glm::dvec2 existence)
+    : CelestialAnchor(centerName, frameName)
     , matWorldTransform(1.0)
     , mRadii(std::move(radii))
-    , mStartExistence(tStartExistence)
-    , mEndExistence(tEndExistence) {
+    , mExistence(std::move(existence)) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -37,22 +36,12 @@ glm::dvec4 CelestialObject::getWorldPosition() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-double CelestialObject::getStartExistence() const {
-  return mStartExistence;
+glm::dvec2 const& CelestialObject::getExistence() const {
+  return mExistence;
 }
 
-void CelestialObject::setStartExistence(double value) {
-  mStartExistence = value;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-double CelestialObject::getEndExistence() const {
-  return mEndExistence;
-}
-
-void CelestialObject::setEndExistence(double value) {
-  mEndExistence = value;
+void CelestialObject::setExistence(glm::dvec2 value) {
+  mExistence = std::move(value);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -68,7 +57,7 @@ void CelestialObject::setRadii(glm::dvec3 const& value) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void CelestialObject::update(double tTime, cs::scene::CelestialObserver const& oObs) {
-  mIsInExistence = (tTime > mStartExistence && tTime < mEndExistence);
+  mIsInExistence = (tTime > mExistence[0] && tTime < mExistence[1]);
 
   if (getIsInExistence()) {
     try {

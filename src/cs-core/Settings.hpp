@@ -156,8 +156,7 @@ class CS_CORE_EXPORT Settings {
     // This should match the data coverage of your SPICE kernels. These should be given in UTC (like
     // this 1950-01-02 00:00:00.000). Beware that tools like brief and ckbrief give coverage
     // information in TDB which differs from UTC by several seconds.
-    std::string mStartExistence;
-    std::string mEndExistence;
+    std::array<std::string, 2> mExistence;
 
     // SolarSystem::getRadii() will return this value if it is given. Else it will return the radii
     // as provided by SPICE.
@@ -165,6 +164,23 @@ class CS_CORE_EXPORT Settings {
   };
 
   std::map<std::string, Anchor> mAnchors;
+
+  /// The convenience methods below directly return the corresponding values from the mAnchors map.
+  /// All methods may throw a std::runtime_error if the given anchor name is not present.
+
+  /// Reads the optional mRadii member of the configured anchors. If mRadii is not given,
+  /// SolarSystem::getRadii() is used to retrieve the values.
+  glm::dvec3 getRadii(std::string const& anchorName) const;
+
+  // Returns the SPICE center name of the anchor with the given name.
+  std::string getCenter(std::string const& anchorName) const;
+
+  // Returns the SPICE frame name of the anchor with the given name.
+  std::string getFrame(std::string const& anchorName) const;
+
+  /// These convert the two existence strings of the configured anchor to SPICE-compatible TDB
+  /// doubles.
+  glm::dvec2 getExistence(std::string const& anchorName) const;
 
   /// The values of the observer are updated by the SolarSystem once each frame. For all others,
   /// they should be considered readonly. If you want to modify the transformation of the virtual

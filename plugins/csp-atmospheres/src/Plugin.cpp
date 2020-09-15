@@ -258,11 +258,10 @@ void Plugin::onLoad() {
     auto settings = mPluginSettings->mAtmospheres.find(atmosphere->first);
     if (settings != mPluginSettings->mAtmospheres.end()) {
       // If there are settings for this atmosphere, reconfigure it.
-      atmosphere->second->setStartExistence(mSolarSystem->getStartExistence(settings->first));
-      atmosphere->second->setEndExistence(mSolarSystem->getEndExistence(settings->first));
-      atmosphere->second->setRadii(mSolarSystem->getRadii(settings->first));
-      atmosphere->second->setCenterName(mSolarSystem->getCenter(settings->first));
-      atmosphere->second->setFrameName(mSolarSystem->getFrame(settings->first));
+      atmosphere->second->setExistence(mAllSettings->getExistence(settings->first));
+      atmosphere->second->setRadii(mAllSettings->getRadii(settings->first));
+      atmosphere->second->setCenterName(mAllSettings->getCenter(settings->first));
+      atmosphere->second->setFrameName(mAllSettings->getFrame(settings->first));
       atmosphere->second->configure(settings->second);
 
       ++atmosphere;
@@ -279,7 +278,7 @@ void Plugin::onLoad() {
       continue;
     }
 
-    auto atmosphere = std::make_shared<Atmosphere>(mPluginSettings, mSolarSystem, settings.first);
+    auto atmosphere = std::make_shared<Atmosphere>(mPluginSettings, mAllSettings, settings.first);
     atmosphere->getRenderer().setHDRBuffer(mGraphicsEngine->getHDRBuffer());
     atmosphere->configure(settings.second);
 

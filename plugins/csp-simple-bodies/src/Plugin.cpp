@@ -95,10 +95,9 @@ void Plugin::onLoad() {
     auto settings = mPluginSettings.mSimpleBodies.find(simpleBody->first);
     if (settings != mPluginSettings.mSimpleBodies.end()) {
       // If there are settings for this simpleBody, reconfigure it.
-      simpleBody->second->setStartExistence(mSolarSystem->getStartExistence(settings->first));
-      simpleBody->second->setEndExistence(mSolarSystem->getEndExistence(settings->first));
-      simpleBody->second->setRadii(mSolarSystem->getRadii(settings->first));
-      simpleBody->second->setFrameName(mSolarSystem->getFrame(settings->first));
+      simpleBody->second->setExistence(mAllSettings->getExistence(settings->first));
+      simpleBody->second->setRadii(mAllSettings->getRadii(settings->first));
+      simpleBody->second->setFrameName(mAllSettings->getFrame(settings->first));
       simpleBody->second->configure(settings->second);
 
       ++simpleBody;

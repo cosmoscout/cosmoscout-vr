@@ -102,10 +102,9 @@ void main()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 DeepSpaceDot::DeepSpaceDot(std::shared_ptr<Plugin::Settings> pluginSettings,
-    std::shared_ptr<cs::core::SolarSystem> solarSystem, std::string const& anchorName)
-    : cs::scene::CelestialObject(solarSystem->getCenter(anchorName),
-          solarSystem->getFrame(anchorName), glm::dvec3(0.0),
-          solarSystem->getStartExistence(anchorName), solarSystem->getEndExistence(anchorName))
+    std::shared_ptr<cs::core::Settings> const& settings, std::string const& anchorName)
+    : cs::scene::CelestialObject(settings->getCenter(anchorName), settings->getFrame(anchorName),
+          glm::dvec3(0.0), settings->getExistence(anchorName))
     , mPluginSettings(std::move(pluginSettings)) {
 
   mShader.InitVertexShaderFromString(QUAD_VERT);

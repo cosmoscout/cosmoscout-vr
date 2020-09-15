@@ -10,9 +10,9 @@ namespace cs::scene {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-CelestialBody::CelestialBody(std::string const& sCenterName, std::string const& sFrameName,
-    glm::dvec3 const& radii, double tStartExistence, double tEndExistence)
-    : CelestialObject(sCenterName, sFrameName, radii, tStartExistence, tEndExistence) {
+CelestialBody::CelestialBody(std::string const& centerName, std::string const& frameName,
+    glm::dvec3 const& radii, glm::dvec2 const& existence)
+    : CelestialObject(centerName, frameName, radii, existence) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

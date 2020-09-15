@@ -20,14 +20,13 @@ namespace csp::trajectories {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Trajectory::Trajectory(std::shared_ptr<Plugin::Settings> pluginSettings, std::string sTargetCenter,
-    std::string sTargetFrame, std::string const& sParentCenter, std::string const& sParentFrame,
-    double tStartExistence, double tEndExistence)
-    : cs::scene::CelestialObject(
-          sParentCenter, sParentFrame, glm::dvec3(0.0), tStartExistence, tEndExistence)
+Trajectory::Trajectory(std::shared_ptr<Plugin::Settings> pluginSettings, std::string targetCenter,
+    std::string targetFrame, std::string const& parentCenter, std::string const& parentFrame,
+    glm::dvec2 const& existence)
+    : cs::scene::CelestialObject(parentCenter, parentFrame, glm::dvec3(0.0), existence)
     , mPluginSettings(std::move(pluginSettings))
-    , mTargetCenter(std::move(sTargetCenter))
-    , mTargetFrame(std::move(sTargetFrame))
+    , mTargetCenter(std::move(targetCenter))
+    , mTargetFrame(std::move(targetFrame))
     , mStartIndex(0)
     , mLastUpdateTime(-1.0) {
 
@@ -95,7 +94,7 @@ void Trajectory::update(double tTime, cs::scene::CelestialObserver const& oObs) 
           mLastSampleTime += dSampleLength;
 
           try {
-            double     tSampleTime = glm::clamp(mLastSampleTime, mStartExistence, mEndExistence);
+            double     tSampleTime = glm::clamp(mLastSampleTime, mExistence[0], mExistence[1]);
             glm::dvec3 pos         = getRelativePosition(tSampleTime, target);
             mPoints[mStartIndex]   = glm::dvec4(pos.x, pos.y, pos.z, tSampleTime);
 
@@ -117,7 +116,7 @@ void Trajectory::update(double tTime, cs::scene::CelestialObserver const& oObs) 
 
           try {
             double tSampleTime =
-                glm::clamp(mLastSampleTime - dLengthSeconds, mStartExistence, mEndExistence);
+                glm::clamp(mLastSampleTime - dLengthSeconds, mExistence[0], mExistence[1]);
             glm::dvec3 pos = getRelativePosition(tSampleTime, target);
             mPoints[(mStartIndex - 1 + pSamples.get()) % pSamples.get()] =
                 glm::dvec4(pos.x, pos.y, pos.z, tSampleTime);

@@ -97,9 +97,8 @@ void Plugin::onLoad() {
     auto settings = mPluginSettings.mRings.find(ring->first);
     if (settings != mPluginSettings.mRings.end()) {
       // If there are settings for this ring, reconfigure it.
-      ring->second->setStartExistence(mSolarSystem->getStartExistence(settings->first));
-      ring->second->setEndExistence(mSolarSystem->getEndExistence(settings->first));
-      ring->second->setFrameName(mSolarSystem->getFrame(settings->first));
+      ring->second->setExistence(mAllSettings->getExistence(settings->first));
+      ring->second->setFrameName(mAllSettings->getFrame(settings->first));
       ring->second->configure(settings->second);
 
       ++ring;

@@ -20,13 +20,12 @@ namespace csp::atmospheres {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Atmosphere::Atmosphere(std::shared_ptr<Plugin::Settings> const& settings,
-    std::shared_ptr<cs::core::SolarSystem> solarSystem, std::string const& anchorName)
-    : cs::scene::CelestialObject(solarSystem->getCenter(anchorName),
-          solarSystem->getFrame(anchorName), solarSystem->getRadii(anchorName),
-          solarSystem->getStartExistence(anchorName), solarSystem->getEndExistence(anchorName))
-    , mRenderer(settings)
-    , mPluginSettings(settings) {
+Atmosphere::Atmosphere(std::shared_ptr<Plugin::Settings> const& pluginSettings,
+    std::shared_ptr<cs::core::Settings> const& settings, std::string const& anchorName)
+    : cs::scene::CelestialObject(settings->getCenter(anchorName), settings->getFrame(anchorName),
+          settings->getRadii(anchorName), settings->getExistence(anchorName))
+    , mRenderer(pluginSettings)
+    , mPluginSettings(pluginSettings) {
 
   mRenderer.setRadii(mRadii);
   mRenderer.setUseLinearDepthBuffer(true);

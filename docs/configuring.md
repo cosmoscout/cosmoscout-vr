@@ -106,13 +106,12 @@ Last but not least, the far clipping plane depends on the scene scale: Near clip
     "Moon": {
       "center": "Moon",
       "frame": "IAU_Moon",
-      "startExistence": "1950-01-02 00:00:00.000",
-      "endExistence": "2049-12-31 00:00:00.000"
+      "existence": ["1950-01-02 00:00:00.000", "2049-12-31 00:00:00.000"]
     },
     ...
   }
   ```
-  Now if you want to attach a simple body or a trajectory to this anchor, the configuration of the respective plugins will only refer to `"Moon"`. `"center"` and `"frame"` define the SPICE reference frame, `"startExistence"` and `"endExistence"` should match the data coverage of your SPICE kernels. Keep in mind, that the dates are given UTC, your SPICE kernel's coverage is however most likely given in TDB.
+  Now if you want to attach a simple body or a trajectory to this anchor, the configuration of the respective plugins will only refer to `"Moon"`. `"center"` and `"frame"` define the SPICE reference frame, `"existence"` should match at most the data coverage of your SPICE kernels. Keep in mind, that the dates are given UTC, your SPICE kernel's coverage is however most likely given in TDB.
 * **`"events"`:** This list may contain events which will be shown on the timeline. Take this as an example:
   ```javascript
   "events": [

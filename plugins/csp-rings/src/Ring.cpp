@@ -89,9 +89,8 @@ void main()
 
 Ring::Ring(std::shared_ptr<cs::core::Settings> settings,
     std::shared_ptr<cs::core::SolarSystem> solarSystem, std::string const& anchorName)
-    : cs::scene::CelestialObject(solarSystem->getCenter(anchorName),
-          solarSystem->getFrame(anchorName), glm::dvec3(0.0),
-          solarSystem->getStartExistence(anchorName), solarSystem->getEndExistence(anchorName))
+    : cs::scene::CelestialObject(settings->getCenter(anchorName), settings->getFrame(anchorName),
+          glm::dvec3(0.0), settings->getExistence(anchorName))
     , mSettings(std::move(settings))
     , mSolarSystem(std::move(solarSystem)) {
 

@@ -170,8 +170,7 @@ void Plugin::onLoad() {
 
     // Add the SunFlare.
     if (settings.second.mDrawFlare.value_or(false)) {
-      auto flare =
-          std::make_shared<SunFlare>(mAllSettings, mPluginSettings, mSolarSystem, settings.first);
+      auto flare = std::make_shared<SunFlare>(mAllSettings, mPluginSettings, settings.first);
       mSolarSystem->registerAnchor(flare);
 
       flare->pColor =
@@ -182,7 +181,7 @@ void Plugin::onLoad() {
 
     // Add the DeepSpaceDot.
     if (settings.second.mDrawDot.value_or(false)) {
-      auto dot = std::make_shared<DeepSpaceDot>(mPluginSettings, mSolarSystem, settings.first);
+      auto dot = std::make_shared<DeepSpaceDot>(mPluginSettings, mAllSettings, settings.first);
       mSolarSystem->registerAnchor(dot);
 
       dot->pColor =
@@ -206,15 +205,15 @@ void Plugin::onLoad() {
       auto targetAnchor = settings->first;
       auto parentAnchor = settings->second.mTrail->mParent;
 
-      auto [parentStartExistence, parentEndExistence] = mSolarSystem->getExistence(parentAnchor);
-      auto [targetStartExistence, targetEndExistence] = mSolarSystem->getExistence(targetAnchor);
+      auto parentExistence = mAllSettings->getExistence(parentAnchor);
+      auto targetExistence = mAllSettings->getExistence(targetAnchor);
 
-      trajectory->second->setStartExistence(std::max(parentStartExistence, targetStartExistence));
-      trajectory->second->setEndExistence(std::min(parentEndExistence, targetEndExistence));
-      trajectory->second->setCenterName(mSolarSystem->getCenter(parentAnchor));
-      trajectory->second->setFrameName(mSolarSystem->getFrame(parentAnchor));
-      trajectory->second->setTargetCenterName(mSolarSystem->getCenter(targetAnchor));
-      trajectory->second->setTargetFrameName(mSolarSystem->getFrame(targetAnchor));
+      trajectory->second->setExistence(glm::dvec2(std::max(parentExistence[0], targetExistence[0]),
+          std::min(parentExistence[1], targetExistence[1])));
+      trajectory->second->setCenterName(mAllSettings->getCenter(parentAnchor));
+      trajectory->second->setFrameName(mAllSettings->getFrame(parentAnchor));
+      trajectory->second->setTargetCenterName(mAllSettings->getCenter(targetAnchor));
+      trajectory->second->setTargetFrameName(mAllSettings->getFrame(targetAnchor));
       trajectory->second->pSamples = settings->second.mTrail->mSamples;
       trajectory->second->pLength  = settings->second.mTrail->mLength;
       trajectory->second->pColor   = settings->second.mColor;
@@ -239,14 +238,14 @@ void Plugin::onLoad() {
       auto targetAnchor = settings.first;
       auto parentAnchor = settings.second.mTrail->mParent;
 
-      auto [parentStartExistence, parentEndExistence] = mSolarSystem->getExistence(parentAnchor);
-      auto [targetStartExistence, targetEndExistence] = mSolarSystem->getExistence(targetAnchor);
+      auto parentExistence = mAllSettings->getExistence(parentAnchor);
+      auto targetExistence = mAllSettings->getExistence(targetAnchor);
 
       auto trajectory = std::make_shared<Trajectory>(mPluginSettings,
-          mSolarSystem->getCenter(targetAnchor), mSolarSystem->getFrame(targetAnchor),
-          mSolarSystem->getCenter(parentAnchor), mSolarSystem->getFrame(parentAnchor),
-          std::max(parentStartExistence, targetStartExistence),
-          std::min(parentEndExistence, targetEndExistence));
+          mAllSettings->getCenter(targetAnchor), mAllSettings->getFrame(targetAnchor),
+          mAllSettings->getCenter(parentAnchor), mAllSettings->getFrame(parentAnchor),
+          glm::dvec2(std::max(parentExistence[0], targetExistence[0]),
+              std::min(parentExistence[1], targetExistence[1])));
 
       trajectory->pSamples = settings.second.mTrail->mSamples;
       trajectory->pLength  = settings.second.mTrail->mLength;

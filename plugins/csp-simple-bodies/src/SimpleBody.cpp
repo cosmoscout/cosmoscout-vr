@@ -130,9 +130,8 @@ void main()
 
 SimpleBody::SimpleBody(std::shared_ptr<cs::core::Settings> settings,
     std::shared_ptr<cs::core::SolarSystem> solarSystem, std::string const& anchorName)
-    : cs::scene::CelestialBody(solarSystem->getCenter(anchorName),
-          solarSystem->getFrame(anchorName), solarSystem->getRadii(anchorName),
-          solarSystem->getStartExistence(anchorName), solarSystem->getEndExistence(anchorName))
+    : cs::scene::CelestialBody(settings->getCenter(anchorName), settings->getFrame(anchorName),
+          settings->getRadii(anchorName), settings->getExistence(anchorName))
     , mSettings(std::move(settings))
     , mSolarSystem(std::move(solarSystem)) {
 
