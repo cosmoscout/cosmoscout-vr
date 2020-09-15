@@ -103,9 +103,10 @@ void main()
 
 DeepSpaceDot::DeepSpaceDot(std::shared_ptr<Plugin::Settings> pluginSettings,
     std::shared_ptr<cs::core::Settings> const& settings, std::string const& anchorName)
-    : cs::scene::CelestialObject(settings->getCenter(anchorName), settings->getFrame(anchorName),
-          glm::dvec3(0.0), settings->getExistence(anchorName))
-    , mPluginSettings(std::move(pluginSettings)) {
+    : mPluginSettings(std::move(pluginSettings)) {
+
+  settings->initAnchor(*this, anchorName);
+  setRadii(glm::dvec3(0.0));
 
   mShader.InitVertexShaderFromString(QUAD_VERT);
   mShader.InitFragmentShaderFromString(QUAD_FRAG);

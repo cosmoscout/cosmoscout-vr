@@ -37,7 +37,10 @@ SolarSystem::SolarSystem(std::shared_ptr<Settings> settings,
     , mFrameTimings(std::move(frameTimings))
     , mGraphicsEngine(std::move(graphicsEngine))
     , mTimeControl(std::move(timeControl))
-    , mSun(std::make_shared<scene::CelestialObject>("Sun", "IAU_Sun")) {
+    , mSun(std::make_shared<scene::CelestialObject>()) {
+
+  mSun->setCenterName("Sun");
+  mSun->setFrameName("IAU_Sun");
 
   // Tell the user what's going on.
   logger().debug("Creating SolarSystem.");
@@ -236,12 +239,12 @@ void SolarSystem::updateSceneScale() {
   for (auto const& object : getBodies()) {
 
     // Skip non-existant objects.
-    if (!object->getIsInExistence()) {
+    if (!object->getIsInExistence() || !object->pTrackable.get()) {
       continue;
     }
 
     // Skip objects with an unkown radius.
-    auto radii = object->getRadii();
+    auto radii = object->getRadii() * object->getAnchorScale();
     if (radii.x <= 0.0 || radii.y <= 0.0 || radii.z <= 0.0) {
       continue;
     }
@@ -250,7 +253,8 @@ void SolarSystem::updateSceneScale() {
     // elevation in this check.
     try {
       auto vObserverPos =
-          object->getRelativePosition(mTimeControl->pSimulationTime.get(), mObserver);
+          object->getRelativePosition(mTimeControl->pSimulationTime.get(), mObserver) *
+          object->getAnchorScale();
       double dDistance = glm::length(vObserverPos) - radii[0];
 
       if (dDistance < dClosestDistance) {
@@ -268,7 +272,7 @@ void SolarSystem::updateSceneScale() {
 
     // First we calculate the *real* world-space distance to the planet (incorporating surface
     // elevation).
-    auto radii = closestBody->getRadii();
+    auto radii = closestBody->getRadii() * closestBody->getAnchorScale();
     auto lngLatHeight =
         cs::utils::convert::cartesianToLngLatHeight(vClosestPlanetObserverPosition, radii);
     double dRealDistance = lngLatHeight.z - closestBody->getHeight(lngLatHeight.xy()) *
@@ -324,19 +328,20 @@ void SolarSystem::updateObserverFrame() {
 
   for (auto const& object : getBodies()) {
     // Skip non-existant objects.
-    if (!object->getIsInExistence()) {
+    if (!object->getIsInExistence() || !object->pTrackable.get()) {
       continue;
     }
 
     // Skip objects with an unkown radius.
-    auto radii = object->getRadii();
+    auto radii = object->getRadii() * object->getAnchorScale();
     if (radii.x <= 0.0 || radii.y <= 0.0 || radii.z <= 0.0) {
       continue;
     }
 
     try {
       auto vObserverPos =
-          object->getRelativePosition(mTimeControl->pSimulationTime.get(), mObserver);
+          object->getRelativePosition(mTimeControl->pSimulationTime.get(), mObserver) *
+          object->getAnchorScale();
       double dDistance = glm::length(vObserverPos) - radii[0];
 
       // The weigh depends on the object size and it's distance to the observer.

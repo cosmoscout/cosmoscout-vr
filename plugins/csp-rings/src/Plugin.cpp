@@ -97,8 +97,7 @@ void Plugin::onLoad() {
     auto settings = mPluginSettings.mRings.find(ring->first);
     if (settings != mPluginSettings.mRings.end()) {
       // If there are settings for this ring, reconfigure it.
-      ring->second->setExistence(mAllSettings->getExistence(settings->first));
-      ring->second->setFrameName(mAllSettings->getFrame(settings->first));
+      mAllSettings->initAnchor(*ring->second, settings->first);
       ring->second->configure(settings->second);
 
       ++ring;

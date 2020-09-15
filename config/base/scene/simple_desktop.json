@@ -487,6 +487,7 @@
             1,
             1
           ],
+          "drawDot": true,
           "drawFlare": true
         },
         "Mercury": {

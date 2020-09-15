@@ -149,10 +149,10 @@ struct ProfileRadarData {
 Sharad::Sharad(std::shared_ptr<cs::core::Settings> settings,
     std::shared_ptr<cs::core::SolarSystem> solarSystem, std::string const& anchorName,
     std::string const& sTiffFile, std::string const& sTabFile)
-    : cs::scene::CelestialObject(settings->getCenter(anchorName), settings->getFrame(anchorName),
-          settings->getRadii(anchorName), settings->getExistence(anchorName))
-    , mSettings(std::move(settings))
+    : mSettings(std::move(settings))
     , mTexture(cs::graphics::TextureLoader::loadFromFile(sTiffFile)) {
+
+  mSettings->initAnchor(*this, anchorName);
 
   if (mInstanceCount == 0) {
     mDepthBuffer = std::make_unique<VistaTexture>(GL_TEXTURE_RECTANGLE);

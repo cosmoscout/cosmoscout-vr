@@ -30,30 +30,14 @@ namespace csp::satellites {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void from_json(nlohmann::json const& j, Plugin::Settings::Transformation& o) {
-  cs::core::Settings::deserialize(j, "translation", o.mTranslation);
-  cs::core::Settings::deserialize(j, "rotation", o.mRotation);
-  cs::core::Settings::deserialize(j, "scale", o.mScale);
-}
-
-void to_json(nlohmann::json& j, Plugin::Settings::Transformation const& o) {
-  cs::core::Settings::serialize(j, "translation", o.mTranslation);
-  cs::core::Settings::serialize(j, "rotation", o.mRotation);
-  cs::core::Settings::serialize(j, "scale", o.mScale);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 void from_json(nlohmann::json const& j, Plugin::Settings::Satellite& o) {
   cs::core::Settings::deserialize(j, "modelFile", o.mModelFile);
   cs::core::Settings::deserialize(j, "environmentMap", o.mEnvironmentMap);
-  cs::core::Settings::deserialize(j, "transformation", o.mTransformation);
 }
 
 void to_json(nlohmann::json& j, Plugin::Settings::Satellite const& o) {
   cs::core::Settings::serialize(j, "modelFile", o.mModelFile);
   cs::core::Settings::serialize(j, "environmentMap", o.mEnvironmentMap);
-  cs::core::Settings::serialize(j, "transformation", o.mTransformation);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

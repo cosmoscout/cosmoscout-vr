@@ -491,10 +491,7 @@ void Plugin::onLoad() {
     auto settings = mPluginSettings->mBodies.find(lodBody->first);
     if (settings != mPluginSettings->mBodies.end()) {
       // If there are settings for this lodBody, reconfigure it.
-      lodBody->second->setExistence(mAllSettings->getExistence(settings->first));
-      lodBody->second->setRadii(mAllSettings->getRadii(settings->first));
-      lodBody->second->setCenterName(mAllSettings->getCenter(settings->first));
-      lodBody->second->setFrameName(mAllSettings->getFrame(settings->first));
+      mAllSettings->initAnchor(*lodBody->second, settings->first);
 
       setImageSource(lodBody->second, settings->second.mActiveImgDataset);
       setElevationSource(lodBody->second, settings->second.mActiveDemDataset);

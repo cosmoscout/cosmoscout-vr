@@ -205,15 +205,15 @@ void Plugin::onLoad() {
       auto targetAnchor = settings->first;
       auto parentAnchor = settings->second.mTrail->mParent;
 
-      auto parentExistence = mAllSettings->getExistence(parentAnchor);
-      auto targetExistence = mAllSettings->getExistence(targetAnchor);
+      auto parentExistence = mAllSettings->getAnchorExistence(parentAnchor);
+      auto targetExistence = mAllSettings->getAnchorExistence(targetAnchor);
 
       trajectory->second->setExistence(glm::dvec2(std::max(parentExistence[0], targetExistence[0]),
           std::min(parentExistence[1], targetExistence[1])));
-      trajectory->second->setCenterName(mAllSettings->getCenter(parentAnchor));
-      trajectory->second->setFrameName(mAllSettings->getFrame(parentAnchor));
-      trajectory->second->setTargetCenterName(mAllSettings->getCenter(targetAnchor));
-      trajectory->second->setTargetFrameName(mAllSettings->getFrame(targetAnchor));
+      trajectory->second->setCenterName(mAllSettings->getAnchorCenter(parentAnchor));
+      trajectory->second->setFrameName(mAllSettings->getAnchorFrame(parentAnchor));
+      trajectory->second->setTargetCenterName(mAllSettings->getAnchorCenter(targetAnchor));
+      trajectory->second->setTargetFrameName(mAllSettings->getAnchorFrame(targetAnchor));
       trajectory->second->pSamples = settings->second.mTrail->mSamples;
       trajectory->second->pLength  = settings->second.mTrail->mLength;
       trajectory->second->pColor   = settings->second.mColor;
@@ -238,12 +238,12 @@ void Plugin::onLoad() {
       auto targetAnchor = settings.first;
       auto parentAnchor = settings.second.mTrail->mParent;
 
-      auto parentExistence = mAllSettings->getExistence(parentAnchor);
-      auto targetExistence = mAllSettings->getExistence(targetAnchor);
+      auto parentExistence = mAllSettings->getAnchorExistence(parentAnchor);
+      auto targetExistence = mAllSettings->getAnchorExistence(targetAnchor);
 
       auto trajectory = std::make_shared<Trajectory>(mPluginSettings,
-          mAllSettings->getCenter(targetAnchor), mAllSettings->getFrame(targetAnchor),
-          mAllSettings->getCenter(parentAnchor), mAllSettings->getFrame(parentAnchor),
+          mAllSettings->getAnchorCenter(targetAnchor), mAllSettings->getAnchorFrame(targetAnchor),
+          mAllSettings->getAnchorCenter(parentAnchor), mAllSettings->getAnchorFrame(parentAnchor),
           glm::dvec2(std::max(parentExistence[0], targetExistence[0]),
               std::min(parentExistence[1], targetExistence[1])));
 

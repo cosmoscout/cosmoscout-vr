@@ -130,10 +130,10 @@ void main()
 
 SimpleBody::SimpleBody(std::shared_ptr<cs::core::Settings> settings,
     std::shared_ptr<cs::core::SolarSystem> solarSystem, std::string const& anchorName)
-    : cs::scene::CelestialBody(settings->getCenter(anchorName), settings->getFrame(anchorName),
-          settings->getRadii(anchorName), settings->getExistence(anchorName))
-    , mSettings(std::move(settings))
+    : mSettings(std::move(settings))
     , mSolarSystem(std::move(solarSystem)) {
+
+  mSettings->initAnchor(*this, anchorName);
 
   // For rendering the sphere, we create a 2D-grid which is warped into a sphere in the vertex
   // shader. The vertex positions are directly used as texture coordinates.

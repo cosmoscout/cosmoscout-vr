@@ -23,12 +23,15 @@ namespace csp::trajectories {
 Trajectory::Trajectory(std::shared_ptr<Plugin::Settings> pluginSettings, std::string targetCenter,
     std::string targetFrame, std::string const& parentCenter, std::string const& parentFrame,
     glm::dvec2 const& existence)
-    : cs::scene::CelestialObject(parentCenter, parentFrame, glm::dvec3(0.0), existence)
-    , mPluginSettings(std::move(pluginSettings))
+    : mPluginSettings(std::move(pluginSettings))
     , mTargetCenter(std::move(targetCenter))
     , mTargetFrame(std::move(targetFrame))
     , mStartIndex(0)
     , mLastUpdateTime(-1.0) {
+
+  setCenterName(parentCenter);
+  setFrameName(parentFrame);
+  setExistence(existence);
 
   pLength.connect([this](double val) {
     mPoints.clear();

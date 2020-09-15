@@ -22,10 +22,10 @@ namespace csp::atmospheres {
 
 Atmosphere::Atmosphere(std::shared_ptr<Plugin::Settings> const& pluginSettings,
     std::shared_ptr<cs::core::Settings> const& settings, std::string const& anchorName)
-    : cs::scene::CelestialObject(settings->getCenter(anchorName), settings->getFrame(anchorName),
-          settings->getRadii(anchorName), settings->getExistence(anchorName))
-    , mRenderer(pluginSettings)
+    : mRenderer(pluginSettings)
     , mPluginSettings(pluginSettings) {
+
+  settings->initAnchor(*this, anchorName);
 
   mRenderer.setRadii(mRadii);
   mRenderer.setUseLinearDepthBuffer(true);

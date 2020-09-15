@@ -110,10 +110,12 @@ void main()
 
 SunFlare::SunFlare(std::shared_ptr<cs::core::Settings> settings,
     std::shared_ptr<Plugin::Settings> pluginSettings, std::string const& anchorName)
-    : cs::scene::CelestialObject(settings->getCenter(anchorName), settings->getFrame(anchorName),
-          settings->getRadii(anchorName), settings->getExistence(anchorName))
-    , mSettings(std::move(settings))
+    : mSettings(std::move(settings))
     , mPluginSettings(std::move(pluginSettings)) {
+
+  mSettings->initAnchor(*this, anchorName);
+  setRadii(glm::dvec3(0.0));
+
   mShader.InitVertexShaderFromString(QUAD_VERT);
   mShader.InitFragmentShaderFromString(QUAD_FRAG);
   mShader.Link();

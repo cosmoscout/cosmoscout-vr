@@ -14,16 +14,6 @@ namespace cs::scene {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-CelestialObject::CelestialObject(std::string const& centerName, std::string const& frameName,
-    glm::dvec3 radii, glm::dvec2 existence)
-    : CelestialAnchor(centerName, frameName)
-    , matWorldTransform(1.0)
-    , mRadii(std::move(radii))
-    , mExistence(std::move(existence)) {
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 glm::dmat4 const& CelestialObject::getWorldTransform() const {
   return matWorldTransform;
 }

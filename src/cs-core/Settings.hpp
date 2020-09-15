@@ -76,6 +76,12 @@ struct adl_serializer<cs::utils::Property<T>> {
 
 } // namespace nlohmann
 
+namespace cs::scene {
+class CelestialAnchor;
+class CelestialObject;
+class CelestialBody;
+} // namespace cs::scene
+
 namespace cs::core {
 
 /// Most of CosmoScout VR's configuration is done with one huge JSON file. This contains some global
@@ -153,34 +159,70 @@ class CS_CORE_EXPORT Settings {
     std::string mCenter;
     std::string mFrame;
 
-    // This should match the data coverage of your SPICE kernels. These should be given in UTC (like
-    // this 1950-01-02 00:00:00.000). Beware that tools like brief and ckbrief give coverage
-    // information in TDB which differs from UTC by several seconds.
+    /// This should match the data coverage of your SPICE kernels. These should be given in UTC
+    /// (like this 1950-01-02 00:00:00.000). Beware that tools like brief and ckbrief give coverage
+    /// information in TDB which differs from UTC by several seconds.
     std::array<std::string, 2> mExistence;
 
-    // SolarSystem::getRadii() will return this value if it is given. Else it will return the radii
-    // as provided by SPICE.
+    /// SolarSystem::getRadii() will return this value if it is given. Else it will return the radii
+    /// as provided by SPICE.
     std::optional<glm::dvec3> mRadii;
+
+    /// Additional translation in meters, relative to center in frame coordinates additional scaling
+    /// and rotation is applied afterwards and will not change the position relative to the center.
+    std::optional<glm::dvec3> mPosition;
+
+    /// Additional rotation around the point center + position in frame coordinates.
+    std::optional<glm::dquat> mRotation;
+
+    /// Additional uniform scaling around the point center + position.
+    std::optional<double> mScale;
+
+    /// If set to false, the SolarSystem will not consider CelestialBodies created for this anchor
+    /// for the computation of the active body.
+    utils::DefaultProperty<bool> mTrackable{true};
   };
 
   std::map<std::string, Anchor> mAnchors;
 
+  /// The convenience methods below initialize all members of the given anchor from the values of
+  /// the settings. All methods may throw a std::runtime_error if the given anchor name is not
+  /// present.
+
+  void initAnchor(scene::CelestialAnchor& anchor, std::string const& anchorName) const;
+  void initAnchor(scene::CelestialObject& object, std::string const& anchorName) const;
+  void initAnchor(scene::CelestialBody& body, std::string const& anchorName) const;
+
   /// The convenience methods below directly return the corresponding values from the mAnchors map.
   /// All methods may throw a std::runtime_error if the given anchor name is not present.
 
-  /// Reads the optional mRadii member of the configured anchors. If mRadii is not given,
-  /// SolarSystem::getRadii() is used to retrieve the values.
-  glm::dvec3 getRadii(std::string const& anchorName) const;
-
   // Returns the SPICE center name of the anchor with the given name.
-  std::string getCenter(std::string const& anchorName) const;
+  std::string getAnchorCenter(std::string const& anchorName) const;
 
   // Returns the SPICE frame name of the anchor with the given name.
-  std::string getFrame(std::string const& anchorName) const;
+  std::string getAnchorFrame(std::string const& anchorName) const;
 
   /// These convert the two existence strings of the configured anchor to SPICE-compatible TDB
   /// doubles.
-  glm::dvec2 getExistence(std::string const& anchorName) const;
+  glm::dvec2 getAnchorExistence(std::string const& anchorName) const;
+
+  /// Reads the optional mRadii member of the configured anchor. If mRadii is not given,
+  /// SolarSystem::getRadii() is used to retrieve the values.
+  glm::dvec3 getAnchorRadii(std::string const& anchorName) const;
+
+  /// Reads the optional additional translation of the given anchor. glm::dvec3(0.0) is returned if
+  /// no value is given.
+  glm::dvec3 getAnchorPosition(std::string const& anchorName) const;
+
+  /// Reads the optional additional rotation of the given anchor. glm::dquat(1.0, 0.0, 0.0, 0.0) is
+  /// returned if no value is given.
+  glm::dquat getAnchorRotation(std::string const& anchorName) const;
+
+  /// Reads the optional scaling of the given anchor. 1.0 is returned if no value is given.
+  double getAnchorScale(std::string const& anchorName) const;
+
+  /// Reads the optional tracking value of the given anchor. True is returned if no value is given.
+  bool getAnchorIsTrackable(std::string const& anchorName) const;
 
   /// The values of the observer are updated by the SolarSystem once each frame. For all others,
   /// they should be considered readonly. If you want to modify the transformation of the virtual

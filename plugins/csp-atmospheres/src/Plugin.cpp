@@ -258,10 +258,7 @@ void Plugin::onLoad() {
     auto settings = mPluginSettings->mAtmospheres.find(atmosphere->first);
     if (settings != mPluginSettings->mAtmospheres.end()) {
       // If there are settings for this atmosphere, reconfigure it.
-      atmosphere->second->setExistence(mAllSettings->getExistence(settings->first));
-      atmosphere->second->setRadii(mAllSettings->getRadii(settings->first));
-      atmosphere->second->setCenterName(mAllSettings->getCenter(settings->first));
-      atmosphere->second->setFrameName(mAllSettings->getFrame(settings->first));
+      mAllSettings->initAnchor(*atmosphere->second, settings->first);
       atmosphere->second->configure(settings->second);
 
       ++atmosphere;

@@ -29,15 +29,15 @@ LodBody::LodBody(std::shared_ptr<cs::core::Settings> const& settings,
     std::shared_ptr<Plugin::Settings> const&                pluginSettings,
     std::shared_ptr<cs::core::GuiManager> const&            pGuiManager,
     std::shared_ptr<GLResources> const& glResources, std::string const& anchorName)
-    : cs::scene::CelestialBody(settings->getCenter(anchorName), settings->getFrame(anchorName),
-          settings->getRadii(anchorName), settings->getExistence(anchorName))
-    , mSettings(settings)
+    : mSettings(settings)
     , mGraphicsEngine(std::move(graphicsEngine))
     , mSolarSystem(std::move(solarSystem))
     , mPluginSettings(pluginSettings)
     , mGuiManager(pGuiManager)
     , mPlanet(glResources)
     , mShader(settings, pluginSettings, pGuiManager) {
+
+  mSettings->initAnchor(*this, anchorName);
 
   pVisible.connect([this](bool val) {
     if (val) {

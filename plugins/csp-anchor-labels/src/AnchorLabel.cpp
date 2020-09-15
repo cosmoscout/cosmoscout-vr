@@ -51,6 +51,7 @@ AnchorLabel::AnchorLabel(cs::scene::CelestialBody const* const body,
 
   mAnchor = std::make_shared<cs::scene::CelestialAnchorNode>(sceneGraph->GetRoot(),
       sceneGraph->GetNodeBridge(), "", mBody->getCenterName(), mBody->getFrameName());
+  mAnchor->setAnchorPosition(mBody->getAnchorPosition());
 
   mGuiTransform.reset(sceneGraph->NewTransformNode(mAnchor.get()));
   mGuiTransform->SetScale(1.0F,

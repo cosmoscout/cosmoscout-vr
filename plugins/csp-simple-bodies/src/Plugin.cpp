@@ -95,9 +95,7 @@ void Plugin::onLoad() {
     auto settings = mPluginSettings.mSimpleBodies.find(simpleBody->first);
     if (settings != mPluginSettings.mSimpleBodies.end()) {
       // If there are settings for this simpleBody, reconfigure it.
-      simpleBody->second->setExistence(mAllSettings->getExistence(settings->first));
-      simpleBody->second->setRadii(mAllSettings->getRadii(settings->first));
-      simpleBody->second->setFrameName(mAllSettings->getFrame(settings->first));
+      mAllSettings->initAnchor(*simpleBody->second, settings->first);
       simpleBody->second->configure(settings->second);
 
       ++simpleBody;

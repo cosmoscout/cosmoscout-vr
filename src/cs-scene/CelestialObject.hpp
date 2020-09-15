@@ -25,19 +25,7 @@ class CS_SCENE_EXPORT CelestialObject : public CelestialAnchor {
   /// This will be set during update() according to the given radii consider this to be read-only.
   utils::Property<bool> pVisible = false;
 
-  /// Creates a new CelestialObject.
-  ///
-  /// @param centerName  The SPICE name of the object.
-  /// @param frameName   The SPICE name of the reference frame.
-  /// @param radii       These will be used for visibility culling. If set to glm::dvec3(0.0),
-  ///                    pVisible will not change during update().
-  /// @param existence   The time range in Barycentric Dynamical Time in which the object existed.
-  ///                    This should match the time coverage of the loaded SPICE kernels.
-  CelestialObject(std::string const& centerName, std::string const& frameName,
-      glm::dvec3 radii     = glm::dvec3(0.0),
-      glm::dvec2 existence = glm::dvec2(
-          std::numeric_limits<double>::lowest(), std::numeric_limits<double>::max()));
-
+  CelestialObject()                             = default;
   CelestialObject(CelestialObject const& other) = default;
   CelestialObject(CelestialObject&& other)      = default;
 
@@ -67,9 +55,10 @@ class CS_SCENE_EXPORT CelestialObject : public CelestialAnchor {
   virtual bool getIsInExistence() const;
 
  protected:
-  glm::dmat4 matWorldTransform;
-  glm::dvec3 mRadii;
-  glm::dvec2 mExistence;
+  glm::dmat4 matWorldTransform = glm::dmat4(1.0);
+  glm::dvec3 mRadii            = glm::dvec3(0.0);
+  glm::dvec2 mExistence =
+      glm::dvec2(std::numeric_limits<double>::lowest(), std::numeric_limits<double>::max());
 
   bool mIsInExistence = false;
 };

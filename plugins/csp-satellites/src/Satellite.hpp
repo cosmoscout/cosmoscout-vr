@@ -58,7 +58,6 @@ class Satellite : public cs::scene::CelestialBody {
   std::shared_ptr<cs::core::Settings>               mSettings;
   std::shared_ptr<cs::core::SolarSystem>            mSolarSystem;
   std::unique_ptr<VistaTransformNode>               mAnchor;
-  std::unique_ptr<VistaTransformNode>               mTransform;
   std::unique_ptr<cs::graphics::GltfLoader>         mModel;
   double                                            mSize;
   std::shared_ptr<const cs::scene::CelestialObject> mSun;
