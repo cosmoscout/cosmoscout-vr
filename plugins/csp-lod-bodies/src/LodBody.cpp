@@ -27,18 +27,18 @@ LodBody::LodBody(std::shared_ptr<cs::core::Settings> const& settings,
     std::shared_ptr<cs::core::GraphicsEngine>               graphicsEngine,
     std::shared_ptr<cs::core::SolarSystem>                  solarSystem,
     std::shared_ptr<Plugin::Settings> const&                pluginSettings,
-    std::shared_ptr<cs::core::GuiManager> const& pGuiManager, std::string const& sCenterName,
-    std::string const& sFrameName, std::shared_ptr<GLResources> const& glResources,
-    double tStartExistence, double tEndExistence)
-    : cs::scene::CelestialBody(sCenterName, sFrameName, tStartExistence, tEndExistence)
+    std::shared_ptr<cs::core::GuiManager> const&            pGuiManager,
+    std::shared_ptr<GLResources> const& glResources, std::string const& anchorName)
+    : cs::scene::CelestialBody(solarSystem->getCenter(anchorName),
+          solarSystem->getFrame(anchorName), solarSystem->getRadii(anchorName),
+          solarSystem->getStartExistence(anchorName), solarSystem->getEndExistence(anchorName))
     , mSettings(settings)
     , mGraphicsEngine(std::move(graphicsEngine))
     , mSolarSystem(std::move(solarSystem))
     , mPluginSettings(pluginSettings)
     , mGuiManager(pGuiManager)
     , mPlanet(glResources)
-    , mShader(settings, pluginSettings, pGuiManager)
-    , mRadii(cs::core::SolarSystem::getRadii(sCenterName)) {
+    , mShader(settings, pluginSettings, pGuiManager) {
 
   pVisible.connect([this](bool val) {
     if (val) {
@@ -52,7 +52,6 @@ LodBody::LodBody(std::shared_ptr<cs::core::Settings> const& settings,
 
   // per-planet settings -----------------------------------------------------
   mPlanet.setRadii(mRadii);
-  pVisibleRadius = mRadii[0];
 
   // scene-wide settings -----------------------------------------------------
   mHeightScaleConnection = mSettings->mGraphics.pHeightScale.connectAndTouch(
@@ -111,12 +110,6 @@ bool LodBody::getIntersection(
 
 double LodBody::getHeight(glm::dvec2 lngLat) const {
   return utils::getHeight(&mPlanet, HeightSamplePrecision::eActual, lngLat);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-glm::dvec3 LodBody::getRadii() const {
-  return mRadii;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

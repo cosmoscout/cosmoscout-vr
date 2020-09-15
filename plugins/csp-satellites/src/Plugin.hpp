@@ -39,7 +39,6 @@ class Plugin : public cs::core::PluginBase {
                                            ///< allowed formats.
       std::string mEnvironmentMap;         ///< Path to the environment map. ".dds",
                                            ///< ".ktx" and ".kmg" are allowed formats.
-      double                        mSize; ///< The size of the satellite in meters.
       std::optional<Transformation> mTransformation;
     };
 

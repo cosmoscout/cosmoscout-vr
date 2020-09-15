@@ -21,6 +21,7 @@ namespace csp::sharad {
 class Plugin : public cs::core::PluginBase {
  public:
   struct Settings {
+    std::string                      mAnchor;
     cs::utils::Property<std::string> mFilePath;
     cs::utils::DefaultProperty<bool> mEnabled{false};
   };

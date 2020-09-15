@@ -23,20 +23,17 @@ namespace csp::satellites {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Satellite::Satellite(Plugin::Settings::Satellite const& config, std::string const& sCenterName,
-    std::string const& sFrameName, double tStartExistence, double tEndExistence,
+Satellite::Satellite(Plugin::Settings::Satellite const& config, std::string const& anchorName,
     VistaSceneGraph* sceneGraph, std::shared_ptr<cs::core::Settings> settings,
     std::shared_ptr<cs::core::SolarSystem> solarSystem)
-    : cs::scene::CelestialBody(sCenterName, sFrameName, tStartExistence, tEndExistence)
+    : cs::scene::CelestialBody(solarSystem->getCenter(anchorName),
+          solarSystem->getFrame(anchorName), solarSystem->getRadii(anchorName),
+          solarSystem->getStartExistence(anchorName), solarSystem->getEndExistence(anchorName))
     , mSceneGraph(sceneGraph)
     , mSettings(std::move(settings))
     , mSolarSystem(std::move(solarSystem))
     , mModel(std::make_unique<cs::graphics::GltfLoader>(
-          config.mModelFile, config.mEnvironmentMap, true))
-    , mSize(config.mSize) {
-
-  // TODO: make configurable
-  pVisibleRadius = 10000;
+          config.mModelFile, config.mEnvironmentMap, true)) {
 
   mModel->setLightIntensity(15.0);
   mModel->setIBLIntensity(1.5);
@@ -84,12 +81,6 @@ bool Satellite::getIntersection(
 
 double Satellite::getHeight(glm::dvec2 /*lngLat*/) const {
   return 0;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-glm::dvec3 Satellite::getRadii() const {
-  return glm::dvec3(mSize);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

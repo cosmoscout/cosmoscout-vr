@@ -22,25 +22,23 @@ namespace cs::scene {
 /// throughout SPICE.
 class CS_SCENE_EXPORT CelestialObject : public CelestialAnchor {
  public:
-  /// This will be set during Update() according to the given pVisibleRadius consider this to be
-  /// read-only.
+  /// This will be set during update() according to the given radii consider this to be read-only.
   utils::Property<bool> pVisible = false;
-
-  /// This radius in meters will serve as a basis for visibility calculation if set to a value <= 0,
-  /// pVisible will not change during Update().
-  utils::Property<double> pVisibleRadius = 1.0;
 
   /// Creates a new CelestialObject.
   ///
   /// @param sCenterName      The SPICE name of the object.
   /// @param sFrameName       The SPICE name of the reference frame.
+  /// @param radii            These will be used for visibility culling. If set to glm::dvec3(0.0),
+  ///                         pVisible will not change during update().
   /// @param tStartExistence  The point in Barycentric Dynamical Time in which the object started
   ///                         existing.
   /// @param tEndExistence    The point in Barycentric Dynamical Time in which the object ceased
   ///                         existing.
   CelestialObject(std::string const& sCenterName, std::string const& sFrameName,
-      double tStartExistence = std::numeric_limits<double>::lowest(),
-      double tEndExistence   = std::numeric_limits<double>::max());
+      glm::dvec3 radii           = glm::dvec3(0.0),
+      double     tStartExistence = std::numeric_limits<double>::lowest(),
+      double     tEndExistence   = std::numeric_limits<double>::max());
 
   CelestialObject(CelestialObject const& other) = default;
   CelestialObject(CelestialObject&& other)      = default;
@@ -63,6 +61,13 @@ class CS_SCENE_EXPORT CelestialObject : public CelestialAnchor {
   double getEndExistence() const;
   void   setEndExistence(double value);
 
+  /// The radii of the CelestialBody in meters. This will serve as a basis for visibility
+  /// calculation if set to glm::dev3(0.0), pVisible will not change during update().
+  glm::dvec3 const& getRadii() const;
+  void              setRadii(glm::dvec3 const& value);
+
+  /// This is called once a frame by the SolarSystem if this CelestialObject has been registered
+  /// with the SolarSystem.
   void update(double tTime, CelestialObserver const& oObs) override;
 
   /// @return true, if the current time is in between the start and end existence values.
@@ -70,6 +75,7 @@ class CS_SCENE_EXPORT CelestialObject : public CelestialAnchor {
 
  protected:
   glm::dmat4 matWorldTransform;
+  glm::dvec3 mRadii;
   double     mStartExistence, mEndExistence;
 
   bool mIsInExistence = false;

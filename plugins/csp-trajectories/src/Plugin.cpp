@@ -167,21 +167,11 @@ void Plugin::onLoad() {
   // Now we go through all configured trajectories and create all required SunFlares and
   // DeepSpaceDots.
   for (auto const& settings : mPluginSettings->mTrajectories) {
-    auto anchor = mAllSettings->mAnchors.find(settings.first);
-
-    if (anchor == mAllSettings->mAnchors.end()) {
-      logger().warn("Cannot add sun flare or planet mark for '{}': There is no such anchor defined "
-                    "in the settings!",
-          settings.first);
-      continue;
-    }
-
-    auto [tStartExistence, tEndExistence] = anchor->second.getExistence();
 
     // Add the SunFlare.
     if (settings.second.mDrawFlare.value_or(false)) {
-      auto flare = std::make_shared<SunFlare>(mAllSettings, mPluginSettings, anchor->second.mCenter,
-          anchor->second.mFrame, tStartExistence, tEndExistence);
+      auto flare =
+          std::make_shared<SunFlare>(mAllSettings, mPluginSettings, mSolarSystem, settings.first);
       mSolarSystem->registerAnchor(flare);
 
       flare->pColor =
@@ -192,16 +182,14 @@ void Plugin::onLoad() {
 
     // Add the DeepSpaceDot.
     if (settings.second.mDrawDot.value_or(false)) {
-      auto dot = std::make_shared<DeepSpaceDot>(mPluginSettings, anchor->second.mCenter,
-          anchor->second.mFrame, tStartExistence, tEndExistence);
+      auto dot = std::make_shared<DeepSpaceDot>(mPluginSettings, mSolarSystem, settings.first);
       mSolarSystem->registerAnchor(dot);
 
       dot->pColor =
           VistaColor(settings.second.mColor.r, settings.second.mColor.g, settings.second.mColor.b);
 
       // do not perform distance culling for DeepSpaceDots
-      dot->pVisibleRadius = -1;
-      dot->pVisible       = true;
+      dot->pVisible = true;
 
       mDeepSpaceDots[settings.first] = dot;
     }
@@ -215,30 +203,25 @@ void Plugin::onLoad() {
 
     // If there are settings for this trajectory, reconfigure it.
     if (settings != mPluginSettings->mTrajectories.end() && settings->second.mTrail) {
-      auto parentAnchor = mAllSettings->mAnchors.find(settings->second.mTrail->mParent);
-      auto targetAnchor = mAllSettings->mAnchors.find(settings->first);
+      auto targetAnchor = settings->first;
+      auto parentAnchor = settings->second.mTrail->mParent;
 
-      // Ignore wrongly configured trajectories for now. The error will be emitted when we try to
-      // add this as a new trajectory.
-      if (parentAnchor != mAllSettings->mAnchors.end() &&
-          targetAnchor != mAllSettings->mAnchors.end()) {
+      auto [parentStartExistence, parentEndExistence] = mSolarSystem->getExistence(parentAnchor);
+      auto [targetStartExistence, targetEndExistence] = mSolarSystem->getExistence(targetAnchor);
 
-        auto [parentStartExistence, parentEndExistence] = parentAnchor->second.getExistence();
-        auto [targetStartExistence, targetEndExistence] = targetAnchor->second.getExistence();
-        trajectory->second->setStartExistence(std::max(parentStartExistence, targetStartExistence));
-        trajectory->second->setEndExistence(std::min(parentEndExistence, targetEndExistence));
-        trajectory->second->setCenterName(parentAnchor->second.mCenter);
-        trajectory->second->setFrameName(parentAnchor->second.mFrame);
-        trajectory->second->setTargetCenterName(targetAnchor->second.mCenter);
-        trajectory->second->setTargetFrameName(targetAnchor->second.mFrame);
-        trajectory->second->pSamples = settings->second.mTrail->mSamples;
-        trajectory->second->pLength  = settings->second.mTrail->mLength;
-        trajectory->second->pColor   = settings->second.mColor;
+      trajectory->second->setStartExistence(std::max(parentStartExistence, targetStartExistence));
+      trajectory->second->setEndExistence(std::min(parentEndExistence, targetEndExistence));
+      trajectory->second->setCenterName(mSolarSystem->getCenter(parentAnchor));
+      trajectory->second->setFrameName(mSolarSystem->getFrame(parentAnchor));
+      trajectory->second->setTargetCenterName(mSolarSystem->getCenter(targetAnchor));
+      trajectory->second->setTargetFrameName(mSolarSystem->getFrame(targetAnchor));
+      trajectory->second->pSamples = settings->second.mTrail->mSamples;
+      trajectory->second->pLength  = settings->second.mTrail->mLength;
+      trajectory->second->pColor   = settings->second.mColor;
 
-        ++trajectory;
+      ++trajectory;
 
-        continue;
-      }
+      continue;
     }
 
     // Else delete it.
@@ -253,28 +236,15 @@ void Plugin::onLoad() {
         continue;
       }
 
-      auto parentAnchor = mAllSettings->mAnchors.find(settings.second.mTrail->mParent);
-      auto targetAnchor = mAllSettings->mAnchors.find(settings.first);
+      auto targetAnchor = settings.first;
+      auto parentAnchor = settings.second.mTrail->mParent;
 
-      if (parentAnchor == mAllSettings->mAnchors.end()) {
-        logger().warn("Cannot add trajectory for '{}': There is no parent anchor '{}' defined in "
-                      "the settings!",
-            settings.first, settings.second.mTrail->mParent);
-        continue;
-      }
+      auto [parentStartExistence, parentEndExistence] = mSolarSystem->getExistence(parentAnchor);
+      auto [targetStartExistence, targetEndExistence] = mSolarSystem->getExistence(targetAnchor);
 
-      if (targetAnchor == mAllSettings->mAnchors.end()) {
-        logger().warn(
-            "Cannot add trajectory for '{}': There is no such anchor defined in the settings!",
-            settings.first);
-        continue;
-      }
-
-      auto [parentStartExistence, parentEndExistence] = parentAnchor->second.getExistence();
-      auto [targetStartExistence, targetEndExistence] = targetAnchor->second.getExistence();
-
-      auto trajectory = std::make_shared<Trajectory>(mPluginSettings, targetAnchor->second.mCenter,
-          targetAnchor->second.mFrame, parentAnchor->second.mCenter, parentAnchor->second.mFrame,
+      auto trajectory = std::make_shared<Trajectory>(mPluginSettings,
+          mSolarSystem->getCenter(targetAnchor), mSolarSystem->getFrame(targetAnchor),
+          mSolarSystem->getCenter(parentAnchor), mSolarSystem->getFrame(parentAnchor),
           std::max(parentStartExistence, targetStartExistence),
           std::min(parentEndExistence, targetEndExistence));
 

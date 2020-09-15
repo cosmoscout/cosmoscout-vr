@@ -258,12 +258,11 @@ void Plugin::onLoad() {
     auto settings = mPluginSettings->mAtmospheres.find(atmosphere->first);
     if (settings != mPluginSettings->mAtmospheres.end()) {
       // If there are settings for this atmosphere, reconfigure it.
-      auto anchor                           = mAllSettings->mAnchors.find(settings->first);
-      auto [tStartExistence, tEndExistence] = anchor->second.getExistence();
-      atmosphere->second->setStartExistence(tStartExistence);
-      atmosphere->second->setEndExistence(tEndExistence);
-      atmosphere->second->setCenterName(anchor->second.mCenter);
-      atmosphere->second->setFrameName(anchor->second.mFrame);
+      atmosphere->second->setStartExistence(mSolarSystem->getStartExistence(settings->first));
+      atmosphere->second->setEndExistence(mSolarSystem->getEndExistence(settings->first));
+      atmosphere->second->setRadii(mSolarSystem->getRadii(settings->first));
+      atmosphere->second->setCenterName(mSolarSystem->getCenter(settings->first));
+      atmosphere->second->setFrameName(mSolarSystem->getFrame(settings->first));
       atmosphere->second->configure(settings->second);
 
       ++atmosphere;
@@ -280,18 +279,7 @@ void Plugin::onLoad() {
       continue;
     }
 
-    auto anchor = mAllSettings->mAnchors.find(settings.first);
-
-    if (anchor == mAllSettings->mAnchors.end()) {
-      throw std::runtime_error(
-          "There is no Anchor \"" + settings.first + "\" defined in the settings.");
-    }
-
-    auto [tStartExistence, tEndExistence] = anchor->second.getExistence();
-
-    auto atmosphere = std::make_shared<Atmosphere>(mPluginSettings, anchor->second.mCenter,
-        anchor->second.mFrame, tStartExistence, tEndExistence);
-
+    auto atmosphere = std::make_shared<Atmosphere>(mPluginSettings, mSolarSystem, settings.first);
     atmosphere->getRenderer().setHDRBuffer(mGraphicsEngine->getHDRBuffer());
     atmosphere->configure(settings.second);
 

@@ -52,6 +52,92 @@ SolarSystem::~SolarSystem() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+std::pair<double, double> SolarSystem::getExistence(std::string const& anchorName) const {
+  return std::make_pair(getStartExistence(anchorName), getEndExistence(anchorName));
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+double SolarSystem::getStartExistence(std::string const& anchorName) const {
+
+  auto anchor = mSettings->mAnchors.find(anchorName);
+  if (anchor == mSettings->mAnchors.end()) {
+    throw std::runtime_error("Failed to parse the 'startExistence' property of the anchor '" +
+                             anchorName + "': No anchor with this name found in the settings!");
+  }
+
+  try {
+    return utils::convert::time::toSpice(anchor->second.mStartExistence);
+  } catch (std::exception const&) {
+    throw std::runtime_error(
+        "Failed to parse the 'startExistence' property of the anchor '" + anchorName +
+        "': The dates should be given in the format: 1969-07-20T20:17:40.000Z");
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+double SolarSystem::getEndExistence(std::string const& anchorName) const {
+
+  auto anchor = mSettings->mAnchors.find(anchorName);
+  if (anchor == mSettings->mAnchors.end()) {
+    throw std::runtime_error("Failed to parse the 'endExistence' property of the anchor '" +
+                             anchorName + "': No anchor with this name found in the settings!");
+  }
+
+  try {
+    return utils::convert::time::toSpice(anchor->second.mEndExistence);
+  } catch (std::exception const&) {
+    throw std::runtime_error(
+        "Failed to parse the 'endExistence' property of the anchor '" + anchorName +
+        "': The dates should be given in the format: 1969-07-20T20:17:40.000Z");
+  }
+
+  return 0.0;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+glm::dvec3 SolarSystem::getRadii(std::string const& anchorName) const {
+  auto anchor = mSettings->mAnchors.find(anchorName);
+  if (anchor == mSettings->mAnchors.end()) {
+    throw std::runtime_error("Failed to read the 'radii' property of the anchor '" + anchorName +
+                             "': No anchor with this name found in the settings!");
+  }
+
+  if (anchor->second.mRadii) {
+    return *anchor->second.mRadii;
+  }
+
+  return getSpiceRadii(anchor->second.mCenter);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::string SolarSystem::getCenter(std::string const& anchorName) const {
+  auto anchor = mSettings->mAnchors.find(anchorName);
+  if (anchor == mSettings->mAnchors.end()) {
+    throw std::runtime_error("Failed to get the 'center' property of the anchor '" + anchorName +
+                             "': No anchor with this name found in the settings!");
+  }
+
+  return anchor->second.mCenter;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::string SolarSystem::getFrame(std::string const& anchorName) const {
+  auto anchor = mSettings->mAnchors.find(anchorName);
+  if (anchor == mSettings->mAnchors.end()) {
+    throw std::runtime_error("Failed to get the 'frame' property of the anchor '" + anchorName +
+                             "': No anchor with this name found in the settings!");
+  }
+
+  return anchor->second.mFrame;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 std::shared_ptr<const scene::CelestialObject> SolarSystem::getSun() const {
   return mSun;
 }
@@ -103,18 +189,6 @@ void SolarSystem::unregisterAnchor(std::shared_ptr<scene::CelestialAnchor> const
 
 std::set<std::shared_ptr<scene::CelestialAnchor>> const& SolarSystem::getAnchors() const {
   return mAnchors;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-std::shared_ptr<scene::CelestialAnchor> SolarSystem::getAnchor(std::string const& sCenter) const {
-  for (auto anchor : mAnchors) {
-    if (anchor->getCenterName() == sCenter) {
-      return anchor;
-    }
-  }
-
-  return nullptr;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -607,7 +681,7 @@ void SolarSystem::turnToObserver(scene::CelestialAnchor& anchor,
   glm::dvec3 camDir            = glm::normalize(observerPos);
 
   if (upIsNormal) {
-    auto radii  = getRadii(anchor.getCenterName());
+    auto radii  = getSpiceRadii(anchor.getCenterName());
     auto lngLat = cs::utils::convert::cartesianToLngLat(anchor.getAnchorPosition(), radii);
     y           = cs::utils::convert::lngLatToNormal(lngLat, radii);
   }
@@ -625,7 +699,7 @@ void SolarSystem::turnToObserver(scene::CelestialAnchor& anchor,
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-glm::dvec3 SolarSystem::getRadii(std::string const& sCenterName) {
+glm::dvec3 SolarSystem::getSpiceRadii(std::string const& sCenterName) {
   // get target id code
   SpiceInt     id{};
   SpiceBoolean found{};
@@ -644,7 +718,7 @@ glm::dvec3 SolarSystem::getRadii(std::string const& sCenterName) {
   result                 = result * kmToMeter;
 
   if (n != 3) {
-    throw std::runtime_error("Failed to retrieve radii for object " + sCenterName + ".");
+    throw std::runtime_error("Failed to retrieve SPICE radii for object " + sCenterName + ".");
   }
 
   return result;

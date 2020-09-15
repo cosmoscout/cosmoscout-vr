@@ -95,11 +95,10 @@ void Plugin::onLoad() {
     auto settings = mPluginSettings.mSimpleBodies.find(simpleBody->first);
     if (settings != mPluginSettings.mSimpleBodies.end()) {
       // If there are settings for this simpleBody, reconfigure it.
-      auto anchor                           = mAllSettings->mAnchors.find(settings->first);
-      auto [tStartExistence, tEndExistence] = anchor->second.getExistence();
-      simpleBody->second->setStartExistence(tStartExistence);
-      simpleBody->second->setEndExistence(tEndExistence);
-      simpleBody->second->setFrameName(anchor->second.mFrame);
+      simpleBody->second->setStartExistence(mSolarSystem->getStartExistence(settings->first));
+      simpleBody->second->setEndExistence(mSolarSystem->getEndExistence(settings->first));
+      simpleBody->second->setRadii(mSolarSystem->getRadii(settings->first));
+      simpleBody->second->setFrameName(mSolarSystem->getFrame(settings->first));
       simpleBody->second->configure(settings->second);
 
       ++simpleBody;
@@ -117,18 +116,7 @@ void Plugin::onLoad() {
       continue;
     }
 
-    auto anchor = mAllSettings->mAnchors.find(settings.first);
-
-    if (anchor == mAllSettings->mAnchors.end()) {
-      throw std::runtime_error(
-          "There is no Anchor \"" + settings.first + "\" defined in the settings.");
-    }
-
-    auto [tStartExistence, tEndExistence] = anchor->second.getExistence();
-
-    auto simpleBody = std::make_shared<SimpleBody>(mAllSettings, mSolarSystem,
-        anchor->second.mCenter, anchor->second.mFrame, tStartExistence, tEndExistence);
-
+    auto simpleBody = std::make_shared<SimpleBody>(mAllSettings, mSolarSystem, settings.first);
     simpleBody->configure(settings.second);
     simpleBody->setSun(mSolarSystem->getSun());
 

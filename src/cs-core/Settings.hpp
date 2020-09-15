@@ -152,11 +152,16 @@ class CS_CORE_EXPORT Settings {
   struct CS_CORE_EXPORT Anchor {
     std::string mCenter;
     std::string mFrame;
+
+    // This should match the data coverage of your SPICE kernels. These should be given in UTC (like
+    // this 1950-01-02 00:00:00.000). Beware that tools like brief and ckbrief give coverage
+    // information in TDB which differs from UTC by several seconds.
     std::string mStartExistence;
     std::string mEndExistence;
 
-    /// Convenience method to convert the two strings above to SPICE-compatible doubles.
-    std::pair<double, double> getExistence() const;
+    // SolarSystem::getRadii() will return this value if it is given. Else it will return the radii
+    // as provided by SPICE.
+    std::optional<glm::dvec3> mRadii;
   };
 
   std::map<std::string, Anchor> mAnchors;
@@ -171,7 +176,7 @@ class CS_CORE_EXPORT Settings {
     /// The SPICE frame of reference the observer is currently in.
     utils::Property<std::string> pFrame;
 
-    /// The position of the observer relative to its center and frame.
+    /// The position of the observer in meters relative to its center and frame.
     utils::Property<glm::dvec3> pPosition;
 
     /// The rotation of the observer relative to its frame.
@@ -183,8 +188,8 @@ class CS_CORE_EXPORT Settings {
   /// a period in time.
   struct Bookmark {
 
-    /// The location of a bookmark is defined by a SPICE anchor, an optional cartesian position and
-    /// an optional rotation.
+    /// The location of a bookmark is defined by a SPICE anchor, an optional cartesian position (in
+    /// meters) and an optional rotation.
     struct Location {
       std::string               mCenter;
       std::string               mFrame;

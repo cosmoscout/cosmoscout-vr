@@ -8,14 +8,17 @@
 
 #include "CelestialObserver.hpp"
 
+#include <glm/gtx/component_wise.hpp>
+
 namespace cs::scene {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 CelestialObject::CelestialObject(std::string const& sCenterName, std::string const& sFrameName,
-    double tStartExistence, double tEndExistence)
+    glm::dvec3 radii, double tStartExistence, double tEndExistence)
     : CelestialAnchor(sCenterName, sFrameName)
     , matWorldTransform(1.0)
+    , mRadii(std::move(radii))
     , mStartExistence(tStartExistence)
     , mEndExistence(tEndExistence) {
 }
@@ -54,6 +57,16 @@ void CelestialObject::setEndExistence(double value) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+glm::dvec3 const& CelestialObject::getRadii() const {
+  return mRadii;
+}
+
+void CelestialObject::setRadii(glm::dvec3 const& value) {
+  mRadii = value;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void CelestialObject::update(double tTime, cs::scene::CelestialObserver const& oObs) {
   mIsInExistence = (tTime > mStartExistence && tTime < mEndExistence);
 
@@ -65,9 +78,10 @@ void CelestialObject::update(double tTime, cs::scene::CelestialObserver const& o
     }
   }
 
-  if (pVisibleRadius.get() > 0) {
+  double maxRadius = glm::compMax(mRadii);
+  if (maxRadius > 0) {
     double dist   = glm::length(getWorldPosition().xyz());
-    double size   = pVisibleRadius.get() * glm::length(matWorldTransform[0]);
+    double size   = maxRadius * glm::length(matWorldTransform[0]);
     double factor = size / dist;
 
     pVisible = factor > 0.002;

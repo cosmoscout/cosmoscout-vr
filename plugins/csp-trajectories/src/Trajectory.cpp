@@ -23,7 +23,8 @@ namespace csp::trajectories {
 Trajectory::Trajectory(std::shared_ptr<Plugin::Settings> pluginSettings, std::string sTargetCenter,
     std::string sTargetFrame, std::string const& sParentCenter, std::string const& sParentFrame,
     double tStartExistence, double tEndExistence)
-    : cs::scene::CelestialObject(sParentCenter, sParentFrame, tStartExistence, tEndExistence)
+    : cs::scene::CelestialObject(
+          sParentCenter, sParentFrame, glm::dvec3(0.0), tStartExistence, tEndExistence)
     , mPluginSettings(std::move(pluginSettings))
     , mTargetCenter(std::move(sTargetCenter))
     , mTargetFrame(std::move(sTargetFrame))
@@ -98,7 +99,7 @@ void Trajectory::update(double tTime, cs::scene::CelestialObserver const& oObs) 
             glm::dvec3 pos         = getRelativePosition(tSampleTime, target);
             mPoints[mStartIndex]   = glm::dvec4(pos.x, pos.y, pos.z, tSampleTime);
 
-            pVisibleRadius = std::max(glm::length(pos), pVisibleRadius.get());
+            setRadii(glm::max(glm::dvec3(glm::length(pos)), getRadii()));
 
             mStartIndex = (mStartIndex + 1) % static_cast<int>(pSamples.get());
           } catch (...) {
@@ -123,7 +124,7 @@ void Trajectory::update(double tTime, cs::scene::CelestialObserver const& oObs) 
 
             mStartIndex = (mStartIndex - 1 + static_cast<int>(pSamples.get())) %
                           static_cast<int>(pSamples.get());
-            pVisibleRadius = std::max(glm::length(pos), pVisibleRadius.get());
+            setRadii(glm::max(glm::dvec3(glm::length(pos)), getRadii()));
           } catch (...) {
             // data might be unavailable
           }

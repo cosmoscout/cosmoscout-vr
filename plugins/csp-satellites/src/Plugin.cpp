@@ -47,14 +47,12 @@ void to_json(nlohmann::json& j, Plugin::Settings::Transformation const& o) {
 void from_json(nlohmann::json const& j, Plugin::Settings::Satellite& o) {
   cs::core::Settings::deserialize(j, "modelFile", o.mModelFile);
   cs::core::Settings::deserialize(j, "environmentMap", o.mEnvironmentMap);
-  cs::core::Settings::deserialize(j, "size", o.mSize);
   cs::core::Settings::deserialize(j, "transformation", o.mTransformation);
 }
 
 void to_json(nlohmann::json& j, Plugin::Settings::Satellite const& o) {
   cs::core::Settings::serialize(j, "modelFile", o.mModelFile);
   cs::core::Settings::serialize(j, "environmentMap", o.mEnvironmentMap);
-  cs::core::Settings::serialize(j, "size", o.mSize);
   cs::core::Settings::serialize(j, "transformation", o.mTransformation);
 }
 
@@ -84,11 +82,8 @@ void Plugin::init() {
           "There is no Anchor \"" + settings.first + "\" defined in the settings.");
     }
 
-    auto [tStartExistence, tEndExistence] = anchor->second.getExistence();
-
-    auto satellite =
-        std::make_shared<Satellite>(settings.second, anchor->second.mCenter, anchor->second.mFrame,
-            tStartExistence, tEndExistence, mSceneGraph, mAllSettings, mSolarSystem);
+    auto satellite = std::make_shared<Satellite>(
+        settings.second, settings.first, mSceneGraph, mAllSettings, mSolarSystem);
 
     satellite->setSun(mSolarSystem->getSun());
     mSolarSystem->registerBody(satellite);

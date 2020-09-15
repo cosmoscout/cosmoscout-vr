@@ -16,16 +16,25 @@ namespace cs::scene {
 /// needs to override the getIntersection() method from utils::IntersectableObject.
 class CS_SCENE_EXPORT CelestialBody : public CelestialObject, public utils::IntersectableObject {
  public:
+  /// Creates a new CelestialBody.
+  ///
+  /// @param sCenterName      The SPICE name of the object.
+  /// @param sFrameName       The SPICE name of the reference frame.
+  /// @param radii            These will be used for visibility culling. If set to glm::dvec3(0.0),
+  ///                         pVisible will not change during update().
+  /// @param tStartExistence  The point in Barycentric Dynamical Time in which the object started
+  ///                         existing.
+  /// @param tEndExistence    The point in Barycentric Dynamical Time in which the object ceased
+  ///                         existing.
   CelestialBody(std::string const& sCenterName, std::string const& sFrameName,
-      double tStartExistence, double tEndExistence);
+      glm::dvec3 const& radii           = glm::dvec3(0.0),
+      double            tStartExistence = std::numeric_limits<double>::lowest(),
+      double            tEndExistence   = std::numeric_limits<double>::max());
 
-  /// The elevation at a specific point on the surface.
+  /// Returns the elevation in meters at a specific point on the surface.
   ///
   /// @param lngLat The coordinates on the surface in the Geographic Coordinate System format.
   virtual double getHeight(glm::dvec2 lngLat) const = 0;
-
-  /// The radii of the Body in meters.
-  virtual glm::dvec3 getRadii() const = 0;
 };
 
 } // namespace cs::scene

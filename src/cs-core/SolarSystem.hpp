@@ -59,6 +59,30 @@ class CS_CORE_EXPORT SolarSystem {
 
   ~SolarSystem();
 
+  // Named Anchor API ------------------------------------------------------------------------------
+
+  /// The methods below directly return the corresponding values from the current scene's settings.
+  /// All methods may throw a std::runtime_error if the given anchor name is not present in the
+  /// current scene settings.
+
+  /// Reads the optional mRadii member of the configured anchors. If mRadii is not given,
+  /// SPICE is used to retrieve the values.
+  glm::dvec3 getRadii(std::string const& anchorName) const;
+
+  // Returns the SPICE center name of the anchor with the given name.
+  std::string getCenter(std::string const& anchorName) const;
+
+  // Returns the SPICE frame name of the anchor with the given name.
+  std::string getFrame(std::string const& anchorName) const;
+
+  /// These convert the two existence strings of the configured anchor to SPICE-compatible TDB
+  /// doubles.
+  std::pair<double, double> getExistence(std::string const& anchorName) const;
+  double                    getStartExistence(std::string const& anchorName) const;
+  double                    getEndExistence(std::string const& anchorName) const;
+
+  // Illumination API ------------------------------------------------------------------------------
+
   /// The Sun which is at the center of the SolarSystem.
   std::shared_ptr<const scene::CelestialObject> getSun() const;
 
@@ -71,12 +95,15 @@ class CS_CORE_EXPORT SolarSystem {
   /// then i = pSunLuminousPower / (d*d*4*PI) is calculated.
   double getSunIlluminance(glm::dvec3 const& observerPosition) const;
 
+  // Object registration API -----------------------------------------------------------------------
+
   /// The CelestialObserver, which controls the camera.
   void                            setObserver(scene::CelestialObserver const& observer);
   scene::CelestialObserver&       getObserver();
   scene::CelestialObserver const& getObserver() const;
 
-  /// Adds a CelestialAnchor to the SolarSystem.
+  /// Adds a CelestialAnchor to the SolarSystem. It's update() method will be called each frame
+  /// until you call unregisterAnchor().
   void registerAnchor(std::shared_ptr<scene::CelestialAnchor> const& anchor);
 
   /// Removes the CelestialAnchor from the SolarSystem.
@@ -86,9 +113,6 @@ class CS_CORE_EXPORT SolarSystem {
 
   /// A list of all CelestialAnchors in the SolarSystem.
   std::set<std::shared_ptr<scene::CelestialAnchor>> const& getAnchors() const;
-
-  /// @return The CelestialAnchor with the specified SPICE name or nullptr if it doesn't exist.
-  std::shared_ptr<scene::CelestialAnchor> getAnchor(std::string const& sCenter) const;
 
   /// Adds a CelestialBody to the SolarSystem. A call to registerAnchor() is not needed, because
   /// it is done automatically.
@@ -104,6 +128,8 @@ class CS_CORE_EXPORT SolarSystem {
   /// Returns one specific body from the set above. This query ignores the case. So
   /// getBody("Earth"), getBody("EARTH") or getBody("EaRTh") will all behave the same.
   std::shared_ptr<scene::CelestialBody> getBody(std::string sCenter) const;
+
+  // Update methods --------------------------------------------------------------------------------
 
   /// Updates all CelestialAnchors, the Sun and the CelestialObservers animations.
   void update();
@@ -196,9 +222,13 @@ class CS_CORE_EXPORT SolarSystem {
   static void turnToObserver(scene::CelestialAnchor& anchor,
       scene::CelestialObserver const& observer, double simulationTime, bool upIsNormal);
 
-  /// Gives the radii to a given SPICE object.
+  /// Gives the radii of a given SPICE object.
+  /// Mind the difference to the getRadii() above: getSpiceRadii() takes a SPICE center name and
+  /// makes a lookup into the loaded SPICE kernels to retrieve the radii. getRadii() on the other
+  /// hand takes an anchor name will first check the loaded scene configuration for any radii
+  /// overides. If non is found, getRadii() will call getSpiceRadii() internally.
   /// @param sCenterName The name of the SPICE object from which the radii are requested.
-  static glm::dvec3 getRadii(std::string const& sCenterName);
+  static glm::dvec3 getSpiceRadii(std::string const& sCenterName);
 
   /// Generates a trail of points representing the given SPICE objects past movements.
   ///

@@ -146,12 +146,14 @@ struct ProfileRadarData {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Sharad::Sharad(std::shared_ptr<cs::core::Settings> settings, std::string const& sCenterName,
-    std::string const& sFrameName, std::string const& sTiffFile, std::string const& sTabFile)
-    : cs::scene::CelestialObject(sCenterName, sFrameName, 0, 0)
+Sharad::Sharad(std::shared_ptr<cs::core::Settings> settings,
+    std::shared_ptr<cs::core::SolarSystem> solarSystem, std::string const& anchorName,
+    std::string const& sTiffFile, std::string const& sTabFile)
+    : cs::scene::CelestialObject(solarSystem->getCenter(anchorName),
+          solarSystem->getFrame(anchorName), solarSystem->getRadii(anchorName),
+          solarSystem->getStartExistence(anchorName), solarSystem->getEndExistence(anchorName))
     , mSettings(std::move(settings))
-    , mTexture(cs::graphics::TextureLoader::loadFromFile(sTiffFile))
-    , mRadii(cs::core::SolarSystem::getRadii(sCenterName)) {
+    , mTexture(cs::graphics::TextureLoader::loadFromFile(sTiffFile)) {
   // arbitray date in future
   mEndExistence = cs::utils::convert::time::toSpice("2040-01-01T00:00:00.000Z");
 

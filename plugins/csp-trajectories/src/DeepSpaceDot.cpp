@@ -6,6 +6,7 @@
 
 #include "DeepSpaceDot.hpp"
 
+#include "../../../src/cs-core/SolarSystem.hpp"
 #include "../../../src/cs-utils/FrameTimings.hpp"
 #include "../../../src/cs-utils/utils.hpp"
 
@@ -101,9 +102,10 @@ void main()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 DeepSpaceDot::DeepSpaceDot(std::shared_ptr<Plugin::Settings> pluginSettings,
-    std::string const& sCenterName, std::string const& sFrameName, double tStartExistence,
-    double tEndExistence)
-    : cs::scene::CelestialObject(sCenterName, sFrameName, tStartExistence, tEndExistence)
+    std::shared_ptr<cs::core::SolarSystem> solarSystem, std::string const& anchorName)
+    : cs::scene::CelestialObject(solarSystem->getCenter(anchorName),
+          solarSystem->getFrame(anchorName), glm::dvec3(0.0),
+          solarSystem->getStartExistence(anchorName), solarSystem->getEndExistence(anchorName))
     , mPluginSettings(std::move(pluginSettings)) {
 
   mShader.InitVertexShaderFromString(QUAD_VERT);

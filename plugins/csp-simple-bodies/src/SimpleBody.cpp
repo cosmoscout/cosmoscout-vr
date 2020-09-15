@@ -129,13 +129,12 @@ void main()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 SimpleBody::SimpleBody(std::shared_ptr<cs::core::Settings> settings,
-    std::shared_ptr<cs::core::SolarSystem> solarSystem, std::string const& sCenterName,
-    std::string const& sFrameName, double tStartExistence, double tEndExistence)
-    : cs::scene::CelestialBody(sCenterName, sFrameName, tStartExistence, tEndExistence)
+    std::shared_ptr<cs::core::SolarSystem> solarSystem, std::string const& anchorName)
+    : cs::scene::CelestialBody(solarSystem->getCenter(anchorName),
+          solarSystem->getFrame(anchorName), solarSystem->getRadii(anchorName),
+          solarSystem->getStartExistence(anchorName), solarSystem->getEndExistence(anchorName))
     , mSettings(std::move(settings))
-    , mSolarSystem(std::move(solarSystem))
-    , mRadii(cs::core::SolarSystem::getRadii(sCenterName)) {
-  pVisibleRadius = mRadii[0];
+    , mSolarSystem(std::move(solarSystem)) {
 
   // For rendering the sphere, we create a 2D-grid which is warped into a sphere in the vertex
   // shader. The vertex positions are directly used as texture coordinates.
@@ -250,12 +249,6 @@ bool SimpleBody::getIntersection(
 double SimpleBody::getHeight(glm::dvec2 /*lngLat*/) const {
   // This is why we call them 'SimpleBodies'.
   return 0;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-glm::dvec3 SimpleBody::getRadii() const {
-  return mRadii;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

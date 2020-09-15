@@ -31,8 +31,7 @@ namespace csp::satellites {
 /// A single satellite within the Solar System.
 class Satellite : public cs::scene::CelestialBody {
  public:
-  Satellite(Plugin::Settings::Satellite const& config, std::string const& sCenterName,
-      std::string const& sFrameName, double tStartExistence, double tEndExistence,
+  Satellite(Plugin::Settings::Satellite const& config, std::string const& anchorName,
       VistaSceneGraph* sceneGraph, std::shared_ptr<cs::core::Settings> settings,
       std::shared_ptr<cs::core::SolarSystem> solarSystem);
 
@@ -52,8 +51,7 @@ class Satellite : public cs::scene::CelestialBody {
 
   bool getIntersection(
       glm::dvec3 const& rayPos, glm::dvec3 const& rayDir, glm::dvec3& pos) const override;
-  double     getHeight(glm::dvec2 lngLat) const override;
-  glm::dvec3 getRadii() const override;
+  double getHeight(glm::dvec2 lngLat) const override;
 
  private:
   VistaSceneGraph*                                  mSceneGraph;

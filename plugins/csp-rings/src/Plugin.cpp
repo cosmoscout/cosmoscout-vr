@@ -97,11 +97,9 @@ void Plugin::onLoad() {
     auto settings = mPluginSettings.mRings.find(ring->first);
     if (settings != mPluginSettings.mRings.end()) {
       // If there are settings for this ring, reconfigure it.
-      auto anchor                           = mAllSettings->mAnchors.find(settings->first);
-      auto [tStartExistence, tEndExistence] = anchor->second.getExistence();
-      ring->second->setStartExistence(tStartExistence);
-      ring->second->setEndExistence(tEndExistence);
-      ring->second->setFrameName(anchor->second.mFrame);
+      ring->second->setStartExistence(mSolarSystem->getStartExistence(settings->first));
+      ring->second->setEndExistence(mSolarSystem->getEndExistence(settings->first));
+      ring->second->setFrameName(mSolarSystem->getFrame(settings->first));
       ring->second->configure(settings->second);
 
       ++ring;
@@ -118,18 +116,7 @@ void Plugin::onLoad() {
       continue;
     }
 
-    auto anchor = mAllSettings->mAnchors.find(settings.first);
-
-    if (anchor == mAllSettings->mAnchors.end()) {
-      throw std::runtime_error(
-          "There is no Anchor \"" + settings.first + "\" defined in the settings.");
-    }
-
-    auto [tStartExistence, tEndExistence] = anchor->second.getExistence();
-
-    auto ring = std::make_shared<Ring>(mAllSettings, mSolarSystem, anchor->second.mCenter,
-        anchor->second.mFrame, tStartExistence, tEndExistence);
-
+    auto ring = std::make_shared<Ring>(mAllSettings, mSolarSystem, settings.first);
     ring->configure(settings.second);
 
     mSolarSystem->registerAnchor(ring);

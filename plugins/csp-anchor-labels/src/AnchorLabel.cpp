@@ -24,6 +24,7 @@
 #include <VistaKernel/VistaSystem.h>
 #include <VistaKernelOpenSGExt/VistaOpenSGMaterialTools.h>
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/gtx/component_wise.hpp>
 #include <glm/gtx/norm.hpp>
 #include <utility>
 
@@ -178,7 +179,7 @@ bool AnchorLabel::shouldBeHidden() const {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 double AnchorLabel::bodySize() const {
-  return mBody->pVisibleRadius();
+  return glm::compMax(mBody->getRadii());
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

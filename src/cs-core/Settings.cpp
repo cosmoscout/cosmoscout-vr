@@ -7,6 +7,7 @@
 #include "Settings.hpp"
 
 #include "../cs-utils/convert.hpp"
+#include "SolarSystem.hpp"
 #include "logger.hpp"
 
 #include <fstream>
@@ -37,6 +38,7 @@ void from_json(nlohmann::json const& j, Settings::Anchor& o) {
   Settings::deserialize(j, "frame", o.mFrame);
   Settings::deserialize(j, "startExistence", o.mStartExistence);
   Settings::deserialize(j, "endExistence", o.mEndExistence);
+  Settings::deserialize(j, "radii", o.mRadii);
 }
 
 void to_json(nlohmann::json& j, Settings::Anchor const& o) {
@@ -44,6 +46,7 @@ void to_json(nlohmann::json& j, Settings::Anchor const& o) {
   Settings::serialize(j, "frame", o.mFrame);
   Settings::serialize(j, "startExistence", o.mStartExistence);
   Settings::serialize(j, "endExistence", o.mEndExistence);
+  Settings::serialize(j, "radii", o.mRadii);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -369,30 +372,6 @@ std::string Settings::saveToJson() const {
   o << std::setw(2) << settings;
 
   return o.str();
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-std::pair<double, double> Settings::Anchor::getExistence() const {
-  std::pair<double, double> result;
-
-  try {
-    result.first = utils::convert::time::toSpice(mStartExistence);
-  } catch (std::exception const&) {
-    throw std::runtime_error(
-        "Failed to parse the 'startExistence' property of the anchor '" + mCenter +
-        "'. The dates should be given in the format: 1969-07-20T20:17:40.000Z");
-  }
-
-  try {
-    result.second = utils::convert::time::toSpice(mEndExistence);
-  } catch (std::exception const&) {
-    throw std::runtime_error(
-        "Failed to parse the 'endExistence' property of the anchor '" + mCenter +
-        "'. The dates should be given in the format: 1969-07-20T20:17:40.000Z");
-  }
-
-  return result;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
