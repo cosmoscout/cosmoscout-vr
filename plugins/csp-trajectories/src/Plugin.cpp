@@ -195,25 +195,15 @@ void Plugin::onLoad() {
   }
 
   // For the trajectories we try to re-use as many as possible as they are quite expensive to
-  // construct. First try to re-configure existing trajectories. A trajectory is re-used if it
-  // shares the same target anchor name.
+  // construct. First we try to re-configure existing trajectories. A trajectory is re-used if it
+  // shares the same parent and target anchor name.
   for (auto trajectory = mTrajectories.begin(); trajectory != mTrajectories.end();) {
     auto settings = mPluginSettings->mTrajectories.find(trajectory->first);
 
     // If there are settings for this trajectory, reconfigure it.
-    if (settings != mPluginSettings->mTrajectories.end() && settings->second.mTrail) {
-      auto targetAnchor = settings->first;
-      auto parentAnchor = settings->second.mTrail->mParent;
+    if (settings != mPluginSettings->mTrajectories.end() && settings->second.mTrail &&
+        settings->second.mTrail->mParent == trajectory->second->getParentAnchorName()) {
 
-      auto parentExistence = mAllSettings->getAnchorExistence(parentAnchor);
-      auto targetExistence = mAllSettings->getAnchorExistence(targetAnchor);
-
-      trajectory->second->setExistence(glm::dvec2(std::max(parentExistence[0], targetExistence[0]),
-          std::min(parentExistence[1], targetExistence[1])));
-      trajectory->second->setCenterName(mAllSettings->getAnchorCenter(parentAnchor));
-      trajectory->second->setFrameName(mAllSettings->getAnchorFrame(parentAnchor));
-      trajectory->second->setTargetCenterName(mAllSettings->getAnchorCenter(targetAnchor));
-      trajectory->second->setTargetFrameName(mAllSettings->getAnchorFrame(targetAnchor));
       trajectory->second->pSamples = settings->second.mTrail->mSamples;
       trajectory->second->pLength  = settings->second.mTrail->mLength;
       trajectory->second->pColor   = settings->second.mColor;
@@ -238,15 +228,9 @@ void Plugin::onLoad() {
       auto targetAnchor = settings.first;
       auto parentAnchor = settings.second.mTrail->mParent;
 
-      auto parentExistence = mAllSettings->getAnchorExistence(parentAnchor);
-      auto targetExistence = mAllSettings->getAnchorExistence(targetAnchor);
-
-      auto trajectory = std::make_shared<Trajectory>(mPluginSettings,
-          mAllSettings->getAnchorCenter(targetAnchor), mAllSettings->getAnchorFrame(targetAnchor),
-          mAllSettings->getAnchorCenter(parentAnchor), mAllSettings->getAnchorFrame(parentAnchor),
-          glm::dvec2(std::max(parentExistence[0], targetExistence[0]),
-              std::min(parentExistence[1], targetExistence[1])));
-
+      auto trajectory = std::make_shared<Trajectory>(mPluginSettings, mAllSettings);
+      trajectory->setTargetAnchorName(targetAnchor);
+      trajectory->setParentAnchorName(parentAnchor);
       trajectory->pSamples = settings.second.mTrail->mSamples;
       trajectory->pLength  = settings.second.mTrail->mLength;
       trajectory->pColor   = settings.second.mColor;

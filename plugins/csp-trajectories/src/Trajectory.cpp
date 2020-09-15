@@ -20,18 +20,10 @@ namespace csp::trajectories {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Trajectory::Trajectory(std::shared_ptr<Plugin::Settings> pluginSettings, std::string targetCenter,
-    std::string targetFrame, std::string const& parentCenter, std::string const& parentFrame,
-    glm::dvec2 const& existence)
+Trajectory::Trajectory(
+    std::shared_ptr<Plugin::Settings> pluginSettings, std::shared_ptr<cs::core::Settings> settings)
     : mPluginSettings(std::move(pluginSettings))
-    , mTargetCenter(std::move(targetCenter))
-    , mTargetFrame(std::move(targetFrame))
-    , mStartIndex(0)
-    , mLastUpdateTime(-1.0) {
-
-  setCenterName(parentCenter);
-  setFrameName(parentFrame);
-  setExistence(existence);
+    , mSettings(std::move(settings)) {
 
   pLength.connect([this](double val) {
     mPoints.clear();
@@ -71,8 +63,6 @@ void Trajectory::update(double tTime, cs::scene::CelestialObserver const& oObs) 
   if (mPluginSettings->mEnableTrajectories.get() && getIsInExistence()) {
     double dSampleLength = dLengthSeconds / pSamples.get();
 
-    cs::scene::CelestialAnchor target(mTargetCenter, mTargetFrame);
-
     // only recalculate if there is not too much change from frame to frame
     if (std::abs(mLastFrameTime - tTime) <= dLengthSeconds / 10.0) {
       // make sure to re-sample entire trajectory if complete reset is required
@@ -98,7 +88,7 @@ void Trajectory::update(double tTime, cs::scene::CelestialObserver const& oObs) 
 
           try {
             double     tSampleTime = glm::clamp(mLastSampleTime, mExistence[0], mExistence[1]);
-            glm::dvec3 pos         = getRelativePosition(tSampleTime, target);
+            glm::dvec3 pos         = getRelativePosition(tSampleTime, mTarget);
             mPoints[mStartIndex]   = glm::dvec4(pos.x, pos.y, pos.z, tSampleTime);
 
             setRadii(glm::max(glm::dvec3(glm::length(pos)), getRadii()));
@@ -120,7 +110,7 @@ void Trajectory::update(double tTime, cs::scene::CelestialObserver const& oObs) 
           try {
             double tSampleTime =
                 glm::clamp(mLastSampleTime - dLengthSeconds, mExistence[0], mExistence[1]);
-            glm::dvec3 pos = getRelativePosition(tSampleTime, target);
+            glm::dvec3 pos = getRelativePosition(tSampleTime, mTarget);
             mPoints[(mStartIndex - 1 + pSamples.get()) % pSamples.get()] =
                 glm::dvec4(pos.x, pos.y, pos.z, tSampleTime);
 
@@ -136,14 +126,14 @@ void Trajectory::update(double tTime, cs::scene::CelestialObserver const& oObs) 
       mLastUpdateTime = tTime;
 
       if (completeRecalculation) {
-        logger().debug("Recalculating trajectory for {}.", mTargetCenter);
+        logger().debug("Recalculating trajectory for {}.", mTargetAnchorName);
       }
     }
 
     mLastFrameTime = tTime;
 
     if (pVisible.get()) {
-      glm::dvec3 tip = getRelativePosition(tTime, target);
+      glm::dvec3 tip = getRelativePosition(tTime, mTarget);
       mTrajectory.upload(matWorldTransform, tTime, mPoints, tip, mStartIndex);
     }
   }
@@ -151,50 +141,32 @@ void Trajectory::update(double tTime, cs::scene::CelestialObserver const& oObs) 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Trajectory::setTargetCenterName(std::string const& sCenterName) {
-  if (mTargetCenter != sCenterName) {
-    mPoints.clear();
-    mTargetCenter = sCenterName;
-  }
+void Trajectory::setTargetAnchorName(std::string const& anchorName) {
+  mPoints.clear();
+  mTargetAnchorName = anchorName;
+  mSettings->initAnchor(mTarget, anchorName);
+  updateExistence();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Trajectory::setTargetFrameName(std::string const& sFrameName) {
-  if (mTargetFrame != sFrameName) {
-    mPoints.clear();
-    mTargetFrame = sFrameName;
-  }
+void Trajectory::setParentAnchorName(std::string const& anchorName) {
+  mPoints.clear();
+  mParentAnchorName = anchorName;
+  mSettings->initAnchor(*this, anchorName);
+  updateExistence();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::string const& Trajectory::getTargetCenterName() const {
-  return mTargetCenter;
+std::string const& Trajectory::getTargetAnchorName() const {
+  return mTargetAnchorName;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::string const& Trajectory::getTargetFrameName() const {
-  return mTargetFrame;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void Trajectory::setCenterName(std::string const& sCenterName) {
-  if (sCenterName != getCenterName()) {
-    mPoints.clear();
-  }
-  cs::scene::CelestialObject::setCenterName(sCenterName);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void Trajectory::setFrameName(std::string const& sFrameName) {
-  if (sFrameName != getFrameName()) {
-    mPoints.clear();
-  }
-  cs::scene::CelestialObject::setFrameName(sFrameName);
+std::string const& Trajectory::getParentAnchorName() const {
+  return mParentAnchorName;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -212,6 +184,18 @@ bool Trajectory::Do() {
 
 bool Trajectory::GetBoundingBox(VistaBoundingBox& /*bb*/) {
   return false;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Trajectory::updateExistence() {
+  if (!mTargetAnchorName.empty() && !mParentAnchorName.empty()) {
+    auto parentExistence = mSettings->getAnchorExistence(mParentAnchorName);
+    auto targetExistence = mSettings->getAnchorExistence(mTargetAnchorName);
+
+    setExistence(glm::dvec2(std::max(parentExistence[0], targetExistence[0]),
+        std::min(parentExistence[1], targetExistence[1])));
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
