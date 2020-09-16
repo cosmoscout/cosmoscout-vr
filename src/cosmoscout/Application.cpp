@@ -840,7 +840,7 @@ void Application::connectSlots() {
   // Set the observer rotation state.
   mSettings->mObserver.pRotation.connectAndTouch([this](glm::dquat const& r) {
     mGuiManager->getGui()->executeJavascript(
-        fmt::format("CosmoScout.state.observerRotation = [{}, {}, {}, {}];", r.w, r.x, r.y, r.z));
+        fmt::format("CosmoScout.state.observerRotation = [{}, {}, {}, {}];", r.x, r.y, r.z, r.w));
   });
 
   // Show the current speed of the celestial observer in the user interface.
@@ -1353,7 +1353,7 @@ void Application::registerGuiCallbacks() {
   mGuiManager->getGui()->registerCallback("navigation.setRotation",
       "Sets the observer rotation to the given quaternion. The optional double argument specifies "
       "the transition time in seconds (default is 2s).",
-      std::function([this](double w, double x, double y, double z, std::optional<double> duration) {
+      std::function([this](double x, double y, double z, double w, std::optional<double> duration) {
         mSolarSystem->flyObserverTo(mSolarSystem->getObserver().getCenterName(),
             mSolarSystem->getObserver().getFrameName(),
             mSolarSystem->getObserver().getAnchorPosition(), glm::dquat(w, x, y, z),
@@ -1380,7 +1380,7 @@ void Application::registerGuiCallbacks() {
       "quaternion. The optional argument specifies the travel time in seconds (default is 10s).",
       std::function(
           [this](std::string&& center, std::string&& frame, double px, double py, double pz,
-              double rw, double rx, double ry, double rz, std::optional<double> duration) {
+              double rx, double ry, double rz, double rw, std::optional<double> duration) {
             mSolarSystem->flyObserverTo(center, frame, glm::dvec3(px, py, pz),
                 glm::dquat(rw, rx, ry, rz), duration.value_or(10.0));
           }));
