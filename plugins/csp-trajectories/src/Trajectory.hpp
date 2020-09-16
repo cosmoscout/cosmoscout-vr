@@ -56,8 +56,8 @@ class Trajectory : public cs::scene::CelestialObject, public IVistaOpenGLDraw {
   bool GetBoundingBox(VistaBoundingBox& bb) override;
 
  private:
- void updateExistence();
- 
+  void updateExistence();
+
   std::shared_ptr<cs::core::Settings> mSettings;
   std::shared_ptr<Plugin::Settings>   mPluginSettings;
   cs::scene::Trajectory               mTrajectory;
