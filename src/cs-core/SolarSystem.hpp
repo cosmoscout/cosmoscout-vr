@@ -80,6 +80,14 @@ class CS_CORE_EXPORT SolarSystem {
   scene::CelestialObserver&       getObserver();
   scene::CelestialObserver const& getObserver() const;
 
+  /// It may happen that our observer is in a SPICE frame we do not have data for. If this is the
+  /// case, this call will bring it back to Solar System Barycenter / J2000 which should be
+  /// always available. To compute the position and orientation relative to this origin we need a
+  /// simulation time at which we had valid data for the offending frame.
+  /// Usually you will not need to call this, it is automatically called by the Application if an
+  /// error occurs.
+  void fixObserverFrame(double lastWorkingSimulationTime);
+
   /// Adds a CelestialAnchor to the SolarSystem. It's update() method will be called each frame
   /// until you call unregisterAnchor().
   void registerAnchor(std::shared_ptr<scene::CelestialAnchor> const& anchor);

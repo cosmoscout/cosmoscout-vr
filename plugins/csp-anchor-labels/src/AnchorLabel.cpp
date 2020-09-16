@@ -6,6 +6,8 @@
 
 #include "AnchorLabel.hpp"
 
+#include "logger.hpp"
+
 #include "../../../src/cs-core/GuiManager.hpp"
 #include "../../../src/cs-core/InputManager.hpp"
 #include "../../../src/cs-core/SolarSystem.hpp"
@@ -106,34 +108,40 @@ void AnchorLabel::update() {
     cs::scene::CelestialAnchor rawAnchor(mAnchor->getCenterName(), mAnchor->getFrameName());
     rawAnchor.setAnchorPosition(mAnchor->getAnchorPosition());
 
-    mRelativeAnchorPosition =
-        mSolarSystem->getObserver().getRelativePosition(simulationTime, rawAnchor);
+    try {
+      mRelativeAnchorPosition =
+          mSolarSystem->getObserver().getRelativePosition(simulationTime, rawAnchor);
 
-    double distanceToObserver = distanceToCamera();
+      double distanceToObserver = distanceToCamera();
 
-    double const scaleFactor = 0.05;
-    double       scale       = mSolarSystem->getObserver().getAnchorScale();
-    scale *= glm::pow(distanceToObserver, mPluginSettings->mDepthScale.get()) *
-             mPluginSettings->mLabelScale.get() * scaleFactor;
-    mAnchor->setAnchorScale(scale);
+      double const scaleFactor = 0.05;
+      double       scale       = mSolarSystem->getObserver().getAnchorScale();
+      scale *= glm::pow(distanceToObserver, mPluginSettings->mDepthScale.get()) *
+               mPluginSettings->mLabelScale.get() * scaleFactor;
+      mAnchor->setAnchorScale(scale);
 
-    auto observerTransform =
-        rawAnchor.getRelativeTransform(simulationTime, mSolarSystem->getObserver());
-    glm::dvec3 observerPos = observerTransform[3];
-    glm::dvec3 y           = observerTransform * glm::dvec4(0, 1, 0, 0);
-    glm::dvec3 camDir      = glm::normalize(observerPos);
+      auto observerTransform =
+          rawAnchor.getRelativeTransform(simulationTime, mSolarSystem->getObserver());
+      glm::dvec3 observerPos = observerTransform[3];
+      glm::dvec3 y           = observerTransform * glm::dvec4(0, 1, 0, 0);
+      glm::dvec3 camDir      = glm::normalize(observerPos);
 
-    glm::dvec3 z = glm::cross(y, camDir);
-    glm::dvec3 x = glm::cross(y, z);
+      glm::dvec3 z = glm::cross(y, camDir);
+      glm::dvec3 x = glm::cross(y, z);
 
-    x = glm::normalize(x);
-    y = glm::normalize(y);
-    z = glm::normalize(z);
+      x = glm::normalize(x);
+      y = glm::normalize(y);
+      z = glm::normalize(z);
 
-    auto rot = glm::toQuat(glm::dmat3(x, y, z));
-    mAnchor->setAnchorRotation(rot);
+      auto rot = glm::toQuat(glm::dmat3(x, y, z));
+      mAnchor->setAnchorRotation(rot);
 
-    mAnchor->update(simulationTime, mSolarSystem->getObserver());
+      mAnchor->update(simulationTime, mSolarSystem->getObserver());
+
+    } catch (std::exception const& e) {
+      // Getting the relative transformation may fail due to insufficient SPICE data.
+      logger().warn("AnchorLabel::update failed for '{}': {}", mBody->getCenterName(), e.what());
+    }
   }
 }
 

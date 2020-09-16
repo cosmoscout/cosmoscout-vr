@@ -58,8 +58,8 @@ class Trajectory : public cs::scene::CelestialObject, public IVistaOpenGLDraw {
  private:
   void updateExistence();
 
-  std::shared_ptr<cs::core::Settings> mSettings;
   std::shared_ptr<Plugin::Settings>   mPluginSettings;
+  std::shared_ptr<cs::core::Settings> mSettings;
   cs::scene::Trajectory               mTrajectory;
 
   std::unique_ptr<VistaOpenGLNode> mGLNode;

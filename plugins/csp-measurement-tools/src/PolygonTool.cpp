@@ -1026,9 +1026,14 @@ void PolygonTool::updateLineVertices() {
   // This seems to be the first time the tool is moved, so we have to store the distance to the
   // observer so that we can scale the tool later based on the observer's position.
   if (pScaleDistance.get() < 0) {
-    pScaleDistance = mSolarSystem->getObserver().getAnchorScale() *
-                     glm::length(mSolarSystem->getObserver().getRelativePosition(
-                         mTimeControl->pSimulationTime.get(), *mGuiAnchor));
+    try {
+      pScaleDistance = mSolarSystem->getObserver().getAnchorScale() *
+                       glm::length(mSolarSystem->getObserver().getRelativePosition(
+                           mTimeControl->pSimulationTime.get(), *mGuiAnchor));
+    } catch (std::exception const& e) {
+      // Getting the relative transformation may fail due to insufficient SPICE data.
+      logger().warn("Failed to calculate scale distance of Polygon Tool: {}", e.what());
+    }
   }
 
   auto lastMark = mPoints.begin();
