@@ -6,6 +6,8 @@
 
 #include "FlagTool.hpp"
 
+#include "logger.hpp"
+
 #include "../../../src/cs-core/GuiManager.hpp"
 #include "../../../src/cs-core/InputManager.hpp"
 #include "../../../src/cs-core/Settings.hpp"
@@ -110,9 +112,14 @@ void FlagTool::update() {
   // This seems to be the first time the tool is updated, so we have to store the distance to the
   // observer so that we can scale the tool later based on the observer's position.
   if (pScaleDistance.get() < 0) {
-    pScaleDistance = mSolarSystem->getObserver().getAnchorScale() *
-                     glm::length(mSolarSystem->getObserver().getRelativePosition(
-                         mTimeControl->pSimulationTime.get(), *mAnchor));
+    try {
+      pScaleDistance = mSolarSystem->getObserver().getAnchorScale() *
+                       glm::length(mSolarSystem->getObserver().getRelativePosition(
+                           mTimeControl->pSimulationTime.get(), *mAnchor));
+    } catch (std::exception const& e) {
+      // Getting the relative transformation may fail due to insufficient SPICE data.
+      logger().warn("Failed to calculate scale distance of Flag Tool: {}", e.what());
+    }
   }
 
   double simulationTime(mTimeControl->pSimulationTime.get());

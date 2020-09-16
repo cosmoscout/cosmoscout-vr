@@ -29,7 +29,8 @@ class CS_SCENE_EXPORT CelestialObserver : public CelestialAnchor {
   void setAnchorRotation(glm::dquat const& qRot) override;
 
   /// Calls setCenterName() and setFrameName() but updates position and rotation in such a way that
-  /// the universal position and orientation does not change.
+  /// the universal position and orientation does not change. This may throw a std::runtime_error if
+  /// no sufficient SPICE data is available.
   void changeOrigin(
       std::string const& sCenterName, std::string const& sFrameName, double dSimulationTime);
 

@@ -6,6 +6,8 @@
 
 #include "PathTool.hpp"
 
+#include "logger.hpp"
+
 #include "../../../src/cs-core/GuiManager.hpp"
 #include "../../../src/cs-core/InputManager.hpp"
 #include "../../../src/cs-core/Settings.hpp"
@@ -252,9 +254,14 @@ void PathTool::updateLineVertices() {
   // This seems to be the first time the tool is moved, so we have to store the distance to the
   // observer so that we can scale the tool later based on the observer's position.
   if (pScaleDistance.get() < 0) {
-    pScaleDistance = mSolarSystem->getObserver().getAnchorScale() *
-                     glm::length(mSolarSystem->getObserver().getRelativePosition(
-                         mTimeControl->pSimulationTime.get(), *mGuiAnchor));
+    try {
+      pScaleDistance = mSolarSystem->getObserver().getAnchorScale() *
+                       glm::length(mSolarSystem->getObserver().getRelativePosition(
+                           mTimeControl->pSimulationTime.get(), *mGuiAnchor));
+    } catch (std::exception const& e) {
+      // Getting the relative transformation may fail due to insufficient SPICE data.
+      logger().warn("Failed to calculate scale distance of Path Tool: {}", e.what());
+    }
   }
 
   auto lastMark = mPoints.begin();
@@ -336,50 +343,54 @@ bool PathTool::Do() {
   auto        time     = mTimeControl->pSimulationTime.get();
   auto const& observer = mSolarSystem->getObserver();
 
-  cs::scene::CelestialAnchor centerAnchor(getCenterName(), getFrameName());
-  auto                       mat = observer.getRelativeTransform(time, centerAnchor);
+  try {
+    cs::scene::CelestialAnchor centerAnchor(getCenterName(), getFrameName());
+    auto                       mat = observer.getRelativeTransform(time, centerAnchor);
 
-  for (size_t i(0); i < mIndexCount; ++i) {
-    vRelativePositions[i] = (mat * glm::dvec4(mSampledPositions[i], 1.0)).xyz();
-  }
+    for (size_t i(0); i < mIndexCount; ++i) {
+      vRelativePositions[i] = (mat * glm::dvec4(mSampledPositions[i], 1.0)).xyz();
+    }
 
-  // upload the new points to the GPU
-  mVBO.Bind(GL_ARRAY_BUFFER);
-  mVBO.BufferSubData(0, vRelativePositions.size() * sizeof(glm::vec3), vRelativePositions.data());
-  mVBO.Release();
+    // upload the new points to the GPU
+    mVBO.Bind(GL_ARRAY_BUFFER);
+    mVBO.BufferSubData(0, vRelativePositions.size() * sizeof(glm::vec3), vRelativePositions.data());
+    mVBO.Release();
 
-  glPushAttrib(GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT | GL_LINE_BIT);
+    glPushAttrib(GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT | GL_LINE_BIT);
 
-  // enable alpha blending for smooth line
-  glEnable(GL_BLEND);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    // enable alpha blending for smooth line
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-  // enable and configure line rendering
-  glEnable(GL_LINE_SMOOTH);
-  glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
-  glLineWidth(5);
+    // enable and configure line rendering
+    glEnable(GL_LINE_SMOOTH);
+    glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+    glLineWidth(5);
 
-  std::array<GLfloat, 16> glMatMV{};
-  std::array<GLfloat, 16> glMatP{};
-  glGetFloatv(GL_MODELVIEW_MATRIX, glMatMV.data());
-  glGetFloatv(GL_PROJECTION_MATRIX, glMatP.data());
+    std::array<GLfloat, 16> glMatMV{};
+    std::array<GLfloat, 16> glMatP{};
+    glGetFloatv(GL_MODELVIEW_MATRIX, glMatMV.data());
+    glGetFloatv(GL_PROJECTION_MATRIX, glMatP.data());
 
-  mShader.Bind();
-  mVAO.Bind();
-  glUniformMatrix4fv(mShader.GetUniformLocation("uMatModelView"), 1, GL_FALSE, glMatMV.data());
-  glUniformMatrix4fv(mShader.GetUniformLocation("uMatProjection"), 1, GL_FALSE, glMatP.data());
+    mShader.Bind();
+    mVAO.Bind();
+    glUniformMatrix4fv(mShader.GetUniformLocation("uMatModelView"), 1, GL_FALSE, glMatMV.data());
+    glUniformMatrix4fv(mShader.GetUniformLocation("uMatProjection"), 1, GL_FALSE, glMatP.data());
 
-  mShader.SetUniform(
-      mShader.GetUniformLocation("uColor"), pColor.get().r, pColor.get().g, pColor.get().b);
-  mShader.SetUniform(
-      mShader.GetUniformLocation("uFarClip"), cs::utils::getCurrentFarClipDistance());
+    mShader.SetUniform(
+        mShader.GetUniformLocation("uColor"), pColor.get().r, pColor.get().g, pColor.get().b);
+    mShader.SetUniform(
+        mShader.GetUniformLocation("uFarClip"), cs::utils::getCurrentFarClipDistance());
 
-  // draw the linestrip
-  glDrawArrays(GL_LINE_STRIP, 0, static_cast<GLsizei>(mIndexCount));
-  mVAO.Release();
-  mShader.Release();
+    // draw the linestrip
+    glDrawArrays(GL_LINE_STRIP, 0, static_cast<GLsizei>(mIndexCount));
+    mVAO.Release();
+    mShader.Release();
 
-  glPopAttrib();
+    glPopAttrib();
+
+  } catch (std::exception const& e) { logger().warn("PathTool::Do failed: {}", e.what()); }
+
   return true;
 }
 

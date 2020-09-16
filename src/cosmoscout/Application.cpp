@@ -463,10 +463,42 @@ void Application::FrameUpdate() {
     {
       cs::utils::FrameTimings::ScopedTimer timer(
           "SolarSystem Update", cs::utils::FrameTimings::QueryMode::eCPU);
-      mDragNavigation->update();
-      mSolarSystem->update();
-      mSolarSystem->updateSceneScale();
-      mSolarSystem->updateObserverFrame();
+
+      // It may be that our observer is in a SPICE frame we do not have data for. If this is the
+      // case, this call will bring it back to Solar System Barycenter / J2000 which should be
+      // always available.
+      if (mLastUpdateSimulationTime != std::numeric_limits<double>::max()) {
+        mSolarSystem->fixObserverFrame(mLastUpdateSimulationTime);
+      }
+
+      // We store here the simulation time of this frame for the next one. This is used above to
+      // reset the observer with SolarSystem::fixObserverFrame() if there is not enough SPICE data
+      // loaded to compute the observer's position in the current frame.
+      mLastUpdateSimulationTime = mTimeControl->pSimulationTime.get();
+
+      try {
+        mDragNavigation->update();
+      } catch (std::runtime_error const& e) {
+        logger().warn("Failed to update navigation: {}", e.what());
+      }
+
+      try {
+        mSolarSystem->update();
+      } catch (std::runtime_error const& e) {
+        logger().warn("Failed to update Solar System: {}", e.what());
+      }
+
+      try {
+        mSolarSystem->updateSceneScale();
+      } catch (std::runtime_error const& e) {
+        logger().warn("Failed to update scene scale: {}", e.what());
+      }
+
+      try {
+        mSolarSystem->updateObserverFrame();
+      } catch (std::runtime_error const& e) {
+        logger().warn("Failed to update observer frame: {}", e.what());
+      }
     }
 
     // Update the individual plugins.
@@ -477,7 +509,7 @@ void Application::FrameUpdate() {
       try {
         plugin.second.mPlugin->update();
       } catch (std::runtime_error const& e) {
-        logger().error("Error updating plugin '{}': {}", plugin.first, e.what());
+        logger().warn("Failed to update plugin '{}': {}", plugin.first, e.what());
       }
     }
 
@@ -559,18 +591,24 @@ void Application::FrameUpdate() {
       }
 
       // Update the compass in the header bar.
-      auto rot = mSolarSystem->getObserver().getRelativeRotation(
-          mTimeControl->pSimulationTime.get(), *mSolarSystem->pActiveBody.get());
-      glm::dvec4 up(0.0, 1.0, 0.0, 0.0);
-      glm::dvec4 north = rot * up;
-      north.z          = 0.0;
+      try {
+        auto rot = mSolarSystem->getObserver().getRelativeRotation(
+            mTimeControl->pSimulationTime.get(), *mSolarSystem->pActiveBody.get());
+        glm::dvec4 up(0.0, 1.0, 0.0, 0.0);
+        glm::dvec4 north = rot * up;
+        north.z          = 0.0;
 
-      double angle = std::acos(glm::dot(up, glm::normalize(north)));
-      if (north.x < 0.0) {
-        angle = -angle;
+        double angle = std::acos(glm::dot(up, glm::normalize(north)));
+        if (north.x < 0.0) {
+          angle = -angle;
+        }
+
+        mGuiManager->getGui()->callJavascript("CosmoScout.timeline.setNorthDirection", angle);
+
+      } catch (std::exception const& e) {
+        // Getting the relative transformation may fail due to insufficient SPICE data.
+        logger().warn("Failed to update UI compass: {}", e.what());
       }
-
-      mGuiManager->getGui()->callJavascript("CosmoScout.timeline.setNorthDirection", angle);
     }
 
     mGuiManager->update();
@@ -627,11 +665,11 @@ void Application::testLoadAllPlugins() {
         if (pluginConstructor) {
           logger().info("Plugin '{}' found.", plugin);
         } else {
-          logger().error("Failed to load plugin '{}': Plugin has no 'create' method.", plugin);
+          logger().warn("Failed to load plugin '{}': Plugin has no 'create' method.", plugin);
         }
 
       } else {
-        logger().error("Failed to load plugin '{}': {}", plugin, LIBERROR());
+        logger().warn("Failed to load plugin '{}': {}", plugin, LIBERROR());
       }
     }
   }
@@ -691,10 +729,10 @@ void Application::openPlugin(std::string const& name) {
         // Actually call the plugin's constructor and add the returned pointer to out list.
         mPlugins.insert(std::pair<std::string, Plugin>(name, {pluginHandle, pluginConstructor()}));
       } else {
-        logger().error("Failed to load plugin '{}': {}", name, LIBERROR());
+        logger().warn("Failed to load plugin '{}': {}", name, LIBERROR());
       }
     } catch (std::exception const& e) {
-      logger().error("Failed to load plugin '{}': {}", name, e.what());
+      logger().warn("Failed to load plugin '{}': {}", name, e.what());
     }
   } else {
     logger().warn("Cannot open plugin '{}': Plugin is already opened!", name);
@@ -723,7 +761,7 @@ void Application::initPlugin(std::string const& name) {
         // Plugin finished loading -> init its custom components.
         mGuiManager->getGui()->callJavascript("CosmoScout.gui.initInputs");
       } catch (std::exception const& e) {
-        logger().error("Failed to initialize plugin '{}': {}", plugin->first, e.what());
+        logger().warn("Failed to initialize plugin '{}': {}", plugin->first, e.what());
       }
     } else {
       logger().warn("Cannot initialize plugin '{}': Plugin is already initialized!", name);
