@@ -99,7 +99,6 @@ void SolarSystem::fixObserverFrame(double lastWorkingSimulationTime) {
     // In case of an error, we reset the observer. This can throw an error itself, but we cannot do
     // anything if that happens.
     try {
-       logger().info("{}", __LINE__);
       mObserver.changeOrigin("Solar System Barycenter", "J2000", lastWorkingSimulationTime);
     } catch (std::exception const& e) {
       logger().warn("Failed to reset the Observer SPICE frame: {}", e.what());

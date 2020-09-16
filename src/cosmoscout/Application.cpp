@@ -463,7 +463,6 @@ void Application::FrameUpdate() {
           "TimeControl Update", cs::utils::FrameTimings::QueryMode::eCPU);
       lastFrameSimulationTime = mTimeControl->pSimulationTime.get();
       mTimeControl->update();
-      logger().info("{}", __LINE__);
     }
 
     // Update the navigation, SolarSystem and scene scale.
