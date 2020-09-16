@@ -89,6 +89,26 @@ scene::CelestialObserver const& SolarSystem::getObserver() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void SolarSystem::fixObserverFrame(double lastWorkingSimulationTime) {
+  // We try getting the position of the observer relative to the origin of the Solar System. If this
+  // fails, something is wrong with our observer frame.
+  try {
+    mObserver.getRelativePosition(mTimeControl->pSimulationTime.get(),
+        scene::CelestialAnchor("Solar System Barycenter", "J2000"));
+  } catch (...) {
+    // In case of an error, we reset the observer. This can throw an error itself, but we cannot do
+    // anything if that happens.
+    try {
+       logger().info("{}", __LINE__);
+      mObserver.changeOrigin("Solar System Barycenter", "J2000", lastWorkingSimulationTime);
+    } catch (std::exception const& e) {
+      logger().warn("Failed to reset the Observer SPICE frame: {}", e.what());
+    }
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void SolarSystem::registerAnchor(std::shared_ptr<scene::CelestialAnchor> const& anchor) {
   mAnchors.insert(anchor);
 }
@@ -177,6 +197,7 @@ void SolarSystem::update() {
   mObserver.updateMovementAnimation(realTime);
 
   mSun->update(simulationTime, mObserver);
+
   for (auto const& object : mAnchors) {
     object->update(simulationTime, mObserver);
   }
@@ -270,7 +291,16 @@ void SolarSystem::updateSceneScale() {
         dClosestDistance               = dDistance;
         vClosestPlanetObserverPosition = vObserverPos;
       }
-    } catch (...) { continue; }
+    } catch (...) {
+      // If getting the relative position of the body failed, this may be due to two reasons: Either
+      // we do not have suffcient SPICE data for the SPICE frame of the body or we do not have
+      // enough data for the observer frame. The former issue is ok, we will just skip this body and
+      // try the next one. The latter is more tricky as this will cause issues with all bodies and
+      // we won't find any object to scale the scene to. However, the Application will catch an
+      // error from the SolarSystem::update() call and will call SolarSystem::fixObserverFrame() to
+      // get the observer back to a valid frame.
+      continue;
+    }
   }
 
   // Now that we found a closest body, we will scale the observer in such a way, that the closest
@@ -360,7 +390,16 @@ void SolarSystem::updateObserverFrame() {
         activeBody    = object;
         dActiveWeight = dWeight;
       }
-    } catch (...) { continue; }
+    } catch (...) {
+      // If getting the relative position of the body failed, this may be due to two reasons: Either
+      // we do not have suffcient SPICE data for the SPICE frame of the body or we do not have
+      // enough data for the observer frame. The former issue is ok, we will just skip this body and
+      // try the next one. The latter is more tricky as this will cause issues with all bodies and
+      // we won't find any active object to track. However, the Application will catch an error from
+      // the SolarSystem::update() call and will call SolarSystem::fixObserverFrame() to get the
+      // observer back to a valid frame.
+      continue;
+    }
   }
 
   // We change frame and center if there is a object with weight larger than mLockWeight
