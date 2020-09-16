@@ -49,24 +49,19 @@ void CelestialObserver::setAnchorRotation(glm::dquat const& qRot) {
 
 void CelestialObserver::changeOrigin(
     std::string const& sCenterName, std::string const& sFrameName, double dSimulationTime) {
-  if (!mAnimationInProgress) {
-    cs::scene::CelestialAnchor target(sCenterName, sFrameName);
 
-    try {
-      glm::dvec3 pos = target.getRelativePosition(dSimulationTime, *this);
-      glm::dquat rot = target.getRelativeRotation(dSimulationTime, *this);
+  mAnimationInProgress = false;
 
-      setCenterName(sCenterName);
-      setFrameName(sFrameName);
+  cs::scene::CelestialAnchor target(sCenterName, sFrameName);
 
-      setAnchorRotation(rot);
-      setAnchorPosition(pos);
+  glm::dvec3 pos = target.getRelativePosition(dSimulationTime, *this);
+  glm::dquat rot = target.getRelativeRotation(dSimulationTime, *this);
 
-    } catch (std::exception const& e) {
-      // Getting the relative transformation may fail due to insufficient SPICE data.
-      logger().warn("CelestialObserver::changeOrigin failed: {}", e.what());
-    }
-  }
+  setCenterName(sCenterName);
+  setFrameName(sFrameName);
+
+  setAnchorRotation(rot);
+  setAnchorPosition(pos);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
