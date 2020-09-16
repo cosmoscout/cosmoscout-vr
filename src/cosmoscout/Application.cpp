@@ -452,16 +452,10 @@ void Application::FrameUpdate() {
       mInputManager->update();
     }
 
-    // We store here the simulation time of the last frame. This is used further below to reset the
-    // observer with SolarSystem::fixObserverFrame() if there is not enough SPICE data loaded
-    // to compute the observer's position in the current frame.
-    double lastFrameSimulationTime = 0.0;
-
     // Update the TimeControl.
     {
       cs::utils::FrameTimings::ScopedTimer timer(
           "TimeControl Update", cs::utils::FrameTimings::QueryMode::eCPU);
-      lastFrameSimulationTime = mTimeControl->pSimulationTime.get();
       mTimeControl->update();
     }
 
@@ -473,7 +467,14 @@ void Application::FrameUpdate() {
       // It may be that our observer is in a SPICE frame we do not have data for. If this is the
       // case, this call will bring it back to Solar System Barycenter / J2000 which should be
       // always available.
-      mSolarSystem->fixObserverFrame(lastFrameSimulationTime);
+      if (mLastUpdateSimulationTime != std::numeric_limits<double>::max()) {
+        mSolarSystem->fixObserverFrame(mLastUpdateSimulationTime);
+      }
+
+      // We store here the simulation time of this frame for the next one. This is used above to
+      // reset the observer with SolarSystem::fixObserverFrame() if there is not enough SPICE data
+      // loaded to compute the observer's position in the current frame.
+      mLastUpdateSimulationTime = mTimeControl->pSimulationTime.get();
 
       try {
         mDragNavigation->update();
