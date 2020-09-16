@@ -101,7 +101,7 @@ void SolarSystem::fixObserverFrame(double lastWorkingSimulationTime) {
     try {
       mObserver.changeOrigin("Solar System Barycenter", "J2000", lastWorkingSimulationTime);
     } catch (std::exception const& e) {
-      logger().warn("Failed to reset the Observer SPICE frame: {}", e.what());
+      logger().error("Failed to reset the Observer SPICE frame: {}", e.what());
     }
   }
 }
