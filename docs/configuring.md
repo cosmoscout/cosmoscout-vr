@@ -58,8 +58,8 @@ In the following, the individual parameters are explained and the required steps
 }
 ```
 
-* **`"startDate"`:** This should be either `"today"` or in the format `"1950-01-02 00:00:00.000"` and determines the initial simulation time.
-* **`"resetDate"`:** This should be either `"today"` or in the format `"1950-01-02 00:00:00.000"` and determines the target time the reset-reset button.
+* **`"startDate"`:** This should be either `"today"` or in the format `"1950-01-02 00:00:00.000"`. It determines the initial simulation time.
+* **`"resetDate"`:** This should be either `"today"` or in the format `"1950-01-02 00:00:00.000"`. The simulation time will be set to this value when the reset button is clicked.
 * **`"minDate"`:** This should be in the format `"1950-01-02 00:00:00.000"` and determines the left end of the timeline. You have to make sure that the loaded SPICE kernels are valid for this time range.
 * **`"maxDate"`:** This should be in the format `"2049-12-31 00:00:00.000"` and determines the right end of the timeline. You have to make sure that the loaded SPICE kernels are valid for this time range.
 * **`"fileLogLevel"`**, **`"consoleLogLevel"`** and **`"screenLogLevel"`:** Adjust the verbosity of the log output written to `cosmoscout.log`, written to the command line and written to the on-screen console respectively. Should be one of 
