@@ -168,8 +168,9 @@ class CS_CORE_EXPORT Settings {
     /// as provided by SPICE.
     std::optional<glm::dvec3> mRadii;
 
-    /// Additional translation in meters, relative to center in frame coordinates, additional scaling
-    /// and rotation is applied afterwards and will not change the position relative to the center.
+    /// Additional translation in meters, relative to center in frame coordinates, additional
+    /// scaling and rotation is applied afterwards and will not change the position relative to the
+    /// center.
     std::optional<glm::dvec3> mPosition;
 
     /// Additional rotation around the point center + position in frame coordinates.
