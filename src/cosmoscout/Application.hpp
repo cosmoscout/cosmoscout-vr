@@ -8,6 +8,7 @@
 #define CS_APPLICATION_HPP
 
 #include <VistaKernel/VistaFrameLoop.h>
+#include <limits>
 #include <map>
 #include <memory>
 #include <set>

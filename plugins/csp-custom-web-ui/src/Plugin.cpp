@@ -234,12 +234,13 @@ void Plugin::onLoad() {
       // Compute the cartesian position of the CelestialAnchorNode.
       glm::dvec2 lngLat(settings.mLongitude, settings.mLatitude);
       lngLat        = cs::utils::convert::toRadians(lngLat);
+      auto   radii  = mSolarSystem->getRadii(settings.mCenter);
       double height = 0.0;
       auto   parent = mSolarSystem->getBody(settings.mCenter);
       if (parent) {
         height = parent->getHeight(lngLat);
+        radii  = parent->getRadii();
       }
-      auto radii = mSolarSystem->getRadii(settings.mCenter);
       item.mAnchor->setAnchorPosition(cs::utils::convert::toCartesian(lngLat, radii, height));
 
       // Create the WorldSpaceGuiArea for the gui element.

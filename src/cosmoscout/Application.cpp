@@ -847,14 +847,17 @@ void Application::connectSlots() {
   });
 
   // Show notification when the center name of the celestial observer changes.
-  mSettings->mObserver.pCenter.connectAndTouch([this](std::string const& center) {
-    mGuiManager->getGui()->executeJavascript(
-        fmt::format("CosmoScout.state.activePlanetCenter = '{}';", center));
+  mSolarSystem->pActiveBody.connectAndTouch(
+      [this](std::shared_ptr<cs::scene::CelestialBody> const& body) {
+        if (body) {
+          mGuiManager->getGui()->executeJavascript(
+              fmt::format("CosmoScout.state.activePlanetCenter = '{}';", body->getCenterName()));
 
-    auto radii = cs::core::SolarSystem::getRadii(center);
-    mGuiManager->getGui()->executeJavascript(
-        fmt::format("CosmoScout.state.activePlanetRadius = [{}, {}];", radii[0], radii[1]));
-  });
+          auto radii = body->getRadii();
+          mGuiManager->getGui()->executeJavascript(
+              fmt::format("CosmoScout.state.activePlanetRadius = [{}, {}];", radii[0], radii[1]));
+        }
+      });
 
   // Show notification when the frame name of the celestial observer changes.
   mSettings->mObserver.pFrame.connectAndTouch([this](std::string const& frame) {
@@ -871,7 +874,7 @@ void Application::connectSlots() {
   // Set the observer rotation state.
   mSettings->mObserver.pRotation.connectAndTouch([this](glm::dquat const& r) {
     mGuiManager->getGui()->executeJavascript(
-        fmt::format("CosmoScout.state.observerRotation = [{}, {}, {}, {}];", r.w, r.x, r.y, r.z));
+        fmt::format("CosmoScout.state.observerRotation = [{}, {}, {}, {}];", r.x, r.y, r.z, r.w));
   });
 
   // Show the current speed of the celestial observer in the user interface.
@@ -1384,7 +1387,7 @@ void Application::registerGuiCallbacks() {
   mGuiManager->getGui()->registerCallback("navigation.setRotation",
       "Sets the observer rotation to the given quaternion. The optional double argument specifies "
       "the transition time in seconds (default is 2s).",
-      std::function([this](double w, double x, double y, double z, std::optional<double> duration) {
+      std::function([this](double x, double y, double z, double w, std::optional<double> duration) {
         mSolarSystem->flyObserverTo(mSolarSystem->getObserver().getCenterName(),
             mSolarSystem->getObserver().getFrameName(),
             mSolarSystem->getObserver().getAnchorPosition(), glm::dquat(w, x, y, z),
@@ -1411,7 +1414,7 @@ void Application::registerGuiCallbacks() {
       "quaternion. The optional argument specifies the travel time in seconds (default is 10s).",
       std::function(
           [this](std::string&& center, std::string&& frame, double px, double py, double pz,
-              double rw, double rx, double ry, double rz, std::optional<double> duration) {
+              double rx, double ry, double rz, double rw, std::optional<double> duration) {
             mSolarSystem->flyObserverTo(center, frame, glm::dvec3(px, py, pz),
                 glm::dquat(rw, rx, ry, rz), duration.value_or(10.0));
           }));
@@ -1438,8 +1441,12 @@ void Application::registerGuiCallbacks() {
       "Turns the observer so that north is facing upwards. The optional argument specifies the "
       "animation time in seconds (default is 1s).",
       std::function([this](std::optional<double> duration) {
+        if (!mSolarSystem->pActiveBody.get()) {
+          return;
+        }
+
+        auto radii       = mSolarSystem->pActiveBody.get()->getRadii();
         auto observerPos = mSolarSystem->getObserver().getAnchorPosition();
-        auto radii = cs::core::SolarSystem::getRadii(mSolarSystem->getObserver().getCenterName());
 
         glm::dvec3 y = glm::vec3(0, -1, 0);
         glm::dvec3 z = cs::utils::convert::cartesianToNormal(observerPos, radii);
@@ -1462,7 +1469,11 @@ void Application::registerGuiCallbacks() {
       "Turns the observer so that the horizon is horizontal. The optional argument specifies the "
       "animation time in seconds (default is 1s).",
       std::function([this](std::optional<double> duration) {
-        auto radii = cs::core::SolarSystem::getRadii(mSolarSystem->getObserver().getCenterName());
+        if (!mSolarSystem->pActiveBody.get()) {
+          return;
+        }
+
+        auto radii = mSolarSystem->pActiveBody.get()->getRadii();
 
         if (radii[0] == 0.0) {
           radii = glm::dvec3(1, 1, 1);
@@ -1496,7 +1507,11 @@ void Application::registerGuiCallbacks() {
       "Reduces the altitude of the observer significantly. The optional argument specifies the "
       "animation time in seconds (default is 3s).",
       std::function([this](std::optional<double> duration) {
-        auto radii = cs::core::SolarSystem::getRadii(mSolarSystem->getObserver().getCenterName());
+        if (!mSolarSystem->pActiveBody.get()) {
+          return;
+        }
+
+        auto radii = mSolarSystem->pActiveBody.get()->getRadii();
 
         if (radii[0] == 0.0 || radii[2] == 0.0) {
           radii = glm::dvec3(1, 1, 1);
@@ -1546,7 +1561,11 @@ void Application::registerGuiCallbacks() {
       std::function([this](std::optional<double> duration) {
         auto observerPos = mSolarSystem->getObserver().getAnchorPosition();
         auto observerRot = mSolarSystem->getObserver().getAnchorRotation();
-        auto radii = cs::core::SolarSystem::getRadii(mSolarSystem->getObserver().getCenterName());
+        if (!mSolarSystem->pActiveBody.get()) {
+          return;
+        }
+
+        auto radii = mSolarSystem->pActiveBody.get()->getRadii();
 
         if (radii[0] == 0.0) {
           radii = glm::dvec3(1, 1, 1);

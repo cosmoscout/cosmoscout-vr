@@ -26,6 +26,7 @@
 #include <VistaKernel/VistaSystem.h>
 #include <VistaKernelOpenSGExt/VistaOpenSGMaterialTools.h>
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/gtx/component_wise.hpp>
 #include <glm/gtx/norm.hpp>
 #include <utility>
 
@@ -52,6 +53,7 @@ AnchorLabel::AnchorLabel(cs::scene::CelestialBody const* const body,
 
   mAnchor = std::make_shared<cs::scene::CelestialAnchorNode>(sceneGraph->GetRoot(),
       sceneGraph->GetNodeBridge(), "", mBody->getCenterName(), mBody->getFrameName());
+  mAnchor->setAnchorPosition(mBody->getAnchorPosition());
 
   mGuiTransform.reset(sceneGraph->NewTransformNode(mAnchor.get()));
   mGuiTransform->SetScale(1.0F,
@@ -186,7 +188,7 @@ bool AnchorLabel::shouldBeHidden() const {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 double AnchorLabel::bodySize() const {
-  return mBody->pVisibleRadius();
+  return glm::compMax(mBody->getRadii());
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

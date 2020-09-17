@@ -14,11 +14,11 @@
 #include <VistaOGLExt/VistaTexture.h>
 #include <VistaOGLExt/VistaVertexArrayObject.h>
 
+#include "../../../src/cs-core/Settings.hpp"
 #include "../../../src/cs-scene/CelestialBody.hpp"
 #include "Plugin.hpp"
 
 namespace cs::core {
-class Settings;
 class SolarSystem;
 } // namespace cs::core
 
@@ -29,8 +29,7 @@ namespace csp::simplebodies {
 class SimpleBody : public cs::scene::CelestialBody, public IVistaOpenGLDraw {
  public:
   SimpleBody(std::shared_ptr<cs::core::Settings> settings,
-      std::shared_ptr<cs::core::SolarSystem> solarSystem, std::string const& sCenterName,
-      std::string const& sFrameName, double tStartExistence, double tEndExistence);
+      std::shared_ptr<cs::core::SolarSystem> solarSystem, std::string const& anchorName);
 
   SimpleBody(SimpleBody const& other) = delete;
   SimpleBody(SimpleBody&& other)      = default;
@@ -52,8 +51,7 @@ class SimpleBody : public cs::scene::CelestialBody, public IVistaOpenGLDraw {
       glm::dvec3 const& rayOrigin, glm::dvec3 const& rayDir, glm::dvec3& pos) const override;
 
   /// Interface implementation of CelestialBody.
-  double     getHeight(glm::dvec2 lngLat) const override;
-  glm::dvec3 getRadii() const override;
+  double getHeight(glm::dvec2 lngLat) const override;
 
   /// Interface implementation of IVistaOpenGLDraw.
   bool Do() override;
@@ -72,8 +70,6 @@ class SimpleBody : public cs::scene::CelestialBody, public IVistaOpenGLDraw {
   VistaVertexArrayObject        mSphereVAO;
   VistaBufferObject             mSphereVBO;
   VistaBufferObject             mSphereIBO;
-
-  glm::dvec3 mRadii;
 
   bool mShaderDirty              = true;
   int  mEnableLightingConnection = -1;

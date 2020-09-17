@@ -183,13 +183,13 @@ void PathTool::setNumSamples(int const& numSamples) {
 glm::dvec4 PathTool::getInterpolatedPosBetweenTwoMarks(cs::core::tools::DeletableMark const& l0,
     cs::core::tools::DeletableMark const& l1, double value, double const& scale) {
 
-  glm::dvec3 radii = cs::core::SolarSystem::getRadii(getCenterName());
-
   auto body = mSolarSystem->getBody(getCenterName());
 
   if (!body) {
     return glm::dvec4(0.0);
   }
+
+  glm::dvec3 radii = body->getRadii();
 
   // Calculate the position for the new segment anchor
   double h0 = body->getHeight(l0.pLngLat.get()) * scale;
@@ -244,7 +244,7 @@ void PathTool::updateLineVertices() {
   }
 
   double h_scale = mSettings->mGraphics.pHeightScale.get();
-  auto   radii   = cs::core::SolarSystem::getRadii(getCenterName());
+  auto   radii   = body->getRadii();
   auto   lngLat  = cs::utils::convert::cartesianToLngLat(averagePosition, radii);
   double height  = body ? body->getHeight(lngLat) * h_scale : 0.0;
   auto   center  = cs::utils::convert::toCartesian(lngLat, radii, height);

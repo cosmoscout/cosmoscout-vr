@@ -194,9 +194,9 @@ void DragNavigation::update() {
         double targetAngle = -1.0 * std::acos(dot);
 
         // reduce rotation speed close to planet
-        if (!mDraggingPlanet && !mLocalRotation) {
-          double fac = 0.5;
-          auto radii = cs::core::SolarSystem::getRadii(mSolarSystem->getObserver().getCenterName());
+        if (!mDraggingPlanet && !mLocalRotation && mSolarSystem->pActiveBody.get()) {
+          double fac   = 0.5;
+          auto   radii = mSolarSystem->pActiveBody.get()->getRadii();
           if (radii[0] > 0) {
             auto surfacePos = utils::convert::scaleToGeodeticSurface(observerPos, radii);
             auto distance   = observerPos - surfacePos;
@@ -273,13 +273,13 @@ void DragNavigation::update() {
 
   glm::dquat newObserverRot = glm::angleAxis(mTargetAngle, mCurrentAxis) * mStartObserverRot;
 
-  if (mLocalRotation) {
+  if (mLocalRotation && mSolarSystem->pActiveBody.get()) {
     // perform roll correction if observer is close to planet (10% of
     // radius) and planet normal is already close to up
     // or if the orthogonal on planet normal and up vector is
     // close to the viewers x axis (e.g. if the user is looking down or
     // upwards but the horizon is still straight)
-    auto radii      = cs::core::SolarSystem::getRadii(mSolarSystem->getObserver().getCenterName());
+    auto radii      = mSolarSystem->pActiveBody.get()->getRadii();
     auto surfacePos = utils::convert::scaleToGeodeticSurface(observerPos, radii);
     auto distance   = observerPos - surfacePos;
 

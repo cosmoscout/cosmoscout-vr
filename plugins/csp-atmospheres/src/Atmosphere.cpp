@@ -20,17 +20,14 @@ namespace csp::atmospheres {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Atmosphere::Atmosphere(std::shared_ptr<Plugin::Settings> const& settings,
-    std::string const& sCenterName, std::string const& sFrameName, double tStartExistence,
-    double tEndExistence)
-    : cs::scene::CelestialObject(sCenterName, sFrameName, tStartExistence, tEndExistence)
-    , mRenderer(settings)
-    , mPluginSettings(settings) {
+Atmosphere::Atmosphere(std::shared_ptr<Plugin::Settings> const& pluginSettings,
+    std::shared_ptr<cs::core::Settings> const& settings, std::string const& anchorName)
+    : mRenderer(pluginSettings)
+    , mPluginSettings(pluginSettings) {
 
-  auto radii(cs::core::SolarSystem::getRadii(sCenterName));
-  pVisibleRadius = radii[0];
+  settings->initAnchor(*this, anchorName);
 
-  mRenderer.setRadii(radii);
+  mRenderer.setRadii(mRadii);
   mRenderer.setUseLinearDepthBuffer(true);
   mRenderer.setDrawSun(false);
   mRenderer.setSecondaryRaySteps(3);

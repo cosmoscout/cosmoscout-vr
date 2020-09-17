@@ -263,8 +263,8 @@ void DipStrikeTool::calculateDipAndStrike() {
     return;
   }
 
-  auto radii = mSolarSystem->getRadii(mGuiAnchor->getCenterName());
   auto body  = mSolarSystem->getBody(getCenterName());
+  auto radii = body->getRadii();
 
   glm::dvec3 averagePosition{0};
   for (auto const& mark : mPoints) {
