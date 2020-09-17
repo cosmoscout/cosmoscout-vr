@@ -117,7 +117,7 @@ Last but not least, the far clipping plane depends on the scene scale: Near clip
     ...
   }
   ```
-  Now if you want to attach a simple body or a trajectory to this anchor, the configuration of the respective plugins will only refer to `"Moon"`. `"center"` and `"frame"` define the SPICE reference frame, `"existence"` should match at most the data coverage of your SPICE kernels. Keep in mind, that the dates are given UTC, your SPICE kernel's coverage is however most likely given in TDB which differs from UTC by several seconds.
+  Now if you want to attach a simple body or a trajectory to this anchor, the configuration of the respective plugins will only refer to `"Moon"`. The properties `"center"` and `"frame"` define the SPICE reference frame, `"existence"` should match at most the data coverage of your SPICE kernels. Keep in mind, that the dates are given UTC, your SPICE kernel's coverage is however most likely given in TDB which differs from UTC by several seconds.
 * **`"bookmarks"`:** This list may contain events which will be shown on the timeline and in the sidebar. Take this as an example:
   ```javascript
    "bookmarks": [
@@ -146,7 +146,7 @@ Last but not least, the far clipping plane depends on the scene scale: Near clip
     ...
   ],
   ```
-  Except for `name`, all properties are optional. You can supply a description, a color, a location (optionally with `position` and `rotation`) and a time.
+  Except for `"name"`, all properties are optional. You can supply a description, a color, a location (optionally with `position` and `rotation`) and a time.
 * **`"plugins"`:** This item contains an object for each plugin.
 The name of the object must match the library name of the plugin.
 In the example below, CosmoScout VR will attempt to load a plugin library called `../share/plugins/libcsp-simple-bodies.so` (`..\share\plugins\csp-simple-bodies.dll` on Windows). 

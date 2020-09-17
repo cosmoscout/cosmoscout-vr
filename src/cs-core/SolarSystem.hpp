@@ -212,7 +212,7 @@ class CS_CORE_EXPORT SolarSystem {
   /// Mind the difference to the Settings::getRadii(): SolarSystem::getRadii() takes a SPICE center
   /// name and makes a lookup into the loaded SPICE kernels to retrieve the radii.
   /// Settings::getRadii() on the other hand will first check the loaded scene configuration for any
-  /// radii overides. If non is found, Settings::getRadii() will call SolarSystem::getRadii()
+  /// radii overides. If none is found, Settings::getRadii() will call SolarSystem::getRadii()
   /// internally.
   /// @param sCenterName The name of the SPICE object from which the radii are requested.
   static glm::dvec3 getRadii(std::string const& sCenterName);
