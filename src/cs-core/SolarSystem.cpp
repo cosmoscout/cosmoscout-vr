@@ -378,6 +378,12 @@ void SolarSystem::updateObserverFrame() {
                        std::max(radii[0] + mSettings->mSceneScale.mMinObjectSize,
                            radii[0] + dDistance - mSettings->mSceneScale.mMinObjectSize);
 
+      // The Sun is quite huge. We reduce it's weight a bit so that the observer is more inclined to
+      // stay at planets.
+      if (object->getCenterName() == "Sun") {
+        dWeight *= 0.01;
+      }
+
       if (dWeight > dActiveWeight) {
         activeBody    = object;
         dActiveWeight = dWeight;
