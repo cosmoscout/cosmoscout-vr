@@ -31,7 +31,7 @@ glm::dvec2 const& CelestialObject::getExistence() const {
 }
 
 void CelestialObject::setExistence(glm::dvec2 value) {
-  mExistence = std::move(value);
+  mExistence = value;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

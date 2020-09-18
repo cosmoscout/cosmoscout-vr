@@ -33,8 +33,7 @@ class Plugin : public cs::core::PluginBase {
       struct Trail {
 
         /// Without this, some versions of clang claim this type to be non-default-constructible...
-        Trail() {
-        }
+        Trail() = default;
         /// The length of the trail in days.
         double mLength{};
 

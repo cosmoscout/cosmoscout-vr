@@ -32,7 +32,7 @@ class LifeSpanHandler : public CefLifeSpanHandler {
   void OnAfterCreated(CefRefPtr<CefBrowser> browser) override;
 
   /// Gets called, when the browser is destroyed.
-  bool DoClose(CefRefPtr<CefBrowser> browser) override {
+  bool DoClose(CefRefPtr<CefBrowser> /*browser*/) override {
     mBrowser = nullptr;
     return false;
   }

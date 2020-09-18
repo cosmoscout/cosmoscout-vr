@@ -12,15 +12,7 @@
 
 namespace csp::measurementtools {
 
-Breakpoint::Breakpoint()
-    : mLeftArc(nullptr)
-    , mRightArc(nullptr)
-    , mLeftChild(nullptr)
-    , mRightChild(nullptr)
-    , mParent(nullptr)
-    , mGenerator(nullptr)
-    , mSweepline(-1.0) {
-}
+Breakpoint::Breakpoint() = default;
 
 Breakpoint::Breakpoint(Arc* left, Arc* right, VoronoiGenerator* generator)
     : mLeftArc(left)
@@ -29,8 +21,8 @@ Breakpoint::Breakpoint(Arc* left, Arc* right, VoronoiGenerator* generator)
     , mRightChild(nullptr)
     , mParent(nullptr)
     , mGenerator(generator)
-    , mSweepline(-1.0)
-    , mStart(position()) {
+    , 
+     mStart(position()) {
 }
 
 Vector2f const& Breakpoint::position() const {

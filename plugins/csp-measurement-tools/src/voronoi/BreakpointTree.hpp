@@ -47,7 +47,7 @@ class BreakpointTree {
   void attachRightOf(Breakpoint* newNode, Breakpoint* atNode);
   void attachLeftOf(Breakpoint* newNode, Breakpoint* atNode);
 
-  Breakpoint* mRoot;
+  Breakpoint* mRoot{nullptr};
 };
 } // namespace csp::measurementtools
 #endif // CSP_MEASUREMENT_TOOLS_BREAKPOINTTREE_HPP

@@ -20,7 +20,7 @@ namespace cs::graphics {
 class CS_GRAPHICS_EXPORT GlowMipMap : public VistaTexture {
  public:
   GlowMipMap(uint32_t hdrBufferSamples, int hdrBufferWidth, int hdrBufferHeight);
-  virtual ~GlowMipMap();
+  ~GlowMipMap() override;
 
   /// Perform the glow calculation by parallel reduction of the HDR values. This is a costly
   /// operation and should only be called once a frame.

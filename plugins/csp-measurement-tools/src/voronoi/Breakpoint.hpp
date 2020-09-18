@@ -24,15 +24,15 @@ class Breakpoint {
   Vector2f const& position() const;
   Edge            finishEdge(Vector2f const& end) const;
 
-  Arc *       mLeftArc, *mRightArc;
-  Breakpoint *mLeftChild, *mRightChild, *mParent;
+  Arc *       mLeftArc{nullptr}, *mRightArc{nullptr};
+  Breakpoint *mLeftChild{nullptr}, *mRightChild{nullptr}, *mParent{nullptr};
 
  private:
   void updatePosition() const;
 
-  VoronoiGenerator* mGenerator;
+  VoronoiGenerator* mGenerator{nullptr};
 
-  mutable double   mSweepline;
+  mutable double   mSweepline{-1.0};
   mutable Vector2f mPosition;
 
   Vector2f mStart;

@@ -146,8 +146,7 @@ struct ProfileRadarData {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Sharad::Sharad(std::shared_ptr<cs::core::Settings> settings,
-    std::shared_ptr<cs::core::SolarSystem> solarSystem, std::string const& anchorName,
+Sharad::Sharad(std::shared_ptr<cs::core::Settings> settings, std::string const& anchorName,
     std::string const& sTiffFile, std::string const& sTabFile)
     : mSettings(std::move(settings))
     , mTexture(cs::graphics::TextureLoader::loadFromFile(sTiffFile)) {

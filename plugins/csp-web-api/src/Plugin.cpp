@@ -427,7 +427,7 @@ void Plugin::update() {
           auto const& p = *GetVistaSystem()->GetDisplayManager()->GetProjectionsConstRef().begin();
           p.second->GetProjectionProperties()->GetClippingRange(nearClip, farClip);
 
-          float scale = static_cast<float>(farClip * mSolarSystem->getObserver().getAnchorScale());
+          auto scale = static_cast<float>(farClip * mSolarSystem->getObserver().getAnchorScale());
           for (auto& f : capture) {
             f *= scale;
           }

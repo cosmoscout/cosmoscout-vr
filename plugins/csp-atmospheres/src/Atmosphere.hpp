@@ -20,7 +20,7 @@ class Atmosphere : public cs::scene::CelestialObject {
  public:
   Atmosphere(std::shared_ptr<Plugin::Settings> const& pluginSettings,
       std::shared_ptr<cs::core::Settings> const& settings, std::string const& anchorName);
-  ~Atmosphere();
+  ~Atmosphere() override;
 
   /// Configures the internal renderer according to the given values.
   void configure(Plugin::Settings::Atmosphere const& settings);

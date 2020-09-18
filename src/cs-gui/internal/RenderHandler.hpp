@@ -52,11 +52,11 @@ class RenderHandler : public CefRenderHandler {
  private:
   IMPLEMENT_REFCOUNTING(RenderHandler);
 
-  int mWidth;
-  int mHeight;
+  int mWidth{};
+  int mHeight{};
 
-  int mLastDrawWidth;
-  int mLastDrawHeight;
+  int mLastDrawWidth{};
+  int mLastDrawHeight{};
 
   DrawCallback                 mDrawCallback;
   CursorChangeCallback         mCursorChangeCallback;

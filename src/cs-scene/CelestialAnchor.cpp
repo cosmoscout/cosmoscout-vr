@@ -66,7 +66,6 @@ class Cache {
 CelestialAnchor::CelestialAnchor(std::string sCenterName, std::string sFrameName)
     : mPosition(0.0, 0.0, 0.0)
     , mRotation(1.0, 0.0, 0.0, 0.0)
-    , mScale(1.0)
     , mCenterName(std::move(sCenterName))
     , mFrameName(std::move(sFrameName)) {
 }

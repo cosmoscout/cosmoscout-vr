@@ -322,7 +322,7 @@ class CS_CORE_EXPORT Settings {
     double mMaxFarClip;
   };
 
-  SceneScale mSceneScale;
+  SceneScale mSceneScale{};
 
   // -----------------------------------------------------------------------------------------------
 

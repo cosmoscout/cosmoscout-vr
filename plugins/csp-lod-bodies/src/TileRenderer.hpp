@@ -131,7 +131,7 @@ class TileRenderer : private boost::noncopyable {
 
   glm::dmat4 mMatVM;
   glm::dmat4 mMatP;
-  float      mFarClip;
+  float      mFarClip{};
 
   static std::unique_ptr<VistaBufferObject>      mVboTerrain;
   static std::unique_ptr<VistaBufferObject>      mIboTerrain;

@@ -29,7 +29,7 @@ namespace cs::gui::detail {
 class WebViewClient : public CefClient {
 
  public:
-  virtual ~WebViewClient();
+  ~WebViewClient() override;
 
   /// Registers callback functions for Javascript. Registering the same name twice will override the
   /// first callback.

@@ -71,9 +71,9 @@ class TileNode {
   void setParent(TileNode* parent);
 
   std::unique_ptr<TileBase>                mTile;
-  TileNode*                                mParent;
+  TileNode*                                mParent{nullptr};
   std::array<std::unique_ptr<TileNode>, 4> mChildren;
-  int                                      mChildMaxLevel;
+  int                                      mChildMaxLevel{0};
 };
 
 /// Returns if the node is a leaf, i.e. if it can not be further refined.

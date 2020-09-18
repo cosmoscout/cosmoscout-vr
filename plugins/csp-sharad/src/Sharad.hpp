@@ -26,8 +26,7 @@ namespace csp::sharad {
 /// Renders a single SHARAD image.
 class Sharad : public cs::scene::CelestialObject, public IVistaOpenGLDraw {
  public:
-  Sharad(std::shared_ptr<cs::core::Settings> settings,
-      std::shared_ptr<cs::core::SolarSystem> solarSystem, std::string const& anchorName,
+  Sharad(std::shared_ptr<cs::core::Settings> settings, std::string const& anchorName,
       std::string const& sTiffFile, std::string const& sTabFile);
 
   Sharad(Sharad const& other) = delete;
@@ -46,10 +45,10 @@ class Sharad : public cs::scene::CelestialObject, public IVistaOpenGLDraw {
  private:
   class FramebufferCallback : public IVistaOpenGLDraw {
    public:
-    FramebufferCallback(VistaTexture* pDepthBuffer);
+    explicit FramebufferCallback(VistaTexture* pDepthBuffer);
 
     bool Do() override;
-    bool GetBoundingBox(VistaBoundingBox& bb) override {
+    bool GetBoundingBox(VistaBoundingBox& /*bb*/) override {
       return true;
     }
 
