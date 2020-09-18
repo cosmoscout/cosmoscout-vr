@@ -54,12 +54,12 @@ Some aspects of the scene configuration JSON file have changed in this version. 
     "center": "Sun",
     "frame": "IAU_Sun",
     "existence": [
-    "1950-01-02 00:00:00.000",
-    "2049-12-31 00:00:00.000"
+      "1950-01-02 00:00:00.000",
+      "2049-12-31 00:00:00.000"
     ]
   },
   ```
-* All properties of `"csp-measurement-tools": {}` are now optional and can e omitted.
+* All properties of `"csp-measurement-tools": {}` are now optional and can be omitted.
 * `"csp-fly-to-locations": {}` now simply displays all `"bookmarks"` with a given location. Therefore the plugin has no configuration option anymore.
 * The satellite configuration of `"csp-satellites"` has no `"transformation"` property anymore. The same effect can now be achieved with the `"position"`, `"rotation"` and `"scale"` properties of the anchor this satellite is attached to.
 
