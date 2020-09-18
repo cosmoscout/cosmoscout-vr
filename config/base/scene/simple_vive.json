@@ -660,14 +660,14 @@
             "attribution": "&copy; OpenPlanetary"
           }
         }
-      },
-      "csp-floor-grid": {
-        "enabled": true,
-        "size": 1.0,
-        "offset": 0.0,
-        "falloff": 100.0,
-        "texture": "../share/resources/textures/gridCentered.png"
       }
+    },
+    "csp-floor-grid": {
+      "enabled": true,
+      "size": 1.0,
+      "offset": -5.0,
+      "falloff": 100.0,
+      "texture": "../share/resources/textures/gridCentered.png"
     }
   }
 }

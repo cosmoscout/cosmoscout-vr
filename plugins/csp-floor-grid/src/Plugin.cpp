@@ -10,6 +10,7 @@
 #include "../../../src/cs-core/SolarSystem.hpp"
 #include "../../../src/cs-utils/logger.hpp"
 #include "../../../src/cs-utils/utils.hpp"
+#include "../../../src/cs-core/GraphicsEngine.hpp"
 #include "FloorGrid.hpp"
 #include "logger.hpp"
 

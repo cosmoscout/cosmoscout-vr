@@ -35,7 +35,7 @@ uniform float uSize;
 layout(location = 0) in vec2 iQuadPos;
 
 // outputs
-out vec2 vTexCoords
+out vec2 vTexCoords;
 out vec3 vPosition;
 
 void main()
@@ -54,7 +54,18 @@ const char* FloorGrid::FRAG_SHADER = R"(
 #version 330
 
 uniform sampler2D uTexture;
-)";
+
+// inputs
+in vec2 vTexCoords;
+in vec3 vPosition;
+
+// outputs
+layout(location = 0) out vec4 oColor;
+
+void main(){
+    //oColor = texture(uTexture, vTexCoords);
+    oColor = vec4(1.0,0.0,0.0,1.0);
+})";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -103,6 +114,8 @@ FloorGrid::~FloorGrid() {
 void FloorGrid::configure(const Plugin::Settings& settings) {
   if (mGridSettings.mTexture.get() != settings.mTexture.get()) {
     mTexture = cs::graphics::TextureLoader::loadFromFile(settings.mTexture.get());
+    mTexture->SetWrapS(GL_REPEAT);
+    mTexture->SetWrapR(GL_REPEAT);
   }
   mGridSettings = settings;
 }
@@ -146,13 +159,13 @@ bool FloorGrid::Do() {
 
   // Bind Texture
   mTexture->Bind(GL_TEXTURE0);
-  glTexParameteri(GL_TEXTURE0, GL_TEXTURE_WRAP_S, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE0, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
   // Draw
+  glDisable(GL_CULL_FACE);
   mVAO.Bind();
-  glDrawArrays(GL_QUAD_STRIP, 0, 4);
+  glDrawArrays(GL_QUADS, 0, 4);
   mVAO.Release();
+  glEnable(GL_CULL_FACE);
 
   // Clean Up
   mTexture->Unbind(GL_TEXTURE0);
