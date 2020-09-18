@@ -13,7 +13,7 @@
 
 namespace csp::measurementtools {
 
-typedef std::pair<Vector2f, Vector2f> Edge;
+using Edge = std::pair<Vector2f, Vector2f>;
 
 class Breakpoint;
 struct Arc;

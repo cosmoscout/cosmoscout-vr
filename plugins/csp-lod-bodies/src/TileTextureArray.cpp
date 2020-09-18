@@ -76,8 +76,7 @@ GLenum getType(TileDataType dataType) {
 
 /* explicit */
 TileTextureArray::TileTextureArray(TileDataType dataType, int maxLayerCount)
-    : boost::noncopyable()
-    , mTexId(0U)
+    : mTexId(0U)
     , mIformat()
     , mFormat()
     , mType()

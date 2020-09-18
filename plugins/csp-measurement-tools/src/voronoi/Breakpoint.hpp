@@ -14,7 +14,7 @@ namespace csp::measurementtools {
 struct Arc;
 class VoronoiGenerator;
 
-typedef std::pair<Vector2f, Vector2f> Edge;
+using Edge = std::pair<Vector2f, Vector2f>;
 
 class Breakpoint {
  public:
@@ -26,7 +26,7 @@ class Breakpoint {
 
   Arc* mLeftArc{nullptr};
   Arc* mRightArc{nullptr};
-  
+
   Breakpoint* mLeftChild{nullptr};
   Breakpoint* mRightChild{nullptr};
   Breakpoint* mParent{nullptr};

@@ -12,8 +12,6 @@
 
 #include <VistaKernel/GraphicsManager/VistaOpenGLNode.h>
 
-#include <boost/filesystem.hpp>
-
 namespace csp::sharad {
 
 /// This plugin allows the display of mars subsurface layers captured by the Mars Reconnaissance

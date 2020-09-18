@@ -11,18 +11,16 @@
 #include "TileId.hpp"
 #include "TileNode.hpp"
 
-#include <boost/noncopyable.hpp>
-
 namespace csp::lodbodies {
 
 /// The base class for all render data of a single TileNode.
-class RenderData : private boost::noncopyable {
+class RenderData {
  public:
   RenderData(RenderData const& other) = delete;
-  RenderData(RenderData&& other)      = delete;
+  RenderData(RenderData&& other)      = default;
 
   RenderData& operator=(RenderData const& other) = delete;
-  RenderData& operator=(RenderData&& other) = delete;
+  RenderData& operator=(RenderData&& other) = default;
 
   virtual ~RenderData();
 

@@ -43,6 +43,12 @@ class AnchorLabel {
 
   ~AnchorLabel();
 
+  AnchorLabel(AnchorLabel const& other) = delete;
+  AnchorLabel(AnchorLabel&& other)      = delete;
+
+  AnchorLabel& operator=(AnchorLabel const& other) = delete;
+  AnchorLabel& operator=(AnchorLabel&& other) = delete;
+
   void update();
 
   std::string const& getCenterName() const;

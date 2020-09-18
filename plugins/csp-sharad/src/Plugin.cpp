@@ -14,6 +14,7 @@
 
 #include <VistaKernel/GraphicsManager/VistaTransformNode.h>
 #include <VistaKernelOpenSGExt/VistaOpenSGMaterialTools.h>
+#include <boost/filesystem.hpp>
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 

@@ -166,8 +166,13 @@ struct GltfShared {
 class VistaGltfNode : public IVistaOpenGLDraw {
  public:
   VistaGltfNode(tinygltf::Node const& node, std::shared_ptr<GltfShared> shared);
-
   ~VistaGltfNode() override;
+
+  VistaGltfNode(VistaGltfNode const& other) = delete;
+  VistaGltfNode(VistaGltfNode&& other)      = delete;
+
+  VistaGltfNode& operator=(VistaGltfNode const& other) = delete;
+  VistaGltfNode& operator=(VistaGltfNode&& other) = delete;
 
   /// The method Do() gets the callback from scene graph during the rendering process.
   bool Do() override;
