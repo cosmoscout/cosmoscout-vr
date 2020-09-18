@@ -43,6 +43,7 @@ class FloorGrid : public IVistaOpenGLDraw{
   void configure(Plugin::Settings const& settings);
 
   bool Do() override;
+  bool GetBoundingBox(VistaBoundingBox& bb) override;
 
  private:
   std::shared_ptr<cs::core::Settings>     mSettings;
