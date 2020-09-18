@@ -237,7 +237,7 @@ void TileVisitor<DerivedT>::visitRoot(TileNode* rootDEM, TileNode* rootIMG, Tile
   state.mTileId      = tileId;
 
   if (self().preVisitRoot(tileId)) {
-    for (size_t i = 0; i < 4; ++i) {
+    for (int i = 0; i < 4; ++i) {
       if (!state.mChildren[i]) {
         continue;
       }
@@ -275,7 +275,7 @@ void TileVisitor<DerivedT>::visitLevel(TileNode* nodeDEM, TileNode* nodeIMG, Til
   state.mTileId      = tileId;
 
   if (self().preVisit(tileId)) {
-    for (size_t i = 0; i < 4; ++i) {
+    for (int i = 0; i < 4; ++i) {
       if (!state.mChildren[i]) {
         continue;
       }
