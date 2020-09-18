@@ -8,6 +8,8 @@
 
 **Release Date:** 2020-09-09
 
+The settings format has changed slightly in version 1.3.0, see the [Migration Guide](migration.md) for details.
+
 #### New Features
 
 * **New plugin**: `csp-web-api` has been added, which allows remote controlling a running instance of CosmoScout VR. It can also be used to capture screenshots over an http API.
@@ -170,5 +172,5 @@ When the left mouse button is pressed over an item, this item will receive input
   <img src ="img/nav-vspace.svg"/>
   <a href="README.md">&#8962; Help Index</a>
   <img src ="img/nav-vspace.svg"/>
-  <a href="citation.md">How to cite CosmoScout VR &rsaquo;</a>
+  <a href="migration.md">Migration Guide &rsaquo;</a>
 </p>

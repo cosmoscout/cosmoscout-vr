@@ -9,6 +9,7 @@ Specific configuration options are documented in the repositories of the [indivi
 ### General Information
 * [Code of Conduct](code_of_conduct.md)
 * [Changelog](changelog.md)
+* [Migration Guide](migration.md)
 * [How to cite CosmoScout VR](citation.md)
 * [Release Management](release-management.md)
 * [Continuous Integration](continuous-integration.md)

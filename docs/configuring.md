@@ -122,12 +122,12 @@ Last but not least, the far clipping plane depends on the scene scale: Near clip
   ```javascript
    "bookmarks": [
     {
-      "name": "Mercury"
+      "name": "Mercury",
       "icon": "mercury.png",
       "location": {
         "center": "Mercury",
         "frame": "IAU_Mercury"
-      },
+      }
     },
     {
       "name": "Apollo 17 Start",
