@@ -6,6 +6,8 @@
 
 #include "DipStrikeTool.hpp"
 
+#include "logger.hpp"
+
 #include "../../../src/cs-core/GuiManager.hpp"
 #include "../../../src/cs-core/InputManager.hpp"
 #include "../../../src/cs-core/Settings.hpp"
@@ -261,8 +263,8 @@ void DipStrikeTool::calculateDipAndStrike() {
     return;
   }
 
-  auto radii = mSolarSystem->getRadii(mGuiAnchor->getCenterName());
   auto body  = mSolarSystem->getBody(getCenterName());
+  auto radii = body->getRadii();
 
   glm::dvec3 averagePosition{0};
   for (auto const& mark : mPoints) {
@@ -290,9 +292,14 @@ void DipStrikeTool::calculateDipAndStrike() {
   // This seems to be the first time the tool is moved, so we have to store the distance to the
   // observer so that we can scale the tool later based on the observer's position.
   if (pScaleDistance.get() < 0) {
-    pScaleDistance = mSolarSystem->getObserver().getAnchorScale() *
-                     glm::length(mSolarSystem->getObserver().getRelativePosition(
-                         mTimeControl->pSimulationTime.get(), *mGuiAnchor));
+    try {
+      pScaleDistance = mSolarSystem->getObserver().getAnchorScale() *
+                       glm::length(mSolarSystem->getObserver().getRelativePosition(
+                           mTimeControl->pSimulationTime.get(), *mGuiAnchor));
+    } catch (std::exception const& e) {
+      // Getting the relative transformation may fail due to insufficient SPICE data.
+      logger().warn("Failed to calculate scale distance of Dip and Strike Tool: {}", e.what());
+    }
   }
 
   // calculate center of plane and normal

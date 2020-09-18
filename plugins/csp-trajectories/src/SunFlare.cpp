@@ -7,6 +7,7 @@
 #include "SunFlare.hpp"
 
 #include "../../../src/cs-core/Settings.hpp"
+#include "../../../src/cs-core/SolarSystem.hpp"
 #include "../../../src/cs-utils/FrameTimings.hpp"
 #include "../../../src/cs-utils/utils.hpp"
 
@@ -108,11 +109,13 @@ void main()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 SunFlare::SunFlare(std::shared_ptr<cs::core::Settings> settings,
-    std::shared_ptr<Plugin::Settings> pluginSettings, std::string const& sCenterName,
-    std::string const& sFrameName, double tStartExistence, double tEndExistence)
-    : cs::scene::CelestialObject(sCenterName, sFrameName, tStartExistence, tEndExistence)
-    , mSettings(std::move(settings))
+    std::shared_ptr<Plugin::Settings> pluginSettings, std::string const& anchorName)
+    : mSettings(std::move(settings))
     , mPluginSettings(std::move(pluginSettings)) {
+
+  mSettings->initAnchor(*this, anchorName);
+  setRadii(glm::dvec3(0.0));
+
   mShader.InitVertexShaderFromString(QUAD_VERT);
   mShader.InitFragmentShaderFromString(QUAD_FRAG);
   mShader.Link();

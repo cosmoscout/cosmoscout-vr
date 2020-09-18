@@ -42,9 +42,8 @@ class LodBody : public cs::scene::CelestialBody, public IVistaOpenGLDraw {
       std::shared_ptr<cs::core::GraphicsEngine>      graphicsEngine,
       std::shared_ptr<cs::core::SolarSystem>         solarSystem,
       std::shared_ptr<Plugin::Settings> const&       pluginSettings,
-      std::shared_ptr<cs::core::GuiManager> const& pGuiManager, std::string const& sCenterName,
-      std::string const& sFrameName, std::shared_ptr<GLResources> const& glResources,
-      double tStartExistence, double tEndExistence);
+      std::shared_ptr<cs::core::GuiManager> const&   pGuiManager,
+      std::shared_ptr<GLResources> const& glResources, std::string const& anchorName);
 
   LodBody(LodBody const& other) = delete;
   LodBody(LodBody&& other)      = delete;
@@ -72,8 +71,7 @@ class LodBody : public cs::scene::CelestialBody, public IVistaOpenGLDraw {
 
   bool getIntersection(
       glm::dvec3 const& rayPos, glm::dvec3 const& rayDir, glm::dvec3& pos) const override;
-  double     getHeight(glm::dvec2 lngLat) const override;
-  glm::dvec3 getRadii() const override;
+  double getHeight(glm::dvec2 lngLat) const override;
 
   void update(double tTime, cs::scene::CelestialObserver const& oObs) override;
 
@@ -94,7 +92,6 @@ class LodBody : public cs::scene::CelestialBody, public IVistaOpenGLDraw {
 
   VistaPlanet  mPlanet;
   PlanetShader mShader;
-  glm::dvec3   mRadii;
   int          mHeightScaleConnection = -1;
 };
 

@@ -11,7 +11,7 @@
 
 namespace csp::simplebodies {
 
-/// This creates the default singleton logger for "csp-simplebodies" when called for the first time
+/// This creates the default singleton logger for "csp-simple-bodies" when called for the first time
 /// and returns it. See cs-utils/logger.hpp for more logging details.
 spdlog::logger& logger();
 

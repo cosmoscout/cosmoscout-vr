@@ -101,7 +101,8 @@ EllipseTool::EllipseTool(std::shared_ptr<cs::core::InputManager> const& pInputMa
 
   mCenterHandle.pLngLat.connect([this](glm::dvec2 const& /*lngLat*/) {
     auto center = mCenterHandle.getAnchor()->getAnchorPosition();
-    auto radii  = cs::core::SolarSystem::getRadii(mCenterHandle.getAnchor()->getCenterName());
+    auto body   = mSolarSystem->getBody(mCenterHandle.getAnchor()->getCenterName());
+    auto radii  = body->getRadii();
 
     if (mFirstUpdate) {
       for (int i(0); i < 2; ++i) {
@@ -233,7 +234,8 @@ void EllipseTool::setNumSamples(int const& numSamples) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void EllipseTool::calculateVertices() {
-  auto radii  = cs::core::SolarSystem::getRadii(mCenterHandle.getAnchor()->getCenterName());
+  auto body   = mSolarSystem->getBody(mCenterHandle.getAnchor()->getCenterName());
+  auto radii  = body->getRadii();
   auto center = mCenterHandle.getAnchor()->getAnchorPosition();
   auto normal = cs::utils::convert::lngLatToNormal(mCenterHandle.pLngLat.get(), radii);
 

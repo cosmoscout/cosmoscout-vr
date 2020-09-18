@@ -19,7 +19,6 @@
 #include <VistaOGLExt/VistaVertexArrayObject.h>
 
 namespace cs::core {
-class Settings;
 class SolarSystem;
 } // namespace cs::core
 
@@ -31,8 +30,7 @@ namespace csp::rings {
 class Ring : public cs::scene::CelestialObject, public IVistaOpenGLDraw {
  public:
   Ring(std::shared_ptr<cs::core::Settings>   settings,
-      std::shared_ptr<cs::core::SolarSystem> solarSystem, std::string const& sCenterName,
-      std::string const& sFrameName, double tStartExistence, double tEndExistence);
+      std::shared_ptr<cs::core::SolarSystem> solarSystem, std::string const& anchorName);
 
   Ring(Ring const& other) = delete;
   Ring(Ring&& other)      = default;

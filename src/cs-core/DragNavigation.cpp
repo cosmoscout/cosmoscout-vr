@@ -6,6 +6,8 @@
 
 #include "DragNavigation.hpp"
 
+#include "logger.hpp"
+
 #include "../cs-core/InputManager.hpp"
 #include "../cs-core/SolarSystem.hpp"
 #include "../cs-core/TimeControl.hpp"
@@ -114,8 +116,13 @@ void DragNavigation::update() {
           pickedPlanet->getCenterName(), pickedPlanet->getFrameName());
       anchor.setAnchorPosition(mInputManager->pHoveredObject.get().mPosition);
 
-      mStartIntersection = GetPositionInObserverFrame(anchor, mSolarSystem, mTimeControl);
-      mDraggingPlanet    = true;
+      try {
+        mStartIntersection = GetPositionInObserverFrame(anchor, mSolarSystem, mTimeControl);
+        mDraggingPlanet    = true;
+      } catch (std::exception const& e) {
+        // Getting the position in observer coordinates may fail due to insufficient SPICE data.
+        logger().warn("Failed to grab '{}': {}", pickedPlanet->getCenterName(), e.what());
+      }
     }
 
     float const epsilon = 0.05F;
@@ -187,9 +194,9 @@ void DragNavigation::update() {
         double targetAngle = -1.0 * std::acos(dot);
 
         // reduce rotation speed close to planet
-        if (!mDraggingPlanet && !mLocalRotation) {
-          double fac = 0.5;
-          auto radii = cs::core::SolarSystem::getRadii(mSolarSystem->getObserver().getCenterName());
+        if (!mDraggingPlanet && !mLocalRotation && mSolarSystem->pActiveBody.get()) {
+          double fac   = 0.5;
+          auto   radii = mSolarSystem->pActiveBody.get()->getRadii();
           if (radii[0] > 0) {
             auto surfacePos = utils::convert::scaleToGeodeticSurface(observerPos, radii);
             auto distance   = observerPos - surfacePos;
@@ -266,13 +273,13 @@ void DragNavigation::update() {
 
   glm::dquat newObserverRot = glm::angleAxis(mTargetAngle, mCurrentAxis) * mStartObserverRot;
 
-  if (mLocalRotation) {
+  if (mLocalRotation && mSolarSystem->pActiveBody.get()) {
     // perform roll correction if observer is close to planet (10% of
     // radius) and planet normal is already close to up
     // or if the orthogonal on planet normal and up vector is
     // close to the viewers x axis (e.g. if the user is looking down or
     // upwards but the horizon is still straight)
-    auto radii      = cs::core::SolarSystem::getRadii(mSolarSystem->getObserver().getCenterName());
+    auto radii      = mSolarSystem->pActiveBody.get()->getRadii();
     auto surfacePos = utils::convert::scaleToGeodeticSurface(observerPos, radii);
     auto distance   = observerPos - surfacePos;
 

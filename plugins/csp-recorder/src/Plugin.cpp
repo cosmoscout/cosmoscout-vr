@@ -168,10 +168,10 @@ def capture(file):
                       mAllSettings->mObserver.pPosition.get().x,
                       mAllSettings->mObserver.pPosition.get().y,
                       mAllSettings->mObserver.pPosition.get().z,
-                      mAllSettings->mObserver.pRotation.get().w,
                       mAllSettings->mObserver.pRotation.get().x,
                       mAllSettings->mObserver.pRotation.get().y,
-                      mAllSettings->mObserver.pRotation.get().z)
+                      mAllSettings->mObserver.pRotation.get().z,
+                      mAllSettings->mObserver.pRotation.get().w)
                << std::endl;
     }
 

@@ -10,6 +10,7 @@
 #include "cs_graphics_export.hpp"
 
 #include <array>
+#include <cstdint>
 #include <unordered_map>
 #include <vector>
 

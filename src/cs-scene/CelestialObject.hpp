@@ -22,26 +22,10 @@ namespace cs::scene {
 /// throughout SPICE.
 class CS_SCENE_EXPORT CelestialObject : public CelestialAnchor {
  public:
-  /// This will be set during Update() according to the given pVisibleRadius consider this to be
-  /// read-only.
+  /// This will be set during update() according to the given radii consider this to be read-only.
   utils::Property<bool> pVisible = false;
 
-  /// This radius in meters will serve as a basis for visibility calculation if set to a value <= 0,
-  /// pVisible will not change during Update().
-  utils::Property<double> pVisibleRadius = 1.0;
-
-  /// Creates a new CelestialObject.
-  ///
-  /// @param sCenterName      The SPICE name of the object.
-  /// @param sFrameName       The SPICE name of the reference frame.
-  /// @param tStartExistence  The point in Barycentric Dynamical Time in which the object started
-  ///                         existing.
-  /// @param tEndExistence    The point in Barycentric Dynamical Time in which the object ceased
-  ///                         existing.
-  CelestialObject(std::string const& sCenterName, std::string const& sFrameName,
-      double tStartExistence = std::numeric_limits<double>::lowest(),
-      double tEndExistence   = std::numeric_limits<double>::max());
-
+  CelestialObject()                             = default;
   CelestialObject(CelestialObject const& other) = default;
   CelestialObject(CelestialObject&& other)      = default;
 
@@ -53,24 +37,28 @@ class CS_SCENE_EXPORT CelestialObject : public CelestialAnchor {
   virtual glm::dmat4 const& getWorldTransform() const;
   virtual glm::dvec4        getWorldPosition() const;
 
-  /// The time (in the Barycentric Dynamical Time format) at which the object starts to exist in
-  /// the universe.
-  double getStartExistence() const;
-  void   setStartExistence(double value);
+  /// The time range in Barycentric Dynamical Time in which the object existed.
+  /// This should match the time coverage of the loaded SPICE kernels.
+  glm::dvec2 const& getExistence() const;
+  void              setExistence(glm::dvec2 value);
 
-  /// The time (in the Barycentric Dynamical Time format) at which the object ceases to exist in
-  /// the universe.
-  double getEndExistence() const;
-  void   setEndExistence(double value);
+  /// The radii of the CelestialBody in meters. This will serve as a basis for visibility
+  /// calculation if set to glm::dev3(0.0), pVisible will not change during update().
+  glm::dvec3 const& getRadii() const;
+  void              setRadii(glm::dvec3 const& value);
 
+  /// This is called once a frame by the SolarSystem if this CelestialObject has been registered
+  /// with the SolarSystem.
   void update(double tTime, CelestialObserver const& oObs) override;
 
   /// @return true, if the current time is in between the start and end existence values.
   virtual bool getIsInExistence() const;
 
  protected:
-  glm::dmat4 matWorldTransform;
-  double     mStartExistence, mEndExistence;
+  glm::dmat4 matWorldTransform = glm::dmat4(1.0);
+  glm::dvec3 mRadii            = glm::dvec3(0.0);
+  glm::dvec2 mExistence =
+      glm::dvec2(std::numeric_limits<double>::lowest(), std::numeric_limits<double>::max());
 
   bool mIsInExistence = false;
 };
