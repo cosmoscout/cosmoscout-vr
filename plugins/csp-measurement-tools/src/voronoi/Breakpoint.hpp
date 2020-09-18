@@ -24,8 +24,12 @@ class Breakpoint {
   Vector2f const& position() const;
   Edge            finishEdge(Vector2f const& end) const;
 
-  Arc *       mLeftArc{nullptr}, *mRightArc{nullptr};
-  Breakpoint *mLeftChild{nullptr}, *mRightChild{nullptr}, *mParent{nullptr};
+  Arc* mLeftArc{nullptr};
+  Arc* mRightArc{nullptr};
+  
+  Breakpoint* mLeftChild{nullptr};
+  Breakpoint* mRightChild{nullptr};
+  Breakpoint* mParent{nullptr};
 
  private:
   void updatePosition() const;

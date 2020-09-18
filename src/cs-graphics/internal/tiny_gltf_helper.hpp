@@ -34,7 +34,7 @@ inline int sizeFromGltfAccessorType(tinygltf::Accessor const& accessor) {
   if (accessor.type == TINYGLTF_TYPE_MAT3) {
     return 9;
   }
-  // if (accessor.type == tinygltf::TINYGLTF_TYPE_MAT4) { return 16;
+  // accessor.type == tinygltf::TINYGLTF_TYPE_MAT4
   return 16;
 }
 
