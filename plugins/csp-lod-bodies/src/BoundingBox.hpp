@@ -107,7 +107,7 @@ bool BoundingBox<FloatT>::GetIntersectionDistance(glm::tvec3<FloatT> origin,
   FloatT tmax = 0;
   bool   init = true;
   // Check all three axis one by one.
-  for (size_t i = 0; i < 3; ++i) {
+  for (int i = 0; i < 3; ++i) {
     if (std::abs(directionNorm[i]) > epsilon) {
       // Compute the parametric values for the intersection
       // points of the line and the bounding box according
