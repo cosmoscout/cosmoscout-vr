@@ -44,6 +44,7 @@ class Plugin : public cs::core::PluginBase {
   void onLoad();
 
   std::shared_ptr<Settings> mPluginSettings = std::make_shared<Settings>();
+  std::shared_ptr<FloorGrid> mGrid;
 
   int mOnLoadConnection = -1;
   int mOnSaveConnection = -1;

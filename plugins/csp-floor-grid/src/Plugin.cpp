@@ -82,14 +82,8 @@ void Plugin::onLoad() {
   // Read settings from JSON.
   from_json(mAllSettings->mPlugins.at("csp-floor-grid"), *mPluginSettings);
 
-  auto grid = std::make_shared<FloorGrid>(mSolarSystem);
-  grid->configure(Plugin::Settings({
-      mPluginSettings->mEnabled,
-      mPluginSettings->mSize,
-      mPluginSettings->mOffset,
-      mPluginSettings->mFalloff,
-      mPluginSettings->mTexture
-  }));
+  mGrid = std::make_shared<FloorGrid>(mSolarSystem);
+  mGrid->configure(mPluginSettings);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

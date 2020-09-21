@@ -41,7 +41,7 @@ class FloorGrid : public IVistaOpenGLDraw{
   ~FloorGrid() override;
 
   /// Configures the internal renderer according to the given values.
-  void configure(Plugin::Settings const& settings);
+  void configure(std::shared_ptr<Plugin::Settings> settings);
 
   bool Do() override;
   bool GetBoundingBox(VistaBoundingBox& bb) override;
@@ -53,7 +53,7 @@ class FloorGrid : public IVistaOpenGLDraw{
   std::unique_ptr<VistaTransformNode>     mOffsetNode;
   std::unique_ptr<VistaOpenGLNode>        mGLNode;
 
-  Plugin::Settings                        mGridSettings;
+  std::shared_ptr<Plugin::Settings>       mGridSettings;
   std::unique_ptr<VistaTexture>           mTexture;
   VistaGLSLShader                         mShader;
   VistaVertexArrayObject                  mVAO;

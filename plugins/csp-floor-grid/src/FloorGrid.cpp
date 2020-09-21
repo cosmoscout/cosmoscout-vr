@@ -9,6 +9,7 @@
 #include "../../../src/cs-core/SolarSystem.hpp"
 #include "../../../src/cs-graphics/TextureLoader.hpp"
 #include "../../../src/cs-utils/FrameTimings.hpp"
+#include "logger.hpp"
 
 #include <VistaKernel/DisplayManager/VistaDisplayManager.h>
 #include <VistaKernel/DisplayManager/VistaDisplaySystem.h>
@@ -56,6 +57,7 @@ const char* FloorGrid::FRAG_SHADER = R"(
 #version 330
 
 uniform sampler2D uTexture;
+uniform float uFarClip;
 
 // inputs
 in vec2 vTexCoords;
@@ -65,8 +67,8 @@ in vec3 vPosition;
 layout(location = 0) out vec4 oColor;
 
 void main(){
-    //oColor = texture(uTexture, vTexCoords);
-    oColor = vec4(1.0,0.0,0.0,1.0);
+    oColor = texture(uTexture, vTexCoords);
+    gl_FragDepth = length(vPosition) / uFarClip;
 })";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -109,7 +111,6 @@ FloorGrid::FloorGrid(std::shared_ptr<cs::core::SolarSystem> solarSystem)
                        ->GetPlatformFor(GetVistaSystem()->GetDisplayManager()->GetDisplaySystem())
                        ->GetPlatformNode();
   mOffsetNode.reset(pSG->NewTransformNode(platform));
-  mOffsetNode->Translate(0.0F, mGridSettings.mOffset.get(), 0.0F);
   mGLNode.reset(pSG->NewOpenGLNode(mOffsetNode.get(), this));
 
   VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
@@ -120,25 +121,24 @@ FloorGrid::FloorGrid(std::shared_ptr<cs::core::SolarSystem> solarSystem)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 FloorGrid::~FloorGrid() {
-  VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
-  pSG->GetRoot()->DisconnectChild(mGLNode.get());
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void FloorGrid::configure(const Plugin::Settings& settings) {
-  if (mGridSettings.mTexture.get() != settings.mTexture.get()) {
-    mTexture = cs::graphics::TextureLoader::loadFromFile(settings.mTexture.get());
+void FloorGrid::configure(std::shared_ptr<Plugin::Settings> settings) {
+  if (!mGridSettings || mGridSettings->mTexture.get() != settings->mTexture.get()) {
+    mTexture = cs::graphics::TextureLoader::loadFromFile(settings->mTexture.get());
     mTexture->SetWrapS(GL_REPEAT);
     mTexture->SetWrapR(GL_REPEAT);
   }
   mGridSettings = settings;
+  mOffsetNode->Translate(0.0F, mGridSettings->mOffset.get(), 0.0F);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool FloorGrid::Do() {
-  if (!mGridSettings.mEnabled.get()){
+  if (!mGridSettings->mEnabled.get()){
     return true;
   }
 
@@ -153,37 +153,42 @@ bool FloorGrid::Do() {
   glGetFloatv(GL_PROJECTION_MATRIX, glMatP.data());
 
   // Set uniforms
-  glUniformMatrix2fv(
-      mShader.GetUniformLocation("uMatModelView"), 1, GL_FALSE, glMatP.data()
+  glUniformMatrix4fv(
+      mShader.GetUniformLocation("uMatModelView"), 1, GL_FALSE, glMatMV.data()
       );
-  glUniformMatrix2fv(
+  glUniformMatrix4fv(
       mShader.GetUniformLocation("uMatProjection"), 1, GL_FALSE, glMatP.data()
       );
   mShader.SetUniform(
       mShader.GetUniformLocation("uTexture"), 0
       );
   mShader.SetUniform(
-      mShader.GetUniformLocation("uFalloff"), mGridSettings.mFalloff.get()
+      mShader.GetUniformLocation("uFalloff"), mGridSettings->mFalloff.get()
       );
   mShader.SetUniform(
-      mShader.GetUniformLocation("uOffset"), mGridSettings.mOffset.get()
+      mShader.GetUniformLocation("uOffset"), mGridSettings->mOffset.get()
       );
   mShader.SetUniform(
-      mShader.GetUniformLocation("uSize"), mGridSettings.mSize.get()
+      mShader.GetUniformLocation("uSize"), mGridSettings->mSize.get()
       );
+  mShader.SetUniform(
+             mShader.GetUniformLocation("uFarClip"), cs::utils::getCurrentFarClipDistance()
+             );
 
   // Bind Texture
   mTexture->Bind(GL_TEXTURE0);
 
   // Draw
-  glDisable(GL_CULL_FACE);
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
   mVAO.Bind();
   glDrawArrays(GL_QUADS, 0, 4);
   mVAO.Release();
-  glEnable(GL_CULL_FACE);
 
   // Clean Up
   mTexture->Unbind(GL_TEXTURE0);
+  glDisable(GL_BLEND);
 
   mShader.Release();
 
