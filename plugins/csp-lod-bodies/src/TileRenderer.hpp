@@ -13,7 +13,6 @@
 #include <VistaOGLExt/VistaBufferObject.h>
 #include <VistaOGLExt/VistaGLSLShader.h>
 #include <VistaOGLExt/VistaVertexArrayObject.h>
-#include <boost/noncopyable.hpp>
 #include <vector>
 
 namespace cs::graphics {
@@ -30,10 +29,17 @@ class RenderDataImg;
 class TreeManagerBase;
 
 /// Renders tiles with elevation (DEM) and optionally image (IMG) data.
-class TileRenderer : private boost::noncopyable {
+class TileRenderer {
  public:
   explicit TileRenderer(PlanetParameters const& params, TreeManagerBase* treeMgrDEM = nullptr,
       TreeManagerBase* treeMgrIMG = nullptr);
+  virtual ~TileRenderer() = default;
+
+  TileRenderer(TileRenderer const& other) = delete;
+  TileRenderer(TileRenderer&& other)      = default;
+
+  TileRenderer& operator=(TileRenderer const& other) = delete;
+  TileRenderer& operator=(TileRenderer&& other) = default;
 
   TreeManagerBase* getTreeManagerDEM() const;
   void             setTreeManagerDEM(TreeManagerBase* treeMgr);
@@ -131,7 +137,7 @@ class TileRenderer : private boost::noncopyable {
 
   glm::dmat4 mMatVM;
   glm::dmat4 mMatP;
-  float      mFarClip;
+  float      mFarClip{};
 
   static std::unique_ptr<VistaBufferObject>      mVboTerrain;
   static std::unique_ptr<VistaBufferObject>      mIboTerrain;

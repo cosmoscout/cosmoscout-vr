@@ -405,6 +405,9 @@ void Plugin::deInit() {
 
   mSolarSystem->pActiveBody.disconnect(mActiveBodyConnection);
 
+  mAllSettings->onLoad().disconnect(mOnLoadConnection);
+  mAllSettings->onSave().disconnect(mOnSaveConnection);
+
   mGuiManager->removePluginTab("Body Settings");
   mGuiManager->removeSettingsSection("Body Settings");
 

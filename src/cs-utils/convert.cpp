@@ -77,7 +77,7 @@ glm::dvec3 cartesianToLngLatHeight(glm::dvec3 const& cartesian, glm::dvec3 const
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 glm::dvec3 toCartesian(glm::dvec2 const& lngLat, glm::dvec3 const& radii, double height) {
-  auto normal  = lngLatToNormal(lngLat, radii);
+  auto normal  = lngLatToNormal(lngLat);
   auto normal2 = normal * normal;
   auto radii2  = radii * radii;
   auto point   = (radii2 * normal) / std::sqrt(glm::dot(radii2, normal2));
@@ -87,7 +87,7 @@ glm::dvec3 toCartesian(glm::dvec2 const& lngLat, glm::dvec3 const& radii, double
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-glm::dvec3 lngLatToNormal(glm::dvec2 const& lngLat, glm::dvec3 const& radii) {
+glm::dvec3 lngLatToNormal(glm::dvec2 const& lngLat) {
   return glm::dvec3(std::cos(lngLat.y) * std::sin(lngLat.x), std::sin(lngLat.y),
       std::cos(lngLat.y) * std::cos(lngLat.x));
 }

@@ -11,7 +11,6 @@
 #include "TileDataType.hpp"
 #include "TileId.hpp"
 
-#include <boost/noncopyable.hpp>
 #include <memory>
 #include <typeinfo>
 
@@ -20,7 +19,7 @@ namespace csp::lodbodies {
 /// Abstract base class for data tiles in the HEALPix scheme. A tile stores data samples for a
 /// HEALPix patch at a given subdivision level. Actual data is held by classes derived from this
 /// one.
-class TileBase : private boost::noncopyable {
+class TileBase {
  public:
   /// Number of samples belonging to this tiles, x direction.
   static int const sOwnSizeX = 256;
@@ -35,6 +34,12 @@ class TileBase : private boost::noncopyable {
   static int const SizeY = sOwnSizeY + 1;
 
   virtual ~TileBase() = default;
+
+  TileBase(TileBase const& other) = delete;
+  TileBase(TileBase&& other)      = default;
+
+  TileBase& operator=(TileBase const& other) = delete;
+  TileBase& operator=(TileBase&& other) = default;
 
   /// Returns std::type_info for the data type stored in this tile.
   virtual std::type_info const& getTypeId() const = 0;

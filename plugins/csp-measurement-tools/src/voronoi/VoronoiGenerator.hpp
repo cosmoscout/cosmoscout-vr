@@ -49,8 +49,9 @@ class VoronoiGenerator {
   void finishEdges();
 
   Beachline mBeachline;
-  double    mSweepline;
-  double    mMaxY, mMinY;
+  double    mSweepline{0.0};
+  double    mMaxY{0.0};
+  double    mMinY{0.0};
 
   std::priority_queue<Site, std::vector<Site>, SitePosComp>        mSiteEvents;
   std::priority_queue<Circle*, std::vector<Circle*>, CirclePtrCmp> mCircleEvents;

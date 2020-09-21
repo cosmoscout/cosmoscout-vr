@@ -38,7 +38,7 @@ class CS_UTILS_EXPORT CommandLine {
   /// a special way, all other values are parsed with a std::stringstream. This std::variant can be
   /// easily extended if the stream operator>> is overloaded. If not, you have to add a special case
   /// to the parse() method.
-  typedef std::variant<int32_t*, uint32_t*, double*, float*, bool*, std::string*> Value;
+  using Value = std::variant<int32_t*, uint32_t*, double*, float*, bool*, std::string*>;
 
   /// The description is printed as part of the help message.
   explicit CommandLine(std::string description);

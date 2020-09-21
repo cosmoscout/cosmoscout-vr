@@ -15,10 +15,7 @@
 namespace csp::measurementtools {
 
 VoronoiGenerator::VoronoiGenerator()
-    : mBeachline(this)
-    , mSweepline(0.0)
-    , mMaxY(0.0)
-    , mMinY(0.0) {
+    : mBeachline(this) {
 }
 
 void VoronoiGenerator::parse(std::vector<Site> const& sites) {

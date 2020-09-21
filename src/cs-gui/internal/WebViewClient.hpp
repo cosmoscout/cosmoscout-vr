@@ -29,7 +29,14 @@ namespace cs::gui::detail {
 class WebViewClient : public CefClient {
 
  public:
-  virtual ~WebViewClient();
+  WebViewClient() = default;
+  ~WebViewClient() override;
+
+  WebViewClient(WebViewClient const& other) = delete;
+  WebViewClient(WebViewClient&& other)      = delete;
+
+  WebViewClient& operator=(WebViewClient const& other) = delete;
+  WebViewClient& operator=(WebViewClient&& other) = delete;
 
   /// Registers callback functions for Javascript. Registering the same name twice will override the
   /// first callback.

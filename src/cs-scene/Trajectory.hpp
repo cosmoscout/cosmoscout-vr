@@ -82,15 +82,15 @@ class CS_SCENE_EXPORT Trajectory : public IVistaOpenGLDraw {
   std::unique_ptr<VistaVertexArrayObject> mVAO;
   std::unique_ptr<VistaBufferObject>      mVBO;
 
-  double    mMaxAge;
+  double    mMaxAge{100000.F};
   glm::vec4 mStartColor;
   glm::vec4 mEndColor;
-  float     mWidth;
+  float     mWidth{2.F};
 
   bool mShaderDirty          = true;
   bool mUseLinearDepthBuffer = false;
 
-  uint32_t mPointCount;
+  uint32_t mPointCount{0};
 };
 } // namespace cs::scene
 

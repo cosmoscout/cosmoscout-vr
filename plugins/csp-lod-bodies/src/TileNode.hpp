@@ -9,26 +9,24 @@
 
 #include "TileBase.hpp"
 
-#include <boost/move/utility.hpp>
-
 namespace csp::lodbodies {
 
 /// Node in a quad tree of tiles. It stores pointers to its four child nodes (if present), the
 /// parent TileNode (unless it is a root node) and to the tile of data associated with this node.
 class TileNode {
- private:
-  BOOST_MOVABLE_BUT_NOT_COPYABLE(TileNode)
 
  public:
   explicit TileNode();
   explicit TileNode(TileBase* tile, int childMaxLevel = -1);
   explicit TileNode(std::unique_ptr<TileBase>&& tile, int childMaxLevel = -1);
 
-  // move constructor -- disabled: triggers a bug with gcc 4.3?
-  //     TileNode(BOOST_RV_REF(TileNode) source);
+  virtual ~TileNode() = default;
 
-  // move assignment -- disabled: triggers a bug with gcc 4.3?
-  //     TileNode& operator=(BOOST_RV_REF(TileNode) source);
+  TileNode(TileNode const& other) = delete;
+  TileNode(TileNode&& other)      = default;
+
+  TileNode& operator=(TileNode const& other) = delete;
+  TileNode& operator=(TileNode&& other) = default;
 
   int           getLevel() const;
   glm::int64    getPatchIdx() const;
@@ -71,9 +69,9 @@ class TileNode {
   void setParent(TileNode* parent);
 
   std::unique_ptr<TileBase>                mTile;
-  TileNode*                                mParent;
+  TileNode*                                mParent{nullptr};
   std::array<std::unique_ptr<TileNode>, 4> mChildren;
-  int                                      mChildMaxLevel;
+  int                                      mChildMaxLevel{0};
 };
 
 /// Returns if the node is a leaf, i.e. if it can not be further refined.

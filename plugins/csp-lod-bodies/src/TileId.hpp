@@ -29,8 +29,8 @@ class TileId {
   void       patchIdx(glm::int64 pi);
 
  private:
-  glm::int64 mPatchIdx;
-  int        mLevel;
+  glm::int64 mPatchIdx{-1};
+  int        mLevel{-1};
 };
 
 bool isValid(TileId const& tileId);

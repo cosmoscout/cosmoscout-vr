@@ -20,7 +20,13 @@ namespace cs::graphics {
 class CS_GRAPHICS_EXPORT LuminanceMipMap : public VistaTexture {
  public:
   LuminanceMipMap(uint32_t hdrBufferSamples, int hdrBufferWidth, int hdrBufferHeight);
-  virtual ~LuminanceMipMap();
+  ~LuminanceMipMap() override;
+
+  LuminanceMipMap(LuminanceMipMap const& other) = delete;
+  LuminanceMipMap(LuminanceMipMap&& other)      = delete;
+
+  LuminanceMipMap& operator=(LuminanceMipMap const& other) = delete;
+  LuminanceMipMap& operator=(LuminanceMipMap&& other) = delete;
 
   /// Perform the parallel reduction of luminance values. This is a costly operation and should only
   /// be called once a frame.
@@ -41,8 +47,8 @@ class CS_GRAPHICS_EXPORT LuminanceMipMap : public VistaTexture {
   GLuint   mPBO                  = 0;
   GLuint   mComputeProgram       = 0;
   uint32_t mHDRBufferSamples     = 0;
-  float    mLastTotalLuminance   = 0.f;
-  float    mLastMaximumLuminance = 0.f;
+  float    mLastTotalLuminance   = 0.F;
+  float    mLastMaximumLuminance = 0.F;
   int      mMaxLevels            = 0;
   int      mHDRBufferWidth       = 0;
   int      mHDRBufferHeight      = 0;

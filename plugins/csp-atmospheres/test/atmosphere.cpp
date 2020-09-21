@@ -50,10 +50,10 @@ TEST_CASE("[graphical] csp::atmospheres::Atmosphere") {
 
     float size  = pRnd->GenerateFloat(0.2F, 0.22F);
     float phi   = pRnd->GenerateFloat(0.0F, 2 * Vista::Pi);
-    float theta = acos(pRnd->GenerateFloat(-1.F, 1.F));
-    float x     = sin(theta) * cos(phi) * 0.8;
-    float y     = sin(theta) * sin(phi) * 0.8;
-    float z     = cos(theta) * 0.8;
+    float theta = std::acos(pRnd->GenerateFloat(-1.F, 1.F));
+    float x     = std::sin(theta) * std::cos(phi) * 0.8;
+    float y     = std::sin(theta) * std::sin(phi) * 0.8;
+    float z     = std::cos(theta) * 0.8;
 
     pTransformNode->Scale(size, size, size);
     pTransformNode->Translate(x, y, z);

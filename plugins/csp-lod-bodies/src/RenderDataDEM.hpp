@@ -46,7 +46,7 @@ class RenderDataDEM : public RenderData {
  private:
   std::array<glm::int8, 4>      mLodDeltas;
   std::array<RenderDataDEM*, 4> mEdgeRData;
-  glm::uint8                    mFlags;
+  glm::uint8                    mFlags{0};
 };
 
 RenderDataDEM::Flags operator&(RenderDataDEM::Flags lhs, RenderDataDEM::Flags rhs);

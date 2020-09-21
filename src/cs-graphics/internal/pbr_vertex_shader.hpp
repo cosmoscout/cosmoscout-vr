@@ -65,5 +65,5 @@ void main()
 }
 
 )";
-}
+} // namespace cs::graphics::internal
 #endif // CS_GRAPHICS_PBR_VERTEX_SHADER_HPP
