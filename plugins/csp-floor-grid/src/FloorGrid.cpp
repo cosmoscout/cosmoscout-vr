@@ -10,9 +10,11 @@
 #include "../../../src/cs-graphics/TextureLoader.hpp"
 #include "../../../src/cs-utils/FrameTimings.hpp"
 
+#include <VistaKernel/DisplayManager/VistaDisplayManager.h>
+#include <VistaKernel/DisplayManager/VistaDisplaySystem.h>
+#include <VistaKernel/InteractionManager/VistaUserPlatform.h>
 #include <VistaKernel/GraphicsManager/VistaGraphicsManager.h>
 #include <VistaKernel/GraphicsManager/VistaSceneGraph.h>
-#include <VistaKernel/GraphicsManager/VistaTransformNode.h>
 #include <VistaKernel/VistaSystem.h>
 #include <VistaKernelOpenSGExt/VistaOpenSGMaterialTools.h>
 
@@ -43,7 +45,7 @@ void main()
   vTexCoords  = vec2( ((iQuadPos.x + 1) / 2) * uFalloff * uSize,
                       ((iQuadPos.y + 1) / 2) * uFalloff * uSize );
 
-  vPosition   = (uMatModelView * vec4(iQuadPos.x * uFalloff, uOffset, iQuadPos.y * uFalloff, 1.0)).xyz;
+  vPosition   = (uMatModelView * vec4(iQuadPos.x * uFalloff, 0.0, iQuadPos.y * uFalloff, 1.0)).xyz;
   gl_Position = uMatProjection * vec4(vPosition, 1);
 }
 )";
@@ -94,9 +96,22 @@ FloorGrid::FloorGrid(std::shared_ptr<cs::core::SolarSystem> solarSystem)
   mShader.InitFragmentShaderFromString(FRAG_SHADER);
   mShader.Link();
 
-  // Add to scenegraph rings-method
+  // Add to scenegraph
   VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
+
+  // just GL Node (rings-method)
+  /*
   mGLNode.reset(pSG->NewOpenGLNode(pSG->GetRoot(), this));
+  */
+
+  // add to GUI Node (gui-method)
+  auto* platform = GetVistaSystem()
+                       ->GetPlatformFor(GetVistaSystem()->GetDisplayManager()->GetDisplaySystem())
+                       ->GetPlatformNode();
+  mOffsetNode.reset(pSG->NewTransformNode(platform));
+  mOffsetNode->Translate(0.0F, mGridSettings.mOffset.get(), 0.0F);
+  mGLNode.reset(pSG->NewOpenGLNode(mOffsetNode.get(), this));
+
   VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
       mGLNode.get(), static_cast<int>(cs::utils::DrawOrder::eGui) - 1
       );

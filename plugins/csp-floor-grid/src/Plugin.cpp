@@ -78,6 +78,7 @@ void Plugin::deInit() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Plugin::onLoad() {
+  cs::core::GraphicsEngine::enableGLDebug();
   // Read settings from JSON.
   from_json(mAllSettings->mPlugins.at("csp-floor-grid"), *mPluginSettings);
 

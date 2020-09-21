@@ -13,6 +13,7 @@
 
 #include <VistaKernel/GraphicsManager/VistaOpenGLDraw.h>
 #include <VistaKernel/GraphicsManager/VistaOpenGLNode.h>
+#include <VistaKernel/GraphicsManager/VistaTransformNode.h>
 #include <VistaOGLExt/VistaBufferObject.h>
 #include <VistaOGLExt/VistaGLSLShader.h>
 #include <VistaOGLExt/VistaTexture.h>
@@ -49,6 +50,7 @@ class FloorGrid : public IVistaOpenGLDraw{
   std::shared_ptr<cs::core::Settings>     mSettings;
   std::shared_ptr<cs::core::SolarSystem>  mSolarSystem;
 
+  std::unique_ptr<VistaTransformNode>     mOffsetNode;
   std::unique_ptr<VistaOpenGLNode>        mGLNode;
 
   Plugin::Settings                        mGridSettings;
