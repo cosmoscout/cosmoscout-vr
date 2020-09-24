@@ -28,7 +28,7 @@ class Plugin : public cs::core::PluginBase {
     cs::utils::DefaultProperty<float> mSize{1.0F};
 
     /// The height offset to adjust the grid to the floor
-    cs::utils::DefaultProperty<float> mOffset{0.0F};
+    cs::utils::DefaultProperty<float> mOffset{-1.8F};
 
     /// The falloff distance when the grid fades.
     cs::utils::DefaultProperty<float> mFalloff{100.0F};
@@ -39,6 +39,8 @@ class Plugin : public cs::core::PluginBase {
 
   void init() override;
   void deInit() override;
+
+  void update() override;
 
  private:
   void onLoad();

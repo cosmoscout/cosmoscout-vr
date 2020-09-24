@@ -11,6 +11,7 @@
 #include "../../../src/cs-utils/logger.hpp"
 #include "../../../src/cs-utils/utils.hpp"
 #include "../../../src/cs-core/GraphicsEngine.hpp"
+#include "../../../src/cs-core/GuiManager.hpp"
 #include "FloorGrid.hpp"
 #include "logger.hpp"
 
@@ -58,6 +59,41 @@ void Plugin::init() {
   mOnSaveConnection = mAllSettings->onSave().connect(
       [this]() { mAllSettings->mPlugins["csp-floor-grid"] = *mPluginSettings; });
 
+  // add settings to GUI
+  mGuiManager->addSettingsSectionToSideBarFromHTML(
+      "Floor Grid", "blur_circular", "../share/resources/gui/floor_grid_settings.html"
+      );
+  mGuiManager->addScriptToGuiFromJS(
+      "../share/resources/gui/js/csp-floor-grid.js"
+      );
+  // register callback for enable checkbox
+  mGuiManager->getGui()->registerCallback(
+      "floorGrid.setEnabled",
+      "Enables or disables rendering the grid.",
+      std::function([this](bool enable) { mPluginSettings->mEnabled = enable; })
+      );
+  mPluginSettings->mEnabled.connectAndTouch(
+      [this](bool enable) { mGuiManager->setCheckboxValue("floorGrid.setEnabled", enable); }
+      );
+  // register callback for grid size slider
+  mGuiManager->getGui()->registerCallback(
+      "floorGrid.setSize",
+      "Value scales the grid size between 0.5 (doubles the square size) and 2 (halves square size).",
+      std::function([this](double value) { mPluginSettings->mSize = static_cast<float>(value); })
+      );
+  mPluginSettings->mSize.connectAndTouch(
+      [this](float value) { mGuiManager->setSliderValue("floorGrid.setSize", value); }
+      );
+  // register callback for grid offset slider
+  mGuiManager->getGui()->registerCallback(
+      "floorGrid.setOffset",
+      "Value to adjust downward offset of the grid.",
+      std::function([this](double value) { mPluginSettings->mOffset = static_cast<float>(value); })
+      );
+  mPluginSettings->mOffset.connectAndTouch(
+      [this](float value) { mGuiManager->setSliderValue("floorGrid.setOffset", value); }
+      );
+
   // Load settings.
   onLoad();
 
@@ -77,8 +113,14 @@ void Plugin::deInit() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void Plugin::update() {
+  mGrid->configure(mPluginSettings);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Plugin::onLoad() {
-  cs::core::GraphicsEngine::enableGLDebug();
+
   // Read settings from JSON.
   from_json(mAllSettings->mPlugins.at("csp-floor-grid"), *mPluginSettings);
 

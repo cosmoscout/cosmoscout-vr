@@ -132,7 +132,7 @@ void FloorGrid::configure(std::shared_ptr<Plugin::Settings> settings) {
     mTexture->SetWrapR(GL_REPEAT);
   }
   mGridSettings = settings;
-  mOffsetNode->Translate(0.0F, mGridSettings->mOffset.get(), 0.0F);
+  mOffsetNode->SetTranslation(0.0F, mGridSettings->mOffset.get(), 0.0F);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

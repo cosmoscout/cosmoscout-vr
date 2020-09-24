@@ -647,6 +647,13 @@
           }
         }
       }
+    },
+    "csp-floor-grid": {
+      "enabled": false,
+      "size": 1.0,
+      "offset": -1.8,
+      "falloff": 100.0,
+      "texture": "../share/resources/textures/gridCentered.png"
     }
   }
 }
