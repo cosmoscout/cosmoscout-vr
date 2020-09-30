@@ -39,6 +39,8 @@ void from_json(nlohmann::json const& j, Plugin::Settings& o) {
   cs::core::Settings::deserialize(j, "offset", o.mOffset);
   cs::core::Settings::deserialize(j, "falloff", o.mFalloff);
   cs::core::Settings::deserialize(j, "texture", o.mTexture);
+  cs::core::Settings::deserialize(j, "alpha", o.mAlpha);
+  cs::core::Settings::deserialize(j, "color", o.mColor);
 }
 
 void to_json(nlohmann::json& j, Plugin::Settings const& o) {
@@ -47,6 +49,8 @@ void to_json(nlohmann::json& j, Plugin::Settings const& o) {
   cs::core::Settings::serialize(j, "offset", o.mOffset);
   cs::core::Settings::serialize(j, "falloff", o.mFalloff);
   cs::core::Settings::serialize(j, "texture", o.mTexture);
+  cs::core::Settings::serialize(j, "alpha", o.mAlpha);
+  cs::core::Settings::serialize(j, "color", o.mColor);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -79,10 +83,10 @@ void Plugin::init() {
   mGuiManager->getGui()->registerCallback(
       "floorGrid.setSize",
       "Value scales the grid size between 0.5 (doubles the square size) and 2 (halves square size).",
-      std::function([this](double value) { mPluginSettings->mSize = static_cast<float>(value); })
+      std::function([this](double value) { mPluginSettings->mSize = static_cast<float>(std::pow(2, value)); })
       );
   mPluginSettings->mSize.connectAndTouch(
-      [this](float value) { mGuiManager->setSliderValue("floorGrid.setSize", value); }
+      [this](float value) { mGuiManager->setSliderValue("floorGrid.setSize", std::round(std::log2(value))); }
       );
   // register callback for grid offset slider
   mGuiManager->getGui()->registerCallback(
@@ -92,6 +96,15 @@ void Plugin::init() {
       );
   mPluginSettings->mOffset.connectAndTouch(
       [this](float value) { mGuiManager->setSliderValue("floorGrid.setOffset", value); }
+      );
+  // register callback for grid alpha slider
+  mGuiManager->getGui()->registerCallback(
+      "floorGrid.setAlpha",
+      "Value to adjust grid opacity.",
+      std::function([this](double value) { mPluginSettings->mAlpha = static_cast<float>(value); })
+      );
+  mPluginSettings->mAlpha.connectAndTouch(
+      [this](float value) { mGuiManager->setSliderValue("floorGrid.setAlpha", value); }
       );
 
   // Load settings.
@@ -114,7 +127,7 @@ void Plugin::deInit() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Plugin::update() {
-  mGrid->configure(mPluginSettings);
+  mGrid->update();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

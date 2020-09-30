@@ -651,9 +651,11 @@
     "csp-floor-grid": {
       "enabled": false,
       "size": 1.0,
-      "offset": -1.8,
+      "offset": -1.80,
       "falloff": 100.0,
-      "texture": "../share/resources/textures/gridCentered.png"
+      "texture": "../share/resources/textures/gridCentered.png",
+      "alpha": 1.0,
+      "color": "#FFFFFF"
     }
   }
 }

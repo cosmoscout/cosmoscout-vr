@@ -35,6 +35,12 @@ class Plugin : public cs::core::PluginBase {
 
     /// The texture used for the grid (b/w texture)
     cs::utils::DefaultProperty<std::string> mTexture{"../share/resources/textures/gridCentered.png"};
+
+    /// The opacity of the grid (default 1, fully opaque, to 0, fully transparent)
+    cs::utils::DefaultProperty<float> mAlpha{1.0F};
+
+    /// The color of the grid (default white #FFFFFF)
+    cs::utils::DefaultProperty<std::string> mColor{"#FFFFFF"};
   };
 
   void init() override;

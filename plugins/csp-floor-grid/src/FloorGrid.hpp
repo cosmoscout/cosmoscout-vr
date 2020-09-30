@@ -43,6 +43,9 @@ class FloorGrid : public IVistaOpenGLDraw{
   /// Configures the internal renderer according to the given values.
   void configure(std::shared_ptr<Plugin::Settings> settings);
 
+  /// Updates the offset of the grid according to the current settings
+  void update();
+
   bool Do() override;
   bool GetBoundingBox(VistaBoundingBox& bb) override;
 

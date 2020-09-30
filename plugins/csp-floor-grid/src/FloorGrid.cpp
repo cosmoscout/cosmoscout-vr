@@ -58,6 +58,7 @@ const char* FloorGrid::FRAG_SHADER = R"(
 
 uniform sampler2D uTexture;
 uniform float uFarClip;
+uniform float uAlpha;
 
 // inputs
 in vec2 vTexCoords;
@@ -68,6 +69,10 @@ layout(location = 0) out vec4 oColor;
 
 void main(){
     oColor = texture(uTexture, vTexCoords);
+    if (oColor.a == 0) {
+      discard;
+      }
+    oColor.a *= uAlpha;
     gl_FragDepth = length(vPosition) / uFarClip;
 })";
 
@@ -137,6 +142,12 @@ void FloorGrid::configure(std::shared_ptr<Plugin::Settings> settings) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void FloorGrid::update() {
+  mOffsetNode->SetTranslation(0.0F, mGridSettings->mOffset.get(), 0.0F);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 bool FloorGrid::Do() {
   if (!mGridSettings->mEnabled.get()){
     return true;
@@ -172,8 +183,11 @@ bool FloorGrid::Do() {
       mShader.GetUniformLocation("uSize"), mGridSettings->mSize.get()
       );
   mShader.SetUniform(
-             mShader.GetUniformLocation("uFarClip"), cs::utils::getCurrentFarClipDistance()
-             );
+      mShader.GetUniformLocation("uFarClip"), cs::utils::getCurrentFarClipDistance()
+      );
+  mShader.SetUniform(
+      mShader.GetUniformLocation("uAlpha"), mGridSettings->mAlpha.get()
+      );
 
   // Bind Texture
   mTexture->Bind(GL_TEXTURE0);
