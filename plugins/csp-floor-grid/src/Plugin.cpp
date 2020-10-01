@@ -111,11 +111,11 @@ void Plugin::init() {
   mGuiManager->getGui()->registerCallback(
       "floorGrid.setColor",
       "Value to adjust color of the grid.",
-      std::function([this](std::string value) { mPluginSettings->mColor = static_cast<std::string>(std::move(value)); })
+      std::function([this](std::string value) { mPluginSettings->mColor = static_cast<std::string>(value); })
       );
   mPluginSettings->mColor.connectAndTouch(
-      [this](const std::string& value) {
-        mGuiManager->getGui()->callJavascript("CosmoScout.gui.setTextboxValue", "floorGrid.setColor", false, value);
+      [this](std::string value) {
+        mGuiManager->getGui()->callJavascript("CosmoScout.gui.setTextboxValue", "floorGrid-setColor", false, value);
       });
   // Load settings.
   onLoad();
