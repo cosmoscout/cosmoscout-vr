@@ -6,6 +6,8 @@
 
 #include "Plugin.hpp"
 
+#include <utility>
+
 #include "../../../src/cs-core/Settings.hpp"
 #include "../../../src/cs-core/SolarSystem.hpp"
 #include "../../../src/cs-utils/logger.hpp"
@@ -56,7 +58,6 @@ void to_json(nlohmann::json& j, Plugin::Settings const& o) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Plugin::init() {
-
   logger().info("Loading plugin...");
 
   mOnLoadConnection = mAllSettings->onLoad().connect([this]() { onLoad(); });
@@ -106,7 +107,16 @@ void Plugin::init() {
   mPluginSettings->mAlpha.connectAndTouch(
       [this](float value) { mGuiManager->setSliderValue("floorGrid.setAlpha", value); }
       );
-
+  // register callback for color picker
+  mGuiManager->getGui()->registerCallback(
+      "floorGrid.setColor",
+      "Value to adjust color of the grid.",
+      std::function([this](std::string value) { mPluginSettings->mColor = static_cast<std::string>(std::move(value)); })
+      );
+  mPluginSettings->mColor.connectAndTouch(
+      [this](const std::string& value) {
+        mGuiManager->getGui()->callJavascript("CosmoScout.gui.setTextboxValue", "floorGrid.setColor", false, value);
+      });
   // Load settings.
   onLoad();
 
@@ -133,6 +143,7 @@ void Plugin::update() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Plugin::onLoad() {
+  //cs::core::GraphicsEngine::enableGLDebug();
 
   // Read settings from JSON.
   from_json(mAllSettings->mPlugins.at("csp-floor-grid"), *mPluginSettings);

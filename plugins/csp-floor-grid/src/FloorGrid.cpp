@@ -18,6 +18,9 @@
 #include <VistaKernel/GraphicsManager/VistaSceneGraph.h>
 #include <VistaKernel/VistaSystem.h>
 #include <VistaKernelOpenSGExt/VistaOpenSGMaterialTools.h>
+#include <glm/gtc/type_ptr.hpp>
+
+#include <boost/algorithm/string.hpp>
 
 #include <utility>
 
@@ -59,6 +62,7 @@ const char* FloorGrid::FRAG_SHADER = R"(
 uniform sampler2D uTexture;
 uniform float uFarClip;
 uniform float uAlpha;
+uniform vec4 uCustomColor;
 
 // inputs
 in vec2 vTexCoords;
@@ -72,7 +76,7 @@ void main(){
     if (oColor.a == 0) {
       discard;
       }
-    oColor.a *= uAlpha;
+    oColor *= vec4(uCustomColor.r, uCustomColor.g, uCustomColor.b, uAlpha);
     gl_FragDepth = length(vPosition) / uFarClip;
 })";
 
@@ -188,6 +192,9 @@ bool FloorGrid::Do() {
   mShader.SetUniform(
       mShader.GetUniformLocation("uAlpha"), mGridSettings->mAlpha.get()
       );
+  glUniform4fv(
+      mShader.GetUniformLocation("uCustomColor"), 1, glm::value_ptr(GetColorFromHexString(mGridSettings->mColor.get()))
+      );
 
   // Bind Texture
   mTexture->Bind(GL_TEXTURE0);
@@ -216,5 +223,22 @@ bool FloorGrid::GetBoundingBox(VistaBoundingBox& bb) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+glm::vec4 FloorGrid::GetColorFromHexString(std::string color) {
+  // cut off # symbol
+  color = color.substr(1);
+  // separate into colors
+  std::string red{color.substr(0,2)};
+  std::string green{color.substr(2,2)};
+  std::string blue{color.substr(4,2)};
+  // translate to value and sort into vector
+  glm::vec4 vector{
+      static_cast<float>(std::stoul(red, nullptr, 16))/255,
+      static_cast<float>(std::stoul(green, nullptr, 16))/255,
+      static_cast<float>(std::stoul(blue, nullptr, 16))/255,
+      1.0F};
+
+  return vector;
+}
 
 } // namespace csp::floorgrid

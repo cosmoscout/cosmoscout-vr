@@ -655,7 +655,7 @@
       "falloff": 100.0,
       "texture": "../share/resources/textures/gridCentered.png",
       "alpha": 1.0,
-      "color": "#FFFFFF"
+      "color": "#e1551e"
     }
   }
 }

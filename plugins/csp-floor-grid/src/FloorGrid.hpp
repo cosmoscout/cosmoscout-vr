@@ -50,6 +50,8 @@ class FloorGrid : public IVistaOpenGLDraw{
   bool GetBoundingBox(VistaBoundingBox& bb) override;
 
  private:
+  glm::vec4 GetColorFromHexString(std::string color);
+
   std::shared_ptr<cs::core::Settings>     mSettings;
   std::shared_ptr<cs::core::SolarSystem>  mSolarSystem;
 
