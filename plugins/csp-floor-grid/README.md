@@ -27,7 +27,7 @@ This plugin can be enabled with the following configuration in your `settings.js
 
 Most of the configuration is also available at runtime in the "Floor Grid" tab in the settings menu.
 
-| Setting   | Available at Runtime | Default Value                                      | Description                                    | Comment                                                                                                      |
+| Setting   | In Settings Tab      | Default Value                                      | Description                                    | Comment                                                                                                      |
 |-----------|----------------------|----------------------------------------------------|------------------------------------------------|--------------------------------------------------------------------------------------------------------------|
 | `enabled` | :heavy_check_mark:   | `true`                                             | Toggle whether the Grid should be visible      | Recommended `true` for VR configurations, `false` for desktop configurations.                                |
 | `size`    | :heavy_check_mark:   | `1.0`                                              | Modifier to scale the texture (grid mesh size) | At runtime, the mesh size can only be adjusted in multiples of 2 (double or half size, etc.).                |
