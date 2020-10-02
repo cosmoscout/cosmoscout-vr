@@ -25,4 +25,4 @@ This plugin can be enabled with the following configuration in your `settings.js
 }
 ```
 
-Most of the configuration (all options, except for `falloff` and `texture`) is also available at runtime in the "Floor Grid" tab in the settings menu.                            |
+Most of the configuration (all options, except for `falloff` and `texture`) is also available at runtime in the "Floor Grid" tab in the settings menu.
