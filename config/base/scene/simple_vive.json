@@ -669,7 +669,7 @@
       "falloff": 32.0,
       "texture": "../share/resources/textures/gridCrossSmall.png",
       "alpha": 1.0,
-      "color": "#FFFFFF"
+      "color": "#ffffff"
     }
   }
 }

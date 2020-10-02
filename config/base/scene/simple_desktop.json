@@ -652,10 +652,10 @@
       "enabled": false,
       "size": 1.0,
       "offset": -1.80,
-      "falloff": 50.0,
+      "falloff": 32.0,
       "texture": "../share/resources/textures/gridCrossLarge.png",
       "alpha": 1.0,
-      "color": "#e1551e"
+      "color": "#ffffff"
     }
   }
 }
