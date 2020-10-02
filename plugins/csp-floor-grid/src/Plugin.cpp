@@ -115,7 +115,7 @@ void Plugin::init() {
       );
   mPluginSettings->mColor.connectAndTouch(
       [this](std::string value) {
-        mGuiManager->getGui()->callJavascript("CosmoScout.gui.setTextboxValue", "floorGrid-setColor", false, value);
+        mGuiManager->getGui()->callJavascript("CosmoScout.floorGrid.setColorValue", value);
       });
   // Load settings.
   onLoad();
@@ -137,6 +137,18 @@ void Plugin::deInit() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Plugin::update() {
+  // on first update, reset color picker to original color from the settings json
+  if(resetColorPicker){
+    // reread color from json settings
+    cs::core::Settings::deserialize(
+        mAllSettings->mPlugins.at("csp-floor-grid"),
+        "color",
+        mPluginSettings->mColor);
+    // reset color into picker
+    mGuiManager->getGui()->callJavascript("CosmoScout.floorGrid.setColorValue", mPluginSettings->mColor.get());
+    resetColorPicker = false;
+  }
+
   mGrid->update();
 }
 

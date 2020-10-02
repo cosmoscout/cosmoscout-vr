@@ -53,6 +53,7 @@ class Plugin : public cs::core::PluginBase {
 
   std::shared_ptr<Settings> mPluginSettings = std::make_shared<Settings>();
   std::shared_ptr<FloorGrid> mGrid;
+  bool resetColorPicker{true};
 
   int mOnLoadConnection = -1;
   int mOnSaveConnection = -1;

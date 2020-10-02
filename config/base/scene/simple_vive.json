@@ -666,8 +666,8 @@
       "enabled": true,
       "size": 1.0,
       "offset": -1.80,
-      "falloff": 20.0,
-      "texture": "../share/resources/textures/gridCrossLarge.png",
+      "falloff": 32.0,
+      "texture": "../share/resources/textures/gridCrossSmall.png",
       "alpha": 1.0,
       "color": "#FFFFFF"
     }

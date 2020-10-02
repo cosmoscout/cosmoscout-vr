@@ -9,6 +9,7 @@
          * @inheritDoc
          */
         name = 'floorGrid';
+        picker;
 
         /**
          * @inheritDoc
@@ -17,23 +18,29 @@
             CosmoScout.gui.initSlider("floorGrid.setSize", -5, 5, 1, [0]);
             CosmoScout.gui.initSlider("floorGrid.setOffset", -3, 0, 0.01, [-1.8]);
             CosmoScout.gui.initSlider("floorGrid.setAlpha", 0, 1, 0.01, [1]);
-            const pickerDiv = document.querySelector('#floorGrid-setColor');
+            this.picker = document.querySelector('#floorGrid-setColor');
 
-            pickerDiv.picker = new CP(pickerDiv);
-            pickerDiv.picker.self.classList.add('no-alpha');
-            pickerDiv.picker.on('change', (r, g, b, a) => {
+            this.picker.picker = new CP(this.picker);
+            this.picker.picker.self.classList.add('no-alpha');
+            this.picker.picker.on('change', (r, g, b, a) => {
                 const color                = CP.HEX([r, g, b, 1]);
-                pickerDiv.style.background = color;
-                pickerDiv.value            = color;
+                this.picker.style.background = color;
+                this.picker.value            = color;
                 CosmoScout.callbacks.floorGrid.setColor(color);
             });
 
-            pickerDiv.oninput = (e) => {
+            this.picker.oninput = (e) => {
                 const color = CP.HEX(e.target.value);
-                pickerDiv.picker.set(color[0], color[1], color[2], 1);
-                pickerDiv.style.background = CP.HEX([color[0], color[1], color[2], 1]);
+                this.picker.picker.set(color[0], color[1], color[2], 1);
+                this.picker.style.background = CP.HEX([color[0], color[1], color[2], 1]);
                 CosmoScout.callbacks.floorGrid.setColor(color);
             };
+        }
+
+        setColorValue(color) {
+            this.picker.picker.set(CP.HEX(color));
+            this.picker.style.background = color;
+            this.picker.value = color;
         }
     }
 
