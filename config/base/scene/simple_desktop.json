@@ -648,7 +648,7 @@
         }
       }
     },
-    "csp-floor-grid": {
+    "csp-vr-accessibility": {
       "enabled": false,
       "size": 1.0,
       "offset": -1.80,
