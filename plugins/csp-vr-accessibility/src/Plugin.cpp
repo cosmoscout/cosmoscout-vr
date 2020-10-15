@@ -69,9 +69,9 @@ void Plugin::init() {
       "VR Accessibility", "blur_circular", "../share/resources/gui/vr_accessibility_settings.html"
       );
   mGuiManager->addScriptToGuiFromJS(
-      "../share/resources/gui/js/csp-floor-grid.js"
+      "../share/resources/gui/js/csp-vr-accessibility.js"
       );
-  // register callback for enable checkbox
+  // register callback for enable grid checkbox
   mGuiManager->getGui()->registerCallback(
       "floorGrid.setEnabled",
       "Enables or disables rendering the grid.",
@@ -107,7 +107,7 @@ void Plugin::init() {
   mPluginSettings->mAlpha.connectAndTouch(
       [this](float value) { mGuiManager->setSliderValue("floorGrid.setAlpha", value); }
       );
-  // register callback for color picker
+  // register callback for grid color picker
   mGuiManager->getGui()->registerCallback(
       "floorGrid.setColor",
       "Value to adjust color of the grid.",
@@ -117,6 +117,16 @@ void Plugin::init() {
       [this](std::string value) {
         mGuiManager->getGui()->callJavascript("CosmoScout.floorGrid.setColorValue", value);
       });
+  // register callback for fov vignette enable checkbox
+  mGuiManager->getGui()->registerCallback(
+      "fovVignette.setEnabled",
+      "Enables or disables a Vignette limiting the FoV on movement.",
+      std::function([this](bool enable) { mPluginSettings->mFovVignetteEnabled = enable; })
+      );
+  mPluginSettings->mEnabled.connectAndTouch(
+      [this](bool enable) { mGuiManager->setCheckboxValue("fovVignette.setEnabled", enable); }
+  );
+  
   // Load settings.
   onLoad();
 

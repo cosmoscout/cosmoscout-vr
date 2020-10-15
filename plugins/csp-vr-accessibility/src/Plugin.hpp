@@ -21,26 +21,29 @@ class FloorGrid;
 class Plugin : public cs::core::PluginBase {
  public:
   struct Settings {
-    /// Toggle, whether the grid is hidden (false) or visible (true)
+    /// Toggle, whether the grid is hidden (false) or visible (true).
     cs::utils::DefaultProperty<bool> mEnabled{true};
 
-    /// The size of the grid, i.e. mesh size, scale factor (default = 1)
+    /// The size of the grid, i.e. mesh size, scale factor (default = 1).
     cs::utils::DefaultProperty<float> mSize{1.0F};
 
-    /// The height offset to adjust the grid to the floor
+    /// The height offset to adjust the grid to the floor.
     cs::utils::DefaultProperty<float> mOffset{-1.8F};
 
     /// The falloff distance when the grid fades.
     cs::utils::DefaultProperty<float> mFalloff{100.0F};
 
-    /// The texture used for the grid (b/w texture)
+    /// The texture used for the grid (b/w texture).
     cs::utils::DefaultProperty<std::string> mTexture{"../share/resources/textures/gridCentered.png"};
 
-    /// The opacity of the grid (default 1, fully opaque, to 0, fully transparent)
+    /// The opacity of the grid (default 1, fully opaque, to 0, fully transparent).
     cs::utils::DefaultProperty<float> mAlpha{1.0F};
 
-    /// The color of the grid (default white #FFFFFF)
+    /// The color of the grid (default white #FFFFFF).
     cs::utils::DefaultProperty<std::string> mColor{"#FFFFFF"};
+
+    /// Toggle, whether the FoV Vignette is used or not.
+    cs::utils::DefaultProperty<bool> mFovVignetteEnabled{true};
   };
 
   void init() override;
