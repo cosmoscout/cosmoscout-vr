@@ -44,5 +44,21 @@
         }
     }
 
-    CosmoScout.init(FloorGridApi);
+    /**
+     * FoV Vignette Api
+     */
+    class FovVignetteApi extends IApi {
+        /**
+         * @inheritDoc
+         */
+        name = 'fovVignette';
+
+        /**
+         * @inheritDoc
+         */
+        init() {
+        }
+    }
+
+    CosmoScout.init(FloorGridApi, FovVignetteApi);
 })();
