@@ -47,16 +47,14 @@ class RenderHandler : public CefRenderHandler {
 
   void OnVirtualKeyboardRequested(CefRefPtr<CefBrowser> browser, TextInputMode input_mode) override;
 
-  ~RenderHandler() override = default;
-
  private:
   IMPLEMENT_REFCOUNTING(RenderHandler);
 
-  int mWidth;
-  int mHeight;
+  int mWidth{};
+  int mHeight{};
 
-  int mLastDrawWidth;
-  int mLastDrawHeight;
+  int mLastDrawWidth{};
+  int mLastDrawHeight{};
 
   DrawCallback                 mDrawCallback;
   CursorChangeCallback         mCursorChangeCallback;

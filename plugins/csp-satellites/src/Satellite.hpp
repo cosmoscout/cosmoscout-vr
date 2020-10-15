@@ -41,7 +41,7 @@ class Satellite : public cs::scene::CelestialBody {
   Satellite& operator=(Satellite const& other) = delete;
   Satellite& operator=(Satellite&& other) = delete;
 
-  ~Satellite();
+  ~Satellite() override;
 
   void update(double tTime, cs::scene::CelestialObserver const& oObs) override;
 

@@ -221,7 +221,7 @@ GuiManager::GuiManager(std::shared_ptr<Settings> settings,
 
   // Add icons to the Bookmark Editor.
   auto icons = utils::filesystem::listFiles("../share/resources/icons", std::regex("^.*\\.png$"));
-  for (auto icon : icons) {
+  for (auto const& icon : icons) {
     mCosmoScoutGui->callJavascript("CosmoScout.bookmarkEditor.addIcon", icon.substr(25));
   }
 
@@ -304,18 +304,18 @@ utils::Signal<uint32_t, Settings::Bookmark const&> const& GuiManager::onBookmark
 uint32_t GuiManager::addBookmark(Settings::Bookmark bookmark) {
   uint32_t newID = 0;
 
-  if (mBookmarks.size() > 0) {
+  if (!mBookmarks.empty()) {
     newID = mBookmarks.rbegin()->first + 1;
   }
 
   if (bookmark.mTime) {
     // Make sure that the times have the 'Z' at the end to mark them as UTC.
     auto start = bookmark.mTime.value().mStart;
-    if (start.size() > 0 && start.back() != 'Z') {
+    if (!start.empty() && start.back() != 'Z') {
       start += "Z";
     }
     auto end = bookmark.mTime.value().mEnd.value_or("");
-    if (end.size() > 0 && end.back() != 'Z') {
+    if (!end.empty() && end.back() != 'Z') {
       end += "Z";
     }
 
@@ -538,7 +538,7 @@ void GuiManager::setSliderValue(
 void GuiManager::onLoad() {
   // First clear all bookmarks. In theory this could be optimized by not reloading identical
   // bookmarks.
-  while (mBookmarks.size() > 0) {
+  while (!mBookmarks.empty()) {
     removeBookmark(mBookmarks.begin()->first);
   }
 

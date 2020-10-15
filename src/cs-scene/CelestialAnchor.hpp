@@ -85,7 +85,7 @@ class CS_SCENE_EXPORT CelestialAnchor {
  protected:
   glm::dvec3 mPosition;
   glm::dquat mRotation;
-  double     mScale;
+  double     mScale{1.0};
 
   std::string mCenterName;
   std::string mFrameName;

@@ -6,10 +6,9 @@
 
 #include "VistaPlanet.hpp"
 
+#include "../../../src/cs-utils/utils.hpp"
 #include "TileSource.hpp"
 #include "UpdateBoundsVisitor.hpp"
-
-#include <../../../src/cs-utils/utils.hpp>
 
 #include <VistaBase/VistaStreamUtils.h>
 #include <VistaKernel/DisplayManager/VistaDisplayManager.h>

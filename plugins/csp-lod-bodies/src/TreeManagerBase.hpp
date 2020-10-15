@@ -10,8 +10,6 @@
 #include "TileId.hpp"
 #include "TileQuadTree.hpp"
 
-#include <boost/cast.hpp>
-#include <boost/noncopyable.hpp>
 #include <mutex>
 #include <string>
 #include <unordered_map>
@@ -43,7 +41,7 @@ class TileTextureArray;
 /// do not change, even when rehashing occurs). The AgeStore is sorted so that the oldest nodes are
 /// at the back and those are removed if their age exceeds a certain threshold (see
 /// TreeManagerBase::prune).
-class TreeManagerBase : private boost::noncopyable {
+class TreeManagerBase {
  public:
   explicit TreeManagerBase(
       PlanetParameters const& params, std::shared_ptr<GLResources> glResources);

@@ -16,7 +16,7 @@ class RenderProcessHandler : public CefRenderProcessHandler {
  public:
   /// This is called for each new context. We use this callback to add the
   /// callNative method to the window object.
-  virtual void OnContextCreated(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame,
+  void OnContextCreated(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame,
       CefRefPtr<CefV8Context> context) override;
 
  private:

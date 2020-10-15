@@ -550,7 +550,7 @@ void TileRenderer::renderTile(RenderDataDEM* rdDEM, RenderDataImg* rdIMG, Unifor
         averageHeight * static_cast<float>(mParams->mHeightScale));
     cornersViewSpace.at(i) = glm::fvec3(mMatVM * glm::dvec4(corners.at(i), 1.0));
 
-    normals.at(i) = cs::utils::convert::lngLatToNormal(cornersLngLat.at(i), mParams->mRadii);
+    normals.at(i)          = cs::utils::convert::lngLatToNormal(cornersLngLat.at(i));
     normalsViewSpace.at(i) = glm::fvec3(matNormal * glm::dvec4(normals.at(i), 0.0));
   }
 

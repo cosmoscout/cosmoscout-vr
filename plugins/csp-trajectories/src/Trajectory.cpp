@@ -132,7 +132,7 @@ void Trajectory::update(double tTime, cs::scene::CelestialObserver const& oObs) 
 
     mLastFrameTime = tTime;
 
-    if (pVisible.get() && mPoints.size() > 0) {
+    if (pVisible.get() && !mPoints.empty()) {
       glm::dvec3 tip = mPoints[mStartIndex];
       try {
         tip = getRelativePosition(tTime, mTarget);

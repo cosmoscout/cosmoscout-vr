@@ -52,6 +52,8 @@ This plugin can be enabled with the following configuration in your `settings.js
 
 This guide will most likely work for newer versions of Ubuntu as well. A key requirement is at least version 6.3.0 of [PROJ](https://proj.org/). For Ubuntu 20.04 this is in the official repositories, for older versions, you may try to add the [UbuntuGIS](https://launchpad.net/~ubuntugis) repository.
 
+If you are using Windows you can use the Windows Subsystem for Linux (WSL) to setup the server on your Windows machine. A detailed guide can be found [here](https://docs.microsoft.com/en-gb/windows/wsl/install-win10). WSL1 is sufficient and you don't need to upgrade to WSL2. We recommend installing the Ubuntu 20.04 image.
+
 ### Installing the MapServer
 
 This tutorial will install the `mapserv` CGI script and Apache2 as a webserver.

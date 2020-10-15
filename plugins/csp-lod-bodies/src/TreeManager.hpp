@@ -67,7 +67,7 @@ template <typename RDataT>
 
 template <typename RDataT>
 /* virtual */ void TreeManager<RDataT>::releaseRenderData(RenderData* rdata) {
-  RDataT* rd = boost::polymorphic_downcast<RDataT*>(rdata);
+  auto* rd = boost::polymorphic_downcast<RDataT*>(rdata);
 
   mPool.destroy(rd);
 }

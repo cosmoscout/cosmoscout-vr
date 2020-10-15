@@ -237,7 +237,7 @@ void EllipseTool::calculateVertices() {
   auto body   = mSolarSystem->getBody(mCenterHandle.getAnchor()->getCenterName());
   auto radii  = body->getRadii();
   auto center = mCenterHandle.getAnchor()->getAnchorPosition();
-  auto normal = cs::utils::convert::lngLatToNormal(mCenterHandle.pLngLat.get(), radii);
+  auto normal = cs::utils::convert::lngLatToNormal(mCenterHandle.pLngLat.get());
 
   mAnchor->setAnchorPosition(center);
 

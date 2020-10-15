@@ -658,7 +658,7 @@ void SolarSystem::turnToObserver(scene::CelestialAnchor& anchor,
     if (upIsNormal) {
       auto radii  = getRadii(anchor.getCenterName());
       auto lngLat = cs::utils::convert::cartesianToLngLat(anchor.getAnchorPosition(), radii);
-      y           = cs::utils::convert::lngLatToNormal(lngLat, radii);
+      y           = cs::utils::convert::lngLatToNormal(lngLat);
     }
 
     glm::dvec3 z = glm::cross(y, camDir);

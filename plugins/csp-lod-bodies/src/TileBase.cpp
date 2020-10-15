@@ -12,8 +12,7 @@ namespace csp::lodbodies {
 
 /* explicit */
 TileBase::TileBase(int level, glm::int64 patchIdx)
-    : boost::noncopyable()
-    , mTileId(level, patchIdx)
+    : mTileId(level, patchIdx)
     , mMinMaxPyramid(nullptr) {
 }
 

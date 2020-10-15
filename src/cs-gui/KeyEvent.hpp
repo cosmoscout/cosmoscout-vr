@@ -29,7 +29,7 @@ struct CS_GUI_EXPORT KeyEvent {
   void setMods(int mods);
 
   /// PRESS, RELEASE, CHARACTER.
-  Type mType;
+  Type mType{Type::ePress};
 
   /// Bitwise or of any Modifier defined in types.hpp.
   uint32_t mModifiers{};

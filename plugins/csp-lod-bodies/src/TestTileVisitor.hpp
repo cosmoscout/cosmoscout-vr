@@ -17,17 +17,17 @@ namespace csp::lodbodies {
 /// DocTODO it isn't used anywhere...
 class TestTileVisitor : public TileVisitor<TestTileVisitor> {
  public:
-  explicit TestTileVisitor(TileQuadTree* treeDEM, TileQuadTree* treeIMG = NULL);
+  explicit TestTileVisitor(TileQuadTree* treeDEM, TileQuadTree* treeIMG = nullptr);
 
   std::vector<TileId> const& getLoadTilesDEM() const;
   std::vector<TileId> const& getLoadTilesIMG() const;
 
  private:
-  bool preTraverse();
+  bool preTraverse() override;
 
-  bool preVisitRoot(TileId const& tileId);
-  bool preVisit(TileId const& tileId);
-  void postVisit(TileId const& tileId);
+  bool preVisitRoot(TileId const& tileId) override;
+  bool preVisit(TileId const& tileId) override;
+  void postVisit(TileId const& tileId) override;
 
   bool visitLevel(TileId const& tileId);
   bool refineTile();

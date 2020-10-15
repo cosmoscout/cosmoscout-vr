@@ -15,7 +15,7 @@ namespace csp::lodbodies {
 template <typename T>
 class Tile : public TileBase {
  public:
-  typedef std::array<T, TileBase::SizeX * TileBase::SizeY> Storage;
+  using Storage    = std::array<T, TileBase::SizeX * TileBase::SizeY>;
   using value_type = T;
 
   explicit Tile(int level, glm::int64 patchIdx);
