@@ -20,8 +20,6 @@
 #include <VistaKernelOpenSGExt/VistaOpenSGMaterialTools.h>
 #include <glm/gtc/type_ptr.hpp>
 
-#include <boost/algorithm/string.hpp>
-
 #include <utility>
 
 namespace csp::vraccessibility {
