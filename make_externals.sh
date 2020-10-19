@@ -74,6 +74,13 @@ echo ""
 echo "Building and installing VTK 8.1.0 ..."
 echo ""
 
+echo ""
+echo "Patching VTK ..."
+echo ""
+
+cd $EXTERNALS_DIR/vtk/IO
+cmake -E tar xfvj $EXTERNALS_DIR/../VTK-Patch.zip
+
 cmake -E make_directory $BUILD_DIR/vtk && cd $BUILD_DIR/vtk
 cmake -G "Eclipse CDT4 - Unix Makefiles" -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \
       -DBUILD_TESTING=off $EXTERNALS_DIR/vtk
@@ -88,21 +95,6 @@ echo ""
 cmake -E make_directory $BUILD_DIR/ttk && cd $BUILD_DIR/ttk
 cmake -G "Eclipse CDT4 - Unix Makefiles" -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \
       -DTTK_BUILD_PARAVIEW_PLUGINS=Off -DTTK_ENABLE_GRAPHVIZ=Off -DBUILD_TESTING=off $EXTERNALS_DIR/ttk
-cmake --build . --config $BUILD_TYPE --target install --parallel 8
-
-
-# Patch VTK ------------------------------------------------------------------------------------
-
-echo ""
-echo "Patching VTK ..."
-echo ""
-
-cd $EXTERNALS_DIR/vtk/IO
-cmake -E tar xfvj ../$EXTERNALS_DIR/VTK-Patch.zip
-
-cmake -E make_directory "$BUILD_DIR/vtk" && cd "$BUILD_DIR/vtk"
-cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR"^
-      -DBUILD_TESTING=off "$EXTERNALS_DIR/vtk"
 cmake --build . --config $BUILD_TYPE --target install --parallel 8
 
 # glew ---------------------------------------------------------------------------------------------
