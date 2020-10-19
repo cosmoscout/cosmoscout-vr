@@ -90,6 +90,21 @@ cmake -G "Eclipse CDT4 - Unix Makefiles" -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \
       -DTTK_BUILD_PARAVIEW_PLUGINS=Off -DTTK_ENABLE_GRAPHVIZ=Off -DBUILD_TESTING=off $EXTERNALS_DIR/ttk
 cmake --build . --config $BUILD_TYPE --target install --parallel 8
 
+
+# Patch VTK ------------------------------------------------------------------------------------
+
+echo ""
+echo "Patching VTK ..."
+echo ""
+
+cd $EXTERNALS_DIR/vtk/IO
+cmake -E tar xfvj $SOURCE_ROOT_DIR/VTK-Patch.zip
+
+cmake -E make_directory "$BUILD_DIR/vtk" && cd "$BUILD_DIR/vtk"
+cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR"^
+      -DBUILD_TESTING=off "$EXTERNALS_DIR/vtk"
+cmake --build . --config $BUILD_TYPE --target install --parallel 8
+
 # glew ---------------------------------------------------------------------------------------------
 
 echo ""
@@ -112,6 +127,25 @@ cmake --build . --target install --parallel "$(nproc)"
 case "$COSMOSCOUT_DEBUG_BUILD" in
   (true) cp $INSTALL_DIR/lib/libGLEWd.so $INSTALL_DIR/lib/libGLEW.so;;
 esac
+
+# gdal 3.0.4 --------------------------------------------------------------------------------------------
+
+echo ""
+echo "Downloading and installing gdal ..."
+echo ""
+
+cmake -E make_directory "$BUILD_DIR/gdal/extracted" && cd "$BUILD_DIR/gdal"
+wget -nc https://github.com/nextgis-borsch/lib_gdal/archive/v3.0.3.tar.gz
+
+cd "$BUILD_DIR/gdal/extracted"
+cmake -E tar xzf ../v3.0.3.tar.gz
+cd ..
+
+cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
+      -DCMAKE_INSTALL_LIBDIR=lib \
+      -DCMAKE_BUILD_TYPE=$BUILD_TYPE "$BUILD_DIR/gdal/extracted/gdal-3.0.3"
+cmake --build . --target install --parallel "$(nproc)"
+
 
 # freeglut -----------------------------------------------------------------------------------------
 
