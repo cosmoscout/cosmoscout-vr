@@ -98,7 +98,7 @@ echo "Patching VTK ..."
 echo ""
 
 cd $EXTERNALS_DIR/vtk/IO
-cmake -E tar xfvj $SOURCE_ROOT_DIR/VTK-Patch.zip
+cmake -E tar xfvj ../$EXTERNALS_DIR/VTK-Patch.zip
 
 cmake -E make_directory "$BUILD_DIR/vtk" && cd "$BUILD_DIR/vtk"
 cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR"^
@@ -135,16 +135,72 @@ echo "Downloading and installing gdal ..."
 echo ""
 
 cmake -E make_directory "$BUILD_DIR/gdal/extracted" && cd "$BUILD_DIR/gdal"
-wget -nc https://github.com/nextgis-borsch/lib_gdal/archive/v3.0.3.tar.gz
+wget -nc https://github.com/OSGeo/gdal/releases/download/v3.0.4/gdal-3.0.4.tar.gz
 
 cd "$BUILD_DIR/gdal/extracted"
-cmake -E tar xzf ../v3.0.3.tar.gz
+cmake -E tar xzf ../gdal-3.0.4.tar.gz
 cd ..
 
-cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
-      -DCMAKE_INSTALL_LIBDIR=lib \
-      -DCMAKE_BUILD_TYPE=$BUILD_TYPE "$BUILD_DIR/gdal/extracted/gdal-3.0.3"
-cmake --build . --target install --parallel "$(nproc)"
+./configure --prefix=="$INSTALL_DIR/gdal" \
+    --with-geos \
+    --with-geotiff=internal \
+    --with-hide-internal-symbols \
+    --with-libtiff=internal \
+    --with-libz=internal \
+    --with-threads \
+    --without-bsb \
+    --without-cfitsio \
+    --without-cryptopp \
+    --without-curl \
+    --without-dwgdirect \
+    --without-ecw \
+    --without-expat \
+    --without-fme \
+    --without-freexl \
+    --without-gif \
+    --without-gif \
+    --without-gnm \
+    --without-grass \
+    --without-grib \
+    --without-hdf4 \
+    --without-hdf5 \
+    --without-idb \
+    --without-ingres \
+    --without-jasper \
+    --without-jp2mrsid \
+    --without-jpeg \
+    --without-kakadu \
+    --without-libgrass \
+    --without-libkml \
+    --without-libtool \
+    --without-mrf \
+    --without-mrsid \
+    --without-mysql \
+    --without-netcdf \
+    --without-odbc \
+    --without-ogdi \
+    --without-openjpeg \
+    --without-pcidsk \
+    --without-pcraster \
+    --without-pcre \
+    --without-perl \
+    --without-pg \
+    --without-php \
+    --without-png \
+    --without-python \
+    --without-qhull \
+    --without-sde \
+    --without-sqlite3 \
+    --without-webp \
+    --without-xerces \
+    --without-xml2
+make
+make install
+
+#cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
+#      -DCMAKE_INSTALL_LIBDIR=lib \
+#      -DCMAKE_BUILD_TYPE=$BUILD_TYPE "$BUILD_DIR/gdal/extracted/lib_gdal-3.0.3"
+#cmake --build . --target install --parallel "$(nproc)"
 
 
 # freeglut -----------------------------------------------------------------------------------------
