@@ -133,18 +133,16 @@ cd "$BUILD_DIR/gdal/extracted"
 cmake -E tar xzf ../gdal-3.0.4.tar.gz
 cd ..
 
-./configure --prefix=="$INSTALL_DIR/gdal" \
+./configure --prefix="$INSTALL_DIR/gdal" \
     --with-geos \
     --with-geotiff=internal \
     --with-hide-internal-symbols \
     --with-libtiff=internal \
     --with-libz=internal \
     --with-threads \
-    --without-bsb \
     --without-cfitsio \
     --without-cryptopp \
     --without-curl \
-    --without-dwgdirect \
     --without-ecw \
     --without-expat \
     --without-fme \
@@ -153,7 +151,6 @@ cd ..
     --without-gif \
     --without-gnm \
     --without-grass \
-    --without-grib \
     --without-hdf4 \
     --without-hdf5 \
     --without-idb \
@@ -165,7 +162,6 @@ cd ..
     --without-libgrass \
     --without-libkml \
     --without-libtool \
-    --without-mrf \
     --without-mrsid \
     --without-mysql \
     --without-netcdf \
@@ -177,7 +173,6 @@ cd ..
     --without-pcre \
     --without-perl \
     --without-pg \
-    --without-php \
     --without-png \
     --without-python \
     --without-qhull \
