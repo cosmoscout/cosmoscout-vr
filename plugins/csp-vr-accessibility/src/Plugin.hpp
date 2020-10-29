@@ -14,6 +14,7 @@
 namespace csp::vraccessibility {
 
 class FloorGrid;
+class FovVignette;
 
 /// This plugin adds a floor grid. The grid is rendered below the observer.
 /// The configuration of this plugin is done via the provided json config.
@@ -36,14 +37,29 @@ class Plugin : public cs::core::PluginBase {
     /// The texture used for the grid (b/w texture).
     cs::utils::DefaultProperty<std::string> mTexture{"../share/resources/textures/gridCentered.png"};
 
-    /// The opacity of the grid (default 1, fully opaque, to 0, fully transparent).
+    /// The opacity of the grid (default: 1, fully opaque, to 0, fully transparent).
     cs::utils::DefaultProperty<float> mAlpha{1.0F};
 
-    /// The color of the grid (default white #FFFFFF).
+    /// The color of the grid (default: white #FFFFFF).
     cs::utils::DefaultProperty<std::string> mColor{"#FFFFFF"};
 
     /// Toggle, whether the FoV Vignette is used or not.
     cs::utils::DefaultProperty<bool> mFovVignetteEnabled{true};
+
+    /// Toggle, whether the FoV Vignette is always drawn.
+    cs::utils::DefaultProperty<bool> mFovVignetteDebug{false};
+
+    /// The radius of the FoV Vignette (distance from center to rim where the gradient starts)(0, no radius, to 1, the edges of the screen).
+    cs::utils::DefaultProperty<float> mFovVignetteRadius{0.5F};
+
+    /// The color of the FoV Vignette (default: white #FFFFFF).
+    cs::utils::DefaultProperty<std::string> mFovVignetteColor{"#FFFFFF"};
+
+    /// The duration of the fade animation (in seconds).
+    cs::utils::DefaultProperty<double> mFovVignetteFadeDuration{1.0};
+
+    /// The deadzone of the fade animation where the animation is not played on small actions (in seconds).
+    cs::utils::DefaultProperty<double> mFovVignetteFadeDeadzone{0.5};
   };
 
   void init() override;
@@ -51,17 +67,21 @@ class Plugin : public cs::core::PluginBase {
 
   void update() override;
 
+  static glm::vec4 GetColorFromHexString(std::string color);
+
  private:
   void onLoad();
 
   std::shared_ptr<Settings> mPluginSettings = std::make_shared<Settings>();
   std::shared_ptr<FloorGrid> mGrid;
+  std::shared_ptr<FovVignette> mVignette;
+
   bool resetColorPicker{true};
 
   int mOnLoadConnection = -1;
   int mOnSaveConnection = -1;
 };
 
-} // namespace csp::floorgrid
+} // namespace csp::vraccessibility
 
 #endif // CSP_FLOOR_GRID_PLUGIN_HPP

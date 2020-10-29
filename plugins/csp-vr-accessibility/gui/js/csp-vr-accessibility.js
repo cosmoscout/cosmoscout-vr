@@ -23,7 +23,7 @@
             this.picker.picker = new CP(this.picker);
             this.picker.picker.self.classList.add('no-alpha');
             this.picker.picker.on('change', (r, g, b, a) => {
-                const color                = CP.HEX([r, g, b, 1]);
+                const color = CP.HEX([r, g, b, 1]);
                 this.picker.style.background = color;
                 this.picker.value            = color;
                 CosmoScout.callbacks.floorGrid.setColor(color);
@@ -52,11 +52,38 @@
          * @inheritDoc
          */
         name = 'fovVignette';
+        picker;
 
         /**
          * @inheritDoc
          */
         init() {
+            CosmoScout.gui.initSlider("fovVignette.setRadius", 0, 1, 0.01, [0.5]);
+            CosmoScout.gui.initSlider("fovVignette.setDuration", 0, 2, 0.2, [1.0]);
+            CosmoScout.gui.initSlider("fovVignette.setDeadzone", 0, 1, 0.1, [0.5]);
+            this.picker = document.querySelector('#fovVignette-setColor');
+
+            this.picker.picker = new CP(this.picker);
+            this.picker.picker.self.classList.add('no-alpha');
+            this.picker.picker.on('change', (r, g, b, a) => {
+                const color = CP.HEX([r, g, b, 1]);
+                this.picker.style.background = color;
+                this.picker.value            = color;
+                CosmoScout.callbacks.fovVignette.setColor(color);
+            });
+
+            this.picker.oninput = (e) => {
+                const color = CP.HEX(e.target.value);
+                this.picker.picker.set(color[0], color[1], color[2], 1);
+                this.picker.style.background = CP.HEX([color[0], color[1], color[2], 1]);
+                CosmoScout.callbacks.fovVignette.setColor(color);
+            }
+        }
+
+        setColorValue(color) {
+            this.picker.picker.set(CP.HEX(color));
+            this.picker.style.background = color;
+            this.picker.value            = color;
         }
     }
 

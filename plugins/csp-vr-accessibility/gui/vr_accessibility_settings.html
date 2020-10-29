@@ -10,7 +10,7 @@
 
 <div class="row">
     <div class="col-5">
-        Grid Size
+        Size
     </div>
     <div class="col-7">
         <div data-callback="floorGrid.setSize"></div>
@@ -19,7 +19,7 @@
 
 <div class="row">
     <div class="col-5">
-        Grid Offset
+        Offset
     </div>
     <div class="col-7">
         <div data-callback="floorGrid.setOffset"></div>
@@ -28,7 +28,7 @@
 
 <div class="row">
     <div class="col-5">
-        Grid Opacity
+        Opacity
     </div>
     <div class="col-7">
         <div data-callback="floorGrid.setAlpha"></div>
@@ -37,11 +37,11 @@
 
 <div class="row">
     <div class="col-5">
-        Grid Color
+        Color
     </div>
     <div class="col-7">
         <input type="text" class="form-control color-input" id="floorGrid-setColor"
-               style="color: black;" value="">
+               style="color: white;" value="">
     </div>
 </div>
 
@@ -54,5 +54,49 @@
             <i class="material-icons"></i>
             <span>FoV Vignette</span>
         </label>
+    </div>
+    <div class="col-7">
+        <label class="checklabel">
+            <input type="checkbox" data-callback="fovVignette.setDebug">
+            <i class="material-icons"></i>
+            <span>Always Show</span>
+        </label>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-5">
+        Radius
+    </div>
+    <div class="col-7">
+        <div data-callback="fovVignette.setRadius"></div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-5">
+        Color
+    </div>
+    <div class="col-7">
+        <input type="text" class="form-control color-input" id="fovVignette-setColor"
+               style="color: white;" value="">
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-5">
+        Fade Duration
+    </div>
+    <div class="col-7">
+        <div data-callback="fovVignette.setDuration"></div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-5">
+        Fade Deadzone
+    </div>
+    <div class="col-7">
+        <div data-callback="fovVignette.setDeadzone"></div>
     </div>
 </div>

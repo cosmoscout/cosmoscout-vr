@@ -191,7 +191,7 @@ bool FloorGrid::Do() {
       mShader.GetUniformLocation("uAlpha"), mGridSettings->mAlpha.get()
       );
   glUniform4fv(
-      mShader.GetUniformLocation("uCustomColor"), 1, glm::value_ptr(GetColorFromHexString(mGridSettings->mColor.get()))
+      mShader.GetUniformLocation("uCustomColor"), 1, glm::value_ptr(Plugin::GetColorFromHexString(mGridSettings->mColor.get()))
       );
 
   // Bind Texture
@@ -221,22 +221,5 @@ bool FloorGrid::GetBoundingBox(VistaBoundingBox& bb) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-
-glm::vec4 FloorGrid::GetColorFromHexString(std::string color) {
-  // cut off # symbol
-  color = color.substr(1);
-  // separate into colors
-  std::string red{color.substr(0,2)};
-  std::string green{color.substr(2,2)};
-  std::string blue{color.substr(4,2)};
-  // translate to value and sort into vector
-  glm::vec4 vector{
-      static_cast<float>(std::stoul(red, nullptr, 16))/255,
-      static_cast<float>(std::stoul(green, nullptr, 16))/255,
-      static_cast<float>(std::stoul(blue, nullptr, 16))/255,
-      1.0F};
-
-  return vector;
-}
 
 } // namespace csp::vraccessibility

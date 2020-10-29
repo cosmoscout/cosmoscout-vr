@@ -649,13 +649,19 @@
       }
     },
     "csp-vr-accessibility": {
-      "enabled": false,
-      "size": 1.0,
-      "offset": -1.80,
-      "falloff": 32.0,
-      "texture": "../share/resources/textures/gridCrossLarge.png",
-      "alpha": 1.0,
-      "color": "#ffffff"
+      "gridEnabled": false,
+      "gridSize": 1.0,
+      "gridOffset": -1.80,
+      "gridFalloff": 32.0,
+      "gridTexture": "../share/resources/textures/gridCrossLarge.png",
+      "gridAlpha": 1.0,
+      "gridColor": "#ffffff",
+      "vignetteEnabled": false,
+      "vignetteDebug": false,
+      "vignetteRadius": 0.5,
+      "vignetteColor": "#ffffff",
+      "vignetteFadeDuration": 1.0,
+      "vignetteFadeDeadzone": 0.5
     }
   }
 }

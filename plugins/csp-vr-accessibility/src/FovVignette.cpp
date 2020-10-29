@@ -9,6 +9,7 @@
 #include "../../../src/cs-core/SolarSystem.hpp"
 #include "../../../src/cs-graphics/TextureLoader.hpp"
 #include "../../../src/cs-utils/FrameTimings.hpp"
+#include "../../../src/cs-utils/convert.hpp"
 #include "logger.hpp"
 
 #include <VistaKernel/DisplayManager/VistaDisplayManager.h>
@@ -29,9 +30,6 @@ namespace csp::vraccessibility {
 const char* FovVignette::VERT_SHADER = R"(
 #version 330
 
-uniform mat4 uMatModelView;
-uniform mat4 uMatProjection;
-
 // inputs
 layout(location = 0) in vec2 iQuadPos;
 
@@ -41,6 +39,10 @@ out vec3 vPosition;
 
 void main()
 {
+    vTexCoords  = vec2( (iQuadPos.x + 1) / 2,
+                       (iQuadPos.y + 1) / 2 );
+    vPosition   = vec3(iQuadPos.x, iQuadPos.y, -0.01);
+    gl_Position = vec4(vPosition, 1);
 }
 )";
 
@@ -49,7 +51,11 @@ void main()
 const char* FovVignette::FRAG_SHADER = R"(
 #version 330
 
-uniform float uVelocity;
+uniform sampler2D uTexture;
+uniform float uFade;
+uniform vec4 uCustomColor;
+uniform float uRadius;
+uniform bool uDebug;
 
 // inputs
 in vec2 vTexCoords;
@@ -60,6 +66,14 @@ layout(location = 0) out vec4 oColor;
 
 void main()
 {
+    if (uFade == 0 && !uDebug ) { discard; }
+
+    oColor = texture(uTexture, vTexCoords);
+    float dist = sqrt(vPosition.x * vPosition.x + vPosition.y * vPosition.y);
+    if (dist < uRadius ) { discard; }
+    oColor.rgb += uCustomColor.rgb * (dist - uRadius);
+
+    if ( !uDebug ) { oColor.a = uFade; }
 }
 )";
 
@@ -101,6 +115,29 @@ FovVignette::FovVignette(std::shared_ptr<cs::core::SolarSystem> solarSystem)
 
     mGBufferData.emplace(viewport.second, std::move(bufferData));
   }
+
+  // create shader
+  mShader.InitVertexShaderFromString(VERT_SHADER);
+  mShader.InitFragmentShaderFromString(FRAG_SHADER);
+  mShader.Link();
+
+  // add to scenegraph
+  VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
+
+  auto* platform = GetVistaSystem()
+                       ->GetPlatformFor(GetVistaSystem()->GetDisplayManager()->GetDisplaySystem())
+                       ->GetPlatformNode();
+  mGLNode.reset(pSG->NewOpenGLNode(platform, this));
+  
+  VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
+      mGLNode.get(), static_cast<int>(cs::utils::DrawOrder::eGui) - 1
+      );
+
+  // init animation housekeeping
+  mFadeAnimation = cs::utils::AnimatedValue( 0.0F, 0.0F, 0.0, 0.0 );
+  mLastChange = 0.0;
+  mAnimationTracker = 0;
+  mIsStill = false;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -137,36 +174,82 @@ bool FovVignette::Do() {
   glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, iViewport.at(0), iViewport.at(1), iViewport.at(2),
                    iViewport.at(3), 0);
 
-  // get observer velocity
+  // get simulation variables
   float velocity = mSolarSystem->pCurrentObserverSpeed.get();
+  double currentTime = cs::utils::convert::time::toSpice(boost::posix_time::microsec_clock::universal_time());
 
-  // Get model, view and projection matrices
-  std::array<GLfloat, 16> glMatMV{};
-  std::array<GLfloat, 16> glMatP{};
-  glGetFloatv(GL_MODELVIEW_MATRIX, glMatMV.data());
-  glGetFloatv(GL_PROJECTION_MATRIX, glMatP.data());
+  // check for movement changes
+  if ( mIsStill && velocity > 0 ) {
+    // observer started moving
+    mAnimationTracker += 1;
+    mLastChange = currentTime;
+  }
+  else if ( !mIsStill && velocity == 0 ) {
+    // observer stopped moving
+    mAnimationTracker -= 1;
+    mLastChange = currentTime;
+  }
+
+  // update mIsStill
+  mIsStill = (velocity == 0);
+
+  // check if deadzone has passed and tracker indicates animation needed
+  if ( mAnimationTracker != 0 && currentTime > mLastChange + mVignetteSettings->mFovVignetteFadeDeadzone.get()) {
+    if ( mAnimationTracker > 0 ) {
+      // observer started moving
+      mFadeAnimation.mStartValue  = 0.0F;
+      mFadeAnimation.mEndValue    = 1.0F;
+      mFadeAnimation.mStartTime   = currentTime;
+      mFadeAnimation.mEndTime     = currentTime + mVignetteSettings->mFovVignetteFadeDuration.get();
+      // reset tracker
+      mAnimationTracker = 0;
+    }
+    else {
+      // observer stopped moving
+      mFadeAnimation.mStartValue  = 1.0F;
+      mFadeAnimation.mEndValue    = 0.0F;
+      mFadeAnimation.mStartTime   = currentTime;
+      mFadeAnimation.mEndTime     = currentTime + mVignetteSettings->mFovVignetteFadeDuration.get();
+      // reset tracker
+      mAnimationTracker = 0;
+    }
+  }
 
   // set uniforms
   mShader.Bind();
 
-  glUniformMatrix4fv(
-      mShader.GetUniformLocation("uMatModelView"), 1, GL_FALSE, glMatMV.data()
-      );
-  glUniformMatrix4fv(
-      mShader.GetUniformLocation("uMatProjection"), 1, GL_FALSE, glMatP.data()
+  mShader.SetUniform(
+      mShader.GetUniformLocation("uTexture"), 0
       );
   mShader.SetUniform(
-      mShader.GetUniformLocation("uVelocity"), velocity
+      mShader.GetUniformLocation("uFade"), mFadeAnimation.get(currentTime)
+      );
+  glUniform4fv(
+      mShader.GetUniformLocation("uCustomColor"), 1, glm::value_ptr(Plugin::GetColorFromHexString(mVignetteSettings->mFovVignetteColor.get()))
+      );
+  mShader.SetUniform(
+      mShader.GetUniformLocation("uRadius"), mVignetteSettings->mFovVignetteRadius.get()
+      );
+  mShader.SetUniform(
+      mShader.GetUniformLocation("uDebug"), mVignetteSettings->mFovVignetteDebug.get()
       );
 
+  // bind texture
+  data.mColorBuffer->Bind(GL_TEXTURE0);
+
   // draw
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  glDisable(GL_DEPTH_TEST);
+
   mVAO.Bind();
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
   mVAO.Release();
 
   // clean up
   data.mDepthBuffer->Unbind(GL_TEXTURE0);
-  data.mColorBuffer->Unbind(GL_TEXTURE1);
+  glDisable(GL_BLEND);
+  glEnable(GL_DEPTH_TEST);
 
   mShader.Release();
 

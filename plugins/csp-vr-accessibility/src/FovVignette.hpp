@@ -10,6 +10,7 @@
 #include "Plugin.hpp"
 
 #include "../../../src/cs-scene/CelestialObject.hpp"
+#include "../../../src/cs-utils/AnimatedValue.hpp"
 
 #include <VistaKernel/GraphicsManager/VistaOpenGLDraw.h>
 #include <VistaKernel/GraphicsManager/VistaOpenGLNode.h>
@@ -49,8 +50,14 @@ class FovVignette : public IVistaOpenGLDraw{
   std::shared_ptr<cs::core::Settings>     mSettings;
   std::shared_ptr<cs::core::SolarSystem>  mSolarSystem;
 
-  std::shared_ptr<Plugin::Settings>       mVignetteSettings;
+  std::unique_ptr<VistaOpenGLNode>        mGLNode;
 
+  cs::utils::AnimatedValue<float>         mFadeAnimation;
+  double                                  mLastChange;
+  int                                     mAnimationTracker;
+  bool                                    mIsStill;
+
+  std::shared_ptr<Plugin::Settings>       mVignetteSettings;
   VistaGLSLShader                         mShader;
   VistaVertexArrayObject                  mVAO;
   VistaBufferObject                       mVBO;
