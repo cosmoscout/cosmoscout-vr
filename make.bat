@@ -75,6 +75,7 @@ if exist "%BUILD_DIR%" goto BUILD_DIR_CREATED
 rem configure, compile & install -------------------------------------------------------------------
 
 set GDAL_DIR=%CURRENT_DIR%\install\windows-externals-%BUILD_TYPE%\gdal
+set zipper_DIR=%CURRENT_DIR%\build\windows-externals-%BUILD_TYPE%\zipper
 
 cd "%BUILD_DIR%"
 cmake %CMAKE_FLAGS% -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^

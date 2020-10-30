@@ -83,6 +83,19 @@ cmake -E make_directory "%INSTALL_DIR%/share"
 cmake -E make_directory "%INSTALL_DIR%/bin"
 cmake -E make_directory "%INSTALL_DIR%/include"
 
+rem Zipper -----------------------------------------------------------------------------------------
+:zipper
+
+echo.
+echo Building and installing zipper ...
+echo.
+
+cmake -E make_directory "%BUILD_DIR%/zipper" && cd "%BUILD_DIR%/zipper"
+cmake %CMAKE_FLAGS% -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
+      "%EXTERNALS_DIR%/zipper" || exit /b
+
+cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS%
+
 rem gdal 3.0.4 --------------------------------------------------------------------------------------------
 :gdal
 
