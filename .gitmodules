@@ -94,3 +94,6 @@
 [submodule "plugins/csp-simple-wms-bodies"]
 	path = plugins/csp-simple-wms-bodies
 	url = https://github.com/cosmoscout/csp-simple-wms-bodies.git
+[submodule "externals/zipper"]
+	path = externals/zipper
+	url = https://github.com/sebastiandev/zipper.git
