@@ -80,7 +80,7 @@ cmake --build . --target install --parallel "$(nproc)"
 
 # Compile GDAL From source ----------------------------------------------------------------------------
 # Very much WIP
-if [ "$COSMOSCOUT_NO_SYSTEM_GDAL" = true ] then
+if [ "$COSMOSCOUT_NO_SYSTEM_GDAL" = true ]; then
   # Proj6 ---------------------------------------------------------------------------------------------
 
   echo ""
