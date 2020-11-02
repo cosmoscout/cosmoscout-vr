@@ -172,10 +172,12 @@ install(
   FILES_MATCHING PATTERN "*.so*" PATTERN "*.dll*"
 )
 
-install(
-  DIRECTORY ${COSMOSCOUT_EXTERNALS_DIR}/gdal/lib/proj6/share
-  DESTINATION "bin/proj6"
-)
+if(MSVC)
+  install(
+    DIRECTORY ${COSMOSCOUT_EXTERNALS_DIR}/gdal/lib/proj6/share
+    DESTINATION "bin/proj6"
+  )
+endif()
 
 install(
   DIRECTORY ${COSMOSCOUT_EXTERNALS_DIR}/lib/ ${COSMOSCOUT_EXTERNALS_DIR}/bin/
