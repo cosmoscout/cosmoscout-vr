@@ -49,8 +49,11 @@ class Plugin : public cs::core::PluginBase {
     /// Toggle, whether the FoV Vignette is always drawn.
     cs::utils::DefaultProperty<bool> mFovVignetteDebug{false};
 
-    /// The radius of the FoV Vignette (distance from center to rim where the gradient starts)(0, no radius, to 1, the edges of the screen).
-    cs::utils::DefaultProperty<float> mFovVignetteRadius{0.5F};
+    /// The inner radius of the FoV Vignette (distance from center to rim where the gradient starts)(0, no radius, to 1, the edges of the screen).
+    cs::utils::DefaultProperty<float> mFovVignetteInnerRadius{0.5F};
+
+    /// The outer radius of the FoV Vignette (distance from start of the gradient to end of gradient).
+    cs::utils::DefaultProperty<float> mFovVignetteOuterRadius{1.0F};
 
     /// The color of the FoV Vignette (default: white #FFFFFF).
     cs::utils::DefaultProperty<std::string> mFovVignetteColor{"#FFFFFF"};

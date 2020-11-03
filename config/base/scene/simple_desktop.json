@@ -658,7 +658,8 @@
       "gridColor": "#ffffff",
       "vignetteEnabled": false,
       "vignetteDebug": false,
-      "vignetteRadius": 0.5,
+      "vignetteInnerRadius": 0.5,
+      "vignetteOuterRadius": 1.0,
       "vignetteColor": "#ffffff",
       "vignetteFadeDuration": 1.0,
       "vignetteFadeDeadzone": 0.5

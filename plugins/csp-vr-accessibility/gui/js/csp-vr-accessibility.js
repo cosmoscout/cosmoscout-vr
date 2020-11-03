@@ -58,7 +58,8 @@
          * @inheritDoc
          */
         init() {
-            CosmoScout.gui.initSlider("fovVignette.setRadius", 0, 1, 0.01, [0.5]);
+            CosmoScout.gui.initSlider("fovVignette.setInnerRadius", 0, 1, 0.01, [0.5]);
+            CosmoScout.gui.initSlider("fovVignette.setOuterRadius", 0, 1.5, 0.01, [1.0]);
             CosmoScout.gui.initSlider("fovVignette.setDuration", 0, 2, 0.2, [1.0]);
             CosmoScout.gui.initSlider("fovVignette.setDeadzone", 0, 1, 0.1, [0.5]);
             this.picker = document.querySelector('#fovVignette-setColor');

@@ -54,7 +54,8 @@ const char* FovVignette::FRAG_SHADER = R"(
 uniform sampler2D uTexture;
 uniform float uFade;
 uniform vec4 uCustomColor;
-uniform float uRadius;
+uniform float uInnerRadius;
+uniform float uOuterRadius;
 uniform bool uDebug;
 
 // inputs
@@ -70,8 +71,11 @@ void main()
 
     oColor = texture(uTexture, vTexCoords);
     float dist = sqrt(vPosition.x * vPosition.x + vPosition.y * vPosition.y);
-    if (dist < uRadius ) { discard; }
-    oColor.rgb += uCustomColor.rgb * (dist - uRadius);
+    if (dist < uInnerRadius ) { discard; }
+    oColor.rgb += uCustomColor.rgb * ((dist - uInnerRadius) / (uOuterRadius - uInnerRadius));
+    if (dist > uOuterRadius) {
+      oColor.rgb = uCustomColor.rgb;
+    }
 
     if ( !uDebug ) { oColor.a = uFade; }
 }
@@ -228,7 +232,10 @@ bool FovVignette::Do() {
       mShader.GetUniformLocation("uCustomColor"), 1, glm::value_ptr(Plugin::GetColorFromHexString(mVignetteSettings->mFovVignetteColor.get()))
       );
   mShader.SetUniform(
-      mShader.GetUniformLocation("uRadius"), mVignetteSettings->mFovVignetteRadius.get()
+      mShader.GetUniformLocation("uInnerRadius"), mVignetteSettings->mFovVignetteInnerRadius.get()
+      );
+  mShader.SetUniform(
+      mShader.GetUniformLocation("uOuterRadius"), mVignetteSettings->mFovVignetteOuterRadius.get()
       );
   mShader.SetUniform(
       mShader.GetUniformLocation("uDebug"), mVignetteSettings->mFovVignetteDebug.get()

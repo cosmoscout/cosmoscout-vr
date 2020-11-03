@@ -46,7 +46,8 @@ void from_json(nlohmann::json const& j, Plugin::Settings& o) {
   cs::core::Settings::deserialize(j, "gridColor",   o.mColor);
   cs::core::Settings::deserialize(j, "vignetteEnabled",      o.mFovVignetteEnabled);
   cs::core::Settings::deserialize(j, "vignetteDebug",        o.mFovVignetteDebug);
-  cs::core::Settings::deserialize(j, "vignetteRadius",       o.mFovVignetteRadius);
+  cs::core::Settings::deserialize(j, "vignetteInnerRadius",  o.mFovVignetteInnerRadius);
+  cs::core::Settings::deserialize(j, "vignetteOuterRadius",  o.mFovVignetteOuterRadius);
   cs::core::Settings::deserialize(j, "vignetteColor",        o.mFovVignetteColor);
   cs::core::Settings::deserialize(j, "vignetteFadeDuration", o.mFovVignetteFadeDuration);
   cs::core::Settings::deserialize(j, "vignetteFadeDeadzone", o.mFovVignetteFadeDeadzone);
@@ -62,7 +63,8 @@ void to_json(nlohmann::json& j, Plugin::Settings const& o) {
   cs::core::Settings::serialize(j, "gridColor",   o.mColor);
   cs::core::Settings::serialize(j, "vignetteEnabled",      o.mFovVignetteEnabled);
   cs::core::Settings::serialize(j, "vignetteDebug",        o.mFovVignetteDebug);
-  cs::core::Settings::serialize(j, "vignetteRadius",       o.mFovVignetteRadius);
+  cs::core::Settings::serialize(j, "vignetteInnerRadius",  o.mFovVignetteInnerRadius);
+  cs::core::Settings::serialize(j, "vignetteOuterRadius",  o.mFovVignetteOuterRadius);
   cs::core::Settings::serialize(j, "vignetteColor",        o.mFovVignetteColor);
   cs::core::Settings::serialize(j, "vignetteFadeDuration", o.mFovVignetteFadeDuration);
   cs::core::Settings::serialize(j, "vignetteFadeDeadzone", o.mFovVignetteFadeDeadzone);
@@ -148,14 +150,23 @@ void Plugin::init() {
   mPluginSettings->mFovVignetteDebug.connectAndTouch(
       [this](bool enable) { mGuiManager->setCheckboxValue("fovVignette.setDebug", enable); }
       );
-  // register callback for fov vignette radius slider
+  // register callback for fov vignette inner radius slider
   mGuiManager->getGui()->registerCallback(
-      "fovVignette.setRadius",
-      "value to adjust the radius of the vignette.",
-      std::function([this](double value) { mPluginSettings->mFovVignetteRadius = static_cast<float>(value); })
+      "fovVignette.setInnerRadius",
+      "Value to adjust the inner radius (start of gradient) of the vignette.",
+      std::function([this](double value) { mPluginSettings->mFovVignetteInnerRadius = static_cast<float>(value); })
       );
-  mPluginSettings->mFovVignetteRadius.connectAndTouch(
-      [this](float value) { mGuiManager->setSliderValue("fovVignette.setRadius", value); }
+  mPluginSettings->mFovVignetteInnerRadius.connectAndTouch(
+      [this](float value) { mGuiManager->setSliderValue("fovVignette.setInnerRadius", value); }
+      );
+  // register callback for fov vignette outer radius slider
+  mGuiManager->getGui()->registerCallback(
+      "fovVignette.setOuterRadius",
+      "Value to adjust the outer radius (end of gradient) of the vignette.",
+      std::function([this](double value) { mPluginSettings->mFovVignetteOuterRadius = static_cast<float>(value); })
+      );
+  mPluginSettings->mFovVignetteOuterRadius.connectAndTouch(
+      [this](float value) { mGuiManager->setSliderValue("fovVignette.setOuterRadius", value); }
       );
   // register callback for fov vignette color picker
   mGuiManager->getGui()->registerCallback(
