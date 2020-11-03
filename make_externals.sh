@@ -78,38 +78,36 @@ cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
       -DCMAKE_BUILD_TYPE=$BUILD_TYPE "$EXTERNALS_DIR/zipper"
 cmake --build . --target install --parallel "$(nproc)"
 
+# Proj6 ---------------------------------------------------------------------------------------------
+
+echo ""
+echo "Downloading, building and installing PROJ6 ..."
+echo ""
+
+# SQLITE Binary
+cd "$BUILD_DIR"
+wget -nc https://github.com/boramalper/sqlite3-x64/releases/download/3310100--2020-02-18T12.16.42Z/sqlite3
+chmod +x "$BUILD_DIR/sqlite3"
+
+cmake -E make_directory "$BUILD_DIR/proj6/extracted" && cd "$BUILD_DIR/proj6"
+wget -nc https://download.osgeo.org/proj/proj-6.3.2.tar.gz
+
+cd "$BUILD_DIR/proj6/extracted"
+cmake -E tar xzf ../proj-6.3.2.tar.gz
+cd "$BUILD_DIR/proj6/extracted/proj-6.3.2"
+
+cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
+      -DCMAKE_INSTALL_LIBDIR=lib \
+      -DPROJ_TESTS=OFF \
+      -DEXE_SQLITE3="$BUILD_DIR/sqlite3" \
+      -DSQLITE3_INCLUDE_DIR="$EXTERNALS_DIR/sqlite3" \
+      -DCMAKE_BUILD_TYPE="$BUILD_TYPE" "$BUILD_DIR/proj6/extracted/proj-6.3.2"
+cmake --build . --target install --parallel "$(nproc)"
+
 # Compile GDAL From source ----------------------------------------------------------------------------
 # Very much WIP
+# Check if gdal should be compiled from source "export COSMOSCOUT_NO_SYSTEM_GDAL=true".
 if [ "$COSMOSCOUT_NO_SYSTEM_GDAL" = true ]; then
-  # Proj6 ---------------------------------------------------------------------------------------------
-
-  echo ""
-  echo "Downloading, building and installing PROJ6 ..."
-  echo ""
-
-  # SQLITE Binary
-  cd "$BUILD_DIR"
-  wget -nc https://github.com/boramalper/sqlite3-x64/releases/download/3310100--2020-02-18T12.16.42Z/sqlite3
-  chmod +x "$BUILD_DIR/sqlite3"
-
-  cmake -E make_directory "$BUILD_DIR/proj6/extracted" && cd "$BUILD_DIR/proj6"
-  wget -nc https://download.osgeo.org/proj/proj-6.3.2.tar.gz
-
-  cd "$BUILD_DIR/proj6/extracted"
-  cmake -E tar xzf ../proj-6.3.2.tar.gz
-  cd "$BUILD_DIR/proj6/extracted/proj-6.3.2"
-
-  #-DBUILD_CCT=OFF -DBUILD_CS2CS=OFF -DBUILD_GEOD=OFF -DBUILD_GIE=OFF -DBUILD_PROJINFO=OFF -DBUILD_PROJSYNC=OFF -DENABLE_CURL=OFF -DENABLE_TIFF=OFF \
-  #-DSQLITE3_LIBRARY=/usr/lib/x86_64-linux-gnu/libsqlite3.so \
-
-  cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
-        -DCMAKE_INSTALL_LIBDIR=lib \
-        -DPROJ_TESTS=OFF \
-        -DEXE_SQLITE3="$BUILD_DIR/sqlite3" \
-        -DSQLITE3_INCLUDE_DIR="$EXTERNALS_DIR/sqlite3" \
-        -DCMAKE_BUILD_TYPE="$BUILD_TYPE" "$BUILD_DIR/proj6/extracted/proj-6.3.2"
-  cmake --build . --target install --parallel "$(nproc)"
-
 
   # LibJPEG ---------------------------------------------------------------------------------------------
 
