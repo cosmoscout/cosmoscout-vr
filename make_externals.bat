@@ -79,9 +79,22 @@ set INSTALL_DIR=%CURRENT_DIR%/install/windows-externals-%BUILD_TYPE%
 
 rem Create some default installation directories.
 cmake -E make_directory "%INSTALL_DIR%/lib"
-cmake -E make_directory "%INSTALL_DIR%/share"
+cmake -E make_directoryplugins/csp-vestec "%INSTALL_DIR%/share"
 cmake -E make_directory "%INSTALL_DIR%/bin"
 cmake -E make_directory "%INSTALL_DIR%/include"
+
+rem ZLIB -----------------------------------------------------------------------------------------
+:zlib
+
+echo.
+echo Building and installing zlib ...
+echo.
+
+cmake -E make_directory "%BUILD_DIR%/zlib" && cd "%BUILD_DIR%/zlib"
+cmake %CMAKE_FLAGS% -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
+      "%EXTERNALS_DIR%/zlib" || exit /b
+
+cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS%
 
 rem Zipper -----------------------------------------------------------------------------------------
 :zipper
@@ -92,9 +105,13 @@ echo.
 
 cmake -E make_directory "%BUILD_DIR%/zipper" && cd "%BUILD_DIR%/zipper"
 cmake %CMAKE_FLAGS% -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
-      "%EXTERNALS_DIR%/zipper" || exit /b
+       -DBUILD_SHARED_VERSION=on ^
+       -DBUILD_STATIC_VERSION=off ^
+       -DBUILD_TEST=off ^
+       -DZLIB_INCLUDE_DIR="%INSTALL_DIR%/include"^
+      "%EXTERNALS_DIR%/zipper" || goto :error
 
-cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS%
+cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS% || goto :error
 
 rem gdal 3.0.4 --------------------------------------------------------------------------------------------
 :gdal
