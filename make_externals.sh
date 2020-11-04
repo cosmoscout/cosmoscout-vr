@@ -75,6 +75,9 @@ echo ""
 
 cmake -E make_directory "$BUILD_DIR/zipper" && cd "$BUILD_DIR/zipper"
 cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
+       -DBUILD_SHARED_VERSION=on \
+       -DBUILD_STATIC_VERSION=off \
+       -DBUILD_TEST=off \
       -DCMAKE_BUILD_TYPE=$BUILD_TYPE "$EXTERNALS_DIR/zipper"
 cmake --build . --target install --parallel "$(nproc)"
 
