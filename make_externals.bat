@@ -90,6 +90,9 @@ echo.
 
 cmake -E make_directory "%BUILD_DIR%/zipper" && cd "%BUILD_DIR%/zipper"
 cmake %CMAKE_FLAGS% -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
+       -DBUILD_SHARED_VERSION=on ^
+       -DBUILD_STATIC_VERSION=off ^
+       -DBUILD_TEST=off ^
       "%EXTERNALS_DIR%/zipper" || exit /b
 
 cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS%
