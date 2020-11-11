@@ -69,8 +69,11 @@ void main()
 {
     if (uFade == 0 && !uDebug ) { discard; }
 
+    vec2 texSize = textureSize(uTexture, 0);
+    float ratio = texSize.y / texSize.x;
+
     oColor = texture(uTexture, vTexCoords);
-    float dist = sqrt(vPosition.x * vPosition.x + vPosition.y * vPosition.y);
+    float dist = sqrt(vPosition.x * vPosition.x + ratio * ratio * vPosition.y * vPosition.y);
     if (dist < uInnerRadius ) { discard; }
     oColor.rgb += uCustomColor.rgb * ((dist - uInnerRadius) / (uOuterRadius - uInnerRadius));
     if (dist > uOuterRadius) {
