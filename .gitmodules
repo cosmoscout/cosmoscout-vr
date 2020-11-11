@@ -97,3 +97,6 @@
 [submodule "externals/zipper"]
 	path = externals/zipper
 	url = https://github.com/sebastiandev/zipper.git
+[submodule "externals/zlib"]
+	path = externals/zlib
+	url = https://github.com/madler/zlib.git
