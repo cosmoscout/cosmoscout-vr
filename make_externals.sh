@@ -108,29 +108,21 @@ cmake --build . --target install --parallel "$(nproc)"
 # Check if gdal should be compiled from source "export COSMOSCOUT_NO_SYSTEM_GDAL=true".
 # WIP
 if [ "$COSMOSCOUT_NO_SYSTEM_GDAL" = true ]; then
-  # gdal 3.0.1 --------------------------------------------------------------------------------------------
+  # gdal 3.2.0 ----------------------------------------------------------------------------------------
 
   echo ""
   echo "Downloading and installing gdal ..."
   echo ""
 
-  export PATH=${INSTALL_DIR}/bin:$PATH
-  export LD_LIBRARY_PATH=${INSTALL_DIR}/lib:$LD_LIBRARY_PATH
-
   cmake -E make_directory "$BUILD_DIR/gdal/extracted" && cd "$BUILD_DIR/gdal"
-  wget -nc https://github.com/OSGeo/gdal/releases/download/v3.0.1/gdal-3.0.1.tar.gz
+  wget -nc https://github.com/OSGeo/gdal/releases/download/v3.2.0/gdal-3.2.0.tar.gz
 
   cd "$BUILD_DIR/gdal/extracted"
-  cmake -E tar xzf ../gdal-3.0.1.tar.gz
-  cd "$BUILD_DIR/gdal/extracted/gdal-3.0.1"
+  cmake -E tar xzf ../gdal-3.2.0.tar.gz
+  cd "$BUILD_DIR/gdal/extracted/gdal-3.2.0"
 
-  ./configure --prefix "$INSTALL_DIR" \
-    --with-proj="$INSTALL_DIR" \
-    --disable-all-optional-drivers \
-    --without-curl \
-    --without-hdfs \
-    --without-libkml \
-    --without-xerces
+  ./configure --prefix="$INSTALL_DIR" \
+    --with-proj="$INSTALL_DIR"
 
   make -j"$(nproc)"
   make install
