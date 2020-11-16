@@ -72,10 +72,10 @@ void main()
     vec2 texSize = textureSize(uTexture, 0);
     float ratio = texSize.y / texSize.x;
 
-    oColor = texture(uTexture, vTexCoords);
     float dist = sqrt(vPosition.x * vPosition.x + ratio * ratio * vPosition.y * vPosition.y);
     if (dist < uInnerRadius ) { discard; }
-    oColor.rgb += uCustomColor.rgb * ((dist - uInnerRadius) / (uOuterRadius - uInnerRadius));
+    float r = ((dist - uInnerRadius) / (uOuterRadius - uInnerRadius));
+    oColor = (1-r) * texture(uTexture, vTexCoords) + r * uCustomColor;
     if (dist > uOuterRadius) {
       oColor.rgb = uCustomColor.rgb;
     }
@@ -182,23 +182,26 @@ bool FovVignette::Do() {
                    iViewport.at(3), 0);
 
   // get simulation variables
-  float velocity = mSolarSystem->pCurrentObserverSpeed.get();
+  float velocity = mSolarSystem->pCurrentObserverSpeed.get() / static_cast<float>(mSolarSystem->getObserver().getAnchorScale());
+  //if (velocity > mVignetteSettings->mFovVignetteVelocityThreshold.get()) { logger().info("v = {}", velocity); }
   double currentTime = cs::utils::convert::time::toSpice(boost::posix_time::microsec_clock::universal_time());
 
   // check for movement changes
-  if ( mIsStill && velocity > 0 ) {
+  if ( mIsStill && velocity > mVignetteSettings->mFovVignetteVelocityThreshold.get() ) {
     // observer started moving
+    logger().info("started moving v = {}", velocity);
     mAnimationTracker += 1;
     mLastChange = currentTime;
   }
-  else if ( !mIsStill && velocity == 0 ) {
+  else if ( !mIsStill && velocity < mVignetteSettings->mFovVignetteVelocityThreshold.get() ) {
     // observer stopped moving
+    logger().info("stopped moving v = {}", velocity);
     mAnimationTracker -= 1;
     mLastChange = currentTime;
   }
 
   // update mIsStill
-  mIsStill = (velocity == 0);
+  mIsStill = (velocity < mVignetteSettings->mFovVignetteVelocityThreshold.get());
 
   // check if deadzone has passed and tracker indicates animation needed
   if ( mAnimationTracker != 0 && currentTime > mLastChange + mVignetteSettings->mFovVignetteFadeDeadzone.get()) {

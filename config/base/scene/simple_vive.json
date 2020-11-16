@@ -710,7 +710,8 @@
       "vignetteOuterRadius": 0.5,
       "vignetteColor": "#ffffff",
       "vignetteFadeDuration": 1.0,
-      "vignetteFadeDeadzone": 0.5
+      "vignetteFadeDeadzone": 0.5,
+      "vignetteVelocityThreshold": 0.2
     }
   }
 }
