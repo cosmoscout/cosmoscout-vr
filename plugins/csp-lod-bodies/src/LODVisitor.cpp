@@ -98,9 +98,8 @@ bool testFrontFacing(glm::dvec3 const& camPos, PlanetParameters const* params,
     minHeight              = std::min(minHeight, castedTile.getMinMaxPyramid()->getMin());
   }
 
-  double dScaledPolarRadius = params->mRadii.y + (minHeight * params->mHeightScale);
-  double dProxyRadius       = std::min(dScaledPolarRadius,
-      std::max(params->mRadii.x, params->mRadii.y) + (minHeight * params->mHeightScale));
+  double dProxyRadius = std::min(params->mRadii.x, std::min(params->mRadii.y, params->mRadii.z)) +
+                        (minHeight * params->mHeightScale);
 
   glm::dvec3 const& tbMin = tb.getMin();
   glm::dvec3 const& tbMax = tb.getMax();

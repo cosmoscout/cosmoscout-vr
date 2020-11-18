@@ -274,6 +274,7 @@ echo ""
 
 cmake -E make_directory "$BUILD_DIR/civetweb" && cd "$BUILD_DIR/civetweb"
 cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" -DCIVETWEB_ENABLE_CXX=On \
+      -DCIVETWEB_BUILD_TESTING=Off \
       -DBUILD_SHARED_LIBS=On -DCMAKE_BUILD_TYPE=$BUILD_TYPE "$EXTERNALS_DIR/civetweb"
 cmake --build . --target install --parallel "$(nproc)"
 
@@ -365,7 +366,7 @@ cmake -E make_directory "$BUILD_DIR/cspice/extracted" && cd "$BUILD_DIR/cspice"
 wget -nc http://naif.jpl.nasa.gov/pub/naif/toolkit//C/PC_Linux_GCC_64bit/packages/cspice.tar.Z
 
 cd "$BUILD_DIR/cspice/extracted"
-cmake -E tar xzf ../cspice.tar.Z
+cmake -E tar xzf ../cspice.tar.Z -- cspice/lib/cspice.a cspice/include
 
 cmake -E copy_directory "$BUILD_DIR/cspice/extracted/cspice/include" "$INSTALL_DIR/include/cspice"
 cmake -E copy "$BUILD_DIR/cspice/extracted/cspice/lib/cspice.a" "$INSTALL_DIR/lib"

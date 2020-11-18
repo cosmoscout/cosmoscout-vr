@@ -8,6 +8,7 @@
 #define CS_APPLICATION_HPP
 
 #include <VistaKernel/VistaFrameLoop.h>
+#include <limits>
 #include <map>
 #include <memory>
 #include <set>
@@ -185,6 +186,10 @@ class Application : public VistaFrameLoop {
   int  mHideLoadingScreenAtFrame  = 0;
 
   int mOnMessageConnection = -1;
+
+  // Used to reset the observer to the last known working simulation time in case of missing SPICE
+  // data.
+  double mLastUpdateSimulationTime = std::numeric_limits<double>::max();
 
   // For deferred hot-reloading of plugins.
   std::set<std::string> mPluginsToUnload;

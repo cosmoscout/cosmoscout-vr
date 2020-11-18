@@ -167,21 +167,10 @@ void Plugin::onLoad() {
   // Now we go through all configured trajectories and create all required SunFlares and
   // DeepSpaceDots.
   for (auto const& settings : mPluginSettings->mTrajectories) {
-    auto anchor = mAllSettings->mAnchors.find(settings.first);
-
-    if (anchor == mAllSettings->mAnchors.end()) {
-      logger().warn("Cannot add sun flare or planet mark for '{}': There is no such anchor defined "
-                    "in the settings!",
-          settings.first);
-      continue;
-    }
-
-    auto [tStartExistence, tEndExistence] = anchor->second.getExistence();
 
     // Add the SunFlare.
     if (settings.second.mDrawFlare.value_or(false)) {
-      auto flare = std::make_shared<SunFlare>(mAllSettings, mPluginSettings, anchor->second.mCenter,
-          anchor->second.mFrame, tStartExistence, tEndExistence);
+      auto flare = std::make_shared<SunFlare>(mAllSettings, mPluginSettings, settings.first);
       mSolarSystem->registerAnchor(flare);
 
       flare->pColor =
@@ -192,53 +181,36 @@ void Plugin::onLoad() {
 
     // Add the DeepSpaceDot.
     if (settings.second.mDrawDot.value_or(false)) {
-      auto dot = std::make_shared<DeepSpaceDot>(mPluginSettings, anchor->second.mCenter,
-          anchor->second.mFrame, tStartExistence, tEndExistence);
+      auto dot = std::make_shared<DeepSpaceDot>(mPluginSettings, mAllSettings, settings.first);
       mSolarSystem->registerAnchor(dot);
 
       dot->pColor =
           VistaColor(settings.second.mColor.r, settings.second.mColor.g, settings.second.mColor.b);
 
       // do not perform distance culling for DeepSpaceDots
-      dot->pVisibleRadius = -1;
-      dot->pVisible       = true;
+      dot->pVisible = true;
 
       mDeepSpaceDots[settings.first] = dot;
     }
   }
 
   // For the trajectories we try to re-use as many as possible as they are quite expensive to
-  // construct. First try to re-configure existing trajectories. A trajectory is re-used if it
-  // shares the same target anchor name.
+  // construct. First we try to re-configure existing trajectories. A trajectory is re-used if it
+  // shares the same parent and target anchor name.
   for (auto trajectory = mTrajectories.begin(); trajectory != mTrajectories.end();) {
     auto settings = mPluginSettings->mTrajectories.find(trajectory->first);
 
     // If there are settings for this trajectory, reconfigure it.
-    if (settings != mPluginSettings->mTrajectories.end() && settings->second.mTrail) {
-      auto parentAnchor = mAllSettings->mAnchors.find(settings->second.mTrail->mParent);
-      auto targetAnchor = mAllSettings->mAnchors.find(settings->first);
+    if (settings != mPluginSettings->mTrajectories.end() && settings->second.mTrail &&
+        settings->second.mTrail->mParent == trajectory->second->getParentAnchorName()) {
 
-      // Ignore wrongly configured trajectories for now. The error will be emitted when we try to
-      // add this as a new trajectory.
-      if (parentAnchor != mAllSettings->mAnchors.end() &&
-          targetAnchor != mAllSettings->mAnchors.end()) {
+      trajectory->second->pSamples = settings->second.mTrail->mSamples;
+      trajectory->second->pLength  = settings->second.mTrail->mLength;
+      trajectory->second->pColor   = settings->second.mColor;
 
-        auto [parentStartExistence, parentEndExistence] = parentAnchor->second.getExistence();
-        auto [targetStartExistence, targetEndExistence] = targetAnchor->second.getExistence();
-        trajectory->second->setStartExistence(std::max(parentStartExistence, targetStartExistence));
-        trajectory->second->setEndExistence(std::min(parentEndExistence, targetEndExistence));
-        trajectory->second->setCenterName(parentAnchor->second.mCenter);
-        trajectory->second->setFrameName(parentAnchor->second.mFrame);
-        trajectory->second->setTargetCenterName(targetAnchor->second.mCenter);
-        trajectory->second->setTargetFrameName(targetAnchor->second.mFrame);
-        trajectory->second->pSamples = settings->second.mTrail->mSamples;
-        trajectory->second->pLength  = settings->second.mTrail->mLength;
-        trajectory->second->pColor   = settings->second.mColor;
+      ++trajectory;
 
-        ++trajectory;
-
-        continue;
-      }
+      continue;
     }
 
     // Else delete it.
@@ -253,31 +225,12 @@ void Plugin::onLoad() {
         continue;
       }
 
-      auto parentAnchor = mAllSettings->mAnchors.find(settings.second.mTrail->mParent);
-      auto targetAnchor = mAllSettings->mAnchors.find(settings.first);
+      auto targetAnchor = settings.first;
+      auto parentAnchor = settings.second.mTrail->mParent;
 
-      if (parentAnchor == mAllSettings->mAnchors.end()) {
-        logger().warn("Cannot add trajectory for '{}': There is no parent anchor '{}' defined in "
-                      "the settings!",
-            settings.first, settings.second.mTrail->mParent);
-        continue;
-      }
-
-      if (targetAnchor == mAllSettings->mAnchors.end()) {
-        logger().warn(
-            "Cannot add trajectory for '{}': There is no such anchor defined in the settings!",
-            settings.first);
-        continue;
-      }
-
-      auto [parentStartExistence, parentEndExistence] = parentAnchor->second.getExistence();
-      auto [targetStartExistence, targetEndExistence] = targetAnchor->second.getExistence();
-
-      auto trajectory = std::make_shared<Trajectory>(mPluginSettings, targetAnchor->second.mCenter,
-          targetAnchor->second.mFrame, parentAnchor->second.mCenter, parentAnchor->second.mFrame,
-          std::max(parentStartExistence, targetStartExistence),
-          std::min(parentEndExistence, targetEndExistence));
-
+      auto trajectory = std::make_shared<Trajectory>(mPluginSettings, mAllSettings);
+      trajectory->setTargetAnchorName(targetAnchor);
+      trajectory->setParentAnchorName(parentAnchor);
       trajectory->pSamples = settings.second.mTrail->mSamples;
       trajectory->pLength  = settings.second.mTrail->mLength;
       trajectory->pColor   = settings.second.mColor;

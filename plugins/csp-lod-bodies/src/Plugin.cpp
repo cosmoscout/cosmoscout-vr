@@ -110,6 +110,7 @@ void from_json(nlohmann::json const& j, Plugin::Settings& o) {
   cs::core::Settings::deserialize(j, "heightRange", o.mHeightRange);
   cs::core::Settings::deserialize(j, "slopeRange", o.mSlopeRange);
   cs::core::Settings::deserialize(j, "enableWireframe", o.mEnableWireframe);
+  cs::core::Settings::deserialize(j, "enableBounds", o.mEnableBounds);
   cs::core::Settings::deserialize(j, "enableTilesDebug", o.mEnableTilesDebug);
   cs::core::Settings::deserialize(j, "enableTilesFreeze", o.mEnableTilesFreeze);
   cs::core::Settings::deserialize(j, "maxGPUTilesColor", o.mMaxGPUTilesColor);
@@ -132,6 +133,7 @@ void to_json(nlohmann::json& j, Plugin::Settings const& o) {
   cs::core::Settings::serialize(j, "heightRange", o.mHeightRange);
   cs::core::Settings::serialize(j, "slopeRange", o.mSlopeRange);
   cs::core::Settings::serialize(j, "enableWireframe", o.mEnableWireframe);
+  cs::core::Settings::serialize(j, "enableBounds", o.mEnableBounds);
   cs::core::Settings::serialize(j, "enableTilesDebug", o.mEnableTilesDebug);
   cs::core::Settings::serialize(j, "enableTilesFreeze", o.mEnableTilesFreeze);
   cs::core::Settings::serialize(j, "maxGPUTilesColor", o.mMaxGPUTilesColor);
@@ -179,6 +181,12 @@ void Plugin::init() {
   mPluginSettings->mEnableWireframe.connectAndTouch([this](bool enable) {
     mGuiManager->setCheckboxValue("lodBodies.setEnableWireframe", enable);
   });
+
+  mGuiManager->getGui()->registerCallback("lodBodies.setEnableBounds",
+      "Enables or disables bounding box rendering of the planet's tiles.",
+      std::function([this](bool enable) { mPluginSettings->mEnableBounds = enable; }));
+  mPluginSettings->mEnableBounds.connectAndTouch(
+      [this](bool enable) { mGuiManager->setCheckboxValue("lodBodies.setEnableBounds", enable); });
 
   mGuiManager->getGui()->registerCallback("lodBodies.setEnableHeightlines",
       "Enables or disables rendering of iso-altitude lines.",
@@ -397,12 +405,16 @@ void Plugin::deInit() {
 
   mSolarSystem->pActiveBody.disconnect(mActiveBodyConnection);
 
+  mAllSettings->onLoad().disconnect(mOnLoadConnection);
+  mAllSettings->onSave().disconnect(mOnSaveConnection);
+
   mGuiManager->removePluginTab("Body Settings");
   mGuiManager->removeSettingsSection("Body Settings");
 
   mGuiManager->getGui()->unregisterCallback("lodBodies.setEnableTilesFreeze");
   mGuiManager->getGui()->unregisterCallback("lodBodies.setEnableTilesDebug");
   mGuiManager->getGui()->unregisterCallback("lodBodies.setEnableWireframe");
+  mGuiManager->getGui()->unregisterCallback("lodBodies.setEnableBounds");
   mGuiManager->getGui()->unregisterCallback("lodBodies.setEnableHeightlines");
   mGuiManager->getGui()->unregisterCallback("lodBodies.setEnableLatLongGrid");
   mGuiManager->getGui()->unregisterCallback("lodBodies.setEnableLatLongGridLabels");
@@ -482,12 +494,7 @@ void Plugin::onLoad() {
     auto settings = mPluginSettings->mBodies.find(lodBody->first);
     if (settings != mPluginSettings->mBodies.end()) {
       // If there are settings for this lodBody, reconfigure it.
-      auto anchor                           = mAllSettings->mAnchors.find(settings->first);
-      auto [tStartExistence, tEndExistence] = anchor->second.getExistence();
-      lodBody->second->setStartExistence(tStartExistence);
-      lodBody->second->setEndExistence(tEndExistence);
-      lodBody->second->setCenterName(anchor->second.mCenter);
-      lodBody->second->setFrameName(anchor->second.mFrame);
+      mAllSettings->initAnchor(*lodBody->second, settings->first);
 
       setImageSource(lodBody->second, settings->second.mActiveImgDataset);
       setElevationSource(lodBody->second, settings->second.mActiveDemDataset);
@@ -509,18 +516,8 @@ void Plugin::onLoad() {
       continue;
     }
 
-    auto anchor = mAllSettings->mAnchors.find(settings.first);
-
-    if (anchor == mAllSettings->mAnchors.end()) {
-      throw std::runtime_error(
-          "There is no Anchor \"" + settings.first + "\" defined in the settings.");
-    }
-
-    auto [tStartExistence, tEndExistence] = anchor->second.getExistence();
-
     auto body = std::make_shared<LodBody>(mAllSettings, mGraphicsEngine, mSolarSystem,
-        mPluginSettings, mGuiManager, anchor->second.mCenter, anchor->second.mFrame, mGLResources,
-        tStartExistence, tEndExistence);
+        mPluginSettings, mGuiManager, mGLResources, settings.first);
 
     mLodBodies.emplace(settings.first, body);
 

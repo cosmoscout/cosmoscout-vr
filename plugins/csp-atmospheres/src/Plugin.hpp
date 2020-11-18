@@ -24,17 +24,17 @@ class Plugin : public cs::core::PluginBase {
  public:
   struct Settings {
     struct Atmosphere {
-      float                      mAtmosphereHeight; ///< Relative to the planets radius.
-      float                      mMieHeight;
-      float                      mMieScatteringR;
-      float                      mMieScatteringG;
-      float                      mMieScatteringB;
-      float                      mMieAnisotropy;
-      float                      mRayleighHeight;
-      float                      mRayleighScatteringR;
-      float                      mRayleighScatteringG;
-      float                      mRayleighScatteringB;
-      float                      mRayleighAnisotropy;
+      float                      mAtmosphereHeight{}; ///< Relative to the planets radius.
+      float                      mMieHeight{};
+      float                      mMieScatteringR{};
+      float                      mMieScatteringG{};
+      float                      mMieScatteringB{};
+      float                      mMieAnisotropy{};
+      float                      mRayleighHeight{};
+      float                      mRayleighScatteringR{};
+      float                      mRayleighScatteringG{};
+      float                      mRayleighScatteringB{};
+      float                      mRayleighAnisotropy{};
       std::optional<std::string> mCloudTexture; ///< Path to the cloud texture.
       std::optional<float>       mCloudHeight;  ///< Relative to the planets radius.
     };
@@ -43,7 +43,7 @@ class Plugin : public cs::core::PluginBase {
 
     cs::utils::DefaultProperty<bool>  mEnabled{true};
     cs::utils::DefaultProperty<int>   mQuality{7};
-    cs::utils::DefaultProperty<float> mWaterLevel{0.f};
+    cs::utils::DefaultProperty<float> mWaterLevel{0.F};
     cs::utils::DefaultProperty<bool>  mEnableClouds{true};
     cs::utils::DefaultProperty<bool>  mEnableLightShafts{false};
     cs::utils::DefaultProperty<bool>  mEnableWater{false};

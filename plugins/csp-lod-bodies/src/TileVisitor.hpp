@@ -11,8 +11,6 @@
 #include "TileId.hpp"
 #include "TileQuadTree.hpp"
 
-#include <boost/assert.hpp>
-
 namespace csp::lodbodies {
 
 class TileNode;

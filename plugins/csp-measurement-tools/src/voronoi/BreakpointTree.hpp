@@ -13,7 +13,7 @@
 
 namespace csp::measurementtools {
 
-typedef std::pair<Vector2f, Vector2f> Edge;
+using Edge = std::pair<Vector2f, Vector2f>;
 
 class Breakpoint;
 struct Arc;
@@ -47,7 +47,7 @@ class BreakpointTree {
   void attachRightOf(Breakpoint* newNode, Breakpoint* atNode);
   void attachLeftOf(Breakpoint* newNode, Breakpoint* atNode);
 
-  Breakpoint* mRoot;
+  Breakpoint* mRoot{nullptr};
 };
 } // namespace csp::measurementtools
 #endif // CSP_MEASUREMENT_TOOLS_BREAKPOINTTREE_HPP

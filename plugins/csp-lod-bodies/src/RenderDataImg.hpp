@@ -16,6 +16,12 @@ class RenderDataImg : public RenderData {
  public:
   explicit RenderDataImg(TileNode* node = nullptr);
   ~RenderDataImg() override;
+
+  RenderDataImg(RenderDataImg const& other) = delete;
+  RenderDataImg(RenderDataImg&& other)      = delete;
+
+  RenderDataImg& operator=(RenderDataImg const& other) = delete;
+  RenderDataImg& operator=(RenderDataImg&& other) = delete;
 };
 
 } // namespace csp::lodbodies

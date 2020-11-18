@@ -7,6 +7,7 @@
 #ifndef CSP_LOD_BODIES_BOUNDINGBOX_HPP
 #define CSP_LOD_BODIES_BOUNDINGBOX_HPP
 
+#include <array>
 #include <glm/glm.hpp>
 
 namespace csp::lodbodies {
@@ -84,7 +85,7 @@ template <typename FloatT>
 bool BoundingBox<FloatT>::GetIntersectionDistance(glm::tvec3<FloatT> origin,
     glm::tvec3<FloatT> direction, bool isRay, FloatT& fMinIntersection, FloatT& fMaxIntersection,
     FloatT epsilon) {
-  FloatT directionNorm[3];
+  std::array<FloatT, 3> directionNorm{};
   directionNorm[0] = direction[0];
   directionNorm[1] = direction[1];
   directionNorm[2] = direction[2];
@@ -95,7 +96,7 @@ bool BoundingBox<FloatT>::GetIntersectionDistance(glm::tvec3<FloatT> origin,
     const FloatT sqrlen =
         (direction[0] * direction[0] + direction[1] * direction[1] + direction[2] * direction[2]);
     if (sqrlen > 0) {
-      const FloatT inverse_length = 1.0 / (FloatT)sqrt(sqrlen);
+      const FloatT inverse_length = 1.0 / std::sqrt(sqrlen);
       directionNorm[0] *= inverse_length;
       directionNorm[1] *= inverse_length;
       directionNorm[2] *= inverse_length;

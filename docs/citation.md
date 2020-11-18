@@ -12,7 +12,7 @@ With the link below you can export a citation in many different formats.
 
 <p align="center"><img src ="img/hr.svg"/></p>
 <p align="center">
-  <a href="changelog.md"> &lsaquo; Changelog</a>
+  <a href="migration.md"> &lsaquo; Migration Guide</a>
   <img src ="img/nav-vspace.svg"/>
   <a href="README.md">&#8962; Help Index</a>
   <img src ="img/nav-vspace.svg"/>

@@ -88,11 +88,11 @@ void main()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Ring::Ring(std::shared_ptr<cs::core::Settings> settings,
-    std::shared_ptr<cs::core::SolarSystem> solarSystem, std::string const& sCenterName,
-    std::string const& sFrameName, double tStartExistence, double tEndExistence)
-    : cs::scene::CelestialObject(sCenterName, sFrameName, tStartExistence, tEndExistence)
-    , mSettings(std::move(settings))
+    std::shared_ptr<cs::core::SolarSystem> solarSystem, std::string const& anchorName)
+    : mSettings(std::move(settings))
     , mSolarSystem(std::move(solarSystem)) {
+
+  mSettings->initAnchor(*this, anchorName);
 
   // The geometry is a grid strip around the center of the SPICE frame.
   std::vector<glm::vec2> vertices(GRID_RESOLUTION * 2);
@@ -138,6 +138,9 @@ void Ring::configure(Plugin::Settings::Ring const& settings) {
     mTexture = cs::graphics::TextureLoader::loadFromFile(settings.mTexture);
   }
   mRingSettings = settings;
+
+  // Set radius for visibility culling.
+  setRadii(glm::dvec3(mRingSettings.mOuterRadius));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -149,20 +152,11 @@ void Ring::setSun(std::shared_ptr<const cs::scene::CelestialObject> const& sun) 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool Ring::Do() {
-  if (!getIsInExistence()) {
+  if (!getIsInExistence() || !pVisible.get()) {
     return true;
   }
 
   cs::utils::FrameTimings::ScopedTimer timer("Rings");
-
-  // Cull invisible rings.
-  double size   = mRingSettings.mOuterRadius * glm::length(matWorldTransform[0]);
-  double dist   = glm::length(matWorldTransform[3].xyz());
-  double factor = size / dist;
-
-  if (factor < 0.002) {
-    return true;
-  }
 
   mShader.Bind();
 

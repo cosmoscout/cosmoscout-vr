@@ -463,10 +463,42 @@ void Application::FrameUpdate() {
     {
       cs::utils::FrameTimings::ScopedTimer timer(
           "SolarSystem Update", cs::utils::FrameTimings::QueryMode::eCPU);
-      mDragNavigation->update();
-      mSolarSystem->update();
-      mSolarSystem->updateSceneScale();
-      mSolarSystem->updateObserverFrame();
+
+      // It may be that our observer is in a SPICE frame we do not have data for. If this is the
+      // case, this call will bring it back to Solar System Barycenter / J2000 which should be
+      // always available.
+      if (mLastUpdateSimulationTime != std::numeric_limits<double>::max()) {
+        mSolarSystem->fixObserverFrame(mLastUpdateSimulationTime);
+      }
+
+      // We store here the simulation time of this frame for the next one. This is used above to
+      // reset the observer with SolarSystem::fixObserverFrame() if there is not enough SPICE data
+      // loaded to compute the observer's position in the current frame.
+      mLastUpdateSimulationTime = mTimeControl->pSimulationTime.get();
+
+      try {
+        mDragNavigation->update();
+      } catch (std::runtime_error const& e) {
+        logger().warn("Failed to update navigation: {}", e.what());
+      }
+
+      try {
+        mSolarSystem->update();
+      } catch (std::runtime_error const& e) {
+        logger().warn("Failed to update Solar System: {}", e.what());
+      }
+
+      try {
+        mSolarSystem->updateSceneScale();
+      } catch (std::runtime_error const& e) {
+        logger().warn("Failed to update scene scale: {}", e.what());
+      }
+
+      try {
+        mSolarSystem->updateObserverFrame();
+      } catch (std::runtime_error const& e) {
+        logger().warn("Failed to update observer frame: {}", e.what());
+      }
     }
 
     // Update the individual plugins.
@@ -477,7 +509,7 @@ void Application::FrameUpdate() {
       try {
         plugin.second.mPlugin->update();
       } catch (std::runtime_error const& e) {
-        logger().error("Error updating plugin '{}': {}", plugin.first, e.what());
+        logger().warn("Failed to update plugin '{}': {}", plugin.first, e.what());
       }
     }
 
@@ -559,18 +591,24 @@ void Application::FrameUpdate() {
       }
 
       // Update the compass in the header bar.
-      auto rot = mSolarSystem->getObserver().getRelativeRotation(
-          mTimeControl->pSimulationTime.get(), *mSolarSystem->pActiveBody.get());
-      glm::dvec4 up(0.0, 1.0, 0.0, 0.0);
-      glm::dvec4 north = rot * up;
-      north.z          = 0.0;
+      try {
+        auto rot = mSolarSystem->getObserver().getRelativeRotation(
+            mTimeControl->pSimulationTime.get(), *mSolarSystem->pActiveBody.get());
+        glm::dvec4 up(0.0, 1.0, 0.0, 0.0);
+        glm::dvec4 north = rot * up;
+        north.z          = 0.0;
 
-      double angle = std::acos(glm::dot(up, glm::normalize(north)));
-      if (north.x < 0.0) {
-        angle = -angle;
+        double angle = std::acos(glm::dot(up, glm::normalize(north)));
+        if (north.x < 0.0) {
+          angle = -angle;
+        }
+
+        mGuiManager->getGui()->callJavascript("CosmoScout.timeline.setNorthDirection", angle);
+
+      } catch (std::exception const& e) {
+        // Getting the relative transformation may fail due to insufficient SPICE data.
+        logger().warn("Failed to update UI compass: {}", e.what());
       }
-
-      mGuiManager->getGui()->callJavascript("CosmoScout.timeline.setNorthDirection", angle);
     }
 
     mGuiManager->update();
@@ -627,11 +665,11 @@ void Application::testLoadAllPlugins() {
         if (pluginConstructor) {
           logger().info("Plugin '{}' found.", plugin);
         } else {
-          logger().error("Failed to load plugin '{}': Plugin has no 'create' method.", plugin);
+          logger().warn("Failed to load plugin '{}': Plugin has no 'create' method.", plugin);
         }
 
       } else {
-        logger().error("Failed to load plugin '{}': {}", plugin, LIBERROR());
+        logger().warn("Failed to load plugin '{}': {}", plugin, LIBERROR());
       }
     }
   }
@@ -691,10 +729,10 @@ void Application::openPlugin(std::string const& name) {
         // Actually call the plugin's constructor and add the returned pointer to out list.
         mPlugins.insert(std::pair<std::string, Plugin>(name, {pluginHandle, pluginConstructor()}));
       } else {
-        logger().error("Failed to load plugin '{}': {}", name, LIBERROR());
+        logger().warn("Failed to load plugin '{}': {}", name, LIBERROR());
       }
     } catch (std::exception const& e) {
-      logger().error("Failed to load plugin '{}': {}", name, e.what());
+      logger().warn("Failed to load plugin '{}': {}", name, e.what());
     }
   } else {
     logger().warn("Cannot open plugin '{}': Plugin is already opened!", name);
@@ -723,7 +761,7 @@ void Application::initPlugin(std::string const& name) {
         // Plugin finished loading -> init its custom components.
         mGuiManager->getGui()->callJavascript("CosmoScout.gui.initInputs");
       } catch (std::exception const& e) {
-        logger().error("Failed to initialize plugin '{}': {}", plugin->first, e.what());
+        logger().warn("Failed to initialize plugin '{}': {}", plugin->first, e.what());
       }
     } else {
       logger().warn("Cannot initialize plugin '{}': Plugin is already initialized!", name);
@@ -809,14 +847,17 @@ void Application::connectSlots() {
   });
 
   // Show notification when the center name of the celestial observer changes.
-  mSettings->mObserver.pCenter.connectAndTouch([this](std::string const& center) {
-    mGuiManager->getGui()->executeJavascript(
-        fmt::format("CosmoScout.state.activePlanetCenter = '{}';", center));
+  mSolarSystem->pActiveBody.connectAndTouch(
+      [this](std::shared_ptr<cs::scene::CelestialBody> const& body) {
+        if (body) {
+          mGuiManager->getGui()->executeJavascript(
+              fmt::format("CosmoScout.state.activePlanetCenter = '{}';", body->getCenterName()));
 
-    auto radii = cs::core::SolarSystem::getRadii(center);
-    mGuiManager->getGui()->executeJavascript(
-        fmt::format("CosmoScout.state.activePlanetRadius = [{}, {}];", radii[0], radii[1]));
-  });
+          auto radii = body->getRadii();
+          mGuiManager->getGui()->executeJavascript(
+              fmt::format("CosmoScout.state.activePlanetRadius = [{}, {}];", radii[0], radii[1]));
+        }
+      });
 
   // Show notification when the frame name of the celestial observer changes.
   mSettings->mObserver.pFrame.connectAndTouch([this](std::string const& frame) {
@@ -833,7 +874,7 @@ void Application::connectSlots() {
   // Set the observer rotation state.
   mSettings->mObserver.pRotation.connectAndTouch([this](glm::dquat const& r) {
     mGuiManager->getGui()->executeJavascript(
-        fmt::format("CosmoScout.state.observerRotation = [{}, {}, {}, {}];", r.w, r.x, r.y, r.z));
+        fmt::format("CosmoScout.state.observerRotation = [{}, {}, {}, {}];", r.x, r.y, r.z, r.w));
   });
 
   // Show the current speed of the celestial observer in the user interface.
@@ -1346,7 +1387,7 @@ void Application::registerGuiCallbacks() {
   mGuiManager->getGui()->registerCallback("navigation.setRotation",
       "Sets the observer rotation to the given quaternion. The optional double argument specifies "
       "the transition time in seconds (default is 2s).",
-      std::function([this](double w, double x, double y, double z, std::optional<double> duration) {
+      std::function([this](double x, double y, double z, double w, std::optional<double> duration) {
         mSolarSystem->flyObserverTo(mSolarSystem->getObserver().getCenterName(),
             mSolarSystem->getObserver().getFrameName(),
             mSolarSystem->getObserver().getAnchorPosition(), glm::dquat(w, x, y, z),
@@ -1373,7 +1414,7 @@ void Application::registerGuiCallbacks() {
       "quaternion. The optional argument specifies the travel time in seconds (default is 10s).",
       std::function(
           [this](std::string&& center, std::string&& frame, double px, double py, double pz,
-              double rw, double rx, double ry, double rz, std::optional<double> duration) {
+              double rx, double ry, double rz, double rw, std::optional<double> duration) {
             mSolarSystem->flyObserverTo(center, frame, glm::dvec3(px, py, pz),
                 glm::dquat(rw, rx, ry, rz), duration.value_or(10.0));
           }));
@@ -1400,8 +1441,12 @@ void Application::registerGuiCallbacks() {
       "Turns the observer so that north is facing upwards. The optional argument specifies the "
       "animation time in seconds (default is 1s).",
       std::function([this](std::optional<double> duration) {
+        if (!mSolarSystem->pActiveBody.get()) {
+          return;
+        }
+
+        auto radii       = mSolarSystem->pActiveBody.get()->getRadii();
         auto observerPos = mSolarSystem->getObserver().getAnchorPosition();
-        auto radii = cs::core::SolarSystem::getRadii(mSolarSystem->getObserver().getCenterName());
 
         glm::dvec3 y = glm::vec3(0, -1, 0);
         glm::dvec3 z = cs::utils::convert::cartesianToNormal(observerPos, radii);
@@ -1424,7 +1469,11 @@ void Application::registerGuiCallbacks() {
       "Turns the observer so that the horizon is horizontal. The optional argument specifies the "
       "animation time in seconds (default is 1s).",
       std::function([this](std::optional<double> duration) {
-        auto radii = cs::core::SolarSystem::getRadii(mSolarSystem->getObserver().getCenterName());
+        if (!mSolarSystem->pActiveBody.get()) {
+          return;
+        }
+
+        auto radii = mSolarSystem->pActiveBody.get()->getRadii();
 
         if (radii[0] == 0.0) {
           radii = glm::dvec3(1, 1, 1);
@@ -1458,7 +1507,11 @@ void Application::registerGuiCallbacks() {
       "Reduces the altitude of the observer significantly. The optional argument specifies the "
       "animation time in seconds (default is 3s).",
       std::function([this](std::optional<double> duration) {
-        auto radii = cs::core::SolarSystem::getRadii(mSolarSystem->getObserver().getCenterName());
+        if (!mSolarSystem->pActiveBody.get()) {
+          return;
+        }
+
+        auto radii = mSolarSystem->pActiveBody.get()->getRadii();
 
         if (radii[0] == 0.0 || radii[2] == 0.0) {
           radii = glm::dvec3(1, 1, 1);
@@ -1508,7 +1561,11 @@ void Application::registerGuiCallbacks() {
       std::function([this](std::optional<double> duration) {
         auto observerPos = mSolarSystem->getObserver().getAnchorPosition();
         auto observerRot = mSolarSystem->getObserver().getAnchorRotation();
-        auto radii = cs::core::SolarSystem::getRadii(mSolarSystem->getObserver().getCenterName());
+        if (!mSolarSystem->pActiveBody.get()) {
+          return;
+        }
+
+        auto radii = mSolarSystem->pActiveBody.get()->getRadii();
 
         if (radii[0] == 0.0) {
           radii = glm::dvec3(1, 1, 1);

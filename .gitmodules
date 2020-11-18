@@ -34,39 +34,6 @@
 [submodule "externals/doctest"]
 	path = externals/doctest
 	url = https://github.com/onqtam/doctest.git
-[submodule "plugins/csp-trajectories"]
-	path = plugins/csp-trajectories
-	url = ../../cosmoscout/csp-trajectories.git
-[submodule "plugins/csp-stars"]
-	path = plugins/csp-stars
-	url = ../../cosmoscout/csp-stars.git
-[submodule "plugins/csp-simple-bodies"]
-	path = plugins/csp-simple-bodies
-	url = ../../cosmoscout/csp-simple-bodies.git
-[submodule "plugins/csp-sharad"]
-	path = plugins/csp-sharad
-	url = ../../cosmoscout/csp-sharad.git
-[submodule "plugins/csp-satellites"]
-	path = plugins/csp-satellites
-	url = ../../cosmoscout/csp-satellites.git
-[submodule "plugins/csp-rings"]
-	path = plugins/csp-rings
-	url = ../../cosmoscout/csp-rings.git
-[submodule "plugins/csp-lod-bodies"]
-	path = plugins/csp-lod-bodies
-	url = ../../cosmoscout/csp-lod-bodies.git
-[submodule "plugins/csp-fly-to-locations"]
-	path = plugins/csp-fly-to-locations
-	url = ../../cosmoscout/csp-fly-to-locations.git
-[submodule "plugins/csp-measurement-tools"]
-	path = plugins/csp-measurement-tools
-	url = ../../cosmoscout/csp-measurement-tools.git
-[submodule "plugins/csp-anchor-labels"]
-	path = plugins/csp-anchor-labels
-	url = ../../cosmoscout/csp-anchor-labels.git
-[submodule "plugins/csp-atmospheres"]
-	path = plugins/csp-atmospheres
-	url = ../../cosmoscout/csp-atmospheres.git
 [submodule "plugins/csp-vestec"]
 	path = plugins/csp-vestec
 	url =  https://github.com/cosmoscout/csp-vestec.git
@@ -91,6 +58,9 @@
 [submodule "externals/stb"]
 	path = externals/stb
 	url = https://github.com/nothings/stb
+[submodule "externals/openvr"]
+	path = externals/openvr
+	url = https://github.com/ValveSoftware/openvr.git
 [submodule "plugins/csp-simple-wms-bodies"]
 	path = plugins/csp-simple-wms-bodies
 	url = https://github.com/cosmoscout/csp-simple-wms-bodies.git

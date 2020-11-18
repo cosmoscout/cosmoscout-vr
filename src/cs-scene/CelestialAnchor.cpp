@@ -66,7 +66,6 @@ class Cache {
 CelestialAnchor::CelestialAnchor(std::string sCenterName, std::string sFrameName)
     : mPosition(0.0, 0.0, 0.0)
     , mRotation(1.0, 0.0, 0.0, 0.0)
-    , mScale(1.0)
     , mCenterName(std::move(sCenterName))
     , mFrameName(std::move(sFrameName)) {
 }
@@ -128,6 +127,13 @@ glm::dquat CelestialAnchor::getRelativeRotation(double tTime, CelestialAnchor co
     // get rotation from self to other
     std::array<double[3], 3> rotMat{}; // NOLINT(modernize-avoid-c-arrays)
     pxform_c(other.getFrameName().c_str(), mFrameName.c_str(), tTime, rotMat.data());
+
+    if (failed_c()) {
+      std::array<SpiceChar, 320> msg{};
+      getmsg_c("LONG", 320, msg.data());
+      reset_c();
+      throw std::runtime_error(msg.data());
+    }
 
     // convert to quaternion
     double axis[3]; // NOLINT(modernize-avoid-c-arrays)

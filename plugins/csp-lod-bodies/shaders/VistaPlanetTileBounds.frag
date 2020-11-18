@@ -6,6 +6,8 @@
 
 #version 330
 
+uniform float VP_farClip;
+
 in vec3 position;
 
 // outputs ---------------------------------------------------------------------
@@ -15,4 +17,5 @@ layout(location = 0) out vec4 color;
 void main(void)
 {
     color = vec4(0.0, 1.0, 0.0, 1.0);
+    gl_FragDepth = length(position) / VP_farClip;
 }

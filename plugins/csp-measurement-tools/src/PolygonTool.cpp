@@ -223,7 +223,8 @@ void PolygonTool::setSleekness(uint32_t degree) {
 glm::dvec4 PolygonTool::getInterpolatedPosBetweenTwoMarks(cs::core::tools::DeletableMark const& l0,
     cs::core::tools::DeletableMark const& l1, double value) {
   double     h_scale = mSettings->mGraphics.pHeightScale.get();
-  glm::dvec3 radii   = mSolarSystem->getRadii(mGuiAnchor->getCenterName());
+  auto       body    = mSolarSystem->getBody(mGuiAnchor->getCenterName());
+  glm::dvec3 radii   = body->getRadii();
 
   // Calculates the position for the new segment anchor
   double h0 = mSolarSystem->pActiveBody.get()->getHeight(l0.pLngLat.get()) * h_scale;
@@ -1015,10 +1016,11 @@ void PolygonTool::updateLineVertices() {
     averagePosition += mark->getAnchor()->getAnchorPosition() / static_cast<double>(mPoints.size());
   }
 
-  auto radii = mSolarSystem->getRadii(mGuiAnchor->getCenterName());
+  auto       body  = mSolarSystem->getBody(mGuiAnchor->getCenterName());
+  glm::dvec3 radii = body->getRadii();
 
   auto   lngLat = cs::utils::convert::cartesianToLngLat(averagePosition, radii);
-  double height = mSolarSystem->getBody(mGuiAnchor->getCenterName())->getHeight(lngLat);
+  double height = body->getHeight(lngLat);
   height *= mSettings->mGraphics.pHeightScale.get();
   auto center = cs::utils::convert::toCartesian(lngLat, radii, height);
   mGuiAnchor->setAnchorPosition(center);
@@ -1026,9 +1028,14 @@ void PolygonTool::updateLineVertices() {
   // This seems to be the first time the tool is moved, so we have to store the distance to the
   // observer so that we can scale the tool later based on the observer's position.
   if (pScaleDistance.get() < 0) {
-    pScaleDistance = mSolarSystem->getObserver().getAnchorScale() *
-                     glm::length(mSolarSystem->getObserver().getRelativePosition(
-                         mTimeControl->pSimulationTime.get(), *mGuiAnchor));
+    try {
+      pScaleDistance = mSolarSystem->getObserver().getAnchorScale() *
+                       glm::length(mSolarSystem->getObserver().getRelativePosition(
+                           mTimeControl->pSimulationTime.get(), *mGuiAnchor));
+    } catch (std::exception const& e) {
+      // Getting the relative transformation may fail due to insufficient SPICE data.
+      logger().warn("Failed to calculate scale distance of Polygon Tool: {}", e.what());
+    }
   }
 
   auto lastMark = mPoints.begin();
@@ -1110,8 +1117,9 @@ void PolygonTool::updateCalculation() {
   mCornersFine.clear();
   mTriangulation.clear();
 
-  double h_scale = mSettings->mGraphics.pHeightScale.get();
-  auto   radii   = mSolarSystem->getRadii(mGuiAnchor->getCenterName());
+  double     h_scale = mSettings->mGraphics.pHeightScale.get();
+  auto       body    = mSolarSystem->getBody(mGuiAnchor->getCenterName());
+  glm::dvec3 radii   = body->getRadii();
 
   // Middle point of cs::core::tools::DeletableMarks
   glm::dvec3 averagePosition(0.0);

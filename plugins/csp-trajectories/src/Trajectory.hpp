@@ -30,9 +30,8 @@ class Trajectory : public cs::scene::CelestialObject, public IVistaOpenGLDraw {
   /// The color of the trajectory.
   cs::utils::Property<glm::vec3> pColor = glm::vec3(1, 1, 1);
 
-  Trajectory(std::shared_ptr<Plugin::Settings> pluginSettings, std::string sTargetCenter,
-      std::string sTargetFrame, std::string const& sParentCenter, std::string const& sParentFrame,
-      double tStartExistence, double tEndExistence);
+  Trajectory(std::shared_ptr<Plugin::Settings> pluginSettings,
+      std::shared_ptr<cs::core::Settings>      settings);
 
   Trajectory(Trajectory const& other) = delete;
   Trajectory(Trajectory&& other)      = delete;
@@ -46,33 +45,34 @@ class Trajectory : public cs::scene::CelestialObject, public IVistaOpenGLDraw {
   void update(double tTime, cs::scene::CelestialObserver const& oObs) override;
 
   /// The trajectory visualizes the path of this body.
-  void               setTargetCenterName(std::string const& sCenterName);
-  void               setTargetFrameName(std::string const& sFrameName);
-  std::string const& getTargetCenterName() const;
-  std::string const& getTargetFrameName() const;
+  void               setTargetAnchorName(std::string const& anchorName);
+  std::string const& getTargetAnchorName() const;
 
   /// The trajectory is drawn relative to this body.
-  void setCenterName(std::string const& sCenterName) override;
-  void setFrameName(std::string const& sFrameName) override;
+  void               setParentAnchorName(std::string const& anchorName);
+  std::string const& getParentAnchorName() const;
 
   bool Do() override;
   bool GetBoundingBox(VistaBoundingBox& bb) override;
 
  private:
-  std::shared_ptr<Plugin::Settings> mPluginSettings;
-  cs::scene::Trajectory             mTrajectory;
+  void updateExistence();
+
+  std::shared_ptr<Plugin::Settings>   mPluginSettings;
+  std::shared_ptr<cs::core::Settings> mSettings;
+  cs::scene::Trajectory               mTrajectory;
 
   std::unique_ptr<VistaOpenGLNode> mGLNode;
 
-  std::string             mTargetCenter;
-  std::string             mTargetFrame;
-  std::vector<glm::dvec4> mPoints;
-  int                     mStartIndex;
-  double                  mLastSampleTime{};
-  double                  mLastUpdateTime;
-  double                  mLastFrameTime{};
+  std::string mTargetAnchorName;
+  std::string mParentAnchorName;
 
-  bool mTrailIsInExistence = false;
+  cs::scene::CelestialObject mTarget;
+  std::vector<glm::dvec4>    mPoints;
+  int                        mStartIndex     = 0;
+  double                     mLastSampleTime = 0.0;
+  double                     mLastUpdateTime = -1.0;
+  double                     mLastFrameTime  = 0.0;
 };
 
 } // namespace csp::trajectories

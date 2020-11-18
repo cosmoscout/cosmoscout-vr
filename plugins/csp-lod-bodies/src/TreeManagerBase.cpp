@@ -13,6 +13,7 @@
 
 #include <VistaBase/VistaStreamUtils.h>
 
+#include <algorithm>
 #include <utility>
 
 namespace csp::lodbodies {
@@ -143,13 +144,8 @@ void TreeManagerBase::request(std::vector<TileId> const& tileIds) {
       mPendingTiles.insert(*iIt);
 
       if (mAsyncLoading) {
-#if (BOOST_VERSION / 100) % 1000 < 60
-        mSrc->loadTileAsync(iIt->level(), iIt->patchIdx(),
-            std::bind(&TreeManagerBase::onNodeLoaded, this, _1, _2, _3, _4));
-#else
         mSrc->loadTileAsync(iIt->level(), iIt->patchIdx(),
             [this](auto a, auto b, auto c, auto d) { onNodeLoaded(a, b, c, d); });
-#endif
       } else {
         TileNode* node = mSrc->loadTile(iIt->level(), iIt->patchIdx());
         onNodeLoaded(mSrc, iIt->level(), iIt->patchIdx(), node);

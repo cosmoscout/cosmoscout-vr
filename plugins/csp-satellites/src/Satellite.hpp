@@ -31,8 +31,7 @@ namespace csp::satellites {
 /// A single satellite within the Solar System.
 class Satellite : public cs::scene::CelestialBody {
  public:
-  Satellite(Plugin::Settings::Satellite const& config, std::string const& sCenterName,
-      std::string const& sFrameName, double tStartExistence, double tEndExistence,
+  Satellite(Plugin::Settings::Satellite const& config, std::string const& anchorName,
       VistaSceneGraph* sceneGraph, std::shared_ptr<cs::core::Settings> settings,
       std::shared_ptr<cs::core::SolarSystem> solarSystem);
 
@@ -42,7 +41,7 @@ class Satellite : public cs::scene::CelestialBody {
   Satellite& operator=(Satellite const& other) = delete;
   Satellite& operator=(Satellite&& other) = delete;
 
-  ~Satellite();
+  ~Satellite() override;
 
   void update(double tTime, cs::scene::CelestialObserver const& oObs) override;
 
@@ -52,17 +51,14 @@ class Satellite : public cs::scene::CelestialBody {
 
   bool getIntersection(
       glm::dvec3 const& rayPos, glm::dvec3 const& rayDir, glm::dvec3& pos) const override;
-  double     getHeight(glm::dvec2 lngLat) const override;
-  glm::dvec3 getRadii() const override;
+  double getHeight(glm::dvec2 lngLat) const override;
 
  private:
   VistaSceneGraph*                                  mSceneGraph;
   std::shared_ptr<cs::core::Settings>               mSettings;
   std::shared_ptr<cs::core::SolarSystem>            mSolarSystem;
   std::unique_ptr<VistaTransformNode>               mAnchor;
-  std::unique_ptr<VistaTransformNode>               mTransform;
   std::unique_ptr<cs::graphics::GltfLoader>         mModel;
-  double                                            mSize;
   std::shared_ptr<const cs::scene::CelestialObject> mSun;
 };
 } // namespace csp::satellites

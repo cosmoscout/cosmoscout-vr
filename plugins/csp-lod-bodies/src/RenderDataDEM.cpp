@@ -18,8 +18,7 @@ namespace csp::lodbodies {
 RenderDataDEM::RenderDataDEM(TileNode* node)
     : RenderData(node)
     , mLodDeltas()
-    , mEdgeRData()
-    , mFlags(0) {
+    , mEdgeRData() {
   resetEdgeDeltas();
   resetEdgeRData();
 }

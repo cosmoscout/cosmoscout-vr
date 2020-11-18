@@ -11,7 +11,6 @@
 
 #include <GL/glew.h>
 #include <array>
-#include <boost/noncopyable.hpp>
 #include <memory>
 #include <vector>
 
@@ -29,7 +28,7 @@ class TreeManagerBase;
 /// once. If more tiles are needed on the GPU the array texture must be resized (which requires all
 /// tiles to be re-uploaded), this should be avoided to prevent the tile resolution to drop
 /// dramatically while only low resolution tiles are on the GPU.
-class TileTextureArray : private boost::noncopyable {
+class TileTextureArray {
  public:
   explicit TileTextureArray(TileDataType dataType, int maxLayerCount);
 

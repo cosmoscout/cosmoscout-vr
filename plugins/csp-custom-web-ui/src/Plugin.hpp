@@ -54,16 +54,16 @@ class Plugin : public cs::core::PluginBase {
       std::string mFrame;
 
       /// The position of the item, elevation is relative to the surface height.
-      double mLongitude;
-      double mLatitude;
-      double mElevation;
+      double mLongitude{};
+      double mLatitude{};
+      double mElevation{};
 
       /// Size of the item. The item will scale based on the observer distance.
-      double mScale;
+      double mScale{};
 
       /// Size of the item in pixels.
-      uint32_t mWidth;
-      uint32_t mHeight;
+      uint32_t mWidth{};
+      uint32_t mHeight{};
 
       /// The actual HTML code to add. You can use an <iframe> for example.
       std::string mHTML;
