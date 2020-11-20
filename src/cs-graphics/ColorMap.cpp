@@ -8,7 +8,6 @@
 
 #include "../cs-utils/doctest.hpp"
 
-#include <glm/glm.hpp>
 #include <nlohmann/json.hpp>
 
 #include <fstream>
@@ -132,6 +131,12 @@ void ColorMap::bind(unsigned unit) {
 
 void ColorMap::unbind(unsigned unit) {
   mTexture->Unbind(unit);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::vector<glm::vec4> ColorMap::getRawData() {
+  return mRawData;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -10,6 +10,7 @@
 #include "cs_graphics_export.hpp"
 
 #include <VistaOGLExt/VistaTexture.h>
+#include <glm/glm.hpp>
 
 #include <filesystem>
 #include <memory>
@@ -29,9 +30,12 @@ class CS_GRAPHICS_EXPORT ColorMap {
   /// Unbinds the color map after rendering.
   void unbind(unsigned unit);
 
+  std::vector<glm::vec4> getRawData();
+
  private:
   int                           mResolution = 256;
   std::unique_ptr<VistaTexture> mTexture;
+  std::vector<glm::vec4>        mRawData;
 };
 
 } // namespace cs::graphics
