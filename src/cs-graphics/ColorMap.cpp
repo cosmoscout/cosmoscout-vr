@@ -104,10 +104,10 @@ std::unique_ptr<VistaTexture> generateTexture(std::vector<glm::vec4> colors) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 ColorMap::ColorMap(std::string const& sJsonString) {
-  nlohmann::json         json         = nlohmann::json::parse(sJsonString);
-  ColorMapData           colorMapData = json;
-  std::vector<glm::vec4> rawData      = mergeColorMapData(colorMapData, mResolution);
-  mTexture                            = generateTexture(mRawData);
+  nlohmann::json json         = nlohmann::json::parse(sJsonString);
+  ColorMapData   colorMapData = json;
+  mRawData                    = mergeColorMapData(colorMapData, mResolution);
+  mTexture                    = generateTexture(mRawData);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -116,9 +116,9 @@ ColorMap::ColorMap(std::filesystem::path const& sJsonPath) {
   std::ifstream  file(sJsonPath);
   nlohmann::json json;
   file >> json;
-  ColorMapData           colorMapData = json;
-  std::vector<glm::vec4> rawData      = mergeColorMapData(colorMapData, mResolution);
-  mTexture                            = generateTexture(mRawData);
+  ColorMapData colorMapData = json;
+  mRawData                  = mergeColorMapData(colorMapData, mResolution);
+  mTexture                  = generateTexture(mRawData);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
