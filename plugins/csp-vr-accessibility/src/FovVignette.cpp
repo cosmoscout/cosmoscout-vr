@@ -75,7 +75,7 @@ void main()
     float dist = sqrt(vPosition.x * vPosition.x + ratio * ratio * vPosition.y * vPosition.y);
     if (dist < uInnerRadius ) { discard; }
     float r = ((dist - uInnerRadius) / (uOuterRadius - uInnerRadius));
-    oColor = (1-r) * texture(uTexture, vTexCoords) + r * uCustomColor;
+    oColor = mix(texture(uTexture, vTexCoords), uCustomColor, r);
     if (dist > uOuterRadius) {
       oColor.rgb = uCustomColor.rgb;
     }
