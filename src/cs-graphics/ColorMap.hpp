@@ -10,6 +10,8 @@
 #include "cs_graphics_export.hpp"
 
 #include <VistaOGLExt/VistaTexture.h>
+
+#include <filesystem>
 #include <memory>
 #include <string>
 
@@ -18,7 +20,8 @@ namespace cs::graphics {
 /// A color map specified by a json file.
 class CS_GRAPHICS_EXPORT ColorMap {
  public:
-  explicit ColorMap(std::string const& sJsonFile);
+  explicit ColorMap(std::string const& sJsonString);
+  explicit ColorMap(std::filesystem::path const& sJsonPath);
 
   /// Binds the color map for use in rendering.
   void bind(unsigned unit);
@@ -27,6 +30,7 @@ class CS_GRAPHICS_EXPORT ColorMap {
   void unbind(unsigned unit);
 
  private:
+  int                           mResolution = 256;
   std::unique_ptr<VistaTexture> mTexture;
 };
 
