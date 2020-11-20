@@ -85,3 +85,6 @@
 [submodule "externals/rkcommon"]
 	path = externals/rkcommon
 	url = https://github.com/ospray/rkcommon.git
+[submodule "plugins/csp-volume-rendering"]
+	path = plugins/csp-volume-rendering
+	url = https://github.com/cosmoscout/csp-volume-rendering.git

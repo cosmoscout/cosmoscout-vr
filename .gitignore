@@ -26,6 +26,7 @@
 !/plugins/csp-timings
 !/plugins/csp-trajectories
 !/plugins/csp-web-api
+!/plugins/csp-volume-rendering
 
 *.sublime*
 .vscode
