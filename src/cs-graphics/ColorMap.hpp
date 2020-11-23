@@ -21,7 +21,9 @@ namespace cs::graphics {
 /// A color map specified by a json file.
 class CS_GRAPHICS_EXPORT ColorMap {
  public:
+  /// Creates a ColorMap from a json string.
   explicit ColorMap(std::string const& sJsonString);
+  /// Creates a ColorMap from the json file at sJsonPath.
   explicit ColorMap(std::filesystem::path const& sJsonPath);
 
   /// Binds the color map for use in rendering.
@@ -30,6 +32,7 @@ class CS_GRAPHICS_EXPORT ColorMap {
   /// Unbinds the color map after rendering.
   void unbind(unsigned unit);
 
+  /// Returns the color map as a vector of RGBA values.
   std::vector<glm::vec4> getRawData();
 
  private:
