@@ -492,7 +492,7 @@ class GuiApi extends IApi {
       start: start,
       connect: (start.length === 1 ? 'lower' : true),
       step: step,
-      range: { min: min, max: max },
+      range: {min: min, max: max},
       format: {
         to(value) {
           return CosmoScout.utils.beautifyNumber(value);
