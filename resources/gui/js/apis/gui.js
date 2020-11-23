@@ -428,7 +428,7 @@ class GuiApi extends IApi {
    * @param callbackName {string} tha data-callback attribute of the slider element
    * @param options {object} Options for noUiSlider
    */
-  initSliderRangeOptions(callbackName, options) {
+  initSliderOptions(callbackName, options) {
     const slider = document.querySelector(`[data-callback="${callbackName}"]`);
 
     if (typeof noUiSlider === 'undefined') {
@@ -463,7 +463,7 @@ class GuiApi extends IApi {
    * @param start {number[]} Handle count and position
    */
   initSliderRange(callbackName, range, start) {
-    this.initSliderRangeOptions(callbackName, {
+    this.initSliderOptions(callbackName, {
       start: start,
       connect: (start.length === 1 ? 'lower' : true),
       range: range,
@@ -488,7 +488,7 @@ class GuiApi extends IApi {
    * @param start {number[]} Handle count and position
    */
   initSlider(callbackName, min, max, step, start) {
-    this.initSliderRangeOptions(callbackName, {
+    this.initSliderOptions(callbackName, {
       start: start,
       connect: (start.length === 1 ? 'lower' : true),
       step: step,
