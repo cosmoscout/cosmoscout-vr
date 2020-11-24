@@ -10,15 +10,22 @@
 #include "cs_graphics_export.hpp"
 
 #include <VistaOGLExt/VistaTexture.h>
+#include <boost/filesystem.hpp>
+#include <glm/glm.hpp>
+
 #include <memory>
 #include <string>
+#include <vector>
 
 namespace cs::graphics {
 
 /// A color map specified by a json file.
 class CS_GRAPHICS_EXPORT ColorMap {
  public:
-  explicit ColorMap(std::string const& sJsonFile);
+  /// Creates a ColorMap from a json string.
+  explicit ColorMap(std::string const& sJsonString);
+  /// Creates a ColorMap from the json file at sJsonPath.
+  explicit ColorMap(boost::filesystem::path const& sJsonPath);
 
   /// Binds the color map for use in rendering.
   void bind(unsigned unit);
@@ -26,8 +33,13 @@ class CS_GRAPHICS_EXPORT ColorMap {
   /// Unbinds the color map after rendering.
   void unbind(unsigned unit);
 
+  /// Returns the color map as a vector of RGBA values.
+  std::vector<glm::vec4> getRawData();
+
  private:
+  int                           mResolution = 256;
   std::unique_ptr<VistaTexture> mTexture;
+  std::vector<glm::vec4>        mRawData;
 };
 
 } // namespace cs::graphics
