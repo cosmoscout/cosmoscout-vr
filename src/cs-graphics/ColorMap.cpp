@@ -8,7 +8,6 @@
 
 #include "../cs-utils/doctest.hpp"
 
-#include <glm/glm.hpp>
 #include <nlohmann/json.hpp>
 
 #include <fstream>
@@ -70,23 +69,8 @@ T interpolate(float key, const std::map<float, T>& map) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-} // namespace
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-ColorMap::ColorMap(std::string const& sJsonFile)
-    : mTexture(new VistaTexture(GL_TEXTURE_1D)) {
-  ColorMapData colorMapData;
-  {
-    std::ifstream  file(sJsonFile);
-    nlohmann::json json;
-    file >> json;
-    colorMapData = json;
-  }
-
-  const int RESOLUTION = 256;
-
-  std::vector<glm::vec4> colors(RESOLUTION);
+std::vector<glm::vec4> mergeColorMapData(ColorMapData colorMapData, int resolution) {
+  std::vector<glm::vec4> colors(resolution);
   for (size_t i(0); i < colors.size(); ++i) {
     float     key   = static_cast<float>(i) / static_cast<float>(colors.size() - 1);
     glm::vec3 color = interpolate(key, colorMapData.rgbStops);
@@ -94,13 +78,47 @@ ColorMap::ColorMap(std::string const& sJsonFile)
     colors[i]       = glm::vec4(color, alpha);
   }
 
-  mTexture->UploadTexture(RESOLUTION, 1, colors.data(), false, GL_RGBA, GL_FLOAT);
+  return colors;
+}
 
-  mTexture->SetWrapS(GL_CLAMP_TO_EDGE);
-  mTexture->SetWrapT(GL_CLAMP_TO_EDGE);
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  mTexture->SetMinFilter(GL_LINEAR);
-  mTexture->SetMagFilter(GL_LINEAR);
+std::unique_ptr<VistaTexture> generateTexture(std::vector<glm::vec4> colors) {
+  std::unique_ptr<VistaTexture> texture = std::make_unique<VistaTexture>(GL_TEXTURE_1D);
+
+  texture->UploadTexture((int)colors.size(), 1, colors.data(), false, GL_RGBA, GL_FLOAT);
+
+  texture->SetWrapS(GL_CLAMP_TO_EDGE);
+  texture->SetWrapT(GL_CLAMP_TO_EDGE);
+
+  texture->SetMinFilter(GL_LINEAR);
+  texture->SetMagFilter(GL_LINEAR);
+
+  return texture;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+} // namespace
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+ColorMap::ColorMap(std::string const& sJsonString) {
+  nlohmann::json json         = nlohmann::json::parse(sJsonString);
+  ColorMapData   colorMapData = json;
+  mRawData                    = mergeColorMapData(colorMapData, mResolution);
+  mTexture                    = generateTexture(mRawData);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+ColorMap::ColorMap(boost::filesystem::path const& sJsonPath) {
+  std::ifstream  file(sJsonPath.string());
+  nlohmann::json json;
+  file >> json;
+  ColorMapData colorMapData = json;
+  mRawData                  = mergeColorMapData(colorMapData, mResolution);
+  mTexture                  = generateTexture(mRawData);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -113,6 +131,12 @@ void ColorMap::bind(unsigned unit) {
 
 void ColorMap::unbind(unsigned unit) {
   mTexture->Unbind(unit);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::vector<glm::vec4> ColorMap::getRawData() {
+  return mRawData;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
