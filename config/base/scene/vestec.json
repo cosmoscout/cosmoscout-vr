@@ -347,10 +347,10 @@
   },
   "plugins": {
     "csp-vestec": {
-      "vestec-topo-dir": "../share/vestec/data/fbk_pdiags_R0.cdb",
+      "vestec-topo-dir": "../share/vestec/data/fire-pd",
       "vestec-fire-dir": "../share/vestec/data/2D-fire",
       "vestec-diseases-dir": "../share/vestec/data/diseases",
-      "vestec-server": "127.0.0.1",
+      "vestec-server": "https://127.0.0.1",
       "vestec-download-dir": "../share/vestec/download"
     },
     "csp-stars": {
