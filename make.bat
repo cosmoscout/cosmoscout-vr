@@ -63,6 +63,8 @@ set zipper_DIR=%CURRENT_DIR%\build\windows-externals-%BUILD_TYPE%\zipper
 
 cd "%BUILD_DIR%"
 cmake %CMAKE_FLAGS% -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
+      -DZLIB_LIBRARY="%EXTERNALS_INSTALL_DIR%/lib/zlib.lib"^
+      -DZLIB_INCLUDE_DIR="%EXTERNALS_INSTALL_DIR%/include"^
       -DCOSMOSCOUT_EXTERNALS_DIR="%EXTERNALS_INSTALL_DIR%" "%CMAKE_DIR%"  || exit /b
 
 cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS% || exit /b
