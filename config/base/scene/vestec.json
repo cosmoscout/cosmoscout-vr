@@ -263,86 +263,114 @@
     "Barycenter": {
       "center": "Solar System Barycenter",
       "frame": "J2000",
-      "startExistence": "1950-01-02 00:00:00.000",
-      "endExistence": "2049-12-31 00:00:00.000"
+      "existence": [
+        "1950-01-02 00:00:00.000",
+        "2049-12-31 00:00:00.000"
+      ]
     },
     "Sun": {
       "center": "Sun",
       "frame": "IAU_Sun",
-      "startExistence": "1950-01-02 00:00:00.000",
-      "endExistence": "2049-12-31 00:00:00.000"
+      "existence": [
+        "1950-01-02 00:00:00.000",
+        "2049-12-31 00:00:00.000"
+      ]
     },
     "Mercury": {
       "center": "Mercury",
       "frame": "IAU_Mercury",
-      "startExistence": "1950-01-02 00:00:00.000",
-      "endExistence": "2049-12-31 00:00:00.000"
+      "existence": [
+        "1950-01-02 00:00:00.000",
+        "2049-12-31 00:00:00.000"
+      ]
     },
     "Venus": {
       "center": "Venus",
       "frame": "IAU_Venus",
-      "startExistence": "1950-01-02 00:00:00.000",
-      "endExistence": "2049-12-31 00:00:00.000"
+      "existence": [
+        "1950-01-02 00:00:00.000",
+        "2049-12-31 00:00:00.000"
+      ]
     },
     "Earth": {
       "center": "Earth",
       "frame": "IAU_Earth",
-      "startExistence": "1950-01-02 00:00:00.000",
-      "endExistence": "2049-12-31 00:00:00.000"
+      "existence": [
+        "1950-01-02 00:00:00.000",
+        "2049-12-31 00:00:00.000"
+      ]
     },
     "EarthJ2000": {
       "center": "Earth",
       "frame": "J2000",
-      "startExistence": "1950-01-02 00:00:00.000",
-      "endExistence": "2049-12-31 00:00:00.000"
+      "existence": [
+        "1950-01-02 00:00:00.000",
+        "2049-12-31 00:00:00.000"
+      ]
     },
     "Moon": {
       "center": "Moon",
       "frame": "IAU_Moon",
-      "startExistence": "1950-01-02 00:00:00.000",
-      "endExistence": "2049-12-31 00:00:00.000"
+      "existence": [
+        "1950-01-02 00:00:00.000",
+        "2049-12-31 00:00:00.000"
+      ]
     },
     "Mars": {
       "center": "Mars",
       "frame": "IAU_Mars",
-      "startExistence": "1950-01-02 00:00:00.000",
-      "endExistence": "2049-12-31 00:00:00.000"
+      "existence": [
+        "1950-01-02 00:00:00.000",
+        "2049-12-31 00:00:00.000"
+      ]
     },
     "Jupiter": {
       "center": "Jupiter",
       "frame": "IAU_Jupiter",
-      "startExistence": "1950-01-02 00:00:00.000",
-      "endExistence": "2049-12-31 00:00:00.000"
+      "existence": [
+        "1950-01-02 00:00:00.000",
+        "2049-12-31 00:00:00.000"
+      ]
     },
     "Saturn": {
       "center": "Saturn",
       "frame": "IAU_Saturn",
-      "startExistence": "1950-01-02 00:00:00.000",
-      "endExistence": "2049-12-31 00:00:00.000"
+      "existence": [
+        "1950-01-02 00:00:00.000",
+        "2049-12-31 00:00:00.000"
+      ]
     },
     "Uranus": {
       "center": "Uranus",
       "frame": "IAU_Uranus",
-      "startExistence": "1950-01-02 00:00:00.000",
-      "endExistence": "2049-12-31 00:00:00.000"
+      "existence": [
+        "1950-01-02 00:00:00.000",
+        "2049-12-31 00:00:00.000"
+      ]
     },
     "Neptune": {
       "center": "Neptune",
       "frame": "IAU_Neptune",
-      "startExistence": "1950-01-02 00:00:00.000",
-      "endExistence": "2049-12-31 00:00:00.000"
+      "existence": [
+        "1950-01-02 00:00:00.000",
+        "2049-12-31 00:00:00.000"
+      ]
     },
     "Ceres": {
       "center": "Ceres",
       "frame": "IAU_Ceres",
-      "startExistence": "1950-01-02 00:00:00.000",
-      "endExistence": "2049-12-31 00:00:00.000"
+      "existence": [
+        "1950-01-02 00:00:00.000",
+        "2049-12-31 00:00:00.000"
+      ]
     },
     "Vesta": {
       "center": "Vesta",
       "frame": "IAU_Vesta",
-      "startExistence": "1950-01-02 00:00:00.000",
-      "endExistence": "2049-12-31 00:00:00.000"
+      "existence": [
+        "1950-01-02 00:00:00.000",
+        "2049-12-31 00:00:00.000"
+      ]
     }
   },
   "plugins": {
