@@ -347,9 +347,11 @@
   },
   "plugins": {
     "csp-vestec": {
-      "vestec-topo-dir": "../share/vestec/data/fbk_pdiags_R0.cdb",
+      "vestec-topo-dir": "../share/vestec/data/persistence",
       "vestec-fire-dir": "../share/vestec/data/2D-fire",
-      "vestec-diseases-dir": "../share/vestec/data/diseases"
+      "vestec-diseases-dir": "../share/vestec/data/diseases",
+      "vestec-server": "https://127.0.0.1",
+      "vestec-download-dir": "../share/vestec/download"
     },
     "csp-stars": {
       "celestialGridTexture": "../share/resources/textures/celestial_grid.png",
@@ -369,24 +371,6 @@
       "starTexture": "../share/resources/textures/star.png",
       "hipparcosCatalog": "../share/download/stars/hip_main.dat",
       "tycho2Catalog": "../share/download/stars/tyc2_main.dat"
-    },
-    "csp-atmospheres": {
-      "atmospheres": {
-        "Mars": {
-          "atmosphereHeight": 0.03,
-          "mieAnisotropy": 0.76,
-          "mieHeight": 0.00144509,
-          "mieScatteringB": 52.66,
-          "mieScatteringG": 52.66,
-          "mieScatteringR": 52.66,
-          "rayleighAnisotropy": 0,
-          "rayleighHeight": 0.00317919,
-          "rayleighScatteringB": 19.89,
-          "rayleighScatteringG": 46.71,
-          "rayleighScatteringR": 69.2,
-          "sunIntensity": 12
-        }
-      }
     },
     "csp-lod-bodies": {
       "maxGPUTilesColor": 2048,
@@ -505,15 +489,6 @@
         },
         "Neptune": {
           "texture": "../share/resources/textures/neptune.jpg"
-        }
-      }
-    },
-    "csp-rings": {
-      "rings": {
-        "Saturn": {
-          "texture": "../share/resources/textures/saturn-rings.png",
-          "innerRadius": 67000000,
-          "outerRadius": 140210000
         }
       }
     },
