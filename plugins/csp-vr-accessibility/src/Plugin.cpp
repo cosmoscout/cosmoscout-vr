@@ -52,6 +52,7 @@ void from_json(nlohmann::json const& j, Plugin::Settings& o) {
   cs::core::Settings::deserialize(j, "vignetteFadeDuration",      o.mFovVignetteFadeDuration);
   cs::core::Settings::deserialize(j, "vignetteFadeDeadzone",      o.mFovVignetteFadeDeadzone);
   cs::core::Settings::deserialize(j, "vignetteVelocityThreshold", o.mFovVignetteVelocityThreshold);
+  cs::core::Settings::deserialize(j, "vignetteUseDynamicRadius",  o.mFovVignetteUseDynamicRadius);
 }
 
 void to_json(nlohmann::json& j, Plugin::Settings const& o) {
@@ -70,6 +71,7 @@ void to_json(nlohmann::json& j, Plugin::Settings const& o) {
   cs::core::Settings::serialize(j, "vignetteFadeDuration",      o.mFovVignetteFadeDuration);
   cs::core::Settings::serialize(j, "vignetteFadeDeadzone",      o.mFovVignetteFadeDeadzone);
   cs::core::Settings::serialize(j, "vignetteVelocityThreshold", o.mFovVignetteVelocityThreshold);
+  cs::core::Settings::serialize(j, "vignetteUseDynamicRadius",  o.mFovVignetteUseDynamicRadius);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -151,6 +153,15 @@ void Plugin::init() {
       );
   mPluginSettings->mFovVignetteDebug.connectAndTouch(
       [this](bool enable) { mGuiManager->setCheckboxValue("fovVignette.setDebug", enable); }
+      );
+  // register callback for fov vignette use dynamic radius
+  mGuiManager->getGui()->registerCallback(
+      "fovVignette.setEnableDynamicRadius",
+      "Dynamically adjust the radius based on velocity instead of fading the vignette in.",
+      std::function([this](bool enable) { mPluginSettings->mFovVignetteUseDynamicRadius = enable; })
+      );
+  mPluginSettings->mFovVignetteUseDynamicRadius.connectAndTouch(
+      [this](bool enable) { mGuiManager->setCheckboxValue("fovVignette.setEnableDynamicRadius", enable); }
       );
   // register callback for fov vignette inner radius slider
   mGuiManager->getGui()->registerCallback(

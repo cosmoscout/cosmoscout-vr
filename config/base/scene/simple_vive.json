@@ -711,7 +711,8 @@
       "vignetteColor": "#ffffff",
       "vignetteFadeDuration": 1.0,
       "vignetteFadeDeadzone": 0.5,
-      "vignetteVelocityThreshold": 0.2
+      "vignetteVelocityThreshold": 0.2,
+      "vignetteUseDynamicRadius": false
     }
   }
 }

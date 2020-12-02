@@ -66,6 +66,9 @@ class Plugin : public cs::core::PluginBase {
 
     /// The threshold velocity (0 to 10 = max. speed from movement controls) below which the vignette is not triggered.
     cs::utils::DefaultProperty<float> mFovVignetteVelocityThreshold{0.2F};
+
+    /// The toggle to use dynamic radius adjustment instead of fading the vignette in above threshold.
+    cs::utils::DefaultProperty<bool> mFovVignetteUseDynamicRadius{false};
   };
 
   void init() override;
