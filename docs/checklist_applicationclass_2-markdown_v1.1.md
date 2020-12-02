@@ -21,7 +21,7 @@ In case of questions, you can contact the Software Engineering Contact of your i
 ## Summary of Results
 The software CosmoScout VR implements 42 recommendations of application class 2. 
 
-The focus of future improvements is on improving the testing capabilities.
+The focus of future improvements is on improving the testing capabilities and working out a requirements documentation.
 
 ## Table of Contents
 [[Qualification](#qualifizierung)] [[Requirements Management](#anforderungsmanagement)] [[Software Architecture](#software-architektur)] [[Change Management](#aenderungsmanagement)] [[Design and Implementation](#design-implementierung)] [[Software Test](#software-test)] [[Release Management](#release-management)] [[Automation and Dependency Management](#automatisierung-abhaengigkeiten)] 
@@ -37,36 +37,35 @@ The focus of future improvements is on improving the testing capabilities.
 
 ## Requirements Management <a name="anforderungsmanagement"></a>
 
-:information_source: _For now, all of these are marked `[n.a.]` as this is usually done on a per-project basis in which CosmoScout VR is applied._ 
 
-**EAM.1** - **[n.a.]** The problem definition is coordinated with all parties involved and documented. It describes the objectives, the purpose of the software, the essential requirements and the desired application class in a concise, understandable way. *(from application class 1)*
+**EAM.1** - **[todo]** The problem definition is coordinated with all parties involved and documented. It describes the objectives, the purpose of the software, the essential requirements and the desired application class in a concise, understandable way. *(from application class 1)*
 
-**EAM.2** - **[n.a.]** Functional requirements are documented at least including a unique identifier, a description, the priority, the origin and the contact person. *(from application class 2)*
+**EAM.2** - **[todo]** Functional requirements are documented at least including a unique identifier, a description, the priority, the origin and the contact person. *(from application class 2)*
 
-**EAM.3** - **[n.a.]** The constraints are documented. *(from application class 1)*
+**EAM.3** - **[todo]** The constraints are documented. *(from application class 1)*
 
-**EAM.4** - **[n.a.]** The quality requirements are documented and prioritised. *(from application class 2)*
+**EAM.4** - **[todo]** The quality requirements are documented and prioritised. *(from application class 2)*
 
-**EAM.5** - **[n.a.]** User groups and their tasks are documented in the respective usage context. *(from application class 2)*
+**EAM.5** - **[todo]** User groups and their tasks are documented in the respective usage context. *(from application class 2)*
 
-**EAM.8** - **[n.a.]** A glossary exists which describes the essential terms and definitions. *(from application class 2)*
+**EAM.8** - **[todo]** A glossary exists which describes the essential terms and definitions. *(from application class 2)*
 
-**EAM.9** - **[n.a.]** The list of requirements is regularly coordinated, updated, analysed and checked. The resulting changes are traceable. *(from application class 2)*
+**EAM.9** - **[todo]** The list of requirements is regularly coordinated, updated, analysed and checked. The resulting changes are traceable. *(from application class 2)*
 
 ## Software Architecture <a name="software-architektur"></a>
 **ESA.1** - **[ok]** The architecture documentation is comprehensible for the relevant target groups. *(from application class 2)*
 
 **ESA.2** - **[ok]** Essential architectural concepts and corresponding decisions are at least documented in a lean way. *(from application class 1)*
 
-**ESA.3** - **[todo]** Testability of the software is appropriately addressed at software architecture level. *(from application class 2)*
+**ESA.3** - **[ok]** Testability of the software is appropriately addressed at software architecture level. *(from application class 2)*
 
 **ESA.4** - **[ok]** The software architecture is coordinated with the relevant target groups. Changes are communicated actively and are comprehensible. *(from application class 2)*
 
 **ESA.5** - **[ok]** The overlap between architectural documentation and implementation is minimised. *(from application class 2)*
 
-**ESA.6** - **[n.a.]** The architecture documentation consistently uses the terminology of the requirements. *(from application class 2)*
+**ESA.6** - **[todo]** The architecture documentation consistently uses the terminology of the requirements. *(from application class 2)*
 
-**ESA.7** - **[n.a.]** Architectural concepts and decisions can be traced to requirements. *(from application class 2)*
+**ESA.7** - **[todo]** Architectural concepts and decisions can be traced to requirements. *(from application class 2)*
 
 **ESA.8** - **[ok]** Key architectural concepts are checked for their suitability using appropriate methods. *(from application class 2)*
 
@@ -113,9 +112,9 @@ The focus of future improvements is on improving the testing capabilities.
 **EDI.10** - **[ok]** Prefer simple, understandable solutions. ("Keep it simple and stupid."). *(from application class 1)*
 
 ## Software Test <a name="software-test"></a>
-**EST.1** - **[todo]** An overall test strategy is coordinated and defined. It is checked regularly for appropriateness. *(from application class 2)*
+**EST.1** - **[ok]** An overall test strategy is coordinated and defined. It is checked regularly for appropriateness. *(from application class 2)*
 
-**EST.2** - **[todo]** Functional tests are systematically created and executed. *(from application class 2)*
+**EST.2** - **[ok]** Functional tests are systematically created and executed. *(from application class 2)*
 
 **EST.4** - **[todo]** The basic functions and features of the software are tested in a near-operational environment. *(from application class 1)*
 
@@ -128,7 +127,7 @@ The focus of future improvements is on improving the testing capabilities.
 
 **ERM.2** - **[ok]** The release package contains or references the user documentation. At least, it consists of installation, usage and contact information as well as release notes. In the case of the distribution of the release package to third parties outside DLR, the licensing conditions must be enclosed. *(from application class 1)*
 
-**ERM.3** - **[n.a.]** Releases are published at regular, short intervals. *(from application class 2)*
+**ERM.3** - **[ok]** Releases are published at regular, short intervals. *(from application class 2)*
 
 **ERM.4** - **[ok]** The steps required for creating and approving a release are harmonised and documented. The release performance is largely automated. *(from application class 2)*
 
