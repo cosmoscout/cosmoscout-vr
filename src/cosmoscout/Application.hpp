@@ -163,6 +163,9 @@ class Application : public VistaFrameLoop {
   /// "time.set"
   /// "time.setDate"
   /// "time.setSpeed"
+  /// "transferFunctionEditor.importTransferFunction"
+  /// "transferFunctionEditor.exportTransferFunction"
+  /// "transferFunctionEditor.getAvailableTransferFunctions"
   void registerGuiCallbacks();
   void unregisterGuiCallbacks();
 

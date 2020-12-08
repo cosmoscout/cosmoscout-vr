@@ -1599,6 +1599,47 @@ void Application::registerGuiCallbacks() {
         mSolarSystem->flyObserverTo(mSolarSystem->getObserver().getCenterName(),
             mSolarSystem->getObserver().getFrameName(), cart, rotation, duration.value_or(3.0));
       }));
+
+  // Transfer function editor callbacks ------------------------------------------------------------
+
+  // Reads a transfer function json file with the given name and sends its contents to the editor
+  // with the given ID.
+  mGuiManager->getGui()->registerCallback("transferFunctionEditor.importTransferFunction",
+      "Import a saved transfer function.", std::function([this](std::string name, double editorId) {
+        std::stringstream jsonTransferFunction;
+        std::ifstream     i("../share/resources/transferfunctions/" + name);
+        jsonTransferFunction << i.rdbuf();
+
+        mGuiManager->getGui()->callJavascript(
+            "CosmoScout.transferFunctionEditor.loadTransferFunction", jsonTransferFunction.str(),
+            editorId);
+      }));
+
+  // Saves the given transfer function in json format to a file in the transferfunctions directory.
+  mGuiManager->getGui()->registerCallback("transferFunctionEditor.exportTransferFunction",
+      "Export the current transfer function to a file.",
+      std::function([this](std::string name, std::string jsonTransferFunction) {
+        std::ofstream o("../share/resources/transferfunctions/" + name);
+        o << jsonTransferFunction;
+
+        mGuiManager->getGui()->callJavascript(
+            "CosmoScout.transferFunctionEditor.addAvailableTransferFunction", name);
+      }));
+
+  // Sends a list of all files in the transferfunctions directory to the UI.
+  mGuiManager->getGui()->registerCallback("transferFunctionEditor.getAvailableTransferFunctions",
+      "Requests the list of currently available transfer functions.", std::function([this]() {
+        nlohmann::json j;
+        for (const auto& file :
+            cs::utils::filesystem::listFiles("../share/resources/transferfunctions/")) {
+          std::string filename = file;
+          filename.erase(0, 37);
+          j.push_back(filename);
+        }
+
+        mGuiManager->getGui()->callJavascript(
+            "CosmoScout.transferFunctionEditor.setAvailableTransferFunctions", j.dump());
+      }));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1650,4 +1691,7 @@ void Application::unregisterGuiCallbacks() {
   mGuiManager->getGui()->unregisterCallback("time.set");
   mGuiManager->getGui()->unregisterCallback("time.setDate");
   mGuiManager->getGui()->unregisterCallback("time.setSpeed");
+  mGuiManager->getGui()->unregisterCallback("transferFunctionEditor.importTransferFunction");
+  mGuiManager->getGui()->unregisterCallback("transferFunctionEditor.exportTransferFunction");
+  mGuiManager->getGui()->unregisterCallback("transferFunctionEditor.getAvailableTransferFunctions");
 }

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -23,6 +23,7 @@
   <link type="text/css" rel="stylesheet" href="css/statusbar.css">
   <link type="text/css" rel="stylesheet" href="css/logo.css">
   <link type="text/css" rel="stylesheet" href="css/bookmark_editor.css">
+  <link type="text/css" rel="stylesheet" href="css/transfer_function_editor.css">
 </head>
 
 <body>
@@ -818,6 +819,7 @@
   <script type="text/javascript" src="js/apis/geocode.js"></script>
   <script type="text/javascript" src="js/apis/utils.js"></script>
   <script type="text/javascript" src="js/apis/bookmark_editor.js"></script>
+  <script type="text/javascript" src="js/apis/transfer_function_editor.js"></script>
 
   <script type="text/javascript">
 
@@ -834,7 +836,8 @@
         CalendarApi,
         GeoCodeApi,
         BookmarkEditorApi,
-        TimelineApi
+        TimelineApi,
+        TransferFunctionEditorApi
       );
 
       const slider = document.querySelector('[data-callback="graphics.setShadowmapResolution"]');
