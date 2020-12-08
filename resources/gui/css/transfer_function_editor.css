@@ -1,0 +1,35 @@
+svg[id^="transferFunctionEditor.graph"] circle {
+    cursor: grab;
+    stroke: var(--cs-color-text);
+    stroke-width: 1.5px;
+}
+
+svg[id^="transferFunctionEditor.graph"] circle.selected {
+    stroke: var(--cs-color-text-highlight);
+    stroke-width: 2.5px;
+}
+
+svg[id^="transferFunctionEditor.graph"] .line {
+    stroke: var(--cs-color-primary);
+}
+
+svg[id^="transferFunctionEditor.graph"] .domain {
+    stroke: var(--cs-color-primary);
+    fill: rgba(0, 0, 0, 0);
+}
+
+svg[id^="transferFunctionEditor.graph"] .tick line {
+    stroke: var(--cs-color-primary);
+    stroke-width: 1px;
+}
+
+svg[id^="transferFunctionEditor.graph"] .tick text {
+    fill: var(--cs-color-text);
+}
+
+div.row input[id^="transferFunctionEditor."],
+div.row button[data-id^="transferFunctionEditor."],
+div.row div[id^="transferFunctionEditor.importSelectParent"] > .bootstrap-select {
+    width: 100% !important;
+    height: 100% !important;
+}
