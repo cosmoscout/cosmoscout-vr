@@ -7,7 +7,26 @@
 // under the Apache License 2.0 found at http://volumerc.github.io/tf-editor/LICENSE.txt
 // The complete set of attributions may be found at http://volumerc.github.io/tf-editor/NOTICE
 
+/**
+ * Class for managing a transfer function editor.
+ */
 class TransferFunctionEditor {
+  /**
+   * Constructs a transfer function editor on the given element.
+   * Options can be passed in one object as the fourth parameter.
+   * Available options:
+   *  Width:           The width of the editor in pixels
+   *  Height:          The height of the editor in pixels
+   *  FitToData:       Whether the min and max x values should be determined by the data
+   *  NumberTicks:     Number of ticks on x and y axis
+   *  DefaultFunction: Will try to load this transfer function after initialization
+   *
+   * @param id {number} ID of the editor
+   * @param element {HTMLElement} Root element of the editor
+   * @param callback {(s: string) => void} Callback that should be called on changes in the editor
+   * @param options {{width: number, height: number, fitToData: bool, numberTicks: number,
+   *     defaultFunction: string}} Options for the editor
+   */
   constructor(id, element, callback,
       {width = 400, height = 150, fitToData = false, numberTicks = 5, defaultFunction = ""} = {}) {
     this.id       = id;
@@ -24,6 +43,12 @@ class TransferFunctionEditor {
     }
   }
 
+  /**
+   * Sets the data for the visualization that is controlled by this editor.
+   * This updates the values on the x axis if fitToData is set in the options.
+   *
+   * @param data {number[]} Array of scalar values
+   */
   setData(data) {
     this._data = data;
     this._updateScales();
@@ -364,6 +389,9 @@ class TransferFunctionEditor {
     this._dragged = null;
   }
 
+  /**
+   * @return {string} The current transfer function as a json string
+   */
   getJsonString() {
     // Utility functions for parsing colors
     function colorHexToComponents(hexString) {
@@ -404,6 +432,11 @@ class TransferFunctionEditor {
     return JSON.stringify(exportObject);
   }
 
+  /**
+   * Loads a transfer function into this editor.
+   *
+   * @param jsonTransferFunction {string} json string describing the transfer function
+   */
   loadTransferFunction(jsonTransferFunction) {
     let transferFunction = JSON.parse(jsonTransferFunction);
     const points         = [];
@@ -495,6 +528,11 @@ class TransferFunctionEditor {
     this._redraw();
   }
 
+  /**
+   * Updates the list of available files shown next to the import button.
+   *
+   * @param availableFiles {string[]} List of filenames
+   */
   setAvailableTransferFunctions(availableFiles) {
     let options = "";
     availableFiles.forEach((file) => { options += `<option>${file}</option>`; });
@@ -519,8 +557,16 @@ class TransferFunctionEditorApi extends IApi {
    */
   _nextId = 0;
 
+  /**
+   * List of created transfer function editors
+   * @type {TransferFunctionEditor[]}
+   */
   _editors = [];
 
+  /**
+   * List of available transfer function files
+   * @type {string[]}
+   */
   _availableFiles = [];
 
   /**
@@ -570,6 +616,16 @@ class TransferFunctionEditorApi extends IApi {
     document.body.appendChild(templateElement);
   }
 
+  /**
+   * Create a new transfer function editor.
+   * See constructor of TransferFunctionEditor for a description of the available options.
+   *
+   * @param container {HTMLELement} HTML element in which the editor should be placed
+   * @param callback {(s: string) => void} Callback that should be called on changes in the editor
+   * @param options {{width: number, height: number, fitToData: bool, numberTicks: number,
+   *     defaultFunction: string}} Options for the editor
+   * @return {TransferFunctionEditor}
+   */
   create(container, callback, options) {
     const editor = CosmoScout.gui.loadTemplateContent("transferFunctionEditor");
     if (editor === false) {
@@ -589,12 +645,23 @@ class TransferFunctionEditorApi extends IApi {
     return transferFunctionEditor;
   }
 
+  /**
+   * Sets the list of available transfer function files for all created editors.
+   *
+   * @param availableFilesJson {string[]} List of transfer function filenames
+   */
   setAvailableTransferFunctions(availableFilesJson) {
     this._availableFiles = JSON.parse(availableFilesJson);
     this._editors.forEach(
         (editor) => { editor.setAvailableTransferFunctions(this._availableFiles); });
   }
 
+  /**
+   * Adds one transfer function filename to the list of available files.
+   * Afterwards updates the available functions for all editors.
+   *
+   * @param filename {string} Name of the file to be added
+   */
   addAvailableTransferFunction(filename) {
     if (this._availableFiles.includes(filename)) {
       let files = _availableFiles;
@@ -604,6 +671,12 @@ class TransferFunctionEditorApi extends IApi {
     }
   }
 
+  /**
+   * Loads a transfer function to one editor.
+   *
+   * @param jsonTransferFunction {string} json string describing the transfer function
+   * @param editorId {number} ID of the editor for which the function should be loaded
+   */
   loadTransferFunction(jsonTransferFunction, editorId) {
     this._editors.find(e => e.id == editorId).loadTransferFunction(jsonTransferFunction);
   }
