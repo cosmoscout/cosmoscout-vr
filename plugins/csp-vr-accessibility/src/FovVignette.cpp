@@ -241,10 +241,14 @@ bool FovVignette::Do() {
         mShaderDynRad.GetUniformLocation("uCustomColor"), 1, glm::value_ptr(Plugin::GetColorFromHexString(mVignetteSettings->mFovVignetteColor.get()))
     );
     mShaderDynRad.SetUniform(
-        mShaderDynRad.GetUniformLocation("uInnerRadius"), mCurrentInnerRadius
+        mShaderDynRad.GetUniformLocation("uInnerRadius"),
+        // override current radius if debug enabled
+        mVignetteSettings->mFovVignetteDebug.get() ? mVignetteSettings->mFovVignetteInnerRadius.get() : mCurrentInnerRadius
     );
     mShaderDynRad.SetUniform(
-        mShaderDynRad.GetUniformLocation("uOuterRadius"), mCurrentOuterRadius
+        mShaderDynRad.GetUniformLocation("uOuterRadius"),
+        // override current radius if debug enabled
+        mVignetteSettings->mFovVignetteDebug.get() ? mVignetteSettings->mFovVignetteOuterRadius.get() : mCurrentOuterRadius
     );
     mShaderDynRad.SetUniform(
         mShaderDynRad.GetUniformLocation("uDebug"), mVignetteSettings->mFovVignetteDebug.get()
