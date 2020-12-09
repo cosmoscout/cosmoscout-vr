@@ -64,8 +64,11 @@ class Plugin : public cs::core::PluginBase {
     /// The deadzone of the fade animation where the animation is not played on small actions (in seconds).
     cs::utils::DefaultProperty<double> mFovVignetteFadeDeadzone{0.5};
 
-    /// The threshold velocity (0 to 10 = max. speed from movement controls) below which the vignette is not triggered.
-    cs::utils::DefaultProperty<float> mFovVignetteVelocityThreshold{0.2F};
+    /// The threshold velocity (0 to ~10 = max. speed from movement controls) below which the vignette is not triggered.
+    cs::utils::DefaultProperty<float> mFovVignetteLowerVelocityThreshold{0.2F};
+
+    /// The threshold velocity (0 to ~10 = max. speed from movement controls) above which the vignette is set to the above defined radii.
+    cs::utils::DefaultProperty<float> mFovVignetteUpperVelocityThreshold{10.0F};
 
     /// The toggle to use dynamic radius adjustment instead of fading the vignette in above threshold.
     cs::utils::DefaultProperty<bool> mFovVignetteUseDynamicRadius{false};

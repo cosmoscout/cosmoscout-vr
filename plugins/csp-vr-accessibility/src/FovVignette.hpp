@@ -43,6 +43,10 @@ class FovVignette : public IVistaOpenGLDraw{
   /// Configures the internal renderer according to the given values.
   void configure(std::shared_ptr<Plugin::Settings> settings);
 
+  /// Updates the variables for the Shaders
+  void updateDynamicRadiusVignette();
+  void updateFadeAnimatedVignette();
+
   bool Do() override;
   bool GetBoundingBox(VistaBoundingBox& bb) override;
 
@@ -52,10 +56,19 @@ class FovVignette : public IVistaOpenGLDraw{
 
   std::unique_ptr<VistaOpenGLNode>        mGLNode;
 
-  cs::utils::AnimatedValue<float>         mFadeAnimation;
-  double                                  mLastChange;
-  int                                     mAnimationTracker;
-  bool                                    mIsStill;
+  cs::utils::AnimatedValue<float>                     mFadeAnimation;
+  double                                              mLastChange;
+  int                                                 mAnimationTracker;
+  bool                                                mIsStill;
+
+  float                                               mCurrentInnerRadius;
+  float                                               mCurrentOuterRadius;
+  float                                               mLastInnerRadius = 1.4142F;
+  float                                               mLastOuterRadius = 1.4142F;
+  std::chrono::time_point<std::chrono::steady_clock>  mLastTime;
+  float                                               mNormalizedVelocity;
+
+  float getNewRadius(float innerOuterRadius, float normVelocity, float lastRadius, double dT);
 
   std::shared_ptr<Plugin::Settings>       mVignetteSettings;
   VistaGLSLShader                         mShaderFade;

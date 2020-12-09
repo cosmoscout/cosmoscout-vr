@@ -44,15 +44,16 @@ void from_json(nlohmann::json const& j, Plugin::Settings& o) {
   cs::core::Settings::deserialize(j, "gridTexture", o.mTexture);
   cs::core::Settings::deserialize(j, "gridAlpha",   o.mAlpha);
   cs::core::Settings::deserialize(j, "gridColor",   o.mColor);
-  cs::core::Settings::deserialize(j, "vignetteEnabled",           o.mFovVignetteEnabled);
-  cs::core::Settings::deserialize(j, "vignetteDebug",             o.mFovVignetteDebug);
-  cs::core::Settings::deserialize(j, "vignetteInnerRadius",       o.mFovVignetteInnerRadius);
-  cs::core::Settings::deserialize(j, "vignetteOuterRadius",       o.mFovVignetteOuterRadius);
-  cs::core::Settings::deserialize(j, "vignetteColor",             o.mFovVignetteColor);
-  cs::core::Settings::deserialize(j, "vignetteFadeDuration",      o.mFovVignetteFadeDuration);
-  cs::core::Settings::deserialize(j, "vignetteFadeDeadzone",      o.mFovVignetteFadeDeadzone);
-  cs::core::Settings::deserialize(j, "vignetteVelocityThreshold", o.mFovVignetteVelocityThreshold);
-  cs::core::Settings::deserialize(j, "vignetteUseDynamicRadius",  o.mFovVignetteUseDynamicRadius);
+  cs::core::Settings::deserialize(j, "vignetteEnabled",                o.mFovVignetteEnabled);
+  cs::core::Settings::deserialize(j, "vignetteDebug",                  o.mFovVignetteDebug);
+  cs::core::Settings::deserialize(j, "vignetteInnerRadius",            o.mFovVignetteInnerRadius);
+  cs::core::Settings::deserialize(j, "vignetteOuterRadius",            o.mFovVignetteOuterRadius);
+  cs::core::Settings::deserialize(j, "vignetteColor",                  o.mFovVignetteColor);
+  cs::core::Settings::deserialize(j, "vignetteFadeDuration",           o.mFovVignetteFadeDuration);
+  cs::core::Settings::deserialize(j, "vignetteFadeDeadzone",           o.mFovVignetteFadeDeadzone);
+  cs::core::Settings::deserialize(j, "vignetteLowerVelocityThreshold", o.mFovVignetteLowerVelocityThreshold);
+  cs::core::Settings::deserialize(j, "vignetteUpperVelocityThreshold", o.mFovVignetteUpperVelocityThreshold);
+  cs::core::Settings::deserialize(j, "vignetteUseDynamicRadius",       o.mFovVignetteUseDynamicRadius);
 }
 
 void to_json(nlohmann::json& j, Plugin::Settings const& o) {
@@ -63,15 +64,16 @@ void to_json(nlohmann::json& j, Plugin::Settings const& o) {
   cs::core::Settings::serialize(j, "gridTexture", o.mTexture);
   cs::core::Settings::serialize(j, "gridAlpha",   o.mAlpha);
   cs::core::Settings::serialize(j, "gridColor",   o.mColor);
-  cs::core::Settings::serialize(j, "vignetteEnabled",           o.mFovVignetteEnabled);
-  cs::core::Settings::serialize(j, "vignetteDebug",             o.mFovVignetteDebug);
-  cs::core::Settings::serialize(j, "vignetteInnerRadius",       o.mFovVignetteInnerRadius);
-  cs::core::Settings::serialize(j, "vignetteOuterRadius",       o.mFovVignetteOuterRadius);
-  cs::core::Settings::serialize(j, "vignetteColor",             o.mFovVignetteColor);
-  cs::core::Settings::serialize(j, "vignetteFadeDuration",      o.mFovVignetteFadeDuration);
-  cs::core::Settings::serialize(j, "vignetteFadeDeadzone",      o.mFovVignetteFadeDeadzone);
-  cs::core::Settings::serialize(j, "vignetteVelocityThreshold", o.mFovVignetteVelocityThreshold);
-  cs::core::Settings::serialize(j, "vignetteUseDynamicRadius",  o.mFovVignetteUseDynamicRadius);
+  cs::core::Settings::serialize(j, "vignetteEnabled",                o.mFovVignetteEnabled);
+  cs::core::Settings::serialize(j, "vignetteDebug",                  o.mFovVignetteDebug);
+  cs::core::Settings::serialize(j, "vignetteInnerRadius",            o.mFovVignetteInnerRadius);
+  cs::core::Settings::serialize(j, "vignetteOuterRadius",            o.mFovVignetteOuterRadius);
+  cs::core::Settings::serialize(j, "vignetteColor",                  o.mFovVignetteColor);
+  cs::core::Settings::serialize(j, "vignetteFadeDuration",           o.mFovVignetteFadeDuration);
+  cs::core::Settings::serialize(j, "vignetteFadeDeadzone",           o.mFovVignetteFadeDeadzone);
+  cs::core::Settings::serialize(j, "vignetteLowerVelocityThreshold", o.mFovVignetteLowerVelocityThreshold);
+  cs::core::Settings::serialize(j, "vignetteUpperVelocityThreshold", o.mFovVignetteUpperVelocityThreshold);
+  cs::core::Settings::serialize(j, "vignetteUseDynamicRadius",       o.mFovVignetteUseDynamicRadius);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -191,14 +193,23 @@ void Plugin::init() {
       [this](std::string value) {
         mGuiManager->getGui()->callJavascript("CosmoScout.fovVignette.setColorValue", value);
       });
-  // register callback for fov vignette velocity threshold
+  // register callback for fov vignette lower velocity threshold
   mGuiManager->getGui()->registerCallback(
-      "fovVignette.setThreshold",
-      "Value to adjust the minimum velocity threshold when the vignett should be drawn (values from 0 to 10% of max. velocity).",
-      std::function([this] (double value) { mPluginSettings->mFovVignetteVelocityThreshold = static_cast<float>(value); })
+      "fovVignette.setLowerThreshold",
+      "Value to adjust the minimum velocity threshold when the vignette should be drawn (values from 0 to 10% of max. velocity).",
+      std::function([this] (double value) { mPluginSettings->mFovVignetteLowerVelocityThreshold = static_cast<float>(value); })
       );
-  mPluginSettings->mFovVignetteVelocityThreshold.connectAndTouch(
-      [this](float value) { mGuiManager->setSliderValue("fovVignette.setThreshold", value); }
+  mPluginSettings->mFovVignetteLowerVelocityThreshold.connectAndTouch(
+      [this](float value) { mGuiManager->setSliderValue("fovVignette.setLowerThreshold", value); }
+      );
+  // register callback for fov vignette upper velocity threshold
+  mGuiManager->getGui()->registerCallback(
+      "fovVignette.setUpperThreshold",
+      "Value to adjust the maximum velocity threshold when the vignette should be set to the radius specified in the settings (values from 90 to 100% of max. velocity).",
+      std::function([this] (double value) { mPluginSettings->mFovVignetteUpperVelocityThreshold = static_cast<float>(value); })
+      );
+  mPluginSettings->mFovVignetteUpperVelocityThreshold.connectAndTouch(
+      [this](float value) { mGuiManager->setSliderValue("fovVignette.setUpperThreshold", value); }
       );
   // register callback for fov vignette fade duration slider
   mGuiManager->getGui()->registerCallback(
@@ -260,6 +271,13 @@ void Plugin::update() {
   }
 
   mGrid->update();
+
+  if (mPluginSettings->mFovVignetteUseDynamicRadius.get()) {
+    mVignette->updateDynamicRadiusVignette();
+  }
+  else {
+    mVignette->updateFadeAnimatedVignette();
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

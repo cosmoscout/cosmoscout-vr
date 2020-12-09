@@ -244,6 +244,7 @@ class CS_CORE_EXPORT SolarSystem {
   std::set<std::shared_ptr<scene::CelestialBody>>   mBodies;
 
   bool mIsInitialized = false;
+  bool mSpiceFrameChangedLastFrame = false;
 
   uint64_t mListenerIds = 0;
   std::unordered_map<uint64_t, std::function<void(std::shared_ptr<scene::CelestialBody>)>>
