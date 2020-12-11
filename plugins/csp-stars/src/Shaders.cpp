@@ -122,11 +122,14 @@ void main() {
     float diameter = 2 * sqrt(1 - pow(1-uSolidAngle/(2*PI), 2.0));
     float scale = dist * diameter;
 
+    #ifdef DRAWMODE_SCALED_DISC
+        scale *= 1.0 - (iMagnitude - uMinMagnitude) / (uMaxMagnitude - uMinMagnitude);
+        scale *= 3.0;
+    #endif
+
     #ifdef DRAWMODE_SPRITE
-        float referenceLuminance = magnitudeToLuminance(10, uSolidAngle);
-        float luminance = magnitudeToLuminance(iMagnitude, uSolidAngle);
-        float scaleFac = pow(luminance / referenceLuminance, 1.0 / 3.0);
-        scale *= scaleFac;
+        scale *= 1.0 - (iMagnitude - uMinMagnitude) / (uMaxMagnitude - uMinMagnitude);
+        scale *= 10.0;
     #endif
 
     for(int j=0; j!=2; ++j) {
@@ -163,6 +166,8 @@ in vec2  iTexcoords;
 uniform sampler2D iTexture;
 uniform float uSolidAngle;
 uniform float uLuminanceMultiplicator;
+uniform float uMinMagnitude;
+uniform float uMaxMagnitude;
 
 // outputs
 out vec4 oLuminance;
@@ -181,13 +186,20 @@ void main() {
         float fac = luminance * clamp(1-dist, 0, 1) * 3;
     #endif
     
+    #ifdef DRAWMODE_SCALED_DISC
+        float scaleFac = 1.0 - (iMagnitude - uMinMagnitude) / (uMaxMagnitude - uMinMagnitude);
+        scaleFac *= 3.0;
+        float fac = luminance * clamp(1-dist, 0, 1) * 3 / (scaleFac * scaleFac);
+    #endif
+
     #ifdef DRAWMODE_SPRITE
-        float referenceLuminance = magnitudeToLuminance(10, uSolidAngle);
-        float scaleFac = pow(luminance / referenceLuminance, 1.0 / 3.0);
-        // TODO: Some magic numbers here. 001744984 is the average brightness of the currently used
-        // star texture, 4.5e-12 has been retrieved by trial and error when trying to adjust the
-        // total scene brightness to the other implemented methods
-        float fac = texture(iTexture, iTexcoords * 0.5 + 0.5).r * 4.5e-12 / 0.001744984 * scaleFac / uSolidAngle;
+        float scaleFac = 1.0 - (iMagnitude - uMinMagnitude) / (uMaxMagnitude - uMinMagnitude);
+        scaleFac *= 10.0;
+        float fac = texture(iTexture, iTexcoords * 0.5 + 0.5).r * luminance / (scaleFac * scaleFac);
+
+        // A magic number here. 001744984 is the average brightness of the currently used
+        // star texture (identify -format "%[fx:mean]\n" star.png).
+        fac /= 0.0559036;
     #endif
 
     vec3 vColor = iColor * fac * uLuminanceMultiplicator;
