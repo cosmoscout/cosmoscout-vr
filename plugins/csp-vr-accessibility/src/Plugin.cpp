@@ -54,6 +54,7 @@ void from_json(nlohmann::json const& j, Plugin::Settings& o) {
   cs::core::Settings::deserialize(j, "vignetteLowerVelocityThreshold", o.mFovVignetteLowerVelocityThreshold);
   cs::core::Settings::deserialize(j, "vignetteUpperVelocityThreshold", o.mFovVignetteUpperVelocityThreshold);
   cs::core::Settings::deserialize(j, "vignetteUseDynamicRadius",       o.mFovVignetteUseDynamicRadius);
+  cs::core::Settings::deserialize(j, "vignetteUseVerticalOnly",        o.mFovVignetteUseVerticalOnly);
 }
 
 void to_json(nlohmann::json& j, Plugin::Settings const& o) {
@@ -74,6 +75,7 @@ void to_json(nlohmann::json& j, Plugin::Settings const& o) {
   cs::core::Settings::serialize(j, "vignetteLowerVelocityThreshold", o.mFovVignetteLowerVelocityThreshold);
   cs::core::Settings::serialize(j, "vignetteUpperVelocityThreshold", o.mFovVignetteUpperVelocityThreshold);
   cs::core::Settings::serialize(j, "vignetteUseDynamicRadius",       o.mFovVignetteUseDynamicRadius);
+  cs::core::Settings::serialize(j, "vignetteUseVerticalOnly",        o.mFovVignetteUseVerticalOnly);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -164,6 +166,15 @@ void Plugin::init() {
       );
   mPluginSettings->mFovVignetteUseDynamicRadius.connectAndTouch(
       [this](bool enable) { mGuiManager->setCheckboxValue("fovVignette.setEnableDynamicRadius", enable); }
+      );
+  // register callback for fov vignette use vertical vignetting only
+  mGuiManager->getGui()->registerCallback(
+      "fovVignette.setEnableVerticalOnly",
+      "Only use a vertical vignette, instead of a circular.",
+      std::function([this](bool enable) { mPluginSettings->mFovVignetteUseVerticalOnly = enable; })
+      );
+  mPluginSettings->mFovVignetteUseVerticalOnly.connectAndTouch(
+      [this](bool enable) { mGuiManager->setCheckboxValue("fovVignette.setEnableVerticalOnly", enable); }
       );
   // register callback for fov vignette inner radius slider
   mGuiManager->getGui()->registerCallback(

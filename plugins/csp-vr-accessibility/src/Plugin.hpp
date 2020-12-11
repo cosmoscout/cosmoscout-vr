@@ -72,6 +72,9 @@ class Plugin : public cs::core::PluginBase {
 
     /// The toggle to use dynamic radius adjustment instead of fading the vignette in above threshold.
     cs::utils::DefaultProperty<bool> mFovVignetteUseDynamicRadius{false};
+
+    /// The toggle to use only vertical vignetting.
+    cs::utils::DefaultProperty<bool> mFovVignetteUseVerticalOnly{false};
   };
 
   void init() override;

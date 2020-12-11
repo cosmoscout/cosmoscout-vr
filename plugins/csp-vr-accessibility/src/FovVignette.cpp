@@ -21,110 +21,11 @@
 #include <VistaKernel/VistaSystem.h>
 #include <VistaKernelOpenSGExt/VistaOpenSGMaterialTools.h>
 #include <glm/gtc/type_ptr.hpp>
+#include "../../../src/cs-core/GraphicsEngine.hpp"
 
 #include <utility>
 
 namespace csp::vraccessibility {
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-const char* FovVignette::VERT_SHADER = R"(
-#version 330
-
-// inputs
-layout(location = 0) in vec2 iQuadPos;
-
-// outputs
-out vec2 vTexCoords;
-out vec3 vPosition;
-
-void main()
-{
-    vTexCoords  = vec2( (iQuadPos.x + 1) / 2,
-                       (iQuadPos.y + 1) / 2 );
-    vPosition   = vec3(iQuadPos.x, iQuadPos.y, -0.01);
-    gl_Position = vec4(vPosition, 1);
-}
-)";
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-const char* FovVignette::FRAG_SHADER_FADE = R"(
-#version 330
-
-uniform sampler2D uTexture;
-uniform float uFade;
-uniform vec4 uCustomColor;
-uniform float uInnerRadius;
-uniform float uOuterRadius;
-uniform bool uDebug;
-
-// inputs
-in vec2 vTexCoords;
-in vec3 vPosition;
-
-// outputs
-layout(location = 0) out vec4 oColor;
-
-void main()
-{
-    if (uFade == 0 && !uDebug ) { discard; }
-
-    vec2 texSize = textureSize(uTexture, 0);
-    float ratio = texSize.y / texSize.x;
-
-    float dist = sqrt(vPosition.x * vPosition.x + ratio * ratio * vPosition.y * vPosition.y);
-    if (dist < uInnerRadius ) { discard; }
-    float r = ((dist - uInnerRadius) / (uOuterRadius - uInnerRadius));
-    oColor = mix(texture(uTexture, vTexCoords), uCustomColor, r);
-    if (dist > uOuterRadius) {
-      oColor.rgb = uCustomColor.rgb;
-    }
-
-    if ( !uDebug ) { oColor.a = uFade; }
-}
-)";
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-const char* FovVignette::FRAG_SHADER_DYNRAD = R"(
-#version 330
-
-uniform sampler2D uTexture;
-uniform float uNormVelocity;
-uniform vec4 uCustomColor;
-uniform float uInnerRadius;
-uniform float uOuterRadius;
-uniform bool uDebug;
-float radiusInner = uInnerRadius;
-float radiusOuter = uOuterRadius;
-
-// inputs
-in vec2 vTexCoords;
-in vec3 vPosition;
-
-// outputs
-layout(location = 0) out vec4 oColor;
-
-void main()
-{
-    if (uNormVelocity <= 0 && !uDebug ) { discard; }
-
-    vec2 texSize = textureSize(uTexture, 0);
-    float ratio = texSize.y / texSize.x;
-
-    float dist = sqrt(vPosition.x * vPosition.x + ratio * ratio * vPosition.y * vPosition.y);
-
-    if (dist < uInnerRadius ) { discard; }
-    float r = ((dist - uInnerRadius) / (uOuterRadius - uInnerRadius));
-    oColor = mix(texture(uTexture, vTexCoords), uCustomColor, r);
-    if (dist > uOuterRadius) {
-      oColor.rgb = uCustomColor.rgb;
-    }
-}
-)";
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
 
 FovVignette::FovVignette(std::shared_ptr<cs::core::SolarSystem> solarSystem)
     : mSolarSystem(std::move(solarSystem)) {
@@ -171,6 +72,15 @@ FovVignette::FovVignette(std::shared_ptr<cs::core::SolarSystem> solarSystem)
   mShaderDynRad.InitVertexShaderFromString(VERT_SHADER);
   mShaderDynRad.InitFragmentShaderFromString(FRAG_SHADER_DYNRAD);
   mShaderDynRad.Link();
+
+  // link shader
+  mShaderFadeVertOnly.InitVertexShaderFromString(VERT_SHADER);
+  mShaderFadeVertOnly.InitFragmentShaderFromString(FRAG_SHADER_FADE_VERTONLY);
+  mShaderFadeVertOnly.Link();
+
+  mShaderDynRadVertOnly.InitVertexShaderFromString(VERT_SHADER);
+  mShaderDynRadVertOnly.InitFragmentShaderFromString(FRAG_SHADER_DYNRAD_VERTONLY);
+  mShaderDynRadVertOnly.Link();
 
   // add to scenegraph
   VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
@@ -229,52 +139,58 @@ bool FovVignette::Do() {
 
   // set uniforms
   if (mVignetteSettings->mFovVignetteUseDynamicRadius.get()) {
-    mShaderDynRad.Bind();
+    // check if vertical only or circular vignetting
+    VistaGLSLShader& shader = mVignetteSettings->mFovVignetteUseVerticalOnly.get() ? mShaderDynRadVertOnly : mShaderDynRad;
 
-    mShaderDynRad.SetUniform(
-        mShaderDynRad.GetUniformLocation("uTexture"), 0
+    shader.Bind();
+
+    shader.SetUniform(
+        shader.GetUniformLocation("uTexture"), 0
     );
-    mShaderDynRad.SetUniform(
-        mShaderDynRad.GetUniformLocation("uNormVelocity"), mNormalizedVelocity
+    shader.SetUniform(
+        shader.GetUniformLocation("uNormVelocity"), mNormalizedVelocity
     );
     glUniform4fv(
-        mShaderDynRad.GetUniformLocation("uCustomColor"), 1, glm::value_ptr(Plugin::GetColorFromHexString(mVignetteSettings->mFovVignetteColor.get()))
+        shader.GetUniformLocation("uCustomColor"), 1, glm::value_ptr(Plugin::GetColorFromHexString(mVignetteSettings->mFovVignetteColor.get()))
     );
-    mShaderDynRad.SetUniform(
-        mShaderDynRad.GetUniformLocation("uInnerRadius"),
+    shader.SetUniform(
+        shader.GetUniformLocation("uInnerRadius"),
         // override current radius if debug enabled
         mVignetteSettings->mFovVignetteDebug.get() ? mVignetteSettings->mFovVignetteInnerRadius.get() : mCurrentInnerRadius
     );
-    mShaderDynRad.SetUniform(
-        mShaderDynRad.GetUniformLocation("uOuterRadius"),
+    shader.SetUniform(
+        shader.GetUniformLocation("uOuterRadius"),
         // override current radius if debug enabled
         mVignetteSettings->mFovVignetteDebug.get() ? mVignetteSettings->mFovVignetteOuterRadius.get() : mCurrentOuterRadius
     );
-    mShaderDynRad.SetUniform(
-        mShaderDynRad.GetUniformLocation("uDebug"), mVignetteSettings->mFovVignetteDebug.get()
+    shader.SetUniform(
+        shader.GetUniformLocation("uDebug"), mVignetteSettings->mFovVignetteDebug.get()
     );
   }
   else {
-    mShaderFade.Bind();
+    // check if vertical only or circular vignetting
+    VistaGLSLShader& shader = mVignetteSettings->mFovVignetteUseVerticalOnly.get() ? mShaderFadeVertOnly : mShaderFade;
 
-    mShaderFade.SetUniform(
-        mShaderFade.GetUniformLocation("uTexture"), 0
+    shader.Bind();
+
+    shader.SetUniform(
+        shader.GetUniformLocation("uTexture"), 0
         );
     double currentTime = cs::utils::convert::time::toSpice(boost::posix_time::microsec_clock::universal_time());
-    mShaderFade.SetUniform(
-        mShaderFade.GetUniformLocation("uFade"), mFadeAnimation.get(currentTime)
+    shader.SetUniform(
+        shader.GetUniformLocation("uFade"), mFadeAnimation.get(currentTime)
         );
     glUniform4fv(
-        mShaderFade.GetUniformLocation("uCustomColor"), 1, glm::value_ptr(Plugin::GetColorFromHexString(mVignetteSettings->mFovVignetteColor.get()))
+        shader.GetUniformLocation("uCustomColor"), 1, glm::value_ptr(Plugin::GetColorFromHexString(mVignetteSettings->mFovVignetteColor.get()))
         );
-    mShaderFade.SetUniform(
-        mShaderFade.GetUniformLocation("uInnerRadius"), mVignetteSettings->mFovVignetteInnerRadius.get()
+    shader.SetUniform(
+        shader.GetUniformLocation("uInnerRadius"), mVignetteSettings->mFovVignetteInnerRadius.get()
         );
-    mShaderFade.SetUniform(
-        mShaderFade.GetUniformLocation("uOuterRadius"), mVignetteSettings->mFovVignetteOuterRadius.get()
+    shader.SetUniform(
+        shader.GetUniformLocation("uOuterRadius"), mVignetteSettings->mFovVignetteOuterRadius.get()
         );
-    mShaderFade.SetUniform(
-        mShaderFade.GetUniformLocation("uDebug"), mVignetteSettings->mFovVignetteDebug.get()
+    shader.SetUniform(
+        shader.GetUniformLocation("uDebug"), mVignetteSettings->mFovVignetteDebug.get()
         );
   }
 
@@ -295,12 +211,8 @@ bool FovVignette::Do() {
   glDisable(GL_BLEND);
   glEnable(GL_DEPTH_TEST);
 
-  if(mVignetteSettings->mFovVignetteUseDynamicRadius.get()) {
-    mShaderDynRad.Release();
-  }
-  else {
-    mShaderFade.Release();
-  }
+  // release shader
+  glUseProgram( 0 );
 
   return true;
 }

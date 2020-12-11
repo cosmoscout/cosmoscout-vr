@@ -73,6 +73,8 @@ class FovVignette : public IVistaOpenGLDraw{
   std::shared_ptr<Plugin::Settings>       mVignetteSettings;
   VistaGLSLShader                         mShaderFade;
   VistaGLSLShader                         mShaderDynRad;
+  VistaGLSLShader                         mShaderFadeVertOnly;
+  VistaGLSLShader                         mShaderDynRadVertOnly;
   VistaVertexArrayObject                  mVAO;
   VistaBufferObject                       mVBO;
 
@@ -86,6 +88,8 @@ class FovVignette : public IVistaOpenGLDraw{
   static const char* VERT_SHADER;
   static const char* FRAG_SHADER_FADE;
   static const char* FRAG_SHADER_DYNRAD;
+  static const char* FRAG_SHADER_FADE_VERTONLY;
+  static const char* FRAG_SHADER_DYNRAD_VERTONLY;
 }; // class FloorGrid
 } // namespace csp::vraccessibility
 

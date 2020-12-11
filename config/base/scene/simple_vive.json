@@ -713,7 +713,8 @@
       "vignetteFadeDeadzone": 0.5,
       "vignetteLowerVelocityThreshold": 0.2,
       "vignetteUpperVelocityThreshold": 10.0,
-      "vignetteUseDynamicRadius": false
+      "vignetteUseDynamicRadius": false,
+      "vignetteUseVerticalOnly": false
     }
   }
 }
