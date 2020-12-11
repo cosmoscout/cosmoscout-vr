@@ -104,29 +104,24 @@ cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
       -DCMAKE_BUILD_TYPE="$BUILD_TYPE" "$BUILD_DIR/proj6/extracted/proj-6.3.2"
 cmake --build . --target install --parallel "$(nproc)"
 
-# Compile GDAL From source ----------------------------------------------------------------------------
-# Check if gdal should be compiled from source "export COSMOSCOUT_NO_SYSTEM_GDAL=true".
-# WIP
-if [ "$COSMOSCOUT_NO_SYSTEM_GDAL" = true ]; then
-  # gdal 3.2.0 ----------------------------------------------------------------------------------------
+# gdal 3.2.0 ----------------------------------------------------------------------------------------
 
-  echo ""
-  echo "Downloading and installing gdal ..."
-  echo ""
+echo ""
+echo "Downloading and installing gdal ..."
+echo ""
 
-  cmake -E make_directory "$BUILD_DIR/gdal/extracted" && cd "$BUILD_DIR/gdal"
-  wget -nc https://github.com/OSGeo/gdal/releases/download/v3.2.0/gdal-3.2.0.tar.gz
+cmake -E make_directory "$BUILD_DIR/gdal/extracted" && cd "$BUILD_DIR/gdal"
+wget -nc https://github.com/OSGeo/gdal/releases/download/v3.2.0/gdal-3.2.0.tar.gz
 
-  cd "$BUILD_DIR/gdal/extracted"
-  cmake -E tar xzf ../gdal-3.2.0.tar.gz
-  cd "$BUILD_DIR/gdal/extracted/gdal-3.2.0"
+cd "$BUILD_DIR/gdal/extracted"
+cmake -E tar xzf ../gdal-3.2.0.tar.gz
+cd "$BUILD_DIR/gdal/extracted/gdal-3.2.0"
 
-  ./configure --prefix="$INSTALL_DIR" \
-    --with-proj="$INSTALL_DIR"
+./configure --prefix="$INSTALL_DIR" \
+  --with-proj="$INSTALL_DIR"
 
-  make -j"$(nproc)"
-  make install
-fi
+make -j"$(nproc)"
+make install
 
 # VTK -----------------------------------------------------------------------------------------
 
