@@ -209,7 +209,7 @@ void main() {
         scaleFac *= 10.0;
         float fac = texture(iTexture, iTexcoords * 0.5 + 0.5).r * luminance / (scaleFac * scaleFac);
 
-        // A magic number here. 001744984 is the average brightness of the currently used
+        // A magic number here. This is the average brightness of the currently used
         // star texture (identify -format "%[fx:mean]\n" star.png).
         fac /= 0.0559036;
     #endif
