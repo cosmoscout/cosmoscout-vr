@@ -166,9 +166,13 @@ jobs:
           -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
           -DCOSMOSCOUT_UNIT_TESTS=On -DBOOST_ROOT=$BOOST_ROOT_1_72_0 -DBoost_ARCHITECTURE=-x64
       - name: Run Tests
-        run: ./install/linux-Release/bin/run_tests.sh
+        run: >
+          export LD_LIBRARY_PATH="$BOOST_ROOT_1_72_0/lib:$LD_LIBRARY_PATH"
+          ./install/linux-Release/bin/run_tests.sh
       - name: Run Graphical Tests
-        run: ./install/linux-Release/bin/run_graphical_tests.sh
+        run: >
+          export LD_LIBRARY_PATH="$BOOST_ROOT_1_72_0/lib:$LD_LIBRARY_PATH"
+          ./install/linux-Release/bin/run_graphical_tests.sh
       - name: Upload Results of Failed Test
         uses: actions/upload-artifact@v1
         if: failure()
