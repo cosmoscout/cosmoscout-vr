@@ -119,7 +119,9 @@ jobs:
           name: graphical-test-results-gcc
           path: install/linux-Release/bin/test
       - name: Calculate Test Coverage
-        run: ./lcov.sh
+        run: |
+          export LD_LIBRARY_PATH="$BOOST_ROOT_1_72_0/lib:$LD_LIBRARY_PATH"
+          ./lcov.sh
       - name: Upload Coverage Info
         uses: coverallsapp/github-action@master
         with:
