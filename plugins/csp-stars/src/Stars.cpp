@@ -318,6 +318,8 @@ bool Stars::Do() {
       defines += "#define DRAWMODE_DISC\n";
     } else if (mDrawMode == DrawMode::eSmoothDisc) {
       defines += "#define DRAWMODE_SMOOTH_DISC\n";
+    } else if (mDrawMode == DrawMode::eScaledDisc) {
+      defines += "#define DRAWMODE_SCALED_DISC\n";
     } else if (mDrawMode == DrawMode::eSprite) {
       defines += "#define DRAWMODE_SPRITE\n";
     }
