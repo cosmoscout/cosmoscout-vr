@@ -124,11 +124,17 @@ void main() {
 
     #ifdef DRAWMODE_SCALED_DISC
         scale *= 1.0 - (iMagnitude - uMinMagnitude) / (uMaxMagnitude - uMinMagnitude);
+
+        // We scale the stars up a little in this mode so that they look more similar to
+        // the other modes without the user having to move the star-size slider.
         scale *= 3.0;
     #endif
 
     #ifdef DRAWMODE_SPRITE
         scale *= 1.0 - (iMagnitude - uMinMagnitude) / (uMaxMagnitude - uMinMagnitude);
+
+        // We scale the stars up a little in this mode so that they look more similar to
+        // the other modes without the user having to move the star-size slider.
         scale *= 10.0;
     #endif
 
@@ -188,12 +194,18 @@ void main() {
     
     #ifdef DRAWMODE_SCALED_DISC
         float scaleFac = 1.0 - (iMagnitude - uMinMagnitude) / (uMaxMagnitude - uMinMagnitude);
+
+        // The stars were scaled up a little in this mode so we have to incorporate this
+        // here to achieve the same total luminance.
         scaleFac *= 3.0;
         float fac = luminance * clamp(1-dist, 0, 1) * 3 / (scaleFac * scaleFac);
     #endif
 
     #ifdef DRAWMODE_SPRITE
         float scaleFac = 1.0 - (iMagnitude - uMinMagnitude) / (uMaxMagnitude - uMinMagnitude);
+
+        // The stars were scaled up a little in this mode so we have to incorporate this
+        // here to achieve the same total luminance.
         scaleFac *= 10.0;
         float fac = texture(iTexture, iTexcoords * 0.5 + 0.5).r * luminance / (scaleFac * scaleFac);
 
