@@ -164,6 +164,9 @@ void Plugin::init() {
       "Enables smooth disc draw mode for the stars.",
       std::function([this]() { mPluginSettings.mDrawMode = Stars::DrawMode::eSmoothDisc; }));
   mGuiManager->getGui()->registerCallback("stars.setDrawMode4",
+      "Enables scaled disc draw mode for the stars.",
+      std::function([this]() { mPluginSettings.mDrawMode = Stars::DrawMode::eScaledDisc; }));
+  mGuiManager->getGui()->registerCallback("stars.setDrawMode5",
       "Enables sprite draw mode for the stars.",
       std::function([this]() { mPluginSettings.mDrawMode = Stars::DrawMode::eSprite; }));
   mPluginSettings.mDrawMode.connect([this](Stars::DrawMode drawMode) {
@@ -175,8 +178,10 @@ void Plugin::init() {
       mGuiManager->setRadioChecked("stars.setDrawMode2");
     } else if (drawMode == Stars::DrawMode::eSmoothDisc) {
       mGuiManager->setRadioChecked("stars.setDrawMode3");
-    } else if (drawMode == Stars::DrawMode::eSprite) {
+    } else if (drawMode == Stars::DrawMode::eScaledDisc) {
       mGuiManager->setRadioChecked("stars.setDrawMode4");
+    } else if (drawMode == Stars::DrawMode::eSprite) {
+      mGuiManager->setRadioChecked("stars.setDrawMode5");
     }
   });
 
