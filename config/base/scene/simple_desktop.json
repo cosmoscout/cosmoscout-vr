@@ -462,6 +462,134 @@
         }
       }
     },
+    "csp-wms-overlays": {
+      "mapCache": "texture-cache",
+      "bodies": {
+        "Earth": {
+          "gridResolutionX": 200,
+          "gridResolutionY": 100,
+          "texture": "../share/resources/textures/earth.jpg",
+          "activeWms": "Fires-Hotspots-VIIRS",
+          "wms": {
+            "Fires-Hotspots-VIIRS": {
+              "copyright": "NASA",
+              "url": "https://firms.modaps.eosdis.nasa.gov/wms/key/ab4af1f771b9952dc49660c7b1aa53b8/?REQUEST=GetMap",
+              "format": "png",
+              "width": 1600,
+              "height": 800,
+              "time": "2019-09-01/current/P1D",
+              "layers": "fires_viirs",
+              "preFetch": 2,
+              "timeSpan": true,
+              "latRange": [ 0, 60 ],
+              "lonRange": [ -20, 40 ]
+            },
+            "Land Surface Temperature [Day] (1 Day - MODIS)": {
+              "copyright": "NASA",
+              "url": "https://neo.sci.gsfc.nasa.gov/wms/wms?SERVICE=WMS&REQUEST=GetMap&VERSION=1.3.0&CRS=CRS:84&BBOX=-180,-90,180,90",
+              "format": "jpeg",
+              "width": 1600,
+              "height": 800,
+              "time": "2000-02-24/2000-04-25/P1D,2000-04-28/2000-08-05/P1D,2000-08-18/2000-12-30/P1D,2001-01-01/2001-06-15/P1D,2001-07-03/2002-03-19/P1D,2002-03-29/2002-04-14/P1D,2002-04-16/2003-12-16/P1D,2003-12-24/2004-12-30/P1D,2005-01-01/2008-12-20/P1D,2008-12-23/2008-12-30/P1D,2009-01-01/2012-12-30/P1D,2013-01-01/2016-02-18/P1D,2016-02-28/2016-12-30/P1D,2017-01-01/current/P1D",
+              "layers": "MOD_LSTD_D",
+              "preFetch": 2
+            },
+            "Land Surface Temperature [Day] (1 Month - MODIS)": {
+              "copyright": "NASA",
+              "url": "https://neo.sci.gsfc.nasa.gov/wms/wms?SERVICE=WMS&REQUEST=GetMap&VERSION=1.3.0&CRS=CRS:84&BBOX=-180,-90,180,90",
+              "format": "jpeg",
+              "width": 800,
+              "height": 800,
+              "time": "2000-02-01/current/P1M",
+              "layers": "MOD_LSTD_M",
+              "preFetch": 2
+            },
+            "Land Surface Temperature [Day] [Eurafrica] (1 Month - MODIS)": {
+              "copyright": "NASA",
+              "url": "https://neo.sci.gsfc.nasa.gov/wms/wms?SERVICE=WMS&REQUEST=GetMap&VERSION=1.3.0&CRS=CRS:84",
+              "format": "jpeg",
+              "width": 800,
+              "height": 800,
+              "time": "2000-02-01/current/P1M",
+              "layers": "MOD_LSTD_M",
+              "preFetch": 0,
+              "latRange": [ 0, 60 ],
+              "lonRange": [ -20, 40 ]
+            },
+            "Vegetation Index (Monthly, Best Available, MODIS, Aqua)": {
+              "copyright": "NASA",
+              "url": "https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi?SERVICE=WMS&REQUEST=GetMap&VERSION=1.3.0&CRS=EPSG:4326&BBOX=-90,-180,90,180&TRANSPARENT=true",
+              "format": "jpeg",
+              "width": 1600,
+              "height": 800,
+              "time": "2002-07-01/current/P1M",
+              "layers": "MODIS_Aqua_L3_NDVI_Monthly",
+              "preFetch": 2
+            },
+            "Nitrogen Dioxide (Tropospheric Column, OMI, Aura)": {
+              "copyright": "NASA",
+              "url": "https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi?SERVICE=WMS&REQUEST=GetMap&VERSION=1.3.0&CRS=EPSG:4326&BBOX=-90,-180,90,180&TRANSPARENT=true",
+              "format": "png",
+              "width": 1600,
+              "height": 800,
+              "time": "2004-10-01/current/P1D",
+              "layers": "OMI_Nitrogen_Dioxide_Tropo_Column",
+              "preFetch": 2
+            },
+            "Ozone (DOAS, v3, Standard, OMI, Aura)": {
+              "copyright": "NASA",
+              "url": "https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi?SERVICE=WMS&REQUEST=GetMap&VERSION=1.3.0&CRS=EPSG:4326&BBOX=-90,-180,90,180&TRANSPARENT=true",
+              "format": "png",
+              "width": 1600,
+              "height": 800,
+              "time": "2004-10-01/current/P1D",
+              "layers": "OMI_Ozone_DOAS_Total_Column",
+              "preFetch": 2
+            },
+            "Snowfall (Monthly, MERRA2)": {
+              "copyright": "NASA",
+              "url": "https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi?SERVICE=WMS&REQUEST=GetMap&VERSION=1.3.0&CRS=EPSG:4326&BBOX=-90,-180,90,180&TRANSPARENT=true",
+              "format": "jpeg",
+              "width": 1600,
+              "height": 800,
+              "time": "1980-01-01/current/P1M",
+              "layers": "MERRA2_Snowfall_Monthly",
+              "preFetch": 2
+            },
+            "Precipitation Rate": {
+              "copyright": "NASA",
+              "url": "https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi?SERVICE=WMS&REQUEST=GetMap&VERSION=1.3.0&CRS=EPSG:4326&BBOX=-90,-180,90,180&TRANSPARENT=true",
+              "format": "png",
+              "width": 1600,
+              "height": 800,
+              "time": "2000-06-01/current/P1D",
+              "layers": "IMERG_Precipitation_Rate",
+              "preFetch": 2
+            },
+            "Total Precipitation Bias Corrected (Monthly, MERRA2)": {
+              "copyright": "NASA",
+              "url": "https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi?SERVICE=WMS&REQUEST=GetMap&VERSION=1.3.0&CRS=EPSG:4326&BBOX=-90,-180,90,180&TRANSPARENT=true",
+              "format": "jpeg",
+              "width": 1600,
+              "height": 800,
+              "time": "1980-01-01/current/P1M",
+              "layers": "MERRA2_Precipitation_Bias_Corrected_Monthly",
+              "preFetch": 2
+            },
+            "True Color (1 day - NPP/VIIRS)": {
+              "copyright": "NASA",
+              "url": "https://neo.sci.gsfc.nasa.gov/wms/wms?SERVICE=WMS&REQUEST=GetMap&VERSION=1.3.0&CRS=CRS:84&BBOX=-180,-90,180,90",
+              "format": "jpeg",
+              "width": 1600,
+              "height": 800,
+              "time": "2014-01-17/2014-02-25/P1D,2014-02-27/2014-03-04/P1D,2014-03-06/2019-11-20/P1D,2019-11-22/2020-06-08/P1D,2020-06-11/2020-06-20/P1D",
+              "layers": "VIIRS_543D",
+              "preFetch": 2
+            }
+          }
+        }
+      }
+    },
     "csp-rings": {
       "rings": {
         "Saturn": {
