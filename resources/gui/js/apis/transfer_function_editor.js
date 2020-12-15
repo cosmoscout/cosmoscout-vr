@@ -663,8 +663,8 @@ class TransferFunctionEditorApi extends IApi {
    * @param filename {string} Name of the file to be added
    */
   addAvailableTransferFunction(filename) {
-    if (this._availableFiles.includes(filename)) {
-      let files = _availableFiles;
+    if (!this._availableFiles.includes(filename)) {
+      let files = this._availableFiles;
       files.push(filename);
       files.sort();
       this.setAvailableTransferFunctions(JSON.stringify(files));
