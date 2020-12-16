@@ -241,6 +241,47 @@ boost::posix_time::ptime addDurationToTime(
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+std::optional<std::string> getElementText(
+    VistaXML::TiXmlElement* baseElement, std::vector<std::string> childPath) {
+  VistaXML::TiXmlHandle elementHandle(baseElement);
+  for (std::string child : childPath) {
+    elementHandle = elementHandle.FirstChildElement(child);
+  }
+  VistaXML::TiXmlElement* element = elementHandle.ToElement();
+  if (element != nullptr) {
+    return element->FirstChild()->ValueStr();
+  }
+  return {};
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::optional<bool> getBoolAttribute(VistaXML::TiXmlElement* element, std::string attributeName) {
+  // TODO Can boolean attributes be given as strings?
+  std::optional<int> value = getAttribute<int>(element, attributeName);
+  if (value.has_value()) {
+    return value.value() == 1;
+  }
+  return {};
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::optional<std::optional<int>> getSizeAttribute(
+    VistaXML::TiXmlElement* element, std::string attributeName) {
+  std::optional<int> value = getAttribute<int>(element, attributeName);
+  if (value.has_value()) {
+    std::optional<int> inner;
+    if (value.value() != 0) {
+      inner = value.value();
+    }
+    return inner;
+  }
+  return {};
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 } // namespace utils
 
 } // namespace csp::wmsoverlays

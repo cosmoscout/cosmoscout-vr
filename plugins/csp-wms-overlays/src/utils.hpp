@@ -9,6 +9,8 @@
 
 #include "../../../src/cs-utils/convert.hpp"
 
+#include <VistaTools/tinyXML/tinyxml.h>
+
 #include <optional>
 #include <regex>
 
@@ -59,6 +61,50 @@ bool timeInIntervals(boost::posix_time::ptime& time, std::vector<TimeInterval>& 
 /// Adds the interval multiple times, if it is specified (for e.g. for pre-fetch).
 boost::posix_time::ptime addDurationToTime(
     boost::posix_time::ptime time, Duration duration, int multiplier = 1);
+
+/// Tries to get the text of a XML element.
+/// Starts at baseElement and then descends into the children given as childPath.
+/// The return value is empty if the requested element is not present.
+std::optional<std::string> getElementText(
+    VistaXML::TiXmlElement* baseElement, std::vector<std::string> childPath);
+
+/// Tries to get the value of a boolean attribute on the given element.
+/// If the attribute contains an integer the values will be mapped to booleans as follows:
+/// 0->false, 1->true
+/// The return value is empty if the requested element is not present.
+std::optional<bool> getBoolAttribute(VistaXML::TiXmlElement* element, std::string attributeName);
+
+/// Tries to get the value of an integer attribute representing a size.
+/// The returned value (inner optional) is empty if the attribute specifies an unlimited size.
+/// The return value (outer optional) is empty if the requested attribute is not present.
+std::optional<std::optional<int>> getSizeAttribute(
+    VistaXML::TiXmlElement* element, std::string attributeName);
+
+/// Gets the value of the given attribute on the given element.
+/// The return value is empty if the requested element is not present.
+template <typename T>
+std::optional<T> getAttribute(VistaXML::TiXmlElement* element, std::string attributeName) {
+  T   value  = 0;
+  int result = element->QueryValueAttribute<T>(attributeName, &value);
+  if (result == VistaXML::TIXML_SUCCESS) {
+    return value;
+  }
+  return {};
+}
+
+/// Sets the given var to the value of the optional, if it is present.
+template <typename T>
+void setOrKeep(T& var, std::optional<T> optional) {
+  var = optional.value_or(var);
+}
+
+/// Sets the given var to the value of the optional, if it is present.
+template <typename T>
+void setOrKeep(std::optional<T>& var, std::optional<T> optional) {
+  if (optional.has_value()) {
+    var = optional.value();
+  }
+}
 
 } // namespace utils
 

@@ -6,6 +6,7 @@
 
 #include "Plugin.hpp"
 #include "TextureOverlayRenderer.hpp"
+#include "WebMapService.hpp"
 #include "logger.hpp"
 
 #include "../../../src/cs-core/GuiManager.hpp"
@@ -13,7 +14,6 @@
 #include "../../../src/cs-core/Settings.hpp"
 #include "../../../src/cs-core/SolarSystem.hpp"
 #include "../../../src/cs-core/TimeControl.hpp"
-#include "../../../src/cs-utils/logger.hpp"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -94,8 +94,14 @@ void to_json(nlohmann::json& j, Plugin::Settings const& o) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Plugin::init() {
-
   logger().info("Loading plugin...");
+
+  // WebMapService wms("https://svs.gsfc.nasa.gov/cgi-bin/wms");
+  // WebMapService wms("https://neo.sci.gsfc.nasa.gov/wms/wms");
+  WebMapService wms("https://maps.dwd.de/geoserver/dwd/wms");
+  for (WebMapLayer l : wms.getLayers()) {
+    logger().trace(l.getTitle());
+  }
 
   mOnLoadConnection = mAllSettings->onLoad().connect([this]() { onLoad(); });
 
