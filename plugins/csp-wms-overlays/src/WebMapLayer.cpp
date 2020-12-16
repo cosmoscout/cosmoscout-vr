@@ -40,8 +40,16 @@ WebMapLayer::WebMapLayer(VistaXML::TiXmlElement* element, Settings settings)
   utils::setOrKeep(
       mSettings.mAttribution, utils::getElementText(element, {"Attribution", "Title"}));
 
+  for (VistaXML::TiXmlElement* dimensionElement = element->FirstChildElement("Dimension");
+       dimensionElement; dimensionElement = dimensionElement->NextSiblingElement("Dimension")) {
+    if (utils::getAttribute<std::string>(dimensionElement, "name").value() == "time") {
+      utils::setOrKeep(mSettings.mTime, utils::getElementText(dimensionElement, {}));
+      logger().trace("Time: {}", mSettings.mTime.value());
+    }
+  }
+
   // TODO Bounding Box
-  // TODO Dimensions
+  // TODO Other dimensions?
   // TODO Styles + Legends
   // TODO CRS
 

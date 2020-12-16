@@ -63,7 +63,7 @@ std::vector<WebMapLayer> WebMapService::getLayers() {
 VistaXML::TiXmlDocument WebMapService::getCapabilities() {
   std::stringstream urlStream;
   urlStream << mUrl;
-  urlStream << "?SERVICE=WMS&REQUEST=GetCapabilities";
+  urlStream << "?SERVICE=WMS&version=1.3.0&REQUEST=GetCapabilities";
   const std::string urlString = urlStream.str();
 
   std::stringstream xmlStream;

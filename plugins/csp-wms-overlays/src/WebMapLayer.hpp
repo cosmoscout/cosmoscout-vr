@@ -19,14 +19,15 @@ namespace csp::wmsoverlays {
 class WebMapLayer {
  public:
   struct Settings {
-    bool                  mOpaque    = false;
-    bool                  mNoSubsets = false;
-    std::optional<int>    mFixedWidth;
-    std::optional<int>    mFixedHeight;
-    std::array<double, 2> mLonRange = {-180., 180.};
-    std::array<double, 2> mLatRange = {-90., 90.};
+    bool                       mOpaque    = false;
+    bool                       mNoSubsets = false;
+    std::optional<int>         mFixedWidth;
+    std::optional<int>         mFixedHeight;
+    std::array<double, 2>      mLonRange = {-180., 180.};
+    std::array<double, 2>      mLatRange = {-90., 90.};
+    std::optional<std::string> mTime;
     // TODO Crs
-    // TODO Dimensions
+    // TODO Other dimensions?
     // TODO Styles + Legends
     std::optional<std::string> mAttribution;
   };

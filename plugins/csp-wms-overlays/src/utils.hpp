@@ -84,7 +84,7 @@ std::optional<std::optional<int>> getSizeAttribute(
 /// The return value is empty if the requested element is not present.
 template <typename T>
 std::optional<T> getAttribute(VistaXML::TiXmlElement* element, std::string attributeName) {
-  T   value  = 0;
+  T   value;
   int result = element->QueryValueAttribute<T>(attributeName, &value);
   if (result == VistaXML::TIXML_SUCCESS) {
     return value;
