@@ -40,7 +40,6 @@ void from_json(nlohmann::json const& j, Plugin::Settings::WMSConfig& o) {
   cs::core::Settings::deserialize(j, "width", o.mWidth);
   cs::core::Settings::deserialize(j, "height", o.mHeight);
   cs::core::Settings::deserialize(j, "time", o.mTime);
-  cs::core::Settings::deserialize(j, "preFetch", o.mPrefetchCount);
   cs::core::Settings::deserialize(j, "layers", o.mLayers);
   cs::core::Settings::deserialize(j, "timeSpan", o.mTimespan);
   cs::core::Settings::deserialize(j, "latRange", o.mLatRange);
@@ -54,7 +53,6 @@ void to_json(nlohmann::json& j, Plugin::Settings::WMSConfig const& o) {
   cs::core::Settings::serialize(j, "width", o.mWidth);
   cs::core::Settings::serialize(j, "height", o.mHeight);
   cs::core::Settings::serialize(j, "time", o.mTime);
-  cs::core::Settings::serialize(j, "preFetch", o.mPrefetchCount);
   cs::core::Settings::serialize(j, "layers", o.mLayers);
   cs::core::Settings::serialize(j, "timeSpan", o.mTimespan);
   cs::core::Settings::serialize(j, "latRange", o.mLatRange);
@@ -82,11 +80,13 @@ void to_json(nlohmann::json& j, Plugin::Settings::SimpleWMSBody const& o) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void from_json(nlohmann::json const& j, Plugin::Settings& o) {
+  cs::core::Settings::deserialize(j, "preFetch", o.mPrefetchCount);
   cs::core::Settings::deserialize(j, "mapCache", o.mMapCache);
   cs::core::Settings::deserialize(j, "bodies", o.mBodies);
 }
 
 void to_json(nlohmann::json& j, Plugin::Settings const& o) {
+  cs::core::Settings::serialize(j, "preFetch", o.mPrefetchCount);
   cs::core::Settings::serialize(j, "mapCache", o.mMapCache);
   cs::core::Settings::serialize(j, "bodies", o.mBodies);
 }
@@ -96,12 +96,15 @@ void to_json(nlohmann::json& j, Plugin::Settings const& o) {
 void Plugin::init() {
   logger().info("Loading plugin...");
 
-  // WebMapService wms("https://svs.gsfc.nasa.gov/cgi-bin/wms");
-  // WebMapService wms("https://neo.sci.gsfc.nasa.gov/wms/wms");
-  WebMapService wms("https://maps.dwd.de/geoserver/dwd/wms");
-  for (WebMapLayer l : wms.getLayers()) {
-    logger().trace(l.getTitle());
-  }
+  // std::string url("https://svs.gsfc.nasa.gov/cgi-bin/wms");
+  std::string url("https://neo.sci.gsfc.nasa.gov/wms/wms");
+  // std::string url("https://maps.dwd.de/geoserver/dwd/wms");
+
+  std::shared_ptr<WebMapService> wms = std::make_shared<WebMapService>(url);
+  mWms.push_back(wms);
+  std::vector<WebMapLayer> layers = mWms[0]->getLayers();
+  std::transform(layers.begin(), layers.end(), std::inserter(mLayers, mLayers.end()),
+      [](const WebMapLayer& l) { return std::make_pair(l.getName(), l); });
 
   mOnLoadConnection = mAllSettings->onLoad().connect([this]() { onLoad(); });
 
@@ -156,21 +159,17 @@ void Plugin::init() {
             "CosmoScout.gui.addDropdownValue", "simpleWMSBodies.setWMS", "None", "None", "false");
 
         auto const& settings = getBodySettings(overlay->second);
-        for (auto const& wms : settings.mWMS) {
-          bool active = wms.first == settings.mActiveWMS;
+        for (auto const& layer : mLayers) {
+          bool active = layer.first == settings.mActiveWMS;
           mGuiManager->getGui()->callJavascript("CosmoScout.gui.addDropdownValue",
-              "simpleWMSBodies.setWMS", wms.first, wms.first, active);
+              "simpleWMSBodies.setWMS", layer.first, layer.first, active);
           if (active) {
-            mGuiManager->getGui()->callJavascript(
-                "CosmoScout.simpleWMSBodies.setWMSDataCopyright", wms.second.mCopyright);
+            mGuiManager->getGui()->callJavascript("CosmoScout.simpleWMSBodies.setWMSDataCopyright",
+                layer.second.getSettings().mAttribution.value_or(""));
 
             // Only allow setting timespan if it is specified for the WMS data set.
             mGuiManager->getGui()->callJavascript(
-                "CosmoScout.simpleWMSBodies.enableCheckBox", wms.second.mTimespan.value_or(false));
-            if (!wms.second.mTimespan.value_or(false)) {
-              mGuiManager->setCheckboxValue("simpleWMSBodies.setEnableTimeSpan", false);
-              mPluginSettings->mEnableTimespan = false;
-            }
+                "CosmoScout.simpleWMSBodies.enableCheckBox", true);
           }
         }
       });
@@ -272,32 +271,27 @@ void Plugin::setWMSSource(
   auto& settings = getBodySettings(wmsOverlay);
 
   if (name == "None") {
-    wmsOverlay->setActiveWMS(nullptr);
+    wmsOverlay->setActiveWMS(nullptr, nullptr);
     mGuiManager->getGui()->callJavascript("CosmoScout.simpleWMSBodies.setWMSDataCopyright", "");
     settings.mActiveWMS = "None";
   } else {
-    auto dataset = settings.mWMS.find(name);
-    if (dataset == settings.mWMS.end()) {
-      logger().warn("Cannot set WMS dataset '{}': There is no dataset defined with this name! "
-                    "Using first dataset instead...",
+    auto layer = mLayers.find(name);
+    if (layer == mLayers.end()) {
+      logger().warn("Cannot set WMS layer '{}': There is no layer defined with this name! "
+                    "Using first layer instead...",
           name);
-      dataset = settings.mWMS.begin();
+      layer = mLayers.begin();
     }
 
     settings.mActiveWMS = name;
 
-    wmsOverlay->setActiveWMS(std::make_shared<Plugin::Settings::WMSConfig>(dataset->second));
+    wmsOverlay->setActiveWMS(mWms[0], std::make_shared<WebMapLayer>(layer->second));
 
-    mGuiManager->getGui()->callJavascript(
-        "CosmoScout.simpleWMSBodies.setWMSDataCopyright", dataset->second.mCopyright);
+    mGuiManager->getGui()->callJavascript("CosmoScout.simpleWMSBodies.setWMSDataCopyright",
+        layer->second.getSettings().mAttribution.value_or(""));
 
     // Only allow setting timespan if it is specified for the WMS data set.
-    mGuiManager->getGui()->callJavascript(
-        "CosmoScout.simpleWMSBodies.enableCheckBox", dataset->second.mTimespan.value_or(false));
-    if (!dataset->second.mTimespan.value_or(false)) {
-      mGuiManager->setCheckboxValue("simpleWMSBodies.setEnableTimeSpan", false);
-      mPluginSettings->mEnableTimespan = false;
-    }
+    mGuiManager->getGui()->callJavascript("CosmoScout.simpleWMSBodies.enableCheckBox", true);
   }
 }
 

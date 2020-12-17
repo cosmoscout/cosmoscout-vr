@@ -52,6 +52,12 @@ WebMapService::WebMapService(std::string url)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+std::string WebMapService::getUrl() {
+  return mUrl;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 std::vector<WebMapLayer> WebMapService::getLayers() {
   std::vector<WebMapLayer> layers;
   mRootLayer->getRequestableLayers(layers);
@@ -72,6 +78,8 @@ VistaXML::TiXmlDocument WebMapService::getCapabilities() {
   request.setOpt(curlpp::options::WriteStream(&xmlStream));
   request.setOpt(curlpp::options::NoSignal(true));
   request.setOpt(curlpp::options::SslVerifyPeer(false));
+
+	logger().trace("Requesting '{}'", urlString);
 
   try {
     request.perform();

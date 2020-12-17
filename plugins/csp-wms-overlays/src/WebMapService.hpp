@@ -23,6 +23,7 @@ class WebMapService {
  public:
   WebMapService(std::string url);
 
+	std::string getUrl();
 	std::vector<WebMapLayer> getLayers();
 
  private:

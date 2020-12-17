@@ -18,6 +18,8 @@
 namespace csp::wmsoverlays {
 
 class TextureOverlayRenderer;
+class WebMapService;
+class WebMapLayer;
 
 /// This plugin provides the rendering of planets as spheres with a texture and an additional WMS
 /// based texture. Despite its name it can also render moons :P. It can be configured via the
@@ -37,6 +39,9 @@ class Plugin : public cs::core::PluginBase {
     /// Path to the map cache folder, can be absolute or relative to the cosmoscout executable.
     cs::utils::DefaultProperty<std::string> mMapCache{"texture-cache"};
 
+    /// The amount of textures that gets pre-fetched in every time direction.
+    cs::utils::DefaultProperty<int> mPrefetchCount{0};
+
     /// A single WMS data set.
     struct WMSConfig {
       std::string mCopyright; ///< The copyright holder of the data set (also shown in the UI).
@@ -44,11 +49,9 @@ class Plugin : public cs::core::PluginBase {
       std::string mFormat;    ///< Download image file format: png or jpeg.
       int         mWidth;     ///< The width of the WMS image.
       int         mHeight;    ///< The height of the WMS image.
-      std::optional<std::string> mTime;   ///< Time intervals of WMS images.
-      std::string                mLayers; ///< A comma,seperated list of WMS layers.
-      std::optional<int>
-          mPrefetchCount; ///< The amount of textures that gets pre-fetched in every time direction.
-      std::optional<bool> mTimespan; ///< True if the WMS server enables the use of timespan.
+      std::optional<std::string> mTime;     ///< Time intervals of WMS images.
+      std::string                mLayers;   ///< A comma,seperated list of WMS layers.
+      std::optional<bool>        mTimespan; ///< True if the WMS server enables the use of timespan.
 
       cs::utils::DefaultProperty<std::array<double, 2>> mLatRange{{-90., 90.}};
       cs::utils::DefaultProperty<std::array<double, 2>> mLonRange{{-180., 180.}};
@@ -79,6 +82,9 @@ class Plugin : public cs::core::PluginBase {
 
   std::shared_ptr<Settings> mPluginSettings = std::make_shared<Settings>();
   std::map<std::string, std::shared_ptr<TextureOverlayRenderer>> mWMSOverlays;
+
+  std::vector<std::shared_ptr<WebMapService>> mWms;
+  std::map<std::string, WebMapLayer>          mLayers;
 
   int mActiveBodyConnection = -1;
   int mOnLoadConnection     = -1;

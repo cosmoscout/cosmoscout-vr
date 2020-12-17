@@ -34,7 +34,9 @@ class WebMapLayer {
 
   WebMapLayer(VistaXML::TiXmlElement* element, Settings settings);
 
-  std::string getTitle();
+  std::string getTitle() const;
+  std::string getName() const;
+  Settings    getSettings() const;
 
   bool isRequestable();
   void getRequestableLayers(std::vector<WebMapLayer>& layers);

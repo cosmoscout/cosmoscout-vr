@@ -2,6 +2,8 @@
 #define TEXTURE_OVERLAY_RENDERER
 
 #include "Plugin.hpp"
+#include "WebMapLayer.hpp"
+#include "WebMapService.hpp"
 #include "WebMapTextureLoader.hpp"
 
 #include <VistaKernel/GraphicsManager/VistaOpenGLDraw.h>
@@ -47,15 +49,10 @@ class TextureOverlayRenderer : public IVistaOpenGLDraw {
   void configure(Plugin::Settings::SimpleWMSBody const& settings);
 
   /// Set the active WMS data set.
-  void setActiveWMS(std::shared_ptr<Plugin::Settings::WMSConfig> wms);
+  void setActiveWMS(std::shared_ptr<WebMapService> wms, std::shared_ptr<WebMapLayer> layer);
 
   /// Returns the time intervals of the active data set.
   std::vector<TimeInterval> getTimeIntervals();
-
-  /**
-   * Adding a texture used for overlay rendering
-   */
-  void SetOverlayTexture(std::shared_ptr<VistaTexture> texture);
 
   void SetBounds(std::array<double, 4> bounds);
 
@@ -99,11 +96,12 @@ class TextureOverlayRenderer : public IVistaOpenGLDraw {
   std::map<std::string, unsigned char*>              mTextures;
   std::vector<std::string>                           mWrongTextures;
 
-  std::shared_ptr<VistaTexture> mTexture; //! The textured passed from outside via SetOverlayTexture
-  std::array<double, 4>         mLngLatBounds;
+  int                   mWidth  = 1024;
+  int                   mHeight = 1024;
+  std::array<double, 4> mLngLatBounds;
 
-  std::shared_ptr<Plugin::Settings::WMSConfig>
-      mActiveWMS; ///< WMS config of the active WMS data set.
+  std::shared_ptr<WebMapService> mActiveWMS;      ///< The active WMS.
+  std::shared_ptr<WebMapLayer>   mActiveWMSLayer; ///< The active WMS layer.
 
   std::shared_ptr<VistaTexture> mWMSTexture;       ///< The WMS texture.
   std::shared_ptr<VistaTexture> mSecondWMSTexture; ///< Second WMS texture for time interpolation.

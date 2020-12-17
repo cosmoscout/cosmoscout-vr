@@ -44,7 +44,6 @@ WebMapLayer::WebMapLayer(VistaXML::TiXmlElement* element, Settings settings)
        dimensionElement; dimensionElement = dimensionElement->NextSiblingElement("Dimension")) {
     if (utils::getAttribute<std::string>(dimensionElement, "name").value() == "time") {
       utils::setOrKeep(mSettings.mTime, utils::getElementText(dimensionElement, {}));
-      logger().trace("Time: {}", mSettings.mTime.value());
     }
   }
 
@@ -61,8 +60,20 @@ WebMapLayer::WebMapLayer(VistaXML::TiXmlElement* element, Settings settings)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::string WebMapLayer::getTitle() {
+std::string WebMapLayer::getTitle() const {
   return mTitle;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::string WebMapLayer::getName() const {
+  return mName.value_or("");
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+WebMapLayer::Settings WebMapLayer::getSettings() const {
+  return mSettings;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
