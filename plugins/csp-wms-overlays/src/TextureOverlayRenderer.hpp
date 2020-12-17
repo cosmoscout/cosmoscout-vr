@@ -46,7 +46,7 @@ class TextureOverlayRenderer : public IVistaOpenGLDraw {
   virtual ~TextureOverlayRenderer();
 
   /// Configures the internal renderer according to the given values.
-  void configure(Plugin::Settings::SimpleWMSBody const& settings);
+  void configure(Plugin::Settings::Body const& settings);
 
   /// Set the active WMS data set.
   void setActiveWMS(std::shared_ptr<WebMapService> wms, std::shared_ptr<WebMapLayer> layer);
@@ -67,7 +67,7 @@ class TextureOverlayRenderer : public IVistaOpenGLDraw {
   void clearTextures();
 
   std::shared_ptr<Plugin::Settings> mPluginSettings;
-  Plugin::Settings::SimpleWMSBody   mSimpleWMSBodySettings;
+  Plugin::Settings::Body   mSimpleWMSBodySettings;
 
   std::unique_ptr<VistaOpenGLNode> mGLNode;
 

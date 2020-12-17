@@ -42,31 +42,13 @@ class Plugin : public cs::core::PluginBase {
     /// The amount of textures that gets pre-fetched in every time direction.
     cs::utils::DefaultProperty<int> mPrefetchCount{0};
 
-    /// A single WMS data set.
-    struct WMSConfig {
-      std::string mCopyright; ///< The copyright holder of the data set (also shown in the UI).
-      std::string mUrl;       ///< The URL of the map server including the "SERVICE=wms" parameter.
-      std::string mFormat;    ///< Download image file format: png or jpeg.
-      int         mWidth;     ///< The width of the WMS image.
-      int         mHeight;    ///< The height of the WMS image.
-      std::optional<std::string> mTime;     ///< Time intervals of WMS images.
-      std::string                mLayers;   ///< A comma,seperated list of WMS layers.
-      std::optional<bool>        mTimespan; ///< True if the WMS server enables the use of timespan.
-
-      cs::utils::DefaultProperty<std::array<double, 2>> mLatRange{{-90., 90.}};
-      cs::utils::DefaultProperty<std::array<double, 2>> mLonRange{{-180., 180.}};
-    };
-
     /// The startup settings for a planet.
-    struct SimpleWMSBody {
-      std::optional<int> mGridResolutionX;   ///< The x resolution of the body grid.
-      std::optional<int> mGridResolutionY;   ///< The y resolution of the body gird.
-      std::string        mTexture;           ///< The path to surface texture.
-      std::string        mActiveWMS;         ///< The name of the currently active WMS data set.
-      std::map<std::string, WMSConfig> mWMS; ///< The data sets containing WMS data.
+    struct Body {
+      std::string              mActiveWMS; ///< The name of the currently active WMS data set.
+      std::vector<std::string> mWms;       ///<	URLs of WMS servers.
     };
 
-    std::map<std::string, SimpleWMSBody> mBodies; ///< A list of bodies with their anchor names.
+    std::map<std::string, Body> mBodies; ///< A list of bodies with their anchor names.
   };
 
   void init() override;
@@ -75,10 +57,9 @@ class Plugin : public cs::core::PluginBase {
  private:
   void onLoad();
 
-  Settings::SimpleWMSBody& getBodySettings(
-      std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay) const;
-  void setWMSSource(
-      std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay, std::string const& name) const;
+  Settings::Body& getBodySettings(std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay) const;
+  void            setWMSSource(
+                 std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay, std::string const& name) const;
 
   std::shared_ptr<Settings> mPluginSettings = std::make_shared<Settings>();
   std::map<std::string, std::shared_ptr<TextureOverlayRenderer>> mWMSOverlays;

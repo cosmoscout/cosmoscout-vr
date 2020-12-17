@@ -114,7 +114,7 @@ TextureOverlayRenderer::~TextureOverlayRenderer() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void TextureOverlayRenderer::configure(Plugin::Settings::SimpleWMSBody const& settings) {
+void TextureOverlayRenderer::configure(Plugin::Settings::Body const& settings) {
   mSimpleWMSBodySettings = settings;
 }
 

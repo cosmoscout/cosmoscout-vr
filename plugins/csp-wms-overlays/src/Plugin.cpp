@@ -33,48 +33,14 @@ namespace csp::wmsoverlays {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void from_json(nlohmann::json const& j, Plugin::Settings::WMSConfig& o) {
-  cs::core::Settings::deserialize(j, "copyright", o.mCopyright);
-  cs::core::Settings::deserialize(j, "url", o.mUrl);
-  cs::core::Settings::deserialize(j, "format", o.mFormat);
-  cs::core::Settings::deserialize(j, "width", o.mWidth);
-  cs::core::Settings::deserialize(j, "height", o.mHeight);
-  cs::core::Settings::deserialize(j, "time", o.mTime);
-  cs::core::Settings::deserialize(j, "layers", o.mLayers);
-  cs::core::Settings::deserialize(j, "timeSpan", o.mTimespan);
-  cs::core::Settings::deserialize(j, "latRange", o.mLatRange);
-  cs::core::Settings::deserialize(j, "lonRange", o.mLonRange);
-}
-
-void to_json(nlohmann::json& j, Plugin::Settings::WMSConfig const& o) {
-  cs::core::Settings::serialize(j, "copyright", o.mCopyright);
-  cs::core::Settings::serialize(j, "url", o.mUrl);
-  cs::core::Settings::serialize(j, "format", o.mFormat);
-  cs::core::Settings::serialize(j, "width", o.mWidth);
-  cs::core::Settings::serialize(j, "height", o.mHeight);
-  cs::core::Settings::serialize(j, "time", o.mTime);
-  cs::core::Settings::serialize(j, "layers", o.mLayers);
-  cs::core::Settings::serialize(j, "timeSpan", o.mTimespan);
-  cs::core::Settings::serialize(j, "latRange", o.mLatRange);
-  cs::core::Settings::serialize(j, "lonRange", o.mLonRange);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void from_json(nlohmann::json const& j, Plugin::Settings::SimpleWMSBody& o) {
-  cs::core::Settings::deserialize(j, "gridResolutionX", o.mGridResolutionX);
-  cs::core::Settings::deserialize(j, "gridResolutionY", o.mGridResolutionY);
-  cs::core::Settings::deserialize(j, "texture", o.mTexture);
+void from_json(nlohmann::json const& j, Plugin::Settings::Body& o) {
   cs::core::Settings::deserialize(j, "activeWms", o.mActiveWMS);
-  cs::core::Settings::deserialize(j, "wms", o.mWMS);
+  cs::core::Settings::deserialize(j, "wms", o.mWms);
 }
 
-void to_json(nlohmann::json& j, Plugin::Settings::SimpleWMSBody const& o) {
-  cs::core::Settings::serialize(j, "gridResolutionX", o.mGridResolutionX);
-  cs::core::Settings::serialize(j, "gridResolutionY", o.mGridResolutionY);
-  cs::core::Settings::serialize(j, "texture", o.mTexture);
+void to_json(nlohmann::json& j, Plugin::Settings::Body const& o) {
   cs::core::Settings::serialize(j, "activeWms", o.mActiveWMS);
-  cs::core::Settings::serialize(j, "wms", o.mWMS);
+  cs::core::Settings::serialize(j, "wms", o.mWms);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -256,7 +222,7 @@ void Plugin::onLoad() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Plugin::Settings::SimpleWMSBody& Plugin::getBodySettings(
+Plugin::Settings::Body& Plugin::getBodySettings(
     std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay) const {
   auto name = std::find_if(mWMSOverlays.begin(), mWMSOverlays.end(),
       [&](auto const& pair) { return pair.second == wmsOverlay; });
