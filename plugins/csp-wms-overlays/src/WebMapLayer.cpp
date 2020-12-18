@@ -78,8 +78,12 @@ WebMapLayer::WebMapLayer(VistaXML::TiXmlElement* element, Settings settings)
   utils::setOrKeep(mSettings.mLatRange[0], minLat);
   utils::setOrKeep(mSettings.mLatRange[1], maxLat);
 
+  for (VistaXML::TiXmlElement* styleElement = element->FirstChildElement("Style"); styleElement;
+       styleElement                         = styleElement->NextSiblingElement("Style")) {
+    mSettings.mStyles.emplace_back(styleElement);
+  }
+
   // TODO Other dimensions?
-  // TODO Styles + Legends
   // TODO CRS
 
   for (VistaXML::TiXmlElement* layerElement = element->FirstChildElement("Layer"); layerElement;
@@ -122,6 +126,27 @@ void WebMapLayer::getRequestableLayers(std::vector<WebMapLayer>& layers) {
     sub.getRequestableLayers(layers);
   }
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+WebMapLayer::Style::Style(VistaXML::TiXmlElement* element)
+    : mName(utils::getElementText(element, {"Name"}).value())
+    , mTitle(utils::getElementText(element, {"Title"}).value())
+    , mLegendUrl(getLegendUrl(element)) {
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::optional<std::string> WebMapLayer::Style::getLegendUrl(VistaXML::TiXmlElement* element) {
+  VistaXML::TiXmlHandle   handle(element);
+  VistaXML::TiXmlElement* resource =
+      handle.FirstChildElement("LegendURL").FirstChildElement("OnlineResource").ToElement();
+  if (resource != nullptr) {
+    return utils::getAttribute<std::string>(resource, "xlink:href");
+  }
+  return {};
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 } // namespace csp::wmsoverlays

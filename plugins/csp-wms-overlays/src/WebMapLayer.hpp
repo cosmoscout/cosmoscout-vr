@@ -18,6 +18,17 @@ namespace csp::wmsoverlays {
 
 class WebMapLayer {
  public:
+  struct Style {
+    const std::string                mTitle;
+    const std::string                mName;
+    const std::optional<std::string> mLegendUrl;
+
+    Style(VistaXML::TiXmlElement* element);
+
+   private:
+    std::optional<std::string> getLegendUrl(VistaXML::TiXmlElement* element);
+  };
+
   struct Settings {
     bool                       mOpaque    = false;
     bool                       mNoSubsets = false;
@@ -26,9 +37,9 @@ class WebMapLayer {
     std::array<double, 2>      mLonRange = {-180., 180.};
     std::array<double, 2>      mLatRange = {-90., 90.};
     std::optional<std::string> mTime;
+    std::vector<Style>         mStyles;
     // TODO Crs
     // TODO Other dimensions?
-    // TODO Styles + Legends
     std::optional<std::string> mAttribution;
   };
 
