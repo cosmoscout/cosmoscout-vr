@@ -47,7 +47,12 @@ const std::string TextureOverlayRenderer::SURFACE_FRAG = R"(
     out vec4 FragColor;
 
     uniform sampler2DRect uDepthBuffer;
-    uniform sampler2D     uTexture;
+    uniform sampler2D     uFirstTexture;
+    uniform sampler2D     uSecondTexture;
+
+    uniform float uFade;
+    uniform bool uUseFirstTexture;
+    uniform bool uUseSecondTexture;
 
     uniform mat4          uMatInvMVP;
     uniform dmat4         uMatInvMV;
@@ -197,7 +202,16 @@ const std::string TextureOverlayRenderer::SURFACE_FRAG = R"(
                 double norm_v = (lnglat.y - min_lat) / (max_lat - min_lat);
                 vec2 newCoords = vec2(float(norm_u), float(1.0 - norm_v));
 
-                vec4 color = texture(uTexture, newCoords);
+                vec4 color = vec4(0.);
+                if (uUseFirstTexture) {
+                  color = texture(uFirstTexture, newCoords);
+
+                  // Fade second texture in.
+                  if(uUseSecondTexture) {
+                    vec4 secColor = texture(uSecondTexture, newCoords);
+                    color = mix(secColor, color, uFade);
+                  }
+                }
                 
                 //Lighting using a normal calculated from partial derivative
                 vec3  fPos    = vec3(worldPos); //cast from double to float

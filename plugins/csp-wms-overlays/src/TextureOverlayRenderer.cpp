@@ -416,10 +416,24 @@ bool TextureOverlayRenderer::Do() {
   m_pSurfaceShader->Bind();
 
   data.mDepthBuffer->Bind(GL_TEXTURE0);
-  mWMSTexture->Bind(GL_TEXTURE1);
+  // Only bind the enabled textures.
+  if (mWMSTextureUsed) {
+    mWMSTexture->Bind(GL_TEXTURE1);
+
+    if (mSecondWMSTextureUsed) {
+      m_pSurfaceShader->SetUniform(m_pSurfaceShader->GetUniformLocation("uFade"), mFade);
+      mSecondWMSTexture->Bind(GL_TEXTURE2);
+    }
+  }
 
   m_pSurfaceShader->SetUniform(m_pSurfaceShader->GetUniformLocation("uDepthBuffer"), 0);
-  m_pSurfaceShader->SetUniform(m_pSurfaceShader->GetUniformLocation("uTexture"), 1);
+  m_pSurfaceShader->SetUniform(m_pSurfaceShader->GetUniformLocation("uFirstTexture"), 1);
+  m_pSurfaceShader->SetUniform(m_pSurfaceShader->GetUniformLocation("uSecondTexture"), 2);
+
+  m_pSurfaceShader->SetUniform(
+      m_pSurfaceShader->GetUniformLocation("uUseFirstTexture"), mWMSTextureUsed);
+  m_pSurfaceShader->SetUniform(
+      m_pSurfaceShader->GetUniformLocation("uUseSecondTexture"), mSecondWMSTextureUsed);
 
   // Why is there no set uniform for matrices??? //TODO: There is one
   glm::dmat4 InverseWorldTransform = glm::inverse(matWorldTransform);
@@ -458,7 +472,13 @@ bool TextureOverlayRenderer::Do() {
   glDrawArrays(GL_POINTS, 0, 1);
 
   data.mDepthBuffer->Unbind(GL_TEXTURE0);
-  data.mColorBuffer->Unbind(GL_TEXTURE1);
+  if (mWMSTextureUsed) {
+    mWMSTexture->Unbind(GL_TEXTURE1);
+
+    if (mSecondWMSTextureUsed) {
+      mSecondWMSTexture->Unbind(GL_TEXTURE2);
+    }
+  }
 
   // Release shader
   m_pSurfaceShader->Release();
