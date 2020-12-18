@@ -71,10 +71,11 @@ std::string WebMapTextureLoader::loadTexture(std::string time, std::string const
 
   url.precision(std::numeric_limits<double>::max_digits10);
   url << requestStr;
+  url << "&FORMAT=image/" << format;
 
   // Add time string to map server request if time is specified
   if (time != "") {
-    url << "&TIME=" << time << "&FORMAT=image/" << format;
+    url << "&TIME=" << time;
 
     std::replace(time.begin(), time.end(), '/', '-');
     std::replace(time.begin(), time.end(), ':', '-');
