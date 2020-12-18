@@ -2,13 +2,13 @@
 
 (() => {
   /**
-   * Simple WMS bodies Api
+   * WMS overlays Api
    */
-  class SimpleWMSBodiesApi extends IApi {
+  class WMSOverlaysApi extends IApi {
     /**
      * @inheritDoc
      */
-    name = 'simpleWMSBodies';
+    name = 'wmsOverlays';
 
     /**
      * @inheritDoc
@@ -36,10 +36,10 @@
      */
     // eslint-disable-next-line class-methods-use-this
     enableCheckBox(enable) {
-      document.querySelector('[data-callback="simpleWMSBodies.setEnableTimeSpan"]').disabled =
+      document.querySelector('[data-callback="wmsOverlays.setEnableTimeSpan"]').disabled =
           !enable;
     }
   }
 
-  CosmoScout.init(SimpleWMSBodiesApi);
+  CosmoScout.init(WMSOverlaysApi);
 })();

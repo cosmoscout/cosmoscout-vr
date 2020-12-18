@@ -75,17 +75,17 @@ void Plugin::init() {
 
   // Set whether to interpolate textures between timesteps (does not work when pre-fetch is
   // inactive).
-  mGuiManager->getGui()->registerCallback("simpleWMSBodies.setEnableTimeInterpolation",
+  mGuiManager->getGui()->registerCallback("wmsOverlays.setEnableTimeInterpolation",
       "Enables or disables interpolation.",
       std::function([this](bool enable) { mPluginSettings->mEnableInterpolation = enable; }));
 
   // Set whether to display timespan.
-  mGuiManager->getGui()->registerCallback("simpleWMSBodies.setEnableTimeSpan",
+  mGuiManager->getGui()->registerCallback("wmsOverlays.setEnableTimeSpan",
       "Enables or disables timespan.",
       std::function([this](bool enable) { mPluginSettings->mEnableTimespan = enable; }));
 
   // Set WMS source.
-  mGuiManager->getGui()->registerCallback("simpleWMSBodies.setWMS",
+  mGuiManager->getGui()->registerCallback("wmsOverlays.setWMS",
       "Set the current planet's WMS source to the one with the given name.",
       std::function([this](std::string&& name) {
         auto overlay = mWMSOverlays.find(mSolarSystem->pActiveBody.get()->getCenterName());
@@ -110,22 +110,22 @@ void Plugin::init() {
         }
 
         mGuiManager->getGui()->callJavascript(
-            "CosmoScout.gui.clearDropdown", "simpleWMSBodies.setWMS");
+            "CosmoScout.gui.clearDropdown", "wmsOverlays.setWMS");
         mGuiManager->getGui()->callJavascript(
-            "CosmoScout.gui.addDropdownValue", "simpleWMSBodies.setWMS", "None", "None", "false");
+            "CosmoScout.gui.addDropdownValue", "wmsOverlays.setWMS", "None", "None", "false");
 
         auto const& settings = getBodySettings(overlay->second);
         for (auto const& layer : mWms[0].getLayers()) {
           bool active = layer.getName() == settings.mActiveWMS;
           mGuiManager->getGui()->callJavascript("CosmoScout.gui.addDropdownValue",
-              "simpleWMSBodies.setWMS", layer.getName(), layer.getTitle(), active);
+              "wmsOverlays.setWMS", layer.getName(), layer.getTitle(), active);
           if (active) {
-            mGuiManager->getGui()->callJavascript("CosmoScout.simpleWMSBodies.setWMSDataCopyright",
+            mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.setWMSDataCopyright",
                 layer.getSettings().mAttribution.value_or(""));
 
             // Only allow setting timespan if it is specified for the WMS data set.
             mGuiManager->getGui()->callJavascript(
-                "CosmoScout.simpleWMSBodies.enableCheckBox", true);
+                "CosmoScout.wmsOverlays.enableCheckBox", true);
           }
         }
       });
@@ -148,9 +148,9 @@ void Plugin::deInit() {
   mGuiManager->getGui()->callJavascript(
       "CosmoScout.gui.unregisterCss", "css/csp-simple-wms-bodies.css");
 
-  mGuiManager->getGui()->unregisterCallback("simpleWMSBodies.setEnableTimeInterpolation");
-  mGuiManager->getGui()->unregisterCallback("simpleWMSBodies.setEnableTimeSpan");
-  mGuiManager->getGui()->unregisterCallback("simpleWMSBodies.setWMS");
+  mGuiManager->getGui()->unregisterCallback("wmsOverlays.setEnableTimeInterpolation");
+  mGuiManager->getGui()->unregisterCallback("wmsOverlays.setEnableTimeSpan");
+  mGuiManager->getGui()->unregisterCallback("wmsOverlays.setWMS");
 
   mAllSettings->onLoad().disconnect(mOnLoadConnection);
   mAllSettings->onSave().disconnect(mOnSaveConnection);
@@ -164,7 +164,7 @@ void Plugin::onLoad() {
   // Read settings from JSON.
   from_json(mAllSettings->mPlugins.at("csp-wms-overlays"), *mPluginSettings);
 
-  // First try to re-configure existing simpleWMSBodies. We assume that they are similar if they
+  // First try to re-configure existing WMS overlays. We assume that they are similar if they
   // have the same name in the settings (which means they are attached to an anchor with the same
   // name).
   auto wmsOverlay = mWMSOverlays.begin();
@@ -183,7 +183,7 @@ void Plugin::onLoad() {
     }
   }
 
-  // Then add new simpleWMSBodies.
+  // Then add new WMS overlays.
   for (auto const& settings : mPluginSettings->mBodies) {
     if (mWMSOverlays.find(settings.first) != mWMSOverlays.end()) {
       continue;
@@ -229,7 +229,7 @@ void Plugin::setWMSSource(
 
   if (name == "None") {
     wmsOverlay->setActiveWMS(nullptr, nullptr);
-    mGuiManager->getGui()->callJavascript("CosmoScout.simpleWMSBodies.setWMSDataCopyright", "");
+    mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.setWMSDataCopyright", "");
     settings.mActiveWMS = "None";
   } else {
     std::optional<WebMapLayer> layer = mWms[0].getLayer(name);
@@ -239,7 +239,7 @@ void Plugin::setWMSSource(
                     "Deselecting layer...",
           name);
       mGuiManager->getGui()->callJavascript(
-          "CosmoScout.gui.setDropdownValue", "simpleWMSBodies.setWMS", "None", "true");
+          "CosmoScout.gui.setDropdownValue", "wmsOverlays.setWMS", "None", "true");
       return;
     }
 
@@ -248,11 +248,11 @@ void Plugin::setWMSSource(
     wmsOverlay->setActiveWMS(
         std::make_shared<WebMapService>(mWms[0]), std::make_shared<WebMapLayer>(layer.value()));
 
-    mGuiManager->getGui()->callJavascript("CosmoScout.simpleWMSBodies.setWMSDataCopyright",
+    mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.setWMSDataCopyright",
         layer.value().getSettings().mAttribution.value_or(""));
 
     // Only allow setting timespan if it is specified for the WMS data set.
-    mGuiManager->getGui()->callJavascript("CosmoScout.simpleWMSBodies.enableCheckBox", true);
+    mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.enableCheckBox", true);
   }
 }
 
