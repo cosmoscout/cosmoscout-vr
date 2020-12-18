@@ -12,10 +12,10 @@
 #include <VistaTools/tinyXML/tinyxml.h>
 
 #include <array>
+#include <memory>
 #include <optional>
 #include <string>
 #include <vector>
-#include <memory>
 
 namespace csp::wmsoverlays {
 
@@ -23,15 +23,24 @@ class WebMapService {
  public:
   WebMapService(std::string url);
 
-	std::string getUrl();
-	std::vector<WebMapLayer> getLayers();
+  std::string getUrl() const;
+  std::string getTitle() const;
+
+  std::vector<WebMapLayer>   getLayers() const;
+  std::optional<WebMapLayer> getLayer(std::string name) const;
 
  private:
-  VistaXML::TiXmlDocument getCapabilities();
+  VistaXML::TiXmlElement* getCapabilities();
+  WebMapLayer             parseRootLayer();
+  std::string             parseTitle();
+
+  std::optional<VistaXML::TiXmlDocument> mDoc;
 
   std::string mUrl;
+  std::string mTitle;
 
-  std::unique_ptr<WebMapLayer> mRootLayer;
+  WebMapLayer              mRootLayer;
+  std::vector<WebMapLayer> mRequestableLayers;
 };
 
 } // namespace csp::wmsoverlays

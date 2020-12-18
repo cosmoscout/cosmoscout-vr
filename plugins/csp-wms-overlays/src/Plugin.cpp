@@ -62,16 +62,6 @@ void to_json(nlohmann::json& j, Plugin::Settings const& o) {
 void Plugin::init() {
   logger().info("Loading plugin...");
 
-  // std::string url("https://svs.gsfc.nasa.gov/cgi-bin/wms");
-  std::string url("https://neo.sci.gsfc.nasa.gov/wms/wms");
-  // std::string url("https://maps.dwd.de/geoserver/dwd/wms");
-
-  std::shared_ptr<WebMapService> wms = std::make_shared<WebMapService>(url);
-  mWms.push_back(wms);
-  std::vector<WebMapLayer> layers = mWms[0]->getLayers();
-  std::transform(layers.begin(), layers.end(), std::inserter(mLayers, mLayers.end()),
-      [](const WebMapLayer& l) { return std::make_pair(l.getName(), l); });
-
   mOnLoadConnection = mAllSettings->onLoad().connect([this]() { onLoad(); });
 
   mOnSaveConnection = mAllSettings->onSave().connect(
@@ -125,13 +115,13 @@ void Plugin::init() {
             "CosmoScout.gui.addDropdownValue", "simpleWMSBodies.setWMS", "None", "None", "false");
 
         auto const& settings = getBodySettings(overlay->second);
-        for (auto const& layer : mLayers) {
-          bool active = layer.first == settings.mActiveWMS;
+        for (auto const& layer : mWms[0].getLayers()) {
+          bool active = layer.getName() == settings.mActiveWMS;
           mGuiManager->getGui()->callJavascript("CosmoScout.gui.addDropdownValue",
-              "simpleWMSBodies.setWMS", layer.first, layer.first, active);
+              "simpleWMSBodies.setWMS", layer.getName(), layer.getTitle(), active);
           if (active) {
             mGuiManager->getGui()->callJavascript("CosmoScout.simpleWMSBodies.setWMSDataCopyright",
-                layer.second.getSettings().mAttribution.value_or(""));
+                layer.getSettings().mAttribution.value_or(""));
 
             // Only allow setting timespan if it is specified for the WMS data set.
             mGuiManager->getGui()->callJavascript(
@@ -148,7 +138,6 @@ void Plugin::init() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Plugin::deInit() {
-
   logger().info("Unloading plugin...");
 
   mSolarSystem->pActiveBody.disconnect(mActiveBodyConnection);
@@ -172,7 +161,6 @@ void Plugin::deInit() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Plugin::onLoad() {
-
   // Read settings from JSON.
   from_json(mAllSettings->mPlugins.at("csp-wms-overlays"), *mPluginSettings);
 
@@ -213,6 +201,10 @@ void Plugin::onLoad() {
 
     mWMSOverlays.emplace(settings.first, wmsOverlay);
 
+    for (auto const& wmsUrl : settings.second.mWms) {
+      mWms.emplace_back(wmsUrl);
+    }
+
     setWMSSource(wmsOverlay, settings.second.mActiveWMS);
     wmsOverlay->configure(settings.second);
   }
@@ -233,7 +225,6 @@ Plugin::Settings::Body& Plugin::getBodySettings(
 
 void Plugin::setWMSSource(
     std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay, std::string const& name) const {
-
   auto& settings = getBodySettings(wmsOverlay);
 
   if (name == "None") {
@@ -241,20 +232,24 @@ void Plugin::setWMSSource(
     mGuiManager->getGui()->callJavascript("CosmoScout.simpleWMSBodies.setWMSDataCopyright", "");
     settings.mActiveWMS = "None";
   } else {
-    auto layer = mLayers.find(name);
-    if (layer == mLayers.end()) {
+    std::optional<WebMapLayer> layer = mWms[0].getLayer(name);
+
+    if (!layer.has_value()) {
       logger().warn("Cannot set WMS layer '{}': There is no layer defined with this name! "
-                    "Using first layer instead...",
+                    "Deselecting layer...",
           name);
-      layer = mLayers.begin();
+      mGuiManager->getGui()->callJavascript(
+          "CosmoScout.gui.setDropdownValue", "simpleWMSBodies.setWMS", "None", "true");
+      return;
     }
 
     settings.mActiveWMS = name;
 
-    wmsOverlay->setActiveWMS(mWms[0], std::make_shared<WebMapLayer>(layer->second));
+    wmsOverlay->setActiveWMS(
+        std::make_shared<WebMapService>(mWms[0]), std::make_shared<WebMapLayer>(layer.value()));
 
     mGuiManager->getGui()->callJavascript("CosmoScout.simpleWMSBodies.setWMSDataCopyright",
-        layer->second.getSettings().mAttribution.value_or(""));
+        layer.value().getSettings().mAttribution.value_or(""));
 
     // Only allow setting timespan if it is specified for the WMS data set.
     mGuiManager->getGui()->callJavascript("CosmoScout.simpleWMSBodies.enableCheckBox", true);
