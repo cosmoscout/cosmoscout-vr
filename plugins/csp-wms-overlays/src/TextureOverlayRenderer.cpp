@@ -132,6 +132,13 @@ void TextureOverlayRenderer::setActiveWMS(
   mActiveWMS            = wms;
   mActiveWMSLayer       = layer;
   if (mActiveWMSLayer && mActiveWMSLayer->isRequestable()) {
+    std::array<double, 4> bounds;
+    bounds[0] = mActiveWMSLayer->getSettings().mLonRange[0] / 180. * PI;
+    bounds[1] = mActiveWMSLayer->getSettings().mLatRange[1] / 180. * PI;
+    bounds[2] = mActiveWMSLayer->getSettings().mLonRange[1] / 180. * PI;
+    bounds[3] = mActiveWMSLayer->getSettings().mLatRange[0] / 180. * PI;
+    SetBounds(bounds);
+
     // Create request URL for map server.
     std::stringstream url;
     url << mActiveWMS->getUrl();
@@ -316,13 +323,6 @@ bool TextureOverlayRenderer::Do() {
         mWMSTexture->UploadTexture(mActiveWMSLayer->getSettings().mFixedWidth.value_or(mWidth),
             mActiveWMSLayer->getSettings().mFixedHeight.value_or(mHeight), tex->second, false);
         mCurrentTexture = timeString;
-
-        std::array<double, 4> bounds;
-        bounds[0] = mActiveWMSLayer->getSettings().mLonRange[0] / 180. * PI;
-        bounds[1] = mActiveWMSLayer->getSettings().mLatRange[1] / 180. * PI;
-        bounds[2] = mActiveWMSLayer->getSettings().mLonRange[1] / 180. * PI;
-        bounds[3] = mActiveWMSLayer->getSettings().mLatRange[0] / 180. * PI;
-        SetBounds(bounds);
       }
     } // Use default planet texture instead.
     else {
