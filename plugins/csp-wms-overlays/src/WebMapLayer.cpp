@@ -47,7 +47,37 @@ WebMapLayer::WebMapLayer(VistaXML::TiXmlElement* element, Settings settings)
     }
   }
 
-  // TODO Bounding Box
+  std::optional<double> minLon = utils::optstod(
+      utils::getElementText(element, {"EX_GeographicBoundingBox", "westBoundLongitude"}));
+  std::optional<double> maxLon = utils::optstod(
+      utils::getElementText(element, {"EX_GeographicBoundingBox", "eastBoundLongitude"}));
+  std::optional<double> minLat = utils::optstod(
+      utils::getElementText(element, {"EX_GeographicBoundingBox", "southBoundLongitude"}));
+  std::optional<double> maxLat = utils::optstod(
+      utils::getElementText(element, {"EX_GeographicBoundingBox", "northBoundLongitude"}));
+
+  for (VistaXML::TiXmlElement* boundingBoxElement = element->FirstChildElement("BoundingBox");
+       boundingBoxElement;
+       boundingBoxElement = boundingBoxElement->NextSiblingElement("BoundingBox")) {
+    std::string crs =
+        utils::getAttribute<std::string>(boundingBoxElement, "CRS").value_or("No CRS");
+    if (crs == "CRS:84") {
+      minLon = utils::getAttribute<double>(boundingBoxElement, "minx");
+      maxLon = utils::getAttribute<double>(boundingBoxElement, "maxx");
+      minLat = utils::getAttribute<double>(boundingBoxElement, "miny");
+      maxLat = utils::getAttribute<double>(boundingBoxElement, "maxy");
+    } else if (crs == "EPSG:4326") {
+      minLon = utils::getAttribute<double>(boundingBoxElement, "miny");
+      maxLon = utils::getAttribute<double>(boundingBoxElement, "maxy");
+      minLat = utils::getAttribute<double>(boundingBoxElement, "minx");
+      maxLat = utils::getAttribute<double>(boundingBoxElement, "maxx");
+    }
+  }
+  utils::setOrKeep(mSettings.mLonRange[0], minLon);
+  utils::setOrKeep(mSettings.mLonRange[1], maxLon);
+  utils::setOrKeep(mSettings.mLatRange[0], minLat);
+  utils::setOrKeep(mSettings.mLatRange[1], maxLat);
+
   // TODO Other dimensions?
   // TODO Styles + Legends
   // TODO CRS

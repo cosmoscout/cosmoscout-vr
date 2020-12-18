@@ -282,6 +282,18 @@ std::optional<std::optional<int>> getSizeAttribute(
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+std::optional<double> optstod(std::optional<std::string> string) {
+  if (string.has_value()) {
+    try {
+      return std::stod(string.value());
+    } catch (const std::invalid_argument&) {
+    } catch (const std::out_of_range&) {}
+  }
+  return {};
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 } // namespace utils
 
 } // namespace csp::wmsoverlays
