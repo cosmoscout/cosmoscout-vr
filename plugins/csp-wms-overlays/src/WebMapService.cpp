@@ -98,8 +98,7 @@ WebMapLayer WebMapService::parseRootLayer() {
   WebMapLayer::Settings settings;
 
   // Set default attribution to contact person if given
-  VistaXML::TiXmlElement* contactPerson = capabilityHandle.FirstChildElement("WMS_Capabilities")
-                                              .FirstChildElement("Service")
+  VistaXML::TiXmlElement* contactPerson = capabilityHandle.FirstChildElement("Service")
                                               .FirstChildElement("ContactInformation")
                                               .FirstChildElement("ContactPersonPrimary")
                                               .ToElement();
@@ -126,11 +125,11 @@ WebMapLayer WebMapService::parseRootLayer() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::string WebMapService::parseTitle() {
-  VistaXML::TiXmlHandle   capabilityHandle(getCapabilities());
-  VistaXML::TiXmlText* serviceTitle = capabilityHandle.FirstChildElement("Service")
-                                             .FirstChildElement("Title")
-                                             .FirstChild()
-                                             .ToText();
+  VistaXML::TiXmlHandle capabilityHandle(getCapabilities());
+  VistaXML::TiXmlText*  serviceTitle = capabilityHandle.FirstChildElement("Service")
+                                          .FirstChildElement("Title")
+                                          .FirstChild()
+                                          .ToText();
   return serviceTitle->ValueStr();
 }
 
