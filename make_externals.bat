@@ -184,6 +184,7 @@ cmake -E make_directory "%BUILD_DIR%/libtiff" && cd "%BUILD_DIR%/libtiff"
 cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%" -DCMAKE_UNITY_BUILD=%UNITY_BUILD%^
       -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DBUILD_SHARED_LIBS=Off -DCMAKE_INSTALL_FULL_LIBDIR=lib^
       -Dzlib=Off -Dpixarlog=Off -Djpeg=Off -Dold-jpeg=Off -Djbig=Off -Dlzma=Off -Dzstd=Off^
+	  -DGLUT_INCLUDE_DIR=%INSTALL_DIR%/include^
       -Dwebp=Off -Djpeg12=Off "%EXTERNALS_DIR%/libtiff" || goto :error
 
 cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS% || goto :error
@@ -311,7 +312,7 @@ cmake -E make_directory "%BUILD_DIR%/vista" && cd "%BUILD_DIR%/vista"
 
 cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%" -DVISTADEMO_ENABLED=Off^
       -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DVISTACORELIBS_USE_VIVE=On -DVISTADRIVERS_BUILD_VIVE=On^
-      -DOPENVR_ROOT_DIR="%INSTALL_DIR%"^
+      -DOPENVR_ROOT_DIR="%INSTALL_DIR%" -DGLUT_INCLUDE_DIR=%INSTALL_DIR%/include^
       -DCMAKE_UNITY_BUILD=%UNITY_BUILD% -DVISTA_USE_PRECOMPILED_HEADERS=%PRECOMPILED_HEADERS%^
       "%EXTERNALS_DIR%/vista" || goto :error
 cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS% || goto :error
