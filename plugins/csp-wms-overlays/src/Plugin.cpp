@@ -235,6 +235,7 @@ Plugin::Settings::Body& Plugin::getBodySettings(
 
 void Plugin::setWMSServer(
     std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay, std::string const& name) const {
+  mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.resetLayerSelect");
   mGuiManager->getGui()->callJavascript("CosmoScout.gui.clearDropdown", "wmsOverlays.setLayer");
   mGuiManager->getGui()->callJavascript(
       "CosmoScout.gui.addDropdownValue", "wmsOverlays.setLayer", "None", "None", false);
