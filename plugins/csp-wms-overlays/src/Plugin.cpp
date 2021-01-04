@@ -34,12 +34,14 @@ namespace csp::wmsoverlays {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void from_json(nlohmann::json const& j, Plugin::Settings::Body& o) {
-  cs::core::Settings::deserialize(j, "activeWms", o.mActiveWMS);
+  cs::core::Settings::deserialize(j, "activeServer", o.mActiveServer);
+  cs::core::Settings::deserialize(j, "activeLayer", o.mActiveLayer);
   cs::core::Settings::deserialize(j, "wms", o.mWms);
 }
 
 void to_json(nlohmann::json& j, Plugin::Settings::Body const& o) {
-  cs::core::Settings::serialize(j, "activeWms", o.mActiveWMS);
+  cs::core::Settings::serialize(j, "activeServer", o.mActiveServer);
+  cs::core::Settings::serialize(j, "activeLayer", o.mActiveLayer);
   cs::core::Settings::serialize(j, "wms", o.mWms);
 }
 
@@ -85,12 +87,21 @@ void Plugin::init() {
       std::function([this](bool enable) { mPluginSettings->mEnableTimespan = enable; }));
 
   // Set WMS source.
-  mGuiManager->getGui()->registerCallback("wmsOverlays.setWMS",
-      "Set the current planet's WMS source to the one with the given name.",
+  mGuiManager->getGui()->registerCallback("wmsOverlays.setServer",
+      "Set the current planet's WMS server to the one with the given name.",
       std::function([this](std::string&& name) {
         auto overlay = mWMSOverlays.find(mSolarSystem->pActiveBody.get()->getCenterName());
         if (overlay != mWMSOverlays.end()) {
-          setWMSSource(overlay->second, name);
+          setWMSServer(overlay->second, name);
+        }
+      }));
+
+  mGuiManager->getGui()->registerCallback("wmsOverlays.setLayer",
+      "Set the current planet's WMS layer to the one with the given name.",
+      std::function([this](std::string&& name) {
+        auto overlay = mWMSOverlays.find(mSolarSystem->pActiveBody.get()->getCenterName());
+        if (overlay != mWMSOverlays.end()) {
+          setWMSLayer(overlay->second, name);
         }
       }));
 
@@ -110,22 +121,20 @@ void Plugin::init() {
         }
 
         mGuiManager->getGui()->callJavascript(
-            "CosmoScout.gui.clearDropdown", "wmsOverlays.setWMS");
+            "CosmoScout.gui.clearDropdown", "wmsOverlays.setServer");
         mGuiManager->getGui()->callJavascript(
-            "CosmoScout.gui.addDropdownValue", "wmsOverlays.setWMS", "None", "None", "false");
+            "CosmoScout.gui.addDropdownValue", "wmsOverlays.setServer", "None", "None", "false");
+
+        setWMSServer(overlay->second, "None");
 
         auto const& settings = getBodySettings(overlay->second);
-        for (auto const& layer : mWms[0].getLayers()) {
-          bool active = layer.getName() == settings.mActiveWMS;
+        for (auto const& server : mWms) {
+          bool active = server.getTitle() == settings.mActiveServer.get();
           mGuiManager->getGui()->callJavascript("CosmoScout.gui.addDropdownValue",
-              "wmsOverlays.setWMS", layer.getName(), layer.getTitle(), active);
-          if (active) {
-            mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.setWMSDataCopyright",
-                layer.getSettings().mAttribution.value_or(""));
+              "wmsOverlays.setServer", server.getTitle(), server.getTitle(), active);
 
-            // Only allow setting timespan if it is specified for the WMS data set.
-            mGuiManager->getGui()->callJavascript(
-                "CosmoScout.wmsOverlays.enableCheckBox", true);
+          if (active) {
+            setWMSServer(overlay->second, server.getTitle());
           }
         }
       });
@@ -150,7 +159,8 @@ void Plugin::deInit() {
 
   mGuiManager->getGui()->unregisterCallback("wmsOverlays.setEnableTimeInterpolation");
   mGuiManager->getGui()->unregisterCallback("wmsOverlays.setEnableTimeSpan");
-  mGuiManager->getGui()->unregisterCallback("wmsOverlays.setWMS");
+  mGuiManager->getGui()->unregisterCallback("wmsOverlays.setServer");
+  mGuiManager->getGui()->unregisterCallback("wmsOverlays.setLayer");
 
   mAllSettings->onLoad().disconnect(mOnLoadConnection);
   mAllSettings->onSave().disconnect(mOnSaveConnection);
@@ -174,7 +184,7 @@ void Plugin::onLoad() {
       // If there are settings for this simpleWMSBody, reconfigure it.
       wmsOverlay->second->configure(settings->second);
 
-      setWMSSource(wmsOverlay->second, settings->second.mActiveWMS);
+      setWMSServer(wmsOverlay->second, settings->second.mActiveServer.get());
 
       ++wmsOverlay;
     } else {
@@ -205,7 +215,7 @@ void Plugin::onLoad() {
       mWms.emplace_back(wmsUrl);
     }
 
-    setWMSSource(wmsOverlay, settings.second.mActiveWMS);
+    setWMSServer(wmsOverlay, settings.second.mActiveServer.get());
     wmsOverlay->configure(settings.second);
   }
 
@@ -223,37 +233,81 @@ Plugin::Settings::Body& Plugin::getBodySettings(
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Plugin::setWMSSource(
+void Plugin::setWMSServer(
     std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay, std::string const& name) const {
-  auto& settings = getBodySettings(wmsOverlay);
+  mGuiManager->getGui()->callJavascript("CosmoScout.gui.clearDropdown", "wmsOverlays.setLayer");
+  mGuiManager->getGui()->callJavascript(
+      "CosmoScout.gui.addDropdownValue", "wmsOverlays.setLayer", "None", "None", false);
 
-  if (name == "None") {
-    wmsOverlay->setActiveWMS(nullptr, nullptr);
-    mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.setWMSDataCopyright", "");
-    settings.mActiveWMS = "None";
-  } else {
-    std::optional<WebMapLayer> layer = mWms[0].getLayer(name);
+  auto&       settings = getBodySettings(wmsOverlay);
+  auto const& server   = std::find_if(
+      mWms.begin(), mWms.end(), [&name](WebMapService wms) { return wms.getTitle() == name; });
 
-    if (!layer.has_value()) {
-      logger().warn("Cannot set WMS layer '{}': There is no layer defined with this name! "
-                    "Deselecting layer...",
-          name);
-      mGuiManager->getGui()->callJavascript(
-          "CosmoScout.gui.setDropdownValue", "wmsOverlays.setWMS", "None", "true");
-      return;
-    }
-
-    settings.mActiveWMS = name;
-
-    wmsOverlay->setActiveWMS(
-        std::make_shared<WebMapService>(mWms[0]), std::make_shared<WebMapLayer>(layer.value()));
-
-    mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.setWMSDataCopyright",
-        layer.value().getSettings().mAttribution.value_or(""));
-
-    // Only allow setting timespan if it is specified for the WMS data set.
-    mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.enableCheckBox", true);
+  setWMSLayerNone(wmsOverlay);
+  if (server == mWms.end()) {
+    logger().trace("No server with name '{}' found", name);
+    settings.mActiveServer = "None";
+    mGuiManager->getGui()->callJavascript(
+        "CosmoScout.gui.setDropdownValue", "wmsOverlays.setServer", "None", false);
+    return;
   }
+  settings.mActiveServer = name;
+
+  for (auto const& layer : server->getLayers()) {
+    bool active = layer.getName() == settings.mActiveLayer.get();
+    mGuiManager->getGui()->callJavascript("CosmoScout.gui.addDropdownValue", "wmsOverlays.setLayer",
+        layer.getName(), layer.getTitle(), active);
+
+    if (active) {
+      setWMSLayer(wmsOverlay, *server, layer.getName());
+    }
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Plugin::setWMSLayer(
+    std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay, std::string const& name) const {
+  auto&       settings = getBodySettings(wmsOverlay);
+  auto const& server   = std::find_if(mWms.begin(), mWms.end(),
+      [&settings](WebMapService wms) { return wms.getTitle() == settings.mActiveServer.get(); });
+
+  if (server == mWms.end()) {
+    setWMSLayerNone(wmsOverlay);
+    return;
+  }
+  setWMSLayer(wmsOverlay, *server, name);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Plugin::setWMSLayer(std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay,
+    WebMapService const& server, std::string const& name) const {
+  auto&                      settings = getBodySettings(wmsOverlay);
+  std::optional<WebMapLayer> layer    = server.getLayer(name);
+
+  if (!layer.has_value()) {
+    logger().trace("No layer with name '{}' found", name);
+    setWMSLayerNone(wmsOverlay);
+    return;
+  }
+  settings.mActiveLayer = name;
+
+  wmsOverlay->setActiveWMS(
+      std::make_shared<WebMapService>(server), std::make_shared<WebMapLayer>(layer.value()));
+  mGuiManager->getGui()->callJavascript(
+      "CosmoScout.wmsOverlays.setWMSDataCopyright", layer->getSettings().mAttribution.value_or(""));
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Plugin::setWMSLayerNone(std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay) const {
+  auto& settings        = getBodySettings(wmsOverlay);
+  settings.mActiveLayer = "None";
+  wmsOverlay->setActiveWMS(nullptr, nullptr);
+  mGuiManager->getGui()->callJavascript(
+      "CosmoScout.gui.setDropdownValue", "wmsOverlays.setLayer", "None", false);
+  mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.setWMSDataCopyright", "");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

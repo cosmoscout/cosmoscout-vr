@@ -3,14 +3,25 @@
 </div>
 <div class="row mb-1">
   <div class="col-5">
+    <label>WMS Server</label>
+  </div>
+  <div class="col-6 offset-1">
+    <select data-callback="wmsOverlays.setServer" data-container="#cosmoscout" data-width="100%"
+            class="simple-value-dropdown" data-dropdown-align-right="true">
+      <!-- Filled by JavaScript Function called from Plugin.cpp -->
+    </select>
+  </div>
+</div>
+<div class="row mb-1">
+  <div class="col-5">
     <label>Image Channel</label>
   </div>
   <div class="col-1">
     <i class="material-icons" style="font-size: 22px; top:-3px;" id="wms-img-data-copyright">info</i>
   </div>
   <div class="col-6">
-    <select data-callback="wmsOverlays.setWMS" data-container="#cosmoscout" data-width="100%"
-      class="simple-value-dropdown" data-dropdown-align-right="true">
+    <select data-callback="wmsOverlays.setLayer" data-container="#cosmoscout" data-width="100%"
+            class="simple-value-dropdown" data-dropdown-align-right="true">
       <!-- Filled by JavaScript Function called from Plugin.cpp -->
     </select>
   </div>

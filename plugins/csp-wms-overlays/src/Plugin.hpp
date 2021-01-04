@@ -44,8 +44,11 @@ class Plugin : public cs::core::PluginBase {
 
     /// The startup settings for a planet.
     struct Body {
-      std::string              mActiveWMS; ///< The name of the currently active WMS data set.
-      std::vector<std::string> mWms;       ///<	URLs of WMS servers.
+      cs::utils::DefaultProperty<std::string> mActiveServer{
+          "None"}; ///< The name of the currently active WMS server.
+      cs::utils::DefaultProperty<std::string> mActiveLayer{
+          "None"};                   ///< The name of the currently active WMS layer.
+      std::vector<std::string> mWms; ///<	URLs of WMS servers.
     };
 
     std::map<std::string, Body> mBodies; ///< A list of bodies with their anchor names.
@@ -58,8 +61,14 @@ class Plugin : public cs::core::PluginBase {
   void onLoad();
 
   Settings::Body& getBodySettings(std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay) const;
-  void            setWMSSource(
-                 std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay, std::string const& name) const;
+
+  void setWMSServer(
+      std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay, std::string const& name) const;
+  void setWMSLayer(
+      std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay, std::string const& name) const;
+  void setWMSLayer(std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay,
+      WebMapService const& server, std::string const& name) const;
+  void setWMSLayerNone(std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay) const;
 
   std::shared_ptr<Settings> mPluginSettings = std::make_shared<Settings>();
   std::map<std::string, std::shared_ptr<TextureOverlayRenderer>> mWMSOverlays;
