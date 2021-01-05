@@ -493,15 +493,8 @@ bool Stars::readStarsFromCatalog(CatalogType type, std::string const& filename) 
       getline(file, line);
 
       // parse line:
-      // separate complete items consisting of "val0|val1|...|valN|" into vector of value
-      // strings
-      std::stringstream        stream(line);
-      std::string              item;
-      std::vector<std::string> items;
-
-      while (getline(stream, item, '|')) {
-        items.emplace_back(item);
-      }
+      // separate complete items consisting of "val0|val1|...|valN|" into vector of value strings
+      std::vector<std::string> items = cs::utils::splitString(line, '|');
 
       // convert value strings to int/double/float and save in star data structure
       // expecting Hipparcos or Tycho-1 catalog and more than 12 columns
