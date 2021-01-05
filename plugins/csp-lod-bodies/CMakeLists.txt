@@ -34,6 +34,10 @@ target_link_libraries(csp-lod-bodies
     Threads::Threads
 )
 
+if(COSMOSCOUT_USE_PRECOMPILED_HEADERS)
+  target_precompile_headers(csp-lod-bodies PRIVATE src/precompiled.pch)
+endif()
+
 # Add this Plugin to a "plugins" folder in your IDE.
 set_property(TARGET csp-lod-bodies PROPERTY FOLDER "plugins")
 

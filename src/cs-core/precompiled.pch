@@ -1,0 +1,31 @@
+#include <memory>
+#include <optional>
+#include <string>
+#include <utility>
+#include <vector>
+
+#include <glm/glm.hpp>
+
+#include <spdlog/spdlog.h>
+
+#include <VistaDataFlowNet/VdfnObjectRegistry.h>
+#include <VistaKernel/DisplayManager/VistaDisplayManager.h>
+#include <VistaKernel/GraphicsManager/VistaOpenGLNode.h>
+#include <VistaKernel/GraphicsManager/VistaSceneGraph.h>
+#include <VistaKernel/GraphicsManager/VistaTransformNode.h>
+#include <VistaKernel/VistaSystem.h>
+
+#include "../cs-gui/GuiItem.hpp"
+#include "../cs-gui/WorldSpaceGuiArea.hpp"
+#include "../cs-scene/CelestialAnchorNode.hpp"
+#include "../cs-scene/CelestialBody.hpp"
+#include "../cs-utils/Property.hpp"
+#include "../cs-utils/convert.hpp"
+#include "../cs-utils/utils.hpp"
+
+#include "GuiManager.hpp"
+#include "InputManager.hpp"
+#include "Settings.hpp"
+#include "SolarSystem.hpp"
+#include "TimeControl.hpp"
+#include "logger.hpp"

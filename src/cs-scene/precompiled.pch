@@ -1,0 +1,7 @@
+#include <memory>
+#include <string>
+
+#include <glm/glm.hpp>
+
+#include "CelestialAnchor.hpp"
+#include "CelestialObserver.hpp"

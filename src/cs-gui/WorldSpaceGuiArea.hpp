@@ -67,6 +67,9 @@ class CS_GUI_EXPORT WorldSpaceGuiArea : public GuiArea, public IVistaOpenGLDraw 
   bool            mUseLinearDepthBuffer = false;
   int             mWidth                = 0;
   int             mHeight               = 0;
+
+  static const char* const QUAD_VERT;
+  static const char* const QUAD_FRAG;
 };
 
 } // namespace cs::gui

@@ -29,6 +29,10 @@ target_link_libraries(csp-measurement-tools
     cs-core
 )
 
+if (COSMOSCOUT_USE_PRECOMPILED_HEADERS)
+  target_precompile_headers(csp-measurement-tools PRIVATE src/precompiled.pch)
+endif()
+
 # Add this Plugin to a "plugins" folder in your IDE.
 set_property(TARGET csp-measurement-tools PROPERTY FOLDER "plugins")
 
