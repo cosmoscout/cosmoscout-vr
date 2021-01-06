@@ -21,7 +21,7 @@ namespace csp::wmsoverlays {
 
 class WebMapService {
  public:
-  WebMapService(std::string url);
+  WebMapService(std::string url, std::string cacheDir);
 
   std::string getUrl() const;
   std::string getTitle() const;
@@ -34,10 +34,17 @@ class WebMapService {
   WebMapLayer             parseRootLayer();
   std::string             parseTitle();
 
+  std::optional<std::pair<std::string, VistaXML::TiXmlDocument>> getCapabilitiesFromCache();
+
+  std::stringstream getGetCapabilitiesUrl();
+
   std::optional<VistaXML::TiXmlDocument> mDoc;
 
-  std::string mUrl;
-  std::string mTitle;
+  const std::string mUrl;
+  const std::string mCacheDir;
+  const std::string mCacheFileName;
+
+  const std::string mTitle;
 
   WebMapLayer              mRootLayer;
   std::vector<WebMapLayer> mRequestableLayers;

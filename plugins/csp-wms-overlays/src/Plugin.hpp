@@ -39,6 +39,10 @@ class Plugin : public cs::core::PluginBase {
     /// Path to the map cache folder, can be absolute or relative to the cosmoscout executable.
     cs::utils::DefaultProperty<std::string> mMapCache{"texture-cache"};
 
+    /// Path to the wms capability cache folder, can be absolute or relative to the cosmoscout
+    /// executable.
+    cs::utils::DefaultProperty<std::string> mCapabilityCache{"wms-capability-cache"};
+
     /// The amount of textures that gets pre-fetched in every time direction.
     cs::utils::DefaultProperty<int> mPrefetchCount{0};
 
