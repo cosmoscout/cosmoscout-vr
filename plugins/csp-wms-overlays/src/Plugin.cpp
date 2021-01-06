@@ -75,6 +75,15 @@ void Plugin::init() {
       "WMS", "panorama", "../share/resources/gui/wms_settings.html");
   mGuiManager->addScriptToGuiFromJS("../share/resources/gui/js/csp-wms-overlays.js");
 
+  // Updates the bounds for which map data is requested.
+  mGuiManager->getGui()->registerCallback(
+      "wmsOverlays.updateBounds", "Updates the bounds for map requests.", std::function([this]() {
+        auto overlay = mWMSOverlays.find(mSolarSystem->pActiveBody.get()->getCenterName());
+        if (overlay != mWMSOverlays.end()) {
+          overlay->second->requestUpdateBounds();
+        }
+      }));
+
   // Set whether to interpolate textures between timesteps (does not work when pre-fetch is
   // inactive).
   mGuiManager->getGui()->registerCallback("wmsOverlays.setEnableTimeInterpolation",
@@ -206,8 +215,8 @@ void Plugin::onLoad() {
           "There is no Anchor \"" + settings.first + "\" defined in the settings.");
     }
 
-    auto wmsOverlay =
-        std::make_shared<TextureOverlayRenderer>(mSolarSystem, mTimeControl, mPluginSettings);
+    auto wmsOverlay = std::make_shared<TextureOverlayRenderer>(
+        settings.first, mSolarSystem, mTimeControl, mPluginSettings);
 
     mWMSOverlays.emplace(settings.first, wmsOverlay);
 

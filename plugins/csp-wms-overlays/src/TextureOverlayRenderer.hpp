@@ -40,9 +40,9 @@ class TextureOverlayRenderer : public IVistaOpenGLDraw {
    * Constructor requires the SolarSystem to get the current active planet
    * to get the model matrix
    */
-  TextureOverlayRenderer(std::shared_ptr<cs::core::SolarSystem> solarSystem,
-      std::shared_ptr<cs::core::TimeControl>                    timeControl,
-      std::shared_ptr<Plugin::Settings> const&                  pluginSettings);
+  TextureOverlayRenderer(std::string center, std::shared_ptr<cs::core::SolarSystem> solarSystem,
+      std::shared_ptr<cs::core::TimeControl>   timeControl,
+      std::shared_ptr<Plugin::Settings> const& pluginSettings);
   virtual ~TextureOverlayRenderer();
 
   /// Configures the internal renderer according to the given values.
@@ -54,7 +54,7 @@ class TextureOverlayRenderer : public IVistaOpenGLDraw {
   /// Returns the time intervals of the active data set.
   std::vector<TimeInterval> getTimeIntervals();
 
-  void SetBounds(std::array<double, 4> bounds);
+  void requestUpdateBounds();
 
   // ---------------------------------------
   // INTERFACE IMPLEMENTATION OF IVistaOpenGLDraw
@@ -66,8 +66,12 @@ class TextureOverlayRenderer : public IVistaOpenGLDraw {
   /// Delete stored textures.
   void clearTextures();
 
+	/// Updates the longitude and latitude ranges according to the current viewport.
+  void updateLonLatRange();
+
   std::shared_ptr<Plugin::Settings> mPluginSettings;
-  Plugin::Settings::Body   mSimpleWMSBodySettings;
+  Plugin::Settings::Body            mSimpleWMSOverlaySettings;
+  std::string                       mCenterName;
 
   std::unique_ptr<VistaOpenGLNode> mGLNode;
 
@@ -96,9 +100,12 @@ class TextureOverlayRenderer : public IVistaOpenGLDraw {
   std::map<std::string, unsigned char*>              mTextures;
   std::vector<std::string>                           mWrongTextures;
 
-  int                   mWidth  = 1024;
-  int                   mHeight = 1024;
-  std::array<double, 4> mLngLatBounds;
+  int mWidth  = 1024;
+  int mHeight = 1024;
+
+  bool                  mUpdateLonLatRange = false;
+  std::array<double, 2> mLonRange          = {-180, 180};
+  std::array<double, 2> mLatRange          = {-90, 90};
 
   std::shared_ptr<WebMapService> mActiveWMS;      ///< The active WMS.
   std::shared_ptr<WebMapLayer>   mActiveWMSLayer; ///< The active WMS layer.

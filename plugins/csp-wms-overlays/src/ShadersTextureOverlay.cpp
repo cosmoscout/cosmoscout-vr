@@ -60,7 +60,8 @@ const std::string TextureOverlayRenderer::SURFACE_FRAG = R"(
     uniform mat4          uMatMV;
 
     uniform float         uFarClip;
-    uniform dvec4         uBounds;
+    uniform dvec2         uLonRange;
+    uniform dvec2         uLatRange;
     uniform vec3          uRadii;
 
     uniform vec3          uSunDirection;
@@ -190,16 +191,11 @@ const std::string TextureOverlayRenderer::SURFACE_FRAG = R"(
 
             FragColor = vec4(worldPos, 1.0);
 
-            double min_long  = uBounds.x;
-            double min_lat   = uBounds.w;
-            double max_long  = uBounds.z;
-            double max_lat   = uBounds.y;
-
-            if(lnglat.x > min_long && lnglat.x < max_long &&
-               lnglat.y > min_lat && lnglat.y < max_lat)
+            if(lnglat.x > uLonRange.x && lnglat.x < uLonRange.y &&
+               lnglat.y > uLatRange.x && lnglat.y < uLatRange.y)
             {
-                double norm_u = (lnglat.x - min_long) / (max_long - min_long);
-                double norm_v = (lnglat.y - min_lat) / (max_lat - min_lat);
+                double norm_u = (lnglat.x - uLonRange.x) / (uLonRange.y - uLonRange.x);
+                double norm_v = (lnglat.y - uLatRange.x) / (uLatRange.y - uLatRange.x);
                 vec2 newCoords = vec2(float(norm_u), float(1.0 - norm_v));
 
                 vec4 color = vec4(0.);

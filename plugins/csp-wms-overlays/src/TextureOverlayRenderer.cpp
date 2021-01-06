@@ -43,10 +43,12 @@ constexpr float PI = 3.141592654f;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-TextureOverlayRenderer::TextureOverlayRenderer(std::shared_ptr<cs::core::SolarSystem> solarSystem,
-    std::shared_ptr<cs::core::TimeControl>                                            timeControl,
-    std::shared_ptr<Plugin::Settings> const& pluginSettings)
-    : mSolarSystem(solarSystem)
+TextureOverlayRenderer::TextureOverlayRenderer(std::string center,
+    std::shared_ptr<cs::core::SolarSystem>                 solarSystem,
+    std::shared_ptr<cs::core::TimeControl>                 timeControl,
+    std::shared_ptr<Plugin::Settings> const&               pluginSettings)
+    : mCenterName(center)
+    , mSolarSystem(solarSystem)
     , mTimeControl(timeControl)
     , mPluginSettings(pluginSettings)
     , mWMSTexture(new VistaTexture(GL_TEXTURE_2D))
@@ -115,7 +117,7 @@ TextureOverlayRenderer::~TextureOverlayRenderer() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void TextureOverlayRenderer::configure(Plugin::Settings::Body const& settings) {
-  mSimpleWMSBodySettings = settings;
+  mSimpleWMSOverlaySettings = settings;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -132,12 +134,8 @@ void TextureOverlayRenderer::setActiveWMS(
   mActiveWMS            = wms;
   mActiveWMSLayer       = layer;
   if (mActiveWMSLayer && mActiveWMSLayer->isRequestable()) {
-    std::array<double, 4> bounds;
-    bounds[0] = mActiveWMSLayer->getSettings().mLonRange[0] / 180. * PI;
-    bounds[1] = mActiveWMSLayer->getSettings().mLatRange[1] / 180. * PI;
-    bounds[2] = mActiveWMSLayer->getSettings().mLonRange[1] / 180. * PI;
-    bounds[3] = mActiveWMSLayer->getSettings().mLatRange[0] / 180. * PI;
-    SetBounds(bounds);
+    mLonRange = mActiveWMSLayer->getSettings().mLonRange;
+    mLatRange = mActiveWMSLayer->getSettings().mLatRange;
 
     // Create request URL for map server.
     std::stringstream url;
@@ -189,8 +187,142 @@ void TextureOverlayRenderer::clearTextures() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void TextureOverlayRenderer::SetBounds(std::array<double, 4> bounds) {
-  mLngLatBounds = bounds;
+void TextureOverlayRenderer::updateLonLatRange() {
+  clearTextures();
+
+  VistaProjection::VistaProjectionProperties* projectionProperties =
+      GetVistaSystem()
+          ->GetDisplayManager()
+          ->GetCurrentRenderInfo()
+          ->m_pViewport->GetProjection()
+          ->GetProjectionProperties();
+
+  float posX, posY, posZ;
+  projectionProperties->GetProjPlaneMidpoint(posX, posY, posZ);
+  double near, far;
+  projectionProperties->GetClippingRange(near, far);
+  double left, right, bottom, top;
+  projectionProperties->GetProjPlaneExtents(left, right, bottom, top);
+
+  // Get the intersections of the camera rays at the corners of the screen with the body.
+  std::array<std::pair<bool, glm::dvec3>, 4> intersections;
+  intersections[0].first =
+      mSolarSystem->getBody(mCenterName)
+          ->getIntersection(glm::dvec3(0, 0, 0), glm::normalize(glm::dvec3(left, top, posZ)),
+              intersections[0].second);
+  intersections[1].first =
+      mSolarSystem->getBody(mCenterName)
+          ->getIntersection(glm::dvec3(0, 0, 0), glm::normalize(glm::dvec3(left, bottom, posZ)),
+              intersections[1].second);
+  intersections[2].first =
+      mSolarSystem->getBody(mCenterName)
+          ->getIntersection(glm::dvec3(0, 0, 0), glm::normalize(glm::dvec3(right, bottom, posZ)),
+              intersections[2].second);
+  intersections[3].first =
+      mSolarSystem->getBody(mCenterName)
+          ->getIntersection(glm::dvec3(0, 0, 0), glm::normalize(glm::dvec3(right, top, posZ)),
+              intersections[3].second);
+
+  if (!std::all_of(intersections.begin(), intersections.end(),
+          [](auto intersection) { return intersection.first; })) {
+    // The body is not visible in all four corners of the screen.
+    // For now this results use the maximum bounds of the map.
+    mLonRange = mActiveWMSLayer->getSettings().mLonRange;
+    mLatRange = mActiveWMSLayer->getSettings().mLatRange;
+  } else {
+    // All four corners of the screen show the body.
+    // The intersection points can be converted to longitude and latitude.
+    glm::dvec3                radii = mSolarSystem->getRadii(mCenterName);
+    std::array<glm::dvec2, 4> screenBounds;
+    for (int i = 0; i < 4; i++) {
+      screenBounds[i] = cs::utils::convert::cartesianToLngLat(intersections[i].second, radii);
+      screenBounds[i] = cs::utils::convert::toDegrees(screenBounds[i]);
+    }
+
+    mLonRange[0] = screenBounds[0][0];
+    mLonRange[1] = screenBounds[0][0];
+
+    // Determine the minimum and maximum longitude.
+    // To do so, the edges between neighboring corners are examined and classified as one of four
+    // categories. Depending on the category the longitude range can be updated.
+    // Also save the lengths of the edges for later (lonDiffs).
+    // Uses counterclockwise winding order.
+    std::array<double, 4> lonDiffs;
+    double                offset = 0;
+    for (int i = 1; i < 5; i++) {
+      if (screenBounds[i % 4][0] > screenBounds[i - 1][0]) {
+        if (screenBounds[i % 4][0] - screenBounds[i - 1][0] < 180) {
+          // 0  90  180 270 360
+          // | x---x |   |   |
+          //   1   2
+          // West to east, dateline is not crossed
+          mLonRange[1]    = std::max(mLonRange[1], screenBounds[i % 4][0] + offset);
+          lonDiffs[i - 1] = screenBounds[i % 4][0] - screenBounds[i - 1][0];
+        } else {
+          // 0  90  180 270 360
+          // --x |   |   | x--
+          //   1           2
+          // East to west, dateline is crossed
+          mLonRange[0]    = std::min(mLonRange[0] + 360, screenBounds[i % 4][0]);
+          mLonRange[1]    = mLonRange[1] + 360;
+          lonDiffs[i - 1] = screenBounds[i % 4][0] - (screenBounds[i - 1][0] + 360);
+        }
+      } else {
+        if (screenBounds[i - 1][0] - screenBounds[i % 4][0] < 180) {
+          // 0  90  180 270 360
+          // | x---x |   |   |
+          //   2   1
+          // East to west, dateline is not crossed
+          mLonRange[0]    = std::min(mLonRange[0], screenBounds[i % 4][0] + offset);
+          lonDiffs[i - 1] = screenBounds[i % 4][0] - screenBounds[i - 1][0];
+        } else {
+          // 0  90  180 270 360
+          // --x |   |   | x--
+          //   2           1
+          // West to East, dateline is crossed
+          mLonRange[1]    = std::max(mLonRange[1], screenBounds[i % 4][0] + 360);
+          offset          = 360;
+          lonDiffs[i - 1] = (screenBounds[i % 4][0] + 360) - screenBounds[i - 1][0];
+        }
+      }
+    }
+    if (mLonRange[1] > 360) {
+      mLonRange[0] -= 360;
+      mLonRange[1] -= 360;
+    }
+
+    std::array<double, 4> lats;
+    std::transform(screenBounds.begin(), screenBounds.end(), lats.begin(),
+        [](glm::dvec2 corner) { return corner[1]; });
+
+    mLatRange[0] = *std::min_element(lats.begin(), lats.end());
+    mLatRange[1] = *std::max_element(lats.begin(), lats.end());
+
+    // Check if the longitude range spans the whole earth, which would mean that one of the poles is
+    // visible. >= 270 is used instead of >= 360 to prevent floating point errors.
+    // As long as no pole is visible the maximum range should be 180 degrees, so this check can not
+    // result in false positives.
+    if (mLonRange[1] - mLonRange[0] >= 270) {
+      // 360 degree ranges other than [-180, 180] result in problems on some servers.
+      mLonRange = {-180, 180};
+      if (std::all_of(lonDiffs.begin(), lonDiffs.end(), [](double diff) { return diff > 0; })) {
+        // West to east => north pole is visible
+        mLatRange[1] = 90;
+      } else if (std::all_of(
+                     lonDiffs.begin(), lonDiffs.end(), [](double diff) { return diff < 0; })) {
+        // East to west => south pole is visible
+        mLatRange[0] = -90;
+      } else {
+        logger().warn("Could not determine which pole is visible");
+      }
+    }
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void TextureOverlayRenderer::requestUpdateBounds() {
+  mUpdateLonLatRange = true;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -202,6 +334,11 @@ std::vector<TimeInterval> TextureOverlayRenderer::getTimeIntervals() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool TextureOverlayRenderer::Do() {
+  if (mUpdateLonLatRange) {
+    updateLonLatRange();
+    mUpdateLonLatRange = false;
+  }
+
   if (mActiveWMSLayer && mActiveWMSLayer->getSettings().mTime.has_value()) {
     // Get the current time. Pre-fetch times are related to this.
     boost::posix_time::ptime time =
@@ -246,8 +383,7 @@ bool TextureOverlayRenderer::Do() {
         // Load WMS texture to the disk.
         mTextureFilesBuffer.insert(std::pair<std::string, std::future<std::string>>(timeString,
             mTextureLoader.loadTextureAsync(timeString, mRequest, "png", mActiveWMSLayer->getName(),
-                mActiveWMSLayer->getSettings().mLatRange, mActiveWMSLayer->getSettings().mLonRange,
-                mPluginSettings->mMapCache.get())));
+                mLatRange, mLonRange, mPluginSettings->mMapCache.get())));
       }
     }
 
@@ -362,7 +498,7 @@ bool TextureOverlayRenderer::Do() {
 
   // get active planet
   if (mSolarSystem->pActiveBody.get() == nullptr ||
-      mSolarSystem->pActiveBody.get()->getCenterName() != "Earth") {
+      mSolarSystem->pActiveBody.get()->getCenterName() != mCenterName) {
     return false;
   }
 
@@ -451,8 +587,12 @@ bool TextureOverlayRenderer::Do() {
       m_pSurfaceShader->GetUniformLocation("uFarClip"), static_cast<float>(farClip));
 
   // Double precision bounds
-  loc = m_pSurfaceShader->GetUniformLocation("uBounds");
-  glUniform4dv(loc, 1, mLngLatBounds.data());
+  loc = m_pSurfaceShader->GetUniformLocation("uLatRange");
+  glUniform2dv(loc, 1,
+      glm::value_ptr(cs::utils::convert::toRadians(glm::dvec2(mLatRange[0], mLatRange[1]))));
+  loc = m_pSurfaceShader->GetUniformLocation("uLonRange");
+  glUniform2dv(loc, 1,
+      glm::value_ptr(cs::utils::convert::toRadians(glm::dvec2(mLonRange[0], mLonRange[1]))));
 
   glm::vec4 sunDirection =
       glm::normalize(glm::inverse(matWorldTransform) *
@@ -492,6 +632,7 @@ bool TextureOverlayRenderer::Do() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool TextureOverlayRenderer::GetBoundingBox(VistaBoundingBox& oBoundingBox) {
+  logger().warn("TODO Adjust to correct body size");
   float fMin[3] = {-6371000.0f, -6371000.0f, -6371000.0f};
   float fMax[3] = {6371000.0f, 6371000.0f, 6371000.0f};
 
