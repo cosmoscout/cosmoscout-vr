@@ -70,16 +70,18 @@ VistaXML::TiXmlElement* WebMapService::getCapabilities() {
 
     try {
       request.perform();
-    } catch (std::exception& e) {
-      logger().error(
+    } catch (std::exception const& e) {
+      logger().warn(
           "Failed to perform WMS Capabilities request: '{}'! Exception: '{}'", urlString, e.what());
+      throw std::exception("Capabilities request failed");
     }
 
     const std::string       xmlString = xmlStream.str();
     VistaXML::TiXmlDocument doc;
     doc.Parse(xmlString.c_str());
     if (doc.Error()) {
-      logger().error("Parsing failed with '{}'", doc.ErrorDesc());
+      logger().warn("Parsing failed with '{}'", doc.ErrorDesc());
+      throw std::exception("Capabilities parsing failed");
     } else {
       logger().trace("Successfully parsed xml");
     }

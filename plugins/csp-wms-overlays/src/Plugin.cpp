@@ -212,7 +212,11 @@ void Plugin::onLoad() {
     mWMSOverlays.emplace(settings.first, wmsOverlay);
 
     for (auto const& wmsUrl : settings.second.mWms) {
-      mWms.emplace_back(wmsUrl);
+      try {
+        mWms.emplace_back(wmsUrl);
+      } catch (std::exception const& e) {
+        logger().warn("Failed to parse capabilities for '{}': {}", wmsUrl, e.what());
+      }
     }
 
     setWMSServer(wmsOverlay, settings.second.mActiveServer.get());
