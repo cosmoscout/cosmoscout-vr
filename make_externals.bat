@@ -77,7 +77,7 @@ set INSTALL_DIR=%CURRENT_DIR%\install\windows-externals-%BUILD_TYPE%
 
 rem Create some default installation directories.
 cmake -E make_directory "%INSTALL_DIR%/lib"
-cmake -E make_directoryplugins/csp-vestec "%INSTALL_DIR%/share"
+cmake -E make_directory "%INSTALL_DIR%/share"
 cmake -E make_directory "%INSTALL_DIR%/bin"
 cmake -E make_directory "%INSTALL_DIR%/include"
 
