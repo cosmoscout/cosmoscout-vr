@@ -36,15 +36,15 @@ case "$COSMOSCOUT_DEBUG_BUILD" in
 esac
 
 # Check if unity build is disabled with "export COSMOSCOUT_NO_UNITY_BUILD=true".
-UNITY_BUILD=On
+UNITY_BUILD=Off
 case "$COSMOSCOUT_NO_UNITY_BUILD" in
-  (true) echo "CosmoScout VR debug build is enabled!"; UNITY_BUILD=Off;
+  (false) echo "CosmoScout VR debug build is enabled!"; UNITY_BUILD=On;
 esac
 
 # Check if precompield headers should not be used with "export COSMOSCOUT_NO_PCH=true".
-PRECOMPILED_HEADERS=On
+PRECOMPILED_HEADERS=Off
 case "$COSMOSCOUT_NO_PCH" in
-  (true) echo "CosmoScout VR debug build is enabled!"; PRECOMPILED_HEADERS=Off;
+  (false) echo "CosmoScout VR debug build is enabled!"; PRECOMPILED_HEADERS=On;
 esac
 
 # This directory should contain the top-level CMakeLists.txt - it is assumed to reside in the same
