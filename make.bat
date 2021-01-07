@@ -34,16 +34,16 @@ IF "%COSMOSCOUT_DEBUG_BUILD%"=="true" (
   set BUILD_TYPE=Release
 )
 
-rem Check if unity build is disabled with "set COSMOSCOUT_NO_UNITY_BUILD=true".
-IF "%COSMOSCOUT_NO_UNITY_BUILD%"=="true" (
+rem Check if unity build is disabled with "set COSMOSCOUT_USE_UNITY_BUILD=false".
+IF "%COSMOSCOUT_USE_UNITY_BUILD%"=="false" (
   echo Unity build is disabled!
   set UNITY_BUILD=Off
 ) else (
   set UNITY_BUILD=On
 )
 
-rem Check if precompield headers should not be used with "set COSMOSCOUT_NO_PCH=true".
-IF "%COSMOSCOUT_NO_PCH%"=="true" (
+rem Check if precompiled headers should not be used with "set COSMOSCOUT_USE_PCH=false".
+IF "%COSMOSCOUT_USE_PCH%"=="false" (
   echo Precompiled headers are disabled!
   set PRECOMPILED_HEADERS=Off
 ) else (
