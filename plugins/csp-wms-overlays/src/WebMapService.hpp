@@ -36,7 +36,7 @@ class WebMapService {
 
   std::optional<std::pair<std::string, VistaXML::TiXmlDocument>> getCapabilitiesFromCache();
 
-  std::stringstream getGetCapabilitiesUrl();
+  std::stringstream       getGetCapabilitiesUrl() const;
 
   std::optional<VistaXML::TiXmlDocument> mDoc;
 

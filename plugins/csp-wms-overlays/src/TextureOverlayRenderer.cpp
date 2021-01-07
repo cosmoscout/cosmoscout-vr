@@ -137,17 +137,6 @@ void TextureOverlayRenderer::setActiveWMS(
     mLonRange = mActiveWMSLayer->getSettings().mLonRange;
     mLatRange = mActiveWMSLayer->getSettings().mLatRange;
 
-    // Create request URL for map server.
-    std::stringstream url;
-    url << mActiveWMS->getUrl();
-    url << "?SERVICE=WMS&version=1.3.0&REQUEST=GetMap";
-    url << "&CRS=CRS:84";
-    url << "&TRANSPARENT=TRUE";
-    url << "&WIDTH=" << mActiveWMSLayer->getSettings().mFixedWidth.value_or(mWidth);
-    url << "&HEIGHT=" << mActiveWMSLayer->getSettings().mFixedHeight.value_or(mHeight);
-    url << "&LAYERS=" << mActiveWMSLayer->getName();
-    mRequest = url.str();
-
     // Set time intervals and format if it is defined in config.
     if (mActiveWMSLayer->getSettings().mTime.has_value()) {
       utils::parseIsoString(mActiveWMSLayer->getSettings().mTime.value(), mTimeIntervals);
@@ -155,9 +144,8 @@ void TextureOverlayRenderer::setActiveWMS(
       mFormat         = mTimeIntervals.at(0).mFormat;
     } // Download WMS texture without timestep.
     else {
-      std::string cacheFile = mTextureLoader.loadTexture("", mRequest, "png",
-          mActiveWMSLayer->getName(), mActiveWMSLayer->getSettings().mLatRange,
-          mActiveWMSLayer->getSettings().mLonRange, mPluginSettings->mMapCache.get());
+      std::string cacheFile = mTextureLoader.loadTexture(
+          *mActiveWMS, *mActiveWMSLayer, "", mPluginSettings->mMapCache.get(), mMaxSize);
       if (cacheFile != "Error") {
         mWMSTexture = cs::graphics::TextureLoader::loadFromFile(cacheFile);
         mWMSTexture->Bind();
@@ -175,7 +163,7 @@ void TextureOverlayRenderer::setActiveWMS(
 void TextureOverlayRenderer::clearTextures() {
   auto texIt = mTextures.begin();
   while (texIt != mTextures.end()) {
-    delete texIt->second;
+    delete texIt->second.mData;
     texIt++;
   }
 
@@ -381,9 +369,9 @@ bool TextureOverlayRenderer::Do() {
       if (texture1 == mTextureFilesBuffer.end() && texture2 == mTexturesBuffer.end() &&
           texture3 == mTextures.end() && texture4 == mWrongTextures.end() && inInterval) {
         // Load WMS texture to the disk.
-        mTextureFilesBuffer.insert(std::pair<std::string, std::future<std::string>>(timeString,
-            mTextureLoader.loadTextureAsync(timeString, mRequest, "png", mActiveWMSLayer->getName(),
-                mLatRange, mLonRange, mPluginSettings->mMapCache.get())));
+        mTextureFilesBuffer.insert(std::pair<std::string, std::future<std::string>>(
+            timeString, mTextureLoader.loadTextureAsync(*mActiveWMS, *mActiveWMSLayer, timeString,
+                            mPluginSettings->mMapCache.get(), mMaxSize, mLonRange, mLatRange)));
       }
     }
 
@@ -395,7 +383,7 @@ bool TextureOverlayRenderer::Do() {
 
         if (fileName != "Error") {
           // Load WMS texture to memory
-          mTexturesBuffer.insert(std::pair<std::string, std::future<unsigned char*>>(
+          mTexturesBuffer.insert(std::pair<std::string, std::future<WebMapTexture>>(
               fileIt->first, mTextureLoader.loadTextureFromFileAsync(fileName)));
         } else {
           mWrongTextures.emplace_back(fileIt->first);
@@ -411,10 +399,10 @@ bool TextureOverlayRenderer::Do() {
     auto texIt = mTexturesBuffer.begin();
     while (texIt != mTexturesBuffer.end()) {
       if (texIt->second.wait_for(std::chrono::seconds(0)) == std::future_status::ready) {
-        unsigned char* texture = texIt->second.get();
+        WebMapTexture texture = texIt->second.get();
 
-        if (strcmp(reinterpret_cast<const char*>(texture), const_cast<char*>("Error")) != 0) {
-          mTextures.insert(std::pair<std::string, unsigned char*>(texIt->first, texture));
+        if (strcmp(reinterpret_cast<const char*>(texture.mData), const_cast<char*>("Error")) != 0) {
+          mTextures.insert(std::pair<std::string, WebMapTexture>(texIt->first, texture));
         } else {
           mWrongTextures.emplace_back(texIt->first);
         }
@@ -456,8 +444,8 @@ bool TextureOverlayRenderer::Do() {
       // Only update if we have a new texture.
       if (mCurrentTexture != timeString) {
         mWMSTextureUsed = true;
-        mWMSTexture->UploadTexture(mActiveWMSLayer->getSettings().mFixedWidth.value_or(mWidth),
-            mActiveWMSLayer->getSettings().mFixedHeight.value_or(mHeight), tex->second, false);
+        mWMSTexture->UploadTexture(
+            tex->second.mWidth, tex->second.mHeight, (void*)tex->second.mData, false);
         mCurrentTexture = timeString;
       }
     } // Use default planet texture instead.
@@ -484,8 +472,7 @@ bool TextureOverlayRenderer::Do() {
         // Only update if we ha a new second texture.
         if (mCurrentSecondTexture != utils::timeToString(mFormat.c_str(), sampleAfter)) {
           mSecondWMSTexture->UploadTexture(
-              mActiveWMSLayer->getSettings().mFixedWidth.value_or(mWidth),
-              mActiveWMSLayer->getSettings().mFixedHeight.value_or(mHeight), tex->second, false);
+              tex->second.mWidth, tex->second.mHeight, (void*)tex->second.mData, false);
           mCurrentSecondTexture = utils::timeToString(mFormat.c_str(), sampleAfter);
           mSecondWMSTextureUsed = true;
         }

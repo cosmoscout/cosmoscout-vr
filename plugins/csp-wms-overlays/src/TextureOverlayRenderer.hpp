@@ -66,7 +66,7 @@ class TextureOverlayRenderer : public IVistaOpenGLDraw {
   /// Delete stored textures.
   void clearTextures();
 
-	/// Updates the longitude and latitude ranges according to the current viewport.
+  /// Updates the longitude and latitude ranges according to the current viewport.
   void updateLonLatRange();
 
   std::shared_ptr<Plugin::Settings> mPluginSettings;
@@ -95,13 +95,12 @@ class TextureOverlayRenderer : public IVistaOpenGLDraw {
 
   std::unordered_map<VistaViewport*, GBufferData> mGBufferData; //! Store one buffer per viewport
 
-  std::map<std::string, std::future<std::string>>    mTextureFilesBuffer;
-  std::map<std::string, std::future<unsigned char*>> mTexturesBuffer;
-  std::map<std::string, unsigned char*>              mTextures;
-  std::vector<std::string>                           mWrongTextures;
+  std::map<std::string, std::future<std::string>>   mTextureFilesBuffer;
+  std::map<std::string, std::future<WebMapTexture>> mTexturesBuffer;
+  std::map<std::string, WebMapTexture>              mTextures;
+  std::vector<std::string>                          mWrongTextures;
 
-  int mWidth  = 1024;
-  int mHeight = 1024;
+  int mMaxSize = 1024;
 
   bool                  mUpdateLonLatRange = false;
   std::array<double, 2> mLonRange          = {-180, 180};
@@ -117,7 +116,6 @@ class TextureOverlayRenderer : public IVistaOpenGLDraw {
   std::string mCurrentTexture;                     ///< Timestep of the current WMS texture.
   std::string mCurrentSecondTexture;               ///< Timestep of the second WMS texture.
   float       mFade;                               ///< Fading value between WMS textures.
-  std::string mRequest;                            ///< WMS server request URL.
   std::string mFormat;                             ///< Time format style.
   Duration    mSampleDuration;                     ///< Sample rate of the current WMS data set.
 

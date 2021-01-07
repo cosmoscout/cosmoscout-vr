@@ -108,7 +108,7 @@ VistaXML::TiXmlElement* WebMapService::getCapabilities() {
       try {
         cs::utils::filesystem::createDirectoryRecursively(cacheDirAbs);
       } catch (std::exception& e) {
-        logger().error("Failed to create cache directory: {}", e.what());
+        logger().warn("Failed to create cache directory: {}", e.what());
       }
     }
 
@@ -243,7 +243,7 @@ std::string WebMapService::parseTitle() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::stringstream WebMapService::getGetCapabilitiesUrl() {
+std::stringstream WebMapService::getGetCapabilitiesUrl() const {
   std::stringstream urlStream;
   urlStream << mUrl;
   urlStream << "?SERVICE=WMS";
