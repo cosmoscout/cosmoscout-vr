@@ -307,6 +307,24 @@ void TextureOverlayRenderer::updateLonLatRange() {
       }
     }
   }
+
+  if (!mActiveWMSLayer->getSettings().mTime.has_value()) {
+    std::optional<WebMapTextureFile> cacheFile = mTextureLoader.loadTexture(*mActiveWMS,
+        *mActiveWMSLayer, "", mPluginSettings->mMapCache.get(), mMaxSize, mLonRange, mLatRange);
+    if (cacheFile.has_value()) {
+      mLonRange = cacheFile->mLonRange;
+      mLatRange = cacheFile->mLatRange;
+
+      mWMSTexture = cs::graphics::TextureLoader::loadFromFile(cacheFile->mPath);
+      mWMSTexture->Bind();
+      mWMSTexture->SetWrapS(GL_CLAMP_TO_EDGE);
+      mWMSTexture->SetWrapT(GL_CLAMP_TO_EDGE);
+      mWMSTexture->Unbind();
+      mWMSTextureUsed = true;
+    } else {
+      mWMSTextureUsed = false;
+    }
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
