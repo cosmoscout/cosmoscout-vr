@@ -25,6 +25,7 @@ WebMapService::WebMapService(std::string url, std::string cacheDir)
     , mCacheFileName(std::regex_replace(mUrl, std::regex("[/:*]"), "_") + ".xml")
     , mCacheDir(cacheDir)
     , mTitle(parseTitle())
+    , mMapFormats(parseMapFormats())
     , mRootLayer(parseRootLayer()) {
   mRootLayer.getRequestableLayers(mRequestableLayers);
 }
@@ -239,6 +240,30 @@ std::string WebMapService::parseTitle() {
                                           .FirstChild()
                                           .ToText();
   return serviceTitle->ValueStr();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::vector<std::string> WebMapService::parseMapFormats() {
+  VistaXML::TiXmlHandle   capabilityHandle(getCapabilities());
+  VistaXML::TiXmlElement* getMapCapability = capabilityHandle.FirstChildElement("Capability")
+                                                 .FirstChildElement("Request")
+                                                 .FirstChildElement("GetMap")
+                                                 .ToElement();
+
+  if (getMapCapability == nullptr) {
+    logger().warn("Could not determine available file formats for '{}'.", mUrl);
+    throw std::exception("Capabilities parsing failed");
+  }
+
+  std::vector<std::string> mapFormats;
+
+  for (VistaXML::TiXmlElement* format = getMapCapability->FirstChildElement("Format");
+       format != nullptr; format      = format->NextSiblingElement("Format")) {
+    mapFormats.push_back(format->FirstChild()->ToText()->ValueStr());
+  }
+
+  return mapFormats;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

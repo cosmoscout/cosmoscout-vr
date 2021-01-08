@@ -30,13 +30,14 @@ class WebMapService {
   std::optional<WebMapLayer> getLayer(std::string name) const;
 
  private:
-  VistaXML::TiXmlElement* getCapabilities();
-  WebMapLayer             parseRootLayer();
-  std::string             parseTitle();
+  VistaXML::TiXmlElement*  getCapabilities();
+  WebMapLayer              parseRootLayer();
+  std::string              parseTitle();
+  std::vector<std::string> parseMapFormats();
 
   std::optional<std::pair<std::string, VistaXML::TiXmlDocument>> getCapabilitiesFromCache();
 
-  std::stringstream       getGetCapabilitiesUrl() const;
+  std::stringstream getGetCapabilitiesUrl() const;
 
   std::optional<VistaXML::TiXmlDocument> mDoc;
 
@@ -45,6 +46,8 @@ class WebMapService {
   const std::string mCacheFileName;
 
   const std::string mTitle;
+
+  const std::vector<std::string> mMapFormats;
 
   WebMapLayer              mRootLayer;
   std::vector<WebMapLayer> mRequestableLayers;
