@@ -26,8 +26,6 @@
 #include <VistaOGLExt/VistaVertexArrayObject.h>
 #include <VistaTools/tinyXML/tinyxml.h>
 
-#include "../../../src/cs-core/GraphicsEngine.hpp"
-
 #include <array>
 #include <fstream>
 
