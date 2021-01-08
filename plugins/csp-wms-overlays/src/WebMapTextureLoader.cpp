@@ -242,6 +242,7 @@ std::string WebMapTextureLoader::getRequestUrl(WebMapService const& wms, WebMapL
   url << "&FORMAT=" << mime;
   url << "&CRS=CRS:84";
   url << "&LAYERS=" << layer.getName();
+  url << "&STYLES=";
   url << "&BBOX=" << lonRange[0] << "," << latRange[0] << "," << lonRange[1] << "," << latRange[1];
 
   if (layer.getSettings().mOpaque) {
