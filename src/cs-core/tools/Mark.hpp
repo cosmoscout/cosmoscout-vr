@@ -87,6 +87,14 @@ class CS_CORE_EXPORT Mark : public IVistaOpenGLDraw, public Tool {
   std::unique_ptr<VistaBufferObject>      mIBO;
   std::unique_ptr<VistaGLSLShader>        mShader;
 
+  struct {
+    uint32_t modelViewMatrix   = 0;
+    uint32_t projectionMatrix  = 0;
+    uint32_t hoverSelectActive = 0;
+    uint32_t farClip           = 0;
+    uint32_t color             = 0;
+  } mUniforms;
+
   size_t mIndexCount{};
 
   int mSelfLngLatConnection = -1, mHoveredNodeConnection = -1, mSelectedNodeConnection = -1,

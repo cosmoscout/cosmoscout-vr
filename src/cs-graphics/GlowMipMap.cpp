@@ -30,7 +30,6 @@ static const char* sGlowShader = R"(
 
   uniform int uPass;
   uniform int uLevel;
-  uniform float uThreshold;
 
   vec3 sampleHDRBuffer(ivec2 offset) {
     #if NUM_MULTISAMPLES > 0
@@ -155,6 +154,9 @@ GlowMipMap::GlowMipMap(uint32_t hdrBufferSamples, int hdrBufferWidth, int hdrBuf
 
     throw std::runtime_error(std::string("ERROR: Failed to link compute shader\n") + log);
   }
+
+  mUniforms.level = glGetUniformLocation(mComputeProgram, "uLevel");
+  mUniforms.pass  = glGetUniformLocation(mComputeProgram, "uPass");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -176,7 +178,7 @@ void GlowMipMap::update(VistaTexture* hdrBufferComposite) {
   glBindImageTexture(0, hdrBufferComposite->GetId(), 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
 
   for (int level(0); level < mMaxLevels; ++level) {
-    glUniform1i(glGetUniformLocation(mComputeProgram, "uLevel"), level);
+    glUniform1i(mUniforms.level, level);
 
     for (int pass(0); pass < 2; ++pass) {
       VistaTexture* input       = this;
@@ -203,7 +205,7 @@ void GlowMipMap::update(VistaTexture* hdrBufferComposite) {
         input = mTemporaryTarget;
       }
 
-      glUniform1i(glGetUniformLocation(mComputeProgram, "uPass"), pass);
+      glUniform1i(mUniforms.pass, pass);
 
       int width = static_cast<int>(
           std::max(1.0, std::floor(static_cast<double>(static_cast<int>(mHDRBufferWidth / 2)) /

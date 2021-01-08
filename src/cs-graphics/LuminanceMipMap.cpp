@@ -162,6 +162,8 @@ LuminanceMipMap::LuminanceMipMap(uint32_t hdrBufferSamples, int hdrBufferWidth, 
 
     throw std::runtime_error(std::string("ERROR: Failed to link compute shader\n") + log);
   }
+
+  mUniforms.level = glGetUniformLocation(mComputeProgram, "uLevel");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -207,7 +209,7 @@ void LuminanceMipMap::update(VistaTexture* hdrBufferComposite) {
     int height = static_cast<int>(std::max(1.0,
         std::floor(static_cast<double>(static_cast<int>(mHDRBufferHeight / 2)) / std::pow(2, i))));
 
-    glUniform1i(glGetUniformLocation(mComputeProgram, "uLevel"), i);
+    glUniform1i(mUniforms.level, i);
     glBindImageTexture(2, GetId(), i, GL_FALSE, 0, GL_WRITE_ONLY, GL_RG32F);
 
     // For the first level, hdrBufferComposite will be used for reading, all other levels use the

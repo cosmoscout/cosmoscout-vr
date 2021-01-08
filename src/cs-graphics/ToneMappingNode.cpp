@@ -285,6 +285,9 @@ ToneMappingNode::ToneMappingNode(std::shared_ptr<HDRBuffer> hdrBuffer)
   mShader->InitFragmentShaderFromString(defines + sFragmentShader);
   mShader->Link();
 
+  mUniforms.exposure      = mShader->GetUniformLocation("uExposure");
+  mUniforms.glowIntensity = mShader->GetUniformLocation("uGlowIntensity");
+
   // Connect to the VSE_POSTGRAPHICS event. When this event is emitted, we will collect all
   // luminance values of the connected cluster nodes.
   VistaEventManager* pEventManager = GetVistaSystem()->GetEventManager();
@@ -462,8 +465,8 @@ bool ToneMappingNode::ToneMappingNode::Do() {
   glEnable(GL_TEXTURE_2D);
 
   mShader->Bind();
-  mShader->SetUniform(mShader->GetUniformLocation("uExposure"), exposure);
-  mShader->SetUniform(mShader->GetUniformLocation("uGlowIntensity"), mGlowIntensity);
+  mShader->SetUniform(mUniforms.exposure, exposure);
+  mShader->SetUniform(mUniforms.glowIntensity, mGlowIntensity);
 
   glDrawArrays(GL_TRIANGLES, 0, 3);
 

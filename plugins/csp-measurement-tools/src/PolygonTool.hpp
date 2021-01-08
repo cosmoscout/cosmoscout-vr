@@ -126,6 +126,13 @@ class PolygonTool : public IVistaOpenGLDraw, public cs::core::tools::MultiPointT
   VistaBufferObject      mVBO2;
   VistaGLSLShader        mShader;
 
+  struct {
+    uint32_t modelViewMatrix  = 0;
+    uint32_t projectionMatrix = 0;
+    uint32_t color            = 0;
+    uint32_t farClip          = 0;
+  } mUniforms;
+
   std::vector<glm::dvec3> mSampledPositions;
   size_t                  mIndexCount    = 0;
   bool                    mVerticesDirty = false;
