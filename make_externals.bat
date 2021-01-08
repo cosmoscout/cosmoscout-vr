@@ -92,9 +92,9 @@ echo.
 
 cmake -E make_directory "%BUILD_DIR%/zlib" && cd "%BUILD_DIR%/zlib"
 cmake %CMAKE_FLAGS% -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
-      "%EXTERNALS_DIR%/zlib" || exit /b
+      "%EXTERNALS_DIR%/zlib" || goto :error
 
-cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS%
+cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS% || goto :error
 
 rem Zipper -----------------------------------------------------------------------------------------
 :zipper
@@ -109,9 +109,9 @@ cmake %CMAKE_FLAGS% -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DCMAKE_INSTALL_PREFIX="%INS
        -DBUILD_STATIC_VERSION=off ^
        -DBUILD_TEST=off ^
        -DZLIB_INCLUDE_DIR="%INSTALL_DIR%/include"^
-      "%EXTERNALS_DIR%/zipper" || exit /b
+      "%EXTERNALS_DIR%/zipper" || goto :error
 
-cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS%
+cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS% || goto :error
 
 rem gdal 3.0.4 --------------------------------------------------------------------------------------------
 :gdal
@@ -141,8 +141,8 @@ echo .
 
 cmake -E make_directory "%BUILD_DIR%/sqlite3" && cd "%BUILD_DIR%/sqlite3"
 cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
-      -DBUILD_TESTING=off "%EXTERNALS_DIR%/sqlite3"
-cmake --build . --config %BUILD_TYPE% --target install --parallel 8
+      -DBUILD_TESTING=off "%EXTERNALS_DIR%/sqlite3" || goto :error
+cmake --build . --config %BUILD_TYPE% --target install --parallel 8 || goto :error
 
 rem # VTK -----------------------------------------------------------------------------------------
 :vtk
@@ -157,8 +157,8 @@ cmake -E tar xfvj %SOURCE_ROOT_DIR%/VTK-Patch.zip
 
 cmake -E make_directory "%BUILD_DIR%/vtk" && cd "%BUILD_DIR%/vtk"
 cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
-      -DBUILD_TESTING=off "%EXTERNALS_DIR%/vtk"
-cmake --build . --config %BUILD_TYPE% --target install --parallel 8
+      -DBUILD_TESTING=off "%EXTERNALS_DIR%/vtk" || goto :error
+cmake --build . --config %BUILD_TYPE% --target install --parallel 8 || goto :error
 
 rem # TTK -----------------------------------------------------------------------------------------
 :ttk
@@ -170,8 +170,8 @@ echo .
 cmake -E make_directory "%BUILD_DIR%/ttk" && cd "%BUILD_DIR%/ttk"
 cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
       -DTTK_BUILD_PARAVIEW_PLUGINS=Off -DTTK_ENABLE_GRAPHVIZ=Off^
-	  -DSQLITE3_INCLUDE_DIR="%INSTALL_DIR%/include" -DBUILD_TESTING=off "%EXTERNALS_DIR%/ttk"
-cmake --build . --config %BUILD_TYPE% --target install --parallel 8
+	  -DSQLITE3_INCLUDE_DIR="%INSTALL_DIR%/include" -DBUILD_TESTING=off "%EXTERNALS_DIR%/ttk" || goto :error
+cmake --build . --config %BUILD_TYPE% --target install --parallel 8 || goto :error
 
 rem glew -------------------------------------------------------------------------------------------
 :glew
