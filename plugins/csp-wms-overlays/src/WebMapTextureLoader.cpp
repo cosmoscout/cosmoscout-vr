@@ -37,38 +37,46 @@ WebMapTextureLoader::~WebMapTextureLoader() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::future<std::string> WebMapTextureLoader::loadTextureAsync(WebMapService const& wms,
-    WebMapLayer const& layer, std::string const& time, std::string const& mapCache,
-    int const& maxSize, std::array<double, 2> lonRange, std::array<double, 2> latRange) {
+std::future<std::optional<WebMapTextureFile>> WebMapTextureLoader::loadTextureAsync(
+    WebMapService const& wms, WebMapLayer const& layer, std::string const& time,
+    std::string const& mapCache, int const& maxSize, std::array<double, 2> const& lonRange,
+    std::array<double, 2> const& latRange) {
   return mThreadPool.enqueue(
       [=]() { return loadTexture(wms, layer, time, mapCache, maxSize, lonRange, latRange); });
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::future<std::string> WebMapTextureLoader::loadTextureAsync(WebMapService const& wms,
-    WebMapLayer const& layer, std::string const& time, std::string const& mapCache,
-    int const& maxSize) {
+std::future<std::optional<WebMapTextureFile>> WebMapTextureLoader::loadTextureAsync(
+    WebMapService const& wms, WebMapLayer const& layer, std::string const& time,
+    std::string const& mapCache, int const& maxSize) {
   return mThreadPool.enqueue([=]() { return loadTexture(wms, layer, time, mapCache, maxSize); });
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::string WebMapTextureLoader::loadTexture(WebMapService const& wms, WebMapLayer const& layer,
-    std::string const& time, std::string const& mapCache, int const& maxSize,
-    std::array<double, 2> lonRange, std::array<double, 2> latRange) {
+std::optional<WebMapTextureFile> WebMapTextureLoader::loadTexture(WebMapService const& wms,
+    WebMapLayer const& layer, std::string const& time, std::string const& mapCache,
+    int const& maxSize, std::array<double, 2> const& lonRange,
+    std::array<double, 2> const& latRange) {
+
+  WebMapTextureFile result;
+  result.mLonRange = lonRange;
+  result.mLatRange = latRange;
 
   if (layer.getSettings().mNoSubsets) {
-    lonRange = layer.getSettings().mLonRange;
-    latRange = layer.getSettings().mLatRange;
+    result.mLonRange = layer.getSettings().mLonRange;
+    result.mLatRange = layer.getSettings().mLatRange;
   }
 
-  std::string mime          = getMimeType();
-  auto        cacheFilePath = getCachePath(layer, time, mapCache, lonRange, latRange, mime);
+  std::string mime = getMimeType();
+  auto        cacheFilePath =
+      getCachePath(layer, time, mapCache, result.mLonRange, result.mLatRange, mime);
 
   // the file is already there, we can return it
   if (boost::filesystem::exists(cacheFilePath) && boost::filesystem::file_size(cacheFilePath) > 0) {
-    return cacheFilePath.string();
+    result.mPath = cacheFilePath.string();
+    return result;
   }
 
   // the file is corrupt not available
@@ -87,7 +95,7 @@ std::string WebMapTextureLoader::loadTexture(WebMapService const& wms, WebMapLay
             cacheDirPath, boost::filesystem::perms::all_all);
       } catch (std::exception& e) {
         logger().error("Failed to create cache directory: {}", e.what());
-        return "Error";
+        return {};
       }
     }
   }
@@ -99,10 +107,11 @@ std::string WebMapTextureLoader::loadTexture(WebMapService const& wms, WebMapLay
 
     if (!out) {
       logger().error("Failed to open '{}' for writing!", cacheFilePath.string());
-      return "Error";
+      return {};
     }
 
-    std::string url = getRequestUrl(wms, layer, time, maxSize, lonRange, latRange, mime);
+    std::string url =
+        getRequestUrl(wms, layer, time, maxSize, result.mLonRange, result.mLatRange, mime);
 
     curlpp::Easy request;
     request.setOpt(curlpp::options::Url(url));
@@ -118,7 +127,7 @@ std::string WebMapTextureLoader::loadTexture(WebMapService const& wms, WebMapLay
     } catch (std::exception& e) {
       logger().error("Failed to perform WMS request: '{}'! Exception: '{}'", url, e.what());
       boost::filesystem::remove(cacheFilePath);
-      return "Error";
+      return {};
     }
 
     // Check if the content type is correct.
@@ -131,7 +140,7 @@ std::string WebMapTextureLoader::loadTexture(WebMapService const& wms, WebMapLay
   if (fail) {
     logger().warn("There is no image to load for time {}.", time);
     boost::filesystem::remove(cacheFilePath);
-    return "Error";
+    return {};
   }
 
   boost::filesystem::perms filePerms =
@@ -140,20 +149,22 @@ std::string WebMapTextureLoader::loadTexture(WebMapService const& wms, WebMapLay
       boost::filesystem::perms::others_read | boost::filesystem::perms::others_write;
   boost::filesystem::permissions(cacheFilePath, filePerms);
 
-  return cacheFilePath.string();
+  result.mPath = cacheFilePath.string();
+  return result;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::string WebMapTextureLoader::loadTexture(WebMapService const& wms, WebMapLayer const& layer,
-    std::string const& time, std::string const& mapCache, int const& maxSize) {
+std::optional<WebMapTextureFile> WebMapTextureLoader::loadTexture(WebMapService const& wms,
+    WebMapLayer const& layer, std::string const& time, std::string const& mapCache,
+    int const& maxSize) {
   return loadTexture(wms, layer, time, mapCache, maxSize, layer.getSettings().mLonRange,
       layer.getSettings().mLatRange);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::future<WebMapTexture> WebMapTextureLoader::loadTextureFromFileAsync(
+std::future<std::optional<WebMapTexture>> WebMapTextureLoader::loadTextureFromFileAsync(
     std::string const& fileName) {
   return mThreadPool.enqueue([=]() {
     int width, height, bpp;
@@ -163,11 +174,11 @@ std::future<WebMapTexture> WebMapTextureLoader::loadTextureFromFileAsync(
 
     if (!pixels) {
       logger().error("Failed to load '{}' with stbi!", fileName.c_str());
-      pixels = reinterpret_cast<unsigned char*>(const_cast<char*>("Error"));
+      return std::optional<WebMapTexture>{};
     }
 
     WebMapTexture texture{pixels, width, height};
-    return texture;
+    return std::optional<WebMapTexture>{texture};
   });
 }
 

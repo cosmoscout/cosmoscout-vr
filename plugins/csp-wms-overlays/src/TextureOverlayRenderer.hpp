@@ -95,10 +95,10 @@ class TextureOverlayRenderer : public IVistaOpenGLDraw {
 
   std::unordered_map<VistaViewport*, GBufferData> mGBufferData; //! Store one buffer per viewport
 
-  std::map<std::string, std::future<std::string>>   mTextureFilesBuffer;
-  std::map<std::string, std::future<WebMapTexture>> mTexturesBuffer;
-  std::map<std::string, WebMapTexture>              mTextures;
-  std::vector<std::string>                          mWrongTextures;
+  std::map<std::string, std::future<std::optional<WebMapTextureFile>>> mTextureFilesBuffer;
+  std::map<std::string, std::future<std::optional<WebMapTexture>>>     mTexturesBuffer;
+  std::map<std::string, WebMapTexture>                                 mTextures;
+  std::vector<std::string>                                             mWrongTextures;
 
   int mMaxSize = 1024;
 
