@@ -34,6 +34,10 @@ target_link_libraries(cosmoscout
   cs-core
 )
 
+if(COSMOSCOUT_USE_PRECOMPILED_HEADERS)
+  target_precompile_headers(cosmoscout PRIVATE precompiled.pch)
+endif()
+
 # X11 is used on Linux to set the application window's name and icon.
 if (X11_FOUND)
   target_link_libraries(cosmoscout

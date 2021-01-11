@@ -12,7 +12,7 @@ set -e
 # ------------------------------------------------------------------------------------------------ #
 # Make sure to run "git submodule update --init" before executing this script!                     #
 # Default build mode is release, if "export COSMOSCOUT_DEBUG_BUILD=true" is executed before, all   #
-# dependecies will be built in debug mode.                                                         #
+# dependencies will be built in debug mode.                                                        #
 # Usage:                                                                                           #
 #    ./make_externals.sh [additional CMake flags, defaults to -G "Eclipse CDT4 - Unix Makefiles"]  #
 # Examples:                                                                                        #
@@ -36,16 +36,16 @@ case "$COSMOSCOUT_DEBUG_BUILD" in
   (true) echo "CosmoScout VR debug build is enabled!"; BUILD_TYPE=Debug;
 esac
 
-# Check if unity build is disabled with "export COSMOSCOUT_NO_UNITY_BUILD=true".
+# Check if unity build is disabled with "export COSMOSCOUT_USE_UNITY_BUILD=false".
 UNITY_BUILD=On
-case "$COSMOSCOUT_NO_UNITY_BUILD" in
-  (true) echo "CosmoScout VR debug build is enabled!"; UNITY_BUILD=Off;
+case "$COSMOSCOUT_USE_UNITY_BUILD" in
+  (false) echo "Unity build is disabled!"; UNITY_BUILD=Off;
 esac
 
-# Check if precompield headers should not be used with "export COSMOSCOUT_NO_PCH=true".
+# Check if precompiled headers should not be used with "export COSMOSCOUT_USE_PCH=false".
 PRECOMPILED_HEADERS=On
-case "$COSMOSCOUT_NO_PCH" in
-  (true) echo "CosmoScout VR debug build is enabled!"; PRECOMPILED_HEADERS=Off;
+case "$COSMOSCOUT_USE_PCH" in
+  (false) echo "Precompiled headers are disabled!"; PRECOMPILED_HEADERS=Off;
 esac
 
 # This directory should contain all submodules - they are assumed to reside in the subdirectory 
