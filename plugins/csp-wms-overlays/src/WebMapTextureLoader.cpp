@@ -255,7 +255,7 @@ std::string WebMapTextureLoader::getRequestUrl(WebMapService const& wms, WebMapL
   std::optional<int> width, height;
 
   width  = layer.getSettings().mFixedWidth;
-  height = layer.getSettings().mFixedWidth;
+  height = layer.getSettings().mFixedHeight;
 
   if (!width.has_value() && !height.has_value()) {
     if (aspect < 1) {
