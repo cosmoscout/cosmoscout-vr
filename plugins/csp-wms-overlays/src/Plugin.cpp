@@ -49,6 +49,7 @@ void to_json(nlohmann::json& j, Plugin::Settings::Body const& o) {
 
 void from_json(nlohmann::json const& j, Plugin::Settings& o) {
   cs::core::Settings::deserialize(j, "preFetch", o.mPrefetchCount);
+  cs::core::Settings::deserialize(j, "maxTextureSize", o.mMaxTextureSize);
   cs::core::Settings::deserialize(j, "mapCache", o.mMapCache);
   cs::core::Settings::deserialize(j, "capabilityCache", o.mCapabilityCache);
   cs::core::Settings::deserialize(j, "bodies", o.mBodies);
@@ -56,6 +57,7 @@ void from_json(nlohmann::json const& j, Plugin::Settings& o) {
 
 void to_json(nlohmann::json& j, Plugin::Settings const& o) {
   cs::core::Settings::serialize(j, "preFetch", o.mPrefetchCount);
+  cs::core::Settings::serialize(j, "maxTextureSize", o.mMaxTextureSize);
   cs::core::Settings::serialize(j, "mapCache", o.mMapCache);
   cs::core::Settings::serialize(j, "capabilityCache", o.mCapabilityCache);
   cs::core::Settings::serialize(j, "bodies", o.mBodies);

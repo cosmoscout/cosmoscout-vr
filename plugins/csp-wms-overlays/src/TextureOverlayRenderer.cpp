@@ -51,6 +51,7 @@ TextureOverlayRenderer::TextureOverlayRenderer(std::string center,
     , mSolarSystem(solarSystem)
     , mTimeControl(timeControl)
     , mPluginSettings(pluginSettings)
+    , mMaxSize(pluginSettings->mMaxTextureSize.get())
     , mWMSTexture(new VistaTexture(GL_TEXTURE_2D))
     , mSecondWMSTexture(new VistaTexture(GL_TEXTURE_2D)) {
   logger().debug("[TextureOverlayRenderer] Compiling shader");

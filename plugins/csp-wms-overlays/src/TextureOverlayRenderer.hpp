@@ -100,7 +100,7 @@ class TextureOverlayRenderer : public IVistaOpenGLDraw {
   std::map<std::string, WebMapTexture>                                 mTextures;
   std::vector<std::string>                                             mWrongTextures;
 
-  int mMaxSize = 1024;
+  int mMaxSize;
 
   bool                  mUpdateLonLatRange = false;
   std::array<double, 2> mLonRange          = {-180, 180};

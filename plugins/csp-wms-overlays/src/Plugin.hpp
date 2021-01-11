@@ -46,6 +46,10 @@ class Plugin : public cs::core::PluginBase {
     /// The amount of textures that gets pre-fetched in every time direction.
     cs::utils::DefaultProperty<int> mPrefetchCount{0};
 
+    /// The size of the requested map textures along the longer axis. Some wms layers may only be
+    /// available in certain sizes, those won't be influenced by this setting.
+    cs::utils::DefaultProperty<int> mMaxTextureSize{1024};
+
     /// The startup settings for a planet.
     struct Body {
       cs::utils::DefaultProperty<std::string> mActiveServer{
