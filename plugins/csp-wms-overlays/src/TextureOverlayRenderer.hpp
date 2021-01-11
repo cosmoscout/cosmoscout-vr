@@ -45,6 +45,9 @@ class TextureOverlayRenderer : public IVistaOpenGLDraw {
       std::shared_ptr<Plugin::Settings> const& pluginSettings);
   virtual ~TextureOverlayRenderer();
 
+  /// Returns the SPICE name of the body to which this renderer is assigned.
+  std::string getCenter() const;
+
   /// Configures the internal renderer according to the given values.
   void configure(Plugin::Settings::Body const& settings);
 
@@ -122,7 +125,7 @@ class TextureOverlayRenderer : public IVistaOpenGLDraw {
   WebMapTextureLoader mTextureLoader;
 
   std::shared_ptr<cs::core::SolarSystem>
-      mSolarSystem; //! Pointer to the CosmoScout solar system used to retrieve matrices
+                                         mSolarSystem; //! Pointer to the CosmoScout solar system used to retrieve matrices
   std::shared_ptr<cs::core::TimeControl> mTimeControl;
 };
 

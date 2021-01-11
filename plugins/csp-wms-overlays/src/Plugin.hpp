@@ -81,7 +81,7 @@ class Plugin : public cs::core::PluginBase {
   std::shared_ptr<Settings> mPluginSettings = std::make_shared<Settings>();
   std::map<std::string, std::shared_ptr<TextureOverlayRenderer>> mWMSOverlays;
 
-  std::vector<WebMapService> mWms;
+  std::map<std::string, std::vector<WebMapService>> mWms;
 
   int mActiveBodyConnection = -1;
   int mOnLoadConnection     = -1;
