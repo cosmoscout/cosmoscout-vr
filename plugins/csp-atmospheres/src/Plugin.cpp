@@ -143,10 +143,9 @@ void Plugin::init() {
   mPluginSettings->mWaterLevel.connectAndTouch(
       [this](float value) { mGuiManager->setSliderValue("atmosphere.setWaterLevel", value); });
 
-  mEnableShadowsConnection = mAllSettings->mGraphics.pEnableShadows.connect([this](bool /*val*/) {
+  mEnableShadowsConnection = mAllSettings->mGraphics.pEnableShadows.connect([this](bool value) {
     for (auto const& atmosphere : mAtmospheres) {
-      if (mAllSettings->mGraphics.pEnableShadows.get() &&
-          mPluginSettings->mEnableLightShafts.get()) {
+      if (value && mPluginSettings->mEnableLightShafts.get()) {
         atmosphere.second->getRenderer().setShadowMap(mGraphicsEngine->getShadowMap());
       } else {
         atmosphere.second->getRenderer().setShadowMap(nullptr);
@@ -175,10 +174,9 @@ void Plugin::init() {
         }
       });
 
-  mPluginSettings->mEnableLightShafts.connect([this](bool /*val*/) {
+  mPluginSettings->mEnableLightShafts.connect([this](bool value) {
     for (auto const& atmosphere : mAtmospheres) {
-      if (mAllSettings->mGraphics.pEnableShadows.get() &&
-          mPluginSettings->mEnableLightShafts.get()) {
+      if (mAllSettings->mGraphics.pEnableShadows.get() && value) {
         atmosphere.second->getRenderer().setShadowMap(mGraphicsEngine->getShadowMap());
       } else {
         atmosphere.second->getRenderer().setShadowMap(nullptr);
