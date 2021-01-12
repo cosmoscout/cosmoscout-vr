@@ -82,8 +82,8 @@ jobs:
         uses: actions/cache@v1.1.0
         with:
           path: ~/.ccache
-          key: gcc-${{ github.sha }}
-          restore-keys: gcc-
+          key: gcc-7_5_0-${{ github.sha }}
+          restore-keys: gcc-7_5_0
       - name: Download Dependencies
         run: |
           sudo apt-get update -q
