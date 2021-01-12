@@ -69,6 +69,9 @@ class CS_GUI_EXPORT ScreenSpaceGuiArea : public GuiArea,
     uint32_t texSize  = 0;
     uint32_t texture  = 0;
   } mUniforms;
+
+  static const char* const QUAD_VERT;
+  static const char* const QUAD_FRAG;
 };
 
 } // namespace cs::gui

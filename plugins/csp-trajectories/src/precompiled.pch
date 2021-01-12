@@ -1,0 +1,19 @@
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//                               This file is part of CosmoScout VR                               //
+//      and may be used under the terms of the MIT license. See the LICENSE file for details.     //
+//                        Copyright: (c) 2019 German Aerospace Center (DLR)                       //
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// Headers which are included here are used at least 3 times.
+
+#include <VistaBase/VistaColor.h>
+#include <VistaKernel/GraphicsManager/VistaGraphicsManager.h>
+#include <VistaKernel/GraphicsManager/VistaOpenGLDraw.h>
+#include <VistaKernel/GraphicsManager/VistaSceneGraph.h>
+#include <VistaKernel/GraphicsManager/VistaTransformNode.h>
+#include <VistaKernel/VistaSystem.h>
+#include <VistaKernelOpenSGExt/VistaOpenSGMaterialTools.h>
+
+#include "../../../src/cs-core/SolarSystem.hpp"
+#include "../../../src/cs-scene/CelestialObject.hpp"
+#include "../../../src/cs-utils/FrameTimings.hpp"
