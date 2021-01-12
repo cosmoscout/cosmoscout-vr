@@ -148,7 +148,7 @@ rem # VTK ----------------------------------------------------------------------
 :vtk
 
 echo .
-echo Building and installing VTK 8.1.0 ...
+echo Building and installing VTK 9.0.1 ...
 echo .
 
 rem # patch VTK

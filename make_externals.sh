@@ -126,7 +126,7 @@ make install
 # VTK -----------------------------------------------------------------------------------------
 
 echo ""
-echo "Building and installing VTK 8.1.0 ..."
+echo "Building and installing VTK 9.0.1 ..."
 echo ""
 
 echo ""
@@ -144,11 +144,11 @@ cmake --build . --config $BUILD_TYPE --target install --parallel 8
 # TTK -----------------------------------------------------------------------------------------
 
 echo ""
-echo "Building and installing TTK 0.9.8 ..."
+echo "Building and installing TTK 0.9.9 ..."
 echo ""
 
 cmake -E make_directory $BUILD_DIR/ttk && cd $BUILD_DIR/ttk
-cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \
+cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR -DVTK_MODULE_ENABLE_ttkCinemaWriter=NO\
       -DTTK_BUILD_PARAVIEW_PLUGINS=Off -DTTK_ENABLE_GRAPHVIZ=Off -DBUILD_TESTING=off $EXTERNALS_DIR/ttk
 cmake --build . --config $BUILD_TYPE --target install --parallel 8
 
