@@ -277,6 +277,15 @@ bool SimpleBody::Do() {
     mShader.InitFragmentShaderFromString(defines + SPHERE_FRAG);
     mShader.Link();
 
+    mUniforms.sunDirection      = mShader.GetUniformLocation("uSunDirection");
+    mUniforms.sunIlluminance    = mShader.GetUniformLocation("uSunIlluminance");
+    mUniforms.ambientBrightness = mShader.GetUniformLocation("uAmbientBrightness");
+    mUniforms.modelViewMatrix   = mShader.GetUniformLocation("uMatModelView");
+    mUniforms.projectionMatrix  = mShader.GetUniformLocation("uMatProjection");
+    mUniforms.surfaceTexture    = mShader.GetUniformLocation("uSurfaceTexture");
+    mUniforms.radii             = mShader.GetUniformLocation("uRadii");
+    mUniforms.farClip           = mShader.GetUniformLocation("uFarClip");
+
     mShaderDirty = false;
   }
 
@@ -306,10 +315,9 @@ bool SimpleBody::Do() {
     sunDirection = mSolarSystem->getSunDirection(getWorldTransform()[3]);
   }
 
-  mShader.SetUniform(mShader.GetUniformLocation("uSunDirection"), sunDirection[0], sunDirection[1],
-      sunDirection[2]);
-  mShader.SetUniform(mShader.GetUniformLocation("uSunIlluminance"), sunIlluminance);
-  mShader.SetUniform(mShader.GetUniformLocation("uAmbientBrightness"), ambientBrightness);
+  mShader.SetUniform(mUniforms.sunDirection, sunDirection[0], sunDirection[1], sunDirection[2]);
+  mShader.SetUniform(mUniforms.sunIlluminance, sunIlluminance);
+  mShader.SetUniform(mUniforms.ambientBrightness, ambientBrightness);
 
   // Get modelview and projection matrices.
   std::array<GLfloat, 16> glMatMV{};
@@ -317,15 +325,13 @@ bool SimpleBody::Do() {
   glGetFloatv(GL_MODELVIEW_MATRIX, glMatMV.data());
   glGetFloatv(GL_PROJECTION_MATRIX, glMatP.data());
   auto matMV = glm::make_mat4x4(glMatMV.data()) * glm::mat4(getWorldTransform());
-  glUniformMatrix4fv(
-      mShader.GetUniformLocation("uMatModelView"), 1, GL_FALSE, glm::value_ptr(matMV));
-  glUniformMatrix4fv(mShader.GetUniformLocation("uMatProjection"), 1, GL_FALSE, glMatP.data());
+  glUniformMatrix4fv(mUniforms.modelViewMatrix, 1, GL_FALSE, glm::value_ptr(matMV));
+  glUniformMatrix4fv(mUniforms.projectionMatrix, 1, GL_FALSE, glMatP.data());
 
-  mShader.SetUniform(mShader.GetUniformLocation("uSurfaceTexture"), 0);
-  mShader.SetUniform(mShader.GetUniformLocation("uRadii"), static_cast<float>(mRadii[0]),
-      static_cast<float>(mRadii[1]), static_cast<float>(mRadii[2]));
-  mShader.SetUniform(
-      mShader.GetUniformLocation("uFarClip"), cs::utils::getCurrentFarClipDistance());
+  mShader.SetUniform(mUniforms.surfaceTexture, 0);
+  mShader.SetUniform(mUniforms.radii, static_cast<float>(mRadii[0]), static_cast<float>(mRadii[1]),
+      static_cast<float>(mRadii[2]));
+  mShader.SetUniform(mUniforms.farClip, cs::utils::getCurrentFarClipDistance());
 
   mTexture->Bind(GL_TEXTURE0);
 

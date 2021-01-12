@@ -103,6 +103,11 @@ class CS_GRAPHICS_EXPORT ToneMappingNode : public IVistaOpenGLDraw, public Vista
     float mMaximumLuminance = 0;
   };
 
+  struct {
+    uint32_t exposure      = 0;
+    uint32_t glowIntensity = 0;
+  } mUniforms;
+
   LuminanceData mLocalLuminanceData;
   LuminanceData mGlobalLuminanceData;
 

@@ -52,6 +52,14 @@ class SunFlare : public cs::scene::CelestialObject, public IVistaOpenGLDraw {
 
   VistaGLSLShader mShader;
 
+  struct {
+    uint32_t modelViewMatrix  = 0;
+    uint32_t projectionMatrix = 0;
+    uint32_t color            = 0;
+    uint32_t aspect           = 0;
+    uint32_t farClip          = 0;
+  } mUniforms;
+
   static const char* QUAD_VERT;
   static const char* QUAD_FRAG;
 };
