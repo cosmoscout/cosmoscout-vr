@@ -169,7 +169,7 @@ echo .
 
 cmake -E make_directory "%BUILD_DIR%/ttk" && cd "%BUILD_DIR%/ttk"
 cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
-      -DTTK_BUILD_PARAVIEW_PLUGINS=Off -DTTK_ENABLE_GRAPHVIZ=Off -DVTK_MODULE_ENABLE_ttkCinemaWriter=NO^
+      -DTTK_BUILD_PARAVIEW_PLUGINS=Off -DTTK_ENABLE_GRAPHVIZ=Off -DVTK_MODULE_ENABLE_ttkCinemaWriter=NO -DTTK_ENABLE_EIGEN=Off^
       -DSQLITE3_INCLUDE_DIR="%INSTALL_DIR%/include" -DBUILD_TESTING=off "%EXTERNALS_DIR%/ttk" || goto :error
 cmake --build . --config %BUILD_TYPE% --target install --parallel 8 || goto :error
 
