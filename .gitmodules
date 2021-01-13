@@ -34,6 +34,18 @@
 [submodule "externals/doctest"]
 	path = externals/doctest
 	url = https://github.com/onqtam/doctest.git
+[submodule "plugins/csp-vestec"]
+	path = plugins/csp-vestec
+	url =  https://github.com/cosmoscout/csp-vestec.git
+[submodule "externals/vtk"]
+	path = externals/vtk
+	url = https://github.com/Kitware/VTK.git
+[submodule "externals/ttk"]
+	path = externals/ttk
+	url = https://github.com/topology-tool-kit/ttk.git
+[submodule "externals/sqlite3"]
+	path = externals/sqlite3
+	url = https://github.com/azadkuh/sqlite-amalgamation.git
 [submodule "externals/spdlog"]
 	path = externals/spdlog
 	url = https://github.com/cosmoscout/spdlog.git
@@ -49,3 +61,12 @@
 [submodule "externals/openvr"]
 	path = externals/openvr
 	url = https://github.com/ValveSoftware/openvr.git
+[submodule "plugins/csp-simple-wms-bodies"]
+	path = plugins/csp-simple-wms-bodies
+	url = https://github.com/cosmoscout/csp-simple-wms-bodies.git
+[submodule "externals/zipper"]
+	path = externals/zipper
+	url = https://github.com/sebastiandev/zipper.git
+[submodule "externals/zlib"]
+	path = externals/zlib
+	url = https://github.com/madler/zlib.git

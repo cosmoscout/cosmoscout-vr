@@ -64,6 +64,9 @@ rem "externals" next to this script. We replace all \ with /.
 set EXTERNALS_DIR=%~dp0\externals
 set EXTERNALS_DIR=%EXTERNALS_DIR:\=/%
 
+rem This directory contains the root src
+set SOURCE_ROOT_DIR=%~dp0
+
 rem Get the current directory - this is the default location for the build and install directory.
 rem We replace all \ with /.
 set CURRENT_DIR=%cd:\=/%
@@ -79,6 +82,96 @@ cmake -E make_directory "%INSTALL_DIR%/lib"
 cmake -E make_directory "%INSTALL_DIR%/share"
 cmake -E make_directory "%INSTALL_DIR%/bin"
 cmake -E make_directory "%INSTALL_DIR%/include"
+
+rem ZLIB -----------------------------------------------------------------------------------------
+:zlib
+
+echo.
+echo Building and installing zlib ...
+echo.
+
+cmake -E make_directory "%BUILD_DIR%/zlib" && cd "%BUILD_DIR%/zlib"
+cmake %CMAKE_FLAGS% -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
+      "%EXTERNALS_DIR%/zlib" || goto :error
+
+cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS% || goto :error
+
+rem Zipper -----------------------------------------------------------------------------------------
+:zipper
+
+echo.
+echo Building and installing zipper ...
+echo.
+
+cmake -E make_directory "%BUILD_DIR%/zipper" && cd "%BUILD_DIR%/zipper"
+cmake %CMAKE_FLAGS% -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
+       -DBUILD_SHARED_VERSION=on ^
+       -DBUILD_STATIC_VERSION=off ^
+       -DBUILD_TEST=off ^
+       -DZLIB_INCLUDE_DIR="%INSTALL_DIR%/include"^
+      "%EXTERNALS_DIR%/zipper" || goto :error
+
+cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS% || goto :error
+
+rem gdal 3.0.4 --------------------------------------------------------------------------------------------
+:gdal
+
+echo.
+echo Downloading and installing gdal ...
+echo.
+
+cmake -E make_directory "%BUILD_DIR%/gdal/extracted" && cd "%BUILD_DIR%/gdal"
+powershell.exe -command Invoke-WebRequest -Uri http://download.gisinternals.com/sdk/downloads/release-1911-x64-gdal-3-0-4-mapserver-7-4-3-libs.zip -OutFile gdal.zip
+powershell.exe -command Invoke-WebRequest -Uri http://download.gisinternals.com/sdk/downloads/release-1911-x64-gdal-3-0-4-mapserver-7-4-3.zip -OutFile gdal_bin.zip
+
+cd "%BUILD_DIR%/gdal/extracted"
+cmake -E tar xfvj ../gdal.zip
+cmake -E tar xfvj ../gdal_bin.zip
+
+cmake -E copy_directory "%BUILD_DIR%/gdal/extracted/include"                   "%INSTALL_DIR%/gdal/include/"
+cmake -E copy_directory "%BUILD_DIR%/gdal/extracted/lib"        			   "%INSTALL_DIR%/gdal/lib"
+cmake -E copy_directory "%BUILD_DIR%/gdal/extracted/bin"        			   "%INSTALL_DIR%/gdal/lib"
+
+rem # SQLite3 -----------------------------------------------------------------------------------------
+:sqlite3
+
+echo .
+echo Building and installing sqlite3 ...
+echo .
+
+cmake -E make_directory "%BUILD_DIR%/sqlite3" && cd "%BUILD_DIR%/sqlite3"
+cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
+      -DBUILD_TESTING=off "%EXTERNALS_DIR%/sqlite3" || goto :error
+cmake --build . --config %BUILD_TYPE% --target install --parallel 8 || goto :error
+
+rem # VTK -----------------------------------------------------------------------------------------
+:vtk
+
+echo .
+echo Building and installing VTK 9.0.1 ...
+echo .
+
+rem # patch VTK
+cd %EXTERNALS_DIR%/vtk/IO
+cmake -E tar xfvj %SOURCE_ROOT_DIR%/VTK-Patch.zip
+
+cmake -E make_directory "%BUILD_DIR%/vtk" && cd "%BUILD_DIR%/vtk"
+cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
+      -DBUILD_TESTING=off "%EXTERNALS_DIR%/vtk" || goto :error
+cmake --build . --config %BUILD_TYPE% --target install --parallel 8 || goto :error
+
+rem # TTK -----------------------------------------------------------------------------------------
+:ttk
+
+echo .
+echo Building and installing TTK 0.9.9 ...
+echo .
+
+cmake -E make_directory "%BUILD_DIR%/ttk" && cd "%BUILD_DIR%/ttk"
+cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
+      -DTTK_BUILD_PARAVIEW_PLUGINS=Off -DTTK_ENABLE_GRAPHVIZ=Off -DVTK_MODULE_ENABLE_ttkCinemaWriter=NO -DTTK_ENABLE_EIGEN=Off^
+      -DSQLITE3_INCLUDE_DIR="%INSTALL_DIR%/include" -DBUILD_TESTING=off "%EXTERNALS_DIR%/ttk" || goto :error
+cmake --build . --config %BUILD_TYPE% --target install --parallel 8 || goto :error
 
 rem glew -------------------------------------------------------------------------------------------
 :glew

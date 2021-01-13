@@ -30,4 +30,5 @@ endif()
 
 # install files for all platforms ------------------------------------------------------------------
 install(FILES "scene/simple_desktop.json" DESTINATION "share/config")
+install(FILES "scene/vestec.json"         DESTINATION "share/config")
 install(DIRECTORY "vista"                 DESTINATION "share/config")

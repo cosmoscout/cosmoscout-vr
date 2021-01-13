@@ -39,7 +39,7 @@ rem directory as this script.
 set CMAKE_DIR=%~dp0
 
 rem Get the current directory - this is the default location for the build and install directory.
-set CURRENT_DIR=%cd%
+set CURRENT_DIR=%cd:\=/%
 
 rem The build directory.
 set BUILD_DIR=%CURRENT_DIR%/build/windows-%BUILD_TYPE%
@@ -58,8 +58,13 @@ if exist "%BUILD_DIR%" goto BUILD_DIR_CREATED
 
 rem configure, compile & install -------------------------------------------------------------------
 
+set GDAL_DIR=%CURRENT_DIR%\install\windows-externals-%BUILD_TYPE%\gdal
+set zipper_DIR=%CURRENT_DIR%\build\windows-externals-%BUILD_TYPE%\zipper
+
 cd "%BUILD_DIR%"
 cmake %CMAKE_FLAGS% -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
+      -DZLIB_LIBRARY="%EXTERNALS_INSTALL_DIR%/lib/zlib.lib"^
+      -DZLIB_INCLUDE_DIR="%EXTERNALS_INSTALL_DIR%/include"^
       -DCOSMOSCOUT_EXTERNALS_DIR="%EXTERNALS_INSTALL_DIR%" "%CMAKE_DIR%"  || exit /b
 
 cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS% || exit /b

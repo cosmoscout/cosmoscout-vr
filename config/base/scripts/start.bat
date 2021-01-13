@@ -12,7 +12,7 @@ set CURRENT_DIR=%cd%
 cd "%SCRIPT_DIR%"
 
 rem Scene config file can be passed as first parameter.
-set SETTINGS=../share/config/simple_desktop.json
+set SETTINGS=../share/config/vestec.json
 IF NOT "%1"=="" (
   SET SETTINGS=%1
   SHIFT
@@ -26,8 +26,11 @@ IF NOT "%1"=="" (
 )
 
 rem Set paths so that all libraries are found.
+set PROJ_LIB=%SCRIPT_DIR%\proj6\share
+ 
 set VISTACORELIBS_DRIVER_PLUGIN_DIRS=%SCRIPT_DIR%\..\lib\DriverPlugins
-set PATH=%SCRIPT_DIR%\..\lib;%PATH%
+set PATH=%SCRIPT_DIR%\..\lib;%SCRIPT_DIR%\..\lib\ttk;%PATH%
+set GDAL_DRIVER_PATH=..\lib\gdal\plugins
 
 cosmoscout.exe --settings=%SETTINGS% -vistaini %VISTA_INI%
 

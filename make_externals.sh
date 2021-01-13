@@ -67,6 +67,94 @@ cmake -E make_directory "$INSTALL_DIR/share"
 cmake -E make_directory "$INSTALL_DIR/bin"
 cmake -E make_directory "$INSTALL_DIR/include"
 
+# Zipper ---------------------------------------------------------------------------------------------
+
+echo ""
+echo "Building and installing zipper ..."
+echo ""
+
+cmake -E make_directory "$BUILD_DIR/zipper" && cd "$BUILD_DIR/zipper"
+cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
+       -DBUILD_SHARED_VERSION=on \
+       -DBUILD_STATIC_VERSION=off \
+       -DBUILD_TEST=off \
+      -DCMAKE_BUILD_TYPE=$BUILD_TYPE "$EXTERNALS_DIR/zipper"
+cmake --build . --target install --parallel "$(nproc)"
+
+# Proj6 ---------------------------------------------------------------------------------------------
+
+echo ""
+echo "Downloading, building and installing PROJ6 ..."
+echo ""
+
+# SQLITE Binary
+cd "$BUILD_DIR"
+wget -nc https://github.com/boramalper/sqlite3-x64/releases/download/3310100--2020-02-18T12.16.42Z/sqlite3
+chmod +x "$BUILD_DIR/sqlite3"
+
+cmake -E make_directory "$BUILD_DIR/proj6/extracted" && cd "$BUILD_DIR/proj6"
+wget -nc https://download.osgeo.org/proj/proj-6.3.2.tar.gz
+
+cd "$BUILD_DIR/proj6/extracted"
+cmake -E tar xzf ../proj-6.3.2.tar.gz
+cd "$BUILD_DIR/proj6/extracted/proj-6.3.2"
+
+cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
+      -DCMAKE_INSTALL_LIBDIR=lib \
+      -DPROJ_TESTS=OFF \
+      -DEXE_SQLITE3="$BUILD_DIR/sqlite3" \
+      -DSQLITE3_INCLUDE_DIR="$EXTERNALS_DIR/sqlite3" \
+      -DCMAKE_BUILD_TYPE="$BUILD_TYPE" "$BUILD_DIR/proj6/extracted/proj-6.3.2"
+cmake --build . --target install --parallel "$(nproc)"
+
+# gdal 3.2.0 ----------------------------------------------------------------------------------------
+
+echo ""
+echo "Downloading and installing gdal ..."
+echo ""
+
+cmake -E make_directory "$BUILD_DIR/gdal/extracted" && cd "$BUILD_DIR/gdal"
+wget -nc https://github.com/OSGeo/gdal/releases/download/v3.2.0/gdal-3.2.0.tar.gz
+
+cd "$BUILD_DIR/gdal/extracted"
+cmake -E tar xzf ../gdal-3.2.0.tar.gz
+cd "$BUILD_DIR/gdal/extracted/gdal-3.2.0"
+
+./configure --prefix="$INSTALL_DIR" \
+  --with-proj="$INSTALL_DIR"
+
+make -j"$(nproc)"
+make install
+
+# VTK -----------------------------------------------------------------------------------------
+
+echo ""
+echo "Building and installing VTK 9.0.1 ..."
+echo ""
+
+echo ""
+echo "Patching VTK ..."
+echo ""
+
+cd $EXTERNALS_DIR/vtk/IO
+cmake -E tar xfvj $EXTERNALS_DIR/../VTK-Patch.zip
+
+cmake -E make_directory $BUILD_DIR/vtk && cd $BUILD_DIR/vtk
+cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \
+      -DBUILD_TESTING=off $EXTERNALS_DIR/vtk
+cmake --build . --config $BUILD_TYPE --target install --parallel 8
+
+# TTK -----------------------------------------------------------------------------------------
+
+echo ""
+echo "Building and installing TTK 0.9.9 ..."
+echo ""
+
+cmake -E make_directory $BUILD_DIR/ttk && cd $BUILD_DIR/ttk
+cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR -DVTK_MODULE_ENABLE_ttkCinemaWriter=NO -DTTK_ENABLE_EIGEN=Off\
+      -DTTK_BUILD_PARAVIEW_PLUGINS=Off -DTTK_ENABLE_GRAPHVIZ=Off -DBUILD_TESTING=off $EXTERNALS_DIR/ttk
+cmake --build . --config $BUILD_TYPE --target install --parallel 8
+
 # glew ---------------------------------------------------------------------------------------------
 
 echo ""
