@@ -16,16 +16,14 @@ namespace cs::scene {
 /// needs to override the getIntersection() method from utils::IntersectableObject.
 class CS_SCENE_EXPORT CelestialBody : public CelestialObject, public utils::IntersectableObject {
  public:
-  CelestialBody(std::string const& sCenterName, std::string const& sFrameName,
-      double tStartExistence, double tEndExistence);
+  /// If set to false, the SolarSystem will not consider this body for the computation of the active
+  /// body.
+  utils::Property<bool> pTrackable = true;
 
-  /// The elevation at a specific point on the surface.
+  /// Returns the elevation in meters at a specific point on the surface.
   ///
   /// @param lngLat The coordinates on the surface in the Geographic Coordinate System format.
   virtual double getHeight(glm::dvec2 lngLat) const = 0;
-
-  /// The radii of the Body in meters.
-  virtual glm::dvec3 getRadii() const = 0;
 };
 
 } // namespace cs::scene

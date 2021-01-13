@@ -8,7 +8,6 @@ uniform float slopeMin;
 uniform float slopeMax;
 uniform float ambientBrightness;
 uniform float texGamma;
-uniform float farClip;
 uniform vec4 uSunDirIlluminance;
 
 uniform sampler1D heightTex;
@@ -65,7 +64,7 @@ void main()
     return;
   }
 
-  gl_FragDepth = length(fsIn.position) / farClip;
+  gl_FragDepth = length(fsIn.position) / VP_farClip;
 
   fragColor = vec3(1);
 

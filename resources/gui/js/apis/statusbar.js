@@ -107,6 +107,8 @@ class StatusbarApi extends IApi {
           let result = window.eval(this._inputField.value);
           if (result != undefined) {
             console.log(result);
+          } else {
+            console.log(this._inputField.value);
           }
         } catch (error) { console.warn(error); }
 
@@ -181,7 +183,7 @@ class StatusbarApi extends IApi {
               properties.filter(element => prefix === "" || element.startsWith(prefix)).sort();
 
           // If the cursor is somewhere in the middle of a property name, we want to replace the
-          // entire property with our completion. We use nother regex to find the end of the text
+          // entire property with our completion. We use another regex to find the end of the text
           // we want to replace.
           let prefixEnd = cursorPos;
 
@@ -196,46 +198,69 @@ class StatusbarApi extends IApi {
 
           // If the thing we suggest for completion is an object, we append a '.', if it's a
           // function we add '()' and place the cursor between the brackets.
-          let getCompletion =
-              (element) => {
-                let completion     = element;
-                let finalCursorPos = prefixBegin + completion.length;
-                if (typeof object[completion] === "function") {
-                  completion += "()";
-                  finalCursorPos += 1;
-                }
+          let getCompletion = (element) => {
+            let completion     = element;
+            let finalCursorPos = prefixBegin + completion.length;
+            if (typeof object[completion] === "function") {
+              completion += "()";
+              finalCursorPos += 1;
+            }
 
-                if (typeof object[completion] === "object") {
-                  completion += ".";
-                  finalCursorPos += 1;
-                }
+            if (typeof object[completion] === "object") {
+              completion += ".";
+              finalCursorPos += 1;
+            }
 
-                return [completion, finalCursorPos];
-              }
+            return [completion, finalCursorPos];
+          };
 
           if (properties.length == 1) {
             // If there is only one possible completion, we directly apply it.
             let [completion, finalCursorPos] = getCompletion(properties[0]);
             this._setCompletion(prefixBegin, prefixEnd, finalCursorPos, completion);
-          }
-          else {
-            // If there are multiple completion possibilities, we show a list.
+
+          } else if (properties.length > 1) {
+            // If there are multiple completion possibilities, we show a list and complete as much
+            // as possible (the longest prefix shared by all suggestions).
             this._suggestionField.innerHTML = "";
+
+            // This will be truncated to the longest shared prefix.
+            let maximumCompletion = properties[0];
+
             properties.forEach(element => {
               let [completion, finalCursorPos] = getCompletion(element);
               let classNames                   = `suggestion type-${typeof object[element]}`;
 
+              // Compare this completion candidate with our current longest shared prefix. Truncate
+              // this if needed.
+              let i = 0;
+              while (i < completion.length && i < maximumCompletion.length &&
+                     completion.charAt(i) === maximumCompletion.charAt(i)) {
+                i++;
+              }
+              maximumCompletion = maximumCompletion.substring(0, i);
+
+              // If it's a "private" property, add a class name. These items will be drawn less
+              // opaque.
               if (completion.startsWith("_")) {
                 classNames += " private";
               }
 
+              // Finally add the item to the list of completions. Clicking it will apply the
+              // completion.
               this._suggestionField.insertAdjacentHTML("beforeend", `<span class='${classNames}'
                        onclick='CosmoScout.statusbar._setCompletion(${prefixBegin}, ${prefixEnd}, 
                                                               ${finalCursorPos}, "${completion}");'>
                        ${element}
                 </span>`);
-              this._enableSuggestionArea(true);
             });
+
+            // Set the longest shared prefix as completion and place the cursor to the end.
+            this._setCompletion(
+                prefixBegin, prefixEnd, prefixBegin + maximumCompletion.length, maximumCompletion);
+
+            // Finally show the completion area.
+            this._enableSuggestionArea(true);
           }
         }
       }

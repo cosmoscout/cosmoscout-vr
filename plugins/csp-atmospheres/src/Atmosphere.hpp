@@ -18,9 +18,15 @@ namespace csp::atmospheres {
 /// This is a wrapper around a AtmosphereRenderer, adding SPICE based positioning.
 class Atmosphere : public cs::scene::CelestialObject {
  public:
-  Atmosphere(std::shared_ptr<Plugin::Settings> const& pSettings, std::string const& sCenterName,
-      std::string const& sFrameName, double tStartExistence, double tEndExistence);
-  ~Atmosphere();
+  Atmosphere(std::shared_ptr<Plugin::Settings> const& pluginSettings,
+      std::shared_ptr<cs::core::Settings> const& settings, std::string const& anchorName);
+  ~Atmosphere() override;
+
+  Atmosphere(Atmosphere const& other) = delete;
+  Atmosphere(Atmosphere&& other)      = delete;
+
+  Atmosphere& operator=(Atmosphere const& other) = delete;
+  Atmosphere& operator=(Atmosphere&& other) = delete;
 
   /// Configures the internal renderer according to the given values.
   void configure(Plugin::Settings::Atmosphere const& settings);

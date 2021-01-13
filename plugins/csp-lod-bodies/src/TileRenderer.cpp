@@ -391,6 +391,8 @@ void TileRenderer::preRenderTiles(cs::graphics::ShadowMap* shadowMap) {
   glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(glm::fmat4x4(mMatP)));
   loc = shader.GetUniformLocation("VP_matModelView");
   glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(glm::fmat4x4(mMatVM)));
+  loc = shader.GetUniformLocation("VP_farClip");
+  shader.SetUniform(loc, mFarClip);
   loc = shader.GetUniformLocation("VP_heightScale");
   shader.SetUniform(loc, static_cast<float>(mParams->mHeightScale));
   loc = shader.GetUniformLocation("VP_radii");
@@ -548,7 +550,7 @@ void TileRenderer::renderTile(RenderDataDEM* rdDEM, RenderDataImg* rdIMG, Unifor
         averageHeight * static_cast<float>(mParams->mHeightScale));
     cornersViewSpace.at(i) = glm::fvec3(mMatVM * glm::dvec4(corners.at(i), 1.0));
 
-    normals.at(i) = cs::utils::convert::lngLatToNormal(cornersLngLat.at(i), mParams->mRadii);
+    normals.at(i)          = cs::utils::convert::lngLatToNormal(cornersLngLat.at(i));
     normalsViewSpace.at(i) = glm::fvec3(matNormal * glm::dvec4(normals.at(i), 0.0));
   }
 
@@ -601,6 +603,9 @@ void TileRenderer::preRenderBounds() {
 
   GLint loc = mProgBounds->GetUniformLocation("VP_matProjection");
   glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(glm::fmat4x4(mMatP)));
+
+  loc = mProgBounds->GetUniformLocation("VP_farClip");
+  mProgBounds->SetUniform(loc, mFarClip);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -892,6 +897,12 @@ void TileRenderer::setProjection(glm::dmat4 const& m) {
 
 void TileRenderer::setModelview(glm::dmat4 const& m) {
   mMatVM = m;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void TileRenderer::setFarClip(float farClip) {
+  mFarClip = farClip;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

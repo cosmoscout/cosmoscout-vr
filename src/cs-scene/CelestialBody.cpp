@@ -10,11 +10,6 @@ namespace cs::scene {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-CelestialBody::CelestialBody(std::string const& sCenterName, std::string const& sFrameName,
-    double tStartExistence, double tEndExistence)
-    : CelestialObject(sCenterName, sFrameName, tStartExistence, tEndExistence) {
-}
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 } // namespace cs::scene

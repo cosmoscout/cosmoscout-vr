@@ -11,7 +11,7 @@
 
 namespace csp::measurementtools {
 
-/// This creates the default singleton logger for "csp-measurementtools" when called for the first
+/// This creates the default singleton logger for "csp-measurement-tools" when called for the first
 /// time and returns it. See cs-utils/logger.hpp for more logging details.
 spdlog::logger& logger();
 

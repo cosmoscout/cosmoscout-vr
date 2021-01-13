@@ -39,16 +39,16 @@ rem directory as this script.
 set CMAKE_DIR=%~dp0
 
 rem Get the current directory - this is the default location for the build and install directory.
-set CURRENT_DIR=%cd%
+set CURRENT_DIR=%cd:\=/%
 
 rem The build directory.
-set BUILD_DIR=%CURRENT_DIR%\build\windows-%BUILD_TYPE%
+set BUILD_DIR=%CURRENT_DIR%/build/windows-%BUILD_TYPE%
 
 rem The install directory.
-set INSTALL_DIR=%CURRENT_DIR%\install\windows-%BUILD_TYPE%
+set INSTALL_DIR=%CURRENT_DIR%/install/windows-%BUILD_TYPE%
 
 rem This directory should be used as the install directory for make_externals.bat.
-set EXTERNALS_INSTALL_DIR=%CURRENT_DIR%\install\windows-externals-%BUILD_TYPE%
+set EXTERNALS_INSTALL_DIR=%CURRENT_DIR%/install/windows-externals-%BUILD_TYPE%
 
 rem create build directory if necessary -----------------------------------------------------------
 

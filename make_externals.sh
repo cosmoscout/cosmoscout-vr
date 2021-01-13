@@ -129,7 +129,7 @@ make install
 # VTK -----------------------------------------------------------------------------------------
 
 echo ""
-echo "Building and installing VTK 8.1.0 ..."
+echo "Building and installing VTK 9.0.1 ..."
 echo ""
 
 echo ""
@@ -140,18 +140,18 @@ cd $EXTERNALS_DIR/vtk/IO
 cmake -E tar xfvj $EXTERNALS_DIR/../VTK-Patch.zip
 
 cmake -E make_directory $BUILD_DIR/vtk && cd $BUILD_DIR/vtk
-cmake -G "Eclipse CDT4 - Unix Makefiles" -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \
+cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \
       -DBUILD_TESTING=off $EXTERNALS_DIR/vtk
 cmake --build . --config $BUILD_TYPE --target install --parallel 8
 
 # TTK -----------------------------------------------------------------------------------------
 
 echo ""
-echo "Building and installing TTK 0.9.8 ..."
+echo "Building and installing TTK 0.9.9 ..."
 echo ""
 
 cmake -E make_directory $BUILD_DIR/ttk && cd $BUILD_DIR/ttk
-cmake -G "Eclipse CDT4 - Unix Makefiles" -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \
+cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR -DVTK_MODULE_ENABLE_ttkCinemaWriter=NO -DTTK_ENABLE_EIGEN=Off\
       -DTTK_BUILD_PARAVIEW_PLUGINS=Off -DTTK_ENABLE_GRAPHVIZ=Off -DBUILD_TESTING=off $EXTERNALS_DIR/ttk
 cmake --build . --config $BUILD_TYPE --target install --parallel 8
 
@@ -269,6 +269,7 @@ echo ""
 
 cmake -E make_directory "$BUILD_DIR/civetweb" && cd "$BUILD_DIR/civetweb"
 cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" -DCIVETWEB_ENABLE_CXX=On \
+      -DCIVETWEB_BUILD_TESTING=Off \
       -DBUILD_SHARED_LIBS=On -DCMAKE_BUILD_TYPE=$BUILD_TYPE "$EXTERNALS_DIR/civetweb"
 cmake --build . --target install --parallel "$(nproc)"
 
@@ -360,7 +361,7 @@ cmake -E make_directory "$BUILD_DIR/cspice/extracted" && cd "$BUILD_DIR/cspice"
 wget -nc http://naif.jpl.nasa.gov/pub/naif/toolkit//C/PC_Linux_GCC_64bit/packages/cspice.tar.Z
 
 cd "$BUILD_DIR/cspice/extracted"
-cmake -E tar xzf ../cspice.tar.Z
+cmake -E tar xzf ../cspice.tar.Z -- cspice/lib/cspice.a cspice/include
 
 cmake -E copy_directory "$BUILD_DIR/cspice/extracted/cspice/include" "$INSTALL_DIR/include/cspice"
 cmake -E copy "$BUILD_DIR/cspice/extracted/cspice/lib/cspice.a" "$INSTALL_DIR/lib"

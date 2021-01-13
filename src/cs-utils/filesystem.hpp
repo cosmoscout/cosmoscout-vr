@@ -23,11 +23,14 @@ CS_UTILS_EXPORT void createDirectoryRecursively(boost::filesystem::path const& p
                                            boost::filesystem::perms::group_read |
                                            boost::filesystem::perms::others_read);
 
-/// Lists all files in the given directory.
+/// Lists all files in the given directory. The returned paths are relative to the given directory,
+/// forward slashes are used as separators independent from the operating system.
 CS_UTILS_EXPORT std::set<std::string> listFiles(
     std::string const& directory, std::regex const& regex = std::regex(".*"));
 
-/// Lists all subdirectories in the given directory. (Not recursive)
+/// Lists all subdirectories in the given directory (not recursively). The returned paths are
+/// relative to the given directory, forward slashes are used as separators independent from the
+/// operating system.
 CS_UTILS_EXPORT std::set<std::string> listDirs(
     std::string const& directory, std::regex const& regex = std::regex(".*"));
 

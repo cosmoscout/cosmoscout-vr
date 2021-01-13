@@ -22,10 +22,10 @@ class Settings;
 /// All time units are in Barycentric Dynamical Time (TDB).
 class CS_CORE_EXPORT TimeControl {
  public:
-  /// The current time in TDB.
+  /// The current time in TDB. Consider this to be read-only.
   utils::Property<double> pSimulationTime = 0.0;
 
-  /// The current speed of the simulation.
+  /// The current speed of the simulation. Consider this to be read-only.
   utils::Property<float> pTimeSpeed = 1.F;
 
   explicit TimeControl(std::shared_ptr<Settings> settings);

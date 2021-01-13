@@ -328,6 +328,6 @@ void main()
     #endif
 }
 )";
-}
+} // namespace cs::graphics::internal
 
 #endif // CS_GRAPHICS_PBR_FRAGMENT_SHADER_HPP

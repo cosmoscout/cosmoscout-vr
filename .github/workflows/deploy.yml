@@ -41,7 +41,7 @@ jobs:
     - name: Build Externals
       run: ./make_externals.sh -G "Unix Makefiles"
     - name: Build CosmoScout VR
-      run: ./make.sh -G "Unix Makefiles" -DBOOST_ROOT=$BOOST_ROOT_1_69_0 -DBoost_ARCHITECTURE=-x64
+      run: ./make.sh -G "Unix Makefiles" -DBOOST_ROOT=$BOOST_ROOT_1_72_0 -DBoost_ARCHITECTURE=-x64
     - name: Create Release
       run: | 
         mv install/linux-Release cosmoscout-vr
@@ -57,7 +57,7 @@ jobs:
 
   release_windows:
     name: Windows
-    runs-on: windows-2016
+    runs-on: windows-2019
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v2

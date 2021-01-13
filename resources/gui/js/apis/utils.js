@@ -83,7 +83,7 @@ class UtilsApi extends IApi {
     number = Number(number);
 
     // Set very small numbers to 0
-    if (number < Number.EPSILON && -Number.EPSILON > number) {
+    if (number < Number.EPSILON && number > -Number.EPSILON) {
       number = 0;
     }
 

@@ -59,6 +59,8 @@ class CS_CORE_EXPORT SolarSystem {
 
   ~SolarSystem();
 
+  // Illumination API ------------------------------------------------------------------------------
+
   /// The Sun which is at the center of the SolarSystem.
   std::shared_ptr<const scene::CelestialObject> getSun() const;
 
@@ -71,12 +73,23 @@ class CS_CORE_EXPORT SolarSystem {
   /// then i = pSunLuminousPower / (d*d*4*PI) is calculated.
   double getSunIlluminance(glm::dvec3 const& observerPosition) const;
 
+  // Object registration API -----------------------------------------------------------------------
+
   /// The CelestialObserver, which controls the camera.
   void                            setObserver(scene::CelestialObserver const& observer);
   scene::CelestialObserver&       getObserver();
   scene::CelestialObserver const& getObserver() const;
 
-  /// Adds a CelestialAnchor to the SolarSystem.
+  /// It may happen that our observer is in a SPICE frame we do not have data for. If this is the
+  /// case, this call will bring it back to Solar System Barycenter / J2000 which should be
+  /// always available. To compute the position and orientation relative to this origin we need a
+  /// simulation time at which we had valid data for the offending frame.
+  /// Usually you will not need to call this, it is automatically called by the Application if an
+  /// error occurs.
+  void fixObserverFrame(double lastWorkingSimulationTime);
+
+  /// Adds a CelestialAnchor to the SolarSystem. It's update() method will be called each frame
+  /// until you call unregisterAnchor().
   void registerAnchor(std::shared_ptr<scene::CelestialAnchor> const& anchor);
 
   /// Removes the CelestialAnchor from the SolarSystem.
@@ -86,9 +99,6 @@ class CS_CORE_EXPORT SolarSystem {
 
   /// A list of all CelestialAnchors in the SolarSystem.
   std::set<std::shared_ptr<scene::CelestialAnchor>> const& getAnchors() const;
-
-  /// @return The CelestialAnchor with the specified SPICE name or nullptr if it doesn't exist.
-  std::shared_ptr<scene::CelestialAnchor> getAnchor(std::string const& sCenter) const;
 
   /// Adds a CelestialBody to the SolarSystem. A call to registerAnchor() is not needed, because
   /// it is done automatically.
@@ -104,6 +114,8 @@ class CS_CORE_EXPORT SolarSystem {
   /// Returns one specific body from the set above. This query ignores the case. So
   /// getBody("Earth"), getBody("EARTH") or getBody("EaRTh") will all behave the same.
   std::shared_ptr<scene::CelestialBody> getBody(std::string sCenter) const;
+
+  // Update methods --------------------------------------------------------------------------------
 
   /// Updates all CelestialAnchors, the Sun and the CelestialObservers animations.
   void update();
@@ -196,7 +208,12 @@ class CS_CORE_EXPORT SolarSystem {
   static void turnToObserver(scene::CelestialAnchor& anchor,
       scene::CelestialObserver const& observer, double simulationTime, bool upIsNormal);
 
-  /// Gives the radii to a given SPICE object.
+  /// Gives the radii of a given SPICE object.
+  /// Mind the difference to the Settings::getRadii(): SolarSystem::getRadii() takes a SPICE center
+  /// name and makes a lookup into the loaded SPICE kernels to retrieve the radii.
+  /// Settings::getRadii() on the other hand will first check the loaded scene configuration for any
+  /// radii overides. If none is found, Settings::getRadii() will call SolarSystem::getRadii()
+  /// internally.
   /// @param sCenterName The name of the SPICE object from which the radii are requested.
   static glm::dvec3 getRadii(std::string const& sCenterName);
 

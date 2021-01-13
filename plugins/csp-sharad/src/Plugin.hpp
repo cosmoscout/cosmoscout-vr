@@ -12,8 +12,6 @@
 
 #include <VistaKernel/GraphicsManager/VistaOpenGLNode.h>
 
-#include <boost/filesystem.hpp>
-
 namespace csp::sharad {
 
 /// This plugin allows the display of mars subsurface layers captured by the Mars Reconnaissance
@@ -21,6 +19,7 @@ namespace csp::sharad {
 class Plugin : public cs::core::PluginBase {
  public:
   struct Settings {
+    std::string                      mAnchor;
     cs::utils::Property<std::string> mFilePath;
     cs::utils::DefaultProperty<bool> mEnabled{false};
   };

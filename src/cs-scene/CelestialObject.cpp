@@ -8,17 +8,9 @@
 
 #include "CelestialObserver.hpp"
 
+#include <glm/gtx/component_wise.hpp>
+
 namespace cs::scene {
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-CelestialObject::CelestialObject(std::string const& sCenterName, std::string const& sFrameName,
-    double tStartExistence, double tEndExistence)
-    : CelestialAnchor(sCenterName, sFrameName)
-    , matWorldTransform(1.0)
-    , mStartExistence(tStartExistence)
-    , mEndExistence(tEndExistence) {
-}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -34,28 +26,28 @@ glm::dvec4 CelestialObject::getWorldPosition() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-double CelestialObject::getStartExistence() const {
-  return mStartExistence;
+glm::dvec2 const& CelestialObject::getExistence() const {
+  return mExistence;
 }
 
-void CelestialObject::setStartExistence(double value) {
-  mStartExistence = value;
+void CelestialObject::setExistence(glm::dvec2 value) {
+  mExistence = value;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-double CelestialObject::getEndExistence() const {
-  return mEndExistence;
+glm::dvec3 const& CelestialObject::getRadii() const {
+  return mRadii;
 }
 
-void CelestialObject::setEndExistence(double value) {
-  mEndExistence = value;
+void CelestialObject::setRadii(glm::dvec3 const& value) {
+  mRadii = value;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void CelestialObject::update(double tTime, cs::scene::CelestialObserver const& oObs) {
-  mIsInExistence = (tTime > mStartExistence && tTime < mEndExistence);
+  mIsInExistence = (tTime > mExistence[0] && tTime < mExistence[1]);
 
   if (getIsInExistence()) {
     try {
@@ -65,9 +57,10 @@ void CelestialObject::update(double tTime, cs::scene::CelestialObserver const& o
     }
   }
 
-  if (pVisibleRadius.get() > 0) {
+  double maxRadius = glm::compMax(mRadii);
+  if (maxRadius > 0) {
     double dist   = glm::length(getWorldPosition().xyz());
-    double size   = pVisibleRadius.get() * glm::length(matWorldTransform[0]);
+    double size   = maxRadius * glm::length(matWorldTransform[0]);
     double factor = size / dist;
 
     pVisible = factor > 0.002;

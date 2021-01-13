@@ -6,6 +6,8 @@
 
 #include "CelestialObserver.hpp"
 
+#include "logger.hpp"
+
 namespace cs::scene {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -47,18 +49,19 @@ void CelestialObserver::setAnchorRotation(glm::dquat const& qRot) {
 
 void CelestialObserver::changeOrigin(
     std::string const& sCenterName, std::string const& sFrameName, double dSimulationTime) {
-  if (!mAnimationInProgress) {
-    cs::scene::CelestialAnchor target(sCenterName, sFrameName);
 
-    glm::dvec3 pos = target.getRelativePosition(dSimulationTime, *this);
-    glm::dquat rot = target.getRelativeRotation(dSimulationTime, *this);
+  mAnimationInProgress = false;
 
-    setCenterName(sCenterName);
-    setFrameName(sFrameName);
+  cs::scene::CelestialAnchor target(sCenterName, sFrameName);
 
-    setAnchorRotation(rot);
-    setAnchorPosition(pos);
-  }
+  glm::dvec3 pos = target.getRelativePosition(dSimulationTime, *this);
+  glm::dquat rot = target.getRelativeRotation(dSimulationTime, *this);
+
+  setCenterName(sCenterName);
+  setFrameName(sFrameName);
+
+  setAnchorRotation(rot);
+  setAnchorPosition(pos);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -78,30 +81,35 @@ void CelestialObserver::moveTo(std::string const& sCenterName, std::string const
   } else {
     cs::scene::CelestialAnchor target(sCenterName, sFrameName);
 
-    glm::dvec3 startPos = target.getRelativePosition(dSimulationTime, *this);
-    glm::dquat startRot = target.getRelativeRotation(dSimulationTime, *this);
+    try {
+      glm::dvec3 startPos = target.getRelativePosition(dSimulationTime, *this);
+      glm::dquat startRot = target.getRelativeRotation(dSimulationTime, *this);
 
-    setCenterName(sCenterName);
-    setFrameName(sFrameName);
+      setCenterName(sCenterName);
+      setFrameName(sFrameName);
 
-    double cosTheta = glm::dot(startRot, rotation);
+      double cosTheta = glm::dot(startRot, rotation);
 
-    // If cosTheta < 0, the interpolation will take the long way around the sphere.
-    // To fix this, one quat must be negated.
-    if (cosTheta < 0.0) {
-      startRot = -startRot;
+      // If cosTheta < 0, the interpolation will take the long way around the sphere.
+      // To fix this, one quat must be negated.
+      if (cosTheta < 0.0) {
+        startRot = -startRot;
+      }
+
+      setAnchorRotation(startRot);
+      setAnchorPosition(startPos);
+
+      mAnimatedPosition = utils::AnimatedValue<glm::dvec3>(
+          startPos, position, dRealStartTime, dRealEndTime, utils::AnimationDirection::eInOut);
+
+      mAnimatedRotation = utils::AnimatedValue<glm::dquat>(
+          startRot, rotation, dRealStartTime, dRealEndTime, utils::AnimationDirection::eInOut);
+
+      mAnimationInProgress = true;
+    } catch (std::exception const& e) {
+      // Getting the relative transformation may fail due to insufficient SPICE data.
+      logger().warn("CelestialObserver::moveTo failed: {}", e.what());
     }
-
-    setAnchorRotation(startRot);
-    setAnchorPosition(startPos);
-
-    mAnimatedPosition = utils::AnimatedValue<glm::dvec3>(
-        startPos, position, dRealStartTime, dRealEndTime, utils::AnimationDirection::eInOut);
-
-    mAnimatedRotation = utils::AnimatedValue<glm::dquat>(
-        startRot, rotation, dRealStartTime, dRealEndTime, utils::AnimationDirection::eInOut);
-
-    mAnimationInProgress = true;
   }
 }
 

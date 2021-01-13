@@ -8,6 +8,7 @@
 #define CSP_SATELLITES_PLUGIN_HPP
 
 #include "../../../src/cs-core/PluginBase.hpp"
+#include "../../../src/cs-utils/DefaultProperty.hpp"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
@@ -26,21 +27,14 @@ class Satellite;
 class Plugin : public cs::core::PluginBase {
  public:
   struct Settings {
-    /// The initial transformation of the satellite.
-    struct Transformation {
-      glm::dvec3 mTranslation;
-      glm::dquat mRotation;
-      double     mScale;
-    };
 
     /// The settings for a satellite.
     struct Satellite {
-      std::string mModelFile;              ///< Path to the model. ".glb" and ".gltf" are
-                                           ///< allowed formats.
-      std::string mEnvironmentMap;         ///< Path to the environment map. ".dds",
-                                           ///< ".ktx" and ".kmg" are allowed formats.
-      double                        mSize; ///< The size of the satellite in meters.
-      std::optional<Transformation> mTransformation;
+      /// Path to the model. ".glb" and ".gltf" are allowed formats.
+      std::string mModelFile;
+
+      /// Path to the environment map. ".dds", ".ktx" and ".kmg" are allowed formats.
+      std::string mEnvironmentMap;
     };
 
     std::map<std::string, Satellite> mSatellites;

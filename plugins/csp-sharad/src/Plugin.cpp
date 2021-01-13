@@ -14,6 +14,7 @@
 
 #include <VistaKernel/GraphicsManager/VistaTransformNode.h>
 #include <VistaKernelOpenSGExt/VistaOpenSGMaterialTools.h>
+#include <boost/filesystem.hpp>
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -34,11 +35,13 @@ namespace csp::sharad {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void from_json(nlohmann::json const& j, Plugin::Settings& o) {
+  cs::core::Settings::deserialize(j, "anchor", o.mAnchor);
   cs::core::Settings::deserialize(j, "filePath", o.mFilePath);
   cs::core::Settings::deserialize(j, "enabled", o.mEnabled);
 }
 
 void to_json(nlohmann::json& j, Plugin::Settings const& o) {
+  cs::core::Settings::serialize(j, "anchor", o.mAnchor);
   cs::core::Settings::serialize(j, "filePath", o.mFilePath);
   cs::core::Settings::serialize(j, "enabled", o.mEnabled);
 }
@@ -94,7 +97,7 @@ void Plugin::init() {
 
           if (ext == ".tab") {
             std::string sName  = file.substr(0, file.length() - 5);
-            auto        sharad = std::make_shared<Sharad>(mAllSettings, "MARS", "IAU_Mars",
+            auto        sharad = std::make_shared<Sharad>(mAllSettings, mPluginSettings.mAnchor,
                 filePath + sName + "_tiff.tif", filePath + sName + "_geom.tab");
             mSolarSystem->registerAnchor(sharad);
 
@@ -107,7 +110,7 @@ void Plugin::init() {
             mSharadNodes.emplace_back(sharadNode);
 
             mGuiManager->getGui()->callJavascript(
-                "CosmoScout.sharad.add", sName, sharad->getStartExistence() + 10);
+                "CosmoScout.sharad.add", sName, sharad->getExistence()[0] + 10);
           }
         }
       }

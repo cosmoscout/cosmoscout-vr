@@ -23,6 +23,7 @@ In the following, the individual parameters are explained and the required steps
 ```javascript
 {
   "startDate": "today",
+  "resetDate": "today",
   "minDate": "1950-01-02 00:00:00.000",
   "maxDate": "2049-12-31 00:00:00.000",
   "fileLogLevel": "debug",
@@ -31,9 +32,8 @@ In the following, the individual parameters are explained and the required steps
   "observer": {
     "center": "Earth",
     "frame": "IAU_Earth",
-    "distance": 10000000.0,
-    "longitude": 11.281067,
-    "latitude": 48.086709
+    "position": [0, 0, 25000000],
+    "rotation": [0, 0, 0, 1]
   },
   "spiceKernel": "../share/config/spice/simple.txt",
   "widgetScale": 0.6,
@@ -53,12 +53,13 @@ In the following, the individual parameters are explained and the required steps
     "maxFarClip": 20000.0
   },
   "anchors": {},
-  "events": [],
+  "bookmarks": [],
   "plugins": {}
 }
 ```
 
-* **`"startDate"`:** This should be either `"today"` or in the format `"1950-01-02 00:00:00.000"` and determines the initial simulation time.
+* **`"startDate"`:** This should be either `"today"` or in the format `"1950-01-02 00:00:00.000"`. It determines the initial simulation time.
+* **`"resetDate"`:** This should be either `"today"` or in the format `"1950-01-02 00:00:00.000"`. The simulation time will be set to this value when the reset button is clicked.
 * **`"minDate"`:** This should be in the format `"1950-01-02 00:00:00.000"` and determines the left end of the timeline. You have to make sure that the loaded SPICE kernels are valid for this time range.
 * **`"maxDate"`:** This should be in the format `"2049-12-31 00:00:00.000"` and determines the right end of the timeline. You have to make sure that the loaded SPICE kernels are valid for this time range.
 * **`"fileLogLevel"`**, **`"consoleLogLevel"`** and **`"screenLogLevel"`:** Adjust the verbosity of the log output written to `cosmoscout.log`, written to the command line and written to the on-screen console respectively. Should be one of 
@@ -106,30 +107,46 @@ Last but not least, the far clipping plane depends on the scene scale: Near clip
     "Moon": {
       "center": "Moon",
       "frame": "IAU_Moon",
-      "startExistence": "1950-01-02 00:00:00.000",
-      "endExistence": "2049-12-31 00:00:00.000"
+      "existence": ["1950-01-02 00:00:00.000", "2049-12-31 00:00:00.000"],
+      "radii": [1000, 1000, 1000], // Optional, in meters. If not given, values from your SPICE kernels will be used
+      "position": [0, 0, 0],       // Optional, in meters. Relative to the SPICE reference frame above.
+      "rotation": [0, 0, 0, 1]     // Optional. Relative to the SPICE reference frame above.
+      "scale": 1                   // Optional. Scales around the "position".
+      "trackable": true            // Optional. If set to false, the observer will not try to follow CelestialBodies attached to this anchor.
     },
     ...
   }
   ```
-  Now if you want to attach a simple body or a trajectory to this anchor, the configuration of the respective plugins will only refer to `"Moon"`. `"center"` and `"frame"` define the SPICE reference frame, `"startExistence"` and `"endExistence"` should match the data coverage of your SPICE kernels.
-* **`"events"`:** This list may contain events which will be shown on the timeline. Take this as an example:
+  Now if you want to attach a simple body or a trajectory to this anchor, the configuration of the respective plugins will only refer to `"Moon"`. The properties `"center"` and `"frame"` define the SPICE reference frame, `"existence"` should match at most the data coverage of your SPICE kernels. Keep in mind, that the dates are given UTC, your SPICE kernel's coverage is however most likely given in TDB which differs from UTC by several seconds.
+* **`"bookmarks"`:** This list may contain events which will be shown on the timeline and in the sidebar. Take this as an example:
   ```javascript
-  "events": [
+   "bookmarks": [
     {
-      "id": "1",
-      "content": "Apollo 17 landing",
-      "start": "1972-12-11T19:54:57",
-      "description": "Last human landing on the Moon.",
-      "style": "border-color: yellow",
+      "name": "Mercury",
+      "icon": "mercury.png",
       "location": {
-        "planet": "Moon",
-        "place": "3.635° E 26.133° S 10.0 Tsd km"
+        "center": "Mercury",
+        "frame": "IAU_Mercury"
+      }
+    },
+    {
+      "name": "Apollo 17 Start",
+      "description": "Start of the Apollo 17 mission from the Kennedy Space Center.",
+      "color": [0.8, 0.8, 0.8],
+      "location": {
+        "center": "Earth",
+        "frame": "IAU_Earth",
+        "position": [-6717320.0, 3677613.0, 1137577.0],
+        "rotation": [0.154, 0.634, 0.182, -0.735]
+      },
+      "time": {
+        "start": "1972-12-07 05:33:57"
       }
     },
     ...
   ],
   ```
+  Except for `"name"`, all properties are optional. You can supply a description, a color, a location (optionally with `position` and `rotation`) and a time.
 * **`"plugins"`:** This item contains an object for each plugin.
 The name of the object must match the library name of the plugin.
 In the example below, CosmoScout VR will attempt to load a plugin library called `../share/plugins/libcsp-simple-bodies.so` (`..\share\plugins\csp-simple-bodies.dll` on Windows). 

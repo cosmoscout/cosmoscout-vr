@@ -84,7 +84,8 @@ PlanetShader::PlanetShader(std::shared_ptr<cs::core::Settings> settings,
         name.erase(0, lastSlashIdx + 1);
       }
 
-      mColorMaps.insert(std::make_pair(name, cs::graphics::ColorMap(file)));
+      mColorMaps.insert(
+          std::make_pair(name, cs::graphics::ColorMap(boost::filesystem::path(file))));
       pGuiManager->getGui()->callJavascript(
           "CosmoScout.gui.addDropdownValue", "lodBodies.setColormap", name, name, first);
       if (first) {
@@ -174,16 +175,16 @@ void PlanetShader::bind() {
   mShader.SetUniform(loc, TEXUNITFONT);
 
   loc = mShader.GetUniformLocation("heightMin");
-  mShader.SetUniform(loc, mPluginSettings->mHeightRange.get().x);
+  mShader.SetUniform(loc, mPluginSettings->mHeightRange.get().x * 1000);
 
   loc = mShader.GetUniformLocation("heightMax");
-  mShader.SetUniform(loc, mPluginSettings->mHeightRange.get().y);
+  mShader.SetUniform(loc, mPluginSettings->mHeightRange.get().y * 1000);
 
   loc = mShader.GetUniformLocation("slopeMin");
-  mShader.SetUniform(loc, mPluginSettings->mSlopeRange.get().x);
+  mShader.SetUniform(loc, cs::utils::convert::toRadians(mPluginSettings->mSlopeRange.get().x));
 
   loc = mShader.GetUniformLocation("slopeMax");
-  mShader.SetUniform(loc, mPluginSettings->mSlopeRange.get().y);
+  mShader.SetUniform(loc, cs::utils::convert::toRadians(mPluginSettings->mSlopeRange.get().y));
 
   loc = mShader.GetUniformLocation("ambientBrightness");
   mShader.SetUniform(loc, mSettings->mGraphics.pAmbientBrightness.get());
@@ -193,9 +194,6 @@ void PlanetShader::bind() {
 
   loc = mShader.GetUniformLocation("uSunDirIlluminance");
   mShader.SetUniform(loc, mSunDirection.x, mSunDirection.y, mSunDirection.z, mSunIlluminance);
-
-  loc = mShader.GetUniformLocation("farClip");
-  mShader.SetUniform(loc, cs::utils::getCurrentFarClipDistance());
 
   mFontTexture->Bind(TEXUNITNAMEFONT);
 

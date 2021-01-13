@@ -35,6 +35,13 @@
       <span>Wireframe Planets</span>
     </label>
   </div>
+  <div class="col-7 offset-5">
+    <label class="checklabel">
+      <input type="checkbox" data-callback="lodBodies.setEnableBounds" />
+      <i class="material-icons"></i>
+      <span>Tile Bounds</span>
+    </label>
+  </div>
 </div>
 <div class="row">
   <div class="col-5">
@@ -42,22 +49,19 @@
   </div>
   <div class="col-7">
     <label class="radiolabel">
-      <input name="terrain_projection" type="radio"
-        data-callback="lodBodies.setTerrainProjectionMode0" />
+      <input name="terrain_projection" type="radio" data-callback="lodBodies.setTerrainProjectionMode0" />
       <span>HEALPix</span>
     </label>
   </div>
   <div class="col-7 offset-5">
     <label class="radiolabel">
-      <input name="terrain_projection" type="radio"
-        data-callback="lodBodies.setTerrainProjectionMode1" />
+      <input name="terrain_projection" type="radio" data-callback="lodBodies.setTerrainProjectionMode1" />
       <span>Linear Interpolation</span>
     </label>
   </div>
   <div class="col-7 offset-5">
     <label class="radiolabel">
-      <input name="terrain_projection" type="radio"
-        data-callback="lodBodies.setTerrainProjectionMode2" checked />
+      <input name="terrain_projection" type="radio" data-callback="lodBodies.setTerrainProjectionMode2" checked />
       <span>Hybrid</span>
     </label>
   </div>

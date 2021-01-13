@@ -6,7 +6,9 @@
 
 #include "Settings.hpp"
 
+#include "../cs-scene/CelestialBody.hpp"
 #include "../cs-utils/convert.hpp"
+#include "SolarSystem.hpp"
 #include "logger.hpp"
 
 #include <fstream>
@@ -35,15 +37,23 @@ namespace cs::core {
 void from_json(nlohmann::json const& j, Settings::Anchor& o) {
   Settings::deserialize(j, "center", o.mCenter);
   Settings::deserialize(j, "frame", o.mFrame);
-  Settings::deserialize(j, "startExistence", o.mStartExistence);
-  Settings::deserialize(j, "endExistence", o.mEndExistence);
+  Settings::deserialize(j, "existence", o.mExistence);
+  Settings::deserialize(j, "radii", o.mRadii);
+  Settings::deserialize(j, "position", o.mPosition);
+  Settings::deserialize(j, "rotation", o.mRotation);
+  Settings::deserialize(j, "scale", o.mScale);
+  Settings::deserialize(j, "trackable", o.mTrackable);
 }
 
 void to_json(nlohmann::json& j, Settings::Anchor const& o) {
   Settings::serialize(j, "center", o.mCenter);
   Settings::serialize(j, "frame", o.mFrame);
-  Settings::serialize(j, "startExistence", o.mStartExistence);
-  Settings::serialize(j, "endExistence", o.mEndExistence);
+  Settings::serialize(j, "existence", o.mExistence);
+  Settings::serialize(j, "radii", o.mRadii);
+  Settings::serialize(j, "position", o.mPosition);
+  Settings::serialize(j, "rotation", o.mRotation);
+  Settings::serialize(j, "scale", o.mScale);
+  Settings::serialize(j, "trackable", o.mTrackable);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -373,26 +383,130 @@ std::string Settings::saveToJson() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::pair<double, double> Settings::Anchor::getExistence() const {
-  std::pair<double, double> result;
+void Settings::initAnchor(scene::CelestialAnchor& anchor, std::string const& anchorName) const {
+  anchor.setCenterName(getAnchorCenter(anchorName));
+  anchor.setFrameName(getAnchorFrame(anchorName));
+  anchor.setAnchorPosition(getAnchorPosition(anchorName));
+  anchor.setAnchorRotation(getAnchorRotation(anchorName));
+  anchor.setAnchorScale(getAnchorScale(anchorName));
+}
 
-  try {
-    result.first = utils::convert::time::toSpice(mStartExistence);
-  } catch (std::exception const&) {
-    throw std::runtime_error(
-        "Failed to parse the 'startExistence' property of the anchor '" + mCenter +
-        "'. The dates should be given in the format: 1969-07-20T20:17:40.000Z");
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Settings::initAnchor(scene::CelestialObject& object, std::string const& anchorName) const {
+  initAnchor(static_cast<scene::CelestialAnchor&>(object), anchorName);
+  object.setRadii(getAnchorRadii(anchorName));
+  object.setExistence(getAnchorExistence(anchorName));
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Settings::initAnchor(scene::CelestialBody& body, std::string const& anchorName) const {
+  initAnchor(static_cast<scene::CelestialObject&>(body), anchorName);
+  body.pTrackable = getAnchorIsTrackable(anchorName);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+glm::dvec2 Settings::getAnchorExistence(std::string const& anchorName) const {
+  auto anchor = mAnchors.find(anchorName);
+  if (anchor == mAnchors.end()) {
+    throw std::runtime_error("Failed to parse the 'existence' property of the anchor '" +
+                             anchorName + "': No anchor with this name found in the settings!");
   }
 
   try {
-    result.second = utils::convert::time::toSpice(mEndExistence);
+    return glm::dvec2(utils::convert::time::toSpice(anchor->second.mExistence[0]),
+        utils::convert::time::toSpice(anchor->second.mExistence[1]));
   } catch (std::exception const&) {
     throw std::runtime_error(
-        "Failed to parse the 'endExistence' property of the anchor '" + mCenter +
-        "'. The dates should be given in the format: 1969-07-20T20:17:40.000Z");
+        "Failed to parse the 'existence' property of the anchor '" + anchorName +
+        "': The dates should be given in the format: 1969-07-20T20:17:40.000Z");
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+glm::dvec3 Settings::getAnchorRadii(std::string const& anchorName) const {
+  auto anchor = mAnchors.find(anchorName);
+  if (anchor == mAnchors.end()) {
+    throw std::runtime_error("Failed to read the 'radii' property of the anchor '" + anchorName +
+                             "': No anchor with this name found in the settings!");
   }
 
-  return result;
+  return anchor->second.mRadii.value_or(SolarSystem::getRadii(anchor->second.mCenter));
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::string Settings::getAnchorCenter(std::string const& anchorName) const {
+  auto anchor = mAnchors.find(anchorName);
+  if (anchor == mAnchors.end()) {
+    throw std::runtime_error("Failed to get the 'center' property of the anchor '" + anchorName +
+                             "': No anchor with this name found in the settings!");
+  }
+
+  return anchor->second.mCenter;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::string Settings::getAnchorFrame(std::string const& anchorName) const {
+  auto anchor = mAnchors.find(anchorName);
+  if (anchor == mAnchors.end()) {
+    throw std::runtime_error("Failed to get the 'frame' property of the anchor '" + anchorName +
+                             "': No anchor with this name found in the settings!");
+  }
+
+  return anchor->second.mFrame;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+glm::dvec3 Settings::getAnchorPosition(std::string const& anchorName) const {
+  auto anchor = mAnchors.find(anchorName);
+  if (anchor == mAnchors.end()) {
+    throw std::runtime_error("Failed to get the 'position' property of the anchor '" + anchorName +
+                             "': No anchor with this name found in the settings!");
+  }
+
+  return anchor->second.mPosition.value_or(glm::dvec3(0.0));
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+glm::dquat Settings::getAnchorRotation(std::string const& anchorName) const {
+  auto anchor = mAnchors.find(anchorName);
+  if (anchor == mAnchors.end()) {
+    throw std::runtime_error("Failed to get the 'rotation' property of the anchor '" + anchorName +
+                             "': No anchor with this name found in the settings!");
+  }
+
+  return anchor->second.mRotation.value_or(glm::dquat(1.0, 0.0, 0.0, 0.0));
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+double Settings::getAnchorScale(std::string const& anchorName) const {
+  auto anchor = mAnchors.find(anchorName);
+  if (anchor == mAnchors.end()) {
+    throw std::runtime_error("Failed to get the 'scale' property of the anchor '" + anchorName +
+                             "': No anchor with this name found in the settings!");
+  }
+
+  return anchor->second.mScale.value_or(1.0);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool Settings::getAnchorIsTrackable(std::string const& anchorName) const {
+  auto anchor = mAnchors.find(anchorName);
+  if (anchor == mAnchors.end()) {
+    throw std::runtime_error("Failed to get the 'trackable' property of the anchor '" + anchorName +
+                             "': No anchor with this name found in the settings!");
+  }
+
+  return anchor->second.mTrackable.get();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

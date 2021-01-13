@@ -426,12 +426,9 @@ class GuiApi extends IApi {
    * Initialize a noUiSlider.
    *
    * @param callbackName {string} tha data-callback attribute of the slider element
-   * @param min {number} Min value
-   * @param max {number} Max value
-   * @param step {number} Step size
-   * @param start {number[]} Handle count and position
+   * @param options {object} Options for noUiSlider
    */
-  initSlider(callbackName, min, max, step, start) {
+  initSliderOptions(callbackName, options) {
     const slider = document.querySelector(`[data-callback="${callbackName}"]`);
 
     if (typeof noUiSlider === 'undefined') {
@@ -439,20 +436,7 @@ class GuiApi extends IApi {
       return;
     }
 
-    noUiSlider.create(slider, {
-      start,
-      connect: (start.length === 1 ? 'lower' : true),
-      step,
-      range: {min, max},
-      format: {
-        to(value) {
-          return CosmoScout.utils.beautifyNumber(value);
-        },
-        from(value) {
-          return Number(parseFloat(value));
-        },
-      },
-    });
+    noUiSlider.create(slider, options);
 
     var event = 'slide';
     if (slider.dataset.event) {
@@ -467,6 +451,55 @@ class GuiApi extends IApi {
         } else {
           callback(unencoded);
         }
+      }
+    });
+  }
+
+  /**
+   * Initialize a non-linear noUiSlider.
+   *
+   * @param callbackName {string} tha data-callback attribute of the slider element
+   * @param range {object} object defining the values at specific positions on the slider
+   * @param start {number[]} Handle count and position
+   */
+  initSliderRange(callbackName, range, start) {
+    this.initSliderOptions(callbackName, {
+      start: start,
+      connect: (start.length === 1 ? 'lower' : true),
+      range: range,
+      format: {
+        to(value) {
+          return CosmoScout.utils.beautifyNumber(value);
+        },
+        from(value) {
+          return Number(parseFloat(value));
+        },
+      },
+    });
+  }
+
+  /**
+   * Initialize a linear noUiSlider.
+   *
+   * @param callbackName {string} tha data-callback attribute of the slider element
+   * @param min {number} Min value
+   * @param max {number} Max value
+   * @param step {number} Step size
+   * @param start {number[]} Handle count and position
+   */
+  initSlider(callbackName, min, max, step, start) {
+    this.initSliderOptions(callbackName, {
+      start: start,
+      connect: (start.length === 1 ? 'lower' : true),
+      step: step,
+      range: {min: min, max: max},
+      format: {
+        to(value) {
+          return CosmoScout.utils.beautifyNumber(value);
+        },
+        from(value) {
+          return Number(parseFloat(value));
+        },
       }
     });
   }

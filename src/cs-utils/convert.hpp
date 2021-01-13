@@ -86,9 +86,8 @@ CS_UTILS_EXPORT glm::dvec3 cartesianToLngLatHeight(
 CS_UTILS_EXPORT glm::dvec3 toCartesian(
     glm::dvec2 const& lngLat, glm::dvec3 const& radii, double height = 0.0);
 
-/// Returns the geodetic normal vector with unit length to the ellipsoid with the given radii at
-/// geodetic coordinates (lng, lat) lngLat.
-CS_UTILS_EXPORT glm::dvec3 lngLatToNormal(glm::dvec2 const& lngLat, glm::dvec3 const& radii);
+/// Returns the geodetic normal vector with unit length at geodetic coordinates (lng, lat) lngLat.
+CS_UTILS_EXPORT glm::dvec3 lngLatToNormal(glm::dvec2 const& lngLat);
 
 /// Returns the geodetic normal vector with unit length for a given point on the surface of an
 /// origin-centered ellipsoid with the given radii.

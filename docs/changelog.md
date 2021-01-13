@@ -4,6 +4,74 @@
 
 # Changelog of CosmoScout VR
 
+## [v1.3.0](https://github.com/cosmoscout/cosmoscout-vr/releases)
+
+**Release Date:** 2020-11-24
+
+The settings format has changed slightly in version 1.3.0, see the [Migration Guide](migration.md) for details.
+
+#### New Features
+
+* **New plugin**: `csp-web-api` has been added, which allows remote controlling a running instance of CosmoScout VR. It can also be used to capture screenshots over an http API.
+* **New plugin**: `csp-recorder` has been added, which allows basic recording of high-quality videos.
+* **New plugin**: `csp-minimap` has been added. This tiny plugin can be used to show a 2D-Map of the observer's current position on a planet.
+* **New plugin**: `csp-custom-web-ui` has been added. This plugin allows to add any web content to the user interface or to the 3D scene.
+* An **interactive JavaScript** console has been added to the user interface. It features auto-completion, a command history and can be used control CosmoScout VR with scripts.
+* An experimental feature has been added which allows **saving and restoring the current scene**. For now, this is only available in the interactive JavaScript console.
+  - Use `CosmoScout.callbacks.core.save("test.json")` to save the current scene.
+  - Use `CosmoScout.callbacks.core.load("test.json")` to restore the previously saved scene at any later point in time.
+* A **bookmark system** has been added. You can now create bookmarks in time and space. They will be visualized both on the timeline and by `csp-fly-to-locations`.
+  - The location of a bookmark is defined by a SPICE anchor, an optional cartesian position and an optional rotation.
+  - The time of a bookmark has an optional end parameter which makes the bookmark describe a time span rather a time point.
+  - Location and time are both optional, but omitting both results in a pretty useless bookmark.
+* Optional **High Dynamic Range Rendering** (HDR) which uses true luminance values has been added. This can be toggled at runtime.
+* You can now **modify the field of view** by choosing a sensor size and a focal length.
+* [spdlog](https://github.com/gabime/spdlog) is now our **new logging library**. The logger will print colourful messages to the console and store it's messages in a file called `cosmoscout.log`. 
+* A new javascript API has been added which can be used to perform **forward and reverse geocoding**. This is used by `csp-measurement-tools` to show address information and by a new search bar below the timeline. The geo-coding for Earth uses OpenStreetMap, all other planets use CSV files obtained from https://planetarynames.wr.usgs.gov/AdvancedSearch. The search bar beneath the timeline which supports queries like
+  - "berlin" Fly to something called like "Berlin" on the current planet.
+  - "venus:" Fly to Venus
+  - "mars:olymps mns" Fly to something called like "olymps mns" on Mars.
+* The ability to **zoom WebViews** has been added. 
+  - This is used to increase the DPI of the measurement tools.
+  - Also, a slider has been added to the Graphics Settings to adjust the **overall scale of the main user interface**. This is an initial step to properly support high resolution screens. On a 4k-15"-Laptop-Screen you can now simply set the Main UI Scale to 2.0.
+* The possibility to specify a **fixed sun direction** has been added. This can be used to create artificial lighting conditions.
+
+#### Other Enhancements
+
+* Significantly improved star rendering. Several rendering modes are implemented and can be toggled at runtime.
+* The plugins `csp-atmospheres`, `csp-sharad`, `csp-measurement-tools`, `csp-simple-bodies` and `csp-lod-bodies` now use **true three-axes ellipsoids** for rendering. Before they used to perform math on spheres.
+* All default **plugins are now part of the source tree** and no individual submodules anymore. This simplifies the software development cycle significantly.
+* **Plugins can now be reloaded at run time**. This allows faster development cycles as code modifications can be injected while CosmoScout VR is running.
+* Data which is downloaded at application start-up is now stored im temporary *.part files until the download finished. **This prevents corrupt files in case the download fails**.
+* The selection handling of CosmoScout VR has been refactored. It's now possible to insert text into text boxes even if the mouse is not hovering it.
+* GuiItems can now ignore scroll events.
+* **Draggable windows**: Some CSS classes and some JavaScript code have been added to allow the creation of draggable windows in the main user interface. This is used for the calendar. 
+* JavaScript callbacks can now take **optional arguments** (specified as `std::optional`)
+* **More intuitive signature for multi-handle slider callbacks**. Rather than a value + the ID of the changed handle they now simple get all slider handle values.
+* Updated vis-timeline.js to the latest stable version. This increased timeline rendering performance quite significantly.
+* Documentation on [how-to setup a map server](https://github.com/cosmoscout/cosmoscout-vr/tree/develop/plugins/csp-lod-bodies) for `csp-lod-bodies` has been written.
+* `csp-lod-bodies` can now show tile bounding boxes for debugging purposes.
+* Styling of UI elements has received a make-over.
+* On Linux, CosmoScout VR's **window has now an icon** and a name. These are required to properly represent the window in the taskbar, the Alt-Tab application switcher and in other places.
+* The **date display** in the center of the screen now **shows UTC** in the less German-looking YYYY-MM-DD HH:MM:SS.
+* It's now possible to zoom on the timeline even if time is playing.
+* Vertex position and normal calculation for `csp-lod-bodies` have been improved slightly.
+* Vista and OpenSG are now built with **precompiled headers and unity builds** improving the build time significantly.
+* Vista's **HTC Vive Driver** has been updated to work with the latest SteamVR.
+* The **Optitrack** device driver of Vista works now with the latest version of NatNet SDK.
+* CosmoScout VR is now build with MSVC, Clang and GCC with **all warnings enabled** and any warnings are treated as errors.
+
+#### Bug Fixes
+
+* On Windows, the mouse pointer now shows a hand symbol when hovering a hyperlink (and no question mark anymore).
+* We actually mixed local timezones and UTC in our code. Now the cs::utils::convert::time namespace makes sure that we always stay in UTC.
+* The conversion from boost::posix_time::ptime to BDT of SPICE was wrong - we did not include leap seconds! Therefore the simulation time and visualized time were off by a few minutes.
+* Allow multiples calls to CelestialObserver::moveTo per frame: Even if the animation time was set to zero, it took one frame to update the observer's position and rotation. Hence multiple calls to CelestialObserver::moveTo would "overwrite" each other.
+* Multisampling now works in HDR-Mode as well.
+* SPICE frames are now updated before the plugins. This resolves some issues where plugin code would use object's position from the last frame.
+* Moving the timeline will properly restore the playback speed once the drag operation is finished.
+* Correct matrices for shadow frustum culling are now used. This results in less shadow-popping artifacts.
+
 ## [v1.2.0](https://github.com/cosmoscout/cosmoscout-vr/releases)
 
 **Release Date:** 2020-02-11
@@ -104,5 +172,5 @@ When the left mouse button is pressed over an item, this item will receive input
   <img src ="img/nav-vspace.svg"/>
   <a href="README.md">&#8962; Help Index</a>
   <img src ="img/nav-vspace.svg"/>
-  <a href="citation.md">How to cite CosmoScout VR &rsaquo;</a>
+  <a href="migration.md">Migration Guide &rsaquo;</a>
 </p>

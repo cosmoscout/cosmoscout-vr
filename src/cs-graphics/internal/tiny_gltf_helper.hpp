@@ -18,41 +18,50 @@ namespace cs::graphics::internal {
 inline int sizeFromGltfAccessorType(tinygltf::Accessor const& accessor) {
   if (accessor.type == TINYGLTF_TYPE_SCALAR) {
     return 1;
-  } else if (accessor.type == TINYGLTF_TYPE_VEC2) {
-    return 2;
-  } else if (accessor.type == TINYGLTF_TYPE_VEC3) {
-    return 3;
-  } else if (accessor.type == TINYGLTF_TYPE_VEC4) {
-    return 4;
-  } else if (accessor.type == TINYGLTF_TYPE_MAT2) {
-    return 4;
-  } else if (accessor.type == TINYGLTF_TYPE_MAT3) {
-    return 9;
-    //} else if (accessor.type == tinygltf::TINYGLTF_TYPE_MAT4) { return 16;
-  } else {
-    return 16;
   }
+  if (accessor.type == TINYGLTF_TYPE_VEC2) {
+    return 2;
+  }
+  if (accessor.type == TINYGLTF_TYPE_VEC3) {
+    return 3;
+  }
+  if (accessor.type == TINYGLTF_TYPE_VEC4) {
+    return 4;
+  }
+  if (accessor.type == TINYGLTF_TYPE_MAT2) {
+    return 4;
+  }
+  if (accessor.type == TINYGLTF_TYPE_MAT3) {
+    return 9;
+  }
+  // accessor.type == tinygltf::TINYGLTF_TYPE_MAT4
+  return 16;
 }
 
 /// Returns the name of the tinygltf::Accessor.
 inline std::string stringFromGltfAccessorType(tinygltf::Accessor const& accessor) {
   if (accessor.type == TINYGLTF_TYPE_SCALAR) {
     return "TINYGLTF_TYPE_SCALAR";
-  } else if (accessor.type == TINYGLTF_TYPE_VEC2) {
-    return "TINYGLTF_TYPE_VEC2";
-  } else if (accessor.type == TINYGLTF_TYPE_VEC3) {
-    return "TINYGLTF_TYPE_VEC3";
-  } else if (accessor.type == TINYGLTF_TYPE_VEC4) {
-    return "TINYGLTF_TYPE_VEC4";
-  } else if (accessor.type == TINYGLTF_TYPE_MAT2) {
-    return "TINYGLTF_TYPE_Mat2";
-  } else if (accessor.type == TINYGLTF_TYPE_MAT3) {
-    return "TINYGLTF_TYPE_Mat3";
-  } else if (accessor.type == TINYGLTF_TYPE_MAT4) {
-    return "TINYGLTF_TYPE_Mat4";
-  } else {
-    return "UNKNOWN TINYGLTF_TYPE";
   }
+  if (accessor.type == TINYGLTF_TYPE_VEC2) {
+    return "TINYGLTF_TYPE_VEC2";
+  }
+  if (accessor.type == TINYGLTF_TYPE_VEC3) {
+    return "TINYGLTF_TYPE_VEC3";
+  }
+  if (accessor.type == TINYGLTF_TYPE_VEC4) {
+    return "TINYGLTF_TYPE_VEC4";
+  }
+  if (accessor.type == TINYGLTF_TYPE_MAT2) {
+    return "TINYGLTF_TYPE_Mat2";
+  }
+  if (accessor.type == TINYGLTF_TYPE_MAT3) {
+    return "TINYGLTF_TYPE_Mat3";
+  }
+  if (accessor.type == TINYGLTF_TYPE_MAT4) {
+    return "TINYGLTF_TYPE_Mat4";
+  }
+  return "UNKNOWN TINYGLTF_TYPE";
 }
 
 /// Converts GLTF primitives to OpenGL primitives.
@@ -60,19 +69,23 @@ inline std::string stringFromGltfAccessorType(tinygltf::Accessor const& accessor
 inline int toGLprimitiveMode(tinygltf::Primitive const& primitive) {
   if (primitive.mode == TINYGLTF_MODE_TRIANGLES) {
     return GL_TRIANGLES;
-  } else if (primitive.mode == TINYGLTF_MODE_TRIANGLE_STRIP) {
-    return GL_TRIANGLE_STRIP;
-  } else if (primitive.mode == TINYGLTF_MODE_TRIANGLE_FAN) {
-    return GL_TRIANGLE_FAN;
-  } else if (primitive.mode == TINYGLTF_MODE_POINTS) {
-    return GL_POINTS;
-  } else if (primitive.mode == TINYGLTF_MODE_LINE) {
-    return GL_LINES;
-  } else if (primitive.mode == TINYGLTF_MODE_LINE_LOOP) {
-    return GL_LINE_LOOP;
-  } else {
-    assert(0);
   }
+  if (primitive.mode == TINYGLTF_MODE_TRIANGLE_STRIP) {
+    return GL_TRIANGLE_STRIP;
+  }
+  if (primitive.mode == TINYGLTF_MODE_TRIANGLE_FAN) {
+    return GL_TRIANGLE_FAN;
+  }
+  if (primitive.mode == TINYGLTF_MODE_POINTS) {
+    return GL_POINTS;
+  }
+  if (primitive.mode == TINYGLTF_MODE_LINE) {
+    return GL_LINES;
+  }
+  if (primitive.mode == TINYGLTF_MODE_LINE_LOOP) {
+    return GL_LINE_LOOP;
+  }
+  assert(0);
 
   return 0;
 }
@@ -92,17 +105,16 @@ auto find_material_parameter(
 
   if (!found) {
     return def;
-  } else {
-    auto const& parameter = it->second;
-    T           value{};
-    for (typename T::length_type i = 0;
-         i < std::min(value.length(),
-                 static_cast<typename T::length_type>(parameter.number_array.size()));
-         ++i) {
-      value[i] = static_cast<typename T::value_type>(parameter.number_array[i]);
-    }
-    return value;
   }
+  auto const& parameter = it->second;
+  T           value{};
+  for (typename T::length_type i = 0;
+       i < std::min(
+               value.length(), static_cast<typename T::length_type>(parameter.number_array.size()));
+       ++i) {
+    value[i] = static_cast<typename T::value_type>(parameter.number_array[i]);
+  }
+  return value;
 }
 
 /// Returns the parameter with the given name from the material.

@@ -13,9 +13,7 @@
 
 namespace csp::measurementtools {
 
-BreakpointTree::BreakpointTree()
-    : mRoot(nullptr) {
-}
+BreakpointTree::BreakpointTree() = default;
 
 BreakpointTree::~BreakpointTree() {
   clear(mRoot);

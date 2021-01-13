@@ -33,7 +33,7 @@ float VP_getShadow(vec3 position)
 
     if (cascade < 0)
     {
-        return 1;
+        return 1.0;
     }
 
     vec3 coords = VP_getShadowMapCoords(cascade, position);
@@ -44,10 +44,16 @@ float VP_getShadow(vec3 position)
     for(int x=-1; x<=1; x++){
         for(int y=-1; y<=1; y++){
             vec2 off = vec2(x,y)*size;
-            shadow += texture(VP_shadowMaps[cascade], coords - vec3(off, VP_shadowBias * (cascade+1)));
+
+            // Dynamic array lookups are not supported in OpenGL 3.3
+            if      (cascade == 0) shadow += texture(VP_shadowMaps[0], coords - vec3(off, VP_shadowBias * 1));
+            else if (cascade == 1) shadow += texture(VP_shadowMaps[1], coords - vec3(off, VP_shadowBias * 2));
+            else if (cascade == 2) shadow += texture(VP_shadowMaps[2], coords - vec3(off, VP_shadowBias * 3));
+            else if (cascade == 3) shadow += texture(VP_shadowMaps[3], coords - vec3(off, VP_shadowBias * 4));
+            else                   shadow += texture(VP_shadowMaps[4], coords - vec3(off, VP_shadowBias * 5));
         }
     }
 
-    return shadow / 9;
+    return shadow / 9.0;
 }
 

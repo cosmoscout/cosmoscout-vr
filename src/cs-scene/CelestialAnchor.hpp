@@ -40,11 +40,12 @@ class CS_SCENE_EXPORT CelestialAnchor {
 
   /// Returns the position of "other" in the coordinate system defined by this CelestialAnchor - the
   /// result is not affected by the additional rotation and scale of "other", as these do not change
-  /// it's position.
+  /// it's position. This may throw a std::runtime_error if no sufficient SPICE data is available.
   virtual glm::dvec3 getRelativePosition(double tTime, CelestialAnchor const& other) const;
 
   /// Returns the rotation which aligns the coordinate system of this CelestialAnchor with "other" -
-  /// the calculation depends on both frames and additional rotations.
+  /// the calculation depends on both frames and additional rotations. This may throw a
+  /// std::runtime_error if no sufficient SPICE data is available.
   virtual glm::dquat getRelativeRotation(double tTime, CelestialAnchor const& other) const;
 
   /// Returns the how much "other" is larger than this, i.e. other.GetAnchorScale() /
@@ -52,7 +53,7 @@ class CS_SCENE_EXPORT CelestialAnchor {
   virtual double getRelativeScale(CelestialAnchor const& other) const;
 
   /// Returns the entire transformation of "other" in the coordinate system defined by this
-  /// CelestialAnchor.
+  /// CelestialAnchor. This may throw a std::runtime_error if no sufficient SPICE data is available.
   virtual glm::dmat4 getRelativeTransform(double tTime, CelestialAnchor const& other) const;
 
   /// SPICE name of the frame.
@@ -84,7 +85,7 @@ class CS_SCENE_EXPORT CelestialAnchor {
  protected:
   glm::dvec3 mPosition;
   glm::dquat mRotation;
-  double     mScale;
+  double     mScale{1.0};
 
   std::string mCenterName;
   std::string mFrameName;
