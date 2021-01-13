@@ -375,10 +375,10 @@
   },
   "plugins": {
     "csp-vestec": {
-      "vestec-topo-dir": "../share/vestec/data/persistence",
+      "vestec-topo-dir": "../share/vestec/data/fire.cdb",
       "vestec-fire-dir": "../share/vestec/data/2D-fire",
       "vestec-diseases-dir": "../share/vestec/data/diseases",
-      "vestec-server": "https://127.0.0.1",
+      "vestec-server": "http://172.22.27.24/",
       "vestec-download-dir": "../share/vestec/download"
     },
     "csp-stars": {
@@ -400,94 +400,7 @@
       "hipparcosCatalog": "../share/download/stars/hip_main.dat",
       "tycho2Catalog": "../share/download/stars/tyc2_main.dat"
     },
-    "csp-lod-bodies": {
-      "maxGPUTilesColor": 2048,
-      "maxGPUTilesGray": 2048,
-      "maxGPUTilesDEM": 2048,
-      "mapCache": "map-cache/",
-      "bodies": {
-        "Earth": {
-          "activeImgDataset": "NASA Firms - VIIRS + Landsat 8",   
-          "activeDemDataset": "Helgoland + SRTM30", 
-          "imgDatasets": {
-            "NASA Firms - VIIRS + Landsat 8":
-            {
-              "copyright": "NASA",
-              "url": "http://129.247.34.87/mapserv?service=wms",
-              "format": "U8Vec3",
-              "layers": "earth.landsat8.rgb,earth.vestec.viirs.rgb",
-              "maxLevel": 14
-            },
-            "NASA Firms - MODIS":
-            {
-              "copyright": "NASA",
-              "url": "http://129.247.34.87/mapserv?service=wms",
-              "format": "U8Vec3",
-              "layers": "earth.bluemarble.rgb,earth.nasa.modis.rgb",
-              "maxLevel": 14
-            },
-            "NASA Firms - VIIRS":
-            {
-              "copyright": "NASA",
-              "url": "http://129.247.34.87/mapserv?service=wms",
-              "format": "U8Vec3",
-              "layers": "earth.bluemarble.rgb,earth.nasa.viirs.rgb",
-              "maxLevel": 14
-            },
-            "EOX Sentinel 2":
-            {
-              "copyright": "EOX",
-              "url": "http://129.247.34.87/mapserv?service=wms",
-              "format": "U8Vec3",
-              "layers": "earth.eox.sentinel.rgb",
-              "maxLevel": 13
-            },
-            "Blue Marble":
-            {
-              "copyright": "NASA",
-              "url": "http://129.247.34.87/mapserv?service=wms",
-              "format": "U8Vec3",
-              "layers": "earth.bluemarble.rgb",
-              "maxLevel": 7
-            }
-          },
-          "demDatasets": {
-            "Helgoland + SRTM30":
-            {
-              "copyright": "DLR, NASA",
-              "url": "http://129.247.34.87/mapserv?service=wms",
-              "format": "Float32",
-              "layers": "earth.srtm30.dem,earth.os.helgoland.dem",
-              "maxLevel": 17
-            },
-            "SRTM30":
-            {
-              "copyright": "NASA",
-              "url": "http://129.247.34.87/mapserv?service=wms",
-              "format": "Float32",
-              "layers": "earth.srtm30.dem",
-              "maxLevel": 12
-            },
-            "Blue Marble":
-            {
-              "copyright": "NASA",
-              "url": "http://129.247.34.87/mapserv?service=wms",
-              "format": "Float32",
-              "layers": "earth.bluemarble.dem",
-              "maxLevel": 6
-            },
-            "CleanTOPO":
-            {
-              "copyright": "Tom Patterson, US National Park Service",
-              "url": "http://129.247.34.87/mapserv?service=wms",
-              "format": "Float32",
-              "layers": "earth.cleantopo.dem",
-              "maxLevel": 6
-            }
-          }
-        }
-      }
-    },
+
     "csp-measurement-tools": {},
     "csp-simple-bodies": {
       "bodies": {
@@ -499,6 +412,9 @@
         },
         "Venus": {
           "texture": "../share/resources/textures/venus.jpg"
+        },
+        "Earth": {
+          "texture": "../share/resources/textures/earth.jpg"
         },
         "Moon": {
           "texture": "../share/resources/textures/moon.jpg"

@@ -6,7 +6,7 @@
 
 ## [v1.3.0](https://github.com/cosmoscout/cosmoscout-vr/releases)
 
-**Release Date:** 2020-09-09
+**Release Date:** 2020-11-24
 
 The settings format has changed slightly in version 1.3.0, see the [Migration Guide](migration.md) for details.
 

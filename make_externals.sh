@@ -107,34 +107,29 @@ cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
       -DCMAKE_BUILD_TYPE="$BUILD_TYPE" "$BUILD_DIR/proj6/extracted/proj-6.3.2"
 cmake --build . --target install --parallel "$(nproc)"
 
-# Compile GDAL From source ----------------------------------------------------------------------------
-# Check if gdal should be compiled from source "export COSMOSCOUT_NO_SYSTEM_GDAL=true".
-# WIP
-if [ "$COSMOSCOUT_NO_SYSTEM_GDAL" = true ]; then
-  # gdal 3.2.0 ----------------------------------------------------------------------------------------
+# gdal 3.2.0 ----------------------------------------------------------------------------------------
 
-  echo ""
-  echo "Downloading and installing gdal ..."
-  echo ""
+echo ""
+echo "Downloading and installing gdal ..."
+echo ""
 
-  cmake -E make_directory "$BUILD_DIR/gdal/extracted" && cd "$BUILD_DIR/gdal"
-  wget -nc https://github.com/OSGeo/gdal/releases/download/v3.2.0/gdal-3.2.0.tar.gz
+cmake -E make_directory "$BUILD_DIR/gdal/extracted" && cd "$BUILD_DIR/gdal"
+wget -nc https://github.com/OSGeo/gdal/releases/download/v3.2.0/gdal-3.2.0.tar.gz
 
-  cd "$BUILD_DIR/gdal/extracted"
-  cmake -E tar xzf ../gdal-3.2.0.tar.gz
-  cd "$BUILD_DIR/gdal/extracted/gdal-3.2.0"
+cd "$BUILD_DIR/gdal/extracted"
+cmake -E tar xzf ../gdal-3.2.0.tar.gz
+cd "$BUILD_DIR/gdal/extracted/gdal-3.2.0"
 
-  ./configure --prefix="$INSTALL_DIR" \
-    --with-proj="$INSTALL_DIR"
+./configure --prefix="$INSTALL_DIR" \
+  --with-proj="$INSTALL_DIR"
 
-  make -j"$(nproc)"
-  make install
-fi
+make -j"$(nproc)"
+make install
 
 # VTK -----------------------------------------------------------------------------------------
 
 echo ""
-echo "Building and installing VTK 8.1.0 ..."
+echo "Building and installing VTK 9.0.1 ..."
 echo ""
 
 echo ""
@@ -145,18 +140,18 @@ cd $EXTERNALS_DIR/vtk/IO
 cmake -E tar xfvj $EXTERNALS_DIR/../VTK-Patch.zip
 
 cmake -E make_directory $BUILD_DIR/vtk && cd $BUILD_DIR/vtk
-cmake -G "Eclipse CDT4 - Unix Makefiles" -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \
+cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \
       -DBUILD_TESTING=off $EXTERNALS_DIR/vtk
 cmake --build . --config $BUILD_TYPE --target install --parallel 8
 
 # TTK -----------------------------------------------------------------------------------------
 
 echo ""
-echo "Building and installing TTK 0.9.8 ..."
+echo "Building and installing TTK 0.9.9 ..."
 echo ""
 
 cmake -E make_directory $BUILD_DIR/ttk && cd $BUILD_DIR/ttk
-cmake -G "Eclipse CDT4 - Unix Makefiles" -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \
+cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR -DVTK_MODULE_ENABLE_ttkCinemaWriter=NO -DTTK_ENABLE_EIGEN=Off\
       -DTTK_BUILD_PARAVIEW_PLUGINS=Off -DTTK_ENABLE_GRAPHVIZ=Off -DBUILD_TESTING=off $EXTERNALS_DIR/ttk
 cmake --build . --config $BUILD_TYPE --target install --parallel 8
 
