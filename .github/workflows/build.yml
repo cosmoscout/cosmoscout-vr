@@ -77,7 +77,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v2
       - name: Checkout Submodules
-        run: git -c submodule."doc/ospray-doc".update=none -c submodule."doc/intelstyle".update=none submodule update --init --recursive
+        run: git -c submodule."doc-binaries".update=none -c submodule."doc/intelstyle".update=none submodule update --init --recursive
       - name: Cache Object Files
         uses: actions/cache@v1.1.0
         with:
@@ -149,7 +149,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v2
       - name: Checkout Submodules
-        run: git -c submodule."doc/ospray-doc".update=none -c submodule."doc/intelstyle".update=none submodule update --init --recursive
+        run: git -c submodule."doc-binaries".update=none -c submodule."doc/intelstyle".update=none submodule update --init --recursive
       - name: Cache Object Files
         uses: actions/cache@v1.1.0
         with:
@@ -208,7 +208,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v2
       - name: Checkout Submodules
-        run: git -c submodule."doc/ospray-doc".update=none -c submodule."doc/intelstyle".update=none submodule update --init --recursive
+        run: git -c submodule."doc-binaries".update=none -c submodule."doc/intelstyle".update=none submodule update --init --recursive
       - name: Cache Object Files
         uses: actions/cache@v1.1.0
         with:
