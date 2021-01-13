@@ -375,7 +375,7 @@
   },
   "plugins": {
     "csp-vestec": {
-      "vestec-topo-dir": "",
+      "vestec-topo-dir": "../share/vestec/data/fire.cdb",
       "vestec-fire-dir": "../share/vestec/data/2D-fire",
       "vestec-diseases-dir": "../share/vestec/data/diseases",
       "vestec-server": "http://172.22.27.24/",
