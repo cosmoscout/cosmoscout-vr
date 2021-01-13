@@ -421,7 +421,7 @@ wget -nc https://github.com/ispc/ispc/releases/download/v1.14.1/ispc-v1.14.1-lin
 cd "$BUILD_DIR/ispc/extracted"
 cmake -E tar xzf ../ispc-v1.14.1-linux.tar.gz
 
-cmake -E copy "$BUILD_DIR/ispc/extracted/bin/ispc" "$INSTALL_DIR/bin"
+cmake -E copy "$BUILD_DIR/ispc/extracted/ispc-v1.14.1-linux/bin/ispc" "$INSTALL_DIR/bin"
 
 # rkcommon -----------------------------------------------------------------------------------------
 
