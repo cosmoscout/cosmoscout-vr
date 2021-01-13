@@ -78,7 +78,9 @@ class BookmarkEditorApi extends IApi {
     this._bookmarkTooltipArrow        = document.getElementById('bookmark-tooltip-arrow');
 
     // Make sure that the tooltip is hidden.
-    this._bookmarkTooltipContainer.onmouseout = () => { this.hideBookmarkTooltip(); };
+    this._bookmarkTooltipContainer.onmouseout = () => {
+      this.hideBookmarkTooltip();
+    };
 
     // Connect buttons setting fields to current values --------------------------------------------
 
@@ -413,21 +415,25 @@ class BookmarkEditorApi extends IApi {
     // Fill all the fields.
     if (hasLocation) {
       this._bookmarkTooltipGotoLocation.classList.remove('hidden');
-      this._bookmarkTooltipGotoLocation.onclick =
-          () => { CosmoScout.callbacks.bookmark.gotoLocation(id); };
+      this._bookmarkTooltipGotoLocation.onclick = () => {
+        CosmoScout.callbacks.bookmark.gotoLocation(id);
+      };
     } else {
       this._bookmarkTooltipGotoLocation.classList.add('hidden');
     }
 
     if (hasTime) {
       this._bookmarkTooltipGotoTime.classList.remove('hidden');
-      this._bookmarkTooltipGotoTime.onclick =
-          () => { CosmoScout.callbacks.bookmark.gotoTime(id, 2.0); };
+      this._bookmarkTooltipGotoTime.onclick = () => {
+        CosmoScout.callbacks.bookmark.gotoTime(id, 2.0);
+      };
     } else {
       this._bookmarkTooltipGotoTime.classList.add('hidden');
     }
 
-    this._bookmarkTooltipEdit.onclick = () => { CosmoScout.callbacks.bookmark.edit(id); };
+    this._bookmarkTooltipEdit.onclick = () => {
+      CosmoScout.callbacks.bookmark.edit(id);
+    };
 
     this._bookmarkTooltipName.innerHTML        = name;
     this._bookmarkTooltipDescription.innerHTML = description;

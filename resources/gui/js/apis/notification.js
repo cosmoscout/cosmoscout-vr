@@ -62,8 +62,9 @@ class NotificationApi extends IApi {
 
     if (flyTo) {
       notification.classList.add('clickable');
-      notification.addEventListener(
-          'click', () => { CosmoScout.callbacks.navigation.flyTo(flyTo); });
+      notification.addEventListener('click', () => {
+        CosmoScout.callbacks.navigation.flyTo(flyTo);
+      });
     }
 
     notification.timer = setTimeout(() => {
@@ -71,7 +72,9 @@ class NotificationApi extends IApi {
       this._container.removeChild(notification);
     }, 8000);
 
-    setTimeout(() => { notification.classList.add('show'); }, 60);
+    setTimeout(() => {
+      notification.classList.add('show');
+    }, 60);
   }
 
   /**
