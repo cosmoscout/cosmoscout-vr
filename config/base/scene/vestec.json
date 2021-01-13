@@ -1,8 +1,8 @@
 {
-  "startDate": "today",
+  "startDate": "2017-10-09 00:00:00.000",
   "resetDate": "today",
-  "minDate": "1950-01-02 00:00:00.000",
-  "maxDate": "2049-12-31 00:00:00.000",
+  "minDate": "2000-01-02 00:00:00.000",
+  "maxDate": "2025-12-31 00:00:00.000",
   "observer": {
     "center": "Earth",
     "frame": "IAU_Earth",
@@ -374,8 +374,33 @@
     }
   },
   "plugins": {
+    "csp-volume-rendering": {
+      "volumeDataPath": "../share/data/spaceweather/",
+      "volumeDataPattern": "dummy_([0-9]+).vtk",
+      "volumeDataType": "vtk",
+      "volumeStructure": "structured",
+      "volumeShape": "cubic",
+      "anchor": "Earth",
+      "position": [
+        10000000,
+        0,
+        0
+      ],
+      "scale": 0.7,
+      "rotation": [
+        0.19134170284356308,
+        0.4619399539487806,
+        0.19134170284356303,
+        0.8446231020115715
+      ],
+      "denoiseColor": false,
+      "denoiseDepth": false,
+      "samplingRate": 1,
+      "resolution": 512,
+      "depthMode": "multiThreshold"
+    },
     "csp-vestec": {
-      "vestec-topo-dir": "",
+      "vestec-topo-dir": "../share/vestec/data/fire.cdb",
       "vestec-fire-dir": "../share/vestec/data/2D-fire",
       "vestec-diseases-dir": "../share/vestec/data/diseases",
       "vestec-server": "http://172.22.27.24/",
