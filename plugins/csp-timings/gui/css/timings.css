@@ -1,4 +1,4 @@
-#statistics {
+#timings {
   color: var(--cs-color-text);
   margin: 0;
   overflow: hidden;
@@ -9,7 +9,7 @@
   text-align: right;
 }
 
-#statistics .statistics-item {
+#timings .timings-item {
   position: relative;
   height: 24px;
   margin-bottom: 5px;
@@ -18,11 +18,11 @@
   background: linear-gradient(to left, rgba(20, 20, 20, 0.6) 0px, rgba(20, 20, 20, 0.0) 400px)
 }
 
-#statistics>.label {
+#timings>.label {
   margin-bottom: 5px;
 }
 
-#statistics .statistics-item>.label {
+#timings .timings-item>.label {
   position: absolute;
   font-size: 16px;
   padding-right: 65px;
@@ -33,26 +33,26 @@
   text-align: right;
 }
 
-#statistics .bar {
+#timings .bar {
   position: absolute;
   right: 0;
   height: 12px;
   font-size: 11px;
 }
 
-#statistics .bar>.label {
+#timings .bar>.label {
   position: absolute;
   width: 60px;
   right: 2px;
   text-align: right;
 }
 
-#statistics .bar.gpu {
+#timings .bar.gpu {
   top: 0;
   opacity: 1.0;
 }
 
-#statistics .bar.cpu {
+#timings .bar.cpu {
   top: 12px;
   opacity: 0.8;
 }

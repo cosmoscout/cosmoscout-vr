@@ -1,0 +1,25 @@
+<div class="row">
+  <div class="col-5">
+    <label class="checklabel">
+      <input type="checkbox" data-callback="timings.setEnableTimerQueries" />
+      <i class="material-icons"></i>
+      <span>Enabled</span>
+    </label>
+  </div>
+
+  <div class="col-7 enable-if-timer-enabled unresponsive">
+    <label class="checklabel">
+      <input type="checkbox" data-callback="timings.setEnableStatistics" />
+      <i class="material-icons"></i>
+      <span>Display On-Screen Statistics</span>
+    </label>
+  </div>
+
+  <div class="col-7 offset-5 enable-if-timer-enabled unresponsive">
+    <label class="checklabel">
+      <input type="checkbox" data-callback="timings.setEnableRecording" />
+      <i class="material-icons"></i>
+      <span>Record Timings to File</span>
+    </label>
+  </div>
+</div>

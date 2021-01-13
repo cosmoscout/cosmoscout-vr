@@ -44,8 +44,7 @@ class InputManager;
 /// Screen-Space:
 ///  * The UI automatically resizes when the window is resized
 ///  * When running in a clustered setup, each display will show an individual copy of the same
-///    item. This is for example useful for the statistics GuiItem which is in all cases shown in
-///    screen-space.
+///    item. This is for example useful for statistics which should be shown per-cluster node.
 /// World-Space:
 ///  * The UI is drawn in a fixed resolution which is specified in the "guiPosition": {...} settings
 ///    key.
@@ -230,7 +229,6 @@ class CS_CORE_EXPORT GuiManager {
   std::shared_ptr<gui::ScreenSpaceGuiArea>                mLocalGuiArea;
 
   std::unique_ptr<gui::GuiItem> mCosmoScoutGui;
-  std::unique_ptr<gui::GuiItem> mStatistics;
 
   int mOnLoadConnection = -1;
   int mOnSaveConnection = -1;

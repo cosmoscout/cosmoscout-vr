@@ -102,6 +102,7 @@ Official Plugins | Description | Screenshot
 [csp-sharad](plugins/csp-sharad) | Renders radar datasets acquired by the Mars Reconnaissance Orbiter. The SHARAD profiles are rendered inside of Mars, the Martian surface is made translucent in front of the profiles. | ![screenshot](docs/img/csp-sharad.jpg)
 [csp-simple-bodies](plugins/csp-simple-bodies) | Renders simple spherical celestial bodies. The bodies are drawn as an ellipsoid with an equirectangular texture. | ![screenshot](docs/img/csp-simple-bodies.jpg)
 [csp-stars](plugins/csp-stars) | Draws 3D-stars loaded from catalogues. For now Tycho, Tycho2 and the Hipparcos catalogue are supported. | ![screenshot](docs/img/csp-stars.jpg)
+[csp-timings](plugins/csp-timings) | Uses the built-in timer queries of CosmoScout VR to draw on-screen live frame timing statistics. This plugin can also be used to export recorded time series to a CSV file. | ![screenshot](docs/img/csp-timings.jpg)
 [csp-trajectories](plugins/csp-trajectories) | Draws trajectories of celestial bodies and spacecrafts based on SPICE. The color, length, number of samples and the reference frame can be configured. | ![screenshot](docs/img/csp-trajectories.jpg)
 [csp-web-api](plugins/csp-web-api) | Allows to control CosmoScout VR via an HTTP protocol. It also allows capturing screenshots over HTTP. | ![screenshot](docs/img/csp-web-api.jpg)
 
