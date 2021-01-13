@@ -80,9 +80,7 @@
             let b = eb.querySelector(".flytolocations-bookmarks-name").textContent;
             return a < b ? -1 : (a > b ? 1 : 0);
           })
-          .forEach((div) => {
-            container.appendChild(div);
-          });
+          .forEach((div) => { container.appendChild(div); });
     }
   }
 

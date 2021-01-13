@@ -189,9 +189,7 @@ class GuiApi extends IApi {
       // Make closable.
       const closeButton = w.querySelector(".window-header a[data-action='close']");
       if (closeButton) {
-        closeButton.onmouseup = () => {
-          w.classList.remove("visible");
-        };
+        closeButton.onmouseup = () => { w.classList.remove("visible"); };
       }
 
       // Make lockable. Locked windows shall not automatically close.
@@ -209,9 +207,7 @@ class GuiApi extends IApi {
       }
 
       // Bring to front on click.
-      w.onmousedown = () => {
-        w.style.zIndex = ++currentZIndex;
-      };
+      w.onmousedown = () => { w.style.zIndex = ++currentZIndex; };
 
       // Make draggable.
       const header       = w.querySelector(".window-title");

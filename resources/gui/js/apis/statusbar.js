@@ -63,13 +63,11 @@ class StatusbarApi extends IApi {
 
     // The 'console-has-input-focus' class on the _outputWrapper forces the console messages to not
     // fade when the text input field has input focus.
-    this._inputField.onfocus = (e) => {
-      this._outputWrapper.classList.add('console-has-input-focus');
-    };
+    this._inputField.onfocus =
+        (e) => { this._outputWrapper.classList.add('console-has-input-focus'); };
 
-    this._inputField.onblur = (e) => {
-      this._outputWrapper.classList.remove('console-has-input-focus');
-    };
+    this._inputField.onblur =
+        (e) => { this._outputWrapper.classList.remove('console-has-input-focus'); };
 
     this._inputField.onkeydown = (e) => {
       // Up pressed - history up.

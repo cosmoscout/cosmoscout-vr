@@ -123,13 +123,11 @@ Breakpoint* BreakpointTree::getNearestNode(double x, Breakpoint* current) const 
 
   Breakpoint* nearestChild = (x < current->position().mX) ? getNearestNode(x, current->mLeftChild)
                                                           : getNearestNode(x, current->mRightChild);
-  Breakpoint* nearest = current;
+  Breakpoint* nearest      = current;
 
   if (nearestChild &&
       (std::fabs(x - nearestChild->position().mX) < std::fabs(x - nearest->position().mX))) {
-    {
-      nearest = nearestChild;
-    }
+    { nearest = nearestChild; }
   }
 
   return nearest;

@@ -54,9 +54,7 @@ class LoadingScreenApi extends IApi {
       document.body.classList.remove('loading');
       document.body.classList.add('loaded');
 
-      setTimeout(() => {
-        this._loadingScreen.classList.add("hidden");
-      }, 1500);
+      setTimeout(() => { this._loadingScreen.classList.add("hidden"); }, 1500);
     }
   }
 
