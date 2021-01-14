@@ -405,8 +405,7 @@ wget -nc https://github.com/01org/tbb/releases/download/2019_U5/tbb2019_20190320
 cd "$BUILD_DIR/tbb/extracted"
 cmake -E tar xzf ../tbb2019_20190320oss_lin.tgz
 
-cmake -E make_directory "$INSTALL_DIR/include/tbb"
-cmake -E copy_directory "$BUILD_DIR/tbb/extracted/tbb2019_20190320oss/include" "$INSTALL_DIR/include/tbb"
+cmake -E copy_directory "$BUILD_DIR/tbb/extracted/tbb2019_20190320oss/include" "$INSTALL_DIR/include"
 cmake -E copy_directory "$BUILD_DIR/tbb/extracted/tbb2019_20190320oss/lib"   	 "$INSTALL_DIR/lib"
 
 # ispc -----------------------------------------------------------------------------------------
