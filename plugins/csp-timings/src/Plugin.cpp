@@ -90,13 +90,24 @@ void Plugin::init() {
 
   // Set the mEnableRecording value based on the corresponding checkbox.
   mGuiManager->getGui()->registerCallback("timings.setEnableRecording",
-      "Enables or disables frame time recording.",
-      std::function([this](bool value) { mEnableRecording = value; }));
+      "Enables or disables frame time recording.", std::function([this](bool enable) {
+        mEnableRecording = enable;
+
+        if (enable) {
+          mGuiManager->getGui()->executeJavascript(
+              "document.querySelector('.timings-record-button').innerHTML = "
+              "'<i class=\"material-icons\">stop</i> Stop Recording';");
+        } else {
+          mGuiManager->getGui()->executeJavascript(
+              "document.querySelector('.timings-record-button').innerHTML = "
+              "'<i class=\"material-icons\">fiber_manual_record</i> Start New Recording';");
+        }
+      }));
 
   // Set the mEnableStatistics value based on the corresponding checkbox.
   mGuiManager->getGui()->registerCallback("timings.setEnableStatistics",
       "Shows or hides the on-screen timer statistics.",
-      std::function([this](bool value) { mEnableStatistics = value; }));
+      std::function([this](bool enable) { mEnableStatistics = enable; }));
 
   logger().info("Loading done.");
 }
