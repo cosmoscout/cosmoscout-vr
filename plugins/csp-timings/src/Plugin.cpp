@@ -111,7 +111,7 @@ void Plugin::update() {
   // If frame timings are enabled, we may have to record them or update the on-screen statistics.
   if (mFrameTimings->pEnableMeasurements.get()) {
 
-    // Get the frame timing information if either recording or the onscreen-statistics are enabled.
+    // Get the frame timing information if either recording or the on-screen statistics are enabled.
     std::unordered_map<std::string, cs::utils::FrameTimings::QueryResult> timings;
     if (mEnableStatistics || mEnableRecording) {
       timings = mFrameTimings->getCalculatedQueryResults();
