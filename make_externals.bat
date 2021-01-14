@@ -157,7 +157,24 @@ cmake -E tar xfvj %SOURCE_ROOT_DIR%/VTK-Patch.zip
 
 cmake -E make_directory "%BUILD_DIR%/vtk" && cd "%BUILD_DIR%/vtk"
 cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
-      -DBUILD_TESTING=off "%EXTERNALS_DIR%/vtk" || goto :error
+      -DVTK_BUILD_TESTING=OFF -DVTK_BUILD_EXAMPLES=OFF^
+			-DVTK_GROUP_ENABLE_Imaging=DONT_WANT^
+			-DVTK_GROUP_ENABLE_MPI=DONT_WANT^
+			-DVTK_GROUP_ENABLE_Qt=DONT_WANT^
+			-DVTK_GROUP_ENABLE_Rendering=DONT_WANT^
+			-DVTK_GROUP_ENABLE_StandAlone=DONT_WANT^
+			-DVTK_GROUP_ENABLE_Views=DONT_WANT^
+			-DVTK_GROUP_ENABLE_Web=DONT_WANT^
+			-DVTK_MODULE_ENABLE_VTK_CommonCore=YES^
+			-DVTK_MODULE_ENABLE_VTK_CommonDataModel=YES^
+			-DVTK_MODULE_ENABLE_VTK_FiltersCore=YES^
+			-DVTK_MODULE_ENABLE_VTK_FiltersGeometry=YES^
+			-DVTK_MODULE_ENABLE_VTK_IOInfovis=YES^
+			-DVTK_MODULE_ENABLE_VTK_IOImage=YES^
+			-DVTK_MODULE_ENABLE_VTK_IOLegacy=YES^
+			-DVTK_MODULE_ENABLE_VTK_IOXML=YES^
+			-DVTK_MODULE_ENABLE_VTK_IOWeb=YES^
+			"%EXTERNALS_DIR%/vtk" || goto :error
 cmake --build . --config %BUILD_TYPE% --target install --parallel 8 || goto :error
 
 rem # TTK -----------------------------------------------------------------------------------------
@@ -167,10 +184,107 @@ echo .
 echo Building and installing TTK 0.9.9 ...
 echo .
 
+set REQUIRED=^
+			-DVTK_MODULE_ENABLE_ttkCinemaProductReader=YES^
+			-DVTK_MODULE_ENABLE_ttkCinemaQuery=YES^
+			-DVTK_MODULE_ENABLE_ttkCinemaReader=YES
+set DEPENDENCIES=^
+			-DVTK_MODULE_ENABLE_ttkAlgorithm=YES^
+			-DVTK_MODULE_ENABLE_ttkTopologicalCompressionReader=YES
+
 cmake -E make_directory "%BUILD_DIR%/ttk" && cd "%BUILD_DIR%/ttk"
 cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
-      -DTTK_BUILD_PARAVIEW_PLUGINS=Off -DTTK_ENABLE_GRAPHVIZ=Off -DVTK_MODULE_ENABLE_ttkCinemaWriter=NO -DTTK_ENABLE_EIGEN=Off^
-      -DSQLITE3_INCLUDE_DIR="%INSTALL_DIR%/include" -DBUILD_TESTING=off "%EXTERNALS_DIR%/ttk" || goto :error
+      -DTTK_BUILD_PARAVIEW_PLUGINS=Off -DTTK_BUILD_STANDALONE_APPS=Off -DBUILD_TESTING=off^
+			-DTTK_ENABLE_GRAPHVIZ=Off -DTTK_ENABLE_EIGEN=Off -DTTK_ENABLE_EMBREE=Off -DTTK_WHITELIST_MODE=On^
+			%REQUIRED% %DEPENDENCIES%^
+			-DVTK_MODULE_ENABLE_ttkWRLExporter=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkUserInterfaceBase=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkUncertainDataEstimator=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkTriangulationRequest=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkTriangulationAlgorithm=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkTrackingFromOverlap=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkTrackingFromFields=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkTrackingFromPersistenceDiagrams=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkTopologicalSimplification=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkTopologicalCompression=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkTextureMapFromField=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkTableDataSelector=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkStringArrayConverter=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkSphereFromPoint=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkScalarFieldSmoother=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkScalarFieldNormalizer=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkScalarFieldCriticalPoints=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkReebSpace=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkRangePolygon=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkQuadrangulationSubdivision=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkProjectionFromField=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkProgramBase=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkPointSetToCurve=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkPointMerger=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkPointDataSelector=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkPointDataConverter=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkPlanarGraphLayout=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkPersistenceDiagramDistanceMatrix=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkPersistenceDiagramClustering=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkPersistenceDiagram=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkPersistenceCurve=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkPeriodicGrid=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkOFFWriter=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkOFFReader=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkOBJWriter=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkMorseSmaleQuadrangulation=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkMorseSmaleComplex=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkMeshSubdivision=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkMeshGraph=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkMatrixToHeatMap=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkManifoldCheck=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkMandatoryCriticalPoints=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkLDistanceMatrix=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkLDistance=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkJacobiSet=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkIntegralLines=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkImportEmbeddingFromTable=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkIdentifyByScalarField=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkIdentifiers=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkIdentifierRandomizer=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkIcospheresFromPoints=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkIcosphereFromObject=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkIcosphere=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkHelloWorld=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkHarmonicField=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkGridLayout=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkGeometrySmoother=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkGaussianPointCloud=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkFiberSurface=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkFiber=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkFTRGraph=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkFTMTree=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkEndFor=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkForEach=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkExtract=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkEigenField=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkDistanceField=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkDiscreteGradient=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkDimensionReduction=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkDepthImageBasedGeometryApproximation=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkDataSetToTable=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkDataSetInterpolator=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkContourTreeAlignment=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkContourForests=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkContourAroundPoint=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkContinuousScatterPlot=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkComponentSize=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkCinemaWriter=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkTopologicalCompressionWriter=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkCinemaImaging=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkCinemaDarkroom=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkBottleneckDistance=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkBlockAggregator=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkBlank=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkBarycentricSubdivision=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkArrayPreconditioning=DONT_WANT^
+			-DVTK_MODULE_ENABLE_ttkArrayEditor=DONT_WANT^
+      -DSQLITE3_INCLUDE_DIR="%INSTALL_DIR%/include" "%EXTERNALS_DIR%/ttk" || goto :error
 cmake --build . --config %BUILD_TYPE% --target install --parallel 8 || goto :error
 
 rem glew -------------------------------------------------------------------------------------------
