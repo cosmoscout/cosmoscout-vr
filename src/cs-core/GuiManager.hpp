@@ -81,11 +81,11 @@ class CS_CORE_EXPORT GuiManager {
   /// Returns the GUI area which is drawn in screen-space. That means if you add a GUI item to this
   /// area, it will be visible multiple times in a clustered setup. A local GUI area is always
   /// available.
-  std::shared_ptr<gui::ScreenSpaceGuiArea> getLocalGuiArea() const;
+  gui::ScreenSpaceGuiArea& getLocalGuiArea() const;
 
   /// Returns the GUI area which is drawn in world-space. This may be a nullptr - the global GUI
   /// area is only created if the "gui: {...}" settings key is present.
-  std::shared_ptr<gui::WorldSpaceGuiArea> getGlobalGuiArea() const;
+  gui::WorldSpaceGuiArea& getGlobalGuiArea() const;
 
   /// This is called once a frame from the Application.
   void update();
@@ -225,8 +225,8 @@ class CS_CORE_EXPORT GuiManager {
   std::shared_ptr<utils::FrameTimings> mFrameTimings;
 
   std::unique_ptr<VistaViewportResizeToProjectionAdapter> mViewportUpdater;
-  std::shared_ptr<gui::WorldSpaceGuiArea>                 mGlobalGuiArea;
-  std::shared_ptr<gui::ScreenSpaceGuiArea>                mLocalGuiArea;
+  std::unique_ptr<gui::WorldSpaceGuiArea>                 mGlobalGuiArea;
+  std::unique_ptr<gui::ScreenSpaceGuiArea>                mLocalGuiArea;
 
   std::unique_ptr<gui::GuiItem> mCosmoScoutGui;
 

@@ -80,13 +80,13 @@ GuiManager::GuiManager(std::shared_ptr<Settings> settings,
         static_cast<float>(mSettings->mGuiPosition->mPosZMeter));
 
     // Create the global GUI area.
-    mGlobalGuiArea = std::make_shared<gui::WorldSpaceGuiArea>(
+    mGlobalGuiArea = std::make_unique<gui::WorldSpaceGuiArea>(
         mSettings->mGuiPosition->mWidthPixel, mSettings->mGuiPosition->mHeightPixel);
     mGlobalGuiArea->setUseLinearDepthBuffer(true);
   }
 
   // Create the local GUI area.
-  mLocalGuiArea = std::make_shared<gui::ScreenSpaceGuiArea>(pViewport);
+  mLocalGuiArea = std::make_unique<gui::ScreenSpaceGuiArea>(pViewport);
 
   // Make sure that the GUI is drawn at the correct position in the draw order.
   mLocalGuiOpenGLnode = pSG->NewOpenGLNode(mLocalGuiTransform, mLocalGuiArea.get());
@@ -369,14 +369,14 @@ gui::GuiItem* GuiManager::getGui() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::shared_ptr<gui::WorldSpaceGuiArea> GuiManager::getGlobalGuiArea() const {
-  return mGlobalGuiArea;
+gui::WorldSpaceGuiArea& GuiManager::getGlobalGuiArea() const {
+  return *mGlobalGuiArea;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::shared_ptr<gui::ScreenSpaceGuiArea> GuiManager::getLocalGuiArea() const {
-  return mLocalGuiArea;
+gui::ScreenSpaceGuiArea& GuiManager::getLocalGuiArea() const {
+  return *mLocalGuiArea;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

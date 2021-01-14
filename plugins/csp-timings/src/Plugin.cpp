@@ -58,7 +58,7 @@ void Plugin::init() {
 
   // Add it to the local GUI area. This ensures that the statistics are drawn on each screen in a
   // clustered setup.
-  mGuiManager->getLocalGuiArea()->addItem(mGuiItem.get());
+  mGuiManager->getLocalGuiArea().addItem(mGuiItem.get());
 
   // Add the sidebar user settings tab to the CosmoScout user interface.
   mGuiManager->addSettingsSectionToSideBarFromHTML(
@@ -213,7 +213,7 @@ void Plugin::deInit() {
   mGuiManager->getGui()->unregisterCallback("timings.setEnableStatistics");
 
   // Remove the statistic GUI item.
-  mGuiManager->getLocalGuiArea()->removeItem(mGuiItem.get());
+  mGuiManager->getLocalGuiArea().removeItem(mGuiItem.get());
 
   // Disconnect any signals.
   mFrameTimings->pEnableMeasurements.disconnect(mFrameTimingConnection);
