@@ -147,7 +147,7 @@ void Plugin::update() {
   }
 
   // Recording seems to have stopped last frame, so write the output file!
-  if (!mEnableRecording && mRecordedTimings.size() > 0) {
+  if (!mEnableRecording && !mRecordedTimings.empty()) {
 
     // We use the current date as a filename.
     auto timeString =
