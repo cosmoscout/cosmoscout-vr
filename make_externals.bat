@@ -647,8 +647,7 @@ IF NOT EXIST tbb.zip (
 cd "%BUILD_DIR%/tbb/extracted"
 cmake -E tar xfvj ../tbb.zip
 
-cmake -E make_directory "%INSTALL_DIR%/include/tbb"
-cmake -E copy_directory "%BUILD_DIR%/tbb/extracted/tbb2019_20190320oss/include"   "%INSTALL_DIR%/include/"
+cmake -E copy_directory "%BUILD_DIR%/tbb/extracted/tbb2019_20190320oss/include"   "%INSTALL_DIR%/include"
 cmake -E copy_directory "%BUILD_DIR%/tbb/extracted/tbb2019_20190320oss/lib"   	  "%INSTALL_DIR%/lib"
 cmake -E copy           "%BUILD_DIR%/tbb/extracted/tbb2019_20190320oss/bin/intel64/vc14/tbb.dll" "%INSTALL_DIR%/bin"
 cmake -E copy           "%BUILD_DIR%/tbb/extracted/tbb2019_20190320oss/bin/intel64/vc14/tbbmalloc.dll" "%INSTALL_DIR%/bin"
