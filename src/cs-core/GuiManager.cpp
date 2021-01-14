@@ -24,7 +24,6 @@
 #include <VistaKernel/GraphicsManager/VistaTransformNode.h>
 #include <VistaKernel/InteractionManager/VistaUserPlatform.h>
 #include <VistaKernel/Stuff/VistaFramerateDisplay.h>
-#include <VistaKernel/VistaFrameLoop.h>
 #include <VistaKernel/VistaSystem.h>
 #include <VistaKernelOpenSGExt/VistaOpenSGMaterialTools.h>
 #include <fstream>
@@ -116,10 +115,8 @@ GuiManager::GuiManager(std::shared_ptr<Settings> settings,
   // the pMainUIScale factor.
   mCosmoScoutGui = std::make_unique<gui::GuiItem>(
       "file://{mainUIZoom}../share/resources/gui/cosmoscout.html", true);
-  mStatistics = std::make_unique<gui::GuiItem>(
-      "file://{mainUIZoom}../share/resources/gui/statistics.html", false);
 
-  // Except for mStatistics, all GuiItems are attached to the global world-space GuiArea if it is
+  // Usually, all GuiItems are attached to the global world-space GuiArea if it is
   // available. If not, they are added to the local screen-space GuiArea.
   if (mGlobalGuiArea) {
     mGlobalGuiArea->addItem(mCosmoScoutGui.get());
@@ -127,26 +124,13 @@ GuiManager::GuiManager(std::shared_ptr<Settings> settings,
     mLocalGuiArea->addItem(mCosmoScoutGui.get());
   }
 
-  mLocalGuiArea->addItem(mStatistics.get());
-
-  // Configure attributes of the loading screen. Per default, GuiItems are drawn full-screen in
+  // Configure attributes of the main user interface. Per default, GuiItems are drawn full-screen in
   // their GuiAreas.
-
   mCosmoScoutGui->setRelSizeX(1.F);
   mCosmoScoutGui->setRelSizeY(1.F);
   mCosmoScoutGui->setRelPositionX(0.5F);
   mCosmoScoutGui->setRelPositionY(0.5F);
   mCosmoScoutGui->setCursorChangeCallback([](gui::Cursor c) { setCursor(c); });
-
-  // Configure the positioning and attributes of the statistics.
-  mStatistics->setSizeX(600);
-  mStatistics->setSizeY(320);
-  mStatistics->setOffsetX(-300);
-  mStatistics->setOffsetY(500);
-  mStatistics->setRelPositionY(0.F);
-  mStatistics->setRelPositionX(1.F);
-  mStatistics->setIsInteractive(false);
-  mStatistics->setCanScroll(false);
 
   // Now we will call some JavaScript methods - so we have to wait until the GuiItems have been
   // fully loaded.
@@ -385,8 +369,14 @@ gui::GuiItem* GuiManager::getGui() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-gui::GuiItem* GuiManager::getStatistics() const {
-  return mStatistics.get();
+gui::WorldSpaceGuiArea& GuiManager::getGlobalGuiArea() const {
+  return *mGlobalGuiArea;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+gui::ScreenSpaceGuiArea& GuiManager::getLocalGuiArea() const {
+  return *mLocalGuiArea;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -410,31 +400,6 @@ void GuiManager::setLoadingScreenProgress(float percent, bool animate) const {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void GuiManager::update() {
-
-  // If frame timings are enabled, collect the data and send it to the statistics GuiItem.
-  mStatistics->setIsEnabled(mFrameTimings->pEnableMeasurements.get());
-  if (mFrameTimings->pEnableMeasurements.get()) {
-    std::string json("{");
-    for (auto const& timings : mFrameTimings->getCalculatedQueryResults()) {
-      uint64_t timeGPU(timings.second.mGPUTime);
-      uint64_t timeCPU(timings.second.mCPUTime);
-
-      uint64_t const waitNanos = 100000;
-      if (timeGPU > waitNanos || timeCPU > waitNanos) {
-        json += "\"" + timings.first + "\":[" + std::to_string(timeGPU) + "," +
-                std::to_string(timeCPU) + "],";
-      }
-    }
-    json.back() = '}';
-
-    if (json.length() <= 1) {
-      json = "{}";
-    }
-
-    mStatistics->callJavascript(
-        "CosmoScout.statistics.setData", json, GetVistaSystem()->GetFrameLoop()->GetFrameRate());
-  }
-
   // Update all entities of the Chromium Embedded Framework.
   gui::update();
 }

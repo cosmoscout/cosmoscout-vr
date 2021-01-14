@@ -235,6 +235,7 @@ class TimelineApi extends IApi {
     const button = this._buttonContainer.querySelector(`[data-original-title="${name}"]`);
 
     if (button) {
+      $(button).tooltip("dispose");
       button.remove();
     }
   }

@@ -23,6 +23,7 @@
 !/plugins/csp-sharad
 !/plugins/csp-simple-bodies
 !/plugins/csp-stars
+!/plugins/csp-timings
 !/plugins/csp-trajectories
 !/plugins/csp-web-api
 

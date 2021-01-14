@@ -1,0 +1,27 @@
+<div class="row">
+  <div class="col-5">
+    <label class="checklabel">
+      <input type="checkbox" data-callback="timings.setEnableTimerQueries" />
+      <i class="material-icons"></i>
+      <span>Enabled</span>
+    </label>
+  </div>
+
+  <div class="col-7 enable-if-timer-enabled unresponsive">
+    <label class="checklabel">
+      <input type="checkbox" data-callback="timings.setEnableStatistics" />
+      <i class="material-icons"></i>
+      <span>Display On-Screen Statistics</span>
+    </label>
+  </div>
+
+  <div class="col-7 offset-5 enable-if-timer-enabled unresponsive">
+    <label class="radiolabel" style="width: 100%;" data-toggle="tooltip"
+      title="Start a recording by clicking this button. You finish the recording by clicking it again. A CSV file will be written to CosmoScout VR's bin/ directory.">
+      <input type="checkbox" class="radio-button" data-callback="timings.setEnableRecording" />
+      <span class="btn glass block mt-3 timings-record-button">
+        <i class="material-icons">fiber_manual_record</i> Start New Recording
+      </span>
+    </label>
+  </div>
+</div>
