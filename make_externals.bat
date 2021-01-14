@@ -157,7 +157,24 @@ cmake -E tar xfvj %SOURCE_ROOT_DIR%/VTK-Patch.zip
 
 cmake -E make_directory "%BUILD_DIR%/vtk" && cd "%BUILD_DIR%/vtk"
 cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
-      -DBUILD_TESTING=off "%EXTERNALS_DIR%/vtk" || goto :error
+      -DVTK_BUILD_TESTING=OFF -DVTK_BUILD_EXAMPLES=OFF^
+			-DVTK_GROUP_ENABLE_Imaging=DONT_WANT^
+			-DVTK_GROUP_ENABLE_MPI=DONT_WANT^
+			-DVTK_GROUP_ENABLE_Qt=DONT_WANT^
+			-DVTK_GROUP_ENABLE_Rendering=DONT_WANT^
+			-DVTK_GROUP_ENABLE_StandAlone=DONT_WANT^
+			-DVTK_GROUP_ENABLE_Views=DONT_WANT^
+			-DVTK_GROUP_ENABLE_Web=DONT_WANT^
+			-DVTK_MODULE_ENABLE_VTK_CommonCore=YES^
+			-DVTK_MODULE_ENABLE_VTK_CommonDataModel=YES^
+			-DVTK_MODULE_ENABLE_VTK_FiltersCore=YES^
+			-DVTK_MODULE_ENABLE_VTK_FiltersGeometry=YES^
+			-DVTK_MODULE_ENABLE_VTK_IOInfovis=YES^
+			-DVTK_MODULE_ENABLE_VTK_IOImage=YES^
+			-DVTK_MODULE_ENABLE_VTK_IOLegacy=YES^
+			-DVTK_MODULE_ENABLE_VTK_IOXML=YES^
+			-DVTK_MODULE_ENABLE_VTK_IOWeb=YES^
+			"%EXTERNALS_DIR%/vtk" || goto :error
 cmake --build . --config %BUILD_TYPE% --target install --parallel 8 || goto :error
 
 rem # TTK -----------------------------------------------------------------------------------------
