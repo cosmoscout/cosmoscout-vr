@@ -127,6 +127,9 @@ class TextureOverlayRenderer : public IVistaOpenGLDraw {
   std::shared_ptr<cs::core::SolarSystem>
                                          mSolarSystem; //! Pointer to the CosmoScout solar system used to retrieve matrices
   std::shared_ptr<cs::core::TimeControl> mTimeControl;
+
+  std::array<float, 3> mMinBounds;
+  std::array<float, 3> mMaxBounds;
 };
 
 } // namespace csp::wmsoverlays

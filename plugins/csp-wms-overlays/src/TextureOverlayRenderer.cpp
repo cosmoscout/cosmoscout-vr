@@ -53,7 +53,11 @@ TextureOverlayRenderer::TextureOverlayRenderer(std::string center,
     , mPluginSettings(pluginSettings)
     , mMaxSize(pluginSettings->mMaxTextureSize.get())
     , mWMSTexture(new VistaTexture(GL_TEXTURE_2D))
-    , mSecondWMSTexture(new VistaTexture(GL_TEXTURE_2D)) {
+    , mSecondWMSTexture(new VistaTexture(GL_TEXTURE_2D))
+    , mMinBounds({(float)-solarSystem->getRadii(center)[0],
+          (float)-solarSystem->getRadii(center)[1], (float)-solarSystem->getRadii(center)[2]})
+    , mMaxBounds({(float)solarSystem->getRadii(center)[0], (float)solarSystem->getRadii(center)[1],
+          (float)solarSystem->getRadii(center)[2]}) {
   logger().debug("[TextureOverlayRenderer] Compiling shader");
 
   m_pSurfaceShader = nullptr;
@@ -650,12 +654,7 @@ bool TextureOverlayRenderer::Do() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool TextureOverlayRenderer::GetBoundingBox(VistaBoundingBox& oBoundingBox) {
-  logger().warn("TODO Adjust to correct body size");
-  float fMin[3] = {-6371000.0f, -6371000.0f, -6371000.0f};
-  float fMax[3] = {6371000.0f, 6371000.0f, 6371000.0f};
-
-  oBoundingBox.SetBounds(fMin, fMax);
-
+  oBoundingBox.SetBounds(mMinBounds.data(), mMaxBounds.data());
   return true;
 }
 
