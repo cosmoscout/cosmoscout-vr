@@ -51,6 +51,10 @@
       $(dropdown).selectpicker("destroy");
       $(dropdown).selectpicker();
     }
+
+    setLegendURL(url) {
+      document.getElementById("wmsOverlays.legend").src = url;
+    }
   }
 
   CosmoScout.init(WMSOverlaysApi);

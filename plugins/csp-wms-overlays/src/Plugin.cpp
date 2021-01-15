@@ -36,12 +36,14 @@ namespace csp::wmsoverlays {
 void from_json(nlohmann::json const& j, Plugin::Settings::Body& o) {
   cs::core::Settings::deserialize(j, "activeServer", o.mActiveServer);
   cs::core::Settings::deserialize(j, "activeLayer", o.mActiveLayer);
+  cs::core::Settings::deserialize(j, "activeStyle", o.mActiveStyle);
   cs::core::Settings::deserialize(j, "wms", o.mWms);
 }
 
 void to_json(nlohmann::json& j, Plugin::Settings::Body const& o) {
   cs::core::Settings::serialize(j, "activeServer", o.mActiveServer);
   cs::core::Settings::serialize(j, "activeLayer", o.mActiveLayer);
+  cs::core::Settings::serialize(j, "activeStyle", o.mActiveStyle);
   cs::core::Settings::serialize(j, "wms", o.mWms);
 }
 
@@ -115,6 +117,36 @@ void Plugin::init() {
         auto overlay = mWMSOverlays.find(mSolarSystem->pActiveBody.get()->getCenterName());
         if (overlay != mWMSOverlays.end()) {
           setWMSLayer(overlay->second, name);
+        }
+      }));
+
+  mGuiManager->getGui()->registerCallback("wmsOverlays.setStyle",
+      "Sets the style for the currently selected layer.", std::function([this](std::string&& name) {
+        auto overlay = mWMSOverlays.find(mSolarSystem->pActiveBody.get()->getCenterName());
+        if (overlay == mWMSOverlays.end()) {
+          return;
+        }
+        auto settings = getBodySettings(overlay->second);
+        auto const& server   = std::find_if(mWms.at(overlay->second->getCenter()).begin(),
+            mWms.at(overlay->second->getCenter()).end(), [&settings](WebMapService wms) {
+              return wms.getTitle() == settings.mActiveServer.get();
+            });
+        if (server == mWms.at(overlay->second->getCenter()).end()) {
+          return;
+        }
+        auto layer = server->getLayer(settings.mActiveLayer.get());
+        if (!layer.has_value()) {
+          return;
+        }
+        WebMapLayer::Settings layerSettings = layer->getSettings();
+        auto const& style = std::find_if(layerSettings.mStyles.begin(), layerSettings.mStyles.end(),
+            [&name](WebMapLayer::Style style) { return style.mName == name; });
+        if (style != layerSettings.mStyles.end()) {
+          mGuiManager->getGui()->callJavascript(
+              "CosmoScout.wmsOverlays.setLegendURL", style->mLegendUrl.value_or(""));
+          settings.mActiveStyle.set(name);
+        } else {
+          mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.setLegendURL", "");
         }
       }));
 
@@ -316,6 +348,16 @@ void Plugin::setWMSLayer(std::shared_ptr<TextureOverlayRenderer> const& wmsOverl
       std::make_shared<WebMapService>(server), std::make_shared<WebMapLayer>(layer.value()));
   mGuiManager->getGui()->callJavascript(
       "CosmoScout.wmsOverlays.setWMSDataCopyright", layer->getSettings().mAttribution.value_or(""));
+
+  mGuiManager->getGui()->callJavascript("CosmoScout.gui.clearDropdown", "wmsOverlays.setStyle");
+  mGuiManager->getGui()->callJavascript(
+      "CosmoScout.gui.addDropdownValue", "wmsOverlays.setStyle", "", "Default", true);
+  mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.setLegendURL", "");
+  for (WebMapLayer::Style style : layer->getSettings().mStyles) {
+    bool active = style.mName == settings.mActiveStyle.get();
+    mGuiManager->getGui()->callJavascript("CosmoScout.gui.addDropdownValue", "wmsOverlays.setStyle",
+        style.mName, style.mTitle, active);
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

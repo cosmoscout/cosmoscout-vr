@@ -55,7 +55,9 @@ class Plugin : public cs::core::PluginBase {
       cs::utils::DefaultProperty<std::string> mActiveServer{
           "None"}; ///< The name of the currently active WMS server.
       cs::utils::DefaultProperty<std::string> mActiveLayer{
-          "None"};                   ///< The name of the currently active WMS layer.
+          "None"}; ///< The name of the currently active WMS layer.
+      cs::utils::DefaultProperty<std::string> mActiveStyle{
+          ""};                       ///< The name of the style for the currently active WMS layer.
       std::vector<std::string> mWms; ///<	URLs of WMS servers.
     };
 
