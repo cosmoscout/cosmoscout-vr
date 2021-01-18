@@ -90,6 +90,44 @@ void Plugin::init() {
         }
       }));
 
+  // Moves the observer to a position from which most of the current layer should be visible.
+  mGuiManager->getGui()->registerCallback("wmsOverlays.goToDefaultBounds",
+      "Fly the observer to the center of the default bounds of the current layer.",
+      std::function([this]() {
+        auto overlay = mWMSOverlays.find(mSolarSystem->pActiveBody.get()->getCenterName());
+        if (overlay == mWMSOverlays.end()) {
+          return;
+        }
+        auto        settings = getBodySettings(overlay->second);
+        auto const& server   = std::find_if(mWms.at(overlay->second->getCenter()).begin(),
+            mWms.at(overlay->second->getCenter()).end(), [&settings](WebMapService wms) {
+              return wms.getTitle() == settings.mActiveServer.get();
+            });
+        if (server == mWms.at(overlay->second->getCenter()).end()) {
+          return;
+        }
+        auto layer = server->getLayer(settings.mActiveLayer.get());
+        if (!layer.has_value()) {
+          return;
+        }
+        WebMapLayer::Settings layerSettings = layer->getSettings();
+
+        double lon      = (layerSettings.mLonRange[0] + layerSettings.mLonRange[1]) / 2.;
+        double lat      = (layerSettings.mLatRange[0] + layerSettings.mLatRange[1]) / 2.;
+        double lonRange = layerSettings.mLonRange[1] - layerSettings.mLonRange[0];
+        double latRange = layerSettings.mLatRange[1] - layerSettings.mLatRange[0];
+        double maxRange = std::max(lonRange, latRange);
+        // Rough approximation of the height, at which the whole bounds are in frame
+        double fov    = 60.;
+        double height = std::tan(cs::utils::convert::toRadians(maxRange) / 2.) *
+                        mSolarSystem->getRadii(overlay->first)[0] /
+                        std::tan(cs::utils::convert::toRadians(fov) / 2.);
+
+        mSolarSystem->flyObserverTo(mSolarSystem->pActiveBody.get()->getCenterName(),
+            mSolarSystem->pActiveBody.get()->getFrameName(),
+            cs::utils::convert::toRadians(glm::dvec2(lon, lat)), height, 5.);
+      }));
+
   // Set whether to interpolate textures between timesteps (does not work when pre-fetch is
   // inactive).
   mGuiManager->getGui()->registerCallback("wmsOverlays.setEnableTimeInterpolation",
@@ -387,6 +425,9 @@ void Plugin::setWMSLayer(std::shared_ptr<TextureOverlayRenderer> const& wmsOverl
       std::make_shared<WebMapService>(server), std::make_shared<WebMapLayer>(layer.value()));
   mGuiManager->getGui()->callJavascript(
       "CosmoScout.wmsOverlays.setWMSDataCopyright", layer->getSettings().mAttribution.value_or(""));
+  mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.setDefaultBounds",
+      layer->getSettings().mLonRange[0], layer->getSettings().mLonRange[1],
+      layer->getSettings().mLatRange[0], layer->getSettings().mLatRange[1]);
 
   mGuiManager->getGui()->callJavascript("CosmoScout.gui.clearDropdown", "wmsOverlays.setStyle");
   mGuiManager->getGui()->callJavascript(
@@ -407,6 +448,7 @@ void Plugin::setWMSLayerNone(std::shared_ptr<TextureOverlayRenderer> const& wmsO
   mGuiManager->getGui()->callJavascript(
       "CosmoScout.gui.setDropdownValue", "wmsOverlays.setLayer", "None", false);
   mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.setWMSDataCopyright", "");
+  mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.clearDefaultBounds");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

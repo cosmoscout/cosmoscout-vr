@@ -55,6 +55,18 @@
     setLegendURL(url) {
       document.getElementById("wmsOverlays.legend").src = url;
     }
+
+    setDefaultBounds(minLon, maxLon, minLat, maxLat) {
+      document.getElementById("wmsOverlays.defaultBounds").innerText =
+          `${CosmoScout.utils.formatLongitude(minLon)}, ` +
+          `${CosmoScout.utils.formatLatitude(minLat)} - ` +
+          `${CosmoScout.utils.formatLongitude(maxLon)}, ` +
+          `${CosmoScout.utils.formatLatitude(maxLat)}`;
+    }
+
+    clearDefaultBounds() {
+      document.getElementById("wmsOverlays.defaultBounds").innerText = "None";
+    }
   }
 
   CosmoScout.init(WMSOverlaysApi);

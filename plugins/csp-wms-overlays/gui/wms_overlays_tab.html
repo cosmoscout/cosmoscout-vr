@@ -49,6 +49,25 @@
   </div>
 </div>
 
+<div class="strike">
+  <span>Geographical bounds</span>
+</div>
+
+<div class="row mb-1">
+  <div class="col-5">
+    <label>Default</label>
+  </div>
+  <div class="col-5">
+    <label id="wmsOverlays.defaultBounds"></label>
+  </div>
+  <div class="col-2">
+      <a class="btn glass block" data-toggle="tooltip" title="Go to center"
+         onclick="CosmoScout.callbacks.wmsOverlays.goToDefaultBounds()">
+        <i class="material-icons">place</i>
+      </a>
+  </div>
+</div>
+
 <div class="row mb-1">
   <div class="col-7 offset-5">
     <button class="btn glass block" onclick="CosmoScout.callbacks.wmsOverlays.updateBounds()">
