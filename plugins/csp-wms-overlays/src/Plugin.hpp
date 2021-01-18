@@ -12,6 +12,7 @@
 #include "../../../src/cs-core/PluginBase.hpp"
 #include "../../../src/cs-utils/DefaultProperty.hpp"
 
+#include <chrono>
 #include <map>
 #include <string>
 
@@ -67,6 +68,8 @@ class Plugin : public cs::core::PluginBase {
   void init() override;
   void deInit() override;
 
+  void update() override;
+
  private:
   void onLoad();
 
@@ -84,6 +87,12 @@ class Plugin : public cs::core::PluginBase {
   std::map<std::string, std::shared_ptr<TextureOverlayRenderer>> mWMSOverlays;
 
   std::map<std::string, std::vector<WebMapService>> mWms;
+
+  bool mNoMovement;                ///< True when the observer is not moving.
+  bool mNoMovementRequestedUpdate; ///< True when the active overlay was requested to update its
+                                   ///< bounds because the observer is not moving.
+  std::chrono::time_point<std::chrono::steady_clock>
+      mNoMovementSince; ///< Time at which the observer stopped moving.
 
   int mActiveBodyConnection = -1;
   int mOnLoadConnection     = -1;

@@ -108,6 +108,7 @@ void Plugin::init() {
         auto overlay = mWMSOverlays.find(mSolarSystem->pActiveBody.get()->getCenterName());
         if (overlay != mWMSOverlays.end()) {
           setWMSServer(overlay->second, name);
+          mNoMovementRequestedUpdate = false;
         }
       }));
 
@@ -117,6 +118,7 @@ void Plugin::init() {
         auto overlay = mWMSOverlays.find(mSolarSystem->pActiveBody.get()->getCenterName());
         if (overlay != mWMSOverlays.end()) {
           setWMSLayer(overlay->second, name);
+          mNoMovementRequestedUpdate = false;
         }
       }));
 
@@ -151,6 +153,7 @@ void Plugin::init() {
           settings.mActiveStyle.set("");
           overlay->second->setStyle("");
         }
+        mNoMovementRequestedUpdate = false;
       }));
 
   mActiveBodyConnection = mSolarSystem->pActiveBody.connectAndTouch(
@@ -187,6 +190,16 @@ void Plugin::init() {
         }
       });
 
+  mSolarSystem->pCurrentObserverSpeed.connect([this](float speed) {
+    if (speed == 0.f) {
+      mNoMovementSince           = std::chrono::high_resolution_clock::now();
+      mNoMovement                = true;
+      mNoMovementRequestedUpdate = false;
+    } else {
+      mNoMovement = false;
+    }
+  });
+
   onLoad();
 
   logger().info("Loading done.");
@@ -214,6 +227,22 @@ void Plugin::deInit() {
   mAllSettings->onSave().disconnect(mOnSaveConnection);
 
   logger().info("Unloading done.");
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Plugin::update() {
+  if (mNoMovement && !mNoMovementRequestedUpdate &&
+      std::chrono::duration_cast<std::chrono::seconds>(
+          std::chrono::high_resolution_clock::now() - mNoMovementSince)
+              .count() > 2) {
+    mNoMovementRequestedUpdate = true;
+    auto overlay = mWMSOverlays.find(mSolarSystem->pActiveBody.get()->getCenterName());
+
+    if (overlay != mWMSOverlays.end()) {
+      overlay->second->requestUpdateBounds();
+    }
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

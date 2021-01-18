@@ -200,6 +200,10 @@ void TextureOverlayRenderer::clearTextures() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void TextureOverlayRenderer::updateLonLatRange() {
+  if (!mActiveWMS || !mActiveWMSLayer) {
+    return;
+  }
+
   clearTextures();
 
   VistaProjection::VistaProjectionProperties* projectionProperties =
