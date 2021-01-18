@@ -156,6 +156,7 @@ void TextureOverlayRenderer::setActiveWMS(
       // Download WMS texture without timestep.
       WebMapTextureLoader::Request request;
       request.mMaxSize = mMaxSize;
+      request.mStyle   = mStyle;
 
       std::optional<WebMapTextureFile> cacheFile = mTextureLoader.loadTexture(
           *mActiveWMS, *mActiveWMSLayer, request, mPluginSettings->mMapCache.get());
@@ -172,6 +173,13 @@ void TextureOverlayRenderer::setActiveWMS(
       }
     }
   }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void TextureOverlayRenderer::setStyle(std::string style) {
+  mStyle = style;
+  clearTextures();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -325,6 +333,7 @@ void TextureOverlayRenderer::updateLonLatRange() {
   if (!mActiveWMSLayer->getSettings().mTime.has_value()) {
     WebMapTextureLoader::Request request;
     request.mMaxSize  = mMaxSize;
+    request.mStyle    = mStyle;
     request.mLonRange = mLonRange;
     request.mLatRange = mLatRange;
 
@@ -410,6 +419,7 @@ bool TextureOverlayRenderer::Do() {
         // Load WMS texture to the disk.
         WebMapTextureLoader::Request request;
         request.mMaxSize  = mMaxSize;
+        request.mStyle    = mStyle;
         request.mTime     = timeString;
         request.mLonRange = mLonRange;
         request.mLatRange = mLatRange;

@@ -35,6 +35,7 @@ class WebMapTextureLoader {
  public:
   struct Request {
     int                                  mMaxSize;
+    std::string                          mStyle;
     std::optional<std::string>           mTime;
     std::optional<std::array<double, 2>> mLonRange;
     std::optional<std::array<double, 2>> mLatRange;

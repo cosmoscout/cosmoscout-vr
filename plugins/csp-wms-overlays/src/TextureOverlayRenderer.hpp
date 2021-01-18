@@ -54,6 +54,9 @@ class TextureOverlayRenderer : public IVistaOpenGLDraw {
   /// Set the active WMS data set.
   void setActiveWMS(std::shared_ptr<WebMapService> wms, std::shared_ptr<WebMapLayer> layer);
 
+  /// Set the style that should be requested.
+  void setStyle(std::string style);
+
   /// Returns the time intervals of the active data set.
   std::vector<TimeInterval> getTimeIntervals();
 
@@ -103,7 +106,8 @@ class TextureOverlayRenderer : public IVistaOpenGLDraw {
   std::map<std::string, WebMapTexture>                                 mTextures;
   std::vector<std::string>                                             mWrongTextures;
 
-  int mMaxSize;
+  int         mMaxSize;
+  std::string mStyle;
 
   bool                  mUpdateLonLatRange = false;
   std::array<double, 2> mLonRange          = {-180, 180};
@@ -125,7 +129,7 @@ class TextureOverlayRenderer : public IVistaOpenGLDraw {
   WebMapTextureLoader mTextureLoader;
 
   std::shared_ptr<cs::core::SolarSystem>
-                                         mSolarSystem; //! Pointer to the CosmoScout solar system used to retrieve matrices
+      mSolarSystem; //! Pointer to the CosmoScout solar system used to retrieve matrices
   std::shared_ptr<cs::core::TimeControl> mTimeControl;
 
   std::array<float, 3> mMinBounds;

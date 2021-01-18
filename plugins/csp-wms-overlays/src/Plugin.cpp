@@ -126,7 +126,7 @@ void Plugin::init() {
         if (overlay == mWMSOverlays.end()) {
           return;
         }
-        auto settings = getBodySettings(overlay->second);
+        auto        settings = getBodySettings(overlay->second);
         auto const& server   = std::find_if(mWms.at(overlay->second->getCenter()).begin(),
             mWms.at(overlay->second->getCenter()).end(), [&settings](WebMapService wms) {
               return wms.getTitle() == settings.mActiveServer.get();
@@ -145,8 +145,11 @@ void Plugin::init() {
           mGuiManager->getGui()->callJavascript(
               "CosmoScout.wmsOverlays.setLegendURL", style->mLegendUrl.value_or(""));
           settings.mActiveStyle.set(name);
+          overlay->second->setStyle(name);
         } else {
           mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.setLegendURL", "");
+          settings.mActiveStyle.set("");
+          overlay->second->setStyle("");
         }
       }));
 

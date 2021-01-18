@@ -194,6 +194,10 @@ boost::filesystem::path WebMapTextureLoader::getCachePath(
     cacheDir << year << "/";
   }
 
+  if (request.mStyle != "") {
+    cacheDir << request.mStyle << "/";
+  }
+
   std::stringstream cacheFile(cacheDir.str());
 
   // Add time string to cache file name if time is specified
@@ -225,7 +229,7 @@ std::string WebMapTextureLoader::getRequestUrl(
   url << "&FORMAT=" << getMimeType();
   url << "&CRS=CRS:84";
   url << "&LAYERS=" << layer.getName();
-  url << "&STYLES=";
+  url << "&STYLES=" << request.mStyle;
   url << "&BBOX=" << request.mLonRange.value()[0] << "," << request.mLatRange.value()[0] << ","
       << request.mLonRange.value()[1] << "," << request.mLatRange.value()[1];
 
