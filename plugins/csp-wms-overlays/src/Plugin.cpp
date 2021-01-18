@@ -101,6 +101,12 @@ void Plugin::init() {
       "Enables or disables timespan.",
       std::function([this](bool enable) { mPluginSettings->mEnableTimespan = enable; }));
 
+  // Set whether to automatically update bounds.
+  mGuiManager->getGui()->registerCallback("wmsOverlays.setEnableAutomaticBoundsUpdate",
+      "Enables or disables automatic bounds update.", std::function([this](bool enable) {
+        mPluginSettings->mEnableAutomaticBoundsUpdate = enable;
+      }));
+
   // Set WMS source.
   mGuiManager->getGui()->registerCallback("wmsOverlays.setServer",
       "Set the current planet's WMS server to the one with the given name.",
@@ -232,7 +238,8 @@ void Plugin::deInit() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Plugin::update() {
-  if (mNoMovement && !mNoMovementRequestedUpdate &&
+  if (mPluginSettings->mEnableAutomaticBoundsUpdate.get() && mNoMovement &&
+      !mNoMovementRequestedUpdate &&
       std::chrono::duration_cast<std::chrono::seconds>(
           std::chrono::high_resolution_clock::now() - mNoMovementSince)
               .count() > 2) {

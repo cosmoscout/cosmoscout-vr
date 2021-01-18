@@ -37,6 +37,10 @@ class Plugin : public cs::core::PluginBase {
     /// Needs to be specified true in config for a data set which enables it in order to be used.
     cs::utils::DefaultProperty<bool> mEnableTimespan{false};
 
+    /// Specifies whether to autmatically update the overlay bounds when the observer stopped moving
+    /// for a certain amount of time.
+    cs::utils::DefaultProperty<bool> mEnableAutomaticBoundsUpdate{false};
+
     /// Path to the map cache folder, can be absolute or relative to the cosmoscout executable.
     cs::utils::DefaultProperty<std::string> mMapCache{"texture-cache"};
 
