@@ -33,6 +33,13 @@ struct WebMapTexture {
 
 class WebMapTextureLoader {
  public:
+  struct Request {
+    int                                  mMaxSize;
+    std::optional<std::string>           mTime;
+    std::optional<std::array<double, 2>> mLonRange;
+    std::optional<std::array<double, 2>> mLatRange;
+  };
+
   /// Create a new ThreadPool with the specified amount of threads.
   WebMapTextureLoader();
 
@@ -40,31 +47,21 @@ class WebMapTextureLoader {
 
   /// Async WMS texture loader.
   std::future<std::optional<WebMapTextureFile>> loadTextureAsync(WebMapService const& wms,
-      WebMapLayer const& layer, std::string const& time, std::string const& mapCache,
-      int const& maxSize, std::array<double, 2> const& lonRange,
-      std::array<double, 2> const& latRange);
-  std::future<std::optional<WebMapTextureFile>> loadTextureAsync(WebMapService const& wms,
-      WebMapLayer const& layer, std::string const& time, std::string const& mapCache,
-      int const& maxSize);
+      WebMapLayer const& layer, Request const& request, std::string const& mapCache);
 
   /// WMS texture loader.
   std::optional<WebMapTextureFile> loadTexture(WebMapService const& wms, WebMapLayer const& layer,
-      std::string const& time, std::string const& mapCache, int const& maxSize,
-      std::array<double, 2> const& lonRange, std::array<double, 2> const& latRange);
-  std::optional<WebMapTextureFile> loadTexture(WebMapService const& wms, WebMapLayer const& layer,
-      std::string const& time, std::string const& mapCache, int const& maxSize);
+      Request request, std::string const& mapCache);
 
   /// Load WMS texture from file using stbi.
   std::future<std::optional<WebMapTexture>> loadTextureFromFileAsync(std::string const& fileName);
 
  private:
-  boost::filesystem::path getCachePath(WebMapLayer const& layer, std::string const& time,
-      std::string const& mapCache, std::array<double, 2> const& lonRange,
-      std::array<double, 2> const& latRange, std::string const& mime);
-  std::string             getRequestUrl(WebMapService const& wms, WebMapLayer const& layer,
-                  std::string const& time, int const& maxSize, std::array<double, 2> const& lonRange,
-                  std::array<double, 2> const& latRange, std::string const& mime);
-  std::string             getMimeType();
+  boost::filesystem::path getCachePath(
+      WebMapLayer const& layer, Request const& request, std::string const& mapCache);
+  std::string getRequestUrl(
+      WebMapService const& wms, WebMapLayer const& layer, Request const& request);
+  std::string getMimeType();
 
   const std::map<std::string, std::string> mMimeToExtension = {
       {"image/png", "png"}, {"image/jpeg", "jpg"}};

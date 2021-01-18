@@ -38,40 +38,29 @@ WebMapTextureLoader::~WebMapTextureLoader() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::future<std::optional<WebMapTextureFile>> WebMapTextureLoader::loadTextureAsync(
-    WebMapService const& wms, WebMapLayer const& layer, std::string const& time,
-    std::string const& mapCache, int const& maxSize, std::array<double, 2> const& lonRange,
-    std::array<double, 2> const& latRange) {
-  return mThreadPool.enqueue(
-      [=]() { return loadTexture(wms, layer, time, mapCache, maxSize, lonRange, latRange); });
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-std::future<std::optional<WebMapTextureFile>> WebMapTextureLoader::loadTextureAsync(
-    WebMapService const& wms, WebMapLayer const& layer, std::string const& time,
-    std::string const& mapCache, int const& maxSize) {
-  return mThreadPool.enqueue([=]() { return loadTexture(wms, layer, time, mapCache, maxSize); });
+    WebMapService const& wms, WebMapLayer const& layer, Request const& request,
+    std::string const& mapCache) {
+  return mThreadPool.enqueue([=]() { return loadTexture(wms, layer, request, mapCache); });
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::optional<WebMapTextureFile> WebMapTextureLoader::loadTexture(WebMapService const& wms,
-    WebMapLayer const& layer, std::string const& time, std::string const& mapCache,
-    int const& maxSize, std::array<double, 2> const& lonRange,
-    std::array<double, 2> const& latRange) {
-
-  WebMapTextureFile result;
-  result.mLonRange = lonRange;
-  result.mLatRange = latRange;
+    WebMapLayer const& layer, Request request, std::string const& mapCache) {
 
   if (layer.getSettings().mNoSubsets) {
-    result.mLonRange = layer.getSettings().mLonRange;
-    result.mLatRange = layer.getSettings().mLatRange;
+    request.mLonRange = layer.getSettings().mLonRange;
+    request.mLatRange = layer.getSettings().mLatRange;
+  } else {
+    request.mLonRange = request.mLonRange.value_or(layer.getSettings().mLonRange);
+    request.mLatRange = request.mLatRange.value_or(layer.getSettings().mLatRange);
   }
 
-  std::string mime = getMimeType();
-  auto        cacheFilePath =
-      getCachePath(layer, time, mapCache, result.mLonRange, result.mLatRange, mime);
+  WebMapTextureFile result;
+  result.mLonRange = request.mLonRange.value();
+  result.mLatRange = request.mLatRange.value();
+
+  auto cacheFilePath = getCachePath(layer, request, mapCache);
 
   // the file is already there, we can return it
   if (boost::filesystem::exists(cacheFilePath) && boost::filesystem::file_size(cacheFilePath) > 0) {
@@ -110,8 +99,7 @@ std::optional<WebMapTextureFile> WebMapTextureLoader::loadTexture(WebMapService 
       return {};
     }
 
-    std::string url =
-        getRequestUrl(wms, layer, time, maxSize, result.mLonRange, result.mLatRange, mime);
+    std::string url = getRequestUrl(wms, layer, request);
 
     curlpp::Easy request;
     request.setOpt(curlpp::options::Url(url));
@@ -132,13 +120,18 @@ std::optional<WebMapTextureFile> WebMapTextureLoader::loadTexture(WebMapService 
 
     // Check if the content type is correct.
     std::string contentType = curlpp::Info<CURLINFO_CONTENT_TYPE, std::string>::get(request);
-    if (contentType == "NULL" || contentType != mime) {
+    if (contentType == "NULL" || contentType != getMimeType()) {
       fail = true;
     }
   }
 
   if (fail) {
-    logger().warn("There is no image to load for time {}.", time);
+    if (request.mTime.has_value()) {
+      logger().warn("There is no image to load for layer '{}' at time {}.", layer.getTitle(),
+          request.mTime.value());
+    } else {
+      logger().warn("There is no image to load for layer '{}'.", layer.getTitle());
+    }
     boost::filesystem::remove(cacheFilePath);
     return {};
   }
@@ -151,15 +144,6 @@ std::optional<WebMapTextureFile> WebMapTextureLoader::loadTexture(WebMapService 
 
   result.mPath = cacheFilePath.string();
   return result;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-std::optional<WebMapTextureFile> WebMapTextureLoader::loadTexture(WebMapService const& wms,
-    WebMapLayer const& layer, std::string const& time, std::string const& mapCache,
-    int const& maxSize) {
-  return loadTexture(wms, layer, time, mapCache, maxSize, layer.getSettings().mLonRange,
-      layer.getSettings().mLatRange);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -184,9 +168,8 @@ std::future<std::optional<WebMapTexture>> WebMapTextureLoader::loadTextureFromFi
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-boost::filesystem::path WebMapTextureLoader::getCachePath(WebMapLayer const& layer,
-    std::string const& time, std::string const& mapCache, std::array<double, 2> const& lonRange,
-    std::array<double, 2> const& latRange, std::string const& mime) {
+boost::filesystem::path WebMapTextureLoader::getCachePath(
+    WebMapLayer const& layer, Request const& request, std::string const& mapCache) {
 
   // Replace forbidden characters in layer string before creating cache dir.
   std::string layerFixed;
@@ -194,16 +177,17 @@ boost::filesystem::path WebMapTextureLoader::getCachePath(WebMapLayer const& lay
       layer.getName(), std::back_inserter(layerFixed), boost::is_any_of("*.,:[|]\""), '_');
 
   // Set file format to three caracters.
-  std::string fileFormat = mMimeToExtension.at(mime);
+  std::string fileFormat = mMimeToExtension.at(getMimeType());
 
   std::stringstream cacheDir;
   cacheDir << mapCache << "/" << layerFixed << "/";
-  cacheDir << lonRange[0] << "_" << latRange[0] << "_" << lonRange[1] << "_" << latRange[1] << "/";
+  cacheDir << request.mLonRange.value()[0] << "_" << request.mLatRange.value()[0] << "_"
+           << request.mLonRange.value()[1] << "_" << request.mLatRange.value()[1] << "/";
 
   // Add year subdirectory, if time is specified.
-  if (time != "") {
+  if (request.mTime.has_value()) {
     std::string       year;
-    std::stringstream time_stringstream(time);
+    std::stringstream time_stringstream(request.mTime.value());
 
     // Create dir for year.
     std::getline(time_stringstream, year, '-');
@@ -213,8 +197,8 @@ boost::filesystem::path WebMapTextureLoader::getCachePath(WebMapLayer const& lay
   std::stringstream cacheFile(cacheDir.str());
 
   // Add time string to cache file name if time is specified
-  if (time != "") {
-    std::string timeForFile = time;
+  if (request.mTime.has_value()) {
+    std::string timeForFile = request.mTime.value();
     std::replace(timeForFile.begin(), timeForFile.end(), '/', '-');
     std::replace(timeForFile.begin(), timeForFile.end(), ':', '-');
 
@@ -228,9 +212,8 @@ boost::filesystem::path WebMapTextureLoader::getCachePath(WebMapLayer const& lay
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::string WebMapTextureLoader::getRequestUrl(WebMapService const& wms, WebMapLayer const& layer,
-    std::string const& time, int const& maxSize, std::array<double, 2> const& lonRange,
-    std::array<double, 2> const& latRange, std::string const& mime) {
+std::string WebMapTextureLoader::getRequestUrl(
+    WebMapService const& wms, WebMapLayer const& layer, Request const& request) {
 
   std::stringstream url;
   url.precision(std::numeric_limits<double>::max_digits10);
@@ -239,11 +222,12 @@ std::string WebMapTextureLoader::getRequestUrl(WebMapService const& wms, WebMapL
   url << "?SERVICE=WMS";
   url << "&VERSION=1.3.0";
   url << "&REQUEST=GetMap";
-  url << "&FORMAT=" << mime;
+  url << "&FORMAT=" << getMimeType();
   url << "&CRS=CRS:84";
   url << "&LAYERS=" << layer.getName();
   url << "&STYLES=";
-  url << "&BBOX=" << lonRange[0] << "," << latRange[0] << "," << lonRange[1] << "," << latRange[1];
+  url << "&BBOX=" << request.mLonRange.value()[0] << "," << request.mLatRange.value()[0] << ","
+      << request.mLonRange.value()[1] << "," << request.mLatRange.value()[1];
 
   if (layer.getSettings().mOpaque) {
     url << "&TRANSPARENT=FALSE";
@@ -251,7 +235,8 @@ std::string WebMapTextureLoader::getRequestUrl(WebMapService const& wms, WebMapL
     url << "&TRANSPARENT=TRUE";
   }
 
-  double             aspect = (lonRange[1] - lonRange[0]) / (latRange[1] - latRange[0]);
+  double aspect = (request.mLonRange.value()[1] - request.mLonRange.value()[0]) /
+                  (request.mLatRange.value()[1] - request.mLatRange.value()[0]);
   std::optional<int> width, height;
 
   width  = layer.getSettings().mFixedWidth;
@@ -259,9 +244,9 @@ std::string WebMapTextureLoader::getRequestUrl(WebMapService const& wms, WebMapL
 
   if (!width.has_value() && !height.has_value()) {
     if (aspect < 1) {
-      height = maxSize;
+      height = request.mMaxSize;
     } else {
-      width = maxSize;
+      width = request.mMaxSize;
     }
   }
 
@@ -275,8 +260,8 @@ std::string WebMapTextureLoader::getRequestUrl(WebMapService const& wms, WebMapL
   url << "&HEIGHT=" << height.value();
 
   // Add time string to map server request if time is specified
-  if (time != "") {
-    url << "&TIME=" << time;
+  if (request.mTime.has_value()) {
+    url << "&TIME=" << request.mTime.value();
   }
 
   return url.str();
