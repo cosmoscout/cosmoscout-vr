@@ -133,17 +133,12 @@ void TextureOverlayRenderer::configure(Plugin::Settings::Body const& settings) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void TextureOverlayRenderer::setActiveWMS(
-    std::shared_ptr<WebMapService> wms, std::shared_ptr<WebMapLayer> layer) {
-  clearTextures();
-  mTimeIntervals.clear();
+void TextureOverlayRenderer::setActiveWMS(WebMapService const& wms, WebMapLayer const& layer) {
+  clearActiveWMS();
 
-  mWMSTextureUsed       = false;
-  mSecondWMSTextureUsed = false;
-  mCurrentTexture       = "";
-  mCurrentSecondTexture = "";
-  mActiveWMS            = wms;
-  mActiveWMSLayer       = layer;
+  mActiveWMS.emplace(wms);
+  mActiveWMSLayer.emplace(layer);
+
   if (mActiveWMSLayer && mActiveWMSLayer->isRequestable()) {
     mLonRange = mActiveWMSLayer->getSettings().mLonRange;
     mLatRange = mActiveWMSLayer->getSettings().mLatRange;
@@ -173,6 +168,21 @@ void TextureOverlayRenderer::setActiveWMS(
       }
     }
   }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void TextureOverlayRenderer::clearActiveWMS() {
+  clearTextures();
+  mTimeIntervals.clear();
+
+  mWMSTextureUsed       = false;
+  mSecondWMSTextureUsed = false;
+  mCurrentTexture       = "";
+  mCurrentSecondTexture = "";
+
+  mActiveWMS.reset();
+  mActiveWMSLayer.reset();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

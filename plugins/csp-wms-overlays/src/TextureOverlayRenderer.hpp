@@ -52,7 +52,10 @@ class TextureOverlayRenderer : public IVistaOpenGLDraw {
   void configure(Plugin::Settings::Body const& settings);
 
   /// Set the active WMS data set.
-  void setActiveWMS(std::shared_ptr<WebMapService> wms, std::shared_ptr<WebMapLayer> layer);
+  void setActiveWMS(WebMapService const& wms, WebMapLayer const& layer);
+
+  /// Clears the active WMS data set.
+  void clearActiveWMS();
 
   /// Set the style that should be requested.
   void setStyle(std::string style);
@@ -113,8 +116,8 @@ class TextureOverlayRenderer : public IVistaOpenGLDraw {
   std::array<double, 2> mLonRange          = {-180, 180};
   std::array<double, 2> mLatRange          = {-90, 90};
 
-  std::shared_ptr<WebMapService> mActiveWMS;      ///< The active WMS.
-  std::shared_ptr<WebMapLayer>   mActiveWMSLayer; ///< The active WMS layer.
+  std::optional<WebMapService> mActiveWMS;      ///< The active WMS.
+  std::optional<WebMapLayer>   mActiveWMSLayer; ///< The active WMS layer.
 
   std::shared_ptr<VistaTexture> mWMSTexture;       ///< The WMS texture.
   std::shared_ptr<VistaTexture> mSecondWMSTexture; ///< Second WMS texture for time interpolation.
@@ -129,7 +132,7 @@ class TextureOverlayRenderer : public IVistaOpenGLDraw {
   WebMapTextureLoader mTextureLoader;
 
   std::shared_ptr<cs::core::SolarSystem>
-      mSolarSystem; //! Pointer to the CosmoScout solar system used to retrieve matrices
+                                         mSolarSystem; //! Pointer to the CosmoScout solar system used to retrieve matrices
   std::shared_ptr<cs::core::TimeControl> mTimeControl;
 
   std::array<float, 3> mMinBounds;

@@ -80,17 +80,19 @@ class Plugin : public cs::core::PluginBase {
   Settings::Body& getBodySettings(std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay) const;
 
   void setWMSServer(
-      std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay, std::string const& name) const;
+      std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay, std::string const& name);
+  void resetWMSServer(std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay);
   void setWMSLayer(
-      std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay, std::string const& name) const;
-  void setWMSLayer(std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay,
-      WebMapService const& server, std::string const& name) const;
-  void setWMSLayerNone(std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay) const;
+      std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay, std::string const& name);
+  void resetWMSLayer(std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay);
 
   std::shared_ptr<Settings> mPluginSettings = std::make_shared<Settings>();
   std::map<std::string, std::shared_ptr<TextureOverlayRenderer>> mWMSOverlays;
+  std::map<std::string, std::vector<WebMapService>>              mWms;
 
-  std::map<std::string, std::vector<WebMapService>> mWms;
+  std::shared_ptr<TextureOverlayRenderer>             mActiveOverlay;
+  std::map<std::string, std::optional<WebMapService>> mActiveServers;
+  std::map<std::string, std::optional<WebMapLayer>>   mActiveLayers;
 
   bool mNoMovement;                ///< True when the observer is not moving.
   bool mNoMovementRequestedUpdate; ///< True when the active overlay was requested to update its

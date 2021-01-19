@@ -84,9 +84,8 @@ void Plugin::init() {
   // Updates the bounds for which map data is requested.
   mGuiManager->getGui()->registerCallback(
       "wmsOverlays.updateBounds", "Updates the bounds for map requests.", std::function([this]() {
-        auto overlay = mWMSOverlays.find(mSolarSystem->pActiveBody.get()->getCenterName());
-        if (overlay != mWMSOverlays.end()) {
-          overlay->second->requestUpdateBounds();
+        if (mActiveOverlay) {
+          mActiveOverlay->requestUpdateBounds();
         }
       }));
 
@@ -94,23 +93,11 @@ void Plugin::init() {
   mGuiManager->getGui()->registerCallback("wmsOverlays.goToDefaultBounds",
       "Fly the observer to the center of the default bounds of the current layer.",
       std::function([this]() {
-        auto overlay = mWMSOverlays.find(mSolarSystem->pActiveBody.get()->getCenterName());
-        if (overlay == mWMSOverlays.end()) {
+        if (!mActiveOverlay || !mActiveLayers[mActiveOverlay->getCenter()]) {
           return;
         }
-        auto        settings = getBodySettings(overlay->second);
-        auto const& server   = std::find_if(mWms.at(overlay->second->getCenter()).begin(),
-            mWms.at(overlay->second->getCenter()).end(), [&settings](WebMapService wms) {
-              return wms.getTitle() == settings.mActiveServer.get();
-            });
-        if (server == mWms.at(overlay->second->getCenter()).end()) {
-          return;
-        }
-        auto layer = server->getLayer(settings.mActiveLayer.get());
-        if (!layer.has_value()) {
-          return;
-        }
-        WebMapLayer::Settings layerSettings = layer->getSettings();
+        WebMapLayer::Settings layerSettings =
+            mActiveLayers[mActiveOverlay->getCenter()]->getSettings();
 
         double lon      = (layerSettings.mLonRange[0] + layerSettings.mLonRange[1]) / 2.;
         double lat      = (layerSettings.mLatRange[0] + layerSettings.mLatRange[1]) / 2.;
@@ -120,7 +107,7 @@ void Plugin::init() {
         // Rough approximation of the height, at which the whole bounds are in frame
         double fov    = 60.;
         double height = std::tan(cs::utils::convert::toRadians(maxRange) / 2.) *
-                        mSolarSystem->getRadii(overlay->first)[0] /
+                        mSolarSystem->getRadii(mActiveOverlay->getCenter())[0] /
                         std::tan(cs::utils::convert::toRadians(fov) / 2.);
 
         mSolarSystem->flyObserverTo(mSolarSystem->pActiveBody.get()->getCenterName(),
@@ -149,9 +136,8 @@ void Plugin::init() {
   mGuiManager->getGui()->registerCallback("wmsOverlays.setServer",
       "Set the current planet's WMS server to the one with the given name.",
       std::function([this](std::string&& name) {
-        auto overlay = mWMSOverlays.find(mSolarSystem->pActiveBody.get()->getCenterName());
-        if (overlay != mWMSOverlays.end()) {
-          setWMSServer(overlay->second, name);
+        if (mActiveOverlay) {
+          setWMSServer(mActiveOverlay, name);
           mNoMovementRequestedUpdate = false;
         }
       }));
@@ -159,43 +145,32 @@ void Plugin::init() {
   mGuiManager->getGui()->registerCallback("wmsOverlays.setLayer",
       "Set the current planet's WMS layer to the one with the given name.",
       std::function([this](std::string&& name) {
-        auto overlay = mWMSOverlays.find(mSolarSystem->pActiveBody.get()->getCenterName());
-        if (overlay != mWMSOverlays.end()) {
-          setWMSLayer(overlay->second, name);
+        if (mActiveOverlay) {
+          setWMSLayer(mActiveOverlay, name);
           mNoMovementRequestedUpdate = false;
         }
       }));
 
   mGuiManager->getGui()->registerCallback("wmsOverlays.setStyle",
       "Sets the style for the currently selected layer.", std::function([this](std::string&& name) {
-        auto overlay = mWMSOverlays.find(mSolarSystem->pActiveBody.get()->getCenterName());
-        if (overlay == mWMSOverlays.end()) {
+        if (!mActiveOverlay || !mActiveLayers[mActiveOverlay->getCenter()]) {
           return;
         }
-        auto        settings = getBodySettings(overlay->second);
-        auto const& server   = std::find_if(mWms.at(overlay->second->getCenter()).begin(),
-            mWms.at(overlay->second->getCenter()).end(), [&settings](WebMapService wms) {
-              return wms.getTitle() == settings.mActiveServer.get();
-            });
-        if (server == mWms.at(overlay->second->getCenter()).end()) {
-          return;
-        }
-        auto layer = server->getLayer(settings.mActiveLayer.get());
-        if (!layer.has_value()) {
-          return;
-        }
-        WebMapLayer::Settings layerSettings = layer->getSettings();
+        auto                  bodySettings = getBodySettings(mActiveOverlay);
+        WebMapLayer::Settings layerSettings =
+            mActiveLayers[mActiveOverlay->getCenter()]->getSettings();
+
         auto const& style = std::find_if(layerSettings.mStyles.begin(), layerSettings.mStyles.end(),
             [&name](WebMapLayer::Style style) { return style.mName == name; });
         if (style != layerSettings.mStyles.end()) {
           mGuiManager->getGui()->callJavascript(
               "CosmoScout.wmsOverlays.setLegendURL", style->mLegendUrl.value_or(""));
-          settings.mActiveStyle.set(name);
-          overlay->second->setStyle(name);
+          bodySettings.mActiveStyle.set(name);
+          mActiveOverlay->setStyle(name);
         } else {
           mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.setLegendURL", "");
-          settings.mActiveStyle.set("");
-          overlay->second->setStyle("");
+          bodySettings.mActiveStyle.set("");
+          mActiveOverlay->setStyle("");
         }
         mNoMovementRequestedUpdate = false;
       }));
@@ -212,15 +187,18 @@ void Plugin::init() {
             "CosmoScout.sidebar.setTabEnabled", "WMS", overlay != mWMSOverlays.end());
 
         if (overlay == mWMSOverlays.end()) {
+          mActiveOverlay = nullptr;
           return;
         }
+
+        mActiveOverlay = overlay->second;
 
         mGuiManager->getGui()->callJavascript(
             "CosmoScout.gui.clearDropdown", "wmsOverlays.setServer");
         mGuiManager->getGui()->callJavascript(
             "CosmoScout.gui.addDropdownValue", "wmsOverlays.setServer", "None", "None", "false");
 
-        setWMSServer(overlay->second, "None");
+        resetWMSServer(overlay->second);
 
         auto const& settings = getBodySettings(overlay->second);
         for (auto const& server : mWms[body->getCenterName()]) {
@@ -289,10 +267,9 @@ void Plugin::update() {
           std::chrono::high_resolution_clock::now() - mNoMovementSince)
               .count() > 2) {
     mNoMovementRequestedUpdate = true;
-    auto overlay = mWMSOverlays.find(mSolarSystem->pActiveBody.get()->getCenterName());
 
-    if (overlay != mWMSOverlays.end()) {
-      overlay->second->requestUpdateBounds();
+    if (mActiveOverlay) {
+      mActiveOverlay->requestUpdateBounds();
     }
   }
 }
@@ -348,7 +325,9 @@ void Plugin::onLoad() {
       }
     }
 
-    setWMSServer(wmsOverlay, settings.second.mActiveServer.get());
+    if (!settings.second.mActiveServer.isDefault()) {
+      setWMSServer(wmsOverlay, settings.second.mActiveServer.get());
+    }
     wmsOverlay->configure(settings.second);
   }
 
@@ -367,25 +346,26 @@ Plugin::Settings::Body& Plugin::getBodySettings(
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Plugin::setWMSServer(
-    std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay, std::string const& name) const {
-  mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.resetLayerSelect");
-  mGuiManager->getGui()->callJavascript("CosmoScout.gui.clearDropdown", "wmsOverlays.setLayer");
-  mGuiManager->getGui()->callJavascript(
-      "CosmoScout.gui.addDropdownValue", "wmsOverlays.setLayer", "None", "None", false);
+    std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay, std::string const& name) {
+
+  resetWMSServer(wmsOverlay);
 
   auto&       settings = getBodySettings(wmsOverlay);
   auto const& server =
       std::find_if(mWms.at(wmsOverlay->getCenter()).begin(), mWms.at(wmsOverlay->getCenter()).end(),
           [&name](WebMapService wms) { return wms.getTitle() == name; });
 
-  setWMSLayerNone(wmsOverlay);
   if (server == mWms.at(wmsOverlay->getCenter()).end()) {
-    logger().trace("No server with name '{}' found", name);
+    logger().warn("No server with name '{}' found", name);
+    settings.mActiveServer.reset();
+
     mGuiManager->getGui()->callJavascript(
         "CosmoScout.gui.setDropdownValue", "wmsOverlays.setServer", "None", false);
     return;
   }
+
   settings.mActiveServer = name;
+  mActiveServers[wmsOverlay->getCenter()].emplace(*server);
 
   for (auto const& layer : server->getLayers()) {
     bool active = layer.getName() == settings.mActiveLayer.get();
@@ -393,43 +373,53 @@ void Plugin::setWMSServer(
         layer.getName(), layer.getTitle(), active);
 
     if (active) {
-      setWMSLayer(wmsOverlay, *server, layer.getName());
+      setWMSLayer(wmsOverlay, layer.getName());
     }
   }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Plugin::setWMSLayer(
-    std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay, std::string const& name) const {
-  auto&       settings = getBodySettings(wmsOverlay);
-  auto const& server   = std::find_if(mWms.at(wmsOverlay->getCenter()).begin(),
-      mWms.at(wmsOverlay->getCenter()).end(),
-      [&settings](WebMapService wms) { return wms.getTitle() == settings.mActiveServer.get(); });
+void Plugin::resetWMSServer(std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay) {
+  mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.resetLayerSelect");
+  mGuiManager->getGui()->callJavascript("CosmoScout.gui.clearDropdown", "wmsOverlays.setLayer");
+  mGuiManager->getGui()->callJavascript(
+      "CosmoScout.gui.addDropdownValue", "wmsOverlays.setLayer", "None", "None", false);
 
-  if (server == mWms.at(wmsOverlay->getCenter()).end()) {
-    setWMSLayerNone(wmsOverlay);
-    return;
-  }
-  setWMSLayer(wmsOverlay, *server, name);
+  mActiveServers[wmsOverlay->getCenter()].reset();
+  resetWMSLayer(wmsOverlay);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Plugin::setWMSLayer(std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay,
-    WebMapService const& server, std::string const& name) const {
-  auto&                      settings = getBodySettings(wmsOverlay);
-  std::optional<WebMapLayer> layer    = server.getLayer(name);
+void Plugin::setWMSLayer(
+    std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay, std::string const& name) {
 
-  if (!layer.has_value()) {
-    logger().trace("No layer with name '{}' found", name);
-    setWMSLayerNone(wmsOverlay);
+  auto& settings = getBodySettings(wmsOverlay);
+
+  if (!mActiveServers[wmsOverlay->getCenter()]) {
+    logger().warn("Can't set layer '{}': There is no active server for body '{}'", name,
+        wmsOverlay->getCenter());
+    settings.mActiveLayer.reset();
+    resetWMSLayer(wmsOverlay);
     return;
   }
-  settings.mActiveLayer = name;
 
-  wmsOverlay->setActiveWMS(
-      std::make_shared<WebMapService>(server), std::make_shared<WebMapLayer>(layer.value()));
+  std::optional<WebMapLayer> layer = mActiveServers[wmsOverlay->getCenter()]->getLayer(name);
+
+  if (!layer.has_value()) {
+    logger().warn("Can't set layer '{}': No such layer found for server '{}'", name,
+        mActiveServers[wmsOverlay->getCenter()]->getTitle());
+    settings.mActiveLayer.reset();
+    resetWMSLayer(wmsOverlay);
+    return;
+  }
+
+  settings.mActiveLayer = name;
+  mActiveLayers[wmsOverlay->getCenter()].emplace(layer.value());
+  wmsOverlay->setActiveWMS(mActiveServers[wmsOverlay->getCenter()].value(),
+      mActiveLayers[wmsOverlay->getCenter()].value());
+
   mGuiManager->getGui()->callJavascript(
       "CosmoScout.wmsOverlays.setWMSDataCopyright", layer->getSettings().mAttribution.value_or(""));
   mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.setDefaultBounds",
@@ -449,13 +439,14 @@ void Plugin::setWMSLayer(std::shared_ptr<TextureOverlayRenderer> const& wmsOverl
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Plugin::setWMSLayerNone(std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay) const {
-  auto& settings = getBodySettings(wmsOverlay);
-  wmsOverlay->setActiveWMS(nullptr, nullptr);
+void Plugin::resetWMSLayer(std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay) {
   mGuiManager->getGui()->callJavascript(
       "CosmoScout.gui.setDropdownValue", "wmsOverlays.setLayer", "None", false);
   mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.setWMSDataCopyright", "");
   mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.clearDefaultBounds");
+
+  mActiveLayers[wmsOverlay->getCenter()].reset();
+  wmsOverlay->clearActiveWMS();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
