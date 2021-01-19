@@ -117,6 +117,13 @@ Ring::Ring(std::shared_ptr<cs::core::Settings> settings,
   mShader.InitFragmentShaderFromString(SPHERE_FRAG);
   mShader.Link();
 
+  mUniforms.modelViewMatrix  = mShader.GetUniformLocation("uMatModelView");
+  mUniforms.projectionMatrix = mShader.GetUniformLocation("uMatProjection");
+  mUniforms.surfaceTexture   = mShader.GetUniformLocation("uSurfaceTexture");
+  mUniforms.radii            = mShader.GetUniformLocation("uRadii");
+  mUniforms.farClip          = mShader.GetUniformLocation("uFarClip");
+  mUniforms.sunIlluminance   = mShader.GetUniformLocation("uSunIlluminance");
+
   // Add to scenegraph.
   VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
   mGLNode.reset(pSG->NewOpenGLNode(pSG->GetRoot(), this));
@@ -168,15 +175,12 @@ bool Ring::Do() {
   auto matMV = glm::make_mat4x4(glMatMV.data()) * glm::mat4(getWorldTransform());
 
   // Set uniforms.
-  glUniformMatrix4fv(
-      mShader.GetUniformLocation("uMatModelView"), 1, GL_FALSE, glm::value_ptr(matMV));
-  glUniformMatrix4fv(mShader.GetUniformLocation("uMatProjection"), 1, GL_FALSE, glMatP.data());
+  glUniformMatrix4fv(mUniforms.modelViewMatrix, 1, GL_FALSE, glm::value_ptr(matMV));
+  glUniformMatrix4fv(mUniforms.projectionMatrix, 1, GL_FALSE, glMatP.data());
 
-  mShader.SetUniform(mShader.GetUniformLocation("uSurfaceTexture"), 0);
-  mShader.SetUniform(
-      mShader.GetUniformLocation("uRadii"), mRingSettings.mInnerRadius, mRingSettings.mOuterRadius);
-  mShader.SetUniform(
-      mShader.GetUniformLocation("uFarClip"), cs::utils::getCurrentFarClipDistance());
+  mShader.SetUniform(mUniforms.surfaceTexture, 0);
+  mShader.SetUniform(mUniforms.radii, mRingSettings.mInnerRadius, mRingSettings.mOuterRadius);
+  mShader.SetUniform(mUniforms.farClip, cs::utils::getCurrentFarClipDistance());
 
   float sunIlluminance(1.F);
 
@@ -186,7 +190,7 @@ bool Ring::Do() {
     sunIlluminance = static_cast<float>(mSolarSystem->getSunIlluminance(getWorldTransform()[3]));
   }
 
-  mShader.SetUniform(mShader.GetUniformLocation("uSunIlluminance"), sunIlluminance);
+  mShader.SetUniform(mUniforms.sunIlluminance, sunIlluminance);
 
   mTexture->Bind(GL_TEXTURE0);
 

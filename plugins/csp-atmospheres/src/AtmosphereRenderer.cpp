@@ -348,6 +348,29 @@ void AtmosphereRenderer::updateShader() {
   mAtmoShader.InitFragmentShaderFromString(sFrag);
 
   mAtmoShader.Link();
+
+  mUniforms.sunIntensity      = mAtmoShader.GetUniformLocation("uSunIntensity");
+  mUniforms.sunDir            = mAtmoShader.GetUniformLocation("uSunDir");
+  mUniforms.farClip           = mAtmoShader.GetUniformLocation("uFarClip");
+  mUniforms.waterLevel        = mAtmoShader.GetUniformLocation("uWaterLevel");
+  mUniforms.ambientBrightness = mAtmoShader.GetUniformLocation("uAmbientBrightness");
+  mUniforms.depthBuffer       = mAtmoShader.GetUniformLocation("uDepthBuffer");
+  mUniforms.colorBuffer       = mAtmoShader.GetUniformLocation("uColorBuffer");
+  mUniforms.cloudTexture      = mAtmoShader.GetUniformLocation("uCloudTexture");
+  mUniforms.cloudAltitude     = mAtmoShader.GetUniformLocation("uCloudAltitude");
+  mUniforms.shadowCascades    = mAtmoShader.GetUniformLocation("uShadowCascades");
+
+  for (size_t i = 0; i < 5; ++i) {
+    mUniforms.shadowMaps.at(i) = glGetUniformLocation(
+        mAtmoShader.GetProgram(), ("uShadowMaps[" + std::to_string(i) + "]").c_str());
+    mUniforms.shadowProjectionMatrices.at(i) = glGetUniformLocation(mAtmoShader.GetProgram(),
+        ("uShadowProjectionViewMatrices[" + std::to_string(i) + "]").c_str());
+  }
+
+  mUniforms.inverseModelViewMatrix           = mAtmoShader.GetUniformLocation("uMatInvMV");
+  mUniforms.inverseModelViewProjectionMatrix = mAtmoShader.GetUniformLocation("uMatInvMVP");
+  mUniforms.inverseProjectionMatrix          = mAtmoShader.GetUniformLocation("uMatInvP");
+  mUniforms.modelViewMatrix                  = mAtmoShader.GetUniformLocation("uMatMV");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -407,14 +430,12 @@ bool AtmosphereRenderer::Do() {
   // set uniforms ------------------------------------------------------------
   mAtmoShader.Bind();
 
-  mAtmoShader.SetUniform(mAtmoShader.GetUniformLocation("uSunIntensity"), mSunIntensity);
-  mAtmoShader.SetUniform(
-      mAtmoShader.GetUniformLocation("uSunDir"), sunDir[0], sunDir[1], sunDir[2]);
-  mAtmoShader.SetUniform(
-      mAtmoShader.GetUniformLocation("uFarClip"), cs::utils::getCurrentFarClipDistance());
+  mAtmoShader.SetUniform(mUniforms.sunIntensity, mSunIntensity);
+  mAtmoShader.SetUniform(mUniforms.sunDir, sunDir[0], sunDir[1], sunDir[2]);
+  mAtmoShader.SetUniform(mUniforms.farClip, cs::utils::getCurrentFarClipDistance());
 
-  mAtmoShader.SetUniform(mAtmoShader.GetUniformLocation("uWaterLevel"), mWaterLevel);
-  mAtmoShader.SetUniform(mAtmoShader.GetUniformLocation("uAmbientBrightness"), mAmbientBrightness);
+  mAtmoShader.SetUniform(mUniforms.waterLevel, mWaterLevel);
+  mAtmoShader.SetUniform(mUniforms.ambientBrightness, mAmbientBrightness);
 
   if (mHDRBuffer) {
     mHDRBuffer->doPingPong();
@@ -428,43 +449,35 @@ bool AtmosphereRenderer::Do() {
     data.mColorBuffer->Bind(GL_TEXTURE1);
   }
 
-  mAtmoShader.SetUniform(mAtmoShader.GetUniformLocation("uDepthBuffer"), 0);
-  mAtmoShader.SetUniform(mAtmoShader.GetUniformLocation("uColorBuffer"), 1);
+  mAtmoShader.SetUniform(mUniforms.depthBuffer, 0);
+  mAtmoShader.SetUniform(mUniforms.colorBuffer, 1);
 
   if (mUseClouds && mCloudTexture) {
     mCloudTexture->Bind(GL_TEXTURE3);
-    mAtmoShader.SetUniform(mAtmoShader.GetUniformLocation("uCloudTexture"), 3);
-    mAtmoShader.SetUniform(mAtmoShader.GetUniformLocation("uCloudAltitude"), mCloudHeight);
+    mAtmoShader.SetUniform(mUniforms.cloudTexture, 3);
+    mAtmoShader.SetUniform(mUniforms.cloudAltitude, mCloudHeight);
   }
 
   if (mShadowMap) {
     int texUnitShadow = 4;
-    mAtmoShader.SetUniform(mAtmoShader.GetUniformLocation("uShadowCascades"),
-        static_cast<int>(mShadowMap->getMaps().size()));
+    mAtmoShader.SetUniform(
+        mUniforms.shadowCascades, static_cast<int>(mShadowMap->getMaps().size()));
     for (size_t i = 0; i < mShadowMap->getMaps().size(); ++i) {
-      GLint locSamplers = glGetUniformLocation(
-          mAtmoShader.GetProgram(), ("uShadowMaps[" + std::to_string(i) + "]").c_str());
-      GLint locMatrices = glGetUniformLocation(mAtmoShader.GetProgram(),
-          ("uShadowProjectionViewMatrices[" + std::to_string(i) + "]").c_str());
-
       mShadowMap->getMaps()[i]->Bind(
           static_cast<GLenum>(GL_TEXTURE0) + texUnitShadow + static_cast<int>(i));
-      glUniform1i(locSamplers, texUnitShadow + static_cast<int>(i));
+      glUniform1i(mUniforms.shadowMaps.at(i), texUnitShadow + static_cast<int>(i));
 
       auto mat = mShadowMap->getShadowMatrices()[i];
-      glUniformMatrix4fv(locMatrices, 1, GL_FALSE, mat.GetData());
+      glUniformMatrix4fv(mUniforms.shadowProjectionMatrices.at(i), 1, GL_FALSE, mat.GetData());
     }
   }
 
   // Why is there no set uniform for matrices???
-  GLint loc = mAtmoShader.GetUniformLocation("uMatInvMV");
-  glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(matInvMV));
-  loc = mAtmoShader.GetUniformLocation("uMatInvMVP");
-  glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(matInvMVP));
-  loc = mAtmoShader.GetUniformLocation("uMatInvP");
-  glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(matInvP));
-  loc = mAtmoShader.GetUniformLocation("uMatMV");
-  glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(matMV));
+  glUniformMatrix4fv(mUniforms.inverseModelViewMatrix, 1, GL_FALSE, glm::value_ptr(matInvMV));
+  glUniformMatrix4fv(
+      mUniforms.inverseModelViewProjectionMatrix, 1, GL_FALSE, glm::value_ptr(matInvMVP));
+  glUniformMatrix4fv(mUniforms.inverseProjectionMatrix, 1, GL_FALSE, glm::value_ptr(matInvP));
+  glUniformMatrix4fv(mUniforms.modelViewMatrix, 1, GL_FALSE, glm::value_ptr(matMV));
 
   // draw --------------------------------------------------------------------
   mQuadVAO.Bind();

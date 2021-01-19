@@ -883,10 +883,7 @@ void Application::connectSlots() {
         fmt::format("CosmoScout.state.observerSpeed = {};", speed));
   });
 
-  // Show the statistics GuiItem when measurements are enabled.
-  mFrameTimings->pEnableMeasurements.connect(
-      [this](bool enable) { mGuiManager->getStatistics()->setIsEnabled(enable); });
-
+  // Show log messages in the user interface.
   mOnMessageConnection = cs::utils::onLogMessage().connect(
       [this](
           std::string const& logger, spdlog::level::level_enum level, std::string const& message) {
@@ -1168,14 +1165,6 @@ void Application::registerGuiCallbacks() {
       }));
   mSettings->mGraphics.pAutoExposureRange.connectAndTouch([this](glm::dvec2 const& val) {
     mGuiManager->setSliderValue("graphics.setExposureRange", val);
-  });
-
-  // Enables or disables the per-frame time measurements.
-  mGuiManager->getGui()->registerCallback("graphics.setEnableTimerQueries",
-      "Shows or hides the frame timing information.",
-      std::function([this](bool enable) { mFrameTimings->pEnableMeasurements = enable; }));
-  mFrameTimings->pEnableMeasurements.connectAndTouch([this](bool enable) {
-    mGuiManager->setCheckboxValue("graphics.setEnableTimerQueries", enable);
   });
 
   // Enables or disables vertical synchronization.
@@ -1604,7 +1593,6 @@ void Application::unregisterGuiCallbacks() {
   mGuiManager->getGui()->unregisterCallback("graphics.setEnableLighting");
   mGuiManager->getGui()->unregisterCallback("graphics.setEnableShadowFreeze");
   mGuiManager->getGui()->unregisterCallback("graphics.setEnableShadows");
-  mGuiManager->getGui()->unregisterCallback("graphics.setEnableTimerQueries");
   mGuiManager->getGui()->unregisterCallback("graphics.setEnableVsync");
   mGuiManager->getGui()->unregisterCallback("graphics.setLightingQuality");
   mGuiManager->getGui()->unregisterCallback("graphics.setShadowmapBias");

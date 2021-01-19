@@ -47,7 +47,7 @@ class Stars : public IVistaOpenGLDraw {
     eCount
   };
 
-  enum class DrawMode { ePoint, eSmoothPoint, eDisc, eSmoothDisc, eSprite };
+  enum class DrawMode { ePoint, eSmoothPoint, eDisc, eSmoothDisc, eScaledDisc, eSprite };
 
   /// It is possible to load multiple catalogs, currently Hipparcos and any of Tycho or Tycho2 can
   /// be loaded together. Stars which are in both catalogs will be loaded from Hipparcos. Once
@@ -160,7 +160,7 @@ class Stars : public IVistaOpenGLDraw {
   std::vector<Star>                  mStars;
   std::map<CatalogType, std::string> mCatalogs;
 
-  DrawMode mDrawMode = DrawMode::eSmoothDisc;
+  DrawMode mDrawMode = DrawMode::eScaledDisc;
 
   bool  mShaderDirty            = true;
   bool  mEnableHDR              = true;
@@ -168,6 +168,25 @@ class Stars : public IVistaOpenGLDraw {
   float mMinMagnitude           = -5.F;
   float mMaxMagnitude           = 15.F;
   float mLuminanceMultiplicator = 1.F;
+
+  struct {
+    uint32_t bgInverseMVMatrix  = 0;
+    uint32_t bgInverseMVPMatrix = 0;
+    uint32_t bgTexture          = 0;
+    uint32_t bgColor            = 0;
+
+    uint32_t starResolution   = 0;
+    uint32_t starTexture      = 0;
+    uint32_t starMinMagnitude = 0;
+    uint32_t starMaxMagnitude = 0;
+    uint32_t starSolidAngle   = 0;
+    uint32_t starLuminanceMul = 0;
+
+    uint32_t starMVMatrix        = 0;
+    uint32_t starPMatrix         = 0;
+    uint32_t starInverseMVMatrix = 0;
+    uint32_t starInversePMatrix  = 0;
+  } mUniforms;
 
   static const int cCacheVersion;
 

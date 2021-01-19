@@ -318,6 +318,8 @@ bool Stars::Do() {
       defines += "#define DRAWMODE_DISC\n";
     } else if (mDrawMode == DrawMode::eSmoothDisc) {
       defines += "#define DRAWMODE_SMOOTH_DISC\n";
+    } else if (mDrawMode == DrawMode::eScaledDisc) {
+      defines += "#define DRAWMODE_SCALED_DISC\n";
     } else if (mDrawMode == DrawMode::eSprite) {
       defines += "#define DRAWMODE_SPRITE\n";
     }
@@ -339,6 +341,23 @@ bool Stars::Do() {
     mBackgroundShader.InitFragmentShaderFromString(defines + cBackgroundFrag);
     mBackgroundShader.Link();
 
+    mUniforms.bgInverseMVMatrix  = mBackgroundShader.GetUniformLocation("uInvMV");
+    mUniforms.bgInverseMVPMatrix = mBackgroundShader.GetUniformLocation("uInvMVP");
+    mUniforms.bgTexture          = mBackgroundShader.GetUniformLocation("iTexture");
+    mUniforms.bgColor            = mBackgroundShader.GetUniformLocation("cColor");
+
+    mUniforms.starResolution   = mStarShader.GetUniformLocation("uResolution");
+    mUniforms.starTexture      = mStarShader.GetUniformLocation("uStarTexture");
+    mUniforms.starMinMagnitude = mStarShader.GetUniformLocation("uMinMagnitude");
+    mUniforms.starMaxMagnitude = mStarShader.GetUniformLocation("uMaxMagnitude");
+    mUniforms.starSolidAngle   = mStarShader.GetUniformLocation("uSolidAngle");
+    mUniforms.starLuminanceMul = mStarShader.GetUniformLocation("uLuminanceMultiplicator");
+
+    mUniforms.starMVMatrix        = mStarShader.GetUniformLocation("uMatMV");
+    mUniforms.starPMatrix         = mStarShader.GetUniformLocation("uMatP");
+    mUniforms.starInverseMVMatrix = mStarShader.GetUniformLocation("uInvMV");
+    mUniforms.starInversePMatrix  = mStarShader.GetUniformLocation("uInvP");
+
     mShaderDirty = false;
   }
 
@@ -347,7 +366,7 @@ bool Stars::Do() {
       (mStarFiguresTexture && mBackgroundColor2[3] != 0.F)) {
     mBackgroundVAO.Bind();
     mBackgroundShader.Bind();
-    mBackgroundShader.SetUniform(mBackgroundShader.GetUniformLocation("iTexture"), 0);
+    mBackgroundShader.SetUniform(mUniforms.bgTexture, 0);
 
     float backgroundIntensity = 1.0F;
 
@@ -366,25 +385,20 @@ bool Stars::Do() {
     VistaTransformMatrix matInverseMVP(matMVP.GetInverted());
     VistaTransformMatrix matInverseMV(matMVNoTranslation.GetInverted());
 
-    GLint loc = mBackgroundShader.GetUniformLocation("uInvMVP");
-    glUniformMatrix4fv(loc, 1, GL_FALSE, matInverseMVP.GetData());
-
-    loc = mBackgroundShader.GetUniformLocation("uInvMV");
-    glUniformMatrix4fv(loc, 1, GL_FALSE, matInverseMV.GetData());
+    glUniformMatrix4fv(mUniforms.bgInverseMVPMatrix, 1, GL_FALSE, matInverseMVP.GetData());
+    glUniformMatrix4fv(mUniforms.bgInverseMVMatrix, 1, GL_FALSE, matInverseMV.GetData());
 
     if (mCelestialGridTexture && mBackgroundColor1[3] != 0.F) {
-      mBackgroundShader.SetUniform(mBackgroundShader.GetUniformLocation("cColor"),
-          mBackgroundColor1[0], mBackgroundColor1[1], mBackgroundColor1[2],
-          mBackgroundColor1[3] * backgroundIntensity);
+      mBackgroundShader.SetUniform(mUniforms.bgColor, mBackgroundColor1[0], mBackgroundColor1[1],
+          mBackgroundColor1[2], mBackgroundColor1[3] * backgroundIntensity);
       mCelestialGridTexture->Bind(GL_TEXTURE0);
       glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
       mCelestialGridTexture->Unbind(GL_TEXTURE0);
     }
 
     if (mStarFiguresTexture && mBackgroundColor2[3] != 0.F) {
-      mBackgroundShader.SetUniform(mBackgroundShader.GetUniformLocation("cColor"),
-          mBackgroundColor2[0], mBackgroundColor2[1], mBackgroundColor2[2],
-          mBackgroundColor2[3] * backgroundIntensity);
+      mBackgroundShader.SetUniform(mUniforms.bgColor, mBackgroundColor2[0], mBackgroundColor2[1],
+          mBackgroundColor2[2], mBackgroundColor2[3] * backgroundIntensity);
       mStarFiguresTexture->Bind(GL_TEXTURE0);
       glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
       mStarFiguresTexture->Unbind(GL_TEXTURE0);
@@ -413,31 +427,23 @@ bool Stars::Do() {
   std::array<int, 4> viewport{};
   glGetIntegerv(GL_VIEWPORT, viewport.data());
 
-  mStarShader.SetUniform(mStarShader.GetUniformLocation("uResolution"),
-      static_cast<float>(viewport.at(2)), static_cast<float>(viewport.at(3)));
+  mStarShader.SetUniform(mUniforms.starResolution, static_cast<float>(viewport.at(2)),
+      static_cast<float>(viewport.at(3)));
 
   mStarTexture->Bind(GL_TEXTURE0);
-  mStarShader.SetUniform(mStarShader.GetUniformLocation("uStarTexture"), 0);
-  mStarShader.SetUniform(mStarShader.GetUniformLocation("uMinMagnitude"), mMinMagnitude);
-  mStarShader.SetUniform(mStarShader.GetUniformLocation("uMaxMagnitude"), mMaxMagnitude);
-  mStarShader.SetUniform(mStarShader.GetUniformLocation("uSolidAngle"), mSolidAngle);
-  mStarShader.SetUniform(
-      mStarShader.GetUniformLocation("uLuminanceMultiplicator"), mLuminanceMultiplicator);
+  mStarShader.SetUniform(mUniforms.starTexture, 0);
+  mStarShader.SetUniform(mUniforms.starMinMagnitude, mMinMagnitude);
+  mStarShader.SetUniform(mUniforms.starMaxMagnitude, mMaxMagnitude);
+  mStarShader.SetUniform(mUniforms.starSolidAngle, mSolidAngle);
+  mStarShader.SetUniform(mUniforms.starLuminanceMul, mLuminanceMultiplicator);
 
   VistaTransformMatrix matInverseMV(matModelView.GetInverted());
   VistaTransformMatrix matInverseP(matProjection.GetInverted());
 
-  GLint loc = mStarShader.GetUniformLocation("uMatMV");
-  glUniformMatrix4fv(loc, 1, GL_FALSE, matModelView.GetData());
-
-  loc = mStarShader.GetUniformLocation("uMatP");
-  glUniformMatrix4fv(loc, 1, GL_FALSE, matProjection.GetData());
-
-  loc = mStarShader.GetUniformLocation("uInvMV");
-  glUniformMatrix4fv(loc, 1, GL_FALSE, matInverseMV.GetData());
-
-  loc = mStarShader.GetUniformLocation("uInvP");
-  glUniformMatrix4fv(loc, 1, GL_FALSE, matInverseP.GetData());
+  glUniformMatrix4fv(mUniforms.starMVMatrix, 1, GL_FALSE, matModelView.GetData());
+  glUniformMatrix4fv(mUniforms.starPMatrix, 1, GL_FALSE, matProjection.GetData());
+  glUniformMatrix4fv(mUniforms.starInverseMVMatrix, 1, GL_FALSE, matInverseMV.GetData());
+  glUniformMatrix4fv(mUniforms.starInversePMatrix, 1, GL_FALSE, matInverseP.GetData());
 
   glDrawArrays(GL_POINTS, 0, static_cast<GLsizei>(mStars.size()));
 
@@ -491,15 +497,8 @@ bool Stars::readStarsFromCatalog(CatalogType type, std::string const& filename) 
       getline(file, line);
 
       // parse line:
-      // separate complete items consisting of "val0|val1|...|valN|" into vector of value
-      // strings
-      std::stringstream        stream(line);
-      std::string              item;
-      std::vector<std::string> items;
-
-      while (getline(stream, item, '|')) {
-        items.emplace_back(item);
-      }
+      // separate complete items consisting of "val0|val1|...|valN|" into vector of value strings
+      std::vector<std::string> items = cs::utils::splitString(line, '|');
 
       // convert value strings to int/double/float and save in star data structure
       // expecting Hipparcos or Tycho-1 catalog and more than 12 columns

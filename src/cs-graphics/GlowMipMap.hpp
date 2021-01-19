@@ -39,6 +39,11 @@ class CS_GRAPHICS_EXPORT GlowMipMap : public VistaTexture {
   int      mHDRBufferWidth   = 0;
   int      mHDRBufferHeight  = 0;
 
+  struct {
+    uint32_t level = 0;
+    uint32_t pass  = 0;
+  } mUniforms;
+
   VistaTexture* mTemporaryTarget = nullptr;
 };
 

@@ -81,6 +81,13 @@ class EllipseTool : public IVistaOpenGLDraw, public cs::core::tools::Tool {
   VistaBufferObject      mVBO;
   VistaGLSLShader        mShader;
 
+  struct {
+    uint32_t modelViewMatrix  = 0;
+    uint32_t projectionMatrix = 0;
+    uint32_t color            = 0;
+    uint32_t farClip          = 0;
+  } mUniforms;
+
   int mScaleConnection = -1;
   int mNumSamples      = 360;
 

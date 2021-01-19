@@ -261,6 +261,17 @@ Sharad::Sharad(std::shared_ptr<cs::core::Settings> settings, std::string const& 
   mShader.InitVertexShaderFromString(VERT);
   mShader.InitFragmentShaderFromString(FRAG);
   mShader.Link();
+
+  mUniforms.modelViewMatrix  = mShader.GetUniformLocation("uMatModelView");
+  mUniforms.projectionMatrix = mShader.GetUniformLocation("uMatProjection");
+  mUniforms.viewportPosition = mShader.GetUniformLocation("uViewportPos");
+  mUniforms.sharadTexture    = mShader.GetUniformLocation("uSharadTexture");
+  mUniforms.depthBuffer      = mShader.GetUniformLocation("uDepthBuffer");
+  mUniforms.sceneScale       = mShader.GetUniformLocation("uSceneScale");
+  mUniforms.heightScale      = mShader.GetUniformLocation("uHeightScale");
+  mUniforms.radii            = mShader.GetUniformLocation("uRadii");
+  mUniforms.time             = mShader.GetUniformLocation("uTime");
+  mUniforms.farClip          = mShader.GetUniformLocation("uFarClip");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -301,26 +312,22 @@ bool Sharad::Do() {
     glGetFloatv(GL_MODELVIEW_MATRIX, glMatMV.data());
     glGetFloatv(GL_PROJECTION_MATRIX, glMatP.data());
     auto matMV = glm::make_mat4x4(glMatMV.data()) * glm::mat4(getWorldTransform());
-    glUniformMatrix4fv(
-        mShader.GetUniformLocation("uMatModelView"), 1, GL_FALSE, glm::value_ptr(matMV));
-    glUniformMatrix4fv(mShader.GetUniformLocation("uMatProjection"), 1, GL_FALSE, glMatP.data());
+    glUniformMatrix4fv(mUniforms.modelViewMatrix, 1, GL_FALSE, glm::value_ptr(matMV));
+    glUniformMatrix4fv(mUniforms.projectionMatrix, 1, GL_FALSE, glMatP.data());
 
     std::array<GLint, 4> iViewport{};
     glGetIntegerv(GL_VIEWPORT, iViewport.data());
-    mShader.SetUniform(mShader.GetUniformLocation("uViewportPos"),
-        static_cast<float>(iViewport.at(0)), static_cast<float>(iViewport.at(1)));
+    mShader.SetUniform(mUniforms.viewportPosition, static_cast<float>(iViewport.at(0)),
+        static_cast<float>(iViewport.at(1)));
 
-    mShader.SetUniform(mShader.GetUniformLocation("uSharadTexture"), 0);
-    mShader.SetUniform(mShader.GetUniformLocation("uDepthBuffer"), 1);
-    mShader.SetUniform(mShader.GetUniformLocation("uSceneScale"), static_cast<float>(mSceneScale));
-    mShader.SetUniform(
-        mShader.GetUniformLocation("uHeightScale"), mSettings->mGraphics.pHeightScale.get());
-    mShader.SetUniform(mShader.GetUniformLocation("uRadii"), static_cast<float>(mRadii[0]),
+    mShader.SetUniform(mUniforms.sharadTexture, 0);
+    mShader.SetUniform(mUniforms.depthBuffer, 1);
+    mShader.SetUniform(mUniforms.sceneScale, static_cast<float>(mSceneScale));
+    mShader.SetUniform(mUniforms.heightScale, mSettings->mGraphics.pHeightScale.get());
+    mShader.SetUniform(mUniforms.radii, static_cast<float>(mRadii[0]),
         static_cast<float>(mRadii[1]), static_cast<float>(mRadii[2]));
-    mShader.SetUniform(
-        mShader.GetUniformLocation("uTime"), static_cast<float>(mCurrTime - mExistence[0]));
-    mShader.SetUniform(
-        mShader.GetUniformLocation("uFarClip"), cs::utils::getCurrentFarClipDistance());
+    mShader.SetUniform(mUniforms.time, static_cast<float>(mCurrTime - mExistence[0]));
+    mShader.SetUniform(mUniforms.farClip, cs::utils::getCurrentFarClipDistance());
 
     mTexture->Bind(GL_TEXTURE0);
     mDepthBuffer->Bind(GL_TEXTURE1);

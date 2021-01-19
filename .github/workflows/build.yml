@@ -92,22 +92,29 @@ jobs:
           ccache --max-size 1G
           ccache -z
       - name: Build Externals
-        env: #Thanks to ccache, it build actually faster without these options.
-          COSMOSCOUT_NO_PCH: true
-          COSMOSCOUT_NO_UNITY_BUILD: true
+        env: # Thanks to ccache, it build actually faster without these options.
+          COSMOSCOUT_USE_PCH: false
+          COSMOSCOUT_USE_UNITY_BUILD: false
         run: >
           ./make_externals.sh -G "Unix Makefiles"
           -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
       - name: Build CosmoScout VR
+        env: # We reenable these options to test them, since they are not tested regularly by developers.
+          COSMOSCOUT_USE_PCH: true
+          COSMOSCOUT_USE_UNITY_BUILD: true
         run: >
           ./make.sh -G "Unix Makefiles"
           -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
           -DCOSMOSCOUT_COVERAGE_INFO=On -DCOSMOSCOUT_UNIT_TESTS=On
-          -DBOOST_ROOT=$BOOST_ROOT_1_69_0 -DBoost_ARCHITECTURE=-x64
+          -DBOOST_ROOT=$BOOST_ROOT_1_72_0 -DBoost_ARCHITECTURE=-x64
       - name: Run Tests
-        run: ./install/linux-Release/bin/run_tests.sh
+        run: |
+          export LD_LIBRARY_PATH="$BOOST_ROOT_1_72_0/lib:$LD_LIBRARY_PATH"
+          ./install/linux-Release/bin/run_tests.sh
       - name: Run Graphical Tests
-        run: ./install/linux-Release/bin/run_graphical_tests.sh
+        run: |
+          export LD_LIBRARY_PATH="$BOOST_ROOT_1_72_0/lib:$LD_LIBRARY_PATH"
+          ./install/linux-Release/bin/run_graphical_tests.sh
       - name: Upload Results of Failed Test
         uses: actions/upload-artifact@v1
         if: failure()
@@ -115,7 +122,9 @@ jobs:
           name: graphical-test-results-gcc
           path: install/linux-Release/bin/test
       - name: Calculate Test Coverage
-        run: ./lcov.sh
+        run: |
+          export LD_LIBRARY_PATH="$BOOST_ROOT_1_72_0/lib:$LD_LIBRARY_PATH"
+          ./lcov.sh
       - name: Upload Coverage Info
         uses: coverallsapp/github-action@master
         with:
@@ -155,20 +164,27 @@ jobs:
           ccache -z
       - name: Build Externals
         env: #Thanks to ccache, it build actually faster without these options.
-          COSMOSCOUT_NO_PCH: true
-          COSMOSCOUT_NO_UNITY_BUILD: true
+          COSMOSCOUT_USE_PCH: false
+          COSMOSCOUT_USE_UNITY_BUILD: false
         run: >
           ./make_externals.sh -G "Unix Makefiles"
           -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
       - name: Build CosmoScout VR
+        env: # We reenable these options to test them, since they are not tested regularly by developers.
+          COSMOSCOUT_USE_PCH: true
+          COSMOSCOUT_USE_UNITY_BUILD: true
         run: >
           ./make.sh -G "Unix Makefiles"
           -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
-          -DCOSMOSCOUT_UNIT_TESTS=On -DBOOST_ROOT=$BOOST_ROOT_1_69_0 -DBoost_ARCHITECTURE=-x64
+          -DCOSMOSCOUT_UNIT_TESTS=On -DBOOST_ROOT=$BOOST_ROOT_1_72_0 -DBoost_ARCHITECTURE=-x64
       - name: Run Tests
-        run: ./install/linux-Release/bin/run_tests.sh
+        run: |
+          export LD_LIBRARY_PATH="$BOOST_ROOT_1_72_0/lib:$LD_LIBRARY_PATH"
+          ./install/linux-Release/bin/run_tests.sh
       - name: Run Graphical Tests
-        run: ./install/linux-Release/bin/run_graphical_tests.sh
+        run: |
+          export LD_LIBRARY_PATH="$BOOST_ROOT_1_72_0/lib:$LD_LIBRARY_PATH"
+          ./install/linux-Release/bin/run_graphical_tests.sh
       - name: Upload Results of Failed Test
         uses: actions/upload-artifact@v1
         if: failure()
@@ -215,6 +231,8 @@ jobs:
           -DCOSMOSCOUT_UNIT_TESTS=On -DBOOST_ROOT=%BOOST_ROOT_1_72_0%
       - name: Run Tests
         shell: cmd
-        run: install\\windows-Release\\bin\\run_tests.bat
+        run: |
+          SET PATH=%BOOST_ROOT_1_72_0%\\lib;%PATH%
+          install\\windows-Release\\bin\\run_tests.bat
       - name: Print clcache Statistics
         run: clcache -s
