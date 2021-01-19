@@ -712,7 +712,7 @@
       "vignetteFadeDuration": 1.0,
       "vignetteFadeDeadzone": 0.5,
       "vignetteLowerVelocityThreshold": 0.2,
-      "vignetteUpperVelocityThreshold": 10.0,
+      "vignetteUpperVelocityThreshold": 2.0,
       "vignetteUseDynamicRadius": false,
       "vignetteUseVerticalOnly": false
     }
