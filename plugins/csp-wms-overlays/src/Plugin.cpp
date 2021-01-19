@@ -234,7 +234,7 @@ void Plugin::init() {
         }
       });
 
-  mSolarSystem->pCurrentObserverSpeed.connect([this](float speed) {
+  mObserverSpeedConnection = mSolarSystem->pCurrentObserverSpeed.connect([this](float speed) {
     if (speed == 0.f) {
       mNoMovementSince           = std::chrono::high_resolution_clock::now();
       mNoMovement                = true;
@@ -255,6 +255,7 @@ void Plugin::deInit() {
   logger().info("Unloading plugin...");
 
   mSolarSystem->pActiveBody.disconnect(mActiveBodyConnection);
+  mSolarSystem->pCurrentObserverSpeed.disconnect(mObserverSpeedConnection);
 
   mGuiManager->removePluginTab("WMS");
   mGuiManager->removeSettingsSection("WMS");
@@ -264,8 +265,14 @@ void Plugin::deInit() {
 
   mGuiManager->getGui()->unregisterCallback("wmsOverlays.setEnableTimeInterpolation");
   mGuiManager->getGui()->unregisterCallback("wmsOverlays.setEnableTimeSpan");
+  mGuiManager->getGui()->unregisterCallback("wmsOverlays.setEnableAutomaticBoundsUpdate");
+
   mGuiManager->getGui()->unregisterCallback("wmsOverlays.setServer");
   mGuiManager->getGui()->unregisterCallback("wmsOverlays.setLayer");
+  mGuiManager->getGui()->unregisterCallback("wmsOverlays.setStyle");
+
+  mGuiManager->getGui()->unregisterCallback("wmsOverlays.updateBounds");
+  mGuiManager->getGui()->unregisterCallback("wmsOverlays.goToDefaultBounds");
 
   mAllSettings->onLoad().disconnect(mOnLoadConnection);
   mAllSettings->onSave().disconnect(mOnSaveConnection);

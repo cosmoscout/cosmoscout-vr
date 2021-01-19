@@ -98,9 +98,10 @@ class Plugin : public cs::core::PluginBase {
   std::chrono::time_point<std::chrono::steady_clock>
       mNoMovementSince; ///< Time at which the observer stopped moving.
 
-  int mActiveBodyConnection = -1;
-  int mOnLoadConnection     = -1;
-  int mOnSaveConnection     = -1;
+  int mActiveBodyConnection    = -1;
+  int mObserverSpeedConnection = -1;
+  int mOnLoadConnection        = -1;
+  int mOnSaveConnection        = -1;
 };
 
 } // namespace csp::wmsoverlays
