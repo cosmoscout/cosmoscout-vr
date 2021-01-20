@@ -299,9 +299,19 @@ bool SimpleBody::Do() {
     // If the SimpleBody is actually the sun, we have to calculate the lighting differently.
     if (mSettings->mGraphics.pEnableHDR.get()) {
       double sceneScale = 1.0 / mSolarSystem->getObserver().getAnchorScale();
-      sunIlluminance    = static_cast<float>(
+
+      // To get the luminous exitance (in lux) of the Sun, we have to divide its luminous power (in
+      // lumens) by its surface area.
+      double luminousExitance =
           mSolarSystem->pSunLuminousPower.get() /
-          (sceneScale * sceneScale * mRadii[0] * mRadii[0] * 4.0 * glm::pi<double>()));
+          (sceneScale * sceneScale * mRadii[0] * mRadii[0] * 4.0 * glm::pi<double>());
+
+      // We consider the Sun to emit light equally in all directions. So we have to divide the
+      // luminous exitance by PI to get actual luminance values.
+      double sunLuminance = luminousExitance / glm::pi<double>();
+
+      // The variable is called illuminance, for the sun it contains actually luminance values.
+      sunIlluminance = static_cast<float>(sunLuminance);
     }
 
     ambientBrightness = 1.0F;
