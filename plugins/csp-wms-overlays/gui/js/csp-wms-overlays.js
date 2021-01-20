@@ -62,22 +62,30 @@
           `${CosmoScout.utils.formatLatitude(minLat)} - ` +
           `${CosmoScout.utils.formatLongitude(maxLon)}, ` +
           `${CosmoScout.utils.formatLatitude(maxLat)}`;
+      document.querySelector(`[onclick="CosmoScout.callbacks.wmsOverlays.goToDefaultBounds()"]`)
+          .disabled = false;
     }
 
     setCurrentBounds(minLon, maxLon, minLat, maxLat) {
       document.getElementById("wmsOverlays.currentBounds").innerText =
-        `${CosmoScout.utils.formatLongitude(minLon)}, ` +
-        `${CosmoScout.utils.formatLatitude(minLat)} - ` +
-        `${CosmoScout.utils.formatLongitude(maxLon)}, ` +
-        `${CosmoScout.utils.formatLatitude(maxLat)}`;
+          `${CosmoScout.utils.formatLongitude(minLon)}, ` +
+          `${CosmoScout.utils.formatLatitude(minLat)} - ` +
+          `${CosmoScout.utils.formatLongitude(maxLon)}, ` +
+          `${CosmoScout.utils.formatLatitude(maxLat)}`;
+      document.querySelector(`[onclick="CosmoScout.callbacks.wmsOverlays.goToCurrentBounds()"]`)
+          .disabled = false;
     }
 
     clearDefaultBounds() {
       document.getElementById("wmsOverlays.defaultBounds").innerText = "None";
+      document.querySelector(`[onclick="CosmoScout.callbacks.wmsOverlays.goToDefaultBounds()"]`)
+          .disabled = true;
     }
 
     clearCurrentBounds() {
       document.getElementById("wmsOverlays.currentBounds").innerText = "None";
+      document.querySelector(`[onclick="CosmoScout.callbacks.wmsOverlays.goToCurrentBounds()"]`)
+          .disabled = true;
     }
   }
 
