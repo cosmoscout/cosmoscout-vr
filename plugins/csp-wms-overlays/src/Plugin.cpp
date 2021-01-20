@@ -104,8 +104,7 @@ void Plugin::init() {
 
   // Moves the observer to a position from which most of the currently set bounds should be visible.
   mGuiManager->getGui()->registerCallback("wmsOverlays.goToCurrentBounds",
-      "Fly the observer to the center of the current bounds.",
-      std::function([this]() {
+      "Fly the observer to the center of the current bounds.", std::function([this]() {
         if (!mActiveOverlay) {
           return;
         }
@@ -172,6 +171,15 @@ void Plugin::init() {
         }
         mNoMovementRequestedUpdate = false;
       }));
+
+  mGuiManager->getGui()->registerCallback("wmsOverlays.goToFirstTime",
+      "Go to the first available timestep.", std::function([this]() {}));
+  mGuiManager->getGui()->registerCallback("wmsOverlays.goToPreviousTime",
+      "Go to the previous available timestep.", std::function([this]() {}));
+  mGuiManager->getGui()->registerCallback(
+      "wmsOverlays.goToNextTime", "Go to the next available timestep.", std::function([this]() {}));
+  mGuiManager->getGui()->registerCallback(
+      "wmsOverlays.goToLastTime", "Go to the last available timestep.", std::function([this]() {}));
 
   mActiveBodyConnection = mSolarSystem->pActiveBody.connectAndTouch(
       [this](std::shared_ptr<cs::scene::CelestialBody> const& body) {
@@ -253,6 +261,11 @@ void Plugin::deInit() {
   mGuiManager->getGui()->unregisterCallback("wmsOverlays.setServer");
   mGuiManager->getGui()->unregisterCallback("wmsOverlays.setLayer");
   mGuiManager->getGui()->unregisterCallback("wmsOverlays.setStyle");
+
+  mGuiManager->getGui()->unregisterCallback("wmsOverlays.goToFirstTime");
+  mGuiManager->getGui()->unregisterCallback("wmsOverlays.goToPreviousTime");
+  mGuiManager->getGui()->unregisterCallback("wmsOverlays.goToNextTime");
+  mGuiManager->getGui()->unregisterCallback("wmsOverlays.goToLastTime");
 
   mGuiManager->getGui()->unregisterCallback("wmsOverlays.updateBounds");
   mGuiManager->getGui()->unregisterCallback("wmsOverlays.goToDefaultBounds");
