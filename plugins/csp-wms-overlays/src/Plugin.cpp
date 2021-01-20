@@ -99,20 +99,18 @@ void Plugin::init() {
         WebMapLayer::Settings layerSettings =
             mActiveLayers[mActiveOverlay->getCenter()]->getSettings();
 
-        double lon      = (layerSettings.mLonRange[0] + layerSettings.mLonRange[1]) / 2.;
-        double lat      = (layerSettings.mLatRange[0] + layerSettings.mLatRange[1]) / 2.;
-        double lonRange = layerSettings.mLonRange[1] - layerSettings.mLonRange[0];
-        double latRange = layerSettings.mLatRange[1] - layerSettings.mLatRange[0];
-        double maxRange = std::max(lonRange, latRange);
-        // Rough approximation of the height, at which the whole bounds are in frame
-        double fov    = 60.;
-        double height = std::tan(cs::utils::convert::toRadians(maxRange) / 2.) *
-                        mSolarSystem->getRadii(mActiveOverlay->getCenter())[0] /
-                        std::tan(cs::utils::convert::toRadians(fov) / 2.);
+        goToBounds(layerSettings.mBounds);
+      }));
 
-        mSolarSystem->flyObserverTo(mSolarSystem->pActiveBody.get()->getCenterName(),
-            mSolarSystem->pActiveBody.get()->getFrameName(),
-            cs::utils::convert::toRadians(glm::dvec2(lon, lat)), height, 5.);
+  // Moves the observer to a position from which most of the currently set bounds should be visible.
+  mGuiManager->getGui()->registerCallback("wmsOverlays.goToCurrentBounds",
+      "Fly the observer to the center of the current bounds.",
+      std::function([this]() {
+        if (!mActiveOverlay) {
+          return;
+        }
+
+        goToBounds(mActiveOverlay->pBounds.get());
       }));
 
   // Set whether to interpolate textures between timesteps (does not work when pre-fetch is
@@ -191,7 +189,14 @@ void Plugin::init() {
           return;
         }
 
+        if (mActiveOverlay) {
+          mActiveOverlay->pBounds.disconnect(mBoundsConnection);
+        }
         mActiveOverlay = overlay->second;
+        mActiveOverlay->pBounds.connect([this](Bounds bounds) {
+          mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.setCurrentBounds",
+              bounds.mMinLon, bounds.mMaxLon, bounds.mMinLat, bounds.mMaxLat);
+        });
 
         mGuiManager->getGui()->callJavascript(
             "CosmoScout.gui.clearDropdown", "wmsOverlays.setServer");
@@ -251,6 +256,7 @@ void Plugin::deInit() {
 
   mGuiManager->getGui()->unregisterCallback("wmsOverlays.updateBounds");
   mGuiManager->getGui()->unregisterCallback("wmsOverlays.goToDefaultBounds");
+  mGuiManager->getGui()->unregisterCallback("wmsOverlays.goToCurrentBounds");
 
   mAllSettings->onLoad().disconnect(mOnLoadConnection);
   mAllSettings->onSave().disconnect(mOnSaveConnection);
@@ -423,8 +429,8 @@ void Plugin::setWMSLayer(
   mGuiManager->getGui()->callJavascript(
       "CosmoScout.wmsOverlays.setWMSDataCopyright", layer->getSettings().mAttribution.value_or(""));
   mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.setDefaultBounds",
-      layer->getSettings().mLonRange[0], layer->getSettings().mLonRange[1],
-      layer->getSettings().mLatRange[0], layer->getSettings().mLatRange[1]);
+      layer->getSettings().mBounds.mMinLon, layer->getSettings().mBounds.mMaxLon,
+      layer->getSettings().mBounds.mMinLat, layer->getSettings().mBounds.mMaxLat);
 
   mGuiManager->getGui()->callJavascript("CosmoScout.gui.clearDropdown", "wmsOverlays.setStyle");
   mGuiManager->getGui()->callJavascript(
@@ -444,9 +450,29 @@ void Plugin::resetWMSLayer(std::shared_ptr<TextureOverlayRenderer> const& wmsOve
       "CosmoScout.gui.setDropdownValue", "wmsOverlays.setLayer", "None", false);
   mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.setWMSDataCopyright", "");
   mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.clearDefaultBounds");
+  mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.clearCurrentBounds");
 
   mActiveLayers[wmsOverlay->getCenter()].reset();
   wmsOverlay->clearActiveWMS();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Plugin::goToBounds(Bounds bounds) {
+  double lon      = (bounds.mMinLon + bounds.mMaxLon) / 2.;
+  double lat      = (bounds.mMinLat + bounds.mMaxLat) / 2.;
+  double lonRange = bounds.mMaxLon - bounds.mMinLon;
+  double latRange = bounds.mMaxLat - bounds.mMinLat;
+  double maxRange = std::max(lonRange, latRange);
+  // Rough approximation of the height, at which the whole bounds are in frame
+  double fov    = 60.;
+  double height = std::tan(cs::utils::convert::toRadians(maxRange) / 2.) *
+                  mSolarSystem->getRadii(mActiveOverlay->getCenter())[0] /
+                  std::tan(cs::utils::convert::toRadians(fov) / 2.);
+
+  mSolarSystem->flyObserverTo(mSolarSystem->pActiveBody.get()->getCenterName(),
+      mSolarSystem->pActiveBody.get()->getFrameName(),
+      cs::utils::convert::toRadians(glm::dvec2(lon, lat)), height, 5.);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

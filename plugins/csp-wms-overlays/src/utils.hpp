@@ -16,6 +16,34 @@
 
 namespace csp::wmsoverlays {
 
+/// Struct for storing a geographical bounding box for a map.
+/// Coordinates should be given in degrees.
+struct Bounds {
+  double mMinLon;
+  double mMaxLon;
+  double mMinLat;
+  double mMaxLat;
+
+  Bounds()
+      : mMinLon(-180.)
+      , mMaxLon(180.)
+      , mMinLat(-90.)
+      , mMaxLat(90.) {
+  }
+
+  Bounds(double minLon, double maxLon, double minLat, double maxLat)
+      : mMinLon(minLon)
+      , mMaxLon(maxLon)
+      , mMinLat(minLat)
+      , mMaxLat(maxLat) {
+  }
+
+  inline bool operator!=(const Bounds& rhs) const {
+    return mMinLon != rhs.mMinLon || mMaxLon != rhs.mMaxLon || mMinLat != rhs.mMinLat ||
+           mMaxLat != rhs.mMaxLat;
+  }
+};
+
 /// Struct for the duration of the WMS time step.
 ///	Ideally only one of the members should be non-zero.
 struct Duration {

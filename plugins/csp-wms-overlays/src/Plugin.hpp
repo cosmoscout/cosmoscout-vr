@@ -86,6 +86,8 @@ class Plugin : public cs::core::PluginBase {
       std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay, std::string const& name);
   void resetWMSLayer(std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay);
 
+  void goToBounds(Bounds bounds);
+
   std::shared_ptr<Settings> mPluginSettings = std::make_shared<Settings>();
   std::map<std::string, std::shared_ptr<TextureOverlayRenderer>> mWMSOverlays;
   std::map<std::string, std::vector<WebMapService>>              mWms;
@@ -104,6 +106,7 @@ class Plugin : public cs::core::PluginBase {
   int mObserverSpeedConnection = -1;
   int mOnLoadConnection        = -1;
   int mOnSaveConnection        = -1;
+  int mBoundsConnection        = -1;
 };
 
 } // namespace csp::wmsoverlays

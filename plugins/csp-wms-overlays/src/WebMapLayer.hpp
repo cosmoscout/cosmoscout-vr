@@ -7,6 +7,8 @@
 #ifndef CSP_WMS_OVERLAYS_WEB_MAP_LAYER_HPP
 #define CSP_WMS_OVERLAYS_WEB_MAP_LAYER_HPP
 
+#include "utils.hpp"
+
 #include <VistaTools/tinyXML/tinyxml.h>
 
 #include <array>
@@ -34,8 +36,7 @@ class WebMapLayer {
     bool                       mNoSubsets = false;
     std::optional<int>         mFixedWidth;
     std::optional<int>         mFixedHeight;
-    std::array<double, 2>      mLonRange = {-180., 180.};
-    std::array<double, 2>      mLatRange = {-90., 90.};
+    Bounds                     mBounds;
     std::optional<std::string> mTime;
     std::vector<Style>         mStyles;
     // TODO Crs

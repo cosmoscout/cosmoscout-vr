@@ -140,8 +140,7 @@ void TextureOverlayRenderer::setActiveWMS(WebMapService const& wms, WebMapLayer 
   mActiveWMSLayer.emplace(layer);
 
   if (mActiveWMSLayer && mActiveWMSLayer->isRequestable()) {
-    mLonRange = mActiveWMSLayer->getSettings().mLonRange;
-    mLatRange = mActiveWMSLayer->getSettings().mLatRange;
+    pBounds = mActiveWMSLayer->getSettings().mBounds;
 
     if (mActiveWMSLayer->getSettings().mTime.has_value()) {
       utils::parseIsoString(mActiveWMSLayer->getSettings().mTime.value(), mTimeIntervals);
@@ -156,8 +155,7 @@ void TextureOverlayRenderer::setActiveWMS(WebMapService const& wms, WebMapLayer 
       std::optional<WebMapTextureFile> cacheFile = mTextureLoader.loadTexture(
           *mActiveWMS, *mActiveWMSLayer, request, mPluginSettings->mMapCache.get());
       if (cacheFile.has_value()) {
-        mLonRange = cacheFile->mLonRange;
-        mLatRange = cacheFile->mLatRange;
+        pBounds = cacheFile->mBounds;
 
         mWMSTexture = cs::graphics::TextureLoader::loadFromFile(cacheFile->mPath);
         mWMSTexture->Bind();
@@ -253,11 +251,12 @@ void TextureOverlayRenderer::updateLonLatRange() {
           [](auto intersection) { return intersection.first; })) {
     // The body is not visible in all four corners of the screen.
     // For now this results use the maximum bounds of the map.
-    mLonRange = mActiveWMSLayer->getSettings().mLonRange;
-    mLatRange = mActiveWMSLayer->getSettings().mLatRange;
+    pBounds = mActiveWMSLayer->getSettings().mBounds;
   } else {
     // All four corners of the screen show the body.
     // The intersection points can be converted to longitude and latitude.
+    Bounds currentBounds;
+
     glm::dvec3                radii = mSolarSystem->getRadii(mCenterName);
     std::array<glm::dvec2, 4> screenBounds;
     for (int i = 0; i < 4; i++) {
@@ -265,8 +264,8 @@ void TextureOverlayRenderer::updateLonLatRange() {
       screenBounds[i] = cs::utils::convert::toDegrees(screenBounds[i]);
     }
 
-    mLonRange[0] = screenBounds[0][0];
-    mLonRange[1] = screenBounds[0][0];
+    currentBounds.mMinLon = screenBounds[0][0];
+    currentBounds.mMaxLon = screenBounds[0][0];
 
     // Determine the minimum and maximum longitude.
     // To do so, the edges between neighboring corners are examined and classified as one of four
@@ -282,16 +281,16 @@ void TextureOverlayRenderer::updateLonLatRange() {
           // | x---x |   |   |
           //   1   2
           // West to east, dateline is not crossed
-          mLonRange[1]    = std::max(mLonRange[1], screenBounds[i % 4][0] + offset);
-          lonDiffs[i - 1] = screenBounds[i % 4][0] - screenBounds[i - 1][0];
+          currentBounds.mMaxLon = std::max(currentBounds.mMaxLon, screenBounds[i % 4][0] + offset);
+          lonDiffs[i - 1]       = screenBounds[i % 4][0] - screenBounds[i - 1][0];
         } else {
           // 0  90  180 270 360
           // --x |   |   | x--
           //   1           2
           // East to west, dateline is crossed
-          mLonRange[0]    = std::min(mLonRange[0] + 360, screenBounds[i % 4][0]);
-          mLonRange[1]    = mLonRange[1] + 360;
-          lonDiffs[i - 1] = screenBounds[i % 4][0] - (screenBounds[i - 1][0] + 360);
+          currentBounds.mMinLon = std::min(currentBounds.mMinLon + 360, screenBounds[i % 4][0]);
+          currentBounds.mMaxLon = currentBounds.mMaxLon + 360;
+          lonDiffs[i - 1]       = screenBounds[i % 4][0] - (screenBounds[i - 1][0] + 360);
         }
       } else {
         if (screenBounds[i - 1][0] - screenBounds[i % 4][0] < 180) {
@@ -299,63 +298,64 @@ void TextureOverlayRenderer::updateLonLatRange() {
           // | x---x |   |   |
           //   2   1
           // East to west, dateline is not crossed
-          mLonRange[0]    = std::min(mLonRange[0], screenBounds[i % 4][0] + offset);
-          lonDiffs[i - 1] = screenBounds[i % 4][0] - screenBounds[i - 1][0];
+          currentBounds.mMinLon = std::min(currentBounds.mMinLon, screenBounds[i % 4][0] + offset);
+          lonDiffs[i - 1]       = screenBounds[i % 4][0] - screenBounds[i - 1][0];
         } else {
           // 0  90  180 270 360
           // --x |   |   | x--
           //   2           1
           // West to East, dateline is crossed
-          mLonRange[1]    = std::max(mLonRange[1], screenBounds[i % 4][0] + 360);
-          offset          = 360;
-          lonDiffs[i - 1] = (screenBounds[i % 4][0] + 360) - screenBounds[i - 1][0];
+          currentBounds.mMaxLon = std::max(currentBounds.mMaxLon, screenBounds[i % 4][0] + 360);
+          offset                = 360;
+          lonDiffs[i - 1]       = (screenBounds[i % 4][0] + 360) - screenBounds[i - 1][0];
         }
       }
     }
-    if (mLonRange[1] > 360) {
-      mLonRange[0] -= 360;
-      mLonRange[1] -= 360;
+    if (currentBounds.mMaxLon > 360) {
+      currentBounds.mMinLon -= 360;
+      currentBounds.mMaxLon -= 360;
     }
 
     std::array<double, 4> lats;
     std::transform(screenBounds.begin(), screenBounds.end(), lats.begin(),
         [](glm::dvec2 corner) { return corner[1]; });
 
-    mLatRange[0] = *std::min_element(lats.begin(), lats.end());
-    mLatRange[1] = *std::max_element(lats.begin(), lats.end());
+    currentBounds.mMinLat = *std::min_element(lats.begin(), lats.end());
+    currentBounds.mMaxLat = *std::max_element(lats.begin(), lats.end());
 
     // Check if the longitude range spans the whole earth, which would mean that one of the poles is
     // visible. >= 270 is used instead of >= 360 to prevent floating point errors.
     // As long as no pole is visible the maximum range should be 180 degrees, so this check can not
     // result in false positives.
-    if (mLonRange[1] - mLonRange[0] >= 270) {
+    if (currentBounds.mMaxLon - currentBounds.mMinLon >= 270) {
       // 360 degree ranges other than [-180, 180] result in problems on some servers.
-      mLonRange = {-180, 180};
+      currentBounds.mMinLon = -180.;
+      currentBounds.mMaxLon = 180.;
       if (std::all_of(lonDiffs.begin(), lonDiffs.end(), [](double diff) { return diff > 0; })) {
         // West to east => north pole is visible
-        mLatRange[1] = 90;
+        currentBounds.mMaxLat = 90;
       } else if (std::all_of(
                      lonDiffs.begin(), lonDiffs.end(), [](double diff) { return diff < 0; })) {
         // East to west => south pole is visible
-        mLatRange[0] = -90;
+        currentBounds.mMinLat = -90;
       } else {
         logger().warn("Could not determine which pole is visible");
       }
     }
+
+    pBounds = currentBounds;
   }
 
   if (!mActiveWMSLayer->getSettings().mTime.has_value()) {
     WebMapTextureLoader::Request request;
-    request.mMaxSize  = mMaxSize;
-    request.mStyle    = mStyle;
-    request.mLonRange = mLonRange;
-    request.mLatRange = mLatRange;
+    request.mMaxSize = mMaxSize;
+    request.mStyle   = mStyle;
+    request.mBounds  = pBounds.get();
 
     std::optional<WebMapTextureFile> cacheFile = mTextureLoader.loadTexture(
         *mActiveWMS, *mActiveWMSLayer, request, mPluginSettings->mMapCache.get());
     if (cacheFile.has_value()) {
-      mLonRange = cacheFile->mLonRange;
-      mLatRange = cacheFile->mLatRange;
+      pBounds = cacheFile->mBounds;
 
       mWMSTexture = cs::graphics::TextureLoader::loadFromFile(cacheFile->mPath);
       mWMSTexture->Bind();
@@ -432,11 +432,10 @@ bool TextureOverlayRenderer::Do() {
           texture3 == mTextures.end() && texture4 == mWrongTextures.end() && inInterval) {
         // Load WMS texture to the disk.
         WebMapTextureLoader::Request request;
-        request.mMaxSize  = mMaxSize;
-        request.mStyle    = mStyle;
-        request.mTime     = timeString;
-        request.mLonRange = mLonRange;
-        request.mLatRange = mLatRange;
+        request.mMaxSize = mMaxSize;
+        request.mStyle   = mStyle;
+        request.mTime    = timeString;
+        request.mBounds  = pBounds.get();
 
         mTextureFilesBuffer.insert(
             std::pair<std::string, std::future<std::optional<WebMapTextureFile>>>(
@@ -452,8 +451,7 @@ bool TextureOverlayRenderer::Do() {
         std::optional<WebMapTextureFile> file = fileIt->second.get();
 
         if (file.has_value()) {
-          mLonRange = file->mLonRange;
-          mLatRange = file->mLatRange;
+          pBounds = file->mBounds;
 
           // Load WMS texture to memory
           mTexturesBuffer.insert(std::pair<std::string, std::future<std::optional<WebMapTexture>>>(
@@ -649,10 +647,12 @@ bool TextureOverlayRenderer::Do() {
   // Double precision bounds
   loc = m_pSurfaceShader->GetUniformLocation("uLatRange");
   glUniform2dv(loc, 1,
-      glm::value_ptr(cs::utils::convert::toRadians(glm::dvec2(mLatRange[0], mLatRange[1]))));
+      glm::value_ptr(
+          cs::utils::convert::toRadians(glm::dvec2(pBounds.get().mMinLat, pBounds.get().mMaxLat))));
   loc = m_pSurfaceShader->GetUniformLocation("uLonRange");
   glUniform2dv(loc, 1,
-      glm::value_ptr(cs::utils::convert::toRadians(glm::dvec2(mLonRange[0], mLonRange[1]))));
+      glm::value_ptr(
+          cs::utils::convert::toRadians(glm::dvec2(pBounds.get().mMinLon, pBounds.get().mMaxLon))));
 
   glm::vec4 sunDirection =
       glm::normalize(glm::inverse(matWorldTransform) *

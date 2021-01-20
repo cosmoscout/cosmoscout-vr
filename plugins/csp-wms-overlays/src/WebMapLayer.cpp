@@ -73,10 +73,10 @@ WebMapLayer::WebMapLayer(VistaXML::TiXmlElement* element, Settings settings)
       maxLat = utils::getAttribute<double>(boundingBoxElement, "maxx");
     }
   }
-  utils::setOrKeep(mSettings.mLonRange[0], minLon);
-  utils::setOrKeep(mSettings.mLonRange[1], maxLon);
-  utils::setOrKeep(mSettings.mLatRange[0], minLat);
-  utils::setOrKeep(mSettings.mLatRange[1], maxLat);
+  utils::setOrKeep(mSettings.mBounds.mMinLon, minLon);
+  utils::setOrKeep(mSettings.mBounds.mMaxLon, maxLon);
+  utils::setOrKeep(mSettings.mBounds.mMinLat, minLat);
+  utils::setOrKeep(mSettings.mBounds.mMaxLat, maxLat);
 
   for (VistaXML::TiXmlElement* styleElement = element->FirstChildElement("Style"); styleElement;
        styleElement                         = styleElement->NextSiblingElement("Style")) {

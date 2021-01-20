@@ -49,16 +49,13 @@ std::optional<WebMapTextureFile> WebMapTextureLoader::loadTexture(WebMapService 
     WebMapLayer const& layer, Request request, std::string const& mapCache) {
 
   if (layer.getSettings().mNoSubsets) {
-    request.mLonRange = layer.getSettings().mLonRange;
-    request.mLatRange = layer.getSettings().mLatRange;
+    request.mBounds = layer.getSettings().mBounds;
   } else {
-    request.mLonRange = request.mLonRange.value_or(layer.getSettings().mLonRange);
-    request.mLatRange = request.mLatRange.value_or(layer.getSettings().mLatRange);
+    request.mBounds = request.mBounds.value_or(layer.getSettings().mBounds);
   }
 
   WebMapTextureFile result;
-  result.mLonRange = request.mLonRange.value();
-  result.mLatRange = request.mLatRange.value();
+  result.mBounds = request.mBounds.value();
 
   auto cacheFilePath = getCachePath(layer, request, mapCache);
 
@@ -181,8 +178,8 @@ boost::filesystem::path WebMapTextureLoader::getCachePath(
 
   std::stringstream cacheDir;
   cacheDir << mapCache << "/" << layerFixed << "/";
-  cacheDir << request.mLonRange.value()[0] << "_" << request.mLatRange.value()[0] << "_"
-           << request.mLonRange.value()[1] << "_" << request.mLatRange.value()[1] << "/";
+  cacheDir << request.mBounds.value().mMinLon << "_" << request.mBounds.value().mMinLat << "_"
+           << request.mBounds.value().mMaxLon << "_" << request.mBounds.value().mMaxLat << "/";
 
   // Add year subdirectory, if time is specified.
   if (request.mTime.has_value()) {
@@ -230,8 +227,8 @@ std::string WebMapTextureLoader::getRequestUrl(
   url << "&CRS=CRS:84";
   url << "&LAYERS=" << layer.getName();
   url << "&STYLES=" << request.mStyle;
-  url << "&BBOX=" << request.mLonRange.value()[0] << "," << request.mLatRange.value()[0] << ","
-      << request.mLonRange.value()[1] << "," << request.mLatRange.value()[1];
+  url << "&BBOX=" << request.mBounds.value().mMinLon << "," << request.mBounds.value().mMinLat
+      << "," << request.mBounds.value().mMaxLon << "," << request.mBounds.value().mMaxLat;
 
   if (layer.getSettings().mOpaque) {
     url << "&TRANSPARENT=FALSE";
@@ -239,8 +236,8 @@ std::string WebMapTextureLoader::getRequestUrl(
     url << "&TRANSPARENT=TRUE";
   }
 
-  double aspect = (request.mLonRange.value()[1] - request.mLonRange.value()[0]) /
-                  (request.mLatRange.value()[1] - request.mLatRange.value()[0]);
+  double aspect = (request.mBounds.value().mMaxLon - request.mBounds.value().mMinLon) /
+                  (request.mBounds.value().mMaxLat - request.mBounds.value().mMinLat);
   std::optional<int> width, height;
 
   width  = layer.getSettings().mFixedWidth;

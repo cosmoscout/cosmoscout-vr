@@ -64,8 +64,20 @@
           `${CosmoScout.utils.formatLatitude(maxLat)}`;
     }
 
+    setCurrentBounds(minLon, maxLon, minLat, maxLat) {
+      document.getElementById("wmsOverlays.currentBounds").innerText =
+        `${CosmoScout.utils.formatLongitude(minLon)}, ` +
+        `${CosmoScout.utils.formatLatitude(minLat)} - ` +
+        `${CosmoScout.utils.formatLongitude(maxLon)}, ` +
+        `${CosmoScout.utils.formatLatitude(maxLat)}`;
+    }
+
     clearDefaultBounds() {
       document.getElementById("wmsOverlays.defaultBounds").innerText = "None";
+    }
+
+    clearCurrentBounds() {
+      document.getElementById("wmsOverlays.currentBounds").innerText = "None";
     }
   }
 

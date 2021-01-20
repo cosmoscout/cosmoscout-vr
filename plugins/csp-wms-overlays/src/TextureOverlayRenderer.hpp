@@ -65,6 +65,8 @@ class TextureOverlayRenderer : public IVistaOpenGLDraw {
 
   void requestUpdateBounds();
 
+  cs::utils::Property<Bounds> pBounds;
+
   // ---------------------------------------
   // INTERFACE IMPLEMENTATION OF IVistaOpenGLDraw
   // ---------------------------------------
@@ -112,9 +114,7 @@ class TextureOverlayRenderer : public IVistaOpenGLDraw {
   int         mMaxSize;
   std::string mStyle;
 
-  bool                  mUpdateLonLatRange = false;
-  std::array<double, 2> mLonRange          = {-180, 180};
-  std::array<double, 2> mLatRange          = {-90, 90};
+  bool mUpdateLonLatRange = false;
 
   std::optional<WebMapService> mActiveWMS;      ///< The active WMS.
   std::optional<WebMapLayer>   mActiveWMSLayer; ///< The active WMS layer.
@@ -132,7 +132,7 @@ class TextureOverlayRenderer : public IVistaOpenGLDraw {
   WebMapTextureLoader mTextureLoader;
 
   std::shared_ptr<cs::core::SolarSystem>
-                                         mSolarSystem; //! Pointer to the CosmoScout solar system used to retrieve matrices
+      mSolarSystem; //! Pointer to the CosmoScout solar system used to retrieve matrices
   std::shared_ptr<cs::core::TimeControl> mTimeControl;
 
   std::array<float, 3> mMinBounds;

@@ -20,9 +20,8 @@
 namespace csp::wmsoverlays {
 
 struct WebMapTextureFile {
-  std::string           mPath;
-  std::array<double, 2> mLonRange;
-  std::array<double, 2> mLatRange;
+  std::string mPath;
+  Bounds      mBounds;
 };
 
 struct WebMapTexture {
@@ -34,11 +33,10 @@ struct WebMapTexture {
 class WebMapTextureLoader {
  public:
   struct Request {
-    int                                  mMaxSize;
-    std::string                          mStyle;
-    std::optional<std::string>           mTime;
-    std::optional<std::array<double, 2>> mLonRange;
-    std::optional<std::array<double, 2>> mLatRange;
+    int                        mMaxSize;
+    std::string                mStyle;
+    std::optional<std::string> mTime;
+    std::optional<Bounds>      mBounds;
   };
 
   /// Create a new ThreadPool with the specified amount of threads.
