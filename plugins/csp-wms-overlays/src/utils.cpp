@@ -219,8 +219,11 @@ bool timeInIntervals(boost::posix_time::ptime& time, std::vector<TimeInterval>& 
         // Sample rate is in days or time.
 
         // Necessary when sample rate is more than 1 day.
-        time -= boost::posix_time::seconds((time - interval.mStartTime).total_seconds() %
-                                           interval.mSampleDuration.mTimeDuration.total_seconds());
+        if (interval.mSampleDuration.mTimeDuration.total_seconds() > 0) {
+          time -=
+              boost::posix_time::seconds((time - interval.mStartTime).total_seconds() %
+                                         interval.mSampleDuration.mTimeDuration.total_seconds());
+        }
       }
 
       sampleDuration = interval.mSampleDuration;
