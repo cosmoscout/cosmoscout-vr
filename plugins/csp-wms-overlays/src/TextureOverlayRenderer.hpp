@@ -60,9 +60,6 @@ class TextureOverlayRenderer : public IVistaOpenGLDraw {
   /// Set the style that should be requested.
   void setStyle(std::string style);
 
-  /// Returns the time intervals of the active data set.
-  std::vector<TimeInterval> getTimeIntervals();
-
   void requestUpdateBounds();
 
   cs::utils::Property<Bounds> pBounds;
@@ -87,8 +84,6 @@ class TextureOverlayRenderer : public IVistaOpenGLDraw {
   std::unique_ptr<VistaOpenGLNode> mGLNode;
 
   VistaGLSLShader* m_pSurfaceShader = nullptr; //! Vista GLSL shader object used for rendering
-
-  std::vector<TimeInterval> mTimeIntervals; ///< Time intervals of data set.
 
   static const std::string SURFACE_GEOM; //! Code for the geometry shader
   static const std::string SURFACE_VERT; //! Code for the vertex shader

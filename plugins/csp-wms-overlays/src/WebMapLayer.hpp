@@ -37,7 +37,7 @@ class WebMapLayer {
     std::optional<int>         mFixedWidth;
     std::optional<int>         mFixedHeight;
     Bounds                     mBounds;
-    std::optional<std::string> mTime;
+    std::vector<TimeInterval>  mTimeIntervals;
     std::vector<Style>         mStyles;
     // TODO Crs
     // TODO Other dimensions?

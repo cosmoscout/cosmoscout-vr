@@ -101,13 +101,16 @@ void timeDuration(std::string const& isoString, Duration& duration, std::string&
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void convertIsoDate(std::string& date, boost::posix_time::ptime& time) {
-  if (std::regex_match(date, std::regex("[+\\-][0-9]{2}:?([0-9]{2})?$"))) {
-    logger().warn("Time '{}' is not given in UTC but uses an offset. The offset will be ignored!");
-  }
+  if (date.find("T") != date.npos) {
+    if (std::regex_match(date, std::regex("[+\\-][0-9]{2}:?([0-9]{2})?$"))) {
+      logger().warn(
+          "Time '{}' is not given in UTC but uses an offset. The offset will be ignored!");
+    }
 
-  // Remove timezone from date string
-  // For now UTC offsets are not supported and will be ignored
-  date = std::regex_replace(date, std::regex("(Z$|[+\\-][0-9]{2}:?([0-9]{2})?$)"), "");
+    // Remove timezone from date string
+    // For now UTC offsets are not supported and will be ignored
+    date = std::regex_replace(date, std::regex("(Z$|[+\\-][0-9]{2}:?([0-9]{2})?$)"), "");
+  }
 
   date.erase(
       std::remove_if(date.begin(), date.end(), [](unsigned char x) { return std::ispunct(x); }),

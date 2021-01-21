@@ -43,7 +43,18 @@ WebMapLayer::WebMapLayer(VistaXML::TiXmlElement* element, Settings settings)
   for (VistaXML::TiXmlElement* dimensionElement = element->FirstChildElement("Dimension");
        dimensionElement; dimensionElement = dimensionElement->NextSiblingElement("Dimension")) {
     if (utils::getAttribute<std::string>(dimensionElement, "name").value() == "time") {
-      utils::setOrKeep(mSettings.mTime, utils::getElementText(dimensionElement, {}));
+      std::optional<std::string> timeString;
+      utils::setOrKeep(timeString, utils::getElementText(dimensionElement, {}));
+      if (timeString.has_value()) {
+        mSettings.mTimeIntervals.clear();
+        try {
+          utils::parseIsoString(timeString.value(), mSettings.mTimeIntervals);
+        } catch (std::exception const& e) {
+          logger().warn("Failed to parse Iso String '{}' for layer '{}': '{}'. No time dependent "
+                        "data will be available for this layer!",
+              timeString.value(), mTitle, e.what());
+        }
+      }
     }
   }
 
