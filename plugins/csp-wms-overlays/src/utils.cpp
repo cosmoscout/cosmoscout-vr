@@ -88,9 +88,9 @@ void timeDuration(std::string const& isoString, Duration& duration, std::string&
 
   // Create string format based on the sample duration (year / month / day / time).
   if (duration.mYears != 0) {
-    format = "%Y-01-01";
+    format = "%Y";
   } else if (duration.mMonths != 0) {
-    format = "%Y-%m-01";
+    format = "%Y-%m";
   } else if (duration.mTimeDuration.total_seconds() % 86400 == 0) {
     format = "%Y-%m-%d";
   } else {
@@ -101,7 +101,7 @@ void timeDuration(std::string const& isoString, Duration& duration, std::string&
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void convertIsoDate(std::string& date, boost::posix_time::ptime& time) {
-  if (date.find("T") != date.npos) {
+  if (date.find("T") != std::string::npos) {
     if (std::regex_match(date, std::regex("[+\\-][0-9]{2}:?([0-9]{2})?$"))) {
       logger().warn(
           "Time '{}' is not given in UTC but uses an offset. The offset will be ignored!");
@@ -122,6 +122,15 @@ void convertIsoDate(std::string& date, boost::posix_time::ptime& time) {
 
   if (pos != std::string::npos) {
     timeSubStr = date.substr(pos);
+  }
+
+  if (dateSubStr.size() == 4) {
+    // Only year given, append month
+    dateSubStr.append("01");
+  }
+  if (dateSubStr.size() == 6) {
+    // Only year and month given, append day
+    dateSubStr.append("01");
   }
 
   dateSubStr.resize(8, '0');
@@ -157,10 +166,10 @@ void parseIsoString(std::string const& isoString, std::vector<TimeInterval>& tim
 
       // If end date is set to currect, select it according to the time format.
       if (endDate == "current") {
-        if (tmp.mFormat == "%Y-01-01") {
+        if (tmp.mFormat == "%Y") {
           end = boost::posix_time::ptime(boost::gregorian::date(
               boost::posix_time::microsec_clock::universal_time().date().year(), 1, 1));
-        } else if (tmp.mFormat == "%Y-%m-01") {
+        } else if (tmp.mFormat == "%Y-%m") {
           end = boost::posix_time::ptime(boost::gregorian::date(
               boost::posix_time::microsec_clock::universal_time().date().year(),
               boost::posix_time::microsec_clock::universal_time().date().month(), 1));
