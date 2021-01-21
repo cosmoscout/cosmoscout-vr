@@ -62,6 +62,9 @@ class Ring : public cs::scene::CelestialObject, public IVistaOpenGLDraw {
   VistaVertexArrayObject        mSphereVAO;
   VistaBufferObject             mSphereVBO;
 
+  bool mShaderDirty         = true;
+  int  mEnableHDRConnection = -1;
+
   struct {
     uint32_t modelViewMatrix  = 0;
     uint32_t projectionMatrix = 0;
