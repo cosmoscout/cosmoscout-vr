@@ -143,8 +143,7 @@ void TextureOverlayRenderer::setActiveWMS(WebMapService const& wms, WebMapLayer 
     pBounds = mActiveWMSLayer->getSettings().mBounds;
 
     if (!mActiveWMSLayer->getSettings().mTimeIntervals.empty()) {
-      mSampleDuration = mActiveWMSLayer->getSettings().mTimeIntervals.at(0).mSampleDuration;
-      mFormat         = mActiveWMSLayer->getSettings().mTimeIntervals.at(0).mFormat;
+      mCurrentInterval = mActiveWMSLayer->getSettings().mTimeIntervals.at(0);
     } else {
       // Download WMS texture without timestep.
       WebMapTextureLoader::Request request;
@@ -393,24 +392,25 @@ bool TextureOverlayRenderer::Do() {
 
       // Get the start time of the WMS sample.
       boost::posix_time::ptime sampleStartTime =
-          utils::addDurationToTime(time, mSampleDuration, preFetch);
+          utils::addDurationToTime(time, mCurrentInterval.mSampleDuration, preFetch);
       sampleStartTime -= boost::posix_time::microseconds(time.time_of_day().fractional_seconds());
       bool inInterval = utils::timeInIntervals(
-          sampleStartTime, mActiveWMSLayer->getSettings().mTimeIntervals, mSampleDuration, mFormat);
+          sampleStartTime, mActiveWMSLayer->getSettings().mTimeIntervals, mCurrentInterval);
 
       // Create identifier for the sample start time.
-      std::string timeString = utils::timeToString(mFormat.c_str(), sampleStartTime);
+      std::string timeString =
+          utils::timeToString(mCurrentInterval.mFormat.c_str(), sampleStartTime);
 
       // Select a WMS texture over the period of timeDuration if timespan is enabled.
-      if (mPluginSettings->mEnableTimespan.get() && mSampleDuration.isDuration()) {
+      if (mPluginSettings->mEnableTimespan.get() && mCurrentInterval.mSampleDuration.isDuration()) {
         boost::posix_time::ptime sampleAfter =
-            utils::addDurationToTime(sampleStartTime, mSampleDuration);
+            utils::addDurationToTime(sampleStartTime, mCurrentInterval.mSampleDuration);
         bool isAfterInInterval = utils::timeInIntervals(
-            sampleAfter, mActiveWMSLayer->getSettings().mTimeIntervals, mSampleDuration, mFormat);
+            sampleAfter, mActiveWMSLayer->getSettings().mTimeIntervals, mCurrentInterval);
 
         // Select timespan only when the sample after is also in the intervals.
         if (isAfterInInterval) {
-          timeString += "/" + utils::timeToString(mFormat.c_str(), sampleAfter);
+          timeString += "/" + utils::timeToString(mCurrentInterval.mFormat.c_str(), sampleAfter);
         }
       }
 
@@ -481,21 +481,21 @@ bool TextureOverlayRenderer::Do() {
     boost::posix_time::ptime sampleStartTime =
         time - boost::posix_time::microseconds(time.time_of_day().fractional_seconds());
     bool inInterval = utils::timeInIntervals(
-        sampleStartTime, mActiveWMSLayer->getSettings().mTimeIntervals, mSampleDuration, mFormat);
+        sampleStartTime, mActiveWMSLayer->getSettings().mTimeIntervals, mCurrentInterval);
 
     // Create identifier for the sample start time.
-    std::string timeString = utils::timeToString(mFormat.c_str(), sampleStartTime);
+    std::string timeString = utils::timeToString(mCurrentInterval.mFormat.c_str(), sampleStartTime);
 
     // Select a WMS texture over the period of timeDuration if timespan is enabled.
-    if (mPluginSettings->mEnableTimespan.get() && mSampleDuration.isDuration()) {
+    if (mPluginSettings->mEnableTimespan.get() && mCurrentInterval.mSampleDuration.isDuration()) {
       boost::posix_time::ptime sampleAfter =
-          utils::addDurationToTime(sampleStartTime, mSampleDuration);
+          utils::addDurationToTime(sampleStartTime, mCurrentInterval.mSampleDuration);
       bool isAfterInInterval = utils::timeInIntervals(
-          sampleAfter, mActiveWMSLayer->getSettings().mTimeIntervals, mSampleDuration, mFormat);
+          sampleAfter, mActiveWMSLayer->getSettings().mTimeIntervals, mCurrentInterval);
 
       // Select timespan only when the sample after is also in the intervals.
       if (isAfterInInterval) {
-        timeString += "/" + utils::timeToString(mFormat.c_str(), sampleAfter);
+        timeString += "/" + utils::timeToString(mCurrentInterval.mFormat.c_str(), sampleAfter);
       }
     }
 
@@ -518,25 +518,27 @@ bool TextureOverlayRenderer::Do() {
     }
 
     if (!mWMSTextureUsed || !mPluginSettings->mEnableInterpolation.get() ||
-        !mSampleDuration.isDuration()) {
+        !mCurrentInterval.mSampleDuration.isDuration()) {
       mSecondWMSTextureUsed = false;
       mCurrentSecondTexture = "";
     } // Create fading between Wms textures when interpolation is enabled.
     else {
       boost::posix_time::ptime sampleAfter =
-          utils::addDurationToTime(sampleStartTime, mSampleDuration);
+          utils::addDurationToTime(sampleStartTime, mCurrentInterval.mSampleDuration);
       bool isAfterInInterval = utils::timeInIntervals(
-          sampleAfter, mActiveWMSLayer->getSettings().mTimeIntervals, mSampleDuration, mFormat);
+          sampleAfter, mActiveWMSLayer->getSettings().mTimeIntervals, mCurrentInterval);
 
       // Find texture for the following sample.
-      tex = mTextures.find(utils::timeToString(mFormat.c_str(), sampleAfter));
+      tex = mTextures.find(utils::timeToString(mCurrentInterval.mFormat.c_str(), sampleAfter));
 
       if (isAfterInInterval && tex != mTextures.end()) {
         // Only update if we ha a new second texture.
-        if (mCurrentSecondTexture != utils::timeToString(mFormat.c_str(), sampleAfter)) {
+        if (mCurrentSecondTexture !=
+            utils::timeToString(mCurrentInterval.mFormat.c_str(), sampleAfter)) {
           mSecondWMSTexture->UploadTexture(
               tex->second.mWidth, tex->second.mHeight, (void*)tex->second.mData, false);
-          mCurrentSecondTexture = utils::timeToString(mFormat.c_str(), sampleAfter);
+          mCurrentSecondTexture =
+              utils::timeToString(mCurrentInterval.mFormat.c_str(), sampleAfter);
           mSecondWMSTextureUsed = true;
         }
         // Interpolate fade value between the 2 WMS textures.

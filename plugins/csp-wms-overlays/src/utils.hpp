@@ -52,6 +52,10 @@ struct Duration {
   boost::posix_time::time_duration mTimeDuration = boost::posix_time::seconds(0);
 
   bool isDuration() const;
+
+  inline bool operator==(const Duration& rhs) const {
+    return mYears == rhs.mYears && mMonths == rhs.mMonths && mTimeDuration == rhs.mTimeDuration;
+  }
 };
 
 /// Struct of timeintervals of the data set.
@@ -60,6 +64,11 @@ struct TimeInterval {
   boost::posix_time::ptime mEndTime;        ///< The end of the interval.
   std::string              mFormat;         ///< The string format of time values.
   Duration                 mSampleDuration; ///< The duration of one sample in WMS interval.
+
+  inline bool operator==(const TimeInterval& rhs) const {
+    return mStartTime == rhs.mStartTime && mEndTime == rhs.mEndTime && mFormat == rhs.mFormat &&
+           mSampleDuration == rhs.mSampleDuration;
+  }
 };
 
 namespace utils {
@@ -81,8 +90,9 @@ void parseIsoString(std::string const& isoString, std::vector<TimeInterval>& tim
 
 /// Check whether the given time is inside one of the time intervals.
 /// Then calculate the start time of the current sample if it is in the interval.
+/// If the time is in an interval, the 'foundInterval' parameter will be set to it.
 bool timeInIntervals(boost::posix_time::ptime& time, std::vector<TimeInterval>& timeIntervals,
-    Duration& sampleDuration, std::string& format);
+    TimeInterval& foundInterval);
 
 /// Adds the interval duration to the given time.
 /// The duration can be either in years, months or in time_duration.

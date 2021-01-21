@@ -190,34 +190,34 @@ void parseIsoString(std::string const& isoString, std::vector<TimeInterval>& tim
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool timeInIntervals(boost::posix_time::ptime& time, std::vector<TimeInterval>& timeIntervals,
-    Duration& sampleDuration, std::string& format) {
+    TimeInterval& foundInterval) {
   // Check each interval whether the given time is inside or not..
-  for (auto const& interval : timeIntervals) {
+  for (auto interval = timeIntervals.rbegin(); interval != timeIntervals.rend(); interval++) {
     // In order to check if there is data for the current time, the length of the WMS interval
     // (duration of one sample) is added to the current interval.
     boost::posix_time::ptime intervalEndTime =
-        addDurationToTime(interval.mEndTime, interval.mSampleDuration);
+        addDurationToTime(interval->mEndTime, interval->mSampleDuration);
 
     // Sample time of the current time is inside the time interval.
-    if (interval.mStartTime <= time && intervalEndTime >= time) {
+    if (interval->mStartTime <= time && intervalEndTime >= time) {
 
       // Find the last sample time before the current time.
-      if (interval.mSampleDuration.mYears != 0) {
+      if (interval->mSampleDuration.mYears != 0) {
         // Sample rate is in years.
 
         // Substract years when sample rate is more than one year.
-        int year = time.date().year() - ((time.date().year() - interval.mStartTime.date().year()) %
-                                            interval.mSampleDuration.mYears);
+        int year = time.date().year() - ((time.date().year() - interval->mStartTime.date().year()) %
+                                            interval->mSampleDuration.mYears);
 
         // Construct a new time for sample start time.
         time = boost::posix_time::ptime(boost::gregorian::date(year, 1, 1));
-      } else if (interval.mSampleDuration.mMonths != 0) {
+      } else if (interval->mSampleDuration.mMonths != 0) {
         // Sample rate is in months.
 
         // Substract months when sample rate is more than one month.
         int month =
-            time.date().month() - ((time.date().month() - interval.mStartTime.date().month()) %
-                                      interval.mSampleDuration.mMonths);
+            time.date().month() - ((time.date().month() - interval->mStartTime.date().month()) %
+                                      interval->mSampleDuration.mMonths);
         int year = time.date().year();
 
         // When month is in the previous year.
@@ -231,15 +231,14 @@ bool timeInIntervals(boost::posix_time::ptime& time, std::vector<TimeInterval>& 
         // Sample rate is in days or time.
 
         // Necessary when sample rate is more than 1 day.
-        if (interval.mSampleDuration.mTimeDuration.total_seconds() > 0) {
+        if (interval->mSampleDuration.mTimeDuration.total_seconds() > 0) {
           time -=
-              boost::posix_time::seconds((time - interval.mStartTime).total_seconds() %
-                                         interval.mSampleDuration.mTimeDuration.total_seconds());
+              boost::posix_time::seconds((time - interval->mStartTime).total_seconds() %
+                                         interval->mSampleDuration.mTimeDuration.total_seconds());
         }
       }
 
-      sampleDuration = interval.mSampleDuration;
-      format         = interval.mFormat;
+      foundInterval = *interval;
 
       return true;
     }

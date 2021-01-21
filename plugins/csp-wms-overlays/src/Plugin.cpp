@@ -172,14 +172,135 @@ void Plugin::init() {
         mNoMovementRequestedUpdate = false;
       }));
 
-  mGuiManager->getGui()->registerCallback("wmsOverlays.goToFirstTime",
-      "Go to the first available timestep.", std::function([this]() {}));
+  mGuiManager->getGui()->registerCallback(
+      "wmsOverlays.goToFirstTime", "Go to the first available timestep.", std::function([this]() {
+        if (!mActiveOverlay || !mActiveLayers[mActiveOverlay->getCenter()] ||
+            mActiveLayers[mActiveOverlay->getCenter()]->getSettings().mTimeIntervals.empty()) {
+          return;
+        }
+        mTimeControl->setTime(
+            cs::utils::convert::time::toSpice(mActiveLayers[mActiveOverlay->getCenter()]
+                                                  ->getSettings()
+                                                  .mTimeIntervals.front()
+                                                  .mStartTime));
+      }));
+
   mGuiManager->getGui()->registerCallback("wmsOverlays.goToPreviousTime",
-      "Go to the previous available timestep.", std::function([this]() {}));
+      "Go to the previous available timestep.", std::function([this]() {
+        if (!mActiveOverlay || !mActiveLayers[mActiveOverlay->getCenter()] ||
+            mActiveLayers[mActiveOverlay->getCenter()]->getSettings().mTimeIntervals.empty()) {
+          return;
+        }
+
+        boost::posix_time::ptime time =
+            cs::utils::convert::time::toPosix(mTimeControl->pSimulationTime.get());
+
+        std::vector<TimeInterval> intervals =
+            mActiveLayers[mActiveOverlay->getCenter()]->getSettings().mTimeIntervals;
+
+        // Check if current time is in any interval
+        TimeInterval             result;
+        boost::posix_time::ptime sampleStartTime = time;
+        if (utils::timeInIntervals(sampleStartTime, intervals, result)) {
+          if (sampleStartTime != time) {
+            // timeInIntervals rounds down the time to the nearest timestep, so the
+            // result of that method can be used.
+            mTimeControl->setTime(cs::utils::convert::time::toSpice(sampleStartTime));
+            return;
+          } else {
+            // The current time was a valid timestep so the previous step has to be found.
+            if (sampleStartTime == result.mStartTime) {
+              auto it = std::find(intervals.begin(), intervals.end(), result);
+              if (it == intervals.begin()) {
+                // If the time is at the start of the first interval, there is no previous
+                // timestep to go to.
+                return;
+              } else {
+                // If the time is at the start of another interval, the previous timestep is the
+                // end time of the previous interval.
+                // Currently we trust that the intervals are ordered chronologically
+                mTimeControl->setTime(cs::utils::convert::time::toSpice((it - 1)->mEndTime));
+                return;
+              }
+            }
+            // If the time was not the start time of any interval we can substract the duration to
+            // get the previous timestep.
+            sampleStartTime = utils::addDurationToTime(sampleStartTime, result.mSampleDuration, -1);
+            mTimeControl->setTime(cs::utils::convert::time::toSpice(sampleStartTime));
+            return;
+          }
+        }
+
+        boost::posix_time::ptime temp = time;
+        for (auto const& interval : intervals) {
+          if (time > interval.mEndTime) {
+            temp = interval.mEndTime;
+          } else if (time < interval.mStartTime) {
+            mTimeControl->setTime(cs::utils::convert::time::toSpice(temp));
+            return;
+          }
+        }
+        mTimeControl->setTime(cs::utils::convert::time::toSpice(temp));
+      }));
+
   mGuiManager->getGui()->registerCallback(
-      "wmsOverlays.goToNextTime", "Go to the next available timestep.", std::function([this]() {}));
+      "wmsOverlays.goToNextTime", "Go to the next available timestep.", std::function([this]() {
+        if (!mActiveOverlay || !mActiveLayers[mActiveOverlay->getCenter()] ||
+            mActiveLayers[mActiveOverlay->getCenter()]->getSettings().mTimeIntervals.empty()) {
+          return;
+        }
+
+        boost::posix_time::ptime time =
+            cs::utils::convert::time::toPosix(mTimeControl->pSimulationTime.get());
+
+        std::vector<TimeInterval> intervals =
+            mActiveLayers[mActiveOverlay->getCenter()]->getSettings().mTimeIntervals;
+
+        // Check if current time is in any interval
+        TimeInterval             result;
+        boost::posix_time::ptime sampleStartTime = time;
+        if (utils::timeInIntervals(sampleStartTime, intervals, result)) {
+          if (sampleStartTime == result.mEndTime) {
+            auto it = std::find(intervals.begin(), intervals.end(), result);
+            if (it == intervals.end() - 1) {
+              // If the time is at the end of the last interval, there is no next
+              // timestep to go to.
+              return;
+            } else {
+              // If the time is at the end of another interval, the next timestep is the
+              // start time of the next interval.
+              // Currently we trust that the intervals are ordered chronologically
+              mTimeControl->setTime(cs::utils::convert::time::toSpice((it + 1)->mStartTime));
+              return;
+            }
+          }
+          // If the time was not the end time of any interval we can add the duration to
+          // get the next timestep.
+          sampleStartTime = utils::addDurationToTime(sampleStartTime, result.mSampleDuration);
+          mTimeControl->setTime(cs::utils::convert::time::toSpice(sampleStartTime));
+          return;
+        }
+
+        for (auto const& interval : intervals) {
+          if (time < interval.mStartTime) {
+            mTimeControl->setTime(cs::utils::convert::time::toSpice(interval.mStartTime));
+            return;
+          }
+        }
+      }));
+
   mGuiManager->getGui()->registerCallback(
-      "wmsOverlays.goToLastTime", "Go to the last available timestep.", std::function([this]() {}));
+      "wmsOverlays.goToLastTime", "Go to the last available timestep.", std::function([this]() {
+        if (!mActiveOverlay || !mActiveLayers[mActiveOverlay->getCenter()] ||
+            mActiveLayers[mActiveOverlay->getCenter()]->getSettings().mTimeIntervals.empty()) {
+          return;
+        }
+        mTimeControl->setTime(
+            cs::utils::convert::time::toSpice(mActiveLayers[mActiveOverlay->getCenter()]
+                                                  ->getSettings()
+                                                  .mTimeIntervals.back()
+                                                  .mEndTime));
+      }));
 
   mActiveBodyConnection = mSolarSystem->pActiveBody.connectAndTouch(
       [this](std::shared_ptr<cs::scene::CelestialBody> const& body) {

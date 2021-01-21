@@ -121,8 +121,8 @@ class TextureOverlayRenderer : public IVistaOpenGLDraw {
   std::string mCurrentTexture;                     ///< Timestep of the current WMS texture.
   std::string mCurrentSecondTexture;               ///< Timestep of the second WMS texture.
   float       mFade;                               ///< Fading value between WMS textures.
-  std::string mFormat;                             ///< Time format style.
-  Duration    mSampleDuration;                     ///< Sample rate of the current WMS data set.
+  TimeInterval
+      mCurrentInterval; ///< Used to save the current time format style and sample duration;
 
   WebMapTextureLoader mTextureLoader;
 
