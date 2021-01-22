@@ -111,6 +111,11 @@ void main()
 
   fragColor = fragColor * uSunDirIlluminance.w;
 
+  #if $ENABLE_HDR
+    // energy conservation for lambertian reflectance
+    fragColor /= VP_PI;
+  #endif
+
   float directLight = 1.0;
   float ambientLight = ambientBrightness;
 

@@ -100,6 +100,8 @@ in vec2 vLngLat;
 // outputs
 layout(location = 0) out vec3 oColor;
 
+const float M_PI = 3.141592653589793;
+
 vec3 SRGBtoLINEAR(vec3 srgbIn)
 {
   vec3 bLess = step(vec3(0.04045),srgbIn);
@@ -111,10 +113,10 @@ void main()
     oColor = texture(uSurfaceTexture, vTexCoords).rgb;
 
     #ifdef ENABLE_HDR
-      oColor = SRGBtoLINEAR(oColor);
+      oColor = SRGBtoLINEAR(oColor) * uSunIlluminance / M_PI;
+    #else
+      oColor = oColor * uSunIlluminance;
     #endif
-
-    oColor = oColor * uSunIlluminance;
 
     #ifdef ENABLE_LIGHTING
       vec3 normal = normalize(vNormal);

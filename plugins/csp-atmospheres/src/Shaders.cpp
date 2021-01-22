@@ -626,9 +626,9 @@ const char* AtmosphereRenderer::cAtmosphereFrag1 = R"(
       // add clouds themselves
       #if USE_CLOUDMAP
         #if ENABLE_HDR
-          oColor += cloudColor.rgb * (1 - uAmbientBrightness);
+          oColor += cloudColor.rgb * (1 - uAmbientBrightness) * 0.3;
         #else
-          // For non-hdr rendering, the clouds need to be darkend a little.
+          // For non-hdr rendering, the clouds need to be darkend a little more.
           oColor += cloudColor.rgb * (1 - uAmbientBrightness) * 0.1;
         #endif
       #endif
