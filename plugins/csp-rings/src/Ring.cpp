@@ -122,7 +122,7 @@ Ring::Ring(std::shared_ptr<cs::core::Settings> settings,
   mSphereVAO.SpecifyAttributeArrayFloat(
       0, 2, GL_FLOAT, GL_FALSE, sizeof(glm::vec2), 0, &mSphereVBO);
 
-  // Recreate the shader if HDR rendering mode are toggled.
+  // Recreate the shader if HDR rendering mode is toggled.
   mEnableHDRConnection =
       mSettings->mGraphics.pEnableHDR.connect([this](bool /*enabled*/) { mShaderDirty = true; });
 
