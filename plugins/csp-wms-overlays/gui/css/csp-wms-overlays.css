@@ -1,0 +1,22 @@
+#wmsOverlays\.legendContainer {
+    background-color: #fff;
+    border: 2px solid var(--cs-color-primary);
+    border-radius: var(--cs-border-radius-small);
+}
+
+#wmsOverlays\.legend {
+    position : relative;
+}
+
+#wmsOverlays\.legend:after {
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #fff;
+    text-align: center;
+    color: var(--cs-color-background-dark);
+    content: attr(alt);
+}

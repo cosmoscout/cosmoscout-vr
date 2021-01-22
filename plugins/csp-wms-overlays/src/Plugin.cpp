@@ -83,6 +83,7 @@ void Plugin::init() {
   mGuiManager->addSettingsSectionToSideBarFromHTML(
       "WMS", "panorama", "../share/resources/gui/wms_settings.html");
   mGuiManager->addScriptToGuiFromJS("../share/resources/gui/js/csp-wms-overlays.js");
+  mGuiManager->addCssToGui("css/csp-wms-overlays.css");
 
   // Updates the bounds for which map data is requested.
   mGuiManager->getGui()->registerCallback(
