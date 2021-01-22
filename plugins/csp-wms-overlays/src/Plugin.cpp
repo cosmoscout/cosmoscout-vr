@@ -15,6 +15,9 @@
 #include "../../../src/cs-core/SolarSystem.hpp"
 #include "../../../src/cs-core/TimeControl.hpp"
 
+#include <VistaKernel/DisplayManager/VistaDisplayManager.h>
+#include <VistaKernel/VistaSystem.h>
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 EXPORT_FN cs::core::PluginBase* create() {
@@ -603,16 +606,24 @@ void Plugin::goToBounds(Bounds bounds) {
   double lat      = (bounds.mMinLat + bounds.mMaxLat) / 2.;
   double lonRange = bounds.mMaxLon - bounds.mMinLon;
   double latRange = bounds.mMaxLat - bounds.mMinLat;
-  double maxRange = std::max(lonRange, latRange);
+
+  VistaTransformMatrix proj =
+      GetVistaSystem()->GetDisplayManager()->GetCurrentRenderInfo()->m_matProjection;
+  double fovy = 2.0 * atan(1.0 / proj[1][1]);
+  double fovx = 2.0 * atan(1.0 / proj[0][0]);
+
   // Rough approximation of the height, at which the whole bounds are in frame
-  double fov    = 60.;
-  double height = std::tan(cs::utils::convert::toRadians(maxRange) / 2.) *
-                  mSolarSystem->getRadii(mActiveOverlay->getCenter())[0] /
-                  std::tan(cs::utils::convert::toRadians(fov) / 2.);
+  double radius = mSolarSystem->getRadii(mActiveOverlay->getCenter())[0];
+  double heighty =
+      std::tan(cs::utils::convert::toRadians(latRange) / 2.) * radius / std::tan(fovy / 2.);
+  double heightx =
+      std::tan(cs::utils::convert::toRadians(lonRange) / 2.) * radius / std::tan(fovx / 2.);
+  heightx -= radius * (1 - std::cos(cs::utils::convert::toRadians(lonRange) / 2.));
+  heighty -= radius * (1 - std::cos(cs::utils::convert::toRadians(latRange) / 2.));
 
   mSolarSystem->flyObserverTo(mSolarSystem->pActiveBody.get()->getCenterName(),
       mSolarSystem->pActiveBody.get()->getFrameName(),
-      cs::utils::convert::toRadians(glm::dvec2(lon, lat)), height, 5.);
+      cs::utils::convert::toRadians(glm::dvec2(lon, lat)), std::max(heighty, heightx), 5.);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
