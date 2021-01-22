@@ -77,6 +77,8 @@ class TextureOverlayRenderer : public IVistaOpenGLDraw {
   /// Updates the longitude and latitude ranges according to the current viewport.
   void updateLonLatRange();
 
+  void getTimeIndependentTexture();
+
   std::shared_ptr<Plugin::Settings> mPluginSettings;
   Plugin::Settings::Body            mSimpleWMSOverlaySettings;
   std::string                       mCenterName;
