@@ -39,7 +39,7 @@ class WebMapLayer {
     Bounds                     mBounds;
     std::vector<TimeInterval>  mTimeIntervals;
     std::vector<Style>         mStyles;
-    // TODO Crs
+    std::vector<std::string>   mCrs;
     // TODO Other dimensions?
     std::optional<std::string> mAttribution;
   };

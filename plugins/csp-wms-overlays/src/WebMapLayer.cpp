@@ -8,6 +8,8 @@
 #include "logger.hpp"
 #include "utils.hpp"
 
+#include "../../../src/cs-utils/utils.hpp"
+
 #include <curlpp/Easy.hpp>
 #include <curlpp/Options.hpp>
 
@@ -94,8 +96,15 @@ WebMapLayer::WebMapLayer(VistaXML::TiXmlElement* element, Settings settings)
     mSettings.mStyles.emplace_back(styleElement);
   }
 
+  for (VistaXML::TiXmlElement* crsElement = element->FirstChildElement("CRS"); crsElement;
+       crsElement                         = crsElement->NextSiblingElement("CRS")) {
+    std::optional<std::string> crs = utils::getElementText(crsElement, {});
+    if (crs.has_value() && !cs::utils::contains(mSettings.mCrs, crs.value())) {
+      mSettings.mCrs.push_back(crs.value());
+    }
+  }
+
   // TODO Other dimensions?
-  // TODO CRS
 
   for (VistaXML::TiXmlElement* layerElement = element->FirstChildElement("Layer"); layerElement;
        layerElement                         = layerElement->NextSiblingElement("Layer")) {

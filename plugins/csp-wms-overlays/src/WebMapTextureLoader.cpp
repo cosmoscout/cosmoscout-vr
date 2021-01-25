@@ -6,10 +6,11 @@
 
 #include "WebMapTextureLoader.hpp"
 
+#include "logger.hpp"
+
 #include "../../../src/cs-utils/convert.hpp"
 #include "../../../src/cs-utils/filesystem.hpp"
-#include "../../../src/cs-utils/logger.hpp"
-#include "logger.hpp"
+#include "../../../src/cs-utils/utils.hpp"
 
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
@@ -224,11 +225,23 @@ std::string WebMapTextureLoader::getRequestUrl(
   url << "&VERSION=1.3.0";
   url << "&REQUEST=GetMap";
   url << "&FORMAT=" << getMimeType();
-  url << "&CRS=CRS:84";
   url << "&LAYERS=" << layer.getName();
   url << "&STYLES=" << request.mStyle;
-  url << "&BBOX=" << request.mBounds.value().mMinLon << "," << request.mBounds.value().mMinLat
-      << "," << request.mBounds.value().mMaxLon << "," << request.mBounds.value().mMaxLat;
+
+  if (cs::utils::contains(layer.getSettings().mCrs, "CRS:84")) {
+    url << "&CRS=CRS:84";
+    url << "&BBOX=" << request.mBounds.value().mMinLon << "," << request.mBounds.value().mMinLat
+        << "," << request.mBounds.value().mMaxLon << "," << request.mBounds.value().mMaxLat;
+  } else if (cs::utils::contains(layer.getSettings().mCrs, "EPSG:4326")) {
+    url << "&CRS=EPSG:4326";
+    url << "&BBOX=" << request.mBounds.value().mMinLat << "," << request.mBounds.value().mMinLon
+        << "," << request.mBounds.value().mMaxLat << "," << request.mBounds.value().mMaxLon;
+  } else {
+    logger().warn("No compatible CRS found. Trying CRS:84 anyway");
+    url << "&CRS=CRS:84";
+    url << "&BBOX=" << request.mBounds.value().mMinLon << "," << request.mBounds.value().mMinLat
+        << "," << request.mBounds.value().mMaxLon << "," << request.mBounds.value().mMaxLat;
+  }
 
   if (layer.getSettings().mOpaque) {
     url << "&TRANSPARENT=FALSE";
