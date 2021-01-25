@@ -87,6 +87,22 @@
       document.querySelector(`[onclick="CosmoScout.callbacks.wmsOverlays.goToCurrentBounds()"]`)
           .disabled = true;
     }
+
+    enableUpdateBounds(enable) {
+      document.querySelector('[onclick="CosmoScout.callbacks.wmsOverlays.updateBounds()"]')
+          .disabled = !enable;
+    }
+
+    enableTimeNavigation(enable) {
+      document.querySelector('[onclick="CosmoScout.callbacks.wmsOverlays.goToFirstTime()"]')
+          .disabled = !enable;
+      document.querySelector('[onclick="CosmoScout.callbacks.wmsOverlays.goToPreviousTime()"]')
+          .disabled = !enable;
+      document.querySelector('[onclick="CosmoScout.callbacks.wmsOverlays.goToNextTime()"]')
+          .disabled = !enable;
+      document.querySelector('[onclick="CosmoScout.callbacks.wmsOverlays.goToLastTime()"]')
+          .disabled = !enable;
+    }
   }
 
   CosmoScout.init(WMSOverlaysApi);
