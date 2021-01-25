@@ -85,6 +85,9 @@ class Plugin : public cs::core::PluginBase {
   void setWMSLayer(
       std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay, std::string const& name);
   void resetWMSLayer(std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay);
+  void setWMSStyle(
+      std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay, std::string const& name);
+  void resetWMSStyle(std::shared_ptr<TextureOverlayRenderer > const& wmsOverlay);
 
   void goToBounds(Bounds bounds);
 

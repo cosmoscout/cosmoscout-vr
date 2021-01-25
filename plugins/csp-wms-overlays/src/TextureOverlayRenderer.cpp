@@ -339,24 +339,26 @@ void TextureOverlayRenderer::updateLonLatRange() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void TextureOverlayRenderer::getTimeIndependentTexture() {
-  WebMapTextureLoader::Request request;
-  request.mMaxSize = mMaxSize;
-  request.mStyle   = mStyle;
-  request.mBounds  = pBounds.get();
+  if (mActiveWMSLayer && mActiveWMSLayer->isRequestable()) {
+    WebMapTextureLoader::Request request;
+    request.mMaxSize = mMaxSize;
+    request.mStyle   = mStyle;
+    request.mBounds  = pBounds.get();
 
-  std::optional<WebMapTextureFile> cacheFile = mTextureLoader.loadTexture(
-      *mActiveWMS, *mActiveWMSLayer, request, mPluginSettings->mMapCache.get());
-  if (cacheFile.has_value()) {
-    pBounds = cacheFile->mBounds;
+    std::optional<WebMapTextureFile> cacheFile = mTextureLoader.loadTexture(
+        *mActiveWMS, *mActiveWMSLayer, request, mPluginSettings->mMapCache.get());
+    if (cacheFile.has_value()) {
+      pBounds = cacheFile->mBounds;
 
-    mWMSTexture = cs::graphics::TextureLoader::loadFromFile(cacheFile->mPath);
-    mWMSTexture->Bind();
-    mWMSTexture->SetWrapS(GL_CLAMP_TO_EDGE);
-    mWMSTexture->SetWrapT(GL_CLAMP_TO_EDGE);
-    mWMSTexture->Unbind();
-    mWMSTextureUsed = true;
-  } else {
-    mWMSTextureUsed = false;
+      mWMSTexture = cs::graphics::TextureLoader::loadFromFile(cacheFile->mPath);
+      mWMSTexture->Bind();
+      mWMSTexture->SetWrapS(GL_CLAMP_TO_EDGE);
+      mWMSTexture->SetWrapT(GL_CLAMP_TO_EDGE);
+      mWMSTexture->Unbind();
+      mWMSTextureUsed = true;
+    } else {
+      mWMSTextureUsed = false;
+    }
   }
 }
 

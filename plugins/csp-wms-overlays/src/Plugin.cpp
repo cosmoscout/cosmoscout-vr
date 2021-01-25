@@ -154,26 +154,10 @@ void Plugin::init() {
 
   mGuiManager->getGui()->registerCallback("wmsOverlays.setStyle",
       "Sets the style for the currently selected layer.", std::function([this](std::string&& name) {
-        if (!mActiveOverlay || !mActiveLayers[mActiveOverlay->getCenter()]) {
-          return;
+        if (mActiveOverlay || mActiveLayers[mActiveOverlay->getCenter()]) {
+          setWMSStyle(mActiveOverlay, name);
+          mNoMovementRequestedUpdate = false;
         }
-        auto                  bodySettings = getBodySettings(mActiveOverlay);
-        WebMapLayer::Settings layerSettings =
-            mActiveLayers[mActiveOverlay->getCenter()]->getSettings();
-
-        auto const& style = std::find_if(layerSettings.mStyles.begin(), layerSettings.mStyles.end(),
-            [&name](WebMapLayer::Style style) { return style.mName == name; });
-        if (style != layerSettings.mStyles.end()) {
-          mGuiManager->getGui()->callJavascript(
-              "CosmoScout.wmsOverlays.setLegendURL", style->mLegendUrl.value_or(""));
-          bodySettings.mActiveStyle.set(name);
-          mActiveOverlay->setStyle(name);
-        } else {
-          mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.setLegendURL", "");
-          bodySettings.mActiveStyle.set("");
-          mActiveOverlay->setStyle("");
-        }
-        mNoMovementRequestedUpdate = false;
       }));
 
   mGuiManager->getGui()->registerCallback(
@@ -545,13 +529,16 @@ void Plugin::resetWMSServer(std::shared_ptr<TextureOverlayRenderer> const& wmsOv
 void Plugin::setWMSLayer(
     std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay, std::string const& name) {
 
+  resetWMSLayer(wmsOverlay);
+
   auto& settings = getBodySettings(wmsOverlay);
 
   if (!mActiveServers[wmsOverlay->getCenter()]) {
     logger().warn("Can't set layer '{}': There is no active server for body '{}'", name,
         wmsOverlay->getCenter());
     settings.mActiveLayer.reset();
-    resetWMSLayer(wmsOverlay);
+    mGuiManager->getGui()->callJavascript(
+        "CosmoScout.gui.setDropdownValue", "wmsOverlays.setLayer", "None", false);
     return;
   }
 
@@ -561,7 +548,8 @@ void Plugin::setWMSLayer(
     logger().warn("Can't set layer '{}': No such layer found for server '{}'", name,
         mActiveServers[wmsOverlay->getCenter()]->getTitle());
     settings.mActiveLayer.reset();
-    resetWMSLayer(wmsOverlay);
+    mGuiManager->getGui()->callJavascript(
+        "CosmoScout.gui.setDropdownValue", "wmsOverlays.setLayer", "None", false);
     return;
   }
 
@@ -576,28 +564,62 @@ void Plugin::setWMSLayer(
       layer->getSettings().mBounds.mMinLon, layer->getSettings().mBounds.mMaxLon,
       layer->getSettings().mBounds.mMinLat, layer->getSettings().mBounds.mMaxLat);
 
-  mGuiManager->getGui()->callJavascript("CosmoScout.gui.clearDropdown", "wmsOverlays.setStyle");
-  mGuiManager->getGui()->callJavascript(
-      "CosmoScout.gui.addDropdownValue", "wmsOverlays.setStyle", "", "Default", true);
-  mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.setLegendURL", "");
   for (WebMapLayer::Style style : layer->getSettings().mStyles) {
     bool active = style.mName == settings.mActiveStyle.get();
     mGuiManager->getGui()->callJavascript("CosmoScout.gui.addDropdownValue", "wmsOverlays.setStyle",
         style.mName, style.mTitle, active);
+
+    if (active) {
+      setWMSStyle(wmsOverlay, style.mName);
+    }
   }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Plugin::resetWMSLayer(std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay) {
-  mGuiManager->getGui()->callJavascript(
-      "CosmoScout.gui.setDropdownValue", "wmsOverlays.setLayer", "None", false);
   mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.setWMSDataCopyright", "");
   mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.clearDefaultBounds");
   mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.clearCurrentBounds");
 
   mActiveLayers[wmsOverlay->getCenter()].reset();
   wmsOverlay->clearActiveWMS();
+
+  mGuiManager->getGui()->callJavascript("CosmoScout.gui.clearDropdown", "wmsOverlays.setStyle");
+  mGuiManager->getGui()->callJavascript(
+      "CosmoScout.gui.addDropdownValue", "wmsOverlays.setStyle", "", "Default", false);
+
+  resetWMSStyle(wmsOverlay);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Plugin::setWMSStyle(
+    std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay, std::string const& name) {
+
+  resetWMSStyle(wmsOverlay);
+
+  auto                  bodySettings  = getBodySettings(wmsOverlay);
+  WebMapLayer::Settings layerSettings = mActiveLayers[wmsOverlay->getCenter()]->getSettings();
+
+  auto const& style = std::find_if(layerSettings.mStyles.begin(), layerSettings.mStyles.end(),
+      [&name](WebMapLayer::Style style) { return style.mName == name; });
+  if (style != layerSettings.mStyles.end()) {
+    mGuiManager->getGui()->callJavascript(
+        "CosmoScout.wmsOverlays.setLegendURL", style->mLegendUrl.value_or(""));
+    bodySettings.mActiveStyle.set(name);
+    wmsOverlay->setStyle(name);
+  } else {
+    wmsOverlay->setStyle("");
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Plugin::resetWMSStyle(std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay) {
+  mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.setLegendURL", "");
+
+  wmsOverlay->setStyle("");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
