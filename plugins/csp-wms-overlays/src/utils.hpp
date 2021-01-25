@@ -130,6 +130,17 @@ std::optional<T> getAttribute(VistaXML::TiXmlElement* element, std::string attri
   return {};
 }
 
+/// QueryValueAttribute does not work for strings containing spaces, so Attribute is used instead.
+template <>
+inline std::optional<std::string> getAttribute<std::string>(
+    VistaXML::TiXmlElement* element, std::string attributeName) {
+  const std::string* result = element->Attribute(attributeName);
+  if (result != nullptr) {
+    return *result;
+  }
+  return {};
+}
+
 /// Sets the given var to the value of the optional, if it is present.
 template <typename T>
 void setOrKeep(T& var, std::optional<T> optional) {
