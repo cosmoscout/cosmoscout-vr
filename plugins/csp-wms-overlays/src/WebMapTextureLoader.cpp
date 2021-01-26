@@ -258,9 +258,11 @@ std::string WebMapTextureLoader::getRequestUrl(
 
   if (!width.has_value() && !height.has_value()) {
     if (aspect < 1) {
-      height = request.mMaxSize;
+      height = std::min(
+          request.mMaxSize, wms.getSettings().mMaxHeight.value_or(std::numeric_limits<int>::max()));
     } else {
-      width = request.mMaxSize;
+      width = std::min(
+          request.mMaxSize, wms.getSettings().mMaxWidth.value_or(std::numeric_limits<int>::max()));
     }
   }
 

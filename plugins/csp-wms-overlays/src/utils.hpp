@@ -157,6 +157,8 @@ void setOrKeep(std::optional<T>& var, std::optional<T> optional) {
 
 std::optional<double> optstod(std::optional<std::string> string);
 
+std::optional<int> optstoi(std::optional<std::string> string);
+
 } // namespace utils
 
 } // namespace csp::wmsoverlays

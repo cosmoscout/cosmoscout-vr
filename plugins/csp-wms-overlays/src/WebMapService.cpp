@@ -26,6 +26,7 @@ WebMapService::WebMapService(std::string url, std::string cacheDir)
     , mCacheFileName(std::regex_replace(mUrl, std::regex("[/:*]"), "_") + ".xml")
     , mCacheDir(cacheDir)
     , mTitle(parseTitle())
+    , mSettings(parseSettings())
     , mMapFormats(parseMapFormats())
     , mRootLayer(parseRootLayer()) {
   mRootLayer.getRequestableLayers(mRequestableLayers);
@@ -41,6 +42,12 @@ std::string WebMapService::getUrl() const {
 
 std::string WebMapService::getTitle() const {
   return mTitle;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+WebMapService::Settings WebMapService::getSettings() const {
+  return mSettings;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -247,6 +254,20 @@ std::string WebMapService::parseTitle() {
                                           .FirstChild()
                                           .ToText();
   return serviceTitle->ValueStr();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+WebMapService::Settings WebMapService::parseSettings() {
+  VistaXML::TiXmlHandle   capabilityHandle(getCapabilities());
+  WebMapService::Settings settings;
+
+  settings.mMaxWidth =
+      utils::optstoi(utils::getElementText(capabilityHandle.ToElement(), {"Service", "MaxWidth"}));
+  settings.mMaxHeight =
+      utils::optstoi(utils::getElementText(capabilityHandle.ToElement(), {"Service", "MaxHeight"}));
+
+  return settings;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
