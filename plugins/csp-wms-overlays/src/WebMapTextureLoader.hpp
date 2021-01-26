@@ -56,11 +56,11 @@ class WebMapTextureLoader {
   std::future<std::optional<WebMapTexture>> loadTextureFromFileAsync(std::string const& fileName);
 
  private:
-  boost::filesystem::path getCachePath(
-      WebMapLayer const& layer, Request const& request, std::string const& mapCache);
-  std::string getRequestUrl(
-      WebMapService const& wms, WebMapLayer const& layer, Request const& request);
-  std::string getMimeType();
+  boost::filesystem::path getCachePath(WebMapService const& wms, WebMapLayer const& layer,
+      Request const& request, std::string const& mapCache);
+  std::string             getRequestUrl(
+                  WebMapService const& wms, WebMapLayer const& layer, Request const& request);
+  std::string getMimeType(WebMapService const& wms, WebMapLayer const& layer);
 
   const std::map<std::string, std::string> mMimeToExtension = {
       {"image/png", "png"}, {"image/jpeg", "jpg"}};

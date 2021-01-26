@@ -29,6 +29,8 @@ class WebMapService {
   std::vector<WebMapLayer>   getLayers() const;
   std::optional<WebMapLayer> getLayer(std::string name) const;
 
+  bool isFormatSupported(std::string format) const;
+
  private:
   VistaXML::TiXmlElement*  getCapabilities();
   WebMapLayer              parseRootLayer();

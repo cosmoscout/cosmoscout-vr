@@ -8,6 +8,7 @@
 #include "logger.hpp"
 
 #include "../../../src/cs-utils/filesystem.hpp"
+#include "../../../src/cs-utils/utils.hpp"
 
 #include <regex>
 
@@ -59,6 +60,12 @@ std::optional<WebMapLayer> WebMapService::getLayer(std::string name) const {
   } else {
     return *layer;
   }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool WebMapService::isFormatSupported(std::string format) const {
+  return cs::utils::contains(mMapFormats, format);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

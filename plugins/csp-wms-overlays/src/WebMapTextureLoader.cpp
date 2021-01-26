@@ -58,7 +58,7 @@ std::optional<WebMapTextureFile> WebMapTextureLoader::loadTexture(WebMapService 
   WebMapTextureFile result;
   result.mBounds = request.mBounds.value();
 
-  auto cacheFilePath = getCachePath(layer, request, mapCache);
+  auto cacheFilePath = getCachePath(wms, layer, request, mapCache);
 
   // the file is already there, we can return it
   if (boost::filesystem::exists(cacheFilePath) && boost::filesystem::file_size(cacheFilePath) > 0) {
@@ -118,7 +118,7 @@ std::optional<WebMapTextureFile> WebMapTextureLoader::loadTexture(WebMapService 
 
     // Check if the content type is correct.
     std::string contentType = curlpp::Info<CURLINFO_CONTENT_TYPE, std::string>::get(request);
-    if (contentType == "NULL" || contentType != getMimeType()) {
+    if (contentType == "NULL" || contentType != getMimeType(wms, layer)) {
       fail = true;
     }
   }
@@ -166,7 +166,7 @@ std::future<std::optional<WebMapTexture>> WebMapTextureLoader::loadTextureFromFi
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-boost::filesystem::path WebMapTextureLoader::getCachePath(
+boost::filesystem::path WebMapTextureLoader::getCachePath(WebMapService const& wms,
     WebMapLayer const& layer, Request const& request, std::string const& mapCache) {
 
   // Replace forbidden characters in layer string before creating cache dir.
@@ -175,7 +175,7 @@ boost::filesystem::path WebMapTextureLoader::getCachePath(
       layer.getName(), std::back_inserter(layerFixed), boost::is_any_of("*.,:[|]\""), '_');
 
   // Set file format to three caracters.
-  std::string fileFormat = mMimeToExtension.at(getMimeType());
+  std::string fileFormat = mMimeToExtension.at(getMimeType(wms, layer));
 
   std::stringstream cacheDir;
   cacheDir << mapCache << "/" << layerFixed << "/";
@@ -224,7 +224,7 @@ std::string WebMapTextureLoader::getRequestUrl(
   url << "?SERVICE=WMS";
   url << "&VERSION=1.3.0";
   url << "&REQUEST=GetMap";
-  url << "&FORMAT=" << getMimeType();
+  url << "&FORMAT=" << getMimeType(wms, layer);
   url << "&LAYERS=" << layer.getName();
   url << "&STYLES=" << request.mStyle;
 
@@ -283,8 +283,13 @@ std::string WebMapTextureLoader::getRequestUrl(
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::string WebMapTextureLoader::getMimeType() {
-  // TODO Better format handling
+std::string WebMapTextureLoader::getMimeType(WebMapService const& wms, WebMapLayer const& layer) {
+  if (layer.getSettings().mOpaque) {
+    if (wms.isFormatSupported("image/jpeg")) {
+      return "image/png";
+    }
+  }
+  // TODO Use other format if png is not supported
   return "image/png";
 }
 
