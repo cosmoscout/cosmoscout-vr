@@ -380,7 +380,7 @@ echo.
 echo Downloading, building and installing cef (this may take some time) ...
 echo.
 
-set CEF_DIR=cef_binary_88.1.6+g4fe33a1+chromium-88.0.4324.96_windows64_minimal.tar.bz2
+set CEF_DIR=cef_binary_88.1.6+g4fe33a1+chromium-88.0.4324.96_windows64_minimal
 
 cmake -E make_directory "%BUILD_DIR%/cef/extracted" && cd "%BUILD_DIR%/cef"
 
