@@ -19,10 +19,10 @@ On Linux, one can either use the provided shell script ([make.sh](../make.sh)) o
 
 Before you start, it may be necessary to install some additional system packages.
 As there are many distributions with varying default libs and available packages, giving an exhaustive list is difficult.
-Here is an exemplary list for Ubuntu 19.10 which you have to adapt to your specific distribution:
+Here is an exemplary list for Ubuntu 20.04 which you have to adapt to your specific distribution:
 
 ```bash
-sudo apt-get install git cmake build-essential xorg-dev libboost-all-dev libglu1-mesa-dev libssl-dev
+sudo apt-get install git cmake build-essential xorg-dev libboost-all-dev libglu1-mesa-dev libssl-dev libxkbcommon0
 ```
 
 ### Cloning the repository

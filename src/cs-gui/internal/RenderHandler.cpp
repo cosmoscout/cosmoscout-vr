@@ -22,12 +22,6 @@ void RenderHandler::SetDrawCallback(DrawCallback const& callback) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void RenderHandler::SetCursorChangeCallback(CursorChangeCallback const& callback) {
-  mCursorChangeCallback = callback;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 void RenderHandler::SetRequestKeyboardFocusCallback(RequestKeyboardFocusCallback const& callback) {
   mRequestKeyboardFocusCallback = callback;
 }
@@ -144,15 +138,6 @@ void RenderHandler::OnPaint(CefRefPtr<CefBrowser> /*browser*/, PaintElementType 
     }
   }
 } // namespace cs::gui::detail
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void RenderHandler::OnCursorChange(CefRefPtr<CefBrowser> /*browser*/, CefCursorHandle,
-    CefRenderHandler::CursorType type, const CefCursorInfo& /*custom_cursor_info*/) {
-  if (mCursorChangeCallback) {
-    mCursorChangeCallback(static_cast<Cursor>(type));
-  }
-}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
