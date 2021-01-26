@@ -161,6 +161,30 @@ void parseIsoString(std::string const& isoString, std::vector<TimeInterval>& tim
     if (endDate == "") {
       end         = start;
       tmp.mFormat = "%Y-%m-%dT%H:%M:%SZ";
+      std::smatch result;
+      if (!std::regex_search(startDate, result, std::regex("^[[:d:]]{4}"))) {
+        // No year found, using default format
+        tmp.mFormat = "%Y-%m-%dT%H:%MZ";
+      } else if (!std::regex_search(result.suffix().first, result.suffix().second, result,
+                     std::regex("[[:d:]]{2}"))) {
+        // No month found
+        tmp.mFormat = "%Y";
+      } else if (!std::regex_search(result.suffix().first, result.suffix().second, result,
+                     std::regex("[[:d:]]{2}"))) {
+        // No day found
+        tmp.mFormat = "%Y-%m";
+      } else if (!std::regex_search(result.suffix().first, result.suffix().second, result,
+                     std::regex("T[[:d:]]{2}"))) {
+        // No hour found
+        tmp.mFormat = "%Y-%m-%d";
+      } else if (!std::regex_search(result.suffix().first, result.suffix().second, result,
+                     std::regex("[[:d:]]{2}"))) {
+        // No minute found
+        tmp.mFormat = "%Y-%m-%dT%H";
+      } else {
+        // Date specified up to at least minute precision
+        tmp.mFormat = "%Y-%m-%dT%H:%MZ";
+      }
     } else {
       timeDuration(duration, tmp.mSampleDuration, tmp.mFormat);
 
