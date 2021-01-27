@@ -501,15 +501,11 @@ void Plugin::setWMSServer(
   settings.mActiveServer = name;
   mActiveServers[wmsOverlay->getCenter()].emplace(*server);
 
-  for (auto const& layer : server->getLayers()) {
-    bool active = layer.getName() == settings.mActiveLayer.get();
-    mGuiManager->getGui()->callJavascript("CosmoScout.gui.addDropdownValue", "wmsOverlays.setLayer",
-        layer.getName(), layer.getTitle(), active);
-
-    if (active) {
-      setWMSLayer(wmsOverlay, layer.getName());
-    }
+  WebMapLayer root = server->getRootLayer();
+  for (auto const& layer : root.getAllLayers()) {
+    addLayerToSelect(wmsOverlay, layer, settings.mActiveLayer.get());
   }
+  mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.refreshLayerSelect");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -626,6 +622,24 @@ void Plugin::resetWMSStyle(std::shared_ptr<TextureOverlayRenderer> const& wmsOve
   mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.setLegendURL", "");
 
   wmsOverlay->setStyle("");
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Plugin::addLayerToSelect(std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay,
+    WebMapLayer const& layer, std::string const& activeLayer, int const& depth) {
+  bool active = layer.getName() == activeLayer;
+
+  mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.addLayer", layer.getName(),
+      layer.getTitle(), active, layer.isRequestable(), depth);
+
+  if (active) {
+    setWMSLayer(wmsOverlay, layer.getName());
+  }
+
+  for (auto const& sublayer : layer.getAllLayers()) {
+    addLayerToSelect(wmsOverlay, sublayer, activeLayer, depth + 1);
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

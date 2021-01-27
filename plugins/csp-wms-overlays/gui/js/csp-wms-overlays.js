@@ -52,6 +52,23 @@
       $(dropdown).selectpicker();
     }
 
+    refreshLayerSelect() {
+      const dropdown = document.querySelector(`[data-callback="wmsOverlays.setLayer"]`);
+      $(dropdown).selectpicker("refresh");
+    }
+
+    addLayer(name, title, active, requestable, depth) {
+      const dropdown = document.querySelector(`[data-callback="wmsOverlays.setLayer"]`);
+      const option   = document.createElement('option');
+
+      option.value     = name;
+      option.selected  = active;
+      option.disabled  = !requestable;
+      option.innerHTML = "&emsp;".repeat(depth) + title;
+
+      dropdown.appendChild(option);
+    }
+
     setLegendURL(url) {
       document.getElementById("wmsOverlays.legend").src = url;
     }

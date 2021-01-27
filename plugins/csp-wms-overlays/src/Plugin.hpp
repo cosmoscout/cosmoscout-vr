@@ -89,6 +89,9 @@ class Plugin : public cs::core::PluginBase {
       std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay, std::string const& name);
   void resetWMSStyle(std::shared_ptr<TextureOverlayRenderer > const& wmsOverlay);
 
+  void addLayerToSelect(std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay,
+      WebMapLayer const& layer, std::string const& activeLayer, int const& depth = 0);
+
   void goToBounds(Bounds bounds);
 
   std::shared_ptr<Settings> mPluginSettings = std::make_shared<Settings>();

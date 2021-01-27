@@ -33,6 +33,7 @@ class WebMapService {
 
   Settings getSettings() const;
 
+  WebMapLayer                getRootLayer() const;
   std::vector<WebMapLayer>   getLayers() const;
   std::optional<WebMapLayer> getLayer(std::string name) const;
 

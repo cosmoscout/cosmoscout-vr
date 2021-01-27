@@ -32,14 +32,14 @@ class WebMapLayer {
   };
 
   struct Settings {
-    bool                       mOpaque    = false;
-    bool                       mNoSubsets = false;
-    std::optional<int>         mFixedWidth;
-    std::optional<int>         mFixedHeight;
-    Bounds                     mBounds;
-    std::vector<TimeInterval>  mTimeIntervals;
-    std::vector<Style>         mStyles;
-    std::vector<std::string>   mCrs;
+    bool                      mOpaque    = false;
+    bool                      mNoSubsets = false;
+    std::optional<int>        mFixedWidth;
+    std::optional<int>        mFixedHeight;
+    Bounds                    mBounds;
+    std::vector<TimeInterval> mTimeIntervals;
+    std::vector<Style>        mStyles;
+    std::vector<std::string>  mCrs;
     // TODO Other dimensions?
     std::optional<std::string> mAttribution;
   };
@@ -50,8 +50,9 @@ class WebMapLayer {
   std::string getName() const;
   Settings    getSettings() const;
 
-  bool isRequestable();
-  void getRequestableLayers(std::vector<WebMapLayer>& layers);
+  bool                     isRequestable() const;
+  std::vector<WebMapLayer> getAllLayers() const;
+  void                     getRequestableLayers(std::vector<WebMapLayer>& layers) const;
 
  private:
   std::string                mTitle;

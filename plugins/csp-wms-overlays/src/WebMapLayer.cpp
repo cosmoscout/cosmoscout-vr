@@ -132,13 +132,19 @@ WebMapLayer::Settings WebMapLayer::getSettings() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool WebMapLayer::isRequestable() {
+bool WebMapLayer::isRequestable() const {
   return mName.has_value();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void WebMapLayer::getRequestableLayers(std::vector<WebMapLayer>& layers) {
+std::vector<WebMapLayer> WebMapLayer::getAllLayers() const {
+  return mSubLayers;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void WebMapLayer::getRequestableLayers(std::vector<WebMapLayer>& layers) const {
   if (isRequestable()) {
     layers.push_back(*this);
   }
