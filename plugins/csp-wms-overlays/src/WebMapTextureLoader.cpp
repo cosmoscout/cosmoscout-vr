@@ -82,39 +82,47 @@ std::optional<WebMapTexture> WebMapTextureLoader::loadTexture(WebMapService cons
 
 std::optional<std::stringstream> WebMapTextureLoader::requestTexture(WebMapService const& wms,
     WebMapLayer const& layer, Request const& wmsrequest, std::string const& mapCache) {
-  std::stringstream out(std::ios_base::out | std::ios_base::in | std::ios_base::binary);
 
   std::string url = getRequestUrl(wms, layer, wmsrequest);
 
-  curlpp::Easy request;
-  request.setOpt(curlpp::options::Url(url));
-  request.setOpt(curlpp::options::WriteStream(&out));
-  request.setOpt(curlpp::options::NoSignal(true));
-  request.setOpt(curlpp::options::SslVerifyPeer(false));
-
   logger().trace("URL: {}", url);
 
-  // Load to cache file.
-  try {
-    request.perform();
-  } catch (std::exception& e) {
-    logger().error("Failed to perform WMS request: '{}'! Exception: '{}'", url, e.what());
-    return {};
-  }
-
-  // Check if the content type is correct.
-  std::string contentType = curlpp::Info<CURLINFO_CONTENT_TYPE, std::string>::get(request);
-  if (contentType == "NULL" || contentType != getMimeType(wms, layer)) {
-    if (wmsrequest.mTime.has_value()) {
-      logger().warn("There is no image to load for layer '{}' at time {}.", layer.getTitle(),
-          wmsrequest.mTime.value());
-    } else {
-      logger().warn("There is no image to load for layer '{}'.", layer.getTitle());
+  int maxRetries = 3;
+  for (int i = 0; i < maxRetries; i++) {
+    if (i > 0) {
+      logger().trace("Retrying...");
     }
-    return {};
-  }
 
-  return out;
+    std::stringstream out(std::ios_base::out | std::ios_base::in | std::ios_base::binary);
+
+    curlpp::Easy request;
+    request.setOpt(curlpp::options::Url(url));
+    request.setOpt(curlpp::options::WriteStream(&out));
+    request.setOpt(curlpp::options::NoSignal(true));
+    request.setOpt(curlpp::options::SslVerifyPeer(false));
+
+    // Load to cache file.
+    try {
+      request.perform();
+    } catch (std::exception& e) {
+      logger().warn("Failed to perform WMS request: '{}'! Exception: '{}'", url, e.what());
+      continue;
+    }
+
+    // Check if the content type is correct.
+    std::string contentType = curlpp::Info<CURLINFO_CONTENT_TYPE, std::string>::get(request);
+    if (contentType == "NULL" || contentType != getMimeType(wms, layer)) {
+      if (wmsrequest.mTime.has_value()) {
+        logger().warn("There is no image to load for layer '{}' at time {}.", layer.getTitle(),
+            wmsrequest.mTime.value());
+      } else {
+        logger().warn("There is no image to load for layer '{}'.", layer.getTitle());
+      }
+      continue;
+    }
+    return out;
+  }
+  return {};
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
