@@ -141,6 +141,7 @@ void TextureOverlayRenderer::setActiveWMS(WebMapService const& wms, WebMapLayer 
 
   if (mActiveWMSLayer && mActiveWMSLayer->isRequestable()) {
     pBounds = mActiveWMSLayer->getSettings().mBounds;
+    pBounds.touch();
 
     if (!mActiveWMSLayer->getSettings().mTimeIntervals.empty()) {
       mCurrentInterval = mActiveWMSLayer->getSettings().mTimeIntervals.at(0);
@@ -348,7 +349,6 @@ void TextureOverlayRenderer::getTimeIndependentTexture() {
         request, mPluginSettings->mMapCache.get(),
         pBounds.get() == mActiveWMSLayer->getSettings().mBounds);
     if (texture.has_value()) {
-      pBounds = texture->mBounds;
       mWMSTexture->UploadTexture(texture->mWidth, texture->mHeight, (void*)texture->mData, false);
       mWMSTextureUsed = true;
     } else {
