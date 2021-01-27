@@ -186,7 +186,6 @@ void TextureOverlayRenderer::clearTextures() {
 
   mTextures.clear();
   mTexturesBuffer.clear();
-  mTextureFilesBuffer.clear();
   mWrongTextures.clear();
 }
 
@@ -345,16 +344,11 @@ void TextureOverlayRenderer::getTimeIndependentTexture() {
     request.mStyle   = mStyle;
     request.mBounds  = pBounds.get();
 
-    std::optional<WebMapTextureFile> cacheFile = mTextureLoader.loadTexture(
+    std::optional<WebMapTexture> texture = mTextureLoader.loadTexture(
         *mActiveWMS, *mActiveWMSLayer, request, mPluginSettings->mMapCache.get());
-    if (cacheFile.has_value()) {
-      pBounds = cacheFile->mBounds;
-
-      mWMSTexture = cs::graphics::TextureLoader::loadFromFile(cacheFile->mPath);
-      mWMSTexture->Bind();
-      mWMSTexture->SetWrapS(GL_CLAMP_TO_EDGE);
-      mWMSTexture->SetWrapT(GL_CLAMP_TO_EDGE);
-      mWMSTexture->Unbind();
+    if (texture.has_value()) {
+      pBounds = texture->mBounds;
+      mWMSTexture->UploadTexture(texture->mWidth, texture->mHeight, (void*)texture->mData, false);
       mWMSTextureUsed = true;
     } else {
       mWMSTextureUsed = false;
@@ -410,47 +404,23 @@ bool TextureOverlayRenderer::Do() {
         }
       }
 
-      auto texture1 = mTextureFilesBuffer.find(timeString);
-      auto texture2 = mTexturesBuffer.find(timeString);
-      auto texture3 = mTextures.find(timeString);
-      auto texture4 = std::find(mWrongTextures.begin(), mWrongTextures.end(), timeString);
+      auto requestedTexture = mTexturesBuffer.find(timeString);
+      auto loadedTexture    = mTextures.find(timeString);
+      auto wrongTexture     = std::find(mWrongTextures.begin(), mWrongTextures.end(), timeString);
 
-      // Only load textures those aren't stored yet.
-      if (texture1 == mTextureFilesBuffer.end() && texture2 == mTexturesBuffer.end() &&
-          texture3 == mTextures.end() && texture4 == mWrongTextures.end() && inInterval) {
-        // Load WMS texture to the disk.
+      // Only load textures that aren't stored yet.
+      if (requestedTexture == mTexturesBuffer.end() && loadedTexture == mTextures.end() &&
+          wrongTexture == mWrongTextures.end() && inInterval) {
+        // Load WMS texture.
         WebMapTextureLoader::Request request;
         request.mMaxSize = mMaxSize;
         request.mStyle   = mStyle;
         request.mTime    = timeString;
         request.mBounds  = pBounds.get();
 
-        mTextureFilesBuffer.insert(
-            std::pair<std::string, std::future<std::optional<WebMapTextureFile>>>(
-                timeString, mTextureLoader.loadTextureAsync(*mActiveWMS, *mActiveWMSLayer, request,
-                                mPluginSettings->mMapCache.get())));
-      }
-    }
-
-    // Check whether the WMS textures are loaded to the disk.
-    auto fileIt = mTextureFilesBuffer.begin();
-    while (fileIt != mTextureFilesBuffer.end()) {
-      if (fileIt->second.wait_for(std::chrono::seconds(0)) == std::future_status::ready) {
-        std::optional<WebMapTextureFile> file = fileIt->second.get();
-
-        if (file.has_value()) {
-          pBounds = file->mBounds;
-
-          // Load WMS texture to memory
-          mTexturesBuffer.insert(std::pair<std::string, std::future<std::optional<WebMapTexture>>>(
-              fileIt->first, mTextureLoader.loadTextureFromFileAsync(file->mPath)));
-        } else {
-          mWrongTextures.emplace_back(fileIt->first);
-        }
-
-        fileIt = mTextureFilesBuffer.erase(fileIt);
-      } else {
-        ++fileIt;
+        mTexturesBuffer.insert(std::pair<std::string, std::future<std::optional<WebMapTexture>>>(
+            timeString, mTextureLoader.loadTextureAsync(*mActiveWMS, *mActiveWMSLayer, request,
+                            mPluginSettings->mMapCache.get())));
       }
     }
 

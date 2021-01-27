@@ -38,7 +38,7 @@ WebMapTextureLoader::~WebMapTextureLoader() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::future<std::optional<WebMapTextureFile>> WebMapTextureLoader::loadTextureAsync(
+std::future<std::optional<WebMapTexture>> WebMapTextureLoader::loadTextureAsync(
     WebMapService const& wms, WebMapLayer const& layer, Request const& request,
     std::string const& mapCache) {
   return mThreadPool.enqueue([=]() { return loadTexture(wms, layer, request, mapCache); });
@@ -46,122 +46,155 @@ std::future<std::optional<WebMapTextureFile>> WebMapTextureLoader::loadTextureAs
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::optional<WebMapTextureFile> WebMapTextureLoader::loadTexture(WebMapService const& wms,
+std::optional<WebMapTexture> WebMapTextureLoader::loadTexture(WebMapService const& wms,
     WebMapLayer const& layer, Request request, std::string const& mapCache) {
-
   if (layer.getSettings().mNoSubsets) {
     request.mBounds = layer.getSettings().mBounds;
   } else {
     request.mBounds = request.mBounds.value_or(layer.getSettings().mBounds);
   }
 
-  WebMapTextureFile result;
-  result.mBounds = request.mBounds.value();
+  boost::filesystem::path cachePath = getCachePath(wms, layer, request, mapCache);
 
-  auto cacheFilePath = getCachePath(wms, layer, request, mapCache);
-
-  // the file is already there, we can return it
-  if (boost::filesystem::exists(cacheFilePath) && boost::filesystem::file_size(cacheFilePath) > 0) {
-    result.mPath = cacheFilePath.string();
-    return result;
+  // The file is already there, we can return it
+  if (boost::filesystem::exists(cachePath) && boost::filesystem::file_size(cachePath) > 0) {
+    std::optional<WebMapTexture> texture = loadTextureFromFile(cachePath.string());
+    if (texture.has_value()) {
+      texture->mBounds = request.mBounds.value();
+    }
+    return texture;
   }
 
-  // the file is corrupt not available
+  // The file is corrupt or not available, we have to request it
+  auto textureStream = requestTexture(wms, layer, request, mapCache);
+  if (!textureStream.has_value()) {
+    return {};
+  }
+
+  saveTextureToFile(cachePath, textureStream.value());
+
+  std::optional<WebMapTexture> texture = loadTextureFromStream(textureStream.value());
+  if (texture.has_value()) {
+    texture->mBounds = request.mBounds.value();
+  }
+  return texture;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::optional<std::stringstream> WebMapTextureLoader::requestTexture(WebMapService const& wms,
+    WebMapLayer const& layer, Request const& wmsrequest, std::string const& mapCache) {
+  std::stringstream out(std::ios_base::out | std::ios_base::in | std::ios_base::binary);
+
+  std::string url = getRequestUrl(wms, layer, wmsrequest);
+
+  curlpp::Easy request;
+  request.setOpt(curlpp::options::Url(url));
+  request.setOpt(curlpp::options::WriteStream(&out));
+  request.setOpt(curlpp::options::NoSignal(true));
+  request.setOpt(curlpp::options::SslVerifyPeer(false));
+
+  logger().trace("URL: {}", url);
+
+  // Load to cache file.
+  try {
+    request.perform();
+  } catch (std::exception& e) {
+    logger().error("Failed to perform WMS request: '{}'! Exception: '{}'", url, e.what());
+    return {};
+  }
+
+  // Check if the content type is correct.
+  std::string contentType = curlpp::Info<CURLINFO_CONTENT_TYPE, std::string>::get(request);
+  if (contentType == "NULL" || contentType != getMimeType(wms, layer)) {
+    if (wmsrequest.mTime.has_value()) {
+      logger().warn("There is no image to load for layer '{}' at time {}.", layer.getTitle(),
+          wmsrequest.mTime.value());
+    } else {
+      logger().warn("There is no image to load for layer '{}'.", layer.getTitle());
+    }
+    return {};
+  }
+
+  return out;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void WebMapTextureLoader::saveTextureToFile(
+    boost::filesystem::path const& file, std::stringstream const& data) {
   {
     std::unique_lock<std::mutex> lock(mTextureMutex);
 
-    if (boost::filesystem::exists(cacheFilePath) &&
-        boost::filesystem::file_size(cacheFilePath) == 0) {
-      boost::filesystem::remove(cacheFilePath);
+    if (boost::filesystem::exists(file) && boost::filesystem::file_size(file) == 0) {
+      boost::filesystem::remove(file);
     }
 
-    auto cacheDirPath(boost::filesystem::absolute(cacheFilePath.branch_path()));
-    if (!(boost::filesystem::exists(cacheDirPath))) {
+    auto cacheDirPath(boost::filesystem::absolute(file.branch_path()));
+    if (!(boost::filesystem::exists(file))) {
       try {
         cs::utils::filesystem::createDirectoryRecursively(
             cacheDirPath, boost::filesystem::perms::all_all);
       } catch (std::exception& e) {
         logger().error("Failed to create cache directory: {}", e.what());
-        return {};
+        return;
       }
     }
   }
 
-  bool fail = false;
   {
     std::ofstream out;
-    out.open(cacheFilePath.string(), std::ofstream::out | std::ofstream::binary);
+    out.open(file.string(), std::ofstream::out | std::ofstream::binary);
 
     if (!out) {
-      logger().error("Failed to open '{}' for writing!", cacheFilePath.string());
-      return {};
+      logger().error("Failed to open '{}' for writing!", file.string());
+      return;
     }
 
-    std::string url = getRequestUrl(wms, layer, request);
-
-    curlpp::Easy request;
-    request.setOpt(curlpp::options::Url(url));
-    request.setOpt(curlpp::options::WriteStream(&out));
-    request.setOpt(curlpp::options::NoSignal(true));
-    request.setOpt(curlpp::options::SslVerifyPeer(false));
-
-    logger().trace("URL: {}", url);
-
-    // Load to cache file.
-    try {
-      request.perform();
-    } catch (std::exception& e) {
-      logger().error("Failed to perform WMS request: '{}'! Exception: '{}'", url, e.what());
-      boost::filesystem::remove(cacheFilePath);
-      return {};
-    }
-
-    // Check if the content type is correct.
-    std::string contentType = curlpp::Info<CURLINFO_CONTENT_TYPE, std::string>::get(request);
-    if (contentType == "NULL" || contentType != getMimeType(wms, layer)) {
-      fail = true;
-    }
-  }
-
-  if (fail) {
-    if (request.mTime.has_value()) {
-      logger().warn("There is no image to load for layer '{}' at time {}.", layer.getTitle(),
-          request.mTime.value());
-    } else {
-      logger().warn("There is no image to load for layer '{}'.", layer.getTitle());
-    }
-    boost::filesystem::remove(cacheFilePath);
-    return {};
+    out << data.rdbuf();
   }
 
   boost::filesystem::perms filePerms =
       boost::filesystem::perms::owner_read | boost::filesystem::perms::owner_write |
       boost::filesystem::perms::group_read | boost::filesystem::perms::group_write |
       boost::filesystem::perms::others_read | boost::filesystem::perms::others_write;
-  boost::filesystem::permissions(cacheFilePath, filePerms);
-
-  result.mPath = cacheFilePath.string();
-  return result;
+  boost::filesystem::permissions(file, filePerms);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::future<std::optional<WebMapTexture>> WebMapTextureLoader::loadTextureFromFileAsync(
-    std::string const& fileName) {
-  return mThreadPool.enqueue([=]() {
-    int width, height, bpp;
-    int channels = 4;
+std::optional<WebMapTexture> WebMapTextureLoader::loadTextureFromFile(std::string const& fileName) {
+  int width, height, bpp;
+  int channels = 4;
 
-    unsigned char* pixels = stbi_load(fileName.c_str(), &width, &height, &bpp, channels);
+  unsigned char* pixels = stbi_load(fileName.c_str(), &width, &height, &bpp, channels);
 
-    if (!pixels) {
-      logger().error("Failed to load '{}' with stbi!", fileName.c_str());
-      return std::optional<WebMapTexture>{};
-    }
+  if (!pixels) {
+    logger().error("Failed to load '{}' with stbi!", fileName.c_str());
+    return std::optional<WebMapTexture>{};
+  }
 
-    WebMapTexture texture{pixels, width, height};
-    return std::optional<WebMapTexture>{texture};
-  });
+  WebMapTexture texture{pixels, width, height};
+  return std::optional<WebMapTexture>{texture};
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::optional<WebMapTexture> WebMapTextureLoader::loadTextureFromStream(
+    std::stringstream const& stream) {
+  int width, height, bpp;
+  int channels = 4;
+
+  unsigned char* pixels = stbi_load_from_memory((unsigned char*)stream.str().data(),
+      (int)stream.str().size(), &width, &height, &bpp, channels);
+
+  if (!pixels) {
+    logger().error("Failed to load texture from memory with stbi!");
+    return std::optional<WebMapTexture>{};
+  }
+
+  WebMapTexture texture{pixels, width, height};
+  return std::optional<WebMapTexture>{texture};
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
