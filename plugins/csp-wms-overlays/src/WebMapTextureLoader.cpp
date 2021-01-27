@@ -40,20 +40,16 @@ WebMapTextureLoader::~WebMapTextureLoader() {
 
 std::future<std::optional<WebMapTexture>> WebMapTextureLoader::loadTextureAsync(
     WebMapService const& wms, WebMapLayer const& layer, Request const& request,
-    std::string const& mapCache) {
-  return mThreadPool.enqueue([=]() { return loadTexture(wms, layer, request, mapCache); });
+    std::string const& mapCache, bool const& saveToCache) {
+  return mThreadPool.enqueue(
+      [=]() { return loadTexture(wms, layer, request, mapCache, saveToCache); });
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::optional<WebMapTexture> WebMapTextureLoader::loadTexture(WebMapService const& wms,
-    WebMapLayer const& layer, Request request, std::string const& mapCache) {
-  if (layer.getSettings().mNoSubsets) {
-    request.mBounds = layer.getSettings().mBounds;
-  } else {
-    request.mBounds = request.mBounds.value_or(layer.getSettings().mBounds);
-  }
-
+    WebMapLayer const& layer, Request const& request, std::string const& mapCache,
+    bool const& saveToCache) {
   boost::filesystem::path cachePath = getCachePath(wms, layer, request, mapCache);
 
   // The file is already there, we can return it
@@ -71,7 +67,9 @@ std::optional<WebMapTexture> WebMapTextureLoader::loadTexture(WebMapService cons
     return {};
   }
 
-  saveTextureToFile(cachePath, textureStream.value());
+  if (saveToCache) {
+    saveTextureToFile(cachePath, textureStream.value());
+  }
 
   std::optional<WebMapTexture> texture = loadTextureFromStream(textureStream.value());
   if (texture.has_value()) {

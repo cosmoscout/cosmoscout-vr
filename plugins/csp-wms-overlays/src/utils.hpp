@@ -42,6 +42,11 @@ struct Bounds {
     return mMinLon != rhs.mMinLon || mMaxLon != rhs.mMaxLon || mMinLat != rhs.mMinLat ||
            mMaxLat != rhs.mMaxLat;
   }
+
+  inline bool operator==(const Bounds& rhs) const {
+    return mMinLon == rhs.mMinLon && mMaxLon == rhs.mMaxLon && mMinLat == rhs.mMinLat &&
+           mMaxLat == rhs.mMaxLat;
+  }
 };
 
 /// Struct for the duration of the WMS time step.

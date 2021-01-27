@@ -344,8 +344,9 @@ void TextureOverlayRenderer::getTimeIndependentTexture() {
     request.mStyle   = mStyle;
     request.mBounds  = pBounds.get();
 
-    std::optional<WebMapTexture> texture = mTextureLoader.loadTexture(
-        *mActiveWMS, *mActiveWMSLayer, request, mPluginSettings->mMapCache.get());
+    std::optional<WebMapTexture> texture = mTextureLoader.loadTexture(*mActiveWMS, *mActiveWMSLayer,
+        request, mPluginSettings->mMapCache.get(),
+        pBounds.get() == mActiveWMSLayer->getSettings().mBounds);
     if (texture.has_value()) {
       pBounds = texture->mBounds;
       mWMSTexture->UploadTexture(texture->mWidth, texture->mHeight, (void*)texture->mData, false);
@@ -420,7 +421,8 @@ bool TextureOverlayRenderer::Do() {
 
         mTexturesBuffer.insert(std::pair<std::string, std::future<std::optional<WebMapTexture>>>(
             timeString, mTextureLoader.loadTextureAsync(*mActiveWMS, *mActiveWMSLayer, request,
-                            mPluginSettings->mMapCache.get())));
+                            mPluginSettings->mMapCache.get(),
+                            pBounds.get() == mActiveWMSLayer->getSettings().mBounds)));
       }
     }
 

@@ -42,11 +42,12 @@ class WebMapTextureLoader {
 
   /// Async WMS texture loader.
   std::future<std::optional<WebMapTexture>> loadTextureAsync(WebMapService const& wms,
-      WebMapLayer const& layer, Request const& request, std::string const& mapCache);
+      WebMapLayer const& layer, Request const& request, std::string const& mapCache,
+      bool const& saveToCache);
 
   /// WMS texture loader.
   std::optional<WebMapTexture> loadTexture(WebMapService const& wms, WebMapLayer const& layer,
-      Request request, std::string const& mapCache);
+      Request const& request, std::string const& mapCache, bool const& saveToCache);
 
  private:
   std::optional<std::stringstream> requestTexture(WebMapService const& wms,
