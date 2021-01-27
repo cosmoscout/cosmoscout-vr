@@ -490,7 +490,9 @@ void Plugin::setWMSServer(
           [&name](WebMapService wms) { return wms.getTitle() == name; });
 
   if (server == mWms.at(wmsOverlay->getCenter()).end()) {
-    logger().warn("No server with name '{}' found", name);
+    if (name != "None") {
+      logger().warn("No server with name '{}' found", name);
+    }
     settings.mActiveServer.reset();
 
     mGuiManager->getGui()->callJavascript(
@@ -541,8 +543,10 @@ void Plugin::setWMSLayer(
   std::optional<WebMapLayer> layer = mActiveServers[wmsOverlay->getCenter()]->getLayer(name);
 
   if (!layer.has_value()) {
-    logger().warn("Can't set layer '{}': No such layer found for server '{}'", name,
-        mActiveServers[wmsOverlay->getCenter()]->getTitle());
+    if (name != "None") {
+      logger().warn("Can't set layer '{}': No such layer found for server '{}'", name,
+          mActiveServers[wmsOverlay->getCenter()]->getTitle());
+    }
     settings.mActiveLayer.reset();
     mGuiManager->getGui()->callJavascript(
         "CosmoScout.gui.setDropdownValue", "wmsOverlays.setLayer", "None", false);
