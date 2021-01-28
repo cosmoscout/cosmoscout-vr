@@ -111,12 +111,6 @@ boost::posix_time::ptime addDurationToTime(
 std::optional<std::string> getElementText(
     VistaXML::TiXmlElement* baseElement, std::vector<std::string> childPath);
 
-/// Tries to get the value of a boolean attribute on the given element.
-/// If the attribute contains an integer the values will be mapped to booleans as follows:
-/// 0->false, 1->true
-/// The return value is empty if the requested element is not present.
-std::optional<bool> getBoolAttribute(VistaXML::TiXmlElement* element, std::string attributeName);
-
 /// Tries to get the value of an integer attribute representing a size.
 /// The returned value (inner optional) is empty if the attribute specifies an unlimited size.
 /// The return value (outer optional) is empty if the requested attribute is not present.
@@ -136,15 +130,12 @@ std::optional<T> getAttribute(VistaXML::TiXmlElement* element, std::string attri
 }
 
 /// QueryValueAttribute does not work for strings containing spaces, so Attribute is used instead.
-template <>
-inline std::optional<std::string> getAttribute<std::string>(
-    VistaXML::TiXmlElement* element, std::string attributeName) {
-  const std::string* result = element->Attribute(attributeName);
-  if (result != nullptr) {
-    return *result;
-  }
-  return {};
-}
+extern template std::optional<std::string> getAttribute<std::string>(
+    VistaXML::TiXmlElement* element, std::string attributeName);
+
+/// Booleans may be given as either integers (0->false, 1->true) or strings.
+extern template std::optional<bool> getAttribute<bool>(
+    VistaXML::TiXmlElement* element, std::string attributeName);
 
 /// Sets the given var to the value of the optional, if it is present.
 template <typename T>

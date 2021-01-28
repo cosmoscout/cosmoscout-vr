@@ -33,8 +33,8 @@ WebMapLayer::WebMapLayer(VistaXML::TiXmlElement* element, Settings settings)
     mName = nameElement->FirstChild()->ValueStr();
   }
 
-  utils::setOrKeep(mSettings.mOpaque, utils::getBoolAttribute(element, "opaque"));
-  utils::setOrKeep(mSettings.mNoSubsets, utils::getBoolAttribute(element, "noSubsets"));
+  utils::setOrKeep(mSettings.mOpaque, utils::getAttribute<bool>(element, "opaque"));
+  utils::setOrKeep(mSettings.mNoSubsets, utils::getAttribute<bool>(element, "noSubsets"));
 
   utils::setOrKeep(mSettings.mFixedWidth, utils::getSizeAttribute(element, "fixedWidth"));
   utils::setOrKeep(mSettings.mFixedHeight, utils::getSizeAttribute(element, "fixedHeight"));

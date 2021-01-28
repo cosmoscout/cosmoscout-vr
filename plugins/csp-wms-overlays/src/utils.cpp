@@ -304,17 +304,6 @@ std::optional<std::string> getElementText(
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::optional<bool> getBoolAttribute(VistaXML::TiXmlElement* element, std::string attributeName) {
-  // TODO Can boolean attributes be given as strings?
-  std::optional<int> value = getAttribute<int>(element, attributeName);
-  if (value.has_value()) {
-    return value.value() == 1;
-  }
-  return {};
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 std::optional<std::optional<int>> getSizeAttribute(
     VistaXML::TiXmlElement* element, std::string attributeName) {
   std::optional<int> value = getAttribute<int>(element, attributeName);
@@ -324,6 +313,36 @@ std::optional<std::optional<int>> getSizeAttribute(
       inner = value.value();
     }
     return inner;
+  }
+  return {};
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::optional<std::string> getAttribute<std::string>(
+    VistaXML::TiXmlElement* element, std::string attributeName) {
+  const std::string* result = element->Attribute(attributeName);
+  if (result != nullptr) {
+    return *result;
+  }
+  return {};
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::optional<bool> getAttribute<bool>(VistaXML::TiXmlElement* element, std::string attributeName) {
+  std::optional<int> value = getAttribute<int>(element, attributeName);
+  if (value.has_value()) {
+    return value.value() == 1;
+  }
+  std::optional<std::string> valueStr = getAttribute<std::string>(element, attributeName);
+  if (valueStr.has_value()) {
+    if (valueStr.value() == "1" || valueStr.value() == "true") {
+      return true;
+    }
+    if (valueStr.value() == "0" || valueStr.value() == "false") {
+      return false;
+    }
   }
   return {};
 }
