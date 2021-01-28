@@ -160,7 +160,6 @@ void parseIsoString(std::string const& isoString, std::vector<TimeInterval>& tim
     // If there is no end date, just a single timestep.
     if (endDate == "") {
       end         = start;
-      tmp.mFormat = "%Y-%m-%dT%H:%M:%SZ";
       std::smatch result;
       if (!std::regex_search(startDate, result, std::regex("^[[:d:]]{4}"))) {
         // No year found, using default format
@@ -180,10 +179,14 @@ void parseIsoString(std::string const& isoString, std::vector<TimeInterval>& tim
       } else if (!std::regex_search(result.suffix().first, result.suffix().second, result,
                      std::regex("[[:d:]]{2}"))) {
         // No minute found
-        tmp.mFormat = "%Y-%m-%dT%H";
-      } else {
-        // Date specified up to at least minute precision
+        tmp.mFormat = "%Y-%m-%dT%HZ";
+      } else if (!std::regex_search(result.suffix().first, result.suffix().second, result,
+                     std::regex("[[:d:]]{2}"))) {
+        // No seconds found
         tmp.mFormat = "%Y-%m-%dT%H:%MZ";
+      } else {
+        // Date specified up to at least second precision
+        tmp.mFormat = "%Y-%m-%dT%H:%M:%SZ";
       }
     } else {
       timeDuration(duration, tmp.mSampleDuration, tmp.mFormat);
