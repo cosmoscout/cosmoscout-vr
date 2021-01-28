@@ -63,8 +63,9 @@ class Plugin : public cs::core::PluginBase {
           "None"}; ///< The name of the currently active WMS layer.
       cs::utils::DefaultProperty<std::string> mActiveStyle{
           ""}; ///< The name of the style for the currently active WMS layer.
-      cs::utils::DefaultProperty<std::array<double, 4>> mActiveBounds{{-180., 180., -90., 90.}};
-      std::vector<std::string>                          mWms; ///<	URLs of WMS servers.
+      cs::utils::DefaultProperty<std::array<double, 4>> mActiveBounds{
+          {-180., 180., -90., 90.}}; ///< The bounds for the currently active WMS layer.
+      std::vector<std::string> mWms; ///<	URLs of WMS servers.
     };
 
     std::map<std::string, Body> mBodies; ///< A list of bodies with their anchor names.
@@ -99,9 +100,11 @@ class Plugin : public cs::core::PluginBase {
   std::map<std::string, std::shared_ptr<TextureOverlayRenderer>> mWMSOverlays;
   std::map<std::string, std::vector<WebMapService>>              mWms;
 
-  std::shared_ptr<TextureOverlayRenderer>             mActiveOverlay;
-  std::map<std::string, std::optional<WebMapService>> mActiveServers;
-  std::map<std::string, std::optional<WebMapLayer>>   mActiveLayers;
+  std::shared_ptr<TextureOverlayRenderer> mActiveOverlay;
+  std::map<std::string, std::optional<WebMapService>>
+      mActiveServers; ///< The currently active WebMapService for each center name.
+  std::map<std::string, std::optional<WebMapLayer>>
+      mActiveLayers; ///< The currently active WebMapLayer for each center name.
 
   bool mNoMovement;                ///< True when the observer is not moving.
   bool mNoMovementRequestedUpdate; ///< True when the active overlay was requested to update its

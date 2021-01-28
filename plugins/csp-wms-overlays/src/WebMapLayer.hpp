@@ -18,12 +18,14 @@
 
 namespace csp::wmsoverlays {
 
+/// Class for storing information on a single layer of a WMS.
 class WebMapLayer {
  public:
+  /// Struct for storing information on a single style for a WMS layer.
   struct Style {
-    const std::string                mTitle;
-    const std::string                mName;
-    const std::optional<std::string> mLegendUrl;
+    const std::string                mTitle;     ///< Human readable description of the style.
+    const std::string                mName;      ///< Internal name of the style for requests.
+    const std::optional<std::string> mLegendUrl; ///< URL at which a legend image may be found.
 
     Style(VistaXML::TiXmlElement* element);
 
@@ -31,27 +33,35 @@ class WebMapLayer {
     std::optional<std::string> getLegendUrl(VistaXML::TiXmlElement* element);
   };
 
+  /// Struct for storing general layer settings.
   struct Settings {
-    bool                      mOpaque    = false;
-    bool                      mNoSubsets = false;
-    std::optional<int>        mFixedWidth;
-    std::optional<int>        mFixedHeight;
-    Bounds                    mBounds;
-    std::vector<TimeInterval> mTimeIntervals;
-    std::vector<Style>        mStyles;
-    std::vector<std::string>  mCrs;
-    // TODO Other dimensions?
-    std::optional<std::string> mAttribution;
+    bool mNoSubsets =
+        false; ///< If true, no different bounds than the default ones may be requested.
+    std::vector<std::string>
+                       mCrs; ///< List of coordinate reference systems for which data is available.
+    std::optional<int> mFixedWidth;            ///< Only textures with this width may be requested.
+    std::optional<int> mFixedHeight;           ///< Only textures with this height may be requested.
+    Bounds             mBounds;                ///< Default (maximum) bounds of the layer.
+    bool               mOpaque = false;        ///< Specifies whether the layer is opaque.
+    std::vector<Style> mStyles;                ///< List of styles for the layer.
+    std::vector<TimeInterval>  mTimeIntervals; ///< TimeIntervals, for which data is available.
+    std::optional<std::string> mAttribution;   ///< Attribution for the layer
   };
 
   WebMapLayer(VistaXML::TiXmlElement* element, Settings settings);
 
+  /// Gets a human readable description of the layer.
   std::string getTitle() const;
+  /// Gets the internal name of the layer used for requests.
   std::string getName() const;
-  Settings    getSettings() const;
+  /// Gets the general settings of the layer.
+  Settings getSettings() const;
 
+  /// Checks if map data may be requested for the layer.
   bool                     isRequestable() const;
+	/// Gets a list of all child layers of the layer.
   std::vector<WebMapLayer> getAllLayers() const;
+	/// Adds all child layers to the layers list, for which map data may be requested.
   void                     getRequestableLayers(std::vector<WebMapLayer>& layers) const;
 
  private:

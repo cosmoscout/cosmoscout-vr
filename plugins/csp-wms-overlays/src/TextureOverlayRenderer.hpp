@@ -28,18 +28,12 @@ class Settings;
 
 namespace csp::wmsoverlays {
 
-/**
- * Class which gets a geo-referenced texture and overlays if onto the previous rendered scene.
- * Therefore it copies the depth buffer first. Second, in the shader it does an inverse projection
- * to get the cartesian coordinates. This coordinates are transformed to latitude and longitude to
- * do the lookup in the geo-referenced texture. The value is then overlayed on that pixel position.
- */
+/// Class which gets a geo-referenced texture and overlays if onto the previous rendered scene.
+/// Therefore it copies the depth buffer first. Second, in the shader it does an inverse projection
+/// to get the cartesian coordinates. This coordinates are transformed to latitude and longitude to
+/// do the lookup in the geo-referenced texture. The value is then overlayed on that pixel position.
 class TextureOverlayRenderer : public IVistaOpenGLDraw {
  public:
-  /**
-   * Constructor requires the SolarSystem to get the current active planet
-   * to get the model matrix
-   */
   TextureOverlayRenderer(std::string center, std::shared_ptr<cs::core::SolarSystem> solarSystem,
       std::shared_ptr<cs::core::TimeControl>   timeControl,
       std::shared_ptr<Plugin::Settings> const& pluginSettings);
@@ -60,13 +54,15 @@ class TextureOverlayRenderer : public IVistaOpenGLDraw {
   /// Set the style that should be requested.
   void setStyle(std::string style);
 
+  /// Requests to change the map bounds to values appropriate for the current observer perspective.
+  /// The bounds will be updated the next time the Do() method is called.
   void requestUpdateBounds();
 
+  /// The current map bounds of this overlay.
+  /// Consider this to be read-only.
   cs::utils::Property<Bounds> pBounds;
 
-  // ---------------------------------------
-  // INTERFACE IMPLEMENTATION OF IVistaOpenGLDraw
-  // ---------------------------------------
+  /// Interface implementation of IVistaOpenGLDraw
   virtual bool Do();
   virtual bool GetBoundingBox(VistaBoundingBox& bb);
 
@@ -77,6 +73,7 @@ class TextureOverlayRenderer : public IVistaOpenGLDraw {
   /// Updates the longitude and latitude ranges according to the current viewport.
   void updateLonLatRange();
 
+  /// Synchronously loads a texture for a time-independent map.
   void getTimeIndependentTexture();
 
   std::shared_ptr<Plugin::Settings> mPluginSettings;
@@ -85,32 +82,31 @@ class TextureOverlayRenderer : public IVistaOpenGLDraw {
 
   std::unique_ptr<VistaOpenGLNode> mGLNode;
 
-  VistaGLSLShader* m_pSurfaceShader = nullptr; //! Vista GLSL shader object used for rendering
+  VistaGLSLShader* m_pSurfaceShader = nullptr; ///< Vista GLSL shader object used for rendering
 
-  static const std::string SURFACE_GEOM; //! Code for the geometry shader
-  static const std::string SURFACE_VERT; //! Code for the vertex shader
-  static const std::string SURFACE_FRAG; //! Code for the fragment shader
+  static const std::string SURFACE_GEOM; ///< Code for the geometry shader
+  static const std::string SURFACE_VERT; ///< Code for the vertex shader
+  static const std::string SURFACE_FRAG; ///< Code for the fragment shader
 
-  /**
-   * Struct which stores the depth buffer and color buffer from the previous rendering (order)
-   * on the GPU and pass it to the shaders for inverse transformations based on depth and screen
-   * coordinates. Used to calculate texture coordinates for the overlay
-   */
+  /// Struct which stores the depth buffer and color buffer from the previous rendering (order)
+  /// on the GPU and pass it to the shaders for inverse transformations based on depth and screen
+  /// coordinates. Used to calculate texture coordinates for the overlay
   struct GBufferData {
     VistaTexture* mDepthBuffer = nullptr;
     VistaTexture* mColorBuffer = nullptr;
   };
 
-  std::unordered_map<VistaViewport*, GBufferData> mGBufferData; //! Store one buffer per viewport
+  std::unordered_map<VistaViewport*, GBufferData> mGBufferData; ///< Store one buffer per viewport
 
-  std::map<std::string, std::future<std::optional<WebMapTexture>>> mTexturesBuffer;
-  std::map<std::string, WebMapTexture>                             mTextures;
-  std::vector<std::string>                                         mWrongTextures;
+  std::map<std::string, std::future<std::optional<WebMapTexture>>>
+      mTexturesBuffer; ///< Stores all textures, for which the request ist still pending.
+  std::map<std::string, WebMapTexture> mTextures; ///< Stores all successfully loaded textures.
+  std::vector<std::string> mWrongTextures;        ///< Stores textures, for which loading failed.
 
-  int         mMaxSize;
-  std::string mStyle;
+  int         mMaxSize; ///< Size of the larger edge of requested images, in pixels.
+  std::string mStyle;   ///< Name of the currently active style.
 
-  bool mUpdateLonLatRange = false;
+  bool mUpdateLonLatRange = false; ///< Flag for updating the map bounds in the next update.
 
   std::optional<WebMapService> mActiveWMS;      ///< The active WMS.
   std::optional<WebMapLayer>   mActiveWMSLayer; ///< The active WMS layer.
@@ -125,14 +121,13 @@ class TextureOverlayRenderer : public IVistaOpenGLDraw {
   TimeInterval
       mCurrentInterval; ///< Used to save the current time format style and sample duration;
 
-  WebMapTextureLoader mTextureLoader;
+  WebMapTextureLoader mTextureLoader; ///< Loader used to request map textures.
 
-  std::shared_ptr<cs::core::SolarSystem>
-      mSolarSystem; //! Pointer to the CosmoScout solar system used to retrieve matrices
+  std::shared_ptr<cs::core::SolarSystem> mSolarSystem;
   std::shared_ptr<cs::core::TimeControl> mTimeControl;
 
-  std::array<float, 3> mMinBounds;
-  std::array<float, 3> mMaxBounds;
+  std::array<float, 3> mMinBounds; ///< Lower Corner of the bounding volume for the planet.
+  std::array<float, 3> mMaxBounds; ///< Upper Corner of the bounding volume for the planet.
 };
 
 } // namespace csp::wmsoverlays

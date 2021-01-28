@@ -149,6 +149,10 @@ VistaXML::TiXmlElement* WebMapService::getCapabilities() {
 
 std::optional<std::pair<std::string, VistaXML::TiXmlDocument>>
 WebMapService::getCapabilitiesFromCache() {
+  // This method uses the updateSequence value in the cached capabilities according to 7.2.3.5 of
+  // the WMS 1.3.0 implementation specification to check if a new capability document should be
+  // requested.
+
   boost::filesystem::path cacheFile(mCacheFileName);
   boost::filesystem::path cacheDir(mCacheDir);
   boost::filesystem::path cacheFilePath(cacheDir / cacheFile);

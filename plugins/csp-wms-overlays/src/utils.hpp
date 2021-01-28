@@ -101,7 +101,7 @@ bool timeInIntervals(boost::posix_time::ptime& time, std::vector<TimeInterval>& 
 
 /// Adds the interval duration to the given time.
 /// The duration can be either in years, months or in time_duration.
-/// Adds the interval multiple times, if it is specified (for e.g. for pre-fetch).
+/// Adds the interval multiple times, if it is specified (e.g. for pre-fetch).
 boost::posix_time::ptime addDurationToTime(
     boost::posix_time::ptime time, Duration duration, int multiplier = 1);
 
@@ -151,8 +151,10 @@ void setOrKeep(std::optional<T>& var, std::optional<T> optional) {
   }
 }
 
+/// Converts an optional string to an optional double.
 std::optional<double> optstod(std::optional<std::string> string);
 
+/// Converts an optional string to an optional int.
 std::optional<int> optstoi(std::optional<std::string> string);
 
 } // namespace utils

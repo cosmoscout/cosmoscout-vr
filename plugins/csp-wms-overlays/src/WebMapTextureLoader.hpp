@@ -19,14 +19,17 @@
 
 namespace csp::wmsoverlays {
 
+/// Struct for storing texture data along with some metadata.
 struct WebMapTexture {
   unsigned char* mData;
   int            mWidth;
   int            mHeight;
 };
 
+/// Class for requesting map textures from Web Map Services.
 class WebMapTextureLoader {
  public:
+  /// Struct for defining parameters for a request to a WMS.
   struct Request {
     int                        mMaxSize;
     std::string                mStyle;
@@ -34,36 +37,47 @@ class WebMapTextureLoader {
     std::optional<Bounds>      mBounds;
   };
 
-  /// Create a new ThreadPool with the specified amount of threads.
+  /// Creates a new ThreadPool with the specified amount of threads.
   WebMapTextureLoader();
 
   ~WebMapTextureLoader();
 
   /// Async WMS texture loader.
+  /// Returns an empty optional if loading the texture failed.
   std::future<std::optional<WebMapTexture>> loadTextureAsync(WebMapService const& wms,
       WebMapLayer const& layer, Request const& request, std::string const& mapCache,
       bool const& saveToCache);
 
   /// WMS texture loader.
+  /// Returns an empty optional if loading the texture failed.
   std::optional<WebMapTexture> loadTexture(WebMapService const& wms, WebMapLayer const& layer,
       Request const& request, std::string const& mapCache, bool const& saveToCache);
 
  private:
+  /// Requests a map texture from a WMS.
+  /// Returns a binary stream of the texture file if the request succeeds.
+  /// Returns an empty optional if the request fails.
   std::optional<std::stringstream> requestTexture(WebMapService const& wms,
       WebMapLayer const& layer, Request const& request, std::string const& mapCache);
 
+  /// Saves a binary stream of a texture file to the given path.
   void saveTextureToFile(boost::filesystem::path const& file, std::stringstream const& data);
 
-  /// Load WMS texture from a file using stbi.
+  /// Loads WMS texture from a file using stbi.
   std::optional<WebMapTexture> loadTextureFromFile(std::string const& fileName);
 
-  /// Load WMS texture from a stream using stbi.
+  /// Loads WMS texture from a stream using stbi.
   std::optional<WebMapTexture> loadTextureFromStream(std::stringstream const& stream);
 
+  /// Constructs a path for loading/saving the texture requested with the given parameters.
   boost::filesystem::path getCachePath(WebMapService const& wms, WebMapLayer const& layer,
       Request const& request, std::string const& mapCache);
-  std::string             getRequestUrl(
-                  WebMapService const& wms, WebMapLayer const& layer, Request const& request);
+
+  /// Constructs a request URL for the given parameters.
+  std::string getRequestUrl(
+      WebMapService const& wms, WebMapLayer const& layer, Request const& request);
+
+  /// Determines an appropriate MIME type for requesting a texture for the given layer.
   std::string getMimeType(WebMapService const& wms, WebMapLayer const& layer);
 
   const std::map<std::string, std::string> mMimeToExtension = {

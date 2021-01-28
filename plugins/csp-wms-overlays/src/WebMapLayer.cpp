@@ -103,8 +103,6 @@ WebMapLayer::WebMapLayer(VistaXML::TiXmlElement* element, Settings settings)
     }
   }
 
-  // TODO Other dimensions?
-
   for (VistaXML::TiXmlElement* layerElement = element->FirstChildElement("Layer"); layerElement;
        layerElement                         = layerElement->NextSiblingElement("Layer")) {
     mSubLayers.push_back(WebMapLayer(layerElement, mSettings));
@@ -132,6 +130,8 @@ WebMapLayer::Settings WebMapLayer::getSettings() const {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool WebMapLayer::isRequestable() const {
+  // According to 7.2.4.6.3 of the WMS 1.3.0 implementation specification maps may be requested for
+  // all layers with a given name.
   return mName.has_value();
 }
 
