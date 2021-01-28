@@ -62,8 +62,9 @@ class Plugin : public cs::core::PluginBase {
       cs::utils::DefaultProperty<std::string> mActiveLayer{
           "None"}; ///< The name of the currently active WMS layer.
       cs::utils::DefaultProperty<std::string> mActiveStyle{
-          ""};                       ///< The name of the style for the currently active WMS layer.
-      std::vector<std::string> mWms; ///<	URLs of WMS servers.
+          ""}; ///< The name of the style for the currently active WMS layer.
+      cs::utils::DefaultProperty<std::array<double, 4>> mActiveBounds{{-180., 180., -90., 90.}};
+      std::vector<std::string>                          mWms; ///<	URLs of WMS servers.
     };
 
     std::map<std::string, Body> mBodies; ///< A list of bodies with their anchor names.
@@ -87,7 +88,7 @@ class Plugin : public cs::core::PluginBase {
   void resetWMSLayer(std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay);
   void setWMSStyle(
       std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay, std::string const& name);
-  void resetWMSStyle(std::shared_ptr<TextureOverlayRenderer > const& wmsOverlay);
+  void resetWMSStyle(std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay);
 
   void addLayerToSelect(std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay,
       WebMapLayer const& layer, std::string const& activeLayer, int const& depth = 0);

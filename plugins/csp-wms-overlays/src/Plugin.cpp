@@ -40,6 +40,7 @@ void from_json(nlohmann::json const& j, Plugin::Settings::Body& o) {
   cs::core::Settings::deserialize(j, "activeServer", o.mActiveServer);
   cs::core::Settings::deserialize(j, "activeLayer", o.mActiveLayer);
   cs::core::Settings::deserialize(j, "activeStyle", o.mActiveStyle);
+  cs::core::Settings::deserialize(j, "activeBounds", o.mActiveBounds);
   cs::core::Settings::deserialize(j, "wms", o.mWms);
 }
 
@@ -47,6 +48,7 @@ void to_json(nlohmann::json& j, Plugin::Settings::Body const& o) {
   cs::core::Settings::serialize(j, "activeServer", o.mActiveServer);
   cs::core::Settings::serialize(j, "activeLayer", o.mActiveLayer);
   cs::core::Settings::serialize(j, "activeStyle", o.mActiveStyle);
+  cs::core::Settings::serialize(j, "activeBounds", o.mActiveBounds);
   cs::core::Settings::serialize(j, "wms", o.mWms);
 }
 
@@ -315,8 +317,8 @@ void Plugin::init() {
         if (mActiveOverlay) {
           mActiveOverlay->pBounds.disconnect(mBoundsConnection);
         }
-        mActiveOverlay = overlay->second;
-        mActiveOverlay->pBounds.connect([this](Bounds bounds) {
+        mActiveOverlay    = overlay->second;
+        mBoundsConnection = mActiveOverlay->pBounds.connect([this](Bounds bounds) {
           mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.setCurrentBounds",
               bounds.mMinLon, bounds.mMaxLon, bounds.mMinLat, bounds.mMaxLat);
         });
@@ -421,10 +423,12 @@ void Plugin::onLoad() {
   while (wmsOverlay != mWMSOverlays.end()) {
     auto settings = mPluginSettings->mBodies.find(wmsOverlay->first);
     if (settings != mPluginSettings->mBodies.end()) {
+      if (!settings->second.mActiveServer.isDefault()) {
+        setWMSServer(wmsOverlay->second, settings->second.mActiveServer.get());
+      }
+
       // If there are settings for this simpleWMSBody, reconfigure it.
       wmsOverlay->second->configure(settings->second);
-
-      setWMSServer(wmsOverlay->second, settings->second.mActiveServer.get());
 
       ++wmsOverlay;
     } else {
@@ -434,7 +438,7 @@ void Plugin::onLoad() {
   }
 
   // Then add new WMS overlays.
-  for (auto const& settings : mPluginSettings->mBodies) {
+  for (auto& settings : mPluginSettings->mBodies) {
     if (mWMSOverlays.find(settings.first) != mWMSOverlays.end()) {
       continue;
     }
@@ -463,6 +467,11 @@ void Plugin::onLoad() {
       setWMSServer(wmsOverlay, settings.second.mActiveServer.get());
     }
     wmsOverlay->configure(settings.second);
+
+    wmsOverlay->pBounds.connectAndTouch([&settings](Bounds const& bounds) {
+      settings.second.mActiveBounds = {
+          bounds.mMinLon, bounds.mMaxLon, bounds.mMinLat, bounds.mMaxLat};
+    });
   }
 
   mSolarSystem->pActiveBody.touch(mActiveBodyConnection);

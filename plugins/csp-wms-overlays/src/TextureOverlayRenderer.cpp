@@ -129,6 +129,8 @@ std::string TextureOverlayRenderer::getCenter() const {
 
 void TextureOverlayRenderer::configure(Plugin::Settings::Body const& settings) {
   mSimpleWMSOverlaySettings = settings;
+  pBounds = Bounds(settings.mActiveBounds.get()[0], settings.mActiveBounds.get()[1],
+      settings.mActiveBounds.get()[2], settings.mActiveBounds.get()[3]);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -140,8 +142,10 @@ void TextureOverlayRenderer::setActiveWMS(WebMapService const& wms, WebMapLayer 
   mActiveWMSLayer.emplace(layer);
 
   if (mActiveWMSLayer && mActiveWMSLayer->isRequestable()) {
-    pBounds = mActiveWMSLayer->getSettings().mBounds;
-    pBounds.touch();
+    if (mActiveWMSLayer->getSettings().mNoSubsets) {
+      pBounds = mActiveWMSLayer->getSettings().mBounds;
+      pBounds.touch();
+    }
 
     if (!mActiveWMSLayer->getSettings().mTimeIntervals.empty()) {
       mCurrentInterval = mActiveWMSLayer->getSettings().mTimeIntervals.at(0);
