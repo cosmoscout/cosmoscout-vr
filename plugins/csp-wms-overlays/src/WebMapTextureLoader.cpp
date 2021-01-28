@@ -55,9 +55,6 @@ std::optional<WebMapTexture> WebMapTextureLoader::loadTexture(WebMapService cons
   // The file is already there, we can return it
   if (boost::filesystem::exists(cachePath) && boost::filesystem::file_size(cachePath) > 0) {
     std::optional<WebMapTexture> texture = loadTextureFromFile(cachePath.string());
-    if (texture.has_value()) {
-      texture->mBounds = request.mBounds.value();
-    }
     return texture;
   }
 
@@ -72,9 +69,6 @@ std::optional<WebMapTexture> WebMapTextureLoader::loadTexture(WebMapService cons
   }
 
   std::optional<WebMapTexture> texture = loadTextureFromStream(textureStream.value());
-  if (texture.has_value()) {
-    texture->mBounds = request.mBounds.value();
-  }
   return texture;
 }
 

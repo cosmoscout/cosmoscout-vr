@@ -23,7 +23,6 @@ struct WebMapTexture {
   unsigned char* mData;
   int            mWidth;
   int            mHeight;
-  Bounds         mBounds;
 };
 
 class WebMapTextureLoader {
