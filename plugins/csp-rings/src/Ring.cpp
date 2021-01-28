@@ -32,8 +32,6 @@ const size_t GRID_RESOLUTION = 200;
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 const char* Ring::SPHERE_VERT = R"(
-#version 330
-
 uniform vec3 uSunDirection;
 uniform vec2 uRadii;
 uniform mat4 uMatModelView;
@@ -63,8 +61,6 @@ void main()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 const char* Ring::SPHERE_FRAG = R"(
-#version 330
-
 uniform sampler2D uSurfaceTexture;
 uniform float uSunIlluminance;
 uniform float uFarClip;
@@ -77,10 +73,24 @@ in vec3 vPosition;
 // outputs
 layout(location = 0) out vec4 oColor;
 
+const float M_PI = 3.141592653589793;
+
+vec3 SRGBtoLINEAR(vec3 srgbIn)
+{
+  vec3 bLess = step(vec3(0.04045),srgbIn);
+  return mix( srgbIn/vec3(12.92), pow((srgbIn+vec3(0.055))/vec3(1.055),vec3(2.4)), bLess );
+}
+
 void main()
 {
     oColor = texture(uSurfaceTexture, vTexCoords);
-    oColor.rgb *= uSunIlluminance;
+
+    #ifdef ENABLE_HDR
+      oColor.rgb = SRGBtoLINEAR(oColor.rgb) * uSunIlluminance / M_PI;
+    #else
+      oColor.rgb = oColor.rgb * uSunIlluminance;
+    #endif
+
     gl_FragDepth = length(vPosition) / uFarClip;
 }
 )";
@@ -112,17 +122,9 @@ Ring::Ring(std::shared_ptr<cs::core::Settings> settings,
   mSphereVAO.SpecifyAttributeArrayFloat(
       0, 2, GL_FLOAT, GL_FALSE, sizeof(glm::vec2), 0, &mSphereVBO);
 
-  // Create sphere shader.
-  mShader.InitVertexShaderFromString(SPHERE_VERT);
-  mShader.InitFragmentShaderFromString(SPHERE_FRAG);
-  mShader.Link();
-
-  mUniforms.modelViewMatrix  = mShader.GetUniformLocation("uMatModelView");
-  mUniforms.projectionMatrix = mShader.GetUniformLocation("uMatProjection");
-  mUniforms.surfaceTexture   = mShader.GetUniformLocation("uSurfaceTexture");
-  mUniforms.radii            = mShader.GetUniformLocation("uRadii");
-  mUniforms.farClip          = mShader.GetUniformLocation("uFarClip");
-  mUniforms.sunIlluminance   = mShader.GetUniformLocation("uSunIlluminance");
+  // Recreate the shader if HDR rendering mode is toggled.
+  mEnableHDRConnection =
+      mSettings->mGraphics.pEnableHDR.connect([this](bool /*enabled*/) { mShaderDirty = true; });
 
   // Add to scenegraph.
   VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
@@ -134,6 +136,8 @@ Ring::Ring(std::shared_ptr<cs::core::Settings> settings,
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Ring::~Ring() {
+  mSettings->mGraphics.pEnableHDR.disconnect(mEnableHDRConnection);
+
   VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
   pSG->GetRoot()->DisconnectChild(mGLNode.get());
 }
@@ -164,6 +168,30 @@ bool Ring::Do() {
   }
 
   cs::utils::FrameTimings::ScopedTimer timer("Rings");
+
+  // (Re-)Create ring shader if necessary.
+  if (mShaderDirty) {
+    mShader = VistaGLSLShader();
+
+    std::string defines = "#version 330\n";
+
+    if (mSettings->mGraphics.pEnableHDR.get()) {
+      defines += "#define ENABLE_HDR\n";
+    }
+
+    mShader.InitVertexShaderFromString(defines + SPHERE_VERT);
+    mShader.InitFragmentShaderFromString(defines + SPHERE_FRAG);
+    mShader.Link();
+
+    mUniforms.modelViewMatrix  = mShader.GetUniformLocation("uMatModelView");
+    mUniforms.projectionMatrix = mShader.GetUniformLocation("uMatProjection");
+    mUniforms.surfaceTexture   = mShader.GetUniformLocation("uSurfaceTexture");
+    mUniforms.radii            = mShader.GetUniformLocation("uRadii");
+    mUniforms.farClip          = mShader.GetUniformLocation("uFarClip");
+    mUniforms.sunIlluminance   = mShader.GetUniformLocation("uSunIlluminance");
+
+    mShaderDirty = false;
+  }
 
   mShader.Bind();
 

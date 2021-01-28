@@ -208,15 +208,10 @@ void SolarSystem::update() {
   // the average distance of Earth with the surface area of a sphere with a radius of the average
   // distance of Earth.
 
-  // Sun's illuminance in lux at Earth.
-  double const sunIlluminanceAtEarth = 1.1e5;
-
-  // Average distance between Sun and Earth in meters.
-  double const distEarthSun = 1.496e11;
-
-  // Luminous power of the Sun in lumens.
-  double const sunLuminousPower =
-      4.0 * glm::pi<double>() * distEarthSun * distEarthSun * sunIlluminanceAtEarth;
+  // Luminous power of the Sun in lumens. Number is taken from
+  // Darula, Stan, Richard Kittler, and Christian A. Gueymard. "Reference luminous solar constant
+  // and solar luminance for illuminance calculations." Solar Energy 79.5 (2005)
+  double const sunLuminousPower = 3.75e28;
 
   // As our scene is always scaled, we have to scale the luminous power of the sun accordingly.
   // Else, our Sun would be extremely bright when scaled down.
