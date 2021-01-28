@@ -23,8 +23,7 @@ WebMapLayer::WebMapLayer(VistaXML::TiXmlElement* element, Settings settings)
 
   VistaXML::TiXmlElement* titleElement = element->FirstChildElement("Title");
   if (titleElement == nullptr) {
-    // TODO Custom Exception
-    throw 0;
+    throw std::runtime_error("No title found for Layer.");
   }
   mTitle = titleElement->FirstChild()->ValueStr();
 

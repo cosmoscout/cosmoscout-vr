@@ -108,14 +108,14 @@ VistaXML::TiXmlElement* WebMapService::getCapabilities() {
       } catch (std::exception const& e) {
         logger().warn("Failed to perform WMS Capabilities request: '{}'! Exception: '{}'",
             url.str(), e.what());
-        throw std::exception("Capabilities request failed");
+        throw std::runtime_error("Capabilities request failed");
       }
 
       docString = xmlStream.str();
       doc.Parse(docString.c_str());
       if (doc.Error()) {
         logger().warn("Parsing failed with '{}'", doc.ErrorDesc());
-        throw std::exception("Capabilities parsing failed");
+        throw std::runtime_error("Capabilities parsing failed");
       }
     }
 
@@ -137,7 +137,12 @@ VistaXML::TiXmlElement* WebMapService::getCapabilities() {
 
     mDoc = doc;
   }
-  return mDoc->FirstChildElement("WMS_Capabilities");
+  VistaXML::TiXmlElement* capabilities = mDoc->FirstChildElement("WMS_Capabilities");
+  if (capabilities == nullptr) {
+    logger().warn("Capabilities document for '{}' is not valid.", mUrl);
+    throw std::runtime_error("Capabilities parsing failed");
+  }
+  return capabilities;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -159,9 +164,15 @@ WebMapService::getCapabilitiesFromCache() {
       return {};
     }
 
+    VistaXML::TiXmlElement* root = cacheDoc.FirstChildElement("WMS_Capabilities");
+    if (root == nullptr) {
+      logger().warn(
+          "Cached capabilities document for '{}' is not valid! Requesting a new one.", mUrl);
+      return {};
+    }
+
     // Get the update sequence number from the cached file, to check if it is up to date
-    VistaXML::TiXmlElement* root           = cacheDoc.FirstChildElement("WMS_Capabilities");
-    const char*             updateSequence = root->Attribute("updateSequence");
+    const char* updateSequence = root->Attribute("updateSequence");
     if (updateSequence != nullptr) {
       // A sequence number was found, now check if it is the most recent one
       std::stringstream url = getGetCapabilitiesUrl();
@@ -287,7 +298,7 @@ std::vector<std::string> WebMapService::parseMapFormats() {
 
   if (getMapCapability == nullptr) {
     logger().warn("Could not determine available file formats for '{}'.", mUrl);
-    throw std::exception("Capabilities parsing failed");
+    throw std::runtime_error("Capabilities parsing failed");
   }
 
   std::vector<std::string> mapFormats;
