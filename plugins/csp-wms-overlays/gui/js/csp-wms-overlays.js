@@ -14,6 +14,20 @@
      * @inheritDoc
      */
     init() {
+      CosmoScout.gui.initSliderOptions("wmsOverlays.setMaxTextureSize", {
+        start: [1024],
+        connect: "lower",
+        range: {'min': 256, '25%': 512, '50%': 1024, '75%': 2048, 'max': 4096},
+        snap: true,
+        format: {
+          to(value) {
+            return CosmoScout.utils.beautifyNumber(value);
+          },
+          from(value) {
+            return Number(parseFloat(value));
+          },
+        },
+      });
     }
 
     /**

@@ -51,7 +51,6 @@ TextureOverlayRenderer::TextureOverlayRenderer(std::string center,
     , mSolarSystem(solarSystem)
     , mTimeControl(timeControl)
     , mPluginSettings(pluginSettings)
-    , mMaxSize(pluginSettings->mMaxTextureSize.get())
     , mWMSTexture(new VistaTexture(GL_TEXTURE_2D))
     , mSecondWMSTexture(new VistaTexture(GL_TEXTURE_2D))
     , mMinBounds({(float)-solarSystem->getRadii(center)[0],
@@ -348,7 +347,7 @@ Bounds TextureOverlayRenderer::getBounds() {
 void TextureOverlayRenderer::getTimeIndependentTexture() {
   if (mActiveWMSLayer && mActiveWMSLayer->isRequestable()) {
     WebMapTextureLoader::Request request;
-    request.mMaxSize = mMaxSize;
+    request.mMaxSize = mPluginSettings->mMaxTextureSize.get();
     request.mStyle   = mStyle;
     request.mBounds  = getBounds();
 
@@ -419,7 +418,7 @@ bool TextureOverlayRenderer::Do() {
           wrongTexture == mWrongTextures.end() && inInterval) {
         // Load WMS texture.
         WebMapTextureLoader::Request request;
-        request.mMaxSize = mMaxSize;
+        request.mMaxSize = mPluginSettings->mMaxTextureSize.get();
         request.mStyle   = mStyle;
         request.mTime    = timeString;
         request.mBounds  = getBounds();

@@ -110,7 +110,6 @@ class TextureOverlayRenderer : public IVistaOpenGLDraw {
   std::map<std::string, WebMapTexture> mTextures; ///< Stores all successfully loaded textures.
   std::vector<std::string> mWrongTextures;        ///< Stores textures, for which loading failed.
 
-  int         mMaxSize; ///< Size of the larger edge of requested images, in pixels.
   std::string mStyle;   ///< Name of the currently active style.
 
   bool mUpdateLonLatRange = false; ///< Flag for updating the map bounds in the next update.

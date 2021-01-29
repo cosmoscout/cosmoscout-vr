@@ -139,6 +139,12 @@ void Plugin::init() {
         mPluginSettings->mEnableAutomaticBoundsUpdate = enable;
       }));
 
+  // Set maximume texture size for map requests.
+  mGuiManager->getGui()->registerCallback("wmsOverlays.setMaxTextureSize",
+      "Set the maximum texture size.", std::function([this](double value) {
+        mPluginSettings->mMaxTextureSize = std::lround(value);
+      }));
+
   // Set WMS source.
   mGuiManager->getGui()->registerCallback("wmsOverlays.setServer",
       "Set the current planet's WMS server to the one with the given name.",
