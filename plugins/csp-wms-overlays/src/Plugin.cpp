@@ -81,9 +81,9 @@ void Plugin::init() {
       [this]() { mAllSettings->mPlugins["csp-wms-overlays"] = *mPluginSettings; });
 
   mGuiManager->addPluginTabToSideBarFromHTML(
-      "WMS", "panorama", "../share/resources/gui/wms_overlays_tab.html");
+      "WMS Overlays", "panorama", "../share/resources/gui/wms_overlays_tab.html");
   mGuiManager->addSettingsSectionToSideBarFromHTML(
-      "WMS", "panorama", "../share/resources/gui/wms_settings.html");
+      "WMS Overlays", "panorama", "../share/resources/gui/wms_settings.html");
   mGuiManager->addScriptToGuiFromJS("../share/resources/gui/js/csp-wms-overlays.js");
   mGuiManager->addCssToGui("css/csp-wms-overlays.css");
 
@@ -311,7 +311,7 @@ void Plugin::init() {
         auto overlay = mWMSOverlays.find(body->getCenterName());
 
         mGuiManager->getGui()->callJavascript(
-            "CosmoScout.sidebar.setTabEnabled", "WMS", overlay != mWMSOverlays.end());
+            "CosmoScout.sidebar.setTabEnabled", "WMS Overlays", overlay != mWMSOverlays.end());
 
         if (overlay == mWMSOverlays.end()) {
           mActiveOverlay = nullptr;
@@ -369,8 +369,8 @@ void Plugin::deInit() {
   mSolarSystem->pActiveBody.disconnect(mActiveBodyConnection);
   mSolarSystem->pCurrentObserverSpeed.disconnect(mObserverSpeedConnection);
 
-  mGuiManager->removePluginTab("WMS");
-  mGuiManager->removeSettingsSection("WMS");
+  mGuiManager->removePluginTab("WMS Overlays");
+  mGuiManager->removeSettingsSection("WMS Overlays");
 
   mGuiManager->getGui()->callJavascript(
       "CosmoScout.gui.unregisterCss", "css/csp-simple-wms-bodies.css");
