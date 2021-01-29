@@ -95,6 +95,15 @@ void Plugin::init() {
         }
       }));
 
+  // Resets the bounds to the default ones for the active layer.
+  mGuiManager->getGui()->registerCallback(
+      "wmsOverlays.resetBounds", "Resets the bounds for map requests.", std::function([this]() {
+        if (mActiveOverlay && mActiveLayers[mActiveOverlay->getCenter()]) {
+          mActiveOverlay->setBounds(
+              mActiveLayers[mActiveOverlay->getCenter()]->getSettings().mBounds);
+        }
+      }));
+
   // Moves the observer to a position from which most of the current layer should be visible.
   mGuiManager->getGui()->registerCallback("wmsOverlays.goToDefaultBounds",
       "Fly the observer to the center of the default bounds of the current layer.",
@@ -385,6 +394,7 @@ void Plugin::deInit() {
   mGuiManager->getGui()->unregisterCallback("wmsOverlays.goToLastTime");
 
   mGuiManager->getGui()->unregisterCallback("wmsOverlays.updateBounds");
+  mGuiManager->getGui()->unregisterCallback("wmsOverlays.resetBounds");
   mGuiManager->getGui()->unregisterCallback("wmsOverlays.goToDefaultBounds");
   mGuiManager->getGui()->unregisterCallback("wmsOverlays.goToCurrentBounds");
 

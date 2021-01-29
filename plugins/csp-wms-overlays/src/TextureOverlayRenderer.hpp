@@ -58,8 +58,11 @@ class TextureOverlayRenderer : public IVistaOpenGLDraw {
   /// The bounds will be updated the next time the Do() method is called.
   void requestUpdateBounds();
 
+  /// Set the current map bounds.
+  void setBounds(Bounds const& bounds);
+
   /// The current map bounds of this overlay.
-  /// Consider this to be read-only.
+  /// Consider this to be read-only. Use setBounds() for setting instead.
   cs::utils::Property<Bounds> pBounds;
 
   /// Interface implementation of IVistaOpenGLDraw

@@ -196,8 +196,6 @@ void TextureOverlayRenderer::updateLonLatRange() {
     return;
   }
 
-  clearTextures();
-
   VistaProjection::VistaProjectionProperties* projectionProperties =
       GetVistaSystem()
           ->GetDisplayManager()
@@ -330,6 +328,7 @@ void TextureOverlayRenderer::updateLonLatRange() {
     pBounds = currentBounds;
   }
 
+  clearTextures();
   if (mActiveWMSLayer->getSettings().mTimeIntervals.empty()) {
     getTimeIndependentTexture();
   }
@@ -369,6 +368,17 @@ void TextureOverlayRenderer::getTimeIndependentTexture() {
 
 void TextureOverlayRenderer::requestUpdateBounds() {
   mUpdateLonLatRange = true;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void TextureOverlayRenderer::setBounds(Bounds const& bounds) {
+  pBounds = bounds;
+
+  clearTextures();
+  if (mActiveWMSLayer && mActiveWMSLayer->getSettings().mTimeIntervals.empty()) {
+    getTimeIndependentTexture();
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
