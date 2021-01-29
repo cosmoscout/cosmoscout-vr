@@ -58,11 +58,8 @@ class TextureOverlayRenderer : public IVistaOpenGLDraw {
   /// The bounds will be updated the next time the Do() method is called.
   void requestUpdateBounds();
 
-  /// Set the current map bounds.
-  void setBounds(Bounds const& bounds);
-
   /// The current map bounds of this overlay.
-  /// Consider this to be read-only. Use setBounds() for setting instead.
+  /// This may be used for setting the bounds.
   cs::utils::Property<Bounds> pBounds;
 
   /// Interface implementation of IVistaOpenGLDraw
@@ -80,8 +77,11 @@ class TextureOverlayRenderer : public IVistaOpenGLDraw {
   /// Otherwise returns the default bounds of the layer.
   Bounds getBounds();
 
+  /// Gets an appropriate Request object for the current state.
+  WebMapTextureLoader::Request getRequest();
+
   /// Synchronously loads a texture for a time-independent map.
-  void getTimeIndependentTexture();
+  void getTimeIndependentTexture(WebMapTextureLoader::Request const& request);
 
   std::shared_ptr<Plugin::Settings> mPluginSettings;
   Plugin::Settings::Body            mSimpleWMSOverlaySettings;
@@ -110,7 +110,7 @@ class TextureOverlayRenderer : public IVistaOpenGLDraw {
   std::map<std::string, WebMapTexture> mTextures; ///< Stores all successfully loaded textures.
   std::vector<std::string> mWrongTextures;        ///< Stores textures, for which loading failed.
 
-  std::string mStyle;   ///< Name of the currently active style.
+  std::string mStyle; ///< Name of the currently active style.
 
   bool mUpdateLonLatRange = false; ///< Flag for updating the map bounds in the next update.
 

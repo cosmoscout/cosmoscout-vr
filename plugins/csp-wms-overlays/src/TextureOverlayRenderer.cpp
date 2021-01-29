@@ -102,6 +102,24 @@ TextureOverlayRenderer::TextureOverlayRenderer(std::string center,
   mGLNode.reset(pSG->NewOpenGLNode(pSG->GetRoot(), this));
   VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
       mGLNode.get(), static_cast<int>(cs::utils::DrawOrder::ePlanets) + 10);
+
+  pBounds.connect([this](Bounds const& value) {
+    clearTextures();
+    if (mActiveWMSLayer->getSettings().mTimeIntervals.empty()) {
+      WebMapTextureLoader::Request request = getRequest();
+      request.mBounds                      = value;
+      getTimeIndependentTexture(request);
+    }
+  });
+
+  mPluginSettings->mMaxTextureSize.connect([this](int const& value) {
+    clearTextures();
+    if (mActiveWMSLayer->getSettings().mTimeIntervals.empty()) {
+      WebMapTextureLoader::Request request = getRequest();
+      request.mMaxSize                     = value;
+      getTimeIndependentTexture(request);
+    }
+  });
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -144,7 +162,7 @@ void TextureOverlayRenderer::setActiveWMS(WebMapService const& wms, WebMapLayer 
     if (!mActiveWMSLayer->getSettings().mTimeIntervals.empty()) {
       mCurrentInterval = mActiveWMSLayer->getSettings().mTimeIntervals.at(0);
     } else {
-      getTimeIndependentTexture();
+      getTimeIndependentTexture(getRequest());
     }
   }
 }
@@ -167,10 +185,10 @@ void TextureOverlayRenderer::clearActiveWMS() {
 
 void TextureOverlayRenderer::setStyle(std::string style) {
   mStyle = style;
-  clearTextures();
 
+  clearTextures();
   if (mActiveWMSLayer->getSettings().mTimeIntervals.empty()) {
-    getTimeIndependentTexture();
+    getTimeIndependentTexture(getRequest());
   }
 }
 
@@ -326,11 +344,6 @@ void TextureOverlayRenderer::updateLonLatRange() {
 
     pBounds = currentBounds;
   }
-
-  clearTextures();
-  if (mActiveWMSLayer->getSettings().mTimeIntervals.empty()) {
-    getTimeIndependentTexture();
-  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -344,13 +357,19 @@ Bounds TextureOverlayRenderer::getBounds() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void TextureOverlayRenderer::getTimeIndependentTexture() {
-  if (mActiveWMSLayer && mActiveWMSLayer->isRequestable()) {
-    WebMapTextureLoader::Request request;
-    request.mMaxSize = mPluginSettings->mMaxTextureSize.get();
-    request.mStyle   = mStyle;
-    request.mBounds  = getBounds();
+WebMapTextureLoader::Request TextureOverlayRenderer::getRequest() {
+  WebMapTextureLoader::Request request;
+  request.mMaxSize = mPluginSettings->mMaxTextureSize.get();
+  request.mStyle   = mStyle;
+  request.mBounds  = getBounds();
+  return request;
+}
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void TextureOverlayRenderer::getTimeIndependentTexture(
+    WebMapTextureLoader::Request const& request) {
+  if (mActiveWMSLayer && mActiveWMSLayer->isRequestable()) {
     std::optional<WebMapTexture> texture = mTextureLoader.loadTexture(*mActiveWMS, *mActiveWMSLayer,
         request, mPluginSettings->mMapCache.get(),
         request.mBounds == mActiveWMSLayer->getSettings().mBounds);
@@ -367,17 +386,6 @@ void TextureOverlayRenderer::getTimeIndependentTexture() {
 
 void TextureOverlayRenderer::requestUpdateBounds() {
   mUpdateLonLatRange = true;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void TextureOverlayRenderer::setBounds(Bounds const& bounds) {
-  pBounds = bounds;
-
-  clearTextures();
-  if (mActiveWMSLayer && mActiveWMSLayer->getSettings().mTimeIntervals.empty()) {
-    getTimeIndependentTexture();
-  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

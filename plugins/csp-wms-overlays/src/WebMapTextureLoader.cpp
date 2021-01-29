@@ -51,11 +51,12 @@ std::optional<WebMapTexture> WebMapTextureLoader::loadTexture(WebMapService cons
     WebMapLayer const& layer, Request const& request, std::string const& mapCache,
     bool const& saveToCache) {
   boost::filesystem::path cachePath = getCachePath(wms, layer, request, mapCache);
-
-  // The file is already there, we can return it
-  if (boost::filesystem::exists(cachePath) && boost::filesystem::file_size(cachePath) > 0) {
-    std::optional<WebMapTexture> texture = loadTextureFromFile(cachePath.string());
-    return texture;
+  if (saveToCache) {
+    // The file is already there, we can return it
+    if (boost::filesystem::exists(cachePath) && boost::filesystem::file_size(cachePath) > 0) {
+      std::optional<WebMapTexture> texture = loadTextureFromFile(cachePath.string());
+      return texture;
+    }
   }
 
   // The file is corrupt or not available, we have to request it
@@ -95,7 +96,6 @@ std::optional<std::stringstream> WebMapTextureLoader::requestTexture(WebMapServi
     request.setOpt(curlpp::options::NoSignal(true));
     request.setOpt(curlpp::options::SslVerifyPeer(false));
 
-    // Load to cache file.
     try {
       request.perform();
     } catch (std::exception& e) {
@@ -212,8 +212,7 @@ boost::filesystem::path WebMapTextureLoader::getCachePath(WebMapService const& w
 
   std::stringstream cacheDir;
   cacheDir << mapCache << "/" << layerFixed << "/";
-  cacheDir << request.mBounds.value().mMinLon << "_" << request.mBounds.value().mMinLat << "_"
-           << request.mBounds.value().mMaxLon << "_" << request.mBounds.value().mMaxLat << "/";
+  cacheDir << request.mMaxSize << "px/";
 
   // Add year subdirectory, if time is specified.
   if (request.mTime.has_value()) {
@@ -263,17 +262,17 @@ std::string WebMapTextureLoader::getRequestUrl(
 
   if (cs::utils::contains(layer.getSettings().mCrs, "CRS:84")) {
     url << "&CRS=CRS:84";
-    url << "&BBOX=" << request.mBounds.value().mMinLon << "," << request.mBounds.value().mMinLat
-        << "," << request.mBounds.value().mMaxLon << "," << request.mBounds.value().mMaxLat;
+    url << "&BBOX=" << request.mBounds.mMinLon << "," << request.mBounds.mMinLat << ","
+        << request.mBounds.mMaxLon << "," << request.mBounds.mMaxLat;
   } else if (cs::utils::contains(layer.getSettings().mCrs, "EPSG:4326")) {
     url << "&CRS=EPSG:4326";
-    url << "&BBOX=" << request.mBounds.value().mMinLat << "," << request.mBounds.value().mMinLon
-        << "," << request.mBounds.value().mMaxLat << "," << request.mBounds.value().mMaxLon;
+    url << "&BBOX=" << request.mBounds.mMinLat << "," << request.mBounds.mMinLon << ","
+        << request.mBounds.mMaxLat << "," << request.mBounds.mMaxLon;
   } else {
     logger().warn("No compatible CRS found. Trying CRS:84 anyway");
     url << "&CRS=CRS:84";
-    url << "&BBOX=" << request.mBounds.value().mMinLon << "," << request.mBounds.value().mMinLat
-        << "," << request.mBounds.value().mMaxLon << "," << request.mBounds.value().mMaxLat;
+    url << "&BBOX=" << request.mBounds.mMinLon << "," << request.mBounds.mMinLat << ","
+        << request.mBounds.mMaxLon << "," << request.mBounds.mMaxLat;
   }
 
   if (layer.getSettings().mOpaque) {
@@ -282,8 +281,8 @@ std::string WebMapTextureLoader::getRequestUrl(
     url << "&TRANSPARENT=TRUE";
   }
 
-  double aspect = (request.mBounds.value().mMaxLon - request.mBounds.value().mMinLon) /
-                  (request.mBounds.value().mMaxLat - request.mBounds.value().mMinLat);
+  double aspect = (request.mBounds.mMaxLon - request.mBounds.mMinLon) /
+                  (request.mBounds.mMaxLat - request.mBounds.mMinLat);
   std::optional<int> width, height;
 
   width  = layer.getSettings().mFixedWidth;

@@ -99,8 +99,8 @@ void Plugin::init() {
   mGuiManager->getGui()->registerCallback(
       "wmsOverlays.resetBounds", "Resets the bounds for map requests.", std::function([this]() {
         if (mActiveOverlay && mActiveLayers[mActiveOverlay->getCenter()]) {
-          mActiveOverlay->setBounds(
-              mActiveLayers[mActiveOverlay->getCenter()]->getSettings().mBounds);
+          mActiveOverlay->pBounds =
+              mActiveLayers[mActiveOverlay->getCenter()]->getSettings().mBounds;
         }
       }));
 

@@ -33,8 +33,8 @@ class WebMapTextureLoader {
   struct Request {
     int                        mMaxSize;
     std::string                mStyle;
+    Bounds                     mBounds;
     std::optional<std::string> mTime;
-    std::optional<Bounds>      mBounds;
   };
 
   /// Creates a new ThreadPool with the specified amount of threads.
