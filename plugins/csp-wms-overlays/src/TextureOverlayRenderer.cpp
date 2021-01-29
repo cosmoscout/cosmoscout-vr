@@ -410,19 +410,6 @@ bool TextureOverlayRenderer::Do() {
       std::string timeString =
           utils::timeToString(mCurrentInterval.mFormat.c_str(), sampleStartTime);
 
-      // Select a WMS texture over the period of timeDuration if timespan is enabled.
-      if (mPluginSettings->mEnableTimespan.get() && mCurrentInterval.mSampleDuration.isDuration()) {
-        boost::posix_time::ptime sampleAfter =
-            utils::addDurationToTime(sampleStartTime, mCurrentInterval.mSampleDuration);
-        bool isAfterInInterval = utils::timeInIntervals(
-            sampleAfter, mActiveWMSLayer->getSettings().mTimeIntervals, mCurrentInterval);
-
-        // Select timespan only when the sample after is also in the intervals.
-        if (isAfterInInterval) {
-          timeString += "/" + utils::timeToString(mCurrentInterval.mFormat.c_str(), sampleAfter);
-        }
-      }
-
       auto requestedTexture = mTexturesBuffer.find(timeString);
       auto loadedTexture    = mTextures.find(timeString);
       auto wrongTexture     = std::find(mWrongTextures.begin(), mWrongTextures.end(), timeString);
@@ -471,19 +458,6 @@ bool TextureOverlayRenderer::Do() {
 
     // Create identifier for the sample start time.
     std::string timeString = utils::timeToString(mCurrentInterval.mFormat.c_str(), sampleStartTime);
-
-    // Select a WMS texture over the period of timeDuration if timespan is enabled.
-    if (mPluginSettings->mEnableTimespan.get() && mCurrentInterval.mSampleDuration.isDuration()) {
-      boost::posix_time::ptime sampleAfter =
-          utils::addDurationToTime(sampleStartTime, mCurrentInterval.mSampleDuration);
-      bool isAfterInInterval = utils::timeInIntervals(
-          sampleAfter, mActiveWMSLayer->getSettings().mTimeIntervals, mCurrentInterval);
-
-      // Select timespan only when the sample after is also in the intervals.
-      if (isAfterInInterval) {
-        timeString += "/" + utils::timeToString(mCurrentInterval.mFormat.c_str(), sampleAfter);
-      }
-    }
 
     // Find the current texture.
     auto tex = mTextures.find(timeString);

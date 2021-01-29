@@ -133,11 +133,6 @@ void Plugin::init() {
       "Enables or disables interpolation.",
       std::function([this](bool enable) { mPluginSettings->mEnableInterpolation = enable; }));
 
-  // Set whether to display timespan.
-  mGuiManager->getGui()->registerCallback("wmsOverlays.setEnableTimeSpan",
-      "Enables or disables timespan.",
-      std::function([this](bool enable) { mPluginSettings->mEnableTimespan = enable; }));
-
   // Set whether to automatically update bounds.
   mGuiManager->getGui()->registerCallback("wmsOverlays.setEnableAutomaticBoundsUpdate",
       "Enables or disables automatic bounds update.", std::function([this](bool enable) {
@@ -381,7 +376,6 @@ void Plugin::deInit() {
       "CosmoScout.gui.unregisterCss", "css/csp-simple-wms-bodies.css");
 
   mGuiManager->getGui()->unregisterCallback("wmsOverlays.setEnableTimeInterpolation");
-  mGuiManager->getGui()->unregisterCallback("wmsOverlays.setEnableTimeSpan");
   mGuiManager->getGui()->unregisterCallback("wmsOverlays.setEnableAutomaticBoundsUpdate");
 
   mGuiManager->getGui()->unregisterCallback("wmsOverlays.setServer");
