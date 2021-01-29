@@ -142,11 +142,6 @@ void TextureOverlayRenderer::setActiveWMS(WebMapService const& wms, WebMapLayer 
   mActiveWMSLayer.emplace(layer);
 
   if (mActiveWMSLayer && mActiveWMSLayer->isRequestable()) {
-    if (mActiveWMSLayer->getSettings().mNoSubsets) {
-      pBounds = mActiveWMSLayer->getSettings().mBounds;
-      pBounds.touch();
-    }
-
     if (!mActiveWMSLayer->getSettings().mTimeIntervals.empty()) {
       mCurrentInterval = mActiveWMSLayer->getSettings().mTimeIntervals.at(0);
     } else {
@@ -342,16 +337,25 @@ void TextureOverlayRenderer::updateLonLatRange() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+Bounds TextureOverlayRenderer::getBounds() {
+  if (mActiveWMSLayer && mActiveWMSLayer->getSettings().mNoSubsets) {
+    return mActiveWMSLayer->getSettings().mBounds;
+  }
+  return pBounds.get();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void TextureOverlayRenderer::getTimeIndependentTexture() {
   if (mActiveWMSLayer && mActiveWMSLayer->isRequestable()) {
     WebMapTextureLoader::Request request;
     request.mMaxSize = mMaxSize;
     request.mStyle   = mStyle;
-    request.mBounds  = pBounds.get();
+    request.mBounds  = getBounds();
 
     std::optional<WebMapTexture> texture = mTextureLoader.loadTexture(*mActiveWMS, *mActiveWMSLayer,
         request, mPluginSettings->mMapCache.get(),
-        pBounds.get() == mActiveWMSLayer->getSettings().mBounds);
+        request.mBounds == mActiveWMSLayer->getSettings().mBounds);
     if (texture.has_value()) {
       mWMSTexture->UploadTexture(texture->mWidth, texture->mHeight, (void*)texture->mData, false);
       mWMSTextureUsed = true;
@@ -421,12 +425,12 @@ bool TextureOverlayRenderer::Do() {
         request.mMaxSize = mMaxSize;
         request.mStyle   = mStyle;
         request.mTime    = timeString;
-        request.mBounds  = pBounds.get();
+        request.mBounds  = getBounds();
 
         mTexturesBuffer.insert(std::pair<std::string, std::future<std::optional<WebMapTexture>>>(
             timeString, mTextureLoader.loadTextureAsync(*mActiveWMS, *mActiveWMSLayer, request,
                             mPluginSettings->mMapCache.get(),
-                            pBounds.get() == mActiveWMSLayer->getSettings().mBounds)));
+                            request.mBounds == mActiveWMSLayer->getSettings().mBounds)));
       }
     }
 
@@ -614,11 +618,11 @@ bool TextureOverlayRenderer::Do() {
   loc = m_pSurfaceShader->GetUniformLocation("uLatRange");
   glUniform2dv(loc, 1,
       glm::value_ptr(
-          cs::utils::convert::toRadians(glm::dvec2(pBounds.get().mMinLat, pBounds.get().mMaxLat))));
+          cs::utils::convert::toRadians(glm::dvec2(getBounds().mMinLat, getBounds().mMaxLat))));
   loc = m_pSurfaceShader->GetUniformLocation("uLonRange");
   glUniform2dv(loc, 1,
       glm::value_ptr(
-          cs::utils::convert::toRadians(glm::dvec2(pBounds.get().mMinLon, pBounds.get().mMaxLon))));
+          cs::utils::convert::toRadians(glm::dvec2(getBounds().mMinLon, getBounds().mMaxLon))));
 
   glm::vec4 sunDirection =
       glm::normalize(glm::inverse(matWorldTransform) *

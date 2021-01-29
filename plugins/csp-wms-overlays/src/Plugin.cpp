@@ -318,7 +318,7 @@ void Plugin::init() {
           mActiveOverlay->pBounds.disconnect(mBoundsConnection);
         }
         mActiveOverlay    = overlay->second;
-        mBoundsConnection = mActiveOverlay->pBounds.connect([this](Bounds bounds) {
+        mBoundsConnection = mActiveOverlay->pBounds.connectAndTouch([this](Bounds bounds) {
           mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.setCurrentBounds",
               bounds.mMinLon, bounds.mMaxLon, bounds.mMinLat, bounds.mMaxLat);
         });
@@ -569,13 +569,18 @@ void Plugin::setWMSLayer(
 
   mGuiManager->getGui()->callJavascript(
       "CosmoScout.wmsOverlays.setWMSDataCopyright", layer->getSettings().mAttribution.value_or(""));
+  mGuiManager->getGui()->callJavascript(
+      "CosmoScout.wmsOverlays.enableTimeNavigation", !layer->getSettings().mTimeIntervals.empty());
   mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.setDefaultBounds",
       layer->getSettings().mBounds.mMinLon, layer->getSettings().mBounds.mMaxLon,
       layer->getSettings().mBounds.mMinLat, layer->getSettings().mBounds.mMaxLat);
-  mGuiManager->getGui()->callJavascript(
-      "CosmoScout.wmsOverlays.enableUpdateBounds", !layer->getSettings().mNoSubsets);
-  mGuiManager->getGui()->callJavascript(
-      "CosmoScout.wmsOverlays.enableTimeNavigation", !layer->getSettings().mTimeIntervals.empty());
+  if (layer->getSettings().mNoSubsets) {
+    mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.setNoSubsets");
+  } else {
+    mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.setCurrentBounds",
+        wmsOverlay->pBounds.get().mMinLon, wmsOverlay->pBounds.get().mMaxLon,
+        wmsOverlay->pBounds.get().mMinLat, wmsOverlay->pBounds.get().mMaxLat);
+  }
 
   for (WebMapLayer::Style style : layer->getSettings().mStyles) {
     bool active = style.mName == settings.mActiveStyle.get();
@@ -594,7 +599,6 @@ void Plugin::resetWMSLayer(std::shared_ptr<TextureOverlayRenderer> const& wmsOve
   mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.setWMSDataCopyright", "");
   mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.clearDefaultBounds");
   mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.clearCurrentBounds");
-  mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.enableUpdateBounds", false);
   mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.enableTimeNavigation", false);
 
   mActiveLayers[wmsOverlay->getCenter()].reset();

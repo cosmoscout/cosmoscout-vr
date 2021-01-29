@@ -91,6 +91,8 @@
           `${CosmoScout.utils.formatLatitude(maxLat)}`;
       document.querySelector(`[onclick="CosmoScout.callbacks.wmsOverlays.goToCurrentBounds()"]`)
           .disabled = false;
+      document.querySelector('[onclick="CosmoScout.callbacks.wmsOverlays.updateBounds()"]')
+          .disabled = false;
     }
 
     clearDefaultBounds() {
@@ -103,11 +105,17 @@
       document.getElementById("wmsOverlays.currentBounds").innerText = "None";
       document.querySelector(`[onclick="CosmoScout.callbacks.wmsOverlays.goToCurrentBounds()"]`)
           .disabled = true;
+      document.querySelector('[onclick="CosmoScout.callbacks.wmsOverlays.updateBounds()"]')
+          .disabled = true;
     }
 
-    enableUpdateBounds(enable) {
+    setNoSubsets() {
+      document.getElementById("wmsOverlays.currentBounds").innerText =
+          "No subsets allowed for this layer";
+      document.querySelector(`[onclick="CosmoScout.callbacks.wmsOverlays.goToCurrentBounds()"]`)
+          .disabled = true;
       document.querySelector('[onclick="CosmoScout.callbacks.wmsOverlays.updateBounds()"]')
-          .disabled = !enable;
+          .disabled = true;
     }
 
     enableTimeNavigation(enable) {

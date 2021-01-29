@@ -73,6 +73,10 @@ class TextureOverlayRenderer : public IVistaOpenGLDraw {
   /// Updates the longitude and latitude ranges according to the current viewport.
   void updateLonLatRange();
 
+  /// Returns the manually set bounds if subsets are allowed by the active layer.
+  /// Otherwise returns the default bounds of the layer.
+  Bounds getBounds();
+
   /// Synchronously loads a texture for a time-independent map.
   void getTimeIndependentTexture();
 
