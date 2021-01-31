@@ -454,6 +454,9 @@
         "Venus": {
           "texture": "../share/resources/textures/venus.jpg"
         },
+        "Earth": {
+          "texture": "../share/resources/textures/earth.jpg"
+        },
         "Moon": {
           "texture": "../share/resources/textures/moon.jpg"
         },
@@ -471,43 +474,6 @@
         },
         "Neptune": {
           "texture": "../share/resources/textures/neptune.jpg"
-        }
-      }
-    },
-    "csp-lod-bodies": {
-      "maxGPUTilesColor": 1024,
-      "maxGPUTilesGray": 1024,
-      "maxGPUTilesDEM": 1024,
-      "mapCache": "/tmp/map-cache/",
-      "bodies": {
-        "Earth": {
-          "activeImgDataset": "Blue Marble",
-          "activeDemDataset": "ETOPO1",
-          "imgDatasets": {
-            "Blue Marble": {
-              "copyright": "NASA",
-              "url": "http://localhost/cgi-bin/mapserv?map=/storage/mapserver-datasets/meta.map&service=wms",
-              "format": "U8Vec3",
-              "layers": "earth.bluemarble.rgb",
-              "maxLevel": 6
-            },
-            "Natural Earth": {
-              "copyright": "NASA",
-              "url": "http://localhost/cgi-bin/mapserv?map=/storage/mapserver-datasets/meta.map&service=wms",
-              "format": "U8Vec3",
-              "layers": "earth.naturalearth.rgb",
-              "maxLevel": 6
-            }
-          },
-          "demDatasets": {
-            "ETOPO1": {
-              "copyright": "NOAA",
-              "url": "http://localhost/cgi-bin/mapserv?map=/storage/mapserver-datasets/meta.map&service=wms",
-              "format": "Float32",
-              "layers": "earth.etopo1.dem",
-              "maxLevel": 6
-            }
-          }
         }
       }
     },
