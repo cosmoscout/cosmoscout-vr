@@ -145,6 +145,12 @@ void Plugin::init() {
         mPluginSettings->mMaxTextureSize = std::lround(value);
       }));
 
+  // Set amount of images to prefetch.
+  mGuiManager->getGui()->registerCallback("wmsOverlays.setPrefetchCount",
+      "Set the amount of images to prefetch.", std::function([this](double value) {
+        mPluginSettings->mPrefetchCount = std::lround(value);
+      }));
+
   // Set WMS source.
   mGuiManager->getGui()->registerCallback("wmsOverlays.setServer",
       "Set the current planet's WMS server to the one with the given name.",
@@ -383,6 +389,8 @@ void Plugin::deInit() {
 
   mGuiManager->getGui()->unregisterCallback("wmsOverlays.setEnableTimeInterpolation");
   mGuiManager->getGui()->unregisterCallback("wmsOverlays.setEnableAutomaticBoundsUpdate");
+  mGuiManager->getGui()->unregisterCallback("wmsOverlays.setMaxTextureSize");
+  mGuiManager->getGui()->unregisterCallback("wmsOverlays.setPrefetchCount");
 
   mGuiManager->getGui()->unregisterCallback("wmsOverlays.setServer");
   mGuiManager->getGui()->unregisterCallback("wmsOverlays.setLayer");

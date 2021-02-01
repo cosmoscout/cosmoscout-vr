@@ -14,6 +14,7 @@
      * @inheritDoc
      */
     init() {
+      CosmoScout.gui.initSlider("wmsOverlays.setPrefetchCount", 0, 10, 1, [0]);
       CosmoScout.gui.initSliderOptions("wmsOverlays.setMaxTextureSize", {
         start: [1024],
         connect: "lower",
