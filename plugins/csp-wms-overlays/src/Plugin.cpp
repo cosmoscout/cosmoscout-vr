@@ -145,11 +145,15 @@ void Plugin::init() {
         mPluginSettings->mMaxTextureSize = std::lround(value);
       }));
 
-  // Set amount of images to prefetch.
   mGuiManager->getGui()->registerCallback("wmsOverlays.setPrefetchCount",
       "Set the amount of images to prefetch.", std::function([this](double value) {
         mPluginSettings->mPrefetchCount = std::lround(value);
       }));
+
+  mGuiManager->getGui()->registerCallback("wmsOverlays.setUpdateBoundsDelay",
+      "Set the delay that has to pass before an automatic bounds update.",
+      std::function(
+          [this](double value) { mPluginSettings->mUpdateBoundsDelay = std::lround(value); }));
 
   // Set WMS source.
   mGuiManager->getGui()->registerCallback("wmsOverlays.setServer",
@@ -391,6 +395,7 @@ void Plugin::deInit() {
   mGuiManager->getGui()->unregisterCallback("wmsOverlays.setEnableAutomaticBoundsUpdate");
   mGuiManager->getGui()->unregisterCallback("wmsOverlays.setMaxTextureSize");
   mGuiManager->getGui()->unregisterCallback("wmsOverlays.setPrefetchCount");
+  mGuiManager->getGui()->unregisterCallback("wmsOverlays.setUpdateBoundsDelay");
 
   mGuiManager->getGui()->unregisterCallback("wmsOverlays.setServer");
   mGuiManager->getGui()->unregisterCallback("wmsOverlays.setLayer");
@@ -417,9 +422,9 @@ void Plugin::deInit() {
 void Plugin::update() {
   if (mPluginSettings->mEnableAutomaticBoundsUpdate.get() && mNoMovement &&
       !mNoMovementRequestedUpdate &&
-      std::chrono::duration_cast<std::chrono::seconds>(
+      std::chrono::duration_cast<std::chrono::milliseconds>(
           std::chrono::high_resolution_clock::now() - mNoMovementSince)
-              .count() > 2) {
+              .count() >= mPluginSettings->mUpdateBoundsDelay.get()) {
     mNoMovementRequestedUpdate = true;
 
     if (mActiveOverlay) {

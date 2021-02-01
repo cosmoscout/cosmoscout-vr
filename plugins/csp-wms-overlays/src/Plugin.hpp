@@ -51,6 +51,10 @@ class Plugin : public cs::core::PluginBase {
     /// available in certain sizes, those won't be influenced by this setting.
     cs::utils::DefaultProperty<int> mMaxTextureSize{1024};
 
+    /// If automatic bounds update is enabled, the bounds will be updated when the observer stopped
+    /// moving for this amount of milliseconds.
+    cs::utils::DefaultProperty<int> mUpdateBoundsDelay{1000};
+
     /// The startup settings for a planet.
     struct Body {
       cs::utils::DefaultProperty<std::string> mActiveServer{
