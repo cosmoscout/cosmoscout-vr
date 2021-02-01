@@ -17,6 +17,26 @@
       this._infoWindow = CosmoScout.gui.loadTemplateContent("wms-info");
       document.getElementById("cosmoscout").appendChild(this._infoWindow);
 
+      this._layerSelect = document.querySelector(`[data-callback="wmsOverlays.setLayer"]`);
+
+      this._defaultBoundsLabel = document.getElementById("wmsOverlays.defaultBounds");
+      this._defaultBoundsGoTo  = document.querySelector(
+          '[onclick="CosmoScout.callbacks.wmsOverlays.goToDefaultBounds()"]');
+      this._currentBoundsLabel = document.getElementById("wmsOverlays.currentBounds");
+      this._currentBoundsGoTo  = document.querySelector(
+          '[onclick="CosmoScout.callbacks.wmsOverlays.goToCurrentBounds()"]');
+      this._currentBoundsUpdate =
+          document.querySelector('[onclick="CosmoScout.callbacks.wmsOverlays.updateBounds()"]');
+
+      this._firstTime =
+          document.querySelector('[onclick="CosmoScout.callbacks.wmsOverlays.goToFirstTime()"]');
+      this._previousTime =
+          document.querySelector('[onclick="CosmoScout.callbacks.wmsOverlays.goToPreviousTime()"]');
+      this._nextTime =
+          document.querySelector('[onclick="CosmoScout.callbacks.wmsOverlays.goToNextTime()"]');
+      this._lastTime =
+          document.querySelector('[onclick="CosmoScout.callbacks.wmsOverlays.goToLastTime()"]');
+
       this._infoIcon        = document.getElementById("wmsOverlays.infoIcon");
       this._infoTitle       = document.getElementById("wmsOverlays.infoWindow.title");
       this._infoAbstract    = document.getElementById("wmsOverlays.infoWindow.abstract");
@@ -50,8 +70,8 @@
       if (!enable) {
         this._infoWindow.classList.remove('visible');
       }
-      this._infoIcon.onclick = (enable ? () => { CosmoScout.callbacks.wmsOverlays.showInfo(); }
-                                       : () => { return; });
+      this._infoIcon.onclick =
+          (enable ? () => { CosmoScout.callbacks.wmsOverlays.showInfo(); } : () => { return; });
     }
 
     /**
@@ -62,26 +82,23 @@
      * the margins the selectpicker can be recreated using this function.
      */
     resetLayerSelect() {
-      const dropdown = document.querySelector(`[data-callback="wmsOverlays.setLayer"]`);
-      $(dropdown).selectpicker("destroy");
-      $(dropdown).selectpicker();
+      $(this._layerSelect).selectpicker("destroy");
+      $(this._layerSelect).selectpicker();
     }
 
     refreshLayerSelect() {
-      const dropdown = document.querySelector(`[data-callback="wmsOverlays.setLayer"]`);
-      $(dropdown).selectpicker("refresh");
+      $(this._layerSelect).selectpicker("refresh");
     }
 
     addLayer(name, title, active, requestable, depth) {
-      const dropdown = document.querySelector(`[data-callback="wmsOverlays.setLayer"]`);
-      const option   = document.createElement('option');
+      const option = document.createElement('option');
 
       option.value     = name;
       option.selected  = active;
       option.disabled  = !requestable;
       option.innerHTML = "&emsp;".repeat(depth) + title;
 
-      dropdown.appendChild(option);
+      this._layerSelect.appendChild(option);
     }
 
     setLegendURL(url) {
@@ -89,59 +106,44 @@
     }
 
     setDefaultBounds(minLon, maxLon, minLat, maxLat) {
-      document.getElementById("wmsOverlays.defaultBounds").innerText =
-          `${CosmoScout.utils.formatLongitude(minLon)}, ` +
-          `${CosmoScout.utils.formatLatitude(minLat)} - ` +
-          `${CosmoScout.utils.formatLongitude(maxLon)}, ` +
-          `${CosmoScout.utils.formatLatitude(maxLat)}`;
-      document.querySelector(`[onclick="CosmoScout.callbacks.wmsOverlays.goToDefaultBounds()"]`)
-          .disabled = false;
+      this._defaultBoundsLabel.innerText = `${CosmoScout.utils.formatLongitude(minLon)}, ` +
+                                           `${CosmoScout.utils.formatLatitude(minLat)} - ` +
+                                           `${CosmoScout.utils.formatLongitude(maxLon)}, ` +
+                                           `${CosmoScout.utils.formatLatitude(maxLat)}`;
+      this._defaultBoundsGoTo.disabled = false;
     }
 
     setCurrentBounds(minLon, maxLon, minLat, maxLat) {
-      document.getElementById("wmsOverlays.currentBounds").innerText =
-          `${CosmoScout.utils.formatLongitude(minLon)}, ` +
-          `${CosmoScout.utils.formatLatitude(minLat)} - ` +
-          `${CosmoScout.utils.formatLongitude(maxLon)}, ` +
-          `${CosmoScout.utils.formatLatitude(maxLat)}`;
-      document.querySelector(`[onclick="CosmoScout.callbacks.wmsOverlays.goToCurrentBounds()"]`)
-          .disabled = false;
-      document.querySelector('[onclick="CosmoScout.callbacks.wmsOverlays.updateBounds()"]')
-          .disabled = false;
+      this._currentBoundsLabel.innerText = `${CosmoScout.utils.formatLongitude(minLon)}, ` +
+                                           `${CosmoScout.utils.formatLatitude(minLat)} - ` +
+                                           `${CosmoScout.utils.formatLongitude(maxLon)}, ` +
+                                           `${CosmoScout.utils.formatLatitude(maxLat)}`;
+      this._currentBoundsGoTo.disabled = false;
+      this._currentBoundsUpdate.disabled = false;
     }
 
     clearDefaultBounds() {
-      document.getElementById("wmsOverlays.defaultBounds").innerText = "None";
-      document.querySelector(`[onclick="CosmoScout.callbacks.wmsOverlays.goToDefaultBounds()"]`)
-          .disabled = true;
+      this._defaultBoundsLabel.innerText = "None";
+      this._defaultBoundsGoTo.disabled   = true;
     }
 
     clearCurrentBounds() {
-      document.getElementById("wmsOverlays.currentBounds").innerText = "None";
-      document.querySelector(`[onclick="CosmoScout.callbacks.wmsOverlays.goToCurrentBounds()"]`)
-          .disabled = true;
-      document.querySelector('[onclick="CosmoScout.callbacks.wmsOverlays.updateBounds()"]')
-          .disabled = true;
+      this._currentBoundsLabel.innerText = "None";
+      this._currentBoundsGoTo.disabled   = true;
+      this._currentBoundsUpdate.disabled = true;
     }
 
     setNoSubsets() {
-      document.getElementById("wmsOverlays.currentBounds").innerText =
-          "No subsets allowed for this layer";
-      document.querySelector(`[onclick="CosmoScout.callbacks.wmsOverlays.goToCurrentBounds()"]`)
-          .disabled = true;
-      document.querySelector('[onclick="CosmoScout.callbacks.wmsOverlays.updateBounds()"]')
-          .disabled = true;
+      this._currentBoundsLabel.innerText = "No subsets allowed for this layer";
+      this._currentBoundsGoTo.disabled   = true;
+      this._currentBoundsUpdate.disabled = true;
     }
 
     enableTimeNavigation(enable) {
-      document.querySelector('[onclick="CosmoScout.callbacks.wmsOverlays.goToFirstTime()"]')
-          .disabled = !enable;
-      document.querySelector('[onclick="CosmoScout.callbacks.wmsOverlays.goToPreviousTime()"]')
-          .disabled = !enable;
-      document.querySelector('[onclick="CosmoScout.callbacks.wmsOverlays.goToNextTime()"]')
-          .disabled = !enable;
-      document.querySelector('[onclick="CosmoScout.callbacks.wmsOverlays.goToLastTime()"]')
-          .disabled = !enable;
+      this._firstTime.disabled    = !enable;
+      this._previousTime.disabled = !enable;
+      this._nextTime.disabled     = !enable;
+      this._lastTime.disabled     = !enable;
     }
   }
 
