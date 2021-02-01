@@ -299,7 +299,7 @@ std::optional<std::string> getElementText(
     elementHandle = elementHandle.FirstChildElement(child);
   }
   VistaXML::TiXmlElement* element = elementHandle.ToElement();
-  if (element != nullptr) {
+  if (element != nullptr && element->FirstChild() != nullptr) {
     return element->FirstChild()->ValueStr();
   }
   return {};
