@@ -54,19 +54,22 @@ class WebMapLayer {
   std::string getTitle() const;
   /// Gets the internal name of the layer used for requests.
   std::string getName() const;
+  /// Gets a narrative description of the layer.
+  std::optional<std::string> getAbstract() const;
   /// Gets the general settings of the layer.
   Settings getSettings() const;
 
   /// Checks if map data may be requested for the layer.
-  bool                     isRequestable() const;
-	/// Gets a list of all child layers of the layer.
+  bool isRequestable() const;
+  /// Gets a list of all child layers of the layer.
   std::vector<WebMapLayer> getAllLayers() const;
-	/// Adds all child layers to the layers list, for which map data may be requested.
-  void                     getRequestableLayers(std::vector<WebMapLayer>& layers) const;
+  /// Adds all child layers to the layers list, for which map data may be requested.
+  void getRequestableLayers(std::vector<WebMapLayer>& layers) const;
 
  private:
   std::string                mTitle;
   std::optional<std::string> mName;
+  std::optional<std::string> mAbstract;
 
   std::vector<WebMapLayer> mSubLayers;
 

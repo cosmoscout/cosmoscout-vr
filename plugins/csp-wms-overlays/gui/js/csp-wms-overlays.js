@@ -14,6 +14,14 @@
      * @inheritDoc
      */
     init() {
+      this._infoWindow = CosmoScout.gui.loadTemplateContent("wms-info");
+      document.getElementById("cosmoscout").appendChild(this._infoWindow);
+
+      this._infoIcon        = document.getElementById("wmsOverlays.infoIcon");
+      this._infoTitle       = document.getElementById("wmsOverlays.infoWindow.title");
+      this._infoAbstract    = document.getElementById("wmsOverlays.infoWindow.abstract");
+      this._infoAttribution = document.getElementById("wmsOverlays.infoWindow.attribution");
+
       CosmoScout.gui.initSlider("wmsOverlays.setUpdateBoundsDelay", 0, 5000, 100, [1000]);
       CosmoScout.gui.initSlider("wmsOverlays.setPrefetchCount", 0, 10, 1, [0]);
       CosmoScout.gui.initSliderOptions("wmsOverlays.setMaxTextureSize", {
@@ -32,17 +40,18 @@
       });
     }
 
-    /**
-     * Sets an elevation data copyright tooltip
-     * TODO Remove jQuery
-     *
-     * @param copyright {string}
-     */
-    // eslint-disable-next-line class-methods-use-this
-    setWMSDataCopyright(copyright) {
-      $('#wms-img-data-copyright')
-          .tooltip({placement: 'top'})
-          .attr('data-original-title', `© ${copyright}`);
+    setInfo(title, abstract, attribution) {
+      this._infoTitle.innerHTML       = title;
+      this._infoAbstract.innerHTML    = abstract;
+      this._infoAttribution.innerHTML = attribution;
+    }
+
+    enableInfoButton(enable) {
+      if (!enable) {
+        this._infoWindow.classList.remove('visible');
+      }
+      this._infoIcon.onclick = (enable ? () => { CosmoScout.callbacks.wmsOverlays.showInfo(); }
+                                       : () => { return; });
     }
 
     /**

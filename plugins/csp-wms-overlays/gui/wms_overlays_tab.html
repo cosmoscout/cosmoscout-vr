@@ -18,7 +18,7 @@
     <label>Image Channel</label>
   </div>
   <div class="col-1">
-    <i class="material-icons" style="font-size: 22px; top:-3px;" id="wms-img-data-copyright">info</i>
+    <i class="material-icons" style="font-size: 22px; top:-3px;" id="wmsOverlays.infoIcon">info</i>
   </div>
   <div class="col-6">
     <select data-callback="wmsOverlays.setLayer" data-container="#cosmoscout" data-width="100%"
@@ -128,3 +128,37 @@
     </button>
   </div>
 </div>
+
+<template id="wms-info-template">
+  <div id="wmsOverlays.infoWindow" class="draggable-window resizable-window">
+    <div class="window-wrapper">
+      <div class="window-header">
+        <span class="window-title">
+          <i class="material-icons">panorama</i>
+          <span id="wmsOverlays.infoWindow.title"></span>
+        </span>
+        <a class="btn light-glass" data-action="close" data-toggle="tooltip" title="Close">
+          <i class="material-icons">close</i>
+        </a>
+      </div>
+      <div class="window-content container-fluid">
+        <div class="row">
+          <div class="col-2">
+            <label><b>Abstract:</b></label>
+          </div>
+          <div class="col-10">
+            <p id="wmsOverlays.infoWindow.abstract"></p>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-2">
+            <label><b>Attribution:</b></label>
+          </div>
+          <div class="col-10">
+            <p id="wmsOverlays.infoWindow.attribution"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>

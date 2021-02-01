@@ -127,6 +127,12 @@ void Plugin::init() {
         goToBounds(mActiveOverlay->pBounds.get());
       }));
 
+  mGuiManager->getGui()->registerCallback(
+      "wmsOverlays.showInfo", "Toggles the info window.", std::function([this]() {
+        mGuiManager->getGui()->executeJavascript(
+            "document.getElementById('wmsOverlays.infoWindow').classList.toggle('visible')");
+      }));
+
   // Set whether to interpolate textures between timesteps (does not work when pre-fetch is
   // inactive).
   mGuiManager->getGui()->registerCallback("wmsOverlays.setEnableTimeInterpolation",
@@ -397,6 +403,8 @@ void Plugin::deInit() {
   mGuiManager->getGui()->unregisterCallback("wmsOverlays.setPrefetchCount");
   mGuiManager->getGui()->unregisterCallback("wmsOverlays.setUpdateBoundsDelay");
 
+  mGuiManager->getGui()->unregisterCallback("wmsOverlays.showInfo");
+
   mGuiManager->getGui()->unregisterCallback("wmsOverlays.setServer");
   mGuiManager->getGui()->unregisterCallback("wmsOverlays.setLayer");
   mGuiManager->getGui()->unregisterCallback("wmsOverlays.setStyle");
@@ -590,8 +598,12 @@ void Plugin::setWMSLayer(
   wmsOverlay->setActiveWMS(mActiveServers[wmsOverlay->getCenter()].value(),
       mActiveLayers[wmsOverlay->getCenter()].value());
 
-  mGuiManager->getGui()->callJavascript(
-      "CosmoScout.wmsOverlays.setWMSDataCopyright", layer->getSettings().mAttribution.value_or(""));
+  mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.setInfo", layer->getTitle(),
+      boost::replace_all_copy(
+          layer->getAbstract().value_or("<em>No description given</em>"), "\r", "</br>"),
+      layer->getSettings().mAttribution.value_or("None"));
+  mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.enableInfoButton", true);
+
   mGuiManager->getGui()->callJavascript(
       "CosmoScout.wmsOverlays.enableTimeNavigation", !layer->getSettings().mTimeIntervals.empty());
   mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.setDefaultBounds",
@@ -619,7 +631,7 @@ void Plugin::setWMSLayer(
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Plugin::resetWMSLayer(std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay) {
-  mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.setWMSDataCopyright", "");
+  mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.enableInfoButton", false);
   mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.clearDefaultBounds");
   mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.clearCurrentBounds");
   mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.enableTimeNavigation", false);

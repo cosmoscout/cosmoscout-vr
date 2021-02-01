@@ -27,10 +27,8 @@ WebMapLayer::WebMapLayer(VistaXML::TiXmlElement* element, Settings settings)
   }
   mTitle = titleElement->FirstChild()->ValueStr();
 
-  VistaXML::TiXmlElement* nameElement = element->FirstChildElement("Name");
-  if (nameElement != nullptr) {
-    mName = nameElement->FirstChild()->ValueStr();
-  }
+  mName = utils::getElementText(element, {"Name"});
+  mAbstract = utils::getElementText(element, {"Abstract"});
 
   utils::setOrKeep(mSettings.mOpaque, utils::getAttribute<bool>(element, "opaque"));
   utils::setOrKeep(mSettings.mNoSubsets, utils::getAttribute<bool>(element, "noSubsets"));
@@ -119,6 +117,12 @@ std::string WebMapLayer::getTitle() const {
 
 std::string WebMapLayer::getName() const {
   return mName.value_or("");
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::optional<std::string> WebMapLayer::getAbstract() const {
+  return mAbstract;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

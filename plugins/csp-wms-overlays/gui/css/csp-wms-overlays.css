@@ -21,3 +21,12 @@
     color: var(--cs-color-background-dark);
     content: attr(alt);
 }
+
+#wmsOverlays\.infoWindow .window-wrapper {
+    width: 800px;
+    min-width: 600px;
+}
+
+#wmsOverlays\.infoWindow\.abstract {
+    text-align: justify;
+}
