@@ -124,6 +124,8 @@
     resetLayerSelect() {
       $(this._layerSelect).selectpicker("destroy");
       $(this._layerSelect).selectpicker();
+      CosmoScout.gui.clearDropdown("wmsOverlays.setLayer");
+      CosmoScout.gui.addDropdownValue("wmsOverlays.setLayer", "None", "None", false);
     }
 
     /**

@@ -91,7 +91,12 @@ class Plugin : public cs::core::PluginBase {
       std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay, std::string const& name);
   void resetWMSStyle(std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay);
 
-  void addLayerToSelect(std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay,
+  /// Checks if the given wmsOverlay is currently active.
+  bool isActiveOverlay(std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay);
+
+  /// Adds the given layer and all of its sublayers to the layer dropdown.
+  /// Returns whether any layer's name matched the given activeLayer.
+  bool addLayerToSelect(std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay,
       WebMapLayer const& layer, std::string const& activeLayer, int const& depth = 0);
 
   void goToBounds(Bounds const& bounds);
