@@ -95,15 +95,8 @@ class TextureOverlayRenderer : public IVistaOpenGLDraw {
   static const std::string SURFACE_VERT; ///< Code for the vertex shader
   static const std::string SURFACE_FRAG; ///< Code for the fragment shader
 
-  /// Struct which stores the depth buffer and color buffer from the previous rendering (order)
-  /// on the GPU and pass it to the shaders for inverse transformations based on depth and screen
-  /// coordinates. Used to calculate texture coordinates for the overlay
-  struct GBufferData {
-    VistaTexture* mDepthBuffer = nullptr;
-    VistaTexture* mColorBuffer = nullptr;
-  };
-
-  std::unordered_map<VistaViewport*, GBufferData> mGBufferData; ///< Store one buffer per viewport
+  std::unordered_map<VistaViewport*, VistaTexture*>
+      mDepthBufferData; ///< Store one buffer per viewport
 
   std::map<std::string, std::future<std::optional<WebMapTexture>>>
       mTexturesBuffer; ///< Stores all textures, for which the request ist still pending.

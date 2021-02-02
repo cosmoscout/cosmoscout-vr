@@ -39,10 +39,6 @@ namespace csp::wmsoverlays {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-constexpr float PI = 3.141592654f;
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 TextureOverlayRenderer::TextureOverlayRenderer(std::string center,
     std::shared_ptr<cs::core::SolarSystem>                 solarSystem,
     std::shared_ptr<cs::core::TimeControl>                 timeControl,
@@ -68,32 +64,26 @@ TextureOverlayRenderer::TextureOverlayRenderer(std::string center,
 
   // create textures ---------------------------------------------------------
   for (auto const& viewport : GetVistaSystem()->GetDisplayManager()->GetViewports()) {
-    GBufferData bufferData;
-
     // Texture for previous renderer depth buffer
-    bufferData.mDepthBuffer = new VistaTexture(GL_TEXTURE_RECTANGLE);
-    bufferData.mDepthBuffer->Bind();
-    bufferData.mDepthBuffer->SetWrapS(GL_CLAMP);
-    bufferData.mDepthBuffer->SetWrapT(GL_CLAMP);
-    bufferData.mDepthBuffer->SetMinFilter(GL_NEAREST);
-    bufferData.mDepthBuffer->SetMagFilter(GL_NEAREST);
-    bufferData.mDepthBuffer->Unbind();
+    VistaTexture* depthBuffer = new VistaTexture(GL_TEXTURE_RECTANGLE);
+    depthBuffer->Bind();
+    depthBuffer->SetWrapS(GL_CLAMP);
+    depthBuffer->SetWrapT(GL_CLAMP);
+    depthBuffer->SetMinFilter(GL_NEAREST);
+    depthBuffer->SetMagFilter(GL_NEAREST);
+    depthBuffer->Unbind();
 
-    // Color texture to overlay
-    bufferData.mColorBuffer = new VistaTexture(GL_TEXTURE_2D);
-    bufferData.mColorBuffer->Bind();
-    bufferData.mColorBuffer->SetWrapS(GL_CLAMP);
-    bufferData.mColorBuffer->SetWrapT(GL_CLAMP);
-    bufferData.mColorBuffer->SetMinFilter(GL_LINEAR);
-    bufferData.mColorBuffer->SetMagFilter(GL_LINEAR);
-    bufferData.mColorBuffer->Unbind();
-
-    mGBufferData[viewport.second] = bufferData;
+    mDepthBufferData[viewport.second] = depthBuffer;
   }
+
   mWMSTexture->Bind();
   mWMSTexture->SetWrapS(GL_CLAMP_TO_EDGE);
   mWMSTexture->SetWrapT(GL_CLAMP_TO_EDGE);
   mWMSTexture->Unbind();
+  mSecondWMSTexture->Bind();
+  mSecondWMSTexture->SetWrapS(GL_CLAMP_TO_EDGE);
+  mSecondWMSTexture->SetWrapT(GL_CLAMP_TO_EDGE);
+  mSecondWMSTexture->Unbind();
 
   logger().debug("[TextureOverlayRenderer] Compiling shader done");
 
@@ -125,9 +115,8 @@ TextureOverlayRenderer::TextureOverlayRenderer(std::string center,
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 TextureOverlayRenderer::~TextureOverlayRenderer() {
-  for (auto data : mGBufferData) {
-    delete data.second.mDepthBuffer;
-    delete data.second.mColorBuffer;
+  for (auto data : mDepthBufferData) {
+    delete data.second;
   }
 
   clearTextures();
@@ -249,7 +238,7 @@ void TextureOverlayRenderer::updateLonLatRange() {
   if (!std::all_of(intersections.begin(), intersections.end(),
           [](auto intersection) { return intersection.first; })) {
     // The body is not visible in all four corners of the screen.
-    // For now this results use the maximum bounds of the map.
+    // For now this results in using the maximum bounds of the map.
     pBounds = mActiveWMSLayer->getSettings().mBounds;
   } else {
     // All four corners of the screen show the body.
@@ -521,7 +510,7 @@ bool TextureOverlayRenderer::Do() {
     return false;
   }
 
-  // save current lighting and meterial state of the OpenGL state machine
+  // save current lighting and material state of the OpenGL state machine
   glPushAttrib(GL_POLYGON_BIT | GL_ENABLE_BIT);
   glEnable(GL_TEXTURE_2D);
   glDisable(GL_CULL_FACE);
@@ -539,25 +528,23 @@ bool TextureOverlayRenderer::Do() {
       ->GetClippingRange(nearClip, farClip);
 
   // copy depth buffer from previous rendering
-  // -------------------------------------------------------
   GLint iViewport[4];
   glGetIntegerv(GL_VIEWPORT, iViewport);
 
-  auto*       viewport = GetVistaSystem()->GetDisplayManager()->GetCurrentRenderInfo()->m_pViewport;
-  auto const& data     = mGBufferData[viewport];
+  auto* viewport = GetVistaSystem()->GetDisplayManager()->GetCurrentRenderInfo()->m_pViewport;
+  VistaTexture* depthBuffer = mDepthBufferData[viewport];
 
-  data.mDepthBuffer->Bind();
+  depthBuffer->Bind();
   glCopyTexImage2D(GL_TEXTURE_RECTANGLE, 0, GL_DEPTH_COMPONENT, iViewport[0], iViewport[1],
       iViewport[2], iViewport[3], 0);
 
-  // get matrices and related values -----------------------------------------
+  // get matrices and related values
   GLfloat glMatP[16];
   GLfloat glMatMV[16];
   glGetFloatv(GL_PROJECTION_MATRIX, &glMatP[0]);
   glGetFloatv(GL_MODELVIEW_MATRIX, &glMatMV[0]);
 
-  std::string closestPlanet     = mSolarSystem->pActiveBody.get()->getCenterName();
-  auto        activeBody        = mSolarSystem->pActiveBody.get();
+  auto        activeBody        = mSolarSystem->pActiveBody.get( );
   glm::dmat4  matWorldTransform = activeBody->getWorldTransform();
 
   VistaTransformMatrix matM(glm::value_ptr(matWorldTransform), true);
@@ -565,13 +552,12 @@ bool TextureOverlayRenderer::Do() {
   VistaTransformMatrix matInvMV(matMV.GetInverted());
   VistaTransformMatrix matInvP(VistaTransformMatrix(glMatP, true).GetInverted());
   VistaTransformMatrix matInvMVP(matInvMV * matInvP);
-  // get matrices and related values -----------------------------------------
 
   // Bind shader before draw
   m_pSurfaceShader->Bind();
 
-  data.mDepthBuffer->Bind(GL_TEXTURE0);
   // Only bind the enabled textures.
+  depthBuffer->Bind(GL_TEXTURE0);
   if (mWMSTextureUsed) {
     mWMSTexture->Bind(GL_TEXTURE1);
 
@@ -591,10 +577,10 @@ bool TextureOverlayRenderer::Do() {
       m_pSurfaceShader->GetUniformLocation("uUseSecondTexture"), mSecondWMSTextureUsed);
 
   // Why is there no set uniform for matrices??? //TODO: There is one
-  glm::dmat4 InverseWorldTransform = glm::inverse(matWorldTransform);
+  glm::dmat4 inverseWorldTransform = glm::inverse(matWorldTransform);
   GLint      loc                   = m_pSurfaceShader->GetUniformLocation("uMatInvMV");
   // glUniformMatrix4fv(loc, 1, GL_FALSE, matInvMV.GetData());
-  glUniformMatrix4dv(loc, 1, GL_FALSE, glm::value_ptr(InverseWorldTransform));
+  glUniformMatrix4dv(loc, 1, GL_FALSE, glm::value_ptr(inverseWorldTransform));
   loc = m_pSurfaceShader->GetUniformLocation("uMatInvMVP");
   glUniformMatrix4fv(loc, 1, GL_FALSE, matInvMVP.GetData());
   loc = m_pSurfaceShader->GetUniformLocation("uMatInvP");
@@ -632,7 +618,7 @@ bool TextureOverlayRenderer::Do() {
   // Dummy draw
   glDrawArrays(GL_POINTS, 0, 1);
 
-  data.mDepthBuffer->Unbind(GL_TEXTURE0);
+  depthBuffer->Unbind(GL_TEXTURE0);
   if (mWMSTextureUsed) {
     mWMSTexture->Unbind(GL_TEXTURE1);
 
