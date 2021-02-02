@@ -27,7 +27,7 @@ WebMapLayer::WebMapLayer(VistaXML::TiXmlElement* element, Settings settings)
   }
   mTitle = titleElement->FirstChild()->ValueStr();
 
-  mName = utils::getElementText(element, {"Name"});
+  mName     = utils::getElementText(element, {"Name"});
   mAbstract = utils::getElementText(element, {"Abstract"});
 
   utils::setOrKeep(mSettings.mOpaque, utils::getAttribute<bool>(element, "opaque"));
@@ -87,6 +87,11 @@ WebMapLayer::WebMapLayer(VistaXML::TiXmlElement* element, Settings settings)
   utils::setOrKeep(mSettings.mBounds.mMaxLon, maxLon);
   utils::setOrKeep(mSettings.mBounds.mMinLat, minLat);
   utils::setOrKeep(mSettings.mBounds.mMaxLat, maxLat);
+
+  utils::setOrKeep(
+      mSettings.mMinScale, utils::optstod(utils::getElementText(element, {"MinScaleDenominator"})));
+  utils::setOrKeep(
+      mSettings.mMaxScale, utils::optstod(utils::getElementText(element, {"MaxScaleDenominator"})));
 
   for (VistaXML::TiXmlElement* styleElement = element->FirstChildElement("Style"); styleElement;
        styleElement                         = styleElement->NextSiblingElement("Style")) {

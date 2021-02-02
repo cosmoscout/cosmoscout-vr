@@ -42,6 +42,11 @@
       this._infoAbstract    = document.getElementById("wmsOverlays.infoWindow.abstract");
       this._infoAttribution = document.getElementById("wmsOverlays.infoWindow.attribution");
 
+      this._scaleLabel   = document.getElementById("wmsOverlays.scale");
+      this._scaleWarning = document.getElementById("wmsOverlays.scaleWarning");
+
+      this.showScaleWarning(false);
+
       CosmoScout.gui.initSlider("wmsOverlays.setUpdateBoundsDelay", 0, 5000, 100, [1000]);
       CosmoScout.gui.initSlider("wmsOverlays.setPrefetchCount", 0, 10, 1, [0]);
       CosmoScout.gui.initSliderOptions("wmsOverlays.setMaxTextureSize", {
@@ -58,6 +63,15 @@
           },
         },
       });
+    }
+
+    setScale(value) {
+      this._scaleLabel.innerHTML = "1:" + CosmoScout.utils.formatNumber(value);
+    }
+
+    showScaleWarning(enable, text = "") {
+      this._scaleWarning.style.visibility = (enable ? "visible" : "hidden");
+      $(this._scaleWarning).tooltip({placement: "top"}).attr("data-original-title", text);
     }
 
     setInfo(title, abstract, attribution) {

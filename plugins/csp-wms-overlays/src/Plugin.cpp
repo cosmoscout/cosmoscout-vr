@@ -87,6 +87,14 @@ void Plugin::init() {
   mGuiManager->addScriptToGuiFromJS("../share/resources/gui/js/csp-wms-overlays.js");
   mGuiManager->addCssToGui("css/csp-wms-overlays.css");
 
+  mPluginSettings->mMaxTextureSize.connect([this](int value) {
+    if (!mActiveOverlay || !mActiveLayers[mActiveOverlay->getCenter()]) {
+      return;
+    }
+    checkScale(
+        mActiveOverlay->pBounds.get(), mActiveLayers[mActiveOverlay->getCenter()].value(), value);
+  });
+
   // Updates the bounds for which map data is requested.
   mGuiManager->getGui()->registerCallback(
       "wmsOverlays.updateBounds", "Updates the bounds for map requests.", std::function([this]() {
@@ -347,6 +355,12 @@ void Plugin::init() {
         mBoundsConnection = mActiveOverlay->pBounds.connectAndTouch([this](Bounds bounds) {
           mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.setCurrentBounds",
               bounds.mMinLon, bounds.mMaxLon, bounds.mMinLat, bounds.mMaxLat);
+
+          if (!mActiveOverlay || !mActiveLayers[mActiveOverlay->getCenter()]) {
+            return;
+          }
+          checkScale(bounds, mActiveLayers[mActiveOverlay->getCenter()].value(),
+              mPluginSettings->mMaxTextureSize.get());
         });
 
         mGuiManager->getGui()->callJavascript(
@@ -598,23 +612,29 @@ void Plugin::setWMSLayer(
   wmsOverlay->setActiveWMS(mActiveServers[wmsOverlay->getCenter()].value(),
       mActiveLayers[wmsOverlay->getCenter()].value());
 
-  mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.setInfo", layer->getTitle(),
-      boost::replace_all_copy(
-          layer->getAbstract().value_or("<em>No description given</em>"), "\r", "</br>"),
-      layer->getSettings().mAttribution.value_or("None"));
-  mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.enableInfoButton", true);
+  if (wmsOverlay->getCenter() == mActiveOverlay->getCenter()) {
+    checkScale(wmsOverlay->pBounds.get(), mActiveLayers[wmsOverlay->getCenter()].value(),
+        mPluginSettings->mMaxTextureSize.get());
 
-  mGuiManager->getGui()->callJavascript(
-      "CosmoScout.wmsOverlays.enableTimeNavigation", !layer->getSettings().mTimeIntervals.empty());
-  mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.setDefaultBounds",
-      layer->getSettings().mBounds.mMinLon, layer->getSettings().mBounds.mMaxLon,
-      layer->getSettings().mBounds.mMinLat, layer->getSettings().mBounds.mMaxLat);
-  if (layer->getSettings().mNoSubsets) {
-    mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.setNoSubsets");
-  } else {
-    mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.setCurrentBounds",
-        wmsOverlay->pBounds.get().mMinLon, wmsOverlay->pBounds.get().mMaxLon,
-        wmsOverlay->pBounds.get().mMinLat, wmsOverlay->pBounds.get().mMaxLat);
+    mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.setInfo", layer->getTitle(),
+        boost::replace_all_copy(
+            layer->getAbstract().value_or("<em>No description given</em>"), "\r", "</br>"),
+        layer->getSettings().mAttribution.value_or("None"));
+    mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.enableInfoButton", true);
+
+    mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.enableTimeNavigation",
+        !layer->getSettings().mTimeIntervals.empty());
+    mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.setDefaultBounds",
+        layer->getSettings().mBounds.mMinLon, layer->getSettings().mBounds.mMaxLon,
+        layer->getSettings().mBounds.mMinLat, layer->getSettings().mBounds.mMaxLat);
+
+    if (layer->getSettings().mNoSubsets) {
+      mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.setNoSubsets");
+    } else {
+      mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.setCurrentBounds",
+          wmsOverlay->pBounds.get().mMinLon, wmsOverlay->pBounds.get().mMaxLon,
+          wmsOverlay->pBounds.get().mMinLat, wmsOverlay->pBounds.get().mMaxLat);
+    }
   }
 
   for (WebMapLayer::Style style : layer->getSettings().mStyles) {
@@ -696,7 +716,7 @@ void Plugin::addLayerToSelect(std::shared_ptr<TextureOverlayRenderer> const& wms
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Plugin::goToBounds(Bounds bounds) {
+void Plugin::goToBounds(Bounds const& bounds) {
   double lon      = (bounds.mMinLon + bounds.mMaxLon) / 2.;
   double lat      = (bounds.mMinLat + bounds.mMaxLat) / 2.;
   double lonRange = bounds.mMaxLon - bounds.mMinLon;
@@ -719,6 +739,32 @@ void Plugin::goToBounds(Bounds bounds) {
   mSolarSystem->flyObserverTo(mSolarSystem->pActiveBody.get()->getCenterName(),
       mSolarSystem->pActiveBody.get()->getFrameName(),
       cs::utils::convert::toRadians(glm::dvec2(lon, lat)), std::max(heighty, heightx), 5.);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Plugin::checkScale(Bounds const& bounds, WebMapLayer const& layer, int const& maxTextureSize) {
+  static constexpr double metersPerDegree = (6378137. * 2. * glm::pi<double>()) / 360.;
+  static constexpr double metersPerPixel  = 0.00028;
+
+  double lonRange = bounds.mMaxLon - bounds.mMinLon;
+  double latRange = bounds.mMaxLat - bounds.mMinLat;
+
+  double scaleDenominator =
+      std::max(lonRange, latRange) * metersPerDegree / maxTextureSize / metersPerPixel;
+
+  mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.setScale", scaleDenominator);
+  if (layer.getSettings().mMinScale && scaleDenominator <= layer.getSettings().mMinScale) {
+    mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.showScaleWarning", true,
+        "The current scale is marked as inappropriate for this layer. Consider moving the camera "
+        "further from the planet or lowering the map resolution.");
+  } else if (layer.getSettings().mMaxScale && scaleDenominator > layer.getSettings().mMaxScale) {
+    mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.showScaleWarning", true,
+        "The current scale is marked as inappropriate for this layer. Consider moving the camera "
+        "closer to the planet or increasing the map resolution.");
+  } else {
+    mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.showScaleWarning", false);
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

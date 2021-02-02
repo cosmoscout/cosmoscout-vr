@@ -45,7 +45,11 @@ class WebMapLayer {
     bool               mOpaque = false;        ///< Specifies whether the layer is opaque.
     std::vector<Style> mStyles;                ///< List of styles for the layer.
     std::vector<TimeInterval>  mTimeIntervals; ///< TimeIntervals, for which data is available.
-    std::optional<std::string> mAttribution;   ///< Attribution for the layer
+    std::optional<std::string> mAttribution;   ///< Attribution for the layer.
+    std::optional<double>
+        mMinScale; ///< Minimum scale denominator for which it is appropriate to generate a map.
+    std::optional<double>
+        mMaxScale; ///< Maximum scale denominator for which it is appropriate to generate a map.
   };
 
   WebMapLayer(VistaXML::TiXmlElement* element, Settings settings);
