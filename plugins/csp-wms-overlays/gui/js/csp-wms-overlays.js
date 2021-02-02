@@ -65,21 +65,45 @@
       });
     }
 
+    /**
+     * Set the displayed map scale.
+     *
+     * @param {number} value The map scale
+     */
     setScale(value) {
       this._scaleLabel.innerHTML = "1:" + CosmoScout.utils.formatNumber(value);
     }
 
+    /**
+     * Enable or disable a warning icon for scales that aren't appropriate for the current layer.
+     *
+     * @param {boolean} enable Whether to enable the warning icon
+     * @param {string} text Text to display in the warning icon's tooltip
+     */
     showScaleWarning(enable, text = "") {
       this._scaleWarning.style.visibility = (enable ? "visible" : "hidden");
       $(this._scaleWarning).tooltip({placement: "top"}).attr("data-original-title", text);
     }
 
+    /**
+     * Set layer info that is shown in the info window.
+     *
+     * @param {string} title The human readable title of the layer
+     * @param {string} abstract A narrative description of the layer
+     * @param {string} attribution Attribution of the shown data
+     */
     setInfo(title, abstract, attribution) {
       this._infoTitle.innerHTML       = title;
       this._infoAbstract.innerHTML    = abstract;
       this._infoAttribution.innerHTML = attribution;
     }
 
+    /**
+     * Enable or disable the button for showing the info window.
+     * If the button is disabled, the window will also be hidden.
+     *
+     * @param {boolean} enable The desired state of the button
+     */
     enableInfoButton(enable) {
       if (!enable) {
         this._infoWindow.classList.remove('visible');
@@ -89,7 +113,7 @@
     }
 
     /**
-     * Recreates the dropdown for layer selection
+     * Recreate the dropdown for layer selection
      *
      * When the dropdown contains a lot of values, bootstrap-select apparently adds margins to the
      * dropdown menu, that are not removed when switching to a server with fewer layers. To remove
@@ -100,10 +124,23 @@
       $(this._layerSelect).selectpicker();
     }
 
+    /**
+     * Call the refresh function on the layer dropdown.
+     */
     refreshLayerSelect() {
       $(this._layerSelect).selectpicker("refresh");
     }
 
+    /**
+     * Add a new layer to the layer dropdown.
+     * Indent it according to the layer hierarchy.
+     *
+     * @param {string} name The internal name of the layer
+     * @param {string} title The human readable title of the layer
+     * @param {boolean} active Whether the layer is currently selected
+     * @param {boolean} requestable Whether maps for this layer may be requested
+     * @param {number} depth The depth of the layer in the hierarchy
+     */
     addLayer(name, title, active, requestable, depth) {
       const option = document.createElement('option');
 
@@ -115,10 +152,25 @@
       this._layerSelect.appendChild(option);
     }
 
+    /**
+     * Set the URL of the active style's legend.
+     * If it is a valid URL the legend will be automatically loaded.
+     *
+     * @param {string} url The style's legend
+     */
     setLegendURL(url) {
       document.getElementById("wmsOverlays.legend").src = url;
     }
 
+    /**
+     * Set the default bounds for the active layer.
+     * Also enable the "Go to center" button.
+     *
+     * @param {number|string} minLon
+     * @param {number|string} maxLon
+     * @param {number|string} minLat
+     * @param {number|string} maxLat
+     */
     setDefaultBounds(minLon, maxLon, minLat, maxLat) {
       this._defaultBoundsLabel.innerText = `${CosmoScout.utils.formatLongitude(minLon)}, ` +
                                            `${CosmoScout.utils.formatLatitude(minLat)} - ` +
@@ -127,6 +179,15 @@
       this._defaultBoundsGoTo.disabled = false;
     }
 
+    /**
+     * Set the current bounds for the active layer.
+     * Also enable the "Go to center" and "Update bounds" buttons.
+     *
+     * @param {number|string} minLon
+     * @param {number|string} maxLon
+     * @param {number|string} minLat
+     * @param {number|string} maxLat
+     */
     setCurrentBounds(minLon, maxLon, minLat, maxLat) {
       this._currentBoundsLabel.innerText = `${CosmoScout.utils.formatLongitude(minLon)}, ` +
                                            `${CosmoScout.utils.formatLatitude(minLat)} - ` +
@@ -136,23 +197,40 @@
       this._currentBoundsUpdate.disabled = false;
     }
 
+    /**
+     * Display no default bounds.
+     * Also disable the "Go to center" button.
+     */
     clearDefaultBounds() {
       this._defaultBoundsLabel.innerText = "None";
       this._defaultBoundsGoTo.disabled   = true;
     }
 
+    /**
+     * Display no current bounds.
+     * Also disable the "Go to center" and "Update bounds" buttons.
+     */
     clearCurrentBounds() {
       this._currentBoundsLabel.innerText = "None";
       this._currentBoundsGoTo.disabled   = true;
       this._currentBoundsUpdate.disabled = true;
     }
 
+    /**
+     * Display, that no subsets may be requested for the current layer.
+     * Also disable the "Go to center" and "Update bounds" buttons.
+     */
     setNoSubsets() {
       this._currentBoundsLabel.innerText = "No subsets allowed for this layer";
       this._currentBoundsGoTo.disabled   = true;
       this._currentBoundsUpdate.disabled = true;
     }
 
+    /**
+     * Enable or disable the time controls.
+     *
+     * @param {boolean} enable The desired state for the time controls
+     */
     enableTimeNavigation(enable) {
       this._firstTime.disabled    = !enable;
       this._previousTime.disabled = !enable;
