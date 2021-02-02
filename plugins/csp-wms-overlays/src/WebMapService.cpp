@@ -251,13 +251,10 @@ WebMapLayer WebMapService::parseRootLayer() {
     VistaXML::TiXmlNode* organization =
         contactPerson->FirstChildElement("ContactOrganization")->FirstChild();
     VistaXML::TiXmlNode* person = contactPerson->FirstChildElement("ContactPerson")->FirstChild();
-    if (person != nullptr) {
+    if (person != nullptr && organization == nullptr) {
       contact << person->ValueStr();
     }
-    if (person != nullptr && organization != nullptr) {
-      contact << ", ";
-    }
-    if (organization != nullptr) {
+    else if (organization != nullptr) {
       contact << organization->ValueStr();
     }
     settings.mAttribution = contact.str();
