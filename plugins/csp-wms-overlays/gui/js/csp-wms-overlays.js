@@ -27,6 +27,8 @@
           '[onclick="CosmoScout.callbacks.wmsOverlays.goToCurrentBounds()"]');
       this._currentBoundsUpdate =
           document.querySelector('[onclick="CosmoScout.callbacks.wmsOverlays.updateBounds()"]');
+      this._currentBoundsReset =
+          document.querySelector('[onclick="CosmoScout.callbacks.wmsOverlays.resetBounds()"]');
 
       this._firstTime =
           document.querySelector('[onclick="CosmoScout.callbacks.wmsOverlays.goToFirstTime()"]');
@@ -195,6 +197,7 @@
                                            `${CosmoScout.utils.formatLatitude(maxLat)}`;
       this._currentBoundsGoTo.disabled = false;
       this._currentBoundsUpdate.disabled = false;
+      this._currentBoundsReset.disabled  = false;
     }
 
     /**
@@ -214,6 +217,7 @@
       this._currentBoundsLabel.innerText = "None";
       this._currentBoundsGoTo.disabled   = true;
       this._currentBoundsUpdate.disabled = true;
+      this._currentBoundsReset.disabled  = true;
     }
 
     /**
@@ -224,6 +228,7 @@
       this._currentBoundsLabel.innerText = "No subsets allowed for this layer";
       this._currentBoundsGoTo.disabled   = true;
       this._currentBoundsUpdate.disabled = true;
+      this._currentBoundsReset.disabled  = true;
     }
 
     /**
