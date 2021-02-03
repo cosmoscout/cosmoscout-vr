@@ -799,13 +799,19 @@ void Plugin::checkScale(Bounds const& bounds, WebMapLayer const& layer, int cons
 
   mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.setScale", scaleDenominator);
   if (layer.getSettings().mMinScale && scaleDenominator <= layer.getSettings().mMinScale) {
-    mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.showScaleWarning", true,
-        "The current scale is marked as inappropriate for this layer. Consider moving the camera "
-        "further from the planet or lowering the map resolution.");
+    std::stringstream warning;
+    warning << "The current scale is marked as inappropriate for this layer. ";
+    warning << "Scale should be at least 1:" << layer.getSettings().mMinScale.value() << ". ";
+    warning << "Consider moving the camera further from the planet or lowering the map resolution.";
+    mGuiManager->getGui()->callJavascript(
+        "CosmoScout.wmsOverlays.showScaleWarning", true, warning.str());
   } else if (layer.getSettings().mMaxScale && scaleDenominator > layer.getSettings().mMaxScale) {
-    mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.showScaleWarning", true,
-        "The current scale is marked as inappropriate for this layer. Consider moving the camera "
-        "closer to the planet or increasing the map resolution.");
+    std::stringstream warning;
+    warning << "The current scale is marked as inappropriate for this layer. ";
+    warning << "Scale should be at most 1:" << layer.getSettings().mMaxScale.value() << ". ";
+    warning << "Consider moving the camera closer to the planet or increasing the map resolution.";
+    mGuiManager->getGui()->callJavascript(
+        "CosmoScout.wmsOverlays.showScaleWarning", true, warning.str());
   } else {
     mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.showScaleWarning", false);
   }
