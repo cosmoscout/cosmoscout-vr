@@ -77,7 +77,7 @@ std::ostream& operator<<(std::ostream& out, WebMapException::Code& code) {
 
 WebMapException::WebMapException(VistaXML::TiXmlElement* element) {
   mCode = utils::getAttribute<Code>(element, "code").value_or(Code::eNone);
-  mText = utils::getElementText(element, {}).value_or("No description given");
+  mText = utils::getElementValue<std::string>(element).value_or("No description given");
 
   std::stringstream message;
   message << mCode;

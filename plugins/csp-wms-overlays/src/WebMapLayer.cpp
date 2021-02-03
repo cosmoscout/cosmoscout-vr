@@ -21,14 +21,14 @@ WebMapLayer::WebMapLayer(VistaXML::TiXmlElement* element, Settings settings)
     : mSettings(settings) {
   VistaXML::TiXmlHandle elementHandle(element);
 
-  VistaXML::TiXmlElement* titleElement = element->FirstChildElement("Title");
-  if (titleElement == nullptr) {
+  std::optional<std::string> title = utils::getElementValue<std::string>(element, {"Title"});
+  if (!title.has_value()) {
     throw std::runtime_error("No title found for Layer.");
   }
-  mTitle = titleElement->FirstChild()->ValueStr();
+  mTitle = title.value();
 
-  mName     = utils::getElementText(element, {"Name"});
-  mAbstract = utils::getElementText(element, {"Abstract"});
+  mName     = utils::getElementValue<std::string>(element, {"Name"});
+  mAbstract = utils::getElementValue<std::string>(element, {"Abstract"});
 
   utils::setOrKeep(mSettings.mOpaque, utils::getAttribute<bool>(element, "opaque"));
   utils::setOrKeep(mSettings.mNoSubsets, utils::getAttribute<bool>(element, "noSubsets"));
@@ -36,14 +36,13 @@ WebMapLayer::WebMapLayer(VistaXML::TiXmlElement* element, Settings settings)
   utils::setOrKeep(mSettings.mFixedWidth, utils::getSizeAttribute(element, "fixedWidth"));
   utils::setOrKeep(mSettings.mFixedHeight, utils::getSizeAttribute(element, "fixedHeight"));
 
-  utils::setOrKeep(
-      mSettings.mAttribution, utils::getElementText(element, {"Attribution", "Title"}));
+  utils::setOrKeep(mSettings.mAttribution,
+      utils::getElementValue<std::string>(element, {"Attribution", "Title"}));
 
   for (VistaXML::TiXmlElement* dimensionElement = element->FirstChildElement("Dimension");
        dimensionElement; dimensionElement = dimensionElement->NextSiblingElement("Dimension")) {
     if (utils::getAttribute<std::string>(dimensionElement, "name").value() == "time") {
-      std::optional<std::string> timeString;
-      utils::setOrKeep(timeString, utils::getElementText(dimensionElement, {}));
+      std::optional<std::string> timeString = utils::getElementValue<std::string>(dimensionElement);
       if (timeString.has_value()) {
         mSettings.mTimeIntervals.clear();
         try {
@@ -57,14 +56,14 @@ WebMapLayer::WebMapLayer(VistaXML::TiXmlElement* element, Settings settings)
     }
   }
 
-  std::optional<double> minLon = utils::optstod(
-      utils::getElementText(element, {"EX_GeographicBoundingBox", "westBoundLongitude"}));
-  std::optional<double> maxLon = utils::optstod(
-      utils::getElementText(element, {"EX_GeographicBoundingBox", "eastBoundLongitude"}));
-  std::optional<double> minLat = utils::optstod(
-      utils::getElementText(element, {"EX_GeographicBoundingBox", "southBoundLongitude"}));
-  std::optional<double> maxLat = utils::optstod(
-      utils::getElementText(element, {"EX_GeographicBoundingBox", "northBoundLongitude"}));
+  std::optional<double> minLon =
+      utils::getElementValue<double>(element, {"EX_GeographicBoundingBox", "westBoundLongitude"});
+  std::optional<double> maxLon =
+      utils::getElementValue<double>(element, {"EX_GeographicBoundingBox", "eastBoundLongitude"});
+  std::optional<double> minLat =
+      utils::getElementValue<double>(element, {"EX_GeographicBoundingBox", "southBoundLongitude"});
+  std::optional<double> maxLat =
+      utils::getElementValue<double>(element, {"EX_GeographicBoundingBox", "northBoundLongitude"});
 
   for (VistaXML::TiXmlElement* boundingBoxElement = element->FirstChildElement("BoundingBox");
        boundingBoxElement;
@@ -89,9 +88,9 @@ WebMapLayer::WebMapLayer(VistaXML::TiXmlElement* element, Settings settings)
   utils::setOrKeep(mSettings.mBounds.mMaxLat, maxLat);
 
   utils::setOrKeep(
-      mSettings.mMinScale, utils::optstod(utils::getElementText(element, {"MinScaleDenominator"})));
+      mSettings.mMinScale, utils::getElementValue<double>(element, {"MinScaleDenominator"}));
   utils::setOrKeep(
-      mSettings.mMaxScale, utils::optstod(utils::getElementText(element, {"MaxScaleDenominator"})));
+      mSettings.mMaxScale, utils::getElementValue<double>(element, {"MaxScaleDenominator"}));
 
   for (VistaXML::TiXmlElement* styleElement = element->FirstChildElement("Style"); styleElement;
        styleElement                         = styleElement->NextSiblingElement("Style")) {
@@ -100,7 +99,7 @@ WebMapLayer::WebMapLayer(VistaXML::TiXmlElement* element, Settings settings)
 
   for (VistaXML::TiXmlElement* crsElement = element->FirstChildElement("CRS"); crsElement;
        crsElement                         = crsElement->NextSiblingElement("CRS")) {
-    std::optional<std::string> crs = utils::getElementText(crsElement, {});
+    std::optional<std::string> crs = utils::getElementValue<std::string>(crsElement);
     if (crs.has_value() && !cs::utils::contains(mSettings.mCrs, crs.value())) {
       mSettings.mCrs.push_back(crs.value());
     }
@@ -164,8 +163,8 @@ void WebMapLayer::getRequestableLayers(std::vector<WebMapLayer>& layers) const {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 WebMapLayer::Style::Style(VistaXML::TiXmlElement* element)
-    : mName(utils::getElementText(element, {"Name"}).value())
-    , mTitle(utils::getElementText(element, {"Title"}).value_or("Untitled"))
+    : mName(utils::getElementValue<std::string>(element, {"Name"}).value())
+    , mTitle(utils::getElementValue<std::string>(element, {"Title"}).value_or("Untitled"))
     , mLegendUrl(getLegendUrl(element)) {
 }
 

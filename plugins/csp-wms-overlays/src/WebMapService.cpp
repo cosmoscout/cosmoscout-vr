@@ -247,17 +247,15 @@ WebMapLayer WebMapService::parseRootLayer() {
                                               .FirstChildElement("ContactPersonPrimary")
                                               .ToElement();
   if (contactPerson != nullptr) {
-    std::stringstream    contact;
-    VistaXML::TiXmlNode* organization =
-        contactPerson->FirstChildElement("ContactOrganization")->FirstChild();
-    VistaXML::TiXmlNode* person = contactPerson->FirstChildElement("ContactPerson")->FirstChild();
-    if (person != nullptr && organization == nullptr) {
-      contact << person->ValueStr();
+    std::optional<std::string> organization =
+        utils::getElementValue<std::string>(contactPerson, {"ContactOrganization"});
+    std::optional<std::string> person =
+        utils::getElementValue<std::string>(contactPerson, {"ContactPerson"});
+    if (person.has_value() && !organization.has_value()) {
+      settings.mAttribution = person.value();
+    } else if (organization.has_value()) {
+      settings.mAttribution = organization.value();
     }
-    else if (organization != nullptr) {
-      contact << organization->ValueStr();
-    }
-    settings.mAttribution = contact.str();
   }
 
   return WebMapLayer(root, settings);
@@ -266,12 +264,8 @@ WebMapLayer WebMapService::parseRootLayer() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::string WebMapService::parseTitle() {
-  VistaXML::TiXmlHandle capabilityHandle(getCapabilities());
-  VistaXML::TiXmlText*  serviceTitle = capabilityHandle.FirstChildElement("Service")
-                                          .FirstChildElement("Title")
-                                          .FirstChild()
-                                          .ToText();
-  return serviceTitle->ValueStr();
+  return utils::getElementValue<std::string>(getCapabilities(), {"Service", "Title"})
+      .value_or("Untitled");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -281,9 +275,9 @@ WebMapService::Settings WebMapService::parseSettings() {
   WebMapService::Settings settings;
 
   settings.mMaxWidth =
-      utils::optstoi(utils::getElementText(capabilityHandle.ToElement(), {"Service", "MaxWidth"}));
+      utils::getElementValue<int>(capabilityHandle.ToElement(), {"Service", "MaxWidth"});
   settings.mMaxHeight =
-      utils::optstoi(utils::getElementText(capabilityHandle.ToElement(), {"Service", "MaxHeight"}));
+      utils::getElementValue<int>(capabilityHandle.ToElement(), {"Service", "MaxHeight"});
 
   return settings;
 }
@@ -304,9 +298,12 @@ std::vector<std::string> WebMapService::parseMapFormats() {
 
   std::vector<std::string> mapFormats;
 
-  for (VistaXML::TiXmlElement* format = getMapCapability->FirstChildElement("Format");
-       format != nullptr; format      = format->NextSiblingElement("Format")) {
-    mapFormats.push_back(format->FirstChild()->ToText()->ValueStr());
+  for (VistaXML::TiXmlElement* formatElement   = getMapCapability->FirstChildElement("Format");
+       formatElement != nullptr; formatElement = formatElement->NextSiblingElement("Format")) {
+    std::optional<std::string> format = utils::getElementValue<std::string>(formatElement);
+    if (format.has_value()) {
+      mapFormats.push_back(format.value());
+    }
   }
 
   return mapFormats;

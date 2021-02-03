@@ -292,21 +292,6 @@ boost::posix_time::ptime addDurationToTime(
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::optional<std::string> getElementText(
-    VistaXML::TiXmlElement* baseElement, std::vector<std::string> childPath) {
-  VistaXML::TiXmlHandle elementHandle(baseElement);
-  for (std::string child : childPath) {
-    elementHandle = elementHandle.FirstChildElement(child);
-  }
-  VistaXML::TiXmlElement* element = elementHandle.ToElement();
-  if (element != nullptr && element->FirstChild() != nullptr) {
-    return element->FirstChild()->ValueStr();
-  }
-  return {};
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 std::optional<std::optional<int>> getSizeAttribute(
     VistaXML::TiXmlElement* element, std::string attributeName) {
   std::optional<int> value = getAttribute<int>(element, attributeName);

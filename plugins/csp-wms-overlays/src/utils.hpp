@@ -105,11 +105,27 @@ bool timeInIntervals(boost::posix_time::ptime& time, std::vector<TimeInterval>& 
 boost::posix_time::ptime addDurationToTime(
     boost::posix_time::ptime time, Duration duration, int multiplier = 1);
 
-/// Tries to get the text of a XML element.
+/// Tries to get the value contained in a XML element.
 /// Starts at baseElement and then descends into the children given as childPath.
 /// The return value is empty if the requested element is not present.
-std::optional<std::string> getElementText(
-    VistaXML::TiXmlElement* baseElement, std::vector<std::string> childPath);
+template <typename T>
+std::optional<T> getElementValue(
+    VistaXML::TiXmlElement* baseElement, std::vector<std::string> childPath = {}) {
+  VistaXML::TiXmlHandle elementHandle(baseElement);
+  for (std::string child : childPath) {
+    elementHandle = elementHandle.FirstChildElement(child);
+  }
+  VistaXML::TiXmlElement* element = elementHandle.ToElement();
+  if (element != nullptr && element->FirstChild() != nullptr) {
+    std::stringstream text;
+    text << element->FirstChild()->ValueStr();
+    T value;
+    if (text >> value) {
+      return value;
+    }
+  }
+  return {};
+}
 
 /// Tries to get the value of an integer attribute representing a size.
 /// The returned value (inner optional) is empty if the attribute specifies an unlimited size.
@@ -150,12 +166,6 @@ void setOrKeep(std::optional<T>& var, std::optional<T> optional) {
     var = optional.value();
   }
 }
-
-/// Converts an optional string to an optional double.
-std::optional<double> optstod(std::optional<std::string> string);
-
-/// Converts an optional string to an optional int.
-std::optional<int> optstoi(std::optional<std::string> string);
 
 } // namespace utils
 
