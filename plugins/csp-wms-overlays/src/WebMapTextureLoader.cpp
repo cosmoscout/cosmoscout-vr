@@ -6,6 +6,8 @@
 
 #include "WebMapTextureLoader.hpp"
 
+#include "WebMapException.hpp"
+
 #include "logger.hpp"
 
 #include "../../../src/cs-utils/convert.hpp"
@@ -80,12 +82,12 @@ std::optional<std::stringstream> WebMapTextureLoader::requestTexture(WebMapServi
 
   std::string url = getRequestUrl(wms, layer, wmsrequest);
 
-  logger().trace("URL: {}", url);
+  logger().debug("Performing WMS request '{}'.", url);
 
   int maxRetries = 3;
   for (int i = 0; i < maxRetries; i++) {
     if (i > 0) {
-      logger().trace("Retrying...");
+      logger().debug("Retrying...");
     }
 
     std::stringstream out(std::ios_base::out | std::ios_base::in | std::ios_base::binary);
@@ -99,23 +101,39 @@ std::optional<std::stringstream> WebMapTextureLoader::requestTexture(WebMapServi
     try {
       request.perform();
     } catch (std::exception& e) {
-      logger().warn("Failed to perform WMS request: '{}'! Exception: '{}'", url, e.what());
+      logger().warn("Failed to perform WMS request '{}': '{}'!", url, e.what());
       continue;
     }
 
-    // Check if the content type is correct.
     std::string contentType = curlpp::Info<CURLINFO_CONTENT_TYPE, std::string>::get(request);
-    if (contentType == "NULL" || contentType != getMimeType(wms, layer)) {
-      if (wmsrequest.mTime.has_value()) {
-        logger().warn("There is no image to load for layer '{}' at time {}.", layer.getTitle(),
-            wmsrequest.mTime.value());
-      } else {
-        logger().warn("There is no image to load for layer '{}'.", layer.getTitle());
+    if (contentType == "NULL") {
+      // No content type was set in the response. This error typically persists only for a short
+      // amount of time, so the request can be retried.
+      logger().debug("Could not determine response content type.");
+      continue;
+    } else if (contentType == "text/xml") {
+      // A WMS exception might have occurred.
+      try {
+        // If there was a valid WMS exception, the problem probably can't be fixed with a retry.
+        // => Return an empty object to cancel the request.
+        WebMapExceptionReport e(out.str());
+        logger().warn("WMS Exception occurred for WMS request '{}': '{}'!", url, e.what());
+        return {};
+      } catch (std::exception const& e) {
+        // If parsing the document fails, this might be due to connection problems
+        // or corrupted data.
+        // => Retry the request.
+        logger().debug("Could not create WebMapExceptionReport: '{}'.", e.what());
+        continue;
       }
+      continue;
+    } else if (contentType != getMimeType(wms, layer)) {
+      logger().debug("Received response of invalid MIME type '{}'.", contentType);
       continue;
     }
     return out;
   }
+  logger().warn("Could not get a valid response for WMS request '{}'!", url);
   return {};
 }
 
@@ -136,7 +154,7 @@ void WebMapTextureLoader::saveTextureToFile(
         cs::utils::filesystem::createDirectoryRecursively(
             cacheDirPath, boost::filesystem::perms::all_all);
       } catch (std::exception& e) {
-        logger().error("Failed to create cache directory: {}", e.what());
+        logger().warn("Failed to create cache directory: '{}'!", e.what());
         return;
       }
     }
@@ -147,7 +165,7 @@ void WebMapTextureLoader::saveTextureToFile(
     out.open(file.string(), std::ofstream::out | std::ofstream::binary);
 
     if (!out) {
-      logger().error("Failed to open '{}' for writing!", file.string());
+      logger().warn("Failed to open '{}' for writing!", file.string());
       return;
     }
 
@@ -170,7 +188,7 @@ std::optional<WebMapTexture> WebMapTextureLoader::loadTextureFromFile(std::strin
   unsigned char* pixels = stbi_load(fileName.c_str(), &width, &height, &bpp, channels);
 
   if (!pixels) {
-    logger().error("Failed to load '{}' with stbi!", fileName.c_str());
+    logger().warn("Failed to load '{}' with stbi!", fileName.c_str());
     return std::optional<WebMapTexture>{};
   }
 
@@ -189,7 +207,7 @@ std::optional<WebMapTexture> WebMapTextureLoader::loadTextureFromStream(
       (int)stream.str().size(), &width, &height, &bpp, channels);
 
   if (!pixels) {
-    logger().error("Failed to load texture from memory with stbi!");
+    logger().warn("Failed to load texture from memory with stbi!");
     return std::optional<WebMapTexture>{};
   }
 
