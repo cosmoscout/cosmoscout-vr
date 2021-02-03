@@ -165,6 +165,7 @@ void TextureOverlayRenderer::clearActiveWMS() {
   mSecondWMSTextureUsed = false;
   mCurrentTexture       = "";
   mCurrentSecondTexture = "";
+  mStyle                = "";
 
   mActiveWMS.reset();
   mActiveWMSLayer.reset();
@@ -173,11 +174,13 @@ void TextureOverlayRenderer::clearActiveWMS() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void TextureOverlayRenderer::setStyle(std::string style) {
-  mStyle = style;
+  if (mStyle != style) {
+    mStyle = style;
 
-  clearTextures();
-  if (mActiveWMSLayer->getSettings().mTimeIntervals.empty()) {
-    getTimeIndependentTexture(getRequest());
+    clearTextures();
+    if (mActiveWMSLayer->getSettings().mTimeIntervals.empty()) {
+      getTimeIndependentTexture(getRequest());
+    }
   }
 }
 
@@ -544,8 +547,8 @@ bool TextureOverlayRenderer::Do() {
   glGetFloatv(GL_PROJECTION_MATRIX, &glMatP[0]);
   glGetFloatv(GL_MODELVIEW_MATRIX, &glMatMV[0]);
 
-  auto        activeBody        = mSolarSystem->pActiveBody.get( );
-  glm::dmat4  matWorldTransform = activeBody->getWorldTransform();
+  auto       activeBody        = mSolarSystem->pActiveBody.get();
+  glm::dmat4 matWorldTransform = activeBody->getWorldTransform();
 
   VistaTransformMatrix matM(glm::value_ptr(matWorldTransform), true);
   VistaTransformMatrix matMV(matM);
