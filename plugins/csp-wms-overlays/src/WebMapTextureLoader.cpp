@@ -106,6 +106,14 @@ std::optional<std::stringstream> WebMapTextureLoader::requestTexture(WebMapServi
     }
 
     std::string contentType = curlpp::Info<CURLINFO_CONTENT_TYPE, std::string>::get(request);
+    // Remove suffix and parameter from content type
+    size_t suffixPos    = contentType.find("+");
+    size_t parameterPos = contentType.find(";");
+    if (suffixPos != std::string::npos) {
+      contentType = contentType.substr(0, suffixPos);
+    } else if (parameterPos != std::string::npos) {
+      contentType = contentType.substr(0, parameterPos);
+    }
     if (contentType == "NULL") {
       // No content type was set in the response. This error typically persists only for a short
       // amount of time, so the request can be retried.
