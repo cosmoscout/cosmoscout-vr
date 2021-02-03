@@ -102,6 +102,7 @@ VistaXML::TiXmlElement* WebMapService::getCapabilities() {
       request.setOpt(curlpp::options::WriteStream(&xmlStream));
       request.setOpt(curlpp::options::NoSignal(true));
       request.setOpt(curlpp::options::SslVerifyPeer(false));
+      request.setOpt(curlpp::options::Encoding("gzip,deflate"));
 
       try {
         request.perform();
@@ -188,6 +189,7 @@ WebMapService::getCapabilitiesFromCache() {
       request.setOpt(curlpp::options::WriteStream(&resStream));
       request.setOpt(curlpp::options::NoSignal(true));
       request.setOpt(curlpp::options::SslVerifyPeer(false));
+      request.setOpt(curlpp::options::Encoding("gzip,deflate"));
 
       try {
         request.perform();
