@@ -117,11 +117,15 @@ std::optional<T> getElementValue(
   }
   VistaXML::TiXmlElement* element = elementHandle.ToElement();
   if (element != nullptr && element->FirstChild() != nullptr) {
-    std::stringstream text;
-    text << element->FirstChild()->ValueStr();
-    T value;
-    if (text >> value) {
-      return value;
+    if constexpr (std::is_same_v<T, std::string>) {
+      return element->FirstChild()->ValueStr();
+    } else {
+      std::stringstream text;
+      text << element->FirstChild()->ValueStr();
+      T value;
+      if (text >> value) {
+        return value;
+      }
     }
   }
   return {};
