@@ -30,14 +30,15 @@ class CS_GRAPHICS_EXPORT GlowMipMap : public VistaTexture {
 
   /// Perform the glow calculation by parallel reduction of the HDR values. This is a costly
   /// operation and should only be called once a frame.
-  void update(VistaTexture* hdrBufferComposite);
+  void update(VistaTexture* hdrBufferComposite, HDRBuffer::GlowMode glowMode);
 
  private:
-  GLuint   mComputeProgram   = 0;
-  uint32_t mHDRBufferSamples = 0;
-  int      mMaxLevels        = 0;
-  int      mHDRBufferWidth   = 0;
-  int      mHDRBufferHeight  = 0;
+  GLuint              mComputeProgram   = 0;
+  uint32_t            mHDRBufferSamples = 0;
+  int                 mMaxLevels        = 0;
+  int                 mHDRBufferWidth   = 0;
+  int                 mHDRBufferHeight  = 0;
+  HDRBuffer::GlowMode mLastGlowMode     = HDRBuffer::GlowMode::eGauss;
 
   struct {
     uint32_t level = 0;

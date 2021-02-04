@@ -31,6 +31,11 @@ class GlowMipMap;
 /// glare-effect.
 class CS_GRAPHICS_EXPORT HDRBuffer {
  public:
+  /// There different possibilities for computing the glow. The simplest being a symmetrical
+  /// gauss-like kernel. The elliptical gauss is close to the perspective correct asymmetrical gauss
+  /// but is a bit faster.
+  enum class GlowMode { eGauss, eEllipticalGauss, eAsymmetricGauss };
+
   /// When highPrecision is set to false, only 16bit color buffers are used.
   explicit HDRBuffer(uint32_t multiSamples, bool highPrecision = true);
 
@@ -75,6 +80,10 @@ class CS_GRAPHICS_EXPORT HDRBuffer {
   void          updateGlowMipMap();
   VistaTexture* getGlowMipMap() const;
 
+  /// Specifies how the glow should be computed.
+  void     setGlowMode(GlowMode value);
+  GlowMode getGlowMode() const;
+
   /// Returns the depth attachment for the currently rendered viewport. Be aware, that this can be
   /// texture with the target GL_TEXTURE_2D_MULTISAMPLE if getMultiSamples() > 0.
   VistaTexture* getDepthAttachment() const;
@@ -116,6 +125,7 @@ class CS_GRAPHICS_EXPORT HDRBuffer {
   HDRBufferData&       getCurrentHDRBuffer();
   HDRBufferData const& getCurrentHDRBuffer() const;
 
+  GlowMode                                          mGlowMode = GlowMode::eGauss;
   std::unordered_map<VistaViewport*, HDRBufferData> mHDRBufferData;
   float                                             mTotalLuminance   = 1.F;
   float                                             mMaximumLuminance = 1.F;

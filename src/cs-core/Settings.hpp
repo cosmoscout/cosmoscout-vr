@@ -9,6 +9,7 @@
 
 #include "cs_core_export.hpp"
 
+#include "../cs-graphics/HDRBuffer.hpp"
 #include "../cs-utils/DefaultProperty.hpp"
 #include "../cs-utils/utils.hpp"
 
@@ -471,6 +472,10 @@ class CS_CORE_EXPORT Settings {
 
     /// The amount of artifical glare. Has no effect if HDR rendering is disabled.
     utils::DefaultProperty<float> pGlowIntensity{0.5F};
+
+    /// Specifies how the glow is computed.
+    utils::DefaultProperty<graphics::HDRBuffer::GlowMode> pGlowMode{
+        graphics::HDRBuffer::GlowMode::eGauss};
 
     /// This makes illumination calculations assume a fixed sun position in the current SPICE frame.
     /// Using the default value glm::dvec3(0.0) disables this feature.

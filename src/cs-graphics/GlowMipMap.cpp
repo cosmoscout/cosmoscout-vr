@@ -67,20 +67,30 @@ static const char* sGlowShader = R"(
       return;
     }
 
+    #ifdef GLOWMODE_GAUSS
+      float offset = 1;
+    #endif
+    #ifdef GLOWMODE_ELLIPTICAL_GAUSS
+      float offset = 2;
+    #endif
+    #ifdef GLOWMODE_ASYMMETRIC_GAUSS
+      float offset = 3;
+    #endif
+
     vec3 oColor = vec3(0);
 
     if (uPass == 0 && uLevel == 0) {
-      oColor += sampleHDRBuffer(ivec2(-1, 0)) * 0.25;
+      oColor += sampleHDRBuffer(ivec2(-offset, 0)) * 0.25;
       oColor += sampleHDRBuffer(ivec2( 0, 0)) * 0.5;
-      oColor += sampleHDRBuffer(ivec2( 1, 0)) * 0.25;
+      oColor += sampleHDRBuffer(ivec2( offset, 0)) * 0.25;
     } else if (uPass == 0) {
-      oColor += sampleHigherLevel(ivec2(-1, 0)) * 0.25;
+      oColor += sampleHigherLevel(ivec2(-offset, 0)) * 0.25;
       oColor += sampleHigherLevel(ivec2( 0, 0)) * 0.5;
-      oColor += sampleHigherLevel(ivec2( 1, 0)) * 0.25;
+      oColor += sampleHigherLevel(ivec2( offset, 0)) * 0.25;
     } else {
-      oColor += sampleSameLevel(ivec2(0, -1)) * 0.25;
+      oColor += sampleSameLevel(ivec2(0, -offset)) * 0.25;
       oColor += sampleSameLevel(ivec2(0,  0)) * 0.5;
-      oColor += sampleSameLevel(ivec2(0,  1)) * 0.25;
+      oColor += sampleSameLevel(ivec2(0,  offset)) * 0.25;
     }
 
     imageStore(uOutColor, storePos, vec4(oColor, 0.0));
@@ -116,47 +126,6 @@ GlowMipMap::GlowMipMap(uint32_t hdrBufferSamples, int hdrBufferWidth, int hdrBuf
   // Create storage for temporary glow target (this is used for the vertical blurring passes).
   mTemporaryTarget->Bind();
   glTexStorage2D(GL_TEXTURE_2D, mMaxLevels, GL_RGBA32F, iWidth, iHeight);
-
-  // Create the compute shader.
-  auto        shader = glCreateShader(GL_COMPUTE_SHADER);
-  std::string source = "#version 430\n";
-  source += "#define NUM_MULTISAMPLES " + std::to_string(mHDRBufferSamples) + "\n";
-  source += sGlowShader;
-  const char* pSource = source.c_str();
-  glShaderSource(shader, 1, &pSource, nullptr);
-  glCompileShader(shader);
-
-  auto val = 0;
-  glGetShaderiv(shader, GL_COMPILE_STATUS, &val);
-  if (val != GL_TRUE) {
-    auto log_length = 0;
-    glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &log_length);
-    std::vector<char> v(log_length);
-    glGetShaderInfoLog(shader, log_length, nullptr, v.data());
-    std::string log(begin(v), end(v));
-    glDeleteShader(shader);
-    throw std::runtime_error(std::string("ERROR: Failed to compile shader\n") + log);
-  }
-
-  mComputeProgram = glCreateProgram();
-  glAttachShader(mComputeProgram, shader);
-  glLinkProgram(mComputeProgram);
-  glDeleteShader(shader);
-
-  auto rvalue = 0;
-  glGetProgramiv(mComputeProgram, GL_LINK_STATUS, &rvalue);
-  if (!rvalue) {
-    auto log_length = 0;
-    glGetProgramiv(mComputeProgram, GL_INFO_LOG_LENGTH, &log_length);
-    std::vector<char> v(log_length);
-    glGetProgramInfoLog(mComputeProgram, log_length, nullptr, v.data());
-    std::string log(begin(v), end(v));
-
-    throw std::runtime_error(std::string("ERROR: Failed to link compute shader\n") + log);
-  }
-
-  mUniforms.level = glGetUniformLocation(mComputeProgram, "uLevel");
-  mUniforms.pass  = glGetUniformLocation(mComputeProgram, "uPass");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -167,7 +136,62 @@ GlowMipMap::~GlowMipMap() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GlowMipMap::update(VistaTexture* hdrBufferComposite) {
+void GlowMipMap::update(VistaTexture* hdrBufferComposite, HDRBuffer::GlowMode glowMode) {
+
+  if (mComputeProgram == 0 || glowMode != mLastGlowMode) {
+
+    // Create the compute shader.
+    auto        shader = glCreateShader(GL_COMPUTE_SHADER);
+    std::string source = "#version 430\n";
+    source += "#define NUM_MULTISAMPLES " + std::to_string(mHDRBufferSamples) + "\n";
+
+    if (glowMode == HDRBuffer::GlowMode::eGauss) {
+      source += "#define GLOWMODE_GAUSS\n";
+    } else if (glowMode == HDRBuffer::GlowMode::eEllipticalGauss) {
+      source += "#define GLOWMODE_ELLIPTICAL_GAUSS\n";
+    } else if (glowMode == HDRBuffer::GlowMode::eAsymmetricGauss) {
+      source += "#define GLOWMODE_ASYMMETRIC_GAUSS\n";
+    }
+
+    source += sGlowShader;
+    const char* pSource = source.c_str();
+    glShaderSource(shader, 1, &pSource, nullptr);
+    glCompileShader(shader);
+
+    auto val = 0;
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &val);
+    if (val != GL_TRUE) {
+      auto log_length = 0;
+      glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &log_length);
+      std::vector<char> v(log_length);
+      glGetShaderInfoLog(shader, log_length, nullptr, v.data());
+      std::string log(begin(v), end(v));
+      glDeleteShader(shader);
+      throw std::runtime_error(std::string("ERROR: Failed to compile shader\n") + log);
+    }
+
+    mComputeProgram = glCreateProgram();
+    glAttachShader(mComputeProgram, shader);
+    glLinkProgram(mComputeProgram);
+    glDeleteShader(shader);
+
+    auto rvalue = 0;
+    glGetProgramiv(mComputeProgram, GL_LINK_STATUS, &rvalue);
+    if (!rvalue) {
+      auto log_length = 0;
+      glGetProgramiv(mComputeProgram, GL_INFO_LOG_LENGTH, &log_length);
+      std::vector<char> v(log_length);
+      glGetProgramInfoLog(mComputeProgram, log_length, nullptr, v.data());
+      std::string log(begin(v), end(v));
+
+      throw std::runtime_error(std::string("ERROR: Failed to link compute shader\n") + log);
+    }
+
+    mUniforms.level = glGetUniformLocation(mComputeProgram, "uLevel");
+    mUniforms.pass  = glGetUniformLocation(mComputeProgram, "uPass");
+
+    mLastGlowMode = glowMode;
+  }
 
   // We update the glow mipmap with several passes. First, the base level is filled with a
   // downsampled and horizontally blurred version of the HDRBuffer. Then, this is blurred

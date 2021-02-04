@@ -1138,6 +1138,29 @@ void Application::registerGuiCallbacks() {
   mSettings->mGraphics.pGlowIntensity.connect(
       [this](float val) { mGuiManager->setSliderValue("graphics.setGlowIntensity", val); });
 
+  // Sets the mode used to compute the glow blur.
+  mGuiManager->getGui()->registerCallback(
+      "graphics.setGlowMode0", "Enables simple gaussian glow.", std::function([this]() {
+        mSettings->mGraphics.pGlowMode = cs::graphics::HDRBuffer::GlowMode::eGauss;
+      }));
+  mGuiManager->getGui()->registerCallback("graphics.setGlowMode1",
+      "Enables more advanced elliptical gaussian blur.", std::function([this]() {
+        mSettings->mGraphics.pGlowMode = cs::graphics::HDRBuffer::GlowMode::eEllipticalGauss;
+      }));
+  mGuiManager->getGui()->registerCallback("graphics.setGlowMode2",
+      "Enables perspective correct asymmetrical gaussian blur.", std::function([this]() {
+        mSettings->mGraphics.pGlowMode = cs::graphics::HDRBuffer::GlowMode::eAsymmetricGauss;
+      }));
+  mSettings->mGraphics.pGlowMode.connect([this](cs::graphics::HDRBuffer::GlowMode glowMode) {
+    if (glowMode == cs::graphics::HDRBuffer::GlowMode::eGauss) {
+      mGuiManager->setRadioChecked("graphics.setGlowMode0");
+    } else if (glowMode == cs::graphics::HDRBuffer::GlowMode::eEllipticalGauss) {
+      mGuiManager->setRadioChecked("graphics.setGlowMode1");
+    } else if (glowMode == cs::graphics::HDRBuffer::GlowMode::eAsymmetricGauss) {
+      mGuiManager->setRadioChecked("graphics.setGlowMode2");
+    }
+  });
+
   // Update the side bar field showing the average luminance of the scene.
   mGraphicsEngine->pAverageLuminance.connect([this](float value) {
     mGuiManager->getGui()->callJavascript("CosmoScout.sidebar.setAverageSceneLuminance", value);
