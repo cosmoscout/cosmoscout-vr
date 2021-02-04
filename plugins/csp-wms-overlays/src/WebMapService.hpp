@@ -63,7 +63,8 @@ class WebMapService {
   /// The returned optional either contains the current capability document as a raw string and as a
   /// parsed TiXmlDocument, or is empty if a new capability document should be requested.
   /// The returned capability document is not necessarily equal to the document found in cache.
-  std::optional<std::pair<std::string, VistaXML::TiXmlDocument>> getCapabilitiesFromCache();
+  /// The boolean flag specifies whether the file should be cached.
+  std::optional<std::tuple<std::string, VistaXML::TiXmlDocument, bool>> getCapabilitiesFromCache();
 
   std::stringstream getGetCapabilitiesUrl() const;
 

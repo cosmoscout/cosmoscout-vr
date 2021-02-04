@@ -88,11 +88,12 @@ VistaXML::TiXmlElement* WebMapService::getCapabilities() {
   if (!mDoc.has_value()) {
     VistaXML::TiXmlDocument doc;
     std::string             docString;
+    bool                    saveToCache = true;
 
     auto cacheRes = getCapabilitiesFromCache();
 
     if (cacheRes.has_value()) {
-      std::tie(docString, doc) = cacheRes.value();
+      std::tie(docString, doc, saveToCache) = cacheRes.value();
     } else {
       // No valid data found in cache, request capabilities from server
       std::stringstream url = getGetCapabilitiesUrl();
@@ -134,35 +135,39 @@ VistaXML::TiXmlElement* WebMapService::getCapabilities() {
       }
     }
 
-    // Cache file
-    boost::filesystem::path cacheFile(mCacheFileName);
-    boost::filesystem::path cacheDir(mCacheDir);
-    boost::filesystem::path cacheFilePath(cacheDir / cacheFile);
+    mDoc = doc;
 
-    auto cacheDirAbs(boost::filesystem::absolute(cacheDir));
-    if (!(boost::filesystem::exists(cacheDirAbs))) {
-      try {
-        cs::utils::filesystem::createDirectoryRecursively(cacheDirAbs);
-        cs::utils::filesystem::writeStringToFile(cacheFilePath.string(), docString);
-      } catch (std::exception& e) {
-        logger().warn("Failed to create cache directory: {}!", e.what());
-      }
+    VistaXML::TiXmlElement* capabilities = mDoc->FirstChildElement("WMS_Capabilities");
+    if (capabilities == nullptr) {
+      std::stringstream message;
+      message << "WMS capabilities document for '" << mUrl << "' is not valid";
+      throw std::runtime_error(message.str());
     }
 
-    mDoc = doc;
+    if (saveToCache) {
+      // Cache file
+      boost::filesystem::path cacheFile(mCacheFileName);
+      boost::filesystem::path cacheDir(mCacheDir);
+      boost::filesystem::path cacheFilePath(cacheDir / cacheFile);
+
+      auto cacheDirAbs(boost::filesystem::absolute(cacheDir));
+      if (!(boost::filesystem::exists(cacheDirAbs))) {
+        try {
+          cs::utils::filesystem::createDirectoryRecursively(cacheDirAbs);
+        } catch (std::exception& e) {
+          logger().warn("Failed to create cache directory: {}!", e.what());
+        }
+      }
+      cs::utils::filesystem::writeStringToFile(cacheFilePath.string(), docString);
+    }
   }
   VistaXML::TiXmlElement* capabilities = mDoc->FirstChildElement("WMS_Capabilities");
-  if (capabilities == nullptr) {
-    std::stringstream message;
-    message << "WMS capabilities document for '" << mUrl << "' is not valid";
-    throw std::runtime_error(message.str());
-  }
   return capabilities;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::optional<std::pair<std::string, VistaXML::TiXmlDocument>>
+std::optional<std::tuple<std::string, VistaXML::TiXmlDocument, bool>>
 WebMapService::getCapabilitiesFromCache() {
   // This method uses the updateSequence value in the cached capabilities according to 7.2.3.5 of
   // the WMS 1.3.0 implementation specification to check if a new capability document should be
@@ -228,7 +233,7 @@ WebMapService::getCapabilitiesFromCache() {
         if (e.getExceptions().size() == 1 &&
             e.getExceptions()[0].getCode() == WebMapException::Code::eCurrentUpdateSequence) {
           // Cache is up to date
-          return std::make_pair(capabilitiesString, cacheDoc);
+          return std::make_tuple(capabilitiesString, cacheDoc, false);
         } else {
           logger().warn("WMS Exception occurred while checking cache validity for '{}': '{}'!",
               mUrl, e.what());
@@ -237,7 +242,7 @@ WebMapService::getCapabilitiesFromCache() {
         }
       } catch (std::exception) {
         // No exception, the request's result should be the newest capabilities
-        return std::make_pair(resString, resDoc);
+        return std::make_tuple(resString, resDoc, true);
       }
     } else {
       // No sequence number found, so we can't verify that our cached file is up to date
