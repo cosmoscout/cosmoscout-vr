@@ -510,7 +510,7 @@ void Plugin::onLoad() {
       try {
         mWms[settings.first].emplace_back(wmsUrl, mPluginSettings->mCapabilityCache.get());
       } catch (std::exception const& e) {
-        logger().warn("Failed to parse capabilities for '{}': {}", wmsUrl, e.what());
+        logger().warn("Failed to parse capabilities for '{}': '{}'!", wmsUrl, e.what());
       }
     }
 
@@ -551,7 +551,7 @@ void Plugin::setWMSServer(
 
   if (server == mWms.at(wmsOverlay->getCenter()).end()) {
     if (name != "None") {
-      logger().warn("No server with name '{}' found", name);
+      logger().warn("No server with name '{}' found!", name);
     }
     resetWMSServer(wmsOverlay);
     return;

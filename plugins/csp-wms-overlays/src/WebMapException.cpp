@@ -80,9 +80,7 @@ WebMapException::WebMapException(VistaXML::TiXmlElement* element) {
   mText = utils::getElementValue<std::string>(element).value_or("No description given");
 
   std::stringstream message;
-  message << mCode;
-  message << ": ";
-  message << mText;
+  message << mCode << ": " << mText;
   mMessage = message.str();
 }
 
@@ -106,15 +104,7 @@ const char* WebMapException::what() const noexcept {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-WebMapExceptionReport::WebMapExceptionReport(std::string const& xml) {
-  VistaXML::TiXmlDocument doc;
-  doc.Parse(xml.c_str());
-  if (doc.Error()) {
-    std::stringstream message;
-    message << "Parsing XML failed: ";
-    message << doc.ErrorDesc();
-    throw std::runtime_error(message.str());
-  }
+WebMapExceptionReport::WebMapExceptionReport(VistaXML::TiXmlDocument& doc) {
   VistaXML::TiXmlElement* root = doc.FirstChildElement("ServiceExceptionReport");
   if (root == nullptr) {
     throw std::runtime_error("XML document has no ServiceExceptionReport element as root");
@@ -134,15 +124,19 @@ WebMapExceptionReport::WebMapExceptionReport(std::string const& xml) {
     std::stringstream message;
     message << "Multiple WMS exceptions occurred: ";
     for (WebMapException const& e : mExceptions) {
-      message << "'";
-      message << e.what();
-      message << "'";
+      message << "'" << e.what() << "'";
       if (e != mExceptions.back()) {
         message << ", ";
       }
     }
     mMessage = message.str();
   }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+WebMapExceptionReport::WebMapExceptionReport(std::string const& xml)
+    : WebMapExceptionReport(parseXml(xml)) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -155,6 +149,19 @@ std::vector<WebMapException> WebMapExceptionReport::getExceptions() const {
 
 const char* WebMapExceptionReport::what() const noexcept {
   return mMessage.c_str();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+VistaXML::TiXmlDocument WebMapExceptionReport::parseXml(std::string const& xml) {
+  VistaXML::TiXmlDocument doc;
+  doc.Parse(xml.c_str());
+  if (doc.Error()) {
+    std::stringstream message;
+    message << "Parsing XML failed: " << doc.ErrorDesc();
+    throw std::runtime_error(message.str());
+  }
+  return doc;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

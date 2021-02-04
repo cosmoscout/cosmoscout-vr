@@ -66,6 +66,8 @@ class WebMapException : public std::exception {
 /// Class to store a collection of WMS exceptions.
 class WebMapExceptionReport : public std::exception {
  public:
+  /// Construct a WebMapExceptionReport from a XML document.
+  WebMapExceptionReport(VistaXML::TiXmlDocument& doc);
   /// Construct a WebMapExceptionReport from a string containing a XML document.
   WebMapExceptionReport(std::string const& xml);
 
@@ -76,6 +78,8 @@ class WebMapExceptionReport : public std::exception {
   virtual const char* what() const noexcept;
 
  private:
+  VistaXML::TiXmlDocument parseXml(std::string const& xml);
+
   std::vector<WebMapException> mExceptions;
   std::string                  mMessage;
 };
