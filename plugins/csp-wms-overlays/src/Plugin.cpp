@@ -814,8 +814,13 @@ void Plugin::goToBounds(Bounds const& bounds) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Plugin::checkScale(Bounds const& bounds, WebMapLayer const& layer, int const& maxTextureSize) {
-  static constexpr double metersPerDegree = (6378137. * 2. * glm::pi<double>()) / 360.;
-  static constexpr double metersPerPixel  = 0.00028;
+  if (!mActiveOverlay) {
+    return;
+  }
+  static constexpr double metersPerPixel = 0.00028;
+
+  double radius          = mSolarSystem->getRadii(mActiveOverlay->getCenter())[0];
+  double metersPerDegree = (radius * 2. * glm::pi<double>()) / 360.;
 
   double lonRange = bounds.mMaxLon - bounds.mMinLon;
   double latRange = bounds.mMaxLat - bounds.mMinLat;
