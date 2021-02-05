@@ -1138,6 +1138,14 @@ void Application::registerGuiCallbacks() {
   mSettings->mGraphics.pGlowIntensity.connect(
       [this](float val) { mGuiManager->setSliderValue("graphics.setGlowIntensity", val); });
 
+  // Adjusts the spread of the glare.
+  mGuiManager->getGui()->registerCallback("graphics.setGlowRadius",
+      "Adjusts the glow radius of overexposed areas.", std::function([this](double val) {
+        mSettings->mGraphics.pGlowRadius = static_cast<float>(val);
+      }));
+  mSettings->mGraphics.pGlowRadius.connect(
+      [this](float val) { mGuiManager->setSliderValue("graphics.setGlowRadius", val); });
+
   // Sets the mode used to compute the glow blur.
   mGuiManager->getGui()->registerCallback(
       "graphics.setGlowMode0", "Enables simple gaussian glow.", std::function([this]() {

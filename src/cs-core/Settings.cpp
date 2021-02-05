@@ -221,6 +221,7 @@ void from_json(nlohmann::json const& j, Settings::Graphics& o) {
   Settings::deserialize(j, "ambientBrightness", o.pAmbientBrightness);
   Settings::deserialize(j, "enableAutoGlow", o.pEnableAutoGlow);
   Settings::deserialize(j, "glowIntensity", o.pGlowIntensity);
+  Settings::deserialize(j, "glowRadius", o.pGlowRadius);
   Settings::deserialize(j, "glowMode", o.pGlowMode);
   Settings::deserialize(j, "fixedSunDirection", o.pFixedSunDirection);
 }

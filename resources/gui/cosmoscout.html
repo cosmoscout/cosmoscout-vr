@@ -300,6 +300,16 @@
 
                   <div class="row hdr-setting">
                     <div class="col-5">
+                      Glow Radius
+                    </div>
+                    <div class="col-7">
+                      <div data-callback="graphics.setGlowRadius">
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="row hdr-setting">
+                    <div class="col-5">
                       Glow Intensity
                     </div>
                     <div class="col-1">
@@ -859,6 +869,7 @@
       CosmoScout.gui.initSlider("graphics.setAmbientLight", 0.0, 1.0, 0.001, [0.25]);
       CosmoScout.gui.initSlider("graphics.setExposureRange", -30.0, 30, 0.1, [-14, 10]);
       CosmoScout.gui.initSlider("graphics.setGlowIntensity", 0.0, 1, 0.01, [0.5]);
+      CosmoScout.gui.initSlider("graphics.setGlowRadius", 0.0, 1, 0.01, [1.0]);
 
       $(document).on('click', '.item-create-button', function () {
         $(this).addClass('active');

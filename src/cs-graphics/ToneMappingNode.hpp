@@ -74,6 +74,11 @@ class CS_GRAPHICS_EXPORT ToneMappingNode : public IVistaOpenGLDraw, public Vista
   void  setGlowIntensity(float intensity);
   float getGlowIntensity() const;
 
+  /// Controls the spread of artificial glare. Should be in the range [0-1]. If set to zero, the
+  /// GlowMipMap will not be updated which will increase performance.
+  void  setGlowRadius(float radius);
+  float getGlowRadius() const;
+
   /// Returns the average and maximum luminance across all connected cluster nodes.
   float getLastAverageLuminance() const;
   float getLastMaximumLuminance() const;
@@ -94,6 +99,7 @@ class CS_GRAPHICS_EXPORT ToneMappingNode : public IVistaOpenGLDraw, public Vista
   float mMaxAutoExposure       = 15.F;
   float mExposureAdaptionSpeed = 1.F;
   float mGlowIntensity         = 0.F;
+  float mGlowRadius            = 0.F;
 
   VistaGLSLShader* mShader;
 
@@ -106,6 +112,7 @@ class CS_GRAPHICS_EXPORT ToneMappingNode : public IVistaOpenGLDraw, public Vista
   struct {
     uint32_t exposure      = 0;
     uint32_t glowIntensity = 0;
+    uint32_t glowRadius    = 0;
   } mUniforms;
 
   LuminanceData mLocalLuminanceData;

@@ -103,6 +103,9 @@ GraphicsEngine::GraphicsEngine(std::shared_ptr<core::Settings> settings)
   mSettings->mGraphics.pGlowIntensity.connectAndTouch(
       [this](float val) { mToneMappingNode->setGlowIntensity(val); });
 
+  mSettings->mGraphics.pGlowRadius.connectAndTouch(
+      [this](float val) { mToneMappingNode->setGlowRadius(val); });
+
   mSettings->mGraphics.pGlowMode.connectAndTouch(
       [this](graphics::HDRBuffer::GlowMode mode) { mHDRBuffer->setGlowMode(mode); });
 
