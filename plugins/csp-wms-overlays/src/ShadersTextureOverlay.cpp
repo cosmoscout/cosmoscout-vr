@@ -43,16 +43,15 @@ const std::string TextureOverlayRenderer::SURFACE_VERT = R"(
 )";
 
 const std::string TextureOverlayRenderer::SURFACE_FRAG = R"(
-    #version 440
     out vec4 FragColor;
 
     uniform sampler2DRect uDepthBuffer;
     uniform sampler2D     uFirstTexture;
     uniform sampler2D     uSecondTexture;
 
-    uniform float uFade;
-    uniform bool uUseFirstTexture;
-    uniform bool uUseSecondTexture;
+    uniform float         uFade;
+    uniform bool          uUseFirstTexture;
+    uniform bool          uUseSecondTexture;
 
     uniform mat4          uMatInvMVP;
     uniform dmat4         uMatInvMV;
@@ -64,6 +63,9 @@ const std::string TextureOverlayRenderer::SURFACE_FRAG = R"(
     uniform dvec2         uLatRange;
     uniform vec3          uRadii;
 
+    uniform bool          uEnableLighting;
+    uniform float         uAmbientBrightness;
+    uniform float         uSunIlluminance;
     uniform vec3          uSunDirection;
 
     in vec2 texcoord;
@@ -90,7 +92,7 @@ const std::string TextureOverlayRenderer::SURFACE_FRAG = R"(
         return distance;
     }
 
-     // ===========================================================================
+    // ===========================================================================
     dvec3 GetPosition()
     {
         vec2  vTexcoords = texcoord*textureSize(uDepthBuffer);
@@ -158,26 +160,28 @@ const std::string TextureOverlayRenderer::SURFACE_FRAG = R"(
 
         return cartesian / d;
     }
+
     // ===========================================================================
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////////
-
     vec3 surfaceToNormal(vec3 cartesian, vec3 radii) {
         vec3 radii2        = radii * radii;
         vec3 oneOverRadii2 = 1.0 / radii2;
         return normalize(cartesian * oneOverRadii2);
     }
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////////
-
+    // ===========================================================================
     vec2 surfaceToLngLat(vec3 cartesian, vec3 radii) {
         vec3 geodeticNormal = surfaceToNormal(cartesian, radii);
         return vec2(atan(geodeticNormal.x, geodeticNormal.z), asin(geodeticNormal.y));
     }
 
+    // ===========================================================================
+    vec3 SRGBtoLINEAR(vec3 srgbIn)
+    {
+        vec3 bLess = step(vec3(0.04045),srgbIn);
+        return mix( srgbIn/vec3(12.92), pow((srgbIn+vec3(0.055))/vec3(1.055),vec3(2.4)), bLess );
+    }
 
     // ===========================================================================
-
     void main()
     {     
         float fDepth = GetDepth();
@@ -208,22 +212,27 @@ const std::string TextureOverlayRenderer::SURFACE_FRAG = R"(
                     color = mix(secColor, color, uFade);
                   }
                 }
-                
-                //Lighting using a normal calculated from partial derivative
-                vec3  fPos    = vec3(worldPos); //cast from double to float
-                vec3  dx      = dFdx( fPos );
-                vec3  dy      = dFdy( fPos );
 
-                vec3 N = normalize(cross(dx, dy));
-                //N *= sign(N.z);
-                float NdotL = dot(N, -uSunDirection); 
-
-                float ambientStrength = 0.2;
-                vec3 lightColor = vec3(1.0, 1.0, 1.0);
-                vec3 ambient = ambientStrength * lightColor;
-                vec3 diffuse = lightColor * NdotL;
-                //vec3 result = (ambient + diffuse) * color.rgb;
                 vec3 result = color.rgb;
+
+                #ifdef ENABLE_HDR
+                    result = SRGBtoLINEAR(result);
+                #endif
+
+                result = result * uSunIlluminance;
+
+                #ifdef ENABLE_LIGHTING
+                    //Lighting using a normal calculated from partial derivative
+                    vec3  fPos    = vec3(worldPos); //cast from double to float
+                    vec3  dx      = dFdx( fPos );
+                    vec3  dy      = dFdy( fPos );
+
+                    vec3 N = normalize(cross(dx, dy));
+                    //N *= sign(N.z);
+                    float NdotL = max(dot(N, uSunDirection), 0.);
+
+                    result = mix(result * uAmbientBrightness, result, NdotL);
+                #endif
                
                 FragColor = vec4(result, color.a);
             }

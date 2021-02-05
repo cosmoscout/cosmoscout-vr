@@ -1,7 +1,9 @@
 // Plugin Includes
 #include "TextureOverlayRenderer.hpp"
+
 #include "logger.hpp"
 
+#include "../../../src/cs-core/Settings.hpp"
 #include "../../../src/cs-core/SolarSystem.hpp"
 #include "../../../src/cs-core/TimeControl.hpp"
 #include "../../../src/cs-graphics/TextureLoader.hpp"
@@ -28,7 +30,6 @@
 #include <boost/filesystem.hpp>
 #include <functional>
 #include <glm/gtc/type_ptr.hpp>
-#include <json.hpp>
 
 #include <cmath>
 
@@ -42,26 +43,18 @@ namespace csp::wmsoverlays {
 TextureOverlayRenderer::TextureOverlayRenderer(std::string center,
     std::shared_ptr<cs::core::SolarSystem>                 solarSystem,
     std::shared_ptr<cs::core::TimeControl>                 timeControl,
-    std::shared_ptr<Plugin::Settings> const&               pluginSettings)
+    std::shared_ptr<cs::core::Settings> settings, std::shared_ptr<Plugin::Settings> pluginSettings)
     : mCenterName(center)
     , mSolarSystem(solarSystem)
     , mTimeControl(timeControl)
     , mPluginSettings(pluginSettings)
+    , mSettings(settings)
     , mWMSTexture(new VistaTexture(GL_TEXTURE_2D))
     , mSecondWMSTexture(new VistaTexture(GL_TEXTURE_2D))
     , mMinBounds({(float)-solarSystem->getRadii(center)[0],
           (float)-solarSystem->getRadii(center)[1], (float)-solarSystem->getRadii(center)[2]})
     , mMaxBounds({(float)solarSystem->getRadii(center)[0], (float)solarSystem->getRadii(center)[1],
           (float)solarSystem->getRadii(center)[2]}) {
-  logger().debug("[TextureOverlayRenderer] Compiling shader");
-
-  m_pSurfaceShader = nullptr;
-  m_pSurfaceShader = new VistaGLSLShader();
-  m_pSurfaceShader->InitVertexShaderFromString(SURFACE_VERT);
-  m_pSurfaceShader->InitFragmentShaderFromString(SURFACE_FRAG);
-  m_pSurfaceShader->InitGeometryShaderFromString(SURFACE_GEOM);
-  m_pSurfaceShader->Link();
-
   // create textures ---------------------------------------------------------
   for (auto const& viewport : GetVistaSystem()->GetDisplayManager()->GetViewports()) {
     // Texture for previous renderer depth buffer
@@ -84,8 +77,6 @@ TextureOverlayRenderer::TextureOverlayRenderer(std::string center,
   mSecondWMSTexture->SetWrapS(GL_CLAMP_TO_EDGE);
   mSecondWMSTexture->SetWrapT(GL_CLAMP_TO_EDGE);
   mSecondWMSTexture->Unbind();
-
-  logger().debug("[TextureOverlayRenderer] Compiling shader done");
 
   // Add to scenegraph.
   VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
@@ -110,11 +101,19 @@ TextureOverlayRenderer::TextureOverlayRenderer(std::string center,
       getTimeIndependentTexture(request);
     }
   });
+
+  // Recreate the shader if lighting or HDR rendering mode are toggled.
+  mLightingConnection =
+      mSettings->mGraphics.pEnableLighting.connect([this](bool) { mShaderDirty = true; });
+  mHDRConnection = mSettings->mGraphics.pEnableHDR.connect([this](bool) { mShaderDirty = true; });
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 TextureOverlayRenderer::~TextureOverlayRenderer() {
+  mSettings->mGraphics.pEnableLighting.disconnect(mLightingConnection);
+  mSettings->mGraphics.pEnableHDR.disconnect(mHDRConnection);
+
   for (auto data : mDepthBufferData) {
     delete data.second;
   }
@@ -387,6 +386,27 @@ bool TextureOverlayRenderer::Do() {
     mUpdateLonLatRange = false;
   }
 
+  if (mShaderDirty) {
+    mShader = VistaGLSLShader();
+
+    std::string defines = "#version 440\n";
+
+    if (mSettings->mGraphics.pEnableHDR.get()) {
+      defines += "#define ENABLE_HDR\n";
+    }
+
+    if (mSettings->mGraphics.pEnableLighting.get()) {
+      defines += "#define ENABLE_LIGHTING\n";
+    }
+
+    mShader.InitGeometryShaderFromString(SURFACE_GEOM);
+    mShader.InitVertexShaderFromString(SURFACE_VERT);
+    mShader.InitFragmentShaderFromString(defines + SURFACE_FRAG);
+    mShader.Link();
+
+    mShaderDirty = false;
+  }
+
   if (mActiveWMSLayer && !mActiveWMSLayer->getSettings().mTimeIntervals.empty()) {
     // Get the current time. Pre-fetch times are related to this.
     boost::posix_time::ptime time =
@@ -556,7 +576,7 @@ bool TextureOverlayRenderer::Do() {
   VistaTransformMatrix matInvMVP(matInvMV * matInvP);
 
   // Bind shader before draw
-  m_pSurfaceShader->Bind();
+  mShader.Bind();
 
   // Only bind the enabled textures.
   depthBuffer->Bind(GL_TEXTURE0);
@@ -564,55 +584,77 @@ bool TextureOverlayRenderer::Do() {
     mWMSTexture->Bind(GL_TEXTURE1);
 
     if (mSecondWMSTextureUsed) {
-      m_pSurfaceShader->SetUniform(m_pSurfaceShader->GetUniformLocation("uFade"), mFade);
+      mShader.SetUniform(mShader.GetUniformLocation("uFade"), mFade);
       mSecondWMSTexture->Bind(GL_TEXTURE2);
     }
   }
 
-  m_pSurfaceShader->SetUniform(m_pSurfaceShader->GetUniformLocation("uDepthBuffer"), 0);
-  m_pSurfaceShader->SetUniform(m_pSurfaceShader->GetUniformLocation("uFirstTexture"), 1);
-  m_pSurfaceShader->SetUniform(m_pSurfaceShader->GetUniformLocation("uSecondTexture"), 2);
+  mShader.SetUniform(mShader.GetUniformLocation("uDepthBuffer"), 0);
+  mShader.SetUniform(mShader.GetUniformLocation("uFirstTexture"), 1);
+  mShader.SetUniform(mShader.GetUniformLocation("uSecondTexture"), 2);
 
-  m_pSurfaceShader->SetUniform(
-      m_pSurfaceShader->GetUniformLocation("uUseFirstTexture"), mWMSTextureUsed);
-  m_pSurfaceShader->SetUniform(
-      m_pSurfaceShader->GetUniformLocation("uUseSecondTexture"), mSecondWMSTextureUsed);
+  mShader.SetUniform(mShader.GetUniformLocation("uUseFirstTexture"), mWMSTextureUsed);
+  mShader.SetUniform(mShader.GetUniformLocation("uUseSecondTexture"), mSecondWMSTextureUsed);
 
   // Why is there no set uniform for matrices??? //TODO: There is one
   glm::dmat4 inverseWorldTransform = glm::inverse(matWorldTransform);
-  GLint      loc                   = m_pSurfaceShader->GetUniformLocation("uMatInvMV");
+  GLint      loc                   = mShader.GetUniformLocation("uMatInvMV");
   // glUniformMatrix4fv(loc, 1, GL_FALSE, matInvMV.GetData());
   glUniformMatrix4dv(loc, 1, GL_FALSE, glm::value_ptr(inverseWorldTransform));
-  loc = m_pSurfaceShader->GetUniformLocation("uMatInvMVP");
+  loc = mShader.GetUniformLocation("uMatInvMVP");
   glUniformMatrix4fv(loc, 1, GL_FALSE, matInvMVP.GetData());
-  loc = m_pSurfaceShader->GetUniformLocation("uMatInvP");
+  loc = mShader.GetUniformLocation("uMatInvP");
   glUniformMatrix4fv(loc, 1, GL_FALSE, matInvP.GetData());
-  loc = m_pSurfaceShader->GetUniformLocation("uMatMV");
+  loc = mShader.GetUniformLocation("uMatMV");
   glUniformMatrix4fv(loc, 1, GL_FALSE, matMV.GetData());
 
-  m_pSurfaceShader->SetUniform(
-      m_pSurfaceShader->GetUniformLocation("uFarClip"), static_cast<float>(farClip));
+  mShader.SetUniform(mShader.GetUniformLocation("uFarClip"), static_cast<float>(farClip));
 
   // Double precision bounds
-  loc = m_pSurfaceShader->GetUniformLocation("uLatRange");
+  loc = mShader.GetUniformLocation("uLatRange");
   glUniform2dv(loc, 1,
       glm::value_ptr(
           cs::utils::convert::toRadians(glm::dvec2(getBounds().mMinLat, getBounds().mMaxLat))));
-  loc = m_pSurfaceShader->GetUniformLocation("uLonRange");
+  loc = mShader.GetUniformLocation("uLonRange");
   glUniform2dv(loc, 1,
       glm::value_ptr(
           cs::utils::convert::toRadians(glm::dvec2(getBounds().mMinLon, getBounds().mMaxLon))));
 
-  glm::vec4 sunDirection =
-      glm::normalize(glm::inverse(matWorldTransform) *
-                     (mSolarSystem->getSun()->getWorldTransform()[3] - matWorldTransform[3]));
-  m_pSurfaceShader->SetUniform(m_pSurfaceShader->GetUniformLocation("uSunDirection"),
-      sunDirection[0], sunDirection[1], sunDirection[2]);
+  glm::vec3 sunDirection(1, 0, 0);
+  float     sunIlluminance(1.F);
+  float     ambientBrightness(mSettings->mGraphics.pAmbientBrightness.get());
+
+  if (getCenter() == "Sun") {
+    // If the overlay is on the sun, we have to calculate the lighting differently.
+    if (mSettings->mGraphics.pEnableHDR.get()) {
+      double sceneScale = 1.0 / mSolarSystem->getObserver().getAnchorScale();
+      sunIlluminance =
+          static_cast<float>(mSolarSystem->pSunLuminousPower.get() /
+                             (sceneScale * sceneScale * mSolarSystem->getRadii(getCenter())[0] *
+                                 mSolarSystem->getRadii(getCenter())[0] * 4.0 * glm::pi<double>()));
+    }
+
+    ambientBrightness = 1.0F;
+  } else {
+    // For all other bodies we can use the utility methods from the SolarSystem.
+    if (mSettings->mGraphics.pEnableHDR.get()) {
+      sunIlluminance = static_cast<float>(mSolarSystem->getSunIlluminance(matWorldTransform[3]));
+    }
+
+    sunDirection =
+        glm::normalize(glm::inverse(matWorldTransform) *
+                       (mSolarSystem->getSun()->getWorldTransform()[3] - matWorldTransform[3]));
+  }
+
+  mShader.SetUniform(mShader.GetUniformLocation("uSunDirection"), sunDirection[0], sunDirection[1],
+      sunDirection[2]);
+  mShader.SetUniform(mShader.GetUniformLocation("uSunIlluminance"), sunIlluminance);
+  mShader.SetUniform(mShader.GetUniformLocation("uAmbientBrightness"), ambientBrightness);
 
   // provide radii to shader
   auto mRadii = cs::core::SolarSystem::getRadii(mSolarSystem->pActiveBody.get()->getCenterName());
-  m_pSurfaceShader->SetUniform(m_pSurfaceShader->GetUniformLocation("uRadii"),
-      static_cast<float>(mRadii[0]), static_cast<float>(mRadii[1]), static_cast<float>(mRadii[2]));
+  mShader.SetUniform(mShader.GetUniformLocation("uRadii"), static_cast<float>(mRadii[0]),
+      static_cast<float>(mRadii[1]), static_cast<float>(mRadii[2]));
 
   int depthBits = 0;
   glGetIntegerv(GL_DEPTH_BITS, &depthBits);
@@ -630,7 +672,7 @@ bool TextureOverlayRenderer::Do() {
   }
 
   // Release shader
-  m_pSurfaceShader->Release();
+  mShader.Release();
 
   glEnable(GL_DEPTH_TEST);
   glDepthMask(GL_TRUE);

@@ -518,7 +518,7 @@ void Plugin::onLoad() {
     }
 
     auto wmsOverlay = std::make_shared<TextureOverlayRenderer>(
-        settings.first, mSolarSystem, mTimeControl, mPluginSettings);
+        settings.first, mSolarSystem, mTimeControl, mAllSettings, mPluginSettings);
 
     mWMSOverlays.emplace(settings.first, wmsOverlay);
 
@@ -543,8 +543,7 @@ void Plugin::onLoad() {
       if (isActiveOverlay(center)) {
         mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.setCurrentBounds",
             bounds.mMinLon, bounds.mMaxLon, bounds.mMinLat, bounds.mMaxLat);
-        checkScale(bounds, mActiveLayers[center].value(),
-            mPluginSettings->mMaxTextureSize.get());
+        checkScale(bounds, mActiveLayers[center].value(), mPluginSettings->mMaxTextureSize.get());
       }
     });
   }

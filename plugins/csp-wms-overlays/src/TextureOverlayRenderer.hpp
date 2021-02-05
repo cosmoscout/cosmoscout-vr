@@ -8,6 +8,7 @@
 
 #include <VistaKernel/GraphicsManager/VistaOpenGLDraw.h>
 #include <VistaMath/VistaBoundingBox.h>
+#include <VistaOGLExt/VistaGLSLShader.h>
 
 #include <array>
 #include <functional>
@@ -35,8 +36,9 @@ namespace csp::wmsoverlays {
 class TextureOverlayRenderer : public IVistaOpenGLDraw {
  public:
   TextureOverlayRenderer(std::string center, std::shared_ptr<cs::core::SolarSystem> solarSystem,
-      std::shared_ptr<cs::core::TimeControl>   timeControl,
-      std::shared_ptr<Plugin::Settings> const& pluginSettings);
+      std::shared_ptr<cs::core::TimeControl> timeControl,
+      std::shared_ptr<cs::core::Settings>    settings,
+      std::shared_ptr<Plugin::Settings>      pluginSettings);
   virtual ~TextureOverlayRenderer();
 
   /// Returns the SPICE name of the body to which this renderer is assigned.
@@ -83,13 +85,14 @@ class TextureOverlayRenderer : public IVistaOpenGLDraw {
   /// Synchronously loads a texture for a time-independent map.
   void getTimeIndependentTexture(WebMapTextureLoader::Request const& request);
 
-  std::shared_ptr<Plugin::Settings> mPluginSettings;
-  Plugin::Settings::Body            mSimpleWMSOverlaySettings;
-  std::string                       mCenterName;
+  std::shared_ptr<cs::core::Settings> mSettings;
+  std::shared_ptr<Plugin::Settings>   mPluginSettings;
+  Plugin::Settings::Body              mSimpleWMSOverlaySettings;
+  std::string                         mCenterName;
 
   std::unique_ptr<VistaOpenGLNode> mGLNode;
 
-  VistaGLSLShader* m_pSurfaceShader = nullptr; ///< Vista GLSL shader object used for rendering
+  VistaGLSLShader mShader; ///< Vista GLSL shader object used for rendering
 
   static const std::string SURFACE_GEOM; ///< Code for the geometry shader
   static const std::string SURFACE_VERT; ///< Code for the vertex shader
@@ -127,6 +130,10 @@ class TextureOverlayRenderer : public IVistaOpenGLDraw {
 
   std::array<float, 3> mMinBounds; ///< Lower Corner of the bounding volume for the planet.
   std::array<float, 3> mMaxBounds; ///< Upper Corner of the bounding volume for the planet.
+
+  bool mShaderDirty        = true;
+  int  mLightingConnection = -1;
+  int  mHDRConnection = -1;
 };
 
 } // namespace csp::wmsoverlays
