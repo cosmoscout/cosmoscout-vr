@@ -145,11 +145,11 @@ static const char* sFragmentShader = R"(
     layout (binding = 1) uniform sampler2D uDepth;
   #endif
 
-  layout (binding = 2) uniform sampler2D uGlowMipMap;
+  layout (binding = 2) uniform sampler2D uGlareMipMap;
 
   uniform float uExposure;
-  uniform float uGlowIntensity;
-  uniform float uGlowRadius;
+  uniform float uGlareIntensity;
+  uniform float uGlareRadius;
 
   layout(location = 0) out vec3 oColor;
 
@@ -214,7 +214,7 @@ static const char* sFragmentShader = R"(
 
   vec4 texture2D_bicubic(sampler2D tex, vec2 uv, int p_lod) {
     float lod = float(p_lod);
-    vec2 tex_size = textureSize(uGlowMipMap, p_lod);
+    vec2 tex_size = textureSize(uGlareMipMap, p_lod);
     vec2 pixel_size = 1.0 / tex_size;
     uv = uv * tex_size + 0.5;
     vec2 iuv = floor(uv);
@@ -254,17 +254,17 @@ static const char* sFragmentShader = R"(
       gl_FragDepth = texelFetch(uDepth, ivec2(vTexcoords * textureSize(uDepth, 0)), 0).r;
     #endif
 
-    if (uGlowIntensity > 0 && uGlowRadius > 0) {
-      vec3  glow = vec3(0);
-      float maxLevels = ceil(textureQueryLevels(uGlowMipMap) * uGlowRadius);
+    if (uGlareIntensity > 0 && uGlareRadius > 0) {
+      vec3  glare = vec3(0);
+      float maxLevels = ceil(textureQueryLevels(uGlareMipMap) * uGlareRadius);
       float totalWeight = 0;
 
       for (int i=0; i<maxLevels; ++i) {
         float weight = 1.0 / (i + 1.0);
-        glow += texture2D_bicubic(uGlowMipMap, vTexcoords, i).rgb * weight;
+        glare += texture2D_bicubic(uGlareMipMap, vTexcoords, i).rgb * weight;
         totalWeight += weight;
       }
-      color = mix(color, glow/totalWeight, uGlowIntensity);
+      color = mix(color, glare/totalWeight, uGlareIntensity);
     }
 
     color = Uncharted2Tonemap(uExposure*color);
@@ -288,9 +288,9 @@ ToneMappingNode::ToneMappingNode(std::shared_ptr<HDRBuffer> hdrBuffer)
   mShader->InitFragmentShaderFromString(defines + sFragmentShader);
   mShader->Link();
 
-  mUniforms.exposure      = mShader->GetUniformLocation("uExposure");
-  mUniforms.glowIntensity = mShader->GetUniformLocation("uGlowIntensity");
-  mUniforms.glowRadius    = mShader->GetUniformLocation("uGlowRadius");
+  mUniforms.exposure       = mShader->GetUniformLocation("uExposure");
+  mUniforms.glareIntensity = mShader->GetUniformLocation("uGlareIntensity");
+  mUniforms.glareRadius    = mShader->GetUniformLocation("uGlareRadius");
 
   // Connect to the VSE_POSTGRAPHICS event. When this event is emitted, we will collect all
   // luminance values of the connected cluster nodes.
@@ -389,26 +389,26 @@ bool ToneMappingNode::getEnableAutoExposure() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void ToneMappingNode::setGlowIntensity(float intensity) {
-  mGlowIntensity = intensity;
+void ToneMappingNode::setGlareIntensity(float intensity) {
+  mGlareIntensity = intensity;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-float ToneMappingNode::getGlowIntensity() const {
-  return mGlowIntensity;
+float ToneMappingNode::getGlareIntensity() const {
+  return mGlareIntensity;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void ToneMappingNode::setGlowRadius(float radius) {
-  mGlowRadius = radius;
+void ToneMappingNode::setGlareRadius(float radius) {
+  mGlareRadius = radius;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-float ToneMappingNode::getGlowRadius() const {
-  return mGlowRadius;
+float ToneMappingNode::getGlareRadius() const {
+  return mGlareRadius;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -460,8 +460,8 @@ bool ToneMappingNode::ToneMappingNode::Do() {
     }
   }
 
-  if (mGlowIntensity > 0 && mGlowRadius > 0) {
-    mHDRBuffer->updateGlowMipMap();
+  if (mGlareIntensity > 0 && mGlareRadius > 0) {
+    mHDRBuffer->updateGlareMipMap();
   }
 
   if (doCalculateExposure && mEnableAutoExposure) {
@@ -473,7 +473,7 @@ bool ToneMappingNode::ToneMappingNode::Do() {
   mHDRBuffer->unbind();
   mHDRBuffer->getCurrentWriteAttachment()->Bind(GL_TEXTURE0);
   mHDRBuffer->getDepthAttachment()->Bind(GL_TEXTURE1);
-  mHDRBuffer->getGlowMipMap()->Bind(GL_TEXTURE2);
+  mHDRBuffer->getGlareMipMap()->Bind(GL_TEXTURE2);
 
   glPushAttrib(GL_ENABLE_BIT | GL_DEPTH_BUFFER_BIT);
   glDisable(GL_BLEND);
@@ -482,8 +482,8 @@ bool ToneMappingNode::ToneMappingNode::Do() {
 
   mShader->Bind();
   mShader->SetUniform(mUniforms.exposure, exposure);
-  mShader->SetUniform(mUniforms.glowIntensity, mGlowIntensity);
-  mShader->SetUniform(mUniforms.glowRadius, mGlowRadius);
+  mShader->SetUniform(mUniforms.glareIntensity, mGlareIntensity);
+  mShader->SetUniform(mUniforms.glareRadius, mGlareRadius);
 
   glDrawArrays(GL_TRIANGLES, 0, 3);
 

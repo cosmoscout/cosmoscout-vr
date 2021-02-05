@@ -300,53 +300,54 @@
 
                   <div class="row hdr-setting">
                     <div class="col-5">
-                      Glow Radius
+                      Glare Radius
                     </div>
                     <div class="col-7">
-                      <div data-callback="graphics.setGlowRadius">
+                      <div data-callback="graphics.setGlareRadius">
                       </div>
                     </div>
                   </div>
 
                   <div class="row hdr-setting">
                     <div class="col-5">
-                      Glow Intensity
+                      Glare Intensity
                     </div>
                     <div class="col-1">
                       <label class="checklabel" data-toggle="tooltip-top"
-                        title='Select glow amount automatically'>
-                        <input type="checkbox" data-callback="graphics.setEnableAutoGlow" checked />
+                        title='Select glare amount automatically'>
+                        <input type="checkbox" data-callback="graphics.setEnableAutoGlare"
+                          checked />
                         <i class="material-icons"></i>
                       </label>
                     </div>
                     <div class="col-6">
-                      <div class="unresponsive" data-callback="graphics.setGlowIntensity">
+                      <div class="unresponsive" data-callback="graphics.setGlareIntensity">
                       </div>
                     </div>
                   </div>
 
                   <div class="row hdr-setting">
                     <div class="col-5">
-                      Glow Mode
+                      Glare Mode
                     </div>
                     <div class="col-7">
                       <label class="radiolabel">
-                        <input name="glow_mode" type="radio" data-callback="graphics.setGlowMode0"
+                        <input name="glare_mode" type="radio" data-callback="graphics.setGlareMode0"
                           checked />
-                        <span>Gauss</span>
+                        <span>Accumulated Gauss</span>
                       </label>
                     </div>
                     <div class="col-7 offset-5">
                       <label class="radiolabel">
-                        <input name="glow_mode" type="radio"
-                          data-callback="graphics.setGlowMode1" />
+                        <input name="glare_mode" type="radio"
+                          data-callback="graphics.setGlareMode1" />
                         <span>Elliptical Gauss</span>
                       </label>
                     </div>
                     <div class="col-7 offset-5">
                       <label class="radiolabel">
-                        <input name="glow_mode" type="radio"
-                          data-callback="graphics.setGlowMode2" />
+                        <input name="glare_mode" type="radio"
+                          data-callback="graphics.setGlareMode2" />
                         <span>Asymmetric Gauss</span>
                       </label>
                     </div>
@@ -868,8 +869,8 @@
       CosmoScout.gui.initSlider("graphics.setExposureAdaptionSpeed", 0, 20, 0.1, [3]);
       CosmoScout.gui.initSlider("graphics.setAmbientLight", 0.0, 1.0, 0.001, [0.25]);
       CosmoScout.gui.initSlider("graphics.setExposureRange", -30.0, 30, 0.1, [-14, 10]);
-      CosmoScout.gui.initSlider("graphics.setGlowIntensity", 0.0, 1, 0.01, [0.5]);
-      CosmoScout.gui.initSlider("graphics.setGlowRadius", 0.0, 1, 0.01, [1.0]);
+      CosmoScout.gui.initSlider("graphics.setGlareIntensity", 0.0, 1, 0.01, [0.5]);
+      CosmoScout.gui.initSlider("graphics.setGlareRadius", 0.0, 1, 0.01, [1.0]);
 
       $(document).on('click', '.item-create-button', function () {
         $(this).addClass('active');
@@ -887,12 +888,12 @@
           }
         });
 
-      document.querySelector('[data-callback="graphics.setEnableAutoGlow"]')
+      document.querySelector('[data-callback="graphics.setEnableAutoGlare"]')
         .addEventListener('change', (event) => {
           if (event.target.checked) {
-            document.querySelector('[data-callback="graphics.setGlowIntensity"]').classList.add('unresponsive');
+            document.querySelector('[data-callback="graphics.setGlareIntensity"]').classList.add('unresponsive');
           } else {
-            document.querySelector('[data-callback="graphics.setGlowIntensity"]').classList.remove('unresponsive');
+            document.querySelector('[data-callback="graphics.setGlareIntensity"]').classList.remove('unresponsive');
           }
         });
 

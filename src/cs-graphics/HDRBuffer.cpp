@@ -6,7 +6,7 @@
 
 #include "HDRBuffer.hpp"
 
-#include "GlowMipMap.hpp"
+#include "GlareMipMap.hpp"
 #include "LuminanceMipMap.hpp"
 #include "logger.hpp"
 
@@ -105,10 +105,10 @@ void HDRBuffer::bind() {
     // NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
     hdrBuffer.mLuminanceMipMap = new LuminanceMipMap(mMultiSamples, size[0], size[1]);
 
-    // Create glow mipmaps.
-    delete hdrBuffer.mGlowMipMap; // NOLINT(cppcoreguidelines-owning-memory)
+    // Create glare mipmaps.
+    delete hdrBuffer.mGlareMipMap; // NOLINT(cppcoreguidelines-owning-memory)
     // NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
-    hdrBuffer.mGlowMipMap = new GlowMipMap(mMultiSamples, size[0], size[1]);
+    hdrBuffer.mGlareMipMap = new GlareMipMap(mMultiSamples, size[0], size[1]);
   }
 
   // Bind the framebuffer object for writing.
@@ -264,7 +264,7 @@ float HDRBuffer::getMaximumLuminance() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void HDRBuffer::updateGlowMipMap() {
+void HDRBuffer::updateGlareMipMap() {
   auto&         hdrBuffer = getCurrentHDRBuffer();
   VistaTexture* composite = nullptr;
 
@@ -274,26 +274,26 @@ void HDRBuffer::updateGlowMipMap() {
     composite = hdrBuffer.mColorAttachments.at(1);
   }
 
-  hdrBuffer.mGlowMipMap->update(composite, mGlowMode);
+  hdrBuffer.mGlareMipMap->update(composite, mGlareMode);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-VistaTexture* HDRBuffer::getGlowMipMap() const {
+VistaTexture* HDRBuffer::getGlareMipMap() const {
   auto const& hdrBuffer = getCurrentHDRBuffer();
-  return hdrBuffer.mGlowMipMap;
+  return hdrBuffer.mGlareMipMap;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void HDRBuffer::setGlowMode(HDRBuffer::GlowMode value) {
-  mGlowMode = value;
+void HDRBuffer::setGlareMode(HDRBuffer::GlareMode value) {
+  mGlareMode = value;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-HDRBuffer::GlowMode HDRBuffer::getGlowMode() const {
-  return mGlowMode;
+HDRBuffer::GlareMode HDRBuffer::getGlareMode() const {
+  return mGlareMode;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

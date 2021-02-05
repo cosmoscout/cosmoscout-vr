@@ -468,19 +468,19 @@ class CS_CORE_EXPORT Settings {
 
     /// If set to true, the amount of artifical glare will be based on the current exposure. Has no
     /// effect if HDR rendering is disabled.
-    utils::DefaultProperty<bool> pEnableAutoGlow{true};
+    utils::DefaultProperty<bool> pEnableAutoGlare{true};
 
     /// The amount of artifical glare. Has no effect if HDR rendering is disabled. This should be in
     /// the range 0-1.
-    utils::DefaultProperty<float> pGlowIntensity{0.5F};
+    utils::DefaultProperty<float> pGlareIntensity{0.5F};
 
-    /// This affects the spread of the glow. The actual interpretation depends on the glow mode.
+    /// This affects the spread of the glare. The actual interpretation depends on the glare mode.
     /// This should be in the range 0-1.
-    utils::DefaultProperty<float> pGlowRadius{1.0F};
+    utils::DefaultProperty<float> pGlareRadius{1.0F};
 
-    /// Specifies how the glow is computed.
-    utils::DefaultProperty<graphics::HDRBuffer::GlowMode> pGlowMode{
-        graphics::HDRBuffer::GlowMode::eGauss};
+    /// Specifies how the glare is computed.
+    utils::DefaultProperty<graphics::HDRBuffer::GlareMode> pGlareMode{
+        graphics::HDRBuffer::GlareMode::eGauss};
 
     /// This makes illumination calculations assume a fixed sun position in the current SPICE frame.
     /// Using the default value glm::dvec3(0.0) disables this feature.

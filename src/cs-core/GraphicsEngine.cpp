@@ -100,14 +100,14 @@ GraphicsEngine::GraphicsEngine(std::shared_ptr<core::Settings> settings)
   VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
       toneMappingGLNode, static_cast<int>(utils::DrawOrder::eToneMapping));
 
-  mSettings->mGraphics.pGlowIntensity.connectAndTouch(
-      [this](float val) { mToneMappingNode->setGlowIntensity(val); });
+  mSettings->mGraphics.pGlareIntensity.connectAndTouch(
+      [this](float val) { mToneMappingNode->setGlareIntensity(val); });
 
-  mSettings->mGraphics.pGlowRadius.connectAndTouch(
-      [this](float val) { mToneMappingNode->setGlowRadius(val); });
+  mSettings->mGraphics.pGlareRadius.connectAndTouch(
+      [this](float val) { mToneMappingNode->setGlareRadius(val); });
 
-  mSettings->mGraphics.pGlowMode.connectAndTouch(
-      [this](graphics::HDRBuffer::GlowMode mode) { mHDRBuffer->setGlowMode(mode); });
+  mSettings->mGraphics.pGlareMode.connectAndTouch(
+      [this](graphics::HDRBuffer::GlareMode mode) { mHDRBuffer->setGlareMode(mode); });
 
   mSettings->mGraphics.pExposureCompensation.connectAndTouch(
       [this](float val) { mToneMappingNode->setExposureCompensation(val); });
@@ -133,14 +133,14 @@ GraphicsEngine::GraphicsEngine(std::shared_ptr<core::Settings> settings)
       mToneMappingNode->setExposure(value);
     }
 
-    // Whenever the exposure changes, and if auto-glow is enabled, we change the glow intensity
-    // based on the exposure value. The auto-glow amount is based on the current exposure relative
+    // Whenever the exposure changes, and if auto-glare is enabled, we change the glare intensity
+    // based on the exposure value. The auto-glare amount is based on the current exposure relative
     // to the auto-exposure range.
-    if (mSettings->mGraphics.pEnableAutoGlow.get()) {
-      float glow = (mSettings->mGraphics.pAutoExposureRange.get()[0] - value) /
-                   (mSettings->mGraphics.pAutoExposureRange.get()[0] -
-                       mSettings->mGraphics.pAutoExposureRange.get()[1]);
-      mSettings->mGraphics.pGlowIntensity = std::clamp(glow * 0.5F, 0.001F, 1.F);
+    if (mSettings->mGraphics.pEnableAutoGlare.get()) {
+      float glare = (mSettings->mGraphics.pAutoExposureRange.get()[0] - value) /
+                    (mSettings->mGraphics.pAutoExposureRange.get()[0] -
+                        mSettings->mGraphics.pAutoExposureRange.get()[1]);
+      mSettings->mGraphics.pGlareIntensity = std::clamp(glare * 0.5F, 0.001F, 1.F);
     }
   });
 }

@@ -4,7 +4,7 @@
 //                        Copyright: (c) 2019 German Aerospace Center (DLR)                       //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#include "GlowMipMap.hpp"
+#include "GlareMipMap.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -16,7 +16,7 @@ namespace cs::graphics {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static const char* sGlowShader = R"(
+static const char* sGlareShader = R"(
   layout (local_size_x = 16, local_size_y = 16) in;
 
   #if NUM_MULTISAMPLES > 0
@@ -33,7 +33,7 @@ static const char* sGlowShader = R"(
 
   vec3 sampleHDRBuffer(ivec2 offset) {
     #if NUM_MULTISAMPLES > 0
-      // For performance reasons, we only use one sample for the glow.
+      // For performance reasons, we only use one sample for the glare.
       vec3 col = imageLoad(uInHDRBuffer, ivec2((gl_GlobalInvocationID.xy+offset)*2 + ivec2(0,0)), 0).rgb * 0.25
                + imageLoad(uInHDRBuffer, ivec2((gl_GlobalInvocationID.xy+offset)*2 + ivec2(1,0)), 0).rgb * 0.25
                + imageLoad(uInHDRBuffer, ivec2((gl_GlobalInvocationID.xy+offset)*2 + ivec2(0,1)), 0).rgb * 0.25
@@ -99,14 +99,14 @@ static const char* sGlowShader = R"(
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-GlowMipMap::GlowMipMap(uint32_t hdrBufferSamples, int hdrBufferWidth, int hdrBufferHeight)
+GlareMipMap::GlareMipMap(uint32_t hdrBufferSamples, int hdrBufferWidth, int hdrBufferHeight)
     : VistaTexture(GL_TEXTURE_2D)
     , mHDRBufferSamples(hdrBufferSamples)
     , mHDRBufferWidth(hdrBufferWidth)
     , mHDRBufferHeight(hdrBufferHeight)
     , mTemporaryTarget(new VistaTexture(GL_TEXTURE_2D)) {
 
-  // Create glow mipmap storage. The texture has half the size of the HDR buffer (rounded down) in
+  // Create glare mipmap storage. The texture has half the size of the HDR buffer (rounded down) in
   // both directions.
   int iWidth  = mHDRBufferWidth / 2;
   int iHeight = mHDRBufferHeight / 2;
@@ -123,37 +123,37 @@ GlowMipMap::GlowMipMap(uint32_t hdrBufferSamples, int hdrBufferWidth, int hdrBuf
 
   glTexStorage2D(GL_TEXTURE_2D, mMaxLevels, GL_RGBA32F, iWidth, iHeight);
 
-  // Create storage for temporary glow target (this is used for the vertical blurring passes).
+  // Create storage for temporary glare target (this is used for the vertical blurring passes).
   mTemporaryTarget->Bind();
   glTexStorage2D(GL_TEXTURE_2D, mMaxLevels, GL_RGBA32F, iWidth, iHeight);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-GlowMipMap::~GlowMipMap() {
+GlareMipMap::~GlareMipMap() {
   glDeleteProgram(mComputeProgram);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GlowMipMap::update(VistaTexture* hdrBufferComposite, HDRBuffer::GlowMode glowMode) {
+void GlareMipMap::update(VistaTexture* hdrBufferComposite, HDRBuffer::GlareMode glareMode) {
 
-  if (mComputeProgram == 0 || glowMode != mLastGlowMode) {
+  if (mComputeProgram == 0 || glareMode != mLastGlareMode) {
 
     // Create the compute shader.
     auto        shader = glCreateShader(GL_COMPUTE_SHADER);
     std::string source = "#version 430\n";
     source += "#define NUM_MULTISAMPLES " + std::to_string(mHDRBufferSamples) + "\n";
 
-    if (glowMode == HDRBuffer::GlowMode::eGauss) {
+    if (glareMode == HDRBuffer::GlareMode::eGauss) {
       source += "#define GLOWMODE_GAUSS\n";
-    } else if (glowMode == HDRBuffer::GlowMode::eEllipticalGauss) {
+    } else if (glareMode == HDRBuffer::GlareMode::eEllipticalGauss) {
       source += "#define GLOWMODE_ELLIPTICAL_GAUSS\n";
-    } else if (glowMode == HDRBuffer::GlowMode::eAsymmetricGauss) {
+    } else if (glareMode == HDRBuffer::GlareMode::eAsymmetricGauss) {
       source += "#define GLOWMODE_ASYMMETRIC_GAUSS\n";
     }
 
-    source += sGlowShader;
+    source += sGlareShader;
     const char* pSource = source.c_str();
     glShaderSource(shader, 1, &pSource, nullptr);
     glCompileShader(shader);
@@ -190,10 +190,10 @@ void GlowMipMap::update(VistaTexture* hdrBufferComposite, HDRBuffer::GlowMode gl
     mUniforms.level = glGetUniformLocation(mComputeProgram, "uLevel");
     mUniforms.pass  = glGetUniformLocation(mComputeProgram, "uPass");
 
-    mLastGlowMode = glowMode;
+    mLastGlareMode = glareMode;
   }
 
-  // We update the glow mipmap with several passes. First, the base level is filled with a
+  // We update the glare mipmap with several passes. First, the base level is filled with a
   // downsampled and horizontally blurred version of the HDRBuffer. Then, this is blurred
   // vertically. Then it's downsampled and horizontally blurred once more. And so on.
 

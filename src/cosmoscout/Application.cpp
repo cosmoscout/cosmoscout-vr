@@ -1119,53 +1119,53 @@ void Application::registerGuiCallbacks() {
   mSettings->mGraphics.pExposureAdaptionSpeed.connectAndTouch(
       [this](float val) { mGuiManager->setSliderValue("graphics.setExposureAdaptionSpeed", val); });
 
-  // Toggles auto-glow.
-  mGuiManager->getGui()->registerCallback("graphics.setEnableAutoGlow",
-      "If enabled, the glow amount is chosen based on the current exposure.",
-      std::function([this](bool enable) { mSettings->mGraphics.pEnableAutoGlow = enable; }));
-  mSettings->mGraphics.pEnableAutoGlow.connectAndTouch([this](bool enable) {
-    // We fire callbacks (last param) to make sure that the glow-slider is properly activated /
+  // Toggles auto-glare.
+  mGuiManager->getGui()->registerCallback("graphics.setEnableAutoGlare",
+      "If enabled, the glare amount is chosen based on the current exposure.",
+      std::function([this](bool enable) { mSettings->mGraphics.pEnableAutoGlare = enable; }));
+  mSettings->mGraphics.pEnableAutoGlare.connectAndTouch([this](bool enable) {
+    // We fire callbacks (last param) to make sure that the glare-slider is properly activated /
     // deactivated.
-    mGuiManager->setCheckboxValue("graphics.setEnableAutoGlow", enable, true);
+    mGuiManager->setCheckboxValue("graphics.setEnableAutoGlare", enable, true);
   });
 
-  // Adjusts the amount of artificial glare in HDR mode. If auto-glow is enabled, we update the
+  // Adjusts the amount of artificial glare in HDR mode. If auto-glare is enabled, we update the
   // slider in the user interface to show the current value.
-  mGuiManager->getGui()->registerCallback("graphics.setGlowIntensity",
-      "Adjusts the amount of glow of overexposed areas.", std::function([this](double val) {
-        mSettings->mGraphics.pGlowIntensity = static_cast<float>(val);
+  mGuiManager->getGui()->registerCallback("graphics.setGlareIntensity",
+      "Adjusts the amount of glare of overexposed areas.", std::function([this](double val) {
+        mSettings->mGraphics.pGlareIntensity = static_cast<float>(val);
       }));
-  mSettings->mGraphics.pGlowIntensity.connect(
-      [this](float val) { mGuiManager->setSliderValue("graphics.setGlowIntensity", val); });
+  mSettings->mGraphics.pGlareIntensity.connect(
+      [this](float val) { mGuiManager->setSliderValue("graphics.setGlareIntensity", val); });
 
   // Adjusts the spread of the glare.
-  mGuiManager->getGui()->registerCallback("graphics.setGlowRadius",
-      "Adjusts the glow radius of overexposed areas.", std::function([this](double val) {
-        mSettings->mGraphics.pGlowRadius = static_cast<float>(val);
+  mGuiManager->getGui()->registerCallback("graphics.setGlareRadius",
+      "Adjusts the glare radius of overexposed areas.", std::function([this](double val) {
+        mSettings->mGraphics.pGlareRadius = static_cast<float>(val);
       }));
-  mSettings->mGraphics.pGlowRadius.connect(
-      [this](float val) { mGuiManager->setSliderValue("graphics.setGlowRadius", val); });
+  mSettings->mGraphics.pGlareRadius.connect(
+      [this](float val) { mGuiManager->setSliderValue("graphics.setGlareRadius", val); });
 
-  // Sets the mode used to compute the glow blur.
+  // Sets the mode used to compute the glare blur.
   mGuiManager->getGui()->registerCallback(
-      "graphics.setGlowMode0", "Enables simple gaussian glow.", std::function([this]() {
-        mSettings->mGraphics.pGlowMode = cs::graphics::HDRBuffer::GlowMode::eGauss;
+      "graphics.setGlareMode0", "Enables simple gaussian glare.", std::function([this]() {
+        mSettings->mGraphics.pGlareMode = cs::graphics::HDRBuffer::GlareMode::eGauss;
       }));
-  mGuiManager->getGui()->registerCallback("graphics.setGlowMode1",
+  mGuiManager->getGui()->registerCallback("graphics.setGlareMode1",
       "Enables more advanced elliptical gaussian blur.", std::function([this]() {
-        mSettings->mGraphics.pGlowMode = cs::graphics::HDRBuffer::GlowMode::eEllipticalGauss;
+        mSettings->mGraphics.pGlareMode = cs::graphics::HDRBuffer::GlareMode::eEllipticalGauss;
       }));
-  mGuiManager->getGui()->registerCallback("graphics.setGlowMode2",
+  mGuiManager->getGui()->registerCallback("graphics.setGlareMode2",
       "Enables perspective correct asymmetrical gaussian blur.", std::function([this]() {
-        mSettings->mGraphics.pGlowMode = cs::graphics::HDRBuffer::GlowMode::eAsymmetricGauss;
+        mSettings->mGraphics.pGlareMode = cs::graphics::HDRBuffer::GlareMode::eAsymmetricGauss;
       }));
-  mSettings->mGraphics.pGlowMode.connect([this](cs::graphics::HDRBuffer::GlowMode glowMode) {
-    if (glowMode == cs::graphics::HDRBuffer::GlowMode::eGauss) {
-      mGuiManager->setRadioChecked("graphics.setGlowMode0");
-    } else if (glowMode == cs::graphics::HDRBuffer::GlowMode::eEllipticalGauss) {
-      mGuiManager->setRadioChecked("graphics.setGlowMode1");
-    } else if (glowMode == cs::graphics::HDRBuffer::GlowMode::eAsymmetricGauss) {
-      mGuiManager->setRadioChecked("graphics.setGlowMode2");
+  mSettings->mGraphics.pGlareMode.connect([this](cs::graphics::HDRBuffer::GlareMode glareMode) {
+    if (glareMode == cs::graphics::HDRBuffer::GlareMode::eGauss) {
+      mGuiManager->setRadioChecked("graphics.setGlareMode0");
+    } else if (glareMode == cs::graphics::HDRBuffer::GlareMode::eEllipticalGauss) {
+      mGuiManager->setRadioChecked("graphics.setGlareMode1");
+    } else if (glareMode == cs::graphics::HDRBuffer::GlareMode::eAsymmetricGauss) {
+      mGuiManager->setRadioChecked("graphics.setGlareMode2");
     }
   });
 
@@ -1642,8 +1642,8 @@ void Application::unregisterGuiCallbacks() {
   mGuiManager->getGui()->unregisterCallback("graphics.setExposureAdaptionSpeed");
   mGuiManager->getGui()->unregisterCallback("graphics.setExposureCompensation");
   mGuiManager->getGui()->unregisterCallback("graphics.setSensorDiagonal");
-  mGuiManager->getGui()->unregisterCallback("graphics.setEnableAutoGlow");
-  mGuiManager->getGui()->unregisterCallback("graphics.setGlowIntensity");
+  mGuiManager->getGui()->unregisterCallback("graphics.setEnableAutoGlare");
+  mGuiManager->getGui()->unregisterCallback("graphics.setGlareIntensity");
   mGuiManager->getGui()->unregisterCallback("graphics.setExposureRange");
   mGuiManager->getGui()->unregisterCallback("graphics.setFixedSunDirection");
   mGuiManager->getGui()->unregisterCallback("navigation.fixHorizon");

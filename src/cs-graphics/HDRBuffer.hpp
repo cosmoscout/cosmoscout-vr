@@ -22,19 +22,19 @@ class VistaGLSLShader;
 namespace cs::graphics {
 
 class LuminanceMipMap;
-class GlowMipMap;
+class GlareMipMap;
 
 /// The HDRBuffer is used as render target when HDR rendering is enabled. It contains an framebuffer
 /// object for each viewport. Each framebuffer object has two color attachments containing luminance
 /// values (which can be used in a ping-pong fashion) and a depth attachment. It also contains a
-/// LuminanceMipMap to compute the average brightness for auto-exposure and a GlowMipMap for a
+/// LuminanceMipMap to compute the average brightness for auto-exposure and a GlareMipMap for a
 /// glare-effect.
 class CS_GRAPHICS_EXPORT HDRBuffer {
  public:
-  /// There different possibilities for computing the glow. The simplest being a symmetrical
+  /// There different possibilities for computing the glare. The simplest being a symmetrical
   /// gauss-like kernel. The elliptical gauss is close to the perspective correct asymmetrical gauss
   /// but is a bit faster.
-  enum class GlowMode { eGauss, eEllipticalGauss, eAsymmetricGauss };
+  enum class GlareMode { eGauss, eEllipticalGauss, eAsymmetricGauss };
 
   /// When highPrecision is set to false, only 16bit color buffers are used.
   explicit HDRBuffer(uint32_t multiSamples, bool highPrecision = true);
@@ -76,13 +76,13 @@ class CS_GRAPHICS_EXPORT HDRBuffer {
   float getTotalLuminance() const;
   float getMaximumLuminance() const;
 
-  /// Update and access the GlowMipMap.
-  void          updateGlowMipMap();
-  VistaTexture* getGlowMipMap() const;
+  /// Update and access the GlareMipMap.
+  void          updateGlareMipMap();
+  VistaTexture* getGlareMipMap() const;
 
-  /// Specifies how the glow should be computed.
-  void     setGlowMode(GlowMode value);
-  GlowMode getGlowMode() const;
+  /// Specifies how the glare should be computed.
+  void      setGlareMode(GlareMode value);
+  GlareMode getGlareMode() const;
 
   /// Returns the depth attachment for the currently rendered viewport. Be aware, that this can be
   /// texture with the target GL_TEXTURE_2D_MULTISAMPLE if getMultiSamples() > 0.
@@ -103,14 +103,14 @@ class CS_GRAPHICS_EXPORT HDRBuffer {
 
  private:
   // There is one of these structs for each viewport. That means, we have a separate framebuffer
-  // object, GlowMipMap and LuminanceMipMap for each viewport. This is mainly because viewports
+  // object, GlareMipMap and LuminanceMipMap for each viewport. This is mainly because viewports
   // often have different sizes.
   struct HDRBufferData {
     VistaFramebufferObj*         mFBO{};
     std::array<VistaTexture*, 2> mColorAttachments{};
     VistaTexture*                mDepthAttachment{};
     LuminanceMipMap*             mLuminanceMipMap{};
-    GlowMipMap*                  mGlowMipMap{};
+    GlareMipMap*                 mGlareMipMap{};
 
     // Stores the original viewport position and size.
     std::array<int, 4> mCachedViewport{};
@@ -125,7 +125,7 @@ class CS_GRAPHICS_EXPORT HDRBuffer {
   HDRBufferData&       getCurrentHDRBuffer();
   HDRBufferData const& getCurrentHDRBuffer() const;
 
-  GlowMode                                          mGlowMode = GlowMode::eGauss;
+  GlareMode                                         mGlareMode = GlareMode::eGauss;
   std::unordered_map<VistaViewport*, HDRBufferData> mHDRBufferData;
   float                                             mTotalLuminance   = 1.F;
   float                                             mMaximumLuminance = 1.F;

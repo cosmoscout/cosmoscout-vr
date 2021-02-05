@@ -4,8 +4,8 @@
 //                        Copyright: (c) 2019 German Aerospace Center (DLR)                       //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#ifndef CS_GRAPHICS_GLOW_MIPMAP_HPP
-#define CS_GRAPHICS_GLOW_MIPMAP_HPP
+#ifndef CS_GRAPHICS_GLARE_MIPMAP_HPP
+#define CS_GRAPHICS_GLARE_MIPMAP_HPP
 
 #include "HDRBuffer.hpp"
 
@@ -17,28 +17,28 @@ namespace cs::graphics {
 /// Whenever update() is called, all mipmap levels are updated using compute shaders in several
 /// passes to contain a blurred version of the given texture. The blur radius increases with the
 /// mipmap level.
-class CS_GRAPHICS_EXPORT GlowMipMap : public VistaTexture {
+class CS_GRAPHICS_EXPORT GlareMipMap : public VistaTexture {
  public:
-  GlowMipMap(uint32_t hdrBufferSamples, int hdrBufferWidth, int hdrBufferHeight);
-  ~GlowMipMap() override;
+  GlareMipMap(uint32_t hdrBufferSamples, int hdrBufferWidth, int hdrBufferHeight);
+  ~GlareMipMap() override;
 
-  GlowMipMap(GlowMipMap const& other) = delete;
-  GlowMipMap(GlowMipMap&& other)      = delete;
+  GlareMipMap(GlareMipMap const& other) = delete;
+  GlareMipMap(GlareMipMap&& other)      = delete;
 
-  GlowMipMap& operator=(GlowMipMap const& other) = delete;
-  GlowMipMap& operator=(GlowMipMap&& other) = delete;
+  GlareMipMap& operator=(GlareMipMap const& other) = delete;
+  GlareMipMap& operator=(GlareMipMap&& other) = delete;
 
-  /// Perform the glow calculation by parallel reduction of the HDR values. This is a costly
+  /// Perform the glare calculation by parallel reduction of the HDR values. This is a costly
   /// operation and should only be called once a frame.
-  void update(VistaTexture* hdrBufferComposite, HDRBuffer::GlowMode glowMode);
+  void update(VistaTexture* hdrBufferComposite, HDRBuffer::GlareMode glareMode);
 
  private:
-  GLuint              mComputeProgram   = 0;
-  uint32_t            mHDRBufferSamples = 0;
-  int                 mMaxLevels        = 0;
-  int                 mHDRBufferWidth   = 0;
-  int                 mHDRBufferHeight  = 0;
-  HDRBuffer::GlowMode mLastGlowMode     = HDRBuffer::GlowMode::eGauss;
+  GLuint               mComputeProgram   = 0;
+  uint32_t             mHDRBufferSamples = 0;
+  int                  mMaxLevels        = 0;
+  int                  mHDRBufferWidth   = 0;
+  int                  mHDRBufferHeight  = 0;
+  HDRBuffer::GlareMode mLastGlareMode    = HDRBuffer::GlareMode::eGauss;
 
   struct {
     uint32_t level = 0;
@@ -50,4 +50,4 @@ class CS_GRAPHICS_EXPORT GlowMipMap : public VistaTexture {
 
 } // namespace cs::graphics
 
-#endif // CS_GRAPHICS_GLOW_MIPMAP_HPP
+#endif // CS_GRAPHICS_GLARE_MIPMAP_HPP
