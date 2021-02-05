@@ -135,8 +135,7 @@ std::string TextureOverlayRenderer::getCenter() const {
 
 void TextureOverlayRenderer::configure(Plugin::Settings::Body const& settings) {
   mSimpleWMSOverlaySettings = settings;
-  pBounds = Bounds(settings.mActiveBounds.get()[0], settings.mActiveBounds.get()[1],
-      settings.mActiveBounds.get()[2], settings.mActiveBounds.get()[3]);
+  pBounds                   = settings.mActiveBounds.get();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

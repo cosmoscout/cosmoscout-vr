@@ -63,7 +63,7 @@ class Plugin : public cs::core::PluginBase {
           "None"}; ///< The name of the currently active WMS layer.
       cs::utils::DefaultProperty<std::string> mActiveStyle{
           ""}; ///< The name of the style for the currently active WMS layer.
-      cs::utils::DefaultProperty<std::array<double, 4>> mActiveBounds{
+      cs::utils::DefaultProperty<Bounds> mActiveBounds{
           {-180., 180., -90., 90.}}; ///< The bounds for the currently active WMS layer.
       std::vector<std::string> mWms; ///<	URLs of WMS servers.
     };
@@ -93,6 +93,8 @@ class Plugin : public cs::core::PluginBase {
 
   /// Checks if the given wmsOverlay is currently active.
   bool isActiveOverlay(std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay);
+  /// Checks if the wmsOverlay with the given center is currently active.
+  bool isActiveOverlay(std::string const& center);
 
   /// Adds the given layer and all of its sublayers to the layer dropdown.
   /// Returns whether any layer's name matched the given activeLayer.

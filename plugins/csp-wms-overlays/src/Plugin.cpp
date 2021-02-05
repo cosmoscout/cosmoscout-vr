@@ -36,6 +36,22 @@ namespace csp::wmsoverlays {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void from_json(nlohmann::json const& j, Bounds& o) {
+  std::array<double, 4> bounds;
+  j.get_to(bounds);
+  o.mMinLon = bounds[0];
+  o.mMaxLon = bounds[1];
+  o.mMinLat = bounds[2];
+  o.mMaxLat = bounds[3];
+}
+
+void to_json(nlohmann::json& j, Bounds const& o) {
+  std::array<double, 4> bounds{o.mMinLon, o.mMaxLon, o.mMinLat, o.mMaxLat};
+  j = bounds;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void from_json(nlohmann::json const& j, Plugin::Settings::Body& o) {
   cs::core::Settings::deserialize(j, "activeServer", o.mActiveServer);
   cs::core::Settings::deserialize(j, "activeLayer", o.mActiveLayer);
@@ -522,9 +538,14 @@ void Plugin::onLoad() {
 
     wmsOverlay->configure(settings.second);
 
-    wmsOverlay->pBounds.connectAndTouch([&settings](Bounds const& bounds) {
-      settings.second.mActiveBounds = {
-          bounds.mMinLon, bounds.mMaxLon, bounds.mMinLat, bounds.mMaxLat};
+    wmsOverlay->pBounds.connectAndTouch([this, &settings, center = settings.first](Bounds bounds) {
+      settings.second.mActiveBounds = bounds;
+      if (isActiveOverlay(center)) {
+        mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.setCurrentBounds",
+            bounds.mMinLon, bounds.mMaxLon, bounds.mMinLat, bounds.mMaxLat);
+        checkScale(bounds, mActiveLayers[center].value(),
+            mPluginSettings->mMaxTextureSize.get());
+      }
     });
   }
 
@@ -731,7 +752,13 @@ void Plugin::resetWMSStyle(std::shared_ptr<TextureOverlayRenderer> const& wmsOve
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool Plugin::isActiveOverlay(std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay) {
-  return mActiveOverlay && wmsOverlay->getCenter() == mActiveOverlay->getCenter();
+  return mActiveOverlay && wmsOverlay && wmsOverlay->getCenter() == mActiveOverlay->getCenter();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool Plugin::isActiveOverlay(std::string const& center) {
+  return mActiveOverlay && center == mActiveOverlay->getCenter();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
