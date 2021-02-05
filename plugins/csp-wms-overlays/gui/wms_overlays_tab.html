@@ -114,22 +114,6 @@
 </div>
 
 <div class="row mb-1">
-  <div class="col-7 offset-5">
-    <button class="btn glass block" onclick="CosmoScout.callbacks.wmsOverlays.updateBounds()">
-      Fit to screen
-    </button>
-  </div>
-</div>
-
-<div class="row mb-1">
-  <div class="col-7 offset-5">
-    <button class="btn glass block" onclick="CosmoScout.callbacks.wmsOverlays.resetBounds()">
-      Reset to default
-    </button>
-  </div>
-</div>
-
-<div class="row mb-1">
   <div class="col-4">
     <label>Scale:</label>
   </div>
@@ -138,6 +122,19 @@
   </div>
   <div class="col-7">
     <label id="wmsOverlays.scale">None</label>
+  </div>
+</div>
+
+<div class="row mb-1">
+  <div class="col-6">
+    <button class="btn glass block" onclick="CosmoScout.callbacks.wmsOverlays.resetBounds()">
+      Reset to default
+    </button>
+  </div>
+  <div class="col-6">
+    <button class="btn glass block" onclick="CosmoScout.callbacks.wmsOverlays.updateBounds()">
+      Fit to screen
+    </button>
   </div>
 </div>
 
