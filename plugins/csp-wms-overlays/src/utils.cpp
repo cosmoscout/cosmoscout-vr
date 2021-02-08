@@ -323,30 +323,6 @@ std::optional<bool> getAttribute<bool>(VistaXML::TiXmlElement* element, std::str
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::optional<double> optstod(std::optional<std::string> string) {
-  if (string.has_value()) {
-    try {
-      return std::stod(string.value());
-    } catch (const std::invalid_argument&) {
-    } catch (const std::out_of_range&) {}
-  }
-  return {};
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-std::optional<int> optstoi(std::optional<std::string> string) {
-  if (string.has_value()) {
-    try {
-      return std::stoi(string.value());
-    } catch (const std::invalid_argument&) {
-    } catch (const std::out_of_range&) {}
-  }
-  return {};
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 } // namespace utils
 
 } // namespace csp::wmsoverlays
