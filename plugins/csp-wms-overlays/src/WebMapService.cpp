@@ -143,6 +143,16 @@ VistaXML::TiXmlElement* WebMapService::getCapabilities() {
       message << "WMS capabilities document for '" << mUrl << "' is not valid";
       throw std::runtime_error(message.str());
     }
+    std::optional<std::string> version = utils::getAttribute<std::string>(capabilities, "version");
+    if (!version.has_value()) {
+      logger().warn("No version number given in capabilities! Trying to use server anyway.");
+    } else {
+      if (version.value() != "1.3.0") {
+        std::stringstream message;
+        message << "WMS '" << mUrl << "' only supports WMS version '" << version.value() << "'";
+        throw std::runtime_error(message.str());
+      }
+    }
 
     if (saveToCache) {
       // Cache file
