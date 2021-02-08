@@ -837,8 +837,14 @@ void Plugin::checkScale(Bounds const& bounds, WebMapLayer const& layer, int cons
   double lonRange = bounds.mMaxLon - bounds.mMinLon;
   double latRange = bounds.mMaxLat - bounds.mMinLat;
 
-  double scaleDenominator =
-      std::max(lonRange, latRange) * metersPerDegree / maxTextureSize / metersPerPixel;
+  double scaleDenominator;
+  if (lonRange > latRange) {
+    scaleDenominator = lonRange * metersPerDegree /
+                       layer.getSettings().mFixedWidth.value_or(maxTextureSize) / metersPerPixel;
+  } else {
+    scaleDenominator = latRange * metersPerDegree /
+                       layer.getSettings().mFixedHeight.value_or(maxTextureSize) / metersPerPixel;
+  }
 
   mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.setScale", scaleDenominator);
   if (layer.getSettings().mMinScale && scaleDenominator <= layer.getSettings().mMinScale) {
