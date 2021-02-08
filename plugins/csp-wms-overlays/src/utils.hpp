@@ -96,7 +96,7 @@ void parseIsoString(std::string const& isoString, std::vector<TimeInterval>& tim
 /// Check whether the given time is inside one of the time intervals.
 /// Then calculate the start time of the current sample if it is in the interval.
 /// If the time is in an interval, the 'foundInterval' parameter will be set to it.
-bool timeInIntervals(boost::posix_time::ptime& time, std::vector<TimeInterval>& timeIntervals,
+bool timeInIntervals(boost::posix_time::ptime& time, std::vector<TimeInterval> const& timeIntervals,
     TimeInterval& foundInterval);
 
 /// Adds the interval duration to the given time.
@@ -150,10 +150,16 @@ std::optional<T> getAttribute(VistaXML::TiXmlElement* element, std::string attri
 }
 
 /// QueryValueAttribute does not work for strings containing spaces, so Attribute is used instead.
+template<>
+std::optional<std::string> getAttribute<std::string>(
+    VistaXML::TiXmlElement* element, std::string attributeName);
 extern template std::optional<std::string> getAttribute<std::string>(
     VistaXML::TiXmlElement* element, std::string attributeName);
 
 /// Booleans may be given as either integers (0->false, 1->true) or strings.
+template<>
+std::optional<bool> getAttribute<bool>(
+    VistaXML::TiXmlElement* element, std::string attributeName);
 extern template std::optional<bool> getAttribute<bool>(
     VistaXML::TiXmlElement* element, std::string attributeName);
 

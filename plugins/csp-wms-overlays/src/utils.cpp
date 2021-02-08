@@ -202,7 +202,7 @@ void parseIsoString(std::string const& isoString, std::vector<TimeInterval>& tim
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool timeInIntervals(boost::posix_time::ptime& time, std::vector<TimeInterval>& timeIntervals,
+bool timeInIntervals(boost::posix_time::ptime& time, std::vector<TimeInterval> const& timeIntervals,
     TimeInterval& foundInterval) {
   // Check each interval whether the given time is inside or not..
   for (auto interval = timeIntervals.rbegin(); interval != timeIntervals.rend(); interval++) {
@@ -293,6 +293,7 @@ std::optional<std::optional<int>> getSizeAttribute(
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+template <>
 std::optional<std::string> getAttribute<std::string>(
     VistaXML::TiXmlElement* element, std::string attributeName) {
   const std::string* result = element->Attribute(attributeName);
@@ -304,6 +305,7 @@ std::optional<std::string> getAttribute<std::string>(
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+template <>
 std::optional<bool> getAttribute<bool>(VistaXML::TiXmlElement* element, std::string attributeName) {
   std::optional<int> value = getAttribute<int>(element, attributeName);
   if (value.has_value()) {

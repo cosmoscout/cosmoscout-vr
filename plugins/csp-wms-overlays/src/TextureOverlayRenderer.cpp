@@ -44,13 +44,13 @@ TextureOverlayRenderer::TextureOverlayRenderer(std::string center,
     std::shared_ptr<cs::core::SolarSystem>                 solarSystem,
     std::shared_ptr<cs::core::TimeControl>                 timeControl,
     std::shared_ptr<cs::core::Settings> settings, std::shared_ptr<Plugin::Settings> pluginSettings)
-    : mCenterName(center)
-    , mSolarSystem(solarSystem)
-    , mTimeControl(timeControl)
+    : mSettings(settings)
     , mPluginSettings(pluginSettings)
-    , mSettings(settings)
+    , mCenterName(center)
     , mWMSTexture(new VistaTexture(GL_TEXTURE_2D))
     , mSecondWMSTexture(new VistaTexture(GL_TEXTURE_2D))
+    , mSolarSystem(solarSystem)
+    , mTimeControl(timeControl)
     , mMinBounds({(float)-solarSystem->getRadii(center)[0],
           (float)-solarSystem->getRadii(center)[1], (float)-solarSystem->getRadii(center)[2]})
     , mMaxBounds({(float)solarSystem->getRadii(center)[0], (float)solarSystem->getRadii(center)[1],

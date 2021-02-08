@@ -67,7 +67,7 @@ class WebMapException : public std::exception {
 class WebMapExceptionReport : public std::exception {
  public:
   /// Construct a WebMapExceptionReport from a XML document.
-  WebMapExceptionReport(VistaXML::TiXmlDocument& doc);
+  WebMapExceptionReport(VistaXML::TiXmlDocument doc);
   /// Construct a WebMapExceptionReport from a string containing a XML document.
   WebMapExceptionReport(std::string const& xml);
 

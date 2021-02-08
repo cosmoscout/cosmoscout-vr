@@ -23,8 +23,8 @@ class WebMapLayer {
  public:
   /// Struct for storing information on a single style for a WMS layer.
   struct Style {
-    const std::string                mTitle;     ///< Human readable description of the style.
     const std::string                mName;      ///< Internal name of the style for requests.
+    const std::string                mTitle;     ///< Human readable description of the style.
     const std::optional<std::string> mLegendUrl; ///< URL at which a legend image may be found.
 
     Style(VistaXML::TiXmlElement* element);

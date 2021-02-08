@@ -120,7 +120,7 @@ class Plugin : public cs::core::PluginBase {
   bool mNoMovement;                ///< True when the observer is not moving.
   bool mNoMovementRequestedUpdate; ///< True when the active overlay was requested to update its
                                    ///< bounds because the observer is not moving.
-  std::chrono::time_point<std::chrono::steady_clock>
+  std::chrono::time_point<std::chrono::high_resolution_clock>
       mNoMovementSince; ///< Time at which the observer stopped moving.
 
   int mActiveBodyConnection    = -1;

@@ -104,7 +104,7 @@ const char* WebMapException::what() const noexcept {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-WebMapExceptionReport::WebMapExceptionReport(VistaXML::TiXmlDocument& doc) {
+WebMapExceptionReport::WebMapExceptionReport(VistaXML::TiXmlDocument doc) {
   VistaXML::TiXmlElement* root = doc.FirstChildElement("ServiceExceptionReport");
   if (root == nullptr) {
     throw std::runtime_error("XML document has no ServiceExceptionReport element as root");
