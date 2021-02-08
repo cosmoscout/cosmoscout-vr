@@ -107,6 +107,7 @@ void Plugin::init() {
     if (!mActiveOverlay || !mActiveLayers[mActiveOverlay->getCenter()]) {
       return;
     }
+
     checkScale(
         mActiveOverlay->pBounds.get(), mActiveLayers[mActiveOverlay->getCenter()].value(), value);
   });
@@ -114,18 +115,21 @@ void Plugin::init() {
   // Updates the bounds for which map data is requested.
   mGuiManager->getGui()->registerCallback(
       "wmsOverlays.updateBounds", "Updates the bounds for map requests.", std::function([this]() {
-        if (mActiveOverlay) {
-          mActiveOverlay->requestUpdateBounds();
+        if (!mActiveOverlay) {
+          return;
         }
+
+        mActiveOverlay->requestUpdateBounds();
       }));
 
   // Resets the bounds to the default ones for the active layer.
   mGuiManager->getGui()->registerCallback(
       "wmsOverlays.resetBounds", "Resets the bounds for map requests.", std::function([this]() {
-        if (mActiveOverlay && mActiveLayers[mActiveOverlay->getCenter()]) {
-          mActiveOverlay->pBounds =
-              mActiveLayers[mActiveOverlay->getCenter()]->getSettings().mBounds;
+        if (!mActiveOverlay || !mActiveLayers[mActiveOverlay->getCenter()]) {
+          return;
         }
+
+        mActiveOverlay->pBounds = mActiveLayers[mActiveOverlay->getCenter()]->getSettings().mBounds;
       }));
 
   // Moves the observer to a position from which most of the current layer should be visible.
@@ -135,9 +139,9 @@ void Plugin::init() {
         if (!mActiveOverlay || !mActiveLayers[mActiveOverlay->getCenter()]) {
           return;
         }
+
         WebMapLayer::Settings layerSettings =
             mActiveLayers[mActiveOverlay->getCenter()]->getSettings();
-
         goToBounds(layerSettings.mBounds);
       }));
 
@@ -189,27 +193,33 @@ void Plugin::init() {
   mGuiManager->getGui()->registerCallback("wmsOverlays.setServer",
       "Set the current planet's WMS server to the one with the given name.",
       std::function([this](std::string&& name) {
-        if (mActiveOverlay) {
-          setWMSServer(mActiveOverlay, name);
-          mNoMovementRequestedUpdate = false;
+        if (!mActiveOverlay) {
+          return;
         }
+
+        setWMSServer(mActiveOverlay, name);
+        mNoMovementRequestedUpdate = false;
       }));
 
   mGuiManager->getGui()->registerCallback("wmsOverlays.setLayer",
       "Set the current planet's WMS layer to the one with the given name.",
       std::function([this](std::string&& name) {
-        if (mActiveOverlay && mActiveServers[mActiveOverlay->getCenter()]) {
-          setWMSLayer(mActiveOverlay, name);
-          mNoMovementRequestedUpdate = false;
+        if (!mActiveOverlay || !mActiveServers[mActiveOverlay->getCenter()]) {
+          return;
         }
+
+        setWMSLayer(mActiveOverlay, name);
+        mNoMovementRequestedUpdate = false;
       }));
 
   mGuiManager->getGui()->registerCallback("wmsOverlays.setStyle",
       "Sets the style for the currently selected layer.", std::function([this](std::string&& name) {
-        if (mActiveOverlay || mActiveLayers[mActiveOverlay->getCenter()]) {
-          setWMSStyle(mActiveOverlay, name);
-          mNoMovementRequestedUpdate = false;
+        if (!mActiveOverlay && !mActiveLayers[mActiveOverlay->getCenter()]) {
+          return;
         }
+
+        setWMSStyle(mActiveOverlay, name);
+        mNoMovementRequestedUpdate = false;
       }));
 
   mGuiManager->getGui()->registerCallback(
@@ -218,6 +228,7 @@ void Plugin::init() {
             mActiveLayers[mActiveOverlay->getCenter()]->getSettings().mTimeIntervals.empty()) {
           return;
         }
+
         mTimeControl->setTimeSpeed(0);
         mTimeControl->setTime(
             cs::utils::convert::time::toSpice(mActiveLayers[mActiveOverlay->getCenter()]
@@ -340,6 +351,7 @@ void Plugin::init() {
             mActiveLayers[mActiveOverlay->getCenter()]->getSettings().mTimeIntervals.empty()) {
           return;
         }
+
         mTimeControl->setTimeSpeed(0);
         mTimeControl->setTime(
             cs::utils::convert::time::toSpice(mActiveLayers[mActiveOverlay->getCenter()]
