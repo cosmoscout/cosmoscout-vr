@@ -150,18 +150,13 @@ std::optional<T> getAttribute(VistaXML::TiXmlElement* element, std::string attri
 }
 
 /// QueryValueAttribute does not work for strings containing spaces, so Attribute is used instead.
-template<>
+template <>
 std::optional<std::string> getAttribute<std::string>(
-    VistaXML::TiXmlElement* element, std::string attributeName);
-extern template std::optional<std::string> getAttribute<std::string>(
     VistaXML::TiXmlElement* element, std::string attributeName);
 
 /// Booleans may be given as either integers (0->false, 1->true) or strings.
-template<>
-std::optional<bool> getAttribute<bool>(
-    VistaXML::TiXmlElement* element, std::string attributeName);
-extern template std::optional<bool> getAttribute<bool>(
-    VistaXML::TiXmlElement* element, std::string attributeName);
+template <>
+std::optional<bool> getAttribute<bool>(VistaXML::TiXmlElement* element, std::string attributeName);
 
 /// Sets the given var to the value of the optional, if it is present.
 template <typename T>
