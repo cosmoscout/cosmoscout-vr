@@ -38,14 +38,14 @@ class WebMapLayer {
     bool mNoSubsets =
         false; ///< If true, no different bounds than the default ones may be requested.
     std::vector<std::string>
-                       mCrs; ///< List of coordinate reference systems for which data is available.
-    std::optional<int> mFixedWidth;            ///< Only textures with this width may be requested.
-    std::optional<int> mFixedHeight;           ///< Only textures with this height may be requested.
-    Bounds             mBounds;                ///< Default (maximum) bounds of the layer.
-    bool               mOpaque = false;        ///< Specifies whether the layer is opaque.
-    std::vector<Style> mStyles;                ///< List of styles for the layer.
-    std::vector<TimeInterval>  mTimeIntervals; ///< TimeIntervals, for which data is available.
-    std::optional<std::string> mAttribution;   ///< Attribution for the layer.
+                               mCrs; ///< List of coordinate reference systems for which data is available.
+    std::optional<int>         mFixedWidth;  ///< Only textures with this width may be requested.
+    std::optional<int>         mFixedHeight; ///< Only textures with this height may be requested.
+    Bounds                     mBounds;      ///< Default (maximum) bounds of the layer.
+    bool                       mOpaque = false; ///< Specifies whether the layer is opaque.
+    std::vector<Style>         mStyles;         ///< List of styles for the layer.
+    std::vector<TimeInterval>  mTimeIntervals;  ///< TimeIntervals, for which data is available.
+    std::optional<std::string> mAttribution;    ///< Attribution for the layer.
     std::optional<double>
         mMinScale; ///< Minimum scale denominator for which it is appropriate to generate a map.
     std::optional<double>

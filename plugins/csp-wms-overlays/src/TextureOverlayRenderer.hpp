@@ -102,7 +102,7 @@ class TextureOverlayRenderer : public IVistaOpenGLDraw {
       mDepthBufferData; ///< Store one buffer per viewport
 
   std::map<std::string, std::future<std::optional<WebMapTexture>>>
-      mTexturesBuffer; ///< Stores all textures, for which the request ist still pending.
+                                       mTexturesBuffer; ///< Stores all textures, for which the request ist still pending.
   std::map<std::string, WebMapTexture> mTextures; ///< Stores all successfully loaded textures.
   std::vector<std::string> mWrongTextures;        ///< Stores textures, for which loading failed.
 
@@ -133,7 +133,7 @@ class TextureOverlayRenderer : public IVistaOpenGLDraw {
 
   bool mShaderDirty        = true;
   int  mLightingConnection = -1;
-  int  mHDRConnection = -1;
+  int  mHDRConnection      = -1;
 };
 
 } // namespace csp::wmsoverlays

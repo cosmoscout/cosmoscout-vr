@@ -110,8 +110,11 @@
       if (!enable) {
         this._infoWindow.classList.remove('visible');
       }
-      this._infoIcon.onclick =
-          (enable ? () => { CosmoScout.callbacks.wmsOverlays.showInfo(); } : () => { return; });
+      this._infoIcon.onclick = (enable ? () => {
+        CosmoScout.callbacks.wmsOverlays.showInfo();
+      } : () => {
+        return;
+      });
     }
 
     /**
