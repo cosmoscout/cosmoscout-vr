@@ -464,13 +464,15 @@
     },
     "csp-wms-overlays": {
       "mapCache": "texture-cache",
+      "capabilityCache": "wms-capability-cache",
+      "maxTextureSize": 1024,
+      "preFetch": 1,
       "bodies": {
         "Earth": {
-          "activeWms": "Fires-Hotspots-VIIRS",
           "wms": [
             "https://maps.dwd.de/geoserver/dwd/wms",
-            "https://svs.gsfc.nasa.gov/cgi-bin/wms",
-            "https://neo.sci.gsfc.nasa.gov/wms/wms"
+            "https://neo.sci.gsfc.nasa.gov/wms/wms",
+            "https://svs.gsfc.nasa.gov/cgi-bin/wms"
           ]
         }
       }
