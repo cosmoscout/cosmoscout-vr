@@ -84,8 +84,8 @@ std::string timeToString(std::string const& format, boost::posix_time::ptime tim
 /// Match years, months, days, etc. in regex input string and calculate duration.
 void matchDuration(std::string const& input, std::regex const& re, Duration& duration);
 
-/// Determine time format and interval duration from string regex.
-void timeDuration(std::string const& isoString, Duration& duration, std::string& format);
+/// Determine interval duration from string regex.
+void timeDuration(std::string const& isoString, Duration& duration);
 
 /// Convert date from string to time.
 void convertIsoDate(std::string& date, boost::posix_time::ptime& time);

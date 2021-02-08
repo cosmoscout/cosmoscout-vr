@@ -27,7 +27,8 @@ namespace utils {
 
 std::string timeToString(std::string const& format, boost::posix_time::ptime time) {
   std::stringstream sstr;
-  auto              facet = new boost::posix_time::time_facet();
+  // Delete is called by the std::locale constructor.
+  auto facet = new boost::posix_time::time_facet();
   facet->format(format.c_str());
   sstr.imbue(std::locale(std::locale::classic(), facet));
   sstr << time;
@@ -71,9 +72,8 @@ void matchDuration(std::string const& input, std::regex const& re, Duration& dur
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void timeDuration(std::string const& isoString, Duration& duration, std::string& format) {
+void timeDuration(std::string const& isoString, Duration& duration) {
   std::regex rshort("^((?!T).)*$");
-  format = "";
 
   // Check if isoString matches rshort.
   if (std::regex_match(isoString, rshort)) // no T (Time) exist
@@ -84,17 +84,6 @@ void timeDuration(std::string const& isoString, Duration& duration, std::string&
     std::regex r("P([[:d:]]+Y)?([[:d:]]+M)?([[:d:]]+D)?T([[:d:]]+H)?([[:d:]]+M)?([[:d:]]+S|[[:d:]]+"
                  "\\.[[:d:]]+S)?");
     matchDuration(isoString, r, duration);
-  }
-
-  // Create string format based on the sample duration (year / month / day / time).
-  if (duration.mYears != 0) {
-    format = "%Y";
-  } else if (duration.mMonths != 0) {
-    format = "%Y-%m";
-  } else if (duration.mTimeDuration.total_seconds() % 86400 == 0) {
-    format = "%Y-%m-%d";
-  } else {
-    format = "%Y-%m-%dT%H:%MZ";
   }
 }
 
@@ -107,8 +96,8 @@ void convertIsoDate(std::string& date, boost::posix_time::ptime& time) {
           "Time '{}' is not given in UTC but uses an offset. The offset will be ignored!");
     }
 
-    // Remove timezone from date string
-    // For now UTC offsets are not supported and will be ignored
+    // Remove timezone from date string.
+    // For now UTC offsets are not supported and will be ignored.
     date = std::regex_replace(date, std::regex("(Z$|[+\\-][0-9]{2}:?([0-9]{2})?$)"), "");
   }
 
@@ -116,8 +105,8 @@ void convertIsoDate(std::string& date, boost::posix_time::ptime& time) {
       std::remove_if(date.begin(), date.end(), [](unsigned char x) { return std::ispunct(x); }),
       date.end());
 
-  std::string dateSubStr = date.substr(0, date.find("T"));
   std::size_t pos        = date.find("T");
+  std::string dateSubStr = date.substr(0, pos);
   std::string timeSubStr = "T";
 
   if (pos != std::string::npos) {
@@ -157,39 +146,36 @@ void parseIsoString(std::string const& isoString, std::vector<TimeInterval>& tim
     boost::posix_time::ptime start, end;
     convertIsoDate(startDate, start);
 
-    // If there is no end date, just a single timestep.
-    if (endDate == "") {
-      end         = start;
-      std::smatch result;
-      if (!std::regex_search(startDate, result, std::regex("^[[:d:]]{4}"))) {
-        // No year found, using default format
-        tmp.mFormat = "%Y-%m-%dT%H:%MZ";
-      } else if (!std::regex_search(result.suffix().first, result.suffix().second, result,
-                     std::regex("[[:d:]]{2}"))) {
-        // No month found
-        tmp.mFormat = "%Y";
-      } else if (!std::regex_search(result.suffix().first, result.suffix().second, result,
-                     std::regex("[[:d:]]{2}"))) {
-        // No day found
-        tmp.mFormat = "%Y-%m";
-      } else if (!std::regex_search(result.suffix().first, result.suffix().second, result,
-                     std::regex("T[[:d:]]{2}"))) {
-        // No hour found
-        tmp.mFormat = "%Y-%m-%d";
-      } else if (!std::regex_search(result.suffix().first, result.suffix().second, result,
-                     std::regex("[[:d:]]{2}"))) {
-        // No minute found
-        tmp.mFormat = "%Y-%m-%dT%HZ";
-      } else if (!std::regex_search(result.suffix().first, result.suffix().second, result,
-                     std::regex("[[:d:]]{2}"))) {
-        // No seconds found
-        tmp.mFormat = "%Y-%m-%dT%H:%MZ";
+    // Check format of startData
+    std::array<std::string, 7> formatParts = {"%Y", "-%m", "-%d", "T%H", ":%M", ":%S", ".%f"};
+    std::array<std::string, 7> partLengths = {"4", "2", "2", "2", "2", "2", "1,3"};
+    std::smatch                result;
+    // Initialize result to complete startDate string
+    std::regex_search(startDate, result, std::regex("^"));
+    for (int i = 0; i < formatParts.size(); i++) {
+      std::stringstream regex;
+      regex << "^[\\-:.T]?[[:d:]]{" << partLengths[i] << "}";
+      if (std::regex_search(
+              result.suffix().first, result.suffix().second, result, std::regex(regex.str()))) {
+        tmp.mFormat.append(formatParts[i]);
       } else {
-        // Date specified up to at least second precision
-        tmp.mFormat = "%Y-%m-%dT%H:%M:%SZ";
+        if (i == 0) {
+          // No year found, using default format
+          tmp.mFormat = "%Y-%m-%dT%H:%M:%S.%fZ";
+        }
+        break;
       }
+    }
+    if (cs::utils::contains(tmp.mFormat, "T")) {
+      // Time parts are present, append 'Z'
+      tmp.mFormat.append("Z");
+    }
+
+    if (endDate == "") {
+      // If there is no end date, just a single timestep.
+      end = start;
     } else {
-      timeDuration(duration, tmp.mSampleDuration, tmp.mFormat);
+      timeDuration(duration, tmp.mSampleDuration);
 
       // If end date is set to currect, select it according to the time format.
       if (endDate == "current") {
