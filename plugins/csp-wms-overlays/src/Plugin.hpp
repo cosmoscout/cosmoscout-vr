@@ -101,6 +101,7 @@ class Plugin : public cs::core::PluginBase {
   bool addLayerToSelect(std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay,
       WebMapLayer const& layer, std::string const& activeLayer, int const& depth = 0);
 
+  /// Move the observer so that the given bounds are visible.
   void goToBounds(Bounds const& bounds);
   /// Calculate the map scale for the given bounds and texture resolution. If it is outside the
   /// appropriate range specified in the layer capabilities, a warning will be displayed.

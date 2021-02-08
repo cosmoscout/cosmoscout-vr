@@ -103,6 +103,7 @@ void Plugin::init() {
   mGuiManager->addScriptToGuiFromJS("../share/resources/gui/js/csp-wms-overlays.js");
   mGuiManager->addCssToGui("css/csp-wms-overlays.css");
 
+  // Recalculate map scale if the texture resolution is changed.
   mPluginSettings->mMaxTextureSize.connect([this](int value) {
     if (!mActiveOverlay || !mActiveLayers[mActiveOverlay->getCenter()]) {
       return;
@@ -112,7 +113,6 @@ void Plugin::init() {
         mActiveOverlay->pBounds.get(), mActiveLayers[mActiveOverlay->getCenter()].value(), value);
   });
 
-  // Updates the bounds for which map data is requested.
   mGuiManager->getGui()->registerCallback(
       "wmsOverlays.updateBounds", "Updates the bounds for map requests.", std::function([this]() {
         if (!mActiveOverlay) {
@@ -122,9 +122,9 @@ void Plugin::init() {
         mActiveOverlay->requestUpdateBounds();
       }));
 
-  // Resets the bounds to the default ones for the active layer.
-  mGuiManager->getGui()->registerCallback(
-      "wmsOverlays.resetBounds", "Resets the bounds for map requests.", std::function([this]() {
+  mGuiManager->getGui()->registerCallback("wmsOverlays.resetBounds",
+      "Resets the bounds for map requests to the current layer's default bounds.",
+      std::function([this]() {
         if (!mActiveOverlay || !mActiveLayers[mActiveOverlay->getCenter()]) {
           return;
         }
@@ -132,9 +132,9 @@ void Plugin::init() {
         mActiveOverlay->pBounds = mActiveLayers[mActiveOverlay->getCenter()]->getSettings().mBounds;
       }));
 
-  // Moves the observer to a position from which most of the current layer should be visible.
   mGuiManager->getGui()->registerCallback("wmsOverlays.goToDefaultBounds",
-      "Fly the observer to the center of the default bounds of the current layer.",
+      "Fly the observer to a position from which most of the current layer's default bounds is "
+      "visible.",
       std::function([this]() {
         if (!mActiveOverlay || !mActiveLayers[mActiveOverlay->getCenter()]) {
           return;
@@ -145,9 +145,9 @@ void Plugin::init() {
         goToBounds(layerSettings.mBounds);
       }));
 
-  // Moves the observer to a position from which most of the currently set bounds should be visible.
   mGuiManager->getGui()->registerCallback("wmsOverlays.goToCurrentBounds",
-      "Fly the observer to the center of the current bounds.", std::function([this]() {
+      "Fly the observer to a position from which most of the currently active bounds is visible.",
+      std::function([this]() {
         if (!mActiveOverlay) {
           return;
         }
@@ -155,41 +155,37 @@ void Plugin::init() {
         goToBounds(mActiveOverlay->pBounds.get());
       }));
 
-  mGuiManager->getGui()->registerCallback(
-      "wmsOverlays.showInfo", "Toggles the info window.", std::function([this]() {
+  mGuiManager->getGui()->registerCallback("wmsOverlays.showInfo",
+      "Toggles a window displaying information on the current layer.", std::function([this]() {
         mGuiManager->getGui()->executeJavascript(
             "document.getElementById('wmsOverlays.infoWindow').classList.toggle('visible')");
       }));
 
-  // Set whether to interpolate textures between timesteps (does not work when pre-fetch is
-  // inactive).
   mGuiManager->getGui()->registerCallback("wmsOverlays.setEnableTimeInterpolation",
-      "Enables or disables interpolation.",
+      "Enables or disables texture interpolation between timesteps. This only works, if the "
+      "texture for the next timestep is already cached, e.g. using a prefetch > 0.",
       std::function([this](bool enable) { mPluginSettings->mEnableInterpolation = enable; }));
 
-  // Set whether to automatically update bounds.
   mGuiManager->getGui()->registerCallback("wmsOverlays.setEnableAutomaticBoundsUpdate",
-      "Enables or disables automatic bounds update.", std::function([this](bool enable) {
-        mPluginSettings->mEnableAutomaticBoundsUpdate = enable;
-      }));
+      "Enables or disables automatically updating the bounds when the observer stops moving.",
+      std::function(
+          [this](bool enable) { mPluginSettings->mEnableAutomaticBoundsUpdate = enable; }));
 
-  // Set maximume texture size for map requests.
   mGuiManager->getGui()->registerCallback("wmsOverlays.setMaxTextureSize",
-      "Set the maximum texture size.", std::function([this](double value) {
+      "Set the maximum texture size for map requests.", std::function([this](double value) {
         mPluginSettings->mMaxTextureSize = std::lround(value);
       }));
 
   mGuiManager->getGui()->registerCallback("wmsOverlays.setPrefetchCount",
-      "Set the amount of images to prefetch.", std::function([this](double value) {
-        mPluginSettings->mPrefetchCount = std::lround(value);
-      }));
+      "Set the amount of images to prefetch in both directions of time.",
+      std::function(
+          [this](double value) { mPluginSettings->mPrefetchCount = std::lround(value); }));
 
   mGuiManager->getGui()->registerCallback("wmsOverlays.setUpdateBoundsDelay",
-      "Set the delay that has to pass before an automatic bounds update.",
+      "Set the delay that has to pass before the bounds are automatically updated.",
       std::function(
           [this](double value) { mPluginSettings->mUpdateBoundsDelay = std::lround(value); }));
 
-  // Set WMS source.
   mGuiManager->getGui()->registerCallback("wmsOverlays.setServer",
       "Set the current planet's WMS server to the one with the given name.",
       std::function([this](std::string&& name) {
@@ -272,7 +268,7 @@ void Plugin::init() {
               } else {
                 // If the time is at the start of another interval, the previous timestep is the
                 // end time of the previous interval.
-                // Currently we trust that the intervals are ordered chronologically
+                // It is assumed that the intervals are ordered chronologically.
                 mTimeControl->setTime(cs::utils::convert::time::toSpice((it - 1)->mEndTime));
                 return;
               }
@@ -285,13 +281,14 @@ void Plugin::init() {
           }
         }
 
+        // Time was not part of any interval, so the last interval, that lies before the current
+        // time has to be found.
         boost::posix_time::ptime temp = time;
         for (auto const& interval : intervals) {
           if (time > interval.mEndTime) {
             temp = interval.mEndTime;
           } else if (time < interval.mStartTime) {
-            mTimeControl->setTime(cs::utils::convert::time::toSpice(temp));
-            return;
+            break;
           }
         }
         mTimeControl->setTime(cs::utils::convert::time::toSpice(temp));
@@ -325,7 +322,7 @@ void Plugin::init() {
             } else {
               // If the time is at the end of another interval, the next timestep is the
               // start time of the next interval.
-              // Currently we trust that the intervals are ordered chronologically
+              // It is assumed that the intervals are ordered chronologically.
               mTimeControl->setTime(cs::utils::convert::time::toSpice((it + 1)->mStartTime));
               return;
             }
@@ -337,6 +334,8 @@ void Plugin::init() {
           return;
         }
 
+        // Time was not part of any interval, so the first interval, that lies after the current
+        // time has to be found.
         for (auto const& interval : intervals) {
           if (time < interval.mStartTime) {
             mTimeControl->setTime(cs::utils::convert::time::toSpice(interval.mStartTime));
@@ -360,6 +359,7 @@ void Plugin::init() {
                                                   .mEndTime));
       }));
 
+  // Fill the dropdowns with information for the active body.
   mActiveBodyConnection = mSolarSystem->pActiveBody.connectAndTouch(
       [this](std::shared_ptr<cs::scene::CelestialBody> const& body) {
         if (!body) {
@@ -376,6 +376,7 @@ void Plugin::init() {
           return;
         }
 
+        // Connect to the bounds property of only the active overlay.
         if (mActiveOverlay) {
           mActiveOverlay->pBounds.disconnect(mBoundsConnection);
         }
@@ -414,6 +415,7 @@ void Plugin::init() {
         }
       });
 
+  // Check if the observer stopped moving.
   mObserverSpeedConnection = mSolarSystem->pCurrentObserverSpeed.connect([this](float speed) {
     if (speed == 0.f) {
       mNoMovementSince           = std::chrono::high_resolution_clock::now();
@@ -500,13 +502,13 @@ void Plugin::onLoad() {
   while (wmsOverlay != mWMSOverlays.end()) {
     auto settings = mPluginSettings->mBodies.find(wmsOverlay->first);
     if (settings != mPluginSettings->mBodies.end()) {
+      // If there are settings for this overlay, reconfigure it.
       if (!settings->second.mActiveServer.isDefault()) {
         setWMSServer(wmsOverlay->second, settings->second.mActiveServer.get());
       } else {
         resetWMSServer(wmsOverlay->second);
       }
 
-      // If there are settings for this simpleWMSBody, reconfigure it.
       wmsOverlay->second->configure(settings->second);
 
       ++wmsOverlay;
@@ -567,9 +569,7 @@ void Plugin::onLoad() {
 
 Plugin::Settings::Body& Plugin::getBodySettings(
     std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay) const {
-  auto name = std::find_if(mWMSOverlays.begin(), mWMSOverlays.end(),
-      [&](auto const& pair) { return pair.second == wmsOverlay; });
-  return mPluginSettings->mBodies.at(name->first);
+  return mPluginSettings->mBodies.at(wmsOverlay->getCenter());
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
