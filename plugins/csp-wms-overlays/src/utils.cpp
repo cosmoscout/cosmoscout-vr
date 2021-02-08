@@ -152,7 +152,7 @@ void parseIsoString(std::string const& isoString, std::vector<TimeInterval>& tim
     std::smatch                result;
     // Initialize result to complete startDate string
     std::regex_search(startDate, result, std::regex("^"));
-    for (int i = 0; i < formatParts.size(); i++) {
+    for (size_t i = 0; i < formatParts.size(); i++) {
       std::stringstream regex;
       regex << "^[\\-:.T]?[[:d:]]{" << partLengths[i] << "}";
       if (std::regex_search(
