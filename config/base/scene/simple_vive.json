@@ -388,6 +388,7 @@
     }
   },
   "plugins": {
+    "csp-timings": {},
     "csp-stars": {
       "celestialGridTexture": "../share/resources/textures/celestial_grid.png",
       "starFiguresTexture": "../share/resources/textures/constellation_figures.png",

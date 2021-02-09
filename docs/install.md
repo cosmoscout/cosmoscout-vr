@@ -19,10 +19,10 @@ On Linux, one can either use the provided shell script ([make.sh](../make.sh)) o
 
 Before you start, it may be necessary to install some additional system packages.
 As there are many distributions with varying default libs and available packages, giving an exhaustive list is difficult.
-Here is an exemplary list for Ubuntu 19.10 which you have to adapt to your specific distribution:
+Here is an exemplary list for Ubuntu 20.04 which you have to adapt to your specific distribution:
 
 ```bash
-sudo apt-get install git cmake build-essential xorg-dev libboost-all-dev libglu1-mesa-dev libssl-dev
+sudo apt-get install git cmake build-essential xorg-dev libboost-all-dev libglu1-mesa-dev libssl-dev libxkbcommon0
 ```
 
 ### Cloning the repository
@@ -40,14 +40,14 @@ git checkout master
 
 ### Getting the dependencies
 
-Per default, CosmoScout VR and all dependencies are built in release mode using precompiled headers and unity builds where possible.
+Per default, all dependencies are built in release mode using precompiled headers and unity builds where possible.
 This behavior can be adjusted using some environment variables:
 
 Variable | Default | Description
 ---------|---------|------------
 `COSMOSCOUT_DEBUG_BUILD` | `false` | Set to `true` to build all dependencies and CosmoScout VR in debug mode.
-`COSMOSCOUT_NO_UNITY_BUILD` | `false` | Set to `true` to disable unity builds.
-`COSMOSCOUT_NO_PCH` | `false` | Set to `true` to prevent generation of precompiled headers.
+`COSMOSCOUT_USE_UNITY_BUILD` | `true` | Set to `false` to disable unity builds.
+`COSMOSCOUT_USE_PCH` | `true` | Set to `false` to prevent generation of precompiled headers.
 
 You should set these as required before executing the scripts below.
 This step only has to be done once.
@@ -62,7 +62,18 @@ All parameters given to `make_externals.bat` will be forwarded to CMake. For exa
 
 ### Compiling CosmoScout VR
 
-This will configure and build CosmoScout VR in `cosmoscout-vr/build/linux-Release` and will install it to `cosmoscout-vr/install/linux-Release`.
+Per default, CosmoScout VR is built in release mode without precompiled headers and unity builds on linux, since it doesn't gain any time.
+This behavior can be adjusted using some environment variables:
+
+Variable | Default | Description
+---------|---------|------------
+`COSMOSCOUT_DEBUG_BUILD` | `false` | Set to `true` to build all dependencies and CosmoScout VR in debug mode.
+`COSMOSCOUT_USE_UNITY_BUILD` | `false` | Set to `true` to enable unity builds.
+`COSMOSCOUT_USE_PCH` | `false` | Set to `true` to enable generation of precompiled headers.
+
+You should set these as required before executing the scripts below.
+
+This script will configure and build CosmoScout VR in `cosmoscout-vr/build/linux-Release` and will install it to `cosmoscout-vr/install/linux-Release`.
 Again, all parameters given to `make.sh` will be forwarded to CMake:
 
 ```shell
@@ -128,14 +139,14 @@ MSVC | Visual Studio | File | Link
 
 
 Then you have to compile the dependencies.
-Per default, CosmoScout VR and all dependencies are built in release mode using precompiled headers and unity builds where possible.
+Per default, all dependencies are built in release mode using precompiled headers and unity builds where possible.
 This behavior can be adjusted using some environment variables:
 
 Variable | Default | Description
 ---------|---------|------------
 `COSMOSCOUT_DEBUG_BUILD` | `false` | Set to `true` to build all dependencies and CosmoScout VR in debug mode.
-`COSMOSCOUT_NO_UNITY_BUILD` | `false` | Set to `true` to disable unity builds.
-`COSMOSCOUT_NO_PCH` | `false` | Set to `true` to prevent generation of precompiled headers.
+`COSMOSCOUT_USE_UNITY_BUILD` | `true` | Set to `false` to disable unity builds.
+`COSMOSCOUT_USE_PCH` | `true` | Set to `false` to prevent generation of precompiled headers.
 
 You should set these as required before executing the scripts below.
 This step only has to be done once.
@@ -150,6 +161,17 @@ This will clone the repository to `cosmoscout-vr` configure and build all extern
 All parameters given to `make_externals.bat` will be forwarded to CMake. For example, you can change the CMake generator this way.
 
 ### Compiling CosmoScout VR
+
+Per default, CosmoScout VR is built in release mode using precompiled headers and unity builds.
+This behavior can be adjusted using some environment variables:
+
+Variable | Default | Description
+---------|---------|------------
+`COSMOSCOUT_DEBUG_BUILD` | `false` | Set to `true` to build all dependencies and CosmoScout VR in debug mode.
+`COSMOSCOUT_USE_UNITY_BUILD` | `true` | Set to `false` to disable unity builds.
+`COSMOSCOUT_USE_PCH` | `true` | Set to `false` to prevent generation of precompiled headers.
+
+You should set these as required before executing the scripts below.
 
 On Linux, boost is usually found automatically by CMake, on Windows you have to provide the `BOOST_ROOT` path.
 **Replace the path in the command below to match your setup!**

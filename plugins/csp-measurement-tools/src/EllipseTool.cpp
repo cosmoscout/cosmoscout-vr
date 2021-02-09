@@ -81,6 +81,11 @@ EllipseTool::EllipseTool(std::shared_ptr<cs::core::InputManager> const& pInputMa
   mShader.InitFragmentShaderFromString(SHADER_FRAG);
   mShader.Link();
 
+  mUniforms.modelViewMatrix  = mShader.GetUniformLocation("uMatModelView");
+  mUniforms.projectionMatrix = mShader.GetUniformLocation("uMatProjection");
+  mUniforms.color            = mShader.GetUniformLocation("uColor");
+  mUniforms.farClip          = mShader.GetUniformLocation("uFarClip");
+
   mVBO.Bind(GL_ARRAY_BUFFER);
   mVBO.BufferData(mNumSamples * sizeof(glm::vec3), nullptr, GL_DYNAMIC_DRAW);
   mVBO.Release();
@@ -301,13 +306,11 @@ bool EllipseTool::Do() {
 
   mShader.Bind();
   mVAO.Bind();
-  glUniformMatrix4fv(mShader.GetUniformLocation("uMatModelView"), 1, GL_FALSE, glMatMV.data());
-  glUniformMatrix4fv(mShader.GetUniformLocation("uMatProjection"), 1, GL_FALSE, glMatP.data());
+  glUniformMatrix4fv(mUniforms.modelViewMatrix, 1, GL_FALSE, glMatMV.data());
+  glUniformMatrix4fv(mUniforms.projectionMatrix, 1, GL_FALSE, glMatP.data());
 
-  mShader.SetUniform(
-      mShader.GetUniformLocation("uColor"), pColor.get().r, pColor.get().g, pColor.get().b);
-  mShader.SetUniform(
-      mShader.GetUniformLocation("uFarClip"), cs::utils::getCurrentFarClipDistance());
+  mShader.SetUniform(mUniforms.color, pColor.get().r, pColor.get().g, pColor.get().b);
+  mShader.SetUniform(mUniforms.farClip, cs::utils::getCurrentFarClipDistance());
 
   // draw the linestrip
   glDrawArrays(GL_LINE_STRIP, 0, mNumSamples);

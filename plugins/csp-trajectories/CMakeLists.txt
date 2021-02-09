@@ -29,6 +29,10 @@ target_link_libraries(csp-trajectories
     cs-core
 )
 
+if(COSMOSCOUT_USE_PRECOMPILED_HEADERS)
+  target_precompile_headers(csp-trajectories PRIVATE src/precompiled.pch)
+endif()
+
 # Add this Plugin to a "plugins" folder in your IDE.
 set_property(TARGET csp-trajectories PROPERTY FOLDER "plugins")
 
@@ -36,7 +40,7 @@ set_property(TARGET csp-trajectories PROPERTY FOLDER "plugins")
 set_source_files_properties(${RESOUCRE_FILES} PROPERTIES HEADER_FILE_ONLY TRUE)
 
 # Make directory structure available in your IDE.
-source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES 
+source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES
   ${SOURCE_FILES} ${HEADER_FILES} ${RESOUCRE_FILES}
 )
 

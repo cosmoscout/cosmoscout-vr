@@ -41,16 +41,16 @@ IF "%COSMOSCOUT_DEBUG_BUILD%"=="true" (
   set BUILD_TYPE=Release
 )
 
-rem Check if unity build is disabled with "set COSMOSCOUT_NO_UNITY_BUILD=true".
-IF "%COSMOSCOUT_NO_UNITY_BUILD%"=="true" (
+rem Check if unity build is disabled with "set COSMOSCOUT_USE_UNITY_BUILD=false".
+IF "%COSMOSCOUT_USE_UNITY_BUILD%"=="false" (
   echo Unity build is disabled!
   set UNITY_BUILD=Off
 ) else (
   set UNITY_BUILD=On
 )
 
-rem Check if precompield headers should not be used with "set COSMOSCOUT_NO_PCH=true".
-IF "%COSMOSCOUT_NO_PCH%"=="true" (
+rem Check if precompiled headers should not be used with "set COSMOSCOUT_USE_PCH=false".
+IF "%COSMOSCOUT_USE_PCH%"=="false" (
   echo Precompiled headers are disabled!
   set PRECOMPILED_HEADERS=Off
 ) else (
@@ -184,6 +184,7 @@ cmake -E make_directory "%BUILD_DIR%/libtiff" && cd "%BUILD_DIR%/libtiff"
 cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%" -DCMAKE_UNITY_BUILD=%UNITY_BUILD%^
       -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DBUILD_SHARED_LIBS=Off -DCMAKE_INSTALL_FULL_LIBDIR=lib^
       -Dzlib=Off -Dpixarlog=Off -Djpeg=Off -Dold-jpeg=Off -Djbig=Off -Dlzma=Off -Dzstd=Off^
+      -DGLUT_INCLUDE_DIR=%INSTALL_DIR%/include^
       -Dwebp=Off -Djpeg12=Off "%EXTERNALS_DIR%/libtiff" || goto :error
 
 cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS% || goto :error
@@ -311,7 +312,7 @@ cmake -E make_directory "%BUILD_DIR%/vista" && cd "%BUILD_DIR%/vista"
 
 cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%" -DVISTADEMO_ENABLED=Off^
       -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DVISTACORELIBS_USE_VIVE=On -DVISTADRIVERS_BUILD_VIVE=On^
-      -DOPENVR_ROOT_DIR="%INSTALL_DIR%"^
+      -DOPENVR_ROOT_DIR="%INSTALL_DIR%" -DGLUT_INCLUDE_DIR=%INSTALL_DIR%/include^
       -DCMAKE_UNITY_BUILD=%UNITY_BUILD% -DVISTA_USE_PRECOMPILED_HEADERS=%PRECOMPILED_HEADERS%^
       "%EXTERNALS_DIR%/vista" || goto :error
 cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS% || goto :error
@@ -379,12 +380,12 @@ echo.
 echo Downloading, building and installing cef (this may take some time) ...
 echo.
 
-set CEF_DIR=cef_binary_81.3.3+g072a5f5+chromium-81.0.4044.138_windows64_minimal
+set CEF_DIR=cef_binary_88.1.6+g4fe33a1+chromium-88.0.4324.96_windows64_minimal
 
 cmake -E make_directory "%BUILD_DIR%/cef/extracted" && cd "%BUILD_DIR%/cef"
 
 IF NOT EXIST cef.tar (
-  curl.exe http://opensource.spotify.com/cefbuilds/cef_binary_81.3.3%%2Bg072a5f5%%2Bchromium-81.0.4044.138_windows64_minimal.tar.bz2 --output cef.tar.bz2
+  curl.exe https://cef-builds.spotifycdn.com/cef_binary_88.1.6%%2Bg4fe33a1%%2Bchromium-88.0.4324.96_windows64_minimal.tar.bz2 --output cef.tar.bz2
   cd "%BUILD_DIR%/cef/extracted"
   "%BUILD_DIR%/cef/bzip2/bin/bunzip2.exe" -v ../cef.tar.bz2
 ) else (

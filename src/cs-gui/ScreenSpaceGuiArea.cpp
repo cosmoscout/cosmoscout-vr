@@ -19,11 +19,11 @@
 #include <VistaKernel/VistaSystem.h>
 #include <VistaOGLExt/VistaGLSLShader.h>
 
-namespace {
+namespace cs::gui {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const char* QUAD_VERT = R"(
+const char* const ScreenSpaceGuiArea::QUAD_VERT = R"(
 vec2 positions[4] = vec2[](
     vec2(-0.5, -0.5),
     vec2( 0.5, -0.5),
@@ -47,7 +47,7 @@ void main() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const char* QUAD_FRAG = R"(
+const char* const ScreenSpaceGuiArea::QUAD_FRAG = R"(
 in vec2 vTexCoords;
 in vec4 vPosition;
 
@@ -67,12 +67,6 @@ void main() {
   vOutColor.rgb /= vOutColor.a;
 }
 )";
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-} // namespace
-
-namespace cs::gui {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -107,6 +101,11 @@ bool ScreenSpaceGuiArea::Do() {
     mShader.InitFragmentShaderFromString(defines + QUAD_FRAG);
     mShader.Link();
 
+    mUniforms.position = mShader.GetUniformLocation("iPosition");
+    mUniforms.scale    = mShader.GetUniformLocation("iScale");
+    mUniforms.texSize  = mShader.GetUniformLocation("texSize");
+    mUniforms.texture  = mShader.GetUniformLocation("texture");
+
     mShaderDirty = false;
   }
 
@@ -130,18 +129,17 @@ bool ScreenSpaceGuiArea::Do() {
     if (guiItem->getIsEnabled() && textureRightSize) {
       float posX = guiItem->getRelPositionX() + guiItem->getRelOffsetX();
       float posY = 1 - guiItem->getRelPositionY() - guiItem->getRelOffsetY();
-      mShader.SetUniform(mShader.GetUniformLocation("iPosition"), posX, posY);
+      mShader.SetUniform(mUniforms.position, posX, posY);
 
       float scaleX = guiItem->getRelSizeX();
       float scaleY = guiItem->getRelSizeY();
-      mShader.SetUniform(mShader.GetUniformLocation("iScale"), scaleX, scaleY);
+      mShader.SetUniform(mUniforms.scale, scaleX, scaleY);
 
-      glUniform2i(mShader.GetUniformLocation("texSize"), guiItem->getTextureSizeX(),
-          guiItem->getTextureSizeY());
+      glUniform2i(mUniforms.texSize, guiItem->getTextureSizeX(), guiItem->getTextureSizeY());
 
       glActiveTexture(GL_TEXTURE0);
       glBindTexture(GL_TEXTURE_BUFFER, guiItem->getTexture());
-      mShader.SetUniform(mShader.GetUniformLocation("texture"), 0);
+      mShader.SetUniform(mUniforms.texture, 0);
 
       glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 

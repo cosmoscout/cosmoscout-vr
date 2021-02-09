@@ -1,13 +1,13 @@
 /* global IApi, CosmoScout, ColorHash */
 
 /**
- * Statistics Api
+ * Timings Api
  */
-class StatisticsApi extends IApi {
+class TimingsApi extends IApi {
   /**
    * @inheritDoc
    */
-  name = 'statistics';
+  name = 'timings';
 
   /**
    * Timing values
@@ -141,7 +141,7 @@ class StatisticsApi extends IApi {
    * @private
    */
   _insertHtml(frameRate) {
-    const container = document.getElementById('statistics');
+    const container = document.getElementById('timings');
     CosmoScout.gui.clearHtml(container);
 
     const maxEntries = Math.min(10, this._values.length);
@@ -159,7 +159,7 @@ class StatisticsApi extends IApi {
       const widthCPU = maxWidth * this._values[i].avgTimeCPU / this._maxValue;
       /* eslint-enable no-mixed-operators */
 
-      item.innerHTML += `<div class="statistics-item">
+      item.innerHTML += `<div class="timings-item">
         <div class="bar gpu" style="background-color:${this._values[i].color}; width:${
           widthGPU}px"><div class="label">gpu: ${
           (this._values[i].avgTimeGPU * 0.000001).toFixed(1)} ms</div></div>

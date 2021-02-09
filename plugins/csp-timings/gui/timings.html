@@ -3,28 +3,28 @@
 
 <head>
   <meta charset="UTF-8">
-  <title>CosmoScout Statistics</title>
+  <title>CosmoScout Frame Timings</title>
 
   <link type="text/css" rel="stylesheet" href="css/gui.css">
-  <link type="text/css" rel="stylesheet" href="css/statistics.css">
+  <link type="text/css" rel="stylesheet" href="css/timings.css">
 </head>
 
 <body>
-  <div id="statistics" class="font-ubuntu"></div>
+  <div id="timings" class="font-ubuntu"></div>
 
   <script type="text/javascript" src="third-party/js/color-hash.js"></script>
 
   <script type="text/javascript" src="js/api.js"></script>
   <script type="text/javascript" src="js/cosmoscout.js"></script>
   <script type="text/javascript" src="js/apis/gui.js"></script>
-  <script type="text/javascript" src="js/apis/statistics.js"></script>
+  <script type="text/javascript" src="js/csp-timings.js"></script>
 
   <script type="text/javascript">
     var CosmoScout = new CosmoScoutAPI();
     document.addEventListener('DOMContentLoaded', () => {
       CosmoScout.init(
         GuiApi,
-        StatisticsApi
+        TimingsApi
       );
     });
   </script>

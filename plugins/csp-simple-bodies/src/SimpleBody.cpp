@@ -100,6 +100,8 @@ in vec2 vLngLat;
 // outputs
 layout(location = 0) out vec3 oColor;
 
+const float M_PI = 3.141592653589793;
+
 vec3 SRGBtoLINEAR(vec3 srgbIn)
 {
   vec3 bLess = step(vec3(0.04045),srgbIn);
@@ -111,10 +113,10 @@ void main()
     oColor = texture(uSurfaceTexture, vTexCoords).rgb;
 
     #ifdef ENABLE_HDR
-      oColor = SRGBtoLINEAR(oColor);
+      oColor = SRGBtoLINEAR(oColor) * uSunIlluminance / M_PI;
+    #else
+      oColor = oColor * uSunIlluminance;
     #endif
-
-    oColor = oColor * uSunIlluminance;
 
     #ifdef ENABLE_LIGHTING
       vec3 normal = normalize(vNormal);
@@ -277,6 +279,15 @@ bool SimpleBody::Do() {
     mShader.InitFragmentShaderFromString(defines + SPHERE_FRAG);
     mShader.Link();
 
+    mUniforms.sunDirection      = mShader.GetUniformLocation("uSunDirection");
+    mUniforms.sunIlluminance    = mShader.GetUniformLocation("uSunIlluminance");
+    mUniforms.ambientBrightness = mShader.GetUniformLocation("uAmbientBrightness");
+    mUniforms.modelViewMatrix   = mShader.GetUniformLocation("uMatModelView");
+    mUniforms.projectionMatrix  = mShader.GetUniformLocation("uMatProjection");
+    mUniforms.surfaceTexture    = mShader.GetUniformLocation("uSurfaceTexture");
+    mUniforms.radii             = mShader.GetUniformLocation("uRadii");
+    mUniforms.farClip           = mShader.GetUniformLocation("uFarClip");
+
     mShaderDirty = false;
   }
 
@@ -290,9 +301,19 @@ bool SimpleBody::Do() {
     // If the SimpleBody is actually the sun, we have to calculate the lighting differently.
     if (mSettings->mGraphics.pEnableHDR.get()) {
       double sceneScale = 1.0 / mSolarSystem->getObserver().getAnchorScale();
-      sunIlluminance    = static_cast<float>(
+
+      // To get the luminous exitance (in lux) of the Sun, we have to divide its luminous power (in
+      // lumens) by its surface area.
+      double luminousExitance =
           mSolarSystem->pSunLuminousPower.get() /
-          (sceneScale * sceneScale * mRadii[0] * mRadii[0] * 4.0 * glm::pi<double>()));
+          (sceneScale * sceneScale * mRadii[0] * mRadii[0] * 4.0 * glm::pi<double>());
+
+      // We consider the Sun to emit light equally in all directions. So we have to divide the
+      // luminous exitance by PI to get actual luminance values.
+      double sunLuminance = luminousExitance / glm::pi<double>();
+
+      // The variable is called illuminance, for the sun it contains actually luminance values.
+      sunIlluminance = static_cast<float>(sunLuminance);
     }
 
     ambientBrightness = 1.0F;
@@ -306,10 +327,9 @@ bool SimpleBody::Do() {
     sunDirection = mSolarSystem->getSunDirection(getWorldTransform()[3]);
   }
 
-  mShader.SetUniform(mShader.GetUniformLocation("uSunDirection"), sunDirection[0], sunDirection[1],
-      sunDirection[2]);
-  mShader.SetUniform(mShader.GetUniformLocation("uSunIlluminance"), sunIlluminance);
-  mShader.SetUniform(mShader.GetUniformLocation("uAmbientBrightness"), ambientBrightness);
+  mShader.SetUniform(mUniforms.sunDirection, sunDirection[0], sunDirection[1], sunDirection[2]);
+  mShader.SetUniform(mUniforms.sunIlluminance, sunIlluminance);
+  mShader.SetUniform(mUniforms.ambientBrightness, ambientBrightness);
 
   // Get modelview and projection matrices.
   std::array<GLfloat, 16> glMatMV{};
@@ -317,15 +337,13 @@ bool SimpleBody::Do() {
   glGetFloatv(GL_MODELVIEW_MATRIX, glMatMV.data());
   glGetFloatv(GL_PROJECTION_MATRIX, glMatP.data());
   auto matMV = glm::make_mat4x4(glMatMV.data()) * glm::mat4(getWorldTransform());
-  glUniformMatrix4fv(
-      mShader.GetUniformLocation("uMatModelView"), 1, GL_FALSE, glm::value_ptr(matMV));
-  glUniformMatrix4fv(mShader.GetUniformLocation("uMatProjection"), 1, GL_FALSE, glMatP.data());
+  glUniformMatrix4fv(mUniforms.modelViewMatrix, 1, GL_FALSE, glm::value_ptr(matMV));
+  glUniformMatrix4fv(mUniforms.projectionMatrix, 1, GL_FALSE, glMatP.data());
 
-  mShader.SetUniform(mShader.GetUniformLocation("uSurfaceTexture"), 0);
-  mShader.SetUniform(mShader.GetUniformLocation("uRadii"), static_cast<float>(mRadii[0]),
-      static_cast<float>(mRadii[1]), static_cast<float>(mRadii[2]));
-  mShader.SetUniform(
-      mShader.GetUniformLocation("uFarClip"), cs::utils::getCurrentFarClipDistance());
+  mShader.SetUniform(mUniforms.surfaceTexture, 0);
+  mShader.SetUniform(mUniforms.radii, static_cast<float>(mRadii[0]), static_cast<float>(mRadii[1]),
+      static_cast<float>(mRadii[2]));
+  mShader.SetUniform(mUniforms.farClip, cs::utils::getCurrentFarClipDistance());
 
   mTexture->Bind(GL_TEXTURE0);
 

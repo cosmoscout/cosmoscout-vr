@@ -161,22 +161,20 @@ bool Trajectory::Do() {
     mShader->Bind();
 
     if (mUseLinearDepthBuffer) {
-      mShader->SetUniform(
-          mShader->GetUniformLocation("fFarClip"), utils::getCurrentFarClipDistance());
+      mShader->SetUniform(mUniforms.farClip, utils::getCurrentFarClipDistance());
     }
 
-    mShader->SetUniform(mShader->GetUniformLocation("cStartColor"), mStartColor[0], mStartColor[1],
-        mStartColor[2], mStartColor[3]);
-    mShader->SetUniform(mShader->GetUniformLocation("cEndColor"), mEndColor[0], mEndColor[1],
-        mEndColor[2], mEndColor[3]);
+    mShader->SetUniform(
+        mUniforms.startColor, mStartColor[0], mStartColor[1], mStartColor[2], mStartColor[3]);
+    mShader->SetUniform(mUniforms.endColor, mEndColor[0], mEndColor[1], mEndColor[2], mEndColor[3]);
 
     // get modelview and projection matrices
     std::array<GLfloat, 16> glMatMV{};
     std::array<GLfloat, 16> glMatP{};
     glGetFloatv(GL_MODELVIEW_MATRIX, glMatMV.data());
     glGetFloatv(GL_PROJECTION_MATRIX, glMatP.data());
-    glUniformMatrix4fv(mShader->GetUniformLocation("uMatModelView"), 1, GL_FALSE, glMatMV.data());
-    glUniformMatrix4fv(mShader->GetUniformLocation("uMatProjection"), 1, GL_FALSE, glMatP.data());
+    glUniformMatrix4fv(mUniforms.modelViewMatrix, 1, GL_FALSE, glMatMV.data());
+    glUniformMatrix4fv(mUniforms.projectionMatrix, 1, GL_FALSE, glMatP.data());
 
     glLineWidth(mWidth);
 
@@ -217,6 +215,12 @@ void Trajectory::createShader() {
   mShader->InitVertexShaderFromString(sVert);
   mShader->InitFragmentShaderFromString(sFrag);
   mShader->Link();
+
+  mUniforms.farClip          = mShader->GetUniformLocation("fFarClip");
+  mUniforms.startColor       = mShader->GetUniformLocation("cStartColor");
+  mUniforms.endColor         = mShader->GetUniformLocation("cEndColor");
+  mUniforms.modelViewMatrix  = mShader->GetUniformLocation("uMatModelView");
+  mUniforms.projectionMatrix = mShader->GetUniformLocation("uMatProjection");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
