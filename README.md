@@ -104,6 +104,7 @@ Official Plugins | Description | Screenshot
 [csp-stars](plugins/csp-stars) | Draws 3D-stars loaded from catalogues. For now Tycho, Tycho2 and the Hipparcos catalogue are supported. | ![screenshot](docs/img/csp-stars.jpg)
 [csp-trajectories](plugins/csp-trajectories) | Draws trajectories of celestial bodies and spacecrafts based on SPICE. The color, length, number of samples and the reference frame can be configured. | ![screenshot](docs/img/csp-trajectories.jpg)
 [csp-web-api](plugins/csp-web-api) | Allows to control CosmoScout VR via an HTTP protocol. It also allows capturing screenshots over HTTP. | ![screenshot](docs/img/csp-web-api.jpg)
+[csp-wms-overlays](plugins/csp-wms-overlays) | Overlays time dependent map data from Web-Map-Services (WMS) over bodies rendered by other plugins. | ![screenshot](docs/img/csp-wms-overlays.jpg)
 
 # License
 
