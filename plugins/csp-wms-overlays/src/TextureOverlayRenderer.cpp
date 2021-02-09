@@ -212,8 +212,6 @@ void TextureOverlayRenderer::updateLonLatRange() {
 
   float posX, posY, posZ;
   projectionProperties->GetProjPlaneMidpoint(posX, posY, posZ);
-  double near, far;
-  projectionProperties->GetClippingRange(near, far);
   double left, right, bottom, top;
   projectionProperties->GetProjPlaneExtents(left, right, bottom, top);
 
