@@ -140,7 +140,7 @@ std::optional<std::stringstream> WebMapTextureLoader::requestTexture(WebMapServi
       logger().debug("Received response of invalid MIME type '{}'.", contentType);
       continue;
     }
-    return out;
+    return std::move(out);
   }
   logger().warn("Could not get a valid response for WMS request '{}'!", url);
   return {};
