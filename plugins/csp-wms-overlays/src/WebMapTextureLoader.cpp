@@ -97,7 +97,6 @@ std::optional<std::stringstream> WebMapTextureLoader::requestTexture(WebMapServi
     request.setOpt(curlpp::options::WriteStream(&out));
     request.setOpt(curlpp::options::NoSignal(true));
     request.setOpt(curlpp::options::SslVerifyPeer(false));
-    request.setOpt(curlpp::options::Encoding("gzip,deflate"));
 
     try {
       request.perform();
