@@ -260,7 +260,7 @@ static const char* sFragmentShader = R"(
       float totalWeight = 0;
 
       for (int i=0; i<maxLevels; ++i) {
-        float weight = 1.0 / (i + 1.0);
+        float weight = 1.0 / pow(2, i);
         glare += texture2D_bicubic(uGlareMipMap, vTexcoords, i).rgb * weight;
         totalWeight += weight;
       }

@@ -1119,16 +1119,6 @@ void Application::registerGuiCallbacks() {
   mSettings->mGraphics.pExposureAdaptionSpeed.connectAndTouch(
       [this](float val) { mGuiManager->setSliderValue("graphics.setExposureAdaptionSpeed", val); });
 
-  // Toggles auto-glare.
-  mGuiManager->getGui()->registerCallback("graphics.setEnableAutoGlare",
-      "If enabled, the glare amount is chosen based on the current exposure.",
-      std::function([this](bool enable) { mSettings->mGraphics.pEnableAutoGlare = enable; }));
-  mSettings->mGraphics.pEnableAutoGlare.connectAndTouch([this](bool enable) {
-    // We fire callbacks (last param) to make sure that the glare-slider is properly activated /
-    // deactivated.
-    mGuiManager->setCheckboxValue("graphics.setEnableAutoGlare", enable, true);
-  });
-
   // Adjusts the amount of artificial glare in HDR mode. If auto-glare is enabled, we update the
   // slider in the user interface to show the current value.
   mGuiManager->getGui()->registerCallback("graphics.setGlareIntensity",
@@ -1642,8 +1632,8 @@ void Application::unregisterGuiCallbacks() {
   mGuiManager->getGui()->unregisterCallback("graphics.setExposureAdaptionSpeed");
   mGuiManager->getGui()->unregisterCallback("graphics.setExposureCompensation");
   mGuiManager->getGui()->unregisterCallback("graphics.setSensorDiagonal");
-  mGuiManager->getGui()->unregisterCallback("graphics.setEnableAutoGlare");
   mGuiManager->getGui()->unregisterCallback("graphics.setGlareIntensity");
+  mGuiManager->getGui()->unregisterCallback("graphics.setGlareRadius");
   mGuiManager->getGui()->unregisterCallback("graphics.setExposureRange");
   mGuiManager->getGui()->unregisterCallback("graphics.setFixedSunDirection");
   mGuiManager->getGui()->unregisterCallback("navigation.fixHorizon");

@@ -466,13 +466,9 @@ class CS_CORE_EXPORT Settings {
     /// The amount of ambient light. This should be in the range 0-1.
     utils::DefaultProperty<float> pAmbientBrightness{std::pow(0.25F, 10.F)};
 
-    /// If set to true, the amount of artifical glare will be based on the current exposure. Has no
-    /// effect if HDR rendering is disabled.
-    utils::DefaultProperty<bool> pEnableAutoGlare{true};
-
     /// The amount of artifical glare. Has no effect if HDR rendering is disabled. This should be in
     /// the range 0-1.
-    utils::DefaultProperty<float> pGlareIntensity{0.5F};
+    utils::DefaultProperty<float> pGlareIntensity{0.1F};
 
     /// This affects the spread of the glare. The actual interpretation depends on the glare mode.
     /// This should be in the range 0-1.

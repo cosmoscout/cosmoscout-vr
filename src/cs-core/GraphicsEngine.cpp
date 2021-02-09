@@ -132,16 +132,6 @@ GraphicsEngine::GraphicsEngine(std::shared_ptr<core::Settings> settings)
     if (!mSettings->mGraphics.pEnableAutoExposure.get()) {
       mToneMappingNode->setExposure(value);
     }
-
-    // Whenever the exposure changes, and if auto-glare is enabled, we change the glare intensity
-    // based on the exposure value. The auto-glare amount is based on the current exposure relative
-    // to the auto-exposure range.
-    if (mSettings->mGraphics.pEnableAutoGlare.get()) {
-      float glare = (mSettings->mGraphics.pAutoExposureRange.get()[0] - value) /
-                    (mSettings->mGraphics.pAutoExposureRange.get()[0] -
-                        mSettings->mGraphics.pAutoExposureRange.get()[1]);
-      mSettings->mGraphics.pGlareIntensity = std::clamp(glare * 0.5F, 0.001F, 1.F);
-    }
   });
 }
 
