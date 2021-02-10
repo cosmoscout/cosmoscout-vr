@@ -51,28 +51,46 @@ class Signal {
 
   /// Disconnects a previously connected function.
   void disconnect(int id) const {
-    mSlots.erase(id);
+    if (mIsIterating) {
+      mSlotsToDisconnect.push_back(id);
+    } else {
+      mSlots.erase(id);
+    }
   }
 
   /// Disconnects all previously connected functions.
   void disconnectAll() const {
-    mSlots.clear();
+    if (mIsIterating) {
+      mDisconnectAllRequested = true;
+    } else {
+      mSlots.clear();
+    }
   }
 
   /// Calls all connected functions.
   void emit(Args... p) {
+    mIsIterating = true;
+
     for (auto const& it : mSlots) {
       it.second(p...);
     }
+
+    mIsIterating = false;
+    postEmitCleanUp();
   }
 
   /// Calls all connected functions except for one.
   void emitForAllButOne(int excludedConnectionID, Args... p) {
+    mIsIterating = true;
+
     for (auto const& it : mSlots) {
       if (it.first != excludedConnectionID) {
         it.second(p...);
       }
     }
+
+    mIsIterating = false;
+    postEmitCleanUp();
   }
 
   /// Calls only one connected functions.
@@ -92,8 +110,23 @@ class Signal {
   }
 
  private:
+  void postEmitCleanUp() {
+    if (mDisconnectAllRequested) {
+      mSlots.clear();
+      mDisconnectAllRequested = false;
+    } else {
+      for (int id : mSlotsToDisconnect) {
+        mSlots.erase(id);
+      }
+    }
+  }
+
   mutable std::map<int, std::function<void(Args...)>> mSlots;
   mutable int                                         mCurrentID{0};
+
+  mutable bool             mIsIterating            = false;
+  mutable bool             mDisconnectAllRequested = false;
+  mutable std::vector<int> mSlotsToDisconnect;
 };
 
 } // namespace cs::utils
