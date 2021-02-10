@@ -118,6 +118,7 @@ class Signal {
       for (int id : mSlotsToDisconnect) {
         mSlots.erase(id);
       }
+      mSlotsToDisconnect.clear();
     }
   }
 
