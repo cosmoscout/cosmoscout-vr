@@ -129,7 +129,7 @@ VistaXML::TiXmlElement* WebMapService::getCapabilities() {
         message << "Requesting WMS capabilities for '" << mUrl << "' resulted in WMS exception: '"
                 << e.what() << "'";
         throw std::runtime_error(message.str());
-      } catch (std::exception) {
+      } catch (std::exception const&) {
         // No WMS exception occurred
       }
     }
@@ -248,7 +248,7 @@ WebMapService::getCapabilitiesFromCache() {
           // Cache is not up to date, and an exception occured
           return {};
         }
-      } catch (std::exception) {
+      } catch (std::exception const&) {
         // No exception, the request's result should be the newest capabilities
         return std::make_tuple(resString, resDoc, true);
       }
