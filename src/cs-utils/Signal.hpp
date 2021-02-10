@@ -11,7 +11,12 @@
 #include <iostream>
 #include <map>
 
+#include <cs_utils_export.hpp>
+#include <spdlog/spdlog.h>
+
 namespace cs::utils {
+
+CS_UTILS_EXPORT spdlog::logger& logger();
 
 /// A signal object may call multiple slots with the same signature. You can connect functions to
 /// the signal which will be called when the emit() method on the signal object is invoked. Any
@@ -69,6 +74,13 @@ class Signal {
 
   /// Calls all connected functions.
   void emit(Args... p) {
+    if (mIsIterating) {
+      logger().warn(
+          "Recursive invocation of emit! To avoid a stack overflow, the recursive invocation was "
+          "skipped. Some slots might not be informed about the most recent changes.");
+      return;
+    }
+
     mIsIterating = true;
 
     for (auto const& it : mSlots) {
@@ -81,6 +93,13 @@ class Signal {
 
   /// Calls all connected functions except for one.
   void emitForAllButOne(int excludedConnectionID, Args... p) {
+    if (mIsIterating) {
+      logger().warn(
+          "Recursive invocation of emit! To avoid a stack overflow, the recursive invocation was "
+          "skipped. Some slots might not be informed about the most recent changes.");
+      return;
+    }
+
     mIsIterating = true;
 
     for (auto const& it : mSlots) {
