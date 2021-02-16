@@ -51,10 +51,12 @@ TextureOverlayRenderer::TextureOverlayRenderer(std::string center,
     , mSecondWMSTexture(new VistaTexture(GL_TEXTURE_2D))
     , mSolarSystem(std::move(solarSystem))
     , mTimeControl(std::move(timeControl))
-    , mMinBounds({(float)-solarSystem->getRadii(center)[0],
-          (float)-solarSystem->getRadii(center)[1], (float)-solarSystem->getRadii(center)[2]})
-    , mMaxBounds({(float)solarSystem->getRadii(center)[0], (float)solarSystem->getRadii(center)[1],
-          (float)solarSystem->getRadii(center)[2]}) {
+    , mMinBounds({(float)-mSolarSystem->getRadii(mCenterName)[0],
+          (float)-mSolarSystem->getRadii(mCenterName)[1],
+          (float)-mSolarSystem->getRadii(mCenterName)[2]})
+    , mMaxBounds({(float)mSolarSystem->getRadii(mCenterName)[0],
+          (float)mSolarSystem->getRadii(mCenterName)[1],
+          (float)mSolarSystem->getRadii(mCenterName)[2]}) {
   // create textures ---------------------------------------------------------
   for (auto const& viewport : GetVistaSystem()->GetDisplayManager()->GetViewports()) {
     // Texture for previous renderer depth buffer
@@ -93,7 +95,7 @@ TextureOverlayRenderer::TextureOverlayRenderer(std::string center,
     }
   });
 
-  mPluginSettings->mMaxTextureSize.connect([this](int const& value) {
+  mPluginSettings->mMaxTextureSize.connect([this](int value) {
     clearTextures();
     if (mActiveWMSLayer->getSettings().mTimeIntervals.empty()) {
       WebMapTextureLoader::Request request = getRequest();

@@ -65,18 +65,18 @@ class WebMapLayer {
   WebMapLayer(VistaXML::TiXmlElement* element, Settings settings);
 
   /// Gets a human readable description of the layer.
-  std::string getTitle() const;
+  std::string const& getTitle() const;
   /// Gets the internal name of the layer used for requests.
   std::string getName() const;
   /// Gets a narrative description of the layer.
-  std::optional<std::string> getAbstract() const;
+  std::optional<std::string> const& getAbstract() const;
   /// Gets the general settings of the layer.
-  Settings getSettings() const;
+  Settings const& getSettings() const;
 
   /// Checks if map data may be requested for the layer.
   bool isRequestable() const;
   /// Gets a list of all child layers of the layer.
-  std::vector<WebMapLayer> getAllLayers() const;
+  std::vector<WebMapLayer> const& getAllLayers() const;
   /// Adds all child layers to the layers list, for which map data may be requested.
   void getRequestableLayers(std::vector<WebMapLayer>& layers) const;
 

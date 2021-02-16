@@ -35,37 +35,37 @@ WebMapService::WebMapService(std::string url, std::string cacheDir)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::string WebMapService::getUrl() const {
+std::string const& WebMapService::getUrl() const {
   return mUrl;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::string WebMapService::getTitle() const {
+std::string const& WebMapService::getTitle() const {
   return mTitle;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-WebMapService::Settings WebMapService::getSettings() const {
+WebMapService::Settings const& WebMapService::getSettings() const {
   return mSettings;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-WebMapLayer WebMapService::getRootLayer() const {
+WebMapLayer const& WebMapService::getRootLayer() const {
   return mRootLayer;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::vector<WebMapLayer> WebMapService::getLayers() const {
+std::vector<WebMapLayer> const& WebMapService::getLayers() const {
   return mRequestableLayers;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::optional<WebMapLayer> WebMapService::getLayer(std::string name) const {
+std::optional<WebMapLayer> WebMapService::getLayer(std::string const& name) const {
   std::vector<WebMapLayer> layers = getLayers();
   auto                     layer  = std::find_if(
       layers.begin(), layers.end(), [name](WebMapLayer l) { return l.getName() == name; });

@@ -113,7 +113,7 @@ WebMapLayer::WebMapLayer(VistaXML::TiXmlElement* element, Settings settings)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::string WebMapLayer::getTitle() const {
+std::string const& WebMapLayer::getTitle() const {
   return mTitle;
 }
 
@@ -125,13 +125,13 @@ std::string WebMapLayer::getName() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::optional<std::string> WebMapLayer::getAbstract() const {
+std::optional<std::string> const& WebMapLayer::getAbstract() const {
   return mAbstract;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-WebMapLayer::Settings WebMapLayer::getSettings() const {
+WebMapLayer::Settings const& WebMapLayer::getSettings() const {
   return mSettings;
 }
 
@@ -145,7 +145,7 @@ bool WebMapLayer::isRequestable() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::vector<WebMapLayer> WebMapLayer::getAllLayers() const {
+std::vector<WebMapLayer> const& WebMapLayer::getAllLayers() const {
   return mSubLayers;
 }
 

@@ -279,7 +279,7 @@ boost::posix_time::ptime addDurationToTime(
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::optional<std::optional<int>> getSizeAttribute(
-    VistaXML::TiXmlElement* element, std::string attributeName) {
+    VistaXML::TiXmlElement* element, std::string const& attributeName) {
   std::optional<int> value = getAttribute<int>(element, attributeName);
   if (value.has_value()) {
     std::optional<int> inner;
@@ -295,7 +295,7 @@ std::optional<std::optional<int>> getSizeAttribute(
 
 template <>
 std::optional<std::string> getAttribute<std::string>(
-    VistaXML::TiXmlElement* element, std::string attributeName) {
+    VistaXML::TiXmlElement* element, std::string const& attributeName) {
   const std::string* result = element->Attribute(attributeName);
   if (result != nullptr) {
     return *result;
@@ -306,7 +306,8 @@ std::optional<std::string> getAttribute<std::string>(
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <>
-std::optional<bool> getAttribute<bool>(VistaXML::TiXmlElement* element, std::string attributeName) {
+std::optional<bool> getAttribute<bool>(
+    VistaXML::TiXmlElement* element, std::string const& attributeName) {
   std::optional<int> value = getAttribute<int>(element, attributeName);
   if (value.has_value()) {
     return value.value() == 1;

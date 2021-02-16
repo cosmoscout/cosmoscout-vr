@@ -92,7 +92,7 @@ WebMapException::Code WebMapException::getCode() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::string WebMapException::getText() const {
+std::string const& WebMapException::getText() const {
   return mText;
 }
 
@@ -141,7 +141,7 @@ WebMapExceptionReport::WebMapExceptionReport(std::string const& xml)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::vector<WebMapException> WebMapExceptionReport::getExceptions() const {
+std::vector<WebMapException> const& WebMapExceptionReport::getExceptions() const {
   return mExceptions;
 }
 

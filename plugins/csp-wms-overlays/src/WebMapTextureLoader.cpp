@@ -42,7 +42,7 @@ WebMapTextureLoader::~WebMapTextureLoader() {
 
 std::future<std::optional<WebMapTexture>> WebMapTextureLoader::loadTextureAsync(
     WebMapService const& wms, WebMapLayer const& layer, Request const& request,
-    std::string const& mapCache, bool const& saveToCache) {
+    std::string const& mapCache, bool saveToCache) {
   return mThreadPool.enqueue(
       [=]() { return loadTexture(wms, layer, request, mapCache, saveToCache); });
 }
@@ -51,7 +51,7 @@ std::future<std::optional<WebMapTexture>> WebMapTextureLoader::loadTextureAsync(
 
 std::optional<WebMapTexture> WebMapTextureLoader::loadTexture(WebMapService const& wms,
     WebMapLayer const& layer, Request const& request, std::string const& mapCache,
-    bool const& saveToCache) {
+    bool saveToCache) {
   boost::filesystem::path cachePath = getCachePath(wms, layer, request, mapCache);
   if (saveToCache) {
     // The file is already there, we can return it

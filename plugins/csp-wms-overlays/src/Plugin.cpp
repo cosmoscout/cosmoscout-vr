@@ -775,7 +775,7 @@ bool Plugin::isActiveOverlay(std::string const& center) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool Plugin::addLayerToSelect(std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay,
-    WebMapLayer const& layer, std::string const& activeLayer, int const& depth) {
+    WebMapLayer const& layer, std::string const& activeLayer, int depth) {
   bool active = layer.getName() == activeLayer;
 
   if (isActiveOverlay(wmsOverlay)) {
@@ -825,7 +825,7 @@ void Plugin::goToBounds(Bounds const& bounds) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Plugin::checkScale(Bounds const& bounds, WebMapLayer const& layer, int const& maxTextureSize) {
+void Plugin::checkScale(Bounds const& bounds, WebMapLayer const& layer, int maxTextureSize) {
   if (!mActiveOverlay) {
     return;
   }

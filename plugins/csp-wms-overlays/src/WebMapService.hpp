@@ -48,7 +48,7 @@ class WebMapService {
   std::vector<WebMapLayer> const& getLayers() const;
   /// Gets the layer with the given name, if one exists.
   /// Returns an empty optional otherwise.
-  std::optional<WebMapLayer> const& getLayer(std::string const& name) const;
+  std::optional<WebMapLayer> getLayer(std::string const& name) const;
 
   /// Checks if the service can return maps of the given MIME type.
   bool isFormatSupported(std::string format) const;
