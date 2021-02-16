@@ -38,11 +38,13 @@ class Plugin : public cs::core::PluginBase {
     cs::utils::DefaultProperty<bool> mEnableAutomaticBoundsUpdate{false};
 
     /// Path to the map cache folder, can be absolute or relative to the cosmoscout executable.
-    cs::utils::DefaultProperty<std::string> mMapCache{"texture-cache"};
+    cs::utils::DefaultProperty<std::string> mMapCache{
+        "../share/cache/csp-wms-overlays/texture-cache"};
 
     /// Path to the wms capability cache folder, can be absolute or relative to the cosmoscout
     /// executable.
-    cs::utils::DefaultProperty<std::string> mCapabilityCache{"wms-capability-cache"};
+    cs::utils::DefaultProperty<std::string> mCapabilityCache{
+        "../share/cache/csp-wms-overlays/wms-capability-cache"};
 
     /// The amount of textures that gets pre-fetched in every time direction.
     cs::utils::DefaultProperty<int> mPrefetchCount{0};
