@@ -278,19 +278,7 @@ static const char* sFragmentShader = R"(
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 ToneMappingNode::ToneMappingNode(std::shared_ptr<HDRBuffer> hdrBuffer)
-    : mHDRBuffer(std::move(hdrBuffer))
-    , mShader(new VistaGLSLShader()) {
-
-  std::string defines = "#version 430\n";
-  defines += "#define NUM_MULTISAMPLES " + std::to_string(mHDRBuffer->getMultiSamples()) + "\n";
-
-  mShader->InitVertexShaderFromString(defines + sVertexShader);
-  mShader->InitFragmentShaderFromString(defines + sFragmentShader);
-  mShader->Link();
-
-  mUniforms.exposure       = mShader->GetUniformLocation("uExposure");
-  mUniforms.glareIntensity = mShader->GetUniformLocation("uGlareIntensity");
-  mUniforms.glareRadius    = mShader->GetUniformLocation("uGlareRadius");
+    : mHDRBuffer(std::move(hdrBuffer)) {
 
   // Connect to the VSE_POSTGRAPHICS event. When this event is emitted, we will collect all
   // luminance values of the connected cluster nodes.
@@ -413,6 +401,21 @@ float ToneMappingNode::getGlareRadius() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void ToneMappingNode::setGlareMode(HDRBuffer::GlareMode value) {
+  if (mGlareMode != value) {
+    mShaderDirty = true;
+    mGlareMode   = value;
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+HDRBuffer::GlareMode ToneMappingNode::getGlareMode() const {
+  return mGlareMode;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 float ToneMappingNode::getLastAverageLuminance() const {
   if (mGlobalLuminanceData.mPixelCount > 0 && mGlobalLuminanceData.mTotalLuminance > 0) {
     return mGlobalLuminanceData.mTotalLuminance /
@@ -433,6 +436,31 @@ float ToneMappingNode::getLastMaximumLuminance() const {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool ToneMappingNode::ToneMappingNode::Do() {
+
+  if (mShaderDirty) {
+
+    std::string defines = "#version 430\n";
+    defines += "#define NUM_MULTISAMPLES " + std::to_string(mHDRBuffer->getMultiSamples()) + "\n";
+
+    if (mGlareMode == HDRBuffer::GlareMode::eGauss) {
+      defines += "#define GLOWMODE_GAUSS\n";
+    } else if (mGlareMode == HDRBuffer::GlareMode::eEllipticalGauss) {
+      defines += "#define GLOWMODE_ELLIPTICAL_GAUSS\n";
+    } else if (mGlareMode == HDRBuffer::GlareMode::eAsymmetricGauss) {
+      defines += "#define GLOWMODE_ASYMMETRIC_GAUSS\n";
+    }
+
+    mShader = std::make_unique<VistaGLSLShader>();
+    mShader->InitVertexShaderFromString(defines + sVertexShader);
+    mShader->InitFragmentShaderFromString(defines + sFragmentShader);
+    mShader->Link();
+
+    mUniforms.exposure       = mShader->GetUniformLocation("uExposure");
+    mUniforms.glareIntensity = mShader->GetUniformLocation("uGlareIntensity");
+    mUniforms.glareRadius    = mShader->GetUniformLocation("uGlareRadius");
+
+    mShaderDirty = false;
+  }
 
   bool doCalculateExposure =
       GetVistaSystem()->GetDisplayManager()->GetCurrentRenderInfo()->m_eEyeRenderMode !=

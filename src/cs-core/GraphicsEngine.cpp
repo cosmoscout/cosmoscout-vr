@@ -106,8 +106,10 @@ GraphicsEngine::GraphicsEngine(std::shared_ptr<core::Settings> settings)
   mSettings->mGraphics.pGlareRadius.connectAndTouch(
       [this](float val) { mToneMappingNode->setGlareRadius(val); });
 
-  mSettings->mGraphics.pGlareMode.connectAndTouch(
-      [this](graphics::HDRBuffer::GlareMode mode) { mHDRBuffer->setGlareMode(mode); });
+  mSettings->mGraphics.pGlareMode.connectAndTouch([this](graphics::HDRBuffer::GlareMode mode) {
+    mHDRBuffer->setGlareMode(mode);
+    mToneMappingNode->setGlareMode(mode);
+  });
 
   mSettings->mGraphics.pExposureCompensation.connectAndTouch(
       [this](float val) { mToneMappingNode->setExposureCompensation(val); });

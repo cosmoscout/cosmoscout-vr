@@ -74,6 +74,10 @@ class CS_GRAPHICS_EXPORT ToneMappingNode : public IVistaOpenGLDraw, public Vista
   void  setGlareIntensity(float intensity);
   float getGlareIntensity() const;
 
+  /// Specifies how the glare was computed.
+  void                 setGlareMode(HDRBuffer::GlareMode value);
+  HDRBuffer::GlareMode getGlareMode() const;
+
   /// Controls the spread of artificial glare. Should be in the range [0-1]. If set to zero, the
   /// GlareMipMap will not be updated which will increase performance.
   void  setGlareRadius(float radius);
@@ -91,17 +95,19 @@ class CS_GRAPHICS_EXPORT ToneMappingNode : public IVistaOpenGLDraw, public Vista
  private:
   std::shared_ptr<HDRBuffer> mHDRBuffer;
 
-  float mExposureCompensation  = 0.F;
-  bool  mEnableAutoExposure    = false;
-  float mExposure              = 0.F;
-  float mAutoExposure          = 0.F;
-  float mMinAutoExposure       = -15.F;
-  float mMaxAutoExposure       = 15.F;
-  float mExposureAdaptionSpeed = 1.F;
-  float mGlareIntensity        = 0.F;
-  float mGlareRadius           = 0.F;
+  bool                 mShaderDirty           = true;
+  float                mExposureCompensation  = 0.F;
+  bool                 mEnableAutoExposure    = false;
+  float                mExposure              = 0.F;
+  float                mAutoExposure          = 0.F;
+  float                mMinAutoExposure       = -15.F;
+  float                mMaxAutoExposure       = 15.F;
+  float                mExposureAdaptionSpeed = 1.F;
+  float                mGlareIntensity        = 0.F;
+  float                mGlareRadius           = 0.F;
+  HDRBuffer::GlareMode mGlareMode             = HDRBuffer::GlareMode::eGauss;
 
-  VistaGLSLShader* mShader;
+  std::unique_ptr<VistaGLSLShader> mShader;
 
   struct LuminanceData {
     int   mPixelCount       = 0;
