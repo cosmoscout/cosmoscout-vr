@@ -155,12 +155,6 @@ void Plugin::init() {
         goToBounds(mActiveOverlay->pBounds.get());
       }));
 
-  mGuiManager->getGui()->registerCallback("wmsOverlays.showInfo",
-      "Toggles a window displaying information on the current layer.", std::function([this]() {
-        mGuiManager->getGui()->executeJavascript(
-            "document.getElementById('wmsOverlays.infoWindow').classList.toggle('visible')");
-      }));
-
   mGuiManager->getGui()->registerCallback("wmsOverlays.setEnableTimeInterpolation",
       "Enables or disables texture interpolation between timesteps. This only works, if the "
       "texture for the next timestep is already cached, e.g. using a prefetch > 0.",
@@ -450,8 +444,6 @@ void Plugin::deInit() {
   mGuiManager->getGui()->unregisterCallback("wmsOverlays.setMaxTextureSize");
   mGuiManager->getGui()->unregisterCallback("wmsOverlays.setPrefetchCount");
   mGuiManager->getGui()->unregisterCallback("wmsOverlays.setUpdateBoundsDelay");
-
-  mGuiManager->getGui()->unregisterCallback("wmsOverlays.showInfo");
 
   mGuiManager->getGui()->unregisterCallback("wmsOverlays.setServer");
   mGuiManager->getGui()->unregisterCallback("wmsOverlays.setLayer");

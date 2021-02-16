@@ -1,15 +1,15 @@
-#wmsOverlays\.legendContainer {
+#wmsOverlays-legendContainer {
     background-color: #fff;
     border: 2px solid var(--cs-color-primary);
     border-radius: var(--cs-border-radius-small);
 }
 
-#wmsOverlays\.legend {
+#wmsOverlays-legend {
     position: relative;
     max-width: 100%;
 }
 
-#wmsOverlays\.legend:after {
+#wmsOverlays-legend:after {
     display: block;
     position: absolute;
     top: 0;
@@ -22,11 +22,11 @@
     content: attr(alt);
 }
 
-#wmsOverlays\.infoWindow .window-wrapper {
+#wmsOverlays-infoWindow .window-wrapper {
     width: 800px;
     min-width: 600px;
 }
 
-#wmsOverlays\.infoWindow\.abstract {
+#wmsOverlays-infoWindow-abstract {
     text-align: justify;
 }

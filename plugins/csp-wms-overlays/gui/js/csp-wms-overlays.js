@@ -14,15 +14,15 @@
      * @inheritDoc
      */
     init() {
-      this._infoWindow = CosmoScout.gui.loadTemplateContent("wms-info");
+      this._infoWindow = CosmoScout.gui.loadTemplateContent("wmsOverlays-infoWindow");
       document.getElementById("cosmoscout").appendChild(this._infoWindow);
 
       this._layerSelect = document.querySelector(`[data-callback="wmsOverlays.setLayer"]`);
 
-      this._defaultBoundsLabel = document.getElementById("wmsOverlays.defaultBounds");
+      this._defaultBoundsLabel = document.getElementById("wmsOverlays-defaultBounds");
       this._defaultBoundsGoTo  = document.querySelector(
           '[onclick="CosmoScout.callbacks.wmsOverlays.goToDefaultBounds()"]');
-      this._currentBoundsLabel = document.getElementById("wmsOverlays.currentBounds");
+      this._currentBoundsLabel = document.getElementById("wmsOverlays-currentBounds");
       this._currentBoundsGoTo  = document.querySelector(
           '[onclick="CosmoScout.callbacks.wmsOverlays.goToCurrentBounds()"]');
       this._currentBoundsUpdate =
@@ -39,13 +39,15 @@
       this._lastTime =
           document.querySelector('[onclick="CosmoScout.callbacks.wmsOverlays.goToLastTime()"]');
 
-      this._infoIcon        = document.getElementById("wmsOverlays.infoIcon");
-      this._infoTitle       = document.getElementById("wmsOverlays.infoWindow.title");
-      this._infoAbstract    = document.getElementById("wmsOverlays.infoWindow.abstract");
-      this._infoAttribution = document.getElementById("wmsOverlays.infoWindow.attribution");
+      this._legend = document.getElementById("wmsOverlays-legend");
 
-      this._scaleLabel   = document.getElementById("wmsOverlays.scale");
-      this._scaleWarning = document.getElementById("wmsOverlays.scaleWarning");
+      this._infoIcon        = document.getElementById("wmsOverlays-infoIcon");
+      this._infoTitle       = document.getElementById("wmsOverlays-infoWindow-title");
+      this._infoAbstract    = document.getElementById("wmsOverlays-infoWindow-abstract");
+      this._infoAttribution = document.getElementById("wmsOverlays-infoWindow-attribution");
+
+      this._scaleLabel   = document.getElementById("wmsOverlays-scale");
+      this._scaleWarning = document.getElementById("wmsOverlays-scaleWarning");
 
       this.showScaleWarning(false);
 
@@ -110,11 +112,8 @@
       if (!enable) {
         this._infoWindow.classList.remove('visible');
       }
-      this._infoIcon.onclick = (enable ? () => {
-        CosmoScout.callbacks.wmsOverlays.showInfo();
-      } : () => {
-        return;
-      });
+      this._infoIcon.onclick =
+          (enable ? () => {this._infoWindow.classList.toggle('visible')} : () => { return; });
     }
 
     /**
@@ -166,7 +165,7 @@
      * @param {string} url The style's legend
      */
     setLegendURL(url) {
-      document.getElementById("wmsOverlays.legend").src = url;
+      this._legend.src = url;
     }
 
     /**
