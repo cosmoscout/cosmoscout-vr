@@ -20,27 +20,35 @@ class WebMapException : public std::exception {
   /// Possible exception codes.
   /// Descriptions are taken from Table E.1 of the WMS 1.3.0 Implementation Specification.
   enum class Code {
-    eNone,          ///< No code could be determined.
-    eInvalidFormat, ///< Request contains a Format not offered by the server.
-    eInvalidCRS, ///< Request contains a CRS not offered by the server for one or more of the Layers
-                 ///< in the request.
-    eLayerNotDefined,       ///< GetMap request is for a Layer not offered by the server, or
-                            ///< GetFeatureInfo request is for a Layer not shown on the map.
-    eStyleNotDefined,       ///< Request is for a Layer in a Style not offered by the server.
-    eLayerNotQueryable,     ///< GetFeatureInfo request is applied to a Layer which is not declared
-                            ///< queryable.
-    eInvalidPoint,          ///< GetFeatureInfo request contains invalid I or J value.
-    eCurrentUpdateSequence, ///< Value of (optional) UpdateSequence parameter in GetCapabilities
-                            ///< request is equal to current value of service metadata update
-                            ///< sequence number.
-    eInvalidUpdateSequence, ///< Value of (optional) UpdateSequence parameter in GetCapabilities
-                            ///< request is greater than current value of service metadata update
-                            ///< sequence number.
-    eMissingDimensionValue, ///< Request does not include a sample dimension value, and the server
-                            ///< did not declare a default value for that dimension.
-    eInvalidDimensionValue, ///< Request contains an invalid sample dimension value.
-    eOperationNotSupported, ///< Request is for an optional operation that is not supported by the
-                            ///< server.
+    /// No code could be determined.
+    eNone,
+    /// Request contains a Format not offered by the server.
+    eInvalidFormat,
+    /// Request contains a CRS not offered by the server for one or more of the Layers in the
+    /// request.
+    eInvalidCRS,
+    /// GetMap request is for a Layer not offered by the server, or GetFeatureInfo request is for a
+    /// Layer not shown on the map.
+    eLayerNotDefined,
+    /// Request is for a Layer in a Style not offered by the server.
+    eStyleNotDefined,
+    /// GetFeatureInfo request is applied to a Layer which is not declared queryable.
+    eLayerNotQueryable,
+    /// GetFeatureInfo request contains invalid I or J value.
+    eInvalidPoint,
+    /// Value of (optional) UpdateSequence parameter in GetCapabilities request is equal to current
+    /// value of service metadata update sequence number.
+    eCurrentUpdateSequence,
+    /// Value of (optional) UpdateSequence parameter in GetCapabilities request is greater than
+    /// current value of service metadata update sequence number.
+    eInvalidUpdateSequence,
+    /// Request does not include a sample dimension value, and the server did not declare a default
+    /// value for that dimension.
+    eMissingDimensionValue,
+    /// Request contains an invalid sample dimension value.
+    eInvalidDimensionValue,
+    /// Request is for an optional operation that is not supported by the server.
+    eOperationNotSupported,
   };
 
   WebMapException(VistaXML::TiXmlElement* element);

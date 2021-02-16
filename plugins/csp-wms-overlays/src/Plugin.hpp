@@ -57,18 +57,20 @@ class Plugin : public cs::core::PluginBase {
 
     /// The startup settings for a planet.
     struct Body {
-      cs::utils::DefaultProperty<std::string> mActiveServer{
-          "None"}; ///< The name of the currently active WMS server.
-      cs::utils::DefaultProperty<std::string> mActiveLayer{
-          "None"}; ///< The name of the currently active WMS layer.
-      cs::utils::DefaultProperty<std::string> mActiveStyle{
-          ""}; ///< The name of the style for the currently active WMS layer.
-      cs::utils::DefaultProperty<Bounds> mActiveBounds{
-          {-180., 180., -90., 90.}}; ///< The bounds for the currently active WMS layer.
-      std::vector<std::string> mWms; ///<	URLs of WMS servers.
+      /// The name of the currently active WMS server.
+      cs::utils::DefaultProperty<std::string> mActiveServer{"None"};
+      /// The name of the currently active WMS layer.
+      cs::utils::DefaultProperty<std::string> mActiveLayer{"None"};
+      /// The name of the style for the currently active WMS layer.
+      cs::utils::DefaultProperty<std::string> mActiveStyle{""};
+      /// The bounds for the currently active WMS layer.
+      cs::utils::DefaultProperty<Bounds> mActiveBounds{{-180., 180., -90., 90.}};
+      ///	URLs of WMS servers.
+      std::vector<std::string> mWms;
     };
 
-    std::map<std::string, Body> mBodies; ///< A list of bodies with their anchor names.
+    /// A list of bodies with their anchor names.
+    std::map<std::string, Body> mBodies;
   };
 
   void init() override;
@@ -112,16 +114,18 @@ class Plugin : public cs::core::PluginBase {
   std::map<std::string, std::vector<WebMapService>>              mWms;
 
   std::shared_ptr<TextureOverlayRenderer> mActiveOverlay;
-  std::map<std::string, std::optional<WebMapService>>
-      mActiveServers; ///< The currently active WebMapService for each center name.
-  std::map<std::string, std::optional<WebMapLayer>>
-      mActiveLayers; ///< The currently active WebMapLayer for each center name.
+  /// The currently active WebMapService for each center name.
+  std::map<std::string, std::optional<WebMapService>> mActiveServers;
+  /// The currently active WebMapLayer for each center name.
+  std::map<std::string, std::optional<WebMapLayer>> mActiveLayers;
 
-  bool mNoMovement;                ///< True when the observer is not moving.
-  bool mNoMovementRequestedUpdate; ///< True when the active overlay was requested to update its
-                                   ///< bounds because the observer is not moving.
-  std::chrono::time_point<std::chrono::high_resolution_clock>
-      mNoMovementSince; ///< Time at which the observer stopped moving.
+  /// True when the observer is not moving.
+  bool mNoMovement;
+  /// True when the active overlay was requested to update its bounds
+  /// because the observer is not moving.
+  bool mNoMovementRequestedUpdate;
+  /// Time at which the observer stopped moving.
+  std::chrono::time_point<std::chrono::high_resolution_clock> mNoMovementSince;
 
   int mActiveBodyConnection    = -1;
   int mObserverSpeedConnection = -1;

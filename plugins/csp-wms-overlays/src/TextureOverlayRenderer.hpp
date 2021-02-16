@@ -98,44 +98,64 @@ class TextureOverlayRenderer : public IVistaOpenGLDraw {
 
   std::unique_ptr<VistaOpenGLNode> mGLNode;
 
-  VistaGLSLShader mShader; ///< Vista GLSL shader object used for rendering
+  /// Vista GLSL shader object used for rendering
+  VistaGLSLShader mShader;
 
-  static const std::string SURFACE_GEOM; ///< Code for the geometry shader
-  static const std::string SURFACE_VERT; ///< Code for the vertex shader
-  static const std::string SURFACE_FRAG; ///< Code for the fragment shader
+  /// Code for the geometry shader
+  static const std::string SURFACE_GEOM;
+  /// Code for the vertex shader
+  static const std::string SURFACE_VERT;
+  /// Code for the fragment shader
+  static const std::string SURFACE_FRAG;
 
-  std::unordered_map<VistaViewport*, VistaTexture*>
-      mDepthBufferData; ///< Store one buffer per viewport
+  /// Store one buffer per viewport
+  std::unordered_map<VistaViewport*, VistaTexture*> mDepthBufferData;
 
-  std::map<std::string, std::future<std::optional<WebMapTexture>>>
-                                       mTexturesBuffer; ///< Stores all textures, for which the request ist still pending.
-  std::map<std::string, WebMapTexture> mTextures; ///< Stores all successfully loaded textures.
-  std::vector<std::string> mWrongTextures;        ///< Stores textures, for which loading failed.
+  /// Stores all textures, for which the request ist still pending.
+  std::map<std::string, std::future<std::optional<WebMapTexture>>> mTexturesBuffer;
+  /// Stores all successfully loaded textures.
+  std::map<std::string, WebMapTexture> mTextures;
+  /// Stores textures, for which loading failed.
+  std::vector<std::string> mWrongTextures;
 
-  std::string mStyle; ///< Name of the currently active style.
+  /// Name of the currently active style.
+  std::string mStyle;
 
-  bool mUpdateLonLatRange = false; ///< Flag for updating the map bounds in the next update.
+  /// Flag for updating the map bounds in the next update.
+  bool mUpdateLonLatRange = false;
 
-  std::optional<WebMapService> mActiveWMS;      ///< The active WMS.
-  std::optional<WebMapLayer>   mActiveWMSLayer; ///< The active WMS layer.
+  /// The active WMS.
+  std::optional<WebMapService> mActiveWMS;
+  /// The active WMS layer.
+  std::optional<WebMapLayer> mActiveWMSLayer;
 
-  std::shared_ptr<VistaTexture> mWMSTexture;       ///< The WMS texture.
-  std::shared_ptr<VistaTexture> mSecondWMSTexture; ///< Second WMS texture for time interpolation.
-  bool                          mWMSTextureUsed;   ///< Whether to use the WMS texture.
-  bool        mSecondWMSTextureUsed = false;       ///< Whether to use the second WMS texture.
-  std::string mCurrentTexture;                     ///< Timestep of the current WMS texture.
-  std::string mCurrentSecondTexture;               ///< Timestep of the second WMS texture.
-  float       mFade;                               ///< Fading value between WMS textures.
-  TimeInterval
-      mCurrentInterval; ///< Used to save the current time format style and sample duration;
+  /// The WMS texture.
+  std::shared_ptr<VistaTexture> mWMSTexture;
+  /// Second WMS texture for time interpolation.
+  std::shared_ptr<VistaTexture> mSecondWMSTexture;
+  /// Whether to use the WMS texture.
+  bool mWMSTextureUsed;
+  /// Whether to use the second WMS texture.
+  bool mSecondWMSTextureUsed = false;
+  /// Timestep of the current WMS texture.
+  std::string mCurrentTexture;
+  /// Timestep of the second WMS texture.
+  std::string mCurrentSecondTexture;
+  /// Fading value between WMS textures.
+  float mFade;
+  /// Used to save the current time format style and sample duration;
+  TimeInterval mCurrentInterval;
 
-  WebMapTextureLoader mTextureLoader; ///< Loader used to request map textures.
+  /// Loader used to request map textures.
+  WebMapTextureLoader mTextureLoader;
 
   std::shared_ptr<cs::core::SolarSystem> mSolarSystem;
   std::shared_ptr<cs::core::TimeControl> mTimeControl;
 
-  std::array<float, 3> mMinBounds; ///< Lower Corner of the bounding volume for the planet.
-  std::array<float, 3> mMaxBounds; ///< Upper Corner of the bounding volume for the planet.
+  /// Lower Corner of the bounding volume for the planet.
+  std::array<float, 3> mMinBounds;
+  /// Upper Corner of the bounding volume for the planet.
+  std::array<float, 3> mMaxBounds;
 
   bool mShaderDirty        = true;
   int  mLightingConnection = -1;

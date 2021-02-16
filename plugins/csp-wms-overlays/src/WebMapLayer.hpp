@@ -23,9 +23,12 @@ class WebMapLayer {
  public:
   /// Struct for storing information on a single style for a WMS layer.
   struct Style {
-    const std::string                mName;      ///< Internal name of the style for requests.
-    const std::string                mTitle;     ///< Human readable description of the style.
-    const std::optional<std::string> mLegendUrl; ///< URL at which a legend image may be found.
+    /// Internal name of the style for requests.
+    const std::string mName;
+    /// Human readable description of the style.
+    const std::string mTitle;
+    /// URL at which a legend image may be found.
+    const std::optional<std::string> mLegendUrl;
 
     Style(VistaXML::TiXmlElement* element);
 
@@ -35,21 +38,28 @@ class WebMapLayer {
 
   /// Struct for storing general layer settings.
   struct Settings {
-    bool mNoSubsets =
-        false; ///< If true, no different bounds than the default ones may be requested.
-    std::vector<std::string>
-                               mCrs; ///< List of coordinate reference systems for which data is available.
-    std::optional<int>         mFixedWidth;  ///< Only textures with this width may be requested.
-    std::optional<int>         mFixedHeight; ///< Only textures with this height may be requested.
-    Bounds                     mBounds;      ///< Default (maximum) bounds of the layer.
-    bool                       mOpaque = false; ///< Specifies whether the layer is opaque.
-    std::vector<Style>         mStyles;         ///< List of styles for the layer.
-    std::vector<TimeInterval>  mTimeIntervals;  ///< TimeIntervals, for which data is available.
-    std::optional<std::string> mAttribution;    ///< Attribution for the layer.
-    std::optional<double>
-        mMinScale; ///< Minimum scale denominator for which it is appropriate to generate a map.
-    std::optional<double>
-        mMaxScale; ///< Maximum scale denominator for which it is appropriate to generate a map.
+    /// If true, no different bounds than the default ones may be requested.
+    bool mNoSubsets = false;
+    /// List of coordinate reference systems for which data is available.
+    std::vector<std::string> mCrs;
+    /// Only textures with this width may be requested.
+    std::optional<int> mFixedWidth;
+    /// Only textures with this height may be requested.
+    std::optional<int> mFixedHeight;
+    /// Default (maximum) bounds of the layer.
+    Bounds mBounds;
+    /// Specifies whether the layer is opaque.
+    bool mOpaque = false;
+    /// List of styles for the layer.
+    std::vector<Style> mStyles;
+    /// TimeIntervals, for which data is available.
+    std::vector<TimeInterval> mTimeIntervals;
+    /// Attribution for the layer.
+    std::optional<std::string> mAttribution;
+    /// Minimum scale denominator for which it is appropriate to generate a map.
+    std::optional<double> mMinScale;
+    /// Maximum scale denominator for which it is appropriate to generate a map.
+    std::optional<double> mMaxScale;
   };
 
   WebMapLayer(VistaXML::TiXmlElement* element, Settings settings);
