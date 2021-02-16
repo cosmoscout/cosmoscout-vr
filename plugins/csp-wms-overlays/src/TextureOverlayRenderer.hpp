@@ -1,5 +1,11 @@
-#ifndef TEXTURE_OVERLAY_RENDERER
-#define TEXTURE_OVERLAY_RENDERER
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//                               This file is part of CosmoScout VR                               //
+//      and may be used under the terms of the MIT license. See the LICENSE file for details.     //
+//                        Copyright: (c) 2020 German Aerospace Center (DLR)                       //
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#ifndef CSP_WMS_OVERLAYS_TEXTURE_OVERLAY_RENDERER_HPP
+#define CSP_WMS_OVERLAYS_TEXTURE_OVERLAY_RENDERER_HPP
 
 #include "Plugin.hpp"
 #include "WebMapLayer.hpp"
@@ -42,10 +48,10 @@ class TextureOverlayRenderer : public IVistaOpenGLDraw {
   virtual ~TextureOverlayRenderer();
 
   /// Returns the SPICE name of the body to which this renderer is assigned.
-  std::string getCenter() const;
+  std::string const& getCenter() const;
 
   /// Configures the internal renderer according to the given values.
-  void configure(Plugin::Settings::Body const& settings);
+  void configure(Plugin::Settings::Body settings);
 
   /// Set the active WMS data set.
   void setActiveWMS(WebMapService const& wms, WebMapLayer const& layer);
@@ -138,4 +144,4 @@ class TextureOverlayRenderer : public IVistaOpenGLDraw {
 
 } // namespace csp::wmsoverlays
 
-#endif // TEXTURE_OVERLAY_RENDERER
+#endif // CSP_WMS_OVERLAYS_TEXTURE_OVERLAY_RENDERER_HPP

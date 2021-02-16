@@ -52,7 +52,7 @@ class WebMapException : public std::exception {
   /// Get the code identifying the type of exception that occurred.
   Code getCode() const;
   /// Get a short description of the error.
-  std::string getText() const;
+  std::string const& getText() const;
 
   /// Get type and description of the error as one string.
   virtual const char* what() const noexcept;
@@ -72,7 +72,7 @@ class WebMapExceptionReport : public std::exception {
   WebMapExceptionReport(std::string const& xml);
 
   /// Gets a list of WMS exceptions that occurred.
-  std::vector<WebMapException> getExceptions() const;
+  std::vector<WebMapException> const& getExceptions() const;
 
   /// Gets a single string describing all WMS exceptions that occurred.
   virtual const char* what() const noexcept;

@@ -50,7 +50,7 @@ struct Bounds {
 };
 
 /// Struct for the duration of the WMS time step.
-///	Ideally only one of the members should be non-zero.
+/// Ideally only one of the members should be non-zero.
 struct Duration {
   int                              mYears        = 0;
   int                              mMonths       = 0;
@@ -110,7 +110,7 @@ boost::posix_time::ptime addDurationToTime(
 /// The return value is empty if the requested element is not present.
 template <typename T>
 std::optional<T> getElementValue(
-    VistaXML::TiXmlElement* baseElement, std::vector<std::string> childPath = {}) {
+    VistaXML::TiXmlElement* baseElement, std::vector<std::string> const& childPath = {}) {
   VistaXML::TiXmlHandle elementHandle(baseElement);
   for (std::string child : childPath) {
     elementHandle = elementHandle.FirstChildElement(child);
@@ -135,12 +135,12 @@ std::optional<T> getElementValue(
 /// The returned value (inner optional) is empty if the attribute specifies an unlimited size.
 /// The return value (outer optional) is empty if the requested attribute is not present.
 std::optional<std::optional<int>> getSizeAttribute(
-    VistaXML::TiXmlElement* element, std::string attributeName);
+    VistaXML::TiXmlElement* element, std::string const& attributeName);
 
 /// Gets the value of the given attribute on the given element.
 /// The return value is empty if the requested element is not present.
 template <typename T>
-std::optional<T> getAttribute(VistaXML::TiXmlElement* element, std::string attributeName) {
+std::optional<T> getAttribute(VistaXML::TiXmlElement* element, std::string const& attributeName) {
   T   value;
   int result = element->QueryValueAttribute<T>(attributeName, &value);
   if (result == VistaXML::TIXML_SUCCESS) {
@@ -152,21 +152,21 @@ std::optional<T> getAttribute(VistaXML::TiXmlElement* element, std::string attri
 /// QueryValueAttribute does not work for strings containing spaces, so Attribute is used instead.
 template <>
 std::optional<std::string> getAttribute<std::string>(
-    VistaXML::TiXmlElement* element, std::string attributeName);
+    VistaXML::TiXmlElement* element, std::string const& attributeName);
 
 /// Booleans may be given as either integers (0->false, 1->true) or strings.
 template <>
-std::optional<bool> getAttribute<bool>(VistaXML::TiXmlElement* element, std::string attributeName);
+std::optional<bool> getAttribute<bool>(VistaXML::TiXmlElement* element, std::string const& attributeName);
 
 /// Sets the given var to the value of the optional, if it is present.
 template <typename T>
-void setOrKeep(T& var, std::optional<T> optional) {
+void setOrKeep(T& var, std::optional<T> const& optional) {
   var = optional.value_or(var);
 }
 
 /// Sets the given var to the value of the optional, if it is present.
 template <typename T>
-void setOrKeep(std::optional<T>& var, std::optional<T> optional) {
+void setOrKeep(std::optional<T>& var, std::optional<T> const& optional) {
   if (optional.has_value()) {
     var = optional.value();
   }

@@ -13,7 +13,7 @@ namespace csp::wmsoverlays {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 spdlog::logger& logger() {
-  static auto logger = cs::utils::createLogger("csp-wms-overlay");
+  static auto logger = cs::utils::createLogger("csp-wms-overlays");
   return *logger;
 }
 

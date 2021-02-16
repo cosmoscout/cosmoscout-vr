@@ -4,8 +4,8 @@
 //                        Copyright: (c) 2019 German Aerospace Center (DLR)                       //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#ifndef CSP_WMS_TEXTURE_LOADER_HPP
-#define CSP_WMS_TEXTURE_LOADER_HPP
+#ifndef CSP_WMS_OVERLAYS_TEXTURE_LOADER_HPP
+#define CSP_WMS_OVERLAYS_TEXTURE_LOADER_HPP
 
 #include "WebMapLayer.hpp"
 #include "WebMapService.hpp"
@@ -46,12 +46,12 @@ class WebMapTextureLoader {
   /// Returns an empty optional if loading the texture failed.
   std::future<std::optional<WebMapTexture>> loadTextureAsync(WebMapService const& wms,
       WebMapLayer const& layer, Request const& request, std::string const& mapCache,
-      bool const& saveToCache);
+      bool saveToCache);
 
   /// WMS texture loader.
   /// Returns an empty optional if loading the texture failed.
   std::optional<WebMapTexture> loadTexture(WebMapService const& wms, WebMapLayer const& layer,
-      Request const& request, std::string const& mapCache, bool const& saveToCache);
+      Request const& request, std::string const& mapCache, bool saveToCache);
 
  private:
   /// Requests a map texture from a WMS.
@@ -89,4 +89,4 @@ class WebMapTextureLoader {
 
 } // namespace csp::wmsoverlays
 
-#endif // CSP_WMS_TEXTURE_LOADER_HPP
+#endif // CSP_WMS_OVERLAYS_TEXTURE_LOADER_HPP

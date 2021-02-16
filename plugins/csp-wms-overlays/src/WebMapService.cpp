@@ -23,8 +23,8 @@ namespace csp::wmsoverlays {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 WebMapService::WebMapService(std::string url, std::string cacheDir)
-    : mUrl(url)
-    , mCacheDir(cacheDir)
+    : mUrl(std::move(url))
+    , mCacheDir(std::move(cacheDir))
     , mCacheFileName(std::regex_replace(mUrl, std::regex("[/:*]"), "_") + ".xml")
     , mTitle(parseTitle())
     , mSettings(parseSettings())
@@ -68,12 +68,12 @@ std::vector<WebMapLayer> WebMapService::getLayers() const {
 std::optional<WebMapLayer> WebMapService::getLayer(std::string name) const {
   std::vector<WebMapLayer> layers = getLayers();
   auto                     layer  = std::find_if(
-      layers.begin(), layers.end(), [&name](WebMapLayer l) { return l.getName() == name; });
+      layers.begin(), layers.end(), [name](WebMapLayer l) { return l.getName() == name; });
   if (layer == layers.end()) {
     return {};
-  } else {
-    return *layer;
   }
+
+  return *layer;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -41,5 +41,3 @@ This plugin can be enabled with the following configuration in your `settings.js
 ```
 
 **More in-depth information and some tutorials will be provided soon.**
-
-## MIT License

@@ -189,8 +189,7 @@ const std::string TextureOverlayRenderer::SURFACE_FRAG = R"(
         {
             discard;
         }else{
-            dvec3 worldPos  = GetPosition();
-            //dvec2 lnglat    = GetLngLat(worldPos);
+            dvec3 worldPos = GetPosition();
             vec2 lnglat    = surfaceToLngLat(vec3(worldPos.x, worldPos.y, worldPos.z), uRadii);
 
             FragColor = vec4(worldPos, 1.0);

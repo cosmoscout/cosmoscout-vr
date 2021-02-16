@@ -35,20 +35,20 @@ class WebMapService {
   WebMapService(std::string url, std::string cacheDir);
 
   /// Gets the base URL of the service
-  std::string getUrl() const;
+  std::string const& getUrl() const;
   /// Gets a brief description of the service.
-  std::string getTitle() const;
+  std::string const& getTitle() const;
 
   /// Gets the general settings of the service.
-  Settings getSettings() const;
+  Settings const& getSettings() const;
 
   /// Gets the root layer of the service.
-  WebMapLayer getRootLayer() const;
+  WebMapLayer const& getRootLayer() const;
   /// Gets a list of all layers of the service, for which maps can be requested.
-  std::vector<WebMapLayer> getLayers() const;
+  std::vector<WebMapLayer> const& getLayers() const;
   /// Gets the layer with the given name, if one exists.
   /// Returns an empty optional otherwise.
-  std::optional<WebMapLayer> getLayer(std::string name) const;
+  std::optional<WebMapLayer> const& getLayer(std::string const& name) const;
 
   /// Checks if the service can return maps of the given MIME type.
   bool isFormatSupported(std::string format) const;

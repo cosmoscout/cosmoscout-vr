@@ -18,7 +18,7 @@ namespace csp::wmsoverlays {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 WebMapLayer::WebMapLayer(VistaXML::TiXmlElement* element, Settings settings)
-    : mSettings(settings) {
+    : mSettings(std::move(settings)) {
   VistaXML::TiXmlHandle elementHandle(element);
 
   std::optional<std::string> title = utils::getElementValue<std::string>(element, {"Title"});

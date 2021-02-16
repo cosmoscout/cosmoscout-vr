@@ -44,13 +44,13 @@ TextureOverlayRenderer::TextureOverlayRenderer(std::string center,
     std::shared_ptr<cs::core::SolarSystem>                 solarSystem,
     std::shared_ptr<cs::core::TimeControl>                 timeControl,
     std::shared_ptr<cs::core::Settings> settings, std::shared_ptr<Plugin::Settings> pluginSettings)
-    : mSettings(settings)
-    , mPluginSettings(pluginSettings)
-    , mCenterName(center)
+    : mSettings(std::move(settings))
+    , mPluginSettings(std::move(pluginSettings))
+    , mCenterName(std::move(center))
     , mWMSTexture(new VistaTexture(GL_TEXTURE_2D))
     , mSecondWMSTexture(new VistaTexture(GL_TEXTURE_2D))
-    , mSolarSystem(solarSystem)
-    , mTimeControl(timeControl)
+    , mSolarSystem(std::move(solarSystem))
+    , mTimeControl(std::move(timeControl))
     , mMinBounds({(float)-solarSystem->getRadii(center)[0],
           (float)-solarSystem->getRadii(center)[1], (float)-solarSystem->getRadii(center)[2]})
     , mMaxBounds({(float)solarSystem->getRadii(center)[0], (float)solarSystem->getRadii(center)[1],
@@ -126,14 +126,14 @@ TextureOverlayRenderer::~TextureOverlayRenderer() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::string TextureOverlayRenderer::getCenter() const {
+std::string const& TextureOverlayRenderer::getCenter() const {
   return mCenterName;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void TextureOverlayRenderer::configure(Plugin::Settings::Body const& settings) {
-  mSimpleWMSOverlaySettings = settings;
+void TextureOverlayRenderer::configure(Plugin::Settings::Body settings) {
+  mSimpleWMSOverlaySettings = std::move(settings);
   pBounds                   = settings.mActiveBounds.get();
 }
 
@@ -173,7 +173,7 @@ void TextureOverlayRenderer::clearActiveWMS() {
 
 void TextureOverlayRenderer::setStyle(std::string style) {
   if (mStyle != style) {
-    mStyle = style;
+    mStyle = std::move(style);
 
     clearTextures();
     if (mActiveWMSLayer->getSettings().mTimeIntervals.empty()) {
