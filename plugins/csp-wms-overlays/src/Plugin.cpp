@@ -97,9 +97,9 @@ void Plugin::init() {
       [this]() { mAllSettings->mPlugins["csp-wms-overlays"] = *mPluginSettings; });
 
   mGuiManager->addPluginTabToSideBarFromHTML(
-      "WMS Overlays", "panorama", "../share/resources/gui/wms_overlays_tab.html");
+      "WMS Overlays", "layers", "../share/resources/gui/wms_overlays_tab.html");
   mGuiManager->addSettingsSectionToSideBarFromHTML(
-      "WMS Overlays", "panorama", "../share/resources/gui/wms_settings.html");
+      "WMS Overlays", "layers", "../share/resources/gui/wms_settings.html");
   mGuiManager->addScriptToGuiFromJS("../share/resources/gui/js/csp-wms-overlays.js");
   mGuiManager->addCssToGui("css/csp-wms-overlays.css");
 
