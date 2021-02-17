@@ -184,7 +184,7 @@ static const char* sGlareShader = R"(
 
         float angle  = totalAngle * i / (samples-1) - totalAngle * 0.5;
 
-        float sigma = totalAngle / 4;
+        float sigma = totalAngle / MAX_LEVELS;
         float weight = getGauss(sigma, angle);
 
         vec4 pos = uMatP * vec4(rotate(posViewSpace.xyz, rotAxis, angle*PI/180.0), 1.0);
@@ -260,6 +260,7 @@ void GlareMipMap::update(
     std::string source = "#version 430\n";
     source += "#define NUM_MULTISAMPLES " + std::to_string(mHDRBufferSamples) + "\n";
     source += "#define GLARE_QUALITY " + std::to_string(glareQuality) + "\n";
+    source += "#define MAX_LEVELS " + std::to_string(mMaxLevels) + "\n";
 
     if (glareMode == HDRBuffer::GlareMode::eSymmetricGauss) {
       source += "#define GLAREMODE_SYMMETRIC_GAUSS\n";
@@ -318,8 +319,6 @@ void GlareMipMap::update(
 
   glBindImageTexture(0, hdrBufferComposite->GetId(), 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
 
-  int maxLevels = mMaxLevels;
-
   if (glareMode == HDRBuffer::GlareMode::eAsymmetricGauss) {
     std::array<GLfloat, 16> glMatP{};
     glGetFloatv(GL_PROJECTION_MATRIX, glMatP.data());
@@ -329,7 +328,7 @@ void GlareMipMap::update(
     glUniformMatrix4fv(mUniforms.inverseProjectionMatrix, 1, GL_FALSE, glm::value_ptr(matInvP));
   }
 
-  for (int level(0); level < maxLevels; ++level) {
+  for (int level(0); level < mMaxLevels; ++level) {
     glUniform1i(mUniforms.level, level);
 
     for (int pass(0); pass < 2; ++pass) {
