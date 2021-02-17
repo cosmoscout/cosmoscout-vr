@@ -467,16 +467,19 @@ class CS_CORE_EXPORT Settings {
     utils::DefaultProperty<float> pAmbientBrightness{std::pow(0.25F, 10.F)};
 
     /// The amount of artifical glare. Has no effect if HDR rendering is disabled. This should be in
-    /// the range 0-1.
+    /// the range 0-1. A value of zero disables the glare.
     utils::DefaultProperty<float> pGlareIntensity{0.1F};
 
-    /// This affects the spread of the glare. The actual interpretation depends on the glare mode.
-    /// This should be in the range 0-1.
-    utils::DefaultProperty<float> pGlareRadius{1.0F};
+    /// Higher values produce a smoother glare.
+    utils::DefaultProperty<uint32_t> pGlareQuality{0};
+
+    /// If enabled, the more expensive but much smoother manual bicubic texture filtering is used
+    /// for the glare.
+    utils::DefaultProperty<bool> pEnableBicubicGlareFilter{true};
 
     /// Specifies how the glare is computed.
     utils::DefaultProperty<graphics::HDRBuffer::GlareMode> pGlareMode{
-        graphics::HDRBuffer::GlareMode::eGauss};
+        graphics::HDRBuffer::GlareMode::eSymmetricGauss};
 
     /// This makes illumination calculations assume a fixed sun position in the current SPICE frame.
     /// Using the default value glm::dvec3(0.0) disables this feature.

@@ -220,8 +220,9 @@ void from_json(nlohmann::json const& j, Settings::Graphics& o) {
   Settings::deserialize(j, "focalLength", o.pFocalLength);
   Settings::deserialize(j, "ambientBrightness", o.pAmbientBrightness);
   Settings::deserialize(j, "glareIntensity", o.pGlareIntensity);
-  Settings::deserialize(j, "glareRadius", o.pGlareRadius);
+  Settings::deserialize(j, "glareRadius", o.pGlareQuality);
   Settings::deserialize(j, "glareMode", o.pGlareMode);
+  Settings::deserialize(j, "enableBicubicGlareFiltering", o.pEnableBicubicGlareFilter);
   Settings::deserialize(j, "fixedSunDirection", o.pFixedSunDirection);
 }
 
@@ -251,6 +252,9 @@ void to_json(nlohmann::json& j, Settings::Graphics const& o) {
   Settings::serialize(j, "focalLength", o.pFocalLength);
   Settings::serialize(j, "ambientBrightness", o.pAmbientBrightness);
   Settings::serialize(j, "glareIntensity", o.pGlareIntensity);
+  Settings::serialize(j, "glareRadius", o.pGlareQuality);
+  Settings::serialize(j, "glareMode", o.pGlareMode);
+  Settings::serialize(j, "enableBicubicGlareFiltering", o.pEnableBicubicGlareFilter);
   Settings::serialize(j, "fixedSunDirection", o.pFixedSunDirection);
 }
 

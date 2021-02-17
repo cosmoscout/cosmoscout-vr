@@ -149,7 +149,6 @@ static const char* sFragmentShader = R"(
 
   uniform float uExposure;
   uniform float uGlareIntensity;
-  uniform float uGlareRadius;
 
   layout(location = 0) out vec3 oColor;
 
@@ -178,6 +177,11 @@ static const char* sFragmentShader = R"(
     return vec3(linear_to_srgb(c.r), linear_to_srgb(c.g), linear_to_srgb(c.b));
   }
 
+  // 4x4 bicubic filter using 4 bilinear texture lookups 
+  // See GPU Gems 2: "Fast Third-Order Texture Filtering", Sigg & Hadwiger:
+  // http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter20.html
+
+  // w0, w1, w2, and w3 are the four cubic B-spline basis functions
   float w0(float a) {
     return (1.0 / 6.0) * (a * (a * (-a + 3.0) - 3.0) + 1.0);
   }
@@ -233,7 +237,7 @@ static const char* sFragmentShader = R"(
     vec2 p3 = (vec2(iuv.x + h1x, iuv.y + h1y) - 0.5) * pixel_size;
 
     return (g0(fuv.y) * (g0x * textureLod(tex, p0, lod) + g1x * textureLod(tex, p1, lod))) +
-            (g1(fuv.y) * (g0x * textureLod(tex, p2, lod) + g1x * textureLod(tex, p3, lod)));
+           (g1(fuv.y) * (g0x * textureLod(tex, p2, lod) + g1x * textureLod(tex, p3, lod)));
   }
 
   void main() {
@@ -254,14 +258,21 @@ static const char* sFragmentShader = R"(
       gl_FragDepth = texelFetch(uDepth, ivec2(vTexcoords * textureSize(uDepth, 0)), 0).r;
     #endif
 
-    if (uGlareIntensity > 0 && uGlareRadius > 0) {
+    if (uGlareIntensity > 0) {
       vec3  glare = vec3(0);
-      float maxLevels = ceil(textureQueryLevels(uGlareMipMap) * uGlareRadius);
+      float maxLevels = textureQueryLevels(uGlareMipMap);
+
       float totalWeight = 0;
 
       for (int i=0; i<maxLevels; ++i) {
         float weight = 1.0 / pow(2, i);
-        glare += texture2D_bicubic(uGlareMipMap, vTexcoords, i).rgb * weight;
+
+        #ifdef BICUBIC_GLARE_FILTER
+          glare += texture2D_bicubic(uGlareMipMap, vTexcoords, i).rgb * weight;
+        #else
+          glare += texture2D(uGlareMipMap, vTexcoords, i).rgb * weight;
+        #endif
+        
         totalWeight += weight;
       }
       color = mix(color, glare/totalWeight, uGlareIntensity);
@@ -389,29 +400,17 @@ float ToneMappingNode::getGlareIntensity() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void ToneMappingNode::setGlareRadius(float radius) {
-  mGlareRadius = radius;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-float ToneMappingNode::getGlareRadius() const {
-  return mGlareRadius;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void ToneMappingNode::setGlareMode(HDRBuffer::GlareMode value) {
-  if (mGlareMode != value) {
-    mShaderDirty = true;
-    mGlareMode   = value;
+void ToneMappingNode::setEnableBicubicGlareFilter(bool enable) {
+  if (mEnableBicubicGlareFilter != enable) {
+    mEnableBicubicGlareFilter = enable;
+    mShaderDirty              = true;
   }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-HDRBuffer::GlareMode ToneMappingNode::getGlareMode() const {
-  return mGlareMode;
+bool ToneMappingNode::getEnableBicubicGlareFilter() const {
+  return mEnableBicubicGlareFilter;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -442,12 +441,8 @@ bool ToneMappingNode::ToneMappingNode::Do() {
     std::string defines = "#version 430\n";
     defines += "#define NUM_MULTISAMPLES " + std::to_string(mHDRBuffer->getMultiSamples()) + "\n";
 
-    if (mGlareMode == HDRBuffer::GlareMode::eGauss) {
-      defines += "#define GLOWMODE_GAUSS\n";
-    } else if (mGlareMode == HDRBuffer::GlareMode::eEllipticalGauss) {
-      defines += "#define GLOWMODE_ELLIPTICAL_GAUSS\n";
-    } else if (mGlareMode == HDRBuffer::GlareMode::eAsymmetricGauss) {
-      defines += "#define GLOWMODE_ASYMMETRIC_GAUSS\n";
+    if (mEnableBicubicGlareFilter) {
+      defines += "#define BICUBIC_GLARE_FILTER\n";
     }
 
     mShader = std::make_unique<VistaGLSLShader>();
@@ -457,7 +452,6 @@ bool ToneMappingNode::ToneMappingNode::Do() {
 
     mUniforms.exposure       = mShader->GetUniformLocation("uExposure");
     mUniforms.glareIntensity = mShader->GetUniformLocation("uGlareIntensity");
-    mUniforms.glareRadius    = mShader->GetUniformLocation("uGlareRadius");
 
     mShaderDirty = false;
   }
@@ -488,7 +482,7 @@ bool ToneMappingNode::ToneMappingNode::Do() {
     }
   }
 
-  if (mGlareIntensity > 0 && mGlareRadius > 0) {
+  if (mGlareIntensity > 0) {
     mHDRBuffer->updateGlareMipMap();
   }
 
@@ -511,7 +505,6 @@ bool ToneMappingNode::ToneMappingNode::Do() {
   mShader->Bind();
   mShader->SetUniform(mUniforms.exposure, exposure);
   mShader->SetUniform(mUniforms.glareIntensity, mGlareIntensity);
-  mShader->SetUniform(mUniforms.glareRadius, mGlareRadius);
 
   glDrawArrays(GL_TRIANGLES, 0, 3);
 

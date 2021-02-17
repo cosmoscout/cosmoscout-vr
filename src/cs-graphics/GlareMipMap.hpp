@@ -30,7 +30,8 @@ class CS_GRAPHICS_EXPORT GlareMipMap : public VistaTexture {
 
   /// Perform the glare calculation by parallel reduction of the HDR values. This is a costly
   /// operation and should only be called once a frame.
-  void update(VistaTexture* hdrBufferComposite, HDRBuffer::GlareMode glareMode);
+  void update(
+      VistaTexture* hdrBufferComposite, HDRBuffer::GlareMode glareMode, uint32_t glareQuality);
 
  private:
   GLuint               mComputeProgram   = 0;
@@ -38,11 +39,14 @@ class CS_GRAPHICS_EXPORT GlareMipMap : public VistaTexture {
   int                  mMaxLevels        = 0;
   int                  mHDRBufferWidth   = 0;
   int                  mHDRBufferHeight  = 0;
-  HDRBuffer::GlareMode mLastGlareMode    = HDRBuffer::GlareMode::eGauss;
+  HDRBuffer::GlareMode mLastGlareMode    = HDRBuffer::GlareMode::eSymmetricGauss;
+  uint32_t             mLastGlareQuality = 0;
 
   struct {
-    uint32_t level = 0;
-    uint32_t pass  = 0;
+    uint32_t level                   = 0;
+    uint32_t pass                    = 0;
+    uint32_t projectionMatrix        = 0;
+    uint32_t inverseProjectionMatrix = 0;
   } mUniforms;
 
   VistaTexture* mTemporaryTarget = nullptr;

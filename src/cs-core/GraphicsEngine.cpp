@@ -103,13 +103,14 @@ GraphicsEngine::GraphicsEngine(std::shared_ptr<core::Settings> settings)
   mSettings->mGraphics.pGlareIntensity.connectAndTouch(
       [this](float val) { mToneMappingNode->setGlareIntensity(val); });
 
-  mSettings->mGraphics.pGlareRadius.connectAndTouch(
-      [this](float val) { mToneMappingNode->setGlareRadius(val); });
+  mSettings->mGraphics.pGlareQuality.connectAndTouch(
+      [this](uint32_t val) { mHDRBuffer->setGlareQuality(val); });
 
-  mSettings->mGraphics.pGlareMode.connectAndTouch([this](graphics::HDRBuffer::GlareMode mode) {
-    mHDRBuffer->setGlareMode(mode);
-    mToneMappingNode->setGlareMode(mode);
-  });
+  mSettings->mGraphics.pGlareMode.connectAndTouch(
+      [this](graphics::HDRBuffer::GlareMode mode) { mHDRBuffer->setGlareMode(mode); });
+
+  mSettings->mGraphics.pEnableBicubicGlareFilter.connectAndTouch(
+      [this](bool enable) { mToneMappingNode->setEnableBicubicGlareFilter(enable); });
 
   mSettings->mGraphics.pExposureCompensation.connectAndTouch(
       [this](float val) { mToneMappingNode->setExposureCompensation(val); });

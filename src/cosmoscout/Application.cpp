@@ -1128,34 +1128,37 @@ void Application::registerGuiCallbacks() {
   mSettings->mGraphics.pGlareIntensity.connect(
       [this](float val) { mGuiManager->setSliderValue("graphics.setGlareIntensity", val); });
 
-  // Adjusts the spread of the glare.
-  mGuiManager->getGui()->registerCallback("graphics.setGlareRadius",
-      "Adjusts the glare radius of overexposed areas.", std::function([this](double val) {
-        mSettings->mGraphics.pGlareRadius = static_cast<float>(val);
+  // Adjusts the quality of the glare.
+  mGuiManager->getGui()->registerCallback("graphics.setGlareQuality",
+      "Adjusts the glare quality of overexposed areas.", std::function([this](double val) {
+        mSettings->mGraphics.pGlareQuality = static_cast<uint32_t>(val);
       }));
-  mSettings->mGraphics.pGlareRadius.connect(
-      [this](float val) { mGuiManager->setSliderValue("graphics.setGlareRadius", val); });
+  mSettings->mGraphics.pGlareQuality.connect(
+      [this](uint32_t val) { mGuiManager->setSliderValue("graphics.setGlareQuality", val); });
+
+  // Enables bicubic glare filtering.
+  mGuiManager->getGui()->registerCallback("graphics.setEnableBicubicGlareFilter",
+      "Enables or disables bicubic glare filtering.", std::function([this](bool enable) {
+        mSettings->mGraphics.pEnableBicubicGlareFilter = enable;
+      }));
+  mSettings->mGraphics.pEnableBicubicGlareFilter.connectAndTouch([this](bool enable) {
+    mGuiManager->setCheckboxValue("graphics.setEnableBicubicGlareFilter", enable);
+  });
 
   // Sets the mode used to compute the glare blur.
   mGuiManager->getGui()->registerCallback(
       "graphics.setGlareMode0", "Enables simple gaussian glare.", std::function([this]() {
-        mSettings->mGraphics.pGlareMode = cs::graphics::HDRBuffer::GlareMode::eGauss;
+        mSettings->mGraphics.pGlareMode = cs::graphics::HDRBuffer::GlareMode::eSymmetricGauss;
       }));
   mGuiManager->getGui()->registerCallback("graphics.setGlareMode1",
       "Enables more advanced elliptical gaussian blur.", std::function([this]() {
-        mSettings->mGraphics.pGlareMode = cs::graphics::HDRBuffer::GlareMode::eEllipticalGauss;
-      }));
-  mGuiManager->getGui()->registerCallback("graphics.setGlareMode2",
-      "Enables perspective correct asymmetrical gaussian blur.", std::function([this]() {
         mSettings->mGraphics.pGlareMode = cs::graphics::HDRBuffer::GlareMode::eAsymmetricGauss;
       }));
   mSettings->mGraphics.pGlareMode.connect([this](cs::graphics::HDRBuffer::GlareMode glareMode) {
-    if (glareMode == cs::graphics::HDRBuffer::GlareMode::eGauss) {
+    if (glareMode == cs::graphics::HDRBuffer::GlareMode::eSymmetricGauss) {
       mGuiManager->setRadioChecked("graphics.setGlareMode0");
-    } else if (glareMode == cs::graphics::HDRBuffer::GlareMode::eEllipticalGauss) {
-      mGuiManager->setRadioChecked("graphics.setGlareMode1");
     } else if (glareMode == cs::graphics::HDRBuffer::GlareMode::eAsymmetricGauss) {
-      mGuiManager->setRadioChecked("graphics.setGlareMode2");
+      mGuiManager->setRadioChecked("graphics.setGlareMode1");
     }
   });
 
@@ -1633,7 +1636,7 @@ void Application::unregisterGuiCallbacks() {
   mGuiManager->getGui()->unregisterCallback("graphics.setExposureCompensation");
   mGuiManager->getGui()->unregisterCallback("graphics.setSensorDiagonal");
   mGuiManager->getGui()->unregisterCallback("graphics.setGlareIntensity");
-  mGuiManager->getGui()->unregisterCallback("graphics.setGlareRadius");
+  mGuiManager->getGui()->unregisterCallback("graphics.setGlareQuality");
   mGuiManager->getGui()->unregisterCallback("graphics.setExposureRange");
   mGuiManager->getGui()->unregisterCallback("graphics.setFixedSunDirection");
   mGuiManager->getGui()->unregisterCallback("navigation.fixHorizon");

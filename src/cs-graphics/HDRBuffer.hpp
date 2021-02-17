@@ -31,10 +31,9 @@ class GlareMipMap;
 /// glare-effect.
 class CS_GRAPHICS_EXPORT HDRBuffer {
  public:
-  /// There different possibilities for computing the glare. The simplest being a symmetrical
-  /// gauss-like kernel. The elliptical gauss is close to the perspective correct asymmetrical gauss
-  /// but is a bit faster.
-  enum class GlareMode { eGauss, eEllipticalGauss, eAsymmetricGauss };
+  /// There are different possibilities for computing the glare. The simplest being a symmetrical
+  /// gauss kernel. The asymmetric gauss is perspective correct but a bit slower.
+  enum class GlareMode { eSymmetricGauss, eAsymmetricGauss };
 
   /// When highPrecision is set to false, only 16bit color buffers are used.
   explicit HDRBuffer(uint32_t multiSamples, bool highPrecision = true);
@@ -84,6 +83,11 @@ class CS_GRAPHICS_EXPORT HDRBuffer {
   void      setGlareMode(GlareMode value);
   GlareMode getGlareMode() const;
 
+  /// Controls the quality of the artificial glare. If set to zero, the GlareMipMap will not be
+  /// updated which will increase performance.
+  void     setGlareQuality(uint32_t quality);
+  uint32_t getGlareQuality() const;
+
   /// Returns the depth attachment for the currently rendered viewport. Be aware, that this can be
   /// texture with the target GL_TEXTURE_2D_MULTISAMPLE if getMultiSamples() > 0.
   VistaTexture* getDepthAttachment() const;
@@ -125,7 +129,8 @@ class CS_GRAPHICS_EXPORT HDRBuffer {
   HDRBufferData&       getCurrentHDRBuffer();
   HDRBufferData const& getCurrentHDRBuffer() const;
 
-  GlareMode                                         mGlareMode = GlareMode::eGauss;
+  GlareMode                                         mGlareMode    = GlareMode::eSymmetricGauss;
+  uint32_t                                          mGlareQuality = 0.F;
   std::unordered_map<VistaViewport*, HDRBufferData> mHDRBufferData;
   float                                             mTotalLuminance   = 1.F;
   float                                             mMaximumLuminance = 1.F;

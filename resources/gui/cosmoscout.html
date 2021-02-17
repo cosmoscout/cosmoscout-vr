@@ -300,20 +300,21 @@
 
                   <div class="row hdr-setting">
                     <div class="col-5">
-                      Glare Radius
-                    </div>
-                    <div class="col-7">
-                      <div data-callback="graphics.setGlareRadius">
-                      </div>
-                    </div>
-                  </div>
-
-                  <div class="row hdr-setting">
-                    <div class="col-5">
                       Glare Intensity
                     </div>
                     <div class="col-7">
                       <div data-callback="graphics.setGlareIntensity">
+                      </div>
+                    </div>
+                  </div>
+
+
+                  <div class="row hdr-setting">
+                    <div class="col-5">
+                      Glare Quality
+                    </div>
+                    <div class="col-7">
+                      <div data-callback="graphics.setGlareQuality">
                       </div>
                     </div>
                   </div>
@@ -326,21 +327,25 @@
                       <label class="radiolabel">
                         <input name="glare_mode" type="radio" data-callback="graphics.setGlareMode0"
                           checked />
-                        <span>Accumulated Gauss</span>
+                        <span>Symmetric Gauss</span>
                       </label>
                     </div>
                     <div class="col-7 offset-5">
                       <label class="radiolabel">
                         <input name="glare_mode" type="radio"
                           data-callback="graphics.setGlareMode1" />
-                        <span>Elliptical Gauss</span>
+                        <span>Asymmetric Gauss</span>
                       </label>
                     </div>
+                  </div>
+
+                  <div class="row hdr-setting">
                     <div class="col-7 offset-5">
-                      <label class="radiolabel">
-                        <input name="glare_mode" type="radio"
-                          data-callback="graphics.setGlareMode2" />
-                        <span>Asymmetric Gauss</span>
+                      <label class="checklabel">
+                        <input type="checkbox" data-callback="graphics.setEnableBicubicGlareFilter"
+                          checked />
+                        <i class="material-icons"></i>
+                        <span>Bicubic Glare Filter</span>
                       </label>
                     </div>
                   </div>
@@ -862,7 +867,7 @@
       CosmoScout.gui.initSlider("graphics.setAmbientLight", 0.0, 1.0, 0.001, [0.25]);
       CosmoScout.gui.initSlider("graphics.setExposureRange", -30.0, 30, 0.1, [-14, 8]);
       CosmoScout.gui.initSlider("graphics.setGlareIntensity", 0.0, 1, 0.01, [0.1]);
-      CosmoScout.gui.initSlider("graphics.setGlareRadius", 0.0, 1, 0.01, [1.0]);
+      CosmoScout.gui.initSlider("graphics.setGlareQuality", 0, 5, 1, [0]);
 
       $(document).on('click', '.item-create-button', function () {
         $(this).addClass('active');
@@ -877,15 +882,6 @@
           } else {
             document.querySelector('[data-callback="graphics.setExposure"]').classList.remove('unresponsive');
             document.querySelector('[data-callback="graphics.setExposureRange"]').classList.add('unresponsive');
-          }
-        });
-
-      document.querySelector('[data-callback="graphics.setEnableAutoGlare"]')
-        .addEventListener('change', (event) => {
-          if (event.target.checked) {
-            document.querySelector('[data-callback="graphics.setGlareIntensity"]').classList.add('unresponsive');
-          } else {
-            document.querySelector('[data-callback="graphics.setGlareIntensity"]').classList.remove('unresponsive');
           }
         });
 
