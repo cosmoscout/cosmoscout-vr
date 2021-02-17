@@ -264,6 +264,8 @@ static const char* sFragmentShader = R"(
 
       float totalWeight = 0;
 
+      // Each level contains a successively more blurred version of the scene. We have to
+      // accumulate them with an exponentially decreasing weight to get a proper glare distribution.
       for (int i=0; i<maxLevels; ++i) {
         float weight = 1.0 / pow(2, i);
 
@@ -275,6 +277,8 @@ static const char* sFragmentShader = R"(
         
         totalWeight += weight;
       }
+
+      // To make sure that we do not add energy, we divide by the total weight.
       color = mix(color, glare/totalWeight, uGlareIntensity);
     }
 

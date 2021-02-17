@@ -32,7 +32,8 @@ class GlareMipMap;
 class CS_GRAPHICS_EXPORT HDRBuffer {
  public:
   /// There are different possibilities for computing the glare. The simplest being a symmetrical
-  /// gauss kernel. The asymmetric gauss is perspective correct but a bit slower.
+  /// gauss kernel. The asymmetric gauss is perspective correct but significantly slower. In
+  /// addition, the glare quality must be set to a higher value to get acceptable results.
   enum class GlareMode { eSymmetricGauss, eAsymmetricGauss };
 
   /// When highPrecision is set to false, only 16bit color buffers are used.
@@ -67,11 +68,10 @@ class CS_GRAPHICS_EXPORT HDRBuffer {
   /// getTotalLuminance() and getMaximumLuminance().
   void calculateLuminance();
 
-  // Get the results of the last but one call to calculateLuminance(). The data is read back from
-  // the GPU one
-  /// frame after the computation in order to reduce synchronization requirements. In order to get
-  /// the average luminance, you have to divide getLastTotalLuminance() by (hdrBufferWidth *
-  /// hdrBufferHeight).
+  /// Get the results of the last but one call to calculateLuminance(). The data is read back from
+  /// the GPU one frame after the computation in order to reduce synchronization requirements. In
+  /// order to get the average luminance, you have to divide getLastTotalLuminance() by
+  /// (hdrBufferWidth * hdrBufferHeight).
   float getTotalLuminance() const;
   float getMaximumLuminance() const;
 
@@ -83,8 +83,9 @@ class CS_GRAPHICS_EXPORT HDRBuffer {
   void      setGlareMode(GlareMode value);
   GlareMode getGlareMode() const;
 
-  /// Controls the quality of the artificial glare. If set to zero, the GlareMipMap will not be
-  /// updated which will increase performance.
+  /// Controls the quality of the artificial glare. For the symmetric glare a value of zero usually
+  /// results already in sufficiently smooth glares, for the asymmetric glare, at least a value of
+  /// two seems to be required for normal fields of view.
   void     setGlareQuality(uint32_t quality);
   uint32_t getGlareQuality() const;
 
@@ -130,7 +131,7 @@ class CS_GRAPHICS_EXPORT HDRBuffer {
   HDRBufferData const& getCurrentHDRBuffer() const;
 
   GlareMode                                         mGlareMode    = GlareMode::eSymmetricGauss;
-  uint32_t                                          mGlareQuality = 0.F;
+  uint32_t                                          mGlareQuality = 0;
   std::unordered_map<VistaViewport*, HDRBufferData> mHDRBufferData;
   float                                             mTotalLuminance   = 1.F;
   float                                             mMaximumLuminance = 1.F;

@@ -28,20 +28,21 @@ static const char* sGlareShader = R"(
     layout (rgba32f, binding = 0) readonly uniform image2D uInHDRBuffer;
   #endif
 
-  layout (rgba32f, binding = 1) readonly  uniform image2D uInColor;
-  layout (rgba32f, binding = 2) writeonly uniform image2D uOutColor;
+  layout (rgba32f, binding = 1) readonly  uniform image2D uInGlare;
+  layout (rgba32f, binding = 2) writeonly uniform image2D uOutGlare;
 
   uniform int  uPass;
   uniform int  uLevel;
   uniform mat4 uMatP;
   uniform mat4 uMatInvP;
 
-  // constants
   const float PI = 3.14159265359;
 
+  // Makes four texture look-ups in the input HDRBuffer at the four pixels corresponding to
+  // the pixel position in the base layer of the output mipmap pyramid.
+  // For performance reasons, we only use one sample for multisample inputs.
   vec3 sampleHDRBuffer(ivec2 pos) {
     #if NUM_MULTISAMPLES > 0
-      // For performance reasons, we only use one sample for the glare.
       vec3 col = imageLoad(uInHDRBuffer, ivec2(pos*2 + ivec2(0,0)), 0).rgb * 0.25
                + imageLoad(uInHDRBuffer, ivec2(pos*2 + ivec2(1,0)), 0).rgb * 0.25
                + imageLoad(uInHDRBuffer, ivec2(pos*2 + ivec2(0,1)), 0).rgb * 0.25
@@ -55,6 +56,8 @@ static const char* sGlareShader = R"(
     return col;
   }
 
+  // Calls the method above four times in order to allow for bilinear interpolation. This is
+  // required for floating point positions and results in sixteen texture look-ups.
   vec3 sampleHDRBuffer(vec2 pos) {
     ivec2 ipos = ivec2(pos);
     vec3 tl = sampleHDRBuffer(ipos);
@@ -68,15 +71,18 @@ static const char* sGlareShader = R"(
   }
 
 
-
+  // Makes four texture look-ups in the input layer of the glare mipmap at the four pixels
+  // corresponding to the pixel position in the current layer of the mipmap pyramid.
   vec3 sampleHigherLevel(ivec2 pos) {
-    vec3 col = imageLoad(uInColor, ivec2(pos*2 + ivec2(0,0))).rgb * 0.25
-             + imageLoad(uInColor, ivec2(pos*2 + ivec2(1,0))).rgb * 0.25
-             + imageLoad(uInColor, ivec2(pos*2 + ivec2(0,1))).rgb * 0.25
-             + imageLoad(uInColor, ivec2(pos*2 + ivec2(1,1))).rgb * 0.25;
+    vec3 col = imageLoad(uInGlare, ivec2(pos*2 + ivec2(0,0))).rgb * 0.25
+             + imageLoad(uInGlare, ivec2(pos*2 + ivec2(1,0))).rgb * 0.25
+             + imageLoad(uInGlare, ivec2(pos*2 + ivec2(0,1))).rgb * 0.25
+             + imageLoad(uInGlare, ivec2(pos*2 + ivec2(1,1))).rgb * 0.25;
     return col;
   }
 
+  // Calls the method above four times in order to allow for bilinear interpolation. This is
+  // required for floating point positions and results in sixteen texture look-ups.
   vec3 sampleHigherLevel(vec2 pos) {
     ivec2 ipos = ivec2(pos);
     vec3 tl = sampleHigherLevel(ipos);
@@ -89,11 +95,14 @@ static const char* sGlareShader = R"(
     return mix(tA, tB, f.y);
   }
 
-
+  // Makes just one texture look-ups in the input layer of the glare mipmap at the given
+  // pixel position.
   vec3 sampleSameLevel(ivec2 pos) {
-    return imageLoad(uInColor, pos).rgb;
+    return imageLoad(uInGlare, pos).rgb;
   }
 
+  // Calls the method above four times in order to allow for bilinear interpolation. This is
+  // required for floating point positions and results in four texture look-ups.
   vec3 sampleSameLevel(vec2 pos) {
     ivec2 ipos = ivec2(pos);
     vec3 tl = sampleSameLevel(ipos);
@@ -106,6 +115,8 @@ static const char* sGlareShader = R"(
     return mix(tA, tB, f.y);
   }
 
+
+  // Computes a rotation matrix for rotations around the given axis.
   mat3 rotationMatrix(vec3 axis, float angle) {
     float s = sin(angle);
     float c = cos(angle);
@@ -116,82 +127,132 @@ static const char* sGlareShader = R"(
                 i*axis.z*axis.x - axis.y*s, i*axis.y*axis.z + axis.x*s, i*axis.z*axis.z + c);
   }
 
+  // Rotates the given vector around a given axis.
   vec3 rotate(vec3 v, vec3 axis, float angle) {
     return rotationMatrix(axis, angle) * v;
   }
 
+
+  // Evalutes the normal distribution function for the given value.
   float getGauss(float sigma, float value) {
     return 1.0 / (sigma*sqrt(2*PI)) * exp(-0.5*pow(value/sigma, 2));
   }
 
-  void main() {
-    ivec2 storePos = ivec2(gl_GlobalInvocationID.xy);
-    ivec2 size     = imageSize(uOutColor);
 
-    if (storePos.x >= size.x || storePos.y >= size.y) {
+  void main() {
+
+    ivec2 pixelPos   = ivec2(gl_GlobalInvocationID.xy);
+    ivec2 outputSize = imageSize(uOutGlare);
+
+    // Discard any threads outside the output layer.
+    if (pixelPos.x >= outputSize.x || pixelPos.y >= outputSize.y) {
       return;
     }
 
-    vec3 glare = vec3(0);
+    // Take an odd number of samples to make sure that we sample the center value.
+    const float samples = 2*(GLARE_QUALITY+1)+1;
+
+    // These values we contain the accumulated glare values.
+    vec3  glare       = vec3(0);
+    float totalWeight = 0;
+
+    // The first glare variant computes a symmetrical gaussian blur in screen space. It is separated
+    // into a vertical and horizontal component which are computed in different passes.
+    // If uPass == 0, horizontal blurring happens, if uPass == 1, vertical blurring happens.
+    // This is not perspectively correct but very fast.
 
     #ifdef GLAREMODE_SYMMETRIC_GAUSS
-      const float samples = 2*(GLARE_QUALITY+1)+1;
-      const float sigma   = 1;
-      float totalWeight   = 0;
-
       for (float i = 0; i < samples; ++i) {
         float offset = i - floor(samples/2);
-        float weight = getGauss(sigma, offset);
+        float weight = getGauss(1, offset);
         totalWeight += weight;
 
+        // If we are writing to level zero, we have to sample the input HDR buffer. For all
+        // successive levels we sample the previous level in the first passes and the same level
+        // in the second passes.
         if (uPass == 0 && uLevel == 0) {
-          glare += sampleHDRBuffer(storePos+ivec2(offset, 0)) * weight;
+          glare += sampleHDRBuffer(pixelPos+ivec2(offset, 0)) * weight;
         } else if (uPass == 0) {
-          glare += sampleHigherLevel(storePos+ivec2(offset, 0)) * weight;
+          glare += sampleHigherLevel(pixelPos+ivec2(offset, 0)) * weight;
         } else {
-          glare += sampleSameLevel(storePos+ivec2(0, offset)) * weight;
+          glare += sampleSameLevel(pixelPos+ivec2(0, offset)) * weight;
         }
       }
-
-      glare /= totalWeight;
     #endif
 
+
+    // The second variant computes an asymmetric perspectively correct gaussian decomposed into two
+    // components which can be roughly described as radial and circular. A naive implementation with
+    // a strictly circular and a strictly radial component suffers from undefined behavior close to
+    // the focal point (usually in the middle of the screen) resulting in weird glow patterns in
+    // this area:
+    //
+    //             Primary Component            Secondary (orthogonal) Component
+    //
+    //                  \  |  /                              / --- \
+    //                 --  X  --                            |   O   |
+    //                  /  |  \                              \ --- /
+    //                   radial                             circular
+    //
+    //
+    // Therefore the implementation below uses two components like the following:
+    //
+    //                  \  |  /                               / -- \
+    //                  |  |  |                              -- -- --
+    //                  /  |  \                               \ -- /
+    //            vertical / radial                  horizontal / circular
+
     #ifdef GLAREMODE_ASYMMETRIC_GAUSS
-      vec2 posClipSpace = 2.0 * vec2(gl_GlobalInvocationID.xy) / vec2(size) - 1.0;
+
+      // Reproject the current pixel position to view space.
+      vec2 posClipSpace = 2.0 * vec2(gl_GlobalInvocationID.xy) / vec2(outputSize) - 1.0;
       vec4 posViewSpace = uMatInvP * vec4(posClipSpace, 0.0, 1.0);
 
-      vec3 rotAxisV = cross(posViewSpace.xyz, vec3(1, 0, 0));
-      rotAxisV = cross(posViewSpace.xyz, rotAxisV);
+      // The primary component depicted above is a mixture between a vertical rotation and a radial
+      // rotation. A vertical rotation would require this axis:
+      vec3 rotAxisVertical = cross(posViewSpace.xyz, vec3(1, 0, 0));
+      rotAxisVertical = cross(posViewSpace.xyz, rotAxisVertical);
 
-      vec3 rotAxisD = cross(posViewSpace.xyz, vec3(0, 0, -1));
+      // A radial rotation would be around this axis:
+      vec3 rotAxisRadial = cross(posViewSpace.xyz, vec3(0, 0, -1));
       if (posViewSpace.y < 0) {
-        rotAxisD = -rotAxisD;
+        rotAxisRadial = -rotAxisRadial;
       }
 
-      vec3 rotAxis = mix(rotAxisV, rotAxisD, clamp(2*abs(posViewSpace.y / length(posViewSpace.xyz)), 0, 1));
+      // We mix those to axes with a factor which depends on the vertical position of our
+      // pixel on the screen. The magic factor of two determines how fast we change from one another
+      // and is not very sensitive. A value of five would result in very similar images.
+      float alpha = clamp(2*abs(posViewSpace.y / length(posViewSpace.xyz)), 0, 1);
+      vec3 rotAxis = mix(rotAxisVertical, rotAxisRadial, alpha);
 
+      // The primary passes use the axis computed above, the secondary passes use an
+      // orthogonal rotation axis.
       if (uPass == 0) {
         rotAxis = normalize(rotAxis);
       } else {
         rotAxis = normalize(cross(rotAxis, posViewSpace.xyz));
       }
 
-      const float samples    = 2*(GLARE_QUALITY+1)+1;
+      // The angle covered by the gauss kernel increases quadratically with the mipmap level.
       const float totalAngle = pow(2, uLevel);
-      float totalWeight      = 0;
-        
+
+      // Rotate the view vector to the current pixel several times around the rotation axis
+      // in order to sample the vicinity.
       for (float i = 0; i < samples; ++i) {
-
         float angle  = totalAngle * i / (samples-1) - totalAngle * 0.5;
-
-        float sigma = totalAngle / MAX_LEVELS;
+        float sigma  = totalAngle / MAX_LEVELS;
         float weight = getGauss(sigma, angle);
 
+        // Compute the rotated sample position in screen space.
         vec4 pos = uMatP * vec4(rotate(posViewSpace.xyz, rotAxis, angle*PI/180.0), 1.0);
         pos /= pos.w;
         
-        vec2 samplePos = (0.5*pos.xy + 0.5)*size;
+        // Convert to texture space.
+        vec2 samplePos = (0.5*pos.xy + 0.5)*outputSize;
 
+        // If we are writing to level zero, we have to sample the input HDR buffer. For all
+        // successive levels we sample the previous level in the first passes and the same level
+        // in the second passes.
         if (uPass == 0 && uLevel == 0) {
           glare += sampleHDRBuffer(samplePos) * weight;
         } else if (uPass == 0) {
@@ -202,12 +263,13 @@ static const char* sGlareShader = R"(
 
         totalWeight += weight;
       }
-
-      glare /= totalWeight;
-
     #endif
 
-    imageStore(uOutColor, storePos, vec4(glare, 0.0));
+    // Make sure that we do not add energy.
+    glare /= totalWeight;
+
+    // Finally store the glare value in the output layer of the glare mipmap.
+    imageStore(uOutGlare, pixelPos, vec4(glare, 0.0));
   }
 )";
 
@@ -314,11 +376,14 @@ void GlareMipMap::update(
   // We update the glare mipmap with several passes. First, the base level is filled with a
   // downsampled and horizontally blurred version of the HDRBuffer. Then, this is blurred
   // vertically. Then it's downsampled and horizontally blurred once more. And so on.
+  // In the asymmetric case, its not strictly horizontal and vertical - see the shader above for
+  // details.
 
   glUseProgram(mComputeProgram);
 
   glBindImageTexture(0, hdrBufferComposite->GetId(), 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
 
+  // The asymmetric variant requires the projection and the inverse projection matrices.
   if (glareMode == HDRBuffer::GlareMode::eAsymmetricGauss) {
     std::array<GLfloat, 16> glMatP{};
     glGetFloatv(GL_PROJECTION_MATRIX, glMatP.data());
