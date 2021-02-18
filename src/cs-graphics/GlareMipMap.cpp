@@ -152,7 +152,7 @@ static const char* sGlareShader = R"(
     // Take an odd number of samples to make sure that we sample the center value.
     const float samples = 2*(GLARE_QUALITY+1)+1;
 
-    // These values we contain the accumulated glare values.
+    // These values will contain the accumulated glare values.
     vec3  glare       = vec3(0);
     float totalWeight = 0;
 
@@ -219,9 +219,9 @@ static const char* sGlareShader = R"(
         rotAxisRadial = -rotAxisRadial;
       }
 
-      // We mix those to axes with a factor which depends on the vertical position of our
-      // pixel on the screen. The magic factor of two determines how fast we change from one another
-      // and is not very sensitive. A value of five would result in very similar images.
+      // We mix those two axes with a factor which depends on the vertical position of our
+      // pixel on the screen. The magic factor of two determines how fast we change from one to
+      // another and is not very sensitive. A value of five would result in very similar images.
       float alpha = clamp(2*abs(posViewSpace.y / length(posViewSpace.xyz)), 0, 1);
       vec3 rotAxis = mix(rotAxisVertical, rotAxisRadial, alpha);
 

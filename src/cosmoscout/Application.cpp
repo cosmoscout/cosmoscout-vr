@@ -1119,8 +1119,7 @@ void Application::registerGuiCallbacks() {
   mSettings->mGraphics.pExposureAdaptionSpeed.connectAndTouch(
       [this](float val) { mGuiManager->setSliderValue("graphics.setExposureAdaptionSpeed", val); });
 
-  // Adjusts the amount of artificial glare in HDR mode. If auto-glare is enabled, we update the
-  // slider in the user interface to show the current value.
+  // Adjusts the amount of artificial glare in HDR mode.
   mGuiManager->getGui()->registerCallback("graphics.setGlareIntensity",
       "Adjusts the amount of glare of overexposed areas.", std::function([this](double val) {
         mSettings->mGraphics.pGlareIntensity = static_cast<float>(val);
