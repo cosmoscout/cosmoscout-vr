@@ -290,6 +290,7 @@ GlareMipMap::GlareMipMap(uint32_t hdrBufferSamples, int hdrBufferWidth, int hdrB
   // Create storage for temporary glare target (this is used for the vertical blurring passes).
   mTemporaryTarget->Bind();
   glTexStorage2D(GL_TEXTURE_2D, mMaxLevels, GL_RGBA32F, iWidth, iHeight);
+  mTemporaryTarget->Unbind();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -429,6 +430,7 @@ void GlareMipMap::update(
 
   glBindImageTexture(0, 0, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
   glBindImageTexture(1, 0, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
+  glBindImageTexture(2, 0, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
