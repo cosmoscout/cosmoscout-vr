@@ -9,6 +9,7 @@
 
 #include "cs_core_export.hpp"
 
+#include "../cs-graphics/HDRBuffer.hpp"
 #include "../cs-utils/DefaultProperty.hpp"
 #include "../cs-utils/utils.hpp"
 
@@ -446,7 +447,7 @@ class CS_CORE_EXPORT Settings {
 
     /// The range from which to choose values for the auto exposure. Measured in exposure values
     /// (EV).
-    utils::DefaultProperty<glm::vec2> pAutoExposureRange{glm::vec2(-14.F, 10.F)};
+    utils::DefaultProperty<glm::vec2> pAutoExposureRange{glm::vec2(-14.F, 9.F)};
 
     /// An additional exposure control which is applied after auto exposure. Has no effect if HDR
     /// rendering is disabled. Measured in exposure values (EV).
@@ -465,12 +466,20 @@ class CS_CORE_EXPORT Settings {
     /// The amount of ambient light. This should be in the range 0-1.
     utils::DefaultProperty<float> pAmbientBrightness{std::pow(0.25F, 10.F)};
 
-    /// If set to true, the amount of artifical glare will be based on the current exposure. Has no
-    /// effect if HDR rendering is disabled.
-    utils::DefaultProperty<bool> pEnableAutoGlow{true};
+    /// The amount of artifical glare. Has no effect if HDR rendering is disabled. This should be in
+    /// the range 0-1. A value of zero disables the glare.
+    utils::DefaultProperty<float> pGlareIntensity{0.1F};
 
-    /// The amount of artifical glare. Has no effect if HDR rendering is disabled.
-    utils::DefaultProperty<float> pGlowIntensity{0.5F};
+    /// Higher values produce a smoother glare.
+    utils::DefaultProperty<uint32_t> pGlareQuality{0};
+
+    /// If enabled, the more expensive but much smoother manual bicubic texture filtering is used
+    /// for the glare.
+    utils::DefaultProperty<bool> pEnableBicubicGlareFilter{true};
+
+    /// Specifies how the glare is computed.
+    utils::DefaultProperty<graphics::HDRBuffer::GlareMode> pGlareMode{
+        graphics::HDRBuffer::GlareMode::eSymmetricGauss};
 
     /// This makes illumination calculations assume a fixed sun position in the current SPICE frame.
     /// Using the default value glm::dvec3(0.0) disables this feature.
