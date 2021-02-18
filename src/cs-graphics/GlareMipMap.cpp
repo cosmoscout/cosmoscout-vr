@@ -222,7 +222,7 @@ static const char* sGlareShader = R"(
       }
 
       // The angle covered by the gauss kernel increases quadratically with the mipmap level.
-      const float totalAngle = pow(2, uLevel);
+      const float totalAngle = pow(2, uLevel) * PI / 180.0;
 
       // Rotate the view vector to the current pixel several times around the rotation axis
       // in order to sample the vicinity.
@@ -232,7 +232,7 @@ static const char* sGlareShader = R"(
         float weight = getGauss(sigma, angle);
 
         // Compute the rotated sample position in screen space.
-        vec4 pos = uMatP * vec4(rotate(posViewSpace.xyz, rotAxis, angle*PI/180.0), 1.0);
+        vec4 pos = uMatP * vec4(rotate(posViewSpace.xyz, rotAxis, angle), 1.0);
         pos /= pos.w;
         
         // Convert to texture space.
