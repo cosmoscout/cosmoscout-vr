@@ -11,8 +11,8 @@
 
 #include <array>
 #include <cstdint>
+#include <memory>
 #include <unordered_map>
-#include <vector>
 
 class VistaFramebufferObj;
 class VistaTexture;
@@ -111,11 +111,11 @@ class CS_GRAPHICS_EXPORT HDRBuffer {
   // object, GlareMipMap and LuminanceMipMap for each viewport. This is mainly because viewports
   // often have different sizes.
   struct HDRBufferData {
-    VistaFramebufferObj*         mFBO{};
-    std::array<VistaTexture*, 2> mColorAttachments{};
-    VistaTexture*                mDepthAttachment{};
-    LuminanceMipMap*             mLuminanceMipMap{};
-    GlareMipMap*                 mGlareMipMap{};
+    std::unique_ptr<VistaFramebufferObj>         mFBO;
+    std::array<std::unique_ptr<VistaTexture>, 2> mColorAttachments;
+    std::unique_ptr<VistaTexture>                mDepthAttachment;
+    std::unique_ptr<LuminanceMipMap>             mLuminanceMipMap;
+    std::unique_ptr<GlareMipMap>                 mGlareMipMap;
 
     // Stores the original viewport position and size.
     std::array<int, 4> mCachedViewport{};
