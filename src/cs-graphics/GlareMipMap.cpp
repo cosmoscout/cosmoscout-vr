@@ -115,23 +115,11 @@ static const char* sGlareShader = R"(
     return mix(tA, tB, f.y);
   }
 
-
-  // Computes a rotation matrix for rotations around the given axis.
-  mat3 rotationMatrix(vec3 axis, float angle) {
-    float s = sin(angle);
-    float c = cos(angle);
-    float i = 1.0 - c;
-    
-    return mat3(i*axis.x*axis.x + c,        i*axis.x*axis.y - axis.z*s, i*axis.z*axis.x + axis.y*s,
-                i*axis.x*axis.y + axis.z*s, i*axis.y*axis.y + c,        i*axis.y*axis.z - axis.x*s,
-                i*axis.z*axis.x - axis.y*s, i*axis.y*axis.z + axis.x*s, i*axis.z*axis.z + c);
-  }
-
   // Rotates the given vector around a given axis.
+  // Based on comment from http://www.neilmendoza.com/glsl-rotation-about-an-arbitrary-axis/
   vec3 rotate(vec3 v, vec3 axis, float angle) {
-    return rotationMatrix(axis, angle) * v;
+    return mix(dot(axis, v) * axis, v, cos(angle)) + cross(axis, v) * sin(angle);
   }
-
 
   // Evalutes the normal distribution function for the given value.
   float getGauss(float sigma, float value) {
