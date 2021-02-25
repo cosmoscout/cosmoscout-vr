@@ -104,14 +104,12 @@ bool Application::Init(VistaSystem* pVistaSystem) {
 
   // First we create all our core classes.
   mInputManager   = std::make_shared<cs::core::InputManager>();
-  mFrameTimings   = std::make_shared<cs::utils::FrameTimings>();
   mGraphicsEngine = std::make_shared<cs::core::GraphicsEngine>(mSettings);
-  mGuiManager     = std::make_shared<cs::core::GuiManager>(mSettings, mInputManager, mFrameTimings);
+  mGuiManager     = std::make_shared<cs::core::GuiManager>(mSettings, mInputManager);
   mSceneSync =
       std::unique_ptr<IVistaClusterDataSync>(GetVistaSystem()->GetClusterMode()->CreateDataSync());
   mTimeControl = std::make_shared<cs::core::TimeControl>(mSettings);
-  mSolarSystem = std::make_shared<cs::core::SolarSystem>(
-      mSettings, mFrameTimings, mGraphicsEngine, mTimeControl);
+  mSolarSystem = std::make_shared<cs::core::SolarSystem>(mSettings, mGraphicsEngine, mTimeControl);
   mDragNavigation =
       std::make_unique<cs::core::DragNavigation>(mSolarSystem, mInputManager, mTimeControl);
 
@@ -217,9 +215,6 @@ void Application::Quit() {
   assertCleanUp("mGraphicsEngine", mGraphicsEngine.use_count());
   mGraphicsEngine.reset();
 
-  assertCleanUp("mFrameTimings", mFrameTimings.use_count());
-  mFrameTimings.reset();
-
   assertCleanUp("mInputManager", mInputManager.use_count());
   mInputManager.reset();
 
@@ -231,7 +226,7 @@ void Application::Quit() {
 void Application::FrameUpdate() {
 
   // The FrameTimings are used to measure the time individual parts of the frame loop require.
-  mFrameTimings->startFullFrameTiming();
+  cs::utils::FrameTimings::get().startFrame();
 
   // Increase the frame count once every frame.
   ++m_iFrameCount;
@@ -631,7 +626,7 @@ void Application::FrameUpdate() {
 
   // Measure frame time until here. If we moved this farther down, we would also measure the
   // vertical synchronization delay, which would result in wrong timings.
-  mFrameTimings->endFullFrameTiming();
+  cs::utils::FrameTimings::get().endFrame();
 
   {
     cs::utils::FrameTimings::ScopedTimer timer("Display Frame");
@@ -642,9 +637,6 @@ void Application::FrameUpdate() {
     cs::utils::FrameTimings::ScopedTimer timer("FrameRate RecordTime");
     m_pFrameRate->RecordTime();
   }
-
-  // Record frame timings.
-  mFrameTimings->update();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -752,8 +744,7 @@ void Application::initPlugin(std::string const& name) {
 
       // First provide the plugin with all required class instances.
       plugin->second.mPlugin->setAPI(mSettings, mSolarSystem, mGuiManager, mInputManager,
-          GetVistaSystem()->GetGraphicsManager()->GetSceneGraph(), mGraphicsEngine, mFrameTimings,
-          mTimeControl);
+          GetVistaSystem()->GetGraphicsManager()->GetSceneGraph(), mGraphicsEngine, mTimeControl);
 
       // Then do the actual initialization. This may actually take a while and the application will
       // become unresponsive in the meantime.
