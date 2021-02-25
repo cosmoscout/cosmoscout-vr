@@ -125,7 +125,7 @@ void Plugin::update() {
       (mEnableRecording || mEnableStatistics)) {
 
     // Only record ranges longer than 10 µs.
-    const uint32_t minTimeNanos    = 1e4;
+    const uint32_t minTimeNanos    = 10000;
     auto const&    ranges          = cs::utils::FrameTimings::get().getRanges();
     uint32_t       maxNestingLevel = 0;
 
@@ -146,12 +146,14 @@ void Plugin::update() {
       for (auto const& range : ranges) {
         if (range.mGPUEnd - range.mGPUStart >= minTimeNanos) {
           gpuRanges[range.mNestingLevel].emplace_back(range.mName,
-              (range.mGPUStart - gpuFrameStart) / 1000, (range.mGPUEnd - gpuFrameStart) / 1000);
+              static_cast<uint32_t>(range.mGPUStart - gpuFrameStart) / 1000,
+              static_cast<uint32_t>(range.mGPUEnd - gpuFrameStart) / 1000);
         }
 
         if (range.mCPUEnd - range.mCPUStart >= minTimeNanos) {
           cpuRanges[range.mNestingLevel].emplace_back(range.mName,
-              (range.mCPUStart - cpuFrameStart) / 1000, (range.mCPUEnd - cpuFrameStart) / 1000);
+              static_cast<uint32_t>(range.mCPUStart - cpuFrameStart) / 1000,
+              static_cast<uint32_t>(range.mCPUEnd - cpuFrameStart) / 1000);
         }
       }
     }

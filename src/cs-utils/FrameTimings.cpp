@@ -164,7 +164,7 @@ int32_t TimerPool::startRange(std::string name, FrameTimings::QueryMode mode) {
   mRanges.push_back(std::move(range));
 
   // Return the index at which this range was inserted.
-  return mRanges.size() - 1;
+  return static_cast<int32_t>(mRanges.size() - 1);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
