@@ -448,21 +448,21 @@ void Application::FrameUpdate() {
     // Update the InputManager.
     {
       cs::utils::FrameTimings::ScopedTimer timer(
-          "InputManager Update", cs::utils::FrameTimings::QueryMode::eCPU);
+          "Update InputManager", cs::utils::FrameTimings::QueryMode::eCPU);
       mInputManager->update();
     }
 
     // Update the TimeControl.
     {
       cs::utils::FrameTimings::ScopedTimer timer(
-          "TimeControl Update", cs::utils::FrameTimings::QueryMode::eCPU);
+          "Update TimeControl", cs::utils::FrameTimings::QueryMode::eCPU);
       mTimeControl->update();
     }
 
     // Update the navigation, SolarSystem and scene scale.
     {
       cs::utils::FrameTimings::ScopedTimer timer(
-          "SolarSystem Update", cs::utils::FrameTimings::QueryMode::eCPU);
+          "Update SolarSystem", cs::utils::FrameTimings::QueryMode::eCPU);
 
       // It may be that our observer is in a SPICE frame we do not have data for. If this is the
       // case, this call will bring it back to Solar System Barycenter / J2000 which should be
@@ -504,7 +504,7 @@ void Application::FrameUpdate() {
     // Update the individual plugins.
     for (auto const& plugin : mPlugins) {
       cs::utils::FrameTimings::ScopedTimer timer(
-          plugin.first, cs::utils::FrameTimings::QueryMode::eBoth);
+          "Update " + plugin.first, cs::utils::FrameTimings::QueryMode::eBoth);
 
       try {
         plugin.second.mPlugin->update();
@@ -554,12 +554,15 @@ void Application::FrameUpdate() {
     }
 
     // Update the GraphicsEngine.
-    mGraphicsEngine->update(glm::normalize(mSolarSystem->pSunPosition.get()));
+    {
+      cs::utils::FrameTimings::ScopedTimer timer("Update Graphics Engine");
+      mGraphicsEngine->update(glm::normalize(mSolarSystem->pSunPosition.get()));
+    }
   }
 
   // Update the user interface.
   {
-    cs::utils::FrameTimings::ScopedTimer timer("User Interface");
+    cs::utils::FrameTimings::ScopedTimer timer("Update User Interface");
 
     // Call update on all APIs
     if (mLoadedAllPlugins) {
@@ -617,7 +620,7 @@ void Application::FrameUpdate() {
   // update vista classes --------------------------------------------------------------------------
 
   {
-    cs::utils::FrameTimings::ScopedTimer timer("DisplayManager DrawFrame");
+    cs::utils::FrameTimings::ScopedTimer timer("Rendering");
     m_pDisplayManager->DrawFrame();
   }
 
@@ -631,7 +634,7 @@ void Application::FrameUpdate() {
   mFrameTimings->endFullFrameTiming();
 
   {
-    cs::utils::FrameTimings::ScopedTimer timer("DisplayManager DisplayFrame");
+    cs::utils::FrameTimings::ScopedTimer timer("Display Frame");
     m_pDisplayManager->DisplayFrame();
   }
 
