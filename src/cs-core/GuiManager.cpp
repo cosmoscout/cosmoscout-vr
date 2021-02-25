@@ -33,8 +33,8 @@ namespace cs::core {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-GuiManager::GuiManager(std::shared_ptr<Settings> settings,
-    std::shared_ptr<InputManager> pInputManager)
+GuiManager::GuiManager(
+    std::shared_ptr<Settings> settings, std::shared_ptr<InputManager> pInputManager)
     : mInputManager(std::move(pInputManager))
     , mSettings(std::move(settings)) {
 

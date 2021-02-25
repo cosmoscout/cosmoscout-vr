@@ -6,8 +6,8 @@
 
 #include "ToneMappingNode.hpp"
 
-#include "HDRBuffer.hpp"
 #include "../cs-utils/FrameTimings.hpp"
+#include "HDRBuffer.hpp"
 
 #include <VistaInterProcComm/Cluster/VistaClusterDataCollect.h>
 #include <VistaInterProcComm/Cluster/VistaClusterDataSync.h>

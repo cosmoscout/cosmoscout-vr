@@ -215,8 +215,8 @@ class CS_CORE_EXPORT GuiManager {
   void onLoad();
   void onSave();
 
-  std::shared_ptr<InputManager>        mInputManager;
-  std::shared_ptr<Settings>            mSettings;
+  std::shared_ptr<InputManager> mInputManager;
+  std::shared_ptr<Settings>     mSettings;
 
   std::unique_ptr<VistaViewportResizeToProjectionAdapter> mViewportUpdater;
   std::unique_ptr<gui::WorldSpaceGuiArea>                 mGlobalGuiArea;
