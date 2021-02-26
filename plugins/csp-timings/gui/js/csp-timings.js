@@ -186,7 +186,7 @@ class TimingsApi extends IApi {
 
       // For linearly increasing i, this results in these intervals:
       // 1 2 5 10 20 50 100 200 500 1000 ....
-      let int  = ~~(i / 3);
+      let int  = Math.floor(i / 3);
       let mod  = i % 3;
       interval = (mod === 1 ? i * 2 : i * 2 + 1) * (int + 1);
     }
