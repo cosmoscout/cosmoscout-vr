@@ -60,7 +60,7 @@ class TimingsApi extends IApi {
 
     // Create the color hash object for coloring the timing ranges.
     if (typeof ColorHash !== 'undefined') {
-      this._colorHash = new ColorHash({lightness: 0.4, saturation: 0.3});
+      this._colorHash = new ColorHash({lightness: 0.3, saturation: 0.6});
     } else {
       console.error('Class \'ColorHash\' not defined.');
     }

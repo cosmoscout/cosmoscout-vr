@@ -191,10 +191,18 @@
 
 #frame-slider-container {
   display: flex;
-  margin: 20px 10px 20px 30px;
+  margin: 10px 20px 0px 30px;
+  height: 0;
+  opacity: 0;
+  transition: height 0.3s, opacity 0.3s;
+}
+
+#timings:hover #frame-slider-container {
+  height: 20px;
+  opacity: 1;
 }
 
 #frame-slider {
-  margin-left: 40px;
+  margin-left: 30px;
   flex-grow: 1;
 }
