@@ -130,7 +130,7 @@ class TimingsApi extends IApi {
       // 1 2 5 10 20 50 100 200 500 1000 ....
       let int  = ~~(i / 3);
       let mod  = i % 3;
-      interval = (mod == 1 ? i * 2 : i * 2 + 1) * (int + 1);
+      interval = (mod === 1 ? i * 2 : i * 2 + 1) * (int + 1);
     }
 
     // Compute the number of required grid lines.
@@ -142,14 +142,14 @@ class TimingsApi extends IApi {
       // The last tick line will require a little bit of margin on the right hand side as the
       // maxTime will not be a full multiple of interval.
       let margin = "";
-      if (i == ticks) {
+      if (i === ticks) {
         let fullTickWidth = 100.0 / (ticks + 1);
         let remainder     = maxTime / interval - ticks;
         margin            = `style="margin-right: ${fullTickWidth * remainder}%"`;
       }
 
       // Every 5 ticks we add a major grid line.
-      if (i % 5 == 0) {
+      if (i % 5 === 0) {
         gridLines.innerHTML +=
             `<div class="tick major" ${margin}><span>${i * interval} ms</span></div>`
       } else {

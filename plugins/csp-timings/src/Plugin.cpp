@@ -129,7 +129,7 @@ void Plugin::update() {
     auto const&    ranges          = cs::utils::FrameTimings::get().getRanges();
     uint32_t       maxNestingLevel = 0;
 
-    // Compute the maximum nesting level amongst all recoreded ranges.
+    // Compute the maximum nesting level amongst all recorded ranges.
     for (auto const& range : ranges) {
       maxNestingLevel = std::max(maxNestingLevel, range.mNestingLevel);
     }
@@ -205,7 +205,7 @@ void Plugin::update() {
 
     // This stores a CSV file for each nesting level in the directory created above. The prefix will
     // be prepended to the CSV file name.
-    auto saveRecording = [directory](std::string const&                          prefix,
+    auto saveRecording = [&directory](std::string const&                          prefix,
                              std::vector<std::vector<std::vector<Range>>> const& recording) {
       // Retrieve the maximum nesting level amongst all recorded frames. We need this to decide how
       // many files to create. The nesting level may actually change during a recording if for
