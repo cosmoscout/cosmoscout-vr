@@ -1,6 +1,11 @@
 /* global IApi, CosmoScout, ColorHash */
 
 /**
+ * This amount of frame data will be stored to slide through.
+ */
+const maxStoredFrames = 100;
+
+/**
  * Timings Api
  */
 class TimingsApi extends IApi {
@@ -10,16 +15,52 @@ class TimingsApi extends IApi {
   name = 'timings';
 
   /**
-   * ColorHash object
-   *
-   * @type {ColorHash}
-   * @private
+   * These members save the per-frame timing data for the last couple of frame. Each per-frame data
+   * set contains an array for each nesting level of the timing ranges. Each timing range is an
+   * array of three elements: [<name>, <frame-relative-start>, <frame-relative-end>].
    */
-  _colorHash;
+  _gpuData = [];
+  _cpuData = [];
+
+  /**
+   * The index of the currently shown frame data. Should be in the range [0 ... maxStoredFrames-1]
+   * with 0 being the most recent frame.
+   */
+  _frameIndex = 0;
 
   init() {
+
+    // Create the frame selection slider.
+    let slider = document.getElementById('frame-slider');
+    noUiSlider.create(slider, {
+      start: 1,
+      connect: false,
+      range: {'min': 0, 'max': maxStoredFrames - 1},
+      step: 1,
+      format: {
+        to(value) {
+          if (value === 0) {
+            return "Latest"
+          }
+          return "- " + CosmoScout.utils.beautifyNumber(value);
+        },
+        from(value) {
+          if (value === "Latest") {
+            return 0;
+          }
+          return Number(-parseFloat(value));
+        },
+      },
+    });
+
+    slider.noUiSlider.on("slide", (values, handle, unencoded) => {
+      this._frameIndex = unencoded;
+      this._redraw();
+    });
+
+    // Create the color hash object for coloring the timing ranges.
     if (typeof ColorHash !== 'undefined') {
-      this._colorHash = new ColorHash({lightness: 0.5, saturation: 0.4});
+      this._colorHash = new ColorHash({lightness: 0.4, saturation: 0.3});
     } else {
       console.error('Class \'ColorHash\' not defined.');
     }
@@ -35,27 +76,44 @@ class TimingsApi extends IApi {
 
     // Only update the graph if it's not hovered.
     if (!container.matches(':hover')) {
+      this._gpuData.unshift(JSON.parse(gpuData));
+      this._cpuData.unshift(JSON.parse(cpuData));
 
-      gpuData = JSON.parse(gpuData);
-      cpuData = JSON.parse(cpuData);
+      if (this._gpuData.length > maxStoredFrames) {
+        this._gpuData.pop();
+      }
 
-      // Retrieve the end time values of the last root-level timing ranges. The maximum of these
-      // determines the maximum x-value of the graph.
-      let maxGPUTime = gpuData[0][gpuData[0].length - 1][2];
-      let maxCPUTime = cpuData[0][cpuData[0].length - 1][2];
-      let maxTime    = Math.max(maxGPUTime, maxCPUTime) * 0.001;
+      if (this._cpuData.length > maxStoredFrames) {
+        this._cpuData.pop();
+      }
 
-      // With this value we can update the FPS display.
-      const item     = document.getElementById('fps-counter');
-      item.innerHTML = `FPS: ${(1000.0 / maxTime).toFixed(2)} / ${(maxTime).toFixed(2)} ms`;
-
-      // First we update the background grid.
-      this._drawGrid(maxTime);
-
-      // Then we draw the two graphs.
-      this._drawRanges("#gpu-ranges", gpuData, maxTime);
-      this._drawRanges("#cpu-ranges", cpuData, maxTime);
+      this._redraw();
     }
+  }
+
+  /**
+   *
+   */
+  _redraw() {
+    let gpuData = this._gpuData[this._frameIndex];
+    let cpuData = this._cpuData[this._frameIndex];
+
+    // Retrieve the end time values of the last root-level timing ranges. The maximum of these
+    // determines the maximum x-value of the graph.
+    let maxGPUTime = gpuData[0][gpuData[0].length - 1][2];
+    let maxCPUTime = cpuData[0][cpuData[0].length - 1][2];
+    let maxTime    = Math.max(maxGPUTime, maxCPUTime) * 0.001;
+
+    // With this value we can update the FPS display.
+    const item     = document.getElementById('fps-counter');
+    item.innerHTML = `FPS: ${(1000.0 / maxTime).toFixed(2)} / ${(maxTime).toFixed(2)} ms`;
+
+    // First we update the background grid.
+    this._drawGrid(maxTime);
+
+    // Then we draw the two graphs.
+    this._drawRanges("#gpu-ranges", gpuData, maxTime);
+    this._drawRanges("#cpu-ranges", cpuData, maxTime);
   }
 
   /**

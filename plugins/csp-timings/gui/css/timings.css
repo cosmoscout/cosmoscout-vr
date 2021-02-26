@@ -7,7 +7,6 @@
   width: 50vw;
   right: 0;
   color: var(--cs-color-text);
-  text-shadow: 1px 1px 2px #000;
   text-align: center;
   border-top-left-radius: var(--cs-border-radius-large);
   border-bottom-left-radius: var(--cs-border-radius-large);
@@ -179,4 +178,23 @@
 #grid .tick:last-child span {
   left: auto;
   right: 0;
+}
+
+
+/*                                                                                                */
+/*                                   Styling of the frame slider                                  */
+/*                                                                                                */
+
+.noUi-base {
+  margin-top: 0;
+}
+
+#frame-slider-container {
+  display: flex;
+  margin: 20px 10px 20px 30px;
+}
+
+#frame-slider {
+  margin-left: 40px;
+  flex-grow: 1;
 }

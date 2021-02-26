@@ -5,6 +5,8 @@
   <meta charset="UTF-8">
   <title>CosmoScout Frame Timings</title>
 
+  <link type="text/css" rel="stylesheet" href="third-party/css/nouislider.css">
+
   <link type="text/css" rel="stylesheet" href="css/gui.css">
   <link type="text/css" rel="stylesheet" href="css/timings.css">
 </head>
@@ -101,12 +103,19 @@
       </div>
 
     </div>
+
+    <div id="frame-slider-container">
+      <div>Displayed Frame</div>
+      <div id="frame-slider"></div>
+    </div>
   </div>
 
   <script type="text/javascript" src="third-party/js/color-hash.js"></script>
+  <script type="text/javascript" src="third-party/js/nouislider.min.js"></script>
 
   <script type="text/javascript" src="js/api.js"></script>
   <script type="text/javascript" src="js/cosmoscout.js"></script>
+  <script type="text/javascript" src="js/apis/utils.js"></script>
   <script type="text/javascript" src="js/apis/gui.js"></script>
   <script type="text/javascript" src="js/csp-timings.js"></script>
 
@@ -114,6 +123,7 @@
     var CosmoScout = new CosmoScoutAPI();
     document.addEventListener('DOMContentLoaded', () => {
       CosmoScout.init(
+        UtilsApi,
         GuiApi,
         TimingsApi
       );
