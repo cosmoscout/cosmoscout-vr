@@ -163,16 +163,16 @@ void Plugin::update() {
       auto toJSON = [](std::vector<std::vector<Range>> const& ranges) {
         nlohmann::json json;
 
-        for (uint32_t i = 0; i < ranges.size(); ++i) {
-          nlohmann::json level;
-          for (auto const& range : ranges[i]) {
-            nlohmann::json item;
-            item.push_back(range.mName);
-            item.push_back(range.mStart);
-            item.push_back(range.mEnd);
-            level.push_back(item);
+        for (auto const& level : ranges) {
+          nlohmann::json levelJSON;
+          for (auto const& range : level) {
+            nlohmann::json rangeJSON;
+            rangeJSON.push_back(range.mName);
+            rangeJSON.push_back(range.mStart);
+            rangeJSON.push_back(range.mEnd);
+            levelJSON.push_back(rangeJSON);
           }
-          json.push_back(level);
+          json.push_back(levelJSON);
         }
 
         return json.dump();
@@ -205,7 +205,7 @@ void Plugin::update() {
 
     // This stores a CSV file for each nesting level in the directory created above. The prefix will
     // be prepended to the CSV file name.
-    auto saveRecording = [&directory](std::string const&                          prefix,
+    auto saveRecording = [&directory](std::string const&                         prefix,
                              std::vector<std::vector<std::vector<Range>>> const& recording) {
       // Retrieve the maximum nesting level amongst all recorded frames. We need this to decide how
       // many files to create. The nesting level may actually change during a recording if for
