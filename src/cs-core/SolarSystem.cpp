@@ -31,10 +31,8 @@ namespace cs::core {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 SolarSystem::SolarSystem(std::shared_ptr<Settings> settings,
-    std::shared_ptr<utils::FrameTimings>           frameTimings,
     std::shared_ptr<GraphicsEngine> graphicsEngine, std::shared_ptr<TimeControl> timeControl)
     : mSettings(std::move(settings))
-    , mFrameTimings(std::move(frameTimings))
     , mGraphicsEngine(std::move(graphicsEngine))
     , mTimeControl(std::move(timeControl))
     , mSun(std::make_shared<scene::CelestialObject>()) {

@@ -104,14 +104,12 @@ bool Application::Init(VistaSystem* pVistaSystem) {
 
   // First we create all our core classes.
   mInputManager   = std::make_shared<cs::core::InputManager>();
-  mFrameTimings   = std::make_shared<cs::utils::FrameTimings>();
   mGraphicsEngine = std::make_shared<cs::core::GraphicsEngine>(mSettings);
-  mGuiManager     = std::make_shared<cs::core::GuiManager>(mSettings, mInputManager, mFrameTimings);
+  mGuiManager     = std::make_shared<cs::core::GuiManager>(mSettings, mInputManager);
   mSceneSync =
       std::unique_ptr<IVistaClusterDataSync>(GetVistaSystem()->GetClusterMode()->CreateDataSync());
   mTimeControl = std::make_shared<cs::core::TimeControl>(mSettings);
-  mSolarSystem = std::make_shared<cs::core::SolarSystem>(
-      mSettings, mFrameTimings, mGraphicsEngine, mTimeControl);
+  mSolarSystem = std::make_shared<cs::core::SolarSystem>(mSettings, mGraphicsEngine, mTimeControl);
   mDragNavigation =
       std::make_unique<cs::core::DragNavigation>(mSolarSystem, mInputManager, mTimeControl);
 
@@ -217,9 +215,6 @@ void Application::Quit() {
   assertCleanUp("mGraphicsEngine", mGraphicsEngine.use_count());
   mGraphicsEngine.reset();
 
-  assertCleanUp("mFrameTimings", mFrameTimings.use_count());
-  mFrameTimings.reset();
-
   assertCleanUp("mInputManager", mInputManager.use_count());
   mInputManager.reset();
 
@@ -231,7 +226,7 @@ void Application::Quit() {
 void Application::FrameUpdate() {
 
   // The FrameTimings are used to measure the time individual parts of the frame loop require.
-  mFrameTimings->startFullFrameTiming();
+  cs::utils::FrameTimings::get().startFrame();
 
   // Increase the frame count once every frame.
   ++m_iFrameCount;
@@ -448,21 +443,21 @@ void Application::FrameUpdate() {
     // Update the InputManager.
     {
       cs::utils::FrameTimings::ScopedTimer timer(
-          "InputManager Update", cs::utils::FrameTimings::QueryMode::eCPU);
+          "Update InputManager", cs::utils::FrameTimings::QueryMode::eCPU);
       mInputManager->update();
     }
 
     // Update the TimeControl.
     {
       cs::utils::FrameTimings::ScopedTimer timer(
-          "TimeControl Update", cs::utils::FrameTimings::QueryMode::eCPU);
+          "Update TimeControl", cs::utils::FrameTimings::QueryMode::eCPU);
       mTimeControl->update();
     }
 
     // Update the navigation, SolarSystem and scene scale.
     {
       cs::utils::FrameTimings::ScopedTimer timer(
-          "SolarSystem Update", cs::utils::FrameTimings::QueryMode::eCPU);
+          "Update SolarSystem", cs::utils::FrameTimings::QueryMode::eCPU);
 
       // It may be that our observer is in a SPICE frame we do not have data for. If this is the
       // case, this call will bring it back to Solar System Barycenter / J2000 which should be
@@ -504,7 +499,7 @@ void Application::FrameUpdate() {
     // Update the individual plugins.
     for (auto const& plugin : mPlugins) {
       cs::utils::FrameTimings::ScopedTimer timer(
-          plugin.first, cs::utils::FrameTimings::QueryMode::eBoth);
+          "Update " + plugin.first, cs::utils::FrameTimings::QueryMode::eBoth);
 
       try {
         plugin.second.mPlugin->update();
@@ -554,12 +549,15 @@ void Application::FrameUpdate() {
     }
 
     // Update the GraphicsEngine.
-    mGraphicsEngine->update(glm::normalize(mSolarSystem->pSunPosition.get()));
+    {
+      cs::utils::FrameTimings::ScopedTimer timer("Update Graphics Engine");
+      mGraphicsEngine->update(glm::normalize(mSolarSystem->pSunPosition.get()));
+    }
   }
 
   // Update the user interface.
   {
-    cs::utils::FrameTimings::ScopedTimer timer("User Interface");
+    cs::utils::FrameTimings::ScopedTimer timer("Update User Interface");
 
     // Call update on all APIs
     if (mLoadedAllPlugins) {
@@ -617,7 +615,7 @@ void Application::FrameUpdate() {
   // update vista classes --------------------------------------------------------------------------
 
   {
-    cs::utils::FrameTimings::ScopedTimer timer("DisplayManager DrawFrame");
+    cs::utils::FrameTimings::ScopedTimer timer("Rendering");
     m_pDisplayManager->DrawFrame();
   }
 
@@ -628,10 +626,10 @@ void Application::FrameUpdate() {
 
   // Measure frame time until here. If we moved this farther down, we would also measure the
   // vertical synchronization delay, which would result in wrong timings.
-  mFrameTimings->endFullFrameTiming();
+  cs::utils::FrameTimings::get().endFrame();
 
   {
-    cs::utils::FrameTimings::ScopedTimer timer("DisplayManager DisplayFrame");
+    cs::utils::FrameTimings::ScopedTimer timer("Display Frame");
     m_pDisplayManager->DisplayFrame();
   }
 
@@ -639,9 +637,6 @@ void Application::FrameUpdate() {
     cs::utils::FrameTimings::ScopedTimer timer("FrameRate RecordTime");
     m_pFrameRate->RecordTime();
   }
-
-  // Record frame timings.
-  mFrameTimings->update();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -749,8 +744,7 @@ void Application::initPlugin(std::string const& name) {
 
       // First provide the plugin with all required class instances.
       plugin->second.mPlugin->setAPI(mSettings, mSolarSystem, mGuiManager, mInputManager,
-          GetVistaSystem()->GetGraphicsManager()->GetSceneGraph(), mGraphicsEngine, mFrameTimings,
-          mTimeControl);
+          GetVistaSystem()->GetGraphicsManager()->GetSceneGraph(), mGraphicsEngine, mTimeControl);
 
       // Then do the actual initialization. This may actually take a while and the application will
       // become unresponsive in the meantime.

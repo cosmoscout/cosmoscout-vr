@@ -6,6 +6,8 @@
 
 #include "LuminanceMipMap.hpp"
 
+#include "../cs-utils/FrameTimings.hpp"
+
 #include <algorithm>
 #include <cmath>
 #include <iostream>
@@ -176,6 +178,8 @@ LuminanceMipMap::~LuminanceMipMap() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void LuminanceMipMap::update(VistaTexture* hdrBufferComposite) {
+
+  utils::FrameTimings::ScopedTimer timer("Compute Scene Luminance");
 
   // Read the luminance values from the last frame. ------------------------------------------------
   glBindBuffer(GL_PIXEL_PACK_BUFFER, mPBO);

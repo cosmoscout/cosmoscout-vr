@@ -5,17 +5,119 @@
   <meta charset="UTF-8">
   <title>CosmoScout Frame Timings</title>
 
+  <link type="text/css" rel="stylesheet" href="third-party/css/nouislider.css">
+
   <link type="text/css" rel="stylesheet" href="css/gui.css">
   <link type="text/css" rel="stylesheet" href="css/timings.css">
 </head>
 
 <body>
-  <div id="timings" class="font-ubuntu"></div>
+  <div id="timings" class="font-ubuntu">
+    <div id="fps-counter">60 FPS / 16.7 ms</div>
+
+    <div id="frame-slider-container">
+      <div>Displayed Frame</div>
+      <div id="frame-slider"></div>
+    </div>
+
+    <div id="graph">
+
+      <div id="ranges">
+
+        <div id="gpu-ranges">
+
+          <!-- This container is filled with JavaScript with something similar to the elements below.
+               If you want to tweak the appearance of the range bars, you can uncomment these lines
+               and view this file in Chrome. -->
+
+          <!-- <div class="level">
+            <div class="range" data-tooltip="Foo (3 ms)" style="left: 4%; width: 20%; background-color: rgb(170, 138, 51);">
+            </div>
+            <div class="range" data-tooltip="Foo (3 ms)" style="left: 28%; width: 10%; background-color: rgb(170, 51, 154);">
+            </div>
+          </div>
+          <div class="level">
+            <div class="range" data-tooltip="Foo (3 ms)" style="left: 0%; width: 100%; background-color: rgb(89, 170, 51);">
+            </div>
+          </div>
+          <div class="level">
+            <div class="range" data-tooltip="Foo (3 ms)" style="left: 10%; width: 40%; background-color: #3a8;"></div>
+          </div> -->
+
+        </div>
+
+        <div id="cpu-ranges">
+
+          <!-- This container is filled with JavaScript with something similar to the elements below.
+               If you want to tweak the appearance of the range bars, you can uncomment these lines
+               and view this file in Chrome. -->
+
+          <!-- <div class="level">
+            <div class="range" data-tooltip="Foo (3 ms)"
+              style="--tooltip-offset:4%; left: 4%; width: 20%; background-color: rgb(170, 138, 51);">
+            </div>
+            <div class="range" data-tooltip="Foo (3 ms)"
+              style="--tooltip-offset:28%; left: 28%; width: 10%; background-color: rgb(170, 51, 154);">
+            </div>
+          </div>
+          <div class="level">
+            <div class="range" data-tooltip="Foo (3 ms)"
+              style="--tooltip-offset:0%; left: 0%; width: 50%; background-color: rgb(89, 170, 51);">
+            </div>
+            <div class="range" data-tooltip="Foo (3 ms)"
+              style="--tooltip-offset:52%; left: 52%; width: 1%; background-color: rgb(74, 181, 207);">
+            </div>
+          </div>
+          <div class="level">
+            <div class="range" data-tooltip="Foo (3 ms)"
+              style="--tooltip-offset:0%; left: 0%; width: 2%; background-color: #3a8;"></div>
+            <div class="range" data-tooltip="Foo (3 ms)"
+              style="--tooltip-offset:98%; left: 98%; width: 2%; background-color: #3a8;"></div>
+          </div> -->
+
+        </div>
+
+      </div>
+
+      <div id="grid">
+
+        <!-- This container is filled with JavaScript with something similar to the elements below.
+        If you want to tweak the appearance of the grid lines, you can uncomment these lines and
+        view this file in Chrome. -->
+
+        <!-- <div class="tick major"><span>0 ms</span></div>
+        <div class="tick minor"></div>
+        <div class="tick minor"></div>
+        <div class="tick minor"></div>
+        <div class="tick minor"></div>
+        <div class="tick major"><span>5 ms</span></div>
+        <div class="tick minor"></div>
+        <div class="tick minor"></div>
+        <div class="tick minor"></div>
+        <div class="tick minor"></div>
+        <div class="tick major"><span>10 ms</span></div>
+        <div class="tick minor"></div>
+        <div class="tick minor"></div>
+        <div class="tick minor"></div>
+        <div class="tick minor"></div>
+        <div class="tick major"><span>15 ms</span></div>
+        <div class="tick minor"></div>
+        <div class="tick minor"></div>
+        <div class="tick minor"></div>
+        <div class="tick minor"></div>
+        <div class="tick major" style="margin-right: 7%;"><span>20 ms</span></div> -->
+      </div>
+
+    </div>
+
+  </div>
 
   <script type="text/javascript" src="third-party/js/color-hash.js"></script>
+  <script type="text/javascript" src="third-party/js/nouislider.min.js"></script>
 
   <script type="text/javascript" src="js/api.js"></script>
   <script type="text/javascript" src="js/cosmoscout.js"></script>
+  <script type="text/javascript" src="js/apis/utils.js"></script>
   <script type="text/javascript" src="js/apis/gui.js"></script>
   <script type="text/javascript" src="js/csp-timings.js"></script>
 
@@ -23,6 +125,7 @@
     var CosmoScout = new CosmoScoutAPI();
     document.addEventListener('DOMContentLoaded', () => {
       CosmoScout.init(
+        UtilsApi,
         GuiApi,
         TimingsApi
       );

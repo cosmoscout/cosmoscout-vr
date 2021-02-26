@@ -27,10 +27,6 @@ class VistaOpenGLNode;
 class VistaViewportResizeToProjectionAdapter;
 class VistaTransformNode;
 
-namespace cs::utils {
-class FrameTimings;
-} // namespace cs::utils
-
 namespace cs::core {
 class Settings;
 class InputManager;
@@ -60,8 +56,7 @@ class InputManager;
 /// instance is then passed to all plugins.
 class CS_CORE_EXPORT GuiManager {
  public:
-  GuiManager(std::shared_ptr<Settings> settings, std::shared_ptr<InputManager> pInputManager,
-      std::shared_ptr<utils::FrameTimings> pFrameTimings);
+  GuiManager(std::shared_ptr<Settings> settings, std::shared_ptr<InputManager> pInputManager);
 
   GuiManager(GuiManager const& other) = delete;
   GuiManager(GuiManager&& other)      = delete;
@@ -220,9 +215,8 @@ class CS_CORE_EXPORT GuiManager {
   void onLoad();
   void onSave();
 
-  std::shared_ptr<InputManager>        mInputManager;
-  std::shared_ptr<Settings>            mSettings;
-  std::shared_ptr<utils::FrameTimings> mFrameTimings;
+  std::shared_ptr<InputManager> mInputManager;
+  std::shared_ptr<Settings>     mSettings;
 
   std::unique_ptr<VistaViewportResizeToProjectionAdapter> mViewportUpdater;
   std::unique_ptr<gui::WorldSpaceGuiArea>                 mGlobalGuiArea;

@@ -16,252 +16,227 @@ namespace cs::utils {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace {
-int                                            s_iCurrentInstance = 0;
-std::array<std::shared_ptr<TimerQueryPool>, 2> s_pTimerQueryPoolInstances{};
-std::string                                    s_sLastRangeKey{};
-} // namespace
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 FrameTimings::ScopedTimer::ScopedTimer(std::string name, QueryMode mode)
-    : mName(std::move(name)) {
-  FrameTimings::start(mName, mode);
+    : mID(FrameTimings::get().startRange(std::move(name), mode)) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 FrameTimings::ScopedTimer::~ScopedTimer() {
-  try {
-    FrameTimings::end(mName);
-  } catch (...) {}
+  FrameTimings::get().endRange(mID);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void FrameTimings::start(std::string const& name, QueryMode mode) {
-  if (s_pTimerQueryPoolInstances.at(s_iCurrentInstance)) {
-    s_pTimerQueryPoolInstances.at(s_iCurrentInstance)->start(name, mode);
-    s_sLastRangeKey = name;
-  }
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void FrameTimings::end(std::string const& name) {
-  if (s_pTimerQueryPoolInstances.at(s_iCurrentInstance)) {
-    s_pTimerQueryPoolInstances.at(s_iCurrentInstance)->end(name);
-  }
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void FrameTimings::end() {
-  if (s_pTimerQueryPoolInstances.at(s_iCurrentInstance)) {
-    s_pTimerQueryPoolInstances.at(s_iCurrentInstance)->end(s_sLastRangeKey);
-  }
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-std::unordered_map<std::string, FrameTimings::QueryResult>
-FrameTimings::getCalculatedQueryResults() const {
-  std::unordered_map<std::string, QueryResult> result;
-
-  if (!s_pTimerQueryPoolInstances.at(s_iCurrentInstance)) {
-    return result;
-  }
-
-  if (pEnableMeasurements.get()) {
-    for (auto const& ranges :
-        s_pTimerQueryPoolInstances.at(s_iCurrentInstance)->getQueryResults()) {
-      uint64_t timeGPU(0);
-      uint64_t timeCPU(0);
-      for (auto const& range : ranges.second) {
-        timeGPU += range.mGPUTime;
-        timeCPU += range.mCPUTime;
-      }
-
-      result[ranges.first] = {timeGPU, timeCPU};
-    }
-  }
-
-  return result;
+FrameTimings& FrameTimings::get() {
+  static FrameTimings instance;
+  return instance;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 FrameTimings::FrameTimings() {
-  std::size_t const maxNRofTimings = 512;
-  pEnableMeasurements.connect([maxNRofTimings](bool enable) {
-    if (enable) {
-      s_pTimerQueryPoolInstances[0] = std::make_shared<TimerQueryPool>(maxNRofTimings);
-      s_pTimerQueryPoolInstances[1] = std::make_shared<TimerQueryPool>(maxNRofTimings);
-    } else {
-      s_pTimerQueryPoolInstances[0] = nullptr;
-      s_pTimerQueryPoolInstances[1] = nullptr;
+  pEnableMeasurements.connectAndTouch([this](bool enable) {
+    for (auto& pool : mTimerPools) {
+      if (enable) {
+        pool = std::make_unique<TimerPool>(512);
+      } else {
+        // If measurements are disabled, we need at most two query objects, one for the start of the
+        // full frame timing and one for the end of the full frame timing.
+        pool = std::make_unique<TimerPool>(2);
+      }
     }
   });
-  mFullFrameTimerPools[0] = std::make_shared<TimerQueryPool>(2);
-  mFullFrameTimerPools[1] = std::make_shared<TimerQueryPool>(2);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void FrameTimings::startFullFrameTiming() {
-  mFullFrameTimerPools.at(mCurrentIndex)->start("FullFrame", FrameTimings::QueryMode::eBoth);
-}
+void FrameTimings::startFrame() {
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
+  // Advance the timer pool triple-buffer by one.
+  mCurrentPool = (mCurrentPool + 1) % mTimerPools.size();
 
-void FrameTimings::endFullFrameTiming() {
-  mFullFrameTimerPools.at(mCurrentIndex)->end("FullFrame");
-  mCurrentIndex = (mCurrentIndex + 1) % 2;
-  mFullFrameTimerPools.at(mCurrentIndex)->calculateQueryResults();
+  // Fetch the query results for the oldest pool in our triple buffer. From this the getRanges()
+  // call will read this frame.
+  auto oldestPool = (mCurrentPool + 1) % mTimerPools.size();
+  mTimerPools.at(oldestPool)->fetchQueries();
 
-  double const epsilon      = 0.000001;
-  auto         queryResults = mFullFrameTimerPools.at(mCurrentIndex)->getQueryResults();
-  if (!queryResults.empty() && !queryResults.begin()->second.empty()) {
-    pFrameTime = std::max(queryResults.begin()->second[0].mGPUTime * epsilon,
-        queryResults.begin()->second[0].mCPUTime * epsilon);
-  }
-}
+  // Retrieve the pFrameTime from the oldest pool as well.
+  double const toMilliSeconds = 0.000001;
+  auto const&  ranges         = mTimerPools.at(oldestPool)->getRanges();
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void FrameTimings::update() const {
-  s_iCurrentInstance = (s_iCurrentInstance + 1) % 2;
-
-  if (!s_pTimerQueryPoolInstances.at(s_iCurrentInstance)) {
-    return;
+  if (!ranges.empty()) {
+    auto gpuTime = (ranges[0].mGPUEnd - ranges[0].mGPUStart) * toMilliSeconds;
+    auto cpuTime = (ranges[0].mCPUEnd - ranges[0].mCPUStart) * toMilliSeconds;
+    pFrameTime   = std::max(gpuTime, cpuTime);
   }
 
+  // Reset the new current pool.
+  auto const& pool = mTimerPools.at(mCurrentPool);
+  pool->reset();
+
+  // Start the "root" full frame timing. This is always done, even if pEnableMeasurements is set to
+  // false. This is required to get data for the pFrameTime property.
+  mFullFrameTimingID = pool->startRange("Process Frame", FrameTimings::QueryMode::eBoth);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void FrameTimings::endFrame() {
+
+  // End the "root" full frame timing. This is always done, even if pEnableMeasurements is set to
+  // false. This is required to get data for the pFrameTime property.
+  mTimerPools.at(mCurrentPool)->endRange(mFullFrameTimingID);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+int32_t FrameTimings::startRange(std::string name, QueryMode mode) {
+
+  // Only attempt to start the timing if pEnableMeasurements is set to true.
   if (pEnableMeasurements.get()) {
-    s_pTimerQueryPoolInstances.at(s_iCurrentInstance)->calculateQueryResults();
+    return mTimerPools.at(mCurrentPool)->startRange(std::move(name), mode);
+  }
+
+  return -1;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void FrameTimings::endRange(int32_t id) {
+
+  // Only attempt to end the timing if pEnableMeasurements is set to true.
+  if (pEnableMeasurements.get()) {
+    mTimerPools.at(mCurrentPool)->endRange(id);
   }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-TimerQueryPool::TimerQueryPool(std::size_t max_size)
-    : mMaxSize(max_size)
-    , mQueries(max_size, 0)
-    , mTimestamps(max_size, 0)
-    , mQueryDone(0)
-    , mIndex(0) {
-  glGenQueries(static_cast<GLsizei>(max_size), mQueries.data());
+std::vector<FrameTimings::Range> const& FrameTimings::getRanges() {
+
+  // We return the ranges from the last-but-one frame.
+  auto oldestPool = (mCurrentPool + 1) % mTimerPools.size();
+  return mTimerPools.at(oldestPool)->getRanges();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void TimerQueryPool::start(std::string const& name, FrameTimings::QueryMode mode) {
-  QueryRange range;
-  range.mMode = mode;
+TimerPool::TimerPool(std::size_t queryAllocationBucketSize)
+    : mQueryAllocationBucketSize(queryAllocationBucketSize)
+    , mQueries(queryAllocationBucketSize, 0) {
+  glGenQueries(static_cast<GLsizei>(queryAllocationBucketSize), mQueries.data());
+}
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+TimerPool::~TimerPool() {
+  glDeleteQueries(static_cast<GLsizei>(mQueries.size()), mQueries.data());
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void TimerPool::reset() {
+  mNextQueryID         = 0;
+  mCurrentNestingLevel = 0;
+  mRanges.clear();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+int32_t TimerPool::startRange(std::string name, FrameTimings::QueryMode mode) {
+
+  FrameTimings::Range range;
+  range.mMode         = mode;
+  range.mName         = std::move(name);
+  range.mNestingLevel = mCurrentNestingLevel++;
+
+  // Start the GPU range if necessary.
   if (mode == FrameTimings::QueryMode::eGPU || mode == FrameTimings::QueryMode::eBoth) {
-    auto t = timestamp();
-    if (t) {
-      range.mGPUStart = *t;
-    } else {
-      logger().warn(
-          "Failed to start timer query: No more Timestamps available (mMaxSize={}, mIndex={})!",
-          mMaxSize, mIndex);
-    }
+    range.mStartQueryIndex = startTimerQuery();
   }
 
+  // Start the CPU range if necessary.
   if (mode == FrameTimings::QueryMode::eCPU || mode == FrameTimings::QueryMode::eBoth) {
-    auto now        = std::chrono::high_resolution_clock::now();
-    range.mCPUStart = now;
+    range.mCPUStart = std::chrono::high_resolution_clock::now().time_since_epoch().count();
   }
 
-  mQueryRanges[name].push_back(range);
+  mRanges.push_back(std::move(range));
+
+  // Return the index at which this range was inserted.
+  return static_cast<int32_t>(mRanges.size() - 1);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void TimerQueryPool::end(std::string const& name) {
-  if (mQueryRanges.empty()) {
+void TimerPool::endRange(int32_t id) {
+
+  // Abort if no valid ID was given.
+  if (id < 0 || id >= static_cast<int32_t>(mRanges.size())) {
     return;
   }
 
-  auto iter = mQueryRanges.find(name);
-  if (iter == mQueryRanges.end()) {
-    logger().warn("Failed to end timer query: Unknown key '{}'!", name);
-    return;
+  // End the GPU range if necessary.
+  if (mRanges[id].mMode == FrameTimings::QueryMode::eGPU ||
+      mRanges[id].mMode == FrameTimings::QueryMode::eBoth) {
+    mRanges[id].mEndQueryIndex = startTimerQuery();
   }
 
-  auto& range = iter->second.back();
-  if (range.mMode == FrameTimings::QueryMode::eGPU ||
-      range.mMode == FrameTimings::QueryMode::eBoth) {
-    auto t = timestamp();
-    if (t) {
-      range.mGPUEnd = *t;
-    } else {
-      logger().warn("Failed to end timer query: No more Timestamps available!");
-    }
+  // End the CPU range if necessary.
+  if (mRanges[id].mMode == FrameTimings::QueryMode::eCPU ||
+      mRanges[id].mMode == FrameTimings::QueryMode::eBoth) {
+    mRanges[id].mCPUEnd = std::chrono::high_resolution_clock::now().time_since_epoch().count();
   }
 
-  if (range.mMode == FrameTimings::QueryMode::eCPU ||
-      range.mMode == FrameTimings::QueryMode::eBoth) {
-    range.mCPUEnd = std::chrono::high_resolution_clock::now();
-  }
+  --mCurrentNestingLevel;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::optional<std::size_t> TimerQueryPool::timestamp() {
-  if (mIndex < mMaxSize) {
-    glQueryCounter(mQueries[mIndex], GL_TIMESTAMP);
-    std::size_t inserted_at = mIndex;
-    ++mIndex;
-    return inserted_at;
-  }
-  return std::nullopt;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void TimerQueryPool::calculateQueryResults() {
-  // Fetch timestamps from gpu and calculate time diffs.
-  if (mIndex == 0) {
+void TimerPool::fetchQueries() {
+  // No query has been issued, so nothing to update.
+  if (mNextQueryID == 0) {
     return;
   }
 
-  mQueryDone = 0;
-
-  // Wait for queries to finish.
-  while (!mQueryDone) {
-    glGetQueryObjectiv(mQueries[mIndex - 1], GL_QUERY_RESULT_AVAILABLE, &mQueryDone);
+  // Wait for the last query to finish.
+  int32_t queriesDone = 0;
+  while (!queriesDone) {
+    glGetQueryObjectiv(mQueries[mNextQueryID - 1], GL_QUERY_RESULT_AVAILABLE, &queriesDone);
   }
 
   // Get the query results.
-  for (std::size_t i = 0; i < mIndex; ++i) {
-    glGetQueryObjectui64v(mQueries[i], GL_QUERY_RESULT, &mTimestamps[i]);
+  std::vector<uint64_t> queryResults(mNextQueryID);
+  for (std::size_t i = 0; i < mNextQueryID; ++i) {
+    glGetQueryObjectui64v(mQueries[i], GL_QUERY_RESULT, &queryResults[i]);
   }
 
-  mQueryResults.clear();
-
-  for (auto& pair : mQueryRanges) {
-    for (auto& range : pair.second) {
-      FrameTimings::QueryResult result;
-      result.mGPUTime = mTimestamps[range.mGPUEnd] - mTimestamps[range.mGPUStart];
-      result.mCPUTime = static_cast<uint64_t>(
-          std::chrono::duration_cast<std::chrono::nanoseconds>(range.mCPUEnd - range.mCPUStart)
-              .count());
-      mQueryResults[pair.first].push_back(result);
+  for (std::size_t i = 0; i < mRanges.size(); ++i) {
+    if (mRanges[i].mMode == FrameTimings::QueryMode::eGPU ||
+        mRanges[i].mMode == FrameTimings::QueryMode::eBoth) {
+      mRanges[i].mGPUStart = queryResults[mRanges[i].mStartQueryIndex];
+      mRanges[i].mGPUEnd   = queryResults[mRanges[i].mEndQueryIndex];
     }
   }
-
-  // Reset index.
-  mIndex = 0;
-  mQueryRanges.clear();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::unordered_map<std::string, std::vector<FrameTimings::QueryResult>> const&
-TimerQueryPool::getQueryResults() const {
-  return mQueryResults;
+std::vector<FrameTimings::Range> const& TimerPool::getRanges() const {
+  return mRanges;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::size_t TimerPool::startTimerQuery() {
+  if (mNextQueryID >= mQueries.size()) {
+    auto currentSize = mQueries.size();
+    mQueries.resize(currentSize + mQueryAllocationBucketSize, 0);
+    glGenQueries(static_cast<GLsizei>(mQueryAllocationBucketSize), mQueries.data() + currentSize);
+  }
+
+  glQueryCounter(mQueries[mNextQueryID], GL_TIMESTAMP);
+  return mNextQueryID++;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

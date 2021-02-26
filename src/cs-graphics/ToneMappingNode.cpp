@@ -6,6 +6,7 @@
 
 #include "ToneMappingNode.hpp"
 
+#include "../cs-utils/FrameTimings.hpp"
 #include "HDRBuffer.hpp"
 
 #include <VistaInterProcComm/Cluster/VistaClusterDataCollect.h>
@@ -439,6 +440,8 @@ float ToneMappingNode::getLastMaximumLuminance() const {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool ToneMappingNode::ToneMappingNode::Do() {
+
+  utils::FrameTimings::ScopedTimer timer("Tonemapping");
 
   if (mShaderDirty) {
 
