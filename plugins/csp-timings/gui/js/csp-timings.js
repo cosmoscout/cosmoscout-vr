@@ -95,39 +95,50 @@ class TimingsApi extends IApi {
    *
    */
   _redraw() {
-    let gpuData = this._gpuData[this._frameIndex];
-    let cpuData = this._cpuData[this._frameIndex];
+    // Get the containers to draw to.
+    const gpuContainer  = document.querySelector("#gpu-ranges")
+    const cpuContainer  = document.querySelector("#cpu-ranges")
+    const gridContainer = document.querySelector("#grid")
+    const fpsContainer  = document.getElementById('fps-counter');
 
-    // Retrieve the end time values of the last root-level timing ranges. The maximum of these
-    // determines the maximum x-value of the graph.
-    let maxGPUTime = gpuData[0][gpuData[0].length - 1][2];
-    let maxCPUTime = cpuData[0][cpuData[0].length - 1][2];
-    let maxTime    = Math.max(maxGPUTime, maxCPUTime) * 0.001;
+    // First clear the containers completely.
+    CosmoScout.gui.clearHtml(gpuContainer);
+    CosmoScout.gui.clearHtml(cpuContainer);
+    CosmoScout.gui.clearHtml(gridContainer);
 
-    // With this value we can update the FPS display.
-    const item     = document.getElementById('fps-counter');
-    item.innerHTML = `FPS: ${(1000.0 / maxTime).toFixed(2)} / ${(maxTime).toFixed(2)} ms`;
+    if (this._frameIndex < this._gpuData.length && this._frameIndex < this._cpuData.length) {
+      let gpuData = this._gpuData[this._frameIndex];
+      let cpuData = this._cpuData[this._frameIndex];
 
-    // First we update the background grid.
-    this._drawGrid(maxTime);
+      // Retrieve the end time values of the last root-level timing ranges. The maximum of these
+      // determines the maximum x-value of the graph.
+      let maxGPUTime = gpuData[0][gpuData[0].length - 1][2];
+      let maxCPUTime = cpuData[0][cpuData[0].length - 1][2];
+      let maxTime    = Math.max(maxGPUTime, maxCPUTime) * 0.001;
 
-    // Then we draw the two graphs.
-    this._drawRanges("#gpu-ranges", gpuData, maxTime);
-    this._drawRanges("#cpu-ranges", cpuData, maxTime);
+      // With this value we can update the FPS display.
+      fpsContainer.innerHTML = `FPS: ${(1000.0 / maxTime).toFixed(2)} / ${(maxTime).toFixed(2)} ms`;
+
+      // First we update the background grid.
+      this._drawGrid(gridContainer, maxTime);
+
+      // Then we draw the two graphs.
+      this._drawRanges(gpuContainer, gpuData, maxTime);
+      this._drawRanges(cpuContainer, cpuData, maxTime);
+
+    } else {
+      fpsContainer.innerHTML = "There is no data available for this frame.";
+    }
   }
 
   /**
    * Draw the ranges of each level as small containers with a relative with and position.
    *
-   * @param {string} selector The container into which the range bars are drawn.
-   * @param {array}  data     The parsed JSON string passed to setData().
-   * @param {number} maxTime  The maximum x-value of the graph.
+   * @param {div}    container The container into which the range bars are drawn.
+   * @param {array}  data      The parsed JSON string passed to setData().
+   * @param {number} maxTime   The maximum x-value of the graph.
    */
-  _drawRanges(selector, data, maxTime) {
-
-    // First clear the container completely.
-    let container = document.querySelector(selector);
-    CosmoScout.gui.clearHtml(container);
+  _drawRanges(container, data, maxTime) {
 
     // This string will contain all the HTML of the graph.
     let html = "";
@@ -166,10 +177,11 @@ class TimingsApi extends IApi {
   /**
    * Draw a grid with major and minor ticks.
    *
-   * @param {number} maxTime
+   * @param {div}    container The container into which the grid is drawn.
+   * @param {number} maxTime   The total frame time in milliseconds.
    */
 
-  _drawGrid(maxTime) {
+  _drawGrid(container, maxTime) {
 
     // First clear the container completely.
     let grid = document.querySelector("#grid");

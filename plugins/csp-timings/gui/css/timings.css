@@ -108,6 +108,7 @@
   left: -30px;
   display: flex;
   align-items: center;
+  overflow: hidden;
   transform: rotate(-90deg);
   opacity: 0;
   transition: opacity 0.3s;
