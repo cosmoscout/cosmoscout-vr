@@ -843,14 +843,19 @@ void Application::connectSlots() {
   // Show notification when the center name of the celestial observer changes.
   mSolarSystem->pActiveBody.connectAndTouch(
       [this](std::shared_ptr<cs::scene::CelestialBody> const& body) {
-        if (body) {
-          mGuiManager->getGui()->executeJavascript(
-              fmt::format("CosmoScout.state.activePlanetCenter = '{}';", body->getCenterName()));
+        std::string center = "Solar System Barycenter";
+        glm::dvec3  radii(0.0);
 
-          auto radii = body->getRadii();
-          mGuiManager->getGui()->executeJavascript(
-              fmt::format("CosmoScout.state.activePlanetRadius = [{}, {}];", radii[0], radii[1]));
+        if (body) {
+          center = body->getCenterName();
+          radii  = body->getRadii();
         }
+
+        mGuiManager->getGui()->executeJavascript(
+            fmt::format("CosmoScout.state.activePlanetCenter = '{}';", center));
+
+        mGuiManager->getGui()->executeJavascript(fmt::format(
+            "CosmoScout.state.activePlanetRadius = [{}, {}, {}];", radii[0], radii[1], radii[2]));
       });
 
   // Show notification when the frame name of the celestial observer changes.
