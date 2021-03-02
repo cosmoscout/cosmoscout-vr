@@ -395,14 +395,14 @@ void SolarSystem::updateObserverFrame() {
   }
 
   // If currently no observer animation is in progress, we change the pActiveBody accordingly. This
-  // may be null if we are very far awy from any object.
+  // may be null if we are very far away from any object.
   if (!mObserver.isAnimationInProgress()) {
     pActiveBody = activeBody;
 
     std::string sCenter = "Solar System Barycenter";
     std::string sFrame  = "J2000";
 
-    // We change frame and center if there is a object with weight larger than mLockWeight
+    // We change frame and center if there is an object with weight larger than mLockWeight
     // and mTrackWeight.
     if (activeBody) {
       if (dActiveWeight > mSettings->mSceneScale.mLockWeight) {
