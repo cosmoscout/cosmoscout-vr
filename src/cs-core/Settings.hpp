@@ -48,6 +48,10 @@ struct adl_serializer<glm::vec<C, T, Q>> {
 
 // A partial template specialization for serialization and deserialization of glm::*qua*. This
 // allows using glm's quaternion types as settings elements.
+// A very weird thing about glm is that it mixes the order of quaternion members. The constructor
+// expects qua(w, x, y, z), the accessor returns qua[0] = x, qua[1] = y, qua[2] = z, qua[3] = w.
+// In the settings of CosmoScout VR and in the user interface we always attempt to show w as the
+// last component.
 template <typename T, glm::qualifier Q>
 struct adl_serializer<glm::qua<T, Q>> {
   static void to_json(json& j, glm::qua<T, Q> const& opt) {
