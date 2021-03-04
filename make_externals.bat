@@ -310,6 +310,9 @@ echo.
 
 cmake -E make_directory "%BUILD_DIR%/vista" && cd "%BUILD_DIR%/vista"
 
+rem If you have the 3DConnexion SDK for the Space Navigator installed, you can add
+rem -DVISTADRIVERS_BUILD_3DCSPACENAVIGATOR=On to the flags below.
+
 cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%" -DVISTADEMO_ENABLED=Off^
       -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DVISTACORELIBS_USE_VIVE=On -DVISTADRIVERS_BUILD_VIVE=On^
       -DOPENVR_ROOT_DIR="%INSTALL_DIR%" -DGLUT_INCLUDE_DIR=%INSTALL_DIR%/include^
