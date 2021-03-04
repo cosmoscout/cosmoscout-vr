@@ -129,7 +129,7 @@ MSVC | Visual Studio | File | Link
 14.1 | 2017 | `boost_1_70_0-msvc-14.1-64.exe` | [download](https://sourceforge.net/projects/boost/files/boost-binaries/1.70.0/boost_1_70_0-msvc-14.1-64.exe/download)
 14.0 | 2015 | `boost_1_70_0-msvc-14.0-64.exe` | [download](https://sourceforge.net/projects/boost/files/boost-binaries/1.70.0/boost_1_70_0-msvc-14.0-64.exe/download)
 
-:information_source: _**Tip:** If you want that CosmoScout VR detects your 3DConnexion Space Navigator, you have to [download](https://3dconnexion.com/de/software-developer-program/) and install the 3DConnexion SDK. Then you need to add one line line to the `make_externals.bat` but file as [described here](https://github.com/cosmoscout/cosmoscout-vr/blob/develop/make_externals.bat#L313)._
+:information_source: _**Tip:** If you want that CosmoScout VR detects your 3DConnexion Space Navigator, you have to [download](https://3dconnexion.com/de/software-developer-program/) and install the 3DConnexion SDK. Then you need to add one line to the `make_externals.bat` but file as [described here](https://github.com/cosmoscout/cosmoscout-vr/blob/develop/make_externals.bat#L313)._
 
 
 Then you have to compile the dependencies.
@@ -174,7 +174,7 @@ On Linux, boost is usually found automatically by CMake, on Windows you have to 
 Again, if you are using Visual Studio 2017, you have to replace `-G "Visual Studio 16 2019" -A x64` with `-G "Visual Studio 15 Win64"`.
 
 ```batch
-set BOOST_ROOT=C:\local\boost_1_69_0
+set BOOST_ROOT=C:\local\boost_1_70_0
 make.bat -G "Visual Studio 16 2019" -A x64 -DCOSMOSCOUT_UNIT_TESTS=On
 ```
 
