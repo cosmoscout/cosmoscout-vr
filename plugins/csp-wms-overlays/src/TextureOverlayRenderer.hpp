@@ -15,6 +15,7 @@
 #include <VistaKernel/GraphicsManager/VistaOpenGLDraw.h>
 #include <VistaMath/VistaBoundingBox.h>
 #include <VistaOGLExt/VistaGLSLShader.h>
+#include <VistaOGLExt/VistaTexture.h>
 
 #include <array>
 #include <functional>
@@ -109,7 +110,7 @@ class TextureOverlayRenderer : public IVistaOpenGLDraw {
   static const std::string SURFACE_FRAG;
 
   /// Store one buffer per viewport
-  std::unordered_map<VistaViewport*, VistaTexture*> mDepthBufferData;
+  std::unordered_map<VistaViewport*, VistaTexture> mDepthBufferData;
 
   /// Stores all textures, for which the request ist still pending.
   std::map<std::string, std::future<std::optional<WebMapTexture>>> mTexturesBuffer;
@@ -130,9 +131,9 @@ class TextureOverlayRenderer : public IVistaOpenGLDraw {
   std::optional<WebMapLayer> mActiveWMSLayer;
 
   /// The WMS texture.
-  std::shared_ptr<VistaTexture> mWMSTexture;
+  VistaTexture mWMSTexture;
   /// Second WMS texture for time interpolation.
-  std::shared_ptr<VistaTexture> mSecondWMSTexture;
+  VistaTexture mSecondWMSTexture;
   /// Whether to use the WMS texture.
   bool mWMSTextureUsed;
   /// Whether to use the second WMS texture.

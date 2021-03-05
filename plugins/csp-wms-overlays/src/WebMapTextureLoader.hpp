@@ -21,9 +21,9 @@ namespace csp::wmsoverlays {
 
 /// Struct for storing texture data along with some metadata.
 struct WebMapTexture {
-  unsigned char* mData;
-  int            mWidth;
-  int            mHeight;
+  std::unique_ptr<unsigned char> mData;
+  int                            mWidth;
+  int                            mHeight;
 };
 
 /// Class for requesting map textures from Web Map Services.

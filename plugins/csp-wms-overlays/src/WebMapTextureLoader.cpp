@@ -188,15 +188,16 @@ std::optional<WebMapTexture> WebMapTextureLoader::loadTextureFromFile(std::strin
   int width, height, bpp;
   int channels = 4;
 
-  unsigned char* pixels = stbi_load(fileName.c_str(), &width, &height, &bpp, channels);
+  std::unique_ptr<unsigned char> pixels(
+      stbi_load(fileName.c_str(), &width, &height, &bpp, channels));
 
   if (!pixels) {
     logger().warn("Failed to load '{}' with stbi!", fileName);
     return std::optional<WebMapTexture>{};
   }
 
-  WebMapTexture texture{pixels, width, height};
-  return std::optional<WebMapTexture>{texture};
+  WebMapTexture texture{std::move(pixels), width, height};
+  return texture;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -206,17 +207,17 @@ std::optional<WebMapTexture> WebMapTextureLoader::loadTextureFromStream(
   int width, height, bpp;
   int channels = 4;
 
-  unsigned char* pixels =
+  std::unique_ptr<unsigned char> pixels(
       stbi_load_from_memory(reinterpret_cast<unsigned char*>(stream.str().data()),
-          static_cast<int>(stream.str().size()), &width, &height, &bpp, channels);
+          static_cast<int>(stream.str().size()), &width, &height, &bpp, channels));
 
   if (!pixels) {
     logger().warn("Failed to load texture from memory with stbi!");
     return std::optional<WebMapTexture>{};
   }
 
-  WebMapTexture texture{pixels, width, height};
-  return std::optional<WebMapTexture>{texture};
+  WebMapTexture texture{std::move(pixels), width, height};
+  return texture;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

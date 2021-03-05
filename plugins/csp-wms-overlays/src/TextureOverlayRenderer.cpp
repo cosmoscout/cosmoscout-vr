@@ -44,8 +44,8 @@ TextureOverlayRenderer::TextureOverlayRenderer(std::string center,
     : mSettings(std::move(settings))
     , mPluginSettings(std::move(pluginSettings))
     , mCenterName(std::move(center))
-    , mWMSTexture(new VistaTexture(GL_TEXTURE_2D))
-    , mSecondWMSTexture(new VistaTexture(GL_TEXTURE_2D))
+    , mWMSTexture(GL_TEXTURE_2D)
+    , mSecondWMSTexture(GL_TEXTURE_2D)
     , mSolarSystem(std::move(solarSystem))
     , mTimeControl(std::move(timeControl))
     , mMinBounds({static_cast<float>(-mSolarSystem->getRadii(mCenterName)[0]),
@@ -57,25 +57,25 @@ TextureOverlayRenderer::TextureOverlayRenderer(std::string center,
   // create textures ---------------------------------------------------------
   for (auto const& viewport : GetVistaSystem()->GetDisplayManager()->GetViewports()) {
     // Texture for previous renderer depth buffer
-    VistaTexture* depthBuffer = new VistaTexture(GL_TEXTURE_RECTANGLE);
-    depthBuffer->Bind();
-    depthBuffer->SetWrapS(GL_CLAMP);
-    depthBuffer->SetWrapT(GL_CLAMP);
-    depthBuffer->SetMinFilter(GL_NEAREST);
-    depthBuffer->SetMagFilter(GL_NEAREST);
-    depthBuffer->Unbind();
+    VistaTexture depthBuffer(GL_TEXTURE_RECTANGLE);
+    depthBuffer.Bind();
+    depthBuffer.SetWrapS(GL_CLAMP);
+    depthBuffer.SetWrapT(GL_CLAMP);
+    depthBuffer.SetMinFilter(GL_NEAREST);
+    depthBuffer.SetMagFilter(GL_NEAREST);
+    depthBuffer.Unbind();
 
-    mDepthBufferData[viewport.second] = depthBuffer;
+    mDepthBufferData.insert_or_assign(viewport.second, std::move(depthBuffer));
   }
 
-  mWMSTexture->Bind();
-  mWMSTexture->SetWrapS(GL_CLAMP_TO_EDGE);
-  mWMSTexture->SetWrapT(GL_CLAMP_TO_EDGE);
-  mWMSTexture->Unbind();
-  mSecondWMSTexture->Bind();
-  mSecondWMSTexture->SetWrapS(GL_CLAMP_TO_EDGE);
-  mSecondWMSTexture->SetWrapT(GL_CLAMP_TO_EDGE);
-  mSecondWMSTexture->Unbind();
+  mWMSTexture.Bind();
+  mWMSTexture.SetWrapS(GL_CLAMP_TO_EDGE);
+  mWMSTexture.SetWrapT(GL_CLAMP_TO_EDGE);
+  mWMSTexture.Unbind();
+  mSecondWMSTexture.Bind();
+  mSecondWMSTexture.SetWrapS(GL_CLAMP_TO_EDGE);
+  mSecondWMSTexture.SetWrapT(GL_CLAMP_TO_EDGE);
+  mSecondWMSTexture.Unbind();
 
   // Add to scenegraph.
   VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
@@ -112,10 +112,6 @@ TextureOverlayRenderer::TextureOverlayRenderer(std::string center,
 TextureOverlayRenderer::~TextureOverlayRenderer() {
   mSettings->mGraphics.pEnableLighting.disconnect(mLightingConnection);
   mSettings->mGraphics.pEnableHDR.disconnect(mHDRConnection);
-
-  for (auto data : mDepthBufferData) {
-    delete data.second;
-  }
 
   clearTextures();
 
@@ -184,12 +180,6 @@ void TextureOverlayRenderer::setStyle(std::string style) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void TextureOverlayRenderer::clearTextures() {
-  auto texIt = mTextures.begin();
-  while (texIt != mTextures.end()) {
-    delete texIt->second.mData;
-    texIt++;
-  }
-
   mTextures.clear();
   mTexturesBuffer.clear();
   mWrongTextures.clear();
@@ -361,8 +351,7 @@ void TextureOverlayRenderer::getTimeIndependentTexture(
         request, mPluginSettings->mMapCache.get(),
         request.mBounds == mActiveWMSLayer->getSettings().mBounds);
     if (texture.has_value()) {
-      mWMSTexture->UploadTexture(
-          texture->mWidth, texture->mHeight, static_cast<void*>(texture->mData), false);
+      mWMSTexture.UploadTexture(texture->mWidth, texture->mHeight, texture->mData.get(), false);
       mWMSTextureUsed = true;
     } else {
       mWMSTextureUsed = false;
@@ -453,7 +442,8 @@ bool TextureOverlayRenderer::Do() {
         std::optional<WebMapTexture> texture = texIt->second.get();
 
         if (texture.has_value()) {
-          mTextures.insert(std::pair<std::string, WebMapTexture>(texIt->first, texture.value()));
+          mTextures.insert(
+              std::pair<std::string, WebMapTexture>(texIt->first, std::move(texture.value())));
         } else {
           mWrongTextures.emplace_back(texIt->first);
         }
@@ -482,8 +472,8 @@ bool TextureOverlayRenderer::Do() {
       // Only update if we have a new texture.
       if (mCurrentTexture != timeString) {
         mWMSTextureUsed = true;
-        mWMSTexture->UploadTexture(
-            tex->second.mWidth, tex->second.mHeight, static_cast<void*>(tex->second.mData), false);
+        mWMSTexture.UploadTexture(
+            tex->second.mWidth, tex->second.mHeight, tex->second.mData.get(), false);
         mCurrentTexture = timeString;
       }
     } // Use default planet texture instead.
@@ -509,8 +499,8 @@ bool TextureOverlayRenderer::Do() {
       if (isAfterInInterval && tex != mTextures.end()) {
         // Only update if we ha a new second texture.
         if (mCurrentSecondTexture != utils::timeToString(mCurrentInterval.mFormat, sampleAfter)) {
-          mSecondWMSTexture->UploadTexture(tex->second.mWidth, tex->second.mHeight,
-              static_cast<void*>(tex->second.mData), false);
+          mSecondWMSTexture.UploadTexture(
+              tex->second.mWidth, tex->second.mHeight, tex->second.mData.get(), false);
           mCurrentSecondTexture = utils::timeToString(mCurrentInterval.mFormat, sampleAfter);
           mSecondWMSTextureUsed = true;
         }
@@ -550,9 +540,9 @@ bool TextureOverlayRenderer::Do() {
   glGetIntegerv(GL_VIEWPORT, iViewport.data());
 
   auto* viewport = GetVistaSystem()->GetDisplayManager()->GetCurrentRenderInfo()->m_pViewport;
-  VistaTexture* depthBuffer = mDepthBufferData[viewport];
+  VistaTexture& depthBuffer = mDepthBufferData.at(viewport);
 
-  depthBuffer->Bind();
+  depthBuffer.Bind();
   glCopyTexImage2D(GL_TEXTURE_RECTANGLE, 0, GL_DEPTH_COMPONENT, iViewport[0], iViewport[1],
       iViewport[2], iViewport[3], 0);
 
@@ -575,13 +565,13 @@ bool TextureOverlayRenderer::Do() {
   mShader.Bind();
 
   // Only bind the enabled textures.
-  depthBuffer->Bind(GL_TEXTURE0);
+  depthBuffer.Bind(GL_TEXTURE0);
   if (mWMSTextureUsed) {
-    mWMSTexture->Bind(GL_TEXTURE1);
+    mWMSTexture.Bind(GL_TEXTURE1);
 
     if (mSecondWMSTextureUsed) {
       mShader.SetUniform(mShader.GetUniformLocation("uFade"), mFade);
-      mSecondWMSTexture->Bind(GL_TEXTURE2);
+      mSecondWMSTexture.Bind(GL_TEXTURE2);
     }
   }
 
@@ -658,12 +648,12 @@ bool TextureOverlayRenderer::Do() {
   // Dummy draw
   glDrawArrays(GL_POINTS, 0, 1);
 
-  depthBuffer->Unbind(GL_TEXTURE0);
+  depthBuffer.Unbind(GL_TEXTURE0);
   if (mWMSTextureUsed) {
-    mWMSTexture->Unbind(GL_TEXTURE1);
+    mWMSTexture.Unbind(GL_TEXTURE1);
 
     if (mSecondWMSTextureUsed) {
-      mSecondWMSTexture->Unbind(GL_TEXTURE2);
+      mSecondWMSTexture.Unbind(GL_TEXTURE2);
     }
   }
 
