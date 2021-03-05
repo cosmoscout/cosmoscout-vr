@@ -71,8 +71,8 @@ class TextureOverlayRenderer : public IVistaOpenGLDraw {
   cs::utils::Property<Bounds> pBounds;
 
   /// Interface implementation of IVistaOpenGLDraw
-  virtual bool Do();
-  virtual bool GetBoundingBox(VistaBoundingBox& bb);
+  bool Do() override;
+  bool GetBoundingBox(VistaBoundingBox& bb) override;
 
  private:
   /// Delete stored textures.

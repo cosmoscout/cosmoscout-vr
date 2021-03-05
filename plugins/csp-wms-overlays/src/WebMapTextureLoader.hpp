@@ -40,8 +40,6 @@ class WebMapTextureLoader {
   /// Creates a new ThreadPool with the specified amount of threads.
   WebMapTextureLoader();
 
-  ~WebMapTextureLoader();
-
   /// Async WMS texture loader.
   /// Returns an empty optional if loading the texture failed.
   std::future<std::optional<WebMapTexture>> loadTextureAsync(WebMapService const& wms,
@@ -57,8 +55,8 @@ class WebMapTextureLoader {
   /// Requests a map texture from a WMS.
   /// Returns a binary stream of the texture file if the request succeeds.
   /// Returns an empty optional if the request fails.
-  std::optional<std::stringstream> requestTexture(WebMapService const& wms,
-      WebMapLayer const& layer, Request const& request, std::string const& mapCache);
+  std::optional<std::stringstream> requestTexture(
+      WebMapService const& wms, WebMapLayer const& layer, Request const& request);
 
   /// Saves a binary stream of a texture file to the given path.
   void saveTextureToFile(boost::filesystem::path const& file, std::stringstream const& data);

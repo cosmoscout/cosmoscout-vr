@@ -46,7 +46,6 @@ std::istream& operator>>(std::istream& in, WebMapException::Code& code) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::ostream& operator<<(std::ostream& out, WebMapException::Code& code) {
-  std::string codeStr = "UnknownCode";
   if (code == WebMapException::Code::eInvalidFormat) {
     out << "InvalidFormat";
   } else if (code == WebMapException::Code::eInvalidCRS) {
@@ -69,6 +68,8 @@ std::ostream& operator<<(std::ostream& out, WebMapException::Code& code) {
     out << "InvalidDimensionValue";
   } else if (code == WebMapException::Code::eOperationNotSupported) {
     out << "OperationNotSupported";
+  } else {
+    out << "UnknownCode";
   }
   return out;
 }

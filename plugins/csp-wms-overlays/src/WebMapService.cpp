@@ -242,12 +242,11 @@ WebMapService::getCapabilitiesFromCache() {
             e.getExceptions()[0].getCode() == WebMapException::Code::eCurrentUpdateSequence) {
           // Cache is up to date
           return std::make_tuple(capabilitiesString, cacheDoc, false);
-        } else {
-          logger().warn("WMS Exception occurred while checking cache validity for '{}': '{}'!",
-              mUrl, e.what());
-          // Cache is not up to date, and an exception occurred
-          return {};
         }
+        logger().warn(
+            "WMS Exception occurred while checking cache validity for '{}': '{}'!", mUrl, e.what());
+        // Cache is not up to date, and an exception occurred
+        return {};
       } catch (std::exception const&) {
         // No exception, the request's result should be the newest capabilities
         return std::make_tuple(resString, resDoc, true);

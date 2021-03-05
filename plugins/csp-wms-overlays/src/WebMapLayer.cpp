@@ -19,8 +19,6 @@ namespace csp::wmsoverlays {
 
 WebMapLayer::WebMapLayer(VistaXML::TiXmlElement* element, Settings settings)
     : mSettings(std::move(settings)) {
-  VistaXML::TiXmlHandle elementHandle(element);
-
   std::optional<std::string> title = utils::getElementValue<std::string>(element, {"Title"});
   if (!title.has_value()) {
     throw std::runtime_error("No title found for Layer.");

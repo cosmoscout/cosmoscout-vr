@@ -35,11 +35,6 @@ WebMapTextureLoader::WebMapTextureLoader()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-WebMapTextureLoader::~WebMapTextureLoader() {
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 std::future<std::optional<WebMapTexture>> WebMapTextureLoader::loadTextureAsync(
     WebMapService const& wms, WebMapLayer const& layer, Request const& request,
     std::string const& mapCache, bool saveToCache) {
@@ -62,7 +57,7 @@ std::optional<WebMapTexture> WebMapTextureLoader::loadTexture(WebMapService cons
   }
 
   // The file is corrupt or not available, we have to request it
-  auto textureStream = requestTexture(wms, layer, request, mapCache);
+  auto textureStream = requestTexture(wms, layer, request);
   if (!textureStream.has_value()) {
     return {};
   }
@@ -77,8 +72,8 @@ std::optional<WebMapTexture> WebMapTextureLoader::loadTexture(WebMapService cons
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::optional<std::stringstream> WebMapTextureLoader::requestTexture(WebMapService const& wms,
-    WebMapLayer const& layer, Request const& wmsrequest, std::string const& mapCache) {
+std::optional<std::stringstream> WebMapTextureLoader::requestTexture(
+    WebMapService const& wms, WebMapLayer const& layer, Request const& wmsrequest) {
 
   std::string url = getRequestUrl(wms, layer, wmsrequest);
 
@@ -211,8 +206,9 @@ std::optional<WebMapTexture> WebMapTextureLoader::loadTextureFromStream(
   int width, height, bpp;
   int channels = 4;
 
-  unsigned char* pixels = stbi_load_from_memory(reinterpret_cast<unsigned char*>(stream.str().data()),
-      static_cast<int>(stream.str().size()), &width, &height, &bpp, channels);
+  unsigned char* pixels =
+      stbi_load_from_memory(reinterpret_cast<unsigned char*>(stream.str().data()),
+          static_cast<int>(stream.str().size()), &width, &height, &bpp, channels);
 
   if (!pixels) {
     logger().warn("Failed to load texture from memory with stbi!");

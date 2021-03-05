@@ -33,9 +33,6 @@
 
 #include <cmath>
 
-#define _SILENCE_CXX17_OLD_ALLOCATOR_MEMBERS_DEPRECATION_WARNING
-using json = nlohmann::json;
-
 namespace csp::wmsoverlays {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -51,12 +48,12 @@ TextureOverlayRenderer::TextureOverlayRenderer(std::string center,
     , mSecondWMSTexture(new VistaTexture(GL_TEXTURE_2D))
     , mSolarSystem(std::move(solarSystem))
     , mTimeControl(std::move(timeControl))
-    , mMinBounds({(float)-mSolarSystem->getRadii(mCenterName)[0],
-          (float)-mSolarSystem->getRadii(mCenterName)[1],
-          (float)-mSolarSystem->getRadii(mCenterName)[2]})
-    , mMaxBounds({(float)mSolarSystem->getRadii(mCenterName)[0],
-          (float)mSolarSystem->getRadii(mCenterName)[1],
-          (float)mSolarSystem->getRadii(mCenterName)[2]}) {
+    , mMinBounds({static_cast<float>(-mSolarSystem->getRadii(mCenterName)[0]),
+          static_cast<float>(-mSolarSystem->getRadii(mCenterName)[1]),
+          static_cast<float>(-mSolarSystem->getRadii(mCenterName)[2])})
+    , mMaxBounds({static_cast<float>(mSolarSystem->getRadii(mCenterName)[0]),
+          static_cast<float>(mSolarSystem->getRadii(mCenterName)[1]),
+          static_cast<float>(mSolarSystem->getRadii(mCenterName)[2])}) {
   // create textures ---------------------------------------------------------
   for (auto const& viewport : GetVistaSystem()->GetDisplayManager()->GetViewports()) {
     // Texture for previous renderer depth buffer
@@ -136,7 +133,7 @@ std::string const& TextureOverlayRenderer::getCenter() const {
 
 void TextureOverlayRenderer::configure(Plugin::Settings::Body settings) {
   mSimpleWMSOverlaySettings = std::move(settings);
-  pBounds                   = settings.mActiveBounds.get();
+  pBounds                   = mSimpleWMSOverlaySettings.mActiveBounds.get();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -364,7 +361,8 @@ void TextureOverlayRenderer::getTimeIndependentTexture(
         request, mPluginSettings->mMapCache.get(),
         request.mBounds == mActiveWMSLayer->getSettings().mBounds);
     if (texture.has_value()) {
-      mWMSTexture->UploadTexture(texture->mWidth, texture->mHeight, static_cast<void*>(texture->mData), false);
+      mWMSTexture->UploadTexture(
+          texture->mWidth, texture->mHeight, static_cast<void*>(texture->mData), false);
       mWMSTextureUsed = true;
     } else {
       mWMSTextureUsed = false;
@@ -425,8 +423,7 @@ bool TextureOverlayRenderer::Do() {
           sampleStartTime, mActiveWMSLayer->getSettings().mTimeIntervals, mCurrentInterval);
 
       // Create identifier for the sample start time.
-      std::string timeString =
-          utils::timeToString(mCurrentInterval.mFormat, sampleStartTime);
+      std::string timeString = utils::timeToString(mCurrentInterval.mFormat, sampleStartTime);
 
       auto requestedTexture = mTexturesBuffer.find(timeString);
       auto loadedTexture    = mTextures.find(timeString);
@@ -511,17 +508,16 @@ bool TextureOverlayRenderer::Do() {
 
       if (isAfterInInterval && tex != mTextures.end()) {
         // Only update if we ha a new second texture.
-        if (mCurrentSecondTexture !=
-            utils::timeToString(mCurrentInterval.mFormat, sampleAfter)) {
-          mSecondWMSTexture->UploadTexture(
-              tex->second.mWidth, tex->second.mHeight, static_cast<void*>(tex->second.mData), false);
-          mCurrentSecondTexture =
-              utils::timeToString(mCurrentInterval.mFormat, sampleAfter);
+        if (mCurrentSecondTexture != utils::timeToString(mCurrentInterval.mFormat, sampleAfter)) {
+          mSecondWMSTexture->UploadTexture(tex->second.mWidth, tex->second.mHeight,
+              static_cast<void*>(tex->second.mData), false);
+          mCurrentSecondTexture = utils::timeToString(mCurrentInterval.mFormat, sampleAfter);
           mSecondWMSTextureUsed = true;
         }
         // Interpolate fade value between the 2 WMS textures.
-        mFade = static_cast<float>(static_cast<double>((sampleAfter - time).total_seconds()) /
-                                   static_cast<double>((sampleAfter - sampleStartTime).total_seconds()));
+        mFade = static_cast<float>(
+            static_cast<double>((sampleAfter - time).total_seconds()) /
+            static_cast<double>((sampleAfter - sampleStartTime).total_seconds()));
       }
     }
   }
@@ -550,8 +546,8 @@ bool TextureOverlayRenderer::Do() {
       ->GetClippingRange(nearClip, farClip);
 
   // copy depth buffer from previous rendering
-  GLint iViewport[4];
-  glGetIntegerv(GL_VIEWPORT, iViewport);
+  std::array<GLint, 4> iViewport;
+  glGetIntegerv(GL_VIEWPORT, iViewport.data());
 
   auto* viewport = GetVistaSystem()->GetDisplayManager()->GetCurrentRenderInfo()->m_pViewport;
   VistaTexture* depthBuffer = mDepthBufferData[viewport];
@@ -561,10 +557,10 @@ bool TextureOverlayRenderer::Do() {
       iViewport[2], iViewport[3], 0);
 
   // get matrices and related values
-  GLfloat glMatP[16];
-  GLfloat glMatMV[16];
-  glGetFloatv(GL_PROJECTION_MATRIX, &glMatP[0]);
-  glGetFloatv(GL_MODELVIEW_MATRIX, &glMatMV[0]);
+  std::array<GLfloat, 16> glMatP;
+  std::array<GLfloat, 16> glMatMV;
+  glGetFloatv(GL_PROJECTION_MATRIX, glMatP.data());
+  glGetFloatv(GL_MODELVIEW_MATRIX, glMatMV.data());
 
   auto       activeBody        = mSolarSystem->pActiveBody.get();
   glm::dmat4 matWorldTransform = activeBody->getWorldTransform();
@@ -572,7 +568,7 @@ bool TextureOverlayRenderer::Do() {
   VistaTransformMatrix matM(glm::value_ptr(matWorldTransform), true);
   VistaTransformMatrix matMV(matM);
   VistaTransformMatrix matInvMV(matMV.GetInverted());
-  VistaTransformMatrix matInvP(VistaTransformMatrix(glMatP, true).GetInverted());
+  VistaTransformMatrix matInvP(VistaTransformMatrix(glMatP.data(), true).GetInverted());
   VistaTransformMatrix matInvMVP(matInvMV * matInvP);
 
   // Bind shader before draw

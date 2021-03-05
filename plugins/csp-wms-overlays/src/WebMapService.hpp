@@ -51,7 +51,7 @@ class WebMapService {
   std::optional<WebMapLayer> getLayer(std::string const& name) const;
 
   /// Checks if the service can return maps of the given MIME type.
-  bool isFormatSupported(std::string format) const;
+  bool isFormatSupported(std::string const& format) const;
 
  private:
   VistaXML::TiXmlElement*  getCapabilities();

@@ -251,28 +251,26 @@ void Plugin::init() {
             // result of that method can be used.
             mTimeControl->setTime(cs::utils::convert::time::toSpice(sampleStartTime));
             return;
-          } else {
-            // The current time was a valid timestep so the previous step has to be found.
-            if (sampleStartTime == result.mStartTime) {
-              auto it = std::find(intervals.begin(), intervals.end(), result);
-              if (it == intervals.begin()) {
-                // If the time is at the start of the first interval, there is no previous
-                // timestep to go to.
-                return;
-              } else {
-                // If the time is at the start of another interval, the previous timestep is the
-                // end time of the previous interval.
-                // It is assumed that the intervals are ordered chronologically.
-                mTimeControl->setTime(cs::utils::convert::time::toSpice((it - 1)->mEndTime));
-                return;
-              }
+          }
+          // The current time was a valid timestep so the previous step has to be found.
+          if (sampleStartTime == result.mStartTime) {
+            auto it = std::find(intervals.begin(), intervals.end(), result);
+            if (it == intervals.begin()) {
+              // If the time is at the start of the first interval, there is no previous
+              // timestep to go to.
+              return;
             }
-            // If the time was not the start time of any interval we can substract the duration to
-            // get the previous timestep.
-            sampleStartTime = utils::addDurationToTime(sampleStartTime, result.mSampleDuration, -1);
-            mTimeControl->setTime(cs::utils::convert::time::toSpice(sampleStartTime));
+            // If the time is at the start of another interval, the previous timestep is the
+            // end time of the previous interval.
+            // It is assumed that the intervals are ordered chronologically.
+            mTimeControl->setTime(cs::utils::convert::time::toSpice((it - 1)->mEndTime));
             return;
           }
+          // If the time was not the start time of any interval we can substract the duration to
+          // get the previous timestep.
+          sampleStartTime = utils::addDurationToTime(sampleStartTime, result.mSampleDuration, -1);
+          mTimeControl->setTime(cs::utils::convert::time::toSpice(sampleStartTime));
+          return;
         }
 
         // Time was not part of any interval, so the last interval, that lies before the current
@@ -313,13 +311,12 @@ void Plugin::init() {
               // If the time is at the end of the last interval, there is no next
               // timestep to go to.
               return;
-            } else {
-              // If the time is at the end of another interval, the next timestep is the
-              // start time of the next interval.
-              // It is assumed that the intervals are ordered chronologically.
-              mTimeControl->setTime(cs::utils::convert::time::toSpice((it + 1)->mStartTime));
-              return;
             }
+            // If the time is at the end of another interval, the next timestep is the
+            // start time of the next interval.
+            // It is assumed that the intervals are ordered chronologically.
+            mTimeControl->setTime(cs::utils::convert::time::toSpice((it + 1)->mStartTime));
+            return;
           }
           // If the time was not the end time of any interval we can add the duration to
           // get the next timestep.

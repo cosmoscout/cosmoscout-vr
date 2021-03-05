@@ -63,7 +63,7 @@ class WebMapException : public std::exception {
   std::string const& getText() const;
 
   /// Get type and description of the error as one string.
-  virtual const char* what() const noexcept;
+  const char* what() const noexcept override;
 
  private:
   Code        mCode;
@@ -83,7 +83,7 @@ class WebMapExceptionReport : public std::exception {
   std::vector<WebMapException> const& getExceptions() const;
 
   /// Gets a single string describing all WMS exceptions that occurred.
-  virtual const char* what() const noexcept;
+  const char* what() const noexcept override;
 
  private:
   VistaXML::TiXmlDocument parseXml(std::string const& xml);
