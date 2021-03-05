@@ -51,7 +51,7 @@ class WebMapException : public std::exception {
     eOperationNotSupported,
   };
 
-  WebMapException(VistaXML::TiXmlElement* element);
+  explicit WebMapException(VistaXML::TiXmlElement* element);
 
   inline bool operator!=(const WebMapException& rhs) const {
     return mCode != rhs.mCode || mText != rhs.mText;
@@ -75,9 +75,9 @@ class WebMapException : public std::exception {
 class WebMapExceptionReport : public std::exception {
  public:
   /// Construct a WebMapExceptionReport from a XML document.
-  WebMapExceptionReport(VistaXML::TiXmlDocument doc);
+  explicit WebMapExceptionReport(VistaXML::TiXmlDocument doc);
   /// Construct a WebMapExceptionReport from a string containing a XML document.
-  WebMapExceptionReport(std::string const& xml);
+  explicit WebMapExceptionReport(std::string const& xml);
 
   /// Gets a list of WMS exceptions that occurred.
   std::vector<WebMapException> const& getExceptions() const;

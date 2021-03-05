@@ -45,7 +45,7 @@ class TextureOverlayRenderer : public IVistaOpenGLDraw {
       std::shared_ptr<cs::core::TimeControl> timeControl,
       std::shared_ptr<cs::core::Settings>    settings,
       std::shared_ptr<Plugin::Settings>      pluginSettings);
-  virtual ~TextureOverlayRenderer();
+  ~TextureOverlayRenderer() override;
 
   /// Returns the SPICE name of the body to which this renderer is assigned.
   std::string const& getCenter() const;

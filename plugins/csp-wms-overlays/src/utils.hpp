@@ -112,7 +112,7 @@ template <typename T>
 std::optional<T> getElementValue(
     VistaXML::TiXmlElement* baseElement, std::vector<std::string> const& childPath = {}) {
   VistaXML::TiXmlHandle elementHandle(baseElement);
-  for (std::string child : childPath) {
+  for (std::string const& child : childPath) {
     elementHandle = elementHandle.FirstChildElement(child);
   }
   VistaXML::TiXmlElement* element = elementHandle.ToElement();

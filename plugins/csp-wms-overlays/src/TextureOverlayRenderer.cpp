@@ -364,7 +364,7 @@ void TextureOverlayRenderer::getTimeIndependentTexture(
         request, mPluginSettings->mMapCache.get(),
         request.mBounds == mActiveWMSLayer->getSettings().mBounds);
     if (texture.has_value()) {
-      mWMSTexture->UploadTexture(texture->mWidth, texture->mHeight, (void*)texture->mData, false);
+      mWMSTexture->UploadTexture(texture->mWidth, texture->mHeight, static_cast<void*>(texture->mData), false);
       mWMSTextureUsed = true;
     } else {
       mWMSTextureUsed = false;
@@ -426,7 +426,7 @@ bool TextureOverlayRenderer::Do() {
 
       // Create identifier for the sample start time.
       std::string timeString =
-          utils::timeToString(mCurrentInterval.mFormat.c_str(), sampleStartTime);
+          utils::timeToString(mCurrentInterval.mFormat, sampleStartTime);
 
       auto requestedTexture = mTexturesBuffer.find(timeString);
       auto loadedTexture    = mTextures.find(timeString);
@@ -475,7 +475,7 @@ bool TextureOverlayRenderer::Do() {
         sampleStartTime, mActiveWMSLayer->getSettings().mTimeIntervals, mCurrentInterval);
 
     // Create identifier for the sample start time.
-    std::string timeString = utils::timeToString(mCurrentInterval.mFormat.c_str(), sampleStartTime);
+    std::string timeString = utils::timeToString(mCurrentInterval.mFormat, sampleStartTime);
 
     // Find the current texture.
     auto tex = mTextures.find(timeString);
@@ -486,7 +486,7 @@ bool TextureOverlayRenderer::Do() {
       if (mCurrentTexture != timeString) {
         mWMSTextureUsed = true;
         mWMSTexture->UploadTexture(
-            tex->second.mWidth, tex->second.mHeight, (void*)tex->second.mData, false);
+            tex->second.mWidth, tex->second.mHeight, static_cast<void*>(tex->second.mData), false);
         mCurrentTexture = timeString;
       }
     } // Use default planet texture instead.
@@ -507,21 +507,21 @@ bool TextureOverlayRenderer::Do() {
           sampleAfter, mActiveWMSLayer->getSettings().mTimeIntervals, mCurrentInterval);
 
       // Find texture for the following sample.
-      tex = mTextures.find(utils::timeToString(mCurrentInterval.mFormat.c_str(), sampleAfter));
+      tex = mTextures.find(utils::timeToString(mCurrentInterval.mFormat, sampleAfter));
 
       if (isAfterInInterval && tex != mTextures.end()) {
         // Only update if we ha a new second texture.
         if (mCurrentSecondTexture !=
-            utils::timeToString(mCurrentInterval.mFormat.c_str(), sampleAfter)) {
+            utils::timeToString(mCurrentInterval.mFormat, sampleAfter)) {
           mSecondWMSTexture->UploadTexture(
-              tex->second.mWidth, tex->second.mHeight, (void*)tex->second.mData, false);
+              tex->second.mWidth, tex->second.mHeight, static_cast<void*>(tex->second.mData), false);
           mCurrentSecondTexture =
-              utils::timeToString(mCurrentInterval.mFormat.c_str(), sampleAfter);
+              utils::timeToString(mCurrentInterval.mFormat, sampleAfter);
           mSecondWMSTextureUsed = true;
         }
         // Interpolate fade value between the 2 WMS textures.
-        mFade = static_cast<float>((double)(sampleAfter - time).total_seconds() /
-                                   (double)(sampleAfter - sampleStartTime).total_seconds());
+        mFade = static_cast<float>(static_cast<double>((sampleAfter - time).total_seconds()) /
+                                   static_cast<double>((sampleAfter - sampleStartTime).total_seconds()));
       }
     }
   }

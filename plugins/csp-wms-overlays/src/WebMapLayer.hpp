@@ -30,7 +30,7 @@ class WebMapLayer {
     /// URL at which a legend image may be found.
     const std::optional<std::string> mLegendUrl;
 
-    Style(VistaXML::TiXmlElement* element);
+    explicit Style(VistaXML::TiXmlElement* element);
 
    private:
     std::optional<std::string> getLegendUrl(VistaXML::TiXmlElement* element);

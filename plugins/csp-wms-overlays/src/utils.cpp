@@ -28,7 +28,7 @@ namespace utils {
 std::string timeToString(std::string const& format, boost::posix_time::ptime time) {
   std::stringstream sstr;
   // Delete is called by the std::locale constructor.
-  auto facet = new boost::posix_time::time_facet();
+  auto* facet = new boost::posix_time::time_facet();
   facet->format(format.c_str());
   sstr.imbue(std::locale(std::locale::classic(), facet));
   sstr << time;
@@ -90,7 +90,7 @@ void timeDuration(std::string const& isoString, Duration& duration) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void convertIsoDate(std::string& date, boost::posix_time::ptime& time) {
-  if (date.find("T") != std::string::npos) {
+  if (date.find('T') != std::string::npos) {
     if (std::regex_match(date, std::regex("[+\\-][0-9]{2}:?([0-9]{2})?$"))) {
       logger().warn(
           "Time '{}' is not given in UTC but uses an offset. The offset will be ignored!");
@@ -105,7 +105,7 @@ void convertIsoDate(std::string& date, boost::posix_time::ptime& time) {
       std::remove_if(date.begin(), date.end(), [](unsigned char x) { return std::ispunct(x); }),
       date.end());
 
-  std::size_t pos        = date.find("T");
+  std::size_t pos        = date.find('T');
   std::string dateSubStr = date.substr(0, pos);
   std::string timeSubStr = "T";
 
@@ -171,7 +171,7 @@ void parseIsoString(std::string const& isoString, std::vector<TimeInterval>& tim
       tmp.mFormat.append("Z");
     }
 
-    if (endDate == "") {
+    if (endDate.empty()) {
       // If there is no end date, just a single timestep.
       end = start;
     } else {

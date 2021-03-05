@@ -33,7 +33,7 @@ class Plugin : public cs::core::PluginBase {
     /// inactive).
     cs::utils::DefaultProperty<bool> mEnableInterpolation{true};
 
-    /// Specifies whether to autmatically update the overlay bounds when the observer stopped moving
+    /// Specifies whether to automatically update the overlay bounds when the observer stopped moving
     /// for a certain amount of time.
     cs::utils::DefaultProperty<bool> mEnableAutomaticBoundsUpdate{false};
 

@@ -571,7 +571,7 @@ void Plugin::setWMSServer(
   auto&       settings = getBodySettings(wmsOverlay);
   auto const& server =
       std::find_if(mWms.at(wmsOverlay->getCenter()).begin(), mWms.at(wmsOverlay->getCenter()).end(),
-          [&name](WebMapService wms) { return wms.getTitle() == name; });
+          [&name](WebMapService const& wms) { return wms.getTitle() == name; });
 
   if (server == mWms.at(wmsOverlay->getCenter()).end()) {
     if (name != "None") {
@@ -673,7 +673,7 @@ void Plugin::setWMSLayer(
   }
 
   bool noneActive = true;
-  for (WebMapLayer::Style style : layer->getSettings().mStyles) {
+  for (WebMapLayer::Style const& style : layer->getSettings().mStyles) {
     bool active = style.mName == settings.mActiveStyle.get();
     if (isActiveOverlay(wmsOverlay)) {
       mGuiManager->getGui()->callJavascript("CosmoScout.gui.addDropdownValue",
@@ -721,7 +721,7 @@ void Plugin::setWMSStyle(
   auto                  bodySettings  = getBodySettings(wmsOverlay);
   WebMapLayer::Settings layerSettings = mActiveLayers[wmsOverlay->getCenter()]->getSettings();
   auto const& style = std::find_if(layerSettings.mStyles.begin(), layerSettings.mStyles.end(),
-      [&name](WebMapLayer::Style style) { return style.mName == name; });
+      [&name](WebMapLayer::Style const& style) { return style.mName == name; });
 
   if (style != layerSettings.mStyles.end()) {
     if (isActiveOverlay(wmsOverlay)) {

@@ -107,7 +107,7 @@ WebMapLayer::WebMapLayer(VistaXML::TiXmlElement* element, Settings settings)
 
   for (VistaXML::TiXmlElement* layerElement = element->FirstChildElement("Layer"); layerElement;
        layerElement                         = layerElement->NextSiblingElement("Layer")) {
-    mSubLayers.push_back(WebMapLayer(layerElement, mSettings));
+    mSubLayers.emplace_back(layerElement, mSettings);
   }
 }
 
@@ -155,7 +155,7 @@ void WebMapLayer::getRequestableLayers(std::vector<WebMapLayer>& layers) const {
   if (isRequestable()) {
     layers.push_back(*this);
   }
-  for (WebMapLayer sub : mSubLayers) {
+  for (WebMapLayer const& sub : mSubLayers) {
     sub.getRequestableLayers(layers);
   }
 }

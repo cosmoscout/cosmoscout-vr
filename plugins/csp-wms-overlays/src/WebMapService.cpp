@@ -68,7 +68,7 @@ std::vector<WebMapLayer> const& WebMapService::getLayers() const {
 std::optional<WebMapLayer> WebMapService::getLayer(std::string const& name) const {
   std::vector<WebMapLayer> layers = getLayers();
   auto                     layer  = std::find_if(
-      layers.begin(), layers.end(), [name](WebMapLayer l) { return l.getName() == name; });
+      layers.begin(), layers.end(), [name](WebMapLayer const& l) { return l.getName() == name; });
   if (layer == layers.end()) {
     return {};
   }
@@ -78,7 +78,7 @@ std::optional<WebMapLayer> WebMapService::getLayer(std::string const& name) cons
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool WebMapService::isFormatSupported(std::string format) const {
+bool WebMapService::isFormatSupported(std::string const& format) const {
   return cs::utils::contains(mMapFormats, format);
 }
 
@@ -245,7 +245,7 @@ WebMapService::getCapabilitiesFromCache() {
         } else {
           logger().warn("WMS Exception occurred while checking cache validity for '{}': '{}'!",
               mUrl, e.what());
-          // Cache is not up to date, and an exception occured
+          // Cache is not up to date, and an exception occurred
           return {};
         }
       } catch (std::exception const&) {

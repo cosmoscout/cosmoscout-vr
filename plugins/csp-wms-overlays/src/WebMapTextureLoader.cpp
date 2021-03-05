@@ -107,8 +107,8 @@ std::optional<std::stringstream> WebMapTextureLoader::requestTexture(WebMapServi
 
     std::string contentType = curlpp::Info<CURLINFO_CONTENT_TYPE, std::string>::get(request);
     // Remove suffix and parameter from content type
-    size_t suffixPos    = contentType.find("+");
-    size_t parameterPos = contentType.find(";");
+    size_t suffixPos    = contentType.find('+');
+    size_t parameterPos = contentType.find(';');
     if (suffixPos != std::string::npos) {
       contentType = contentType.substr(0, suffixPos);
     } else if (parameterPos != std::string::npos) {
@@ -196,7 +196,7 @@ std::optional<WebMapTexture> WebMapTextureLoader::loadTextureFromFile(std::strin
   unsigned char* pixels = stbi_load(fileName.c_str(), &width, &height, &bpp, channels);
 
   if (!pixels) {
-    logger().warn("Failed to load '{}' with stbi!", fileName.c_str());
+    logger().warn("Failed to load '{}' with stbi!", fileName);
     return std::optional<WebMapTexture>{};
   }
 
@@ -211,8 +211,8 @@ std::optional<WebMapTexture> WebMapTextureLoader::loadTextureFromStream(
   int width, height, bpp;
   int channels = 4;
 
-  unsigned char* pixels = stbi_load_from_memory((unsigned char*)stream.str().data(),
-      (int)stream.str().size(), &width, &height, &bpp, channels);
+  unsigned char* pixels = stbi_load_from_memory(reinterpret_cast<unsigned char*>(stream.str().data()),
+      static_cast<int>(stream.str().size()), &width, &height, &bpp, channels);
 
   if (!pixels) {
     logger().warn("Failed to load texture from memory with stbi!");
@@ -250,7 +250,7 @@ boost::filesystem::path WebMapTextureLoader::getCachePath(WebMapService const& w
     cacheDir << year << "/";
   }
 
-  if (request.mStyle != "") {
+  if (!request.mStyle.empty()) {
     cacheDir << request.mStyle << "/";
   }
 
@@ -325,9 +325,9 @@ std::string WebMapTextureLoader::getRequestUrl(
   }
 
   if (width.has_value() && !height.has_value()) {
-    height = (int)((double)width.value() / aspect);
+    height = static_cast<int>(static_cast<double>(width.value()) / aspect);
   } else if (height.has_value() && !width.has_value()) {
-    width = (int)((double)height.value() * aspect);
+    width = static_cast<int>(static_cast<double>(height.value()) * aspect);
   }
 
   url << "&WIDTH=" << width.value();
