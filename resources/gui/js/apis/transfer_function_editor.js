@@ -208,12 +208,12 @@ class TransferFunctionEditor {
     // Draw axis
     const xTicks              = this._xScale.ticks(this.options.numberTicks);
     xTicks[xTicks.length - 1] = this._xScale.domain()[1];
-    g.append("g")
+    this._xAxis = g.append("g")
         .attr("class", "axis axis--x")
         .attr("transform", "translate(0," + this._height + ")")
         .call(d3.axisBottom(this._xScale).tickValues(xTicks));
 
-    g.append("g")
+    this._yAxis = g.append("g")
         .attr("class", "axis axis--y")
         .attr("transform", "translate(0, 0)")
         .call(d3.axisLeft(this._yScale).ticks(this.options.numberTicks));
@@ -229,6 +229,7 @@ class TransferFunctionEditor {
       if (dataExtent[0] == dataExtent[1]) {
         dataExtent[1] += 1;
       }
+
       this._xScale.domain(dataExtent);
     } else {
       this._xScale.domain([0, 255]);
@@ -240,7 +241,7 @@ class TransferFunctionEditor {
     const svg                 = d3.select("svg").select("g");
     const xTicks              = this._xScale.ticks(this.options.numberTicks);
     xTicks[xTicks.length - 1] = this._xScale.domain()[1];
-    svg.selectAll(".axis.axis--x").call(d3.axisBottom(this._xScale).tickValues(xTicks));
+    this._xAxis.call(d3.axisBottom(this._xScale).tickValues(xTicks));
   }
 
   _updateControlPoints(controlPoints) {
