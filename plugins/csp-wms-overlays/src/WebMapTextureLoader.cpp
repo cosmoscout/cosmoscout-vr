@@ -197,7 +197,7 @@ std::optional<WebMapTexture> WebMapTextureLoader::loadTextureFromFile(std::strin
   }
 
   WebMapTexture texture{std::move(pixels), width, height};
-  return texture;
+  return std::move(texture);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -217,7 +217,7 @@ std::optional<WebMapTexture> WebMapTextureLoader::loadTextureFromStream(
   }
 
   WebMapTexture texture{std::move(pixels), width, height};
-  return texture;
+  return std::move(texture);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
