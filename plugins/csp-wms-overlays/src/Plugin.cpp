@@ -595,7 +595,8 @@ void Plugin::initOverlay(std::string const& bodyName, Settings::Body& settings) 
     }
   });
 
-  if (isActiveOverlay(mSolarSystem->pActiveBody.get()->getCenterName())) {
+  if (mSolarSystem->pActiveBody.get() &&
+      isActiveOverlay(mSolarSystem->pActiveBody.get()->getCenterName())) {
     mSolarSystem->pActiveBody.touch(mActiveBodyConnection);
   }
 }
