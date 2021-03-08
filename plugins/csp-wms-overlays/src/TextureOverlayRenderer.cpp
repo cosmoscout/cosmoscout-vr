@@ -392,6 +392,12 @@ bool TextureOverlayRenderer::Do() {
     mShaderDirty = false;
   }
 
+  if (mSolarSystem->pActiveBody.get() == nullptr ||
+      mSolarSystem->pActiveBody.get()->getCenterName() != mCenterName || !mActiveWMS.has_value() ||
+      !mActiveWMSLayer.has_value()) {
+    return false;
+  }
+
   if (mActiveWMSLayer && !mActiveWMSLayer->getSettings().mTimeIntervals.empty()) {
     // Get the current time. Pre-fetch times are related to this.
     boost::posix_time::ptime time =
@@ -508,12 +514,6 @@ bool TextureOverlayRenderer::Do() {
             static_cast<double>((sampleAfter - sampleStartTime).total_seconds()));
       }
     }
-  }
-
-  // get active planet
-  if (mSolarSystem->pActiveBody.get() == nullptr ||
-      mSolarSystem->pActiveBody.get()->getCenterName() != mCenterName) {
-    return false;
   }
 
   // save current lighting and material state of the OpenGL state machine
