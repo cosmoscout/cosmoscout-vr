@@ -465,6 +465,26 @@ void Plugin::deInit() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Plugin::update() {
+  std::vector<std::string> finishedBodies;
+  for (auto const& creationThreads : mWmsCreationThreads) {
+    int running  = creationThreads.second.getRunningTaskCount();
+    int total    = (int)mPluginSettings->mBodies.at(creationThreads.first).mWms.size();
+    int progress = total - running;
+    if (progress > mWmsCreationProgress.at(creationThreads.first)) {
+      logger().info(
+          "Loaded {} of {} WMS servers for {}...", progress, total, creationThreads.first);
+      mWmsCreationProgress.at(creationThreads.first) = progress;
+    }
+    if (creationThreads.second.hasFinished()) {
+      initOverlay(creationThreads.first, mPluginSettings->mBodies.at(creationThreads.first));
+      finishedBodies.push_back(creationThreads.first);
+      logger().info("Finished loading WMS servers for {}.", creationThreads.first);
+    }
+  }
+  for (auto const& body : finishedBodies) {
+    mWmsCreationThreads.erase(body);
+  }
+
   if (mPluginSettings->mEnableAutomaticBoundsUpdate.get() && mNoMovement &&
       !mNoMovementRequestedUpdate &&
       std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -525,30 +545,20 @@ void Plugin::onLoad() {
 
     mWMSOverlays.emplace(settings.first, wmsOverlay);
 
+    mWmsCreationThreads.emplace(settings.first, settings.second.mWms.size());
+    mWmsCreationProgress.emplace(settings.first, 0);
+    std::mutex insertMutex;
     for (auto const& wmsUrl : settings.second.mWms) {
-      try {
-        mWms[settings.first].emplace_back(wmsUrl, mPluginSettings->mCapabilityCache.get());
-      } catch (std::exception const& e) {
-        logger().warn("Failed to parse capabilities for '{}': '{}'!", wmsUrl, e.what());
-      }
+      mWmsCreationThreads.at(settings.first).enqueue([this, settings, wmsUrl, &insertMutex]() {
+        try {
+          WebMapService wms(wmsUrl, mPluginSettings->mCapabilityCache.get());
+          std::unique_lock<std::mutex>(insertMutex);
+          mWms[settings.first].push_back(std::move(wms));
+        } catch (std::exception const& e) {
+          logger().warn("Failed to parse capabilities for '{}': '{}'!", wmsUrl, e.what());
+        }
+      });
     }
-
-    if (!settings.second.mActiveServer.isDefault()) {
-      setWMSServer(wmsOverlay, settings.second.mActiveServer.get());
-    } else {
-      resetWMSServer(wmsOverlay);
-    }
-
-    wmsOverlay->configure(settings.second);
-
-    wmsOverlay->pBounds.connectAndTouch([this, &settings, center = settings.first](Bounds bounds) {
-      settings.second.mActiveBounds = bounds;
-      if (isActiveOverlay(center)) {
-        mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.setCurrentBounds",
-            bounds.mMinLon, bounds.mMaxLon, bounds.mMinLat, bounds.mMaxLat);
-        checkScale(bounds, mActiveLayers[center].value(), mPluginSettings->mMaxTextureSize.get());
-      }
-    });
   }
 
   mSolarSystem->pActiveBody.touch(mActiveBodyConnection);
@@ -559,6 +569,35 @@ void Plugin::onLoad() {
 Plugin::Settings::Body& Plugin::getBodySettings(
     std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay) const {
   return mPluginSettings->mBodies.at(wmsOverlay->getCenter());
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Plugin::initOverlay(std::string const& bodyName, Settings::Body& settings) {
+  auto overlay = mWMSOverlays.at(bodyName);
+
+  if (!settings.mActiveServer.isDefault()) {
+    setWMSServer(overlay, settings.mActiveServer.get());
+  } else {
+    resetWMSServer(overlay);
+  }
+
+  overlay->configure(settings);
+
+  overlay->pBounds.connectAndTouch([this, &settings, center = bodyName](Bounds bounds) {
+    settings.mActiveBounds = bounds;
+    if (isActiveOverlay(center)) {
+      mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.setCurrentBounds",
+          bounds.mMinLon, bounds.mMaxLon, bounds.mMinLat, bounds.mMaxLat);
+      if (mActiveLayers[center].has_value()) {
+        checkScale(bounds, mActiveLayers[center].value(), mPluginSettings->mMaxTextureSize.get());
+      }
+    }
+  });
+
+  if (isActiveOverlay(mSolarSystem->pActiveBody.get()->getCenterName())) {
+    mSolarSystem->pActiveBody.touch(mActiveBodyConnection);
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

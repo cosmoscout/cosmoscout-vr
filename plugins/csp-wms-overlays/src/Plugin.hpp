@@ -11,6 +11,7 @@
 
 #include "../../../src/cs-core/PluginBase.hpp"
 #include "../../../src/cs-utils/DefaultProperty.hpp"
+#include "../../../src/cs-utils/ThreadPool.hpp"
 
 #include <chrono>
 #include <map>
@@ -33,8 +34,8 @@ class Plugin : public cs::core::PluginBase {
     /// inactive).
     cs::utils::DefaultProperty<bool> mEnableInterpolation{true};
 
-    /// Specifies whether to automatically update the overlay bounds when the observer stopped moving
-    /// for a certain amount of time.
+    /// Specifies whether to automatically update the overlay bounds when the observer stopped
+    /// moving for a certain amount of time.
     cs::utils::DefaultProperty<bool> mEnableAutomaticBoundsUpdate{false};
 
     /// Path to the map cache folder, can be absolute or relative to the cosmoscout executable.
@@ -85,6 +86,8 @@ class Plugin : public cs::core::PluginBase {
 
   Settings::Body& getBodySettings(std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay) const;
 
+  void initOverlay(std::string const& bodyName, Settings::Body& settings);
+
   void setWMSServer(
       std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay, std::string const& name);
   void resetWMSServer(std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay);
@@ -111,7 +114,9 @@ class Plugin : public cs::core::PluginBase {
   /// appropriate range specified in the layer capabilities, a warning will be displayed.
   void checkScale(Bounds const& bounds, WebMapLayer const& layer, int maxTextureSize);
 
-  std::shared_ptr<Settings> mPluginSettings = std::make_shared<Settings>();
+  std::shared_ptr<Settings>                    mPluginSettings = std::make_shared<Settings>();
+  std::map<std::string, cs::utils::ThreadPool> mWmsCreationThreads;
+  std::map<std::string, int>                   mWmsCreationProgress;
   std::map<std::string, std::shared_ptr<TextureOverlayRenderer>> mWMSOverlays;
   std::map<std::string, std::vector<WebMapService>>              mWms;
 
