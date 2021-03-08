@@ -212,7 +212,7 @@ bool timeInIntervals(boost::posix_time::ptime& time, std::vector<TimeInterval> c
         addDurationToTime(interval->mEndTime, interval->mSampleDuration);
 
     // Sample time of the current time is inside the time interval.
-    if (interval->mStartTime <= time && intervalEndTime >= time) {
+    if (interval->mStartTime <= time && intervalEndTime > time) {
 
       // Find the last sample time before the current time.
       if (interval->mSampleDuration.mYears != 0) {
