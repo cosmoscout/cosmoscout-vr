@@ -22,6 +22,16 @@ namespace csp::wmsoverlays {
 /// Class for storing information on a Web Map Service.
 class WebMapService {
  public:
+  /// Possible modes for cache usage when loading capabilities.
+  enum class CacheMode {
+    /// Always use available cached files without checking if they are up to date.
+    eAlways,
+    /// Check if cached files are up to date using their update sequence.
+    eUpdateSequence,
+    /// Never use cached files, always request new capabilities from the server.
+    eNever
+  };
+
   /// Struct for storing general WMS settings.
   struct Settings {
     std::optional<int> mMaxWidth;
@@ -30,9 +40,10 @@ class WebMapService {
 
   /// Create an object for a WMS accessible at the given URL.
   /// The url string should be the base URL of the WMS without a query string.
-  /// cacheDir should be the path to a directory which will be used for
-  /// caching capability documents.
-  WebMapService(std::string url, std::string cacheDir);
+  /// cacheMode can be used to control the caching behavior for the capability document.
+  /// If caching is activated, cacheDir should be the path to a directory which can be
+  /// used for caching.
+  WebMapService(std::string url, CacheMode cacheMode, std::string cacheDir);
 
   /// Gets the base URL of the service
   std::string const& getUrl() const;
@@ -60,17 +71,25 @@ class WebMapService {
   Settings                 parseSettings();
   std::vector<std::string> parseMapFormats();
 
-  /// The returned optional either contains the current capability document as a raw string and as a
-  /// parsed TiXmlDocument, or is empty if a new capability document should be requested.
-  /// The returned capability document is not necessarily equal to the document found in cache.
-  /// The boolean flag specifies whether the file should be cached.
-  std::optional<std::tuple<std::string, VistaXML::TiXmlDocument, bool>> getCapabilitiesFromCache();
+  /// Tries to load cached capabilities for this WMS.
+  std::optional<VistaXML::TiXmlDocument> getCapabilitiesFromCache();
+  /// Checks if the given capabilities document is up to date.
+  /// The returned optional either contains the current capability document as a parsed
+  /// TiXmlDocument and optionally as a raw string, or is empty if a new capability document should
+  /// be requested. If the returned raw string is not empty, the returned capability document may be
+  /// different to the one given to this function and thus should be saved to the cache.
+  std::optional<std::tuple<VistaXML::TiXmlDocument, std::optional<std::string>>>
+  checkUpdateSequence(VistaXML::TiXmlDocument cacheDoc);
+  /// Requests a new capability document from the server.
+  /// Returns the document as a parsed TiXmlDocument and as a raw string for caching.
+  std::tuple<VistaXML::TiXmlDocument, std::string> requestCapabilities();
 
   std::stringstream getGetCapabilitiesUrl() const;
 
   std::optional<VistaXML::TiXmlDocument> mDoc;
 
   const std::string mUrl;
+  const CacheMode   mCacheMode;
   const std::string mCacheDir;
   const std::string mCacheFileName;
 

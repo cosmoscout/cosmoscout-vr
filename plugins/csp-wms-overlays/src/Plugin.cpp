@@ -36,6 +36,15 @@ namespace csp::wmsoverlays {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+NLOHMANN_JSON_SERIALIZE_ENUM(
+    WebMapService::CacheMode, {
+                                  {WebMapService::CacheMode::eAlways, "always"},
+                                  {WebMapService::CacheMode::eUpdateSequence, "updateSequence"},
+                                  {WebMapService::CacheMode::eNever, "never"},
+                              })
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void from_json(nlohmann::json const& j, Bounds& o) {
   std::array<double, 4> bounds;
   j.get_to(bounds);
@@ -75,6 +84,7 @@ void from_json(nlohmann::json const& j, Plugin::Settings& o) {
   cs::core::Settings::deserialize(j, "maxTextureSize", o.mMaxTextureSize);
   cs::core::Settings::deserialize(j, "mapCache", o.mMapCache);
   cs::core::Settings::deserialize(j, "capabilityCache", o.mCapabilityCache);
+  cs::core::Settings::deserialize(j, "useCapabilityCache", o.mUseCapabilityCache);
   cs::core::Settings::deserialize(j, "bodies", o.mBodies);
 }
 
@@ -83,6 +93,7 @@ void to_json(nlohmann::json& j, Plugin::Settings const& o) {
   cs::core::Settings::serialize(j, "maxTextureSize", o.mMaxTextureSize);
   cs::core::Settings::serialize(j, "mapCache", o.mMapCache);
   cs::core::Settings::serialize(j, "capabilityCache", o.mCapabilityCache);
+  cs::core::Settings::serialize(j, "useCapabilityCache", o.mUseCapabilityCache);
   cs::core::Settings::serialize(j, "bodies", o.mBodies);
 }
 
@@ -551,7 +562,8 @@ void Plugin::onLoad() {
     for (auto const& wmsUrl : settings.second.mWms) {
       mWmsCreationThreads.at(settings.first).enqueue([this, settings, wmsUrl, &insertMutex]() {
         try {
-          WebMapService wms(wmsUrl, mPluginSettings->mCapabilityCache.get());
+          WebMapService wms(wmsUrl, mPluginSettings->mUseCapabilityCache.get(),
+              mPluginSettings->mCapabilityCache.get());
           std::unique_lock<std::mutex>(insertMutex);
           mWms[settings.first].push_back(std::move(wms));
         } catch (std::exception const& e) {

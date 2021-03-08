@@ -22,8 +22,9 @@ namespace csp::wmsoverlays {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-WebMapService::WebMapService(std::string url, std::string cacheDir)
+WebMapService::WebMapService(std::string url, CacheMode cacheMode, std::string cacheDir)
     : mUrl(std::move(url))
+    , mCacheMode(std::move(cacheMode))
     , mCacheDir(std::move(cacheDir))
     , mCacheFileName(std::regex_replace(mUrl, std::regex("[/:*]"), "_") + ".xml")
     , mTitle(parseTitle())
@@ -86,55 +87,40 @@ bool WebMapService::isFormatSupported(std::string const& format) const {
 
 VistaXML::TiXmlElement* WebMapService::getCapabilities() {
   if (!mDoc.has_value()) {
-    VistaXML::TiXmlDocument doc;
-    std::string             docString;
-    bool                    saveToCache = true;
+    std::optional<std::string> docString;
+    bool                       saveToCache = false;
 
-    auto cacheRes = getCapabilitiesFromCache();
-
-    if (cacheRes.has_value()) {
-      std::tie(docString, doc, saveToCache) = cacheRes.value();
-    } else {
-      // No valid data found in cache, request capabilities from server
-      std::stringstream url = getGetCapabilitiesUrl();
-
-      std::stringstream xmlStream;
-      curlpp::Easy      request;
-      request.setOpt(curlpp::options::Url(url.str()));
-      request.setOpt(curlpp::options::WriteStream(&xmlStream));
-      request.setOpt(curlpp::options::NoSignal(true));
-      request.setOpt(curlpp::options::SslVerifyPeer(false));
-
-      try {
-        request.perform();
-      } catch (std::exception const& e) {
-        std::stringstream message;
-        message << "WMS capabilities request failed for '" << mUrl << "': '" << e.what() << "'";
-        throw std::runtime_error(message.str());
+    // Check cache for capability document according to cache mode
+    switch (mCacheMode) {
+    case CacheMode::eAlways: {
+      saveToCache   = true;
+      auto cacheDoc = getCapabilitiesFromCache();
+      if (cacheDoc.has_value()) {
+        mDoc = cacheDoc.value();
       }
-
-      docString = xmlStream.str();
-      doc.Parse(docString.c_str());
-      if (doc.Error()) {
-        std::stringstream message;
-        message << "Parsing WMS capabilities failed for '" << mUrl << "': '" << doc.ErrorDesc()
-                << "'";
-        throw std::runtime_error(message.str());
+      break;
+    }
+    case CacheMode::eUpdateSequence: {
+      saveToCache   = true;
+      auto cacheDoc = getCapabilitiesFromCache();
+      if (cacheDoc.has_value()) {
+        auto checkRes = checkUpdateSequence(cacheDoc.value());
+        if (checkRes.has_value()) {
+          std::tie(mDoc, docString) = checkRes.value();
+        }
       }
-
-      // Check for WMS exception
-      try {
-        WebMapExceptionReport e(doc);
-        std::stringstream     message;
-        message << "Requesting WMS capabilities for '" << mUrl << "' resulted in WMS exception: '"
-                << e.what() << "'";
-        throw std::runtime_error(message.str());
-      } catch (std::exception const&) {
-        // No WMS exception occurred
-      }
+      break;
+    }
+    case CacheMode::eNever: {
+      saveToCache = false;
+      break;
+    }
     }
 
-    mDoc = doc;
+    if (!mDoc.has_value()) {
+      // No valid data found in cache, request capabilities from server
+      std::tie(mDoc, docString) = requestCapabilities();
+    }
 
     VistaXML::TiXmlElement* capabilities = mDoc->FirstChildElement("WMS_Capabilities");
     if (capabilities == nullptr) {
@@ -153,8 +139,8 @@ VistaXML::TiXmlElement* WebMapService::getCapabilities() {
       }
     }
 
-    if (saveToCache) {
-      // Cache file
+    if (saveToCache && docString.has_value()) {
+      // Save capabilities to cache
       boost::filesystem::path cacheFile(mCacheFileName);
       boost::filesystem::path cacheDir(mCacheDir);
       boost::filesystem::path cacheFilePath(cacheDir / cacheFile);
@@ -167,7 +153,7 @@ VistaXML::TiXmlElement* WebMapService::getCapabilities() {
           logger().warn("Failed to create cache directory: {}!", e.what());
         }
       }
-      cs::utils::filesystem::writeStringToFile(cacheFilePath.string(), docString);
+      cs::utils::filesystem::writeStringToFile(cacheFilePath.string(), docString.value());
     }
   }
   VistaXML::TiXmlElement* capabilities = mDoc->FirstChildElement("WMS_Capabilities");
@@ -176,12 +162,7 @@ VistaXML::TiXmlElement* WebMapService::getCapabilities() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::optional<std::tuple<std::string, VistaXML::TiXmlDocument, bool>>
-WebMapService::getCapabilitiesFromCache() {
-  // This method uses the updateSequence value in the cached capabilities according to 7.2.3.5 of
-  // the WMS 1.3.0 implementation specification to check if a new capability document should be
-  // requested.
-
+std::optional<VistaXML::TiXmlDocument> WebMapService::getCapabilitiesFromCache() {
   boost::filesystem::path cacheFile(mCacheFileName);
   boost::filesystem::path cacheDir(mCacheDir);
   boost::filesystem::path cacheFilePath(cacheDir / cacheFile);
@@ -203,61 +184,114 @@ WebMapService::getCapabilitiesFromCache() {
           "Cached capabilities document for '{}' is not valid! Requesting a new one.", mUrl);
       return {};
     }
-
-    // Get the update sequence number from the cached file, to check if it is up to date
-    const char* updateSequence = root->Attribute("updateSequence");
-    if (updateSequence != nullptr) {
-      // A sequence number was found, now check if it is the most recent one
-      std::stringstream url = getGetCapabilitiesUrl();
-      url << "&UPDATESEQUENCE=" << updateSequence;
-
-      std::stringstream resStream;
-      curlpp::Easy      request;
-      request.setOpt(curlpp::options::Url(url.str()));
-      request.setOpt(curlpp::options::WriteStream(&resStream));
-      request.setOpt(curlpp::options::NoSignal(true));
-      request.setOpt(curlpp::options::SslVerifyPeer(false));
-
-      try {
-        request.perform();
-      } catch (std::exception const& e) {
-        logger().warn("Failed to perform WMS Capabilities request while checking cache validity "
-                      "for '{}': '{}'!",
-            mUrl, e.what());
-        return {};
-      }
-
-      const std::string       resString = resStream.str();
-      VistaXML::TiXmlDocument resDoc;
-      resDoc.Parse(resString.c_str());
-      if (resDoc.Error()) {
-        logger().warn("Parsing XML failed while checking cache validity for '{}': '{}'!", mUrl,
-            resDoc.ErrorDesc());
-        return {};
-      }
-
-      try {
-        WebMapExceptionReport e(resDoc);
-        if (e.getExceptions().size() == 1 &&
-            e.getExceptions()[0].getCode() == WebMapException::Code::eCurrentUpdateSequence) {
-          // Cache is up to date
-          return std::make_tuple(capabilitiesString, cacheDoc, false);
-        }
-        logger().warn(
-            "WMS Exception occurred while checking cache validity for '{}': '{}'!", mUrl, e.what());
-        // Cache is not up to date, and an exception occurred
-        return {};
-      } catch (std::exception const&) {
-        // No exception, the request's result should be the newest capabilities
-        return std::make_tuple(resString, resDoc, true);
-      }
-    } else {
-      // No sequence number found, so we can't verify that our cached file is up to date
-      return {};
-    }
+    return cacheDoc;
   }
   // No file found in cache
   return {};
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::optional<std::tuple<VistaXML::TiXmlDocument, std::optional<std::string>>>
+WebMapService::checkUpdateSequence(VistaXML::TiXmlDocument cacheDoc) {
+  // This method uses the updateSequence value in the cached capabilities according to 7.2.3.5 of
+  // the WMS 1.3.0 implementation specification to check if a new capability document should be
+  // requested.
+
+  // Get the update sequence number from the cached file, to check if it is up to date
+  VistaXML::TiXmlElement* root           = cacheDoc.FirstChildElement("WMS_Capabilities");
+  const char*             updateSequence = root->Attribute("updateSequence");
+  if (updateSequence != nullptr) {
+    // A sequence number was found, now check if it is the most recent one
+    std::stringstream url = getGetCapabilitiesUrl();
+    url << "&UPDATESEQUENCE=" << updateSequence;
+
+    std::stringstream resStream;
+    curlpp::Easy      request;
+    request.setOpt(curlpp::options::Url(url.str()));
+    request.setOpt(curlpp::options::WriteStream(&resStream));
+    request.setOpt(curlpp::options::NoSignal(true));
+    request.setOpt(curlpp::options::SslVerifyPeer(false));
+
+    try {
+      request.perform();
+    } catch (std::exception const& e) {
+      logger().warn("Failed to perform WMS Capabilities request while checking cache validity "
+                    "for '{}': '{}'!",
+          mUrl, e.what());
+      return {};
+    }
+
+    const std::string       resString = resStream.str();
+    VistaXML::TiXmlDocument resDoc;
+    resDoc.Parse(resString.c_str());
+    if (resDoc.Error()) {
+      logger().warn("Parsing XML failed while checking cache validity for '{}': '{}'!", mUrl,
+          resDoc.ErrorDesc());
+      return {};
+    }
+
+    try {
+      WebMapExceptionReport e(resDoc);
+      if (e.getExceptions().size() == 1 &&
+          e.getExceptions()[0].getCode() == WebMapException::Code::eCurrentUpdateSequence) {
+        // Cache is up to date
+        return std::make_tuple(cacheDoc, std::nullopt);
+      }
+      logger().warn(
+          "WMS Exception occurred while checking cache validity for '{}': '{}'!", mUrl, e.what());
+      // Cache is not up to date, and an exception occurred
+      return {};
+    } catch (std::exception const&) {
+      // No exception, the request's result should be the newest capabilities
+      return std::make_tuple(resDoc, resString);
+    }
+  } else {
+    // No sequence number found, so we can't verify that our cached file is up to date
+    return {};
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::tuple<VistaXML::TiXmlDocument, std::string> WebMapService::requestCapabilities() {
+  std::stringstream url = getGetCapabilitiesUrl();
+
+  std::stringstream xmlStream;
+  curlpp::Easy      request;
+  request.setOpt(curlpp::options::Url(url.str()));
+  request.setOpt(curlpp::options::WriteStream(&xmlStream));
+  request.setOpt(curlpp::options::NoSignal(true));
+  request.setOpt(curlpp::options::SslVerifyPeer(false));
+
+  try {
+    request.perform();
+  } catch (std::exception const& e) {
+    std::stringstream message;
+    message << "WMS capabilities request failed for '" << mUrl << "': '" << e.what() << "'";
+    throw std::runtime_error(message.str());
+  }
+
+  std::string             docString = xmlStream.str();
+  VistaXML::TiXmlDocument doc;
+  doc.Parse(docString.c_str());
+  if (doc.Error()) {
+    std::stringstream message;
+    message << "Parsing WMS capabilities failed for '" << mUrl << "': '" << doc.ErrorDesc() << "'";
+    throw std::runtime_error(message.str());
+  }
+
+  // Check for WMS exception
+  try {
+    WebMapExceptionReport e(doc);
+    std::stringstream     message;
+    message << "Requesting WMS capabilities for '" << mUrl << "' resulted in WMS exception: '"
+            << e.what() << "'";
+    throw std::runtime_error(message.str());
+  } catch (std::exception const&) {
+    // No WMS exception occurred
+  }
+  return std::make_tuple(doc, docString);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -7,6 +7,7 @@
 #ifndef CSP_WMS_OVERLAYS_PLUGIN_HPP
 #define CSP_WMS_OVERLAYS_PLUGIN_HPP
 
+#include "WebMapService.hpp"
 #include "utils.hpp"
 
 #include "../../../src/cs-core/PluginBase.hpp"
@@ -20,8 +21,6 @@
 namespace csp::wmsoverlays {
 
 class TextureOverlayRenderer;
-class WebMapService;
-class WebMapLayer;
 
 /// This plugin provides the rendering of planets as spheres with a texture and an additional WMS
 /// based texture. Despite its name it can also render moons :P. It can be configured via the
@@ -46,6 +45,10 @@ class Plugin : public cs::core::PluginBase {
     /// executable.
     cs::utils::DefaultProperty<std::string> mCapabilityCache{
         "../share/cache/csp-wms-overlays/wms-capability-cache"};
+
+    /// Specifies whether cached capabilitiy files should be used instead of requesting new ones.
+    cs::utils::DefaultProperty<WebMapService::CacheMode> mUseCapabilityCache{
+        WebMapService::CacheMode::eNever};
 
     /// The amount of textures that gets pre-fetched in every time direction.
     cs::utils::DefaultProperty<int> mPrefetchCount{0};
