@@ -210,6 +210,7 @@
      */
     clearDefaultBounds() {
       this._defaultBoundsLabel.innerText = "None";
+      this._scaleLabel.innerHTML         = "None";
       this._defaultBoundsGoTo.disabled   = true;
     }
 
