@@ -142,7 +142,6 @@ class Plugin : public cs::core::PluginBase {
   int mObserverSpeedConnection = -1;
   int mOnLoadConnection        = -1;
   int mOnSaveConnection        = -1;
-  int mBoundsConnection        = -1;
 };
 
 } // namespace csp::wmsoverlays

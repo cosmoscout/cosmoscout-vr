@@ -377,22 +377,7 @@ void Plugin::init() {
           mActiveOverlay = nullptr;
           return;
         }
-
-        // Connect to the bounds property of only the active overlay.
-        if (mActiveOverlay) {
-          mActiveOverlay->pBounds.disconnect(mBoundsConnection);
-        }
         mActiveOverlay    = overlay->second;
-        mBoundsConnection = mActiveOverlay->pBounds.connectAndTouch([this](Bounds bounds) {
-          mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.setCurrentBounds",
-              bounds.mMinLon, bounds.mMaxLon, bounds.mMinLat, bounds.mMaxLat);
-
-          if (!mActiveOverlay || !mActiveLayers[mActiveOverlay->getCenter()]) {
-            return;
-          }
-          checkScale(bounds, mActiveLayers[mActiveOverlay->getCenter()].value(),
-              mPluginSettings->mMaxTextureSize.get());
-        });
 
         mGuiManager->getGui()->callJavascript(
             "CosmoScout.gui.clearDropdown", "wmsOverlays.setServer");
@@ -600,9 +585,12 @@ void Plugin::initOverlay(std::string const& bodyName, Settings::Body& settings) 
     if (isActiveOverlay(center)) {
       mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.setCurrentBounds",
           bounds.mMinLon, bounds.mMaxLon, bounds.mMinLat, bounds.mMaxLat);
-      if (mActiveLayers[center].has_value()) {
-        checkScale(bounds, mActiveLayers[center].value(), mPluginSettings->mMaxTextureSize.get());
+
+      if (!mActiveLayers[mActiveOverlay->getCenter()]) {
+        return;
       }
+      checkScale(bounds, mActiveLayers[mActiveOverlay->getCenter()].value(),
+          mPluginSettings->mMaxTextureSize.get());
     }
   });
 
