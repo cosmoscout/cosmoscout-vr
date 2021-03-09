@@ -56,6 +56,7 @@ struct Duration {
   int                              mMonths       = 0;
   boost::posix_time::time_duration mTimeDuration = boost::posix_time::seconds(0);
 
+  /// Checks whether the object represents a non-zero duration.
   bool isDuration() const;
 
   inline bool operator==(const Duration& rhs) const {
@@ -76,6 +77,20 @@ struct TimeInterval {
   }
 };
 
+/// This namespace contains some utility functions for:
+/// A) Handling the format used by WMS for describing temporal data
+///     The valid times for a given layer are generally specified as a comma-seperated list of
+///     either single points in time or of temporal ranges expressed using the syntax
+///     'start/end/period', where start and end are points in time and period is given using the
+///     duration format specified by ISO 8601.
+///     Points in time are specified using the ISO 8601:2000 "extended" format. Because
+///     least-significant digits may be omitted for data of low temporal precision, the functions in
+///     cs::utils::convert::time can not be used here. Some servers only accept times of the same
+///     precision as the one given in the layer capabilities, so the precision is saved as a format
+///     string in TimeInterval objects.
+/// B) More convenient parsing of XML documents
+///     Adds some function templates for getting generic types from XML elements. Uses
+///     std::optionals as return values to signify whether a value was found or not.
 namespace utils {
 
 /// Create formatted date, time string from time value.
@@ -156,7 +171,8 @@ std::optional<std::string> getAttribute<std::string>(
 
 /// Booleans may be given as either integers (0->false, 1->true) or strings.
 template <>
-std::optional<bool> getAttribute<bool>(VistaXML::TiXmlElement* element, std::string const& attributeName);
+std::optional<bool> getAttribute<bool>(
+    VistaXML::TiXmlElement* element, std::string const& attributeName);
 
 /// Sets the given var to the value of the optional, if it is present.
 template <typename T>
