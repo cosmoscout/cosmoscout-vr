@@ -874,8 +874,14 @@ void Plugin::checkScale(Bounds const& bounds, WebMapLayer const& layer, int maxT
   double radius          = mSolarSystem->getRadii(mActiveOverlay->getCenter())[0];
   double metersPerDegree = (radius * 2. * glm::pi<double>()) / 360.;
 
-  double lonRange = bounds.mMaxLon - bounds.mMinLon;
-  double latRange = bounds.mMaxLat - bounds.mMinLat;
+  double lonRange, latRange;
+  if (layer.getSettings().mNoSubsets) {
+    lonRange = layer.getSettings().mBounds.mMaxLon - layer.getSettings().mBounds.mMinLon;
+    latRange = layer.getSettings().mBounds.mMaxLat - layer.getSettings().mBounds.mMinLat;
+  } else {
+    lonRange = bounds.mMaxLon - bounds.mMinLon;
+    latRange = bounds.mMaxLat - bounds.mMinLat;
+  }
 
   double scaleDenominator;
   if (lonRange > latRange) {
