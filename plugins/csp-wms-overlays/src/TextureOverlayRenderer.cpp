@@ -154,8 +154,6 @@ void TextureOverlayRenderer::clearActiveWMS() {
 
   mWMSTextureUsed       = false;
   mSecondWMSTextureUsed = false;
-  mCurrentTexture       = "";
-  mCurrentSecondTexture = "";
   mStyle                = "";
 
   mActiveWMS.reset();
@@ -181,6 +179,9 @@ void TextureOverlayRenderer::clearTextures() {
   mTextures.clear();
   mTexturesBuffer.clear();
   mWrongTextures.clear();
+
+  mCurrentTexture       = "";
+  mCurrentSecondTexture = "";
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
