@@ -562,9 +562,9 @@ void Plugin::onLoad() {
     for (auto const& wmsUrl : settings.second.mWms) {
       mWmsCreationThreads.at(settings.first).enqueue([this, settings, wmsUrl, &insertMutex]() {
         try {
-          WebMapService wms(wmsUrl, mPluginSettings->mUseCapabilityCache.get(),
+          WebMapService                wms(wmsUrl, mPluginSettings->mUseCapabilityCache.get(),
               mPluginSettings->mCapabilityCache.get());
-          std::unique_lock<std::mutex>(insertMutex);
+          std::unique_lock<std::mutex> lock(insertMutex);
           mWms[settings.first].push_back(std::move(wms));
         } catch (std::exception const& e) {
           logger().warn("Failed to parse capabilities for '{}': '{}'!", wmsUrl, e.what());
