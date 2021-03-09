@@ -57,13 +57,16 @@ TextureOverlayRenderer::TextureOverlayRenderer(std::string center,
   // create textures ---------------------------------------------------------
   for (auto const& viewport : GetVistaSystem()->GetDisplayManager()->GetViewports()) {
     // Texture for previous renderer depth buffer
-    const auto [buffer, _] = mDepthBufferData.try_emplace(viewport.second, GL_TEXTURE_RECTANGLE);
-    buffer->second.Bind();
-    buffer->second.SetWrapS(GL_CLAMP);
-    buffer->second.SetWrapT(GL_CLAMP);
-    buffer->second.SetMinFilter(GL_NEAREST);
-    buffer->second.SetMagFilter(GL_NEAREST);
-    buffer->second.Unbind();
+    const auto [buffer, success] =
+        mDepthBufferData.try_emplace(viewport.second, GL_TEXTURE_RECTANGLE);
+    if (success) {
+      buffer->second.Bind();
+      buffer->second.SetWrapS(GL_CLAMP);
+      buffer->second.SetWrapT(GL_CLAMP);
+      buffer->second.SetMinFilter(GL_NEAREST);
+      buffer->second.SetMagFilter(GL_NEAREST);
+      buffer->second.Unbind();
+    }
   }
 
   mWMSTexture.Bind();
