@@ -118,6 +118,7 @@ class Plugin : public cs::core::PluginBase {
   void checkScale(Bounds const& bounds, WebMapLayer const& layer, int maxTextureSize);
 
   std::shared_ptr<Settings>                    mPluginSettings = std::make_shared<Settings>();
+  std::mutex                                   mWmsInsertMutex;
   std::map<std::string, cs::utils::ThreadPool> mWmsCreationThreads;
   std::map<std::string, int>                   mWmsCreationProgress;
   std::map<std::string, std::shared_ptr<TextureOverlayRenderer>> mWMSOverlays;
