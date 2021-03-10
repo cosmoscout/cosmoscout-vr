@@ -397,7 +397,8 @@
       "denoiseDepth": false,
       "samplingRate": 1,
       "resolution": 512,
-      "depthMode": "multiThreshold"
+      "depthMode": "multiThreshold",
+      "signallingUrl": "ws://127.0.0.1:57778/ws"
     },
     "csp-vestec": {
       "vestec-topo-dir": "../share/vestec/data/fire.cdb",
