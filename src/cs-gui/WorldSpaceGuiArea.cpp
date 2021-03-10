@@ -22,11 +22,11 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-namespace {
+namespace cs::gui {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const char* QUAD_VERT = R"(
+const char* const WorldSpaceGuiArea::QUAD_VERT = R"(
 vec2 positions[4] = vec2[](
     vec2(-0.5, -0.5),
     vec2(0.5, -0.5),
@@ -62,7 +62,7 @@ void main()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const char* QUAD_FRAG = R"(
+const char* const WorldSpaceGuiArea::QUAD_FRAG = R"(
 in vec2 vTexCoords;
 in vec4 vPosition;
 
@@ -107,12 +107,6 @@ void main() {
   #endif
 }
 )";
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-} // namespace
-
-namespace cs::gui {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -210,6 +204,12 @@ bool WorldSpaceGuiArea::Do() {
     mShader.InitFragmentShaderFromString(defines + QUAD_FRAG);
     mShader.Link();
 
+    mUniforms.farClip          = mShader.GetUniformLocation("iFarClip");
+    mUniforms.projectionMatrix = mShader.GetUniformLocation("uMatProjection");
+    mUniforms.modelViewMatrix  = mShader.GetUniformLocation("uMatModelView");
+    mUniforms.texSize          = mShader.GetUniformLocation("texSize");
+    mUniforms.texture          = mShader.GetUniformLocation("texture");
+
     mShaderDirty = false;
   }
 
@@ -230,7 +230,7 @@ bool WorldSpaceGuiArea::Do() {
   mShader.Bind();
 
   if (mUseLinearDepthBuffer) {
-    mShader.SetUniform(mShader.GetUniformLocation("iFarClip"), utils::getCurrentFarClipDistance());
+    mShader.SetUniform(mUniforms.farClip, utils::getCurrentFarClipDistance());
   }
 
   // get modelview and projection matrices
@@ -239,7 +239,7 @@ bool WorldSpaceGuiArea::Do() {
   glm::mat4 modelViewMat = glm::make_mat4(glMat.data());
 
   glGetFloatv(GL_PROJECTION_MATRIX, glMat.data());
-  glUniformMatrix4fv(mShader.GetUniformLocation("uMatProjection"), 1, GL_FALSE, glMat.data());
+  glUniformMatrix4fv(mUniforms.projectionMatrix, 1, GL_FALSE, glMat.data());
 
   // draw back-to-front
   auto const& items = getItems();
@@ -256,15 +256,13 @@ bool WorldSpaceGuiArea::Do() {
       localMat =
           glm::scale(localMat, glm::vec3(guiItem->getRelSizeX(), guiItem->getRelSizeY(), 1.F));
 
-      glUniformMatrix4fv(
-          mShader.GetUniformLocation("uMatModelView"), 1, GL_FALSE, glm::value_ptr(localMat));
+      glUniformMatrix4fv(mUniforms.modelViewMatrix, 1, GL_FALSE, glm::value_ptr(localMat));
 
-      glUniform2i(mShader.GetUniformLocation("texSize"), guiItem->getTextureSizeX(),
-          guiItem->getTextureSizeY());
+      glUniform2i(mUniforms.texSize, guiItem->getTextureSizeX(), guiItem->getTextureSizeY());
 
       glActiveTexture(GL_TEXTURE0);
       glBindTexture(GL_TEXTURE_BUFFER, guiItem->getTexture());
-      mShader.SetUniform(mShader.GetUniformLocation("texture"), 0);
+      mShader.SetUniform(mUniforms.texture, 0);
 
       glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 

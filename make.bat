@@ -34,6 +34,22 @@ IF "%COSMOSCOUT_DEBUG_BUILD%"=="true" (
   set BUILD_TYPE=Release
 )
 
+rem Check if unity build is disabled with "set COSMOSCOUT_USE_UNITY_BUILD=false".
+IF "%COSMOSCOUT_USE_UNITY_BUILD%"=="false" (
+  echo Unity build is disabled!
+  set UNITY_BUILD=Off
+) else (
+  set UNITY_BUILD=On
+)
+
+rem Check if precompiled headers should not be used with "set COSMOSCOUT_USE_PCH=false".
+IF "%COSMOSCOUT_USE_PCH%"=="false" (
+  echo Precompiled headers are disabled!
+  set PRECOMPILED_HEADERS=Off
+) else (
+  set PRECOMPILED_HEADERS=On
+)
+
 rem This directory should contain the top-level CMakeLists.txt - it is assumed to reside in the same
 rem directory as this script.
 set CMAKE_DIR=%~dp0
@@ -63,6 +79,7 @@ set zipper_DIR=%CURRENT_DIR%\build\windows-externals-%BUILD_TYPE%\zipper
 
 cd "%BUILD_DIR%"
 cmake %CMAKE_FLAGS% -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
+      -DCMAKE_UNITY_BUILD=%UNITY_BUILD% -DCOSMOSCOUT_USE_PRECOMPILED_HEADERS=%PRECOMPILED_HEADERS%^
       -DZLIB_LIBRARY="%EXTERNALS_INSTALL_DIR%/lib/zlib.lib"^
       -DZLIB_INCLUDE_DIR="%EXTERNALS_INSTALL_DIR%/include"^
       -DCOSMOSCOUT_EXTERNALS_DIR="%EXTERNALS_INSTALL_DIR%" "%CMAKE_DIR%"  || exit /b

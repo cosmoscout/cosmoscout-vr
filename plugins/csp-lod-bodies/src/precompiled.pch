@@ -1,0 +1,30 @@
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//                               This file is part of CosmoScout VR                               //
+//      and may be used under the terms of the MIT license. See the LICENSE file for details.     //
+//                        Copyright: (c) 2019 German Aerospace Center (DLR)                       //
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// Headers which are included here are used at least 4 times.
+
+#include <memory>
+#include <string>
+#include <vector>
+
+#include <glm/glm.hpp>
+
+#include <VistaBase/VistaStreamUtils.h>
+#include <VistaOGLExt/VistaGLSLShader.h>
+
+#include "../../../src/cs-utils/utils.hpp"
+#include "../../../src/cs-utils/convert.hpp"
+
+#include "TileNode.hpp"
+#include "TileId.hpp"
+#include "TileTextureArray.hpp"
+#include "TileDataType.hpp"
+#include "RenderData.hpp"
+#include "RenderDataDEM.hpp"
+#include "RenderDataImg.hpp"
+#include "TreeManagerBase.hpp"
+#include "PlanetParameters.hpp"
+#include "HEALPix.hpp"

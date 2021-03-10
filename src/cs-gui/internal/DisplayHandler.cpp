@@ -12,6 +12,12 @@ namespace cs::gui::detail {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void DisplayHandler::SetCursorChangeCallback(CursorChangeCallback const& callback) {
+  mCursorChangeCallback = callback;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 bool DisplayHandler::OnConsoleMessage(CefRefPtr<CefBrowser> /*browser*/, cef_log_severity_t level,
     CefString const& message, CefString const& /*source*/, int /*line*/) {
 
@@ -30,6 +36,18 @@ bool DisplayHandler::OnConsoleMessage(CefRefPtr<CefBrowser> /*browser*/, cef_log
   }
 
   return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool DisplayHandler::OnCursorChange(CefRefPtr<CefBrowser> browser, CefCursorHandle cursor,
+    cef_cursor_type_t type, CefCursorInfo const& custom_cursor_info) {
+  if (mCursorChangeCallback) {
+    mCursorChangeCallback(static_cast<Cursor>(type));
+    return true;
+  }
+
+  return false;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

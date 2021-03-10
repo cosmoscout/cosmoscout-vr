@@ -96,6 +96,13 @@ class DipStrikeTool : public IVistaOpenGLDraw, public cs::core::tools::MultiPoin
   VistaBufferObject      mVBO;
   VistaGLSLShader        mShader;
 
+  struct {
+    uint32_t modelViewMatrix  = 0;
+    uint32_t projectionMatrix = 0;
+    uint32_t opacity          = 0;
+    uint32_t farClip          = 0;
+  } mUniforms;
+
   bool      mVerticesDirty = false;
   double    mSize{};
   glm::vec3 mNormal = glm::vec3(0.0), mMip = glm::vec3(0.0);

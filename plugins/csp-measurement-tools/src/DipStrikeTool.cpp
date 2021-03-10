@@ -110,6 +110,11 @@ DipStrikeTool::DipStrikeTool(std::shared_ptr<cs::core::InputManager> const& pInp
   mShader.InitFragmentShaderFromString(SHADER_FRAG);
   mShader.Link();
 
+  mUniforms.modelViewMatrix  = mShader.GetUniformLocation("uMatModelView");
+  mUniforms.projectionMatrix = mShader.GetUniformLocation("uMatProjection");
+  mUniforms.opacity          = mShader.GetUniformLocation("uOpacity");
+  mUniforms.farClip          = mShader.GetUniformLocation("uFarClip");
+
   auto* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
 
   // create a a CelestialAnchorNode for the larger circular plane
@@ -411,12 +416,10 @@ bool DipStrikeTool::Do() {
 
   mShader.Bind();
   mVAO.Bind();
-  glUniformMatrix4fv(
-      mShader.GetUniformLocation("uMatModelView"), 1, GL_FALSE, glm::value_ptr(matMV));
-  glUniformMatrix4fv(mShader.GetUniformLocation("uMatProjection"), 1, GL_FALSE, glMatP.data());
-  mShader.SetUniform(mShader.GetUniformLocation("uOpacity"), pOpacity.get());
-  mShader.SetUniform(
-      mShader.GetUniformLocation("uFarClip"), cs::utils::getCurrentFarClipDistance());
+  glUniformMatrix4fv(mUniforms.modelViewMatrix, 1, GL_FALSE, glm::value_ptr(matMV));
+  glUniformMatrix4fv(mUniforms.projectionMatrix, 1, GL_FALSE, glMatP.data());
+  mShader.SetUniform(mUniforms.opacity, pOpacity.get());
+  mShader.SetUniform(mUniforms.farClip, cs::utils::getCurrentFarClipDistance());
 
   // draw the linestrip
   glDrawArrays(GL_TRIANGLE_FAN, 0, RESOLUTION + 1);

@@ -89,30 +89,37 @@ std::string toString(char const* v) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::vector<std::string> splitString(std::string const& s, char delim) {
-  std::vector<std::string> elems;
+  size_t start = 0;
+  size_t end   = s.find_first_of(delim);
 
-  std::stringstream ss(s);
-  std::string       item;
+  std::vector<std::string> output;
 
-  while (std::getline(ss, item, delim)) {
-    elems.push_back(item);
+  while (end <= std::string::npos) {
+    output.emplace_back(s.substr(start, end - start));
+
+    if (end == std::string::npos) {
+      break;
+    }
+
+    start = end + 1;
+    end   = s.find_first_of(delim, start);
   }
 
-  return elems;
+  return output;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 float getCurrentFarClipDistance() {
-  double near{};
-  double far{};
+  double nearPlane{};
+  double farPlane{};
   GetVistaSystem()
       ->GetDisplayManager()
       ->GetCurrentRenderInfo()
       ->m_pViewport->GetProjection()
       ->GetProjectionProperties()
-      ->GetClippingRange(near, far);
-  return static_cast<float>(far);
+      ->GetClippingRange(nearPlane, farPlane);
+  return static_cast<float>(farPlane);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

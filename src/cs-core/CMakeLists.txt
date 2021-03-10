@@ -24,6 +24,10 @@ target_link_libraries(cs-core
     cs-utils
 )
 
+if(COSMOSCOUT_USE_PRECOMPILED_HEADERS)
+  target_precompile_headers(cs-core PRIVATE precompiled.pch)
+endif()
+
 target_include_directories(cs-core
   PUBLIC
     ${VISTACORELIBS_INCLUDE_DIRS}

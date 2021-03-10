@@ -1,0 +1,26 @@
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//                               This file is part of CosmoScout VR                               //
+//      and may be used under the terms of the MIT license. See the LICENSE file for details.     //
+//                        Copyright: (c) 2019 German Aerospace Center (DLR)                       //
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// Headers which are included here are used at least 3 times.
+
+#include <array>
+#include <cmath>
+#include <iostream>
+#include <memory>
+#include <sstream>
+#include <string>
+#include <unordered_map>
+#include <utility>
+#include <vector>
+
+#include <glm/glm.hpp>
+
+#include <spdlog/spdlog.h>
+
+#include <VistaKernel/VistaSystem.h>
+
+#include "utils.hpp""
+#include "logger.hpp"

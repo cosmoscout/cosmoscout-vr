@@ -140,7 +140,6 @@ class Application : public VistaFrameLoop {
   /// "graphics.setEnableLighting"
   /// "graphics.setEnableShadowFreeze"
   /// "graphics.setEnableShadows"
-  /// "graphics.setEnableTimerQueries"
   /// "graphics.setEnableVsync"
   /// "graphics.setLightingQuality"
   /// "graphics.setShadowmapBias"

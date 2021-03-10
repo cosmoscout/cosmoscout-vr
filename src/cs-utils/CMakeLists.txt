@@ -40,6 +40,10 @@ target_link_libraries(cs-utils
     spdlog::spdlog
 )
 
+if(COSMOSCOUT_USE_PRECOMPILED_HEADERS)
+  target_precompile_headers(cs-utils PRIVATE precompiled.pch)
+endif()
+
 target_include_directories(cs-utils
   PUBLIC
     ${VISTACORELIBS_INCLUDE_DIRS}

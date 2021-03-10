@@ -67,6 +67,17 @@ class CS_GUI_EXPORT WorldSpaceGuiArea : public GuiArea, public IVistaOpenGLDraw 
   bool            mUseLinearDepthBuffer = false;
   int             mWidth                = 0;
   int             mHeight               = 0;
+
+  struct {
+    uint32_t farClip          = 0;
+    uint32_t projectionMatrix = 0;
+    uint32_t modelViewMatrix  = 0;
+    uint32_t texSize          = 0;
+    uint32_t texture          = 0;
+  } mUniforms;
+
+  static const char* const QUAD_VERT;
+  static const char* const QUAD_FRAG;
 };
 
 } // namespace cs::gui
