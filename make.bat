@@ -66,6 +66,9 @@ set INSTALL_DIR=%CURRENT_DIR%/install/windows-%BUILD_TYPE%
 rem This directory should be used as the install directory for make_externals.bat.
 set EXTERNALS_INSTALL_DIR=%CURRENT_DIR%/install/windows-externals-%BUILD_TYPE%
 
+rem This is needed for pkg-config to find .pc files installed by externals.
+set CMAKE_PREFIX_PATH=%EXTERNALS_INSTALL_DIR%
+
 rem create build directory if necessary -----------------------------------------------------------
 
 if exist "%BUILD_DIR%" goto BUILD_DIR_CREATED

@@ -736,6 +736,36 @@ cmake %CMAKE_FLAGS% -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DCMAKE_INSTALL_PREFIX=%INST
 	%EXTERNALS_DIR%/ospray
 cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS% || goto :error
 
+rem GStreamer --------------------------------------------------------------------------------------
+:gstreamer
+
+echo.
+echo Downloading and installing GStreamer binaries...
+echo.
+
+cmake -E make_directory %BUILD_DIR%/gstreamer && cd %BUILD_DIR%/gstreamer
+set GSTREAMER_DIR=%cd%
+cmake -E make_directory %BUILD_DIR%/gstreamer/installers && cd %BUILD_DIR%/gstreamer/installers
+
+IF NOT EXIST gstreamer_devel.msi (
+  curl.exe -L https://gstreamer.freedesktop.org/data/pkg/windows/1.18.3/msvc/gstreamer-1.0-devel-msvc-x86_64-1.18.3.msi --output gstreamer_devel.msi
+) else (
+  echo File 'gstreamer_devel.msi' already exists, no download required.
+)
+IF NOT EXIST gstreamer.msi (
+  curl.exe -L https://gstreamer.freedesktop.org/data/pkg/windows/1.18.3/msvc/gstreamer-1.0-msvc-x86_64-1.18.3.msi --output gstreamer.msi
+) else (
+  echo File 'gstreamer.msi' already exists, no download required.
+)
+
+cmake -E make_directory %BUILD_DIR%/gstreamer/extracted
+msiexec /passive /a gstreamer_devel.msi TARGETDIR=%GSTREAMER_DIR%\extracted
+msiexec /passive /a gstreamer.msi       TARGETDIR=%GSTREAMER_DIR%\extracted
+
+cmake -E copy_directory "%BUILD_DIR%/gstreamer/extracted/gstreamer/1.0/msvc_x86_64/bin"     "%INSTALL_DIR%/bin"
+cmake -E copy_directory "%BUILD_DIR%/gstreamer/extracted/gstreamer/1.0/msvc_x86_64/include" "%INSTALL_DIR%/include"
+cmake -E copy_directory "%BUILD_DIR%/gstreamer/extracted/gstreamer/1.0/msvc_x86_64/lib"     "%INSTALL_DIR%/lib"
+
 rem ------------------------------------------------------------------------------------------------
 
 :finish
