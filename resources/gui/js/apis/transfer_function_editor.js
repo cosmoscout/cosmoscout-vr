@@ -53,6 +53,7 @@ class TransferFunctionEditor {
     this._data = data;
     this._updateScales();
     this._updateAxis();
+    this._updateControlPoints(this._controlPoints);
   }
 
   _createElements() {
@@ -208,15 +209,15 @@ class TransferFunctionEditor {
     // Draw axis
     const xTicks              = this._xScale.ticks(this.options.numberTicks);
     xTicks[xTicks.length - 1] = this._xScale.domain()[1];
-    this._xAxis = g.append("g")
-        .attr("class", "axis axis--x")
-        .attr("transform", "translate(0," + this._height + ")")
-        .call(d3.axisBottom(this._xScale).tickValues(xTicks));
+    this._xAxis               = g.append("g")
+                      .attr("class", "axis axis--x")
+                      .attr("transform", "translate(0," + this._height + ")")
+                      .call(d3.axisBottom(this._xScale).tickValues(xTicks));
 
     this._yAxis = g.append("g")
-        .attr("class", "axis axis--y")
-        .attr("transform", "translate(0, 0)")
-        .call(d3.axisLeft(this._yScale).ticks(this.options.numberTicks));
+                      .attr("class", "axis axis--y")
+                      .attr("transform", "translate(0, 0)")
+                      .call(d3.axisLeft(this._yScale).ticks(this.options.numberTicks));
   }
 
   // update scales with new data input
