@@ -54,6 +54,8 @@ This guide will most likely work for newer versions of Ubuntu as well. A key req
 
 If you are using Windows you can use the Windows Subsystem for Linux (WSL) to setup the server on your Windows machine. A detailed guide can be found [here](https://docs.microsoft.com/en-gb/windows/wsl/install-win10). WSL1 is sufficient and you don't need to upgrade to WSL2. We recommend installing the Ubuntu 20.04 image.
 
+> :information_source: _**Tip**: If you use WSL1 you can reach the webserver via localhost. If you use WSL2 the Linux System has it's own ip-address, which you have to use instead. You can find the ip with the following command: `ip -o -4 addr list eth0`. The first address should be the ip of the WSL._
+
 ### Installing the MapServer
 
 This tutorial will install the `mapserv` CGI script and Apache2 as a webserver.
@@ -89,6 +91,8 @@ Finally, restart `apache2` Daemon.
 ```
 sudo service apache2 restart
 ```
+
+> :information_source: _**Tip**: If you use WSL you may have to restart the server after having shut down Windows._
 
 To check the MapServer installation, you can run this command:
 
