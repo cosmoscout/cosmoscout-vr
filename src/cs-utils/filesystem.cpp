@@ -88,7 +88,7 @@ void writeStringToFile(std::string const& filePath, std::string const& content) 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void downloadFile(std::string const& url, std::string const& destination,
-                  std::function<void(double, double)> const& progressCallback) {
+    std::function<void(double, double)> const& progressCallback) {
   createDirectoryRecursively(boost::filesystem::path(destination).parent_path());
   std::ofstream stream(destination, std::ofstream::out | std::ofstream::binary);
 
