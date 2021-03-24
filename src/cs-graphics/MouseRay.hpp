@@ -46,6 +46,12 @@ class CS_GRAPHICS_EXPORT MouseRay : public IVistaOpenGLDraw {
   VistaVertexArrayObject mRayVAO;
   VistaBufferObject      mRayVBO;
   VistaBufferObject      mRayIBO;
+
+  struct {
+    uint32_t modelViewMatrix  = 0;
+    uint32_t projectionMatrix = 0;
+    uint32_t farClip          = 0;
+  } mUniforms;
 };
 
 } // namespace cs::graphics

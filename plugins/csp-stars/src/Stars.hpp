@@ -169,6 +169,25 @@ class Stars : public IVistaOpenGLDraw {
   float mMaxMagnitude           = 15.F;
   float mLuminanceMultiplicator = 1.F;
 
+  struct {
+    uint32_t bgInverseMVMatrix  = 0;
+    uint32_t bgInverseMVPMatrix = 0;
+    uint32_t bgTexture          = 0;
+    uint32_t bgColor            = 0;
+
+    uint32_t starResolution   = 0;
+    uint32_t starTexture      = 0;
+    uint32_t starMinMagnitude = 0;
+    uint32_t starMaxMagnitude = 0;
+    uint32_t starSolidAngle   = 0;
+    uint32_t starLuminanceMul = 0;
+
+    uint32_t starMVMatrix        = 0;
+    uint32_t starPMatrix         = 0;
+    uint32_t starInverseMVMatrix = 0;
+    uint32_t starInversePMatrix  = 0;
+  } mUniforms;
+
   static const int cCacheVersion;
 
   static constexpr size_t NUM_CATALOGS = cs::utils::enumCast(CatalogType::eCount);

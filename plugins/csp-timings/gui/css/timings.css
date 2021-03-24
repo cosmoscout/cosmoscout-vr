@@ -1,0 +1,209 @@
+/*                                                                                                */
+/*                                 Styling of the entire graph window                             */
+/*                                                                                                */
+
+#timings {
+  position: absolute;
+  width: 50vw;
+  right: 0;
+  color: var(--cs-color-text);
+  text-align: center;
+  border-top-left-radius: var(--cs-border-radius-large);
+  border-bottom-left-radius: var(--cs-border-radius-large);
+  border-bottom: 2px solid var(--cs-color-primary);
+  border-top: 2px solid var(--cs-color-primary);
+  background-color: rgba(0, 0, 0, 0.5);
+  box-shadow: var(--cs-box-shadow-medium);
+
+  transition: width 0.2s;
+}
+
+#fps-counter {
+  margin-top: 10px;
+}
+
+#graph {
+  position: relative;
+  background-color: rgba(255, 255, 255, 0.1);
+  margin: 10px;
+  transition: margin 0.3s;
+}
+
+/* Expand graph on hover */
+#timings:hover {
+  width: 100vw;
+}
+
+#timings:hover #graph {
+  margin: 10px 10px 30px 30px;
+}
+
+
+/*                                                                                                */
+/*                                 Styling of the individual ranges                               */
+/*                                                                                                */
+
+#ranges {
+  position: relative;
+  z-index: 1;
+}
+
+#ranges .level {
+  position: relative;
+  width: 100%;
+  height: 20px;
+}
+
+#ranges .range {
+  position: absolute;
+  top: 0;
+  border-radius: 3px;
+  height: 18px;
+}
+
+/* Expand range on hover */
+#ranges .range:hover {
+  z-index: 1;
+  border: 3px solid rgba(255, 255, 255, 0);
+  transform: translate(-3px, -3px);
+}
+
+/* Show tooltip on hover */
+#ranges .range:hover::before {
+  content: attr(data-tooltip);
+  pointer-events: none;
+  font-size: 0.7em;
+  position: absolute;
+  top: -10px;
+  left: calc(var(--tooltip-offset));
+  transform: translateX(calc(-1*var(--tooltip-offset)));
+  border-radius: 3px;
+  background-color: inherit;
+  padding: 0 3px;
+  white-space: nowrap;
+}
+
+#gpu-ranges,
+#cpu-ranges {
+  position: relative;
+  transition: border 0.3s;
+}
+
+#timings:hover #gpu-ranges,
+#timings:hover #cpu-ranges {
+  border-left: 2px solid var(--cs-color-primary);
+}
+
+#gpu-ranges {
+  margin-bottom: 20px;
+}
+
+#gpu-ranges::before,
+#cpu-ranges::before {
+  content: "GPU";
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -30px;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  transform: rotate(-90deg);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+#timings:hover #gpu-ranges::before,
+#timings:hover #cpu-ranges::before {
+  opacity: 1;
+}
+
+#cpu-ranges::before {
+  content: "CPU";
+}
+
+
+
+/*                                                                                                */
+/*                                  Styling of the background grid                                */
+/*                                                                                                */
+
+#grid {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: space-between;
+}
+
+#grid .tick {
+  position: relative;
+  width: 1px;
+  height: 100%;
+}
+
+#grid .tick.major {
+  background-color: rgba(255, 255, 255, 0.4);
+}
+
+#grid .tick.minor {
+  background-color: rgba(255, 255, 255, 0);
+  transition: background-color 0.3s;
+}
+
+#timings:hover #grid .tick.minor {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+#grid .tick span {
+  position: absolute;
+  bottom: -20px;
+  left: -15px;
+  font-size: 0.8em;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+#timings:hover #grid .tick span {
+  opacity: 1;
+}
+
+#grid .tick:first-child span {
+  left: 0;
+}
+
+#grid .tick:last-child span {
+  left: auto;
+  right: 0;
+}
+
+
+/*                                                                                                */
+/*                                   Styling of the frame slider                                  */
+/*                                                                                                */
+
+.noUi-base {
+  margin-top: 0;
+}
+
+#frame-slider-container {
+  display: flex;
+  margin: 10px 20px 0px 30px;
+  height: 0;
+  opacity: 0;
+  transition: height 0.3s, opacity 0.3s;
+}
+
+#timings:hover #frame-slider-container {
+  height: 20px;
+  opacity: 1;
+}
+
+#frame-slider {
+  margin-left: 30px;
+  flex-grow: 1;
+}

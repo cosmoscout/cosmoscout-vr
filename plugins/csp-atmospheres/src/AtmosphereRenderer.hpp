@@ -184,6 +184,27 @@ class AtmosphereRenderer : public IVistaOpenGLDraw {
   float mExposure             = 0.6F;
   float mGamma                = 2.2F;
 
+  struct {
+    uint32_t sunIntensity      = 0;
+    uint32_t sunDir            = 0;
+    uint32_t farClip           = 0;
+    uint32_t waterLevel        = 0;
+    uint32_t ambientBrightness = 0;
+    uint32_t depthBuffer       = 0;
+    uint32_t colorBuffer       = 0;
+    uint32_t cloudTexture      = 0;
+    uint32_t cloudAltitude     = 0;
+    uint32_t shadowCascades    = 0;
+
+    std::array<uint32_t, 5> shadowMaps{};
+    std::array<uint32_t, 5> shadowProjectionMatrices{};
+
+    uint32_t inverseModelViewMatrix           = 0;
+    uint32_t inverseModelViewProjectionMatrix = 0;
+    uint32_t inverseProjectionMatrix          = 0;
+    uint32_t modelViewMatrix                  = 0;
+  } mUniforms;
+
   static const char* cAtmosphereVert;
   static const char* cAtmosphereFrag0;
   static const char* cAtmosphereFrag1;

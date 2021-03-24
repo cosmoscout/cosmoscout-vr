@@ -62,6 +62,16 @@ class CS_GUI_EXPORT ScreenSpaceGuiArea : public GuiArea,
   int             mWidth                 = 0;
   int             mHeight                = 0;
   int             mDelayedViewportUpdate = 0;
+
+  struct {
+    uint32_t position = 0;
+    uint32_t scale    = 0;
+    uint32_t texSize  = 0;
+    uint32_t texture  = 0;
+  } mUniforms;
+
+  static const char* const QUAD_VERT;
+  static const char* const QUAD_FRAG;
 };
 
 } // namespace cs::gui

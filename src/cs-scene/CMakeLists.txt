@@ -21,6 +21,10 @@ target_link_libraries(cs-scene
     cs-utils
 )
 
+if(COSMOSCOUT_USE_PRECOMPILED_HEADERS)
+  target_precompile_headers(cs-scene PRIVATE precompiled.pch)
+endif()
+
 # Make directory structure available in your IDE.
 source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" PREFIX "src" FILES
   ${SOURCE_FILES} ${HEADER_FILES}

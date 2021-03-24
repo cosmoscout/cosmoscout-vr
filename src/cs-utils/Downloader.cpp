@@ -6,7 +6,7 @@
 
 #include "Downloader.hpp"
 
-#include "../cs-utils/filesystem.hpp"
+#include "filesystem.hpp"
 #include "logger.hpp"
 
 namespace cs::utils {

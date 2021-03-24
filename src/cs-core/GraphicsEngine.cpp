@@ -100,8 +100,17 @@ GraphicsEngine::GraphicsEngine(std::shared_ptr<core::Settings> settings)
   VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
       toneMappingGLNode, static_cast<int>(utils::DrawOrder::eToneMapping));
 
-  mSettings->mGraphics.pGlowIntensity.connectAndTouch(
-      [this](float val) { mToneMappingNode->setGlowIntensity(val); });
+  mSettings->mGraphics.pGlareIntensity.connectAndTouch(
+      [this](float val) { mToneMappingNode->setGlareIntensity(val); });
+
+  mSettings->mGraphics.pGlareQuality.connectAndTouch(
+      [this](uint32_t val) { mHDRBuffer->setGlareQuality(val); });
+
+  mSettings->mGraphics.pGlareMode.connectAndTouch(
+      [this](graphics::HDRBuffer::GlareMode mode) { mHDRBuffer->setGlareMode(mode); });
+
+  mSettings->mGraphics.pEnableBicubicGlareFilter.connectAndTouch(
+      [this](bool enable) { mToneMappingNode->setEnableBicubicGlareFilter(enable); });
 
   mSettings->mGraphics.pExposureCompensation.connectAndTouch(
       [this](float val) { mToneMappingNode->setExposureCompensation(val); });
@@ -125,16 +134,6 @@ GraphicsEngine::GraphicsEngine(std::shared_ptr<core::Settings> settings)
   mSettings->mGraphics.pExposure.connectAndTouch([this](float value) {
     if (!mSettings->mGraphics.pEnableAutoExposure.get()) {
       mToneMappingNode->setExposure(value);
-    }
-
-    // Whenever the exposure changes, and if auto-glow is enabled, we change the glow intensity
-    // based on the exposure value. The auto-glow amount is based on the current exposure relative
-    // to the auto-exposure range.
-    if (mSettings->mGraphics.pEnableAutoGlow.get()) {
-      float glow = (mSettings->mGraphics.pAutoExposureRange.get()[0] - value) /
-                   (mSettings->mGraphics.pAutoExposureRange.get()[0] -
-                       mSettings->mGraphics.pAutoExposureRange.get()[1]);
-      mSettings->mGraphics.pGlowIntensity = std::clamp(glow * 0.5F, 0.001F, 1.F);
     }
   });
 }

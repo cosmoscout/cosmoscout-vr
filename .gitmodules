@@ -1,6 +1,6 @@
 [submodule "externals/libtiff"]
 	path = externals/libtiff
-	url = https://gitlab.com/libtiff/libtiff.git
+	url = https://github.com/cosmoscout/libtiff.git
 [submodule "externals/opensg-1.8"]
 	path = externals/opensg-1.8
 	url = https://github.com/cosmoscout/opensg-1.8.git

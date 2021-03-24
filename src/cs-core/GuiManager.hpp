@@ -27,10 +27,6 @@ class VistaOpenGLNode;
 class VistaViewportResizeToProjectionAdapter;
 class VistaTransformNode;
 
-namespace cs::utils {
-class FrameTimings;
-} // namespace cs::utils
-
 namespace cs::core {
 class Settings;
 class InputManager;
@@ -44,8 +40,7 @@ class InputManager;
 /// Screen-Space:
 ///  * The UI automatically resizes when the window is resized
 ///  * When running in a clustered setup, each display will show an individual copy of the same
-///    item. This is for example useful for the statistics GuiItem which is in all cases shown in
-///    screen-space.
+///    item. This is for example useful for statistics which should be shown per-cluster node.
 /// World-Space:
 ///  * The UI is drawn in a fixed resolution which is specified in the "guiPosition": {...} settings
 ///    key.
@@ -61,8 +56,7 @@ class InputManager;
 /// instance is then passed to all plugins.
 class CS_CORE_EXPORT GuiManager {
  public:
-  GuiManager(std::shared_ptr<Settings> settings, std::shared_ptr<InputManager> pInputManager,
-      std::shared_ptr<utils::FrameTimings> pFrameTimings);
+  GuiManager(std::shared_ptr<Settings> settings, std::shared_ptr<InputManager> pInputManager);
 
   GuiManager(GuiManager const& other) = delete;
   GuiManager(GuiManager&& other)      = delete;
@@ -79,8 +73,14 @@ class CS_CORE_EXPORT GuiManager {
   /// Returns the CosmoScout Gui.
   gui::GuiItem* getGui() const;
 
-  /// Returns the CosmoScout Statistics Gui.
-  gui::GuiItem* getStatistics() const;
+  /// Returns the GUI area which is drawn in screen-space. That means if you add a GUI item to this
+  /// area, it will be visible multiple times in a clustered setup. A local GUI area is always
+  /// available.
+  gui::ScreenSpaceGuiArea& getLocalGuiArea() const;
+
+  /// Returns the GUI area which is drawn in world-space. This may be a nullptr - the global GUI
+  /// area is only created if the "gui: {...}" settings key is present.
+  gui::WorldSpaceGuiArea& getGlobalGuiArea() const;
 
   /// This is called once a frame from the Application.
   void update();
@@ -218,16 +218,14 @@ class CS_CORE_EXPORT GuiManager {
   void onLoad();
   void onSave();
 
-  std::shared_ptr<InputManager>        mInputManager;
-  std::shared_ptr<Settings>            mSettings;
-  std::shared_ptr<utils::FrameTimings> mFrameTimings;
+  std::shared_ptr<InputManager> mInputManager;
+  std::shared_ptr<Settings>     mSettings;
 
   std::unique_ptr<VistaViewportResizeToProjectionAdapter> mViewportUpdater;
   std::unique_ptr<gui::WorldSpaceGuiArea>                 mGlobalGuiArea;
   std::unique_ptr<gui::ScreenSpaceGuiArea>                mLocalGuiArea;
 
   std::unique_ptr<gui::GuiItem> mCosmoScoutGui;
-  std::unique_ptr<gui::GuiItem> mStatistics;
 
   int mOnLoadConnection = -1;
   int mOnSaveConnection = -1;

@@ -110,6 +110,10 @@ MouseRay::MouseRay() {
   mRayVAO.Release();
   mRayIBO.Release();
   mRayVBO.Release();
+
+  mUniforms.modelViewMatrix  = mShader.GetUniformLocation("uMatModelView");
+  mUniforms.projectionMatrix = mShader.GetUniformLocation("uMatProjection");
+  mUniforms.farClip          = mShader.GetUniformLocation("uFarClip");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -127,10 +131,10 @@ bool MouseRay::Do() {
 
   mShader.Bind();
   mRayVAO.Bind();
-  glUniformMatrix4fv(mShader.GetUniformLocation("uMatModelView"), 1, GL_FALSE, glMatMV.data());
-  glUniformMatrix4fv(mShader.GetUniformLocation("uMatProjection"), 1, GL_FALSE, glMatP.data());
+  glUniformMatrix4fv(mUniforms.modelViewMatrix, 1, GL_FALSE, glMatMV.data());
+  glUniformMatrix4fv(mUniforms.projectionMatrix, 1, GL_FALSE, glMatP.data());
 
-  mShader.SetUniform(mShader.GetUniformLocation("uFarClip"), utils::getCurrentFarClipDistance());
+  mShader.SetUniform(mUniforms.farClip, utils::getCurrentFarClipDistance());
 
   glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(INDICES.size()), GL_UNSIGNED_INT, nullptr);
   mRayVAO.Release();

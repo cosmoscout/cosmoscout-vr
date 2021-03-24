@@ -446,14 +446,14 @@ void Plugin::update() {
     double minTime      = 13.5;
     double maxTime      = 14.5;
 
-    if (mFrameTimings->pFrameTime.get() > maxTime) {
-      mPluginSettings->mLODFactor = static_cast<float>(std::max(
-          minLODFactor, mPluginSettings->mLODFactor.get() -
-                            std::min(1.0, 0.1 * (mFrameTimings->pFrameTime.get() - maxTime))));
-    } else if (mFrameTimings->pFrameTime.get() < minTime) {
-      mPluginSettings->mLODFactor = static_cast<float>(std::min(
-          maxLODFactor, mPluginSettings->mLODFactor.get() +
-                            std::min(1.0, 0.02 * (minTime - mFrameTimings->pFrameTime.get()))));
+    if (cs::utils::FrameTimings::get().pFrameTime.get() > maxTime) {
+      mPluginSettings->mLODFactor = static_cast<float>(std::max(minLODFactor,
+          mPluginSettings->mLODFactor.get() -
+              std::min(1.0, 0.1 * (cs::utils::FrameTimings::get().pFrameTime.get() - maxTime))));
+    } else if (cs::utils::FrameTimings::get().pFrameTime.get() < minTime) {
+      mPluginSettings->mLODFactor = static_cast<float>(std::min(maxLODFactor,
+          mPluginSettings->mLODFactor.get() +
+              std::min(1.0, 0.02 * (minTime - cs::utils::FrameTimings::get().pFrameTime.get()))));
     }
   }
 }

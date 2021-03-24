@@ -68,7 +68,7 @@ void WebView::setDrawCallback(DrawCallback const& callback) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void WebView::setCursorChangeCallback(CursorChangeCallback const& callback) {
-  mClient->GetInternalRenderHandler()->SetCursorChangeCallback(callback);
+  mClient->GetInternalDisplayHandler()->SetCursorChangeCallback(callback);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

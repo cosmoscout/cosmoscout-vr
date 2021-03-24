@@ -35,6 +35,18 @@ case "$COSMOSCOUT_DEBUG_BUILD" in
   (true) echo "CosmoScout VR debug build is enabled!"; BUILD_TYPE=Debug;
 esac
 
+# Check if unity build is enabled with "export COSMOSCOUT_USE_UNITY_BUILD=true".
+UNITY_BUILD=Off
+case "$COSMOSCOUT_USE_UNITY_BUILD" in
+  (true) echo "Unity build is enabled!"; UNITY_BUILD=On;
+esac
+
+# Check if precompiled headers should be used with "export COSMOSCOUT_USE_PCH=true".
+PRECOMPILED_HEADERS=Off
+case "$COSMOSCOUT_USE_PCH" in
+  (true) echo "Precompiled headers are enabled!"; PRECOMPILED_HEADERS=On;
+esac
+
 # This directory should contain the top-level CMakeLists.txt - it is assumed to reside in the same
 # directory as this script.
 CMAKE_DIR="$( cd "$( dirname "$0" )" && pwd )"
@@ -62,6 +74,7 @@ fi
 cd "$BUILD_DIR"
 cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
       -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCOSMOSCOUT_EXTERNALS_DIR="$EXTERNALS_INSTALL_DIR" \
+      -DCMAKE_UNITY_BUILD=$UNITY_BUILD -DCOSMOSCOUT_USE_PRECOMPILED_HEADERS=$PRECOMPILED_HEADERS \
       -DCMAKE_EXPORT_COMPILE_COMMANDS=On "$CMAKE_DIR"
 
 cmake --build . --target install --parallel "$(nproc)"

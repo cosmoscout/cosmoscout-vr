@@ -164,14 +164,12 @@ bool Mark::Do() {
 
   mShader->Bind();
   mVAO->Bind();
-  glUniformMatrix4fv(mShader->GetUniformLocation("uMatModelView"), 1, GL_FALSE, glMatMV.data());
-  glUniformMatrix4fv(mShader->GetUniformLocation("uMatProjection"), 1, GL_FALSE, glMatP.data());
-  mShader->SetUniform(mShader->GetUniformLocation("uHoverSelectActive"), pHovered.get() ? 1.F : 0.F,
+  glUniformMatrix4fv(mUniforms.modelViewMatrix, 1, GL_FALSE, glMatMV.data());
+  glUniformMatrix4fv(mUniforms.projectionMatrix, 1, GL_FALSE, glMatP.data());
+  mShader->SetUniform(mUniforms.hoverSelectActive, pHovered.get() ? 1.F : 0.F,
       pSelected.get() ? 1.F : 0.F, pActive.get() ? 1.F : 0.F);
-  mShader->SetUniform(
-      mShader->GetUniformLocation("uFarClip"), cs::utils::getCurrentFarClipDistance());
-  mShader->SetUniform(
-      mShader->GetUniformLocation("uColor"), pColor.get().x, pColor.get().y, pColor.get().z);
+  mShader->SetUniform(mUniforms.farClip, cs::utils::getCurrentFarClipDistance());
+  mShader->SetUniform(mUniforms.color, pColor.get().x, pColor.get().y, pColor.get().z);
 
   glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(mIndexCount), GL_UNSIGNED_INT, nullptr);
   mVAO->Release();
@@ -199,6 +197,12 @@ void Mark::initData(std::string const& sCenter, std::string const& sFrame) {
   mShader->InitVertexShaderFromString(SHADER_VERT);
   mShader->InitFragmentShaderFromString(SHADER_FRAG);
   mShader->Link();
+
+  mUniforms.modelViewMatrix   = mShader->GetUniformLocation("uMatModelView");
+  mUniforms.projectionMatrix  = mShader->GetUniformLocation("uMatProjection");
+  mUniforms.hoverSelectActive = mShader->GetUniformLocation("uHoverSelectActive");
+  mUniforms.farClip           = mShader->GetUniformLocation("uFarClip");
+  mUniforms.color             = mShader->GetUniformLocation("uColor");
 
   auto* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
 

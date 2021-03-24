@@ -19,10 +19,6 @@
 
 class VistaSceneGraph;
 
-namespace cs::utils {
-class FrameTimings;
-}
-
 namespace cs::core {
 class GraphicsEngine;
 class GuiManager;
@@ -53,7 +49,7 @@ class CS_CORE_EXPORT PluginBase {
   void setAPI(std::shared_ptr<Settings> settings, std::shared_ptr<SolarSystem> solarSystem,
       std::shared_ptr<GuiManager> guiManager, std::shared_ptr<InputManager> inputManager,
       VistaSceneGraph* sceneGraph, std::shared_ptr<GraphicsEngine> graphicsEngine,
-      std::shared_ptr<utils::FrameTimings> frameTimings, std::shared_ptr<TimeControl> timeControl);
+      std::shared_ptr<TimeControl> timeControl);
 
   /// Override this function to initialize your plugin. It will be called directly after
   /// application startup and before the update loop starts.
@@ -68,14 +64,13 @@ class CS_CORE_EXPORT PluginBase {
   virtual void update(){};
 
  protected:
-  std::shared_ptr<Settings>            mAllSettings;
-  std::shared_ptr<SolarSystem>         mSolarSystem;
-  VistaSceneGraph*                     mSceneGraph{};
-  std::shared_ptr<GuiManager>          mGuiManager;
-  std::shared_ptr<GraphicsEngine>      mGraphicsEngine;
-  std::shared_ptr<InputManager>        mInputManager;
-  std::shared_ptr<utils::FrameTimings> mFrameTimings;
-  std::shared_ptr<TimeControl>         mTimeControl;
+  std::shared_ptr<Settings>       mAllSettings;
+  std::shared_ptr<SolarSystem>    mSolarSystem;
+  VistaSceneGraph*                mSceneGraph{};
+  std::shared_ptr<GuiManager>     mGuiManager;
+  std::shared_ptr<GraphicsEngine> mGraphicsEngine;
+  std::shared_ptr<InputManager>   mInputManager;
+  std::shared_ptr<TimeControl>    mTimeControl;
 };
 
 } // namespace cs::core
