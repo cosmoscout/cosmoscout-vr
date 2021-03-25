@@ -106,10 +106,10 @@ class BookmarkEditorApi extends IApi {
     };
 
     document.querySelector("#bookmark-editor-rotation-w + div > button").onclick = () => {
-      this._rotationXDiv.value = CosmoScout.state.observerRotation[1];
-      this._rotationYDiv.value = CosmoScout.state.observerRotation[2];
-      this._rotationZDiv.value = CosmoScout.state.observerRotation[3];
-      this._rotationWDiv.value = CosmoScout.state.observerRotation[0];
+      this._rotationXDiv.value = CosmoScout.state.observerRotation[0];
+      this._rotationYDiv.value = CosmoScout.state.observerRotation[1];
+      this._rotationZDiv.value = CosmoScout.state.observerRotation[2];
+      this._rotationWDiv.value = CosmoScout.state.observerRotation[3];
     };
 
     // Initialize Icon Select Popover --------------------------------------------------------------

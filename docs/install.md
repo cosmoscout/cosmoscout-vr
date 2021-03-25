@@ -14,9 +14,6 @@ When compiling from source, you can either choose the `master` branch which cont
 
 ## Linux
 
-On Linux, one can either use the provided shell script ([make.sh](../make.sh)) or build the software manually using CMake. 
-**Using the provided script** is easy and definitely the recommended way.
-
 Before you start, it may be necessary to install some additional system packages.
 As there are many distributions with varying default libs and available packages, giving an exhaustive list is difficult.
 Here is an exemplary list for Ubuntu 20.04 which you have to adapt to your specific distribution:
@@ -28,7 +25,7 @@ sudo apt-get install git cmake build-essential xorg-dev libboost-all-dev libglu1
 ### Cloning the repository
 
 ```shell
-git clone git@github.com:cosmoscout/cosmoscout-vr.git
+git clone https://github.com/cosmoscout/cosmoscout-vr.git
 cd cosmoscout-vr
 ```
 
@@ -61,6 +58,9 @@ This will clone the repository to `cosmoscout-vr` configure and build all extern
 All parameters given to `make_externals.bat` will be forwarded to CMake. For example, you can change the CMake generator this way.
 
 ### Compiling CosmoScout VR
+
+On Linux, one can either use the provided shell script ([make.sh](../make.sh)) or build the software manually using CMake. 
+**Using the provided script** is easy and definitely the recommended way.
 
 Per default, CosmoScout VR is built in release mode without precompiled headers and unity builds on linux, since it doesn't gain any time.
 This behavior can be adjusted using some environment variables:
@@ -110,19 +110,12 @@ For **manual compilation** follow the steps outlined in [make.sh](../make.sh).
 
 ### Cloning the repository
 
-For Windows, there is a batch script ([make.bat](../make.bat)) which can be used in the same way as the script for Linux.
-First you have to clone the repository:
-
 ```batch
-git clone git@github.com:cosmoscout/cosmoscout-vr.git
+git clone https://github.com/cosmoscout/cosmoscout-vr.git
 cd cosmoscout-vr
 ```
 
 The default branch is `develop`, which contains the latest features. If you prefer to use the last stable release, you can switch to the `master` branch.
-
-```batch
-git checkout master
-```
 
 ### Getting the dependencies
 
@@ -136,6 +129,7 @@ MSVC | Visual Studio | File | Link
 14.1 | 2017 | `boost_1_70_0-msvc-14.1-64.exe` | [download](https://sourceforge.net/projects/boost/files/boost-binaries/1.70.0/boost_1_70_0-msvc-14.1-64.exe/download)
 14.0 | 2015 | `boost_1_70_0-msvc-14.0-64.exe` | [download](https://sourceforge.net/projects/boost/files/boost-binaries/1.70.0/boost_1_70_0-msvc-14.0-64.exe/download)
 
+:information_source: _**Tip:** If you want that CosmoScout VR detects your 3DConnexion Space Navigator, you have to [download](https://3dconnexion.com/de/software-developer-program/) and install the 3DConnexion SDK. Then you need to add one line to the `make_externals.bat` but file as [described here](https://github.com/cosmoscout/cosmoscout-vr/blob/develop/make_externals.bat#L313)._
 
 
 Then you have to compile the dependencies.
@@ -150,17 +144,19 @@ Variable | Default | Description
 
 You should set these as required before executing the scripts below.
 This step only has to be done once.
-If you are using Visual Studio 2019, you have to replace `-G "Visual Studio 15 Win64"` with `-G "Visual Studio 16 2019" -A x64`.
+If you are using Visual Studio 2017, you have to replace `-G "Visual Studio 16 2019" -A x64` with `-G "Visual Studio 15 Win64"`.
 
 ```batch
 git submodule update --init
-make_externals.bat -G "Visual Studio 15 Win64"
+make_externals.bat -G "Visual Studio 16 2019" -A x64
 ```
 
 This will clone the repository to `cosmoscout-vr` configure and build all externals in `cosmoscout-vr\build\windows-externals-Release` and will install them to `cosmoscout-vr\install\windows-externals-Release`.
 All parameters given to `make_externals.bat` will be forwarded to CMake. For example, you can change the CMake generator this way.
 
 ### Compiling CosmoScout VR
+
+For Windows, there is a batch script ([make.bat](../make.bat)) which can be used in the same way as the script for Linux.
 
 Per default, CosmoScout VR is built in release mode using precompiled headers and unity builds.
 This behavior can be adjusted using some environment variables:
@@ -175,10 +171,11 @@ You should set these as required before executing the scripts below.
 
 On Linux, boost is usually found automatically by CMake, on Windows you have to provide the `BOOST_ROOT` path.
 **Replace the path in the command below to match your setup!**
+Again, if you are using Visual Studio 2017, you have to replace `-G "Visual Studio 16 2019" -A x64` with `-G "Visual Studio 15 Win64"`.
 
 ```batch
-set BOOST_ROOT=C:\local\boost_1_69_0
-make.bat -G "Visual Studio 15 Win64" -DCOSMOSCOUT_UNIT_TESTS=On
+set BOOST_ROOT=C:\local\boost_1_70_0
+make.bat -G "Visual Studio 16 2019" -A x64 -DCOSMOSCOUT_UNIT_TESTS=On
 ```
 
 This will configure and build CosmoScout VR in `cosmoscout-vr\build\windows-Release` and will install it to `cosmoscout-vr\install\windows-Release`.

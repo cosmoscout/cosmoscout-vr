@@ -13,8 +13,7 @@ namespace cs::core {
 void PluginBase::setAPI(std::shared_ptr<Settings> settings,
     std::shared_ptr<SolarSystem> solarSystem, std::shared_ptr<GuiManager> guiManager,
     std::shared_ptr<InputManager> inputManager, VistaSceneGraph* sceneGraph,
-    std::shared_ptr<GraphicsEngine>      graphicsEngine,
-    std::shared_ptr<utils::FrameTimings> frameTimings, std::shared_ptr<TimeControl> timeControl) {
+    std::shared_ptr<GraphicsEngine> graphicsEngine, std::shared_ptr<TimeControl> timeControl) {
 
   mAllSettings    = std::move(settings);
   mSolarSystem    = std::move(solarSystem);
@@ -22,7 +21,6 @@ void PluginBase::setAPI(std::shared_ptr<Settings> settings,
   mGuiManager     = std::move(guiManager);
   mGraphicsEngine = std::move(graphicsEngine);
   mInputManager   = std::move(inputManager);
-  mFrameTimings   = std::move(frameTimings);
   mTimeControl    = std::move(timeControl);
 }
 

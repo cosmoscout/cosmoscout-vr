@@ -19,12 +19,14 @@
 
 namespace cs::utils {
 
-class TimerQueryPool;
+class TimerPool;
 
-/// Responsible for measuring time. It is possible to measure either or both CPU and GPU time. To
-/// create a time measuring object use ScopedTimer. This class is not thread-safe, so you should
-/// only use it to measure time on the main thread. You should not need to instantiate this class.
-/// One instance will be created by the application class and is passed to each and every plugin.
+/// This is a singleton class which can be used in the main thread to record CPU und GPU timings.
+/// This class actively supports measuring nested ranges so it's perfectively fine to start ranges
+/// for large parts of the code and multiple smaller subranges for smaller parts. To measure the
+/// time spent on the CPU or the GPU by a specific block of code, simply create a
+/// FrameTimings::ScopedTimer. This will start a measuring range in its constructor and and end the
+/// range in its destructor.
 class CS_UTILS_EXPORT FrameTimings {
  public:
   /// Defines which timings should be measured.
@@ -34,16 +36,35 @@ class CS_UTILS_EXPORT FrameTimings {
     eBoth ///< CPU and GPU time will be measured.
   };
 
-  /// To enable or disable time measuring globally.
-  Property<bool> pEnableMeasurements = false;
+  /// This struct contains information on one specific timing range. It is used internally by the
+  /// FrameTimings singleton and can be accessed via its getRanges() method.
+  struct Range {
 
-  /// Get the last frame time in milliseconds. This is the maximum of CPU and GPU time, excluding
-  /// any waiting for vertical synchronization.
-  Property<double> pFrameTime = 0.0;
+    /// The name of the range as it was passed to the constructor of the ScopedTimer or the
+    /// FrameTimings::startRange() method.
+    std::string mName;
+
+    /// This contains the number of timing ranges which were active when this range was started.
+    uint32_t mNestingLevel{};
+
+    /// Timestamps in nanoseconds when the range started / ended on the CPU / GPU. They will be
+    /// filled with data only if the QueryMode was set accordingly.
+    int64_t mCPUStart{};
+    int64_t mCPUEnd{};
+    int64_t mGPUStart{};
+    int64_t mGPUEnd{};
+
+    /// The mode this range was started with.
+    QueryMode mMode;
+
+    /// These are used internally by the FrameTimings class to keep track which GPU queries belong
+    /// to this range.
+    std::size_t mStartQueryIndex{};
+    std::size_t mEndQueryIndex{};
+  };
 
   /// A ScopedTimer is responsible for measuring time for its entire existence. The timer will
-  /// start measuring upon creation and stop measuring on deletion. If multiple timers with the same
-  /// name are created during one frame, their timings will be accumulated.
+  /// start measuring upon creation and stop measuring on deletion.
   class CS_UTILS_EXPORT ScopedTimer {
    public:
     /// @param name The name of the measured time.
@@ -59,17 +80,19 @@ class CS_UTILS_EXPORT FrameTimings {
     ~ScopedTimer();
 
    private:
-    std::string mName;
+    int32_t mID;
   };
 
-  struct CS_UTILS_EXPORT QueryResult {
-    uint64_t mGPUTime = 0; ///< in ns (==10^-9 s)
-    uint64_t mCPUTime = 0; ///< in ns (==10^-9 s)
-  };
+  /// Access the singleton instance.
+  static FrameTimings& get();
 
-  /// You should not need to instantiate this class. One instance will be created by the application
-  /// class and is passed to each and every plugin.
-  explicit FrameTimings();
+  /// To enable or disable time measuring globally.
+  Property<bool> pEnableMeasurements = false;
+
+  /// Get the frame time in milliseconds. This is the maximum of CPU and GPU time, excluding
+  /// any waiting for vertical synchronization. As this requires a GPU timer query, the result will
+  /// be based on the last-but-one frame. See the documentation of getRanges() for more details.
+  Property<double> pFrameTime = 0.0;
 
   FrameTimings(FrameTimings const& other) = delete;
   FrameTimings(FrameTimings&& other)      = delete;
@@ -79,82 +102,86 @@ class CS_UTILS_EXPORT FrameTimings {
 
   ~FrameTimings() = default;
 
+  /// Starts the time measurement for the current frame. No need to call this manually; the
+  /// application is responsible for this.
+  void startFrame();
+
+  /// Ends the time measurement for the current frame. No need to call this manually; the
+  /// application is responsible for this.
+  void endFrame();
+
   /// Starts a timer with the given name and mode. You can use this interface, however the
-  /// ScopedTimer is often more easy to use.
-  static void start(std::string const& name, QueryMode mode = QueryMode::eBoth);
+  /// ScopedTimer is often more easy to use. The returned ID will be >= 0 if the timing range
+  /// was actually started and -1 if pEnableMeasurements is set to false.
+  int32_t startRange(std::string name, QueryMode mode = QueryMode::eBoth);
 
-  /// Stops the timer with the given name and saves the results. You can use this interface, however
-  /// the ScopedTimer is often more easy to use.
-  static void end(std::string const& name);
+  /// Stops the timing range with the given ID. You can use this interface, however the ScopedTimer
+  /// is often more easy to use.
+  void endRange(int32_t id);
 
-  /// Ends the timer that was started last. You can use this interface, however the ScopedTimer is
-  /// often more easy to use.
-  static void end();
-
-  /// Starts the time measurement for the current frame. No need to call this manually. The
-  /// application is responsible for this.
-  void startFullFrameTiming();
-
-  /// Ends the time measurement for the current frame. No need to call this manually. The
-  /// application is responsible for this.
-  void endFullFrameTiming();
-
-  /// Updates the frame timings. The application takes care of calling this on the primary instance.
-  void update() const;
-
-  /// Once update() has been called, QueryResults most likely are available. However, we will only
-  /// get results from the last frame in order to prevent any blocking. Sometimes it might also take
-  /// a few frames longer to get any results from the GPU.
-  std::unordered_map<std::string, QueryResult> getCalculatedQueryResults() const;
+  /// This will retrieve the recorded ranges from the last-but-one frame. This is to prevent any
+  /// synchronization between CPU and GPU: In one frame timings are recorded and queries are
+  /// dispatched, then we wait one full frame until we attempt to read the query results. Then, in
+  /// the third frame the results are available via this method.
+  /// This will always contain at least one range for the entire frame. If pEnableMeasurements is
+  /// set to true, it will contain all timing ranges created by all ScopedTimers. It may contain
+  /// incomplete data for the frames in which pEnableMeasurements was toggled.
+  std::vector<Range> const& getRanges();
 
  private:
-  int                                            mCurrentIndex = 0;
-  std::array<std::shared_ptr<TimerQueryPool>, 2> mFullFrameTimerPools;
+  /// You should not need to instantiate this class. One singleton instance can be created with the
+  /// static get() method above.
+  FrameTimings();
+
+  /// We have a triple-buffer of TimerPools.
+  std::array<std::unique_ptr<TimerPool>, 3> mTimerPools;
+  int32_t                                   mCurrentPool{};
+  int32_t                                   mFullFrameTimingID{};
 };
 
-/// The TimerQueryPool is used in a double-buffer fashion internally by the FrameTimings class. You
+/// The TimerPool is used in a triple-buffer fashion internally by the FrameTimings class. You
 /// will not need to use this class directly.
-class CS_UTILS_EXPORT TimerQueryPool {
+class CS_UTILS_EXPORT TimerPool {
  public:
-  explicit TimerQueryPool(std::size_t max_size);
+  /// The TimerPool will allocate queryAllocationBucketSize GPU timer query objects initially.
+  /// Whenever this amount is exhausted, a new batch of this size will be allocated.
+  TimerPool(std::size_t queryAllocationBucketSize);
 
   /// Do not try to copy this class!
-  TimerQueryPool(TimerQueryPool const&) = delete;
-  void operator=(TimerQueryPool const&) = delete;
+  TimerPool(TimerPool const&) = delete;
+  void operator=(TimerPool const&) = delete;
 
-  TimerQueryPool(TimerQueryPool&&) = delete;
-  void operator=(TimerQueryPool&&) = delete;
+  TimerPool(TimerPool&&) = delete;
+  void operator=(TimerPool&&) = delete;
 
-  ~TimerQueryPool() = default;
+  ~TimerPool();
 
-  void start(std::string const& name, FrameTimings::QueryMode mode);
-  void end(std::string const& name);
+  /// Clears all recorded timing ranges.
+  void reset();
 
-  std::optional<std::size_t> timestamp();
+  /// Starts a new timing range. The returned integer will always be >= 0 and can be used to end the
+  /// range with the method below.
+  int32_t startRange(std::string name, FrameTimings::QueryMode mode);
 
-  /// Fetch timestamps from GPU and calculate time diffs.
-  void calculateQueryResults();
+  /// Ends a previously started timing range. This will do nothing if the given id is invalid.
+  void endRange(int32_t id);
 
-  std::unordered_map<std::string, std::vector<FrameTimings::QueryResult>> const&
-  getQueryResults() const;
+  /// Fetches timestamps from GPU. This needs to be called before getRanges() and blocks until all
+  /// queries are done.
+  void fetchQueries();
+
+  /// Returns the currently recorded ranges since the last call to reset(). It will not contain
+  /// valid GPU timings until fetchQueries() was called.
+  std::vector<FrameTimings::Range> const& getRanges() const;
 
  private:
-  struct QueryRange {
-    std::size_t                                    mGPUStart = 0;
-    std::size_t                                    mGPUEnd   = 0;
-    std::chrono::high_resolution_clock::time_point mCPUStart;
-    std::chrono::high_resolution_clock::time_point mCPUEnd;
-    FrameTimings::QueryMode                        mMode{};
-  };
+  std::size_t startTimerQuery();
 
-  std::size_t           mMaxSize;
-  std::vector<uint32_t> mQueries;
-  std::vector<uint64_t> mTimestamps;
-  int32_t               mQueryDone;
-  std::size_t           mIndex;
-
-  std::unordered_map<std::string, std::vector<QueryRange>>                mQueryRanges;
-  std::unordered_map<std::string, std::vector<FrameTimings::QueryResult>> mQueryResults;
+  std::size_t                      mQueryAllocationBucketSize{};
+  std::vector<uint32_t>            mQueries;
+  std::size_t                      mNextQueryID{};
+  std::vector<FrameTimings::Range> mRanges;
+  uint32_t                         mCurrentNestingLevel{};
 };
 
 } // namespace cs::utils

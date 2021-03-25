@@ -6,7 +6,7 @@
 
 #include "HDRBuffer.hpp"
 
-#include "GlowMipMap.hpp"
+#include "GlareMipMap.hpp"
 #include "LuminanceMipMap.hpp"
 #include "logger.hpp"
 
@@ -30,14 +30,8 @@ HDRBuffer::HDRBuffer(uint32_t multiSamples, bool highPrecision)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 HDRBuffer::~HDRBuffer() {
-  for (auto& hdrBuffer : mHDRBufferData) {
-    delete hdrBuffer.second.mFBO; // NOLINT(cppcoreguidelines-owning-memory)
-    for (auto* tex : hdrBuffer.second.mColorAttachments) {
-      delete tex; // NOLINT(cppcoreguidelines-owning-memory)
-    }
-
-    delete hdrBuffer.second.mLuminanceMipMap; // NOLINT(cppcoreguidelines-owning-memory)
-  }
+  // Destructor must not be inline as the std::unique_ptrs would otherwise not accept incomplete
+  // types in the header.
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -60,16 +54,15 @@ void HDRBuffer::bind() {
     hdrBuffer.mHeight = size[1];
 
     // Create new framebuffer object.
-    delete hdrBuffer.mFBO;                      // NOLINT(cppcoreguidelines-owning-memory)
-    hdrBuffer.mFBO = new VistaFramebufferObj(); // NOLINT(cppcoreguidelines-owning-memory)
+    hdrBuffer.mFBO.reset(new VistaFramebufferObj());
 
     // Attaches a new texture to the hdrBuffer framebuffer object.
-    auto addAttachment = [&hdrBuffer, this](VistaTexture*& texture, int attachment,
+    auto addAttachment = [&hdrBuffer, this](std::unique_ptr<VistaTexture>& texture, int attachment,
                              int internalFormat, int format, int type) {
       auto target = (mMultiSamples > 0) ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D;
 
       if (!texture) {
-        texture = new VistaTexture(target); // NOLINT(cppcoreguidelines-owning-memory)
+        texture = std::make_unique<VistaTexture>(target);
       }
 
       texture->Bind();
@@ -85,7 +78,7 @@ void HDRBuffer::bind() {
         glTexImage2D(target, 0, internalFormat, hdrBuffer.mWidth, hdrBuffer.mHeight, 0, format,
             type, nullptr);
       }
-      hdrBuffer.mFBO->Attach(texture, attachment);
+      hdrBuffer.mFBO->Attach(texture.get(), attachment);
     };
 
     // Add HDR-attachment ping-pong A.
@@ -101,14 +94,10 @@ void HDRBuffer::bind() {
         GL_DEPTH_COMPONENT, GL_FLOAT);
 
     // Create luminance mipmaps.
-    delete hdrBuffer.mLuminanceMipMap; // NOLINT(cppcoreguidelines-owning-memory)
-    // NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
-    hdrBuffer.mLuminanceMipMap = new LuminanceMipMap(mMultiSamples, size[0], size[1]);
+    hdrBuffer.mLuminanceMipMap.reset(new LuminanceMipMap(mMultiSamples, size[0], size[1]));
 
-    // Create glow mipmaps.
-    delete hdrBuffer.mGlowMipMap; // NOLINT(cppcoreguidelines-owning-memory)
-    // NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
-    hdrBuffer.mGlowMipMap = new GlowMipMap(mMultiSamples, size[0], size[1]);
+    // Create glare mipmaps.
+    hdrBuffer.mGlareMipMap.reset(new GlareMipMap(mMultiSamples, size[0], size[1]));
   }
 
   // Bind the framebuffer object for writing.
@@ -175,7 +164,7 @@ void HDRBuffer::clear() {
 
 VistaTexture* HDRBuffer::getDepthAttachment() const {
   auto const& hdrBuffer = getCurrentHDRBuffer();
-  return hdrBuffer.mDepthAttachment;
+  return hdrBuffer.mDepthAttachment.get();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -183,9 +172,9 @@ VistaTexture* HDRBuffer::getDepthAttachment() const {
 VistaTexture* HDRBuffer::getCurrentWriteAttachment() const {
   auto const& hdrBuffer = getCurrentHDRBuffer();
   if (hdrBuffer.mCompositePinpongState == 0) {
-    return hdrBuffer.mColorAttachments.at(0);
+    return hdrBuffer.mColorAttachments.at(0).get();
   }
-  return hdrBuffer.mColorAttachments.at(1);
+  return hdrBuffer.mColorAttachments.at(1).get();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -193,9 +182,9 @@ VistaTexture* HDRBuffer::getCurrentWriteAttachment() const {
 VistaTexture* HDRBuffer::getCurrentReadAttachment() const {
   auto const& hdrBuffer = getCurrentHDRBuffer();
   if (hdrBuffer.mCompositePinpongState == 0) {
-    return hdrBuffer.mColorAttachments.at(1);
+    return hdrBuffer.mColorAttachments.at(1).get();
   }
-  return hdrBuffer.mColorAttachments.at(0);
+  return hdrBuffer.mColorAttachments.at(0).get();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -237,9 +226,9 @@ void HDRBuffer::calculateLuminance() {
   VistaTexture* composite = nullptr;
 
   if (hdrBuffer.mCompositePinpongState == 0) {
-    composite = hdrBuffer.mColorAttachments.at(0);
+    composite = hdrBuffer.mColorAttachments.at(0).get();
   } else {
-    composite = hdrBuffer.mColorAttachments.at(1);
+    composite = hdrBuffer.mColorAttachments.at(1).get();
   }
 
   hdrBuffer.mLuminanceMipMap->update(composite);
@@ -264,24 +253,48 @@ float HDRBuffer::getMaximumLuminance() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void HDRBuffer::updateGlowMipMap() {
+void HDRBuffer::updateGlareMipMap() {
   auto&         hdrBuffer = getCurrentHDRBuffer();
   VistaTexture* composite = nullptr;
 
   if (hdrBuffer.mCompositePinpongState == 0) {
-    composite = hdrBuffer.mColorAttachments.at(0);
+    composite = hdrBuffer.mColorAttachments.at(0).get();
   } else {
-    composite = hdrBuffer.mColorAttachments.at(1);
+    composite = hdrBuffer.mColorAttachments.at(1).get();
   }
 
-  hdrBuffer.mGlowMipMap->update(composite);
+  hdrBuffer.mGlareMipMap->update(composite, mGlareMode, mGlareQuality);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-VistaTexture* HDRBuffer::getGlowMipMap() const {
+VistaTexture* HDRBuffer::getGlareMipMap() const {
   auto const& hdrBuffer = getCurrentHDRBuffer();
-  return hdrBuffer.mGlowMipMap;
+  return hdrBuffer.mGlareMipMap.get();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void HDRBuffer::setGlareMode(HDRBuffer::GlareMode value) {
+  mGlareMode = value;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+HDRBuffer::GlareMode HDRBuffer::getGlareMode() const {
+  return mGlareMode;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void HDRBuffer::setGlareQuality(uint32_t quality) {
+  mGlareQuality = quality;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+uint32_t HDRBuffer::getGlareQuality() const {
+  return mGlareQuality;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

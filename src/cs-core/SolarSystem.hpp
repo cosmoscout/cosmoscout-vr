@@ -18,10 +18,6 @@
 #include <unordered_set>
 #include <vector>
 
-namespace cs::utils {
-class FrameTimings;
-} // namespace cs::utils
-
 namespace cs::core {
 
 class Settings;
@@ -48,8 +44,8 @@ class CS_CORE_EXPORT SolarSystem {
   /// Current position of the sun, relative to the observer.
   utils::Property<glm::dvec3> pSunPosition = glm::dvec3(0.F);
 
-  SolarSystem(std::shared_ptr<Settings> settings, std::shared_ptr<utils::FrameTimings> frameTimings,
-      std::shared_ptr<GraphicsEngine> graphicsEngine, std::shared_ptr<TimeControl> timeControl);
+  SolarSystem(std::shared_ptr<Settings> settings, std::shared_ptr<GraphicsEngine> graphicsEngine,
+      std::shared_ptr<TimeControl> timeControl);
 
   SolarSystem(SolarSystem const& other) = delete;
   SolarSystem(SolarSystem&& other)      = delete;
@@ -235,7 +231,6 @@ class CS_CORE_EXPORT SolarSystem {
 
  private:
   std::shared_ptr<Settings>                         mSettings;
-  std::shared_ptr<utils::FrameTimings>              mFrameTimings;
   std::shared_ptr<GraphicsEngine>                   mGraphicsEngine;
   std::shared_ptr<TimeControl>                      mTimeControl;
   scene::CelestialObserver                          mObserver;

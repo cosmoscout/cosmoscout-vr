@@ -31,10 +31,8 @@ namespace cs::core {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 SolarSystem::SolarSystem(std::shared_ptr<Settings> settings,
-    std::shared_ptr<utils::FrameTimings>           frameTimings,
     std::shared_ptr<GraphicsEngine> graphicsEngine, std::shared_ptr<TimeControl> timeControl)
     : mSettings(std::move(settings))
-    , mFrameTimings(std::move(frameTimings))
     , mGraphicsEngine(std::move(graphicsEngine))
     , mTimeControl(std::move(timeControl))
     , mSun(std::make_shared<scene::CelestialObject>()) {
@@ -379,7 +377,8 @@ void SolarSystem::updateObserverFrame() {
         dWeight *= 0.01;
       }
 
-      if (dWeight > dActiveWeight) {
+      if (dWeight > dActiveWeight && (dWeight > mSettings->mSceneScale.mLockWeight ||
+                                         dWeight > mSettings->mSceneScale.mTrackWeight)) {
         activeBody    = object;
         dActiveWeight = dWeight;
       }
@@ -395,13 +394,17 @@ void SolarSystem::updateObserverFrame() {
     }
   }
 
-  // We change frame and center if there is a object with weight larger than mLockWeight
-  // and mTrackWeight.
-  if (activeBody) {
-    if (!mObserver.isAnimationInProgress()) {
-      std::string sCenter = "Solar System Barycenter";
-      std::string sFrame  = "J2000";
+  // If currently no observer animation is in progress, we change the pActiveBody accordingly. This
+  // may be null if we are very far away from any object.
+  if (!mObserver.isAnimationInProgress()) {
+    pActiveBody = activeBody;
 
+    std::string sCenter = "Solar System Barycenter";
+    std::string sFrame  = "J2000";
+
+    // We change frame and center if there is an object with weight larger than mLockWeight
+    // and mTrackWeight.
+    if (activeBody) {
       if (dActiveWeight > mSettings->mSceneScale.mLockWeight) {
         sFrame = activeBody->getFrameName();
       }
@@ -409,9 +412,9 @@ void SolarSystem::updateObserverFrame() {
       if (dActiveWeight > mSettings->mSceneScale.mTrackWeight) {
         sCenter = activeBody->getCenterName();
       }
+    }
 
-      pActiveBody = activeBody;
-
+    if (sCenter != mObserver.getCenterName() || sFrame != mObserver.getFrameName()) {
       mObserver.changeOrigin(sCenter, sFrame, mTimeControl->pSimulationTime.get());
     }
   }

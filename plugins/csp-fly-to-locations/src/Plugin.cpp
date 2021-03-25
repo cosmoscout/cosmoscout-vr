@@ -60,14 +60,15 @@ void Plugin::init() {
         mGuiManager->getGui()->callJavascript(
             "CosmoScout.gui.clearHtml", "flytolocations-bookmarks-list");
 
+        // If no body is set, we are in free space.
+        std::string center = body ? body->getCenterName() : "Solar System Barycenter";
+
         // Add all list-bookmarks for this body.
-        if (body) {
-          for (auto const& [id, bookmark] : mGuiManager->getBookmarks()) {
-            if (bookmark.mLocation && bookmark.mLocation.value().mPosition) {
-              if (body->getCenterName() == bookmark.mLocation.value().mCenter) {
-                mGuiManager->getGui()->callJavascript("CosmoScout.flyToLocations.addListBookmark",
-                    id, bookmark.mName, bookmark.mTime.has_value());
-              }
+        for (auto const& [id, bookmark] : mGuiManager->getBookmarks()) {
+          if (bookmark.mLocation && bookmark.mLocation.value().mPosition) {
+            if (center == bookmark.mLocation.value().mCenter) {
+              mGuiManager->getGui()->callJavascript("CosmoScout.flyToLocations.addListBookmark", id,
+                  bookmark.mName, bookmark.mTime.has_value());
             }
           }
         }
@@ -111,8 +112,7 @@ void Plugin::onAddBookmark(uint32_t bookmarkID, cs::core::Settings::Bookmark con
           bookmark.mName, bookmark.mIcon.value());
     } else {
       // Add all other bookmars to the list, if they are relevant for the current body.
-      if (mSolarSystem->pActiveBody.get() != nullptr &&
-          mSolarSystem->pActiveBody.get()->getCenterName() == bookmark.mLocation.value().mCenter) {
+      if (mSolarSystem->getObserver().getCenterName() == bookmark.mLocation.value().mCenter) {
         mGuiManager->getGui()->callJavascript("CosmoScout.flyToLocations.addListBookmark",
             bookmarkID, bookmark.mName, bookmark.mTime.has_value());
       }

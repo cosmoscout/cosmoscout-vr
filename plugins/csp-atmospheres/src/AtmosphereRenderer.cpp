@@ -376,7 +376,7 @@ void AtmosphereRenderer::updateShader() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool AtmosphereRenderer::Do() {
-  cs::utils::FrameTimings::ScopedTimer timer("csp-atmospheres");
+  cs::utils::FrameTimings::ScopedTimer timer("Render Atmosphere");
 
   if (mShaderDirty) {
     updateShader();

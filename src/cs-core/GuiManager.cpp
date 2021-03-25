@@ -33,11 +33,10 @@ namespace cs::core {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-GuiManager::GuiManager(std::shared_ptr<Settings> settings,
-    std::shared_ptr<InputManager> pInputManager, std::shared_ptr<utils::FrameTimings> pFrameTimings)
+GuiManager::GuiManager(
+    std::shared_ptr<Settings> settings, std::shared_ptr<InputManager> pInputManager)
     : mInputManager(std::move(pInputManager))
-    , mSettings(std::move(settings))
-    , mFrameTimings(std::move(pFrameTimings)) {
+    , mSettings(std::move(settings)) {
 
   // Tell the user what's going on.
   logger().debug("Creating GuiManager.");

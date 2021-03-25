@@ -181,7 +181,7 @@ echo Building and installing libtiff ...
 echo.
 
 cmake -E make_directory "%BUILD_DIR%/libtiff" && cd "%BUILD_DIR%/libtiff"
-cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%" -DCMAKE_UNITY_BUILD=%UNITY_BUILD%^
+cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
       -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DBUILD_SHARED_LIBS=Off -DCMAKE_INSTALL_FULL_LIBDIR=lib^
       -Dzlib=Off -Dpixarlog=Off -Djpeg=Off -Dold-jpeg=Off -Djbig=Off -Dlzma=Off -Dzstd=Off^
       -DGLUT_INCLUDE_DIR=%INSTALL_DIR%/include^
@@ -309,6 +309,9 @@ echo Building and installing vista ...
 echo.
 
 cmake -E make_directory "%BUILD_DIR%/vista" && cd "%BUILD_DIR%/vista"
+
+rem If you have the 3DConnexion SDK for the Space Navigator installed, you can add
+rem -DVISTADRIVERS_BUILD_3DCSPACENAVIGATOR=On to the flags below.
 
 cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%" -DVISTADEMO_ENABLED=Off^
       -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DVISTACORELIBS_USE_VIVE=On -DVISTADRIVERS_BUILD_VIVE=On^
