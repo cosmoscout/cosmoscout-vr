@@ -89,6 +89,7 @@ jobs:
           sudo apt-get update -q
           sudo apt-get install libgl1-mesa-dev libglu1-mesa-dev libx11-dev
           sudo apt-get install libxi-dev libgconf-2-4 ccache lcov xvfb
+          sudo apt-get install libboost-all-dev
           ccache --max-size 1G
           ccache -z
       - name: Build Externals
@@ -106,14 +107,11 @@ jobs:
           ./make.sh -G "Unix Makefiles"
           -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
           -DCOSMOSCOUT_COVERAGE_INFO=On -DCOSMOSCOUT_UNIT_TESTS=On
-          -DBOOST_ROOT=$BOOST_ROOT_1_72_0 -DBoost_ARCHITECTURE=-x64
       - name: Run Tests
         run: |
-          export LD_LIBRARY_PATH="$BOOST_ROOT_1_72_0/lib:$LD_LIBRARY_PATH"
           ./install/linux-Release/bin/run_tests.sh
       - name: Run Graphical Tests
         run: |
-          export LD_LIBRARY_PATH="$BOOST_ROOT_1_72_0/lib:$LD_LIBRARY_PATH"
           ./install/linux-Release/bin/run_graphical_tests.sh
       - name: Upload Results of Failed Test
         uses: actions/upload-artifact@v1
@@ -123,7 +121,6 @@ jobs:
           path: install/linux-Release/bin/test
       - name: Calculate Test Coverage
         run: |
-          export LD_LIBRARY_PATH="$BOOST_ROOT_1_72_0/lib:$LD_LIBRARY_PATH"
           ./lcov.sh
       - name: Upload Coverage Info
         uses: coverallsapp/github-action@master
@@ -160,6 +157,7 @@ jobs:
           sudo apt-get update -q
           sudo apt-get install libgl1-mesa-dev libglu1-mesa-dev libx11-dev
           sudo apt-get install libxi-dev libgconf-2-4 ccache
+          sudo apt-get install libboost-all-dev
           ccache --max-size 1G
           ccache -z
       - name: Build Externals
@@ -176,14 +174,12 @@ jobs:
         run: >
           ./make.sh -G "Unix Makefiles"
           -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
-          -DCOSMOSCOUT_UNIT_TESTS=On -DBOOST_ROOT=$BOOST_ROOT_1_72_0 -DBoost_ARCHITECTURE=-x64
+          -DCOSMOSCOUT_UNIT_TESTS=On
       - name: Run Tests
         run: |
-          export LD_LIBRARY_PATH="$BOOST_ROOT_1_72_0/lib:$LD_LIBRARY_PATH"
           ./install/linux-Release/bin/run_tests.sh
       - name: Run Graphical Tests
         run: |
-          export LD_LIBRARY_PATH="$BOOST_ROOT_1_72_0/lib:$LD_LIBRARY_PATH"
           ./install/linux-Release/bin/run_graphical_tests.sh
       - name: Upload Results of Failed Test
         uses: actions/upload-artifact@v1
