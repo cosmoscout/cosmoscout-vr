@@ -377,7 +377,7 @@ void Plugin::init() {
           mActiveOverlay = nullptr;
           return;
         }
-        mActiveOverlay    = overlay->second;
+        mActiveOverlay = overlay->second;
 
         mGuiManager->getGui()->callJavascript(
             "CosmoScout.gui.clearDropdown", "wmsOverlays.setServer");
