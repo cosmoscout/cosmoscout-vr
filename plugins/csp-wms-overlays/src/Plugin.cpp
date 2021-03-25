@@ -14,7 +14,6 @@
 #include "../../../src/cs-core/Settings.hpp"
 #include "../../../src/cs-core/SolarSystem.hpp"
 #include "../../../src/cs-core/TimeControl.hpp"
-#include "math.h"
 
 #include <VistaKernel/DisplayManager/VistaDisplayManager.h>
 #include <VistaKernel/VistaSystem.h>
