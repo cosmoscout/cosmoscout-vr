@@ -103,9 +103,10 @@ TextureOverlayRenderer::TextureOverlayRenderer(std::string center,
   });
 
   // Recreate the shader if lighting or HDR rendering mode are toggled.
-  mLightingConnection =
-      mSettings->mGraphics.pEnableLighting.connect([this](bool) { mShaderDirty = true; });
-  mHDRConnection = mSettings->mGraphics.pEnableHDR.connect([this](bool) { mShaderDirty = true; });
+  mLightingConnection = mSettings->mGraphics.pEnableLighting.connect(
+      [this](bool /*unused*/) { mShaderDirty = true; });
+  mHDRConnection =
+      mSettings->mGraphics.pEnableHDR.connect([this](bool /*unused*/) { mShaderDirty = true; });
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -236,7 +237,7 @@ void TextureOverlayRenderer::updateLonLatRange() {
     Bounds currentBounds;
 
     glm::dvec3                radii = mSolarSystem->getRadii(mCenterName);
-    std::array<glm::dvec2, 4> screenBounds;
+    std::array<glm::dvec2, 4> screenBounds{};
     for (int i = 0; i < 4; i++) {
       screenBounds[i] = cs::utils::convert::cartesianToLngLat(intersections[i].second, radii);
       screenBounds[i] = cs::utils::convert::toDegrees(screenBounds[i]);
@@ -250,7 +251,7 @@ void TextureOverlayRenderer::updateLonLatRange() {
     // categories. Depending on the category the longitude range can be updated.
     // Also save the lengths of the edges for later (lonDiffs).
     // Uses counterclockwise winding order.
-    std::array<double, 4> lonDiffs;
+    std::array<double, 4> lonDiffs{};
     double                offset = 0;
     for (int i = 1; i < 5; i++) {
       if (screenBounds[i % 4][0] > screenBounds[i - 1][0]) {
@@ -294,7 +295,7 @@ void TextureOverlayRenderer::updateLonLatRange() {
       currentBounds.mMaxLon -= 360;
     }
 
-    std::array<double, 4> lats;
+    std::array<double, 4> lats{};
     std::transform(screenBounds.begin(), screenBounds.end(), lats.begin(),
         [](glm::dvec2 corner) { return corner[1]; });
 
@@ -538,7 +539,7 @@ bool TextureOverlayRenderer::Do() {
       ->GetClippingRange(nearClip, farClip);
 
   // copy depth buffer from previous rendering
-  std::array<GLint, 4> iViewport;
+  std::array<GLint, 4> iViewport{};
   glGetIntegerv(GL_VIEWPORT, iViewport.data());
 
   auto* viewport = GetVistaSystem()->GetDisplayManager()->GetCurrentRenderInfo()->m_pViewport;
@@ -549,8 +550,8 @@ bool TextureOverlayRenderer::Do() {
       iViewport[2], iViewport[3], 0);
 
   // get matrices and related values
-  std::array<GLfloat, 16> glMatP;
-  std::array<GLfloat, 16> glMatMV;
+  std::array<GLfloat, 16> glMatP{};
+  std::array<GLfloat, 16> glMatMV{};
   glGetFloatv(GL_PROJECTION_MATRIX, glMatP.data());
   glGetFloatv(GL_MODELVIEW_MATRIX, glMatMV.data());
 

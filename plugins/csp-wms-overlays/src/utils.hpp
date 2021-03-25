@@ -19,17 +19,12 @@ namespace csp::wmsoverlays {
 /// Struct for storing a geographical bounding box for a map.
 /// Coordinates should be given in degrees.
 struct Bounds {
-  double mMinLon;
-  double mMaxLon;
-  double mMinLat;
-  double mMaxLat;
+  double mMinLon{-180.};
+  double mMaxLon{180.};
+  double mMinLat{-90.};
+  double mMaxLat{90.};
 
-  Bounds()
-      : mMinLon(-180.)
-      , mMaxLon(180.)
-      , mMinLat(-90.)
-      , mMaxLat(90.) {
-  }
+  Bounds() = default;
 
   Bounds(double minLon, double maxLon, double minLat, double maxLat)
       : mMinLon(minLon)
@@ -118,7 +113,7 @@ bool timeInIntervals(boost::posix_time::ptime& time, std::vector<TimeInterval> c
 /// The duration can be either in years, months or in time_duration.
 /// Adds the interval multiple times, if it is specified (e.g. for pre-fetch).
 boost::posix_time::ptime addDurationToTime(
-    boost::posix_time::ptime time, Duration duration, int multiplier = 1);
+    boost::posix_time::ptime time, Duration const& duration, int multiplier = 1);
 
 /// Tries to get the value contained in a XML element.
 /// Starts at baseElement and then descends into the children given as childPath.

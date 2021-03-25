@@ -73,7 +73,7 @@ class TextureOverlayRenderer : public IVistaOpenGLDraw {
 
   /// Interface implementation of IVistaOpenGLDraw
   bool Do() override;
-  bool GetBoundingBox(VistaBoundingBox& bb) override;
+  bool GetBoundingBox(VistaBoundingBox& oBoundingBox) override;
 
  private:
   /// Delete stored textures.
@@ -135,7 +135,7 @@ class TextureOverlayRenderer : public IVistaOpenGLDraw {
   /// Second WMS texture for time interpolation.
   VistaTexture mSecondWMSTexture;
   /// Whether to use the WMS texture.
-  bool mWMSTextureUsed;
+  bool mWMSTextureUsed{};
   /// Whether to use the second WMS texture.
   bool mSecondWMSTextureUsed = false;
   /// Timestep of the current WMS texture.
@@ -143,7 +143,7 @@ class TextureOverlayRenderer : public IVistaOpenGLDraw {
   /// Timestep of the second WMS texture.
   std::string mCurrentSecondTexture;
   /// Fading value between WMS textures.
-  float mFade;
+  float mFade{};
   /// Used to save the current time format style and sample duration;
   TimeInterval mCurrentInterval;
 

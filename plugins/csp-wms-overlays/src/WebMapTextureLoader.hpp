@@ -31,7 +31,7 @@ class WebMapTextureLoader {
  public:
   /// Struct for defining parameters for a request to a WMS.
   struct Request {
-    int                        mMaxSize;
+    int                        mMaxSize{};
     std::string                mStyle;
     Bounds                     mBounds;
     std::optional<std::string> mTime;
@@ -62,10 +62,10 @@ class WebMapTextureLoader {
   void saveTextureToFile(boost::filesystem::path const& file, std::stringstream const& data);
 
   /// Loads WMS texture from a file using stbi.
-  std::optional<WebMapTexture> loadTextureFromFile(std::string const& fileName);
+  static std::optional<WebMapTexture> loadTextureFromFile(std::string const& fileName);
 
   /// Loads WMS texture from a stream using stbi.
-  std::optional<WebMapTexture> loadTextureFromStream(std::stringstream const& stream);
+  static std::optional<WebMapTexture> loadTextureFromStream(std::stringstream const& stream);
 
   /// Constructs a path for loading/saving the texture requested with the given parameters.
   boost::filesystem::path getCachePath(WebMapService const& wms, WebMapLayer const& layer,
@@ -76,7 +76,7 @@ class WebMapTextureLoader {
       WebMapService const& wms, WebMapLayer const& layer, Request const& request);
 
   /// Determines an appropriate MIME type for requesting a texture for the given layer.
-  std::string getMimeType(WebMapService const& wms, WebMapLayer const& layer);
+  static std::string getMimeType(WebMapService const& wms, WebMapLayer const& layer);
 
   const std::map<std::string, std::string> mMimeToExtension = {
       {"image/png", "png"}, {"image/jpeg", "jpg"}};

@@ -24,7 +24,7 @@ namespace csp::wmsoverlays {
 
 WebMapService::WebMapService(std::string url, CacheMode cacheMode, std::string cacheDir)
     : mUrl(std::move(url))
-    , mCacheMode(std::move(cacheMode))
+    , mCacheMode(cacheMode)
     , mCacheDir(std::move(cacheDir))
     , mCacheFileName(std::regex_replace(mUrl, std::regex("[/:*]"), "_") + ".xml")
     , mTitle(parseTitle())

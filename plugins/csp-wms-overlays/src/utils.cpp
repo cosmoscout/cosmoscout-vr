@@ -135,7 +135,9 @@ void parseIsoString(std::string const& isoString, std::vector<TimeInterval>& tim
 
   // Read time intervalls.
   while (std::getline(iso_stringstream, timeRange, ',')) {
-    std::string       startDate, endDate, duration;
+    std::string       startDate;
+    std::string       endDate;
+    std::string       duration;
     std::stringstream timeRange_stringstream(timeRange);
 
     std::getline(timeRange_stringstream, startDate, '/');
@@ -143,7 +145,8 @@ void parseIsoString(std::string const& isoString, std::vector<TimeInterval>& tim
     std::getline(timeRange_stringstream, duration, '/');
 
     TimeInterval             tmp;
-    boost::posix_time::ptime start, end;
+    boost::posix_time::ptime start;
+    boost::posix_time::ptime end;
     convertIsoDate(startDate, start);
 
     // Check format of startData
@@ -264,12 +267,13 @@ bool timeInIntervals(boost::posix_time::ptime& time, std::vector<TimeInterval> c
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 boost::posix_time::ptime addDurationToTime(
-    boost::posix_time::ptime time, Duration duration, int multiplier) {
+    boost::posix_time::ptime time, Duration const& duration, int multiplier) {
 
   // Check which unit the interval contatins.
   if (duration.mYears != 0) {
     return time + boost::gregorian::years(multiplier * duration.mYears);
-  } else if (duration.mMonths != 0) {
+  }
+  if (duration.mMonths != 0) {
     return time + boost::gregorian::months(multiplier * duration.mMonths);
   } else {
     return time + duration.mTimeDuration * multiplier;

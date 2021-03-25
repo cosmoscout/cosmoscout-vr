@@ -131,10 +131,10 @@ class Plugin : public cs::core::PluginBase {
   std::map<std::string, std::optional<WebMapLayer>> mActiveLayers;
 
   /// True when the observer is not moving.
-  bool mNoMovement;
+  bool mNoMovement{};
   /// True when the active overlay was requested to update its bounds
   /// because the observer is not moving.
-  bool mNoMovementRequestedUpdate;
+  bool mNoMovementRequestedUpdate{};
   /// Time at which the observer stopped moving.
   std::chrono::time_point<std::chrono::high_resolution_clock> mNoMovementSince;
 

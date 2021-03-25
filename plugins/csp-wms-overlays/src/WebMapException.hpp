@@ -86,7 +86,7 @@ class WebMapExceptionReport : public std::exception {
   const char* what() const noexcept override;
 
  private:
-  VistaXML::TiXmlDocument parseXml(std::string const& xml);
+  static VistaXML::TiXmlDocument parseXml(std::string const& xml);
 
   std::vector<WebMapException> mExceptions;
   std::string                  mMessage;

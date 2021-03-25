@@ -33,7 +33,7 @@ class WebMapLayer {
     explicit Style(VistaXML::TiXmlElement* element);
 
    private:
-    std::optional<std::string> getLegendUrl(VistaXML::TiXmlElement* element);
+    static std::optional<std::string> getLegendUrl(VistaXML::TiXmlElement* element);
   };
 
   /// Struct for storing general layer settings.

@@ -14,6 +14,7 @@
 #include "../../../src/cs-core/Settings.hpp"
 #include "../../../src/cs-core/SolarSystem.hpp"
 #include "../../../src/cs-core/TimeControl.hpp"
+#include "math.h"
 
 #include <VistaKernel/DisplayManager/VistaDisplayManager.h>
 #include <VistaKernel/VistaSystem.h>
@@ -46,7 +47,7 @@ NLOHMANN_JSON_SERIALIZE_ENUM(
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void from_json(nlohmann::json const& j, Bounds& o) {
-  std::array<double, 4> bounds;
+  std::array<double, 4> bounds{};
   j.get_to(bounds);
   o.mMinLon = bounds[0];
   o.mMaxLon = bounds[1];
@@ -464,7 +465,7 @@ void Plugin::update() {
   std::vector<std::string> finishedBodies;
   for (auto const& creationThreads : mWmsCreationThreads) {
     int running  = creationThreads.second.getRunningTaskCount();
-    int total    = (int)mPluginSettings->mBodies.at(creationThreads.first).mWms.size();
+    int total    = static_cast<int>(mPluginSettings->mBodies.at(creationThreads.first).mWms.size());
     int progress = total - running;
     if (progress > mWmsCreationProgress.at(creationThreads.first)) {
       logger().info(

@@ -114,7 +114,8 @@ std::optional<std::stringstream> WebMapTextureLoader::requestTexture(
       // amount of time, so the request can be retried.
       logger().debug("Could not determine response content type.");
       continue;
-    } else if (contentType == "text/xml") {
+    }
+    if (contentType == "text/xml") {
       // A WMS exception might have occurred.
       try {
         // If there was a valid WMS exception, the problem probably can't be fixed with a retry.
