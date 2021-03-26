@@ -27,15 +27,15 @@ Below is a rough sketch of the possibilities you have with CosmoScout VR.
 While this list is far from complete it provides a good overview of the current feature set.
 You can also read the [**changelog**](docs/changelog.md) to learn what's new in the current version. There is also an [**interesting article in the DLR magazine**](https://dlr.de/dlr/portaldata/1/resources/documents/dlr_magazin_161_EN/DLR-Magazin_161-GB/?page=18) which provides some insight into the ideas behind CosmoScout VR. 
 
-- [ ] Solar System Simulation
+- [X] Solar System Simulation
   - [X] Positioning of celestial bodies and space crafts based on [SPICE](https://naif.jpl.nasa.gov/naif)
   - [X] Rendering of highly detailed level-of-detail planets based on WebMapServices (with [csp-lod-bodies](plugins/csp-lod-bodies))
   - [X] Rendering of configurable atmospheres (Mie- and Rayleigh-scattering) around planets (with [csp-atmospheres](plugins/csp-atmospheres))
   - [X] Physically based rendering of 3D satellites (with [csp-satellites](plugins/csp-satellites))
   - [X] Rendering of Tycho, Tycho2 and Hipparcos star catalogues (with [csp-stars](plugins/csp-stars))
   - [X] Rendering of orbits and trajectories based on SPICE (with [csp-trajectories](plugins/csp-trajectories))
-  - [ ] Rendering of shadows
-  - [ ] HDR-Rendering
+  - [X] Rendering of shadows
+  - [X] HDR-Rendering
 - [x] Flexible User Interface
   - [X] Completely written in JavaScript with help of the [Chromium Embedded Framework](https://bitbucket.org/chromiumembedded/cef/src)
   - [X] Main UI can be drawn in the screen- or world-space
