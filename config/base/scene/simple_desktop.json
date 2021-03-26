@@ -470,8 +470,7 @@
         "Earth": {
           "wms": [
             "https://maps.dwd.de/geoserver/dwd/wms",
-            "https://neo.sci.gsfc.nasa.gov/wms/wms",
-            "https://svs.gsfc.nasa.gov/cgi-bin/wms"
+            "https://neo.sci.gsfc.nasa.gov/wms/wms"
           ]
         }
       }
