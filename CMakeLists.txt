@@ -190,7 +190,6 @@ foreach(BOOST_LIB
     get_filename_component(LIB_BASE_NAME ${BOOST_LIB} NAME_WE)
     get_filename_component(LIB_PATH ${BOOST_LIB} PATH)
     if (WIN32)
-    message("install "  ${BOOST_LIB})
       install(FILES ${LIB_PATH}/${LIB_BASE_NAME}.dll DESTINATION "lib")
     endif()
     if (UNIX)
