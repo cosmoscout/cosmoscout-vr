@@ -175,15 +175,17 @@ install(
   FILES_MATCHING PATTERN "*.so*" PATTERN "*.dll*"
 )
 
-get_cmake_property(_variableNames VARIABLES)
-list (SORT _variableNames)
-foreach (_variableName ${_variableNames})
-    message(STATUS "${_variableName}=${${_variableName}}")
-endforeach()
-
 # Copy boost libraries to install directory.
-foreach(BOOST_LIB ${Boost_LIBRARIES})
-message("found " ${BOOST_LIB})
+foreach(BOOST_LIB 
+  ${Boost_CHRONO_LIBRARY_DEBUG}
+  ${Boost_CHRONO_LIBRARY_RELEASE}
+  ${Boost_DATE_TIME_LIBRARY_DEBUG}
+  ${Boost_DATE_TIME_LIBRARY_RELEASE}
+  ${Boost_FILESYSTEM_LIBRARY_RELEASE}
+  ${Boost_FILESYSTEM_LIBRARY_DEBUG}
+  ${Boost_SYSTEM_LIBRARY_RELEASE}
+  ${Boost_SYSTEM_LIBRARY_RELEASE}
+)
   if(EXISTS "${BOOST_LIB}")
     get_filename_component(LIB_BASE_NAME ${BOOST_LIB} NAME_WE)
     get_filename_component(LIB_PATH ${BOOST_LIB} PATH)
