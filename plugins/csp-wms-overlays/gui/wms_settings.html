@@ -1,0 +1,42 @@
+<div class="row">
+  <div class="col-7 offset-5">
+    <label class="checklabel">
+      <input type="checkbox" data-callback="wmsOverlays.setEnableTimeInterpolation" checked />
+      <i class="material-icons"></i>
+      <span>Interpolate</span>
+    </label>
+  </div>
+</div>
+<div class="row">
+  <div class="col-7 offset-5">
+    <label class="checklabel">
+      <input type="checkbox" data-callback="wmsOverlays.setEnableAutomaticBoundsUpdate" />
+      <i class="material-icons"></i>
+      <span>Automatically update bounds</span>
+    </label>
+  </div>
+</div>
+<div class="row">
+  <div class="col-5">
+    Delay for automatic bounds update
+  </div>
+  <div class="col-7">
+    <div data-callback="wmsOverlays.setUpdateBoundsDelay"></div>
+  </div>
+</div>
+<div class="row">
+  <div class="col-5">
+    Max texture size
+  </div>
+  <div class="col-7">
+    <div data-callback="wmsOverlays.setMaxTextureSize"></div>
+  </div>
+</div>
+<div class="row">
+  <div class="col-5">
+    Prefetch images
+  </div>
+  <div class="col-7">
+    <div data-callback="wmsOverlays.setPrefetchCount"></div>
+  </div>
+</div>

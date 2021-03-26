@@ -1,0 +1,173 @@
+<div class="strike">
+  <span>Dataset Selection</span>
+</div>
+<div class="row mb-1">
+  <div class="col-5">
+    <label>WMS Server</label>
+  </div>
+  <div class="col-6 offset-1">
+    <select data-callback="wmsOverlays.setServer" data-container="#cosmoscout" data-width="100%"
+            class="simple-value-dropdown" data-dropdown-align-right="true">
+      <!-- Filled by JavaScript Function called from Plugin.cpp -->
+    </select>
+  </div>
+</div>
+
+<div class="row mb-1">
+  <div class="col-5">
+    <label>Image Channel</label>
+  </div>
+  <div class="col-1">
+    <i class="material-icons" style="font-size: 22px; top:-3px;" id="wmsOverlays-infoIcon">info</i>
+  </div>
+  <div class="col-6">
+    <select data-callback="wmsOverlays.setLayer" data-container="#cosmoscout" data-width="100%"
+            class="simple-value-dropdown" data-dropdown-align-right="true" data-live-search="true">
+      <!-- Filled by JavaScript Function called from Plugin.cpp -->
+    </select>
+  </div>
+</div>
+
+<div class="row mb-1">
+  <div class="col-5">
+    <label>Style</label>
+  </div>
+  <div class="col-6 offset-1">
+    <select data-callback="wmsOverlays.setStyle" data-container="#cosmoscout" data-width="100%"
+            class="simple-value-dropdown" data-dropdown-align-right="true">
+      <!-- Filled by JavaScript Function called from Plugin.cpp -->
+    </select>
+  </div>
+</div>
+
+<div class="row mb-1">
+  <div class="col-6 offset-6">
+    <div id="wmsOverlays-legendContainer">
+      <img id="wmsOverlays-legend" src="" alt="No legend available" />
+    </div>
+  </div>
+</div>
+
+<div class="strike">
+  <span>Time</span>
+</div>
+
+<div class="row mb-1">
+  <div class="col-3">
+    <button class="btn glass block" data-toggle="tooltip" title="First"
+            onclick="CosmoScout.callbacks.wmsOverlays.goToFirstTime()">
+      <i class="material-icons">skip_previous</i>
+    </button>
+  </div>
+  <div class="col-3">
+    <button class="btn glass block" data-toggle="tooltip" title="Previous"
+            onclick="CosmoScout.callbacks.wmsOverlays.goToPreviousTime()">
+      <i class="material-icons">navigate_before</i>
+    </button>
+  </div>
+  <div class="col-3">
+    <button class="btn glass block" data-toggle="tooltip" title="Next"
+            onclick="CosmoScout.callbacks.wmsOverlays.goToNextTime()">
+      <i class="material-icons">navigate_next</i>
+    </button>
+  </div>
+  <div class="col-3">
+    <button class="btn glass block" data-toggle="tooltip" title="Last"
+            onclick="CosmoScout.callbacks.wmsOverlays.goToLastTime()">
+      <i class="material-icons">skip_next</i>
+    </button>
+  </div>
+</div>
+
+<div class="strike">
+  <span>Geographical bounds</span>
+</div>
+
+<div class="row mb-1">
+  <div class="col-5">
+    <label>Default</label>
+  </div>
+  <div class="col-5">
+    <label id="wmsOverlays-defaultBounds">None</label>
+  </div>
+  <div class="col-2">
+    <button class="btn glass block" data-toggle="tooltip" title="Go to center"
+            onclick="CosmoScout.callbacks.wmsOverlays.goToDefaultBounds()" disabled>
+      <i class="material-icons">place</i>
+    </button>
+  </div>
+</div>
+
+<div class="row mb-1">
+  <div class="col-5">
+    <label>Current</label>
+  </div>
+  <div class="col-5">
+    <label id="wmsOverlays-currentBounds">None</label>
+  </div>
+  <div class="col-2">
+    <button class="btn glass block" data-toggle="tooltip" title="Go to center"
+            onclick="CosmoScout.callbacks.wmsOverlays.goToCurrentBounds()" disabled>
+      <i class="material-icons">place</i>
+    </button>
+  </div>
+</div>
+
+<div class="row mb-1">
+  <div class="col-4">
+    <label>Scale:</label>
+  </div>
+  <div class="col-1">
+    <i id="wmsOverlays-scaleWarning" class="material-icons">warning</i>
+  </div>
+  <div class="col-7">
+    <label id="wmsOverlays-scale">None</label>
+  </div>
+</div>
+
+<div class="row mb-1">
+  <div class="col-6">
+    <button class="btn glass block" onclick="CosmoScout.callbacks.wmsOverlays.resetBounds()">
+      Reset to default
+    </button>
+  </div>
+  <div class="col-6">
+    <button class="btn glass block" onclick="CosmoScout.callbacks.wmsOverlays.updateBounds()">
+      Fit to screen
+    </button>
+  </div>
+</div>
+
+<template id="wmsOverlays-infoWindow-template">
+  <div id="wmsOverlays-infoWindow" class="draggable-window resizable-window">
+    <div class="window-wrapper">
+      <div class="window-header">
+        <span class="window-title">
+          <i class="material-icons">layers</i>
+          <span id="wmsOverlays-infoWindow-title"></span>
+        </span>
+        <a class="btn light-glass" data-action="close" data-toggle="tooltip" title="Close">
+          <i class="material-icons">close</i>
+        </a>
+      </div>
+      <div class="window-content container-fluid">
+        <div class="row">
+          <div class="col-2">
+            <label><b>Abstract:</b></label>
+          </div>
+          <div class="col-10">
+            <p id="wmsOverlays-infoWindow-abstract"></p>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-2">
+            <label><b>Attribution:</b></label>
+          </div>
+          <div class="col-10">
+            <p id="wmsOverlays-infoWindow-attribution"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
