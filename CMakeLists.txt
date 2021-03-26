@@ -43,6 +43,9 @@ find_package(OpenGL REQUIRED)
 set(COSMOSCOUT_EXTERNALS_DIR COSMOSCOUT_EXTERNALS_DIR-NotFound 
   CACHE STRING "Directory where the externals got installed to.")
 
+# Make sure to use forward slashes only.
+file(TO_CMAKE_PATH ${COSMOSCOUT_EXTERNALS_DIR} COSMOSCOUT_EXTERNALS_DIR)
+
 if (DEFINED ENV{CARES_ROOT_DIR})
   SET(CARES_ROOT_DIR "$ENV{CARES_ROOT_DIR}")
 else()
@@ -171,6 +174,12 @@ install(
   DESTINATION "lib"
   FILES_MATCHING PATTERN "*.so*" PATTERN "*.dll*"
 )
+
+get_cmake_property(_variableNames VARIABLES)
+list (SORT _variableNames)
+foreach (_variableName ${_variableNames})
+    message(STATUS "${_variableName}=${${_variableName}}")
+endforeach()
 
 # Copy boost libraries to install directory.
 foreach(BOOST_LIB ${Boost_LIBRARIES})
