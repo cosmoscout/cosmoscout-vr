@@ -4,6 +4,31 @@
 
 # Changelog of CosmoScout VR
 
+
+## [v1.4.0](https://github.com/cosmoscout/cosmoscout-vr/releases)
+
+**Release Date:** TBD
+
+#### New Features
+
+* **New plugin**: `csp-wms-overlays` has been added, which allows overlaying time dependent map data from Web-Map-Services (WMS) over bodies rendered by other plugins.
+* In HDR-mode, the glaring can now be computed in a perspective-correct manner. While this is computationally more expensive, it increases immersion with large fields of view.
+
+#### Other Enhancements
+
+* The `csp-timings` has been rewritten and allows now for much more fine-grained timing analysis. (See [#230](https://github.com/cosmoscout/cosmoscout-vr/pull/230) and [#240](https://github.com/cosmoscout/cosmoscout-vr/pull/240)).
+* A new star rendering method has been added, which scales the rendered discs based on the star's magnitude. This makes the star figures more easy to spot when HDR rendering is disabled.
+* The billboard rendering method of stars has been improved by using an updated star texture.
+* Documentation on [how-to setup a map server on WSL](https://github.com/cosmoscout/cosmoscout-vr/tree/develop/plugins/csp-lod-bodies) for `csp-lod-bodies` has been written.
+* Performance has been slightly improved by removing redundant uniform location queries from the render loop.
+
+#### Bug Fixes
+
+* Fixed rotation values of six-dof bookmarks.
+* In HDR-mode, the surface shading of simple bodies and lod-bodies is now energy conserving.
+* In HDR-mode, the luminance of the Sun is now computed correctly.
+
+
 ## [v1.3.0](https://github.com/cosmoscout/cosmoscout-vr/releases)
 
 **Release Date:** 2020-11-24
