@@ -7,7 +7,7 @@
 
 ## [v1.4.0](https://github.com/cosmoscout/cosmoscout-vr/releases)
 
-**Release Date:** TBD
+**Release Date:** 2021-03-30
 
 #### New Features
 
