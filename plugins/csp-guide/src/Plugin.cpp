@@ -52,7 +52,6 @@ void Plugin::init() {
   mOnSaveConnection = mAllSettings->onSave().connect(
       [this]() { mAllSettings->mPlugins["csp-guide"] = mPluginSettings; });
 
-
   mGuiManager->addCssToGui("third-party/css/clippy.css");
   mGuiManager->addScriptToGuiFromJS("../share/resources/gui/js/csp-guide.js");
 
@@ -90,7 +89,7 @@ void Plugin::onLoad() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Plugin::unload(Settings const& pluginSettings) {  
+void Plugin::unload(Settings const& pluginSettings) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

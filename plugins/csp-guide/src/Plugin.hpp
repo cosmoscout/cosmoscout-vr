@@ -18,9 +18,7 @@ namespace csp::guide {
 /// This plugin adds a guide which helps the user explore the application.
 class Plugin : public cs::core::PluginBase {
  public:
-  struct Settings {
-    
-  };
+  struct Settings {};
 
   void init() override;
   void update() override;
