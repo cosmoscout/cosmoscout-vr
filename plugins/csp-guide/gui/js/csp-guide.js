@@ -22,7 +22,7 @@
      * @inheritDoc
      */
     init() {
-import("./third-party/js/clippyjs/index.js").then(m => {
+      import("./third-party/js/clippyjs/index.js").then(m => {
         this.#clippyApi = m.default; new this.#clippyApi.load(
             'Clippy', (agent) => { this.agent = agent;}, undefined, './third-party/agents/');
       });
