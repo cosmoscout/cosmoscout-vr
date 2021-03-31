@@ -34,6 +34,7 @@ void WebApp::OnBeforeCommandLineProcessing(
   if (process_type.empty()) {
     command_line->AppendSwitch("enable-overlay-scrollbar");
     command_line->AppendSwitch("enable-begin-frame-scheduling");
+    command_line->AppendSwitchWithValue("autoplay-policy", "no-user-gesture-required");
 
     if (!mHardwareAccelerated) {
       command_line->AppendSwitch("disable-gpu");

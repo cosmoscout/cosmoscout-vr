@@ -10,6 +10,8 @@ export default class Agent {
 
         this._queue = new Queue($.proxy(this._onQueueEmpty, this));
 
+        this._emptyQueueAnimations = [];
+
         this._el = $('<div class="clippy"></div>').hide();
 
         $(document.body).append(this._el);
@@ -242,6 +244,10 @@ export default class Agent {
         return this.play(anim);
     }
 
+    onEmptyQueue(callback) {
+        this._emptyQueueAnimations.push(callback);
+    }
+
     /**************************** Utils ************************************/
 
     /***
@@ -283,6 +289,11 @@ export default class Agent {
      * @private
      */
     _onQueueEmpty () {
+        for (const emptyQueueAnimation of this._emptyQueueAnimations) {
+            emptyQueueAnimation();
+        }
+        this._emptyQueueAnimations = [];
+
         if (this._hidden || this._isIdleAnimation()) return;
         let idleAnim = this._getIdleAnimation();
         this._idleDfd = $.Deferred();
