@@ -21,7 +21,6 @@ class Plugin : public cs::core::PluginBase {
   struct Settings {};
 
   void init() override;
-  void update() override;
   void deInit() override;
 
  private:
