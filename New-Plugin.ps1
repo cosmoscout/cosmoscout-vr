@@ -148,7 +148,7 @@ The given values present some good starting values for your customization:
 }
 ``````
 "@
-    Write-Host "Creating: 'README.md'"
+    Write-Host "Creating: '$pluginRootDir/README.md'"
     $readMeText | Out-File "README.md" -Encoding utf8
 }
 
