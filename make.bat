@@ -77,7 +77,8 @@ rem configure, compile & install -----------------------------------------------
 cd "%BUILD_DIR%"
 cmake %CMAKE_FLAGS% -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
       -DCMAKE_UNITY_BUILD=%UNITY_BUILD% -DCOSMOSCOUT_USE_PRECOMPILED_HEADERS=%PRECOMPILED_HEADERS%^
-      -DCOSMOSCOUT_EXTERNALS_DIR="%EXTERNALS_INSTALL_DIR%" "%CMAKE_DIR%"  || exit /b
+      -DCOSMOSCOUT_EXTERNALS_DIR="%EXTERNALS_INSTALL_DIR%" -DCMAKE_EXPORT_COMPILE_COMMANDS=On^
+       "%CMAKE_DIR%" || exit /b
 
 cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS% || exit /b
 
