@@ -12,8 +12,8 @@
     This function runs clang-format on all C++ and JavaScript source files.
 #>
 
-$sourceDir = Get-Item -Path "$PSScriptRoot/src"
-$pluginDir = Get-Item -Path "$PSScriptRoot/plugins"
+$sourceDir = "$PSScriptRoot/src"
+$pluginDir = "$PSScriptRoot/plugins"
 
 $fileEndings = @('*.cpp', '*.hpp', '*.inl', '*.js')
 
