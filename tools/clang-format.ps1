@@ -24,10 +24,18 @@ try {
     # If we have a recent PowerShell version we can run clang-format in parallel
     # which is much faster. But we still need to support PowerShell version 5.
     $parallelSupported = $PSVersionTable.PSVersion.Major -ge 7
-    $itemsToCheck | ForEach-Object $(if ($parallelSupported) { -Parallel }) {
-        $file = $_
-        Write-Output "Formatting $file ..."
-        clang-format -i "$file"
+    if ($parallelSupported) {
+        $itemsToCheck | ForEach-Object -Parallel {
+            $file = $_
+            Write-Output "Formatting $file ..."
+            clang-format -i "$file"
+        }
+    } else {
+        $itemsToCheck | ForEach-Object {
+            $file = $_
+            Write-Output "Formatting $file ..."
+            clang-format -i "$file"
+        }
     }
 } catch {
     throw $_
