@@ -46,7 +46,7 @@ if (-not $BuildDirectory) {
         $osName = "linux"
     }
 
-    $root        = $PSScriptRoot
+    $root        = "$PSScriptRoot/.."
     $releasePath = "build/$osName-Release"
     $debugPath   = "build/$osName-Debug"
     $cc          = "compile_commands.json"
