@@ -278,7 +278,7 @@ if (MSVC)
     -experimental:external
     -external:anglebrackets
     -external:W0
-    -W3 -WX
+    -W3
     -EHsc
     -wd4251
 
