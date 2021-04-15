@@ -44,17 +44,17 @@ function countLines() {
 # First count the source lines and comment lines in the src/ directory.
 SOURCE_LINES_OF_CODE=""
 SOURCE_LINES_OF_COMMENTS=""
-countLines "${SCRIPT_DIR}/src" SOURCE_LINES_OF_CODE SOURCE_LINES_OF_COMMENTS
+countLines "${SCRIPT_DIR}/../src" SOURCE_LINES_OF_CODE SOURCE_LINES_OF_COMMENTS
 
 # Then in the resources/gui/js directory.
 JS_LINES_OF_CODE=""
 JS_LINES_OF_COMMENTS=""
-countLines "${SCRIPT_DIR}/resources/gui/js" JS_LINES_OF_CODE JS_LINES_OF_COMMENTS
+countLines "${SCRIPT_DIR}/../resources/gui/js" JS_LINES_OF_CODE JS_LINES_OF_COMMENTS
 
 # Then in the plugins/ directory.
 PLUGINS_LINES_OF_CODE=""
 PLUGINS_LINES_OF_COMMENTS=""
-countLines "${SCRIPT_DIR}/plugins" PLUGINS_LINES_OF_CODE PLUGINS_LINES_OF_COMMENTS
+countLines "${SCRIPT_DIR}/../plugins" PLUGINS_LINES_OF_CODE PLUGINS_LINES_OF_COMMENTS
 
 # Print results.
 if [[ $* == *--percentage-only* ]]
