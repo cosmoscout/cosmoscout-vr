@@ -12,6 +12,7 @@
    For this script to work CosmoScout has to build at least once with a compile_commands.json file
    in the build directory. You can provide a build directory or the script searches common paths
    for one.
+   Not that on Windows you have to use the Ninja generator to get a compile_commands.json file.
    Look here for more information regarding the compile_commands.json file:
    https://cmake.org/cmake/help/latest/variable/CMAKE_EXPORT_COMPILE_COMMANDS.html
 

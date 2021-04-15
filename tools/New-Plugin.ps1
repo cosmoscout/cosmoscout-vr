@@ -58,11 +58,11 @@
 param (
     [Parameter(Mandatory=$true)]
     [ValidateNotNullOrEmpty()]
-    [String[]]
+    [String]
     $Name,
 
     [ValidateNotNullOrEmpty()]
-    [String[]]
+    [String]
     $Icon="label_off",
 
     [Boolean]
