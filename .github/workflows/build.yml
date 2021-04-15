@@ -121,7 +121,7 @@ jobs:
           path: install/linux-Release/bin/test
       - name: Calculate Test Coverage
         run: |
-          ./lcov.sh
+          ./tools/lcov.sh
       - name: Upload Coverage Info
         uses: coverallsapp/github-action@master
         with:
