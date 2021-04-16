@@ -318,6 +318,10 @@ class TransferFunctionEditor {
             () => {
               this._mouseup();
             })
+        .on("mousemove",
+            () => {
+              this._mousemove();
+            })
         .on("contextmenu", (d, i) => {
           // react on right-clicking
           d3.event.preventDefault();
