@@ -716,7 +716,9 @@ class TransferFunctionEditorApi extends IApi {
     transferFunctionEditor.setAvailableTransferFunctions(this._availableFiles);
     this._editors.push(transferFunctionEditor);
     this._nextId++;
-    CosmoScout.callbacks.transferFunctionEditor.getAvailableTransferFunctions();
+    if (CosmoScout.callbacks.transferFunctionEditor !== undefined) {
+      CosmoScout.callbacks.transferFunctionEditor.getAvailableTransferFunctions();
+    }
     return transferFunctionEditor;
   }
 
