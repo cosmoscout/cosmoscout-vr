@@ -57,6 +57,22 @@ class TransferFunctionEditor {
   }
 
   _createElements() {
+    // Range sliders
+    const xRangeSlider = this.element.querySelector("#transferFunctionEditor\\.xRangeSlider-" + this.id);
+    noUiSlider.create(xRangeSlider, { range: { "min": 0, "max": 100 }, start: [0, 100], margin: 1});
+    xRangeSlider.noUiSlider.on("slide", (values, handle, unencoded) => {
+      this._xScale.domain([unencoded[0], unencoded[1]]);
+      this._updateAxis();
+      this._redraw();
+    });
+    const yRangeSlider = this.element.querySelector("#transferFunctionEditor\\.yRangeSlider-" + this.id);
+    noUiSlider.create(yRangeSlider, { range: { "min": 0, "max": 1 }, start: [0, 1], margin: 0.01 });
+    yRangeSlider.noUiSlider.on("slide", (values, handle, unencoded) => {
+      this._yScale.domain([unencoded[0], unencoded[1]]);
+      this._updateAxis();
+      this._redraw();
+    });
+
     // Axis scales
     this._xScale = d3.scaleLinear();
     this._yScale = d3.scaleLinear();
@@ -100,15 +116,15 @@ class TransferFunctionEditor {
       pickerDiv.style.background = CP.HEX([color[0], color[1], color[2], 1]);
     };
 
-    let extent = [0, 255];
+    this._dataExtent = [0, 100];
     if (this.options.fitToData && this._data && this._data.length > 0) {
-      extent = d3.extent(this._data);
+      this._dataExtent = d3.extent(this._data);
     }
-    this._xScale.rangeRound([0, this._width]).domain(extent);
+    this._xScale.rangeRound([0, this._width]).domain(this._dataExtent);
     this._yScale.domain([0, 1]).range([this._height, 0]);
     if (this._controlPoints.length == 0) {
-      this._controlPoints.push({'x': extent[0], 'opacity': 0, 'color': '#0000FF', 'locked': true});
-      this._controlPoints.push({'x': extent[1], 'opacity': 1, 'color': '#FF0000', 'locked': true});
+      this._controlPoints.push({'x': this._dataExtent[0], 'opacity': 0, 'color': '#0000FF', 'locked': true});
+      this._controlPoints.push({'x': this._dataExtent[1], 'opacity': 1, 'color': '#FF0000', 'locked': true});
     }
     this._selected = this._controlPoints[1];
     this._area
@@ -179,13 +195,33 @@ class TransferFunctionEditor {
         .attr("x2", "100%")
         .attr("y2", "0%");
 
-    // Draw control points
-    g.append("path")
+    // Draw graph
+    const graph = g.append("svg")
+        .attr("width", this._width)
+        .attr("height", this._height)
+        .attr("overflow", "hidden");
+
+    graph.append("path")
         .datum(this._controlPoints)
         .attr("class", "line")
         .attr("fill", "url(#transferFunctionEditor.gradient-" + this.id + ")");
+    graph.append("path")
+        .datum(this._controlPoints)
+        .attr("class", "line")
+        .attr("fill", "none");
 
-    g.append("path").datum(this._controlPoints).attr("class", "line").attr("fill", "none");
+    // Draw axis
+    const xTicks = this._xScale.ticks(this.options.numberTicks);
+    xTicks[xTicks.length - 1] = this._xScale.domain()[1];
+    this._xAxis = g.append("g")
+      .attr("class", "axis axis--x")
+      .attr("transform", "translate(0," + this._height + ")")
+      .call(d3.axisBottom(this._xScale).tickValues(xTicks));
+
+    this._yAxis = g.append("g")
+      .attr("class", "axis axis--y")
+      .attr("transform", "translate(0, 0)")
+      .call(d3.axisLeft(this._yScale).ticks(this.options.numberTicks));
 
     // Mouse interaction handler
     g.append("rect")
@@ -205,35 +241,22 @@ class TransferFunctionEditor {
         .on("mousemove", () => {
           this._mousemove();
         });
-
-    // Draw axis
-    const xTicks              = this._xScale.ticks(this.options.numberTicks);
-    xTicks[xTicks.length - 1] = this._xScale.domain()[1];
-    this._xAxis               = g.append("g")
-                      .attr("class", "axis axis--x")
-                      .attr("transform", "translate(0," + this._height + ")")
-                      .call(d3.axisBottom(this._xScale).tickValues(xTicks));
-
-    this._yAxis = g.append("g")
-                      .attr("class", "axis axis--y")
-                      .attr("transform", "translate(0, 0)")
-                      .call(d3.axisLeft(this._yScale).ticks(this.options.numberTicks));
   }
 
   // update scales with new data input
   _updateScales() {
     if (this.options.fitToData) {
-      let dataExtent = [];
       if (this._data && this._data.length > 0) {
-        dataExtent = d3.extent(this._data);
+        this._dataExtent = d3.extent(this._data);
       }
-      if (dataExtent[0] == dataExtent[1]) {
-        dataExtent[1] += 1;
+      if (this._dataExtent[0] == this._dataExtent[1]) {
+        this._dataExtent[1] += 1;
       }
-
-      this._xScale.domain(dataExtent);
+      this._xScale.domain(this._dataExtent);
+      //TODO Update slider range
     } else {
-      this._xScale.domain([0, 255]);
+      this._dataExtent = [0, 100];
+      this._xScale.domain(this._dataExtent);
     }
   }
 
@@ -243,6 +266,9 @@ class TransferFunctionEditor {
     const xTicks              = this._xScale.ticks(this.options.numberTicks);
     xTicks[xTicks.length - 1] = this._xScale.domain()[1];
     this._xAxis.call(d3.axisBottom(this._xScale).tickValues(xTicks));
+    const yTicks = this._yScale.ticks(this.options.numberTicks);
+    yTicks[yTicks.length - 1] = this._yScale.domain()[1];
+    this._yAxis.call(d3.axisLeft(this._yScale).tickValues(yTicks));
   }
 
   _updateControlPoints(controlPoints) {
@@ -262,9 +288,9 @@ class TransferFunctionEditor {
     }
     this._controlPoints.forEach((point, index) => {
       if (index == 0) {
-        point.x = this._xScale.invert(0);
+        point.x = this._dataExtent[0];
       } else if (index == this._controlPoints.length - 1) {
-        point.x = this._xScale.invert(this._width);
+        point.x = this._dataExtent[1];
       }
 
       if (!point.locked) {
@@ -282,12 +308,26 @@ class TransferFunctionEditor {
       }
     });
 
-    const svg =
-        d3.select(this.element).select("#transferFunctionEditor\\.graph-" + this.id).select("g");
-    svg.selectAll("path.line").datum(this._controlPoints).attr("d", this._area);
+    const svg = d3.select(this.element)
+        .select("#transferFunctionEditor\\.graph-" + this.id)
+        .select("g");
+    svg.selectAll("path.line")
+        .datum(this._controlPoints)
+        .attr("d", this._area);
 
     // Add circle to connect and interact with the control points
-    const circle = svg.selectAll("circle").data(this._controlPoints)
+    const circle = svg.selectAll("circle").data(this._controlPoints);
+
+    circle.style("visibility",
+      (d) => {
+        const x = this._xScale(d.x);
+        const y = this._yScale(d.opacity);
+        if (x < 0 || x > this._width || y < 0 || y > this._height) {
+          return "hidden";
+        } else {
+          return "visible";
+        }
+      });
 
     circle.enter()
         .append("circle")
@@ -488,8 +528,8 @@ class TransferFunctionEditor {
     exportObject.RGB   = {};
     exportObject.Alpha = {};
 
-    const min   = this._xScale.domain()[0];
-    const max   = this._xScale.domain()[1];
+    const min   = this._dataExtent[0];
+    const max   = this._dataExtent[1];
     const range = max - min;
     this._controlPoints.forEach((controlPoint) => {
       const position = controlPoint.x;
@@ -653,6 +693,22 @@ class TransferFunctionEditorApi extends IApi {
           <div class="row">
             <div class="col-12">
               <svg id="transferFunctionEditor.graph-%ID%"></svg>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-5">
+              X-Range
+            </div>
+            <div class="col-7">
+              <div id="transferFunctionEditor.xRangeSlider-%ID%"></div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-5">
+              Y-Range
+            </div>
+            <div class="col-7">
+              <div id="transferFunctionEditor.yRangeSlider-%ID%"></div>
             </div>
           </div>
           <div class="row">
