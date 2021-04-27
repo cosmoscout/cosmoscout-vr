@@ -34,9 +34,11 @@ class TransferFunctionEditor {
     this.callback = callback;
     this.options  = {width: width, height: height, fitToData: fitToData, numberTicks: numberTicks};
 
+    this._initialized = false;
     this._createElements();
     this._initializeElements();
     this._drawChart();
+    this._initialized = true;
 
     if (defaultFunction != "") {
       CosmoScout.callbacks.transferFunctionEditor.importTransferFunction(defaultFunction, this.id);
@@ -49,29 +51,40 @@ class TransferFunctionEditor {
    *
    * @param data {number[]} Array of scalar values
    */
-  setData(data) {
+  setData(data, resetSliderHandles = true) {
+    this._initialized = false;
     this._data = data;
-    this._updateScales();
+    this._updateScales(resetSliderHandles);
     this._updateAxis();
-    this._updateControlPoints(this._controlPoints);
+    if (resetSliderHandles) {
+      this._updateControlPoints(this._controlPoints);
+    }
+    this._initialized = true;
+    this._redraw();
+  }
+
+  _createXRangeSlider(range, resetHandles) {
+    let start = range;
+    if (this._xRangeSlider.noUiSlider !== undefined) {
+      if (!resetHandles) {
+        start = this._xRangeSlider.noUiSlider.get();
+      }
+      this._xRangeSlider.noUiSlider.destroy();
+    }
+    noUiSlider.create(this._xRangeSlider, { range: { "min": range[0], "max": range[1] }, start: start, margin: 1 });
+    this._xRangeSlider.noUiSlider.on("update", (values, handle, unencoded) => {
+      this._xScale.domain([unencoded[0], unencoded[1]]);
+      if (this._initialized) {
+        this._updateAxis();
+        this._redraw();
+      }
+    });
   }
 
   _createElements() {
     // Range sliders
-    const xRangeSlider = this.element.querySelector("#transferFunctionEditor\\.xRangeSlider-" + this.id);
-    noUiSlider.create(xRangeSlider, { range: { "min": 0, "max": 100 }, start: [0, 100], margin: 1});
-    xRangeSlider.noUiSlider.on("slide", (values, handle, unencoded) => {
-      this._xScale.domain([unencoded[0], unencoded[1]]);
-      this._updateAxis();
-      this._redraw();
-    });
-    const yRangeSlider = this.element.querySelector("#transferFunctionEditor\\.yRangeSlider-" + this.id);
-    noUiSlider.create(yRangeSlider, { range: { "min": 0, "max": 1 }, start: [0, 1], margin: 0.01 });
-    yRangeSlider.noUiSlider.on("slide", (values, handle, unencoded) => {
-      this._yScale.domain([unencoded[0], unencoded[1]]);
-      this._updateAxis();
-      this._redraw();
-    });
+    this._xRangeSlider = this.element.querySelector("#transferFunctionEditor\\.xRangeSlider-" + this.id);
+    this._yRangeSlider = this.element.querySelector("#transferFunctionEditor\\.yRangeSlider-" + this.id);
 
     // Axis scales
     this._xScale = d3.scaleLinear();
@@ -100,6 +113,16 @@ class TransferFunctionEditor {
   }
 
   _initializeElements() {
+    this._createXRangeSlider([0, 100], true);
+    noUiSlider.create(this._yRangeSlider, { range: { "min": 0, "max": 1 }, start: [0, 1], margin: 0.01 });
+    this._yRangeSlider.noUiSlider.on("update", (values, handle, unencoded) => {
+      this._yScale.domain([unencoded[0], unencoded[1]]);
+      if (this._initialized) {
+        this._updateAxis();
+        this._redraw();
+      }
+    });
+
     const pickerDiv =
         this.element.querySelector("#transferFunctionEditor\\.colorPicker-" + this.id);
     pickerDiv.picker = new CP(pickerDiv);
@@ -244,7 +267,7 @@ class TransferFunctionEditor {
   }
 
   // update scales with new data input
-  _updateScales() {
+  _updateScales(resetSliderHandles) {
     if (this.options.fitToData) {
       if (this._data && this._data.length > 0) {
         this._dataExtent = d3.extent(this._data);
@@ -253,7 +276,7 @@ class TransferFunctionEditor {
         this._dataExtent[1] += 1;
       }
       this._xScale.domain(this._dataExtent);
-      //TODO Update slider range
+      this._createXRangeSlider(this._dataExtent, resetSliderHandles);
     } else {
       this._dataExtent = [0, 100];
       this._xScale.domain(this._dataExtent);
