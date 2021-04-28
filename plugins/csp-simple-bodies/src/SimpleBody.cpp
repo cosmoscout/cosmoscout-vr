@@ -305,7 +305,7 @@ bool SimpleBody::Do() {
       sunIlluminance = static_cast<float>(mSolarSystem->getSunLuminance());
 
       // For planets, this illuminance is divided by pi, so we have to premultiply it for the sun.
-      sunIlluminance *= glm::pi<double>();
+      sunIlluminance *= glm::pi<float>();
     }
 
     ambientBrightness = 1.0F;
