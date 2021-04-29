@@ -69,6 +69,9 @@ class CS_CORE_EXPORT SolarSystem {
   /// then i = pSunLuminousPower / (d*d*4*PI) is calculated.
   double getSunIlluminance(glm::dvec3 const& observerPosition) const;
 
+  /// Returns the surface luminance of the Sun in cd / m².
+  double getSunLuminance() const;
+
   // Object registration API -----------------------------------------------------------------------
 
   /// The CelestialObserver, which controls the camera.
