@@ -623,6 +623,7 @@
       }
     },
     "csp-fly-to-locations": {},
+    "csp-guide": {},
     "csp-minimap": {
       "defaultMap": {
         "projection": "equirectangular",
