@@ -46,6 +46,7 @@ out vec3 vNormal;
 out vec3 vPosition;
 out vec3 vCenter;
 out vec2 vLngLat;
+out float gl_ClipDistance[1];
 
 const float PI = 3.141592654;
 
@@ -67,6 +68,7 @@ void main()
     vLngLat.x = iGridPos.x * 2.0 * PI - PI;
     vLngLat.y = iGridPos.y * PI - PI/2;
     vPosition = toCartesian(vLngLat);
+gl_ClipDistance[0] = dot(vec4(vPosition, 1.0), vec4(1, 0, 0, 0));
     vNormal    = (uMatModelView * vec4(geodeticSurfaceNormal(vLngLat), 0.0)).xyz;
     vPosition   = (uMatModelView * vec4(vPosition, 1.0)).xyz;
     vCenter     = (uMatModelView * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
@@ -121,7 +123,12 @@ void main()
     #ifdef ENABLE_LIGHTING
       vec3 normal = normalize(vNormal);
       float light = max(dot(normal, uSunDirection), 0.0);
-      oColor = mix(oColor*uAmbientBrightness, oColor, light);
+      if (gl_FrontFacing) {
+        light *= 0.3;
+        oColor = mix(oColor*uAmbientBrightness*0.5, oColor, light);
+      } else {
+        oColor = mix(oColor*uAmbientBrightness, oColor, light);
+      }
     #endif
 
     gl_FragDepth = length(vPosition) / uFarClip;
@@ -346,6 +353,7 @@ bool SimpleBody::Do() {
   mShader.SetUniform(mUniforms.farClip, cs::utils::getCurrentFarClipDistance());
 
   mTexture->Bind(GL_TEXTURE0);
+	glEnable(GL_CLIP_DISTANCE0);
 
   // Draw.
   mSphereVAO.Bind();
@@ -354,6 +362,7 @@ bool SimpleBody::Do() {
   mSphereVAO.Release();
 
   // Clean up.
+	glDisable(GL_CLIP_DISTANCE0);
   mTexture->Unbind(GL_TEXTURE0);
   mShader.Release();
 
