@@ -173,6 +173,7 @@ cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
 			-DVTK_MODULE_ENABLE_VTK_IOImage=YES^
 			-DVTK_MODULE_ENABLE_VTK_IOLegacy=YES^
 			-DVTK_MODULE_ENABLE_VTK_IOXML=YES^
+			-DVTK_MODULE_ENABLE_VTK_IONetCDF=YES^
 			-DVTK_MODULE_ENABLE_VTK_IOWeb=YES^
 			"%EXTERNALS_DIR%/vtk" || goto :error
 cmake --build . --config %BUILD_TYPE% --target install --parallel 8 || goto :error
