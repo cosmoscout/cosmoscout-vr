@@ -629,115 +629,32 @@ if %USING_NINJA%==true (
   cmake -E copy "%BUILD_DIR%/cef/libcef_dll_wrapper/%BUILD_TYPE%/libcef_dll_wrapper.lib"  "%INSTALL_DIR%/lib"
 )
 
-rem TBB ------------------------------------------------------------------------------------------
-:tbb
+rem ospray -----------------------------------------------------------------------------------------
+:ospray_dependencies
 
 echo.
-echo Building and installing TBB V2019...
+echo Building and installing ospray dependencies...
 echo.
 
-cmake -E make_directory "%BUILD_DIR%/tbb/extracted" && cd "%BUILD_DIR%/tbb"
-
-IF NOT EXIST tbb.zip (
-  curl.exe -L https://github.com/01org/tbb/releases/download/2019_U5/tbb2019_20190320oss_win.zip --output tbb.zip
-) else (
-  echo File 'tbb.zip' already exists, no download required.
-)
-
-cd "%BUILD_DIR%/tbb/extracted"
-cmake -E tar xfvj ../tbb.zip
-
-cmake -E copy_directory "%BUILD_DIR%/tbb/extracted/tbb2019_20190320oss/include"   "%INSTALL_DIR%/include"
-cmake -E copy_directory "%BUILD_DIR%/tbb/extracted/tbb2019_20190320oss/lib"   	  "%INSTALL_DIR%/lib"
-cmake -E copy           "%BUILD_DIR%/tbb/extracted/tbb2019_20190320oss/bin/intel64/vc14/tbb.dll" "%INSTALL_DIR%/bin"
-cmake -E copy           "%BUILD_DIR%/tbb/extracted/tbb2019_20190320oss/bin/intel64/vc14/tbbmalloc.dll" "%INSTALL_DIR%/bin"
-cmake -E copy           "%BUILD_DIR%/tbb/extracted/tbb2019_20190320oss/bin/intel64/vc14/tbbmalloc_proxy.dll" "%INSTALL_DIR%/bin"
-
-rem ispc -----------------------------------------------------------------------------------------
-:ispc
-
-echo.
-echo Downloading ispc...
-echo.
-
-cmake -E make_directory "%BUILD_DIR%/ispc/extracted" && cd "%BUILD_DIR%/ispc"
-
-IF NOT EXIST ispc.zip (
-  curl.exe -L https://github.com/ispc/ispc/releases/download/v1.14.1/ispc-v1.14.1-windows.zip --output ispc.zip
-) else (
-  echo File 'ispc.zip' already exists, no download required.
-)
-
-cd "%BUILD_DIR%/ispc/extracted"
-cmake -E tar xfvj ../ispc.zip
-
-cmake -E copy "%BUILD_DIR%/ispc/extracted/bin/ispc.exe" "%INSTALL_DIR%/bin"
-
-rem rkcommon -----------------------------------------------------------------------------------------
-:rkcommon
-
-echo.
-echo Building and installing rkcommon...
-echo.
-
-cmake -E make_directory %BUILD_DIR%/rkcommon && cd %BUILD_DIR%/rkcommon
+cmake -E make_directory %BUILD_DIR%/ospray_dependencies && cd %BUILD_DIR%/ospray_dependencies
 cmake %CMAKE_FLAGS% -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DCMAKE_INSTALL_PREFIX=%INSTALL_DIR%^
-    -DINSTALL_DEPS=OFF -DBUILD_TESTING=OFF -DRKCOMMON_TBB_ROOT=%INSTALL_DIR%^
-	%EXTERNALS_DIR%/rkcommon
-cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS% || goto :error
+  -DBUILD_JOBS=%NUMBER_OF_PROCESSORS% -DINSTALL_IN_SEPARATE_DIRECTORIES=Off^
+  -DBUILD_EMBREE_FROM_SOURCE=Off -DBUILD_OIDN_FROM_SOURCE=Off^
+  -DBUILD_DEPENDENCIES_ONLY=On -DBUILD_OIDN=On^
+  %EXTERNALS_DIR%/ospray/scripts/superbuild
+cmake --build . --config %BUILD_TYPE% --parallel %NUMBER_OF_PROCESSORS% || goto :error
 
-rem embree -----------------------------------------------------------------------------------------
-:embree
-
-echo.
-echo Building and installing embree...
-echo.
-
-cmake -E make_directory %BUILD_DIR%/embree && cd %BUILD_DIR%/embree
-cmake %CMAKE_FLAGS% -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DCMAKE_INSTALL_PREFIX=%INSTALL_DIR%^
-      -DEMBREE_TUTORIALS=OFF -DEMBREE_TBB_ROOT=%INSTALL_DIR% -DEMBREE_ISPC_EXECUTABLE=%INSTALL_DIR%/bin/ispc.exe -DBUILD_TESTING=OFF^
-	%EXTERNALS_DIR%/embree
-cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS% || goto :error
-
-rem openvkl -----------------------------------------------------------------------------------------
-:openvkl
-
-echo.
-echo Building and installing openvkl...
-echo.
-
-cmake -E make_directory %BUILD_DIR%/openvkl && cd %BUILD_DIR%/openvkl
-cmake %CMAKE_FLAGS% -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DCMAKE_INSTALL_PREFIX=%INSTALL_DIR%^
-      -DRKCOMMON_TBB_ROOT=%INSTALL_DIR% -DISPC_EXECUTABLE=%INSTALL_DIR%/bin/ispc.exe -DBUILD_BENCHMARKS=OFF -DBUILD_EXAMPLES=OFF -DBUILD_TESTING=OFF^
-	%EXTERNALS_DIR%/openvkl
-cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS% || goto :error
-
-rem oidn -----------------------------------------------------------------------------------------
-:oidn
-
-echo.
-echo Building and installing oidn...
-echo.
-
-cmake -E make_directory %BUILD_DIR%/oidn && cd %BUILD_DIR%/oidn
-cmake %CMAKE_FLAGS% -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DCMAKE_INSTALL_PREFIX=%INSTALL_DIR%^
-      -DTBB_ROOT=%INSTALL_DIR% -DOIDN_APPS=Off^
-	%EXTERNALS_DIR%/oidn
-cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS% || goto :error
-
-rem Ospray -----------------------------------------------------------------------------------------
 :ospray
-
 echo.
 echo Building and installing ospray...
 echo.
 
 cmake -E make_directory %BUILD_DIR%/ospray && cd %BUILD_DIR%/ospray
 cmake %CMAKE_FLAGS% -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DCMAKE_INSTALL_PREFIX=%INSTALL_DIR%^
-	-DRKCOMMON_TBB_ROOT=%INSTALL_DIR% -DISPC_EXECUTABLE=%INSTALL_DIR%/bin/ispc.exe^
-	-DOSPRAY_ENABLE_APPS=Off -DOSPRAY_MODULE_DENOISER=On -DOSPRAY_INSTALL_DEPENDENCIES=Off^
-	-DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=On^
-	%EXTERNALS_DIR%/ospray
+  -DRKCOMMON_TBB_ROOT=%INSTALL_DIR% -DISPC_EXECUTABLE=%INSTALL_DIR%/bin/ispc.exe^
+  -DOSPRAY_ENABLE_APPS=Off -DOSPRAY_MODULE_DENOISER=On -DOSPRAY_INSTALL_DEPENDENCIES=Off^
+  -DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=On^
+  %EXTERNALS_DIR%/ospray
 cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS% || goto :error
 
 rem ------------------------------------------------------------------------------------------------
