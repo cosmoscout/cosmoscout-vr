@@ -18,6 +18,10 @@
 #include <unordered_set>
 #include <vector>
 
+namespace cs::graphics {
+struct EclipseShadowMap;
+}
+
 namespace cs::core {
 
 class Settings;
@@ -71,6 +75,12 @@ class CS_CORE_EXPORT SolarSystem {
 
   /// Returns the surface luminance of the Sun in cd / m².
   double getSunLuminance() const;
+
+  // Eclipse Shadow API ----------------------------------------------------------------------------
+
+  /// Returns all eclipse shadow casters which may cast a shadow on the given object.
+  std::vector<std::shared_ptr<graphics::EclipseShadowMap>> getEclipseShadowMaps(
+      scene::CelestialObject const& object) const;
 
   // Object registration API -----------------------------------------------------------------------
 

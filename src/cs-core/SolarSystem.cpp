@@ -88,6 +88,21 @@ double SolarSystem::getSunLuminance() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+std::vector<std::shared_ptr<graphics::EclipseShadowMap>> SolarSystem::getEclipseShadowMaps(
+    scene::CelestialObject const& object) const {
+
+  std::vector<std::shared_ptr<graphics::EclipseShadowMap>> result;
+
+  for (auto const& shadowMap : mGraphicsEngine->getEclipseShadowMaps()) {
+    // TODO: Filtering
+    result.push_back(shadowMap);
+  }
+
+  return result;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void SolarSystem::setObserver(scene::CelestialObserver const& observer) {
   mObserver = observer;
 }

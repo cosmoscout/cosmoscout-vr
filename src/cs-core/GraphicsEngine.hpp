@@ -12,11 +12,11 @@
 #include "../cs-utils/Property.hpp"
 #include "Settings.hpp"
 
-#include <VistaOGLExt/VistaTexture.h>
 #include <glm/glm.hpp>
 #include <memory>
 
 namespace cs::graphics {
+struct EclipseShadowMap;
 class ClearHDRBufferNode;
 class ToneMappingNode;
 } // namespace cs::graphics
@@ -27,20 +27,6 @@ namespace cs::core {
 /// render settings. This class should only be instantiated once - this instance will be passed to
 /// all plugins.
 class CS_CORE_EXPORT GraphicsEngine {
-
-  /// This struct stores information required for each eclipse shadow map. The caster radius
-  /// includes the height of the atmosphere (if there is any).
-  struct EclipseShadowMap {
-    EclipseShadowMap(std::string const& casterAnchor, double casterRadius,
-        std::unique_ptr<VistaTexture>&& texture)
-        : mCasterAnchor(casterAnchor)
-        , mCasterRadius(casterRadius)
-        , mTexture(std::move(texture)) {
-    }
-    std::string                   mCasterAnchor;
-    double                        mCasterRadius;
-    std::unique_ptr<VistaTexture> mTexture;
-  };
 
  public:
   utils::Property<float> pApproximateSceneBrightness = 1.F;
@@ -69,7 +55,7 @@ class CS_CORE_EXPORT GraphicsEngine {
 
   /// Returns a list of all available eclipse shadow maps. You can use the eclipse shadow API of the
   /// SolarSystem to get all relevant eclipse shadow maps for a given position in space.
-  std::vector<std::shared_ptr<EclipseShadowMap>> const& getEclipseShadowMaps() const;
+  std::vector<std::shared_ptr<graphics::EclipseShadowMap>> const& getEclipseShadowMaps() const;
 
   static void enableGLDebug(bool onlyErrors = true);
   static void disableGLDebug();
@@ -77,12 +63,12 @@ class CS_CORE_EXPORT GraphicsEngine {
  private:
   void calculateCascades();
 
-  std::shared_ptr<core::Settings>                mSettings;
-  std::shared_ptr<graphics::ShadowMap>           mShadowMap;
-  std::shared_ptr<graphics::HDRBuffer>           mHDRBuffer;
-  std::shared_ptr<graphics::ClearHDRBufferNode>  mClearNode;
-  std::shared_ptr<graphics::ToneMappingNode>     mToneMappingNode;
-  std::vector<std::shared_ptr<EclipseShadowMap>> mEclipseShadowMaps;
+  std::shared_ptr<core::Settings>                          mSettings;
+  std::shared_ptr<graphics::ShadowMap>                     mShadowMap;
+  std::shared_ptr<graphics::HDRBuffer>                     mHDRBuffer;
+  std::shared_ptr<graphics::ClearHDRBufferNode>            mClearNode;
+  std::shared_ptr<graphics::ToneMappingNode>               mToneMappingNode;
+  std::vector<std::shared_ptr<graphics::EclipseShadowMap>> mEclipseShadowMaps;
 };
 
 } // namespace cs::core

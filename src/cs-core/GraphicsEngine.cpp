@@ -7,6 +7,7 @@
 #include "GraphicsEngine.hpp"
 
 #include "../cs-graphics/ClearHDRBufferNode.hpp"
+#include "../cs-graphics/EclipseShadowMap.hpp"
 #include "../cs-graphics/TextureLoader.hpp"
 #include "../cs-graphics/ToneMappingNode.hpp"
 #include "../cs-utils/utils.hpp"
@@ -82,7 +83,7 @@ GraphicsEngine::GraphicsEngine(std::shared_ptr<core::Settings> settings)
   if (mSettings->mGraphics.mEclipseShadowMaps.has_value()) {
     for (auto const& s : mSettings->mGraphics.mEclipseShadowMaps.value()) {
       mEclipseShadowMaps.push_back(
-          std::make_shared<GraphicsEngine::EclipseShadowMap>(s.first, s.second.mCasterRadius,
+          std::make_shared<graphics::EclipseShadowMap>(s.first, s.second.mCasterRadius,
               std::move(graphics::TextureLoader::loadFromFile(s.second.mTexture))));
     }
   }
@@ -222,7 +223,7 @@ std::shared_ptr<graphics::HDRBuffer> GraphicsEngine::getHDRBuffer() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::vector<std::shared_ptr<GraphicsEngine::EclipseShadowMap>> const&
+std::vector<std::shared_ptr<graphics::EclipseShadowMap>> const&
 GraphicsEngine::getEclipseShadowMaps() const {
   return mEclipseShadowMaps;
 }
