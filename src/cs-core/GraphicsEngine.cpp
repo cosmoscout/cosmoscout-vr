@@ -7,6 +7,7 @@
 #include "GraphicsEngine.hpp"
 
 #include "../cs-graphics/ClearHDRBufferNode.hpp"
+#include "../cs-graphics/TextureLoader.hpp"
 #include "../cs-graphics/ToneMappingNode.hpp"
 #include "../cs-utils/utils.hpp"
 #include "logger.hpp"
@@ -75,6 +76,16 @@ GraphicsEngine::GraphicsEngine(std::shared_ptr<core::Settings> settings)
 
   mSettings->mGraphics.pShadowMapExtension.connect(
       [this](glm::vec2 /*unused*/) { calculateCascades(); });
+
+  // setup eclipse shadows -------------------------------------------------------------------------
+
+  if (mSettings->mGraphics.mEclipseShadowMaps.has_value()) {
+    for (auto const& s : mSettings->mGraphics.mEclipseShadowMaps.value()) {
+      mEclipseShadowMaps.push_back(
+          std::make_shared<GraphicsEngine::EclipseShadowMap>(s.first, s.second.mCasterRadius,
+              std::move(graphics::TextureLoader::loadFromFile(s.second.mTexture))));
+    }
+  }
 
   // setup HDR buffer ------------------------------------------------------------------------------
   int multiSamples = GetVistaSystem()
@@ -207,6 +218,13 @@ std::shared_ptr<graphics::ShadowMap> GraphicsEngine::getShadowMap() const {
 
 std::shared_ptr<graphics::HDRBuffer> GraphicsEngine::getHDRBuffer() const {
   return mHDRBuffer;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::vector<std::shared_ptr<GraphicsEngine::EclipseShadowMap>> const&
+GraphicsEngine::getEclipseShadowMaps() const {
+  return mEclipseShadowMaps;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
