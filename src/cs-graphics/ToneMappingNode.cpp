@@ -6,6 +6,7 @@
 
 #include "ToneMappingNode.hpp"
 
+#include "../cs-utils/FrameTimings.hpp"
 #include "HDRBuffer.hpp"
 
 #include <VistaInterProcComm/Cluster/VistaClusterDataCollect.h>
@@ -145,10 +146,10 @@ static const char* sFragmentShader = R"(
     layout (binding = 1) uniform sampler2D uDepth;
   #endif
 
-  layout (binding = 2) uniform sampler2D uGlowMipMap;
+  layout (binding = 2) uniform sampler2D uGlareMipMap;
 
   uniform float uExposure;
-  uniform float uGlowIntensity;
+  uniform float uGlareIntensity;
 
   layout(location = 0) out vec3 oColor;
 
@@ -177,6 +178,11 @@ static const char* sFragmentShader = R"(
     return vec3(linear_to_srgb(c.r), linear_to_srgb(c.g), linear_to_srgb(c.b));
   }
 
+  // 4x4 bicubic filter using 4 bilinear texture lookups 
+  // See GPU Gems 2: "Fast Third-Order Texture Filtering", Sigg & Hadwiger:
+  // http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter20.html
+
+  // w0, w1, w2, and w3 are the four cubic B-spline basis functions
   float w0(float a) {
     return (1.0 / 6.0) * (a * (a * (-a + 3.0) - 3.0) + 1.0);
   }
@@ -213,7 +219,7 @@ static const char* sFragmentShader = R"(
 
   vec4 texture2D_bicubic(sampler2D tex, vec2 uv, int p_lod) {
     float lod = float(p_lod);
-    vec2 tex_size = textureSize(uGlowMipMap, p_lod);
+    vec2 tex_size = textureSize(uGlareMipMap, p_lod);
     vec2 pixel_size = 1.0 / tex_size;
     uv = uv * tex_size + 0.5;
     vec2 iuv = floor(uv);
@@ -232,7 +238,7 @@ static const char* sFragmentShader = R"(
     vec2 p3 = (vec2(iuv.x + h1x, iuv.y + h1y) - 0.5) * pixel_size;
 
     return (g0(fuv.y) * (g0x * textureLod(tex, p0, lod) + g1x * textureLod(tex, p1, lod))) +
-            (g1(fuv.y) * (g0x * textureLod(tex, p2, lod) + g1x * textureLod(tex, p3, lod)));
+           (g1(fuv.y) * (g0x * textureLod(tex, p2, lod) + g1x * textureLod(tex, p3, lod)));
   }
 
   void main() {
@@ -253,15 +259,28 @@ static const char* sFragmentShader = R"(
       gl_FragDepth = texelFetch(uDepth, ivec2(vTexcoords * textureSize(uDepth, 0)), 0).r;
     #endif
 
-    vec3  glow = vec3(0);
-    int maxLevels = textureQueryLevels(uGlowMipMap);
-    float weight = 1;
+    if (uGlareIntensity > 0) {
+      vec3  glare = vec3(0);
+      float maxLevels = textureQueryLevels(uGlareMipMap);
 
-    if (uGlowIntensity > 0) {
+      float totalWeight = 0;
+
+      // Each level contains a successively more blurred version of the scene. We have to
+      // accumulate them with an exponentially decreasing weight to get a proper glare distribution.
       for (int i=0; i<maxLevels; ++i) {
-        glow += texture2D_bicubic(uGlowMipMap, vTexcoords, i).rgb / (i+1);
+        float weight = 1.0 / pow(2, i);
+
+        #ifdef BICUBIC_GLARE_FILTER
+          glare += texture2D_bicubic(uGlareMipMap, vTexcoords, i).rgb * weight;
+        #else
+          glare += texture2D(uGlareMipMap, vTexcoords, i).rgb * weight;
+        #endif
+        
+        totalWeight += weight;
       }
-      color = mix(color, glow / maxLevels, uGlowIntensity);
+
+      // To make sure that we do not add energy, we divide by the total weight.
+      color = mix(color, glare/totalWeight, uGlareIntensity);
     }
 
     color = Uncharted2Tonemap(uExposure*color);
@@ -275,18 +294,7 @@ static const char* sFragmentShader = R"(
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 ToneMappingNode::ToneMappingNode(std::shared_ptr<HDRBuffer> hdrBuffer)
-    : mHDRBuffer(std::move(hdrBuffer))
-    , mShader(new VistaGLSLShader()) {
-
-  std::string defines = "#version 430\n";
-  defines += "#define NUM_MULTISAMPLES " + std::to_string(mHDRBuffer->getMultiSamples()) + "\n";
-
-  mShader->InitVertexShaderFromString(defines + sVertexShader);
-  mShader->InitFragmentShaderFromString(defines + sFragmentShader);
-  mShader->Link();
-
-  mUniforms.exposure      = mShader->GetUniformLocation("uExposure");
-  mUniforms.glowIntensity = mShader->GetUniformLocation("uGlowIntensity");
+    : mHDRBuffer(std::move(hdrBuffer)) {
 
   // Connect to the VSE_POSTGRAPHICS event. When this event is emitted, we will collect all
   // luminance values of the connected cluster nodes.
@@ -385,14 +393,29 @@ bool ToneMappingNode::getEnableAutoExposure() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void ToneMappingNode::setGlowIntensity(float intensity) {
-  mGlowIntensity = intensity;
+void ToneMappingNode::setGlareIntensity(float intensity) {
+  mGlareIntensity = intensity;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-float ToneMappingNode::getGlowIntensity() const {
-  return mGlowIntensity;
+float ToneMappingNode::getGlareIntensity() const {
+  return mGlareIntensity;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void ToneMappingNode::setEnableBicubicGlareFilter(bool enable) {
+  if (mEnableBicubicGlareFilter != enable) {
+    mEnableBicubicGlareFilter = enable;
+    mShaderDirty              = true;
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool ToneMappingNode::getEnableBicubicGlareFilter() const {
+  return mEnableBicubicGlareFilter;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -417,6 +440,28 @@ float ToneMappingNode::getLastMaximumLuminance() const {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool ToneMappingNode::ToneMappingNode::Do() {
+
+  utils::FrameTimings::ScopedTimer timer("Tonemapping");
+
+  if (mShaderDirty) {
+
+    std::string defines = "#version 430\n";
+    defines += "#define NUM_MULTISAMPLES " + std::to_string(mHDRBuffer->getMultiSamples()) + "\n";
+
+    if (mEnableBicubicGlareFilter) {
+      defines += "#define BICUBIC_GLARE_FILTER\n";
+    }
+
+    mShader = std::make_unique<VistaGLSLShader>();
+    mShader->InitVertexShaderFromString(defines + sVertexShader);
+    mShader->InitFragmentShaderFromString(defines + sFragmentShader);
+    mShader->Link();
+
+    mUniforms.exposure       = mShader->GetUniformLocation("uExposure");
+    mUniforms.glareIntensity = mShader->GetUniformLocation("uGlareIntensity");
+
+    mShaderDirty = false;
+  }
 
   bool doCalculateExposure =
       GetVistaSystem()->GetDisplayManager()->GetCurrentRenderInfo()->m_eEyeRenderMode !=
@@ -444,8 +489,8 @@ bool ToneMappingNode::ToneMappingNode::Do() {
     }
   }
 
-  if (mGlowIntensity > 0) {
-    mHDRBuffer->updateGlowMipMap();
+  if (mGlareIntensity > 0) {
+    mHDRBuffer->updateGlareMipMap();
   }
 
   if (doCalculateExposure && mEnableAutoExposure) {
@@ -457,7 +502,7 @@ bool ToneMappingNode::ToneMappingNode::Do() {
   mHDRBuffer->unbind();
   mHDRBuffer->getCurrentWriteAttachment()->Bind(GL_TEXTURE0);
   mHDRBuffer->getDepthAttachment()->Bind(GL_TEXTURE1);
-  mHDRBuffer->getGlowMipMap()->Bind(GL_TEXTURE2);
+  mHDRBuffer->getGlareMipMap()->Bind(GL_TEXTURE2);
 
   glPushAttrib(GL_ENABLE_BIT | GL_DEPTH_BUFFER_BIT);
   glDisable(GL_BLEND);
@@ -466,7 +511,7 @@ bool ToneMappingNode::ToneMappingNode::Do() {
 
   mShader->Bind();
   mShader->SetUniform(mUniforms.exposure, exposure);
-  mShader->SetUniform(mUniforms.glowIntensity, mGlowIntensity);
+  mShader->SetUniform(mUniforms.glareIntensity, mGlareIntensity);
 
   glDrawArrays(GL_TRIANGLES, 0, 3);
 

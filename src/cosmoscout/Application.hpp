@@ -173,7 +173,6 @@ class Application : public VistaFrameLoop {
   std::shared_ptr<cs::core::TimeControl>    mTimeControl;
   std::shared_ptr<cs::core::SolarSystem>    mSolarSystem;
   std::unique_ptr<cs::core::DragNavigation> mDragNavigation;
-  std::shared_ptr<cs::utils::FrameTimings>  mFrameTimings;
   std::map<std::string, Plugin>             mPlugins;
   std::unique_ptr<cs::utils::Downloader>    mDownloader;
   std::unique_ptr<IVistaClusterDataSync>    mSceneSync;

@@ -8,6 +8,15 @@
 The modularity of CosmoScout allows for easy feature extension through the use of plugins.  
 This documentation aims at understanding the basic plugin architecture and the available apis.
 
+# Creating a new Plugin
+
+To create a new plugin you can either create all the files by hand, copying from another plugin or we provide a PowerShell 
+script `tools/New-Plugin.ps1` which will create all the relevant folders and files for you.
+For documentation look inside the script.
+
+If you are on Linux and want to use the script you can find a guide to install PowerShell on Linux 
+[here](https://docs.microsoft.com/en-us/powershell/scripting/install/installing-powershell-core-on-linux).
+
 ## PluginBase
 ...
 

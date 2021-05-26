@@ -12,12 +12,12 @@
 SCRIPT_DIR="$( cd "$( dirname "$0" )" && pwd )"
 
 # Run clang-tidy on all source files
-if [ -d "$SCRIPT_DIR/build/linux-Release" ] 
-then
-  run-clang-tidy -fix -quiet -p "$SCRIPT_DIR/build/linux-Release"
-elif [ -d "$SCRIPT_DIR/../build/linux-Release" ] 
+if [ -d "$SCRIPT_DIR/../build/linux-Release" ]
 then
   run-clang-tidy -fix -quiet -p "$SCRIPT_DIR/../build/linux-Release"
+elif [ -d "$SCRIPT_DIR/../../build/linux-Release" ]
+then
+  run-clang-tidy -fix -quiet -p "$SCRIPT_DIR/../../build/linux-Release"
 else
     echo "Failed to find build directory!"
 fi

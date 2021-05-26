@@ -5,7 +5,7 @@
 # ------------------------------------------------------------------------------------------------ #
 
 cmake_minimum_required(VERSION 3.13)
-project(cosmoscout-vr VERSION 1.3.0)
+project(cosmoscout-vr VERSION 1.4.0)
 
 # Use cmake 3.12's <PACKAGE>_ROOT variabled for searching.
 cmake_policy(SET CMP0074 NEW)
@@ -42,6 +42,9 @@ find_package(OpenGL REQUIRED)
 # make_*.bat set this directory via the command line.
 set(COSMOSCOUT_EXTERNALS_DIR COSMOSCOUT_EXTERNALS_DIR-NotFound 
   CACHE STRING "Directory where the externals got installed to.")
+
+# Make sure to use forward slashes only.
+file(TO_CMAKE_PATH ${COSMOSCOUT_EXTERNALS_DIR} COSMOSCOUT_EXTERNALS_DIR)
 
 if (DEFINED ENV{CARES_ROOT_DIR})
   SET(CARES_ROOT_DIR "$ENV{CARES_ROOT_DIR}")
@@ -173,7 +176,16 @@ install(
 )
 
 # Copy boost libraries to install directory.
-foreach(BOOST_LIB ${Boost_LIBRARIES})
+foreach(BOOST_LIB 
+  ${Boost_CHRONO_LIBRARY_DEBUG}
+  ${Boost_CHRONO_LIBRARY_RELEASE}
+  ${Boost_DATE_TIME_LIBRARY_DEBUG}
+  ${Boost_DATE_TIME_LIBRARY_RELEASE}
+  ${Boost_FILESYSTEM_LIBRARY_RELEASE}
+  ${Boost_FILESYSTEM_LIBRARY_DEBUG}
+  ${Boost_SYSTEM_LIBRARY_RELEASE}
+  ${Boost_SYSTEM_LIBRARY_DEBUG}
+)
   if(EXISTS "${BOOST_LIB}")
     get_filename_component(LIB_BASE_NAME ${BOOST_LIB} NAME_WE)
     get_filename_component(LIB_PATH ${BOOST_LIB} PATH)

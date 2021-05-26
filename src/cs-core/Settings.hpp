@@ -9,6 +9,7 @@
 
 #include "cs_core_export.hpp"
 
+#include "../cs-graphics/HDRBuffer.hpp"
 #include "../cs-utils/DefaultProperty.hpp"
 #include "../cs-utils/utils.hpp"
 
@@ -47,6 +48,10 @@ struct adl_serializer<glm::vec<C, T, Q>> {
 
 // A partial template specialization for serialization and deserialization of glm::*qua*. This
 // allows using glm's quaternion types as settings elements.
+// A very weird thing about glm is that it mixes the order of quaternion members. The constructor
+// expects qua(w, x, y, z), the accessor returns qua[0] = x, qua[1] = y, qua[2] = z, qua[3] = w.
+// In the settings of CosmoScout VR and in the user interface we always attempt to show w as the
+// last component.
 template <typename T, glm::qualifier Q>
 struct adl_serializer<glm::qua<T, Q>> {
   static void to_json(json& j, glm::qua<T, Q> const& opt) {
@@ -446,7 +451,7 @@ class CS_CORE_EXPORT Settings {
 
     /// The range from which to choose values for the auto exposure. Measured in exposure values
     /// (EV).
-    utils::DefaultProperty<glm::vec2> pAutoExposureRange{glm::vec2(-14.F, 10.F)};
+    utils::DefaultProperty<glm::vec2> pAutoExposureRange{glm::vec2(-14.F, 9.F)};
 
     /// An additional exposure control which is applied after auto exposure. Has no effect if HDR
     /// rendering is disabled. Measured in exposure values (EV).
@@ -465,12 +470,20 @@ class CS_CORE_EXPORT Settings {
     /// The amount of ambient light. This should be in the range 0-1.
     utils::DefaultProperty<float> pAmbientBrightness{std::pow(0.25F, 10.F)};
 
-    /// If set to true, the amount of artifical glare will be based on the current exposure. Has no
-    /// effect if HDR rendering is disabled.
-    utils::DefaultProperty<bool> pEnableAutoGlow{true};
+    /// The amount of artifical glare. Has no effect if HDR rendering is disabled. This should be in
+    /// the range 0-1. A value of zero disables the glare.
+    utils::DefaultProperty<float> pGlareIntensity{0.1F};
 
-    /// The amount of artifical glare. Has no effect if HDR rendering is disabled.
-    utils::DefaultProperty<float> pGlowIntensity{0.5F};
+    /// Higher values produce a smoother glare.
+    utils::DefaultProperty<uint32_t> pGlareQuality{0};
+
+    /// If enabled, the more expensive but much smoother manual bicubic texture filtering is used
+    /// for the glare.
+    utils::DefaultProperty<bool> pEnableBicubicGlareFilter{true};
+
+    /// Specifies how the glare is computed.
+    utils::DefaultProperty<graphics::HDRBuffer::GlareMode> pGlareMode{
+        graphics::HDRBuffer::GlareMode::eSymmetricGauss};
 
     /// This makes illumination calculations assume a fixed sun position in the current SPICE frame.
     /// Using the default value glm::dvec3(0.0) disables this feature.

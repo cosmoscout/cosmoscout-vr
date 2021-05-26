@@ -31,10 +31,8 @@ namespace cs::core {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 SolarSystem::SolarSystem(std::shared_ptr<Settings> settings,
-    std::shared_ptr<utils::FrameTimings>           frameTimings,
     std::shared_ptr<GraphicsEngine> graphicsEngine, std::shared_ptr<TimeControl> timeControl)
     : mSettings(std::move(settings))
-    , mFrameTimings(std::move(frameTimings))
     , mGraphicsEngine(std::move(graphicsEngine))
     , mTimeControl(std::move(timeControl))
     , mSun(std::make_shared<scene::CelestialObject>()) {
@@ -70,6 +68,22 @@ glm::dvec3 SolarSystem::getSunDirection(glm::dvec3 const& observerPosition) cons
 double SolarSystem::getSunIlluminance(glm::dvec3 const& observerPosition) const {
   double sunDist = glm::length(pSunPosition.get() - observerPosition);
   return pSunLuminousPower.get() / (sunDist * sunDist * 4.0 * glm::pi<double>());
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+double SolarSystem::getSunLuminance() const {
+  double sceneScale = 1.0 / mObserver.getAnchorScale();
+  double sunRadius  = mSettings->getAnchorRadii("Sun")[0];
+
+  // To get the luminous exitance (in lux) of the Sun, we have to divide its luminous power (in
+  // lumens) by its surface area.
+  double luminousExitance = pSunLuminousPower.get() / (sceneScale * sceneScale * sunRadius *
+                                                          sunRadius * 4.0 * glm::pi<double>());
+
+  // We consider the Sun to emit light equally in all directions. So we have to divide the
+  // luminous exitance by PI to get actual luminance values.
+  return luminousExitance / glm::pi<double>();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -381,7 +395,8 @@ void SolarSystem::updateObserverFrame() {
         dWeight *= 0.01;
       }
 
-      if (dWeight > dActiveWeight) {
+      if (dWeight > dActiveWeight && (dWeight > mSettings->mSceneScale.mLockWeight ||
+                                         dWeight > mSettings->mSceneScale.mTrackWeight)) {
         activeBody    = object;
         dActiveWeight = dWeight;
       }
@@ -397,13 +412,17 @@ void SolarSystem::updateObserverFrame() {
     }
   }
 
-  // We change frame and center if there is a object with weight larger than mLockWeight
-  // and mTrackWeight.
-  if (activeBody) {
-    if (!mObserver.isAnimationInProgress()) {
-      std::string sCenter = "Solar System Barycenter";
-      std::string sFrame  = "J2000";
+  // If currently no observer animation is in progress, we change the pActiveBody accordingly. This
+  // may be null if we are very far away from any object.
+  if (!mObserver.isAnimationInProgress()) {
+    pActiveBody = activeBody;
 
+    std::string sCenter = "Solar System Barycenter";
+    std::string sFrame  = "J2000";
+
+    // We change frame and center if there is an object with weight larger than mLockWeight
+    // and mTrackWeight.
+    if (activeBody) {
       if (dActiveWeight > mSettings->mSceneScale.mLockWeight) {
         sFrame = activeBody->getFrameName();
       }
@@ -411,13 +430,10 @@ void SolarSystem::updateObserverFrame() {
       if (dActiveWeight > mSettings->mSceneScale.mTrackWeight) {
         sCenter = activeBody->getCenterName();
       }
+    }
 
-      pActiveBody = activeBody;
-      mSpiceFrameChangedLastFrame = sCenter != mObserver.getCenterName() || sFrame != mObserver.getFrameName();
-      if (mSpiceFrameChangedLastFrame) {
-        mObserver.changeOrigin(sCenter, sFrame, mTimeControl->pSimulationTime.get());
-
-      }
+    if (sCenter != mObserver.getCenterName() || sFrame != mObserver.getFrameName()) {
+      mObserver.changeOrigin(sCenter, sFrame, mTimeControl->pSimulationTime.get());
     }
   }
 }

@@ -191,7 +191,7 @@ void Plugin::onAddBookmark(std::shared_ptr<cs::scene::CelestialBody> const& acti
 
   // Add only if it has a location and matches the currently active body.
   if (bookmark.mLocation && bookmark.mLocation.value().mPosition) {
-    if (activeBody->getCenterName() == bookmark.mLocation.value().mCenter) {
+    if (activeBody && activeBody->getCenterName() == bookmark.mLocation.value().mCenter) {
       auto radii = activeBody->getRadii();
       auto p     = cs::utils::convert::cartesianToLngLat(
           bookmark.mLocation.value().mPosition.value(), radii);

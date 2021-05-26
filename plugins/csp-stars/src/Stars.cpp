@@ -9,6 +9,7 @@
 #include "logger.hpp"
 
 #include "../../../src/cs-graphics/TextureLoader.hpp"
+#include "../../../src/cs-utils/FrameTimings.hpp"
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -288,6 +289,8 @@ void Stars::setStarFiguresTexture(std::string const& filename) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool Stars::Do() {
+  cs::utils::FrameTimings::ScopedTimer timer("Render Stars");
+
   // save current state of the OpenGL state machine
   glPushAttrib(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_ENABLE_BIT);
   glDepthMask(GL_FALSE);
