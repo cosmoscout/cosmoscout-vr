@@ -258,7 +258,18 @@
     }
   ],
   "spiceKernel": "../share/config/spice/simple.txt",
-  "graphics": {},
+  "graphics": {
+    "eclipseShadowMaps": {
+      "Earth": {
+        "texture": "../share/resources/textures/earthShadow.hdr",
+        "casterRadius": 6456000.0
+      },
+      "Moon": {
+        "texture": "../share/resources/textures/moonShadow.hdr",
+        "casterRadius": 1737100.0
+      }
+    }
+  },
   "anchors": {
     "Barycenter": {
       "center": "Solar System Barycenter",
@@ -375,7 +386,7 @@
   },
   "plugins": {
     "csp-timings": {},
-    "csp-stars": {
+    "#csp-stars": {
       "celestialGridTexture": "../share/resources/textures/celestial_grid.png",
       "starFiguresTexture": "../share/resources/textures/constellation_figures.png",
       "celestialGridColor": [
@@ -463,7 +474,7 @@
         }
       }
     },
-    "csp-wms-overlays": {
+    "#csp-wms-overlays": {
       "maxTextureSize": 1024,
       "preFetch": 1,
       "bodies": {
