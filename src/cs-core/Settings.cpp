@@ -194,6 +194,18 @@ void to_json(nlohmann::json& j, Settings::SceneScale const& o) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void from_json(nlohmann::json const& j, Settings::EclipseShadowMap& o) {
+  Settings::deserialize(j, "texture", o.mTexture);
+  Settings::deserialize(j, "casterRadius", o.mCasterRadius);
+}
+
+void to_json(nlohmann::json& j, Settings::EclipseShadowMap const& o) {
+  Settings::serialize(j, "texture", o.mTexture);
+  Settings::serialize(j, "casterRadius", o.mCasterRadius);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void from_json(nlohmann::json const& j, Settings::Graphics& o) {
   Settings::deserialize(j, "enableVsync", o.pEnableVsync);
   Settings::deserialize(j, "worldUIScale", o.pWorldUIScale);
@@ -224,6 +236,7 @@ void from_json(nlohmann::json const& j, Settings::Graphics& o) {
   Settings::deserialize(j, "glareMode", o.pGlareMode);
   Settings::deserialize(j, "enableBicubicGlareFiltering", o.pEnableBicubicGlareFilter);
   Settings::deserialize(j, "fixedSunDirection", o.pFixedSunDirection);
+  Settings::deserialize(j, "eclipseShadowMaps", o.mEclipseShadowMaps);
 }
 
 void to_json(nlohmann::json& j, Settings::Graphics const& o) {
@@ -256,6 +269,7 @@ void to_json(nlohmann::json& j, Settings::Graphics const& o) {
   Settings::serialize(j, "glareMode", o.pGlareMode);
   Settings::serialize(j, "enableBicubicGlareFiltering", o.pEnableBicubicGlareFilter);
   Settings::serialize(j, "fixedSunDirection", o.pFixedSunDirection);
+  Settings::serialize(j, "eclipseShadowMaps", o.mEclipseShadowMaps);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

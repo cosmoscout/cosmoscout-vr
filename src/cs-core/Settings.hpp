@@ -387,6 +387,14 @@ class CS_CORE_EXPORT Settings {
 
   // -----------------------------------------------------------------------------------------------
 
+  /// Each body which should cast eclipse shadows needs an eclipse shadow map.
+  struct EclipseShadowMap {
+    std::string mTexture;
+
+    /// The caster radius includes the atmosphere (if there is any).
+    double mCasterRadius;
+  };
+
   struct Graphics {
     /// Enables or disables vertical synchronization.
     utils::DefaultProperty<bool> pEnableVsync{true};
@@ -488,6 +496,9 @@ class CS_CORE_EXPORT Settings {
     /// This makes illumination calculations assume a fixed sun position in the current SPICE frame.
     /// Using the default value glm::dvec3(0.0) disables this feature.
     utils::DefaultProperty<glm::dvec3> pFixedSunDirection{glm::dvec3(0.0, 0.0, 0.0)};
+
+    /// This maps anchor names to eclipse textures.
+    std::optional<std::unordered_map<std::string, EclipseShadowMap>> mEclipseShadowMaps;
   };
 
   Graphics mGraphics;
