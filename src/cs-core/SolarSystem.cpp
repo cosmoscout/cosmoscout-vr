@@ -240,9 +240,11 @@ void SolarSystem::update() {
 
   // Duration is in nanoseconds so we have to multiply by 1.0e9.
   if (duration > 0) {
-    double const secToNano = 1.0e9;
-    pCurrentObserverSpeed =
-        static_cast<float>(secToNano * glm::length(mLastPosition - observerPosition) / duration);
+    if (!mSpiceFrameChangedLastFrame) {
+      double const secToNano = 1.0e9;
+      pCurrentObserverSpeed =
+          static_cast<float>(secToNano * glm::length(mLastPosition - observerPosition) / duration);
+    }
     mLastPosition = observerPosition;
     mLastTime     = now;
   }

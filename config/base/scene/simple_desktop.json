@@ -660,6 +660,26 @@
           }
         }
       }
+    },
+    "csp-vr-accessibility": {
+      "gridEnabled": false,
+      "gridSize": 1.0,
+      "gridOffset": -1.80,
+      "gridFalloff": 32.0,
+      "gridTexture": "../share/resources/textures/gridCrossLarge.png",
+      "gridAlpha": 1.0,
+      "gridColor": "#ffffff",
+      "vignetteEnabled": false,
+      "vignetteDebug": false,
+      "vignetteInnerRadius": 0.5,
+      "vignetteOuterRadius": 1.0,
+      "vignetteColor": "#ffffff",
+      "vignetteFadeDuration": 1.0,
+      "vignetteFadeDeadzone": 0.5,
+      "vignetteLowerVelocityThreshold": 0.2,
+      "vignetteUpperVelocityThreshold": 10.0,
+      "vignetteUseDynamicRadius": false,
+      "vignetteUseVerticalOnly": false
     }
   }
 }
