@@ -234,6 +234,7 @@ void from_json(nlohmann::json const& j, Settings::Graphics& o) {
   Settings::deserialize(j, "glareIntensity", o.pGlareIntensity);
   Settings::deserialize(j, "glareRadius", o.pGlareQuality);
   Settings::deserialize(j, "glareMode", o.pGlareMode);
+  Settings::deserialize(j, "toneMappingMode", o.pToneMappingMode);
   Settings::deserialize(j, "enableBicubicGlareFiltering", o.pEnableBicubicGlareFilter);
   Settings::deserialize(j, "fixedSunDirection", o.pFixedSunDirection);
   Settings::deserialize(j, "eclipseShadowMaps", o.mEclipseShadowMaps);
@@ -267,6 +268,7 @@ void to_json(nlohmann::json& j, Settings::Graphics const& o) {
   Settings::serialize(j, "glareIntensity", o.pGlareIntensity);
   Settings::serialize(j, "glareRadius", o.pGlareQuality);
   Settings::serialize(j, "glareMode", o.pGlareMode);
+  Settings::serialize(j, "toneMappingMode", o.pToneMappingMode);
   Settings::serialize(j, "enableBicubicGlareFiltering", o.pEnableBicubicGlareFilter);
   Settings::serialize(j, "fixedSunDirection", o.pFixedSunDirection);
   Settings::serialize(j, "eclipseShadowMaps", o.mEclipseShadowMaps);

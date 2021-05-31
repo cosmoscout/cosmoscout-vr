@@ -121,6 +121,11 @@ GraphicsEngine::GraphicsEngine(std::shared_ptr<core::Settings> settings)
   mSettings->mGraphics.pGlareMode.connectAndTouch(
       [this](graphics::HDRBuffer::GlareMode mode) { mHDRBuffer->setGlareMode(mode); });
 
+  mSettings->mGraphics.pToneMappingMode.connectAndTouch(
+      [this](graphics::ToneMappingNode::ToneMappingMode mode) {
+        mToneMappingNode->setToneMappingMode(mode);
+      });
+
   mSettings->mGraphics.pEnableBicubicGlareFilter.connectAndTouch(
       [this](bool enable) { mToneMappingNode->setEnableBicubicGlareFilter(enable); });
 

@@ -10,6 +10,7 @@
 #include "cs_core_export.hpp"
 
 #include "../cs-graphics/HDRBuffer.hpp"
+#include "../cs-graphics/ToneMappingNode.hpp"
 #include "../cs-utils/DefaultProperty.hpp"
 #include "../cs-utils/utils.hpp"
 
@@ -492,6 +493,10 @@ class CS_CORE_EXPORT Settings {
     /// Specifies how the glare is computed.
     utils::DefaultProperty<graphics::HDRBuffer::GlareMode> pGlareMode{
         graphics::HDRBuffer::GlareMode::eSymmetricGauss};
+
+    /// Specifies how the tone mapping is computed.
+    utils::DefaultProperty<graphics::ToneMappingNode::ToneMappingMode> pToneMappingMode{
+        graphics::ToneMappingNode::ToneMappingMode::eFilmic};
 
     /// This makes illumination calculations assume a fixed sun position in the current SPICE frame.
     /// Using the default value glm::dvec3(0.0) disables this feature.
