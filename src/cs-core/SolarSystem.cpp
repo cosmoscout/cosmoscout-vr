@@ -89,7 +89,7 @@ double SolarSystem::getSunLuminance() const {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::vector<std::shared_ptr<graphics::EclipseShadowMap>> SolarSystem::getEclipseShadowMaps(
-    scene::CelestialObject const& object) const {
+    double time, scene::CelestialObject const& object) const {
 
   std::vector<std::shared_ptr<graphics::EclipseShadowMap>> result;
 
