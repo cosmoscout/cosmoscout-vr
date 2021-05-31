@@ -267,6 +267,10 @@
       "Moon": {
         "texture": "../share/resources/textures/moonShadow.hdr",
         "casterRadius": 1737100.0
+      },
+      "Mars": {
+        "texture": "../share/resources/textures/marsShadow.hdr",
+        "casterRadius": 3489000.0
       }
     }
   },
