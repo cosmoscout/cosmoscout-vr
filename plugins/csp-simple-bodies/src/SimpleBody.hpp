@@ -14,6 +14,7 @@
 #include <VistaOGLExt/VistaTexture.h>
 #include <VistaOGLExt/VistaVertexArrayObject.h>
 
+#include "../../../src/cs-core/EclipseShadowReceiver.hpp"
 #include "../../../src/cs-core/Settings.hpp"
 #include "../../../src/cs-scene/CelestialBody.hpp"
 #include "Plugin.hpp"
@@ -53,6 +54,9 @@ class SimpleBody : public cs::scene::CelestialBody, public IVistaOpenGLDraw {
   /// Interface implementation of CelestialBody.
   double getHeight(glm::dvec2 lngLat) const override;
 
+  /// Interface implementation of CelestialAnchor.
+  void update(double time, cs::scene::CelestialObserver const& observer) override;
+
   /// Interface implementation of IVistaOpenGLDraw.
   bool Do() override;
   bool GetBoundingBox(VistaBoundingBox& bb) override;
@@ -70,6 +74,8 @@ class SimpleBody : public cs::scene::CelestialBody, public IVistaOpenGLDraw {
   VistaVertexArrayObject        mSphereVAO;
   VistaBufferObject             mSphereVBO;
   VistaBufferObject             mSphereIBO;
+
+  cs::core::EclipseShadowReceiver mEclipseShadowReceiver;
 
   bool mShaderDirty              = true;
   int  mEnableLightingConnection = -1;

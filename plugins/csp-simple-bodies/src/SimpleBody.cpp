@@ -90,6 +90,8 @@ uniform float uAmbientBrightness;
 uniform float uSunIlluminance;
 uniform float uFarClip;
 
+ECLIPSE_SHADER_SNIPPET
+
 // inputs
 in vec2 vTexCoords;
 in vec3 vNormal;
@@ -121,7 +123,7 @@ void main()
     #ifdef ENABLE_LIGHTING
       vec3 normal = normalize(vNormal);
       float light = max(dot(normal, uSunDirection), 0.0);
-      oColor = mix(oColor*uAmbientBrightness, oColor, light);
+      oColor = mix(oColor*uAmbientBrightness, oColor*getEclipseShadow(vPosition), light);
     #endif
 
     gl_FragDepth = length(vPosition) / uFarClip;
@@ -133,7 +135,8 @@ void main()
 SimpleBody::SimpleBody(std::shared_ptr<cs::core::Settings> settings,
     std::shared_ptr<cs::core::SolarSystem> solarSystem, std::string const& anchorName)
     : mSettings(std::move(settings))
-    , mSolarSystem(std::move(solarSystem)) {
+    , mSolarSystem(std::move(solarSystem))
+    , mEclipseShadowReceiver(mSettings, mSolarSystem, this) {
 
   mSettings->initAnchor(*this, anchorName);
 
@@ -254,6 +257,14 @@ double SimpleBody::getHeight(glm::dvec2 /*lngLat*/) const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void SimpleBody::update(double time, cs::scene::CelestialObserver const& observer) {
+  CelestialBody::update(time, observer);
+
+  mEclipseShadowReceiver.update(time, observer);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 bool SimpleBody::Do() {
   if (!getIsInExistence() || !pVisible.get()) {
     return true;
@@ -275,8 +286,14 @@ bool SimpleBody::Do() {
       defines += "#define ENABLE_LIGHTING\n";
     }
 
-    mShader.InitVertexShaderFromString(defines + SPHERE_VERT);
-    mShader.InitFragmentShaderFromString(defines + SPHERE_FRAG);
+    std::string vert = defines + SPHERE_VERT;
+    std::string frag = defines + SPHERE_FRAG;
+
+    cs::utils::replaceString(
+        frag, "ECLIPSE_SHADER_SNIPPET", cs::core::EclipseShadowReceiver::getShaderSnippet());
+
+    mShader.InitVertexShaderFromString(vert);
+    mShader.InitFragmentShaderFromString(frag);
     mShader.Link();
 
     mUniforms.sunDirection      = mShader.GetUniformLocation("uSunDirection");
@@ -287,6 +304,8 @@ bool SimpleBody::Do() {
     mUniforms.surfaceTexture    = mShader.GetUniformLocation("uSurfaceTexture");
     mUniforms.radii             = mShader.GetUniformLocation("uRadii");
     mUniforms.farClip           = mShader.GetUniformLocation("uFarClip");
+
+    mEclipseShadowReceiver.init(&mShader, 1);
 
     mShaderDirty = false;
   }
@@ -339,11 +358,15 @@ bool SimpleBody::Do() {
 
   mTexture->Bind(GL_TEXTURE0);
 
+  mEclipseShadowReceiver.preRender();
+
   // Draw.
   mSphereVAO.Bind();
   glDrawElements(GL_TRIANGLE_STRIP, (GRID_RESOLUTION_X - 1) * (2 + 2 * GRID_RESOLUTION_Y),
       GL_UNSIGNED_INT, nullptr);
   mSphereVAO.Release();
+
+  mEclipseShadowReceiver.postRender();
 
   // Clean up.
   mTexture->Unbind(GL_TEXTURE0);
