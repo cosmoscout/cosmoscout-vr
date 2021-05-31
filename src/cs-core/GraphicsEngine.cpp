@@ -85,6 +85,8 @@ GraphicsEngine::GraphicsEngine(std::shared_ptr<core::Settings> settings)
       mEclipseShadowMaps.push_back(
           std::make_shared<graphics::EclipseShadowMap>(s.first, s.second.mCasterRadius,
               std::move(graphics::TextureLoader::loadFromFile(s.second.mTexture))));
+      mEclipseShadowMaps.back()->mTexture->SetWrapS(GL_CLAMP_TO_EDGE);
+      mEclipseShadowMaps.back()->mTexture->SetWrapT(GL_CLAMP_TO_EDGE);
     }
   }
 
