@@ -7,8 +7,6 @@
 #ifndef CS_GRAPHICS_ECLIPSE_SHADOW_MAP_HPP
 #define CS_GRAPHICS_ECLIPSE_SHADOW_MAP_HPP
 
-#include "cs_graphics_export.hpp"
-
 #include <VistaOGLExt/VistaTexture.h>
 
 #include <memory>
@@ -18,7 +16,7 @@ namespace cs::graphics {
 
 /// This struct stores information required for each eclipse shadow map. The caster radius
 /// includes the height of the atmosphere (if there is any).
-struct CS_GRAPHICS_EXPORT EclipseShadowMap {
+struct EclipseShadowMap {
   EclipseShadowMap(
       std::string const& casterAnchor, double casterRadius, std::unique_ptr<VistaTexture>&& texture)
       : mCasterAnchor(casterAnchor)

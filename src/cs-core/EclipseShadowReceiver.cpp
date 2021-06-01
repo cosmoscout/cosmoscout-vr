@@ -59,7 +59,7 @@ void EclipseShadowReceiver::preRender() const {
     std::array<int, MAX_BODIES> shadowMapBindings{};
 
     for (size_t i(0); i < mShadowMaps.size() && i < MAX_BODIES; ++i) {
-      shadowMapBindings[i] = i + mTextureOffset;
+      shadowMapBindings[i] = static_cast<int>(i + mTextureOffset);
       mShadowMaps[i]->mTexture->Bind(GL_TEXTURE0 + shadowMapBindings[i]);
     }
 
@@ -78,7 +78,7 @@ void EclipseShadowReceiver::preRender() const {
 
 void EclipseShadowReceiver::postRender() const {
   for (size_t i = 0; i < mShadowMaps.size(); ++i) {
-    mShadowMaps[i]->mTexture->Unbind(GL_TEXTURE0 + i + mTextureOffset);
+    mShadowMaps[i]->mTexture->Unbind(GL_TEXTURE0 + static_cast<int>(i + mTextureOffset));
   }
 }
 

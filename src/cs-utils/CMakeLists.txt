@@ -27,6 +27,7 @@ target_link_libraries(cs-utils
     GLEW::GLEW
     GLUT::GLUT
     OpenGL::GL
+    OpenGL::GLU
     OpenSG::base
     OpenSG::system
     Tiff::Tiff
