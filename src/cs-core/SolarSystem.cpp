@@ -8,6 +8,7 @@
 
 #include "SolarSystem.hpp"
 
+#include "../cs-graphics/EclipseShadowMap.hpp"
 #include "../cs-utils/FrameTimings.hpp"
 #include "../cs-utils/convert.hpp"
 #include "../cs-utils/utils.hpp"
@@ -94,8 +95,11 @@ std::vector<std::shared_ptr<graphics::EclipseShadowMap>> SolarSystem::getEclipse
   std::vector<std::shared_ptr<graphics::EclipseShadowMap>> result;
 
   for (auto const& shadowMap : mGraphicsEngine->getEclipseShadowMaps()) {
-    // TODO: Filtering
-    result.push_back(shadowMap);
+    // TODO: More sophisticated filtering
+    auto caster = mSettings->getAnchorCenter(shadowMap->mCasterAnchor);
+    if (caster != object.getCenterName()) {
+      result.push_back(shadowMap);
+    }
   }
 
   return result;
