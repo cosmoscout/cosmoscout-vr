@@ -580,18 +580,23 @@ const char* AtmosphereRenderer::cAtmosphereFrag1 = R"(
 
     // multiply the surface color with the extinction in light direction
     vec3 surfacePoint = vsIn.vRayOrigin + vRayDir * fOpaqueDepth;
-    vec2 sunStartEnd = IntersectAtmosphere(surfacePoint, uSunDir);
 
-    if (sunStartEnd.x < sunStartEnd.y && sunStartEnd.y > 0) {
-      vec3 sunExtinction = GetExtinction(surfacePoint, uSunDir, max(0, sunStartEnd.x), sunStartEnd.y);
+    // shade only surface points inside of the atmosphere
+    if (length(surfacePoint) < 1.0) {
       
-      #if USE_CLOUDMAP
-        // add cloud shadow to the surface color
-        float cloudShadow = 1.0 - GetCloudShadow(surfacePoint, uSunDir, max(0, sunStartEnd.x), sunStartEnd.y);
-        sunExtinction *= cloudShadow;
-      #endif
+      vec2 sunStartEnd = IntersectAtmosphere(surfacePoint, uSunDir);
 
-      oColor *= mix(sunExtinction, vec3(1), uAmbientBrightness);
+      if (sunStartEnd.x < sunStartEnd.y && sunStartEnd.y > 0) {
+        vec3 sunExtinction = GetExtinction(surfacePoint, uSunDir, max(0, sunStartEnd.x), sunStartEnd.y);
+        
+        #if USE_CLOUDMAP
+          // add cloud shadow to the surface color
+          float cloudShadow = 1.0 - GetCloudShadow(surfacePoint, uSunDir, max(0, sunStartEnd.x), sunStartEnd.y);
+          sunExtinction *= cloudShadow;
+        #endif
+
+        oColor *= mix(sunExtinction, vec3(1), uAmbientBrightness);
+      }
     }
 
     // vIntersections.x and vIntersections.y are the distances from the ray
