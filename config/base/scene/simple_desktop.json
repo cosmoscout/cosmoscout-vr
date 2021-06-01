@@ -390,7 +390,7 @@
   },
   "plugins": {
     "csp-timings": {},
-    "#csp-stars": {
+    "csp-stars": {
       "celestialGridTexture": "../share/resources/textures/celestial_grid.png",
       "starFiguresTexture": "../share/resources/textures/constellation_figures.png",
       "celestialGridColor": [
@@ -478,7 +478,7 @@
         }
       }
     },
-    "#csp-wms-overlays": {
+    "csp-wms-overlays": {
       "maxTextureSize": 1024,
       "preFetch": 1,
       "bodies": {
