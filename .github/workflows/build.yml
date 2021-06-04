@@ -82,8 +82,8 @@ jobs:
         uses: actions/cache@v1.1.0
         with:
           path: ~/.ccache
-          key: gcc-7_5_0-${{ github.sha }}
-          restore-keys: gcc-7_5_0
+          key: gcc-7_5_0-vestec-${{ github.sha }}
+          restore-keys: gcc-7_5_0-vestec
       - name: Download Dependencies
         run: |
           sudo apt-get update -q
@@ -151,8 +151,8 @@ jobs:
         uses: actions/cache@v1.1.0
         with:
           path: ~/.ccache
-          key: clang-${{ github.sha }}
-          restore-keys: clang-
+          key: clang-vestec-${{ github.sha }}
+          restore-keys: clang-vestec
       - name: Download Dependencies
         run: |
           sudo apt-get update -q
