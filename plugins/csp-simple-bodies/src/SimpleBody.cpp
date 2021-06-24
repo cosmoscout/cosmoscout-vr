@@ -31,7 +31,7 @@ const uint32_t GRID_RESOLUTION_Y = 100;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const char* SimpleBody::SPHERE_VERT = R"(
+const char* Hemisphere::SPHERE_VERT = R"(
 uniform vec3 uSunDirection;
 uniform vec3 uRadii;
 uniform mat4 uMatModelView;
@@ -46,7 +46,6 @@ out vec3 vNormal;
 out vec3 vPosition;
 out vec3 vCenter;
 out vec2 vLngLat;
-out float gl_ClipDistance[1];
 
 const float PI = 3.141592654;
 
@@ -68,7 +67,6 @@ void main()
     vLngLat.x = iGridPos.x * 2.0 * PI - PI;
     vLngLat.y = iGridPos.y * PI - PI/2;
     vPosition = toCartesian(vLngLat);
-gl_ClipDistance[0] = dot(vec4(vPosition, 1.0), vec4(1, 0, 0, 0));
     vNormal    = (uMatModelView * vec4(geodeticSurfaceNormal(vLngLat), 0.0)).xyz;
     vPosition   = (uMatModelView * vec4(vPosition, 1.0)).xyz;
     vCenter     = (uMatModelView * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
@@ -85,7 +83,7 @@ gl_ClipDistance[0] = dot(vec4(vPosition, 1.0), vec4(1, 0, 0, 0));
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const char* SimpleBody::SPHERE_FRAG = R"(
+const char* Hemisphere::SPHERE_FRAG = R"(
 uniform vec3 uSunDirection;
 uniform sampler2D uSurfaceTexture;
 uniform float uAmbientBrightness;
@@ -100,7 +98,7 @@ in vec3 vCenter;
 in vec2 vLngLat;
 
 // outputs
-layout(location = 0) out vec3 oColor;
+layout(location = 0) out vec4 oColor;
 
 const float M_PI = 3.141592653589793;
 
@@ -112,12 +110,13 @@ vec3 SRGBtoLINEAR(vec3 srgbIn)
     
 void main()
 {
-    oColor = texture(uSurfaceTexture, vTexCoords).rgb;
+    oColor = texture(uSurfaceTexture, vTexCoords);
+    vec3 color = oColor.rgb;
 
     #ifdef ENABLE_HDR
-      oColor = SRGBtoLINEAR(oColor) * uSunIlluminance / M_PI;
+      color = SRGBtoLINEAR(color.rgb) * uSunIlluminance / M_PI;
     #else
-      oColor = oColor * uSunIlluminance;
+      color = color.rgb * uSunIlluminance;
     #endif
 
     #ifdef ENABLE_LIGHTING
@@ -125,11 +124,12 @@ void main()
       float light = max(dot(normal, uSunDirection), 0.0);
       if (gl_FrontFacing) {
         light *= 0.3;
-        oColor = mix(oColor*uAmbientBrightness*0.5, oColor, light);
+        color = mix(color*uAmbientBrightness*0.5, color, light);
       } else {
-        oColor = mix(oColor*uAmbientBrightness, oColor, light);
+        color = mix(color*uAmbientBrightness, color, light);
       }
     #endif
+    oColor.rgb = color;
 
     gl_FragDepth = length(vPosition) / uFarClip;
 }
@@ -137,13 +137,12 @@ void main()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-SimpleBody::SimpleBody(std::shared_ptr<cs::core::Settings> settings,
-    std::shared_ptr<cs::core::SolarSystem> solarSystem, std::string const& anchorName)
-    : mSettings(std::move(settings))
+Hemisphere::Hemisphere(bool front, std::shared_ptr<cs::core::Settings> settings,
+    std::shared_ptr<cs::core::SolarSystem> solarSystem, SimpleBody const& parent)
+    : mParent(parent)
+    , mFront(front)
+    , mSettings(std::move(settings))
     , mSolarSystem(std::move(solarSystem)) {
-
-  mSettings->initAnchor(*this, anchorName);
-
   // For rendering the sphere, we create a 2D-grid which is warped into a sphere in the vertex
   // shader. The vertex positions are directly used as texture coordinates.
   std::vector<float>    vertices(GRID_RESOLUTION_X * GRID_RESOLUTION_Y * 2);
@@ -193,13 +192,22 @@ SimpleBody::SimpleBody(std::shared_ptr<cs::core::Settings> settings,
   // Add to scenegraph.
   VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
   mGLNode.reset(pSG->NewOpenGLNode(pSG->GetRoot(), this));
-  VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
-      mGLNode.get(), static_cast<int>(cs::utils::DrawOrder::ePlanets));
+  VistaOpenSGMaterialTools::SetSortKeyOnSubtree(mGLNode.get(),
+      static_cast<int>(cs::utils::DrawOrder::eTransparentItems) + (mFront ? 20 : 0));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-SimpleBody::~SimpleBody() {
+SimpleBody::SimpleBody(std::shared_ptr<cs::core::Settings> settings,
+    std::shared_ptr<cs::core::SolarSystem> solarSystem, std::string const& anchorName)
+    : mFrontHemisphere(true, settings, solarSystem, *this)
+    , mBackHemisphere(false, settings, solarSystem, *this) {
+  settings->initAnchor(*this, anchorName);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Hemisphere::~Hemisphere() {
   mSettings->mGraphics.pEnableLighting.disconnect(mEnableLightingConnection);
   mSettings->mGraphics.pEnableHDR.disconnect(mEnableHDRConnection);
 
@@ -209,17 +217,31 @@ SimpleBody::~SimpleBody() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void Hemisphere::configure(Plugin::Settings::SimpleBody const& settings) {
+  mTexture = cs::graphics::TextureLoader::loadFromFile(settings.mTexture);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void SimpleBody::configure(Plugin::Settings::SimpleBody const& settings) {
   if (mSimpleBodySettings.mTexture != settings.mTexture) {
-    mTexture = cs::graphics::TextureLoader::loadFromFile(settings.mTexture);
+    mFrontHemisphere.configure(settings);
+    mBackHemisphere.configure(settings);
   }
   mSimpleBodySettings = settings;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void SimpleBody::setSun(std::shared_ptr<const cs::scene::CelestialObject> const& sun) {
+void Hemisphere::setSun(std::shared_ptr<const cs::scene::CelestialObject> const& sun) {
   mSun = sun;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void SimpleBody::setSun(std::shared_ptr<const cs::scene::CelestialObject> const& sun) {
+  mFrontHemisphere.setSun(sun);
+  mBackHemisphere.setSun(sun);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -261,8 +283,8 @@ double SimpleBody::getHeight(glm::dvec2 /*lngLat*/) const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool SimpleBody::Do() {
-  if (!getIsInExistence() || !pVisible.get()) {
+bool Hemisphere::Do() {
+  if (!mParent.getIsInExistence() || !mParent.pVisible.get()) {
     return true;
   }
 
@@ -304,7 +326,7 @@ bool SimpleBody::Do() {
   float     sunIlluminance(1.F);
   float     ambientBrightness(mSettings->mGraphics.pAmbientBrightness.get());
 
-  if (getCenterName() == "Sun") {
+  if (mParent.getCenterName() == "Sun") {
     // If the SimpleBody is actually the sun, we have to calculate the lighting differently.
     if (mSettings->mGraphics.pEnableHDR.get()) {
       double sceneScale = 1.0 / mSolarSystem->getObserver().getAnchorScale();
@@ -312,8 +334,8 @@ bool SimpleBody::Do() {
       // To get the luminous exitance (in lux) of the Sun, we have to divide its luminous power (in
       // lumens) by its surface area.
       double luminousExitance =
-          mSolarSystem->pSunLuminousPower.get() /
-          (sceneScale * sceneScale * mRadii[0] * mRadii[0] * 4.0 * glm::pi<double>());
+          mSolarSystem->pSunLuminousPower.get() / (sceneScale * sceneScale * mParent.mRadii[0] *
+                                                      mParent.mRadii[0] * 4.0 * glm::pi<double>());
 
       // We consider the Sun to emit light equally in all directions. So we have to divide the
       // luminous exitance by PI to get actual luminance values.
@@ -328,10 +350,11 @@ bool SimpleBody::Do() {
   } else if (mSun) {
     // For all other bodies we can use the utility methods from the SolarSystem.
     if (mSettings->mGraphics.pEnableHDR.get()) {
-      sunIlluminance = static_cast<float>(mSolarSystem->getSunIlluminance(getWorldTransform()[3]));
+      sunIlluminance =
+          static_cast<float>(mSolarSystem->getSunIlluminance(mParent.getWorldTransform()[3]));
     }
 
-    sunDirection = mSolarSystem->getSunDirection(getWorldTransform()[3]);
+    sunDirection = mSolarSystem->getSunDirection(mParent.getWorldTransform()[3]);
   }
 
   mShader.SetUniform(mUniforms.sunDirection, sunDirection[0], sunDirection[1], sunDirection[2]);
@@ -343,17 +366,22 @@ bool SimpleBody::Do() {
   std::array<GLfloat, 16> glMatP{};
   glGetFloatv(GL_MODELVIEW_MATRIX, glMatMV.data());
   glGetFloatv(GL_PROJECTION_MATRIX, glMatP.data());
-  auto matMV = glm::make_mat4x4(glMatMV.data()) * glm::mat4(getWorldTransform());
+  auto matMV = glm::make_mat4x4(glMatMV.data()) * glm::mat4(mParent.getWorldTransform());
   glUniformMatrix4fv(mUniforms.modelViewMatrix, 1, GL_FALSE, glm::value_ptr(matMV));
   glUniformMatrix4fv(mUniforms.projectionMatrix, 1, GL_FALSE, glMatP.data());
 
   mShader.SetUniform(mUniforms.surfaceTexture, 0);
-  mShader.SetUniform(mUniforms.radii, static_cast<float>(mRadii[0]), static_cast<float>(mRadii[1]),
-      static_cast<float>(mRadii[2]));
+  mShader.SetUniform(mUniforms.radii, static_cast<float>(mParent.mRadii[0]),
+      static_cast<float>(mParent.mRadii[1]), static_cast<float>(mParent.mRadii[2]));
   mShader.SetUniform(mUniforms.farClip, cs::utils::getCurrentFarClipDistance());
 
   mTexture->Bind(GL_TEXTURE0);
-	glEnable(GL_CLIP_DISTANCE0);
+
+  glPushAttrib(GL_ENABLE_BIT);
+  glEnable(GL_CULL_FACE);
+  glCullFace(mFront ? GL_FRONT : GL_BACK);
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
   // Draw.
   mSphereVAO.Bind();
@@ -362,16 +390,16 @@ bool SimpleBody::Do() {
   mSphereVAO.Release();
 
   // Clean up.
-	glDisable(GL_CLIP_DISTANCE0);
   mTexture->Unbind(GL_TEXTURE0);
   mShader.Release();
+  glPopAttrib();
 
   return true;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool SimpleBody::GetBoundingBox(VistaBoundingBox& /*bb*/) {
+bool Hemisphere::GetBoundingBox(VistaBoundingBox& /*bb*/) {
   return false;
 }
 
