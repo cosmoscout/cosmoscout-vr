@@ -24,10 +24,9 @@ namespace csp::lodbodies {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 namespace {
-GLenum const TEXUNITNAMEFONT = GL_TEXTURE10;
-GLenum const TEXUNITNAMELUT  = GL_TEXTURE11;
-GLint const  TEXUNITFONT     = 10;
-GLint const  TEXUNITLUT      = 11;
+GLint const TEX_UNIT_FONT     = 10;
+GLint const TEX_UNIT_LUT      = 11;
+GLint const TEX_UNIT_ECLIPSES = 12;
 } // namespace
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -38,10 +37,12 @@ std::map<std::string, cs::graphics::ColorMap> PlanetShader::mColorMaps;
 
 PlanetShader::PlanetShader(std::shared_ptr<cs::core::Settings> settings,
     std::shared_ptr<Plugin::Settings>                          pluginSettings,
-    std::shared_ptr<cs::core::GuiManager> const&               pGuiManager)
+    std::shared_ptr<cs::core::GuiManager>                      pGuiManager,
+    std::shared_ptr<cs::core::EclipseShadowReceiver>           eclipseShadowReceiver)
     : mSettings(std::move(settings))
-    , mGuiManager(pGuiManager)
+    , mGuiManager(std::move(pGuiManager))
     , mPluginSettings(std::move(pluginSettings))
+    , mEclipseShadowReceiver(std::move(eclipseShadowReceiver))
     , mFontTexture(VistaOGLUtils::LoadTextureFromTga("../share/resources/textures/font.tga")) {
   // clang-format off
     pTextureIsRGB.connect(
@@ -86,7 +87,7 @@ PlanetShader::PlanetShader(std::shared_ptr<cs::core::Settings> settings,
 
       mColorMaps.insert(
           std::make_pair(name, cs::graphics::ColorMap(boost::filesystem::path(file))));
-      pGuiManager->getGui()->callJavascript(
+      mGuiManager->getGui()->callJavascript(
           "CosmoScout.gui.addDropdownValue", "lodBodies.setColormap", name, name, first);
       if (first) {
         first                             = false;
@@ -94,7 +95,7 @@ PlanetShader::PlanetShader(std::shared_ptr<cs::core::Settings> settings,
       }
     }
 
-    pGuiManager->getGui()->registerCallback("lodBodies.setColormap",
+    mGuiManager->getGui()->registerCallback("lodBodies.setColormap",
         "Make the planet shader use the colormap with the given name.",
         std::function([this](std::string&& name) { mPluginSettings->mTerrainColorMap = name; }));
   }
@@ -153,6 +154,8 @@ void PlanetShader::compile() {
       cs::utils::toString(mPluginSettings->mEnableLatLongGrid.get()));
   cs::utils::replaceString(mFragmentSource, "$MIX_COLORS",
       cs::utils::toString(mPluginSettings->mEnableColorMixing.get()));
+  cs::utils::replaceString(mFragmentSource, "$ECLIPSE_SHADER_SNIPPET",
+      cs::core::EclipseShadowReceiver::getShaderSnippet());
 
   cs::utils::replaceString(mVertexSource, "$LIGHTING_QUALITY",
       cs::utils::toString(mSettings->mGraphics.pLightingQuality.get()));
@@ -160,6 +163,8 @@ void PlanetShader::compile() {
       cs::utils::toString(static_cast<int>(mPluginSettings->mTerrainProjectionType.get())));
 
   TerrainShader::compile();
+
+  mEclipseShadowReceiver->init(&mShader, TEX_UNIT_ECLIPSES);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -169,10 +174,10 @@ void PlanetShader::bind() {
 
   GLint loc = -1;
   loc       = mShader.GetUniformLocation("heightTex");
-  mShader.SetUniform(loc, TEXUNITLUT);
+  mShader.SetUniform(loc, TEX_UNIT_LUT);
 
   loc = mShader.GetUniformLocation("fontTex");
-  mShader.SetUniform(loc, TEXUNITFONT);
+  mShader.SetUniform(loc, TEX_UNIT_FONT);
 
   loc = mShader.GetUniformLocation("heightMin");
   mShader.SetUniform(loc, mPluginSettings->mHeightRange.get().x * 1000);
@@ -195,12 +200,14 @@ void PlanetShader::bind() {
   loc = mShader.GetUniformLocation("uSunDirIlluminance");
   mShader.SetUniform(loc, mSunDirection.x, mSunDirection.y, mSunDirection.z, mSunIlluminance);
 
-  mFontTexture->Bind(TEXUNITNAMEFONT);
+  mFontTexture->Bind(GL_TEXTURE0 + TEX_UNIT_FONT);
 
   auto it(mColorMaps.find(mPluginSettings->mTerrainColorMap.get()));
   if (it != mColorMaps.end()) {
-    it->second.bind(TEXUNITNAMELUT);
+    it->second.bind(GL_TEXTURE0 + TEX_UNIT_LUT);
   }
+
+  mEclipseShadowReceiver->preRender();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -208,10 +215,12 @@ void PlanetShader::bind() {
 void PlanetShader::release() {
   auto it(mColorMaps.find(mPluginSettings->mTerrainColorMap.get()));
   if (it != mColorMaps.end()) {
-    it->second.unbind(TEXUNITNAMELUT);
+    it->second.unbind(GL_TEXTURE0 + TEX_UNIT_LUT);
   }
 
-  mFontTexture->Unbind(TEXUNITNAMEFONT);
+  mFontTexture->Unbind(GL_TEXTURE0 + TEX_UNIT_FONT);
+
+  mEclipseShadowReceiver->postRender();
 
   TerrainShader::release();
 }

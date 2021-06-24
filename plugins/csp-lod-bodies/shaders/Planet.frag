@@ -14,6 +14,10 @@ uniform sampler1D heightTex;
 uniform sampler2D fontTex;
 
 // ==========================================================================
+// include eclipse shadow computation code
+$ECLIPSE_SHADER_SNIPPET
+
+// ==========================================================================
 // include helper functions/declarations from VistaPlanet
 $VP_TERRAIN_SHADER_UNIFORMS
 $VP_TERRAIN_SHADER_FUNCTIONS
@@ -132,7 +136,7 @@ void main()
     directLight *= max(dot(surfaceNormal, sunDir), 0.0);
   #endif
 
-  fragColor = mix(fragColor*ambientLight, fragColor, directLight);
+  fragColor = mix(fragColor*ambientLight, fragColor*getEclipseShadow(fsIn.position), directLight);
 
   #if $SHOW_TILE_BORDER
     // color area by level
