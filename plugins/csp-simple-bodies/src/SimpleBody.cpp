@@ -128,6 +128,7 @@ void main()
       } else {
         color = mix(color*uAmbientBrightness, color, light);
       }
+      oColor.a = mix(oColor.a, 1, 1 - min(light + uAmbientBrightness, 1));
     #endif
     oColor.rgb = color;
 
