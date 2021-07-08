@@ -132,6 +132,9 @@ void main()
     oColor.rgb = color;
 
     gl_FragDepth = length(vPosition) / uFarClip;
+    if (gl_FrontFacing) {
+      oColor = vec4(0, 0, 0, 1);
+    }
 }
 )";
 
