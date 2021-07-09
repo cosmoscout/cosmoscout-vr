@@ -27,7 +27,8 @@ namespace csp::simplebodies {
 class Hemisphere : public IVistaOpenGLDraw {
  public:
   Hemisphere(bool front, std::shared_ptr<cs::core::Settings> settings,
-      std::shared_ptr<cs::core::SolarSystem> solarSystem, SimpleBody const& parent);
+      Plugin::Settings& pluginSettings, std::shared_ptr<cs::core::SolarSystem> solarSystem,
+      SimpleBody const& parent);
 
   Hemisphere(Hemisphere const& other) = delete;
   Hemisphere(Hemisphere&& other)      = default;
@@ -53,6 +54,7 @@ class Hemisphere : public IVistaOpenGLDraw {
   bool mFront;
 
   std::shared_ptr<cs::core::Settings>               mSettings;
+  Plugin::Settings&                                 mPluginSettings;
   std::shared_ptr<cs::core::SolarSystem>            mSolarSystem;
   std::shared_ptr<const cs::scene::CelestialObject> mSun;
 
@@ -87,7 +89,7 @@ class Hemisphere : public IVistaOpenGLDraw {
 /// in equirectangular projection.
 class SimpleBody : public cs::scene::CelestialBody {
  public:
-  SimpleBody(std::shared_ptr<cs::core::Settings> settings,
+  SimpleBody(std::shared_ptr<cs::core::Settings> settings, Plugin::Settings& pluginSettings,
       std::shared_ptr<cs::core::SolarSystem> solarSystem, std::string const& anchorName);
 
   SimpleBody(SimpleBody const& other) = delete;

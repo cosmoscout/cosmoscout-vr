@@ -128,20 +128,26 @@ void main()
       } else {
         color = mix(color*uAmbientBrightness, color, light);
       }
+      oColor.a = mix(oColor.a, 1, 1 - min(light + uAmbientBrightness, 1));
     #endif
     oColor.rgb = color;
 
     gl_FragDepth = length(vPosition) / uFarClip;
+    if (gl_FrontFacing) {
+      oColor = vec4(0, 0, 0, 1);
+    }
 }
 )";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Hemisphere::Hemisphere(bool front, std::shared_ptr<cs::core::Settings> settings,
-    std::shared_ptr<cs::core::SolarSystem> solarSystem, SimpleBody const& parent)
+    Plugin::Settings& pluginSettings, std::shared_ptr<cs::core::SolarSystem> solarSystem,
+    SimpleBody const& parent)
     : mParent(parent)
     , mFront(front)
     , mSettings(std::move(settings))
+    , mPluginSettings(pluginSettings)
     , mSolarSystem(std::move(solarSystem)) {
   // For rendering the sphere, we create a 2D-grid which is warped into a sphere in the vertex
   // shader. The vertex positions are directly used as texture coordinates.
@@ -192,16 +198,17 @@ Hemisphere::Hemisphere(bool front, std::shared_ptr<cs::core::Settings> settings,
   // Add to scenegraph.
   VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
   mGLNode.reset(pSG->NewOpenGLNode(pSG->GetRoot(), this));
-  VistaOpenSGMaterialTools::SetSortKeyOnSubtree(mGLNode.get(),
-      static_cast<int>(cs::utils::DrawOrder::eTransparentItems) + (mFront ? 20 : 0));
+  VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
+      mGLNode.get(), static_cast<int>(cs::utils::DrawOrder::eTransparentItems) + (mFront ? 20 : 0));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 SimpleBody::SimpleBody(std::shared_ptr<cs::core::Settings> settings,
-    std::shared_ptr<cs::core::SolarSystem> solarSystem, std::string const& anchorName)
-    : mFrontHemisphere(true, settings, solarSystem, *this)
-    , mBackHemisphere(false, settings, solarSystem, *this) {
+    Plugin::Settings& pluginSettings, std::shared_ptr<cs::core::SolarSystem> solarSystem,
+    std::string const& anchorName)
+    : mFrontHemisphere(true, settings, pluginSettings, solarSystem, *this)
+    , mBackHemisphere(false, settings, pluginSettings, solarSystem, *this) {
   settings->initAnchor(*this, anchorName);
 }
 
@@ -284,7 +291,7 @@ double SimpleBody::getHeight(glm::dvec2 /*lngLat*/) const {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool Hemisphere::Do() {
-  if (!mParent.getIsInExistence() || !mParent.pVisible.get()) {
+  if (!mParent.getIsInExistence() || !mParent.pVisible.get() || !mPluginSettings.mEnabled.get()) {
     return true;
   }
 
