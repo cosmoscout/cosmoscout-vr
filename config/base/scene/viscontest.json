@@ -391,13 +391,6 @@
         "path": "/vr_data/FlowFields/UofT/viscontest2021/ttk_pathlines/pathlines.vtk"
       }
     },
-    "csp-vestec": {
-      "vestec-topo-dir": "../share/vestec/data/fire.cdb",
-      "vestec-fire-dir": "../share/vestec/data/2D-fire",
-      "vestec-diseases-dir": "../share/vestec/data/diseases",
-      "vestec-server": "http://172.22.27.24/",
-      "vestec-download-dir": "../share/vestec/download"
-    },
     "csp-stars": {
       "celestialGridTexture": "../share/resources/textures/celestial_grid.png",
       "starFiguresTexture": "../share/resources/textures/constellation_figures.png",
@@ -417,217 +410,16 @@
       "hipparcosCatalog": "../share/download/stars/hip_main.dat",
       "tycho2Catalog": "../share/download/stars/tyc2_main.dat"
     },
-
-    "csp-measurement-tools": {},
     "csp-simple-bodies": {
       "bodies": {
         "Sun": {
           "texture": "../share/resources/textures/sun.jpg"
         },
-        "Mercury": {
-          "texture": "../share/resources/textures/mercury.jpg"
-        },
-        "Venus": {
-          "texture": "../share/resources/textures/venus.jpg"
-        },
         "Earth": {
-          "texture": "../share/resources/textures/earth.jpg"
-        },
-        "Moon": {
-          "texture": "../share/resources/textures/moon.jpg"
-        },
-        "Mars": {
-          "texture": "../share/resources/textures/mars.jpg"
-        },
-        "Jupiter": {
-          "texture": "../share/resources/textures/jupiter.jpg"
-        },
-        "Saturn": {
-          "texture": "../share/resources/textures/saturn.jpg"
-        },
-        "Uranus": {
-          "texture": "../share/resources/textures/uranus.jpg"
-        },
-        "Neptune": {
-          "texture": "../share/resources/textures/neptune.jpg"
+          "texture": "../share/resources/textures/gray_earth_20_235.jpg"
         }
       }
     },
-    "csp-anchor-labels": {
-      "enabled": true,
-      "enableDepthOverlap": true,
-      "ignoreOverlapThreshold": 0.1,
-      "labelScale": 1.2,
-      "depthScale": 1.0,
-      "labelOffset": 0.2
-    },
-    "csp-trajectories": {
-      "trajectories": {
-        "Sun": {
-          "color": [
-            1,
-            1,
-            1
-          ],
-          "drawFlare": true
-        },
-        "Mercury": {
-          "color": [
-            0.7,
-            0.6,
-            0.3
-          ],
-          "trail": {
-            "length": 87.9,
-            "samples": 1000,
-            "parent": "Barycenter"
-          },
-          "drawDot": true
-        },
-        "Venus": {
-          "color": [
-            0.8,
-            0.8,
-            0.6
-          ],
-          "trail": {
-            "length": 224.5,
-            "samples": 1000,
-            "parent": "Barycenter"
-          },
-          "drawDot": true
-        },
-        "Earth": {
-          "color": [
-            0.5,
-            1.0,
-            0.4
-          ],
-          "trail": {
-            "length": 365.0,
-            "samples": 5000,
-            "parent": "Barycenter"
-          },
-          "drawDot": true
-        },
-        "Moon": {
-          "color": [
-            0.8,
-            0.8,
-            0.8
-          ],
-          "trail": {
-            "length": 28.0,
-            "samples": 1000,
-            "parent": "EarthJ2000"
-          },
-          "drawDot": true
-        },
-        "Mars": {
-          "color": [
-            1.0,
-            0.4,
-            0.3
-          ],
-          "trail": {
-            "length": 686.0,
-            "samples": 5000,
-            "parent": "Barycenter"
-          },
-          "drawDot": true
-        },
-        "Jupiter": {
-          "color": [
-            1.0,
-            0.7,
-            0.5
-          ],
-          "trail": {
-            "length": 4330,
-            "samples": 1000,
-            "parent": "Barycenter"
-          },
-          "drawDot": true
-        },
-        "Saturn": {
-          "color": [
-            1.0,
-            0.9,
-            0.3
-          ],
-          "trail": {
-            "length": 10749,
-            "samples": 1000,
-            "parent": "Barycenter"
-          },
-          "drawDot": true
-        },
-        "Uranus": {
-          "color": [
-            0.5,
-            0.8,
-            1.0
-          ],
-          "trail": {
-            "length": 17885,
-            "samples": 1000,
-            "parent": "Barycenter"
-          },
-          "drawDot": true
-        },
-        "Neptune": {
-          "color": [
-            0.2,
-            0.2,
-            0.5
-          ],
-          "trail": {
-            "length": 17885,
-            "samples": 1000,
-            "parent": "Barycenter"
-          },
-          "drawDot": true
-        }
-      }
-    },
-    "csp-fly-to-locations": {},
-    "csp-minimap": {
-      "defaultMap": {
-        "projection": "equirectangular",
-        "type": "wms",
-        "url": "https://geoservice.dlr.de/eoc/basemap/wms?",
-        "config": {
-          "attribution": "&copy; DLR",
-          "layers": "ne:ne_graticules",
-          "BGCOLOR": "0x000000"
-        }
-      },
-      "maps": {
-        "Earth": {
-          "projection": "mercator",
-          "type": "wmts",
-          "url": "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-          "config": {
-            "attribution": "&copy; OpenStreetMap contributors"
-          }
-        },
-        "Moon": {
-          "projection": "mercator",
-          "type": "wmts",
-          "url": "https://cartocdn-gusc.global.ssl.fastly.net/opmbuilder/api/v1/map/named/opm-moon-basemap-v0-1/all/{z}/{x}/{y}.png",
-          "config": {
-            "attribution": "&copy; OpenPlanetary"
-          }
-        },
-        "Mars": {
-          "projection": "mercator",
-          "type": "wmts",
-          "url": "https://cartocdn-gusc.global.ssl.fastly.net/opmbuilder/api/v1/map/named/opm-mars-basemap-v0-2/all/{z}/{x}/{y}.png",
-          "config": {
-            "attribution": "&copy; OpenPlanetary"
-          }
-        }
-      }
-    }
+    "csp-fly-to-locations": {}
   }
 }
