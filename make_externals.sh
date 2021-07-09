@@ -82,67 +82,20 @@ cmake -E tar xzf ../tbb2019_20190320oss_lin.tgz
 cmake -E copy_directory "$BUILD_DIR/tbb/extracted/tbb2019_20190320oss/include" "$INSTALL_DIR/include"
 cmake -E copy_directory "$BUILD_DIR/tbb/extracted/tbb2019_20190320oss/lib"   	 "$INSTALL_DIR/lib"
 
-# ispc -----------------------------------------------------------------------------------------
+# Ospray dependencies-----------------------------------------------------------------------------------------
 
 echo ""
-echo "Downloading ispc..."
+echo "Building and installing ospray dependencies..."
 echo ""
 
-cmake -E make_directory "$BUILD_DIR/ispc/extracted" && cd "$BUILD_DIR/ispc"
-wget -nc https://github.com/ispc/ispc/releases/download/v1.14.1/ispc-v1.14.1-linux.tar.gz
-
-cd "$BUILD_DIR/ispc/extracted"
-cmake -E tar xzf ../ispc-v1.14.1-linux.tar.gz
-
-cmake -E copy "$BUILD_DIR/ispc/extracted/ispc-v1.14.1-linux/bin/ispc" "$INSTALL_DIR/bin"
-
-# rkcommon -----------------------------------------------------------------------------------------
-
-echo ""
-echo "Building and installing rkcommon..."
-echo ""
-
-cmake -E make_directory "$BUILD_DIR/rkcommon" && cd "$BUILD_DIR/rkcommon"
+cmake -E make_directory "$BUILD_DIR/ospray_dependencies" && cd "$BUILD_DIR/ospray_dependencies"
 cmake "${CMAKE_FLAGS[@]}" -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
-    -DINSTALL_DEPS=OFF -DBUILD_TESTING=OFF -DRKCOMMON_TBB_ROOT="$INSTALL_DIR" \
-	"$EXTERNALS_DIR/rkcommon"
-cmake --build . --config $BUILD_TYPE --target install --parallel "$(nproc)"
+  -DBUILD_JOBS="$(nproc)" -DINSTALL_IN_SEPARATE_DIRECTORIES=Off \
+  -DBUILD_EMBREE_FROM_SOURCE=Off -DBUILD_OIDN_FROM_SOURCE=Off \
+  -DBUILD_DEPENDENCIES_ONLY=On -DBUILD_OIDN=On \
+  "$EXTERNALS_DIR/ospray/scripts/superbuild"
+cmake --build . --config "$BUILD_TYPE" --parallel "$(nproc)"
 
-# embree -----------------------------------------------------------------------------------------
-
-echo ""
-echo "Building and installing embree..."
-echo ""
-
-cmake -E make_directory "$BUILD_DIR/embree" && cd "$BUILD_DIR/embree"
-cmake "${CMAKE_FLAGS[@]}" -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
-      -DEMBREE_TUTORIALS=OFF -DEMBREE_TBB_ROOT="$INSTALL_DIR" -DEMBREE_ISPC_EXECUTABLE="$INSTALL_DIR/bin/ispc" -DBUILD_TESTING=OFF \
-	"$EXTERNALS_DIR/embree"
-cmake --build . --config $BUILD_TYPE --target install --parallel "$(nproc)"
-
-# openvkl -----------------------------------------------------------------------------------------
-
-echo ""
-echo "Building and installing openvkl..."
-echo ""
-
-cmake -E make_directory "$BUILD_DIR/openvkl" && cd "$BUILD_DIR/openvkl"
-cmake "${CMAKE_FLAGS[@]}" -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
-      -DRKCOMMON_TBB_ROOT="$INSTALL_DIR" -DISPC_EXECUTABLE="$INSTALL_DIR/bin/ispc" -DBUILD_BENCHMARKS=OFF -DBUILD_EXAMPLES=OFF -DBUILD_TESTING=OFF \
-	"$EXTERNALS_DIR/openvkl"
-cmake --build . --config $BUILD_TYPE --target install --parallel "$(nproc)"
-
-# oidn -----------------------------------------------------------------------------------------
-
-echo ""
-echo "Building and installing oidn..."
-echo ""
-
-cmake -E make_directory "$BUILD_DIR/oidn" && cd "$BUILD_DIR/oidn"
-cmake "${CMAKE_FLAGS[@]}" -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
-      -DTBB_ROOT="$INSTALL_DIR" -DOIDN_APPS=Off \
-	"$EXTERNALS_DIR/oidn"
-cmake --build . --config $BUILD_TYPE --target install --parallel "$(nproc)"
 
 # Ospray -----------------------------------------------------------------------------------------
 
