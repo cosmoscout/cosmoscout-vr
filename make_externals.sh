@@ -92,7 +92,7 @@ cmake -E make_directory "$BUILD_DIR/ospray_dependencies" && cd "$BUILD_DIR/ospra
 cmake "${CMAKE_FLAGS[@]}" -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
   -DBUILD_JOBS="$(nproc)" -DINSTALL_IN_SEPARATE_DIRECTORIES=Off \
   -DBUILD_EMBREE_FROM_SOURCE=Off -DBUILD_OIDN_FROM_SOURCE=Off \
-  -DBUILD_DEPENDENCIES_ONLY=On -DBUILD_OIDN=On \
+  -DDOWNLOAD_ISPC=Off -DBUILD_DEPENDENCIES_ONLY=On -DBUILD_OIDN=On \
   "$EXTERNALS_DIR/ospray/scripts/superbuild"
 cmake --build . --config "$BUILD_TYPE" --parallel "$(nproc)"
 
