@@ -94,7 +94,7 @@ cmake "${CMAKE_FLAGS[@]}" -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX=
   -DBUILD_EMBREE_FROM_SOURCE=Off -DBUILD_OIDN_FROM_SOURCE=Off \
   -DDOWNLOAD_ISPC=Off -DBUILD_DEPENDENCIES_ONLY=On -DBUILD_OIDN=On \
   "$EXTERNALS_DIR/ospray/scripts/superbuild"
-cmake --build . --config "$BUILD_TYPE" --parallel "$(nproc)"
+cmake --build . --parallel "$(nproc)"
 
 
 # Ospray -----------------------------------------------------------------------------------------
@@ -109,7 +109,7 @@ cmake "${CMAKE_FLAGS[@]}" -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX=
 	-DOSPRAY_ENABLE_APPS=Off -DOSPRAY_MODULE_DENOISER=On -DOSPRAY_INSTALL_DEPENDENCIES=Off \
 	-DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=On \
 	"$EXTERNALS_DIR/ospray"
-cmake --build . --config $BUILD_TYPE --target install --parallel "$(nproc)"
+cmake --build . --target install --parallel "$(nproc)"
 
 # Zipper ---------------------------------------------------------------------------------------------
 
@@ -185,6 +185,7 @@ cmake -E tar xfvj $EXTERNALS_DIR/../VTK-Patch.zip
 
 cmake -E make_directory $BUILD_DIR/vtk && cd $BUILD_DIR/vtk
 cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \
+      -DCMAKE_BUILD_TYPE="$BUILD_TYPE" \
       -DVTK_BUILD_TESTING=OFF -DVTK_BUILD_EXAMPLES=OFF \
 			-DVTK_GROUP_ENABLE_Imaging=DONT_WANT \
 			-DVTK_GROUP_ENABLE_MPI=DONT_WANT \
@@ -204,7 +205,7 @@ cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \
 			-DVTK_MODULE_ENABLE_VTK_IOWeb=YES \
 			-DVTK_MODULE_ENABLE_VTK_IONetCDF=YES \
 			$EXTERNALS_DIR/vtk
-cmake --build . --config $BUILD_TYPE --target install --parallel 8
+cmake --build . --target install --parallel 8
 
 # TTK -----------------------------------------------------------------------------------------
 
@@ -222,6 +223,7 @@ DEPENDENCIES=" \
 
 cmake -E make_directory $BUILD_DIR/ttk && cd $BUILD_DIR/ttk
 cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \
+      -DCMAKE_BUILD_TYPE="$BUILD_TYPE" \
       -DTTK_BUILD_PARAVIEW_PLUGINS=Off -DTTK_BUILD_STANDALONE_APPS=Off -DBUILD_TESTING=off \
 			-DTTK_ENABLE_GRAPHVIZ=Off -DTTK_ENABLE_EIGEN=Off -DTTK_ENABLE_EMBREE=Off -DTTK_WHITELIST_MODE=On \
 			$REQUIRED $DEPENDENCIES \
@@ -313,7 +315,7 @@ cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \
 			-DVTK_MODULE_ENABLE_ttkArrayPreconditioning=DONT_WANT \
 			-DVTK_MODULE_ENABLE_ttkArrayEditor=DONT_WANT \
       $EXTERNALS_DIR/ttk
-cmake --build . --config $BUILD_TYPE --target install --parallel 8
+cmake --build . --target install --parallel 8
 
 # glew ---------------------------------------------------------------------------------------------
 
