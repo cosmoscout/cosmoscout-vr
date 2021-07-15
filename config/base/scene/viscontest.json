@@ -276,22 +276,6 @@
         "2049-12-31 00:00:00.000"
       ]
     },
-    "Mercury": {
-      "center": "Mercury",
-      "frame": "IAU_Mercury",
-      "existence": [
-        "1950-01-02 00:00:00.000",
-        "2049-12-31 00:00:00.000"
-      ]
-    },
-    "Venus": {
-      "center": "Venus",
-      "frame": "IAU_Venus",
-      "existence": [
-        "1950-01-02 00:00:00.000",
-        "2049-12-31 00:00:00.000"
-      ]
-    },
     "Earth": {
       "center": "Earth",
       "frame": "IAU_Earth",
@@ -307,75 +291,11 @@
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
       ]
-    },
-    "Moon": {
-      "center": "Moon",
-      "frame": "IAU_Moon",
-      "existence": [
-        "1950-01-02 00:00:00.000",
-        "2049-12-31 00:00:00.000"
-      ]
-    },
-    "Mars": {
-      "center": "Mars",
-      "frame": "IAU_Mars",
-      "existence": [
-        "1950-01-02 00:00:00.000",
-        "2049-12-31 00:00:00.000"
-      ]
-    },
-    "Jupiter": {
-      "center": "Jupiter",
-      "frame": "IAU_Jupiter",
-      "existence": [
-        "1950-01-02 00:00:00.000",
-        "2049-12-31 00:00:00.000"
-      ]
-    },
-    "Saturn": {
-      "center": "Saturn",
-      "frame": "IAU_Saturn",
-      "existence": [
-        "1950-01-02 00:00:00.000",
-        "2049-12-31 00:00:00.000"
-      ]
-    },
-    "Uranus": {
-      "center": "Uranus",
-      "frame": "IAU_Uranus",
-      "existence": [
-        "1950-01-02 00:00:00.000",
-        "2049-12-31 00:00:00.000"
-      ]
-    },
-    "Neptune": {
-      "center": "Neptune",
-      "frame": "IAU_Neptune",
-      "existence": [
-        "1950-01-02 00:00:00.000",
-        "2049-12-31 00:00:00.000"
-      ]
-    },
-    "Ceres": {
-      "center": "Ceres",
-      "frame": "IAU_Ceres",
-      "existence": [
-        "1950-01-02 00:00:00.000",
-        "2049-12-31 00:00:00.000"
-      ]
-    },
-    "Vesta": {
-      "center": "Vesta",
-      "frame": "IAU_Vesta",
-      "existence": [
-        "1950-01-02 00:00:00.000",
-        "2049-12-31 00:00:00.000"
-      ]
     }
   },
   "plugins": {
     "csp-volume-rendering": {
-      "volumeDataPath": "/vr_data/FlowFields/UofT/viscontest2021/preprocessed",
+      "volumeDataPath": "/localdata1/viscontest-2021-data/grid",
       "volumeDataPattern": "grid_l([0-9]+)_t([0-9]+).vtk",
       "volumeDataType": "vtk",
       "volumeStructure": "structuredSpherical",
@@ -385,11 +305,12 @@
       "denoiseDepth": false,
       "samplingRate": 1,
       "resolution": 512,
-      "depthMode": "multiThreshold",
+      "depthMode": "none",
       "activeScalar": "cell_temperature",
       "pathlines":{
-        "path": "/vr_data/FlowFields/UofT/viscontest2021/ttk_pathlines/pathlines.vtk"
-      }
+        "path": "/localdata1/viscontest-2021-data/pathlines/pathlines.vtk"
+      },
+      "rotation": [-0.5, 0.5,0.5, 0.5]
     },
     "csp-stars": {
       "celestialGridTexture": "../share/resources/textures/celestial_grid.png",
@@ -416,7 +337,7 @@
           "texture": "../share/resources/textures/sun.jpg"
         },
         "Earth": {
-          "texture": "../share/resources/textures/gray_earth_20_235.jpg"
+          "texture": "../share/resources/textures/gray_earth_20_235.png"
         }
       }
     },
