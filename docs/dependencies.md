@@ -49,6 +49,7 @@ A text document containing [all individual license texts](../LICENSE-3RD-PARTY.t
 | [Leaflet](https://leafletjs.com/index.html) | JavaScript library which is used by `csp-minimap` for the 2D-Map in the user interface. | [BSD 2-Clause](https://github.com/Leaflet/Leaflet/blob/master/LICENSE) |
 | [Material Icons](https://github.com/google/material-design-icons) | Icon set uses in the user interface. | [Apache License 2.0](https://github.com/google/material-design-icons/blob/master/LICENSE) |
 | [noUiSlider](https://refreshless.com/nouislider) | JavaScript library for advanced sliders. | [WTFPL](http://www.wtfpl.net/about/) |
+| [parcoords-es](https://github.com/BigFatDog/parcoords-es) | JavaScript library for rendering parallel coordinate diagrams. | [MIT](https://github.com/BigFatDog/parcoords-es/blob/master/LICENSE) |
 | [tf-editor](https://github.com/VolumeRC/tf-editor) | Used for transfer function editors in the UI. | [Apache License 2.0](https://github.com/VolumeRC/tf-editor/blob/master/LICENSE.txt) |
 | [Ubuntu Font](https://design.ubuntu.com/font) | This font is used in the user interface of CosmoScout VR. | [Ubuntu font licence](https://www.ubuntu.com/legal/terms-and-policies/font-licence) |
 | [vis-timeline](https://github.com/visjs/vis-timeline) | This is used for the timeline. | [Apache License 2.0](https://github.com/visjs/vis-timeline/blob/master/LICENSE-APACHE-2.0) or [MIT](https://github.com/visjs/vis-timeline/blob/master/LICENSE-MIT)|
