@@ -1163,19 +1163,22 @@ void Application::registerGuiCallbacks() {
   // Sets the mode used to compute the tone mapping.
   mGuiManager->getGui()->registerCallback(
       "graphics.setToneMappingMode0", "Disables Tone Mapping.", std::function([this]() {
-        mSettings->mGraphics.pToneMappingMode = cs::graphics::ToneMappingNode::ToneMappingMode::eNone;
+        mSettings->mGraphics.pToneMappingMode =
+            cs::graphics::ToneMappingNode::ToneMappingMode::eNone;
       }));
-  mGuiManager->getGui()->registerCallback("graphics.setToneMappingMode1",
-      "Enables Filmic Tone Mapping.", std::function([this]() {
-        mSettings->mGraphics.pToneMappingMode = cs::graphics::ToneMappingNode::ToneMappingMode::eFilmic;
+  mGuiManager->getGui()->registerCallback(
+      "graphics.setToneMappingMode1", "Enables Filmic Tone Mapping.", std::function([this]() {
+        mSettings->mGraphics.pToneMappingMode =
+            cs::graphics::ToneMappingNode::ToneMappingMode::eFilmic;
       }));
-  mSettings->mGraphics.pToneMappingMode.connect([this](cs::graphics::ToneMappingNode::ToneMappingMode glareMode) {
-    if (glareMode == cs::graphics::ToneMappingNode::ToneMappingMode::eNone) {
-      mGuiManager->setRadioChecked("graphics.setToneMappingMode0");
-    } else if (glareMode == cs::graphics::ToneMappingNode::ToneMappingMode::eFilmic) {
-      mGuiManager->setRadioChecked("graphics.setToneMappingMode1");
-    }
-  });
+  mSettings->mGraphics.pToneMappingMode.connect(
+      [this](cs::graphics::ToneMappingNode::ToneMappingMode glareMode) {
+        if (glareMode == cs::graphics::ToneMappingNode::ToneMappingMode::eNone) {
+          mGuiManager->setRadioChecked("graphics.setToneMappingMode0");
+        } else if (glareMode == cs::graphics::ToneMappingNode::ToneMappingMode::eFilmic) {
+          mGuiManager->setRadioChecked("graphics.setToneMappingMode1");
+        }
+      });
 
   // Update the side bar field showing the average luminance of the scene.
   mGraphicsEngine->pAverageLuminance.connect([this](float value) {
