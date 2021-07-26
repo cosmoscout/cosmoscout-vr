@@ -1172,10 +1172,10 @@ void Application::registerGuiCallbacks() {
             cs::graphics::ToneMappingNode::ToneMappingMode::eFilmic;
       }));
   mSettings->mGraphics.pToneMappingMode.connect(
-      [this](cs::graphics::ToneMappingNode::ToneMappingMode glareMode) {
-        if (glareMode == cs::graphics::ToneMappingNode::ToneMappingMode::eNone) {
+      [this](cs::graphics::ToneMappingNode::ToneMappingMode toneMappingMode) {
+        if (toneMappingMode == cs::graphics::ToneMappingNode::ToneMappingMode::eNone) {
           mGuiManager->setRadioChecked("graphics.setToneMappingMode0");
-        } else if (glareMode == cs::graphics::ToneMappingNode::ToneMappingMode::eFilmic) {
+        } else if (toneMappingMode == cs::graphics::ToneMappingNode::ToneMappingMode::eFilmic) {
           mGuiManager->setRadioChecked("graphics.setToneMappingMode1");
         }
       });
