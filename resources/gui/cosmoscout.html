@@ -195,7 +195,7 @@
                 <div class="section-header collapsed" id="headingSettings-Graphics"
                   data-toggle="collapse" data-target="#collapseSettings-Graphics"
                   aria-expanded="false" aria-controls="collapseSettings-Graphics" type="button">
-                  <i class="material-icons">trending_up</i>
+                  <i class="material-icons">brightness_medium</i>
                   <span>Graphics</span>
                   <i class="material-icons caret-icon">keyboard_arrow_left</i>
                 </div>
@@ -240,12 +240,161 @@
                     </div>
                   </div>
 
+                  <hr class="mt-2">
+
+                  <div class="row">
+                    <div class="col-7 offset-5">
+                      <label class="checklabel">
+                        <input type="checkbox" data-callback="graphics.setEnableLighting" />
+                        <i class="material-icons"></i>
+                        <span>Enable Lighting</span>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-5">
+                      Quality
+                    </div>
+                    <div class="col-7">
+                      <div data-callback="graphics.setLightingQuality"></div>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-5">
+                      Ambient Light
+                    </div>
+                    <div class="col-7">
+                      <div data-callback="graphics.setAmbientLight">
+                      </div>
+                    </div>
+                  </div>
+
+                  <hr class="mt-2">
+
+                  <div class="row">
+                    <div class="col-7 offset-5">
+                      <label class="checklabel">
+                        <input type="checkbox" data-callback="graphics.setEnableShadows" />
+                        <i class="material-icons"></i>
+                        <span>Enable Shadows</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div class="row">
+                    <div class="col-5">
+                      Shadowmap Size
+                    </div>
+                    <div class="col-7">
+                      <div data-callback="graphics.setShadowmapResolution"></div>
+                    </div>
+                  </div>
+
+                  <div class="row">
+                    <div class="col-5">
+                      Cascades
+                    </div>
+                    <div class="col-7">
+                      <div data-callback="graphics.setShadowmapCascades"></div>
+                    </div>
+                  </div>
+
+                  <div class="row">
+                    <div class="col-5">
+                      Cascade Distribution
+                    </div>
+                    <div class="col-7">
+                      <div data-callback="graphics.setShadowmapSplitDistribution"></div>
+                    </div>
+                  </div>
+
+                  <div class="row">
+                    <div class="col-5">
+                      Bias
+                    </div>
+                    <div class="col-7">
+                      <div data-callback="graphics.setShadowmapBias"></div>
+                    </div>
+                  </div>
+
+                  <div class="row">
+                    <div class="col-5">
+                      Depth Range
+                    </div>
+                    <div class="col-7">
+                      <div data-callback="graphics.setShadowmapRange"></div>
+                    </div>
+                  </div>
+
+                  <div class="row">
+                    <div class="col-5">
+                      Sunspace Extension
+                    </div>
+                    <div class="col-7">
+                      <div data-callback="graphics.setShadowmapExtension"></div>
+                    </div>
+                  </div>
+
+                  <div class="row">
+                    <div class="col-7 offset-5">
+                      <label class="checklabel">
+                        <input type="checkbox" data-callback="graphics.setEnableCascadesDebug" />
+                        <i class="material-icons"></i>
+                        <span>Show Shadow LOD</span>
+                      </label>
+                    </div>
+                    <div class="col-7 offset-5">
+                      <label class="checklabel">
+                        <input type="checkbox" data-callback="graphics.setEnableShadowFreeze" />
+                        <i class="material-icons"></i>
+                        <span>Freeze Shadow LOD</span>
+                      </label>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+
+              <div class="settings-section">
+                <div class="section-header collapsed" id="headingSettings-Optics"
+                  data-toggle="collapse" data-target="#collapseSettings-Optics"
+                  aria-expanded="false" aria-controls="collapseSettings-Optics" type="button">
+                  <i class="material-icons">camera</i><span>Camera</span><i
+                    class="material-icons caret-icon">keyboard_arrow_left</i>
+                </div>
+                <div class="section-body collapse container-fluid" id="collapseSettings-Optics"
+                  aria-labelledby="headingSettings-Optics" data-parent="#settings-accordion">
+
+                  <div id="enableSensorSizeControl">
+                    <div class="row">
+                      <div class="col-5">
+                        Sensor Diagonal (mm)
+                      </div>
+                      <div class="col-7">
+                        <div data-callback="graphics.setSensorDiagonal">
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="row">
+                      <div class="col-5">
+                        Focal Length (mm)
+                      </div>
+                      <div class="col-7">
+                        <div data-callback="graphics.setFocalLength">
+                        </div>
+                      </div>
+                    </div>
+
+                    <hr class="mt-2">
+                  </div>
+
                   <div class="row">
                     <div class="col-7 offset-5">
                       <label class="checklabel">
                         <input type="checkbox" data-callback="graphics.setEnableHDR" checked />
                         <i class="material-icons"></i>
-                        <span>Enable HDR Rendering</span>
+                        <span>Enable HDR Mode</span>
                       </label>
                     </div>
                   </div>
@@ -352,6 +501,26 @@
 
                   <div class="row hdr-setting">
                     <div class="col-5">
+                      Tone Mapping Mode
+                    </div>
+                    <div class="col-7">
+                      <label class="radiolabel">
+                        <input name="tonemapping_mode" type="radio"
+                          data-callback="graphics.setToneMappingMode0" />
+                        <span>None</span>
+                      </label>
+                    </div>
+                    <div class="col-7 offset-5">
+                      <label class="radiolabel">
+                        <input name="tonemapping_mode" type="radio"
+                          data-callback="graphics.setToneMappingMode1" checked />
+                        <span>Filmic</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div class="row hdr-setting">
+                    <div class="col-5">
                       Average Luminance:
                     </div>
                     <div class="col-7" style="text-align: right">
@@ -371,160 +540,6 @@
                 </div>
               </div>
 
-              <div id="enableSensorSizeControl">
-                <div class="settings-section">
-                  <div class="section-header collapsed" id="headingSettings-Optics"
-                    data-toggle="collapse" data-target="#collapseSettings-Optics"
-                    aria-expanded="false" aria-controls="collapseSettings-Optics" type="button">
-                    <i class="material-icons">camera</i><span>Optics</span><i
-                      class="material-icons caret-icon">keyboard_arrow_left</i>
-                  </div>
-                  <div class="section-body collapse container-fluid" id="collapseSettings-Optics"
-                    aria-labelledby="headingSettings-Optics" data-parent="#settings-accordion">
-
-                    <div class="row">
-                      <div class="col-5">
-                        Sensor Diagonal (mm)
-                      </div>
-                      <div class="col-7">
-                        <div data-callback="graphics.setSensorDiagonal">
-                        </div>
-                      </div>
-                    </div>
-
-                    <div class="row">
-                      <div class="col-5">
-                        Focal Length (mm)
-                      </div>
-                      <div class="col-7">
-                        <div data-callback="graphics.setFocalLength">
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                </div>
-              </div>
-
-              <div class="settings-section">
-                <div class="section-header collapsed" id="headingSettings-LightShadow"
-                  data-toggle="collapse" data-target="#collapseSettings-LightShadow"
-                  aria-expanded="false" aria-controls="collapseSettings-LightShadow" type="button">
-                  <i class="material-icons">brightness_medium</i><span>Light & Shadow</span><i
-                    class="material-icons caret-icon">keyboard_arrow_left</i>
-                </div>
-                <div class="section-body collapse container-fluid" id="collapseSettings-LightShadow"
-                  aria-labelledby="headingSettings-LightShadow" data-parent="#settings-accordion">
-
-                  <div class="row">
-                    <div class="col-7 offset-5">
-                      <label class="checklabel">
-                        <input type="checkbox" data-callback="graphics.setEnableLighting" />
-                        <i class="material-icons"></i>
-                        <span>Enable Lighting</span>
-                      </label>
-                    </div>
-                  </div>
-                  <div class="row">
-                    <div class="col-5">
-                      Quality
-                    </div>
-                    <div class="col-7">
-                      <div data-callback="graphics.setLightingQuality"></div>
-                    </div>
-                  </div>
-                  <div class="row">
-                    <div class="col-5">
-                      Ambient Light
-                    </div>
-                    <div class="col-7">
-                      <div data-callback="graphics.setAmbientLight">
-                      </div>
-                    </div>
-                  </div>
-
-                  <div class="row">
-                    <div class="col-7 offset-5">
-                      <label class="checklabel">
-                        <input type="checkbox" data-callback="graphics.setEnableShadows" />
-                        <i class="material-icons"></i>
-                        <span>Enable Shadows</span>
-                      </label>
-                    </div>
-                  </div>
-
-                  <div class="row">
-                    <div class="col-5">
-                      Shadowmap Size
-                    </div>
-                    <div class="col-7">
-                      <div data-callback="graphics.setShadowmapResolution"></div>
-                    </div>
-                  </div>
-
-                  <div class="row">
-                    <div class="col-5">
-                      Cascades
-                    </div>
-                    <div class="col-7">
-                      <div data-callback="graphics.setShadowmapCascades"></div>
-                    </div>
-                  </div>
-
-                  <div class="row">
-                    <div class="col-5">
-                      Cascade Distribution
-                    </div>
-                    <div class="col-7">
-                      <div data-callback="graphics.setShadowmapSplitDistribution"></div>
-                    </div>
-                  </div>
-
-                  <div class="row">
-                    <div class="col-5">
-                      Bias
-                    </div>
-                    <div class="col-7">
-                      <div data-callback="graphics.setShadowmapBias"></div>
-                    </div>
-                  </div>
-
-                  <div class="row">
-                    <div class="col-5">
-                      Depth Range
-                    </div>
-                    <div class="col-7">
-                      <div data-callback="graphics.setShadowmapRange"></div>
-                    </div>
-                  </div>
-
-                  <div class="row">
-                    <div class="col-5">
-                      Sunspace Extension
-                    </div>
-                    <div class="col-7">
-                      <div data-callback="graphics.setShadowmapExtension"></div>
-                    </div>
-                  </div>
-
-                  <div class="row">
-                    <div class="col-7 offset-5">
-                      <label class="checklabel">
-                        <input type="checkbox" data-callback="graphics.setEnableCascadesDebug" />
-                        <i class="material-icons"></i>
-                        <span>Show Shadow LOD</span>
-                      </label>
-                    </div>
-                    <div class="col-7 offset-5">
-                      <label class="checklabel">
-                        <input type="checkbox" data-callback="graphics.setEnableShadowFreeze" />
-                        <i class="material-icons"></i>
-                        <span>Freeze Shadow LOD</span>
-                      </label>
-                    </div>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
         </div>
