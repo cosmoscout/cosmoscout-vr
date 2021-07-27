@@ -98,6 +98,18 @@ class Plugin : public cs::core::PluginBase {
     /// Path to the map cache folder, can be absolute or relative to the cosmoscout executable.
     cs::utils::DefaultProperty<std::string> mMapCache{"map-cache"};
 
+    /// A struct that represents a BRDF, given its source-code and material-properties.
+    struct BRDF {
+      std::string source;
+      std::map<std::string, float> properties;
+      bool operator==(BRDF const& other) const {
+        return source == other.source && properties == other.properties;
+      }
+      bool operator!=(BRDF const& other) const {
+        return !((*this) == other);
+      }
+    };
+
     /// A single data set containing either elevation or image data.
     struct Dataset {
       std::string  mURL;        ///< The URL of the mapserver including the "SERVICE=wms" parameter.
@@ -113,6 +125,12 @@ class Plugin : public cs::core::PluginBase {
       std::string mActiveImgDataset; ///< The name of the currently active image data set.
       std::map<std::string, Dataset> mDemDatasets; ///< The data sets containing elevation data.
       std::map<std::string, Dataset> mImgDatasets; ///< The data sets containing image data.
+      cs::utils::DefaultProperty<BRDF> mBrdfHdr{
+          BRDF{"../share/resources/shaders/brdfs/lambert.glsl", {{"$rho", 1.0f}}}};
+      cs::utils::DefaultProperty<BRDF> mBrdfLight{
+          BRDF{"../share/resources/shaders/brdfs/lambert_scaled.glsl", {{"$rho", 1.0f}}}};
+      cs::utils::DefaultProperty<float> mTextureAlbedoMin{0.0f};
+      cs::utils::DefaultProperty<float> mTextureAlbedoMax{1.0f};
     };
 
     std::map<std::string, Body> mBodies; ///< A list of planets with their anchor names.

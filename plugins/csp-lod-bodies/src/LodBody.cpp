@@ -23,19 +23,22 @@ namespace csp::lodbodies {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-LodBody::LodBody(std::shared_ptr<cs::core::Settings> const& settings,
-    std::shared_ptr<cs::core::GraphicsEngine>               graphicsEngine,
-    std::shared_ptr<cs::core::SolarSystem>                  solarSystem,
-    std::shared_ptr<Plugin::Settings> const&                pluginSettings,
-    std::shared_ptr<cs::core::GuiManager> const&            pGuiManager,
-    std::shared_ptr<GLResources> const& glResources, std::string const& anchorName)
+LodBody::LodBody(
+    std::shared_ptr<cs::core::Settings> const&      settings,
+    std::shared_ptr<cs::core::GraphicsEngine>       graphicsEngine,
+    std::shared_ptr<cs::core::SolarSystem>          solarSystem,
+    std::shared_ptr<Plugin::Settings> const&        pluginSettings,
+    std::shared_ptr<cs::core::GuiManager> const&    pGuiManager,
+    std::shared_ptr<GLResources> const&             glResources,
+    std::string const&                              anchorName
+    )
     : mSettings(settings)
     , mGraphicsEngine(std::move(graphicsEngine))
     , mSolarSystem(std::move(solarSystem))
     , mPluginSettings(pluginSettings)
     , mGuiManager(pGuiManager)
     , mPlanet(glResources)
-    , mShader(settings, pluginSettings, pGuiManager) {
+    , mShader(settings, pluginSettings, pGuiManager, anchorName) {
 
   mSettings->initAnchor(*this, anchorName);
 
@@ -160,10 +163,7 @@ void LodBody::update(double tTime, cs::scene::CelestialObserver const& oObs) {
     mPlanet.setWorldTransform(getWorldTransform());
 
     if (mSun) {
-      double sunIlluminance = 1.0;
-      if (mSettings->mGraphics.pEnableHDR.get()) {
-        sunIlluminance = mSolarSystem->getSunIlluminance(getWorldTransform()[3]);
-      }
+      double sunIlluminance = mSolarSystem->getSunIlluminance(getWorldTransform()[3]);
 
       auto sunDirection =
           glm::normalize(glm::inverse(getWorldTransform()) *

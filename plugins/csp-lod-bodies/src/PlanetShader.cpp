@@ -36,13 +36,18 @@ std::map<std::string, cs::graphics::ColorMap> PlanetShader::mColorMaps;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-PlanetShader::PlanetShader(std::shared_ptr<cs::core::Settings> settings,
-    std::shared_ptr<Plugin::Settings>                          pluginSettings,
-    std::shared_ptr<cs::core::GuiManager> const&               pGuiManager)
+PlanetShader::PlanetShader(
+    std::shared_ptr<cs::core::Settings>             settings,
+    std::shared_ptr<Plugin::Settings>               pluginSettings,
+    std::shared_ptr<cs::core::GuiManager> const&    pGuiManager,
+    std::string                                     anchorName
+    )
     : mSettings(std::move(settings))
     , mGuiManager(pGuiManager)
     , mPluginSettings(std::move(pluginSettings))
+    , mAnchorName(std::move(anchorName))
     , mFontTexture(VistaOGLUtils::LoadTextureFromTga("../share/resources/textures/font.tga")) {
+
   // clang-format off
     pTextureIsRGB.connect(
         [this](bool /*ignored*/) { mShaderDirty = true; });
@@ -153,6 +158,32 @@ void PlanetShader::compile() {
       cs::utils::toString(mPluginSettings->mEnableLatLongGrid.get()));
   cs::utils::replaceString(mFragmentSource, "$MIX_COLORS",
       cs::utils::toString(mPluginSettings->mEnableColorMixing.get()));
+
+  // Include the BRDF together with its parameters and arguments.
+  Plugin::Settings::BRDF const& brdfHdr = mPluginSettings->mBodies[mAnchorName].mBrdfHdr.get();
+  std::string brdfSource = cs::utils::filesystem::loadToString(brdfHdr.source);
+  // Iterate over all key-value-pairs of the BRDF properties and inject the values.
+  for (std::pair<std::string, float> const& kv : brdfHdr.properties) {
+    cs::utils::replaceString(brdfSource, kv.first, std::to_string(kv.second));
+  }
+  cs::utils::replaceString(brdfSource, "$BRDF", "BRDF_HDR");
+  cs::utils::replaceString(mFragmentSource, "$BRDF_HDR", brdfSource);
+
+
+  // Include the BRDF together with its parameters and arguments.
+  Plugin::Settings::BRDF const& brdfLight    = mPluginSettings->mBodies[mAnchorName].mBrdfLight.get();
+  std::string                   brdfSource1 = cs::utils::filesystem::loadToString(brdfLight.source);
+  // Iterate over all key-value-pairs of the BRDF properties and inject the values.
+  for (std::pair<std::string, float> const& kv : brdfLight.properties) {
+    cs::utils::replaceString(brdfSource1, kv.first, std::to_string(kv.second));
+  }
+  cs::utils::replaceString(brdfSource1, "$BRDF", "BRDF_Light");
+  cs::utils::replaceString(mFragmentSource, "$BRDF_Light", brdfSource1);
+
+  cs::utils::replaceString(mFragmentSource, "$TEXTURE_ALBEDO_MIN",
+      std::to_string(mPluginSettings->mBodies[mAnchorName].mTextureAlbedoMin.get()));
+  cs::utils::replaceString(mFragmentSource, "$TEXTURE_ALBEDO_MAX",
+      std::to_string(mPluginSettings->mBodies[mAnchorName].mTextureAlbedoMax.get()));
 
   cs::utils::replaceString(mVertexSource, "$LIGHTING_QUALITY",
       cs::utils::toString(mSettings->mGraphics.pLightingQuality.get()));

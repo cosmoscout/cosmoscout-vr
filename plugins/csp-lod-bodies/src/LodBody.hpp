@@ -38,12 +38,15 @@ namespace csp::lodbodies {
 // DocTODO There probably are a thousand more things to explain.
 class LodBody : public cs::scene::CelestialBody, public IVistaOpenGLDraw {
  public:
-  LodBody(std::shared_ptr<cs::core::Settings> const& settings,
-      std::shared_ptr<cs::core::GraphicsEngine>      graphicsEngine,
-      std::shared_ptr<cs::core::SolarSystem>         solarSystem,
-      std::shared_ptr<Plugin::Settings> const&       pluginSettings,
-      std::shared_ptr<cs::core::GuiManager> const&   pGuiManager,
-      std::shared_ptr<GLResources> const& glResources, std::string const& anchorName);
+  LodBody(
+      std::shared_ptr<cs::core::Settings> const&    settings,
+      std::shared_ptr<cs::core::GraphicsEngine>     graphicsEngine,
+      std::shared_ptr<cs::core::SolarSystem>        solarSystem,
+      std::shared_ptr<Plugin::Settings> const&      pluginSettings,
+      std::shared_ptr<cs::core::GuiManager> const&  pGuiManager,
+      std::shared_ptr<GLResources> const&           glResources,
+      std::string const&                            anchorName
+  );
 
   LodBody(LodBody const& other) = delete;
   LodBody(LodBody&& other)      = delete;
