@@ -283,11 +283,14 @@ static const char* sFragmentShader = R"(
       color = mix(color, glare/totalWeight, uGlareIntensity);
     }
 
-    color = Uncharted2Tonemap(uExposure*color);
-
-    vec3 whiteScale = vec3(1.0)/Uncharted2Tonemap(vec3(W));
-
-    oColor = linear_to_srgb(color*whiteScale);
+    // Filmic
+    #if TONE_MAPPING_MODE == 1
+      color = Uncharted2Tonemap(uExposure*color);
+      vec3 whiteScale = vec3(1.0)/Uncharted2Tonemap(vec3(W));
+      oColor = linear_to_srgb(color*whiteScale);
+    #else
+      oColor = linear_to_srgb(uExposure*color);
+    #endif
   }
 )";
 
@@ -420,6 +423,21 @@ bool ToneMappingNode::getEnableBicubicGlareFilter() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void ToneMappingNode::setToneMappingMode(ToneMappingNode::ToneMappingMode mode) {
+  if (mToneMappingMode != mode) {
+    mToneMappingMode = mode;
+    mShaderDirty     = true;
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+ToneMappingNode::ToneMappingMode ToneMappingNode::getToneMappingMode() const {
+  return mToneMappingMode;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 float ToneMappingNode::getLastAverageLuminance() const {
   if (mGlobalLuminanceData.mPixelCount > 0 && mGlobalLuminanceData.mTotalLuminance > 0) {
     return mGlobalLuminanceData.mTotalLuminance /
@@ -451,6 +469,9 @@ bool ToneMappingNode::ToneMappingNode::Do() {
     if (mEnableBicubicGlareFilter) {
       defines += "#define BICUBIC_GLARE_FILTER\n";
     }
+
+    defines +=
+        "#define TONE_MAPPING_MODE " + std::to_string(static_cast<int>(mToneMappingMode)) + "\n";
 
     mShader = std::make_unique<VistaGLSLShader>();
     mShader->InitVertexShaderFromString(defines + sVertexShader);
