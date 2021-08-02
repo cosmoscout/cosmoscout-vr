@@ -87,9 +87,8 @@ void from_json(nlohmann::json const& j, Plugin::Settings::Body& o) {
   cs::core::Settings::deserialize(j, "demDatasets", o.mDemDatasets);
   cs::core::Settings::deserialize(j, "imgDatasets", o.mImgDatasets);
   cs::core::Settings::deserialize(j, "brdfHdr", o.mBrdfHdr);
-  cs::core::Settings::deserialize(j, "brdfLight", o.mBrdfLight);
-  cs::core::Settings::deserialize(j, "textureAlbedoMin", o.mTextureAlbedoMin);
-  cs::core::Settings::deserialize(j, "textureAlbedoMax", o.mTextureAlbedoMax);
+  cs::core::Settings::deserialize(j, "brdfNonHdr", o.mBrdfNonHdr);
+  cs::core::Settings::deserialize(j, "avgImgReflectivity", o.mAvgImgReflectivity);
 }
 
 void to_json(nlohmann::json& j, Plugin::Settings::Body const& o) {
@@ -98,9 +97,8 @@ void to_json(nlohmann::json& j, Plugin::Settings::Body const& o) {
   cs::core::Settings::serialize(j, "demDatasets", o.mDemDatasets);
   cs::core::Settings::serialize(j, "imgDatasets", o.mImgDatasets);
   cs::core::Settings::serialize(j, "brdfHdr", o.mBrdfHdr);
-  cs::core::Settings::serialize(j, "brdfLight", o.mBrdfLight);
-  cs::core::Settings::serialize(j, "textureAlbedoMin", o.mTextureAlbedoMin);
-  cs::core::Settings::serialize(j, "textureAlbedoMax", o.mTextureAlbedoMax);
+  cs::core::Settings::serialize(j, "brdfNonHdr", o.mBrdfNonHdr);
+  cs::core::Settings::serialize(j, "avgImgReflectivity", o.mAvgImgReflectivity);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

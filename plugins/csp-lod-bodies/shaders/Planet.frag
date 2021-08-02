@@ -60,7 +60,7 @@ vec3 SRGBtoLINEAR(vec3 srgbIn)
 $BRDF_HDR
 
 // placeholder for the BRDF in light mode
-$BRDF_Light
+$BRDF_NON_HDR
 
 void main()
 {
@@ -115,6 +115,7 @@ void main()
     }
   #endif
 
+  // Needed for the BRDFs.
   vec3 N = normalize(surfaceNormal);
   vec3 L = normalize(fsIn.sunDir);
   vec3 V = normalize(-fsIn.position);
@@ -136,36 +137,37 @@ void main()
 
   #if ($ENABLE_HDR && $ENABLE_LIGHTING)
     if (cos_i < 0) {
-        fragColor *= 0;
+      luminance *= 0;
     }
     else {
       float f_r = BRDF_HDR(N, L, V);
       if (f_r < 0 || isnan(f_r) || isinf(f_r)) {
-        fragColor *= 0;
+        luminance *= 0;
       }
       else {
         luminance *= f_r * uSunDirIlluminance.w;
-        fragColor = fragColor / ($TEXTURE_ALBEDO_MAX - $TEXTURE_ALBEDO_MIN) + $TEXTURE_ALBEDO_MIN;
-        fragColor *= luminance;
       }
     }
+    fragColor /= $AVG_IMG_REFLECTANCE;
+    fragColor *= luminance;
   #elif $ENABLE_HDR
     luminance *= uSunDirIlluminance.w;
+    fragColor /= $AVG_IMG_REFLECTANCE;
     fragColor *= luminance;
   #elif $ENABLE_LIGHTING
     if (cos_i < 0) {
-        fragColor *= 0;
+      luminance *= 0;
     }
     else {
-      float f_r = BRDF_Light(N, L, V);
+      float f_r = BRDF_NON_HDR(N, L, V);
       if (f_r < 0 || isnan(f_r) || isinf(f_r)) {
-        fragColor *= 0;
+        luminance *= 0;
       }
       else {
         luminance *= f_r;
-        fragColor = mix(fragColor * ambient, fragColor, luminance);
       }
     }
+    fragColor = mix(fragColor * ambient, fragColor, luminance);
   #endif
 
 

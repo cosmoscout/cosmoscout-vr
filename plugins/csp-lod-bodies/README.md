@@ -368,3 +368,68 @@ You should also **remove** the `"Earth"` section from the `"csp-simple-bodies"` 
 
 **Now you can start CosmoScout VR!**
 There will be new configuration options in the sidebar where you can adjust the Visualization of Earth.
+
+## Customize Shading
+
+CosmoScout VR supports physically based rendering for each body separately.
+Simple Lambertien shading is applied per default. You can choose custom BRDFs and parameterize them.
+Here is an example configuration to set up a custom BRDF:
+
+```json
+"csp-lod-bodies": {
+  ...
+  "bodies": {
+    ...
+    "Earth": {
+      ...
+      "brdfHdr": {
+        "source": "../share/resources/shaders/brdfs/oren-nayar_scaled.glsl",
+        "properties": {
+          "$rho": 0.2,
+          "$sigma": 30.0
+        }
+      },
+      "brdfNonHdr": {
+        "source": "../share/resources/shaders/brdfs/oren-nayar_scaled.glsl",
+        "properties": {
+          "$rho": 1.0,
+          "$sigma": 20.0
+        }
+      },
+      "avgImgReflectivity": 0.25
+    }
+  }
+}
+```
+
+A BRDF is defined by GLSL-like source code and represents a material with specific properties.
+The properties are represented by key-variables and values.
+The settings `brdfHdr` and `brdfNonHdr` set up the BRDFs to be used in HDR rendering and when lighting is enabled.
+When HDR rendering and lighting is enabled, then the BRDF as defined by `brdfHdr` is used.
+The last setting `avgImgReflectivity` adjusts the shading by dividing the diffuse maps by the given value in HDR rendering.
+The division by the average reflectivity of the diffuse maps leads to a more accurate representation of luminance in the scene.
+The visual appearance of the scene is not affected by this setting,
+so feel free to skip it if you don't care about accurate luminance values.
+
+### Adding a custom BRDF
+
+There are some BRDFs already present that work well for most cases.
+If you want to add a new BRDF, just add another file to the current repertoire and use it.
+Let's look at the definition of the Lambertian BRDF:
+
+```
+// Lambertian reflectance to represent ideal diffuse surfaces.
+
+// rho: Reflectivity of the surface in range [0, 1].
+
+float $BRDF(vec3 N, vec3 L, vec3 V)
+{
+  return $rho / 3.14159265358979323846;
+}
+```
+
+The signature of the BRDF has to be `float $BRDF(vec3 N, vec3 L, vec3 V)`, where `N` is the surface normal,
+`L` is the direction of incident illumination and `V` is the direction of observation.
+The given vectors are normalized. Properties are injected via the dollar sign syntax.
+Besides the mentioned restrictions, the code shall be GLSL code.
+Please include a description for each parameter and a reference to where the BRDF is defined if possible.

@@ -36,12 +36,9 @@ std::map<std::string, cs::graphics::ColorMap> PlanetShader::mColorMaps;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-PlanetShader::PlanetShader(
-    std::shared_ptr<cs::core::Settings>             settings,
-    std::shared_ptr<Plugin::Settings>               pluginSettings,
-    std::shared_ptr<cs::core::GuiManager> const&    pGuiManager,
-    std::string                                     anchorName
-    )
+PlanetShader::PlanetShader(std::shared_ptr<cs::core::Settings> settings,
+    std::shared_ptr<Plugin::Settings>                          pluginSettings,
+    std::shared_ptr<cs::core::GuiManager> const& pGuiManager, std::string anchorName)
     : mSettings(std::move(settings))
     , mGuiManager(pGuiManager)
     , mPluginSettings(std::move(pluginSettings))
@@ -159,31 +156,30 @@ void PlanetShader::compile() {
   cs::utils::replaceString(mFragmentSource, "$MIX_COLORS",
       cs::utils::toString(mPluginSettings->mEnableColorMixing.get()));
 
-  // Include the BRDF together with its parameters and arguments.
+  // Include the BRDFs together with their parameters and arguments.
   Plugin::Settings::BRDF const& brdfHdr = mPluginSettings->mBodies[mAnchorName].mBrdfHdr.get();
-  std::string brdfSource = cs::utils::filesystem::loadToString(brdfHdr.source);
-  // Iterate over all key-value-pairs of the BRDF properties and inject the values.
+  Plugin::Settings::BRDF const& brdfNonHdr =
+      mPluginSettings->mBodies[mAnchorName].mBrdfNonHdr.get();
+
+  // Iterate over all key-value pairs of the properties and inject the values.
+  std::string brdfHdrSource = cs::utils::filesystem::loadToString(brdfHdr.source);
   for (std::pair<std::string, float> const& kv : brdfHdr.properties) {
-    cs::utils::replaceString(brdfSource, kv.first, std::to_string(kv.second));
+    cs::utils::replaceString(brdfHdrSource, kv.first, std::to_string(kv.second));
   }
-  cs::utils::replaceString(brdfSource, "$BRDF", "BRDF_HDR");
-  cs::utils::replaceString(mFragmentSource, "$BRDF_HDR", brdfSource);
-
-
-  // Include the BRDF together with its parameters and arguments.
-  Plugin::Settings::BRDF const& brdfLight    = mPluginSettings->mBodies[mAnchorName].mBrdfLight.get();
-  std::string                   brdfSource1 = cs::utils::filesystem::loadToString(brdfLight.source);
-  // Iterate over all key-value-pairs of the BRDF properties and inject the values.
-  for (std::pair<std::string, float> const& kv : brdfLight.properties) {
-    cs::utils::replaceString(brdfSource1, kv.first, std::to_string(kv.second));
+  std::string brdfNonHdrSource = cs::utils::filesystem::loadToString(brdfNonHdr.source);
+  for (std::pair<std::string, float> const& kv : brdfNonHdr.properties) {
+    cs::utils::replaceString(brdfNonHdrSource, kv.first, std::to_string(kv.second));
   }
-  cs::utils::replaceString(brdfSource1, "$BRDF", "BRDF_Light");
-  cs::utils::replaceString(mFragmentSource, "$BRDF_Light", brdfSource1);
 
-  cs::utils::replaceString(mFragmentSource, "$TEXTURE_ALBEDO_MIN",
-      std::to_string(mPluginSettings->mBodies[mAnchorName].mTextureAlbedoMin.get()));
-  cs::utils::replaceString(mFragmentSource, "$TEXTURE_ALBEDO_MAX",
-      std::to_string(mPluginSettings->mBodies[mAnchorName].mTextureAlbedoMax.get()));
+  // Inject correct identifiers so the fragment shader can find the functions;
+  // inject the functions in the fragment shader
+  cs::utils::replaceString(brdfHdrSource, "$BRDF", "BRDF_HDR");
+  cs::utils::replaceString(brdfNonHdrSource, "$BRDF", "BRDF_NON_HDR");
+  cs::utils::replaceString(mFragmentSource, "$BRDF_HDR", brdfHdrSource);
+  cs::utils::replaceString(mFragmentSource, "$BRDF_NON_HDR", brdfNonHdrSource);
+
+  cs::utils::replaceString(mFragmentSource, "$AVG_IMG_REFLECTANCE",
+      std::to_string(mPluginSettings->mBodies[mAnchorName].mAvgImgReflectivity.get()));
 
   cs::utils::replaceString(mVertexSource, "$LIGHTING_QUALITY",
       cs::utils::toString(mSettings->mGraphics.pLightingQuality.get()));
