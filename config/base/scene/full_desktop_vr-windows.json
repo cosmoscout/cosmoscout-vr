@@ -1,0 +1,1288 @@
+{
+  "startDate": "today",
+  "resetDate": "today",
+  "minDate": "1950-01-02 00:00:00.000",
+  "maxDate": "2049-12-31 00:00:00.000",
+  "observer": {
+    "center": "Earth",
+    "frame": "IAU_Earth",
+    "position": [
+      5915095.557596171,
+      10658059.249942748,
+      15601636.827477392
+    ],
+    "rotation": [
+      -0.27581807466282293,
+      0.1729750618085246,
+      0.05053096202800651,
+      0.9441666376006699
+    ]
+  },
+  "sceneScale": {
+    "minScale": 5,
+    "maxScale": 100000000000000000,
+    "closeVisualDistance": 5,
+    "farVisualDistance": 5,
+    "closeRealDistance": 1.7,
+    "farRealDistance": 1000000,
+    "lockWeight": 0.1,
+    "trackWeight": 0.0002,
+    "minObjectSize": 10000.0,
+    "nearClip": 0.2,
+    "minFarClip": 200.0,
+    "maxFarClip": 20000.0
+  },
+  "bookmarks": [
+    {
+      "icon": "mercury.png",
+      "location": {
+        "center": "Mercury",
+        "frame": "IAU_Mercury"
+      },
+      "name": "Mercury"
+    },
+    {
+      "icon": "venus.png",
+      "location": {
+        "center": "Venus",
+        "frame": "IAU_Venus"
+      },
+      "name": "Venus"
+    },
+    {
+      "icon": "earth.png",
+      "location": {
+        "center": "Earth",
+        "frame": "IAU_Earth"
+      },
+      "name": "Earth"
+    },
+    {
+      "icon": "moon.png",
+      "location": {
+        "center": "Moon",
+        "frame": "IAU_Moon"
+      },
+      "name": "Moon"
+    },
+    {
+      "icon": "mars.png",
+      "location": {
+        "center": "Mars",
+        "frame": "IAU_Mars"
+      },
+      "name": "Mars"
+    },
+    {
+      "icon": "phobos.png",
+      "location": {
+        "center": "Phobos",
+        "frame": "IAU_Phobos"
+      },
+      "name": "Phobos"
+    },
+    {
+      "icon": "ceres.png",
+      "location": {
+        "center": "Ceres",
+        "frame": "IAU_Ceres"
+      },
+      "name": "Ceres"
+    },
+    {
+      "icon": "vesta.png",
+      "location": {
+        "center": "Vesta",
+        "frame": "IAU_Vesta"
+      },
+      "name": "Vesta"
+    },
+    {
+      "icon": "jupiter.png",
+      "location": {
+        "center": "Jupiter",
+        "frame": "IAU_Jupiter"
+      },
+      "name": "Jupiter"
+    },
+    {
+      "icon": "saturn.png",
+      "location": {
+        "center": "Saturn",
+        "frame": "IAU_Saturn"
+      },
+      "name": "Saturn"
+    },
+    {
+      "icon": "uranus.png",
+      "location": {
+        "center": "Uranus",
+        "frame": "IAU_Uranus"
+      },
+      "name": "Uranus"
+    },
+    {
+      "icon": "neptune.png",
+      "location": {
+        "center": "Neptune",
+        "frame": "IAU_Neptune"
+      },
+      "name": "Neptune"
+    },
+    {
+      "location": {
+        "center": "Earth",
+        "frame": "IAU_Earth",
+        "position": [
+          650049.6197706065,
+          9169440.98335226,
+          8121638.922577351
+        ]
+      },
+      "name": "Europe"
+    },
+    {
+      "location": {
+        "center": "Mars",
+        "frame": "IAU_Mars",
+        "position": [
+          2447738.8308155183,
+          -342371.7680597744,
+          -2685067.930247649
+        ]
+      },
+      "name": "Gale Crater"
+    },
+    {
+      "location": {
+        "center": "Mars",
+        "frame": "IAU_Mars",
+        "position": [
+          -3307330.802331851,
+          1554571.0056051295,
+          -3226294.561073318
+        ]
+      },
+      "name": "Olympus Mons"
+    },
+    {
+      "location": {
+        "center": "Mars",
+        "frame": "IAU_Mars",
+        "position": [
+          -6428254.120880801,
+          -954592.0696965504,
+          1953664.233154953
+        ]
+      },
+      "name": "Valles Marineris"
+    },
+    {
+      "color": [
+        0.800000011920929,
+        0.800000011920929,
+        0.800000011920929
+      ],
+      "description": "Start of the Apollo 17 mission from the Kennedy Space Center.",
+      "location": {
+        "center": "Earth",
+        "frame": "IAU_Earth",
+        "position": [
+          -6717320.585750769,
+          3677613.991761727,
+          1137577.1784918148
+        ],
+        "rotation": [
+          0.15376949893337843,
+          0.63437440894638,
+          0.18263787000493972,
+          -0.7352329283375216
+        ]
+      },
+      "name": "Apollo 17 Start",
+      "time": {
+        "start": "1972-12-07 05:33:57"
+      }
+    },
+    {
+      "color": [
+        0.8999999761581421,
+        0.699999988079071,
+        0.30000001192092896
+      ],
+      "description": "Landing of the Rover for the Mars Science Laboratory.",
+      "location": {
+        "center": "Mars",
+        "frame": "IAU_Mars",
+        "position": [
+          2355817.1503860787,
+          -717233.1853627029,
+          -2744165.4025669894
+        ],
+        "rotation": [
+          0.29703477878551815,
+          0.7983366317584811,
+          -0.46250011374371464,
+          0.24601342925013817
+        ]
+      },
+      "name": "Curiosity Landing",
+      "time": {
+        "start": "2012-08-06 05:31:00"
+      }
+    },
+    {
+      "color": [
+        0.800000011920929,
+        0.800000011920929,
+        0.800000011920929
+      ],
+      "description": "Last human landing on the Moon.",
+      "icon": "",
+      "location": {
+        "center": "Moon",
+        "frame": "IAU_Moon",
+        "position": [
+          833553.8409651609,
+          599210.0993280013,
+          1399927.964039833
+        ],
+        "rotation": [
+          -0.1688494935160222,
+          0.2614429762241251,
+          0.046406053594260394,
+          0.9492017156075205
+        ]
+      },
+      "name": "Apollo 17 Landing Site",
+      "time": {
+        "start": "1972-12-11 19:54:57"
+      }
+    },
+    {
+      "color": [
+        0.800000011920929,
+        0.800000011920929,
+        0.800000011920929
+      ],
+      "description": "",
+      "icon": "",
+      "location": {
+        "center": "Moon",
+        "frame": "IAU_Moon",
+        "position": [
+          691421.5681436626,
+          20414.99770486333,
+          1592191.4475549883
+        ],
+        "rotation": [
+          -0.0036754157152485574,
+          0.20125349949186688,
+          0.0007495193578777105,
+          0.979532009932462
+        ]
+      },
+      "name": "Apollo 11 Landing Site",
+      "time": {
+        "start": "1969-07-12 16:17:40"
+      }
+    },
+    {
+      "color": [
+        0.800000011920929,
+        0.800000011920929,
+        0.800000011920929
+      ],
+      "description": "",
+      "icon": "",
+      "location": {
+        "center": "Moon",
+        "frame": "IAU_Moon",
+        "position": [
+          98755.2738393154,
+          764637.8842649149,
+          1555450.7128190233
+        ],
+        "rotation": [
+          -0.2192340055907312,
+          0.02427385590356416,
+          0.006596545449592402,
+          0.9753479975374673
+        ]
+      },
+      "name": "Apollo 15 Landing Site",
+      "time": {
+        "start": "1971-07-30 18:16:00"
+      }
+    },
+    {
+      "color": [
+        0.800000011920929,
+        0.800000011920929,
+        0.800000011920929
+      ],
+      "description": "",
+      "icon": "",
+      "location": {
+        "center": "Moon",
+        "frame": "IAU_Moon",
+        "position": [
+          458757.2954648504,
+          -271058.2531040889,
+          1654139.0834515367
+        ],
+        "rotation": [
+          0.07672037674087107,
+          0.1331632545013781,
+          -0.010492946076445638,
+          0.988064486521996
+        ]
+      },
+      "name": "Apollo 16 Landing Site",
+      "time": {
+        "start": "1972-04-20 21:24:00"
+      }
+    }
+  ],
+  "downloadData": [],
+  "spiceKernel": "../share/config/spice/vrdata.txt",
+  "graphics": {},
+  "anchors": {
+    "Barycenter": {
+      "center": "Solar System Barycenter",
+      "frame": "J2000",
+      "existence": [
+        "1950-01-02 00:00:00.000",
+        "2049-12-31 00:00:00.000"
+      ]
+    },
+    "Sun": {
+      "center": "Sun",
+      "frame": "IAU_Sun",
+      "existence": [
+        "1950-01-02 00:00:00.000",
+        "2049-12-31 00:00:00.000"
+      ]
+    },
+    "Mercury": {
+      "center": "Mercury",
+      "frame": "IAU_Mercury",
+      "existence": [
+        "1950-01-02 00:00:00.000",
+        "2049-12-31 00:00:00.000"
+      ]
+    },
+    "Venus": {
+      "center": "Venus",
+      "frame": "IAU_Venus",
+      "existence": [
+        "1950-01-02 00:00:00.000",
+        "2049-12-31 00:00:00.000"
+      ]
+    },
+    "Earth": {
+      "center": "Earth",
+      "frame": "IAU_Earth",
+      "existence": [
+        "1950-01-02 00:00:00.000",
+        "2049-12-31 00:00:00.000"
+      ]
+    },
+    "EarthJ2000": {
+      "center": "Earth",
+      "frame": "J2000",
+      "existence": [
+        "1950-01-02 00:00:00.000",
+        "2049-12-31 00:00:00.000"
+      ]
+    },
+    "Moon": {
+      "center": "Moon",
+      "frame": "IAU_Moon",
+      "existence": [
+        "1950-01-02 00:00:00.000",
+        "2049-12-31 00:00:00.000"
+      ]
+    },
+    "Mars": {
+      "center": "Mars",
+      "frame": "IAU_Mars",
+      "existence": [
+        "1950-01-02 00:00:00.000",
+        "2049-12-31 00:00:00.000"
+      ],
+      "radii": [
+        3395630,
+        3395630,
+        3395630
+      ]
+    },
+    "MarsJ2000": {
+      "center": "Mars",
+      "frame": "J2000",
+      "existence": [
+        "1950-01-02 00:00:00.000",
+        "2049-12-31 00:00:00.000"
+      ]
+    },
+    "Phobos": {
+      "center": "Phobos",
+      "frame": "IAU_Phobos",
+      "existence": [
+        "1950-01-02 00:00:00.000",
+        "2049-12-31 00:00:00.000"
+      ],
+      "radii": [
+        11100,
+        11100,
+        11100
+      ]
+    },
+    "Deimos": {
+      "center": "Deimos",
+      "frame": "IAU_Deimos",
+      "existence": [
+        "1950-01-02 00:00:00.000",
+        "2049-12-31 00:00:00.000"
+      ]
+    },
+    "Mars Express": {
+      "center": "MEX",
+      "frame": "J2000",
+      "existence": [
+        "2003-06-03 00:00:00.000",
+        "2021-01-01 00:00:00.000"
+      ],
+      "scale": 100,
+      "radii": [
+        1,
+        1,
+        1
+      ]
+    },
+    "Mars Reconnaissance Orbiter": {
+      "center": "MRO",
+      "frame": "IAU_Mars",
+      "existence": [
+        "2006-03-10 21:30:00.000",
+        "2018-03-12 14:28:00.000"
+      ],
+      "scale": 100,
+      "radii": [
+        1,
+        1,
+        1
+      ]
+    },
+    "Curiosity": {
+      "center": "MSL",
+      "frame": "MSL_ROVER",
+      "existence": [
+        "2012-08-06 05:19:46.831",
+        "2020-02-05 22:53:38.296"
+      ],
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rotation": [
+        0.7071,
+        0.0,
+        -0.7071,
+        0.0
+      ],
+      "trackable": false,
+      "radii": [
+        1,
+        1,
+        1
+      ]
+    },
+    "Jupiter": {
+      "center": "Jupiter",
+      "frame": "IAU_Jupiter",
+      "existence": [
+        "1950-01-02 00:00:00.000",
+        "2049-12-31 00:00:00.000"
+      ]
+    },
+    "Saturn": {
+      "center": "Saturn",
+      "frame": "IAU_Saturn",
+      "existence": [
+        "1950-01-02 00:00:00.000",
+        "2049-12-31 00:00:00.000"
+      ]
+    },
+    "Uranus": {
+      "center": "Uranus",
+      "frame": "IAU_Uranus",
+      "existence": [
+        "1950-01-02 00:00:00.000",
+        "2049-12-31 00:00:00.000"
+      ]
+    },
+    "Neptune": {
+      "center": "Neptune",
+      "frame": "IAU_Neptune",
+      "existence": [
+        "1950-01-02 00:00:00.000",
+        "2049-12-31 00:00:00.000"
+      ]
+    },
+    "Pluto": {
+      "center": "Pluto",
+      "frame": "IAU_Pluto",
+      "existence": [
+        "1950-01-02 00:00:00.000",
+        "2049-12-31 00:00:00.000"
+      ]
+    },
+    "Ceres": {
+      "center": "Ceres",
+      "frame": "IAU_Ceres",
+      "existence": [
+        "1950-01-02 00:00:00.000",
+        "2049-12-31 00:00:00.000"
+      ],
+      "radii": [
+        470000,
+        470000,
+        470000
+      ]
+    },
+    "Vesta": {
+      "center": "Vesta",
+      "frame": "IAU_Vesta",
+      "existence": [
+        "1950-01-02 00:00:00.000",
+        "2049-12-31 00:00:00.000"
+      ],
+      "radii": [
+        255000,
+        255000,
+        255000
+      ]
+    }
+  },
+  "plugins": {
+    "csp-web-api": {
+      "port": 9001,
+      "page": "../share/resources/gui/example-web-frontend.html"
+    },
+    "csp-stars": {
+      "celestialGridTexture": "../share/resources/textures/celestial_grid.png",
+      "starFiguresTexture": "../share/resources/textures/constellation_figures.png",
+      "celestialGridColor": [
+        0.5,
+        0.8,
+        1.0,
+        0.3
+      ],
+      "starFiguresColor": [
+        0.5,
+        1.0,
+        0.8,
+        0.3
+      ],
+      "starTexture": "../share/resources/textures/star.png",
+      "hipparcosCatalog": "V:/Context/Stars/hip_main.dat",
+      "tycho2Catalog": "V:/Context/Stars/tyc2_main.dat"
+    },
+    "csp-lod-bodies": {
+      "maxGPUTilesColor": 2048,
+      "maxGPUTilesGray": 2048,
+      "maxGPUTilesDEM": 2048,
+      "mapCache": "map-cache/",
+      "bodies": {
+        "Mars": {
+          "activeImgDataset": "HiRISE",
+          "activeDemDataset": "HiRISE",
+          "imgDatasets": {
+            "HiRISE": {
+              "copyright": "NASA",
+              "url": "http://129.247.34.87/mapserv?service=wms",
+              "format": "U8Vec3",
+              "layers": "mars.viking.rgb,mars.gale.msl.rgb",
+              "maxLevel": 16
+            },
+            "HRSC HMC30 Co5": {
+              "copyright": "DLR",
+              "url": "http://129.247.34.87/mapserv?service=wms",
+              "format": "U8Vec3",
+              "layers": "mars.viking.rgb,mars.hrsc.HMC30.co5.rgb",
+              "maxLevel": 10
+            },
+            "HRSC HMC30 Co5PS": {
+              "copyright": "DLR",
+              "url": "http://129.247.34.87/mapserv?service=wms",
+              "format": "U8Vec3",
+              "layers": "mars.viking.rgb,mars.hrsc.HMC30.co5ps.rgb",
+              "maxLevel": 10
+            },
+            "HRSC HMC30 ND5": {
+              "copyright": "DLR",
+              "url": "http://129.247.34.87/mapserv?service=wms",
+              "format": "U8Vec3",
+              "layers": "mars.viking.rgb,mars.hrsc.HMC30.nd5.rgb",
+              "maxLevel": 10
+            },
+            "HRSC Nadir": {
+              "copyright": "ESA",
+              "url": "http://129.247.34.87/mapserv?service=wms",
+              "format": "UInt8",
+              "layers": "mars.hrsc.nadir.gray",
+              "maxLevel": 10
+            },
+            "Footprints (HRSC DEM)": {
+              "copyright": "ESA",
+              "url": "http://129.247.34.87/mapserv?service=wms",
+              "format": "U8Vec3",
+              "layers": "footprints.dem.hrsc.img",
+              "maxLevel": 8
+            },
+            "Footprints (HRSC Nadir)": {
+              "copyright": "ESA",
+              "url": "http://129.247.34.87/mapserv?service=wms",
+              "format": "U8Vec3",
+              "layers": "mars.hrsc.nadir.gray,footprints.nadir.hrsc.img",
+              "maxLevel": 10
+            }
+          },
+          "demDatasets": {
+            "HiRISE": {
+              "copyright": "NASA",
+              "url": "http://129.247.34.87/mapserv?service=wms",
+              "format": "Float32",
+              "layers": "mars.mola.dem,mars.gale.msl.dem",
+              "maxLevel": 15
+            },
+            "HRSC HMC30 DA5": {
+              "copyright": "NASA",
+              "url": "http://129.247.34.87/mapserv?service=wms",
+              "format": "Float32",
+              "layers": "mars.mola.dem,mars.hrsc.HMC30.da5.dtm",
+              "maxLevel": 10
+            },
+            "HRSC": {
+              "copyright": "ESA",
+              "url": "http://129.247.34.87/mapserv?service=wms",
+              "format": "Float32",
+              "layers": "mars.hrsc.dem",
+              "maxLevel": 7
+            },
+            "Mola": {
+              "copyright": "NASA",
+              "url": "http://129.247.34.87/mapserv?service=wms",
+              "format": "Float32",
+              "layers": "mars.mola.dem",
+              "maxLevel": 6
+            }
+          }
+        },
+        "Earth": {
+          "activeImgDataset": "Helgoland + Blue Marble",
+          "activeDemDataset": "Helgoland + SRTM30",
+          "imgDatasets": {
+            "Helgoland + Blue Marble": {
+              "copyright": "DLR, NASA",
+              "url": "http://129.247.34.87/mapserv?service=wms",
+              "format": "U8Vec3",
+              "layers": "earth.bluemarble.rgb,earth.os.helgoland.rgb",
+              "maxLevel": 18
+            },
+            "Blue Marble": {
+              "copyright": "NASA",
+              "url": "http://129.247.34.87/mapserv?service=wms",
+              "format": "U8Vec3",
+              "layers": "earth.bluemarble.rgb",
+              "maxLevel": 7
+            },
+            "Landsat": {
+              "copyright": "NASA",
+              "url": "http://129.247.34.87/mapserv?service=wms",
+              "format": "U8Vec3",
+              "layers": "earth.landsat8.rgb",
+              "maxLevel": 14
+            }
+          },
+          "demDatasets": {
+            "Helgoland + SRTM30": {
+              "copyright": "DLR, NASA",
+              "url": "http://129.247.34.87/mapserv?service=wms",
+              "format": "Float32",
+              "layers": "earth.srtm30.dem,earth.os.helgoland.dem",
+              "maxLevel": 17
+            },
+            "SRTM30": {
+              "copyright": "NASA",
+              "url": "http://129.247.34.87/mapserv?service=wms",
+              "format": "Float32",
+              "layers": "earth.srtm30.dem",
+              "maxLevel": 12
+            },
+            "Blue Marble": {
+              "copyright": "NASA",
+              "url": "http://129.247.34.87/mapserv?service=wms",
+              "format": "Float32",
+              "layers": "earth.bluemarble.dem",
+              "maxLevel": 6
+            },
+            "CleanTOPO": {
+              "copyright": "Tom Patterson, US National Park Service",
+              "url": "http://129.247.34.87/mapserv?service=wms",
+              "format": "Float32",
+              "layers": "earth.cleantopo.dem",
+              "maxLevel": 6
+            },
+            "ETOPO1": {
+              "copyright": "NOAA",
+              "url": "http://129.247.34.87/mapserv?service=wms",
+              "format": "Float32",
+              "layers": "earth.etopo1.dem",
+              "maxLevel": 6
+            }
+          }
+        },
+        "Moon": {
+          "activeImgDataset": "Apollo (LRO NAC+WAC)",
+          "activeDemDataset": "Apollo (LRO NAC+WAC)",
+          "imgDatasets": {
+            "Apollo (LRO NAC+WAC)": {
+              "copyright": "NASA",
+              "url": "http://129.247.34.87/mapserv?service=wms",
+              "format": "UInt8",
+              "layers": "moon.lro.wac.gray,moon.lro.nac.apollo11.gray,moon.lro.nac.apollo15.gray,moon.lro.nac.apollo16.gray,moon.lro.nac.apollo17.gray",
+              "maxLevel": 15
+            },
+            "LRO LOLA LDAM": {
+              "copyright": "NASA",
+              "url": "http://129.247.34.87/mapserv?service=wms",
+              "format": "U8Vec3",
+              "layers": "moon.lro.lola.north.gray,moon.lro.lola.south.gray",
+              "maxLevel": 8
+            },
+            "Clementine": {
+              "copyright": "NASA",
+              "url": "http://129.247.34.87/mapserv?service=wms",
+              "format": "UInt8",
+              "layers": "moon.clementine.750nm.gray",
+              "maxLevel": 10
+            },
+            "Kaguya": {
+              "copyright": "JAXA",
+              "url": "http://129.247.34.87/mapserv?service=wms",
+              "format": "UInt8",
+              "layers": "moon.kaguya.gray",
+              "maxLevel": 10
+            }
+          },
+          "demDatasets": {
+            "Apollo (LRO NAC+WAC)": {
+              "copyright": "NASA",
+              "url": "http://129.247.34.87/mapserv?service=wms",
+              "format": "Float32",
+              "layers": "moon.lro.wac.dem,moon.lro.nac.apollo11.dem,moon.lro.nac.apollo15.dem,moon.lro.nac.apollo16.dem,moon.lro.nac.apollo17.dem",
+              "maxLevel": 13
+            },
+            "LRO LOLA LDEM": {
+              "copyright": "NASA",
+              "url": "http://129.247.34.87/mapserv?service=wms",
+              "format": "Float32",
+              "layers": "moon.lro.lola.north60.dem,moon.lro.lola.north75.dem,moon.lro.lola.north80.dem,moon.lro.lola.north85.dem,moon.lro.lola.south60.dem,moon.lro.lola.south75.dem,moon.lro.lola.south80.dem,moon.lro.lola.south85.dem",
+              "maxLevel": 11
+            },
+            "Kaguya": {
+              "copyright": "JAXA",
+              "url": "http://129.247.34.87/mapserv?service=wms",
+              "format": "Float32",
+              "layers": "moon.kaguya.dem",
+              "maxLevel": 9
+            }
+          }
+        },
+        "Phobos": {
+          "activeImgDataset": "Viking",
+          "activeDemDataset": "HRSC",
+          "imgDatasets": {
+            "Viking": {
+              "copyright": "NASA",
+              "url": "http://129.247.34.87/mapserv?service=wms",
+              "format": "UInt8",
+              "layers": "phobos.viking.gray",
+              "maxLevel": 8
+            },
+            "HRSC": {
+              "copyright": "ESA",
+              "url": "http://129.247.34.87/mapserv?service=wms",
+              "format": "UInt8",
+              "layers": "phobos.hrsc.gray",
+              "maxLevel": 5
+            }
+          },
+          "demDatasets": {
+            "HRSC": {
+              "copyright": "ESA",
+              "url": "http://129.247.34.87/mapserv?service=wms",
+              "format": "Float32",
+              "layers": "phobos.hrsc.dem",
+              "maxLevel": 5
+            }
+          }
+        },
+        "Ceres": {
+          "activeImgDataset": "Dawn LAMO",
+          "activeDemDataset": "Dawn",
+          "imgDatasets": {
+            "Dawn LAMO": {
+              "copyright": "ESA",
+              "url": "http://129.247.34.87/mapserv?service=wms",
+              "format": "UInt8",
+              "layers": "ceres.dawn.lamo.north.gray,ceres.dawn.lamo.south.gray,ceres.dawn.lamo.equator.gray",
+              "maxLevel": 7
+            },
+            "Dawn HAMO": {
+              "copyright": "ESA",
+              "url": "http://129.247.34.87/mapserv?service=wms",
+              "format": "UInt8",
+              "layers": "ceres.dawn.hamo.north.gray,ceres.dawn.hamo.south.gray,ceres.dawn.hamo.equator.gray",
+              "maxLevel": 7
+            }
+          },
+          "demDatasets": {
+            "Dawn": {
+              "copyright": "ESA",
+              "url": "http://129.247.34.87/mapserv?service=wms",
+              "format": "Float32",
+              "layers": "ceres.dawn.spg.north.dtm,ceres.dawn.spg.south.dtm,ceres.dawn.spg.equator.dtm",
+              "maxLevel": 6
+            }
+          }
+        },
+        "Vesta": {
+          "activeImgDataset": "Dawn LAMO",
+          "activeDemDataset": "Dawn",
+          "imgDatasets": {
+            "Dawn LAMO": {
+              "copyright": "ESA",
+              "url": "http://129.247.34.87/mapserv?service=wms",
+              "format": "UInt8",
+              "layers": "vesta.dawn.lamo.north.gray,vesta.dawn.lamo.south.gray,vesta.dawn.lamo.equator.gray",
+              "maxLevel": 7
+            },
+            "Dawn HAMO": {
+              "copyright": "ESA",
+              "url": "http://129.247.34.87/mapserv?service=wms",
+              "format": "UInt8",
+              "layers": "vesta.dawn.hamo.north.gray,vesta.dawn.hamo.south.gray,vesta.dawn.hamo.equator.gray",
+              "maxLevel": 7
+            }
+          },
+          "demDatasets": {
+            "Dawn": {
+              "copyright": "ESA",
+              "url": "http://129.247.34.87/mapserv?service=wms",
+              "format": "Float32",
+              "layers": "vesta.dawn.north.dtm,vesta.dawn.south.dtm,vesta.dawn.equator.dtm",
+              "maxLevel": 6
+            }
+          }
+        }
+      }
+    },
+    "csp-atmospheres": {
+      "atmospheres": {
+        "Mars": {
+          "atmosphereHeight": 0.03,
+          "mieAnisotropy": 0.76,
+          "mieHeight": 0.00144509,
+          "mieScatteringB": 52.66,
+          "mieScatteringG": 52.66,
+          "mieScatteringR": 52.66,
+          "rayleighAnisotropy": 0,
+          "rayleighHeight": 0.00317919,
+          "rayleighScatteringB": 19.89,
+          "rayleighScatteringG": 46.71,
+          "rayleighScatteringR": 69.2,
+          "sunIntensity": 12
+        },
+        "Earth": {
+          "atmosphereHeight": 0.015,
+          "mieAnisotropy": 0.76,
+          "mieHeight": 0.000188679,
+          "mieScatteringB": 133.56,
+          "mieScatteringG": 133.56,
+          "mieScatteringR": 133.56,
+          "rayleighAnisotropy": 0,
+          "rayleighHeight": 0.001257862,
+          "rayleighScatteringB": 210.516,
+          "rayleighScatteringG": 85.86,
+          "rayleighScatteringR": 36.89,
+          "sunIntensity": 15,
+          "cloudHeight": 0.001,
+          "cloudTexture": "../share/resources/textures/earth-clouds.jpg"
+        }
+      }
+    },
+    "csp-measurement-tools": {},
+    "#csp-sharad": {
+      "filePath": "V:/temp/CrossDrive_FinalWorkshop/sharad/",
+      "anchor": "Mars"
+    },
+    "csp-simple-bodies": {
+      "bodies": {
+        "Sun": {
+          "texture": "../share/resources/textures/sun.jpg"
+        },
+        "Mercury": {
+          "texture": "../share/resources/textures/mercury.jpg"
+        },
+        "Venus": {
+          "texture": "../share/resources/textures/venus.jpg"
+        },
+        "Jupiter": {
+          "texture": "../share/resources/textures/jupiter.jpg"
+        },
+        "Saturn": {
+          "texture": "../share/resources/textures/saturn.jpg"
+        },
+        "Uranus": {
+          "texture": "../share/resources/textures/uranus.jpg"
+        },
+        "Neptune": {
+          "texture": "../share/resources/textures/neptune.jpg"
+        },
+        "Pluto": {
+          "texture": "../share/resources/textures/moon.jpg"
+        }
+      }
+    },
+    "csp-satellites": {
+      "satellites": {
+        "Mars Express": {
+          "modelFile": "V:/Geometry/DLR/MEX/mex.glb",
+          "environmentMap": "../share/resources/textures/marsEnvMap.dds"
+        },
+        "Mars Reconnaissance Orbiter": {
+          "modelFile": "V:/Geometry/NASA/MRO/MRO_13.glb",
+          "environmentMap": "../share/resources/textures/marsEnvMap.dds"
+        },
+        "Curiosity": {
+          "modelFile": "V:/Geometry/NASA/MSL/msl.gltf",
+          "environmentMap": "../share/resources/textures/marsEnvMap.dds"
+        }
+      }
+    },
+    "csp-rings": {
+      "rings": {
+        "Saturn": {
+          "texture": "../share/resources/textures/saturn-rings.png",
+          "innerRadius": 67000000,
+          "outerRadius": 140210000
+        }
+      }
+    },
+    "csp-anchor-labels": {
+      "defaultEnabled": true,
+      "enableDepthOverlap": true,
+      "ignoreOverlapThreshold": 0.1,
+      "labelScale": 1.2,
+      "depthScale": 1.0,
+      "labelOffset": 0.2
+    },
+    "csp-trajectories": {
+      "trajectories": {
+        "Sun": {
+          "color": [
+            1,
+            1,
+            1
+          ],
+          "drawDot": true,
+          "drawFlare": true
+        },
+        "Mercury": {
+          "color": [
+            0.7,
+            0.6,
+            0.3
+          ],
+          "trail": {
+            "length": 87.9,
+            "samples": 1000,
+            "parent": "Barycenter"
+          },
+          "drawDot": true
+        },
+        "Venus": {
+          "color": [
+            0.8,
+            0.8,
+            0.6
+          ],
+          "trail": {
+            "length": 224.5,
+            "samples": 1000,
+            "parent": "Barycenter"
+          },
+          "drawDot": true
+        },
+        "Earth": {
+          "color": [
+            0.5,
+            1.0,
+            0.4
+          ],
+          "trail": {
+            "length": 365.0,
+            "samples": 5000,
+            "parent": "Barycenter"
+          },
+          "drawDot": true
+        },
+        "Moon": {
+          "color": [
+            0.8,
+            0.8,
+            0.8
+          ],
+          "trail": {
+            "length": 28.0,
+            "samples": 1000,
+            "parent": "EarthJ2000"
+          },
+          "drawDot": true
+        },
+        "Mars": {
+          "color": [
+            1.0,
+            0.4,
+            0.3
+          ],
+          "trail": {
+            "length": 686.0,
+            "samples": 5000,
+            "parent": "Barycenter"
+          },
+          "drawDot": true
+        },
+        "Phobos": {
+          "color": [
+            0.6,
+            0.8,
+            0.6
+          ],
+          "trail": {
+            "length": 0.31,
+            "samples": 1000,
+            "parent": "MarsJ2000"
+          },
+          "drawDot": true
+        },
+        "Deimos": {
+          "color": [
+            0.6,
+            0.6,
+            0.8
+          ],
+          "trail": {
+            "length": 1.2,
+            "samples": 1000,
+            "parent": "MarsJ2000"
+          },
+          "drawDot": true
+        },
+        "Mars Express": {
+          "color": [
+            1.0,
+            0.2,
+            0.2
+          ],
+          "trail": {
+            "length": 0.25,
+            "samples": 2000,
+            "parent": "MarsJ2000"
+          },
+          "drawDot": true
+        },
+        "Mars Reconnaissance Orbiter": {
+          "color": [
+            1.0,
+            1.0,
+            0.4
+          ],
+          "trail": {
+            "length": 0.1,
+            "samples": 1000,
+            "parent": "MarsJ2000"
+          },
+          "drawDot": true
+        },
+        "Curiosity": {
+          "color": [
+            1.0,
+            0.0,
+            0.4
+          ],
+          "trail": {
+            "length": 100,
+            "samples": 5000,
+            "parent": "Mars"
+          },
+          "drawDot": true
+        },
+        "Jupiter": {
+          "color": [
+            1.0,
+            0.7,
+            0.5
+          ],
+          "trail": {
+            "length": 4330,
+            "samples": 1000,
+            "parent": "Barycenter"
+          },
+          "drawDot": true
+        },
+        "Saturn": {
+          "color": [
+            1.0,
+            0.9,
+            0.3
+          ],
+          "trail": {
+            "length": 10749,
+            "samples": 1000,
+            "parent": "Barycenter"
+          },
+          "drawDot": true
+        },
+        "Uranus": {
+          "color": [
+            0.5,
+            0.8,
+            1.0
+          ],
+          "trail": {
+            "length": 17885,
+            "samples": 1000,
+            "parent": "Barycenter"
+          },
+          "drawDot": true
+        },
+        "Neptune": {
+          "color": [
+            0.2,
+            0.2,
+            0.5
+          ],
+          "trail": {
+            "length": 17885,
+            "samples": 1000,
+            "parent": "Barycenter"
+          },
+          "drawDot": true
+        },
+        "Pluto": {
+          "color": [
+            0.5,
+            0.5,
+            0.6
+          ],
+          "trail": {
+            "length": 17885,
+            "samples": 1000,
+            "parent": "Barycenter"
+          },
+          "drawDot": true
+        },
+        "Ceres": {
+          "color": [
+            0.4,
+            0.4,
+            0.4
+          ],
+          "trail": {
+            "length": 1660,
+            "samples": 1000,
+            "parent": "Barycenter"
+          },
+          "drawDot": true
+        },
+        "Vesta": {
+          "color": [
+            0.5,
+            0.5,
+            0.5
+          ],
+          "trail": {
+            "length": 1325,
+            "samples": 1000,
+            "parent": "Barycenter"
+          },
+          "drawDot": true
+        }
+      }
+    },
+    "csp-fly-to-locations": {},
+    "csp-minimap": {
+      "defaultMap": {
+        "projection": "equirectangular",
+        "type": "wms",
+        "url": "https://geoservice.dlr.de/eoc/basemap/wms?",
+        "config": {
+          "attribution": "&copy; DLR",
+          "layers": "ne:ne_graticules",
+          "BGCOLOR": "0x000000"
+        }
+      },
+      "maps": {
+        "Earth": {
+          "projection": "mercator",
+          "type": "wmts",
+          "url": "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+          "config": {
+            "attribution": "&copy; OpenStreetMap contributors"
+          }
+        },
+        "Moon": {
+          "projection": "mercator",
+          "type": "wmts",
+          "url": "https://cartocdn-gusc.global.ssl.fastly.net/opmbuilder/api/v1/map/named/opm-moon-basemap-v0-1/all/{z}/{x}/{y}.png",
+          "config": {
+            "attribution": "&copy; OpenPlanetary"
+          }
+        },
+        "Mars": {
+          "projection": "mercator",
+          "type": "wmts",
+          "url": "https://cartocdn-gusc.global.ssl.fastly.net/opmbuilder/api/v1/map/named/opm-mars-basemap-v0-2/all/{z}/{x}/{y}.png",
+          "config": {
+            "attribution": "&copy; OpenPlanetary"
+          }
+        }
+      }
+    },
+    "csp-vr-accessibility": {
+      "gridEnabled": false,
+      "gridSize": 1.0,
+      "gridOffset": -1.8,
+      "gridFalloff": 100.0,
+      "gridTexture": "../share/resources/textures/gridCentered.png",
+      "gridAlpha": 1.0,
+      "gridColor": "#FFFFFF",
+      "vignetteEnabled": false,
+      "vignetteDebug": false,
+      "vignetteInnerRadius": 0.5,
+      "vignetteOuterRadius": 1.0,
+      "vignetteColor": "#FFFFFF",
+      "vignetteFadeDuration": 1.0,
+      "vignetteFadeDeadzone": 0.5,
+      "vignetteLowerVelocityThreshold": 0.2,
+      "vignetteUpperVelocityThreshold": 10.0,
+      "vignetteUseDynamicRadius": false,
+      "vignetteUseVerticalOnly": false
+    }
+  }
+}
