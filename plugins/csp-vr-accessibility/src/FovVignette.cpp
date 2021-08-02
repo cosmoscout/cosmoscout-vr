@@ -227,12 +227,12 @@ bool FovVignette::GetBoundingBox(VistaBoundingBox& bb) {
 
 float FovVignette::getNewRadius(float innerOuterRadius, float normVelocity, float lastRadius, double dT) {
   // target change from last radius (in %) per target time delta (avg frame time)
-  float targetDiff = 0.1F;
-  auto targetDtime = static_cast<float>(GetVistaSystem()->GetFrameLoop()->GetAverageLoopTime());
-  float diffPerTargetDt = targetDiff / targetDtime;
+  //float targetDiff = 0.1F;
+  //auto targetDtime = static_cast<float>(GetVistaSystem()->GetFrameLoop()->GetAverageLoopTime());
+  //float diffPerTargetDt = targetDiff / targetDtime;
 
   // (dT / targetDtime) >1 if dT > targetDtime, <1 if dT < targetDtime
-  float x = diffPerTargetDt * (static_cast<float>(dT) / targetDtime);
+  //float x = diffPerTargetDt * (static_cast<float>(dT) / targetDtime);
 
   // targetRadius based on interpolation between maxRadius and innerOuterRadius
   float targetRadius = ((1 - normVelocity) * sqrtf(2)) + (normVelocity * innerOuterRadius);
