@@ -241,7 +241,7 @@ class CS_CORE_EXPORT SolarSystem {
   std::set<std::shared_ptr<scene::CelestialAnchor>> mAnchors;
   std::set<std::shared_ptr<scene::CelestialBody>>   mBodies;
 
-  bool mIsInitialized = false;
+  bool mIsInitialized              = false;
   bool mSpiceFrameChangedLastFrame = false;
 
   uint64_t mListenerIds = 0;
