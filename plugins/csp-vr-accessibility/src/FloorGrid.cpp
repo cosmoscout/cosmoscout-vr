@@ -129,7 +129,7 @@ FloorGrid::~FloorGrid() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void FloorGrid::configure(std::shared_ptr<Plugin::Settings> settings) {
-  // check if texture settings changed 
+  // check if texture settings changed
   if (!mGridSettings || mGridSettings->mTexture.get() != settings->mTexture.get()) {
     mTexture = cs::graphics::TextureLoader::loadFromFile(settings->mTexture.get());
     mTexture->SetWrapS(GL_REPEAT);

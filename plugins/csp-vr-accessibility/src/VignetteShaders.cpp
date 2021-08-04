@@ -30,6 +30,7 @@ void main()
 )";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+// Shader for static vignetting and circular vignette
 
 const char* FovVignette::FRAG_SHADER_FADE = R"(
 #version 330
@@ -68,6 +69,7 @@ void main()
 )";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+// Shader for dynamic vignetting and circular vignette
 
 const char* FovVignette::FRAG_SHADER_DYNRAD = R"(
 #version 330
@@ -107,6 +109,7 @@ void main()
 )";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+// Shader for static vignetting and vertical vignette
 
 const char* FovVignette::FRAG_SHADER_FADE_VERTONLY = R"(
 #version 330
@@ -148,6 +151,7 @@ void main()
 )";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+// Shader for dynamic vignetting and vertical vignette
 
 const char* FovVignette::FRAG_SHADER_DYNRAD_VERTONLY = R"(
 #version 330

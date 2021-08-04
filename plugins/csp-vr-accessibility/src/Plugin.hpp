@@ -16,7 +16,7 @@ namespace csp::vraccessibility {
 class FloorGrid;
 class FovVignette;
 
-/// This plugin adds a floor grid. The grid is rendered below the observer.
+/// This plugin adds VR accessibility options like a floor grid and a FoV vignette.
 /// The configuration of this plugin is done via the provided json config.
 /// See README.md for details.
 class Plugin : public cs::core::PluginBase {

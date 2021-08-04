@@ -28,7 +28,8 @@ class SolarSystem;
 
 namespace csp::vraccessibility {
 /// The FoV Vignette draws a vignette when the observer is moving.
-/// The Vignette is split into 4 different Options: dynamical or static vignetting, and vertical or circular vignette.
+/// The Vignette is split into 4 different Options: dynamical or static vignetting, and vertical or
+/// circular vignette.
 class FovVignette : public IVistaOpenGLDraw {
  public:
   FovVignette(std::shared_ptr<cs::core::SolarSystem> solarSystem);
