@@ -25,6 +25,7 @@
 !/plugins/csp-stars
 !/plugins/csp-timings
 !/plugins/csp-trajectories
+!/plugins/csp-user-study
 !/plugins/csp-web-api
 !/plugins/csp-wms-overlays
 
