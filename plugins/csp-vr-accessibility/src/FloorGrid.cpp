@@ -13,9 +13,9 @@
 
 #include <VistaKernel/DisplayManager/VistaDisplayManager.h>
 #include <VistaKernel/DisplayManager/VistaDisplaySystem.h>
-#include <VistaKernel/InteractionManager/VistaUserPlatform.h>
 #include <VistaKernel/GraphicsManager/VistaGraphicsManager.h>
 #include <VistaKernel/GraphicsManager/VistaSceneGraph.h>
+#include <VistaKernel/InteractionManager/VistaUserPlatform.h>
 #include <VistaKernel/VistaSystem.h>
 #include <VistaKernelOpenSGExt/VistaOpenSGMaterialTools.h>
 #include <glm/gtc/type_ptr.hpp>
@@ -89,16 +89,12 @@ FloorGrid::FloorGrid(std::shared_ptr<cs::core::SolarSystem> solarSystem)
   vertices[2] = glm::vec2(1.F, 1.F);
   vertices[3] = glm::vec2(-1.F, 1.F);
 
-
-
   mVBO.Bind(GL_ARRAY_BUFFER);
   mVBO.BufferData(vertices.size() * sizeof(glm::vec2), vertices.data(), GL_STATIC_DRAW);
   mVBO.Release();
 
   mVAO.EnableAttributeArray(0);
-  mVAO.SpecifyAttributeArrayFloat(
-      0, 2, GL_FLOAT, GL_FALSE, sizeof(glm::vec2), 0, &mVBO
-      );
+  mVAO.SpecifyAttributeArrayFloat(0, 2, GL_FLOAT, GL_FALSE, sizeof(glm::vec2), 0, &mVBO);
 
   // Create shader
   mShader.InitVertexShaderFromString(VERT_SHADER);
@@ -121,8 +117,7 @@ FloorGrid::FloorGrid(std::shared_ptr<cs::core::SolarSystem> solarSystem)
   mGLNode.reset(pSG->NewOpenGLNode(mOffsetNode.get(), this));
 
   VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
-      mGLNode.get(), static_cast<int>(cs::utils::DrawOrder::eGui) - 1
-      );
+      mGLNode.get(), static_cast<int>(cs::utils::DrawOrder::eGui) - 1);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -151,7 +146,7 @@ void FloorGrid::update() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool FloorGrid::Do() {
-  if (!mGridSettings->mEnabled.get()){
+  if (!mGridSettings->mEnabled.get()) {
     return true;
   }
 
@@ -166,33 +161,17 @@ bool FloorGrid::Do() {
   glGetFloatv(GL_PROJECTION_MATRIX, glMatP.data());
 
   // Set uniforms
-  glUniformMatrix4fv(
-      mShader.GetUniformLocation("uMatModelView"), 1, GL_FALSE, glMatMV.data()
-      );
-  glUniformMatrix4fv(
-      mShader.GetUniformLocation("uMatProjection"), 1, GL_FALSE, glMatP.data()
-      );
+  glUniformMatrix4fv(mShader.GetUniformLocation("uMatModelView"), 1, GL_FALSE, glMatMV.data());
+  glUniformMatrix4fv(mShader.GetUniformLocation("uMatProjection"), 1, GL_FALSE, glMatP.data());
+  mShader.SetUniform(mShader.GetUniformLocation("uTexture"), 0);
+  mShader.SetUniform(mShader.GetUniformLocation("uFalloff"), mGridSettings->mFalloff.get());
+  mShader.SetUniform(mShader.GetUniformLocation("uOffset"), mGridSettings->mOffset.get());
+  mShader.SetUniform(mShader.GetUniformLocation("uSize"), mGridSettings->mSize.get());
   mShader.SetUniform(
-      mShader.GetUniformLocation("uTexture"), 0
-      );
-  mShader.SetUniform(
-      mShader.GetUniformLocation("uFalloff"), mGridSettings->mFalloff.get()
-      );
-  mShader.SetUniform(
-      mShader.GetUniformLocation("uOffset"), mGridSettings->mOffset.get()
-      );
-  mShader.SetUniform(
-      mShader.GetUniformLocation("uSize"), mGridSettings->mSize.get()
-      );
-  mShader.SetUniform(
-      mShader.GetUniformLocation("uFarClip"), cs::utils::getCurrentFarClipDistance()
-      );
-  mShader.SetUniform(
-      mShader.GetUniformLocation("uAlpha"), mGridSettings->mAlpha.get()
-      );
-  glUniform4fv(
-      mShader.GetUniformLocation("uCustomColor"), 1, glm::value_ptr(Plugin::GetColorFromHexString(mGridSettings->mColor.get()))
-      );
+      mShader.GetUniformLocation("uFarClip"), cs::utils::getCurrentFarClipDistance());
+  mShader.SetUniform(mShader.GetUniformLocation("uAlpha"), mGridSettings->mAlpha.get());
+  glUniform4fv(mShader.GetUniformLocation("uCustomColor"), 1,
+      glm::value_ptr(Plugin::GetColorFromHexString(mGridSettings->mColor.get())));
 
   // Bind Texture
   mTexture->Bind(GL_TEXTURE0);

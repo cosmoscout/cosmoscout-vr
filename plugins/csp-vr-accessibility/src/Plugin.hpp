@@ -35,7 +35,8 @@ class Plugin : public cs::core::PluginBase {
     cs::utils::DefaultProperty<float> mFalloff{100.0F};
 
     /// The texture used for the grid (b/w texture).
-    cs::utils::DefaultProperty<std::string> mTexture{"../share/resources/textures/gridCentered.png"};
+    cs::utils::DefaultProperty<std::string> mTexture{
+        "../share/resources/textures/gridCentered.png"};
 
     /// The opacity of the grid (default: 1, fully opaque, to 0, fully transparent).
     cs::utils::DefaultProperty<float> mAlpha{1.0F};
@@ -49,10 +50,12 @@ class Plugin : public cs::core::PluginBase {
     /// Toggle, whether the FoV Vignette is always drawn.
     cs::utils::DefaultProperty<bool> mFovVignetteDebug{false};
 
-    /// The inner radius of the FoV Vignette (distance from center to rim where the gradient starts)(0, no radius, to 1, the edges of the screen).
+    /// The inner radius of the FoV Vignette (distance from center to rim where the gradient
+    /// starts)(0, no radius, to 1, the edges of the screen).
     cs::utils::DefaultProperty<float> mFovVignetteInnerRadius{0.5F};
 
-    /// The outer radius of the FoV Vignette (distance from start of the gradient to end of gradient).
+    /// The outer radius of the FoV Vignette (distance from start of the gradient to end of
+    /// gradient).
     cs::utils::DefaultProperty<float> mFovVignetteOuterRadius{1.0F};
 
     /// The color of the FoV Vignette (default: white #FFFFFF).
@@ -61,16 +64,20 @@ class Plugin : public cs::core::PluginBase {
     /// The duration of the fade animation (in seconds).
     cs::utils::DefaultProperty<double> mFovVignetteFadeDuration{1.0};
 
-    /// The deadzone of the fade animation where the animation is not played on small actions (in seconds).
+    /// The deadzone of the fade animation where the animation is not played on small actions (in
+    /// seconds).
     cs::utils::DefaultProperty<double> mFovVignetteFadeDeadzone{0.5};
 
-    /// The threshold velocity (0 to ~10 = max. speed from movement controls) below which the vignette is not triggered.
+    /// The threshold velocity (0 to ~10 = max. speed from movement controls) below which the
+    /// vignette is not triggered.
     cs::utils::DefaultProperty<float> mFovVignetteLowerVelocityThreshold{0.2F};
 
-    /// The threshold velocity (0 to ~10 = max. speed from movement controls) above which the vignette is set to the above defined radii.
+    /// The threshold velocity (0 to ~10 = max. speed from movement controls) above which the
+    /// vignette is set to the above defined radii.
     cs::utils::DefaultProperty<float> mFovVignetteUpperVelocityThreshold{10.0F};
 
-    /// The toggle to use dynamic radius adjustment instead of fading the vignette in above threshold.
+    /// The toggle to use dynamic radius adjustment instead of fading the vignette in above
+    /// threshold.
     cs::utils::DefaultProperty<bool> mFovVignetteUseDynamicRadius{false};
 
     /// The toggle to use only vertical vignetting.
@@ -87,8 +94,8 @@ class Plugin : public cs::core::PluginBase {
  private:
   void onLoad();
 
-  std::shared_ptr<Settings> mPluginSettings = std::make_shared<Settings>();
-  std::shared_ptr<FloorGrid> mGrid;
+  std::shared_ptr<Settings>    mPluginSettings = std::make_shared<Settings>();
+  std::shared_ptr<FloorGrid>   mGrid;
   std::shared_ptr<FovVignette> mVignette;
 
   bool resetColorPicker{true};

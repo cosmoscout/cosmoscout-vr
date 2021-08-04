@@ -12,6 +12,7 @@
 #include "../../../src/cs-scene/CelestialObject.hpp"
 #include "../../../src/cs-utils/AnimatedValue.hpp"
 
+#include <VistaKernel/DisplayManager/VistaViewport.h>
 #include <VistaKernel/GraphicsManager/VistaOpenGLDraw.h>
 #include <VistaKernel/GraphicsManager/VistaOpenGLNode.h>
 #include <VistaKernel/GraphicsManager/VistaTransformNode.h>
@@ -19,7 +20,6 @@
 #include <VistaOGLExt/VistaGLSLShader.h>
 #include <VistaOGLExt/VistaTexture.h>
 #include <VistaOGLExt/VistaVertexArrayObject.h>
-#include <VistaKernel/DisplayManager/VistaViewport.h>
 
 namespace cs::core {
 class Settings;
@@ -28,12 +28,12 @@ class SolarSystem;
 
 namespace csp::vraccessibility {
 /// The FoV Vignette. It draws a vignette when the observer is moving.
-class FovVignette : public IVistaOpenGLDraw{
+class FovVignette : public IVistaOpenGLDraw {
  public:
   FovVignette(std::shared_ptr<cs::core::SolarSystem> solarSystem);
 
   FovVignette(FovVignette const& other) = delete;
-  FovVignette(FovVignette&& other) = default;
+  FovVignette(FovVignette&& other)      = default;
 
   FovVignette& operator=(FovVignette const& other) = delete;
   FovVignette& operator=(FovVignette&& other) = delete;
@@ -51,32 +51,32 @@ class FovVignette : public IVistaOpenGLDraw{
   bool GetBoundingBox(VistaBoundingBox& bb) override;
 
  private:
-  std::shared_ptr<cs::core::Settings>     mSettings;
-  std::shared_ptr<cs::core::SolarSystem>  mSolarSystem;
+  std::shared_ptr<cs::core::Settings>    mSettings;
+  std::shared_ptr<cs::core::SolarSystem> mSolarSystem;
 
-  std::unique_ptr<VistaOpenGLNode>        mGLNode;
+  std::unique_ptr<VistaOpenGLNode> mGLNode;
 
-  cs::utils::AnimatedValue<float>                     mFadeAnimation;
-  double                                              mLastChange;
-  int                                                 mAnimationTracker;
-  bool                                                mIsStill;
+  cs::utils::AnimatedValue<float> mFadeAnimation;
+  double                          mLastChange;
+  int                             mAnimationTracker;
+  bool                            mIsStill;
 
-  float                                               mCurrentInnerRadius;
-  float                                               mCurrentOuterRadius;
-  float                                               mLastInnerRadius = 1.4142F;
-  float                                               mLastOuterRadius = 1.4142F;
-  std::chrono::time_point<std::chrono::high_resolution_clock>  mLastTime;
-  float                                               mNormalizedVelocity;
+  float                                                       mCurrentInnerRadius;
+  float                                                       mCurrentOuterRadius;
+  float                                                       mLastInnerRadius = 1.4142F;
+  float                                                       mLastOuterRadius = 1.4142F;
+  std::chrono::time_point<std::chrono::high_resolution_clock> mLastTime;
+  float                                                       mNormalizedVelocity;
 
   float getNewRadius(float innerOuterRadius, float normVelocity, float lastRadius, double dT);
 
-  std::shared_ptr<Plugin::Settings>       mVignetteSettings;
-  VistaGLSLShader                         mShaderFade;
-  VistaGLSLShader                         mShaderDynRad;
-  VistaGLSLShader                         mShaderFadeVertOnly;
-  VistaGLSLShader                         mShaderDynRadVertOnly;
-  VistaVertexArrayObject                  mVAO;
-  VistaBufferObject                       mVBO;
+  std::shared_ptr<Plugin::Settings> mVignetteSettings;
+  VistaGLSLShader                   mShaderFade;
+  VistaGLSLShader                   mShaderDynRad;
+  VistaGLSLShader                   mShaderFadeVertOnly;
+  VistaGLSLShader                   mShaderDynRadVertOnly;
+  VistaVertexArrayObject            mVAO;
+  VistaBufferObject                 mVBO;
 
   struct GBufferData {
     std::unique_ptr<VistaTexture> mDepthBuffer;

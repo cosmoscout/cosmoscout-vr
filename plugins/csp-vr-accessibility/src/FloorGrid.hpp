@@ -28,12 +28,12 @@ namespace csp::vraccessibility {
 /// The floor grid. It renders below the celestial observer.
 /// The size determines the size of the grid squared and the falloff determines the distance
 /// after which the grid fades away.
-class FloorGrid : public IVistaOpenGLDraw{
+class FloorGrid : public IVistaOpenGLDraw {
  public:
   FloorGrid(std::shared_ptr<cs::core::SolarSystem> solarSystem);
 
   FloorGrid(FloorGrid const& other) = delete;
-  FloorGrid(FloorGrid&& other) = default;
+  FloorGrid(FloorGrid&& other)      = default;
 
   FloorGrid& operator=(FloorGrid const& other) = delete;
   FloorGrid& operator=(FloorGrid&& other) = delete;
@@ -50,17 +50,17 @@ class FloorGrid : public IVistaOpenGLDraw{
   bool GetBoundingBox(VistaBoundingBox& bb) override;
 
  private:
-  std::shared_ptr<cs::core::Settings>     mSettings;
-  std::shared_ptr<cs::core::SolarSystem>  mSolarSystem;
+  std::shared_ptr<cs::core::Settings>    mSettings;
+  std::shared_ptr<cs::core::SolarSystem> mSolarSystem;
 
-  std::unique_ptr<VistaTransformNode>     mOffsetNode;
-  std::unique_ptr<VistaOpenGLNode>        mGLNode;
+  std::unique_ptr<VistaTransformNode> mOffsetNode;
+  std::unique_ptr<VistaOpenGLNode>    mGLNode;
 
-  std::shared_ptr<Plugin::Settings>       mGridSettings;
-  std::unique_ptr<VistaTexture>           mTexture;
-  VistaGLSLShader                         mShader;
-  VistaVertexArrayObject                  mVAO;
-  VistaBufferObject                       mVBO;
+  std::shared_ptr<Plugin::Settings> mGridSettings;
+  std::unique_ptr<VistaTexture>     mTexture;
+  VistaGLSLShader                   mShader;
+  VistaVertexArrayObject            mVAO;
+  VistaBufferObject                 mVBO;
 
   static const char* VERT_SHADER;
   static const char* FRAG_SHADER;

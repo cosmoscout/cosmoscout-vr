@@ -188,4 +188,4 @@ void main()
 }
 )";
 
-} // namespace csp::vraccessibility  test
+} // namespace csp::vraccessibility
