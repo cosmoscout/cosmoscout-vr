@@ -83,6 +83,7 @@ void main(){
 FloorGrid::FloorGrid(std::shared_ptr<cs::core::SolarSystem> solarSystem)
     : mSolarSystem(std::move(solarSystem)) {
 
+  // Create initial Quad
   std::vector<glm::vec2> vertices(4);
   vertices[0] = glm::vec2(-1.F, -1.F);
   vertices[1] = glm::vec2(1.F, -1.F);
@@ -128,12 +129,14 @@ FloorGrid::~FloorGrid() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void FloorGrid::configure(std::shared_ptr<Plugin::Settings> settings) {
+  // check if texture settings changed 
   if (!mGridSettings || mGridSettings->mTexture.get() != settings->mTexture.get()) {
     mTexture = cs::graphics::TextureLoader::loadFromFile(settings->mTexture.get());
     mTexture->SetWrapS(GL_REPEAT);
     mTexture->SetWrapR(GL_REPEAT);
   }
   mGridSettings = settings;
+  // update Offset Node
   mOffsetNode->SetTranslation(0.0F, mGridSettings->mOffset.get(), 0.0F);
 }
 
@@ -146,6 +149,7 @@ void FloorGrid::update() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool FloorGrid::Do() {
+  // do nothing if grid is disabled
   if (!mGridSettings->mEnabled.get()) {
     return true;
   }

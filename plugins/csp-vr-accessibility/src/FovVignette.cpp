@@ -114,6 +114,7 @@ void FovVignette::configure(std::shared_ptr<Plugin::Settings> settings) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool FovVignette::Do() {
+  // do nothing if vignette is disabled
   if (!mVignetteSettings->mFovVignetteEnabled.get()) {
     return true;
   }
@@ -137,14 +138,16 @@ bool FovVignette::Do() {
   //////////////////////////////////////////////////////////////////////////////////////////////////
 
   // set uniforms
+  // check if dynamical vignette
   if (mVignetteSettings->mFovVignetteUseDynamicRadius.get()) {
-    // check if vertical only or circular vignetting
+    // check if vertical only (or circular vignetting), select shader accordingly
     VistaGLSLShader& shader = mVignetteSettings->mFovVignetteUseVerticalOnly.get()
                                   ? mShaderDynRadVertOnly
                                   : mShaderDynRad;
 
     shader.Bind();
 
+    // set uniforms for dynamical vignette
     shader.SetUniform(shader.GetUniformLocation("uTexture"), 0);
     shader.SetUniform(shader.GetUniformLocation("uNormVelocity"), mNormalizedVelocity);
     glUniform4fv(shader.GetUniformLocation("uCustomColor"), 1,
@@ -162,12 +165,13 @@ bool FovVignette::Do() {
     shader.SetUniform(
         shader.GetUniformLocation("uDebug"), mVignetteSettings->mFovVignetteDebug.get());
   } else {
-    // check if vertical only or circular vignetting
+    // check if vertical only (or circular vignetting), select shader accordingly
     VistaGLSLShader& shader =
         mVignetteSettings->mFovVignetteUseVerticalOnly.get() ? mShaderFadeVertOnly : mShaderFade;
 
     shader.Bind();
 
+    // set uniforms for static vignette
     shader.SetUniform(shader.GetUniformLocation("uTexture"), 0);
     double currentTime =
         cs::utils::convert::time::toSpice(boost::posix_time::microsec_clock::universal_time());
@@ -215,13 +219,15 @@ bool FovVignette::GetBoundingBox(VistaBoundingBox& bb) {
 
 float FovVignette::getNewRadius(
     float innerOuterRadius, float normVelocity, float lastRadius, double dT) {
+  /* Experimental Code for Framerate Compensation
   // target change from last radius (in %) per target time delta (avg frame time)
-  // float targetDiff = 0.1F;
-  // auto targetDtime = static_cast<float>(GetVistaSystem()->GetFrameLoop()->GetAverageLoopTime());
-  // float diffPerTargetDt = targetDiff / targetDtime;
+  float targetDiff = 0.1F;
+  auto targetDtime = static_cast<float>(GetVistaSystem()->GetFrameLoop()->GetAverageLoopTime());
+  float diffPerTargetDt = targetDiff / targetDtime;
 
   // (dT / targetDtime) >1 if dT > targetDtime, <1 if dT < targetDtime
-  // float x = diffPerTargetDt * (static_cast<float>(dT) / targetDtime);
+  float x = diffPerTargetDt * (static_cast<float>(dT) / targetDtime);
+  */
 
   // targetRadius based on interpolation between maxRadius and innerOuterRadius
   float targetRadius = ((1 - normVelocity) * sqrtf(2)) + (normVelocity * innerOuterRadius);
@@ -253,6 +259,7 @@ void FovVignette::updateDynamicRadiusVignette() {
   mCurrentOuterRadius = getNewRadius(mVignetteSettings->mFovVignetteOuterRadius.get(),
       mNormalizedVelocity, mLastOuterRadius, deltaTime);
 
+  // update variables
   mLastInnerRadius = mCurrentInnerRadius;
   mLastOuterRadius = mCurrentOuterRadius;
 }

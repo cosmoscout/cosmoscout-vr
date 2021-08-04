@@ -25,9 +25,9 @@ class SolarSystem;
 } // namespace cs::core
 
 namespace csp::vraccessibility {
-/// The floor grid. It renders below the celestial observer.
-/// The size determines the size of the grid squared and the falloff determines the distance
-/// after which the grid fades away.
+/// The floor grid renders as a texturised quad below the observer.
+/// The offset between the observer and the grid is set by a transformation node in the scenegraph.
+/// The settigs can be changed at runtime and determine the color and perceived size of the grid.
 class FloorGrid : public IVistaOpenGLDraw {
  public:
   FloorGrid(std::shared_ptr<cs::core::SolarSystem> solarSystem);
