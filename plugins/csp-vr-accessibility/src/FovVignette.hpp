@@ -65,7 +65,7 @@ class FovVignette : public IVistaOpenGLDraw{
   float                                               mCurrentOuterRadius;
   float                                               mLastInnerRadius = 1.4142F;
   float                                               mLastOuterRadius = 1.4142F;
-  std::chrono::time_point<std::chrono::system_clock>  mLastTime;
+  std::chrono::time_point<std::chrono::high_resolution_clock>  mLastTime;
   float                                               mNormalizedVelocity;
 
   float getNewRadius(float innerOuterRadius, float normVelocity, float lastRadius, double dT);
