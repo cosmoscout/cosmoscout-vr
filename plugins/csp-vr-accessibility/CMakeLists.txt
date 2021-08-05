@@ -37,7 +37,7 @@ set_source_files_properties(${RESOURCE_FILES} PROPERTIES HEADER_FILE_ONLY TRUE)
 
 # Make directory structure available in your IDE.
 source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES 
-  ${SOURCE_FILES} ${HEADER_FILES} ${RESOUCRE_FILES}
+  ${SOURCE_FILES} ${HEADER_FILES} ${RESOURCE_FILES}
 )
 
 # install plugin -----------------------------------------------------------------------------------
