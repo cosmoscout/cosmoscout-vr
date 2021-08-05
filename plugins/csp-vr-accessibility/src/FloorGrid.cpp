@@ -68,13 +68,13 @@ in vec3 vPosition;
 // outputs
 layout(location = 0) out vec4 oColor;
 
-void main(){
-    oColor = texture(uTexture, vTexCoords);
-    if (oColor.a == 0) {
-      discard;
-      }
-    oColor *= vec4(uCustomColor.r, uCustomColor.g, uCustomColor.b, uAlpha);
-    gl_FragDepth = length(vPosition) / uFarClip;
+void main() {
+  oColor = texture(uTexture, vTexCoords);
+  if (oColor.a == 0) {
+    discard;
+  }
+  oColor *= vec4(uCustomColor.r, uCustomColor.g, uCustomColor.b, uAlpha);
+  gl_FragDepth = length(vPosition) / uFarClip;
 })";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
