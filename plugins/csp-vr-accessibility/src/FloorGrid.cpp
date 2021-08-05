@@ -43,8 +43,8 @@ out vec2 vTexCoords;
 out vec3 vPosition;
 
 void main() {
-  vTexCoords  = vec2( (iQuadPos.x + 1)/2 * uFalloff * uSize,
-                      (iQuadPos.y + 1)/2 * uFalloff * uSize );
+  vTexCoords  = vec2((iQuadPos.x + 1) / 2 * uFalloff * uSize,
+                     (iQuadPos.y + 1) / 2 * uFalloff * uSize);
 
   vPosition   = (uMatModelView * vec4(iQuadPos.x * uFalloff, 0.0, iQuadPos.y * uFalloff, 1.0)).xyz;
   gl_Position = uMatProjection * vec4(vPosition, 1);
