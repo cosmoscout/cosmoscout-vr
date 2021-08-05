@@ -158,11 +158,12 @@ const char* FovVignette::FRAG_SHADER_DYNRAD_VERTONLY = R"(
 #version 330
 
 uniform sampler2D uTexture;
-uniform float uNormVelocity;
-uniform vec4 uCustomColor;
-uniform float uInnerRadius;
-uniform float uOuterRadius;
-uniform bool uDebug;
+uniform float     uNormVelocity;
+uniform vec4      uCustomColor;
+uniform float     uInnerRadius;
+uniform float     uOuterRadius;
+uniform bool      uDebug;
+
 float radiusInner = uInnerRadius;
 float radiusOuter = uOuterRadius;
 
