@@ -29,8 +29,8 @@ namespace csp::vraccessibility {
 const char* FloorGrid::VERT_SHADER = R"(
 #version 330
 
-uniform mat4 uMatModelView;
-uniform mat4 uMatProjection;
+uniform mat4  uMatModelView;
+uniform mat4  uMatProjection;
 uniform float uFalloff;
 uniform float uOffset;
 uniform float uSize;
