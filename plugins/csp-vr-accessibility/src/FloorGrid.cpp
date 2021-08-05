@@ -104,10 +104,6 @@ FloorGrid::FloorGrid(std::shared_ptr<cs::core::SolarSystem> solarSystem)
   // Add to scenegraph
   VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
 
-  // just GL Node (rings-method)
-  /*
-  mGLNode.reset(pSG->NewOpenGLNode(pSG->GetRoot(), this));
-  */
 
   // add to GUI Node (gui-method)
   auto* platform = GetVistaSystem()
