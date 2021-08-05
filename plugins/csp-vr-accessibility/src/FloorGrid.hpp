@@ -25,6 +25,7 @@ class SolarSystem;
 } // namespace cs::core
 
 namespace csp::vraccessibility {
+
 /// The floor grid renders as a texturised quad below the observer.
 /// The offset between the observer and the grid is set by a transformation node in the scenegraph.
 /// The settigs can be changed at runtime and determine the color and perceived size of the grid.
