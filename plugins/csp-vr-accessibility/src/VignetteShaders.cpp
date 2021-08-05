@@ -127,25 +127,27 @@ in vec3 vPosition;
 // outputs
 layout(location = 0) out vec4 oColor;
 
-void main()
-{
-    if (uFade == 0 && !uDebug ) { discard; }
+void main() {
+  if (uFade == 0 && !uDebug ) { discard; }
 
-    vec2 texSize = textureSize(uTexture, 0);
-    float ratio = texSize.y / texSize.x;
+  vec2 texSize = textureSize(uTexture, 0);
+  float ratio = texSize.y / texSize.x;
 
-    float dist = 0;
-    if (vPosition.y > 0) { dist = vPosition.y; }
-    else { dist = vPosition.y * -(0.7); }
+  float dist = 0;
+  if (vPosition.y > 0) { 
+    dist = vPosition.y; 
+  } else {
+    dist = vPosition.y * -0.7;
+  }
 
-    if (dist < uInnerRadius ) { discard; }
-    float r = ((dist - uInnerRadius) / (uOuterRadius - uInnerRadius));
-    oColor = mix(texture(uTexture, vTexCoords), uCustomColor, r);
-    if (dist > uOuterRadius) {
-      oColor.rgb = uCustomColor.rgb;
-    }
+  if (dist < uInnerRadius ) { discard; }
+  float r = (dist - uInnerRadius) / (uOuterRadius - uInnerRadius);
+  oColor = mix(texture(uTexture, vTexCoords), uCustomColor, r);
+  if (dist > uOuterRadius) {
+    oColor.rgb = uCustomColor.rgb;
+  }
 
-    if ( !uDebug ) { oColor.a = uFade; }
+  if ( !uDebug ) { oColor.a = uFade; }
 }
 )";
 
