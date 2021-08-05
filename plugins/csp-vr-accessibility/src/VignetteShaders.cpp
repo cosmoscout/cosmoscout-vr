@@ -90,21 +90,20 @@ in vec3 vPosition;
 // outputs
 layout(location = 0) out vec4 oColor;
 
-void main()
-{
-    if (uNormVelocity <= 0 && !uDebug ) { discard; }
+void main() {
+  if (uNormVelocity <= 0 && !uDebug ) { discard; }
 
-    vec2 texSize = textureSize(uTexture, 0);
-    float ratio = texSize.y / texSize.x;
+  vec2 texSize = textureSize(uTexture, 0);
+  float ratio = texSize.y / texSize.x;
 
-    float dist = sqrt(vPosition.x * vPosition.x + ratio * ratio * vPosition.y * vPosition.y);
+  float dist = sqrt(vPosition.x * vPosition.x + ratio * ratio * vPosition.y * vPosition.y);
 
-    if (dist < uInnerRadius ) { discard; }
-    float r = ((dist - uInnerRadius) / (uOuterRadius - uInnerRadius));
-    oColor = mix(texture(uTexture, vTexCoords), uCustomColor, r);
-    if (dist > uOuterRadius) {
-      oColor.rgb = uCustomColor.rgb;
-    }
+  if (dist < uInnerRadius ) { discard; }
+  float r = (dist - uInnerRadius) / (uOuterRadius - uInnerRadius);
+  oColor = mix(texture(uTexture, vTexCoords), uCustomColor, r);
+  if (dist > uOuterRadius) {
+    oColor.rgb = uCustomColor.rgb;
+  }
 }
 )";
 
