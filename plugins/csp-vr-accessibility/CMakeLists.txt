@@ -21,7 +21,7 @@ file(GLOB_RECURSE RESOURCE_FILES textures/*)
 add_library(csp-vr-accessibility SHARED
   ${SOURCE_FILES}
   ${HEADER_FILES}
-  ${RESOUCRE_FILES}
+  ${RESOURCE_FILES}
 )
 
 target_link_libraries(csp-vr-accessibility
