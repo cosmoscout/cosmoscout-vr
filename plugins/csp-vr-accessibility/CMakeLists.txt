@@ -33,7 +33,7 @@ target_link_libraries(csp-vr-accessibility
 set_property(TARGET csp-vr-accessibility PROPERTY FOLDER "plugins")
 
 # We mark all resource files as "header" in order to make sure that no one tries to compile them.
-set_source_files_properties(${RESOUCRE_FILES} PROPERTIES HEADER_FILE_ONLY TRUE)
+set_source_files_properties(${RESOURCE_FILES} PROPERTIES HEADER_FILE_ONLY TRUE)
 
 # Make directory structure available in your IDE.
 source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES 
