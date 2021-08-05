@@ -42,8 +42,7 @@ layout(location = 0) in vec2 iQuadPos;
 out vec2 vTexCoords;
 out vec3 vPosition;
 
-void main()
-{
+void main() {
   vTexCoords  = vec2( (iQuadPos.x + 1)/2 * uFalloff * uSize,
                       (iQuadPos.y + 1)/2 * uFalloff * uSize );
 
