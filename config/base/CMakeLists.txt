@@ -6,9 +6,6 @@
 
 # install platform dependent files -----------------------------------------------------------------
 if (WIN32)
-  install(FILES "spice/simple-windows.txt"            DESTINATION "share/config/spice" RENAME "simple.txt")
-  install(FILES "scene/simple_vive.json"              DESTINATION "share/config")
-  install(FILES "scene/full_desktop_vr-windows.json"  DESTINATION "share/config" RENAME "full_desktop_vr.json")
   install(FILES "scripts/start.bat"                   DESTINATION "bin")
 
   if (COSMOSCOUT_UNIT_TESTS)
@@ -18,7 +15,6 @@ endif()
 
 if (UNIX)
   install(FILES "spice/simple-linux.txt"            DESTINATION "share/config/spice" RENAME "simple.txt")
-  install(FILES "scene/full_desktop_vr-linux.json"  DESTINATION "share/config" RENAME "full_desktop_vr.json")
   install(FILES "scripts/start.sh"                  DESTINATION "bin"
           PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ)
   
