@@ -57,9 +57,9 @@ const char* FloorGrid::FRAG_SHADER = R"(
 #version 330
 
 uniform sampler2D uTexture;
-uniform float uFarClip;
-uniform float uAlpha;
-uniform vec4 uCustomColor;
+uniform float     uFarClip;
+uniform float     uAlpha;
+uniform vec4      uCustomColor;
 
 // inputs
 in vec2 vTexCoords;
