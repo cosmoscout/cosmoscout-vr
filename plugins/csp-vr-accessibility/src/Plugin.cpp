@@ -209,7 +209,7 @@ void Plugin::init() {
       [this](double value) { mGuiManager->setSliderValue("fovVignette.setDuration", value); });
   // register callback for fov vignette fade deadzone
   mGuiManager->getGui()->registerCallback("fovVignette.setDeadzone",
-      "Value to adjust the deadzone wherein the vignett ignores short movements (in seconds).",
+      "Value to adjust the deadzone wherein the vignette ignores short movements (in seconds).",
       std::function([this](double value) { mPluginSettings->mFovVignetteFadeDeadzone = value; }));
   mPluginSettings->mFovVignetteFadeDeadzone.connectAndTouch(
       [this](double value) { mGuiManager->setSliderValue("fovVignette.setDeadzone", value); });
