@@ -35,11 +35,11 @@ const char* FovVignette::FRAG_SHADER_FADE = R"(
 #version 330
 
 uniform sampler2D uTexture;
-uniform float uFade;
-uniform vec4 uCustomColor;
-uniform float uInnerRadius;
-uniform float uOuterRadius;
-uniform bool uDebug;
+uniform float     uFade;
+uniform vec4      uCustomColor;
+uniform float     uInnerRadius;
+uniform float     uOuterRadius;
+uniform bool      uDebug;
 
 // inputs
 in vec2 vTexCoords;
