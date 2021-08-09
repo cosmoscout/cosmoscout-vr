@@ -27,6 +27,7 @@ class SolarSystem;
 } // namespace cs::core
 
 namespace csp::vraccessibility {
+
 /// The FoV Vignette draws a vignette when the observer is moving.
 /// The Vignette is split into 4 different Options: dynamical or static vignetting, and vertical or
 /// circular vignette.
