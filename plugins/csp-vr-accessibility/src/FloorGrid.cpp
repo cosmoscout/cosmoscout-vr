@@ -83,7 +83,7 @@ FloorGrid::FloorGrid(std::shared_ptr<cs::core::SolarSystem> solarSystem, Plugin:
     : mSolarSystem(std::move(solarSystem)), mGridSettings(gridSettings) {
 
   // Create initial Quad
-  std::vector<glm::vec2> vertices(4);
+  std::array<glm::vec2, 4> vertices{};
   vertices[0] = glm::vec2(-1.F, -1.F);
   vertices[1] = glm::vec2(1.F, -1.F);
   vertices[2] = glm::vec2(1.F, 1.F);
