@@ -81,6 +81,28 @@ class FovVignette : public IVistaOpenGLDraw {
   VistaVertexArrayObject                      mVAO;
   VistaBufferObject                           mVBO;
 
+  struct {
+    struct {
+      uint32_t texture = 0;
+      uint32_t normVelocity = 0;
+      uint32_t color = 0;
+      uint32_t innerRadius = 0;
+      uint32_t outerRadius = 0;
+      uint32_t debug = 0;
+    } dynamic, dynamicVertical;
+    
+    struct {
+      uint32_t texture = 0;
+      uint32_t fade = 0;
+      uint32_t color = 0;
+      uint32_t innerRadius = 0;
+      uint32_t outerRadius = 0;
+      uint32_t debug = 0;
+    } fade, fadeVertical;
+    
+  } mUniforms;
+
+
   struct GBufferData {
     std::unique_ptr<VistaTexture> mDepthBuffer;
     std::unique_ptr<VistaTexture> mColorBuffer;

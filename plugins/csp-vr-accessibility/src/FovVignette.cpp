@@ -64,23 +64,46 @@ FovVignette::FovVignette(std::shared_ptr<cs::core::SolarSystem> solarSystem, Plu
     mGBufferData.emplace(viewport.second, std::move(bufferData));
   }
 
-  // create shaders
+  // create shaders & get uniform locations
   mShaderFade.InitVertexShaderFromString(VERT_SHADER);
   mShaderFade.InitFragmentShaderFromString(FRAG_SHADER_FADE);
   mShaderFade.Link();
+  mUniforms.fade.texture = mShaderFade.GetUniformLocation("uTexture");
+  mUniforms.fade.fade = mShaderFade.GetUniformLocation("uFade");
+  mUniforms.fade.color = mShaderFade.GetUniformLocation("uCustomColor");
+  mUniforms.fade.innerRadius = mShaderFade.GetUniformLocation("uInnerRadius");
+  mUniforms.fade.outerRadius = mShaderFade.GetUniformLocation("uOuterRadius");
+  mUniforms.fade.debug = mShaderFade.GetUniformLocation("uDebug");
 
   mShaderDynRad.InitVertexShaderFromString(VERT_SHADER);
   mShaderDynRad.InitFragmentShaderFromString(FRAG_SHADER_DYNRAD);
   mShaderDynRad.Link();
+  mUniforms.dynamic.texture = mShaderDynRad.GetUniformLocation("uTexture");
+  mUniforms.dynamic.normVelocity = mShaderDynRad.GetUniformLocation("uNormVelocity");
+  mUniforms.dynamic.color = mShaderDynRad.GetUniformLocation("uCustomColor");
+  mUniforms.dynamic.innerRadius = mShaderDynRad.GetUniformLocation("uInnerRadius");
+  mUniforms.dynamic.outerRadius = mShaderDynRad.GetUniformLocation("uOuterRadius");
+  mUniforms.dynamic.debug = mShaderDynRad.GetUniformLocation("uDebug");
 
-  // link shader
   mShaderFadeVertOnly.InitVertexShaderFromString(VERT_SHADER);
   mShaderFadeVertOnly.InitFragmentShaderFromString(FRAG_SHADER_FADE_VERTONLY);
   mShaderFadeVertOnly.Link();
+  mUniforms.fadeVertical.texture = mShaderFadeVertOnly.GetUniformLocation("uTexture");
+  mUniforms.fadeVertical.fade = mShaderFadeVertOnly.GetUniformLocation("uFade");
+  mUniforms.fadeVertical.color = mShaderFadeVertOnly.GetUniformLocation("uCustomColor");
+  mUniforms.fadeVertical.innerRadius = mShaderFadeVertOnly.GetUniformLocation("uInnerRadius");
+  mUniforms.fadeVertical.outerRadius = mShaderFadeVertOnly.GetUniformLocation("uOuterRadius");
+  mUniforms.fadeVertical.debug = mShaderFadeVertOnly.GetUniformLocation("uDebug");
 
   mShaderDynRadVertOnly.InitVertexShaderFromString(VERT_SHADER);
   mShaderDynRadVertOnly.InitFragmentShaderFromString(FRAG_SHADER_DYNRAD_VERTONLY);
   mShaderDynRadVertOnly.Link();
+  mUniforms.dynamicVertical.texture = mShaderDynRadVertOnly.GetUniformLocation("uTexture");
+  mUniforms.dynamicVertical.normVelocity = mShaderDynRadVertOnly.GetUniformLocation("uNormVelocity");
+  mUniforms.dynamicVertical.color = mShaderDynRadVertOnly.GetUniformLocation("uCustomColor");
+  mUniforms.dynamicVertical.innerRadius = mShaderDynRadVertOnly.GetUniformLocation("uInnerRadius");
+  mUniforms.dynamicVertical.outerRadius = mShaderDynRadVertOnly.GetUniformLocation("uOuterRadius");
+  mUniforms.dynamicVertical.debug = mShaderDynRadVertOnly.GetUniformLocation("uDebug");
 
   // add to scenegraph
   VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
@@ -139,46 +162,43 @@ bool FovVignette::Do() {
     VistaGLSLShader& shader = mVignetteSettings.mUseVerticalOnly.get()
                                   ? mShaderDynRadVertOnly
                                   : mShaderDynRad;
+    auto uniformLocs = mVignetteSettings.mUseVerticalOnly.get() ? mUniforms.dynamicVertical : mUniforms.dynamic;
 
     shader.Bind();
 
     // set uniforms for dynamical vignette
-    shader.SetUniform(shader.GetUniformLocation("uTexture"), 0);
-    shader.SetUniform(shader.GetUniformLocation("uNormVelocity"), mNormalizedVelocity);
-    glUniform4fv(shader.GetUniformLocation("uCustomColor"), 1,
-        glm::value_ptr(Plugin::GetColorFromHexString(mVignetteSettings.mColor.get())));
-    shader.SetUniform(shader.GetUniformLocation("uInnerRadius"),
+    shader.SetUniform(uniformLocs.texture, 0);
+    shader.SetUniform(uniformLocs.normVelocity, mNormalizedVelocity);
+    glUniform4fv(uniformLocs.color, 1, glm::value_ptr(Plugin::GetColorFromHexString(mVignetteSettings.mColor.get())));
+    shader.SetUniform(uniformLocs.innerRadius,
         // override current radius if debug enabled
         mVignetteSettings.mDebug.get()
             ? mVignetteSettings.mInnerRadius.get()
             : mCurrentInnerRadius);
-    shader.SetUniform(shader.GetUniformLocation("uOuterRadius"),
+    shader.SetUniform(uniformLocs.outerRadius,
         // override current radius if debug enabled
         mVignetteSettings.mDebug.get()
             ? mVignetteSettings.mOuterRadius.get()
             : mCurrentOuterRadius);
-    shader.SetUniform(
-        shader.GetUniformLocation("uDebug"), mVignetteSettings.mDebug.get());
+    shader.SetUniform(uniformLocs.debug, mVignetteSettings.mDebug.get());
   } else {
     // check if vertical only (or circular vignetting), select shader accordingly
     VistaGLSLShader& shader =
         mVignetteSettings.mUseVerticalOnly.get() ? mShaderFadeVertOnly : mShaderFade;
+    auto uniformLocs = 
+        mVignetteSettings.mUseVerticalOnly.get() ? mUniforms.fadeVertical : mUniforms.fade;
 
     shader.Bind();
 
     // set uniforms for static vignette
-    shader.SetUniform(shader.GetUniformLocation("uTexture"), 0);
+    shader.SetUniform(uniformLocs.texture, 0);
     double currentTime =
         cs::utils::convert::time::toSpice(boost::posix_time::microsec_clock::universal_time());
-    shader.SetUniform(shader.GetUniformLocation("uFade"), mFadeAnimation.get(currentTime));
-    glUniform4fv(shader.GetUniformLocation("uCustomColor"), 1,
-        glm::value_ptr(Plugin::GetColorFromHexString(mVignetteSettings.mColor.get())));
-    shader.SetUniform(shader.GetUniformLocation("uInnerRadius"),
-        mVignetteSettings.mInnerRadius.get());
-    shader.SetUniform(shader.GetUniformLocation("uOuterRadius"),
-        mVignetteSettings.mOuterRadius.get());
-    shader.SetUniform(
-        shader.GetUniformLocation("uDebug"), mVignetteSettings.mDebug.get());
+    shader.SetUniform(uniformLocs.fade, mFadeAnimation.get(currentTime));
+    glUniform4fv(uniformLocs.color, 1, glm::value_ptr(Plugin::GetColorFromHexString(mVignetteSettings.mColor.get())));
+    shader.SetUniform(uniformLocs.innerRadius, mVignetteSettings.mInnerRadius.get());
+    shader.SetUniform(uniformLocs.outerRadius, mVignetteSettings.mOuterRadius.get());
+    shader.SetUniform(uniformLocs.debug, mVignetteSettings.mDebug.get());
   }
 
   // bind texture
