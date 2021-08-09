@@ -33,7 +33,8 @@ namespace csp::vraccessibility {
 /// circular vignette.
 class FovVignette : public IVistaOpenGLDraw {
  public:
-  FovVignette(std::shared_ptr<cs::core::SolarSystem> solarSystem, Plugin::Settings::Vignette& vignetteSettings);
+  FovVignette(std::shared_ptr<cs::core::SolarSystem> solarSystem,
+      Plugin::Settings::Vignette&                    vignetteSettings);
 
   FovVignette(FovVignette const& other) = delete;
   FovVignette(FovVignette&& other)      = default;
@@ -73,35 +74,34 @@ class FovVignette : public IVistaOpenGLDraw {
 
   float getNewRadius(float innerOuterRadius, float normVelocity, float lastRadius, double dT);
 
-  Plugin::Settings::Vignette&                 mVignetteSettings;
-  VistaGLSLShader                             mShaderFade;
-  VistaGLSLShader                             mShaderDynRad;
-  VistaGLSLShader                             mShaderFadeVertOnly;
-  VistaGLSLShader                             mShaderDynRadVertOnly;
-  VistaVertexArrayObject                      mVAO;
-  VistaBufferObject                           mVBO;
+  Plugin::Settings::Vignette& mVignetteSettings;
+  VistaGLSLShader             mShaderFade;
+  VistaGLSLShader             mShaderDynRad;
+  VistaGLSLShader             mShaderFadeVertOnly;
+  VistaGLSLShader             mShaderDynRadVertOnly;
+  VistaVertexArrayObject      mVAO;
+  VistaBufferObject           mVBO;
 
   struct {
     struct {
-      uint32_t texture = 0;
+      uint32_t texture      = 0;
       uint32_t normVelocity = 0;
-      uint32_t color = 0;
-      uint32_t innerRadius = 0;
-      uint32_t outerRadius = 0;
-      uint32_t debug = 0;
+      uint32_t color        = 0;
+      uint32_t innerRadius  = 0;
+      uint32_t outerRadius  = 0;
+      uint32_t debug        = 0;
     } dynamic, dynamicVertical;
-    
+
     struct {
-      uint32_t texture = 0;
-      uint32_t fade = 0;
-      uint32_t color = 0;
+      uint32_t texture     = 0;
+      uint32_t fade        = 0;
+      uint32_t color       = 0;
       uint32_t innerRadius = 0;
       uint32_t outerRadius = 0;
-      uint32_t debug = 0;
+      uint32_t debug       = 0;
     } fade, fadeVertical;
-    
-  } mUniforms;
 
+  } mUniforms;
 
   struct GBufferData {
     std::unique_ptr<VistaTexture> mDepthBuffer;

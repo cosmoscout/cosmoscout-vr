@@ -109,14 +109,14 @@ void Plugin::init() {
   mGuiManager->addSettingsSectionToSideBarFromHTML(
       "VR Accessibility", "blur_circular", "../share/resources/gui/vr_accessibility_settings.html");
   mGuiManager->addScriptToGuiFromJS("../share/resources/gui/js/csp-vr-accessibility.js");
-  
+
   // register callback for grid enable grid checkbox
   mGuiManager->getGui()->registerCallback("floorGrid.setEnabled",
       "Enables or disables rendering the grid.",
       std::function([this](bool enable) { mPluginSettings->mGridSettings.mEnabled = enable; }));
   mPluginSettings->mGridSettings.mEnabled.connectAndTouch(
       [this](bool enable) { mGuiManager->setCheckboxValue("floorGrid.setEnabled", enable); });
-  
+
   // register callback for grid size slider
   mGuiManager->getGui()->registerCallback("floorGrid.setSize",
       "Value scales the grid size between 0.5 (doubles the square size) and 2 (halves square "
@@ -127,7 +127,7 @@ void Plugin::init() {
   mPluginSettings->mGridSettings.mSize.connectAndTouch([this](float value) {
     mGuiManager->setSliderValue("floorGrid.setSize", std::round(std::log2(value)));
   });
-  
+
   // register callback for grid offset slider
   mGuiManager->getGui()->registerCallback("floorGrid.setOffset",
       "Value to adjust downward offset of the grid.", std::function([this](double value) {
@@ -135,13 +135,15 @@ void Plugin::init() {
       }));
   mPluginSettings->mGridSettings.mOffset.connectAndTouch(
       [this](float value) { mGuiManager->setSliderValue("floorGrid.setOffset", value); });
-  
+
   // register callback for grid alpha slider
-  mGuiManager->getGui()->registerCallback("floorGrid.setAlpha", "Value to adjust grid opacity.",
-      std::function([this](double value) { mPluginSettings->mGridSettings.mAlpha = static_cast<float>(value); }));
+  mGuiManager->getGui()->registerCallback(
+      "floorGrid.setAlpha", "Value to adjust grid opacity.", std::function([this](double value) {
+        mPluginSettings->mGridSettings.mAlpha = static_cast<float>(value);
+      }));
   mPluginSettings->mGridSettings.mAlpha.connectAndTouch(
       [this](float value) { mGuiManager->setSliderValue("floorGrid.setAlpha", value); });
-  
+
   // register callback for grid color picker
   mGuiManager->getGui()->registerCallback("floorGrid.setColor",
       "Value to adjust color of the grid.", std::function([this](std::string value) {
@@ -150,21 +152,21 @@ void Plugin::init() {
   mPluginSettings->mGridSettings.mColor.connectAndTouch([this](std::string value) {
     mGuiManager->getGui()->callJavascript("CosmoScout.floorGrid.setColorValue", value);
   });
-  
+
   // register callback for fov vignette enable checkbox
   mGuiManager->getGui()->registerCallback("fovVignette.setEnabled",
       "Enables or disables a Vignette limiting the FoV on movement.",
       std::function([this](bool enable) { mPluginSettings->mVignetteSettings.mEnabled = enable; }));
   mPluginSettings->mVignetteSettings.mEnabled.connectAndTouch(
       [this](bool enable) { mGuiManager->setCheckboxValue("fovVignette.setEnabled", enable); });
-  
+
   // register callback for fov vignette debug checkbox
   mGuiManager->getGui()->registerCallback("fovVignette.setDebug",
       "Enables or disables the vignette to be drawn permanently.",
       std::function([this](bool enable) { mPluginSettings->mVignetteSettings.mDebug = enable; }));
   mPluginSettings->mVignetteSettings.mDebug.connectAndTouch(
       [this](bool enable) { mGuiManager->setCheckboxValue("fovVignette.setDebug", enable); });
-  
+
   // register callback for fov vignette use dynamic radius
   mGuiManager->getGui()->registerCallback("fovVignette.setEnableDynamicRadius",
       "Dynamically adjust the radius based on velocity instead of fading the vignette in.",
@@ -173,7 +175,7 @@ void Plugin::init() {
   mPluginSettings->mVignetteSettings.mUseDynamicRadius.connectAndTouch([this](bool enable) {
     mGuiManager->setCheckboxValue("fovVignette.setEnableDynamicRadius", enable);
   });
-  
+
   // register callback for fov vignette use vertical vignetting only
   mGuiManager->getGui()->registerCallback("fovVignette.setEnableVerticalOnly",
       "Only use a vertical vignette, instead of a circular.", std::function([this](bool enable) {
@@ -182,7 +184,7 @@ void Plugin::init() {
   mPluginSettings->mVignetteSettings.mUseVerticalOnly.connectAndTouch([this](bool enable) {
     mGuiManager->setCheckboxValue("fovVignette.setEnableVerticalOnly", enable);
   });
-  
+
   // register callback for fov vignette inner radius slider
   mGuiManager->getGui()->registerCallback("fovVignette.setInnerRadius",
       "Value to adjust the inner radius (start of gradient) of the vignette.",
@@ -191,7 +193,7 @@ void Plugin::init() {
       }));
   mPluginSettings->mVignetteSettings.mInnerRadius.connectAndTouch(
       [this](float value) { mGuiManager->setSliderValue("fovVignette.setInnerRadius", value); });
-  
+
   // register callback for fov vignette outer radius slider
   mGuiManager->getGui()->registerCallback("fovVignette.setOuterRadius",
       "Value to adjust the outer radius (end of gradient) of the vignette.",
@@ -200,7 +202,7 @@ void Plugin::init() {
       }));
   mPluginSettings->mVignetteSettings.mOuterRadius.connectAndTouch(
       [this](float value) { mGuiManager->setSliderValue("fovVignette.setOuterRadius", value); });
-  
+
   // register callback for fov vignette color picker
   mGuiManager->getGui()->registerCallback("fovVignette.setColor",
       "Value to adjust the color of the vignette.", std::function([this](std::string value) {
@@ -209,7 +211,7 @@ void Plugin::init() {
   mPluginSettings->mVignetteSettings.mColor.connectAndTouch([this](std::string value) {
     mGuiManager->getGui()->callJavascript("CosmoScout.fovVignette.setColorValue", value);
   });
-  
+
   // register callback for fov vignette lower velocity threshold
   mGuiManager->getGui()->registerCallback("fovVignette.setLowerThreshold",
       "Value to adjust the minimum velocity threshold when the vignette should be drawn (values "
@@ -219,7 +221,7 @@ void Plugin::init() {
       }));
   mPluginSettings->mVignetteSettings.mLowerVelocityThreshold.connectAndTouch(
       [this](float value) { mGuiManager->setSliderValue("fovVignette.setLowerThreshold", value); });
-  
+
   // register callback for fov vignette upper velocity threshold
   mGuiManager->getGui()->registerCallback("fovVignette.setUpperThreshold",
       "Value to adjust the maximum velocity threshold when the vignette should be set to the "
@@ -229,18 +231,20 @@ void Plugin::init() {
       }));
   mPluginSettings->mVignetteSettings.mUpperVelocityThreshold.connectAndTouch(
       [this](float value) { mGuiManager->setSliderValue("fovVignette.setUpperThreshold", value); });
-  
+
   // register callback for fov vignette fade duration slider
   mGuiManager->getGui()->registerCallback("fovVignette.setDuration",
       "Value to adjust the fade animation for the vignette (in seconds).",
-      std::function([this](double value) { mPluginSettings->mVignetteSettings.mFadeDuration = value; }));
+      std::function(
+          [this](double value) { mPluginSettings->mVignetteSettings.mFadeDuration = value; }));
   mPluginSettings->mVignetteSettings.mFadeDuration.connectAndTouch(
       [this](double value) { mGuiManager->setSliderValue("fovVignette.setDuration", value); });
-  
+
   // register callback for fov vignette fade deadzone
   mGuiManager->getGui()->registerCallback("fovVignette.setDeadzone",
       "Value to adjust the deadzone wherein the vignette ignores short movements (in seconds).",
-      std::function([this](double value) { mPluginSettings->mVignetteSettings.mFadeDeadzone = value; }));
+      std::function(
+          [this](double value) { mPluginSettings->mVignetteSettings.mFadeDeadzone = value; }));
   mPluginSettings->mVignetteSettings.mFadeDeadzone.connectAndTouch(
       [this](double value) { mGuiManager->setSliderValue("fovVignette.setDeadzone", value); });
 

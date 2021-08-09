@@ -31,7 +31,8 @@ namespace csp::vraccessibility {
 /// The settings can be changed at runtime and determine the color and perceived size of the grid.
 class FloorGrid : public IVistaOpenGLDraw {
  public:
-  FloorGrid(std::shared_ptr<cs::core::SolarSystem> solarSystem, Plugin::Settings::Grid& gridSettings);
+  FloorGrid(
+      std::shared_ptr<cs::core::SolarSystem> solarSystem, Plugin::Settings::Grid& gridSettings);
 
   FloorGrid(FloorGrid const& other) = delete;
   FloorGrid(FloorGrid&& other)      = default;
@@ -57,11 +58,11 @@ class FloorGrid : public IVistaOpenGLDraw {
   std::unique_ptr<VistaTransformNode> mOffsetNode;
   std::unique_ptr<VistaOpenGLNode>    mGLNode;
 
-  Plugin::Settings::Grid& mGridSettings;
-  std::unique_ptr<VistaTexture>           mTexture;
-  VistaGLSLShader                         mShader;
-  VistaVertexArrayObject                  mVAO;
-  VistaBufferObject                       mVBO;
+  Plugin::Settings::Grid&       mGridSettings;
+  std::unique_ptr<VistaTexture> mTexture;
+  VistaGLSLShader               mShader;
+  VistaVertexArrayObject        mVAO;
+  VistaBufferObject             mVBO;
 
   struct {
     uint32_t modelViewMatrix  = 0;

@@ -27,8 +27,10 @@
 
 namespace csp::vraccessibility {
 
-FovVignette::FovVignette(std::shared_ptr<cs::core::SolarSystem> solarSystem, Plugin::Settings::Vignette& vignetteSettings)
-    : mSolarSystem(std::move(solarSystem)), mVignetteSettings(vignetteSettings) {
+FovVignette::FovVignette(std::shared_ptr<cs::core::SolarSystem> solarSystem,
+    Plugin::Settings::Vignette&                                 vignetteSettings)
+    : mSolarSystem(std::move(solarSystem))
+    , mVignetteSettings(vignetteSettings) {
 
   // create quad
   std::array<float, 8> const data{-1, 1, 1, 1, -1, -1, 1, -1};
@@ -68,42 +70,43 @@ FovVignette::FovVignette(std::shared_ptr<cs::core::SolarSystem> solarSystem, Plu
   mShaderFade.InitVertexShaderFromString(VERT_SHADER);
   mShaderFade.InitFragmentShaderFromString(FRAG_SHADER_FADE);
   mShaderFade.Link();
-  mUniforms.fade.texture = mShaderFade.GetUniformLocation("uTexture");
-  mUniforms.fade.fade = mShaderFade.GetUniformLocation("uFade");
-  mUniforms.fade.color = mShaderFade.GetUniformLocation("uCustomColor");
+  mUniforms.fade.texture     = mShaderFade.GetUniformLocation("uTexture");
+  mUniforms.fade.fade        = mShaderFade.GetUniformLocation("uFade");
+  mUniforms.fade.color       = mShaderFade.GetUniformLocation("uCustomColor");
   mUniforms.fade.innerRadius = mShaderFade.GetUniformLocation("uInnerRadius");
   mUniforms.fade.outerRadius = mShaderFade.GetUniformLocation("uOuterRadius");
-  mUniforms.fade.debug = mShaderFade.GetUniformLocation("uDebug");
+  mUniforms.fade.debug       = mShaderFade.GetUniformLocation("uDebug");
 
   mShaderDynRad.InitVertexShaderFromString(VERT_SHADER);
   mShaderDynRad.InitFragmentShaderFromString(FRAG_SHADER_DYNRAD);
   mShaderDynRad.Link();
-  mUniforms.dynamic.texture = mShaderDynRad.GetUniformLocation("uTexture");
+  mUniforms.dynamic.texture      = mShaderDynRad.GetUniformLocation("uTexture");
   mUniforms.dynamic.normVelocity = mShaderDynRad.GetUniformLocation("uNormVelocity");
-  mUniforms.dynamic.color = mShaderDynRad.GetUniformLocation("uCustomColor");
-  mUniforms.dynamic.innerRadius = mShaderDynRad.GetUniformLocation("uInnerRadius");
-  mUniforms.dynamic.outerRadius = mShaderDynRad.GetUniformLocation("uOuterRadius");
-  mUniforms.dynamic.debug = mShaderDynRad.GetUniformLocation("uDebug");
+  mUniforms.dynamic.color        = mShaderDynRad.GetUniformLocation("uCustomColor");
+  mUniforms.dynamic.innerRadius  = mShaderDynRad.GetUniformLocation("uInnerRadius");
+  mUniforms.dynamic.outerRadius  = mShaderDynRad.GetUniformLocation("uOuterRadius");
+  mUniforms.dynamic.debug        = mShaderDynRad.GetUniformLocation("uDebug");
 
   mShaderFadeVertOnly.InitVertexShaderFromString(VERT_SHADER);
   mShaderFadeVertOnly.InitFragmentShaderFromString(FRAG_SHADER_FADE_VERTONLY);
   mShaderFadeVertOnly.Link();
-  mUniforms.fadeVertical.texture = mShaderFadeVertOnly.GetUniformLocation("uTexture");
-  mUniforms.fadeVertical.fade = mShaderFadeVertOnly.GetUniformLocation("uFade");
-  mUniforms.fadeVertical.color = mShaderFadeVertOnly.GetUniformLocation("uCustomColor");
+  mUniforms.fadeVertical.texture     = mShaderFadeVertOnly.GetUniformLocation("uTexture");
+  mUniforms.fadeVertical.fade        = mShaderFadeVertOnly.GetUniformLocation("uFade");
+  mUniforms.fadeVertical.color       = mShaderFadeVertOnly.GetUniformLocation("uCustomColor");
   mUniforms.fadeVertical.innerRadius = mShaderFadeVertOnly.GetUniformLocation("uInnerRadius");
   mUniforms.fadeVertical.outerRadius = mShaderFadeVertOnly.GetUniformLocation("uOuterRadius");
-  mUniforms.fadeVertical.debug = mShaderFadeVertOnly.GetUniformLocation("uDebug");
+  mUniforms.fadeVertical.debug       = mShaderFadeVertOnly.GetUniformLocation("uDebug");
 
   mShaderDynRadVertOnly.InitVertexShaderFromString(VERT_SHADER);
   mShaderDynRadVertOnly.InitFragmentShaderFromString(FRAG_SHADER_DYNRAD_VERTONLY);
   mShaderDynRadVertOnly.Link();
   mUniforms.dynamicVertical.texture = mShaderDynRadVertOnly.GetUniformLocation("uTexture");
-  mUniforms.dynamicVertical.normVelocity = mShaderDynRadVertOnly.GetUniformLocation("uNormVelocity");
-  mUniforms.dynamicVertical.color = mShaderDynRadVertOnly.GetUniformLocation("uCustomColor");
+  mUniforms.dynamicVertical.normVelocity =
+      mShaderDynRadVertOnly.GetUniformLocation("uNormVelocity");
+  mUniforms.dynamicVertical.color       = mShaderDynRadVertOnly.GetUniformLocation("uCustomColor");
   mUniforms.dynamicVertical.innerRadius = mShaderDynRadVertOnly.GetUniformLocation("uInnerRadius");
   mUniforms.dynamicVertical.outerRadius = mShaderDynRadVertOnly.GetUniformLocation("uOuterRadius");
-  mUniforms.dynamicVertical.debug = mShaderDynRadVertOnly.GetUniformLocation("uDebug");
+  mUniforms.dynamicVertical.debug       = mShaderDynRadVertOnly.GetUniformLocation("uDebug");
 
   // add to scenegraph
   VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
@@ -117,10 +120,10 @@ FovVignette::FovVignette(std::shared_ptr<cs::core::SolarSystem> solarSystem, Plu
       mGLNode.get(), static_cast<int>(cs::utils::DrawOrder::eGui) - 1);
 
   // init animation housekeeping
-  mFadeAnimation    = cs::utils::AnimatedValue(0.0F, 0.0F, 0.0, 0.0);
-  mLastChange       = 0.0;
+  mFadeAnimation = cs::utils::AnimatedValue(0.0F, 0.0F, 0.0, 0.0);
+  mLastChange    = 0.0;
   mStartedMoving = false;
-  mIsStill          = false;
+  mIsStill       = false;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -159,33 +162,32 @@ bool FovVignette::Do() {
   // check if dynamical vignette
   if (mVignetteSettings.mUseDynamicRadius.get()) {
     // check if vertical only (or circular vignetting), select shader accordingly
-    VistaGLSLShader& shader = mVignetteSettings.mUseVerticalOnly.get()
-                                  ? mShaderDynRadVertOnly
-                                  : mShaderDynRad;
-    auto uniformLocs = mVignetteSettings.mUseVerticalOnly.get() ? mUniforms.dynamicVertical : mUniforms.dynamic;
+    VistaGLSLShader& shader =
+        mVignetteSettings.mUseVerticalOnly.get() ? mShaderDynRadVertOnly : mShaderDynRad;
+    auto uniformLocs =
+        mVignetteSettings.mUseVerticalOnly.get() ? mUniforms.dynamicVertical : mUniforms.dynamic;
 
     shader.Bind();
 
     // set uniforms for dynamical vignette
     shader.SetUniform(uniformLocs.texture, 0);
     shader.SetUniform(uniformLocs.normVelocity, mNormalizedVelocity);
-    glUniform4fv(uniformLocs.color, 1, glm::value_ptr(Plugin::GetColorFromHexString(mVignetteSettings.mColor.get())));
+    glUniform4fv(uniformLocs.color, 1,
+        glm::value_ptr(Plugin::GetColorFromHexString(mVignetteSettings.mColor.get())));
     shader.SetUniform(uniformLocs.innerRadius,
         // override current radius if debug enabled
-        mVignetteSettings.mDebug.get()
-            ? mVignetteSettings.mInnerRadius.get()
-            : mCurrentInnerRadius);
+        mVignetteSettings.mDebug.get() ? mVignetteSettings.mInnerRadius.get()
+                                       : mCurrentInnerRadius);
     shader.SetUniform(uniformLocs.outerRadius,
         // override current radius if debug enabled
-        mVignetteSettings.mDebug.get()
-            ? mVignetteSettings.mOuterRadius.get()
-            : mCurrentOuterRadius);
+        mVignetteSettings.mDebug.get() ? mVignetteSettings.mOuterRadius.get()
+                                       : mCurrentOuterRadius);
     shader.SetUniform(uniformLocs.debug, mVignetteSettings.mDebug.get());
   } else {
     // check if vertical only (or circular vignetting), select shader accordingly
     VistaGLSLShader& shader =
         mVignetteSettings.mUseVerticalOnly.get() ? mShaderFadeVertOnly : mShaderFade;
-    auto uniformLocs = 
+    auto uniformLocs =
         mVignetteSettings.mUseVerticalOnly.get() ? mUniforms.fadeVertical : mUniforms.fade;
 
     shader.Bind();
@@ -195,7 +197,8 @@ bool FovVignette::Do() {
     double currentTime =
         cs::utils::convert::time::toSpice(boost::posix_time::microsec_clock::universal_time());
     shader.SetUniform(uniformLocs.fade, mFadeAnimation.get(currentTime));
-    glUniform4fv(uniformLocs.color, 1, glm::value_ptr(Plugin::GetColorFromHexString(mVignetteSettings.mColor.get())));
+    glUniform4fv(uniformLocs.color, 1,
+        glm::value_ptr(Plugin::GetColorFromHexString(mVignetteSettings.mColor.get())));
     shader.SetUniform(uniformLocs.innerRadius, mVignetteSettings.mInnerRadius.get());
     shader.SetUniform(uniformLocs.outerRadius, mVignetteSettings.mOuterRadius.get());
     shader.SetUniform(uniformLocs.debug, mVignetteSettings.mDebug.get());
@@ -260,10 +263,10 @@ void FovVignette::updateDynamicRadiusVignette() {
   // clamp NormalizedVelocity to upper threshold
   mNormalizedVelocity = (mNormalizedVelocity > 1.0F) ? 1.0F : mNormalizedVelocity;
 
-  mCurrentInnerRadius = getNewRadius(mVignetteSettings.mInnerRadius.get(),
-      mNormalizedVelocity, mLastInnerRadius, deltaTime);
-  mCurrentOuterRadius = getNewRadius(mVignetteSettings.mOuterRadius.get(),
-      mNormalizedVelocity, mLastOuterRadius, deltaTime);
+  mCurrentInnerRadius = getNewRadius(
+      mVignetteSettings.mInnerRadius.get(), mNormalizedVelocity, mLastInnerRadius, deltaTime);
+  mCurrentOuterRadius = getNewRadius(
+      mVignetteSettings.mOuterRadius.get(), mNormalizedVelocity, mLastOuterRadius, deltaTime);
 
   // update variables
   mLastInnerRadius = mCurrentInnerRadius;
@@ -283,19 +286,18 @@ void FovVignette::updateFadeAnimatedVignette() {
   if (mIsStill && velocity > mVignetteSettings.mLowerVelocityThreshold.get()) {
     // observer started moving
     mStartedMoving = true;
-    mLastChange = currentTime;
+    mLastChange    = currentTime;
   } else if (!mIsStill && velocity < mVignetteSettings.mLowerVelocityThreshold.get()) {
     // observer stopped moving
     mStartedMoving = false;
-    mLastChange = currentTime;
+    mLastChange    = currentTime;
   }
 
   // update mIsStill
   mIsStill = (velocity < mVignetteSettings.mLowerVelocityThreshold.get());
 
   // check if deadzone has passed and tracker indicates animation needed
-  if (mStartedMoving != 0 &&
-      currentTime > mLastChange + mVignetteSettings.mFadeDeadzone.get()) {
+  if (mStartedMoving != 0 && currentTime > mLastChange + mVignetteSettings.mFadeDeadzone.get()) {
     if (mStartedMoving > 0) {
       // observer started moving
       mFadeAnimation.mStartValue = 0.0F;

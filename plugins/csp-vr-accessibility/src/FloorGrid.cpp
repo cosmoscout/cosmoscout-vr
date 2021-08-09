@@ -79,8 +79,10 @@ void main() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-FloorGrid::FloorGrid(std::shared_ptr<cs::core::SolarSystem> solarSystem, Plugin::Settings::Grid& gridSettings)
-    : mSolarSystem(std::move(solarSystem)), mGridSettings(gridSettings) {
+FloorGrid::FloorGrid(
+    std::shared_ptr<cs::core::SolarSystem> solarSystem, Plugin::Settings::Grid& gridSettings)
+    : mSolarSystem(std::move(solarSystem))
+    , mGridSettings(gridSettings) {
 
   // Create initial Quad
   std::array<glm::vec2, 4> vertices{};
@@ -102,19 +104,18 @@ FloorGrid::FloorGrid(std::shared_ptr<cs::core::SolarSystem> solarSystem, Plugin:
   mShader.Link();
 
   // Get Uniform Locations
-  mUniforms.modelViewMatrix = mShader.GetUniformLocation("uMatModelView");
+  mUniforms.modelViewMatrix  = mShader.GetUniformLocation("uMatModelView");
   mUniforms.projectionMatrix = mShader.GetUniformLocation("uMatProjection");
-  mUniforms.texture = mShader.GetUniformLocation("uTexture");
-  mUniforms.falloff = mShader.GetUniformLocation("uFalloff");
-  mUniforms.offset = mShader.GetUniformLocation("uOffset");
-  mUniforms.size = mShader.GetUniformLocation("uSize");
-  mUniforms.farClip = mShader.GetUniformLocation("uFarClip");
-  mUniforms.alpha = mShader.GetUniformLocation("uAlpha");
-  mUniforms.color = mShader.GetUniformLocation("uCustomColor");
+  mUniforms.texture          = mShader.GetUniformLocation("uTexture");
+  mUniforms.falloff          = mShader.GetUniformLocation("uFalloff");
+  mUniforms.offset           = mShader.GetUniformLocation("uOffset");
+  mUniforms.size             = mShader.GetUniformLocation("uSize");
+  mUniforms.farClip          = mShader.GetUniformLocation("uFarClip");
+  mUniforms.alpha            = mShader.GetUniformLocation("uAlpha");
+  mUniforms.color            = mShader.GetUniformLocation("uCustomColor");
 
   // Add to scenegraph
   VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
-
 
   // add to GUI Node (gui-method)
   auto* platform = GetVistaSystem()
@@ -174,7 +175,8 @@ bool FloorGrid::Do() {
   mShader.SetUniform(mUniforms.size, mGridSettings.mSize.get());
   mShader.SetUniform(mUniforms.farClip, cs::utils::getCurrentFarClipDistance());
   mShader.SetUniform(mUniforms.alpha, mGridSettings.mAlpha.get());
-  glUniform4fv(mUniforms.color, 1, glm::value_ptr(Plugin::GetColorFromHexString(mGridSettings.mColor.get())));
+  glUniform4fv(mUniforms.color, 1,
+      glm::value_ptr(Plugin::GetColorFromHexString(mGridSettings.mColor.get())));
 
   // Bind Texture
   mTexture->Bind(GL_TEXTURE0);
