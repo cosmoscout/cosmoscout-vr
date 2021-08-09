@@ -61,7 +61,7 @@ class FovVignette : public IVistaOpenGLDraw {
 
   cs::utils::AnimatedValue<float> mFadeAnimation;
   double                          mLastChange;
-  int                             mAnimationTracker;
+  bool                            mStartedMoving;
   bool                            mIsStill;
 
   float                                                       mCurrentInnerRadius;

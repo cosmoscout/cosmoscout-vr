@@ -119,7 +119,7 @@ FovVignette::FovVignette(std::shared_ptr<cs::core::SolarSystem> solarSystem, Plu
   // init animation housekeeping
   mFadeAnimation    = cs::utils::AnimatedValue(0.0F, 0.0F, 0.0, 0.0);
   mLastChange       = 0.0;
-  mAnimationTracker = 0;
+  mStartedMoving = false;
   mIsStill          = false;
 }
 
@@ -282,11 +282,11 @@ void FovVignette::updateFadeAnimatedVignette() {
   // check for movement changes
   if (mIsStill && velocity > mVignetteSettings.mLowerVelocityThreshold.get()) {
     // observer started moving
-    mAnimationTracker += 1;
+    mStartedMoving = true;
     mLastChange = currentTime;
   } else if (!mIsStill && velocity < mVignetteSettings.mLowerVelocityThreshold.get()) {
     // observer stopped moving
-    mAnimationTracker -= 1;
+    mStartedMoving = false;
     mLastChange = currentTime;
   }
 
@@ -294,16 +294,16 @@ void FovVignette::updateFadeAnimatedVignette() {
   mIsStill = (velocity < mVignetteSettings.mLowerVelocityThreshold.get());
 
   // check if deadzone has passed and tracker indicates animation needed
-  if (mAnimationTracker != 0 &&
+  if (mStartedMoving != 0 &&
       currentTime > mLastChange + mVignetteSettings.mFadeDeadzone.get()) {
-    if (mAnimationTracker > 0) {
+    if (mStartedMoving > 0) {
       // observer started moving
       mFadeAnimation.mStartValue = 0.0F;
       mFadeAnimation.mEndValue   = 1.0F;
       mFadeAnimation.mStartTime  = currentTime;
       mFadeAnimation.mEndTime    = currentTime + mVignetteSettings.mFadeDuration.get();
       // reset tracker
-      mAnimationTracker = 0;
+      mStartedMoving = false;
     } else {
       // observer stopped moving
       mFadeAnimation.mStartValue = 1.0F;
@@ -311,7 +311,7 @@ void FovVignette::updateFadeAnimatedVignette() {
       mFadeAnimation.mStartTime  = currentTime;
       mFadeAnimation.mEndTime    = currentTime + mVignetteSettings.mFadeDuration.get();
       // reset tracker
-      mAnimationTracker = 0;
+      mStartedMoving = false;
     }
   }
 }
