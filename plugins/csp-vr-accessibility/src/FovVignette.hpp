@@ -32,7 +32,7 @@ namespace csp::vraccessibility {
 /// circular vignette.
 class FovVignette : public IVistaOpenGLDraw {
  public:
-  FovVignette(std::shared_ptr<cs::core::SolarSystem> solarSystem);
+  FovVignette(std::shared_ptr<cs::core::SolarSystem> solarSystem, Plugin::Settings::Vignette& vignetteSettings);
 
   FovVignette(FovVignette const& other) = delete;
   FovVignette(FovVignette&& other)      = default;
@@ -40,10 +40,10 @@ class FovVignette : public IVistaOpenGLDraw {
   FovVignette& operator=(FovVignette const& other) = delete;
   FovVignette& operator=(FovVignette&& other) = delete;
 
-  ~FovVignette() override;
+  ~FovVignette() override = default;
 
   /// Configures the internal renderer according to the given values.
-  void configure(std::shared_ptr<Plugin::Settings> settings);
+  void configure(Plugin::Settings::Vignette& vignetteSettings);
 
   /// Updates the variables for the Shaders
   void updateDynamicRadiusVignette();
@@ -72,13 +72,13 @@ class FovVignette : public IVistaOpenGLDraw {
 
   float getNewRadius(float innerOuterRadius, float normVelocity, float lastRadius, double dT);
 
-  std::shared_ptr<Plugin::Settings> mVignetteSettings;
-  VistaGLSLShader                   mShaderFade;
-  VistaGLSLShader                   mShaderDynRad;
-  VistaGLSLShader                   mShaderFadeVertOnly;
-  VistaGLSLShader                   mShaderDynRadVertOnly;
-  VistaVertexArrayObject            mVAO;
-  VistaBufferObject                 mVBO;
+  Plugin::Settings::Vignette&                 mVignetteSettings;
+  VistaGLSLShader                             mShaderFade;
+  VistaGLSLShader                             mShaderDynRad;
+  VistaGLSLShader                             mShaderFadeVertOnly;
+  VistaGLSLShader                             mShaderDynRadVertOnly;
+  VistaVertexArrayObject                      mVAO;
+  VistaBufferObject                           mVBO;
 
   struct GBufferData {
     std::unique_ptr<VistaTexture> mDepthBuffer;

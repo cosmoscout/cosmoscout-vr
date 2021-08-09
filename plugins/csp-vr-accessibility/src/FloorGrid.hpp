@@ -28,10 +28,10 @@ namespace csp::vraccessibility {
 
 /// The floor grid renders as a texturised quad below the observer.
 /// The offset between the observer and the grid is set by a transformation node in the scenegraph.
-/// The settigs can be changed at runtime and determine the color and perceived size of the grid.
+/// The settings can be changed at runtime and determine the color and perceived size of the grid.
 class FloorGrid : public IVistaOpenGLDraw {
  public:
-  FloorGrid(std::shared_ptr<cs::core::SolarSystem> solarSystem);
+  FloorGrid(std::shared_ptr<cs::core::SolarSystem> solarSystem, Plugin::Settings::Grid& gridSettings);
 
   FloorGrid(FloorGrid const& other) = delete;
   FloorGrid(FloorGrid&& other)      = default;
@@ -39,10 +39,10 @@ class FloorGrid : public IVistaOpenGLDraw {
   FloorGrid& operator=(FloorGrid const& other) = delete;
   FloorGrid& operator=(FloorGrid&& other) = delete;
 
-  ~FloorGrid() override;
+  ~FloorGrid() override = default;
 
   /// Configures the internal renderer according to the given values.
-  void configure(std::shared_ptr<Plugin::Settings> settings);
+  void configure(Plugin::Settings::Grid& gridSettings);
 
   /// Updates the offset of the grid according to the current settings
   void update();
@@ -57,11 +57,11 @@ class FloorGrid : public IVistaOpenGLDraw {
   std::unique_ptr<VistaTransformNode> mOffsetNode;
   std::unique_ptr<VistaOpenGLNode>    mGLNode;
 
-  std::shared_ptr<Plugin::Settings> mGridSettings;
-  std::unique_ptr<VistaTexture>     mTexture;
-  VistaGLSLShader                   mShader;
-  VistaVertexArrayObject            mVAO;
-  VistaBufferObject                 mVBO;
+  Plugin::Settings::Grid& mGridSettings;
+  std::unique_ptr<VistaTexture>           mTexture;
+  VistaGLSLShader                         mShader;
+  VistaVertexArrayObject                  mVAO;
+  VistaBufferObject                       mVBO;
 
   static const char* VERT_SHADER;
   static const char* FRAG_SHADER;

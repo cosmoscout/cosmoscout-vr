@@ -79,8 +79,8 @@ void main() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-FloorGrid::FloorGrid(std::shared_ptr<cs::core::SolarSystem> solarSystem)
-    : mSolarSystem(std::move(solarSystem)) {
+FloorGrid::FloorGrid(std::shared_ptr<cs::core::SolarSystem> solarSystem, Plugin::Settings::Grid& gridSettings)
+    : mSolarSystem(std::move(solarSystem)), mGridSettings(gridSettings) {
 
   // Create initial Quad
   std::vector<glm::vec2> vertices(4);
@@ -101,6 +101,8 @@ FloorGrid::FloorGrid(std::shared_ptr<cs::core::SolarSystem> solarSystem)
   mShader.InitFragmentShaderFromString(FRAG_SHADER);
   mShader.Link();
 
+// TODO: getUniformLocation see other plugin uniform struct
+
   // Add to scenegraph
   VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
 
@@ -118,34 +120,29 @@ FloorGrid::FloorGrid(std::shared_ptr<cs::core::SolarSystem> solarSystem)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-FloorGrid::~FloorGrid() {
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void FloorGrid::configure(std::shared_ptr<Plugin::Settings> settings) {
+void FloorGrid::configure(Plugin::Settings::Grid& gridSettings) {
   // check if texture settings changed
-  if (!mGridSettings || mGridSettings->mTexture.get() != settings->mTexture.get()) {
-    mTexture = cs::graphics::TextureLoader::loadFromFile(settings->mTexture.get());
+  if (mGridSettings.mTexture.get() != gridSettings.mTexture.get()) {
+    mTexture = cs::graphics::TextureLoader::loadFromFile(gridSettings.mTexture.get());
     mTexture->SetWrapS(GL_REPEAT);
     mTexture->SetWrapR(GL_REPEAT);
   }
-  mGridSettings = settings;
+  mGridSettings = gridSettings;
   // update Offset Node
-  mOffsetNode->SetTranslation(0.0F, mGridSettings->mOffset.get(), 0.0F);
+  mOffsetNode->SetTranslation(0.0F, mGridSettings.mOffset.get(), 0.0F);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void FloorGrid::update() {
-  mOffsetNode->SetTranslation(0.0F, mGridSettings->mOffset.get(), 0.0F);
+  mOffsetNode->SetTranslation(0.0F, mGridSettings.mOffset.get(), 0.0F);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool FloorGrid::Do() {
   // do nothing if grid is disabled
-  if (!mGridSettings->mEnabled.get()) {
+  if (!mGridSettings.mEnabled.get()) {
     return true;
   }
 
@@ -163,14 +160,14 @@ bool FloorGrid::Do() {
   glUniformMatrix4fv(mShader.GetUniformLocation("uMatModelView"), 1, GL_FALSE, glMatMV.data());
   glUniformMatrix4fv(mShader.GetUniformLocation("uMatProjection"), 1, GL_FALSE, glMatP.data());
   mShader.SetUniform(mShader.GetUniformLocation("uTexture"), 0);
-  mShader.SetUniform(mShader.GetUniformLocation("uFalloff"), mGridSettings->mFalloff.get());
-  mShader.SetUniform(mShader.GetUniformLocation("uOffset"), mGridSettings->mOffset.get());
-  mShader.SetUniform(mShader.GetUniformLocation("uSize"), mGridSettings->mSize.get());
+  mShader.SetUniform(mShader.GetUniformLocation("uFalloff"), mGridSettings.mFalloff.get());
+  mShader.SetUniform(mShader.GetUniformLocation("uOffset"), mGridSettings.mOffset.get());
+  mShader.SetUniform(mShader.GetUniformLocation("uSize"), mGridSettings.mSize.get());
   mShader.SetUniform(
       mShader.GetUniformLocation("uFarClip"), cs::utils::getCurrentFarClipDistance());
-  mShader.SetUniform(mShader.GetUniformLocation("uAlpha"), mGridSettings->mAlpha.get());
+  mShader.SetUniform(mShader.GetUniformLocation("uAlpha"), mGridSettings.mAlpha.get());
   glUniform4fv(mShader.GetUniformLocation("uCustomColor"), 1,
-      glm::value_ptr(Plugin::GetColorFromHexString(mGridSettings->mColor.get())));
+      glm::value_ptr(Plugin::GetColorFromHexString(mGridSettings.mColor.get())));
 
   // Bind Texture
   mTexture->Bind(GL_TEXTURE0);

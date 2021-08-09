@@ -27,8 +27,8 @@
 
 namespace csp::vraccessibility {
 
-FovVignette::FovVignette(std::shared_ptr<cs::core::SolarSystem> solarSystem)
-    : mSolarSystem(std::move(solarSystem)) {
+FovVignette::FovVignette(std::shared_ptr<cs::core::SolarSystem> solarSystem, Plugin::Settings::Vignette& vignetteSettings)
+    : mSolarSystem(std::move(solarSystem)), mVignetteSettings(vignetteSettings) {
 
   // create quad
   std::array<float, 8> const data{-1, 1, 1, 1, -1, -1, 1, -1};
@@ -102,20 +102,15 @@ FovVignette::FovVignette(std::shared_ptr<cs::core::SolarSystem> solarSystem)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-FovVignette::~FovVignette() {
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void FovVignette::configure(std::shared_ptr<Plugin::Settings> settings) {
-  mVignetteSettings = settings;
+void FovVignette::configure(Plugin::Settings::Vignette& vignetteSettings) {
+  mVignetteSettings = vignetteSettings;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool FovVignette::Do() {
   // do nothing if vignette is disabled
-  if (!mVignetteSettings->mFovVignetteEnabled.get()) {
+  if (!mVignetteSettings.mEnabled.get()) {
     return true;
   }
 
@@ -139,9 +134,9 @@ bool FovVignette::Do() {
 
   // set uniforms
   // check if dynamical vignette
-  if (mVignetteSettings->mFovVignetteUseDynamicRadius.get()) {
+  if (mVignetteSettings.mUseDynamicRadius.get()) {
     // check if vertical only (or circular vignetting), select shader accordingly
-    VistaGLSLShader& shader = mVignetteSettings->mFovVignetteUseVerticalOnly.get()
+    VistaGLSLShader& shader = mVignetteSettings.mUseVerticalOnly.get()
                                   ? mShaderDynRadVertOnly
                                   : mShaderDynRad;
 
@@ -151,23 +146,23 @@ bool FovVignette::Do() {
     shader.SetUniform(shader.GetUniformLocation("uTexture"), 0);
     shader.SetUniform(shader.GetUniformLocation("uNormVelocity"), mNormalizedVelocity);
     glUniform4fv(shader.GetUniformLocation("uCustomColor"), 1,
-        glm::value_ptr(Plugin::GetColorFromHexString(mVignetteSettings->mFovVignetteColor.get())));
+        glm::value_ptr(Plugin::GetColorFromHexString(mVignetteSettings.mColor.get())));
     shader.SetUniform(shader.GetUniformLocation("uInnerRadius"),
         // override current radius if debug enabled
-        mVignetteSettings->mFovVignetteDebug.get()
-            ? mVignetteSettings->mFovVignetteInnerRadius.get()
+        mVignetteSettings.mDebug.get()
+            ? mVignetteSettings.mInnerRadius.get()
             : mCurrentInnerRadius);
     shader.SetUniform(shader.GetUniformLocation("uOuterRadius"),
         // override current radius if debug enabled
-        mVignetteSettings->mFovVignetteDebug.get()
-            ? mVignetteSettings->mFovVignetteOuterRadius.get()
+        mVignetteSettings.mDebug.get()
+            ? mVignetteSettings.mOuterRadius.get()
             : mCurrentOuterRadius);
     shader.SetUniform(
-        shader.GetUniformLocation("uDebug"), mVignetteSettings->mFovVignetteDebug.get());
+        shader.GetUniformLocation("uDebug"), mVignetteSettings.mDebug.get());
   } else {
     // check if vertical only (or circular vignetting), select shader accordingly
     VistaGLSLShader& shader =
-        mVignetteSettings->mFovVignetteUseVerticalOnly.get() ? mShaderFadeVertOnly : mShaderFade;
+        mVignetteSettings.mUseVerticalOnly.get() ? mShaderFadeVertOnly : mShaderFade;
 
     shader.Bind();
 
@@ -177,13 +172,13 @@ bool FovVignette::Do() {
         cs::utils::convert::time::toSpice(boost::posix_time::microsec_clock::universal_time());
     shader.SetUniform(shader.GetUniformLocation("uFade"), mFadeAnimation.get(currentTime));
     glUniform4fv(shader.GetUniformLocation("uCustomColor"), 1,
-        glm::value_ptr(Plugin::GetColorFromHexString(mVignetteSettings->mFovVignetteColor.get())));
+        glm::value_ptr(Plugin::GetColorFromHexString(mVignetteSettings.mColor.get())));
     shader.SetUniform(shader.GetUniformLocation("uInnerRadius"),
-        mVignetteSettings->mFovVignetteInnerRadius.get());
+        mVignetteSettings.mInnerRadius.get());
     shader.SetUniform(shader.GetUniformLocation("uOuterRadius"),
-        mVignetteSettings->mFovVignetteOuterRadius.get());
+        mVignetteSettings.mOuterRadius.get());
     shader.SetUniform(
-        shader.GetUniformLocation("uDebug"), mVignetteSettings->mFovVignetteDebug.get());
+        shader.GetUniformLocation("uDebug"), mVignetteSettings.mDebug.get());
   }
 
   // bind texture
@@ -244,9 +239,9 @@ void FovVignette::updateDynamicRadiusVignette() {
                    static_cast<float>(mSolarSystem->getObserver().getAnchorScale());
   auto now = std::chrono::high_resolution_clock::now();
 
-  mNormalizedVelocity = (velocity - mVignetteSettings->mFovVignetteLowerVelocityThreshold.get()) /
-                        (mVignetteSettings->mFovVignetteUpperVelocityThreshold.get() -
-                            mVignetteSettings->mFovVignetteLowerVelocityThreshold.get());
+  mNormalizedVelocity = (velocity - mVignetteSettings.mLowerVelocityThreshold.get()) /
+                        (mVignetteSettings.mUpperVelocityThreshold.get() -
+                            mVignetteSettings.mLowerVelocityThreshold.get());
   auto deltaTime = static_cast<double>(
       std::chrono::duration_cast<std::chrono::nanoseconds>(now - mLastTime).count());
   mLastTime = now;
@@ -254,9 +249,9 @@ void FovVignette::updateDynamicRadiusVignette() {
   // clamp NormalizedVelocity to upper threshold
   mNormalizedVelocity = (mNormalizedVelocity > 1.0F) ? 1.0F : mNormalizedVelocity;
 
-  mCurrentInnerRadius = getNewRadius(mVignetteSettings->mFovVignetteInnerRadius.get(),
+  mCurrentInnerRadius = getNewRadius(mVignetteSettings.mInnerRadius.get(),
       mNormalizedVelocity, mLastInnerRadius, deltaTime);
-  mCurrentOuterRadius = getNewRadius(mVignetteSettings->mFovVignetteOuterRadius.get(),
+  mCurrentOuterRadius = getNewRadius(mVignetteSettings.mOuterRadius.get(),
       mNormalizedVelocity, mLastOuterRadius, deltaTime);
 
   // update variables
@@ -274,28 +269,28 @@ void FovVignette::updateFadeAnimatedVignette() {
       cs::utils::convert::time::toSpice(boost::posix_time::microsec_clock::universal_time());
 
   // check for movement changes
-  if (mIsStill && velocity > mVignetteSettings->mFovVignetteLowerVelocityThreshold.get()) {
+  if (mIsStill && velocity > mVignetteSettings.mLowerVelocityThreshold.get()) {
     // observer started moving
     mAnimationTracker += 1;
     mLastChange = currentTime;
-  } else if (!mIsStill && velocity < mVignetteSettings->mFovVignetteLowerVelocityThreshold.get()) {
+  } else if (!mIsStill && velocity < mVignetteSettings.mLowerVelocityThreshold.get()) {
     // observer stopped moving
     mAnimationTracker -= 1;
     mLastChange = currentTime;
   }
 
   // update mIsStill
-  mIsStill = (velocity < mVignetteSettings->mFovVignetteLowerVelocityThreshold.get());
+  mIsStill = (velocity < mVignetteSettings.mLowerVelocityThreshold.get());
 
   // check if deadzone has passed and tracker indicates animation needed
   if (mAnimationTracker != 0 &&
-      currentTime > mLastChange + mVignetteSettings->mFovVignetteFadeDeadzone.get()) {
+      currentTime > mLastChange + mVignetteSettings.mFadeDeadzone.get()) {
     if (mAnimationTracker > 0) {
       // observer started moving
       mFadeAnimation.mStartValue = 0.0F;
       mFadeAnimation.mEndValue   = 1.0F;
       mFadeAnimation.mStartTime  = currentTime;
-      mFadeAnimation.mEndTime    = currentTime + mVignetteSettings->mFovVignetteFadeDuration.get();
+      mFadeAnimation.mEndTime    = currentTime + mVignetteSettings.mFadeDuration.get();
       // reset tracker
       mAnimationTracker = 0;
     } else {
@@ -303,7 +298,7 @@ void FovVignette::updateFadeAnimatedVignette() {
       mFadeAnimation.mStartValue = 1.0F;
       mFadeAnimation.mEndValue   = 0.0F;
       mFadeAnimation.mStartTime  = currentTime;
-      mFadeAnimation.mEndTime    = currentTime + mVignetteSettings->mFovVignetteFadeDuration.get();
+      mFadeAnimation.mEndTime    = currentTime + mVignetteSettings.mFadeDuration.get();
       // reset tracker
       mAnimationTracker = 0;
     }

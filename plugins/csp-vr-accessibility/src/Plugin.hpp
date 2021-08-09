@@ -22,66 +22,76 @@ class FovVignette;
 class Plugin : public cs::core::PluginBase {
  public:
   struct Settings {
-    /// Toggle, whether the grid is hidden (false) or visible (true).
-    cs::utils::DefaultProperty<bool> mEnabled{true};
+    struct Grid {
+      /// Toggle, whether the grid is hidden (false) or visible (true).
+      cs::utils::DefaultProperty<bool> mEnabled{true};
 
-    /// The size of the grid, i.e. mesh size, scale factor (default = 1).
-    cs::utils::DefaultProperty<float> mSize{1.0F};
+      /// The size of the grid, i.e. mesh size, scale factor (default = 1).
+      cs::utils::DefaultProperty<float> mSize{1.0F};
 
-    /// The height offset to adjust the grid to the floor.
-    cs::utils::DefaultProperty<float> mOffset{-1.8F};
+      /// The height offset to adjust the grid to the floor.
+      cs::utils::DefaultProperty<float> mOffset{-1.8F};
 
-    /// The falloff distance when the grid fades.
-    cs::utils::DefaultProperty<float> mFalloff{100.0F};
+      /// The falloff distance when the grid fades.
+      cs::utils::DefaultProperty<float> mFalloff{100.0F};
 
-    /// The texture used for the grid (b/w texture).
-    cs::utils::DefaultProperty<std::string> mTexture{
-        "../share/resources/textures/gridCentered.png"};
+      /// The texture used for the grid (b/w texture).
+      cs::utils::DefaultProperty<std::string> mTexture{
+          "../share/resources/textures/gridCentered.png"};
 
-    /// The opacity of the grid (default: 1, fully opaque, to 0, fully transparent).
-    cs::utils::DefaultProperty<float> mAlpha{1.0F};
+      /// The opacity of the grid (default: 1, fully opaque, to 0, fully transparent).
+      cs::utils::DefaultProperty<float> mAlpha{1.0F};
 
-    /// The color of the grid (default: white #FFFFFF).
-    cs::utils::DefaultProperty<std::string> mColor{"#FFFFFF"};
+      /// The color of the grid (default: white #FFFFFF).
+      cs::utils::DefaultProperty<std::string> mColor{"#FFFFFF"};
+    };
 
-    /// Toggle, whether the FoV Vignette is used or not.
-    cs::utils::DefaultProperty<bool> mFovVignetteEnabled{true};
+    struct Vignette {
+      /// Toggle, whether the FoV Vignette is used or not.
+      cs::utils::DefaultProperty<bool> mEnabled{true};
 
-    /// Toggle, whether the FoV Vignette is always drawn.
-    cs::utils::DefaultProperty<bool> mFovVignetteDebug{false};
+      /// Toggle, whether the FoV Vignette is always drawn.
+      cs::utils::DefaultProperty<bool> mDebug{false};
 
-    /// The inner radius of the FoV Vignette (distance from center to rim where the gradient
-    /// starts)(0, no radius, to 1, the edges of the screen).
-    cs::utils::DefaultProperty<float> mFovVignetteInnerRadius{0.5F};
+      /// The inner radius of the FoV Vignette (distance from center to rim where the gradient
+      /// starts)(0, no radius, to 1, the edges of the screen).
+      cs::utils::DefaultProperty<float> mInnerRadius{0.5F};
 
-    /// The outer radius of the FoV Vignette (distance from start of the gradient to end of
-    /// gradient).
-    cs::utils::DefaultProperty<float> mFovVignetteOuterRadius{1.0F};
+      /// The outer radius of the FoV Vignette (distance from start of the gradient to end of
+      /// gradient).
+      cs::utils::DefaultProperty<float> mOuterRadius{1.0F};
 
-    /// The color of the FoV Vignette (default: white #FFFFFF).
-    cs::utils::DefaultProperty<std::string> mFovVignetteColor{"#FFFFFF"};
+      /// The color of the FoV Vignette (default: white #FFFFFF).
+      cs::utils::DefaultProperty<std::string> mColor{"#FFFFFF"};
 
-    /// The duration of the fade animation (in seconds).
-    cs::utils::DefaultProperty<double> mFovVignetteFadeDuration{1.0};
+      /// The duration of the fade animation (in seconds).
+      cs::utils::DefaultProperty<double> mFadeDuration{1.0};
 
-    /// The deadzone of the fade animation where the animation is not played on small actions (in
-    /// seconds).
-    cs::utils::DefaultProperty<double> mFovVignetteFadeDeadzone{0.5};
+      /// The deadzone of the fade animation where the animation is not played on small actions (in
+      /// seconds).
+      cs::utils::DefaultProperty<double> mFadeDeadzone{0.5};
 
-    /// The threshold velocity (0 to ~10 = max. speed from movement controls) below which the
-    /// vignette is not triggered.
-    cs::utils::DefaultProperty<float> mFovVignetteLowerVelocityThreshold{0.2F};
+      /// The threshold velocity (0 to ~10 = max. speed from movement controls) below which the
+      /// vignette is not triggered.
+      cs::utils::DefaultProperty<float> mLowerVelocityThreshold{0.2F};
 
-    /// The threshold velocity (0 to ~10 = max. speed from movement controls) above which the
-    /// vignette is set to the above defined radii.
-    cs::utils::DefaultProperty<float> mFovVignetteUpperVelocityThreshold{10.0F};
+      /// The threshold velocity (0 to ~10 = max. speed from movement controls) above which the
+      /// vignette is set to the above defined radii.
+      cs::utils::DefaultProperty<float> mUpperVelocityThreshold{10.0F};
 
-    /// The toggle to use dynamic radius adjustment instead of fading the vignette in above
-    /// threshold.
-    cs::utils::DefaultProperty<bool> mFovVignetteUseDynamicRadius{false};
+      /// The toggle to use dynamic radius adjustment instead of fading the vignette in above
+      /// threshold.
+      cs::utils::DefaultProperty<bool> mUseDynamicRadius{false};
 
-    /// The toggle to use only vertical vignetting.
-    cs::utils::DefaultProperty<bool> mFovVignetteUseVerticalOnly{false};
+      /// The toggle to use only vertical vignetting.
+      cs::utils::DefaultProperty<bool> mUseVerticalOnly{false};
+    };
+
+    /// The container for the Grid Settings
+    Plugin::Settings::Grid mGridSettings;
+
+    /// The container for the Vignette Settings
+    Plugin::Settings::Vignette mVignetteSettings;
   };
 
   void init() override;
