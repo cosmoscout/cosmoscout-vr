@@ -216,7 +216,7 @@ float FovVignette::getNewRadius(
     float innerOuterRadius, float normVelocity, float lastRadius, double dT) {
 
   // targetRadius based on interpolation between maxRadius and innerOuterRadius
-  float targetRadius = ((1 - normVelocity) * sqrtf(2)) + (normVelocity * innerOuterRadius);
+  float targetRadius = ((1 - normVelocity) * std::sqrt(2.0f)) + (normVelocity * innerOuterRadius);
 
   // newRadius increased towards targetRadius but limited to ~targetDiff changes
   return (0.99F * lastRadius) + (0.01F * targetRadius);
