@@ -20,12 +20,11 @@ layout(location = 0) in vec2 iQuadPos;
 out vec2 vTexCoords;
 out vec3 vPosition;
 
-void main()
-{
-    vTexCoords  = vec2( (iQuadPos.x + 1) / 2,
-                       (iQuadPos.y + 1) / 2 );
-    vPosition   = vec3(iQuadPos.x, iQuadPos.y, -0.01);
-    gl_Position = vec4(vPosition, 1);
+void main() {
+  vTexCoords  = vec2((iQuadPos.x + 1) / 2,
+                     (iQuadPos.y + 1) / 2);
+  vPosition   = vec3(iQuadPos.x, iQuadPos.y, -0.01);
+  gl_Position = vec4(vPosition, 1);
 }
 )";
 
