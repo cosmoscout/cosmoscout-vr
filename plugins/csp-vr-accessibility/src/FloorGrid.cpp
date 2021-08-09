@@ -101,7 +101,16 @@ FloorGrid::FloorGrid(std::shared_ptr<cs::core::SolarSystem> solarSystem, Plugin:
   mShader.InitFragmentShaderFromString(FRAG_SHADER);
   mShader.Link();
 
-// TODO: getUniformLocation see other plugin uniform struct
+  // Get Uniform Locations
+  mUniforms.modelViewMatrix = mShader.GetUniformLocation("uMatModelView");
+  mUniforms.projectionMatrix = mShader.GetUniformLocation("uMatProjection");
+  mUniforms.texture = mShader.GetUniformLocation("uTexture");
+  mUniforms.falloff = mShader.GetUniformLocation("uFalloff");
+  mUniforms.offset = mShader.GetUniformLocation("uOffset");
+  mUniforms.size = mShader.GetUniformLocation("uSize");
+  mUniforms.farClip = mShader.GetUniformLocation("uFarClip");
+  mUniforms.alpha = mShader.GetUniformLocation("uAlpha");
+  mUniforms.color = mShader.GetUniformLocation("uCustomColor");
 
   // Add to scenegraph
   VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
@@ -157,17 +166,15 @@ bool FloorGrid::Do() {
   glGetFloatv(GL_PROJECTION_MATRIX, glMatP.data());
 
   // Set uniforms
-  glUniformMatrix4fv(mShader.GetUniformLocation("uMatModelView"), 1, GL_FALSE, glMatMV.data());
-  glUniformMatrix4fv(mShader.GetUniformLocation("uMatProjection"), 1, GL_FALSE, glMatP.data());
-  mShader.SetUniform(mShader.GetUniformLocation("uTexture"), 0);
-  mShader.SetUniform(mShader.GetUniformLocation("uFalloff"), mGridSettings.mFalloff.get());
-  mShader.SetUniform(mShader.GetUniformLocation("uOffset"), mGridSettings.mOffset.get());
-  mShader.SetUniform(mShader.GetUniformLocation("uSize"), mGridSettings.mSize.get());
-  mShader.SetUniform(
-      mShader.GetUniformLocation("uFarClip"), cs::utils::getCurrentFarClipDistance());
-  mShader.SetUniform(mShader.GetUniformLocation("uAlpha"), mGridSettings.mAlpha.get());
-  glUniform4fv(mShader.GetUniformLocation("uCustomColor"), 1,
-      glm::value_ptr(Plugin::GetColorFromHexString(mGridSettings.mColor.get())));
+  glUniformMatrix4fv(mUniforms.modelViewMatrix, 1, GL_FALSE, glMatMV.data());
+  glUniformMatrix4fv(mUniforms.projectionMatrix, 1, GL_FALSE, glMatP.data());
+  mShader.SetUniform(mUniforms.texture, 0);
+  mShader.SetUniform(mUniforms.falloff, mGridSettings.mFalloff.get());
+  mShader.SetUniform(mUniforms.offset, mGridSettings.mOffset.get());
+  mShader.SetUniform(mUniforms.size, mGridSettings.mSize.get());
+  mShader.SetUniform(mUniforms.farClip, cs::utils::getCurrentFarClipDistance());
+  mShader.SetUniform(mUniforms.alpha, mGridSettings.mAlpha.get());
+  glUniform4fv(mUniforms.color, 1, glm::value_ptr(Plugin::GetColorFromHexString(mGridSettings.mColor.get())));
 
   // Bind Texture
   mTexture->Bind(GL_TEXTURE0);

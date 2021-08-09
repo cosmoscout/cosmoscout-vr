@@ -63,6 +63,18 @@ class FloorGrid : public IVistaOpenGLDraw {
   VistaVertexArrayObject                  mVAO;
   VistaBufferObject                       mVBO;
 
+  struct {
+    uint32_t modelViewMatrix  = 0;
+    uint32_t projectionMatrix = 0;
+    uint32_t texture          = 0;
+    uint32_t falloff          = 0;
+    uint32_t offset           = 0;
+    uint32_t size             = 0;
+    uint32_t farClip          = 0;
+    uint32_t alpha            = 0;
+    uint32_t color            = 0;
+  } mUniforms;
+
   static const char* VERT_SHADER;
   static const char* FRAG_SHADER;
 }; // class FloorGrid
