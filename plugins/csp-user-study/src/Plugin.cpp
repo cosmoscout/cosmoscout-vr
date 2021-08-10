@@ -40,7 +40,7 @@ void from_json(nlohmann::json const& j, Plugin::Settings::Stage& o) {
   cs::core::Settings::deserialize(j, "scale", o.mScaling);
 }
 
-void to_json(nlohmann::json& j, Plugin::Settings const& o) {
+void to_json(nlohmann::json& j, Plugin::Settings::Stage const& o) {
   cs::core::Settings::serialize(j, "type", o.mType);
   cs::core::Settings::serialize(j, "bookmark", o.mBookmark);
   cs::core::Settings::serialize(j, "scale", o.mScaling);
