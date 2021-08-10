@@ -120,10 +120,10 @@ FovVignette::FovVignette(std::shared_ptr<cs::core::SolarSystem> solarSystem,
       mGLNode.get(), static_cast<int>(cs::utils::DrawOrder::eGui) - 1);
 
   // init animation housekeeping
-  mFadeAnimation = cs::utils::AnimatedValue(0.0F, 0.0F, 0.0, 0.0);
-  mLastChange    = 0.0;
-  mStartedMoving = false;
-  mIsStill       = false;
+  mFadeAnimation    = cs::utils::AnimatedValue(0.0F, 0.0F, 0.0, 0.0);
+  mLastChange       = 0.0;
+  mAnimationTracker = 0;
+  mIsStill          = false;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -285,27 +285,27 @@ void FovVignette::updateFadeAnimatedVignette() {
   // check for movement changes
   if (mIsStill && velocity > mVignetteSettings.mLowerVelocityThreshold.get()) {
     // observer started moving
-    mStartedMoving = true;
-    mLastChange    = currentTime;
+    mAnimationTracker += 1;
+    mLastChange = currentTime;
   } else if (!mIsStill && velocity < mVignetteSettings.mLowerVelocityThreshold.get()) {
     // observer stopped moving
-    mStartedMoving = false;
-    mLastChange    = currentTime;
+    mAnimationTracker -= 1;
+    mLastChange = currentTime;
   }
 
   // update mIsStill
   mIsStill = (velocity < mVignetteSettings.mLowerVelocityThreshold.get());
 
   // check if deadzone has passed and tracker indicates animation needed
-  if (mStartedMoving != 0 && currentTime > mLastChange + mVignetteSettings.mFadeDeadzone.get()) {
-    if (mStartedMoving > 0) {
+  if (mAnimationTracker != 0 && currentTime > mLastChange + mVignetteSettings.mFadeDeadzone.get()) {
+    if (mAnimationTracker > 0) {
       // observer started moving
       mFadeAnimation.mStartValue = 0.0F;
       mFadeAnimation.mEndValue   = 1.0F;
       mFadeAnimation.mStartTime  = currentTime;
       mFadeAnimation.mEndTime    = currentTime + mVignetteSettings.mFadeDuration.get();
       // reset tracker
-      mStartedMoving = false;
+      mAnimationTracker = 0;
     } else {
       // observer stopped moving
       mFadeAnimation.mStartValue = 1.0F;
@@ -313,7 +313,7 @@ void FovVignette::updateFadeAnimatedVignette() {
       mFadeAnimation.mStartTime  = currentTime;
       mFadeAnimation.mEndTime    = currentTime + mVignetteSettings.mFadeDuration.get();
       // reset tracker
-      mStartedMoving = false;
+      mAnimationTracker = 0;
     }
   }
 }
