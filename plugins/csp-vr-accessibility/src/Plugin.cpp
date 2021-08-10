@@ -308,10 +308,10 @@ void Plugin::onLoad() {
   from_json(mAllSettings->mPlugins.at("csp-vr-accessibility"), *mPluginSettings);
 
   // Create & configure FloorGrid
-  mGrid = std::make_shared<FloorGrid>(mSolarSystem);
+  mGrid = std::make_shared<FloorGrid>(mSolarSystem, mPluginSettings->mGridSettings);
   mGrid->configure(mPluginSettings->mGridSettings);
   // Create & configure FovVignette
-  mVignette = std::make_shared<FovVignette>(mSolarSystem);
+  mVignette = std::make_shared<FovVignette>(mSolarSystem, mPluginSettings->mVignetteSettings);
   mVignette->configure(mPluginSettings->mVignetteSettings);
 }
 
