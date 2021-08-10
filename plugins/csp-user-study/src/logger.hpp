@@ -4,17 +4,17 @@
 //                        Copyright: (c) 2019 German Aerospace Center (DLR)                       //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#ifndef CSP_ANCHOR_LABELS_LOGGER_HPP
-#define CSP_ANCHOR_LABELS_LOGGER_HPP
+#ifndef CSP_USER_STUDY_LOGGER_HPP
+#define CSP_USER_STUDY_LOGGER_HPP
 
 #include <spdlog/spdlog.h>
 
-namespace csp::anchorlabels {
+namespace csp::userstudy {
 
-/// This creates the default singleton logger for "csp-anchor-labels" when called for the first time
+/// This creates the default singleton logger for "csp-user-study" when called for the first time
 /// and returns it. See cs-utils/logger.hpp for more logging details.
 spdlog::logger& logger();
 
-} // namespace csp::anchorlabels
+} // namespace csp::userstudy
 
-#endif // CSP_ANCHOR_LABELS_LOGGER_HPP
+#endif // CSP_USER_STUDY_LOGGER_HPP

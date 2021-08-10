@@ -18,19 +18,19 @@ file(GLOB SOURCE_FILES src/*.cpp)
 file(GLOB HEADER_FILES src/*.hpp)
 file(GLOB_RECURSE RESOUCRE_FILES gui/*)
 
-add_library(csp-anchor-labels SHARED
+add_library(csp-user-study SHARED
   ${SOURCE_FILES}
   ${HEADER_FILES}
   ${RESOUCRE_FILES}
 )
 
-target_link_libraries(csp-anchor-labels
+target_link_libraries(csp-user-study
   PUBLIC
     cs-core
 )
 
 # Add this Plugin to a "plugins" folder in your IDE.
-set_property(TARGET csp-anchor-labels PROPERTY FOLDER "plugins")
+set_property(TARGET csp-user-study PROPERTY FOLDER "plugins")
 
 # We mark all resource files as "header" in order to make sure that no one tries to compile them.
 set_source_files_properties(${RESOUCRE_FILES} PROPERTIES HEADER_FILE_ONLY TRUE)

@@ -8,15 +8,15 @@
 
 #include "../../../src/cs-utils/logger.hpp"
 
-namespace csp::anchorlabels {
+namespace csp::userstudy {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 spdlog::logger& logger() {
-  static auto logger = cs::utils::createLogger("csp-anchor-labels");
+  static auto logger = cs::utils::createLogger("csp-user-study");
   return *logger;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-} // namespace csp::anchorlabels
+} // namespace csp::userstudy

@@ -13,10 +13,11 @@ The given values present a basic scenario:
   "plugins": {
     ...
     "csp-user-study": {
-      "otherScenarios": [                       // List of other scenarios' configs
-        "../share/scenes/basicScenario1.json",
-        "../share/scenes/basicScenario2.json"
-      ],
+      "enabled": true,
+      "otherScenarios": {                       // List of other scenarios' configs
+        "scenario_A": "../share/scenes/basicScenario1.json",
+        "scenario_B": "../share/scenes/basicScenario2.json"
+      },
       "stages": [                               // List of stages in each scenario
         {
           "type": "checkpoint",                 // Checkpoint type stage, subject must pass through checkpoint to pass
@@ -37,5 +38,3 @@ The given values present a basic scenario:
   }
 }
 ```
-
-**More in-depth information and some tutorials will be provided soon.**
