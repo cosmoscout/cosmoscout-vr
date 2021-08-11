@@ -22,11 +22,21 @@ class UserStudy;
 class Plugin : public cs::core::PluginBase {
  public:
   struct Settings {
-    /// Toggle, wheter scenario stages should be displayed
+    /// Toggle, whether scenario stages should be displayed
     cs::utils::DefaultProperty<bool> mEnabled{false};
+
+    /// The settings for a scenario
+    struct Scenario {
+
+      /// The name of the scenario
+      cs::utils::DefaultProperty<std::string> mName{"None"};
+
+      /// The path to the scenario config
+      cs::utils::DefaultProperty<std::string> mPath{"None"};
+    };
     
     /// List of configs containing related scenarios.
-    std::map<std::string, std::string> mOtherScenarios;
+    std::vector<Scenario> mOtherScenarios;
 
     /// The settings for a stage of the scenario
     struct Stage {

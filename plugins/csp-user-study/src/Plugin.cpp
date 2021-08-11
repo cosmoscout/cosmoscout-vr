@@ -46,6 +46,16 @@ void to_json(nlohmann::json& j, Plugin::Settings::Stage const& o) {
   cs::core::Settings::serialize(j, "scale", o.mScaling);
 }
 
+void from_json(nlohmann::json const& j, Plugin::Settings::Scenario& o) {
+  cs::core::Settings::deserialize(j, "name", o.mName);
+  cs::core::Settings::deserialize(j, "path", o.mPath);
+}
+
+void to_json(nlohmann::json& j, Plugin::Settings::Scenario const& o) {
+  cs::core::Settings::serialize(j, "name", o.mName);
+  cs::core::Settings::serialize(j, "path", o.mPath);
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void from_json(nlohmann::json const& j, Plugin::Settings& o) {

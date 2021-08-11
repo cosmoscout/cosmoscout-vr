@@ -13,28 +13,31 @@ The given values present a basic scenario:
   "plugins": {
     ...
     "csp-user-study": {
-      "enabled": true,
-      "otherScenarios": {                       // List of other scenarios' configs
-        "scenario_A": "../share/scenes/basicScenario1.json",
-        "scenario_B": "../share/scenes/basicScenario2.json"
-      },
-      "stages": [                               // List of stages in each scenario
+      "enabled": <bool>,           // Toggle whether the scenario is visible/active  
+      "otherScenarios": [          // List of other scenario configs related to the current scenario
         {
-          "type": "checkpoint",                 // Checkpoint type stage, subject must pass through checkpoint to pass
-          "bookmark": "name",                   // Name of the bookmark used for positional data
-          "scale": 42.0                         // Scaling factor for the gate size
+          "name": <string>,        // Name of the scenario
+          "path": <string>         // Path to the config (e.g. "../share/scenes/scenario_name.json")
         },
+        ...
+      ],
+      "stages": [                  // List of stages in each scenario
         {
-          "type": "requestFMS"                  // FMS report type stage, subject must select a score on the FMS to pass
+          "type": <string>,        // Type of a stage (enum) see below for stage types
+          "bookmark": <string>,    // Name of the bookmark used for stage position
+          "scale": <float>         // Scaling factor for the size of the web view
         },
-        {
-          "type": "requestCOG"                  // CoG report type stage, subject must record CoG to pass
-        },
-        {
-          "type": "switchScenario"              // Stage type to switch to another scenario, subject must select new scenario from "otherScenarios" list
-        }
+        ...
       ]
      }
   }
 }
 ```
+
+### Stage Types
+
+| Type             | Description |
+|:-----------------|:------------|
+| `checkpoint`     | Draws a gate the user has to move through in the correct direction. |
+| `requestFMS`     | Draws a panel to requests the user to submit a score on the FMS. |
+| `switchScenario` | Draws a panel displaying the list of `otherScenarios` allowing the user to switch to a different scenario. |
