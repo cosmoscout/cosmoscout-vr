@@ -122,6 +122,7 @@ void main()
   float cos_i = dot(N, L);
   float cos_r = dot(N, V);
 
+  float illuminance = uSunDirIlluminance.w;
   float luminance = 1.0;
   #if $ENABLE_SHADOWS
     luminance *= VP_getShadow(fsIn.position);
@@ -145,14 +146,14 @@ void main()
         luminance *= 0;
       }
       else {
-        luminance *= f_r * uSunDirIlluminance.w;
+        luminance *= f_r * illuminance;
       }
     }
-    fragColor /= $AVG_IMG_REFLECTANCE;
+    fragColor /= $AVG_IMG_REFLECTIVITY;
     fragColor *= luminance;
   #elif $ENABLE_HDR
-    luminance *= uSunDirIlluminance.w;
-    fragColor /= $AVG_IMG_REFLECTANCE;
+    luminance *= illuminance;
+    fragColor /= $AVG_IMG_REFLECTIVITY;
     fragColor *= luminance;
   #elif $ENABLE_LIGHTING
     if (cos_i < 0) {
@@ -236,7 +237,7 @@ void main()
   #if $SHOW_LAT_LONG || $SHOW_LAT_LONG_LABELS
   {
     #if $ENABLE_LIGHTING
-      float fIdealLightIntensity = dot(idealNormal, sunDir) * (1.0 - ambientLight) + ambientLight;
+      float fIdealLightIntensity = dot(idealNormal, normalize(fsIn.sunDir)) * (1.0 - ambient) + ambient;
       vec3 grid_color = mix(fragColor, vec3(mix(1.0, 0.0, clamp(fIdealLightIntensity + 1.0, 0.0, 1.0))), 0.8);
     #else
       vec3 grid_color = mix(fragColor, vec3(0), 0.8);

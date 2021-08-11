@@ -8,6 +8,9 @@
 // It ranges from 0 to 90 where a value of zero degenerates the BRDF to Lambertian reflectance.
 // You'll be happy with sigma = 30 in most cases.
 
+// Some suggestions for some bodies:
+// - Moon: rho = 0.11, sigma = 37
+
 float $BRDF(vec3 N, vec3 L, vec3 V)
 {
   float PI = 3.14159265358979323846;

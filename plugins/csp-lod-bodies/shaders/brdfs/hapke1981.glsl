@@ -11,7 +11,7 @@
 // B_0: The amplitude of the opposition surge, i.e. simply how strong the effect is, in range [0, inf (nonsense)].
 
 // Some suggestions for some regoliths:
-// - Lunar regolith: w = 0.32357, h = 0.4, B_0 = 1.80238
+// - Lunar regolith: w = 0.32357, h = 0.4, B_0 = 1.5415
 
 float $BRDF(vec3 N, vec3 L, vec3 V)
 {

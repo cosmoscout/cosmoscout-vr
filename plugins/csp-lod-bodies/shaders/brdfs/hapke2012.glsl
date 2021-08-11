@@ -25,7 +25,8 @@
 // Basically the opposite of how densly the regolith is structured. A higher value corresponds to higher density.
 
 // Some suggestions for some regoliths:
-// - Lunar regolith: w = 0.32357, b = 0.23955, c = 0.30452, B_C0 = 0.0, h_C = 1.0, B_S0 = 1.80238, h_S = 0.07145, theta_p = 23.4, phi = 0.3
+// - Lunar regolith: w = 0.32357, b = 0.23955, c = 0.30452, B_C0 = 0.0, h_C = 1.0,
+//                   B_S0 = 1.80238, h_S = 0.07145, theta_p = 23.4, phi = 0.3
 
 float $BRDF(vec3 N, vec3 L, vec3 V)
 {

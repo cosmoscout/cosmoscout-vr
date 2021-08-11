@@ -372,7 +372,7 @@ There will be new configuration options in the sidebar where you can adjust the 
 ## Customize Shading
 
 CosmoScout VR supports physically based rendering for each body separately.
-Simple Lambertien shading is applied per default. You can choose custom BRDFs and parameterize them.
+Simple Lambertian shading is applied per default. You can choose custom BRDFs and parameterize them.
 Here is an example configuration to set up a custom BRDF:
 
 ```json
@@ -383,7 +383,7 @@ Here is an example configuration to set up a custom BRDF:
     "Earth": {
       ...
       "brdfHdr": {
-        "source": "../share/resources/shaders/brdfs/oren-nayar_scaled.glsl",
+        "source": "../share/resources/shaders/brdfs/oren-nayar.glsl",
         "properties": {
           "$rho": 0.2,
           "$sigma": 30.0
