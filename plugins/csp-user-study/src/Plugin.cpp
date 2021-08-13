@@ -34,10 +34,30 @@ namespace csp::userstudy {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// clang-format off
+
+// NOLINTNEXTLINE
+NLOHMANN_JSON_SERIALIZE_ENUM(Plugin::Settings::StageType, {
+  {Plugin::Settings::StageType::eNone, nullptr},
+  {Plugin::Settings::StageType::eCheckpoint, "checkpoint"},
+  {Plugin::Settings::StageType::eRequestFMS, "requestFMS"},
+  {Plugin::Settings::StageType::eSwitchScenario, "switchScenario"},
+});
+
+// clang-format on
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void from_json(nlohmann::json const& j, Plugin::Settings::Stage& o) {
   cs::core::Settings::deserialize(j, "type", o.mType);
   cs::core::Settings::deserialize(j, "bookmark", o.mBookmark);
   cs::core::Settings::deserialize(j, "scale", o.mScaling);
+
+  if (o.mType.get() == Plugin::Settings::StageType::eNone) {
+    throw cs::core::Settings::DeserializationException(
+      "'type'", "Invalid stage type given! Should be one of the types outlined in the README.md"
+    );
+  }
 }
 
 void to_json(nlohmann::json& j, Plugin::Settings::Stage const& o) {
@@ -60,12 +80,14 @@ void to_json(nlohmann::json& j, Plugin::Settings::Scenario const& o) {
 
 void from_json(nlohmann::json const& j, Plugin::Settings& o) {
   cs::core::Settings::deserialize(j, "enabled", o.mEnabled);
+  cs::core::Settings::deserialize(j, "debug", o.mDebug);
   cs::core::Settings::deserialize(j, "otherScenarios", o.mOtherScenarios);
   cs::core::Settings::deserialize(j, "stages", o.mStages);
 }
 
 void to_json(nlohmann::json& j, Plugin::Settings const& o) {
   cs::core::Settings::serialize(j, "enabled", o.mEnabled);
+  cs::core::Settings::serialize(j, "debug", o.mDebug);
   cs::core::Settings::serialize(j, "otherScenarios", o.mOtherScenarios);
   cs::core::Settings::serialize(j, "stages", o.mStages);
 }

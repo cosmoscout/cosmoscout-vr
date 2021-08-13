@@ -22,8 +22,14 @@ class UserStudy;
 class Plugin : public cs::core::PluginBase {
  public:
   struct Settings {
+    /// Enum for Stage Types
+    enum class StageType { eNone, eCheckpoint, eRequestFMS, eSwitchScenario };
+
     /// Toggle, whether scenario stages should be displayed
     cs::utils::DefaultProperty<bool> mEnabled{false};
+
+    /// Toggle, whether all scenario stages should be displayed all the time
+    cs::utils::DefaultProperty<bool> mDebug{false};
 
     /// The settings for a scenario
     struct Scenario {
@@ -41,13 +47,13 @@ class Plugin : public cs::core::PluginBase {
     /// The settings for a stage of the scenario
     struct Stage {
       
-      // The type of the stage
-      cs::utils::DefaultProperty<std::string> mType{"None"};
+      /// The type of the stage
+      cs::utils::DefaultProperty<StageType> mType{StageType::eNone};
       
-      // The related bookmark if type is "Checkpoint"
+      /// The related bookmark for the position & orientation
       cs::utils::DefaultProperty<std::string> mBookmark{"None"};
       
-      // The scaling factor for the stage mark
+      /// The scaling factor for the stage mark
       cs::utils::DefaultProperty<float> mScaling{1};
     };
 

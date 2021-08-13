@@ -13,7 +13,8 @@ The given values present a basic scenario:
   "plugins": {
     ...
     "csp-user-study": {
-      "enabled": <bool>,           // Toggle whether the scenario is visible/active  
+      "enabled": <bool>,           // Toggle whether the scenario is visible/active
+      "debug": <bool>,             // Toggle debug mode, where all stages are visible
       "otherScenarios": [          // List of other scenario configs related to the current scenario
         {
           "name": <string>,        // Name of the scenario
