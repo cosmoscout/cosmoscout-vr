@@ -272,14 +272,6 @@ void Plugin::update() {
   if (resetColorPicker) {
     // reread settings from json
     from_json(mAllSettings->mPlugins.at("csp-vr-accessibility"), *mPluginSettings);
-    /* OLD (BACKUP)
-    // reread grid color from json settings
-    cs::core::Settings::deserialize(
-        mAllSettings->mPlugins.at("csp-vr-accessibility"), "gridColor", mPluginSettings->mColor);
-    // reread vignette color from json settings
-    cs::core::Settings::deserialize(mAllSettings->mPlugins.at("csp-vr-accessibility"),
-        "vignetteColor", mPluginSettings->mFovVignetteColor);
-    */
     // reset grid color into picker
     mGuiManager->getGui()->callJavascript(
         "CosmoScout.floorGrid.setColorValue", mPluginSettings->mGridSettings.mColor.get());
