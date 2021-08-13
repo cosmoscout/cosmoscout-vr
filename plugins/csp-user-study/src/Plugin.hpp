@@ -10,8 +10,11 @@
 #include "../../../src/cs-core/PluginBase.hpp"
 #include "../../../src/cs-core/Settings.hpp"
 #include "../../../src/cs-utils/Property.hpp"
-#include <memory>
 #include <vector>
+
+namespace cs::scene {
+  class CelestialAnchorNode;
+} // namespace cs::scene
 
 namespace csp::userstudy {
 class UserStudy;
@@ -82,8 +85,12 @@ class Plugin : public cs::core::PluginBase {
 
   std::shared_ptr<Settings> mPluginSettings = std::make_shared<Settings>();
 
-  std::shared_ptr<Settings>                 mPluginSettings = std::make_shared<Settings>();
-  //std::vector<std::unique_ptr<UserStudy>>   mUserStudy;
+  struct Stage {
+    std::shared_ptr<cs::scene::CelestialAnchorNode> mAnchor;
+    float                                           mScale = 1.0;
+  };
+
+  std::list<Stage> mStages = {};
 
   int mOnLoadConnection = -1;
   int mOnSaveConnection = -1;

@@ -5,14 +5,12 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "Plugin.hpp"
-//#include "UserStudy.hpp"
-
-#include "../../../src/cs-core/GuiManager.hpp"
-#include "../../../src/cs-core/PluginBase.hpp"
-#include "../../../src/cs-core/SolarSystem.hpp"
-#include "../../../src/cs-utils/logger.hpp"
-#include "../../../src/cs-utils/utils.hpp"
 #include "logger.hpp"
+
+// TODO: #include "UserStudy.hpp" neccessary?
+
+#include <VistaKernel/VistaSystem.h>
+#include <VistaKernel/GraphicsManager/VistaSceneGraph.h>
 
 #include <iostream>
 
