@@ -94,13 +94,33 @@ void to_json(nlohmann::json& j, Plugin::Settings const& o) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+bool Plugin::Settings::Scenario::operator==(Plugin::Settings::Scenario const& other) const {
+  return mName.get() == other.mName.get() && mPath.get() == other.mPath.get();
+}
+
+bool Plugin::Settings::Stage::operator==(Plugin::Settings::Stage const& other) const {
+  return mType.get() == other.mType.get() && mBookmark.get() == other.mBookmark.get() && mScaling.get() == other.mScaling.get();
+}
+
+bool Plugin::Settings::operator==(Plugin::Settings const& other) const {
+  return mOtherScenarios == other.mOtherScenarios && mStages == other.mStages;
+}
+
+bool Plugin::Settings::operator!=(Plugin::Settings const& other) const {
+  return !(*this == other);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Plugin::init() {
 
   logger().info("Loading plugin...");
 
   mOnLoadConnection = mAllSettings->onLoad().connect([this]() { onLoad(); });
   mOnSaveConnection = mAllSettings->onSave().connect(
-      [this]() { mAllSettings->mPlugins["csp-user-labels"] = *mPluginSettings; });
+      [this]() { mAllSettings->mPlugins["csp-user-study"] = *mPluginSettings; });
+  
+  // TODO: Register Callbacks here if needed
 
   onLoad();
 
@@ -111,7 +131,8 @@ void Plugin::init() {
 
 void Plugin::update() {
   if (mPluginSettings->mEnabled.get()) {
-
+    // TODO: check active stage index & which stages to hide/unhide
+    // TODO: check flythrough for checkpoints?
   }
 }
 
@@ -119,6 +140,9 @@ void Plugin::update() {
 
 void Plugin::deInit() {
   logger().info("Unloading plugin...");
+
+  // remove stages
+  unload(*mPluginSettings);
 
   mAllSettings->onLoad().disconnect(mOnLoadConnection);
   mAllSettings->onSave().disconnect(mOnSaveConnection);
@@ -129,8 +153,37 @@ void Plugin::deInit() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Plugin::onLoad() {
+  // store current settings
+  Plugin::Settings oldSettings = *mPluginSettings;
+
   // Read settings from JSON.
   from_json(mAllSettings->mPlugins.at("csp-user-study"), *mPluginSettings);
+
+  // Check if settings changed
+  if (*mPluginSettings != oldSettings) {
+
+    // remove existing stages
+    unload(oldSettings);
+
+    // add stages
+    VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
+    for (auto const& stageSettings : mPluginSettings->mStages){
+      
+      Stage s;
+
+      // find anchor for stage
+      
+    }
+  }
+
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Plugin::unload(Plugin::Settings pluginSettings) {
+
+  // TODO: Remove stages
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

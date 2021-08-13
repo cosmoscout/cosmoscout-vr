@@ -39,6 +39,9 @@ class Plugin : public cs::core::PluginBase {
 
       /// The path to the scenario config
       cs::utils::DefaultProperty<std::string> mPath{"None"};
+
+      /// Operator to compare two Scenarios
+      bool operator==(Scenario const& other) const;
     };
     
     /// List of configs containing related scenarios.
@@ -55,10 +58,18 @@ class Plugin : public cs::core::PluginBase {
       
       /// The scaling factor for the stage mark
       cs::utils::DefaultProperty<float> mScaling{1};
+
+      /// Operator to compare two Stages
+      bool operator==(Stage const& other) const;
     };
 
     /// List of stages making up the scenario
     std::vector<Stage> mStages;
+
+    /// Operator to compare Settings
+    bool operator!=(Settings const& other) const;
+    /// Operator to compare Settings
+    bool operator==(Settings const& other) const;
   };
 
   void init() override;
@@ -67,6 +78,9 @@ class Plugin : public cs::core::PluginBase {
 
  private:
   void onLoad();
+  void unload(Plugin::Settings pluginSettings);
+
+  std::shared_ptr<Settings> mPluginSettings = std::make_shared<Settings>();
 
   std::shared_ptr<Settings>                 mPluginSettings = std::make_shared<Settings>();
   //std::vector<std::unique_ptr<UserStudy>>   mUserStudy;
