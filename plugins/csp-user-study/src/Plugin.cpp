@@ -5,14 +5,15 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "Plugin.hpp"
+#include "Stage.hpp"
 #include "logger.hpp"
 
-// TODO: #include "UserStudy.hpp" neccessary?
+#include "../../../src/cs-core/GuiManager.hpp"
+#include "../../../src/cs-core/SolarSystem.hpp"
+#include "../../../src/cs-scene/CelestialAnchorNode.hpp"
 
-#include <VistaKernel/VistaSystem.h>
 #include <VistaKernel/GraphicsManager/VistaSceneGraph.h>
-
-#include <iostream>
+#include <VistaKernel/VistaSystem.h>
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -53,8 +54,7 @@ void from_json(nlohmann::json const& j, Plugin::Settings::Stage& o) {
 
   if (o.mType.get() == Plugin::Settings::StageType::eNone) {
     throw cs::core::Settings::DeserializationException(
-      "'type'", "Invalid stage type given! Should be one of the types outlined in the README.md"
-    );
+        "'type'", "Invalid stage type given! Should be one of the types outlined in the README.md");
   }
 }
 
@@ -97,7 +97,8 @@ bool Plugin::Settings::Scenario::operator==(Plugin::Settings::Scenario const& ot
 }
 
 bool Plugin::Settings::Stage::operator==(Plugin::Settings::Stage const& other) const {
-  return mType.get() == other.mType.get() && mBookmark.get() == other.mBookmark.get() && mScaling.get() == other.mScaling.get();
+  return mType.get() == other.mType.get() && mBookmark.get() == other.mBookmark.get() &&
+         mScaling.get() == other.mScaling.get();
 }
 
 bool Plugin::Settings::operator==(Plugin::Settings const& other) const {
@@ -117,7 +118,7 @@ void Plugin::init() {
   mOnLoadConnection = mAllSettings->onLoad().connect([this]() { onLoad(); });
   mOnSaveConnection = mAllSettings->onSave().connect(
       [this]() { mAllSettings->mPlugins["csp-user-study"] = *mPluginSettings; });
-  
+
   // TODO: Register Callbacks here if needed
 
   onLoad();
@@ -165,15 +166,32 @@ void Plugin::onLoad() {
 
     // add stages
     VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
-    for (auto const& stageSettings : mPluginSettings->mStages){
-      
-      Stage s;
+    for (Plugin::Settings::Stage const& stageSettings : mPluginSettings->mStages) {
 
-      // find anchor for stage
-      
+      // find bookmark by name
+      cs::core::Settings::Bookmark bookmark;
+      for (auto it = mGuiManager->getBookmarks().begin(); it != mGuiManager->getBookmarks().end();
+           ++it) {
+        if (it->second.mName == stageSettings.mBookmark.get()) {
+          bookmark = it->second;
+          break;
+        }
+      }
+
+      // create anchor node from bookmark location
+      auto anchor = std::make_shared<cs::scene::CelestialAnchorNode>(pSG->GetRoot(),
+          pSG->GetNodeBridge(), "", bookmark.mLocation->mCenter, bookmark.mLocation->mFrame);
+
+      // adjust position and rotation
+      anchor->setAnchorPosition(bookmark.mLocation->mPosition.value());
+      anchor->setAnchorRotation(bookmark.mLocation->mRotation.value());
+
+      // register anchor
+      mSolarSystem->registerAnchor(anchor);
+
+      mStages.emplace_back(stageSettings.mType.get(), anchor, stageSettings.mScaling.get());
     }
   }
-
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -181,7 +199,6 @@ void Plugin::onLoad() {
 void Plugin::unload(Plugin::Settings pluginSettings) {
 
   // TODO: Remove stages
-
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -16,7 +16,7 @@ file(GLOB SOURCE_FILES src/*.cpp)
 
 # Resoucre files and header files are only added in order to make them available in your IDE.
 file(GLOB HEADER_FILES src/*.hpp)
-#file(GLOB_RECURSE RESOUCRE_FILES gui/*)
+file(GLOB_RECURSE RESOUCRE_FILES gui/*)
 
 add_library(csp-user-study SHARED
   ${SOURCE_FILES}
@@ -43,4 +43,4 @@ source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES
 # install plugin -----------------------------------------------------------------------------------
 
 install(TARGETS   csp-anchor-labels DESTINATION "share/plugins")
-#install(DIRECTORY "gui"             DESTINATION "share/resources")
+install(DIRECTORY "gui"             DESTINATION "share/resources")

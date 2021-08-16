@@ -12,12 +12,13 @@
 #include "../../../src/cs-utils/Property.hpp"
 #include <vector>
 
+#include "../../../plugins/csp-user-study/src/Stage.hpp"
+
 namespace cs::scene {
-  class CelestialAnchorNode;
+class CelestialAnchorNode;
 } // namespace cs::scene
 
 namespace csp::userstudy {
-class UserStudy;
 
 /// This plugin creates configurable navigation scenarios for a user study.
 /// It uses scaleable web views to mark checkpoints with different tasks.
@@ -46,19 +47,19 @@ class Plugin : public cs::core::PluginBase {
       /// Operator to compare two Scenarios
       bool operator==(Scenario const& other) const;
     };
-    
+
     /// List of configs containing related scenarios.
     std::vector<Scenario> mOtherScenarios;
 
     /// The settings for a stage of the scenario
     struct Stage {
-      
+
       /// The type of the stage
       cs::utils::DefaultProperty<StageType> mType{StageType::eNone};
-      
+
       /// The related bookmark for the position & orientation
       cs::utils::DefaultProperty<std::string> mBookmark{"None"};
-      
+
       /// The scaling factor for the stage mark
       cs::utils::DefaultProperty<float> mScaling{1};
 
@@ -85,12 +86,8 @@ class Plugin : public cs::core::PluginBase {
 
   std::shared_ptr<Settings> mPluginSettings = std::make_shared<Settings>();
 
-  struct Stage {
-    std::shared_ptr<cs::scene::CelestialAnchorNode> mAnchor;
-    float                                           mScale = 1.0;
-  };
-
-  std::list<Stage> mStages = {};
+  std::vector<Stage> mStages   = {};
+  unsigned int       mStageIdx = 0;
 
   int mOnLoadConnection = -1;
   int mOnSaveConnection = -1;
