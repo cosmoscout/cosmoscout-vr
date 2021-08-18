@@ -131,8 +131,8 @@ class Plugin : public cs::core::PluginBase {
           BRDF{"../share/resources/shaders/brdfs/lambert.glsl", {{"$rho", 1.0f}}}};
       cs::utils::DefaultProperty<BRDF>  mBrdfNonHdr{///< The BRDF used in lighting mode.
           BRDF{"../share/resources/shaders/brdfs/lambert_scaled.glsl", {{"$rho", 1.0f}}}};
-      cs::utils::DefaultProperty<float> mAvgImgReflectivity{
-          1.0f}; ///< The average reflectivity of the diffuse maps.
+      cs::utils::DefaultProperty<float> mAvgLinearImgIntensity{
+          1.0f}; ///< The average intensity of the linear (!) image.
     };
 
     std::map<std::string, Body> mBodies; ///< A list of planets with their anchor names.

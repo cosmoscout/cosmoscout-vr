@@ -88,7 +88,7 @@ void from_json(nlohmann::json const& j, Plugin::Settings::Body& o) {
   cs::core::Settings::deserialize(j, "imgDatasets", o.mImgDatasets);
   cs::core::Settings::deserialize(j, "brdfHdr", o.mBrdfHdr);
   cs::core::Settings::deserialize(j, "brdfNonHdr", o.mBrdfNonHdr);
-  cs::core::Settings::deserialize(j, "avgImgReflectivity", o.mAvgImgReflectivity);
+  cs::core::Settings::deserialize(j, "avgLinearImgIntensity", o.mAvgLinearImgIntensity);
 }
 
 void to_json(nlohmann::json& j, Plugin::Settings::Body const& o) {
@@ -98,7 +98,7 @@ void to_json(nlohmann::json& j, Plugin::Settings::Body const& o) {
   cs::core::Settings::serialize(j, "imgDatasets", o.mImgDatasets);
   cs::core::Settings::serialize(j, "brdfHdr", o.mBrdfHdr);
   cs::core::Settings::serialize(j, "brdfNonHdr", o.mBrdfNonHdr);
-  cs::core::Settings::serialize(j, "avgImgReflectivity", o.mAvgImgReflectivity);
+  cs::core::Settings::serialize(j, "avgLinearImgIntensity", o.mAvgLinearImgIntensity);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

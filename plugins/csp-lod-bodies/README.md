@@ -386,7 +386,7 @@ Here is an example configuration to set up a custom BRDF:
         "source": "../share/resources/shaders/brdfs/oren-nayar.glsl",
         "properties": {
           "$rho": 0.2,
-          "$sigma": 30.0
+          "$sigma": 20.0
         }
       },
       "brdfNonHdr": {
@@ -396,7 +396,7 @@ Here is an example configuration to set up a custom BRDF:
           "$sigma": 20.0
         }
       },
-      "avgImgReflectivity": 0.25
+      "avgLinearImgIntensity": 0.0388402
     }
   }
 }
@@ -406,8 +406,14 @@ A BRDF is defined by GLSL-like source code and represents a material with specif
 The properties are represented by key-variables and values.
 The settings `brdfHdr` and `brdfNonHdr` set up the BRDFs to be used in HDR rendering and when lighting is enabled.
 When HDR rendering and lighting is enabled, then the BRDF as defined by `brdfHdr` is used.
-The last setting `avgImgReflectivity` adjusts the shading by dividing the diffuse maps by the given value in HDR rendering.
-The division by the average reflectivity of the diffuse maps leads to a more accurate representation of luminance in the scene.
+The last setting `avgLinearImgIntensity` adjusts the shading by dividing the fragments by the given value in HDR rendering.
+The division by the average linear (!) intensity of the color maps leads to a more accurate representation of luminance in the scene.
+To calculate the right value, you need to first gamma decode your image to linear space.
+Then you need to calculate the average brightness and weight the pixels depending on their position.
+Your image is likely an equirectangular projection so e.g. the pixels in the first row describe all the same point.
+To make things easy: You can also just calculate the average brightness of an image,
+normalize and raise the result to the power of gamma, e.g. 2.2 with a casual sRGB image.
+This is quick and simple but also less accurate.
 The visual appearance of the scene is not affected by this setting,
 so feel free to skip it if you don't care about accurate luminance values.
 

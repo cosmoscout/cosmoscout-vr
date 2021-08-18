@@ -90,7 +90,7 @@ void main()
     #else
       fragColor = texture(VP_texIMG, vec3(fsIn.texcoords, VP_layerIMG)).rrr;
     #endif
-    
+
     #if $ENABLE_HDR
       fragColor = SRGBtoLINEAR(fragColor);
     #endif
@@ -149,11 +149,11 @@ void main()
         luminance *= f_r * illuminance;
       }
     }
-    fragColor /= $AVG_IMG_REFLECTIVITY;
+    fragColor /= $AVG_LINEAR_IMG_INTENSITY;
     fragColor *= luminance;
   #elif $ENABLE_HDR
     luminance *= illuminance;
-    fragColor /= $AVG_IMG_REFLECTIVITY;
+    fragColor /= $AVG_LINEAR_IMG_INTENSITY;
     fragColor *= luminance;
   #elif $ENABLE_LIGHTING
     if (cos_i < 0) {

@@ -178,8 +178,8 @@ void PlanetShader::compile() {
   cs::utils::replaceString(mFragmentSource, "$BRDF_HDR", brdfHdrSource);
   cs::utils::replaceString(mFragmentSource, "$BRDF_NON_HDR", brdfNonHdrSource);
 
-  cs::utils::replaceString(mFragmentSource, "$AVG_IMG_REFLECTIVITY",
-      std::to_string(mPluginSettings->mBodies[mAnchorName].mAvgImgReflectivity.get()));
+  cs::utils::replaceString(mFragmentSource, "$AVG_LINEAR_IMG_INTENSITY",
+      std::to_string(mPluginSettings->mBodies[mAnchorName].mAvgLinearImgIntensity.get()));
 
   cs::utils::replaceString(mVertexSource, "$LIGHTING_QUALITY",
       cs::utils::toString(mSettings->mGraphics.pLightingQuality.get()));
