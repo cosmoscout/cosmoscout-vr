@@ -2,17 +2,65 @@
 <html>
 
 <head>
-    <meta charset="utf-8">
+  <meta charset="utf-8">
 
-    <script type="text/javascript">
-        function setContent(html) {
-            document.body.innerHTML = html;
-        }
-    </script>
+  <script type="text/javascript">
+    function setCP() {  // also resets page to default layout, hiding additional stuff
+      document.getElementById("cp").style.filter = "var(--cp_filter)";
+      document.getElementById("fms").hidden = true;
+      document.getElementById("chs").hidden = true;
+    }
+    function setFMS() {
+      setCP()
+      document.getElementById("cp").style.filter = "var(--fms_filter)";
+      document.getElementById("fms").hidden = false;
+    }
+    function setCHS() {
+      setCP()
+      document.getElementById("cp").style.filter = "var(--chs_filter)";
+      document.getElementById("chs").hidden = false;
+    }
+    function setOpacity(opacity) {
+      document.querySelector(":root").style.opacity = "" + opacity;
+    }
+  </script>
+  <!-- filters generated from color at https://codepen.io/sosuke/pen/Pjoqqp -->
+  <style>
+    :root {
+      --cp_filter: invert(64%) sepia(100%) saturate(5041%) hue-rotate(1deg) brightness(104%) contrast(104%);
+      --fms_filter: invert(17%) sepia(57%) saturate(7470%) hue-rotate(2deg) brightness(91%) contrast(126%);
+      --chs_filter: invert(71%) sepia(27%) saturate(6138%) hue-rotate(90deg) brightness(114%) contrast(105%);
+
+      opacity: 1.0;
+    }
+    #cp{
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: rgb(0, 0, 0);
+      background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' version='1.1' width='100%' height='100%' viewBox='0 0 100 100'><ellipse cx='50' cy='50' rx='47' ry='47' fill='none' stroke='rgb(0, 0, 0)' stroke-width='4' pointer-events='all'/><ellipse cx='50' cy='50' rx='40' ry='40' fill='none' stroke='rgb(0, 0, 0)' stroke-width='1'/></svg>");
+      background-repeat: no-repeat;
+      background-color: transparent;
+      filter: var(--cp_filter);
+    }
+    #chs{
+      font-size: 10em;
+      text-align: center;
+    }
+    #fms{
+      font-size: 10em;
+      text-align: center;
+    }
+  </style>
 </head>
 
-<body
-    style="overflow: hidden; margin: 0; position: absolute; top: 0; bottom: 0; left: 0; right: 0;">
+<body style="overflow: hidden; margin: 0; position: absolute; top: 0; bottom: 0; left: 0; right: 0;">
+  <div id="cp">
+    <div id="chs"></div>
+    <div id= "fms"></div>
+  </div>
 </body>
 
 </html>

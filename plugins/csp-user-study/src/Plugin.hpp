@@ -11,8 +11,7 @@
 #include "../../../src/cs-core/Settings.hpp"
 #include "../../../src/cs-utils/Property.hpp"
 #include <vector>
-
-#include "../../../plugins/csp-user-study/src/Stage.hpp"
+#include <memory>
 
 namespace cs::scene {
 class CelestialAnchorNode;
@@ -25,9 +24,9 @@ namespace csp::userstudy {
 /// The plugin is configurable via the application config file. See README.md for details.
 class Plugin : public cs::core::PluginBase {
  public:
+  enum class StageType { eNone, eCheckpoint, eRequestFMS, eSwitchScenario };
+
   struct Settings {
-    /// Enum for Stage Types
-    enum class StageType { eNone, eCheckpoint, eRequestFMS, eSwitchScenario };
 
     /// Toggle, whether scenario stages should be displayed
     cs::utils::DefaultProperty<bool> mEnabled{false};
@@ -52,23 +51,23 @@ class Plugin : public cs::core::PluginBase {
     std::vector<Scenario> mOtherScenarios;
 
     /// The settings for a stage of the scenario
-    struct Stage {
+    struct StageSetting {
 
       /// The type of the stage
       cs::utils::DefaultProperty<StageType> mType{StageType::eNone};
 
       /// The related bookmark for the position & orientation
-      cs::utils::DefaultProperty<std::string> mBookmark{"None"};
+      cs::utils::DefaultProperty<std::string> mBookmarkName{"None"};
 
       /// The scaling factor for the stage mark
       cs::utils::DefaultProperty<float> mScaling{1};
 
       /// Operator to compare two Stages
-      bool operator==(Stage const& other) const;
+      bool operator==(StageSetting const& other) const;
     };
 
     /// List of stages making up the scenario
-    std::vector<Stage> mStages;
+    std::vector<StageSetting> mStageSettings;
 
     /// Operator to compare Settings
     bool operator!=(Settings const& other) const;
@@ -83,11 +82,21 @@ class Plugin : public cs::core::PluginBase {
  private:
   void onLoad();
   void unload(Plugin::Settings pluginSettings);
+  void setupStage(Plugin::Settings::StageSetting settings, uint32_t atStagesIdx, bool isCurrent = false);
+  std::optional<cs::core::Settings::Bookmark> getBookmarkByName(std::string name);
 
   std::shared_ptr<Settings> mPluginSettings = std::make_shared<Settings>();
 
-  std::vector<Stage> mStages   = {};
-  unsigned int       mStageIdx = 0;
+  struct Stage {
+    std::shared_ptr<cs::scene::CelestialAnchorNode> mAnchor;
+    std::unique_ptr<cs::gui::WorldSpaceGuiArea>     mGuiArea;
+    std::unique_ptr<VistaTransformNode>             mTransform;
+    std::unique_ptr<VistaOpenGLNode>                mGuiNode;
+    std::unique_ptr<cs::gui::GuiItem>               mGuiItem;
+  };
+
+  std::vector<Stage> mStages = {};
+  uint32_t mStageIdx         = 0;
 
   int mOnLoadConnection = -1;
   int mOnSaveConnection = -1;
