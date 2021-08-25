@@ -4,25 +4,51 @@
 <head>
   <meta charset="utf-8">
 
+  <script type="text/javascript" src="third-party/js/jquery-2.2.3.min.js"></script>
+  <script type="text/javascript" src="third-party/js/bootstrap.bundle.min.js"></script>
+  <script type="text/javascript" src="third-party/js/nouislider.min.js"></script>
+
+  <script type="text/javascript" src="js/api.js"></script>
+  <script type="text/javascript" src="js/cosmoscout.js"></script>
+  <script type="text/javascript" src="js/apis/utils.js"></script>
+  <script type="text/javascript" src="js/apis/gui.js"></script>
+
   <script type="text/javascript">
-    function setCP() {  // also resets page to default layout, hiding additional stuff
+    // set/reset HTML to display standard checkpoints
+    function setCP() {
       document.getElementById("cp").style.filter = "var(--cp_filter)";
       document.getElementById("fms").hidden = true;
       document.getElementById("chs").hidden = true;
     }
+    // set HTML to display FMS score checkpoint
     function setFMS() {
       setCP()
       document.getElementById("cp").style.filter = "var(--fms_filter)";
       document.getElementById("fms").hidden = false;
     }
+    // set HTML to display Change Scenario checkpoint
     function setCHS() {
       setCP()
       document.getElementById("cp").style.filter = "var(--chs_filter)";
       document.getElementById("chs").hidden = false;
     }
+    // set the opacity of a checkpoint to distinguish between current (1.0) and upcoming (~0.5) checkpoints
     function setOpacity(opacity) {
       document.querySelector(":root").style.opacity = "" + opacity;
     }
+
+    // init cosmoscout api to init sliders
+    var CosmoScout = new CosmoScoutAPI();
+
+    document.addEventListener('DOMContentLoaded', () => {
+      CosmoScout.init(
+        UtilsApi,
+        GuiApi
+      );
+
+      CosmoScout.gui.initSlider("FMSdata", 0, 20, 1, [0]);
+
+    })
   </script>
   <!-- filters generated from color at https://codepen.io/sosuke/pen/Pjoqqp -->
   <style>
@@ -59,7 +85,9 @@
 <body style="overflow: hidden; margin: 0; position: absolute; top: 0; bottom: 0; left: 0; right: 0;">
   <div id="cp">
     <div id="chs"></div>
-    <div id= "fms"></div>
+    <div id= "fms">
+      <div data-callback="FMSdata"></div>
+    </div>
   </div>
 </body>
 

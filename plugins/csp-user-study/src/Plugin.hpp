@@ -17,6 +17,14 @@ namespace cs::scene {
 class CelestialAnchorNode;
 } // namespace cs::scene
 
+class VistaOpenGLNode;
+class VistaTransformNode;
+
+namespace cs::gui {
+  class WorldSpaceGuiArea;
+  class GuiItem;
+} // namespace cs::gui
+
 namespace csp::userstudy {
 
 /// This plugin creates configurable navigation scenarios for a user study.
