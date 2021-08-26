@@ -4,6 +4,10 @@
 <head>
   <meta charset="utf-8">
 
+  <link type="text/css" rel="stylesheet" href="third-party/css/bootstrap.min.css" />
+  <link type="text/css" rel="stylesheet" href="third-party/css/nouislider.css" />
+  <link type="text/css" rel="stylesheet" href="css/gui.css">
+
   <script type="text/javascript" src="third-party/js/jquery-2.2.3.min.js"></script>
   <script type="text/javascript" src="third-party/js/bootstrap.bundle.min.js"></script>
   <script type="text/javascript" src="third-party/js/nouislider.min.js"></script>
@@ -72,12 +76,20 @@
       filter: var(--cp_filter);
     }
     #chs{
-      font-size: 10em;
+      font-size: 5em;
       text-align: center;
+      width: 50%;
     }
     #fms{
-      font-size: 10em;
+      font-size: 2em;
       text-align: center;
+      width: 50%;
+    }
+    #fms > input{
+      background: transparent;
+      border-radius: 25%;
+      border-width: 0.1em;
+      border-color: black;
     }
   </style>
 </head>
@@ -86,7 +98,8 @@
   <div id="cp">
     <div id="chs"></div>
     <div id= "fms">
-      <div data-callback="FMSdata"></div>
+      <div data-callback="setFMS"></div>
+      <input type="button" value="Confirm" data-callback="confirmFMS">
     </div>
   </div>
 </body>

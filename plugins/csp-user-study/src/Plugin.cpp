@@ -124,7 +124,7 @@ void Plugin::init() {
   mOnSaveConnection = mAllSettings->onSave().connect(
       [this]() { mAllSettings->mPlugins["csp-user-study"] = *mPluginSettings; });
 
-  mGuiManager->addScriptToGuiFromJS("../share/resources/gui/js/csp-user-study.js");
+  //mGuiManager->addScriptToGuiFromJS("../share/resources/gui/js/csp-user-study.js");
 
   onLoad();
 
@@ -184,8 +184,14 @@ void Plugin::onLoad() {
     mStages[i].mGuiItem = std::make_unique<cs::gui::GuiItem>("file://../share/resources/gui/user-study-stage.html");
     mStages[i].mGuiArea->addItem(mStages[i].mGuiItem.get());
     mStages[i].mGuiItem->waitForFinishedLoading();
+
+    // register callbacks
+    mStages[i].mGuiItem->registerCallback("confirmFMS", "Submits the FMS rating", std::function([this]
+      {
+        resultsLogger().info("FMS score...");
+      }));
   }
-  
+
   // Setup first two checkpoints
   setupStage(mPluginSettings->mStageSettings[0], 0, true);
   setupStage(mPluginSettings->mStageSettings[1], 1);
