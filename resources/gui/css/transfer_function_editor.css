@@ -27,6 +27,10 @@ svg[id^="transferFunctionEditor.graph"] .tick text {
     fill: var(--cs-color-text);
 }
 
+svg[id^="transferFunctionEditor.graph"] .bar {
+    fill: var(--cs-color-background-darker);
+}
+
 div.row input[id^="transferFunctionEditor."],
 div.row button[data-id^="transferFunctionEditor."],
 div.row div[id^="transferFunctionEditor.importSelectParent"] > .bootstrap-select {

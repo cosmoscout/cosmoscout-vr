@@ -28,11 +28,11 @@ class TransferFunctionEditor {
    *     defaultFunction: string}} Options for the editor
    */
   constructor(id, element, callback,
-      {width = 400, height = 150, fitToData = false, numberTicks = 5, defaultFunction = ""} = {}) {
+      {width = 400, height = 150, fitToData = false, numberTicks = 5, numberBins = 100, defaultFunction = ""} = {}) {
     this.id       = id;
     this.element  = element;
     this.callback = callback;
-    this.options  = {width: width, height: height, fitToData: fitToData, numberTicks: numberTicks};
+    this.options  = {width: width, height: height, fitToData: fitToData, numberTicks: numberTicks, numberBins: numberBins};
 
     this._initialized = false;
     this._createElements();
@@ -61,6 +61,7 @@ class TransferFunctionEditor {
     }
     this._initialized = true;
     this._redraw();
+    this._redrawHistogram();
   }
 
   _createXRangeSlider(range, resetHandles) {
@@ -89,9 +90,13 @@ class TransferFunctionEditor {
     // Axis scales
     this._xScale = d3.scaleLinear();
     this._yScale = d3.scaleLinear();
+    this._binScale = d3.scaleLog();
 
     // Area for the opacity map representation
     this._area = d3.area();
+
+    // Create histogram object
+    this._bins = d3.histogram();
 
     // Keep track of control points interaction
     this._dragged    = null;
@@ -143,8 +148,12 @@ class TransferFunctionEditor {
     if (this.options.fitToData && this._data && this._data.length > 0) {
       this._dataExtent = d3.extent(this._data);
     }
+
     this._xScale.rangeRound([0, this._width]).domain(this._dataExtent);
     this._yScale.domain([0, 1]).range([this._height, 0]);
+    this._binScale.domain([1, 10]).range([this._height, 0]).base(2).clamp([0, this._height]);
+    this._bins.domain(this._xScale.domain()).thresholds(this._xScale.ticks(this.options.numberBins));
+
     if (this._controlPoints.length == 0) {
       this._controlPoints.push({'x': this._dataExtent[0], 'opacity': 0, 'color': '#0000FF', 'locked': true});
       this._controlPoints.push({'x': this._dataExtent[1], 'opacity': 1, 'color': '#FF0000', 'locked': true});
@@ -207,6 +216,8 @@ class TransferFunctionEditor {
               this._mouseup();
             });
 
+    this._redrawHistogram();
+
     // Gradient definitions
     g.append("defs")
         .append("linearGradient")
@@ -228,6 +239,8 @@ class TransferFunctionEditor {
         .datum(this._controlPoints)
         .attr("class", "line")
         .attr("fill", "url(#transferFunctionEditor.gradient-" + this.id + ")");
+    graph.append("g")
+        .attr("class", "histogram-group");
     graph.append("path")
         .datum(this._controlPoints)
         .attr("class", "line")
@@ -281,6 +294,7 @@ class TransferFunctionEditor {
       this._dataExtent = [0, 100];
       this._xScale.domain(this._dataExtent);
     }
+    this._bins.domain(this._xScale.domain()).thresholds(this._xScale.ticks(this.options.numberBins));
   }
 
   // update the axis with the new data input
@@ -460,6 +474,36 @@ class TransferFunctionEditor {
     if (d3.event) {
       d3.event.preventDefault();
       d3.event.stopPropagation();
+    }
+  }
+
+  _redrawHistogram() {
+    this._svg.select("g").select(".histogram-group").selectAll(".bar").remove();
+    if (this._data && this._data.length > 0) {
+      const bins = this._bins(this._data);
+      this._binScale.domain([0.1, d3.max(bins, (d) => {
+        return d.length;
+      })]);
+      const bar = this._svg.select("g").select(".histogram-group").selectAll(".bar").data(bins);
+      const barEnter = bar.enter().append("g")
+        .attr("class", "bar")
+        .attr("transform", (d) => {
+          return "translate(" + this._xScale(d.x0) + "," + this._binScale(d.length) + ")";
+        });
+
+      barEnter.append("rect")
+        .attr("x", 1)
+        .style("opacity", 0.5)
+        .attr("width", (d) => {
+          return this._xScale(d.x1) - this._xScale(d.x0);
+        })
+        .attr("height", (d) => {
+          return this._height - this._binScale(d.length);
+        });
+
+      this._svg.select("g").select(".histogram-group").selectAll(".bar").lower();
+
+      bar.exit().remove();
     }
   }
 
