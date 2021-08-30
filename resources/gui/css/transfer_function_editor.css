@@ -28,7 +28,7 @@ svg[id^="transferFunctionEditor.graph"] .tick text {
 }
 
 svg[id^="transferFunctionEditor.graph"] .bar {
-    fill: var(--cs-color-background-darker);
+    fill: var(--cs-color-primary);
 }
 
 div.row input[id^="transferFunctionEditor."],

@@ -33,6 +33,7 @@ class TransferFunctionEditor {
     this.element  = element;
     this.callback = callback;
     this.options  = {width: width, height: height, fitToData: fitToData, numberTicks: numberTicks, numberBins: numberBins};
+    this._data    = [];
 
     this._initialized = false;
     this._createElements();
@@ -52,6 +53,9 @@ class TransferFunctionEditor {
    * @param data {number[]} Array of scalar values
    */
   setData(data, resetSliderHandles = true) {
+    if (!Array.isArray(data)) {
+      data = JSON.parse(data);
+    }
     this._initialized = false;
     this._data = data;
     this._updateScales(resetSliderHandles);
@@ -62,6 +66,17 @@ class TransferFunctionEditor {
     this._initialized = true;
     this._redraw();
     this._redrawHistogram();
+  }
+
+  addData(data, resetSliderHandles = true) {
+    if (!Array.isArray(data)) {
+      data = JSON.parse(data);
+    }
+    this.setData(this._data.concat(data), resetSliderHandles);
+  }
+
+  clearData(resetSliderHandles = true) {
+    this.setData([], resetSliderHandles);
   }
 
   _createXRangeSlider(range, resetHandles) {
@@ -284,6 +299,8 @@ class TransferFunctionEditor {
     if (this.options.fitToData) {
       if (this._data && this._data.length > 0) {
         this._dataExtent = d3.extent(this._data);
+      } else {
+        this._dataExtent = [0, 100];
       }
       if (this._dataExtent[0] == this._dataExtent[1]) {
         this._dataExtent[1] += 1;
