@@ -129,6 +129,7 @@ class TransferFunctionEditor {
       if (this._initialized) {
         this._updateAxis();
         this._redraw();
+        this._redrawHistogram();
       }
     });
   }
@@ -200,7 +201,7 @@ class TransferFunctionEditor {
     this._xScale.rangeRound([0, this._width]).domain(this._dataExtent);
     this._yScale.domain([0, 1]).range([this._height, 0]);
     this._binScale.domain([1, 10]).range([this._height, 0]).base(2).clamp([0, this._height]);
-    this._bins.domain(this._xScale.domain()).thresholds(this._xScale.ticks(this.options.numberBins));
+    this._bins.domain(this._dataExtent).thresholds(this.options.numberBins);
 
     if (this._controlPoints.length == 0) {
       this._controlPoints.push({'x': this._dataExtent[0], 'opacity': 0, 'color': '#0000FF', 'locked': true});
@@ -331,7 +332,7 @@ class TransferFunctionEditor {
   _updateScales(resetSliderHandles) {
     this._xScale.domain(this._dataExtent);
     this._createXRangeSlider(this._dataExtent, resetSliderHandles);
-    this._bins.domain(this._xScale.domain()).thresholds(this._xScale.ticks(this.options.numberBins));
+    this._bins.domain(this._dataExtent);
   }
 
   // update the axis with the new data input
