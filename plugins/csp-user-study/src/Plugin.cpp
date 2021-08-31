@@ -380,6 +380,7 @@ void Plugin::advanceStage() {
     // if current is last stage hide other stage
     mStages[(mStageIdx+1)%mStages.size()].mGuiItem->callJavascript("setOpacity", 0.0);
   }
+  mStages[(mStageIdx)%mStages.size()].mGuiItem->setIsInteractive(true);
   mStages[(mStageIdx)%mStages.size()].mGuiItem->callJavascript("setOpacity", 1.0);
 }
 
