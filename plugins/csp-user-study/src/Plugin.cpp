@@ -240,13 +240,13 @@ void Plugin::onLoad() {
   }
   logger().trace(__LINE__);
   // register FMS callback part afterwards
-  // TODO: for-loop over mStages.size()
   mCurrentFMS.connectAndTouch([this](uint32_t value) {
-      mStages[0].mGuiItem->callJavascript("CosmoScout.gui.setSliderValue", "setFMS", false, value);
-      mStages[1].mGuiItem->callJavascript("CosmoScout.gui.setSliderValue", "setFMS", false, value);
+    for (std::size_t i = 0; i < mStages.size(); i++)
+    {
+      mStages[i].mGuiItem->callJavascript("CosmoScout.gui.setSliderValue", "setFMS", false, value);
+    }
     });
 
-  logger().trace(__LINE__);
   // Setup first two checkpoints
   setupStage(0);
   setupStage(1);
