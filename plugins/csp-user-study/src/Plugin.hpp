@@ -72,6 +72,8 @@ class Plugin : public cs::core::PluginBase {
 
       /// Operator to compare two Stages
       bool operator==(StageSetting const& other) const;
+      /// Operator to compare two Stages
+      bool operator!=(StageSetting const& other) const;
     };
 
     /// List of stages making up the scenario
@@ -89,9 +91,10 @@ class Plugin : public cs::core::PluginBase {
 
  private:
   void onLoad();
-  void unload(Plugin::Settings pluginSettings);
-  void setupStage(Plugin::Settings::StageSetting settings, uint32_t atStagesIdx, bool isCurrent = false);
+  void unload();
+  void setupStage(uint32_t stageIdx);
   std::optional<cs::core::Settings::Bookmark> getBookmarkByName(std::string name);
+  void advanceStage();
 
   std::shared_ptr<Settings> mPluginSettings = std::make_shared<Settings>();
 
@@ -103,11 +106,14 @@ class Plugin : public cs::core::PluginBase {
     std::unique_ptr<cs::gui::GuiItem>               mGuiItem;
   };
 
-  std::vector<Stage> mStages = {};
+  std::array<Stage, 2> mStages;
   uint32_t mStageIdx         = 0;
+
+  cs::utils::Property<uint32_t> mCurrentFMS = 0;
 
   int mOnLoadConnection = -1;
   int mOnSaveConnection = -1;
+  int mOnBookmarkAddedConnection = -1;
 };
 } // namespace csp::userstudy
 

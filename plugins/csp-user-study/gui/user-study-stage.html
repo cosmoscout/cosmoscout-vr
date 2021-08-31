@@ -31,10 +31,11 @@
       document.getElementById("fms").hidden = false;
     }
     // set HTML to display Change Scenario checkpoint
-    function setCHS() {
+    function setCHS(html = "") {
       setCP()
       document.getElementById("cp").style.filter = "var(--chs_filter)";
       document.getElementById("chs").hidden = false;
+      document.getElementById("chs").innerHTML = html;
     }
     // set the opacity of a checkpoint to distinguish between current (1.0) and upcoming (~0.5) checkpoints
     function setOpacity(opacity) {
@@ -50,7 +51,7 @@
         GuiApi
       );
 
-      CosmoScout.gui.initSlider("FMSdata", 0, 20, 1, [0]);
+      CosmoScout.gui.initSlider("setFMS", 0, 20, 1, [0]);
 
     })
   </script>
@@ -69,16 +70,23 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      color: rgb(0, 0, 0);
+      color: rgba(0, 0, 0, 0.1);
       background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' version='1.1' width='100%' height='100%' viewBox='0 0 100 100'><ellipse cx='50' cy='50' rx='47' ry='47' fill='none' stroke='rgb(0, 0, 0)' stroke-width='4' pointer-events='all'/><ellipse cx='50' cy='50' rx='40' ry='40' fill='none' stroke='rgb(0, 0, 0)' stroke-width='1'/></svg>");
       background-repeat: no-repeat;
       background-color: transparent;
       filter: var(--cp_filter);
     }
     #chs{
-      font-size: 5em;
+      font-size: 2em;
       text-align: center;
       width: 50%;
+    }
+    #chs > input{
+      background: rgb(255, 255, 255);
+      border-radius: 25%;
+      border-width: 0.1em;
+      border-color: black;
+      margin-top: 10%;
     }
     #fms{
       font-size: 2em;
@@ -86,10 +94,11 @@
       width: 50%;
     }
     #fms > input{
-      background: transparent;
+      background: rgb(255, 255, 255);
       border-radius: 25%;
       border-width: 0.1em;
       border-color: black;
+      margin-top: 20%;
     }
   </style>
 </head>
@@ -99,7 +108,7 @@
     <div id="chs"></div>
     <div id= "fms">
       <div data-callback="setFMS"></div>
-      <input type="button" value="Confirm" data-callback="confirmFMS">
+      <input type="button" value="Confirm" onclick="window.callNative('confirmFMS')">
     </div>
   </div>
 </body>

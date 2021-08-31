@@ -36,7 +36,8 @@ spdlog::logger& resultsLogger() {
   std::string date(buffer);
   
   // create sink with date in filename
-  static auto sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(date + "_userstudy_results_.log", true);
+  // TODO: uncomment date 
+  static auto sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(/*date + */"_userstudy_results_.log", true);
   
   static auto logger = std::make_unique<spdlog::logger>("results-logger", sink);
   logger->set_pattern("%^[%d.%m.%Y %H:%M:%S.%e]%$ %v"); // NOLINT(clang-analyzer-cplusplus.Move)

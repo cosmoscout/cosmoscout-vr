@@ -12,6 +12,7 @@
 #include "../../../src/cs-core/InputManager.hpp"
 #include "../../../src/cs-core/SolarSystem.hpp"
 #include "../../../src/cs-scene/CelestialAnchorNode.hpp"
+#include "../../../src/cs-core/TimeControl.hpp"
 
 #include <VistaKernel/GraphicsManager/VistaOpenGLNode.h>
 #include <VistaKernel/GraphicsManager/VistaSceneGraph.h>
@@ -106,6 +107,10 @@ bool Plugin::Settings::StageSetting::operator==(Plugin::Settings::StageSetting c
          mScaling.get() == other.mScaling.get();
 }
 
+bool Plugin::Settings::StageSetting::operator!=(Plugin::Settings::StageSetting const& other) const {
+  return !(*this == other);
+}
+
 bool Plugin::Settings::operator==(Plugin::Settings const& other) const {
   return mOtherScenarios == other.mOtherScenarios && mStageSettings == other.mStageSettings;
 }
@@ -124,7 +129,8 @@ void Plugin::init() {
   mOnSaveConnection = mAllSettings->onSave().connect(
       [this]() { mAllSettings->mPlugins["csp-user-study"] = *mPluginSettings; });
 
-  //mGuiManager->addScriptToGuiFromJS("../share/resources/gui/js/csp-user-study.js");
+  // connect onBookmarkAdded 
+  mOnBookmarkAddedConnection = mGuiManager->onBookmarkAdded().connect([this](uint32_t, cs::core::Settings::Bookmark const&) { logger().info(this->mSolarSystem->getObserver().getAnchorScale()); });
 
   onLoad();
 
@@ -135,8 +141,18 @@ void Plugin::init() {
 
 void Plugin::update() {
   if (mPluginSettings->mEnabled.get()) {
-    // TODO: check active stage index & which stages to hide/un-hide
-    // TODO: check flythrough for checkpoints?
+    // check if current stage is normal checkpoint
+    if (mPluginSettings->mStageSettings[mStageIdx].mType.get() == Plugin::StageType::eCheckpoint)
+    {
+      // check distance to CP
+      glm::dvec3 vecToObserver = mStages[mStageIdx].mAnchor->getRelativePosition(mTimeControl->pSimulationTime.get() , mSolarSystem->getObserver());
+      if (glm::length(vecToObserver) < mPluginSettings->mStageSettings[mStageIdx].mScaling.get())
+      {
+        logger().trace("Observer within CP range");
+        // go to next stage
+        advanceStage();
+      }
+    }
   }
 }
 
@@ -146,10 +162,13 @@ void Plugin::deInit() {
   logger().info("Unloading plugin...");
 
   // remove stages
-  unload(*mPluginSettings);
+  unload();
 
   mAllSettings->onLoad().disconnect(mOnLoadConnection);
   mAllSettings->onSave().disconnect(mOnSaveConnection);
+
+  // disconnect onBookmarkAdded
+  mGuiManager->onBookmarkAdded().disconnect(mOnBookmarkAddedConnection);
 
   logger().info("Unloading done.");
 }
@@ -157,53 +176,93 @@ void Plugin::deInit() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Plugin::onLoad() {
+  logger().trace("User Study onLoad");
+
+  unload();
+  logger().trace(__LINE__);
+  mStageIdx = 0;
+
   // Read settings from JSON
   from_json(mAllSettings->mPlugins.at("csp-user-study"), *mPluginSettings);
 
   // Get scenegraph to init stages
   VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
   // Init stages
-  for (int i = 0; i <= 1; i++)
+  for (int i = 0; i < mStages.size(); i++)
   {
-    mStages.emplace_back();
+    logger().trace("inside array init {}", i);
+    Stage &stage = mStages[i];
     // Create and register anchor
-    mStages[i].mAnchor = std::make_shared<cs::scene::CelestialAnchorNode>(pSG->GetRoot(), pSG->GetNodeBridge());
+    stage.mAnchor = std::make_shared<cs::scene::CelestialAnchorNode>(pSG->GetRoot(), pSG->GetNodeBridge());
     mSolarSystem->registerAnchor(mStages[i].mAnchor);
+    logger().trace(__LINE__);
     // Create and setup gui area
-    mStages[i].mGuiArea = std::make_unique<cs::gui::WorldSpaceGuiArea>(720, 720);
-    mStages[i].mGuiArea->setUseLinearDepthBuffer(true);
+    stage.mGuiArea = std::make_unique<cs::gui::WorldSpaceGuiArea>(720, 720);
+    stage.mGuiArea->setUseLinearDepthBuffer(true);
+    logger().trace(__LINE__); //last heartbeat
     // Create transform node
-    mStages[i].mTransform = std::unique_ptr<VistaTransformNode>(pSG->NewTransformNode(mStages[i].mAnchor.get()));
+    stage.mTransform = std::unique_ptr<VistaTransformNode>(pSG->NewTransformNode(mStages[i].mAnchor.get()));
+    logger().trace(__LINE__);
     // Create gui node
-    mStages[i].mGuiNode = std::unique_ptr<VistaOpenGLNode>(pSG->NewOpenGLNode(mStages[i].mTransform.get(), mStages[i].mGuiArea.get()));
+    stage.mGuiNode = std::unique_ptr<VistaOpenGLNode>(pSG->NewOpenGLNode(mStages[i].mTransform.get(), mStages[i].mGuiArea.get()));
+    logger().trace(__LINE__);
     // Register selectable
     mInputManager->registerSelectable(mStages[i].mGuiNode.get());
+    logger().trace(__LINE__);
     // Set sort key
     VistaOpenSGMaterialTools::SetSortKeyOnSubtree(mStages[i].mGuiNode.get(), static_cast<int>(cs::utils::DrawOrder::eTransparentItems));
+    logger().trace(__LINE__);
     // Create gui item & attach it to gui area
-    mStages[i].mGuiItem = std::make_unique<cs::gui::GuiItem>("file://../share/resources/gui/user-study-stage.html");
-    mStages[i].mGuiArea->addItem(mStages[i].mGuiItem.get());
-    mStages[i].mGuiItem->waitForFinishedLoading();
+    stage.mGuiItem = std::make_unique<cs::gui::GuiItem>("file://{csp-user-study-cp}../share/resources/gui/user-study-stage.html");
+    stage.mGuiArea->addItem(mStages[i].mGuiItem.get());
+    stage.mGuiItem->waitForFinishedLoading();
 
+    stage.mGuiItem->setZoomFactor(2);
+    logger().trace(__LINE__);
     // register callbacks
-    mStages[i].mGuiItem->registerCallback("confirmFMS", "Submits the FMS rating", std::function([this]
-      {
-        resultsLogger().info("FMS score...");
-      }));
+    stage.mGuiItem->registerCallback("setFMS", "Callback to get slider value",
+      std::function([this](double value) {
+        mCurrentFMS = static_cast<uint32_t>(value);
+      })
+    );
+    stage.mGuiItem->registerCallback("confirmFMS", "Call this to submit the FMS rating",
+      std::function([this](){
+        resultsLogger().info("FMS score submitted: {}", mCurrentFMS.get());
+        advanceStage();
+      })
+    );
+    stage.mGuiItem->registerCallback("loadScenario", "Call this to load a new scenario",
+      std::function([this](std::string path) {
+        resultsLogger().info("Loading Scenario at " + path);
+        mGuiManager->getGui()->callJavascript("CosmoScout.callbacks.core.load", path);
+      })
+    );
   }
+  logger().trace(__LINE__);
+  // register FMS callback part afterwards
+  // TODO: for-loop over mStages.size()
+  mCurrentFMS.connectAndTouch([this](uint32_t value) {
+      mStages[0].mGuiItem->callJavascript("CosmoScout.gui.setSliderValue", "setFMS", false, value);
+      mStages[1].mGuiItem->callJavascript("CosmoScout.gui.setSliderValue", "setFMS", false, value);
+    });
 
+  logger().trace(__LINE__);
   // Setup first two checkpoints
-  setupStage(mPluginSettings->mStageSettings[0], 0, true);
-  setupStage(mPluginSettings->mStageSettings[1], 1);
+  setupStage(0);
+  setupStage(1);
 
+  // Mark start of scenario in results log
   resultsLogger().info("Scenario started");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Plugin::setupStage(Plugin::Settings::StageSetting settings, uint32_t atStagesIdx, bool isCurrent) {
+void Plugin::setupStage(uint32_t stageIdx) {
+  logger().trace("Setting up Stage at Idx: {}, using nodes from {}", stageIdx, (stageIdx)%mStages.size());
+  auto const& settings = mPluginSettings->mStageSettings[stageIdx];
+ 
   // Fetch stage at Index
-  Stage &stage = mStages[atStagesIdx];
+  Stage &stage = mStages[(stageIdx)%mStages.size()];
   // Fetch bookmark for position
   std::optional<cs::core::Settings::Bookmark> bookmark = getBookmarkByName(settings.mBookmarkName.get());
   if (bookmark.has_value())
@@ -222,44 +281,88 @@ void Plugin::setupStage(Plugin::Settings::StageSetting settings, uint32_t atStag
     }
 
     // Add Scaling factor
-    stage.mTransform->Scale(settings.mScaling.get() * static_cast<float>(stage.mGuiArea->getWidth()),
-      settings.mScaling.get() * static_cast<float>(stage.mGuiArea->getHeight()), 1.0F);
+    stage.mTransform->Scale(settings.mScaling.get(), settings.mScaling.get(), 1.0F);
 
     // Set webview according to type
     switch (settings.mType.get())
-    {
-    case StageType::eCheckpoint :
-      stage.mGuiItem->callJavascript("setCP");
-      break;
-    
-    case StageType::eRequestFMS :
-      stage.mGuiItem->callJavascript("setFMS");
-      break;
-
-    case StageType::eSwitchScenario :
-      stage.mGuiItem->callJavascript("setCHS");
-      break;
-
-    default:
-      logger().error("Unrecognized stage type when setting up Stage! stage type: {}", settings.mType.get());
-      break;
+      {
+      case StageType::eCheckpoint :
+      {
+        stage.mGuiItem->callJavascript("setCP");
+        break;
+      }
+      case StageType::eRequestFMS :
+      {
+        stage.mGuiItem->callJavascript("setFMS");
+        break;
+      }
+      case StageType::eSwitchScenario :
+      {
+        std::string html = "";
+        for (Plugin::Settings::Scenario &scenario : mPluginSettings->mOtherScenarios) {
+          html += "<input type=\"button\" value=\"" + scenario.mName.get() +  "\" onclick=\"window.callNative('loadScenario', '" + scenario.mPath.get() + "')\">\n";
+        }
+        stage.mGuiItem->callJavascript("setCHS", html);
+        break;
+      }
+      default:
+      {
+        logger().error("Unrecognized stage type when setting up Stage! stage type: {}", settings.mType.get());
+        break;
+      }
     }
 
     // Set opacity to 1.0 if isCurrent, else set to 0.5
+     bool isCurrent = stageIdx == mStageIdx;
     stage.mGuiItem->callJavascript("setOpacity", isCurrent ? 1.0 : 0.5);
   }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Plugin::unload(Plugin::Settings pluginSettings) {
+void Plugin::unload() {
+  logger().trace(__LINE__);
   VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
+  logger().trace(__LINE__);
   for (Stage &stage : mStages) {
-    // unload and disconnect each stage
-    //stage.unload(mSolarSystem, mInputManager);
+    logger().trace("inside unload loop");
+    // skip unload if Stage is empty
+    if (stage.mAnchor == nullptr)
+    {
+      logger().trace("skipped unload");
+      break;
+    }
+    // unregister callbacks
+    stage.mGuiItem->unregisterCallback("setFMS");
+    stage.mGuiItem->unregisterCallback("confirmFMS");
+    stage.mGuiItem->unregisterCallback("loadScenario");
+    logger().trace("after unregister callbacks");
+    // disconnect from scene graph
+    pSG->GetRoot()->DisconnectChild(stage.mAnchor.get());
+    logger().trace("after disconnect scene graph");
+    // unregister anchor
+    mSolarSystem->unregisterAnchor(stage.mAnchor);
+    logger().trace("after unregister anchor");
+    // unregister selectable
+    mInputManager->unregisterSelectable(stage.mGuiNode.get());
+    logger().trace("end of unload loop / after unregister selectable");
+    stage.mGuiArea.reset(nullptr);
+    logger().trace(__LINE__);
+
+    stage.mGuiItem.reset(nullptr);
+    logger().trace(__LINE__);
+
+    stage.mAnchor.reset();
+    logger().trace(__LINE__); //LH
+    
+    stage.mTransform.reset(nullptr);
+    logger().trace(__LINE__);
+    
+    stage.mGuiNode.reset(nullptr);
+    logger().trace(__LINE__);
+    
   }
-  // clear stages list
-  //mStages.clear();
+
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -274,6 +377,26 @@ std::optional<cs::core::Settings::Bookmark> Plugin::getBookmarkByName(std::strin
   }
   logger().error("No bookmark with the name \"" + name + "\" could be found!");
   return std::nullopt;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Plugin::advanceStage() {
+  if (mStageIdx < mPluginSettings->mStageSettings.size()-1)
+  {
+    ++mStageIdx;
+  }
+  // setup next stage if current not last stage
+  if (mStageIdx < mPluginSettings->mStageSettings.size()-1) {
+    // setup following stage
+    setupStage(mStageIdx+1);
+    logger().trace("New stage added at Idx: {}", (mStageIdx+1)%mStages.size());
+  }
+  else {
+    // if current is last stage hide other stage
+    mStages[(mStageIdx+1)%mStages.size()].mGuiItem->callJavascript("setOpacity", 0.0);
+  }
+  mStages[(mStageIdx)%mStages.size()].mGuiItem->callJavascript("setOpacity", 1.0);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
