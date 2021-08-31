@@ -64,7 +64,8 @@
 
       opacity: 1.0;
     }
-    #cp{
+
+    #cp {
       width: 100%;
       height: 100%;
       display: flex;
@@ -76,24 +77,28 @@
       background-color: transparent;
       filter: var(--cp_filter);
     }
-    #chs{
+
+    #chs {
       font-size: 2em;
       text-align: center;
       width: 50%;
     }
-    #chs > input{
+
+    #chs>input {
       background: rgb(255, 255, 255);
       border-radius: 25%;
       border-width: 0.1em;
       border-color: black;
       margin-top: 10%;
     }
-    #fms{
+
+    #fms {
       font-size: 2em;
       text-align: center;
       width: 50%;
     }
-    #fms > input{
+
+    #fms>input {
       background: rgb(255, 255, 255);
       border-radius: 25%;
       border-width: 0.1em;
@@ -106,7 +111,7 @@
 <body style="overflow: hidden; margin: 0; position: absolute; top: 0; bottom: 0; left: 0; right: 0;">
   <div id="cp">
     <div id="chs"></div>
-    <div id= "fms">
+    <div id="fms">
       <div data-callback="setFMS"></div>
       <input type="button" value="Confirm" onclick="window.callNative('confirmFMS')">
     </div>
