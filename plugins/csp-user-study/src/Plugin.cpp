@@ -281,7 +281,7 @@ void Plugin::setupStage(uint32_t stageIdx) {
     }
 
     // Add Scaling factor
-    stage.mTransform->Scale(settings.mScaling.get(), settings.mScaling.get(), 1.0F);
+    stage.mTransform->SetScale(settings.mScaling.get(), settings.mScaling.get(), 1.0F);
 
     // Set webview according to type
     switch (settings.mType.get())
