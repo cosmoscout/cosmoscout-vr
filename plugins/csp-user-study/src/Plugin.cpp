@@ -314,6 +314,7 @@ void Plugin::setupStage(uint32_t stageIdx) {
 
     // Set opacity to 1.0 if isCurrent, else set to 0.5
      bool isCurrent = stageIdx == mStageIdx;
+     stage.mGuiItem->setIsInteractive(isCurrent);
     stage.mGuiItem->callJavascript("setOpacity", isCurrent ? 1.0 : 0.5);
   }
 }
