@@ -128,6 +128,15 @@ FovVignette::FovVignette(std::shared_ptr<cs::core::SolarSystem> solarSystem,
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+FovVignette::~FovVignette() {
+  auto* platform = GetVistaSystem()
+                       ->GetPlatformFor(GetVistaSystem()->GetDisplayManager()->GetDisplaySystem())
+                       ->GetPlatformNode();
+  platform->DisconnectChild(mGLNode.get());
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void FovVignette::configure(Plugin::Settings::Vignette& vignetteSettings) {
   mVignetteSettings = vignetteSettings;
 }
@@ -155,8 +164,6 @@ bool FovVignette::Do() {
   data.mColorBuffer->Bind();
   glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, iViewport.at(0), iViewport.at(1), iViewport.at(2),
       iViewport.at(3), 0);
-
-  //////////////////////////////////////////////////////////////////////////////////////////////////
 
   // set uniforms
   // check if dynamical vignette

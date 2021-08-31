@@ -42,7 +42,7 @@ class FovVignette : public IVistaOpenGLDraw {
   FovVignette& operator=(FovVignette const& other) = delete;
   FovVignette& operator=(FovVignette&& other) = delete;
 
-  ~FovVignette() override = default;
+  ~FovVignette();
 
   /// Configures the internal renderer according to the given values.
   void configure(Plugin::Settings::Vignette& vignetteSettings);
