@@ -148,7 +148,6 @@ void Plugin::update() {
       glm::dvec3 vecToObserver = mStages[mStageIdx%mStages.size()].mAnchor->getRelativePosition(mTimeControl->pSimulationTime.get() , mSolarSystem->getObserver());
       if (glm::length(vecToObserver) < mPluginSettings->mStageSettings[mStageIdx].mScaling.get())
       {
-        logger().trace("Observer within CP range");
         // go to next stage
         advanceStage();
       }
@@ -176,10 +175,8 @@ void Plugin::deInit() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Plugin::onLoad() {
-  logger().trace("User Study onLoad");
 
   unload();
-  logger().trace(__LINE__);
   mStageIdx = 0;
 
   // Read settings from JSON
@@ -190,35 +187,33 @@ void Plugin::onLoad() {
   // Init stages
   for (std::size_t i = 0; i < mStages.size(); i++)
   {
-    logger().trace("inside array init {}", i);
     Stage &stage = mStages[i];
     // Create and register anchor
     stage.mAnchor = std::make_shared<cs::scene::CelestialAnchorNode>(pSG->GetRoot(), pSG->GetNodeBridge());
-    mSolarSystem->registerAnchor(mStages[i].mAnchor);
-    logger().trace(__LINE__);
+    mSolarSystem->registerAnchor(stage.mAnchor);
+
     // Create and setup gui area
     stage.mGuiArea = std::make_unique<cs::gui::WorldSpaceGuiArea>(720, 720);
     stage.mGuiArea->setUseLinearDepthBuffer(true);
-    logger().trace(__LINE__); //last heartbeat
+
     // Create transform node
-    stage.mTransform = std::unique_ptr<VistaTransformNode>(pSG->NewTransformNode(mStages[i].mAnchor.get()));
-    logger().trace(__LINE__);
+    stage.mTransform = std::unique_ptr<VistaTransformNode>(pSG->NewTransformNode(stage.mAnchor.get()));
+
     // Create gui node
-    stage.mGuiNode = std::unique_ptr<VistaOpenGLNode>(pSG->NewOpenGLNode(mStages[i].mTransform.get(), mStages[i].mGuiArea.get()));
-    logger().trace(__LINE__);
+    stage.mGuiNode = std::unique_ptr<VistaOpenGLNode>(pSG->NewOpenGLNode(stage.mTransform.get(), stage.mGuiArea.get()));
+
     // Register selectable
-    mInputManager->registerSelectable(mStages[i].mGuiNode.get());
-    logger().trace(__LINE__);
+    mInputManager->registerSelectable(stage.mGuiNode.get());
+
     // Set sort key
-    VistaOpenSGMaterialTools::SetSortKeyOnSubtree(mStages[i].mGuiNode.get(), static_cast<int>(cs::utils::DrawOrder::eTransparentItems));
-    logger().trace(__LINE__);
+    VistaOpenSGMaterialTools::SetSortKeyOnSubtree(stage.mGuiNode.get(), static_cast<int>(cs::utils::DrawOrder::eTransparentItems));
+
     // Create gui item & attach it to gui area
     stage.mGuiItem = std::make_unique<cs::gui::GuiItem>("file://{csp-user-study-cp}../share/resources/gui/user-study-stage.html");
-    stage.mGuiArea->addItem(mStages[i].mGuiItem.get());
+    stage.mGuiArea->addItem(stage.mGuiItem.get());
     stage.mGuiItem->waitForFinishedLoading();
-
     stage.mGuiItem->setZoomFactor(2);
-    logger().trace(__LINE__);
+
     // register callbacks
     stage.mGuiItem->registerCallback("setFMS", "Callback to get slider value",
       std::function([this](double value) {
@@ -238,7 +233,7 @@ void Plugin::onLoad() {
       })
     );
   }
-  logger().trace(__LINE__);
+
   // register FMS callback part afterwards
   mCurrentFMS.connectAndTouch([this](uint32_t value) {
     for (std::size_t i = 0; i < mStages.size(); i++)
@@ -258,7 +253,6 @@ void Plugin::onLoad() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Plugin::setupStage(uint32_t stageIdx) {
-  logger().trace("Setting up Stage at Idx: {}, using nodes from {}", stageIdx, (stageIdx)%mStages.size());
   auto const& settings = mPluginSettings->mStageSettings[stageIdx];
  
   // Fetch stage at Index
@@ -322,9 +316,7 @@ void Plugin::setupStage(uint32_t stageIdx) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Plugin::unload() {
-  logger().trace(__LINE__);
   VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
-  logger().trace(__LINE__);
   for (Stage &stage : mStages) {
     // skip unload if Stage is empty
     if (stage.mAnchor == nullptr)
@@ -374,7 +366,6 @@ void Plugin::advanceStage() {
   if (mStageIdx < mPluginSettings->mStageSettings.size()-1) {
     // setup following stage
     setupStage(mStageIdx+1);
-    logger().trace("New stage added at Idx: {}", (mStageIdx+1)%mStages.size());
   }
   else {
     // if current is last stage hide other stage
