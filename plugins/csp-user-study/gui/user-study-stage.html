@@ -20,20 +20,20 @@
   <script type="text/javascript">
     // set/reset HTML to display standard checkpoints
     function setCP() {
-      document.getElementById("cp").style.filter = "var(--cp_filter)";
+      document.getElementById("cp").className = "";
       document.getElementById("fms").hidden = true;
       document.getElementById("chs").hidden = true;
     }
     // set HTML to display FMS score checkpoint
     function setFMS() {
       setCP()
-      document.getElementById("cp").style.filter = "var(--fms_filter)";
+      document.getElementById("cp").className = "fms";
       document.getElementById("fms").hidden = false;
     }
     // set HTML to display Change Scenario checkpoint
     function setCHS(html = "") {
       setCP()
-      document.getElementById("cp").style.filter = "var(--chs_filter)";
+      document.getElementById("cp").className = "chs";
       document.getElementById("chs").hidden = false;
       document.getElementById("chs").innerHTML = html;
     }
@@ -57,53 +57,71 @@
   </script>
   <!-- filters generated from color at https://codepen.io/sosuke/pen/Pjoqqp -->
   <style>
-    :root {
-      --cp_filter: invert(64%) sepia(100%) saturate(5041%) hue-rotate(1deg) brightness(104%) contrast(104%);
-      --fms_filter: invert(17%) sepia(57%) saturate(7470%) hue-rotate(2deg) brightness(91%) contrast(126%);
-      --chs_filter: invert(71%) sepia(27%) saturate(6138%) hue-rotate(90deg) brightness(114%) contrast(105%);
-
-      opacity: 1.0;
-    }
-
     #cp {
       width: 100%;
       height: 100%;
       display: flex;
       justify-content: center;
       align-items: center;
-      color: rgba(0, 0, 0, 0.1);
-      background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' version='1.1' width='100%' height='100%' viewBox='0 0 100 100'><ellipse cx='50' cy='50' rx='47' ry='47' fill='none' stroke='rgb(0, 0, 0)' stroke-width='4' pointer-events='all'/><ellipse cx='50' cy='50' rx='40' ry='40' fill='none' stroke='rgb(0, 0, 0)' stroke-width='1'/></svg>");
-      background-repeat: no-repeat;
-      background-color: transparent;
-      filter: var(--cp_filter);
+      border-radius: 100%;
+      border: 10px solid rgb(94, 204, 255);
+      background: radial-gradient(circle, rgba(94, 204, 255, 0) 40%, rgba(94, 204, 255, 0.8) 100%);
     }
 
+    #cp.fms {
+      border: 10px solid rgb(255, 201, 102);
+      background: radial-gradient(circle, rgba(255, 201, 102, 0) 40%, rgba(255, 201, 102, 0.8) 100%);
+    }
+
+    #cp.chs {
+      border: 10px solid rgb(164, 255, 112);
+      background: radial-gradient(circle, rgba(164, 255, 112, 0) 40%, rgba(164, 255, 112, 0.8) 100%);
+    }
+
+    #fms,
     #chs {
       font-size: 2em;
       text-align: center;
-      width: 50%;
+      width: 70%;
     }
 
+    #fms>input,
     #chs>input {
-      background: rgb(255, 255, 255);
-      border-radius: 25%;
+      background: var(--cs-color-primary);
+      border-radius: 10px;
       border-width: 0.1em;
       border-color: black;
+      margin-top: 5%;
+    }
+
+    #chs>input:first-child {
+      margin-top: 0;
+    }
+
+    #fms>input {
       margin-top: 10%;
     }
 
     #fms {
-      font-size: 2em;
-      text-align: center;
-      width: 50%;
+      margin-top: 15%;
     }
 
-    #fms>input {
-      background: rgb(255, 255, 255);
-      border-radius: 25%;
-      border-width: 0.1em;
-      border-color: black;
-      margin-top: 20%;
+    #fms>input:hover,
+    #chs>input:hover {
+      background: white;
+    }
+
+    .range-label span {
+      font-size: 0.6em;
+    }
+
+    .noUi-target .range-label {
+      line-height: 30px;
+      min-width: 35px;
+    }
+
+    .noUi-target .noUi-active .range-label {
+      transform: translate(-50%, -20px);
     }
   </style>
 </head>
