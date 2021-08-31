@@ -52,13 +52,18 @@ class TransferFunctionEditor {
    *
    * @param data {number[]} Array of scalar values
    */
-  setData(data, resetSliderHandles = true) {
+  setData(data, resetSliderHandles = true, extents = undefined) {
     if (!Array.isArray(data)) {
       data = JSON.parse(data);
     }
     this._initialized = false;
-    this._data = data;
+    if (extents) {
+      this._dataExtent = extents;
+    } else {
+      this._setExtents(data);
+    }
     this._updateScales(resetSliderHandles);
+    this._data = this._bins(data).map((b) => { return { x0: b.x0, x1: b.x1, count: b.length }; });
     this._updateAxis();
     if (resetSliderHandles) {
       this._updateControlPoints(this._controlPoints);
@@ -69,14 +74,45 @@ class TransferFunctionEditor {
   }
 
   addData(data, resetSliderHandles = true) {
+    if (!this._data || this._data.length <= 0) {
+      this.setData(data, resetSliderHandles);
+      return;
+    }
     if (!Array.isArray(data)) {
       data = JSON.parse(data);
     }
-    this.setData(this._data.concat(data), resetSliderHandles);
+    this._initialized = false;
+    this._updateScales(resetSliderHandles);
+    const newData = this._bins(data);
+    for (let i = 0; i < newData.length; i++) {
+      if (this._data[i]) {
+        this._data[i].count += newData[i].length;
+      } else {
+        this._data[i] = { x0: newData[i].x0, x1: newData[i].x1, count: newData[i].length };
+      }
+    }
+    this._updateAxis();
+    if (resetSliderHandles) {
+      this._updateControlPoints(this._controlPoints);
+    }
+    this._initialized = true;
+    this._redraw();
+    this._redrawHistogram();
   }
 
   clearData(resetSliderHandles = true) {
     this.setData([], resetSliderHandles);
+  }
+
+  _setExtents(data) {
+    if (this.options.fitToData && data && data.length > 0) {
+      this._dataExtent = d3.extent(data);
+      if (this._dataExtent[0] == this._dataExtent[1]) {
+        this._dataExtent[1] += 1;
+      }
+      return;
+    }
+    this._dataExtent = [0, 100];
   }
 
   _createXRangeSlider(range, resetHandles) {
@@ -159,10 +195,7 @@ class TransferFunctionEditor {
       pickerDiv.style.background = CP.HEX([color[0], color[1], color[2], 1]);
     };
 
-    this._dataExtent = [0, 100];
-    if (this.options.fitToData && this._data && this._data.length > 0) {
-      this._dataExtent = d3.extent(this._data);
-    }
+    this._setExtents(this._data);
 
     this._xScale.rangeRound([0, this._width]).domain(this._dataExtent);
     this._yScale.domain([0, 1]).range([this._height, 0]);
@@ -296,21 +329,8 @@ class TransferFunctionEditor {
 
   // update scales with new data input
   _updateScales(resetSliderHandles) {
-    if (this.options.fitToData) {
-      if (this._data && this._data.length > 0) {
-        this._dataExtent = d3.extent(this._data);
-      } else {
-        this._dataExtent = [0, 100];
-      }
-      if (this._dataExtent[0] == this._dataExtent[1]) {
-        this._dataExtent[1] += 1;
-      }
-      this._xScale.domain(this._dataExtent);
-      this._createXRangeSlider(this._dataExtent, resetSliderHandles);
-    } else {
-      this._dataExtent = [0, 100];
-      this._xScale.domain(this._dataExtent);
-    }
+    this._xScale.domain(this._dataExtent);
+    this._createXRangeSlider(this._dataExtent, resetSliderHandles);
     this._bins.domain(this._xScale.domain()).thresholds(this._xScale.ticks(this.options.numberBins));
   }
 
@@ -497,15 +517,14 @@ class TransferFunctionEditor {
   _redrawHistogram() {
     this._svg.select("g").select(".histogram-group").selectAll(".bar").remove();
     if (this._data && this._data.length > 0) {
-      const bins = this._bins(this._data);
-      this._binScale.domain([0.1, d3.max(bins, (d) => {
-        return d.length;
+      this._binScale.domain([0.1, d3.max(this._data, (d) => {
+        return d.count;
       })]);
-      const bar = this._svg.select("g").select(".histogram-group").selectAll(".bar").data(bins);
+      const bar = this._svg.select("g").select(".histogram-group").selectAll(".bar").data(this._data);
       const barEnter = bar.enter().append("g")
         .attr("class", "bar")
         .attr("transform", (d) => {
-          return "translate(" + this._xScale(d.x0) + "," + this._binScale(d.length) + ")";
+          return "translate(" + this._xScale(d.x0) + "," + this._binScale(d.count) + ")";
         });
 
       barEnter.append("rect")
@@ -515,7 +534,7 @@ class TransferFunctionEditor {
           return this._xScale(d.x1) - this._xScale(d.x0);
         })
         .attr("height", (d) => {
-          return this._height - this._binScale(d.length);
+          return this._height - this._binScale(d.count);
         });
 
       this._svg.select("g").select(".histogram-group").selectAll(".bar").lower();
