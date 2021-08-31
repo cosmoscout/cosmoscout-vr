@@ -145,7 +145,7 @@ void Plugin::update() {
     if (mPluginSettings->mStageSettings[mStageIdx].mType.get() == Plugin::StageType::eCheckpoint)
     {
       // check distance to CP
-      glm::dvec3 vecToObserver = mStages[mStageIdx].mAnchor->getRelativePosition(mTimeControl->pSimulationTime.get() , mSolarSystem->getObserver());
+      glm::dvec3 vecToObserver = mStages[mStageIdx%mStages.size()].mAnchor->getRelativePosition(mTimeControl->pSimulationTime.get() , mSolarSystem->getObserver());
       if (glm::length(vecToObserver) < mPluginSettings->mStageSettings[mStageIdx].mScaling.get())
       {
         logger().trace("Observer within CP range");
