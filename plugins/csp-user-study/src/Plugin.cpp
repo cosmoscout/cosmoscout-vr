@@ -188,7 +188,7 @@ void Plugin::onLoad() {
   // Get scenegraph to init stages
   VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
   // Init stages
-  for (int i = 0; i < mStages.size(); i++)
+  for (std::size_t i = 0; i < mStages.size(); i++)
   {
     logger().trace("inside array init {}", i);
     Stage &stage = mStages[i];
