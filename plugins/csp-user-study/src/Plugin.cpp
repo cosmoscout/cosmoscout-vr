@@ -325,42 +325,25 @@ void Plugin::unload() {
   VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
   logger().trace(__LINE__);
   for (Stage &stage : mStages) {
-    logger().trace("inside unload loop");
     // skip unload if Stage is empty
     if (stage.mAnchor == nullptr)
     {
-      logger().trace("skipped unload");
       break;
     }
     // unregister callbacks
     stage.mGuiItem->unregisterCallback("setFMS");
     stage.mGuiItem->unregisterCallback("confirmFMS");
     stage.mGuiItem->unregisterCallback("loadScenario");
-    logger().trace("after unregister callbacks");
     // disconnect from scene graph
     pSG->GetRoot()->DisconnectChild(stage.mAnchor.get());
-    logger().trace("after disconnect scene graph");
+    stage.mAnchor->DisconnectChild(stage.mTransform.get());
+    stage.mTransform->DisconnectChild(stage.mGuiNode.get());
     // unregister anchor
     mSolarSystem->unregisterAnchor(stage.mAnchor);
-    logger().trace("after unregister anchor");
     // unregister selectable
     mInputManager->unregisterSelectable(stage.mGuiNode.get());
-    logger().trace("end of unload loop / after unregister selectable");
-    stage.mGuiArea.reset(nullptr);
-    logger().trace(__LINE__);
 
-    stage.mGuiItem.reset(nullptr);
-    logger().trace(__LINE__);
-
-    stage.mAnchor.reset();
-    logger().trace(__LINE__); //LH
-    
-    stage.mTransform.reset(nullptr);
-    logger().trace(__LINE__);
-    
-    stage.mGuiNode.reset(nullptr);
-    logger().trace(__LINE__);
-    
+    stage = {};
   }
 
 }
