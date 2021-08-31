@@ -10,8 +10,8 @@
 #include "../../../src/cs-core/PluginBase.hpp"
 #include "../../../src/cs-core/Settings.hpp"
 #include "../../../src/cs-utils/Property.hpp"
-#include <vector>
 #include <memory>
+#include <vector>
 
 namespace cs::scene {
 class CelestialAnchorNode;
@@ -21,8 +21,8 @@ class VistaOpenGLNode;
 class VistaTransformNode;
 
 namespace cs::gui {
-  class WorldSpaceGuiArea;
-  class GuiItem;
+class WorldSpaceGuiArea;
+class GuiItem;
 } // namespace cs::gui
 
 namespace csp::userstudy {
@@ -90,11 +90,11 @@ class Plugin : public cs::core::PluginBase {
   void update() override;
 
  private:
-  void onLoad();
-  void unload();
-  void setupStage(uint32_t stageIdx);
+  void                                        onLoad();
+  void                                        unload();
+  void                                        setupStage(uint32_t stageIdx);
   std::optional<cs::core::Settings::Bookmark> getBookmarkByName(std::string name);
-  void advanceStage();
+  void                                        advanceStage();
 
   std::shared_ptr<Settings> mPluginSettings = std::make_shared<Settings>();
 
@@ -107,12 +107,12 @@ class Plugin : public cs::core::PluginBase {
   };
 
   std::array<Stage, 2> mStages;
-  uint32_t mStageIdx         = 0;
+  uint32_t             mStageIdx = 0;
 
   cs::utils::Property<uint32_t> mCurrentFMS = 0;
 
-  int mOnLoadConnection = -1;
-  int mOnSaveConnection = -1;
+  int mOnLoadConnection          = -1;
+  int mOnSaveConnection          = -1;
   int mOnBookmarkAddedConnection = -1;
 };
 } // namespace csp::userstudy
