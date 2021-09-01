@@ -248,7 +248,7 @@ void Plugin::onLoad() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Plugin::setupStage(uint32_t stageIdx) {
+void Plugin::setupStage(std::size_t stageIdx) {
   auto const& settings = mPluginSettings->mStageSettings[stageIdx];
 
   // Fetch stage at Index
@@ -269,7 +269,8 @@ void Plugin::setupStage(uint32_t stageIdx) {
     }
 
     // Add Scaling factor
-    stage.mTransform->SetScale(settings.mScaling.get(), settings.mScaling.get(), 1.0F);
+    const float checkPointScale = 2.f;
+    stage.mTransform->SetScale(settings.mScaling.get()*checkPointScale, settings.mScaling.get()*checkPointScale, 1.0F);
 
     // Set webview according to type
     switch (settings.mType.get()) {
@@ -358,8 +359,8 @@ void Plugin::updateStages() {
     mStages[stageIdx].mGuiItem->setIsInteractive(i == 0);
 
     // Ensure that the chaecpoints are drawn back-to-front.
-    VistaOpenSGMaterialTools::SetSortKeyOnSubtree(mStages[stageIdx].mGuiNode.get(),
-        static_cast<int>(cs::utils::DrawOrder::eTransparentItems) + mStages.size() - i);
+    std::size_t sortKey = static_cast<std::size_t>(cs::utils::DrawOrder::eTransparentItems) + mStages.size() - i;
+    VistaOpenSGMaterialTools::SetSortKeyOnSubtree(mStages[stageIdx].mGuiNode.get(),  static_cast<int>(sortKey));
   }
 }
 
