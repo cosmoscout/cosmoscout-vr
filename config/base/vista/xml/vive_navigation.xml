@@ -29,8 +29,10 @@
         <node name="scale_translation" type="Multiply[float,VistaVector3D]" />
 
       <node name="nav_rotation_start" type="ConditionalRoute"/>
-      <node name="nav_rotation_start_invert" type="Invert[VistaQuaternion]"/>
+      <node name="nav_rotation_invert" type="Invert[VistaQuaternion]"/>
       <node name="nav_rotation_dist" type="Multiply[VistaQuaternion]"/>
+
+      <node name="final_rotation_invert" type="Invert[VistaQuaternion]"/>
 
       <node name="timer" type="Timer" />
 
@@ -68,11 +70,13 @@
 
       <edge fromnode="nav_button_change" tonode="nav_rotation_start" fromport="out" toport="trigger"/>
       <edge fromnode="flystick" tonode="nav_rotation_start" fromport="ORIENTATION" toport="coords" />
-      <edge fromnode="nav_rotation_start" tonode="nav_rotation_start_invert" fromport="coords" toport="in" />
-      <edge fromnode="nav_rotation_start_invert" tonode="nav_rotation_dist" fromport="out" toport="first" />
-      <edge fromnode="flystick" tonode="nav_rotation_dist" fromport="ORIENTATION" toport="second" />
+      <edge fromnode="flystick" tonode="nav_rotation_invert" fromport="ORIENTATION" toport="in" />
+      <edge fromnode="nav_rotation_start" tonode="nav_rotation_dist" fromport="coords" toport="first" />
+      <edge fromnode="nav_rotation_invert" tonode="nav_rotation_dist" fromport="out" toport="second" />
 
-      <edge fromnode="nav_rotation_dist" tonode="observer" fromport="out" toport="rotation" />
+      <edge fromnode="nav_rotation_dist" tonode="final_rotation_invert" fromport="out" toport="in" />
+
+      <edge fromnode="final_rotation_invert" tonode="observer" fromport="out" toport="rotation" />
 
       <edge fromnode="timer" tonode="observer" fromport="time" toport="time" />
 
