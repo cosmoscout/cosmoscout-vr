@@ -209,10 +209,6 @@ void Plugin::onLoad() {
     // Register selectable
     mInputManager->registerSelectable(stage.mGuiNode.get());
 
-    // Set sort key
-    VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
-        stage.mGuiNode.get(), static_cast<int>(cs::utils::DrawOrder::eTransparentItems));
-
     // Create gui item & attach it to gui area
     stage.mGuiItem = std::make_unique<cs::gui::GuiItem>(
         "file://{csp-user-study-cp}../share/resources/gui/user-study-stage.html");
@@ -233,6 +229,8 @@ void Plugin::onLoad() {
           resultsLogger().info("Loading Scenario at " + path);
           mGuiManager->getGui()->callJavascript("CosmoScout.callbacks.core.load", path);
         }));
+
+    setupStage(i);
   }
 
   // register FMS callback part afterwards
@@ -242,9 +240,7 @@ void Plugin::onLoad() {
     }
   });
 
-  // Setup first two checkpoints
-  setupStage(0);
-  setupStage(1);
+  updateStages();
 
   // Mark start of scenario in results log
   resultsLogger().info("Scenario started");
@@ -288,7 +284,7 @@ void Plugin::setupStage(uint32_t stageIdx) {
     case StageType::eSwitchScenario: {
       std::string html = "";
       for (Plugin::Settings::Scenario& scenario : mPluginSettings->mOtherScenarios) {
-        html += "<input type=\"button\" value=\"" + scenario.mName.get() +
+        html += "<input class=\"btn\" type=\"button\" value=\"" + scenario.mName.get() +
                 "\" onclick=\"window.callNative('loadScenario', '" + scenario.mPath.get() +
                 "')\">\n";
       }
@@ -301,11 +297,6 @@ void Plugin::setupStage(uint32_t stageIdx) {
       break;
     }
     }
-
-    // Set opacity to 1.0 if isCurrent, else set to 0.5
-    bool isCurrent = stageIdx == mStageIdx;
-    stage.mGuiItem->setIsInteractive(isCurrent);
-    stage.mGuiItem->callJavascript("setOpacity", isCurrent ? 1.0 : 0.5);
   }
 }
 
@@ -351,20 +342,41 @@ std::optional<cs::core::Settings::Bookmark> Plugin::getBookmarkByName(std::strin
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void Plugin::updateStages() {
+
+  // Set css classes of all visible stages. The item at i==0 is the current stage, and
+  // i==mStages.size()-1 is the most distant stage.
+  for (std::size_t i = 0; i < mStages.size(); i++) {
+    auto stageIdx = (mStageIdx + i) % mStages.size();
+    if (mStageIdx + i < mPluginSettings->mStageSettings.size()) {
+      mStages[stageIdx].mGuiItem->callJavascript("setBodyClass", "stage" + std::to_string(i));
+    } else {
+      mStages[stageIdx].mGuiItem->callJavascript("setBodyClass", "hidden");
+    }
+
+    // Make only current stage interactive.
+    mStages[stageIdx].mGuiItem->setIsInteractive(i == 0);
+
+    // Ensure that the chaecpoints are drawn back-to-front.
+    VistaOpenSGMaterialTools::SetSortKeyOnSubtree(mStages[stageIdx].mGuiNode.get(),
+        static_cast<int>(cs::utils::DrawOrder::eTransparentItems) + mStages.size() - i);
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Plugin::advanceStage() {
-  if (mStageIdx < mPluginSettings->mStageSettings.size() - 1) {
-    ++mStageIdx;
+
+  // Advance the current stage index.
+  mStageIdx = std::min(mStageIdx + 1, mPluginSettings->mStageSettings.size() - 1);
+
+  // Setup the stage which becomes visible next.
+  std::size_t newlyVisibleIdx = mStageIdx + mStages.size() - 1;
+  if (newlyVisibleIdx < mPluginSettings->mStageSettings.size()) {
+    setupStage(newlyVisibleIdx);
   }
-  // setup next stage if current not last stage
-  if (mStageIdx < mPluginSettings->mStageSettings.size() - 1) {
-    // setup following stage
-    setupStage(mStageIdx + 1);
-  } else {
-    // if current is last stage hide other stage
-    mStages[(mStageIdx + 1) % mStages.size()].mGuiItem->callJavascript("setOpacity", 0.0);
-  }
-  mStages[(mStageIdx) % mStages.size()].mGuiItem->setIsInteractive(true);
-  mStages[(mStageIdx) % mStages.size()].mGuiItem->callJavascript("setOpacity", 1.0);
+
+  updateStages();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

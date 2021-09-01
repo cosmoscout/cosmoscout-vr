@@ -94,6 +94,7 @@ class Plugin : public cs::core::PluginBase {
   void                                        unload();
   void                                        setupStage(uint32_t stageIdx);
   std::optional<cs::core::Settings::Bookmark> getBookmarkByName(std::string name);
+  void                                        updateStages();
   void                                        advanceStage();
 
   std::shared_ptr<Settings> mPluginSettings = std::make_shared<Settings>();
@@ -106,8 +107,8 @@ class Plugin : public cs::core::PluginBase {
     std::unique_ptr<cs::gui::GuiItem>               mGuiItem;
   };
 
-  std::array<Stage, 2> mStages;
-  uint32_t             mStageIdx = 0;
+  std::array<Stage, 3> mStages;
+  std::size_t          mStageIdx = 0;
 
   cs::utils::Property<uint32_t> mCurrentFMS = 0;
 
