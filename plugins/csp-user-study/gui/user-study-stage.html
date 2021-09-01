@@ -37,9 +37,10 @@
       document.getElementById("chs").hidden = false;
       document.getElementById("chs").innerHTML = html;
     }
+
     // set the opacity of a checkpoint to distinguish between current (1.0) and upcoming (~0.5) checkpoints
-    function setOpacity(opacity) {
-      document.querySelector(":root").style.opacity = "" + opacity;
+    function setBodyClass(className) {
+      document.querySelector("body").className = className;
     }
 
     // init cosmoscout api to init sliders
@@ -55,7 +56,7 @@
 
     })
   </script>
-  <!-- filters generated from color at https://codepen.io/sosuke/pen/Pjoqqp -->
+
   <style>
     #cp {
       width: 100%;
@@ -64,60 +65,97 @@
       justify-content: center;
       align-items: center;
       border-radius: 100%;
-      border: 10px solid rgb(94, 204, 255);
-      background: radial-gradient(circle, rgba(94, 204, 255, 0) 40%, rgba(94, 204, 255, 0.8) 100%);
+      border: 10px solid rgb(255, 255, 255);
+      background: radial-gradient(circle, rgba(0, 0, 0, 0) 40%, rgb(15, 160, 228) 100%);
     }
 
+    P {
+      text-shadow: 1px 1px 1px #000, 0px 0px 1px #000, 1px 1px 5px rgb(0 0 0 / 75%);
+      font-size: 1.2em;
+    }
+
+    body {
+      transition: opacity 0.5s linear;
+    }
+
+    body.hidden {
+      display: none;
+    }
+
+    body.stage0 {
+      opacity: 1;
+      animation: flash 0.5s linear;
+    }
+
+    body.stage1 {
+      opacity: 0.5;
+    }
+
+    body.stage2 {
+      opacity: 0.25;
+    }
+
+    @keyframes flash {
+      0% {
+        filter: brightness(1)
+      }
+
+      20% {
+        filter: brightness(2)
+      }
+
+      100% {
+        filter: brightness(1)
+      }
+    }
+
+
     #cp.fms {
-      border: 10px solid rgb(255, 201, 102);
-      background: radial-gradient(circle, rgba(255, 201, 102, 0) 40%, rgba(255, 201, 102, 0.8) 100%);
+      background: radial-gradient(circle, rgba(0, 0, 0, 0) 40%, rgba(255, 201, 102, 1) 100%);
     }
 
     #cp.chs {
-      border: 10px solid rgb(164, 255, 112);
-      background: radial-gradient(circle, rgba(164, 255, 112, 0) 40%, rgba(164, 255, 112, 0.8) 100%);
+      background: radial-gradient(circle, rgba(0, 0, 0, 0) 40%, rgba(164, 255, 112, 1) 100%);
     }
 
     #fms,
     #chs {
-      font-size: 2em;
       text-align: center;
       width: 70%;
     }
 
-    #fms>input,
-    #chs>input {
-      background: var(--cs-color-primary);
+    .btn {
+      padding: 5px 25px;
+      margin-bottom: 8px;
       border-radius: 10px;
-      border-width: 0.1em;
-      border-color: black;
-      margin-top: 5%;
+      background: var(--cs-color-background-darker);
+      color: var(--cs-color-text);
+      border-top: 3px solid var(--cs-color-primary);
+      border-left: 0px solid var(--cs-color-primary);
+      border-bottom: 3px solid var(--cs-color-primary);
+      border-right: 0px solid var(--cs-color-primary);
+      border-bottom: 3px solid var(--cs-color-primary);
     }
 
-    #chs>input:first-child {
-      margin-top: 0;
+    .btn:hover {
+      background: var(--cs-color-background-dark);
+      color: var(--cs-color-text-highlight);
     }
 
     #fms>input {
-      margin-top: 10%;
+      margin-top: 13%;
     }
 
-    #fms {
-      margin-top: 15%;
-    }
-
-    #fms>input:hover,
-    #chs>input:hover {
-      background: white;
-    }
+    /* Make the slider bigger */
 
     .range-label span {
-      font-size: 0.6em;
+      font-size: 1.2em;
     }
 
     .noUi-target .range-label {
-      line-height: 30px;
+      line-height: 35px;
       min-width: 35px;
+      top: 4px;
     }
 
     .noUi-target .noUi-active .range-label {
@@ -130,8 +168,9 @@
   <div id="cp">
     <div id="chs"></div>
     <div id="fms">
+      <P>How intense are your cyber-sickness symptons?</P>
       <div data-callback="setFMS"></div>
-      <input type="button" value="Confirm" onclick="window.callNative('confirmFMS')">
+      <input class="btn" type="button" value="Confirm" onclick="window.callNative('confirmFMS')">
     </div>
   </div>
 </body>
