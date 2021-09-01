@@ -105,74 +105,7 @@ void Plugin::init() {
   mOnSaveConnection = mAllSettings->onSave().connect(
       [this]() { mAllSettings->mPlugins["csp-vr-accessibility"] = *mPluginSettings; });
 
-  // Load settings.
-  onLoad();
-
-  logger().info("Loading done.");
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void Plugin::deInit() {
-  logger().info("Unloading plugin...");
-
-  // remove settings tab
-  mGuiManager->removeSettingsSection("VR Accessibility");
-  // remove callbacks
-  mGuiManager->getGui()->unregisterCallback("floorGrid.setEnabled");
-  mGuiManager->getGui()->unregisterCallback("floorGrid.setSize");
-  mGuiManager->getGui()->unregisterCallback("floorGrid.setOffset");
-  mGuiManager->getGui()->unregisterCallback("floorGrid.setAlpha");
-  mGuiManager->getGui()->unregisterCallback("floorGrid.setColor");
-  mGuiManager->getGui()->unregisterCallback("fovVignette.setEnabled");
-  mGuiManager->getGui()->unregisterCallback("fovVignette.setDebug");
-  mGuiManager->getGui()->unregisterCallback("fovVignette.setEnableDynamicRadius");
-  mGuiManager->getGui()->unregisterCallback("fovVignette.setEnableVerticalOnly");
-  mGuiManager->getGui()->unregisterCallback("fovVignette.setInnerRadius");
-  mGuiManager->getGui()->unregisterCallback("fovVignette.setOuterRadius");
-  mGuiManager->getGui()->unregisterCallback("fovVignette.setColor");
-  mGuiManager->getGui()->unregisterCallback("fovVignette.setLowerThreshold");
-  mGuiManager->getGui()->unregisterCallback("fovVignette.setUpperThreshold");
-  mGuiManager->getGui()->unregisterCallback("fovVignette.setDuration");
-  mGuiManager->getGui()->unregisterCallback("fovVignette.setDeadzone");
-
-  mAllSettings->onLoad().disconnect(mOnLoadConnection);
-  mAllSettings->onSave().disconnect(mOnSaveConnection);
-
-  logger().info("Unloading done.");
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void Plugin::update() {
-  // on first update, reset color picker to original color from the settings json
-  if (resetColorPicker) {
-    // reread settings from json
-    from_json(mAllSettings->mPlugins.at("csp-vr-accessibility"), *mPluginSettings);
-    // reset grid color into picker
-    mGuiManager->getGui()->callJavascript(
-        "CosmoScout.floorGrid.setColorValue", mPluginSettings->mGridSettings.mColor.get());
-    // reset vignette color into picker
-    mGuiManager->getGui()->callJavascript(
-        "CosmoScout.fovVignette.setColorValue", mPluginSettings->mVignetteSettings.mColor.get());
-    // clear flag
-    resetColorPicker = false;
-    logger().trace("{} {} {}", __LINE__, mPluginSettings->mGridSettings.mColor.get(), mPluginSettings->mVignetteSettings.mColor.get());
-  }
-
-  mGrid->update();
-
-  if (mPluginSettings->mVignetteSettings.mUseDynamicRadius.get()) {
-    mVignette->updateDynamicRadiusVignette();
-  } else {
-    mVignette->updateFadeAnimatedVignette();
-  }
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void Plugin::onLoad() {
-    // add settings to GUI
+  // add settings to GUI
   mGuiManager->addSettingsSectionToSideBarFromHTML(
       "VR Accessibility", "blur_circular", "../share/resources/gui/vr_accessibility_settings.html");
   mGuiManager->addScriptToGuiFromJS("../share/resources/gui/js/csp-vr-accessibility.js");
@@ -214,6 +147,7 @@ void Plugin::onLoad() {
   // register callback for grid color picker
   mGuiManager->getGui()->registerCallback("floorGrid.setColor",
       "Value to adjust color of the grid.", std::function([this](std::string value) {
+        logger().trace("{}: {}", __LINE__, value);
         mPluginSettings->mGridSettings.mColor = static_cast<std::string>(value);
       }));
   mPluginSettings->mGridSettings.mColor.connectAndTouch([this](std::string value) {
@@ -316,6 +250,73 @@ void Plugin::onLoad() {
   mPluginSettings->mVignetteSettings.mFadeDeadzone.connectAndTouch(
       [this](double value) { mGuiManager->setSliderValue("fovVignette.setDeadzone", value); });
 
+  // Load settings.
+  onLoad();
+
+  logger().info("Loading done.");
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Plugin::deInit() {
+  logger().info("Unloading plugin...");
+
+  // remove settings tab
+  mGuiManager->removeSettingsSection("VR Accessibility");
+  // remove callbacks
+  mGuiManager->getGui()->unregisterCallback("floorGrid.setEnabled");
+  mGuiManager->getGui()->unregisterCallback("floorGrid.setSize");
+  mGuiManager->getGui()->unregisterCallback("floorGrid.setOffset");
+  mGuiManager->getGui()->unregisterCallback("floorGrid.setAlpha");
+  mGuiManager->getGui()->unregisterCallback("floorGrid.setColor");
+  mGuiManager->getGui()->unregisterCallback("fovVignette.setEnabled");
+  mGuiManager->getGui()->unregisterCallback("fovVignette.setDebug");
+  mGuiManager->getGui()->unregisterCallback("fovVignette.setEnableDynamicRadius");
+  mGuiManager->getGui()->unregisterCallback("fovVignette.setEnableVerticalOnly");
+  mGuiManager->getGui()->unregisterCallback("fovVignette.setInnerRadius");
+  mGuiManager->getGui()->unregisterCallback("fovVignette.setOuterRadius");
+  mGuiManager->getGui()->unregisterCallback("fovVignette.setColor");
+  mGuiManager->getGui()->unregisterCallback("fovVignette.setLowerThreshold");
+  mGuiManager->getGui()->unregisterCallback("fovVignette.setUpperThreshold");
+  mGuiManager->getGui()->unregisterCallback("fovVignette.setDuration");
+  mGuiManager->getGui()->unregisterCallback("fovVignette.setDeadzone");
+
+  mAllSettings->onLoad().disconnect(mOnLoadConnection);
+  mAllSettings->onSave().disconnect(mOnSaveConnection);
+
+  logger().info("Unloading done.");
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Plugin::update() {
+  // on first update, reset color picker to original color from the settings json
+  if (resetColorPicker) {
+    // reread settings from json
+    from_json(mAllSettings->mPlugins.at("csp-vr-accessibility"), *mPluginSettings);
+    // reset grid color into picker
+    mGuiManager->getGui()->callJavascript(
+        "CosmoScout.floorGrid.setColorValue", mPluginSettings->mGridSettings.mColor.get());
+    // reset vignette color into picker
+    mGuiManager->getGui()->callJavascript(
+        "CosmoScout.fovVignette.setColorValue", mPluginSettings->mVignetteSettings.mColor.get());
+    // clear flag
+    resetColorPicker = false;
+    logger().trace("{} {} {}", __LINE__, mPluginSettings->mGridSettings.mColor.get(), mPluginSettings->mVignetteSettings.mColor.get());
+  }
+
+  mGrid->update();
+
+  if (mPluginSettings->mVignetteSettings.mUseDynamicRadius.get()) {
+    mVignette->updateDynamicRadiusVignette();
+  } else {
+    mVignette->updateFadeAnimatedVignette();
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Plugin::onLoad() {
   // Read settings from JSON.
   from_json(mAllSettings->mPlugins.at("csp-vr-accessibility"), *mPluginSettings);
 

@@ -22,19 +22,23 @@
 
       this.picker.picker = new CP(this.picker);
       this.picker.picker.self.classList.add('no-alpha');
-      this.picker.picker.on('change', (r, g, b, a) => {
+      this.picker.picker.on('drag', (r, g, b, a) => {
         const color                  = CP.HEX([r, g, b, 1]);
         this.picker.style.background = color;
         this.picker.value            = color;
+        console.log("ondrag " + color)
         CosmoScout.callbacks.floorGrid.setColor(color);
       });
-
+      /*
       this.picker.oninput = (e) => {
         const color = CP.HEX(e.target.value);
         this.picker.picker.set(color[0], color[1], color[2], 1);
         this.picker.style.background = CP.HEX([color[0], color[1], color[2], 1]);
-        CosmoScout.callbacks.floorGrid.setColor(color);
+
+        console.log("oninput " + e.target.value)
+        CosmoScout.callbacks.floorGrid.setColor(e.target.value);
       };
+      */
     }
 
     setColorValue(color) {
