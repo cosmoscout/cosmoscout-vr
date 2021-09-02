@@ -193,7 +193,7 @@ void Plugin::update() {
       mGuiManager->addBookmark(bookmark);
 
       Settings::StageSetting stage;
-      stage.mScaling      = this->mSolarSystem->getObserver().getAnchorScale();
+      stage.mScaling      = static_cast<float>(this->mSolarSystem->getObserver().getAnchorScale());
       stage.mBookmarkName = bookmark.mName;
       mPluginSettings->mStageSettings.push_back(stage);
 
@@ -218,7 +218,7 @@ void Plugin::update() {
       // check distance to CP
       glm::dvec3 vecToObserver = mStages[mStageIdx % mStages.size()].mAnchor->getRelativePosition(
           mTimeControl->pSimulationTime.get(), mSolarSystem->getObserver());
-      if (glm::length(vecToObserver) < mPluginSettings->mStageSettings[mStageIdx].mScaling.get()) {
+      if (glm::length(vecToObserver) < 1.0) {
         // go to next stage
         resultsLogger().info("{}: Passed Checkpoint",
             mPluginSettings->mStageSettings[mStageIdx].mBookmarkName.get());
@@ -347,14 +347,14 @@ void Plugin::setupStage(std::size_t stageIdx) {
     if (b.mLocation->mPosition.has_value()) {
       stage.mAnchor->setAnchorPosition(b.mLocation->mPosition.value());
     }
-    if (b.mLocation->mPosition.has_value()) {
+    if (b.mLocation->mRotation.has_value()) {
       stage.mAnchor->setAnchorRotation(b.mLocation->mRotation.value());
     }
 
     // Add Scaling factor
     const float checkPointScale = 2.f;
     stage.mTransform->SetScale(
-        settings.mScaling.get() * checkPointScale, settings.mScaling.get() * checkPointScale, 1.0F);
+         checkPointScale,  checkPointScale, 1.0F);
 
     // Set webview according to type
     switch (settings.mType.get()) {
@@ -446,7 +446,7 @@ void Plugin::updateStages() {
     // Make only current stage interactive.
     mStages[stageIdx].mGuiItem->setIsInteractive(i == 0);
 
-    // Ensure that the chaecpoints are drawn back-to-front.
+    // Ensure that the checkpoints are drawn back-to-front.
     std::size_t sortKey =
         static_cast<std::size_t>(cs::utils::DrawOrder::eTransparentItems) + mStages.size() - i;
     VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
