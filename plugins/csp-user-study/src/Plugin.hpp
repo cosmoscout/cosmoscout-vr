@@ -32,15 +32,9 @@ namespace csp::userstudy {
 /// The plugin is configurable via the application config file. See README.md for details.
 class Plugin : public cs::core::PluginBase {
  public:
-  enum class StageType { eNone, eCheckpoint, eRequestFMS, eSwitchScenario };
+  enum class StageType { eCheckpoint, eRequestFMS, eSwitchScenario };
 
   struct Settings {
-
-    /// Toggle, whether scenario stages should be displayed
-    cs::utils::DefaultProperty<bool> mEnabled{false};
-
-    /// Toggle, whether all scenario stages should be displayed all the time
-    cs::utils::DefaultProperty<bool> mDebug{false};
 
     /// The settings for a scenario
     struct Scenario {
@@ -62,7 +56,7 @@ class Plugin : public cs::core::PluginBase {
     struct StageSetting {
 
       /// The type of the stage
-      cs::utils::DefaultProperty<StageType> mType{StageType::eNone};
+      cs::utils::DefaultProperty<StageType> mType{StageType::eCheckpoint};
 
       /// The related bookmark for the position & orientation
       cs::utils::DefaultProperty<std::string> mBookmarkName{"None"};
@@ -78,6 +72,9 @@ class Plugin : public cs::core::PluginBase {
 
     /// List of stages making up the scenario
     std::vector<StageSetting> mStageSettings;
+
+    /// The checkpoint recording interval in seconds.
+    cs::utils::DefaultProperty<uint32_t> pRecordingInterval{5};
 
     /// Operator to compare Settings
     bool operator!=(Settings const& other) const;
@@ -107,14 +104,15 @@ class Plugin : public cs::core::PluginBase {
     std::unique_ptr<cs::gui::GuiItem>               mGuiItem;
   };
 
-  std::array<Stage, 3> mStages;
-  std::size_t          mStageIdx = 0;
+  std::array<Stage, 3>                  mStages;
+  std::size_t                           mStageIdx        = 0;
+  bool                                  mEnableRecording = false;
+  std::chrono::steady_clock::time_point mLastRecordTime;
 
   cs::utils::Property<uint32_t> mCurrentFMS = 0;
 
-  int mOnLoadConnection          = -1;
-  int mOnSaveConnection          = -1;
-  int mOnBookmarkAddedConnection = -1;
+  int mOnLoadConnection = -1;
+  int mOnSaveConnection = -1;
 };
 } // namespace csp::userstudy
 

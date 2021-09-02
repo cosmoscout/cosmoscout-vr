@@ -43,7 +43,6 @@ namespace csp::userstudy {
 
 // NOLINTNEXTLINE
 NLOHMANN_JSON_SERIALIZE_ENUM(Plugin::StageType, {
-  {Plugin::StageType::eNone, nullptr},
   {Plugin::StageType::eCheckpoint, "checkpoint"},
   {Plugin::StageType::eRequestFMS, "requestFMS"},
   {Plugin::StageType::eSwitchScenario, "switchScenario"},
@@ -57,11 +56,6 @@ void from_json(nlohmann::json const& j, Plugin::Settings::StageSetting& o) {
   cs::core::Settings::deserialize(j, "type", o.mType);
   cs::core::Settings::deserialize(j, "bookmark", o.mBookmarkName);
   cs::core::Settings::deserialize(j, "scale", o.mScaling);
-
-  if (o.mType.get() == Plugin::StageType::eNone) {
-    throw cs::core::Settings::DeserializationException(
-        "'type'", "Invalid stage type given! Should be one of the types outlined in the README.md");
-  }
 }
 
 void to_json(nlohmann::json& j, Plugin::Settings::StageSetting const& o) {
@@ -83,16 +77,14 @@ void to_json(nlohmann::json& j, Plugin::Settings::Scenario const& o) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void from_json(nlohmann::json const& j, Plugin::Settings& o) {
-  cs::core::Settings::deserialize(j, "enabled", o.mEnabled);
-  cs::core::Settings::deserialize(j, "debug", o.mDebug);
   cs::core::Settings::deserialize(j, "otherScenarios", o.mOtherScenarios);
+  cs::core::Settings::deserialize(j, "recordingInterval", o.pRecordingInterval);
   cs::core::Settings::deserialize(j, "stages", o.mStageSettings);
 }
 
 void to_json(nlohmann::json& j, Plugin::Settings const& o) {
-  cs::core::Settings::serialize(j, "enabled", o.mEnabled);
-  cs::core::Settings::serialize(j, "debug", o.mDebug);
   cs::core::Settings::serialize(j, "otherScenarios", o.mOtherScenarios);
+  cs::core::Settings::serialize(j, "recordingInterval", o.pRecordingInterval);
   cs::core::Settings::serialize(j, "stages", o.mStageSettings);
 }
 
@@ -129,11 +121,47 @@ void Plugin::init() {
   mOnSaveConnection = mAllSettings->onSave().connect(
       [this]() { mAllSettings->mPlugins["csp-user-study"] = *mPluginSettings; });
 
-  // connect onBookmarkAdded
-  mOnBookmarkAddedConnection =
-      mGuiManager->onBookmarkAdded().connect([this](uint32_t, cs::core::Settings::Bookmark const&) {
-        logger().info(this->mSolarSystem->getObserver().getAnchorScale());
-      });
+  mGuiManager->addSettingsSectionToSideBarFromHTML(
+      "User Study", "people", "../share/resources/gui/user_study_settings.html");
+  mGuiManager->addScriptToGuiFromJS("../share/resources/gui/js/csp-user-study.js");
+
+  mGuiManager->getGui()->registerCallback("userStudy.deleteAllCheckpoints",
+      "Deletes all checkpoints and all bookmarks.", std::function([this]() {
+        mPluginSettings->mStageSettings.clear();
+        while (!mGuiManager->getBookmarks().empty()) {
+          mGuiManager->removeBookmark(mGuiManager->getBookmarks().begin()->first);
+        }
+        updateStages();
+      }));
+
+  mGuiManager->getGui()->registerCallback("userStudy.setRecordingInterval",
+      "Sets the checkpoint recording interval in seconds.", std::function([this](double val) {
+        mPluginSettings->pRecordingInterval = static_cast<uint32_t>(val);
+      }));
+  mPluginSettings->pRecordingInterval.connectAndTouch(
+      [this](uint32_t val) { mGuiManager->setSliderValue("userStudy.setRecordingInterval", val); });
+
+  // Set the mEnableRecording value based on the corresponding checkbox.
+  mGuiManager->getGui()->registerCallback("userStudy.setEnableRecording",
+      "Enables or disables frame time recording.", std::function([this](bool enable) {
+        mEnableRecording = enable;
+
+        if (enable) {
+          mGuiManager->getGui()->executeJavascript(
+              "document.querySelector('.user-study-record-button').innerHTML = "
+              "'<i class=\"material-icons\">stop</i> Stop Recording';");
+          mLastRecordTime = std::chrono::steady_clock::now();
+        } else {
+          mGuiManager->getGui()->executeJavascript(
+              "document.querySelector('.user-study-record-button').innerHTML = "
+              "'<i class=\"material-icons\">fiber_manual_record</i> Start New Recording';");
+
+          for (std::size_t i = 0; i < mStages.size(); i++) {
+            setupStage(i);
+          }
+          updateStages();
+        }
+      }));
 
   onLoad();
 
@@ -143,7 +171,31 @@ void Plugin::init() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Plugin::update() {
-  if (mPluginSettings->mEnabled.get()) {
+  if (mEnableRecording) {
+    auto now = std::chrono::steady_clock::now();
+    if (std::chrono::duration_cast<std::chrono::seconds>(now - mLastRecordTime).count() >=
+        mPluginSettings->pRecordingInterval.get()) {
+      mLastRecordTime = now;
+
+      cs::core::Settings::Bookmark bookmark;
+      bookmark.mName =
+          "user-study-bookmark-" + std::to_string(mPluginSettings->mStageSettings.size());
+      bookmark.mLocation = {this->mSolarSystem->getObserver().getCenterName(),
+          this->mSolarSystem->getObserver().getFrameName(),
+          this->mSolarSystem->getObserver().getAnchorPosition(),
+          this->mSolarSystem->getObserver().getAnchorRotation()};
+
+      mGuiManager->addBookmark(bookmark);
+
+      Settings::StageSetting stage;
+      stage.mScaling      = this->mSolarSystem->getObserver().getAnchorScale();
+      stage.mBookmarkName = bookmark.mName;
+      mPluginSettings->mStageSettings.push_back(stage);
+
+      logger().info("Recorded Checkpoint {}.", bookmark.mName);
+    }
+
+  } else {
     // check if current stage is normal checkpoint
     if (mPluginSettings->mStageSettings[mStageIdx].mType.get() == Plugin::StageType::eCheckpoint) {
       // check distance to CP
@@ -168,8 +220,10 @@ void Plugin::deInit() {
   mAllSettings->onLoad().disconnect(mOnLoadConnection);
   mAllSettings->onSave().disconnect(mOnSaveConnection);
 
-  // disconnect onBookmarkAdded
-  mGuiManager->onBookmarkAdded().disconnect(mOnBookmarkAddedConnection);
+  mGuiManager->removeSettingsSection("User Study");
+  mGuiManager->getGui()->unregisterCallback("userStudy.setRecordingInterval");
+  mGuiManager->getGui()->unregisterCallback("userStudy.deleteAllCheckpoints");
+  mGuiManager->getGui()->unregisterCallback("userStudy.setEnableRecording");
 
   logger().info("Unloading done.");
 }
@@ -270,7 +324,8 @@ void Plugin::setupStage(std::size_t stageIdx) {
 
     // Add Scaling factor
     const float checkPointScale = 2.f;
-    stage.mTransform->SetScale(settings.mScaling.get()*checkPointScale, settings.mScaling.get()*checkPointScale, 1.0F);
+    stage.mTransform->SetScale(
+        settings.mScaling.get() * checkPointScale, settings.mScaling.get() * checkPointScale, 1.0F);
 
     // Set webview according to type
     switch (settings.mType.get()) {
@@ -359,8 +414,10 @@ void Plugin::updateStages() {
     mStages[stageIdx].mGuiItem->setIsInteractive(i == 0);
 
     // Ensure that the chaecpoints are drawn back-to-front.
-    std::size_t sortKey = static_cast<std::size_t>(cs::utils::DrawOrder::eTransparentItems) + mStages.size() - i;
-    VistaOpenSGMaterialTools::SetSortKeyOnSubtree(mStages[stageIdx].mGuiNode.get(),  static_cast<int>(sortKey));
+    std::size_t sortKey =
+        static_cast<std::size_t>(cs::utils::DrawOrder::eTransparentItems) + mStages.size() - i;
+    VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
+        mStages[stageIdx].mGuiNode.get(), static_cast<int>(sortKey));
   }
 }
 
