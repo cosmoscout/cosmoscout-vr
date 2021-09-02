@@ -14,8 +14,12 @@
 #include "../../../src/cs-core/TimeControl.hpp"
 #include "../../../src/cs-scene/CelestialAnchorNode.hpp"
 
+#include <VistaKernel/DisplayManager/VistaDisplayManager.h>
+#include <VistaKernel/DisplayManager/VistaDisplaySystem.h>
 #include <VistaKernel/GraphicsManager/VistaOpenGLNode.h>
 #include <VistaKernel/GraphicsManager/VistaSceneGraph.h>
+#include <VistaKernel/GraphicsManager/VistaTransformNode.h>
+#include <VistaKernel/InteractionManager/VistaUserPlatform.h>
 #include <VistaKernel/VistaSystem.h>
 #include <VistaKernelOpenSGExt/VistaOpenSGMaterialTools.h>
 
@@ -45,6 +49,7 @@ namespace csp::userstudy {
 NLOHMANN_JSON_SERIALIZE_ENUM(Plugin::StageType, {
   {Plugin::StageType::eCheckpoint, "checkpoint"},
   {Plugin::StageType::eRequestFMS, "requestFMS"},
+  {Plugin::StageType::eRequestCOG, "requestCOG"},
   {Plugin::StageType::eSwitchScenario, "switchScenario"},
 });
 
@@ -196,6 +201,18 @@ void Plugin::update() {
     }
 
   } else {
+
+    if (mEnableCOGMeasurement) {
+      auto translation =
+          GetVistaSystem()
+              ->GetPlatformFor(GetVistaSystem()->GetDisplayManager()->GetDisplaySystem())
+              ->GetPlatformNode()
+              ->GetTranslation();
+      resultsLogger().info("{}: COG {} {} {}",
+          mPluginSettings->mStageSettings[mStageIdx].mBookmarkName.get(), -translation[0],
+          -translation[1], -translation[2]);
+    }
+
     // check if current stage is normal checkpoint
     if (mPluginSettings->mStageSettings[mStageIdx].mType.get() == Plugin::StageType::eCheckpoint) {
       // check distance to CP
@@ -203,6 +220,8 @@ void Plugin::update() {
           mTimeControl->pSimulationTime.get(), mSolarSystem->getObserver());
       if (glm::length(vecToObserver) < mPluginSettings->mStageSettings[mStageIdx].mScaling.get()) {
         // go to next stage
+        resultsLogger().info("{}: Passed Checkpoint",
+            mPluginSettings->mStageSettings[mStageIdx].mBookmarkName.get());
         advanceStage();
       }
     }
@@ -224,6 +243,7 @@ void Plugin::deInit() {
   mGuiManager->getGui()->unregisterCallback("userStudy.setRecordingInterval");
   mGuiManager->getGui()->unregisterCallback("userStudy.deleteAllCheckpoints");
   mGuiManager->getGui()->unregisterCallback("userStudy.setEnableRecording");
+  mGuiManager->getGui()->unregisterCallback("userStudy.setEnableCOGMeasurement");
 
   logger().info("Unloading done.");
 }
@@ -275,13 +295,22 @@ void Plugin::onLoad() {
         std::function([this](double value) { mCurrentFMS = static_cast<uint32_t>(value); }));
     stage.mGuiItem->registerCallback(
         "confirmFMS", "Call this to submit the FMS rating", std::function([this]() {
-          resultsLogger().info("FMS score submitted: {}", mCurrentFMS.get());
+          resultsLogger().info("{}: FMS: {}",
+              mPluginSettings->mStageSettings[mStageIdx].mBookmarkName.get(), mCurrentFMS.get());
           advanceStage();
         }));
     stage.mGuiItem->registerCallback(
         "loadScenario", "Call this to load a new scenario", std::function([this](std::string path) {
           resultsLogger().info("Loading Scenario at " + path);
           mGuiManager->getGui()->callJavascript("CosmoScout.callbacks.core.load", path);
+        }));
+    stage.mGuiItem->registerCallback("setEnableCOGMeasurement",
+        "Enables or disables center of gravity recording.", std::function([this](bool enable) {
+          mEnableCOGMeasurement = enable;
+
+          if (!enable) {
+            advanceStage();
+          }
         }));
 
     setupStage(i);
@@ -335,6 +364,10 @@ void Plugin::setupStage(std::size_t stageIdx) {
     }
     case StageType::eRequestFMS: {
       stage.mGuiItem->callJavascript("setFMS");
+      break;
+    }
+    case StageType::eRequestCOG: {
+      stage.mGuiItem->callJavascript("setCOG");
       break;
     }
     case StageType::eSwitchScenario: {

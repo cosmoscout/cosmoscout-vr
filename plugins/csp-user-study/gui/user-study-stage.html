@@ -22,6 +22,7 @@
     function setCP() {
       document.getElementById("cp").className = "";
       document.getElementById("fms").hidden = true;
+      document.getElementById("cog").hidden = true;
       document.getElementById("chs").hidden = true;
     }
     // set HTML to display FMS score checkpoint
@@ -29,6 +30,12 @@
       setCP()
       document.getElementById("cp").className = "fms";
       document.getElementById("fms").hidden = false;
+    }
+    // set HTML to display COG measurement checkpoint
+    function setCOG() {
+      setCP()
+      document.getElementById("cp").className = "cog";
+      document.getElementById("cog").hidden = false;
     }
     // set HTML to display Change Scenario checkpoint
     function setCHS(html = "") {
@@ -41,6 +48,42 @@
     // set the opacity of a checkpoint to distinguish between current (1.0) and upcoming (~0.5) checkpoints
     function setBodyClass(className) {
       document.querySelector("body").className = className;
+    }
+
+    function startCOGMeasurement() {
+      let countDown = 5;
+      document.getElementById("start-cog-measurement-button").value = "Start in " + countDown + "s ...";
+      document.getElementById("start-cog-measurement-button").disabled = true;
+
+      let id = setInterval(function () {
+        --countDown;
+        document.getElementById("start-cog-measurement-button").value = "Start in " + countDown + "s ...";
+
+        if (countDown == 0) {
+          window.clearInterval(id);
+          CosmoScout.callbacks.setEnableCOGMeasurement(true);
+          stopCOGMeasurement();
+        }
+
+      }, 1000);
+    }
+
+    function stopCOGMeasurement() {
+      let countDown = 10;
+      document.getElementById("start-cog-measurement-button").value = "Stand still for " + countDown + "s ...";
+
+
+      let id = setInterval(function () {
+        --countDown;
+        document.getElementById("start-cog-measurement-button").value = "Stand still for " + countDown + "s ...";
+
+        if (countDown == 0) {
+          window.clearInterval(id);
+          CosmoScout.callbacks.setEnableCOGMeasurement(false);
+          document.getElementById("start-cog-measurement-button").disabled = false;
+        }
+
+      }, 1000);
     }
 
     // init cosmoscout api to init sliders
@@ -130,14 +173,25 @@
       background: radial-gradient(circle, rgba(0, 0, 0, 0) 40%, rgba(255, 201, 102, 1) 100%);
     }
 
+    #cp.cog {
+      background: radial-gradient(circle, rgba(0, 0, 0, 0) 40%, rgb(255, 102, 173) 100%);
+    }
+
     #cp.chs {
       background: radial-gradient(circle, rgba(0, 0, 0, 0) 40%, rgba(164, 255, 112, 1) 100%);
     }
 
     #fms,
+    #cog,
     #chs {
       text-align: center;
       width: 70%;
+    }
+
+    #cog>img {
+      height: 180px;
+      margin: auto;
+      display: block;
     }
 
     .btn {
@@ -153,9 +207,14 @@
       border-bottom: 3px solid var(--cs-color-primary);
     }
 
-    .btn:hover {
+    .btn:not(:disabled):hover {
       background: var(--cs-color-background-dark);
       color: var(--cs-color-text-highlight);
+    }
+
+    .btn:hover {
+      background: var(--cs-color-background-darker);
+      color: var(--cs-color-text);
     }
 
     #fms>input {
@@ -187,6 +246,11 @@
       <P>How intense are your cyber-sickness symptoms?</P>
       <div data-callback="setFMS"></div>
       <input class="btn" type="button" value="Confirm" onclick="window.callNative('confirmFMS')">
+    </div>
+    <div id="cog">
+      <img src="img/stance.png" alt="">
+      <P>Click "Start" and then assume the above stance.</P>
+      <input id="start-cog-measurement-button" class="btn" type="button" value="Start" onclick="startCOGMeasurement()">
     </div>
   </div>
 </body>

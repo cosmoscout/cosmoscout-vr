@@ -32,7 +32,7 @@ namespace csp::userstudy {
 /// The plugin is configurable via the application config file. See README.md for details.
 class Plugin : public cs::core::PluginBase {
  public:
-  enum class StageType { eCheckpoint, eRequestFMS, eSwitchScenario };
+  enum class StageType { eCheckpoint, eRequestFMS, eRequestCOG, eSwitchScenario };
 
   struct Settings {
 
@@ -105,8 +105,9 @@ class Plugin : public cs::core::PluginBase {
   };
 
   std::array<Stage, 3>                  mStages;
-  std::size_t                           mStageIdx        = 0;
-  bool                                  mEnableRecording = false;
+  std::size_t                           mStageIdx             = 0;
+  bool                                  mEnableRecording      = false;
+  bool                                  mEnableCOGMeasurement = false;
   std::chrono::steady_clock::time_point mLastRecordTime;
 
   cs::utils::Property<uint32_t> mCurrentFMS = 0;
