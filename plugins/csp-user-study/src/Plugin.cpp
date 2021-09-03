@@ -224,6 +224,7 @@ void Plugin::onLoad() {
     view.mGuiItem->registerCallback(
         "loadScenario", "Call this to load a new scenario", std::function([this](std::string path) {
           resultsLogger().info("Loading Scenario at " + path);
+          mStageViews[mCurrentStageIdx % mStageViews.size()].mGuiItem->callJavascript("playSound", 0);
           mGuiManager->getGui()->callJavascript("CosmoScout.callbacks.core.load", path);
         }));
     view.mGuiItem->registerCallback("setEnableCOGMeasurement",
@@ -309,14 +310,15 @@ void Plugin::update() {
   } else {
 
     if (mEnableCOGMeasurement) {
-      auto translation =
-          GetVistaSystem()
+      auto const& name = mPluginSettings->mStageSettings[mCurrentStageIdx].mBookmarkName;
+
+      auto* platform = GetVistaSystem()
               ->GetPlatformFor(GetVistaSystem()->GetDisplayManager()->GetDisplaySystem())
-              ->GetPlatformNode()
-              ->GetTranslation();
-      resultsLogger().info("{}: COG {} {} {}",
-          mPluginSettings->mStageSettings[mCurrentStageIdx].mBookmarkName, -translation[0],
-          -translation[1], -translation[2]);
+              ->GetPlatformNode();
+      auto* pProps = GetVistaSystem()->GetDisplayManager()->GetDisplaySystem()->GetDisplaySystemProperties();
+      auto translation = platform->GetTranslation();
+       auto rotation = pProps->GetViewerOrientation().GetAngles();
+      resultsLogger().trace("{}: COG {} {} {} {} {} {}", name, -translation[0], -translation[1], -translation[2],  rotation.a, rotation.b, rotation.c);
     }
 
     // check if current stage is normal checkpoint
@@ -329,6 +331,8 @@ void Plugin::update() {
         resultsLogger().info("{}: Passed Checkpoint",
             mPluginSettings->mStageSettings[mCurrentStageIdx].mBookmarkName);
         advanceStage();
+
+          mStageViews[mCurrentStageIdx % mStageViews.size()].mGuiItem->callJavascript("playSound", 0);
       }
     }
   }
