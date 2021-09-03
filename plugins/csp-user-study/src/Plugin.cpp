@@ -175,61 +175,6 @@ void Plugin::init() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Plugin::update() {
-  if (mEnableRecording) {
-    auto now = std::chrono::steady_clock::now();
-    if (std::chrono::duration_cast<std::chrono::seconds>(now - mLastRecordTime).count() >=
-        mPluginSettings->pRecordingInterval.get()) {
-      mLastRecordTime = now;
-
-      cs::core::Settings::Bookmark bookmark;
-      bookmark.mName =
-          "user-study-bookmark-" + std::to_string(mPluginSettings->mStageSettings.size());
-      bookmark.mLocation = {this->mSolarSystem->getObserver().getCenterName(),
-          this->mSolarSystem->getObserver().getFrameName(),
-          this->mSolarSystem->getObserver().getAnchorPosition(),
-          this->mSolarSystem->getObserver().getAnchorRotation()};
-
-      mGuiManager->addBookmark(bookmark);
-
-      Settings::StageSetting stage;
-      stage.mScaling      = static_cast<float>(this->mSolarSystem->getObserver().getAnchorScale());
-      stage.mBookmarkName = bookmark.mName;
-      mPluginSettings->mStageSettings.push_back(stage);
-
-      logger().info("Recorded Checkpoint {}.", bookmark.mName);
-    }
-
-  } else {
-
-    if (mEnableCOGMeasurement) {
-      auto translation =
-          GetVistaSystem()
-              ->GetPlatformFor(GetVistaSystem()->GetDisplayManager()->GetDisplaySystem())
-              ->GetPlatformNode()
-              ->GetTranslation();
-      resultsLogger().info("{}: COG {} {} {}",
-          mPluginSettings->mStageSettings[mStageIdx].mBookmarkName.get(), -translation[0],
-          -translation[1], -translation[2]);
-    }
-
-    // check if current stage is normal checkpoint
-    if (mPluginSettings->mStageSettings[mStageIdx].mType.get() == Plugin::StageType::eCheckpoint) {
-      // check distance to CP
-      glm::dvec3 vecToObserver = mStages[mStageIdx % mStages.size()].mAnchor->getRelativePosition(
-          mTimeControl->pSimulationTime.get(), mSolarSystem->getObserver());
-      if (glm::length(vecToObserver) < 1.0) {
-        // go to next stage
-        resultsLogger().info("{}: Passed Checkpoint",
-            mPluginSettings->mStageSettings[mStageIdx].mBookmarkName.get());
-        advanceStage();
-      }
-    }
-  }
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 void Plugin::deInit() {
   logger().info("Unloading plugin...");
 
@@ -329,6 +274,89 @@ void Plugin::onLoad() {
   resultsLogger().info("Scenario started");
 }
 
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Plugin::unload() {
+  VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
+  for (Stage& stage : mStages) {
+    // skip unload if Stage is empty
+    if (stage.mAnchor == nullptr) {
+      break;
+    }
+    // unregister callbacks
+    stage.mGuiItem->unregisterCallback("setFMS");
+    stage.mGuiItem->unregisterCallback("confirmFMS");
+    stage.mGuiItem->unregisterCallback("loadScenario");
+    stage.mGuiItem->unregisterCallback("setEnableCOGMeasurement");
+    // disconnect from scene graph
+    pSG->GetRoot()->DisconnectChild(stage.mAnchor.get());
+    stage.mAnchor->DisconnectChild(stage.mTransform.get());
+    stage.mTransform->DisconnectChild(stage.mGuiNode.get());
+    // unregister anchor
+    mSolarSystem->unregisterAnchor(stage.mAnchor);
+    // unregister selectable
+    mInputManager->unregisterSelectable(stage.mGuiNode.get());
+
+    stage = {};
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Plugin::update() {
+  if (mEnableRecording) {
+    auto now = std::chrono::steady_clock::now();
+    if (std::chrono::duration_cast<std::chrono::seconds>(now - mLastRecordTime).count() >=
+        mPluginSettings->pRecordingInterval.get()) {
+      mLastRecordTime = now;
+
+      cs::core::Settings::Bookmark bookmark;
+      bookmark.mName =
+          "user-study-bookmark-" + std::to_string(mPluginSettings->mStageSettings.size());
+      bookmark.mLocation = {this->mSolarSystem->getObserver().getCenterName(),
+          this->mSolarSystem->getObserver().getFrameName(),
+          this->mSolarSystem->getObserver().getAnchorPosition(),
+          this->mSolarSystem->getObserver().getAnchorRotation()};
+
+      mGuiManager->addBookmark(bookmark);
+
+      Settings::StageSetting stage;
+      stage.mScaling      = static_cast<float>(this->mSolarSystem->getObserver().getAnchorScale());
+      stage.mBookmarkName = bookmark.mName;
+      mPluginSettings->mStageSettings.push_back(stage);
+
+      logger().info("Recorded Checkpoint {}.", bookmark.mName);
+    }
+
+  } else {
+
+    if (mEnableCOGMeasurement) {
+      auto translation =
+          GetVistaSystem()
+              ->GetPlatformFor(GetVistaSystem()->GetDisplayManager()->GetDisplaySystem())
+              ->GetPlatformNode()
+              ->GetTranslation();
+      resultsLogger().info("{}: COG {} {} {}",
+          mPluginSettings->mStageSettings[mStageIdx].mBookmarkName.get(), -translation[0],
+          -translation[1], -translation[2]);
+    }
+
+    // check if current stage is normal checkpoint
+    if (mPluginSettings->mStageSettings[mStageIdx].mType.get() == Plugin::StageType::eCheckpoint) {
+      // check distance to CP
+      glm::dvec3 vecToObserver = mStages[mStageIdx % mStages.size()].mAnchor->getRelativePosition(
+          mTimeControl->pSimulationTime.get(), mSolarSystem->getObserver());
+      if (glm::length(vecToObserver) < 1.0) {
+        // go to next stage
+        resultsLogger().info("{}: Passed Checkpoint",
+            mPluginSettings->mStageSettings[mStageIdx].mBookmarkName.get());
+        advanceStage();
+      }
+    }
+  }
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Plugin::setupStage(std::size_t stageIdx) {
@@ -389,44 +417,23 @@ void Plugin::setupStage(std::size_t stageIdx) {
   }
 }
 
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Plugin::unload() {
-  VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
-  for (Stage& stage : mStages) {
-    // skip unload if Stage is empty
-    if (stage.mAnchor == nullptr) {
-      break;
-    }
-    // unregister callbacks
-    stage.mGuiItem->unregisterCallback("setFMS");
-    stage.mGuiItem->unregisterCallback("confirmFMS");
-    stage.mGuiItem->unregisterCallback("loadScenario");
-    // disconnect from scene graph
-    pSG->GetRoot()->DisconnectChild(stage.mAnchor.get());
-    stage.mAnchor->DisconnectChild(stage.mTransform.get());
-    stage.mTransform->DisconnectChild(stage.mGuiNode.get());
-    // unregister anchor
-    mSolarSystem->unregisterAnchor(stage.mAnchor);
-    // unregister selectable
-    mInputManager->unregisterSelectable(stage.mGuiNode.get());
+void Plugin::advanceStage() {
 
-    stage = {};
+  // Advance the current stage index.
+  mStageIdx = std::min(mStageIdx + 1, mPluginSettings->mStageSettings.size() - 1);
+
+  //logger().info("Reached stage {}", mStageIdx);
+
+  // Setup the stage which becomes visible next.
+  std::size_t newlyVisibleIdx = mStageIdx + mStages.size() - 1;
+  if (newlyVisibleIdx < mPluginSettings->mStageSettings.size()) {
+    setupStage(newlyVisibleIdx);
   }
-}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////
-
-std::optional<cs::core::Settings::Bookmark> Plugin::getBookmarkByName(std::string name) {
-  cs::core::Settings::Bookmark bookmark;
-  for (auto it = mGuiManager->getBookmarks().begin(); it != mGuiManager->getBookmarks().end();
-       ++it) {
-    if (it->second.mName == name) {
-      return it->second;
-    }
-  }
-  logger().error("No bookmark with the name \"" + name + "\" could be found!");
-  return std::nullopt;
+  updateStages();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -454,20 +461,18 @@ void Plugin::updateStages() {
   }
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Plugin::advanceStage() {
-
-  // Advance the current stage index.
-  mStageIdx = std::min(mStageIdx + 1, mPluginSettings->mStageSettings.size() - 1);
-
-  // Setup the stage which becomes visible next.
-  std::size_t newlyVisibleIdx = mStageIdx + mStages.size() - 1;
-  if (newlyVisibleIdx < mPluginSettings->mStageSettings.size()) {
-    setupStage(newlyVisibleIdx);
+std::optional<cs::core::Settings::Bookmark> Plugin::getBookmarkByName(std::string name) {
+  cs::core::Settings::Bookmark bookmark;
+  for (auto it = mGuiManager->getBookmarks().begin(); it != mGuiManager->getBookmarks().end();
+       ++it) {
+    if (it->second.mName == name) {
+      return it->second;
+    }
   }
-
-  updateStages();
+  logger().error("No bookmark with the name \"" + name + "\" could be found!");
+  return std::nullopt;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
