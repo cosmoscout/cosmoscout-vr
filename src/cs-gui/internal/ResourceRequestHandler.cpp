@@ -68,7 +68,7 @@ CefRefPtr<CefResourceHandler> ResourceRequestHandler::GetResourceHandler(
     } else if (ext == ".woff" || ext == ".woff2") {
       mime = "application/x-font-woff";
     } else if (ext != ".html") {
-      logger().warn("Opening file with unknown extension '{}'!", ext);
+      logger().debug("Opening file with unknown extension '{}'!", ext);
     }
 
     return new CefStreamResourceHandler(mime, stream);
