@@ -18,6 +18,15 @@
   <script type="text/javascript" src="js/apis/gui.js"></script>
 
   <script type="text/javascript">
+    var sounds = [];
+    sounds[0] = new Audio('../gui/audio/blub.flac');
+    sounds[1] = new Audio('../gui/audio/click.wav');
+    sounds[2] = new Audio('../gui/audio/pling.mp3');
+
+    function playSound(which) {
+      sounds[which].play();
+    }
+
     // set/reset HTML to display standard checkpoints
     function setCP() {
       document.getElementById("cp").className = "";
@@ -34,6 +43,7 @@
     // set HTML to display COG measurement checkpoint
     function setCOG() {
       setCP()
+      document.getElementById("start-cog-measurement-button").value = "Start";
       document.getElementById("cp").className = "cog";
       document.getElementById("cog").hidden = false;
     }
@@ -51,6 +61,8 @@
     }
 
     function startCOGMeasurement() {
+      playSound(1);
+
       let countDown = 5;
       document.getElementById("start-cog-measurement-button").value = "Start in " + countDown + "s ...";
       document.getElementById("start-cog-measurement-button").disabled = true;
@@ -62,6 +74,7 @@
         if (countDown == 0) {
           window.clearInterval(id);
           CosmoScout.callbacks.setEnableCOGMeasurement(true);
+          playSound(2);
           stopCOGMeasurement();
         }
 
@@ -80,10 +93,16 @@
         if (countDown == 0) {
           window.clearInterval(id);
           CosmoScout.callbacks.setEnableCOGMeasurement(false);
+          playSound(0);
           document.getElementById("start-cog-measurement-button").disabled = false;
         }
 
       }, 1000);
+    }
+
+    function confirmFMS() {
+      playSound(1);
+      window.callNative('confirmFMS');
     }
 
     // init cosmoscout api to init sliders
@@ -245,11 +264,11 @@
     <div id="fms">
       <P>How intense are your cyber-sickness symptoms?</P>
       <div data-callback="setFMS"></div>
-      <input class="btn" type="button" value="Confirm" onclick="window.callNative('confirmFMS')">
+      <input class="btn" type="button" value="Confirm" onclick="confirmFMS()">
     </div>
     <div id="cog">
       <img src="img/stance.png" alt="">
-      <P>Click "Start" and then assume the above stance.</P>
+      <P>Click "Start", look straight ahead, and assume the above stance.</P>
       <input id="start-cog-measurement-button" class="btn" type="button" value="Start" onclick="startCOGMeasurement()">
     </div>
   </div>
