@@ -42,7 +42,8 @@ spdlog::logger& resultsLogger() {
 
   static auto logger = std::make_unique<spdlog::logger>("results-logger", sink);
   logger->set_pattern("%^[%d.%m.%Y %H:%M:%S.%e]%$ %v"); // NOLINT(clang-analyzer-cplusplus.Move)
-  logger->set_level(spdlog::level::info);
+  logger->set_level(spdlog::level::trace);
+  logger->flush_on(spdlog::level::info);
   return *logger;
 }
 
