@@ -38,7 +38,7 @@
 
       <!-- observer output -->
         <node name="observer" type="ObserverNavigationNode">
-            <param name="max_linear_speed" value="10, 10, 20" />
+            <param name="max_linear_speed" value="15, 15, 30" />
             <param name="max_angular_speed" value="1" />
             <param name="angular_deceleration" value="0" />
             <param name="linear_deceleration" value="0" />
