@@ -40,13 +40,10 @@ class Plugin : public cs::core::PluginBase {
     struct Scenario {
 
       /// The name of the scenario
-      cs::utils::DefaultProperty<std::string> mName{"None"};
+      std::string mName;
 
       /// The path to the scenario config
-      cs::utils::DefaultProperty<std::string> mPath{"None"};
-
-      /// Operator to compare two Scenarios
-      bool operator==(Scenario const& other) const;
+      std::string mPath;
     };
 
     /// List of configs containing related scenarios.
@@ -56,18 +53,13 @@ class Plugin : public cs::core::PluginBase {
     struct StageSetting {
 
       /// The type of the stage
-      cs::utils::DefaultProperty<StageType> mType{StageType::eCheckpoint};
+      StageType mType{StageType::eCheckpoint};
 
       /// The related bookmark for the position & orientation
-      cs::utils::DefaultProperty<std::string> mBookmarkName{"None"};
+      std::string mBookmarkName;
 
       /// The scaling factor for the stage mark
-      cs::utils::DefaultProperty<float> mScaling{1};
-
-      /// Operator to compare two Stages
-      bool operator==(StageSetting const& other) const;
-      /// Operator to compare two Stages
-      bool operator!=(StageSetting const& other) const;
+      float mScaling;
     };
 
     /// List of stages making up the scenario
@@ -75,11 +67,6 @@ class Plugin : public cs::core::PluginBase {
 
     /// The checkpoint recording interval in seconds.
     cs::utils::DefaultProperty<uint32_t> pRecordingInterval{5};
-
-    /// Operator to compare Settings
-    bool operator!=(Settings const& other) const;
-    /// Operator to compare Settings
-    bool operator==(Settings const& other) const;
   };
 
   void init() override;
@@ -96,16 +83,16 @@ class Plugin : public cs::core::PluginBase {
 
   std::shared_ptr<Settings> mPluginSettings = std::make_shared<Settings>();
 
-  struct Stage {
+  struct StageView {
     std::shared_ptr<cs::scene::CelestialAnchorNode> mAnchor;
     std::unique_ptr<cs::gui::WorldSpaceGuiArea>     mGuiArea;
-    std::unique_ptr<VistaTransformNode>             mTransform;
+    std::unique_ptr<VistaTransformNode>             mTransformNode;
     std::unique_ptr<VistaOpenGLNode>                mGuiNode;
     std::unique_ptr<cs::gui::GuiItem>               mGuiItem;
   };
 
-  std::array<Stage, 3>                  mStages;
-  std::size_t                           mStageIdx             = 0;
+  std::array<StageView, 3>                  mStageViews;
+  std::size_t                           mCurrentStageIdx             = 0;
   bool                                  mEnableRecording      = false;
   bool                                  mEnableCOGMeasurement = false;
   std::chrono::steady_clock::time_point mLastRecordTime;
