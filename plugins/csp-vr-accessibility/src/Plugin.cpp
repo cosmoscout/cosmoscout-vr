@@ -147,12 +147,10 @@ void Plugin::init() {
   // register callback for grid color picker
   mGuiManager->getGui()->registerCallback("floorGrid.setColor",
       "Value to adjust color of the grid.", std::function([this](std::string value) {
-        logger().trace("{}: {}", __LINE__, value);
         mPluginSettings->mGridSettings.mColor = static_cast<std::string>(value);
       }));
   mPluginSettings->mGridSettings.mColor.connectAndTouch([this](std::string value) {
     mGuiManager->getGui()->callJavascript("CosmoScout.floorGrid.setColorValue", value);
-    logger().trace("{}: {}", __LINE__, value);
   });
 
   // register callback for fov vignette enable checkbox
@@ -302,7 +300,6 @@ void Plugin::update() {
         "CosmoScout.fovVignette.setColorValue", mPluginSettings->mVignetteSettings.mColor.get());
     // clear flag
     resetColorPicker = false;
-    logger().trace("{} {} {}", __LINE__, mPluginSettings->mGridSettings.mColor.get(), mPluginSettings->mVignetteSettings.mColor.get());
   }
 
   mGrid->update();
