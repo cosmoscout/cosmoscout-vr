@@ -26,7 +26,7 @@
         const color                  = CP.HEX([r, g, b, 1]);
         this.picker.style.background = color;
         this.picker.value            = color;
-        
+
         CosmoScout.callbacks.floorGrid.setColor(color);
       });
       this.picker.oninput = (e) => {
