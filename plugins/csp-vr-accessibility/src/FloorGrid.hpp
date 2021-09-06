@@ -40,7 +40,7 @@ class FloorGrid : public IVistaOpenGLDraw {
   FloorGrid& operator=(FloorGrid const& other) = delete;
   FloorGrid& operator=(FloorGrid&& other) = delete;
 
-  ~FloorGrid() override = default;
+  ~FloorGrid();
 
   /// Configures the internal renderer according to the given values.
   void configure(Plugin::Settings::Grid& gridSettings);

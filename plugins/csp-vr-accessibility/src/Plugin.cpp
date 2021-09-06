@@ -259,6 +259,26 @@ void Plugin::init() {
 void Plugin::deInit() {
   logger().info("Unloading plugin...");
 
+  // remove settings tab
+  mGuiManager->removeSettingsSection("VR Accessibility");
+  // remove callbacks
+  mGuiManager->getGui()->unregisterCallback("floorGrid.setEnabled");
+  mGuiManager->getGui()->unregisterCallback("floorGrid.setSize");
+  mGuiManager->getGui()->unregisterCallback("floorGrid.setOffset");
+  mGuiManager->getGui()->unregisterCallback("floorGrid.setAlpha");
+  mGuiManager->getGui()->unregisterCallback("floorGrid.setColor");
+  mGuiManager->getGui()->unregisterCallback("fovVignette.setEnabled");
+  mGuiManager->getGui()->unregisterCallback("fovVignette.setDebug");
+  mGuiManager->getGui()->unregisterCallback("fovVignette.setEnableDynamicRadius");
+  mGuiManager->getGui()->unregisterCallback("fovVignette.setEnableVerticalOnly");
+  mGuiManager->getGui()->unregisterCallback("fovVignette.setInnerRadius");
+  mGuiManager->getGui()->unregisterCallback("fovVignette.setOuterRadius");
+  mGuiManager->getGui()->unregisterCallback("fovVignette.setColor");
+  mGuiManager->getGui()->unregisterCallback("fovVignette.setLowerThreshold");
+  mGuiManager->getGui()->unregisterCallback("fovVignette.setUpperThreshold");
+  mGuiManager->getGui()->unregisterCallback("fovVignette.setDuration");
+  mGuiManager->getGui()->unregisterCallback("fovVignette.setDeadzone");
+
   mAllSettings->onLoad().disconnect(mOnLoadConnection);
   mAllSettings->onSave().disconnect(mOnSaveConnection);
 
@@ -294,8 +314,6 @@ void Plugin::update() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Plugin::onLoad() {
-  // cs::core::GraphicsEngine::enableGLDebug();
-
   // Read settings from JSON.
   from_json(mAllSettings->mPlugins.at("csp-vr-accessibility"), *mPluginSettings);
 
@@ -320,7 +338,6 @@ glm::vec4 Plugin::GetColorFromHexString(std::string color) {
   glm::vec4 vector{static_cast<float>(std::stoul(red, nullptr, 16)) / 255,
       static_cast<float>(std::stoul(green, nullptr, 16)) / 255,
       static_cast<float>(std::stoul(blue, nullptr, 16)) / 255, 1.0F};
-
   return vector;
 }
 

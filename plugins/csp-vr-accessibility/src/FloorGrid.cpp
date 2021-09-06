@@ -114,6 +114,11 @@ FloorGrid::FloorGrid(
   mUniforms.alpha            = mShader.GetUniformLocation("uAlpha");
   mUniforms.color            = mShader.GetUniformLocation("uCustomColor");
 
+  // Load Texture
+  mTexture = cs::graphics::TextureLoader::loadFromFile(gridSettings.mTexture.get());
+  mTexture->SetWrapS(GL_REPEAT);
+  mTexture->SetWrapR(GL_REPEAT);
+
   // Add to scenegraph
   VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
 
@@ -126,6 +131,17 @@ FloorGrid::FloorGrid(
 
   VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
       mGLNode.get(), static_cast<int>(cs::utils::DrawOrder::eGui) - 1);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+FloorGrid::~FloorGrid() {
+  // remove Nodes from GUI
+  auto* platform = GetVistaSystem()
+                       ->GetPlatformFor(GetVistaSystem()->GetDisplayManager()->GetDisplaySystem())
+                       ->GetPlatformNode();
+  platform->DisconnectChild(mOffsetNode.get());
+  mOffsetNode->DisconnectChild(mGLNode.get());
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
