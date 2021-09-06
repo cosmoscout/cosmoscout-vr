@@ -29,7 +29,6 @@
         console.log("ondrag " + color)
         CosmoScout.callbacks.floorGrid.setColor(color);
       });
-      /*
       this.picker.oninput = (e) => {
         const color = CP.HEX(e.target.value);
         this.picker.picker.set(color[0], color[1], color[2], 1);
@@ -38,7 +37,6 @@
         console.log("oninput " + e.target.value)
         CosmoScout.callbacks.floorGrid.setColor(e.target.value);
       };
-      */
     }
 
     setColorValue(color) {
