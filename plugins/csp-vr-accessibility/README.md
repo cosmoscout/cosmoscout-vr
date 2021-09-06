@@ -42,3 +42,34 @@ This plugin can be enabled with the following configuration in your `settings.js
 ```
 
 Most of the configuration (all options, except for Grid's `falloff` and `texture`) is also available at runtime in the "VR Accessibility" tab in the settings menu.
+
+### Example Configuration
+
+Here is an example configuration with both features enabled and some default values:
+
+```javascript
+"csp-vr-accessibility": {
+      "grid": {
+        "enabled": true,
+        "size": 1.0,
+        "offset": -1.80,
+        "falloff": 32.0,
+        "texture": "../share/resources/textures/gridCrossLarge.png",
+        "alpha": 1.0,
+        "color": "#ffffff"
+      },
+      "vignette": {
+        "enabled": true,
+        "debug": false,
+        "innerRadius": 0.5,
+        "outerRadius": 1.0,
+        "color": "#ffffff",
+        "fadeDuration": 1.0,
+        "fadeDeadzone": 0.5,
+        "lowerVelocityThreshold": 0.2,
+        "upperVelocityThreshold": 10.0,
+        "useDynamicRadius": true,
+        "useVerticalOnly": false
+      }
+    },
+```
