@@ -57,7 +57,6 @@ FovVignette::FovVignette(std::shared_ptr<cs::core::SolarSystem> solarSystem,
   mShaderDynRad.InitFragmentShaderFromString(FRAG_SHADER_DYNRAD);
   mShaderDynRad.Link();
   mUniforms.dynamic.aspect       = mShaderDynRad.GetUniformLocation("uAspect");
-  mUniforms.dynamic.normVelocity = mShaderDynRad.GetUniformLocation("uNormVelocity");
   mUniforms.dynamic.color        = mShaderDynRad.GetUniformLocation("uCustomColor");
   mUniforms.dynamic.radii        = mShaderDynRad.GetUniformLocation("uRadii");
   mUniforms.dynamic.debug        = mShaderDynRad.GetUniformLocation("uDebug");
@@ -75,8 +74,6 @@ FovVignette::FovVignette(std::shared_ptr<cs::core::SolarSystem> solarSystem,
   mShaderDynRadVertOnly.InitFragmentShaderFromString(FRAG_SHADER_DYNRAD_VERTONLY);
   mShaderDynRadVertOnly.Link();
   mUniforms.dynamicVertical.aspect      = mShaderDynRadVertOnly.GetUniformLocation("uAspect");
-  mUniforms.dynamicVertical.normVelocity =
-      mShaderDynRadVertOnly.GetUniformLocation("uNormVelocity");
   mUniforms.dynamicVertical.color       = mShaderDynRadVertOnly.GetUniformLocation("uCustomColor");
   mUniforms.dynamicVertical.radii       = mShaderDynRadVertOnly.GetUniformLocation("uRadii");
   mUniforms.dynamicVertical.debug       = mShaderDynRadVertOnly.GetUniformLocation("uDebug");
@@ -139,7 +136,6 @@ bool FovVignette::Do() {
 
     // set uniforms for dynamical vignette
     shader.SetUniform(uniformLocs.aspect, aspect);
-    shader.SetUniform(uniformLocs.normVelocity, mNormalizedVelocity);
     glUniform4fv(uniformLocs.color, 1,
         glm::value_ptr(Plugin::GetColorFromHexString(mVignetteSettings.mColor.get())));
     
@@ -194,7 +190,7 @@ bool FovVignette::GetBoundingBox(VistaBoundingBox& bb) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 float FovVignette::getNewRadius(
-    float innerOuterRadius, float normVelocity, float lastRadius, double dT) {
+    float innerOuterRadius, float normVelocity, float lastRadius, float dT) {
 
   // targetRadius based on interpolation between maxRadius and innerOuterRadius
   float targetRadius = ((1 - normVelocity) * std::sqrt(2.0f)) + (normVelocity * innerOuterRadius);
@@ -210,19 +206,17 @@ void FovVignette::updateDynamicRadiusVignette() {
   // get simulation variables
   float velocity = mSolarSystem->pCurrentObserverSpeed.get() /
                    static_cast<float>(mSolarSystem->getObserver().getAnchorScale());
-  auto now = std::chrono::high_resolution_clock::now();
 
-  mNormalizedVelocity = glm::clamp((velocity - mVignetteSettings.mVelocityThresholds.get()[0]) /
+  float normalizedVelocity = glm::clamp((velocity - mVignetteSettings.mVelocityThresholds.get()[0]) /
                         (mVignetteSettings.mVelocityThresholds.get()[1] -
                             mVignetteSettings.mVelocityThresholds.get()[0]), 0.0F, 1.0F);
-  auto deltaTime = static_cast<double>(
-      std::chrono::duration_cast<std::chrono::nanoseconds>(now - mLastTime).count());
-  mLastTime = now;
+
+  auto  frameTime = static_cast<float>(GetVistaSystem()->GetFrameLoop()->GetAverageLoopTime());
 
   mCurrentRadii[0] = getNewRadius(
-      mVignetteSettings.mRadii.get()[0], mNormalizedVelocity, mLastRadii[0], deltaTime);
+      mVignetteSettings.mRadii.get()[0], normalizedVelocity, mLastRadii[0], frameTime);
   mCurrentRadii[1] = getNewRadius(
-      mVignetteSettings.mRadii.get()[1], mNormalizedVelocity, mLastRadii[1], deltaTime);
+      mVignetteSettings.mRadii.get()[1], normalizedVelocity, mLastRadii[1], frameTime);
 
   // update variables
   mLastRadii = mCurrentRadii;

@@ -55,7 +55,7 @@ class FovVignette : public IVistaOpenGLDraw {
   bool GetBoundingBox(VistaBoundingBox& bb) override;
 
  private:
-  float getNewRadius(float innerOuterRadius, float normVelocity, float lastRadius, double dT);
+  float getNewRadius(float innerOuterRadius, float normVelocity, float lastRadius, float dT);
   double getNow();
 
   std::shared_ptr<cs::core::Settings>    mSettings;
@@ -66,11 +66,8 @@ class FovVignette : public IVistaOpenGLDraw {
   cs::utils::AnimatedValue<float> mFadeAnimation;
   double                          mLastChange = std::numeric_limits<double>::max();
   bool                            mIsMoving   = false;
-
-  glm::vec2                                                       mCurrentRadii = glm::vec2(1.F);
-  glm::vec2                                                       mLastRadii = glm::vec2(1.4142F);
-  std::chrono::time_point<std::chrono::high_resolution_clock> mLastTime;
-  float                                                       mNormalizedVelocity;
+  glm::vec2 mCurrentRadii = glm::vec2(1.4142F);
+  glm::vec2 mLastRadii = glm::vec2(1.4142F);
 
   Plugin::Settings::Vignette& mVignetteSettings;
   VistaGLSLShader             mShaderFade;
@@ -83,7 +80,6 @@ class FovVignette : public IVistaOpenGLDraw {
   struct {
     struct {
       uint32_t aspect       = 0;
-      uint32_t normVelocity = 0;
       uint32_t color        = 0;
       uint32_t radii        = 0;
       uint32_t debug        = 0;

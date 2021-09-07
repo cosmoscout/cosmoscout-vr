@@ -69,7 +69,6 @@ const char* FovVignette::FRAG_SHADER_DYNRAD = R"(
 #version 330
 
 uniform float uAspect;
-uniform float uNormVelocity;
 uniform vec4  uCustomColor;
 uniform vec2  uRadii;
 uniform bool  uDebug;
@@ -82,8 +81,6 @@ in vec3 vPosition;
 layout(location = 0) out vec4 oColor;
 
 void main() {
-  if (uNormVelocity <= 0 && !uDebug ) { discard; }
-
   float dist = sqrt(vPosition.x * vPosition.x + uAspect * uAspect * vPosition.y * vPosition.y);
   if (dist < uRadii[0] ) { discard; }
 
@@ -139,10 +136,9 @@ void main() {
 const char* FovVignette::FRAG_SHADER_DYNRAD_VERTONLY = R"(
 #version 330
 
-uniform float uNormVelocity;
-uniform vec4  uCustomColor;
-uniform vec2  uRadii;
-uniform bool  uDebug;
+uniform vec4 uCustomColor;
+uniform vec2 uRadii;
+uniform bool uDebug;
 
 // inputs
 in vec2 vTexCoords;
@@ -152,8 +148,6 @@ in vec3 vPosition;
 layout(location = 0) out vec4 oColor;
 
 void main() {
-  if (uNormVelocity <= 0 && !uDebug ) { discard; }
-
   float dist = 0;
   if (vPosition.y > 0) {
     dist = vPosition.y;
