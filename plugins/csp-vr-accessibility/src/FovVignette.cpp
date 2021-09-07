@@ -166,9 +166,7 @@ bool FovVignette::Do() {
 
     // set uniforms for static vignette
     shader.SetUniform(uniformLocs.aspect, aspect);
-    double currentTime =
-        cs::utils::convert::time::toSpice(boost::posix_time::microsec_clock::universal_time());
-    shader.SetUniform(uniformLocs.fade, mFadeAnimation.get(currentTime));
+    shader.SetUniform(uniformLocs.fade, mFadeAnimation.get(getNow()));
     glUniform4fv(uniformLocs.color, 1,
         glm::value_ptr(Plugin::GetColorFromHexString(mVignetteSettings.mColor.get())));
     shader.SetUniform(uniformLocs.innerRadius, mVignetteSettings.mInnerRadius.get());
@@ -247,8 +245,8 @@ void FovVignette::updateFadeAnimatedVignette() {
   // get simulation variables
   float velocity = mSolarSystem->pCurrentObserverSpeed.get() /
                    static_cast<float>(mSolarSystem->getObserver().getAnchorScale());
-  double currentTime =
-      cs::utils::convert::time::toSpice(boost::posix_time::microsec_clock::universal_time());
+
+  double currentTime = getNow();
 
   // check for movement changes
   if (mIsMoving && velocity < mVignetteSettings.mLowerVelocityThreshold.get()) {
@@ -276,5 +274,15 @@ void FovVignette::updateFadeAnimatedVignette() {
      mLastChange = std::numeric_limits<double>::max();
   }
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+double FovVignette::getNow() {
+  boost::posix_time::ptime const EPOCH(boost::gregorian::date(1970,1,1));
+  auto delta = boost::posix_time::microsec_clock::universal_time() - EPOCH;
+  return delta.total_microseconds() / 1000000.0;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 } // namespace csp::vraccessibility

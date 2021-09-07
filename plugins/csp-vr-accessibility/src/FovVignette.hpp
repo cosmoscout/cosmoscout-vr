@@ -55,6 +55,9 @@ class FovVignette : public IVistaOpenGLDraw {
   bool GetBoundingBox(VistaBoundingBox& bb) override;
 
  private:
+  float getNewRadius(float innerOuterRadius, float normVelocity, float lastRadius, double dT);
+  double getNow();
+
   std::shared_ptr<cs::core::Settings>    mSettings;
   std::shared_ptr<cs::core::SolarSystem> mSolarSystem;
 
@@ -70,8 +73,6 @@ class FovVignette : public IVistaOpenGLDraw {
   float                                                       mLastOuterRadius = 1.4142F;
   std::chrono::time_point<std::chrono::high_resolution_clock> mLastTime;
   float                                                       mNormalizedVelocity;
-
-  float getNewRadius(float innerOuterRadius, float normVelocity, float lastRadius, double dT);
 
   Plugin::Settings::Vignette& mVignetteSettings;
   VistaGLSLShader             mShaderFade;
