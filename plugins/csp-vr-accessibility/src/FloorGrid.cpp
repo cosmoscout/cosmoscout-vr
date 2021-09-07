@@ -126,7 +126,7 @@ FloorGrid::FloorGrid(
   mGLNode.reset(pSG->NewOpenGLNode(mOffsetNode.get(), this));
 
   VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
-      mGLNode.get(), static_cast<int>(cs::utils::DrawOrder::eGui) - 1);
+      mGLNode.get(), static_cast<int>(cs::utils::DrawOrder::eTransparentItems) - 1);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
