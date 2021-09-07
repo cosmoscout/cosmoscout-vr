@@ -37,8 +37,7 @@ const char* FovVignette::FRAG_SHADER_FADE = R"(
 uniform float uAspect;
 uniform float uFade;
 uniform vec4  uCustomColor;
-uniform float uInnerRadius;
-uniform float uOuterRadius;
+uniform vec2  uRadii;
 uniform bool  uDebug;
 
 // inputs
@@ -52,9 +51,9 @@ void main() {
   if (uFade == 0 && !uDebug ) { discard; }
 
   float dist = sqrt(vPosition.x * vPosition.x + uAspect * uAspect * vPosition.y * vPosition.y);
-  if (dist < uInnerRadius ) { discard; }
+  if (dist < uRadii[0] ) { discard; }
 
-  float alpha = clamp((dist - uInnerRadius) / (uOuterRadius - uInnerRadius), 0, 1);
+  float alpha = clamp((dist - uRadii[0]) / (uRadii[1] - uRadii[0]), 0, 1);
 
   oColor = uCustomColor;
   oColor.a *= alpha;
@@ -72,8 +71,7 @@ const char* FovVignette::FRAG_SHADER_DYNRAD = R"(
 uniform float uAspect;
 uniform float uNormVelocity;
 uniform vec4  uCustomColor;
-uniform float uInnerRadius;
-uniform float uOuterRadius;
+uniform vec2  uRadii;
 uniform bool  uDebug;
 
 // inputs
@@ -87,9 +85,9 @@ void main() {
   if (uNormVelocity <= 0 && !uDebug ) { discard; }
 
   float dist = sqrt(vPosition.x * vPosition.x + uAspect * uAspect * vPosition.y * vPosition.y);
-  if (dist < uInnerRadius ) { discard; }
+  if (dist < uRadii[0] ) { discard; }
 
-  float alpha = clamp((dist - uInnerRadius) / (uOuterRadius - uInnerRadius), 0, 1);
+  float alpha = clamp((dist - uRadii[0]) / (uRadii[1] - uRadii[0]), 0, 1);
 
   oColor = uCustomColor;
   oColor.a *= alpha;
@@ -104,8 +102,7 @@ const char* FovVignette::FRAG_SHADER_FADE_VERTONLY = R"(
 
 uniform float uFade;
 uniform vec4  uCustomColor;
-uniform float uInnerRadius;
-uniform float uOuterRadius;
+uniform vec2  uRadii;
 uniform bool  uDebug;
 
 // inputs
@@ -125,9 +122,9 @@ void main() {
     dist = vPosition.y * -0.7;
   }
 
-  if (dist < uInnerRadius ) { discard; }
+  if (dist < uRadii[0] ) { discard; }
   
-  float alpha = clamp((dist - uInnerRadius) / (uOuterRadius - uInnerRadius), 0, 1);
+  float alpha = clamp((dist - uRadii[0]) / (uRadii[1] - uRadii[0]), 0, 1);
 
   oColor = uCustomColor;
   oColor.a *= alpha;
@@ -144,8 +141,7 @@ const char* FovVignette::FRAG_SHADER_DYNRAD_VERTONLY = R"(
 
 uniform float uNormVelocity;
 uniform vec4  uCustomColor;
-uniform float uInnerRadius;
-uniform float uOuterRadius;
+uniform vec2  uRadii;
 uniform bool  uDebug;
 
 // inputs
@@ -165,9 +161,9 @@ void main() {
     dist = vPosition.y * -0.7;
   }
 
-  if (dist < uInnerRadius ) { discard; }
+  if (dist < uRadii[0] ) { discard; }
   
-  float alpha = clamp((dist - uInnerRadius) / (uOuterRadius - uInnerRadius), 0, 1);
+  float alpha = clamp((dist - uRadii[0]) / (uRadii[1] - uRadii[0]), 0, 1);
 
   oColor = uCustomColor;
   oColor.a *= alpha;

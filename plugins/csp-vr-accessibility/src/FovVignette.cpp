@@ -50,8 +50,7 @@ FovVignette::FovVignette(std::shared_ptr<cs::core::SolarSystem> solarSystem,
   mUniforms.fade.aspect      = mShaderFade.GetUniformLocation("uAspect");
   mUniforms.fade.fade        = mShaderFade.GetUniformLocation("uFade");
   mUniforms.fade.color       = mShaderFade.GetUniformLocation("uCustomColor");
-  mUniforms.fade.innerRadius = mShaderFade.GetUniformLocation("uInnerRadius");
-  mUniforms.fade.outerRadius = mShaderFade.GetUniformLocation("uOuterRadius");
+  mUniforms.fade.radii       = mShaderFade.GetUniformLocation("uRadii");
   mUniforms.fade.debug       = mShaderFade.GetUniformLocation("uDebug");
 
   mShaderDynRad.InitVertexShaderFromString(VERT_SHADER);
@@ -60,8 +59,7 @@ FovVignette::FovVignette(std::shared_ptr<cs::core::SolarSystem> solarSystem,
   mUniforms.dynamic.aspect       = mShaderDynRad.GetUniformLocation("uAspect");
   mUniforms.dynamic.normVelocity = mShaderDynRad.GetUniformLocation("uNormVelocity");
   mUniforms.dynamic.color        = mShaderDynRad.GetUniformLocation("uCustomColor");
-  mUniforms.dynamic.innerRadius  = mShaderDynRad.GetUniformLocation("uInnerRadius");
-  mUniforms.dynamic.outerRadius  = mShaderDynRad.GetUniformLocation("uOuterRadius");
+  mUniforms.dynamic.radii        = mShaderDynRad.GetUniformLocation("uRadii");
   mUniforms.dynamic.debug        = mShaderDynRad.GetUniformLocation("uDebug");
 
   mShaderFadeVertOnly.InitVertexShaderFromString(VERT_SHADER);
@@ -70,8 +68,7 @@ FovVignette::FovVignette(std::shared_ptr<cs::core::SolarSystem> solarSystem,
   mUniforms.fadeVertical.aspect      = mShaderFadeVertOnly.GetUniformLocation("uAspect");
   mUniforms.fadeVertical.fade        = mShaderFadeVertOnly.GetUniformLocation("uFade");
   mUniforms.fadeVertical.color       = mShaderFadeVertOnly.GetUniformLocation("uCustomColor");
-  mUniforms.fadeVertical.innerRadius = mShaderFadeVertOnly.GetUniformLocation("uInnerRadius");
-  mUniforms.fadeVertical.outerRadius = mShaderFadeVertOnly.GetUniformLocation("uOuterRadius");
+  mUniforms.fadeVertical.radii       = mShaderFadeVertOnly.GetUniformLocation("uRadii");
   mUniforms.fadeVertical.debug       = mShaderFadeVertOnly.GetUniformLocation("uDebug");
 
   mShaderDynRadVertOnly.InitVertexShaderFromString(VERT_SHADER);
@@ -81,8 +78,7 @@ FovVignette::FovVignette(std::shared_ptr<cs::core::SolarSystem> solarSystem,
   mUniforms.dynamicVertical.normVelocity =
       mShaderDynRadVertOnly.GetUniformLocation("uNormVelocity");
   mUniforms.dynamicVertical.color       = mShaderDynRadVertOnly.GetUniformLocation("uCustomColor");
-  mUniforms.dynamicVertical.innerRadius = mShaderDynRadVertOnly.GetUniformLocation("uInnerRadius");
-  mUniforms.dynamicVertical.outerRadius = mShaderDynRadVertOnly.GetUniformLocation("uOuterRadius");
+  mUniforms.dynamicVertical.radii       = mShaderDynRadVertOnly.GetUniformLocation("uRadii");
   mUniforms.dynamicVertical.debug       = mShaderDynRadVertOnly.GetUniformLocation("uDebug");
 
   // add to scenegraph
@@ -146,14 +142,11 @@ bool FovVignette::Do() {
     shader.SetUniform(uniformLocs.normVelocity, mNormalizedVelocity);
     glUniform4fv(uniformLocs.color, 1,
         glm::value_ptr(Plugin::GetColorFromHexString(mVignetteSettings.mColor.get())));
-    shader.SetUniform(uniformLocs.innerRadius,
-        // override current radius if debug enabled
-        mVignetteSettings.mDebug.get() ? mVignetteSettings.mInnerRadius.get()
-                                       : mCurrentInnerRadius);
-    shader.SetUniform(uniformLocs.outerRadius,
-        // override current radius if debug enabled
-        mVignetteSettings.mDebug.get() ? mVignetteSettings.mOuterRadius.get()
-                                       : mCurrentOuterRadius);
+    
+        // override current radius  if debug enabled
+    auto radii =  mVignetteSettings.mDebug.get() ? mVignetteSettings.mRadii.get()
+                                       : mCurrentRadii;
+    shader.SetUniform(uniformLocs.radii, radii[0], radii[1]);
     shader.SetUniform(uniformLocs.debug, mVignetteSettings.mDebug.get());
   } else {
     // check if vertical only (or circular vignetting), select shader accordingly
@@ -169,8 +162,7 @@ bool FovVignette::Do() {
     shader.SetUniform(uniformLocs.fade, mFadeAnimation.get(getNow()));
     glUniform4fv(uniformLocs.color, 1,
         glm::value_ptr(Plugin::GetColorFromHexString(mVignetteSettings.mColor.get())));
-    shader.SetUniform(uniformLocs.innerRadius, mVignetteSettings.mInnerRadius.get());
-    shader.SetUniform(uniformLocs.outerRadius, mVignetteSettings.mOuterRadius.get());
+    shader.SetUniform(uniformLocs.radii, mVignetteSettings.mRadii.get()[0], mVignetteSettings.mRadii.get()[1]);
     shader.SetUniform(uniformLocs.debug, mVignetteSettings.mDebug.get());
   }
 
@@ -219,24 +211,20 @@ void FovVignette::updateDynamicRadiusVignette() {
                    static_cast<float>(mSolarSystem->getObserver().getAnchorScale());
   auto now = std::chrono::high_resolution_clock::now();
 
-  mNormalizedVelocity = (velocity - mVignetteSettings.mLowerVelocityThreshold.get()) /
+  mNormalizedVelocity = glm::clamp((velocity - mVignetteSettings.mLowerVelocityThreshold.get()) /
                         (mVignetteSettings.mUpperVelocityThreshold.get() -
-                            mVignetteSettings.mLowerVelocityThreshold.get());
+                            mVignetteSettings.mLowerVelocityThreshold.get()), 0.0F, 1.0F);
   auto deltaTime = static_cast<double>(
       std::chrono::duration_cast<std::chrono::nanoseconds>(now - mLastTime).count());
   mLastTime = now;
 
-  // clamp NormalizedVelocity to upper threshold
-  mNormalizedVelocity = (mNormalizedVelocity > 1.0F) ? 1.0F : mNormalizedVelocity;
-
-  mCurrentInnerRadius = getNewRadius(
-      mVignetteSettings.mInnerRadius.get(), mNormalizedVelocity, mLastInnerRadius, deltaTime);
-  mCurrentOuterRadius = getNewRadius(
-      mVignetteSettings.mOuterRadius.get(), mNormalizedVelocity, mLastOuterRadius, deltaTime);
+  mCurrentRadii[0] = getNewRadius(
+      mVignetteSettings.mRadii.get()[0], mNormalizedVelocity, mLastRadii[0], deltaTime);
+  mCurrentRadii[1] = getNewRadius(
+      mVignetteSettings.mRadii.get()[1], mNormalizedVelocity, mLastRadii[1], deltaTime);
 
   // update variables
-  mLastInnerRadius = mCurrentInnerRadius;
-  mLastOuterRadius = mCurrentOuterRadius;
+  mLastRadii = mCurrentRadii;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -26,8 +26,7 @@ This plugin can be enabled with the following configuration in your `settings.js
       "vignette": {
         "enabled": bool,                 // Toggle whether the FoV Vignette should be visible.
         "debug": bool,                   // Toggle whether the Vignette is always drawn with its minimum radius.
-        "innerRadius": float,            // The inner radius of the vignette where the inside is 100% transparent.
-        "outerRadius": float,            // The outer radius of the vignette after which the vignette is 100% opaque.
+        "radii": [float, float],         // The inner and outer radii of the vignette.
         "color": string,                 // The color of the vignette (as a hex-code string).
         "fadeDuration": float,           // The time it takes for the animation to fade in the vignette in seconds.
         "fadeDeadzone": float,           // The time of movement above the velocity threshold that is needed before the animation is played in seconds.
@@ -61,8 +60,7 @@ Here is an example configuration with both features enabled and some default val
       "vignette": {
         "enabled": true,
         "debug": false,
-        "innerRadius": 0.5,
-        "outerRadius": 1.0,
+        "radii": [0.5, 1.0],
         "color": "#000000",
         "fadeDuration": 1.0,
         "fadeDeadzone": 0.5,

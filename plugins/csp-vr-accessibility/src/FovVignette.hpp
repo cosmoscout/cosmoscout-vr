@@ -67,10 +67,8 @@ class FovVignette : public IVistaOpenGLDraw {
   double                          mLastChange = std::numeric_limits<double>::max();
   bool                            mIsMoving   = false;
 
-  float                                                       mCurrentInnerRadius;
-  float                                                       mCurrentOuterRadius;
-  float                                                       mLastInnerRadius = 1.4142F;
-  float                                                       mLastOuterRadius = 1.4142F;
+  glm::vec2                                                       mCurrentRadii = glm::vec2(1.F);
+  glm::vec2                                                       mLastRadii = glm::vec2(1.4142F);
   std::chrono::time_point<std::chrono::high_resolution_clock> mLastTime;
   float                                                       mNormalizedVelocity;
 
@@ -87,18 +85,16 @@ class FovVignette : public IVistaOpenGLDraw {
       uint32_t aspect       = 0;
       uint32_t normVelocity = 0;
       uint32_t color        = 0;
-      uint32_t innerRadius  = 0;
-      uint32_t outerRadius  = 0;
+      uint32_t radii        = 0;
       uint32_t debug        = 0;
     } dynamic, dynamicVertical;
 
     struct {
-      uint32_t aspect      = 0;
-      uint32_t fade        = 0;
-      uint32_t color       = 0;
-      uint32_t innerRadius = 0;
-      uint32_t outerRadius = 0;
-      uint32_t debug       = 0;
+      uint32_t aspect   = 0;
+      uint32_t fade     = 0;
+      uint32_t color    = 0;
+      uint32_t radii    = 0;
+      uint32_t debug    = 0;
     } fade, fadeVertical;
 
   } mUniforms;

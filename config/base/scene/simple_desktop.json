@@ -674,8 +674,7 @@
       "vignette": {
         "enabled": false,
         "debug": false,
-        "innerRadius": 0.5,
-        "outerRadius": 1.0,
+        "radii": [0.5, 1.0],
         "color": "#ffffff",
         "fadeDuration": 1.0,
         "fadeDeadzone": 0.5,
