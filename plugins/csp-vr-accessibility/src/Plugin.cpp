@@ -103,7 +103,7 @@ void Plugin::init() {
 
   // add settings to GUI
   mGuiManager->addSettingsSectionToSideBarFromHTML(
-      "VR Accessibility", "blur_circular", "../share/resources/gui/vr_accessibility_settings.html");
+      "VR Accessibility", "accessibility_new", "../share/resources/gui/vr_accessibility_settings.html");
   mGuiManager->addScriptToGuiFromJS("../share/resources/gui/js/csp-vr-accessibility.js");
 
   // register callback for grid enable grid checkbox
