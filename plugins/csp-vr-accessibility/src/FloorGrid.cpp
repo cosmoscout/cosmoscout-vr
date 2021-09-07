@@ -108,7 +108,6 @@ FloorGrid::FloorGrid(
   mUniforms.projectionMatrix = mShader.GetUniformLocation("uMatProjection");
   mUniforms.texture          = mShader.GetUniformLocation("uTexture");
   mUniforms.falloff          = mShader.GetUniformLocation("uFalloff");
-  mUniforms.offset           = mShader.GetUniformLocation("uOffset");
   mUniforms.size             = mShader.GetUniformLocation("uSize");
   mUniforms.farClip          = mShader.GetUniformLocation("uFarClip");
   mUniforms.alpha            = mShader.GetUniformLocation("uAlpha");
@@ -187,7 +186,6 @@ bool FloorGrid::Do() {
   glUniformMatrix4fv(mUniforms.projectionMatrix, 1, GL_FALSE, glMatP.data());
   mShader.SetUniform(mUniforms.texture, 0);
   mShader.SetUniform(mUniforms.falloff, mGridSettings.mFalloff.get());
-  mShader.SetUniform(mUniforms.offset, mGridSettings.mOffset.get());
   mShader.SetUniform(mUniforms.size, mGridSettings.mSize.get());
   mShader.SetUniform(mUniforms.farClip, cs::utils::getCurrentFarClipDistance());
   mShader.SetUniform(mUniforms.alpha, mGridSettings.mAlpha.get());
