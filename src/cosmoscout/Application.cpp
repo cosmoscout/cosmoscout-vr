@@ -836,7 +836,7 @@ void Application::connectSlots() {
   });
 
   // Update the simulation time speed shown in the user interface.
-  mTimeControl->pTimeSpeed.connectAndTouch([this](float val) {
+  mSettings->pTimeSpeed.connectAndTouch([this](float val) {
     mGuiManager->getGui()->executeJavascript(fmt::format("CosmoScout.state.timeSpeed = {};", val));
   });
 
@@ -1396,9 +1396,8 @@ void Application::registerGuiCallbacks() {
 
   // Adjusts the simulation time speed.
   mGuiManager->getGui()->registerCallback("time.setSpeed",
-      "Sets the multiplier for the simulation time speed.", std::function([this](double speed) {
-        mTimeControl->setTimeSpeed(static_cast<float>(speed));
-      }));
+      "Sets the multiplier for the simulation time speed.",
+      std::function([this](double speed) { mSettings->pTimeSpeed = static_cast<float>(speed); }));
 
   // navigation callbacks --------------------------------------------------------------------------
 
