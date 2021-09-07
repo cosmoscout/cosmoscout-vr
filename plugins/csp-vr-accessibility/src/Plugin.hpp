@@ -42,7 +42,7 @@ class Plugin : public cs::core::PluginBase {
       /// The opacity of the grid (default: 1, fully opaque, to 0, fully transparent).
       cs::utils::DefaultProperty<float> mAlpha{1.0F};
 
-      /// The color of the grid (default: white #FFFFFF).
+      /// The color of the grid.
       cs::utils::DefaultProperty<std::string> mColor{"#FFFFFF"};
     };
 
@@ -56,8 +56,8 @@ class Plugin : public cs::core::PluginBase {
       /// The inner and the outer radius of the FoV Vignette.
       cs::utils::DefaultProperty<glm::vec2> mRadii{glm::vec2(0.5F, 1.0F)};
 
-      /// The color of the FoV Vignette (default: white #FFFFFF).
-      cs::utils::DefaultProperty<std::string> mColor{"#FFFFFF"};
+      /// The color of the FoV Vignette.
+      cs::utils::DefaultProperty<std::string> mColor{"#000000"};
 
       /// The duration of the fade animation (in seconds).
       cs::utils::DefaultProperty<double> mFadeDuration{1.0};
@@ -66,13 +66,8 @@ class Plugin : public cs::core::PluginBase {
       /// seconds).
       cs::utils::DefaultProperty<double> mFadeDeadzone{0.5};
 
-      /// The threshold velocity (0 to ~10 = max. speed from movement controls) below which the
-      /// vignette is not triggered.
-      cs::utils::DefaultProperty<float> mLowerVelocityThreshold{0.2F};
-
-      /// The threshold velocity (0 to ~10 = max. speed from movement controls) above which the
-      /// vignette is set to the above defined radii.
-      cs::utils::DefaultProperty<float> mUpperVelocityThreshold{10.0F};
+      /// If the observer speed is within this range, the vignette will fade in or out.
+      cs::utils::DefaultProperty<glm::vec2> mVelocityThresholds{glm::vec2(0.2F, 10.0F)};
 
       /// The toggle to use dynamic radius adjustment instead of fading the vignette in above
       /// threshold.

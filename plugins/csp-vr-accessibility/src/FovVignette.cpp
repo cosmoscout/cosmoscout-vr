@@ -211,9 +211,9 @@ void FovVignette::updateDynamicRadiusVignette() {
                    static_cast<float>(mSolarSystem->getObserver().getAnchorScale());
   auto now = std::chrono::high_resolution_clock::now();
 
-  mNormalizedVelocity = glm::clamp((velocity - mVignetteSettings.mLowerVelocityThreshold.get()) /
-                        (mVignetteSettings.mUpperVelocityThreshold.get() -
-                            mVignetteSettings.mLowerVelocityThreshold.get()), 0.0F, 1.0F);
+  mNormalizedVelocity = glm::clamp((velocity - mVignetteSettings.mVelocityThresholds.get()[0]) /
+                        (mVignetteSettings.mVelocityThresholds.get()[1] -
+                            mVignetteSettings.mVelocityThresholds.get()[0]), 0.0F, 1.0F);
   auto deltaTime = static_cast<double>(
       std::chrono::duration_cast<std::chrono::nanoseconds>(now - mLastTime).count());
   mLastTime = now;
@@ -237,11 +237,11 @@ void FovVignette::updateFadeAnimatedVignette() {
   double currentTime = getNow();
 
   // check for movement changes
-  if (mIsMoving && velocity < mVignetteSettings.mLowerVelocityThreshold.get()) {
+  if (mIsMoving && velocity < mVignetteSettings.mVelocityThresholds.get()[0]) {
     // observer started moving
     mIsMoving = false;
     mLastChange = currentTime;
-  } else if (!mIsMoving && velocity > mVignetteSettings.mLowerVelocityThreshold.get()) {
+  } else if (!mIsMoving && velocity > mVignetteSettings.mVelocityThresholds.get()[0]) {
     // observer stopped moving
     mIsMoving = true;
     mLastChange = currentTime;

@@ -678,8 +678,7 @@
         "color": "#ffffff",
         "fadeDuration": 1.0,
         "fadeDeadzone": 0.5,
-        "lowerVelocityThreshold": 0.2,
-        "upperVelocityThreshold": 10.0,
+        "velocityThresholds": [0.2, 10.0],
         "useDynamicRadius": false,
         "useVerticalOnly": false
       }

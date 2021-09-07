@@ -63,8 +63,7 @@ void from_json(nlohmann::json const& j, Plugin::Settings::Vignette& o) {
   cs::core::Settings::deserialize(j, "color", o.mColor);
   cs::core::Settings::deserialize(j, "fadeDuration", o.mFadeDuration);
   cs::core::Settings::deserialize(j, "fadeDeadzone", o.mFadeDeadzone);
-  cs::core::Settings::deserialize(j, "lowerVelocityThreshold", o.mLowerVelocityThreshold);
-  cs::core::Settings::deserialize(j, "upperVelocityThreshold", o.mUpperVelocityThreshold);
+  cs::core::Settings::deserialize(j, "velocityThresholds", o.mVelocityThresholds);
   cs::core::Settings::deserialize(j, "useDynamicRadius", o.mUseDynamicRadius);
   cs::core::Settings::deserialize(j, "useVerticalOnly", o.mUseVerticalOnly);
 }
@@ -76,8 +75,7 @@ void to_json(nlohmann::json& j, Plugin::Settings::Vignette const& o) {
   cs::core::Settings::serialize(j, "color", o.mColor);
   cs::core::Settings::serialize(j, "fadeDuration", o.mFadeDuration);
   cs::core::Settings::serialize(j, "fadeDeadzone", o.mFadeDeadzone);
-  cs::core::Settings::serialize(j, "lowerVelocityThreshold", o.mLowerVelocityThreshold);
-  cs::core::Settings::serialize(j, "upperVelocityThreshold", o.mUpperVelocityThreshold);
+  cs::core::Settings::serialize(j, "velocityThresholds", o.mVelocityThresholds);
   cs::core::Settings::serialize(j, "useDynamicRadius", o.mUseDynamicRadius);
   cs::core::Settings::serialize(j, "useVerticalOnly", o.mUseVerticalOnly);
 }
@@ -201,24 +199,13 @@ void Plugin::init() {
   });
 
   // register callback for fov vignette lower velocity threshold
-  mGuiManager->getGui()->registerCallback("fovVignette.setLowerThreshold",
-      "Value to adjust the minimum velocity threshold when the vignette should be drawn (values "
-      "from 0 to 10% of max. velocity).",
-      std::function([this](double value) {
-        mPluginSettings->mVignetteSettings.mLowerVelocityThreshold = static_cast<float>(value);
+  mGuiManager->getGui()->registerCallback("fovVignette.setVelocityThresholds",
+      "Value to adjust the minimum and maximum velocity thresholds when the vignette should be drawn.",
+      std::function([this](double low, double high) {
+        mPluginSettings->mVignetteSettings.mVelocityThresholds = glm::vec2(low, high);
       }));
-  mPluginSettings->mVignetteSettings.mLowerVelocityThreshold.connectAndTouch(
-      [this](float value) { mGuiManager->setSliderValue("fovVignette.setLowerThreshold", value); });
-
-  // register callback for fov vignette upper velocity threshold
-  mGuiManager->getGui()->registerCallback("fovVignette.setUpperThreshold",
-      "Value to adjust the maximum velocity threshold when the vignette should be set to the "
-      "radius specified in the settings (values from 90 to 100% of max. velocity).",
-      std::function([this](double value) {
-        mPluginSettings->mVignetteSettings.mUpperVelocityThreshold = static_cast<float>(value);
-      }));
-  mPluginSettings->mVignetteSettings.mUpperVelocityThreshold.connectAndTouch(
-      [this](float value) { mGuiManager->setSliderValue("fovVignette.setUpperThreshold", value); });
+  mPluginSettings->mVignetteSettings.mVelocityThresholds.connectAndTouch(
+      [this](glm::vec2 const& value) { mGuiManager->setSliderValue("fovVignette.setVelocityThresholds", value); });
 
   // register callback for fov vignette fade duration slider
   mGuiManager->getGui()->registerCallback("fovVignette.setDuration",

@@ -30,8 +30,7 @@ This plugin can be enabled with the following configuration in your `settings.js
         "color": string,                 // The color of the vignette (as a hex-code string).
         "fadeDuration": float,           // The time it takes for the animation to fade in the vignette in seconds.
         "fadeDeadzone": float,           // The time of movement above the velocity threshold that is needed before the animation is played in seconds.
-        "lowerVelocityThreshold": float, // The lower threshold below which the vignette will not display (relative to Spice frame from 0..~10). 
-        "upperVelocityThreshold": float, // The upper threshold above which the vignette is always at ist minimum radius (relative to Spice frame from 0..~10).
+        "velocityThresholds": [float, float], // The lower and upper thresholds between which the vignette will fade-in or fade-out. 
         "useDynamicRadius": bool,        // Toggle whether to use the dynamic vignette radius, or the fade animation with fixed radii.
         "useVerticalOnly": bool          // Toggle whether to only draw the vignette horizontally and keep the sides unobstructed.
       }
@@ -64,8 +63,7 @@ Here is an example configuration with both features enabled and some default val
         "color": "#000000",
         "fadeDuration": 1.0,
         "fadeDeadzone": 0.5,
-        "lowerVelocityThreshold": 0.2,
-        "upperVelocityThreshold": 10.0,
+        "velocityThresholds": [0.2, 10.0],
         "useDynamicRadius": true,
         "useVerticalOnly": false
       }
