@@ -15,8 +15,8 @@
      * @inheritDoc
      */
     init() {
-      CosmoScout.gui.initSlider("floorGrid.setSize", -5, 5, 1, [0]);
-      CosmoScout.gui.initSlider("floorGrid.setOffset", -3, 0, 0.01, [-1.8]);
+      CosmoScout.gui.initSlider("floorGrid.setSize", 0.1, 2, 0.1, [0.5]);
+      CosmoScout.gui.initSlider("floorGrid.setExtent", 1, 20, 0.1, [10]);
       CosmoScout.gui.initSlider("floorGrid.setAlpha", 0, 1, 0.01, [1]);
       this.picker = document.querySelector('#floorGrid-setColor');
 
@@ -59,12 +59,10 @@
      * @inheritDoc
      */
     init() {
-      CosmoScout.gui.initSlider("fovVignette.setInnerRadius", 0, 1, 0.01, [0.5]);
-      CosmoScout.gui.initSlider("fovVignette.setOuterRadius", 0, 1.5, 0.01, [1.0]);
-      CosmoScout.gui.initSlider("fovVignette.setLowerThreshold", 0, 10, 0.1, [0.2]);
-      CosmoScout.gui.initSlider("fovVignette.setUpperThreshold", 0, 10, 0.1, [10]);
-      CosmoScout.gui.initSlider("fovVignette.setDuration", 0, 2, 0.2, [1.0]);
-      CosmoScout.gui.initSlider("fovVignette.setDeadzone", 0, 1, 0.1, [0.5]);
+      CosmoScout.gui.initSlider("fovVignette.setRadii", 0, 1.5, 0.01, [0.5, 1.0]);
+      CosmoScout.gui.initSlider("fovVignette.setVelocityThresholds", 0, 15, 0.1, [0.2, 10.0]);
+      CosmoScout.gui.initSlider("fovVignette.setDuration", 0.1, 2, 0.01, [1.0]);
+      CosmoScout.gui.initSlider("fovVignette.setDeadzone", 0, 1, 0.01, [0.5]);
       this.picker = document.querySelector('#fovVignette-setColor');
 
       this.picker.picker = new CP(this.picker);

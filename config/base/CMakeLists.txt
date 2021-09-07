@@ -6,6 +6,8 @@
 
 # install platform dependent files -----------------------------------------------------------------
 if (WIN32)
+  install(FILES "spice/simple-windows.txt"            DESTINATION "share/config/spice" RENAME "simple.txt")
+  install(FILES "scene/simple_vive.json"              DESTINATION "share/config")
   install(FILES "scripts/start.bat"                   DESTINATION "bin")
 
   if (COSMOSCOUT_UNIT_TESTS)

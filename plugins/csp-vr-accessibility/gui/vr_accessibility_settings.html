@@ -19,10 +19,10 @@
 
 <div class="row">
     <div class="col-5">
-        Offset
+        Extent
     </div>
     <div class="col-7">
-        <div data-callback="floorGrid.setOffset"></div>
+        <div data-callback="floorGrid.setExtent"></div>
     </div>
 </div>
 
@@ -65,65 +65,40 @@
 </div>
 
 <div class="row">
-    <div class="col-5">
-        <label class="checklabel">
-            <input type="checkbox" data-callback="fovVignette.setEnableDynamicRadius" />
-            <i class="material-icons"></i>
-            <span>Use Dynamic Radius Adjustment</span>
-        </label>
-    </div>
-    <div class="col-7">
+    <div class="offset-5 col-7">
         <label class="checklabel">
             <input type="checkbox" data-callback="fovVignette.setEnableVerticalOnly" />
             <i class="material-icons"></i>
-            <span>Use Vertical Vignetting Only</span>
+            <span>Vertical Only</span>
+        </label>
+    </div>
+</div>
+
+<div class="row">
+    <div class="offset-5 col-7">
+        <label class="checklabel">
+            <input type="checkbox" data-callback="fovVignette.setEnableDynamicRadius" />
+            <i class="material-icons"></i>
+            <span>Dynamic Radii</span>
         </label>
     </div>
 </div>
 
 <div class="row">
     <div class="col-5">
-        Inner Radius
+        Radii
     </div>
     <div class="col-7">
-        <div data-callback="fovVignette.setInnerRadius"></div>
+        <div data-callback="fovVignette.setRadii"></div>
     </div>
 </div>
 
 <div class="row">
     <div class="col-5">
-        Outer Radius
+        Velocity Thresholds
     </div>
     <div class="col-7">
-        <div data-callback="fovVignette.setOuterRadius"></div>
-    </div>
-</div>
-
-<div class="row">
-    <div class="col-5">
-        Color
-    </div>
-    <div class="col-7">
-        <input type="text" class="form-control color-input" id="fovVignette-setColor"
-               style="color: white;" value="">
-    </div>
-</div>
-
-<div class="row">
-    <div class="col-5">
-        Lower Velocity Threshold
-    </div>
-    <div class="col-7">
-        <div data-callback="fovVignette.setLowerThreshold"></div>
-    </div>
-</div>
-
-<div class="row">
-    <div class="col-5">
-        Upper Velocity Threshold
-    </div>
-    <div class="col-7">
-        <div data-callback="fovVignette.setUpperThreshold"></div>
+        <div data-callback="fovVignette.setVelocityThresholds"></div>
     </div>
 </div>
 
@@ -142,5 +117,15 @@
     </div>
     <div class="col-7">
         <div data-callback="fovVignette.setDeadzone"></div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-5">
+        Color
+    </div>
+    <div class="col-7">
+        <input type="text" class="form-control color-input" id="fovVignette-setColor"
+               style="color: white;" value="">
     </div>
 </div>
