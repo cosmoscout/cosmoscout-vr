@@ -177,10 +177,11 @@ bool FovVignette::Do() {
   }
 
   // draw
-  glPushAttrib(GL_ENABLE_BIT | GL_BLEND);
+  glPushAttrib(GL_ENABLE_BIT | GL_BLEND | GL_DEPTH_BUFFER_BIT);
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   glDisable(GL_DEPTH_TEST);
+  glDepthMask(false);
 
   mVAO.Bind();
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -263,8 +264,8 @@ void FovVignette::updateFadeAnimatedVignette() {
   // check if deadzone has passed and tracker indicates animation needed
   if (currentTime - mVignetteSettings.mFadeDeadzone.get() >= mLastChange) {
     mFadeAnimation.mStartValue = mFadeAnimation.get(currentTime);
-      mFadeAnimation.mStartTime  = currentTime;
-      mFadeAnimation.mEndTime    = currentTime + mVignetteSettings.mFadeDuration.get();
+    mFadeAnimation.mStartTime  = currentTime;
+    mFadeAnimation.mEndTime    = currentTime + mVignetteSettings.mFadeDuration.get();
 
     if (mIsMoving) {
       mFadeAnimation.mEndValue   = 1.0F;
