@@ -196,17 +196,28 @@ bool FloorGrid::Do() {
   mTexture->Bind(GL_TEXTURE0);
 
   // Draw
+  glPushAttrib(GL_ENABLE_BIT | GL_BLEND | GL_DEPTH_BUFFER_BIT);
   glEnable(GL_BLEND);
   glBlendFunc(GL_ONE, GL_ONE);
   glDepthMask(false);
 
   mVAO.Bind();
+
+  // First we draw the grid with normal depth test.
   glDrawArrays(GL_QUADS, 0, 4);
+
+  // Then we draw with inverted depth test and make the grid very translucent.
+  glDepthFunc(GL_GEQUAL);
+  mShader.SetUniform(mUniforms.alpha, 0.1F * mGridSettings.mAlpha.get());
+
+  glDrawArrays(GL_QUADS, 0, 4);
+
   mVAO.Release();
 
   // Clean Up
   mTexture->Unbind(GL_TEXTURE0);
-  glDisable(GL_BLEND);
+  
+  glPopAttrib();
 
   mShader.Release();
 
