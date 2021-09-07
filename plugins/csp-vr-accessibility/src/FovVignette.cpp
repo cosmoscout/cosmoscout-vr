@@ -43,34 +43,11 @@ FovVignette::FovVignette(std::shared_ptr<cs::core::SolarSystem> solarSystem,
   mVAO.EnableAttributeArray(0);
   mVAO.SpecifyAttributeArrayFloat(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0, &mVBO);
 
-  // create textures
-  for (auto const& viewport : GetVistaSystem()->GetDisplayManager()->GetViewports()) {
-    GBufferData bufferData;
-
-    bufferData.mDepthBuffer = std::make_unique<VistaTexture>(GL_TEXTURE_2D);
-    bufferData.mDepthBuffer->Bind();
-    bufferData.mDepthBuffer->SetWrapS(GL_CLAMP);
-    bufferData.mDepthBuffer->SetWrapT(GL_CLAMP);
-    bufferData.mDepthBuffer->SetMinFilter(GL_NEAREST);
-    bufferData.mDepthBuffer->SetMagFilter(GL_NEAREST);
-    bufferData.mDepthBuffer->Unbind();
-
-    bufferData.mColorBuffer = std::make_unique<VistaTexture>(GL_TEXTURE_2D);
-    bufferData.mColorBuffer->Bind();
-    bufferData.mColorBuffer->SetWrapS(GL_CLAMP);
-    bufferData.mColorBuffer->SetWrapT(GL_CLAMP);
-    bufferData.mColorBuffer->SetMinFilter(GL_NEAREST);
-    bufferData.mColorBuffer->SetMagFilter(GL_NEAREST);
-    bufferData.mColorBuffer->Unbind();
-
-    mGBufferData.emplace(viewport.second, std::move(bufferData));
-  }
-
   // create shaders & get uniform locations
   mShaderFade.InitVertexShaderFromString(VERT_SHADER);
   mShaderFade.InitFragmentShaderFromString(FRAG_SHADER_FADE);
   mShaderFade.Link();
-  mUniforms.fade.texture     = mShaderFade.GetUniformLocation("uTexture");
+  mUniforms.fade.aspect      = mShaderFade.GetUniformLocation("uAspect");
   mUniforms.fade.fade        = mShaderFade.GetUniformLocation("uFade");
   mUniforms.fade.color       = mShaderFade.GetUniformLocation("uCustomColor");
   mUniforms.fade.innerRadius = mShaderFade.GetUniformLocation("uInnerRadius");
@@ -80,7 +57,7 @@ FovVignette::FovVignette(std::shared_ptr<cs::core::SolarSystem> solarSystem,
   mShaderDynRad.InitVertexShaderFromString(VERT_SHADER);
   mShaderDynRad.InitFragmentShaderFromString(FRAG_SHADER_DYNRAD);
   mShaderDynRad.Link();
-  mUniforms.dynamic.texture      = mShaderDynRad.GetUniformLocation("uTexture");
+  mUniforms.dynamic.aspect       = mShaderDynRad.GetUniformLocation("uAspect");
   mUniforms.dynamic.normVelocity = mShaderDynRad.GetUniformLocation("uNormVelocity");
   mUniforms.dynamic.color        = mShaderDynRad.GetUniformLocation("uCustomColor");
   mUniforms.dynamic.innerRadius  = mShaderDynRad.GetUniformLocation("uInnerRadius");
@@ -90,7 +67,7 @@ FovVignette::FovVignette(std::shared_ptr<cs::core::SolarSystem> solarSystem,
   mShaderFadeVertOnly.InitVertexShaderFromString(VERT_SHADER);
   mShaderFadeVertOnly.InitFragmentShaderFromString(FRAG_SHADER_FADE_VERTONLY);
   mShaderFadeVertOnly.Link();
-  mUniforms.fadeVertical.texture     = mShaderFadeVertOnly.GetUniformLocation("uTexture");
+  mUniforms.fadeVertical.aspect      = mShaderFadeVertOnly.GetUniformLocation("uAspect");
   mUniforms.fadeVertical.fade        = mShaderFadeVertOnly.GetUniformLocation("uFade");
   mUniforms.fadeVertical.color       = mShaderFadeVertOnly.GetUniformLocation("uCustomColor");
   mUniforms.fadeVertical.innerRadius = mShaderFadeVertOnly.GetUniformLocation("uInnerRadius");
@@ -100,7 +77,7 @@ FovVignette::FovVignette(std::shared_ptr<cs::core::SolarSystem> solarSystem,
   mShaderDynRadVertOnly.InitVertexShaderFromString(VERT_SHADER);
   mShaderDynRadVertOnly.InitFragmentShaderFromString(FRAG_SHADER_DYNRAD_VERTONLY);
   mShaderDynRadVertOnly.Link();
-  mUniforms.dynamicVertical.texture = mShaderDynRadVertOnly.GetUniformLocation("uTexture");
+  mUniforms.dynamicVertical.aspect      = mShaderDynRadVertOnly.GetUniformLocation("uAspect");
   mUniforms.dynamicVertical.normVelocity =
       mShaderDynRadVertOnly.GetUniformLocation("uNormVelocity");
   mUniforms.dynamicVertical.color       = mShaderDynRadVertOnly.GetUniformLocation("uCustomColor");
@@ -151,19 +128,9 @@ bool FovVignette::Do() {
 
   cs::utils::FrameTimings::ScopedTimer timer("VRAccessibility-FovVignette");
 
-  // copy depth buffer
-  std::array<GLint, 4> iViewport{};
-  glGetIntegerv(GL_VIEWPORT, iViewport.data());
-
-  auto*       viewport = GetVistaSystem()->GetDisplayManager()->GetCurrentRenderInfo()->m_pViewport;
-  auto const& data     = mGBufferData[viewport];
-
-  data.mDepthBuffer->Bind();
-  glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, iViewport.at(0), iViewport.at(1),
-      iViewport.at(2), iViewport.at(3), 0);
-  data.mColorBuffer->Bind();
-  glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, iViewport.at(0), iViewport.at(1), iViewport.at(2),
-      iViewport.at(3), 0);
+  std::array<GLint, 4> viewport{};
+  glGetIntegerv(GL_VIEWPORT, viewport.data());
+  float aspect =static_cast<float>(viewport.at(3)) / static_cast<float>(viewport.at(2));
 
   // set uniforms
   // check if dynamical vignette
@@ -177,7 +144,7 @@ bool FovVignette::Do() {
     shader.Bind();
 
     // set uniforms for dynamical vignette
-    shader.SetUniform(uniformLocs.texture, 0);
+    shader.SetUniform(uniformLocs.aspect, aspect);
     shader.SetUniform(uniformLocs.normVelocity, mNormalizedVelocity);
     glUniform4fv(uniformLocs.color, 1,
         glm::value_ptr(Plugin::GetColorFromHexString(mVignetteSettings.mColor.get())));
@@ -200,7 +167,7 @@ bool FovVignette::Do() {
     shader.Bind();
 
     // set uniforms for static vignette
-    shader.SetUniform(uniformLocs.texture, 0);
+    shader.SetUniform(uniformLocs.aspect, aspect);
     double currentTime =
         cs::utils::convert::time::toSpice(boost::posix_time::microsec_clock::universal_time());
     shader.SetUniform(uniformLocs.fade, mFadeAnimation.get(currentTime));
@@ -211,10 +178,8 @@ bool FovVignette::Do() {
     shader.SetUniform(uniformLocs.debug, mVignetteSettings.mDebug.get());
   }
 
-  // bind texture
-  data.mColorBuffer->Bind(GL_TEXTURE0);
-
   // draw
+  glPushAttrib(GL_ENABLE_BIT | GL_BLEND);
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   glDisable(GL_DEPTH_TEST);
@@ -223,10 +188,7 @@ bool FovVignette::Do() {
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
   mVAO.Release();
 
-  // clean up
-  data.mDepthBuffer->Unbind(GL_TEXTURE0);
-  glDisable(GL_BLEND);
-  glEnable(GL_DEPTH_TEST);
+  glPopAttrib();
 
   // release shader
   glUseProgram(0);

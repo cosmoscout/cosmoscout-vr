@@ -34,12 +34,12 @@ void main() {
 const char* FovVignette::FRAG_SHADER_FADE = R"(
 #version 330
 
-uniform sampler2D uTexture;
-uniform float     uFade;
-uniform vec4      uCustomColor;
-uniform float     uInnerRadius;
-uniform float     uOuterRadius;
-uniform bool      uDebug;
+uniform float uAspect;
+uniform float uFade;
+uniform vec4  uCustomColor;
+uniform float uInnerRadius;
+uniform float uOuterRadius;
+uniform bool  uDebug;
 
 // inputs
 in vec2 vTexCoords;
@@ -51,18 +51,15 @@ layout(location = 0) out vec4 oColor;
 void main() {
   if (uFade == 0 && !uDebug ) { discard; }
 
-  vec2 texSize = textureSize(uTexture, 0);
-  float ratio = texSize.y / texSize.x;
-
-  float dist = sqrt(vPosition.x * vPosition.x + ratio * ratio * vPosition.y * vPosition.y);
+  float dist = sqrt(vPosition.x * vPosition.x + uAspect * uAspect * vPosition.y * vPosition.y);
   if (dist < uInnerRadius ) { discard; }
-  float r = (dist - uInnerRadius) / (uOuterRadius - uInnerRadius);
-  oColor = mix(texture(uTexture, vTexCoords), uCustomColor, r);
-  if (dist > uOuterRadius) {
-    oColor.rgb = uCustomColor.rgb;
-  }
 
-  if ( !uDebug ) { oColor.a = uFade; }
+  float alpha = clamp((dist - uInnerRadius) / (uOuterRadius - uInnerRadius), 0, 1);
+
+  oColor = uCustomColor;
+  oColor.a *= alpha;
+
+  if ( !uDebug ) { oColor.a *= uFade; }
 }
 )";
 
@@ -72,15 +69,12 @@ void main() {
 const char* FovVignette::FRAG_SHADER_DYNRAD = R"(
 #version 330
 
-uniform sampler2D uTexture;
-uniform float     uNormVelocity;
-uniform vec4      uCustomColor;
-uniform float     uInnerRadius;
-uniform float     uOuterRadius;
-uniform bool      uDebug;
-
-float radiusInner = uInnerRadius;
-float radiusOuter = uOuterRadius;
+uniform float uAspect;
+uniform float uNormVelocity;
+uniform vec4  uCustomColor;
+uniform float uInnerRadius;
+uniform float uOuterRadius;
+uniform bool  uDebug;
 
 // inputs
 in vec2 vTexCoords;
@@ -92,17 +86,13 @@ layout(location = 0) out vec4 oColor;
 void main() {
   if (uNormVelocity <= 0 && !uDebug ) { discard; }
 
-  vec2 texSize = textureSize(uTexture, 0);
-  float ratio = texSize.y / texSize.x;
-
-  float dist = sqrt(vPosition.x * vPosition.x + ratio * ratio * vPosition.y * vPosition.y);
-
+  float dist = sqrt(vPosition.x * vPosition.x + uAspect * uAspect * vPosition.y * vPosition.y);
   if (dist < uInnerRadius ) { discard; }
-  float r = (dist - uInnerRadius) / (uOuterRadius - uInnerRadius);
-  oColor = mix(texture(uTexture, vTexCoords), uCustomColor, r);
-  if (dist > uOuterRadius) {
-    oColor.rgb = uCustomColor.rgb;
-  }
+
+  float alpha = clamp((dist - uInnerRadius) / (uOuterRadius - uInnerRadius), 0, 1);
+
+  oColor = uCustomColor;
+  oColor.a *= alpha;
 }
 )";
 
@@ -112,12 +102,11 @@ void main() {
 const char* FovVignette::FRAG_SHADER_FADE_VERTONLY = R"(
 #version 330
 
-uniform sampler2D uTexture;
-uniform float     uFade;
-uniform vec4      uCustomColor;
-uniform float     uInnerRadius;
-uniform float     uOuterRadius;
-uniform bool      uDebug;
+uniform float uFade;
+uniform vec4  uCustomColor;
+uniform float uInnerRadius;
+uniform float uOuterRadius;
+uniform bool  uDebug;
 
 // inputs
 in vec2 vTexCoords;
@@ -129,9 +118,6 @@ layout(location = 0) out vec4 oColor;
 void main() {
   if (uFade == 0 && !uDebug ) { discard; }
 
-  vec2 texSize = textureSize(uTexture, 0);
-  float ratio = texSize.y / texSize.x;
-
   float dist = 0;
   if (vPosition.y > 0) { 
     dist = vPosition.y; 
@@ -140,13 +126,13 @@ void main() {
   }
 
   if (dist < uInnerRadius ) { discard; }
-  float r = (dist - uInnerRadius) / (uOuterRadius - uInnerRadius);
-  oColor = mix(texture(uTexture, vTexCoords), uCustomColor, r);
-  if (dist > uOuterRadius) {
-    oColor.rgb = uCustomColor.rgb;
-  }
+  
+  float alpha = clamp((dist - uInnerRadius) / (uOuterRadius - uInnerRadius), 0, 1);
 
-  if ( !uDebug ) { oColor.a = uFade; }
+  oColor = uCustomColor;
+  oColor.a *= alpha;
+
+  if ( !uDebug ) { oColor.a *= uFade; }
 }
 )";
 
@@ -156,15 +142,11 @@ void main() {
 const char* FovVignette::FRAG_SHADER_DYNRAD_VERTONLY = R"(
 #version 330
 
-uniform sampler2D uTexture;
-uniform float     uNormVelocity;
-uniform vec4      uCustomColor;
-uniform float     uInnerRadius;
-uniform float     uOuterRadius;
-uniform bool      uDebug;
-
-float radiusInner = uInnerRadius;
-float radiusOuter = uOuterRadius;
+uniform float uNormVelocity;
+uniform vec4  uCustomColor;
+uniform float uInnerRadius;
+uniform float uOuterRadius;
+uniform bool  uDebug;
 
 // inputs
 in vec2 vTexCoords;
@@ -176,9 +158,6 @@ layout(location = 0) out vec4 oColor;
 void main() {
   if (uNormVelocity <= 0 && !uDebug ) { discard; }
 
-  vec2 texSize = textureSize(uTexture, 0);
-  float ratio = texSize.y / texSize.x;
-
   float dist = 0;
   if (vPosition.y > 0) {
     dist = vPosition.y;
@@ -187,11 +166,11 @@ void main() {
   }
 
   if (dist < uInnerRadius ) { discard; }
-  float r = (dist - uInnerRadius) / (uOuterRadius - uInnerRadius);
-  oColor = mix(texture(uTexture, vTexCoords), uCustomColor, r);
-  if (dist > uOuterRadius) {
-    oColor.rgb = uCustomColor.rgb;
-  }
+  
+  float alpha = clamp((dist - uInnerRadius) / (uOuterRadius - uInnerRadius), 0, 1);
+
+  oColor = uCustomColor;
+  oColor.a *= alpha;
 }
 )";
 

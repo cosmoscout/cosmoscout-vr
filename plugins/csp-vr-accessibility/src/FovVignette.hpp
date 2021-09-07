@@ -84,7 +84,7 @@ class FovVignette : public IVistaOpenGLDraw {
 
   struct {
     struct {
-      uint32_t texture      = 0;
+      uint32_t aspect       = 0;
       uint32_t normVelocity = 0;
       uint32_t color        = 0;
       uint32_t innerRadius  = 0;
@@ -93,7 +93,7 @@ class FovVignette : public IVistaOpenGLDraw {
     } dynamic, dynamicVertical;
 
     struct {
-      uint32_t texture     = 0;
+      uint32_t aspect      = 0;
       uint32_t fade        = 0;
       uint32_t color       = 0;
       uint32_t innerRadius = 0;
@@ -102,13 +102,6 @@ class FovVignette : public IVistaOpenGLDraw {
     } fade, fadeVertical;
 
   } mUniforms;
-
-  struct GBufferData {
-    std::unique_ptr<VistaTexture> mDepthBuffer;
-    std::unique_ptr<VistaTexture> mColorBuffer;
-  };
-
-  std::unordered_map<VistaViewport*, GBufferData> mGBufferData;
 
   static const char* VERT_SHADER;
   static const char* FRAG_SHADER_FADE;
