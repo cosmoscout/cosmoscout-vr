@@ -276,12 +276,16 @@ void Plugin::update() {
     resetColorPicker = false;
   }
 
-  mGrid->update();
+  if (mPluginSettings->mGridSettings.mEnabled.get()) {
+    mGrid->update();
+  }
 
-  if (mPluginSettings->mVignetteSettings.mUseDynamicRadius.get()) {
-    mVignette->updateDynamicRadiusVignette();
-  } else {
-    mVignette->updateFadeAnimatedVignette();
+  if (mPluginSettings->mVignetteSettings.mEnabled.get()) {
+    if (mPluginSettings->mVignetteSettings.mUseDynamicRadius.get()) {
+      mVignette->updateDynamicRadiusVignette();
+    } else {
+      mVignette->updateFadeAnimatedVignette();
+    }
   }
 }
 
