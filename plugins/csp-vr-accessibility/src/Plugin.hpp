@@ -26,14 +26,14 @@ class Plugin : public cs::core::PluginBase {
       /// Toggle, whether the grid is hidden (false) or visible (true).
       cs::utils::DefaultProperty<bool> mEnabled{true};
 
-      /// The size of the grid, i.e. mesh size, scale factor (default = 1).
-      cs::utils::DefaultProperty<float> mSize{1.0F};
+      /// The scale of the grid texture.
+      cs::utils::DefaultProperty<float> mSize{0.5F};
 
       /// The height offset to adjust the grid to the floor.
       cs::utils::DefaultProperty<float> mOffset{-1.8F};
 
-      /// The falloff distance when the grid fades.
-      cs::utils::DefaultProperty<float> mFalloff{100.0F};
+      /// The size of the grid.
+      cs::utils::DefaultProperty<float> mExtent{10.0F};
 
       /// The texture used for the grid (b/w texture).
       cs::utils::DefaultProperty<std::string> mTexture{

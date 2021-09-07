@@ -40,7 +40,7 @@ void from_json(nlohmann::json const& j, Plugin::Settings::Grid& o) {
   cs::core::Settings::deserialize(j, "enabled", o.mEnabled);
   cs::core::Settings::deserialize(j, "size", o.mSize);
   cs::core::Settings::deserialize(j, "offset", o.mOffset);
-  cs::core::Settings::deserialize(j, "falloff", o.mFalloff);
+  cs::core::Settings::deserialize(j, "extent", o.mExtent);
   cs::core::Settings::deserialize(j, "texture", o.mTexture);
   cs::core::Settings::deserialize(j, "alpha", o.mAlpha);
   cs::core::Settings::deserialize(j, "color", o.mColor);
@@ -50,7 +50,7 @@ void to_json(nlohmann::json& j, Plugin::Settings::Grid const& o) {
   cs::core::Settings::serialize(j, "enabled", o.mEnabled);
   cs::core::Settings::serialize(j, "size", o.mSize);
   cs::core::Settings::serialize(j, "offset", o.mOffset);
-  cs::core::Settings::serialize(j, "falloff", o.mFalloff);
+  cs::core::Settings::serialize(j, "extent", o.mExtent);
   cs::core::Settings::serialize(j, "texture", o.mTexture);
   cs::core::Settings::serialize(j, "alpha", o.mAlpha);
   cs::core::Settings::serialize(j, "color", o.mColor);
@@ -119,22 +119,21 @@ void Plugin::init() {
 
   // register callback for grid size slider
   mGuiManager->getGui()->registerCallback("floorGrid.setSize",
-      "Value scales the grid size between 0.5 (doubles the square size) and 2 (halves square "
-      "size).",
+      "Value scales the grid texture size between.",
       std::function([this](double value) {
-        mPluginSettings->mGridSettings.mSize = static_cast<float>(std::pow(2, value));
+        mPluginSettings->mGridSettings.mSize = static_cast<float>(value);
       }));
   mPluginSettings->mGridSettings.mSize.connectAndTouch([this](float value) {
-    mGuiManager->setSliderValue("floorGrid.setSize", std::round(std::log2(value)));
+    mGuiManager->setSliderValue("floorGrid.setSize", value);
   });
 
-  // register callback for grid offset slider
-  mGuiManager->getGui()->registerCallback("floorGrid.setOffset",
-      "Value to adjust downward offset of the grid.", std::function([this](double value) {
-        mPluginSettings->mGridSettings.mOffset = static_cast<float>(value);
+  // register callback for grid extent slider
+  mGuiManager->getGui()->registerCallback("floorGrid.setExtent",
+      "Value to scale the entire grid.", std::function([this](double value) {
+        mPluginSettings->mGridSettings.mExtent = static_cast<float>(value);
       }));
-  mPluginSettings->mGridSettings.mOffset.connectAndTouch(
-      [this](float value) { mGuiManager->setSliderValue("floorGrid.setOffset", value); });
+  mPluginSettings->mGridSettings.mExtent.connectAndTouch(
+      [this](float value) { mGuiManager->setSliderValue("floorGrid.setExtent", value); });
 
   // register callback for grid alpha slider
   mGuiManager->getGui()->registerCallback(

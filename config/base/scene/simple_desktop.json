@@ -664,9 +664,9 @@
     "csp-vr-accessibility": {
       "grid": {
         "enabled": false,
-        "size": 1.0,
+        "size": 0.5,
         "offset": -1.80,
-        "falloff": 32.0,
+        "extent": 10.0,
         "texture": "../share/resources/textures/gridCrossLarge.png",
         "alpha": 1.0,
         "color": "#ffffff"

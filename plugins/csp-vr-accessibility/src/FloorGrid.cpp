@@ -31,22 +31,18 @@ const char* FloorGrid::VERT_SHADER = R"(
 
 uniform mat4  uMatModelView;
 uniform mat4  uMatProjection;
-uniform float uFalloff;
-uniform float uOffset;
-uniform float uSize;
+uniform float uExtent;
 
 // inputs
 layout(location = 0) in vec2 iQuadPos;
 
 // outputs
-out vec2 vTexCoords;
-out vec3 vPosition;
+out vec2  vTexCoords;
+out vec3  vPosition;
 
 void main() {
-  vTexCoords  = vec2((iQuadPos.x + 1) / 2 * uFalloff * uSize,
-                     (iQuadPos.y + 1) / 2 * uFalloff * uSize);
-
-  vPosition   = (uMatModelView * vec4(iQuadPos.x * uFalloff, 0.0, iQuadPos.y * uFalloff, 1.0)).xyz;
+  vTexCoords  = iQuadPos;
+  vPosition   = (uMatModelView * vec4(iQuadPos.x * uExtent, 0.0, iQuadPos.y * uExtent, 1.0)).xyz;
   gl_Position = uMatProjection * vec4(vPosition, 1);
 }
 )";
@@ -59,6 +55,8 @@ const char* FloorGrid::FRAG_SHADER = R"(
 uniform sampler2D uTexture;
 uniform float     uFarClip;
 uniform float     uAlpha;
+uniform float     uExtent;
+uniform float     uSize;
 uniform vec4      uCustomColor;
 
 // inputs
@@ -66,14 +64,13 @@ in vec2 vTexCoords;
 in vec3 vPosition;
 
 // outputs
-layout(location = 0) out vec4 oColor;
+layout(location = 0) out vec3 oColor;
 
 void main() {
-  oColor = texture(uTexture, vTexCoords);
-  if (oColor.a == 0) {
-    discard;
-  }
-  oColor *= vec4(uCustomColor.r, uCustomColor.g, uCustomColor.b, uAlpha);
+  oColor = texture(uTexture, vTexCoords * uExtent / uSize).rgb;
+  oColor *= uCustomColor.rgb;
+  oColor *= uAlpha;
+  oColor *= 1 - clamp(length(vTexCoords), 0, 1);
   gl_FragDepth = length(vPosition) / uFarClip;
 })";
 
@@ -107,7 +104,7 @@ FloorGrid::FloorGrid(
   mUniforms.modelViewMatrix  = mShader.GetUniformLocation("uMatModelView");
   mUniforms.projectionMatrix = mShader.GetUniformLocation("uMatProjection");
   mUniforms.texture          = mShader.GetUniformLocation("uTexture");
-  mUniforms.falloff          = mShader.GetUniformLocation("uFalloff");
+  mUniforms.extent           = mShader.GetUniformLocation("uExtent");
   mUniforms.size             = mShader.GetUniformLocation("uSize");
   mUniforms.farClip          = mShader.GetUniformLocation("uFarClip");
   mUniforms.alpha            = mShader.GetUniformLocation("uAlpha");
@@ -185,7 +182,7 @@ bool FloorGrid::Do() {
   glUniformMatrix4fv(mUniforms.modelViewMatrix, 1, GL_FALSE, glMatMV.data());
   glUniformMatrix4fv(mUniforms.projectionMatrix, 1, GL_FALSE, glMatP.data());
   mShader.SetUniform(mUniforms.texture, 0);
-  mShader.SetUniform(mUniforms.falloff, mGridSettings.mFalloff.get());
+  mShader.SetUniform(mUniforms.extent, mGridSettings.mExtent.get());
   mShader.SetUniform(mUniforms.size, mGridSettings.mSize.get());
   mShader.SetUniform(mUniforms.farClip, cs::utils::getCurrentFarClipDistance());
   mShader.SetUniform(mUniforms.alpha, mGridSettings.mAlpha.get());
