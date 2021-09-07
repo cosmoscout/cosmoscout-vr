@@ -61,9 +61,8 @@ class FovVignette : public IVistaOpenGLDraw {
   std::unique_ptr<VistaOpenGLNode> mGLNode;
 
   cs::utils::AnimatedValue<float> mFadeAnimation;
-  double                          mLastChange;
-  int                             mAnimationTracker;
-  bool                            mIsStill;
+  double                          mLastChange = std::numeric_limits<double>::max();
+  bool                            mIsMoving   = false;
 
   float                                                       mCurrentInnerRadius;
   float                                                       mCurrentOuterRadius;

@@ -98,9 +98,7 @@ FovVignette::FovVignette(std::shared_ptr<cs::core::SolarSystem> solarSystem,
 
   // init animation housekeeping
   mFadeAnimation    = cs::utils::AnimatedValue(0.0F, 0.0F, 0.0, 0.0);
-  mLastChange       = 0.0;
-  mAnimationTracker = 0;
-  mIsStill          = false;
+  mFadeAnimation.mDirection = cs::utils::AnimationDirection::eLinear;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -252,38 +250,29 @@ void FovVignette::updateFadeAnimatedVignette() {
       cs::utils::convert::time::toSpice(boost::posix_time::microsec_clock::universal_time());
 
   // check for movement changes
-  if (mIsStill && velocity > mVignetteSettings.mLowerVelocityThreshold.get()) {
+  if (mIsMoving && velocity < mVignetteSettings.mLowerVelocityThreshold.get()) {
     // observer started moving
-    mAnimationTracker += 1;
+    mIsMoving = false;
     mLastChange = currentTime;
-  } else if (!mIsStill && velocity < mVignetteSettings.mLowerVelocityThreshold.get()) {
+  } else if (!mIsMoving && velocity > mVignetteSettings.mLowerVelocityThreshold.get()) {
     // observer stopped moving
-    mAnimationTracker -= 1;
+    mIsMoving = true;
     mLastChange = currentTime;
   }
 
-  // update mIsStill
-  mIsStill = (velocity < mVignetteSettings.mLowerVelocityThreshold.get());
-
   // check if deadzone has passed and tracker indicates animation needed
-  if (mAnimationTracker != 0 && currentTime > mLastChange + mVignetteSettings.mFadeDeadzone.get()) {
-    if (mAnimationTracker > 0) {
-      // observer started moving
-      mFadeAnimation.mStartValue = 0.0F;
+  if (currentTime - mVignetteSettings.mFadeDeadzone.get() >= mLastChange) {
+    mFadeAnimation.mStartValue = mFadeAnimation.get(currentTime);
+      mFadeAnimation.mStartTime  = currentTime;
+      mFadeAnimation.mEndTime    = currentTime + mVignetteSettings.mFadeDuration.get();
+
+    if (mIsMoving) {
       mFadeAnimation.mEndValue   = 1.0F;
-      mFadeAnimation.mStartTime  = currentTime;
-      mFadeAnimation.mEndTime    = currentTime + mVignetteSettings.mFadeDuration.get();
-      // reset tracker
-      mAnimationTracker = 0;
     } else {
-      // observer stopped moving
-      mFadeAnimation.mStartValue = 1.0F;
       mFadeAnimation.mEndValue   = 0.0F;
-      mFadeAnimation.mStartTime  = currentTime;
-      mFadeAnimation.mEndTime    = currentTime + mVignetteSettings.mFadeDuration.get();
-      // reset tracker
-      mAnimationTracker = 0;
     }
+
+     mLastChange = std::numeric_limits<double>::max();
   }
 }
 
