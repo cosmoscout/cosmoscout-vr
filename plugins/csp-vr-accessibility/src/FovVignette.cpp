@@ -199,8 +199,9 @@ float FovVignette::getNewRadius(
   // targetRadius based on interpolation between maxRadius and innerOuterRadius
   float targetRadius = ((1 - normVelocity) * std::sqrt(2.0f)) + (normVelocity * innerOuterRadius);
 
-  // newRadius increased towards targetRadius but limited to ~targetDiff changes
-  return (0.99F * lastRadius) + (0.01F * targetRadius);
+  // newRadius increased towards targetRadius
+  return lastRadius + (targetRadius - lastRadius) *
+                       (1.F - std::exp(-static_cast<float>(1.0 / mVignetteSettings.mFadeDuration.get()) * dT));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
