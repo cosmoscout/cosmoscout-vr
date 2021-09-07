@@ -213,7 +213,7 @@ bool FloorGrid::Do() {
 
   // Clean Up
   mTexture->Unbind(GL_TEXTURE0);
-  
+
   glPopAttrib();
 
   mShader.Release();

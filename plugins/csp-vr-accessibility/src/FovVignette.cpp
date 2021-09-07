@@ -47,36 +47,36 @@ FovVignette::FovVignette(std::shared_ptr<cs::core::SolarSystem> solarSystem,
   mShaderFade.InitVertexShaderFromString(VERT_SHADER);
   mShaderFade.InitFragmentShaderFromString(FRAG_SHADER_FADE);
   mShaderFade.Link();
-  mUniforms.fade.aspect      = mShaderFade.GetUniformLocation("uAspect");
-  mUniforms.fade.fade        = mShaderFade.GetUniformLocation("uFade");
-  mUniforms.fade.color       = mShaderFade.GetUniformLocation("uCustomColor");
-  mUniforms.fade.radii       = mShaderFade.GetUniformLocation("uRadii");
-  mUniforms.fade.debug       = mShaderFade.GetUniformLocation("uDebug");
+  mUniforms.fade.aspect = mShaderFade.GetUniformLocation("uAspect");
+  mUniforms.fade.fade   = mShaderFade.GetUniformLocation("uFade");
+  mUniforms.fade.color  = mShaderFade.GetUniformLocation("uCustomColor");
+  mUniforms.fade.radii  = mShaderFade.GetUniformLocation("uRadii");
+  mUniforms.fade.debug  = mShaderFade.GetUniformLocation("uDebug");
 
   mShaderDynRad.InitVertexShaderFromString(VERT_SHADER);
   mShaderDynRad.InitFragmentShaderFromString(FRAG_SHADER_DYNRAD);
   mShaderDynRad.Link();
-  mUniforms.dynamic.aspect       = mShaderDynRad.GetUniformLocation("uAspect");
-  mUniforms.dynamic.color        = mShaderDynRad.GetUniformLocation("uCustomColor");
-  mUniforms.dynamic.radii        = mShaderDynRad.GetUniformLocation("uRadii");
-  mUniforms.dynamic.debug        = mShaderDynRad.GetUniformLocation("uDebug");
+  mUniforms.dynamic.aspect = mShaderDynRad.GetUniformLocation("uAspect");
+  mUniforms.dynamic.color  = mShaderDynRad.GetUniformLocation("uCustomColor");
+  mUniforms.dynamic.radii  = mShaderDynRad.GetUniformLocation("uRadii");
+  mUniforms.dynamic.debug  = mShaderDynRad.GetUniformLocation("uDebug");
 
   mShaderFadeVertOnly.InitVertexShaderFromString(VERT_SHADER);
   mShaderFadeVertOnly.InitFragmentShaderFromString(FRAG_SHADER_FADE_VERTONLY);
   mShaderFadeVertOnly.Link();
-  mUniforms.fadeVertical.aspect      = mShaderFadeVertOnly.GetUniformLocation("uAspect");
-  mUniforms.fadeVertical.fade        = mShaderFadeVertOnly.GetUniformLocation("uFade");
-  mUniforms.fadeVertical.color       = mShaderFadeVertOnly.GetUniformLocation("uCustomColor");
-  mUniforms.fadeVertical.radii       = mShaderFadeVertOnly.GetUniformLocation("uRadii");
-  mUniforms.fadeVertical.debug       = mShaderFadeVertOnly.GetUniformLocation("uDebug");
+  mUniforms.fadeVertical.aspect = mShaderFadeVertOnly.GetUniformLocation("uAspect");
+  mUniforms.fadeVertical.fade   = mShaderFadeVertOnly.GetUniformLocation("uFade");
+  mUniforms.fadeVertical.color  = mShaderFadeVertOnly.GetUniformLocation("uCustomColor");
+  mUniforms.fadeVertical.radii  = mShaderFadeVertOnly.GetUniformLocation("uRadii");
+  mUniforms.fadeVertical.debug  = mShaderFadeVertOnly.GetUniformLocation("uDebug");
 
   mShaderDynRadVertOnly.InitVertexShaderFromString(VERT_SHADER);
   mShaderDynRadVertOnly.InitFragmentShaderFromString(FRAG_SHADER_DYNRAD_VERTONLY);
   mShaderDynRadVertOnly.Link();
-  mUniforms.dynamicVertical.aspect      = mShaderDynRadVertOnly.GetUniformLocation("uAspect");
-  mUniforms.dynamicVertical.color       = mShaderDynRadVertOnly.GetUniformLocation("uCustomColor");
-  mUniforms.dynamicVertical.radii       = mShaderDynRadVertOnly.GetUniformLocation("uRadii");
-  mUniforms.dynamicVertical.debug       = mShaderDynRadVertOnly.GetUniformLocation("uDebug");
+  mUniforms.dynamicVertical.aspect = mShaderDynRadVertOnly.GetUniformLocation("uAspect");
+  mUniforms.dynamicVertical.color  = mShaderDynRadVertOnly.GetUniformLocation("uCustomColor");
+  mUniforms.dynamicVertical.radii  = mShaderDynRadVertOnly.GetUniformLocation("uRadii");
+  mUniforms.dynamicVertical.debug  = mShaderDynRadVertOnly.GetUniformLocation("uDebug");
 
   // add to scenegraph
   VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
@@ -90,7 +90,7 @@ FovVignette::FovVignette(std::shared_ptr<cs::core::SolarSystem> solarSystem,
       mGLNode.get(), static_cast<int>(cs::utils::DrawOrder::eGui) - 1);
 
   // init animation housekeeping
-  mFadeAnimation    = cs::utils::AnimatedValue(0.0F, 0.0F, 0.0, 0.0);
+  mFadeAnimation            = cs::utils::AnimatedValue(0.0F, 0.0F, 0.0, 0.0);
   mFadeAnimation.mDirection = cs::utils::AnimationDirection::eLinear;
 }
 
@@ -121,7 +121,7 @@ bool FovVignette::Do() {
 
   std::array<GLint, 4> viewport{};
   glGetIntegerv(GL_VIEWPORT, viewport.data());
-  float aspect =static_cast<float>(viewport.at(3)) / static_cast<float>(viewport.at(2));
+  float aspect = static_cast<float>(viewport.at(3)) / static_cast<float>(viewport.at(2));
 
   // set uniforms
   // check if dynamical vignette
@@ -138,10 +138,9 @@ bool FovVignette::Do() {
     shader.SetUniform(uniformLocs.aspect, aspect);
     glUniform4fv(uniformLocs.color, 1,
         glm::value_ptr(Plugin::GetColorFromHexString(mVignetteSettings.mColor.get())));
-    
-        // override current radius  if debug enabled
-    auto radii =  mVignetteSettings.mDebug.get() ? mVignetteSettings.mRadii.get()
-                                       : mCurrentRadii;
+
+    // override current radius  if debug enabled
+    auto radii = mVignetteSettings.mDebug.get() ? mVignetteSettings.mRadii.get() : mCurrentRadii;
     shader.SetUniform(uniformLocs.radii, radii[0], radii[1]);
     shader.SetUniform(uniformLocs.debug, mVignetteSettings.mDebug.get());
   } else {
@@ -158,7 +157,8 @@ bool FovVignette::Do() {
     shader.SetUniform(uniformLocs.fade, mFadeAnimation.get(getNow()));
     glUniform4fv(uniformLocs.color, 1,
         glm::value_ptr(Plugin::GetColorFromHexString(mVignetteSettings.mColor.get())));
-    shader.SetUniform(uniformLocs.radii, mVignetteSettings.mRadii.get()[0], mVignetteSettings.mRadii.get()[1]);
+    shader.SetUniform(
+        uniformLocs.radii, mVignetteSettings.mRadii.get()[0], mVignetteSettings.mRadii.get()[1]);
     shader.SetUniform(uniformLocs.debug, mVignetteSettings.mDebug.get());
   }
 
@@ -196,8 +196,10 @@ float FovVignette::getNewRadius(
   float targetRadius = ((1 - normVelocity) * std::sqrt(2.0f)) + (normVelocity * innerOuterRadius);
 
   // newRadius increased towards targetRadius
-  return lastRadius + (targetRadius - lastRadius) *
-                       (1.F - std::exp(-static_cast<float>(1.0 / mVignetteSettings.mFadeDuration.get()) * dT));
+  return lastRadius +
+         (targetRadius - lastRadius) *
+             (1.F -
+                 std::exp(-static_cast<float>(1.0 / mVignetteSettings.mFadeDuration.get()) * dT));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -207,16 +209,18 @@ void FovVignette::updateDynamicRadiusVignette() {
   float velocity = mSolarSystem->pCurrentObserverSpeed.get() /
                    static_cast<float>(mSolarSystem->getObserver().getAnchorScale());
 
-  float normalizedVelocity = glm::clamp((velocity - mVignetteSettings.mVelocityThresholds.get()[0]) /
-                        (mVignetteSettings.mVelocityThresholds.get()[1] -
-                            mVignetteSettings.mVelocityThresholds.get()[0]), 0.0F, 1.0F);
+  float normalizedVelocity =
+      glm::clamp((velocity - mVignetteSettings.mVelocityThresholds.get()[0]) /
+                     (mVignetteSettings.mVelocityThresholds.get()[1] -
+                         mVignetteSettings.mVelocityThresholds.get()[0]),
+          0.0F, 1.0F);
 
-  auto  frameTime = static_cast<float>(GetVistaSystem()->GetFrameLoop()->GetAverageLoopTime());
+  auto frameTime = static_cast<float>(GetVistaSystem()->GetFrameLoop()->GetAverageLoopTime());
 
-  mCurrentRadii[0] = getNewRadius(
-      mVignetteSettings.mRadii.get()[0], normalizedVelocity, mLastRadii[0], frameTime);
-  mCurrentRadii[1] = getNewRadius(
-      mVignetteSettings.mRadii.get()[1], normalizedVelocity, mLastRadii[1], frameTime);
+  mCurrentRadii[0] =
+      getNewRadius(mVignetteSettings.mRadii.get()[0], normalizedVelocity, mLastRadii[0], frameTime);
+  mCurrentRadii[1] =
+      getNewRadius(mVignetteSettings.mRadii.get()[1], normalizedVelocity, mLastRadii[1], frameTime);
 
   // update variables
   mLastRadii = mCurrentRadii;
@@ -234,11 +238,11 @@ void FovVignette::updateFadeAnimatedVignette() {
   // check for movement changes
   if (mIsMoving && velocity < mVignetteSettings.mVelocityThresholds.get()[0]) {
     // observer started moving
-    mIsMoving = false;
+    mIsMoving   = false;
     mLastChange = currentTime;
   } else if (!mIsMoving && velocity > mVignetteSettings.mVelocityThresholds.get()[0]) {
     // observer stopped moving
-    mIsMoving = true;
+    mIsMoving   = true;
     mLastChange = currentTime;
   }
 
@@ -249,19 +253,19 @@ void FovVignette::updateFadeAnimatedVignette() {
     mFadeAnimation.mEndTime    = currentTime + mVignetteSettings.mFadeDuration.get();
 
     if (mIsMoving) {
-      mFadeAnimation.mEndValue   = 1.0F;
+      mFadeAnimation.mEndValue = 1.0F;
     } else {
-      mFadeAnimation.mEndValue   = 0.0F;
+      mFadeAnimation.mEndValue = 0.0F;
     }
 
-     mLastChange = std::numeric_limits<double>::max();
+    mLastChange = std::numeric_limits<double>::max();
   }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 double FovVignette::getNow() {
-  boost::posix_time::ptime const EPOCH(boost::gregorian::date(1970,1,1));
+  boost::posix_time::ptime const EPOCH(boost::gregorian::date(1970, 1, 1));
   auto delta = boost::posix_time::microsec_clock::universal_time() - EPOCH;
   return delta.total_microseconds() / 1000000.0;
 }

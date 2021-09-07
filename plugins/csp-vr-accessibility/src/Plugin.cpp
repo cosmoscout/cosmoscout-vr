@@ -102,8 +102,8 @@ void Plugin::init() {
       [this]() { mAllSettings->mPlugins["csp-vr-accessibility"] = *mPluginSettings; });
 
   // add settings to GUI
-  mGuiManager->addSettingsSectionToSideBarFromHTML(
-      "VR Accessibility", "accessibility_new", "../share/resources/gui/vr_accessibility_settings.html");
+  mGuiManager->addSettingsSectionToSideBarFromHTML("VR Accessibility", "accessibility_new",
+      "../share/resources/gui/vr_accessibility_settings.html");
   mGuiManager->addScriptToGuiFromJS("../share/resources/gui/js/csp-vr-accessibility.js");
 
   // register callback for grid enable grid checkbox
@@ -115,17 +115,15 @@ void Plugin::init() {
 
   // register callback for grid size slider
   mGuiManager->getGui()->registerCallback("floorGrid.setSize",
-      "Value scales the grid texture size between.",
-      std::function([this](double value) {
+      "Value scales the grid texture size between.", std::function([this](double value) {
         mPluginSettings->mGridSettings.mSize = static_cast<float>(value);
       }));
-  mPluginSettings->mGridSettings.mSize.connectAndTouch([this](float value) {
-    mGuiManager->setSliderValue("floorGrid.setSize", value);
-  });
+  mPluginSettings->mGridSettings.mSize.connectAndTouch(
+      [this](float value) { mGuiManager->setSliderValue("floorGrid.setSize", value); });
 
   // register callback for grid extent slider
-  mGuiManager->getGui()->registerCallback("floorGrid.setExtent",
-      "Value to scale the entire grid.", std::function([this](double value) {
+  mGuiManager->getGui()->registerCallback(
+      "floorGrid.setExtent", "Value to scale the entire grid.", std::function([this](double value) {
         mPluginSettings->mGridSettings.mExtent = static_cast<float>(value);
       }));
   mPluginSettings->mGridSettings.mExtent.connectAndTouch(
@@ -186,8 +184,9 @@ void Plugin::init() {
       std::function([this](double inner, double outer) {
         mPluginSettings->mVignetteSettings.mRadii = glm::vec2(inner, outer);
       }));
-  mPluginSettings->mVignetteSettings.mRadii.connectAndTouch(
-      [this](glm::vec2 const& value) { mGuiManager->setSliderValue("fovVignette.setRadii", value); });
+  mPluginSettings->mVignetteSettings.mRadii.connectAndTouch([this](glm::vec2 const& value) {
+    mGuiManager->setSliderValue("fovVignette.setRadii", value);
+  });
 
   // register callback for fov vignette color picker
   mGuiManager->getGui()->registerCallback("fovVignette.setColor",
@@ -200,12 +199,15 @@ void Plugin::init() {
 
   // register callback for fov vignette lower velocity threshold
   mGuiManager->getGui()->registerCallback("fovVignette.setVelocityThresholds",
-      "Value to adjust the minimum and maximum velocity thresholds when the vignette should be drawn.",
+      "Value to adjust the minimum and maximum velocity thresholds when the vignette should be "
+      "drawn.",
       std::function([this](double low, double high) {
         mPluginSettings->mVignetteSettings.mVelocityThresholds = glm::vec2(low, high);
       }));
   mPluginSettings->mVignetteSettings.mVelocityThresholds.connectAndTouch(
-      [this](glm::vec2 const& value) { mGuiManager->setSliderValue("fovVignette.setVelocityThresholds", value); });
+      [this](glm::vec2 const& value) {
+        mGuiManager->setSliderValue("fovVignette.setVelocityThresholds", value);
+      });
 
   // register callback for fov vignette fade duration slider
   mGuiManager->getGui()->registerCallback("fovVignette.setDuration",
