@@ -38,11 +38,13 @@ std::map<std::string, cs::graphics::ColorMap> PlanetShader::mColorMaps;
 
 PlanetShader::PlanetShader(std::shared_ptr<cs::core::Settings> settings,
     std::shared_ptr<Plugin::Settings>                          pluginSettings,
-    std::shared_ptr<cs::core::GuiManager> const&               pGuiManager)
+    std::shared_ptr<cs::core::GuiManager> const& pGuiManager, std::string anchorName)
     : mSettings(std::move(settings))
     , mGuiManager(pGuiManager)
     , mPluginSettings(std::move(pluginSettings))
+    , mAnchorName(std::move(anchorName))
     , mFontTexture(VistaOGLUtils::LoadTextureFromTga("../share/resources/textures/font.tga")) {
+
   // clang-format off
     pTextureIsRGB.connect(
         [this](bool /*ignored*/) { mShaderDirty = true; });
@@ -153,6 +155,31 @@ void PlanetShader::compile() {
       cs::utils::toString(mPluginSettings->mEnableLatLongGrid.get()));
   cs::utils::replaceString(mFragmentSource, "$MIX_COLORS",
       cs::utils::toString(mPluginSettings->mEnableColorMixing.get()));
+
+  // Include the BRDFs together with their parameters and arguments.
+  Plugin::Settings::BRDF const& brdfHdr = mPluginSettings->mBodies[mAnchorName].mBrdfHdr.get();
+  Plugin::Settings::BRDF const& brdfNonHdr =
+      mPluginSettings->mBodies[mAnchorName].mBrdfNonHdr.get();
+
+  // Iterate over all key-value pairs of the properties and inject the values.
+  std::string brdfHdrSource = cs::utils::filesystem::loadToString(brdfHdr.source);
+  for (std::pair<std::string, float> const& kv : brdfHdr.properties) {
+    cs::utils::replaceString(brdfHdrSource, kv.first, std::to_string(kv.second));
+  }
+  std::string brdfNonHdrSource = cs::utils::filesystem::loadToString(brdfNonHdr.source);
+  for (std::pair<std::string, float> const& kv : brdfNonHdr.properties) {
+    cs::utils::replaceString(brdfNonHdrSource, kv.first, std::to_string(kv.second));
+  }
+
+  // Inject correct identifiers so the fragment shader can find the functions;
+  // inject the functions in the fragment shader
+  cs::utils::replaceString(brdfHdrSource, "$BRDF", "BRDF_HDR");
+  cs::utils::replaceString(brdfNonHdrSource, "$BRDF", "BRDF_NON_HDR");
+  cs::utils::replaceString(mFragmentSource, "$BRDF_HDR", brdfHdrSource);
+  cs::utils::replaceString(mFragmentSource, "$BRDF_NON_HDR", brdfNonHdrSource);
+
+  cs::utils::replaceString(mFragmentSource, "$AVG_LINEAR_IMG_INTENSITY",
+      std::to_string(mPluginSettings->mBodies[mAnchorName].mAvgLinearImgIntensity.get()));
 
   cs::utils::replaceString(mVertexSource, "$LIGHTING_QUALITY",
       cs::utils::toString(mSettings->mGraphics.pLightingQuality.get()));
