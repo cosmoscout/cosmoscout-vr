@@ -28,31 +28,39 @@
     }
 
     // set/reset HTML to display standard checkpoints
-    function setCP() {
+    function reset() {
       document.getElementById("cp").className = "";
       document.getElementById("fms").hidden = true;
       document.getElementById("cog").hidden = true;
       document.getElementById("chs").hidden = true;
+      document.getElementById("msg").hidden = true;
     }
     // set HTML to display FMS score checkpoint
     function setFMS() {
-      setCP()
+      reset()
       document.getElementById("cp").className = "fms";
       document.getElementById("fms").hidden = false;
     }
     // set HTML to display COG measurement checkpoint
     function setCOG() {
-      setCP()
+      reset()
       document.getElementById("start-cog-measurement-button").value = "Start";
       document.getElementById("cp").className = "cog";
       document.getElementById("cog").hidden = false;
     }
     // set HTML to display Change Scenario checkpoint
     function setCHS(html = "") {
-      setCP()
+      reset()
       document.getElementById("cp").className = "chs";
       document.getElementById("chs").hidden = false;
       document.getElementById("chs").innerHTML = html;
+    }
+    // set message to display
+    function setMSG(message) {
+      reset()
+      document.getElementById("cp").className = "msg";
+      document.getElementById("msg").hidden = false;
+      document.querySelector("#msg p").innerHTML = message;
     }
 
     // set the opacity of a checkpoint to distinguish between current (1.0) and upcoming (~0.5) checkpoints
@@ -99,12 +107,17 @@
 
       }, 1000);
     }
-
+    
     function confirmFMS() {
       playSound(1);
       window.callNative('confirmFMS');
     }
 
+    function confirmMSG() {
+      playSound(1);
+      window.callNative('confirmMSG');
+    }
+    
     // init cosmoscout api to init sliders
     var CosmoScout = new CosmoScoutAPI();
 
@@ -185,23 +198,28 @@
     }
 
     #cp {
-      background: radial-gradient(circle, rgba(0, 0, 0, 0) 40%, rgb(15, 160, 228) 100%);
+      background: radial-gradient(circle, rgba(0, 0, 0, 0.0) 40%, rgb(15, 160, 228) 100%);
     }
 
     #cp.fms {
-      background: radial-gradient(circle, rgba(0, 0, 0, 0) 40%, rgba(255, 201, 102, 1) 100%);
+      background: radial-gradient(circle, rgba(0, 0, 0, 0.2) 40%, rgb(255, 207, 102) 100%);
     }
 
     #cp.cog {
-      background: radial-gradient(circle, rgba(0, 0, 0, 0) 40%, rgb(255, 102, 173) 100%);
+      background: radial-gradient(circle, rgba(0, 0, 0, 0.2) 40%, rgb(255, 102, 173) 100%);
+    }
+
+    #cp.msg {
+      background: radial-gradient(circle, rgba(0, 0, 0, 0.2) 40%, rgb(181, 102, 255) 100%);
     }
 
     #cp.chs {
-      background: radial-gradient(circle, rgba(0, 0, 0, 0) 40%, rgba(164, 255, 112, 1) 100%);
+      background: radial-gradient(circle, rgba(0, 0, 0, 0.2) 40%, rgba(164, 255, 112, 1) 100%);
     }
 
     #fms,
     #cog,
+    #msg,
     #chs {
       text-align: center;
       width: 70%;
@@ -270,6 +288,10 @@
       <img src="img/stance.png" alt="">
       <P>Click "Start", look straight ahead, and assume the above stance.</P>
       <input id="start-cog-measurement-button" class="btn" type="button" value="Start" onclick="startCOGMeasurement()">
+    </div>
+    <div id="msg">
+      <P></P>
+      <input class="btn" type="button" value="Continue" onclick="confirmMSG()">
     </div>
   </div>
 </body>

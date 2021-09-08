@@ -205,7 +205,7 @@ bool FloorGrid::Do() {
 
   // Then we draw with inverted depth test and make the grid very translucent.
   glDepthFunc(GL_GEQUAL);
-  mShader.SetUniform(mUniforms.alpha, 0.1F * mGridSettings.mAlpha.get());
+  mShader.SetUniform(mUniforms.alpha, 0.3F * mGridSettings.mAlpha.get());
 
   glDrawArrays(GL_QUADS, 0, 4);
 

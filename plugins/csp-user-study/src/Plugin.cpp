@@ -50,6 +50,7 @@ NLOHMANN_JSON_SERIALIZE_ENUM(Plugin::StageType, {
   {Plugin::StageType::eCheckpoint, "checkpoint"},
   {Plugin::StageType::eRequestFMS, "requestFMS"},
   {Plugin::StageType::eRequestCOG, "requestCOG"},
+  {Plugin::StageType::eMessage, "message"},
   {Plugin::StageType::eSwitchScenario, "switchScenario"},
 });
 
@@ -61,12 +62,14 @@ void from_json(nlohmann::json const& j, Plugin::Settings::StageSetting& o) {
   cs::core::Settings::deserialize(j, "type", o.mType);
   cs::core::Settings::deserialize(j, "bookmark", o.mBookmarkName);
   cs::core::Settings::deserialize(j, "scale", o.mScaling);
+  cs::core::Settings::deserialize(j, "data", o.mData);
 }
 
 void to_json(nlohmann::json& j, Plugin::Settings::StageSetting const& o) {
   cs::core::Settings::serialize(j, "type", o.mType);
   cs::core::Settings::serialize(j, "bookmark", o.mBookmarkName);
   cs::core::Settings::serialize(j, "scale", o.mScaling);
+  cs::core::Settings::serialize(j, "data", o.mData);
 }
 
 void from_json(nlohmann::json const& j, Plugin::Settings::Scenario& o) {
@@ -222,6 +225,10 @@ void Plugin::onLoad() {
           advanceStage();
         }));
     view.mGuiItem->registerCallback(
+        "confirmMSG", "Call this to advance to the next stage", std::function([this]() {
+          advanceStage();
+        }));
+    view.mGuiItem->registerCallback(
         "loadScenario", "Call this to load a new scenario", std::function([this](std::string path) {
           resultsLogger().info("Loading Scenario at " + path);
           mStageViews[mCurrentStageIdx % mStageViews.size()].mGuiItem->callJavascript("playSound", 0);
@@ -265,6 +272,7 @@ void Plugin::unload() {
     // unregister callbacks
     view.mGuiItem->unregisterCallback("setFMS");
     view.mGuiItem->unregisterCallback("confirmFMS");
+    view.mGuiItem->unregisterCallback("confirmMSG");
     view.mGuiItem->unregisterCallback("loadScenario");
     view.mGuiItem->unregisterCallback("setEnableCOGMeasurement");
     // disconnect from scene graph
@@ -369,7 +377,7 @@ void Plugin::setupStage(std::size_t stageIdx) {
     // Set webview according to type
     switch (settings.mType) {
     case StageType::eCheckpoint: {
-      view.mGuiItem->callJavascript("setCP");
+      view.mGuiItem->callJavascript("reset");
       break;
     }
     case StageType::eRequestFMS: {
@@ -378,6 +386,10 @@ void Plugin::setupStage(std::size_t stageIdx) {
     }
     case StageType::eRequestCOG: {
       view.mGuiItem->callJavascript("setCOG");
+      break;
+    }
+    case StageType::eMessage: {
+      view.mGuiItem->callJavascript("setMSG", settings.mData.value_or(""));
       break;
     }
     case StageType::eSwitchScenario: {

@@ -32,7 +32,7 @@ namespace csp::userstudy {
 /// The plugin is configurable via the application config file. See README.md for details.
 class Plugin : public cs::core::PluginBase {
  public:
-  enum class StageType { eCheckpoint, eRequestFMS, eRequestCOG, eSwitchScenario };
+  enum class StageType { eCheckpoint, eRequestFMS, eRequestCOG, eMessage, eSwitchScenario };
 
   struct Settings {
 
@@ -60,6 +60,9 @@ class Plugin : public cs::core::PluginBase {
 
       /// The scaling factor for the stage mark
       float mScaling;
+
+      /// For now, this is only used for the message of eMessage checkpoints.
+      std::optional<std::string> mData;
     };
 
     /// List of stages making up the scenario
