@@ -148,31 +148,37 @@ void Plugin::init() {
         }
       }));
 
+  mGuiManager->getGui()->registerCallback("userStudy.gotoFirst",
+      "Teleports to the first checkpoint.", std::function([this]() {
+        while (mCurrentStageIdx > 0) {
+          previousStage();
+        }
+        teleportToCurrent();
+      }));
+  mGuiManager->getGui()->registerCallback("userStudy.gotoPrevious",
+      "Teleports to the previous checkpoint.", std::function([this]() {
+        previousStage();
+        teleportToCurrent();
+      }));
+  mGuiManager->getGui()->registerCallback("userStudy.gotoNext",
+      "Teleports to the next checkpoint.", std::function([this]() {
+        nextStage();
+        teleportToCurrent();
+      }));
+  mGuiManager->getGui()->registerCallback("userStudy.gotoLast",
+      "Teleports to the last checkpoint.", std::function([this]() {
+        while (mCurrentStageIdx < mPluginSettings->mStageSettings.size()-1) {
+        nextStage();
+        }
+        teleportToCurrent();
+      }));
+
   GetVistaSystem()->GetKeyboardSystemControl()->BindAction(VISTA_KEY_BACKSPACE, [this]() {
     if (mInputManager->pSelectedGuiItem.get() && mInputManager->pSelectedGuiItem.get()->getIsKeyboardInputElementFocused()) {
       return;
     }
 
-    auto const& settings = mPluginSettings->mStageSettings[std::max(0, static_cast<int>(mCurrentStageIdx)-1)];
-    auto bookmark = getBookmarkByName(settings.mBookmarkName);
-    
-    if (bookmark.has_value()) {
-      cs::core::Settings::Bookmark b = bookmark.value();
-
-      if (b.mLocation) {
-        auto loc = b.mLocation.value();
-
-        if (loc.mRotation.has_value() && loc.mPosition.has_value()) {
-          mSolarSystem->flyObserverTo(loc.mCenter, loc.mFrame, loc.mPosition.value(),
-              loc.mRotation.value(), 0.0);
-        } else if (loc.mPosition.has_value()) {
-          mSolarSystem->flyObserverTo(
-              loc.mCenter, loc.mFrame, loc.mPosition.value(), 0.0);
-        } else {
-          mSolarSystem->flyObserverTo(loc.mCenter, loc.mFrame, 0.0);
-        }
-      }
-    }
+    teleportToCurrent();
   });
 
   onLoad();
@@ -195,7 +201,10 @@ void Plugin::deInit() {
   mGuiManager->getGui()->unregisterCallback("userStudy.setRecordingInterval");
   mGuiManager->getGui()->unregisterCallback("userStudy.deleteAllCheckpoints");
   mGuiManager->getGui()->unregisterCallback("userStudy.setEnableRecording");
-  mGuiManager->getGui()->unregisterCallback("userStudy.setEnableCOGMeasurement");
+  mGuiManager->getGui()->unregisterCallback("userStudy.gotoFirst");
+  mGuiManager->getGui()->unregisterCallback("userStudy.gotoPrevious");
+  mGuiManager->getGui()->unregisterCallback("userStudy.gotoNext");
+  mGuiManager->getGui()->unregisterCallback("userStudy.gotoLast");
 
   logger().info("Unloading done.");
 }
@@ -249,11 +258,11 @@ void Plugin::onLoad() {
         "confirmFMS", "Call this to submit the FMS rating", std::function([this]() {
           resultsLogger().info("{}: FMS: {}",
               mPluginSettings->mStageSettings[mCurrentStageIdx].mBookmarkName, mCurrentFMS.get());
-          advanceStage();
+          nextStage();
         }));
     view.mGuiItem->registerCallback(
         "confirmMSG", "Call this to advance to the next stage", std::function([this]() {
-          advanceStage();
+          nextStage();
         }));
     view.mGuiItem->registerCallback(
         "loadScenario", "Call this to load a new scenario", std::function([this](std::string path) {
@@ -266,7 +275,7 @@ void Plugin::onLoad() {
           mEnableCOGMeasurement = enable;
 
           if (!enable) {
-            advanceStage();
+            nextStage();
           }
         }));
 
@@ -324,6 +333,12 @@ void Plugin::update() {
         mPluginSettings->pRecordingInterval.get()) {
       mLastRecordTime = now;
 
+      if (mPluginSettings->mStageSettings.size() % 10 == 0) {
+        mStageViews[0].mGuiItem->callJavascript("playSound", 2);
+      } else {
+        mStageViews[0].mGuiItem->callJavascript("playSound", 0);
+      }
+
       cs::core::Settings::Bookmark bookmark;
       bookmark.mName =
           "user-study-bookmark-" + std::to_string(mPluginSettings->mStageSettings.size());
@@ -365,7 +380,7 @@ void Plugin::update() {
         // go to next stage
         resultsLogger().info("{}: Passed Checkpoint",
             mPluginSettings->mStageSettings[mCurrentStageIdx].mBookmarkName);
-        advanceStage();
+        nextStage();
 
           mStageViews[mCurrentStageIdx % mStageViews.size()].mGuiItem->callJavascript("playSound", 0);
       }
@@ -436,7 +451,33 @@ void Plugin::setupStage(std::size_t stageIdx) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Plugin::advanceStage() {
+void Plugin::teleportToCurrent() {
+  auto const& settings = mPluginSettings->mStageSettings[std::max(0, static_cast<int>(mCurrentStageIdx)-1)];
+  auto bookmark = getBookmarkByName(settings.mBookmarkName);
+  
+  if (bookmark.has_value()) {
+    cs::core::Settings::Bookmark b = bookmark.value();
+
+    if (b.mLocation) {
+      auto loc = b.mLocation.value();
+
+      if (loc.mRotation.has_value() && loc.mPosition.has_value()) {
+        mSolarSystem->flyObserverTo(loc.mCenter, loc.mFrame, loc.mPosition.value(),
+            loc.mRotation.value(), 0.0);
+      } else if (loc.mPosition.has_value()) {
+        mSolarSystem->flyObserverTo(
+            loc.mCenter, loc.mFrame, loc.mPosition.value(), 0.0);
+      } else {
+        mSolarSystem->flyObserverTo(loc.mCenter, loc.mFrame, 0.0);
+      }
+    }
+  }
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Plugin::nextStage() {
 
   // Advance the current stage index.
   mCurrentStageIdx = std::min(mCurrentStageIdx + 1, mPluginSettings->mStageSettings.size() - 1);
@@ -445,6 +486,24 @@ void Plugin::advanceStage() {
 
   // Setup the stage which becomes visible next.
   std::size_t newlyVisibleIdx = mCurrentStageIdx + mStageViews.size() - 1;
+  if (newlyVisibleIdx < mPluginSettings->mStageSettings.size()) {
+    setupStage(newlyVisibleIdx);
+  }
+
+  updateStages();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Plugin::previousStage() {
+
+  // Advance the current stage index.
+  mCurrentStageIdx = std::max(static_cast<int>(mCurrentStageIdx) - 1, 0);
+
+  logger().info("Reached stage {}", mCurrentStageIdx);
+
+  // Setup the stage which becomes visible next.
+  std::size_t newlyVisibleIdx = mCurrentStageIdx;
   if (newlyVisibleIdx < mPluginSettings->mStageSettings.size()) {
     setupStage(newlyVisibleIdx);
   }

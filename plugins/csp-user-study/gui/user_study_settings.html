@@ -27,6 +27,21 @@
 </div>
 
 <div class="row mb-3">
+  <div class="col-3">
+    <button class="btn glass block" type="button" onclick="CosmoScout.callbacks.userStudy.gotoFirst()")><i class="material-icons">skip_previous</i></button>
+  </div>
+  <div class="col-3">
+    <button class="btn glass block" type="button" onclick="CosmoScout.callbacks.userStudy.gotoPrevious()")><i class="material-icons">fast_rewind</i></button>
+  </div>
+  <div class="col-3">
+    <button class="btn glass block" type="button" onclick="CosmoScout.callbacks.userStudy.gotoNext()")><i class="material-icons">fast_forward</i></button>
+  </div>
+  <div class="col-3">
+    <button class="btn glass block" type="button" onclick="CosmoScout.callbacks.userStudy.gotoLast()")><i class="material-icons">skip_next</i></button>
+  </div>
+</div>
+
+<div class="row mb-3">
   <div class="col-12 input-group">
     <input id="user-study-save-file-name" type="text" class="form-control" value="test.json">
     <div class="input-group-append">

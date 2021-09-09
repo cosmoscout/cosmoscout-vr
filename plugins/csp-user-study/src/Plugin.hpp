@@ -82,7 +82,9 @@ class Plugin : public cs::core::PluginBase {
   void                                        setupStage(std::size_t stageIdx);
   std::optional<cs::core::Settings::Bookmark> getBookmarkByName(std::string name);
   void                                        updateStages();
-  void                                        advanceStage();
+  void                                        nextStage();
+  void                                        previousStage();
+  void                                        teleportToCurrent();
 
   std::shared_ptr<Settings> mPluginSettings = std::make_shared<Settings>();
 
