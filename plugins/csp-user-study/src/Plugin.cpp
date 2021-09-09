@@ -262,6 +262,7 @@ void Plugin::onLoad() {
         }));
     view.mGuiItem->registerCallback(
         "confirmMSG", "Call this to advance to the next stage", std::function([this]() {
+          resultsLogger().info("{}: MSG", mPluginSettings->mStageSettings[mCurrentStageIdx].mBookmarkName);
           nextStage();
         }));
     view.mGuiItem->registerCallback(
