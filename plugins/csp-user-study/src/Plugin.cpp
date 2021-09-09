@@ -148,6 +148,33 @@ void Plugin::init() {
         }
       }));
 
+  GetVistaSystem()->GetKeyboardSystemControl()->BindAction(VISTA_KEY_BACKSPACE, [this]() {
+    if (mInputManager->pSelectedGuiItem.get() && mInputManager->pSelectedGuiItem.get()->getIsKeyboardInputElementFocused()) {
+      return;
+    }
+
+    auto const& settings = mPluginSettings->mStageSettings[std::max(0, static_cast<int>(mCurrentStageIdx)-1)];
+    auto bookmark = getBookmarkByName(settings.mBookmarkName);
+    
+    if (bookmark.has_value()) {
+      cs::core::Settings::Bookmark b = bookmark.value();
+
+      if (b.mLocation) {
+        auto loc = b.mLocation.value();
+
+        if (loc.mRotation.has_value() && loc.mPosition.has_value()) {
+          mSolarSystem->flyObserverTo(loc.mCenter, loc.mFrame, loc.mPosition.value(),
+              loc.mRotation.value(), 0.0);
+        } else if (loc.mPosition.has_value()) {
+          mSolarSystem->flyObserverTo(
+              loc.mCenter, loc.mFrame, loc.mPosition.value(), 0.0);
+        } else {
+          mSolarSystem->flyObserverTo(loc.mCenter, loc.mFrame, 0.0);
+        }
+      }
+    }
+  });
+
   onLoad();
 
   logger().info("Loading done.");
