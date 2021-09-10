@@ -38,8 +38,17 @@ SolarSystem::SolarSystem(std::shared_ptr<Settings> settings,
     , mSun(std::make_shared<scene::CelestialObject>())
     , mResetObserver(mSettings->mObserver) {
 
+  // Make the initial observer animation mor interesting by starting somewhere far away.
+  mObserver.setAnchorPosition(glm::dvec3(0, 0, 10e11));
+
   mSun->setCenterName("Sun");
   mSun->setFrameName("IAU_Sun");
+
+  // Transiotion to the new observer position whenever the settings are loaded.
+  mOnLoadConnection = mSettings->onLoad().connect([this]() { 
+    mResetObserver = mSettings->mObserver;
+    resetObserverPosition(5.0);
+  });
 
   // Tell the user what's going on.
   logger().debug("Creating SolarSystem.");
@@ -50,6 +59,8 @@ SolarSystem::SolarSystem(std::shared_ptr<Settings> settings,
 SolarSystem::~SolarSystem() {
   // Tell the user what's going on.
   logger().debug("Deleting SolarSystem.");
+
+  mSettings->onLoad().disconnect(mOnLoadConnection);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

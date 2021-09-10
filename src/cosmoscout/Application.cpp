@@ -435,6 +435,7 @@ void Application::FrameUpdate() {
 
     // Hide the loading screen after several frames.
     if (GetFrameCount() == mHideLoadingScreenAtFrame) {
+      mSolarSystem->resetObserverPosition(10.0);
       mGuiManager->enableLoadingScreen(false);
     }
 
@@ -689,10 +690,6 @@ void Application::onLoad() {
       initPlugin(plugin.first);
     }
   }
-
-  // Move the observer to the new position.
-  mSolarSystem->flyObserverTo(mSettings->mObserver.pCenter.get(), mSettings->mObserver.pFrame.get(),
-      mSettings->mObserver.pPosition.get(), mSettings->mObserver.pRotation.get(), 5.0);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
