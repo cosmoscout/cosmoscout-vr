@@ -183,6 +183,20 @@ void Plugin::init() {
     teleportToCurrent();
   });
 
+  GetVistaSystem()->GetKeyboardSystemControl()->BindAction(VISTA_KEY_HOME, [this]() {
+    if (mInputManager->pSelectedGuiItem.get() && mInputManager->pSelectedGuiItem.get()->getIsKeyboardInputElementFocused()) {
+      return;
+    }
+
+    resultsLogger().info("RESTART");
+
+    while (mCurrentStageIdx > 0) {
+      previousStage();
+    }
+
+    mSolarSystem->resetObserverPosition(5.0);
+  });
+
   onLoad();
 
   logger().info("Loading done.");
@@ -207,6 +221,9 @@ void Plugin::deInit() {
   mGuiManager->getGui()->unregisterCallback("userStudy.gotoPrevious");
   mGuiManager->getGui()->unregisterCallback("userStudy.gotoNext");
   mGuiManager->getGui()->unregisterCallback("userStudy.gotoLast");
+
+  GetVistaSystem()->GetKeyboardSystemControl()->UnbindAction(VISTA_KEY_BACKSPACE);
+  GetVistaSystem()->GetKeyboardSystemControl()->UnbindAction(VISTA_KEY_HOME);
 
   logger().info("Unloading done.");
 }
