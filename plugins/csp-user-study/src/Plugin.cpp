@@ -178,6 +178,8 @@ void Plugin::init() {
       return;
     }
 
+    resultsLogger().info("{}: RESET", mPluginSettings->mStageSettings[mCurrentStageIdx].mBookmarkName);
+
     teleportToCurrent();
   });
 
