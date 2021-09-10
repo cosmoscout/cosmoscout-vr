@@ -44,7 +44,7 @@
     // set HTML to display COG measurement checkpoint
     function setCOG() {
       reset()
-      document.getElementById("start-cog-measurement-button").value = "Start";
+      document.getElementById("start-cog-measurement-button").value = "Start Measurement";
       document.getElementById("cp").className = "cog";
       document.getElementById("cog").hidden = false;
     }
@@ -91,12 +91,12 @@
 
     function stopCOGMeasurement() {
       let countDown = 10;
-      document.getElementById("start-cog-measurement-button").value = "Stand still for " + countDown + "s ...";
+      document.getElementById("start-cog-measurement-button").value = "Don't move! (" + countDown + "s)";
 
 
       let id = setInterval(function () {
         --countDown;
-        document.getElementById("start-cog-measurement-button").value = "Stand still for " + countDown + "s ...";
+        document.getElementById("start-cog-measurement-button").value = "Don't move! (" + countDown + "s)";
 
         if (countDown == 0) {
           window.clearInterval(id);
@@ -136,6 +136,7 @@
     P {
       text-shadow: 1px 1px 1px #000, 0px 0px 1px #000, 1px 1px 5px rgb(0 0 0 / 75%);
       font-size: 1.2em;
+      margin-bottom: 3px;
     }
 
     body {
@@ -245,7 +246,8 @@
 
     .btn {
       padding: 5px 25px;
-      margin-bottom: 8px;
+      margin-top: 8px;
+      margin-bottom: 4px;
       border-radius: 10px;
       background: var(--cs-color-background-darker);
       color: var(--cs-color-text);
@@ -298,8 +300,8 @@
     </div>
     <div id="cog">
       <img src="img/stance.png" alt="">
-      <P>After clicking "Start", you have 5s to assume the above stance. Then don't move for 10s.</P>
-      <input id="start-cog-measurement-button" class="btn" type="button" value="Start" onclick="startCOGMeasurement()">
+      <P>You will have 5s to assume the above stance. Then stand still for 10s.</P>
+      <input id="start-cog-measurement-button" class="btn" type="button" value="Start Measurement" onclick="startCOGMeasurement()">
     </div>
     <div id="msg">
       <P></P>

@@ -8,6 +8,7 @@
 #define CS_GRAPHICS_MOUSE_RAY_HPP
 
 #include "cs_graphics_export.hpp"
+#include "GltfLoader.hpp"
 
 #include <memory>
 
@@ -41,6 +42,8 @@ class CS_GRAPHICS_EXPORT MouseRay : public IVistaOpenGLDraw {
  private:
   std::unique_ptr<VistaTransformNode> mRayTransform;
   std::unique_ptr<VistaOpenGLNode>    mMouseRayNode;
+
+  std::unique_ptr<cs::graphics::GltfLoader> mModel;
 
   VistaGLSLShader        mShader;
   VistaVertexArrayObject mRayVAO;

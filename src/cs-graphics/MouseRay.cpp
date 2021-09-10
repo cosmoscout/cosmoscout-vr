@@ -77,10 +77,15 @@ void main()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-MouseRay::MouseRay() {
+MouseRay::MouseRay():
+ mModel(std::make_unique<cs::graphics::GltfLoader>(
+          "../share/resources/models/vive.glb", "../share/resources/textures/spaceEnvMap.dds", true)) {
   auto*               sceneGraph = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
   VistaTransformNode* intentionNode =
       dynamic_cast<VistaTransformNode*>(sceneGraph->GetNode("SELECTION_NODE"));
+
+  mModel->attachTo(sceneGraph,intentionNode);
+  mModel->setIBLIntensity(2.5);
 
   mRayTransform.reset(sceneGraph->NewTransformNode(intentionNode));
   mRayTransform->SetScale(0.001F, 0.001F, 30.F);
