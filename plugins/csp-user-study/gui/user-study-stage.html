@@ -139,7 +139,7 @@
     }
 
     body {
-      transition: opacity 0.5s linear;
+      transition: all 0.5s linear;
     }
 
     body.hidden {
@@ -152,11 +152,23 @@
     }
 
     body.stage1 {
-      opacity: 0.5;
+      opacity: 0.3;
+      filter: blur(3px);
     }
 
     body.stage2 {
-      opacity: 0.25;
+      opacity: 0.2;
+      filter: blur(5px);
+    }
+
+    body.stage3 {
+      opacity: 0.1;
+      filter: blur(7px);
+    }
+
+    body.stage4 {
+      opacity: 0.1;
+      filter: blur(9px);
     }
 
     @keyframes flash {
@@ -165,7 +177,7 @@
       }
 
       20% {
-        filter: brightness(2)
+        filter: brightness(3)
       }
 
       100% {
