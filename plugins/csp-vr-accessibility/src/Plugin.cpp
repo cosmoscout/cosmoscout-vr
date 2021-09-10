@@ -115,7 +115,7 @@ void Plugin::init() {
 
   // register callback for grid size slider
   mGuiManager->getGui()->registerCallback("floorGrid.setSize",
-      "Value scales the grid texture size between.", std::function([this](double value) {
+      "Value scales the grid texture size.", std::function([this](double value) {
         mPluginSettings->mGridSettings.mSize = static_cast<float>(value);
       }));
   mPluginSettings->mGridSettings.mSize.connectAndTouch(
