@@ -68,8 +68,7 @@ class FloorGrid : public IVistaOpenGLDraw {
     uint32_t modelViewMatrix  = 0;
     uint32_t projectionMatrix = 0;
     uint32_t texture          = 0;
-    uint32_t falloff          = 0;
-    uint32_t offset           = 0;
+    uint32_t extent           = 0;
     uint32_t size             = 0;
     uint32_t farClip          = 0;
     uint32_t alpha            = 0;

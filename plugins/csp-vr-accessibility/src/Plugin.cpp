@@ -40,7 +40,7 @@ void from_json(nlohmann::json const& j, Plugin::Settings::Grid& o) {
   cs::core::Settings::deserialize(j, "enabled", o.mEnabled);
   cs::core::Settings::deserialize(j, "size", o.mSize);
   cs::core::Settings::deserialize(j, "offset", o.mOffset);
-  cs::core::Settings::deserialize(j, "falloff", o.mFalloff);
+  cs::core::Settings::deserialize(j, "extent", o.mExtent);
   cs::core::Settings::deserialize(j, "texture", o.mTexture);
   cs::core::Settings::deserialize(j, "alpha", o.mAlpha);
   cs::core::Settings::deserialize(j, "color", o.mColor);
@@ -50,7 +50,7 @@ void to_json(nlohmann::json& j, Plugin::Settings::Grid const& o) {
   cs::core::Settings::serialize(j, "enabled", o.mEnabled);
   cs::core::Settings::serialize(j, "size", o.mSize);
   cs::core::Settings::serialize(j, "offset", o.mOffset);
-  cs::core::Settings::serialize(j, "falloff", o.mFalloff);
+  cs::core::Settings::serialize(j, "extent", o.mExtent);
   cs::core::Settings::serialize(j, "texture", o.mTexture);
   cs::core::Settings::serialize(j, "alpha", o.mAlpha);
   cs::core::Settings::serialize(j, "color", o.mColor);
@@ -59,13 +59,11 @@ void to_json(nlohmann::json& j, Plugin::Settings::Grid const& o) {
 void from_json(nlohmann::json const& j, Plugin::Settings::Vignette& o) {
   cs::core::Settings::deserialize(j, "enabled", o.mEnabled);
   cs::core::Settings::deserialize(j, "debug", o.mDebug);
-  cs::core::Settings::deserialize(j, "innerRadius", o.mInnerRadius);
-  cs::core::Settings::deserialize(j, "outerRadius", o.mOuterRadius);
+  cs::core::Settings::deserialize(j, "radii", o.mRadii);
   cs::core::Settings::deserialize(j, "color", o.mColor);
   cs::core::Settings::deserialize(j, "fadeDuration", o.mFadeDuration);
   cs::core::Settings::deserialize(j, "fadeDeadzone", o.mFadeDeadzone);
-  cs::core::Settings::deserialize(j, "lowerVelocityThreshold", o.mLowerVelocityThreshold);
-  cs::core::Settings::deserialize(j, "upperVelocityThreshold", o.mUpperVelocityThreshold);
+  cs::core::Settings::deserialize(j, "velocityThresholds", o.mVelocityThresholds);
   cs::core::Settings::deserialize(j, "useDynamicRadius", o.mUseDynamicRadius);
   cs::core::Settings::deserialize(j, "useVerticalOnly", o.mUseVerticalOnly);
 }
@@ -73,13 +71,11 @@ void from_json(nlohmann::json const& j, Plugin::Settings::Vignette& o) {
 void to_json(nlohmann::json& j, Plugin::Settings::Vignette const& o) {
   cs::core::Settings::serialize(j, "enabled", o.mEnabled);
   cs::core::Settings::serialize(j, "debug", o.mDebug);
-  cs::core::Settings::serialize(j, "innerRadius", o.mInnerRadius);
-  cs::core::Settings::serialize(j, "outerRadius", o.mOuterRadius);
+  cs::core::Settings::serialize(j, "radii", o.mRadii);
   cs::core::Settings::serialize(j, "color", o.mColor);
   cs::core::Settings::serialize(j, "fadeDuration", o.mFadeDuration);
   cs::core::Settings::serialize(j, "fadeDeadzone", o.mFadeDeadzone);
-  cs::core::Settings::serialize(j, "lowerVelocityThreshold", o.mLowerVelocityThreshold);
-  cs::core::Settings::serialize(j, "upperVelocityThreshold", o.mUpperVelocityThreshold);
+  cs::core::Settings::serialize(j, "velocityThresholds", o.mVelocityThresholds);
   cs::core::Settings::serialize(j, "useDynamicRadius", o.mUseDynamicRadius);
   cs::core::Settings::serialize(j, "useVerticalOnly", o.mUseVerticalOnly);
 }
@@ -106,8 +102,8 @@ void Plugin::init() {
       [this]() { mAllSettings->mPlugins["csp-vr-accessibility"] = *mPluginSettings; });
 
   // add settings to GUI
-  mGuiManager->addSettingsSectionToSideBarFromHTML(
-      "VR Accessibility", "blur_circular", "../share/resources/gui/vr_accessibility_settings.html");
+  mGuiManager->addSettingsSectionToSideBarFromHTML("VR Accessibility", "accessibility_new",
+      "../share/resources/gui/vr_accessibility_settings.html");
   mGuiManager->addScriptToGuiFromJS("../share/resources/gui/js/csp-vr-accessibility.js");
 
   // register callback for grid enable grid checkbox
@@ -119,22 +115,19 @@ void Plugin::init() {
 
   // register callback for grid size slider
   mGuiManager->getGui()->registerCallback("floorGrid.setSize",
-      "Value scales the grid size between 0.5 (doubles the square size) and 2 (halves square "
-      "size).",
-      std::function([this](double value) {
-        mPluginSettings->mGridSettings.mSize = static_cast<float>(std::pow(2, value));
+      "Value scales the grid texture size.", std::function([this](double value) {
+        mPluginSettings->mGridSettings.mSize = static_cast<float>(value);
       }));
-  mPluginSettings->mGridSettings.mSize.connectAndTouch([this](float value) {
-    mGuiManager->setSliderValue("floorGrid.setSize", std::round(std::log2(value)));
-  });
+  mPluginSettings->mGridSettings.mSize.connectAndTouch(
+      [this](float value) { mGuiManager->setSliderValue("floorGrid.setSize", value); });
 
-  // register callback for grid offset slider
-  mGuiManager->getGui()->registerCallback("floorGrid.setOffset",
-      "Value to adjust downward offset of the grid.", std::function([this](double value) {
-        mPluginSettings->mGridSettings.mOffset = static_cast<float>(value);
+  // register callback for grid extent slider
+  mGuiManager->getGui()->registerCallback(
+      "floorGrid.setExtent", "Value to scale the entire grid.", std::function([this](double value) {
+        mPluginSettings->mGridSettings.mExtent = static_cast<float>(value);
       }));
-  mPluginSettings->mGridSettings.mOffset.connectAndTouch(
-      [this](float value) { mGuiManager->setSliderValue("floorGrid.setOffset", value); });
+  mPluginSettings->mGridSettings.mExtent.connectAndTouch(
+      [this](float value) { mGuiManager->setSliderValue("floorGrid.setExtent", value); });
 
   // register callback for grid alpha slider
   mGuiManager->getGui()->registerCallback(
@@ -186,22 +179,14 @@ void Plugin::init() {
   });
 
   // register callback for fov vignette inner radius slider
-  mGuiManager->getGui()->registerCallback("fovVignette.setInnerRadius",
-      "Value to adjust the inner radius (start of gradient) of the vignette.",
-      std::function([this](double value) {
-        mPluginSettings->mVignetteSettings.mInnerRadius = static_cast<float>(value);
+  mGuiManager->getGui()->registerCallback("fovVignette.setRadii",
+      "Value to adjust the radii of the vignette.",
+      std::function([this](double inner, double outer) {
+        mPluginSettings->mVignetteSettings.mRadii = glm::vec2(inner, outer);
       }));
-  mPluginSettings->mVignetteSettings.mInnerRadius.connectAndTouch(
-      [this](float value) { mGuiManager->setSliderValue("fovVignette.setInnerRadius", value); });
-
-  // register callback for fov vignette outer radius slider
-  mGuiManager->getGui()->registerCallback("fovVignette.setOuterRadius",
-      "Value to adjust the outer radius (end of gradient) of the vignette.",
-      std::function([this](double value) {
-        mPluginSettings->mVignetteSettings.mOuterRadius = static_cast<float>(value);
-      }));
-  mPluginSettings->mVignetteSettings.mOuterRadius.connectAndTouch(
-      [this](float value) { mGuiManager->setSliderValue("fovVignette.setOuterRadius", value); });
+  mPluginSettings->mVignetteSettings.mRadii.connectAndTouch([this](glm::vec2 const& value) {
+    mGuiManager->setSliderValue("fovVignette.setRadii", value);
+  });
 
   // register callback for fov vignette color picker
   mGuiManager->getGui()->registerCallback("fovVignette.setColor",
@@ -213,24 +198,16 @@ void Plugin::init() {
   });
 
   // register callback for fov vignette lower velocity threshold
-  mGuiManager->getGui()->registerCallback("fovVignette.setLowerThreshold",
-      "Value to adjust the minimum velocity threshold when the vignette should be drawn (values "
-      "from 0 to 10% of max. velocity).",
-      std::function([this](double value) {
-        mPluginSettings->mVignetteSettings.mLowerVelocityThreshold = static_cast<float>(value);
+  mGuiManager->getGui()->registerCallback("fovVignette.setVelocityThresholds",
+      "Value to adjust the minimum and maximum velocity thresholds when the vignette should be "
+      "drawn.",
+      std::function([this](double low, double high) {
+        mPluginSettings->mVignetteSettings.mVelocityThresholds = glm::vec2(low, high);
       }));
-  mPluginSettings->mVignetteSettings.mLowerVelocityThreshold.connectAndTouch(
-      [this](float value) { mGuiManager->setSliderValue("fovVignette.setLowerThreshold", value); });
-
-  // register callback for fov vignette upper velocity threshold
-  mGuiManager->getGui()->registerCallback("fovVignette.setUpperThreshold",
-      "Value to adjust the maximum velocity threshold when the vignette should be set to the "
-      "radius specified in the settings (values from 90 to 100% of max. velocity).",
-      std::function([this](double value) {
-        mPluginSettings->mVignetteSettings.mUpperVelocityThreshold = static_cast<float>(value);
-      }));
-  mPluginSettings->mVignetteSettings.mUpperVelocityThreshold.connectAndTouch(
-      [this](float value) { mGuiManager->setSliderValue("fovVignette.setUpperThreshold", value); });
+  mPluginSettings->mVignetteSettings.mVelocityThresholds.connectAndTouch(
+      [this](glm::vec2 const& value) {
+        mGuiManager->setSliderValue("fovVignette.setVelocityThresholds", value);
+      });
 
   // register callback for fov vignette fade duration slider
   mGuiManager->getGui()->registerCallback("fovVignette.setDuration",
@@ -271,8 +248,7 @@ void Plugin::deInit() {
   mGuiManager->getGui()->unregisterCallback("fovVignette.setDebug");
   mGuiManager->getGui()->unregisterCallback("fovVignette.setEnableDynamicRadius");
   mGuiManager->getGui()->unregisterCallback("fovVignette.setEnableVerticalOnly");
-  mGuiManager->getGui()->unregisterCallback("fovVignette.setInnerRadius");
-  mGuiManager->getGui()->unregisterCallback("fovVignette.setOuterRadius");
+  mGuiManager->getGui()->unregisterCallback("fovVignette.setRadii");
   mGuiManager->getGui()->unregisterCallback("fovVignette.setColor");
   mGuiManager->getGui()->unregisterCallback("fovVignette.setLowerThreshold");
   mGuiManager->getGui()->unregisterCallback("fovVignette.setUpperThreshold");
@@ -302,12 +278,16 @@ void Plugin::update() {
     resetColorPicker = false;
   }
 
-  mGrid->update();
+  if (mPluginSettings->mGridSettings.mEnabled.get()) {
+    mGrid->update();
+  }
 
-  if (mPluginSettings->mVignetteSettings.mUseDynamicRadius.get()) {
-    mVignette->updateDynamicRadiusVignette();
-  } else {
-    mVignette->updateFadeAnimatedVignette();
+  if (mPluginSettings->mVignetteSettings.mEnabled.get()) {
+    if (mPluginSettings->mVignetteSettings.mUseDynamicRadius.get()) {
+      mVignette->updateDynamicRadiusVignette();
+    } else {
+      mVignette->updateFadeAnimatedVignette();
+    }
   }
 }
 
