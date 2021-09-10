@@ -9,6 +9,7 @@
 
 #include "cs_core_export.hpp"
 
+#include "Settings.hpp"
 #include "../cs-scene/CelestialAnchor.hpp"
 #include "../cs-scene/CelestialBody.hpp"
 #include "../cs-scene/CelestialObserver.hpp"
@@ -78,6 +79,9 @@ class CS_CORE_EXPORT SolarSystem {
   void                            setObserver(scene::CelestialObserver const& observer);
   scene::CelestialObserver&       getObserver();
   scene::CelestialObserver const& getObserver() const;
+
+  /// Moves the observer to the position defined in the settings file.
+  void resetObserverPosition(double duration);
 
   /// It may happen that our observer is in a SPICE frame we do not have data for. If this is the
   /// case, this call will bring it back to Solar System Barycenter / J2000 which should be
@@ -241,8 +245,11 @@ class CS_CORE_EXPORT SolarSystem {
   std::set<std::shared_ptr<scene::CelestialAnchor>> mAnchors;
   std::set<std::shared_ptr<scene::CelestialBody>>   mBodies;
 
+  Settings::Observer mResetObserver;
+
   bool mIsInitialized              = false;
   bool mSpiceFrameChangedLastFrame = false;
+  int mOnLoadConnection = -1;
 
   uint64_t mListenerIds = 0;
   std::unordered_map<uint64_t, std::function<void(std::shared_ptr<scene::CelestialBody>)>>

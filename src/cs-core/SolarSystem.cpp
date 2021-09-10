@@ -35,7 +35,8 @@ SolarSystem::SolarSystem(std::shared_ptr<Settings> settings,
     : mSettings(std::move(settings))
     , mGraphicsEngine(std::move(graphicsEngine))
     , mTimeControl(std::move(timeControl))
-    , mSun(std::make_shared<scene::CelestialObject>()) {
+    , mSun(std::make_shared<scene::CelestialObject>())
+    , mResetObserver(mSettings->mObserver) {
 
   mSun->setCenterName("Sun");
   mSun->setFrameName("IAU_Sun");
@@ -102,6 +103,13 @@ scene::CelestialObserver& SolarSystem::getObserver() {
 
 scene::CelestialObserver const& SolarSystem::getObserver() const {
   return mObserver;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void SolarSystem::resetObserverPosition(double duration) {
+  flyObserverTo(mResetObserver.pCenter.get(), mResetObserver.pFrame.get(),
+      mResetObserver.pPosition.get(), mResetObserver.pRotation.get(), duration);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
