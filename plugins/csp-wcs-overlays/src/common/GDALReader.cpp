@@ -260,8 +260,7 @@ void GDALReader::BuildTexture(GDALDataset* poDatasetSrc, GDALReader::GreyScaleTe
 
   // Allocate memory for the image pixels
 
-  int bufferSize =
-      sizeof(int) * psWarpOptions->nBandCount * resX * resY * GDALGetDataTypeSizeBytes(eDT);
+  int bufferSize = resX * resY * GDALGetDataTypeSizeBytes(eDT);
 
   void* bufferData = CPLMalloc(bufferSize);
 
@@ -272,15 +271,13 @@ void GDALReader::BuildTexture(GDALDataset* poDatasetSrc, GDALReader::GreyScaleTe
   GDALDestroyGenImgProjTransformer(psWarpOptions->pTransformerArg);
   GDALDestroyWarpOptions(psWarpOptions);
 
-  std::cout << poDatasetSrc->GetRasterBand(1)->GetDescription() << "\n";
-
   mBandsCache.insert(std::make_pair(filename, poDatasetSrc->GetRasterCount()));
 
   GDALClose(poDatasetSrc);
 
   /////////////////////// Reprojection End /////////////////
   texture.buffersize   = bufferSize;
-  texture.buffer       = static_cast<float*>(CPLMalloc(bufferSize));
+  texture.buffer       = static_cast<void*>(CPLMalloc(bufferSize));
   texture.x            = resX;
   texture.y            = resY;
   texture.dataRange    = d_dataRange;

@@ -47,7 +47,13 @@
       this._transferFunction = CosmoScout.transferFunctionEditor.create(
           document.getElementById('wcsOverlays-transfer-function'), transferFunction => {
             window.callNative('wcsOverlays.setTransferFunction', transferFunction);
-          }, {width: 450, height: 120, defaultFunction: "HeatLight.json", fitToData: true});
+          }, {
+            width: 450,
+            height: 120,
+            defaultFunction: "HeatLight.json",
+            fitToData: true,
+            numberBins: 32
+          });
 
       CosmoScout.gui.initSlider("wcsOverlays.setUpdateBoundsDelay", 0, 5000, 100, [1000]);
       CosmoScout.gui.initSlider("wcsOverlays.setPrefetchCount", 0, 10, 1, [0]);

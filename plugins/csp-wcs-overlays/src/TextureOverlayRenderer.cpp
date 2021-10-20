@@ -349,8 +349,6 @@ void TextureOverlayRenderer::getTimeIndependentTexture(
         mUpdateTexture = true;
         mTexture       = texture.value();
         mGuiManager->getGui()->callJavascript(
-            "CosmoScout.wcsOverlays.setDataRange", mTexture.dataRange[0], mTexture.dataRange[1]);
-        mGuiManager->getGui()->callJavascript(
             "CosmoScout.wcsOverlays.setNumberOfLayers", mTexture.layers, request.layer.value_or(1));
       }
       mGuiManager->getGui()->callJavascript(
@@ -502,35 +500,83 @@ bool TextureOverlayRenderer::Do() {
   if (mUpdateTexture) {
     data.mColorBuffer->Bind();
 
+    nlohmann::json sampleJson;
+
     switch (mTexture.type) {
     case 1: // UInt8
+    {
+      std::vector<uint8_t> textureData(
+          (uint8_t*)mTexture.buffer, (uint8_t*)(mTexture.buffer) + (mTexture.x * mTexture.y));
+      sampleJson = textureData;
+
       glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, mTexture.x, mTexture.y, 0, GL_RED, GL_UNSIGNED_BYTE,
           (void*)mTexture.buffer);
       break;
+    }
+
     case 2: // UInt16
+    {
+      std::vector<uint16_t> textureData(
+          (uint16_t*)mTexture.buffer, (uint16_t*)(mTexture.buffer) + (mTexture.x * mTexture.y));
+      sampleJson = textureData;
+
       glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, mTexture.x, mTexture.y, 0, GL_RED, GL_UNSIGNED_SHORT,
           (void*)mTexture.buffer);
       break;
+    }
+
     case 3: // Int16
+    {
+      std::vector<int16_t> textureData(
+          (int16_t*)mTexture.buffer, (int16_t*)(mTexture.buffer) + (mTexture.x * mTexture.y));
+      sampleJson = textureData;
+
       glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, mTexture.x, mTexture.y, 0, GL_RED, GL_SHORT,
           (void*)mTexture.buffer);
       break;
+    }
+
     case 4: // UInt32
+    {
+      std::vector<uint32_t> textureData(
+          (uint32_t*)mTexture.buffer, (uint32_t*)(mTexture.buffer) + (mTexture.x * mTexture.y));
+      sampleJson = textureData;
+
       glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, mTexture.x, mTexture.y, 0, GL_RED, GL_UNSIGNED_INT,
           (void*)mTexture.buffer);
       break;
+    }
+
     case 5: // Int32
+    {
+      std::vector<int32_t> textureData(
+          (int32_t*)mTexture.buffer, (int32_t*)(mTexture.buffer) + (mTexture.x * mTexture.y));
+      sampleJson = textureData;
+
       glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, mTexture.x, mTexture.y, 0, GL_RED, GL_INT,
           (void*)mTexture.buffer);
       break;
+    }
+
     case 6: // Float32
     case 7: // Float64
+    {
+      std::vector<float> textureData(
+          (float*)mTexture.buffer, (float*)(mTexture.buffer) + (mTexture.x * mTexture.y));
+      sampleJson = textureData;
       glTexImage2D(
           GL_TEXTURE_2D, 0, GL_R32F, mTexture.x, mTexture.y, 0, GL_RED, GL_FLOAT, mTexture.buffer);
       break;
+    }
 
     default:
       logger().error("Texture has no known data type.");
+    }
+
+    if (sampleJson) {
+      // Texture encoded as json. Used to generate the histogram
+      mGuiManager->getGui()->callJavascript(
+          "CosmoScout.wcsOverlays._transferFunction.setData", sampleJson);
     }
 
     mUpdateTexture = false;

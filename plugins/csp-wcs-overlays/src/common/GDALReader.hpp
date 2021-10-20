@@ -23,7 +23,7 @@ class GDALReader {
     std::array<double, 4> lnglatBounds{};
     std::array<double, 2> dataRange{};
     int                   buffersize{};
-    float*                buffer{};
+    void*                 buffer{};
     int                   timeIndex = 0;
     GDALDataType          type;
     float                 typeSize = 1;
