@@ -4,10 +4,10 @@ svg[id^="transferFunctionEditor.graph"] circle {
     stroke-width: 1.5px;
 }
 
-svg[id^="transferFunctionEditor.graph"] circle.selected {
-    stroke: var(--cs-color-text-highlight);
-    stroke-width: 2.5px;
-}
+    svg[id^="transferFunctionEditor.graph"] circle.selected {
+        stroke: var(--cs-color-text-highlight);
+        stroke-width: 2.5px;
+    }
 
 svg[id^="transferFunctionEditor.graph"] .line {
     stroke: var(--cs-color-primary);
@@ -25,6 +25,10 @@ svg[id^="transferFunctionEditor.graph"] .tick line {
 
 svg[id^="transferFunctionEditor.graph"] .tick text {
     fill: var(--cs-color-text);
+}
+
+svg[id^="transferFunctionEditor.graph"] .bar {
+    fill: var(--cs-color-primary);
 }
 
 div.row input[id^="transferFunctionEditor."],
