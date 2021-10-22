@@ -111,264 +111,6 @@ void Plugin::init() {
   mGuiManager->addScriptToGuiFromJS("../share/resources/gui/js/csp-wcs-overlays.js");
   mGuiManager->addCssToGui("css/csp-wcs-overlays.css");
 
-  mGuiManager->getGui()->registerCallback(
-      "wcsOverlays.updateBounds", "Updates the bounds for map requests.", std::function([this]() {
-        if (!mActiveOverlay) {
-          return;
-        }
-
-        mActiveOverlay->requestUpdateBounds();
-      }));
-
-  mGuiManager->getGui()->registerCallback("wcsOverlays.resetBounds",
-      "Resets the bounds for map requests to the current layer's default bounds.",
-      std::function([this]() {
-        if (!mActiveOverlay || !mActiveCoverages[mActiveOverlay->getCenter()]) {
-          return;
-        }
-
-        mActiveOverlay->pBounds =
-            mActiveCoverages[mActiveOverlay->getCenter()]->getSettings().mBounds;
-      }));
-
-  mGuiManager->getGui()->registerCallback("wcsOverlays.goToDefaultBounds",
-      "Fly the observer to a position from which most of the current layer's default bounds is "
-      "visible.",
-      std::function([this]() {
-        if (!mActiveOverlay || !mActiveCoverages[mActiveOverlay->getCenter()]) {
-          return;
-        }
-
-        WebCoverage::Settings layerSettings =
-            mActiveCoverages[mActiveOverlay->getCenter()]->getSettings();
-        goToBounds(layerSettings.mBounds);
-      }));
-
-  mGuiManager->getGui()->registerCallback("wcsOverlays.goToCurrentBounds",
-      "Fly the observer to a position from which most of the currently active bounds is visible.",
-      std::function([this]() {
-        if (!mActiveOverlay) {
-          return;
-        }
-
-        goToBounds(mActiveOverlay->pBounds.get());
-      }));
-
-  mGuiManager->getGui()->registerCallback("wcsOverlays.setServer",
-      "Set the current planet's WCS server to the one with the given name.",
-      std::function([this](std::string&& name) {
-        if (!mActiveOverlay) {
-          return;
-        }
-
-        setWCSServer(mActiveOverlay, name);
-        mNoMovementRequestedUpdate = false;
-      }));
-
-  mGuiManager->getGui()->registerCallback("wcsOverlays.setCoverage",
-      "Set the current planet's WCS coverage to the one with the given name.",
-      std::function([this](std::string&& coverageId) {
-        if (!mActiveOverlay || !mActiveServers[mActiveOverlay->getCenter()]) {
-          return;
-        }
-
-        setWCSCoverage(mActiveOverlay, coverageId);
-        mNoMovementRequestedUpdate = false;
-      }));
-
-  mGuiManager->getGui()->registerCallback("wcsOverlays.setLayer",
-      "Set the current layer of the active Coverage.", std::function([this](std::string&& layer) {
-        if (!mActiveOverlay || !mActiveServers[mActiveOverlay->getCenter()]) {
-          return;
-        }
-
-        mActiveOverlay->setLayer(std::stoi(layer));
-      }));
-
-  mGuiManager->getGui()->registerCallback(
-      "wcsOverlays.goToFirstTime", "Go to the first available timestep.", std::function([this]() {
-        if (!mActiveOverlay || !mActiveCoverages[mActiveOverlay->getCenter()] ||
-            mActiveCoverages[mActiveOverlay->getCenter()]->getSettings().mTimeIntervals.empty()) {
-          return;
-        }
-
-        mActiveCoverages[mActiveOverlay->getCenter()]->update();
-        auto intervals =
-            mActiveCoverages[mActiveOverlay->getCenter()]->getSettings().mTimeIntervals;
-        auto start = utils::timeToString(intervals.front().mFormat, intervals.front().mStartTime);
-        auto end   = utils::timeToString(intervals.back().mFormat, intervals.back().mEndTime);
-
-        mGuiManager->getGui()->callJavascript("CosmoScout.wcsOverlays.setTimeInfo", start, end);
-
-        mTimeControl->setTimeSpeed(0);
-        mTimeControl->setTime(
-            cs::utils::convert::time::toSpice(mActiveCoverages[mActiveOverlay->getCenter()]
-                                                  ->getSettings()
-                                                  .mTimeIntervals.front()
-                                                  .mStartTime));
-      }));
-
-  mGuiManager->getGui()->registerCallback("wcsOverlays.goToPreviousTime",
-      "Go to the previous available timestep.", std::function([this]() {
-        if (!mActiveOverlay || !mActiveCoverages[mActiveOverlay->getCenter()] ||
-            mActiveCoverages[mActiveOverlay->getCenter()]->getSettings().mTimeIntervals.empty()) {
-          return;
-        }
-
-        mTimeControl->setTimeSpeed(0);
-
-        boost::posix_time::ptime time =
-            cs::utils::convert::time::toPosix(mTimeControl->pSimulationTime.get());
-
-        std::vector<TimeInterval> intervals =
-            mActiveCoverages[mActiveOverlay->getCenter()]->getSettings().mTimeIntervals;
-
-        // Check if current time is in any interval
-        TimeInterval             result;
-        boost::posix_time::ptime sampleStartTime = time;
-        if (utils::timeInIntervals(sampleStartTime, intervals, result)) {
-          if (sampleStartTime != time) {
-            // timeInIntervals rounds down the time to the nearest timestep, so the
-            // result of that method can be used.
-            mTimeControl->setTime(cs::utils::convert::time::toSpice(sampleStartTime));
-            return;
-          }
-          // The current time was a valid timestep so the previous step has to be found.
-          if (sampleStartTime == result.mStartTime) {
-            auto it = std::find(intervals.begin(), intervals.end(), result);
-            if (it == intervals.begin()) {
-              // If the time is at the start of the first interval, there is no previous
-              // timestep to go to.
-              return;
-            }
-            // If the time is at the start of another interval, the previous timestep is the
-            // end time of the previous interval.
-            // It is assumed that the intervals are ordered chronologically.
-            mTimeControl->setTime(cs::utils::convert::time::toSpice((it - 1)->mEndTime));
-            return;
-          }
-          // If the time was not the start time of any interval we can subtract the duration to
-          // get the previous timestep.
-          sampleStartTime = utils::addDurationToTime(sampleStartTime, result.mSampleDuration, -1);
-          mTimeControl->setTime(cs::utils::convert::time::toSpice(sampleStartTime));
-          return;
-        }
-
-        // Time was not part of any interval, so the last interval, that lies before the current
-        // time has to be found.
-        boost::posix_time::ptime temp = time;
-        for (auto const& interval : intervals) {
-          if (time > interval.mEndTime) {
-            temp = interval.mEndTime;
-          } else if (time < interval.mStartTime) {
-            break;
-          }
-        }
-        mTimeControl->setTime(cs::utils::convert::time::toSpice(temp));
-      }));
-
-  mGuiManager->getGui()->registerCallback(
-      "wcsOverlays.goToNextTime", "Go to the next available timestep.", std::function([this]() {
-        if (!mActiveOverlay || !mActiveCoverages[mActiveOverlay->getCenter()] ||
-            mActiveCoverages[mActiveOverlay->getCenter()]->getSettings().mTimeIntervals.empty()) {
-          return;
-        }
-
-        mTimeControl->setTimeSpeed(0);
-
-        boost::posix_time::ptime time =
-            cs::utils::convert::time::toPosix(mTimeControl->pSimulationTime.get());
-
-        std::vector<TimeInterval> intervals =
-            mActiveCoverages[mActiveOverlay->getCenter()]->getSettings().mTimeIntervals;
-
-        // Check if current time is in any interval
-        TimeInterval             result;
-        boost::posix_time::ptime sampleStartTime = time;
-        if (utils::timeInIntervals(sampleStartTime, intervals, result)) {
-          if (sampleStartTime == result.mEndTime) {
-            auto it = std::find(intervals.begin(), intervals.end(), result);
-            if (it == intervals.end() - 1) {
-              // If the time is at the end of the last interval, there is no next
-              // timestep to go to.
-              return;
-            }
-            // If the time is at the end of another interval, the next timestep is the
-            // start time of the next interval.
-            // It is assumed that the intervals are ordered chronologically.
-            mTimeControl->setTime(cs::utils::convert::time::toSpice((it + 1)->mStartTime));
-            return;
-          }
-          // If the time was not the end time of any interval we can add the duration to
-          // get the next timestep.
-          sampleStartTime = utils::addDurationToTime(sampleStartTime, result.mSampleDuration);
-          mTimeControl->setTime(cs::utils::convert::time::toSpice(sampleStartTime));
-          return;
-        }
-
-        // Time was not part of any interval, so the first interval, that lies after the current
-        // time has to be found.
-        for (auto const& interval : intervals) {
-          if (time < interval.mStartTime) {
-            mTimeControl->setTime(cs::utils::convert::time::toSpice(interval.mStartTime));
-            return;
-          }
-        }
-      }));
-
-  mGuiManager->getGui()->registerCallback(
-      "wcsOverlays.goToLastTime", "Go to the last available timestep.", std::function([this]() {
-        if (!mActiveOverlay || !mActiveCoverages[mActiveOverlay->getCenter()] ||
-            mActiveCoverages[mActiveOverlay->getCenter()]->getSettings().mTimeIntervals.empty()) {
-          return;
-        }
-
-        mActiveCoverages[mActiveOverlay->getCenter()]->update();
-        auto intervals =
-            mActiveCoverages[mActiveOverlay->getCenter()]->getSettings().mTimeIntervals;
-        auto start = utils::timeToString(intervals.front().mFormat, intervals.front().mStartTime);
-        auto end   = utils::timeToString(intervals.back().mFormat, intervals.back().mEndTime);
-
-        mGuiManager->getGui()->callJavascript("CosmoScout.wcsOverlays.setTimeInfo", start, end);
-
-        mTimeControl->setTimeSpeed(0);
-        mTimeControl->setTime(
-            cs::utils::convert::time::toSpice(mActiveCoverages[mActiveOverlay->getCenter()]
-                                                  ->getSettings()
-                                                  .mTimeIntervals.back()
-                                                  .mEndTime));
-      }));
-
-  // Callback to set a transfer function for the rendering
-  mGuiManager->getGui()->registerCallback("wcsOverlays.setTransferFunction",
-      "Sets the transfer function for rendering", std::function([this](std::string val) {
-        if (!mActiveOverlay) {
-          return;
-        }
-
-        mActiveOverlay->setTransferFunction(std::move(val));
-      }));
-
-  mGuiManager->getGui()->registerCallback("wcsOverlays.setEnableAutomaticBoundsUpdate",
-      "Enables or disables automatically updating the bounds when the observer stops moving.",
-      std::function(
-          [this](bool enable) { mPluginSettings->mEnableAutomaticBoundsUpdate = enable; }));
-
-  mGuiManager->getGui()->registerCallback("wcsOverlays.setMaxTextureSize",
-      "Set the maximum texture size for map requests.", std::function([this](double value) {
-        mPluginSettings->mMaxTextureSize = std::lround(value);
-      }));
-
-  mGuiManager->getGui()->registerCallback("wcsOverlays.setPrefetchCount",
-      "Set the amount of images to prefetch in both directions of time.",
-      std::function(
-          [this](double value) { mPluginSettings->mPrefetchCount = std::lround(value); }));
-
-  mGuiManager->getGui()->registerCallback("wcsOverlays.setUpdateBoundsDelay",
-      "Set the delay that has to pass before the bounds are automatically updated.",
-      std::function(
-          [this](double value) { mPluginSettings->mUpdateBoundsDelay = std::lround(value); }));
-
   // Fill the dropdowns with information for the active body.
   mActiveBodyConnection = mSolarSystem->pActiveBody.connectAndTouch(
       [this](std::shared_ptr<cs::scene::CelestialBody> const& body) {
@@ -411,7 +153,7 @@ void Plugin::init() {
 
   // Check if the observer stopped moving.
   mObserverSpeedConnection = mSolarSystem->pCurrentObserverSpeed.connect([this](float speed) {
-    if (speed == 0.f) {
+    if (speed == 0.F) {
       mNoMovementSince           = std::chrono::high_resolution_clock::now();
       mNoMovement                = true;
       mNoMovementRequestedUpdate = false;
@@ -419,6 +161,9 @@ void Plugin::init() {
       mNoMovement = false;
     }
   });
+
+  registerSettingCallbacks();
+  registerSidebarCallbacks();
 
   onLoad();
 
@@ -759,12 +504,12 @@ bool Plugin::isActiveOverlay(std::string const& center) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool Plugin::addCoverageToSelect(std::shared_ptr<TextureOverlayRenderer> const& wcsOverlay,
-    const WebCoverage& coverage, std::string const& activeLayer, int depth) {
+    const WebCoverage& coverage, std::string const& activeLayer) {
   bool active = coverage.getId() == activeLayer;
 
   if (isActiveOverlay(wcsOverlay)) {
     mGuiManager->getGui()->callJavascript("CosmoScout.wcsOverlays.addCoverage", coverage.getId(),
-        coverage.getTitle(), active, coverage.isRequestable(), depth);
+        coverage.getTitle(), active, coverage.isRequestable());
   }
 
   bool anyActive = active;
@@ -800,6 +545,273 @@ void Plugin::goToBounds(Bounds const& bounds) {
   mSolarSystem->flyObserverTo(mSolarSystem->pActiveBody.get()->getCenterName(),
       mSolarSystem->pActiveBody.get()->getFrameName(),
       cs::utils::convert::toRadians(glm::dvec2(lon, lat)), std::max(heighty, heightx), 5.);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Plugin::registerSettingCallbacks() {
+
+  mGuiManager->getGui()->registerCallback("wcsOverlays.setEnableAutomaticBoundsUpdate",
+      "Enables or disables automatically updating the bounds when the observer stops moving.",
+      std::function(
+          [this](bool enable) { mPluginSettings->mEnableAutomaticBoundsUpdate = enable; }));
+
+  mGuiManager->getGui()->registerCallback("wcsOverlays.setMaxTextureSize",
+      "Set the maximum texture size for map requests.", std::function([this](double value) {
+        mPluginSettings->mMaxTextureSize = std::lround(value);
+      }));
+
+  mGuiManager->getGui()->registerCallback("wcsOverlays.setPrefetchCount",
+      "Set the amount of images to prefetch in both directions of time.",
+      std::function(
+          [this](double value) { mPluginSettings->mPrefetchCount = std::lround(value); }));
+
+  mGuiManager->getGui()->registerCallback("wcsOverlays.setUpdateBoundsDelay",
+      "Set the delay that has to pass before the bounds are automatically updated.",
+      std::function(
+          [this](double value) { mPluginSettings->mUpdateBoundsDelay = std::lround(value); }));
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Plugin::registerSidebarCallbacks() {
+  mGuiManager->getGui()->registerCallback(
+      "wcsOverlays.updateBounds", "Updates the bounds for map requests.", std::function([this]() {
+        if (!mActiveOverlay) {
+          return;
+        }
+
+        mActiveOverlay->requestUpdateBounds();
+      }));
+
+  mGuiManager->getGui()->registerCallback("wcsOverlays.resetBounds",
+      "Resets the bounds for map requests to the current layer's default bounds.",
+      std::function([this]() {
+        if (!mActiveOverlay || !mActiveCoverages[mActiveOverlay->getCenter()]) {
+          return;
+        }
+
+        mActiveOverlay->pBounds =
+            mActiveCoverages[mActiveOverlay->getCenter()]->getSettings().mBounds;
+      }));
+
+  mGuiManager->getGui()->registerCallback("wcsOverlays.goToDefaultBounds",
+      "Fly the observer to a position from which most of the current layer's default bounds is "
+      "visible.",
+      std::function([this]() {
+        if (!mActiveOverlay || !mActiveCoverages[mActiveOverlay->getCenter()]) {
+          return;
+        }
+
+        WebCoverage::Settings layerSettings =
+            mActiveCoverages[mActiveOverlay->getCenter()]->getSettings();
+        goToBounds(layerSettings.mBounds);
+      }));
+
+  mGuiManager->getGui()->registerCallback("wcsOverlays.goToCurrentBounds",
+      "Fly the observer to a position from which most of the currently active bounds is visible.",
+      std::function([this]() {
+        if (!mActiveOverlay) {
+          return;
+        }
+
+        goToBounds(mActiveOverlay->pBounds.get());
+      }));
+
+  mGuiManager->getGui()->registerCallback("wcsOverlays.setServer",
+      "Set the current planet's WCS server to the one with the given name.",
+      std::function([this](std::string&& name) {
+        if (!mActiveOverlay) {
+          return;
+        }
+
+        setWCSServer(mActiveOverlay, name);
+        mNoMovementRequestedUpdate = false;
+      }));
+
+  mGuiManager->getGui()->registerCallback("wcsOverlays.setCoverage",
+      "Set the current planet's WCS coverage to the one with the given name.",
+      std::function([this](std::string&& coverageId) {
+        if (!mActiveOverlay || !mActiveServers[mActiveOverlay->getCenter()]) {
+          return;
+        }
+
+        setWCSCoverage(mActiveOverlay, coverageId);
+        mNoMovementRequestedUpdate = false;
+      }));
+
+  mGuiManager->getGui()->registerCallback("wcsOverlays.setLayer",
+      "Set the current layer of the active Coverage.", std::function([this](std::string&& layer) {
+        if (!mActiveOverlay || !mActiveServers[mActiveOverlay->getCenter()]) {
+          return;
+        }
+
+        mActiveOverlay->setLayer(std::stoi(layer));
+      }));
+
+  mGuiManager->getGui()->registerCallback(
+      "wcsOverlays.goToFirstTime", "Go to the first available timestep.", std::function([this]() {
+        if (!mActiveOverlay || !mActiveCoverages[mActiveOverlay->getCenter()] ||
+            mActiveCoverages[mActiveOverlay->getCenter()]->getSettings().mTimeIntervals.empty()) {
+          return;
+        }
+
+        mActiveCoverages[mActiveOverlay->getCenter()]->update();
+        auto intervals =
+            mActiveCoverages[mActiveOverlay->getCenter()]->getSettings().mTimeIntervals;
+        auto start = utils::timeToString(intervals.front().mFormat, intervals.front().mStartTime);
+        auto end   = utils::timeToString(intervals.back().mFormat, intervals.back().mEndTime);
+
+        mGuiManager->getGui()->callJavascript("CosmoScout.wcsOverlays.setTimeInfo", start, end);
+
+        mTimeControl->setTimeSpeed(0);
+        mTimeControl->setTime(
+            cs::utils::convert::time::toSpice(mActiveCoverages[mActiveOverlay->getCenter()]
+                                                  ->getSettings()
+                                                  .mTimeIntervals.front()
+                                                  .mStartTime));
+      }));
+
+  mGuiManager->getGui()->registerCallback("wcsOverlays.goToPreviousTime",
+      "Go to the previous available timestep.", std::function([this]() {
+        if (!mActiveOverlay || !mActiveCoverages[mActiveOverlay->getCenter()] ||
+            mActiveCoverages[mActiveOverlay->getCenter()]->getSettings().mTimeIntervals.empty()) {
+          return;
+        }
+
+        mTimeControl->setTimeSpeed(0);
+
+        boost::posix_time::ptime time =
+            cs::utils::convert::time::toPosix(mTimeControl->pSimulationTime.get());
+
+        std::vector<TimeInterval> intervals =
+            mActiveCoverages[mActiveOverlay->getCenter()]->getSettings().mTimeIntervals;
+
+        // Check if current time is in any interval
+        TimeInterval             result;
+        boost::posix_time::ptime sampleStartTime = time;
+        if (utils::timeInIntervals(sampleStartTime, intervals, result)) {
+          if (sampleStartTime != time) {
+            // timeInIntervals rounds down the time to the nearest timestep, so the
+            // result of that method can be used.
+            mTimeControl->setTime(cs::utils::convert::time::toSpice(sampleStartTime));
+            return;
+          }
+          // The current time was a valid timestep so the previous step has to be found.
+          if (sampleStartTime == result.mStartTime) {
+            auto it = std::find(intervals.begin(), intervals.end(), result);
+            if (it == intervals.begin()) {
+              // If the time is at the start of the first interval, there is no previous
+              // timestep to go to.
+              return;
+            }
+            // If the time is at the start of another interval, the previous timestep is the
+            // end time of the previous interval.
+            // It is assumed that the intervals are ordered chronologically.
+            mTimeControl->setTime(cs::utils::convert::time::toSpice((it - 1)->mEndTime));
+            return;
+          }
+          // If the time was not the start time of any interval we can subtract the duration to
+          // get the previous timestep.
+          sampleStartTime = utils::addDurationToTime(sampleStartTime, result.mSampleDuration, -1);
+          mTimeControl->setTime(cs::utils::convert::time::toSpice(sampleStartTime));
+          return;
+        }
+
+        // Time was not part of any interval, so the last interval, that lies before the current
+        // time has to be found.
+        boost::posix_time::ptime temp = time;
+        for (auto const& interval : intervals) {
+          if (time > interval.mEndTime) {
+            temp = interval.mEndTime;
+          } else if (time < interval.mStartTime) {
+            break;
+          }
+        }
+        mTimeControl->setTime(cs::utils::convert::time::toSpice(temp));
+      }));
+
+  mGuiManager->getGui()->registerCallback(
+      "wcsOverlays.goToNextTime", "Go to the next available timestep.", std::function([this]() {
+        if (!mActiveOverlay || !mActiveCoverages[mActiveOverlay->getCenter()] ||
+            mActiveCoverages[mActiveOverlay->getCenter()]->getSettings().mTimeIntervals.empty()) {
+          return;
+        }
+
+        mTimeControl->setTimeSpeed(0);
+
+        boost::posix_time::ptime time =
+            cs::utils::convert::time::toPosix(mTimeControl->pSimulationTime.get());
+
+        std::vector<TimeInterval> intervals =
+            mActiveCoverages[mActiveOverlay->getCenter()]->getSettings().mTimeIntervals;
+
+        // Check if current time is in any interval
+        TimeInterval             result;
+        boost::posix_time::ptime sampleStartTime = time;
+        if (utils::timeInIntervals(sampleStartTime, intervals, result)) {
+          if (sampleStartTime == result.mEndTime) {
+            auto it = std::find(intervals.begin(), intervals.end(), result);
+            if (it == intervals.end() - 1) {
+              // If the time is at the end of the last interval, there is no next
+              // timestep to go to.
+              return;
+            }
+            // If the time is at the end of another interval, the next timestep is the
+            // start time of the next interval.
+            // It is assumed that the intervals are ordered chronologically.
+            mTimeControl->setTime(cs::utils::convert::time::toSpice((it + 1)->mStartTime));
+            return;
+          }
+          // If the time was not the end time of any interval we can add the duration to
+          // get the next timestep.
+          sampleStartTime = utils::addDurationToTime(sampleStartTime, result.mSampleDuration);
+          mTimeControl->setTime(cs::utils::convert::time::toSpice(sampleStartTime));
+          return;
+        }
+
+        // Time was not part of any interval, so the first interval, that lies after the current
+        // time has to be found.
+        for (auto const& interval : intervals) {
+          if (time < interval.mStartTime) {
+            mTimeControl->setTime(cs::utils::convert::time::toSpice(interval.mStartTime));
+            return;
+          }
+        }
+      }));
+
+  mGuiManager->getGui()->registerCallback(
+      "wcsOverlays.goToLastTime", "Go to the last available timestep.", std::function([this]() {
+        if (!mActiveOverlay || !mActiveCoverages[mActiveOverlay->getCenter()] ||
+            mActiveCoverages[mActiveOverlay->getCenter()]->getSettings().mTimeIntervals.empty()) {
+          return;
+        }
+
+        mActiveCoverages[mActiveOverlay->getCenter()]->update();
+        auto intervals =
+            mActiveCoverages[mActiveOverlay->getCenter()]->getSettings().mTimeIntervals;
+        auto start = utils::timeToString(intervals.front().mFormat, intervals.front().mStartTime);
+        auto end   = utils::timeToString(intervals.back().mFormat, intervals.back().mEndTime);
+
+        mGuiManager->getGui()->callJavascript("CosmoScout.wcsOverlays.setTimeInfo", start, end);
+
+        mTimeControl->setTimeSpeed(0);
+        mTimeControl->setTime(
+            cs::utils::convert::time::toSpice(mActiveCoverages[mActiveOverlay->getCenter()]
+                                                  ->getSettings()
+                                                  .mTimeIntervals.back()
+                                                  .mEndTime));
+      }));
+
+  // Callback to set a transfer function for the rendering
+  mGuiManager->getGui()->registerCallback("wcsOverlays.setTransferFunction",
+      "Sets the transfer function for rendering", std::function([this](std::string val) {
+        if (!mActiveOverlay) {
+          return;
+        }
+
+        mActiveOverlay->setTransferFunction(std::move(val));
+      }));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -104,10 +104,15 @@ class Plugin : public cs::core::PluginBase {
   /// Adds the given coverage and all of its sublayers to the coverage dropdown.
   /// Returns whether any coverage's name matched the given activeLayer.
   bool addCoverageToSelect(std::shared_ptr<TextureOverlayRenderer> const& wcsOverlay,
-      const WebCoverage& coverage, std::string const& activeLayer, int depth = 0);
+      const WebCoverage& coverage, std::string const& activeLayer);
 
   /// Move the observer so that the given bounds are visible.
   void goToBounds(Bounds const& bounds);
+
+  /// Gui Callbacks used in WCS settings
+  void registerSettingCallbacks();
+  /// Gui Callbacks used in WCS sidebar
+  void registerSidebarCallbacks();
 
   std::shared_ptr<Settings> mPluginSettings = std::make_shared<Settings>();
 

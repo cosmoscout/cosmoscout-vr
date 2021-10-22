@@ -68,7 +68,10 @@ class TextureOverlayRenderer : public IVistaOpenGLDraw {
   /// The bounds will be updated the next time the Do() method is called.
   void requestUpdateBounds();
 
-  void setTransferFunction(std::string json);
+  /// Set the transfer function used in the shader
+  void setTransferFunction(const std::string& json);
+
+  /// For multi-layer textures, set the texture to be rendered
   void setLayer(int layer);
 
   /// The current map bounds of this overlay.

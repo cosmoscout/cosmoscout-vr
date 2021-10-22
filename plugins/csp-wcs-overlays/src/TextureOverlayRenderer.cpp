@@ -501,60 +501,52 @@ bool TextureOverlayRenderer::Do() {
     data.mColorBuffer->Bind();
 
     nlohmann::json sampleJson;
+    GLenum         textureType;
+    auto           textureSize = mTexture.x * mTexture.y;
 
     switch (mTexture.type) {
     case 1: // UInt8
     {
-      std::vector<uint8_t> textureData(
-          (uint8_t*)mTexture.buffer, (uint8_t*)(mTexture.buffer) + (mTexture.x * mTexture.y));
-      sampleJson = textureData;
-
-      glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, mTexture.x, mTexture.y, 0, GL_RED, GL_UNSIGNED_BYTE,
-          (void*)mTexture.buffer);
+      std::vector<uint8_t> textureData(static_cast<uint8_t*>(mTexture.buffer),
+          static_cast<uint8_t*>(mTexture.buffer) + textureSize);
+      sampleJson  = textureData;
+      textureType = GL_UNSIGNED_BYTE;
       break;
     }
 
     case 2: // UInt16
     {
-      std::vector<uint16_t> textureData(
-          (uint16_t*)mTexture.buffer, (uint16_t*)(mTexture.buffer) + (mTexture.x * mTexture.y));
-      sampleJson = textureData;
-
-      glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, mTexture.x, mTexture.y, 0, GL_RED, GL_UNSIGNED_SHORT,
-          (void*)mTexture.buffer);
+      std::vector<uint16_t> textureData(static_cast<uint16_t*>(mTexture.buffer),
+          static_cast<uint16_t*>(mTexture.buffer) + textureSize);
+      sampleJson  = textureData;
+      textureType = GL_UNSIGNED_SHORT;
       break;
     }
 
     case 3: // Int16
     {
-      std::vector<int16_t> textureData(
-          (int16_t*)mTexture.buffer, (int16_t*)(mTexture.buffer) + (mTexture.x * mTexture.y));
-      sampleJson = textureData;
-
-      glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, mTexture.x, mTexture.y, 0, GL_RED, GL_SHORT,
-          (void*)mTexture.buffer);
+      std::vector<int16_t> textureData(static_cast<int16_t*>(mTexture.buffer),
+          static_cast<int16_t*>(mTexture.buffer) + textureSize);
+      sampleJson  = textureData;
+      textureType = GL_SHORT;
       break;
     }
 
     case 4: // UInt32
     {
-      std::vector<uint32_t> textureData(
-          (uint32_t*)mTexture.buffer, (uint32_t*)(mTexture.buffer) + (mTexture.x * mTexture.y));
-      sampleJson = textureData;
-
-      glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, mTexture.x, mTexture.y, 0, GL_RED, GL_UNSIGNED_INT,
-          (void*)mTexture.buffer);
+      std::vector<uint32_t> textureData(static_cast<uint32_t*>(mTexture.buffer),
+          static_cast<uint32_t*>(mTexture.buffer) + textureSize);
+      sampleJson  = textureData;
+      textureType = GL_UNSIGNED_INT;
       break;
     }
 
     case 5: // Int32
     {
-      std::vector<int32_t> textureData(
-          (int32_t*)mTexture.buffer, (int32_t*)(mTexture.buffer) + (mTexture.x * mTexture.y));
-      sampleJson = textureData;
-
-      glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, mTexture.x, mTexture.y, 0, GL_RED, GL_INT,
-          (void*)mTexture.buffer);
+      std::vector<int32_t> textureData(static_cast<int32_t*>(mTexture.buffer),
+          static_cast<int32_t*>(mTexture.buffer) + textureSize);
+      sampleJson  = textureData;
+      textureType = GL_INT;
       break;
     }
 
@@ -562,10 +554,9 @@ bool TextureOverlayRenderer::Do() {
     case 7: // Float64
     {
       std::vector<float> textureData(
-          (float*)mTexture.buffer, (float*)(mTexture.buffer) + (mTexture.x * mTexture.y));
-      sampleJson = textureData;
-      glTexImage2D(
-          GL_TEXTURE_2D, 0, GL_R32F, mTexture.x, mTexture.y, 0, GL_RED, GL_FLOAT, mTexture.buffer);
+          static_cast<float*>(mTexture.buffer), static_cast<float*>(mTexture.buffer) + textureSize);
+      sampleJson  = textureData;
+      textureType = GL_FLOAT;
       break;
     }
 
@@ -573,7 +564,10 @@ bool TextureOverlayRenderer::Do() {
       logger().error("Texture has no known data type.");
     }
 
-    if (sampleJson) {
+    if (textureType) {
+      glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, mTexture.x, mTexture.y, 0, GL_RED, textureType,
+          mTexture.buffer);
+
       // Texture encoded as json. Used to generate the histogram
       mGuiManager->getGui()->callJavascript(
           "CosmoScout.wcsOverlays._transferFunction.setData", sampleJson);
@@ -653,7 +647,8 @@ bool TextureOverlayRenderer::Do() {
       glm::normalize(glm::inverse(matWorldTransform) *
                      (mSolarSystem->getSun()->getWorldTransform()[3] - matWorldTransform[3]));
   m_pSurfaceShader->SetUniform(m_pSurfaceShader->GetUniformLocation("uSunDirection"),
-      (float)sunDirection[0], (float)sunDirection[1], (float)sunDirection[2]);
+      static_cast<float>(sunDirection[0]), static_cast<float>(sunDirection[1]),
+      static_cast<float>(sunDirection[2]));
 
   // provide radii to shader
   auto mRadii = cs::core::SolarSystem::getRadii(mSolarSystem->pActiveBody.get()->getCenterName());
@@ -689,7 +684,7 @@ bool TextureOverlayRenderer::GetBoundingBox(VistaBoundingBox& oBoundingBox) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void TextureOverlayRenderer::setTransferFunction(std::string json) {
+void TextureOverlayRenderer::setTransferFunction(const std::string& json) {
   mTransferFunction = std::make_unique<cs::graphics::ColorMap>(json);
 }
 

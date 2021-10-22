@@ -65,6 +65,7 @@ class WebCoverage {
   std::string                mId;
   std::optional<std::string> mAbstract;
 
+  /// List of keywords for this coverage
   std::vector<std::string> mKeywords;
 
   /// DescribeCoverage Document

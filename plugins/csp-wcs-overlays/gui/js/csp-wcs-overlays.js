@@ -134,15 +134,14 @@
      * @param {string} title The human readable title of the layer
      * @param {boolean} active Whether the layer is currently selected
      * @param {boolean} requestable Whether maps for this layer may be requested
-     * @param {number} depth The depth of the layer in the hierarchy
      */
-    addCoverage(name, title, active, requestable, depth) {
+    addCoverage(name, title, active, requestable) {
       const option = document.createElement('option');
 
       option.value     = name;
       option.selected  = active;
       option.disabled  = !requestable;
-      option.innerHTML = "&emsp;".repeat(depth) + title;
+      option.innerHTML = title;
 
       this._coverageSelect.appendChild(option);
     }

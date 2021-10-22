@@ -25,9 +25,11 @@ class GDALReader {
     int                   buffersize{};
     void*                 buffer{};
     int                   timeIndex = 0;
-    GDALDataType          type;
-    float                 typeSize = 1;
-    int                   layers   = 1;
+    int                   layers    = 1;
+    // The gdal data type of the texture, e.g. Float32, UInt16 etc.
+    GDALDataType type{};
+    // As buffer is a void pointer, we'll need the size of the underlying type
+    float typeSize = 1;
   };
 
   /**
@@ -68,10 +70,17 @@ class GDALReader {
   static void BuildTexture(GDALDataset* poDatasetSrc, GreyScaleTexture& texture,
       std::string const& filename, int layer = 1);
 
+  /**
+   * Mapping of (virtual) filesystem path to calculated greyscale texture
+   */
   static std::map<std::string, GreyScaleTexture> mTextureCache;
-  static std::map<std::string, int>              mBandsCache;
-  static std::mutex                              mMutex;
-  static bool                                    mIsInitialized;
+
+  /**
+   * Mapping of (virtual) filesystem path to number of bands in a texture
+   */
+  static std::map<std::string, int> mBandsCache;
+  static std::mutex                 mMutex;
+  static bool                       mIsInitialized;
 };
 
 #endif // CSP_WCS_OVERLAYS_GDAL_READER

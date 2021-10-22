@@ -115,7 +115,7 @@ void GDALReader::ReadGrayScaleTexture(GDALReader::GreyScaleTexture& texture,
     return;
   }
 
-  csp::wcsoverlays::logger().info("Reading stream and layer {}", layer);
+  csp::wcsoverlays::logger().info("Reading streamdata and layer {}", layer);
   std::stringstream str;
   str << filename << layer;
 
@@ -125,7 +125,7 @@ void GDALReader::ReadGrayScaleTexture(GDALReader::GreyScaleTexture& texture,
   if (it != mTextureCache.end()) {
     texture = it->second;
 
-    // GDALReader::mMutex.unlock();
+    GDALReader::mMutex.unlock();
     csp::wcsoverlays::logger().debug("Found {} in gdal cache.", str.str());
 
     return;
@@ -141,12 +141,14 @@ void GDALReader::ReadGrayScaleTexture(GDALReader::GreyScaleTexture& texture,
   dataInStream << buf;
   std::string wcsData = dataInStream.str();
 
+  /// See https://gdal.org/user/virtual_file_systems.html#vsimem-in-memory-files for more info
+  /// on in memory files
   std::stringstream memPath;
   memPath << "/vsimem/";
   memPath << csp::wcsoverlays::utils::split(filename, '/').back();
 
   VSILFILE* fpMem = VSIFileFromMemBuffer(
-      memPath.str().c_str(), (GByte*)wcsData.c_str(), (vsi_l_offset)offset, FALSE);
+      memPath.str().c_str(), (GByte*)wcsData.c_str(), static_cast<vsi_l_offset>(offset), FALSE);
   VSIFCloseL(fpMem);
 
   GDALDataset* poDatasetSrc =
@@ -288,22 +290,22 @@ void GDALReader::BuildTexture(GDALDataset* poDatasetSrc, GDALReader::GreyScaleTe
 
   switch (eDT) {
   case 1: // UInt8
-    texture.typeSize = std::numeric_limits<unsigned char>::max();
+    texture.typeSize = std::numeric_limits<uint8_t>::max();
     break;
   case 2: // UInt16
-    texture.typeSize = std::numeric_limits<unsigned short>::max();
+    texture.typeSize = std::numeric_limits<uint16_t>::max();
     break;
   case 3: // Int16
-    texture.typeSize = std::numeric_limits<short>::max();
+    texture.typeSize = std::numeric_limits<int16_t>::max();
     break;
   case 4: // UInt32
-    texture.typeSize = std::numeric_limits<unsigned int>::max();
+    texture.typeSize = std::numeric_limits<uint32_t>::max();
     break;
   case 5: // Int32
-    texture.typeSize = std::numeric_limits<int>::max();
+    texture.typeSize = std::numeric_limits<int32_t>::max();
     break;
 
-  default:
+  default: // Float
     texture.typeSize = 1;
   }
 

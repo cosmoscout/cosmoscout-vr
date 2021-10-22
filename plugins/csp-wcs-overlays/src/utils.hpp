@@ -187,6 +187,7 @@ void setOrKeep(std::optional<T>& var, std::optional<T> const& optional) {
   }
 }
 
+/// Splits a string at each delimiter position
 template <typename Out>
 void split(const std::string& s, char delim, Out result) {
   std::istringstream iss(s);
