@@ -32,17 +32,17 @@ WebCoverageTextureLoader::WebCoverageTextureLoader()
 
 std::future<std::optional<GDALReader::GreyScaleTexture>> WebCoverageTextureLoader::loadTextureAsync(
     WebCoverageService const& wcs, WebCoverage const& coverage, Request const& request,
-    std::string const& mapCache, bool saveToCache) {
+    std::string const& coverageCache, bool saveToCache) {
   return mThreadPool.enqueue(
-      [=]() { return loadTexture(wcs, coverage, request, mapCache, saveToCache); });
+      [=]() { return loadTexture(wcs, coverage, request, coverageCache, saveToCache); });
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::optional<GDALReader::GreyScaleTexture> WebCoverageTextureLoader::loadTexture(
     WebCoverageService const& wcs, WebCoverage const& coverage, Request const& request,
-    std::string const& mapCache, bool saveToCache) {
-  boost::filesystem::path cachePath = getCachePath(wcs, coverage, request, mapCache);
+    std::string const& coverageCache, bool saveToCache) {
+  boost::filesystem::path cachePath = getCachePath(wcs, coverage, request, coverageCache);
 
   std::optional<std::stringstream> textureStream;
   GDALReader::GreyScaleTexture     texture;
@@ -188,7 +188,7 @@ void WebCoverageTextureLoader::saveTextureToFile(
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 boost::filesystem::path WebCoverageTextureLoader::getCachePath(WebCoverageService const& wcs,
-    WebCoverage const& coverage, Request const& request, std::string const& mapCache) {
+    WebCoverage const& coverage, Request const& request, std::string const& coverageCache) {
 
   // Replace forbidden characters in coverage string before creating cache dir.
   std::string layerFixed;
@@ -199,7 +199,7 @@ boost::filesystem::path WebCoverageTextureLoader::getCachePath(WebCoverageServic
   std::string fileFormat = mMimeToExtension.at(request.mFormat.value_or("image/tiff"));
 
   std::stringstream cacheDir;
-  cacheDir << mapCache << "/" << layerFixed << "/";
+  cacheDir << coverageCache << "/" << layerFixed << "/";
   cacheDir << request.mMaxSize << "px/";
 
   if (request.mTime.has_value()) {
@@ -244,7 +244,8 @@ std::string WebCoverageTextureLoader::getRequestUrl(
   url << "&REQUEST=GetCoverage";
   url << "&COVERAGEID=" << coverage.getId();
 
-  // All special chars need to be in url encoded form
+  /// All special chars need to be in url encoded form
+  /// This is only really an issue with tomcat servers
 
   if (request.mBounds != coverage.getSettings().mBounds && request.mBounds != Bounds()) {
     // &SUBSET=Lat(...,...)

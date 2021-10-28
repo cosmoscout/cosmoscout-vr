@@ -33,8 +33,8 @@ class Plugin : public cs::core::PluginBase {
     /// moving for a certain amount of time.
     cs::utils::DefaultProperty<bool> mEnableAutomaticBoundsUpdate{false};
 
-    /// Path to the map cache folder, can be absolute or relative to the cosmoscout executable.
-    cs::utils::DefaultProperty<std::string> mMapCache{
+    /// Path to the coverage cache folder, can be absolute or relative to the cosmoscout executable.
+    cs::utils::DefaultProperty<std::string> mCoverageCache{
         "../share/cache/csp-wcs-overlays/texture-cache"};
 
     /// Path to the wcs capability cache folder, can be absolute or relative to the cosmoscout
@@ -49,8 +49,7 @@ class Plugin : public cs::core::PluginBase {
     /// The amount of textures that gets pre-fetched in every time direction.
     cs::utils::DefaultProperty<int> mPrefetchCount{0};
 
-    /// The size of the requested map textures along the longer axis. Some wcs layers may only be
-    /// available in certain sizes, those won't be influenced by this setting.
+    /// The size of the requested coverage textures along the longer axis.
     cs::utils::DefaultProperty<int> mMaxTextureSize{1024};
 
     /// If automatic bounds update is enabled, the bounds will be updated when the observer stopped

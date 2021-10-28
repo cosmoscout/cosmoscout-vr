@@ -187,6 +187,8 @@ void WebCoverage::parseTime() {
         timeString << "/";
         timeString << endTime.value();
 
+        /// This creates an ISO 8601 timeduration composed of a start and end point
+        /// defined in <gml:beginPosition> and <gml:endPosition>
         auto* period = time->FirstChildElement("gml:timeInterval");
         if (period) {
           auto periodUnit    = utils::getAttribute<std::string>(period, "unit");

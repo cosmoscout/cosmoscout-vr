@@ -51,12 +51,13 @@ std::vector<WebCoverage> const& WebCoverageService::getCoverages() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::optional<WebCoverage> WebCoverageService::getCoverage(std::string const& title) const {
+std::optional<WebCoverage> WebCoverageService::getCoverage(std::string const& titleOrId) const {
   std::vector<WebCoverage> coverages = getCoverages();
 
   auto coverage = std::find_if(
-      coverages.begin(), coverages.end(), [title](WebCoverage const& capabilityCoverage) {
-        return capabilityCoverage.getTitle() == title || capabilityCoverage.getId() == title;
+      coverages.begin(), coverages.end(), [titleOrId](WebCoverage const& capabilityCoverage) {
+        return capabilityCoverage.getTitle() == titleOrId ||
+               capabilityCoverage.getId() == titleOrId;
       });
 
   if (coverage == coverages.end()) {

@@ -16,26 +16,20 @@ std::istream& operator>>(std::istream& in, WebCoverageException::Code& code) {
   std::string codeStr;
   code = WebCoverageException::Code::eNone;
   if (in >> codeStr) {
-    if (codeStr == "InvalidFormat") {
-      code = WebCoverageException::Code::eInvalidFormat;
-    } else if (codeStr == "InvalidCRS") {
-      code = WebCoverageException::Code::eInvalidCRS;
-    } else if (codeStr == "LayerNotDefined") {
-      code = WebCoverageException::Code::eLayerNotDefined;
-    } else if (codeStr == "StyleNotDefined") {
-      code = WebCoverageException::Code::eStyleNotDefined;
-    } else if (codeStr == "LayerNotQueryable") {
-      code = WebCoverageException::Code::eLayerNotQueryable;
-    } else if (codeStr == "InvalidPoint") {
-      code = WebCoverageException::Code::eInvalidPoint;
+    if (codeStr == "NoSuchCoverage") {
+      code = WebCoverageException::Code::eNoSuchCoverage;
+    } else if (codeStr == "InvalidAxisLabel") {
+      code = WebCoverageException::Code::eInvalidAxisLabel;
+    } else if (codeStr == "InvalidSubsetting") {
+      code = WebCoverageException::Code::eInvalidSubsetting;
+    } else if (codeStr == "MissingParameterValue") {
+      code = WebCoverageException::Code::eMissingParameterValue;
+    } else if (codeStr == "InvalidParameterValue") {
+      code = WebCoverageException::Code::eInvalidParameterValue;
     } else if (codeStr == "CurrentUpdateSequence") {
       code = WebCoverageException::Code::eCurrentUpdateSequence;
     } else if (codeStr == "InvalidUpdateSequence") {
       code = WebCoverageException::Code::eInvalidUpdateSequence;
-    } else if (codeStr == "MissingDimensionValue") {
-      code = WebCoverageException::Code::eMissingDimensionValue;
-    } else if (codeStr == "InvalidDimensionValue") {
-      code = WebCoverageException::Code::eInvalidDimensionValue;
     } else if (codeStr == "OperationNotSupported") {
       code = WebCoverageException::Code::eOperationNotSupported;
     } else if (codeStr == "NoApplicableCode") {
@@ -48,26 +42,26 @@ std::istream& operator>>(std::istream& in, WebCoverageException::Code& code) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::ostream& operator<<(std::ostream& out, WebCoverageException::Code& code) {
-  if (code == WebCoverageException::Code::eInvalidFormat) {
-    out << "InvalidFormat";
-  } else if (code == WebCoverageException::Code::eInvalidCRS) {
-    out << "InvalidCRS";
-  } else if (code == WebCoverageException::Code::eLayerNotDefined) {
-    out << "LayerNotDefined";
-  } else if (code == WebCoverageException::Code::eStyleNotDefined) {
-    out << "StyleNotDefined";
-  } else if (code == WebCoverageException::Code::eLayerNotQueryable) {
-    out << "LayerNotQueryable";
-  } else if (code == WebCoverageException::Code::eInvalidPoint) {
-    out << "InvalidPoint";
+  if (code == WebCoverageException::Code::eNone) {
+    out << "None";
+  } else if (code == WebCoverageException::Code::eNoSuchCoverage) {
+    out << "NoSuchCoverage";
+  } else if (code == WebCoverageException::Code::eEmptyCoverageIdList) {
+    out << "EmptyCoverageIdList";
+  } else if (code == WebCoverageException::Code::eInvalidAxisLabel) {
+    out << "InvalidAxisLabel";
+  } else if (code == WebCoverageException::Code::eInvalidSubsetting) {
+    out << "InvalidSubsetting";
+  } else if (code == WebCoverageException::Code::eMissingParameterValue) {
+    out << "MissingParameterValue";
+  } else if (code == WebCoverageException::Code::eInvalidParameterValue) {
+    out << "InvalidParameterValue";
+  } else if (code == WebCoverageException::Code::eVersionNegotiationFailed) {
+    out << "VersionNegotiationFailed";
   } else if (code == WebCoverageException::Code::eCurrentUpdateSequence) {
     out << "CurrentUpdateSequence";
   } else if (code == WebCoverageException::Code::eInvalidUpdateSequence) {
     out << "InvalidUpdateSequence";
-  } else if (code == WebCoverageException::Code::eMissingDimensionValue) {
-    out << "MissingDimensionValue";
-  } else if (code == WebCoverageException::Code::eInvalidDimensionValue) {
-    out << "InvalidDimensionValue";
   } else if (code == WebCoverageException::Code::eOperationNotSupported) {
     out << "OperationNotSupported";
   } else if (code == WebCoverageException::Code::eNoApplicableCode) {

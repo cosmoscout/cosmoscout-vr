@@ -4,8 +4,8 @@
 //                        Copyright: (c) 2020 German Aerospace Center (DLR)                       //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#ifndef CSP_WCS_OVERLAYS_WEB_MAP_EXCEPTION_HPP
-#define CSP_WCS_OVERLAYS_WEB_MAP_EXCEPTION_HPP
+#ifndef CSP_WCS_OVERLAYS_WEB_COVERAGE_EXCEPTION_HPP
+#define CSP_WCS_OVERLAYS_WEB_COVERAGE_EXCEPTION_HPP
 
 #include <VistaTools/tinyXML/tinyxml.h>
 
@@ -18,35 +18,37 @@ namespace csp::wcsoverlays {
 class WebCoverageException : public std::exception {
  public:
   /// Possible exception codes.
-  /// Descriptions are taken from Table E.1 of the WCS 1.3.0 Implementation Specification.
+  /// Descriptions are taken from 06-121r9 OGC Web Services Common Standard.
+  /// https://www.scirp.org/(S(351jmbntvnsjt1aadkposzje))/reference/referencespapers.aspx?referenceid=1152641
   enum class Code {
     /// No code could be determined.
     eNone,
-    /// Request contains a Format not offered by the server.
-    eInvalidFormat,
-    /// Request contains a CRS not offered by the server for one or more of the Layers in the
-    /// request.
-    eInvalidCRS,
-    /// GetMap request is for a Layer not offered by the server, or GetFeatureInfo request is for a
-    /// Layer not shown on the map.
-    eLayerNotDefined,
-    /// Request is for a Layer in a Style not offered by the server.
-    eStyleNotDefined,
-    /// GetFeatureInfo request is applied to a Layer which is not declared queryable.
-    eLayerNotQueryable,
-    /// GetFeatureInfo request contains invalid I or J value.
-    eInvalidPoint,
+    /// One of the identifiers passed does not match with any of the coverages offered by this
+    /// server
+    eNoSuchCoverage,
+    /// An empty list of identifiers was passed as input argument, while at least one identifier is
+    /// required
+    eEmptyCoverageIdList,
+    /// The dimension subsetting operation specified an axis label that does not exist in
+    /// the Envelope or has been used more than once in the GetCoverage request
+    eInvalidAxisLabel,
+    /// Operation request contains an invalid subsetting value; either a trim or slice parameter
+    /// value is outside the extent of the coverage or, in a trim operation, a lower bound
+    /// is above the upper bound
+    eInvalidSubsetting,
+    /// Operation request does not include a parameter value
+    eMissingParameterValue,
+    /// Operation request contains an invalid parameter value
+    eInvalidParameterValue,
+    /// List of versions in "AcceptVersions" parameter value,in GetCapabilities operation request,
+    /// did not include any version supported by this server
+    eVersionNegotiationFailed,
     /// Value of (optional) UpdateSequence parameter in GetCapabilities request is equal to current
     /// value of service metadata update sequence number.
     eCurrentUpdateSequence,
     /// Value of (optional) UpdateSequence parameter in GetCapabilities request is greater than
     /// current value of service metadata update sequence number.
     eInvalidUpdateSequence,
-    /// Request does not include a sample dimension value, and the server did not declare a default
-    /// value for that dimension.
-    eMissingDimensionValue,
-    /// Request contains an invalid sample dimension value.
-    eInvalidDimensionValue,
     /// Request is for an optional operation that is not supported by the server.
     eOperationNotSupported,
     /// General Error
@@ -96,4 +98,4 @@ class WebCoverageExceptionReport : public std::exception {
 
 } // namespace csp::wcsoverlays
 
-#endif // CSP_WCS_OVERLAYS_WEB_MAP_EXCEPTION_HPP
+#endif // CSP_WCS_OVERLAYS_WEB_COVERAGE_EXCEPTION_HPP

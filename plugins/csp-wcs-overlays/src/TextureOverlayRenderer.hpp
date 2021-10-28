@@ -71,7 +71,7 @@ class TextureOverlayRenderer : public IVistaOpenGLDraw {
   /// Set the transfer function used in the shader
   void setTransferFunction(const std::string& json);
 
-  /// For multi-layer textures, set the texture to be rendered
+  /// For multi-layer textures, set the texture layer to be rendered
   void setLayer(int layer);
 
   /// The current map bounds of this overlay.
@@ -138,7 +138,7 @@ class TextureOverlayRenderer : public IVistaOpenGLDraw {
   /// Stores textures, for which loading failed.
   std::vector<std::string> mWrongTextures;
 
-  /// Flag for updating the map bounds in the next update.
+  /// Flag for updating the coverage bounds in the next update.
   bool mUpdateLonLatRange = false;
 
   /// The active WCS.
@@ -152,7 +152,7 @@ class TextureOverlayRenderer : public IVistaOpenGLDraw {
   /// Used to save the current time format style and sample duration;
   TimeInterval mCurrentInterval;
 
-  /// Loader used to request map textures.
+  /// Loader used to request wcs textures.
   WebCoverageTextureLoader mTextureLoader;
 
   std::shared_ptr<cs::core::SolarSystem> mSolarSystem;

@@ -77,7 +77,7 @@ void to_json(nlohmann::json& j, Plugin::Settings::Body const& o) {
 void from_json(nlohmann::json const& j, Plugin::Settings& o) {
   cs::core::Settings::deserialize(j, "preFetch", o.mPrefetchCount);
   cs::core::Settings::deserialize(j, "maxTextureSize", o.mMaxTextureSize);
-  cs::core::Settings::deserialize(j, "mapCache", o.mMapCache);
+  cs::core::Settings::deserialize(j, "coverageCache", o.mCoverageCache);
   cs::core::Settings::deserialize(j, "capabilityCache", o.mCapabilityCache);
   cs::core::Settings::deserialize(j, "useCapabilityCache", o.mUseCapabilityCache);
   cs::core::Settings::deserialize(j, "bodies", o.mBodies);
@@ -87,7 +87,7 @@ void from_json(nlohmann::json const& j, Plugin::Settings& o) {
 void to_json(nlohmann::json& j, Plugin::Settings const& o) {
   cs::core::Settings::serialize(j, "preFetch", o.mPrefetchCount);
   cs::core::Settings::serialize(j, "maxTextureSize", o.mMaxTextureSize);
-  cs::core::Settings::serialize(j, "mapCache", o.mMapCache);
+  cs::core::Settings::serialize(j, "coverageCache", o.mCoverageCache);
   cs::core::Settings::serialize(j, "capabilityCache", o.mCapabilityCache);
   cs::core::Settings::serialize(j, "useCapabilityCache", o.mUseCapabilityCache);
   cs::core::Settings::serialize(j, "bodies", o.mBodies);
@@ -557,7 +557,7 @@ void Plugin::registerSettingCallbacks() {
           [this](bool enable) { mPluginSettings->mEnableAutomaticBoundsUpdate = enable; }));
 
   mGuiManager->getGui()->registerCallback("wcsOverlays.setMaxTextureSize",
-      "Set the maximum texture size for map requests.", std::function([this](double value) {
+      "Set the maximum texture size for wcs requests.", std::function([this](double value) {
         mPluginSettings->mMaxTextureSize = std::lround(value);
       }));
 
@@ -576,7 +576,7 @@ void Plugin::registerSettingCallbacks() {
 
 void Plugin::registerSidebarCallbacks() {
   mGuiManager->getGui()->registerCallback(
-      "wcsOverlays.updateBounds", "Updates the bounds for map requests.", std::function([this]() {
+      "wcsOverlays.updateBounds", "Updates the bounds for wcs requests.", std::function([this]() {
         if (!mActiveOverlay) {
           return;
         }
@@ -585,7 +585,7 @@ void Plugin::registerSidebarCallbacks() {
       }));
 
   mGuiManager->getGui()->registerCallback("wcsOverlays.resetBounds",
-      "Resets the bounds for map requests to the current layer's default bounds.",
+      "Resets the bounds for wcs requests to the current layer's default bounds.",
       std::function([this]() {
         if (!mActiveOverlay || !mActiveCoverages[mActiveOverlay->getCenter()]) {
           return;
@@ -810,7 +810,7 @@ void Plugin::registerSidebarCallbacks() {
           return;
         }
 
-        mActiveOverlay->setTransferFunction(std::move(val));
+        mActiveOverlay->setTransferFunction(val);
       }));
 }
 

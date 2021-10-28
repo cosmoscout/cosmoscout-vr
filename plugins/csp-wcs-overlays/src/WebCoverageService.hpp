@@ -4,8 +4,8 @@
 //                        Copyright: (c) 2020 German Aerospace Center (DLR)                       //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#ifndef CSP_WCS_OVERLAYS_WEB_CAPABILITY_SERVICE_HPP
-#define CSP_WCS_OVERLAYS_WEB_CAPABILITY_SERVICE_HPP
+#ifndef CSP_WCS_OVERLAYS_WEB_COVERAGE_SERVICE_HPP
+#define CSP_WCS_OVERLAYS_WEB_COVERAGE_SERVICE_HPP
 
 #include "WebCoverage.hpp"
 
@@ -42,14 +42,11 @@ class WebCoverageService {
   /// Gets a brief description of the service.
   std::string const& getTitle() const;
 
-  /// Gets a list of all layers of the service, for which maps can be requested.
+  /// Gets a list of all coverages of the service, for which a coverage can be requested.
   std::vector<WebCoverage> const& getCoverages() const;
-  /// Gets the layer with the given title, if one exists.
+  /// Gets the coverage with the given title or coverage id, if one exists.
   /// Returns an empty optional otherwise.
-  std::optional<WebCoverage> getCoverage(std::string const& title) const;
-
-  /// Checks if the service can return maps of the given MIME type.
-  /// bool isFormatSupported(std::string const& format) const;
+  std::optional<WebCoverage> getCoverage(std::string const& titleOrId) const;
 
  protected:
   VistaXML::TiXmlElement* getCapabilities();
@@ -87,4 +84,4 @@ class WebCoverageService {
   void parseCoverages();
 };
 } // namespace csp::wcsoverlays
-#endif // CSP_WCS_OVERLAYS_WEB_CAPABILITY_SERVICE_HPP
+#endif // CSP_WCS_OVERLAYS_WEB_COVERAGE_SERVICE_HPP

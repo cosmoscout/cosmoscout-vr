@@ -29,7 +29,7 @@ struct WebCoverageTexture {
   int                            mHeight;
 };
 
-/// Class for requesting map textures from Web Map Services.
+/// Class for requesting map textures from a Web Coverage Services.
 class WebCoverageTextureLoader {
  public:
   /// Struct for defining parameters for a request to a WCS.
@@ -50,16 +50,16 @@ class WebCoverageTextureLoader {
   /// Returns an empty optional if loading the texture failed.
   std::future<std::optional<GDALReader::GreyScaleTexture>> loadTextureAsync(
       WebCoverageService const& wcs, WebCoverage const& coverage, Request const& request,
-      std::string const& mapCache, bool saveToCache);
+      std::string const& coverageCache, bool saveToCache);
 
   /// WCS texture loader.
   /// Returns an empty optional if loading the texture failed.
   std::optional<GDALReader::GreyScaleTexture> loadTexture(WebCoverageService const& wcs,
-      WebCoverage const& coverage, Request const& request, std::string const& mapCache,
+      WebCoverage const& coverage, Request const& request, std::string const& coverageCache,
       bool saveToCache);
 
  private:
-  /// Requests a map texture from a WCS.
+  /// Requests a coverage from a WCS.
   /// Returns a binary stream of the texture file if the request succeeds.
   /// Returns an empty optional if the request fails.
   std::optional<std::stringstream> requestTexture(
@@ -70,7 +70,7 @@ class WebCoverageTextureLoader {
 
   /// Constructs a path for loading/saving the texture requested with the given parameters.
   boost::filesystem::path getCachePath(WebCoverageService const& wcs, WebCoverage const& coverage,
-      Request const& request, std::string const& mapCache);
+      Request const& request, std::string const& coverageCache);
 
   /// Constructs a request URL for the given parameters.
   std::string getRequestUrl(

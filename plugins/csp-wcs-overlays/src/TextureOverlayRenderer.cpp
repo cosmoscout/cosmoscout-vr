@@ -154,7 +154,6 @@ void TextureOverlayRenderer::setActiveWCS(
 
   if (mActiveWCSCoverage) {
     pBounds = coverage.getSettings().mBounds;
-    // getTimeIndependentTexture(getRequest());
   }
 }
 
@@ -343,7 +342,7 @@ void TextureOverlayRenderer::getTimeIndependentTexture(
       mGuiManager->getGui()->callJavascript(
           "CosmoScout.wcsOverlays.setCoverageSelectDisabled", true);
       std::optional<GDALReader::GreyScaleTexture> texture = mTextureLoader.loadTexture(*mActiveWCS,
-          *mActiveWCSCoverage, request, mPluginSettings->mMapCache.get(),
+          *mActiveWCSCoverage, request, mPluginSettings->mCoverageCache.get(),
           request.mBounds == mActiveWCSCoverage->getSettings().mBounds);
       if (texture.has_value()) {
         mUpdateTexture = true;
@@ -385,7 +384,7 @@ bool TextureOverlayRenderer::Do() {
     // Get the current time. Pre-fetch times are related to this.
     auto time = cs::utils::convert::time::toPosix(mTimeControl->pSimulationTime.get());
 
-    // Select WCS textures to be downloaded. If no pre-fetch is set, only sellect the texture for
+    // Select WCS textures to be downloaded. If no pre-fetch is set, only select the texture for
     // the current timestep.
     for (int preFetch = -mPluginSettings->mPrefetchCount.get();
          preFetch <= mPluginSettings->mPrefetchCount.get(); preFetch++) {
@@ -417,7 +416,7 @@ bool TextureOverlayRenderer::Do() {
         mTexturesBuffer.insert(
             std::pair<std::string, std::future<std::optional<GDALReader::GreyScaleTexture>>>(
                 timeString, mTextureLoader.loadTextureAsync(*mActiveWCS, *mActiveWCSCoverage,
-                                request, mPluginSettings->mMapCache.get(),
+                                request, mPluginSettings->mCoverageCache.get(),
                                 request.mBounds == mActiveWCSCoverage->getSettings().mBounds)));
       }
     }
@@ -501,7 +500,7 @@ bool TextureOverlayRenderer::Do() {
     data.mColorBuffer->Bind();
 
     nlohmann::json sampleJson;
-    GLenum         textureType;
+    GLenum         textureType{};
     auto           textureSize = mTexture.x * mTexture.y;
 
     switch (mTexture.type) {
@@ -551,7 +550,7 @@ bool TextureOverlayRenderer::Do() {
     }
 
     case 6: // Float32
-    case 7: // Float64
+    case 7: // TODO: Float64 <- for now handled as Float32 - results in wrongly displayed values
     {
       std::vector<float> textureData(
           static_cast<float*>(mTexture.buffer), static_cast<float*>(mTexture.buffer) + textureSize);

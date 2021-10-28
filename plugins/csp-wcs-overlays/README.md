@@ -13,7 +13,7 @@ This plugin can be enabled with the following configuration in your `settings.js
   "plugins": {
     ...
     "csp-wcs-overlays": {
-      "mapCache": <string>,          // The path of a directory in which map textures should be cached.
+      "coverageCache": <string>,     // The path of a directory in which coverage textures should be cached.
       "capabilityCache": <string>,   // The path of a directory in which WCS capability documents should be cached.
       "useCapabilityCache": <string> // The cache mode for capability documents. For more details see section 'Capability cache'.
       "wcsRequestFormat": <string>,  // Mime Format used in WCS requests, e.g. image/tiff, application/x-netcdf, etc. 
