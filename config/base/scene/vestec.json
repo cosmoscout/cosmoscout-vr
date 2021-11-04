@@ -375,18 +375,27 @@
   },
   "plugins": {
     "csp-volume-rendering": {
-      "volumeDataPath": "C:\\viscontest_2021\\mantle",
-      "volumeDataPattern": "spherical([0-9]+).nc",
-      "volumeDataType": "netcdf",
-      "volumeStructure": "structuredSpherical",
-      "volumeShape": "spherical",
-      "anchor": "Earth",
-      "denoiseColor": false,
-      "denoiseDepth": false,
-      "samplingRate": 1,
-      "resolution": 512,
-      "depthMode": "multiThreshold",
-      "activeScalar": "cell_temperature"
+      "data": {
+        "path": "../share/data/spaceweather/",
+        "namePattern": "dummy_([0-9]+).vtk",
+        "type": "vtk",
+        "structure": "structured",
+        "shape": "cubic",
+        "activeScalar": "point_B_Mag"
+      },
+      "transform": {
+        "anchor": "Earth",
+        "position": [ 10000000, 0, 0 ],
+        "scale": 0.7,
+        "rotation": [ 20, 60, 20 ]
+      },
+      "rendering": {
+        "denoiseColor": false,
+        "denoiseDepth": false,
+        "samplingRate": 1,
+        "resolution": 512,
+        "depthMode": "multiThreshold"
+      }
     },
     "csp-vestec": {
       "vestec-topo-dir": "../share/vestec/data/fire.cdb",
