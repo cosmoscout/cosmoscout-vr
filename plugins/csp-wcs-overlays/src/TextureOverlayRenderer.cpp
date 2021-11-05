@@ -32,7 +32,6 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include <cmath>
-#include <rpcndr.h>
 
 namespace csp::wcsoverlays {
 
@@ -46,6 +45,9 @@ TextureOverlayRenderer::TextureOverlayRenderer(std::string center,
     : mSettings(std::move(settings))
     , mPluginSettings(std::move(pluginSettings))
     , mCenterName(std::move(center))
+    , m_pSurfaceShader(new VistaGLSLShader())
+    , mTransferFunction(std::make_unique<cs::graphics::ColorMap>(
+          boost::filesystem::path("../share/resources/transferfunctions/HeatLight.json")))
     , mSolarSystem(std::move(solarSystem))
     , mTimeControl(std::move(timeControl))
     , mGuiManager(std::move(guiManager))
@@ -54,10 +56,7 @@ TextureOverlayRenderer::TextureOverlayRenderer(std::string center,
           static_cast<float>(-mSolarSystem->getRadii(mCenterName)[2])})
     , mMaxBounds({static_cast<float>(mSolarSystem->getRadii(mCenterName)[0]),
           static_cast<float>(mSolarSystem->getRadii(mCenterName)[1]),
-          static_cast<float>(mSolarSystem->getRadii(mCenterName)[2])})
-    , mTransferFunction(std::make_unique<cs::graphics::ColorMap>(
-          boost::filesystem::path("../share/resources/transferfunctions/HeatLight.json")))
-    , m_pSurfaceShader(new VistaGLSLShader()) {
+          static_cast<float>(mSolarSystem->getRadii(mCenterName)[2])}) {
 
   m_pSurfaceShader->InitVertexShaderFromString(SURFACE_VERT);
   m_pSurfaceShader->InitFragmentShaderFromString(SURFACE_FRAG);
@@ -352,8 +351,7 @@ void TextureOverlayRenderer::getTimeIndependentTexture(
       }
       mGuiManager->getGui()->callJavascript(
           "CosmoScout.wcsOverlays.setCoverageSelectDisabled", false);
-    }))
-        .detach();
+    })).detach();
   }
 }
 

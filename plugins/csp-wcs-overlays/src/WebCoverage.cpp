@@ -16,8 +16,8 @@ namespace csp::wcsoverlays {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 WebCoverage::WebCoverage(VistaXML::TiXmlElement* element, Settings settings, std::string mUrl)
-    : mSettings(std::move(settings))
-    , mUrl(std::move(mUrl)) {
+    : mUrl(std::move(mUrl))
+    , mSettings(std::move(settings)) {
   auto title = utils::getElementValue<std::string>(element, {"ows:Title"});
   auto id    = utils::getElementValue<std::string>(element, {"wcs:CoverageId"});
 

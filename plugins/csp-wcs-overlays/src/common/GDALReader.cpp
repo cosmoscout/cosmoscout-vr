@@ -167,8 +167,8 @@ void GDALReader::ClearCache() {
   GDALReader::mMutex.lock();
   // Loop over textures and delete buffer
   for (it = mTextureCache.begin(); it != mTextureCache.end(); it++) {
-    auto texture = it->second;
-    delete texture.buffer;
+    GreyScaleTexture texture = it->second;
+    free(texture.buffer);
   }
   mTextureCache.clear();
   GDALReader::mMutex.unlock();
