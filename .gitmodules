@@ -34,9 +34,6 @@
 [submodule "externals/doctest"]
 	path = externals/doctest
 	url = https://github.com/onqtam/doctest.git
-[submodule "plugins/csp-vestec"]
-	path = plugins/csp-vestec
-	url =  https://github.com/cosmoscout/csp-vestec.git
 [submodule "externals/vtk"]
 	path = externals/vtk
 	url = https://github.com/Kitware/VTK.git
