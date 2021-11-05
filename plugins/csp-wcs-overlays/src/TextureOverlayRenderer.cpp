@@ -351,7 +351,8 @@ void TextureOverlayRenderer::getTimeIndependentTexture(
       }
       mGuiManager->getGui()->callJavascript(
           "CosmoScout.wcsOverlays.setCoverageSelectDisabled", false);
-    })).detach();
+    }))
+        .detach();
   }
 }
 
