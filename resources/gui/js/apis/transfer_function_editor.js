@@ -58,7 +58,7 @@ class TransferFunctionEditor {
     }
     this._initialized = false;
     if (extents) {
-      this._dataExtent = extents;
+      this._setExtents(extents);
     } else {
       this._setExtents(data);
     }
