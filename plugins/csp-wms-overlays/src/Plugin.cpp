@@ -230,7 +230,7 @@ void Plugin::init() {
           return;
         }
 
-        mTimeControl->setTimeSpeed(0);
+        mAllSettings->pTimeSpeed = 0.f;
         mTimeControl->setTime(
             cs::utils::convert::time::toSpice(mActiveLayers[mActiveOverlay->getCenter()]
                                                   ->getSettings()
@@ -245,7 +245,7 @@ void Plugin::init() {
           return;
         }
 
-        mTimeControl->setTimeSpeed(0);
+        mAllSettings->pTimeSpeed = 0.f;
 
         boost::posix_time::ptime time =
             cs::utils::convert::time::toPosix(mTimeControl->pSimulationTime.get());
@@ -304,7 +304,7 @@ void Plugin::init() {
           return;
         }
 
-        mTimeControl->setTimeSpeed(0);
+        mAllSettings->pTimeSpeed = 0.f;
 
         boost::posix_time::ptime time =
             cs::utils::convert::time::toPosix(mTimeControl->pSimulationTime.get());
@@ -353,7 +353,7 @@ void Plugin::init() {
           return;
         }
 
-        mTimeControl->setTimeSpeed(0);
+        mAllSettings->pTimeSpeed = 0.f;
         mTimeControl->setTime(
             cs::utils::convert::time::toSpice(mActiveLayers[mActiveOverlay->getCenter()]
                                                   ->getSettings()

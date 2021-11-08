@@ -58,11 +58,11 @@
 param (
     [Parameter(Mandatory=$true)]
     [ValidateNotNullOrEmpty()]
-    [String[]]
+    [String]
     $Name,
 
     [ValidateNotNullOrEmpty()]
-    [String[]]
+    [String]
     $Icon="label_off",
 
     [Boolean]
@@ -75,58 +75,47 @@ param (
     $WithSettingsTab=$true
 )
 
+$lowerCaseName = $Name.ToLower()
+$upperCaseName = $Name.ToUpper()
+$titleCaseName = (Get-Culture).TextInfo.ToTitleCase($Name)
+
+$kebabCaseName = $lowerCaseName -replace ' ','-'
+$lowerCaseJoinedName = $lowerCaseName -replace ' '
+$pascalCaseName = $titleCaseName -replace ' '
+$camelCaseName = $pascalCaseName.Substring(0, 1).ToLower() + $pascalCaseName.Substring(1)
+$screamingSnakeCaseName = $upperCaseName -replace ' ','_'
+
+$pluginRootDir = "plugins/csp-$kebabCaseName"
+
 function New-Plugin {
-    $lowerCaseName = $Name.ToLower()
-    $upperCaseName = $Name.ToUpper()
-    $titleCaseName = (Get-Culture).TextInfo.ToTitleCase($Name)
-
-    $kebabCaseName = $lowerCaseName -replace ' ','-'
-    $lowerCaseJoinedName = $lowerCaseName -replace ' '
-    $pascalCaseName = $titleCaseName -replace ' '
-    $camelCaseName = $pascalCaseName.Substring(0, 1).ToLower() + $pascalCaseName.Substring(1)
-    $snakeCaseName = $lowerCaseName -replace ' ','_'
-    $screamingSnakeCaseName = $upperCaseName -replace ' ','_'
-
-    $pluginRootDir = "plugins/csp-$kebabCaseName"
-
-    $startDirectory = Get-Location
-
     $pluginDir = New-Item -Path "$PSScriptRoot/../plugins" -Name "csp-$kebabCaseName" -ItemType "directory"
-    Set-Location $pluginDir
 
-    New-README
-    New-CMakeLists
+    New-README $pluginDir
+    New-CMakeLists $pluginDir
 
     $srcDir = New-Item -Path $pluginDir -Name "src" -ItemType "directory"
-    Set-Location $srcDir
-    New-CppPluginClass
-    New-CppLogger
-    Set-Location ".."
+    New-CppPluginClass $srcDir
+    New-CppLogger $srcDir
 
     if ($WithJSApi -or $WithSidebarTab -or $WithSettingsTab) {
-        $guiDir = New-Item -Path $srcDir -Name "gui" -ItemType "directory"
-        Set-Location $guiDir
+        $guiDir = New-Item -Path $pluginDir -Name "gui" -ItemType "directory"
 
         if ($WithJSApi) {
             $jsDir = New-Item -Path $guiDir -Name "js" -ItemType "directory"
-            Set-Location $jsDir
-            New-JSApi
-            Set-Location $guiDir
+            New-JSApi $jsDir
         }
 
         if ($WithSidebarTab) {
-            New-SidebarTabHtml
+            New-SidebarTabHtml $guiDir
         }
 
         if ($WithSettingsTab) {
-            New-SettingsTabHtml
+            New-SettingsTabHtml $guiDir
         }
     }
-
-    Set-Location $startDirectory
 }
 
-function New-README() {
+function New-README($directory) {
     $readMeText = @"
 # $titleCaseName for CosmoScout VR
 
@@ -149,10 +138,10 @@ The given values present some good starting values for your customization:
 ``````
 "@
     Write-Host "Creating: '$pluginRootDir/README.md'"
-    $readMeText | Out-File "README.md" -Encoding utf8
+    $readMeText | Out-File "$directory/README.md" -Encoding utf8
 }
 
-function New-CMakeLists() {
+function New-CMakeLists($directory) {
     $cMakeListsText = @"
 # ------------------------------------------------------------------------------------------------ #
 #                                This file is part of CosmoScout VR                                #
@@ -205,10 +194,10 @@ $(if ($WithJSApi -or $WithSettingsTab -or $WithSidebarTab) {
 "@
 
     Write-Host "Creating: '$pluginRootDir/CMakeLists.txt'"
-    $cMakeListsText | Out-File "CMakeLists.txt" -Encoding utf8
+    $cMakeListsText | Out-File "$directory/CMakeLists.txt" -Encoding utf8
 }
 
-function New-CppPluginClass() {
+function New-CppPluginClass($directory) {
     $pluginHeaderText = @"
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //                               This file is part of CosmoScout VR                               //
@@ -347,13 +336,13 @@ void Plugin::onLoad() {
 "@
 
     Write-Host "Creating: '$pluginRootDir/src/Plugin.hpp'"
-    $pluginHeaderText | Out-File "Plugin.hpp" -Encoding utf8
+    $pluginHeaderText | Out-File "$directory/Plugin.hpp" -Encoding utf8
 
     Write-Host "Creating: '$pluginRootDir/src/Plugin.cpp'"
-    $pluginSourceText | Out-File "Plugin.cpp" -Encoding utf8
+    $pluginSourceText | Out-File "$directory/Plugin.cpp" -Encoding utf8
 }
 
-function New-CppLogger() {
+function New-CppLogger($directory) {
     $loggerHeaderText = @"
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //                               This file is part of CosmoScout VR                               //
@@ -403,13 +392,13 @@ spdlog::logger& logger() {
 "@
 
     Write-Host "Creating: '$pluginRootDir/src/logger.hpp'"
-    $loggerHeaderText | Out-File "logger.hpp" -Encoding utf8
+    $loggerHeaderText | Out-File "$directory/logger.hpp" -Encoding utf8
 
     Write-Host "Creating: '$pluginRootDir/src/logger.cpp'"
-    $loggerSourceText | Out-File "logger.cpp" -Encoding utf8
+    $loggerSourceText | Out-File "$directory/logger.cpp" -Encoding utf8
 }
 
-function New-JSApi() {
+function New-JSApi($directory) {
     $jsApiText = @"
 /* global IApi, CosmoScout */
 
@@ -443,21 +432,21 @@ function New-JSApi() {
 "@
 
     Write-Host "Creating: '$pluginRootDir/gui/js/csp-$kebabCaseName.js'"
-    $jsApiText | Out-File "csp-$kebabCaseName.js" -Encoding utf8
+    $jsApiText | Out-File "$directory/csp-$kebabCaseName.js" -Encoding utf8
 }
 
-function New-SidebarTabHtml() {
+function New-SidebarTabHtml($directory) {
     $sidebarHtmlText = "<p>Your sidebar content here!</p>"
 
     Write-Host "Creating: '$pluginRootDir/gui/$kebabCaseName-tab.html'"
-    $sidebarHtmlText | Out-File "$kebabCaseName-tab.html" -Encoding utf8
+    $sidebarHtmlText | Out-File "$directory/$kebabCaseName-tab.html" -Encoding utf8
 }
 
-function New-SettingsTabHtml() {
+function New-SettingsTabHtml($directory) {
     $settingsHtmlText = "<p>Your settings here!</p>"
 
     Write-Host "Creating: '$pluginRootDir/gui/$kebabCaseName-settings.html'"
-    $settingsHtmlText | Out-File "$kebabCaseName-settings.html" -Encoding utf8
+    $settingsHtmlText | Out-File "$directory/$kebabCaseName-settings.html" -Encoding utf8
 }
 
 New-Plugin

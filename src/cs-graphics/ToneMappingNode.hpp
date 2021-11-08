@@ -29,6 +29,8 @@ namespace cs::graphics {
 /// all connected cluster slaves are taken into account.
 class CS_GRAPHICS_EXPORT ToneMappingNode : public IVistaOpenGLDraw, public VistaEventHandler {
  public:
+  enum class ToneMappingMode { eNone = 0, eFilmic = 1 };
+
   /// The node will draw to the backbuffer using the contents from the given HDRBuffer.
   explicit ToneMappingNode(std::shared_ptr<HDRBuffer> hdrBuffer);
 
@@ -79,6 +81,10 @@ class CS_GRAPHICS_EXPORT ToneMappingNode : public IVistaOpenGLDraw, public Vista
   void setEnableBicubicGlareFilter(bool enable);
   bool getEnableBicubicGlareFilter() const;
 
+  /// Sets the tone mapping mode to be used.
+  void            setToneMappingMode(ToneMappingMode mode);
+  ToneMappingMode getToneMappingMode() const;
+
   /// Returns the average and maximum luminance across all connected cluster nodes.
   float getLastAverageLuminance() const;
   float getLastMaximumLuminance() const;
@@ -91,16 +97,17 @@ class CS_GRAPHICS_EXPORT ToneMappingNode : public IVistaOpenGLDraw, public Vista
  private:
   std::shared_ptr<HDRBuffer> mHDRBuffer;
 
-  bool  mShaderDirty              = true;
-  float mExposureCompensation     = 0.F;
-  bool  mEnableAutoExposure       = false;
-  float mExposure                 = 0.F;
-  float mAutoExposure             = 0.F;
-  float mMinAutoExposure          = -15.F;
-  float mMaxAutoExposure          = 15.F;
-  float mExposureAdaptionSpeed    = 1.F;
-  float mGlareIntensity           = 0.F;
-  bool  mEnableBicubicGlareFilter = true;
+  bool            mShaderDirty              = true;
+  float           mExposureCompensation     = 0.F;
+  bool            mEnableAutoExposure       = false;
+  float           mExposure                 = 0.F;
+  float           mAutoExposure             = 0.F;
+  float           mMinAutoExposure          = -15.F;
+  float           mMaxAutoExposure          = 15.F;
+  float           mExposureAdaptionSpeed    = 1.F;
+  float           mGlareIntensity           = 0.F;
+  bool            mEnableBicubicGlareFilter = true;
+  ToneMappingMode mToneMappingMode          = ToneMappingMode::eFilmic;
 
   std::unique_ptr<VistaGLSLShader> mShader;
 

@@ -69,6 +69,9 @@ class CS_CORE_EXPORT SolarSystem {
   /// then i = pSunLuminousPower / (d*d*4*PI) is calculated.
   double getSunIlluminance(glm::dvec3 const& observerPosition) const;
 
+  /// Returns the surface luminance of the Sun in cd / m².
+  double getSunLuminance() const;
+
   // Object registration API -----------------------------------------------------------------------
 
   /// The CelestialObserver, which controls the camera.
@@ -238,7 +241,8 @@ class CS_CORE_EXPORT SolarSystem {
   std::set<std::shared_ptr<scene::CelestialAnchor>> mAnchors;
   std::set<std::shared_ptr<scene::CelestialBody>>   mBodies;
 
-  bool mIsInitialized = false;
+  bool mIsInitialized              = false;
+  bool mSpiceFrameChangedLastFrame = false;
 
   uint64_t mListenerIds = 0;
   std::unordered_map<uint64_t, std::function<void(std::shared_ptr<scene::CelestialBody>)>>
