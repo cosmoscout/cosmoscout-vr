@@ -70,18 +70,6 @@
 [submodule "externals/ospray"]
 	path = externals/ospray
 	url = https://github.com/ospray/ospray.git
-[submodule "externals/embree"]
-	path = externals/embree
-	url = https://github.com/embree/embree.git
-[submodule "externals/openvkl"]
-	path = externals/openvkl
-	url = https://github.com/openvkl/openvkl.git
-[submodule "externals/oidn"]
-	path = externals/oidn
-	url = https://github.com/OpenImageDenoise/oidn.git
-[submodule "externals/rkcommon"]
-	path = externals/rkcommon
-	url = https://github.com/ospray/rkcommon.git
 [submodule "plugins/csp-volume-rendering"]
 	path = plugins/csp-volume-rendering
 	url = https://github.com/cosmoscout/csp-volume-rendering.git
