@@ -6,7 +6,6 @@
 
 #include "Plugin.hpp"
 
-#include "../../../src/cs-core/GuiManager.hpp"
 #include "../../../src/cs-core/InputManager.hpp"
 #include "../../../src/cs-core/Settings.hpp"
 #include "../../../src/cs-core/SolarSystem.hpp"
@@ -64,10 +63,6 @@ void Plugin::init() {
   // Load settings.
   onLoad();
 
-  mGuiManager->getGui()->registerCallback("simpleBodies.setEnabled",
-      "Sets wether the plugin is enabled.",
-      std::function([this](bool enable) { mPluginSettings.mEnabled = enable; }));
-
   logger().info("Loading done.");
 }
 
@@ -118,8 +113,7 @@ void Plugin::onLoad() {
       continue;
     }
 
-    auto simpleBody =
-        std::make_shared<SimpleBody>(mAllSettings, mPluginSettings, mSolarSystem, settings.first);
+    auto simpleBody = std::make_shared<SimpleBody>(mAllSettings, mSolarSystem, settings.first);
     simpleBody->configure(settings.second);
     simpleBody->setSun(mSolarSystem->getSun());
 

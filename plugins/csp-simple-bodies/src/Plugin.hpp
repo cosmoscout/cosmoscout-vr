@@ -8,7 +8,6 @@
 #define CSP_SIMPLE_BODIES_PLUGIN_HPP
 
 #include "../../../src/cs-core/PluginBase.hpp"
-#include "../../../src/cs-utils/DefaultProperty.hpp"
 
 #include <map>
 #include <string>
@@ -28,7 +27,6 @@ class Plugin : public cs::core::PluginBase {
     };
 
     std::map<std::string, SimpleBody> mSimpleBodies;
-    cs::utils::DefaultProperty<bool>  mEnabled{true};
   };
 
   void init() override;

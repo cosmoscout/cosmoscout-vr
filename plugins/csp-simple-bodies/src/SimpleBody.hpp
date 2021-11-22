@@ -24,19 +24,20 @@ class SolarSystem;
 
 namespace csp::simplebodies {
 
-class Hemisphere : public IVistaOpenGLDraw {
+/// This is just a sphere with a texture, attached to the given SPICE frame. The texture should be
+/// in equirectangular projection.
+class SimpleBody : public cs::scene::CelestialBody, public IVistaOpenGLDraw {
  public:
-  Hemisphere(bool front, std::shared_ptr<cs::core::Settings> settings,
-      Plugin::Settings& pluginSettings, std::shared_ptr<cs::core::SolarSystem> solarSystem,
-      SimpleBody const& parent);
+  SimpleBody(std::shared_ptr<cs::core::Settings> settings,
+      std::shared_ptr<cs::core::SolarSystem> solarSystem, std::string const& anchorName);
 
-  Hemisphere(Hemisphere const& other) = delete;
-  Hemisphere(Hemisphere&& other)      = default;
+  SimpleBody(SimpleBody const& other) = delete;
+  SimpleBody(SimpleBody&& other)      = default;
 
-  Hemisphere& operator=(Hemisphere const& other) = delete;
-  Hemisphere& operator=(Hemisphere&& other) = default;
+  SimpleBody& operator=(SimpleBody const& other) = delete;
+  SimpleBody& operator=(SimpleBody&& other) = default;
 
-  ~Hemisphere() override;
+  ~SimpleBody() override;
 
   /// Configures the internal renderer according to the given values.
   void configure(Plugin::Settings::SimpleBody const& settings);
@@ -44,22 +45,26 @@ class Hemisphere : public IVistaOpenGLDraw {
   /// The sun object is used for lighting computation.
   void setSun(std::shared_ptr<const cs::scene::CelestialObject> const& sun);
 
+  /// Interface implementation of the IntersectableObject, which is a base class of
+  /// CelestialBody.
+  bool getIntersection(
+      glm::dvec3 const& rayOrigin, glm::dvec3 const& rayDir, glm::dvec3& pos) const override;
+
+  /// Interface implementation of CelestialBody.
+  double getHeight(glm::dvec2 lngLat) const override;
+
   /// Interface implementation of IVistaOpenGLDraw.
   bool Do() override;
   bool GetBoundingBox(VistaBoundingBox& bb) override;
 
  private:
-  SimpleBody const& mParent;
-
-  bool mFront;
-
   std::shared_ptr<cs::core::Settings>               mSettings;
-  Plugin::Settings&                                 mPluginSettings;
   std::shared_ptr<cs::core::SolarSystem>            mSolarSystem;
   std::shared_ptr<const cs::scene::CelestialObject> mSun;
 
   std::unique_ptr<VistaOpenGLNode> mGLNode;
 
+  Plugin::Settings::SimpleBody  mSimpleBodySettings;
   std::unique_ptr<VistaTexture> mTexture;
   VistaGLSLShader               mShader;
   VistaVertexArrayObject        mSphereVAO;
@@ -83,42 +88,6 @@ class Hemisphere : public IVistaOpenGLDraw {
 
   static const char* SPHERE_VERT;
   static const char* SPHERE_FRAG;
-};
-
-/// This is just a sphere with a texture, attached to the given SPICE frame. The texture should be
-/// in equirectangular projection.
-class SimpleBody : public cs::scene::CelestialBody {
- public:
-  SimpleBody(std::shared_ptr<cs::core::Settings> settings, Plugin::Settings& pluginSettings,
-      std::shared_ptr<cs::core::SolarSystem> solarSystem, std::string const& anchorName);
-
-  SimpleBody(SimpleBody const& other) = delete;
-  SimpleBody(SimpleBody&& other)      = default;
-
-  SimpleBody& operator=(SimpleBody const& other) = delete;
-  SimpleBody& operator=(SimpleBody&& other) = default;
-
-  /// Configures the internal renderer according to the given values.
-  void configure(Plugin::Settings::SimpleBody const& settings);
-
-  /// The sun object is used for lighting computation.
-  void setSun(std::shared_ptr<const cs::scene::CelestialObject> const& sun);
-
-  /// Interface implementation of the IntersectableObject, which is a base class of
-  /// CelestialBody.
-  bool getIntersection(
-      glm::dvec3 const& rayOrigin, glm::dvec3 const& rayDir, glm::dvec3& pos) const override;
-
-  /// Interface implementation of CelestialBody.
-  double getHeight(glm::dvec2 lngLat) const override;
-
- private:
-  Plugin::Settings::SimpleBody mSimpleBodySettings;
-
-  Hemisphere mFrontHemisphere;
-  Hemisphere mBackHemisphere;
-
-  friend Hemisphere;
 };
 
 } // namespace csp::simplebodies
