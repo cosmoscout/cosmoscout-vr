@@ -28,6 +28,7 @@
 !/plugins/csp-web-api
 !/plugins/csp-volume-rendering
 !/plugins/csp-wms-overlays
+!/plugins/csp-wcs-overlays
 
 *.sublime*
 .vscode
