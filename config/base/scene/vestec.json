@@ -374,31 +374,7 @@
     }
   },
   "plugins": {
-    "csp-volume-rendering": {
-      "volumeDataPath": "../share/data/spaceweather/",
-      "volumeDataPattern": "dummy_([0-9]+).vtk",
-      "volumeDataType": "vtk",
-      "volumeStructure": "structured",
-      "volumeShape": "cubic",
-      "anchor": "Earth",
-      "position": [
-        10000000,
-        0,
-        0
-      ],
-      "scale": 0.7,
-      "rotation": [
-        0.19134170284356308,
-        0.4619399539487806,
-        0.19134170284356303,
-        0.8446231020115715
-      ],
-      "denoiseColor": false,
-      "denoiseDepth": false,
-      "samplingRate": 1,
-      "resolution": 512,
-      "depthMode": "multiThreshold"
-    },
+
     "csp-vestec": {
       "vestec-topo-dir": "../share/vestec/data/fire.cdb",
       "vestec-fire-dir": "../share/vestec/data/2D-fire",
@@ -634,6 +610,21 @@
           "config": {
             "attribution": "&copy; OpenPlanetary"
           }
+        }
+      }
+    },
+    "csp-wcs-overlays": {
+      "wcsRequestFormat": "image/tiff",
+      "maxTextureSize": 1024,
+      "preFetch": 1,
+      "bodies": {
+        "Earth": {
+          "wcs": [
+            "https://geoservice.dlr.de/eoc/atmosphere/wcs",
+            "https://maps.dwd.de/geoserver/dwd/wcs",
+            "https://geoservice.dlr.de/eoc/elevation/wcs",
+            "https://geoservice.dlr.de/eoc/imagery/wcs"
+          ]
         }
       }
     }
