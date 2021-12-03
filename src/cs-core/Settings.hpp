@@ -10,6 +10,7 @@
 #include "cs_core_export.hpp"
 
 #include "../cs-graphics/HDRBuffer.hpp"
+#include "../cs-graphics/ToneMappingNode.hpp"
 #include "../cs-utils/DefaultProperty.hpp"
 #include "../cs-utils/utils.hpp"
 
@@ -156,6 +157,10 @@ class CS_CORE_EXPORT Settings {
   /// in the user interface. Should be in the format "1950-01-02T00:00:00.000Z".
   utils::Property<std::string> pMinDate;
   utils::Property<std::string> pMaxDate;
+
+  /// The current speed of the simulation. A value of zero will cause the simulation to be paused, a
+  /// value of one corresponds to real-time. Negative values will cause the time to run backwards.
+  utils::DefaultProperty<float> pTimeSpeed{1.F};
 
   /// In order to reduce duplication of code, a list of all used SPICE-frames ("Anchors") is
   /// required at the start of each configuration file. The name of each Anchor is then later used
@@ -484,6 +489,10 @@ class CS_CORE_EXPORT Settings {
     /// Specifies how the glare is computed.
     utils::DefaultProperty<graphics::HDRBuffer::GlareMode> pGlareMode{
         graphics::HDRBuffer::GlareMode::eSymmetricGauss};
+
+    /// Specifies how the tone mapping is computed.
+    utils::DefaultProperty<graphics::ToneMappingNode::ToneMappingMode> pToneMappingMode{
+        graphics::ToneMappingNode::ToneMappingMode::eFilmic};
 
     /// This makes illumination calculations assume a fixed sun position in the current SPICE frame.
     /// Using the default value glm::dvec3(0.0) disables this feature.

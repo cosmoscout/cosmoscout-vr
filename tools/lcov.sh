@@ -21,7 +21,7 @@ set -e
 
 # Get the location of this script.
 SCRIPT_DIR="$( cd "$( dirname "$0" )" && pwd )"
-cd $SCRIPT_DIR
+cd $SCRIPT_DIR/..
 
 # Check if ComoScout VR debug build is enabled with "export COSMOSCOUT_DEBUG_BUILD=true".
 BUILD_TYPE=Release

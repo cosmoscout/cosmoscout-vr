@@ -94,10 +94,10 @@ void TimeControl::update() {
       mAnimationInProgress = false;
     }
   } else {
-    double tTime = pSimulationTime.get() + (now - mLastUpdate) * pTimeSpeed.get();
+    double tTime = pSimulationTime.get() + (now - mLastUpdate) * mSettings->pTimeSpeed.get();
     if (tTime >= pMaxDate || tTime <= pMinDate) {
-      pSimulationTime = std::clamp(tTime, pMinDate, pMaxDate);
-      setTimeSpeed(0);
+      pSimulationTime       = std::clamp(tTime, pMinDate, pMaxDate);
+      mSettings->pTimeSpeed = 0.f;
     } else {
       pSimulationTime = tTime;
     }
@@ -113,8 +113,8 @@ void TimeControl::setTime(double tTime, double duration, double threshold) {
   double difference = std::abs(pSimulationTime.get() - tTime);
 
   if (tTime >= pMaxDate || tTime <= pMinDate) {
-    pSimulationTime = std::clamp(tTime, pMinDate, pMaxDate);
-    setTimeSpeed(0);
+    pSimulationTime       = std::clamp(tTime, pMinDate, pMaxDate);
+    mSettings->pTimeSpeed = 0.f;
   } else if (duration <= 0.0 || difference > std::abs(threshold) || threshold <= 0) {
     // Make no animation for very large time changes.
     pSimulationTime = tTime;
@@ -147,12 +147,6 @@ void TimeControl::resetTime(double duration, double threshold) {
                                "'today' or in the format '1969-07-20T20:17:40.000Z'.");
     }
   }
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void TimeControl::setTimeSpeed(float speed) {
-  pTimeSpeed = speed;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
