@@ -257,6 +257,8 @@ WebMapService::checkUpdateSequence(VistaXML::TiXmlDocument cacheDoc) {
 std::tuple<VistaXML::TiXmlDocument, std::string> WebMapService::requestCapabilities() {
   std::stringstream url = getGetCapabilitiesUrl();
 
+  logger().info("Requesting get capabilities from: {}", url.str());
+
   std::stringstream xmlStream;
   curlpp::Easy      request;
   request.setOpt(curlpp::options::Url(url.str()));
@@ -376,7 +378,7 @@ std::vector<std::string> WebMapService::parseMapFormats() {
 std::stringstream WebMapService::getGetCapabilitiesUrl() const {
   std::stringstream urlStream;
   urlStream << mUrl;
-  urlStream << "?SERVICE=WMS";
+  urlStream << "&SERVICE=WMS";
   urlStream << "&VERSION=1.3.0";
   urlStream << "&REQUEST=GetCapabilities";
   return urlStream;

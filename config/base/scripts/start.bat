@@ -13,6 +13,7 @@ cd "%SCRIPT_DIR%"
 
 rem Scene config file can be passed as first parameter.
 set SETTINGS=../share/config/vestec.json
+rem set SETTINGS=../share/config/vestec-diseases-offline.json
 IF NOT "%1"=="" (
   SET SETTINGS=%1
   SHIFT

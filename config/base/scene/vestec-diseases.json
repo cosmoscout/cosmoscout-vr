@@ -1,0 +1,318 @@
+{
+  "startDate": "today",
+  "resetDate": "today",
+  "minDate": "2000-01-02 00:00:00.000",
+  "maxDate": "2025-12-31 00:00:00.000",
+  "observer": {
+    "center": "Earth",
+    "frame": "IAU_Earth",
+    "position": [
+      5915095.557596171,
+      10658059.249942748,
+      15601636.827477392
+    ],
+    "rotation": [
+      -0.27581807466282293,
+      0.1729750618085246,
+      0.05053096202800651,
+      0.9441666376006699
+    ]
+  },
+  "sceneScale": {
+    "minScale": 5,
+    "maxScale": 100000000000000000,
+    "closeVisualDistance": 5,
+    "farVisualDistance": 5,
+    "closeRealDistance": 1.7,
+    "farRealDistance": 1000000,
+    "lockWeight": 0.1,
+    "trackWeight": 0.0002,
+    "minObjectSize": 10000.0,
+    "nearClip": 0.2,
+    "minFarClip": 200.0,
+    "maxFarClip": 20000.0
+  },
+  "bookmarks": [
+    {
+      "name": "Earth",
+      "icon": "earth.png",
+      "location": {
+        "center": "Earth",
+        "frame": "IAU_Earth"
+      }
+    },
+    {
+      "name": "Europe",
+      "location": {
+        "center": "Earth",
+        "frame": "IAU_Earth",
+        "position": [
+          650049.6197706065,
+          9169440.98335226,
+          8121638.922577351
+        ]
+      }
+    }
+  ],
+  "downloadData": [
+    {
+      "url": "ftp://ftp.imcce.fr/pub/catalogs/HIPP/cats/hip_main.dat",
+      "file": "../share/download/stars/hip_main.dat"
+    },
+    {
+      "url": "ftp://ftp.imcce.fr/pub/catalogs/TYCHO-2/catalog.dat",
+      "file": "../share/download/stars/tyc2_main.dat"
+    },
+    {
+      "url": "https://naif.jpl.nasa.gov/pub/naif/cosmographia/kernels/spice/pck/pck00010.tpc",
+      "file": "../share/download/spice/pck00010.tpc"
+    },
+    {
+      "url": "https://naif.jpl.nasa.gov/pub/naif/cosmographia/kernels/spice/lsk/naif0011.tls",
+      "file": "../share/download/spice/naif0011.tls"
+    },
+    {
+      "url": "https://naif.jpl.nasa.gov/pub/naif/cosmographia/kernels/spice/spk/cg_1950_2050_v01.bsp",
+      "file": "../share/download/spice/cg_1950_2050_v01.bsp"
+    }
+  ],
+  "spiceKernel": "../share/config/spice/simple.txt",
+  "graphics": {},
+  "anchors": {
+    "Barycenter": {
+      "center": "Solar System Barycenter",
+      "frame": "J2000",
+      "existence": [
+        "1950-01-02 00:00:00.000",
+        "2049-12-31 00:00:00.000"
+      ]
+    },
+    "Sun": {
+      "center": "Sun",
+      "frame": "IAU_Sun",
+      "existence": [
+        "1950-01-02 00:00:00.000",
+        "2049-12-31 00:00:00.000"
+      ]
+    },
+    "Earth": {
+      "center": "Earth",
+      "frame": "IAU_Earth",
+      "existence": [
+        "1950-01-02 00:00:00.000",
+        "2049-12-31 00:00:00.000"
+      ]
+    },
+    "EarthJ2000": {
+      "center": "Earth",
+      "frame": "J2000",
+      "existence": [
+        "1950-01-02 00:00:00.000",
+        "2049-12-31 00:00:00.000"
+      ]
+    }
+  },
+  "plugins": {
+    "csp-vestec": {
+      "vestec-topo-dir": "",
+      "vestec-fire-dir": "",
+      "vestec-diseases-dir": "",
+      "vestec-server": "https://vestec.epcc.ed.ac.uk",
+      "vestec-download-dir": "../share/vestec/download",
+      "vestec-textures-dir": "../share/vestec/data/tif_files"
+    },
+    "csp-wms-overlays": {
+      "maxTextureSize": 1024,
+      "preFetch": 2,
+      "bodies": {
+        "Earth": {
+          "wms": [
+            "https://maps.dwd.de/geoserver/dwd/wms?",
+            "https://neo.sci.gsfc.nasa.gov/wms/wms?",
+            "https://apps.ecmwf.int/wms/?token=public",
+            "https://copernicus.discomap.eea.europa.eu/arcgis/services/UrbanAtlas/UA_UrbanAtlas_2018/MapServer/WMSServer?",
+            "https://cdc.dwd.de/geoserver/ows?"
+          ]
+        }
+      }
+    },
+    "csp-lod-bodies": {
+      "maxGPUTilesColor": 2048,
+      "maxGPUTilesGray": 2048,
+      "maxGPUTilesDEM": 2048,
+      "mapCache": "map-cache/",
+      "bodies": {
+        "Earth": {
+          "activeImgDataset": "Landsat",
+          "activeDemDataset": "Helgoland + SRTM30",
+          "imgDatasets": {
+            "Helgoland + Blue Marble": {
+              "copyright": "DLR, NASA",
+              "url": "http://129.247.34.87/mapserv?service=wms",
+              "format": "U8Vec3",
+              "layers": "earth.bluemarble.rgb,earth.os.helgoland.rgb",
+              "maxLevel": 18
+            },
+            "Blue Marble": {
+              "copyright": "NASA",
+              "url": "http://129.247.34.87/mapserv?service=wms",
+              "format": "U8Vec3",
+              "layers": "earth.bluemarble.rgb",
+              "maxLevel": 7
+            },
+            "Landsat": {
+              "copyright": "NASA",
+              "url": "http://129.247.34.87/mapserv?service=wms",
+              "format": "U8Vec3",
+              "layers": "earth.landsat8.rgb",
+              "maxLevel": 12
+            },
+            "OpenStreetMap": {
+              "copyright": "DLR, NASA",
+              "url": "http://129.247.34.87/mapserv?service=wms",
+              "format": "U8Vec3",
+              "layers": "earth.osm.rgb",
+              "maxLevel": 18
+            }
+          },
+          "demDatasets": {
+            "Helgoland + SRTM30": {
+              "copyright": "DLR, NASA",
+              "url": "http://129.247.34.87/mapserv?service=wms",
+              "format": "Float32",
+              "layers": "earth.srtm30.dem,earth.os.helgoland.dem",
+              "maxLevel": 17
+            },
+            "SRTM30": {
+              "copyright": "NASA",
+              "url": "http://129.247.34.87/mapserv?service=wms",
+              "format": "Float32",
+              "layers": "earth.srtm30.dem",
+              "maxLevel": 12
+            },
+            "Blue Marble": {
+              "copyright": "NASA",
+              "url": "http://129.247.34.87/mapserv?service=wms",
+              "format": "Float32",
+              "layers": "earth.bluemarble.dem",
+              "maxLevel": 6
+            },
+            "CleanTOPO": {
+              "copyright": "Tom Patterson, US National Park Service",
+              "url": "http://129.247.34.87/mapserv?service=wms",
+              "format": "Float32",
+              "layers": "earth.cleantopo.dem",
+              "maxLevel": 6
+            },
+            "ETOPO1": {
+              "copyright": "NOAA",
+              "url": "http://129.247.34.87/mapserv?service=wms",
+              "format": "Float32",
+              "layers": "earth.etopo1.dem",
+              "maxLevel": 6
+            }
+          }
+        }
+      }
+    },
+    "csp-stars": {
+      "celestialGridTexture": "../share/resources/textures/celestial_grid.png",
+      "starFiguresTexture": "../share/resources/textures/constellation_figures.png",
+      "celestialGridColor": [
+        0.5,
+        0.8,
+        1.0,
+        0.3
+      ],
+      "starFiguresColor": [
+        0.5,
+        1.0,
+        0.8,
+        0.3
+      ],
+      "starTexture": "../share/resources/textures/star.png",
+      "hipparcosCatalog": "../share/download/stars/hip_main.dat",
+      "tycho2Catalog": "../share/download/stars/tyc2_main.dat"
+    },
+    "csp-measurement-tools": {},
+    "csp-simple-bodies": {
+      "bodies": {
+        "Sun": {
+          "texture": "../share/resources/textures/sun.jpg"
+        }
+      }
+    },
+    "csp-anchor-labels": {
+      "enabled": true,
+      "enableDepthOverlap": true,
+      "ignoreOverlapThreshold": 0.1,
+      "labelScale": 1.2,
+      "depthScale": 1.0,
+      "labelOffset": 0.2
+    },
+    "csp-trajectories": {
+      "trajectories": {
+        "Sun": {
+          "color": [
+            1,
+            1,
+            1
+          ],
+          "drawFlare": true
+        },
+        "Earth": {
+          "color": [
+            0.5,
+            1.0,
+            0.4
+          ],
+          "trail": {
+            "length": 365.0,
+            "samples": 5000,
+            "parent": "Barycenter"
+          },
+          "drawDot": true
+        }
+      }
+    },
+    "csp-fly-to-locations": {},
+    "csp-minimap": {
+      "defaultMap": {
+        "projection": "equirectangular",
+        "type": "wms",
+        "url": "https://geoservice.dlr.de/eoc/basemap/wms?",
+        "config": {
+          "attribution": "&copy; DLR",
+          "layers": "ne:ne_graticules",
+          "BGCOLOR": "0x000000"
+        }
+      },
+      "maps": {
+        "Earth": {
+          "projection": "mercator",
+          "type": "wmts",
+          "url": "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+          "config": {
+            "attribution": "&copy; OpenStreetMap contributors"
+          }
+        },
+        "Moon": {
+          "projection": "mercator",
+          "type": "wmts",
+          "url": "https://cartocdn-gusc.global.ssl.fastly.net/opmbuilder/api/v1/map/named/opm-moon-basemap-v0-1/all/{z}/{x}/{y}.png",
+          "config": {
+            "attribution": "&copy; OpenPlanetary"
+          }
+        },
+        "Mars": {
+          "projection": "mercator",
+          "type": "wmts",
+          "url": "https://cartocdn-gusc.global.ssl.fastly.net/opmbuilder/api/v1/map/named/opm-mars-basemap-v0-2/all/{z}/{x}/{y}.png",
+          "config": {
+            "attribution": "&copy; OpenPlanetary"
+          }
+        }
+      }
+    }
+  }
+}
