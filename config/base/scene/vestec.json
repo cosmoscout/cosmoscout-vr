@@ -374,13 +374,44 @@
     }
   },
   "plugins": {
-
     "csp-vestec": {
-      "vestec-topo-dir": "../share/vestec/data/fire.cdb",
+      "vestec-topo-dir": "../share/vestec/data/diseases_uc.cdb",
       "vestec-fire-dir": "../share/vestec/data/2D-fire",
       "vestec-diseases-dir": "../share/vestec/data/diseases",
-      "vestec-server": "http://172.22.27.24/",
-      "vestec-download-dir": "../share/vestec/download"
+      "vestec-server": "http://vestec.epcc.ed.ac.uk",
+      "vestec-download-dir": "../share/vestec/download",
+      "vestec-textures-dir": "../share/vestec/data/tif_files"
+    },
+    "csp-volume-rendering": {
+      "data": {
+        "path": "../share/data/spaceweather/",
+        "namePattern": "dummy_([0-9]+).vtk",
+        "type": "vtk",
+        "structure": "structured",
+        "shape": "cubic",
+        "activeScalar": "point_B_Mag"
+      },
+      "transform": {
+        "anchor": "Earth",
+        "position": [
+          10000000,
+          0,
+          0
+        ],
+        "scale": 0.7,
+        "rotation": [
+          20,
+          60,
+          20
+        ]
+      },
+      "rendering": {
+        "denoiseColor": false,
+        "denoiseDepth": false,
+        "samplingRate": 1,
+        "resolution": 512,
+        "depthMode": "multiThreshold"
+      }
     },
     "csp-stars": {
       "celestialGridTexture": "../share/resources/textures/celestial_grid.png",
@@ -401,7 +432,6 @@
       "hipparcosCatalog": "../share/download/stars/hip_main.dat",
       "tycho2Catalog": "../share/download/stars/tyc2_main.dat"
     },
-
     "csp-measurement-tools": {},
     "csp-simple-bodies": {
       "bodies": {
