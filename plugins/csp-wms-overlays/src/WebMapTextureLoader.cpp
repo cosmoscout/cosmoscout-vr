@@ -93,7 +93,6 @@ std::optional<std::stringstream> WebMapTextureLoader::requestTexture(
     request.setOpt(curlpp::options::NoSignal(true));
     request.setOpt(curlpp::options::SslVerifyPeer(false));
     request.setOpt(curlpp::options::FollowLocation(true));
-    
 
     try {
       request.perform();

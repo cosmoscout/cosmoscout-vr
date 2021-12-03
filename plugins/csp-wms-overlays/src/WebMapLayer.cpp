@@ -19,15 +19,14 @@ namespace csp::wmsoverlays {
 
 WebMapLayer::WebMapLayer(VistaXML::TiXmlElement* element, Settings settings)
     : mSettings(std::move(settings)) {
-  std::optional<std::string> title = utils::getElementValue<std::string>(element, {"Title"});
+  std::optional<std::string> title   = utils::getElementValue<std::string>(element, {"Title"});
   std::optional<std::string> wmsName = utils::getElementValue<std::string>(element, {"Name"});
   if (!title.has_value()) {
     logger().warn("Warning: no title found while parsing getCapabilities()!");
-    mTitle =  "Not defined";
-  }else{
+    mTitle = "Not defined";
+  } else {
     mTitle = title.value();
   }
-  
 
   mName     = utils::getElementValue<std::string>(element, {"Name"});
   mAbstract = utils::getElementValue<std::string>(element, {"Abstract"});
