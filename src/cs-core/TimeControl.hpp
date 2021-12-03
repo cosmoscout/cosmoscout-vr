@@ -25,9 +25,6 @@ class CS_CORE_EXPORT TimeControl {
   /// The current time in TDB. Consider this to be read-only.
   utils::Property<double> pSimulationTime = 0.0;
 
-  /// The current speed of the simulation. Consider this to be read-only.
-  utils::Property<float> pTimeSpeed = 1.F;
-
   explicit TimeControl(std::shared_ptr<Settings> settings);
 
   TimeControl(TimeControl const& other) = delete;
@@ -66,10 +63,6 @@ class CS_CORE_EXPORT TimeControl {
   /// @param threshold In seconds. If the absolute difference between simulation time and target
   ///                  time exceeds this threshold, no transition will be made.
   void resetTime(double duration = 0.0, double threshold = 48.0 * 60.0 * 60.0);
-
-  /// Set the time speed to a specific value. If set to zero, the simulation will be paused.
-  /// @param speed  The new time speed.
-  void setTimeSpeed(float speed);
 
  private:
   bool   mInitialized = false;

@@ -300,20 +300,12 @@ bool SimpleBody::Do() {
   if (getCenterName() == "Sun") {
     // If the SimpleBody is actually the sun, we have to calculate the lighting differently.
     if (mSettings->mGraphics.pEnableHDR.get()) {
-      double sceneScale = 1.0 / mSolarSystem->getObserver().getAnchorScale();
-
-      // To get the luminous exitance (in lux) of the Sun, we have to divide its luminous power (in
-      // lumens) by its surface area.
-      double luminousExitance =
-          mSolarSystem->pSunLuminousPower.get() /
-          (sceneScale * sceneScale * mRadii[0] * mRadii[0] * 4.0 * glm::pi<double>());
-
-      // We consider the Sun to emit light equally in all directions. So we have to divide the
-      // luminous exitance by PI to get actual luminance values.
-      double sunLuminance = luminousExitance / glm::pi<double>();
 
       // The variable is called illuminance, for the sun it contains actually luminance values.
-      sunIlluminance = static_cast<float>(sunLuminance);
+      sunIlluminance = static_cast<float>(mSolarSystem->getSunLuminance());
+
+      // For planets, this illuminance is divided by pi, so we have to premultiply it for the sun.
+      sunIlluminance *= glm::pi<float>();
     }
 
     ambientBrightness = 1.0F;

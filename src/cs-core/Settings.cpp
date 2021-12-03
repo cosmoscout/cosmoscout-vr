@@ -222,6 +222,7 @@ void from_json(nlohmann::json const& j, Settings::Graphics& o) {
   Settings::deserialize(j, "glareIntensity", o.pGlareIntensity);
   Settings::deserialize(j, "glareRadius", o.pGlareQuality);
   Settings::deserialize(j, "glareMode", o.pGlareMode);
+  Settings::deserialize(j, "toneMappingMode", o.pToneMappingMode);
   Settings::deserialize(j, "enableBicubicGlareFiltering", o.pEnableBicubicGlareFilter);
   Settings::deserialize(j, "fixedSunDirection", o.pFixedSunDirection);
 }
@@ -254,6 +255,7 @@ void to_json(nlohmann::json& j, Settings::Graphics const& o) {
   Settings::serialize(j, "glareIntensity", o.pGlareIntensity);
   Settings::serialize(j, "glareRadius", o.pGlareQuality);
   Settings::serialize(j, "glareMode", o.pGlareMode);
+  Settings::serialize(j, "toneMappingMode", o.pToneMappingMode);
   Settings::serialize(j, "enableBicubicGlareFiltering", o.pEnableBicubicGlareFilter);
   Settings::serialize(j, "fixedSunDirection", o.pFixedSunDirection);
 }
@@ -278,6 +280,7 @@ void from_json(nlohmann::json const& j, Settings& o) {
   Settings::deserialize(j, "plugins", o.mPlugins);
   Settings::deserialize(j, "minDate", o.pMinDate);
   Settings::deserialize(j, "maxDate", o.pMaxDate);
+  Settings::deserialize(j, "timeSpeed", o.pTimeSpeed);
   Settings::deserialize(j, "downloadData", o.mDownloadData);
   Settings::deserialize(j, "bookmarks", o.mBookmarks);
   Settings::deserialize(j, "commandHistory", o.mCommandHistory);
@@ -301,6 +304,7 @@ void to_json(nlohmann::json& j, Settings const& o) {
   Settings::serialize(j, "plugins", o.mPlugins);
   Settings::serialize(j, "minDate", o.pMinDate);
   Settings::serialize(j, "maxDate", o.pMaxDate);
+  Settings::serialize(j, "timeSpeed", o.pTimeSpeed);
   Settings::serialize(j, "downloadData", o.mDownloadData);
   Settings::serialize(j, "bookmarks", o.mBookmarks);
   Settings::serialize(j, "commandHistory", o.mCommandHistory);

@@ -72,6 +72,22 @@ double SolarSystem::getSunIlluminance(glm::dvec3 const& observerPosition) const 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+double SolarSystem::getSunLuminance() const {
+  double sceneScale = 1.0 / mObserver.getAnchorScale();
+  double sunRadius  = mSettings->getAnchorRadii("Sun")[0];
+
+  // To get the luminous exitance (in lux) of the Sun, we have to divide its luminous power (in
+  // lumens) by its surface area.
+  double luminousExitance = pSunLuminousPower.get() / (sceneScale * sceneScale * sunRadius *
+                                                          sunRadius * 4.0 * glm::pi<double>());
+
+  // We consider the Sun to emit light equally in all directions. So we have to divide the
+  // luminous exitance by PI to get actual luminance values.
+  return luminousExitance / glm::pi<double>();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void SolarSystem::setObserver(scene::CelestialObserver const& observer) {
   mObserver = observer;
 }
@@ -224,9 +240,11 @@ void SolarSystem::update() {
 
   // Duration is in nanoseconds so we have to multiply by 1.0e9.
   if (duration > 0) {
-    double const secToNano = 1.0e9;
-    pCurrentObserverSpeed =
-        static_cast<float>(secToNano * glm::length(mLastPosition - observerPosition) / duration);
+    if (!mSpiceFrameChangedLastFrame) {
+      double const secToNano = 1.0e9;
+      pCurrentObserverSpeed =
+          static_cast<float>(secToNano * glm::length(mLastPosition - observerPosition) / duration);
+    }
     mLastPosition = observerPosition;
     mLastTime     = now;
   }

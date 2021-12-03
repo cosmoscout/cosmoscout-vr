@@ -664,7 +664,7 @@ void Plugin::registerSidebarCallbacks() {
 
         mGuiManager->getGui()->callJavascript("CosmoScout.wcsOverlays.setTimeInfo", start, end);
 
-        mTimeControl->setTimeSpeed(0);
+        mAllSettings->pTimeSpeed = 0.f;
         mTimeControl->setTime(
             cs::utils::convert::time::toSpice(mActiveCoverages[mActiveOverlay->getCenter()]
                                                   ->getSettings()
@@ -679,7 +679,7 @@ void Plugin::registerSidebarCallbacks() {
           return;
         }
 
-        mTimeControl->setTimeSpeed(0);
+        mAllSettings->pTimeSpeed = 0.f;
 
         boost::posix_time::ptime time =
             cs::utils::convert::time::toPosix(mTimeControl->pSimulationTime.get());
@@ -738,7 +738,7 @@ void Plugin::registerSidebarCallbacks() {
           return;
         }
 
-        mTimeControl->setTimeSpeed(0);
+        mAllSettings->pTimeSpeed = 0.f;
 
         boost::posix_time::ptime time =
             cs::utils::convert::time::toPosix(mTimeControl->pSimulationTime.get());
@@ -795,7 +795,7 @@ void Plugin::registerSidebarCallbacks() {
 
         mGuiManager->getGui()->callJavascript("CosmoScout.wcsOverlays.setTimeInfo", start, end);
 
-        mTimeControl->setTimeSpeed(0);
+        mAllSettings->pTimeSpeed = 0.f;
         mTimeControl->setTime(
             cs::utils::convert::time::toSpice(mActiveCoverages[mActiveOverlay->getCenter()]
                                                   ->getSettings()
