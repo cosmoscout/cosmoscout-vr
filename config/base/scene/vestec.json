@@ -634,6 +634,21 @@
           }
         }
       }
+    },
+    "csp-wcs-overlays": {
+      "wcsRequestFormat": "image/tiff",
+      "maxTextureSize": 1024,
+      "preFetch": 1,
+      "bodies": {
+        "Earth": {
+          "wcs": [
+            "https://geoservice.dlr.de/eoc/atmosphere/wcs",
+            "https://maps.dwd.de/geoserver/dwd/wcs",
+            "https://geoservice.dlr.de/eoc/elevation/wcs",
+            "https://geoservice.dlr.de/eoc/imagery/wcs"
+          ]
     }
+  }
+}
   }
 }

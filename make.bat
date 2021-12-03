@@ -74,14 +74,15 @@ if exist "%BUILD_DIR%" goto BUILD_DIR_CREATED
 
 rem configure, compile & install -------------------------------------------------------------------
 
-set GDAL_DIR=%CURRENT_DIR%\install\windows-externals-%BUILD_TYPE%\gdal
+rem set GDAL_DIR=%CURRENT_DIR%\install\windows-externals-%BUILD_TYPE%\gdal
 set zipper_DIR=%CURRENT_DIR%\build\windows-externals-%BUILD_TYPE%\zipper
 
 cd "%BUILD_DIR%"
 cmake %CMAKE_FLAGS% -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
       -DCMAKE_UNITY_BUILD=%UNITY_BUILD% -DCOSMOSCOUT_USE_PRECOMPILED_HEADERS=%PRECOMPILED_HEADERS%^
       -DZLIB_LIBRARY="%EXTERNALS_INSTALL_DIR%/lib/zlib.lib"^
-      -DCOSMOSCOUT_EXTERNALS_DIR="%EXTERNALS_INSTALL_DIR%" "%CMAKE_DIR%"  || exit /b
+      -DCOSMOSCOUT_EXTERNALS_DIR="%EXTERNALS_INSTALL_DIR%" -DCMAKE_EXPORT_COMPILE_COMMANDS=On^
+       "%CMAKE_DIR%" || exit /b
 
 cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS% || exit /b
 

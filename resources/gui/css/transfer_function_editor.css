@@ -4,10 +4,10 @@ svg[id^="transferFunctionEditor.graph"] circle {
     stroke-width: 1.5px;
 }
 
-svg[id^="transferFunctionEditor.graph"] circle.selected {
-    stroke: var(--cs-color-text-highlight);
-    stroke-width: 2.5px;
-}
+    svg[id^="transferFunctionEditor.graph"] circle.selected {
+        stroke: var(--cs-color-text-highlight);
+        stroke-width: 2.5px;
+    }
 
 svg[id^="transferFunctionEditor.graph"] .line {
     stroke: var(--cs-color-primary);

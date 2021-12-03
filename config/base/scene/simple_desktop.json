@@ -463,6 +463,18 @@
         }
       }
     },
+    "csp-wms-overlays": {
+      "maxTextureSize": 1024,
+      "preFetch": 1,
+      "bodies": {
+        "Earth": {
+          "wms": [
+            "https://maps.dwd.de/geoserver/dwd/wms",
+            "https://neo.sci.gsfc.nasa.gov/wms/wms"
+          ]
+        }
+      }
+    },
     "csp-rings": {
       "rings": {
         "Saturn": {
@@ -647,6 +659,28 @@
             "attribution": "&copy; OpenPlanetary"
           }
         }
+      }
+    },
+    "csp-vr-accessibility": {
+      "grid": {
+        "enabled": false,
+        "size": 0.5,
+        "offset": -1.80,
+        "extent": 10.0,
+        "texture": "../share/resources/textures/gridCrossLarge.png",
+        "alpha": 1.0,
+        "color": "#ffffff"
+      },
+      "vignette": {
+        "enabled": false,
+        "debug": false,
+        "radii": [0.5, 1.0],
+        "color": "#ffffff",
+        "fadeDuration": 1.0,
+        "fadeDeadzone": 0.5,
+        "velocityThresholds": [0.2, 10.0],
+        "useDynamicRadius": false,
+        "useVerticalOnly": false
       }
     }
   }

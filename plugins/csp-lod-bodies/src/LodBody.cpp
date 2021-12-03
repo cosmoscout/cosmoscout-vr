@@ -35,7 +35,7 @@ LodBody::LodBody(std::shared_ptr<cs::core::Settings> const& settings,
     , mPluginSettings(pluginSettings)
     , mGuiManager(pGuiManager)
     , mPlanet(glResources)
-    , mShader(settings, pluginSettings, pGuiManager) {
+    , mShader(settings, pluginSettings, pGuiManager, anchorName) {
 
   mSettings->initAnchor(*this, anchorName);
 
@@ -160,10 +160,7 @@ void LodBody::update(double tTime, cs::scene::CelestialObserver const& oObs) {
     mPlanet.setWorldTransform(getWorldTransform());
 
     if (mSun) {
-      double sunIlluminance = 1.0;
-      if (mSettings->mGraphics.pEnableHDR.get()) {
-        sunIlluminance = mSolarSystem->getSunIlluminance(getWorldTransform()[3]);
-      }
+      double sunIlluminance = mSolarSystem->getSunIlluminance(getWorldTransform()[3]);
 
       auto sunDirection =
           glm::normalize(glm::inverse(getWorldTransform()) *

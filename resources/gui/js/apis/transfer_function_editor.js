@@ -27,13 +27,25 @@ class TransferFunctionEditor {
    * @param options {{width: number, height: number, fitToData: bool, numberTicks: number,
    *     defaultFunction: string}} Options for the editor
    */
-  constructor(id, element, callback,
-      {width = 400, height = 150, fitToData = false, numberTicks = 5, numberBins = 100, defaultFunction = ""} = {}) {
+  constructor(id, element, callback, {
+    width           = 400,
+    height          = 150,
+    fitToData       = false,
+    numberTicks     = 5,
+    numberBins      = 100,
+    defaultFunction = ""
+  } = {}) {
     this.id       = id;
     this.element  = element;
     this.callback = callback;
-    this.options  = {width: width, height: height, fitToData: fitToData, numberTicks: numberTicks, numberBins: numberBins};
-    this._data    = [];
+    this.options  = {
+      width: width,
+      height: height,
+      fitToData: fitToData,
+      numberTicks: numberTicks,
+      numberBins: numberBins
+    };
+    this._data = [];
 
     this._initialized = false;
     this._createElements();
@@ -63,7 +75,9 @@ class TransferFunctionEditor {
       this._setExtents(data);
     }
     this._updateScales(resetSliderHandles);
-    this._data = this._bins(data).map((b) => { return { x0: b.x0, x1: b.x1, count: b.length }; });
+    this._data = this._bins(data).map((b) => {
+      return {x0: b.x0, x1: b.x1, count: b.length};
+    });
     this._updateAxis();
     if (resetSliderHandles) {
       this._updateControlPoints(this._controlPoints);
@@ -88,7 +102,7 @@ class TransferFunctionEditor {
       if (this._data[i]) {
         this._data[i].count += newData[i].length;
       } else {
-        this._data[i] = { x0: newData[i].x0, x1: newData[i].x1, count: newData[i].length };
+        this._data[i] = {x0: newData[i].x0, x1: newData[i].x1, count: newData[i].length};
       }
     }
     this._updateAxis();
@@ -123,7 +137,8 @@ class TransferFunctionEditor {
       }
       this._xRangeSlider.noUiSlider.destroy();
     }
-    noUiSlider.create(this._xRangeSlider, { range: { "min": range[0], "max": range[1] }, start: start, margin: 1 });
+    noUiSlider.create(
+        this._xRangeSlider, {range: {"min": range[0], "max": range[1]}, start: start, margin: 1});
     this._xRangeSlider.noUiSlider.on("update", (values, handle, unencoded) => {
       this._xScale.domain([unencoded[0], unencoded[1]]);
       if (this._initialized) {
@@ -136,12 +151,14 @@ class TransferFunctionEditor {
 
   _createElements() {
     // Range sliders
-    this._xRangeSlider = this.element.querySelector("#transferFunctionEditor\\.xRangeSlider-" + this.id);
-    this._yRangeSlider = this.element.querySelector("#transferFunctionEditor\\.yRangeSlider-" + this.id);
+    this._xRangeSlider =
+        this.element.querySelector("#transferFunctionEditor\\.xRangeSlider-" + this.id);
+    this._yRangeSlider =
+        this.element.querySelector("#transferFunctionEditor\\.yRangeSlider-" + this.id);
 
     // Axis scales
-    this._xScale = d3.scaleLinear();
-    this._yScale = d3.scaleLinear();
+    this._xScale   = d3.scaleLinear();
+    this._yScale   = d3.scaleLinear();
     this._binScale = d3.scaleLog();
 
     // Area for the opacity map representation
@@ -171,7 +188,8 @@ class TransferFunctionEditor {
 
   _initializeElements() {
     this._createXRangeSlider([0, 100], true);
-    noUiSlider.create(this._yRangeSlider, { range: { "min": 0, "max": 1 }, start: [0, 1], margin: 0.01 });
+    noUiSlider.create(
+        this._yRangeSlider, {range: {"min": 0, "max": 1}, start: [0, 1], margin: 0.01});
     this._yRangeSlider.noUiSlider.on("update", (values, handle, unencoded) => {
       this._yScale.domain([unencoded[0], unencoded[1]]);
       if (this._initialized) {
@@ -204,8 +222,10 @@ class TransferFunctionEditor {
     this._bins.domain(this._dataExtent).thresholds(this.options.numberBins);
 
     if (this._controlPoints.length == 0) {
-      this._controlPoints.push({'x': this._dataExtent[0], 'opacity': 0, 'color': '#0000FF', 'locked': true});
-      this._controlPoints.push({'x': this._dataExtent[1], 'opacity': 1, 'color': '#FF0000', 'locked': true});
+      this._controlPoints.push(
+          {'x': this._dataExtent[0], 'opacity': 0, 'color': '#0000FF', 'locked': true});
+      this._controlPoints.push(
+          {'x': this._dataExtent[1], 'opacity': 1, 'color': '#FF0000', 'locked': true});
     }
     this._selected = this._controlPoints[1];
     this._area
@@ -280,33 +300,29 @@ class TransferFunctionEditor {
 
     // Draw graph
     const graph = g.append("svg")
-        .attr("width", this._width)
-        .attr("height", this._height)
-        .attr("overflow", "hidden");
+                      .attr("width", this._width)
+                      .attr("height", this._height)
+                      .attr("overflow", "hidden");
 
     graph.append("path")
         .datum(this._controlPoints)
         .attr("class", "line")
         .attr("fill", "url(#transferFunctionEditor.gradient-" + this.id + ")");
-    graph.append("g")
-        .attr("class", "histogram-group");
-    graph.append("path")
-        .datum(this._controlPoints)
-        .attr("class", "line")
-        .attr("fill", "none");
+    graph.append("g").attr("class", "histogram-group");
+    graph.append("path").datum(this._controlPoints).attr("class", "line").attr("fill", "none");
 
     // Draw axis
-    const xTicks = this._xScale.ticks(this.options.numberTicks);
+    const xTicks              = this._xScale.ticks(this.options.numberTicks);
     xTicks[xTicks.length - 1] = this._xScale.domain()[1];
-    this._xAxis = g.append("g")
-      .attr("class", "axis axis--x")
-      .attr("transform", "translate(0," + this._height + ")")
-      .call(d3.axisBottom(this._xScale).tickValues(xTicks));
+    this._xAxis               = g.append("g")
+                      .attr("class", "axis axis--x")
+                      .attr("transform", "translate(0," + this._height + ")")
+                      .call(d3.axisBottom(this._xScale).tickValues(xTicks));
 
     this._yAxis = g.append("g")
-      .attr("class", "axis axis--y")
-      .attr("transform", "translate(0, 0)")
-      .call(d3.axisLeft(this._yScale).ticks(this.options.numberTicks));
+                      .attr("class", "axis axis--y")
+                      .attr("transform", "translate(0, 0)")
+                      .call(d3.axisLeft(this._yScale).ticks(this.options.numberTicks));
 
     // Mouse interaction handler
     g.append("rect")
@@ -341,7 +357,7 @@ class TransferFunctionEditor {
     const xTicks              = this._xScale.ticks(this.options.numberTicks);
     xTicks[xTicks.length - 1] = this._xScale.domain()[1];
     this._xAxis.call(d3.axisBottom(this._xScale).tickValues(xTicks));
-    const yTicks = this._yScale.ticks(this.options.numberTicks);
+    const yTicks              = this._yScale.ticks(this.options.numberTicks);
     yTicks[yTicks.length - 1] = this._yScale.domain()[1];
     this._yAxis.call(d3.axisLeft(this._yScale).tickValues(yTicks));
   }
@@ -383,26 +399,22 @@ class TransferFunctionEditor {
       }
     });
 
-    const svg = d3.select(this.element)
-        .select("#transferFunctionEditor\\.graph-" + this.id)
-        .select("g");
-    svg.selectAll("path.line")
-        .datum(this._controlPoints)
-        .attr("d", this._area);
+    const svg =
+        d3.select(this.element).select("#transferFunctionEditor\\.graph-" + this.id).select("g");
+    svg.selectAll("path.line").datum(this._controlPoints).attr("d", this._area);
 
     // Add circle to connect and interact with the control points
     const circle = svg.selectAll("circle").data(this._controlPoints);
 
-    circle.style("visibility",
-      (d) => {
-        const x = this._xScale(d.x);
-        const y = this._yScale(d.opacity);
-        if (x < 0 || x > this._width || y < 0 || y > this._height) {
-          return "hidden";
-        } else {
-          return "visible";
-        }
-      });
+    circle.style("visibility", (d) => {
+      const x = this._xScale(d.x);
+      const y = this._yScale(d.opacity);
+      if (x < 0 || x > this._width || y < 0 || y > this._height) {
+        return "hidden";
+      } else {
+        return "visible";
+      }
+    });
 
     circle.enter()
         .append("circle")
@@ -518,25 +530,28 @@ class TransferFunctionEditor {
   _redrawHistogram() {
     this._svg.select("g").select(".histogram-group").selectAll(".bar").remove();
     if (this._data && this._data.length > 0) {
-      this._binScale.domain([0.1, d3.max(this._data, (d) => {
-        return d.count;
-      })]);
-      const bar = this._svg.select("g").select(".histogram-group").selectAll(".bar").data(this._data);
-      const barEnter = bar.enter().append("g")
-        .attr("class", "bar")
-        .attr("transform", (d) => {
-          return "translate(" + this._xScale(d.x0) + "," + this._binScale(d.count) + ")";
-        });
+      this._binScale.domain([
+        0.1, d3.max(this._data,
+                 (d) => {
+                   return d.count;
+                 })
+      ]);
+      const bar =
+          this._svg.select("g").select(".histogram-group").selectAll(".bar").data(this._data);
+      const barEnter = bar.enter().append("g").attr("class", "bar").attr("transform", (d) => {
+        return "translate(" + this._xScale(d.x0) + "," + this._binScale(d.count) + ")";
+      });
 
       barEnter.append("rect")
-        .attr("x", 1)
-        .style("opacity", 0.5)
-        .attr("width", (d) => {
-          return this._xScale(d.x1) - this._xScale(d.x0);
-        })
-        .attr("height", (d) => {
-          return this._height - this._binScale(d.count);
-        });
+          .attr("x", 1)
+          .style("opacity", 0.5)
+          .attr("width",
+              (d) => {
+                return this._xScale(d.x1) - this._xScale(d.x0);
+              })
+          .attr("height", (d) => {
+            return this._height - this._binScale(d.count);
+          });
 
       this._svg.select("g").select(".histogram-group").selectAll(".bar").lower();
 
