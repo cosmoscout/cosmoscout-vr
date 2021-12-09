@@ -288,6 +288,17 @@ void GDALReader::BuildTexture(GDALDataset* poDatasetSrc, GDALReader::GreyScaleTe
   texture.layers       = poDatasetSrc->GetRasterCount();
   std::memcpy(texture.buffer, bufferData, bufferSize);
 
+  if (eDT == 7) {
+    // Double support. we need to convert to float do to opengl
+    std::vector<double> dData(
+        static_cast<double*>(texture.buffer), static_cast<double*>(texture.buffer) + resX * resY);
+    std::vector<float> fData(dData.begin(), dData.end());
+    delete texture.buffer;
+
+    texture.buffer = static_cast<void*>(CPLMalloc(resX * resY * sizeof(float)));
+    std::memcpy(texture.buffer, &fData[0], resX * resY * sizeof(float));
+  }
+
   switch (eDT) {
   case 1: // UInt8
     texture.typeSize = std::numeric_limits<uint8_t>::max();

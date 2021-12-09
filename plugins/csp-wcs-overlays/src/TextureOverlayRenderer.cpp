@@ -351,8 +351,7 @@ void TextureOverlayRenderer::getTimeIndependentTexture(
       }
       mGuiManager->getGui()->callJavascript(
           "CosmoScout.wcsOverlays.setCoverageSelectDisabled", false);
-    }))
-        .detach();
+    })).detach();
   }
 }
 
@@ -550,8 +549,7 @@ bool TextureOverlayRenderer::Do() {
     }
 
     case 6: // Float32
-    case 7: // TODO: Float64 <- for now handled as Float32 - results in wrongly displayed values
-    {
+    case 7: {
       std::vector<float> textureData(
           static_cast<float*>(mTexture.buffer), static_cast<float*>(mTexture.buffer) + textureSize);
       sampleJson  = textureData;
