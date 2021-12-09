@@ -93,7 +93,6 @@ jobs:
           sudo apt-get install libboost-all-dev
           ccache --max-size 5G
           ccache -z
-          ccache --clear
       - name: Build Externals
         env: # Thanks to ccache, it build actually faster without these options.
           COSMOSCOUT_USE_PCH: false
