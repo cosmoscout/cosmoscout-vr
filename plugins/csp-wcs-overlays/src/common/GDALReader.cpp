@@ -293,7 +293,7 @@ void GDALReader::BuildTexture(GDALDataset* poDatasetSrc, GDALReader::GreyScaleTe
     std::vector<double> dData(
         static_cast<double*>(texture.buffer), static_cast<double*>(texture.buffer) + resX * resY);
     std::vector<float> fData(dData.begin(), dData.end());
-    delete texture.buffer;
+    CPLFree(texture.buffer);
 
     texture.buffer = static_cast<void*>(CPLMalloc(resX * resY * sizeof(float)));
     std::memcpy(texture.buffer, &fData[0], resX * resY * sizeof(float));
