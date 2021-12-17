@@ -49,7 +49,10 @@ class WebCoverageService {
   std::optional<WebCoverage> getCoverage(std::string const& titleOrId) const;
 
  protected:
+  /// Requests the capabilities and parses them into a xml document
   VistaXML::TiXmlElement* getCapabilities();
+
+  /// Parses the servers title
   std::string             parseTitle();
 
   /// Tries to load cached capabilities for this WCS.
@@ -67,15 +70,19 @@ class WebCoverageService {
   /// Returns the document as a parsed TiXmlDocument and as a raw string for caching.
   std::tuple<VistaXML::TiXmlDocument, std::string> requestCapabilities();
 
+  /// Builds the url to where the capabilities are found
   std::stringstream getGetCapabilitiesUrl() const;
 
+  /// The XML representation of the WCS servers capabilities
   std::optional<VistaXML::TiXmlDocument> mDoc;
 
+  /// The url to the wcs service, is used for generating links to GetCapabilities etc.
   const std::string mUrl;
   const CacheMode   mCacheMode;
   const std::string mCacheDir;
   const std::string mCacheFileName;
 
+  /// The WCS servers title
   const std::string mTitle;
 
   std::vector<WebCoverage> mRequestableCoverages;
