@@ -729,10 +729,12 @@ class TransferFunctionEditor {
       return a.position - b.position;
     });
 
-    if (Number(Number(this._xRangeSlider.noUiSlider.get()[0]).toPrecision(4)) > Number(this._dataExtent[0].toPrecision(4))) {
+    if (Number(Number(this._xRangeSlider.noUiSlider.get()[0]).toPrecision(4)) >
+        Number(this._dataExtent[0].toPrecision(4))) {
       points.unshift(points[0]);
     }
-    if (Number(Number(this._xRangeSlider.noUiSlider.get()[1]).toPrecision(4)) < Number(this._dataExtent[1].toPrecision(4))) {
+    if (Number(Number(this._xRangeSlider.noUiSlider.get()[1]).toPrecision(4)) <
+        Number(this._dataExtent[1].toPrecision(4))) {
       points.push(points[points.length - 1]);
     }
 
