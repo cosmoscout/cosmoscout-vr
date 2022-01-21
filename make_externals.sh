@@ -125,6 +125,17 @@ cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
       -DCMAKE_BUILD_TYPE=$BUILD_TYPE "$EXTERNALS_DIR/zipper"
 cmake --build . --target install --parallel "$(nproc)"
 
+# SQLite3 -----------------------------------------------------------------------------------------
+echo ""
+echo "Building and installing sqlite3 ..."
+echo ""
+
+cmake -E make_directory "$BUILD_DIR/sqlite3" && cd "$BUILD_DIR/sqlite3"
+cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
+      -DBUILD_TESTING=off \
+	  "$EXTERNALS_DIR/sqlite3" 
+cmake --build . --target install --parallel "$(nproc)"
+
 # Proj6 ---------------------------------------------------------------------------------------------
 
 echo ""
