@@ -136,6 +136,7 @@ cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
 	  -DBUILD_SHELL=on \
 	  "$EXTERNALS_DIR/sqlite3" 
 cmake --build . --target install --parallel "$(nproc)"
+chmod +x "$INSTALL_DIR/bin/sqlite3"
 
 # Proj6 ---------------------------------------------------------------------------------------------
 
@@ -153,7 +154,7 @@ cd "$BUILD_DIR/proj6/extracted/proj-6.3.2"
 cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
       -DCMAKE_INSTALL_LIBDIR=lib \
       -DPROJ_TESTS=OFF \
-      -DEXE_SQLITE3="$BUILD_DIR/sqlite3" \
+      -DEXE_SQLITE3="$INSTALL_DIR/bin/sqlite3" \
       -DSQLITE3_INCLUDE_DIR="$EXTERNALS_DIR/sqlite3" \
       -DCMAKE_BUILD_TYPE="$BUILD_TYPE" "$BUILD_DIR/proj6/extracted/proj-6.3.2"
 cmake --build . --target install --parallel "$(nproc)"
