@@ -137,8 +137,11 @@ class TransferFunctionEditor {
       }
       this._xRangeSlider.noUiSlider.destroy();
     }
-    noUiSlider.create(
-        this._xRangeSlider, {range: {"min": range[0], "max": range[1]}, start: start, margin: (range[1] - range[0]) / 100});
+    noUiSlider.create(this._xRangeSlider, {
+      range: {"min": range[0], "max": range[1]},
+      start: start,
+      margin: (range[1] - range[0]) / 100
+    });
     this._xRangeSlider.noUiSlider.on("update", (values, handle, unencoded) => {
       this._xScale.domain([unencoded[0], unencoded[1]]);
       if (this._initialized) {
