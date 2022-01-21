@@ -70,7 +70,7 @@ class TransferFunctionEditor {
     }
     this._initialized = false;
     if (extents) {
-      this._dataExtent = extents;
+      this._setExtents(extents);
     } else {
       this._setExtents(data);
     }
@@ -728,6 +728,16 @@ class TransferFunctionEditor {
     points.sort((a, b) => {
       return a.position - b.position;
     });
+
+    if (Number(Number(this._xRangeSlider.noUiSlider.get()[0]).toPrecision(4)) >
+        Number(this._dataExtent[0].toPrecision(4))) {
+      points.unshift(points[0]);
+    }
+    if (Number(Number(this._xRangeSlider.noUiSlider.get()[1]).toPrecision(4)) <
+        Number(this._dataExtent[1].toPrecision(4))) {
+      points.push(points[points.length - 1]);
+    }
+
     const min = points[0].position;
     const max = points[points.length - 1].position;
     points.forEach((point, index) => {
