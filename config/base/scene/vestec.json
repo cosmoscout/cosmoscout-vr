@@ -378,9 +378,24 @@
       "vestec-topo-dir": "../share/vestec/data/diseases_uc.cdb",
       "vestec-fire-dir": "../share/vestec/data/2D-fire",
       "vestec-diseases-dir": "../share/vestec/data/diseases",
-      "vestec-server": "http://vestec.epcc.ed.ac.uk",
+      "vestec-server": "https://vestec.epcc.ed.ac.uk",
       "vestec-download-dir": "../share/vestec/download",
       "vestec-textures-dir": "../share/vestec/data/tif_files"
+    },
+    "csp-wcs-overlays": {
+      "wcsRequestFormat": "image/tiff",
+      "maxTextureSize": 1024,
+      "preFetch": 1,
+      "bodies": {
+        "Earth": {
+          "wcs": [
+            "https://geoservice.dlr.de/eoc/atmosphere/wcs",
+            "https://maps.dwd.de/geoserver/dwd/wcs",
+            "https://geoservice.dlr.de/eoc/elevation/wcs",
+            "https://geoservice.dlr.de/eoc/imagery/wcs"
+          ]
+        }
+      }
     },
     "csp-volume-rendering": {
       "data": {
@@ -640,21 +655,6 @@
           "config": {
             "attribution": "&copy; OpenPlanetary"
           }
-        }
-      }
-    },
-    "csp-wcs-overlays": {
-      "wcsRequestFormat": "image/tiff",
-      "maxTextureSize": 1024,
-      "preFetch": 1,
-      "bodies": {
-        "Earth": {
-          "wcs": [
-            "https://geoservice.dlr.de/eoc/atmosphere/wcs",
-            "https://maps.dwd.de/geoserver/dwd/wcs",
-            "https://geoservice.dlr.de/eoc/elevation/wcs",
-            "https://geoservice.dlr.de/eoc/imagery/wcs"
-          ]
         }
       }
     }
