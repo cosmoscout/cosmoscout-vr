@@ -53,7 +53,7 @@ class WebCoverageService {
   VistaXML::TiXmlElement* getCapabilities();
 
   /// Parses the servers title
-  std::string             parseTitle();
+  std::string parseTitle();
 
   /// Tries to load cached capabilities for this WCS.
   std::optional<VistaXML::TiXmlDocument> getCapabilitiesFromCache();
