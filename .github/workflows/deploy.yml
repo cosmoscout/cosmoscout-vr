@@ -4,6 +4,8 @@ on:
   push:
     tags:
       - '**'
+    branches:
+      - '**'
 
 jobs:
   source_code:
@@ -13,7 +15,7 @@ jobs:
     - name: Checkout Repository
       uses: actions/checkout@v2
     - name: Checkout Submodules
-      run: git submodule update --init
+      run: git submodule update --init plugins
     - name: Create Release
       run: externals/git-archive-all.sh/git-archive-all.sh --prefix cosmoscout-vr/ source-with-submodules.tar.gz
     - name: Upload Release
@@ -32,7 +34,7 @@ jobs:
     - name: Checkout Repository
       uses: actions/checkout@v2
     - name: Checkout Submodules
-      run: git submodule update --init
+      run: git -c submodule."doc-binaries".update=none -c submodule."doc/intelstyle".update=none submodule update --init --recursive
     - name: Download Dependencies
       run: |
         sudo apt-get update -q
@@ -41,7 +43,11 @@ jobs:
           sudo apt-get install libboost-all-dev
     - name: Build Externals
       run: ./make_externals.sh -G "Unix Makefiles"
+          -DBOOST_ROOT=$BOOST_ROOT_1_72_0 -DBoost_ARCHITECTURE=-x64
     - name: Build CosmoScout VR
+      env: # We reenable these options to test them, since they are not tested regularly by developers.
+          COSMOSCOUT_USE_PCH: true
+          COSMOSCOUT_USE_UNITY_BUILD: true
       run: ./make.sh -G "Unix Makefiles"
     - name: Create Release
       run: | 
