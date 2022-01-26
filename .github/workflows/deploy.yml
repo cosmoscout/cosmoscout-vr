@@ -15,7 +15,7 @@ jobs:
     - name: Checkout Repository
       uses: actions/checkout@v2
     - name: Checkout Submodules
-      run: git submodule update --init plugins
+      run: git submodule update --init --recursive
     - name: Create Release
       run: externals/git-archive-all.sh/git-archive-all.sh --prefix cosmoscout-vr/ source-with-submodules.tar.gz
     - name: Upload Release
