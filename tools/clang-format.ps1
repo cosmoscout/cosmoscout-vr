@@ -14,10 +14,11 @@
 
 $sourceDir = "$PSScriptRoot/../src"
 $pluginDir = "$PSScriptRoot/../plugins"
+$jsDir     = "$PSScriptRoot/../resources"
 
 $fileEndings = @('*.cpp', '*.hpp', '*.inl', '*.js')
 
-$itemsToCheck = Get-ChildItem -Path $sourceDir, $pluginDir -Recurse -Include $fileEndings `
+$itemsToCheck = Get-ChildItem -Path $sourceDir, $pluginDir, $jsDir -Recurse -Include $fileEndings `
                               | Where-Object { $_.FullName -notmatch "third-party" }
 
 try {

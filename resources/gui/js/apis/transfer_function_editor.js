@@ -70,7 +70,7 @@ class TransferFunctionEditor {
     }
     this._initialized = false;
     if (extents) {
-      this._dataExtent = extents;
+      this._setExtents(extents);
     } else {
       this._setExtents(data);
     }
@@ -138,13 +138,12 @@ class TransferFunctionEditor {
       this._xRangeSlider.noUiSlider.destroy();
     }
 
-    let margin = 1
-    if (Math.abs(Math.abs(range[0]) - Math.abs(range[1])) <= 1) {
-      margin = 0.1
-    }
+    noUiSlider.create(this._xRangeSlider, {
+      range: {"min": range[0], "max": range[1]},
+      start: start,
+      margin: (range[1] - range[0]) / 100
+    });
 
-    noUiSlider.create(this._xRangeSlider,
-        {range: {"min": range[0], "max": range[1]}, start: start, margin: margin});
     this._xRangeSlider.noUiSlider.on("update", (values, handle, unencoded) => {
       this._xScale.domain([unencoded[0], unencoded[1]]);
       if (this._initialized) {
@@ -734,6 +733,16 @@ class TransferFunctionEditor {
     points.sort((a, b) => {
       return a.position - b.position;
     });
+
+    if (Number(Number(this._xRangeSlider.noUiSlider.get()[0]).toPrecision(4)) >
+        Number(this._dataExtent[0].toPrecision(4))) {
+      points.unshift(points[0]);
+    }
+    if (Number(Number(this._xRangeSlider.noUiSlider.get()[1]).toPrecision(4)) <
+        Number(this._dataExtent[1].toPrecision(4))) {
+      points.push(points[points.length - 1]);
+    }
+
     const min = points[0].position;
     const max = points[points.length - 1].position;
     points.forEach((point, index) => {

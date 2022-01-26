@@ -92,6 +92,7 @@ std::optional<std::stringstream> WebMapTextureLoader::requestTexture(
     request.setOpt(curlpp::options::WriteStream(&out));
     request.setOpt(curlpp::options::NoSignal(true));
     request.setOpt(curlpp::options::SslVerifyPeer(false));
+    request.setOpt(curlpp::options::FollowLocation(true));
 
     try {
       request.perform();
@@ -277,7 +278,7 @@ std::string WebMapTextureLoader::getRequestUrl(
   url.precision(std::numeric_limits<double>::max_digits10);
 
   url << wms.getUrl();
-  url << "?SERVICE=WMS";
+  url << "&SERVICE=WMS";
   url << "&VERSION=1.3.0";
   url << "&REQUEST=GetMap";
   url << "&FORMAT=" << getMimeType(wms, layer);

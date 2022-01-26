@@ -12,8 +12,8 @@
 #include "WebCoverageService.hpp"
 #include "WebCoverageTextureLoader.hpp"
 
-#include "../../../../src/cs-core/GuiManager.hpp"
-#include "../../../../src/cs-graphics/ColorMap.hpp"
+#include "../../../src/cs-core/GuiManager.hpp"
+#include "../../../src/cs-graphics/ColorMap.hpp"
 
 #include <VistaKernel/GraphicsManager/VistaOpenGLDraw.h>
 #include <VistaMath/VistaBoundingBox.h>

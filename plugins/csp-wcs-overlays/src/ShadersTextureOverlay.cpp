@@ -204,7 +204,7 @@ void main()
             value = value * uDataTypeSize;
 
             //Texture lookup and color mapping
-            float normSimValue  = value / uRange.y;
+            float normSimValue  = (value - uRange.x) / (uRange.y - uRange.x);
             vec4 color = texture(uTransferFunction, normSimValue);
 
             //Lighting using a normal calculated from partial derivative
