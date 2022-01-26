@@ -36,23 +36,23 @@ jobs:
     - name: Download Dependencies
       run: |
         sudo apt-get update -q
-        sudo apt-get install libgl1-mesa-dev libglu1-mesa-dev libx11-dev
-        sudo apt-get install libxi-dev libgconf-2-4
-        sudo apt-get install libboost-all-dev
+          sudo apt-get install libgl1-mesa-dev libglu1-mesa-dev libx11-dev xorg-dev
+          sudo apt-get install libxi-dev libgconf-2-4 ccache lcov xvfb
+          sudo apt-get install libboost-all-dev
     - name: Build Externals
       run: ./make_externals.sh -G "Unix Makefiles"
     - name: Build CosmoScout VR
       run: ./make.sh -G "Unix Makefiles"
     - name: Create Release
       run: | 
-        mv install/linux-Release cosmoscout-vr
-        cmake -E tar cv cosmoscout-vr-linux64.tar.gz cosmoscout-vr
+        mv install/linux-Release cosmoscout-vr-vestec
+        cmake -E tar cv cosmoscout-vr-vestec-linux64.tar.gz cosmoscout-vr-vestec
     - name: Upload Release
       uses: svenstaro/upload-release-action@v1-release
       with:
         repo_token: ${{ secrets.UPLOAD_TOKEN }}
-        file: cosmoscout-vr-linux64.tar.gz
-        asset_name: cosmoscout-vr-linux64.tar.gz
+        file: cosmoscout-vr-vestec-linux64.tar.gz
+        asset_name: cosmoscout-vr-vestec-linux64.tar.gz
         tag: ${{ github.ref }}
         overwrite: true
 
