@@ -17,7 +17,7 @@ jobs:
     - name: Checkout Submodules
       run: git -c submodule."doc-binaries".update=none -c submodule."doc/intelstyle".update=none submodule update --init --recursive
     - name: Create Release
-      run: externals/git-archive-all.sh --prefix cosmoscout-vr/ source-with-submodules.tar.gz
+      run: externals/git-archive-all.sh/git-archive-all.sh --prefix cosmoscout-vr/ source-with-submodules.tar.gz
     - name: Upload Release
       uses: svenstaro/upload-release-action@v1-release
       with:
@@ -71,7 +71,7 @@ jobs:
     - name: Checkout Repository
       uses: actions/checkout@v2
     - name: Checkout Submodules
-      run: git -c submodule."doc-binaries".update=none -c submodule."doc/intelstyle".update=none submodule update --init --recursiv
+        run: git -c submodule."doc-binaries".update=none -c submodule."doc/intelstyle".update=none submodule update --init --recursive
     - name: Download Boost
       run: |
         # From https://github.com/actions/virtual-environments/issues/2667
