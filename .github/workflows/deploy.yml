@@ -4,6 +4,8 @@ on:
   push:
     tags:
       - '**'
+     branches:
+      - 'feature/vestec'
 
 jobs:
   source_code:
@@ -69,7 +71,7 @@ jobs:
     - name: Checkout Repository
       uses: actions/checkout@v2
     - name: Checkout Submodules
-      run: git -c submodule."doc-binaries".update=none -c submodule."doc/intelstyle".update=none submodule update --init --recursive
+        run: git -c submodule."doc-binaries".update=none -c submodule."doc/intelstyle".update=none submodule update --init --recursive
     - name: Download Boost
       run: |
         # From https://github.com/actions/virtual-environments/issues/2667
@@ -81,10 +83,14 @@ jobs:
         Invoke-Expression .\setup.ps1
     - name: Build Externals
       shell: cmd
-      run: make_externals.bat -G "Visual Studio 16 2019" -A x64 
+      run: >
+          make_externals.bat -G "Visual Studio 16 2019" -A x64
+          -DBOOST_ROOT=%BOOST_ROOT_1_72_0%
     - name: Build CosmoScout VR
       shell: cmd
-      run: make.bat -G "Visual Studio 16 2019" -A x64 -DBOOST_ROOT=%BOOST_ROOT_1_72_0%
+      run: >
+          make.bat -G "Visual Studio 16 2019" -A x64
+          -DCOSMOSCOUT_UNIT_TESTS=On -DBOOST_ROOT=%BOOST_ROOT_1_72_0%
     - name: Create Release
       run: | 
         move install\windows-Release cosmoscout-vr
