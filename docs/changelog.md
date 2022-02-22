@@ -5,6 +5,24 @@
 # Changelog of CosmoScout VR
 
 
+## [v1.5.0](https://github.com/cosmoscout/cosmoscout-vr/releases)
+
+**Release Date:** TBD
+
+#### New Features
+
+* **New Plugin**: `csp-vr-accessibility` has been added, which can draw a stable floor grid and / or a field-of-view limiting vignette. Both features are designed to mitigate cyber sickness.
+* **Physically-Based Rendering of Celestial Bodies**: The celestial bodies rendered with the `csp-lod-bodies` plugin can now be shaded with either a Lambert, an Oren-Nayer, or a Hapke BRDF.
+
+#### Other Enhancements
+
+* **Configurable Tone-Mapping**: The tone-mapping operator of the HDR-rendering path can now be chosen.
+
+#### Bug Fixes
+
+* The current animation time speed is now saved and loaded from configuration files.
+* The download links for the SPICE kernel files have been updated.
+
 ## [v1.4.0](https://github.com/cosmoscout/cosmoscout-vr/releases)
 
 **Release Date:** 2021-03-30
