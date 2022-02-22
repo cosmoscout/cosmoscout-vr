@@ -1,0 +1,15 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+- family-names: "Schneegans"
+  given-names: "Simon"
+  orcid: "https://orcid.org/0000-0003-1847-4135"
+- family-names: "Flatken"
+  given-names: "Markus"
+  orcid: "https://orcid.org/0000-0003-1687-6181"
+- family-names: "Gerndt"
+  given-names: "Andreas"
+  orcid: "https://orcid.org/0000-0002-0409-8573"
+title: "CosmoScout VR"
+doi: 10.5281/zenodo.3381953
+url: "https://github.com/cosmoscout/cosmoscout-vr"
