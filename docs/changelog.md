@@ -17,6 +17,7 @@
 #### Other Enhancements
 
 * **Configurable Tone-Mapping**: The tone-mapping operator of the HDR-rendering path can now be chosen.
+* Added a `CITATION.cff` to the project to make citing the project easier.
 
 #### Bug Fixes
 
