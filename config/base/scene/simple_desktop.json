@@ -669,13 +669,13 @@
         "extent": 10.0,
         "texture": "../share/resources/textures/gridCrossLarge.png",
         "alpha": 1.0,
-        "color": "#ffffff"
+        "color": "#ccccff"
       },
       "vignette": {
         "enabled": false,
         "debug": false,
         "radii": [0.5, 1.0],
-        "color": "#ffffff",
+        "color": "#000000",
         "fadeDuration": 1.0,
         "fadeDeadzone": 0.5,
         "velocityThresholds": [0.2, 10.0],
