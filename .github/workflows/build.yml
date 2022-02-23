@@ -66,7 +66,7 @@ jobs:
           fi
 
   build_linux_gcc:
-    name: Linux GCC 7.5.0
+    name: Linux GCC 9.3.0
     runs-on: ubuntu-20.04
     if: >
       github.event_name == 'pull_request' ||
@@ -131,7 +131,7 @@ jobs:
         run: ccache -s
 
   build_linux_clang:
-    name: Linux Clang 9.0
+    name: Linux Clang 11.0
     runs-on: ubuntu-20.04
     if: >
       github.event_name == 'pull_request' ||
@@ -139,8 +139,8 @@ jobs:
       ( contains(github.ref, 'develop') && !contains(github.event.head_commit.message, '[no-ci]') ) ||
       contains(github.event.head_commit.message, '[run-ci]')
     env:
-      CC: clang-9
-      CXX: clang++-9
+      CC: clang-11
+      CXX: clang++-11
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2
