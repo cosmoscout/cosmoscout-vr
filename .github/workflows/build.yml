@@ -209,8 +209,8 @@ jobs:
         uses: actions/cache@v1.1.0
         with:
           path: ~/clcache
-          key: msvc-cache-v1-${{ github.sha }}
-          restore-keys: msvc-cache-v1-
+          key: msvc-${{ github.sha }}
+          restore-keys: msvc-
       - name: Download Dependencies
         run: |
           pip install clcache
