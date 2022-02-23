@@ -18,6 +18,8 @@
 
 * **Configurable Tone-Mapping**: The tone-mapping operator of the HDR-rendering path can now be chosen.
 * Added a `CITATION.cff` to the project to make citing the project easier.
+* Most external dependencies have been updated to the latest versions.
+* The CI jobs on GitHub now run Ubuntu 20.04 (previously 18.04).
 
 #### Bug Fixes
 
