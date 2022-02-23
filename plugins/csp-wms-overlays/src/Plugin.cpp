@@ -215,7 +215,7 @@ void Plugin::init() {
 
   mGuiManager->getGui()->registerCallback("wmsOverlays.setStyle",
       "Sets the style for the currently selected layer.", std::function([this](std::string&& name) {
-        if (!mActiveOverlay && !mActiveLayers[mActiveOverlay->getCenter()]) {
+        if (!mActiveOverlay || !mActiveLayers[mActiveOverlay->getCenter()]) {
           return;
         }
 
