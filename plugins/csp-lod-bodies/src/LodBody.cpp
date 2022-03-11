@@ -37,7 +37,7 @@ LodBody::LodBody(std::shared_ptr<cs::core::Settings> const& settings,
     , mEclipseShadowReceiver(
           std::make_shared<cs::core::EclipseShadowReceiver>(mSettings, mSolarSystem, this))
     , mPlanet(glResources)
-    , mShader(settings, pluginSettings, pGuiManager, anchorName, mEclipseShadowReceiver) {
+    , mShader(settings, pluginSettings, pGuiManager, mEclipseShadowReceiver, anchorName) {
 
   mSettings->initAnchor(*this, anchorName);
 
