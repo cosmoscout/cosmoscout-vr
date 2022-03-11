@@ -38,7 +38,7 @@ std::map<std::string, cs::graphics::ColorMap> PlanetShader::mColorMaps;
 PlanetShader::PlanetShader(std::shared_ptr<cs::core::Settings> settings,
     std::shared_ptr<Plugin::Settings>                          pluginSettings,
     std::shared_ptr<cs::core::GuiManager>                      pGuiManager,
-    std::shared_ptr<cs::core::EclipseShadowReceiver>           eclipseShadowReceiver, std::string anchorName)
+    std::shared_ptr<cs::core::EclipseShadowReceiver> eclipseShadowReceiver, std::string anchorName)
     : mSettings(std::move(settings))
     , mGuiManager(std::move(pGuiManager))
     , mPluginSettings(std::move(pluginSettings))

@@ -47,8 +47,8 @@ class CS_CORE_EXPORT EclipseShadowReceiver {
   VistaGLSLShader* mShader        = nullptr;
   uint32_t         mTextureOffset = 0;
 
-  std::array<glm::vec4, MAX_BODIES>                        mOccluders{};
-  
+  std::array<glm::vec4, MAX_BODIES> mOccluders{};
+
   std::vector<std::shared_ptr<graphics::EclipseShadowMap>> mShadowMaps;
 
   struct {
