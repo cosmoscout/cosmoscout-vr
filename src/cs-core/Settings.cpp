@@ -294,6 +294,7 @@ void from_json(nlohmann::json const& j, Settings& o) {
   Settings::deserialize(j, "plugins", o.mPlugins);
   Settings::deserialize(j, "minDate", o.pMinDate);
   Settings::deserialize(j, "maxDate", o.pMaxDate);
+  Settings::deserialize(j, "timeSpeed", o.pTimeSpeed);
   Settings::deserialize(j, "downloadData", o.mDownloadData);
   Settings::deserialize(j, "bookmarks", o.mBookmarks);
   Settings::deserialize(j, "commandHistory", o.mCommandHistory);
@@ -317,6 +318,7 @@ void to_json(nlohmann::json& j, Settings const& o) {
   Settings::serialize(j, "plugins", o.mPlugins);
   Settings::serialize(j, "minDate", o.pMinDate);
   Settings::serialize(j, "maxDate", o.pMaxDate);
+  Settings::serialize(j, "timeSpeed", o.pTimeSpeed);
   Settings::serialize(j, "downloadData", o.mDownloadData);
   Settings::serialize(j, "bookmarks", o.mBookmarks);
   Settings::serialize(j, "commandHistory", o.mCommandHistory);

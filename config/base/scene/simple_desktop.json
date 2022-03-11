@@ -249,12 +249,12 @@
       "file": "../share/download/spice/pck00010.tpc"
     },
     {
-      "url": "https://naif.jpl.nasa.gov/pub/naif/cosmographia/kernels/spice/lsk/naif0011.tls",
-      "file": "../share/download/spice/naif0011.tls"
+      "url": "https://naif.jpl.nasa.gov/pub/naif/cosmographia/kernels/spice/lsk/naif0012.tls",
+      "file": "../share/download/spice/naif0012.tls"
     },
     {
-      "url": "https://naif.jpl.nasa.gov/pub/naif/cosmographia/kernels/spice/spk/cg_1950_2050_v01.bsp",
-      "file": "../share/download/spice/cg_1950_2050_v01.bsp"
+      "url": "https://naif.jpl.nasa.gov/pub/naif/cosmographia/kernels/spice/spk/cg_1950_2050_v03.bsp",
+      "file": "../share/download/spice/cg_1950_2050_v03.bsp"
     }
   ],
   "spiceKernel": "../share/config/spice/simple.txt",
@@ -674,6 +674,28 @@
             "attribution": "&copy; OpenPlanetary"
           }
         }
+      }
+    },
+    "csp-vr-accessibility": {
+      "grid": {
+        "enabled": false,
+        "size": 0.5,
+        "offset": -1.80,
+        "extent": 10.0,
+        "texture": "../share/resources/textures/gridCrossLarge.png",
+        "alpha": 1.0,
+        "color": "#ccccff"
+      },
+      "vignette": {
+        "enabled": false,
+        "debug": false,
+        "radii": [0.5, 1.0],
+        "color": "#000000",
+        "fadeDuration": 1.0,
+        "fadeDeadzone": 0.5,
+        "velocityThresholds": [0.2, 10.0],
+        "useDynamicRadius": false,
+        "useVerticalOnly": false
       }
     }
   }

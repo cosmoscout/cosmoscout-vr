@@ -60,6 +60,12 @@ vec3 SRGBtoLINEAR(vec3 srgbIn)
   return mix( srgbIn/vec3(12.92), pow((srgbIn+vec3(0.055))/vec3(1.055),vec3(2.4)), bLess );
 }
 
+// placeholder for the BRDF in HDR mode
+$BRDF_HDR
+
+// placeholder for the BRDF in light mode
+$BRDF_NON_HDR
+
 void main()
 {
   if (VP_shadowMapMode)
@@ -88,7 +94,7 @@ void main()
     #else
       fragColor = texture(VP_texIMG, vec3(fsIn.texcoords, VP_layerIMG)).rrr;
     #endif
-    
+
     #if $ENABLE_HDR
       fragColor = SRGBtoLINEAR(fragColor);
     #endif
@@ -113,30 +119,63 @@ void main()
     }
   #endif
 
-  fragColor = fragColor * uSunDirIlluminance.w;
+  // Needed for the BRDFs.
+  vec3 N = normalize(surfaceNormal);
+  vec3 L = normalize(fsIn.sunDir);
+  vec3 V = normalize(-fsIn.position);
+  float cos_i = dot(N, L);
+  float cos_r = dot(N, V);
 
-  #if $ENABLE_HDR
-    // energy conservation for lambertian reflectance
-    fragColor /= VP_PI;
-  #endif
-
-  float directLight = 1.0;
-  float ambientLight = ambientBrightness;
-
+  float illuminance = uSunDirIlluminance.w;
+  float luminance = 1.0;
   #if $ENABLE_SHADOWS
-    directLight *= VP_getShadow(fsIn.position);
+    luminance *= VP_getShadow(fsIn.position);
   #endif
 
+  float ambient = ambientBrightness;
   #if $ENABLE_LIGHTING
     // hill shading / pseudo ambient occlusion
     const float hillShadingIntensity = 0.5;
-    ambientLight *= mix(1.0, max(0, dot(idealNormal, surfaceNormal)), hillShadingIntensity);
-    
-    vec3 sunDir = normalize(fsIn.sunDir);
-    directLight *= max(dot(surfaceNormal, sunDir), 0.0);
+    ambient *= mix(1.0, max(0, dot(idealNormal, surfaceNormal)), hillShadingIntensity);
+    luminance *= max(0.0, cos_i);
   #endif
 
-  fragColor = mix(fragColor*ambientLight, fragColor*getEclipseShadow(fsIn.position), directLight);
+  #if ($ENABLE_HDR && $ENABLE_LIGHTING)
+    if (cos_i < 0) {
+      luminance *= 0;
+    }
+    else {
+      float f_r = BRDF_HDR(N, L, V);
+      if (f_r < 0 || isnan(f_r) || isinf(f_r)) {
+        luminance *= 0;
+      }
+      else {
+        luminance *= f_r * illuminance;
+      }
+    }
+    fragColor /= $AVG_LINEAR_IMG_INTENSITY;
+    fragColor *= luminance;
+  #elif $ENABLE_HDR
+    luminance *= illuminance;
+    fragColor /= $AVG_LINEAR_IMG_INTENSITY;
+    fragColor *= luminance;
+  #elif $ENABLE_LIGHTING
+    if (cos_i < 0) {
+      luminance *= 0;
+    }
+    else {
+      float f_r = BRDF_NON_HDR(N, L, V);
+      if (f_r < 0 || isnan(f_r) || isinf(f_r)) {
+        luminance *= 0;
+      }
+      else {
+        luminance *= f_r;
+      }
+    }
+    fragColor = mix(fragColor * ambient, fragColor, luminance);
+  #endif
+
+  // fragColor = mix(fragColor*ambientLight, fragColor*getEclipseShadow(fsIn.position), directLight);
 
   #if $SHOW_TILE_BORDER
     // color area by level
@@ -203,7 +242,7 @@ void main()
   #if $SHOW_LAT_LONG || $SHOW_LAT_LONG_LABELS
   {
     #if $ENABLE_LIGHTING
-      float fIdealLightIntensity = dot(idealNormal, sunDir) * (1.0 - ambientLight) + ambientLight;
+      float fIdealLightIntensity = dot(idealNormal, normalize(fsIn.sunDir)) * (1.0 - ambient) + ambient;
       vec3 grid_color = mix(fragColor, vec3(mix(1.0, 0.0, clamp(fIdealLightIntensity + 1.0, 0.0, 1.0))), 0.8);
     #else
       vec3 grid_color = mix(fragColor, vec3(0), 0.8);

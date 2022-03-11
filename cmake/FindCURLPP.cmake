@@ -9,7 +9,7 @@ find_path(CURLPP_INCLUDE_DIR curlpp/cURLpp.hpp
     HINTS ${CURLPP_ROOT_DIR}/include)
 
 # Locate library.
-find_library(CURLPP_LIBRARY NAMES curlpp
+find_library(CURLPP_LIBRARY NAMES curlpp libcurlpp
     HINTS ${CURLPP_ROOT_DIR}/lib ${CURLPP_ROOT_DIR}/lib64)
 
 include(FindPackageHandleStandardArgs)

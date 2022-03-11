@@ -158,6 +158,10 @@ class CS_CORE_EXPORT Settings {
   utils::Property<std::string> pMinDate;
   utils::Property<std::string> pMaxDate;
 
+  /// The current speed of the simulation. A value of zero will cause the simulation to be paused, a
+  /// value of one corresponds to real-time. Negative values will cause the time to run backwards.
+  utils::DefaultProperty<float> pTimeSpeed{1.F};
+
   /// In order to reduce duplication of code, a list of all used SPICE-frames ("Anchors") is
   /// required at the start of each configuration file. The name of each Anchor is then later used
   /// to reference the respective SPICE frame.

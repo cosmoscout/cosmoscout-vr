@@ -836,7 +836,7 @@ void Application::connectSlots() {
   });
 
   // Update the simulation time speed shown in the user interface.
-  mTimeControl->pTimeSpeed.connectAndTouch([this](float val) {
+  mSettings->pTimeSpeed.connectAndTouch([this](float val) {
     mGuiManager->getGui()->executeJavascript(fmt::format("CosmoScout.state.timeSpeed = {};", val));
   });
 
@@ -1163,19 +1163,22 @@ void Application::registerGuiCallbacks() {
   // Sets the mode used to compute the tone mapping.
   mGuiManager->getGui()->registerCallback(
       "graphics.setToneMappingMode0", "Disables Tone Mapping.", std::function([this]() {
-        mSettings->mGraphics.pToneMappingMode = cs::graphics::ToneMappingNode::ToneMappingMode::eNone;
+        mSettings->mGraphics.pToneMappingMode =
+            cs::graphics::ToneMappingNode::ToneMappingMode::eNone;
       }));
-  mGuiManager->getGui()->registerCallback("graphics.setToneMappingMode1",
-      "Enables Filmic Tone Mapping.", std::function([this]() {
-        mSettings->mGraphics.pToneMappingMode = cs::graphics::ToneMappingNode::ToneMappingMode::eFilmic;
+  mGuiManager->getGui()->registerCallback(
+      "graphics.setToneMappingMode1", "Enables Filmic Tone Mapping.", std::function([this]() {
+        mSettings->mGraphics.pToneMappingMode =
+            cs::graphics::ToneMappingNode::ToneMappingMode::eFilmic;
       }));
-  mSettings->mGraphics.pToneMappingMode.connect([this](cs::graphics::ToneMappingNode::ToneMappingMode glareMode) {
-    if (glareMode == cs::graphics::ToneMappingNode::ToneMappingMode::eNone) {
-      mGuiManager->setRadioChecked("graphics.setToneMappingMode0");
-    } else if (glareMode == cs::graphics::ToneMappingNode::ToneMappingMode::eFilmic) {
-      mGuiManager->setRadioChecked("graphics.setToneMappingMode1");
-    }
-  });
+  mSettings->mGraphics.pToneMappingMode.connect(
+      [this](cs::graphics::ToneMappingNode::ToneMappingMode toneMappingMode) {
+        if (toneMappingMode == cs::graphics::ToneMappingNode::ToneMappingMode::eNone) {
+          mGuiManager->setRadioChecked("graphics.setToneMappingMode0");
+        } else if (toneMappingMode == cs::graphics::ToneMappingNode::ToneMappingMode::eFilmic) {
+          mGuiManager->setRadioChecked("graphics.setToneMappingMode1");
+        }
+      });
 
   // Update the side bar field showing the average luminance of the scene.
   mGraphicsEngine->pAverageLuminance.connect([this](float value) {
@@ -1393,9 +1396,8 @@ void Application::registerGuiCallbacks() {
 
   // Adjusts the simulation time speed.
   mGuiManager->getGui()->registerCallback("time.setSpeed",
-      "Sets the multiplier for the simulation time speed.", std::function([this](double speed) {
-        mTimeControl->setTimeSpeed(static_cast<float>(speed));
-      }));
+      "Sets the multiplier for the simulation time speed.",
+      std::function([this](double speed) { mSettings->pTimeSpeed = static_cast<float>(speed); }));
 
   // navigation callbacks --------------------------------------------------------------------------
 

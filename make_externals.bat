@@ -146,7 +146,7 @@ cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
       -DBUILD_TESTING=OFF -DBUILD_CURL_EXE=OFF -DENABLE_ARES=ON^
       -DCARES_INCLUDE_DIR="%INSTALL_DIR%/include"^
       -DCARES_LIBRARY="%INSTALL_DIR%/lib/cares.lib"^
-      -DCMAKE_USE_WINSSL=On -DCMAKE_INSTALL_LIBDIR=lib^
+      -DCURL_USE_SCHANNEL=On -DCMAKE_INSTALL_LIBDIR=lib^
       "%EXTERNALS_DIR%/curl" || goto :error
 
 cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS% || goto :error
@@ -198,7 +198,7 @@ echo.
 
 cmake -E make_directory "%BUILD_DIR%/spdlog" && cd "%BUILD_DIR%/spdlog"
 cmake %CMAKE_FLAGS% -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
-      -DSPDLOG_ENABLE_PCH=On "%EXTERNALS_DIR%/spdlog" || goto :error
+      -DSPDLOG_BUILD_TESTS=Off -DSPDLOG_ENABLE_PCH=On "%EXTERNALS_DIR%/spdlog" || goto :error
 
 cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS% || goto :error
 
