@@ -7,20 +7,37 @@
 #ifndef CS_CORE_ECLIPSE_SHADOW_RECEIVER_HPP
 #define CS_CORE_ECLIPSE_SHADOW_RECEIVER_HPP
 
-#include "GraphicsEngine.hpp"
-#include "SolarSystem.hpp"
+#include "cs_core_export.hpp"
 
-#include <VistaOGLExt/VistaGLSLShader.h>
-
+#include <glm/glm.hpp>
 #include <memory>
 #include <vector>
 
+class VistaGLSLShader;
+
 namespace cs::scene {
 class CelestialObject;
+class CelestialObserver;
 class CelestialBody;
 } // namespace cs::scene
 
+namespace cs::graphics {
+struct EclipseShadowMap;
+}
+
 namespace cs::core {
+
+class SolarSystem;
+class Settings;
+
+enum class EclipseShadowMode {
+  eNone                = 0,
+  eDebug               = 1,
+  eCelestia            = 2,
+  eOpenSpace           = 3,
+  eDirectCircles       = 4,
+  eDirectSphericalCaps = 5
+};
 
 class CS_CORE_EXPORT EclipseShadowReceiver {
  public:
@@ -52,6 +69,7 @@ class CS_CORE_EXPORT EclipseShadowReceiver {
   std::vector<std::shared_ptr<graphics::EclipseShadowMap>> mShadowMaps;
 
   struct {
+    int mode;
     int sun;
     int numOccluders;
     int occluders;

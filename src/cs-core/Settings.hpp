@@ -13,6 +13,7 @@
 #include "../cs-graphics/ToneMappingNode.hpp"
 #include "../cs-utils/DefaultProperty.hpp"
 #include "../cs-utils/utils.hpp"
+#include "EclipseShadowReceiver.hpp"
 
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <cstdint>
@@ -508,6 +509,9 @@ class CS_CORE_EXPORT Settings {
 
     /// This maps anchor names to eclipse textures.
     std::optional<std::unordered_map<std::string, EclipseShadowMap>> mEclipseShadowMaps;
+
+    /// The eclipse shadow randering mode.
+    utils::DefaultProperty<EclipseShadowMode> pEclipseShadowMode{EclipseShadowMode::eDebug};
   };
 
   Graphics mGraphics;

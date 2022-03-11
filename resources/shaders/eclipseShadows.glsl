@@ -4,6 +4,7 @@
 const float ECLIPSE_TEX_SHADOW_EXPONENT = 1.0;
 const int   ECLIPSE_MAX_BODIES          = 8;
 
+uniform int       uEclipseMode;
 uniform vec4      uEclipseSun;
 uniform int       uEclipseNumOccluders;
 uniform vec4      uEclipseOccluders[ECLIPSE_MAX_BODIES];
@@ -45,8 +46,18 @@ vec3 eclipseShadowMapLookup(int i, vec3 position) {
 }
 
 vec3 getEclipseShadow(vec3 position) {
-  vec3 light = vec3(1.0);
 
+  // None.
+  if (uEclipseMode == 0) {
+    return vec3(1.0);
+  }
+
+  // Debug.
+  if (uEclipseMode == 1) {
+    return vec3(1.0, 0, 0);
+  }
+
+  vec3 light = vec3(1.0);
   for (int i = 0; i < uEclipseNumOccluders; ++i) {
     light *= eclipseShadowMapLookup(i, position);
   }

@@ -1180,6 +1180,48 @@ void Application::registerGuiCallbacks() {
         }
       });
 
+  // Sets the mode used to compute the eclipse shadows.
+  mGuiManager->getGui()->registerCallback(
+      "graphics.setEclipseShadowMode0", "Disables Eclipse Shadows.", std::function([this]() {
+        mSettings->mGraphics.pEclipseShadowMode = cs::core::EclipseShadowMode::eNone;
+      }));
+  mGuiManager->getGui()->registerCallback("graphics.setEclipseShadowMode1",
+      "Enables Eclipse Shadows debug visualization.", std::function([this]() {
+        mSettings->mGraphics.pEclipseShadowMode = cs::core::EclipseShadowMode::eDebug;
+      }));
+  mGuiManager->getGui()->registerCallback("graphics.setEclipseShadowMode2",
+      "Enables Eclipse Shadows similar to Celestia.", std::function([this]() {
+        mSettings->mGraphics.pEclipseShadowMode = cs::core::EclipseShadowMode::eCelestia;
+      }));
+  mGuiManager->getGui()->registerCallback("graphics.setEclipseShadowMode3",
+      "Enables Eclipse Shadows similar to OpenSpace.", std::function([this]() {
+        mSettings->mGraphics.pEclipseShadowMode = cs::core::EclipseShadowMode::eOpenSpace;
+      }));
+  mGuiManager->getGui()->registerCallback("graphics.setEclipseShadowMode4",
+      "Enables Eclipse Shadows based on direct circle intersections.", std::function([this]() {
+        mSettings->mGraphics.pEclipseShadowMode = cs::core::EclipseShadowMode::eDirectCircles;
+      }));
+  mGuiManager->getGui()->registerCallback("graphics.setEclipseShadowMode5",
+      "Enables Eclipse Shadows based on direct spherical cap intersections.",
+      std::function([this]() {
+        mSettings->mGraphics.pEclipseShadowMode = cs::core::EclipseShadowMode::eDirectSphericalCaps;
+      }));
+  mSettings->mGraphics.pEclipseShadowMode.connect([this](cs::core::EclipseShadowMode mode) {
+    if (mode == cs::core::EclipseShadowMode::eNone) {
+      mGuiManager->setRadioChecked("graphics.setEclipseShadowMode0");
+    } else if (mode == cs::core::EclipseShadowMode::eDebug) {
+      mGuiManager->setRadioChecked("graphics.setEclipseShadowMode1");
+    } else if (mode == cs::core::EclipseShadowMode::eCelestia) {
+      mGuiManager->setRadioChecked("graphics.setEclipseShadowMode2");
+    } else if (mode == cs::core::EclipseShadowMode::eOpenSpace) {
+      mGuiManager->setRadioChecked("graphics.setEclipseShadowMode3");
+    } else if (mode == cs::core::EclipseShadowMode::eDirectCircles) {
+      mGuiManager->setRadioChecked("graphics.setEclipseShadowMode4");
+    } else if (mode == cs::core::EclipseShadowMode::eDirectSphericalCaps) {
+      mGuiManager->setRadioChecked("graphics.setEclipseShadowMode5");
+    }
+  });
+
   // Update the side bar field showing the average luminance of the scene.
   mGraphicsEngine->pAverageLuminance.connect([this](float value) {
     mGuiManager->getGui()->callJavascript("CosmoScout.sidebar.setAverageSceneLuminance", value);

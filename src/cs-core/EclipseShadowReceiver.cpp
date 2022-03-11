@@ -13,6 +13,7 @@
 #include "GraphicsEngine.hpp"
 #include "SolarSystem.hpp"
 
+#include <VistaOGLExt/VistaGLSLShader.h>
 #include <glm/gtc/type_ptr.hpp>
 #include <utility>
 
@@ -35,6 +36,7 @@ void EclipseShadowReceiver::init(VistaGLSLShader* shader, uint32_t textureOffset
   mShader        = shader;
   mTextureOffset = textureOffset;
 
+  mUniforms.mode         = glGetUniformLocation(shader->GetProgram(), "uEclipseMode");
   mUniforms.sun          = glGetUniformLocation(shader->GetProgram(), "uEclipseSun");
   mUniforms.numOccluders = glGetUniformLocation(shader->GetProgram(), "uEclipseNumOccluders");
   mUniforms.occluders    = glGetUniformLocation(shader->GetProgram(), "uEclipseOccluders");
@@ -56,6 +58,9 @@ void EclipseShadowReceiver::update(double time, scene::CelestialObserver const& 
 void EclipseShadowReceiver::preRender() const {
 
   if (mShadowMaps.size() > 0) {
+    mShader->SetUniform(
+        mUniforms.mode, static_cast<int>(mSettings->mGraphics.pEclipseShadowMode.get()));
+
     std::array<int, MAX_BODIES> shadowMapBindings{};
 
     for (size_t i(0); i < mShadowMaps.size() && i < MAX_BODIES; ++i) {
