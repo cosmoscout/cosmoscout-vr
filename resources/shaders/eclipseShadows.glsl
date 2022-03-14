@@ -102,12 +102,6 @@ float _eclipseGetAngle(vec3 v1, vec3 v2) {
   return 2.0 * atan(sqrt(c), sqrt(4 - c));
 }
 
-vec3 _eclipseProjectPointOnRay(vec3 origin, vec3 direction, vec3 p) {
-  vec3 ap = p - origin;
-  vec3 ab = direction - origin;
-  return origin + (dot(ap, ab) / dot(ab, ab)) * ab;
-}
-
 vec4 _eclipseGetBodyDirAngle(vec4 body, vec3 position) {
   vec3  bodyPos   = body.xyz - position;
   float bodyDist  = length(bodyPos);
@@ -167,6 +161,12 @@ vec3 getEclipseShadow(vec3 position) {
   // maxDepth is zero. In reality, the falloff function is much more complex: to calculate the exact
   // amount of sunlight blocked, we need to calculate the a circle-circle intersection area."
 
+  // There seem to be some geometric simplifications in this code - the apparent radii of the bodies
+  // are computed by dividing their actual radius by the distance. This is actually not valid for
+  // spheres but only for circles. However, the introduced error seems to be very small. There's no
+  // noticeable difference to the more complete implementation in the Cosmographia version further
+  // below.
+
   // Based on this code:
   // https://github.com/CelestiaProject/Celestia/blob/master/src/celengine/shadermanager.cpp#L1344
   // https://github.com/CelestiaProject/Celestia/blob/master/src/celengine/shadermanager.cpp#L3811
@@ -175,8 +175,8 @@ vec3 getEclipseShadow(vec3 position) {
   if (uEclipseMode == 2) {
     vec3 light = vec3(1.0);
     for (int i = 0; i < uEclipseNumOccluders; ++i) {
-      float distToSun    = length(uEclipseOccluders[i].xyz - uEclipseSun.xyz);
-      float appSunRadius = uEclipseSun.w / distToSun;
+      float sunDistance  = length(uEclipseOccluders[i].xyz - uEclipseSun.xyz);
+      float appSunRadius = uEclipseSun.w / sunDistance;
 
       float distToCaster      = length(uEclipseOccluders[i].xyz - position);
       float appOccluderRadius = uEclipseOccluders[i].w / distToCaster;
@@ -190,16 +190,18 @@ vec3 getEclipseShadow(vec3 position) {
       float umbra   = umbraRadius / penumbraRadius;
       float falloff = maxDepth / max(0.001, 1.0 - abs(umbra));
 
-      // Compute distance from fragment to Sun-Occluder ray.
-      vec3  pc       = uEclipseOccluders[i].xyz - position;
-      vec3  sc_norm  = (uEclipseOccluders[i].xyz - uEclipseSun.xyz) / distToSun;
-      vec3  pc_proj  = dot(pc, sc_norm) * sc_norm;
-      float length_d = length(pc - pc_proj);
+      // Project the vector from fragment to occluder on the Sun-Occluder ray.
+      vec3 toOcc        = uEclipseOccluders[i].xyz - position;
+      vec3 sunToOccNorm = (uEclipseOccluders[i].xyz - uEclipseSun.xyz) / sunDistance;
+      vec3 toOccProj    = dot(toOcc, sunToOccNorm) * sunToOccNorm;
+
+      // Get vertical position in shadow space.
+      float posY = length(toOcc - toOccProj);
 
       // This r is computed quite differently in Celestia. This is due to the fact that eclipse
       // shadows are not computed in worldspace in Celestia but rather in a shadow-local coordinate
       // system.
-      float r = 1 - length_d / penumbraRadius;
+      float r = 1 - posY / penumbraRadius;
 
       if (r > 0.0) {
         float shadowR = clamp(r * falloff, 0.0, maxDepth);
@@ -214,13 +216,57 @@ vec3 getEclipseShadow(vec3 position) {
   // ----------------------------------- Cosmographia ----------------------------------------------
   // -----------------------------------------------------------------------------------------------
 
+  // Cosmographia (or rather the VESTA library which is used by Cosmographia) performs a very
+  // involved computation of the umbra and penumbra cones. In fact, it claims to support ellipsoidal
+  // shadow caster by asymmetrical scaling of the shadow matrix. For now, this is difficult to
+  // replicate here, however, when compared to the other evaluated solutions, it seems to be the
+  // only one which computes the correct apex angles of the cones. To replicate the behavior here,
+  // we use out own code to compute the penumbra and umbra radius and use the Cosmosgraphia approach
+  // to map this to a shadow value.
+
+  // Yet, it seems to use a linear falloff from the umbra to the penumbra and I do not see a proper
+  // falloff handling beyond the end of the umbra.
+
   // Based on this code:
-  // https://github.com/claurel/cosmographia/blob/master/thirdparty/vesta/internal/EclipseShadowVolumeSet.cpp
-  // https://github.com/claurel/cosmographia/blob/master/thirdparty/vesta/ShaderBuilder.cpp#L222
+  // https://github.com/claurel/cosmographia/blob/171462736a30c06594dfc45ad2daf85d024b20e2/thirdparty/vesta/internal/EclipseShadowVolumeSet.cpp
+  // https://github.com/claurel/cosmographia/blob/171462736a30c06594dfc45ad2daf85d024b20e2/thirdparty/vesta/ShaderBuilder.cpp#L222
+  // https://github.com/claurel/cosmographia/blob/171462736a30c06594dfc45ad2daf85d024b20e2/thirdparty/vesta/UniverseRenderer.cpp#L1980
 
   if (uEclipseMode == 3) {
     vec3 light = vec3(1.0);
-    for (int i = 0; i < uEclipseNumOccluders; ++i) {}
+    for (int i = 0; i < uEclipseNumOccluders; ++i) {
+      float sunDistance = length(uEclipseSun.xyz - uEclipseOccluders[i].xyz);
+
+      float rOcc   = uEclipseOccluders[i].w;
+      float dOcc   = sunDistance / (uEclipseSun.w / rOcc + 1);
+      float yP     = rOcc / dOcc * sqrt(dOcc * dOcc - rOcc * rOcc);
+      float xOcc   = sqrt(rOcc * rOcc - yP * yP);
+      float xUmbra = (sunDistance * rOcc) / (uEclipseSun.w - rOcc) + xOcc;
+      float xF     = xOcc - dOcc;
+
+      float xUmbraRimDist = sqrt(pow(xUmbra - xOcc, 2.0) - rOcc * rOcc);
+      float yU            = rOcc * xUmbraRimDist / (xUmbra - xOcc);
+      float a             = rOcc * rOcc / (xUmbra - xOcc);
+
+      float penumbraSlope = yP / -xF;
+      float umbraSlope    = -yU / (xUmbra - xOcc - a);
+
+      // Project the vector from fragment to occluder on the Sun-Occluder ray.
+      vec3 toOcc        = uEclipseOccluders[i].xyz - position;
+      vec3 sunToOccNorm = (uEclipseOccluders[i].xyz - uEclipseSun.xyz) / sunDistance;
+      vec3 toOccProj    = dot(toOcc, sunToOccNorm) * sunToOccNorm;
+
+      // Get position in shadow space.
+      float posX = length(toOccProj) + xOcc;
+      float posY = length(toOcc - toOccProj);
+
+      float penumbra = penumbraSlope * posX + yP;
+      float umbra    = umbraSlope * (posX + a + xOcc) + yU;
+
+      // As umbra becomes negative beyond the end of the umbra, the results of this code are wrong
+      // from this point on.
+      light *= clamp((posY - umbra) / (penumbra - umbra), 0.0, 1.0);
+    }
 
     return light;
   }
@@ -340,15 +386,17 @@ vec3 getEclipseShadow(vec3 position) {
     float dOcc   = sunDistance / (uEclipseSun.w / rOcc + 1);
     float y0     = rOcc / dOcc * sqrt(dOcc * dOcc - rOcc * rOcc);
     float xOcc   = sqrt(rOcc * rOcc - y0 * y0);
-    float xUmbra = (sunDistance * rOcc) / (uEclipseSun.w - rOcc);
+    float xUmbra = (sunDistance * rOcc) / (uEclipseSun.w - rOcc) + xOcc;
     float xF     = xOcc - dOcc;
     float fac    = y0 / -xF;
 
-    vec3 pSunOcc = _eclipseProjectPointOnRay(
-        uEclipseOccluders[i].xyz, uEclipseOccluders[i].xyz - uEclipseSun.xyz, position);
-    vec2 pos = vec2(distance(pSunOcc, uEclipseOccluders[i].xyz), distance(pSunOcc, position));
+    // Project the vector from fragment to occluder on the Sun-Occluder ray.
+    vec3 toOcc        = uEclipseOccluders[i].xyz - position;
+    vec3 sunToOccNorm = (uEclipseOccluders[i].xyz - uEclipseSun.xyz) / sunDistance;
+    vec3 toOccProj    = dot(toOcc, sunToOccNorm) * sunToOccNorm;
 
-    // Todo: Maybe pos.x += xOcc is required?
+    // Get position in shadow space.
+    vec2 pos = vec2(length(toOccProj) + xOcc, length(toOcc - toOccProj));
 
     float alphaX = pos.x / (pos.x + xUmbra);
     float alphaY = pos.y / (fac * (pos.x - xF));
