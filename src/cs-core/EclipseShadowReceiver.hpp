@@ -31,12 +31,15 @@ class SolarSystem;
 class Settings;
 
 enum class EclipseShadowMode {
-  eNone                = 0,
-  eDebug               = 1,
-  eCelestia            = 2,
-  eOpenSpace           = 3,
-  eDirectCircles       = 4,
-  eDirectSphericalCaps = 5
+  eNone                           = 0,
+  eDebug                          = 1,
+  eCelestia                       = 2,
+  eCosmographia                   = 3,
+  eOpenSpace                      = 4,
+  eCircleIntersection             = 5,
+  eApproxSphericalCapIntersection = 6,
+  eSphericalCapIntersection       = 7,
+  eTexture                        = 8
 };
 
 class CS_CORE_EXPORT EclipseShadowReceiver {

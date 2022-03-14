@@ -511,7 +511,8 @@ class CS_CORE_EXPORT Settings {
     std::optional<std::unordered_map<std::string, EclipseShadowMap>> mEclipseShadowMaps;
 
     /// The eclipse shadow randering mode.
-    utils::DefaultProperty<EclipseShadowMode> pEclipseShadowMode{EclipseShadowMode::eDebug};
+    utils::DefaultProperty<EclipseShadowMode> pEclipseShadowMode{
+        EclipseShadowMode::eCircleIntersection};
   };
 
   Graphics mGraphics;
