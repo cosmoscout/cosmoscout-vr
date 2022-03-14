@@ -138,12 +138,12 @@ vec3 getEclipseShadow(vec3 position) {
       vec4  bodyDirAngle = _eclipseGetBodyDirAngle(uEclipseOccluders[i], position);
       float sunBodyDist  = _eclipseGetAngle(sunDirAngle.xyz, bodyDirAngle.xyz);
 
-      if (sunDirAngle.w < bodyDirAngle.w - sunBodyDist) { // Total eclipse.
-        light *= vec3(1.0, 0.5, 0.5);
-      } else if (sunBodyDist < sunDirAngle.w - bodyDirAngle.w) { // Annular eclipse.
-        light *= vec3(0.5, 1.0, 0.5);
-      } else if (sunBodyDist < sunDirAngle.w + bodyDirAngle.w) { // Partial eclipse.
-        light *= vec3(0.5, 0.5, 1.0);
+      if (sunDirAngle.w < bodyDirAngle.w - sunBodyDist) {
+        light *= vec3(1.0, 0.5, 0.5); // Total eclipse.
+      } else if (sunBodyDist < sunDirAngle.w - bodyDirAngle.w) {
+        light *= vec3(0.5, 1.0, 0.5); // Annular eclipse.
+      } else if (sunBodyDist < sunDirAngle.w + bodyDirAngle.w) {
+        light *= vec3(0.5, 0.5, 1.0); // Partial eclipse.
       }
     }
 
@@ -197,11 +197,11 @@ vec3 getEclipseShadow(vec3 position) {
       float length_d = length(pc - pc_proj);
 
       // This r is computed quite differently in Celestia. This is due to the fact that eclipse
-      // shadows are not computed in worldsapce in Celestia but rather in a shadow-local coordinate
+      // shadows are not computed in worldspace in Celestia but rather in a shadow-local coordinate
       // system.
       float r = 1 - length_d / penumbraRadius;
 
-      if (r < 1.0) {
+      if (r > 0.0) {
         float shadowR = clamp(r * falloff, 0.0, maxDepth);
         light *= 1 - shadowR;
       }
