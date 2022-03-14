@@ -106,135 +106,6 @@
             }
         },
         {
-            "name": "Europe",
-            "location": {
-                "center": "Earth",
-                "frame": "IAU_Earth",
-                "position": [
-                    650049.6197706065,
-                    9169440.98335226,
-                    8121638.922577351
-                ]
-            }
-        },
-        {
-            "name": "Gale Crater",
-            "location": {
-                "center": "Mars",
-                "frame": "IAU_Mars",
-                "position": [
-                    2447738.8308155183,
-                    -342371.7680597744,
-                    -2685067.930247649
-                ]
-            }
-        },
-        {
-            "name": "Olympus Mons",
-            "location": {
-                "center": "Mars",
-                "frame": "IAU_Mars",
-                "position": [
-                    -3307330.802331851,
-                    1554571.0056051295,
-                    -3226294.561073318
-                ]
-            }
-        },
-        {
-            "name": "Valles Marineris",
-            "location": {
-                "center": "Mars",
-                "frame": "IAU_Mars",
-                "position": [
-                    -6428254.120880801,
-                    -954592.0696965504,
-                    1953664.233154953
-                ]
-            }
-        },
-        {
-            "name": "Apollo 17 Start",
-            "description": "Start of the Apollo 17 mission from the Kennedy Space Center.",
-            "color": [
-                0.8,
-                0.8,
-                0.8
-            ],
-            "time": {
-                "start": "1972-12-07 05:33:57"
-            },
-            "location": {
-                "center": "Earth",
-                "frame": "IAU_Earth",
-                "position": [
-                    -6717320.585750769,
-                    3677613.991761727,
-                    1137577.1784918148
-                ],
-                "rotation": [
-                    0.15376949893337843,
-                    0.63437440894638,
-                    0.18263787000493972,
-                    -0.7352329283375216
-                ]
-            }
-        },
-        {
-            "name": "Apollo 17 Landing",
-            "description": "Last human landing on the Moon.",
-            "color": [
-                0.8,
-                0.8,
-                0.8
-            ],
-            "time": {
-                "start": "1972-12-11 19:54:57"
-            },
-            "location": {
-                "center": "Moon",
-                "frame": "IAU_Moon",
-                "position": [
-                    1134055.9325384551,
-                    819870.7766710989,
-                    1933670.8174134232
-                ],
-                "rotation": [
-                    -0.16576540501128123,
-                    0.24287410049335084,
-                    0.02264905472337545,
-                    0.9555213352569
-                ]
-            }
-        },
-        {
-            "name": "Curiosity Landing",
-            "description": "Landing of the Rover for the Mars Science Laboratory.",
-            "color": [
-                0.9,
-                0.7,
-                0.3
-            ],
-            "time": {
-                "start": "2012-08-06 05:31:00"
-            },
-            "location": {
-                "center": "Mars",
-                "frame": "IAU_Mars",
-                "position": [
-                    2355817.1503860787,
-                    -717233.1853627029,
-                    -2744165.4025669894
-                ],
-                "rotation": [
-                    0.29703477878551815,
-                    0.7983366317584811,
-                    -0.46250011374371464,
-                    0.24601342925013817
-                ]
-            }
-        },
-        {
             "color": [
                 0.8627451062202454,
                 0.6666666865348816,
@@ -285,9 +156,121 @@
                     0.9696956461773509
                 ]
             },
-            "name": "2006 Sahara",
+            "name": "2006 Total",
             "time": {
                 "start": "2006-03-29 10:14:18"
+            }
+        },
+        {
+            "color": [
+                0.8627451062202454,
+                0.6666666865348816,
+                1.0
+            ],
+            "description": "",
+            "icon": "",
+            "location": {
+                "center": "Earth",
+                "frame": "IAU_Earth",
+                "position": [
+                    14601052.90599993,
+                    10182554.456261262,
+                    2406823.590362977
+                ],
+                "rotation": [
+                    -0.1882409089603632,
+                    0.6430408425343077,
+                    0.22196146661960792,
+                    0.7083762717388384
+                ]
+            },
+            "name": "2020 Annular",
+            "time": {
+                "start": "2020-06-21 07:05:45"
+            }
+        },
+        {
+            "color": [
+                0.8627451062202454,
+                0.6666666865348816,
+                1.0
+            ],
+            "description": "",
+            "icon": "",
+            "location": {
+                "center": "Mars",
+                "frame": "IAU_Mars",
+                "position": [
+                    -3022645.2291122437,
+                    800736.8206590437,
+                    2616986.447696941
+                ],
+                "rotation": [
+                    -0.07666765227357829,
+                    -0.4021652571838724,
+                    -0.0370047365522212,
+                    0.9116006946474908
+                ]
+            },
+            "name": "1999 Mars",
+            "time": {
+                "start": "1999-08-26 04:00:33"
+            }
+        },
+        {
+            "color": [
+                0.8627451062202454,
+                0.6666666865348816,
+                1.0
+            ],
+            "description": "",
+            "icon": "",
+            "location": {
+                "center": "Phobos",
+                "frame": "IAU_Phobos",
+                "position": [
+                    -21012.445813776925,
+                    28557.805475671896,
+                    41430.12959887283
+                ],
+                "rotation": [
+                    -0.2905773414341297,
+                    -0.2333337854232405,
+                    -0.07329365460562288,
+                    0.9250665886408859
+                ]
+            },
+            "name": "2006 Phobos",
+            "time": {
+                "start": "2006-04-08 04:59:04"
+            }
+        },
+        {
+            "color": [
+                0.8627451062202454,
+                0.6666666865348816,
+                1.0
+            ],
+            "description": "",
+            "icon": "",
+            "location": {
+                "center": "Jupiter",
+                "frame": "IAU_Jupiter",
+                "position": [
+                    -23727626.04385949,
+                    -24257690.375167865,
+                    109666056.60101697
+                ],
+                "rotation": [
+                    0.04821809545963615,
+                    -0.07596793417044145,
+                    0.0006643461448888434,
+                    0.9959434958331326
+                ]
+            },
+            "name": "Io 2000",
+            "time": {
+                "start": "2000-12-12 14:56:18"
             }
         }
     ],
@@ -327,9 +310,17 @@
             "Mars": {
                 "texture": "../share/resources/textures/marsShadow.hdr",
                 "casterRadius": 3489000.0
+            },
+            "Io": {
+                "texture": "../share/resources/textures/moonShadow.hdr",
+                "casterRadius": 1821600.0
+            },
+            "Phobos": {
+                "texture": "../share/resources/textures/moonShadow.hdr",
+                "casterRadius": 11267.0
             }
         },
-        "enableHDR": true,
+        "enableHDR": false,
         "enableLighting": true,
         "ambientBrightness": 0.0,
         "exposureCompensation": -2.0,
@@ -400,9 +391,25 @@
                 "2049-12-31 00:00:00.000"
             ]
         },
+        "Phobos": {
+            "center": "Phobos",
+            "frame": "IAU_Phobos",
+            "existence": [
+                "1950-01-02 00:00:00.000",
+                "2049-12-31 00:00:00.000"
+            ]
+        },
         "Jupiter": {
             "center": "Jupiter",
             "frame": "IAU_Jupiter",
+            "existence": [
+                "1950-01-02 00:00:00.000",
+                "2049-12-31 00:00:00.000"
+            ]
+        },
+        "Io": {
+            "center": "Io",
+            "frame": "IAU_Io",
             "existence": [
                 "1950-01-02 00:00:00.000",
                 "2049-12-31 00:00:00.000"
@@ -527,8 +534,14 @@
                 "Mars": {
                     "texture": "../share/resources/textures/mars.jpg"
                 },
+                "Phobos": {
+                    "texture": "../share/resources/textures/moon.jpg"
+                },
                 "Jupiter": {
                     "texture": "../share/resources/textures/jupiter.jpg"
+                },
+                "Io": {
+                    "texture": "../share/resources/textures/moon.jpg"
                 },
                 "Saturn": {
                     "texture": "../share/resources/textures/saturn.jpg"
@@ -634,6 +647,19 @@
                     },
                     "drawDot": true
                 },
+                "Phobos": {
+                    "color": [
+                        0.8,
+                        0.8,
+                        0.8
+                    ],
+                    "trail": {
+                        "length": 0.5,
+                        "samples": 1000,
+                        "parent": "Mars"
+                    },
+                    "drawDot": true
+                },
                 "Jupiter": {
                     "color": [
                         1.0,
@@ -644,6 +670,19 @@
                         "length": 4330,
                         "samples": 1000,
                         "parent": "Barycenter"
+                    },
+                    "drawDot": true
+                },
+                "Io": {
+                    "color": [
+                        1.0,
+                        1.0,
+                        0.5
+                    ],
+                    "trail": {
+                        "length": 0.4,
+                        "samples": 1000,
+                        "parent": "Jupiter"
                     },
                     "drawDot": true
                 },
