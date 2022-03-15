@@ -1,4 +1,4 @@
-#version 330
+#version 400
 
 #define SHOW_TEXTURE_RGB  0
 
@@ -126,8 +126,7 @@ void main()
   float cos_i = dot(N, L);
   float cos_r = dot(N, V);
 
-  float illuminance = uSunDirIlluminance.w;
-  float luminance = 1.0;
+  vec3 luminance = vec3(1.0);
   #if $ENABLE_SHADOWS
     luminance *= VP_getShadow(fsIn.position);
   #endif
@@ -150,13 +149,14 @@ void main()
         luminance *= 0;
       }
       else {
-        luminance *= f_r * illuminance;
+        luminance *= f_r * vec3(uSunDirIlluminance.w);
+        luminance *= getEclipseShadow(fsIn.position);
       }
     }
     fragColor /= $AVG_LINEAR_IMG_INTENSITY;
     fragColor *= luminance;
   #elif $ENABLE_HDR
-    luminance *= illuminance;
+    luminance *= vec3(uSunDirIlluminance.w);
     fragColor /= $AVG_LINEAR_IMG_INTENSITY;
     fragColor *= luminance;
   #elif $ENABLE_LIGHTING
@@ -169,13 +169,11 @@ void main()
         luminance *= 0;
       }
       else {
-        luminance *= f_r;
+        luminance *= f_r * getEclipseShadow(fsIn.position);
       }
     }
-    fragColor = mix(fragColor * ambient, fragColor, luminance);
+    fragColor = mix(fragColor * ambient, fragColor, max(max(luminance.r, luminance.g), luminance.b));
   #endif
-
-  // fragColor = mix(fragColor*ambientLight, fragColor*getEclipseShadow(fsIn.position), directLight);
 
   #if $SHOW_TILE_BORDER
     // color area by level
