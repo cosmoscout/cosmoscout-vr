@@ -1167,7 +1167,12 @@ void Application::registerGuiCallbacks() {
             cs::graphics::ToneMappingNode::ToneMappingMode::eNone;
       }));
   mGuiManager->getGui()->registerCallback(
-      "graphics.setToneMappingMode1", "Enables Filmic Tone Mapping.", std::function([this]() {
+      "graphics.setToneMappingMode1", "Enables only gamma correction.", std::function([this]() {
+        mSettings->mGraphics.pToneMappingMode =
+            cs::graphics::ToneMappingNode::ToneMappingMode::eGammaOnly;
+      }));
+  mGuiManager->getGui()->registerCallback(
+      "graphics.setToneMappingMode2", "Enables Filmic Tone Mapping.", std::function([this]() {
         mSettings->mGraphics.pToneMappingMode =
             cs::graphics::ToneMappingNode::ToneMappingMode::eFilmic;
       }));
@@ -1175,8 +1180,10 @@ void Application::registerGuiCallbacks() {
       [this](cs::graphics::ToneMappingNode::ToneMappingMode toneMappingMode) {
         if (toneMappingMode == cs::graphics::ToneMappingNode::ToneMappingMode::eNone) {
           mGuiManager->setRadioChecked("graphics.setToneMappingMode0");
-        } else if (toneMappingMode == cs::graphics::ToneMappingNode::ToneMappingMode::eFilmic) {
+        } else if (toneMappingMode == cs::graphics::ToneMappingNode::ToneMappingMode::eGammaOnly) {
           mGuiManager->setRadioChecked("graphics.setToneMappingMode1");
+        } else if (toneMappingMode == cs::graphics::ToneMappingNode::ToneMappingMode::eFilmic) {
+          mGuiManager->setRadioChecked("graphics.setToneMappingMode2");
         }
       });
 
