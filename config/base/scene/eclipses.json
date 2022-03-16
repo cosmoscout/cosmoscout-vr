@@ -327,25 +327,14 @@
     "spiceKernel": "../share/config/spice/simple.txt",
     "graphics": {
         "eclipseShadowMaps": {
-            "Earth": {
-                "casterRadius": 6371000.0
-            },
+            "Earth": {},
             "Moon": {
-                "texture": "../share/resources/textures/moonShadow.hdr",
-                "casterRadius": 1737100.0
+                "texture": "../share/resources/textures/moonShadow.hdr"
             },
-            "Mars": {
-                "casterRadius": 3389000.0
-            },
-            "Io": {
-                "casterRadius": 1821600.0
-            },
-            "Phobos": {
-                "casterRadius": 11267.0
-            },
-            "Jupiter": {
-                "casterRadius": 69911000.0
-            }
+            "Mars": {},
+            "Io": {},
+            "Phobos": {},
+            "Jupiter": {}
         },
         "enableHDR": false,
         "enableLighting": true,

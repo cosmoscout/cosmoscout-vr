@@ -51,7 +51,9 @@ void EclipseShadowReceiver::update(double time, scene::CelestialObserver const& 
     mSettings->initAnchor(anchor, mShadowMaps[i]->mCasterAnchor);
     auto pos = observer.getRelativePosition(time, anchor);
 
-    mOccluders[i] = glm::vec4(pos, mShadowMaps[i]->mCasterRadius / observer.getAnchorScale());
+    // TODO: Can we make eclipses work with ellipsoidal casters?
+    mOccluders[i] = glm::vec4(pos,
+        mSettings->getAnchorRadii(mShadowMaps[i]->mCasterAnchor)[0] / observer.getAnchorScale());
   }
 }
 

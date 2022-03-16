@@ -18,7 +18,6 @@ namespace cs::graphics {
 /// includes the height of the atmosphere (if there is any).
 struct EclipseShadowMap {
   std::string                   mCasterAnchor;
-  double                        mCasterRadius;
   std::shared_ptr<VistaTexture> mTexture;
 };
 

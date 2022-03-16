@@ -396,9 +396,6 @@ class CS_CORE_EXPORT Settings {
   /// Each body which should cast eclipse shadows needs an eclipse shadow map.
   struct EclipseShadowMap {
     std::optional<std::string> mTexture;
-
-    /// The caster radius includes the atmosphere (if there is any).
-    double mCasterRadius;
   };
 
   struct Graphics {

@@ -196,12 +196,10 @@ void to_json(nlohmann::json& j, Settings::SceneScale const& o) {
 
 void from_json(nlohmann::json const& j, Settings::EclipseShadowMap& o) {
   Settings::deserialize(j, "texture", o.mTexture);
-  Settings::deserialize(j, "casterRadius", o.mCasterRadius);
 }
 
 void to_json(nlohmann::json& j, Settings::EclipseShadowMap const& o) {
   Settings::serialize(j, "texture", o.mTexture);
-  Settings::serialize(j, "casterRadius", o.mCasterRadius);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
