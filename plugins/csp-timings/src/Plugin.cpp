@@ -97,10 +97,12 @@ void Plugin::init() {
           mGuiManager->getGui()->executeJavascript(
               "document.querySelector('.timings-record-button').innerHTML = "
               "'<i class=\"material-icons\">stop</i> Stop Recording';");
+          logger().debug("Timing started");
         } else {
           mGuiManager->getGui()->executeJavascript(
               "document.querySelector('.timings-record-button').innerHTML = "
               "'<i class=\"material-icons\">fiber_manual_record</i> Start New Recording';");
+          logger().debug("Timing finished");
         }
       }));
 
@@ -183,6 +185,7 @@ void Plugin::update() {
 
     // Store the frame timing if we are in recording-mode.
     if (mEnableRecording) {
+      mTimestamps.push_back(std::chrono::high_resolution_clock::now().time_since_epoch().count());
       mRecordedGPURanges.push_back(std::move(gpuRanges));
       mRecordedCPURanges.push_back(std::move(cpuRanges));
     }
@@ -205,7 +208,7 @@ void Plugin::update() {
 
     // This stores a CSV file for each nesting level in the directory created above. The prefix will
     // be prepended to the CSV file name.
-    auto saveRecording = [&directory](std::string const&                         prefix,
+    auto saveRecording = [&directory, this](std::string const&                   prefix,
                              std::vector<std::vector<std::vector<Range>>> const& recording) {
       // Retrieve the maximum nesting level amongst all recorded frames. We need this to decide how
       // many files to create. The nesting level may actually change during a recording if for
@@ -231,7 +234,7 @@ void Plugin::update() {
         }
 
         // Write CSV header.
-        csv << "Frame";
+        csv << "Frame, Timestamp";
         for (auto const& name : rangeNames) {
           csv << ", " << name;
         }
@@ -254,7 +257,7 @@ void Plugin::update() {
           }
 
           // Write the individual values to the CSV file.
-          csv << i;
+          csv << i << ", " << mTimestamps[i];
           for (auto const& time : rangeTimes) {
             csv << ", " << time.second;
           }
