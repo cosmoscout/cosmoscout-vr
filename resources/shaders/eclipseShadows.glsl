@@ -373,36 +373,20 @@ vec3 getEclipseShadow(vec3 position) {
   }
 
   // -----------------------------------------------------------------------------------------------
-  // ------------------ Various Approaches based on Texture Lookups --------------------------------
+  // --------------------- Get Eclipse Shadow by Texture Lookups -----------------------------------
   // -----------------------------------------------------------------------------------------------
 
-  vec3 light = vec3(1.0);
+  vec3  light         = vec3(1.0);
+  vec4  sunDirAngle   = _eclipseGetBodyDirAngle(uEclipseSun, position);
+  float sunSolidAngle = ECLIPSE_PI * sunDirAngle.w * sunDirAngle.w;
 
   for (int i = 0; i < uEclipseNumOccluders; ++i) {
 
-    float sunDistance = length(uEclipseSun.xyz - uEclipseOccluders[i].xyz);
+    vec4  bodyDirAngle = _eclipseGetBodyDirAngle(uEclipseOccluders[i], position);
+    float sunBodyDist  = _eclipseGetAngle(sunDirAngle.xyz, bodyDirAngle.xyz);
 
-    float rOcc   = uEclipseOccluders[i].w;
-    float dOcc   = sunDistance / (uEclipseSun.w / rOcc + 1);
-    float y0     = rOcc / dOcc * sqrt(dOcc * dOcc - rOcc * rOcc);
-    float xOcc   = sqrt(rOcc * rOcc - y0 * y0);
-    float xUmbra = (sunDistance * rOcc) / (uEclipseSun.w - rOcc) + xOcc;
-    float xF     = xOcc - dOcc;
-    float fac    = y0 / -xF;
-
-    // Project the vector from fragment to occluder on the Sun-Occluder ray.
-    vec3 toOcc        = uEclipseOccluders[i].xyz - position;
-    vec3 sunToOccNorm = (uEclipseOccluders[i].xyz - uEclipseSun.xyz) / sunDistance;
-    vec3 toOccProj    = dot(toOcc, sunToOccNorm) * sunToOccNorm;
-
-    // Get position in shadow space.
-    vec2 pos = vec2(length(toOccProj) + xOcc, length(toOcc - toOccProj));
-
-    float alphaX = pos.x / (pos.x + xUmbra);
-    float alphaY = pos.y / (fac * (pos.x - xF));
-
-    float x = pow(alphaX, 1.0 / ECLIPSE_TEX_SHADOW_EXPONENT);
-    float y = alphaY;
+    float x = 1.0 / (bodyDirAngle.w / sunDirAngle.w + 1.0);
+    float y = sunBodyDist / (bodyDirAngle.w + sunDirAngle.w);
 
     if (x > 0.0 && x < 1.0 && y > 0.0 && y < 1.0) {
       light *= texture(uEclipseShadowMaps[i], vec2(x, 1 - y)).rgb;
