@@ -35,7 +35,7 @@ std::optional<double> IntersectSphere(glm::dvec3 const& origin, glm::dvec3 const
     return -b - std::sqrt(fDet);
   }
 
-  return {};
+  return std::nullopt;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

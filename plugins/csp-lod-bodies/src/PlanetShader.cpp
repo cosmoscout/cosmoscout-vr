@@ -163,11 +163,11 @@ void PlanetShader::compile() {
 
   // Iterate over all key-value pairs of the properties and inject the values.
   std::string brdfHdrSource = cs::utils::filesystem::loadToString(brdfHdr.source);
-  for (std::pair<std::string, float> const& kv : brdfHdr.properties) {
+  for (auto const& kv : brdfHdr.properties) {
     cs::utils::replaceString(brdfHdrSource, kv.first, std::to_string(kv.second));
   }
   std::string brdfNonHdrSource = cs::utils::filesystem::loadToString(brdfNonHdr.source);
-  for (std::pair<std::string, float> const& kv : brdfNonHdr.properties) {
+  for (auto const& kv : brdfNonHdr.properties) {
     cs::utils::replaceString(brdfNonHdrSource, kv.first, std::to_string(kv.second));
   }
 
