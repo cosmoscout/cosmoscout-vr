@@ -29,7 +29,9 @@ namespace cs::core {
 
 GraphicsEngine::GraphicsEngine(std::shared_ptr<core::Settings> settings)
     : mSettings(std::move(settings))
-    , mShadowMap(std::make_shared<graphics::ShadowMap>()) {
+    , mShadowMap(std::make_shared<graphics::ShadowMap>())
+    , mFallbackEclipseShadowMap(
+          graphics::TextureLoader::loadFromFile("../share/resources/textures/fallbackShadow.hdr")) {
 
   // Tell the user what's going on.
   logger().debug("Creating GraphicsEngine.");
@@ -82,13 +84,24 @@ GraphicsEngine::GraphicsEngine(std::shared_ptr<core::Settings> settings)
 
   if (mSettings->mGraphics.mEclipseShadowMaps.has_value()) {
     for (auto const& s : mSettings->mGraphics.mEclipseShadowMaps.value()) {
-      mEclipseShadowMaps.push_back(
-          std::make_shared<graphics::EclipseShadowMap>(s.first, s.second.mCasterRadius,
-              std::move(graphics::TextureLoader::loadFromFile(s.second.mTexture))));
-      mEclipseShadowMaps.back()->mTexture->SetWrapS(GL_CLAMP_TO_EDGE);
-      mEclipseShadowMaps.back()->mTexture->SetWrapT(GL_CLAMP_TO_EDGE);
+      auto shadowMap           = std::make_shared<graphics::EclipseShadowMap>();
+      shadowMap->mCasterAnchor = s.first;
+      shadowMap->mCasterRadius = s.second.mCasterRadius;
+
+      if (s.second.mTexture) {
+        shadowMap->mTexture = graphics::TextureLoader::loadFromFile(*s.second.mTexture);
+        shadowMap->mTexture->SetWrapS(GL_CLAMP_TO_EDGE);
+        shadowMap->mTexture->SetWrapT(GL_CLAMP_TO_EDGE);
+      } else {
+        shadowMap->mTexture = mFallbackEclipseShadowMap;
+      }
+
+      mEclipseShadowMaps.push_back(shadowMap);
     }
   }
+
+  mFallbackEclipseShadowMap->SetWrapS(GL_CLAMP_TO_EDGE);
+  mFallbackEclipseShadowMap->SetWrapT(GL_CLAMP_TO_EDGE);
 
   // setup HDR buffer ------------------------------------------------------------------------------
   int multiSamples = GetVistaSystem()

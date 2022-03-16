@@ -69,6 +69,7 @@ class CS_CORE_EXPORT GraphicsEngine {
   std::shared_ptr<graphics::ClearHDRBufferNode>            mClearNode;
   std::shared_ptr<graphics::ToneMappingNode>               mToneMappingNode;
   std::vector<std::shared_ptr<graphics::EclipseShadowMap>> mEclipseShadowMaps;
+  std::shared_ptr<VistaTexture>                            mFallbackEclipseShadowMap;
 };
 
 } // namespace cs::core

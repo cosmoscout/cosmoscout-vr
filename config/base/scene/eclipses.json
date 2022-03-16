@@ -328,7 +328,6 @@
     "graphics": {
         "eclipseShadowMaps": {
             "Earth": {
-                "texture": "../share/resources/textures/earthShadow.hdr",
                 "casterRadius": 6371000.0
             },
             "Moon": {
@@ -336,19 +335,15 @@
                 "casterRadius": 1737100.0
             },
             "Mars": {
-                "texture": "../share/resources/textures/marsShadow.hdr",
                 "casterRadius": 3389000.0
             },
             "Io": {
-                "texture": "../share/resources/textures/ioShadow.hdr",
                 "casterRadius": 1821600.0
             },
             "Phobos": {
-                "texture": "../share/resources/textures/phobosShadow.hdr",
                 "casterRadius": 11267.0
             },
             "Jupiter": {
-                "texture": "../share/resources/textures/jupiterShadow.hdr",
                 "casterRadius": 69911000.0
             }
         },

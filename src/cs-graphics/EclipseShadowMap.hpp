@@ -17,15 +17,9 @@ namespace cs::graphics {
 /// This struct stores information required for each eclipse shadow map. The caster radius
 /// includes the height of the atmosphere (if there is any).
 struct EclipseShadowMap {
-  EclipseShadowMap(
-      std::string const& casterAnchor, double casterRadius, std::unique_ptr<VistaTexture>&& texture)
-      : mCasterAnchor(casterAnchor)
-      , mCasterRadius(casterRadius)
-      , mTexture(std::move(texture)) {
-  }
   std::string                   mCasterAnchor;
   double                        mCasterRadius;
-  std::unique_ptr<VistaTexture> mTexture;
+  std::shared_ptr<VistaTexture> mTexture;
 };
 
 } // namespace cs::graphics
