@@ -80,7 +80,7 @@ class CS_CORE_EXPORT SolarSystem {
 
   /// Returns all eclipse shadow casters which may cast a shadow on the given object.
   std::vector<std::shared_ptr<graphics::EclipseShadowMap>> getEclipseShadowMaps(
-      double time, scene::CelestialObject const& object) const;
+      double time, scene::CelestialObject const& receiver) const;
 
   // Object registration API -----------------------------------------------------------------------
 

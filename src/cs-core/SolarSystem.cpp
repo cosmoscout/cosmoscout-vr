@@ -90,15 +90,48 @@ double SolarSystem::getSunLuminance() const {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::vector<std::shared_ptr<graphics::EclipseShadowMap>> SolarSystem::getEclipseShadowMaps(
-    double time, scene::CelestialObject const& object) const {
+    double time, scene::CelestialObject const& receiver) const {
 
   std::vector<std::shared_ptr<graphics::EclipseShadowMap>> result;
 
   for (auto const& shadowMap : mGraphicsEngine->getEclipseShadowMaps()) {
-    // TODO: More sophisticated filtering
-    auto caster = mSettings->getAnchorCenter(shadowMap->mCasterAnchor);
-    if (caster != object.getCenterName()) {
-      result.push_back(shadowMap);
+    scene::CelestialObject caster;
+    mSettings->initAnchor(caster, shadowMap->mCasterAnchor);
+
+    if (receiver.getCenterName() != caster.getCenterName()) {
+
+      auto   sunPos           = caster.getRelativePosition(time, *mSun);
+      auto   receiverPos      = caster.getRelativePosition(time, receiver);
+      double sunDistance      = glm::length(sunPos);
+      double receiverDistance = glm::length(receiverPos);
+
+      // Do not consider cases where the receiver is really far away.
+      if (receiverDistance > 0.1 * sunDistance) {
+        continue;
+      }
+
+      // Do not consider cases where the receiver is in front of the caster.
+      if (glm::dot(sunPos / sunDistance, receiverPos / receiverDistance) > 0) {
+        continue;
+      }
+
+      // TODO: Make this work with ellipsoids.
+      double casterRadius   = caster.getRadii()[0];
+      double receiverRadius = receiver.getRadii()[0];
+      double sunRadius      = mSun->getRadii()[0];
+
+      double apexDistance = sunDistance / (sunRadius / casterRadius + 1);
+
+      double penumbraAngle = std::asin(casterRadius / apexDistance);
+      auto   penumbraApex  = sunPos / sunDistance * apexDistance;
+
+      double receiverAngle = std::asin(receiverRadius / glm::distance(penumbraApex, receiverPos));
+      double radialDistance =
+          std::acos(glm::dot(-sunPos / sunDistance, glm::normalize(receiverPos - penumbraApex)));
+
+      if (radialDistance - receiverAngle < penumbraAngle) {
+        result.push_back(shadowMap);
+      }
     }
   }
 
