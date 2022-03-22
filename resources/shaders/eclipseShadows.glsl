@@ -1,10 +1,9 @@
 #ifndef CS_ECLIPSE_SHADOWS_GLSL
 #define CS_ECLIPSE_SHADOWS_GLSL
 
-const float ECLIPSE_TEX_SHADOW_EXPONENT = 1.0;
-const int   ECLIPSE_MAX_BODIES          = 8;
-const float ECLIPSE_PI                  = 3.14159265358979323846;
-const float ECLIPSE_TWO_PI              = 2.0 * ECLIPSE_PI;
+const int   ECLIPSE_MAX_BODIES = 8;
+const float ECLIPSE_PI         = 3.14159265358979323846;
+const float ECLIPSE_TWO_PI     = 2.0 * ECLIPSE_PI;
 
 uniform int       uEclipseMode;
 uniform vec4      uEclipseSun;
@@ -376,6 +375,9 @@ vec3 getEclipseShadow(vec3 position) {
   // --------------------- Get Eclipse Shadow by Texture Lookups -----------------------------------
   // -----------------------------------------------------------------------------------------------
 
+  const float textureMappingExponent = 1.0;
+  const bool  textureIncludesUmbra   = true;
+
   vec3  light         = vec3(1.0);
   vec4  sunDirAngle   = _eclipseGetBodyDirAngle(uEclipseSun, position);
   float sunSolidAngle = ECLIPSE_PI * sunDirAngle.w * sunDirAngle.w;
@@ -385,10 +387,18 @@ vec3 getEclipseShadow(vec3 position) {
     vec4  bodyDirAngle = _eclipseGetBodyDirAngle(uEclipseOccluders[i], position);
     float sunBodyDist  = _eclipseGetAngle(sunDirAngle.xyz, bodyDirAngle.xyz);
 
-    float x = 1.0 / (bodyDirAngle.w / sunDirAngle.w + 1.0);
-    float y = sunBodyDist / (bodyDirAngle.w + sunDirAngle.w);
+    float minOccDist = textureIncludesUmbra ? 0.0 : max(bodyDirAngle.w - sunDirAngle.w, 0.0);
+    float maxOccDist = sunDirAngle.w + bodyDirAngle.w;
 
-    if (x > 0.0 && x < 1.0 && y > 0.0 && y < 1.0) {
+    float x = 1.0 / (bodyDirAngle.w / sunDirAngle.w + 1.0);
+    float y = (sunBodyDist - minOccDist) / (maxOccDist - minOccDist);
+
+    x = pow(x, textureMappingExponent);
+    y = 1.0 - pow(1.0 - y, textureMappingExponent);
+
+    if (!textureIncludesUmbra && y < 0) {
+      light = vec3(0.0);
+    } else if (x >= 0.0 && x <= 1.0 && y >= 0.0 && y <= 1.0) {
       light *= texture(uEclipseShadowMaps[i], vec2(x, 1 - y)).rgb;
     }
   }
