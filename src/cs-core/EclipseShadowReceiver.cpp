@@ -80,6 +80,8 @@ void EclipseShadowReceiver::preRender() const {
 
     glUniform4fv(mUniforms.occluders, MAX_BODIES, glm::value_ptr(mOccluders[0]));
     glUniform1iv(mUniforms.shadowMaps, MAX_BODIES, shadowMapBindings.data());
+  } else {
+    mShader->SetUniform(mUniforms.mode, static_cast<int>(EclipseShadowMode::eNone));
   }
 }
 
