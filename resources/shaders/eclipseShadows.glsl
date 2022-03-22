@@ -3,7 +3,6 @@
 
 const int   ECLIPSE_MAX_BODIES = 8;
 const float ECLIPSE_PI         = 3.14159265358979323846;
-const float ECLIPSE_TWO_PI     = 2.0 * ECLIPSE_PI;
 
 uniform int       uEclipseMode;
 uniform vec4      uEclipseSun;
@@ -71,9 +70,11 @@ float _eclipseGetCapIntersection(float radiusA, float radiusB, float centerDista
   float cosRA = cos(radiusA);
   float cosRB = cos(radiusB);
 
-  return 2.0 * (ECLIPSE_PI - acos(cosD / (sinRA * sinRB) - (cosRA * cosRB) / (sinRA * sinRB)) -
-                   acos(cosRB / (sinD * sinRA) - (cosD * cosRA) / (sinD * sinRA)) * cosRA -
-                   acos(cosRA / (sinD * sinRB) - (cosD * cosRB) / (sinD * sinRB)) * cosRB);
+  float a = acos(fma(-cosRA, cosRB, cosD) / (sinRA * sinRB));
+  float b = acos(fma(-cosD, cosRA, cosRB) / (sinD * sinRA));
+  float c = acos(fma(-cosD, cosRB, cosRA) / (sinD * sinRB));
+
+  return 2.0 * (ECLIPSE_PI + fma(-b, cosRA, fma(-c, cosRB, -a)));
 }
 
 float _eclipseGetCapIntersectionApprox(float radiusA, float radiusB, float centerDistance) {
@@ -347,8 +348,8 @@ vec3 getEclipseShadow(vec3 position) {
 
     vec3 light = vec3(1.0);
 
-    vec4  sunDirAngle   = _eclipseGetBodyDirAngle(uEclipseSun, position);
-    float sunSolidAngle = ECLIPSE_PI * sunDirAngle.w * sunDirAngle.w;
+    vec4  sunDirAngle = _eclipseGetBodyDirAngle(uEclipseSun, position);
+    float sunArea     = _eclipseGetCircleArea(sunDirAngle.w);
 
     for (int i = 0; i < uEclipseNumOccluders; ++i) {
 
@@ -365,7 +366,7 @@ vec3 getEclipseShadow(vec3 position) {
         intersect = _eclipseGetCapIntersection(sunDirAngle.w, bodyDirAngle.w, sunBodyDist);
       }
 
-      light *= (sunSolidAngle - clamp(intersect, 0.0, sunSolidAngle)) / sunSolidAngle;
+      light *= (sunArea - clamp(intersect, 0.0, sunArea)) / sunArea;
     }
 
     return light;
