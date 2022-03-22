@@ -328,9 +328,7 @@
     "graphics": {
         "eclipseShadowMaps": {
             "Earth": {},
-            "Moon": {
-                "texture": "../share/resources/textures/moonShadow.hdr"
-            },
+            "Moon": {},
             "Mars": {},
             "Io": {},
             "Phobos": {},
