@@ -102,12 +102,55 @@ in vec2 vLngLat;
 // outputs
 layout(location = 0) out vec3 oColor;
 
-const float M_PI = 3.141592653589793;
+const float PI = 3.141592653589793;
 
 vec3 SRGBtoLINEAR(vec3 srgbIn)
 {
   vec3 bLess = step(vec3(0.04045),srgbIn);
   return mix( srgbIn/vec3(12.92), pow((srgbIn+vec3(0.055))/vec3(1.055),vec3(2.4)), bLess );
+}
+
+float orenNayar(vec3 N, vec3 L, vec3 V) {
+  float cos_theta_i = dot(N, L);
+
+  if (cos_theta_i <= 0) {
+    return 0;
+  }
+
+  float theta_i = acos(cos_theta_i);
+  
+  float cos_theta_r = dot(N, V);
+  float theta_r = acos(cos_theta_r);
+  
+  // Project L and V on a plane with N as the normal and get the cosine of the angle between the projections.
+  float cos_diff_phi = dot(normalize(V - cos_theta_r * N), normalize(L - cos_theta_i * N));
+  
+  float alpha = max(theta_i, theta_r);
+  float beta = min(theta_i, theta_r);
+  float beta_1  = 2 * beta / PI;
+  
+  const float sigma = 20;
+
+  float sigma2 = pow(sigma * PI / 180, 2);
+  float sigma_term = sigma2 / (sigma2 + 0.09);
+  
+  float C1 = 1 - 0.5 * (sigma2 / (sigma2 + 0.33));
+  
+  float C2 = 0.45 * sigma_term;
+  if (cos_diff_phi >= 0) {
+    C2 *= sin(alpha);
+  }
+  else {
+    C2 *= sin(alpha) - pow(beta_1, 3);
+  }
+  
+  float C3 = 0.125 * sigma_term * pow(4 * alpha * beta / (PI * PI), 2);
+  
+  float L1 = C1 + cos_diff_phi * C2 * tan(beta) + (1 - abs(cos_diff_phi)) * C3 * tan((alpha + beta) / 2);
+  
+  float L2 = 0.17 * sigma2 / (sigma2 + 0.13) * (1 - cos_diff_phi * pow(beta_1, 2));
+  
+  return max(0, (L1 + L2) * cos_theta_i);
 }
     
 void main()
@@ -115,14 +158,14 @@ void main()
     oColor = texture(uSurfaceTexture, vTexCoords).rgb;
 
     #ifdef ENABLE_HDR
-      oColor = SRGBtoLINEAR(oColor) * uSunIlluminance / M_PI;
+      oColor = SRGBtoLINEAR(oColor) * uSunIlluminance / PI;
     #else
       oColor = oColor * uSunIlluminance;
     #endif
 
     #ifdef ENABLE_LIGHTING
       vec3 normal = normalize(vNormal);
-      float light = max(dot(normal, uSunDirection), 0.0);
+      float light = orenNayar(normal, uSunDirection, normalize(-vPosition));
       oColor = mix(oColor*uAmbientBrightness, oColor*getEclipseShadow(vPosition), light);
     #endif
 
