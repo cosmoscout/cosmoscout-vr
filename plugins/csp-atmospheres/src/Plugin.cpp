@@ -273,7 +273,7 @@ void Plugin::onLoad() {
       continue;
     }
 
-    auto atmosphere = std::make_shared<Atmosphere>(mPluginSettings, mAllSettings, settings.first);
+    auto atmosphere = std::make_shared<Atmosphere>(mPluginSettings, mAllSettings, mSolarSystem, settings.first);
     atmosphere->getRenderer().setHDRBuffer(mGraphicsEngine->getHDRBuffer());
     atmosphere->configure(settings.second);
 

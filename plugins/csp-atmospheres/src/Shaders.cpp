@@ -9,7 +9,7 @@
 namespace csp::atmospheres {
 
 const char* AtmosphereRenderer::cAtmosphereVert = R"(
-  #version 330
+  #version 400
 
   // inputs
   layout(location = 0) in vec2 vPosition;
@@ -47,7 +47,7 @@ const char* AtmosphereRenderer::cAtmosphereVert = R"(
 
 // needs to be splitted because MSVC doesn't like long strings
 const char* AtmosphereRenderer::cAtmosphereFrag0 = R"(
-  #version 330
+  #version 400
 
   // inputs
   in VaryingStruct {
@@ -70,6 +70,7 @@ const char* AtmosphereRenderer::cAtmosphereFrag0 = R"(
   uniform mat4      uMatInvMV;
   uniform mat4      uMatInvP;
   uniform mat4      uMatMV;
+  uniform mat4      uMatM;
   uniform vec3      uSunDir;
   uniform float     uSunIntensity;
   uniform float     uWaterLevel;
@@ -84,6 +85,8 @@ const char* AtmosphereRenderer::cAtmosphereFrag0 = R"(
 
   // outputs
   layout(location = 0) out vec3 oColor;
+
+  ECLIPSE_SHADER_SNIPPET
 
   // constants
   const float PI = 3.14159265359;
@@ -291,7 +294,9 @@ const char* AtmosphereRenderer::cAtmosphereFrag0 = R"(
                                   + GetOpticalDepth(vRayOrigin, vRayDir, 0, fTIntersection));
     float density = SampleCloudDensity(point);
 
-    return vec4(extinction * density * uSunIntensity, density);
+    vec3 vPosWS = (uMatM * vec4(point, 1.0)).xyz;
+
+    return vec4(extinction * density * uSunIntensity * getEclipseShadow(vPosWS), density);
   }
 
   vec4 GetCloudColor(vec3 vRayOrigin, vec3 vRayDir, vec3 vSunDir, float fOpaqueDepth) {
@@ -428,12 +433,15 @@ const char* AtmosphereRenderer::cAtmosphereFrag1 = R"(
 
       // check if we are in shadow - in this case we do not need to sample
       // in sun direction
-      float shadow = 1.0;
+      vec3 shadow = vec3(1.0);
 
       #if USE_SHADOWMAP
         vec3 vPosVS = (uMatMV * vec4(vPos, 1.0)).xyz;
-        shadow = 0.8 * GetShadow(vPosVS) + 0.2;
+        shadow = vec3(GetShadow(vPosVS));
       #endif
+
+      vec3 vPosWS = (uMatM * vec4(vPos, 1.0)).xyz;
+      shadow *= getEclipseShadow(vPosWS);
 
       vec2 vOpticalDepth    = GetOpticalDepth(vRayOrigin, vRayDir, fTStart, fTMid);
       vec2 vOpticalDepthSun = GetOpticalDepth(vPos, vLightDir, 0, fTSunExit);

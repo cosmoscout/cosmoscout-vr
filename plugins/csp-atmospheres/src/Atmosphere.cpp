@@ -21,8 +21,11 @@ namespace csp::atmospheres {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Atmosphere::Atmosphere(std::shared_ptr<Plugin::Settings> const& pluginSettings,
-    std::shared_ptr<cs::core::Settings> const& settings, std::string const& anchorName)
-    : mRenderer(pluginSettings)
+    std::shared_ptr<cs::core::Settings> const&                  settings,
+    std::shared_ptr<cs::core::SolarSystem> const& solarSystem, std::string const& anchorName)
+    : mEclipseShadowReceiver(
+          std::make_shared<cs::core::EclipseShadowReceiver>(settings, solarSystem, this))
+    , mRenderer(pluginSettings, mEclipseShadowReceiver)
     , mPluginSettings(pluginSettings) {
 
   settings->initAnchor(*this, anchorName);
@@ -78,6 +81,7 @@ void Atmosphere::update(double time, cs::scene::CelestialObserver const& oObs) {
   if (mPluginSettings->mEnabled.get() && getIsInExistence() && pVisible.get()) {
     mAtmosphereNode->SetIsEnabled(true);
     mRenderer.setWorldTransform(matWorldTransform);
+    mEclipseShadowReceiver->update(time, oObs);
   } else {
     mAtmosphereNode->SetIsEnabled(false);
   }

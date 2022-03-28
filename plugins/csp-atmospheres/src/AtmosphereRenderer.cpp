@@ -10,6 +10,7 @@
 #include <Windows.h>
 #endif
 
+#include "../../../src/cs-core/EclipseShadowReceiver.hpp"
 #include "../../../src/cs-core/GraphicsEngine.hpp"
 #include "../../../src/cs-core/SolarSystem.hpp"
 #include "../../../src/cs-graphics/Shadows.hpp"
@@ -34,8 +35,10 @@
 
 namespace csp::atmospheres {
 
-AtmosphereRenderer::AtmosphereRenderer(std::shared_ptr<Plugin::Settings> settings)
-    : mPluginSettings(std::move(settings)) {
+AtmosphereRenderer::AtmosphereRenderer(std::shared_ptr<Plugin::Settings> settings,
+    std::shared_ptr<cs::core::EclipseShadowReceiver>                     eclipseShadowReceiver)
+    : mPluginSettings(std::move(settings))
+    , mEclipseShadowReceiver(std::move(eclipseShadowReceiver)) {
 
   initData();
 
@@ -344,6 +347,14 @@ void AtmosphereRenderer::updateShader() {
   cs::utils::replaceString(sFrag, "HDR_SAMPLES",
       mHDRBuffer == nullptr ? "0" : std::to_string(mHDRBuffer->getMultiSamples()));
 
+  if (mEclipseShadowReceiver) {
+    cs::utils::replaceString(
+        sFrag, "ECLIPSE_SHADER_SNIPPET", cs::core::EclipseShadowReceiver::getShaderSnippet());
+  } else {
+    cs::utils::replaceString(sFrag, "ECLIPSE_SHADER_SNIPPET",
+        "vec3 getEclipseShadow(vec3 position) { return vec3(1); }");
+  }
+
   mAtmoShader.InitVertexShaderFromString(sVert);
   mAtmoShader.InitFragmentShaderFromString(sFrag);
 
@@ -371,6 +382,11 @@ void AtmosphereRenderer::updateShader() {
   mUniforms.inverseModelViewProjectionMatrix = mAtmoShader.GetUniformLocation("uMatInvMVP");
   mUniforms.inverseProjectionMatrix          = mAtmoShader.GetUniformLocation("uMatInvP");
   mUniforms.modelViewMatrix                  = mAtmoShader.GetUniformLocation("uMatMV");
+  mUniforms.modelMatrix                      = mAtmoShader.GetUniformLocation("uMatM");
+
+  if (mEclipseShadowReceiver) {
+    mEclipseShadowReceiver->init(&mAtmoShader, 4);
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -410,12 +426,14 @@ bool AtmosphereRenderer::Do() {
   }
 
   // get matrices and related values -----------------------------------------
+  glm::mat4 matM(glm::mat4(mWorldTransform) *
+                 glm::mat4(static_cast<float>(mRadii[0] / (1.0 - mAtmosphereHeight)), 0, 0, 0, 0,
+                     static_cast<float>(mRadii[1] / (1.0 - mAtmosphereHeight)), 0, 0, 0, 0,
+                     static_cast<float>(mRadii[2] / (1.0 - mAtmosphereHeight)), 0, 0, 0, 0, 1));
+
   std::array<GLfloat, 16> glMatMV{};
   glGetFloatv(GL_MODELVIEW_MATRIX, glMatMV.data());
-  glm::mat4 matMV(glm::make_mat4x4(glMatMV.data()) * glm::mat4(mWorldTransform) *
-                  glm::mat4(static_cast<float>(mRadii[0] / (1.0 - mAtmosphereHeight)), 0, 0, 0, 0,
-                      static_cast<float>(mRadii[1] / (1.0 - mAtmosphereHeight)), 0, 0, 0, 0,
-                      static_cast<float>(mRadii[2] / (1.0 - mAtmosphereHeight)), 0, 0, 0, 0, 1));
+  glm::mat4 matMV(glm::make_mat4x4(glMatMV.data()) * matM);
 
   auto matInvMV = glm::inverse(matMV);
 
@@ -478,6 +496,11 @@ bool AtmosphereRenderer::Do() {
       mUniforms.inverseModelViewProjectionMatrix, 1, GL_FALSE, glm::value_ptr(matInvMVP));
   glUniformMatrix4fv(mUniforms.inverseProjectionMatrix, 1, GL_FALSE, glm::value_ptr(matInvP));
   glUniformMatrix4fv(mUniforms.modelViewMatrix, 1, GL_FALSE, glm::value_ptr(matMV));
+  glUniformMatrix4fv(mUniforms.modelMatrix, 1, GL_FALSE, glm::value_ptr(matM));
+
+  if (mEclipseShadowReceiver) {
+    mEclipseShadowReceiver->preRender();
+  }
 
   // draw --------------------------------------------------------------------
   mQuadVAO.Bind();
@@ -485,6 +508,10 @@ bool AtmosphereRenderer::Do() {
   mQuadVAO.Release();
 
   // clean up ----------------------------------------------------------------
+
+  if (mEclipseShadowReceiver) {
+    mEclipseShadowReceiver->postRender();
+  }
 
   if (mHDRBuffer) {
     mHDRBuffer->getDepthAttachment()->Unbind(GL_TEXTURE0);
