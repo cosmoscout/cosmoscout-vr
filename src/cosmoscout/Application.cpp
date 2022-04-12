@@ -1224,6 +1224,18 @@ void Application::registerGuiCallbacks() {
             cs::core::EclipseShadowMode::eSphericalCapIntersection;
       }));
   mGuiManager->getGui()->registerCallback("graphics.setEclipseShadowMode8",
+      "Enables Eclipse Shadows based on circle intersections (double precision).",
+      std::function([this]() {
+        mSettings->mGraphics.pEclipseShadowMode =
+            cs::core::EclipseShadowMode::eCircleIntersectionDouble;
+      }));
+  mGuiManager->getGui()->registerCallback("graphics.setEclipseShadowMode9",
+      "Enables Eclipse Shadows based on spherical cap intersections (double precision).",
+      std::function([this]() {
+        mSettings->mGraphics.pEclipseShadowMode =
+            cs::core::EclipseShadowMode::eSphericalCapIntersectionDouble;
+      }));
+  mGuiManager->getGui()->registerCallback("graphics.setEclipseShadowMode10",
       "Enables Eclipse Shadows based on texture lookups.", std::function([this]() {
         mSettings->mGraphics.pEclipseShadowMode = cs::core::EclipseShadowMode::eTexture;
       }));
@@ -1244,8 +1256,12 @@ void Application::registerGuiCallbacks() {
       mGuiManager->setRadioChecked("graphics.setEclipseShadowMode6");
     } else if (mode == cs::core::EclipseShadowMode::eSphericalCapIntersection) {
       mGuiManager->setRadioChecked("graphics.setEclipseShadowMode7");
-    } else if (mode == cs::core::EclipseShadowMode::eTexture) {
+    } else if (mode == cs::core::EclipseShadowMode::eCircleIntersectionDouble) {
       mGuiManager->setRadioChecked("graphics.setEclipseShadowMode8");
+    } else if (mode == cs::core::EclipseShadowMode::eSphericalCapIntersectionDouble) {
+      mGuiManager->setRadioChecked("graphics.setEclipseShadowMode9");
+    } else if (mode == cs::core::EclipseShadowMode::eTexture) {
+      mGuiManager->setRadioChecked("graphics.setEclipseShadowMode10");
     }
   });
 

@@ -1,8 +1,9 @@
 #ifndef CS_ECLIPSE_SHADOWS_GLSL
 #define CS_ECLIPSE_SHADOWS_GLSL
 
-const int   ECLIPSE_MAX_BODIES = 8;
-const float ECLIPSE_PI         = 3.14159265358979323846;
+const int    ECLIPSE_MAX_BODIES = 8;
+const float  ECLIPSE_PI         = 3.14159265358979323846;
+const double ECLIPSE_PI_D       = 3.14159265358979323846;
 
 uniform int       uEclipseMode;
 uniform vec4      uEclipseSun;
@@ -10,14 +11,156 @@ uniform int       uEclipseNumOccluders;
 uniform vec4      uEclipseOccluders[ECLIPSE_MAX_BODIES];
 uniform sampler2D uEclipseShadowMaps[ECLIPSE_MAX_BODIES];
 
+// -------------------------------------------------------------------------------------------------
+// ------------------------------- Double Precision Trigonometric Functions ------------------------
+// -------------------------------------------------------------------------------------------------
+
+double atand(double y, double x) {
+    const double atan_tbl[] = double[](
+    -3.333333333333333333333333333303396520128e-1LF,
+    1.999999117496509842004185053319506031014e-1LF,
+    -1.428514132711481940637283859690014415584e-1LF,
+    1.110012236849539584126568416131750076191e-1LF,
+    -8.993611617787817334566922323958104463948e-2LF,
+    7.212338962134411520637759523226823838487e-2LF,
+    -5.205055255952184339031830383744136009889e-2LF,
+    2.938542391751121307313459297120064977888e-2LF,
+    -1.079891788348568421355096111489189625479e-2LF,
+    1.858552116405489677124095112269935093498e-3LF
+    );
+
+    /* argument reduction:
+       arctan (-x) = -arctan(x);
+       arctan (1/x) = 1/2 * pi - arctan (x), when x > 0
+    */
+    double ax = abs(x);
+    double ay = abs(y);
+    double t0 = max(ax, ay);
+    double t1 = min(ax, ay);
+
+    double a = 1 / t0;
+    a *= t1;
+
+    double s = a * a;
+    double p = atan_tbl[9];
+
+    p = fma(fma(fma(fma(fma(fma(fma(fma(fma(fma(p, s,
+    atan_tbl[8]), s,
+    atan_tbl[7]), s,
+    atan_tbl[6]), s,
+    atan_tbl[5]), s,
+    atan_tbl[4]), s,
+    atan_tbl[3]), s,
+    atan_tbl[2]), s,
+    atan_tbl[1]), s,
+    atan_tbl[0]), s * a, a);
+
+    double r = ay > ax ? (1.57079632679489661923LF - p) : p;
+
+    r = x < 0 ?  3.14159265358979323846LF - r : r;
+    r = y < 0 ? -r : r;
+
+    return r;
+}
+
+double sind(double x) {
+    //minimax coefs for sin for 0..pi/2 range
+    const double a3 = -1.666666660646699151540776973346659104119e-1LF;
+    const double a5 =  8.333330495671426021718370503012583606364e-3LF;
+    const double a7 = -1.984080403919620610590106573736892971297e-4LF;
+    const double a9 =  2.752261885409148183683678902130857814965e-6LF;
+    const double ab = -2.384669400943475552559273983214582409441e-8LF;
+
+    const double m_2_pi = 0.636619772367581343076LF;
+    const double m_pi_2 = 1.57079632679489661923LF;
+
+    double y = abs(x * m_2_pi);
+    double q = floor(y);
+    int quadrant = int(q);
+
+    double t = (quadrant & 1) != 0 ? 1 - y + q : y - q;
+    t *= m_pi_2;
+
+    double t2 = t * t;
+    double r = fma(fma(fma(fma(fma(ab, t2, a9), t2, a7), t2, a5), t2, a3), t2 * t, t);
+
+    r = x < 0 ? -r : r;
+
+    return (quadrant & 2) != 0 ? -r : r;
+}
+
+//cos approximation, error < 5e-11
+double cosd(double x) {
+    //sin(x + PI/2) = cos(x)
+    return sind(x + 1.57079632679489661923LF);
+}
+
+/* compute arcsin (a) for a in [-9/16, 9/16] */
+double asin_core(double a) {
+    double s = a * a;
+    double q = s * s;
+    double r =      5.5579749017470502e-2LF;
+    double t =     -6.2027913464120114e-2LF;
+    r = fma (r, q, 5.4224464349245036e-2LF);
+    t = fma (t, q, -1.1326992890324464e-2LF);
+    r = fma (r, q, 1.5268872539397656e-2LF);
+    t = fma (t, q, 1.0493798473372081e-2LF);
+    r = fma (r, q, 1.4106045900607047e-2LF);
+    t = fma (t, q, 1.7339776384962050e-2LF);
+    r = fma (r, q, 2.2372961589651054e-2LF);
+    t = fma (t, q, 3.0381912707941005e-2LF);
+    r = fma (r, q, 4.4642857881094775e-2LF);
+    t = fma (t, q, 7.4999999991367292e-2LF);
+    r = fma (r, s, t);
+    r = fma (r, s, 1.6666666666670193e-1LF);
+    t = a * s;
+    r = fma (r, t, a);
+
+    return r;
+}
+
+/* Compute arccosine (a), maximum error observed: 1.4316 ulp
+   Double-precision factorization of π courtesy of Tor Myklebust
+*/
+double acosd(double a) {
+    double r = (a > 0.0LF) ? -a : a;// avoid modifying the "sign" of NaNs
+    if (r > -0.5625LF) {
+        /* arccos(x) = pi/2 - arcsin(x) */
+        r = fma (9.3282184640716537e-1LF, 1.6839188885261840e+0LF, asin_core(r));
+    } else {
+        /* arccos(x) = 2 * arcsin (sqrt ((1-x) / 2)) */
+        r = 2.0LF * asin_core(sqrt(fma(0.5LF, r, 0.5LF)));
+    }
+    if (!(a > 0.0LF) && (a >= -1.0LF)) { // avoid modifying the "sign" of NaNs
+        /* arccos (-x) = pi - arccos(x) */
+        r = fma (1.8656436928143307e+0LF, 1.6839188885261840e+0LF, -r);
+    }
+    return r;
+}
+
+double asind(double a) {
+    return (ECLIPSE_PI_D / 2.0LF) - acosd(a);
+}
+
+
+// -------------------------------------------------------------------------------------------------
+// ----------------------------------------- Intersection Math -------------------------------------
+// -------------------------------------------------------------------------------------------------
+
 // Returns the surface area of a circle.
 float _eclipseGetCircleArea(float r) {
   return ECLIPSE_PI * r * r;
+}
+double _eclipseGetCircleAreaD(double r) {
+  return ECLIPSE_PI_D * r * r;
 }
 
 // Returns the surface area of a spherical cap on a unit sphere.
 float _eclipseGetCapArea(float r) {
   return 2.0 * ECLIPSE_PI * (1.0 - cos(r));
+}
+double _eclipseGetCapAreaD(double r) {
+  return 2.0 * ECLIPSE_PI_D * (1.0 - cosd(r));
 }
 
 float _eclipseGetCircleIntersection(float radiusA, float radiusB, float centerDistance) {
@@ -46,6 +189,33 @@ float _eclipseGetCircleIntersection(float radiusA, float radiusB, float centerDi
   float second = fma(-d1, sqrt(fma(-d1, d1, rrA)), third);
 
   return fma(rrA, acos(d1 / radiusA), second);
+}
+double _eclipseGetCircleIntersectionD(double radiusA, double radiusB, double centerDistance) {
+
+  // No intersection
+  if (centerDistance >= radiusA + radiusB) {
+    return 0.0;
+  }
+
+  // One circle fully in the other (total eclipse)
+  if (min(radiusA, radiusB) <= max(radiusA, radiusB) - centerDistance) {
+    return _eclipseGetCircleAreaD(min(radiusA, radiusB));
+  }
+
+  double d = centerDistance;
+
+  double rrA = radiusA * radiusA;
+  double rrB = radiusB * radiusB;
+  double dd  = d * d;
+
+  double d1 = fma(radiusA, radiusA, fma(-radiusB, radiusB, dd)) / (2 * d);
+  double d2 = d - d1;
+
+  double fourth = -d2 * sqrt(fma(-d2, d2, rrB));
+  double third  = fma(rrB, acosd(d2 / radiusB), fourth);
+  double second = fma(-d1, sqrt(fma(-d1, d1, rrA)), third);
+
+  return fma(rrA, acosd(d1 / radiusA), second);
 }
 
 // Returns the intersection area of two spherical caps with radii radiusA and radiusB whose center
@@ -76,6 +246,31 @@ float _eclipseGetCapIntersection(float radiusA, float radiusB, float centerDista
 
   return 2.0 * (ECLIPSE_PI + fma(-b, cosRA, fma(-c, cosRB, -a)));
 }
+double _eclipseGetCapIntersectionD(double radiusA, double radiusB, double centerDistance) {
+
+  // No intersection
+  if (centerDistance >= radiusA + radiusB) {
+    return 0.0;
+  }
+
+  // One circle fully in the other
+  if (min(radiusA, radiusB) <= max(radiusA, radiusB) - centerDistance) {
+    return _eclipseGetCapAreaD(min(radiusA, radiusB));
+  }
+
+  double sinD  = sind(centerDistance);
+  double cosD  = cosd(centerDistance);
+  double sinRA = sind(radiusA);
+  double sinRB = sind(radiusB);
+  double cosRA = cosd(radiusA);
+  double cosRB = cosd(radiusB);
+
+  double a = acosd(fma(-cosRA, cosRB, cosD) / (sinRA * sinRB));
+  double b = acosd(fma(-cosD, cosRA, cosRB) / (sinD * sinRA));
+  double c = acosd(fma(-cosD, cosRB, cosRA) / (sinD * sinRB));
+
+  return 2.0 * (ECLIPSE_PI_D + fma(-b, cosRA, fma(-c, cosRB, -a)));
+}
 
 float _eclipseGetCapIntersectionApprox(float radiusA, float radiusB, float centerDistance) {
 
@@ -101,6 +296,10 @@ float _eclipseGetAngle(vec3 v1, vec3 v2) {
   float c = dot(v1 - v2, v1 - v2);
   return 2.0 * atan(sqrt(c), sqrt(4 - c));
 }
+double _eclipseGetAngleD(dvec3 v1, dvec3 v2) {
+  double c = dot(v1 - v2, v1 - v2);
+  return 2.0 * atand(sqrt(c), sqrt(4 - c));
+}
 
 vec4 _eclipseGetBodyDirAngle(vec4 body, vec3 position) {
   vec3  bodyPos   = body.xyz - position;
@@ -109,6 +308,14 @@ vec4 _eclipseGetBodyDirAngle(vec4 body, vec3 position) {
   float bodyAngle = asin(body.w / bodyDist);
 
   return vec4(bodyDir, bodyAngle);
+}
+dvec4 _eclipseGetBodyDirAngleD(dvec4 body, dvec3 position) {
+  dvec3  bodyPos   = body.xyz - position;
+  double bodyDist  = length(bodyPos);
+  dvec3  bodyDir   = bodyPos / bodyDist;
+  double bodyAngle = asind(body.w / bodyDist);
+
+  return dvec4(bodyDir, bodyAngle);
 }
 
 vec3 getEclipseShadow(vec3 position) {
@@ -341,9 +548,9 @@ vec3 getEclipseShadow(vec3 position) {
   // ---------------------------- Various Analytical Approaches ------------------------------------
   // -----------------------------------------------------------------------------------------------
 
-  // 6: Circle Intersection
-  // 7: Approximated Spherical Cap Intersection
-  // 8: Spherical Cap Intersection
+  // 5: Circle Intersection
+  // 6: Approximated Spherical Cap Intersection
+  // 7: Spherical Cap Intersection
   if (uEclipseMode == 5 || uEclipseMode == 6 || uEclipseMode == 7) {
 
     vec3 light = vec3(1.0);
@@ -367,6 +574,38 @@ vec3 getEclipseShadow(vec3 position) {
       }
 
       light *= (sunArea - clamp(intersect, 0.0, sunArea)) / sunArea;
+    }
+
+    return light;
+  }
+
+  // -----------------------------------------------------------------------------------------------
+  // ------------------- Various Analytical Approaches (Double Precision) --------------------------
+  // -----------------------------------------------------------------------------------------------
+
+  // 8: Circle Intersection (Double Precision)
+  // 9: Spherical Cap Intersection (Double Precision)
+  if (uEclipseMode == 8 || uEclipseMode == 9) {
+
+    vec3 light = vec3(1.0);
+
+    dvec4  sunDirAngle = _eclipseGetBodyDirAngleD(uEclipseSun, position);
+    double sunArea     = _eclipseGetCircleAreaD(sunDirAngle.w);
+
+    for (int i = 0; i < uEclipseNumOccluders; ++i) {
+
+      dvec4  bodyDirAngle = _eclipseGetBodyDirAngleD(uEclipseOccluders[i], position);
+      double sunBodyDist  = _eclipseGetAngleD(sunDirAngle.xyz, bodyDirAngle.xyz);
+
+      double intersect = 0;
+
+      if (uEclipseMode == 8) {
+        intersect = _eclipseGetCircleIntersectionD(sunDirAngle.w, bodyDirAngle.w, sunBodyDist);
+      } else {
+        intersect = _eclipseGetCapIntersectionD(sunDirAngle.w, bodyDirAngle.w, sunBodyDist);
+      }
+
+      light *= float((sunArea - clamp(intersect, 0.0LF, sunArea)) / sunArea);
     }
 
     return light;
