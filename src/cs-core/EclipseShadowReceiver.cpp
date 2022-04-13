@@ -26,17 +26,26 @@ EclipseShadowReceiver::EclipseShadowReceiver(std::shared_ptr<cs::core::Settings>
     , mShadowReceiver(shadowReceiver) {
 }
 
-std::string const& EclipseShadowReceiver::getShaderSnippet() {
+bool EclipseShadowReceiver::needsRecompilation() const {
+   return mLastEclipseShadowMode != mSettings->mGraphics.pEclipseShadowMode.get();
+ }
+
+std::string EclipseShadowReceiver::getShaderSnippet() const{
   static std::string code(
       utils::filesystem::loadToString("../share/resources/shaders/eclipseShadows.glsl"));
-  return code;
+
+  auto copy = code;
+   cs::utils::replaceString(copy, "ECLIPSE_MODE", cs::utils::toString(static_cast<int>(mSettings->mGraphics.pEclipseShadowMode.get())));
+
+   mLastEclipseShadowMode = mSettings->mGraphics.pEclipseShadowMode.get();
+
+  return copy;
 }
 
 void EclipseShadowReceiver::init(VistaGLSLShader* shader, uint32_t textureOffset) {
   mShader        = shader;
   mTextureOffset = textureOffset;
 
-  mUniforms.mode         = glGetUniformLocation(shader->GetProgram(), "uEclipseMode");
   mUniforms.sun          = glGetUniformLocation(shader->GetProgram(), "uEclipseSun");
   mUniforms.numOccluders = glGetUniformLocation(shader->GetProgram(), "uEclipseNumOccluders");
   mUniforms.occluders    = glGetUniformLocation(shader->GetProgram(), "uEclipseOccluders");
@@ -59,10 +68,9 @@ void EclipseShadowReceiver::update(double time, scene::CelestialObserver const& 
 
 void EclipseShadowReceiver::preRender() const {
 
-  if (mShadowMaps.size() > 0) {
-    mShader->SetUniform(
-        mUniforms.mode, static_cast<int>(mSettings->mGraphics.pEclipseShadowMode.get()));
+  mShader->SetUniform(mUniforms.numOccluders, static_cast<int>(mShadowMaps.size()));
 
+  if (mShadowMaps.size() > 0) {
     std::array<int, MAX_BODIES> shadowMapBindings{};
 
     for (size_t i(0); i < mShadowMaps.size() && i < MAX_BODIES; ++i) {
@@ -76,12 +84,8 @@ void EclipseShadowReceiver::preRender() const {
     mShader->SetUniform(mUniforms.sun, static_cast<float>(sunPos.x), static_cast<float>(sunPos.y),
         static_cast<float>(sunPos.z), static_cast<float>(sunRadius));
 
-    mShader->SetUniform(mUniforms.numOccluders, static_cast<int>(mShadowMaps.size()));
-
     glUniform4fv(mUniforms.occluders, MAX_BODIES, glm::value_ptr(mOccluders[0]));
     glUniform1iv(mUniforms.shadowMaps, MAX_BODIES, shadowMapBindings.data());
-  } else {
-    mShader->SetUniform(mUniforms.mode, static_cast<int>(EclipseShadowMode::eNone));
   }
 }
 

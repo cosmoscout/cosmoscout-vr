@@ -5,7 +5,6 @@ const int    ECLIPSE_MAX_BODIES = 8;
 const float  ECLIPSE_PI         = 3.14159265358979323846;
 const double ECLIPSE_PI_D       = 3.14159265358979323846;
 
-uniform int       uEclipseMode;
 uniform vec4      uEclipseSun;
 uniform int       uEclipseNumOccluders;
 uniform vec4      uEclipseOccluders[ECLIPSE_MAX_BODIES];
@@ -320,18 +319,13 @@ dvec4 _eclipseGetBodyDirAngleD(dvec4 body, dvec3 position) {
 
 vec3 getEclipseShadow(vec3 position) {
 
-  // None.
-  if (uEclipseMode == 0) {
-    return vec3(1.0);
-  }
+  vec3 light = vec3(1.0);
 
   // -----------------------------------------------------------------------------------------------
   // ------------------------------------- Debug Mode ----------------------------------------------
   // -----------------------------------------------------------------------------------------------
 
-  if (uEclipseMode == 1) {
-    vec3 light = vec3(1.0);
-
+  #if ECLIPSE_MODE == 1
     vec4 sunDirAngle = _eclipseGetBodyDirAngle(uEclipseSun, position);
 
     for (int i = 0; i < uEclipseNumOccluders; ++i) {
@@ -347,9 +341,7 @@ vec3 getEclipseShadow(vec3 position) {
         light *= vec3(0.5, 0.5, 1.0); // Partial eclipse.
       }
     }
-
-    return light;
-  }
+  #endif
 
   // -----------------------------------------------------------------------------------------------
   // -------------------------------------- Celestia -----------------------------------------------
@@ -379,8 +371,7 @@ vec3 getEclipseShadow(vec3 position) {
   // https://github.com/CelestiaProject/Celestia/blob/master/src/celengine/shadermanager.cpp#L3811
   // https://github.com/CelestiaProject/Celestia/blob/master/src/celengine/render.cpp#L2969
 
-  if (uEclipseMode == 2) {
-    vec3 light = vec3(1.0);
+  #if ECLIPSE_MODE == 2
     for (int i = 0; i < uEclipseNumOccluders; ++i) {
       float sunDistance  = length(uEclipseOccluders[i].xyz - uEclipseSun.xyz);
       float appSunRadius = uEclipseSun.w / sunDistance;
@@ -415,9 +406,7 @@ vec3 getEclipseShadow(vec3 position) {
         light *= 1 - shadowR;
       }
     }
-
-    return light;
-  }
+  #endif
 
   // -----------------------------------------------------------------------------------------------
   // ----------------------------------- Cosmographia ----------------------------------------------
@@ -439,8 +428,7 @@ vec3 getEclipseShadow(vec3 position) {
   // https://github.com/claurel/cosmographia/blob/171462736a30c06594dfc45ad2daf85d024b20e2/thirdparty/vesta/ShaderBuilder.cpp#L222
   // https://github.com/claurel/cosmographia/blob/171462736a30c06594dfc45ad2daf85d024b20e2/thirdparty/vesta/UniverseRenderer.cpp#L1980
 
-  if (uEclipseMode == 3) {
-    vec3 light = vec3(1.0);
+  #if ECLIPSE_MODE == 3
     for (int i = 0; i < uEclipseNumOccluders; ++i) {
       float sunDistance = length(uEclipseSun.xyz - uEclipseOccluders[i].xyz);
 
@@ -474,9 +462,7 @@ vec3 getEclipseShadow(vec3 position) {
       // from this point on.
       light *= clamp((posY - umbra) / (penumbra - umbra), 0.0, 1.0);
     }
-
-    return light;
-  }
+  #endif
 
   // -----------------------------------------------------------------------------------------------
   // ------------------------------------- OpenSpace -----------------------------------------------
@@ -493,10 +479,7 @@ vec3 getEclipseShadow(vec3 position) {
   // https://github.com/OpenSpace/OpenSpace/blob/d7d279ea168f5eaa6a0109593360774246699c4e/modules/globebrowsing/shaders/renderer_fs.glsl#L93
   // https://github.com/OpenSpace/OpenSpace/blob/d7d279ea168f5eaa6a0109593360774246699c4e/modules/globebrowsing/src/renderableglobe.cpp#L2086
 
-  if (uEclipseMode == 4) {
-
-    vec3 light = vec3(1.0);
-
+  #if ECLIPSE_MODE == 4
     for (int i = 0; i < uEclipseNumOccluders; ++i) {
       float sunDistance = length(uEclipseSun.xyz - uEclipseOccluders[i].xyz);
 
@@ -540,9 +523,7 @@ vec3 getEclipseShadow(vec3 position) {
         light *= length_d / r_p_pi;
       }
     }
-
-    return light;
-  }
+  #endif
 
   // -----------------------------------------------------------------------------------------------
   // ---------------------------- Various Analytical Approaches ------------------------------------
@@ -551,10 +532,7 @@ vec3 getEclipseShadow(vec3 position) {
   // 5: Circle Intersection
   // 6: Approximated Spherical Cap Intersection
   // 7: Spherical Cap Intersection
-  if (uEclipseMode == 5 || uEclipseMode == 6 || uEclipseMode == 7) {
-
-    vec3 light = vec3(1.0);
-
+  #if ECLIPSE_MODE == 5 || ECLIPSE_MODE == 6 || ECLIPSE_MODE == 7
     vec4  sunDirAngle = _eclipseGetBodyDirAngle(uEclipseSun, position);
     float sunArea     = _eclipseGetCircleArea(sunDirAngle.w);
 
@@ -565,19 +543,17 @@ vec3 getEclipseShadow(vec3 position) {
 
       float intersect = 0;
 
-      if (uEclipseMode == 5) {
+      #if ECLIPSE_MODE == 5
         intersect = _eclipseGetCircleIntersection(sunDirAngle.w, bodyDirAngle.w, sunBodyDist);
-      } else if (uEclipseMode == 6) {
+      #elif ECLIPSE_MODE == 6
         intersect = _eclipseGetCapIntersectionApprox(sunDirAngle.w, bodyDirAngle.w, sunBodyDist);
-      } else {
+      #else
         intersect = _eclipseGetCapIntersection(sunDirAngle.w, bodyDirAngle.w, sunBodyDist);
-      }
+      #endif
 
       light *= (sunArea - clamp(intersect, 0.0, sunArea)) / sunArea;
     }
-
-    return light;
-  }
+  #endif
 
   // -----------------------------------------------------------------------------------------------
   // ------------------- Various Analytical Approaches (Double Precision) --------------------------
@@ -585,10 +561,7 @@ vec3 getEclipseShadow(vec3 position) {
 
   // 8: Circle Intersection (Double Precision)
   // 9: Spherical Cap Intersection (Double Precision)
-  if (uEclipseMode == 8 || uEclipseMode == 9) {
-
-    vec3 light = vec3(1.0);
-
+  #if ECLIPSE_MODE == 8 || ECLIPSE_MODE == 9
     dvec4  sunDirAngle = _eclipseGetBodyDirAngleD(uEclipseSun, position);
     double sunArea     = _eclipseGetCircleAreaD(sunDirAngle.w);
 
@@ -599,49 +572,48 @@ vec3 getEclipseShadow(vec3 position) {
 
       double intersect = 0;
 
-      if (uEclipseMode == 8) {
+      #if ECLIPSE_MODE == 8
         intersect = _eclipseGetCircleIntersectionD(sunDirAngle.w, bodyDirAngle.w, sunBodyDist);
-      } else {
+      #else
         intersect = _eclipseGetCapIntersectionD(sunDirAngle.w, bodyDirAngle.w, sunBodyDist);
-      }
+      #endif
 
       light *= float((sunArea - clamp(intersect, 0.0LF, sunArea)) / sunArea);
     }
-
-    return light;
-  }
+  #endif
 
   // -----------------------------------------------------------------------------------------------
   // --------------------- Get Eclipse Shadow by Texture Lookups -----------------------------------
   // -----------------------------------------------------------------------------------------------
 
-  const float textureMappingExponent = 1.0;
-  const bool  textureIncludesUmbra   = true;
+  #if ECLIPSE_MODE == 10
+    const float textureMappingExponent = 1.0;
+    const bool  textureIncludesUmbra   = true;
 
-  vec3  light         = vec3(1.0);
-  vec4  sunDirAngle   = _eclipseGetBodyDirAngle(uEclipseSun, position);
-  float sunSolidAngle = ECLIPSE_PI * sunDirAngle.w * sunDirAngle.w;
+    vec4  sunDirAngle   = _eclipseGetBodyDirAngle(uEclipseSun, position);
+    float sunSolidAngle = ECLIPSE_PI * sunDirAngle.w * sunDirAngle.w;
 
-  for (int i = 0; i < uEclipseNumOccluders; ++i) {
+    for (int i = 0; i < uEclipseNumOccluders; ++i) {
 
-    vec4  bodyDirAngle = _eclipseGetBodyDirAngle(uEclipseOccluders[i], position);
-    float sunBodyDist  = _eclipseGetAngle(sunDirAngle.xyz, bodyDirAngle.xyz);
+      vec4  bodyDirAngle = _eclipseGetBodyDirAngle(uEclipseOccluders[i], position);
+      float sunBodyDist  = _eclipseGetAngle(sunDirAngle.xyz, bodyDirAngle.xyz);
 
-    float minOccDist = textureIncludesUmbra ? 0.0 : max(bodyDirAngle.w - sunDirAngle.w, 0.0);
-    float maxOccDist = sunDirAngle.w + bodyDirAngle.w;
+      float minOccDist = textureIncludesUmbra ? 0.0 : max(bodyDirAngle.w - sunDirAngle.w, 0.0);
+      float maxOccDist = sunDirAngle.w + bodyDirAngle.w;
 
-    float x = 1.0 / (bodyDirAngle.w / sunDirAngle.w + 1.0);
-    float y = (sunBodyDist - minOccDist) / (maxOccDist - minOccDist);
+      float x = 1.0 / (bodyDirAngle.w / sunDirAngle.w + 1.0);
+      float y = (sunBodyDist - minOccDist) / (maxOccDist - minOccDist);
 
-    x = pow(x, textureMappingExponent);
-    y = 1.0 - pow(1.0 - y, textureMappingExponent);
+      x = pow(x, textureMappingExponent);
+      y = 1.0 - pow(1.0 - y, textureMappingExponent);
 
-    if (!textureIncludesUmbra && y < 0) {
-      light = vec3(0.0);
-    } else if (x >= 0.0 && x <= 1.0 && y >= 0.0 && y <= 1.0) {
-      light *= texture(uEclipseShadowMaps[i], vec2(x, 1 - y)).rgb;
+      if (!textureIncludesUmbra && y < 0) {
+        light = vec3(0.0);
+      } else if (x >= 0.0 && x <= 1.0 && y >= 0.0 && y <= 1.0) {
+        light *= texture(uEclipseShadowMaps[i], vec2(x, 1 - y)).rgb;
+      }
     }
-  }
+  #endif
 
   return light;
 }

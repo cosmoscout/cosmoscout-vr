@@ -315,7 +315,7 @@ bool SimpleBody::Do() {
 
   cs::utils::FrameTimings::ScopedTimer timer("Simple Bodies");
 
-  if (mShaderDirty) {
+  if (mShaderDirty || mEclipseShadowReceiver.needsRecompilation()) {
     mShader = VistaGLSLShader();
 
     // (Re-)create sphere shader.
@@ -333,7 +333,7 @@ bool SimpleBody::Do() {
     std::string frag = defines + SPHERE_FRAG;
 
     cs::utils::replaceString(
-        frag, "ECLIPSE_SHADER_SNIPPET", cs::core::EclipseShadowReceiver::getShaderSnippet());
+        frag, "ECLIPSE_SHADER_SNIPPET", mEclipseShadowReceiver.getShaderSnippet());
 
     mShader.InitVertexShaderFromString(vert);
     mShader.InitFragmentShaderFromString(frag);

@@ -349,7 +349,7 @@ void AtmosphereRenderer::updateShader() {
 
   if (mEclipseShadowReceiver) {
     cs::utils::replaceString(
-        sFrag, "ECLIPSE_SHADER_SNIPPET", cs::core::EclipseShadowReceiver::getShaderSnippet());
+        sFrag, "ECLIPSE_SHADER_SNIPPET", mEclipseShadowReceiver->getShaderSnippet());
   } else {
     cs::utils::replaceString(sFrag, "ECLIPSE_SHADER_SNIPPET",
         "vec3 getEclipseShadow(vec3 position) { return vec3(1); }");
@@ -394,7 +394,7 @@ void AtmosphereRenderer::updateShader() {
 bool AtmosphereRenderer::Do() {
   cs::utils::FrameTimings::ScopedTimer timer("Render Atmosphere");
 
-  if (mShaderDirty) {
+  if (mShaderDirty || mEclipseShadowReceiver->needsRecompilation()) {
     updateShader();
     mShaderDirty = false;
   }

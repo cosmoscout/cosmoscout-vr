@@ -157,7 +157,7 @@ void PlanetShader::compile() {
   cs::utils::replaceString(mFragmentSource, "$MIX_COLORS",
       cs::utils::toString(mPluginSettings->mEnableColorMixing.get()));
   cs::utils::replaceString(mFragmentSource, "$ECLIPSE_SHADER_SNIPPET",
-      cs::core::EclipseShadowReceiver::getShaderSnippet());
+      mEclipseShadowReceiver->getShaderSnippet());
 
   // Include the BRDFs together with their parameters and arguments.
   Plugin::Settings::BRDF const& brdfHdr = mPluginSettings->mBodies[mAnchorName].mBrdfHdr.get();
@@ -197,6 +197,11 @@ void PlanetShader::compile() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void PlanetShader::bind() {
+
+    if (mEclipseShadowReceiver->needsRecompilation()) {
+        mShaderDirty = true;
+    }
+
   TerrainShader::bind();
 
   GLint loc = -1;
