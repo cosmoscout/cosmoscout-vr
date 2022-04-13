@@ -49,7 +49,7 @@ class CS_CORE_EXPORT EclipseShadowReceiver {
   EclipseShadowReceiver(std::shared_ptr<cs::core::Settings> settings,
       std::shared_ptr<core::SolarSystem> solarSystem, scene::CelestialObject const* shadowReceiver);
 
-  bool needsRecompilation() const;
+  bool        needsRecompilation() const;
   std::string getShaderSnippet() const;
 
   void init(VistaGLSLShader* shader, uint32_t textureOffset);
@@ -69,7 +69,7 @@ class CS_CORE_EXPORT EclipseShadowReceiver {
 
   VistaGLSLShader* mShader        = nullptr;
   uint32_t         mTextureOffset = 0;
-  
+
   mutable EclipseShadowMode mLastEclipseShadowMode = EclipseShadowMode::eNone;
 
   std::array<glm::vec4, MAX_BODIES> mOccluders{};

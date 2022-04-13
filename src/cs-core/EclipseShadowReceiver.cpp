@@ -27,17 +27,18 @@ EclipseShadowReceiver::EclipseShadowReceiver(std::shared_ptr<cs::core::Settings>
 }
 
 bool EclipseShadowReceiver::needsRecompilation() const {
-   return mLastEclipseShadowMode != mSettings->mGraphics.pEclipseShadowMode.get();
- }
+  return mLastEclipseShadowMode != mSettings->mGraphics.pEclipseShadowMode.get();
+}
 
-std::string EclipseShadowReceiver::getShaderSnippet() const{
+std::string EclipseShadowReceiver::getShaderSnippet() const {
   static std::string code(
       utils::filesystem::loadToString("../share/resources/shaders/eclipseShadows.glsl"));
 
   auto copy = code;
-   cs::utils::replaceString(copy, "ECLIPSE_MODE", cs::utils::toString(static_cast<int>(mSettings->mGraphics.pEclipseShadowMode.get())));
+  cs::utils::replaceString(copy, "ECLIPSE_MODE",
+      cs::utils::toString(static_cast<int>(mSettings->mGraphics.pEclipseShadowMode.get())));
 
-   mLastEclipseShadowMode = mSettings->mGraphics.pEclipseShadowMode.get();
+  mLastEclipseShadowMode = mSettings->mGraphics.pEclipseShadowMode.get();
 
   return copy;
 }
