@@ -609,7 +609,7 @@ vec3 getEclipseShadow(vec3 position) {
 
       if (!textureIncludesUmbra && y < 0) {
         light = vec3(0.0);
-      } else if (x >= 0.0) {
+      } else if (x >= 0.0 && x <= 1.0 && y >= 0.0 && y <= 1.0) {
         light *= texture(uEclipseShadowMaps[i], vec2(x, 1 - y)).rgb;
       }
     }
