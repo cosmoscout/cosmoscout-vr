@@ -1239,6 +1239,10 @@ void Application::registerGuiCallbacks() {
       "Enables Eclipse Shadows based on texture lookups.", std::function([this]() {
         mSettings->mGraphics.pEclipseShadowMode = cs::core::EclipseShadowMode::eTexture;
       }));
+  mGuiManager->getGui()->registerCallback("graphics.setEclipseShadowMode11",
+      "Enables Eclipse Shadows based on texture lookups (approximated).", std::function([this]() {
+        mSettings->mGraphics.pEclipseShadowMode = cs::core::EclipseShadowMode::eApproximatedTexture;
+      }));
   mSettings->mGraphics.pEclipseShadowMode.connect([this](cs::core::EclipseShadowMode mode) {
     if (mode == cs::core::EclipseShadowMode::eNone) {
       mGuiManager->setRadioChecked("graphics.setEclipseShadowMode0");
@@ -1262,6 +1266,8 @@ void Application::registerGuiCallbacks() {
       mGuiManager->setRadioChecked("graphics.setEclipseShadowMode9");
     } else if (mode == cs::core::EclipseShadowMode::eTexture) {
       mGuiManager->setRadioChecked("graphics.setEclipseShadowMode10");
+    } else if (mode == cs::core::EclipseShadowMode::eApproximatedTexture) {
+      mGuiManager->setRadioChecked("graphics.setEclipseShadowMode11");
     }
   });
 

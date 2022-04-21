@@ -615,6 +615,43 @@ vec3 getEclipseShadow(vec3 position) {
     }
   #endif
 
+  // -----------------------------------------------------------------------------------------------
+  // --------------- Get Eclipse Shadow by Approximated Texture Lookups ----------------------------
+  // -----------------------------------------------------------------------------------------------
+
+  #if ECLIPSE_MODE == 11
+    const float textureMappingExponent = 1.0;
+    const bool  textureIncludesUmbra   = true;
+
+    vec3 toSun = normalize(uEclipseSun.xyz - position);
+
+    for (int i = 0; i < uEclipseNumOccluders; ++i) {
+
+      float sunDistance  = length(uEclipseOccluders[i].xyz - uEclipseSun.xyz);
+      float appSunRadius = uEclipseSun.w / sunDistance;
+
+      float distToCaster      = length(uEclipseOccluders[i].xyz - position);
+      float appOccluderRadius = uEclipseOccluders[i].w / distToCaster;
+
+      float sunBodyDist = length((uEclipseOccluders[i].xyz - position) / distToCaster - toSun);
+
+      float minOccDist = textureIncludesUmbra ? 0.0 : max(appOccluderRadius - appSunRadius, 0.0);
+      float maxOccDist = appSunRadius + appOccluderRadius;
+
+      float x = 1.0 / (appOccluderRadius / appSunRadius + 1.0);
+      float y = (sunBodyDist - minOccDist) / (maxOccDist - minOccDist);
+
+      x = pow(x, textureMappingExponent);
+      y = 1.0 - pow(1.0 - y, textureMappingExponent);
+
+      if (!textureIncludesUmbra && y < 0) {
+        light = vec3(0.0);
+      } else if (x >= 0.0 && x <= 1.0 && y >= 0.0 && y <= 1.0) {
+        light *= texture(uEclipseShadowMaps[i], vec2(x, 1 - y)).rgb;
+      }
+    }
+  #endif
+
   return light;
 }
 
