@@ -290,10 +290,11 @@ float _eclipseGetCapIntersectionApprox(float radiusA, float radiusB, float cente
   return interp * _eclipseGetCapArea(min(radiusA, radiusB));
 }
 
-// This returns basically acos(dot(v1, v2)), but seems to have less floating point errors.
+// This returns basically acos(dot(v1, v2)), but has less floating point errors.
+// https://api.semanticscholar.org/CorpusID:118459706
 float _eclipseGetAngle(vec3 v1, vec3 v2) {
   float c = dot(v1 - v2, v1 - v2);
-  return 2.0 * atan(sqrt(c), sqrt(4 - c));
+  return 2.0 * atan(sqrt(c / (4 - c)));
 }
 double _eclipseGetAngleD(dvec3 v1, dvec3 v2) {
   double c = dot(v1 - v2, v1 - v2);
