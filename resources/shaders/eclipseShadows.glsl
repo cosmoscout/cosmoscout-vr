@@ -382,11 +382,15 @@ vec3 getEclipseShadow(vec3 position) {
       float distToCaster      = length(uEclipseOccluders[i].xyz - position);
       float appOccluderRadius = uEclipseOccluders[i].w / distToCaster;
 
+    // The code below is basically the original code from celestia. If we substitute some values, we
+    // end up with the version below. This is much easier to read and shows that the umbra and
+    // penumbra cones use the same apex angle. This is not the case in reality. However, if the Sun
+    // is far away, they become very similar indeed.  
     #if 0
       float penumbraRadius = (1 + appSunRadius / appOccluderRadius) * uEclipseOccluders[i].w;
       float umbraRadius = uEclipseOccluders[i].w * (appOccluderRadius - appSunRadius) / appOccluderRadius;
     #else
-      float spread = uEclipseSun.w * distToCaster / distToSun;
+      float spread = uEclipseSun.w / distToSun * distToCaster;
       float penumbraRadius = uEclipseOccluders[i].w + spread;
       float umbraRadius =    uEclipseOccluders[i].w - spread;
     #endif
