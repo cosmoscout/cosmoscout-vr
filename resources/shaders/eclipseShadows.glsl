@@ -371,19 +371,26 @@ vec3 getEclipseShadow(vec3 position) {
   // https://github.com/CelestiaProject/Celestia/blob/master/src/celengine/shadermanager.cpp#L1344
   // https://github.com/CelestiaProject/Celestia/blob/master/src/celengine/shadermanager.cpp#L3811
   // https://github.com/CelestiaProject/Celestia/blob/master/src/celengine/render.cpp#L2969
+  // https://github.com/CelestiaProject/Celestia/blob/master/src/celengine/render.cpp#L2377
 
   #if ECLIPSE_MODE == 2
     for (int i = 0; i < uEclipseNumOccluders; ++i) {
-      float sunDistance  = length(uEclipseOccluders[i].xyz - uEclipseSun.xyz);
-      float appSunRadius = uEclipseSun.w / sunDistance;
+      
+      float distToSun    = length(uEclipseSun.xyz - position);
+      float appSunRadius = uEclipseSun.w / distToSun;
 
       float distToCaster      = length(uEclipseOccluders[i].xyz - position);
       float appOccluderRadius = uEclipseOccluders[i].w / distToCaster;
 
+    #if 0
       float penumbraRadius = (1 + appSunRadius / appOccluderRadius) * uEclipseOccluders[i].w;
+      float umbraRadius = uEclipseOccluders[i].w * (appOccluderRadius - appSunRadius) / appOccluderRadius;
+    #else
+      float spread = uEclipseSun.w * distToCaster / distToSun;
+      float penumbraRadius = uEclipseOccluders[i].w + spread;
+      float umbraRadius =    uEclipseOccluders[i].w - spread;
+    #endif
 
-      float umbraRadius =
-          uEclipseOccluders[i].w * (appOccluderRadius - appSunRadius) / appOccluderRadius;
       float maxDepth = min(1.0, pow(appOccluderRadius / appSunRadius, 2.0));
 
       float umbra   = umbraRadius / penumbraRadius;
@@ -391,7 +398,7 @@ vec3 getEclipseShadow(vec3 position) {
 
       // Project the vector from fragment to occluder on the Sun-Occluder ray.
       vec3 toOcc        = uEclipseOccluders[i].xyz - position;
-      vec3 sunToOccNorm = (uEclipseOccluders[i].xyz - uEclipseSun.xyz) / sunDistance;
+      vec3 sunToOccNorm = normalize(uEclipseOccluders[i].xyz - uEclipseSun.xyz);
       vec3 toOccProj    = dot(toOcc, sunToOccNorm) * sunToOccNorm;
 
       // Get vertical position in shadow space.
@@ -431,13 +438,13 @@ vec3 getEclipseShadow(vec3 position) {
 
   #if ECLIPSE_MODE == 3
     for (int i = 0; i < uEclipseNumOccluders; ++i) {
-      float sunDistance = length(uEclipseSun.xyz - uEclipseOccluders[i].xyz);
+      float distToSun = length(uEclipseSun.xyz - uEclipseOccluders[i].xyz);
 
       float rOcc   = uEclipseOccluders[i].w;
-      float dOcc   = sunDistance / (uEclipseSun.w / rOcc + 1);
+      float dOcc   = distToSun / (uEclipseSun.w / rOcc + 1);
       float yP     = rOcc / dOcc * sqrt(dOcc * dOcc - rOcc * rOcc);
       float xOcc   = sqrt(rOcc * rOcc - yP * yP);
-      float xUmbra = (sunDistance * rOcc) / (uEclipseSun.w - rOcc) + xOcc;
+      float xUmbra = (distToSun * rOcc) / (uEclipseSun.w - rOcc) + xOcc;
       float xF     = xOcc - dOcc;
 
       float xUmbraRimDist = sqrt(pow(xUmbra - xOcc, 2.0) - rOcc * rOcc);
@@ -449,7 +456,7 @@ vec3 getEclipseShadow(vec3 position) {
 
       // Project the vector from fragment to occluder on the Sun-Occluder ray.
       vec3 toOcc        = uEclipseOccluders[i].xyz - position;
-      vec3 sunToOccNorm = (uEclipseOccluders[i].xyz - uEclipseSun.xyz) / sunDistance;
+      vec3 sunToOccNorm = (uEclipseOccluders[i].xyz - uEclipseSun.xyz) / distToSun;
       vec3 toOccProj    = dot(toOcc, sunToOccNorm) * sunToOccNorm;
 
       // Get position in shadow space.
@@ -482,11 +489,11 @@ vec3 getEclipseShadow(vec3 position) {
 
   #if ECLIPSE_MODE == 4
     for (int i = 0; i < uEclipseNumOccluders; ++i) {
-      float sunDistance = length(uEclipseSun.xyz - uEclipseOccluders[i].xyz);
+      float distToSun = length(uEclipseSun.xyz - uEclipseOccluders[i].xyz);
 
       // Project the vector from fragment to occluder on the Sun-Occluder ray.
       vec3  pc             = uEclipseOccluders[i].xyz - position;
-      vec3  sc_norm        = (uEclipseOccluders[i].xyz - uEclipseSun.xyz) / sunDistance;
+      vec3  sc_norm        = (uEclipseOccluders[i].xyz - uEclipseSun.xyz) / distToSun;
       vec3  pc_proj        = dot(pc, sc_norm) * sc_norm;
       float length_pc_proj = length(pc_proj);
 
@@ -495,10 +502,10 @@ vec3 getEclipseShadow(vec3 position) {
       float length_d = length(d);
 
       // Compute focus point of the penumbra cone. Somewhere in front of the occluder.
-      float xp = uEclipseOccluders[i].w * sunDistance / (uEclipseSun.w + uEclipseOccluders[i].w);
+      float xp = uEclipseOccluders[i].w * distToSun / (uEclipseSun.w + uEclipseOccluders[i].w);
 
       // Compute focus point of the umbra cone. Somewhere behind occluder.
-      float xu = uEclipseOccluders[i].w * sunDistance / (uEclipseSun.w - uEclipseOccluders[i].w);
+      float xu = uEclipseOccluders[i].w * distToSun / (uEclipseSun.w - uEclipseOccluders[i].w);
 
       // The radius of the penumbra cone, computed with the intercept theorem. This is not really
       // correct, as the tangents at the occluder do not really touch the poles.
@@ -628,13 +635,15 @@ vec3 getEclipseShadow(vec3 position) {
 
     for (int i = 0; i < uEclipseNumOccluders; ++i) {
 
-      float sunDistance  = length(uEclipseOccluders[i].xyz - uEclipseSun.xyz);
-      float appSunRadius = uEclipseSun.w / sunDistance;
+      float distToSun  = length(uEclipseOccluders[i].xyz - uEclipseSun.xyz);
+      float appSunRadius = uEclipseSun.w / distToSun;
 
       float distToCaster      = length(uEclipseOccluders[i].xyz - position);
       float appOccluderRadius = uEclipseOccluders[i].w / distToCaster;
 
       float sunBodyDist = length((uEclipseOccluders[i].xyz - position) / distToCaster - toSun);
+      // float sunBodyDist = sqrt(2.0 - 2.0 * dot((uEclipseOccluders[i].xyz - position) / distToCaster, toSun));
+      // float sunBodyDist  = _eclipseGetAngle((uEclipseOccluders[i].xyz - position)/distToCaster, toSun);
 
       float minOccDist = textureIncludesUmbra ? 0.0 : max(appOccluderRadius - appSunRadius, 0.0);
       float maxOccDist = appSunRadius + appOccluderRadius;
