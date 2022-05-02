@@ -15,132 +15,127 @@ uniform sampler2D uEclipseShadowMaps[ECLIPSE_MAX_BODIES];
 // -------------------------------------------------------------------------------------------------
 
 double atand(double y, double x) {
-    const double atan_tbl[] = double[](
-    -3.333333333333333333333333333303396520128e-1LF,
-    1.999999117496509842004185053319506031014e-1LF,
-    -1.428514132711481940637283859690014415584e-1LF,
-    1.110012236849539584126568416131750076191e-1LF,
-    -8.993611617787817334566922323958104463948e-2LF,
-    7.212338962134411520637759523226823838487e-2LF,
-    -5.205055255952184339031830383744136009889e-2LF,
-    2.938542391751121307313459297120064977888e-2LF,
-    -1.079891788348568421355096111489189625479e-2LF,
-    1.858552116405489677124095112269935093498e-3LF
-    );
+  const double atan_tbl[] = double[](-3.333333333333333333333333333303396520128e-1LF,
+      1.999999117496509842004185053319506031014e-1LF,
+      -1.428514132711481940637283859690014415584e-1LF,
+      1.110012236849539584126568416131750076191e-1LF,
+      -8.993611617787817334566922323958104463948e-2LF,
+      7.212338962134411520637759523226823838487e-2LF,
+      -5.205055255952184339031830383744136009889e-2LF,
+      2.938542391751121307313459297120064977888e-2LF,
+      -1.079891788348568421355096111489189625479e-2LF,
+      1.858552116405489677124095112269935093498e-3LF);
 
-    /* argument reduction:
-       arctan (-x) = -arctan(x);
-       arctan (1/x) = 1/2 * pi - arctan (x), when x > 0
-    */
-    double ax = abs(x);
-    double ay = abs(y);
-    double t0 = max(ax, ay);
-    double t1 = min(ax, ay);
+  /* argument reduction:
+     arctan (-x) = -arctan(x);
+     arctan (1/x) = 1/2 * pi - arctan (x), when x > 0
+  */
+  double ax = abs(x);
+  double ay = abs(y);
+  double t0 = max(ax, ay);
+  double t1 = min(ax, ay);
 
-    double a = 1 / t0;
-    a *= t1;
+  double a = 1 / t0;
+  a *= t1;
 
-    double s = a * a;
-    double p = atan_tbl[9];
+  double s = a * a;
+  double p = atan_tbl[9];
 
-    p = fma(fma(fma(fma(fma(fma(fma(fma(fma(fma(p, s,
-    atan_tbl[8]), s,
-    atan_tbl[7]), s,
-    atan_tbl[6]), s,
-    atan_tbl[5]), s,
-    atan_tbl[4]), s,
-    atan_tbl[3]), s,
-    atan_tbl[2]), s,
-    atan_tbl[1]), s,
-    atan_tbl[0]), s * a, a);
+  p = fma(fma(fma(fma(fma(fma(fma(fma(fma(fma(p, s, atan_tbl[8]), s, atan_tbl[7]), s, atan_tbl[6]),
+                                  s, atan_tbl[5]),
+                              s, atan_tbl[4]),
+                          s, atan_tbl[3]),
+                      s, atan_tbl[2]),
+                  s, atan_tbl[1]),
+              s, atan_tbl[0]),
+      s * a, a);
 
-    double r = ay > ax ? (1.57079632679489661923LF - p) : p;
+  double r = ay > ax ? (1.57079632679489661923LF - p) : p;
 
-    r = x < 0 ?  3.14159265358979323846LF - r : r;
-    r = y < 0 ? -r : r;
+  r = x < 0 ? 3.14159265358979323846LF - r : r;
+  r = y < 0 ? -r : r;
 
-    return r;
+  return r;
 }
 
 double sind(double x) {
-    //minimax coefs for sin for 0..pi/2 range
-    const double a3 = -1.666666660646699151540776973346659104119e-1LF;
-    const double a5 =  8.333330495671426021718370503012583606364e-3LF;
-    const double a7 = -1.984080403919620610590106573736892971297e-4LF;
-    const double a9 =  2.752261885409148183683678902130857814965e-6LF;
-    const double ab = -2.384669400943475552559273983214582409441e-8LF;
+  // minimax coefs for sin for 0..pi/2 range
+  const double a3 = -1.666666660646699151540776973346659104119e-1LF;
+  const double a5 = 8.333330495671426021718370503012583606364e-3LF;
+  const double a7 = -1.984080403919620610590106573736892971297e-4LF;
+  const double a9 = 2.752261885409148183683678902130857814965e-6LF;
+  const double ab = -2.384669400943475552559273983214582409441e-8LF;
 
-    const double m_2_pi = 0.636619772367581343076LF;
-    const double m_pi_2 = 1.57079632679489661923LF;
+  const double m_2_pi = 0.636619772367581343076LF;
+  const double m_pi_2 = 1.57079632679489661923LF;
 
-    double y = abs(x * m_2_pi);
-    double q = floor(y);
-    int quadrant = int(q);
+  double y        = abs(x * m_2_pi);
+  double q        = floor(y);
+  int    quadrant = int(q);
 
-    double t = (quadrant & 1) != 0 ? 1 - y + q : y - q;
-    t *= m_pi_2;
+  double t = (quadrant & 1) != 0 ? 1 - y + q : y - q;
+  t *= m_pi_2;
 
-    double t2 = t * t;
-    double r = fma(fma(fma(fma(fma(ab, t2, a9), t2, a7), t2, a5), t2, a3), t2 * t, t);
+  double t2 = t * t;
+  double r  = fma(fma(fma(fma(fma(ab, t2, a9), t2, a7), t2, a5), t2, a3), t2 * t, t);
 
-    r = x < 0 ? -r : r;
+  r = x < 0 ? -r : r;
 
-    return (quadrant & 2) != 0 ? -r : r;
+  return (quadrant & 2) != 0 ? -r : r;
 }
 
-//cos approximation, error < 5e-11
+// cos approximation, error < 5e-11
 double cosd(double x) {
-    //sin(x + PI/2) = cos(x)
-    return sind(x + 1.57079632679489661923LF);
+  // sin(x + PI/2) = cos(x)
+  return sind(x + 1.57079632679489661923LF);
 }
 
 /* compute arcsin (a) for a in [-9/16, 9/16] */
 double asin_core(double a) {
-    double s = a * a;
-    double q = s * s;
-    double r =      5.5579749017470502e-2LF;
-    double t =     -6.2027913464120114e-2LF;
-    r = fma (r, q, 5.4224464349245036e-2LF);
-    t = fma (t, q, -1.1326992890324464e-2LF);
-    r = fma (r, q, 1.5268872539397656e-2LF);
-    t = fma (t, q, 1.0493798473372081e-2LF);
-    r = fma (r, q, 1.4106045900607047e-2LF);
-    t = fma (t, q, 1.7339776384962050e-2LF);
-    r = fma (r, q, 2.2372961589651054e-2LF);
-    t = fma (t, q, 3.0381912707941005e-2LF);
-    r = fma (r, q, 4.4642857881094775e-2LF);
-    t = fma (t, q, 7.4999999991367292e-2LF);
-    r = fma (r, s, t);
-    r = fma (r, s, 1.6666666666670193e-1LF);
-    t = a * s;
-    r = fma (r, t, a);
+  double s = a * a;
+  double q = s * s;
+  double r = 5.5579749017470502e-2LF;
+  double t = -6.2027913464120114e-2LF;
+  r        = fma(r, q, 5.4224464349245036e-2LF);
+  t        = fma(t, q, -1.1326992890324464e-2LF);
+  r        = fma(r, q, 1.5268872539397656e-2LF);
+  t        = fma(t, q, 1.0493798473372081e-2LF);
+  r        = fma(r, q, 1.4106045900607047e-2LF);
+  t        = fma(t, q, 1.7339776384962050e-2LF);
+  r        = fma(r, q, 2.2372961589651054e-2LF);
+  t        = fma(t, q, 3.0381912707941005e-2LF);
+  r        = fma(r, q, 4.4642857881094775e-2LF);
+  t        = fma(t, q, 7.4999999991367292e-2LF);
+  r        = fma(r, s, t);
+  r        = fma(r, s, 1.6666666666670193e-1LF);
+  t        = a * s;
+  r        = fma(r, t, a);
 
-    return r;
+  return r;
 }
 
 /* Compute arccosine (a), maximum error observed: 1.4316 ulp
    Double-precision factorization of π courtesy of Tor Myklebust
 */
 double acosd(double a) {
-    double r = (a > 0.0LF) ? -a : a;// avoid modifying the "sign" of NaNs
-    if (r > -0.5625LF) {
-        /* arccos(x) = pi/2 - arcsin(x) */
-        r = fma (9.3282184640716537e-1LF, 1.6839188885261840e+0LF, asin_core(r));
-    } else {
-        /* arccos(x) = 2 * arcsin (sqrt ((1-x) / 2)) */
-        r = 2.0LF * asin_core(sqrt(fma(0.5LF, r, 0.5LF)));
-    }
-    if (!(a > 0.0LF) && (a >= -1.0LF)) { // avoid modifying the "sign" of NaNs
-        /* arccos (-x) = pi - arccos(x) */
-        r = fma (1.8656436928143307e+0LF, 1.6839188885261840e+0LF, -r);
-    }
-    return r;
+  double r = (a > 0.0LF) ? -a : a; // avoid modifying the "sign" of NaNs
+  if (r > -0.5625LF) {
+    /* arccos(x) = pi/2 - arcsin(x) */
+    r = fma(9.3282184640716537e-1LF, 1.6839188885261840e+0LF, asin_core(r));
+  } else {
+    /* arccos(x) = 2 * arcsin (sqrt ((1-x) / 2)) */
+    r = 2.0LF * asin_core(sqrt(fma(0.5LF, r, 0.5LF)));
+  }
+  if (!(a > 0.0LF) && (a >= -1.0LF)) { // avoid modifying the "sign" of NaNs
+                                       /* arccos (-x) = pi - arccos(x) */
+    r = fma(1.8656436928143307e+0LF, 1.6839188885261840e+0LF, -r);
+  }
+  return r;
 }
 
 double asind(double a) {
-    return (ECLIPSE_PI_D / 2.0LF) - acosd(a);
+  return (ECLIPSE_PI_D / 2.0LF) - acosd(a);
 }
-
 
 // -------------------------------------------------------------------------------------------------
 // ----------------------------------------- Intersection Math -------------------------------------
@@ -326,23 +321,23 @@ vec3 getEclipseShadow(vec3 position) {
   // ------------------------------------- Debug Mode ----------------------------------------------
   // -----------------------------------------------------------------------------------------------
 
-  #if ECLIPSE_MODE == 1
-    vec4 sunDirAngle = _eclipseGetBodyDirAngle(uEclipseSun, position);
+#if ECLIPSE_MODE == 1
+  vec4 sunDirAngle = _eclipseGetBodyDirAngle(uEclipseSun, position);
 
-    for (int i = 0; i < uEclipseNumOccluders; ++i) {
+  for (int i = 0; i < uEclipseNumOccluders; ++i) {
 
-      vec4  bodyDirAngle = _eclipseGetBodyDirAngle(uEclipseOccluders[i], position);
-      float sunBodyDist  = _eclipseGetAngle(sunDirAngle.xyz, bodyDirAngle.xyz);
+    vec4  bodyDirAngle = _eclipseGetBodyDirAngle(uEclipseOccluders[i], position);
+    float sunBodyDist  = _eclipseGetAngle(sunDirAngle.xyz, bodyDirAngle.xyz);
 
-      if (sunDirAngle.w < bodyDirAngle.w - sunBodyDist) {
-        light *= vec3(1.0, 0.5, 0.5); // Total eclipse.
-      } else if (sunBodyDist < sunDirAngle.w - bodyDirAngle.w) {
-        light *= vec3(0.5, 1.0, 0.5); // Annular eclipse.
-      } else if (sunBodyDist < sunDirAngle.w + bodyDirAngle.w) {
-        light *= vec3(0.5, 0.5, 1.0); // Partial eclipse.
-      }
+    if (sunDirAngle.w < bodyDirAngle.w - sunBodyDist) {
+      light *= vec3(1.0, 0.5, 0.5); // Total eclipse.
+    } else if (sunBodyDist < sunDirAngle.w - bodyDirAngle.w) {
+      light *= vec3(0.5, 1.0, 0.5); // Annular eclipse.
+    } else if (sunBodyDist < sunDirAngle.w + bodyDirAngle.w) {
+      light *= vec3(0.5, 0.5, 1.0); // Partial eclipse.
     }
-  #endif
+  }
+#endif
 
   // -----------------------------------------------------------------------------------------------
   // -------------------------------------- Celestia -----------------------------------------------
@@ -373,52 +368,52 @@ vec3 getEclipseShadow(vec3 position) {
   // https://github.com/CelestiaProject/Celestia/blob/master/src/celengine/render.cpp#L2969
   // https://github.com/CelestiaProject/Celestia/blob/master/src/celengine/render.cpp#L2377
 
-  #if ECLIPSE_MODE == 2
-    for (int i = 0; i < uEclipseNumOccluders; ++i) {
-      
-      float distToSun    = length(uEclipseSun.xyz - position);
-      float appSunRadius = uEclipseSun.w / distToSun;
+#if ECLIPSE_MODE == 2
+  for (int i = 0; i < uEclipseNumOccluders; ++i) {
 
-      float distToCaster      = length(uEclipseOccluders[i].xyz - position);
-      float appOccluderRadius = uEclipseOccluders[i].w / distToCaster;
+    float distToSun    = length(uEclipseSun.xyz - position);
+    float appSunRadius = uEclipseSun.w / distToSun;
 
-    // The code below is basically the original code from celestia. If we substitute some values, we
-    // end up with the version below. This is much easier to read and shows that the umbra and
-    // penumbra cones use the same apex angle. This is not the case in reality. However, if the Sun
-    // is far away, they become very similar indeed.  
-    #if 0
+    float distToCaster      = length(uEclipseOccluders[i].xyz - position);
+    float appOccluderRadius = uEclipseOccluders[i].w / distToCaster;
+
+// The code below is basically the original code from celestia. If we substitute some values, we
+// end up with the version below. This is much easier to read and shows that the umbra and
+// penumbra cones use the same apex angle. This is not the case in reality. However, if the Sun
+// is far away, they become very similar indeed.
+#if 0
       float penumbraRadius = (1 + appSunRadius / appOccluderRadius) * uEclipseOccluders[i].w;
       float umbraRadius = uEclipseOccluders[i].w * (appOccluderRadius - appSunRadius) / appOccluderRadius;
-    #else
-      float spread = uEclipseSun.w / distToSun * distToCaster;
-      float penumbraRadius = uEclipseOccluders[i].w + spread;
-      float umbraRadius =    uEclipseOccluders[i].w - spread;
-    #endif
+#else
+    float spread         = uEclipseSun.w / distToSun * distToCaster;
+    float penumbraRadius = uEclipseOccluders[i].w + spread;
+    float umbraRadius    = uEclipseOccluders[i].w - spread;
+#endif
 
-      float maxDepth = min(1.0, pow(appOccluderRadius / appSunRadius, 2.0));
+    float maxDepth = min(1.0, pow(appOccluderRadius / appSunRadius, 2.0));
 
-      float umbra   = umbraRadius / penumbraRadius;
-      float falloff = maxDepth / max(0.001, 1.0 - abs(umbra));
+    float umbra   = umbraRadius / penumbraRadius;
+    float falloff = maxDepth / max(0.001, 1.0 - abs(umbra));
 
-      // Project the vector from fragment to occluder on the Sun-Occluder ray.
-      vec3 toOcc        = uEclipseOccluders[i].xyz - position;
-      vec3 sunToOccNorm = normalize(uEclipseOccluders[i].xyz - uEclipseSun.xyz);
-      vec3 toOccProj    = dot(toOcc, sunToOccNorm) * sunToOccNorm;
+    // Project the vector from fragment to occluder on the Sun-Occluder ray.
+    vec3 toOcc        = uEclipseOccluders[i].xyz - position;
+    vec3 sunToOccNorm = normalize(uEclipseOccluders[i].xyz - uEclipseSun.xyz);
+    vec3 toOccProj    = dot(toOcc, sunToOccNorm) * sunToOccNorm;
 
-      // Get vertical position in shadow space.
-      float posY = length(toOcc - toOccProj);
+    // Get vertical position in shadow space.
+    float posY = length(toOcc - toOccProj);
 
-      // This r is computed quite differently in Celestia. This is due to the fact that eclipse
-      // shadows are not computed in worldspace in Celestia but rather in a shadow-local coordinate
-      // system.
-      float r = 1 - posY / penumbraRadius;
+    // This r is computed quite differently in Celestia. This is due to the fact that eclipse
+    // shadows are not computed in worldspace in Celestia but rather in a shadow-local coordinate
+    // system.
+    float r = 1 - posY / penumbraRadius;
 
-      if (r > 0.0) {
-        float shadowR = clamp(r * falloff, 0.0, maxDepth);
-        light *= 1 - shadowR;
-      }
+    if (r > 0.0) {
+      float shadowR = clamp(r * falloff, 0.0, maxDepth);
+      light *= 1 - shadowR;
     }
-  #endif
+  }
+#endif
 
   // -----------------------------------------------------------------------------------------------
   // ----------------------------------- Cosmographia ----------------------------------------------
@@ -440,8 +435,8 @@ vec3 getEclipseShadow(vec3 position) {
   // https://github.com/claurel/cosmographia/blob/171462736a30c06594dfc45ad2daf85d024b20e2/thirdparty/vesta/ShaderBuilder.cpp#L222
   // https://github.com/claurel/cosmographia/blob/171462736a30c06594dfc45ad2daf85d024b20e2/thirdparty/vesta/UniverseRenderer.cpp#L1980
 
-  #if ECLIPSE_MODE == 3
-    for (int i = 0; i < uEclipseNumOccluders; ++i) {
+#if ECLIPSE_MODE == 3
+  for (int i = 0; i < uEclipseNumOccluders; ++i) {
     float rSun = uEclipseSun.w;
     float rOcc = uEclipseOccluders[i].w;
 
@@ -452,22 +447,22 @@ vec3 getEclipseShadow(vec3 position) {
     float mUmbra    = -rOcc / sqrt(dUmbra * dUmbra - rOcc * rOcc);
     float mPenumbra = rOcc / sqrt(dPenumbra * dUmbra - rOcc * rOcc);
 
-      vec3 toOcc        = uEclipseOccluders[i].xyz - position;
+    vec3 toOcc        = uEclipseOccluders[i].xyz - position;
     vec3 sunToOccNorm = (uEclipseOccluders[i].xyz - uEclipseSun.xyz) / d;
-      vec3 toOccProj    = dot(toOcc, sunToOccNorm) * sunToOccNorm;
+    vec3 toOccProj    = dot(toOcc, sunToOccNorm) * sunToOccNorm;
 
-      // Get position in shadow space.
+    // Get position in shadow space.
     float posX = length(toOccProj);
-      float posY = length(toOcc - toOccProj);
+    float posY = length(toOcc - toOccProj);
 
     float penumbra = mPenumbra * (posX + dPenumbra);
     float umbra    = mUmbra * (posX - dUmbra);
 
-      // As umbra becomes negative beyond the end of the umbra, the results of this code are wrong
-      // from this point on.
-      light *= clamp((posY - umbra) / (penumbra - umbra), 0.0, 1.0);
-    }
-  #endif
+    // As umbra becomes negative beyond the end of the umbra, the results of this code are wrong
+    // from this point on.
+    light *= clamp((posY - umbra) / (penumbra - umbra), 0.0, 1.0);
+  }
+#endif
 
   // -----------------------------------------------------------------------------------------------
   // ------------------------------------- OpenSpace -----------------------------------------------
@@ -484,180 +479,181 @@ vec3 getEclipseShadow(vec3 position) {
   // https://github.com/OpenSpace/OpenSpace/blob/d7d279ea168f5eaa6a0109593360774246699c4e/modules/globebrowsing/shaders/renderer_fs.glsl#L93
   // https://github.com/OpenSpace/OpenSpace/blob/d7d279ea168f5eaa6a0109593360774246699c4e/modules/globebrowsing/src/renderableglobe.cpp#L2086
 
-  #if ECLIPSE_MODE == 4
-    for (int i = 0; i < uEclipseNumOccluders; ++i) {
-      float distToSun = length(uEclipseSun.xyz - uEclipseOccluders[i].xyz);
+#if ECLIPSE_MODE == 4
+  for (int i = 0; i < uEclipseNumOccluders; ++i) {
+    float distToSun = length(uEclipseSun.xyz - uEclipseOccluders[i].xyz);
 
-      // Project the vector from fragment to occluder on the Sun-Occluder ray.
-      vec3  pc             = uEclipseOccluders[i].xyz - position;
-      vec3  sc_norm        = (uEclipseOccluders[i].xyz - uEclipseSun.xyz) / distToSun;
-      vec3  pc_proj        = dot(pc, sc_norm) * sc_norm;
-      float length_pc_proj = length(pc_proj);
+    // Project the vector from fragment to occluder on the Sun-Occluder ray.
+    vec3  pc             = uEclipseOccluders[i].xyz - position;
+    vec3  sc_norm        = (uEclipseOccluders[i].xyz - uEclipseSun.xyz) / distToSun;
+    vec3  pc_proj        = dot(pc, sc_norm) * sc_norm;
+    float length_pc_proj = length(pc_proj);
 
-      // Compute distance from fragment to Sun-Occluder ray.
-      vec3  d        = pc - pc_proj;
-      float length_d = length(d);
+    // Compute distance from fragment to Sun-Occluder ray.
+    vec3  d        = pc - pc_proj;
+    float length_d = length(d);
 
-      // Compute focus point of the penumbra cone. Somewhere in front of the occluder.
-      float xp = uEclipseOccluders[i].w * distToSun / (uEclipseSun.w + uEclipseOccluders[i].w);
+    // Compute focus point of the penumbra cone. Somewhere in front of the occluder.
+    float xp = uEclipseOccluders[i].w * distToSun / (uEclipseSun.w + uEclipseOccluders[i].w);
 
-      // Compute focus point of the umbra cone. Somewhere behind occluder.
-      float xu = uEclipseOccluders[i].w * distToSun / (uEclipseSun.w - uEclipseOccluders[i].w);
+    // Compute focus point of the umbra cone. Somewhere behind occluder.
+    float xu = uEclipseOccluders[i].w * distToSun / (uEclipseSun.w - uEclipseOccluders[i].w);
 
-      // The radius of the penumbra cone, computed with the intercept theorem. This is not really
-      // correct, as the tangents at the occluder do not really touch the poles.
-      float r_p_pi = uEclipseOccluders[i].w * (length_pc_proj + xp) / xp;
-      float r_u_pi = uEclipseOccluders[i].w * (xu - length_pc_proj) / xu;
+    // The radius of the penumbra cone, computed with the intercept theorem. This is not really
+    // correct, as the tangents at the occluder do not really touch the poles.
+    float r_p_pi = uEclipseOccluders[i].w * (length_pc_proj + xp) / xp;
+    float r_u_pi = uEclipseOccluders[i].w * (xu - length_pc_proj) / xu;
 
-      if (length_d < r_u_pi) { // umbra
+    if (length_d < r_u_pi) { // umbra
 
-        // The original code uses this:
-        // light *= sqrt(r_u_pi / (r_u_pi + pow(length_d, 2.0)));
+      // The original code uses this:
+      // light *= sqrt(r_u_pi / (r_u_pi + pow(length_d, 2.0)));
 
-        // In open space, this is close to zero in most cases, however as we are in the umbra, using
-        // exaclty zero seems more correct...
-        light *= 0.0;
+      // In open space, this is close to zero in most cases, however as we are in the umbra, using
+      // exaclty zero seems more correct...
+      light *= 0.0;
 
-      } else if (length_d < r_p_pi) { // penumbra
+    } else if (length_d < r_p_pi) { // penumbra
 
-        // This returns a linear falloff from the center of the shadow to the penumbra's edge. Using
-        // light *= (length_d - max(0, r_u_pi)) / (r_p_pi - max(0, r_u_pi));
-        // would have been better as this decays to zero towards the umbra. Nevertheless, this code
-        // still returns a completely black shadow center even behind the end of the umbra...?
+      // This returns a linear falloff from the center of the shadow to the penumbra's edge. Using
+      // light *= (length_d - max(0, r_u_pi)) / (r_p_pi - max(0, r_u_pi));
+      // would have been better as this decays to zero towards the umbra. Nevertheless, this code
+      // still returns a completely black shadow center even behind the end of the umbra...?
 
-        light *= length_d / r_p_pi;
-      }
+      light *= length_d / r_p_pi;
     }
-  #endif
+  }
+#endif
 
-  // -----------------------------------------------------------------------------------------------
-  // ---------------------------- Various Analytical Approaches ------------------------------------
-  // -----------------------------------------------------------------------------------------------
+// -----------------------------------------------------------------------------------------------
+// ---------------------------- Various Analytical Approaches ------------------------------------
+// -----------------------------------------------------------------------------------------------
 
-  // 5: Circle Intersection
-  // 6: Approximated Spherical Cap Intersection
-  // 7: Spherical Cap Intersection
-  #if ECLIPSE_MODE == 5 || ECLIPSE_MODE == 6 || ECLIPSE_MODE == 7
-    vec4  sunDirAngle = _eclipseGetBodyDirAngle(uEclipseSun, position);
-    float sunArea     = _eclipseGetCircleArea(sunDirAngle.w);
+// 5: Circle Intersection
+// 6: Approximated Spherical Cap Intersection
+// 7: Spherical Cap Intersection
+#if ECLIPSE_MODE == 5 || ECLIPSE_MODE == 6 || ECLIPSE_MODE == 7
+  vec4  sunDirAngle = _eclipseGetBodyDirAngle(uEclipseSun, position);
+  float sunArea     = _eclipseGetCircleArea(sunDirAngle.w);
 
-    for (int i = 0; i < uEclipseNumOccluders; ++i) {
+  for (int i = 0; i < uEclipseNumOccluders; ++i) {
 
-      vec4  bodyDirAngle = _eclipseGetBodyDirAngle(uEclipseOccluders[i], position);
-      float sunBodyDist  = _eclipseGetAngle(sunDirAngle.xyz, bodyDirAngle.xyz);
+    vec4  bodyDirAngle = _eclipseGetBodyDirAngle(uEclipseOccluders[i], position);
+    float sunBodyDist  = _eclipseGetAngle(sunDirAngle.xyz, bodyDirAngle.xyz);
 
-      float intersect = 0;
+    float intersect = 0;
 
-      #if ECLIPSE_MODE == 5
-        intersect = _eclipseGetCircleIntersection(sunDirAngle.w, bodyDirAngle.w, sunBodyDist);
-      #elif ECLIPSE_MODE == 6
-        intersect = _eclipseGetCapIntersectionApprox(sunDirAngle.w, bodyDirAngle.w, sunBodyDist);
-      #else
-        intersect = _eclipseGetCapIntersection(sunDirAngle.w, bodyDirAngle.w, sunBodyDist);
-      #endif
+#if ECLIPSE_MODE == 5
+    intersect = _eclipseGetCircleIntersection(sunDirAngle.w, bodyDirAngle.w, sunBodyDist);
+#elif ECLIPSE_MODE == 6
+    intersect = _eclipseGetCapIntersectionApprox(sunDirAngle.w, bodyDirAngle.w, sunBodyDist);
+#else
+    intersect = _eclipseGetCapIntersection(sunDirAngle.w, bodyDirAngle.w, sunBodyDist);
+#endif
 
-      light *= (sunArea - clamp(intersect, 0.0, sunArea)) / sunArea;
-    }
-  #endif
+    light *= (sunArea - clamp(intersect, 0.0, sunArea)) / sunArea;
+  }
+#endif
 
-  // -----------------------------------------------------------------------------------------------
-  // ------------------- Various Analytical Approaches (Double Precision) --------------------------
-  // -----------------------------------------------------------------------------------------------
+// -----------------------------------------------------------------------------------------------
+// ------------------- Various Analytical Approaches (Double Precision) --------------------------
+// -----------------------------------------------------------------------------------------------
 
-  // 8: Circle Intersection (Double Precision)
-  // 9: Spherical Cap Intersection (Double Precision)
-  #if ECLIPSE_MODE == 8 || ECLIPSE_MODE == 9
-    dvec4  sunDirAngle = _eclipseGetBodyDirAngleD(uEclipseSun, position);
-    double sunArea     = _eclipseGetCircleAreaD(sunDirAngle.w);
+// 8: Circle Intersection (Double Precision)
+// 9: Spherical Cap Intersection (Double Precision)
+#if ECLIPSE_MODE == 8 || ECLIPSE_MODE == 9
+  dvec4  sunDirAngle = _eclipseGetBodyDirAngleD(uEclipseSun, position);
+  double sunArea     = _eclipseGetCircleAreaD(sunDirAngle.w);
 
-    for (int i = 0; i < uEclipseNumOccluders; ++i) {
+  for (int i = 0; i < uEclipseNumOccluders; ++i) {
 
-      dvec4  bodyDirAngle = _eclipseGetBodyDirAngleD(uEclipseOccluders[i], position);
-      double sunBodyDist  = _eclipseGetAngleD(sunDirAngle.xyz, bodyDirAngle.xyz);
+    dvec4  bodyDirAngle = _eclipseGetBodyDirAngleD(uEclipseOccluders[i], position);
+    double sunBodyDist  = _eclipseGetAngleD(sunDirAngle.xyz, bodyDirAngle.xyz);
 
-      double intersect = 0;
+    double intersect = 0;
 
-      #if ECLIPSE_MODE == 8
-        intersect = _eclipseGetCircleIntersectionD(sunDirAngle.w, bodyDirAngle.w, sunBodyDist);
-      #else
-        intersect = _eclipseGetCapIntersectionD(sunDirAngle.w, bodyDirAngle.w, sunBodyDist);
-      #endif
+#if ECLIPSE_MODE == 8
+    intersect = _eclipseGetCircleIntersectionD(sunDirAngle.w, bodyDirAngle.w, sunBodyDist);
+#else
+    intersect = _eclipseGetCapIntersectionD(sunDirAngle.w, bodyDirAngle.w, sunBodyDist);
+#endif
 
-      light *= float((sunArea - clamp(intersect, 0.0LF, sunArea)) / sunArea);
-    }
-  #endif
+    light *= float((sunArea - clamp(intersect, 0.0LF, sunArea)) / sunArea);
+  }
+#endif
 
   // -----------------------------------------------------------------------------------------------
   // --------------------- Get Eclipse Shadow by Texture Lookups -----------------------------------
   // -----------------------------------------------------------------------------------------------
 
-  #if ECLIPSE_MODE == 10
-    const float textureMappingExponent = 1.0;
-    const bool  textureIncludesUmbra   = true;
+#if ECLIPSE_MODE == 10
+  const float textureMappingExponent = 1.0;
+  const bool  textureIncludesUmbra   = true;
 
-    vec4  sunDirAngle   = _eclipseGetBodyDirAngle(uEclipseSun, position);
-    float sunSolidAngle = ECLIPSE_PI * sunDirAngle.w * sunDirAngle.w;
+  vec4  sunDirAngle   = _eclipseGetBodyDirAngle(uEclipseSun, position);
+  float sunSolidAngle = ECLIPSE_PI * sunDirAngle.w * sunDirAngle.w;
 
-    for (int i = 0; i < uEclipseNumOccluders; ++i) {
+  for (int i = 0; i < uEclipseNumOccluders; ++i) {
 
-      vec4  bodyDirAngle = _eclipseGetBodyDirAngle(uEclipseOccluders[i], position);
-      float sunBodyDist  = _eclipseGetAngle(sunDirAngle.xyz, bodyDirAngle.xyz);
+    vec4  bodyDirAngle = _eclipseGetBodyDirAngle(uEclipseOccluders[i], position);
+    float sunBodyDist  = _eclipseGetAngle(sunDirAngle.xyz, bodyDirAngle.xyz);
 
-      float minOccDist = textureIncludesUmbra ? 0.0 : max(bodyDirAngle.w - sunDirAngle.w, 0.0);
-      float maxOccDist = sunDirAngle.w + bodyDirAngle.w;
+    float minOccDist = textureIncludesUmbra ? 0.0 : max(bodyDirAngle.w - sunDirAngle.w, 0.0);
+    float maxOccDist = sunDirAngle.w + bodyDirAngle.w;
 
-      float x = 1.0 / (bodyDirAngle.w / sunDirAngle.w + 1.0);
-      float y = (sunBodyDist - minOccDist) / (maxOccDist - minOccDist);
+    float x = 1.0 / (bodyDirAngle.w / sunDirAngle.w + 1.0);
+    float y = (sunBodyDist - minOccDist) / (maxOccDist - minOccDist);
 
-      x = pow(x, textureMappingExponent);
-      y = 1.0 - pow(1.0 - y, textureMappingExponent);
+    x = pow(x, textureMappingExponent);
+    y = 1.0 - pow(1.0 - y, textureMappingExponent);
 
-      if (!textureIncludesUmbra && y < 0) {
-        light = vec3(0.0);
-      } else if (x >= 0.0 && x <= 1.0 && y >= 0.0 && y <= 1.0) {
-        light *= texture(uEclipseShadowMaps[i], vec2(x, 1 - y)).rgb;
-      }
+    if (!textureIncludesUmbra && y < 0) {
+      light = vec3(0.0);
+    } else if (x >= 0.0 && x <= 1.0 && y >= 0.0 && y <= 1.0) {
+      light *= texture(uEclipseShadowMaps[i], vec2(x, 1 - y)).rgb;
     }
-  #endif
+  }
+#endif
 
   // -----------------------------------------------------------------------------------------------
   // --------------- Get Eclipse Shadow by Approximated Texture Lookups ----------------------------
   // -----------------------------------------------------------------------------------------------
 
-  #if ECLIPSE_MODE == 11
-    const float textureMappingExponent = 1.0;
-    const bool  textureIncludesUmbra   = true;
+#if ECLIPSE_MODE == 11
+  const float textureMappingExponent = 1.0;
+  const bool  textureIncludesUmbra   = true;
 
-    vec3 toSun = normalize(uEclipseSun.xyz - position);
+  vec3 toSun = normalize(uEclipseSun.xyz - position);
 
-    for (int i = 0; i < uEclipseNumOccluders; ++i) {
+  for (int i = 0; i < uEclipseNumOccluders; ++i) {
 
-      float distToSun  = length(uEclipseOccluders[i].xyz - uEclipseSun.xyz);
-      float appSunRadius = uEclipseSun.w / distToSun;
+    float distToSun    = length(uEclipseOccluders[i].xyz - uEclipseSun.xyz);
+    float appSunRadius = uEclipseSun.w / distToSun;
 
-      float distToCaster      = length(uEclipseOccluders[i].xyz - position);
-      float appOccluderRadius = uEclipseOccluders[i].w / distToCaster;
+    float distToCaster      = length(uEclipseOccluders[i].xyz - position);
+    float appOccluderRadius = uEclipseOccluders[i].w / distToCaster;
 
-      float sunBodyDist = length((uEclipseOccluders[i].xyz - position) / distToCaster - toSun);
-      // float sunBodyDist = sqrt(2.0 - 2.0 * dot((uEclipseOccluders[i].xyz - position) / distToCaster, toSun));
-      // float sunBodyDist  = _eclipseGetAngle((uEclipseOccluders[i].xyz - position)/distToCaster, toSun);
+    float sunBodyDist = length((uEclipseOccluders[i].xyz - position) / distToCaster - toSun);
+    // float sunBodyDist = sqrt(2.0 - 2.0 * dot((uEclipseOccluders[i].xyz - position) /
+    // distToCaster, toSun)); float sunBodyDist  = _eclipseGetAngle((uEclipseOccluders[i].xyz -
+    // position)/distToCaster, toSun);
 
-      float minOccDist = textureIncludesUmbra ? 0.0 : max(appOccluderRadius - appSunRadius, 0.0);
-      float maxOccDist = appSunRadius + appOccluderRadius;
+    float minOccDist = textureIncludesUmbra ? 0.0 : max(appOccluderRadius - appSunRadius, 0.0);
+    float maxOccDist = appSunRadius + appOccluderRadius;
 
-      float x = 1.0 / (appOccluderRadius / appSunRadius + 1.0);
-      float y = (sunBodyDist - minOccDist) / (maxOccDist - minOccDist);
+    float x = 1.0 / (appOccluderRadius / appSunRadius + 1.0);
+    float y = (sunBodyDist - minOccDist) / (maxOccDist - minOccDist);
 
-      x = pow(x, textureMappingExponent);
-      y = 1.0 - pow(1.0 - y, textureMappingExponent);
+    x = pow(x, textureMappingExponent);
+    y = 1.0 - pow(1.0 - y, textureMappingExponent);
 
-      if (!textureIncludesUmbra && y < 0) {
-        light = vec3(0.0);
-      } else if (x >= 0.0 && x <= 1.0 && y >= 0.0 && y <= 1.0) {
-        light *= texture(uEclipseShadowMaps[i], vec2(x, 1 - y)).rgb;
-      }
+    if (!textureIncludesUmbra && y < 0) {
+      light = vec3(0.0);
+    } else if (x >= 0.0 && x <= 1.0 && y >= 0.0 && y <= 1.0) {
+      light *= texture(uEclipseShadowMaps[i], vec2(x, 1 - y)).rgb;
     }
-  #endif
+  }
+#endif
 
   return light;
 }
