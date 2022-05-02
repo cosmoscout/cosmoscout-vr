@@ -442,33 +442,26 @@ vec3 getEclipseShadow(vec3 position) {
 
   #if ECLIPSE_MODE == 3
     for (int i = 0; i < uEclipseNumOccluders; ++i) {
-      float distToSun = length(uEclipseSun.xyz - uEclipseOccluders[i].xyz);
+    float rSun = uEclipseSun.w;
+    float rOcc = uEclipseOccluders[i].w;
 
-      float rOcc   = uEclipseOccluders[i].w;
-      float dOcc   = distToSun / (uEclipseSun.w / rOcc + 1);
-      float yP     = rOcc / dOcc * sqrt(dOcc * dOcc - rOcc * rOcc);
-      float xOcc   = sqrt(rOcc * rOcc - yP * yP);
-      float xUmbra = (distToSun * rOcc) / (uEclipseSun.w - rOcc) + xOcc;
-      float xF     = xOcc - dOcc;
+    float d         = length(uEclipseSun.xyz - uEclipseOccluders[i].xyz);
+    float dUmbra    = d * rOcc / (rSun - rOcc);
+    float dPenumbra = d * rOcc / (rSun + rOcc);
 
-      float xUmbraRimDist = sqrt(pow(xUmbra - xOcc, 2.0) - rOcc * rOcc);
-      float yU            = rOcc * xUmbraRimDist / (xUmbra - xOcc);
-      float a             = rOcc * rOcc / (xUmbra - xOcc);
+    float mUmbra    = -rOcc / sqrt(dUmbra * dUmbra - rOcc * rOcc);
+    float mPenumbra = rOcc / sqrt(dPenumbra * dUmbra - rOcc * rOcc);
 
-      float penumbraSlope = yP / -xF;
-      float umbraSlope    = -yU / (xUmbra - xOcc - a);
-
-      // Project the vector from fragment to occluder on the Sun-Occluder ray.
       vec3 toOcc        = uEclipseOccluders[i].xyz - position;
-      vec3 sunToOccNorm = (uEclipseOccluders[i].xyz - uEclipseSun.xyz) / distToSun;
+    vec3 sunToOccNorm = (uEclipseOccluders[i].xyz - uEclipseSun.xyz) / d;
       vec3 toOccProj    = dot(toOcc, sunToOccNorm) * sunToOccNorm;
 
       // Get position in shadow space.
-      float posX = length(toOccProj) + xOcc;
+    float posX = length(toOccProj);
       float posY = length(toOcc - toOccProj);
 
-      float penumbra = penumbraSlope * posX + yP;
-      float umbra    = umbraSlope * (posX + a + xOcc) + yU;
+    float penumbra = mPenumbra * (posX + dPenumbra);
+    float umbra    = mUmbra * (posX - dUmbra);
 
       // As umbra becomes negative beyond the end of the umbra, the results of this code are wrong
       // from this point on.
