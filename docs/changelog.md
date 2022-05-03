@@ -9,6 +9,10 @@
 
 **Release Date:** TBD
 
+#### New Features
+
+* The height and slope maps used by `csp-lod-bodies` now support an alpha channel. This way, planets can be made selectively translucent.
+
 #### Other Changes
 
 * Removed the obsolete "Mix with RGB" option for height or slope coloring of the LOD-Bodies. 
