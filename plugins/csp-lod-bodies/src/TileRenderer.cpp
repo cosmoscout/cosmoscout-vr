@@ -368,6 +368,8 @@ void TileRenderer::preRenderTiles(cs::graphics::ShadowMap* shadowMap) {
 
   if (mEnableFaceCulling) {
     glCullFace(GL_BACK);
+    glEnable(GL_CULL_FACE);
+  } else {
     glDisable(GL_CULL_FACE);
   }
 
@@ -575,11 +577,6 @@ void TileRenderer::postRenderTiles(cs::graphics::ShadowMap* shadowMap) {
 
   glActiveTexture(texUnitNameIMG);
   glBindTexture(GL_TEXTURE_2D_ARRAY, 0U);
-
-  if (mEnableFaceCulling) {
-    glDisable(GL_CULL_FACE);
-    glCullFace(GL_BACK);
-  }
 
   if (mEnableWireframe) {
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
