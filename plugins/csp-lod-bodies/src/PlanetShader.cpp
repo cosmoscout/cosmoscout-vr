@@ -70,8 +70,6 @@ PlanetShader::PlanetShader(std::shared_ptr<cs::core::Settings> settings,
         [this](bool /*ignored*/) { mShaderDirty = true; });
     mPluginSettings->mEnableLatLongGrid.connect(
         [this](bool /*ignored*/) { mShaderDirty = true; });
-    mPluginSettings->mEnableColorMixing.connect(
-        [this](bool /*ignored*/) { mShaderDirty = true; });
   // clang-format on
 
   // TODO: color map mangement could be done in a separate class
@@ -153,8 +151,6 @@ void PlanetShader::compile() {
       cs::utils::toString(mPluginSettings->mEnableLatLongGrid.get()));
   cs::utils::replaceString(mFragmentSource, "$SHOW_LAT_LONG",
       cs::utils::toString(mPluginSettings->mEnableLatLongGrid.get()));
-  cs::utils::replaceString(mFragmentSource, "$MIX_COLORS",
-      cs::utils::toString(mPluginSettings->mEnableColorMixing.get()));
 
   // Include the BRDFs together with their parameters and arguments.
   Plugin::Settings::BRDF const& brdfHdr = mPluginSettings->mBodies[mAnchorName].mBrdfHdr.get();

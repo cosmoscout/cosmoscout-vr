@@ -99,8 +99,7 @@ void main()
   #endif
 
   #if $COLOR_MAPPING_TYPE==1
-    if (/*fragColor == vec3(1) ||*/ $SHOW_TEXTURE != 1 || $MIX_COLORS == 1) {
-      // map height to color scale
+    {
       float height      = clamp(fsIn.height, heightMin, heightMax);
       float height_norm = (height - heightMin) / (heightMax - heightMin);
       fragColor *= texture(heightTex, height_norm).rgb;
@@ -108,7 +107,7 @@ void main()
   #endif
 
   #if $COLOR_MAPPING_TYPE==2
-    if (fragColor == vec3(1) || $MIX_COLORS == 1) {
+    {
       float slope = acos(dot(idealNormal, surfaceNormal));
       float fac = clamp((slope - slopeMin)/(slopeMax - slopeMin), 0.0, 1.0);
       fragColor *= texture(heightTex, fac).rgb;

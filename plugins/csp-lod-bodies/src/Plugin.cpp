@@ -124,7 +124,6 @@ void from_json(nlohmann::json const& j, Plugin::Settings& o) {
   cs::core::Settings::deserialize(j, "enableLatLongGrid", o.mEnableLatLongGrid);
   cs::core::Settings::deserialize(j, "colorMappingType", o.mColorMappingType);
   cs::core::Settings::deserialize(j, "terrainColorMap", o.mTerrainColorMap);
-  cs::core::Settings::deserialize(j, "enableColorMixing", o.mEnableColorMixing);
   cs::core::Settings::deserialize(j, "heightRange", o.mHeightRange);
   cs::core::Settings::deserialize(j, "slopeRange", o.mSlopeRange);
   cs::core::Settings::deserialize(j, "enableWireframe", o.mEnableWireframe);
@@ -147,7 +146,6 @@ void to_json(nlohmann::json& j, Plugin::Settings const& o) {
   cs::core::Settings::serialize(j, "enableLatLongGrid", o.mEnableLatLongGrid);
   cs::core::Settings::serialize(j, "colorMappingType", o.mColorMappingType);
   cs::core::Settings::serialize(j, "terrainColorMap", o.mTerrainColorMap);
-  cs::core::Settings::serialize(j, "enableColorMixing", o.mEnableColorMixing);
   cs::core::Settings::serialize(j, "heightRange", o.mHeightRange);
   cs::core::Settings::serialize(j, "slopeRange", o.mSlopeRange);
   cs::core::Settings::serialize(j, "enableWireframe", o.mEnableWireframe);
@@ -218,13 +216,6 @@ void Plugin::init() {
       std::function([this](bool enable) { mPluginSettings->mEnableLatLongGrid = enable; }));
   mPluginSettings->mEnableLatLongGrid.connectAndTouch([this](bool enable) {
     mGuiManager->setCheckboxValue("lodBodies.setEnableLatLongGrid", enable);
-  });
-
-  mGuiManager->getGui()->registerCallback("lodBodies.setEnableColorMixing",
-      "When enabled, the values of the colormap will be multiplied with the image channel.",
-      std::function([this](bool enable) { mPluginSettings->mEnableColorMixing = enable; }));
-  mPluginSettings->mEnableColorMixing.connectAndTouch([this](bool enable) {
-    mGuiManager->setCheckboxValue("lodBodies.setEnableColorMixing", enable);
   });
 
   mGuiManager->getGui()->registerCallback("lodBodies.setTerrainLod",
