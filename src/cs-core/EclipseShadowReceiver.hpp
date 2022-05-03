@@ -36,13 +36,14 @@ enum class EclipseShadowMode {
   eCelestia                       = 2,
   eCosmographia                   = 3,
   eOpenSpace                      = 4,
-  eCircleIntersection             = 5,
-  eApproxSphericalCapIntersection = 6,
-  eSphericalCapIntersection       = 7,
-  eCircleIntersectionDouble       = 8,
-  eSphericalCapIntersectionDouble = 9,
-  eTexture                        = 10,
-  eApproximatedTexture            = 11
+  eLinear                         = 5,
+  eCircleIntersection             = 6,
+  eApproxSphericalCapIntersection = 7,
+  eSphericalCapIntersection       = 8,
+  eCircleIntersectionDouble       = 9,
+  eSphericalCapIntersectionDouble = 10,
+  eTexture                        = 11,
+  eApproximatedTexture            = 12
 };
 
 class CS_CORE_EXPORT EclipseShadowReceiver {

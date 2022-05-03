@@ -509,7 +509,7 @@ class CS_CORE_EXPORT Settings {
 
     /// The eclipse shadow randering mode.
     utils::DefaultProperty<EclipseShadowMode> pEclipseShadowMode{
-        EclipseShadowMode::eCircleIntersection};
+        EclipseShadowMode::eTexture};
   };
 
   Graphics mGraphics;

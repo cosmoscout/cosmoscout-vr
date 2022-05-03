@@ -526,13 +526,46 @@ vec3 getEclipseShadow(vec3 position) {
 #endif
 
 // -----------------------------------------------------------------------------------------------
+// --------------------------- Linear gradient in the Penumbra -----------------------------------
+// -----------------------------------------------------------------------------------------------
+
+#if ECLIPSE_MODE == 5
+  for (int i = 0; i < uEclipseNumOccluders; ++i) {
+    float rSun = uEclipseSun.w;
+    float rOcc = uEclipseOccluders[i].w;
+
+    float d         = length(uEclipseSun.xyz - uEclipseOccluders[i].xyz);
+    float dUmbra    = d * rOcc / (rSun - rOcc);
+    float dPenumbra = d * rOcc / (rSun + rOcc);
+
+    float mUmbra    = -rOcc / sqrt(dUmbra * dUmbra - rOcc * rOcc);
+    float mPenumbra = rOcc / sqrt(dPenumbra * dUmbra - rOcc * rOcc);
+
+    vec3 toOcc        = uEclipseOccluders[i].xyz - position;
+    vec3 sunToOccNorm = (uEclipseOccluders[i].xyz - uEclipseSun.xyz) / d;
+    vec3 toOccProj    = dot(toOcc, sunToOccNorm) * sunToOccNorm;
+
+    // Get position in shadow space.
+    float posX = length(toOccProj);
+    float posY = length(toOcc - toOccProj);
+
+    float penumbra = mPenumbra * (posX + dPenumbra);
+    float umbra    = abs(mUmbra * (posX - dUmbra));
+
+    float maxDepth = min(1.0, pow(dUmbra / posX, 2.0));
+
+    light *= 1.0 - maxDepth * clamp(1.0 - (posY - umbra) / (penumbra - umbra), 0.0, 1.0);
+  }
+#endif
+
+// -----------------------------------------------------------------------------------------------
 // ---------------------------- Various Analytical Approaches ------------------------------------
 // -----------------------------------------------------------------------------------------------
 
-// 5: Circle Intersection
-// 6: Approximated Spherical Cap Intersection
-// 7: Spherical Cap Intersection
-#if ECLIPSE_MODE == 5 || ECLIPSE_MODE == 6 || ECLIPSE_MODE == 7
+// 6: Circle Intersection
+// 7: Approximated Spherical Cap Intersection
+// 8: Spherical Cap Intersection
+#if ECLIPSE_MODE == 6 || ECLIPSE_MODE == 7 || ECLIPSE_MODE == 8
   vec4  sunDirAngle = _eclipseGetBodyDirAngle(uEclipseSun, position);
   float sunArea     = _eclipseGetCircleArea(sunDirAngle.w);
 
@@ -543,9 +576,9 @@ vec3 getEclipseShadow(vec3 position) {
 
     float intersect = 0;
 
-#if ECLIPSE_MODE == 5
+#if ECLIPSE_MODE == 6
     intersect = _eclipseGetCircleIntersection(sunDirAngle.w, bodyDirAngle.w, sunBodyDist);
-#elif ECLIPSE_MODE == 6
+#elif ECLIPSE_MODE == 7
     intersect = _eclipseGetCapIntersectionApprox(sunDirAngle.w, bodyDirAngle.w, sunBodyDist);
 #else
     intersect = _eclipseGetCapIntersection(sunDirAngle.w, bodyDirAngle.w, sunBodyDist);
@@ -559,8 +592,8 @@ vec3 getEclipseShadow(vec3 position) {
 // ------------------- Various Analytical Approaches (Double Precision) --------------------------
 // -----------------------------------------------------------------------------------------------
 
-// 8: Circle Intersection (Double Precision)
-// 9: Spherical Cap Intersection (Double Precision)
+// 9: Circle Intersection (Double Precision)
+// 10: Spherical Cap Intersection (Double Precision)
 #if ECLIPSE_MODE == 8 || ECLIPSE_MODE == 9
   dvec4  sunDirAngle = _eclipseGetBodyDirAngleD(uEclipseSun, position);
   double sunArea     = _eclipseGetCircleAreaD(sunDirAngle.w);
@@ -572,7 +605,7 @@ vec3 getEclipseShadow(vec3 position) {
 
     double intersect = 0;
 
-#if ECLIPSE_MODE == 8
+#if ECLIPSE_MODE == 9
     intersect = _eclipseGetCircleIntersectionD(sunDirAngle.w, bodyDirAngle.w, sunBodyDist);
 #else
     intersect = _eclipseGetCapIntersectionD(sunDirAngle.w, bodyDirAngle.w, sunBodyDist);
@@ -586,7 +619,7 @@ vec3 getEclipseShadow(vec3 position) {
   // --------------------- Get Eclipse Shadow by Texture Lookups -----------------------------------
   // -----------------------------------------------------------------------------------------------
 
-#if ECLIPSE_MODE == 10
+#if ECLIPSE_MODE == 11
   const float textureMappingExponent = 1.0;
   const bool  textureIncludesUmbra   = true;
 
@@ -619,7 +652,7 @@ vec3 getEclipseShadow(vec3 position) {
   // --------------- Get Eclipse Shadow by Approximated Texture Lookups ----------------------------
   // -----------------------------------------------------------------------------------------------
 
-#if ECLIPSE_MODE == 11
+#if ECLIPSE_MODE == 12
   const float textureMappingExponent = 1.0;
   const bool  textureIncludesUmbra   = true;
 
