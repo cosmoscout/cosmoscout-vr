@@ -5,6 +5,14 @@
 # Changelog of CosmoScout VR
 
 
+## [v1.6.0](https://github.com/cosmoscout/cosmoscout-vr/releases)
+
+**Release Date:** TBD
+
+#### Other Changes
+
+* Removed the obsolete "Mix with RGB" option for height or slope coloring of the LOD-Bodies. 
+
 ## [v1.5.0](https://github.com/cosmoscout/cosmoscout-vr/releases)
 
 **Release Date:** 2022-02-25
