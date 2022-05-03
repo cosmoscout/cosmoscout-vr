@@ -218,23 +218,43 @@ void PlanetShader::bind() {
   loc = mShader.GetUniformLocation("uSunDirIlluminance");
   mShader.SetUniform(loc, mSunDirection.x, mSunDirection.y, mSunDirection.z, mSunIlluminance);
 
-  mFontTexture->Bind(TEXUNITNAMEFONT);
+  if (mPluginSettings->mEnableLatLongGrid.get()) {
+    mFontTexture->Bind(TEXUNITNAMEFONT);
+  }
 
-  auto it(mColorMaps.find(mPluginSettings->mTerrainColorMap.get()));
-  if (it != mColorMaps.end()) {
-    it->second.bind(TEXUNITNAMELUT);
+  if (mPluginSettings->mColorMappingType.get() != Plugin::Settings::ColorMappingType::eNone) {
+    auto it(mColorMaps.find(mPluginSettings->mTerrainColorMap.get()));
+    if (it != mColorMaps.end()) {
+      it->second.bind(TEXUNITNAMELUT);
+
+      // Enable alpha blending if the color map uses the alpha channel.
+      if (it->second.getUsesAlpha()) {
+        glPushAttrib(GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+      }
+    }
   }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void PlanetShader::release() {
-  auto it(mColorMaps.find(mPluginSettings->mTerrainColorMap.get()));
-  if (it != mColorMaps.end()) {
-    it->second.unbind(TEXUNITNAMELUT);
+  if (mPluginSettings->mColorMappingType.get() != Plugin::Settings::ColorMappingType::eNone) {
+    auto it(mColorMaps.find(mPluginSettings->mTerrainColorMap.get()));
+    if (it != mColorMaps.end()) {
+      it->second.unbind(TEXUNITNAMELUT);
+
+      // Disable alpha blending if the color map uses the alpha channel.
+      if (it->second.getUsesAlpha()) {
+        glPopAttrib();
+      }
+    }
   }
 
-  mFontTexture->Unbind(TEXUNITNAMEFONT);
+  if (mPluginSettings->mEnableLatLongGrid.get()) {
+    mFontTexture->Unbind(TEXUNITNAMEFONT);
+  }
 
   TerrainShader::release();
 }
