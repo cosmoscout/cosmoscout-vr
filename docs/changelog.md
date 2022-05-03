@@ -17,6 +17,10 @@
 
 * Removed the obsolete "Mix with RGB" option for height or slope coloring of the LOD-Bodies. 
 
+#### Bug Fixes
+
+* Back-face culling of LOD-Bodies does now work properly.
+
 ## [v1.5.0](https://github.com/cosmoscout/cosmoscout-vr/releases)
 
 **Release Date:** 2022-02-25
