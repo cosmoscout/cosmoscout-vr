@@ -525,9 +525,9 @@ vec3 getEclipseShadow(vec3 position) {
   }
 #endif
 
-// -----------------------------------------------------------------------------------------------
-// --------------------------- Linear gradient in the Penumbra -----------------------------------
-// -----------------------------------------------------------------------------------------------
+  // -----------------------------------------------------------------------------------------------
+  // --------------------------- Linear gradient in the Penumbra -----------------------------------
+  // -----------------------------------------------------------------------------------------------
 
 #if ECLIPSE_MODE == 5
   for (int i = 0; i < uEclipseNumOccluders; ++i) {
@@ -558,9 +558,9 @@ vec3 getEclipseShadow(vec3 position) {
   }
 #endif
 
-// -----------------------------------------------------------------------------------------------
-// ------------------------- Smoothstep gradient in the Penumbra ---------------------------------
-// -----------------------------------------------------------------------------------------------
+  // -----------------------------------------------------------------------------------------------
+  // ------------------------- Smoothstep gradient in the Penumbra ---------------------------------
+  // -----------------------------------------------------------------------------------------------
 
 #if ECLIPSE_MODE == 6
   for (int i = 0; i < uEclipseNumOccluders; ++i) {
@@ -587,7 +587,8 @@ vec3 getEclipseShadow(vec3 position) {
 
     float maxDepth = min(1.0, pow(dUmbra / posX, 2.0));
 
-    light *= 1.0 - maxDepth * clamp(1.0 - smoothstep(0, 1, (posY - umbra) / (penumbra - umbra)), 0.0, 1.0);
+    light *= 1.0 - maxDepth *
+                       clamp(1.0 - smoothstep(0, 1, (posY - umbra) / (penumbra - umbra)), 0.0, 1.0);
   }
 #endif
 
@@ -611,7 +612,7 @@ vec3 getEclipseShadow(vec3 position) {
 #if ECLIPSE_MODE == 7
     intersect = _eclipseGetCircleIntersection(sunDirAngle.w, bodyDirAngle.w, sunBodyDist);
 #else
-    intersect = _eclipseGetCapIntersection(sunDirAngle.w, bodyDirAngle.w, sunBodyDist);
+    intersect            = _eclipseGetCapIntersection(sunDirAngle.w, bodyDirAngle.w, sunBodyDist);
 #endif
 
     light *= (sunArea - clamp(intersect, 0.0, sunArea)) / sunArea;
@@ -638,7 +639,7 @@ vec3 getEclipseShadow(vec3 position) {
 #if ECLIPSE_MODE == 9
     intersect = _eclipseGetCircleIntersectionD(sunDirAngle.w, bodyDirAngle.w, sunBodyDist);
 #else
-    intersect = _eclipseGetCapIntersectionD(sunDirAngle.w, bodyDirAngle.w, sunBodyDist);
+    intersect            = _eclipseGetCapIntersectionD(sunDirAngle.w, bodyDirAngle.w, sunBodyDist);
 #endif
 
     light *= float((sunArea - clamp(intersect, 0.0LF, sunArea)) / sunArea);

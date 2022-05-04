@@ -1215,8 +1215,7 @@ void Application::registerGuiCallbacks() {
   mGuiManager->getGui()->registerCallback("graphics.setEclipseShadowMode6",
       "Enables Eclipse Shadows based on approximated spherical cap intersections.",
       std::function([this]() {
-        mSettings->mGraphics.pEclipseShadowMode =
-            cs::core::EclipseShadowMode::eSmoothstep;
+        mSettings->mGraphics.pEclipseShadowMode = cs::core::EclipseShadowMode::eSmoothstep;
       }));
   mGuiManager->getGui()->registerCallback("graphics.setEclipseShadowMode7",
       "Enables Eclipse Shadows based on circle intersections.", std::function([this]() {
