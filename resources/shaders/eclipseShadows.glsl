@@ -624,7 +624,7 @@ vec3 getEclipseShadow(vec3 position) {
 
 // 9: Circle Intersection (Double Precision)
 // 10: Spherical Cap Intersection (Double Precision)
-#if ECLIPSE_MODE == 8 || ECLIPSE_MODE == 9
+#if ECLIPSE_MODE == 9 || ECLIPSE_MODE == 10
   dvec4  sunDirAngle = _eclipseGetBodyDirAngleD(uEclipseSun, position);
   double sunArea     = _eclipseGetCircleAreaD(sunDirAngle.w);
 
