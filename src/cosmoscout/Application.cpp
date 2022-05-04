@@ -1213,14 +1213,14 @@ void Application::registerGuiCallbacks() {
         mSettings->mGraphics.pEclipseShadowMode = cs::core::EclipseShadowMode::eLinear;
       }));
   mGuiManager->getGui()->registerCallback("graphics.setEclipseShadowMode6",
-      "Enables Eclipse Shadows based on circle intersections.", std::function([this]() {
-        mSettings->mGraphics.pEclipseShadowMode = cs::core::EclipseShadowMode::eCircleIntersection;
-      }));
-  mGuiManager->getGui()->registerCallback("graphics.setEclipseShadowMode7",
       "Enables Eclipse Shadows based on approximated spherical cap intersections.",
       std::function([this]() {
         mSettings->mGraphics.pEclipseShadowMode =
-            cs::core::EclipseShadowMode::eApproxSphericalCapIntersection;
+            cs::core::EclipseShadowMode::eSmoothstep;
+      }));
+  mGuiManager->getGui()->registerCallback("graphics.setEclipseShadowMode7",
+      "Enables Eclipse Shadows based on circle intersections.", std::function([this]() {
+        mSettings->mGraphics.pEclipseShadowMode = cs::core::EclipseShadowMode::eCircleIntersection;
       }));
   mGuiManager->getGui()->registerCallback("graphics.setEclipseShadowMode8",
       "Enables Eclipse Shadows based on spherical cap intersections.", std::function([this]() {
@@ -1260,9 +1260,9 @@ void Application::registerGuiCallbacks() {
       mGuiManager->setRadioChecked("graphics.setEclipseShadowMode4");
     } else if (mode == cs::core::EclipseShadowMode::eLinear) {
       mGuiManager->setRadioChecked("graphics.setEclipseShadowMode5");
-    } else if (mode == cs::core::EclipseShadowMode::eCircleIntersection) {
+    } else if (mode == cs::core::EclipseShadowMode::eSmoothstep) {
       mGuiManager->setRadioChecked("graphics.setEclipseShadowMode6");
-    } else if (mode == cs::core::EclipseShadowMode::eApproxSphericalCapIntersection) {
+    } else if (mode == cs::core::EclipseShadowMode::eCircleIntersection) {
       mGuiManager->setRadioChecked("graphics.setEclipseShadowMode7");
     } else if (mode == cs::core::EclipseShadowMode::eSphericalCapIntersection) {
       mGuiManager->setRadioChecked("graphics.setEclipseShadowMode8");
