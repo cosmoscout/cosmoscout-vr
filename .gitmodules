@@ -49,3 +49,12 @@
 [submodule "externals/openvr"]
 	path = externals/openvr
 	url = https://github.com/ValveSoftware/openvr.git
+[submodule "externals/vtk"]
+	path = externals/vtk
+	url = https://github.com/Kitware/VTK.git
+[submodule "externals/ospray"]
+	path = externals/ospray
+	url = https://github.com/ospray/ospray.git
+[submodule "plugins/csp-volume-rendering"]
+	path = plugins/csp-volume-rendering
+	url = https://github.com/cosmoscout/csp-volume-rendering.git
