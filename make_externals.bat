@@ -80,6 +80,67 @@ cmake -E make_directory "%INSTALL_DIR%/share"
 cmake -E make_directory "%INSTALL_DIR%/bin"
 cmake -E make_directory "%INSTALL_DIR%/include"
 
+goto :ospray_dependencies
+rem # VTK -----------------------------------------------------------------------------------------
+:vtk
+
+echo .
+echo Building and installing VTK 9.1 ...
+echo .
+
+cmake -E make_directory "%BUILD_DIR%/vtk" && cd "%BUILD_DIR%/vtk"
+cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%"^
+      -DVTK_BUILD_TESTING=OFF -DVTK_BUILD_EXAMPLES=OFF^
+			-DVTK_GROUP_ENABLE_Imaging=DONT_WANT^
+			-DVTK_GROUP_ENABLE_MPI=DONT_WANT^
+			-DVTK_GROUP_ENABLE_Qt=DONT_WANT^
+			-DVTK_GROUP_ENABLE_Rendering=DONT_WANT^
+			-DVTK_GROUP_ENABLE_StandAlone=DONT_WANT^
+			-DVTK_GROUP_ENABLE_Views=DONT_WANT^
+			-DVTK_GROUP_ENABLE_Web=DONT_WANT^
+			-DVTK_MODULE_ENABLE_VTK_CommonCore=YES^
+			-DVTK_MODULE_ENABLE_VTK_CommonDataModel=YES^
+			-DVTK_MODULE_ENABLE_VTK_FiltersCore=YES^
+			-DVTK_MODULE_ENABLE_VTK_FiltersGeometry=YES^
+			-DVTK_MODULE_ENABLE_VTK_IOInfovis=YES^
+			-DVTK_MODULE_ENABLE_VTK_IOImage=YES^
+			-DVTK_MODULE_ENABLE_VTK_IOLegacy=YES^
+			-DVTK_MODULE_ENABLE_VTK_IOXML=YES^
+			-DVTK_MODULE_ENABLE_VTK_IONetCDF=YES^
+			-DVTK_MODULE_ENABLE_VTK_IOWeb=YES^
+			"%EXTERNALS_DIR%/vtk" || goto :error
+cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS% || goto :error
+
+rem ospray -----------------------------------------------------------------------------------------
+:ospray_dependencies
+
+echo.
+echo Building and installing ospray dependencies...
+echo.
+
+cmake -E make_directory %BUILD_DIR%/ospray_dependencies && cd %BUILD_DIR%/ospray_dependencies
+cmake %CMAKE_FLAGS% -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DCMAKE_INSTALL_PREFIX=%INSTALL_DIR%^
+  -DBUILD_JOBS=%NUMBER_OF_PROCESSORS% -DINSTALL_IN_SEPARATE_DIRECTORIES=Off^
+  -DBUILD_EMBREE_FROM_SOURCE=Off -DBUILD_OIDN_FROM_SOURCE=Off^
+  -DBUILD_DEPENDENCIES_ONLY=On -DBUILD_OIDN=On^
+  %EXTERNALS_DIR%/ospray/scripts/superbuild
+cmake --build . --config %BUILD_TYPE% --parallel %NUMBER_OF_PROCESSORS% || goto :error
+
+:ospray
+echo.
+echo Building and installing ospray 2.6.0.
+echo.
+
+cmake -E make_directory %BUILD_DIR%/ospray && cd %BUILD_DIR%/ospray
+cmake %CMAKE_FLAGS% -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DCMAKE_INSTALL_PREFIX=%INSTALL_DIR%^
+  -DRKCOMMON_TBB_ROOT=%INSTALL_DIR% -DISPC_EXECUTABLE=%INSTALL_DIR%/bin/ispc.exe^
+  -DOSPRAY_ENABLE_APPS=Off -DOSPRAY_MODULE_DENOISER=On -DOSPRAY_INSTALL_DEPENDENCIES=Off^
+  -DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=On^
+  %EXTERNALS_DIR%/ospray
+cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS% || goto :error
+
+rem ------------------------------------------------------------------------------------------------
+
 rem glew -------------------------------------------------------------------------------------------
 :glew
 
