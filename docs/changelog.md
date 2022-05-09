@@ -5,6 +5,22 @@
 # Changelog of CosmoScout VR
 
 
+## [v1.6.0](https://github.com/cosmoscout/cosmoscout-vr/releases)
+
+**Release Date:** TBD
+
+#### New Features
+
+* The height and slope maps used by `csp-lod-bodies` now support an alpha channel. This way, planets can be made selectively translucent.
+
+#### Other Changes
+
+* Removed the obsolete "Mix with RGB" option for height or slope coloring of the LOD-Bodies. 
+
+#### Bug Fixes
+
+* Back-face culling of LOD-Bodies does now work properly.
+
 ## [v1.5.0](https://github.com/cosmoscout/cosmoscout-vr/releases)
 
 **Release Date:** 2022-02-25
