@@ -12,7 +12,7 @@ set CURRENT_DIR=%cd%
 cd "%SCRIPT_DIR%"
 
 rem Scene config file can be passed as first parameter.
-set SETTINGS=../share/config/ila.json
+set SETTINGS=../share/config/simple_desktop.json
 IF NOT "%1"=="" (
   SET SETTINGS=%1
   SHIFT
