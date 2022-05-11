@@ -48,7 +48,7 @@ vec3 heat(float v) {
 // outputs
 // ==========================================================================
 
-layout(location = 0) out vec3 fragColor;
+layout(location = 0) out vec4 fragColor;
 
 vec3 SRGBtoLINEAR(vec3 srgbIn)
 {
@@ -72,7 +72,7 @@ void main()
 
   gl_FragDepth = length(fsIn.position) / VP_farClip;
 
-  fragColor = vec3(1);
+  fragColor = vec4(1);
 
   vec3 idealNormal = normalize(fsIn.position - fsIn.planetCenter);
 
@@ -86,32 +86,31 @@ void main()
 
   #if $SHOW_TEXTURE
     #if $TEXTURE_IS_RGB
-      fragColor = texture(VP_texIMG, vec3(fsIn.texcoords, VP_layerIMG)).rgb;
+      fragColor.rgb = texture(VP_texIMG, vec3(fsIn.texcoords, VP_layerIMG)).rgb;
     #else
-      fragColor = texture(VP_texIMG, vec3(fsIn.texcoords, VP_layerIMG)).rrr;
+      fragColor.rgb = texture(VP_texIMG, vec3(fsIn.texcoords, VP_layerIMG)).rrr;
     #endif
 
     #if $ENABLE_HDR
-      fragColor = SRGBtoLINEAR(fragColor);
+      fragColor.rgb = SRGBtoLINEAR(fragColor.rgb);
     #endif
 
-    fragColor = pow(fragColor, vec3(1.0 / texGamma));
+    fragColor.rgb = pow(fragColor.rgb, vec3(1.0 / texGamma));
   #endif
 
   #if $COLOR_MAPPING_TYPE==1
-    if (/*fragColor == vec3(1) ||*/ $SHOW_TEXTURE != 1 || $MIX_COLORS == 1) {
-      // map height to color scale
+    {
       float height      = clamp(fsIn.height, heightMin, heightMax);
       float height_norm = (height - heightMin) / (heightMax - heightMin);
-      fragColor *= texture(heightTex, height_norm).rgb;
+      fragColor *= texture(heightTex, height_norm);
     }
   #endif
 
   #if $COLOR_MAPPING_TYPE==2
-    if (fragColor == vec3(1) || $MIX_COLORS == 1) {
+    {
       float slope = acos(dot(idealNormal, surfaceNormal));
       float fac = clamp((slope - slopeMin)/(slopeMax - slopeMin), 0.0, 1.0);
-      fragColor *= texture(heightTex, fac).rgb;
+      fragColor *= texture(heightTex, fac);
     }
   #endif
 
@@ -149,12 +148,12 @@ void main()
         luminance *= f_r * illuminance;
       }
     }
-    fragColor /= $AVG_LINEAR_IMG_INTENSITY;
-    fragColor *= luminance;
+    fragColor.rgb /= $AVG_LINEAR_IMG_INTENSITY;
+    fragColor.rgb *= luminance;
   #elif $ENABLE_HDR
     luminance *= illuminance;
-    fragColor /= $AVG_LINEAR_IMG_INTENSITY;
-    fragColor *= luminance;
+    fragColor.rgb /= $AVG_LINEAR_IMG_INTENSITY;
+    fragColor.rgb *= luminance;
   #elif $ENABLE_LIGHTING
     if (cos_i < 0) {
       luminance *= 0;
@@ -168,7 +167,7 @@ void main()
         luminance *= f_r;
       }
     }
-    fragColor = mix(fragColor * ambient, fragColor, luminance);
+    fragColor.rgb = mix(fragColor.rgb * ambient, fragColor.rgb, luminance);
   #endif
 
 
@@ -219,14 +218,14 @@ void main()
         else                         debugColor = vec4(neighbourSame,   1.0);
     }
 
-    fragColor = mix(fragColor, debugColor.rgb, debugColor.a);
+    fragColor.rgb = mix(fragColor.rgb, debugColor.rgb, debugColor.a);
   #endif
   
   #if $ENABLE_SHADOWS_DEBUG && $ENABLE_SHADOWS
     float cascade = VP_getCascade(fsIn.position);
     if (cascade >= 0)
     {
-        fragColor = mix(fragColor, heat(1-cascade/(VP_shadowCascades-1)), 0.2);
+        fragColor.rgb = mix(fragColor.rgb, heat(1-cascade/(VP_shadowCascades-1)), 0.2);
     }
   #endif
 
@@ -238,9 +237,9 @@ void main()
   {
     #if $ENABLE_LIGHTING
       float fIdealLightIntensity = dot(idealNormal, normalize(fsIn.sunDir)) * (1.0 - ambient) + ambient;
-      vec3 grid_color = mix(fragColor, vec3(mix(1.0, 0.0, clamp(fIdealLightIntensity + 1.0, 0.0, 1.0))), 0.8);
+      vec3 grid_color = mix(fragColor.rgb, vec3(mix(1.0, 0.0, clamp(fIdealLightIntensity + 1.0, 0.0, 1.0))), 0.8);
     #else
-      vec3 grid_color = mix(fragColor, vec3(0), 0.8);
+      vec3 grid_color = mix(fragColor.rgb, vec3(0), 0.8);
     #endif
 
     const float spacings[4]        = float[](500.0, 50.0, 5.0, 1.0);
@@ -259,7 +258,7 @@ void main()
       float latA = clamp(abs(latDhMirrored / wLatDeg), 0.0, 1.0);
 
       #if $SHOW_LAT_LONG
-        fragColor = mix(fragColor, grid_color, (1.0 - latA)*grid_fade*intensities[i]);
+        fragColor.rgb = mix(fragColor.rgb, grid_color, (1.0 - latA)*grid_fade*intensities[i]);
       #endif
 
       float lngDeg = (fsIn.lngLat.x / VP_PI) * 9000.0;
@@ -270,7 +269,7 @@ void main()
       float lngA = clamp(abs(lngDhMirrored / wLngDeg), 0.0, 1.0);
 
       #if $SHOW_LAT_LONG
-        fragColor = mix(fragColor, grid_color, (1.0 - lngA)*grid_fade*intensities[i]);
+        fragColor.rgb = mix(fragColor.rgb, grid_color, (1.0 - lngA)*grid_fade*intensities[i]);
       #endif
 
       // print labels
@@ -351,7 +350,7 @@ void main()
               fade *= max(dot(viewDir/camDist, idealNormal), 0.0);
               fade *= clamp(curr_label_fade - next_label_fade, 0.0, 1.0);
 
-              fragColor = mix(fragColor, grid_color, fade);
+              fragColor.rgb = mix(fragColor.rgb, grid_color, fade);
             }
 
           }
@@ -378,11 +377,11 @@ void main()
       float levelDhMirrored = (levelDh > 0.5 * levels[i]) ? levels[i] - levelDh : levelDh;
 
       float level = clamp(abs(levelDhMirrored / wh), 0.0, 1.0);
-      fragColor = mix(fragColor, (1.0 - intensities[i]) * fragColor, (1.0 - level)*fade);
+      fragColor.rgb = mix(fragColor.rgb, (1.0 - intensities[i]) * fragColor.rgb, (1.0 - level)*fade);
 
       // layer shading
       float layer = clamp(abs((levels[i] - levelDh) / wh) * 0.1, 0.0, 1.0);
-      fragColor = mix(fragColor, (1.0 - intensities[i]) * fragColor, (1.0 - layer)*fade*0.5);
+      fragColor.rgb = mix(fragColor.rgb, (1.0 - intensities[i]) * fragColor.rgb, (1.0 - layer)*fade*0.5);
     }
   }
   #endif
