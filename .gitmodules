@@ -49,3 +49,6 @@
 [submodule "externals/openvr"]
 	path = externals/openvr
 	url = https://github.com/ValveSoftware/openvr.git
+[submodule "externals/vrpn"]
+	path = externals/vrpn
+	url = https://github.com/vrpn/vrpn.git

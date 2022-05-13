@@ -360,6 +360,18 @@ if %USING_NINJA%==true (
   cmake -E copy "%BUILD_DIR%/cspice/extracted/cspice/%BUILD_TYPE%/cspice.dll" "%INSTALL_DIR%/lib"
 )
 
+rem vrpn -------------------------------------------------------------------------------------------
+:vrpn
+
+echo.
+echo Building and installing vrpn ...
+echo.
+
+cmake -E make_directory "%BUILD_DIR%/vrpn" && cd "%BUILD_DIR%/vrpn"
+
+cmake %CMAKE_FLAGS% -DVRPN_INSTALL=On -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%" "%EXTERNALS_DIR%/vrpn" || exit /b
+cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS%
+
 rem cef --------------------------------------------------------------------------------------------
 :cef
 

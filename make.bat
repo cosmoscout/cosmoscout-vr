@@ -85,6 +85,10 @@ cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PRO
 rem Delete empty files installed by cmake
 robocopy "%INSTALL_DIR%\lib" "%INSTALL_DIR%\lib" /s /move || exit /b
 
+rem Add VRPN cfg file with entries for Xbox 360 Controllers and XInput devices
+cd "%EXTERNALS_INSTALL_DIR%\bin"
+echo vrpn_Microsoft_Controller_Raw_Xbox_360 microsoft0 > vrpn_csvr.cfg
+
 cd "%CURRENT_DIR%"
 echo Finished successfully.
 
