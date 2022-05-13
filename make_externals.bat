@@ -301,6 +301,18 @@ cmake -E copy_directory "%EXTERNALS_DIR%/openvr/bin/win64" "%INSTALL_DIR%/bin"  
 cmake -E copy_directory "%EXTERNALS_DIR%/openvr/lib/win64" "%INSTALL_DIR%/lib"            || goto :error
 cmake -E copy_directory "%EXTERNALS_DIR%/openvr/headers"   "%INSTALL_DIR%/include/openvr" || goto :error
 
+rem vrpn -------------------------------------------------------------------------------------------
+:vrpn
+
+echo.
+echo Building and installing vrpn ...
+echo.
+
+cmake -E make_directory "%BUILD_DIR%/vrpn" && cd "%BUILD_DIR%/vrpn"
+
+cmake %CMAKE_FLAGS% -DVRPN_INSTALL=On -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%" "%EXTERNALS_DIR%/vrpn" || exit /b
+cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS%
+
 rem vista ------------------------------------------------------------------------------------------
 :vista
 
@@ -317,6 +329,7 @@ cmake %CMAKE_FLAGS% -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%" -DVISTADEMO_ENABLED=O
       -DCMAKE_BUILD_TYPE=%BUILD_TYPE% -DVISTACORELIBS_USE_VIVE=On -DVISTADRIVERS_BUILD_VIVE=On^
       -DOPENVR_ROOT_DIR="%INSTALL_DIR%" -DGLUT_INCLUDE_DIR=%INSTALL_DIR%/include^
       -DCMAKE_UNITY_BUILD=%UNITY_BUILD% -DVISTA_USE_PRECOMPILED_HEADERS=%PRECOMPILED_HEADERS%^
+      -DVRPN_ROOT=%INSTALL_DIR% -DVISTADRIVERS_BUILD_VRPN=On -DVRPN_BUILD_TESTAPPS=Off^
       "%EXTERNALS_DIR%/vista" || goto :error
 cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS% || goto :error
 
@@ -359,18 +372,6 @@ if %USING_NINJA%==true (
   cmake -E copy "%BUILD_DIR%/cspice/extracted/cspice/%BUILD_TYPE%/cspice.lib" "%INSTALL_DIR%/lib"
   cmake -E copy "%BUILD_DIR%/cspice/extracted/cspice/%BUILD_TYPE%/cspice.dll" "%INSTALL_DIR%/lib"
 )
-
-rem vrpn -------------------------------------------------------------------------------------------
-:vrpn
-
-echo.
-echo Building and installing vrpn ...
-echo.
-
-cmake -E make_directory "%BUILD_DIR%/vrpn" && cd "%BUILD_DIR%/vrpn"
-
-cmake %CMAKE_FLAGS% -DVRPN_INSTALL=On -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%" "%EXTERNALS_DIR%/vrpn" || exit /b
-cmake --build . --config %BUILD_TYPE% --target install --parallel %NUMBER_OF_PROCESSORS%
 
 rem cef --------------------------------------------------------------------------------------------
 :cef
