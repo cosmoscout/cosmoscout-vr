@@ -1,0 +1,136 @@
+<!-- ///////////////////////////////////////////////////////////////////////////////////////////////
+//                               This file is part of CosmoScout VR                               //
+//      and may be used under the terms of the MIT license. See the LICENSE file for details.     //
+//                        Copyright: (c) 2019 German Aerospace Center (DLR)                       //
+//////////////////////////////////////////////////////////////////////////////////////////////// -->
+
+<?xml version="1.0" encoding="utf-8"?>
+<module>
+    <nodespace>
+    </nodespace>
+    <graph>
+        <!-- Debugging -->
+        <node name="debug_text" type="SimpleText" />
+
+        <!-- DFN to negotiate which positions to use for 3dmouse and intention_transform (to use controller and mouse interchangeable) -->
+        <!--    get position values -->
+        <node name="get_mouse_xpos" type="GetVariable[int]">
+            <param name="variable" value="mouse_xpos" />
+        </node>
+        <node name="get_mouse_ypos" type="GetVariable[int]">
+            <param name="variable" value="mouse_ypos" />
+        </node>
+        <node name="get_gamepad_xpos" type="GetVariable[int]">
+            <param name="variable" value="gamepad_xpos" />
+        </node>
+        <node name="get_gamepad_ypos" type="GetVariable[int]">
+            <param name="variable" value="gamepad_ypos" />
+        </node>
+
+        <!--    compare values -->
+        <!--        convert to float -->
+        <node name="mouse_xpos_to_float" type="TypeConvert[int,float]" />
+        <node name="mouse_ypos_to_float" type="TypeConvert[int,float]" />
+
+        <node name="gamepad_xpos_to_float" type="TypeConvert[int,float]" />
+        <node name="gamepad_ypos_to_float" type="TypeConvert[int,float]" />
+
+        <node name="const_0" type="ConstantValue[float]">
+            <param name="value" value="0" />
+        </node>
+
+        <!--        compose vectors -->
+        <node name="compose_mouse" type="Compose3DVector" />
+        <node name="compose_gamepad" type="Compose3DVector" />
+
+        <!--        check for change / generate timestamp -->
+        <node name="cd_mouse" type="ChangeDetect[VistaVector3D]" />
+        <node name="cd_gamepad" type="ChangeDetect[VistaVector3D]" />
+
+        <!--        compare timestamps -->
+        <node name="latest_pos" type="LatestUpdate[VistaVector3D]" />
+
+        <!--        decompose vector into positions -->
+        <node name="decompose_pos" type="Decompose3DVector" />
+        <!--        convert to int -->
+        <node name="xpos_to_int" type="TypeConvert[float,int]" />
+        <node name="ypos_to_int" type="TypeConvert[float,int]" />
+
+        <!--    feed positions to intention_transform via 3dmouse -->
+        <node name="3dmouse" type="3DMouseTransform">
+            <param name="displaysystem" value="MAIN" />
+            <param name="viewport" value="MAIN_VIEWPORT" />
+            <param name="in_world_coordinates" value="FALSE" />
+            <param name="origin_offset_along_ray" value="0" />
+        </node>
+        <node name="3dmouse_matrix" type="MatrixCompose" />
+        <node name="intention_transform" type="SetTransform">
+            <param name="object" value="SELECTION_NODE" />
+        </node>
+
+    </graph>
+    <edges>
+        <!-- convert position variables -->
+        <edge fromnode="get_mouse_xpos" fromport="value"
+              tonode="mouse_xpos_to_float" toport="in" />
+        <edge fromnode="get_mouse_ypos" fromport="value"
+              tonode="mouse_ypos_to_float" toport="in" />
+
+        <edge fromnode="get_gamepad_xpos" fromport="value"
+              tonode="gamepad_xpos_to_float" toport="in" />
+        <edge fromnode="get_gamepad_ypos" fromport="value"
+              tonode="gamepad_ypos_to_float" toport="in" />
+
+        <!-- compose vectors -->
+        <edge fromnode="mouse_xpos_to_float" fromport="out"
+              tonode="compose_mouse" toport="x" />
+        <edge fromnode="mouse_ypos_to_float" fromport="out"
+              tonode="compose_mouse" toport="y" />
+        <edge fromnode="const_0" fromport="value"
+              tonode="compose_mouse" toport="z" />
+
+        <edge fromnode="gamepad_xpos_to_float" fromport="out"
+              tonode="compose_gamepad" toport="x" />
+        <edge fromnode="gamepad_ypos_to_float" fromport="out"
+              tonode="compose_gamepad" toport="y" />
+        <edge fromnode="const_0" fromport="value"
+              tonode="compose_gamepad" toport="z" />
+
+        <!-- check for change / generate timestamp -->
+        <edge fromnode="compose_mouse" fromport="out"
+              tonode="cd_mouse" toport="in" />
+        <edge fromnode="compose_gamepad" fromport="out"
+              tonode="cd_gamepad" toport="in" />
+
+        <!-- compare vectors -->
+        <edge fromnode="cd_mouse" fromport="out"
+              tonode="latest_pos" toport="mouse" />
+        <edge fromnode="cd_gamepad" fromport="out"
+              tonode="latest_pos" toport="gamepad" />
+
+        <!-- decompose latest position vector into components -->
+        <edge fromnode="latest_pos" fromport="out"
+              tonode="decompose_pos" toport="in" />
+
+        <!-- convert positions to int -->
+        <edge fromnode="decompose_pos" fromport="x"
+              tonode="xpos_to_int" toport="in" />
+        <edge fromnode="decompose_pos" fromport="y"
+              tonode="ypos_to_int" toport="in" />
+
+        <!-- feed components to intention_transform via 3dmouse -->
+        <edge fromnode="xpos_to_int" fromport="out"
+              tonode="3dmouse" toport="x_pos" />
+        <edge fromnode="ypos_to_int" fromport="out"
+              tonode="3dmouse" toport="y_pos" />
+
+        <edge fromnode="3dmouse" fromport="orientation"
+              tonode="3dmouse_matrix" toport="orientation" />
+        <edge fromnode="3dmouse" fromport="position"
+              tonode="3dmouse_matrix" toport="translation" />
+
+        <edge fromnode="3dmouse_matrix" fromport="out"
+              tonode="intention_transform" toport="in" />
+
+    </edges>
+</module>

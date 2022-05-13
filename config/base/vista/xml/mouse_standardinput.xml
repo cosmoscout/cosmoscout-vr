@@ -1,3 +1,10 @@
+<!-- ///////////////////////////////////////////////////////////////////////////////////////////////
+//                               This file is part of CosmoScout VR                               //
+//      and may be used under the terms of the MIT license. See the LICENSE file for details.     //
+//                        Copyright: (c) 2019 German Aerospace Center (DLR)                       //
+//////////////////////////////////////////////////////////////////////////////////////////////// -->
+
+<?xml version="1.0" encoding="utf-8" ?>
 <module>
 	<nodespace>
 	</nodespace>
@@ -39,6 +46,14 @@
 		<!-- Mouse Wheel Button -->
 		<node name="button_03"    tag="button_03"    type="EventSource"/>
 
+		<!-- Store mouse position for 3dmouse_negotiator-->
+		<node name="set_mouse_xpos" type="SetVariable[int]">
+			<param name="variable" value="mouse_xpos" />
+		</node>
+		<node name="set_mouse_ypos" type="SetVariable[int]">
+			<param name="variable" value="mouse_ypos" />
+		</node>
+
 		<!-- <node name="debug_text" type="SimpleText"/> -->
 	</graph>
 	<edges>
@@ -63,6 +78,9 @@
 		<edge fromnode="3dmouse" tonode="3dmouse_matrix" fromport="orientation" toport="orientation"/>
 
 		<edge fromnode="3dmouse_matrix" tonode="intention_transform" fromport="out" toport="in"/>
+
+		<edge fromnode="project_mouse" fromport="X_POS" tonode="set_mouse_xpos" toport="value"/>
+		<edge fromnode="project_mouse" fromport="Y_POS" tonode="set_mouse_ypos" toport="value"/>
 
 		<!--<edge fromnode="middle_button_change_detect" tonode="debug_text" fromport="out" toport="p" />-->
 	</edges>

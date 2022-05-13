@@ -1,0 +1,125 @@
+<!-- ///////////////////////////////////////////////////////////////////////////////////////////////
+//                               This file is part of CosmoScout VR                               //
+//      and may be used under the terms of the MIT license. See the LICENSE file for details.     //
+//                        Copyright: (c) 2019 German Aerospace Center (DLR)                       //
+//////////////////////////////////////////////////////////////////////////////////////////////// -->
+
+<?xml version="1.0" encoding="utf-8"?>
+<module>
+    <nodespace>
+    </nodespace>
+    <graph>
+        <!-- drivers and history projects -->
+        <!--    analog driver and history -->
+        <node name="vrpn_analog_driver" type="DriverSensor">
+            <param name="driver" value="XBOXCONTROLLER" />
+            <param name="sensor" value="0" />
+            <param name="type" value="ANALOG" />
+        </node>
+        <node name="vrpn_analog_data" type="HistoryProject">
+            <param name="project">VALUE, CHANNELS</param>
+        </node>
+
+        <!--    button driver and history -->
+        <node name="vrpn_button_driver" type="DriverSensor">
+            <param name="driver" value="XBOXCONTROLLER" />
+            <param name="sensor" value="0" />
+            <param name="type" value="BUTTON" />
+        </node>
+        <node name="vrpn_button_data" type="HistoryProject">
+            <param name="project">BTMASK, NUMBER, STATE</param>
+        </node>
+
+        <!--    button demux -->
+        <node name="btn_number_to_int" type="TypeConvert[unsigned int,int]" />
+
+        <node name="get_button" type="Demultiplex[unsigned int]">
+            <param name="num_outports">14</param>
+        </node>
+
+        <!-- Debug Text Node -->
+        <node name="debug_text" type="SimpleText" />
+    </graph>
+    <edges>
+        <!-- drivers and history projects -->
+        <!--    analog driver and history -->
+        <edge fromnode="vrpn_analog_driver" fromport="history"
+              tonode="vrpn_analog_data" toport="history" />
+
+        <!--    button driver and history -->
+        <edge fromnode="vrpn_button_driver" fromport="history"
+              tonode="vrpn_button_data" toport="history" />
+
+        <!--    button demux -->
+        <edge fromnode="vrpn_button_data" fromport="NUMBER"
+              tonode="btn_number_to_int" toport="in" />
+        <edge fromnode="btn_number_to_int" fromport="out"
+              tonode="get_button" toport="select" />
+        <edge fromnode="vrpn_button_data" fromport="STATE"
+              tonode="get_button" toport="value" />
+
+        <!--    Analog Data -->
+        <!--        0 = Left Stick X -->
+        <edge fromnode="vrpn_analog_data" fromport="VALUE_0"
+              tonode="debug_text" toport="LStickX" />
+        <!--        1 = Left Stick Y -->
+        <edge fromnode="vrpn_analog_data" fromport="VALUE_1"
+              tonode="debug_text" toport="LStickY" />
+        <!--        2 = Right Stick X -->
+        <edge fromnode="vrpn_analog_data" fromport="VALUE_2"
+              tonode="debug_text" toport="RStickX" />
+        <!--        3 = Right Stick Y -->
+        <edge fromnode="vrpn_analog_data" fromport="VALUE_3"
+              tonode="debug_text" toport="RStickY" />
+        <!--        4 = Triggers (Left positive, Right negative) -->
+        <edge fromnode="vrpn_analog_data" fromport="VALUE_4"
+              tonode="debug_text" toport="Triggers(LT>0>RT)" />
+        <!--        5 = D-Pad (-1 = nothing, 0 = up, 45 = up-right, 90 = right, etc...) -->
+        <edge fromnode="vrpn_analog_data" fromport="VALUE_5"
+              tonode="debug_text" toport="Dpad(-1=nothing, 0°=up)" />
+
+        <!--    Button Data -->
+        <!--        0 = A -->
+        <edge fromnode="get_button" fromport="0"
+              tonode="debug_text" toport="BtnA" />
+        <!--        1 = B -->
+        <edge fromnode="get_button" fromport="1"
+              tonode="debug_text" toport="BtnB" />
+        <!--        2 = X -->
+        <edge fromnode="get_button" fromport="2"
+              tonode="debug_text" toport="BtnX" />
+        <!--        3 = Y -->
+        <edge fromnode="get_button" fromport="3"
+              tonode="debug_text" toport="BtnY" />
+        <!--        4 = LB (Left Bumper) -->
+        <edge fromnode="get_button" fromport="4"
+              tonode="debug_text" toport="BtnLB" />
+        <!--        5 = RB (Right Bumper) -->
+        <edge fromnode="get_button" fromport="5"
+              tonode="debug_text" toport="BtnRB" />
+        <!--        6 = Back -->
+        <edge fromnode="get_button" fromport="6"
+              tonode="debug_text" toport="BtnBack" />
+        <!--        7 = Start -->
+        <edge fromnode="get_button" fromport="7"
+              tonode="debug_text" toport="BtnStart" />
+        <!--        8 = LS (Left Stick) -->
+        <edge fromnode="get_button" fromport="8"
+              tonode="debug_text" toport="BtnLS" />
+        <!--        9 = RS (Right Stick) -->
+        <edge fromnode="get_button" fromport="9"
+              tonode="debug_text" toport="BtnRS" />
+        <!--       10 = Up (D-Pad Up) -->
+        <edge fromnode="get_button" fromport="10"
+              tonode="debug_text" toport="BtnUP" />
+        <!--       11 = Right (D-Pad Right) -->
+        <edge fromnode="get_button" fromport="11"
+              tonode="debug_text" toport="BtnRight" />
+        <!--       12 = Down (D-Pad Down) -->
+        <edge fromnode="get_button" fromport="12"
+              tonode="debug_text" toport="BtnDown" />
+        <!--       13 = Left (D-Pad Left) -->
+        <edge fromnode="get_button" fromport="13"
+              tonode="debug_text" toport="BtnLeft" />
+    </edges>
+</module>

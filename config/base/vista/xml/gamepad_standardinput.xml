@@ -1,0 +1,267 @@
+<!-- ///////////////////////////////////////////////////////////////////////////////////////////////
+//                               This file is part of CosmoScout VR                               //
+//      and may be used under the terms of the MIT license. See the LICENSE file for details.     //
+//                        Copyright: (c) 2019 German Aerospace Center (DLR)                       //
+//////////////////////////////////////////////////////////////////////////////////////////////// -->
+
+<?xml version="1.0" encoding="utf-8" ?>
+<module>
+    <nodespace>
+    </nodespace>
+    <graph>
+        <!-- Debugging -->
+        <node name="debug_text" type="SimpleText" />
+
+        <!-- Analogs -->
+        <node name="vrpn_analog_driver" type="DriverSensor">
+            <param name="driver" value="XBOXCONTROLLER" />
+            <param name="sensor" value="0" />
+            <param name="type" value="ANALOG" />
+        </node>
+        <node name="vrpn_analog_data" type="HistoryProject">
+            <param name="project">VALUE, CHANNELS</param>
+        </node>
+
+        <!-- Buttons -->
+        <node name="vrpn_button_driver" type="DriverSensor">
+            <param name="driver" value="XBOXCONTROLLER" />
+            <param name="sensor" value="0" />
+            <param name="type" value="BUTTON" />
+        </node>
+        <node name="vrpn_button_data" type="HistoryProject">
+            <param name="project">BTMASK, NUMBER, STATE</param>
+        </node>
+        <!--    Button assignment -->
+        <node name="get_button" type="Demultiplex[unsigned int]">
+            <param name="num_outports">14</param>
+        </node>
+        <!--        converter for select inport on Demultiplexer -->
+        <node name="btn_number_to_int" type="TypeConvert[unsigned int,int]" />
+
+        <!-- A Button to button_01 event source -->
+        <node name="A_to_bool" type="TypeConvert[unsigned int,bool]" />
+        <node name="A_change_detect" type="ChangeDetect[bool]" />
+        <node name="button_01" tag="button_01" type="EventSource" />
+
+        <!-- B Button to button_02 event source -->
+        <node name="B_to_bool" type="TypeConvert[unsigned int,bool]" />
+        <node name="B_change_detect" type="ChangeDetect[bool]" />
+        <node name="button_02" tag="button_02" type="EventSource" />
+
+        <!-- X Button to button_03 event source -->
+        <node name="X_to_bool" type="TypeConvert[unsigned int,bool]" />
+        <node name="X_change_detect" type="ChangeDetect[bool]" />
+        <node name="button_03" tag="button_03" type="EventSource" />
+
+        <!-- D-Pad to mouse movement -->
+        <!--    Horizontal movement -->
+        <node name="left_to_int" type="TypeConvert[unsigned int,int]" />
+        <node name="right_to_int" type="TypeConvert[unsigned int,int]" />
+        <node name="x_movement" type="Substract[int]" />
+
+        <!--    Vertical movement -->
+        <node name="up_to_int" type="TypeConvert[unsigned int,int]" />
+        <node name="down_to_int" type="TypeConvert[unsigned int,int]" />
+        <node name="y_movement" type="Substract[int]" />
+
+        <!--    Apply flat multiplier to movement -->
+        <node name="const_multiplier" type="ConstantValue[int]">
+            <param name="value" value="3" />
+        </node>
+        <node name="multiply_x_movement" type="Multiply[int]" />
+        <node name="multiply_y_movement" type="Multiply[int]" />
+
+        <!-- Calculate viewport center -->
+        <node name="viewport" type="ViewportSource">
+            <param name="value" value="MAIN_VIEWPORT" />
+        </node>
+        <node name="const_2" type="ConstantValue[int]">
+            <param name="value" value="2" />
+        </node>
+        <node name="divide_viewport_width" type="Divide[int]" />
+        <node name="divide_viewport_height" type="Divide[int]" />
+
+        <!-- Update position with movement -->
+        <node name="latest_xpos" type="LatestUpdate[int]" />
+        <node name="latest_ypos" type="LatestUpdate[int]" />
+        <node name="add_xpos_xmove" type="Add[int]" />
+        <node name="add_ypos_ymove" type="Add[int]" />
+
+        <!-- Limit position to stay inside viewport -->
+        <node name="const_0" type="ConstantValue[int]">
+            <param name="value" value="0" />
+        </node>
+
+        <!--    cutoff position at lower limit (0) -->
+        <node name="lower_limit_xpos" type="Max[int]" />
+        <node name="lower_limit_ypos" type="Max[int]" />
+
+        <!--    cutoff position at upper limit (viewport dimensions) -->
+        <node name="upper_limit_xpos" type="Min[int]" />
+        <node name="upper_limit_ypos" type="Min[int]" />
+
+        <!-- Store positions for selection between mouse and controller -->
+        <node name="set_gamepad_xpos" type="SetVariable[int]">
+            <param name="variable" value="gamepad_xpos" />
+        </node>
+        <node name="set_gamepad_ypos" type="SetVariable[int]">
+            <param name="variable" value="gamepad_ypos" />
+        </node>
+
+    </graph>
+    <edges>
+        <!-- Buttons Driver => History -->
+        <edge fromnode="vrpn_button_driver" fromport="history"
+              tonode="vrpn_button_data" toport="history" />
+
+        <!-- Analogs Driver => History -->
+        <edge fromnode="vrpn_analog_driver" fromport="history"
+              tonode="vrpn_analog_data" toport="history" />
+
+        <!-- DeMUX Buttons -->
+        <!--    convert vrpn_button_data::NUMBER to int for Demultiplex::select -->
+        <edge fromnode="vrpn_button_data" fromport="NUMBER"
+              tonode="btn_number_to_int" toport="in" />
+
+        <!--    demultiplex buttons -->
+        <edge fromnode="btn_number_to_int" fromport="out"
+              tonode="get_button" toport="select" />
+        <edge fromnode="vrpn_button_data" fromport="STATE"
+              tonode="get_button" toport="value" />
+
+        <!-- A Button to button_01 event source -->
+        <edge fromnode="get_button" fromport="0"
+              tonode="A_to_bool" toport="in" />
+        <edge fromnode="A_to_bool" fromport="out"
+              tonode="A_change_detect" toport="in" />
+        <edge fromnode="A_change_detect" fromport="out"
+              tonode="button_01" toport="value" />
+
+        <!-- B Button to button_02 event source -->
+        <edge fromnode="get_button" fromport="1"
+              tonode="B_to_bool" toport="in" />
+        <edge fromnode="B_to_bool" fromport="out"
+              tonode="B_change_detect" toport="in" />
+        <edge fromnode="B_change_detect" fromport="out"
+              tonode="button_02" toport="value" />
+
+        <!-- X Button to button_03 event source -->
+        <edge fromnode="get_button" fromport="2"
+              tonode="X_to_bool" toport="in" />
+        <edge fromnode="X_to_bool" fromport="out"
+              tonode="X_change_detect" toport="in" />
+        <edge fromnode="X_change_detect" fromport="out"
+              tonode="button_03" toport="value" />
+
+        <!-- D-Pad to mouse movement -->
+        <!--    Horizontal movement -->
+        <!--        convert to int -->
+        <edge fromnode="get_button" fromport="13"
+              tonode="left_to_int" toport="in" />
+        <edge fromnode="get_button" fromport="11"
+              tonode="right_to_int" toport="in" />
+
+        <!--        subtract to get movement (1 = right, -1 = left) -->
+        <edge fromnode="left_to_int" fromport="out"
+              tonode="x_movement" toport="second" />
+        <edge fromnode="right_to_int" fromport="out"
+              tonode="x_movement" toport="first" />
+
+        <!--    Vertical movement -->
+        <!--        convert to int -->
+        <edge fromnode="get_button" fromport="10"
+              tonode="up_to_int" toport="in" />
+        <edge fromnode="get_button" fromport="12"
+              tonode="down_to_int" toport="in" />
+
+        <!--        subtract to get movement (1 = down, -1 = up) -->
+        <edge fromnode="up_to_int" fromport="out"
+              tonode="y_movement" toport="second" />
+        <edge fromnode="down_to_int" fromport="out"
+              tonode="y_movement" toport="first" />
+
+        <!--    Apply movement multiplier -->
+        <!--        horizontal movement -->
+        <edge fromnode="x_movement" fromport="out"
+              tonode="multiply_x_movement" toport="first" />
+        <edge fromnode="const_multiplier" fromport="value"
+              tonode="multiply_x_movement" toport="second" />
+
+        <!--        vertical movement -->
+        <edge fromnode="y_movement" fromport="out"
+              tonode="multiply_y_movement" toport="first" />
+        <edge fromnode="const_multiplier" fromport="value"
+              tonode="multiply_y_movement" toport="second" />
+
+        <!-- Calculate viewport center -->
+        <edge fromnode="viewport" fromport="vp_w"
+              tonode="divide_viewport_width" toport="first" />
+        <edge fromnode="const_2" fromport="value"
+              tonode="divide_viewport_width" toport="second" />
+
+        <edge fromnode="viewport" fromport="vp_h"
+              tonode="divide_viewport_height" toport="first" />
+        <edge fromnode="const_2" fromport="value"
+              tonode="divide_viewport_height" toport="second" />
+
+        <!-- Update position with movement -->
+        <!--    feed viewport center as initial value into latest position -->
+        <edge fromnode="divide_viewport_width" fromport="out"
+              tonode="latest_xpos" toport="1" />
+        <edge fromnode="divide_viewport_height" fromport="out"
+              tonode="latest_ypos" toport="1" />
+
+        <!--    add movement to latest position -->
+        <!--        horizontal movement -->
+        <edge fromnode="latest_xpos" fromport="out"
+              tonode="add_xpos_xmove" toport="first" />
+        <edge fromnode="multiply_x_movement" fromport="out"
+              tonode="add_xpos_xmove" toport="second" />
+
+        <!--        vertical movement -->
+        <edge fromnode="latest_ypos" fromport="out"
+              tonode="add_ypos_ymove" toport="first" />
+        <edge fromnode="multiply_y_movement" fromport="out"
+              tonode="add_ypos_ymove" toport="second" />
+
+        <!-- Limit position to stay inside viewport -->
+        <!--    cutoff position at lower limit (0) -->
+        <!--        horizontal position -->
+        <edge fromnode="add_xpos_xmove" fromport="out"
+              tonode="lower_limit_xpos" toport="first" />
+        <edge fromnode="const_0" fromport="value"
+              tonode="lower_limit_xpos" toport="second" />
+
+        <!--        vertical position -->
+        <edge fromnode="add_ypos_ymove" fromport="out"
+              tonode="lower_limit_ypos" toport="first" />
+        <edge fromnode="const_0" fromport="value"
+              tonode="lower_limit_ypos" toport="second" />
+
+        <!--    cutoff position at upper limit (viewport dimensions) -->
+        <!--        horizontal position -->
+        <edge fromnode="viewport" fromport="vp_w"
+              tonode="upper_limit_xpos" toport="first" />
+        <edge fromnode="lower_limit_xpos" fromport="out"
+              tonode="upper_limit_xpos" toport="second" />
+
+        <!--        vertical position -->
+        <edge fromnode="viewport" fromport="vp_h"
+              tonode="upper_limit_ypos" toport="first" />
+        <edge fromnode="lower_limit_ypos" fromport="out"
+              tonode="upper_limit_ypos" toport="second" />
+
+        <!-- Feed result back into latest position -->
+        <edge fromnode="upper_limit_xpos" fromport="out"
+              tonode="latest_xpos" toport="current" />
+        <edge fromnode="upper_limit_ypos" fromport="out"
+              tonode="latest_ypos" toport="current" />
+
+        <!-- Store positions for selection between mouse and controller -->
+        <edge fromnode="latest_xpos" fromport="out"
+              tonode="set_gamepad_xpos" toport="value" />
+        <edge fromnode="latest_ypos" fromport="out"
+              tonode="set_gamepad_ypos" toport="value" />
+
+    </edges>
+</module>
