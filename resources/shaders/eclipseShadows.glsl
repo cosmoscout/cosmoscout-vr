@@ -286,14 +286,11 @@ float _eclipseGetCapIntersectionApprox(float radiusA, float radiusB, float cente
 }
 
 // This returns basically acos(dot(v1, v2)), but has less floating point errors.
-// https://api.semanticscholar.org/CorpusID:118459706
 float _eclipseGetAngle(vec3 v1, vec3 v2) {
-  float c = dot(v1 - v2, v1 - v2);
-  return 2.0 * atan(sqrt(c / (4 - c)));
+  return 2.0 * asin(0.5 * length(v1 - v2));
 }
 double _eclipseGetAngleD(dvec3 v1, dvec3 v2) {
-  double c = dot(v1 - v2, v1 - v2);
-  return 2.0 * atand(sqrt(c), sqrt(4 - c));
+  return 2.0 * asind(0.5 * length(v1 - v2));
 }
 
 vec4 _eclipseGetBodyDirAngle(vec4 body, vec3 position) {
@@ -698,9 +695,18 @@ vec3 getEclipseShadow(vec3 position) {
     float appOccluderRadius = uEclipseOccluders[i].w / distToCaster;
 
     float sunBodyDist = length((uEclipseOccluders[i].xyz - position) / distToCaster - toSun);
-    // float sunBodyDist = sqrt(2.0 - 2.0 * dot((uEclipseOccluders[i].xyz - position) /
-    // distToCaster, toSun)); float sunBodyDist  = _eclipseGetAngle((uEclipseOccluders[i].xyz -
-    // position)/distToCaster, toSun);
+
+    if (appSunRadius > 0.01) {
+      appSunRadius = asin(appSunRadius);
+    }
+
+    if (appOccluderRadius > 0.01) {
+      appOccluderRadius = asin(appOccluderRadius);
+    }
+
+    if (sunBodyDist > 0.01) {
+      sunBodyDist = 2.0 * asin(0.5 * sunBodyDist);
+    }
 
     float minOccDist = textureIncludesUmbra ? 0.0 : max(appOccluderRadius - appSunRadius, 0.0);
     float maxOccDist = appSunRadius + appOccluderRadius;
