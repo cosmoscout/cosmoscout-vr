@@ -684,17 +684,17 @@ vec3 getEclipseShadow(vec3 position) {
   const float textureMappingExponent = 1.0;
   const bool  textureIncludesUmbra   = true;
 
-  vec3 toSun = normalize(uEclipseSun.xyz - position);
+  vec3  toSun        = uEclipseSun.xyz - position;
+  float distToSun    = length(toSun);
+  float appSunRadius = uEclipseSun.w / distToSun;
 
   for (int i = 0; i < uEclipseNumOccluders; ++i) {
 
-    float distToSun    = length(uEclipseOccluders[i].xyz - uEclipseSun.xyz);
-    float appSunRadius = uEclipseSun.w / distToSun;
+    vec3  toCaster     = uEclipseOccluders[i].xyz - position;
+    float distToCaster = length(toCaster);
 
-    float distToCaster      = length(uEclipseOccluders[i].xyz - position);
     float appOccluderRadius = uEclipseOccluders[i].w / distToCaster;
-
-    float sunBodyDist = length((uEclipseOccluders[i].xyz - position) / distToCaster - toSun);
+    float sunBodyDist       = length(toCaster / distToCaster - toSun / distToSun);
 
     if (appSunRadius > 0.01) {
       appSunRadius = asin(appSunRadius);
