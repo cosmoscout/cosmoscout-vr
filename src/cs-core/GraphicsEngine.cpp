@@ -84,8 +84,8 @@ GraphicsEngine::GraphicsEngine(std::shared_ptr<core::Settings> settings)
 
   if (mSettings->mGraphics.mEclipseShadowMaps.has_value()) {
     for (auto const& s : mSettings->mGraphics.mEclipseShadowMaps.value()) {
-      auto shadowMap           = std::make_shared<graphics::EclipseShadowMap>();
-      shadowMap->mCasterAnchor = s.first;
+      auto shadowMap             = std::make_shared<graphics::EclipseShadowMap>();
+      shadowMap->mOccluderAnchor = s.first;
 
       if (s.second.mTexture) {
         shadowMap->mTexture = graphics::TextureLoader::loadFromFile(*s.second.mTexture);

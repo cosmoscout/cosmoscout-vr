@@ -95,39 +95,36 @@ std::vector<std::shared_ptr<graphics::EclipseShadowMap>> SolarSystem::getEclipse
   std::vector<std::shared_ptr<graphics::EclipseShadowMap>> result;
 
   for (auto const& shadowMap : mGraphicsEngine->getEclipseShadowMaps()) {
-    scene::CelestialObject caster;
-    mSettings->initAnchor(caster, shadowMap->mCasterAnchor);
+    scene::CelestialObject occluder;
+    mSettings->initAnchor(occluder, shadowMap->mOccluderAnchor);
 
-    if (receiver.getCenterName() != caster.getCenterName()) {
+    if (receiver.getCenterName() != occluder.getCenterName()) {
 
-      auto   sunPos           = caster.getRelativePosition(time, *mSun);
-      auto   receiverPos      = caster.getRelativePosition(time, receiver);
-      double sunDistance      = glm::length(sunPos);
-      double receiverDistance = glm::length(receiverPos);
+      auto   pSun = occluder.getRelativePosition(time, *mSun);
+      auto   pRec = occluder.getRelativePosition(time, receiver);
+      double dSun = glm::length(pSun);
+      double dRec = glm::length(pRec);
 
       // Do not consider cases where the receiver is really far away.
-      if (receiverDistance > 0.1 * sunDistance) {
+      if (dRec > 0.1 * dSun) {
         continue;
       }
 
       // Do not consider cases where the receiver is in front of the caster.
-      if (glm::dot(sunPos / sunDistance, receiverPos / receiverDistance) > 0) {
+      if (glm::dot(pSun / dSun, pRec / dRec) > 0) {
         continue;
       }
 
-      // TODO: Make this work with ellipsoids.
-      double casterRadius   = caster.getRadii()[0];
-      double receiverRadius = receiver.getRadii()[0];
-      double sunRadius      = mSun->getRadii()[0];
+      double rOcc = occluder.getRadii()[0];
+      double rRec = receiver.getRadii()[0];
+      double rSun = mSun->getRadii()[0];
 
-      double apexDistance = sunDistance / (sunRadius / casterRadius + 1);
+      double dPenumbraApex = dSun / (rSun / rOcc + 1);
+      auto   pApex         = pSun / dSun * dPenumbraApex;
 
-      double penumbraAngle = std::asin(casterRadius / apexDistance);
-      auto   penumbraApex  = sunPos / sunDistance * apexDistance;
-
-      double receiverAngle = std::asin(receiverRadius / glm::distance(penumbraApex, receiverPos));
-      double radialDistance =
-          std::acos(glm::dot(-sunPos / sunDistance, glm::normalize(receiverPos - penumbraApex)));
+      double penumbraAngle  = std::asin(rOcc / dPenumbraApex);
+      double receiverAngle  = std::asin(rRec / glm::distance(pApex, pRec));
+      double radialDistance = std::acos(glm::dot(-pSun / dSun, glm::normalize(pRec - pApex)));
 
       if (radialDistance - receiverAngle < penumbraAngle) {
         result.push_back(shadowMap);
