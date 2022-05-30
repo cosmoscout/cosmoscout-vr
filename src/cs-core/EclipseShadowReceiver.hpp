@@ -59,18 +59,17 @@ class CS_CORE_EXPORT EclipseShadowReceiver {
  private:
   static constexpr size_t MAX_BODIES = 8;
 
-  std::shared_ptr<Settings>           mSettings;
-  std::shared_ptr<SolarSystem>        mSolarSystem;
-  scene::CelestialObject const* const mShadowReceiver;
+  std::shared_ptr<Settings>     mSettings;
+  std::shared_ptr<SolarSystem>  mSolarSystem;
+  scene::CelestialObject const* mShadowReceiver;
 
   VistaGLSLShader* mShader        = nullptr;
   uint32_t         mTextureOffset = 0;
 
-  mutable EclipseShadowMode mLastEclipseShadowMode = EclipseShadowMode::eNone;
-
-  std::array<glm::vec4, MAX_BODIES> mOccluders{};
-
+  std::array<glm::vec4, MAX_BODIES>                        mOccluders{};
   std::vector<std::shared_ptr<graphics::EclipseShadowMap>> mShadowMaps;
+
+  mutable EclipseShadowMode mLastEclipseShadowMode = EclipseShadowMode::eNone;
 
   struct {
     int sun;
