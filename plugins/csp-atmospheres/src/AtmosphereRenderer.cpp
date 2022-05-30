@@ -397,7 +397,7 @@ void AtmosphereRenderer::updateShader() {
 bool AtmosphereRenderer::Do() {
   cs::utils::FrameTimings::ScopedTimer timer("Render Atmosphere");
 
-  if (mShaderDirty || mEclipseShadowReceiver->needsRecompilation()) {
+  if (mShaderDirty || (mEclipseShadowReceiver && mEclipseShadowReceiver->needsRecompilation())) {
     updateShader();
     mShaderDirty = false;
   }
