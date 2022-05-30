@@ -38,9 +38,6 @@ SolarSystem::SolarSystem(std::shared_ptr<Settings> settings,
     , mTimeControl(std::move(timeControl))
     , mSun(std::make_shared<scene::CelestialObject>()) {
 
-  mSun->setCenterName("Sun");
-  mSun->setFrameName("IAU_Sun");
-
   // Tell the user what's going on.
   logger().debug("Creating SolarSystem.");
 }
@@ -103,8 +100,9 @@ std::vector<std::shared_ptr<graphics::EclipseShadowMap>> SolarSystem::getEclipse
     // Avoid self-shadowing.
     if (receiver.getCenterName() != occluder.getCenterName()) {
 
-      auto   pSun = occluder.getRelativePosition(time, *mSun);
-      auto   pRec = occluder.getRelativePosition(time, receiver);
+      auto pSun = occluder.getRelativePosition(time, *mSun);
+      auto pRec = occluder.getRelativePosition(time, receiver);
+
       double dSun = glm::length(pSun);
       double dRec = glm::length(pRec);
 
@@ -122,16 +120,26 @@ std::vector<std::shared_ptr<graphics::EclipseShadowMap>> SolarSystem::getEclipse
       double rRec = receiver.getRadii()[0];
       double rSun = mSun->getRadii()[0];
 
-      // Compute position of the tip of the penumbra cone.
-      double dPenumbraApex = dSun / (rSun / rOcc + 1);
-      auto   pApex         = pSun / dSun * dPenumbraApex;
+      // Compute distances to the tips of the umbra and penumbra cones.
+      double dUmbra    = dSun * rOcc / (rSun - rOcc);
+      double dPenumbra = dSun * rOcc / (rSun + rOcc);
 
-      // Check wether receiver is inside the penumbra cone.
-      double penumbraAngle  = std::asin(rOcc / dPenumbraApex);
-      double receiverAngle  = std::asin(rRec / glm::distance(pApex, pRec));
-      double radialDistance = std::acos(glm::dot(-pSun / dSun, glm::normalize(pRec - pApex)));
+      // Compute slopes of the penumbra cone.
+      double mPenumbra = rOcc / std::sqrt(dPenumbra * dUmbra - rOcc * rOcc);
 
-      if (radialDistance - receiverAngle < penumbraAngle) {
+      // Project the vector from the occluder to the receiver onto the sun-occluder axis.
+      auto toOcc        = -pRec;
+      auto sunToOccNorm = -pSun / dSun;
+      auto toOccProj    = glm::dot(toOcc, sunToOccNorm) * sunToOccNorm;
+
+      // Get position in shadow space.
+      double posX = glm::length(toOccProj);
+      double posY = glm::length(toOcc - toOccProj);
+
+      // Distances of the penumbra and umbra cones from the sun-occluder axis at posX.
+      double penumbra = mPenumbra * (posX + dPenumbra);
+
+      if (posY < penumbra + rRec) {
         result.push_back(shadowMap);
       }
     }
@@ -638,6 +646,8 @@ void SolarSystem::init(std::string const& sSpiceMetaFile) {
     getmsg_c("LONG", maxSpiceErrorLength, msg.data());
     throw std::runtime_error(msg.data());
   }
+
+  mSettings->initAnchor(*mSun, "Sun");
 
   mIsInitialized = true;
 }
