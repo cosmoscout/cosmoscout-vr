@@ -480,7 +480,7 @@ bool AtmosphereRenderer::Do() {
   }
 
   if (mShadowMap) {
-    int texUnitShadow = 5;
+    int texUnitShadow = 8;
     mAtmoShader.SetUniform(
         mUniforms.shadowCascades, static_cast<int>(mShadowMap->getMaps().size()));
     for (size_t i = 0; i < mShadowMap->getMaps().size(); ++i) {
