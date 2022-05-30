@@ -348,6 +348,7 @@ bool SimpleBody::Do() {
     mUniforms.radii             = mShader.GetUniformLocation("uRadii");
     mUniforms.farClip           = mShader.GetUniformLocation("uFarClip");
 
+    // We bind the eclipse shadow map to texture unit 1.
     mEclipseShadowReceiver.init(&mShader, 1);
 
     mShaderDirty = false;
@@ -401,6 +402,7 @@ bool SimpleBody::Do() {
 
   mTexture->Bind(GL_TEXTURE0);
 
+  // Initialize eclipse shadow-related uniforms and textures.
   mEclipseShadowReceiver.preRender();
 
   // Draw.
@@ -409,6 +411,7 @@ bool SimpleBody::Do() {
       GL_UNSIGNED_INT, nullptr);
   mSphereVAO.Release();
 
+  // Reset eclipse shadow-related texture units.
   mEclipseShadowReceiver.postRender();
 
   // Clean up.

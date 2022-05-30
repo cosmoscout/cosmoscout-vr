@@ -347,6 +347,8 @@ void AtmosphereRenderer::updateShader() {
   cs::utils::replaceString(sFrag, "HDR_SAMPLES",
       mHDRBuffer == nullptr ? "0" : std::to_string(mHDRBuffer->getMultiSamples()));
 
+  // If the atmosphere should receive eclipse shadows, we need to inject the corresponding shader
+  // source code snippet. If no eclipse shadow receiver was given, we just add a dummy method.
   if (mEclipseShadowReceiver) {
     cs::utils::replaceString(
         sFrag, "ECLIPSE_SHADER_SNIPPET", mEclipseShadowReceiver->getShaderSnippet());
@@ -384,6 +386,7 @@ void AtmosphereRenderer::updateShader() {
   mUniforms.modelViewMatrix                  = mAtmoShader.GetUniformLocation("uMatMV");
   mUniforms.modelMatrix                      = mAtmoShader.GetUniformLocation("uMatM");
 
+  // We bind the eclipse shadow map to texture unit 4.
   if (mEclipseShadowReceiver) {
     mEclipseShadowReceiver->init(&mAtmoShader, 4);
   }
@@ -477,7 +480,7 @@ bool AtmosphereRenderer::Do() {
   }
 
   if (mShadowMap) {
-    int texUnitShadow = 4;
+    int texUnitShadow = 5;
     mAtmoShader.SetUniform(
         mUniforms.shadowCascades, static_cast<int>(mShadowMap->getMaps().size()));
     for (size_t i = 0; i < mShadowMap->getMaps().size(); ++i) {
@@ -498,6 +501,7 @@ bool AtmosphereRenderer::Do() {
   glUniformMatrix4fv(mUniforms.modelViewMatrix, 1, GL_FALSE, glm::value_ptr(matMV));
   glUniformMatrix4fv(mUniforms.modelMatrix, 1, GL_FALSE, glm::value_ptr(matM));
 
+  // Initialize eclipse shadow-related uniforms and textures.
   if (mEclipseShadowReceiver) {
     mEclipseShadowReceiver->preRender();
   }
@@ -509,6 +513,7 @@ bool AtmosphereRenderer::Do() {
 
   // clean up ----------------------------------------------------------------
 
+  // Reset eclipse shadow-related texture units.
   if (mEclipseShadowReceiver) {
     mEclipseShadowReceiver->postRender();
   }
