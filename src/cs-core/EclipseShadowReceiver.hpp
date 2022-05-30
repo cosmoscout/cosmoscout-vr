@@ -42,8 +42,8 @@ enum class EclipseShadowMode {
 
 class CS_CORE_EXPORT EclipseShadowReceiver {
  public:
-  EclipseShadowReceiver(std::shared_ptr<cs::core::Settings> settings,
-      std::shared_ptr<core::SolarSystem> solarSystem, scene::CelestialObject const* shadowReceiver);
+  EclipseShadowReceiver(std::shared_ptr<Settings> settings,
+      std::shared_ptr<SolarSystem> solarSystem, scene::CelestialObject const* shadowReceiver);
 
   bool        needsRecompilation() const;
   std::string getShaderSnippet() const;
@@ -59,9 +59,9 @@ class CS_CORE_EXPORT EclipseShadowReceiver {
  private:
   static constexpr size_t MAX_BODIES = 8;
 
-  const std::shared_ptr<cs::core::Settings> mSettings;
-  const std::shared_ptr<core::SolarSystem>  mSolarSystem;
-  scene::CelestialObject const* const       mShadowReceiver;
+  std::shared_ptr<Settings>           mSettings;
+  std::shared_ptr<SolarSystem>        mSolarSystem;
+  scene::CelestialObject const* const mShadowReceiver;
 
   VistaGLSLShader* mShader        = nullptr;
   uint32_t         mTextureOffset = 0;

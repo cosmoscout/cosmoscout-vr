@@ -19,8 +19,8 @@
 
 namespace cs::core {
 
-EclipseShadowReceiver::EclipseShadowReceiver(std::shared_ptr<cs::core::Settings> settings,
-    std::shared_ptr<core::SolarSystem> solarSystem, scene::CelestialObject const* shadowReceiver)
+EclipseShadowReceiver::EclipseShadowReceiver(std::shared_ptr<Settings> settings,
+    std::shared_ptr<SolarSystem> solarSystem, scene::CelestialObject const* shadowReceiver)
     : mSettings(std::move(settings))
     , mSolarSystem(std::move(solarSystem))
     , mShadowReceiver(shadowReceiver) {
