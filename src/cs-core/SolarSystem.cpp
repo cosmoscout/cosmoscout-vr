@@ -94,10 +94,13 @@ std::vector<std::shared_ptr<graphics::EclipseShadowMap>> SolarSystem::getEclipse
 
   std::vector<std::shared_ptr<graphics::EclipseShadowMap>> result;
 
+  // Loop through all registered eclipse shadow casters and test if they are casting a shadow onto
+  // the given receiver. All involved objects are considered to be spheres.
   for (auto const& shadowMap : mGraphicsEngine->getEclipseShadowMaps()) {
     scene::CelestialObject occluder;
     mSettings->initAnchor(occluder, shadowMap->mOccluderAnchor);
 
+    // Avoid self-shadowing.
     if (receiver.getCenterName() != occluder.getCenterName()) {
 
       auto   pSun = occluder.getRelativePosition(time, *mSun);
@@ -119,9 +122,11 @@ std::vector<std::shared_ptr<graphics::EclipseShadowMap>> SolarSystem::getEclipse
       double rRec = receiver.getRadii()[0];
       double rSun = mSun->getRadii()[0];
 
+      // Compute position of the tip of the penumbra cone.
       double dPenumbraApex = dSun / (rSun / rOcc + 1);
       auto   pApex         = pSun / dSun * dPenumbraApex;
 
+      // Check wether receiver is inside the penumbra cone.
       double penumbraAngle  = std::asin(rOcc / dPenumbraApex);
       double receiverAngle  = std::asin(rRec / glm::distance(pApex, pRec));
       double radialDistance = std::acos(glm::dot(-pSun / dSun, glm::normalize(pRec - pApex)));
