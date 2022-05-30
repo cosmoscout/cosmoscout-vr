@@ -82,6 +82,8 @@ GraphicsEngine::GraphicsEngine(std::shared_ptr<core::Settings> settings)
 
   // setup eclipse shadows -------------------------------------------------------------------------
 
+  // Load the eclipse shadow maps of all configured bodies. If a body has no specific texture, the
+  // fallback texture is used instead.
   if (mSettings->mGraphics.mEclipseShadowMaps.has_value()) {
     for (auto const& s : mSettings->mGraphics.mEclipseShadowMaps.value()) {
       auto shadowMap             = std::make_shared<graphics::EclipseShadowMap>();
@@ -99,6 +101,7 @@ GraphicsEngine::GraphicsEngine(std::shared_ptr<core::Settings> settings)
     }
   }
 
+  // Also, the fallback shadow map should use texture clamping.
   mFallbackEclipseShadowMap->SetWrapS(GL_CLAMP_TO_EDGE);
   mFallbackEclipseShadowMap->SetWrapT(GL_CLAMP_TO_EDGE);
 
