@@ -260,18 +260,8 @@
   "spiceKernel": "../share/config/spice/simple.txt",
   "graphics": {
     "eclipseShadowMaps": {
-      "Earth": {
-        "texture": "../share/resources/textures/earthShadow.hdr",
-        "casterRadius": 6456000.0
-      },
-      "Moon": {
-        "texture": "../share/resources/textures/moonShadow.hdr",
-        "casterRadius": 1737100.0
-      },
-      "Mars": {
-        "texture": "../share/resources/textures/marsShadow.hdr",
-        "casterRadius": 3489000.0
-      }
+      "Earth": {},
+      "Moon": {}
     }
   },
   "anchors": {
@@ -689,11 +679,17 @@
       "vignette": {
         "enabled": false,
         "debug": false,
-        "radii": [0.5, 1.0],
+        "radii": [
+          0.5,
+          1.0
+        ],
         "color": "#000000",
         "fadeDuration": 1.0,
         "fadeDeadzone": 0.5,
-        "velocityThresholds": [0.2, 10.0],
+        "velocityThresholds": [
+          0.2,
+          10.0
+        ],
         "useDynamicRadius": false,
         "useVerticalOnly": false
       }
