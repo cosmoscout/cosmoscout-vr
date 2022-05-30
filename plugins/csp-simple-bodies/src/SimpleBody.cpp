@@ -319,7 +319,7 @@ bool SimpleBody::Do() {
     mShader = VistaGLSLShader();
 
     // (Re-)create sphere shader.
-    std::string defines = "#version 400\n";
+    std::string defines = "#version 330\n";
 
     if (mSettings->mGraphics.pEnableHDR.get()) {
       defines += "#define ENABLE_HDR\n";

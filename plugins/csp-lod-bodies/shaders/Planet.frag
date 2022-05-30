@@ -1,4 +1,4 @@
-#version 400
+#version 330
 
 #define SHOW_TEXTURE_RGB 0
 

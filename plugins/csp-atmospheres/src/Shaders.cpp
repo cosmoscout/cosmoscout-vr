@@ -9,7 +9,7 @@
 namespace csp::atmospheres {
 
 const char* AtmosphereRenderer::cAtmosphereVert = R"(
-  #version 400
+  #version 330
 
   // inputs
   layout(location = 0) in vec2 vPosition;
@@ -47,7 +47,7 @@ const char* AtmosphereRenderer::cAtmosphereVert = R"(
 
 // needs to be splitted because MSVC doesn't like long strings
 const char* AtmosphereRenderer::cAtmosphereFrag0 = R"(
-  #version 400
+  #version 330
 
   // inputs
   in VaryingStruct {

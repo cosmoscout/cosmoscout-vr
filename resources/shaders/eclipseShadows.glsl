@@ -43,14 +43,14 @@ float _eclipseGetCircleIntersection(float radiusA, float radiusB, float centerDi
   float rrB = radiusB * radiusB;
   float dd  = d * d;
 
-  float d1 = fma(radiusA, radiusA, fma(-radiusB, radiusB, dd)) / (2 * d);
+  float d1 = (radiusA * radiusA + (-radiusB * radiusB + dd)) / (2 * d);
   float d2 = d - d1;
 
-  float fourth = -d2 * sqrt(fma(-d2, d2, rrB));
-  float third  = fma(rrB, acos(d2 / radiusB), fourth);
-  float second = fma(-d1, sqrt(fma(-d1, d1, rrA)), third);
+  float fourth = -d2 * sqrt(-d2 * d2 + rrB);
+  float third  = rrB * acos(d2 / radiusB) + fourth;
+  float second = -d1 * sqrt(-d1 * d1 + rrA) + third;
 
-  return fma(rrA, acos(d1 / radiusA), second);
+  return rrA * acos(d1 / radiusA) + second;
 }
 
 // ----------------------------------------------------------------------------------------- helpers
