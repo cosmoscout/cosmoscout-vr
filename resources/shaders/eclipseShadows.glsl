@@ -7,7 +7,8 @@
 #ifndef CS_ECLIPSE_SHADOWS_GLSL
 #define CS_ECLIPSE_SHADOWS_GLSL
 
-const int   ECLIPSE_MAX_BODIES = 8;
+// This number should match the constant defined in EclipseShadowReceiver.hpp
+const int   ECLIPSE_MAX_BODIES = 4;
 const float ECLIPSE_PI         = 3.14159265358979323846;
 
 // The first three components of uEclipseSun and the individual uEclipseOccluders are its position,
@@ -196,7 +197,10 @@ vec3 getEclipseShadow(vec3 position) {
     // Compute approximate angular separation between Sun and occluder.
     float delta = length(toCaster / distToCaster - toSun / distToSun);
 
-// Compute exact radii and angular separation in mode 5 and in a hybrid fashion in mode 6.
+// In mode 5, we always compute the exact radii and angular separation using the very expensive
+// inverse trigonometric function asin. In mode 6 (the "fast" texture mode), we make use of the
+// small angle approximation and only evaluate asin if the argument is larger than a predefined
+// threshold.
 #if ECLIPSE_MODE == 5
     appSunRadius      = asin(appSunRadius);
     appOccluderRadius = asin(appOccluderRadius);
