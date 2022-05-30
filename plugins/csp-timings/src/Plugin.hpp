@@ -51,6 +51,7 @@ class Plugin : public cs::core::PluginBase {
   /// Frame Indices | Nesting Levels | Ranges
   std::vector<std::vector<std::vector<Range>>> mRecordedGPURanges;
   std::vector<std::vector<std::vector<Range>>> mRecordedCPURanges;
+  std::vector<int64_t>                         mTimestamps;
 
   int mFrameTimingConnection;
 };

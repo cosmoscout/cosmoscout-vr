@@ -71,8 +71,6 @@ PlanetShader::PlanetShader(std::shared_ptr<cs::core::Settings> settings,
         [this](bool /*ignored*/) { mShaderDirty = true; });
     mPluginSettings->mEnableLatLongGrid.connect(
         [this](bool /*ignored*/) { mShaderDirty = true; });
-    mPluginSettings->mEnableColorMixing.connect(
-        [this](bool /*ignored*/) { mShaderDirty = true; });
   // clang-format on
 
   // TODO: color map mangement could be done in a separate class
@@ -154,8 +152,6 @@ void PlanetShader::compile() {
       cs::utils::toString(mPluginSettings->mEnableLatLongGrid.get()));
   cs::utils::replaceString(mFragmentSource, "$SHOW_LAT_LONG",
       cs::utils::toString(mPluginSettings->mEnableLatLongGrid.get()));
-  cs::utils::replaceString(mFragmentSource, "$MIX_COLORS",
-      cs::utils::toString(mPluginSettings->mEnableColorMixing.get()));
   cs::utils::replaceString(
       mFragmentSource, "$ECLIPSE_SHADER_SNIPPET", mEclipseShadowReceiver->getShaderSnippet());
 
@@ -232,11 +228,22 @@ void PlanetShader::bind() {
   loc = mShader.GetUniformLocation("uSunDirIlluminance");
   mShader.SetUniform(loc, mSunDirection.x, mSunDirection.y, mSunDirection.z, mSunIlluminance);
 
-  mFontTexture->Bind(GL_TEXTURE0 + TEX_UNIT_FONT);
+  if (mPluginSettings->mEnableLatLongGrid.get()) {
+    mFontTexture->Bind(GL_TEXTURE0 + TEX_UNIT_FONT);
+  }
 
-  auto it(mColorMaps.find(mPluginSettings->mTerrainColorMap.get()));
-  if (it != mColorMaps.end()) {
-    it->second.bind(GL_TEXTURE0 + TEX_UNIT_LUT);
+  if (mPluginSettings->mColorMappingType.get() != Plugin::Settings::ColorMappingType::eNone) {
+    auto it(mColorMaps.find(mPluginSettings->mTerrainColorMap.get()));
+    if (it != mColorMaps.end()) {
+      it->second.bind(GL_TEXTURE0 + TEX_UNIT_FONT);
+
+      // Enable alpha blending if the color map uses the alpha channel.
+      if (it->second.getUsesAlpha()) {
+        glPushAttrib(GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+      }
+    }
   }
 
   mEclipseShadowReceiver->preRender();
@@ -245,12 +252,21 @@ void PlanetShader::bind() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void PlanetShader::release() {
-  auto it(mColorMaps.find(mPluginSettings->mTerrainColorMap.get()));
-  if (it != mColorMaps.end()) {
-    it->second.unbind(GL_TEXTURE0 + TEX_UNIT_LUT);
+  if (mPluginSettings->mColorMappingType.get() != Plugin::Settings::ColorMappingType::eNone) {
+    auto it(mColorMaps.find(mPluginSettings->mTerrainColorMap.get()));
+    if (it != mColorMaps.end()) {
+      it->second.unbind(GL_TEXTURE0 + TEX_UNIT_FONT);
+
+      // Disable alpha blending if the color map uses the alpha channel.
+      if (it->second.getUsesAlpha()) {
+        glPopAttrib();
+      }
+    }
   }
 
-  mFontTexture->Unbind(GL_TEXTURE0 + TEX_UNIT_FONT);
+  if (mPluginSettings->mEnableLatLongGrid.get()) {
+    mFontTexture->Unbind(GL_TEXTURE0 + TEX_UNIT_FONT);
+  }
 
   mEclipseShadowReceiver->postRender();
 
