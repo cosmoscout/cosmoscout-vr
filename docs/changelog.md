@@ -20,6 +20,7 @@
 #### Bug Fixes
 
 * Back-face culling of LOD-Bodies does now work properly.
+* Fixed black LOD-Bodies if no image channel is selected initially.
 
 ## [v1.5.0](https://github.com/cosmoscout/cosmoscout-vr/releases)
 
