@@ -131,8 +131,8 @@ void LodBody::setIMGtileSource(std::shared_ptr<TileSource> source) {
       mIMGtileSource         = std::move(source);
     }
   } else {
+    mShader.pEnableTexture = false;
     if (mIMGtileSource) {
-      mShader.pEnableTexture = false;
       mPlanet.setIMGSource(nullptr);
       mIMGtileSource = nullptr;
     }
