@@ -516,23 +516,5 @@
     <edge fromnode="get_viewport_center_x" tonode="latest_xpos"
           fromport="out"                   toport="1"
     />
-
-    <!-- Debugging -->
-    <!--       10 = Up (D-Pad Up) -->
-    <edge fromnode="get_button" fromport="10"
-          tonode="debug_text" toport="BtnUP" />
-    <!--       11 = Right (D-Pad Right) -->
-    <edge fromnode="get_button" fromport="11"
-          tonode="debug_text" toport="BtnRight" />
-    <!--       12 = Down (D-Pad Down) -->
-    <edge fromnode="get_button" fromport="12"
-          tonode="debug_text" toport="BtnDown" />
-    <!--       13 = Left (D-Pad Left) -->
-    <edge fromnode="get_button" fromport="13"
-          tonode="debug_text" toport="BtnLeft" />
-    <edge fromnode="x_direction" fromport="out"
-          tonode="debug_text" toport="x_movement" />
-    <edge fromnode="y_direction" fromport="out"
-          tonode="debug_text" toport="y_movement" />
   </edges>
 </module>
