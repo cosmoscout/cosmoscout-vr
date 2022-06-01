@@ -4,7 +4,7 @@
 #                         Copyright: (c) 2019 German Aerospace Center (DLR)                        #
 # ------------------------------------------------------------------------------------------------ #
 
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.18)
 project(cosmoscout-vr VERSION 1.5.0)
 
 # Use cmake 3.12's <PACKAGE>_ROOT variabled for searching.
@@ -310,3 +310,4 @@ add_subdirectory(config)
 add_subdirectory(resources)
 add_subdirectory(src)
 add_subdirectory(plugins)
+add_subdirectory(tools/eclipse-shadow-generator)
