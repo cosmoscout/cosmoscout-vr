@@ -34,8 +34,10 @@ LodBody::LodBody(std::shared_ptr<cs::core::Settings> const& settings,
     , mSolarSystem(std::move(solarSystem))
     , mPluginSettings(pluginSettings)
     , mGuiManager(pGuiManager)
+    , mEclipseShadowReceiver(
+          std::make_shared<cs::core::EclipseShadowReceiver>(mSettings, mSolarSystem, this))
     , mPlanet(glResources)
-    , mShader(settings, pluginSettings, pGuiManager, anchorName) {
+    , mShader(settings, pluginSettings, pGuiManager, mEclipseShadowReceiver, anchorName) {
 
   mSettings->initAnchor(*this, anchorName);
 
@@ -168,6 +170,8 @@ void LodBody::update(double tTime, cs::scene::CelestialObserver const& oObs) {
 
       mShader.setSun(sunDirection, static_cast<float>(sunIlluminance));
     }
+
+    mEclipseShadowReceiver->update(tTime, oObs);
   }
 }
 

@@ -90,6 +90,8 @@ uniform float uAmbientBrightness;
 uniform float uSunIlluminance;
 uniform float uFarClip;
 
+ECLIPSE_SHADER_SNIPPET
+
 // inputs
 in vec2 vTexCoords;
 in vec3 vNormal;
@@ -100,12 +102,55 @@ in vec2 vLngLat;
 // outputs
 layout(location = 0) out vec3 oColor;
 
-const float M_PI = 3.141592653589793;
+const float PI = 3.141592653589793;
 
 vec3 SRGBtoLINEAR(vec3 srgbIn)
 {
   vec3 bLess = step(vec3(0.04045),srgbIn);
   return mix( srgbIn/vec3(12.92), pow((srgbIn+vec3(0.055))/vec3(1.055),vec3(2.4)), bLess );
+}
+
+float orenNayar(vec3 N, vec3 L, vec3 V) {
+  float cos_theta_i = dot(N, L);
+
+  if (cos_theta_i <= 0) {
+    return 0;
+  }
+
+  float theta_i = acos(cos_theta_i);
+  
+  float cos_theta_r = dot(N, V);
+  float theta_r = acos(cos_theta_r);
+  
+  // Project L and V on a plane with N as the normal and get the cosine of the angle between the projections.
+  float cos_diff_phi = dot(normalize(V - cos_theta_r * N), normalize(L - cos_theta_i * N));
+  
+  float alpha = max(theta_i, theta_r);
+  float beta = min(theta_i, theta_r);
+  float beta_1  = 2 * beta / PI;
+  
+  const float sigma = 20;
+
+  float sigma2 = pow(sigma * PI / 180, 2);
+  float sigma_term = sigma2 / (sigma2 + 0.09);
+  
+  float C1 = 1 - 0.5 * (sigma2 / (sigma2 + 0.33));
+  
+  float C2 = 0.45 * sigma_term;
+  if (cos_diff_phi >= 0) {
+    C2 *= sin(alpha);
+  }
+  else {
+    C2 *= sin(alpha) - pow(beta_1, 3);
+  }
+  
+  float C3 = 0.125 * sigma_term * pow(4 * alpha * beta / (PI * PI), 2);
+  
+  float L1 = C1 + cos_diff_phi * C2 * tan(beta) + (1 - abs(cos_diff_phi)) * C3 * tan((alpha + beta) / 2);
+  
+  float L2 = 0.17 * sigma2 / (sigma2 + 0.13) * (1 - cos_diff_phi * pow(beta_1, 2));
+  
+  return max(0, (L1 + L2) * cos_theta_i);
 }
     
 void main()
@@ -113,15 +158,15 @@ void main()
     oColor = texture(uSurfaceTexture, vTexCoords).rgb;
 
     #ifdef ENABLE_HDR
-      oColor = SRGBtoLINEAR(oColor) * uSunIlluminance / M_PI;
+      oColor = SRGBtoLINEAR(oColor) * uSunIlluminance / PI;
     #else
       oColor = oColor * uSunIlluminance;
     #endif
 
     #ifdef ENABLE_LIGHTING
       vec3 normal = normalize(vNormal);
-      float light = max(dot(normal, uSunDirection), 0.0);
-      oColor = mix(oColor*uAmbientBrightness, oColor, light);
+      float light = orenNayar(normal, uSunDirection, normalize(-vPosition));
+      oColor = mix(oColor * uAmbientBrightness, oColor * getEclipseShadow(vPosition), light);
     #endif
 
     gl_FragDepth = length(vPosition) / uFarClip;
@@ -133,7 +178,8 @@ void main()
 SimpleBody::SimpleBody(std::shared_ptr<cs::core::Settings> settings,
     std::shared_ptr<cs::core::SolarSystem> solarSystem, std::string const& anchorName)
     : mSettings(std::move(settings))
-    , mSolarSystem(std::move(solarSystem)) {
+    , mSolarSystem(std::move(solarSystem))
+    , mEclipseShadowReceiver(mSettings, mSolarSystem, this) {
 
   mSettings->initAnchor(*this, anchorName);
 
@@ -254,6 +300,14 @@ double SimpleBody::getHeight(glm::dvec2 /*lngLat*/) const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void SimpleBody::update(double time, cs::scene::CelestialObserver const& observer) {
+  CelestialBody::update(time, observer);
+
+  mEclipseShadowReceiver.update(time, observer);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 bool SimpleBody::Do() {
   if (!getIsInExistence() || !pVisible.get()) {
     return true;
@@ -261,7 +315,7 @@ bool SimpleBody::Do() {
 
   cs::utils::FrameTimings::ScopedTimer timer("Simple Bodies");
 
-  if (mShaderDirty) {
+  if (mShaderDirty || mEclipseShadowReceiver.needsRecompilation()) {
     mShader = VistaGLSLShader();
 
     // (Re-)create sphere shader.
@@ -275,8 +329,14 @@ bool SimpleBody::Do() {
       defines += "#define ENABLE_LIGHTING\n";
     }
 
-    mShader.InitVertexShaderFromString(defines + SPHERE_VERT);
-    mShader.InitFragmentShaderFromString(defines + SPHERE_FRAG);
+    std::string vert = defines + SPHERE_VERT;
+    std::string frag = defines + SPHERE_FRAG;
+
+    cs::utils::replaceString(
+        frag, "ECLIPSE_SHADER_SNIPPET", mEclipseShadowReceiver.getShaderSnippet());
+
+    mShader.InitVertexShaderFromString(vert);
+    mShader.InitFragmentShaderFromString(frag);
     mShader.Link();
 
     mUniforms.sunDirection      = mShader.GetUniformLocation("uSunDirection");
@@ -287,6 +347,9 @@ bool SimpleBody::Do() {
     mUniforms.surfaceTexture    = mShader.GetUniformLocation("uSurfaceTexture");
     mUniforms.radii             = mShader.GetUniformLocation("uRadii");
     mUniforms.farClip           = mShader.GetUniformLocation("uFarClip");
+
+    // We bind the eclipse shadow map to texture unit 1.
+    mEclipseShadowReceiver.init(&mShader, 1);
 
     mShaderDirty = false;
   }
@@ -339,11 +402,17 @@ bool SimpleBody::Do() {
 
   mTexture->Bind(GL_TEXTURE0);
 
+  // Initialize eclipse shadow-related uniforms and textures.
+  mEclipseShadowReceiver.preRender();
+
   // Draw.
   mSphereVAO.Bind();
   glDrawElements(GL_TRIANGLE_STRIP, (GRID_RESOLUTION_X - 1) * (2 + 2 * GRID_RESOLUTION_Y),
       GL_UNSIGNED_INT, nullptr);
   mSphereVAO.Release();
+
+  // Reset eclipse shadow-related texture units.
+  mEclipseShadowReceiver.postRender();
 
   // Clean up.
   mTexture->Unbind(GL_TEXTURE0);

@@ -167,7 +167,6 @@ static const char* sFragmentShader = R"(
   }
   
   float linear_to_srgb(float c) {
-    const float a = 0.055;
     if(c <= 0.0031308)
       return 12.92*c;
     else
@@ -284,12 +283,18 @@ static const char* sFragmentShader = R"(
     }
 
     // Filmic
-    #if TONE_MAPPING_MODE == 1
+    #if TONE_MAPPING_MODE == 2
       color = Uncharted2Tonemap(uExposure*color);
       vec3 whiteScale = vec3(1.0)/Uncharted2Tonemap(vec3(W));
       oColor = linear_to_srgb(color*whiteScale);
-    #else
+    
+    // Gamma only
+    #elif TONE_MAPPING_MODE == 1
       oColor = linear_to_srgb(uExposure*color);
+
+    // None
+    #else
+      oColor = uExposure * color;
     #endif
   }
 )";

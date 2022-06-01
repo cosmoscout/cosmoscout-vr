@@ -258,7 +258,12 @@
     }
   ],
   "spiceKernel": "../share/config/spice/simple.txt",
-  "graphics": {},
+  "graphics": {
+    "eclipseShadowMaps": {
+      "Earth": {},
+      "Moon": {}
+    }
+  },
   "enableMouseRay": true,
   "enableSensorSizeControl": false,
   "guiPosition": {
@@ -688,11 +693,17 @@
       "vignette": {
         "enabled": true,
         "debug": false,
-        "radii": [0.5, 1.0],
+        "radii": [
+          0.5,
+          1.0
+        ],
         "color": "#000000",
         "fadeDuration": 1.0,
         "fadeDeadzone": 0.5,
-        "velocityThresholds": [0.2, 2.0],
+        "velocityThresholds": [
+          0.2,
+          2.0
+        ],
         "useDynamicRadius": false,
         "useVerticalOnly": false
       }

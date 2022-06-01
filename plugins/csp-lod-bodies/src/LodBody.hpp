@@ -86,9 +86,10 @@ class LodBody : public cs::scene::CelestialBody, public IVistaOpenGLDraw {
   std::shared_ptr<const cs::scene::CelestialObject> mSun;
   std::shared_ptr<cs::core::GuiManager>             mGuiManager;
 
-  std::unique_ptr<VistaOpenGLNode> mGLNode;
-  std::shared_ptr<TileSource>      mDEMtileSource;
-  std::shared_ptr<TileSource>      mIMGtileSource;
+  std::unique_ptr<VistaOpenGLNode>                 mGLNode;
+  std::shared_ptr<TileSource>                      mDEMtileSource;
+  std::shared_ptr<TileSource>                      mIMGtileSource;
+  std::shared_ptr<cs::core::EclipseShadowReceiver> mEclipseShadowReceiver;
 
   VistaPlanet  mPlanet;
   PlanetShader mShader;

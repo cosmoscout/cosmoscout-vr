@@ -16,6 +16,7 @@
 #include <memory>
 
 namespace cs::graphics {
+struct EclipseShadowMap;
 class ClearHDRBufferNode;
 class ToneMappingNode;
 } // namespace cs::graphics
@@ -26,6 +27,7 @@ namespace cs::core {
 /// render settings. This class should only be instantiated once - this instance will be passed to
 /// all plugins.
 class CS_CORE_EXPORT GraphicsEngine {
+
  public:
   utils::Property<float> pApproximateSceneBrightness = 1.F;
   utils::Property<float> pAverageLuminance           = 1.F;
@@ -51,17 +53,23 @@ class CS_CORE_EXPORT GraphicsEngine {
   std::shared_ptr<graphics::ShadowMap> getShadowMap() const;
   std::shared_ptr<graphics::HDRBuffer> getHDRBuffer() const;
 
+  /// Returns a list of all available eclipse shadow maps. You can use the eclipse shadow API of the
+  /// SolarSystem to get all relevant eclipse shadow maps for a given position in space.
+  std::vector<std::shared_ptr<graphics::EclipseShadowMap>> const& getEclipseShadowMaps() const;
+
   static void enableGLDebug(bool onlyErrors = true);
   static void disableGLDebug();
 
  private:
   void calculateCascades();
 
-  std::shared_ptr<core::Settings>               mSettings;
-  std::shared_ptr<graphics::ShadowMap>          mShadowMap;
-  std::shared_ptr<graphics::HDRBuffer>          mHDRBuffer;
-  std::shared_ptr<graphics::ClearHDRBufferNode> mClearNode;
-  std::shared_ptr<graphics::ToneMappingNode>    mToneMappingNode;
+  std::shared_ptr<core::Settings>                          mSettings;
+  std::shared_ptr<graphics::ShadowMap>                     mShadowMap;
+  std::shared_ptr<graphics::HDRBuffer>                     mHDRBuffer;
+  std::shared_ptr<graphics::ClearHDRBufferNode>            mClearNode;
+  std::shared_ptr<graphics::ToneMappingNode>               mToneMappingNode;
+  std::vector<std::shared_ptr<graphics::EclipseShadowMap>> mEclipseShadowMaps;
+  std::shared_ptr<VistaTexture>                            mFallbackEclipseShadowMap;
 };
 
 } // namespace cs::core
