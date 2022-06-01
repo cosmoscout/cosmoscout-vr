@@ -9,8 +9,8 @@
 
 #include "cs_core_export.hpp"
 
-#include <glm/glm.hpp>
 #include <array>
+#include <glm/glm.hpp>
 #include <memory>
 #include <vector>
 
