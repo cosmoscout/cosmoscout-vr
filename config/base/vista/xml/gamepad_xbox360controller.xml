@@ -1,0 +1,538 @@
+<!-- ///////////////////////////////////////////////////////////////////////////////////////////////
+//                               This file is part of CosmoScout VR                               //
+//      and may be used under the terms of the MIT license. See the LICENSE file for details.     //
+//                        Copyright: (c) 2019 German Aerospace Center (DLR)                       //
+//////////////////////////////////////////////////////////////////////////////////////////////// -->
+
+<?xml version="1.0" encoding="utf-8"?>
+<module>
+  <nodespace>
+  </nodespace>
+  <graph>
+    <!-- Debugging -->
+    <node name="debug_text" type="SimpleText"/>
+
+    <!-- Controller Input Analog -->
+    <node name="vrpn_analog_driver" type="DriverSensor">
+      <param name="driver" value="XBOXCONTROLLER"/>
+      <param name="sensor" value="0"/>
+      <param name="type" value="ANALOG"/>
+    </node>
+    
+    <node name="vrpn_analog_data" type="HistoryProject">
+      <param name="project">VALUE, CHANNELS</param>
+    </node>
+    
+    <!-- Controller Input Buttons -->
+    <node name="vrpn_button_driver" type="DriverSensor">
+      <param name="driver" value="XBOXCONTROLLER"/>
+      <param name="sensor" value="0"/>
+      <param name="type" value="BUTTON"/>
+    </node>
+    
+    <node name="vrpn_button_data" type="HistoryProject">
+      <param name="project">BTMASK, NUMBER, STATE</param>
+    </node>
+    
+    <node name="btn_number_to_int" type="TypeConvert[unsigned int,int]"/>
+    
+    <node name="get_button" type="Demultiplex[unsigned int]">
+      <param name="num_outports">14</param>
+    </node>
+
+    <!-- Triggers & D-Pad to movement (zooming & panning)-->
+    <node name="left_to_float" type="TypeConvert[unsigned int,float]"/>
+
+    <node name="right_to_float" type="TypeConvert[unsigned int,float]"/>
+
+    <node name="up_to_float" type="TypeConvert[unsigned int,float]"/>
+
+    <node name="down_to_float" type="TypeConvert[unsigned int,float]"/>
+
+    <node name="triggers_to_float" type="TypeConvert[double,float]"/>
+
+    <node name="x_direction" type="Substract[float]"/>
+
+    <node name="y_direction" type="Substract[float]"/>
+
+    <node name="x_movement" type="Multiply[float]"/>
+
+    <node name="y_movement" type="Multiply[float]"/>
+
+    <node name="z_movement" type="Multiply[float]"/>
+
+    <node name="movement" type="Compose3DVector"/>
+
+    <!-- ADJUST PAN AND ZOOM SENSITIVITY HERE -->
+    <node name="const_pan_sensitivity" type="ConstantValue[float]">
+      <param name="value" value="1.0"/>
+    </node>
+
+    <node name="const_zoom_sensitivity" type="ConstantValue[float]">
+      <param name="value" value="1.0"/>
+    </node>
+
+    <!-- Right Stick & Shoulder Buttons to rotation (pitch, yaw, roll)-->
+    <!-- ADJUST ROTATION SENSITIVITIES HERE -->
+    <node name="const_pitch_sensitivity" type="ConstantValue[float]">
+      <param name="value" value="1.0"/>
+    </node>
+
+    <node name="const_yaw_sensitivity" type="ConstantValue[float]">
+      <param name="value" value="1.0"/>
+    </node>
+
+    <node name="const_roll_sensitivity" type="ConstantValue[float]">
+      <param name="value" value="1.0"/>
+    </node>
+
+    <node name="pitch_RSy_to_float" type="TypeConvert[double,float]"/>
+
+    <node name="yaw_RSx_to_float" type="TypeConvert[double,float]"/>
+    
+    <node name="pitch_angle" type="Multiply[float]"/>
+
+    <node name="pitch_axis" type="ConstantValue[VistaVector3D]">
+      <param name="value" value="-1,0,0,0"/>
+    </node>
+
+    <node name="yaw_angle" type="Multiply[float]"/>
+
+    <node name="yaw_axis" type="ConstantValue[VistaVector3D]">
+      <param name="value" value="0,-1,0,0"/>
+    </node>
+
+    <node name="rb_to_float" type="TypeConvert[unsigned int,float]"/>
+
+    <node name="lb_to_float" type="TypeConvert[unsigned int,float]"/>
+
+    <node name="roll_direction" type="Substract[float]"/>
+
+    <node name="roll_angle" type="Multiply[float]"/>
+
+    <node name="roll_axis" type="ConstantValue[VistaVector3D]">
+      <param name="value" value="0,0,-1,0"/>
+    </node>
+
+    <node name="roll_rotation" type="AxisRotate"/>
+
+    <node name="pitch_rotation" type="AxisRotate"/>
+
+    <node name="yaw_rotation" type="AxisRotate"/>
+
+    <node name="pitch_yaw" type="Multiply[VistaQuaternion]"/>
+
+    <node name="rotation" type="Multiply[VistaQuaternion]"/>
+
+    <!-- Navigation to observer -->
+    <node name="observer" type="ObserverNavigationNode">
+      <param name="max_linear_speed" value="10, 10, 10"/>
+      <param name="max_angular_speed" value="1"/>
+    </node>
+
+    <node name="timer" type="Timer"/>
+
+    <!-- Buttons to mouse buttons -->
+    <node name="A_to_bool" type="TypeConvert[unsigned int,bool]"/>
+    
+    <node name="B_to_bool" type="TypeConvert[unsigned int,bool]"/>
+
+    <node name="X_to_bool" type="TypeConvert[unsigned int,bool]"/>
+
+    <node name="A_change_detect" type="ChangeDetect[bool]"/>
+
+    <node name="B_change_detect" type="ChangeDetect[bool]"/>
+
+    <node name="X_change_detect" type="ChangeDetect[bool]"/>
+
+    <node name="button_01" type="EventSource" tag="button_01"/>
+
+    <node name="button_02" type="EventSource" tag="button_02"/>
+
+    <node name="button_03" type="EventSource" tag="button_03"/>
+
+    <!-- Left Stick to mouse movement -->
+    <node name="LSy_to_float" type="TypeConvert[double,float]"/>
+
+    <node name="LSx_to_float" type="TypeConvert[double,float]"/>
+
+    <!-- ADJUST MOUSE SENSITIVITY HERE -->
+    <node name="const_mouse_sensititvity" type="ConstantValue[float]">
+      <param name="value" value="1.0"/>
+    </node>
+
+    <node name="mouse_y_movement" type="Multiply[float]"/>
+
+    <node name="mouse_x_movement" type="Multiply[float]"/>
+
+    <node name="ymov" type="TypeConvert[float,int]"/>
+
+    <node name="xmov" type="TypeConvert[float,int]"/>
+
+    <!-- Limit mouse position to viewport bounds -->
+    <node name="add_ymov_ypos" type="Add[int]"/>
+    
+    <node name="add_xmov_xpos" type="Add[int]"/>
+
+    <node name="const_0" type="ConstantValue[int]">
+      <param name="value" value="0"/>
+    </node>
+
+    <node name="lower_limit_ypos" type="Max[int]"/>
+
+    <node name="lower_limit_xpos" type="Max[int]"/>
+
+    <node name="viewport" type="ViewportSource">
+      <param name="value" value="MAIN_VIEWPORT"/>
+    </node>
+
+    <node name="upper_limit_ypos" type="Min[int]"/>
+
+    <node name="upper_limit_xpos" type="Min[int]"/>
+
+    <node name="latest_ypos" type="LatestUpdate[int]"/>
+
+    <node name="latest_xpos" type="LatestUpdate[int]"/>
+
+    <node name="set_gamepad_ypos" type="SetVariable[int]">
+      <param name="variable" value="gamepad_ypos"/>
+    </node>
+
+    <node name="set_gamepad_xpos" type="SetVariable[int]">
+      <param name="variable" value="gamepad_xpos"/>
+    </node>
+
+    <!-- Set Initial value for mouse X-Pos & Y-Pos -->
+    <node name="const_2" type="ConstantValue[int]">
+      <param name="value" value="2"/>
+    </node>
+
+    <node name="get_viewport_center_y" type="Divide[int]"/>
+
+    <node name="get_viewport_center_x" type="Divide[int]"/>
+  </graph>
+
+  <edges>
+    <!-- Controller Input Analog -->
+    <edge fromnode="vrpn_analog_driver" tonode="vrpn_analog_data"
+          fromport="history"            toport="history"
+    />
+
+    <!-- Controller Input Buttons -->
+    <edge fromnode="vrpn_button_driver" tonode="vrpn_button_data"
+          fromport="history"            toport="history"
+    />
+    <edge fromnode="vrpn_button_data" tonode="btn_number_to_int"
+          fromport="NUMBER"           toport="in"
+    />
+    <edge fromnode="btn_number_to_int" tonode="get_button"
+          fromport="out"               toport="select"
+    />
+    <edge fromnode="vrpn_button_data" tonode="get_button"
+          fromport="STATE"            toport="value"
+    />
+
+    <!-- Triggers & D-Pad to movement (zooming & panning)-->
+    <edge fromnode="get_button" tonode="left_to_float"
+          fromport="13"         toport="in"
+    />
+    <edge fromnode="get_button" tonode="right_to_float"
+          fromport="11"         toport="in"
+    />
+    <edge fromnode="get_button" tonode="up_to_float"
+          fromport="10"         toport="in"
+    />
+    <edge fromnode="get_button" tonode="down_to_float"
+          fromport="12"         toport="in"
+    />
+        <!-- Get x direction (right - left) => right = 1; left = -1 -->
+    <edge fromnode="right_to_float" tonode="x_direction"
+          fromport="out"            toport="first"
+    />
+    <edge fromnode="left_to_float" tonode="x_direction"
+          fromport="out"           toport="second"
+    />
+        <!-- Get y direction (up - down) => down = -1; up = 1 -->
+    <edge fromnode="up_to_float" tonode="y_direction"
+          fromport="out"         toport="first"
+    />
+    <edge fromnode="down_to_float" tonode="y_direction"
+          fromport="out"           toport="second"
+    />
+        <!-- Apply pan sensitivity -->
+    <edge fromnode="x_direction" tonode="x_movement"
+          fromport="out"         toport="first"
+    />
+    <edge fromnode="const_pan_sensitivity" tonode="x_movement"
+          fromport="value"                 toport="second"
+    />
+    <edge fromnode="y_direction" tonode="y_movement"
+          fromport="out"         toport="first"
+    />
+    <edge fromnode="const_pan_sensitivity" tonode="y_movement"
+          fromport="value"                 toport="second"
+    />
+        <!-- Feed panning into movement vector -->
+    <edge fromnode="x_movement" tonode="movement"
+          fromport="out"        toport="x"
+    />
+    <edge fromnode="y_movement" tonode="movement"
+          fromport="out"        toport="y"
+    />
+        <!-- Get z direction and apply sensitivity -->
+    <edge fromnode="vrpn_analog_data" tonode="triggers_to_float"
+          fromport="VALUE_4"          toport="in"
+    />
+    <edge fromnode="triggers_to_float" tonode="z_movement"
+          fromport="out"               toport="first"
+    />
+    <edge fromnode="const_zoom_sensitivity" tonode="z_movement"
+          fromport="value"                  toport="second"
+    />
+        <!-- Feed zooming into movement vector -->
+    <edge fromnode="z_movement" tonode="movement"
+          fromport="out"        toport="z"
+    />
+
+    <!-- Right Stick & Shoulder Buttons to rotation (pitch, yaw, roll) -->
+        <!-- Get Right Stick Y and apply sensitivity to pitch rotation -->
+    <edge fromnode="vrpn_analog_data" tonode="pitch_RSy_to_float"
+          fromport="VALUE_3"          toport="in"
+    />
+    <edge fromnode="pitch_RSy_to_float" tonode="pitch_angle"
+          fromport="out"                toport="first"
+    />
+    <edge fromnode="const_pitch_sensitivity" tonode="pitch_angle"
+          fromport="value"                   toport="second"
+    />
+    <edge fromnode="pitch_angle" tonode="pitch_rotation"
+          fromport="out"         toport="angle"
+    />
+    <edge fromnode="pitch_axis" tonode="pitch_rotation"
+          fromport="value"      toport="axis"
+    />
+        <!-- Get Right Stick X and apply sensitivity to yaw rotation -->
+    <edge fromnode="vrpn_analog_data" tonode="yaw_RSx_to_float"
+          fromport="VALUE_2"          toport="in"
+    />
+    <edge fromnode="yaw_RSx_to_float" tonode="yaw_angle"
+          fromport="out"              toport="first"
+    />
+    <edge fromnode="const_yaw_sensitivity" tonode="yaw_angle"
+          fromport="value"                 toport="second"
+    />
+    <edge fromnode="yaw_angle" tonode="yaw_rotation"
+          fromport="out"       toport="angle"
+    />
+    <edge fromnode="yaw_axis" tonode="yaw_rotation"
+          fromport="value"    toport="axis"
+    />
+        <!-- Get Shoulder Button for Roll direction and apply sensitivity to roll rotation -->
+    <edge fromnode="get_button" tonode="rb_to_float"
+          fromport="4"          toport="in"
+    />
+    <edge fromnode="get_button" tonode="lb_to_float"
+          fromport="5"          toport="in"
+    />
+    <edge fromnode="rb_to_float" tonode="roll_direction"
+          fromport="out"         toport="first"
+    />
+    <edge fromnode="lb_to_float" tonode="roll_direction"
+          fromport="out"         toport="second"
+    />
+    <edge fromnode="roll_direction" tonode="roll_angle"
+          fromport="out"            toport="first"
+    />
+    <edge fromnode="const_roll_sensitivity" tonode="roll_angle"
+          fromport="value"                  toport="second"
+    />
+    <edge fromnode="roll_angle" tonode="roll_rotation"
+          fromport="out"        toport="angle"
+    />
+    <edge fromnode="roll_axis" tonode="roll_rotation"
+          fromport="value"     toport="axis"
+    />
+        <!-- Feed pitch, yaw, and roll into rotation Quaternion -->
+    <edge fromnode="pitch_rotation" tonode="pitch_yaw"
+          fromport="out"            toport="first"
+    />
+    <edge fromnode="yaw_rotation" tonode="pitch_yaw"
+          fromport="out"          toport="second"
+    />
+    <edge fromnode="pitch_yaw" tonode="rotation"
+          fromport="out"       toport="first"
+    />
+    <edge fromnode="roll_rotation" tonode="rotation"
+          fromport="out"           toport="second"
+    />
+
+    <!-- Navigation to observer -->
+    <edge fromnode="movement" tonode="observer"
+          fromport="out"      toport="translation"
+    />
+    <edge fromnode="rotation" tonode="observer"
+          fromport="out"      toport="rotation"
+    />
+    <edge fromnode="timer" tonode="observer"
+          fromport="time"  toport="time"
+    />
+
+    <!-- Buttons to mouse button -->
+        <!-- A to LMB -->
+    <edge fromnode="get_button" tonode="A_to_bool"
+          fromport="0"          toport="in"
+    />
+    <edge fromnode="A_to_bool" tonode="A_change_detect"
+          fromport="out"       toport="in"
+    />
+    <edge fromnode="A_change_detect" tonode="button_01"
+          fromport="out"             toport="value"
+    />
+        <!-- B to RMB -->
+    <edge fromnode="get_button" tonode="B_to_bool"
+          fromport="1"          toport="in"
+    />
+    <edge fromnode="B_to_bool" tonode="B_change_detect"
+          fromport="out"       toport="in"
+    />
+    <edge fromnode="B_change_detect" tonode="button_02"
+          fromport="out"             toport="value"
+    />
+        <!-- X to MMB -->
+    <edge fromnode="get_button" tonode="X_to_bool"
+          fromport="2"          toport="in"
+    />
+    <edge fromnode="X_to_bool" tonode="X_change_detect"
+          fromport="out"       toport="in"
+    />
+    <edge fromnode="X_change_detect" tonode="button_03"
+          fromport="out"             toport="value"
+    />
+
+    <!-- Left Stick to mouse movement -->
+        <!-- Y-Axis -->
+    <edge fromnode="vrpn_analog_data" tonode="LSy_to_float"
+          fromport="VALUE_1"          toport="in"
+    />
+    <edge fromnode="LSy_to_float" tonode="mouse_y_movement"
+          fromport="out"          toport="first"
+    />
+    <edge fromnode="const_mouse_sensititvity" tonode="mouse_y_movement"
+          fromport="value"                    toport="second"
+    />
+    <edge fromnode="mouse_y_movement" tonode="ymov"
+          fromport="out"              toport="in"
+    />
+        <!-- X-Axis -->
+    <edge fromnode="vrpn_analog_data" tonode="LSx_to_float"
+          fromport="VALUE_0"          toport="in"
+    />
+    <edge fromnode="LSx_to_float" tonode="mouse_x_movement"
+          fromport="out"          toport="first"
+    />
+    <edge fromnode="const_mouse_sensititvity" tonode="mouse_x_movement"
+          fromport="value"                    toport="second"
+    />
+    <edge fromnode="mouse_x_movement" tonode="xmov"
+          fromport="out"              toport="in"
+    />
+
+    <!-- Limit mouse position to viewport bounds -->
+        <!-- Y-Pos movement to current position -->
+    <edge fromnode="ymov" tonode="add_ymov_ypos"
+          fromport="out"  toport="first"
+    />
+        <!-- Y-Pos apply lower limit -->
+    <edge fromnode="add_ymov_ypos" tonode="lower_limit_ypos"
+          fromport="out"           toport="first"
+    />
+    <edge fromnode="const_0" tonode="lower_limit_ypos"
+          fromport="value"   toport="second"
+    />
+        <!-- Y-Pos apply upper limit -->
+    <edge fromnode="lower_limit_ypos" tonode="upper_limit_ypos"
+          fromport="out"              toport="first"
+    />
+    <edge fromnode="viewport" tonode="upper_limit_ypos"
+          fromport="vp_h"     toport="second"
+    />
+        <!-- feed latest Y-Pos back into addition to movement and into variable -->
+    <edge fromnode="upper_limit_ypos" tonode="latest_ypos"
+          fromport="out"              toport="current"
+    />
+    <edge fromnode="latest_ypos" tonode="add_ymov_ypos"
+          fromport="out"         toport="second"
+    />
+    <edge fromnode="latest_ypos" tonode="set_gamepad_ypos"
+          fromport="out"         toport="value"
+    />
+        <!-- X-Pos movement to current position -->
+    <edge fromnode="xmov" tonode="add_xmov_xpos"
+          fromport="out"  toport="first"
+    />
+        <!-- X-Pos apply lower limit -->
+    <edge fromnode="add_xmov_xpos" tonode="lower_limit_xpos"
+          fromport="out"           toport="first"
+    />
+    <edge fromnode="const_0" tonode="lower_limit_xpos"
+          fromport="value"   toport="second"
+    />
+        <!-- X-Pos apply upper limit -->
+    <edge fromnode="lower_limit_xpos" tonode="upper_limit_xpos"
+          fromport="out"              toport="first"
+    />
+    <edge fromnode="viewport" tonode="upper_limit_xpos"
+          fromport="vp_w"     toport="second"
+    />
+        <!-- feed latest X-Pos back into addition to movement and into variable -->
+    <edge fromnode="upper_limit_xpos" tonode="latest_xpos"
+          fromport="out"              toport="current"
+    />
+    <edge fromnode="latest_xpos" tonode="add_xmov_xpos"
+          fromport="out"         toport="second"
+    />
+    <edge fromnode="latest_xpos" tonode="set_gamepad_xpos"
+          fromport="out"         toport="value"
+    />
+
+    <!-- Set initial values for mouse X-Pos & Y-Pos -->
+        <!-- Y-Pos -->
+    <edge fromnode="viewport" tonode="get_viewport_center_y"
+          fromport="vp_h"     toport="first"
+    />
+    <edge fromnode="const_2" tonode="get_viewport_center_y"
+          fromport="value"   toport="second"
+    />
+    <edge fromnode="get_viewport_center_y" tonode="latest_ypos"
+          fromport="out"                   toport="1"
+    />
+        <!-- X-Pos -->
+    <edge fromnode="viewport" tonode="get_viewport_center_x"
+          fromport="vp_w"     toport="first"
+    />
+    <edge fromnode="const_2" tonode="get_viewport_center_x"
+          fromport="value"   toport="second"
+    />
+    <edge fromnode="get_viewport_center_x" tonode="latest_xpos"
+          fromport="out"                   toport="1"
+    />
+
+    <!-- Debugging -->
+    <!--       10 = Up (D-Pad Up) -->
+    <edge fromnode="get_button" fromport="10"
+          tonode="debug_text" toport="BtnUP" />
+    <!--       11 = Right (D-Pad Right) -->
+    <edge fromnode="get_button" fromport="11"
+          tonode="debug_text" toport="BtnRight" />
+    <!--       12 = Down (D-Pad Down) -->
+    <edge fromnode="get_button" fromport="12"
+          tonode="debug_text" toport="BtnDown" />
+    <!--       13 = Left (D-Pad Left) -->
+    <edge fromnode="get_button" fromport="13"
+          tonode="debug_text" toport="BtnLeft" />
+    <edge fromnode="x_direction" fromport="out"
+          tonode="debug_text" toport="x_movement" />
+    <edge fromnode="y_direction" fromport="out"
+          tonode="debug_text" toport="y_movement" />
+  </edges>
+</module>
