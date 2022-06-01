@@ -158,7 +158,7 @@
 
     <!-- ADJUST MOUSE SENSITIVITY HERE -->
     <node name="const_mouse_sensititvity" type="ConstantValue[float]">
-      <param name="value" value="1.0"/>
+      <param name="value" value="5.0"/>
     </node>
 
     <node name="mouse_y_movement" type="Multiply[float]"/>
@@ -335,10 +335,10 @@
           fromport="5"          toport="in"
     />
     <edge fromnode="rb_to_float" tonode="roll_direction"
-          fromport="out"         toport="first"
+          fromport="out"         toport="second"
     />
     <edge fromnode="lb_to_float" tonode="roll_direction"
-          fromport="out"         toport="second"
+          fromport="out"         toport="first"
     />
     <edge fromnode="roll_direction" tonode="roll_angle"
           fromport="out"            toport="first"
@@ -516,5 +516,7 @@
     <edge fromnode="get_viewport_center_x" tonode="latest_xpos"
           fromport="out"                   toport="1"
     />
+
+    <!-- Debugging -->
   </edges>
 </module>
