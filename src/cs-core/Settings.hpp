@@ -507,7 +507,7 @@ class CS_CORE_EXPORT Settings {
     /// This maps anchor names to eclipse textures.
     std::optional<std::unordered_map<std::string, EclipseShadowMap>> mEclipseShadowMaps;
 
-    /// The eclipse shadow randering mode.
+    /// The eclipse shadow rendering mode.
     utils::DefaultProperty<EclipseShadowMode> pEclipseShadowMode{EclipseShadowMode::eFastTexture};
   };
 

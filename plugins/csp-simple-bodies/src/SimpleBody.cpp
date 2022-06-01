@@ -166,7 +166,7 @@ void main()
     #ifdef ENABLE_LIGHTING
       vec3 normal = normalize(vNormal);
       float light = orenNayar(normal, uSunDirection, normalize(-vPosition));
-      oColor = mix(oColor*uAmbientBrightness, oColor*getEclipseShadow(vPosition), light);
+      oColor = mix(oColor * uAmbientBrightness, oColor * getEclipseShadow(vPosition), light);
     #endif
 
     gl_FragDepth = length(vPosition) / uFarClip;

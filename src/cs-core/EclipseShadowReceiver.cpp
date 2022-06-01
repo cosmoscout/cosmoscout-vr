@@ -91,7 +91,7 @@ void EclipseShadowReceiver::preRender() const {
   mShader->SetUniform(mUniforms.numOccluders, static_cast<int>(mShadowMaps.size()));
 
   // Bind all eclipse shadow maps and upload the respective caster positions and radii.
-  if (mShadowMaps.size() > 0) {
+  if (!mShadowMaps.empty()) {
     std::array<int, MAX_BODIES> shadowMapBindings{};
 
     for (size_t i(0); i < mShadowMaps.size() && i < MAX_BODIES; ++i) {

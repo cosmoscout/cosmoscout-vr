@@ -10,6 +10,7 @@
 #include "cs_core_export.hpp"
 
 #include <glm/glm.hpp>
+#include <array>
 #include <memory>
 #include <vector>
 
@@ -33,11 +34,11 @@ class Settings;
 /// key mGraphics.pEclipseShadowMode.
 /// eNone                No eclipse shadows at all.
 /// eDebug               Draws the umbra, antumbra and penumbra in different colors.
-/// eLinear              Use a linear falloff in the penumbra and a quatratic in the antumbra.
-/// eSmoothstep          Use a smoothstep falloff in the penumbra and a quatratic in the antumbra.
-/// eCircleIntersection  Use cirlce intersection math to compute the occluded fraction of the Sun.
+/// eLinear              Use a linear falloff in the penumbra and a quadratic in the antumbra.
+/// eSmoothstep          Use a smoothstep falloff in the penumbra and a quadratic in the antumbra.
+/// eCircleIntersection  Use circle intersection math to compute the occluded fraction of the Sun.
 /// eTexture             Retrieve the amount of shadowing from a shadow-lookup texture.
-/// eFastTexture         Like above, but with approaximations in the lookup-coordiante computation.
+/// eFastTexture         Like above, but with approximations in the lookup-coordinate computation.
 enum class EclipseShadowMode {
   eNone               = 0,
   eDebug              = 1,
@@ -76,7 +77,7 @@ class CS_CORE_EXPORT EclipseShadowReceiver {
   /// eclipse shadow maps.
   void preRender() const;
 
-  /// This should be called after rendering the object. It will unbind all eclipse shadow maps
+  /// This should be called after rendering the object. It will unbind all eclipse shadow maps.
   void postRender() const;
 
  private:
