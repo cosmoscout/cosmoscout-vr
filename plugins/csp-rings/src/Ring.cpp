@@ -106,7 +106,7 @@ Ring::Ring(std::shared_ptr<cs::core::Settings> settings,
     std::shared_ptr<cs::core::SolarSystem> solarSystem, std::string const& anchorName)
     : mSettings(std::move(settings))
     , mSolarSystem(std::move(solarSystem))
-    , mEclipseShadowReceiver(mSettings, mSolarSystem, this) {
+    , mEclipseShadowReceiver(mSettings, mSolarSystem, this, true) {
 
   mSettings->initAnchor(*this, anchorName);
 
@@ -206,12 +206,12 @@ bool Ring::Do() {
     mShader.InitFragmentShaderFromString(frag);
     mShader.Link();
 
-    mUniforms.modelViewMatrix  = mShader.GetUniformLocation("uMatModelView");
-    mUniforms.projectionMatrix = mShader.GetUniformLocation("uMatProjection");
-    mUniforms.surfaceTexture   = mShader.GetUniformLocation("uSurfaceTexture");
-    mUniforms.radii            = mShader.GetUniformLocation("uRadii");
-    mUniforms.farClip          = mShader.GetUniformLocation("uFarClip");
-    mUniforms.sunIlluminance   = mShader.GetUniformLocation("uSunIlluminance");
+    mUniforms.modelViewMatrix   = mShader.GetUniformLocation("uMatModelView");
+    mUniforms.projectionMatrix  = mShader.GetUniformLocation("uMatProjection");
+    mUniforms.surfaceTexture    = mShader.GetUniformLocation("uSurfaceTexture");
+    mUniforms.radii             = mShader.GetUniformLocation("uRadii");
+    mUniforms.farClip           = mShader.GetUniformLocation("uFarClip");
+    mUniforms.sunIlluminance    = mShader.GetUniformLocation("uSunIlluminance");
     mUniforms.ambientBrightness = mShader.GetUniformLocation("uAmbientBrightness");
 
     // We bind the eclipse shadow map to texture unit 1.
@@ -238,7 +238,7 @@ bool Ring::Do() {
   mShader.SetUniform(mUniforms.farClip, cs::utils::getCurrentFarClipDistance());
 
   float sunIlluminance(1.F);
-  float     ambientBrightness(mSettings->mGraphics.pAmbientBrightness.get());
+  float ambientBrightness(mSettings->mGraphics.pAmbientBrightness.get());
 
   // If HDR is enabled, the illuminance has to be calculated based on the scene's scale and the
   // distance to the Sun.
