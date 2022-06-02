@@ -37,7 +37,7 @@ class Ring : public cs::scene::CelestialObject, public IVistaOpenGLDraw {
   Ring(Ring&& other)      = default;
 
   Ring& operator=(Ring const& other) = delete;
-  Ring& operator=(Ring&& other)      = delete;
+  Ring& operator=(Ring&& other) = delete;
 
   ~Ring() override;
 
@@ -67,9 +67,9 @@ class Ring : public cs::scene::CelestialObject, public IVistaOpenGLDraw {
 
   cs::core::EclipseShadowReceiver mEclipseShadowReceiver;
 
-  bool mShaderDirty         = true;
+  bool mShaderDirty              = true;
   int  mEnableLightingConnection = -1;
-  int  mEnableHDRConnection = -1;
+  int  mEnableHDRConnection      = -1;
 
   struct {
     uint32_t modelViewMatrix   = 0;
