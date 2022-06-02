@@ -29,7 +29,13 @@ rem Set paths so that all libraries are found.
 set VISTACORELIBS_DRIVER_PLUGIN_DIRS=%SCRIPT_DIR%\..\lib\DriverPlugins
 set PATH=%SCRIPT_DIR%\..\lib;%PATH%
 
+rem Start VRPN server for controllers
+START "VRPN_SERVER" /b vrpn_server.exe -f vrpn_csvr.cfg
+
 cosmoscout.exe --settings=%SETTINGS% -vistaini %VISTA_INI%
+
+rem Kill VRPN server
+TASKKILL /FI "WINDOWTITLE eq VRPN_SERVER" /f /t
 
 rem Go back to where we came from
 cd "%CURRENT_DIR%"
