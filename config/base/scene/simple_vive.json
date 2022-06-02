@@ -32,6 +32,20 @@
     "minFarClip": 200.0,
     "maxFarClip": 20000.0
   },
+  "enableMouseRay": true,
+  "enableSensorSizeControl": false,
+  "guiPosition": {
+    "heightMeter": 1.8,
+    "heightPixel": 1200,
+    "posXMeter": 0.0,
+    "posYMeter": 1.2,
+    "posZMeter": -1.0,
+    "rotX": 0.0,
+    "rotY": 0.0,
+    "rotZ": 0.0,
+    "widthMeter": 2.4,
+    "widthPixel": 1600
+  },
   "bookmarks": [
     {
       "name": "Mercury",
