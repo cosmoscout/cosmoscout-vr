@@ -8,6 +8,7 @@
 
 #include "SolarSystem.hpp"
 
+#include "../cs-graphics/EclipseShadowMap.hpp"
 #include "../cs-utils/FrameTimings.hpp"
 #include "../cs-utils/convert.hpp"
 #include "../cs-utils/utils.hpp"
@@ -36,9 +37,6 @@ SolarSystem::SolarSystem(std::shared_ptr<Settings> settings,
     , mGraphicsEngine(std::move(graphicsEngine))
     , mTimeControl(std::move(timeControl))
     , mSun(std::make_shared<scene::CelestialObject>()) {
-
-  mSun->setCenterName("Sun");
-  mSun->setFrameName("IAU_Sun");
 
   // Tell the user what's going on.
   logger().debug("Creating SolarSystem.");
@@ -84,6 +82,70 @@ double SolarSystem::getSunLuminance() const {
   // We consider the Sun to emit light equally in all directions. So we have to divide the
   // luminous exitance by PI to get actual luminance values.
   return luminousExitance / glm::pi<double>();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::vector<std::shared_ptr<graphics::EclipseShadowMap>> SolarSystem::getEclipseShadowMaps(
+    double time, scene::CelestialObject const& receiver) const {
+
+  std::vector<std::shared_ptr<graphics::EclipseShadowMap>> result;
+
+  // Loop through all registered eclipse shadow casters and test if they are casting a shadow onto
+  // the given receiver. All involved objects are considered to be spheres.
+  for (auto const& shadowMap : mGraphicsEngine->getEclipseShadowMaps()) {
+    scene::CelestialObject occluder;
+    mSettings->initAnchor(occluder, shadowMap->mOccluderAnchor);
+
+    // Avoid self-shadowing.
+    if (receiver.getCenterName() != occluder.getCenterName()) {
+
+      auto pSun = occluder.getRelativePosition(time, *mSun);
+      auto pRec = occluder.getRelativePosition(time, receiver);
+
+      double dSun = glm::length(pSun);
+      double dRec = glm::length(pRec);
+
+      // Do not consider cases where the receiver is really far away.
+      if (dRec > 0.1 * dSun) {
+        continue;
+      }
+
+      // Do not consider cases where the receiver is in front of the caster.
+      if (glm::dot(pSun / dSun, pRec / dRec) > 0) {
+        continue;
+      }
+
+      double rOcc = occluder.getRadii()[0];
+      double rRec = receiver.getRadii()[0];
+      double rSun = mSun->getRadii()[0];
+
+      // Compute distances to the tips of the umbra and penumbra cones.
+      double dUmbra    = dSun * rOcc / (rSun - rOcc);
+      double dPenumbra = dSun * rOcc / (rSun + rOcc);
+
+      // Compute slopes of the penumbra cone.
+      double mPenumbra = rOcc / std::sqrt(dPenumbra * dUmbra - rOcc * rOcc);
+
+      // Project the vector from the occluder to the receiver onto the sun-occluder axis.
+      auto toOcc        = -pRec;
+      auto sunToOccNorm = -pSun / dSun;
+      auto toOccProj    = glm::dot(toOcc, sunToOccNorm) * sunToOccNorm;
+
+      // Get position in shadow space.
+      double posX = glm::length(toOccProj);
+      double posY = glm::length(toOcc - toOccProj);
+
+      // Distances of the penumbra and umbra cones from the sun-occluder axis at posX.
+      double penumbra = mPenumbra * (posX + dPenumbra);
+
+      if (posY < penumbra + rRec) {
+        result.push_back(shadowMap);
+      }
+    }
+  }
+
+  return result;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -584,6 +646,8 @@ void SolarSystem::init(std::string const& sSpiceMetaFile) {
     getmsg_c("LONG", maxSpiceErrorLength, msg.data());
     throw std::runtime_error(msg.data());
   }
+
+  mSettings->initAnchor(*mSun, "Sun");
 
   mIsInitialized = true;
 }

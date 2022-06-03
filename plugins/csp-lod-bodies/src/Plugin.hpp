@@ -64,9 +64,6 @@ class Plugin : public cs::core::PluginBase {
     /// The file name for the colormap for height or slope coloring.
     cs::utils::DefaultProperty<std::string> mTerrainColorMap{""};
 
-    /// When enabled, the values of the colormap will be multiplied with the image channel.
-    cs::utils::DefaultProperty<bool> mEnableColorMixing{true};
-
     /// The height range for the color mapping.
     cs::utils::DefaultProperty<glm::vec2> mHeightRange{glm::vec2(-8000.F, 12000.F)};
 

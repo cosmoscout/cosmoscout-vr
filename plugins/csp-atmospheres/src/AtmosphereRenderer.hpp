@@ -22,6 +22,10 @@
 #include <memory>
 #include <unordered_map>
 
+namespace cs::core {
+class EclipseShadowReceiver;
+}
+
 namespace cs::graphics {
 class ShadowMap;
 class HDRBuffer;
@@ -33,7 +37,8 @@ namespace csp::atmospheres {
 /// very same position as your planet. Set its scale to the same size as your planet.
 class AtmosphereRenderer : public IVistaOpenGLDraw {
  public:
-  explicit AtmosphereRenderer(std::shared_ptr<Plugin::Settings> settings);
+  explicit AtmosphereRenderer(std::shared_ptr<Plugin::Settings> settings,
+      std::shared_ptr<cs::core::EclipseShadowReceiver>          eclipseShadowReceiver);
 
   /// Updates the current sun position and brightness.
   void setSun(glm::vec3 const& direction, float illuminance);
@@ -144,8 +149,9 @@ class AtmosphereRenderer : public IVistaOpenGLDraw {
   glm::dvec3                        mRadii          = glm::dvec3(1.0, 1.0, 1.0);
   glm::dmat4                        mWorldTransform = glm::dmat4(1.0);
 
-  std::shared_ptr<cs::graphics::ShadowMap> mShadowMap;
-  std::shared_ptr<cs::graphics::HDRBuffer> mHDRBuffer;
+  std::shared_ptr<cs::graphics::ShadowMap>         mShadowMap;
+  std::shared_ptr<cs::graphics::HDRBuffer>         mHDRBuffer;
+  std::shared_ptr<cs::core::EclipseShadowReceiver> mEclipseShadowReceiver;
 
   VistaGLSLShader        mAtmoShader;
   VistaVertexArrayObject mQuadVAO;
@@ -203,6 +209,7 @@ class AtmosphereRenderer : public IVistaOpenGLDraw {
     uint32_t inverseModelViewProjectionMatrix = 0;
     uint32_t inverseProjectionMatrix          = 0;
     uint32_t modelViewMatrix                  = 0;
+    uint32_t modelMatrix                      = 0;
   } mUniforms;
 
   static const char* cAtmosphereVert;

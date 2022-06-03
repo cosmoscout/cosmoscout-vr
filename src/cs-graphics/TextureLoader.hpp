@@ -17,7 +17,8 @@ namespace cs::graphics {
 /// For loading VistaTextures.
 class CS_GRAPHICS_EXPORT TextureLoader {
  public:
-  /// Loads a VistaTexture from the given file.
+  /// Loads a VistaTexture from the given file. This support *.tga, *.tif, *.hdr as well as all
+  /// image formats supported by stb_image (including *.bmp, *.jpeg and *.png).
   static std::unique_ptr<VistaTexture> loadFromFile(std::string const& sFileName);
 };
 

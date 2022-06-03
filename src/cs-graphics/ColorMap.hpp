@@ -36,10 +36,14 @@ class CS_GRAPHICS_EXPORT ColorMap {
   /// Returns the color map as a vector of RGBA values.
   std::vector<glm::vec4> getRawData();
 
+  /// Returns true if the alpha channel of the color map is not everywhere set to one.
+  bool getUsesAlpha() const;
+
  private:
   int                           mResolution = 256;
   std::unique_ptr<VistaTexture> mTexture;
   std::vector<glm::vec4>        mRawData;
+  bool                          mUsesAlpha = false;
 };
 
 } // namespace cs::graphics

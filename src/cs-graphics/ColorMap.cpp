@@ -119,6 +119,13 @@ ColorMap::ColorMap(boost::filesystem::path const& sJsonPath) {
   ColorMapData colorMapData = json;
   mRawData                  = mergeColorMapData(colorMapData, mResolution);
   mTexture                  = generateTexture(mRawData);
+
+  for (size_t i(0); i < mRawData.size(); ++i) {
+    if (mRawData[i].a < 1.0) {
+      mUsesAlpha = true;
+      break;
+    }
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -137,6 +144,12 @@ void ColorMap::unbind(unsigned unit) {
 
 std::vector<glm::vec4> ColorMap::getRawData() {
   return mRawData;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool ColorMap::getUsesAlpha() const {
+  return mUsesAlpha;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
