@@ -532,7 +532,6 @@ bool ToneMappingNode::ToneMappingNode::Do() {
 
   glPushAttrib(GL_ENABLE_BIT | GL_DEPTH_BUFFER_BIT);
   glDisable(GL_BLEND);
-  glDisable(GL_CULL_FACE);
   glEnable(GL_TEXTURE_2D);
 
   mShader->Bind();

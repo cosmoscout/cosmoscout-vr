@@ -76,7 +76,6 @@ const char* AtmosphereRenderer::cAtmosphereFrag0 = R"(
   uniform float     uWaterLevel;
   uniform float     uCloudAltitude;
   uniform float     uAmbientBrightness;
-  uniform float     uFarClip;
 
   // shadow stuff
   uniform sampler2DShadow uShadowMaps[5];
@@ -466,29 +465,17 @@ const char* AtmosphereRenderer::cAtmosphereFrag1 = R"(
   }
 
   // returns the model space distance to the surface of the depth buffer at the
-  // current pixel, or 10 if there is nothing in the depth buffer
+  // current pixel, or 100 if there is nothing in the depth buffer
   float GetOpaqueDepth() {
     float fDepth = GetDepth();
 
-    #if USE_LINEARDEPTHBUFFER
+    // We need to return a distance which is guaranteed to be larger
+    // than the largest ray length possible. As the atmosphere has a
+    // radius of 1.0, 100 is more than enough.
+    if (fDepth == 0) return 100.0;
 
-      // We need to return a distance which is guaranteed to be larger
-      // than the largest ray length possible. As the atmosphere has a
-      // radius of 1.0, 1000000 is more than enough.
-      if (fDepth == 1) return 1000000.0;
-
-      float linearDepth = fDepth * uFarClip;
-      vec4 posFarPlane = uMatInvP * vec4(2.0*vsIn.vTexcoords-1, 1.0, 1.0);
-      vec3 posVS = normalize(posFarPlane.xyz) * linearDepth;
-
-      return length(vsIn.vRayOrigin - (uMatInvMV * vec4(posVS, 1.0)).xyz);
-
-    #else
-
-      vec4  vPos = uMatInvMVP * vec4(2.0*vsIn.vTexcoords-1, 2*fDepth-1, 1);
-      return length(vsIn.vRayOrigin - vPos.xyz / vPos.w);
-
-    #endif
+    vec4 vPos = uMatInvMVP * vec4(2.0*vsIn.vTexcoords-1, 2*fDepth-1, 1);
+    return length(vsIn.vRayOrigin - vPos.xyz / vPos.w);
   }
   
   // crops the intersections to the view ray

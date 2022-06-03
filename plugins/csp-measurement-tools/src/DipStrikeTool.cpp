@@ -39,7 +39,6 @@ const char* DipStrikeTool::SHADER_VERT = R"(
 
 layout(location=0) in vec2 iPosition;
 
-out vec4 vPosition;
 out vec2 vTexcoord;
 
 uniform mat4 uMatModelView;
@@ -47,9 +46,9 @@ uniform mat4 uMatProjection;
 
 void main()
 {
-    vPosition   = uMatModelView * vec4(iPosition.x, 0, iPosition.y, 1.0);
+    vec4 pos    = uMatModelView * vec4(iPosition.x, 0, iPosition.y, 1.0);
     vTexcoord   = iPosition;
-    gl_Position = uMatProjection * vPosition;
+    gl_Position = uMatProjection * pos;
 }
 )";
 
@@ -58,11 +57,9 @@ void main()
 const char* DipStrikeTool::SHADER_FRAG = R"(
 #version 330
 
-in vec4 vPosition;
 in vec2 vTexcoord;
 
 uniform float uOpacity;
-uniform float uFarClip;
 
 layout(location = 0) out vec4 oColor;
 
@@ -88,8 +85,6 @@ void main()
     oColor = vec4(0.5, 0.7, 1.0, uOpacity);
     oColor.rgb = mix(vec3(1), oColor.rgb, 1.0 - 0.4 * strikeAlpha);
     oColor.rgb = mix(vec3(1), oColor.rgb, 1.0 - 0.7 * dipAlpha);
-
-    gl_FragDepth = length(vPosition.xyz) / uFarClip;
 }
 )";
 
@@ -113,7 +108,6 @@ DipStrikeTool::DipStrikeTool(std::shared_ptr<cs::core::InputManager> const& pInp
   mUniforms.modelViewMatrix  = mShader.GetUniformLocation("uMatModelView");
   mUniforms.projectionMatrix = mShader.GetUniformLocation("uMatProjection");
   mUniforms.opacity          = mShader.GetUniformLocation("uOpacity");
-  mUniforms.farClip          = mShader.GetUniformLocation("uFarClip");
 
   auto* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
 
@@ -144,7 +138,6 @@ DipStrikeTool::DipStrikeTool(std::shared_ptr<cs::core::InputManager> const& pInp
       0.0005F * static_cast<float>(mGuiArea->getHeight()), 1.F);
   mGuiTransform->Rotate(VistaAxisAndAngle(VistaVector3D(0.F, 1.F, 0.F), -glm::pi<float>() / 2.F));
   mGuiArea->addItem(mGuiItem.get());
-  mGuiArea->setUseLinearDepthBuffer(true);
   mGuiOpenGLNode.reset(pSG->NewOpenGLNode(mGuiTransform.get(), mGuiArea.get()));
 
   mInputManager->registerSelectable(mGuiOpenGLNode.get());
@@ -419,7 +412,6 @@ bool DipStrikeTool::Do() {
   glUniformMatrix4fv(mUniforms.modelViewMatrix, 1, GL_FALSE, glm::value_ptr(matMV));
   glUniformMatrix4fv(mUniforms.projectionMatrix, 1, GL_FALSE, glMatP.data());
   mShader.SetUniform(mUniforms.opacity, pOpacity.get());
-  mShader.SetUniform(mUniforms.farClip, cs::utils::getCurrentFarClipDistance());
 
   // draw the linestrip
   glDrawArrays(GL_TRIANGLE_FAN, 0, RESOLUTION + 1);

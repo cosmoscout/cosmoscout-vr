@@ -43,7 +43,6 @@ layout(location = 0) in vec2 iGridPos;
 // outputs
 out vec2 vTexCoords;
 out vec3 vNormal;
-out vec3 vPosition;
 out vec3 vCenter;
 out vec2 vLngLat;
 
@@ -63,21 +62,14 @@ vec3 toCartesian(vec2 lonLat) {
 
 void main()
 {
-    vTexCoords = vec2(iGridPos.x, 1-iGridPos.y);
-    vLngLat.x = iGridPos.x * 2.0 * PI - PI;
-    vLngLat.y = iGridPos.y * PI - PI/2;
-    vPosition = toCartesian(vLngLat);
-    vNormal    = (uMatModelView * vec4(geodeticSurfaceNormal(vLngLat), 0.0)).xyz;
-    vPosition   = (uMatModelView * vec4(vPosition, 1.0)).xyz;
+    vTexCoords  = vec2(iGridPos.x, 1-iGridPos.y);
+    vLngLat.x   = iGridPos.x * 2.0 * PI - PI;
+    vLngLat.y   = iGridPos.y * PI - PI/2;
+    vec3 pos    = toCartesian(vLngLat);
+    vNormal     = (uMatModelView * vec4(geodeticSurfaceNormal(vLngLat), 0.0)).xyz;
+    pos         = (uMatModelView * vec4(pos, 1.0)).xyz;
     vCenter     = (uMatModelView * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
-    gl_Position =  uMatProjection * vec4(vPosition, 1);
-
-    if (gl_Position.w > 0) {
-      gl_Position /= gl_Position.w;
-      if (gl_Position.z >= 1) {
-        gl_Position.z = 0.999999;
-      }
-    }
+    gl_Position = uMatProjection * vec4(pos, 1);
 }
 )";
 
@@ -88,14 +80,12 @@ uniform vec3 uSunDirection;
 uniform sampler2D uSurfaceTexture;
 uniform float uAmbientBrightness;
 uniform float uSunIlluminance;
-uniform float uFarClip;
 
 ECLIPSE_SHADER_SNIPPET
 
 // inputs
 in vec2 vTexCoords;
 in vec3 vNormal;
-in vec3 vPosition;
 in vec3 vCenter;
 in vec2 vLngLat;
 
@@ -168,8 +158,6 @@ void main()
       float light = orenNayar(normal, uSunDirection, normalize(-vPosition));
       oColor = mix(oColor * uAmbientBrightness, oColor * getEclipseShadow(vPosition), light);
     #endif
-
-    gl_FragDepth = length(vPosition) / uFarClip;
 }
 )";
 
@@ -346,7 +334,6 @@ bool SimpleBody::Do() {
     mUniforms.projectionMatrix  = mShader.GetUniformLocation("uMatProjection");
     mUniforms.surfaceTexture    = mShader.GetUniformLocation("uSurfaceTexture");
     mUniforms.radii             = mShader.GetUniformLocation("uRadii");
-    mUniforms.farClip           = mShader.GetUniformLocation("uFarClip");
 
     // We bind the eclipse shadow map to texture unit 1.
     mEclipseShadowReceiver.init(&mShader, 1);
@@ -398,7 +385,6 @@ bool SimpleBody::Do() {
   mShader.SetUniform(mUniforms.surfaceTexture, 0);
   mShader.SetUniform(mUniforms.radii, static_cast<float>(mRadii[0]), static_cast<float>(mRadii[1]),
       static_cast<float>(mRadii[2]));
-  mShader.SetUniform(mUniforms.farClip, cs::utils::getCurrentFarClipDistance());
 
   mTexture->Bind(GL_TEXTURE0);
 

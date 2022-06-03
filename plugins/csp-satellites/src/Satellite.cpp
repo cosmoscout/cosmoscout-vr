@@ -29,8 +29,8 @@ Satellite::Satellite(Plugin::Settings::Satellite const& config, std::string cons
     : mSceneGraph(sceneGraph)
     , mSettings(std::move(settings))
     , mSolarSystem(std::move(solarSystem))
-    , mModel(std::make_unique<cs::graphics::GltfLoader>(
-          config.mModelFile, config.mEnvironmentMap, true)) {
+    , mModel(
+          std::make_unique<cs::graphics::GltfLoader>(config.mModelFile, config.mEnvironmentMap)) {
 
   mSettings->initAnchor(*this, anchorName);
 

@@ -25,10 +25,10 @@ namespace cs::gui {
 
 const char* const ScreenSpaceGuiArea::QUAD_VERT = R"(
 vec2 positions[4] = vec2[](
-    vec2(-0.5, -0.5),
-    vec2( 0.5, -0.5),
     vec2(-0.5,  0.5),
-    vec2( 0.5,  0.5)
+    vec2( 0.5,  0.5),
+    vec2(-0.5, -0.5),
+    vec2( 0.5, -0.5)
 );
 
 uniform vec2 iPosition;

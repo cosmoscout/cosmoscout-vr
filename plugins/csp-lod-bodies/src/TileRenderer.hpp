@@ -73,7 +73,6 @@ class TileRenderer {
   void setFrameCount(int frameCount);
   void setProjection(glm::dmat4 const& m);
   void setModelview(glm::dmat4 const& m);
-  void setFarClip(float farClip);
 
   /// Render the elevation and image tiles in reqDEM and reqIMG respectively.
   void render(std::vector<RenderData*> const& reqDEM, std::vector<RenderData*> const& reqIMG,
@@ -137,7 +136,6 @@ class TileRenderer {
 
   glm::dmat4 mMatVM;
   glm::dmat4 mMatP;
-  float      mFarClip{};
 
   static std::unique_ptr<VistaBufferObject>      mVboTerrain;
   static std::unique_ptr<VistaBufferObject>      mIboTerrain;

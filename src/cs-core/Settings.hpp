@@ -315,9 +315,6 @@ class CS_CORE_EXPORT Settings {
   /// distance to the observer. When this weight exceeds "trackWeight", the observer will follow the
   /// body's position. When this weight exceeds "lockWeight", the observer will also follow the
   /// body's rotation.
-  /// Last but not least, the far clipping plane depends on the scene scale: Near clip will always
-  /// be set to "nearClip" (in meters), while far clip will be interpolated between "minFarClip" and
-  /// "maxFarClip" depending on the scene scale.
   struct SceneScale {
     double mMinScale;
     double mMaxScale;
@@ -328,9 +325,6 @@ class CS_CORE_EXPORT Settings {
     double mLockWeight;
     double mTrackWeight;
     double mMinObjectSize;
-    double mNearClip;
-    double mMinFarClip;
-    double mMaxFarClip;
   };
 
   SceneScale mSceneScale{};

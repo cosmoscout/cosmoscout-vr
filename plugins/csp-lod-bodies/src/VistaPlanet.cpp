@@ -344,7 +344,6 @@ void VistaPlanet::renderTiles(int frameCount, glm::dmat4 const& matVM, glm::fmat
   mRenderer.setFrameCount(frameCount);
   mRenderer.setModelview(matVM);
   mRenderer.setProjection(matP);
-  mRenderer.setFarClip(cs::utils::getCurrentFarClipDistance());
   mRenderer.render(mLodVisitor.getRenderDEM(), mLodVisitor.getRenderIMG(), shadowMap);
 }
 

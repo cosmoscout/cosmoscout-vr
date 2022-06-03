@@ -41,15 +41,10 @@ uniform mat4 uMatProjection;
 // inputs
 layout(location = 0) in vec3 iPosition;
 
-// outputs
-out vec2 vTexCoords;
-out vec3 vPosition;
-
 void main()
 {
-    vTexCoords = iPosition.xy;
-    vPosition   = (uMatModelView * vec4(iPosition, 1.0)).xyz;
-    gl_Position =  uMatProjection * vec4(vPosition, 1);
+    vec3 pos    = (uMatModelView * vec4(iPosition, 1.0)).xyz;
+    gl_Position =  uMatProjection * vec4(pos, 1);
 }
 )";
 
@@ -58,20 +53,12 @@ void main()
 static const char* SHADER_FRAG = R"(
 #version 330
 
-// inputs
-in vec2 vTexCoords;
-in vec3 vPosition;
-
-uniform float uFarClip;
-
 // outputs
 layout(location = 0) out vec4 oColor;
 
 void main()
 {
     oColor = vec4(1, 1, 1, 0.3);
-
-    gl_FragDepth = length(vPosition) / uFarClip;
 }
 )";
 
@@ -113,14 +100,12 @@ MouseRay::MouseRay() {
 
   mUniforms.modelViewMatrix  = mShader.GetUniformLocation("uMatModelView");
   mUniforms.projectionMatrix = mShader.GetUniformLocation("uMatProjection");
-  mUniforms.farClip          = mShader.GetUniformLocation("uFarClip");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool MouseRay::Do() {
   glPushAttrib(GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT);
-  glEnable(GL_CULL_FACE);
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 
@@ -133,8 +118,6 @@ bool MouseRay::Do() {
   mRayVAO.Bind();
   glUniformMatrix4fv(mUniforms.modelViewMatrix, 1, GL_FALSE, glMatMV.data());
   glUniformMatrix4fv(mUniforms.projectionMatrix, 1, GL_FALSE, glMatP.data());
-
-  mShader.SetUniform(mUniforms.farClip, utils::getCurrentFarClipDistance());
 
   glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(INDICES.size()), GL_UNSIGNED_INT, nullptr);
   mRayVAO.Release();

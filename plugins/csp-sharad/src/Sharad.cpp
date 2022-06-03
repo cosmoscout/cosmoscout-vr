@@ -327,7 +327,7 @@ bool Sharad::Do() {
     mShader.SetUniform(mUniforms.radii, static_cast<float>(mRadii[0]),
         static_cast<float>(mRadii[1]), static_cast<float>(mRadii[2]));
     mShader.SetUniform(mUniforms.time, static_cast<float>(mCurrTime - mExistence[0]));
-    mShader.SetUniform(mUniforms.farClip, cs::utils::getCurrentFarClipDistance());
+    mShader.SetUniform(mUniforms.farClip, 1.f);
 
     mTexture->Bind(GL_TEXTURE0);
     mDepthBuffer->Bind(GL_TEXTURE1);

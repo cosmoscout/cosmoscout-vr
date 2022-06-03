@@ -31,24 +31,12 @@ uniform mat4 uMatProjection;
 
 // outputs
 out float fAge;
-out vec4 vPosition;
 
 void main()
 {
     fAge = inAge;
-    vPosition = uMatModelView * vec4(inPosition.xyz, 1);
-    gl_Position = uMatProjection * vPosition;
-
-  #if USE_LINEARDEPTHBUFFER
-    gl_Position.z = 0;
-  #else
-    if (gl_Position.w > 0) {
-      gl_Position /= gl_Position.w;
-      if (gl_Position.z >= 1) {
-        gl_Position.z = 0.999999;
-      }
-    }
-  #endif
+    vec4 pos = uMatModelView * vec4(inPosition.xyz, 1);
+    gl_Position = uMatProjection * pos;
 })";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -58,12 +46,10 @@ static const char* SHADER_FRAG = R"(
 
 // inputs
 in float fAge;
-in vec4 vPosition;
 
 // uniforms
 uniform vec4 cStartColor;
 uniform vec4 cEndColor;
-uniform float fFarClip;
 
 // outputs
 layout(location = 0) out vec4 vOutColor;
@@ -72,11 +58,6 @@ void main()
 {
   if (fAge < 0.0 || fAge > 1.0) discard;
   vOutColor = mix(cStartColor, cEndColor, fAge);
-
-  #if USE_LINEARDEPTHBUFFER
-    // write linear depth
-    gl_FragDepth = length(vPosition.xyz) / fFarClip;
-  #endif
 })";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -160,10 +141,6 @@ bool Trajectory::Do() {
     mVAO->Bind();
     mShader->Bind();
 
-    if (mUseLinearDepthBuffer) {
-      mShader->SetUniform(mUniforms.farClip, utils::getCurrentFarClipDistance());
-    }
-
     mShader->SetUniform(
         mUniforms.startColor, mStartColor[0], mStartColor[1], mStartColor[2], mStartColor[3]);
     mShader->SetUniform(mUniforms.endColor, mEndColor[0], mEndColor[1], mEndColor[2], mEndColor[3]);
@@ -209,14 +186,10 @@ void Trajectory::createShader() {
   std::string sVert(SHADER_VERT);
   std::string sFrag(SHADER_FRAG);
 
-  utils::replaceString(sFrag, "USE_LINEARDEPTHBUFFER", std::to_string(mUseLinearDepthBuffer));
-  utils::replaceString(sVert, "USE_LINEARDEPTHBUFFER", std::to_string(mUseLinearDepthBuffer));
-
   mShader->InitVertexShaderFromString(sVert);
   mShader->InitFragmentShaderFromString(sFrag);
   mShader->Link();
 
-  mUniforms.farClip          = mShader->GetUniformLocation("fFarClip");
   mUniforms.startColor       = mShader->GetUniformLocation("cStartColor");
   mUniforms.endColor         = mShader->GetUniformLocation("cEndColor");
   mUniforms.modelViewMatrix  = mShader->GetUniformLocation("uMatModelView");
@@ -269,19 +242,6 @@ float Trajectory::getWidth() const {
 
 void Trajectory::setWidth(float val) {
   mWidth = val;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-bool Trajectory::getUseLinearDepthBuffer() const {
-  return mUseLinearDepthBuffer;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void Trajectory::setUseLinearDepthBuffer(bool bEnable) {
-  mShaderDirty          = true;
-  mUseLinearDepthBuffer = bEnable;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

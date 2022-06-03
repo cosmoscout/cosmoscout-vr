@@ -19,6 +19,7 @@ namespace cs::graphics {
 struct EclipseShadowMap;
 class ClearHDRBufferNode;
 class ToneMappingNode;
+class SetupGLNode;
 } // namespace cs::graphics
 
 namespace cs::core {
@@ -67,6 +68,7 @@ class CS_CORE_EXPORT GraphicsEngine {
   std::shared_ptr<graphics::ShadowMap>                     mShadowMap;
   std::shared_ptr<graphics::HDRBuffer>                     mHDRBuffer;
   std::shared_ptr<graphics::ClearHDRBufferNode>            mClearNode;
+  std::shared_ptr<graphics::SetupGLNode>                   mSetupGLNode;
   std::shared_ptr<graphics::ToneMappingNode>               mToneMappingNode;
   std::vector<std::shared_ptr<graphics::EclipseShadowMap>> mEclipseShadowMaps;
   std::shared_ptr<VistaTexture>                            mFallbackEclipseShadowMap;

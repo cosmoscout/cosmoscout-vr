@@ -38,12 +38,11 @@ layout(location = 0) in vec2 iQuadPos;
 
 // outputs
 out vec2  vTexCoords;
-out vec3  vPosition;
 
 void main() {
   vTexCoords  = iQuadPos;
-  vPosition   = (uMatModelView * vec4(iQuadPos.x * uExtent, 0.0, iQuadPos.y * uExtent, 1.0)).xyz;
-  gl_Position = uMatProjection * vec4(vPosition, 1);
+  vec3 pos    = (uMatModelView * vec4(iQuadPos.x * uExtent, 0.0, iQuadPos.y * uExtent, 1.0)).xyz;
+  gl_Position = uMatProjection * vec4(pos, 1);
 }
 )";
 
@@ -53,7 +52,6 @@ const char* FloorGrid::FRAG_SHADER = R"(
 #version 330
 
 uniform sampler2D uTexture;
-uniform float     uFarClip;
 uniform float     uAlpha;
 uniform float     uExtent;
 uniform float     uSize;
@@ -61,7 +59,6 @@ uniform vec4      uCustomColor;
 
 // inputs
 in vec2 vTexCoords;
-in vec3 vPosition;
 
 // outputs
 layout(location = 0) out vec3 oColor;
@@ -71,7 +68,6 @@ void main() {
   oColor *= uCustomColor.rgb;
   oColor *= uAlpha;
   oColor *= 1 - clamp(length(vTexCoords), 0, 1);
-  gl_FragDepth = length(vPosition) / uFarClip;
 })";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -106,7 +102,6 @@ FloorGrid::FloorGrid(
   mUniforms.texture          = mShader.GetUniformLocation("uTexture");
   mUniforms.extent           = mShader.GetUniformLocation("uExtent");
   mUniforms.size             = mShader.GetUniformLocation("uSize");
-  mUniforms.farClip          = mShader.GetUniformLocation("uFarClip");
   mUniforms.alpha            = mShader.GetUniformLocation("uAlpha");
   mUniforms.color            = mShader.GetUniformLocation("uCustomColor");
 
@@ -184,7 +179,6 @@ bool FloorGrid::Do() {
   mShader.SetUniform(mUniforms.texture, 0);
   mShader.SetUniform(mUniforms.extent, mGridSettings.mExtent.get());
   mShader.SetUniform(mUniforms.size, mGridSettings.mSize.get());
-  mShader.SetUniform(mUniforms.farClip, cs::utils::getCurrentFarClipDistance());
   mShader.SetUniform(mUniforms.alpha, mGridSettings.mAlpha.get());
   glUniform4fv(mUniforms.color, 1,
       glm::value_ptr(Plugin::GetColorFromHexString(mGridSettings.mColor.get())));

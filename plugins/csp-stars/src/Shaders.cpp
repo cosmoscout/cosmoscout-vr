@@ -147,10 +147,6 @@ void main() {
             gl_Position = uMatP * vec4(pos, 1);
 
             if (gl_Position.w > 0) {
-                gl_Position /= gl_Position.w;
-                if (gl_Position.z >= 1) {
-                    gl_Position.z = 0.999999;
-                }
                 EmitVertex();
             }
         }

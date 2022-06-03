@@ -66,7 +66,6 @@ AnchorLabel::AnchorLabel(cs::scene::CelestialBody const* const body,
   mInputManager->registerSelectable(mGuiNode.get());
 
   mGuiArea->addItem(mGuiItem.get());
-  mGuiArea->setUseLinearDepthBuffer(true);
   mGuiArea->setIgnoreDepth(false);
 
   mGuiItem->setCanScroll(false);

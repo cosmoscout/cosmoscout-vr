@@ -10,14 +10,11 @@
 uniform mat4 VP_matProjection;
 uniform vec3 VP_corners[8];
 
-out vec3 position;
-
 // inputs ----------------------------------------------------------------------
 layout(location = 0) in int index;
 
 // -----------------------------------------------------------------------------
 void main()
 {
-    position = VP_corners[index];
     gl_Position = VP_matProjection * vec4(VP_corners[index], 1.0);
 }

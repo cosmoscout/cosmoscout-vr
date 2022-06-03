@@ -8,6 +8,7 @@
 
 #include "../cs-graphics/ClearHDRBufferNode.hpp"
 #include "../cs-graphics/EclipseShadowMap.hpp"
+#include "../cs-graphics/SetupGLNode.hpp"
 #include "../cs-graphics/TextureLoader.hpp"
 #include "../cs-graphics/ToneMappingNode.hpp"
 #include "../cs-utils/utils.hpp"
@@ -121,6 +122,11 @@ GraphicsEngine::GraphicsEngine(std::shared_ptr<core::Settings> settings)
   auto* clearGLNode = pSG->NewOpenGLNode(pSG->GetRoot(), mClearNode.get());
   VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
       clearGLNode, static_cast<int>(utils::DrawOrder::eClearHDRBuffer));
+
+  mSetupGLNode      = std::make_shared<graphics::SetupGLNode>();
+  auto* setupGLNode = pSG->NewOpenGLNode(pSG->GetRoot(), mSetupGLNode.get());
+  VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
+      setupGLNode, static_cast<int>(utils::DrawOrder::eSetupOpenGL));
 
   // Create a node which performas tonemapping of the HDRBuffer at the end of a frame (this will be
   // enabled only if HDR rendering is enabled).

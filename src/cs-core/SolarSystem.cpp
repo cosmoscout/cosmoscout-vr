@@ -407,14 +407,6 @@ void SolarSystem::updateSceneScale() {
       glm::dvec3 position    = mObserver.getAnchorPosition();
       mObserver.setAnchorPosition(position + glm::normalize(position) * penetration);
     }
-
-    // We set the far clip plane dynamically, based on the same interpolation factor.
-    auto projections = GetVistaSystem()->GetDisplayManager()->GetProjections();
-    for (auto const& projection : projections) {
-      projection.second->GetProjectionProperties()->SetClippingRange(
-          mSettings->mSceneScale.mNearClip, glm::mix(mSettings->mSceneScale.mMaxFarClip,
-                                                mSettings->mSceneScale.mMinFarClip, interpolate));
-    }
   }
 }
 

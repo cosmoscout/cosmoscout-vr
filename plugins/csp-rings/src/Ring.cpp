@@ -42,7 +42,6 @@ layout(location = 0) in vec2 iGridPos;
 
 // outputs
 out vec2 vTexCoords;
-out vec3 vPosition;
 const float PI = 3.141592654;
 
 void main()
@@ -53,8 +52,8 @@ void main()
     
     vec2 vPos = mix(vDir * uRadii.x, vDir * uRadii.y, iGridPos.y);
 
-    vPosition   = (uMatModelView * vec4(vPos.x, 0, vPos.y, 1.0)).xyz;
-    gl_Position =  uMatProjection * vec4(vPosition, 1);
+    vec3 pos    = (uMatModelView * vec4(vPos.x, 0, vPos.y, 1.0)).xyz;
+    gl_Position =  uMatProjection * vec4(pos, 1);
 }
 )";
 
@@ -63,12 +62,10 @@ void main()
 const char* Ring::SPHERE_FRAG = R"(
 uniform sampler2D uSurfaceTexture;
 uniform float uSunIlluminance;
-uniform float uFarClip;
 
 // inputs
 in vec2 vTexCoords;
 in vec3 vSunDirection;
-in vec3 vPosition;
 
 // outputs
 layout(location = 0) out vec4 oColor;
@@ -90,8 +87,6 @@ void main()
     #else
       oColor.rgb = oColor.rgb * uSunIlluminance;
     #endif
-
-    gl_FragDepth = length(vPosition) / uFarClip;
 }
 )";
 
@@ -187,7 +182,6 @@ bool Ring::Do() {
     mUniforms.projectionMatrix = mShader.GetUniformLocation("uMatProjection");
     mUniforms.surfaceTexture   = mShader.GetUniformLocation("uSurfaceTexture");
     mUniforms.radii            = mShader.GetUniformLocation("uRadii");
-    mUniforms.farClip          = mShader.GetUniformLocation("uFarClip");
     mUniforms.sunIlluminance   = mShader.GetUniformLocation("uSunIlluminance");
 
     mShaderDirty = false;
@@ -208,7 +202,6 @@ bool Ring::Do() {
 
   mShader.SetUniform(mUniforms.surfaceTexture, 0);
   mShader.SetUniform(mUniforms.radii, mRingSettings.mInnerRadius, mRingSettings.mOuterRadius);
-  mShader.SetUniform(mUniforms.farClip, cs::utils::getCurrentFarClipDistance());
 
   float sunIlluminance(1.F);
 
