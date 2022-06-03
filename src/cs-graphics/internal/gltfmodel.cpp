@@ -1304,9 +1304,13 @@ bool VistaGltfNode::Do() {
   glm::mat4 viewMat  = glm::make_mat4(renderInfo->m_matCameraTransform.GetData());
   glm::mat4 modelMat = glm::inverse(viewMat) * modelViewMat;
 
+  glDisable(GL_CULL_FACE);
+
   if (mMeshIndex >= 0 && mShared) {
     mShared->mMeshes[mMeshIndex].draw(projMat, viewMat, modelMat, *mShared);
   }
+
+  glEnable(GL_CULL_FACE);
 
   return true;
 }
