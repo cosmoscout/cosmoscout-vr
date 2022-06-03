@@ -372,6 +372,8 @@ void TileRenderer::preRenderTiles(cs::graphics::ShadowMap* shadowMap) {
     glDisable(GL_CULL_FACE);
   }
 
+  glFrontFace(GL_CCW);
+
   // bind textures with tile data
   if (glDEM) {
     glActiveTexture(texUnitNameDEM);
@@ -578,6 +580,8 @@ void TileRenderer::postRenderTiles(cs::graphics::ShadowMap* shadowMap) {
   if (mEnableWireframe) {
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
   }
+
+  glFrontFace(GL_CW);
 
   glPopAttrib();
 

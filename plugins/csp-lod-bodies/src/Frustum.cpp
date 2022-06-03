@@ -28,12 +28,6 @@ std::ostream& operator<<(std::ostream& os, FrustumPlaneIdx fpi) {
   case FrustumPlaneIdx::eTop:
     os << "Top";
     break;
-  case FrustumPlaneIdx::eNear:
-    os << "Near";
-    break;
-  case FrustumPlaneIdx::eFar:
-    os << "Far";
-    break;
 
     // no default - to get compiler warning when the set of enum values is
     // extended.
@@ -71,9 +65,6 @@ void Frustum::setFromMatrix(glm::dmat4 const& mat) {
 
   setPlane(FrustumPlaneIdx::eBottom, glm::row(mat, 3) + glm::row(mat, 1));
   setPlane(FrustumPlaneIdx::eTop, glm::row(mat, 3) - glm::row(mat, 1));
-
-  setPlane(FrustumPlaneIdx::eNear, glm::row(mat, 3) + glm::row(mat, 2));
-  setPlane(FrustumPlaneIdx::eFar, glm::row(mat, 3) - glm::row(mat, 2));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

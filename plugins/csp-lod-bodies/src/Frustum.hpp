@@ -14,7 +14,7 @@
 
 namespace csp::lodbodies {
 
-enum class FrustumPlaneIdx { eLeft = 0, eRight = 1, eBottom = 2, eTop = 3, eNear = 4, eFar = 5 };
+enum class FrustumPlaneIdx { eLeft = 0, eRight = 1, eBottom = 2, eTop = 3 };
 
 std::ostream& operator<<(std::ostream& os, FrustumPlaneIdx fpi);
 
@@ -23,7 +23,7 @@ std::ostream& operator<<(std::ostream& os, FrustumPlaneIdx fpi);
 /// length) normal and the `w` component contains the distance from the origin.
 class Frustum {
  public:
-  static const size_t NUM_PLANES = 6;
+  static const size_t NUM_PLANES = 4;
 
   /// Constructs a new Frustum and initializes its planes from mat.
   static Frustum fromMatrix(glm::dmat4 const& mat);
