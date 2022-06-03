@@ -17,7 +17,7 @@
   * Mars moons Phobos and Deimos
   * Dwarf planets Ceres and Vesta
   * Jupiter moons Io, Enceladus, Ganymede and Callisto
-  * Saturn moons Tethys, Dione, Rhea, Titan and Iapetus
+  * Saturn moons Mimas, Tethys, Dione, Rhea, Titan and Iapetus
   * Neptune's moon Triton
   * The dwarf planet Pluto and his moon companion Charon
 
