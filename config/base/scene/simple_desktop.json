@@ -298,6 +298,7 @@
       "Callisto": {},
 
       "Saturn": {},
+      "Mimas": {},
       "Enceladus": {},
       "Tethys": {},
       "Dione": {},
@@ -476,6 +477,14 @@
     "SaturnJ2000": {
       "center": "Saturn",
       "frame": "J2000",
+      "existence": [
+        "1950-01-02 00:00:00.000",
+        "2049-12-31 00:00:00.000"
+      ]
+    },
+    "Mimas": {
+      "center": "Mimas",
+      "frame": "IAU_Mimas",
       "existence": [
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
@@ -691,6 +700,9 @@
         },
         "Saturn": {
           "texture": "../share/resources/textures/saturn.jpg"
+        },
+        "Mimas": {
+          "texture": "../share/resources/textures/mimas.jpg"
         },
         "Enceladus": {
           "texture": "../share/resources/textures/enceladus.jpg"
@@ -959,6 +971,19 @@
             "length": 10749,
             "samples": 1000,
             "parent": "Barycenter"
+          },
+          "drawDot": true
+        },
+        "Mimas": {
+          "color": [
+            0.47,
+            0.44,
+            0.32
+          ],
+          "trail": {
+            "length": 0.94,
+            "samples": 1000,
+            "parent": "SaturnJ2000"
           },
           "drawDot": true
         },
