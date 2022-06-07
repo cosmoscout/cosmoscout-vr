@@ -265,8 +265,9 @@ void SolarSystem::update() {
   mSun->update(simulationTime, mObserver);
 
   for (auto const& object : mAnchors) {
-    utils::FrameTimings::ScopedTimer timer("Update " + object->getCenterName() + " / " + 
-        object->getFrameName(), utils::FrameTimings::QueryMode::eCPU);
+    utils::FrameTimings::ScopedTimer timer(
+        "Update " + object->getCenterName() + " / " + object->getFrameName(),
+        utils::FrameTimings::QueryMode::eCPU);
     object->update(simulationTime, mObserver);
   }
 
