@@ -32,6 +32,20 @@
     "minFarClip": 200.0,
     "maxFarClip": 20000.0
   },
+  "enableMouseRay": true,
+  "enableSensorSizeControl": false,
+  "guiPosition": {
+    "heightMeter": 1.8,
+    "heightPixel": 1200,
+    "posXMeter": 0.0,
+    "posYMeter": 1.2,
+    "posZMeter": -1.0,
+    "rotX": 0.0,
+    "rotY": 0.0,
+    "rotZ": 0.0,
+    "widthMeter": 2.4,
+    "widthPixel": 1600
+  },
   "bookmarks": [
     {
       "name": "Mercury",
@@ -71,6 +85,30 @@
       "location": {
         "center": "Mars",
         "frame": "IAU_Mars"
+      }
+    },
+    {
+      "name": "Phobos",
+      "icon": "phobos.png",
+      "location": {
+        "center": "Phobos",
+        "frame": "IAU_Phobos"
+      }
+    },
+    {
+      "name": "Ceres",
+      "icon": "ceres.png",
+      "location": {
+        "center": "Ceres",
+        "frame": "IAU_Ceres"
+      }
+    },
+    {
+      "name": "Vesta",
+      "icon": "vesta.png",
+      "location": {
+        "center": "Vesta",
+        "frame": "IAU_Vesta"
       }
     },
     {
@@ -261,22 +299,32 @@
   "graphics": {
     "eclipseShadowMaps": {
       "Earth": {},
-      "Moon": {}
+      "Moon": {},
+
+      "Mars": {},
+      "Phobos": {},
+      "Deimos":  {},
+
+      "Jupiter": {},
+      "Io": {},
+      "Europa": {},
+      "Ganymede": {},
+      "Callisto": {},
+
+      "Saturn": {},
+      "Enceladus": {},
+      "Tethys": {},
+      "Dione": {},
+      "Rhea": {},
+      "Titan": {},
+      "Iapetus": {},
+
+      "Neptune": {},
+      "Triton": {},
+
+      "Pluto": {},
+      "Charon": {}
     }
-  },
-  "enableMouseRay": true,
-  "enableSensorSizeControl": false,
-  "guiPosition": {
-    "heightMeter": 1.8,
-    "heightPixel": 1200,
-    "posXMeter": 0.0,
-    "posYMeter": 1.2,
-    "posZMeter": -1.0,
-    "rotX": 0.0,
-    "rotY": 0.0,
-    "rotZ": 0.0,
-    "widthMeter": 2.4,
-    "widthPixel": 1600
   },
   "anchors": {
     "Barycenter": {
@@ -343,6 +391,46 @@
         "2049-12-31 00:00:00.000"
       ]
     },
+    "MarsJ2000": {
+      "center": "Mars",
+      "frame": "J2000",
+      "existence": [
+        "1950-01-02 00:00:00.000",
+        "2049-12-31 00:00:00.000"
+      ]
+    },
+    "Phobos": {
+      "center": "Phobos",
+      "frame": "IAU_Phobos",
+      "existence": [
+        "1950-01-02 00:00:00.000",
+        "2049-12-31 00:00:00.000"
+      ]
+    },
+    "Deimos": {
+      "center": "Deimos",
+      "frame": "IAU_Deimos",
+      "existence": [
+        "1950-01-02 00:00:00.000",
+        "2049-12-31 00:00:00.000"
+      ]
+    },
+    "Ceres": {
+      "center": "Ceres",
+      "frame": "IAU_Ceres",
+      "existence": [
+        "1950-01-02 00:00:00.000",
+        "2049-12-31 00:00:00.000"
+      ]
+    },
+    "Vesta": {
+      "center": "Vesta",
+      "frame": "IAU_Vesta",
+      "existence": [
+        "1950-01-02 00:00:00.000",
+        "2049-12-31 00:00:00.000"
+      ]
+    },
     "Jupiter": {
       "center": "Jupiter",
       "frame": "IAU_Jupiter",
@@ -351,9 +439,105 @@
         "2049-12-31 00:00:00.000"
       ]
     },
+    "JupiterJ2000": {
+      "center": "Jupiter",
+      "frame": "J2000",
+      "existence": [
+        "1950-01-02 00:00:00.000",
+        "2049-12-31 00:00:00.000"
+      ]
+    },
+    "Io": {
+      "center": "Io",
+      "frame": "IAU_Io",
+      "existence": [
+        "1950-01-02 00:00:00.000",
+        "2049-12-31 00:00:00.000"
+      ]
+    },
+    "Europa": {
+      "center": "Europa",
+      "frame": "IAU_Europa",
+      "existence": [
+        "1950-01-02 00:00:00.000",
+        "2049-12-31 00:00:00.000"
+      ]
+    },
+    "Ganymede": {
+      "center": "Ganymede",
+      "frame": "IAU_Ganymede",
+      "existence": [
+        "1950-01-02 00:00:00.000",
+        "2049-12-31 00:00:00.000"
+      ]
+    },
+    "Callisto": {
+      "center": "Callisto",
+      "frame": "IAU_Callisto",
+      "existence": [
+        "1950-01-02 00:00:00.000",
+        "2049-12-31 00:00:00.000"
+      ]
+    },
     "Saturn": {
       "center": "Saturn",
       "frame": "IAU_Saturn",
+      "existence": [
+        "1950-01-02 00:00:00.000",
+        "2049-12-31 00:00:00.000"
+      ]
+    },
+    "SaturnJ2000": {
+      "center": "Saturn",
+      "frame": "J2000",
+      "existence": [
+        "1950-01-02 00:00:00.000",
+        "2049-12-31 00:00:00.000"
+      ]
+    },
+    "Enceladus": {
+      "center": "Enceladus",
+      "frame": "IAU_Enceladus",
+      "existence": [
+        "1950-01-02 00:00:00.000",
+        "2049-12-31 00:00:00.000"
+      ]
+    },
+    "Tethys": {
+      "center": "Tethys",
+      "frame": "IAU_Tethys",
+      "existence": [
+        "1950-01-02 00:00:00.000",
+        "2049-12-31 00:00:00.000"
+      ]
+    },
+    "Dione": {
+      "center": "Dione",
+      "frame": "IAU_Dione",
+      "existence": [
+        "1950-01-02 00:00:00.000",
+        "2049-12-31 00:00:00.000"
+      ]
+    },
+    "Rhea": {
+      "center": "Rhea",
+      "frame": "IAU_Rhea",
+      "existence": [
+        "1950-01-02 00:00:00.000",
+        "2049-12-31 00:00:00.000"
+      ]
+    },
+    "Titan": {
+      "center": "Titan",
+      "frame": "IAU_Titan",
+      "existence": [
+        "1950-01-02 00:00:00.000",
+        "2049-12-31 00:00:00.000"
+      ]
+    },
+    "Iapetus": {
+      "center": "Iapetus",
+      "frame": "IAU_Iapetus",
       "existence": [
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
@@ -375,17 +559,41 @@
         "2049-12-31 00:00:00.000"
       ]
     },
-    "Ceres": {
-      "center": "Ceres",
-      "frame": "IAU_Ceres",
+    "NeptuneJ2000": {
+      "center": "Neptune",
+      "frame": "J2000",
       "existence": [
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
       ]
     },
-    "Vesta": {
-      "center": "Vesta",
-      "frame": "IAU_Vesta",
+    "Triton": {
+      "center": "Triton",
+      "frame": "IAU_Triton",
+      "existence": [
+        "1950-01-02 00:00:00.000",
+        "2049-12-31 00:00:00.000"
+      ]
+    },
+    "Pluto": {
+      "center": "Pluto",
+      "frame": "IAU_Pluto",
+      "existence": [
+        "1950-01-02 00:00:00.000",
+        "2049-12-31 00:00:00.000"
+      ]
+    },
+    "PlutoJ2000": {
+      "center": "Pluto",
+      "frame": "J2000",
+      "existence": [
+        "1950-01-02 00:00:00.000",
+        "2049-12-31 00:00:00.000"
+      ]
+    },
+    "Charon": {
+      "center": "Charon",
+      "frame": "IAU_Charon",
       "existence": [
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
@@ -468,17 +676,68 @@
         "Mars": {
           "texture": "../share/resources/textures/mars.jpg"
         },
+        "Phobos": {
+          "texture": "../share/resources/textures/phobos.jpg"
+        },
+        "Deimos": {
+          "texture": "../share/resources/textures/deimos.jpg"
+        },
+        "Ceres": {
+          "texture": "../share/resources/textures/ceres.jpg"
+        },
+        "Vesta": {
+          "texture": "../share/resources/textures/vesta.jpg"
+        },
         "Jupiter": {
           "texture": "../share/resources/textures/jupiter.jpg"
         },
+        "Io": {
+          "texture": "../share/resources/textures/io.jpg"
+        },
+        "Europa": {
+          "texture": "../share/resources/textures/europa.jpg"
+        },
+        "Ganymede": {
+          "texture": "../share/resources/textures/ganymede.jpg"
+        },
+        "Callisto": {
+          "texture": "../share/resources/textures/callisto.jpg"
+        },
         "Saturn": {
           "texture": "../share/resources/textures/saturn.jpg"
+        },
+        "Enceladus": {
+          "texture": "../share/resources/textures/enceladus.jpg"
+        },
+        "Tethys": {
+          "texture": "../share/resources/textures/tethys.jpg"
+        },
+        "Dione": {
+          "texture": "../share/resources/textures/dione.jpg"
+        },
+        "Rhea": {
+          "texture": "../share/resources/textures/rhea.jpg"
+        },
+        "Titan": {
+          "texture": "../share/resources/textures/titan.jpg"
+        },
+        "Iapetus": {
+          "texture": "../share/resources/textures/iapetus.jpg"
         },
         "Uranus": {
           "texture": "../share/resources/textures/uranus.jpg"
         },
         "Neptune": {
           "texture": "../share/resources/textures/neptune.jpg"
+        },
+        "Triton": {
+          "texture": "../share/resources/textures/triton.jpg"
+        },
+        "Pluto": {
+          "texture": "../share/resources/textures/pluto.jpg"
+        },
+        "Charon": {
+          "texture": "../share/resources/textures/charon.jpg"
         }
       }
     },
@@ -587,6 +846,58 @@
           },
           "drawDot": true
         },
+        "Phobos": {
+          "color": [
+            0.6,
+            0.8,
+            0.6
+          ],
+          "trail": {
+            "length": 0.31,
+            "samples": 1000,
+            "parent": "MarsJ2000"
+          },
+          "drawDot": true
+        },
+        "Deimos": {
+          "color": [
+            0.65,
+            0.61,
+            0.56
+          ],
+          "trail": {
+            "length": 1.26,
+            "samples": 1000,
+            "parent": "MarsJ2000"
+          },
+          "drawDot": true
+        },
+        "Ceres": {
+          "color": [
+            0.4,
+            0.4,
+            0.4
+          ],
+          "trail": {
+            "length": 1680,
+            "samples": 1000,
+            "parent": "Barycenter"
+          },
+          "drawDot": true
+        },
+        "Vesta": {
+          "color": [
+            0.5,
+            0.5,
+            0.5
+          ],
+          "trail": {
+            "length": 1326,
+            "samples": 1000,
+            "parent": "Barycenter"
+          },
+          "drawDot": true
+        },
         "Jupiter": {
           "color": [
             1.0,
@@ -600,6 +911,58 @@
           },
           "drawDot": true
         },
+        "Io": {
+          "color": [
+            0.95,
+            0.9,
+            0.5
+          ],
+          "trail": {
+            "length": 1.75,
+            "samples": 1000,
+            "parent": "JupiterJ2000"
+          },
+          "drawDot": true
+        },
+        "Europa": {
+          "color": [
+            0.62,
+            0.82,
+            0.84
+          ],
+          "trail": {
+            "length": 3.55,
+            "samples": 1000,
+            "parent": "JupiterJ2000"
+          },
+          "drawDot": true
+        },
+        "Ganymede": {
+          "color": [
+            0.95,
+            0.93,
+            0.93
+          ],
+          "trail": {
+            "length": 7.15,
+            "samples": 1000,
+            "parent": "JupiterJ2000"
+          },
+          "drawDot": true
+        },
+        "Callisto": {
+          "color": [
+            0.32,
+            0.26,
+            0.21
+          ],
+          "trail": {
+            "length": 16.69,
+            "samples": 1000,
+            "parent": "JupiterJ2000"
+          },
+          "drawDot": true
+        },
         "Saturn": {
           "color": [
             1.0,
@@ -610,6 +973,84 @@
             "length": 10749,
             "samples": 1000,
             "parent": "Barycenter"
+          },
+          "drawDot": true
+        },
+        "Enceladus": {
+          "color": [
+            0.62,
+            0.82,
+            0.84
+          ],
+          "trail": {
+            "length": 1.37,
+            "samples": 1000,
+            "parent": "SaturnJ2000"
+          },
+          "drawDot": true
+        },
+        "Tethys": {
+          "color": [
+            0.4,
+            0.4,
+            0.3
+          ],
+          "trail": {
+            "length": 1.9,
+            "samples": 1000,
+            "parent": "SaturnJ2000"
+          },
+          "drawDot": true
+        },
+        "Dione": {
+          "color": [
+            0.87,
+            0.87,
+            0.85
+          ],
+          "trail": {
+            "length": 2.74,
+            "samples": 1000,
+            "parent": "SaturnJ2000"
+          },
+          "drawDot": true
+        },
+        "Rhea": {
+          "color": [
+            0.52,
+            0.49,
+            0.35
+          ],
+          "trail": {
+            "length": 4.52,
+            "samples": 1000,
+            "parent": "SaturnJ2000"
+          },
+          "drawDot": true
+        },
+        "Titan": {
+          "color": [
+            0.89,
+            0.8,
+            0.4
+          ],
+          "trail": {
+            "length": 15.95,
+            "samples": 1000,
+            "parent": "SaturnJ2000"
+          },
+          "drawDot": true
+        },
+        "Iapetus": {
+          "color": [
+            0.27,
+            0.26,
+            0.16
+          ],
+          "trail": {
+            "length": 79.3,
+            "samples": 1000,
+            "parent": "SaturnJ2000"
           },
           "drawDot": true
         },
@@ -636,6 +1077,45 @@
             "length": 17885,
             "samples": 1000,
             "parent": "Barycenter"
+          },
+          "drawDot": true
+        },
+        "Triton": {
+          "color": [
+            0.49,
+            0.52,
+            0.49
+          ],
+          "trail": {
+            "length": 5.88,
+            "samples": 1000,
+            "parent": "NeptuneJ2000"
+          },
+          "drawDot": true
+        },
+        "Pluto": {
+          "color": [
+            0.85,
+            0.8,
+            0.72
+          ],
+          "trail": {
+            "length": 18250,
+            "samples": 1000,
+            "parent": "Barycenter"
+          },
+          "drawDot": true
+        },
+        "Charon": {
+          "color": [
+            0.55,
+            0.55,
+            0.55
+          ],
+          "trail": {
+            "length": 6.39,
+            "samples": 1000,
+            "parent": "PlutoJ2000"
           },
           "drawDot": true
         }
