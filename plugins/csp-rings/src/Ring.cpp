@@ -185,7 +185,7 @@ bool Ring::Do() {
   cs::utils::FrameTimings::ScopedTimer timer("Rings");
 
   // (Re-)Create ring shader if necessary.
-  if (mShaderDirty) {
+  if (mShaderDirty || mEclipseShadowReceiver.needsRecompilation()) {
     mShader = VistaGLSLShader();
 
     std::string defines = "#version 330\n";
