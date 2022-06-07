@@ -10,6 +10,20 @@ if (NOT CS_ECLIPSE_SHADOW_GENERATOR)
   return()
 endif()
 
+# add cuda support ---------------------------------------------------------------------------------
+
+if (${CMAKE_VERSION} GREATER_EQUAL 3.18)
+    option(OPENSG_USE_PRECOMPILED_HEADERS "Turn on generation of precompiled headers" OFF)
+    set(CMAKE_UNITY_BUILD_BATCH_SIZE 20)
+endif()
+
+enable_language(CUDA)
+
+if(NOT DEFINED CMAKE_CUDA_STANDARD)
+    set(CMAKE_CUDA_STANDARD 17)
+    set(CMAKE_CUDA_STANDARD_REQUIRED ON)
+endif()
+
 # build executable ---------------------------------------------------------------------------------
 
 file(GLOB SOURCE_FILES *.cpp *.cu)
@@ -21,6 +35,8 @@ add_executable(eclipse-shadow-generator
   ${SOURCE_FILES}
   ${HEADER_FILES}
 )
+
+set_target_properties(eclipse-shadow-generator PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
 
 # This property seems to break Ninja on Windows only.
 if(NOT (${CMAKE_GENERATOR} STREQUAL "Ninja" AND WIN32))

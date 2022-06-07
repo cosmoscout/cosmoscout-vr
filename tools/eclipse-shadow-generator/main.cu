@@ -11,6 +11,9 @@
 #include "image.hpp"
 #include "math.cuh"
 
+#include <stb_image.h>
+#include <stb_image_write.h>
+
 struct ShadowSettings {
   uint32_t size            = 512;
   bool     includeUmbra    = false;
@@ -110,15 +113,6 @@ int main(int argc, char** argv) {
 
   stbi_flip_vertically_on_write(1);
 
-  if (argc <= 1) {
-    printHelp();
-    return 0;
-  }
-
-  std::string cMode(argv[1]);
-
-  std::vector<std::string> arguments(argv + 2, argv + argc);
-
   ShadowSettings settings;
 
   std::string cOutput    = "shadow.hdr";
@@ -126,26 +120,28 @@ int main(int argc, char** argv) {
   bool        cPrintHelp = false;
 
   // First configure all possible command line options.
-  CommandLine args("Welcome to the shadow map generator! Here are the available options:");
-  args.addArgument({"-o", "--output"}, "string", &cOutput,
+  cs::utils::CommandLine args(
+      "Welcome to the shadow map generator! Here are the available options:");
+  args.addArgument({"-o", "--output"}, &cOutput,
       "The image will be written to this file (default: \"" + cOutput + "\").");
-  args.addArgument({"--size"}, "integer", &settings.size,
+  args.addArgument({"--size"}, &settings.size,
       "The output texture size (default: " + std::to_string(settings.size) + ").");
-  args.addArgument({"--mode"}, "string", &cMode,
+  args.addArgument({"--mode"}, &cMode,
       "This should be either 'limb-darkening', 'circles', 'linear', or 'smoothstep' (default: " +
           cMode + ").");
-  args.addArgument({"--with-umbra"}, "", &settings.includeUmbra,
+  args.addArgument({"--with-umbra"}, &settings.includeUmbra,
       "Add the umbra region to the shadow map (default: " + std::to_string(settings.includeUmbra) +
           ").");
-  args.addArgument({"--mapping-exponent"}, "double", &settings.mappingExponent,
+  args.addArgument({"--mapping-exponent"}, &settings.mappingExponent,
       "Adjusts the distribution of sampling positions. A value of 1.0 will position the "
       "umbra's end in the middle of the texture, larger values will shift this to the "
       "right. (default: " +
           std::to_string(settings.mappingExponent) + ").");
-  args.addArgument({"-h", "--help"}, "", &cPrintHelp, "Show this help message.");
+  args.addArgument({"-h", "--help"}, &cPrintHelp, "Show this help message.");
 
   // Then do the actual parsing.
   try {
+    std::vector<std::string> arguments(argv + 2, argv + argc);
     args.parse(arguments);
   } catch (std::runtime_error const& e) {
     std::cerr << "Failed to parse command line arguments: " << e.what() << std::endl;
