@@ -142,7 +142,7 @@ int main(int argc, char** argv) {
 
   // Then do the actual parsing.
   try {
-    std::vector<std::string> arguments(argv + 2, argv + argc);
+    std::vector<std::string> arguments(argv + 1, argv + argc);
     args.parse(arguments);
   } catch (std::runtime_error const& e) {
     std::cerr << "Failed to parse command line arguments: " << e.what() << std::endl;
