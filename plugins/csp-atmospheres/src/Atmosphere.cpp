@@ -24,7 +24,7 @@ Atmosphere::Atmosphere(std::shared_ptr<Plugin::Settings> const& pluginSettings,
     std::shared_ptr<cs::core::Settings> const&                  settings,
     std::shared_ptr<cs::core::SolarSystem> const& solarSystem, std::string const& anchorName)
     : mEclipseShadowReceiver(
-          std::make_shared<cs::core::EclipseShadowReceiver>(settings, solarSystem, this))
+          std::make_shared<cs::core::EclipseShadowReceiver>(settings, solarSystem, this, false))
     , mRenderer(pluginSettings, mEclipseShadowReceiver)
     , mPluginSettings(pluginSettings) {
 

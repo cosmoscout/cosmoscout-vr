@@ -53,8 +53,14 @@ enum class EclipseShadowMode {
 /// EclipseShadowReceiver.
 class CS_CORE_EXPORT EclipseShadowReceiver {
  public:
+  /// Creates a new EclipseShadowReceiver. The given CelestialObject will be used to compute all
+  /// bodies which may cast a shadow onto this. If allowSelfShadowing is set to true, also the body
+  /// itself will be passed as shadow caster to the shader. This is useful if the shadow casting
+  /// body as well as shadow receiving body are attached to the same SPICE anchor, such as the rings
+  /// of Saturn.
   EclipseShadowReceiver(std::shared_ptr<Settings> settings,
-      std::shared_ptr<SolarSystem> solarSystem, scene::CelestialObject const* shadowReceiver);
+      std::shared_ptr<SolarSystem> solarSystem, scene::CelestialObject const* shadowReceiver,
+      bool allowSelfShadowing);
 
   /// This will return true if mGraphics.pEclipseShadowMode has been changed since the last call to
   /// getShaderSnippet().
@@ -86,6 +92,7 @@ class CS_CORE_EXPORT EclipseShadowReceiver {
   std::shared_ptr<Settings>     mSettings;
   std::shared_ptr<SolarSystem>  mSolarSystem;
   scene::CelestialObject const* mShadowReceiver;
+  bool                          mAllowSelfShadowing;
 
   VistaGLSLShader* mShader        = nullptr;
   uint32_t         mTextureOffset = 0;

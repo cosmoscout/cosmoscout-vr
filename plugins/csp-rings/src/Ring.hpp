@@ -9,6 +9,7 @@
 
 #include "Plugin.hpp"
 
+#include "../../../src/cs-core/EclipseShadowReceiver.hpp"
 #include "../../../src/cs-scene/CelestialObject.hpp"
 
 #include <VistaKernel/GraphicsManager/VistaOpenGLDraw.h>
@@ -46,6 +47,8 @@ class Ring : public cs::scene::CelestialObject, public IVistaOpenGLDraw {
   /// The sun object is used for lighting computation.
   void setSun(std::shared_ptr<const cs::scene::CelestialObject> const& sun);
 
+  void update(double time, cs::scene::CelestialObserver const& observer) override;
+
   bool Do() override;
   bool GetBoundingBox(VistaBoundingBox& bb) override;
 
@@ -62,16 +65,20 @@ class Ring : public cs::scene::CelestialObject, public IVistaOpenGLDraw {
   VistaVertexArrayObject        mSphereVAO;
   VistaBufferObject             mSphereVBO;
 
-  bool mShaderDirty         = true;
-  int  mEnableHDRConnection = -1;
+  cs::core::EclipseShadowReceiver mEclipseShadowReceiver;
+
+  bool mShaderDirty              = true;
+  int  mEnableLightingConnection = -1;
+  int  mEnableHDRConnection      = -1;
 
   struct {
-    uint32_t modelViewMatrix  = 0;
-    uint32_t projectionMatrix = 0;
-    uint32_t surfaceTexture   = 0;
-    uint32_t radii            = 0;
-    uint32_t farClip          = 0;
-    uint32_t sunIlluminance   = 0;
+    uint32_t modelViewMatrix   = 0;
+    uint32_t projectionMatrix  = 0;
+    uint32_t surfaceTexture    = 0;
+    uint32_t radii             = 0;
+    uint32_t farClip           = 0;
+    uint32_t sunIlluminance    = 0;
+    uint32_t ambientBrightness = 0;
   } mUniforms;
 
   static const char* SPHERE_VERT;

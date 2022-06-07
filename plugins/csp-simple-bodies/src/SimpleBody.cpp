@@ -179,7 +179,7 @@ SimpleBody::SimpleBody(std::shared_ptr<cs::core::Settings> settings,
     std::shared_ptr<cs::core::SolarSystem> solarSystem, std::string const& anchorName)
     : mSettings(std::move(settings))
     , mSolarSystem(std::move(solarSystem))
-    , mEclipseShadowReceiver(mSettings, mSolarSystem, this) {
+    , mEclipseShadowReceiver(mSettings, mSolarSystem, this, false) {
 
   mSettings->initAnchor(*this, anchorName);
 
