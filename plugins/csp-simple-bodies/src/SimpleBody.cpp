@@ -303,7 +303,9 @@ double SimpleBody::getHeight(glm::dvec2 /*lngLat*/) const {
 void SimpleBody::update(double time, cs::scene::CelestialObserver const& observer) {
   CelestialBody::update(time, observer);
 
-  mEclipseShadowReceiver.update(time, observer);
+  if (getIsInExistence() && pVisible.get()) {
+    mEclipseShadowReceiver.update(time, observer);
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

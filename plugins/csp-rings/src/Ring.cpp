@@ -172,7 +172,10 @@ void Ring::setSun(std::shared_ptr<const cs::scene::CelestialObject> const& sun) 
 
 void Ring::update(double time, cs::scene::CelestialObserver const& observer) {
   CelestialObject::update(time, observer);
-  mEclipseShadowReceiver.update(time, observer);
+
+  if (getIsInExistence() && pVisible.get()) {
+    mEclipseShadowReceiver.update(time, observer);
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
