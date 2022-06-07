@@ -17,12 +17,9 @@ if (${CMAKE_VERSION} GREATER_EQUAL 3.18)
     set(CMAKE_UNITY_BUILD_BATCH_SIZE 20)
 endif()
 
+set(CMAKE_CUDA_STANDARD 17)
+set(CMAKE_CUDA_FLAGS -std=c++17)
 enable_language(CUDA)
-
-if(NOT DEFINED CMAKE_CUDA_STANDARD)
-    set(CMAKE_CUDA_STANDARD 17)
-    set(CMAKE_CUDA_STANDARD_REQUIRED ON)
-endif()
 
 # build executable ---------------------------------------------------------------------------------
 
@@ -36,6 +33,7 @@ add_executable(eclipse-shadow-generator
   ${HEADER_FILES}
 )
 
+set_target_properties(eclipse-shadow-generator PROPERTIES CUDA_ARCHITECTURES "72")
 set_target_properties(eclipse-shadow-generator PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
 
 # This property seems to break Ninja on Windows only.

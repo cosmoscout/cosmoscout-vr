@@ -262,20 +262,21 @@ if (MSVC)
   )
 
   add_compile_options(
-    -experimental:external
-    -external:anglebrackets
-    -external:W0
-    -W3 -WX
-    -EHsc
-    -wd4251
+    $<$<COMPILE_LANGUAGE:CXX>:-experimental:external>
+    $<$<COMPILE_LANGUAGE:CXX>:-external:anglebrackets>
+    $<$<COMPILE_LANGUAGE:CXX>:-external:W0>
+    $<$<COMPILE_LANGUAGE:CXX>:-W3>
+    $<$<COMPILE_LANGUAGE:CXX>:-WX>
+    $<$<COMPILE_LANGUAGE:CXX>:-EHsc>
+    $<$<COMPILE_LANGUAGE:CXX>:-wd4251>
 
     # Warns about multiple inheritance problems, which we can't avoid inheriting from ViSTA classes.
-    -wd4250
+    $<$<COMPILE_LANGUAGE:CXX>:-wd4250>
   )
 else()
   add_compile_options(
-    -Wall
-    -Werror
+    $<$<COMPILE_LANGUAGE:CXX>:-Wall>
+    $<$<COMPILE_LANGUAGE:CXX>:-Werror>
   )
 endif()
 

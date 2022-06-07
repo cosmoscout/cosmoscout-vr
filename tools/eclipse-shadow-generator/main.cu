@@ -8,9 +8,10 @@
 
 #include "LimbDarkening.cuh"
 #include "cudaErrorCheck.hpp"
-#include "image.hpp"
 #include "math.cuh"
 
+#define STB_IMAGE_IMPLEMENTATION
+#define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb_image.h>
 #include <stb_image_write.h>
 
@@ -23,7 +24,7 @@ struct ShadowSettings {
 __constant__ LimbDarkening  cLimbDarkening;
 __constant__ ShadowSettings cShadowSettings;
 
-__global__ void computeLimbDarkeningShadow(double* shadowMap) {
+__global__ void computeLimbDarkeningShadow(float* shadowMap) {
   int x = blockIdx.x * blockDim.x + threadIdx.x;
   int y = blockIdx.y * blockDim.y + threadIdx.y;
   int i = y * cShadowSettings.size + x;
@@ -41,7 +42,7 @@ __global__ void computeLimbDarkeningShadow(double* shadowMap) {
       1 - math::sampleCircleIntersection(1.0, angles.x, angles.y, cLimbDarkening) / sunArea;
 }
 
-__global__ void computeCircleIntersectionShadow(double* shadowMap) {
+__global__ void computeCircleIntersectionShadow(float* shadowMap) {
   int x = blockIdx.x * blockDim.x + threadIdx.x;
   int y = blockIdx.y * blockDim.y + threadIdx.y;
   int i = y * cShadowSettings.size + x;
@@ -58,7 +59,7 @@ __global__ void computeCircleIntersectionShadow(double* shadowMap) {
   shadowMap[i] = 1 - math::getCircleIntersection(1.0, angles.x, angles.y) / sunArea;
 }
 
-__global__ void computeLinearShadow(double* shadowMap) {
+__global__ void computeLinearShadow(float* shadowMap) {
   int x = blockIdx.x * blockDim.x + threadIdx.x;
   int y = blockIdx.y * blockDim.y + threadIdx.y;
   int i = y * cShadowSettings.size + x;
@@ -82,7 +83,7 @@ __global__ void computeLinearShadow(double* shadowMap) {
   shadowMap[i] = 1.0 - maxDepth * glm::clamp(1.0 - visiblePortion, 0.0, 1.0);
 }
 
-__global__ void computeSmoothstepShadow(double* shadowMap) {
+__global__ void computeSmoothstepShadow(float* shadowMap) {
   int x = blockIdx.x * blockDim.x + threadIdx.x;
   int y = blockIdx.y * blockDim.y + threadIdx.y;
   int i = y * cShadowSettings.size + x;
@@ -174,8 +175,8 @@ int main(int argc, char** argv) {
   int  numBlocksY = (settings.size + blockSize.y - 1) / blockSize.y;
   dim3 gridSize   = dim3(numBlocksX, numBlocksY);
 
-  double* shadow;
-  gpuErrchk(cudaMallocManaged(&shadow, pixelCount * sizeof(double)));
+  float* shadow;
+  gpuErrchk(cudaMallocManaged(&shadow, pixelCount * sizeof(float)));
 
   if (cMode == "limb-darkening") {
     computeLimbDarkeningShadow<<<gridSize, blockSize>>>(shadow);
@@ -190,7 +191,8 @@ int main(int argc, char** argv) {
   gpuErrchk(cudaPeekAtLastError());
   gpuErrchk(cudaDeviceSynchronize());
 
-  image::save(shadow, settings.size, settings.size, cOutput);
+  stbi_write_hdr(
+      cOutput.c_str(), static_cast<int>(settings.size), static_cast<int>(settings.size), 1, shadow);
 
   return 0;
 }
