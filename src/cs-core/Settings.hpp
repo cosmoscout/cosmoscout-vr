@@ -13,6 +13,7 @@
 #include "../cs-graphics/ToneMappingNode.hpp"
 #include "../cs-utils/DefaultProperty.hpp"
 #include "../cs-utils/utils.hpp"
+#include "EclipseShadowReceiver.hpp"
 
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <cstdint>
@@ -392,6 +393,11 @@ class CS_CORE_EXPORT Settings {
 
   // -----------------------------------------------------------------------------------------------
 
+  /// Each body which should cast eclipse shadows needs an eclipse shadow map.
+  struct EclipseShadowMap {
+    std::optional<std::string> mTexture;
+  };
+
   struct Graphics {
     /// Enables or disables vertical synchronization.
     utils::DefaultProperty<bool> pEnableVsync{true};
@@ -497,6 +503,12 @@ class CS_CORE_EXPORT Settings {
     /// This makes illumination calculations assume a fixed sun position in the current SPICE frame.
     /// Using the default value glm::dvec3(0.0) disables this feature.
     utils::DefaultProperty<glm::dvec3> pFixedSunDirection{glm::dvec3(0.0, 0.0, 0.0)};
+
+    /// This maps anchor names to eclipse textures.
+    std::optional<std::unordered_map<std::string, EclipseShadowMap>> mEclipseShadowMaps;
+
+    /// The eclipse shadow rendering mode.
+    utils::DefaultProperty<EclipseShadowMode> pEclipseShadowMode{EclipseShadowMode::eFastTexture};
   };
 
   Graphics mGraphics;

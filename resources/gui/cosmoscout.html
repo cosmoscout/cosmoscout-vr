@@ -352,6 +352,63 @@
                     </div>
                   </div>
 
+                  <hr class="mt-2">
+
+                  <div class="row">
+                    <div class="col-5">
+                      Eclipse Shadow Mode
+                    </div>
+                    <div class="col-7">
+                      <label class="radiolabel">
+                        <input name="eclipse_shadow_mode" type="radio"
+                          data-callback="graphics.setEclipseShadowMode0" />
+                        <span>None</span>
+                      </label>
+                    </div>
+                    <div class="col-7 offset-5">
+                      <label class="radiolabel">
+                        <input name="eclipse_shadow_mode" type="radio"
+                          data-callback="graphics.setEclipseShadowMode1" />
+                        <span>Debug</span>
+                      </label>
+                    </div>
+                    <div class="col-7 offset-5">
+                      <label class="radiolabel">
+                        <input name="eclipse_shadow_mode" type="radio"
+                          data-callback="graphics.setEclipseShadowMode2" />
+                        <span>Linear</span>
+                      </label>
+                    </div>
+                    <div class="col-7 offset-5">
+                      <label class="radiolabel">
+                        <input name="eclipse_shadow_mode" type="radio"
+                          data-callback="graphics.setEclipseShadowMode3" />
+                        <span>Smoothstep</span>
+                      </label>
+                    </div>
+                    <div class="col-7 offset-5">
+                      <label class="radiolabel">
+                        <input name="eclipse_shadow_mode" type="radio"
+                          data-callback="graphics.setEclipseShadowMode4" />
+                        <span>Circle Intersection</span>
+                      </label>
+                    </div>
+                    <div class="col-7 offset-5">
+                      <label class="radiolabel">
+                        <input name="eclipse_shadow_mode" type="radio"
+                          data-callback="graphics.setEclipseShadowMode5" />
+                        <span>Texture Lookups</span>
+                      </label>
+                    </div>
+                    <div class="col-7 offset-5">
+                      <label class="radiolabel">
+                        <input name="eclipse_shadow_mode" type="radio"
+                          data-callback="graphics.setEclipseShadowMode6" checked />
+                        <span>Fast Texture Lookups</span>
+                      </label>
+                    </div>
+                  </div>
+
                 </div>
               </div>
 
@@ -513,7 +570,14 @@
                     <div class="col-7 offset-5">
                       <label class="radiolabel">
                         <input name="tonemapping_mode" type="radio"
-                          data-callback="graphics.setToneMappingMode1" checked />
+                          data-callback="graphics.setToneMappingMode1" />
+                        <span>Gamma Only</span>
+                      </label>
+                    </div>
+                    <div class="col-7 offset-5">
+                      <label class="radiolabel">
+                        <input name="tonemapping_mode" type="radio"
+                          data-callback="graphics.setToneMappingMode2" checked />
                         <span>Filmic</span>
                       </label>
                     </div>

@@ -11,7 +11,9 @@
 #include "AtmosphereRenderer.hpp"
 #include "Plugin.hpp"
 
-#include <glm/glm.hpp>
+namespace cs::core {
+class SolarSystem;
+}
 
 namespace csp::atmospheres {
 
@@ -19,7 +21,8 @@ namespace csp::atmospheres {
 class Atmosphere : public cs::scene::CelestialObject {
  public:
   Atmosphere(std::shared_ptr<Plugin::Settings> const& pluginSettings,
-      std::shared_ptr<cs::core::Settings> const& settings, std::string const& anchorName);
+      std::shared_ptr<cs::core::Settings> const&      settings,
+      std::shared_ptr<cs::core::SolarSystem> const& solarSystem, std::string const& anchorName);
   ~Atmosphere() override;
 
   Atmosphere(Atmosphere const& other) = delete;
@@ -40,9 +43,10 @@ class Atmosphere : public cs::scene::CelestialObject {
   void update(double time, cs::scene::CelestialObserver const& oObs) override;
 
  private:
-  AtmosphereRenderer                mRenderer;
-  std::shared_ptr<Plugin::Settings> mPluginSettings;
-  std::unique_ptr<VistaOpenGLNode>  mAtmosphereNode;
+  std::shared_ptr<cs::core::EclipseShadowReceiver> mEclipseShadowReceiver;
+  AtmosphereRenderer                               mRenderer;
+  std::shared_ptr<Plugin::Settings>                mPluginSettings;
+  std::unique_ptr<VistaOpenGLNode>                 mAtmosphereNode;
 };
 
 } // namespace csp::atmospheres

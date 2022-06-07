@@ -86,6 +86,29 @@ std::unique_ptr<VistaTexture> TextureLoader::loadFromFile(std::string const& sFi
     result->UploadTexture(width, height, pixels.data(), true, ePixelFormat);
 
     TIFFClose(data);
+
+  } else if (suffix == ".hdr") {
+
+    // load with stb image
+    logger().debug("Loading HDR Texture '{}' with stbi.", sFileName);
+
+    int width{};
+    int height{};
+    int bpp{};
+    int channels = 4;
+
+    float* pixels = stbi_loadf(sFileName.c_str(), &width, &height, &bpp, channels);
+
+    if (!pixels) {
+      logger().error("Failed to load '{}' with stbi!", sFileName);
+      return nullptr;
+    }
+
+    result->Bind();
+    gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGBA32F, width, height, GL_RGBA, GL_FLOAT, pixels);
+
+    stbi_image_free(pixels);
+
   } else {
     // load with stb image
     logger().debug("Loading Texture '{}' with stbi.", sFileName);

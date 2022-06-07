@@ -7,6 +7,7 @@
 #ifndef CSP_LOD_BODIES_PLANET_SHADER_HPP
 #define CSP_LOD_BODIES_PLANET_SHADER_HPP
 
+#include "../../../src/cs-core/EclipseShadowReceiver.hpp"
 #include "../../../src/cs-graphics/ColorMap.hpp"
 #include "../../../src/cs-utils/Property.hpp"
 
@@ -31,9 +32,11 @@ class PlanetShader : public TerrainShader {
   cs::utils::Property<bool> pTextureIsRGB  = true;
   cs::utils::Property<bool> pEnableTexture = true; ///< If false the image data will not be drawn.
 
-  PlanetShader(std::shared_ptr<cs::core::Settings> settings,
-      std::shared_ptr<Plugin::Settings>            pluginSettings,
-      std::shared_ptr<cs::core::GuiManager> const& pGuiManager, std::string anchorName);
+  PlanetShader(std::shared_ptr<cs::core::Settings>     settings,
+      std::shared_ptr<Plugin::Settings>                pluginSettings,
+      std::shared_ptr<cs::core::GuiManager>            pGuiManager,
+      std::shared_ptr<cs::core::EclipseShadowReceiver> eclipseShadowReceiver,
+      std::string                                      anchorName);
 
   PlanetShader(PlanetShader const& other) = delete;
   PlanetShader(PlanetShader&& other)      = delete;
@@ -51,18 +54,19 @@ class PlanetShader : public TerrainShader {
  private:
   void compile() override;
 
-  std::shared_ptr<cs::core::Settings>   mSettings;
-  std::shared_ptr<cs::core::GuiManager> mGuiManager;
-  std::shared_ptr<Plugin::Settings>     mPluginSettings;
-  std::string                           mAnchorName;
-  glm::vec3                             mSunDirection                 = glm::vec3(0, 1, 0);
-  float                                 mSunIlluminance               = 1.F;
-  VistaTexture*                         mFontTexture                  = nullptr;
-  int                                   mEnableLightingConnection     = -1;
-  int                                   mEnableShadowsDebugConnection = -1;
-  int                                   mEnableShadowsConnection      = -1;
-  int                                   mLightingQualityConnection    = -1;
-  int                                   mEnableHDRConnection          = -1;
+  std::shared_ptr<cs::core::Settings>              mSettings;
+  std::shared_ptr<cs::core::GuiManager>            mGuiManager;
+  std::shared_ptr<Plugin::Settings>                mPluginSettings;
+  std::shared_ptr<cs::core::EclipseShadowReceiver> mEclipseShadowReceiver;
+  std::string                                      mAnchorName;
+  glm::vec3                                        mSunDirection             = glm::vec3(0, 1, 0);
+  float                                            mSunIlluminance           = 1.F;
+  VistaTexture*                                    mFontTexture              = nullptr;
+  int                                              mEnableLightingConnection = -1;
+  int                                              mEnableShadowsDebugConnection = -1;
+  int                                              mEnableShadowsConnection      = -1;
+  int                                              mLightingQualityConnection    = -1;
+  int                                              mEnableHDRConnection          = -1;
 
   static std::map<std::string, cs::graphics::ColorMap> mColorMaps;
 };

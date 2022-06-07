@@ -7,6 +7,8 @@
 #include "GraphicsEngine.hpp"
 
 #include "../cs-graphics/ClearHDRBufferNode.hpp"
+#include "../cs-graphics/EclipseShadowMap.hpp"
+#include "../cs-graphics/TextureLoader.hpp"
 #include "../cs-graphics/ToneMappingNode.hpp"
 #include "../cs-utils/utils.hpp"
 #include "logger.hpp"
@@ -27,7 +29,9 @@ namespace cs::core {
 
 GraphicsEngine::GraphicsEngine(std::shared_ptr<core::Settings> settings)
     : mSettings(std::move(settings))
-    , mShadowMap(std::make_shared<graphics::ShadowMap>()) {
+    , mShadowMap(std::make_shared<graphics::ShadowMap>())
+    , mFallbackEclipseShadowMap(
+          graphics::TextureLoader::loadFromFile("../share/resources/textures/fallbackShadow.hdr")) {
 
   // Tell the user what's going on.
   logger().debug("Creating GraphicsEngine.");
@@ -75,6 +79,31 @@ GraphicsEngine::GraphicsEngine(std::shared_ptr<core::Settings> settings)
 
   mSettings->mGraphics.pShadowMapExtension.connect(
       [this](glm::vec2 /*unused*/) { calculateCascades(); });
+
+  // setup eclipse shadows -------------------------------------------------------------------------
+
+  // Load the eclipse shadow maps of all configured bodies. If a body has no specific texture, the
+  // fallback texture is used instead.
+  if (mSettings->mGraphics.mEclipseShadowMaps.has_value()) {
+    for (auto const& s : mSettings->mGraphics.mEclipseShadowMaps.value()) {
+      auto shadowMap             = std::make_shared<graphics::EclipseShadowMap>();
+      shadowMap->mOccluderAnchor = s.first;
+
+      if (s.second.mTexture) {
+        shadowMap->mTexture = graphics::TextureLoader::loadFromFile(*s.second.mTexture);
+        shadowMap->mTexture->SetWrapS(GL_CLAMP_TO_EDGE);
+        shadowMap->mTexture->SetWrapT(GL_CLAMP_TO_EDGE);
+      } else {
+        shadowMap->mTexture = mFallbackEclipseShadowMap;
+      }
+
+      mEclipseShadowMaps.push_back(shadowMap);
+    }
+  }
+
+  // Also, the fallback shadow map should use texture clamping.
+  mFallbackEclipseShadowMap->SetWrapS(GL_CLAMP_TO_EDGE);
+  mFallbackEclipseShadowMap->SetWrapT(GL_CLAMP_TO_EDGE);
 
   // setup HDR buffer ------------------------------------------------------------------------------
   int multiSamples = GetVistaSystem()
@@ -212,6 +241,13 @@ std::shared_ptr<graphics::ShadowMap> GraphicsEngine::getShadowMap() const {
 
 std::shared_ptr<graphics::HDRBuffer> GraphicsEngine::getHDRBuffer() const {
   return mHDRBuffer;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::vector<std::shared_ptr<graphics::EclipseShadowMap>> const&
+GraphicsEngine::getEclipseShadowMaps() const {
+  return mEclipseShadowMaps;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

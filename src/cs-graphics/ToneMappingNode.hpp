@@ -29,7 +29,7 @@ namespace cs::graphics {
 /// all connected cluster slaves are taken into account.
 class CS_GRAPHICS_EXPORT ToneMappingNode : public IVistaOpenGLDraw, public VistaEventHandler {
  public:
-  enum class ToneMappingMode { eNone = 0, eFilmic = 1 };
+  enum class ToneMappingMode { eNone = 0, eGammaOnly = 1, eFilmic = 2 };
 
   /// The node will draw to the backbuffer using the contents from the given HDRBuffer.
   explicit ToneMappingNode(std::shared_ptr<HDRBuffer> hdrBuffer);
