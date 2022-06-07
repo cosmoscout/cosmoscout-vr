@@ -12,6 +12,7 @@
 #include <VistaKernel/EventManager/VistaEventHandler.h>
 
 #include <VistaKernel/VistaSystem.h>
+#include <memory>
 #include <sstream>
 #include <string>
 
