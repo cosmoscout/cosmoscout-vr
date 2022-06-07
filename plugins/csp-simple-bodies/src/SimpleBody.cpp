@@ -179,7 +179,7 @@ SimpleBody::SimpleBody(std::shared_ptr<cs::core::Settings> settings,
     std::shared_ptr<cs::core::SolarSystem> solarSystem, std::string const& anchorName)
     : mSettings(std::move(settings))
     , mSolarSystem(std::move(solarSystem))
-    , mEclipseShadowReceiver(mSettings, mSolarSystem, this) {
+    , mEclipseShadowReceiver(mSettings, mSolarSystem, this, false) {
 
   mSettings->initAnchor(*this, anchorName);
 
@@ -303,7 +303,9 @@ double SimpleBody::getHeight(glm::dvec2 /*lngLat*/) const {
 void SimpleBody::update(double time, cs::scene::CelestialObserver const& observer) {
   CelestialBody::update(time, observer);
 
-  mEclipseShadowReceiver.update(time, observer);
+  if (getIsInExistence() && pVisible.get()) {
+    mEclipseShadowReceiver.update(time, observer);
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

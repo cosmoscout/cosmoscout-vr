@@ -62,8 +62,11 @@ void main()
 
 const char* Ring::SPHERE_FRAG = R"(
 uniform sampler2D uSurfaceTexture;
+uniform float uAmbientBrightness;
 uniform float uSunIlluminance;
 uniform float uFarClip;
+
+ECLIPSE_SHADER_SNIPPET
 
 // inputs
 in vec2 vTexCoords;
@@ -75,20 +78,22 @@ layout(location = 0) out vec4 oColor;
 
 const float M_PI = 3.141592653589793;
 
-vec3 SRGBtoLINEAR(vec3 srgbIn)
-{
-  vec3 bLess = step(vec3(0.04045),srgbIn);
-  return mix( srgbIn/vec3(12.92), pow((srgbIn+vec3(0.055))/vec3(1.055),vec3(2.4)), bLess );
+vec3 SRGBtoLINEAR(vec3 srgbIn) {
+  vec3 bLess = step(vec3(0.04045), srgbIn);
+  return mix(srgbIn / vec3(12.92), pow((srgbIn + vec3(0.055)) / vec3(1.055), vec3(2.4)), bLess);
 }
 
-void main()
-{
+void main() {
     oColor = texture(uSurfaceTexture, vTexCoords);
 
     #ifdef ENABLE_HDR
       oColor.rgb = SRGBtoLINEAR(oColor.rgb) * uSunIlluminance / M_PI;
     #else
       oColor.rgb = oColor.rgb * uSunIlluminance;
+    #endif
+
+    #ifdef ENABLE_LIGHTING
+      oColor.rgb = oColor.rgb * getEclipseShadow(vPosition) + vec3(uAmbientBrightness);
     #endif
 
     gl_FragDepth = length(vPosition) / uFarClip;
@@ -100,7 +105,8 @@ void main()
 Ring::Ring(std::shared_ptr<cs::core::Settings> settings,
     std::shared_ptr<cs::core::SolarSystem> solarSystem, std::string const& anchorName)
     : mSettings(std::move(settings))
-    , mSolarSystem(std::move(solarSystem)) {
+    , mSolarSystem(std::move(solarSystem))
+    , mEclipseShadowReceiver(mSettings, mSolarSystem, this, true) {
 
   mSettings->initAnchor(*this, anchorName);
 
@@ -123,6 +129,8 @@ Ring::Ring(std::shared_ptr<cs::core::Settings> settings,
       0, 2, GL_FLOAT, GL_FALSE, sizeof(glm::vec2), 0, &mSphereVBO);
 
   // Recreate the shader if HDR rendering mode is toggled.
+  mEnableLightingConnection = mSettings->mGraphics.pEnableLighting.connect(
+      [this](bool /*enabled*/) { mShaderDirty = true; });
   mEnableHDRConnection =
       mSettings->mGraphics.pEnableHDR.connect([this](bool /*enabled*/) { mShaderDirty = true; });
 
@@ -136,6 +144,7 @@ Ring::Ring(std::shared_ptr<cs::core::Settings> settings,
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Ring::~Ring() {
+  mSettings->mGraphics.pEnableLighting.disconnect(mEnableLightingConnection);
   mSettings->mGraphics.pEnableHDR.disconnect(mEnableHDRConnection);
 
   VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
@@ -159,6 +168,15 @@ void Ring::configure(Plugin::Settings::Ring const& settings) {
 void Ring::setSun(std::shared_ptr<const cs::scene::CelestialObject> const& sun) {
   mSun = sun;
 }
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Ring::update(double time, cs::scene::CelestialObserver const& observer) {
+  CelestialObject::update(time, observer);
+
+  if (getIsInExistence() && pVisible.get()) {
+    mEclipseShadowReceiver.update(time, observer);
+  }
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -170,7 +188,7 @@ bool Ring::Do() {
   cs::utils::FrameTimings::ScopedTimer timer("Rings");
 
   // (Re-)Create ring shader if necessary.
-  if (mShaderDirty) {
+  if (mShaderDirty || mEclipseShadowReceiver.needsRecompilation()) {
     mShader = VistaGLSLShader();
 
     std::string defines = "#version 330\n";
@@ -179,16 +197,28 @@ bool Ring::Do() {
       defines += "#define ENABLE_HDR\n";
     }
 
+    if (mSettings->mGraphics.pEnableLighting.get()) {
+      defines += "#define ENABLE_LIGHTING\n";
+    }
+
+    std::string frag = defines + SPHERE_FRAG;
+    cs::utils::replaceString(
+        frag, "ECLIPSE_SHADER_SNIPPET", mEclipseShadowReceiver.getShaderSnippet());
+
     mShader.InitVertexShaderFromString(defines + SPHERE_VERT);
-    mShader.InitFragmentShaderFromString(defines + SPHERE_FRAG);
+    mShader.InitFragmentShaderFromString(frag);
     mShader.Link();
 
-    mUniforms.modelViewMatrix  = mShader.GetUniformLocation("uMatModelView");
-    mUniforms.projectionMatrix = mShader.GetUniformLocation("uMatProjection");
-    mUniforms.surfaceTexture   = mShader.GetUniformLocation("uSurfaceTexture");
-    mUniforms.radii            = mShader.GetUniformLocation("uRadii");
-    mUniforms.farClip          = mShader.GetUniformLocation("uFarClip");
-    mUniforms.sunIlluminance   = mShader.GetUniformLocation("uSunIlluminance");
+    mUniforms.modelViewMatrix   = mShader.GetUniformLocation("uMatModelView");
+    mUniforms.projectionMatrix  = mShader.GetUniformLocation("uMatProjection");
+    mUniforms.surfaceTexture    = mShader.GetUniformLocation("uSurfaceTexture");
+    mUniforms.radii             = mShader.GetUniformLocation("uRadii");
+    mUniforms.farClip           = mShader.GetUniformLocation("uFarClip");
+    mUniforms.sunIlluminance    = mShader.GetUniformLocation("uSunIlluminance");
+    mUniforms.ambientBrightness = mShader.GetUniformLocation("uAmbientBrightness");
+
+    // We bind the eclipse shadow map to texture unit 1.
+    mEclipseShadowReceiver.init(&mShader, 1);
 
     mShaderDirty = false;
   }
@@ -211,6 +241,7 @@ bool Ring::Do() {
   mShader.SetUniform(mUniforms.farClip, cs::utils::getCurrentFarClipDistance());
 
   float sunIlluminance(1.F);
+  float ambientBrightness(mSettings->mGraphics.pAmbientBrightness.get());
 
   // If HDR is enabled, the illuminance has to be calculated based on the scene's scale and the
   // distance to the Sun.
@@ -219,16 +250,23 @@ bool Ring::Do() {
   }
 
   mShader.SetUniform(mUniforms.sunIlluminance, sunIlluminance);
+  mShader.SetUniform(mUniforms.ambientBrightness, ambientBrightness);
 
   mTexture->Bind(GL_TEXTURE0);
 
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+  // Initialize eclipse shadow-related uniforms and textures.
+  mEclipseShadowReceiver.preRender();
+
   // Draw.
   mSphereVAO.Bind();
   glDrawArrays(GL_TRIANGLE_STRIP, 0, GRID_RESOLUTION * 2);
   mSphereVAO.Release();
+
+  // Reset eclipse shadow-related texture units.
+  mEclipseShadowReceiver.postRender();
 
   // Clean up.
   mTexture->Unbind(GL_TEXTURE0);

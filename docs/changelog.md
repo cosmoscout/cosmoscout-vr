@@ -11,12 +11,21 @@
 
 #### New Features
 
-* Celestial bodies can now cast eclipse shadows onto other objects. This is now used by `csp-lod-bodies`, `csp-simple-bodies` as well as by `csp-atmospheres`. For now, this is computed by approximating the involved bodies as spheres as well as ignoring atmospheric effects.
+* Celestial bodies can now cast eclipse shadows onto other objects. This is now used by `csp-lod-bodies`, `csp-simple-bodies`, `csp-rings` as well as by `csp-atmospheres`. For now, this is computed by approximating the involved bodies as spheres as well as ignoring atmospheric effects.
 * The height and slope maps used by `csp-lod-bodies` now support an alpha channel. This way, planets can be made selectively translucent.
+* New default bodies are now available as `csp-simple-bodies`: 
+  * Mars moons Phobos and Deimos
+  * Dwarf planets Ceres and Vesta
+  * Jupiter moons Io, Enceladus, Ganymede and Callisto
+  * Saturn moons Tethys, Dione, Rhea, Titan and Iapetus
+  * Neptune's moon Triton
+  * The dwarf planet Pluto and his moon companion Charon
+
 
 #### Other Changes
 
-* Removed the obsolete "Mix with RGB" option for height or slope coloring of the LOD-Bodies. 
+* Removed the obsolete "Mix with RGB" option for height or slope coloring of the LOD-Bodies.
+* Lighting is now enabled by default
 
 #### Bug Fixes
 
