@@ -47,6 +47,8 @@ __constant__ ShadowSettings cShadowSettings;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// Computes the shadow map by sampling the intersection area between circles representing the Sun
+// and the occluder. This makes use of the global limb darkening function.
 __global__ void computeLimbDarkeningShadow(float* shadowMap) {
   int x = blockIdx.x * blockDim.x + threadIdx.x;
   int y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -67,6 +69,8 @@ __global__ void computeLimbDarkeningShadow(float* shadowMap) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// Computes the shadow map by analytically computing the intersection area between circles
+// representing the Sun and the occluder. This does not use a limb darkening function.
 __global__ void computeCircleIntersectionShadow(float* shadowMap) {
   int x = blockIdx.x * blockDim.x + threadIdx.x;
   int y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -86,6 +90,9 @@ __global__ void computeCircleIntersectionShadow(float* shadowMap) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// Computes the shadow map by assuming a linear brightness gradient from the outer edge of the
+// penumbra to the start of the umbra / antumbra. In the antumbra, the shadow intensity decreases
+// quadratically. This does not use a limb darkening function.
 __global__ void computeLinearShadow(float* shadowMap) {
   int x = blockIdx.x * blockDim.x + threadIdx.x;
   int y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -112,6 +119,9 @@ __global__ void computeLinearShadow(float* shadowMap) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// Computes the shadow map by assuming a smoothstep-based brightness gradient from the outer edge of
+// the penumbra to the start of the umbra / antumbra. In the antumbra, the shadow intensity
+// decreases quadratically. This does not use a limb darkening function.
 __global__ void computeSmoothstepShadow(float* shadowMap) {
   int x = blockIdx.x * blockDim.x + threadIdx.x;
   int y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -184,6 +194,7 @@ int main(int argc, char** argv) {
     return 0;
   }
 
+  // Check whether a valid mode was given.
   if (cMode != "limb-darkening" && cMode != "circles" && cMode != "linear" &&
       cMode != "smoothstep") {
     std::cerr << "Invalid value given for --mode!" << std::endl;
@@ -191,22 +202,25 @@ int main(int argc, char** argv) {
     return 1;
   }
 
+  // Initialize the limb darkening model.
   LimbDarkening limbDarkening;
   limbDarkening.init();
 
+  // Initialize the global Cuda symbols.
   cudaMemcpyToSymbol(cShadowSettings, &settings, sizeof(ShadowSettings));
   cudaMemcpyToSymbol(cLimbDarkening, &limbDarkening, sizeof(LimbDarkening));
 
-  uint32_t pixelCount = settings.size * settings.size;
-
+  // Compute the 2D kernel size.
   dim3 blockSize(16, 16);
   int  numBlocksX = (settings.size + blockSize.x - 1) / blockSize.x;
   int  numBlocksY = (settings.size + blockSize.y - 1) / blockSize.y;
   dim3 gridSize   = dim3(numBlocksX, numBlocksY);
 
+  // Allocate the shared memory for the shadow map.
   float* shadow;
-  gpuErrchk(cudaMallocManaged(&shadow, pixelCount * sizeof(float)));
+  gpuErrchk(cudaMallocManaged(&shadow, settings.size * settings.size * sizeof(float)));
 
+  // Compute the shadow map based on the given mode.
   if (cMode == "limb-darkening") {
     computeLimbDarkeningShadow<<<gridSize, blockSize>>>(shadow);
   } else if (cMode == "circles") {
@@ -220,6 +234,7 @@ int main(int argc, char** argv) {
   gpuErrchk(cudaPeekAtLastError());
   gpuErrchk(cudaDeviceSynchronize());
 
+  // Finally write the output texture!
   stbi_write_hdr(
       cOutput.c_str(), static_cast<int>(settings.size), static_cast<int>(settings.size), 1, shadow);
 
