@@ -4,18 +4,18 @@
 #                         Copyright: (c) 2022 German Aerospace Center (DLR)                        #
 # ------------------------------------------------------------------------------------------------ #
 
-option(CS_ECLIPSE_SHADOW_GENERATOR "Enable compilation of the Eclipse Shadow Generator" ON)
+option(CS_ECLIPSE_SHADOW_GENERATOR "Enable compilation of the Eclipse Shadow Generator" OFF)
 
 if (NOT CS_ECLIPSE_SHADOW_GENERATOR)
   return()
 endif()
 
-# add cuda support ---------------------------------------------------------------------------------
-
-if (${CMAKE_VERSION} GREATER_EQUAL 3.18)
-    option(OPENSG_USE_PRECOMPILED_HEADERS "Turn on generation of precompiled headers" OFF)
-    set(CMAKE_UNITY_BUILD_BATCH_SIZE 20)
+if (${CMAKE_VERSION} LESS 3.18)
+    message("At least CMake 3.18 is required to build the Eclipse Shadow Generator!")
+    return()
 endif()
+
+# add cuda support ---------------------------------------------------------------------------------
 
 set(CMAKE_CUDA_STANDARD 17)
 set(CMAKE_CUDA_FLAGS -std=c++17)
