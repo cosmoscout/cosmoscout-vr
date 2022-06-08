@@ -14,6 +14,12 @@
 #include <stb_image.h>
 #include <stb_image_write.h>
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// This tool can be used to create the eclipse shadow maps used by CosmoScout VR. See the         //
+// README.md file in this directory for usage instructions!                                       //
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// This macro is used in multiple locations to check for Cuda errors.
 // https://stackoverflow.com/questions/14038589/what-is-the-canonical-way-to-check-for-errors-using-the-cuda-runtime-api
 #define gpuErrchk(ans)                                                                             \
   { gpuAssert((ans), __FILE__, __LINE__); }
@@ -25,14 +31,21 @@ inline void gpuAssert(cudaError_t code, const char* file, int line, bool abort =
   }
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// This is used to pass the command line options to the Cuda kernel.
 struct ShadowSettings {
   uint32_t size            = 512;
   bool     includeUmbra    = false;
   double   mappingExponent = 1.0;
 };
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 __constant__ LimbDarkening  cLimbDarkening;
 __constant__ ShadowSettings cShadowSettings;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 __global__ void computeLimbDarkeningShadow(float* shadowMap) {
   int x = blockIdx.x * blockDim.x + threadIdx.x;
@@ -52,6 +65,8 @@ __global__ void computeLimbDarkeningShadow(float* shadowMap) {
       1 - math::sampleCircleIntersection(1.0, angles.x, angles.y, cLimbDarkening) / sunArea;
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 __global__ void computeCircleIntersectionShadow(float* shadowMap) {
   int x = blockIdx.x * blockDim.x + threadIdx.x;
   int y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -68,6 +83,8 @@ __global__ void computeCircleIntersectionShadow(float* shadowMap) {
 
   shadowMap[i] = 1 - math::getCircleIntersection(1.0, angles.x, angles.y) / sunArea;
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 __global__ void computeLinearShadow(float* shadowMap) {
   int x = blockIdx.x * blockDim.x + threadIdx.x;
@@ -92,6 +109,8 @@ __global__ void computeLinearShadow(float* shadowMap) {
 
   shadowMap[i] = 1.0 - maxDepth * glm::clamp(1.0 - visiblePortion, 0.0, 1.0);
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 __global__ void computeSmoothstepShadow(float* shadowMap) {
   int x = blockIdx.x * blockDim.x + threadIdx.x;
@@ -118,7 +137,7 @@ __global__ void computeSmoothstepShadow(float* shadowMap) {
       1.0 - maxDepth * glm::clamp(1.0 - glm::smoothstep(0.0, 1.0, visiblePortion), 0.0, 1.0);
 }
 
-// ---------------------------------------------------------------------------------------
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int main(int argc, char** argv) {
 

@@ -8,19 +8,20 @@
 
 namespace math {
 
-// Returns the surface area of a circle.
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 double __host__ __device__ getCircleArea(double r) {
   return glm::pi<double>() * r * r;
 }
 
-// Returns the surface area of a spherical cap on a unit sphere.
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 double __host__ __device__ getCapArea(double r) {
   return 2.0 * glm::pi<double>() * (1.0 - std::cos(r));
 }
 
-// Returns the intersection area of two spherical caps with radii rSun and rOcc
-// whose center points are distance d away from each other. All values are given
-// as angles on the unit sphere.
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 double __host__ __device__ getCapIntersection(double rSun, double rOcc, double d) {
   d = std::abs(d);
 
@@ -44,8 +45,8 @@ double __host__ __device__ getCapIntersection(double rSun, double rOcc, double d
   // clang-format on
 }
 
-// Returns the intersection area of two circles with radii rSun and rOcc whose
-// center points are distance d away from each other.
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 double __host__ __device__ getCircleIntersection(double rSun, double rOcc, double d) {
   d = std::abs(d);
 
@@ -68,8 +69,8 @@ double __host__ __device__ getCircleIntersection(double rSun, double rOcc, doubl
          rOcc * rOcc * std::acos(d2 / rOcc) - d2 * std::sqrt(rOcc * rOcc - d2 * d2);
 }
 
-// Same as above, but the intersection area is computed by sampling. This is
-// less precise but allows for incorporating limb darkening.
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 double __host__ __device__ sampleCircleIntersection(
     double rSun, double rOcc, double d, LimbDarkening const& limbDarkening) {
 
@@ -132,6 +133,27 @@ double __host__ __device__ sampleCircleIntersection(
   return area * 2.0;
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+glm::dvec2 __host__ __device__ mapPixelToAngles(
+    glm::ivec2 const& pixel, uint32_t resolution, double exponent, bool includeUmbra) {
+
+  double x = glm::pow((1.0 * pixel.x + 0.5) / resolution, exponent);
+  double y = 1.0 - glm::pow(1.0 - (1.0 * pixel.y + 0.5) / resolution, exponent);
+
+  double phiSun = 1.0;
+  double phiOcc = phiSun / x - phiSun;
+
+  double minDelta = includeUmbra ? 0.0 : glm::max(phiOcc - phiSun, 0.0);
+  double maxDelta = phiOcc + phiSun;
+
+  double delta = minDelta + y * (maxDelta - minDelta);
+
+  return glm::dvec2(phiOcc, delta);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 glm::ivec2 __host__ __device__ mapAnglesToPixel(
     glm::dvec2 const& angles, uint32_t resolution, double exponent, bool includeUmbra) {
 
@@ -151,21 +173,6 @@ glm::ivec2 __host__ __device__ mapAnglesToPixel(
   return pixel;
 }
 
-glm::dvec2 __host__ __device__ mapPixelToAngles(
-    glm::ivec2 const& pixel, uint32_t resolution, double exponent, bool includeUmbra) {
-
-  double x = glm::pow((1.0 * pixel.x + 0.5) / resolution, exponent);
-  double y = 1.0 - glm::pow(1.0 - (1.0 * pixel.y + 0.5) / resolution, exponent);
-
-  double phiSun = 1.0;
-  double phiOcc = phiSun / x - phiSun;
-
-  double minDelta = includeUmbra ? 0.0 : glm::max(phiOcc - phiSun, 0.0);
-  double maxDelta = phiOcc + phiSun;
-
-  double delta = minDelta + y * (maxDelta - minDelta);
-
-  return glm::dvec2(phiOcc, delta);
-}
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 } // namespace math
