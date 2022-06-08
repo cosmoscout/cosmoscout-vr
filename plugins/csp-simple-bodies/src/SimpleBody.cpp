@@ -255,6 +255,11 @@ void SimpleBody::configure(Plugin::Settings::SimpleBody const& settings) {
   if (mSimpleBodySettings.mTexture != settings.mTexture) {
     mTexture = cs::graphics::TextureLoader::loadFromFile(settings.mTexture);
   }
+
+  if (mSimpleBodySettings.mPrimeMeridianInCenter != settings.mPrimeMeridianInCenter) {
+    mShaderDirty = true;
+  }
+
   mSimpleBodySettings = settings;
 }
 
