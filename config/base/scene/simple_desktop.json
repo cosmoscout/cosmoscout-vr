@@ -306,6 +306,13 @@
       "Titan": {},
       "Iapetus": {},
 
+      "Uranus": {},
+      "Miranda": {},
+      "Ariel": {},
+      "Umbriel": {},
+      "Titania": {},
+      "Oberon": {},
+
       "Neptune": {},
       "Triton": {},
 
@@ -546,6 +553,54 @@
         "2049-12-31 00:00:00.000"
       ]
     },
+    "UranusJ2000": {
+      "center": "Uranus",
+      "frame": "J2000",
+      "existence": [
+        "1950-01-02 00:00:00.000",
+        "2049-12-31 00:00:00.000"
+      ]
+    },
+    "Miranda": {
+      "center": "Miranda",
+      "frame": "IAU_Miranda",
+      "existence": [
+        "1950-01-02 00:00:00.000",
+        "2049-12-31 00:00:00.000"
+      ]
+    },
+    "Ariel": {
+      "center": "Ariel",
+      "frame": "IAU_Ariel",
+      "existence": [
+        "1950-01-02 00:00:00.000",
+        "2049-12-31 00:00:00.000"
+      ]
+    },
+    "Umbriel": {
+      "center": "Umbriel",
+      "frame": "IAU_Umbriel",
+      "existence": [
+        "1950-01-02 00:00:00.000",
+        "2049-12-31 00:00:00.000"
+      ]
+    },
+    "Titania": {
+      "center": "Titania",
+      "frame": "IAU_Titania",
+      "existence": [
+        "1950-01-02 00:00:00.000",
+        "2049-12-31 00:00:00.000"
+      ]
+    },
+    "Oberon": {
+      "center": "Oberon",
+      "frame": "IAU_Oberon",
+      "existence": [
+        "1950-01-02 00:00:00.000",
+        "2049-12-31 00:00:00.000"
+      ]
+    },
     "Neptune": {
       "center": "Neptune",
       "frame": "IAU_Neptune",
@@ -725,6 +780,21 @@
         "Uranus": {
           "texture": "../share/resources/textures/uranus.jpg"
         },
+        "Miranda": {
+          "texture": "../share/resources/textures/miranda.jpg"
+        },
+        "Ariel": {
+          "texture": "../share/resources/textures/ariel.jpg"
+        },
+        "Umbriel": {
+          "texture": "../share/resources/textures/umbriel.jpg"
+        },
+        "Titania": {
+          "texture": "../share/resources/textures/titania.jpg"
+        },
+        "Oberon": {
+          "texture": "../share/resources/textures/oberon.jpg"
+        },
         "Neptune": {
           "texture": "../share/resources/textures/neptune.jpg"
         },
@@ -852,7 +922,7 @@
           ],
           "trail": {
             "length": 0.31,
-            "samples": 1000,
+            "samples": 200,
             "parent": "MarsJ2000"
           },
           "drawDot": true
@@ -865,7 +935,7 @@
           ],
           "trail": {
             "length": 1.26,
-            "samples": 1000,
+            "samples": 200,
             "parent": "MarsJ2000"
           },
           "drawDot": true
@@ -917,7 +987,7 @@
           ],
           "trail": {
             "length": 1.75,
-            "samples": 1000,
+            "samples": 200,
             "parent": "JupiterJ2000"
           },
           "drawDot": true
@@ -930,7 +1000,7 @@
           ],
           "trail": {
             "length": 3.55,
-            "samples": 1000,
+            "samples": 200,
             "parent": "JupiterJ2000"
           },
           "drawDot": true
@@ -943,7 +1013,7 @@
           ],
           "trail": {
             "length": 7.15,
-            "samples": 1000,
+            "samples": 200,
             "parent": "JupiterJ2000"
           },
           "drawDot": true
@@ -956,7 +1026,7 @@
           ],
           "trail": {
             "length": 16.69,
-            "samples": 1000,
+            "samples": 200,
             "parent": "JupiterJ2000"
           },
           "drawDot": true
@@ -995,7 +1065,7 @@
           ],
           "trail": {
             "length": 1.37,
-            "samples": 1000,
+            "samples": 200,
             "parent": "SaturnJ2000"
           },
           "drawDot": true
@@ -1008,7 +1078,7 @@
           ],
           "trail": {
             "length": 1.9,
-            "samples": 1000,
+            "samples": 200,
             "parent": "SaturnJ2000"
           },
           "drawDot": true
@@ -1021,7 +1091,7 @@
           ],
           "trail": {
             "length": 2.74,
-            "samples": 1000,
+            "samples": 200,
             "parent": "SaturnJ2000"
           },
           "drawDot": true
@@ -1034,7 +1104,7 @@
           ],
           "trail": {
             "length": 4.52,
-            "samples": 1000,
+            "samples": 200,
             "parent": "SaturnJ2000"
           },
           "drawDot": true
@@ -1047,7 +1117,7 @@
           ],
           "trail": {
             "length": 15.95,
-            "samples": 1000,
+            "samples": 200,
             "parent": "SaturnJ2000"
           },
           "drawDot": true
@@ -1060,7 +1130,7 @@
           ],
           "trail": {
             "length": 79.3,
-            "samples": 1000,
+            "samples": 200,
             "parent": "SaturnJ2000"
           },
           "drawDot": true
@@ -1075,6 +1145,71 @@
             "length": 17885,
             "samples": 1000,
             "parent": "Barycenter"
+          },
+          "drawDot": true
+        },
+        "Miranda": {
+          "color": [
+            1.0,
+            0.8,
+            1.0
+          ],
+          "trail": {
+            "length": 1.41,
+            "samples": 200,
+            "parent": "UranusJ2000"
+          },
+          "drawDot": true
+        },
+        "Ariel": {
+          "color": [
+            0.84,
+            0.72,
+            0.67
+          ],
+          "trail": {
+            "length": 2.52,
+            "samples": 200,
+            "parent": "UranusJ2000"
+          },
+          "drawDot": true
+        },
+        "Umbriel": {
+          "color": [
+            0.23,
+            0.38,
+            0.45
+          ],
+          "trail": {
+            "length": 4.14,
+            "samples": 200,
+            "parent": "UranusJ2000"
+          },
+          "drawDot": true
+        },
+        "Titania": {
+          "color": [
+            1.0,
+            0.93,
+            0.8
+          ],
+          "trail": {
+            "length": 8.71,
+            "samples": 200,
+            "parent": "UranusJ2000"
+          },
+          "drawDot": true
+        },
+        "Oberon": {
+          "color": [
+            0.51,
+            0.44,
+            0.45
+          ],
+          "trail": {
+            "length": 13.5,
+            "samples": 200,
+            "parent": "UranusJ2000"
           },
           "drawDot": true
         },
@@ -1099,7 +1234,7 @@
           ],
           "trail": {
             "length": 5.88,
-            "samples": 1000,
+            "samples": 200,
             "parent": "NeptuneJ2000"
           },
           "drawDot": true
@@ -1125,7 +1260,7 @@
           ],
           "trail": {
             "length": 6.39,
-            "samples": 1000,
+            "samples": 200,
             "parent": "PlutoJ2000"
           },
           "drawDot": true
