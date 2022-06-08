@@ -26,8 +26,9 @@
 inline void gpuAssert(cudaError_t code, const char* file, int line, bool abort = true) {
   if (code != cudaSuccess) {
     fprintf(stderr, "GPUassert: %s %s %d\n", cudaGetErrorString(code), file, line);
-    if (abort)
+    if (abort) {
       exit(code);
+    }
   }
 }
 
@@ -50,9 +51,31 @@ __constant__ ShadowSettings cShadowSettings;
 // Computes the shadow map by sampling the intersection area between circles representing the Sun
 // and the occluder. This makes use of the global limb darkening function.
 __global__ void computeLimbDarkeningShadow(float* shadowMap) {
-  int x = blockIdx.x * blockDim.x + threadIdx.x;
-  int y = blockIdx.y * blockDim.y + threadIdx.y;
-  int i = y * cShadowSettings.size + x;
+  uint32_t x = blockIdx.x * blockDim.x + threadIdx.x;
+  uint32_t y = blockIdx.y * blockDim.y + threadIdx.y;
+  uint32_t i = y * cShadowSettings.size + x;
+
+  if ((x >= cShadowSettings.size) || (y >= cShadowSettings.size)) {
+    return;
+  }
+
+  auto angles = math::mapPixelToAngles(glm::ivec2(x, y), cShadowSettings.size,
+      cShadowSettings.mappingExponent, cShadowSettings.includeUmbra);
+
+  double sunArea = math::getCircleArea(1.0);
+
+  shadowMap[i] = static_cast<float>(
+      1 - math::sampleCircleIntersection(1.0, angles.x, angles.y, cLimbDarkening) / sunArea);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// Computes the shadow map by analytically computing the intersection area between circles
+// representing the Sun and the occluder. This does not use a limb darkening function.
+__global__ void computeCircleIntersectionShadow(float* shadowMap) {
+  uint32_t x = blockIdx.x * blockDim.x + threadIdx.x;
+  uint32_t y = blockIdx.y * blockDim.y + threadIdx.y;
+  uint32_t i = y * cShadowSettings.size + x;
 
   if ((x >= cShadowSettings.size) || (y >= cShadowSettings.size)) {
     return;
@@ -64,28 +87,7 @@ __global__ void computeLimbDarkeningShadow(float* shadowMap) {
   double sunArea = math::getCircleArea(1.0);
 
   shadowMap[i] =
-      1 - math::sampleCircleIntersection(1.0, angles.x, angles.y, cLimbDarkening) / sunArea;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// Computes the shadow map by analytically computing the intersection area between circles
-// representing the Sun and the occluder. This does not use a limb darkening function.
-__global__ void computeCircleIntersectionShadow(float* shadowMap) {
-  int x = blockIdx.x * blockDim.x + threadIdx.x;
-  int y = blockIdx.y * blockDim.y + threadIdx.y;
-  int i = y * cShadowSettings.size + x;
-
-  if ((x >= cShadowSettings.size) || (y >= cShadowSettings.size)) {
-    return;
-  }
-
-  auto angles = math::mapPixelToAngles(glm::ivec2(x, y), cShadowSettings.size,
-      cShadowSettings.mappingExponent, cShadowSettings.includeUmbra);
-
-  double sunArea = math::getCircleArea(1.0);
-
-  shadowMap[i] = 1 - math::getCircleIntersection(1.0, angles.x, angles.y) / sunArea;
+      static_cast<float>(1.0 - math::getCircleIntersection(1.0, angles.x, angles.y) / sunArea);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -94,9 +96,9 @@ __global__ void computeCircleIntersectionShadow(float* shadowMap) {
 // penumbra to the start of the umbra / antumbra. In the antumbra, the shadow intensity decreases
 // quadratically. This does not use a limb darkening function.
 __global__ void computeLinearShadow(float* shadowMap) {
-  int x = blockIdx.x * blockDim.x + threadIdx.x;
-  int y = blockIdx.y * blockDim.y + threadIdx.y;
-  int i = y * cShadowSettings.size + x;
+  uint32_t x = blockIdx.x * blockDim.x + threadIdx.x;
+  uint32_t y = blockIdx.y * blockDim.y + threadIdx.y;
+  uint32_t i = y * cShadowSettings.size + x;
 
   if ((x >= cShadowSettings.size) || (y >= cShadowSettings.size)) {
     return;
@@ -114,7 +116,7 @@ __global__ void computeLinearShadow(float* shadowMap) {
 
   double maxDepth = glm::min(1.0, glm::pow(phiOcc / phiSun, 2.0));
 
-  shadowMap[i] = 1.0 - maxDepth * glm::clamp(1.0 - visiblePortion, 0.0, 1.0);
+  shadowMap[i] = static_cast<float>(1.0 - maxDepth * glm::clamp(1.0 - visiblePortion, 0.0, 1.0));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -123,9 +125,9 @@ __global__ void computeLinearShadow(float* shadowMap) {
 // the penumbra to the start of the umbra / antumbra. In the antumbra, the shadow intensity
 // decreases quadratically. This does not use a limb darkening function.
 __global__ void computeSmoothstepShadow(float* shadowMap) {
-  int x = blockIdx.x * blockDim.x + threadIdx.x;
-  int y = blockIdx.y * blockDim.y + threadIdx.y;
-  int i = y * cShadowSettings.size + x;
+  uint32_t x = blockIdx.x * blockDim.x + threadIdx.x;
+  uint32_t y = blockIdx.y * blockDim.y + threadIdx.y;
+  uint32_t i = y * cShadowSettings.size + x;
 
   if ((x >= cShadowSettings.size) || (y >= cShadowSettings.size)) {
     return;
@@ -143,8 +145,8 @@ __global__ void computeSmoothstepShadow(float* shadowMap) {
 
   double maxDepth = glm::min(1.0, glm::pow(phiOcc / phiSun, 2.0));
 
-  shadowMap[i] =
-      1.0 - maxDepth * glm::clamp(1.0 - glm::smoothstep(0.0, 1.0, visiblePortion), 0.0, 1.0);
+  shadowMap[i] = static_cast<float>(
+      1.0 - maxDepth * glm::clamp(1.0 - glm::smoothstep(0.0, 1.0, visiblePortion), 0.0, 1.0));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -211,14 +213,15 @@ int main(int argc, char** argv) {
   cudaMemcpyToSymbol(cLimbDarkening, &limbDarkening, sizeof(LimbDarkening));
 
   // Compute the 2D kernel size.
-  dim3 blockSize(16, 16);
-  int  numBlocksX = (settings.size + blockSize.x - 1) / blockSize.x;
-  int  numBlocksY = (settings.size + blockSize.y - 1) / blockSize.y;
-  dim3 gridSize   = dim3(numBlocksX, numBlocksY);
+  dim3     blockSize(16, 16);
+  uint32_t numBlocksX = (settings.size + blockSize.x - 1) / blockSize.x;
+  uint32_t numBlocksY = (settings.size + blockSize.y - 1) / blockSize.y;
+  dim3     gridSize   = dim3(numBlocksX, numBlocksY);
 
   // Allocate the shared memory for the shadow map.
-  float* shadow;
-  gpuErrchk(cudaMallocManaged(&shadow, settings.size * settings.size * sizeof(float)));
+  float* shadow = nullptr;
+  gpuErrchk(cudaMallocManaged(
+      &shadow, static_cast<size_t>(settings.size * settings.size) * sizeof(float)));
 
   // Compute the shadow map based on the given mode.
   if (cMode == "limb-darkening") {

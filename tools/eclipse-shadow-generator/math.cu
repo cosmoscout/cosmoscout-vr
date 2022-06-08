@@ -149,7 +149,7 @@ glm::dvec2 __host__ __device__ mapPixelToAngles(
 
   double delta = minDelta + y * (maxDelta - minDelta);
 
-  return glm::dvec2(phiOcc, delta);
+  return {phiOcc, delta};
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -165,10 +165,10 @@ glm::ivec2 __host__ __device__ mapAnglesToPixel(
   glm::ivec2 pixel;
 
   double x = 1.0 / (phiOcc / phiSun + 1.0);
-  pixel.x  = resolution * glm::pow(x, 1.0 / exponent) - 0.5;
+  pixel.x  = static_cast<int32_t>(resolution * glm::pow(x, 1.0 / exponent) - 0.5);
 
   double y = (angles.y - minDelta) / (maxDelta - minDelta);
-  pixel.y  = resolution * (1.0 - glm::pow(1.0 - y, 1.0 / exponent)) - 0.5;
+  pixel.y  = static_cast<int32_t>(resolution * (1.0 - glm::pow(1.0 - y, 1.0 / exponent)) - 0.5);
 
   return pixel;
 }
