@@ -7,7 +7,7 @@ This tool can be used to generate the eclipse shadow maps used by CosmoScout VR.
 **Per default, the eclipse shadow map generator is not built.
 To build it, you need to pass `-DCS_ECLIPSE_SHADOW_GENERATOR=On` in the make script.**
 
-Cuda support in CMake is sometime a bit wonky, so if you run into trouble, you can also try to build the eclipse shadow map generator manually.
+Cuda support in CMake is sometimes a bit wonky, so if you run into trouble, you can also try to build the eclipse shadow map generator manually.
 This small script may serve as an example on how to do this:
 
 ```bash
