@@ -33,7 +33,6 @@ add_executable(eclipse-shadow-generator
   ${HEADER_FILES}
 )
 
-set_target_properties(eclipse-shadow-generator PROPERTIES CUDA_ARCHITECTURES "72")
 set_target_properties(eclipse-shadow-generator PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
 
 # This property seems to break Ninja on Windows only.
