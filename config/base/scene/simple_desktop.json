@@ -1052,7 +1052,7 @@
           ],
           "trail": {
             "length": 0.94,
-            "samples": 1000,
+            "samples": 200,
             "parent": "SaturnJ2000"
           },
           "drawDot": true
