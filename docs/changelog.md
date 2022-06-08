@@ -18,6 +18,7 @@
   * Dwarf planets Ceres and Vesta
   * Jupiter moons Io, Enceladus, Ganymede and Callisto
   * Saturn moons Mimas, Tethys, Dione, Rhea, Titan and Iapetus
+  * Uranus moons Miranda, Ariel, Umbriel, Titania and Oberon
   * Neptune's moon Triton
   * The dwarf planet Pluto and his moon companion Charon
 
@@ -26,6 +27,7 @@
 
 * Removed the obsolete "Mix with RGB" option for height or slope coloring of the LOD-Bodies.
 * Lighting is now enabled by default
+* It is now possible to have simple body textures, that have the prime meridian at the edge.
 
 #### Bug Fixes
 
