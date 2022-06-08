@@ -748,7 +748,8 @@
           "texture": "../share/resources/textures/europa.jpg"
         },
         "Ganymede": {
-          "texture": "../share/resources/textures/ganymede.jpg"
+          "texture": "../share/resources/textures/ganymede.jpg",
+          "primeMeridianInCenter": false
         },
         "Callisto": {
           "texture": "../share/resources/textures/callisto.jpg"
@@ -757,25 +758,32 @@
           "texture": "../share/resources/textures/saturn.jpg"
         },
         "Mimas": {
-          "texture": "../share/resources/textures/mimas.jpg"
+          "texture": "../share/resources/textures/mimas.jpg",
+          "primeMeridianInCenter": false
         },
         "Enceladus": {
-          "texture": "../share/resources/textures/enceladus.jpg"
+          "texture": "../share/resources/textures/enceladus.jpg",
+          "primeMeridianInCenter": false
         },
         "Tethys": {
-          "texture": "../share/resources/textures/tethys.jpg"
+          "texture": "../share/resources/textures/tethys.jpg",
+          "primeMeridianInCenter": false
         },
         "Dione": {
-          "texture": "../share/resources/textures/dione.jpg"
+          "texture": "../share/resources/textures/dione.jpg",
+          "primeMeridianInCenter": false
         },
         "Rhea": {
-          "texture": "../share/resources/textures/rhea.jpg"
+          "texture": "../share/resources/textures/rhea.jpg",
+          "primeMeridianInCenter": false
         },
         "Titan": {
-          "texture": "../share/resources/textures/titan.jpg"
+          "texture": "../share/resources/textures/titan.jpg",
+          "primeMeridianInCenter": false
         },
         "Iapetus": {
-          "texture": "../share/resources/textures/iapetus.jpg"
+          "texture": "../share/resources/textures/iapetus.jpg",
+          "primeMeridianInCenter": false
         },
         "Uranus": {
           "texture": "../share/resources/textures/uranus.jpg"
@@ -802,10 +810,12 @@
           "texture": "../share/resources/textures/triton.jpg"
         },
         "Pluto": {
-          "texture": "../share/resources/textures/pluto.jpg"
+          "texture": "../share/resources/textures/pluto.jpg",
+          "primeMeridianInCenter": false
         },
         "Charon": {
-          "texture": "../share/resources/textures/charon.jpg"
+          "texture": "../share/resources/textures/charon.jpg",
+          "primeMeridianInCenter": false
         }
       }
     },
