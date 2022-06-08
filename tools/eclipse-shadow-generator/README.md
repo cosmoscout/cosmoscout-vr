@@ -27,7 +27,18 @@ nvcc -ccbin g++-12 -allow-unsupported-compiler -arch=sm_75 -rdc=true \
 
 ## Usage
 
-To learn about the usage, you can issue this command:
+Once compiled, you'll need to set the library search path to contain the `install/<os>-<build_type>/lib` directory.
+This depends on where the `eclipse-shadow-generator` is installed to, but this may be something like this:
+
+```powershell
+# For powershell
+$env:Path += ";..\lib"
+
+# For bash
+export LD_LIBRARY_PATH=../lib:$LD_LIBRARY_PATH
+```
+
+To learn about the usage of `eclipse-shadow-generator`, you can now issue this command:
 
 
 ```bash
