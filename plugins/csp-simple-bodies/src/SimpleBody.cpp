@@ -61,23 +61,26 @@ vec3 toCartesian(vec2 lonLat) {
   return k / gamma;
 }
 
-void main()
-{
-    vTexCoords = vec2(iGridPos.x, 1-iGridPos.y);
-    vLngLat.x = iGridPos.x * 2.0 * PI - PI;
-    vLngLat.y = iGridPos.y * PI - PI/2;
-    vPosition = toCartesian(vLngLat);
-    vNormal    = (uMatModelView * vec4(geodeticSurfaceNormal(vLngLat), 0.0)).xyz;
-    vPosition   = (uMatModelView * vec4(vPosition, 1.0)).xyz;
-    vCenter     = (uMatModelView * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
-    gl_Position =  uMatProjection * vec4(vPosition, 1);
+void main() {
+#ifdef PRIME_MERIDIAN_IN_CENTER
+  vTexCoords = vec2(iGridPos.x, 1 - iGridPos.y);
+#else
+  vTexCoords = vec2(iGridPos.x + 0.5, 1 - iGridPos.y);
+#endif
+  vLngLat.x = iGridPos.x * 2.0 * PI - PI;
+  vLngLat.y = iGridPos.y * PI - PI/2;
+  vPosition = toCartesian(vLngLat);
+  vNormal    = (uMatModelView * vec4(geodeticSurfaceNormal(vLngLat), 0.0)).xyz;
+  vPosition   = (uMatModelView * vec4(vPosition, 1.0)).xyz;
+  vCenter     = (uMatModelView * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
+  gl_Position =  uMatProjection * vec4(vPosition, 1);
 
-    if (gl_Position.w > 0) {
-      gl_Position /= gl_Position.w;
-      if (gl_Position.z >= 1) {
-        gl_Position.z = 0.999999;
-      }
+  if (gl_Position.w > 0) {
+    gl_Position /= gl_Position.w;
+    if (gl_Position.z >= 1) {
+      gl_Position.z = 0.999999;
     }
+  }
 }
 )";
 
@@ -252,6 +255,11 @@ void SimpleBody::configure(Plugin::Settings::SimpleBody const& settings) {
   if (mSimpleBodySettings.mTexture != settings.mTexture) {
     mTexture = cs::graphics::TextureLoader::loadFromFile(settings.mTexture);
   }
+
+  if (mSimpleBodySettings.mPrimeMeridianInCenter != settings.mPrimeMeridianInCenter) {
+    mShaderDirty = true;
+  }
+
   mSimpleBodySettings = settings;
 }
 
@@ -331,6 +339,10 @@ bool SimpleBody::Do() {
       defines += "#define ENABLE_LIGHTING\n";
     }
 
+    if (mSimpleBodySettings.mPrimeMeridianInCenter.get()) {
+      defines += "#define PRIME_MERIDIAN_IN_CENTER\n";
+    }
+
     std::string vert = defines + SPHERE_VERT;
     std::string frag = defines + SPHERE_FRAG;
 
@@ -402,6 +414,12 @@ bool SimpleBody::Do() {
       static_cast<float>(mRadii[2]));
   mShader.SetUniform(mUniforms.farClip, cs::utils::getCurrentFarClipDistance());
 
+  // Set the texture wrapping on the x-axis to repeat, so we can easily deal with textures, where
+  // the prime meridian is not in the center.
+  int32_t wrapMode = 0;
+  glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, &wrapMode);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+
   mTexture->Bind(GL_TEXTURE0);
 
   // Initialize eclipse shadow-related uniforms and textures.
@@ -419,6 +437,8 @@ bool SimpleBody::Do() {
   // Clean up.
   mTexture->Unbind(GL_TEXTURE0);
   mShader.Release();
+
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapMode);
 
   return true;
 }
