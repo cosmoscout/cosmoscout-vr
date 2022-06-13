@@ -273,13 +273,14 @@ void Plugin::onLoad() {
       continue;
     }
 
-    auto atmosphere = std::make_shared<Atmosphere>(mPluginSettings, mAllSettings, settings.first);
-    atmosphere->getRenderer().setHDRBuffer(mGraphicsEngine->getHDRBuffer());
-    atmosphere->configure(settings.second);
+    auto newAtmosphere =
+        std::make_shared<Atmosphere>(mPluginSettings, mAllSettings, mSolarSystem, settings.first);
+    newAtmosphere->getRenderer().setHDRBuffer(mGraphicsEngine->getHDRBuffer());
+    newAtmosphere->configure(settings.second);
 
-    mSolarSystem->registerAnchor(atmosphere);
+    mSolarSystem->registerAnchor(newAtmosphere);
 
-    mAtmospheres.emplace(settings.first, atmosphere);
+    mAtmospheres.emplace(settings.first, newAtmosphere);
   }
 
   mAllSettings->mGraphics.pEnableShadows.touch(mEnableShadowsConnection);

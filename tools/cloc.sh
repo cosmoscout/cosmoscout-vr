@@ -51,6 +51,11 @@ JS_LINES_OF_CODE=""
 JS_LINES_OF_COMMENTS=""
 countLines "${SCRIPT_DIR}/../resources/gui/js" JS_LINES_OF_CODE JS_LINES_OF_COMMENTS
 
+# Then in the resources/shaders directory.
+GLSL_LINES_OF_CODE=""
+GLSL_LINES_OF_COMMENTS=""
+countLines "${SCRIPT_DIR}/../resources/shaders" GLSL_LINES_OF_CODE GLSL_LINES_OF_COMMENTS
+
 # Then in the plugins/ directory.
 PLUGINS_LINES_OF_CODE=""
 PLUGINS_LINES_OF_COMMENTS=""
@@ -60,18 +65,20 @@ countLines "${SCRIPT_DIR}/../plugins" PLUGINS_LINES_OF_CODE PLUGINS_LINES_OF_COM
 if [[ $* == *--percentage-only* ]]
 then
   awk -v a=$SOURCE_LINES_OF_COMMENTS -v b=$PLUGINS_LINES_OF_COMMENTS \
-      -v c=$JS_LINES_OF_COMMENTS -v d=$JS_LINES_OF_CODE \
+      -v c=$JS_LINES_OF_COMMENTS -v d=$GLSL_LINES_OF_COMMENTS \
       -v e=$SOURCE_LINES_OF_CODE -v f=$PLUGINS_LINES_OF_CODE \
-      'BEGIN {printf "%3.4f\n", 100*(a+b+c)/(a+b+c+d+e+f)}'
+      -v g=$GLSL_LINES_OF_CODE -v h=$JS_LINES_OF_CODE \
+      'BEGIN {printf "%3.4f\n", 100*(a+b+c+d)/(a+b+c+d+e+f+g+h)}'
 else
-  awk -v a=$SOURCE_LINES_OF_CODE -v b=$JS_LINES_OF_CODE \
-      'BEGIN {printf "Lines of source code:  %6.1fk\n", (a+b)/1000}'
+  awk -v a=$SOURCE_LINES_OF_CODE -v b=$JS_LINES_OF_CODE -v c=$GLSL_LINES_OF_CODE\
+      'BEGIN {printf "Lines of source code:  %6.1fk\n", (a+b+c)/1000}'
   awk -v a=$PLUGINS_LINES_OF_CODE \
       'BEGIN {printf "Lines of plugin code:  %6.1fk\n", a/1000}'
   awk -v a=$SOURCE_LINES_OF_COMMENTS -v b=$PLUGINS_LINES_OF_COMMENTS -v c=$JS_LINES_OF_COMMENTS \
       'BEGIN {printf "Lines of comments:     %6.1fk\n", (a+b+c)/1000}'
   awk -v a=$SOURCE_LINES_OF_COMMENTS -v b=$PLUGINS_LINES_OF_COMMENTS \
-      -v c=$JS_LINES_OF_COMMENTS -v d=$JS_LINES_OF_CODE \
+      -v c=$JS_LINES_OF_COMMENTS -v d=$GLSL_LINES_OF_COMMENTS \
       -v e=$SOURCE_LINES_OF_CODE -v f=$PLUGINS_LINES_OF_CODE \
-      'BEGIN {printf "Comment Percentage:    %3.4f\n", 100*(a+b+c)/(a+b+c+d+e+f)}'
+      -v g=$GLSL_LINES_OF_CODE -v h=$JS_LINES_OF_CODE \
+      'BEGIN {printf "Comment Percentage:    %3.4f\n", 100*(a+b+c+d)/(a+b+c+d+e+f+g+h)}'
 fi

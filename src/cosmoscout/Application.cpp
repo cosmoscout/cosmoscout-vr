@@ -1167,7 +1167,12 @@ void Application::registerGuiCallbacks() {
             cs::graphics::ToneMappingNode::ToneMappingMode::eNone;
       }));
   mGuiManager->getGui()->registerCallback(
-      "graphics.setToneMappingMode1", "Enables Filmic Tone Mapping.", std::function([this]() {
+      "graphics.setToneMappingMode1", "Enables only gamma correction.", std::function([this]() {
+        mSettings->mGraphics.pToneMappingMode =
+            cs::graphics::ToneMappingNode::ToneMappingMode::eGammaOnly;
+      }));
+  mGuiManager->getGui()->registerCallback(
+      "graphics.setToneMappingMode2", "Enables Filmic Tone Mapping.", std::function([this]() {
         mSettings->mGraphics.pToneMappingMode =
             cs::graphics::ToneMappingNode::ToneMappingMode::eFilmic;
       }));
@@ -1175,10 +1180,60 @@ void Application::registerGuiCallbacks() {
       [this](cs::graphics::ToneMappingNode::ToneMappingMode toneMappingMode) {
         if (toneMappingMode == cs::graphics::ToneMappingNode::ToneMappingMode::eNone) {
           mGuiManager->setRadioChecked("graphics.setToneMappingMode0");
-        } else if (toneMappingMode == cs::graphics::ToneMappingNode::ToneMappingMode::eFilmic) {
+        } else if (toneMappingMode == cs::graphics::ToneMappingNode::ToneMappingMode::eGammaOnly) {
           mGuiManager->setRadioChecked("graphics.setToneMappingMode1");
+        } else if (toneMappingMode == cs::graphics::ToneMappingNode::ToneMappingMode::eFilmic) {
+          mGuiManager->setRadioChecked("graphics.setToneMappingMode2");
         }
       });
+
+  // Sets the mode used to compute the eclipse shadows.
+  mGuiManager->getGui()->registerCallback(
+      "graphics.setEclipseShadowMode0", "Disables Eclipse Shadows.", std::function([this]() {
+        mSettings->mGraphics.pEclipseShadowMode = cs::core::EclipseShadowMode::eNone;
+      }));
+  mGuiManager->getGui()->registerCallback("graphics.setEclipseShadowMode1",
+      "Enables Eclipse Shadows debug visualization.", std::function([this]() {
+        mSettings->mGraphics.pEclipseShadowMode = cs::core::EclipseShadowMode::eDebug;
+      }));
+  mGuiManager->getGui()->registerCallback("graphics.setEclipseShadowMode2",
+      "Enables Eclipse Shadows based on circle intersections.", std::function([this]() {
+        mSettings->mGraphics.pEclipseShadowMode = cs::core::EclipseShadowMode::eLinear;
+      }));
+  mGuiManager->getGui()->registerCallback("graphics.setEclipseShadowMode3",
+      "Enables Eclipse Shadows based on approximated spherical cap intersections.",
+      std::function([this]() {
+        mSettings->mGraphics.pEclipseShadowMode = cs::core::EclipseShadowMode::eSmoothstep;
+      }));
+  mGuiManager->getGui()->registerCallback("graphics.setEclipseShadowMode4",
+      "Enables Eclipse Shadows based on circle intersections.", std::function([this]() {
+        mSettings->mGraphics.pEclipseShadowMode = cs::core::EclipseShadowMode::eCircleIntersection;
+      }));
+  mGuiManager->getGui()->registerCallback("graphics.setEclipseShadowMode5",
+      "Enables Eclipse Shadows based on texture lookups.", std::function([this]() {
+        mSettings->mGraphics.pEclipseShadowMode = cs::core::EclipseShadowMode::eTexture;
+      }));
+  mGuiManager->getGui()->registerCallback("graphics.setEclipseShadowMode6",
+      "Enables Eclipse Shadows based on texture lookups (approximated).", std::function([this]() {
+        mSettings->mGraphics.pEclipseShadowMode = cs::core::EclipseShadowMode::eFastTexture;
+      }));
+  mSettings->mGraphics.pEclipseShadowMode.connect([this](cs::core::EclipseShadowMode mode) {
+    if (mode == cs::core::EclipseShadowMode::eNone) {
+      mGuiManager->setRadioChecked("graphics.setEclipseShadowMode0");
+    } else if (mode == cs::core::EclipseShadowMode::eDebug) {
+      mGuiManager->setRadioChecked("graphics.setEclipseShadowMode1");
+    } else if (mode == cs::core::EclipseShadowMode::eLinear) {
+      mGuiManager->setRadioChecked("graphics.setEclipseShadowMode2");
+    } else if (mode == cs::core::EclipseShadowMode::eSmoothstep) {
+      mGuiManager->setRadioChecked("graphics.setEclipseShadowMode3");
+    } else if (mode == cs::core::EclipseShadowMode::eCircleIntersection) {
+      mGuiManager->setRadioChecked("graphics.setEclipseShadowMode4");
+    } else if (mode == cs::core::EclipseShadowMode::eTexture) {
+      mGuiManager->setRadioChecked("graphics.setEclipseShadowMode5");
+    } else if (mode == cs::core::EclipseShadowMode::eFastTexture) {
+      mGuiManager->setRadioChecked("graphics.setEclipseShadowMode6");
+    }
+  });
 
   // Update the side bar field showing the average luminance of the scene.
   mGraphicsEngine->pAverageLuminance.connect([this](float value) {
