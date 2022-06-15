@@ -8,6 +8,7 @@
 #define CSP_SIMPLE_BODIES_PLUGIN_HPP
 
 #include "../../../src/cs-core/PluginBase.hpp"
+#include "../../../src/cs-utils/DefaultProperty.hpp"
 
 #include <map>
 #include <string>
@@ -23,7 +24,8 @@ class Plugin : public cs::core::PluginBase {
  public:
   struct Settings {
     struct SimpleBody {
-      std::string mTexture;
+      std::string                      mTexture;
+      cs::utils::DefaultProperty<bool> mPrimeMeridianInCenter{true};
     };
 
     std::map<std::string, SimpleBody> mSimpleBodies;

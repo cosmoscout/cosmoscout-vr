@@ -22,10 +22,12 @@ namespace cs::core {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 EclipseShadowReceiver::EclipseShadowReceiver(std::shared_ptr<Settings> settings,
-    std::shared_ptr<SolarSystem> solarSystem, scene::CelestialObject const* shadowReceiver)
+    std::shared_ptr<SolarSystem> solarSystem, scene::CelestialObject const* shadowReceiver,
+    bool allowSelfShadowing)
     : mSettings(std::move(settings))
     , mSolarSystem(std::move(solarSystem))
-    , mShadowReceiver(shadowReceiver) {
+    , mShadowReceiver(shadowReceiver)
+    , mAllowSelfShadowing(allowSelfShadowing) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -70,7 +72,7 @@ void EclipseShadowReceiver::init(VistaGLSLShader* shader, uint32_t textureOffset
 void EclipseShadowReceiver::update(double time, scene::CelestialObserver const& observer) {
 
   // Acquire a list of allpotentially relevant eclipse shadow maps.
-  mShadowMaps = mSolarSystem->getEclipseShadowMaps(time, *mShadowReceiver);
+  mShadowMaps = mSolarSystem->getEclipseShadowMaps(time, *mShadowReceiver, mAllowSelfShadowing);
 
   // For each shadow-casting body, we store the observer-relative position and the observer-relative
   // radius. For now, all occluders are considered to be spheres.
