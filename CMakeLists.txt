@@ -175,6 +175,20 @@ install(
   FILES_MATCHING PATTERN "*.so*" PATTERN "*.dll*"
 )
 
+# Install VRPN server
+if (UNIX)
+  install(
+    FILES ${COSMOSCOUT_EXTERNALS_DIR}/bin/vrpn_server
+    DESTINATION "bin"
+    PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ
+  )
+else()
+  install(
+    FILES ${COSMOSCOUT_EXTERNALS_DIR}/bin/vrpn_server.exe
+    DESTINATION "bin"
+  )
+endif()
+
 # Copy boost libraries to install directory.
 foreach(BOOST_LIB 
   ${Boost_CHRONO_LIBRARY_DEBUG}

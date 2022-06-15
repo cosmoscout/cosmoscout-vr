@@ -77,7 +77,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v2
       - name: Checkout Submodules
-        run: git submodule update --init
+        run: git submodule update --init --recursive
       - name: Cache Object Files
         uses: actions/cache@v1.1.0
         with:
@@ -145,7 +145,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v2
       - name: Checkout Submodules
-        run: git submodule update --init
+        run: git submodule update --init --recursive
       - name: Cache Object Files
         uses: actions/cache@v1.1.0
         with:
@@ -204,7 +204,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v2
       - name: Checkout Submodules
-        run: git submodule update --init
+        run: git submodule update --init --recursive
       - name: Cache Object Files
         uses: actions/cache@v1.1.0
         with:

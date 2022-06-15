@@ -10,7 +10,7 @@
 set -e
 
 # ------------------------------------------------------------------------------------------------ #
-# Make sure to run "git submodule update --init" before executing this script!                     #
+# Make sure to run "git submodule update --init --recursive" before executing this script!         #
 # Default build mode is release, if "export COSMOSCOUT_DEBUG_BUILD=true" is executed before, all   #
 # dependencies will be built in debug mode.                                                        #
 # Usage:                                                                                           #
@@ -236,6 +236,17 @@ cmake -E copy "$EXTERNALS_DIR/stb/stb_image.h"        "$INSTALL_DIR/include"
 cmake -E copy "$EXTERNALS_DIR/stb/stb_image_write.h"  "$INSTALL_DIR/include"
 cmake -E copy "$EXTERNALS_DIR/stb/stb_image_resize.h" "$INSTALL_DIR/include"
 
+# vrpn ---------------------------------------------------------------------------------------------
+
+echo ""
+echo "Building and installing vrpn ..."
+echo ""
+
+cmake -E make_directory "$BUILD_DIR/vrpn" && cd "$BUILD_DIR/vrpn"
+cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
+      -DVRPN_INSTALL=On -DVRPN_USE_HID=On -DCMAKE_BUILD_TYPE=$BUILD_TYPE "$EXTERNALS_DIR/vrpn"
+cmake --build . --target install --parallel "$(nproc)"
+
 # opensg -------------------------------------------------------------------------------------------
 
 echo ""
@@ -259,6 +270,7 @@ cmake -E make_directory "$BUILD_DIR/vista" && cd "$BUILD_DIR/vista"
 cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" -DCMAKE_UNITY_BUILD=$UNITY_BUILD \
       -DVISTA_USE_PRECOMPILED_HEADERS=$PRECOMPILED_HEADERS \
       -DCMAKE_CXX_FLAGS="-std=c++11" -DVISTADRIVERS_BUILD_3DCSPACENAVIGATOR=On \
+      -DVRPN_ROOT="$INSTALL_DIR" -DVISTADRIVERS_BUILD_VRPN=On -DVRPN_BUILD_TESTAPPS=Off \
       -DVISTADEMO_ENABLED=Off -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DOPENSG_ROOT_DIR="$INSTALL_DIR" \
       "$EXTERNALS_DIR/vista"
 cmake --build . --target install --parallel "$(nproc)"

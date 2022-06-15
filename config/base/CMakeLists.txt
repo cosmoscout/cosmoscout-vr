@@ -31,3 +31,4 @@ endif()
 # install files for all platforms ------------------------------------------------------------------
 install(FILES "scene/simple_desktop.json" DESTINATION "share/config")
 install(DIRECTORY "vista"                 DESTINATION "share/config")
+install(FILES "vrpn/vrpn_csvr.cfg"        DESTINATION "bin")

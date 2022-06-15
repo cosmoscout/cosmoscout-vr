@@ -7,7 +7,7 @@ rem                       Copyright: (c) 2019 German Aerospace Center (DLR)     
 rem ---------------------------------------------------------------------------------------------- #
 
 rem ---------------------------------------------------------------------------------------------- #
-rem Make sure to run "git submodule update --init" before executing this script!                   #
+rem Make sure to run "git submodule update --init --recursive" before executing this script!       #
 rem Default build mode is release, if "set COSMOSCOUT_DEBUG_BUILD=true" is executed before, all    #
 rem dependencies will be built in debug mode.                                                      #
 rem Usage:                                                                                         #
