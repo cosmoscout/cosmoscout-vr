@@ -243,8 +243,9 @@ echo "Building and installing vrpn ..."
 echo ""
 
 cmake -E make_directory "$BUILD_DIR/vrpn" && cd "$BUILD_DIR/vrpn"
-cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
-      -DVRPN_INSTALL=On -DVRPN_USE_HID=On -DCMAKE_BUILD_TYPE=$BUILD_TYPE "$EXTERNALS_DIR/vrpn"
+cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" -DBUILD_TESTING=Off \
+      -DVRPN_INSTALL=On -DVRPN_USE_HID=On -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+      "$EXTERNALS_DIR/vrpn"
 cmake --build . --target install --parallel "$(nproc)"
 
 # opensg -------------------------------------------------------------------------------------------
