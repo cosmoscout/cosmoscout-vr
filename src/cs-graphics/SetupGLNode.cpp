@@ -16,7 +16,7 @@ namespace cs::graphics {
 
 bool SetupGLNode::Do() {
   glDepthFunc(GL_GEQUAL);
-  glClearDepth(-1.0f);
+  glClearDepth(0.0f);
   glClear(GL_DEPTH_BUFFER_BIT);
   glEnable(GL_CULL_FACE);
   glCullFace(GL_BACK);
