@@ -48,8 +48,6 @@ void main()
     float h = 0.0075;
     float w = h / uAspect;
 
-    pos.z = -0.999;
-
     switch (gl_VertexID) {
         case 0:
             pos.xy += vec2(-w, h);

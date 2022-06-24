@@ -43,6 +43,7 @@ layout(location = 0) in vec2 iGridPos;
 // outputs
 out vec2 vTexCoords;
 out vec3 vNormal;
+out vec3 vPosition;
 out vec3 vCenter;
 out vec2 vLngLat;
 
@@ -68,8 +69,8 @@ void main() {
 #endif
   vLngLat.x = iGridPos.x * 2.0 * PI - PI;
   vLngLat.y = iGridPos.y * PI - PI/2;
-  vec3 vPosition = toCartesian(vLngLat);
-  vNormal    = (uMatModelView * vec4(geodeticSurfaceNormal(vLngLat), 0.0)).xyz;
+  vPosition = toCartesian(vLngLat);
+  vNormal     = (uMatModelView * vec4(geodeticSurfaceNormal(vLngLat), 0.0)).xyz;
   vPosition   = (uMatModelView * vec4(vPosition, 1.0)).xyz;
   vCenter     = (uMatModelView * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
   gl_Position =  uMatProjection * vec4(vPosition, 1);
@@ -89,6 +90,7 @@ ECLIPSE_SHADER_SNIPPET
 // inputs
 in vec2 vTexCoords;
 in vec3 vNormal;
+in vec3 vPosition;
 in vec3 vCenter;
 in vec2 vLngLat;
 

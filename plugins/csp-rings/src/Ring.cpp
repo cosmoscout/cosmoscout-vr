@@ -42,6 +42,7 @@ layout(location = 0) in vec2 iGridPos;
 
 // outputs
 out vec2 vTexCoords;
+out vec3 vPosition;
 const float PI = 3.141592654;
 
 void main()
@@ -52,8 +53,8 @@ void main()
     
     vec2 vPos = mix(vDir * uRadii.x, vDir * uRadii.y, iGridPos.y);
 
-    vec3 pos    = (uMatModelView * vec4(vPos.x, 0, vPos.y, 1.0)).xyz;
-    gl_Position =  uMatProjection * vec4(pos, 1);
+    vPosition   = (uMatModelView * vec4(vPos.x, 0, vPos.y, 1.0)).xyz;
+    gl_Position =  uMatProjection * vec4(vPosition, 1);
 }
 )";
 
@@ -69,6 +70,7 @@ ECLIPSE_SHADER_SNIPPET
 // inputs
 in vec2 vTexCoords;
 in vec3 vSunDirection;
+in vec3 vPosition;
 
 // outputs
 layout(location = 0) out vec4 oColor;
@@ -248,6 +250,7 @@ bool Ring::Do() {
   mTexture->Bind(GL_TEXTURE0);
 
   glEnable(GL_BLEND);
+  glDisable(GL_CULL_FACE);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
   // Initialize eclipse shadow-related uniforms and textures.
@@ -265,6 +268,8 @@ bool Ring::Do() {
   mTexture->Unbind(GL_TEXTURE0);
 
   glDisable(GL_BLEND);
+  glEnable(GL_CULL_FACE);
+
   mShader.Release();
 
   return true;

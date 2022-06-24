@@ -39,9 +39,9 @@ namespace cs::utils {
 enum class CS_UTILS_EXPORT DrawOrder : int {
   eSetupOpenGL      = 0,
   eClearHDRBuffer   = 100,
-  ePlanets          = 200,
-  eOpaqueItems      = 300,
-  eStars            = 400,
+  eStars            = 200,
+  ePlanets          = 300,
+  eOpaqueItems      = 400,
   eAtmospheres      = 500,
   eToneMapping      = 600,
   eOpaqueNonHDR     = 650,
