@@ -78,9 +78,11 @@ class CS_CORE_EXPORT SolarSystem {
 
   // Eclipse Shadow API ----------------------------------------------------------------------------
 
-  /// Returns all eclipse shadow casters which may cast a shadow on the given object.
+  /// Returns all eclipse shadow casters which may cast a shadow on the given object. If
+  /// allowSelfShadowing is set to true, this will also return the eclipse shadow map of the given
+  /// body (if there is one).
   std::vector<std::shared_ptr<graphics::EclipseShadowMap>> getEclipseShadowMaps(
-      double time, scene::CelestialObject const& receiver) const;
+      double time, scene::CelestialObject const& receiver, bool allowSelfShadowing) const;
 
   // Object registration API -----------------------------------------------------------------------
 

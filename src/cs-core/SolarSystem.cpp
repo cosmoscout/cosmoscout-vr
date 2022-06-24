@@ -87,7 +87,7 @@ double SolarSystem::getSunLuminance() const {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::vector<std::shared_ptr<graphics::EclipseShadowMap>> SolarSystem::getEclipseShadowMaps(
-    double time, scene::CelestialObject const& receiver) const {
+    double time, scene::CelestialObject const& receiver, bool allowSelfShadowing) const {
 
   std::vector<std::shared_ptr<graphics::EclipseShadowMap>> result;
 
@@ -98,7 +98,7 @@ std::vector<std::shared_ptr<graphics::EclipseShadowMap>> SolarSystem::getEclipse
     mSettings->initAnchor(occluder, shadowMap->mOccluderAnchor);
 
     // Avoid self-shadowing.
-    if (receiver.getCenterName() != occluder.getCenterName()) {
+    if (allowSelfShadowing || receiver.getCenterName() != occluder.getCenterName()) {
 
       auto pSun = occluder.getRelativePosition(time, *mSun);
       auto pRec = occluder.getRelativePosition(time, receiver);
@@ -265,6 +265,9 @@ void SolarSystem::update() {
   mSun->update(simulationTime, mObserver);
 
   for (auto const& object : mAnchors) {
+    utils::FrameTimings::ScopedTimer timer(
+        "Update " + object->getCenterName() + " / " + object->getFrameName(),
+        utils::FrameTimings::QueryMode::eCPU);
     object->update(simulationTime, mObserver);
   }
 

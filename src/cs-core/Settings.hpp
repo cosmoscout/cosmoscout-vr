@@ -410,7 +410,7 @@ class CS_CORE_EXPORT Settings {
     utils::DefaultProperty<bool> pEnableHDR{false};
 
     /// If set to false, all shading computations should be disabled.
-    utils::DefaultProperty<bool> pEnableLighting{false};
+    utils::DefaultProperty<bool> pEnableLighting{true};
 
     /// For now, this supports three values (1, 2, 3). Plugins may consider implementing tradeoffs
     /// between performance and quality based on this setting.

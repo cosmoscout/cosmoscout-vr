@@ -14,7 +14,8 @@ This plugin can be enabled with the following configuration in your `settings.js
     "csp-simple-bodies": {
       "bodies": {
         <anchor name>: {
-          "texture": <path to surface texture>
+          "texture": <path to surface texture>,
+          "primeMeridianInCenter": true // optional
         },
         ... <more bodies> ...
       }

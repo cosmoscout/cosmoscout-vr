@@ -34,10 +34,12 @@ namespace csp::simplebodies {
 
 void from_json(nlohmann::json const& j, Plugin::Settings::SimpleBody& o) {
   cs::core::Settings::deserialize(j, "texture", o.mTexture);
+  cs::core::Settings::deserialize(j, "primeMeridianInCenter", o.mPrimeMeridianInCenter);
 }
 
 void to_json(nlohmann::json& j, Plugin::Settings::SimpleBody const& o) {
   cs::core::Settings::serialize(j, "texture", o.mTexture);
+  cs::core::Settings::serialize(j, "primeMeridianInCenter", o.mPrimeMeridianInCenter);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

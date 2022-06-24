@@ -235,7 +235,7 @@ void PlanetShader::bind() {
   if (mPluginSettings->mColorMappingType.get() != Plugin::Settings::ColorMappingType::eNone) {
     auto it(mColorMaps.find(mPluginSettings->mTerrainColorMap.get()));
     if (it != mColorMaps.end()) {
-      it->second.bind(GL_TEXTURE0 + TEX_UNIT_FONT);
+      it->second.bind(GL_TEXTURE0 + TEX_UNIT_LUT);
 
       // Enable alpha blending if the color map uses the alpha channel.
       if (it->second.getUsesAlpha()) {
@@ -255,7 +255,7 @@ void PlanetShader::release() {
   if (mPluginSettings->mColorMappingType.get() != Plugin::Settings::ColorMappingType::eNone) {
     auto it(mColorMaps.find(mPluginSettings->mTerrainColorMap.get()));
     if (it != mColorMaps.end()) {
-      it->second.unbind(GL_TEXTURE0 + TEX_UNIT_FONT);
+      it->second.unbind(GL_TEXTURE0 + TEX_UNIT_LUT);
 
       // Disable alpha blending if the color map uses the alpha channel.
       if (it->second.getUsesAlpha()) {

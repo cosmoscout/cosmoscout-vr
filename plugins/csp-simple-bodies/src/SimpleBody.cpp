@@ -60,16 +60,19 @@ vec3 toCartesian(vec2 lonLat) {
   return k / gamma;
 }
 
-void main()
-{
-    vTexCoords  = vec2(iGridPos.x, 1-iGridPos.y);
-    vLngLat.x   = iGridPos.x * 2.0 * PI - PI;
-    vLngLat.y   = iGridPos.y * PI - PI/2;
-    vec3 pos    = toCartesian(vLngLat);
-    vNormal     = (uMatModelView * vec4(geodeticSurfaceNormal(vLngLat), 0.0)).xyz;
-    pos         = (uMatModelView * vec4(pos, 1.0)).xyz;
-    vCenter     = (uMatModelView * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
-    gl_Position = uMatProjection * vec4(pos, 1);
+void main() {
+#ifdef PRIME_MERIDIAN_IN_CENTER
+  vTexCoords = vec2(iGridPos.x, 1 - iGridPos.y);
+#else
+  vTexCoords = vec2(iGridPos.x + 0.5, 1 - iGridPos.y);
+#endif
+  vLngLat.x = iGridPos.x * 2.0 * PI - PI;
+  vLngLat.y = iGridPos.y * PI - PI/2;
+  vec3 vPosition = toCartesian(vLngLat);
+  vNormal    = (uMatModelView * vec4(geodeticSurfaceNormal(vLngLat), 0.0)).xyz;
+  vPosition   = (uMatModelView * vec4(vPosition, 1.0)).xyz;
+  vCenter     = (uMatModelView * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
+  gl_Position =  uMatProjection * vec4(vPosition, 1);
 }
 )";
 
@@ -167,7 +170,7 @@ SimpleBody::SimpleBody(std::shared_ptr<cs::core::Settings> settings,
     std::shared_ptr<cs::core::SolarSystem> solarSystem, std::string const& anchorName)
     : mSettings(std::move(settings))
     , mSolarSystem(std::move(solarSystem))
-    , mEclipseShadowReceiver(mSettings, mSolarSystem, this) {
+    , mEclipseShadowReceiver(mSettings, mSolarSystem, this, false) {
 
   mSettings->initAnchor(*this, anchorName);
 
@@ -240,6 +243,11 @@ void SimpleBody::configure(Plugin::Settings::SimpleBody const& settings) {
   if (mSimpleBodySettings.mTexture != settings.mTexture) {
     mTexture = cs::graphics::TextureLoader::loadFromFile(settings.mTexture);
   }
+
+  if (mSimpleBodySettings.mPrimeMeridianInCenter != settings.mPrimeMeridianInCenter) {
+    mShaderDirty = true;
+  }
+
   mSimpleBodySettings = settings;
 }
 
@@ -291,7 +299,9 @@ double SimpleBody::getHeight(glm::dvec2 /*lngLat*/) const {
 void SimpleBody::update(double time, cs::scene::CelestialObserver const& observer) {
   CelestialBody::update(time, observer);
 
-  mEclipseShadowReceiver.update(time, observer);
+  if (getIsInExistence() && pVisible.get()) {
+    mEclipseShadowReceiver.update(time, observer);
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -315,6 +325,10 @@ bool SimpleBody::Do() {
 
     if (mSettings->mGraphics.pEnableLighting.get()) {
       defines += "#define ENABLE_LIGHTING\n";
+    }
+
+    if (mSimpleBodySettings.mPrimeMeridianInCenter.get()) {
+      defines += "#define PRIME_MERIDIAN_IN_CENTER\n";
     }
 
     std::string vert = defines + SPHERE_VERT;
@@ -386,6 +400,12 @@ bool SimpleBody::Do() {
   mShader.SetUniform(mUniforms.radii, static_cast<float>(mRadii[0]), static_cast<float>(mRadii[1]),
       static_cast<float>(mRadii[2]));
 
+  // Set the texture wrapping on the x-axis to repeat, so we can easily deal with textures, where
+  // the prime meridian is not in the center.
+  int32_t wrapMode = 0;
+  glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, &wrapMode);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+
   mTexture->Bind(GL_TEXTURE0);
 
   // Initialize eclipse shadow-related uniforms and textures.
@@ -403,6 +423,8 @@ bool SimpleBody::Do() {
   // Clean up.
   mTexture->Unbind(GL_TEXTURE0);
   mShader.Release();
+
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapMode);
 
   return true;
 }
