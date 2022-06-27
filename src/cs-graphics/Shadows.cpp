@@ -339,7 +339,12 @@ bool ShadowMap::Do() {
     glViewport(0, 0, mResolution, mResolution);
 
     // clear fbo
+    glClearDepth(1.0f);
     glClear(GL_DEPTH_BUFFER_BIT);
+
+    // setup "normal" GL state (we are not using the reverse infinite projection for the shadows)
+    glDepthFunc(GL_LESS);
+    glDisable(GL_CULL_FACE);
 
     // draw all shadow casters
     for (auto* caster : mShadowCasters) {
@@ -356,6 +361,11 @@ bool ShadowMap::Do() {
     // restore previous modelview matrix
     glMatrixMode(GL_MODELVIEW);
     glPopMatrix();
+
+    // restore GL state for reverse infinite projection
+    glDepthFunc(GL_GEQUAL);
+    glClearDepth(0.0f);
+    glEnable(GL_CULL_FACE);
 
     // unbind fbo again
     mShadowMapFBOs[i]->Release();
