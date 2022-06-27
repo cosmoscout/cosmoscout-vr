@@ -529,15 +529,6 @@ bool TextureOverlayRenderer::Do() {
   glDepthMask(GL_FALSE);
   glEnable(GL_BLEND);
 
-  double nearClip = NAN;
-  double farClip  = NAN;
-  GetVistaSystem()
-      ->GetDisplayManager()
-      ->GetCurrentRenderInfo()
-      ->m_pViewport->GetProjection()
-      ->GetProjectionProperties()
-      ->GetClippingRange(nearClip, farClip);
-
   // copy depth buffer from previous rendering
   std::array<GLint, 4> iViewport{};
   glGetIntegerv(GL_VIEWPORT, iViewport.data());
@@ -585,19 +576,8 @@ bool TextureOverlayRenderer::Do() {
   mShader.SetUniform(mShader.GetUniformLocation("uUseFirstTexture"), mWMSTextureUsed);
   mShader.SetUniform(mShader.GetUniformLocation("uUseSecondTexture"), mSecondWMSTextureUsed);
 
-  // Why is there no set uniform for matrices??? //TODO: There is one
-  glm::dmat4 inverseWorldTransform = glm::inverse(matWorldTransform);
-  GLint      loc                   = mShader.GetUniformLocation("uMatInvMV");
-  // glUniformMatrix4fv(loc, 1, GL_FALSE, matInvMV.GetData());
-  glUniformMatrix4dv(loc, 1, GL_FALSE, glm::value_ptr(inverseWorldTransform));
-  loc = mShader.GetUniformLocation("uMatInvMVP");
+  GLint loc = mShader.GetUniformLocation("uMatInvMVP");
   glUniformMatrix4fv(loc, 1, GL_FALSE, matInvMVP.GetData());
-  loc = mShader.GetUniformLocation("uMatInvP");
-  glUniformMatrix4fv(loc, 1, GL_FALSE, matInvP.GetData());
-  loc = mShader.GetUniformLocation("uMatMV");
-  glUniformMatrix4fv(loc, 1, GL_FALSE, matMV.GetData());
-
-  mShader.SetUniform(mShader.GetUniformLocation("uFarClip"), static_cast<float>(farClip));
 
   // Double precision bounds
   loc = mShader.GetUniformLocation("uLatRange");
