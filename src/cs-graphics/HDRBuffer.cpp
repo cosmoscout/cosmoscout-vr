@@ -151,8 +151,6 @@ void HDRBuffer::doPingPong() {
 
 void HDRBuffer::clear() {
   bind();
-  glClearColor(0.F, 0.F, 0.F, 0.F);
-  glClearDepth(1.0);
 
   std::array<GLenum, 2> bufs = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
   glDrawBuffers(2, bufs.data());

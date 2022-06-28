@@ -530,9 +530,9 @@ bool ToneMappingNode::ToneMappingNode::Do() {
   mHDRBuffer->getDepthAttachment()->Bind(GL_TEXTURE1);
   mHDRBuffer->getGlareMipMap()->Bind(GL_TEXTURE2);
 
-  glPushAttrib(GL_ENABLE_BIT | GL_DEPTH_BUFFER_BIT);
+  glPushAttrib(GL_ENABLE_BIT);
   glDisable(GL_BLEND);
-  glEnable(GL_TEXTURE_2D);
+  glDisable(GL_CULL_FACE);
 
   mShader->Bind();
   mShader->SetUniform(mUniforms.exposure, exposure);
