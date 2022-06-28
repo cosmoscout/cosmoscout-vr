@@ -47,10 +47,7 @@ In the following, the individual parameters are explained and the required steps
     "farRealDistance": 10000000,
     "lockWeight": 0.1,
     "trackWeight": 0.0002,
-    "minObjectSize": 10000.0,
-    "nearClip": 0.2,
-    "minFarClip": 200.0,
-    "maxFarClip": 20000.0
+    "minObjectSize": 10000.0
   },
   "anchors": {},
   "bookmarks": [],
@@ -87,10 +84,7 @@ Take this as an example:
     "farRealDistance": 10000000,
     "lockWeight": 0.1,
     "trackWeight": 0.0002,
-    "minObjectSize": 10000.0,
-    "nearClip": 0.2,
-    "minFarClip": 200.0,
-    "maxFarClip": 20000.0
+    "minObjectSize": 10000.0
   },
   ```
   If the observer is closer to a celestial body's surface than `closeRealDistance` (in meters), the scene will be shown in a 1:1 scale (that is 1:`minScale`) and the respective body will be rendered at a distance of `closeVisualDistance` (in meters).
@@ -100,7 +94,6 @@ This JSON object also controls the automatic SPICE frame changes when the observ
 The active body is determined by its weight which is calculated by its size and distance to the observer.
 When this weight exceeds `trackWeight`, the observer will follow the body's position.
 When this weight exceeds `lockWeight`, the observer will also follow the body's rotation.<br>
-Last but not least, the far clipping plane depends on the scene scale: Near clip will always be set to `nearClip` (in meters), while far clip will be interpolated between `minFarClip` and `maxFarClip` depending on the scene scale.
 * **`"anchors"`:** This item contains an object for each and every celestial anchor you are using later in the config. Take this as an example:
   ```javascript
   "anchors": {
