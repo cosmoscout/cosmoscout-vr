@@ -228,7 +228,7 @@ const char* AtmosphereRenderer::cAtmosphereFrag0 = R"(
     float fDet = b * b - c;
 
     if (fDet < 0.0) {
-      return vec2(10000, -10000);
+      return vec2(1, -1);
     }
 
     fDet = sqrt(fDet);
@@ -490,7 +490,7 @@ const char* AtmosphereRenderer::cAtmosphereFrag1 = R"(
     // We are only using the depth approximation if fDepth is smaller than START_DEPTH_FADE and if
     // the observer is outside of the atmosphere.
     if (fDepth < START_DEPTH_FADE && length(vRayOrigin) > 1.0) {
-      vec2 planetIntersections = IntersectSphere(vRayOrigin, vRayDir, 1.0-HEIGHT_ATMO);
+      vec2 planetIntersections = IntersectPlanetsphere(vRayOrigin, vRayDir);
       float simpleDepth = planetIntersections.y > 0.0 ? planetIntersections.x : 100.0;
       return mix(simpleDepth, msDepth, clamp((fDepth - END_DEPTH_FADE) / (START_DEPTH_FADE - END_DEPTH_FADE), 0.0, 1.0));
     }
