@@ -15,10 +15,16 @@ namespace cs::graphics {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool SetupGLNode::Do() {
+
+  // As we are using a reverse projection, we have to change the depth compare mode.
   glDepthFunc(GL_GEQUAL);
-  glEnable(GL_CULL_FACE);
-  glCullFace(GL_BACK);
+
+  // Also, the winding check needs to be flipped.
   glFrontFace(GL_CW);
+
+  // In CosmoScout VR, we enable face culling per default.
+  glEnable(GL_CULL_FACE);
+  glCullFace(GL_BACK); 
 
   return true;
 }
