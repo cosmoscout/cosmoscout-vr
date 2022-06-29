@@ -24,7 +24,7 @@ bool SetupGLNode::Do() {
 
   // In CosmoScout VR, we enable face culling per default.
   glEnable(GL_CULL_FACE);
-  glCullFace(GL_BACK); 
+  glCullFace(GL_BACK);
 
   return true;
 }
