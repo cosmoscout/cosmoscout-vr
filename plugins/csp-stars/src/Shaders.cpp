@@ -146,9 +146,7 @@ void main() {
 
             gl_Position = uMatP * vec4(pos, 1);
 
-            if (gl_Position.w > 0) {
-                EmitVertex();
-            }
+            EmitVertex();
         }
     }
     EndPrimitive();
@@ -255,13 +253,7 @@ void main() {
     vColor = SRGBtoLINEAR(inColor);
 
     vScreenSpacePos = uMatP * uMatMV * vec4(starPos*parsecToMeter, 1);
-    
-    if (vScreenSpacePos.w > 0) {
-        vScreenSpacePos /= vScreenSpacePos.w;
-        if (vScreenSpacePos.z >= 1) {
-            vScreenSpacePos.z = 0.999999;
-        }
-    }
+    vScreenSpacePos /= vScreenSpacePos.w;
 
     gl_Position = vScreenSpacePos;
 }
