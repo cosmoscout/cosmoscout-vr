@@ -206,12 +206,12 @@ vec3 VP_getVertexPositionHEALPix(ivec2 iPosition)
     vec2  posXY  = VP_getXY(iPosition);
     vec2  lnglat = VP_convertXY2lnglat(posXY);
     float height = VP_heightScale * VP_getVertexHeight(iPosition);
-    vec3 normal  = VP_toNormal(lnglat, VP_radii);
+    vec3  normal = VP_toNormal(lnglat, VP_radii);
     vec3  posXYZ = VP_toCartesian(lnglat, VP_radii);
 
     posXYZ += height * normal;
 
-    return (VP_matModelView * vec4(posXYZ, 1)).xyz;
+    return (VP_matModel * vec4(posXYZ, 1)).xyz;
 }
 
 vec3 VP_getVertexPositionInterpolated(ivec2 iPosition)
@@ -231,7 +231,7 @@ vec3 VP_getVertexPositionInterpolated(ivec2 iPosition)
 
     // calculate height above surface
     // VP_demAverageHeight is substracted in order to increase the accuracy on high mountains and in deep valleys
-    float height = length(VP_matModelView[0]) * VP_heightScale 
+    float height = length(VP_matModel[0]) * VP_heightScale 
                    * (VP_getVertexHeight(iPosition) - VP_demAverageHeight);
 
     // calculate final position
@@ -266,7 +266,7 @@ vec3 VP_getVertexPosition(ivec2 iPosition, int mode)
         vec3 farPos = VP_getVertexPositionHEALPix(iPosition);
         vec3 nearPos = VP_getVertexPositionInterpolated(iPosition);
 
-        vec3 center = (VP_matModelView * vec4(0, 0, 0, 1)).xyz;
+        vec3 center = (VP_matModel * vec4(0, 0, 0, 1)).xyz;
         float distCenter = length(center);
         float distSurface = length(nearPos);
         float alpha = (distSurface/distCenter - VP_blendEnd) / (VP_blendStart-VP_blendEnd);

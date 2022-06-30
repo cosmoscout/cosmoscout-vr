@@ -34,7 +34,8 @@ const uint32_t GRID_RESOLUTION_Y = 100;
 const char* SimpleBody::SPHERE_VERT = R"(
 uniform vec3 uSunDirection;
 uniform vec3 uRadii;
-uniform mat4 uMatModelView;
+uniform mat4 uMatModel;
+uniform mat4 uMatView;
 uniform mat4 uMatProjection;
 
 // inputs
@@ -46,6 +47,7 @@ out vec3 vNormal;
 out vec3 vPosition;
 out vec3 vCenter;
 out vec2 vLngLat;
+out vec3 vSunDirection;
 
 const float PI = 3.141592654;
 
@@ -70,10 +72,11 @@ void main() {
   vLngLat.x = iGridPos.x * 2.0 * PI - PI;
   vLngLat.y = iGridPos.y * PI - PI/2;
   vPosition = toCartesian(vLngLat);
-  vNormal    = (uMatModelView * vec4(geodeticSurfaceNormal(vLngLat), 0.0)).xyz;
-  vPosition   = (uMatModelView * vec4(vPosition, 1.0)).xyz;
-  vCenter     = (uMatModelView * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
-  gl_Position =  uMatProjection * vec4(vPosition, 1);
+  vNormal       = (uMatModel * vec4(geodeticSurfaceNormal(vLngLat), 0.0)).xyz;
+  vPosition     = (uMatModel * vec4(vPosition, 1.0)).xyz;
+  vSunDirection = (uMatModel * vec4(uSunDirection, 0.0)).xyz;
+  vCenter       = (uMatModel * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
+  gl_Position   = uMatProjection * uMatView * vec4(vPosition, 1);
 
   if (gl_Position.w > 0) {
     gl_Position /= gl_Position.w;
@@ -87,7 +90,6 @@ void main() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 const char* SimpleBody::SPHERE_FRAG = R"(
-uniform vec3 uSunDirection;
 uniform sampler2D uSurfaceTexture;
 uniform float uAmbientBrightness;
 uniform float uSunIlluminance;
@@ -101,6 +103,7 @@ in vec3 vNormal;
 in vec3 vPosition;
 in vec3 vCenter;
 in vec2 vLngLat;
+in vec3 vSunDirection;
 
 // outputs
 layout(location = 0) out vec3 oColor;
@@ -167,8 +170,7 @@ void main()
     #endif
 
     #ifdef ENABLE_LIGHTING
-      vec3 normal = normalize(vNormal);
-      float light = orenNayar(normal, uSunDirection, normalize(-vPosition));
+      float light = orenNayar(normalize(vNormal), normalize(vSunDirection), -normalize(vPosition));
       oColor = mix(oColor * uAmbientBrightness, oColor * getEclipseShadow(vPosition), light);
     #endif
 
@@ -356,7 +358,8 @@ bool SimpleBody::Do() {
     mUniforms.sunDirection      = mShader.GetUniformLocation("uSunDirection");
     mUniforms.sunIlluminance    = mShader.GetUniformLocation("uSunIlluminance");
     mUniforms.ambientBrightness = mShader.GetUniformLocation("uAmbientBrightness");
-    mUniforms.modelViewMatrix   = mShader.GetUniformLocation("uMatModelView");
+    mUniforms.modelMatrix       = mShader.GetUniformLocation("uMatModel");
+    mUniforms.viewMatrix        = mShader.GetUniformLocation("uMatView");
     mUniforms.projectionMatrix  = mShader.GetUniformLocation("uMatProjection");
     mUniforms.surfaceTexture    = mShader.GetUniformLocation("uSurfaceTexture");
     mUniforms.radii             = mShader.GetUniformLocation("uRadii");
@@ -393,7 +396,8 @@ bool SimpleBody::Do() {
       sunIlluminance = static_cast<float>(mSolarSystem->getSunIlluminance(getWorldTransform()[3]));
     }
 
-    sunDirection = mSolarSystem->getSunDirection(getWorldTransform()[3]);
+    sunDirection = glm::inverse(getWorldTransform()) *
+                   glm::dvec4(mSolarSystem->getSunDirection(getWorldTransform()[3]), 0.0);
   }
 
   mShader.SetUniform(mUniforms.sunDirection, sunDirection[0], sunDirection[1], sunDirection[2]);
@@ -401,12 +405,14 @@ bool SimpleBody::Do() {
   mShader.SetUniform(mUniforms.ambientBrightness, ambientBrightness);
 
   // Get modelview and projection matrices.
-  std::array<GLfloat, 16> glMatMV{};
+  std::array<GLfloat, 16> glMatV{};
   std::array<GLfloat, 16> glMatP{};
-  glGetFloatv(GL_MODELVIEW_MATRIX, glMatMV.data());
+  glGetFloatv(GL_MODELVIEW_MATRIX, glMatV.data());
   glGetFloatv(GL_PROJECTION_MATRIX, glMatP.data());
-  auto matMV = glm::make_mat4x4(glMatMV.data()) * glm::mat4(getWorldTransform());
-  glUniformMatrix4fv(mUniforms.modelViewMatrix, 1, GL_FALSE, glm::value_ptr(matMV));
+  auto matM = glm::mat4(getWorldTransform());
+  auto matV = glm::make_mat4x4(glMatV.data());
+  glUniformMatrix4fv(mUniforms.modelMatrix, 1, GL_FALSE, glm::value_ptr(matM));
+  glUniformMatrix4fv(mUniforms.viewMatrix, 1, GL_FALSE, glm::value_ptr(matV));
   glUniformMatrix4fv(mUniforms.projectionMatrix, 1, GL_FALSE, glMatP.data());
 
   mShader.SetUniform(mUniforms.surfaceTexture, 0);

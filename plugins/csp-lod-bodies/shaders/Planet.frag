@@ -67,7 +67,7 @@ void main() {
     return;
   }
 
-  gl_FragDepth = length(fsIn.position) / VP_farClip;
+  gl_FragDepth = length((VP_matView * vec4(fsIn.position, 1)).xyz) / VP_farClip;
 
   fragColor = vec4(1);
 
