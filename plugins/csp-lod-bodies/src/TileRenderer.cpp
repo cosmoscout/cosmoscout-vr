@@ -551,11 +551,11 @@ void TileRenderer::renderTile(RenderDataDEM* rdDEM, RenderDataImg* rdIMG, Unifor
   glm::dmat4 matNormal = glm::transpose(glm::inverse(mMatM));
 
   for (int i(0); i < 4; ++i) {
-    corners.at(i)          = cs::utils::convert::toCartesian(cornersLngLat.at(i), mParams->mRadii,
+    corners.at(i)           = cs::utils::convert::toCartesian(cornersLngLat.at(i), mParams->mRadii,
         averageHeight * static_cast<float>(mParams->mHeightScale));
     cornersWorldSpace.at(i) = glm::fvec3(mMatM * glm::dvec4(corners.at(i), 1.0));
 
-    normals.at(i)          = cs::utils::convert::lngLatToNormal(cornersLngLat.at(i));
+    normals.at(i)           = cs::utils::convert::lngLatToNormal(cornersLngLat.at(i));
     normalsWorldSpace.at(i) = glm::fvec3(matNormal * glm::dvec4(normals.at(i), 0.0));
   }
 
@@ -630,7 +630,8 @@ void TileRenderer::renderBounds(
 
         std::array<glm::fvec3, 8> controlPointsViewSpace{};
         for (int i(0); i < 8; ++i) {
-          controlPointsViewSpace.at(i) = glm::fvec3(glm::dmat4(mMatV) * mMatM * cornersWorldSpace.at(i));
+          controlPointsViewSpace.at(i) =
+              glm::fvec3(glm::dmat4(mMatV) * mMatM * cornersWorldSpace.at(i));
         }
 
         glUniform3fv(glGetUniformLocation(mProgBounds->GetProgram(), "VP_corners"), 8,

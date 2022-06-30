@@ -137,9 +137,9 @@ class TileRenderer {
   TreeManagerBase*        mTreeMgrIMG;
 
   glm::dmat4 mMatM;
-  glm::mat4 mMatV;
-  glm::mat4 mMatP;
-  float     mFarClip{};
+  glm::mat4  mMatV;
+  glm::mat4  mMatP;
+  float      mFarClip{};
 
   static std::unique_ptr<VistaBufferObject>      mVboTerrain;
   static std::unique_ptr<VistaBufferObject>      mIboTerrain;
