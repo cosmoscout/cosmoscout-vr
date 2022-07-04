@@ -14,14 +14,8 @@ namespace cs::scene {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-glm::dmat4 const& CelestialObject::getWorldTransform() const {
-  return matWorldTransform;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-glm::dvec4 CelestialObject::getWorldPosition() const {
-  return matWorldTransform[3];
+CelestialObject::CelestialObject(std::string sCenterName, std::string sFrameName)
+    : CelestialAnchor(sCenterName, sFrameName) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -46,24 +40,71 @@ void CelestialObject::setRadii(glm::dvec3 const& value) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+double CelestialObject::getBodyCullingRadius() const {
+  return mBodyCullingRadius;
+}
+
+void CelestialObject::setBodyCullingRadius(double value) {
+  mBodyCullingRadius = value;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+double CelestialObject::getOrbitCullingRadius() const {
+  return mOrbitCullingRadius;
+}
+
+void CelestialObject::setOrbitCullingRadius(double value) {
+  mOrbitCullingRadius = value;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool CelestialObject::getIsTrackable() const {
+  return mIsTrackable;
+}
+
+void CelestialObject::setIsTrackable(bool value) {
+  mIsTrackable = value;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool CelestialObject::getIsCollidable() const {
+  return mIsCollidable;
+}
+
+void CelestialObject::setIsCollidable(bool value) {
+  mIsCollidable = value;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void CelestialObject::update(double tTime, cs::scene::CelestialObserver const& oObs) {
   mIsInExistence = (tTime > mExistence[0] && tTime < mExistence[1]);
 
   if (getIsInExistence()) {
     try {
-      matWorldTransform = oObs.getRelativeTransform(tTime, *this);
+      matObserverRelativeTransform = oObs.getRelativeTransform(tTime, *this);
     } catch (...) {
       // data might be unavailable
     }
   }
 
-  double maxRadius = glm::compMax(mRadii);
-  if (maxRadius > 0) {
-    double dist   = glm::length(getWorldPosition().xyz());
-    double size   = maxRadius * glm::length(matWorldTransform[0]);
-    double factor = size / dist;
+  mIsBodyVisible  = true;
+  mIsOrbitVisible = true;
 
-    pVisible = factor > 0.002;
+  if (mBodyCullingRadius > 0.0 || mOrbitCullingRadius) {
+    double dist = glm::length(getObserverRelativePosition().xyz());
+    double size = glm::length(matObserverRelativeTransform[0]);
+
+    if (mBodyCullingRadius > 0.0) {
+      mIsBodyVisible = mBodyCullingRadius * size / dist > 0.002;
+    }
+
+    if (mOrbitCullingRadius > 0.0) {
+      mIsOrbitVisible = mOrbitCullingRadius * size / dist > 0.002;
+    }
   }
 }
 
@@ -71,6 +112,30 @@ void CelestialObject::update(double tTime, cs::scene::CelestialObserver const& o
 
 bool CelestialObject::getIsInExistence() const {
   return mIsInExistence;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool CelestialObject::getIsBodyVisible() const {
+  return mIsBodyVisible;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool CelestialObject::getIsOrbitVisible() const {
+  return mIsOrbitVisible;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+glm::dmat4 const& CelestialObject::getObserverRelativeTransform() const {
+  return matObserverRelativeTransform;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+glm::dvec4 CelestialObject::getObserverRelativePosition() const {
+  return matObserverRelativeTransform[3];
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

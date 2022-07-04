@@ -7,19 +7,15 @@
 #ifndef CS_SCENE_CELESTIAL_BODY_HPP
 #define CS_SCENE_CELESTIAL_BODY_HPP
 
+#include "cs_scene_export.hpp"
+
 #include "../cs-utils/IntersectableObject.hpp"
-#include "CelestialObject.hpp"
 
 namespace cs::scene {
 
-/// CelestialBody objects extend the CelestialObject by being intersectable. Every implementation
-/// needs to override the getIntersection() method from utils::IntersectableObject.
-class CS_SCENE_EXPORT CelestialBody : public CelestialObject, public utils::IntersectableObject {
+/// A CelestialBody can be assigned to a CelestialObject.
+class CS_SCENE_EXPORT CelestialBody : public utils::IntersectableObject {
  public:
-  /// If set to false, the SolarSystem will not consider this body for the computation of the active
-  /// body.
-  utils::Property<bool> pTrackable = true;
-
   /// Returns the elevation in meters at a specific point on the surface.
   ///
   /// @param lngLat The coordinates on the surface in the Geographic Coordinate System format.

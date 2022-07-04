@@ -7,25 +7,23 @@
 #ifndef CS_SCENE_CELESTIAL_OBJECT_HPP
 #define CS_SCENE_CELESTIAL_OBJECT_HPP
 
-#include "../cs-utils/Property.hpp"
 #include "CelestialAnchor.hpp"
 
 #include <limits>
 #include <memory>
 
-class VistaOpenGLNode;
-
 namespace cs::scene {
+
+class CelestialBody;
 
 /// CelestialObjects have a lifetime in the universe. They are defined by their start and end
 /// existence time. The time is given in the Barycentric Dynamical Time format, which is used
 /// throughout SPICE.
 class CS_SCENE_EXPORT CelestialObject : public CelestialAnchor {
  public:
-  /// This will be set during update() according to the given radii consider this to be read-only.
-  utils::Property<bool> pVisible = false;
+  explicit CelestialObject(
+      std::string sCenterName = "Solar System Barycenter", std::string sFrameName = "J2000");
 
-  CelestialObject()                             = default;
   CelestialObject(CelestialObject const& other) = default;
   CelestialObject(CelestialObject&& other)      = default;
 
@@ -34,33 +32,86 @@ class CS_SCENE_EXPORT CelestialObject : public CelestialAnchor {
 
   virtual ~CelestialObject() = default;
 
-  virtual glm::dmat4 const& getWorldTransform() const;
-  virtual glm::dvec4        getWorldPosition() const;
+  // -----------------------------------------------------------------------------------------------
 
   /// The time range in Barycentric Dynamical Time in which the object existed.
   /// This should match the time coverage of the loaded SPICE kernels.
   glm::dvec2 const& getExistence() const;
   void              setExistence(glm::dvec2 value);
 
-  /// The radii of the CelestialBody in meters. This will serve as a basis for visibility
-  /// calculation if set to glm::dev3(0.0), pVisible will not change during update().
+  /// The radii of the CelestialBody in meters.
   glm::dvec3 const& getRadii() const;
   void              setRadii(glm::dvec3 const& value);
 
+  /// An approximate radius of the body in meters. This will serve as a basis for visibility
+  /// calculation. If set to 0.0 (the default), getIsBodyVisible() will always return true.
+  double getBodyCullingRadius() const;
+  void   setBodyCullingRadius(double value);
+
+  /// An approximate radius of the bodies orbit in meters. This will serve as a basis for visibility
+  /// calculation of the bodies trajectory. If set to 0.0 (the default), getIsOrbitVisible() will
+  /// always return true.
+  double getOrbitCullingRadius() const;
+  void   setOrbitCullingRadius(double value);
+
+  /// If this is set to true, the observer may follow this body on its path through the Solar
+  /// System.
+  bool getIsTrackable() const;
+  void setIsTrackable(bool value);
+
+  /// If this is set to true, the observer will collide with the surface of this body. The surface
+  /// is modelled as an ellipsoid displaced according to getHeight() along the geodetic surface
+  /// normal.
+  bool getIsCollidable() const;
+  void setIsCollidable(bool value);
+
+  // -----------------------------------------------------------------------------------------------
+
   /// This is called once a frame by the SolarSystem if this CelestialObject has been registered
-  /// with the SolarSystem.
-  void update(double tTime, CelestialObserver const& oObs) override;
+  /// with the SolarSystem. This will update all time- and observer-dependent members. These are the
+  /// observer-centric transformation, the result of getIsInExistence(), getIsBodyVisible(), and
+  /// getIsOrbitVisible().
+  virtual void update(double tTime, CelestialObserver const& oObs);
 
   /// @return true, if the current time is in between the start and end existence values.
-  virtual bool getIsInExistence() const;
+  bool getIsInExistence() const;
+
+  /// @return true, if the current distance to the observer suggests that the body could be visible
+  /// (this is based on mBodyCullingRadius and updated during update()).
+  bool getIsBodyVisible() const;
+
+  /// @return true, if the current distance to the observer suggests that the bodies trajectory
+  /// could be visible (this is based on mOrbitCullingRadius and updated during update()).
+  bool getIsOrbitVisible() const;
+
+  /// Returns the current relative transformation to the observer.
+  glm::dmat4 const& getObserverRelativeTransform() const;
+  glm::dvec4        getObserverRelativePosition() const;
+
+  // -----------------------------------------------------------------------------------------------
+
+  /// It is possible to assign a CelestialBody to a CelestialObject. This body can be used to define
+  /// an actual surface by providing a getHeight() method.
+  std::shared_ptr<CelestialBody> const& getBody() const;
+  void                                  setBody(std::shared_ptr<CelestialBody> const& body);
 
  protected:
-  glm::dmat4 matWorldTransform = glm::dmat4(1.0);
-  glm::dvec3 mRadii            = glm::dvec3(0.0);
+  glm::dvec3 mRadii = glm::dvec3(0.0);
+
+  double mBodyCullingRadius  = 0.0;
+  double mOrbitCullingRadius = 0.0;
+  bool   mIsTrackable        = true;
+  bool   mIsCollidable       = true;
+
   glm::dvec2 mExistence =
       glm::dvec2(std::numeric_limits<double>::lowest(), std::numeric_limits<double>::max());
 
-  bool mIsInExistence = false;
+  glm::dmat4 matObserverRelativeTransform = glm::dmat4(1.0);
+  bool       mIsInExistence               = false;
+  bool       mIsBodyVisible               = true;
+  bool       mIsOrbitVisible              = true;
+
+  std::shared_ptr<CelestialBody> mBody;
 };
 
 } // namespace cs::scene

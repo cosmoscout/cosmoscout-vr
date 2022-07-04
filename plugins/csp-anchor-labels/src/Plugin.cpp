@@ -76,7 +76,7 @@ void Plugin::init() {
   }
 
   // For all bodies that will be created in the future we also create a label
-  addListenerId = mSolarSystem->registerAddBodyListener([this](auto const& body) {
+  addListenerId = mSolarSystem->registerAddObjectListener([this](auto const& body) {
     mAnchorLabels.emplace_back(std::make_unique<AnchorLabel>(
         body.get(), mPluginSettings, mSolarSystem, mGuiManager, mTimeControl, mInputManager));
 
@@ -219,7 +219,7 @@ void Plugin::deInit() {
 
   mAnchorLabels.clear();
 
-  mSolarSystem->unregisterAddBodyListener(addListenerId);
+  mSolarSystem->unregisterAddObjectListener(addListenerId);
   mSolarSystem->unregisterRemoveBodyListener(removeListenerId);
 
   mGuiManager->removeSettingsSection("Anchor Labels");

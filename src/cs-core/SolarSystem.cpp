@@ -9,6 +9,7 @@
 #include "SolarSystem.hpp"
 
 #include "../cs-graphics/EclipseShadowMap.hpp"
+#include "../cs-scene/CelestialBody.hpp"
 #include "../cs-utils/FrameTimings.hpp"
 #include "../cs-utils/convert.hpp"
 #include "../cs-utils/utils.hpp"
@@ -187,71 +188,68 @@ void SolarSystem::fixObserverFrame(double lastWorkingSimulationTime) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void SolarSystem::registerAnchor(std::shared_ptr<scene::CelestialAnchor> const& anchor) {
-  mAnchors.insert(anchor);
-}
+void SolarSystem::registerObject(
+    std::string const& name, std::shared_ptr<scene::CelestialObject> const& object) {
+  mObjects[name] = object;
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void SolarSystem::unregisterAnchor(std::shared_ptr<scene::CelestialAnchor> const& anchor) {
-  mAnchors.erase(anchor);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-std::set<std::shared_ptr<scene::CelestialAnchor>> const& SolarSystem::getAnchors() const {
-  return mAnchors;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void SolarSystem::registerBody(std::shared_ptr<scene::CelestialBody> const& body) {
-  mBodies.insert(body);
-  mAnchors.insert(body);
-
-  for (const auto& listener : mAddBodyListeners) {
-    listener.second(body);
+  for (const auto& listener : mAddObjectListeners) {
+    listener.second(name, object);
   }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void SolarSystem::unregisterBody(std::shared_ptr<scene::CelestialBody> const& body) {
-  mBodies.erase(body);
-  mAnchors.erase(body);
+void SolarSystem::unregisterObject(std::string const& name) {
+  auto it = mObjects.find(name);
 
-  for (const auto& listener : mRemoveBodyListeners) {
-    listener.second(body);
-  }
+  if (it != mObjects.end()) {
+    auto object = it->second;
 
-  if (pActiveBody.get() == body) {
-    pActiveBody = nullptr;
-  }
-}
+    mObjects.erase(it);
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
+    for (const auto& listener : mRemoveObjectListeners) {
+      listener.second(name, object);
+    }
 
-std::set<std::shared_ptr<scene::CelestialBody>> const& SolarSystem::getBodies() const {
-  return mBodies;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-std::shared_ptr<scene::CelestialBody> SolarSystem::getBody(std::string sCenter) const {
-  std::transform(sCenter.begin(), sCenter.end(), sCenter.begin(),
-      [](unsigned char c) { return std::tolower(c); });
-
-  for (auto body : mBodies) {
-    auto name = body->getCenterName();
-    std::transform(
-        name.begin(), name.end(), name.begin(), [](unsigned char c) { return std::tolower(c); });
-
-    if (name == sCenter) {
-      return body;
+    if (pActiveObject.get() == object) {
+      pActiveObject = nullptr;
     }
   }
+}
 
-  return nullptr;
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void SolarSystem::unregisterObject(std::shared_ptr<scene::CelestialObject> const& object) {
+  auto it = std::find_if(
+      mObjects.begin(), mObjects.end(), [object](const auto& it) { return it.second == object; });
+
+  if (it != mObjects.end()) {
+    auto name = it->first;
+
+    mObjects.erase(it);
+
+    for (const auto& listener : mRemoveObjectListeners) {
+      listener.second(name, object);
+    }
+
+    if (pActiveObject.get() == object) {
+      pActiveObject = nullptr;
+    }
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::map<std::string, std::shared_ptr<scene::CelestialObject>> const&
+SolarSystem::getObjects() const {
+  return mObjects;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::shared_ptr<scene::CelestialObject> SolarSystem::getObject(std::string const& name) const {
+  auto it = mObjects.find(name);
+  return it == mObjects.end() ? nullptr : it->second;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -264,7 +262,7 @@ void SolarSystem::update() {
 
   mSun->update(simulationTime, mObserver);
 
-  for (auto const& object : mAnchors) {
+  for (auto const& [name, object] : mObjects) {
     utils::FrameTimings::ScopedTimer timer(
         "Update " + object->getCenterName() + " / " + object->getFrameName(),
         utils::FrameTimings::QueryMode::eCPU);
@@ -274,13 +272,14 @@ void SolarSystem::update() {
   // Update sun position. If a fixed Sun direction is enabled, we must calculate an artificial
   // position in the current SPICE frame at the same distance as the true Sun would be.
   auto fixedSunDist2 = glm::length2(mSettings->mGraphics.pFixedSunDirection.get());
-  if (fixedSunDist2 > 0.0 && pActiveBody.get()) {
-    auto trueSunDist = glm::length(mSun->getWorldTransform()[3].xyz());
+  if (fixedSunDist2 > 0.0 && pActiveObject.get()) {
+    auto trueSunDist = glm::length(mSun->getObserverRelativePosition());
     auto fixedSunDir = glm::dvec4(mSettings->mGraphics.pFixedSunDirection.get(), 0.0);
     pSunPosition =
-        glm::normalize((pActiveBody()->getWorldTransform() * fixedSunDir).xyz()) * trueSunDist;
+        glm::normalize((pActiveObject()->getObserverRelativeTransform() * fixedSunDir).xyz()) *
+        trueSunDist;
   } else {
-    pSunPosition = mSun->getWorldTransform()[3].xyz();
+    pSunPosition = mSun->getObserverRelativePosition();
   }
 
   // Calculate luminous power of the Sun. This can be calculated by multiplying the illuminance at
@@ -326,16 +325,16 @@ void SolarSystem::update() {
 void SolarSystem::updateSceneScale() {
 
   // First we have to find the planet which is closest to the observer.
-  std::shared_ptr<cs::scene::CelestialBody> closestBody;
-  double                                    dClosestDistance = std::numeric_limits<double>::max();
+  std::shared_ptr<cs::scene::CelestialObject> closestObject;
+  double                                      dClosestDistance = std::numeric_limits<double>::max();
 
-  // Here we will store the position of the observer relative to the closestBody.
+  // Here we will store the position of the observer relative to the closestObject.
   glm::dvec3 vClosestPlanetObserverPosition(0.0);
 
-  for (auto const& object : getBodies()) {
+  for (auto const& [name, object] : getObjects()) {
 
     // Skip non-existant objects.
-    if (!object->getIsInExistence() || !object->pTrackable.get()) {
+    if (!object->getIsInExistence() || !object->getIsTrackable()) {
       continue;
     }
 
@@ -354,7 +353,7 @@ void SolarSystem::updateSceneScale() {
       double dDistance = glm::length(vObserverPos) - radii[0];
 
       if (dDistance < dClosestDistance) {
-        closestBody                    = object;
+        closestObject                  = object;
         dClosestDistance               = dDistance;
         vClosestPlanetObserverPosition = vObserverPos;
       }
@@ -373,15 +372,19 @@ void SolarSystem::updateSceneScale() {
   // Now that we found a closest body, we will scale the observer in such a way, that the closest
   // body is rendered at a distance between mSettings->mSceneScale.mCloseVisualDistance and
   // mSettings->mSceneScale.mFarVisualDistance (in meters).
-  if (closestBody) {
+  if (closestObject) {
 
     // First we calculate the *real* world-space distance to the planet (incorporating surface
     // elevation).
-    auto radii = closestBody->getRadii() * closestBody->getAnchorScale();
+    auto radii = closestObject->getRadii() * closestObject->getAnchorScale();
     auto lngLatHeight =
         cs::utils::convert::cartesianToLngLatHeight(vClosestPlanetObserverPosition, radii);
-    double dRealDistance = lngLatHeight.z - closestBody->getHeight(lngLatHeight.xy()) *
-                                                mSettings->mGraphics.pHeightScale.get();
+    double dRealDistance = lngLatHeight.z;
+
+    if (closestObject->getBody()) {
+      dRealDistance -= closestObject->getBody()->getHeight(lngLatHeight.xy()) *
+                       mSettings->mGraphics.pHeightScale.get();
+    }
 
     if (std::isnan(dRealDistance)) {
       return;
@@ -426,14 +429,14 @@ void SolarSystem::updateSceneScale() {
 void SolarSystem::updateObserverFrame() {
 
   // The Observer will be locked to the active planet.
-  std::shared_ptr<cs::scene::CelestialBody> activeBody;
+  std::shared_ptr<cs::scene::CelestialObject> activeObject;
 
   // The active planet is the one with the heighest *weight*.
   double dActiveWeight = 0;
 
-  for (auto const& object : getBodies()) {
+  for (auto const& [name, object] : getObjects()) {
     // Skip non-existant objects.
-    if (!object->getIsInExistence() || !object->pTrackable.get()) {
+    if (!object->getIsInExistence() || !object->getIsTrackable()) {
       continue;
     }
 
@@ -462,7 +465,7 @@ void SolarSystem::updateObserverFrame() {
 
       if (dWeight > dActiveWeight && (dWeight > mSettings->mSceneScale.mLockWeight ||
                                          dWeight > mSettings->mSceneScale.mTrackWeight)) {
-        activeBody    = object;
+        activeObject  = object;
         dActiveWeight = dWeight;
       }
     } catch (...) {
@@ -477,23 +480,23 @@ void SolarSystem::updateObserverFrame() {
     }
   }
 
-  // If currently no observer animation is in progress, we change the pActiveBody accordingly. This
-  // may be null if we are very far away from any object.
+  // If currently no observer animation is in progress, we change the pActiveObject accordingly.
+  // This may be null if we are very far away from any object.
   if (!mObserver.isAnimationInProgress()) {
-    pActiveBody = activeBody;
+    pActiveObject = activeObject;
 
     std::string sCenter = "Solar System Barycenter";
     std::string sFrame  = "J2000";
 
     // We change frame and center if there is an object with weight larger than mLockWeight
     // and mTrackWeight.
-    if (activeBody) {
+    if (activeObject) {
       if (dActiveWeight > mSettings->mSceneScale.mLockWeight) {
-        sFrame = activeBody->getFrameName();
+        sFrame = activeObject->getFrameName();
       }
 
       if (dActiveWeight > mSettings->mSceneScale.mTrackWeight) {
-        sCenter = activeBody->getCenterName();
+        sCenter = activeObject->getCenterName();
       }
     }
 
@@ -670,32 +673,32 @@ void SolarSystem::deinit() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-uint64_t SolarSystem::registerAddBodyListener(
-    std::function<void(std::shared_ptr<scene::CelestialBody>)> listener) {
-  auto id               = mListenerIds++;
-  mAddBodyListeners[id] = std::move(listener);
+uint64_t SolarSystem::registerAddObjectListener(
+    std::function<void(std::string, std::shared_ptr<scene::CelestialObject>)> listener) {
+  auto id                 = mListenerIds++;
+  mAddObjectListeners[id] = std::move(listener);
   return id;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void SolarSystem::unregisterAddBodyListener(uint64_t id) {
-  mAddBodyListeners.erase(id);
+void SolarSystem::unregisterAddObjectListener(uint64_t id) {
+  mAddObjectListeners.erase(id);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-uint64_t SolarSystem::registerRemoveBodyListener(
-    std::function<void(std::shared_ptr<scene::CelestialBody>)> listener) {
-  auto id                  = mListenerIds++;
-  mRemoveBodyListeners[id] = std::move(listener);
+uint64_t SolarSystem::registerRemoveObjectListener(
+    std::function<void(std::string, std::shared_ptr<scene::CelestialObject>)> listener) {
+  auto id                    = mListenerIds++;
+  mRemoveObjectListeners[id] = std::move(listener);
   return id;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void SolarSystem::unregisterRemoveBodyListener(uint64_t id) {
-  mRemoveBodyListeners.erase(id);
+void SolarSystem::unregisterRemoveObjectListener(uint64_t id) {
+  mRemoveObjectListeners.erase(id);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

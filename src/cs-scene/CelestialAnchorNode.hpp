@@ -24,7 +24,7 @@ class CS_SCENE_EXPORT CelestialAnchorNode : public CelestialAnchor, public Vista
       std::string const& sFrameName = "J2000");
 
   /// Updates the VistaTransformMatrix.
-  void update(double tTime, CelestialObserver const& oObs) override;
+  void update(double tTime, CelestialObserver const& oObs);
 };
 
 } // namespace cs::scene
