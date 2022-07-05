@@ -18,7 +18,6 @@ const float VP_VERTEXDISTANCE = 1.0 / VP_MAXVERTEX;
 uniform mat4  VP_matProjection;
 uniform mat4  VP_matModel;
 uniform mat4  VP_matView;
-uniform float VP_farClip;
 
 uniform float VP_blendEnd = 0.0002;
 uniform float VP_blendStart = 0.02;

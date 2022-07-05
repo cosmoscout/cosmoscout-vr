@@ -638,7 +638,6 @@ bool LODVisitor::testVisible(TileId const& tileId, TreeManagerBase* treeMgrDEM) 
     if (result) {
       result = testFrontFacing(mCullData.mCamPos, mParams, tb, treeMgrDEM);
     }
-    // result = true;
   }
 
   return result;

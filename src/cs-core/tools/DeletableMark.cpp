@@ -60,7 +60,6 @@ void DeletableMark::initData() {
 
   pGuiTransform->Rotate(VistaAxisAndAngle(VistaVector3D(0.0, 1.0, 0.0), -glm::pi<float>() / 2.F));
   mGuiArea->addItem(mGuiItem.get());
-  mGuiArea->setUseLinearDepthBuffer(true);
 
   mGuiItem->setCursorChangeCallback([](cs::gui::Cursor c) { cs::core::GuiManager::setCursor(c); });
   mGuiItem->setCanScroll(false);

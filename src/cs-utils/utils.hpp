@@ -37,10 +37,11 @@ namespace cs::utils {
 
 /// Defines the order in which objects will be rendered.
 enum class CS_UTILS_EXPORT DrawOrder : int {
+  eSetupOpenGL      = 0,
   eClearHDRBuffer   = 100,
-  ePlanets          = 200,
-  eOpaqueItems      = 300,
-  eStars            = 400,
+  eStars            = 200,
+  ePlanets          = 300,
+  eOpaqueItems      = 400,
   eAtmospheres      = 500,
   eToneMapping      = 600,
   eOpaqueNonHDR     = 650,
@@ -111,9 +112,6 @@ template <typename T>
 constexpr typename std::underlying_type<T>::type enumCast(T val) {
   return static_cast<typename std::underlying_type<T>::type>(val);
 }
-
-/// Well, does what is says.
-float CS_UTILS_EXPORT getCurrentFarClipDistance();
 
 /// Executes a system command and returns the output.
 std::string exec(std::string const& cmd);

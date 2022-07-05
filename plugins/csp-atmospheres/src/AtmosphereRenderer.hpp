@@ -129,11 +129,6 @@ class AtmosphereRenderer : public IVistaOpenGLDraw {
   bool getUseToneMapping() const;
   void setUseToneMapping(bool bEnable, float fExposure, float fGamma);
 
-  /// If true, the depth buffer is assumed to contain linear depth values. This significantly
-  /// reduces artifacts for large scenes.
-  bool getUseLinearDepthBuffer() const;
-  void setUseLinearDepthBuffer(bool bEnable);
-
   bool Do() override;
   bool GetBoundingBox(VistaBoundingBox& bb) override;
 
@@ -185,15 +180,13 @@ class AtmosphereRenderer : public IVistaOpenGLDraw {
 
   float mApproximateBrightness = 0.0F;
 
-  bool  mUseLinearDepthBuffer = false;
-  bool  mUseToneMapping       = true;
-  float mExposure             = 0.6F;
-  float mGamma                = 2.2F;
+  bool  mUseToneMapping = true;
+  float mExposure       = 0.6F;
+  float mGamma          = 2.2F;
 
   struct {
     uint32_t sunIntensity      = 0;
     uint32_t sunDir            = 0;
-    uint32_t farClip           = 0;
     uint32_t waterLevel        = 0;
     uint32_t ambientBrightness = 0;
     uint32_t depthBuffer       = 0;

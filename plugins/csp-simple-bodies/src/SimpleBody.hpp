@@ -90,7 +90,6 @@ class SimpleBody : public cs::scene::CelestialBody, public IVistaOpenGLDraw {
     uint32_t projectionMatrix  = 0;
     uint32_t surfaceTexture    = 0;
     uint32_t radii             = 0;
-    uint32_t farClip           = 0;
   } mUniforms;
 
   static const char* SPHERE_VERT;

@@ -63,10 +63,6 @@ uniform sampler2D u_OcclusionSampler;
 uniform float u_OcclusionStrength;
 #endif
 
-#ifdef USE_LINEARDEPTHBUFFER
-uniform float u_FarClip;
-#endif
-
 uniform vec2 u_MetallicRoughnessValues;
 uniform vec4 u_BaseColorFactor;
 uniform vec3 u_Camera;
@@ -322,10 +318,6 @@ void main()
         FragColor = vec4(color, baseColor.a);
     else
         FragColor = vec4(pow(color,vec3(1.0/2.2)), baseColor.a);
-
-    #ifdef USE_LINEARDEPTHBUFFER
-      gl_FragDepth = length(v_Position) / u_FarClip;
-    #endif
 }
 )";
 } // namespace cs::graphics::internal

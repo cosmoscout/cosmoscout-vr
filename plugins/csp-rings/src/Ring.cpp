@@ -64,7 +64,6 @@ const char* Ring::SPHERE_FRAG = R"(
 uniform sampler2D uSurfaceTexture;
 uniform float uAmbientBrightness;
 uniform float uSunIlluminance;
-uniform float uFarClip;
 
 ECLIPSE_SHADER_SNIPPET
 
@@ -94,8 +93,6 @@ void main() {
     #ifdef ENABLE_LIGHTING
       oColor.rgb = oColor.rgb * getEclipseShadow(vPosition) + vec3(uAmbientBrightness);
     #endif
-
-    gl_FragDepth = length(vPosition) / uFarClip;
 }
 )";
 
@@ -213,7 +210,6 @@ bool Ring::Do() {
     mUniforms.projectionMatrix  = mShader.GetUniformLocation("uMatProjection");
     mUniforms.surfaceTexture    = mShader.GetUniformLocation("uSurfaceTexture");
     mUniforms.radii             = mShader.GetUniformLocation("uRadii");
-    mUniforms.farClip           = mShader.GetUniformLocation("uFarClip");
     mUniforms.sunIlluminance    = mShader.GetUniformLocation("uSunIlluminance");
     mUniforms.ambientBrightness = mShader.GetUniformLocation("uAmbientBrightness");
 
@@ -240,7 +236,6 @@ bool Ring::Do() {
 
   mShader.SetUniform(mUniforms.surfaceTexture, 0);
   mShader.SetUniform(mUniforms.radii, mRingSettings.mInnerRadius, mRingSettings.mOuterRadius);
-  mShader.SetUniform(mUniforms.farClip, cs::utils::getCurrentFarClipDistance());
 
   float sunIlluminance(1.F);
   float ambientBrightness(mSettings->mGraphics.pAmbientBrightness.get());
@@ -257,6 +252,7 @@ bool Ring::Do() {
   mTexture->Bind(GL_TEXTURE0);
 
   glEnable(GL_BLEND);
+  glDisable(GL_CULL_FACE);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
   // Initialize eclipse shadow-related uniforms and textures.
@@ -274,6 +270,8 @@ bool Ring::Do() {
   mTexture->Unbind(GL_TEXTURE0);
 
   glDisable(GL_BLEND);
+  glEnable(GL_CULL_FACE);
+
   mShader.Release();
 
   return true;

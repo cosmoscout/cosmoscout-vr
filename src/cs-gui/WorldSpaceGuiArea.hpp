@@ -45,10 +45,6 @@ class CS_GUI_EXPORT WorldSpaceGuiArea : public GuiArea, public IVistaOpenGLDraw 
   void setIgnoreDepth(bool ignore);
   bool getIgnoreDepth() const;
 
-  /// Determines whether to write the fragment depth value or not.
-  bool getUseLinearDepthBuffer() const;
-  void setUseLinearDepthBuffer(bool bEnable);
-
   /// Calculates the position of the mouse in pixels. vRayOrigin and vRayEnd should be in
   /// gui-plane-coordinates. The gui plane is the xy-plane with the normal pointing in positive
   /// z-direction. The result can be out of bounds of this area  - in this case 'false' is returned,
@@ -62,14 +58,12 @@ class CS_GUI_EXPORT WorldSpaceGuiArea : public GuiArea, public IVistaOpenGLDraw 
 
  private:
   VistaGLSLShader mShader;
-  bool            mShaderDirty          = true;
-  bool            mIgnoreDepth          = false;
-  bool            mUseLinearDepthBuffer = false;
-  int             mWidth                = 0;
-  int             mHeight               = 0;
+  bool            mShaderDirty = true;
+  bool            mIgnoreDepth = false;
+  int             mWidth       = 0;
+  int             mHeight      = 0;
 
   struct {
-    uint32_t farClip          = 0;
     uint32_t projectionMatrix = 0;
     uint32_t modelViewMatrix  = 0;
     uint32_t texSize          = 0;

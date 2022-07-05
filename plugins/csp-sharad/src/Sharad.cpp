@@ -41,7 +41,8 @@ layout(location = 1) in vec2  iTexCoords;
 layout(location = 2) in float iTime;
 
 // outputs
-out vec3  vPosition;
+out vec3  vPositionVS;
+out vec4  vPositionSS;
 out vec2  vTexCoords;
 out float vTime;
 
@@ -63,8 +64,9 @@ void main()
     vTime      = iTime;
 
     float height = vTexCoords.y < 0.5 ? 10000 * uHeightScale: -10100 * uHeightScale;
-    vPosition    = (uMatModelView * vec4(toCartesian(iLngLat, height), 1.0)).xyz;
-    gl_Position  =  uMatProjection * vec4(vPosition, 1);
+    vPositionVS  = (uMatModelView * vec4(toCartesian(iLngLat, height), 1.0)).xyz;
+    vPositionSS  = uMatProjection * vec4(vPositionVS, 1);
+    gl_Position  = vPositionSS;
 }
 )";
 
@@ -73,16 +75,17 @@ void main()
 const char* Sharad::FRAG = R"(
 #version 330
 
+uniform mat4 uMatProjection;
 uniform sampler2DRect uDepthBuffer;
 uniform sampler2D uSharadTexture;
 uniform float uAmbientBrightness;
 uniform float uTime;
 uniform float uSceneScale;
-uniform float uFarClip;
 uniform vec2 uViewportPos;
 
 // inputs
-in vec3  vPosition;
+in vec3  vPositionVS;
+in vec4  vPositionSS;
 in vec2  vTexCoords;
 in float vTime;
 
@@ -96,8 +99,10 @@ void main()
         discard;
     }
 
-    float sharadDistance  = length(vPosition);
-    float surfaceDistance = texture(uDepthBuffer, gl_FragCoord.xy - uViewportPos).r * uFarClip;
+    float fDepth = texture(uDepthBuffer,  gl_FragCoord.xy - uViewportPos).r;
+    vec4 surfacePos = inverse(uMatProjection) * vec4(vPositionSS.xy / vPositionSS.w, 2*fDepth-1, 1);
+    float surfaceDistance = length(surfacePos.xyz / surfacePos.w);
+    float sharadDistance  = length(vPositionVS);
     
     if (sharadDistance < surfaceDistance)
     {
@@ -111,8 +116,6 @@ void main()
     oColor.g = pow(val,  2.0);
     oColor.b = pow(val, 10.0);
     oColor.a = 1.0 - clamp((sharadDistance - surfaceDistance) * uSceneScale / 30000, 0.1, 1.0);
-
-    gl_FragDepth = sharadDistance / uFarClip;
 }
 )";
 
@@ -271,7 +274,6 @@ Sharad::Sharad(std::shared_ptr<cs::core::Settings> settings, std::string const& 
   mUniforms.heightScale      = mShader.GetUniformLocation("uHeightScale");
   mUniforms.radii            = mShader.GetUniformLocation("uRadii");
   mUniforms.time             = mShader.GetUniformLocation("uTime");
-  mUniforms.farClip          = mShader.GetUniformLocation("uFarClip");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -327,7 +329,6 @@ bool Sharad::Do() {
     mShader.SetUniform(mUniforms.radii, static_cast<float>(mRadii[0]),
         static_cast<float>(mRadii[1]), static_cast<float>(mRadii[2]));
     mShader.SetUniform(mUniforms.time, static_cast<float>(mCurrTime - mExistence[0]));
-    mShader.SetUniform(mUniforms.farClip, cs::utils::getCurrentFarClipDistance());
 
     mTexture->Bind(GL_TEXTURE0);
     mDepthBuffer->Bind(GL_TEXTURE1);
@@ -335,6 +336,7 @@ bool Sharad::Do() {
     glPushAttrib(GL_ENABLE_BIT | GL_DEPTH_BUFFER_BIT);
 
     glEnable(GL_BLEND);
+    glDisable(GL_CULL_FACE);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     // glDepthFunc(GL_GEQUAL);
     // glDepthMask(false);
@@ -346,6 +348,7 @@ bool Sharad::Do() {
     mVAO.Release();
 
     // clean up ----------------------------------------------------------------
+    glEnable(GL_CULL_FACE);
     mTexture->Unbind(GL_TEXTURE0);
 
     glPopAttrib();

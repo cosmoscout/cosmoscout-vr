@@ -368,11 +368,12 @@ void TileRenderer::preRenderTiles(cs::graphics::ShadowMap* shadowMap) {
   }
 
   if (mEnableFaceCulling) {
-    glCullFace(GL_BACK);
     glEnable(GL_CULL_FACE);
   } else {
     glDisable(GL_CULL_FACE);
   }
+
+  glFrontFace(GL_CCW);
 
   // bind textures with tile data
   if (glDEM) {
@@ -396,8 +397,6 @@ void TileRenderer::preRenderTiles(cs::graphics::ShadowMap* shadowMap) {
   glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(glm::mat4(mMatM)));
   loc = shader.GetUniformLocation("VP_matView");
   glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(mMatV));
-  loc = shader.GetUniformLocation("VP_farClip");
-  shader.SetUniform(loc, mFarClip);
   loc = shader.GetUniformLocation("VP_heightScale");
   shader.SetUniform(loc, static_cast<float>(mParams->mHeightScale));
   loc = shader.GetUniformLocation("VP_radii");
@@ -585,6 +584,8 @@ void TileRenderer::postRenderTiles(cs::graphics::ShadowMap* shadowMap) {
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
   }
 
+  glFrontFace(GL_CW);
+
   glPopAttrib();
 
   if (shadowMap) {
@@ -603,9 +604,6 @@ void TileRenderer::preRenderBounds() {
 
   GLint loc = mProgBounds->GetUniformLocation("VP_matProjection");
   glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(mMatP));
-
-  loc = mProgBounds->GetUniformLocation("VP_farClip");
-  mProgBounds->SetUniform(loc, mFarClip);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -904,12 +902,6 @@ void TileRenderer::setView(glm::mat4 const& m) {
 
 void TileRenderer::setProjection(glm::mat4 const& m) {
   mMatP = m;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void TileRenderer::setFarClip(float farClip) {
-  mFarClip = farClip;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

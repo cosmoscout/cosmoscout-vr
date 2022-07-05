@@ -27,15 +27,13 @@ const char* EllipseTool::SHADER_VERT = R"(
 
 layout(location=0) in vec3 iPosition;
 
-out vec4 vPosition;
-
 uniform mat4 uMatModelView;
 uniform mat4 uMatProjection;
 
 void main()
 {
-    vPosition   = uMatModelView * vec4(iPosition, 1.0);
-    gl_Position = uMatProjection * vPosition;
+    vec4 pos    = uMatModelView * vec4(iPosition, 1.0);
+    gl_Position = uMatProjection * pos;
 }
 )";
 
@@ -44,9 +42,6 @@ void main()
 const char* EllipseTool::SHADER_FRAG = R"(
 #version 330
 
-in vec4 vPosition;
-
-uniform float uFarClip;
 uniform vec3 uColor;
 
 layout(location = 0) out vec4 oColor;
@@ -54,9 +49,6 @@ layout(location = 0) out vec4 oColor;
 void main()
 {
     oColor = vec4(uColor, 1.0);
-   
-    // linearize depth value
-    gl_FragDepth = length(vPosition.xyz) / uFarClip;
 }
 )";
 
@@ -84,7 +76,6 @@ EllipseTool::EllipseTool(std::shared_ptr<cs::core::InputManager> const& pInputMa
   mUniforms.modelViewMatrix  = mShader.GetUniformLocation("uMatModelView");
   mUniforms.projectionMatrix = mShader.GetUniformLocation("uMatProjection");
   mUniforms.color            = mShader.GetUniformLocation("uColor");
-  mUniforms.farClip          = mShader.GetUniformLocation("uFarClip");
 
   mVBO.Bind(GL_ARRAY_BUFFER);
   mVBO.BufferData(mNumSamples * sizeof(glm::vec3), nullptr, GL_DYNAMIC_DRAW);
@@ -310,7 +301,6 @@ bool EllipseTool::Do() {
   glUniformMatrix4fv(mUniforms.projectionMatrix, 1, GL_FALSE, glMatP.data());
 
   mShader.SetUniform(mUniforms.color, pColor.get().r, pColor.get().g, pColor.get().b);
-  mShader.SetUniform(mUniforms.farClip, cs::utils::getCurrentFarClipDistance());
 
   // draw the linestrip
   glDrawArrays(GL_LINE_STRIP, 0, mNumSamples);

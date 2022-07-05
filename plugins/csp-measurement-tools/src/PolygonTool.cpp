@@ -35,15 +35,13 @@ const char* PolygonTool::SHADER_VERT = R"(
 
 layout(location=0) in vec3 iPosition;
 
-out vec4 vPosition;
-
 uniform mat4 uMatModelView;
 uniform mat4 uMatProjection;
 
 void main()
 {
-    vPosition   = uMatModelView * vec4(iPosition, 1.0);
-    gl_Position = uMatProjection * vPosition;
+    vec4 pos    = uMatModelView * vec4(iPosition, 1.0);
+    gl_Position = uMatProjection * pos;
 }
 )";
 
@@ -52,11 +50,7 @@ void main()
 const char* PolygonTool::SHADER_FRAG = R"(
 #version 330
 
-in vec4 vPosition;
-//in vec2 vTexcoord;
-
 uniform float uOpacity;
-uniform float uFarClip;
 uniform vec4 uColor;
 
 layout(location = 0) out vec4 oColor;
@@ -64,8 +58,6 @@ layout(location = 0) out vec4 oColor;
 void main()
 {
     oColor = uColor;
-
-    gl_FragDepth = length(vPosition.xyz) / uFarClip;
 }
 )";
 
@@ -89,7 +81,6 @@ PolygonTool::PolygonTool(std::shared_ptr<cs::core::InputManager> const& pInputMa
   mUniforms.modelViewMatrix  = mShader.GetUniformLocation("uMatModelView");
   mUniforms.projectionMatrix = mShader.GetUniformLocation("uMatProjection");
   mUniforms.color            = mShader.GetUniformLocation("uColor");
-  mUniforms.farClip          = mShader.GetUniformLocation("uFarClip");
 
   // Attach this as OpenGLNode to scenegraph's root (all line vertices
   // will be draw relative to the observer, therfore we do not want
@@ -115,7 +106,6 @@ PolygonTool::PolygonTool(std::shared_ptr<cs::core::InputManager> const& pInputMa
       0.0005F * static_cast<float>(mGuiArea->getHeight()), 1.F);
   mGuiTransform->Rotate(VistaAxisAndAngle(VistaVector3D(0.0, 1.0, 0.0), -glm::pi<float>() / 2.F));
   mGuiArea->addItem(mGuiItem.get());
-  mGuiArea->setUseLinearDepthBuffer(true);
   mGuiNode.reset(pSG->NewOpenGLNode(mGuiTransform.get(), mGuiArea.get()));
 
   mInputManager->registerSelectable(mGuiNode.get());
@@ -1445,8 +1435,6 @@ bool PolygonTool::Do() {
   mVAO.Bind();
   glUniformMatrix4fv(mUniforms.modelViewMatrix, 1, GL_FALSE, glMatMV.data());
   glUniformMatrix4fv(mUniforms.projectionMatrix, 1, GL_FALSE, glMatP.data());
-
-  mShader.SetUniform(mUniforms.farClip, cs::utils::getCurrentFarClipDistance());
 
   mShader.SetUniform(mUniforms.color, pColor.get().r, pColor.get().g, pColor.get().b, 1.F);
 

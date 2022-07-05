@@ -25,6 +25,7 @@
 
 #### Other Changes
 
+* CosmoScout VR now uses a reverse infinite projection for 3D rendering. This removes the far clipping plane and increases the depth precision for the entire scene signifcantly.
 * Removed the obsolete "Mix with RGB" option for height or slope coloring of the LOD-Bodies.
 * Lighting is now enabled by default
 * It is now possible to have simple body textures, that have the prime meridian at the edge.

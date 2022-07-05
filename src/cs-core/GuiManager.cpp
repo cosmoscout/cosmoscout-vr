@@ -81,7 +81,6 @@ GuiManager::GuiManager(
     // Create the global GUI area.
     mGlobalGuiArea = std::make_unique<gui::WorldSpaceGuiArea>(
         mSettings->mGuiPosition->mWidthPixel, mSettings->mGuiPosition->mHeightPixel);
-    mGlobalGuiArea->setUseLinearDepthBuffer(true);
   }
 
   // Create the local GUI area.

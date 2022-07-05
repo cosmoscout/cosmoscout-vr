@@ -46,12 +46,12 @@ You can run them with the following scripts.
 #### Linux:
 
 ```shell
-./install/linux-Release/run_tests.sh
+./install/linux-Release/bin/run_tests.sh
 ```
 
 #### Windows:
 ```batch
-install\windows-Release\run_tests.bat
+install\windows-Release\bin\run_tests.bat
 ```
 
 ### Graphical Tests
@@ -63,7 +63,7 @@ In order to make them possible even if there is no graphics card or display atta
 Graphical tests can only be executed on Linux for now:
 
 ```shell
-./install/linux-Release/run_graphical_tests.sh
+./install/linux-Release/bin/run_graphical_tests.sh
 ```
 
 <p align="center"><img src ="img/hr.svg"/></p>

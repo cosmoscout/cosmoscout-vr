@@ -27,10 +27,7 @@
     "farRealDistance": 1000000,
     "lockWeight": 0.1,
     "trackWeight": 0.0002,
-    "minObjectSize": 10000.0,
-    "nearClip": 0.2,
-    "minFarClip": 200.0,
-    "maxFarClip": 20000.0
+    "minObjectSize": 10000.0
   },
   "bookmarks": [
     {
@@ -286,17 +283,14 @@
     "eclipseShadowMaps": {
       "Earth": {},
       "Moon": {},
-
       "Mars": {},
       "Phobos": {},
-      "Deimos":  {},
-
+      "Deimos": {},
       "Jupiter": {},
       "Io": {},
       "Europa": {},
       "Ganymede": {},
       "Callisto": {},
-
       "Saturn": {},
       "Mimas": {},
       "Enceladus": {},
@@ -305,17 +299,14 @@
       "Rhea": {},
       "Titan": {},
       "Iapetus": {},
-
       "Uranus": {},
       "Miranda": {},
       "Ariel": {},
       "Umbriel": {},
       "Titania": {},
       "Oberon": {},
-
       "Neptune": {},
       "Triton": {},
-
       "Pluto": {},
       "Charon": {}
     }

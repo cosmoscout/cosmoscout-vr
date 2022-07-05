@@ -32,15 +32,13 @@ const char* PathTool::SHADER_VERT = R"(
 
 layout(location=0) in vec3 iPosition;
 
-out vec4 vPosition;
-
 uniform mat4 uMatModelView;
 uniform mat4 uMatProjection;
 
 void main()
 {
-    vPosition   = uMatModelView * vec4(iPosition, 1.0);
-    gl_Position = uMatProjection * vPosition;
+    vec4 pos    = uMatModelView * vec4(iPosition, 1.0);
+    gl_Position = uMatProjection * pos;
 }
 )";
 
@@ -49,17 +47,13 @@ void main()
 const char* PathTool::SHADER_FRAG = R"(
 #version 330
 
-in vec4 vPosition;
-
 uniform vec3 uColor;
-uniform float uFarClip;
 
 layout(location = 0) out vec4 oColor;
 
 void main()
 {
     oColor = vec4(uColor, 1.0);
-    gl_FragDepth = length(vPosition.xyz) / uFarClip;
 }
 )";
 
@@ -83,7 +77,6 @@ PathTool::PathTool(std::shared_ptr<cs::core::InputManager> const& pInputManager,
   mUniforms.modelViewMatrix  = mShader.GetUniformLocation("uMatModelView");
   mUniforms.projectionMatrix = mShader.GetUniformLocation("uMatProjection");
   mUniforms.color            = mShader.GetUniformLocation("uColor");
-  mUniforms.farClip          = mShader.GetUniformLocation("uFarClip");
 
   // attach this as OpenGLNode to scenegraph's root (all line vertices
   // will be draw relative to the observer, therfore we do not want
@@ -109,7 +102,6 @@ PathTool::PathTool(std::shared_ptr<cs::core::InputManager> const& pInputManager,
       0.0005F * static_cast<float>(mGuiArea->getHeight()), 1.F);
   mGuiTransform->Rotate(VistaAxisAndAngle(VistaVector3D(0.0, 1.0, 0.0), -glm::pi<float>() / 2.F));
   mGuiArea->addItem(mGuiItem.get());
-  mGuiArea->setUseLinearDepthBuffer(true);
   mGuiOpenGLNode.reset(pSG->NewOpenGLNode(mGuiTransform.get(), mGuiArea.get()));
 
   mInputManager->registerSelectable(mGuiOpenGLNode.get());
@@ -383,7 +375,6 @@ bool PathTool::Do() {
     glUniformMatrix4fv(mUniforms.projectionMatrix, 1, GL_FALSE, glMatP.data());
 
     mShader.SetUniform(mUniforms.color, pColor.get().r, pColor.get().g, pColor.get().b);
-    mShader.SetUniform(mUniforms.farClip, cs::utils::getCurrentFarClipDistance());
 
     // draw the linestrip
     glDrawArrays(GL_LINE_STRIP, 0, static_cast<GLsizei>(mIndexCount));

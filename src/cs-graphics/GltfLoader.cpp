@@ -60,8 +60,7 @@ std::string GetFilePathExtension(const std::string& FileName) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-GltfLoader::GltfLoader(
-    const std::string& sGltfFile, const std::string& cubemapFilepath, bool linearDepthBuffer)
+GltfLoader::GltfLoader(const std::string& sGltfFile, const std::string& cubemapFilepath)
     : mShared(std::make_shared<internal::GltfShared>()) {
   tinygltf::TinyGLTF loader;
   std::string        err;
@@ -85,7 +84,6 @@ GltfLoader::GltfLoader(
     throw std::runtime_error(msg + sGltfFile);
   }
 
-  mShared->m_linearDepthBuffer = linearDepthBuffer;
   mShared->init(mShared->mTinyGltfModel, cubemapFilepath);
 }
 

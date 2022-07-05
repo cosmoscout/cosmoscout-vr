@@ -77,13 +77,6 @@ void main() {
   vSunDirection = (uMatModel * vec4(uSunDirection, 0.0)).xyz;
   vCenter       = (uMatModel * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
   gl_Position   = uMatProjection * uMatView * vec4(vPosition, 1);
-
-  if (gl_Position.w > 0) {
-    gl_Position /= gl_Position.w;
-    if (gl_Position.z >= 1) {
-      gl_Position.z = 0.999999;
-    }
-  }
 }
 )";
 
@@ -93,7 +86,6 @@ const char* SimpleBody::SPHERE_FRAG = R"(
 uniform sampler2D uSurfaceTexture;
 uniform float uAmbientBrightness;
 uniform float uSunIlluminance;
-uniform float uFarClip;
 
 ECLIPSE_SHADER_SNIPPET
 
@@ -173,8 +165,6 @@ void main()
       float light = orenNayar(normalize(vNormal), normalize(vSunDirection), -normalize(vPosition));
       oColor = mix(oColor * uAmbientBrightness, oColor * getEclipseShadow(vPosition), light);
     #endif
-
-    gl_FragDepth = length(vPosition) / uFarClip;
 }
 )";
 
@@ -363,7 +353,6 @@ bool SimpleBody::Do() {
     mUniforms.projectionMatrix  = mShader.GetUniformLocation("uMatProjection");
     mUniforms.surfaceTexture    = mShader.GetUniformLocation("uSurfaceTexture");
     mUniforms.radii             = mShader.GetUniformLocation("uRadii");
-    mUniforms.farClip           = mShader.GetUniformLocation("uFarClip");
 
     // We bind the eclipse shadow map to texture unit 1.
     mEclipseShadowReceiver.init(&mShader, 1);
@@ -418,7 +407,6 @@ bool SimpleBody::Do() {
   mShader.SetUniform(mUniforms.surfaceTexture, 0);
   mShader.SetUniform(mUniforms.radii, static_cast<float>(mRadii[0]), static_cast<float>(mRadii[1]),
       static_cast<float>(mRadii[2]));
-  mShader.SetUniform(mUniforms.farClip, cs::utils::getCurrentFarClipDistance());
 
   // Set the texture wrapping on the x-axis to repeat, so we can easily deal with textures, where
   // the prime meridian is not in the center.

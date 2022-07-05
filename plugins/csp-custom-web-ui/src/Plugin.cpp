@@ -246,7 +246,6 @@ void Plugin::onLoad() {
       // Create the WorldSpaceGuiArea for the gui element.
       item.mGuiArea =
           std::make_unique<cs::gui::WorldSpaceGuiArea>(settings.mWidth, settings.mHeight);
-      item.mGuiArea->setUseLinearDepthBuffer(true);
 
       // Create a TransformNode to attach the gui element to.
       item.mTransform.reset(pSG->NewTransformNode(item.mAnchor.get()));

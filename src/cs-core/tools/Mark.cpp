@@ -33,16 +33,13 @@ static const char* SHADER_VERT = R"(
 
 layout(location=0) in vec3 iPosition;
 
-out vec3 vPosition;
-out vec3 vNormal;
-
 uniform mat4 uMatModelView;
 uniform mat4 uMatProjection;
 
 void main()
 {
-    vPosition   = (uMatModelView * vec4(iPosition*0.005, 1.0)).xyz;
-    gl_Position = uMatProjection * vec4(vPosition, 1.0);
+    vec3 pos    = (uMatModelView * vec4(iPosition*0.005, 1.0)).xyz;
+    gl_Position = uMatProjection * vec4(pos, 1.0);
 }
 )";
 
@@ -52,10 +49,7 @@ static const char* SHADER_FRAG = R"(
 #version 330
 
 uniform vec3 uHoverSelectActive;
-uniform float uFarClip;
 uniform vec3 uColor;
-
-in vec3 vPosition;
 
 layout(location = 0) out vec3 oColor;
 
@@ -65,9 +59,6 @@ void main()
     if (uHoverSelectActive.x > 0) oColor = mix(oColor, vec3(1, 1, 1), 0.2);
     if (uHoverSelectActive.y > 0) oColor = mix(oColor, vec3(1, 1, 1), 0.5);
     if (uHoverSelectActive.z > 0) oColor = mix(oColor, vec3(1, 1, 1), 0.8);
-
-    // linearize depth value
-    gl_FragDepth = length(vPosition) / uFarClip;
 }
 )";
 
@@ -168,7 +159,6 @@ bool Mark::Do() {
   glUniformMatrix4fv(mUniforms.projectionMatrix, 1, GL_FALSE, glMatP.data());
   mShader->SetUniform(mUniforms.hoverSelectActive, pHovered.get() ? 1.F : 0.F,
       pSelected.get() ? 1.F : 0.F, pActive.get() ? 1.F : 0.F);
-  mShader->SetUniform(mUniforms.farClip, cs::utils::getCurrentFarClipDistance());
   mShader->SetUniform(mUniforms.color, pColor.get().x, pColor.get().y, pColor.get().z);
 
   glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(mIndexCount), GL_UNSIGNED_INT, nullptr);
@@ -201,7 +191,6 @@ void Mark::initData(std::string const& sCenter, std::string const& sFrame) {
   mUniforms.modelViewMatrix   = mShader->GetUniformLocation("uMatModelView");
   mUniforms.projectionMatrix  = mShader->GetUniformLocation("uMatProjection");
   mUniforms.hoverSelectActive = mShader->GetUniformLocation("uHoverSelectActive");
-  mUniforms.farClip           = mShader->GetUniformLocation("uFarClip");
   mUniforms.color             = mShader->GetUniformLocation("uColor");
 
   auto* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();

@@ -301,19 +301,6 @@ void AtmosphereRenderer::setUseToneMapping(bool bEnable, float fExposure, float 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool AtmosphereRenderer::getUseLinearDepthBuffer() const {
-  return mUseLinearDepthBuffer;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void AtmosphereRenderer::setUseLinearDepthBuffer(bool bEnable) {
-  mUseLinearDepthBuffer = bEnable;
-  mShaderDirty          = true;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 void AtmosphereRenderer::updateShader() {
   mAtmoShader = VistaGLSLShader();
 
@@ -338,7 +325,6 @@ void AtmosphereRenderer::updateShader() {
   cs::utils::replaceString(sFrag, "EXPOSURE", cs::utils::toString(mExposure));
   cs::utils::replaceString(sFrag, "GAMMA", cs::utils::toString(mGamma));
   cs::utils::replaceString(sFrag, "HEIGHT_ATMO", cs::utils::toString(mAtmosphereHeight));
-  cs::utils::replaceString(sFrag, "USE_LINEARDEPTHBUFFER", std::to_string(mUseLinearDepthBuffer));
   cs::utils::replaceString(sFrag, "DRAW_SUN", std::to_string(mDrawSun));
   cs::utils::replaceString(sFrag, "DRAW_WATER", std::to_string(mDrawWater));
   cs::utils::replaceString(sFrag, "USE_SHADOWMAP", std::to_string(mShadowMap != nullptr));
@@ -364,7 +350,6 @@ void AtmosphereRenderer::updateShader() {
 
   mUniforms.sunIntensity      = mAtmoShader.GetUniformLocation("uSunIntensity");
   mUniforms.sunDir            = mAtmoShader.GetUniformLocation("uSunDir");
-  mUniforms.farClip           = mAtmoShader.GetUniformLocation("uFarClip");
   mUniforms.waterLevel        = mAtmoShader.GetUniformLocation("uWaterLevel");
   mUniforms.ambientBrightness = mAtmoShader.GetUniformLocation("uAmbientBrightness");
   mUniforms.depthBuffer       = mAtmoShader.GetUniformLocation("uDepthBuffer");
@@ -407,9 +392,7 @@ bool AtmosphereRenderer::Do() {
   glDisable(GL_LIGHTING);
   glDisable(GL_DEPTH_TEST);
   glDisable(GL_BLEND);
-  glEnable(GL_CULL_FACE);
   glEnable(GL_TEXTURE_2D);
-  glCullFace(GL_FRONT);
   glDepthMask(GL_FALSE);
 
   // copy depth buffer -------------------------------------------------------
@@ -453,8 +436,6 @@ bool AtmosphereRenderer::Do() {
 
   mAtmoShader.SetUniform(mUniforms.sunIntensity, mSunIntensity);
   mAtmoShader.SetUniform(mUniforms.sunDir, sunDir[0], sunDir[1], sunDir[2]);
-  mAtmoShader.SetUniform(mUniforms.farClip, cs::utils::getCurrentFarClipDistance());
-
   mAtmoShader.SetUniform(mUniforms.waterLevel, mWaterLevel);
   mAtmoShader.SetUniform(mUniforms.ambientBrightness, mAmbientBrightness);
 

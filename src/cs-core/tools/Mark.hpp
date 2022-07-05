@@ -91,7 +91,6 @@ class CS_CORE_EXPORT Mark : public IVistaOpenGLDraw, public Tool {
     uint32_t modelViewMatrix   = 0;
     uint32_t projectionMatrix  = 0;
     uint32_t hoverSelectActive = 0;
-    uint32_t farClip           = 0;
     uint32_t color             = 0;
   } mUniforms;
 
