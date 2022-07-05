@@ -309,7 +309,8 @@ TileRenderer::TileRenderer(
     : mParams(&params)
     , mTreeMgrDEM(treeMgrDEM)
     , mTreeMgrIMG(treeMgrIMG)
-    , mMatVM()
+    , mMatM()
+    , mMatV()
     , mMatP()
     , mProgTerrain(nullptr)
     , mFrameCount(0)
@@ -391,9 +392,11 @@ void TileRenderer::preRenderTiles(cs::graphics::ShadowMap* shadowMap) {
 
   // update "frame global" uniforms
   GLint loc = shader.GetUniformLocation("VP_matProjection");
-  glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(glm::fmat4x4(mMatP)));
-  loc = shader.GetUniformLocation("VP_matModelView");
-  glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(glm::fmat4x4(mMatVM)));
+  glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(mMatP));
+  loc = shader.GetUniformLocation("VP_matModel");
+  glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(glm::mat4(mMatM)));
+  loc = shader.GetUniformLocation("VP_matView");
+  glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(mMatV));
   loc = shader.GetUniformLocation("VP_heightScale");
   shader.SetUniform(loc, static_cast<float>(mParams->mHeightScale));
   loc = shader.GetUniformLocation("VP_radii");
@@ -541,24 +544,24 @@ void TileRenderer::renderTile(RenderDataDEM* rdDEM, RenderDataImg* rdIMG, Unifor
   // order of components: N, W, S, E
   std::array<glm::dvec3, 4> corners{};
   std::array<glm::dvec3, 4> normals{};
-  std::array<glm::fvec3, 4> cornersViewSpace{};
-  std::array<glm::fvec3, 4> normalsViewSpace{};
+  std::array<glm::fvec3, 4> cornersWorldSpace{};
+  std::array<glm::fvec3, 4> normalsWorldSpace{};
 
-  glm::dmat4 matNormal = glm::transpose(glm::inverse(mMatVM));
+  glm::dmat4 matNormal = glm::transpose(glm::inverse(mMatM));
 
   for (int i(0); i < 4; ++i) {
-    corners.at(i)          = cs::utils::convert::toCartesian(cornersLngLat.at(i), mParams->mRadii,
+    corners.at(i)           = cs::utils::convert::toCartesian(cornersLngLat.at(i), mParams->mRadii,
         averageHeight * static_cast<float>(mParams->mHeightScale));
-    cornersViewSpace.at(i) = glm::fvec3(mMatVM * glm::dvec4(corners.at(i), 1.0));
+    cornersWorldSpace.at(i) = glm::fvec3(mMatM * glm::dvec4(corners.at(i), 1.0));
 
-    normals.at(i)          = cs::utils::convert::lngLatToNormal(cornersLngLat.at(i));
-    normalsViewSpace.at(i) = glm::fvec3(matNormal * glm::dvec4(normals.at(i), 0.0));
+    normals.at(i)           = cs::utils::convert::lngLatToNormal(cornersLngLat.at(i));
+    normalsWorldSpace.at(i) = glm::fvec3(matNormal * glm::dvec4(normals.at(i), 0.0));
   }
 
   glUniform3fv(glGetUniformLocation(shader.GetProgram(), "VP_corners"), 9,
-      glm::value_ptr(cornersViewSpace[0]));
+      glm::value_ptr(cornersWorldSpace[0]));
   glUniform3fv(glGetUniformLocation(shader.GetProgram(), "VP_normals"), 4,
-      glm::value_ptr(normalsViewSpace[0]));
+      glm::value_ptr(normalsWorldSpace[0]));
 
   // draw tile
   glDrawElements(GL_TRIANGLES, idxCount, GL_UNSIGNED_INT, nullptr);
@@ -600,7 +603,7 @@ void TileRenderer::preRenderBounds() {
   mProgBounds->Bind();
 
   GLint loc = mProgBounds->GetUniformLocation("VP_matProjection");
-  glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(glm::fmat4x4(mMatP)));
+  glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(mMatP));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -625,7 +628,8 @@ void TileRenderer::renderBounds(
 
         std::array<glm::fvec3, 8> controlPointsViewSpace{};
         for (int i(0); i < 8; ++i) {
-          controlPointsViewSpace.at(i) = glm::fvec3(mMatVM * cornersWorldSpace.at(i));
+          controlPointsViewSpace.at(i) =
+              glm::fvec3(glm::dmat4(mMatV) * mMatM * cornersWorldSpace.at(i));
         }
 
         glUniform3fv(glGetUniformLocation(mProgBounds->GetProgram(), "VP_corners"), 8,
@@ -884,14 +888,20 @@ void TileRenderer::setFrameCount(int frameCount) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void TileRenderer::setProjection(glm::dmat4 const& m) {
-  mMatP = m;
+void TileRenderer::setModel(glm::dmat4 const& m) {
+  mMatM = m;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void TileRenderer::setModelview(glm::dmat4 const& m) {
-  mMatVM = m;
+void TileRenderer::setView(glm::mat4 const& m) {
+  mMatV = m;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void TileRenderer::setProjection(glm::mat4 const& m) {
+  mMatP = m;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

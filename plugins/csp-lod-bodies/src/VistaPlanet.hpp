@@ -114,14 +114,14 @@ class VistaPlanet : public IVistaOpenGLDraw, public cs::graphics::ShadowCaster {
   void updateStatistics(int frameCount);
   void updateTileBounds();
   void updateTileTrees(int frameCount);
-  void traverseTileTrees(int frameCount, glm::dmat4 const& matVM, glm::fmat4x4 const& matP,
-      glm::ivec4 const& viewport);
+  void traverseTileTrees(int frameCount, glm::dmat4 const& matM, glm::mat4 const& matV,
+      glm::mat4 const& matP, glm::ivec4 const& viewport);
   void processLoadRequests();
-  void renderTiles(int frameCount, glm::dmat4 const& matVM, glm::fmat4x4 const& matP,
-      cs::graphics::ShadowMap* shadowMap);
+  void renderTiles(int frameCount, glm::dmat4 const& matM, glm::mat4 const& matV,
+      glm::mat4 const& matP, cs::graphics::ShadowMap* shadowMap);
 
-  glm::dmat4        getModelviewMatrix() const;
-  static glm::dmat4 getProjectionMatrix();
+  glm::mat4         getViewMatrix() const;
+  static glm::mat4  getProjectionMatrix();
   static glm::ivec4 getViewport();
 
   static glm::uint8 const sFlagTileBoundsInvalid = 0x01;

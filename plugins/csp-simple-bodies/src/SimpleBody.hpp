@@ -85,7 +85,8 @@ class SimpleBody : public cs::scene::CelestialBody, public IVistaOpenGLDraw {
     uint32_t sunDirection      = 0;
     uint32_t sunIlluminance    = 0;
     uint32_t ambientBrightness = 0;
-    uint32_t modelViewMatrix   = 0;
+    uint32_t modelMatrix       = 0;
+    uint32_t viewMatrix        = 0;
     uint32_t projectionMatrix  = 0;
     uint32_t surfaceTexture    = 0;
     uint32_t radii             = 0;

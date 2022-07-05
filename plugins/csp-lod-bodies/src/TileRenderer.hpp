@@ -71,8 +71,9 @@ class TileRenderer {
   TerrainShader* getTerrainShader() const;
 
   void setFrameCount(int frameCount);
-  void setProjection(glm::dmat4 const& m);
-  void setModelview(glm::dmat4 const& m);
+  void setModel(glm::dmat4 const& m);
+  void setView(glm::mat4 const& m);
+  void setProjection(glm::mat4 const& m);
 
   /// Render the elevation and image tiles in reqDEM and reqIMG respectively.
   void render(std::vector<RenderData*> const& reqDEM, std::vector<RenderData*> const& reqIMG,
@@ -134,8 +135,9 @@ class TileRenderer {
   TreeManagerBase*        mTreeMgrDEM;
   TreeManagerBase*        mTreeMgrIMG;
 
-  glm::dmat4 mMatVM;
-  glm::dmat4 mMatP;
+  glm::dmat4 mMatM;
+  glm::mat4  mMatV;
+  glm::mat4  mMatP;
 
   static std::unique_ptr<VistaBufferObject>      mVboTerrain;
   static std::unique_ptr<VistaBufferObject>      mIboTerrain;
