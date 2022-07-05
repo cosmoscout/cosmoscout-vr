@@ -74,13 +74,13 @@ VistaPlanet::~VistaPlanet() {
 
   // get matrices and viewport
   int          frameCount = GetVistaSystem()->GetFrameLoop()->GetFrameCount();
-  glm::dmat4   matVM      = getModelviewMatrix();
+  glm::dmat4   matV       = getViewMatrix();
   glm::fmat4x4 matP       = getProjectionMatrix();
   glm::ivec4   viewport   = getViewport();
 
-  traverseTileTrees(frameCount, matVM, matP, viewport);
+  traverseTileTrees(frameCount, mWorldTransform, matV, matP, viewport);
 
-  renderTiles(frameCount, matVM, matP, nullptr);
+  renderTiles(frameCount, mWorldTransform, matV, matP, nullptr);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -216,9 +216,9 @@ void VistaPlanet::doFrame() {
   int frameCount = GetVistaSystem()->GetFrameLoop()->GetFrameCount();
 
   // get matrices and viewport
-  glm::dmat4   matVM    = getModelviewMatrix();
-  glm::fmat4x4 matP     = getProjectionMatrix();
-  glm::ivec4   viewport = getViewport();
+  glm::mat4  matV     = getViewMatrix();
+  glm::mat4  matP     = getProjectionMatrix();
+  glm::ivec4 viewport = getViewport();
 
   // collect/print statistics
   updateStatistics(frameCount);
@@ -230,13 +230,13 @@ void VistaPlanet::doFrame() {
   updateTileTrees(frameCount);
 
   // determine tiles to draw and load
-  traverseTileTrees(frameCount, matVM, matP, viewport);
+  traverseTileTrees(frameCount, mWorldTransform, matV, matP, viewport);
 
   // pass requests to load tiles to TreeManagers
   processLoadRequests();
 
   // render
-  renderTiles(frameCount, matVM, matP, mShadowMap);
+  renderTiles(frameCount, mWorldTransform, matV, matP, mShadowMap);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -311,11 +311,11 @@ void VistaPlanet::updateTileTrees(int frameCount) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void VistaPlanet::traverseTileTrees(
-    int frameCount, glm::dmat4 const& matVM, glm::fmat4x4 const& matP, glm::ivec4 const& viewport) {
+void VistaPlanet::traverseTileTrees(int frameCount, glm::dmat4 const& matM, glm::mat4 const& matV,
+    glm::mat4 const& matP, glm::ivec4 const& viewport) {
   // update per-frame information of LODVisitor
   mLodVisitor.setFrameCount(frameCount);
-  mLodVisitor.setModelview(matVM);
+  mLodVisitor.setModelview(glm::dmat4(matV) * matM);
   mLodVisitor.setProjection(matP);
   mLodVisitor.setViewport(viewport);
 
@@ -338,11 +338,12 @@ void VistaPlanet::processLoadRequests() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void VistaPlanet::renderTiles(int frameCount, glm::dmat4 const& matVM, glm::fmat4x4 const& matP,
-    cs::graphics::ShadowMap* shadowMap) {
+void VistaPlanet::renderTiles(int frameCount, glm::dmat4 const& matM, glm::mat4 const& matV,
+    glm::mat4 const& matP, cs::graphics::ShadowMap* shadowMap) {
   // update per-frame information of TileRenderer
   mRenderer.setFrameCount(frameCount);
-  mRenderer.setModelview(matVM);
+  mRenderer.setModel(matM);
+  mRenderer.setView(matV);
   mRenderer.setProjection(matP);
   mRenderer.setFarClip(cs::utils::getCurrentFarClipDistance());
   mRenderer.render(mLodVisitor.getRenderDEM(), mLodVisitor.getRenderIMG(), shadowMap);
@@ -368,16 +369,16 @@ void VistaPlanet::renderTiles(int frameCount, glm::dmat4 const& matVM, glm::fmat
 // If there is a better (i.e. using ViSTA interfaces) way to obtain these
 // matrices replace the implementation of getModelviewMatrix() and
 // getProjectionMatrix().
-glm::dmat4 VistaPlanet::getModelviewMatrix() const {
+glm::mat4 VistaPlanet::getViewMatrix() const {
   std::array<GLfloat, 16> glMat{};
   glGetFloatv(GL_MODELVIEW_MATRIX, glMat.data());
 
-  return glm::dmat4(glm::make_mat4x4(glMat.data())) * mWorldTransform;
+  return glm::make_mat4x4(glMat.data());
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-glm::dmat4 VistaPlanet::getProjectionMatrix() {
+glm::mat4 VistaPlanet::getProjectionMatrix() {
   std::array<GLfloat, 16> glMat{};
   glGetFloatv(GL_PROJECTION_MATRIX, glMat.data());
 

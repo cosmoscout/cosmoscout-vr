@@ -72,7 +72,8 @@ class Ring : public cs::scene::CelestialObject, public IVistaOpenGLDraw {
   int  mEnableHDRConnection      = -1;
 
   struct {
-    uint32_t modelViewMatrix   = 0;
+    uint32_t modelMatrix       = 0;
+    uint32_t viewMatrix        = 0;
     uint32_t projectionMatrix  = 0;
     uint32_t surfaceTexture    = 0;
     uint32_t radii             = 0;

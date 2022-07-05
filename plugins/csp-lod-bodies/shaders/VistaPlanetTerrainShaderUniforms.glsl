@@ -16,7 +16,8 @@ const float VP_VERTEXDISTANCE = 1.0 / VP_MAXVERTEX;
 
 // uniforms - global for a planet ----------------------------------------------
 uniform mat4  VP_matProjection;
-uniform mat4  VP_matModelView;
+uniform mat4  VP_matModel;
+uniform mat4  VP_matView;
 uniform float VP_farClip;
 
 uniform float VP_blendEnd = 0.0002;

@@ -29,8 +29,8 @@ out VS_OUT
 void main(void)
 {
     // all in view space
-    vsOut.position       = VP_getVertexPosition(VP_iPosition, $TERRAIN_PROJECTION_TYPE);
-    gl_Position = VP_matProjection * vec4(vsOut.position, 1);
+    vsOut.position = VP_getVertexPosition(VP_iPosition, $TERRAIN_PROJECTION_TYPE);
+    gl_Position    = VP_matProjection * VP_matView * vec4(vsOut.position, 1);
 
     if (!VP_shadowMapMode)
     {
@@ -39,8 +39,8 @@ void main(void)
         #elif $LIGHTING_QUALITY > 1
             vsOut.normal         = VP_getVertexNormalLow(vsOut.position, VP_iPosition, $TERRAIN_PROJECTION_TYPE);
         #endif
-        vsOut.sunDir         = (VP_matModelView * vec4(uSunDirIlluminance.xyz, 0)).xyz;
-        vsOut.planetCenter   = (VP_matModelView * vec4(0,0,0,1)).xyz;
+        vsOut.sunDir         = (VP_matModel * vec4(uSunDirIlluminance.xyz, 0)).xyz;
+        vsOut.planetCenter   = (VP_matModel * vec4(0,0,0,1)).xyz;
         vsOut.texcoords      = VP_getTexCoordIMG(VP_iPosition);
         vsOut.height         = VP_getVertexHeight(VP_iPosition);
         vsOut.lngLat         = VP_convertXY2lnglat(VP_getXY(VP_iPosition));
