@@ -198,9 +198,6 @@ void from_json(nlohmann::json const& j, Settings::SceneScale& o) {
   Settings::deserialize(j, "lockWeight", o.mLockWeight);
   Settings::deserialize(j, "trackWeight", o.mTrackWeight);
   Settings::deserialize(j, "minObjectSize", o.mMinObjectSize);
-  Settings::deserialize(j, "nearClip", o.mNearClip);
-  Settings::deserialize(j, "minFarClip", o.mMinFarClip);
-  Settings::deserialize(j, "maxFarClip", o.mMaxFarClip);
 }
 
 void to_json(nlohmann::json& j, Settings::SceneScale const& o) {
@@ -213,9 +210,6 @@ void to_json(nlohmann::json& j, Settings::SceneScale const& o) {
   Settings::serialize(j, "lockWeight", o.mLockWeight);
   Settings::serialize(j, "trackWeight", o.mTrackWeight);
   Settings::serialize(j, "minObjectSize", o.mMinObjectSize);
-  Settings::serialize(j, "nearClip", o.mNearClip);
-  Settings::serialize(j, "minFarClip", o.mMinFarClip);
-  Settings::serialize(j, "maxFarClip", o.mMaxFarClip);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

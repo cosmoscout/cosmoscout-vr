@@ -564,7 +564,6 @@ GLProgramInfo getProgramInfo(unsigned int program) {
   info.u_MetallicRoughnessValues_loc = glGetUniformLocation(program, "u_MetallicRoughnessValues");
   info.u_BaseColorFactor_loc         = glGetUniformLocation(program, "u_BaseColorFactor");
   info.u_Camera_loc                  = glGetUniformLocation(program, "u_Camera");
-  info.u_FarClip_loc                 = glGetUniformLocation(program, "u_FarClip");
 
   auto usTexs   = get_active_uniforms(program);
   info.uniforms = usTexs.first;
@@ -1011,10 +1010,6 @@ Primitive GltfShared::createMeshPrimitive(
     definesFS += "#define HAS_TANGENTS\n";
   }
 
-  if (m_linearDepthBuffer) {
-    definesFS += "#define USE_LINEARDEPTHBUFFER\n";
-  }
-
   tinygltf::Material const* material = nullptr;
 
   if (primitive.material >= 0) {
@@ -1163,10 +1158,6 @@ void Primitive::draw(glm::mat4 const& projMat, glm::mat4 const& viewMat, glm::ma
     glUseProgram(*programPtr);
   }
 
-  if (shared.m_linearDepthBuffer) {
-    glUniform1f(programInfo.u_FarClip_loc, utils::getCurrentFarClipDistance());
-  }
-
   auto viewMatInverse = glm::inverse(viewMat);
   auto eye            = glm::vec3(viewMatInverse[3]);
   auto normalMat      = glm::inverse(glm::transpose(glm::mat3(modelMat)));
@@ -1313,9 +1304,13 @@ bool VistaGltfNode::Do() {
   glm::mat4 viewMat  = glm::make_mat4(renderInfo->m_matCameraTransform.GetData());
   glm::mat4 modelMat = glm::inverse(viewMat) * modelViewMat;
 
+  glDisable(GL_CULL_FACE);
+
   if (mMeshIndex >= 0 && mShared) {
     mShared->mMeshes[mMeshIndex].draw(projMat, viewMat, modelMat, *mShared);
   }
+
+  glEnable(GL_CULL_FACE);
 
   return true;
 }

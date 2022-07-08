@@ -27,7 +27,6 @@ const char* DeepSpaceDot::QUAD_VERT = R"(
 #version 330
 
 out vec2 vTexCoords;
-out float fDepth;
 
 uniform float uAspect;
 uniform mat4 uMatModelView;
@@ -36,7 +35,6 @@ uniform mat4 uMatProjection;
 void main()
 {
     vec4 pos = uMatModelView * vec4(0, 0, 0, 1);
-    fDepth = length(pos.xyz);
 
     pos = uMatProjection * pos;
 
@@ -50,24 +48,22 @@ void main()
     float h = 0.0075;
     float w = h / uAspect;
 
-    pos.z = 0.9999999;
-
     switch (gl_VertexID) {
         case 0:
-            pos.xy += vec2(-w,  h);
-            vTexCoords = vec2(-1, 1);
+            pos.xy += vec2(-w, h);
+            vTexCoords = vec2(1, 1);
             break;
         case 1:
-            pos.xy += vec2( w,  h);
-            vTexCoords = vec2(1, 1);
+            pos.xy += vec2(w, h);
+            vTexCoords = vec2(-1, 1);
             break;
         case 2:
             pos.xy += vec2(-w, -h);
-            vTexCoords = vec2(-1, -1);
+            vTexCoords = vec2(1, -1);
             break;
         default:
-            pos.xy += vec2( w, -h);
-            vTexCoords = vec2(1, -1);
+            pos.xy += vec2(w, -h);
+            vTexCoords = vec2(-1, -1);
             break;
     }
 
@@ -81,10 +77,8 @@ const char* DeepSpaceDot::QUAD_FRAG = R"(
 #version 330
 
 uniform vec3 uColor;
-uniform float uFarClip;
 
 in vec2 vTexCoords;
-in float fDepth;
 
 layout(location = 0) out vec4 oColor;
 
@@ -93,9 +87,6 @@ void main()
     float dist = length(vTexCoords);
     float blob = pow(dist, 10.0);
     oColor  = mix(vec4(uColor, 1.0), vec4(0), blob);
-    
-    // substract a small value to prevent depth fighting with trajectories
-    gl_FragDepth = fDepth / uFarClip - 0.00001;
 }
 )";
 
@@ -116,7 +107,6 @@ DeepSpaceDot::DeepSpaceDot(std::shared_ptr<Plugin::Settings> pluginSettings,
   mUniforms.projectionMatrix = mShader.GetUniformLocation("uMatProjection");
   mUniforms.color            = mShader.GetUniformLocation("uColor");
   mUniforms.aspect           = mShader.GetUniformLocation("uAspect");
-  mUniforms.farClip          = mShader.GetUniformLocation("uFarClip");
 
   // Add to scenegraph.
   VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
@@ -159,7 +149,6 @@ bool DeepSpaceDot::Do() {
     glUniformMatrix4fv(mUniforms.projectionMatrix, 1, GL_FALSE, glMatP.data());
     mShader.SetUniform(mUniforms.color, pColor.get()[0], pColor.get()[1], pColor.get()[2]);
     mShader.SetUniform(mUniforms.aspect, fAspect);
-    mShader.SetUniform(mUniforms.farClip, cs::utils::getCurrentFarClipDistance());
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     mShader.Release();
 

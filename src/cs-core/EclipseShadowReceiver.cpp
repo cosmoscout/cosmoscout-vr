@@ -71,6 +71,12 @@ void EclipseShadowReceiver::init(VistaGLSLShader* shader, uint32_t textureOffset
 
 void EclipseShadowReceiver::update(double time, scene::CelestialObserver const& observer) {
 
+  // No eclipse computation required if lighting is disabled.
+  if (!mSettings->mGraphics.pEnableLighting.get()) {
+    mShadowMaps.clear();
+    return;
+  }
+
   // Acquire a list of allpotentially relevant eclipse shadow maps.
   mShadowMaps = mSolarSystem->getEclipseShadowMaps(time, *mShadowReceiver, mAllowSelfShadowing);
 

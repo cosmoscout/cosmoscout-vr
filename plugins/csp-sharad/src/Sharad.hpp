@@ -78,7 +78,6 @@ class Sharad : public cs::scene::CelestialObject, public IVistaOpenGLDraw {
     uint32_t heightScale      = 0;
     uint32_t radii            = 0;
     uint32_t time             = 0;
-    uint32_t farClip          = 0;
   } mUniforms;
 
   int    mSamples;

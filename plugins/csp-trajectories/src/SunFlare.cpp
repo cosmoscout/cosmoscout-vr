@@ -28,7 +28,6 @@ const char* SunFlare::QUAD_VERT = R"(
 #version 330
 
 out vec2 vTexCoords;
-out float fDepth;
 
 uniform float uAspect;
 uniform mat4 uMatModelView;
@@ -36,10 +35,8 @@ uniform mat4 uMatProjection;
 
 void main()
 {
-    vec4 posVS = uMatModelView * vec4(0, 0, 0, 1);
-    fDepth = length(posVS.xyz);
-
-    vec4 posP = uMatProjection * posVS;
+    vec4 posVS  = uMatModelView * vec4(0, 0, 0, 1);
+    vec4 posP   = uMatProjection * posVS;
     float scale = length(uMatModelView[0]) / length(posVS.xyz);
 
     if (posP.w < 0) {
@@ -52,7 +49,7 @@ void main()
     float h = scale * 10e10;
     float w = h / uAspect;
 
-    posP.z = 0.999;
+    posP.z = -0.9999;
 
     switch (gl_VertexID) {
         case 0:
@@ -83,10 +80,8 @@ const char* SunFlare::QUAD_FRAG = R"(
 #version 330
 
 uniform vec3 uColor;
-uniform float uFarClip;
 
 in vec2 vTexCoords;
-in float fDepth;
 
 layout(location = 0) out vec3 oColor;
 
@@ -101,8 +96,6 @@ void main()
     dist = min(1.0, length(vTexCoords));
     glow = 1.0 - pow(dist, 0.05);
     oColor += uColor * glow * 2;
-
-    gl_FragDepth = fDepth / uFarClip;
 }
 )";
 
@@ -124,7 +117,6 @@ SunFlare::SunFlare(std::shared_ptr<cs::core::Settings> settings,
   mUniforms.projectionMatrix = mShader.GetUniformLocation("uMatProjection");
   mUniforms.color            = mShader.GetUniformLocation("uColor");
   mUniforms.aspect           = mShader.GetUniformLocation("uAspect");
-  mUniforms.farClip          = mShader.GetUniformLocation("uFarClip");
 
   // Add to scenegraph.
   VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
@@ -168,7 +160,6 @@ bool SunFlare::Do() {
     glUniformMatrix4fv(mUniforms.projectionMatrix, 1, GL_FALSE, glMatP.data());
     mShader.SetUniform(mUniforms.color, pColor.get()[0], pColor.get()[1], pColor.get()[2]);
     mShader.SetUniform(mUniforms.aspect, fAspect);
-    mShader.SetUniform(mUniforms.farClip, cs::utils::getCurrentFarClipDistance());
 
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     mShader.Release();

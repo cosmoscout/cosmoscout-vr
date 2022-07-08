@@ -83,7 +83,6 @@ struct GLProgramInfo {
   int u_BaseColorFactor_loc{};
 
   int u_Camera_loc{};
-  int u_FarClip_loc{};
 };
 
 /// Contains all available info about a texture.
@@ -159,7 +158,6 @@ struct GltfShared {
   int                  mBrdfLUTindex        = -1;
   int                  mDiffuseEnvMapIndex  = -1;
   int                  mSpecularEnvMapIndex = -1;
-  bool                 m_linearDepthBuffer  = false;
 };
 
 /// A Vista wrapper for the GLTF model responsible for rendering.

@@ -37,8 +37,6 @@ Trajectory::Trajectory(
 
   pSamples.connect([this](uint32_t /*value*/) { mPoints.clear(); });
 
-  mTrajectory.setUseLinearDepthBuffer(true);
-
   // Add to scenegraph.
   VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
   mGLNode.reset(pSG->NewOpenGLNode(pSG->GetRoot(), this));

@@ -70,11 +70,6 @@ class CS_SCENE_EXPORT Trajectory : public IVistaOpenGLDraw {
   float getWidth() const;
   void  setWidth(float val);
 
-  /// If true, the depth buffer is assumed to contain linear depth values. This significantly
-  /// reduces artifacts for large scenes.
-  bool getUseLinearDepthBuffer() const;
-  void setUseLinearDepthBuffer(bool bEnable);
-
  private:
   void createShader();
 
@@ -87,13 +82,11 @@ class CS_SCENE_EXPORT Trajectory : public IVistaOpenGLDraw {
   glm::vec4 mEndColor;
   float     mWidth{2.F};
 
-  bool mShaderDirty          = true;
-  bool mUseLinearDepthBuffer = false;
+  bool mShaderDirty = true;
 
   uint32_t mPointCount{0};
 
   struct {
-    uint32_t farClip          = 0;
     uint32_t startColor       = 0;
     uint32_t endColor         = 0;
     uint32_t modelViewMatrix  = 0;

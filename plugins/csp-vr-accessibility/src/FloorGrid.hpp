@@ -70,7 +70,6 @@ class FloorGrid : public IVistaOpenGLDraw {
     uint32_t texture          = 0;
     uint32_t extent           = 0;
     uint32_t size             = 0;
-    uint32_t farClip          = 0;
     uint32_t alpha            = 0;
     uint32_t color            = 0;
   } mUniforms;

@@ -63,11 +63,8 @@ $BRDF_NON_HDR
 
 void main() {
   if (VP_shadowMapMode) {
-    gl_FragDepth = gl_FragCoord.z;
     return;
   }
-
-  gl_FragDepth = length(fsIn.position) / VP_farClip;
 
   fragColor = vec4(1);
 

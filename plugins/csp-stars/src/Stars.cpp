@@ -294,7 +294,7 @@ bool Stars::Do() {
   // save current state of the OpenGL state machine
   glPushAttrib(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_ENABLE_BIT);
   glDepthMask(GL_FALSE);
-  glEnable(GL_DEPTH_TEST);
+  glDisable(GL_DEPTH_TEST);
   glEnable(GL_BLEND);
   glBlendFunc(GL_ONE, GL_ONE);
 
@@ -701,7 +701,7 @@ void Stars::buildStarVAO() {
 
     // distance in parsec --- some have parallax of zero; assume a
     // large distance in those cases
-    float fDist = 100000.F;
+    float fDist = 1000.F;
 
     if (it->mParallax > 0.F) {
       fDist = 1000.F / it->mParallax;

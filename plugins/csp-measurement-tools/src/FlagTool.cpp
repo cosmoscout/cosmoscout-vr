@@ -42,7 +42,6 @@ FlagTool::FlagTool(std::shared_ptr<cs::core::InputManager> const& pInputManager,
       0.0005F * static_cast<float>(mGuiArea->getHeight()), 1.F);
   mGuiTransform->Rotate(VistaAxisAndAngle(VistaVector3D(0.0, 1.0, 0.0), -glm::pi<float>() / 2.F));
   mGuiArea->addItem(mGuiItem.get());
-  mGuiArea->setUseLinearDepthBuffer(true);
 
   mGuiNode.reset(pSG->NewOpenGLNode(mGuiTransform.get(), mGuiArea.get()));
   mInputManager->registerSelectable(mGuiNode.get());

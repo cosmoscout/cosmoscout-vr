@@ -420,18 +420,6 @@ void Plugin::update() {
             0, 0, mCaptureWidth, mCaptureHeight, GL_DEPTH_COMPONENT, GL_FLOAT, &capture[0]);
 
         if (mCaptureFormat == "tiff") {
-          // We retrieve the current scene scale and far-clip distance in order to scale the depth
-          // values to meters.
-          double      nearClip{};
-          double      farClip{};
-          auto const& p = *GetVistaSystem()->GetDisplayManager()->GetProjectionsConstRef().begin();
-          p.second->GetProjectionProperties()->GetClippingRange(nearClip, farClip);
-
-          auto scale = static_cast<float>(farClip * mSolarSystem->getObserver().getAnchorScale());
-          for (auto& f : capture) {
-            f *= scale;
-          }
-
           // Now write the tiff image.
           tiffWriteToVector(mCapture, capture, mCaptureWidth, mCaptureHeight, 1, 32);
 

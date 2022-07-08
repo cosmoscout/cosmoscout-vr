@@ -32,9 +32,9 @@ const size_t GRID_RESOLUTION = 200;
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 const char* Ring::SPHERE_VERT = R"(
-uniform vec3 uSunDirection;
 uniform vec2 uRadii;
-uniform mat4 uMatModelView;
+uniform mat4 uMatModel;
+uniform mat4 uMatView;
 uniform mat4 uMatProjection;
 
 // inputs
@@ -53,8 +53,8 @@ void main()
     
     vec2 vPos = mix(vDir * uRadii.x, vDir * uRadii.y, iGridPos.y);
 
-    vPosition   = (uMatModelView * vec4(vPos.x, 0, vPos.y, 1.0)).xyz;
-    gl_Position =  uMatProjection * vec4(vPosition, 1);
+    vPosition   = (uMatModel * vec4(vPos.x, 0, vPos.y, 1.0)).xyz;
+    gl_Position =  uMatProjection * uMatView * vec4(vPosition, 1);
 }
 )";
 
@@ -64,13 +64,11 @@ const char* Ring::SPHERE_FRAG = R"(
 uniform sampler2D uSurfaceTexture;
 uniform float uAmbientBrightness;
 uniform float uSunIlluminance;
-uniform float uFarClip;
 
 ECLIPSE_SHADER_SNIPPET
 
 // inputs
 in vec2 vTexCoords;
-in vec3 vSunDirection;
 in vec3 vPosition;
 
 // outputs
@@ -95,8 +93,6 @@ void main() {
     #ifdef ENABLE_LIGHTING
       oColor.rgb = oColor.rgb * getEclipseShadow(vPosition) + vec3(uAmbientBrightness);
     #endif
-
-    gl_FragDepth = length(vPosition) / uFarClip;
 }
 )";
 
@@ -209,11 +205,11 @@ bool Ring::Do() {
     mShader.InitFragmentShaderFromString(frag);
     mShader.Link();
 
-    mUniforms.modelViewMatrix   = mShader.GetUniformLocation("uMatModelView");
+    mUniforms.modelMatrix       = mShader.GetUniformLocation("uMatModel");
+    mUniforms.viewMatrix        = mShader.GetUniformLocation("uMatView");
     mUniforms.projectionMatrix  = mShader.GetUniformLocation("uMatProjection");
     mUniforms.surfaceTexture    = mShader.GetUniformLocation("uSurfaceTexture");
     mUniforms.radii             = mShader.GetUniformLocation("uRadii");
-    mUniforms.farClip           = mShader.GetUniformLocation("uFarClip");
     mUniforms.sunIlluminance    = mShader.GetUniformLocation("uSunIlluminance");
     mUniforms.ambientBrightness = mShader.GetUniformLocation("uAmbientBrightness");
 
@@ -226,19 +222,20 @@ bool Ring::Do() {
   mShader.Bind();
 
   // Get modelview and projection matrices.
-  std::array<GLfloat, 16> glMatMV{};
+  std::array<GLfloat, 16> glMatV{};
   std::array<GLfloat, 16> glMatP{};
-  glGetFloatv(GL_MODELVIEW_MATRIX, glMatMV.data());
+  glGetFloatv(GL_MODELVIEW_MATRIX, glMatV.data());
   glGetFloatv(GL_PROJECTION_MATRIX, glMatP.data());
-  auto matMV = glm::make_mat4x4(glMatMV.data()) * glm::mat4(getWorldTransform());
+  auto matM = glm::mat4(getWorldTransform());
+  auto matV = glm::make_mat4x4(glMatV.data());
 
   // Set uniforms.
-  glUniformMatrix4fv(mUniforms.modelViewMatrix, 1, GL_FALSE, glm::value_ptr(matMV));
+  glUniformMatrix4fv(mUniforms.modelMatrix, 1, GL_FALSE, glm::value_ptr(matM));
+  glUniformMatrix4fv(mUniforms.viewMatrix, 1, GL_FALSE, glm::value_ptr(matV));
   glUniformMatrix4fv(mUniforms.projectionMatrix, 1, GL_FALSE, glMatP.data());
 
   mShader.SetUniform(mUniforms.surfaceTexture, 0);
   mShader.SetUniform(mUniforms.radii, mRingSettings.mInnerRadius, mRingSettings.mOuterRadius);
-  mShader.SetUniform(mUniforms.farClip, cs::utils::getCurrentFarClipDistance());
 
   float sunIlluminance(1.F);
   float ambientBrightness(mSettings->mGraphics.pAmbientBrightness.get());
@@ -255,6 +252,7 @@ bool Ring::Do() {
   mTexture->Bind(GL_TEXTURE0);
 
   glEnable(GL_BLEND);
+  glDisable(GL_CULL_FACE);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
   // Initialize eclipse shadow-related uniforms and textures.
@@ -272,6 +270,8 @@ bool Ring::Do() {
   mTexture->Unbind(GL_TEXTURE0);
 
   glDisable(GL_BLEND);
+  glEnable(GL_CULL_FACE);
+
   mShader.Release();
 
   return true;

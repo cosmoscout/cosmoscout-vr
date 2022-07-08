@@ -4,17 +4,21 @@
 //                        Copyright: (c) 2019 German Aerospace Center (DLR)                       //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#version 330
+#ifndef CS_GRAPHICS_SETUP_GL_NODE_HPP
+#define CS_GRAPHICS_SETUP_GL_NODE_HPP
 
-// uniforms --------------------------------------------------------------------
-uniform mat4 VP_matProjection;
-uniform vec3 VP_corners[8];
+#include "cs_graphics_export.hpp"
 
-// inputs ----------------------------------------------------------------------
-layout(location = 0) in int index;
+#include <VistaKernel/GraphicsManager/VistaOpenGLDraw.h>
 
-// -----------------------------------------------------------------------------
-void main()
-{
-    gl_Position = VP_matProjection * vec4(VP_corners[index], 1.0);
-}
+namespace cs::graphics {
+
+class CS_GRAPHICS_EXPORT SetupGLNode : public IVistaOpenGLDraw {
+ public:
+  bool Do() override;
+  bool GetBoundingBox(VistaBoundingBox& oBoundingBox) override;
+};
+
+} // namespace cs::graphics
+
+#endif // CS_GRAPHICS_SETUP_GL_NODE_HPP

@@ -76,7 +76,6 @@ const char* AtmosphereRenderer::cAtmosphereFrag0 = R"(
   uniform float     uWaterLevel;
   uniform float     uCloudAltitude;
   uniform float     uAmbientBrightness;
-  uniform float     uFarClip;
 
   // shadow stuff
   uniform sampler2DShadow uShadowMaps[5];
@@ -229,7 +228,7 @@ const char* AtmosphereRenderer::cAtmosphereFrag0 = R"(
     float fDet = b * b - c;
 
     if (fDet < 0.0) {
-      return vec2(10000, -10000);
+      return vec2(1, -1);
     }
 
     fDet = sqrt(fDet);
@@ -466,29 +465,37 @@ const char* AtmosphereRenderer::cAtmosphereFrag1 = R"(
   }
 
   // returns the model space distance to the surface of the depth buffer at the
-  // current pixel, or 10 if there is nothing in the depth buffer
-  float GetOpaqueDepth() {
+  // current pixel, or 100 if there is nothing in the depth buffer
+  float GetOpaqueDepth(vec3 vRayOrigin, vec3 vRayDir) {
     float fDepth = GetDepth();
 
-    #if USE_LINEARDEPTHBUFFER
+    // We need to return a distance which is guaranteed to be larger
+    // than the largest ray length possible. As the atmosphere has a
+    // radius of 1.0, 100 is more than enough.
+    if (fDepth == 0) return 100.0;
 
-      // We need to return a distance which is guaranteed to be larger
-      // than the largest ray length possible. As the atmosphere has a
-      // radius of 1.0, 1000000 is more than enough.
-      if (fDepth == 1) return 1000000.0;
+    vec4 vPos = uMatInvMVP * vec4(2.0*vsIn.vTexcoords-1, 2*fDepth-1, 1);
+    float msDepth = length(vRayOrigin - vPos.xyz / vPos.w);
 
-      float linearDepth = fDepth * uFarClip;
-      vec4 posFarPlane = uMatInvP * vec4(2.0*vsIn.vTexcoords-1, 1.0, 1.0);
-      vec3 posVS = normalize(posFarPlane.xyz) * linearDepth;
+    // If the depth of the next opaque object is verz close to the far end of our depth buffer, we
+    // will get jittering artifacts. That's the case if we are next to a satellite or on a moon and
+    // look towards a planet with an atmosphere. In this case, start and end of the ray through the
+    // atmosphere basically map to the same depth. Therefore, if the depth is really far away (close
+    // to zero) we compute the intersection with the planet analytically and blend to this value
+    // instead. This means, if you are close to a satellite, mountains of the planet below cannot
+    // poke through the atmosphere anymore.
+    const float START_DEPTH_FADE = 0.001;
+    const float END_DEPTH_FADE = 0.00001;
 
-      return length(vsIn.vRayOrigin - (uMatInvMV * vec4(posVS, 1.0)).xyz);
+    // We are only using the depth approximation if fDepth is smaller than START_DEPTH_FADE and if
+    // the observer is outside of the atmosphere.
+    if (fDepth < START_DEPTH_FADE && length(vRayOrigin) > 1.0) {
+      vec2 planetIntersections = IntersectPlanetsphere(vRayOrigin, vRayDir);
+      float simpleDepth = planetIntersections.y > 0.0 ? planetIntersections.x : 100.0;
+      return mix(simpleDepth, msDepth, clamp((fDepth - END_DEPTH_FADE) / (START_DEPTH_FADE - END_DEPTH_FADE), 0.0, 1.0));
+    }
 
-    #else
-
-      vec4  vPos = uMatInvMVP * vec4(2.0*vsIn.vTexcoords-1, 2*fDepth-1, 1);
-      return length(vsIn.vRayOrigin - vPos.xyz / vPos.w);
-
-    #endif
+    return msDepth;
   }
   
   // crops the intersections to the view ray
@@ -580,7 +587,7 @@ const char* AtmosphereRenderer::cAtmosphereFrag1 = R"(
     vec3 vRayDir = normalize(vsIn.vRayDir);
 
     // sample depth from the depth buffer
-    float fOpaqueDepth = GetOpaqueDepth();
+    float fOpaqueDepth = GetOpaqueDepth(vsIn.vRayOrigin, vRayDir);
 
     // get the color of the planet, can be land or ocean
     // if it is ocean, fOpaqueDepth will be increased towards the ocean surface

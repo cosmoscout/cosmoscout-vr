@@ -100,7 +100,6 @@ class DipStrikeTool : public IVistaOpenGLDraw, public cs::core::tools::MultiPoin
     uint32_t modelViewMatrix  = 0;
     uint32_t projectionMatrix = 0;
     uint32_t opacity          = 0;
-    uint32_t farClip          = 0;
   } mUniforms;
 
   bool      mVerticesDirty = false;

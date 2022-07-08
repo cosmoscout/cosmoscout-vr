@@ -37,8 +37,7 @@ struct GltfShared;
 class CS_GRAPHICS_EXPORT GltfLoader {
  public:
   /// Creates a gltf model from the gltf and cubemap files.
-  GltfLoader(const std::string& sGltfFile, const std::string& cubemapFilepath,
-      bool linearDepthBuffer = false);
+  GltfLoader(const std::string& sGltfFile, const std::string& cubemapFilepath);
 
   GltfLoader(GltfLoader const& other) = delete;
   GltfLoader(GltfLoader&& other)      = delete;

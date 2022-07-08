@@ -28,35 +28,23 @@ namespace cs::gui {
 
 const char* const WorldSpaceGuiArea::QUAD_VERT = R"(
 vec2 positions[4] = vec2[](
-    vec2(-0.5, -0.5),
-    vec2(0.5, -0.5),
     vec2(-0.5, 0.5),
-    vec2(0.5, 0.5)
+    vec2(0.5, 0.5),
+    vec2(-0.5, -0.5),
+    vec2(0.5, -0.5)
 );
 
 uniform mat4 uMatModelView;
 uniform mat4 uMatProjection;
 
 out vec2 vTexCoords;
-out vec4 vPosition;
 
 void main()
 {
   vec2 p = positions[gl_VertexID];
   vTexCoords = vec2(p.x, -p.y) + 0.5;
-  vPosition = uMatModelView * vec4(p, 0, 1);
-  gl_Position = uMatProjection * vPosition;
-
-  #ifdef USE_LINEARDEPTHBUFFER
-    gl_Position.z = 0;
-  #else
-    if (gl_Position.w > 0) {
-      gl_Position /= gl_Position.w;
-      if (gl_Position.z >= 1) {
-        gl_Position.z = 0.999999;
-      }
-    }
-  #endif
+  vec4 pos = uMatModelView * vec4(p, 0, 1);
+  gl_Position = uMatProjection * pos;
 }
 )";
 
@@ -64,9 +52,6 @@ void main()
 
 const char* const WorldSpaceGuiArea::QUAD_FRAG = R"(
 in vec2 vTexCoords;
-in vec4 vPosition;
-
-uniform float iFarClip;
 
 uniform samplerBuffer texture;
 uniform ivec2 texSize;
@@ -100,11 +85,6 @@ void main() {
   if (vOutColor.a == 0.0) discard;
 
   vOutColor.rgb /= vOutColor.a;
-
-  #ifdef USE_LINEARDEPTHBUFFER
-    // write linear depth
-    gl_FragDepth = length(vPosition.xyz) / iFarClip;
-  #endif
 }
 )";
 
@@ -155,19 +135,6 @@ bool WorldSpaceGuiArea::getIgnoreDepth() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool WorldSpaceGuiArea::getUseLinearDepthBuffer() const {
-  return mUseLinearDepthBuffer;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void WorldSpaceGuiArea::setUseLinearDepthBuffer(bool bEnable) {
-  mShaderDirty          = true;
-  mUseLinearDepthBuffer = bEnable;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 bool WorldSpaceGuiArea::calculateMousePosition(
     VistaVector3D const& vRayOrigin, VistaVector3D const& vRayEnd, int& x, int& y) {
 
@@ -196,15 +163,10 @@ bool WorldSpaceGuiArea::Do() {
 
     std::string defines = "#version 330\n";
 
-    if (mUseLinearDepthBuffer) {
-      defines += "#define USE_LINEARDEPTHBUFFER\n";
-    }
-
     mShader.InitVertexShaderFromString(defines + QUAD_VERT);
     mShader.InitFragmentShaderFromString(defines + QUAD_FRAG);
     mShader.Link();
 
-    mUniforms.farClip          = mShader.GetUniformLocation("iFarClip");
     mUniforms.projectionMatrix = mShader.GetUniformLocation("uMatProjection");
     mUniforms.modelViewMatrix  = mShader.GetUniformLocation("uMatModelView");
     mUniforms.texSize          = mShader.GetUniformLocation("texSize");
@@ -228,10 +190,6 @@ bool WorldSpaceGuiArea::Do() {
   }
 
   mShader.Bind();
-
-  if (mUseLinearDepthBuffer) {
-    mShader.SetUniform(mUniforms.farClip, utils::getCurrentFarClipDistance());
-  }
 
   // get modelview and projection matrices
   std::array<GLfloat, 16> glMat{};
