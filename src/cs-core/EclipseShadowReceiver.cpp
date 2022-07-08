@@ -77,12 +77,10 @@ void EclipseShadowReceiver::update(double time, scene::CelestialObserver const& 
   // For each shadow-casting body, we store the observer-relative position and the observer-relative
   // radius. For now, all occluders are considered to be spheres.
   for (size_t i(0); i < mShadowMaps.size() && i < MAX_BODIES; ++i) {
-    scene::CelestialAnchor anchor;
-    mSettings->initAnchor(anchor, mShadowMaps[i]->mOccluderAnchor);
-    auto pos = observer.getRelativePosition(time, anchor);
+    auto object = mSettings->getAnchor(mShadowMaps[i]->mOccluderAnchor);
+    auto pos = object->getObserverRelativePosition();
 
-    mOccluders[i] = glm::vec4(pos,
-        mSettings->getAnchorRadii(mShadowMaps[i]->mOccluderAnchor)[0] / observer.getAnchorScale());
+    mOccluders[i] = glm::vec4(pos, object->getRadii()[0] / observer.getAnchorScale());
   }
 }
 

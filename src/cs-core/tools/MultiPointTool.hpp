@@ -42,7 +42,7 @@ class CS_CORE_EXPORT MultiPointTool : public Tool {
 
   MultiPointTool(std::shared_ptr<InputManager> pInputManager,
       std::shared_ptr<SolarSystem> pSolarSystem, std::shared_ptr<Settings> settings,
-      std::shared_ptr<TimeControl> pTimeControl, std::string sCenter, std::string sFrame);
+      std::shared_ptr<TimeControl> pTimeControl, std::string anchorName);
 
   MultiPointTool(MultiPointTool const& other) = delete;
   MultiPointTool(MultiPointTool&& other)      = delete;
@@ -54,14 +54,6 @@ class CS_CORE_EXPORT MultiPointTool : public Tool {
 
   /// Called from Tools class.
   void update() override;
-
-  /// Gets or sets the SPICE center name for all points.
-  virtual void               setCenterName(std::string const& name);
-  virtual std::string const& getCenterName() const;
-
-  /// Gets or sets the SPICE frame name for all points.
-  virtual void               setFrameName(std::string const& name);
-  virtual std::string const& getFrameName() const;
 
   /// Use this to access all point positions at once.
   std::vector<glm::dvec2> getPositions() const;
@@ -92,7 +84,7 @@ class CS_CORE_EXPORT MultiPointTool : public Tool {
  private:
   int         mLeftButtonConnection  = -1;
   int         mRightButtonConnection = -1;
-  std::string mCenter, mFrame;
+  std::string mAnchorName;
 };
 
 } // namespace tools

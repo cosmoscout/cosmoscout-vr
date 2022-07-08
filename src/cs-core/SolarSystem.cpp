@@ -9,7 +9,7 @@
 #include "SolarSystem.hpp"
 
 #include "../cs-graphics/EclipseShadowMap.hpp"
-#include "../cs-scene/CelestialBody.hpp"
+#include "../cs-scene/CelestialSurface.hpp"
 #include "../cs-utils/FrameTimings.hpp"
 #include "../cs-utils/convert.hpp"
 #include "../cs-utils/utils.hpp"
@@ -188,72 +188,6 @@ void SolarSystem::fixObserverFrame(double lastWorkingSimulationTime) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void SolarSystem::registerObject(
-    std::string const& name, std::shared_ptr<scene::CelestialObject> const& object) {
-  mObjects[name] = object;
-
-  for (const auto& listener : mAddObjectListeners) {
-    listener.second(name, object);
-  }
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void SolarSystem::unregisterObject(std::string const& name) {
-  auto it = mObjects.find(name);
-
-  if (it != mObjects.end()) {
-    auto object = it->second;
-
-    mObjects.erase(it);
-
-    for (const auto& listener : mRemoveObjectListeners) {
-      listener.second(name, object);
-    }
-
-    if (pActiveObject.get() == object) {
-      pActiveObject = nullptr;
-    }
-  }
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void SolarSystem::unregisterObject(std::shared_ptr<scene::CelestialObject> const& object) {
-  auto it = std::find_if(
-      mObjects.begin(), mObjects.end(), [object](const auto& it) { return it.second == object; });
-
-  if (it != mObjects.end()) {
-    auto name = it->first;
-
-    mObjects.erase(it);
-
-    for (const auto& listener : mRemoveObjectListeners) {
-      listener.second(name, object);
-    }
-
-    if (pActiveObject.get() == object) {
-      pActiveObject = nullptr;
-    }
-  }
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-std::map<std::string, std::shared_ptr<scene::CelestialObject>> const&
-SolarSystem::getObjects() const {
-  return mObjects;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-std::shared_ptr<scene::CelestialObject> SolarSystem::getObject(std::string const& name) const {
-  auto it = mObjects.find(name);
-  return it == mObjects.end() ? nullptr : it->second;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 void SolarSystem::update() {
   double simulationTime(mTimeControl->pSimulationTime.get());
   double realTime(
@@ -262,11 +196,11 @@ void SolarSystem::update() {
 
   mSun->update(simulationTime, mObserver);
 
-  for (auto const& [name, object] : mObjects) {
+  for (auto const& [name, anchor] : mSettings->mAnchors) {
     utils::FrameTimings::ScopedTimer timer(
-        "Update " + object->getCenterName() + " / " + object->getFrameName(),
+        "Update " + anchor->getCenterName() + " / " + anchor->getFrameName(),
         utils::FrameTimings::QueryMode::eCPU);
-    object->update(simulationTime, mObserver);
+    anchor->update(simulationTime, mObserver);
   }
 
   // Update sun position. If a fixed Sun direction is enabled, we must calculate an artificial

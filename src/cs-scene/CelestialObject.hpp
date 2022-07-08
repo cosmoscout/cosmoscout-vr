@@ -14,7 +14,9 @@
 
 namespace cs::scene {
 
-class CelestialBody;
+class CelestialSurface;
+class CelestialObserver;
+class IntersectableObject;
 
 /// CelestialObjects have a lifetime in the universe. They are defined by their start and end
 /// existence time. The time is given in the Barycentric Dynamical Time format, which is used
@@ -39,7 +41,7 @@ class CS_SCENE_EXPORT CelestialObject : public CelestialAnchor {
   glm::dvec2 const& getExistence() const;
   void              setExistence(glm::dvec2 value);
 
-  /// The radii of the CelestialBody in meters.
+  /// The radii of the CelestialObject in meters.
   glm::dvec3 const& getRadii() const;
   void              setRadii(glm::dvec3 const& value);
 
@@ -90,10 +92,14 @@ class CS_SCENE_EXPORT CelestialObject : public CelestialAnchor {
 
   // -----------------------------------------------------------------------------------------------
 
-  /// It is possible to assign a CelestialBody to a CelestialObject. This body can be used to define
-  /// an actual surface by providing a getHeight() method.
-  std::shared_ptr<CelestialBody> const& getBody() const;
-  void                                  setBody(std::shared_ptr<CelestialBody> const& body);
+  /// It is possible to assign a CelestialSurface to a CelestialObject. This surface can be used to define
+  /// an actual terrain by providing a getHeight() method. This will be used for ground following, collision detection and by plugins to sample the height of the body (for instance for measuring tools).
+  std::shared_ptr<CelestialSurface> const& getSurface() const;
+  void setSurface(std::shared_ptr<CelestialSurface> const& surface);
+
+/// It is also possible to assign an IntersectableObject to a CelestialObject. If the CelestialObject is then registered with the InputManager, it will be regularily tested for intersections with the mouse ray.
+     std::shared_ptr<IntersectableObject> const& getIntersectableObject() const;
+  void setIntersectableObject(std::shared_ptr<IntersectableObject> const& object);
 
  protected:
   glm::dvec3 mRadii = glm::dvec3(0.0);
@@ -111,7 +117,8 @@ class CS_SCENE_EXPORT CelestialObject : public CelestialAnchor {
   bool       mIsBodyVisible               = true;
   bool       mIsOrbitVisible              = true;
 
-  std::shared_ptr<CelestialBody> mBody;
+  std::shared_ptr<CelestialSurface> mSurface;
+  std::shared_ptr<IntersectableObject> mIntersectable;
 };
 
 } // namespace cs::scene

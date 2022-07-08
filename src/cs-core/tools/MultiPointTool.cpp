@@ -9,7 +9,7 @@
 #include <utility>
 
 #include "../../cs-scene/CelestialAnchorNode.hpp"
-#include "../../cs-scene/CelestialBody.hpp"
+#include "../../cs-scene/CelestialSurface.hpp"
 #include "../../cs-utils/convert.hpp"
 #include "../InputManager.hpp"
 
@@ -19,13 +19,12 @@ namespace cs::core::tools {
 
 MultiPointTool::MultiPointTool(std::shared_ptr<InputManager> pInputManager,
     std::shared_ptr<SolarSystem> pSolarSystem, std::shared_ptr<Settings> settings,
-    std::shared_ptr<TimeControl> pTimeControl, std::string sCenter, std::string sFrame)
+    std::shared_ptr<TimeControl> pTimeControl, std::string anchorName)
     : mInputManager(std::move(pInputManager))
     , mSolarSystem(std::move(pSolarSystem))
     , mSettings(std::move(settings))
     , mTimeControl(std::move(pTimeControl))
-    , mCenter(std::move(sCenter))
-    , mFrame(std::move(sFrame)) {
+    , mAnchorName(std::move(anchorName)) {
 
   // If pAddPointMode is true, a new point will be added on a left mouse button click.
   mLeftButtonConnection = mInputManager->pButtons[0].connect([this](bool pressed) {
@@ -61,7 +60,7 @@ MultiPointTool::~MultiPointTool() {
 void MultiPointTool::addPoint(std::optional<glm::dvec2> const& lngLat) {
   // Add the Mark to the list.
   mPoints.emplace_back(std::make_shared<DeletableMark>(
-      mInputManager, mSolarSystem, mSettings, mTimeControl, mCenter, mFrame));
+      mInputManager, mSolarSystem, mSettings, mTimeControl, mAnchorName));
 
   // if there is a planet intersection, move the point to the intersection location
   if (lngLat) {
@@ -69,13 +68,9 @@ void MultiPointTool::addPoint(std::optional<glm::dvec2> const& lngLat) {
   } else {
     auto intersection = mInputManager->pHoveredObject.get();
     if (intersection.mObject) {
-      auto body = std::dynamic_pointer_cast<cs::scene::CelestialBody>(intersection.mObject);
-
-      if (body) {
-        auto       radii = body->getRadii();
+        auto       radii = intersection.mObject->getRadii();
         glm::dvec2 pos   = cs::utils::convert::cartesianToLngLat(intersection.mPosition, radii);
         mPoints.back()->pLngLat = pos;
-      }
     }
   }
 
@@ -123,47 +118,11 @@ void MultiPointTool::update() {
   if (pAddPointMode.get()) {
     auto intersection = mInputManager->pHoveredObject.get();
     if (intersection.mObject) {
-      auto body = std::dynamic_pointer_cast<cs::scene::CelestialBody>(intersection.mObject);
-
-      if (body) {
-        auto radii = body->getRadii();
+        auto radii = intersection.mObject->getRadii();
         mPoints.back()->pLngLat =
             cs::utils::convert::cartesianToLngLat(intersection.mPosition, radii);
-      }
     }
   }
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void MultiPointTool::setCenterName(std::string const& name) {
-  mCenter = name;
-
-  for (auto& p : mPoints) {
-    p->getAnchor()->setCenterName(name);
-  }
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-std::string const& MultiPointTool::getCenterName() const {
-  return mCenter;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void MultiPointTool::setFrameName(std::string const& name) {
-  mFrame = name;
-
-  for (auto& p : mPoints) {
-    p->getAnchor()->setFrameName(name);
-  }
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-std::string const& MultiPointTool::getFrameName() const {
-  return mFrame;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

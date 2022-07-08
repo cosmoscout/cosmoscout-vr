@@ -50,7 +50,7 @@ class CS_CORE_EXPORT Mark : public IVistaOpenGLDraw, public Tool {
 
   Mark(std::shared_ptr<InputManager> pInputManager, std::shared_ptr<SolarSystem> pSolarSystem,
       std::shared_ptr<Settings> Settings, std::shared_ptr<TimeControl> pTimeControl,
-      std::string const& sCenter, std::string const& sFrame);
+      std::string const& anchorName);
 
   Mark(Mark const& other);
   Mark(Mark&& other) = default;
@@ -60,8 +60,8 @@ class CS_CORE_EXPORT Mark : public IVistaOpenGLDraw, public Tool {
 
   ~Mark() override;
 
-  std::shared_ptr<cs::scene::CelestialAnchorNode> const& getAnchor() const;
-  std::shared_ptr<cs::scene::CelestialAnchorNode>&       getAnchor();
+  std::shared_ptr<cs::scene::CelestialObject> const& getAnchor() const;
+  std::shared_ptr<cs::scene::CelestialObject>&       getAnchor();
 
   /// Called from Tools class.
   void update() override;
@@ -76,11 +76,12 @@ class CS_CORE_EXPORT Mark : public IVistaOpenGLDraw, public Tool {
   std::shared_ptr<Settings>     mSettings;
   std::shared_ptr<TimeControl>  mTimeControl;
 
-  std::shared_ptr<cs::scene::CelestialAnchorNode> mAnchor = nullptr;
-  VistaOpenGLNode*                                mParent = nullptr;
+  std::shared_ptr<cs::scene::CelestialObject> mAnchor    = nullptr;
+  VistaTransformNode*                         mTransform = nullptr;
+  VistaOpenGLNode*                            mParent    = nullptr;
 
  private:
-  void initData(std::string const& sCenter, std::string const& sFrame);
+  void initData();
 
   std::unique_ptr<VistaVertexArrayObject> mVAO;
   std::unique_ptr<VistaBufferObject>      mVBO;

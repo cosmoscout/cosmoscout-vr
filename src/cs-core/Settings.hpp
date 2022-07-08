@@ -11,6 +11,7 @@
 
 #include "../cs-graphics/HDRBuffer.hpp"
 #include "../cs-graphics/ToneMappingNode.hpp"
+#include "../cs-scene/CelestialObject.hpp"
 #include "../cs-utils/DefaultProperty.hpp"
 #include "../cs-utils/utils.hpp"
 #include "EclipseShadowReceiver.hpp"
@@ -82,12 +83,6 @@ struct adl_serializer<cs::utils::Property<T>> {
 };
 
 } // namespace nlohmann
-
-namespace cs::scene {
-class CelestialAnchor;
-class CelestialObject;
-class CelestialBody;
-} // namespace cs::scene
 
 namespace cs::core {
 
@@ -163,78 +158,36 @@ class CS_CORE_EXPORT Settings {
   /// value of one corresponds to real-time. Negative values will cause the time to run backwards.
   utils::DefaultProperty<float> pTimeSpeed{1.F};
 
-  /// In order to reduce duplication of code, a list of all used SPICE-frames ("Anchors") is
-  /// required at the start of each configuration file. The name of each Anchor is then later used
-  /// to reference the respective SPICE frame.
-  struct CS_CORE_EXPORT Anchor {
-    std::string mCenter;
-    std::string mFrame;
+  /// All configured CelestialObjects are updated by the SolarSystem each frame. Plugins can draw
+  /// geometry at those positions. Each object can have several properties; only "center", "frame",
+  /// and "existence" are mandatory. All others can be ommited to use default values. A fully
+  /// configured CelestialOject looks like this:
+  /// ...,
+  /// "anchors": {
+  ///   "Earth": {
+  ///      "center": "Earth",
+  ///      "frame": "IAU_Earth",
+  ///      "existence": [
+  ///        "1950-01-02 00:00:00.000",
+  ///        "2049-12-31 00:00:00.000"
+  ///      ],
+  ///      "position": [0.0, 0.0, 0.0],
+  ///      "rotation": [0.0, 0.0, 0.0, 1.0],
+  ///      "scale": 1.0,
+  ///      "radii": [0.0, 0.0, 0.0],
+  ///      "bodyCullingRadius": 0.0,
+  ///      "orbitCullingRadius": 0.0,
+  ///      "trackable": false,
+  ///      "collidable": false
+  ///   },
+  ///   ...
+  /// },
+  /// ...
+  std::map<std::string, std::shared_ptr<cs::scene::CelestialObject>> mAnchors;
 
-    /// This should match the data coverage of your SPICE kernels. These should be given in UTC
-    /// (like this 1950-01-02 00:00:00.000). Beware that tools like brief and ckbrief give coverage
-    /// information in TDB which differs from UTC by several seconds.
-    std::array<std::string, 2> mExistence;
-
-    /// SolarSystem::getRadii() will return this value if it is given. Else it will return the radii
-    /// as provided by SPICE.
-    std::optional<glm::dvec3> mRadii;
-
-    /// Additional translation in meters, relative to center in frame coordinates, additional
-    /// scaling and rotation is applied afterwards and will not change the position relative to the
-    /// center.
-    std::optional<glm::dvec3> mPosition;
-
-    /// Additional rotation around the point center + position in frame coordinates.
-    std::optional<glm::dquat> mRotation;
-
-    /// Additional uniform scaling around the point center + position.
-    std::optional<double> mScale;
-
-    /// If set to false, the SolarSystem will not consider CelestialBodies created for this anchor
-    /// for the computation of the active body.
-    utils::DefaultProperty<bool> mTrackable{true};
-  };
-
-  std::map<std::string, Anchor> mAnchors;
-
-  /// The convenience methods below initialize all members of the given anchor from the values of
-  /// the settings. All methods may throw a std::runtime_error if the given anchor name is not
-  /// present.
-
-  void initAnchor(scene::CelestialAnchor& anchor, std::string const& anchorName) const;
-  void initAnchor(scene::CelestialObject& object, std::string const& anchorName) const;
-  void initAnchor(scene::CelestialBody& body, std::string const& anchorName) const;
-
-  /// The convenience methods below directly return the corresponding values from the mAnchors map.
-  /// All methods may throw a std::runtime_error if the given anchor name is not present.
-
-  // Returns the SPICE center name of the anchor with the given name.
-  std::string getAnchorCenter(std::string const& anchorName) const;
-
-  // Returns the SPICE frame name of the anchor with the given name.
-  std::string getAnchorFrame(std::string const& anchorName) const;
-
-  /// These convert the two existence strings of the configured anchor to SPICE-compatible TDB
-  /// doubles.
-  glm::dvec2 getAnchorExistence(std::string const& anchorName) const;
-
-  /// Reads the optional mRadii member of the configured anchor. If mRadii is not given,
-  /// SolarSystem::getRadii() is used to retrieve the values.
-  glm::dvec3 getAnchorRadii(std::string const& anchorName) const;
-
-  /// Reads the optional additional translation of the given anchor. glm::dvec3(0.0) is returned if
-  /// no value is given.
-  glm::dvec3 getAnchorPosition(std::string const& anchorName) const;
-
-  /// Reads the optional additional rotation of the given anchor. glm::dquat(1.0, 0.0, 0.0, 0.0) is
-  /// returned if no value is given.
-  glm::dquat getAnchorRotation(std::string const& anchorName) const;
-
-  /// Reads the optional scaling of the given anchor. 1.0 is returned if no value is given.
-  double getAnchorScale(std::string const& anchorName) const;
-
-  /// Reads the optional tracking value of the given anchor. True is returned if no value is given.
-  bool getAnchorIsTrackable(std::string const& anchorName) const;
+  /// This makes a look-up in the above map and returns the corrosponding object. If it does not
+  /// exist, a nullptr is returned and an error message is logged.
+  std::shared_ptr<cs::scene::CelestialObject> getAnchor(std::string const& name) const;
 
   /// The values of the observer are updated by the SolarSystem once each frame. For all others,
   /// they should be considered readonly. If you want to modify the transformation of the virtual
@@ -591,8 +544,8 @@ class CS_CORE_EXPORT Settings {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-CS_CORE_EXPORT void from_json(nlohmann::json const& j, Settings::Anchor& o);
-CS_CORE_EXPORT void to_json(nlohmann::json& j, Settings::Anchor const& o);
+CS_CORE_EXPORT void from_json(nlohmann::json const& j, std::shared_ptr<cs::scene::CelestialObject>& o);
+CS_CORE_EXPORT void to_json(nlohmann::json& j, std::shared_ptr<cs::scene::CelestialObject> const& o);
 CS_CORE_EXPORT void from_json(nlohmann::json const& j, Settings::GuiPosition& o);
 CS_CORE_EXPORT void to_json(nlohmann::json& j, Settings::GuiPosition const& o);
 CS_CORE_EXPORT void from_json(nlohmann::json const& j, Settings::Observer& o);

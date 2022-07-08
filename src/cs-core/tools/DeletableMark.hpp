@@ -21,8 +21,7 @@ class CS_CORE_EXPORT DeletableMark : public Mark {
  public:
   DeletableMark(std::shared_ptr<InputManager> const& pInputManager,
       std::shared_ptr<SolarSystem> const& pSolarSystem, std::shared_ptr<Settings> const& settings,
-      std::shared_ptr<TimeControl> const& pTimeControl, std::string const& sCenter,
-      std::string const& sFrame);
+      std::shared_ptr<TimeControl> const& pTimeControl, std::string const& anchorName);
 
   DeletableMark(DeletableMark const& other) = delete;
   DeletableMark(DeletableMark&& other)      = delete;

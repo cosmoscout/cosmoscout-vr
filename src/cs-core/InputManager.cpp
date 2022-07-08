@@ -128,7 +128,7 @@ InputManager::~InputManager() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void InputManager::registerSelectable(std::shared_ptr<utils::IntersectableObject> const& pBody) {
+void InputManager::registerSelectable(std::shared_ptr<scene::CelestialObject> const& pBody) {
   if (pBody) {
     mIntersectables.insert(pBody);
   }
@@ -160,7 +160,7 @@ void InputManager::registerSelectable(IVistaNode* pNode) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void InputManager::unregisterSelectable(std::shared_ptr<utils::IntersectableObject> const& pBody) {
+void InputManager::unregisterSelectable(std::shared_ptr<scene::CelestialObject> const& pBody) {
   if (pBody) {
     mIntersectables.erase(pBody);
 

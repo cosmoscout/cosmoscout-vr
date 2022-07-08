@@ -810,7 +810,7 @@ void Application::connectSlots() {
   mInputManager->pHoveredObject.connect(
       [this](cs::core::InputManager::Intersection const& intersection) {
         if (intersection.mObject) {
-          auto body = std::dynamic_pointer_cast<cs::scene::CelestialBody>(intersection.mObject);
+          auto body = std::dynamic_pointer_cast<cs::scene::CelestialSurface>(intersection.mObject);
 
           if (body) {
             auto radii = body->getRadii();
@@ -842,7 +842,7 @@ void Application::connectSlots() {
 
   // Show notification when the center name of the celestial observer changes.
   mSolarSystem->pActiveBody.connectAndTouch(
-      [this](std::shared_ptr<cs::scene::CelestialBody> const& body) {
+      [this](std::shared_ptr<cs::scene::CelestialSurface> const& body) {
         std::string center = "Solar System Barycenter";
         glm::dvec3  radii(0.0);
 

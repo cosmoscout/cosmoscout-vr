@@ -9,12 +9,12 @@
 
 #include "cs_scene_export.hpp"
 
-#include "../cs-utils/IntersectableObject.hpp"
+#include <glm/fwd.hpp>
 
 namespace cs::scene {
 
-/// A CelestialBody can be assigned to a CelestialObject.
-class CS_SCENE_EXPORT CelestialBody : public utils::IntersectableObject {
+/// A CelestialSurface can be assigned to a CelestialObject.
+class CS_SCENE_EXPORT CelestialSurface {
  public:
   /// Returns the elevation in meters at a specific point on the surface.
   ///

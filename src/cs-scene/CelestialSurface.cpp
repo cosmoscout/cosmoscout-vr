@@ -4,7 +4,7 @@
 //                        Copyright: (c) 2019 German Aerospace Center (DLR)                       //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#include "CelestialBody.hpp"
+#include "CelestialSurface.hpp"
 
 namespace cs::scene {
 

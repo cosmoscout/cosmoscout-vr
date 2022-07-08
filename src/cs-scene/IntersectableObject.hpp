@@ -4,14 +4,14 @@
 //                        Copyright: (c) 2019 German Aerospace Center (DLR)                       //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#ifndef CS_UTILS_INTERSECTABLE_OBJECT_HPP
-#define CS_UTILS_INTERSECTABLE_OBJECT_HPP
+#ifndef CS_SCENE_INTERSECTABLE_OBJECT_HPP
+#define CS_SCENE_INTERSECTABLE_OBJECT_HPP
 
-#include "cs_utils_export.hpp"
+#include "cs_scene_export.hpp"
 
 #include <glm/fwd.hpp>
 
-namespace cs::utils {
+namespace cs::scene {
 
 /// An interface for objects that can be intersected by a ray. One class implementing this interface
 /// is the cs::scene::CelestialObject.
@@ -28,4 +28,4 @@ class IntersectableObject {
 
 } // namespace cs::utils
 
-#endif // CS_UTILS_INTERSECTABLE_OBJECT_HPP
+#endif // CS_SCENE_INTERSECTABLE_OBJECT_HPP

@@ -26,7 +26,7 @@
 #include "../cs-gui/GuiItem.hpp"
 #include "../cs-gui/WorldSpaceGuiArea.hpp"
 #include "../cs-scene/CelestialAnchorNode.hpp"
-#include "../cs-scene/CelestialBody.hpp"
+#include "../cs-scene/CelestialSurface.hpp"
 #include "../cs-utils/Property.hpp"
 #include "../cs-utils/convert.hpp"
 #include "../cs-utils/utils.hpp"

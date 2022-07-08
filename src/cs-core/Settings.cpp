@@ -6,7 +6,6 @@
 
 #include "Settings.hpp"
 
-#include "../cs-scene/CelestialBody.hpp"
 #include "../cs-utils/convert.hpp"
 #include "SolarSystem.hpp"
 #include "logger.hpp"
@@ -34,26 +33,53 @@ namespace cs::core {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void from_json(nlohmann::json const& j, Settings::Anchor& o) {
-  Settings::deserialize(j, "center", o.mCenter);
-  Settings::deserialize(j, "frame", o.mFrame);
-  Settings::deserialize(j, "existence", o.mExistence);
-  Settings::deserialize(j, "radii", o.mRadii);
-  Settings::deserialize(j, "position", o.mPosition);
-  Settings::deserialize(j, "rotation", o.mRotation);
-  Settings::deserialize(j, "scale", o.mScale);
-  Settings::deserialize(j, "trackable", o.mTrackable);
+void from_json(nlohmann::json const& j, std::shared_ptr<cs::scene::CelestialObject>& o) {
+  if (!o) {
+    o = std::make_shared<cs::scene::CelestialObject>();
+  }
+
+  // First, we parse the required parameters.
+  std::string center, frame;
+  std::array<std::string, 2> existence;
+
+  Settings::deserialize(j, "center", center);
+  Settings::deserialize(j, "frame", frame);
+  Settings::deserialize(j, "existence", existence);
+
+  o->setCenterName(center);
+  o->setFrameName(frame);
+  o->setExistence(glm::dvec2(utils::convert::time::toSpice(existence[0]),
+        utils::convert::time::toSpice(existence[1])));
+
+  // All others are optional.
+  std::optional<glm::dvec3> radii, position;
+  std::optional<glm::quat> rotation;
+  std::optional<double> scale, bodyCullingRadius, orbitCullingRadius;
+  std::optional<bool> trackable, collidable;
+  Settings::deserialize(j, "position", position);
+  Settings::deserialize(j, "rotation", rotation);
+  Settings::deserialize(j, "scale", scale);
+  Settings::deserialize(j, "radii", radii);
+  Settings::deserialize(j, "bodyCullingRadius", bodyCullingRadius);
+  Settings::deserialize(j, "orbitCullingRadius", orbitCullingRadius);
+  Settings::deserialize(j, "trackable", trackable);
+  Settings::deserialize(j, "collidable", collidable);
+
 }
 
-void to_json(nlohmann::json& j, Settings::Anchor const& o) {
-  Settings::serialize(j, "center", o.mCenter);
-  Settings::serialize(j, "frame", o.mFrame);
-  Settings::serialize(j, "existence", o.mExistence);
-  Settings::serialize(j, "radii", o.mRadii);
-  Settings::serialize(j, "position", o.mPosition);
-  Settings::serialize(j, "rotation", o.mRotation);
-  Settings::serialize(j, "scale", o.mScale);
-  Settings::serialize(j, "trackable", o.mTrackable);
+void to_json(nlohmann::json& j, std::shared_ptr<cs::scene::CelestialObject> const& o) {
+  std::array<std::string, 2> existence {utils::convert::time::toString(o->getExistence()[0]), utils::convert::time::toString(o->getExistence()[1])};
+  Settings::serialize(j, "center", o->getCenterName());
+  Settings::serialize(j, "frame", o->getFrameName());
+  Settings::serialize(j, "existence", existence);
+  Settings::serialize(j, "position", o->getAnchorPosition());
+  Settings::serialize(j, "rotation", o->getAnchorRotation());
+  Settings::serialize(j, "scale", o->getAnchorScale());
+  Settings::serialize(j, "radii", o->getRadii());
+  Settings::serialize(j, "bodyCullingRadius", o->getBodyCullingRadius());
+  Settings::serialize(j, "orbitCullingRadius", o->getOrbitCullingRadius());
+  Settings::serialize(j, "trackable", o->getIsTrackable());
+  Settings::serialize(j, "collidable", o->getIsCollidable());
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -405,130 +431,15 @@ std::string Settings::saveToJson() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Settings::initAnchor(scene::CelestialAnchor& anchor, std::string const& anchorName) const {
-  anchor.setCenterName(getAnchorCenter(anchorName));
-  anchor.setFrameName(getAnchorFrame(anchorName));
-  anchor.setAnchorPosition(getAnchorPosition(anchorName));
-  anchor.setAnchorRotation(getAnchorRotation(anchorName));
-  anchor.setAnchorScale(getAnchorScale(anchorName));
+std::shared_ptr<cs::scene::CelestialObject> Settings::getAnchor(std::string const& name) const {
+auto it = mAnchors.find(name);
+
+if (it != mAnchors.end()) {
+  return it->second;
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void Settings::initAnchor(scene::CelestialObject& object, std::string const& anchorName) const {
-  initAnchor(static_cast<scene::CelestialAnchor&>(object), anchorName);
-  object.setRadii(getAnchorRadii(anchorName));
-  object.setExistence(getAnchorExistence(anchorName));
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void Settings::initAnchor(scene::CelestialBody& body, std::string const& anchorName) const {
-  initAnchor(static_cast<scene::CelestialObject&>(body), anchorName);
-  body.pTrackable = getAnchorIsTrackable(anchorName);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-glm::dvec2 Settings::getAnchorExistence(std::string const& anchorName) const {
-  auto anchor = mAnchors.find(anchorName);
-  if (anchor == mAnchors.end()) {
-    throw std::runtime_error("Failed to parse the 'existence' property of the anchor '" +
-                             anchorName + "': No anchor with this name found in the settings!");
-  }
-
-  try {
-    return glm::dvec2(utils::convert::time::toSpice(anchor->second.mExistence[0]),
-        utils::convert::time::toSpice(anchor->second.mExistence[1]));
-  } catch (std::exception const&) {
-    throw std::runtime_error(
-        "Failed to parse the 'existence' property of the anchor '" + anchorName +
-        "': The dates should be given in the format: 1969-07-20T20:17:40.000Z");
-  }
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-glm::dvec3 Settings::getAnchorRadii(std::string const& anchorName) const {
-  auto anchor = mAnchors.find(anchorName);
-  if (anchor == mAnchors.end()) {
-    throw std::runtime_error("Failed to read the 'radii' property of the anchor '" + anchorName +
-                             "': No anchor with this name found in the settings!");
-  }
-
-  return anchor->second.mRadii.value_or(SolarSystem::getRadii(anchor->second.mCenter));
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-std::string Settings::getAnchorCenter(std::string const& anchorName) const {
-  auto anchor = mAnchors.find(anchorName);
-  if (anchor == mAnchors.end()) {
-    throw std::runtime_error("Failed to get the 'center' property of the anchor '" + anchorName +
-                             "': No anchor with this name found in the settings!");
-  }
-
-  return anchor->second.mCenter;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-std::string Settings::getAnchorFrame(std::string const& anchorName) const {
-  auto anchor = mAnchors.find(anchorName);
-  if (anchor == mAnchors.end()) {
-    throw std::runtime_error("Failed to get the 'frame' property of the anchor '" + anchorName +
-                             "': No anchor with this name found in the settings!");
-  }
-
-  return anchor->second.mFrame;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-glm::dvec3 Settings::getAnchorPosition(std::string const& anchorName) const {
-  auto anchor = mAnchors.find(anchorName);
-  if (anchor == mAnchors.end()) {
-    throw std::runtime_error("Failed to get the 'position' property of the anchor '" + anchorName +
-                             "': No anchor with this name found in the settings!");
-  }
-
-  return anchor->second.mPosition.value_or(glm::dvec3(0.0));
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-glm::dquat Settings::getAnchorRotation(std::string const& anchorName) const {
-  auto anchor = mAnchors.find(anchorName);
-  if (anchor == mAnchors.end()) {
-    throw std::runtime_error("Failed to get the 'rotation' property of the anchor '" + anchorName +
-                             "': No anchor with this name found in the settings!");
-  }
-
-  return anchor->second.mRotation.value_or(glm::dquat(1.0, 0.0, 0.0, 0.0));
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-double Settings::getAnchorScale(std::string const& anchorName) const {
-  auto anchor = mAnchors.find(anchorName);
-  if (anchor == mAnchors.end()) {
-    throw std::runtime_error("Failed to get the 'scale' property of the anchor '" + anchorName +
-                             "': No anchor with this name found in the settings!");
-  }
-
-  return anchor->second.mScale.value_or(1.0);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-bool Settings::getAnchorIsTrackable(std::string const& anchorName) const {
-  auto anchor = mAnchors.find(anchorName);
-  if (anchor == mAnchors.end()) {
-    throw std::runtime_error("Failed to get the 'trackable' property of the anchor '" + anchorName +
-                             "': No anchor with this name found in the settings!");
-  }
-
-  return anchor->second.mTrackable.get();
+logger().error("Failed to retrieve the anchor \"{}\": No such anchor is defined in the settings!", name);
+return nullptr;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

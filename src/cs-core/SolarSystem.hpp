@@ -98,21 +98,6 @@ class CS_CORE_EXPORT SolarSystem {
   /// error occurs.
   void fixObserverFrame(double lastWorkingSimulationTime);
 
-  /// Adds a CelestialObject to the SolarSystem. If there is already an object with the same name
-  /// registered, it will be replaced. It's update() method will be called each frame from now on.
-  void registerObject(
-      std::string const& name, std::shared_ptr<scene::CelestialObject> const& object);
-
-  /// Removes a CelestialObject from the SolarSystem.
-  void unregisterObject(std::string const& name);
-  void unregisterObject(std::shared_ptr<scene::CelestialObject> const& object);
-
-  /// Returns all registered objects.
-  std::map<std::string, std::shared_ptr<scene::CelestialObject>> const& getObjects() const;
-
-  /// Returns one specific Object from the map above.
-  std::shared_ptr<scene::CelestialObject> getObject(std::string const& name) const;
-
   // Update methods --------------------------------------------------------------------------------
 
   /// Updates all CelestialAnchors, the Sun and the CelestialObserver's animation.
@@ -175,16 +160,6 @@ class CS_CORE_EXPORT SolarSystem {
   /// @param duration The duration in Barycentric Dynamical Time to move to the new location.
   void flyObserverTo(std::string const& sCenter, std::string const& sFrame, double duration);
 
-  /// The methods below can be used for being notified about new CelestialBodies being added to or
-  /// removed from the SolarSystem.
-  uint64_t registerAddObjectListener(
-      std::function<void(std::string, std::shared_ptr<scene::CelestialObject>)> listener);
-  void unregisterAddObjectListener(uint64_t id);
-
-  uint64_t registerRemoveObjectListener(
-      std::function<void(std::string, std::shared_ptr<scene::CelestialObject>)> listener);
-  void unregisterRemoveObjectListener(uint64_t id);
-
   // static utility functions ----------------------------------------------------------------------
 
   /// Initializes SPICE.
@@ -237,18 +212,9 @@ class CS_CORE_EXPORT SolarSystem {
   std::shared_ptr<TimeControl>                                   mTimeControl;
   scene::CelestialObserver                                       mObserver;
   std::shared_ptr<scene::CelestialObject>                        mSun;
-  std::map<std::string, std::shared_ptr<scene::CelestialObject>> mObjects;
 
   bool mIsInitialized              = false;
   bool mSpiceFrameChangedLastFrame = false;
-
-  uint64_t mListenerIds = 0;
-  std::unordered_map<uint64_t,
-      std::function<void(std::string, std::shared_ptr<scene::CelestialObject>)>>
-      mAddObjectListeners;
-  std::unordered_map<uint64_t,
-      std::function<void(std::string, std::shared_ptr<scene::CelestialObject>)>>
-      mRemoveObjectListeners;
 
   // These are used for measuring the observer speed.
   glm::dvec3                                     mLastPosition = glm::dvec3(0.0);

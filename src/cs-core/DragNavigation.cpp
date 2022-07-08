@@ -106,7 +106,7 @@ void DragNavigation::update() {
   // store observer transform when dragging started
   if (!mInputManager->pButtons[0].get() && !mInputManager->pButtons[1].get()) {
 
-    auto pickedPlanet = std::dynamic_pointer_cast<cs::scene::CelestialBody>(
+    auto pickedPlanet = std::dynamic_pointer_cast<cs::scene::CelestialAnchor>(
         mInputManager->pHoveredObject.get().mObject);
 
     if (pickedPlanet) {
@@ -194,9 +194,9 @@ void DragNavigation::update() {
         double targetAngle = -1.0 * std::acos(dot);
 
         // reduce rotation speed close to planet
-        if (!mDraggingPlanet && !mLocalRotation && mSolarSystem->pActiveBody.get()) {
+        if (!mDraggingPlanet && !mLocalRotation && mSolarSystem->pActiveObject.get()) {
           double fac   = 0.5;
-          auto   radii = mSolarSystem->pActiveBody.get()->getRadii();
+          auto   radii = mSolarSystem->pActiveObject.get()->getRadii();
           if (radii[0] > 0) {
             auto surfacePos = utils::convert::scaleToGeodeticSurface(observerPos, radii);
             auto distance   = observerPos - surfacePos;
@@ -273,13 +273,13 @@ void DragNavigation::update() {
 
   glm::dquat newObserverRot = glm::angleAxis(mTargetAngle, mCurrentAxis) * mStartObserverRot;
 
-  if (mLocalRotation && mSolarSystem->pActiveBody.get()) {
+  if (mLocalRotation && mSolarSystem->pActiveObject.get()) {
     // perform roll correction if observer is close to planet (10% of
     // radius) and planet normal is already close to up
     // or if the orthogonal on planet normal and up vector is
     // close to the viewers x axis (e.g. if the user is looking down or
     // upwards but the horizon is still straight)
-    auto radii      = mSolarSystem->pActiveBody.get()->getRadii();
+    auto radii      = mSolarSystem->pActiveObject.get()->getRadii();
     auto surfacePos = utils::convert::scaleToGeodeticSurface(observerPos, radii);
     auto distance   = observerPos - surfacePos;
 

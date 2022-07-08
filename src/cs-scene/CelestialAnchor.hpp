@@ -15,8 +15,6 @@
 
 namespace cs::scene {
 
-class CelestialObserver;
-
 /// This class is the root class for all objects which have a location in the Solar System. It uses
 /// the SPICE coordinate system, which means that the transformation of this object is defined by
 /// two parameters:
