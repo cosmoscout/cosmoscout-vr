@@ -40,18 +40,6 @@ std::optional<double> IntersectSphere(glm::dvec3 const& origin, glm::dvec3 const
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-glm::dvec3 GetPositionInObserverFrame(cs::scene::CelestialAnchor const& anchor,
-    std::shared_ptr<cs::core::SolarSystem> const&                       pSolarSystem,
-    std::shared_ptr<cs::core::TimeControl> const&                       pTimeControl) {
-  double                     simulationTime(pTimeControl->pSimulationTime.get());
-  cs::scene::CelestialAnchor observerAnchor(
-      pSolarSystem->getObserver().getCenterName(), pSolarSystem->getObserver().getFrameName());
-
-  return observerAnchor.getRelativePosition(simulationTime, anchor);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 } // namespace
 
 namespace cs::core {
@@ -74,8 +62,8 @@ DragNavigation::DragNavigation(std::shared_ptr<cs::core::SolarSystem> pSolarSyst
 
 void DragNavigation::update() {
   // current observer transform of this frame
-  glm::dvec3 observerPos = mSolarSystem->getObserver().getAnchorPosition();
-  glm::dquat observerRot = mSolarSystem->getObserver().getAnchorRotation();
+  glm::dvec3 observerPos = mSolarSystem->getObserver().getPosition();
+  glm::dquat observerRot = mSolarSystem->getObserver().getRotation();
 
   // store observer transform when dragging started
   if (!mInputManager->pButtons[0].get() && !mInputManager->pButtons[1].get()) {
@@ -100,29 +88,20 @@ void DragNavigation::update() {
   // the amount of rotation which is required
   glm::dvec3 rayDir = glm::normalize(
       (startObserverTransform * pickTransform * glm::dvec4(0.0, 0.0, -1.0, 0.0)).xyz());
-  glm::dvec3 rayOrigin = pickTransform[3].xyz() * mSolarSystem->getObserver().getAnchorScale();
+  glm::dvec3 rayOrigin = pickTransform[3].xyz() * mSolarSystem->getObserver().getScale();
   rayOrigin            = (startObserverTransform * glm::vec4(rayOrigin, 1.0)).xyz();
 
   // store observer transform when dragging started
   if (!mInputManager->pButtons[0].get() && !mInputManager->pButtons[1].get()) {
 
-    auto pickedPlanet = std::dynamic_pointer_cast<cs::scene::CelestialAnchor>(
-        mInputManager->pHoveredObject.get().mObject);
+    auto pickedPlanet = mInputManager->pHoveredObject.get().mObject;
 
     if (pickedPlanet) {
-      // observer can be in another spice frame, therefore we need to
-      // convert pick position to observer frame
-      cs::scene::CelestialAnchor anchor(
-          pickedPlanet->getCenterName(), pickedPlanet->getFrameName());
-      anchor.setAnchorPosition(mInputManager->pHoveredObject.get().mPosition);
-
-      try {
-        mStartIntersection = GetPositionInObserverFrame(anchor, mSolarSystem, mTimeControl);
-        mDraggingPlanet    = true;
-      } catch (std::exception const& e) {
-        // Getting the position in observer coordinates may fail due to insufficient SPICE data.
-        logger().warn("Failed to grab '{}': {}", pickedPlanet->getCenterName(), e.what());
-      }
+      // Observer can be in another spice frame, therefore we need to convert pick position to
+      // observer frame.
+      mStartIntersection =
+          pickedPlanet->getObserverRelativePosition(mInputManager->pHoveredObject.get().mPosition);
+      mDraggingPlanet = true;
     }
 
     float const epsilon = 0.05F;
@@ -268,7 +247,7 @@ void DragNavigation::update() {
         (glm::translate(rotationCenter) * glm::rotate(mTargetAngle, mCurrentAxis) *
             glm::translate(-rotationCenter) * glm::dvec4(mStartObserverPos, 1.0))
             .xyz();
-    mSolarSystem->getObserver().setAnchorPosition(newObserverPos);
+    mSolarSystem->getObserver().setPosition(newObserverPos);
   }
 
   glm::dquat newObserverRot = glm::angleAxis(mTargetAngle, mCurrentAxis) * mStartObserverRot;
@@ -310,7 +289,7 @@ void DragNavigation::update() {
     }
   }
 
-  mSolarSystem->getObserver().setAnchorRotation(newObserverRot);
+  mSolarSystem->getObserver().setRotation(newObserverRot);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

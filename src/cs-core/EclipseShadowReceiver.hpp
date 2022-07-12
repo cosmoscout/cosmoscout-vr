@@ -59,8 +59,7 @@ class CS_CORE_EXPORT EclipseShadowReceiver {
   /// body as well as shadow receiving body are attached to the same SPICE anchor, such as the rings
   /// of Saturn.
   EclipseShadowReceiver(std::shared_ptr<Settings> settings,
-      std::shared_ptr<SolarSystem> solarSystem, scene::CelestialObject const* shadowReceiver,
-      bool allowSelfShadowing);
+      std::shared_ptr<SolarSystem> solarSystem, bool allowSelfShadowing);
 
   /// This will return true if mGraphics.pEclipseShadowMode has been changed since the last call to
   /// getShaderSnippet().
@@ -77,7 +76,7 @@ class CS_CORE_EXPORT EclipseShadowReceiver {
   void init(VistaGLSLShader* shader, uint32_t textureOffset);
 
   /// This should be called once each frame.
-  void update(double time, scene::CelestialObserver const& observer);
+  void update(scene::CelestialObject const& shadowReceiver, double time, scene::CelestialObserver const& observer);
 
   /// This should be called before rendering the object. It will set all uniforms and bind the
   /// eclipse shadow maps.
@@ -91,7 +90,6 @@ class CS_CORE_EXPORT EclipseShadowReceiver {
 
   std::shared_ptr<Settings>     mSettings;
   std::shared_ptr<SolarSystem>  mSolarSystem;
-  scene::CelestialObject const* mShadowReceiver;
   bool                          mAllowSelfShadowing;
 
   VistaGLSLShader* mShader        = nullptr;

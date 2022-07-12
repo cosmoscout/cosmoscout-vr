@@ -16,13 +16,14 @@
 #include <VistaOGLExt/VistaVertexArrayObject.h>
 
 #include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp>
 #include <memory>
 
 namespace cs::scene {
-class CelestialAnchorNode;
+class CelestialObject;
 } // namespace cs::scene
 
-class VistaBufferObject;
+class VistaTransformNode;
 class VistaOpenGLNode;
 class VistaVertexArrayObject;
 
@@ -49,8 +50,7 @@ class CS_CORE_EXPORT Mark : public IVistaOpenGLDraw, public Tool {
   cs::utils::Property<double> pScaleDistance = -1.0;
 
   Mark(std::shared_ptr<InputManager> pInputManager, std::shared_ptr<SolarSystem> pSolarSystem,
-      std::shared_ptr<Settings> Settings, std::shared_ptr<TimeControl> pTimeControl,
-      std::string const& anchorName);
+      std::shared_ptr<Settings> Settings, std::string const& objectName);
 
   Mark(Mark const& other);
   Mark(Mark&& other) = default;
@@ -59,9 +59,6 @@ class CS_CORE_EXPORT Mark : public IVistaOpenGLDraw, public Tool {
   Mark& operator=(Mark&& other) = delete;
 
   ~Mark() override;
-
-  std::shared_ptr<cs::scene::CelestialObject> const& getAnchor() const;
-  std::shared_ptr<cs::scene::CelestialObject>&       getAnchor();
 
   /// Called from Tools class.
   void update() override;
@@ -74,14 +71,17 @@ class CS_CORE_EXPORT Mark : public IVistaOpenGLDraw, public Tool {
   std::shared_ptr<InputManager> mInputManager;
   std::shared_ptr<SolarSystem>  mSolarSystem;
   std::shared_ptr<Settings>     mSettings;
-  std::shared_ptr<TimeControl>  mTimeControl;
 
-  std::shared_ptr<cs::scene::CelestialObject> mAnchor    = nullptr;
-  VistaTransformNode*                         mTransform = nullptr;
-  VistaOpenGLNode*                            mParent    = nullptr;
+  std::shared_ptr<const cs::scene::CelestialObject> mObject;
+  VistaTransformNode*                               mTransform = nullptr;
+  VistaOpenGLNode*                                  mParent    = nullptr;
 
  private:
   void initData();
+
+  glm::dvec3 mPosition;
+  glm::dquat mRotation;
+  double     mScale{1.0};
 
   std::unique_ptr<VistaVertexArrayObject> mVAO;
   std::unique_ptr<VistaBufferObject>      mVBO;

@@ -45,7 +45,8 @@ constexpr int vistaKeyCode(char c) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-InputManager::InputManager() {
+InputManager::InputManager(std::shared_ptr<Settings> settings)
+    : mSettings(std::move(settings)) {
 
   // Tell the user what's going on.
   logger().debug("Creating InputManager.");
@@ -105,6 +106,9 @@ InputManager::InputManager() {
     }
   });
 
+  // TODO: Remove intersection if corresponding object is removed from the settings
+  // pHoveredObject = Intersection();
+
   // Register handler and events.
   GetVistaSystem()->GetKeyboardSystemControl()->SetDirectKeySink(this);
   GetVistaSystem()->GetEventManager()->AddEventHandler(
@@ -123,14 +127,6 @@ InputManager::~InputManager() {
     mSelection.UnregisterNode(adapter);
     delete adapter; // NOLINT(cppcoreguidelines-owning-memory): unordered_set doesn't like smart
                     // pointers.
-  }
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void InputManager::registerSelectable(std::shared_ptr<scene::CelestialObject> const& pBody) {
-  if (pBody) {
-    mIntersectables.insert(pBody);
   }
 }
 
@@ -155,18 +151,6 @@ void InputManager::registerSelectable(IVistaNode* pNode) {
                                                   // std::set doesn't like smart pointers.
     mSelection.RegisterNode(pAdapter);
     mAdapters.insert(pAdapter);
-  }
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void InputManager::unregisterSelectable(std::shared_ptr<scene::CelestialObject> const& pBody) {
-  if (pBody) {
-    mIntersectables.erase(pBody);
-
-    if (pHoveredObject.get().mObject == pBody) {
-      pHoveredObject = Intersection();
-    }
   }
 }
 
@@ -249,17 +233,19 @@ void InputManager::update() {
 
   // Test the Intention Node for Intersection with planets.
   Intersection intersection;
-  for (auto const& intersectable : mIntersectables) {
-    glm::dvec3 pos(0.0, 0.0, 0.0);
+  for (auto const& [name, object] : mSettings->mObjects) {
+    if (object->getIntersectableObject()) {
+      glm::dvec3 pos(0.0, 0.0, 0.0);
 
-    bool intersects =
-        intersectable->getIntersection(glm::dvec3(v3Position[0], v3Position[1], v3Position[2]),
-            glm::dvec3(v3Direction[0], v3Direction[1], v3Direction[2]), pos);
+      bool intersects = object->getIntersectableObject()->getIntersection(
+          glm::dvec3(v3Position[0], v3Position[1], v3Position[2]),
+          glm::dvec3(v3Direction[0], v3Direction[1], v3Direction[2]), pos);
 
-    if (intersects) {
-      intersection.mObject   = intersectable;
-      intersection.mPosition = pos;
-      break;
+      if (intersects) {
+        intersection.mObject   = object;
+        intersection.mPosition = pos;
+        break;
+      }
     }
   }
 

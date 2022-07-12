@@ -13,6 +13,7 @@
 #include "../cs-graphics/ToneMappingNode.hpp"
 #include "../cs-scene/CelestialObject.hpp"
 #include "../cs-utils/DefaultProperty.hpp"
+#include "../cs-utils/ObservableMap.hpp"
 #include "../cs-utils/utils.hpp"
 #include "EclipseShadowReceiver.hpp"
 
@@ -83,6 +84,13 @@ struct adl_serializer<cs::utils::Property<T>> {
 };
 
 } // namespace nlohmann
+
+namespace cs::utils {
+CS_CORE_EXPORT void from_json(nlohmann::json const&                                j,
+    ObservableMap<std::string, std::shared_ptr<const cs::scene::CelestialObject>>& o);
+CS_CORE_EXPORT void to_json(nlohmann::json&                                              j,
+    ObservableMap<std::string, std::shared_ptr<const cs::scene::CelestialObject>> const& o);
+} // namespace cs::utils
 
 namespace cs::core {
 
@@ -163,7 +171,7 @@ class CS_CORE_EXPORT Settings {
   /// and "existence" are mandatory. All others can be ommited to use default values. A fully
   /// configured CelestialOject looks like this:
   /// ...,
-  /// "anchors": {
+  /// "objects": {
   ///   "Earth": {
   ///      "center": "Earth",
   ///      "frame": "IAU_Earth",
@@ -171,9 +179,6 @@ class CS_CORE_EXPORT Settings {
   ///        "1950-01-02 00:00:00.000",
   ///        "2049-12-31 00:00:00.000"
   ///      ],
-  ///      "position": [0.0, 0.0, 0.0],
-  ///      "rotation": [0.0, 0.0, 0.0, 1.0],
-  ///      "scale": 1.0,
   ///      "radii": [0.0, 0.0, 0.0],
   ///      "bodyCullingRadius": 0.0,
   ///      "orbitCullingRadius": 0.0,
@@ -183,11 +188,7 @@ class CS_CORE_EXPORT Settings {
   ///   ...
   /// },
   /// ...
-  std::map<std::string, std::shared_ptr<cs::scene::CelestialObject>> mAnchors;
-
-  /// This makes a look-up in the above map and returns the corrosponding object. If it does not
-  /// exist, a nullptr is returned and an error message is logged.
-  std::shared_ptr<cs::scene::CelestialObject> getAnchor(std::string const& name) const;
+  cs::utils::ObservableMap<std::string, std::shared_ptr<const cs::scene::CelestialObject>> mObjects;
 
   /// The values of the observer are updated by the SolarSystem once each frame. For all others,
   /// they should be considered readonly. If you want to modify the transformation of the virtual
@@ -538,8 +539,6 @@ class CS_CORE_EXPORT Settings {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-CS_CORE_EXPORT void from_json(nlohmann::json const& j, std::shared_ptr<cs::scene::CelestialObject>& o);
-CS_CORE_EXPORT void to_json(nlohmann::json& j, std::shared_ptr<cs::scene::CelestialObject> const& o);
 CS_CORE_EXPORT void from_json(nlohmann::json const& j, Settings::GuiPosition& o);
 CS_CORE_EXPORT void to_json(nlohmann::json& j, Settings::GuiPosition const& o);
 CS_CORE_EXPORT void from_json(nlohmann::json const& j, Settings::Observer& o);

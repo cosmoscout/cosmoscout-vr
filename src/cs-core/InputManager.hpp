@@ -44,8 +44,8 @@ class CS_CORE_EXPORT InputManager : public VistaKeyboardSystemControl::IVistaDir
   /// This class describes an intersection point on an CelestialObject. Usually this is used for
   /// intersections between the mouse ray and planets or moons.
   struct Intersection {
-    std::shared_ptr<scene::CelestialObject> mObject   = nullptr;
-    glm::dvec3                              mPosition = glm::dvec3(0.0, 0.0, 0.0);
+    std::shared_ptr<const scene::CelestialObject> mObject   = nullptr;
+    glm::dvec3                                    mPosition = glm::dvec3(0.0, 0.0, 0.0);
 
     bool operator==(Intersection const& other) const {
       return mObject == other.mObject && mPosition == other.mPosition;
@@ -103,7 +103,8 @@ class CS_CORE_EXPORT InputManager : public VistaKeyboardSystemControl::IVistaDir
 
   /// Regardless of the node state above, this property will always be updated. Usually it contains
   /// the intersection between the mouse ray and a planet or moon. This property should be
-  /// considered read-only.
+  /// considered read-only. All CelestialObjects from the settings containing an IntersectableObject
+  /// are test for intersections.
   utils::Property<Intersection> pHoveredObject;
 
   /// Contains the state of the buttons of your input device. These properties should be considered
@@ -118,7 +119,7 @@ class CS_CORE_EXPORT InputManager : public VistaKeyboardSystemControl::IVistaDir
 
   /// Creates a new instance of this class. As a user, you will not need to call this directly, as
   /// an instance is created by CosmoScout's Application class.
-  explicit InputManager();
+  explicit InputManager(std::shared_ptr<Settings> settings);
 
   InputManager(InputManager const& other) = delete;
   InputManager(InputManager&& other)      = delete;
@@ -128,10 +129,9 @@ class CS_CORE_EXPORT InputManager : public VistaKeyboardSystemControl::IVistaDir
 
   ~InputManager() override;
 
-  /// Register an object to be selectable. You can register different types:
-  ///  * scene::CelestialObject: If the CelestialObject has an assigned IntersectableObject, it will
-  ///      be checked for intersections. If intersected, the CelestialObject will become the
-  ///       pHoveredObject.
+  /// Register an object to be selectable. CelestialObjects containing an IntersectableObject will
+  /// automaticlly be checked for intersections. In addition, two other types of object can be
+  /// registered:
   ///  * IVistaNode: Intersections will be calculated via the VistaBoundingBoxAdapter. That means,
   ///      the GetBoundBox() method of the IVistaNode has to return the bounds which should be
   ///      checked for intersections.  If intersected, these nodes will be available in
@@ -140,13 +140,11 @@ class CS_CORE_EXPORT InputManager : public VistaKeyboardSystemControl::IVistaDir
   ///      will be available in pHoveredGuiItem, pActiveGuiItem and pSelectedGuiItem.
   ///  * gui::ScreenSpaceGuiArea: If such an object is intersected, it will be available in
   ///      pHoveredGuiItem, pActiveGuiItem and pSelectedGuiItem.
-  void registerSelectable(std::shared_ptr<scene::CelestialObject> const& pBody);
   void registerSelectable(IVistaNode* pNode);
   void registerSelectable(gui::ScreenSpaceGuiArea* pGui);
 
   /// Unregister any previously registered object. It's important to call these when the registered
   /// objects are deleted.
-  void unregisterSelectable(std::shared_ptr<scene::CelestialObject> const& pBody);
   void unregisterSelectable(IVistaNode* pNode);
   void unregisterSelectable(gui::ScreenSpaceGuiArea* pGui);
 
@@ -165,11 +163,12 @@ class CS_CORE_EXPORT InputManager : public VistaKeyboardSystemControl::IVistaDir
   bool HandleKeyPress(int key, int mods, bool bIsKeyRepeat) override;
 
  private:
-  VistaIntentionSelect                                        mSelection;
-  std::unordered_set<VistaNodeAdapter*>                       mAdapters;
-  std::unordered_set<std::shared_ptr<scene::CelestialObject>> mIntersectables;
-  std::unordered_set<gui::ScreenSpaceGuiArea*>                mScreenSpaceGuis;
-  boost::posix_time::ptime                                    mClickTime;
+  std::shared_ptr<core::Settings> mSettings;
+
+  VistaIntentionSelect                         mSelection;
+  std::unordered_set<VistaNodeAdapter*>        mAdapters;
+  std::unordered_set<gui::ScreenSpaceGuiArea*> mScreenSpaceGuis;
+  boost::posix_time::ptime                     mClickTime;
 
   VistaOpenGLNode* mActiveWorldSpaceGuiNode{};
 };

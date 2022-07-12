@@ -17,7 +17,7 @@ namespace cs::graphics {
 /// This struct stores information required for each eclipse shadow map. This is an anchor name (as
 /// used by the core::Settings::getAnchor* methods) as well as the actual shadow texture.
 struct EclipseShadowMap {
-  std::string                   mOccluderAnchor;
+  std::string                   mOccluder;
   std::shared_ptr<VistaTexture> mTexture;
 };
 

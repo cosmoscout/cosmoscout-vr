@@ -9,12 +9,13 @@
 #include "../../cs-core/GuiManager.hpp"
 #include "../../cs-gui/GuiItem.hpp"
 #include "../../cs-gui/WorldSpaceGuiArea.hpp"
-#include "../../cs-scene/CelestialAnchorNode.hpp"
+#include "../../cs-scene/CelestialObject.hpp"
 #include "../InputManager.hpp"
 #include "../SolarSystem.hpp"
 
 #include <VistaKernel/GraphicsManager/VistaOpenGLNode.h>
 #include <VistaKernel/GraphicsManager/VistaSceneGraph.h>
+#include <VistaKernel/GraphicsManager/VistaTransformNode.h>
 #include <VistaKernel/VistaSystem.h>
 #include <VistaKernelOpenSGExt/VistaOpenSGMaterialTools.h>
 
@@ -24,8 +25,8 @@ namespace cs::core::tools {
 
 DeletableMark::DeletableMark(std::shared_ptr<InputManager> const& pInputManager,
     std::shared_ptr<SolarSystem> const& pSolarSystem, std::shared_ptr<Settings> const& settings,
-    std::shared_ptr<TimeControl> const& pTimeControl, std::string const& anchorName)
-    : Mark(pInputManager, pSolarSystem, settings, pTimeControl, anchorName)
+    std::string const& objectName)
+    : Mark(pInputManager, pSolarSystem, settings, objectName)
     , mGuiArea(new cs::gui::WorldSpaceGuiArea(65, 75))
     , mGuiItem(new cs::gui::GuiItem("file://../share/resources/gui/deletable_mark.html")) {
 

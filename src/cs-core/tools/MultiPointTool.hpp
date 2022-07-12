@@ -42,7 +42,7 @@ class CS_CORE_EXPORT MultiPointTool : public Tool {
 
   MultiPointTool(std::shared_ptr<InputManager> pInputManager,
       std::shared_ptr<SolarSystem> pSolarSystem, std::shared_ptr<Settings> settings,
-      std::shared_ptr<TimeControl> pTimeControl, std::string anchorName);
+     std::string objectName);
 
   MultiPointTool(MultiPointTool const& other) = delete;
   MultiPointTool(MultiPointTool&& other)      = delete;
@@ -77,7 +77,6 @@ class CS_CORE_EXPORT MultiPointTool : public Tool {
   std::shared_ptr<InputManager> mInputManager;
   std::shared_ptr<SolarSystem>  mSolarSystem;
   std::shared_ptr<Settings>     mSettings;
-  std::shared_ptr<TimeControl>  mTimeControl;
 
   std::list<std::shared_ptr<DeletableMark>> mPoints;
 

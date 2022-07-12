@@ -6,7 +6,8 @@
 
 #include "Mark.hpp"
 
-#include "../../cs-scene/CelestialAnchorNode.hpp"
+#include "../../cs-scene/CelestialObject.hpp"
+#include "../../cs-scene/CelestialSurface.hpp"
 #include "../../cs-utils/convert.hpp"
 #include "../../cs-utils/utils.hpp"
 #include "../GuiManager.hpp"
@@ -18,6 +19,7 @@
 #include <VistaDataFlowNet/VdfnObjectRegistry.h>
 #include <VistaKernel/GraphicsManager/VistaOpenGLNode.h>
 #include <VistaKernel/GraphicsManager/VistaSceneGraph.h>
+#include <VistaKernel/GraphicsManager/VistaTransformNode.h>
 #include <VistaKernel/VistaSystem.h>
 #include <VistaKernelOpenSGExt/VistaOpenSGMaterialTools.h>
 
@@ -65,13 +67,13 @@ void main()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Mark::Mark(std::shared_ptr<InputManager> pInputManager, std::shared_ptr<SolarSystem> pSolarSystem,
-    std::shared_ptr<Settings> settings, std::shared_ptr<TimeControl> pTimeControl,
-    std::string const& anchorName)
+    std::shared_ptr<Settings> settings, std::string const& objectName)
     : mInputManager(std::move(pInputManager))
     , mSolarSystem(std::move(pSolarSystem))
     , mSettings(std::move(settings))
-    , mAnchor(settings->getAnchor(anchorName))
-    , mTimeControl(std::move(pTimeControl))
+    , mObject(mSolarSystem->getObject(objectName))
+    , mPosition(0.0, 0.0, 0.0)
+    , mRotation(1.0, 0.0, 0.0, 0.0)
     , mVAO(std::make_unique<VistaVertexArrayObject>())
     , mVBO(std::make_unique<VistaBufferObject>())
     , mIBO(std::make_unique<VistaBufferObject>())
@@ -93,8 +95,7 @@ Mark::Mark(Mark const& other)
     , mInputManager(other.mInputManager)
     , mSolarSystem(other.mSolarSystem)
     , mSettings(other.mSettings)
-    , mTimeControl(other.mTimeControl)
-    , mAnchor(other.mAnchor)
+    , mObject(other.mObject)
     , mVAO(std::make_unique<VistaVertexArrayObject>())
     , mVBO(std::make_unique<VistaBufferObject>())
     , mIBO(std::make_unique<VistaBufferObject>())
@@ -123,24 +124,11 @@ Mark::~Mark() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::shared_ptr<cs::scene::CelestialObject> const& Mark::getAnchor() const {
-  return mAnchor;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-std::shared_ptr<cs::scene::CelestialObject>& Mark::getAnchor() {
-  return mAnchor;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 void Mark::update() {
-  double simulationTime(mTimeControl->pSimulationTime.get());
+  mScale = mSolarSystem->getScaleBasedOnObserverDistance(
+      mObject, mPosition, pScaleDistance.get(), mSettings->mGraphics.pWorldUIScale.get());
 
-  SolarSystem::scaleRelativeToObserver(*mAnchor, mSolarSystem->getObserver(), simulationTime,
-      pScaleDistance.get(), mSettings->mGraphics.pWorldUIScale.get());
-  SolarSystem::turnToObserver(*mAnchor, mSolarSystem->getObserver(), simulationTime, false);
+  mRotation = mSolarSystem->getRotationToObserver(mObject, mPosition, false);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -194,7 +182,7 @@ void Mark::initData() {
   auto* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
 
   mTransform = pSG->NewTransformNode(pSG->GetRoot());
-  mParent = pSG->NewOpenGLNode(mTransform, this);
+  mParent    = pSG->NewOpenGLNode(mTransform, this);
   mInputManager->registerSelectable(mParent);
 
   VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
@@ -281,8 +269,8 @@ void Mark::initData() {
   mHoveredPlanetConnection =
       mInputManager->pHoveredObject.connect([this](InputManager::Intersection const& i) {
         if (pActive.get() && i.mObject) {
-          if (i.mObject == mAnchor) {
-            auto radii = mAnchor->getRadii();
+          if (i.mObject == mObject) {
+            auto radii = mObject->getRadii();
             pLngLat    = cs::utils::convert::cartesianToLngLat(i.mPosition, radii);
           }
         }
@@ -291,22 +279,20 @@ void Mark::initData() {
   // update position
   mSelfLngLatConnection = pLngLat.connect([this](glm::dvec2 const& lngLat) {
     // Request the height under the Mark and add it
-    auto   surface   = mAnchor->getSurface();
-    double height = surface ? surface->getHeight(lngLat) : 0.0;
-    auto   radii  = mAnchor->getRadii();
-    auto   cart   = cs::utils::convert::toCartesian(
+    auto   surface = mObject->getSurface();
+    double height  = surface ? surface->getHeight(lngLat) : 0.0;
+    auto   radii   = mObject->getRadii();
+    mPosition      = cs::utils::convert::toCartesian(
         lngLat, radii, height * mSettings->mGraphics.pHeightScale.get());
-    mAnchor->setAnchorPosition(cart);
   });
 
   // connect the heightscale value to this object. Whenever the heightscale value changes
   // the landmark will be set to the correct height value
   mHeightScaleConnection = mSettings->mGraphics.pHeightScale.connect([this](float h) {
-    auto   surface   = mAnchor->getSurface();
-    double height = surface ? surface->getHeight(pLngLat.get()) * h : 0.0;
-    auto   radii  = mAnchor->getRadii();
-    auto   cart   = cs::utils::convert::toCartesian(pLngLat.get(), radii, height);
-    mAnchor->setAnchorPosition(cart);
+    auto   surface = mObject->getSurface();
+    double height  = surface ? surface->getHeight(pLngLat.get()) * h : 0.0;
+    auto   radii   = mObject->getRadii();
+    mPosition      = cs::utils::convert::toCartesian(pLngLat.get(), radii, height);
   });
 }
 

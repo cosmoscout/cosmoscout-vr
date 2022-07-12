@@ -37,7 +37,7 @@ SolarSystem::SolarSystem(std::shared_ptr<Settings> settings,
     : mSettings(std::move(settings))
     , mGraphicsEngine(std::move(graphicsEngine))
     , mTimeControl(std::move(timeControl))
-    , mSun(std::make_shared<scene::CelestialObject>()) {
+    , mSun(getObject("Sun")) {
 
   // Tell the user what's going on.
   logger().debug("Creating SolarSystem.");
@@ -48,6 +48,34 @@ SolarSystem::SolarSystem(std::shared_ptr<Settings> settings,
 SolarSystem::~SolarSystem() {
   // Tell the user what's going on.
   logger().debug("Deleting SolarSystem.");
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::shared_ptr<const scene::CelestialObject> SolarSystem::getObject(
+    std::string const& name) const {
+  auto it = mSettings->mObjects.find(name);
+
+  if (it != mSettings->mObjects.end()) {
+    return it->second;
+  }
+
+  logger().error(
+      "Failed to retrieve the object \"{}\": No such object is defined in the settings!", name);
+  return nullptr;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::shared_ptr<const scene::CelestialObject> SolarSystem::getObjectByCenterName(
+    std::string const& center) const {
+  for (auto const& [name, object] : mSettings->mObjects) {
+    if (object->getCenterName() == center) {
+      return object;
+    }
+  }
+
+  return nullptr;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -72,8 +100,8 @@ double SolarSystem::getSunIlluminance(glm::dvec3 const& observerPosition) const 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 double SolarSystem::getSunLuminance() const {
-  double sceneScale = 1.0 / mObserver.getAnchorScale();
-  double sunRadius  = mSettings->getAnchorRadii("Sun")[0];
+  double sceneScale = 1.0 / mObserver.getScale();
+  double sunRadius  = mSun->getRadii()[0];
 
   // To get the luminous exitance (in lux) of the Sun, we have to divide its luminous power (in
   // lumens) by its surface area.
@@ -95,14 +123,13 @@ std::vector<std::shared_ptr<graphics::EclipseShadowMap>> SolarSystem::getEclipse
   // Loop through all registered eclipse shadow casters and test if they are casting a shadow onto
   // the given receiver. All involved objects are considered to be spheres.
   for (auto const& shadowMap : mGraphicsEngine->getEclipseShadowMaps()) {
-    scene::CelestialObject occluder;
-    mSettings->initAnchor(occluder, shadowMap->mOccluderAnchor);
+    auto occluder = getObject(shadowMap->mOccluder);
 
     // Avoid self-shadowing.
-    if (allowSelfShadowing || receiver.getCenterName() != occluder.getCenterName()) {
+    if (allowSelfShadowing || receiver.getCenterName() != occluder->getCenterName()) {
 
-      auto pSun = occluder.getRelativePosition(time, *mSun);
-      auto pRec = occluder.getRelativePosition(time, receiver);
+      auto pSun = occluder->getRelativePosition(time, *mSun);
+      auto pRec = occluder->getRelativePosition(time, receiver);
 
       double dSun = glm::length(pSun);
       double dRec = glm::length(pRec);
@@ -117,7 +144,7 @@ std::vector<std::shared_ptr<graphics::EclipseShadowMap>> SolarSystem::getEclipse
         continue;
       }
 
-      double rOcc = occluder.getRadii()[0];
+      double rOcc = occluder->getRadii()[0];
       double rRec = receiver.getRadii()[0];
       double rSun = mSun->getRadii()[0];
 
@@ -196,11 +223,11 @@ void SolarSystem::update() {
 
   mSun->update(simulationTime, mObserver);
 
-  for (auto const& [name, anchor] : mSettings->mAnchors) {
+  for (auto const& [name, object] : mSettings->mObjects) {
     utils::FrameTimings::ScopedTimer timer(
-        "Update " + anchor->getCenterName() + " / " + anchor->getFrameName(),
+        "Update " + object->getCenterName() + " / " + object->getFrameName(),
         utils::FrameTimings::QueryMode::eCPU);
-    anchor->update(simulationTime, mObserver);
+    object->update(simulationTime, mObserver);
   }
 
   // Update sun position. If a fixed Sun direction is enabled, we must calculate an artificial
@@ -227,11 +254,11 @@ void SolarSystem::update() {
 
   // As our scene is always scaled, we have to scale the luminous power of the sun accordingly.
   // Else, our Sun would be extremely bright when scaled down.
-  double sceneScale = 1.0 / mObserver.getAnchorScale();
+  double sceneScale = 1.0 / mObserver.getScale();
   pSunLuminousPower = static_cast<float>(sunLuminousPower * sceneScale * sceneScale);
 
   // Update the property containing the current observer speed.
-  auto observerPosition = mObserver.getAnchorPosition();
+  auto observerPosition = mObserver.getPosition();
   auto now              = std::chrono::high_resolution_clock::now();
 
   auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(now - mLastTime).count();
@@ -250,8 +277,8 @@ void SolarSystem::update() {
   // Update settings properties.
   mSettings->mObserver.pCenter   = mObserver.getCenterName();
   mSettings->mObserver.pFrame    = mObserver.getFrameName();
-  mSettings->mObserver.pPosition = mObserver.getAnchorPosition();
-  mSettings->mObserver.pRotation = mObserver.getAnchorRotation();
+  mSettings->mObserver.pPosition = mObserver.getPosition();
+  mSettings->mObserver.pRotation = mObserver.getRotation();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -259,13 +286,13 @@ void SolarSystem::update() {
 void SolarSystem::updateSceneScale() {
 
   // First we have to find the planet which is closest to the observer.
-  std::shared_ptr<cs::scene::CelestialObject> closestObject;
-  double                                      dClosestDistance = std::numeric_limits<double>::max();
+  std::shared_ptr<const cs::scene::CelestialObject> closestObject;
+  double dClosestDistance = std::numeric_limits<double>::max();
 
   // Here we will store the position of the observer relative to the closestObject.
   glm::dvec3 vClosestPlanetObserverPosition(0.0);
 
-  for (auto const& [name, object] : getObjects()) {
+  for (auto const& [name, object] : mSettings->mObjects) {
 
     // Skip non-existant objects.
     if (!object->getIsInExistence() || !object->getIsTrackable()) {
@@ -273,7 +300,7 @@ void SolarSystem::updateSceneScale() {
     }
 
     // Skip objects with an unkown radius.
-    auto radii = object->getRadii() * object->getAnchorScale();
+    auto radii = object->getRadii();
     if (radii.x <= 0.0 || radii.y <= 0.0 || radii.z <= 0.0) {
       continue;
     }
@@ -281,10 +308,8 @@ void SolarSystem::updateSceneScale() {
     // Finally check if the current body is closest to the observer. We won't incorporate surface
     // elevation in this check.
     try {
-      auto vObserverPos =
-          object->getRelativePosition(mTimeControl->pSimulationTime.get(), mObserver) *
-          object->getAnchorScale();
-      double dDistance = glm::length(vObserverPos) - radii[0];
+      auto   vObserverPos = -object->getObserverRelativePosition();
+      double dDistance    = glm::length(vObserverPos) - radii[0];
 
       if (dDistance < dClosestDistance) {
         closestObject                  = object;
@@ -310,13 +335,13 @@ void SolarSystem::updateSceneScale() {
 
     // First we calculate the *real* world-space distance to the planet (incorporating surface
     // elevation).
-    auto radii = closestObject->getRadii() * closestObject->getAnchorScale();
+    auto radii = closestObject->getRadii();
     auto lngLatHeight =
         cs::utils::convert::cartesianToLngLatHeight(vClosestPlanetObserverPosition, radii);
     double dRealDistance = lngLatHeight.z;
 
-    if (closestObject->getBody()) {
-      dRealDistance -= closestObject->getBody()->getHeight(lngLatHeight.xy()) *
+    if (closestObject->getSurface()) {
+      dRealDistance -= closestObject->getSurface()->getHeight(lngLatHeight.xy()) *
                        mSettings->mGraphics.pHeightScale.get();
     }
 
@@ -340,12 +365,12 @@ void SolarSystem::updateSceneScale() {
     double dScale = dRealDistance / glm::mix(mSettings->mSceneScale.mCloseVisualDistance,
                                         mSettings->mSceneScale.mFarVisualDistance, interpolate);
     dScale = glm::clamp(dScale, mSettings->mSceneScale.mMinScale, mSettings->mSceneScale.mMaxScale);
-    mObserver.setAnchorScale(dScale);
+    mObserver.setScale(dScale);
 
     if (dRealDistance < mSettings->mSceneScale.mCloseRealDistance) {
       double     penetration = mSettings->mSceneScale.mCloseRealDistance - dRealDistance;
-      glm::dvec3 position    = mObserver.getAnchorPosition();
-      mObserver.setAnchorPosition(position + glm::normalize(position) * penetration);
+      glm::dvec3 position    = mObserver.getPosition();
+      mObserver.setPosition(position + glm::normalize(position) * penetration);
     }
   }
 }
@@ -355,28 +380,25 @@ void SolarSystem::updateSceneScale() {
 void SolarSystem::updateObserverFrame() {
 
   // The Observer will be locked to the active planet.
-  std::shared_ptr<cs::scene::CelestialObject> activeObject;
+  std::shared_ptr<const cs::scene::CelestialObject> activeObject;
 
   // The active planet is the one with the heighest *weight*.
   double dActiveWeight = 0;
 
-  for (auto const& [name, object] : getObjects()) {
+  for (auto const& [name, object] : mSettings->mObjects) {
     // Skip non-existant objects.
     if (!object->getIsInExistence() || !object->getIsTrackable()) {
       continue;
     }
 
     // Skip objects with an unkown radius.
-    auto radii = object->getRadii() * object->getAnchorScale();
+    auto radii = object->getRadii();
     if (radii.x <= 0.0 || radii.y <= 0.0 || radii.z <= 0.0) {
       continue;
     }
 
     try {
-      auto vObserverPos =
-          object->getRelativePosition(mTimeControl->pSimulationTime.get(), mObserver) *
-          object->getAnchorScale();
-      double dDistance = glm::length(vObserverPos) - radii[0];
+      double dDistance = glm::length(object->getObserverRelativePosition()) - radii[0];
 
       // The weigh depends on the object size and it's distance to the observer.
       double dWeight = (radii[0] + mSettings->mSceneScale.mMinObjectSize) /
@@ -470,10 +492,16 @@ void SolarSystem::flyObserverTo(std::string const& sCenter, std::string const& s
 
 void SolarSystem::flyObserverTo(std::string const& sCenter, std::string const& sFrame,
     glm::dvec2 const& lngLat, double height, double duration) {
-  auto radii = getRadii(sCenter);
 
-  if (radii[0] == 0.0 || radii[2] == 0.0) {
-    radii = glm::dvec3(1, 1, 1);
+  auto       object = getObjectByCenterName(sCenter);
+  glm::dvec3 radii(1.0);
+
+  if (object) {
+    auto r = object->getRadii();
+
+    if (radii[0] > 0.0 && radii[1] > 0.0 && radii[2] > 0.0) {
+      radii = r;
+    }
   }
 
   auto cart = utils::convert::toCartesian(lngLat, radii, height);
@@ -487,10 +515,15 @@ void SolarSystem::flyObserverTo(
     std::string const& sCenter, std::string const& sFrame, double duration) {
 
   try {
-    auto radii = getRadii(sCenter);
+    auto       object = getObjectByCenterName(sCenter);
+    glm::dvec3 radii(1.0);
 
-    if (radii[0] == 0.0) {
-      radii = glm::dvec3(1, 1, 1);
+    if (object) {
+      auto r = object->getRadii();
+
+      if (radii[0] > 0.0 && radii[1] > 0.0 && radii[2] > 0.0) {
+        radii = r;
+      }
     }
 
     scene::CelestialAnchor target(sCenter, sFrame);
@@ -579,8 +612,6 @@ void SolarSystem::init(std::string const& sSpiceMetaFile) {
     throw std::runtime_error(msg.data());
   }
 
-  mSettings->initAnchor(*mSun, "Sun");
-
   mIsInitialized = true;
 }
 
@@ -599,122 +630,50 @@ void SolarSystem::deinit() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-uint64_t SolarSystem::registerAddObjectListener(
-    std::function<void(std::string, std::shared_ptr<scene::CelestialObject>)> listener) {
-  auto id                 = mListenerIds++;
-  mAddObjectListeners[id] = std::move(listener);
-  return id;
-}
+double SolarSystem::getScaleBasedOnObserverDistance(
+    std::shared_ptr<const scene::CelestialObject> const& object, glm::dvec3 const& translation,
+    double baseDistance, double scaleFactor) {
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
+  double observerDistance =
+      mObserver.getScale() * glm::length(object->getObserverRelativePosition(translation));
 
-void SolarSystem::unregisterAddObjectListener(uint64_t id) {
-  mAddObjectListeners.erase(id);
-}
+  double scale = scaleFactor;
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-uint64_t SolarSystem::registerRemoveObjectListener(
-    std::function<void(std::string, std::shared_ptr<scene::CelestialObject>)> listener) {
-  auto id                    = mListenerIds++;
-  mRemoveObjectListeners[id] = std::move(listener);
-  return id;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void SolarSystem::unregisterRemoveObjectListener(uint64_t id) {
-  mRemoveObjectListeners.erase(id);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void SolarSystem::scaleRelativeToObserver(scene::CelestialAnchor& anchor,
-    scene::CelestialObserver const& observer, double simulationTime, double baseDistance,
-    double scaleFactor) {
-
-  try {
-    double observerDistance = observer.getAnchorScale() *
-                              glm::length(observer.getRelativePosition(simulationTime, anchor));
-
-    double scale = scaleFactor;
-
-    if (baseDistance > 0 && observerDistance > baseDistance) {
-      double diff = baseDistance * 10 - baseDistance;
-      scale *= baseDistance + (1 - std::exp(-(observerDistance - baseDistance) / diff)) * diff;
-    } else {
-      scale *= observerDistance;
-    }
-
-    anchor.setAnchorScale(scale);
-  } catch (std::exception const& e) {
-    // Getting the relative transformation may fail due to insufficient SPICE data.
-    logger().warn("SolarSystem::scaleRelativeToObserver failed: {}", e.what());
-  }
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void SolarSystem::turnToObserver(scene::CelestialAnchor& anchor,
-    scene::CelestialObserver const& observer, double simulationTime, bool upIsNormal) {
-  // use the camera position to adjust the landmark rotation
-  scene::CelestialAnchor rawAnchor(anchor.getCenterName(), anchor.getFrameName());
-  rawAnchor.setAnchorPosition(anchor.getAnchorPosition());
-
-  try {
-    auto       observerTransform = rawAnchor.getRelativeTransform(simulationTime, observer);
-    glm::dvec3 observerPos       = observerTransform[3];
-    glm::dvec3 y                 = observerTransform * glm::dvec4(0, 1, 0, 0);
-    glm::dvec3 camDir            = glm::normalize(observerPos);
-
-    if (upIsNormal) {
-      auto radii  = getRadii(anchor.getCenterName());
-      auto lngLat = cs::utils::convert::cartesianToLngLat(anchor.getAnchorPosition(), radii);
-      y           = cs::utils::convert::lngLatToNormal(lngLat);
-    }
-
-    glm::dvec3 z = glm::cross(y, camDir);
-    glm::dvec3 x = glm::cross(y, z);
-
-    x = glm::normalize(x);
-    y = glm::normalize(y);
-    z = glm::normalize(z);
-
-    auto rot = glm::toQuat(glm::dmat3(x, y, z));
-    anchor.setAnchorRotation(rot);
-
-  } catch (std::exception const& e) {
-    // Getting the relative transformation may fail due to insufficient SPICE data.
-    logger().warn("SolarSystem::turnToObserver failed: {}", e.what());
-  }
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-glm::dvec3 SolarSystem::getRadii(std::string const& sCenterName) {
-  // get target id code
-  SpiceInt     id{};
-  SpiceBoolean found{};
-  bodn2c_c(sCenterName.c_str(), &id, &found);
-
-  // check if radius information is available
-  if (!found || !bodfnd_c(id, "RADII")) {
-    return glm::dvec3(0, 0, 0);
+  if (baseDistance > 0 && observerDistance > baseDistance) {
+    double diff = baseDistance * 10 - baseDistance;
+    scale *= baseDistance + (1 - std::exp(-(observerDistance - baseDistance) / diff)) * diff;
+  } else {
+    scale *= observerDistance;
   }
 
-  // compute radius and convert it to meters
-  SpiceInt   n{};
-  glm::dvec3 result;
-  bodvrd_c(sCenterName.c_str(), "RADII", 3, &n, glm::value_ptr(result));
-  double const kmToMeter = 1000.0;
-  result                 = result * kmToMeter;
+  return scale;
+}
 
-  if (n != 3) {
-    throw std::runtime_error("Failed to retrieve SPICE radii for object " + sCenterName + ".");
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+glm::dquat SolarSystem::getRotationToObserver(
+    std::shared_ptr<const scene::CelestialObject> const& object, glm::dvec3 const& translation,
+    bool upIsNormal) {
+
+  auto       observerTransform = object->getObserverRelativeTransform(translation);
+  glm::dvec3 observerPos       = observerTransform[3];
+  glm::dvec3 y                 = observerTransform * glm::dvec4(0, 1, 0, 0);
+  glm::dvec3 camDir            = glm::normalize(observerPos);
+
+  if (upIsNormal) {
+    auto radii  = object->getRadii();
+    auto lngLat = cs::utils::convert::cartesianToLngLat(translation, radii);
+    y           = cs::utils::convert::lngLatToNormal(lngLat);
   }
 
-  // SPICE coordinates are different.
-  return glm::dvec3(result[1], result[2], result[0]);
+  glm::dvec3 z = glm::cross(y, camDir);
+  glm::dvec3 x = glm::cross(y, z);
+
+  x = glm::normalize(x);
+  y = glm::normalize(y);
+  z = glm::normalize(z);
+
+  return glm::toQuat(glm::dmat3(x, y, z));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

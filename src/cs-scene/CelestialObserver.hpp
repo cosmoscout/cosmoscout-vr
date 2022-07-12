@@ -23,10 +23,14 @@ class CS_SCENE_EXPORT CelestialObserver : public CelestialAnchor {
   /// Updates position and rotation according to the last moveTo call.
   virtual void updateMovementAnimation(double tTime);
 
-  /// These are overidden here because they are ignored if any animation done by MoveTo is in
-  /// progress.
-  void setAnchorPosition(glm::dvec3 const& vPos) override;
-  void setAnchorRotation(glm::dquat const& qRot) override;
+  void              setPosition(glm::dvec3 const& pos);
+  glm::dvec3 const& getPosition() const;
+
+  void              setRotation(glm::dquat const& rot);
+  glm::dquat const& getRotation() const;
+
+  void   setScale(double scale);
+  double getScale() const;
 
   /// Calls setCenterName() and setFrameName() but updates position and rotation in such a way that
   /// the universal position and orientation does not change. This may throw a std::runtime_error if
@@ -54,6 +58,10 @@ class CS_SCENE_EXPORT CelestialObserver : public CelestialAnchor {
  protected:
   utils::AnimatedValue<glm::dvec3> mAnimatedPosition;
   utils::AnimatedValue<glm::dquat> mAnimatedRotation;
+
+  glm::dvec3 mPosition;
+  glm::dquat mRotation;
+  double     mScale{1.0};
 
   bool mAnimationInProgress = false;
 };

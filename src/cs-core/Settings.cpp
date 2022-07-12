@@ -29,58 +29,94 @@ struct adl_serializer<spdlog::level::level_enum> {
 
 } // namespace nlohmann
 
-namespace cs::core {
+namespace cs::utils {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void from_json(nlohmann::json const& j, std::shared_ptr<cs::scene::CelestialObject>& o) {
-  if (!o) {
-    o = std::make_shared<cs::scene::CelestialObject>();
+void from_json(nlohmann::json const&                                               j,
+    ObservableMap<std::string, std::shared_ptr<const cs::scene::CelestialObject>>& o) {
+
+  o.clear();
+
+  // the same code as range for
+  for (auto const& el : j.items()) {
+    std::string    name   = el.key();
+    nlohmann::json data   = el.value();
+    auto           object = std::make_shared<cs::scene::CelestialObject>();
+
+    // First, we parse the required parameters.
+    std::string                center, frame;
+    std::array<std::string, 2> existence;
+    cs::core::Settings::deserialize(data, "center", center);
+    cs::core::Settings::deserialize(data, "frame", frame);
+    cs::core::Settings::deserialize(data, "existence", existence);
+
+    object->setCenterName(center);
+    object->setFrameName(frame);
+    object->setExistence(glm::dvec2(
+        utils::convert::time::toSpice(existence[0]), utils::convert::time::toSpice(existence[1])));
+
+    // All others are optional.
+    std::optional<glm::dvec3> radii;
+    std::optional<double>     bodyCullingRadius, orbitCullingRadius;
+    std::optional<bool>       trackable, collidable;
+    cs::core::Settings::deserialize(j, "radii", radii);
+    cs::core::Settings::deserialize(j, "bodyCullingRadius", bodyCullingRadius);
+    cs::core::Settings::deserialize(j, "orbitCullingRadius", orbitCullingRadius);
+    cs::core::Settings::deserialize(j, "trackable", trackable);
+    cs::core::Settings::deserialize(j, "collidable", collidable);
+
+    if (radii) {
+      object->setRadii(radii.value());
+    }
+    if (bodyCullingRadius) {
+      object->setBodyCullingRadius(bodyCullingRadius.value());
+    }
+    if (orbitCullingRadius) {
+      object->setOrbitCullingRadius(orbitCullingRadius.value());
+    }
+    if (trackable) {
+      object->setIsTrackable(trackable.value());
+    }
+    if (collidable) {
+      object->setIsCollidable(collidable.value());
+    }
+
+    o.insert(name, object);
   }
-
-  // First, we parse the required parameters.
-  std::string center, frame;
-  std::array<std::string, 2> existence;
-
-  Settings::deserialize(j, "center", center);
-  Settings::deserialize(j, "frame", frame);
-  Settings::deserialize(j, "existence", existence);
-
-  o->setCenterName(center);
-  o->setFrameName(frame);
-  o->setExistence(glm::dvec2(utils::convert::time::toSpice(existence[0]),
-        utils::convert::time::toSpice(existence[1])));
-
-  // All others are optional.
-  std::optional<glm::dvec3> radii, position;
-  std::optional<glm::quat> rotation;
-  std::optional<double> scale, bodyCullingRadius, orbitCullingRadius;
-  std::optional<bool> trackable, collidable;
-  Settings::deserialize(j, "position", position);
-  Settings::deserialize(j, "rotation", rotation);
-  Settings::deserialize(j, "scale", scale);
-  Settings::deserialize(j, "radii", radii);
-  Settings::deserialize(j, "bodyCullingRadius", bodyCullingRadius);
-  Settings::deserialize(j, "orbitCullingRadius", orbitCullingRadius);
-  Settings::deserialize(j, "trackable", trackable);
-  Settings::deserialize(j, "collidable", collidable);
-
 }
 
-void to_json(nlohmann::json& j, std::shared_ptr<cs::scene::CelestialObject> const& o) {
-  std::array<std::string, 2> existence {utils::convert::time::toString(o->getExistence()[0]), utils::convert::time::toString(o->getExistence()[1])};
-  Settings::serialize(j, "center", o->getCenterName());
-  Settings::serialize(j, "frame", o->getFrameName());
-  Settings::serialize(j, "existence", existence);
-  Settings::serialize(j, "position", o->getAnchorPosition());
-  Settings::serialize(j, "rotation", o->getAnchorRotation());
-  Settings::serialize(j, "scale", o->getAnchorScale());
-  Settings::serialize(j, "radii", o->getRadii());
-  Settings::serialize(j, "bodyCullingRadius", o->getBodyCullingRadius());
-  Settings::serialize(j, "orbitCullingRadius", o->getOrbitCullingRadius());
-  Settings::serialize(j, "trackable", o->getIsTrackable());
-  Settings::serialize(j, "collidable", o->getIsCollidable());
+void to_json(nlohmann::json&                                                             j,
+    ObservableMap<std::string, std::shared_ptr<const cs::scene::CelestialObject>> const& o) {
+
+  j.clear();
+
+  for (auto const& [name, object] : o) {
+
+    nlohmann::json i;
+
+    std::array<std::string, 2> existence{utils::convert::time::toString(object->getExistence()[0]),
+        utils::convert::time::toString(object->getExistence()[1])};
+    cs::core::Settings::serialize(i, "center", object->getCenterName());
+    cs::core::Settings::serialize(i, "frame", object->getFrameName());
+    cs::core::Settings::serialize(i, "existence", existence);
+    cs::core::Settings::serialize(i, "radii", object->getRadii());
+    cs::core::Settings::serialize(i, "bodyCullingRadius", object->getBodyCullingRadius());
+    cs::core::Settings::serialize(i, "orbitCullingRadius", object->getOrbitCullingRadius());
+    cs::core::Settings::serialize(i, "trackable", object->getIsTrackable());
+    cs::core::Settings::serialize(i, "collidable", object->getIsCollidable());
+
+    j[name] = i;
+  }
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+} // namespace cs::utils
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+namespace cs::core {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -310,7 +346,7 @@ void from_json(nlohmann::json const& j, Settings& o) {
   Settings::deserialize(j, "logLevelFile", o.pLogLevelFile);
   Settings::deserialize(j, "logLevelConsole", o.pLogLevelConsole);
   Settings::deserialize(j, "logLevelScreen", o.pLogLevelScreen);
-  Settings::deserialize(j, "anchors", o.mAnchors);
+  Settings::deserialize(j, "objects", o.mObjects);
   Settings::deserialize(j, "plugins", o.mPlugins);
   Settings::deserialize(j, "minDate", o.pMinDate);
   Settings::deserialize(j, "maxDate", o.pMaxDate);
@@ -334,7 +370,7 @@ void to_json(nlohmann::json& j, Settings const& o) {
   Settings::serialize(j, "logLevelFile", o.pLogLevelFile);
   Settings::serialize(j, "logLevelConsole", o.pLogLevelConsole);
   Settings::serialize(j, "logLevelScreen", o.pLogLevelScreen);
-  Settings::serialize(j, "anchors", o.mAnchors);
+  Settings::serialize(j, "objects", o.mObjects);
   Settings::serialize(j, "plugins", o.mPlugins);
   Settings::serialize(j, "minDate", o.pMinDate);
   Settings::serialize(j, "maxDate", o.pMaxDate);
@@ -421,19 +457,6 @@ std::string Settings::saveToJson() const {
   o << std::setw(2) << settings;
 
   return o.str();
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-std::shared_ptr<cs::scene::CelestialObject> Settings::getAnchor(std::string const& name) const {
-auto it = mAnchors.find(name);
-
-if (it != mAnchors.end()) {
-  return it->second;
-}
-
-logger().error("Failed to retrieve the anchor \"{}\": No such anchor is defined in the settings!", name);
-return nullptr;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

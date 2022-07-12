@@ -19,12 +19,11 @@ namespace cs::core::tools {
 
 MultiPointTool::MultiPointTool(std::shared_ptr<InputManager> pInputManager,
     std::shared_ptr<SolarSystem> pSolarSystem, std::shared_ptr<Settings> settings,
-    std::shared_ptr<TimeControl> pTimeControl, std::string anchorName)
+    std::string objectName)
     : mInputManager(std::move(pInputManager))
     , mSolarSystem(std::move(pSolarSystem))
     , mSettings(std::move(settings))
-    , mTimeControl(std::move(pTimeControl))
-    , mAnchorName(std::move(anchorName)) {
+    , mAnchorName(std::move(objectName)) {
 
   // If pAddPointMode is true, a new point will be added on a left mouse button click.
   mLeftButtonConnection = mInputManager->pButtons[0].connect([this](bool pressed) {
@@ -60,7 +59,7 @@ MultiPointTool::~MultiPointTool() {
 void MultiPointTool::addPoint(std::optional<glm::dvec2> const& lngLat) {
   // Add the Mark to the list.
   mPoints.emplace_back(std::make_shared<DeletableMark>(
-      mInputManager, mSolarSystem, mSettings, mTimeControl, mAnchorName));
+      mInputManager, mSolarSystem, mSettings, mAnchorName));
 
   // if there is a planet intersection, move the point to the intersection location
   if (lngLat) {
@@ -68,9 +67,9 @@ void MultiPointTool::addPoint(std::optional<glm::dvec2> const& lngLat) {
   } else {
     auto intersection = mInputManager->pHoveredObject.get();
     if (intersection.mObject) {
-        auto       radii = intersection.mObject->getRadii();
-        glm::dvec2 pos   = cs::utils::convert::cartesianToLngLat(intersection.mPosition, radii);
-        mPoints.back()->pLngLat = pos;
+      auto       radii = intersection.mObject->getRadii();
+      glm::dvec2 pos   = cs::utils::convert::cartesianToLngLat(intersection.mPosition, radii);
+      mPoints.back()->pLngLat = pos;
     }
   }
 
@@ -118,9 +117,9 @@ void MultiPointTool::update() {
   if (pAddPointMode.get()) {
     auto intersection = mInputManager->pHoveredObject.get();
     if (intersection.mObject) {
-        auto radii = intersection.mObject->getRadii();
-        mPoints.back()->pLngLat =
-            cs::utils::convert::cartesianToLngLat(intersection.mPosition, radii);
+      auto radii = intersection.mObject->getRadii();
+      mPoints.back()->pLngLat =
+          cs::utils::convert::cartesianToLngLat(intersection.mPosition, radii);
     }
   }
 }

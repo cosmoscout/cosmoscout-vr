@@ -67,13 +67,17 @@ class CS_SCENE_EXPORT CelestialObject : public CelestialAnchor {
   bool getIsCollidable() const;
   void setIsCollidable(bool value);
 
+  /// This is overidden to reset the body radii which are obtained from SPICE if no radii have been
+  /// set with setRadii().
+  void setCenterName(std::string const& sCenterName) override;
+
   // -----------------------------------------------------------------------------------------------
 
   /// This is called once a frame by the SolarSystem if this CelestialObject has been registered
   /// with the SolarSystem. This will update all time- and observer-dependent members. These are the
   /// observer-centric transformation, the result of getIsInExistence(), getIsBodyVisible(), and
   /// getIsOrbitVisible().
-  virtual void update(double tTime, CelestialObserver const& oObs);
+  void update(double tTime, CelestialObserver const& oObs) const;
 
   /// @return true, if the current time is in between the start and end existence values.
   bool getIsInExistence() const;
@@ -88,17 +92,26 @@ class CS_SCENE_EXPORT CelestialObject : public CelestialAnchor {
 
   /// Returns the current relative transformation to the observer.
   glm::dmat4 const& getObserverRelativeTransform() const;
-  glm::dvec4        getObserverRelativePosition() const;
+  glm::dvec3        getObserverRelativePosition() const;
+
+  glm::dmat4 getObserverRelativeTransform(glm::dvec3 const& translation,
+      glm::dquat const& rotation = glm::dquat(1.0, 0.0, 0.0, 0.0), double scale = 1.0) const;
+  glm::dvec3 getObserverRelativePosition(glm::dvec3 const& translation,
+      glm::dquat const& rotation = glm::dquat(1.0, 0.0, 0.0, 0.0), double scale = 1.0) const;
 
   // -----------------------------------------------------------------------------------------------
 
-  /// It is possible to assign a CelestialSurface to a CelestialObject. This surface can be used to define
-  /// an actual terrain by providing a getHeight() method. This will be used for ground following, collision detection and by plugins to sample the height of the body (for instance for measuring tools).
+  /// It is possible to assign a CelestialSurface to a CelestialObject. This surface can be used to
+  /// define an actual terrain by providing a getHeight() method. This will be used for ground
+  /// following, collision detection and by plugins to sample the height of the body (for instance
+  /// for measuring tools).
   std::shared_ptr<CelestialSurface> const& getSurface() const;
   void setSurface(std::shared_ptr<CelestialSurface> const& surface);
 
-/// It is also possible to assign an IntersectableObject to a CelestialObject. If the CelestialObject is then registered with the InputManager, it will be regularily tested for intersections with the mouse ray.
-     std::shared_ptr<IntersectableObject> const& getIntersectableObject() const;
+  /// It is also possible to assign an IntersectableObject to a CelestialObject. If the
+  /// CelestialObject is then registered with the InputManager, it will be regularily tested for
+  /// intersections with the mouse ray.
+  std::shared_ptr<IntersectableObject> const& getIntersectableObject() const;
   void setIntersectableObject(std::shared_ptr<IntersectableObject> const& object);
 
  protected:
@@ -111,14 +124,14 @@ class CS_SCENE_EXPORT CelestialObject : public CelestialAnchor {
 
   glm::dvec2 mExistence =
       glm::dvec2(std::numeric_limits<double>::lowest(), std::numeric_limits<double>::max());
-
-  glm::dmat4 matObserverRelativeTransform = glm::dmat4(1.0);
-  bool       mIsInExistence               = false;
-  bool       mIsBodyVisible               = true;
-  bool       mIsOrbitVisible              = true;
-
-  std::shared_ptr<CelestialSurface> mSurface;
+  std::shared_ptr<CelestialSurface>    mSurface;
   std::shared_ptr<IntersectableObject> mIntersectable;
+
+  mutable glm::dvec3 mRadiiFromSPICE              = glm::dvec3(-1.0);
+  mutable glm::dmat4 matObserverRelativeTransform = glm::dmat4(1.0);
+  mutable bool       mIsInExistence               = false;
+  mutable bool       mIsBodyVisible               = true;
+  mutable bool       mIsOrbitVisible              = true;
 };
 
 } // namespace cs::scene
