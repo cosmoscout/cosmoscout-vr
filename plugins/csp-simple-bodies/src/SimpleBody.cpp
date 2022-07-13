@@ -171,12 +171,10 @@ void main()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 SimpleBody::SimpleBody(std::shared_ptr<cs::core::Settings> settings,
-    std::shared_ptr<cs::core::SolarSystem> solarSystem, std::string const& anchorName)
+    std::shared_ptr<cs::core::SolarSystem> solarSystem, std::string const& objectName)
     : mSettings(std::move(settings))
     , mSolarSystem(std::move(solarSystem))
-    , mEclipseShadowReceiver(mSettings, mSolarSystem, this, false) {
-
-  mSettings->initAnchor(*this, anchorName);
+    , mEclipseShadowReceiver(mSettings, mSolarSystem, false) {
 
   // For rendering the sphere, we create a 2D-grid which is warped into a sphere in the vertex
   // shader. The vertex positions are directly used as texture coordinates.
@@ -266,7 +264,7 @@ void SimpleBody::setSun(std::shared_ptr<const cs::scene::CelestialObject> const&
 bool SimpleBody::getIntersection(
     glm::dvec3 const& rayOrigin, glm::dvec3 const& rayDir, glm::dvec3& pos) const {
 
-  auto invTransform = glm::inverse(getWorldTransform());
+  auto invTransform = glm::inverse(mTransform);
 
   // Transform ray into planet coordinate system.
   glm::dvec4 origin(rayOrigin, 1.0);
@@ -300,18 +298,22 @@ double SimpleBody::getHeight(glm::dvec2 /*lngLat*/) const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void SimpleBody::update(double time, cs::scene::CelestialObserver const& observer) {
-  CelestialBody::update(time, observer);
+void SimpleBody::update(cs::scene::CelestialObject const& object, double time,
+    cs::scene::CelestialObserver const& observer) {
+  mIsVisible = object.getIsInExistence() && object.getIsBodyVisible();
 
-  if (getIsInExistence() && pVisible.get()) {
-    mEclipseShadowReceiver.update(time, observer);
+  if (mIsVisible) {
+    mEclipseShadowReceiver.update(object, time, observer);
+    mTransform = object.getObserverRelativeTransform();
+    mRadii     = object.getRadii();
+    mIsSun     = object.getCenterName() == "Sun";
   }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool SimpleBody::Do() {
-  if (!getIsInExistence() || !pVisible.get()) {
+  if (!mIsVisible) {
     return true;
   }
 
@@ -366,7 +368,7 @@ bool SimpleBody::Do() {
   float     sunIlluminance(1.F);
   float     ambientBrightness(mSettings->mGraphics.pAmbientBrightness.get());
 
-  if (getCenterName() == "Sun") {
+  if (mIsSun) {
     // If the SimpleBody is actually the sun, we have to calculate the lighting differently.
     if (mSettings->mGraphics.pEnableHDR.get()) {
 
@@ -382,11 +384,11 @@ bool SimpleBody::Do() {
   } else if (mSun) {
     // For all other bodies we can use the utility methods from the SolarSystem.
     if (mSettings->mGraphics.pEnableHDR.get()) {
-      sunIlluminance = static_cast<float>(mSolarSystem->getSunIlluminance(getWorldTransform()[3]));
+      sunIlluminance = static_cast<float>(mSolarSystem->getSunIlluminance(mTransform[3]));
     }
 
-    sunDirection = glm::inverse(getWorldTransform()) *
-                   glm::dvec4(mSolarSystem->getSunDirection(getWorldTransform()[3]), 0.0);
+    sunDirection =
+        glm::inverse(mTransform) * glm::dvec4(mSolarSystem->getSunDirection(mTransform[3]), 0.0);
   }
 
   mShader.SetUniform(mUniforms.sunDirection, sunDirection[0], sunDirection[1], sunDirection[2]);
@@ -398,7 +400,7 @@ bool SimpleBody::Do() {
   std::array<GLfloat, 16> glMatP{};
   glGetFloatv(GL_MODELVIEW_MATRIX, glMatV.data());
   glGetFloatv(GL_PROJECTION_MATRIX, glMatP.data());
-  auto matM = glm::mat4(getWorldTransform());
+  auto matM = glm::mat4(mTransform);
   auto matV = glm::make_mat4x4(glMatV.data());
   glUniformMatrix4fv(mUniforms.modelMatrix, 1, GL_FALSE, glm::value_ptr(matM));
   glUniformMatrix4fv(mUniforms.viewMatrix, 1, GL_FALSE, glm::value_ptr(matV));

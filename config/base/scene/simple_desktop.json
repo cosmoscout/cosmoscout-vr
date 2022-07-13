@@ -311,7 +311,7 @@
       "Charon": {}
     }
   },
-  "anchors": {
+  "objects": {
     "Barycenter": {
       "center": "Solar System Barycenter",
       "frame": "J2000",

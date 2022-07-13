@@ -106,13 +106,13 @@ class CS_SCENE_EXPORT CelestialObject : public CelestialAnchor {
   /// following, collision detection and by plugins to sample the height of the body (for instance
   /// for measuring tools).
   std::shared_ptr<CelestialSurface> const& getSurface() const;
-  void setSurface(std::shared_ptr<CelestialSurface> const& surface);
+  void setSurface(std::shared_ptr<CelestialSurface> const& surface) const;
 
   /// It is also possible to assign an IntersectableObject to a CelestialObject. If the
   /// CelestialObject is then registered with the InputManager, it will be regularily tested for
   /// intersections with the mouse ray.
   std::shared_ptr<IntersectableObject> const& getIntersectableObject() const;
-  void setIntersectableObject(std::shared_ptr<IntersectableObject> const& object);
+  void setIntersectableObject(std::shared_ptr<IntersectableObject> const& object) const;
 
  protected:
   glm::dvec3 mRadii = glm::dvec3(0.0);
@@ -124,14 +124,14 @@ class CS_SCENE_EXPORT CelestialObject : public CelestialAnchor {
 
   glm::dvec2 mExistence =
       glm::dvec2(std::numeric_limits<double>::lowest(), std::numeric_limits<double>::max());
-  std::shared_ptr<CelestialSurface>    mSurface;
-  std::shared_ptr<IntersectableObject> mIntersectable;
 
-  mutable glm::dvec3 mRadiiFromSPICE              = glm::dvec3(-1.0);
-  mutable glm::dmat4 matObserverRelativeTransform = glm::dmat4(1.0);
-  mutable bool       mIsInExistence               = false;
-  mutable bool       mIsBodyVisible               = true;
-  mutable bool       mIsOrbitVisible              = true;
+  mutable std::shared_ptr<CelestialSurface>    mSurface;
+  mutable std::shared_ptr<IntersectableObject> mIntersectable;
+  mutable glm::dvec3                           mRadiiFromSPICE              = glm::dvec3(-1.0);
+  mutable glm::dmat4                           matObserverRelativeTransform = glm::dmat4(1.0);
+  mutable bool                                 mIsInExistence               = false;
+  mutable bool                                 mIsBodyVisible               = true;
+  mutable bool                                 mIsOrbitVisible              = true;
 };
 
 } // namespace cs::scene

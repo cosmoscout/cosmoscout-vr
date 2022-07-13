@@ -211,7 +211,7 @@ std::shared_ptr<CelestialSurface> const& CelestialObject::getSurface() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CelestialObject::setSurface(std::shared_ptr<CelestialSurface> const& surface) {
+void CelestialObject::setSurface(std::shared_ptr<CelestialSurface> const& surface) const {
   mSurface = surface;
 }
 
@@ -223,7 +223,7 @@ std::shared_ptr<IntersectableObject> const& CelestialObject::getIntersectableObj
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CelestialObject::setIntersectableObject(std::shared_ptr<IntersectableObject> const& object) {
+void CelestialObject::setIntersectableObject(std::shared_ptr<IntersectableObject> const& object) const {
   mIntersectable = object;
 }
 

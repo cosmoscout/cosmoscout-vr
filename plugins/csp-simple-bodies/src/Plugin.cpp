@@ -73,9 +73,8 @@ void Plugin::init() {
 void Plugin::deInit() {
   logger().info("Unloading plugin...");
 
-  for (auto const& simpleBody : mSimpleBodies) {
-    mSolarSystem->unregisterBody(simpleBody.second);
-    mInputManager->unregisterSelectable(simpleBody.second);
+  for (auto const& [name, body] : mSimpleBodies) {
+    unregisterBody(name);
   }
 
   mAllSettings->onLoad().disconnect(mOnLoadConnection);
@@ -97,14 +96,12 @@ void Plugin::onLoad() {
     auto settings = mPluginSettings.mSimpleBodies.find(simpleBody->first);
     if (settings != mPluginSettings.mSimpleBodies.end()) {
       // If there are settings for this simpleBody, reconfigure it.
-      mAllSettings->initAnchor(*simpleBody->second, settings->first);
       simpleBody->second->configure(settings->second);
 
       ++simpleBody;
     } else {
       // Else delete it.
-      mSolarSystem->unregisterBody(simpleBody->second);
-      mInputManager->unregisterSelectable(simpleBody->second);
+      unregisterBody(simpleBody->first);
       simpleBody = mSimpleBodies.erase(simpleBody);
     }
   }
@@ -119,11 +116,20 @@ void Plugin::onLoad() {
     simpleBody->configure(settings.second);
     simpleBody->setSun(mSolarSystem->getSun());
 
-    mSolarSystem->registerBody(simpleBody);
-    mInputManager->registerSelectable(simpleBody);
+    auto object = mSolarSystem->getObject(settings.first);
+    object->setSurface(simpleBody);
+    object->setIntersectableObject(simpleBody);
 
     mSimpleBodies.emplace(settings.first, simpleBody);
   }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Plugin::unregisterBody(std::string const& name) {
+  auto object = mSolarSystem->getObject(name);
+  object->setSurface(nullptr);
+  object->setIntersectableObject(nullptr);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

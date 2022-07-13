@@ -36,6 +36,7 @@ class Plugin : public cs::core::PluginBase {
 
  private:
   void onLoad();
+  void unregisterBody(std::string const& name);
 
   Settings                                           mPluginSettings;
   std::map<std::string, std::shared_ptr<SimpleBody>> mSimpleBodies;
