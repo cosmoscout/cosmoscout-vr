@@ -97,7 +97,7 @@ void DragNavigation::update() {
     auto pickedPlanet = mInputManager->pHoveredObject.get().mObject;
 
     if (pickedPlanet) {
-      // Observer can be in another spice frame, therefore we need to convert pick position to
+      // Observer can be in another SPICE frame, therefore we need to convert pick position to
       // observer frame.
       mStartIntersection =
           pickedPlanet->getObserverRelativePosition(mInputManager->pHoveredObject.get().mPosition);

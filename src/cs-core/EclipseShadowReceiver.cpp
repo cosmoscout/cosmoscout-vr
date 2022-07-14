@@ -67,8 +67,7 @@ void EclipseShadowReceiver::init(VistaGLSLShader* shader, uint32_t textureOffset
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void EclipseShadowReceiver::update(scene::CelestialObject const& shadowReceiver, double time,
-    scene::CelestialObserver const& observer) {
+void EclipseShadowReceiver::update(scene::CelestialObject const& shadowReceiver) {
 
   // No eclipse computation required if lighting is disabled.
   if (!mSettings->mGraphics.pEnableLighting.get()) {
@@ -77,7 +76,7 @@ void EclipseShadowReceiver::update(scene::CelestialObject const& shadowReceiver,
   }
 
   // Acquire a list of allpotentially relevant eclipse shadow maps.
-  mShadowMaps = mSolarSystem->getEclipseShadowMaps(time, shadowReceiver, mAllowSelfShadowing);
+  mShadowMaps = mSolarSystem->getEclipseShadowMaps(shadowReceiver, mAllowSelfShadowing);
 
   // For each shadow-casting body, we store the observer-relative position and the observer-relative
   // radius. For now, all occluders are considered to be spheres.
@@ -85,7 +84,8 @@ void EclipseShadowReceiver::update(scene::CelestialObject const& shadowReceiver,
     auto object = mSolarSystem->getObject(mShadowMaps[i]->mOccluder);
     auto pos    = object->getObserverRelativePosition();
 
-    mOccluders[i] = glm::vec4(pos, object->getRadii()[0] / observer.getScale());
+    mOccluders[i] = glm::vec4(
+        pos, object->getRadii()[0] * object->getScale() / mSolarSystem->getObserver().getScale());
   }
 }
 

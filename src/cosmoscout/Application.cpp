@@ -479,6 +479,8 @@ void Application::FrameUpdate() {
       }
 
       try {
+         cs::utils::FrameTimings::ScopedTimer timer(
+          "Update Celestial Objects", cs::utils::FrameTimings::QueryMode::eCPU);
         mSolarSystem->update();
       } catch (std::runtime_error const& e) {
         logger().warn("Failed to update Solar System: {}", e.what());
@@ -494,6 +496,14 @@ void Application::FrameUpdate() {
         mSolarSystem->updateObserverFrame();
       } catch (std::runtime_error const& e) {
         logger().warn("Failed to update observer frame: {}", e.what());
+      }
+
+      try {
+         cs::utils::FrameTimings::ScopedTimer timer(
+          "Update Celestial Surfaces", cs::utils::FrameTimings::QueryMode::eCPU);
+        mSolarSystem->updateSurfaces();
+      } catch (std::runtime_error const& e) {
+        logger().warn("Failed to update surfaces of the solar system: {}", e.what());
       }
     }
 

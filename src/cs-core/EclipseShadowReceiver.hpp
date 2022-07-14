@@ -76,7 +76,7 @@ class CS_CORE_EXPORT EclipseShadowReceiver {
   void init(VistaGLSLShader* shader, uint32_t textureOffset);
 
   /// This should be called once each frame.
-  void update(scene::CelestialObject const& shadowReceiver, double time, scene::CelestialObserver const& observer);
+  void update(scene::CelestialObject const& shadowReceiver);
 
   /// This should be called before rendering the object. It will set all uniforms and bind the
   /// eclipse shadow maps.
@@ -88,9 +88,9 @@ class CS_CORE_EXPORT EclipseShadowReceiver {
  private:
   static constexpr size_t MAX_BODIES = 4;
 
-  std::shared_ptr<Settings>     mSettings;
-  std::shared_ptr<SolarSystem>  mSolarSystem;
-  bool                          mAllowSelfShadowing;
+  std::shared_ptr<Settings>    mSettings;
+  std::shared_ptr<SolarSystem> mSolarSystem;
+  bool                         mAllowSelfShadowing;
 
   VistaGLSLShader* mShader        = nullptr;
   uint32_t         mTextureOffset = 0;

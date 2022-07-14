@@ -13,9 +13,7 @@ namespace cs::scene {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 CelestialObserver::CelestialObserver(std::string const& sCenterName, std::string const& sFrameName)
-    : CelestialAnchor(sCenterName, sFrameName)
-    , mPosition(0.0, 0.0, 0.0)
-    , mRotation(1.0, 0.0, 0.0, 0.0) {
+    : CelestialAnchor(sCenterName, sFrameName) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -33,38 +31,19 @@ void CelestialObserver::updateMovementAnimation(double tTime) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CelestialObserver::setPosition(glm::dvec3 const& pos) {
+void CelestialObserver::setPosition(glm::dvec3 const& vPos) {
   if (!mAnimationInProgress) {
-    mPosition = pos;
+    CelestialAnchor::setPosition(vPos);
   }
-}
-
-glm::dvec3 const& CelestialObserver::getPosition() const {
-  return mPosition;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CelestialObserver::setRotation(glm::dquat const& rot) {
+void CelestialObserver::setRotation(glm::dquat const& qRot) {
   if (!mAnimationInProgress) {
-    mRotation = rot;
+    CelestialAnchor::setRotation(qRot);
   }
 }
-
-glm::dquat const& CelestialObserver::getRotation() const {
-  return mRotation;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void CelestialObserver::setScale(double scale) {
-  mScale = scale;
-}
-
-double CelestialObserver::getScale() const {
-  return mScale;
-}
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void CelestialObserver::changeOrigin(

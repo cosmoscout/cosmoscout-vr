@@ -8,7 +8,6 @@
 
 #include <utility>
 
-#include "../../cs-scene/CelestialAnchorNode.hpp"
 #include "../../cs-scene/CelestialSurface.hpp"
 #include "../../cs-utils/convert.hpp"
 #include "../InputManager.hpp"
@@ -58,8 +57,8 @@ MultiPointTool::~MultiPointTool() {
 
 void MultiPointTool::addPoint(std::optional<glm::dvec2> const& lngLat) {
   // Add the Mark to the list.
-  mPoints.emplace_back(std::make_shared<DeletableMark>(
-      mInputManager, mSolarSystem, mSettings, mAnchorName));
+  mPoints.emplace_back(
+      std::make_shared<DeletableMark>(mInputManager, mSolarSystem, mSettings, mAnchorName));
 
   // if there is a planet intersection, move the point to the intersection location
   if (lngLat) {

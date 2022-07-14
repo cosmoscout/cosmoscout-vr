@@ -56,28 +56,41 @@ void from_json(nlohmann::json const&                                         j,
     object->setExistenceAsStrings(existence);
 
     // All others are optional.
-    std::optional<glm::dvec3> radii;
-    std::optional<double>     bodyCullingRadius, orbitCullingRadius;
+    std::optional<glm::dvec3> position, radii;
+    std::optional<glm::dquat> rotation;
+    std::optional<double>     scale, bodyCullingRadius, orbitCullingRadius;
     std::optional<bool>       trackable, collidable;
-    cs::core::Settings::deserialize(j, "radii", radii);
-    cs::core::Settings::deserialize(j, "bodyCullingRadius", bodyCullingRadius);
-    cs::core::Settings::deserialize(j, "orbitCullingRadius", orbitCullingRadius);
-    cs::core::Settings::deserialize(j, "trackable", trackable);
-    cs::core::Settings::deserialize(j, "collidable", collidable);
+    cs::core::Settings::deserialize(data, "position", position);
+    cs::core::Settings::deserialize(data, "rotation", rotation);
+    cs::core::Settings::deserialize(data, "scale", scale);
+    cs::core::Settings::deserialize(data, "radii", radii);
+    cs::core::Settings::deserialize(data, "bodyCullingRadius", bodyCullingRadius);
+    cs::core::Settings::deserialize(data, "orbitCullingRadius", orbitCullingRadius);
+    cs::core::Settings::deserialize(data, "trackable", trackable);
+    cs::core::Settings::deserialize(data, "collidable", collidable);
 
-    if (radii) {
+    if (position.has_value()) {
+      object->setPosition(position.value());
+    }
+    if (rotation.has_value()) {
+      object->setRotation(rotation.value());
+    }
+    if (scale.has_value()) {
+      object->setScale(scale.value());
+    }
+    if (radii.has_value()) {
       object->setRadii(radii.value());
     }
-    if (bodyCullingRadius) {
+    if (bodyCullingRadius.has_value()) {
       object->setBodyCullingRadius(bodyCullingRadius.value());
     }
-    if (orbitCullingRadius) {
+    if (orbitCullingRadius.has_value()) {
       object->setOrbitCullingRadius(orbitCullingRadius.value());
     }
-    if (trackable) {
+    if (trackable.has_value()) {
       object->setIsTrackable(trackable.value());
     }
-    if (collidable) {
+    if (collidable.has_value()) {
       object->setIsCollidable(collidable.value());
     }
 
@@ -97,6 +110,9 @@ void to_json(nlohmann::json&                                                    
     cs::core::Settings::serialize(i, "center", object->getCenterName());
     cs::core::Settings::serialize(i, "frame", object->getFrameName());
     cs::core::Settings::serialize(i, "existence", object->getExistenceAsStrings());
+    cs::core::Settings::serialize(i, "position", object->getPosition());
+    cs::core::Settings::serialize(i, "rotation", object->getRotation());
+    cs::core::Settings::serialize(i, "size", object->getScale());
     cs::core::Settings::serialize(i, "radii", object->getRadii());
     cs::core::Settings::serialize(i, "bodyCullingRadius", object->getBodyCullingRadius());
     cs::core::Settings::serialize(i, "orbitCullingRadius", object->getOrbitCullingRadius());

@@ -55,8 +55,7 @@ class SimpleBody : public cs::scene::CelestialSurface,
       glm::dvec3 const& rayOrigin, glm::dvec3 const& rayDir, glm::dvec3& pos) const override;
 
   /// Called once a frame if attached to a CelestialObject.
-  void update(cs::scene::CelestialObject const& object, double time,
-      cs::scene::CelestialObserver const& observer) override;
+  void update(std::shared_ptr<cs::scene::CelestialObject> const& parent) override;
 
   /// Interface implementation of CelestialSurface.
   double getHeight(glm::dvec2 lngLat) const override;
@@ -69,6 +68,7 @@ class SimpleBody : public cs::scene::CelestialSurface,
   std::shared_ptr<cs::core::Settings>         mSettings;
   std::shared_ptr<cs::core::SolarSystem>      mSolarSystem;
   std::shared_ptr<cs::scene::CelestialObject> mSun;
+  std::shared_ptr<cs::scene::CelestialObject> mParent;
 
   std::unique_ptr<VistaOpenGLNode> mGLNode;
 
@@ -81,11 +81,7 @@ class SimpleBody : public cs::scene::CelestialSurface,
 
   cs::core::EclipseShadowReceiver mEclipseShadowReceiver;
 
-  bool       mIsVisible   = true;
-  bool       mShaderDirty = true;
-  bool       mIsSun       = false;
-  glm::dmat4 mTransform;
-  glm::dvec3 mRadii;
+  bool mShaderDirty = true;
 
   int mEnableLightingConnection = -1;
   int mEnableHDRConnection      = -1;

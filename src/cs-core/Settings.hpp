@@ -179,6 +179,9 @@ class CS_CORE_EXPORT Settings {
   ///        "1950-01-02 00:00:00.000",
   ///        "2049-12-31 00:00:00.000"
   ///      ],
+  ///      "position": [0.0, 0.0, 0.0],
+  ///      "rotation": [1.0, 0.0, 0.0, 0.0],
+  ///      "scale": 1.0,
   ///      "radii": [0.0, 0.0, 0.0],
   ///      "bodyCullingRadius": 0.0,
   ///      "orbitCullingRadius": 0.0,

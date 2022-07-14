@@ -55,6 +55,19 @@ class CS_SCENE_EXPORT CelestialAnchor {
   virtual std::string const& getFrameName() const;
   virtual void               setFrameName(std::string const& sFrameName);
 
+  /// Additional translation in meters, relative to center in frame coordinates additional scaling
+  /// and rotation is applied afterwards and will not change the position relative to the center.
+  virtual glm::dvec3 const& getPosition() const;
+  virtual void              setPosition(glm::dvec3 const& vPos);
+
+  /// Additional rotation around the point center + position in frame coordinates.
+  virtual glm::dquat const& getRotation() const;
+  virtual void              setRotation(glm::dquat const& qRot);
+
+  /// Additional uniform scaling around the point center + position.
+  virtual double getScale() const;
+  virtual void   setScale(double dScale);
+
   // -----------------------------------------------------------------------------------------------
 
   /// Returns the position of "other" in the coordinate system defined by this CelestialAnchor - the
@@ -71,7 +84,15 @@ class CS_SCENE_EXPORT CelestialAnchor {
   /// CelestialAnchor. This may throw a std::runtime_error if no sufficient SPICE data is available.
   virtual glm::dmat4 getRelativeTransform(double tTime, CelestialAnchor const& other) const;
 
+  /// Returns the how much "other" is larger than this, i.e. other.GetAnchorScale() /
+  /// GetAnchorScale().
+  virtual double getRelativeScale(CelestialAnchor const& other) const;
+
  protected:
+  glm::dvec3 mPosition;
+  glm::dquat mRotation;
+  double     mScale{1.0};
+
   std::string mCenterName;
   std::string mFrameName;
 };

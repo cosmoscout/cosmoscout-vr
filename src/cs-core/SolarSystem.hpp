@@ -89,6 +89,8 @@ class CS_CORE_EXPORT SolarSystem {
   /// distance to the observer.
   void updateObserverFrame();
 
+  void updateSurfaces();
+
   /// The Sun which is at the center of the SolarSystem.
   std::shared_ptr<scene::CelestialObject> getSun() const;
 
@@ -121,7 +123,7 @@ class CS_CORE_EXPORT SolarSystem {
   /// allowSelfShadowing is set to true, this will also return the eclipse shadow map of the given
   /// body (if there is one).
   std::vector<std::shared_ptr<graphics::EclipseShadowMap>> getEclipseShadowMaps(
-      double time, scene::CelestialObject const& receiver, bool allowSelfShadowing) const;
+      scene::CelestialObject const& receiver, bool allowSelfShadowing) const;
 
   // Observer API ----------------------------------------------------------------------------------
 

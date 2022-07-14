@@ -77,13 +77,19 @@ glm::dvec3 const& CelestialObject::getRadii() const {
     double const kmToMeter = 1000.0;
     result                 = result * kmToMeter;
 
-    if (n != 3) {
-      logger().warn("Failed to retrieve SPICE radii for object {}.", mCenterName);
+    if (failed_c()) {
+      std::array<SpiceChar, 320> msg{};
+      getmsg_c("LONG", 320, msg.data());
+      reset_c();
+      logger().warn("Failed to retrieve SPICE radii for object {}: {}", mCenterName, msg.data());
       mRadiiFromSPICE = glm::dvec3(0.0);
+
+    } else {
+
+      // SPICE coordinates are different.
+      mRadiiFromSPICE = glm::dvec3(result[1], result[2], result[0]);
     }
 
-    // SPICE coordinates are different.
-    mRadiiFromSPICE = glm::dvec3(result[1], result[2], result[0]);
     return mRadiiFromSPICE;
 
   } else if (mRadii == glm::dvec3(0.0)) {
@@ -156,16 +162,18 @@ void CelestialObject::update(double tTime, cs::scene::CelestialObserver const& o
   if (getIsInExistence()) {
     try {
       matObserverRelativeTransform = oObs.getRelativeTransform(tTime, *this);
+      mHasValidPosition            = true;
     } catch (...) {
-      // data might be unavailable
+      // Data might be unavailable.
+      mHasValidPosition = false;
     }
   }
 
   mIsBodyVisible  = true;
   mIsOrbitVisible = true;
 
-  if (mBodyCullingRadius > 0.0 || mOrbitCullingRadius) {
-    double dist = glm::length(getObserverRelativePosition().xyz());
+  if (mBodyCullingRadius > 0.0 || mOrbitCullingRadius > 0.0) {
+    double dist = glm::length(getObserverRelativePosition());
     double size = glm::length(matObserverRelativeTransform[0]);
 
     if (mBodyCullingRadius > 0.0) {
@@ -186,14 +194,20 @@ bool CelestialObject::getIsInExistence() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+bool CelestialObject::getHasValidPosition() const {
+  return mHasValidPosition;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 bool CelestialObject::getIsBodyVisible() const {
-  return mIsBodyVisible;
+  return mIsBodyVisible && mIsInExistence && mHasValidPosition;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool CelestialObject::getIsOrbitVisible() const {
-  return mIsOrbitVisible;
+  return mIsOrbitVisible && mIsInExistence && mHasValidPosition;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

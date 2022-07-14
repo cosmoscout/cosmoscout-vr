@@ -85,12 +85,18 @@ class CS_SCENE_EXPORT CelestialObject : public CelestialAnchor {
   /// @return true, if the current time is in between the start and end existence values.
   bool getIsInExistence() const;
 
+  /// @return true, if the latest call to update() achieved to get a valid observer-relative
+  /// transformation.
+  bool getHasValidPosition() const;
+
   /// @return true, if the current distance to the observer suggests that the body could be visible
-  /// (this is based on mBodyCullingRadius and updated during update()).
+  /// (this is based on mBodyCullingRadius and updated during update()). This will also return false
+  /// if either getIsInExistence() or getHasValidPosition() returns false.
   bool getIsBodyVisible() const;
 
   /// @return true, if the current distance to the observer suggests that the bodies trajectory
-  /// could be visible (this is based on mOrbitCullingRadius and updated during update()).
+  /// could be visible (this is based on mOrbitCullingRadius and updated during update()). This will
+  /// also return false if either getIsInExistence() or getHasValidPosition() returns false.
   bool getIsOrbitVisible() const;
 
   /// Returns the current relative transformation to the observer.
@@ -138,8 +144,9 @@ class CS_SCENE_EXPORT CelestialObject : public CelestialAnchor {
   // represent properties of the object but rather the cached observer-relative state.
   mutable glm::dmat4 matObserverRelativeTransform = glm::dmat4(1.0);
   mutable bool       mIsInExistence               = false;
-  mutable bool       mIsBodyVisible               = true;
-  mutable bool       mIsOrbitVisible              = true;
+  mutable bool       mIsBodyVisible               = false;
+  mutable bool       mIsOrbitVisible              = false;
+  mutable bool       mHasValidPosition            = false;
 };
 
 } // namespace cs::scene

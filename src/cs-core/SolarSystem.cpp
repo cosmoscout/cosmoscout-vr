@@ -115,7 +115,7 @@ double SolarSystem::getSunLuminance() const {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::vector<std::shared_ptr<graphics::EclipseShadowMap>> SolarSystem::getEclipseShadowMaps(
-    double time, scene::CelestialObject const& receiver, bool allowSelfShadowing) const {
+    scene::CelestialObject const& receiver, bool allowSelfShadowing) const {
 
   std::vector<std::shared_ptr<graphics::EclipseShadowMap>> result;
 
@@ -127,8 +127,14 @@ std::vector<std::shared_ptr<graphics::EclipseShadowMap>> SolarSystem::getEclipse
     // Avoid self-shadowing.
     if (allowSelfShadowing || receiver.getCenterName() != occluder->getCenterName()) {
 
-      auto pSun = occluder->getRelativePosition(time, *mSun);
-      auto pRec = occluder->getRelativePosition(time, receiver);
+      // Get observer-centric positions.
+      auto pSun = mSun->getObserverRelativePosition();
+      auto pRec = receiver.getObserverRelativePosition();
+      auto pOcc = occluder->getObserverRelativePosition();
+
+      // Convert to receiver-centric.
+      pSun = pSun - pOcc;
+      pRec = pRec - pOcc;
 
       double dSun = glm::length(pSun);
       double dRec = glm::length(pRec);
@@ -220,8 +226,7 @@ void SolarSystem::update() {
       utils::convert::time::toSpice(boost::posix_time::microsec_clock::universal_time()));
   mObserver.updateMovementAnimation(realTime);
 
-  mSun->update(simulationTime, mObserver);
-
+  // First, update all celestial object positions.
   for (auto const& [name, object] : mSettings->mObjects) {
     utils::FrameTimings::ScopedTimer timer(
         "Update " + object->getCenterName() + " / " + object->getFrameName(),
@@ -294,36 +299,26 @@ void SolarSystem::updateSceneScale() {
   for (auto const& [name, object] : mSettings->mObjects) {
 
     // Skip non-existant objects.
-    if (!object->getIsInExistence() || !object->getIsTrackable()) {
+    if (!object->getIsInExistence() || !object->getHasValidPosition() ||
+        !object->getIsTrackable()) {
       continue;
     }
 
     // Skip objects with an unkown radius.
-    auto radii = object->getRadii();
+    auto radii = object->getRadii() * object->getScale();
     if (radii.x <= 0.0 || radii.y <= 0.0 || radii.z <= 0.0) {
       continue;
     }
 
     // Finally check if the current body is closest to the observer. We won't incorporate surface
     // elevation in this check.
-    try {
-      auto   vObserverPos = -object->getObserverRelativePosition();
-      double dDistance    = glm::length(vObserverPos) - radii[0];
+    auto   vObserverPos = -object->getObserverRelativePosition() * mObserver.getScale();
+    double dDistance    = glm::length(vObserverPos) - radii[0];
 
-      if (dDistance < dClosestDistance) {
-        closestObject                  = object;
-        dClosestDistance               = dDistance;
-        vClosestPlanetObserverPosition = vObserverPos;
-      }
-    } catch (...) {
-      // If getting the relative position of the body failed, this may be due to two reasons: Either
-      // we do not have suffcient SPICE data for the SPICE frame of the body or we do not have
-      // enough data for the observer frame. The former issue is ok, we will just skip this body and
-      // try the next one. The latter is more tricky as this will cause issues with all bodies and
-      // we won't find any object to scale the scene to. However, the Application will catch an
-      // error from the SolarSystem::update() call and will call SolarSystem::fixObserverFrame() to
-      // get the observer back to a valid frame.
-      continue;
+    if (dDistance < dClosestDistance) {
+      closestObject                  = object;
+      dClosestDistance               = dDistance;
+      vClosestPlanetObserverPosition = vObserverPos;
     }
   }
 
@@ -334,7 +329,7 @@ void SolarSystem::updateSceneScale() {
 
     // First we calculate the *real* world-space distance to the planet (incorporating surface
     // elevation).
-    auto radii = closestObject->getRadii();
+    auto radii = closestObject->getRadii() * closestObject->getScale();
     auto lngLatHeight =
         cs::utils::convert::cartesianToLngLatHeight(vClosestPlanetObserverPosition, radii);
     double dRealDistance = lngLatHeight.z;
@@ -386,44 +381,35 @@ void SolarSystem::updateObserverFrame() {
 
   for (auto const& [name, object] : mSettings->mObjects) {
     // Skip non-existant objects.
-    if (!object->getIsInExistence() || !object->getIsTrackable()) {
+    if (!object->getIsInExistence() || !object->getHasValidPosition() ||
+        !object->getIsTrackable()) {
       continue;
     }
 
     // Skip objects with an unkown radius.
-    auto radii = object->getRadii();
+    auto radii = object->getRadii() * object->getScale();
     if (radii.x <= 0.0 || radii.y <= 0.0 || radii.z <= 0.0) {
       continue;
     }
 
-    try {
-      double dDistance = glm::length(object->getObserverRelativePosition()) - radii[0];
+    double dDistance =
+        glm::length(object->getObserverRelativePosition() * mObserver.getScale()) - radii[0];
 
-      // The weigh depends on the object size and it's distance to the observer.
-      double dWeight = (radii[0] + mSettings->mSceneScale.mMinObjectSize) /
-                       std::max(radii[0] + mSettings->mSceneScale.mMinObjectSize,
-                           radii[0] + dDistance - mSettings->mSceneScale.mMinObjectSize);
+    // The weigh depends on the object size and it's distance to the observer.
+    double dWeight = (radii[0] + mSettings->mSceneScale.mMinObjectSize) /
+                     std::max(radii[0] + mSettings->mSceneScale.mMinObjectSize,
+                         radii[0] + dDistance - mSettings->mSceneScale.mMinObjectSize);
 
-      // The Sun is quite huge. We reduce it's weight a bit so that the observer is more inclined to
-      // stay at planets.
-      if (object->getCenterName() == "Sun") {
-        dWeight *= 0.01;
-      }
+    // The Sun is quite huge. We reduce it's weight a bit so that the observer is more inclined to
+    // stay at planets.
+    if (object->getCenterName() == "Sun") {
+      dWeight *= 0.01;
+    }
 
-      if (dWeight > dActiveWeight && (dWeight > mSettings->mSceneScale.mLockWeight ||
-                                         dWeight > mSettings->mSceneScale.mTrackWeight)) {
-        activeObject  = object;
-        dActiveWeight = dWeight;
-      }
-    } catch (...) {
-      // If getting the relative position of the body failed, this may be due to two reasons: Either
-      // we do not have suffcient SPICE data for the SPICE frame of the body or we do not have
-      // enough data for the observer frame. The former issue is ok, we will just skip this body and
-      // try the next one. The latter is more tricky as this will cause issues with all bodies and
-      // we won't find any active object to track. However, the Application will catch an error from
-      // the SolarSystem::update() call and will call SolarSystem::fixObserverFrame() to get the
-      // observer back to a valid frame.
-      continue;
+    if (dWeight > dActiveWeight && (dWeight > mSettings->mSceneScale.mLockWeight ||
+                                       dWeight > mSettings->mSceneScale.mTrackWeight)) {
+      activeObject  = object;
+      dActiveWeight = dWeight;
     }
   }
 
@@ -449,6 +435,16 @@ void SolarSystem::updateObserverFrame() {
 
     if (sCenter != mObserver.getCenterName() || sFrame != mObserver.getFrameName()) {
       mObserver.changeOrigin(sCenter, sFrame, mTimeControl->pSimulationTime.get());
+    }
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void SolarSystem::updateSurfaces() {
+  for (auto const& [name, object] : mSettings->mObjects) {
+    if (object->getSurface()) {
+      object->getSurface()->update(object);
     }
   }
 }
