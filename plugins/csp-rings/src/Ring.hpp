@@ -79,6 +79,7 @@ class Ring : public cs::scene::CelestialObject, public IVistaOpenGLDraw {
     uint32_t radii             = 0;
     uint32_t sunIlluminance    = 0;
     uint32_t ambientBrightness = 0;
+    uint32_t sunDirection      = 0;
   } mUniforms;
 
   static const char* SPHERE_VERT;
