@@ -36,18 +36,15 @@ uniform vec2 uRadii;
 uniform mat4 uMatModel;
 uniform mat4 uMatView;
 uniform mat4 uMatProjection;
-uniform vec3 uSunDirection;
 
 // inputs
 layout(location = 0) in vec2 iGridPos;
 
 // outputs
 out vec2 vTexCoords;
-out vec3 vPosition;
-out float bLitSide;
+out vec4 vPosition;
 
 const float PI = 3.141592654;
-const vec3 normal = vec3(0.0, 1.0, 0.0);
 
 void main() {
   vTexCoords = iGridPos.yx;
@@ -55,21 +52,8 @@ void main() {
   vec2 vDir = vec2(sin(iGridPos.x * 2.0 * PI), cos(iGridPos.x * 2.0 * PI));
   vec2 vPos = mix(vDir * uRadii.x, vDir * uRadii.y, iGridPos.y);
 
-  float sunAngle = dot(uSunDirection, normal);
-
-  mat4 matModelView    = uMatView * uMatModel;
-  mat4 matNormalMatrix = transpose(inverse(matModelView));
-
-  vec4 viewPos = matModelView * vec4(0, 0, 0, 1);
-  viewPos /= viewPos.w;
-  vec3 planeNormal = normalize(-viewPos.xyz);
-  vec3 viewNormal = (matNormalMatrix * vec4(normal, 0.0)).xyz;
-  float viewAngle = dot(planeNormal, viewNormal);
-
-  bLitSide = float((sunAngle > 0.0 && viewAngle > 0.0) || (sunAngle < 0.0 && viewAngle < 0.0));
-
-  vPosition   = (uMatModel * vec4(vPos.x, 0, vPos.y, 1.0)).xyz;
-  gl_Position =  uMatProjection * uMatView * vec4(vPosition, 1);
+  vPosition   = uMatModel * vec4(vPos.x, 0, vPos.y, 1.0);
+  gl_Position =  uMatProjection * uMatView * vPosition;
 }
 )";
 
@@ -79,13 +63,13 @@ const char* Ring::SPHERE_FRAG = R"(
 uniform sampler2D uSurfaceTexture;
 uniform float uAmbientBrightness;
 uniform float uSunIlluminance;
+uniform float uLitSideVisible;
 
 ECLIPSE_SHADER_SNIPPET
 
 // inputs
 in vec2 vTexCoords;
-in vec3 vPosition;
-in float bLitSide;
+in vec4 vPosition;
 
 // outputs
 layout(location = 0) out vec4 oColor;
@@ -107,10 +91,10 @@ void main() {
   #endif
 
   #ifdef ENABLE_LIGHTING
-    if (bLitSide < 0.5) {
+    if (uLitSideVisible < 0.5) {
       oColor.rgb = oColor.rgb * (1 - oColor.a);
     }
-    oColor.rgb = oColor.rgb * getEclipseShadow(vPosition) + vec3(uAmbientBrightness);
+    oColor.rgb = oColor.rgb * getEclipseShadow(vPosition.xyz) + vec3(uAmbientBrightness);
   #endif
 }
 )";
@@ -231,7 +215,7 @@ bool Ring::Do() {
     mUniforms.radii             = mShader.GetUniformLocation("uRadii");
     mUniforms.sunIlluminance    = mShader.GetUniformLocation("uSunIlluminance");
     mUniforms.ambientBrightness = mShader.GetUniformLocation("uAmbientBrightness");
-    mUniforms.sunDirection      = mShader.GetUniformLocation("uSunDirection");
+    mUniforms.litSideVisible    = mShader.GetUniformLocation("uLitSideVisible");
 
     // We bind the eclipse shadow map to texture unit 1.
     mEclipseShadowReceiver.init(&mShader, 1);
@@ -269,9 +253,23 @@ bool Ring::Do() {
   glm::vec3 sunDirection = glm::inverse(getWorldTransform()) *
                            glm::dvec4(mSolarSystem->getSunDirection(getWorldTransform()[3]), 0.0);
 
+
+  float sunAngle = glm::dot(sunDirection, glm::vec3(0.0F, 1.0F, 0.0F));
+
+  glm::mat4 matModelView    = matV * matM;
+  glm::mat4 matNormalMatrix = glm::transpose(glm::inverse(matModelView));
+
+  glm::vec4 viewPos     = matModelView * glm::vec4(0.0F, 0.0F, 0.0F, 1.0F);
+  viewPos               = viewPos / viewPos.w;
+  glm::vec3 planeNormal = glm::normalize(-viewPos.xyz());
+  glm::vec3 viewNormal  = (matNormalMatrix * glm::vec4(0.0F, 1.0F, 0.0F, 0.0F)).xyz();
+  float viewAngle       = glm::dot(planeNormal, viewNormal);
+
+  float litSideVisible = (sunAngle > 0.0F && viewAngle > 0.0F) || (sunAngle < 0.0F && viewAngle < 0.0F) ? 1.0F : 0.0F;
+
   mShader.SetUniform(mUniforms.sunIlluminance, sunIlluminance);
   mShader.SetUniform(mUniforms.ambientBrightness, ambientBrightness);
-  mShader.SetUniform(mUniforms.sunDirection, sunDirection[0], sunDirection[1], sunDirection[2]);
+  mShader.SetUniform(mUniforms.litSideVisible, litSideVisible);
 
   mTexture->Bind(GL_TEXTURE0);
 
