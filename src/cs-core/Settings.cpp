@@ -33,8 +33,8 @@ namespace cs::utils {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void from_json(nlohmann::json const&                                               j,
-    ObservableMap<std::string, std::shared_ptr<const cs::scene::CelestialObject>>& o) {
+void from_json(nlohmann::json const&                                         j,
+    ObservableMap<std::string, std::shared_ptr<cs::scene::CelestialObject>>& o) {
 
   o.clear();
 
@@ -53,8 +53,7 @@ void from_json(nlohmann::json const&                                            
 
     object->setCenterName(center);
     object->setFrameName(frame);
-    object->setExistence(glm::dvec2(
-        utils::convert::time::toSpice(existence[0]), utils::convert::time::toSpice(existence[1])));
+    object->setExistenceAsStrings(existence);
 
     // All others are optional.
     std::optional<glm::dvec3> radii;
@@ -86,8 +85,8 @@ void from_json(nlohmann::json const&                                            
   }
 }
 
-void to_json(nlohmann::json&                                                             j,
-    ObservableMap<std::string, std::shared_ptr<const cs::scene::CelestialObject>> const& o) {
+void to_json(nlohmann::json&                                                       j,
+    ObservableMap<std::string, std::shared_ptr<cs::scene::CelestialObject>> const& o) {
 
   j.clear();
 
@@ -95,11 +94,9 @@ void to_json(nlohmann::json&                                                    
 
     nlohmann::json i;
 
-    std::array<std::string, 2> existence{utils::convert::time::toString(object->getExistence()[0]),
-        utils::convert::time::toString(object->getExistence()[1])};
     cs::core::Settings::serialize(i, "center", object->getCenterName());
     cs::core::Settings::serialize(i, "frame", object->getFrameName());
-    cs::core::Settings::serialize(i, "existence", existence);
+    cs::core::Settings::serialize(i, "existence", object->getExistenceAsStrings());
     cs::core::Settings::serialize(i, "radii", object->getRadii());
     cs::core::Settings::serialize(i, "bodyCullingRadius", object->getBodyCullingRadius());
     cs::core::Settings::serialize(i, "orbitCullingRadius", object->getOrbitCullingRadius());

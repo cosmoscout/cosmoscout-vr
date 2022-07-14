@@ -255,7 +255,7 @@ void SimpleBody::configure(Plugin::Settings::SimpleBody const& settings) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void SimpleBody::setSun(std::shared_ptr<const cs::scene::CelestialObject> const& sun) {
+void SimpleBody::setSun(std::shared_ptr<cs::scene::CelestialObject> const& sun) {
   mSun = sun;
 }
 

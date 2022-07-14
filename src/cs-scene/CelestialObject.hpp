@@ -9,8 +9,8 @@
 
 #include "CelestialAnchor.hpp"
 
-#include <limits>
 #include <memory>
+#include <optional>
 
 namespace cs::scene {
 
@@ -38,8 +38,11 @@ class CS_SCENE_EXPORT CelestialObject : public CelestialAnchor {
 
   /// The time range in Barycentric Dynamical Time in which the object existed.
   /// This should match the time coverage of the loaded SPICE kernels.
-  glm::dvec2 const& getExistence() const;
-  void              setExistence(glm::dvec2 value);
+  glm::dvec2 getExistence() const;
+  void       setExistence(glm::dvec2 value);
+
+  std::array<std::string, 2> getExistenceAsStrings() const;
+  void                       setExistenceAsStrings(std::array<std::string, 2> const& value);
 
   /// The radii of the CelestialObject in meters.
   glm::dvec3 const& getRadii() const;
@@ -106,32 +109,37 @@ class CS_SCENE_EXPORT CelestialObject : public CelestialAnchor {
   /// following, collision detection and by plugins to sample the height of the body (for instance
   /// for measuring tools).
   std::shared_ptr<CelestialSurface> const& getSurface() const;
-  void setSurface(std::shared_ptr<CelestialSurface> const& surface) const;
+  void setSurface(std::shared_ptr<CelestialSurface> const& surface);
 
   /// It is also possible to assign an IntersectableObject to a CelestialObject. If the
   /// CelestialObject is then registered with the InputManager, it will be regularily tested for
   /// intersections with the mouse ray.
   std::shared_ptr<IntersectableObject> const& getIntersectableObject() const;
-  void setIntersectableObject(std::shared_ptr<IntersectableObject> const& object) const;
+  void setIntersectableObject(std::shared_ptr<IntersectableObject> const& object);
 
  protected:
-  glm::dvec3 mRadii = glm::dvec3(0.0);
-
   double mBodyCullingRadius  = 0.0;
   double mOrbitCullingRadius = 0.0;
   bool   mIsTrackable        = true;
   bool   mIsCollidable       = true;
 
-  glm::dvec2 mExistence =
-      glm::dvec2(std::numeric_limits<double>::lowest(), std::numeric_limits<double>::max());
+  mutable std::optional<glm::dvec2>                 mExistence;
+  mutable std::optional<std::array<std::string, 2>> mExistenceAsStrings;
 
-  mutable std::shared_ptr<CelestialSurface>    mSurface;
-  mutable std::shared_ptr<IntersectableObject> mIntersectable;
-  mutable glm::dvec3                           mRadiiFromSPICE              = glm::dvec3(-1.0);
-  mutable glm::dmat4                           matObserverRelativeTransform = glm::dmat4(1.0);
-  mutable bool                                 mIsInExistence               = false;
-  mutable bool                                 mIsBodyVisible               = true;
-  mutable bool                                 mIsOrbitVisible              = true;
+  std::shared_ptr<CelestialSurface>    mSurface;
+  std::shared_ptr<IntersectableObject> mIntersectable;
+
+  // This is mutable because the celestial will try to get its radii from SPICE in the first call to
+  // the otherwise const method getRadii().
+  mutable glm::dvec3 mRadiiFromSPICE = glm::dvec3(-1.0);
+  glm::dvec3         mRadii          = glm::dvec3(0.0);
+
+  // These members are mutable as they have to be changed in the const update() method. They do not
+  // represent properties of the object but rather the cached observer-relative state.
+  mutable glm::dmat4 matObserverRelativeTransform = glm::dmat4(1.0);
+  mutable bool       mIsInExistence               = false;
+  mutable bool       mIsBodyVisible               = true;
+  mutable bool       mIsOrbitVisible              = true;
 };
 
 } // namespace cs::scene

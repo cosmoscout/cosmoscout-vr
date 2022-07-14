@@ -6,6 +6,7 @@
 
 #include "CelestialObject.hpp"
 
+#include "../cs-utils/convert.hpp"
 #include "CelestialObserver.hpp"
 #include "logger.hpp"
 
@@ -22,18 +23,42 @@ CelestialObject::CelestialObject(std::string sCenterName, std::string sFrameName
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-glm::dvec2 const& CelestialObject::getExistence() const {
-  return mExistence;
+glm::dvec2 CelestialObject::getExistence() const {
+  if (!mExistence && mExistenceAsStrings) {
+    mExistence = glm::dvec2(utils::convert::time::toSpice(mExistenceAsStrings.value()[0]),
+        utils::convert::time::toSpice(mExistenceAsStrings.value()[1]));
+  }
+
+  return mExistence.value_or(glm::dvec2(0.0));
 }
 
 void CelestialObject::setExistence(glm::dvec2 value) {
-  mExistence = value;
+  mExistence          = value;
+  mExistenceAsStrings = std::nullopt;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::array<std::string, 2> CelestialObject::getExistenceAsStrings() const {
+  if (!mExistenceAsStrings && mExistence) {
+    mExistenceAsStrings = {utils::convert::time::toString(mExistence.value()[0]),
+        utils::convert::time::toString(mExistence.value()[1])};
+  }
+
+  return mExistenceAsStrings.value_or(
+      std::array<std::string, 2>{"1950-01-02 00:00:00.000", "1950-01-02 00:00:00.000"});
+}
+
+void CelestialObject::setExistenceAsStrings(std::array<std::string, 2> const& value) {
+  mExistence          = std::nullopt;
+  mExistenceAsStrings = value;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 glm::dvec3 const& CelestialObject::getRadii() const {
 
+  // If no radii were given to the object, we try once to get the from SPICE.
   if (mRadii == glm::dvec3(0.0) && mRadiiFromSPICE == glm::dvec3(-1.0)) {
     // get target id code
     SpiceInt     id{};
@@ -62,7 +87,7 @@ glm::dvec3 const& CelestialObject::getRadii() const {
     return mRadiiFromSPICE;
 
   } else if (mRadii == glm::dvec3(0.0)) {
-    
+    // This will be glm::dvec3(0.0) if we failed to get values from SPICE.
     return mRadiiFromSPICE;
   }
 
@@ -117,13 +142,16 @@ void CelestialObject::setIsCollidable(bool value) {
 
 void CelestialObject::setCenterName(std::string const& sCenterName) {
   CelestialAnchor::setCenterName(sCenterName);
+
+  // We may have to get new radii from SPICE in this case.
   mRadiiFromSPICE = glm::dvec3(-1.0);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void CelestialObject::update(double tTime, cs::scene::CelestialObserver const& oObs) const {
-  mIsInExistence = (tTime > mExistence[0] && tTime < mExistence[1]);
+  auto existence = getExistence();
+  mIsInExistence = (tTime > existence[0] && tTime < existence[1]);
 
   if (getIsInExistence()) {
     try {
@@ -211,7 +239,7 @@ std::shared_ptr<CelestialSurface> const& CelestialObject::getSurface() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CelestialObject::setSurface(std::shared_ptr<CelestialSurface> const& surface) const {
+void CelestialObject::setSurface(std::shared_ptr<CelestialSurface> const& surface) {
   mSurface = surface;
 }
 
@@ -223,7 +251,7 @@ std::shared_ptr<IntersectableObject> const& CelestialObject::getIntersectableObj
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CelestialObject::setIntersectableObject(std::shared_ptr<IntersectableObject> const& object) const {
+void CelestialObject::setIntersectableObject(std::shared_ptr<IntersectableObject> const& object) {
   mIntersectable = object;
 }
 

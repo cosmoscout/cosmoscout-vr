@@ -52,8 +52,7 @@ SolarSystem::~SolarSystem() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::shared_ptr<const scene::CelestialObject> SolarSystem::getObject(
-    std::string const& name) const {
+std::shared_ptr<scene::CelestialObject> SolarSystem::getObject(std::string const& name) const {
   auto it = mSettings->mObjects.find(name);
 
   if (it != mSettings->mObjects.end()) {
@@ -67,7 +66,7 @@ std::shared_ptr<const scene::CelestialObject> SolarSystem::getObject(
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::shared_ptr<const scene::CelestialObject> SolarSystem::getObjectByCenterName(
+std::shared_ptr<scene::CelestialObject> SolarSystem::getObjectByCenterName(
     std::string const& center) const {
   for (auto const& [name, object] : mSettings->mObjects) {
     if (object->getCenterName() == center) {
@@ -80,7 +79,7 @@ std::shared_ptr<const scene::CelestialObject> SolarSystem::getObjectByCenterName
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::shared_ptr<const scene::CelestialObject> SolarSystem::getSun() const {
+std::shared_ptr<scene::CelestialObject> SolarSystem::getSun() const {
   return mSun;
 }
 
@@ -286,8 +285,8 @@ void SolarSystem::update() {
 void SolarSystem::updateSceneScale() {
 
   // First we have to find the planet which is closest to the observer.
-  std::shared_ptr<const cs::scene::CelestialObject> closestObject;
-  double dClosestDistance = std::numeric_limits<double>::max();
+  std::shared_ptr<cs::scene::CelestialObject> closestObject;
+  double                                      dClosestDistance = std::numeric_limits<double>::max();
 
   // Here we will store the position of the observer relative to the closestObject.
   glm::dvec3 vClosestPlanetObserverPosition(0.0);
@@ -380,7 +379,7 @@ void SolarSystem::updateSceneScale() {
 void SolarSystem::updateObserverFrame() {
 
   // The Observer will be locked to the active planet.
-  std::shared_ptr<const cs::scene::CelestialObject> activeObject;
+  std::shared_ptr<cs::scene::CelestialObject> activeObject;
 
   // The active planet is the one with the heighest *weight*.
   double dActiveWeight = 0;
@@ -631,7 +630,7 @@ void SolarSystem::deinit() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 double SolarSystem::getScaleBasedOnObserverDistance(
-    std::shared_ptr<const scene::CelestialObject> const& object, glm::dvec3 const& translation,
+    std::shared_ptr<scene::CelestialObject> const& object, glm::dvec3 const& translation,
     double baseDistance, double scaleFactor) {
 
   double observerDistance =
@@ -651,9 +650,8 @@ double SolarSystem::getScaleBasedOnObserverDistance(
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-glm::dquat SolarSystem::getRotationToObserver(
-    std::shared_ptr<const scene::CelestialObject> const& object, glm::dvec3 const& translation,
-    bool upIsNormal) {
+glm::dquat SolarSystem::getRotationToObserver(std::shared_ptr<scene::CelestialObject> const& object,
+    glm::dvec3 const& translation, bool upIsNormal) {
 
   auto       observerTransform = object->getObserverRelativeTransform(translation);
   glm::dvec3 observerPos       = observerTransform[3];

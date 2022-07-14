@@ -86,10 +86,10 @@ struct adl_serializer<cs::utils::Property<T>> {
 } // namespace nlohmann
 
 namespace cs::utils {
-CS_CORE_EXPORT void from_json(nlohmann::json const&                                j,
-    ObservableMap<std::string, std::shared_ptr<const cs::scene::CelestialObject>>& o);
-CS_CORE_EXPORT void to_json(nlohmann::json&                                              j,
-    ObservableMap<std::string, std::shared_ptr<const cs::scene::CelestialObject>> const& o);
+CS_CORE_EXPORT void from_json(nlohmann::json const&                          j,
+    ObservableMap<std::string, std::shared_ptr<cs::scene::CelestialObject>>& o);
+CS_CORE_EXPORT void to_json(nlohmann::json&                                        j,
+    ObservableMap<std::string, std::shared_ptr<cs::scene::CelestialObject>> const& o);
 } // namespace cs::utils
 
 namespace cs::core {
@@ -188,7 +188,7 @@ class CS_CORE_EXPORT Settings {
   ///   ...
   /// },
   /// ...
-  cs::utils::ObservableMap<std::string, std::shared_ptr<const cs::scene::CelestialObject>> mObjects;
+  cs::utils::ObservableMap<std::string, std::shared_ptr<cs::scene::CelestialObject>> mObjects;
 
   /// The values of the observer are updated by the SolarSystem once each frame. For all others,
   /// they should be considered readonly. If you want to modify the transformation of the virtual

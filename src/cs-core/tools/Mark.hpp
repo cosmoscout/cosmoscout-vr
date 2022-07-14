@@ -72,9 +72,9 @@ class CS_CORE_EXPORT Mark : public IVistaOpenGLDraw, public Tool {
   std::shared_ptr<SolarSystem>  mSolarSystem;
   std::shared_ptr<Settings>     mSettings;
 
-  std::shared_ptr<const cs::scene::CelestialObject> mObject;
-  VistaTransformNode*                               mTransform = nullptr;
-  VistaOpenGLNode*                                  mParent    = nullptr;
+  std::shared_ptr<cs::scene::CelestialObject> mObject;
+  VistaTransformNode*                         mTransform = nullptr;
+  VistaOpenGLNode*                            mParent    = nullptr;
 
  private:
   void initData();
