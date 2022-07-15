@@ -96,7 +96,7 @@ PolygonTool::PolygonTool(std::shared_ptr<cs::core::InputManager> const& pInputMa
   // and rotated in such a way, that it always faces the observer
   mGuiAnchor = std::make_shared<cs::scene::CelestialAnchorNode>(
       pSG->GetRoot(), pSG->GetNodeBridge(), "", sCenter, sFrame);
-  mGuiAnchor->setAnchorScale(mSolarSystem->getObserver().getAnchorScale());
+  mGuiAnchor->setScale(mSolarSystem->getObserver().getScale());
   mSolarSystem->registerAnchor(mGuiAnchor);
 
   // Create the user interface
@@ -961,7 +961,7 @@ void PolygonTool::calculateAreaAndVolume(std::vector<Triangle> const& triangles,
 void PolygonTool::onPointMoved() {
   // Return if point is not on planet
   for (auto const& mark : mPoints) {
-    glm::dvec3 vec = mark->getAnchor()->getAnchorPosition();
+    glm::dvec3 vec = mark->getAnchor()->getPosition();
     if ((glm::length(vec) == 0) || std::isnan(vec.x) || std::isnan(vec.y) || std::isnan(vec.z)) {
       return;
     }
@@ -975,7 +975,7 @@ void PolygonTool::onPointMoved() {
 void PolygonTool::onPointAdded() {
   // Return if point is not on planet
   for (auto const& mark : mPoints) {
-    glm::dvec3 vec = mark->getAnchor()->getAnchorPosition();
+    glm::dvec3 vec = mark->getAnchor()->getPosition();
     if ((glm::length(vec) == 0) || std::isnan(vec.x) || std::isnan(vec.y) || std::isnan(vec.z)) {
       return;
     }
@@ -1008,7 +1008,7 @@ void PolygonTool::updateLineVertices() {
   // Middle point of cs::core::tools::DeletableMarks
   glm::dvec3 averagePosition(0.0);
   for (auto const& mark : mPoints) {
-    averagePosition += mark->getAnchor()->getAnchorPosition() / static_cast<double>(mPoints.size());
+    averagePosition += mark->getAnchor()->getPosition() / static_cast<double>(mPoints.size());
   }
 
   auto       body  = mSolarSystem->getBody(mGuiAnchor->getCenterName());
@@ -1018,13 +1018,13 @@ void PolygonTool::updateLineVertices() {
   double height = body->getHeight(lngLat);
   height *= mSettings->mGraphics.pHeightScale.get();
   auto center = cs::utils::convert::toCartesian(lngLat, radii, height);
-  mGuiAnchor->setAnchorPosition(center);
+  mGuiAnchor->setPosition(center);
 
   // This seems to be the first time the tool is moved, so we have to store the distance to the
   // observer so that we can scale the tool later based on the observer's position.
   if (pScaleDistance.get() < 0) {
     try {
-      pScaleDistance = mSolarSystem->getObserver().getAnchorScale() *
+      pScaleDistance = mSolarSystem->getObserver().getScale() *
                        glm::length(mSolarSystem->getObserver().getRelativePosition(
                            mTimeControl->pSimulationTime.get(), *mGuiAnchor));
     } catch (std::exception const& e) {
@@ -1119,13 +1119,13 @@ void PolygonTool::updateCalculation() {
   // Middle point of cs::core::tools::DeletableMarks
   glm::dvec3 averagePosition(0.0);
   for (auto const& mark : mPoints) {
-    averagePosition += mark->getAnchor()->getAnchorPosition() / static_cast<double>(mPoints.size());
+    averagePosition += mark->getAnchor()->getPosition() / static_cast<double>(mPoints.size());
   }
 
   // Corrected average position (works for every height scale)
   glm::dvec3 averagePositionNorm(0.0);
   for (auto const& mark : mPoints) {
-    glm::dvec3 pos = glm::normalize(mark->getAnchor()->getAnchorPosition()) * radii[0];
+    glm::dvec3 pos = glm::normalize(mark->getAnchor()->getPosition()) * radii[0];
     // LongLat coordinate
     glm::dvec2 l = cs::utils::convert::cartesianToLngLat(pos, radii);
     // Height of the point
@@ -1139,7 +1139,7 @@ void PolygonTool::updateCalculation() {
   // Longest distance to average position
   double maxDist = 0;
   for (auto const& mark : mPoints) {
-    double dist = glm::length(averagePosition - mark->getAnchor()->getAnchorPosition());
+    double dist = glm::length(averagePosition - mark->getAnchor()->getPosition());
     if (dist > maxDist) {
       maxDist = dist;
     }
@@ -1189,7 +1189,7 @@ void PolygonTool::updateCalculation() {
   mOffset  = 0.F;
 
   for (auto const& p : mPoints) {
-    glm::dvec3 pos     = glm::normalize(p->getAnchor()->getAnchorPosition()) * radii[0];
+    glm::dvec3 pos     = glm::normalize(p->getAnchor()->getPosition()) * radii[0];
     glm::dvec2 l       = cs::utils::convert::cartesianToLngLat(pos, radii);
     double     h       = mSolarSystem->pActiveBody.get()->getHeight(l);
     glm::dvec3 posNorm = cs::utils::convert::toCartesian(l, radii, h);
@@ -1226,7 +1226,7 @@ void PolygonTool::updateCalculation() {
   glm::dvec3 lastPosition{0};
 
   for (auto const& mark : mPoints) {
-    glm::dvec3 currentPosition = mark->getAnchor()->getAnchorPosition();
+    glm::dvec3 currentPosition = mark->getAnchor()->getPosition();
 
     // Filters out double points
     if (currentPosition != lastPosition) {

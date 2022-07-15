@@ -236,8 +236,8 @@ void Plugin::onLoad() {
       trajectory->pColor   = settings.second.mColor;
 
       // Change visibility of dots together with trajectory.
-      trajectory->pVisible.connectAndTouch([this, anchorName = settings.first](bool visible) {
-        auto dot = mDeepSpaceDots.find(anchorName);
+      trajectory->pVisible.connectAndTouch([this, objectName = settings.first](bool visible) {
+        auto dot = mDeepSpaceDots.find(objectName);
         if (dot != mDeepSpaceDots.end()) {
           dot->second->pVisible = visible;
         }

@@ -124,7 +124,7 @@ void Plugin::init() {
   // Add newly created bookmarks.
   mOnBookmarkAddedConnection = mGuiManager->onBookmarkAdded().connect(
       [this](uint32_t bookmarkID, cs::core::Settings::Bookmark const& bookmark) {
-        onAddBookmark(mSolarSystem->pActiveBody.get(), bookmarkID, bookmark);
+        onAddBookmark(mSolarSystem->pActiveObject.get(), bookmarkID, bookmark);
       });
 
   // Remove deleted bookmarks.
@@ -134,8 +134,8 @@ void Plugin::init() {
       });
 
   // Update bookmarks and map layers if active body changes.
-  mActiveBodyConnection = mSolarSystem->pActiveBody.connectAndTouch(
-      [this](std::shared_ptr<cs::scene::CelestialBody> const& body) {
+  mActiveObjectConnection = mSolarSystem->pActiveObject.connectAndTouch(
+      [this](std::shared_ptr<cs::scene::CelestialObject> const& body) {
         // First remove all bookmarks.
         mGuiManager->getGui()->callJavascript("CosmoScout.minimap.removeBookmarks");
         mGuiManager->getGui()->callJavascript("CosmoScout.minimap.configure", "");
@@ -179,20 +179,20 @@ void Plugin::deInit() {
   mGuiManager->removeTimelineButton("Toggle Minimap");
   mGuiManager->getGui()->unregisterCallback("minimap.toggle");
 
-  mSolarSystem->pActiveBody.disconnect(mActiveBodyConnection);
+  mSolarSystem->pActiveObject.disconnect(mActiveObjectConnection);
 
   logger().info("Unloading done.");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Plugin::onAddBookmark(std::shared_ptr<cs::scene::CelestialBody> const& activeBody,
+void Plugin::onAddBookmark(std::shared_ptr<cs::scene::CelestialObject> const& activeObject,
     uint32_t bookmarkID, cs::core::Settings::Bookmark const& bookmark) {
 
   // Add only if it has a location and matches the currently active body.
   if (bookmark.mLocation && bookmark.mLocation.value().mPosition) {
-    if (activeBody && activeBody->getCenterName() == bookmark.mLocation.value().mCenter) {
-      auto radii = activeBody->getRadii();
+    if (activeObject && activeObject->getCenterName() == bookmark.mLocation.value().mCenter) {
+      auto radii = activeObject->getRadii();
       auto p     = cs::utils::convert::cartesianToLngLat(
           bookmark.mLocation.value().mPosition.value(), radii);
       p      = cs::utils::convert::toDegrees(p);

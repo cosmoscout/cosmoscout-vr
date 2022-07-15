@@ -36,7 +36,7 @@ class PlanetShader : public TerrainShader {
       std::shared_ptr<Plugin::Settings>                pluginSettings,
       std::shared_ptr<cs::core::GuiManager>            pGuiManager,
       std::shared_ptr<cs::core::EclipseShadowReceiver> eclipseShadowReceiver,
-      std::string                                      anchorName);
+      std::string                                      objectName);
 
   PlanetShader(PlanetShader const& other) = delete;
   PlanetShader(PlanetShader&& other)      = delete;

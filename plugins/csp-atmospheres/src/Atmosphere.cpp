@@ -22,13 +22,13 @@ namespace csp::atmospheres {
 
 Atmosphere::Atmosphere(std::shared_ptr<Plugin::Settings> const& pluginSettings,
     std::shared_ptr<cs::core::Settings> const&                  settings,
-    std::shared_ptr<cs::core::SolarSystem> const& solarSystem, std::string const& anchorName)
+    std::shared_ptr<cs::core::SolarSystem> const& solarSystem, std::string const& objectName)
     : mEclipseShadowReceiver(
           std::make_shared<cs::core::EclipseShadowReceiver>(settings, solarSystem, this, false))
     , mRenderer(pluginSettings, mEclipseShadowReceiver)
     , mPluginSettings(pluginSettings) {
 
-  settings->initAnchor(*this, anchorName);
+  settings->initAnchor(*this, objectName);
 
   mRenderer.setRadii(mRadii);
   mRenderer.setDrawSun(false);

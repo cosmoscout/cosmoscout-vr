@@ -43,7 +43,7 @@ class LodBody : public cs::scene::CelestialBody, public IVistaOpenGLDraw {
       std::shared_ptr<cs::core::SolarSystem>         solarSystem,
       std::shared_ptr<Plugin::Settings> const&       pluginSettings,
       std::shared_ptr<cs::core::GuiManager> const&   pGuiManager,
-      std::shared_ptr<GLResources> const& glResources, std::string const& anchorName);
+      std::shared_ptr<GLResources> const& glResources, std::string const& objectName);
 
   LodBody(LodBody const& other) = delete;
   LodBody(LodBody&& other)      = delete;
@@ -55,7 +55,7 @@ class LodBody : public cs::scene::CelestialBody, public IVistaOpenGLDraw {
 
   PlanetShader const& getShader() const;
 
-  void setSun(std::shared_ptr<const cs::scene::CelestialObject> const& sun);
+  void setSun(std::shared_ptr<cs::scene::CelestialObject> const& sun);
 
   /// Sets the tile source for elevation data.
   void setDEMtileSource(std::shared_ptr<TileSource> source);
@@ -79,12 +79,12 @@ class LodBody : public cs::scene::CelestialBody, public IVistaOpenGLDraw {
   bool GetBoundingBox(VistaBoundingBox& bb) override;
 
  private:
-  std::shared_ptr<cs::core::Settings>               mSettings;
-  std::shared_ptr<cs::core::GraphicsEngine>         mGraphicsEngine;
-  std::shared_ptr<cs::core::SolarSystem>            mSolarSystem;
-  std::shared_ptr<Plugin::Settings>                 mPluginSettings;
-  std::shared_ptr<const cs::scene::CelestialObject> mSun;
-  std::shared_ptr<cs::core::GuiManager>             mGuiManager;
+  std::shared_ptr<cs::core::Settings>         mSettings;
+  std::shared_ptr<cs::core::GraphicsEngine>   mGraphicsEngine;
+  std::shared_ptr<cs::core::SolarSystem>      mSolarSystem;
+  std::shared_ptr<Plugin::Settings>           mPluginSettings;
+  std::shared_ptr<cs::scene::CelestialObject> mSun;
+  std::shared_ptr<cs::core::GuiManager>       mGuiManager;
 
   std::unique_ptr<VistaOpenGLNode>                 mGLNode;
   std::shared_ptr<TileSource>                      mDEMtileSource;

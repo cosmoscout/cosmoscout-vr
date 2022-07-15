@@ -31,7 +31,7 @@ namespace csp::rings {
 class Ring : public cs::scene::CelestialObject, public IVistaOpenGLDraw {
  public:
   Ring(std::shared_ptr<cs::core::Settings>   settings,
-      std::shared_ptr<cs::core::SolarSystem> solarSystem, std::string const& anchorName);
+      std::shared_ptr<cs::core::SolarSystem> solarSystem, std::string const& objectName);
 
   Ring(Ring const& other) = delete;
   Ring(Ring&& other)      = default;
@@ -45,7 +45,7 @@ class Ring : public cs::scene::CelestialObject, public IVistaOpenGLDraw {
   void configure(Plugin::Settings::Ring const& settings);
 
   /// The sun object is used for lighting computation.
-  void setSun(std::shared_ptr<const cs::scene::CelestialObject> const& sun);
+  void setSun(std::shared_ptr<cs::scene::CelestialObject> const& sun);
 
   void update(double time, cs::scene::CelestialObserver const& observer) override;
 
@@ -53,9 +53,9 @@ class Ring : public cs::scene::CelestialObject, public IVistaOpenGLDraw {
   bool GetBoundingBox(VistaBoundingBox& bb) override;
 
  private:
-  std::shared_ptr<cs::core::Settings>               mSettings;
-  std::shared_ptr<cs::core::SolarSystem>            mSolarSystem;
-  std::shared_ptr<const cs::scene::CelestialObject> mSun;
+  std::shared_ptr<cs::core::Settings>         mSettings;
+  std::shared_ptr<cs::core::SolarSystem>      mSolarSystem;
+  std::shared_ptr<cs::scene::CelestialObject> mSun;
 
   std::unique_ptr<VistaOpenGLNode> mGLNode;
 

@@ -596,7 +596,7 @@ bool TextureOverlayRenderer::Do() {
   if (getCenter() == "Sun") {
     // If the overlay is on the sun, we have to calculate the lighting differently.
     if (mSettings->mGraphics.pEnableHDR.get()) {
-      double sceneScale = 1.0 / mSolarSystem->getObserver().getAnchorScale();
+      double sceneScale = 1.0 / mSolarSystem->getObserver().getScale();
       sunIlluminance =
           static_cast<float>(mSolarSystem->pSunLuminousPower.get() /
                              (sceneScale * sceneScale * mSolarSystem->getRadii(getCenter())[0] *

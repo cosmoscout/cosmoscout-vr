@@ -102,11 +102,11 @@ void main()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 SunFlare::SunFlare(std::shared_ptr<cs::core::Settings> settings,
-    std::shared_ptr<Plugin::Settings> pluginSettings, std::string const& anchorName)
+    std::shared_ptr<Plugin::Settings> pluginSettings, std::string const& objectName)
     : mSettings(std::move(settings))
     , mPluginSettings(std::move(pluginSettings)) {
 
-  mSettings->initAnchor(*this, anchorName);
+  mSettings->initAnchor(*this, objectName);
   setRadii(glm::dvec3(0.0));
 
   mShader.InitVertexShaderFromString(QUAD_VERT);

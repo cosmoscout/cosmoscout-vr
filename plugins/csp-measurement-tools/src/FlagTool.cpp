@@ -112,7 +112,7 @@ void FlagTool::update() {
   // observer so that we can scale the tool later based on the observer's position.
   if (pScaleDistance.get() < 0) {
     try {
-      pScaleDistance = mSolarSystem->getObserver().getAnchorScale() *
+      pScaleDistance = mSolarSystem->getObserver().getScale() *
                        glm::length(mSolarSystem->getObserver().getRelativePosition(
                            mTimeControl->pSimulationTime.get(), *mAnchor));
     } catch (std::exception const& e) {

@@ -26,7 +26,7 @@ namespace csp::sharad {
 /// Renders a single SHARAD image.
 class Sharad : public cs::scene::CelestialObject, public IVistaOpenGLDraw {
  public:
-  Sharad(std::shared_ptr<cs::core::Settings> settings, std::string const& anchorName,
+  Sharad(std::shared_ptr<cs::core::Settings> settings, std::string const& objectName,
       std::string const& sTiffFile, std::string const& sTabFile);
 
   Sharad(Sharad const& other) = delete;

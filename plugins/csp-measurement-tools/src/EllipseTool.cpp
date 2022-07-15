@@ -62,8 +62,8 @@ EllipseTool::EllipseTool(std::shared_ptr<cs::core::InputManager> const& pInputMa
     : mSolarSystem(pSolarSystem)
     , mSettings(settings)
     , mCenterHandle(pInputManager, pSolarSystem, settings, pTimeControl, sCenter, sFrame)
-    , mAxes({glm::dvec3(pSolarSystem->getObserver().getAnchorScale(), 0.0, 0.0),
-          glm::dvec3(0.0, pSolarSystem->getObserver().getAnchorScale(), 0.0)})
+    , mAxes({glm::dvec3(pSolarSystem->getObserver().getScale(), 0.0, 0.0),
+          glm::dvec3(0.0, pSolarSystem->getObserver().getScale(), 0.0)})
     , mHandles({std::make_unique<cs::core::tools::Mark>(
                     pInputManager, pSolarSystem, settings, pTimeControl, sCenter, sFrame),
           std::make_unique<cs::core::tools::Mark>(
@@ -96,7 +96,7 @@ EllipseTool::EllipseTool(std::shared_ptr<cs::core::InputManager> const& pInputMa
       mOpenGLNode.get(), static_cast<int>(cs::utils::DrawOrder::eOpaqueNonHDR));
 
   mCenterHandle.pLngLat.connect([this](glm::dvec2 const& /*lngLat*/) {
-    auto center = mCenterHandle.getAnchor()->getAnchorPosition();
+    auto center = mCenterHandle.getAnchor()->getPosition();
     auto body   = mSolarSystem->getBody(mCenterHandle.getAnchor()->getCenterName());
     auto radii  = body->getRadii();
 
@@ -109,16 +109,16 @@ EllipseTool::EllipseTool(std::shared_ptr<cs::core::InputManager> const& pInputMa
       mFirstUpdate = false;
     }
 
-    mAxes.at(0) = mHandles.at(0)->getAnchor()->getAnchorPosition() - center;
-    mAxes.at(1) = mHandles.at(1)->getAnchor()->getAnchorPosition() - center;
+    mAxes.at(0) = mHandles.at(0)->getAnchor()->getPosition() - center;
+    mAxes.at(1) = mHandles.at(1)->getAnchor()->getPosition() - center;
 
     mVerticesDirty = true;
   });
 
   for (int i(0); i < 2; ++i) {
     mHandleConnections.at(i) = mHandles.at(i)->pLngLat.connect([this, i](glm::dvec2 const& /*p*/) {
-      auto center    = mCenterHandle.getAnchor()->getAnchorPosition();
-      mAxes.at(i)    = mHandles.at(i)->getAnchor()->getAnchorPosition() - center;
+      auto center    = mCenterHandle.getAnchor()->getPosition();
+      mAxes.at(i)    = mHandles.at(i)->getAnchor()->getPosition() - center;
       mVerticesDirty = true;
     });
   }
@@ -232,10 +232,10 @@ void EllipseTool::setNumSamples(int const& numSamples) {
 void EllipseTool::calculateVertices() {
   auto body   = mSolarSystem->getBody(mCenterHandle.getAnchor()->getCenterName());
   auto radii  = body->getRadii();
-  auto center = mCenterHandle.getAnchor()->getAnchorPosition();
+  auto center = mCenterHandle.getAnchor()->getPosition();
   auto normal = cs::utils::convert::lngLatToNormal(mCenterHandle.pLngLat.get());
 
-  mAnchor->setAnchorPosition(center);
+  mAnchor->setPosition(center);
 
   glm::dvec3 north(0, 1, 0);
   glm::dvec3 east = glm::normalize(glm::cross(north, normal));

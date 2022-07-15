@@ -99,12 +99,12 @@ void main() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Ring::Ring(std::shared_ptr<cs::core::Settings> settings,
-    std::shared_ptr<cs::core::SolarSystem> solarSystem, std::string const& anchorName)
+    std::shared_ptr<cs::core::SolarSystem> solarSystem, std::string const& objectName)
     : mSettings(std::move(settings))
     , mSolarSystem(std::move(solarSystem))
     , mEclipseShadowReceiver(mSettings, mSolarSystem, this, true) {
 
-  mSettings->initAnchor(*this, anchorName);
+  mSettings->initAnchor(*this, objectName);
 
   // The geometry is a grid strip around the center of the SPICE frame.
   std::vector<glm::vec2> vertices(GRID_RESOLUTION * 2);
@@ -161,7 +161,7 @@ void Ring::configure(Plugin::Settings::Ring const& settings) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Ring::setSun(std::shared_ptr<const cs::scene::CelestialObject> const& sun) {
+void Ring::setSun(std::shared_ptr<cs::scene::CelestialObject> const& sun) {
   mSun = sun;
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////

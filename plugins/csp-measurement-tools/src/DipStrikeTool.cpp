@@ -128,7 +128,7 @@ DipStrikeTool::DipStrikeTool(std::shared_ptr<cs::core::InputManager> const& pInp
   // and rotated in such a way, that it always faces the observer
   mGuiAnchor = std::make_shared<cs::scene::CelestialAnchorNode>(
       pSG->GetRoot(), pSG->GetNodeBridge(), "", sCenter, sFrame);
-  mGuiAnchor->setAnchorScale(mSolarSystem->getObserver().getAnchorScale());
+  mGuiAnchor->setScale(mSolarSystem->getObserver().getScale());
   mSolarSystem->registerAnchor(mGuiAnchor);
 
   // create the user interface
@@ -266,7 +266,7 @@ void DipStrikeTool::calculateDipAndStrike() {
 
   glm::dvec3 averagePosition{0};
   for (auto const& mark : mPoints) {
-    averagePosition += mark->getAnchor()->getAnchorPosition() / static_cast<double>(mPoints.size());
+    averagePosition += mark->getAnchor()->getPosition() / static_cast<double>(mPoints.size());
   }
 
   // corrected average position (works for every height scale)
@@ -274,8 +274,7 @@ void DipStrikeTool::calculateDipAndStrike() {
   glm::dvec3 averagePositionNorm(0.0);
   for (auto const& mark : mPoints) {
     // LongLat coordinate
-    glm::dvec2 l =
-        cs::utils::convert::cartesianToLngLat(mark->getAnchor()->getAnchorPosition(), radii);
+    glm::dvec2 l = cs::utils::convert::cartesianToLngLat(mark->getAnchor()->getPosition(), radii);
     // Height of the point
     double h = body ? body->getHeight(l) : 0.0;
     // Cartesian coordinate with height
@@ -284,14 +283,14 @@ void DipStrikeTool::calculateDipAndStrike() {
     averagePositionNorm += posNorm / static_cast<double>(mPoints.size());
   }
 
-  mGuiAnchor->setAnchorPosition(averagePositionNorm);
-  mPlaneAnchor->setAnchorPosition(averagePositionNorm);
+  mGuiAnchor->setPosition(averagePositionNorm);
+  mPlaneAnchor->setPosition(averagePositionNorm);
 
   // This seems to be the first time the tool is moved, so we have to store the distance to the
   // observer so that we can scale the tool later based on the observer's position.
   if (pScaleDistance.get() < 0) {
     try {
-      pScaleDistance = mSolarSystem->getObserver().getAnchorScale() *
+      pScaleDistance = mSolarSystem->getObserver().getScale() *
                        glm::length(mSolarSystem->getObserver().getRelativePosition(
                            mTimeControl->pSimulationTime.get(), *mGuiAnchor));
     } catch (std::exception const& e) {
@@ -305,16 +304,15 @@ void DipStrikeTool::calculateDipAndStrike() {
   glm::dmat3 mat(0);
   glm::dvec3 vec(0);
 
-  auto      center      = mPlaneAnchor->getAnchorPosition();
+  auto      center      = mPlaneAnchor->getPosition();
   glm::vec3 idealNormal = cs::utils::convert::cartesianToNormal(center, radii);
   mNormal               = idealNormal;
   mSize                 = 0;
   mOffset               = 0.F;
 
   for (auto const& p : mPoints) {
-    glm::dvec2 l =
-        cs::utils::convert::cartesianToLngLat(p->getAnchor()->getAnchorPosition(), radii);
-    double     h       = body ? body->getHeight(l) : 0.0;
+    glm::dvec2 l = cs::utils::convert::cartesianToLngLat(p->getAnchor()->getPosition(), radii);
+    double     h = body ? body->getHeight(l) : 0.0;
     glm::dvec3 posNorm = cs::utils::convert::toCartesian(l, radii, h);
 
     glm::dvec3 realtivePosition = posNorm - averagePositionNorm;

@@ -241,7 +241,7 @@ void Plugin::onLoad() {
         height = parent->getHeight(lngLat);
         radii  = parent->getRadii();
       }
-      item.mAnchor->setAnchorPosition(cs::utils::convert::toCartesian(lngLat, radii, height));
+      item.mAnchor->setPosition(cs::utils::convert::toCartesian(lngLat, radii, height));
 
       // Create the WorldSpaceGuiArea for the gui element.
       item.mGuiArea =

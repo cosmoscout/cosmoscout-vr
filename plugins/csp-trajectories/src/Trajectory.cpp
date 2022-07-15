@@ -145,19 +145,19 @@ void Trajectory::update(double tTime, cs::scene::CelestialObserver const& oObs) 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Trajectory::setTargetAnchorName(std::string const& anchorName) {
+void Trajectory::setTargetAnchorName(std::string const& objectName) {
   mPoints.clear();
-  mTargetAnchorName = anchorName;
-  mSettings->initAnchor(mTarget, anchorName);
+  mTargetAnchorName = objectName;
+  mSettings->initAnchor(mTarget, objectName);
   updateExistence();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Trajectory::setParentAnchorName(std::string const& anchorName) {
+void Trajectory::setParentAnchorName(std::string const& objectName) {
   mPoints.clear();
-  mParentAnchorName = anchorName;
-  mSettings->initAnchor(*this, anchorName);
+  mParentAnchorName = objectName;
+  mSettings->initAnchor(*this, objectName);
   updateExistence();
 }
 

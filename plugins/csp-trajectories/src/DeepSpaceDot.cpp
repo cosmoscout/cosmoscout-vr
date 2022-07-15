@@ -93,10 +93,10 @@ void main()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 DeepSpaceDot::DeepSpaceDot(std::shared_ptr<Plugin::Settings> pluginSettings,
-    std::shared_ptr<cs::core::Settings> const& settings, std::string const& anchorName)
+    std::shared_ptr<cs::core::Settings> const& settings, std::string const& objectName)
     : mPluginSettings(std::move(pluginSettings)) {
 
-  settings->initAnchor(*this, anchorName);
+  settings->initAnchor(*this, objectName);
   setRadii(glm::dvec3(0.0));
 
   mShader.InitVertexShaderFromString(QUAD_VERT);

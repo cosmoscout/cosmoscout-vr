@@ -31,7 +31,7 @@ namespace csp::satellites {
 /// A single satellite within the Solar System.
 class Satellite : public cs::scene::CelestialBody {
  public:
-  Satellite(Plugin::Settings::Satellite const& config, std::string const& anchorName,
+  Satellite(Plugin::Settings::Satellite const& config, std::string const& objectName,
       VistaSceneGraph* sceneGraph, std::shared_ptr<cs::core::Settings> settings,
       std::shared_ptr<cs::core::SolarSystem> solarSystem);
 
@@ -45,7 +45,7 @@ class Satellite : public cs::scene::CelestialBody {
 
   void update(double tTime, cs::scene::CelestialObserver const& oObs) override;
 
-  void setSun(std::shared_ptr<const cs::scene::CelestialObject> const& sun);
+  void setSun(std::shared_ptr<cs::scene::CelestialObject> const& sun);
 
   // interface of scene::CelestialBody ---------------------------------------
 
@@ -54,12 +54,12 @@ class Satellite : public cs::scene::CelestialBody {
   double getHeight(glm::dvec2 lngLat) const override;
 
  private:
-  VistaSceneGraph*                                  mSceneGraph;
-  std::shared_ptr<cs::core::Settings>               mSettings;
-  std::shared_ptr<cs::core::SolarSystem>            mSolarSystem;
-  std::unique_ptr<VistaTransformNode>               mAnchor;
-  std::unique_ptr<cs::graphics::GltfLoader>         mModel;
-  std::shared_ptr<const cs::scene::CelestialObject> mSun;
+  VistaSceneGraph*                            mSceneGraph;
+  std::shared_ptr<cs::core::Settings>         mSettings;
+  std::shared_ptr<cs::core::SolarSystem>      mSolarSystem;
+  std::unique_ptr<VistaTransformNode>         mAnchor;
+  std::unique_ptr<cs::graphics::GltfLoader>   mModel;
+  std::shared_ptr<cs::scene::CelestialObject> mSun;
 };
 } // namespace csp::satellites
 

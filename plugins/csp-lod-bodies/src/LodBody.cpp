@@ -28,7 +28,7 @@ LodBody::LodBody(std::shared_ptr<cs::core::Settings> const& settings,
     std::shared_ptr<cs::core::SolarSystem>                  solarSystem,
     std::shared_ptr<Plugin::Settings> const&                pluginSettings,
     std::shared_ptr<cs::core::GuiManager> const&            pGuiManager,
-    std::shared_ptr<GLResources> const& glResources, std::string const& anchorName)
+    std::shared_ptr<GLResources> const& glResources, std::string const& objectName)
     : mSettings(settings)
     , mGraphicsEngine(std::move(graphicsEngine))
     , mSolarSystem(std::move(solarSystem))
@@ -37,9 +37,9 @@ LodBody::LodBody(std::shared_ptr<cs::core::Settings> const& settings,
     , mEclipseShadowReceiver(
           std::make_shared<cs::core::EclipseShadowReceiver>(mSettings, mSolarSystem, this, false))
     , mPlanet(glResources)
-    , mShader(settings, pluginSettings, pGuiManager, mEclipseShadowReceiver, anchorName) {
+    , mShader(settings, pluginSettings, pGuiManager, mEclipseShadowReceiver, objectName) {
 
-  mSettings->initAnchor(*this, anchorName);
+  mSettings->initAnchor(*this, objectName);
 
   pVisible.connect([this](bool val) {
     if (val) {
@@ -96,7 +96,7 @@ PlanetShader const& LodBody::getShader() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void LodBody::setSun(std::shared_ptr<const cs::scene::CelestialObject> const& sun) {
+void LodBody::setSun(std::shared_ptr<cs::scene::CelestialObject> const& sun) {
   mSun = sun;
 }
 

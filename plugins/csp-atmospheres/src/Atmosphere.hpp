@@ -22,7 +22,7 @@ class Atmosphere : public cs::scene::CelestialObject {
  public:
   Atmosphere(std::shared_ptr<Plugin::Settings> const& pluginSettings,
       std::shared_ptr<cs::core::Settings> const&      settings,
-      std::shared_ptr<cs::core::SolarSystem> const& solarSystem, std::string const& anchorName);
+      std::shared_ptr<cs::core::SolarSystem> const& solarSystem, std::string const& objectName);
   ~Atmosphere() override;
 
   Atmosphere(Atmosphere const& other) = delete;

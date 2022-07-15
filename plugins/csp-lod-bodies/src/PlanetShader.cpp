@@ -38,12 +38,12 @@ std::map<std::string, cs::graphics::ColorMap> PlanetShader::mColorMaps;
 PlanetShader::PlanetShader(std::shared_ptr<cs::core::Settings> settings,
     std::shared_ptr<Plugin::Settings>                          pluginSettings,
     std::shared_ptr<cs::core::GuiManager>                      pGuiManager,
-    std::shared_ptr<cs::core::EclipseShadowReceiver> eclipseShadowReceiver, std::string anchorName)
+    std::shared_ptr<cs::core::EclipseShadowReceiver> eclipseShadowReceiver, std::string objectName)
     : mSettings(std::move(settings))
     , mGuiManager(std::move(pGuiManager))
     , mPluginSettings(std::move(pluginSettings))
     , mEclipseShadowReceiver(std::move(eclipseShadowReceiver))
-    , mAnchorName(std::move(anchorName))
+    , mAnchorName(std::move(objectName))
     , mFontTexture(VistaOGLUtils::LoadTextureFromTga("../share/resources/textures/font.tga")) {
 
   // clang-format off

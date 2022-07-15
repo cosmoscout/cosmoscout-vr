@@ -92,7 +92,7 @@ PathTool::PathTool(std::shared_ptr<cs::core::InputManager> const& pInputManager,
   // and rotated in such a way, that it always faces the observer
   mGuiAnchor = std::make_shared<cs::scene::CelestialAnchorNode>(
       pSG->GetRoot(), pSG->GetNodeBridge(), "", sCenter, sFrame);
-  mGuiAnchor->setAnchorScale(mSolarSystem->getObserver().getAnchorScale());
+  mGuiAnchor->setScale(mSolarSystem->getObserver().getScale());
   mSolarSystem->registerAnchor(mGuiAnchor);
 
   // create the user interface
@@ -237,7 +237,7 @@ void PathTool::updateLineVertices() {
 
   glm::dvec3 averagePosition(0.0);
   for (auto const& mark : mPoints) {
-    averagePosition += mark->getAnchor()->getAnchorPosition() / static_cast<double>(mPoints.size());
+    averagePosition += mark->getAnchor()->getPosition() / static_cast<double>(mPoints.size());
   }
 
   double h_scale = mSettings->mGraphics.pHeightScale.get();
@@ -246,13 +246,13 @@ void PathTool::updateLineVertices() {
   double height  = body ? body->getHeight(lngLat) * h_scale : 0.0;
   auto   center  = cs::utils::convert::toCartesian(lngLat, radii, height);
 
-  mGuiAnchor->setAnchorPosition(center);
+  mGuiAnchor->setPosition(center);
 
   // This seems to be the first time the tool is moved, so we have to store the distance to the
   // observer so that we can scale the tool later based on the observer's position.
   if (pScaleDistance.get() < 0) {
     try {
-      pScaleDistance = mSolarSystem->getObserver().getAnchorScale() *
+      pScaleDistance = mSolarSystem->getObserver().getScale() *
                        glm::length(mSolarSystem->getObserver().getRelativePosition(
                            mTimeControl->pSimulationTime.get(), *mGuiAnchor));
     } catch (std::exception const& e) {

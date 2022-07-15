@@ -45,11 +45,11 @@ class Trajectory : public cs::scene::CelestialObject, public IVistaOpenGLDraw {
   void update(double tTime, cs::scene::CelestialObserver const& oObs) override;
 
   /// The trajectory visualizes the path of this body.
-  void               setTargetAnchorName(std::string const& anchorName);
+  void               setTargetAnchorName(std::string const& objectName);
   std::string const& getTargetAnchorName() const;
 
   /// The trajectory is drawn relative to this body.
-  void               setParentAnchorName(std::string const& anchorName);
+  void               setParentAnchorName(std::string const& objectName);
   std::string const& getParentAnchorName() const;
 
   bool Do() override;

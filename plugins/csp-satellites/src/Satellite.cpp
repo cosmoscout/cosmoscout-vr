@@ -23,7 +23,7 @@ namespace csp::satellites {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Satellite::Satellite(Plugin::Settings::Satellite const& config, std::string const& anchorName,
+Satellite::Satellite(Plugin::Settings::Satellite const& config, std::string const& objectName,
     VistaSceneGraph* sceneGraph, std::shared_ptr<cs::core::Settings> settings,
     std::shared_ptr<cs::core::SolarSystem> solarSystem)
     : mSceneGraph(sceneGraph)
@@ -32,7 +32,7 @@ Satellite::Satellite(Plugin::Settings::Satellite const& config, std::string cons
     , mModel(
           std::make_unique<cs::graphics::GltfLoader>(config.mModelFile, config.mEnvironmentMap)) {
 
-  mSettings->initAnchor(*this, anchorName);
+  mSettings->initAnchor(*this, objectName);
 
   mModel->setLightIntensity(15.0);
   mModel->setIBLIntensity(1.5);
@@ -56,7 +56,7 @@ Satellite::~Satellite() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Satellite::setSun(std::shared_ptr<const cs::scene::CelestialObject> const& sun) {
+void Satellite::setSun(std::shared_ptr<cs::scene::CelestialObject> const& sun) {
   mSun = sun;
 }
 

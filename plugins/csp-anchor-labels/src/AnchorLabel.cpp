@@ -53,7 +53,7 @@ AnchorLabel::AnchorLabel(cs::scene::CelestialBody const* const body,
 
   mAnchor = std::make_shared<cs::scene::CelestialAnchorNode>(sceneGraph->GetRoot(),
       sceneGraph->GetNodeBridge(), "", mBody->getCenterName(), mBody->getFrameName());
-  mAnchor->setAnchorPosition(mBody->getAnchorPosition());
+  mAnchor->setPosition(mBody->getPosition());
 
   mGuiTransform.reset(sceneGraph->NewTransformNode(mAnchor.get()));
   mGuiTransform->SetScale(1.0F,
@@ -105,7 +105,7 @@ void AnchorLabel::update() {
     double simulationTime(mTimeControl->pSimulationTime.get());
 
     cs::scene::CelestialAnchor rawAnchor(mAnchor->getCenterName(), mAnchor->getFrameName());
-    rawAnchor.setAnchorPosition(mAnchor->getAnchorPosition());
+    rawAnchor.setPosition(mAnchor->getPosition());
 
     try {
       mRelativeAnchorPosition =
@@ -114,10 +114,10 @@ void AnchorLabel::update() {
       double distanceToObserver = distanceToCamera();
 
       double const scaleFactor = 0.05;
-      double       scale       = mSolarSystem->getObserver().getAnchorScale();
+      double       scale       = mSolarSystem->getObserver().getScale();
       scale *= glm::pow(distanceToObserver, mPluginSettings->mDepthScale.get()) *
                mPluginSettings->mLabelScale.get() * scaleFactor;
-      mAnchor->setAnchorScale(scale);
+      mAnchor->setScale(scale);
 
       auto observerTransform =
           rawAnchor.getRelativeTransform(simulationTime, mSolarSystem->getObserver());

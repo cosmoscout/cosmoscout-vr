@@ -55,8 +55,8 @@ void Plugin::init() {
       });
 
   // Update bookmark-list if active body changes.
-  mActiveBodyConnection = mSolarSystem->pActiveBody.connectAndTouch(
-      [this](std::shared_ptr<cs::scene::CelestialBody> const& body) {
+  mActiveBodyConnection = mSolarSystem->pActiveObject.connectAndTouch(
+      [this](std::shared_ptr<cs::scene::CelestialObject> const& body) {
         mGuiManager->getGui()->callJavascript(
             "CosmoScout.gui.clearHtml", "flytolocations-bookmarks-list");
 
@@ -96,7 +96,7 @@ void Plugin::deInit() {
   mGuiManager->getGui()->callJavascript(
       "CosmoScout.gui.unregisterCss", "css/csp-fly-to-locations.css");
 
-  mSolarSystem->pActiveBody.disconnect(mActiveBodyConnection);
+  mSolarSystem->pActiveObject.disconnect(mActiveBodyConnection);
 
   logger().info("Unloading done.");
 }
