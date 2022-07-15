@@ -86,10 +86,10 @@ struct adl_serializer<cs::utils::Property<T>> {
 } // namespace nlohmann
 
 namespace cs::utils {
-CS_CORE_EXPORT void from_json(nlohmann::json const&                          j,
-    ObservableMap<std::string, std::shared_ptr<cs::scene::CelestialObject>>& o);
-CS_CORE_EXPORT void to_json(nlohmann::json&                                        j,
-    ObservableMap<std::string, std::shared_ptr<cs::scene::CelestialObject>> const& o);
+CS_CORE_EXPORT void from_json(nlohmann::json const&                                j,
+    ObservableMap<std::string, std::shared_ptr<const cs::scene::CelestialObject>>& o);
+CS_CORE_EXPORT void to_json(nlohmann::json&                                              j,
+    ObservableMap<std::string, std::shared_ptr<const cs::scene::CelestialObject>> const& o);
 } // namespace cs::utils
 
 namespace cs::core {
@@ -191,7 +191,11 @@ class CS_CORE_EXPORT Settings {
   ///   ...
   /// },
   /// ...
-  cs::utils::ObservableMap<std::string, std::shared_ptr<cs::scene::CelestialObject>> mObjects;
+  /// The entries in this map are immutable (const). Therefore, if some attribute of a CelestialBody
+  /// needs to be changed, the respective object has to be removed and re-added to the list. Hence
+  /// plugins do not have to monitor for changes in each object - they only have to listen for newly
+  /// created or removed objects (if they are interested in this).
+  cs::utils::ObservableMap<std::string, std::shared_ptr<const cs::scene::CelestialObject>> mObjects;
 
   /// The values of the observer are updated by the SolarSystem once each frame. For all others,
   /// they should be considered readonly. If you want to modify the transformation of the virtual

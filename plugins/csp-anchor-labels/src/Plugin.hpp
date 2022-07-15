@@ -61,11 +61,10 @@ class Plugin : public cs::core::PluginBase {
 
   bool mNeedsResort = true; ///< When a new label gets added resort the vector
 
-  uint64_t addListenerId{};
-  uint64_t removeListenerId{};
-
-  int mOnLoadConnection = -1;
-  int mOnSaveConnection = -1;
+  int mAddObjectConnection    = -1;
+  int mRemoveObjectConnection = -1;
+  int mOnLoadConnection       = -1;
+  int mOnSaveConnection       = -1;
 };
 } // namespace csp::anchorlabels
 

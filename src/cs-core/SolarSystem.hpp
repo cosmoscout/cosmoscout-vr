@@ -33,7 +33,7 @@ class GraphicsEngine;
 class CS_CORE_EXPORT SolarSystem {
  public:
   /// The object which the observer is attached to. The observer will follow this bodies motions.
-  utils::Property<std::shared_ptr<scene::CelestialObject>> pActiveObject;
+  utils::Property<std::shared_ptr<const scene::CelestialObject>> pActiveObject;
 
   /// The current speed of the observer in m/s in relation to his current SPICE reference frame.
   utils::Property<float> pCurrentObserverSpeed;
@@ -92,16 +92,17 @@ class CS_CORE_EXPORT SolarSystem {
   void updateSurfaces();
 
   /// The Sun which is at the center of the SolarSystem.
-  std::shared_ptr<scene::CelestialObject> getSun() const;
+  std::shared_ptr<const scene::CelestialObject> getSun() const;
 
   /// This makes a look-up in the mObjects map of the settings and returns the corresponding object.
   /// If it does not exist, a nullptr is returned and an error message is logged.
-  std::shared_ptr<scene::CelestialObject> getObject(std::string const& name) const;
+  std::shared_ptr<const scene::CelestialObject> getObject(std::string const& name) const;
 
   /// This returns a celestial object with the given center name. If none of the configured objects
   /// has this center name, a nullptr is returned. If multiple objects with the same center name are
   /// defined, one of the is chosen.
-  std::shared_ptr<scene::CelestialObject> getObjectByCenterName(std::string const& center) const;
+  std::shared_ptr<const scene::CelestialObject> getObjectByCenterName(
+      std::string const& center) const;
 
   // Illumination API ------------------------------------------------------------------------------
 
@@ -186,9 +187,10 @@ class CS_CORE_EXPORT SolarSystem {
   /// Prints all loaded SPICE frames.
   static void printFrames();
 
-  double     getScaleBasedOnObserverDistance(std::shared_ptr<scene::CelestialObject> const& object,
-          glm::dvec3 const& translation, double baseDistance, double scaleFactor);
-  glm::dquat getRotationToObserver(std::shared_ptr<scene::CelestialObject> const& object,
+  double getScaleBasedOnObserverDistance(
+      std::shared_ptr<const scene::CelestialObject> const& object, glm::dvec3 const& translation,
+      double baseDistance, double scaleFactor);
+  glm::dquat getRotationToObserver(std::shared_ptr<const scene::CelestialObject> const& object,
       glm::dvec3 const& translation, bool upIsNormal);
 
   /// Generates a trail of points representing the given SPICE objects past movements.
@@ -208,11 +210,11 @@ class CS_CORE_EXPORT SolarSystem {
       double dEndTime, int iSamples);
 
  private:
-  std::shared_ptr<Settings>               mSettings;
-  std::shared_ptr<GraphicsEngine>         mGraphicsEngine;
-  std::shared_ptr<TimeControl>            mTimeControl;
-  scene::CelestialObserver                mObserver;
-  std::shared_ptr<scene::CelestialObject> mSun;
+  std::shared_ptr<Settings>                     mSettings;
+  std::shared_ptr<GraphicsEngine>               mGraphicsEngine;
+  std::shared_ptr<TimeControl>                  mTimeControl;
+  scene::CelestialObserver                      mObserver;
+  std::shared_ptr<const scene::CelestialObject> mSun;
 
   bool mIsInitialized              = false;
   bool mSpiceFrameChangedLastFrame = false;

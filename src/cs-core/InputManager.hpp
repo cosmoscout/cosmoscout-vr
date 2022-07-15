@@ -44,7 +44,7 @@ class CS_CORE_EXPORT InputManager : public VistaKeyboardSystemControl::IVistaDir
   /// This class describes an intersection point on an CelestialObject. Usually this is used for
   /// intersections between the mouse ray and planets or moons.
   struct Intersection {
-    std::shared_ptr<scene::CelestialObject> mObject   = nullptr;
+    std::shared_ptr<const scene::CelestialObject> mObject   = nullptr;
     glm::dvec3                              mPosition = glm::dvec3(0.0, 0.0, 0.0);
 
     bool operator==(Intersection const& other) const {

@@ -54,7 +54,7 @@ class Plugin : public cs::core::PluginBase {
   void deInit() override;
 
  private:
-  void onAddBookmark(std::shared_ptr<cs::scene::CelestialObject> const& activeObject,
+  void onAddBookmark(std::shared_ptr<const cs::scene::CelestialObject> const& activeObject,
       uint32_t bookmarkID, cs::core::Settings::Bookmark const& bookmark);
   void onLoad();
 

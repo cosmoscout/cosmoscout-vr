@@ -113,32 +113,38 @@ class CS_SCENE_EXPORT CelestialObject : public CelestialAnchor {
   /// It is possible to assign a CelestialSurface to a CelestialObject. This surface can be used to
   /// define an actual terrain by providing a getHeight() method. This will be used for ground
   /// following, collision detection and by plugins to sample the height of the body (for instance
-  /// for measuring tools).
+  /// for measuring tools). Assigning a CelestialSurface does not change the state of the
+  /// CelestialObject itself, therefore this method is considered to be const.
   std::shared_ptr<CelestialSurface> const& getSurface() const;
-  void setSurface(std::shared_ptr<CelestialSurface> const& surface);
+  void setSurface(std::shared_ptr<CelestialSurface> const& surface) const;
 
   /// It is also possible to assign an IntersectableObject to a CelestialObject. If the
   /// CelestialObject is then registered with the InputManager, it will be regularily tested for
-  /// intersections with the mouse ray.
+  /// intersections with the mouse ray. Assigning an IntersectableObject does not change the state
+  /// of the CelestialObject itself, therefore this method is considered to be const.
   std::shared_ptr<IntersectableObject> const& getIntersectableObject() const;
-  void setIntersectableObject(std::shared_ptr<IntersectableObject> const& object);
+  void setIntersectableObject(std::shared_ptr<IntersectableObject> const& object) const;
 
  protected:
-  double mBodyCullingRadius  = 0.0;
-  double mOrbitCullingRadius = 0.0;
-  bool   mIsTrackable        = true;
-  bool   mIsCollidable       = true;
+  glm::dvec3 mRadii              = glm::dvec3(0.0);
+  double     mBodyCullingRadius  = 0.0;
+  double     mOrbitCullingRadius = 0.0;
+  bool       mIsTrackable        = true;
+  bool       mIsCollidable       = true;
 
+  // These are mutable since they are assigned lazily in the const getExistence() or
+  // getExistenceAsStrings() methods.
   mutable std::optional<glm::dvec2>                 mExistence;
   mutable std::optional<std::array<std::string, 2>> mExistenceAsStrings;
 
-  std::shared_ptr<CelestialSurface>    mSurface;
-  std::shared_ptr<IntersectableObject> mIntersectable;
+  // These are mutable since assigning a CelestialSurface or an IntersectableObject does not change
+  // the state of the CelestialObject itself.
+  mutable std::shared_ptr<CelestialSurface>    mSurface;
+  mutable std::shared_ptr<IntersectableObject> mIntersectable;
 
   // This is mutable because the celestial will try to get its radii from SPICE in the first call to
   // the otherwise const method getRadii().
   mutable glm::dvec3 mRadiiFromSPICE = glm::dvec3(-1.0);
-  glm::dvec3         mRadii          = glm::dvec3(0.0);
 
   // These members are mutable as they have to be changed in the const update() method. They do not
   // represent properties of the object but rather the cached observer-relative state.

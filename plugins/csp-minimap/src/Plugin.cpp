@@ -135,7 +135,7 @@ void Plugin::init() {
 
   // Update bookmarks and map layers if active body changes.
   mActiveObjectConnection = mSolarSystem->pActiveObject.connectAndTouch(
-      [this](std::shared_ptr<cs::scene::CelestialObject> const& body) {
+      [this](std::shared_ptr<const cs::scene::CelestialObject> const& body) {
         // First remove all bookmarks.
         mGuiManager->getGui()->callJavascript("CosmoScout.minimap.removeBookmarks");
         mGuiManager->getGui()->callJavascript("CosmoScout.minimap.configure", "");
@@ -186,7 +186,7 @@ void Plugin::deInit() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Plugin::onAddBookmark(std::shared_ptr<cs::scene::CelestialObject> const& activeObject,
+void Plugin::onAddBookmark(std::shared_ptr<const cs::scene::CelestialObject> const& activeObject,
     uint32_t bookmarkID, cs::core::Settings::Bookmark const& bookmark) {
 
   // Add only if it has a location and matches the currently active body.

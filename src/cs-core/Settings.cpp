@@ -33,16 +33,16 @@ namespace cs::utils {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void from_json(nlohmann::json const&                                         j,
-    ObservableMap<std::string, std::shared_ptr<cs::scene::CelestialObject>>& o) {
+void from_json(nlohmann::json const&                                               j,
+    ObservableMap<std::string, std::shared_ptr<const cs::scene::CelestialObject>>& o) {
 
   o.clear();
 
   // the same code as range for
   for (auto const& el : j.items()) {
-    std::string    name   = el.key();
-    nlohmann::json data   = el.value();
-    auto           object = std::make_shared<cs::scene::CelestialObject>();
+    std::string                name = el.key();
+    nlohmann::json             data = el.value();
+    cs::scene::CelestialObject object;
 
     // First, we parse the required parameters.
     std::string                center, frame;
@@ -51,9 +51,9 @@ void from_json(nlohmann::json const&                                         j,
     cs::core::Settings::deserialize(data, "frame", frame);
     cs::core::Settings::deserialize(data, "existence", existence);
 
-    object->setCenterName(center);
-    object->setFrameName(frame);
-    object->setExistenceAsStrings(existence);
+    object.setCenterName(center);
+    object.setFrameName(frame);
+    object.setExistenceAsStrings(existence);
 
     // All others are optional.
     std::optional<glm::dvec3> position, radii;
@@ -70,36 +70,36 @@ void from_json(nlohmann::json const&                                         j,
     cs::core::Settings::deserialize(data, "collidable", collidable);
 
     if (position.has_value()) {
-      object->setPosition(position.value());
+      object.setPosition(position.value());
     }
     if (rotation.has_value()) {
-      object->setRotation(rotation.value());
+      object.setRotation(rotation.value());
     }
     if (scale.has_value()) {
-      object->setScale(scale.value());
+      object.setScale(scale.value());
     }
     if (radii.has_value()) {
-      object->setRadii(radii.value());
+      object.setRadii(radii.value());
     }
     if (bodyCullingRadius.has_value()) {
-      object->setBodyCullingRadius(bodyCullingRadius.value());
+      object.setBodyCullingRadius(bodyCullingRadius.value());
     }
     if (orbitCullingRadius.has_value()) {
-      object->setOrbitCullingRadius(orbitCullingRadius.value());
+      object.setOrbitCullingRadius(orbitCullingRadius.value());
     }
     if (trackable.has_value()) {
-      object->setIsTrackable(trackable.value());
+      object.setIsTrackable(trackable.value());
     }
     if (collidable.has_value()) {
-      object->setIsCollidable(collidable.value());
+      object.setIsCollidable(collidable.value());
     }
 
-    o.insert(name, object);
+    o.insert(name, std::make_shared<cs::scene::CelestialObject>(object));
   }
 }
 
 void to_json(nlohmann::json&                                                       j,
-    ObservableMap<std::string, std::shared_ptr<cs::scene::CelestialObject>> const& o) {
+    ObservableMap<std::string, std::shared_ptr<const cs::scene::CelestialObject>> const& o) {
 
   j.clear();
 

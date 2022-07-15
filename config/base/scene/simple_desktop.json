@@ -1315,7 +1315,7 @@
         }
       }
     },
-    "#csp-vr-accessibility": {
+    "csp-vr-accessibility": {
       "grid": {
         "enabled": false,
         "size": 0.5,

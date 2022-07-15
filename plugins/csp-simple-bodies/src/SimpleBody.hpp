@@ -47,7 +47,7 @@ class SimpleBody : public cs::scene::CelestialSurface,
   void configure(Plugin::Settings::SimpleBody const& settings);
 
   /// The sun object is used for lighting computation.
-  void setSun(std::shared_ptr<cs::scene::CelestialObject> const& sun);
+  void setSun(std::shared_ptr<const cs::scene::CelestialObject> const& sun);
 
   /// Interface implementation of the IntersectableObject, which is a base class of
   /// CelestialBody.
@@ -55,7 +55,7 @@ class SimpleBody : public cs::scene::CelestialSurface,
       glm::dvec3 const& rayOrigin, glm::dvec3 const& rayDir, glm::dvec3& pos) const override;
 
   /// Called once a frame if attached to a CelestialObject.
-  void update(std::shared_ptr<cs::scene::CelestialObject> const& parent) override;
+  void update(std::weak_ptr<const cs::scene::CelestialObject> const& parent) override;
 
   /// Interface implementation of CelestialSurface.
   double getHeight(glm::dvec2 lngLat) const override;
@@ -65,10 +65,10 @@ class SimpleBody : public cs::scene::CelestialSurface,
   bool GetBoundingBox(VistaBoundingBox& bb) override;
 
  private:
-  std::shared_ptr<cs::core::Settings>         mSettings;
-  std::shared_ptr<cs::core::SolarSystem>      mSolarSystem;
-  std::shared_ptr<cs::scene::CelestialObject> mSun;
-  std::shared_ptr<cs::scene::CelestialObject> mParent;
+  std::shared_ptr<cs::core::Settings>               mSettings;
+  std::shared_ptr<cs::core::SolarSystem>            mSolarSystem;
+  std::shared_ptr<const cs::scene::CelestialObject> mSun;
+  std::weak_ptr<const cs::scene::CelestialObject>   mParent;
 
   std::unique_ptr<VistaOpenGLNode> mGLNode;
 

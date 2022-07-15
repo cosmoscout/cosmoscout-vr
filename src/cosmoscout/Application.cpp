@@ -855,7 +855,7 @@ void Application::connectSlots() {
 
   // Show notification when the center name of the celestial observer changes.
   mSolarSystem->pActiveObject.connectAndTouch(
-      [this](std::shared_ptr<cs::scene::CelestialObject> const& object) {
+      [this](std::shared_ptr<const cs::scene::CelestialObject> const& object) {
         std::string center = "Solar System Barycenter";
         glm::dvec3  radii(0.0);
 

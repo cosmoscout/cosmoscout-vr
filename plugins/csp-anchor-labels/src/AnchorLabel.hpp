@@ -7,7 +7,7 @@
 #ifndef CSP_ANCHOR_LABELS_ANCHOR_LABEL_HPP
 #define CSP_ANCHOR_LABELS_ANCHOR_LABEL_HPP
 
-#include "../../../src/cs-scene/CelestialBody.hpp"
+#include "../../../src/cs-scene/CelestialObject.hpp"
 #include "../../../src/cs-utils/Property.hpp"
 #include "Plugin.hpp"
 
@@ -34,8 +34,7 @@ class InputManager;
 namespace csp::anchorlabels {
 class AnchorLabel {
  public:
-  AnchorLabel(cs::scene::CelestialBody const* body,
-      std::shared_ptr<Plugin::Settings>       pluginSettings,
+  AnchorLabel(std::string const& name, std::shared_ptr<Plugin::Settings> pluginSettings,
       std::shared_ptr<cs::core::SolarSystem>  solarSystem,
       std::shared_ptr<cs::core::GuiManager>   guiManager,
       std::shared_ptr<cs::core::TimeControl>  timeControl,
@@ -65,15 +64,13 @@ class AnchorLabel {
   glm::dvec4 getScreenSpaceBB() const;
 
  private:
-  cs::scene::CelestialBody const* const mBody;
+  std::weak_ptr<CelestialObject> mObject;
 
   std::shared_ptr<Plugin::Settings>       mPluginSettings;
   std::shared_ptr<cs::core::SolarSystem>  mSolarSystem;
   std::shared_ptr<cs::core::GuiManager>   mGuiManager;
   std::shared_ptr<cs::core::TimeControl>  mTimeControl;
   std::shared_ptr<cs::core::InputManager> mInputManager;
-
-  std::shared_ptr<cs::scene::CelestialAnchorNode> mAnchor;
 
   std::unique_ptr<cs::gui::WorldSpaceGuiArea> mGuiArea;
   std::unique_ptr<cs::gui::GuiItem>           mGuiItem;

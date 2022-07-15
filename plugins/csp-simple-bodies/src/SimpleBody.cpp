@@ -255,7 +255,7 @@ void SimpleBody::configure(Plugin::Settings::SimpleBody const& settings) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void SimpleBody::setSun(std::shared_ptr<cs::scene::CelestialObject> const& sun) {
+void SimpleBody::setSun(std::shared_ptr<const cs::scene::CelestialObject> const& sun) {
   mSun = sun;
 }
 
@@ -264,18 +264,20 @@ void SimpleBody::setSun(std::shared_ptr<cs::scene::CelestialObject> const& sun) 
 bool SimpleBody::getIntersection(
     glm::dvec3 const& rayOrigin, glm::dvec3 const& rayDir, glm::dvec3& pos) const {
 
-  if (!mParent || !mParent->getIsBodyVisible()) {
+  auto parent = mParent.lock();
+
+  if (!parent || !parent->getIsBodyVisible()) {
     return false;
   }
 
-  auto invTransform = glm::inverse(mParent->getObserverRelativeTransform());
+  auto invTransform = glm::inverse(parent->getObserverRelativeTransform());
 
   // Transform ray into planet coordinate system.
   glm::dvec4 origin(rayOrigin, 1.0);
-  origin = (invTransform * origin) / glm::dvec4(mParent->getRadii(), 1.0);
+  origin = (invTransform * origin) / glm::dvec4(parent->getRadii(), 1.0);
 
   glm::dvec4 direction(rayDir, 0.0);
-  direction = (invTransform * direction) / glm::dvec4(mParent->getRadii(), 1.0);
+  direction = (invTransform * direction) / glm::dvec4(parent->getRadii(), 1.0);
   direction = glm::normalize(direction);
 
   double b    = glm::dot(origin.xyz(), direction.xyz());
@@ -288,7 +290,7 @@ bool SimpleBody::getIntersection(
 
   fDet = std::sqrt(fDet);
   pos  = (origin + direction * (-b - fDet));
-  pos *= mParent->getRadii();
+  pos *= parent->getRadii();
 
   return true;
 }
@@ -302,13 +304,15 @@ double SimpleBody::getHeight(glm::dvec2 /*lngLat*/) const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void SimpleBody::update(std::shared_ptr<cs::scene::CelestialObject> const& parent) {
+void SimpleBody::update(std::weak_ptr<const cs::scene::CelestialObject> const& p) {
 
-  mParent = parent;
+  mParent = p;
 
-  if (mParent->getIsBodyVisible()) {
+  auto parent = mParent.lock();
+
+  if (parent && parent->getIsBodyVisible()) {
     cs::utils::FrameTimings::ScopedTimer timer(
-        "Update " + mParent->getCenterName(), cs::utils::FrameTimings::QueryMode::eCPU);
+        "Update " + parent->getCenterName(), cs::utils::FrameTimings::QueryMode::eCPU);
     mEclipseShadowReceiver.update(*parent);
   }
 }
@@ -316,11 +320,13 @@ void SimpleBody::update(std::shared_ptr<cs::scene::CelestialObject> const& paren
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool SimpleBody::Do() {
-  if (!mParent || !mParent->getIsBodyVisible()) {
+  auto parent = mParent.lock();
+
+  if (!parent || !parent->getIsBodyVisible()) {
     return true;
   }
 
-  cs::utils::FrameTimings::ScopedTimer timer("Draw " + mParent->getCenterName());
+  cs::utils::FrameTimings::ScopedTimer timer("Draw " + parent->getCenterName());
 
   if (mShaderDirty || mEclipseShadowReceiver.needsRecompilation()) {
     mShader = VistaGLSLShader();
@@ -370,9 +376,9 @@ bool SimpleBody::Do() {
   glm::vec3 sunDirection(1, 0, 0);
   float     sunIlluminance(1.F);
   float     ambientBrightness(mSettings->mGraphics.pAmbientBrightness.get());
-  auto      transform = mParent->getObserverRelativeTransform();
+  auto      transform = parent->getObserverRelativeTransform();
 
-  if (mParent == mSun) {
+  if (parent == mSun) {
     // If the SimpleBody is actually the sun, we have to calculate the lighting differently.
     if (mSettings->mGraphics.pEnableHDR.get()) {
 
@@ -410,7 +416,7 @@ bool SimpleBody::Do() {
   glUniformMatrix4fv(mUniforms.viewMatrix, 1, GL_FALSE, glm::value_ptr(matV));
   glUniformMatrix4fv(mUniforms.projectionMatrix, 1, GL_FALSE, glMatP.data());
 
-  glm::vec3 radii = mParent->getRadii();
+  glm::vec3 radii = parent->getRadii();
   mShader.SetUniform(mUniforms.radii, radii[0], radii[1], radii[2]);
 
   // Set the texture wrapping on the x-axis to repeat, so we can easily deal with textures, where
