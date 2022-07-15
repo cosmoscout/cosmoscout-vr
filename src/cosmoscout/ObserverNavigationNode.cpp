@@ -157,7 +157,8 @@ bool ObserverNavigationNode::DoEvalNode() {
       oObs.setPosition(oObs.getPosition() + oObs.getRotation() * vTranslation * oObs.getScale() /
                                                 static_cast<double>(steps));
       if (i < steps) {
-        mSolarSystem->updateSceneScale();
+        // TODO:
+        // mSolarSystem->updateSceneScale();
       }
     }
   }
