@@ -402,7 +402,7 @@ void SolarSystem::updateObserverFrame() {
 
     // The Sun is quite huge. We reduce it's weight a bit so that the observer is more inclined to
     // stay at planets.
-    if (object->getCenterName() == "Sun") {
+    if (object == mSun) {
       dWeight *= 0.01;
     }
 

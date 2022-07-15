@@ -318,7 +318,8 @@
       "existence": [
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
-      ]
+      ],
+      "trackable": false
     },
     "Sun": {
       "center": "Sun",
@@ -358,7 +359,8 @@
       "existence": [
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
-      ]
+      ],
+      "trackable": false
     },
     "Moon": {
       "center": "Moon",
@@ -382,7 +384,8 @@
       "existence": [
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
-      ]
+      ],
+      "trackable": false
     },
     "Phobos": {
       "center": "Phobos",
@@ -430,7 +433,8 @@
       "existence": [
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
-      ]
+      ],
+      "trackable": false
     },
     "Io": {
       "center": "Io",
@@ -478,7 +482,8 @@
       "existence": [
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
-      ]
+      ],
+      "trackable": false
     },
     "Mimas": {
       "center": "Mimas",
@@ -550,7 +555,8 @@
       "existence": [
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
-      ]
+      ],
+      "trackable": false
     },
     "Miranda": {
       "center": "Miranda",
@@ -606,7 +612,8 @@
       "existence": [
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
-      ]
+      ],
+      "trackable": false
     },
     "Triton": {
       "center": "Triton",
@@ -630,7 +637,8 @@
       "existence": [
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
-      ]
+      ],
+      "trackable": false
     },
     "Charon": {
       "center": "Charon",
@@ -643,7 +651,7 @@
   },
   "plugins": {
     "csp-timings": {},
-    "csp-stars": {
+    "#csp-stars": {
       "celestialGridTexture": "../share/resources/textures/celestial_grid.png",
       "starFiguresTexture": "../share/resources/textures/constellation_figures.png",
       "celestialGridColor": [
@@ -662,7 +670,7 @@
       "hipparcosCatalog": "../share/download/stars/hip_main.dat",
       "tycho2Catalog": "../share/download/stars/tyc2_main.dat"
     },
-    "csp-atmospheres": {
+    "#csp-atmospheres": {
       "atmospheres": {
         "Mars": {
           "atmosphereHeight": 0.03,
@@ -696,7 +704,7 @@
         }
       }
     },
-    "csp-measurement-tools": {},
+    "#csp-measurement-tools": {},
     "csp-simple-bodies": {
       "bodies": {
         "Sun": {
@@ -810,7 +818,7 @@
         }
       }
     },
-    "csp-wms-overlays": {
+    "#csp-wms-overlays": {
       "maxTextureSize": 1024,
       "preFetch": 1,
       "bodies": {
@@ -822,7 +830,7 @@
         }
       }
     },
-    "csp-rings": {
+    "#csp-rings": {
       "rings": {
         "Saturn": {
           "texture": "../share/resources/textures/saturn-rings.png",
@@ -831,7 +839,7 @@
         }
       }
     },
-    "csp-anchor-labels": {
+    "#csp-anchor-labels": {
       "enabled": true,
       "enableDepthOverlap": true,
       "ignoreOverlapThreshold": 0.1,
@@ -839,7 +847,7 @@
       "depthScale": 1.0,
       "labelOffset": 0.2
     },
-    "csp-trajectories": {
+    "#csp-trajectories": {
       "trajectories": {
         "Sun": {
           "color": [
@@ -1307,7 +1315,7 @@
         }
       }
     },
-    "csp-vr-accessibility": {
+    "#csp-vr-accessibility": {
       "grid": {
         "enabled": false,
         "size": 0.5,
