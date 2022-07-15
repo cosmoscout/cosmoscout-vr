@@ -577,7 +577,7 @@ void Application::FrameUpdate() {
 
     if (mSolarSystem->pActiveObject.get()) {
 
-      // Update the user's position display in the header bar.
+      // Update the user's position display in the status bar.
       auto*               pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
       VistaTransformNode* pTrans =
           dynamic_cast<VistaTransformNode*>(pSG->GetNode("Platform-User-Node"));
