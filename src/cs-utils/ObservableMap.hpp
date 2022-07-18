@@ -17,8 +17,13 @@ namespace cs::utils {
 template <typename K, typename V>
 class ObservableMap {
  public:
-  Signal<K, V> const& onAdd() const;
-  Signal<K, V> const& onRemove() const;
+  Signal<K, V> const& onAdd() const {
+    return mOnAdd;
+  }
+
+  Signal<K, V> const& onRemove() const {
+    return mOnRemove;
+  };
 
   /// Inserts a new element into the container if there is no element with the key in the container.
   void insert(K key, V value) {
