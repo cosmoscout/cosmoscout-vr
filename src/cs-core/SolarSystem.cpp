@@ -313,8 +313,9 @@ void SolarSystem::updateSceneScale() {
 
     // Finally check if the current body is closest to the observer. We won't incorporate surface
     // elevation in this check.
-    auto   vObserverPos = -object->getObserverRelativePosition() * mObserver.getScale();
-    double dDistance    = glm::length(vObserverPos) - radii[0];
+    auto vObserverPos =
+        glm::inverse(object->getObserverRelativeTransform()) * glm::dvec4(0.0, 0.0, 0.0, 1.0);
+    double dDistance = glm::length(vObserverPos) - radii[0];
 
     if (dDistance < dClosestDistance) {
       closestObject                  = object;
