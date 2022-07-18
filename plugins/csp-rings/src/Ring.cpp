@@ -282,14 +282,14 @@ bool Ring::Do() {
   // Some calculations to get the view and plane normal in view space.
   glm::mat4 matModelView    = matV * matM;
   glm::mat4 matNormalMatrix = glm::transpose(glm::inverse(matModelView));
-  glm::vec4 viewPos     = matModelView * glm::vec4(0.0F, 0.0F, 0.0F, 1.0F);
-  viewPos               = viewPos / viewPos.w;
-  glm::vec3 planeNormal = glm::normalize(-viewPos.xyz());
-  glm::vec3 viewNormal  = (matNormalMatrix * glm::vec4(0.0F, 1.0F, 0.0F, 0.0F)).xyz();
+  glm::vec4 viewPos         = matModelView * glm::vec4(0.0F, 0.0F, 0.0F, 1.0F);
+  viewPos                   = viewPos / viewPos.w;
+  glm::vec3 planeNormal     = glm::normalize(-viewPos.xyz());
+  glm::vec3 viewNormal      = (matNormalMatrix * glm::vec4(0.0F, 1.0F, 0.0F, 0.0F)).xyz();
 
   // The dot product is positive, if the observer is on the northern side of the ring, otherwise it
   // is negative.
-  float     viewAngle   = glm::dot(planeNormal, viewNormal);
+  float viewAngle = glm::dot(planeNormal, viewNormal);
 
   // When Sun and observer are on the same side of the disk it is lit, otherwise it is dark.
   float litSideVisible =
