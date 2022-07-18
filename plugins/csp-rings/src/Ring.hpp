@@ -37,7 +37,7 @@ class Ring : public cs::scene::CelestialObject, public IVistaOpenGLDraw {
   Ring(Ring&& other)      = default;
 
   Ring& operator=(Ring const& other) = delete;
-  Ring& operator=(Ring&& other) = delete;
+  Ring& operator=(Ring&& other)      = delete;
 
   ~Ring() override;
 

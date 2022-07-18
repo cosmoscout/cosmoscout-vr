@@ -92,7 +92,13 @@ void main() {
 
   #ifdef ENABLE_LIGHTING
     if (uLitSideVisible < 0.5) {
-      oColor.rgb = oColor.rgb * (1 - oColor.a);
+      // We darken the dark side in HDR mode, because it looks too bright compared to the planet and
+      // we brighten the dark side otherwise, because it looks too dark.
+      #ifdef ENABLE_HDR
+        oColor.rgb = oColor.rgb * (1 - oColor.a) * 0.5;
+      #else
+        oColor.rgb = oColor.rgb * (1 - oColor.a) * 2.0;
+      #endif
     }
     oColor.rgb = oColor.rgb * getEclipseShadow(vPosition.xyz) + vec3(uAmbientBrightness);
   #endif
@@ -250,22 +256,44 @@ bool Ring::Do() {
     sunIlluminance = static_cast<float>(mSolarSystem->getSunIlluminance(getWorldTransform()[3]));
   }
 
+  // The following section calculates if the dark side of the ring is visible. Since the ring is a
+  // flat disk we can do it before the shader. All fragments should either display the light side
+  // or the dark side exclusively.
+  // The check, to see which side is visible is rather simple. If the Sun and the observer look at
+  // northern side of the disk, we show the light side, if the Sun and the observer look at the
+  // southern side of the disk we also show the light side. In all other cases, we show the dark
+  // side.
+  //
+  //      \ /                                o o o
+  //    -- O --                          o           o                            <o>
+  //      | \                          o               o
+  //                         -------  o                 o  -------
+  //                                   o               o
+  //                                     o           o
+  //                                         o o o
+
   glm::vec3 sunDirection = glm::inverse(getWorldTransform()) *
                            glm::dvec4(mSolarSystem->getSunDirection(getWorldTransform()[3]), 0.0);
 
-
+  // The dot product is positive, if the Sun is on the northern side of the ring, otherwise it is
+  // negative.
   float sunAngle = glm::dot(sunDirection, glm::vec3(0.0F, 1.0F, 0.0F));
 
+  // Some calculations to get the view and plane normal in view space.
   glm::mat4 matModelView    = matV * matM;
   glm::mat4 matNormalMatrix = glm::transpose(glm::inverse(matModelView));
-
   glm::vec4 viewPos     = matModelView * glm::vec4(0.0F, 0.0F, 0.0F, 1.0F);
   viewPos               = viewPos / viewPos.w;
   glm::vec3 planeNormal = glm::normalize(-viewPos.xyz());
   glm::vec3 viewNormal  = (matNormalMatrix * glm::vec4(0.0F, 1.0F, 0.0F, 0.0F)).xyz();
-  float viewAngle       = glm::dot(planeNormal, viewNormal);
 
-  float litSideVisible = (sunAngle > 0.0F && viewAngle > 0.0F) || (sunAngle < 0.0F && viewAngle < 0.0F) ? 1.0F : 0.0F;
+  // The dot product is positive, if the observer is on the northern side of the ring, otherwise it
+  // is negative.
+  float     viewAngle   = glm::dot(planeNormal, viewNormal);
+
+  // When Sun and observer are on the same side of the disk it is lit, otherwise it is dark.
+  float litSideVisible =
+      (sunAngle > 0.0F && viewAngle > 0.0F) || (sunAngle < 0.0F && viewAngle < 0.0F) ? 1.0F : 0.0F;
 
   mShader.SetUniform(mUniforms.sunIlluminance, sunIlluminance);
   mShader.SetUniform(mUniforms.ambientBrightness, ambientBrightness);
