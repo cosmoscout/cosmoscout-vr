@@ -11,7 +11,8 @@
 #include "../../../src/cs-core/Settings.hpp"
 #include "../../../src/cs-utils/Property.hpp"
 #include <memory>
-#include <vector>
+#include <unordered_map>
+#include <unordered_set>
 
 namespace csp::anchorlabels {
 class AnchorLabel;
@@ -47,6 +48,9 @@ class Plugin : public cs::core::PluginBase {
 
     /// The value describes the labels height over the anchor.
     cs::utils::DefaultProperty<double> mLabelOffset{0.2};
+
+    /// Celestial objects with these names will not have an associated label.
+    std::unordered_set<std::string> mBlacklist;
   };
 
   void init() override;

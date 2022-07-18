@@ -15,8 +15,7 @@ class VistaOpenGLNode;
 class VistaTransformNode;
 
 namespace cs::scene {
-class CelestialBody;
-class CelestialAnchorNode;
+class CelestialObject;
 } // namespace cs::scene
 
 namespace cs::gui {
@@ -34,10 +33,10 @@ class InputManager;
 namespace csp::anchorlabels {
 class AnchorLabel {
  public:
-  AnchorLabel(std::string const& name, std::shared_ptr<Plugin::Settings> pluginSettings,
+  AnchorLabel(std::string const& name, std::shared_ptr<const cs::scene::CelestialObject> object,
+      std::shared_ptr<Plugin::Settings>       pluginSettings,
       std::shared_ptr<cs::core::SolarSystem>  solarSystem,
       std::shared_ptr<cs::core::GuiManager>   guiManager,
-      std::shared_ptr<cs::core::TimeControl>  timeControl,
       std::shared_ptr<cs::core::InputManager> inputManager);
 
   ~AnchorLabel();
@@ -50,7 +49,7 @@ class AnchorLabel {
 
   void update();
 
-  std::string const& getCenterName() const;
+  std::shared_ptr<const cs::scene::CelestialObject> const& getObject() const;
 
   bool   shouldBeHidden() const;
   double bodySize() const;
@@ -64,17 +63,17 @@ class AnchorLabel {
   glm::dvec4 getScreenSpaceBB() const;
 
  private:
-  std::weak_ptr<CelestialObject> mObject;
+  std::shared_ptr<const cs::scene::CelestialObject> mObject;
 
   std::shared_ptr<Plugin::Settings>       mPluginSettings;
   std::shared_ptr<cs::core::SolarSystem>  mSolarSystem;
   std::shared_ptr<cs::core::GuiManager>   mGuiManager;
-  std::shared_ptr<cs::core::TimeControl>  mTimeControl;
   std::shared_ptr<cs::core::InputManager> mInputManager;
 
   std::unique_ptr<cs::gui::WorldSpaceGuiArea> mGuiArea;
   std::unique_ptr<cs::gui::GuiItem>           mGuiItem;
   std::unique_ptr<VistaOpenGLNode>            mGuiNode;
+  std::unique_ptr<VistaTransformNode>         mObjectTransform;
   std::unique_ptr<VistaTransformNode>         mGuiTransform;
 
   glm::dvec3 mRelativeAnchorPosition{};

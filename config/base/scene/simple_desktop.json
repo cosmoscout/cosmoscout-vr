@@ -839,13 +839,14 @@
         }
       }
     },
-    "#csp-anchor-labels": {
+    "csp-anchor-labels": {
       "enabled": true,
       "enableDepthOverlap": true,
       "ignoreOverlapThreshold": 0.1,
       "labelScale": 1.2,
       "depthScale": 1.0,
-      "labelOffset": 0.2
+      "labelOffset": 0.2,
+      "blacklist": []
     },
     "#csp-trajectories": {
       "trajectories": {
