@@ -26,9 +26,9 @@ Below you find some instructions on how to setup your preferred IDE for CosmoSco
   - **Build options**: `--parallel <your core count>`
   - **Environment**: If you haven't set `BOOST_ROOT` as a system wide environment variable you need to set it here!
   - **CMake options**:
-    ```bash
-    -DCMAKE_INSTALL_PREFIX="<path to cosmoscout>/install/linux-Release"
-    -DCOSMOSCOUT_EXTERNALS_DIR="<path to cosmoscout>/install/linux-externals-Release"
+    ```
+    -DCMAKE_INSTALL_PREFIX="$CMakeProjectDir$/install/linux-Release"
+    -DCOSMOSCOUT_EXTERNALS_DIR="$CMakeProjectDir$/install/linux-externals-Release"
     -DCMAKE_EXPORT_COMPILE_COMMANDS=On
     ```
     
@@ -39,8 +39,8 @@ Below you find some instructions on how to setup your preferred IDE for CosmoSco
   - **Environment**: If you haven't set `BOOST_ROOT` as a system wide environment variable you need to set it here!
   - **CMake options**:
     ```
-    -DCMAKE_INSTALL_PREFIX="<path to cosmoscout>/install/linux-Debug"
-    -DCOSMOSCOUT_EXTERNALS_DIR="<path to cosmoscout>/install/linux-externals-Debug"
+    -DCMAKE_INSTALL_PREFIX="$CMakeProjectDir$/install/linux-Debug"
+    -DCOSMOSCOUT_EXTERNALS_DIR="$CMakeProjectDir$/install/linux-externals-Debug"
     -DCMAKE_EXPORT_COMPILE_COMMANDS=On
     ```
 
@@ -71,36 +71,50 @@ highest available (and supported) version.
 
 - (_optional_) If you want a debug build run `set COSMOSCOUT_DEBUG_BUILD=true`
 - Run: `.\make_externals.bat -G "Visual Studio 16 2019" -A x64`
+
+
 - Go to: _Settings_ -> _Build, Execution, Deployment_ -> _Toolchain_
   - Add Visual Studio if it is not in the list yet. And make sure it is at the top.
+  - Set the architecture to `amd64`.
   - If Visual Studio is installed correctly everything else here should be set automagically.
+![CLion Windows Toolchain](img/IDE_CLion_Windows_Toolchain.jpg)
+
+
 - Go to: _Settings_ -> _Build, Execution, Deployment_ -> _CMake_
 - Release Profile
-  - **Build Type**: `Release`
-  - **Generation path**: `build\windows-Release`
-  - **Build options**: `--parallel <your core count>`
-  - **Environment**: If you haven't set `BOOST_ROOT` as a system wide environment variable you need to set it here!
+  - **Build type**: `Release`
+  - **Toolchain**: `Visual Studio`
+  - **Generator**: `Ninja`
   - **CMake options**:
     ```
-    -G "Visual Studio 16 2019" -A x64
-    -DCMAKE_INSTALL_PREFIX="<path to cosmoscout>\install\windows-Release"
-    -DCOSMOSCOUT_EXTERNALS_DIR="<path to cosmoscout>\install\windows-externals-Release"
+    -DCMAKE_INSTALL_PREFIX="$CMakeProjectDir$\install\windows-Release"
+    -DCOSMOSCOUT_EXTERNALS_DIR="$CMakeProjectDir$\install\windows-externals-Release"
     ```
+  - **Build directory**: `build\windows-Release`
+  - **Build options**: `--parallel <your core count>`
+  - **Environment**: If you haven't set `BOOST_ROOT` as a system-wide environment variable you need to set it here!
+![CLion Windows CMake Release](img/IDE_CLion_Windows_CMake_Release.jpg)
+
 
 - Debug Profile
-  - **Build Type**: `Debug`
-  - **Generation path**: `build\windows-Debug`
-  - **Build options**: `--parallel <your core count>`
-  - **Environment**: If you haven't set `BOOST_ROOT` as a system wide environment variable you need to set it here!
+  - **Build type**: `Debug`
+  - **Toolchain**: `Visual Studio`
+  - **Generator**: `Ninja`
   - **CMake options**:
     ```
-    -G "Visual Studio 16 2019" -A x64
-    -DCMAKE_INSTALL_PREFIX="<path to cosmoscout>\install\windows-Debug"
-    -DCOSMOSCOUT_EXTERNALS_DIR="<path to cosmoscout>\install\windows-externals-Debug"
+    -DCMAKE_INSTALL_PREFIX="$CMakeProjectDir$\install\windows-Debug"
+    -DCOSMOSCOUT_EXTERNALS_DIR="$CMakeProjectDir$\install\windows-externals-Debug"
     ```
+  - **Build directory**: `build\windows-Debug`
+  - **Build options**: `--parallel <your core count>`
+  - **Environment**: If you haven't set `BOOST_ROOT` as a system-wide environment variable you need to set it here!
+![CLion Windows CMake Debug](img/IDE_CLion_Windows_CMake_Debug.jpg)
+
 
 - Wait for CMake to be configured.
 - Run the `Install` task. It can be found under `Build` in the menubar.
+
+
 - Go to: _Run/Debug Configuration_ -> _CMake Application_ -> _cosmoscout_
 - Release profile
   - **Target**: `cosmoscout`
@@ -109,6 +123,9 @@ highest available (and supported) version.
   - **Environment variables**: `VISTACORELIBS_DRIVER_PLUGIN_DIRS=..\lib\DriverPlugins;PATH=..\lib\;%PATH%`
   - **Before launch** -> __--__ -> _Build_
   - **Before launch** -> __+__ -> _Install_
+![CLion Windows Run Release](img/IDE_CLion_Windows_Run_Release.jpg)
+
+
 - Debug profile
   - **Target**: `cosmoscout`
   - **Executable** -> _Select other_: `<path to cosmoscout>\install\windows-Debug\bin\cosmoscout.exe`
@@ -116,9 +133,10 @@ highest available (and supported) version.
   - **Environment variables**: `VISTACORELIBS_DRIVER_PLUGIN_DIRS=..\lib\DriverPlugins;PATH=..\lib\;%PATH%`
   - **Before launch** -> __--__ -> _Build_
   - **Before launch** -> __+__ -> _Install_
+![CLion Windows Run Debug](img/IDE_CLion_Windows_Run_Debug.jpg)
   
 ### Plugins
-For CLion, we can recommended these plugins for the development of CosmoScout VR:
+For CLion, we can recommend these plugins for the development of CosmoScout VR:
 - [.gitignore](https://plugins.jetbrains.com/plugin/7495--ignore/)
 - [Awesome Console](https://plugins.jetbrains.com/plugin/7677-awesome-console/)
 - [CMake Simple Highlighter](https://plugins.jetbrains.com/plugin/10089-cmake-simple-highlighter)
