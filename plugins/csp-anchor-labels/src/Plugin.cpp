@@ -69,17 +69,7 @@ void Plugin::init() {
 
   mGuiManager->addScriptToGuiFromJS("../share/resources/gui/js/csp-anchor-labels.js");
 
-  // Create labels for all bodies that already exist
-  for (auto const& [name, object] : mAllSettings->mObjects) {
-    if (mPluginSettings->mBlacklist.find(name) == mPluginSettings->mBlacklist.end()) {
-      mAnchorLabels.emplace_back(std::make_unique<AnchorLabel>(
-          name, object, mPluginSettings, mSolarSystem, mGuiManager, mInputManager));
-
-      mNeedsResort = true;
-    }
-  }
-
-  // For all bodies that will be created in the future we also create a label
+  // For all bodies that will be created in the future we also create a label.
   mAddObjectConnection =
       mAllSettings->mObjects.onAdd().connect([this](auto const& name, auto const& object) {
         if (mPluginSettings->mBlacklist.find(name) == mPluginSettings->mBlacklist.end()) {
@@ -175,7 +165,7 @@ void Plugin::update() {
           double distToCameraB    = drawLabel->distanceToCamera();
           double relativeDistance = distToCameraA < distToCameraB ? distToCameraB / distToCameraA
                                                                   : distToCameraA / distToCameraB;
-          if (relativeDistance > 1 + mPluginSettings->mIgnoreOverlapThreshold.get() * 0.1) {
+          if (relativeDistance > 1 + mPluginSettings->mIgnoreOverlapThreshold.get()) {
             continue;
           }
         }
@@ -249,6 +239,19 @@ void Plugin::deInit() {
 void Plugin::onLoad() {
   // Read settings from JSON.
   from_json(mAllSettings->mPlugins.at("csp-anchor-labels"), *mPluginSettings);
+
+  // Remove all labels first.
+  mAnchorLabels.clear();
+
+  // Then create labels for all bodies that already exist.
+  for (auto const& [name, object] : mAllSettings->mObjects) {
+    if (mPluginSettings->mBlacklist.find(name) == mPluginSettings->mBlacklist.end()) {
+      mAnchorLabels.emplace_back(std::make_unique<AnchorLabel>(
+          name, object, mPluginSettings, mSolarSystem, mGuiManager, mInputManager));
+
+      mNeedsResort = true;
+    }
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

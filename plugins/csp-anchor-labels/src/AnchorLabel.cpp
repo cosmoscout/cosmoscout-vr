@@ -97,9 +97,9 @@ AnchorLabel::~AnchorLabel() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void AnchorLabel::update() {
-  if (mObject->getIsOrbitVisible()) {
-    mRelativeAnchorPosition = mObject->getObserverRelativePosition();
+  mRelativeAnchorPosition = mObject->getObserverRelativePosition();
 
+  if (mObject->getIsOrbitVisible()) {
     double distanceToObserver = distanceToCamera();
 
     double const scaleFactor = 0.05;
@@ -170,7 +170,7 @@ std::shared_ptr<const cs::scene::CelestialObject> const& AnchorLabel::getObject(
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool AnchorLabel::shouldBeHidden() const {
-  return !mObject->getIsInExistence();
+  return !mObject->getIsOrbitVisible();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
