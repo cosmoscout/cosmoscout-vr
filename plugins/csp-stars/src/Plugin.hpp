@@ -8,12 +8,14 @@
 #define CSP_STARS_PLUGIN_HPP
 
 #include "../../../src/cs-core/PluginBase.hpp"
-#include "../../../src/cs-scene/CelestialAnchorNode.hpp"
 #include "../../../src/cs-utils/DefaultProperty.hpp"
 #include "Stars.hpp"
 
-#include <VistaKernel/GraphicsManager/VistaOpenGLNode.h>
+#include <glm/glm.hpp>
 #include <optional>
+
+class VistaOpenGLNode;
+class VistaTransformNode;
 
 namespace csp::stars {
 
@@ -47,10 +49,10 @@ class Plugin : public cs::core::PluginBase {
  private:
   void onLoad();
 
-  Settings                                        mPluginSettings;
-  std::unique_ptr<Stars>                          mStars;
-  std::shared_ptr<cs::scene::CelestialAnchorNode> mStarsTransform;
-  std::unique_ptr<VistaOpenGLNode>                mStarsNode;
+  Settings                            mPluginSettings;
+  std::unique_ptr<Stars>              mStars;
+  std::unique_ptr<VistaTransformNode> mStarsTransform;
+  std::unique_ptr<VistaOpenGLNode>    mStarsNode;
 
   int mEnableHDRConnection = -1;
   int mOnLoadConnection    = -1;

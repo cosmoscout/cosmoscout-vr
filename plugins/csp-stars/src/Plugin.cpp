@@ -12,7 +12,9 @@
 #include "../../../src/cs-utils/logger.hpp"
 #include "logger.hpp"
 
+#include <VistaKernel/GraphicsManager/VistaOpenGLNode.h>
 #include <VistaKernel/GraphicsManager/VistaSceneGraph.h>
+#include <VistaKernel/GraphicsManager/VistaTransformNode.h>
 #include <VistaKernelOpenSGExt/VistaOpenSGMaterialTools.h>
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -85,11 +87,7 @@ void Plugin::init() {
   mStars = std::make_unique<Stars>();
 
   // Add the stars to the scenegraph.
-  mStarsTransform = std::make_shared<cs::scene::CelestialAnchorNode>(
-      mSceneGraph->GetRoot(), mSceneGraph->GetNodeBridge(), "", "Solar System Barycenter", "J2000");
-  mSolarSystem->registerAnchor(mStarsTransform);
-
-  mSceneGraph->GetRoot()->AddChild(mStarsTransform.get());
+  mStarsTransform.reset(mSceneGraph->NewTransformNode(mSceneGraph->GetRoot()));
 
   mStarsNode.reset(mSceneGraph->NewOpenGLNode(mStarsTransform.get(), mStars.get()));
 
@@ -199,7 +197,6 @@ void Plugin::init() {
 void Plugin::deInit() {
   logger().info("Unloading plugin...");
 
-  mSolarSystem->unregisterAnchor(mStarsTransform);
   mSceneGraph->GetRoot()->DisconnectChild(mStarsTransform.get());
 
   mAllSettings->mGraphics.pEnableHDR.disconnect(mEnableHDRConnection);
@@ -245,6 +242,12 @@ void Plugin::update() {
       0.3F * fIntensity * (mPluginSettings.mEnableCelestialGrid.get() ? 1.F : 0.F)));
   mStars->setStarFiguresColor(VistaColor(
       0.5F, 1.F, 0.8F, 0.3F * fIntensity * (mPluginSettings.mEnableStarFigures.get() ? 1.F : 0.F)));
+
+  auto mat = mSolarSystem->getObject("Barycenter")->getObserverRelativeTransform();
+
+  mStarsTransform->SetTransform(VistaTransformMatrix(mat[0][0], mat[1][0], mat[2][0], mat[3][0],
+      mat[0][1], mat[1][1], mat[2][1], mat[3][1], mat[0][2], mat[1][2], mat[2][2], mat[3][2],
+      mat[0][3], mat[1][3], mat[2][3], mat[3][3]));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
