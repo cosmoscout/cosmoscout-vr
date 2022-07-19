@@ -31,7 +31,7 @@ namespace csp::rings {
 class Ring : public cs::scene::CelestialObject, public IVistaOpenGLDraw {
  public:
   Ring(std::shared_ptr<cs::core::Settings>   settings,
-      std::shared_ptr<cs::core::SolarSystem> solarSystem, std::string const& objectName);
+      std::shared_ptr<cs::core::SolarSystem> solarSystem, std::string objectName);
 
   Ring(Ring const& other) = delete;
   Ring(Ring&& other)      = default;
@@ -44,18 +44,15 @@ class Ring : public cs::scene::CelestialObject, public IVistaOpenGLDraw {
   /// Configures the internal renderer according to the given values.
   void configure(Plugin::Settings::Ring const& settings);
 
-  /// The sun object is used for lighting computation.
-  void setSun(std::shared_ptr<cs::scene::CelestialObject> const& sun);
-
-  void update(double time, cs::scene::CelestialObserver const& observer) override;
+  void update();
 
   bool Do() override;
   bool GetBoundingBox(VistaBoundingBox& bb) override;
 
  private:
-  std::shared_ptr<cs::core::Settings>         mSettings;
-  std::shared_ptr<cs::core::SolarSystem>      mSolarSystem;
-  std::shared_ptr<cs::scene::CelestialObject> mSun;
+  std::string                            mObjectName;
+  std::shared_ptr<cs::core::Settings>    mSettings;
+  std::shared_ptr<cs::core::SolarSystem> mSolarSystem;
 
   std::unique_ptr<VistaOpenGLNode> mGLNode;
 

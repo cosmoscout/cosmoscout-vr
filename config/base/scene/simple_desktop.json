@@ -862,7 +862,7 @@
         }
       }
     },
-    "#csp-rings": {
+    "csp-rings": {
       "rings": {
         "Saturn": {
           "texture": "../share/resources/textures/saturn-rings.png",

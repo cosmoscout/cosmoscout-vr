@@ -74,10 +74,6 @@ void Plugin::init() {
 void Plugin::deInit() {
   logger().info("Unloading plugin...");
 
-  for (auto const& ring : mRings) {
-    mSolarSystem->unregisterAnchor(ring.second);
-  }
-
   mAllSettings->onLoad().disconnect(mOnLoadConnection);
   mAllSettings->onSave().disconnect(mOnSaveConnection);
 
@@ -97,13 +93,11 @@ void Plugin::onLoad() {
     auto settings = mPluginSettings.mRings.find(ring->first);
     if (settings != mPluginSettings.mRings.end()) {
       // If there are settings for this ring, reconfigure it.
-      mAllSettings->initAnchor(*ring->second, settings->first);
       ring->second->configure(settings->second);
 
       ++ring;
     } else {
       // Else delete it.
-      mSolarSystem->unregisterAnchor(ring->second);
       ring = mRings.erase(ring);
     }
   }
@@ -117,9 +111,15 @@ void Plugin::onLoad() {
     auto ring = std::make_shared<Ring>(mAllSettings, mSolarSystem, settings.first);
     ring->configure(settings.second);
 
-    mSolarSystem->registerAnchor(ring);
-
     mRings.emplace(settings.first, ring);
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Plugin::update() {
+  for (auto const& [name, ring] : mRings) {
+    ring->update();
   }
 }
 
