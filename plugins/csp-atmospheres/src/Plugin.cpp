@@ -195,10 +195,6 @@ void Plugin::init() {
 void Plugin::deInit() {
   logger().info("Unloading plugin...");
 
-  for (auto const& atmosphere : mAtmospheres) {
-    mSolarSystem->unregisterAnchor(atmosphere.second);
-  }
-
   mGuiManager->removeSettingsSection("Atmospheres");
 
   mGuiManager->getGui()->unregisterCallback("atmosphere.setEnableWater");
@@ -231,15 +227,7 @@ void Plugin::update() {
   mGraphicsEngine->pApproximateSceneBrightness = fIntensity;
 
   for (auto const& atmosphere : mAtmospheres) {
-    double sunIlluminance = 10.0;
-
-    if (mAllSettings->mGraphics.pEnableHDR.get()) {
-      sunIlluminance = mSolarSystem->getSunIlluminance(atmosphere.second->getWorldTransform()[3]);
-    }
-
-    auto sunDirection = mSolarSystem->getSunDirection(atmosphere.second->getWorldTransform()[3]);
-
-    atmosphere.second->getRenderer().setSun(sunDirection, static_cast<float>(sunIlluminance));
+    atmosphere.second->update();
   }
 }
 
@@ -256,13 +244,11 @@ void Plugin::onLoad() {
     auto settings = mPluginSettings->mAtmospheres.find(atmosphere->first);
     if (settings != mPluginSettings->mAtmospheres.end()) {
       // If there are settings for this atmosphere, reconfigure it.
-      mAllSettings->initAnchor(*atmosphere->second, settings->first);
       atmosphere->second->configure(settings->second);
 
       ++atmosphere;
     } else {
       // Else delete it.
-      mSolarSystem->unregisterAnchor(atmosphere->second);
       atmosphere = mAtmospheres.erase(atmosphere);
     }
   }
@@ -277,8 +263,6 @@ void Plugin::onLoad() {
         std::make_shared<Atmosphere>(mPluginSettings, mAllSettings, mSolarSystem, settings.first);
     newAtmosphere->getRenderer().setHDRBuffer(mGraphicsEngine->getHDRBuffer());
     newAtmosphere->configure(settings.second);
-
-    mSolarSystem->registerAnchor(newAtmosphere);
 
     mAtmospheres.emplace(settings.first, newAtmosphere);
   }

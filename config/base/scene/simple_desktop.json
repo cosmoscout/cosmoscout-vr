@@ -702,7 +702,7 @@
       "hipparcosCatalog": "../share/download/stars/hip_main.dat",
       "tycho2Catalog": "../share/download/stars/tyc2_main.dat"
     },
-    "#csp-atmospheres": {
+    "csp-atmospheres": {
       "atmospheres": {
         "Mars": {
           "atmosphereHeight": 0.03,

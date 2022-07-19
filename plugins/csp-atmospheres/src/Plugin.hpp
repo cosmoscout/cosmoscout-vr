@@ -39,7 +39,7 @@ class Plugin : public cs::core::PluginBase {
       std::optional<float>       mCloudHeight;  ///< Relative to the planets radius.
     };
 
-    std::map<std::string, Atmosphere> mAtmospheres;
+    std::unordered_map<std::string, Atmosphere> mAtmospheres;
 
     cs::utils::DefaultProperty<bool>  mEnabled{true};
     cs::utils::DefaultProperty<int>   mQuality{7};
@@ -57,8 +57,8 @@ class Plugin : public cs::core::PluginBase {
  private:
   void onLoad();
 
-  std::shared_ptr<Settings>                          mPluginSettings = std::make_shared<Settings>();
-  std::map<std::string, std::shared_ptr<Atmosphere>> mAtmospheres;
+  std::shared_ptr<Settings> mPluginSettings = std::make_shared<Settings>();
+  std::unordered_map<std::string, std::shared_ptr<Atmosphere>> mAtmospheres;
 
   int mEnableShadowsConnection     = -1;
   int mEnableHDRConnection         = -1;
