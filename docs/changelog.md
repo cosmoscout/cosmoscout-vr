@@ -29,7 +29,7 @@
 * Removed the obsolete "Mix with RGB" option for height or slope coloring of the LOD-Bodies.
 * Lighting is now enabled by default
 * It is now possible to have simple body textures, that have the prime meridian at the edge.
-* Rings now have a lit and and unlit side.
+* Rings now have a lit and an unlit side.
 
 #### Bug Fixes
 
