@@ -24,7 +24,7 @@ Below you find some instructions on how to setup your preferred IDE for CosmoSco
   - **Build Type**: `Release`
   - **Generation path**: `build/linux-Release`
   - **Build options**: `--parallel <your core count>`
-  - **Environment**: If you haven't set `BOOST_ROOT` as a system wide environment variable you need to set it here!
+  - **Environment**: If you haven't set `BOOST_ROOT` as a system-wide environment variable you need to set it here!
   - **CMake options**:
     ```
     -DCMAKE_INSTALL_PREFIX="$CMakeProjectDir$/install/linux-Release"
@@ -36,7 +36,7 @@ Below you find some instructions on how to setup your preferred IDE for CosmoSco
   - **Build Type**: `Debug`
   - **Generation path**: `build/linux-Debug`
   - **Build options**: `--parallel <your core count>`
-  - **Environment**: If you haven't set `BOOST_ROOT` as a system wide environment variable you need to set it here!
+  - **Environment**: If you haven't set `BOOST_ROOT` as a system-wide environment variable you need to set it here!
   - **CMake options**:
     ```
     -DCMAKE_INSTALL_PREFIX="$CMakeProjectDir$/install/linux-Debug"
