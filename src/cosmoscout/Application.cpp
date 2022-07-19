@@ -479,14 +479,6 @@ void Application::FrameUpdate() {
       }
 
       try {
-         cs::utils::FrameTimings::ScopedTimer timer(
-          "Update Celestial Objects", cs::utils::FrameTimings::QueryMode::eCPU);
-        mSolarSystem->update();
-      } catch (std::runtime_error const& e) {
-        logger().warn("Failed to update Solar System: {}", e.what());
-      }
-
-      try {
         mSolarSystem->updateSceneScale();
       } catch (std::runtime_error const& e) {
         logger().warn("Failed to update scene scale: {}", e.what());
@@ -499,8 +491,16 @@ void Application::FrameUpdate() {
       }
 
       try {
-         cs::utils::FrameTimings::ScopedTimer timer(
-          "Update Celestial Surfaces", cs::utils::FrameTimings::QueryMode::eCPU);
+        cs::utils::FrameTimings::ScopedTimer timer(
+            "Update Celestial Objects", cs::utils::FrameTimings::QueryMode::eCPU);
+        mSolarSystem->update();
+      } catch (std::runtime_error const& e) {
+        logger().warn("Failed to update Solar System: {}", e.what());
+      }
+
+      try {
+        cs::utils::FrameTimings::ScopedTimer timer(
+            "Update Celestial Surfaces", cs::utils::FrameTimings::QueryMode::eCPU);
         mSolarSystem->updateSurfaces();
       } catch (std::runtime_error const& e) {
         logger().warn("Failed to update surfaces of the solar system: {}", e.what());

@@ -129,9 +129,9 @@ std::vector<std::shared_ptr<graphics::EclipseShadowMap>> SolarSystem::getEclipse
     if (allowSelfShadowing || receiver.getCenterName() != occluder->getCenterName()) {
 
       // Get observer-centric positions.
-      auto pSun = mSun->getObserverRelativePosition();
-      auto pRec = receiver.getObserverRelativePosition();
-      auto pOcc = occluder->getObserverRelativePosition();
+      auto pSun = mSun->getObserverRelativePosition() * mObserver.getScale();
+      auto pRec = receiver.getObserverRelativePosition() * mObserver.getScale();
+      auto pOcc = occluder->getObserverRelativePosition() * mObserver.getScale();
 
       // Convert to receiver-centric.
       pSun = pSun - pOcc;
