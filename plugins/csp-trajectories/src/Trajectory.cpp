@@ -6,7 +6,7 @@
 
 #include "Trajectory.hpp"
 
-#include "../../../src/cs-scene/CelestialObserver.hpp"
+#include "../../../src/cs-core/SolarSystem.hpp"
 #include "../../../src/cs-utils/FrameTimings.hpp"
 #include "logger.hpp"
 
@@ -20,10 +20,10 @@ namespace csp::trajectories {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Trajectory::Trajectory(
-    std::shared_ptr<Plugin::Settings> pluginSettings, std::shared_ptr<cs::core::Settings> settings)
+Trajectory::Trajectory(std::shared_ptr<Plugin::Settings> pluginSettings,
+    std::shared_ptr<cs::core::SolarSystem>               solarSystem)
     : mPluginSettings(std::move(pluginSettings))
-    , mSettings(std::move(settings)) {
+    , mSolarSystem(std::move(solarSystem)) {
 
   pLength.connect([this](double val) {
     mPoints.clear();
@@ -53,13 +53,17 @@ Trajectory::~Trajectory() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Trajectory::update(double tTime, cs::scene::CelestialObserver const& oObs) {
-  cs::scene::CelestialObject::update(tTime, oObs);
+void Trajectory::update() {
+  if (!mPluginSettings->mEnableTrajectories.get()) {
+    return;
+  }
 
-  double dLengthSeconds = pLength.get() * 24.0 * 60.0 * 60.0;
+  auto parent = mSolarSystem->getObject(mParentName);
+  auto target = mSolarSystem->getObject(mTargetName);
 
-  if (mPluginSettings->mEnableTrajectories.get() && getIsInExistence()) {
-    double dSampleLength = dLengthSeconds / pSamples.get();
+  if (parent->getIsInExistence() && target->getIsOrbitVisible()) {
+    double dLengthSeconds = pLength.get() * 24.0 * 60.0 * 60.0;
+    double dSampleLength  = dLengthSeconds / pSamples.get();
 
     // only recalculate if there is not too much change from frame to frame
     if (std::abs(mLastFrameTime - tTime) <= dLengthSeconds / 10.0) {
@@ -145,38 +149,41 @@ void Trajectory::update(double tTime, cs::scene::CelestialObserver const& oObs) 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Trajectory::setTargetAnchorName(std::string const& objectName) {
+void Trajectory::setTargetName(std::string const& objectName) {
   mPoints.clear();
-  mTargetAnchorName = objectName;
-  mSettings->initAnchor(mTarget, objectName);
-  updateExistence();
+  mTargetName = objectName;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Trajectory::setParentAnchorName(std::string const& objectName) {
+void Trajectory::setParentName(std::string const& objectName) {
   mPoints.clear();
-  mParentAnchorName = objectName;
-  mSettings->initAnchor(*this, objectName);
-  updateExistence();
+  mParentName = objectName;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::string const& Trajectory::getTargetAnchorName() const {
-  return mTargetAnchorName;
+std::string const& Trajectory::getTargetName() const {
+  return mTargetName;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::string const& Trajectory::getParentAnchorName() const {
-  return mParentAnchorName;
+std::string const& Trajectory::getParentName() const {
+  return mParentName;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool Trajectory::Do() {
-  if (mPluginSettings->mEnableTrajectories.get() && pVisible.get() && getIsInExistence()) {
+  if (!mPluginSettings->mEnableTrajectories.get()) {
+    return true;
+  }
+
+  auto parent = mSolarSystem->getObject(mParentName);
+  auto target = mSolarSystem->getObject(mTargetName);
+
+  if (parent->getIsInExistence() && target->getIsOrbitVisible()) {
     cs::utils::FrameTimings::ScopedTimer timer("Trajectories");
     mTrajectory.Do();
   }
@@ -188,18 +195,6 @@ bool Trajectory::Do() {
 
 bool Trajectory::GetBoundingBox(VistaBoundingBox& /*bb*/) {
   return false;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void Trajectory::updateExistence() {
-  if (!mTargetAnchorName.empty() && !mParentAnchorName.empty()) {
-    auto parentExistence = mSettings->getAnchorExistence(mParentAnchorName);
-    auto targetExistence = mSettings->getAnchorExistence(mTargetAnchorName);
-
-    setExistence(glm::dvec2(std::max(parentExistence[0], targetExistence[0]),
-        std::min(parentExistence[1], targetExistence[1])));
-  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -19,7 +19,7 @@
 namespace csp::trajectories {
 
 /// A trajectory trails behind an object in space to give a better understanding of its movement.
-class Trajectory : public cs::scene::CelestialObject, public IVistaOpenGLDraw {
+class Trajectory : public IVistaOpenGLDraw {
  public:
   /// The length of the trajectory in days.
   cs::utils::Property<double> pLength = 1.0;
@@ -31,7 +31,7 @@ class Trajectory : public cs::scene::CelestialObject, public IVistaOpenGLDraw {
   cs::utils::Property<glm::vec3> pColor = glm::vec3(1, 1, 1);
 
   Trajectory(std::shared_ptr<Plugin::Settings> pluginSettings,
-      std::shared_ptr<cs::core::Settings>      settings);
+      std::shared_ptr<cs::core::SolarSystem>   solarSystem);
 
   Trajectory(Trajectory const& other) = delete;
   Trajectory(Trajectory&& other)      = delete;
@@ -41,31 +41,29 @@ class Trajectory : public cs::scene::CelestialObject, public IVistaOpenGLDraw {
 
   ~Trajectory() override;
 
-  /// This is called automatically by the SolarSystem.
-  void update(double tTime, cs::scene::CelestialObserver const& oObs) override;
+  /// This is called by the Plugin.
+  void update();
 
   /// The trajectory visualizes the path of this body.
-  void               setTargetAnchorName(std::string const& objectName);
-  std::string const& getTargetAnchorName() const;
+  void               setTargetName(std::string const& objectName);
+  std::string const& getTargetName() const;
 
   /// The trajectory is drawn relative to this body.
-  void               setParentAnchorName(std::string const& objectName);
-  std::string const& getParentAnchorName() const;
+  void               setParentName(std::string const& objectName);
+  std::string const& getParentName() const;
 
   bool Do() override;
   bool GetBoundingBox(VistaBoundingBox& bb) override;
 
  private:
-  void updateExistence();
-
-  std::shared_ptr<Plugin::Settings>   mPluginSettings;
-  std::shared_ptr<cs::core::Settings> mSettings;
-  cs::scene::Trajectory               mTrajectory;
+  std::shared_ptr<Plugin::Settings>      mPluginSettings;
+  std::shared_ptr<cs::core::SolarSystem> mSolarSystem;
+  cs::scene::Trajectory                  mTrajectory;
 
   std::unique_ptr<VistaOpenGLNode> mGLNode;
 
-  std::string mTargetAnchorName;
-  std::string mParentAnchorName;
+  std::string mTargetName;
+  std::string mParentName;
 
   cs::scene::CelestialObject mTarget;
   std::vector<glm::dvec4>    mPoints;

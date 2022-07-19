@@ -25,13 +25,14 @@ namespace csp::trajectories {
 /// Adds an artificial flare effect around the object. Only makes sense for stars, but if you want
 /// you can make anything glow like a christmas light :D. The SunFlare is hidden when HDR rendering
 /// is enabled.
-class SunFlare : public cs::scene::CelestialObject, public IVistaOpenGLDraw {
+class SunFlare : public IVistaOpenGLDraw {
  public:
   /// The color of the flare.
   cs::utils::Property<VistaColor> pColor = VistaColor(1, 1, 1);
 
   SunFlare(std::shared_ptr<cs::core::Settings> settings,
-      std::shared_ptr<Plugin::Settings> pluginSettings, std::string const& objectName);
+      std::shared_ptr<Plugin::Settings>        pluginSettings,
+      std::shared_ptr<cs::core::SolarSystem> solarSystem, std::string objectName);
 
   SunFlare(SunFlare const& other) = delete;
   SunFlare(SunFlare&& other)      = default;
@@ -41,12 +42,17 @@ class SunFlare : public cs::scene::CelestialObject, public IVistaOpenGLDraw {
 
   ~SunFlare() override;
 
+  /// This is called by the Plugin.
+  void update();
+
   bool Do() override;
   bool GetBoundingBox(VistaBoundingBox& bb) override;
 
  private:
-  std::shared_ptr<cs::core::Settings> mSettings;
-  std::shared_ptr<Plugin::Settings>   mPluginSettings;
+  std::shared_ptr<cs::core::Settings>    mSettings;
+  std::shared_ptr<Plugin::Settings>      mPluginSettings;
+  std::shared_ptr<cs::core::SolarSystem> mSolarSystem;
+  std::string                            mObjectName;
 
   std::unique_ptr<VistaOpenGLNode> mGLNode;
 

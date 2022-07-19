@@ -76,6 +76,7 @@ class Plugin : public cs::core::PluginBase {
 
   void init() override;
   void deInit() override;
+  void update() override;
 
  private:
   void onLoad();

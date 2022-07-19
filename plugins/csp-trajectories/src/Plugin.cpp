@@ -122,18 +122,6 @@ void Plugin::init() {
 void Plugin::deInit() {
   logger().info("Unloading plugin...");
 
-  for (auto const& flare : mSunFlares) {
-    mSolarSystem->unregisterAnchor(flare.second);
-  }
-
-  for (auto const& trajectory : mTrajectories) {
-    mSolarSystem->unregisterAnchor(trajectory.second);
-  }
-
-  for (auto const& dot : mDeepSpaceDots) {
-    mSolarSystem->unregisterAnchor(dot.second);
-  }
-
   mGuiManager->removeSettingsSection("Trajectories");
 
   mGuiManager->getGui()->unregisterCallback("trajectories.setEnableTrajectories");
@@ -148,6 +136,22 @@ void Plugin::deInit() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void Plugin::update() {
+  for (auto const& flare : mSunFlares) {
+    flare.second->update();
+  }
+
+  for (auto const& trajectory : mTrajectories) {
+    trajectory.second->update();
+  }
+
+  for (auto const& dot : mDeepSpaceDots) {
+    dot.second->update();
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Plugin::onLoad() {
 
   // Read settings from JSON.
@@ -155,12 +159,6 @@ void Plugin::onLoad() {
 
   // We just recreate all SunFlares and DeepSpaceDots as they are quite cheap to construct. So
   // delete all existing ones first.
-  for (auto const& flare : mSunFlares) {
-    mSolarSystem->unregisterAnchor(flare.second);
-  }
-  for (auto const& dot : mDeepSpaceDots) {
-    mSolarSystem->unregisterAnchor(dot.second);
-  }
   mSunFlares.clear();
   mDeepSpaceDots.clear();
 
@@ -170,8 +168,8 @@ void Plugin::onLoad() {
 
     // Add the SunFlare.
     if (settings.second.mDrawFlare.value_or(false)) {
-      auto flare = std::make_shared<SunFlare>(mAllSettings, mPluginSettings, settings.first);
-      mSolarSystem->registerAnchor(flare);
+      auto flare =
+          std::make_shared<SunFlare>(mAllSettings, mPluginSettings, mSolarSystem, settings.first);
 
       flare->pColor =
           VistaColor(settings.second.mColor.r, settings.second.mColor.g, settings.second.mColor.b);
@@ -181,14 +179,10 @@ void Plugin::onLoad() {
 
     // Add the DeepSpaceDot.
     if (settings.second.mDrawDot.value_or(false)) {
-      auto dot = std::make_shared<DeepSpaceDot>(mPluginSettings, mAllSettings, settings.first);
-      mSolarSystem->registerAnchor(dot);
+      auto dot = std::make_shared<DeepSpaceDot>(mPluginSettings, mSolarSystem, settings.first);
 
       dot->pColor =
           VistaColor(settings.second.mColor.r, settings.second.mColor.g, settings.second.mColor.b);
-
-      // do not perform distance culling for DeepSpaceDots
-      dot->pVisible = true;
 
       mDeepSpaceDots[settings.first] = dot;
     }
@@ -202,7 +196,7 @@ void Plugin::onLoad() {
 
     // If there are settings for this trajectory, reconfigure it.
     if (settings != mPluginSettings->mTrajectories.end() && settings->second.mTrail &&
-        settings->second.mTrail->mParent == trajectory->second->getParentAnchorName()) {
+        settings->second.mTrail->mParent == trajectory->second->getParentName()) {
 
       trajectory->second->pSamples = settings->second.mTrail->mSamples;
       trajectory->second->pLength  = settings->second.mTrail->mLength;
@@ -214,7 +208,6 @@ void Plugin::onLoad() {
     }
 
     // Else delete it.
-    mSolarSystem->unregisterAnchor(trajectory->second);
     trajectory = mTrajectories.erase(trajectory);
   }
 
@@ -228,22 +221,12 @@ void Plugin::onLoad() {
       auto targetAnchor = settings.first;
       auto parentAnchor = settings.second.mTrail->mParent;
 
-      auto trajectory = std::make_shared<Trajectory>(mPluginSettings, mAllSettings);
-      trajectory->setTargetAnchorName(targetAnchor);
-      trajectory->setParentAnchorName(parentAnchor);
+      auto trajectory = std::make_shared<Trajectory>(mPluginSettings, mSolarSystem);
+      trajectory->setTargetName(targetAnchor);
+      trajectory->setParentName(parentAnchor);
       trajectory->pSamples = settings.second.mTrail->mSamples;
       trajectory->pLength  = settings.second.mTrail->mLength;
       trajectory->pColor   = settings.second.mColor;
-
-      // Change visibility of dots together with trajectory.
-      trajectory->pVisible.connectAndTouch([this, objectName = settings.first](bool visible) {
-        auto dot = mDeepSpaceDots.find(objectName);
-        if (dot != mDeepSpaceDots.end()) {
-          dot->second->pVisible = visible;
-        }
-      });
-
-      mSolarSystem->registerAnchor(trajectory);
 
       mTrajectories.emplace(settings.first, trajectory);
     }
