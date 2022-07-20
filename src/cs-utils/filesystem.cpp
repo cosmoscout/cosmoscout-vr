@@ -15,6 +15,7 @@
 
 #include <cmath>
 #include <iostream>
+#include <fstream>
 
 namespace cs::utils::filesystem {
 

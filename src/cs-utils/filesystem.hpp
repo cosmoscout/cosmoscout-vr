@@ -42,7 +42,7 @@ CS_UTILS_EXPORT void writeStringToFile(std::string const& filePath, std::string 
 
 /// Downloads a file from te internet. This call will block until the file is downloaded
 /// successfully or an error occurred. If the path to the destination file does not exist, it will
-/// be created. This will throw a std::runtime_error if something bad happend.
+/// be created. This will throw a std::runtime_error if something bad happened.
 /// progressCallback will be called regularly, the first parameter is the amount of downloaded
 /// bytes, the second the total amount to be downloaded.
 CS_UTILS_EXPORT void downloadFile(std::string const& url, std::string const& destination,
