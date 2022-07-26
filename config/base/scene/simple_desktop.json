@@ -889,7 +889,7 @@
         "Barycenter"
       ]
     },
-    "#csp-trajectories": {
+    "csp-trajectories": {
       "trajectories": {
         "Sun": {
           "color": [

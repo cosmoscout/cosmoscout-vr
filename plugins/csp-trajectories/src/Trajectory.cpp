@@ -53,7 +53,7 @@ Trajectory::~Trajectory() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Trajectory::update() {
+void Trajectory::update(double tTime) {
   if (!mPluginSettings->mEnableTrajectories.get()) {
     return;
   }
@@ -61,7 +61,7 @@ void Trajectory::update() {
   auto parent = mSolarSystem->getObject(mParentName);
   auto target = mSolarSystem->getObject(mTargetName);
 
-  if (parent->getIsInExistence() && target->getIsOrbitVisible()) {
+  if (parent && target && parent->getIsInExistence() && target->getIsOrbitVisible()) {
     double dLengthSeconds = pLength.get() * 24.0 * 60.0 * 60.0;
     double dSampleLength  = dLengthSeconds / pSamples.get();
 
@@ -79,6 +79,9 @@ void Trajectory::update() {
         completeRecalculation = true;
       }
 
+      auto startExistence = glm::max(parent->getExistence()[0], target->getExistence()[0]);
+      auto endExistence   = glm::min(parent->getExistence()[1], target->getExistence()[1]);
+
       if (mLastUpdateTime < tTime) {
         if (completeRecalculation) {
           mLastSampleTime = tTime - dLengthSeconds - dSampleLength;
@@ -89,11 +92,9 @@ void Trajectory::update() {
           mLastSampleTime += dSampleLength;
 
           try {
-            double     tSampleTime = glm::clamp(mLastSampleTime, mExistence[0], mExistence[1]);
-            glm::dvec3 pos         = getRelativePosition(tSampleTime, mTarget);
+            double     tSampleTime = glm::clamp(mLastSampleTime, startExistence, endExistence);
+            glm::dvec3 pos         = parent->getRelativePosition(tSampleTime, *target);
             mPoints[mStartIndex]   = glm::dvec4(pos.x, pos.y, pos.z, tSampleTime);
-
-            setRadii(glm::max(glm::dvec3(glm::length(pos)), getRadii()));
 
             mStartIndex = (mStartIndex + 1) % static_cast<int>(pSamples.get());
           } catch (...) {
@@ -111,14 +112,13 @@ void Trajectory::update() {
 
           try {
             double tSampleTime =
-                glm::clamp(mLastSampleTime - dLengthSeconds, mExistence[0], mExistence[1]);
-            glm::dvec3 pos = getRelativePosition(tSampleTime, mTarget);
+                glm::clamp(mLastSampleTime - dLengthSeconds, startExistence, endExistence);
+            glm::dvec3 pos = parent->getRelativePosition(tSampleTime, *target);
             mPoints[(mStartIndex - 1 + pSamples.get()) % pSamples.get()] =
                 glm::dvec4(pos.x, pos.y, pos.z, tSampleTime);
 
             mStartIndex = (mStartIndex - 1 + static_cast<int>(pSamples.get())) %
                           static_cast<int>(pSamples.get());
-            setRadii(glm::max(glm::dvec3(glm::length(pos)), getRadii()));
           } catch (...) {
             // Getting the relative transformation may fail due to insufficient SPICE data.
           }
@@ -128,37 +128,37 @@ void Trajectory::update() {
       mLastUpdateTime = tTime;
 
       if (completeRecalculation) {
-        logger().debug("Recalculating trajectory for {}.", mTargetAnchorName);
+        logger().debug("Recalculating trajectory for {}.", mTargetName);
       }
     }
 
     mLastFrameTime = tTime;
 
-    if (pVisible.get() && !mPoints.empty()) {
+    if (!mPoints.empty()) {
       glm::dvec3 tip = mPoints[mStartIndex];
       try {
-        tip = getRelativePosition(tTime, mTarget);
+        tip = parent->getRelativePosition(tTime, *target);
       } catch (...) {
         // Getting the relative transformation may fail due to insufficient SPICE data.
       }
 
-      mTrajectory.upload(matWorldTransform, tTime, mPoints, tip, mStartIndex);
+      mTrajectory.upload(parent->getObserverRelativeTransform(), tTime, mPoints, tip, mStartIndex);
     }
   }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Trajectory::setTargetName(std::string const& objectName) {
+void Trajectory::setTargetName(std::string objectName) {
   mPoints.clear();
-  mTargetName = objectName;
+  mTargetName = std::move(objectName);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Trajectory::setParentName(std::string const& objectName) {
+void Trajectory::setParentName(std::string objectName) {
   mPoints.clear();
-  mParentName = objectName;
+  mParentName = std::move(objectName);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

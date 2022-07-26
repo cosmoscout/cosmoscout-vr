@@ -32,7 +32,7 @@ class SunFlare : public IVistaOpenGLDraw {
 
   SunFlare(std::shared_ptr<cs::core::Settings> settings,
       std::shared_ptr<Plugin::Settings>        pluginSettings,
-      std::shared_ptr<cs::core::SolarSystem> solarSystem, std::string objectName);
+      std::shared_ptr<cs::core::SolarSystem>   solarSystem);
 
   SunFlare(SunFlare const& other) = delete;
   SunFlare(SunFlare&& other)      = default;
@@ -42,8 +42,9 @@ class SunFlare : public IVistaOpenGLDraw {
 
   ~SunFlare() override;
 
-  /// This is called by the Plugin.
-  void update();
+  /// The flare is attached to this body.
+  void               setObjectName(std::string objectName);
+  std::string const& getObjectName() const;
 
   bool Do() override;
   bool GetBoundingBox(VistaBoundingBox& bb) override;

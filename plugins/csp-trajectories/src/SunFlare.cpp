@@ -103,11 +103,10 @@ void main()
 
 SunFlare::SunFlare(std::shared_ptr<cs::core::Settings> settings,
     std::shared_ptr<Plugin::Settings>                  pluginSettings,
-    std::shared_ptr<cs::core::SolarSystem> solarSystem, std::string objectName)
+    std::shared_ptr<cs::core::SolarSystem> solarSystem)
     : mSettings(std::move(settings))
     , mPluginSettings(std::move(pluginSettings))
-    , mSolarSystem(std::move(solarSystem))
-    , mObjectName(std::move(objectName)) {
+    , mSolarSystem(std::move(solarSystem)) {
 
   mShader.InitVertexShaderFromString(QUAD_VERT);
   mShader.InitFragmentShaderFromString(QUAD_FRAG);
@@ -130,6 +129,18 @@ SunFlare::SunFlare(std::shared_ptr<cs::core::Settings> settings,
 SunFlare::~SunFlare() {
   VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
   pSG->GetRoot()->DisconnectChild(mGLNode.get());
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void SunFlare::setObjectName(std::string objectName) {
+  mObjectName = std::move(objectName);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::string const& SunFlare::getObjectName() const {
+  return mObjectName;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

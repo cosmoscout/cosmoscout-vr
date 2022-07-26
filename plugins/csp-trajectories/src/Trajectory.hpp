@@ -42,14 +42,14 @@ class Trajectory : public IVistaOpenGLDraw {
   ~Trajectory() override;
 
   /// This is called by the Plugin.
-  void update();
+  void update(double tTime);
 
   /// The trajectory visualizes the path of this body.
-  void               setTargetName(std::string const& objectName);
+  void               setTargetName(std::string objectName);
   std::string const& getTargetName() const;
 
   /// The trajectory is drawn relative to this body.
-  void               setParentName(std::string const& objectName);
+  void               setParentName(std::string objectName);
   std::string const& getParentName() const;
 
   bool Do() override;
@@ -65,12 +65,11 @@ class Trajectory : public IVistaOpenGLDraw {
   std::string mTargetName;
   std::string mParentName;
 
-  cs::scene::CelestialObject mTarget;
-  std::vector<glm::dvec4>    mPoints;
-  int                        mStartIndex     = 0;
-  double                     mLastSampleTime = 0.0;
-  double                     mLastUpdateTime = -1.0;
-  double                     mLastFrameTime  = 0.0;
+  std::vector<glm::dvec4> mPoints;
+  int                     mStartIndex     = 0;
+  double                  mLastSampleTime = 0.0;
+  double                  mLastUpdateTime = -1.0;
+  double                  mLastFrameTime  = 0.0;
 };
 
 } // namespace csp::trajectories

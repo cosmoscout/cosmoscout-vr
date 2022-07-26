@@ -93,10 +93,9 @@ void main()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 DeepSpaceDot::DeepSpaceDot(std::shared_ptr<Plugin::Settings> pluginSettings,
-    std::shared_ptr<cs::core::SolarSystem> solarSystem, std::string objectName)
+    std::shared_ptr<cs::core::SolarSystem>                   solarSystem)
     : mPluginSettings(std::move(pluginSettings))
-    , mSolarSystem(std::move(solarSystem))
-    , mObjectName(std::move(objectName)) {
+    , mSolarSystem(std::move(solarSystem)) {
 
   mShader.InitVertexShaderFromString(QUAD_VERT);
   mShader.InitFragmentShaderFromString(QUAD_FRAG);
@@ -119,6 +118,18 @@ DeepSpaceDot::DeepSpaceDot(std::shared_ptr<Plugin::Settings> pluginSettings,
 DeepSpaceDot::~DeepSpaceDot() {
   VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
   pSG->GetRoot()->DisconnectChild(mGLNode.get());
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void DeepSpaceDot::setObjectName(std::string objectName) {
+  mObjectName = std::move(objectName);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::string const& DeepSpaceDot::getObjectName() const {
+  return mObjectName;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
