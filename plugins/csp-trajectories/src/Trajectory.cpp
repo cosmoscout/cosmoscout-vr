@@ -58,6 +58,9 @@ void Trajectory::update(double tTime) {
     return;
   }
 
+  cs::utils::FrameTimings::ScopedTimer timer(
+      "Trajectory of " + mTargetName, cs::utils::FrameTimings::QueryMode::eCPU);
+
   auto parent = mSolarSystem->getObject(mParentName);
   auto target = mSolarSystem->getObject(mTargetName);
 
@@ -184,7 +187,7 @@ bool Trajectory::Do() {
   auto target = mSolarSystem->getObject(mTargetName);
 
   if (parent->getIsInExistence() && target->getIsOrbitVisible()) {
-    cs::utils::FrameTimings::ScopedTimer timer("Trajectories");
+    cs::utils::FrameTimings::ScopedTimer timer("Trajectory of " + mTargetName);
     mTrajectory.Do();
   }
 

@@ -144,7 +144,7 @@ bool DeepSpaceDot::Do() {
     return true;
   }
 
-  cs::utils::FrameTimings::ScopedTimer timer("Planet Marks");
+  cs::utils::FrameTimings::ScopedTimer timer("Dot of " + mObjectName);
   // get viewport to draw dot with correct aspect ration
   std::array<GLint, 4> viewport{};
   glGetIntegerv(GL_VIEWPORT, viewport.data());
