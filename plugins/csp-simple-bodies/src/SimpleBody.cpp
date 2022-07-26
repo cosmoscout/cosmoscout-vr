@@ -255,12 +255,6 @@ void SimpleBody::configure(Plugin::Settings::SimpleBody const& settings) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void SimpleBody::setSun(std::shared_ptr<const cs::scene::CelestialObject> const& sun) {
-  mSun = sun;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 bool SimpleBody::getIntersection(
     glm::dvec3 const& rayOrigin, glm::dvec3 const& rayDir, glm::dvec3& pos) const {
 
@@ -378,7 +372,7 @@ bool SimpleBody::Do() {
   float     ambientBrightness(mSettings->mGraphics.pAmbientBrightness.get());
   auto      transform = parent->getObserverRelativeTransform();
 
-  if (parent == mSun) {
+  if (parent == mSolarSystem->getSun()) {
     // If the SimpleBody is actually the sun, we have to calculate the lighting differently.
     if (mSettings->mGraphics.pEnableHDR.get()) {
 
@@ -391,7 +385,7 @@ bool SimpleBody::Do() {
 
     ambientBrightness = 1.0F;
 
-  } else if (mSun) {
+  } else {
     // For all other bodies we can use the utility methods from the SolarSystem.
     if (mSettings->mGraphics.pEnableHDR.get()) {
       sunIlluminance = static_cast<float>(mSolarSystem->getSunIlluminance(transform[3]));

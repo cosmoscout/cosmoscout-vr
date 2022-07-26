@@ -46,9 +46,6 @@ class SimpleBody : public cs::scene::CelestialSurface,
   /// Configures the internal renderer according to the given values.
   void configure(Plugin::Settings::SimpleBody const& settings);
 
-  /// The sun object is used for lighting computation.
-  void setSun(std::shared_ptr<const cs::scene::CelestialObject> const& sun);
-
   /// Interface implementation of the IntersectableObject, which is a base class of
   /// CelestialBody.
   bool getIntersection(
@@ -65,10 +62,9 @@ class SimpleBody : public cs::scene::CelestialSurface,
   bool GetBoundingBox(VistaBoundingBox& bb) override;
 
  private:
-  std::shared_ptr<cs::core::Settings>               mSettings;
-  std::shared_ptr<cs::core::SolarSystem>            mSolarSystem;
-  std::shared_ptr<const cs::scene::CelestialObject> mSun;
-  std::weak_ptr<const cs::scene::CelestialObject>   mParent;
+  std::shared_ptr<cs::core::Settings>             mSettings;
+  std::shared_ptr<cs::core::SolarSystem>          mSolarSystem;
+  std::weak_ptr<const cs::scene::CelestialObject> mParent;
 
   std::unique_ptr<VistaOpenGLNode> mGLNode;
 
