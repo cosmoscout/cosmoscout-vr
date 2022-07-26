@@ -309,59 +309,72 @@ void Plugin::init() {
   mGuiManager->getGui()->registerCallback("lodBodies.setTilesImg",
       "Set the current planet's image channel to the TileSource with the given name.",
       std::function([this](std::string&& name) {
-        auto body = std::dynamic_pointer_cast<LodBody>(mSolarSystem->pActiveBody.get());
-        if (body) {
-          setImageSource(body, name);
+        if (mSolarSystem->pActiveObject.get()) {
+          auto body =
+              std::dynamic_pointer_cast<LodBody>(mSolarSystem->pActiveObject.get()->getSurface());
+
+          if (body) {
+            setImageSource(body, name);
+          }
         }
       }));
 
   mGuiManager->getGui()->registerCallback("lodBodies.setTilesDem",
       "Set the current planet's elevation channel to the TileSource with the given name.",
       std::function([this](std::string&& name) {
-        auto body = std::dynamic_pointer_cast<LodBody>(mSolarSystem->pActiveBody.get());
-        if (body) {
-          setElevationSource(body, name);
+        if (mSolarSystem->pActiveObject.get()) {
+          auto body =
+              std::dynamic_pointer_cast<LodBody>(mSolarSystem->pActiveObject.get()->getSurface());
+
+          if (body) {
+            setElevationSource(body, name);
+          }
         }
       }));
 
-  mActiveBodyConnection = mSolarSystem->pActiveBody.connectAndTouch(
-      [this](std::shared_ptr<cs::scene::CelestialBody> const& body) {
-        auto lodBody = std::dynamic_pointer_cast<LodBody>(body);
+  mActiveObjectConnection = mSolarSystem->pActiveObject.connectAndTouch(
+      [this](std::shared_ptr<const cs::scene::CelestialObject> const& body) {
+        bool tabEnabled = false;
 
-        mGuiManager->getGui()->callJavascript(
-            "CosmoScout.sidebar.setTabEnabled", "Body Settings", lodBody != nullptr);
+        if (body) {
+          auto lodBody = std::dynamic_pointer_cast<LodBody>(body->getSurface());
 
-        if (!lodBody) {
-          return;
-        }
+          if (lodBody) {
 
-        mGuiManager->getGui()->callJavascript(
-            "CosmoScout.gui.clearDropdown", "lodBodies.setTilesImg");
-        mGuiManager->getGui()->callJavascript(
-            "CosmoScout.gui.clearDropdown", "lodBodies.setTilesDem");
-        mGuiManager->getGui()->callJavascript(
-            "CosmoScout.gui.addDropdownValue", "lodBodies.setTilesImg", "None", "None", "false");
+            tabEnabled = true;
 
-        auto const& settings = getBodySettings(lodBody);
-        for (auto const& source : settings.mImgDatasets) {
-          bool active = source.first == settings.mActiveImgDataset;
-          mGuiManager->getGui()->callJavascript("CosmoScout.gui.addDropdownValue",
-              "lodBodies.setTilesImg", source.first, source.first, active);
-          if (active) {
             mGuiManager->getGui()->callJavascript(
-                "CosmoScout.lodBodies.setMapDataCopyright", source.second.mCopyright);
+                "CosmoScout.gui.clearDropdown", "lodBodies.setTilesImg");
+            mGuiManager->getGui()->callJavascript(
+                "CosmoScout.gui.clearDropdown", "lodBodies.setTilesDem");
+            mGuiManager->getGui()->callJavascript("CosmoScout.gui.addDropdownValue",
+                "lodBodies.setTilesImg", "None", "None", "false");
+
+            auto const& settings = getBodySettings(lodBody);
+            for (auto const& source : settings.mImgDatasets) {
+              bool active = source.first == settings.mActiveImgDataset;
+              mGuiManager->getGui()->callJavascript("CosmoScout.gui.addDropdownValue",
+                  "lodBodies.setTilesImg", source.first, source.first, active);
+              if (active) {
+                mGuiManager->getGui()->callJavascript(
+                    "CosmoScout.lodBodies.setMapDataCopyright", source.second.mCopyright);
+              }
+            }
+
+            for (auto const& source : settings.mDemDatasets) {
+              bool active = source.first == settings.mActiveDemDataset;
+              mGuiManager->getGui()->callJavascript("CosmoScout.gui.addDropdownValue",
+                  "lodBodies.setTilesDem", source.first, source.first, active);
+              if (active) {
+                mGuiManager->getGui()->callJavascript(
+                    "CosmoScout.lodBodies.setElevationDataCopyright", source.second.mCopyright);
+              }
+            }
           }
         }
 
-        for (auto const& source : settings.mDemDatasets) {
-          bool active = source.first == settings.mActiveDemDataset;
-          mGuiManager->getGui()->callJavascript("CosmoScout.gui.addDropdownValue",
-              "lodBodies.setTilesDem", source.first, source.first, active);
-          if (active) {
-            mGuiManager->getGui()->callJavascript(
-                "CosmoScout.lodBodies.setElevationDataCopyright", source.second.mCopyright);
-          }
-        }
+        mGuiManager->getGui()->callJavascript(
+            "CosmoScout.sidebar.setTabEnabled", "Body Settings", tabEnabled);
       });
 
   mNonAutoLod = mPluginSettings->mLODFactor.get();
@@ -407,12 +420,11 @@ void Plugin::init() {
 void Plugin::deInit() {
   logger().info("Unloading plugin...");
 
-  for (auto const& body : mLodBodies) {
-    mInputManager->unregisterSelectable(body.second);
-    mSolarSystem->unregisterBody(body.second);
-  }
+  mSolarSystem->pActiveObject.disconnect(mActiveObjectConnection);
 
-  mSolarSystem->pActiveBody.disconnect(mActiveBodyConnection);
+  for (auto const& [name, body] : mLodBodies) {
+    unregisterBody(name);
+  }
 
   mAllSettings->onLoad().disconnect(mOnLoadConnection);
   mAllSettings->onSave().disconnect(mOnSaveConnection);
@@ -465,6 +477,10 @@ void Plugin::update() {
               std::min(1.0, 0.02 * (minTime - cs::utils::FrameTimings::get().pFrameTime.get()))));
     }
   }
+
+  for (auto const& [name, body] : mLodBodies) {
+    body->update();
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -501,9 +517,9 @@ void Plugin::onLoad() {
   auto lodBody = mLodBodies.begin();
   while (lodBody != mLodBodies.end()) {
     auto settings = mPluginSettings->mBodies.find(lodBody->first);
+    // If there are settings for this lodBody, reconfigure it.
     if (settings != mPluginSettings->mBodies.end()) {
-      // If there are settings for this lodBody, reconfigure it.
-      mAllSettings->initAnchor(*lodBody->second, settings->first);
+      lodBody->second->setObjectName(settings->first);
 
       setImageSource(lodBody->second, settings->second.mActiveImgDataset);
       setElevationSource(lodBody->second, settings->second.mActiveDemDataset);
@@ -511,8 +527,7 @@ void Plugin::onLoad() {
       ++lodBody;
     } else {
       // Else delete it.
-      mSolarSystem->unregisterBody(lodBody->second);
-      mInputManager->unregisterSelectable(lodBody->second);
+      unregisterBody(lodBody->first);
       lodBody = mLodBodies.erase(lodBody);
     }
   }
@@ -525,21 +540,30 @@ void Plugin::onLoad() {
       continue;
     }
 
-    auto body = std::make_shared<LodBody>(mAllSettings, mGraphicsEngine, mSolarSystem,
-        mPluginSettings, mGuiManager, mGLResources, settings.first);
+    auto body = std::make_shared<LodBody>(
+        mAllSettings, mGraphicsEngine, mSolarSystem, mPluginSettings, mGuiManager, mGLResources);
+
+    body->setObjectName(settings.first);
+
+    auto object = mSolarSystem->getObject(settings.first);
+    object->setSurface(body);
+    object->setIntersectableObject(body);
 
     mLodBodies.emplace(settings.first, body);
 
     setImageSource(body, settings.second.mActiveImgDataset);
     setElevationSource(body, settings.second.mActiveDemDataset);
-
-    body->setSun(mSolarSystem->getSun());
-
-    mSolarSystem->registerBody(body);
-    mInputManager->registerSelectable(body);
   }
 
-  mSolarSystem->pActiveBody.touch(mActiveBodyConnection);
+  mSolarSystem->pActiveObject.touch(mActiveObjectConnection);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Plugin::unregisterBody(std::string const& name) {
+  auto object = mSolarSystem->getObject(name);
+  object->setSurface(nullptr);
+  object->setIntersectableObject(nullptr);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

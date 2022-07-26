@@ -8,7 +8,8 @@
 #define CSP_LOD_BODIES_LOD_PLANET_HPP
 
 #include "../../../src/cs-graphics/Shadows.hpp"
-#include "../../../src/cs-scene/CelestialBody.hpp"
+#include "../../../src/cs-scene/CelestialSurface.hpp"
+#include "../../../src/cs-scene/IntersectableObject.hpp"
 
 #include "PlanetShader.hpp"
 #include "TileSource.hpp"
@@ -36,14 +37,16 @@ namespace csp::lodbodies {
 /// Each planet can make use of multiple data sources for image and elevation data. The user can
 /// choose at runtime which data source should be used.
 // DocTODO There probably are a thousand more things to explain.
-class LodBody : public cs::scene::CelestialBody, public IVistaOpenGLDraw {
+class LodBody : public cs::scene::CelestialSurface,
+                public cs::scene::IntersectableObject,
+                public IVistaOpenGLDraw {
  public:
   LodBody(std::shared_ptr<cs::core::Settings> const& settings,
       std::shared_ptr<cs::core::GraphicsEngine>      graphicsEngine,
       std::shared_ptr<cs::core::SolarSystem>         solarSystem,
       std::shared_ptr<Plugin::Settings> const&       pluginSettings,
       std::shared_ptr<cs::core::GuiManager> const&   pGuiManager,
-      std::shared_ptr<GLResources> const& glResources, std::string const& objectName);
+      std::shared_ptr<GLResources> const&            glResources);
 
   LodBody(LodBody const& other) = delete;
   LodBody(LodBody&& other)      = delete;
@@ -55,7 +58,9 @@ class LodBody : public cs::scene::CelestialBody, public IVistaOpenGLDraw {
 
   PlanetShader const& getShader() const;
 
-  void setSun(std::shared_ptr<cs::scene::CelestialObject> const& sun);
+  /// The planet is attached to this body.
+  void               setObjectName(std::string objectName);
+  std::string const& getObjectName() const;
 
   /// Sets the tile source for elevation data.
   void setDEMtileSource(std::shared_ptr<TileSource> source);
@@ -73,23 +78,24 @@ class LodBody : public cs::scene::CelestialBody, public IVistaOpenGLDraw {
       glm::dvec3 const& rayPos, glm::dvec3 const& rayDir, glm::dvec3& pos) const override;
   double getHeight(glm::dvec2 lngLat) const override;
 
-  void update(double tTime, cs::scene::CelestialObserver const& oObs) override;
+  void update();
 
   bool Do() override;
   bool GetBoundingBox(VistaBoundingBox& bb) override;
 
  private:
-  std::shared_ptr<cs::core::Settings>         mSettings;
-  std::shared_ptr<cs::core::GraphicsEngine>   mGraphicsEngine;
-  std::shared_ptr<cs::core::SolarSystem>      mSolarSystem;
-  std::shared_ptr<Plugin::Settings>           mPluginSettings;
-  std::shared_ptr<cs::scene::CelestialObject> mSun;
-  std::shared_ptr<cs::core::GuiManager>       mGuiManager;
+  std::shared_ptr<cs::core::Settings>       mSettings;
+  std::shared_ptr<cs::core::GraphicsEngine> mGraphicsEngine;
+  std::shared_ptr<cs::core::SolarSystem>    mSolarSystem;
+  std::shared_ptr<Plugin::Settings>         mPluginSettings;
+  std::shared_ptr<cs::core::GuiManager>     mGuiManager;
 
   std::unique_ptr<VistaOpenGLNode>                 mGLNode;
   std::shared_ptr<TileSource>                      mDEMtileSource;
   std::shared_ptr<TileSource>                      mIMGtileSource;
   std::shared_ptr<cs::core::EclipseShadowReceiver> mEclipseShadowReceiver;
+
+  std::string mObjectName;
 
   VistaPlanet  mPlanet;
   PlanetShader mShader;

@@ -38,12 +38,11 @@ std::map<std::string, cs::graphics::ColorMap> PlanetShader::mColorMaps;
 PlanetShader::PlanetShader(std::shared_ptr<cs::core::Settings> settings,
     std::shared_ptr<Plugin::Settings>                          pluginSettings,
     std::shared_ptr<cs::core::GuiManager>                      pGuiManager,
-    std::shared_ptr<cs::core::EclipseShadowReceiver> eclipseShadowReceiver, std::string objectName)
+    std::shared_ptr<cs::core::EclipseShadowReceiver>           eclipseShadowReceiver)
     : mSettings(std::move(settings))
     , mGuiManager(std::move(pGuiManager))
     , mPluginSettings(std::move(pluginSettings))
     , mEclipseShadowReceiver(std::move(eclipseShadowReceiver))
-    , mAnchorName(std::move(objectName))
     , mFontTexture(VistaOGLUtils::LoadTextureFromTga("../share/resources/textures/font.tga")) {
 
   // clang-format off
@@ -116,6 +115,19 @@ PlanetShader::~PlanetShader() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void PlanetShader::setObjectName(std::string objectName) {
+  mShaderDirty = true;
+  mObjectName  = std::move(objectName);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::string const& PlanetShader::getObjectName() const {
+  return mObjectName;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void PlanetShader::setSun(glm::vec3 const& direction, float illuminance) {
   mSunDirection   = direction;
   mSunIlluminance = illuminance;
@@ -156,9 +168,9 @@ void PlanetShader::compile() {
       mFragmentSource, "$ECLIPSE_SHADER_SNIPPET", mEclipseShadowReceiver->getShaderSnippet());
 
   // Include the BRDFs together with their parameters and arguments.
-  Plugin::Settings::BRDF const& brdfHdr = mPluginSettings->mBodies[mAnchorName].mBrdfHdr.get();
+  Plugin::Settings::BRDF const& brdfHdr = mPluginSettings->mBodies[mObjectName].mBrdfHdr.get();
   Plugin::Settings::BRDF const& brdfNonHdr =
-      mPluginSettings->mBodies[mAnchorName].mBrdfNonHdr.get();
+      mPluginSettings->mBodies[mObjectName].mBrdfNonHdr.get();
 
   // Iterate over all key-value pairs of the properties and inject the values.
   std::string brdfHdrSource = cs::utils::filesystem::loadToString(brdfHdr.source);
@@ -178,7 +190,7 @@ void PlanetShader::compile() {
   cs::utils::replaceString(mFragmentSource, "$BRDF_NON_HDR", brdfNonHdrSource);
 
   cs::utils::replaceString(mFragmentSource, "$AVG_LINEAR_IMG_INTENSITY",
-      std::to_string(mPluginSettings->mBodies[mAnchorName].mAvgLinearImgIntensity.get()));
+      std::to_string(mPluginSettings->mBodies[mObjectName].mAvgLinearImgIntensity.get()));
 
   cs::utils::replaceString(mVertexSource, "$LIGHTING_QUALITY",
       cs::utils::toString(mSettings->mGraphics.pLightingQuality.get()));

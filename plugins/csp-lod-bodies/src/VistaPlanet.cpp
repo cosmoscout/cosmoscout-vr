@@ -70,7 +70,46 @@ VistaPlanet::~VistaPlanet() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/* virtual */ void VistaPlanet::doShadows() {
+// The funciton that drives all operations that need to be done each frame.
+// It simply calls the other functions in this section in order and passes
+// a few shared values between them (e.g. the matrices for the current view).
+void VistaPlanet::draw() {
+  if (!mEnabled) {
+    return;
+  }
+
+  int frameCount = GetVistaSystem()->GetFrameLoop()->GetFrameCount();
+
+  // get matrices and viewport
+  glm::mat4  matV     = getViewMatrix();
+  glm::mat4  matP     = getProjectionMatrix();
+  glm::ivec4 viewport = getViewport();
+
+  // collect/print statistics
+  updateStatistics(frameCount);
+
+  // update bounding boxes
+  updateTileBounds();
+
+  // integrate newly loaded tiles/remove unused tiles
+  updateTileTrees(frameCount);
+
+  // determine tiles to draw and load
+  traverseTileTrees(frameCount, mWorldTransform, matV, matP, viewport);
+
+  // pass requests to load tiles to TreeManagers
+  processLoadRequests();
+
+  // render
+  renderTiles(frameCount, mWorldTransform, matV, matP, mShadowMap);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void VistaPlanet::drawForShadowMap() {
+  if (!mEnabled) {
+    return;
+  }
 
   // get matrices and viewport
   int          frameCount = GetVistaSystem()->GetFrameLoop()->GetFrameCount();
@@ -85,36 +124,6 @@ VistaPlanet::~VistaPlanet() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool VistaPlanet::getWorldTransform(VistaTransformMatrix& matTransform) const {
-  matTransform = VistaTransformMatrix();
-  return true;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-/* virtual */ bool VistaPlanet::Do() {
-  doFrame();
-
-  return true;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-/* virtual */ bool VistaPlanet::GetBoundingBox(VistaBoundingBox& bb) {
-  // XXX TODO use actual values!!
-  //     Turns out ViSTA never calls this function, so it does not really
-  //     matter..
-  //     -- neume 2014-03-12
-  VistaVector3D bbMin(0.F, 0.F, 0.F);
-  VistaVector3D bbMax(0.F, 0.F, 0.F);
-
-  bb.SetBounds(bbMin, bbMax);
-
-  return true;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 void VistaPlanet::setWorldTransform(glm::dmat4 const& mat) {
   mWorldTransform = mat;
 }
@@ -123,6 +132,18 @@ void VistaPlanet::setWorldTransform(glm::dmat4 const& mat) {
 
 glm::dmat4 VistaPlanet::getWorldTransform() const {
   return mWorldTransform;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void VistaPlanet::setEnabled(bool enabled) {
+  mEnabled = enabled;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool VistaPlanet::getEnabled() const {
+  return mEnabled;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -205,38 +226,6 @@ void VistaPlanet::setIMGSource(TileSource* srcIMG) {
 
 TileSource* VistaPlanet::getIMGSource() const {
   return mSrcIMG;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// The funciton that drives all operations that need to be done each frame.
-// It simply calls the other functions in this section in order and passes
-// a few shared values between them (e.g. the matrices for the current view).
-void VistaPlanet::doFrame() {
-  int frameCount = GetVistaSystem()->GetFrameLoop()->GetFrameCount();
-
-  // get matrices and viewport
-  glm::mat4  matV     = getViewMatrix();
-  glm::mat4  matP     = getProjectionMatrix();
-  glm::ivec4 viewport = getViewport();
-
-  // collect/print statistics
-  updateStatistics(frameCount);
-
-  // update bounding boxes
-  updateTileBounds();
-
-  // integrate newly loaded tiles/remove unused tiles
-  updateTileTrees(frameCount);
-
-  // determine tiles to draw and load
-  traverseTileTrees(frameCount, mWorldTransform, matV, matP, viewport);
-
-  // pass requests to load tiles to TreeManagers
-  processLoadRequests();
-
-  // render
-  renderTiles(frameCount, mWorldTransform, matV, matP, mShadowMap);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
