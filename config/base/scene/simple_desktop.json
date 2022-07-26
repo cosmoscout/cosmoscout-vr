@@ -336,6 +336,7 @@
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
       ],
+      "bodyCullingRadius": 2.44e6,
       "orbitCullingRadius": 58e9
     },
     "Venus": {
@@ -345,6 +346,7 @@
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
       ],
+      "bodyCullingRadius": 6.05e6,
       "orbitCullingRadius": 108e9
     },
     "Earth": {
@@ -354,6 +356,7 @@
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
       ],
+      "bodyCullingRadius": 6.37e6,
       "orbitCullingRadius": 147e9
     },
     "EarthJ2000": {
@@ -372,6 +375,7 @@
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
       ],
+      "bodyCullingRadius": 1.74e6,
       "orbitCullingRadius": 384e6
     },
     "Mars": {
@@ -381,6 +385,7 @@
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
       ],
+      "bodyCullingRadius": 3.39e6,
       "orbitCullingRadius": 228e9
     },
     "MarsJ2000": {
@@ -399,6 +404,7 @@
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
       ],
+      "bodyCullingRadius": 11.3e3,
       "orbitCullingRadius": 9.38e6
     },
     "Deimos": {
@@ -408,6 +414,7 @@
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
       ],
+      "bodyCullingRadius": 6.2e3,
       "orbitCullingRadius": 23.5e6
     },
     "Ceres": {
@@ -417,6 +424,7 @@
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
       ],
+      "bodyCullingRadius": 473e3,
       "orbitCullingRadius": 413e9
     },
     "Vesta": {
@@ -426,6 +434,7 @@
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
       ],
+      "bodyCullingRadius": 263e3,
       "orbitCullingRadius": 353e9
     },
     "Jupiter": {
@@ -435,6 +444,7 @@
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
       ],
+      "bodyCullingRadius": 69.9e6,
       "orbitCullingRadius": 779e9
     },
     "JupiterJ2000": {
@@ -453,6 +463,7 @@
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
       ],
+      "bodyCullingRadius": 1.8e6,
       "orbitCullingRadius": 422e6
     },
     "Europa": {
@@ -462,6 +473,7 @@
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
       ],
+      "bodyCullingRadius": 1.56e6,
       "orbitCullingRadius": 671e6
     },
     "Ganymede": {
@@ -471,6 +483,7 @@
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
       ],
+      "bodyCullingRadius": 2.63e6,
       "orbitCullingRadius": 1.07e9
     },
     "Callisto": {
@@ -480,6 +493,7 @@
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
       ],
+      "bodyCullingRadius": 2.41e6,
       "orbitCullingRadius": 1.88e9
     },
     "Saturn": {
@@ -489,6 +503,7 @@
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
       ],
+      "bodyCullingRadius": 58.2e6,
       "orbitCullingRadius": 1.43e12
     },
     "SaturnJ2000": {
@@ -507,6 +522,7 @@
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
       ],
+      "bodyCullingRadius": 198e3,
       "orbitCullingRadius": 185e6
     },
     "Enceladus": {
@@ -516,6 +532,7 @@
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
       ],
+      "bodyCullingRadius": 252e3,
       "orbitCullingRadius": 238e6
     },
     "Tethys": {
@@ -525,6 +542,7 @@
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
       ],
+      "bodyCullingRadius": 531e3,
       "orbitCullingRadius": 294e6
     },
     "Dione": {
@@ -534,6 +552,7 @@
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
       ],
+      "bodyCullingRadius": 561e3,
       "orbitCullingRadius": 377e6
     },
     "Rhea": {
@@ -543,6 +562,7 @@
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
       ],
+      "bodyCullingRadius": 764e3,
       "orbitCullingRadius": 527e6
     },
     "Titan": {
@@ -552,6 +572,7 @@
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
       ],
+      "bodyCullingRadius": 2.57e6,
       "orbitCullingRadius": 1.22e9
     },
     "Iapetus": {
@@ -561,6 +582,7 @@
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
       ],
+      "bodyCullingRadius": 735e3,
       "orbitCullingRadius": 3.56e9
     },
     "Uranus": {
@@ -570,6 +592,7 @@
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
       ],
+      "bodyCullingRadius": 25.4e6,
       "orbitCullingRadius": 2.8e12
     },
     "UranusJ2000": {
@@ -588,6 +611,7 @@
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
       ],
+      "bodyCullingRadius": 236e3,
       "orbitCullingRadius": 129e6
     },
     "Ariel": {
@@ -597,6 +621,7 @@
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
       ],
+      "bodyCullingRadius": 579e3,
       "orbitCullingRadius": 191e6
     },
     "Umbriel": {
@@ -606,6 +631,7 @@
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
       ],
+      "bodyCullingRadius": 585e3,
       "orbitCullingRadius": 266e6
     },
     "Titania": {
@@ -615,6 +641,7 @@
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
       ],
+      "bodyCullingRadius": 788e3,
       "orbitCullingRadius": 436e6
     },
     "Oberon": {
@@ -624,6 +651,7 @@
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
       ],
+      "bodyCullingRadius": 761e3,
       "orbitCullingRadius": 584e6
     },
     "Neptune": {
@@ -633,6 +661,7 @@
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
       ],
+      "bodyCullingRadius": 24.6e6,
       "orbitCullingRadius": 4.5e12
     },
     "NeptuneJ2000": {
@@ -651,6 +680,7 @@
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
       ],
+      "bodyCullingRadius": 1.35e6,
       "orbitCullingRadius": 355e6
     },
     "Pluto": {
@@ -660,6 +690,7 @@
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
       ],
+      "bodyCullingRadius": 1.19e6,
       "orbitCullingRadius": 7.38e12
     },
     "PlutoJ2000": {
@@ -678,6 +709,7 @@
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
       ],
+      "bodyCullingRadius": 606e3,
       "orbitCullingRadius": 18e6
     }
   },
