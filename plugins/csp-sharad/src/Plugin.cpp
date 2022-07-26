@@ -8,6 +8,7 @@
 
 #include "../../../src/cs-core/GuiManager.hpp"
 #include "../../../src/cs-core/SolarSystem.hpp"
+#include "../../../src/cs-core/TimeControl.hpp"
 #include "../../../src/cs-gui/GuiItem.hpp"
 #include "../../../src/cs-utils/logger.hpp"
 #include "logger.hpp"
@@ -70,10 +71,6 @@ void Plugin::init() {
 
   mPluginSettings.mFilePath.connect([this](std::string const& filePath) {
     // Delete all old Sharad profiles first.
-    for (auto const& sharad : mSharads) {
-      mSolarSystem->unregisterAnchor(sharad);
-    }
-
     for (auto const& node : mSharadNodes) {
       mSceneGraph->GetRoot()->DisconnectChild(node.get());
     }
@@ -96,10 +93,10 @@ void Plugin::init() {
           std::string             ext(path.extension().string());
 
           if (ext == ".tab") {
-            std::string sName  = file.substr(0, file.length() - 5);
-            auto        sharad = std::make_shared<Sharad>(mAllSettings, mPluginSettings.mAnchor,
-                filePath + sName + "_tiff.tif", filePath + sName + "_geom.tab");
-            mSolarSystem->registerAnchor(sharad);
+            std::string sName = file.substr(0, file.length() - 5);
+            auto        sharad =
+                std::make_shared<Sharad>(mAllSettings, mSolarSystem, mPluginSettings.mAnchor,
+                    filePath + sName + "_tiff.tif", filePath + sName + "_geom.tab");
 
             auto* sharadNode = mSceneGraph->NewOpenGLNode(mSceneGraph->GetRoot(), sharad.get());
             VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
@@ -110,7 +107,7 @@ void Plugin::init() {
             mSharadNodes.emplace_back(sharadNode);
 
             mGuiManager->getGui()->callJavascript(
-                "CosmoScout.sharad.add", sName, sharad->getExistence()[0] + 10);
+                "CosmoScout.sharad.add", sName, sharad->getStartTime() + 10);
           }
         }
       }
@@ -123,13 +120,9 @@ void Plugin::init() {
     }
   });
 
-  mActiveBodyConnection = mSolarSystem->pActiveBody.connectAndTouch(
-      [this](std::shared_ptr<cs::scene::CelestialBody> const& body) {
-        bool enabled = false;
-
-        if (body && body->getCenterName() == "Mars") {
-          enabled = true;
-        }
+  mActiveObjectConnection = mSolarSystem->pActiveObject.connect(
+      [this](std::shared_ptr<const cs::scene::CelestialObject> const& body) {
+        bool enabled = body == mSolarSystem->getObject(mPluginSettings.mAnchor);
 
         mGuiManager->getGui()->callJavascript(
             "CosmoScout.sidebar.setTabEnabled", "SHARAD Profiles", enabled);
@@ -146,17 +139,13 @@ void Plugin::init() {
 void Plugin::deInit() {
   logger().info("Unloading plugin...");
 
-  for (auto const& sharad : mSharads) {
-    mSolarSystem->unregisterAnchor(sharad);
-  }
-
   for (auto const& node : mSharadNodes) {
     mSceneGraph->GetRoot()->DisconnectChild(node.get());
   }
 
   mGuiManager->removePluginTab("SHARAD Profiles");
 
-  mSolarSystem->pActiveBody.disconnect(mActiveBodyConnection);
+  mSolarSystem->pActiveObject.disconnect(mActiveObjectConnection);
   mGuiManager->getGui()->unregisterCallback("sharad.setEnabled");
   mGuiManager->getGui()->callJavascript("CosmoScout.gui.unregisterHtml", "sharad");
 
@@ -164,6 +153,14 @@ void Plugin::deInit() {
   mAllSettings->onSave().disconnect(mOnSaveConnection);
 
   logger().info("Unloading done.");
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Plugin::update() {
+  for (auto const& sharad : mSharads) {
+    sharad->update(mTimeControl->pSimulationTime.get(), mSolarSystem->getObserver().getScale());
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
