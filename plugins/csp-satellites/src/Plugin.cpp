@@ -59,20 +59,8 @@ void Plugin::init() {
   mPluginSettings = mAllSettings->mPlugins.at("csp-satellites");
 
   for (auto const& settings : mPluginSettings.mSatellites) {
-    auto anchor = mAllSettings->mAnchors.find(settings.first);
-
-    if (anchor == mAllSettings->mAnchors.end()) {
-      throw std::runtime_error(
-          "There is no Anchor \"" + settings.first + "\" defined in the settings.");
-    }
-
-    auto satellite = std::make_shared<Satellite>(
-        settings.second, settings.first, mSceneGraph, mAllSettings, mSolarSystem);
-
-    satellite->setSun(mSolarSystem->getSun());
-    mSolarSystem->registerBody(satellite);
-
-    mSatellites.push_back(satellite);
+    mSatellites.push_back(std::make_shared<Satellite>(
+        settings.second, settings.first, mSceneGraph, mAllSettings, mSolarSystem));
   }
 
   logger().info("Loading done.");
@@ -83,11 +71,17 @@ void Plugin::init() {
 void Plugin::deInit() {
   logger().info("Unloading plugin...");
 
-  for (auto const& satellite : mSatellites) {
-    mSolarSystem->unregisterBody(satellite);
-  }
+  mSatellites.clear();
 
   logger().info("Unloading done.");
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Plugin::update() {
+  for (auto const& satellite : mSatellites) {
+    satellite->update();
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

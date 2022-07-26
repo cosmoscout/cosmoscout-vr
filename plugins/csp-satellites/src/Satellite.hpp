@@ -10,9 +10,7 @@
 #include "Plugin.hpp"
 
 #include "../../../src/cs-core/Settings.hpp"
-#include "../../../src/cs-scene/CelestialBody.hpp"
 
-#include "../../../src/cs-scene/CelestialAnchorNode.hpp"
 #include <VistaKernel/GraphicsManager/VistaSceneGraph.h>
 
 namespace cs::graphics {
@@ -29,9 +27,9 @@ class VistaTransformNode;
 namespace csp::satellites {
 
 /// A single satellite within the Solar System.
-class Satellite : public cs::scene::CelestialBody {
+class Satellite {
  public:
-  Satellite(Plugin::Settings::Satellite const& config, std::string const& objectName,
+  Satellite(Plugin::Settings::Satellite const& config, std::string objectName,
       VistaSceneGraph* sceneGraph, std::shared_ptr<cs::core::Settings> settings,
       std::shared_ptr<cs::core::SolarSystem> solarSystem);
 
@@ -41,25 +39,18 @@ class Satellite : public cs::scene::CelestialBody {
   Satellite& operator=(Satellite const& other) = delete;
   Satellite& operator=(Satellite&& other) = delete;
 
-  ~Satellite() override;
+  ~Satellite();
 
-  void update(double tTime, cs::scene::CelestialObserver const& oObs) override;
-
-  void setSun(std::shared_ptr<cs::scene::CelestialObject> const& sun);
-
-  // interface of scene::CelestialBody ---------------------------------------
-
-  bool getIntersection(
-      glm::dvec3 const& rayPos, glm::dvec3 const& rayDir, glm::dvec3& pos) const override;
-  double getHeight(glm::dvec2 lngLat) const override;
+  void update();
 
  private:
-  VistaSceneGraph*                            mSceneGraph;
-  std::shared_ptr<cs::core::Settings>         mSettings;
-  std::shared_ptr<cs::core::SolarSystem>      mSolarSystem;
-  std::unique_ptr<VistaTransformNode>         mAnchor;
-  std::unique_ptr<cs::graphics::GltfLoader>   mModel;
-  std::shared_ptr<cs::scene::CelestialObject> mSun;
+  VistaSceneGraph*                          mSceneGraph;
+  std::shared_ptr<cs::core::Settings>       mSettings;
+  std::shared_ptr<cs::core::SolarSystem>    mSolarSystem;
+  std::unique_ptr<VistaTransformNode>       mAnchor;
+  std::unique_ptr<cs::graphics::GltfLoader> mModel;
+
+  std::string mObjectName;
 };
 } // namespace csp::satellites
 
