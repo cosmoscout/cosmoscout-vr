@@ -33,7 +33,7 @@ class SimpleBody : public cs::scene::CelestialSurface,
                    public IVistaOpenGLDraw {
  public:
   SimpleBody(std::shared_ptr<cs::core::Settings> settings,
-      std::shared_ptr<cs::core::SolarSystem> solarSystem, std::string const& objectName);
+      std::shared_ptr<cs::core::SolarSystem>     solarSystem);
 
   SimpleBody(SimpleBody const& other) = delete;
   SimpleBody(SimpleBody&& other)      = default;
@@ -46,13 +46,16 @@ class SimpleBody : public cs::scene::CelestialSurface,
   /// Configures the internal renderer according to the given values.
   void configure(Plugin::Settings::SimpleBody const& settings);
 
+  /// The body is attached to this object.
+  void               setObjectName(std::string objectName);
+  std::string const& getObjectName() const;
+
+  void update();
+
   /// Interface implementation of the IntersectableObject, which is a base class of
   /// CelestialBody.
   bool getIntersection(
       glm::dvec3 const& rayOrigin, glm::dvec3 const& rayDir, glm::dvec3& pos) const override;
-
-  /// Called once a frame if attached to a CelestialObject.
-  void update(std::weak_ptr<const cs::scene::CelestialObject> const& parent) override;
 
   /// Interface implementation of CelestialSurface.
   double getHeight(glm::dvec2 lngLat) const override;
@@ -62,9 +65,10 @@ class SimpleBody : public cs::scene::CelestialSurface,
   bool GetBoundingBox(VistaBoundingBox& bb) override;
 
  private:
-  std::shared_ptr<cs::core::Settings>             mSettings;
-  std::shared_ptr<cs::core::SolarSystem>          mSolarSystem;
-  std::weak_ptr<const cs::scene::CelestialObject> mParent;
+  std::shared_ptr<cs::core::Settings>    mSettings;
+  std::shared_ptr<cs::core::SolarSystem> mSolarSystem;
+
+  std::string mObjectName;
 
   std::unique_ptr<VistaOpenGLNode> mGLNode;
 

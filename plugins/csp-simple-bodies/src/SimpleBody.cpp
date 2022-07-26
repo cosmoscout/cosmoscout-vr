@@ -171,7 +171,7 @@ void main()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 SimpleBody::SimpleBody(std::shared_ptr<cs::core::Settings> settings,
-    std::shared_ptr<cs::core::SolarSystem> solarSystem, std::string const& objectName)
+    std::shared_ptr<cs::core::SolarSystem>                 solarSystem)
     : mSettings(std::move(settings))
     , mSolarSystem(std::move(solarSystem))
     , mEclipseShadowReceiver(mSettings, mSolarSystem, false) {
@@ -255,10 +255,22 @@ void SimpleBody::configure(Plugin::Settings::SimpleBody const& settings) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void SimpleBody::setObjectName(std::string objectName) {
+  mObjectName = std::move(objectName);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::string const& SimpleBody::getObjectName() const {
+  return mObjectName;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 bool SimpleBody::getIntersection(
     glm::dvec3 const& rayOrigin, glm::dvec3 const& rayDir, glm::dvec3& pos) const {
 
-  auto parent = mParent.lock();
+  auto parent = mSolarSystem->getObject(mObjectName);
 
   if (!parent || !parent->getIsBodyVisible()) {
     return false;
@@ -298,11 +310,9 @@ double SimpleBody::getHeight(glm::dvec2 /*lngLat*/) const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void SimpleBody::update(std::weak_ptr<const cs::scene::CelestialObject> const& p) {
+void SimpleBody::update() {
 
-  mParent = p;
-
-  auto parent = mParent.lock();
+  auto parent = mSolarSystem->getObject(mObjectName);
 
   if (parent && parent->getIsBodyVisible()) {
     cs::utils::FrameTimings::ScopedTimer timer(
@@ -314,7 +324,7 @@ void SimpleBody::update(std::weak_ptr<const cs::scene::CelestialObject> const& p
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool SimpleBody::Do() {
-  auto parent = mParent.lock();
+  auto parent = mSolarSystem->getObject(mObjectName);
 
   if (!parent || !parent->getIsBodyVisible()) {
     return true;

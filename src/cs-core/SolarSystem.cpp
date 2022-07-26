@@ -443,16 +443,6 @@ void SolarSystem::updateObserverFrame() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void SolarSystem::updateSurfaces() {
-  for (auto const& [name, object] : mSettings->mObjects) {
-    if (object->getSurface()) {
-      object->getSurface()->update(object);
-    }
-  }
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 void SolarSystem::flyObserverTo(std::string const& sCenter, std::string const& sFrame,
     glm::dvec3 const& position, glm::dquat const& rotation, double duration) {
 

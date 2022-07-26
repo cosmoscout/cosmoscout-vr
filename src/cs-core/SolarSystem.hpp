@@ -89,8 +89,6 @@ class CS_CORE_EXPORT SolarSystem {
   /// distance to the observer.
   void updateObserverFrame();
 
-  void updateSurfaces();
-
   /// The Sun which is at the center of the SolarSystem.
   std::shared_ptr<const scene::CelestialObject> getSun() const;
 

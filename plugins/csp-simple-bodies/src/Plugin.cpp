@@ -85,6 +85,14 @@ void Plugin::deInit() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void Plugin::update() {
+  for (auto const& body : mSimpleBodies) {
+    body.second->update();
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Plugin::onLoad() {
   // Read settings from JSON.
   from_json(mAllSettings->mPlugins.at("csp-simple-bodies"), mPluginSettings);
@@ -94,8 +102,9 @@ void Plugin::onLoad() {
   auto simpleBody = mSimpleBodies.begin();
   while (simpleBody != mSimpleBodies.end()) {
     auto settings = mPluginSettings.mSimpleBodies.find(simpleBody->first);
+    // If there are settings for this simpleBody, reconfigure it.
     if (settings != mPluginSettings.mSimpleBodies.end()) {
-      // If there are settings for this simpleBody, reconfigure it.
+      simpleBody->second->setObjectName(settings->first);
       simpleBody->second->configure(settings->second);
 
       ++simpleBody;
@@ -112,9 +121,9 @@ void Plugin::onLoad() {
       continue;
     }
 
-    auto simpleBody = std::make_shared<SimpleBody>(mAllSettings, mSolarSystem, settings.first);
+    auto simpleBody = std::make_shared<SimpleBody>(mAllSettings, mSolarSystem);
+    simpleBody->setObjectName(settings.first);
     simpleBody->configure(settings.second);
-    simpleBody->setSun(mSolarSystem->getSun());
 
     auto object = mSolarSystem->getObject(settings.first);
     object->setSurface(simpleBody);

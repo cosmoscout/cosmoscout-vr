@@ -20,8 +20,6 @@ class CelestialObserver;
 /// A CelestialSurface can be assigned to a CelestialObject.
 class CS_SCENE_EXPORT CelestialSurface {
  public:
-  virtual void update(std::weak_ptr<const CelestialObject> const& parent) = 0;
-
   /// Returns the elevation in meters at a specific point on the surface.
   ///
   /// @param lngLat The coordinates on the surface in the Geographic Coordinate System format.
