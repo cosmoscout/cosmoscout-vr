@@ -28,11 +28,11 @@ class TransferFunctionEditor {
    *     defaultFunction: string}} Options for the editor
    */
   constructor(id, element, callback,
-      {width = 400, height = 150, fitToData = false, numberTicks = 5, numberBins = 100, defaultFunction = ""} = {}) {
+      {width = 400, height = 150, fitToData = false, numberTicks = 5, numberBins = 100, defaultFunction = "", logScaleEnabled = false} = {}) {
     this.id       = id;
     this.element  = element;
     this.callback = callback;
-    this.options  = {width: width, height: height, fitToData: fitToData, numberTicks: numberTicks, numberBins: numberBins};
+    this.options  = {width: width, height: height, fitToData: fitToData, numberTicks: numberTicks, numberBins: numberBins, logScaleEnabled: logScaleEnabled}; //, defaultFunction: defaultFunction};
     this._data    = [];
 
     this._initialized = false;
@@ -243,6 +243,13 @@ class TransferFunctionEditor {
         this._redraw();
         this._updateLockButtonState();
       }
+    });
+
+    // Log scale checkbox listener
+    $(this.element).find("#transferFunctionEditor\\.logScale-" + this.id).on("click", (event) => {    
+      this.options.logScaleEnabled = event.currentTarget.checked;
+      CosmoScout.callbacks.transferFunctionEditor.importTransferFunction(
+        $(this.element).find("#transferFunctionEditor\\.importSelect-" + this.id).val(), this.id);      
     });
   }
 
@@ -736,10 +743,17 @@ class TransferFunctionEditor {
           point.a = right.a;
         }
       }
-    });
-    this._updateControlPoints(points.map((point) => {
+    });    
+
+    const min_cP = this._controlPoints[0].x;
+    const max_cP = this._controlPoints[this._controlPoints.length - 1].x;
+    
+    this._updateControlPoints(points.map((point) => {      
+      var local_value = (max_cP-min_cP) * point.position + min_cP;
       return {
-        x: (point.position - min) * (255.0 / (max - min)),
+        x: (this.options.logScaleEnabled)
+                ? Math.pow(10,(local_value-min_cP)/(max_cP-min_cP)*(Math.log(max_cP)-Math.log(min_cP))+Math.log(min_cP))
+                : (point.position - min) * (255.0 / (max - min)),
         opacity: point.a,
         color:
             (typeof point.r !== 'undefined')
@@ -802,6 +816,15 @@ class TransferFunctionEditorApi extends IApi {
   init() {
     const templateHtml        = `
         <div>
+          <div class="row">
+            <div class="col-7 offset-5">
+              <label class="checklabel">
+                <input type="checkbox" id="transferFunctionEditor.logScale-%ID%" />
+                <i class="material-icons"></i>
+                <span>Enable log scale</span>
+              </label>
+            </div>
+          </div>
           <div class="row">
             <div class="col-12">
               <svg id="transferFunctionEditor.graph-%ID%"></svg>
