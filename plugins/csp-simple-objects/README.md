@@ -10,9 +10,6 @@ A CosmoScout VR plugin to import glTF Models, place them and edit their configur
 
 
 
-
-
-
 ## Configuration 
 
 Import all `.gltf` model files to /resources/models and your environment cube maps to /resources/textures.
@@ -55,6 +52,10 @@ Here is a short example describing possible attributes:
 ## Example
 
 To achieve the same result as in the demo image above, add this section to your plugins in the scene configuration.
+
+Here you can find the glTF models of the [Rover](https://mars.nasa.gov/resources/24584/curiosity-rover-3d-model/) and [Avocado](https://github.com/KhronosGroup/glTF-Sample-Models/blob/master/2.0/Avocado/glTF-Binary/Avocado.glb).
+The Mars environment map is available in the [textures folder of csp-satellites](plugins/csp-satellites/textures/marsEnvMap.dds).
+
 
 ```json
 "csp-simple-objects": {
