@@ -54,7 +54,7 @@ Here is a short example describing possible attributes:
 To achieve the same result as in the demo image above, add this section to your plugins in the scene configuration.
 
 Here you can find the glTF models of the [Rover](https://mars.nasa.gov/resources/24584/curiosity-rover-3d-model/) and [Avocado](https://github.com/KhronosGroup/glTF-Sample-Models/blob/master/2.0/Avocado/glTF-Binary/Avocado.glb).
-The Mars environment map is available in the [textures folder of csp-satellites](plugins/csp-satellites/textures/marsEnvMap.dds).
+The Mars environment map is available in the [textures folder of csp-satellites](../csp-satellites/textures/marsEnvMap.dds).
 
 
 ```json
