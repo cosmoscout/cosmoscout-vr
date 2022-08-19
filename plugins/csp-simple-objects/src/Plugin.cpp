@@ -18,11 +18,6 @@
 
 #include <regex>
 
-
-#include <chrono>
-#include <thread>
-
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 EXPORT_FN cs::core::PluginBase* create() {
@@ -119,8 +114,6 @@ void Plugin::init() {
         tmpSimpleObject = std::make_shared<SimpleObject>(objectName, object->second, mSceneGraph, mAllSettings, mSolarSystem);
         tmpSimpleObject->setSun(mSolarSystem->getSun());
         tmpSimpleObject->update();
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
         (*it)->setEditEnabled(true);
       }
