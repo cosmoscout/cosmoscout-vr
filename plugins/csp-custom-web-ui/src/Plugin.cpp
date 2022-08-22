@@ -12,13 +12,14 @@
 #include "../../../src/cs-core/InputManager.hpp"
 #include "../../../src/cs-core/SolarSystem.hpp"
 #include "../../../src/cs-core/TimeControl.hpp"
-#include "../../../src/cs-scene/CelestialAnchorNode.hpp"
 #include "../../../src/cs-utils/convert.hpp"
 
 #include <VistaKernel/GraphicsManager/VistaOpenGLNode.h>
 #include <VistaKernel/GraphicsManager/VistaSceneGraph.h>
+#include <VistaKernel/GraphicsManager/VistaTransformNode.h>
 #include <VistaKernel/VistaSystem.h>
 #include <VistaKernelOpenSGExt/VistaOpenSGMaterialTools.h>
+#include <glm/gtc/type_ptr.hpp>
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -53,8 +54,7 @@ void to_json(nlohmann::json& j, Plugin::Settings::GuiItem const& o) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void from_json(nlohmann::json const& j, Plugin::Settings::SpaceItem& o) {
-  cs::core::Settings::deserialize(j, "center", o.mCenter);
-  cs::core::Settings::deserialize(j, "icon", o.mFrame);
+  cs::core::Settings::deserialize(j, "object", o.mObject);
   cs::core::Settings::deserialize(j, "longitude", o.mLongitude);
   cs::core::Settings::deserialize(j, "latitude", o.mLatitude);
   cs::core::Settings::deserialize(j, "elevation", o.mElevation);
@@ -65,8 +65,7 @@ void from_json(nlohmann::json const& j, Plugin::Settings::SpaceItem& o) {
 }
 
 void to_json(nlohmann::json& j, Plugin::Settings::SpaceItem const& o) {
-  cs::core::Settings::serialize(j, "center", o.mCenter);
-  cs::core::Settings::serialize(j, "icon", o.mFrame);
+  cs::core::Settings::serialize(j, "object", o.mObject);
   cs::core::Settings::serialize(j, "longitude", o.mLongitude);
   cs::core::Settings::serialize(j, "latitude", o.mLatitude);
   cs::core::Settings::serialize(j, "elevation", o.mElevation);
@@ -97,7 +96,7 @@ bool Plugin::Settings::GuiItem::operator==(Plugin::Settings::GuiItem const& othe
 }
 
 bool Plugin::Settings::SpaceItem::operator==(Plugin::Settings::SpaceItem const& other) const {
-  return mCenter == other.mCenter && mFrame == other.mFrame && mLongitude == other.mLongitude &&
+  return mObject == other.mObject && mLongitude == other.mLongitude &&
          mLatitude == other.mLatitude && mElevation == other.mElevation && mScale == other.mScale &&
          mWidth == other.mWidth && mHeight == other.mHeight && mHTML == other.mHTML;
 }
@@ -133,14 +132,19 @@ void Plugin::init() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Plugin::update() {
-  double simulationTime(mTimeControl->pSimulationTime.get());
 
   // Rotate the space items to face the observer.
   for (auto& item : mSpaceItems) {
-    cs::core::SolarSystem::scaleRelativeToObserver(*item.mAnchor, mSolarSystem->getObserver(),
-        simulationTime, item.mScale, mAllSettings->mGraphics.pWorldUIScale.get());
-    cs::core::SolarSystem::turnToObserver(
-        *item.mAnchor, mSolarSystem->getObserver(), simulationTime, false);
+    auto object = mSolarSystem->getObject(item.mObjectName);
+
+    if (object) {
+      auto scale = mSolarSystem->getScaleBasedOnObserverDistance(
+          object, item.mPosition, item.mScale, mAllSettings->mGraphics.pWorldUIScale.get());
+      auto rotation = mSolarSystem->getRotationToObserver(object, item.mPosition, false);
+
+      auto transform = object->getObserverRelativeTransform(item.mPosition, rotation, scale);
+      item.mAnchor->SetTransform(glm::value_ptr(transform), true);
+    }
   }
 }
 
@@ -223,25 +227,24 @@ void Plugin::onLoad() {
     auto* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
     for (auto const& settings : mPluginSettings.mSpaceItems) {
 
+      auto object = mSolarSystem->getObject(settings.mObject);
+
+      if (!object) {
+        continue;
+      }
+
       SpaceItem item;
+      item.mObjectName = settings.mObject;
 
       // Create a CelestialAnchorNode to attach our gui element to.
-      item.mAnchor = std::make_shared<cs::scene::CelestialAnchorNode>(
-          pSG->GetRoot(), pSG->GetNodeBridge(), "", settings.mCenter, settings.mFrame);
+      item.mAnchor.reset(pSG->NewTransformNode(pSG->GetRoot()));
       item.mScale = settings.mScale;
-      mSolarSystem->registerAnchor(item.mAnchor);
 
       // Compute the cartesian position of the CelestialAnchorNode.
       glm::dvec2 lngLat(settings.mLongitude, settings.mLatitude);
-      lngLat        = cs::utils::convert::toRadians(lngLat);
-      auto   radii  = mSolarSystem->getRadii(settings.mCenter);
-      double height = 0.0;
-      auto   parent = mSolarSystem->getBody(settings.mCenter);
-      if (parent) {
-        height = parent->getHeight(lngLat);
-        radii  = parent->getRadii();
-      }
-      item.mAnchor->setPosition(cs::utils::convert::toCartesian(lngLat, radii, height));
+      lngLat         = cs::utils::convert::toRadians(lngLat);
+      auto radii     = object->getRadii();
+      item.mPosition = cs::utils::convert::toCartesian(lngLat, radii, settings.mElevation);
 
       // Create the WorldSpaceGuiArea for the gui element.
       item.mGuiArea =
@@ -296,7 +299,6 @@ void Plugin::unload(Settings const& pluginSettings) {
   auto* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
   for (auto const& item : mSpaceItems) {
     pSG->GetRoot()->DisconnectChild(item.mAnchor.get());
-    mSolarSystem->unregisterAnchor(item.mAnchor);
     mInputManager->unregisterSelectable(item.mGuiNode.get());
   }
   mSpaceItems.clear();
