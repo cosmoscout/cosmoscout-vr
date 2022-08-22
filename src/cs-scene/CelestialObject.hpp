@@ -9,6 +9,7 @@
 
 #include "CelestialAnchor.hpp"
 
+#include <array>
 #include <memory>
 #include <optional>
 
