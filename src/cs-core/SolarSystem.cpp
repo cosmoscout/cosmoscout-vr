@@ -642,7 +642,7 @@ glm::dquat SolarSystem::getRotationToObserver(
     std::shared_ptr<const scene::CelestialObject> const& object, glm::dvec3 const& translation,
     bool upIsNormal) {
 
-  auto       observerTransform = object->getObserverRelativeTransform(translation);
+  auto       observerTransform = glm::inverse(object->getObserverRelativeTransform(translation));
   glm::dvec3 observerPos       = observerTransform[3];
   glm::dvec3 y                 = observerTransform * glm::dvec4(0, 1, 0, 0);
   glm::dvec3 camDir            = glm::normalize(observerPos);
