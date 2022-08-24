@@ -44,7 +44,7 @@ AnchorLabel::AnchorLabel(std::string const&           name,
     , mSolarSystem(std::move(solarSystem))
     , mGuiManager(std::move(guiManager))
     , mInputManager(std::move(inputManager))
-    , mGuiArea(std::make_unique<cs::gui::WorldSpaceGuiArea>(120, 30)) // NOLINT
+    , mGuiArea(std::make_unique<cs::gui::WorldSpaceGuiArea>(150, 30))
     , mGuiItem(
           std::make_unique<cs::gui::GuiItem>("file://../share/resources/gui/anchor_label.html")) {
   auto* sceneGraph = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
@@ -52,8 +52,9 @@ AnchorLabel::AnchorLabel(std::string const&           name,
   mObjectTransform.reset(sceneGraph->NewTransformNode(sceneGraph->GetRoot()));
 
   mGuiTransform.reset(sceneGraph->NewTransformNode(mObjectTransform.get()));
-  mGuiTransform->SetScale(1.0F,
-      static_cast<float>(mGuiArea->getHeight()) / static_cast<float>(mGuiArea->getWidth()), 1.0F);
+  mGuiTransform->SetScale(1.2F,
+      1.2F * static_cast<float>(mGuiArea->getHeight()) / static_cast<float>(mGuiArea->getWidth()),
+      1.0F);
   mGuiTransform->SetTranslation(
       0.0F, static_cast<float>(mPluginSettings->mLabelOffset.get()), 0.0F);
   mGuiTransform->Rotate(VistaAxisAndAngle(VistaVector3D(0.0, 1.0, 0.0), -glm::pi<float>() / 2.F));
