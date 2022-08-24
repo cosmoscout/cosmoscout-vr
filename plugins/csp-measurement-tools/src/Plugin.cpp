@@ -9,8 +9,6 @@
 #include "../../../src/cs-core/GuiManager.hpp"
 #include "../../../src/cs-core/InputManager.hpp"
 #include "../../../src/cs-core/tools/Mark.hpp"
-#include "../../../src/cs-scene/CelestialAnchorNode.hpp"
-#include "../../../src/cs-scene/CelestialBody.hpp"
 #include "../../../src/cs-utils/convert.hpp"
 #include "../../../src/cs-utils/logger.hpp"
 #include "logger.hpp"
@@ -81,16 +79,12 @@ void deserializeTools(nlohmann::json const& j, std::string const& name, T& tools
 
 void from_json(nlohmann::json const& j, std::shared_ptr<DipStrikeTool>& o) {
   if (!o) {
-    o = std::make_shared<DipStrikeTool>(
-        sInputManager, sSolarSystem, sSettings, sTimeControl, "", "");
+    o = std::make_shared<DipStrikeTool>(sInputManager, sSolarSystem, sSettings, "");
   }
 
-  std::string center;
-  std::string frame;
-  cs::core::Settings::deserialize(j, "center", center);
-  cs::core::Settings::deserialize(j, "frame", frame);
-  o->setCenterName(center);
-  o->setFrameName(frame);
+  std::string object;
+  cs::core::Settings::deserialize(j, "object", object);
+  o->setObjectName(object);
 
   cs::core::Settings::deserialize(j, "color", o->pColor);
   cs::core::Settings::deserialize(j, "scaleDistance", o->pScaleDistance);
@@ -104,8 +98,7 @@ void from_json(nlohmann::json const& j, std::shared_ptr<DipStrikeTool>& o) {
 }
 
 void to_json(nlohmann::json& j, std::shared_ptr<DipStrikeTool> const& o) {
-  cs::core::Settings::serialize(j, "center", o->getCenterName());
-  cs::core::Settings::serialize(j, "frame", o->getFrameName());
+  cs::core::Settings::serialize(j, "object", o->getObjectName());
   cs::core::Settings::serialize(j, "color", o->pColor);
   cs::core::Settings::serialize(j, "scaleDistance", o->pScaleDistance);
   cs::core::Settings::serialize(j, "size", o->pSize);
@@ -118,15 +111,12 @@ void to_json(nlohmann::json& j, std::shared_ptr<DipStrikeTool> const& o) {
 
 void from_json(nlohmann::json const& j, std::shared_ptr<EllipseTool>& o) {
   if (!o) {
-    o = std::make_shared<EllipseTool>(sInputManager, sSolarSystem, sSettings, sTimeControl, "", "");
+    o = std::make_shared<EllipseTool>(sInputManager, sSolarSystem, sSettings, "");
   }
 
-  std::string center;
-  std::string frame;
-  cs::core::Settings::deserialize(j, "center", center);
-  cs::core::Settings::deserialize(j, "frame", frame);
-  o->setCenterName(center);
-  o->setFrameName(frame);
+  std::string object;
+  cs::core::Settings::deserialize(j, "object", object);
+  o->setObjectName(object);
 
   cs::core::Settings::deserialize(j, "handle0", o->getCenterHandle().pLngLat);
   cs::core::Settings::deserialize(j, "handle1", o->getFirstHandle().pLngLat);
@@ -138,8 +128,7 @@ void from_json(nlohmann::json const& j, std::shared_ptr<EllipseTool>& o) {
 }
 
 void to_json(nlohmann::json& j, std::shared_ptr<EllipseTool> const& o) {
-  cs::core::Settings::serialize(j, "center", o->getCenterName());
-  cs::core::Settings::serialize(j, "frame", o->getFrameName());
+  cs::core::Settings::serialize(j, "object", o->getObjectName());
   cs::core::Settings::serialize(j, "handle0", o->getCenterHandle().pLngLat);
   cs::core::Settings::serialize(j, "handle1", o->getFirstHandle().pLngLat);
   cs::core::Settings::serialize(j, "handle2", o->getSecondHandle().pLngLat);
@@ -153,15 +142,12 @@ void to_json(nlohmann::json& j, std::shared_ptr<EllipseTool> const& o) {
 
 void from_json(nlohmann::json const& j, std::shared_ptr<FlagTool>& o) {
   if (!o) {
-    o = std::make_shared<FlagTool>(sInputManager, sSolarSystem, sSettings, sTimeControl, "", "");
+    o = std::make_shared<FlagTool>(sInputManager, sSolarSystem, sSettings, "");
   }
 
-  std::string center;
-  std::string frame;
-  cs::core::Settings::deserialize(j, "center", center);
-  cs::core::Settings::deserialize(j, "frame", frame);
-  o->getAnchor()->setCenterName(center);
-  o->getAnchor()->setFrameName(frame);
+  std::string object;
+  cs::core::Settings::deserialize(j, "object", object);
+  o->setObjectName(object);
 
   cs::core::Settings::deserialize(j, "lngLat", o->pLngLat);
   cs::core::Settings::deserialize(j, "color", o->pColor);
@@ -171,8 +157,7 @@ void from_json(nlohmann::json const& j, std::shared_ptr<FlagTool>& o) {
 }
 
 void to_json(nlohmann::json& j, std::shared_ptr<FlagTool> const& o) {
-  cs::core::Settings::serialize(j, "center", o->getAnchor()->getCenterName());
-  cs::core::Settings::serialize(j, "frame", o->getAnchor()->getFrameName());
+  cs::core::Settings::serialize(j, "object", o->getObjectName());
   cs::core::Settings::serialize(j, "lngLat", o->pLngLat);
   cs::core::Settings::serialize(j, "color", o->pColor);
   cs::core::Settings::serialize(j, "scaleDistance", o->pScaleDistance);
@@ -184,15 +169,12 @@ void to_json(nlohmann::json& j, std::shared_ptr<FlagTool> const& o) {
 
 void from_json(nlohmann::json const& j, std::shared_ptr<PathTool>& o) {
   if (!o) {
-    o = std::make_shared<PathTool>(sInputManager, sSolarSystem, sSettings, sTimeControl, "", "");
+    o = std::make_shared<PathTool>(sInputManager, sSolarSystem, sSettings, "");
   }
 
-  std::string center;
-  std::string frame;
-  cs::core::Settings::deserialize(j, "center", center);
-  cs::core::Settings::deserialize(j, "frame", frame);
-  o->setCenterName(center);
-  o->setFrameName(frame);
+  std::string object;
+  cs::core::Settings::deserialize(j, "object", object);
+  o->setObjectName(object);
 
   cs::core::Settings::deserialize(j, "color", o->pColor);
   cs::core::Settings::deserialize(j, "scaleDistance", o->pScaleDistance);
@@ -204,8 +186,7 @@ void from_json(nlohmann::json const& j, std::shared_ptr<PathTool>& o) {
 }
 
 void to_json(nlohmann::json& j, std::shared_ptr<PathTool> const& o) {
-  cs::core::Settings::serialize(j, "center", o->getCenterName());
-  cs::core::Settings::serialize(j, "frame", o->getFrameName());
+  cs::core::Settings::serialize(j, "object", o->getObjectName());
   cs::core::Settings::serialize(j, "color", o->pColor);
   cs::core::Settings::serialize(j, "scaleDistance", o->pScaleDistance);
   cs::core::Settings::serialize(j, "text", o->pText);
@@ -216,15 +197,12 @@ void to_json(nlohmann::json& j, std::shared_ptr<PathTool> const& o) {
 
 void from_json(nlohmann::json const& j, std::shared_ptr<PolygonTool>& o) {
   if (!o) {
-    o = std::make_shared<PolygonTool>(sInputManager, sSolarSystem, sSettings, sTimeControl, "", "");
+    o = std::make_shared<PolygonTool>(sInputManager, sSolarSystem, sSettings, "");
   }
 
-  std::string center;
-  std::string frame;
-  cs::core::Settings::deserialize(j, "center", center);
-  cs::core::Settings::deserialize(j, "frame", frame);
-  o->setCenterName(center);
-  o->setFrameName(frame);
+  std::string object;
+  cs::core::Settings::deserialize(j, "object", object);
+  o->setObjectName(object);
 
   cs::core::Settings::deserialize(j, "color", o->pColor);
   cs::core::Settings::deserialize(j, "scaleDistance", o->pScaleDistance);
@@ -237,8 +215,7 @@ void from_json(nlohmann::json const& j, std::shared_ptr<PolygonTool>& o) {
 }
 
 void to_json(nlohmann::json& j, std::shared_ptr<PolygonTool> const& o) {
-  cs::core::Settings::serialize(j, "center", o->getCenterName());
-  cs::core::Settings::serialize(j, "frame", o->getFrameName());
+  cs::core::Settings::serialize(j, "object", o->getObjectName());
   cs::core::Settings::serialize(j, "color", o->pColor);
   cs::core::Settings::serialize(j, "scaleDistance", o->pScaleDistance);
   cs::core::Settings::serialize(j, "showMesh", o->pShowMesh);
@@ -253,7 +230,7 @@ void from_json(nlohmann::json const& j, Plugin::Settings& o) {
   deserializeTools(j, "ellipses", o.mEllipses);
   deserializeTools(j, "flags", o.mFlags);
   deserializeTools(j, "paths", o.mPaths);
-  deserializeTools(j, "polygons", o.mPolygons);
+  // deserializeTools(j, "polygons", o.mPolygons);
 
   cs::core::Settings::deserialize(j, "polygonHeightDiff", o.mPolygonHeightDiff);
   cs::core::Settings::deserialize(j, "polygonMaxAttempt", o.mPolygonMaxAttempt);
@@ -268,7 +245,7 @@ void to_json(nlohmann::json& j, Plugin::Settings const& o) {
   cs::core::Settings::serialize(j, "ellipses", o.mEllipses);
   cs::core::Settings::serialize(j, "flags", o.mFlags);
   cs::core::Settings::serialize(j, "paths", o.mPaths);
-  cs::core::Settings::serialize(j, "polygons", o.mPolygons);
+  // cs::core::Settings::serialize(j, "polygons", o.mPolygons);
   cs::core::Settings::serialize(j, "polygonHeightDiff", o.mPolygonHeightDiff);
   cs::core::Settings::serialize(j, "polygonMaxAttempt", o.mPolygonMaxAttempt);
   cs::core::Settings::serialize(j, "polygonMaxPoints", o.mPolygonMaxPoints);
@@ -313,68 +290,61 @@ void Plugin::init() {
 
   mOnClickConnection = mInputManager->pButtons[0].connect([this](bool pressed) {
     if (!pressed && !mInputManager->pHoveredGuiItem.get()) {
-      auto intersection = mInputManager->pHoveredObject.get().mObject;
+      auto object     = mInputManager->pHoveredObject.get().mObject;
+      auto objectName = mInputManager->pHoveredObject.get().mObjectName;
 
-      if (!intersection) {
+      if (!object) {
         return;
       }
 
-      auto body = std::dynamic_pointer_cast<cs::scene::CelestialBody>(intersection);
+      auto radii = object->getRadii();
+      if (mNextTool == "Location Flag") {
+        auto tool =
+            std::make_shared<FlagTool>(mInputManager, mSolarSystem, mAllSettings, objectName);
+        tool->pLngLat = cs::utils::convert::cartesianToLngLat(
+            mInputManager->pHoveredObject.get().mPosition, radii);
+        mPluginSettings.mFlags.push_back(tool);
 
-      if (!body) {
-        return;
+      } else if (mNextTool == "Landing Ellipse") {
+        auto tool =
+            std::make_shared<EllipseTool>(mInputManager, mSolarSystem, mAllSettings, objectName);
+        tool->getCenterHandle().pLngLat = cs::utils::convert::cartesianToLngLat(
+            mInputManager->pHoveredObject.get().mPosition, radii);
+        tool->setNumSamples(mPluginSettings.mEllipseSamples.get());
+        mPluginSettings.mEllipses.push_back(tool);
+
+      } else if (mNextTool == "Path") {
+        auto tool =
+            std::make_shared<PathTool>(mInputManager, mSolarSystem, mAllSettings, objectName);
+        tool->setNumSamples(mPluginSettings.mPathSamples.get());
+        tool->pAddPointMode = true;
+        tool->addPoint();
+        mPluginSettings.mPaths.push_back(tool);
+
+      } else if (mNextTool == "Dip & Strike") {
+        auto tool =
+            std::make_shared<DipStrikeTool>(mInputManager, mSolarSystem, mAllSettings, objectName);
+        tool->pAddPointMode = true;
+        tool->addPoint();
+        mPluginSettings.mDipStrikes.push_back(tool);
+
+      } else if (mNextTool == "Polygon") {
+        auto tool =
+            std::make_shared<PolygonTool>(mInputManager, mSolarSystem, mAllSettings, objectName);
+        tool->setHeightDiff(mPluginSettings.mPolygonHeightDiff.get());
+        tool->setMaxAttempt(mPluginSettings.mPolygonMaxAttempt.get());
+        tool->setMaxPoints(mPluginSettings.mPolygonMaxPoints.get());
+        tool->setSleekness(mPluginSettings.mPolygonSleekness.get());
+        tool->pAddPointMode = true;
+        tool->addPoint();
+        mPluginSettings.mPolygons.push_back(tool);
+
+      } else if (mNextTool != "none") {
+        logger().warn("Failed to create tool '{}': This is an unknown tool type!", mNextTool);
       }
 
-      auto radii = body->getRadii();
-      if (body) {
-        if (mNextTool == "Location Flag") {
-          auto tool     = std::make_shared<FlagTool>(mInputManager, mSolarSystem, mAllSettings,
-              mTimeControl, body->getCenterName(), body->getFrameName());
-          tool->pLngLat = cs::utils::convert::cartesianToLngLat(
-              mInputManager->pHoveredObject.get().mPosition, radii);
-          mPluginSettings.mFlags.push_back(tool);
-
-        } else if (mNextTool == "Landing Ellipse") {
-          auto tool = std::make_shared<EllipseTool>(mInputManager, mSolarSystem, mAllSettings,
-              mTimeControl, body->getCenterName(), body->getFrameName());
-          tool->getCenterHandle().pLngLat = cs::utils::convert::cartesianToLngLat(
-              mInputManager->pHoveredObject.get().mPosition, radii);
-          tool->setNumSamples(mPluginSettings.mEllipseSamples.get());
-          mPluginSettings.mEllipses.push_back(tool);
-
-        } else if (mNextTool == "Path") {
-          auto tool = std::make_shared<PathTool>(mInputManager, mSolarSystem, mAllSettings,
-              mTimeControl, body->getCenterName(), body->getFrameName());
-          tool->setNumSamples(mPluginSettings.mPathSamples.get());
-          tool->pAddPointMode = true;
-          tool->addPoint();
-          mPluginSettings.mPaths.push_back(tool);
-
-        } else if (mNextTool == "Dip & Strike") {
-          auto tool = std::make_shared<DipStrikeTool>(mInputManager, mSolarSystem, mAllSettings,
-              mTimeControl, body->getCenterName(), body->getFrameName());
-          tool->pAddPointMode = true;
-          tool->addPoint();
-          mPluginSettings.mDipStrikes.push_back(tool);
-
-        } else if (mNextTool == "Polygon") {
-          auto tool = std::make_shared<PolygonTool>(mInputManager, mSolarSystem, mAllSettings,
-              mTimeControl, body->getCenterName(), body->getFrameName());
-          tool->setHeightDiff(mPluginSettings.mPolygonHeightDiff.get());
-          tool->setMaxAttempt(mPluginSettings.mPolygonMaxAttempt.get());
-          tool->setMaxPoints(mPluginSettings.mPolygonMaxPoints.get());
-          tool->setSleekness(mPluginSettings.mPolygonSleekness.get());
-          tool->pAddPointMode = true;
-          tool->addPoint();
-          mPluginSettings.mPolygons.push_back(tool);
-
-        } else if (mNextTool != "none") {
-          logger().warn("Failed to create tool '{}': This is an unknown tool type!", mNextTool);
-        }
-
-        mNextTool = "none";
-        mGuiManager->getGui()->callJavascript("CosmoScout.measurementTools.deselect");
-      }
+      mNextTool = "none";
+      mGuiManager->getGui()->callJavascript("CosmoScout.measurementTools.deselect");
     }
   });
 

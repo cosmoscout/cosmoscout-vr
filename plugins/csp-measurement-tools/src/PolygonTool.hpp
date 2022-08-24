@@ -18,7 +18,7 @@
 #include "voronoi/VoronoiGenerator.hpp"
 
 namespace cs::scene {
-class CelestialAnchorNode;
+class CelestialSurface;
 }
 
 namespace cs::gui {
@@ -42,9 +42,7 @@ class PolygonTool : public IVistaOpenGLDraw, public cs::core::tools::MultiPointT
 
   PolygonTool(std::shared_ptr<cs::core::InputManager> const& pInputManager,
       std::shared_ptr<cs::core::SolarSystem> const&          pSolarSystem,
-      std::shared_ptr<cs::core::Settings> const&             settings,
-      std::shared_ptr<cs::core::TimeControl> const& pTimeControl, std::string const& sCenter,
-      std::string const& sFrame);
+      std::shared_ptr<cs::core::Settings> const& settings, std::string const& objectName);
 
   PolygonTool(PolygonTool const& other) = delete;
   PolygonTool(PolygonTool&& other)      = delete;
@@ -53,12 +51,6 @@ class PolygonTool : public IVistaOpenGLDraw, public cs::core::tools::MultiPointT
   PolygonTool& operator=(PolygonTool&& other) = delete;
 
   ~PolygonTool() override;
-
-  // Gets or sets the SPICE center name for all points.
-  void setCenterName(std::string const& name) override;
-
-  /// Gets or sets the SPICE frame name for all points.
-  void setFrameName(std::string const& name) override;
 
   /// Called from Tools class
   void update() override;
@@ -78,8 +70,10 @@ class PolygonTool : public IVistaOpenGLDraw, public cs::core::tools::MultiPointT
 
   /// Returns the interpolated position in cartesian coordinates. The fourth component is
   /// height above the surface
-  glm::dvec4 getInterpolatedPosBetweenTwoMarks(cs::core::tools::DeletableMark const& l0,
-      cs::core::tools::DeletableMark const& l1, double value);
+  glm::dvec4 getInterpolatedPosBetweenTwoMarks(
+      std::shared_ptr<cs::scene::CelestialSurface> const& surface,
+      cs::core::tools::DeletableMark const& l0, cs::core::tools::DeletableMark const& l1,
+      double value);
 
   /// Finds the intersection point between two sites
   static bool findIntersection(Site const& s1, Site const& s2, Site const& s3, Site const& s4,
@@ -93,15 +87,17 @@ class PolygonTool : public IVistaOpenGLDraw, public cs::core::tools::MultiPointT
   /// Returns true if a lot of new points are added
   bool checkSleekness(int count);
   /// Draws the Delaunay-mesh on the planet's surface
-  void displayMesh(Edge2 const& edge, double mdist, glm::dvec3 const& e, glm::dvec3 const& n,
-      glm::dvec3 const& r, double scale, double& h1, double& h2);
+  void displayMesh(std::shared_ptr<cs::scene::CelestialSurface> const& surface, Edge2 const& edge,
+      double mdist, glm::dvec3 const& e, glm::dvec3 const& n, glm::dvec3 const& r, double scale,
+      double& h1, double& h2);
   /// Refines mesh based on edge length and terrain
-  void refineMesh(Edge2 const& edge, double mdist, glm::dvec3 const& e, glm::dvec3 const& n,
-      glm::dvec3 const& r, int count, double h1, double h2, bool& fine);
+  void refineMesh(std::shared_ptr<cs::scene::CelestialSurface> const& surface, Edge2 const& edge,
+      double mdist, glm::dvec3 const& e, glm::dvec3 const& n, glm::dvec3 const& r, int count,
+      double h1, double h2, bool& fine);
   /// Calculates triangle areas and prism volumes
-  void calculateAreaAndVolume(std::vector<Triangle> const& triangles, double mdist,
-      glm::dvec3 const& e, glm::dvec3 const& n, glm::dvec3 const& r, double& area, double& pvol,
-      double& nvol);
+  void calculateAreaAndVolume(std::shared_ptr<cs::scene::CelestialSurface> const& surface,
+      std::vector<Triangle> const& triangles, double mdist, glm::dvec3 const& e,
+      glm::dvec3 const& n, glm::dvec3 const& r, double& area, double& pvol, double& nvol);
   // Checks if point is inside of the polygon or not
   bool checkPoint(glm::dvec2 const& point);
 
@@ -110,12 +106,12 @@ class PolygonTool : public IVistaOpenGLDraw, public cs::core::tools::MultiPointT
   void onPointAdded() override;
   void onPointRemoved(int index) override;
 
-  std::shared_ptr<cs::scene::CelestialAnchorNode> mGuiAnchor;
-  std::unique_ptr<cs::gui::WorldSpaceGuiArea>     mGuiArea;
-  std::unique_ptr<cs::gui::GuiItem>               mGuiItem;
-  std::unique_ptr<VistaTransformNode>             mGuiTransform;
-  std::unique_ptr<VistaOpenGLNode>                mGuiNode;
-  std::unique_ptr<VistaOpenGLNode>                mParent;
+  std::unique_ptr<cs::gui::WorldSpaceGuiArea> mGuiArea;
+  std::unique_ptr<cs::gui::GuiItem>           mGuiItem;
+  std::unique_ptr<VistaTransformNode>         mGuiAnchor;
+  std::unique_ptr<VistaTransformNode>         mGuiTransform;
+  std::unique_ptr<VistaOpenGLNode>            mGuiNode;
+  std::unique_ptr<VistaOpenGLNode>            mParent;
 
   // For Lines
   VistaVertexArrayObject mVAO;
@@ -138,6 +134,8 @@ class PolygonTool : public IVistaOpenGLDraw, public cs::core::tools::MultiPointT
 
   int mTextConnection  = -1;
   int mScaleConnection = -1;
+
+  glm::dvec3 mPosition;
 
   // minLng,maxLng,minLat,maxLat
   glm::dvec4 mBoundingBox = glm::dvec4(0.0);

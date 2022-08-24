@@ -30,8 +30,7 @@ class FlagTool : public cs::core::tools::Mark {
   FlagTool(std::shared_ptr<cs::core::InputManager> const& pInputManager,
       std::shared_ptr<cs::core::SolarSystem> const&       pSolarSystem,
       std::shared_ptr<cs::core::Settings> const&          settings,
-      std::shared_ptr<cs::core::TimeControl> const& pTimeControl, std::string const& sCenter,
-      std::string const& sFrame);
+     std::string const& objectName);
 
   FlagTool(FlagTool const& other) = delete;
   FlagTool(FlagTool&& other)      = delete;
@@ -40,10 +39,6 @@ class FlagTool : public cs::core::tools::Mark {
   FlagTool& operator=(FlagTool&& other) = delete;
 
   ~FlagTool() override;
-
-  /// This is overwritten here as the flag should stand orthogonal on the planet's surface, rather
-  /// than facing always the observer.
-  void update() override;
 
  private:
   std::unique_ptr<VistaTransformNode>         mGuiTransform;

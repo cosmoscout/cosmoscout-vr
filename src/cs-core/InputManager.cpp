@@ -242,8 +242,9 @@ void InputManager::update() {
           glm::dvec3(v3Direction[0], v3Direction[1], v3Direction[2]), pos);
 
       if (intersects) {
-        intersection.mObject   = object;
-        intersection.mPosition = pos;
+        intersection.mObject     = object;
+        intersection.mObjectName = name;
+        intersection.mPosition   = pos;
         break;
       }
     }

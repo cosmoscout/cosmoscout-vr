@@ -14,10 +14,6 @@
 #include <glm/glm.hpp>
 #include <vector>
 
-namespace cs::scene {
-class CelestialAnchorNode;
-}
-
 namespace cs::gui {
 class GuiItem;
 class WorldSpaceGuiArea;
@@ -45,9 +41,7 @@ class DipStrikeTool : public IVistaOpenGLDraw, public cs::core::tools::MultiPoin
 
   DipStrikeTool(std::shared_ptr<cs::core::InputManager> const& pInputManager,
       std::shared_ptr<cs::core::SolarSystem> const&            pSolarSystem,
-      std::shared_ptr<cs::core::Settings> const&               settings,
-      std::shared_ptr<cs::core::TimeControl> const& pTimeControl, std::string const& sCenter,
-      std::string const& sFrame);
+      std::shared_ptr<cs::core::Settings> const& settings, std::string const& objectName);
 
   DipStrikeTool(DipStrikeTool const& other) = delete;
   DipStrikeTool(DipStrikeTool&& other)      = delete;
@@ -56,12 +50,6 @@ class DipStrikeTool : public IVistaOpenGLDraw, public cs::core::tools::MultiPoin
   DipStrikeTool& operator=(DipStrikeTool&& other) = delete;
 
   ~DipStrikeTool() override;
-
-  // Gets or sets the SPICE center name for all points.
-  void setCenterName(std::string const& name) override;
-
-  /// Gets or sets the SPICE frame name for all points.
-  void setFrameName(std::string const& name) override;
 
   /// Called from Tools class.
   void update() override;
@@ -83,11 +71,10 @@ class DipStrikeTool : public IVistaOpenGLDraw, public cs::core::tools::MultiPoin
   void onPointAdded() override;
   void onPointRemoved(int index) override;
 
-  std::shared_ptr<cs::scene::CelestialAnchorNode> mGuiAnchor;
-  std::shared_ptr<cs::scene::CelestialAnchorNode> mPlaneAnchor;
-
   std::unique_ptr<cs::gui::WorldSpaceGuiArea> mGuiArea;
   std::unique_ptr<cs::gui::GuiItem>           mGuiItem;
+  std::unique_ptr<VistaTransformNode>         mGuiAnchor;
+  std::unique_ptr<VistaTransformNode>         mPlaneAnchor;
   std::unique_ptr<VistaTransformNode>         mGuiTransform;
   std::unique_ptr<VistaOpenGLNode>            mGuiOpenGLNode;
   std::unique_ptr<VistaOpenGLNode>            mPlaneOpenGLNode;
@@ -102,10 +89,11 @@ class DipStrikeTool : public IVistaOpenGLDraw, public cs::core::tools::MultiPoin
     uint32_t opacity          = 0;
   } mUniforms;
 
-  bool      mVerticesDirty = false;
-  double    mSize{};
-  glm::vec3 mNormal = glm::vec3(0.0), mMip = glm::vec3(0.0);
-  float     mOffset{};
+  bool       mVerticesDirty = false;
+  double     mSize{};
+  glm::dvec3 mPosition;
+  glm::vec3  mNormal = glm::vec3(0.0), mMip = glm::vec3(0.0);
+  float      mOffset{};
 
   int mTextConnection  = -1;
   int mScaleConnection = -1;

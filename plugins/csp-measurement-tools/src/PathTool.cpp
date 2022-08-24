@@ -14,14 +14,17 @@
 #include "../../../src/cs-core/SolarSystem.hpp"
 #include "../../../src/cs-core/TimeControl.hpp"
 #include "../../../src/cs-core/tools/DeletableMark.hpp"
-#include "../../../src/cs-scene/CelestialAnchorNode.hpp"
+#include "../../../src/cs-scene/CelestialSurface.hpp"
 #include "../../../src/cs-utils/convert.hpp"
 #include "../../../src/cs-utils/utils.hpp"
 
 #include <VistaKernel/GraphicsManager/VistaOpenGLNode.h>
 #include <VistaKernel/GraphicsManager/VistaSceneGraph.h>
+#include <VistaKernel/GraphicsManager/VistaTransformNode.h>
 #include <VistaKernel/VistaSystem.h>
 #include <VistaKernelOpenSGExt/VistaOpenSGMaterialTools.h>
+
+#include <glm/gtc/type_ptr.hpp>
 
 namespace csp::measurementtools {
 
@@ -61,10 +64,8 @@ void main()
 
 PathTool::PathTool(std::shared_ptr<cs::core::InputManager> const& pInputManager,
     std::shared_ptr<cs::core::SolarSystem> const&                 pSolarSystem,
-    std::shared_ptr<cs::core::Settings> const&                    settings,
-    std::shared_ptr<cs::core::TimeControl> const& pTimeControl, std::string const& sCenter,
-    std::string const& sFrame)
-    : MultiPointTool(pInputManager, pSolarSystem, settings, pTimeControl, sCenter, sFrame)
+    std::shared_ptr<cs::core::Settings> const& settings, std::string const& objectName)
+    : MultiPointTool(pInputManager, pSolarSystem, settings, objectName)
     , mGuiArea(std::make_unique<cs::gui::WorldSpaceGuiArea>(800, 475))
     , mGuiItem(
           std::make_unique<cs::gui::GuiItem>("file://{toolZoom}../share/resources/gui/path.html")) {
@@ -90,10 +91,7 @@ PathTool::PathTool(std::shared_ptr<cs::core::InputManager> const& pInputManager,
   // create a a CelestialAnchorNode for the user interface
   // it will be moved to the center of all points when a point is moved
   // and rotated in such a way, that it always faces the observer
-  mGuiAnchor = std::make_shared<cs::scene::CelestialAnchorNode>(
-      pSG->GetRoot(), pSG->GetNodeBridge(), "", sCenter, sFrame);
-  mGuiAnchor->setScale(mSolarSystem->getObserver().getScale());
-  mSolarSystem->registerAnchor(mGuiAnchor);
+  mGuiAnchor.reset(pSG->NewTransformNode(pSG->GetRoot()));
 
   // create the user interface
   mGuiTransform.reset(pSG->NewTransformNode(mGuiAnchor.get()));
@@ -149,21 +147,6 @@ PathTool::~PathTool() {
   mGuiItem->unregisterCallback("onSetText");
 
   mInputManager->unregisterSelectable(mGuiOpenGLNode.get());
-  mSolarSystem->unregisterAnchor(mGuiAnchor);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void PathTool::setCenterName(std::string const& name) {
-  cs::core::tools::MultiPointTool::setCenterName(name);
-  mGuiAnchor->setCenterName(name);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void PathTool::setFrameName(std::string const& name) {
-  cs::core::tools::MultiPointTool::setFrameName(name);
-  mGuiAnchor->setFrameName(name);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -180,26 +163,17 @@ void PathTool::setNumSamples(int const& numSamples) {
 glm::dvec4 PathTool::getInterpolatedPosBetweenTwoMarks(cs::core::tools::DeletableMark const& l0,
     cs::core::tools::DeletableMark const& l1, double value, double const& scale) {
 
-  auto body = mSolarSystem->getBody(getCenterName());
-
-  if (!body) {
-    return glm::dvec4(0.0);
-  }
-
-  glm::dvec3 radii = body->getRadii();
-
-  // Calculate the position for the new segment anchor
-  double h0 = body->getHeight(l0.pLngLat.get()) * scale;
-  double h1 = body->getHeight(l1.pLngLat.get()) * scale;
+  auto       object = mSolarSystem->getObject(getObjectName());
+  glm::dvec3 radii  = object->getRadii();
 
   // Get cartesian coordinates for interpolation
-  glm::dvec3 p0              = cs::utils::convert::toCartesian(l0.pLngLat.get(), radii, h0);
-  glm::dvec3 p1              = cs::utils::convert::toCartesian(l1.pLngLat.get(), radii, h1);
+  glm::dvec3 p0              = cs::utils::convert::toCartesian(l0.pLngLat.get(), radii, 0.0);
+  glm::dvec3 p1              = cs::utils::convert::toCartesian(l1.pLngLat.get(), radii, 0.0);
   glm::dvec3 interpolatedPos = p0 + (value * (p1 - p0));
 
   // Calc final position
   glm::dvec2 ll     = cs::utils::convert::cartesianToLngLat(interpolatedPos, radii);
-  double     height = body->getHeight(ll) * scale;
+  double     height = (object->getSurface() ? object->getSurface()->getHeight(ll) : 0.0) * scale;
   glm::dvec3 pos    = cs::utils::convert::toCartesian(ll, radii, height);
 
   return glm::dvec4(pos, height);
@@ -233,36 +207,16 @@ void PathTool::updateLineVertices() {
   // Fill the vertex buffer with sampled data
   mSampledPositions.clear();
 
-  auto body = mSolarSystem->getBody(getCenterName());
+  auto object = mSolarSystem->getObject(getObjectName());
 
-  glm::dvec3 averagePosition(0.0);
+  mPosition = glm::dvec3(0.0);
   for (auto const& mark : mPoints) {
-    averagePosition += mark->getAnchor()->getPosition() / static_cast<double>(mPoints.size());
+    mPosition += mark->getPosition() / static_cast<double>(mPoints.size());
   }
 
-  double h_scale = mSettings->mGraphics.pHeightScale.get();
-  auto   radii   = body->getRadii();
-  auto   lngLat  = cs::utils::convert::cartesianToLngLat(averagePosition, radii);
-  double height  = body ? body->getHeight(lngLat) * h_scale : 0.0;
-  auto   center  = cs::utils::convert::toCartesian(lngLat, radii, height);
-
-  mGuiAnchor->setPosition(center);
-
-  // This seems to be the first time the tool is moved, so we have to store the distance to the
-  // observer so that we can scale the tool later based on the observer's position.
-  if (pScaleDistance.get() < 0) {
-    try {
-      pScaleDistance = mSolarSystem->getObserver().getScale() *
-                       glm::length(mSolarSystem->getObserver().getRelativePosition(
-                           mTimeControl->pSimulationTime.get(), *mGuiAnchor));
-    } catch (std::exception const& e) {
-      // Getting the relative transformation may fail due to insufficient SPICE data.
-      logger().warn("Failed to calculate scale distance of Path Tool: {}", e.what());
-    }
-  }
-
-  auto lastMark = mPoints.begin();
-  auto currMark = ++mPoints.begin();
+  double h_scale  = mSettings->mGraphics.pHeightScale.get();
+  auto   lastMark = mPoints.begin();
+  auto   currMark = ++mPoints.begin();
 
   std::stringstream json;
   std::string       jsonSeperator;
@@ -322,12 +276,15 @@ void PathTool::update() {
     mVerticesDirty = false;
   }
 
-  double simulationTime(mTimeControl->pSimulationTime.get());
+  auto object = mSolarSystem->getObject(getObjectName());
 
-  cs::core::SolarSystem::scaleRelativeToObserver(*mGuiAnchor, mSolarSystem->getObserver(),
-      simulationTime, pScaleDistance.get(), mSettings->mGraphics.pWorldUIScale.get());
-  cs::core::SolarSystem::turnToObserver(
-      *mGuiAnchor, mSolarSystem->getObserver(), simulationTime, false);
+  auto guiScale = mSolarSystem->getScaleBasedOnObserverDistance(
+      object, mPosition, pScaleDistance.get(), mSettings->mGraphics.pWorldUIScale.get());
+  auto guiRotation = mSolarSystem->getRotationToObserver(object, mPosition, false);
+
+  auto guiTransform = object->getObserverRelativeTransform(mPosition, guiRotation, guiScale);
+
+  mGuiAnchor->SetTransform(glm::value_ptr(guiTransform), true);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -337,53 +294,47 @@ bool PathTool::Do() {
   // low precision coordinates
   std::vector<glm::vec3> vRelativePositions(mIndexCount);
 
-  auto        time     = mTimeControl->pSimulationTime.get();
-  auto const& observer = mSolarSystem->getObserver();
+  auto object    = mSolarSystem->getObject(getObjectName());
+  auto transform = object->getObserverRelativeTransform(mPosition);
 
-  try {
-    cs::scene::CelestialAnchor centerAnchor(getCenterName(), getFrameName());
-    auto                       mat = observer.getRelativeTransform(time, centerAnchor);
+  for (size_t i(0); i < mIndexCount; ++i) {
+    vRelativePositions[i] = (transform * glm::dvec4(mSampledPositions[i] - mPosition, 1.0)).xyz();
+  }
 
-    for (size_t i(0); i < mIndexCount; ++i) {
-      vRelativePositions[i] = (mat * glm::dvec4(mSampledPositions[i], 1.0)).xyz();
-    }
+  // upload the new points to the GPU
+  mVBO.Bind(GL_ARRAY_BUFFER);
+  mVBO.BufferSubData(0, vRelativePositions.size() * sizeof(glm::vec3), vRelativePositions.data());
+  mVBO.Release();
 
-    // upload the new points to the GPU
-    mVBO.Bind(GL_ARRAY_BUFFER);
-    mVBO.BufferSubData(0, vRelativePositions.size() * sizeof(glm::vec3), vRelativePositions.data());
-    mVBO.Release();
+  glPushAttrib(GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT | GL_LINE_BIT);
 
-    glPushAttrib(GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT | GL_LINE_BIT);
+  // enable alpha blending for smooth line
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    // enable alpha blending for smooth line
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  // enable and configure line rendering
+  glEnable(GL_LINE_SMOOTH);
+  glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+  glLineWidth(5);
 
-    // enable and configure line rendering
-    glEnable(GL_LINE_SMOOTH);
-    glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
-    glLineWidth(5);
+  std::array<GLfloat, 16> glMatMV{};
+  std::array<GLfloat, 16> glMatP{};
+  glGetFloatv(GL_MODELVIEW_MATRIX, glMatMV.data());
+  glGetFloatv(GL_PROJECTION_MATRIX, glMatP.data());
 
-    std::array<GLfloat, 16> glMatMV{};
-    std::array<GLfloat, 16> glMatP{};
-    glGetFloatv(GL_MODELVIEW_MATRIX, glMatMV.data());
-    glGetFloatv(GL_PROJECTION_MATRIX, glMatP.data());
+  mShader.Bind();
+  mVAO.Bind();
+  glUniformMatrix4fv(mUniforms.modelViewMatrix, 1, GL_FALSE, glMatMV.data());
+  glUniformMatrix4fv(mUniforms.projectionMatrix, 1, GL_FALSE, glMatP.data());
 
-    mShader.Bind();
-    mVAO.Bind();
-    glUniformMatrix4fv(mUniforms.modelViewMatrix, 1, GL_FALSE, glMatMV.data());
-    glUniformMatrix4fv(mUniforms.projectionMatrix, 1, GL_FALSE, glMatP.data());
+  mShader.SetUniform(mUniforms.color, pColor.get().r, pColor.get().g, pColor.get().b);
 
-    mShader.SetUniform(mUniforms.color, pColor.get().r, pColor.get().g, pColor.get().b);
+  // draw the linestrip
+  glDrawArrays(GL_LINE_STRIP, 0, static_cast<GLsizei>(mIndexCount));
+  mVAO.Release();
+  mShader.Release();
 
-    // draw the linestrip
-    glDrawArrays(GL_LINE_STRIP, 0, static_cast<GLsizei>(mIndexCount));
-    mVAO.Release();
-    mShader.Release();
-
-    glPopAttrib();
-
-  } catch (std::exception const& e) { logger().warn("PathTool::Do failed: {}", e.what()); }
+  glPopAttrib();
 
   return true;
 }

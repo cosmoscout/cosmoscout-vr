@@ -8,6 +8,7 @@
 
 #include <utility>
 
+#include "../../cs-core/SolarSystem.hpp"
 #include "../../cs-scene/CelestialSurface.hpp"
 #include "../../cs-utils/convert.hpp"
 #include "../InputManager.hpp"
@@ -19,10 +20,10 @@ namespace cs::core::tools {
 MultiPointTool::MultiPointTool(std::shared_ptr<InputManager> pInputManager,
     std::shared_ptr<SolarSystem> pSolarSystem, std::shared_ptr<Settings> settings,
     std::string objectName)
-    : mInputManager(std::move(pInputManager))
+    : Tool(objectName)
+    , mInputManager(std::move(pInputManager))
     , mSolarSystem(std::move(pSolarSystem))
-    , mSettings(std::move(settings))
-    , mAnchorName(std::move(objectName)) {
+    , mSettings(std::move(settings)) {
 
   // If pAddPointMode is true, a new point will be added on a left mouse button click.
   mLeftButtonConnection = mInputManager->pButtons[0].connect([this](bool pressed) {
@@ -58,14 +59,14 @@ MultiPointTool::~MultiPointTool() {
 void MultiPointTool::addPoint(std::optional<glm::dvec2> const& lngLat) {
   // Add the Mark to the list.
   mPoints.emplace_back(
-      std::make_shared<DeletableMark>(mInputManager, mSolarSystem, mSettings, mAnchorName));
+      std::make_shared<DeletableMark>(mInputManager, mSolarSystem, mSettings, getObjectName()));
 
   // if there is a planet intersection, move the point to the intersection location
   if (lngLat) {
     mPoints.back()->pLngLat = lngLat.value();
   } else {
     auto intersection = mInputManager->pHoveredObject.get();
-    if (intersection.mObject) {
+    if (intersection.mObject && intersection.mObjectName == getObjectName()) {
       auto       radii = intersection.mObject->getRadii();
       glm::dvec2 pos   = cs::utils::convert::cartesianToLngLat(intersection.mPosition, radii);
       mPoints.back()->pLngLat = pos;
@@ -120,6 +121,26 @@ void MultiPointTool::update() {
       mPoints.back()->pLngLat =
           cs::utils::convert::cartesianToLngLat(intersection.mPosition, radii);
     }
+  }
+
+  // This seems to be the first time the tool is moved, so we have to store the distance to the
+  // observer so that we can scale the tool later based on the observer's position.
+  if (pScaleDistance.get() < 0) {
+    auto object = mSolarSystem->getObject(getObjectName());
+
+    pScaleDistance =
+        mSolarSystem->getObserver().getScale() *
+        glm::length(object->getObserverRelativePosition(mPoints.back()->getPosition()));
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MultiPointTool::setObjectName(std::string const& name) {
+  Tool::setObjectName(name);
+
+  for (auto point : mPoints) {
+    point->setObjectName(name);
   }
 }
 

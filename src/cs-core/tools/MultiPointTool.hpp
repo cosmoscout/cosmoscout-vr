@@ -42,7 +42,7 @@ class CS_CORE_EXPORT MultiPointTool : public Tool {
 
   MultiPointTool(std::shared_ptr<InputManager> pInputManager,
       std::shared_ptr<SolarSystem> pSolarSystem, std::shared_ptr<Settings> settings,
-     std::string objectName);
+      std::string objectName);
 
   MultiPointTool(MultiPointTool const& other) = delete;
   MultiPointTool(MultiPointTool&& other)      = delete;
@@ -54,6 +54,9 @@ class CS_CORE_EXPORT MultiPointTool : public Tool {
 
   /// Called from Tools class.
   void update() override;
+
+  // Assigns all points to a new celestial object.
+  void setObjectName(std::string const& name) override;
 
   /// Use this to access all point positions at once.
   std::vector<glm::dvec2> getPositions() const;
@@ -81,9 +84,8 @@ class CS_CORE_EXPORT MultiPointTool : public Tool {
   std::list<std::shared_ptr<DeletableMark>> mPoints;
 
  private:
-  int         mLeftButtonConnection  = -1;
-  int         mRightButtonConnection = -1;
-  std::string mAnchorName;
+  int mLeftButtonConnection  = -1;
+  int mRightButtonConnection = -1;
 };
 
 } // namespace tools

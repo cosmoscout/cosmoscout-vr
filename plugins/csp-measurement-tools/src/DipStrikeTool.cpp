@@ -12,14 +12,13 @@
 #include "../../../src/cs-core/InputManager.hpp"
 #include "../../../src/cs-core/Settings.hpp"
 #include "../../../src/cs-core/SolarSystem.hpp"
-#include "../../../src/cs-core/TimeControl.hpp"
-#include "../../../src/cs-core/tools/DeletableMark.hpp"
-#include "../../../src/cs-scene/CelestialAnchorNode.hpp"
+#include "../../../src/cs-scene/CelestialSurface.hpp"
 #include "../../../src/cs-utils/convert.hpp"
 #include "../../../src/cs-utils/utils.hpp"
 
 #include <VistaKernel/GraphicsManager/VistaOpenGLNode.h>
 #include <VistaKernel/GraphicsManager/VistaSceneGraph.h>
+#include <VistaKernel/GraphicsManager/VistaTransformNode.h>
 #include <VistaKernel/VistaSystem.h>
 #include <VistaKernelOpenSGExt/VistaOpenSGMaterialTools.h>
 
@@ -92,10 +91,8 @@ void main()
 
 DipStrikeTool::DipStrikeTool(std::shared_ptr<cs::core::InputManager> const& pInputManager,
     std::shared_ptr<cs::core::SolarSystem> const&                           pSolarSystem,
-    std::shared_ptr<cs::core::Settings> const&                              settings,
-    std::shared_ptr<cs::core::TimeControl> const& pTimeControl, std::string const& sCenter,
-    std::string const& sFrame)
-    : MultiPointTool(pInputManager, pSolarSystem, settings, pTimeControl, sCenter, sFrame)
+    std::shared_ptr<cs::core::Settings> const& settings, std::string const& objectName)
+    : MultiPointTool(pInputManager, pSolarSystem, settings, objectName)
     , mGuiArea(std::make_unique<cs::gui::WorldSpaceGuiArea>(600, 260))
     , mGuiItem(std::make_unique<cs::gui::GuiItem>(
           "file://{toolZoom}../share/resources/gui/dipstrike.html")) {
@@ -111,11 +108,9 @@ DipStrikeTool::DipStrikeTool(std::shared_ptr<cs::core::InputManager> const& pInp
 
   auto* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
 
-  // create a a CelestialAnchorNode for the larger circular plane
+  // create a VistaTransformNode for the larger circular plane
   // it will be moved to the centroid of all points when a point is moved
-  mPlaneAnchor = std::make_shared<cs::scene::CelestialAnchorNode>(
-      pSG->GetRoot(), pSG->GetNodeBridge(), "", sCenter, sFrame);
-  mSolarSystem->registerAnchor(mPlaneAnchor);
+  mPlaneAnchor.reset(pSG->NewTransformNode(pSG->GetRoot()));
 
   // attach this as OpenGLNode to mPlaneAnchor
   mPlaneOpenGLNode.reset(pSG->NewOpenGLNode(mPlaneAnchor.get(), this));
@@ -123,13 +118,10 @@ DipStrikeTool::DipStrikeTool(std::shared_ptr<cs::core::InputManager> const& pInp
   VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
       mPlaneOpenGLNode.get(), static_cast<int>(cs::utils::DrawOrder::eTransparentItems));
 
-  // create a a CelestialAnchorNode for the user interface
+  // create a a VistaTransformNode for the user interface
   // it will be moved to the center of all points when a point is moved
   // and rotated in such a way, that it always faces the observer
-  mGuiAnchor = std::make_shared<cs::scene::CelestialAnchorNode>(
-      pSG->GetRoot(), pSG->GetNodeBridge(), "", sCenter, sFrame);
-  mGuiAnchor->setScale(mSolarSystem->getObserver().getScale());
-  mSolarSystem->registerAnchor(mGuiAnchor);
+  mGuiAnchor.reset(pSG->NewTransformNode(pSG->GetRoot()));
 
   // create the user interface
   mGuiTransform.reset(pSG->NewTransformNode(mGuiAnchor.get()));
@@ -215,25 +207,6 @@ DipStrikeTool::~DipStrikeTool() {
   mGuiItem->unregisterCallback("onSetText");
 
   mInputManager->unregisterSelectable(mGuiOpenGLNode.get());
-
-  mSolarSystem->unregisterAnchor(mGuiAnchor);
-  mSolarSystem->unregisterAnchor(mPlaneAnchor);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void DipStrikeTool::setCenterName(std::string const& name) {
-  cs::core::tools::MultiPointTool::setCenterName(name);
-  mGuiAnchor->setCenterName(name);
-  mPlaneAnchor->setCenterName(name);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void DipStrikeTool::setFrameName(std::string const& name) {
-  cs::core::tools::MultiPointTool::setFrameName(name);
-  mGuiAnchor->setFrameName(name);
-  mPlaneAnchor->setFrameName(name);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -261,12 +234,12 @@ void DipStrikeTool::calculateDipAndStrike() {
     return;
   }
 
-  auto body  = mSolarSystem->getBody(getCenterName());
-  auto radii = body->getRadii();
+  auto object = mSolarSystem->getObject(getObjectName());
+  auto radii  = object->getRadii();
 
-  glm::dvec3 averagePosition{0};
+  mPosition = glm::dvec3(0.0);
   for (auto const& mark : mPoints) {
-    averagePosition += mark->getAnchor()->getPosition() / static_cast<double>(mPoints.size());
+    mPosition += mark->getPosition() / static_cast<double>(mPoints.size());
   }
 
   // corrected average position (works for every height scale)
@@ -274,29 +247,13 @@ void DipStrikeTool::calculateDipAndStrike() {
   glm::dvec3 averagePositionNorm(0.0);
   for (auto const& mark : mPoints) {
     // LongLat coordinate
-    glm::dvec2 l = cs::utils::convert::cartesianToLngLat(mark->getAnchor()->getPosition(), radii);
+    glm::dvec2 l = cs::utils::convert::cartesianToLngLat(mark->getPosition(), radii);
     // Height of the point
-    double h = body ? body->getHeight(l) : 0.0;
+    double h = object->getSurface() ? object->getSurface()->getHeight(l) : 0.0;
     // Cartesian coordinate with height
     glm::dvec3 posNorm = cs::utils::convert::toCartesian(l, radii, h);
 
     averagePositionNorm += posNorm / static_cast<double>(mPoints.size());
-  }
-
-  mGuiAnchor->setPosition(averagePositionNorm);
-  mPlaneAnchor->setPosition(averagePositionNorm);
-
-  // This seems to be the first time the tool is moved, so we have to store the distance to the
-  // observer so that we can scale the tool later based on the observer's position.
-  if (pScaleDistance.get() < 0) {
-    try {
-      pScaleDistance = mSolarSystem->getObserver().getScale() *
-                       glm::length(mSolarSystem->getObserver().getRelativePosition(
-                           mTimeControl->pSimulationTime.get(), *mGuiAnchor));
-    } catch (std::exception const& e) {
-      // Getting the relative transformation may fail due to insufficient SPICE data.
-      logger().warn("Failed to calculate scale distance of Dip and Strike Tool: {}", e.what());
-    }
   }
 
   // calculate center of plane and normal
@@ -304,15 +261,14 @@ void DipStrikeTool::calculateDipAndStrike() {
   glm::dmat3 mat(0);
   glm::dvec3 vec(0);
 
-  auto      center      = mPlaneAnchor->getPosition();
-  glm::vec3 idealNormal = cs::utils::convert::cartesianToNormal(center, radii);
+  glm::vec3 idealNormal = cs::utils::convert::cartesianToNormal(mPosition, radii);
   mNormal               = idealNormal;
   mSize                 = 0;
   mOffset               = 0.F;
 
   for (auto const& p : mPoints) {
-    glm::dvec2 l = cs::utils::convert::cartesianToLngLat(p->getAnchor()->getPosition(), radii);
-    double     h = body ? body->getHeight(l) : 0.0;
+    glm::dvec2 l       = cs::utils::convert::cartesianToLngLat(p->getPosition(), radii);
+    double     h       = object->getSurface() ? object->getSurface()->getHeight(l) : 0.0;
     glm::dvec3 posNorm = cs::utils::convert::toCartesian(l, radii, h);
 
     glm::dvec3 realtivePosition = posNorm - averagePositionNorm;
@@ -374,12 +330,18 @@ void DipStrikeTool::update() {
     mVerticesDirty = false;
   }
 
-  double simulationTime(mTimeControl->pSimulationTime.get());
+  auto object = mSolarSystem->getObject(getObjectName());
 
-  cs::core::SolarSystem::scaleRelativeToObserver(*mGuiAnchor, mSolarSystem->getObserver(),
-      simulationTime, pScaleDistance.get(), mSettings->mGraphics.pWorldUIScale.get());
-  cs::core::SolarSystem::turnToObserver(
-      *mGuiAnchor, mSolarSystem->getObserver(), simulationTime, false);
+  auto guiScale = mSolarSystem->getScaleBasedOnObserverDistance(
+      object, mPosition, pScaleDistance.get(), mSettings->mGraphics.pWorldUIScale.get());
+  auto guiRotation = mSolarSystem->getRotationToObserver(object, mPosition, false);
+
+  auto guiTransform = object->getObserverRelativeTransform(mPosition, guiRotation, guiScale);
+
+  mGuiAnchor->SetTransform(glm::value_ptr(guiTransform), true);
+
+  auto planeTransform = object->getObserverRelativeTransform(mPosition);
+  mPlaneAnchor->SetTransform(glm::value_ptr(planeTransform), true);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -389,6 +351,7 @@ bool DipStrikeTool::Do() {
 
   // enable alpha blending for smooth line
   glEnable(GL_BLEND);
+  glDisable(GL_CULL_FACE);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
   std::array<GLfloat, 16> glMatMV{};

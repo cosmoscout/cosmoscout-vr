@@ -68,12 +68,11 @@ void main()
 
 Mark::Mark(std::shared_ptr<InputManager> pInputManager, std::shared_ptr<SolarSystem> pSolarSystem,
     std::shared_ptr<Settings> settings, std::string const& objectName)
-    : mInputManager(std::move(pInputManager))
+    : Tool(objectName)
+    , mInputManager(std::move(pInputManager))
     , mSolarSystem(std::move(pSolarSystem))
     , mSettings(std::move(settings))
-    , mObject(mSolarSystem->getObject(objectName))
     , mPosition(0.0, 0.0, 0.0)
-    , mRotation(1.0, 0.0, 0.0, 0.0)
     , mVAO(std::make_unique<VistaVertexArrayObject>())
     , mVBO(std::make_unique<VistaBufferObject>())
     , mIBO(std::make_unique<VistaBufferObject>())
@@ -95,7 +94,7 @@ Mark::Mark(Mark const& other)
     , mInputManager(other.mInputManager)
     , mSolarSystem(other.mSolarSystem)
     , mSettings(other.mSettings)
-    , mObject(other.mObject)
+    , mPosition(other.mPosition)
     , mVAO(std::make_unique<VistaVertexArrayObject>())
     , mVBO(std::make_unique<VistaBufferObject>())
     , mIBO(std::make_unique<VistaBufferObject>())
@@ -117,18 +116,35 @@ Mark::~Mark() {
   mInputManager->pHoveredGuiItem = nullptr;
 
   if (mParent) {
-    mInputManager->unregisterSelectable(mParent);
-    delete mParent;
+    mInputManager->unregisterSelectable(mParent.get());
   }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Mark::update() {
-  mScale = mSolarSystem->getScaleBasedOnObserverDistance(
-      mObject, mPosition, pScaleDistance.get(), mSettings->mGraphics.pWorldUIScale.get());
+glm::dvec3 const& Mark::getPosition() const {
+  return mPosition;
+}
 
-  mRotation = mSolarSystem->getRotationToObserver(mObject, mPosition, false);
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Mark::update() {
+
+  auto object = mSolarSystem->getObject(getObjectName());
+
+  // This seems to be the first time the tool is moved, so we have to store the distance to the
+  // observer so that we can scale the tool later based on the observer's position.
+  if (pScaleDistance.get() < 0) {
+    pScaleDistance = mSolarSystem->getObserver().getScale() *
+                     glm::length(object->getObserverRelativePosition(mPosition));
+  }
+
+  auto scale = mSolarSystem->getScaleBasedOnObserverDistance(
+      object, mPosition, pScaleDistance.get(), mSettings->mGraphics.pWorldUIScale.get());
+  auto rotation  = mSolarSystem->getRotationToObserver(object, mPosition, true);
+  auto transform = object->getObserverRelativeTransform(mPosition, rotation, scale);
+
+  mTransform->SetTransform(glm::value_ptr(transform), true);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -147,7 +163,10 @@ bool Mark::Do() {
       pSelected.get() ? 1.F : 0.F, pActive.get() ? 1.F : 0.F);
   mShader->SetUniform(mUniforms.color, pColor.get().x, pColor.get().y, pColor.get().z);
 
+  glDisable(GL_CULL_FACE);
   glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(mIndexCount), GL_UNSIGNED_INT, nullptr);
+  glEnable(GL_CULL_FACE);
+
   mVAO->Release();
   mShader->Release();
 
@@ -181,12 +200,12 @@ void Mark::initData() {
 
   auto* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
 
-  mTransform = pSG->NewTransformNode(pSG->GetRoot());
-  mParent    = pSG->NewOpenGLNode(mTransform, this);
-  mInputManager->registerSelectable(mParent);
+  mTransform.reset(pSG->NewTransformNode(pSG->GetRoot()));
+  mParent.reset(pSG->NewOpenGLNode(mTransform.get(), this));
+  mInputManager->registerSelectable(mParent.get());
 
   VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
-      mTransform, static_cast<int>(cs::utils::DrawOrder::eOpaqueNonHDR));
+      mTransform.get(), static_cast<int>(cs::utils::DrawOrder::eOpaqueNonHDR));
 
   const std::array<glm::vec3, 26> POSITIONS = {glm::vec3(1, -1, 1), glm::vec3(-1, -1, -1),
       glm::vec3(1, -1, -1), glm::vec3(-1, 1, -1), glm::vec3(1, 1, 1), glm::vec3(1, 1, -1),
@@ -251,17 +270,17 @@ void Mark::initData() {
 
   // update hover state
   mHoveredNodeConnection = mInputManager->pHoveredNode.connect([this](IVistaNode* node) {
-    if (node == mParent && !pHovered.get()) {
+    if (node == mParent.get() && !pHovered.get()) {
       pHovered = true;
       cs::core::GuiManager::setCursor(cs::gui::Cursor::eHand);
-    } else if (node != mParent && pHovered.get()) {
+    } else if (node != mParent.get() && pHovered.get()) {
       pHovered = false;
       cs::core::GuiManager::setCursor(cs::gui::Cursor::ePointer);
     }
   });
 
   mSelectedNodeConnection = mInputManager->pSelectedNode.connect(
-      [this](IVistaNode* node) { pSelected = (node == mParent); });
+      [this](IVistaNode* node) { pSelected = (node == mParent.get()); });
 
   mButtonsConnection = mInputManager->pButtons[0].connect(
       [this](bool press) { pActive = (press && pHovered.get()); });
@@ -269,8 +288,9 @@ void Mark::initData() {
   mHoveredPlanetConnection =
       mInputManager->pHoveredObject.connect([this](InputManager::Intersection const& i) {
         if (pActive.get() && i.mObject) {
-          if (i.mObject == mObject) {
-            auto radii = mObject->getRadii();
+          auto object = mSolarSystem->getObject(getObjectName());
+          if (i.mObject == object) {
+            auto radii = object->getRadii();
             pLngLat    = cs::utils::convert::cartesianToLngLat(i.mPosition, radii);
           }
         }
@@ -279,9 +299,10 @@ void Mark::initData() {
   // update position
   mSelfLngLatConnection = pLngLat.connect([this](glm::dvec2 const& lngLat) {
     // Request the height under the Mark and add it
-    auto   surface = mObject->getSurface();
+    auto   object  = mSolarSystem->getObject(getObjectName());
+    auto   surface = object->getSurface();
     double height  = surface ? surface->getHeight(lngLat) : 0.0;
-    auto   radii   = mObject->getRadii();
+    auto   radii   = object->getRadii();
     mPosition      = cs::utils::convert::toCartesian(
         lngLat, radii, height * mSettings->mGraphics.pHeightScale.get());
   });
@@ -289,9 +310,10 @@ void Mark::initData() {
   // connect the heightscale value to this object. Whenever the heightscale value changes
   // the landmark will be set to the correct height value
   mHeightScaleConnection = mSettings->mGraphics.pHeightScale.connect([this](float h) {
-    auto   surface = mObject->getSurface();
+    auto   object  = mSolarSystem->getObject(getObjectName());
+    auto   surface = object->getSurface();
     double height  = surface ? surface->getHeight(pLngLat.get()) * h : 0.0;
-    auto   radii   = mObject->getRadii();
+    auto   radii   = object->getRadii();
     mPosition      = cs::utils::convert::toCartesian(pLngLat.get(), radii, height);
   });
 }

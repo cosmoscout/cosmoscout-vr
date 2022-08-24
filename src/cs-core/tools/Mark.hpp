@@ -60,6 +60,8 @@ class CS_CORE_EXPORT Mark : public IVistaOpenGLDraw, public Tool {
 
   ~Mark() override;
 
+  glm::dvec3 const& getPosition() const;
+
   /// Called from Tools class.
   void update() override;
 
@@ -72,15 +74,13 @@ class CS_CORE_EXPORT Mark : public IVistaOpenGLDraw, public Tool {
   std::shared_ptr<SolarSystem>  mSolarSystem;
   std::shared_ptr<Settings>     mSettings;
 
-  std::shared_ptr<const scene::CelestialObject> mObject;
-  VistaTransformNode*                           mTransform = nullptr;
-  VistaOpenGLNode*                              mParent    = nullptr;
+  std::unique_ptr<VistaTransformNode> mTransform;
+  std::unique_ptr<VistaOpenGLNode>    mParent;
 
  private:
   void initData();
 
   glm::dvec3 mPosition;
-  glm::dquat mRotation;
   double     mScale{1.0};
 
   std::unique_ptr<VistaVertexArrayObject> mVAO;

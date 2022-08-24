@@ -50,7 +50,7 @@ DeletableMark::~DeletableMark() {
 void DeletableMark::initData() {
   auto* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
 
-  auto* pGuiTransform = pSG->NewTransformNode(mTransform);
+  auto* pGuiTransform = pSG->NewTransformNode(mTransform.get());
 
   pGuiTransform->Translate(0.F, 0.75F, 0.F);
 

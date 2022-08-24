@@ -12,12 +12,12 @@
 #include "../../../src/cs-core/InputManager.hpp"
 #include "../../../src/cs-core/Settings.hpp"
 #include "../../../src/cs-core/SolarSystem.hpp"
-#include "../../../src/cs-core/TimeControl.hpp"
-#include "../../../src/cs-scene/CelestialAnchorNode.hpp"
+#include "../../../src/cs-scene/CelestialSurface.hpp"
 #include "../../../src/cs-utils/convert.hpp"
 
 #include <VistaKernel/GraphicsManager/VistaOpenGLNode.h>
 #include <VistaKernel/GraphicsManager/VistaSceneGraph.h>
+#include <VistaKernel/GraphicsManager/VistaTransformNode.h>
 #include <VistaKernel/VistaSystem.h>
 #include <VistaKernelOpenSGExt/VistaOpenSGMaterialTools.h>
 
@@ -27,16 +27,14 @@ namespace csp::measurementtools {
 
 FlagTool::FlagTool(std::shared_ptr<cs::core::InputManager> const& pInputManager,
     std::shared_ptr<cs::core::SolarSystem> const&                 pSolarSystem,
-    std::shared_ptr<cs::core::Settings> const&                    settings,
-    std::shared_ptr<cs::core::TimeControl> const& pTimeControl, std::string const& sCenter,
-    std::string const& sFrame)
-    : Mark(pInputManager, pSolarSystem, settings, pTimeControl, sCenter, sFrame)
+    std::shared_ptr<cs::core::Settings> const& settings, std::string const& objectName)
+    : Mark(pInputManager, pSolarSystem, settings, objectName)
     , mGuiArea(std::make_unique<cs::gui::WorldSpaceGuiArea>(600, 400))
     , mGuiItem(std::make_unique<cs::gui::GuiItem>(
           "file://{toolZoom}../share/resources/gui/flag.html", true)) {
   auto* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
 
-  mGuiTransform.reset(pSG->NewTransformNode(mAnchor.get()));
+  mGuiTransform.reset(pSG->NewTransformNode(mTransform.get()));
   mGuiTransform->Translate(0.5F, 0.5F, 0.F);
   mGuiTransform->Scale(0.0005F * static_cast<float>(mGuiArea->getWidth()),
       0.0005F * static_cast<float>(mGuiArea->getHeight()), 1.F);
@@ -70,9 +68,9 @@ FlagTool::FlagTool(std::shared_ptr<cs::core::InputManager> const& pInputManager,
 
   // Update position.
   pLngLat.connect([this](glm::dvec2 const& lngLat) {
-    auto body = mSolarSystem->getBody(mAnchor->getCenterName());
-    if (body) {
-      double h = body->getHeight(lngLat);
+    auto object = mSolarSystem->getObject(getObjectName());
+    if (object) {
+      double h = object->getSurface() ? object->getSurface()->getHeight(lngLat) : 0.0;
       mGuiItem->callJavascript("setPosition", cs::utils::convert::toDegrees(lngLat.x),
           cs::utils::convert::toDegrees(lngLat.y), h);
     }
@@ -89,7 +87,7 @@ FlagTool::FlagTool(std::shared_ptr<cs::core::InputManager> const& pInputManager,
 
   mGuiItem->registerCallback("minimizeMe", "Call this to minimize the flag.",
       std::function([this]() { pMinimized = true; }));
-  mGuiItem->callJavascript("setActivePlanet", sCenter);
+  mGuiItem->callJavascript("setActivePlanet", objectName);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -103,30 +101,6 @@ FlagTool::~FlagTool() {
   mGuiItem->unregisterCallback("minimizeMe");
   mGuiItem->unregisterCallback("deleteMe");
   mGuiItem->unregisterCallback("onSetText");
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void FlagTool::update() {
-  // This seems to be the first time the tool is updated, so we have to store the distance to the
-  // observer so that we can scale the tool later based on the observer's position.
-  if (pScaleDistance.get() < 0) {
-    try {
-      pScaleDistance = mSolarSystem->getObserver().getScale() *
-                       glm::length(mSolarSystem->getObserver().getRelativePosition(
-                           mTimeControl->pSimulationTime.get(), *mAnchor));
-    } catch (std::exception const& e) {
-      // Getting the relative transformation may fail due to insufficient SPICE data.
-      logger().warn("Failed to calculate scale distance of Flag Tool: {}", e.what());
-    }
-  }
-
-  double simulationTime(mTimeControl->pSimulationTime.get());
-
-  cs::core::SolarSystem::scaleRelativeToObserver(*mAnchor, mSolarSystem->getObserver(),
-      simulationTime, pScaleDistance.get(), mSettings->mGraphics.pWorldUIScale.get());
-  cs::core::SolarSystem::turnToObserver(
-      *mAnchor, mSolarSystem->getObserver(), simulationTime, true);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
