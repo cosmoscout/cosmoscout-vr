@@ -7,6 +7,7 @@
 #include "../../../src/cs-core/SolarSystem.hpp"
 #include "../../../src/cs-core/TimeControl.hpp"
 #include "../../../src/cs-graphics/TextureLoader.hpp"
+#include "../../../src/cs-scene/IntersectableObject.hpp"
 #include "../../../src/cs-utils/FrameTimings.hpp"
 #include "../../../src/cs-utils/utils.hpp"
 
@@ -37,23 +38,22 @@ namespace csp::wmsoverlays {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-TextureOverlayRenderer::TextureOverlayRenderer(std::string center,
+TextureOverlayRenderer::TextureOverlayRenderer(std::string objectName,
     std::shared_ptr<cs::core::SolarSystem>                 solarSystem,
     std::shared_ptr<cs::core::TimeControl>                 timeControl,
     std::shared_ptr<cs::core::Settings> settings, std::shared_ptr<Plugin::Settings> pluginSettings)
     : mSettings(std::move(settings))
     , mPluginSettings(std::move(pluginSettings))
-    , mCenterName(std::move(center))
+    , mObjectName(std::move(objectName))
     , mWMSTexture(GL_TEXTURE_2D)
     , mSecondWMSTexture(GL_TEXTURE_2D)
     , mSolarSystem(std::move(solarSystem))
-    , mTimeControl(std::move(timeControl))
-    , mMinBounds({static_cast<float>(-mSolarSystem->getRadii(mCenterName)[0]),
-          static_cast<float>(-mSolarSystem->getRadii(mCenterName)[1]),
-          static_cast<float>(-mSolarSystem->getRadii(mCenterName)[2])})
-    , mMaxBounds({static_cast<float>(mSolarSystem->getRadii(mCenterName)[0]),
-          static_cast<float>(mSolarSystem->getRadii(mCenterName)[1]),
-          static_cast<float>(mSolarSystem->getRadii(mCenterName)[2])}) {
+    , mTimeControl(std::move(timeControl)) {
+
+  auto object = mSolarSystem->getObject(mObjectName);
+  mMinBounds  = -object->getRadii();
+  mMaxBounds  = object->getRadii();
+
   // create textures ---------------------------------------------------------
   for (auto const& viewport : GetVistaSystem()->GetDisplayManager()->GetViewports()) {
     // Texture for previous renderer depth buffer
@@ -123,8 +123,8 @@ TextureOverlayRenderer::~TextureOverlayRenderer() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::string const& TextureOverlayRenderer::getCenter() const {
-  return mCenterName;
+std::string const& TextureOverlayRenderer::getObjectName() const {
+  return mObjectName;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -208,23 +208,22 @@ void TextureOverlayRenderer::updateLonLatRange() {
   projectionProperties->GetProjPlaneExtents(left, right, bottom, top);
 
   // Get the intersections of the camera rays at the corners of the screen with the body.
+  auto object        = mSolarSystem->getObject(mObjectName);
+  auto intersectable = object->getIntersectableObject();
+
+  if (!intersectable) {
+    return;
+  }
+
   std::array<std::pair<bool, glm::dvec3>, 4> intersections;
-  intersections[0].first =
-      mSolarSystem->getBody(mCenterName)
-          ->getIntersection(glm::dvec3(0, 0, 0), glm::normalize(glm::dvec3(left, top, posZ)),
-              intersections[0].second);
-  intersections[1].first =
-      mSolarSystem->getBody(mCenterName)
-          ->getIntersection(glm::dvec3(0, 0, 0), glm::normalize(glm::dvec3(left, bottom, posZ)),
-              intersections[1].second);
-  intersections[2].first =
-      mSolarSystem->getBody(mCenterName)
-          ->getIntersection(glm::dvec3(0, 0, 0), glm::normalize(glm::dvec3(right, bottom, posZ)),
-              intersections[2].second);
-  intersections[3].first =
-      mSolarSystem->getBody(mCenterName)
-          ->getIntersection(glm::dvec3(0, 0, 0), glm::normalize(glm::dvec3(right, top, posZ)),
-              intersections[3].second);
+  intersections[0].first = intersectable->getIntersection(
+      glm::dvec3(0, 0, 0), glm::normalize(glm::dvec3(left, top, posZ)), intersections[0].second);
+  intersections[1].first = intersectable->getIntersection(
+      glm::dvec3(0, 0, 0), glm::normalize(glm::dvec3(left, bottom, posZ)), intersections[1].second);
+  intersections[2].first = intersectable->getIntersection(glm::dvec3(0, 0, 0),
+      glm::normalize(glm::dvec3(right, bottom, posZ)), intersections[2].second);
+  intersections[3].first = intersectable->getIntersection(
+      glm::dvec3(0, 0, 0), glm::normalize(glm::dvec3(right, top, posZ)), intersections[3].second);
 
   if (!std::all_of(intersections.begin(), intersections.end(),
           [](auto intersection) { return intersection.first; })) {
@@ -236,7 +235,7 @@ void TextureOverlayRenderer::updateLonLatRange() {
     // The intersection points can be converted to longitude and latitude.
     Bounds currentBounds;
 
-    glm::dvec3                radii = mSolarSystem->getRadii(mCenterName);
+    glm::dvec3                radii = object->getRadii();
     std::array<glm::dvec2, 4> screenBounds{};
     for (int i = 0; i < 4; i++) {
       screenBounds[i] = cs::utils::convert::cartesianToLngLat(intersections[i].second, radii);
@@ -397,9 +396,9 @@ bool TextureOverlayRenderer::Do() {
     mShaderDirty = false;
   }
 
-  if (mSolarSystem->pActiveBody.get() == nullptr ||
-      mSolarSystem->pActiveBody.get()->getCenterName() != mCenterName || !mActiveWMS.has_value() ||
-      !mActiveWMSLayer.has_value()) {
+  if (mSolarSystem->pActiveObject.get() == nullptr ||
+      mSolarSystem->pActiveObject != mSolarSystem->getObject(mObjectName) ||
+      !mActiveWMS.has_value() || !mActiveWMSLayer.has_value()) {
     return false;
   }
 
@@ -546,10 +545,11 @@ bool TextureOverlayRenderer::Do() {
   glGetFloatv(GL_PROJECTION_MATRIX, glMatP.data());
   glGetFloatv(GL_MODELVIEW_MATRIX, glMatMV.data());
 
-  auto       activeBody        = mSolarSystem->pActiveBody.get();
-  glm::dmat4 matWorldTransform = activeBody->getWorldTransform();
+  auto object    = mSolarSystem->getObject(mObjectName);
+  auto radii     = object->getRadii();
+  auto transform = object->getObserverRelativeTransform();
 
-  VistaTransformMatrix matM(glm::value_ptr(matWorldTransform), true);
+  VistaTransformMatrix matM(glm::value_ptr(transform), true);
   VistaTransformMatrix matMV(matM);
   VistaTransformMatrix matInvMV(matMV.GetInverted());
   VistaTransformMatrix matInvP(VistaTransformMatrix(glMatP.data(), true).GetInverted());
@@ -593,26 +593,25 @@ bool TextureOverlayRenderer::Do() {
   float     sunIlluminance(1.F);
   float     ambientBrightness(mSettings->mGraphics.pAmbientBrightness.get());
 
-  if (getCenter() == "Sun") {
+  if (object == mSolarSystem->getSun()) {
     // If the overlay is on the sun, we have to calculate the lighting differently.
     if (mSettings->mGraphics.pEnableHDR.get()) {
-      double sceneScale = 1.0 / mSolarSystem->getObserver().getScale();
-      sunIlluminance =
-          static_cast<float>(mSolarSystem->pSunLuminousPower.get() /
-                             (sceneScale * sceneScale * mSolarSystem->getRadii(getCenter())[0] *
-                                 mSolarSystem->getRadii(getCenter())[0] * 4.0 * glm::pi<double>()));
+      // The variable is called illuminance, for the sun it contains actually luminance values.
+      sunIlluminance = static_cast<float>(mSolarSystem->getSunLuminance());
+
+      // For planets, this illuminance is divided by pi, so we have to premultiply it for the sun.
+      sunIlluminance *= glm::pi<float>();
     }
 
     ambientBrightness = 1.0F;
   } else {
     // For all other bodies we can use the utility methods from the SolarSystem.
     if (mSettings->mGraphics.pEnableHDR.get()) {
-      sunIlluminance = static_cast<float>(mSolarSystem->getSunIlluminance(matWorldTransform[3]));
+      sunIlluminance = static_cast<float>(mSolarSystem->getSunIlluminance(transform[3]));
     }
 
-    sunDirection =
-        glm::normalize(glm::inverse(matWorldTransform) *
-                       (mSolarSystem->getSun()->getWorldTransform()[3] - matWorldTransform[3]));
+    sunDirection = glm::normalize(
+        glm::inverse(transform) * glm::dvec4(mSolarSystem->getSunDirection(transform[3]), 0.0));
   }
 
   mShader.SetUniform(mShader.GetUniformLocation("uSunDirection"), sunDirection[0], sunDirection[1],
@@ -621,9 +620,8 @@ bool TextureOverlayRenderer::Do() {
   mShader.SetUniform(mShader.GetUniformLocation("uAmbientBrightness"), ambientBrightness);
 
   // provide radii to shader
-  auto mRadii = cs::core::SolarSystem::getRadii(mSolarSystem->pActiveBody.get()->getCenterName());
-  mShader.SetUniform(mShader.GetUniformLocation("uRadii"), static_cast<float>(mRadii[0]),
-      static_cast<float>(mRadii[1]), static_cast<float>(mRadii[2]));
+  mShader.SetUniform(mShader.GetUniformLocation("uRadii"), static_cast<float>(radii[0]),
+      static_cast<float>(radii[1]), static_cast<float>(radii[2]));
 
   int depthBits = 0;
   glGetIntegerv(GL_DEPTH_BITS, &depthBits);
@@ -652,7 +650,7 @@ bool TextureOverlayRenderer::Do() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool TextureOverlayRenderer::GetBoundingBox(VistaBoundingBox& oBoundingBox) {
-  oBoundingBox.SetBounds(mMinBounds.data(), mMaxBounds.data());
+  oBoundingBox.SetBounds(glm::value_ptr(mMinBounds), glm::value_ptr(mMaxBounds));
   return true;
 }
 

@@ -116,12 +116,12 @@ void Plugin::init() {
 
   // Recalculate map scale if the texture resolution is changed.
   mPluginSettings->mMaxTextureSize.connect([this](int value) {
-    if (!mActiveOverlay || !mActiveLayers[mActiveOverlay->getCenter()]) {
+    if (!mActiveOverlay || !mActiveLayers[mActiveOverlay->getObjectName()]) {
       return;
     }
 
-    checkScale(
-        mActiveOverlay->pBounds.get(), mActiveLayers[mActiveOverlay->getCenter()].value(), value);
+    checkScale(mActiveOverlay->pBounds.get(),
+        mActiveLayers[mActiveOverlay->getObjectName()].value(), value);
   });
 
   mGuiManager->getGui()->registerCallback(
@@ -136,23 +136,24 @@ void Plugin::init() {
   mGuiManager->getGui()->registerCallback("wmsOverlays.resetBounds",
       "Resets the bounds for map requests to the current layer's default bounds.",
       std::function([this]() {
-        if (!mActiveOverlay || !mActiveLayers[mActiveOverlay->getCenter()]) {
+        if (!mActiveOverlay || !mActiveLayers[mActiveOverlay->getObjectName()]) {
           return;
         }
 
-        mActiveOverlay->pBounds = mActiveLayers[mActiveOverlay->getCenter()]->getSettings().mBounds;
+        mActiveOverlay->pBounds =
+            mActiveLayers[mActiveOverlay->getObjectName()]->getSettings().mBounds;
       }));
 
   mGuiManager->getGui()->registerCallback("wmsOverlays.goToDefaultBounds",
       "Fly the observer to a position from which most of the current layer's default bounds is "
       "visible.",
       std::function([this]() {
-        if (!mActiveOverlay || !mActiveLayers[mActiveOverlay->getCenter()]) {
+        if (!mActiveOverlay || !mActiveLayers[mActiveOverlay->getObjectName()]) {
           return;
         }
 
         WebMapLayer::Settings layerSettings =
-            mActiveLayers[mActiveOverlay->getCenter()]->getSettings();
+            mActiveLayers[mActiveOverlay->getObjectName()]->getSettings();
         goToBounds(layerSettings.mBounds);
       }));
 
@@ -205,7 +206,7 @@ void Plugin::init() {
   mGuiManager->getGui()->registerCallback("wmsOverlays.setLayer",
       "Set the current planet's WMS layer to the one with the given name.",
       std::function([this](std::string&& name) {
-        if (!mActiveOverlay || !mActiveServers[mActiveOverlay->getCenter()]) {
+        if (!mActiveOverlay || !mActiveServers[mActiveOverlay->getObjectName()]) {
           return;
         }
 
@@ -215,7 +216,7 @@ void Plugin::init() {
 
   mGuiManager->getGui()->registerCallback("wmsOverlays.setStyle",
       "Sets the style for the currently selected layer.", std::function([this](std::string&& name) {
-        if (!mActiveOverlay || !mActiveLayers[mActiveOverlay->getCenter()]) {
+        if (!mActiveOverlay || !mActiveLayers[mActiveOverlay->getObjectName()]) {
           return;
         }
 
@@ -225,14 +226,14 @@ void Plugin::init() {
 
   mGuiManager->getGui()->registerCallback(
       "wmsOverlays.goToFirstTime", "Go to the first available timestep.", std::function([this]() {
-        if (!mActiveOverlay || !mActiveLayers[mActiveOverlay->getCenter()] ||
-            mActiveLayers[mActiveOverlay->getCenter()]->getSettings().mTimeIntervals.empty()) {
+        if (!mActiveOverlay || !mActiveLayers[mActiveOverlay->getObjectName()] ||
+            mActiveLayers[mActiveOverlay->getObjectName()]->getSettings().mTimeIntervals.empty()) {
           return;
         }
 
         mAllSettings->pTimeSpeed = 0.f;
         mTimeControl->setTime(
-            cs::utils::convert::time::toSpice(mActiveLayers[mActiveOverlay->getCenter()]
+            cs::utils::convert::time::toSpice(mActiveLayers[mActiveOverlay->getObjectName()]
                                                   ->getSettings()
                                                   .mTimeIntervals.front()
                                                   .mStartTime));
@@ -240,8 +241,8 @@ void Plugin::init() {
 
   mGuiManager->getGui()->registerCallback("wmsOverlays.goToPreviousTime",
       "Go to the previous available timestep.", std::function([this]() {
-        if (!mActiveOverlay || !mActiveLayers[mActiveOverlay->getCenter()] ||
-            mActiveLayers[mActiveOverlay->getCenter()]->getSettings().mTimeIntervals.empty()) {
+        if (!mActiveOverlay || !mActiveLayers[mActiveOverlay->getObjectName()] ||
+            mActiveLayers[mActiveOverlay->getObjectName()]->getSettings().mTimeIntervals.empty()) {
           return;
         }
 
@@ -251,7 +252,7 @@ void Plugin::init() {
             cs::utils::convert::time::toPosix(mTimeControl->pSimulationTime.get());
 
         std::vector<TimeInterval> intervals =
-            mActiveLayers[mActiveOverlay->getCenter()]->getSettings().mTimeIntervals;
+            mActiveLayers[mActiveOverlay->getObjectName()]->getSettings().mTimeIntervals;
 
         // Check if current time is in any interval
         TimeInterval             result;
@@ -299,8 +300,8 @@ void Plugin::init() {
 
   mGuiManager->getGui()->registerCallback(
       "wmsOverlays.goToNextTime", "Go to the next available timestep.", std::function([this]() {
-        if (!mActiveOverlay || !mActiveLayers[mActiveOverlay->getCenter()] ||
-            mActiveLayers[mActiveOverlay->getCenter()]->getSettings().mTimeIntervals.empty()) {
+        if (!mActiveOverlay || !mActiveLayers[mActiveOverlay->getObjectName()] ||
+            mActiveLayers[mActiveOverlay->getObjectName()]->getSettings().mTimeIntervals.empty()) {
           return;
         }
 
@@ -310,7 +311,7 @@ void Plugin::init() {
             cs::utils::convert::time::toPosix(mTimeControl->pSimulationTime.get());
 
         std::vector<TimeInterval> intervals =
-            mActiveLayers[mActiveOverlay->getCenter()]->getSettings().mTimeIntervals;
+            mActiveLayers[mActiveOverlay->getObjectName()]->getSettings().mTimeIntervals;
 
         // Check if current time is in any interval
         TimeInterval             result;
@@ -348,27 +349,27 @@ void Plugin::init() {
 
   mGuiManager->getGui()->registerCallback(
       "wmsOverlays.goToLastTime", "Go to the last available timestep.", std::function([this]() {
-        if (!mActiveOverlay || !mActiveLayers[mActiveOverlay->getCenter()] ||
-            mActiveLayers[mActiveOverlay->getCenter()]->getSettings().mTimeIntervals.empty()) {
+        if (!mActiveOverlay || !mActiveLayers[mActiveOverlay->getObjectName()] ||
+            mActiveLayers[mActiveOverlay->getObjectName()]->getSettings().mTimeIntervals.empty()) {
           return;
         }
 
         mAllSettings->pTimeSpeed = 0.f;
         mTimeControl->setTime(
-            cs::utils::convert::time::toSpice(mActiveLayers[mActiveOverlay->getCenter()]
+            cs::utils::convert::time::toSpice(mActiveLayers[mActiveOverlay->getObjectName()]
                                                   ->getSettings()
                                                   .mTimeIntervals.back()
                                                   .mEndTime));
       }));
 
   // Fill the dropdowns with information for the active body.
-  mActiveBodyConnection = mSolarSystem->pActiveBody.connectAndTouch(
-      [this](std::shared_ptr<cs::scene::CelestialBody> const& body) {
-        if (!body) {
+  mActiveObjectConnection = mSolarSystem->pActiveObject.connectAndTouch(
+      [this](std::shared_ptr<const cs::scene::CelestialObject> const& object) {
+        if (!object) {
           return;
         }
 
-        auto overlay = mWMSOverlays.find(body->getCenterName());
+        auto overlay = mWMSOverlays.find(object->getCenterName());
 
         mGuiManager->getGui()->callJavascript(
             "CosmoScout.sidebar.setTabEnabled", "WMS Overlays", overlay != mWMSOverlays.end());
@@ -386,7 +387,7 @@ void Plugin::init() {
 
         auto const& settings   = getBodySettings(overlay->second);
         bool        noneActive = true;
-        for (auto const& server : mWms[body->getCenterName()]) {
+        for (auto const& server : mWms[object->getCenterName()]) {
           bool active = server.getTitle() == settings.mActiveServer.get();
           mGuiManager->getGui()->callJavascript("CosmoScout.gui.addDropdownValue",
               "wmsOverlays.setServer", server.getTitle(), server.getTitle(), active);
@@ -423,7 +424,7 @@ void Plugin::init() {
 void Plugin::deInit() {
   logger().info("Unloading plugin...");
 
-  mSolarSystem->pActiveBody.disconnect(mActiveBodyConnection);
+  mSolarSystem->pActiveObject.disconnect(mActiveObjectConnection);
   mSolarSystem->pCurrentObserverSpeed.disconnect(mObserverSpeedConnection);
 
   mGuiManager->removePluginTab("WMS Overlays");
@@ -529,13 +530,6 @@ void Plugin::onLoad() {
       continue;
     }
 
-    auto anchor = mAllSettings->mAnchors.find(settings.first);
-
-    if (anchor == mAllSettings->mAnchors.end()) {
-      throw std::runtime_error(
-          "There is no Anchor \"" + settings.first + "\" defined in the settings.");
-    }
-
     auto wmsOverlay = std::make_shared<TextureOverlayRenderer>(
         settings.first, mSolarSystem, mTimeControl, mAllSettings, mPluginSettings);
 
@@ -557,14 +551,14 @@ void Plugin::onLoad() {
     }
   }
 
-  mSolarSystem->pActiveBody.touch(mActiveBodyConnection);
+  mSolarSystem->pActiveObject.touch(mActiveObjectConnection);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Plugin::Settings::Body& Plugin::getBodySettings(
     std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay) const {
-  return mPluginSettings->mBodies.at(wmsOverlay->getCenter());
+  return mPluginSettings->mBodies.at(wmsOverlay->getObjectName());
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -586,17 +580,17 @@ void Plugin::initOverlay(std::string const& bodyName, Settings::Body& settings) 
       mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.setCurrentBounds",
           bounds.mMinLon, bounds.mMaxLon, bounds.mMinLat, bounds.mMaxLat);
 
-      if (!mActiveLayers[mActiveOverlay->getCenter()]) {
+      if (!mActiveLayers[mActiveOverlay->getObjectName()]) {
         return;
       }
-      checkScale(bounds, mActiveLayers[mActiveOverlay->getCenter()].value(),
+      checkScale(bounds, mActiveLayers[mActiveOverlay->getObjectName()].value(),
           mPluginSettings->mMaxTextureSize.get());
     }
   });
 
-  if (mSolarSystem->pActiveBody.get() &&
-      isActiveOverlay(mSolarSystem->pActiveBody.get()->getCenterName())) {
-    mSolarSystem->pActiveBody.touch(mActiveBodyConnection);
+  if (mSolarSystem->pActiveObject.get() &&
+      isActiveOverlay(mSolarSystem->pActiveObject.get()->getCenterName())) {
+    mSolarSystem->pActiveObject.touch(mActiveObjectConnection);
   }
 }
 
@@ -605,11 +599,11 @@ void Plugin::initOverlay(std::string const& bodyName, Settings::Body& settings) 
 void Plugin::setWMSServer(
     std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay, std::string const& name) {
   auto&       settings = getBodySettings(wmsOverlay);
-  auto const& server =
-      std::find_if(mWms.at(wmsOverlay->getCenter()).begin(), mWms.at(wmsOverlay->getCenter()).end(),
-          [&name](WebMapService const& wms) { return wms.getTitle() == name; });
+  auto const& server   = std::find_if(mWms.at(wmsOverlay->getObjectName()).begin(),
+      mWms.at(wmsOverlay->getObjectName()).end(),
+      [&name](WebMapService const& wms) { return wms.getTitle() == name; });
 
-  if (server == mWms.at(wmsOverlay->getCenter()).end()) {
+  if (server == mWms.at(wmsOverlay->getObjectName()).end()) {
     if (name != "None") {
       logger().warn("No server with name '{}' found!", name);
     }
@@ -618,7 +612,7 @@ void Plugin::setWMSServer(
   }
 
   settings.mActiveServer = name;
-  mActiveServers[wmsOverlay->getCenter()].emplace(*server);
+  mActiveServers[wmsOverlay->getObjectName()].emplace(*server);
 
   if (isActiveOverlay(wmsOverlay)) {
     mGuiManager->getGui()->callJavascript(
@@ -652,7 +646,7 @@ void Plugin::resetWMSServer(std::shared_ptr<TextureOverlayRenderer> const& wmsOv
 
   auto& settings = getBodySettings(wmsOverlay);
   settings.mActiveServer.reset();
-  mActiveServers[wmsOverlay->getCenter()].reset();
+  mActiveServers[wmsOverlay->getObjectName()].reset();
   resetWMSLayer(wmsOverlay);
 }
 
@@ -661,21 +655,21 @@ void Plugin::resetWMSServer(std::shared_ptr<TextureOverlayRenderer> const& wmsOv
 void Plugin::setWMSLayer(
     std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay, std::string const& name) {
   auto&                      settings = getBodySettings(wmsOverlay);
-  std::optional<WebMapLayer> layer    = mActiveServers[wmsOverlay->getCenter()]->getLayer(name);
+  std::optional<WebMapLayer> layer    = mActiveServers[wmsOverlay->getObjectName()]->getLayer(name);
 
   if (!layer.has_value()) {
     if (name != "None") {
       logger().warn("Can't set layer '{}': No such layer found for server '{}'", name,
-          mActiveServers[wmsOverlay->getCenter()]->getTitle());
+          mActiveServers[wmsOverlay->getObjectName()]->getTitle());
     }
     resetWMSLayer(wmsOverlay);
     return;
   }
 
   settings.mActiveLayer = name;
-  mActiveLayers[wmsOverlay->getCenter()].emplace(layer.value());
-  wmsOverlay->setActiveWMS(mActiveServers[wmsOverlay->getCenter()].value(),
-      mActiveLayers[wmsOverlay->getCenter()].value());
+  mActiveLayers[wmsOverlay->getObjectName()].emplace(layer.value());
+  wmsOverlay->setActiveWMS(mActiveServers[wmsOverlay->getObjectName()].value(),
+      mActiveLayers[wmsOverlay->getObjectName()].value());
 
   if (isActiveOverlay(wmsOverlay)) {
     mGuiManager->getGui()->callJavascript(
@@ -745,7 +739,7 @@ void Plugin::resetWMSLayer(std::shared_ptr<TextureOverlayRenderer> const& wmsOve
 
   auto& settings = getBodySettings(wmsOverlay);
   settings.mActiveLayer.reset();
-  mActiveLayers[wmsOverlay->getCenter()].reset();
+  mActiveLayers[wmsOverlay->getObjectName()].reset();
   wmsOverlay->clearActiveWMS();
   resetWMSStyle(wmsOverlay);
 }
@@ -755,7 +749,7 @@ void Plugin::resetWMSLayer(std::shared_ptr<TextureOverlayRenderer> const& wmsOve
 void Plugin::setWMSStyle(
     std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay, std::string const& name) {
   auto                  bodySettings  = getBodySettings(wmsOverlay);
-  WebMapLayer::Settings layerSettings = mActiveLayers[wmsOverlay->getCenter()]->getSettings();
+  WebMapLayer::Settings layerSettings = mActiveLayers[wmsOverlay->getObjectName()]->getSettings();
   auto const& style = std::find_if(layerSettings.mStyles.begin(), layerSettings.mStyles.end(),
       [&name](WebMapLayer::Style const& style) { return style.mName == name; });
 
@@ -791,13 +785,14 @@ void Plugin::resetWMSStyle(std::shared_ptr<TextureOverlayRenderer> const& wmsOve
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool Plugin::isActiveOverlay(std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay) {
-  return mActiveOverlay && wmsOverlay && wmsOverlay->getCenter() == mActiveOverlay->getCenter();
+  return mActiveOverlay && wmsOverlay &&
+         wmsOverlay->getObjectName() == mActiveOverlay->getObjectName();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool Plugin::isActiveOverlay(std::string const& center) {
-  return mActiveOverlay && center == mActiveOverlay->getCenter();
+  return mActiveOverlay && center == mActiveOverlay->getObjectName();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -838,7 +833,8 @@ void Plugin::goToBounds(Bounds const& bounds) {
   double fovx = 2.0 * atan(1.0 / proj[0][0]);
 
   // Rough approximation of the height, at which the whole bounds are in frame
-  double radius = mSolarSystem->getRadii(mActiveOverlay->getCenter())[0];
+  auto   object = mSolarSystem->getObject(mActiveOverlay->getObjectName());
+  double radius = object->getRadii()[0];
   double heighty =
       std::tan(cs::utils::convert::toRadians(latRange) / 2.) * radius / std::tan(fovy / 2.);
   double heightx =
@@ -846,8 +842,8 @@ void Plugin::goToBounds(Bounds const& bounds) {
   heightx -= radius * (1 - std::cos(cs::utils::convert::toRadians(lonRange) / 2.));
   heighty -= radius * (1 - std::cos(cs::utils::convert::toRadians(latRange) / 2.));
 
-  mSolarSystem->flyObserverTo(mSolarSystem->pActiveBody.get()->getCenterName(),
-      mSolarSystem->pActiveBody.get()->getFrameName(),
+  mSolarSystem->flyObserverTo(mSolarSystem->pActiveObject.get()->getCenterName(),
+      mSolarSystem->pActiveObject.get()->getFrameName(),
       cs::utils::convert::toRadians(glm::dvec2(lon, lat)), std::max(heighty, heightx), 5.);
 }
 
@@ -859,7 +855,8 @@ void Plugin::checkScale(Bounds const& bounds, WebMapLayer const& layer, int maxT
   }
   static constexpr double metersPerPixel = 0.00028;
 
-  double radius          = mSolarSystem->getRadii(mActiveOverlay->getCenter())[0];
+  auto   object          = mSolarSystem->getObject(mActiveOverlay->getObjectName());
+  double radius          = object->getRadii()[0];
   double metersPerDegree = (radius * 2. * glm::pi<double>()) / 360.;
 
   double lonRange, latRange;

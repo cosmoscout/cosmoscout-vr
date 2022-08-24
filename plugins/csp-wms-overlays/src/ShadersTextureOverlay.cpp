@@ -130,10 +130,10 @@ const std::string TextureOverlayRenderer::SURFACE_FRAG = R"(
                 vec3 result = color.rgb;
 
                 #ifdef ENABLE_HDR
-                    result = SRGBtoLINEAR(result);
+                    result = SRGBtoLINEAR(result) * uSunIlluminance / PI;
+                #else
+                    result = result * uSunIlluminance;
                 #endif
-
-                result = result * uSunIlluminance;
 
                 #ifdef ENABLE_LIGHTING
                     //Lighting using a normal calculated from partial derivative
