@@ -768,7 +768,7 @@
         }
       }
     },
-    "#csp-measurement-tools": {},
+    "csp-measurement-tools": {},
     "csp-simple-bodies": {
       "bodies": {
         "Sun": {
@@ -879,18 +879,6 @@
         "Charon": {
           "texture": "../share/resources/textures/charon.jpg",
           "primeMeridianInCenter": false
-        }
-      }
-    },
-    "#csp-wms-overlays": {
-      "maxTextureSize": 1024,
-      "preFetch": 1,
-      "bodies": {
-        "Earth": {
-          "wms": [
-            "https://maps.dwd.de/geoserver/dwd/wms",
-            "https://neo.sci.gsfc.nasa.gov/wms/wms"
-          ]
         }
       }
     },
