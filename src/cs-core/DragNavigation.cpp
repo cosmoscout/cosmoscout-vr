@@ -96,7 +96,8 @@ void DragNavigation::update() {
 
     auto pickedPlanet = mInputManager->pHoveredObject.get().mObject;
 
-    if (pickedPlanet) {
+    if (pickedPlanet &&
+        pickedPlanet->getCenterName() == mSolarSystem->getObserver().getCenterName()) {
       mStartIntersection = mInputManager->pHoveredObject.get().mPosition;
       mDraggingPlanet    = true;
     }
