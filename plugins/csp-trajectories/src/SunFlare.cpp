@@ -103,7 +103,7 @@ void main()
 
 SunFlare::SunFlare(std::shared_ptr<cs::core::Settings> settings,
     std::shared_ptr<Plugin::Settings>                  pluginSettings,
-    std::shared_ptr<cs::core::SolarSystem> solarSystem)
+    std::shared_ptr<cs::core::SolarSystem>             solarSystem)
     : mSettings(std::move(settings))
     , mPluginSettings(std::move(pluginSettings))
     , mSolarSystem(std::move(solarSystem)) {

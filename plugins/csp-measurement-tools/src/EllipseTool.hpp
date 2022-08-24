@@ -22,8 +22,7 @@ class EllipseTool : public IVistaOpenGLDraw, public cs::core::tools::Tool {
 
   EllipseTool(std::shared_ptr<cs::core::InputManager> const& pInputManager,
       std::shared_ptr<cs::core::SolarSystem> const&          pSolarSystem,
-      std::shared_ptr<cs::core::Settings> const&             settings,
-      std::string const& objectName);
+      std::shared_ptr<cs::core::Settings> const& settings, std::string const& objectName);
 
   EllipseTool(EllipseTool const& other) = delete;
   EllipseTool(EllipseTool&& other)      = delete;

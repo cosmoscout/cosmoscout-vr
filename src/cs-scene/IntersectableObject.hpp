@@ -26,6 +26,6 @@ class IntersectableObject {
       glm::dvec3 const& rayPos, glm::dvec3 const& rayDir, glm::dvec3& pos) const = 0;
 };
 
-} // namespace cs::utils
+} // namespace cs::scene
 
 #endif // CS_SCENE_INTERSECTABLE_OBJECT_HPP

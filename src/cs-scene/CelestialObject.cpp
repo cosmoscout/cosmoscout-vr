@@ -265,7 +265,8 @@ std::shared_ptr<IntersectableObject> const& CelestialObject::getIntersectableObj
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CelestialObject::setIntersectableObject(std::shared_ptr<IntersectableObject> const& object) const {
+void CelestialObject::setIntersectableObject(
+    std::shared_ptr<IntersectableObject> const& object) const {
   mIntersectable = object;
 }
 

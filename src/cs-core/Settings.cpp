@@ -98,7 +98,7 @@ void from_json(nlohmann::json const&                                            
   }
 }
 
-void to_json(nlohmann::json&                                                       j,
+void to_json(nlohmann::json&                                                             j,
     ObservableMap<std::string, std::shared_ptr<const cs::scene::CelestialObject>> const& o) {
 
   j.clear();

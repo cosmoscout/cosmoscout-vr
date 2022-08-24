@@ -22,8 +22,9 @@ namespace cs::scene {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 CelestialAnchor::CelestialAnchor(std::string sCenterName, std::string sFrameName)
-    :mPosition(0.0, 0.0, 0.0)
-    , mRotation(1.0, 0.0, 0.0, 0.0), mCenterName(std::move(sCenterName))
+    : mPosition(0.0, 0.0, 0.0)
+    , mRotation(1.0, 0.0, 0.0, 0.0)
+    , mCenterName(std::move(sCenterName))
     , mFrameName(std::move(sFrameName)) {
 }
 
@@ -146,8 +147,8 @@ double CelestialAnchor::getRelativeScale(CelestialAnchor const& other) const {
 
 glm::dmat4 CelestialAnchor::getRelativeTransform(double tTime, CelestialAnchor const& other) const {
   double     scale = getRelativeScale(other);
-  glm::dvec3 pos = getRelativePosition(tTime, other);
-  glm::dquat rot = getRelativeRotation(tTime, other);
+  glm::dvec3 pos   = getRelativePosition(tTime, other);
+  glm::dquat rot   = getRelativeRotation(tTime, other);
 
   double     angle = glm::angle(rot);
   glm::dvec3 axis  = glm::axis(rot);

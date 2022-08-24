@@ -29,8 +29,7 @@ class FlagTool : public cs::core::tools::Mark {
 
   FlagTool(std::shared_ptr<cs::core::InputManager> const& pInputManager,
       std::shared_ptr<cs::core::SolarSystem> const&       pSolarSystem,
-      std::shared_ptr<cs::core::Settings> const&          settings,
-     std::string const& objectName);
+      std::shared_ptr<cs::core::Settings> const& settings, std::string const& objectName);
 
   FlagTool(FlagTool const& other) = delete;
   FlagTool(FlagTool&& other)      = delete;

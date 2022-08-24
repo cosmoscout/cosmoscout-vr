@@ -25,7 +25,8 @@ namespace csp::sharad {
 /// Renders a single SHARAD image.
 class Sharad : public IVistaOpenGLDraw {
  public:
-  Sharad(std::shared_ptr<cs::core::Settings> settings, std::shared_ptr<cs::core::SolarSystem> solarSystem, std::string objectName,
+  Sharad(std::shared_ptr<cs::core::Settings> settings,
+      std::shared_ptr<cs::core::SolarSystem> solarSystem, std::string objectName,
       std::string const& sTiffFile, std::string const& sTabFile);
 
   Sharad(Sharad const& other) = delete;
@@ -62,9 +63,9 @@ class Sharad : public IVistaOpenGLDraw {
   static std::unique_ptr<VistaOpenGLNode>     mPreCallbackNode;
   static int                                  mInstanceCount;
 
-  std::shared_ptr<cs::core::Settings> mSettings;
-  std::shared_ptr<cs::core::SolarSystem>    mSolarSystem;
-  std::unique_ptr<VistaTexture>       mTexture;
+  std::shared_ptr<cs::core::Settings>    mSettings;
+  std::shared_ptr<cs::core::SolarSystem> mSolarSystem;
+  std::unique_ptr<VistaTexture>          mTexture;
 
   std::string mObjectName;
   double      mStartTime;
