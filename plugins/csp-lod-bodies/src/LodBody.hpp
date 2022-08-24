@@ -19,10 +19,6 @@
 
 #include <memory>
 
-namespace cs::scene {
-class CelestialAnchorNode;
-}
-
 namespace cs::core {
 class GraphicsEngine;
 class GuiManager;
