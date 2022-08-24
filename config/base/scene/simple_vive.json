@@ -325,14 +325,15 @@
       "Charon": {}
     }
   },
-  "anchors": {
+  "objects": {
     "Barycenter": {
       "center": "Solar System Barycenter",
       "frame": "J2000",
       "existence": [
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
-      ]
+      ],
+      "trackable": false
     },
     "Sun": {
       "center": "Sun",
@@ -348,7 +349,9 @@
       "existence": [
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
-      ]
+      ],
+      "bodyCullingRadius": 2.44e6,
+      "orbitCullingRadius": 58e9
     },
     "Venus": {
       "center": "Venus",
@@ -356,7 +359,9 @@
       "existence": [
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
-      ]
+      ],
+      "bodyCullingRadius": 6.05e6,
+      "orbitCullingRadius": 108e9
     },
     "Earth": {
       "center": "Earth",
@@ -364,7 +369,9 @@
       "existence": [
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
-      ]
+      ],
+      "bodyCullingRadius": 6.37e6,
+      "orbitCullingRadius": 147e9
     },
     "EarthJ2000": {
       "center": "Earth",
@@ -372,7 +379,8 @@
       "existence": [
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
-      ]
+      ],
+      "trackable": false
     },
     "Moon": {
       "center": "Moon",
@@ -380,7 +388,9 @@
       "existence": [
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
-      ]
+      ],
+      "bodyCullingRadius": 1.74e6,
+      "orbitCullingRadius": 384e6
     },
     "Mars": {
       "center": "Mars",
@@ -388,7 +398,9 @@
       "existence": [
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
-      ]
+      ],
+      "bodyCullingRadius": 3.39e6,
+      "orbitCullingRadius": 228e9
     },
     "MarsJ2000": {
       "center": "Mars",
@@ -396,7 +408,8 @@
       "existence": [
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
-      ]
+      ],
+      "trackable": false
     },
     "Phobos": {
       "center": "Phobos",
@@ -404,7 +417,9 @@
       "existence": [
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
-      ]
+      ],
+      "bodyCullingRadius": 11.3e3,
+      "orbitCullingRadius": 9.38e6
     },
     "Deimos": {
       "center": "Deimos",
@@ -412,7 +427,9 @@
       "existence": [
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
-      ]
+      ],
+      "bodyCullingRadius": 6.2e3,
+      "orbitCullingRadius": 23.5e6
     },
     "Ceres": {
       "center": "Ceres",
@@ -420,7 +437,9 @@
       "existence": [
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
-      ]
+      ],
+      "bodyCullingRadius": 473e3,
+      "orbitCullingRadius": 413e9
     },
     "Vesta": {
       "center": "Vesta",
@@ -428,7 +447,9 @@
       "existence": [
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
-      ]
+      ],
+      "bodyCullingRadius": 263e3,
+      "orbitCullingRadius": 353e9
     },
     "Jupiter": {
       "center": "Jupiter",
@@ -436,7 +457,9 @@
       "existence": [
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
-      ]
+      ],
+      "bodyCullingRadius": 69.9e6,
+      "orbitCullingRadius": 779e9
     },
     "JupiterJ2000": {
       "center": "Jupiter",
@@ -444,7 +467,8 @@
       "existence": [
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
-      ]
+      ],
+      "trackable": false
     },
     "Io": {
       "center": "Io",
@@ -452,7 +476,9 @@
       "existence": [
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
-      ]
+      ],
+      "bodyCullingRadius": 1.8e6,
+      "orbitCullingRadius": 422e6
     },
     "Europa": {
       "center": "Europa",
@@ -460,7 +486,9 @@
       "existence": [
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
-      ]
+      ],
+      "bodyCullingRadius": 1.56e6,
+      "orbitCullingRadius": 671e6
     },
     "Ganymede": {
       "center": "Ganymede",
@@ -468,7 +496,9 @@
       "existence": [
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
-      ]
+      ],
+      "bodyCullingRadius": 2.63e6,
+      "orbitCullingRadius": 1.07e9
     },
     "Callisto": {
       "center": "Callisto",
@@ -476,7 +506,9 @@
       "existence": [
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
-      ]
+      ],
+      "bodyCullingRadius": 2.41e6,
+      "orbitCullingRadius": 1.88e9
     },
     "Saturn": {
       "center": "Saturn",
@@ -484,7 +516,9 @@
       "existence": [
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
-      ]
+      ],
+      "bodyCullingRadius": 58.2e6,
+      "orbitCullingRadius": 1.43e12
     },
     "SaturnJ2000": {
       "center": "Saturn",
@@ -492,7 +526,8 @@
       "existence": [
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
-      ]
+      ],
+      "trackable": false
     },
     "Mimas": {
       "center": "Mimas",
@@ -500,7 +535,9 @@
       "existence": [
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
-      ]
+      ],
+      "bodyCullingRadius": 198e3,
+      "orbitCullingRadius": 185e6
     },
     "Enceladus": {
       "center": "Enceladus",
@@ -508,7 +545,9 @@
       "existence": [
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
-      ]
+      ],
+      "bodyCullingRadius": 252e3,
+      "orbitCullingRadius": 238e6
     },
     "Tethys": {
       "center": "Tethys",
@@ -516,7 +555,9 @@
       "existence": [
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
-      ]
+      ],
+      "bodyCullingRadius": 531e3,
+      "orbitCullingRadius": 294e6
     },
     "Dione": {
       "center": "Dione",
@@ -524,7 +565,9 @@
       "existence": [
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
-      ]
+      ],
+      "bodyCullingRadius": 561e3,
+      "orbitCullingRadius": 377e6
     },
     "Rhea": {
       "center": "Rhea",
@@ -532,7 +575,9 @@
       "existence": [
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
-      ]
+      ],
+      "bodyCullingRadius": 764e3,
+      "orbitCullingRadius": 527e6
     },
     "Titan": {
       "center": "Titan",
@@ -540,7 +585,9 @@
       "existence": [
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
-      ]
+      ],
+      "bodyCullingRadius": 2.57e6,
+      "orbitCullingRadius": 1.22e9
     },
     "Iapetus": {
       "center": "Iapetus",
@@ -548,7 +595,9 @@
       "existence": [
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
-      ]
+      ],
+      "bodyCullingRadius": 735e3,
+      "orbitCullingRadius": 3.56e9
     },
     "Uranus": {
       "center": "Uranus",
@@ -556,7 +605,9 @@
       "existence": [
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
-      ]
+      ],
+      "bodyCullingRadius": 25.4e6,
+      "orbitCullingRadius": 2.8e12
     },
     "UranusJ2000": {
       "center": "Uranus",
@@ -564,7 +615,8 @@
       "existence": [
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
-      ]
+      ],
+      "trackable": false
     },
     "Miranda": {
       "center": "Miranda",
@@ -572,7 +624,9 @@
       "existence": [
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
-      ]
+      ],
+      "bodyCullingRadius": 236e3,
+      "orbitCullingRadius": 129e6
     },
     "Ariel": {
       "center": "Ariel",
@@ -580,7 +634,9 @@
       "existence": [
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
-      ]
+      ],
+      "bodyCullingRadius": 579e3,
+      "orbitCullingRadius": 191e6
     },
     "Umbriel": {
       "center": "Umbriel",
@@ -588,7 +644,9 @@
       "existence": [
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
-      ]
+      ],
+      "bodyCullingRadius": 585e3,
+      "orbitCullingRadius": 266e6
     },
     "Titania": {
       "center": "Titania",
@@ -596,7 +654,9 @@
       "existence": [
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
-      ]
+      ],
+      "bodyCullingRadius": 788e3,
+      "orbitCullingRadius": 436e6
     },
     "Oberon": {
       "center": "Oberon",
@@ -604,7 +664,9 @@
       "existence": [
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
-      ]
+      ],
+      "bodyCullingRadius": 761e3,
+      "orbitCullingRadius": 584e6
     },
     "Neptune": {
       "center": "Neptune",
@@ -612,7 +674,9 @@
       "existence": [
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
-      ]
+      ],
+      "bodyCullingRadius": 24.6e6,
+      "orbitCullingRadius": 4.5e12
     },
     "NeptuneJ2000": {
       "center": "Neptune",
@@ -620,7 +684,8 @@
       "existence": [
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
-      ]
+      ],
+      "trackable": false
     },
     "Triton": {
       "center": "Triton",
@@ -628,7 +693,9 @@
       "existence": [
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
-      ]
+      ],
+      "bodyCullingRadius": 1.35e6,
+      "orbitCullingRadius": 355e6
     },
     "Pluto": {
       "center": "Pluto",
@@ -636,7 +703,9 @@
       "existence": [
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
-      ]
+      ],
+      "bodyCullingRadius": 1.19e6,
+      "orbitCullingRadius": 7.38e12
     },
     "PlutoJ2000": {
       "center": "Pluto",
@@ -644,7 +713,8 @@
       "existence": [
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
-      ]
+      ],
+      "trackable": false
     },
     "Charon": {
       "center": "Charon",
@@ -652,7 +722,9 @@
       "existence": [
         "1950-01-02 00:00:00.000",
         "2049-12-31 00:00:00.000"
-      ]
+      ],
+      "bodyCullingRadius": 606e3,
+      "orbitCullingRadius": 18e6
     }
   },
   "plugins": {
@@ -824,18 +896,6 @@
         }
       }
     },
-    "csp-wms-overlays": {
-      "maxTextureSize": 1024,
-      "preFetch": 1,
-      "bodies": {
-        "Earth": {
-          "wms": [
-            "https://maps.dwd.de/geoserver/dwd/wms",
-            "https://neo.sci.gsfc.nasa.gov/wms/wms"
-          ]
-        }
-      }
-    },
     "csp-rings": {
       "rings": {
         "Saturn": {
@@ -851,7 +911,17 @@
       "ignoreOverlapThreshold": 0.1,
       "labelScale": 1.2,
       "depthScale": 1.0,
-      "labelOffset": 0.2
+      "labelOffset": 0.2,
+      "blacklist": [
+        "MarsJ2000",
+        "EarthJ2000",
+        "JupiterJ2000",
+        "SaturnJ2000",
+        "NeptuneJ2000",
+        "UranusJ2000",
+        "PlutoJ2000",
+        "Barycenter"
+      ]
     },
     "csp-trajectories": {
       "trajectories": {
