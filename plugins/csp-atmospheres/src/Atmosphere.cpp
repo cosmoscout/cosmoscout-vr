@@ -79,7 +79,7 @@ AtmosphereRenderer& Atmosphere::getRenderer() {
 void Atmosphere::update() {
   auto object = mSolarSystem->getObject(mObjectName);
 
-  if (object && object->getIsBodyVisible()) {
+  if (object && object->getIsBodyVisible() && mPluginSettings->mEnabled.get()) {
     double sunIlluminance = 10.0;
 
     if (mAllSettings->mGraphics.pEnableHDR.get()) {
