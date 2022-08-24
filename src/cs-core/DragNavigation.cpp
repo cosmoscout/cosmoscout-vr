@@ -96,18 +96,33 @@ void DragNavigation::update() {
 
     auto pickedPlanet = mInputManager->pHoveredObject.get().mObject;
 
-    if (pickedPlanet &&
-        pickedPlanet->getCenterName() == mSolarSystem->getObserver().getCenterName()) {
-      mStartIntersection = mInputManager->pHoveredObject.get().mPosition;
-      mDraggingPlanet    = true;
-    }
+    if (pickedPlanet) {
+      // observer can be in another spice frame, therefore we need to
+      // convert pick position to observer frame
+      cs::scene::CelestialAnchor anchor(
+          pickedPlanet->getCenterName(), pickedPlanet->getFrameName());
+      anchor.setPosition(mInputManager->pHoveredObject.get().mPosition);
 
-    float const epsilon = 0.05F;
+      cs::scene::CelestialAnchor observerAnchor(
+          mSolarSystem->getObserver().getCenterName(), mSolarSystem->getObserver().getFrameName());
+
+      try {
+        mStartIntersection =
+            observerAnchor.getRelativePosition(mTimeControl->pSimulationTime.get(), anchor);
+        mDraggingPlanet = true;
+      } catch (std::exception const& e) {
+        // Getting the position in observer coordinates may fail due to insufficient SPICE data.
+        logger().warn("Failed to grab '{}': {}", pickedPlanet->getCenterName(), e.what());
+      }
+
+    } else {
+      mDraggingPlanet = false;
+    }
 
     // if no planet is currently under the pointer or if we picked too close
     // too the horizon we will 'grab the sky' instead
-    if (!pickedPlanet ||
-        glm::dot(rayDir, glm::normalize(mStartIntersection - rotationCenter)) >= -epsilon) {
+    if (pickedPlanet &&
+        glm::dot(rayDir, glm::normalize(mStartIntersection - rotationCenter)) >= -0.05F) {
       mDraggingPlanet = false;
     }
 
