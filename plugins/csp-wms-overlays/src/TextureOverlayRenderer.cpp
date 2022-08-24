@@ -539,21 +539,19 @@ bool TextureOverlayRenderer::Do() {
   glCopyTexImage2D(GL_TEXTURE_RECTANGLE, 0, GL_DEPTH_COMPONENT, iViewport[0], iViewport[1],
       iViewport[2], iViewport[3], 0);
 
-  // get matrices and related values
-  std::array<GLfloat, 16> glMatP{};
-  std::array<GLfloat, 16> glMatMV{};
-  glGetFloatv(GL_PROJECTION_MATRIX, glMatP.data());
-  glGetFloatv(GL_MODELVIEW_MATRIX, glMatMV.data());
-
   auto object    = mSolarSystem->getObject(mObjectName);
   auto radii     = object->getRadii();
   auto transform = object->getObserverRelativeTransform();
 
-  VistaTransformMatrix matM(glm::value_ptr(transform), true);
-  VistaTransformMatrix matMV(matM);
-  VistaTransformMatrix matInvMV(matMV.GetInverted());
-  VistaTransformMatrix matInvP(VistaTransformMatrix(glMatP.data(), true).GetInverted());
-  VistaTransformMatrix matInvMVP(matInvMV * matInvP);
+  // get matrices and related values
+  std::array<GLfloat, 16> glMatV{};
+  std::array<GLfloat, 16> glMatP{};
+  glGetFloatv(GL_MODELVIEW_MATRIX, glMatV.data());
+  glGetFloatv(GL_PROJECTION_MATRIX, glMatP.data());
+  auto matV = glm::make_mat4x4(glMatV.data());
+  auto matP = glm::make_mat4x4(glMatP.data());
+
+  glm::dmat4 matInvMVP = glm::inverse(glm::dmat4(matP) * glm::dmat4(matV) * transform);
 
   // Bind shader before draw
   mShader.Bind();
@@ -577,7 +575,7 @@ bool TextureOverlayRenderer::Do() {
   mShader.SetUniform(mShader.GetUniformLocation("uUseSecondTexture"), mSecondWMSTextureUsed);
 
   GLint loc = mShader.GetUniformLocation("uMatInvMVP");
-  glUniformMatrix4fv(loc, 1, GL_FALSE, matInvMVP.GetData());
+  glUniformMatrix4dv(loc, 1, GL_FALSE, glm::value_ptr(matInvMVP));
 
   // Double precision bounds
   loc = mShader.GetUniformLocation("uLatRange");
