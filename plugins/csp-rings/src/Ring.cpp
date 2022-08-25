@@ -42,19 +42,18 @@ layout(location = 0) in vec2 iGridPos;
 
 // outputs
 out vec2 vTexCoords;
-out vec3 vPosition;
+out vec4 vPosition;
+
 const float PI = 3.141592654;
 
-void main()
-{
-    vTexCoords = iGridPos.yx;
+void main() {
+  vTexCoords = iGridPos.yx;
 
-    vec2 vDir = vec2(sin(iGridPos.x * 2.0 * PI), cos(iGridPos.x * 2.0 * PI));
-    
-    vec2 vPos = mix(vDir * uRadii.x, vDir * uRadii.y, iGridPos.y);
+  vec2 vDir = vec2(sin(iGridPos.x * 2.0 * PI), cos(iGridPos.x * 2.0 * PI));
+  vec2 vPos = mix(vDir * uRadii.x, vDir * uRadii.y, iGridPos.y);
 
-    vPosition   = (uMatModel * vec4(vPos.x, 0, vPos.y, 1.0)).xyz;
-    gl_Position =  uMatProjection * uMatView * vec4(vPosition, 1);
+  vPosition   = uMatModel * vec4(vPos.x, 0, vPos.y, 1.0);
+  gl_Position =  uMatProjection * uMatView * vPosition;
 }
 )";
 
@@ -64,12 +63,13 @@ const char* Ring::SPHERE_FRAG = R"(
 uniform sampler2D uSurfaceTexture;
 uniform float uAmbientBrightness;
 uniform float uSunIlluminance;
+uniform float uLitSideVisible;
 
 ECLIPSE_SHADER_SNIPPET
 
 // inputs
 in vec2 vTexCoords;
-in vec3 vPosition;
+in vec4 vPosition;
 
 // outputs
 layout(location = 0) out vec4 oColor;
@@ -82,17 +82,26 @@ vec3 SRGBtoLINEAR(vec3 srgbIn) {
 }
 
 void main() {
-    oColor = texture(uSurfaceTexture, vTexCoords);
+  oColor = texture(uSurfaceTexture, vTexCoords);
 
-    #ifdef ENABLE_HDR
-      oColor.rgb = SRGBtoLINEAR(oColor.rgb) * uSunIlluminance / M_PI;
-    #else
-      oColor.rgb = oColor.rgb * uSunIlluminance;
-    #endif
+  #ifdef ENABLE_HDR
+    oColor.rgb = SRGBtoLINEAR(oColor.rgb) * uSunIlluminance / M_PI;
+  #else
+    oColor.rgb = oColor.rgb * uSunIlluminance;
+  #endif
 
-    #ifdef ENABLE_LIGHTING
-      oColor.rgb = oColor.rgb * getEclipseShadow(vPosition) + vec3(uAmbientBrightness);
-    #endif
+  #ifdef ENABLE_LIGHTING
+    if (uLitSideVisible < 0.5) {
+      // We darken the dark side in HDR mode, because it looks too bright compared to the planet and
+      // we brighten the dark side otherwise, because it looks too dark.
+      #ifdef ENABLE_HDR
+        oColor.rgb = oColor.rgb * (1 - oColor.a) * 0.5;
+      #else
+        oColor.rgb = oColor.rgb * (1 - oColor.a) * 2.0;
+      #endif
+    }
+    oColor.rgb = oColor.rgb * getEclipseShadow(vPosition.xyz) + vec3(uAmbientBrightness);
+  #endif
 }
 )";
 
@@ -207,6 +216,7 @@ bool Ring::Do() {
     mUniforms.radii             = mShader.GetUniformLocation("uRadii");
     mUniforms.sunIlluminance    = mShader.GetUniformLocation("uSunIlluminance");
     mUniforms.ambientBrightness = mShader.GetUniformLocation("uAmbientBrightness");
+    mUniforms.litSideVisible    = mShader.GetUniformLocation("uLitSideVisible");
 
     // We bind the eclipse shadow map to texture unit 1.
     mEclipseShadowReceiver.init(&mShader, 1);
@@ -241,8 +251,48 @@ bool Ring::Do() {
     sunIlluminance = static_cast<float>(mSolarSystem->getSunIlluminance(matM[3]));
   }
 
+  // The following section calculates if the dark side of the ring is visible. Since the ring is a
+  // flat disk we can do it before the shader. All fragments should either display the light side
+  // or the dark side exclusively.
+  // The check, to see which side is visible is rather simple. If the Sun and the observer look at
+  // northern side of the disk, we show the light side, if the Sun and the observer look at the
+  // southern side of the disk we also show the light side. In all other cases, we show the dark
+  // side.
+  //
+  //      \ /                                o o o
+  //    -- O --                          o           o                            <o>
+  //      | \                          o               o
+  //                         -------  o                 o  -------
+  //                                   o               o
+  //                                     o           o
+  //                                         o o o
+
+  glm::vec3 sunDirection = glm::inverse(getWorldTransform()) *
+                           glm::dvec4(mSolarSystem->getSunDirection(getWorldTransform()[3]), 0.0);
+
+  // The dot product is positive, if the Sun is on the northern side of the ring, otherwise it is
+  // negative.
+  float sunAngle = glm::dot(sunDirection, glm::vec3(0.0F, 1.0F, 0.0F));
+
+  // Some calculations to get the view and plane normal in view space.
+  glm::mat4 matModelView    = matV * matM;
+  glm::mat4 matNormalMatrix = glm::transpose(glm::inverse(matModelView));
+  glm::vec4 viewPos         = matModelView * glm::vec4(0.0F, 0.0F, 0.0F, 1.0F);
+  viewPos                   = viewPos / viewPos.w;
+  glm::vec3 planeNormal     = glm::normalize(-viewPos.xyz());
+  glm::vec3 viewNormal      = (matNormalMatrix * glm::vec4(0.0F, 1.0F, 0.0F, 0.0F)).xyz();
+
+  // The dot product is positive, if the observer is on the northern side of the ring, otherwise it
+  // is negative.
+  float viewAngle = glm::dot(planeNormal, viewNormal);
+
+  // When Sun and observer are on the same side of the disk it is lit, otherwise it is dark.
+  float litSideVisible =
+      (sunAngle > 0.0F && viewAngle > 0.0F) || (sunAngle < 0.0F && viewAngle < 0.0F) ? 1.0F : 0.0F;
+
   mShader.SetUniform(mUniforms.sunIlluminance, sunIlluminance);
   mShader.SetUniform(mUniforms.ambientBrightness, ambientBrightness);
+  mShader.SetUniform(mUniforms.litSideVisible, litSideVisible);
 
   mTexture->Bind(GL_TEXTURE0);
 

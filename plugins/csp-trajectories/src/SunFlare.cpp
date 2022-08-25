@@ -121,7 +121,7 @@ SunFlare::SunFlare(std::shared_ptr<cs::core::Settings> settings,
   VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
   mGLNode.reset(pSG->NewOpenGLNode(pSG->GetRoot(), this));
   VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
-      mGLNode.get(), static_cast<int>(cs::utils::DrawOrder::eAtmospheres) + 1);
+      mGLNode.get(), static_cast<int>(cs::utils::DrawOrder::eStars) + 1);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
