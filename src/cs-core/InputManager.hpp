@@ -172,6 +172,8 @@ class CS_CORE_EXPORT InputManager : public VistaKeyboardSystemControl::IVistaDir
   boost::posix_time::ptime                     mClickTime;
 
   VistaOpenGLNode* mActiveWorldSpaceGuiNode{};
+
+  int mRemoveObjectConnection = -1;
 };
 
 } // namespace cs::core

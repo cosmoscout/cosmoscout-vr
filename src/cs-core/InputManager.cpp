@@ -106,8 +106,13 @@ InputManager::InputManager(std::shared_ptr<Settings> settings)
     }
   });
 
-  // TODO: Remove intersection if corresponding object is removed from the settings
-  // pHoveredObject = Intersection();
+  // Remove intersection if corresponding object is removed from the settings.
+  mRemoveObjectConnection =
+      mSettings->mObjects.onRemove().connect([this](auto const& name, auto const& object) {
+        if (pHoveredObject.get().mObject == object) {
+          pHoveredObject = Intersection();
+        }
+      });
 
   // Register handler and events.
   GetVistaSystem()->GetKeyboardSystemControl()->SetDirectKeySink(this);
@@ -118,16 +123,16 @@ InputManager::InputManager(std::shared_ptr<Settings> settings)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 InputManager::~InputManager() {
-  try {
-    // Tell the user what's going on.
-    logger().debug("Deleting InputManager.");
-  } catch (...) {}
+  // Tell the user what's going on.
+  logger().debug("Deleting InputManager.");
 
   for (auto* adapter : mAdapters) {
     mSelection.UnregisterNode(adapter);
     delete adapter; // NOLINT(cppcoreguidelines-owning-memory): unordered_set doesn't like smart
                     // pointers.
   }
+
+  mSettings->mObjects.onRemove().disconnect(mRemoveObjectConnection);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
