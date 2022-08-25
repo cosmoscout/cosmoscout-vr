@@ -267,8 +267,8 @@ bool Ring::Do() {
   //                                     o           o
   //                                         o o o
 
-  glm::vec3 sunDirection = glm::inverse(getWorldTransform()) *
-                           glm::dvec4(mSolarSystem->getSunDirection(getWorldTransform()[3]), 0.0);
+  glm::vec3 sunDirection =
+      glm::inverse(matM) * glm::dvec4(mSolarSystem->getSunDirection(matM[3]), 0.0);
 
   // The dot product is positive, if the Sun is on the northern side of the ring, otherwise it is
   // negative.
