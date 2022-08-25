@@ -81,6 +81,7 @@
         <node name="observer" type="ObserverNavigationNode">
             <param name="max_linear_speed" value="10, 10, 10" />
             <param name="max_angular_speed"  value="1" />
+            <param name="linear_deceleration" value="0.3" />
         </node>
 
     </graph>
