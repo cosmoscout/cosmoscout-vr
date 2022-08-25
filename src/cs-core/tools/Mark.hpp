@@ -81,7 +81,6 @@ class CS_CORE_EXPORT Mark : public IVistaOpenGLDraw, public Tool {
   void initData();
 
   glm::dvec3 mPosition;
-  double     mScale{1.0};
 
   std::unique_ptr<VistaVertexArrayObject> mVAO;
   std::unique_ptr<VistaBufferObject>      mVBO;
