@@ -479,15 +479,15 @@ void Application::FrameUpdate() {
       }
 
       try {
-        mSolarSystem->updateSceneScale();
-      } catch (std::runtime_error const& e) {
-        logger().warn("Failed to update scene scale: {}", e.what());
-      }
-
-      try {
         mSolarSystem->updateObserverFrame();
       } catch (std::runtime_error const& e) {
         logger().warn("Failed to update observer frame: {}", e.what());
+      }
+
+      try {
+        mSolarSystem->updateSceneScale();
+      } catch (std::runtime_error const& e) {
+        logger().warn("Failed to update scene scale: {}", e.what());
       }
 
       try {
