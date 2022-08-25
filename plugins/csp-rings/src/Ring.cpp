@@ -260,7 +260,7 @@ bool Ring::Do() {
   // side.
   //
   //      \ /                                o o o
-  //    -- O --                          o           o                            <o>
+  //    -- O --                          o           o                           o.O
   //      | \                          o               o
   //                         -------  o                 o  -------
   //                                   o               o
