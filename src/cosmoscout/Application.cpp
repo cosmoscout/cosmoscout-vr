@@ -491,8 +491,6 @@ void Application::FrameUpdate() {
       }
 
       try {
-        cs::utils::FrameTimings::ScopedTimer timer(
-            "Update Celestial Objects", cs::utils::FrameTimings::QueryMode::eCPU);
         mSolarSystem->update();
       } catch (std::runtime_error const& e) {
         logger().warn("Failed to update Solar System: {}", e.what());
