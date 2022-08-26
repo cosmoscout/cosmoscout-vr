@@ -325,7 +325,7 @@ bool ShadowMap::Do() {
 
     // these matrices are used by the shadow receivers to calculate the
     // lookup position in the shadow maps
-    mShadowMatrices.at(i) = projection * lightMatrix * currMatView.GetInverted();
+    mShadowMatrices.at(i) = projection * lightMatrix;
 
     // save current projection matrix
     glMatrixMode(GL_PROJECTION);
