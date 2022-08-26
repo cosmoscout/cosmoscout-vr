@@ -363,7 +363,8 @@ void SolarSystem::updateSceneScale() {
     dScale = glm::clamp(dScale, mSettings->mSceneScale.mMinScale, mSettings->mSceneScale.mMaxScale);
     mObserver.setScale(dScale);
 
-    if (dRealDistance < mSettings->mSceneScale.mCloseRealDistance) {
+    if (dRealDistance < mSettings->mSceneScale.mCloseRealDistance &&
+        closestObject->getIsCollidable()) {
       double     penetration = mSettings->mSceneScale.mCloseRealDistance - dRealDistance;
       glm::dvec3 position    = mObserver.getPosition();
       mObserver.setPosition(position + glm::normalize(position) * penetration);
