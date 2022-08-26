@@ -54,8 +54,7 @@ void Plugin::init() {
   logger().info("Loading plugin...");
 
   mOnLoadConnection = mAllSettings->onLoad().connect([this]() { onLoad(); });
-  mOnSaveConnection = mAllSettings->onSave().connect(
-      [this]() {onSave(); });
+  mOnSaveConnection = mAllSettings->onSave().connect([this]() { onSave(); });
 
   mGuiManager->addHtmlToGui("sharad", "../share/resources/gui/sharad-template.html");
 
@@ -174,7 +173,7 @@ void Plugin::onLoad() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Plugin::onSave() {
-   mAllSettings->mPlugins["csp-sharad"] = mPluginSettings;
+  mAllSettings->mPlugins["csp-sharad"] = mPluginSettings;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
