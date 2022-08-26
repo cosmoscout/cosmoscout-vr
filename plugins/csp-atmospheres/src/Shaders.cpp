@@ -469,10 +469,9 @@ const char* AtmosphereRenderer::cAtmosphereFrag1 = R"(
   float GetOpaqueDepth(vec3 vRayOrigin, vec3 vRayDir) {
     float fDepth = GetDepth();
 
-    // We need to return a distance which is guaranteed to be larger
-    // than the largest ray length possible. As the atmosphere has a
-    // radius of 1.0, 100 is more than enough.
-    if (fDepth == 0) return 100.0;
+    // If the fragment is really far away, the inverse reverse infinite projects divides by zero.
+    // So we add a minimum threshold here.
+    fDepth = max(fDepth, 0.0000001);
 
     vec4 vPos = uMatInvMVP * vec4(2.0*vsIn.vTexcoords-1, 2*fDepth-1, 1);
     float msDepth = length(vRayOrigin - vPos.xyz / vPos.w);
