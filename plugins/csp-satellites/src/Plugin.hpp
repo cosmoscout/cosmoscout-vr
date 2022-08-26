@@ -45,8 +45,14 @@ class Plugin : public cs::core::PluginBase {
   void update() override;
 
  private:
+ void onLoad();
+  void onSave();
+
   Settings                                mPluginSettings;
   std::vector<std::shared_ptr<Satellite>> mSatellites;
+
+   int mOnLoadConnection    = -1;
+  int mOnSaveConnection    = -1;
 };
 
 } // namespace csp::satellites

@@ -85,8 +85,7 @@ void Plugin::init() {
   logger().info("Loading plugin...");
 
   mOnLoadConnection = mAllSettings->onLoad().connect([this]() { onLoad(); });
-  mOnSaveConnection = mAllSettings->onSave().connect(
-      [this]() { mAllSettings->mPlugins["csp-trajectories"] = *mPluginSettings; });
+  mOnSaveConnection = mAllSettings->onSave().connect([this]() { onSave(); });
 
   mGuiManager->addSettingsSectionToSideBarFromHTML("Trajectories", "radio_button_unchecked",
       "../share/resources/gui/trajectories-settings.html");
@@ -122,6 +121,9 @@ void Plugin::init() {
 
 void Plugin::deInit() {
   logger().info("Unloading plugin...");
+
+  // Save settings as this plugin may get reloaded.
+  onSave();
 
   mGuiManager->removeSettingsSection("Trajectories");
 
@@ -225,6 +227,12 @@ void Plugin::onLoad() {
       ++trajectoryIndex;
     }
   }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Plugin::onSave() {
+   mAllSettings->mPlugins["csp-trajectories"] = *mPluginSettings;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

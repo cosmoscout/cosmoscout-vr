@@ -86,6 +86,7 @@ class Plugin : public cs::core::PluginBase {
 
  private:
   void onLoad();
+  void onSave();
 
   Settings::Body& getBodySettings(std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay) const;
 

@@ -88,6 +88,7 @@ class Plugin : public cs::core::PluginBase {
 
  private:
   void onLoad();
+  void onSave();
   void unload(Settings const& pluginSettings);
 
   struct SpaceItem {

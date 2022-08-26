@@ -60,8 +60,7 @@ void Plugin::init() {
   logger().info("Loading plugin...");
 
   mOnLoadConnection = mAllSettings->onLoad().connect([this]() { onLoad(); });
-  mOnSaveConnection = mAllSettings->onSave().connect(
-      [this]() { mAllSettings->mPlugins["csp-rings"] = mPluginSettings; });
+  mOnSaveConnection = mAllSettings->onSave().connect([this]() { onSave(); });
 
   // Load settings.
   onLoad();
@@ -73,6 +72,9 @@ void Plugin::init() {
 
 void Plugin::deInit() {
   logger().info("Unloading plugin...");
+
+  // Save settings as this plugin may get reloaded.
+  onSave();
 
   mAllSettings->onLoad().disconnect(mOnLoadConnection);
   mAllSettings->onSave().disconnect(mOnSaveConnection);
@@ -113,6 +115,12 @@ void Plugin::onLoad() {
 
     mRings.emplace(settings.first, ring);
   }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Plugin::onSave() {
+   mAllSettings->mPlugins["csp-rings"] = mPluginSettings;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

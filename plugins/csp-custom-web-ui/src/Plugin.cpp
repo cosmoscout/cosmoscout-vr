@@ -116,12 +116,8 @@ void Plugin::init() {
 
   logger().info("Loading plugin...");
 
-  // Call onLoad whenever the settings are reloaded.
   mOnLoadConnection = mAllSettings->onLoad().connect([this]() { onLoad(); });
-
-  // Store the current settings on save.
-  mOnSaveConnection = mAllSettings->onSave().connect(
-      [this]() { mAllSettings->mPlugins["csp-custom-web-ui"] = mPluginSettings; });
+  mOnSaveConnection = mAllSettings->onSave().connect([this]() { onSave(); });
 
   // Load initial settings.
   onLoad();
@@ -151,6 +147,9 @@ void Plugin::update() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Plugin::deInit() {
+
+  // Save settings as this plugin may get reloaded.
+  onSave();
 
   // Remove all items.
   unload(mPluginSettings);
@@ -276,6 +275,12 @@ void Plugin::onLoad() {
       mSpaceItems.emplace_back(std::move(item));
     }
   }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Plugin::onSave() {
+  mAllSettings->mPlugins["csp-custom-web-ui"] = mPluginSettings;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

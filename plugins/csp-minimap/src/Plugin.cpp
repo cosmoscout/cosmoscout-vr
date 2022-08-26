@@ -91,15 +91,8 @@ void Plugin::init() {
 
   logger().info("Loading plugin...");
 
-  // Call onLoad whenever the settings are reloaded.
   mOnLoadConnection = mAllSettings->onLoad().connect([this]() { onLoad(); });
-
-  // Load initial settings.
-  onLoad();
-
-  // Store the current settings on save.
-  mOnSaveConnection = mAllSettings->onSave().connect(
-      [this]() { mAllSettings->mPlugins["csp-minimap"] = mPluginSettings; });
+  mOnSaveConnection = mAllSettings->onSave().connect([this]() { onSave(); });
 
   // Add resources to gui.
   mGuiManager->addScriptToGuiFromJS("../share/resources/gui/third-party/js/leaflet.js");
@@ -158,6 +151,9 @@ void Plugin::init() {
         }
       });
 
+  // Load initial settings.
+  onLoad();
+
   logger().info("Loading done.");
 }
 
@@ -165,6 +161,9 @@ void Plugin::init() {
 
 void Plugin::deInit() {
   logger().info("Unloading plugin...");
+
+  // Save settings as this plugin may get reloaded.
+  onSave();
 
   mAllSettings->onLoad().disconnect(mOnLoadConnection);
   mAllSettings->onSave().disconnect(mOnSaveConnection);
@@ -208,6 +207,12 @@ void Plugin::onAddBookmark(std::shared_ptr<const cs::scene::CelestialObject> con
 void Plugin::onLoad() {
   // Read settings from JSON.
   from_json(mAllSettings->mPlugins.at("csp-minimap"), mPluginSettings);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Plugin::onSave() {
+  mAllSettings->mPlugins["csp-minimap"] = mPluginSettings;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

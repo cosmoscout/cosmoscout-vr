@@ -103,9 +103,7 @@ void Plugin::init() {
   logger().info("Loading plugin...");
 
   mOnLoadConnection = mAllSettings->onLoad().connect([this]() { onLoad(); });
-
-  mOnSaveConnection = mAllSettings->onSave().connect(
-      [this]() { mAllSettings->mPlugins["csp-wms-overlays"] = *mPluginSettings; });
+  mOnSaveConnection = mAllSettings->onSave().connect([this]() { onSave(); });
 
   mGuiManager->addPluginTabToSideBarFromHTML(
       "WMS Overlays", "layers", "../share/resources/gui/wms_overlays_tab.html");
@@ -424,6 +422,9 @@ void Plugin::init() {
 void Plugin::deInit() {
   logger().info("Unloading plugin...");
 
+  // Save settings as this plugin may get reloaded.
+  onSave();
+
   mSolarSystem->pActiveObject.disconnect(mActiveObjectConnection);
   mSolarSystem->pCurrentObserverSpeed.disconnect(mObserverSpeedConnection);
 
@@ -552,6 +553,12 @@ void Plugin::onLoad() {
   }
 
   mSolarSystem->pActiveObject.touch(mActiveObjectConnection);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Plugin::onSave() {
+  mAllSettings->mPlugins["csp-wms-overlays"] = *mPluginSettings;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

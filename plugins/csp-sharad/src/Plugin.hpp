@@ -30,6 +30,7 @@ class Plugin : public cs::core::PluginBase {
 
  private:
   void onLoad();
+  void onSave();
 
   Settings                                      mPluginSettings;
   std::vector<std::shared_ptr<Sharad>>          mSharads;

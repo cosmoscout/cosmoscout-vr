@@ -141,6 +141,7 @@ class Plugin : public cs::core::PluginBase {
 
  private:
   void onLoad();
+  void onSave();
   void unregisterBody(std::string const& name);
 
   Settings::Body& getBodySettings(std::shared_ptr<LodBody> const& body) const;

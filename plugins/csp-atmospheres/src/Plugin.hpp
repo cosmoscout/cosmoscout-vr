@@ -56,6 +56,7 @@ class Plugin : public cs::core::PluginBase {
 
  private:
   void onLoad();
+  void onSave();
 
   std::shared_ptr<Settings> mPluginSettings = std::make_shared<Settings>();
   std::unordered_map<std::string, std::shared_ptr<Atmosphere>> mAtmospheres;

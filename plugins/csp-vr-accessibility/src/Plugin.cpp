@@ -236,12 +236,19 @@ void Plugin::init() {
 void Plugin::deInit() {
   logger().info("Unloading plugin...");
 
+  // Save settings as this plugin may get reloaded.
+  mAllSettings->mPlugins["csp-vr-accessibility"] = *mPluginSettings;
+
   // remove settings tab
   mGuiManager->removeSettingsSection("VR Accessibility");
+
+  mGuiManager->getGui()->callJavascript("CosmoScout.removeApi", "floorGrid");
+  mGuiManager->getGui()->callJavascript("CosmoScout.removeApi", "fovVignette");
+
   // remove callbacks
   mGuiManager->getGui()->unregisterCallback("floorGrid.setEnabled");
   mGuiManager->getGui()->unregisterCallback("floorGrid.setSize");
-  mGuiManager->getGui()->unregisterCallback("floorGrid.setOffset");
+  mGuiManager->getGui()->unregisterCallback("floorGrid.setExtent");
   mGuiManager->getGui()->unregisterCallback("floorGrid.setAlpha");
   mGuiManager->getGui()->unregisterCallback("floorGrid.setColor");
   mGuiManager->getGui()->unregisterCallback("fovVignette.setEnabled");
@@ -250,8 +257,7 @@ void Plugin::deInit() {
   mGuiManager->getGui()->unregisterCallback("fovVignette.setEnableVerticalOnly");
   mGuiManager->getGui()->unregisterCallback("fovVignette.setRadii");
   mGuiManager->getGui()->unregisterCallback("fovVignette.setColor");
-  mGuiManager->getGui()->unregisterCallback("fovVignette.setLowerThreshold");
-  mGuiManager->getGui()->unregisterCallback("fovVignette.setUpperThreshold");
+  mGuiManager->getGui()->unregisterCallback("fovVignette.setVelocityThresholds");
   mGuiManager->getGui()->unregisterCallback("fovVignette.setDuration");
   mGuiManager->getGui()->unregisterCallback("fovVignette.setDeadzone");
 

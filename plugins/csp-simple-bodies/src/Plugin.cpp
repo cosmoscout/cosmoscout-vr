@@ -59,8 +59,7 @@ void Plugin::init() {
   logger().info("Loading plugin...");
 
   mOnLoadConnection = mAllSettings->onLoad().connect([this]() { onLoad(); });
-  mOnSaveConnection = mAllSettings->onSave().connect(
-      [this]() { mAllSettings->mPlugins["csp-simple-bodies"] = mPluginSettings; });
+  mOnSaveConnection = mAllSettings->onSave().connect([this]() { onSave(); });
 
   // Load settings.
   onLoad();
@@ -72,6 +71,9 @@ void Plugin::init() {
 
 void Plugin::deInit() {
   logger().info("Unloading plugin...");
+
+  // Save settings as this plugin may get reloaded.
+  onSave();
 
   for (auto const& [name, body] : mSimpleBodies) {
     unregisterBody(name);
@@ -131,6 +133,12 @@ void Plugin::onLoad() {
 
     mSimpleBodies.emplace(settings.first, simpleBody);
   }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Plugin::onSave() {
+   mAllSettings->mPlugins["csp-simple-bodies"] = mPluginSettings;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

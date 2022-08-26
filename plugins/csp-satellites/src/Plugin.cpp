@@ -56,12 +56,11 @@ void Plugin::init() {
 
   logger().info("Loading plugin...");
 
-  mPluginSettings = mAllSettings->mPlugins.at("csp-satellites");
+  mOnLoadConnection = mAllSettings->onLoad().connect([this]() { onLoad(); });
+  mOnSaveConnection = mAllSettings->onSave().connect([this]() { onSave(); });
 
-  for (auto const& settings : mPluginSettings.mSatellites) {
-    mSatellites.push_back(std::make_shared<Satellite>(
-        settings.second, settings.first, mSceneGraph, mAllSettings, mSolarSystem));
-  }
+  // Load settings.
+  onLoad();
 
   logger().info("Loading done.");
 }
@@ -71,7 +70,13 @@ void Plugin::init() {
 void Plugin::deInit() {
   logger().info("Unloading plugin...");
 
+  // Save settings as this plugin may get reloaded.
+  onSave();
+
   mSatellites.clear();
+
+  mAllSettings->onLoad().disconnect(mOnLoadConnection);
+  mAllSettings->onSave().disconnect(mOnSaveConnection);
 
   logger().info("Unloading done.");
 }
@@ -82,6 +87,27 @@ void Plugin::update() {
   for (auto const& satellite : mSatellites) {
     satellite->update();
   }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Plugin::onLoad() {
+
+  // Read settings from JSON.
+  mPluginSettings = mAllSettings->mPlugins.at("csp-satellites");
+
+  mSatellites.clear();
+
+  for (auto const& settings : mPluginSettings.mSatellites) {
+    mSatellites.push_back(std::make_shared<Satellite>(
+        settings.second, settings.first, mSceneGraph, mAllSettings, mSolarSystem));
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Plugin::onSave() {
+  mAllSettings->mPlugins["csp-satellites"] = mPluginSettings;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

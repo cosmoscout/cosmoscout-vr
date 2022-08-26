@@ -51,6 +51,7 @@ class Plugin : public cs::core::PluginBase {
 
  private:
   void onLoad();
+  void onSave();
 
   Settings    mPluginSettings{};
   std::string mNextTool = "none";

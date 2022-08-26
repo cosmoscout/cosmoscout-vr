@@ -48,6 +48,7 @@ class Plugin : public cs::core::PluginBase {
 
  private:
   void onLoad();
+  void onSave();
 
   Settings                            mPluginSettings;
   std::unique_ptr<Stars>              mStars;

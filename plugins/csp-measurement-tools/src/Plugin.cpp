@@ -261,8 +261,7 @@ void Plugin::init() {
   logger().info("Loading plugin...");
 
   mOnLoadConnection = mAllSettings->onLoad().connect([this]() { onLoad(); });
-  mOnSaveConnection = mAllSettings->onSave().connect(
-      [this]() { mAllSettings->mPlugins["csp-measurement-tools"] = mPluginSettings; });
+  mOnSaveConnection = mAllSettings->onSave().connect([this]() { onSave(); });
 
   mGuiManager->addHtmlToGui(
       "measurement-tools", "../share/resources/gui/measurement-tool-template.html");
@@ -400,6 +399,9 @@ void Plugin::init() {
 void Plugin::deInit() {
   logger().info("Unloading plugin...");
 
+  // Save settings as this plugin may get reloaded.
+  onSave();
+
   mGuiManager->removePluginTab("Measurement Tools");
 
   mGuiManager->getGui()->unregisterCallback("measurementTools.setNext");
@@ -443,6 +445,12 @@ void Plugin::onLoad() {
   sSolarSystem.reset();
   sSettings.reset();
   sTimeControl.reset();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Plugin::onSave() {
+  mAllSettings->mPlugins["csp-measurement-tools"] = mPluginSettings;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

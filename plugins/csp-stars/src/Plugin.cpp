@@ -81,8 +81,7 @@ void Plugin::init() {
   logger().info("Loading plugin...");
 
   mOnLoadConnection = mAllSettings->onLoad().connect([this]() { onLoad(); });
-  mOnSaveConnection = mAllSettings->onSave().connect(
-      [this]() { mAllSettings->mPlugins["csp-stars"] = mPluginSettings; });
+  mOnSaveConnection = mAllSettings->onSave().connect([this]() { onSave(); });
 
   // Create the Stars object based on the settings.
   mStars = std::make_unique<Stars>();
@@ -198,6 +197,9 @@ void Plugin::init() {
 void Plugin::deInit() {
   logger().info("Unloading plugin...");
 
+  // Save settings as this plugin may get reloaded.
+  onSave();
+
   mSceneGraph->GetRoot()->DisconnectChild(mStarsTransform.get());
 
   mAllSettings->mGraphics.pEnableHDR.disconnect(mEnableHDRConnection);
@@ -214,6 +216,7 @@ void Plugin::deInit() {
   mGuiManager->getGui()->unregisterCallback("stars.setDrawMode2");
   mGuiManager->getGui()->unregisterCallback("stars.setDrawMode3");
   mGuiManager->getGui()->unregisterCallback("stars.setDrawMode4");
+  mGuiManager->getGui()->unregisterCallback("stars.setDrawMode5");
   mGuiManager->getGui()->unregisterCallback("stars.setEnabled");
   mGuiManager->getGui()->unregisterCallback("stars.setEnableGrid");
   mGuiManager->getGui()->unregisterCallback("stars.setEnableFigures");
@@ -283,6 +286,12 @@ void Plugin::onLoad() {
   }
 
   mStars->setCatalogs(catalogs);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Plugin::onSave() {
+  mAllSettings->mPlugins["csp-stars"] = mPluginSettings;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

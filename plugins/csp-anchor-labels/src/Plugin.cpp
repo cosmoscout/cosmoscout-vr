@@ -61,8 +61,7 @@ void Plugin::init() {
   logger().info("Loading plugin...");
 
   mOnLoadConnection = mAllSettings->onLoad().connect([this]() { onLoad(); });
-  mOnSaveConnection = mAllSettings->onSave().connect(
-      [this]() { mAllSettings->mPlugins["csp-anchor-labels"] = *mPluginSettings; });
+  mOnSaveConnection = mAllSettings->onSave().connect([this]() { onSave(); });
 
   mGuiManager->addSettingsSectionToSideBarFromHTML(
       "Anchor Labels", "location_on", "../share/resources/gui/anchor_labels_settings.html");
@@ -214,6 +213,9 @@ void Plugin::update() {
 void Plugin::deInit() {
   logger().info("Unloading plugin...");
 
+  // Save settings as this plugin may get reloaded.
+  onSave();
+
   mAnchorLabels.clear();
 
   mAllSettings->mObjects.onAdd().disconnect(mAddObjectConnection);
@@ -252,6 +254,12 @@ void Plugin::onLoad() {
       mNeedsResort = true;
     }
   }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Plugin::onSave() {
+  mAllSettings->mPlugins["csp-anchor-labels"] = *mPluginSettings;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

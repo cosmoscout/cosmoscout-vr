@@ -97,8 +97,7 @@ void Plugin::init() {
   logger().info("Loading plugin...");
 
   mOnLoadConnection = mAllSettings->onLoad().connect([this]() { onLoad(); });
-  mOnSaveConnection = mAllSettings->onSave().connect(
-      [this]() { mAllSettings->mPlugins["csp-atmospheres"] = *mPluginSettings; });
+  mOnSaveConnection = mAllSettings->onSave().connect([this]() { onSave(); });
 
   mGuiManager->addSettingsSectionToSideBarFromHTML(
       "Atmospheres", "blur_circular", "../share/resources/gui/atmospheres_settings.html");
@@ -195,7 +194,12 @@ void Plugin::init() {
 void Plugin::deInit() {
   logger().info("Unloading plugin...");
 
+  // Save settings as this plugin may get reloaded.
+  onSave();
+
   mGuiManager->removeSettingsSection("Atmospheres");
+
+  mGuiManager->getGui()->callJavascript("CosmoScout.removeApi", "atmosphere");
 
   mGuiManager->getGui()->unregisterCallback("atmosphere.setEnableWater");
   mGuiManager->getGui()->unregisterCallback("atmosphere.setEnableClouds");
@@ -270,6 +274,12 @@ void Plugin::onLoad() {
   mAllSettings->mGraphics.pEnableShadows.touch(mEnableShadowsConnection);
   mAllSettings->mGraphics.pEnableHDR.touch(mEnableHDRConnection);
   mAllSettings->mGraphics.pAmbientBrightness.touch(mAmbientBrightnessConnection);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Plugin::onSave() {
+  mAllSettings->mPlugins["csp-atmospheres"] = *mPluginSettings;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

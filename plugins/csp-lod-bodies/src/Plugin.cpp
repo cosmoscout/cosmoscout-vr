@@ -166,9 +166,7 @@ void Plugin::init() {
   logger().info("Loading plugin...");
 
   mOnLoadConnection = mAllSettings->onLoad().connect([this]() { onLoad(); });
-
-  mOnSaveConnection = mAllSettings->onSave().connect(
-      [this]() { mAllSettings->mPlugins["csp-lod-bodies"] = *mPluginSettings; });
+  mOnSaveConnection = mAllSettings->onSave().connect([this]() { onSave(); });
 
   mGuiManager->addPluginTabToSideBarFromHTML(
       "Body Settings", "landscape", "../share/resources/gui/lod_body_tab.html");
@@ -420,6 +418,9 @@ void Plugin::init() {
 void Plugin::deInit() {
   logger().info("Unloading plugin...");
 
+  // Save settings as this plugin may get reloaded.
+  onSave();
+
   mSolarSystem->pActiveObject.disconnect(mActiveObjectConnection);
 
   for (auto const& [name, body] : mLodBodies) {
@@ -432,14 +433,14 @@ void Plugin::deInit() {
   mGuiManager->removePluginTab("Body Settings");
   mGuiManager->removeSettingsSection("Body Settings");
 
+  mGuiManager->getGui()->callJavascript("CosmoScout.removeApi", "lodBodies");
+
   mGuiManager->getGui()->unregisterCallback("lodBodies.setEnableTilesFreeze");
   mGuiManager->getGui()->unregisterCallback("lodBodies.setEnableTilesDebug");
   mGuiManager->getGui()->unregisterCallback("lodBodies.setEnableWireframe");
   mGuiManager->getGui()->unregisterCallback("lodBodies.setEnableBounds");
   mGuiManager->getGui()->unregisterCallback("lodBodies.setEnableHeightlines");
   mGuiManager->getGui()->unregisterCallback("lodBodies.setEnableLatLongGrid");
-  mGuiManager->getGui()->unregisterCallback("lodBodies.setEnableLatLongGridLabels");
-  mGuiManager->getGui()->unregisterCallback("lodBodies.setEnableColorMixing");
   mGuiManager->getGui()->unregisterCallback("lodBodies.setTerrainLod");
   mGuiManager->getGui()->unregisterCallback("lodBodies.setEnableAutoTerrainLod");
   mGuiManager->getGui()->unregisterCallback("lodBodies.setTextureGamma");
@@ -556,6 +557,12 @@ void Plugin::onLoad() {
   }
 
   mSolarSystem->pActiveObject.touch(mActiveObjectConnection);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Plugin::onSave() {
+  mAllSettings->mPlugins["csp-lod-bodies"] = *mPluginSettings;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

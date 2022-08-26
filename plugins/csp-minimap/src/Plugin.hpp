@@ -57,6 +57,7 @@ class Plugin : public cs::core::PluginBase {
   void onAddBookmark(std::shared_ptr<const cs::scene::CelestialObject> const& activeObject,
       uint32_t bookmarkID, cs::core::Settings::Bookmark const& bookmark);
   void onLoad();
+  void onSave();
 
   Settings mPluginSettings;
 

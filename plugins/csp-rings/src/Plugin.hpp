@@ -44,6 +44,7 @@ class Plugin : public cs::core::PluginBase {
 
  private:
   void onLoad();
+  void onSave();
 
   Settings                                               mPluginSettings;
   std::unordered_map<std::string, std::shared_ptr<Ring>> mRings;

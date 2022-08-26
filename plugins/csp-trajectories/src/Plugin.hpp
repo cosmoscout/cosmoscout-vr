@@ -80,6 +80,7 @@ class Plugin : public cs::core::PluginBase {
 
  private:
   void onLoad();
+  void onSave();
 
   std::shared_ptr<Settings>                  mPluginSettings = std::make_shared<Settings>();
   std::vector<std::unique_ptr<Trajectory>>   mTrajectories;

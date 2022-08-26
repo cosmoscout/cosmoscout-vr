@@ -54,9 +54,8 @@ void Plugin::init() {
   logger().info("Loading plugin...");
 
   mOnLoadConnection = mAllSettings->onLoad().connect([this]() { onLoad(); });
-
   mOnSaveConnection = mAllSettings->onSave().connect(
-      [this]() { mAllSettings->mPlugins["csp-sharad"] = mPluginSettings; });
+      [this]() {onSave(); });
 
   mGuiManager->addHtmlToGui("sharad", "../share/resources/gui/sharad-template.html");
 
@@ -139,6 +138,9 @@ void Plugin::init() {
 void Plugin::deInit() {
   logger().info("Unloading plugin...");
 
+  // Save settings as this plugin may get reloaded.
+  onSave();
+
   for (auto const& node : mSharadNodes) {
     mSceneGraph->GetRoot()->DisconnectChild(node.get());
   }
@@ -168,6 +170,11 @@ void Plugin::update() {
 void Plugin::onLoad() {
   // Read settings from JSON.
   from_json(mAllSettings->mPlugins.at("csp-sharad"), mPluginSettings);
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Plugin::onSave() {
+   mAllSettings->mPlugins["csp-sharad"] = mPluginSettings;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
