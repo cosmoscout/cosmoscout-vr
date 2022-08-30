@@ -19,9 +19,13 @@ class CelestialSurface;
 class CelestialObserver;
 class IntersectableObject;
 
-/// CelestialObjects have a lifetime in the universe. They are defined by their start and end
-/// existence time. The time is given in the Barycentric Dynamical Time format, which is used
-/// throughout SPICE.
+/// CelestialObjects are configured in the scene configuration file and instantiated by the Settings
+/// class. They are updated once each frame by the SolarSystem. Plugins can get references to
+/// CelestialObjects via SolarSystem::getObject() and retrieve their current observer-centric
+/// transformation each frame.
+/// CelestialObjects have a lifetime in the universe. They are defined by
+/// their start and end existence time. The time is given in the Barycentric Dynamical Time format,
+/// which is used throughout SPICE.
 class CS_SCENE_EXPORT CelestialObject : public CelestialAnchor {
  public:
   explicit CelestialObject(
@@ -42,10 +46,14 @@ class CS_SCENE_EXPORT CelestialObject : public CelestialAnchor {
   glm::dvec2 getExistence() const;
   void       setExistence(glm::dvec2 value);
 
+  /// Returns the existence of the object encoded in strings in the format YYYY-MM-DDTHH:MM:SS.fffZ.
+  /// This is used for serializing the objects into the json configuration files.
   std::array<std::string, 2> getExistenceAsStrings() const;
   void                       setExistenceAsStrings(std::array<std::string, 2> const& value);
 
-  /// The radii of the CelestialObject in meters.
+  /// The radii of the CelestialObject in meters. If setRadii() was never called, this method
+  /// will attempt to get the radii from SPICE once. If this fails, the method will
+  /// return [0.0, 0.0, 0.0].
   glm::dvec3 const& getRadii() const;
   void              setRadii(glm::dvec3 const& value);
 
@@ -100,14 +108,26 @@ class CS_SCENE_EXPORT CelestialObject : public CelestialAnchor {
   /// also return false if either getIsInExistence() or getHasValidPosition() returns false.
   bool getIsOrbitVisible() const;
 
-  /// Returns the current relative transformation to the observer.
+  /// Returns the current relative transformation to the observer. This is the matrix which
+  /// transforms objects from the observer's coordinate system to the CelestialObject's coordinate
+  /// system. This usually changes during a call to update().
   glm::dmat4 const& getObserverRelativeTransform() const;
-  glm::dvec3        getObserverRelativePosition() const;
 
+  /// This is the same as above, however it does not return the full transformation but only the
+  /// observer-relative position (ignoring the rotation and scale of this).
+  glm::dvec3 getObserverRelativePosition() const;
+
+  /// This is a convenience method to compute the current observer-relative transformation of an
+  /// object which has a certain transformation relative to this CelestialObject. For example, this
+  /// method could be used to get the observer-relative transformation of an object on the surface
+  /// of a planet.
   glm::dmat4 getObserverRelativeTransform(glm::dvec3 const& translation,
       glm::dquat const& rotation = glm::dquat(1.0, 0.0, 0.0, 0.0), double scale = 1.0) const;
-  glm::dvec3 getObserverRelativePosition(glm::dvec3 const& translation,
-      glm::dquat const& rotation = glm::dquat(1.0, 0.0, 0.0, 0.0), double scale = 1.0) const;
+
+  /// This is the same as above, however it does not return the full transformation of the
+  /// sub-object but only the observer-relative position (ignoring the rotation and scale of the
+  /// sub-object).
+  glm::dvec3 getObserverRelativePosition(glm::dvec3 const& translation) const;
 
   // -----------------------------------------------------------------------------------------------
 

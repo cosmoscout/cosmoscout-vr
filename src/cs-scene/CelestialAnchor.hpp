@@ -28,6 +28,9 @@ namespace cs::scene {
 ///    of the earth would not be factored into the position, but with "IAU_Earth" the location
 ///    would be relative to the current longitude and thus the object would spin with the Earth.
 ///
+/// In addition, each CelestialAnchor has a transformation relative to the referenced SPICE
+/// coordinate system. This transformation is given as a separate position, rotation, and scale.
+///
 /// This class also provides methods for getting the transformation components in the coordinate
 /// system of other entities.
 class CS_SCENE_EXPORT CelestialAnchor {

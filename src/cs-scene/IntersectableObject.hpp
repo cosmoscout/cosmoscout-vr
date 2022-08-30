@@ -13,8 +13,10 @@
 
 namespace cs::scene {
 
-/// An interface for objects that can be intersected by a ray. One class implementing this interface
-/// is the cs::scene::CelestialObject.
+/// An interface for objects that can be intersected by a ray. A class deriving from
+/// IntersectableObject can be assigned to a CelestialObject. Once each frame, the InputManager will
+/// check all CelestialObjects for if they contain an IntersectableObject. If so, it will be tested
+/// for intersections with the mouse ray.
 class IntersectableObject {
  public:
   /// Calculates the intersection of the implementing object and a ray.

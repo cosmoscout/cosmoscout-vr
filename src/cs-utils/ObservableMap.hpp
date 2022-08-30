@@ -13,14 +13,18 @@
 
 namespace cs::utils {
 
-///
+/// This is a wrapper around a std::unordered_map which adds two Signals: onAdd and onRemove. It
+/// only exposes const access to the contained objects, so they are basically immutable. If a
+/// property of an item needs to changed, the respective item needs to be removed and re-added.
 template <typename K, typename V>
 class ObservableMap {
  public:
+  /// This signal will be emitted right before an item is added to the map.
   Signal<K, V> const& onAdd() const {
     return mOnAdd;
   }
 
+  /// This signal will be emitted right before an item is removed from the map.
   Signal<K, V> const& onRemove() const {
     return mOnRemove;
   };

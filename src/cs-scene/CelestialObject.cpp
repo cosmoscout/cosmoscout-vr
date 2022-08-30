@@ -240,9 +240,8 @@ glm::dmat4 CelestialObject::getObserverRelativeTransform(
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-glm::dvec3 CelestialObject::getObserverRelativePosition(
-    glm::dvec3 const& translation, glm::dquat const& rotation, double scale) const {
-  return getObserverRelativeTransform(translation, rotation, scale)[3].xyz();
+glm::dvec3 CelestialObject::getObserverRelativePosition(glm::dvec3 const& translation) const {
+  return getObserverRelativeTransform(translation)[3].xyz();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

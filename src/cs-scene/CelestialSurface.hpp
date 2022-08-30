@@ -17,7 +17,10 @@ namespace cs::scene {
 class CelestialObject;
 class CelestialObserver;
 
-/// A CelestialSurface can be assigned to a CelestialObject.
+/// A CelestialSurface can be assigned to a CelestialObject. Classes which are interested in the
+/// altitude of the terrain of a celestial body can check for the existance of a CelestialSurface of
+/// the respective CelestialBody. If one exists, they can call the getHeight() method in order to
+/// retrieve the altitude at a given location.
 class CS_SCENE_EXPORT CelestialSurface {
  public:
   /// Returns the elevation in meters at a specific point on the surface.
