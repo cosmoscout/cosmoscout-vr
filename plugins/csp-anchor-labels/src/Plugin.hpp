@@ -11,15 +11,14 @@
 #include "../../../src/cs-core/Settings.hpp"
 #include "../../../src/cs-utils/Property.hpp"
 #include <memory>
-#include <unordered_map>
 #include <unordered_set>
 
 namespace csp::anchorlabels {
 class AnchorLabel;
 
-/// This plugin puts labels over anchors in space. It uses the anchors center names as text. If
-/// you click on the label you ar being flown to the anchor. The plugin is configurable via the
-/// application config file. See README.md for details.
+/// This plugin puts labels over anchors in space. It uses the object names as text. If you click on
+/// the label you ar being flown to the anchor. The plugin is configurable via the application
+/// config file. See README.md for details.
 class Plugin : public cs::core::PluginBase {
  public:
   struct Settings {

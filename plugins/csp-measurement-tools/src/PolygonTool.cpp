@@ -92,7 +92,7 @@ PolygonTool::PolygonTool(std::shared_ptr<cs::core::InputManager> const& pInputMa
   VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
       mParent.get(), static_cast<int>(cs::utils::DrawOrder::eOpaqueNonHDR));
 
-  // Create a a VistaCelestialAnchorNode for the user interface
+  // Create a VistaTransformNode for the user interface
   // it will be moved to the center of all points when a point is moved
   // and rotated in such a way, that it always faces the observer
   mGuiAnchor.reset(pSG->NewTransformNode(pSG->GetRoot()));

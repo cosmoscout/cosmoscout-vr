@@ -88,7 +88,7 @@ PathTool::PathTool(std::shared_ptr<cs::core::InputManager> const& pInputManager,
   VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
       mPathOpenGLNode.get(), static_cast<int>(cs::utils::DrawOrder::eOpaqueNonHDR));
 
-  // create a a CelestialAnchorNode for the user interface
+  // create a VistaTransformNode for the user interface
   // it will be moved to the center of all points when a point is moved
   // and rotated in such a way, that it always faces the observer
   mGuiAnchor.reset(pSG->NewTransformNode(pSG->GetRoot()));

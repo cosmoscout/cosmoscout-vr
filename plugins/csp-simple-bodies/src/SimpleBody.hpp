@@ -52,8 +52,7 @@ class SimpleBody : public cs::scene::CelestialSurface,
 
   void update();
 
-  /// Interface implementation of the IntersectableObject, which is a base class of
-  /// CelestialBody.
+  /// Interface implementation of the IntersectableObject.
   bool getIntersection(
       glm::dvec3 const& rayOrigin, glm::dvec3 const& rayDir, glm::dvec3& pos) const override;
 

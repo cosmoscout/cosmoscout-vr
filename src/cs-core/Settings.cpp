@@ -38,7 +38,6 @@ void from_json(nlohmann::json const&                                            
 
   o.clear();
 
-  // the same code as range for
   for (auto const& el : j.items()) {
     std::string                name = el.key();
     nlohmann::json             data = el.value();

@@ -235,11 +235,11 @@ void Plugin::onLoad() {
       SpaceItem item;
       item.mObjectName = settings.mObject;
 
-      // Create a CelestialAnchorNode to attach our gui element to.
+      // Create a VistaTransformNode to attach our gui element to.
       item.mAnchor.reset(pSG->NewTransformNode(pSG->GetRoot()));
       item.mScale = settings.mScale;
 
-      // Compute the cartesian position of the CelestialAnchorNode.
+      // Compute the cartesian position of the gui item.
       glm::dvec2 lngLat(settings.mLongitude, settings.mLatitude);
       lngLat         = cs::utils::convert::toRadians(lngLat);
       auto radii     = object->getRadii();

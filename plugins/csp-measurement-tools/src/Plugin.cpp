@@ -230,7 +230,7 @@ void from_json(nlohmann::json const& j, Plugin::Settings& o) {
   deserializeTools(j, "ellipses", o.mEllipses);
   deserializeTools(j, "flags", o.mFlags);
   deserializeTools(j, "paths", o.mPaths);
-  // deserializeTools(j, "polygons", o.mPolygons);
+  deserializeTools(j, "polygons", o.mPolygons);
 
   cs::core::Settings::deserialize(j, "polygonHeightDiff", o.mPolygonHeightDiff);
   cs::core::Settings::deserialize(j, "polygonMaxAttempt", o.mPolygonMaxAttempt);
@@ -245,7 +245,7 @@ void to_json(nlohmann::json& j, Plugin::Settings const& o) {
   cs::core::Settings::serialize(j, "ellipses", o.mEllipses);
   cs::core::Settings::serialize(j, "flags", o.mFlags);
   cs::core::Settings::serialize(j, "paths", o.mPaths);
-  // cs::core::Settings::serialize(j, "polygons", o.mPolygons);
+  cs::core::Settings::serialize(j, "polygons", o.mPolygons);
   cs::core::Settings::serialize(j, "polygonHeightDiff", o.mPolygonHeightDiff);
   cs::core::Settings::serialize(j, "polygonMaxAttempt", o.mPolygonMaxAttempt);
   cs::core::Settings::serialize(j, "polygonMaxPoints", o.mPolygonMaxPoints);
