@@ -30,6 +30,29 @@
 * Lighting is now enabled by default
 * It is now possible to have simple body textures, that have the prime meridian at the edge.
 * Rings now have a lit and an unlit side.
+* `CelestialObject`s now have four new properties:
+  * `bodyCullingRadius`: This can be used to determine the visiblity of an object. If the object is too far away to be seen, plugins may want to skip updating or drawing attached things.
+  * `orbitCullingRadius`:This can be used to determine the visiblity of an object's trajectory. If the object is really far away, plugins may want to skip updating or drawing attached things (like trajectories or anchor labels).
+  * `trackable`: If set to `false`, the observer will not automatically follow this object.
+  * `collidable`:  If set to `false`, the observer can travel through the object. 
+* The mouse navigation has been made a bit smoother. This makes it possible to update the scene scale only once each frame. Before, it had to be updated multiple times each frame which introduced a significant CPU overhead during rapid movements.
+* All plugins now save their configuration before being unloaded. This makes it possible that plugins keep their current state when being reloaded at run-time.
+* Test source files are now only compiled into the executable and into the libraries if `COSMOSCOUT_UNIT_TESTS` is set to `true`.
+* It's now possible to reload the `csp-satellites` plugin at run-time.
+* Anchor Labels are now shown for each configured object per default. A blacklist has been added to the plugin configuration to remove labels selectively.
+* Anchor Labels now show the name of the configured object rather than the SPICE center name.
+* The maximum size of Anchor Labels has been increased to prevent line breaking for longer object names.
+* Anchor Labels now use the new `orbitCullingRadius` of the object for deciding whether they should be shown or not.
+
+#### Refactoring
+
+* The `Settings` class now has a map of immutable `CelestialObject`s which are instantiated when CosmoScout is started. Before it used to have a list of anchor configurations which could be used to initialize `CelestialObject`s.
+* The observer-relative transformation of each `CelestialObject` is updated once each frame by the `SolarSystem`.
+* All classes which previously derived from `CelestialAnchor`, `CelestialObject`, or `CelestialBody` now get the observer-relative transformation from the `CelestialObject`s in the `Settings`.
+* Classes which previously derived from `CelestialBody` now have to derive from the new class `CelestialSurface`. A `CelestialSurface` can then be assigned to a `CelestialObject`.
+* `CelestialAnchorNode`s do not exist anymore. Classes which  used to use these, now have to use a `VistaTransformNode` instead and update its transformation once each frame with the observer-relative transformation from the respective  `CelestialObject`.
+* Much per-frame logic used to be executed in overrides of `CelestialObject::update()`. This method does not exist any more; plugins now need to update their objects manually.
+* Some common code has been moved from the measurement tools to the base classes `cs::core::tools::Tool` and `cs::core::tools::Mark`. This simplifies some code in the measurement tools.
 
 #### Bug Fixes
 
