@@ -74,7 +74,8 @@ PlanetShader::PlanetShader(std::shared_ptr<cs::core::Settings> settings,
 
   // TODO: color map mangement could be done in a separate class
   if (mColorMaps.empty()) {
-    auto files(cs::utils::filesystem::listFiles("../share/resources/colormaps"));
+    auto files(
+        cs::utils::filesystem::listFiles("../share/resources/colormaps", std::regex(".*\\.json")));
 
     bool first = true;
     for (auto const& file : files) {
