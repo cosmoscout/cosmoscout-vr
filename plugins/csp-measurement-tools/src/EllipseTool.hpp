@@ -33,7 +33,7 @@ class EllipseTool : public IVistaOpenGLDraw, public cs::core::tools::Tool {
   ~EllipseTool() override;
 
   // Assigns all points to a new celestial object.
-  void setObjectName(std::string const& name) override;
+  void setObjectName(std::string name) override;
 
   FlagTool const&              getCenterHandle() const;
   cs::core::tools::Mark const& getFirstHandle() const;

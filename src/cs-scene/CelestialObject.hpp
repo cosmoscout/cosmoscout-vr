@@ -37,7 +37,7 @@ class CS_SCENE_EXPORT CelestialObject : public CelestialAnchor {
   CelestialObject& operator=(CelestialObject const& other) = default;
   CelestialObject& operator=(CelestialObject&& other) = default;
 
-  virtual ~CelestialObject() = default;
+  virtual ~CelestialObject() override = default;
 
   // -----------------------------------------------------------------------------------------------
 
@@ -49,13 +49,13 @@ class CS_SCENE_EXPORT CelestialObject : public CelestialAnchor {
   /// Returns the existence of the object encoded in strings in the format YYYY-MM-DDTHH:MM:SS.fffZ.
   /// This is used for serializing the objects into the json configuration files.
   std::array<std::string, 2> getExistenceAsStrings() const;
-  void                       setExistenceAsStrings(std::array<std::string, 2> const& value);
+  void                       setExistenceAsStrings(std::array<std::string, 2> value);
 
   /// The radii of the CelestialObject in meters. If setRadii() was never called, this method
   /// will attempt to get the radii from SPICE once. If this fails, the method will
   /// return [0.0, 0.0, 0.0].
   glm::dvec3 const& getRadii() const;
-  void              setRadii(glm::dvec3 const& value);
+  void              setRadii(glm::dvec3 value);
 
   /// An approximate radius of the body in meters. This will serve as a basis for visibility
   /// calculation. If set to 0.0 (the default), getIsBodyVisible() will always return true.
@@ -79,9 +79,9 @@ class CS_SCENE_EXPORT CelestialObject : public CelestialAnchor {
   bool getIsCollidable() const;
   void setIsCollidable(bool value);
 
-  /// This is overidden to reset the body radii which are obtained from SPICE if no radii have been
+  /// This is overridden to reset the body radii which are obtained from SPICE if no radii have been
   /// set with setRadii().
-  void setCenterName(std::string const& sCenterName) override;
+  void setCenterName(std::string sCenterName) override;
 
   // -----------------------------------------------------------------------------------------------
 
@@ -137,14 +137,14 @@ class CS_SCENE_EXPORT CelestialObject : public CelestialAnchor {
   /// for measuring tools). Assigning a CelestialSurface does not change the state of the
   /// CelestialObject itself, therefore this method is considered to be const.
   std::shared_ptr<CelestialSurface> const& getSurface() const;
-  void setSurface(std::shared_ptr<CelestialSurface> const& surface) const;
+  void setSurface(std::shared_ptr<CelestialSurface> surface) const;
 
   /// It is also possible to assign an IntersectableObject to a CelestialObject. If the
-  /// CelestialObject is then registered with the InputManager, it will be regularily tested for
+  /// CelestialObject is then registered with the InputManager, it will be regularly tested for
   /// intersections with the mouse ray. Assigning an IntersectableObject does not change the state
   /// of the CelestialObject itself, therefore this method is considered to be const.
   std::shared_ptr<IntersectableObject> const& getIntersectableObject() const;
-  void setIntersectableObject(std::shared_ptr<IntersectableObject> const& object) const;
+  void setIntersectableObject(std::shared_ptr<IntersectableObject> object) const;
 
  protected:
   glm::dvec3 mRadii              = glm::dvec3(0.0);

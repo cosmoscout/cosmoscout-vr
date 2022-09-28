@@ -45,7 +45,7 @@ class PlanetShader : public TerrainShader {
 
   ~PlanetShader() override;
 
-  /// This is required to get several properties from the pluin settings.
+  /// This is required to get several properties from the plugin settings.
   void               setObjectName(std::string objectName);
   std::string const& getObjectName() const;
 

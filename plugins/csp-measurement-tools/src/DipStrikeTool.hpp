@@ -91,7 +91,7 @@ class DipStrikeTool : public IVistaOpenGLDraw, public cs::core::tools::MultiPoin
 
   bool       mVerticesDirty = false;
   double     mSize{};
-  glm::dvec3 mPosition;
+  glm::dvec3 mPosition{};
   glm::vec3  mNormal = glm::vec3(0.0), mMip = glm::vec3(0.0);
   float      mOffset{};
 

@@ -67,8 +67,8 @@ void main()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Mark::Mark(std::shared_ptr<InputManager> pInputManager, std::shared_ptr<SolarSystem> pSolarSystem,
-    std::shared_ptr<Settings> settings, std::string const& objectName)
-    : Tool(objectName)
+    std::shared_ptr<Settings> settings, std::string objectName)
+    : Tool(std::move(objectName))
     , mInputManager(std::move(pInputManager))
     , mSolarSystem(std::move(pSolarSystem))
     , mSettings(std::move(settings))

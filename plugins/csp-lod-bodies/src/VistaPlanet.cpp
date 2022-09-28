@@ -70,7 +70,7 @@ VistaPlanet::~VistaPlanet() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// The funciton that drives all operations that need to be done each frame.
+// The function that drives all operations that need to be done each frame.
 // It simply calls the other functions in this section in order and passes
 // a few shared values between them (e.g. the matrices for the current view).
 void VistaPlanet::draw() {

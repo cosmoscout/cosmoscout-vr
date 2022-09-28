@@ -75,7 +75,7 @@ void EclipseShadowReceiver::update(scene::CelestialObject const& shadowReceiver)
     return;
   }
 
-  // Acquire a list of allpotentially relevant eclipse shadow maps.
+  // Acquire a list of all potentially relevant eclipse shadow maps.
   mShadowMaps = mSolarSystem->getEclipseShadowMaps(shadowReceiver, mAllowSelfShadowing);
 
   // For each shadow-casting body, we store the observer-relative position and the observer-relative

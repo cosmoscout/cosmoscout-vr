@@ -216,7 +216,7 @@ glm::dvec4 PolygonTool::getInterpolatedPosBetweenTwoMarks(
   glm::dvec2 ll      = cs::utils::convert::cartesianToLngLat(interpolatedPos, radii);
   double     height  = (surface ? surface->getHeight(ll) : 0.0) * h_scale;
   glm::dvec3 pos     = cs::utils::convert::toCartesian(ll, radii, height);
-  return glm::dvec4(pos, height);
+  return {pos, height};
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

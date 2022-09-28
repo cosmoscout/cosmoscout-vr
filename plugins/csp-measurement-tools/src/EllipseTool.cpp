@@ -153,11 +153,11 @@ EllipseTool::~EllipseTool() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void EllipseTool::setObjectName(std::string const& name) {
-  Tool::setObjectName(name);
-  mCenterHandle.setObjectName(name);
-  mHandles.at(0)->setObjectName(name);
-  mHandles.at(1)->setObjectName(name);
+void EllipseTool::setObjectName(std::string name) {
+  Tool::setObjectName(std::move(name));
+  mCenterHandle.setObjectName(getObjectName());
+  mHandles.at(0)->setObjectName(getObjectName());
+  mHandles.at(1)->setObjectName(getObjectName());
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -213,7 +213,6 @@ void EllipseTool::calculateVertices() {
 
   glm::dvec3 north(0, 1, 0);
   glm::dvec3 east = glm::normalize(glm::cross(north, normal));
-  north           = glm::normalize(glm::cross(normal, east));
 
   std::vector<glm::vec3> vRelativePositions(mNumSamples);
   for (int i = 0; i < mNumSamples; ++i) {

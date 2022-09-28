@@ -153,7 +153,7 @@ Sharad::Sharad(std::shared_ptr<cs::core::Settings> settings,
     std::shared_ptr<cs::core::SolarSystem> solarSystem, std::string objectName,
     std::string const& sTiffFile, std::string const& sTabFile)
     : mSettings(std::move(settings))
-    , mSolarSystem(solarSystem)
+    , mSolarSystem(std::move(solarSystem))
     , mTexture(cs::graphics::TextureLoader::loadFromFile(sTiffFile))
     , mObjectName(std::move(objectName)) {
 

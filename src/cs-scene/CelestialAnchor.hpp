@@ -52,20 +52,20 @@ class CS_SCENE_EXPORT CelestialAnchor {
   /// A reference frame’s center must be a SPICE ephemeris object whose location is coincident with
   /// the origin (0, 0, 0) of the frame.
   virtual std::string const& getCenterName() const;
-  virtual void               setCenterName(std::string const& sCenterName);
+  virtual void               setCenterName(std::string sCenterName);
 
   /// SPICE name of the frame.
   virtual std::string const& getFrameName() const;
-  virtual void               setFrameName(std::string const& sFrameName);
+  virtual void               setFrameName(std::string sFrameName);
 
   /// Additional translation in meters, relative to center in frame coordinates additional scaling
   /// and rotation is applied afterwards and will not change the position relative to the center.
   virtual glm::dvec3 const& getPosition() const;
-  virtual void              setPosition(glm::dvec3 const& vPos);
+  virtual void              setPosition(glm::dvec3 vPos);
 
   /// Additional rotation around the point center + position in frame coordinates.
   virtual glm::dquat const& getRotation() const;
-  virtual void              setRotation(glm::dquat const& qRot);
+  virtual void              setRotation(glm::dquat qRot);
 
   /// Additional uniform scaling around the point center + position.
   virtual double getScale() const;

@@ -85,7 +85,7 @@ class PathTool : public IVistaOpenGLDraw, public cs::core::tools::MultiPointTool
   } mUniforms;
 
   std::vector<glm::dvec3> mSampledPositions;
-  glm::dvec3              mPosition;
+  glm::dvec3              mPosition{};
   size_t                  mIndexCount    = 0;
   bool                    mVerticesDirty = false;
 

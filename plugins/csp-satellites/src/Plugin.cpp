@@ -93,10 +93,10 @@ void Plugin::update() {
 
 void Plugin::onLoad() {
 
+  mSatellites.clear();
+  
   // Read settings from JSON.
   mPluginSettings = mAllSettings->mPlugins.at("csp-satellites");
-
-  mSatellites.clear();
 
   for (auto const& settings : mPluginSettings.mSatellites) {
     mSatellites.push_back(std::make_shared<Satellite>(

@@ -15,8 +15,8 @@ Tool::Tool(std::string objectName)
 void Tool::update() {
 }
 
-void Tool::setObjectName(std::string const& name) {
-  mObjectName = name;
+void Tool::setObjectName(std::string name) {
+  mObjectName = std::move(name);
 }
 
 std::string const& Tool::getObjectName() const {
