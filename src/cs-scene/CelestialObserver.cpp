@@ -31,23 +31,23 @@ void CelestialObserver::updateMovementAnimation(double tTime) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CelestialObserver::setPosition(glm::dvec3 const& vPos) {
+void CelestialObserver::setPosition(glm::dvec3 vPos) {
   if (!mAnimationInProgress) {
-    CelestialAnchor::setPosition(vPos);
+    CelestialAnchor::setPosition(std::move(vPos));
   }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CelestialObserver::setRotation(glm::dquat const& qRot) {
+void CelestialObserver::setRotation(glm::dquat qRot) {
   if (!mAnimationInProgress) {
-    CelestialAnchor::setRotation(qRot);
+    CelestialAnchor::setRotation(std::move(qRot));
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void CelestialObserver::changeOrigin(
-    std::string const& sCenterName, std::string const& sFrameName, double dSimulationTime) {
+    std::string sCenterName, std::string sFrameName, double dSimulationTime) {
 
   mAnimationInProgress = false;
 
@@ -56,8 +56,8 @@ void CelestialObserver::changeOrigin(
   glm::dvec3 pos = target.getRelativePosition(dSimulationTime, *this);
   glm::dquat rot = target.getRelativeRotation(dSimulationTime, *this);
 
-  setCenterName(sCenterName);
-  setFrameName(sFrameName);
+  setCenterName(std::move(sCenterName));
+  setFrameName(std::move(sFrameName));
 
   setRotation(rot);
   setPosition(pos);

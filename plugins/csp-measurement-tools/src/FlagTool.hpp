@@ -27,9 +27,9 @@ class FlagTool : public cs::core::tools::Mark {
   cs::utils::Property<std::string> pText      = std::string("Flag");
   cs::utils::Property<bool>        pMinimized = false;
 
-  FlagTool(std::shared_ptr<cs::core::InputManager> const& pInputManager,
-      std::shared_ptr<cs::core::SolarSystem> const&       pSolarSystem,
-      std::shared_ptr<cs::core::Settings> const& settings, std::string const& objectName);
+  FlagTool(std::shared_ptr<cs::core::InputManager> pInputManager,
+      std::shared_ptr<cs::core::SolarSystem>       pSolarSystem,
+      std::shared_ptr<cs::core::Settings> settings, std::string objectName);
 
   FlagTool(FlagTool const& other) = delete;
   FlagTool(FlagTool&& other)      = delete;

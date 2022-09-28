@@ -57,9 +57,9 @@ void main()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-EllipseTool::EllipseTool(std::shared_ptr<cs::core::InputManager> const& pInputManager,
-    std::shared_ptr<cs::core::SolarSystem> const&                       pSolarSystem,
-    std::shared_ptr<cs::core::Settings> const& settings, std::string const& objectName)
+EllipseTool::EllipseTool(std::shared_ptr<cs::core::InputManager> pInputManager,
+    std::shared_ptr<cs::core::SolarSystem>                       pSolarSystem,
+    std::shared_ptr<cs::core::Settings> settings, std::string objectName)
     : Tool(objectName)
     , mSolarSystem(pSolarSystem)
     , mSettings(settings)
@@ -68,8 +68,8 @@ EllipseTool::EllipseTool(std::shared_ptr<cs::core::InputManager> const& pInputMa
           glm::dvec3(0.0, pSolarSystem->getObserver().getScale(), 0.0)})
     , mHandles({std::make_unique<cs::core::tools::Mark>(
                     pInputManager, pSolarSystem, settings, objectName),
-          std::make_unique<cs::core::tools::Mark>(
-              pInputManager, pSolarSystem, settings, objectName)}) {
+          std::make_unique<cs::core::tools::Mark>(std::move(pInputManager), std::move(pSolarSystem),
+              std::move(settings), std::move(objectName))}) {
 
   mShader.InitVertexShaderFromString(SHADER_VERT);
   mShader.InitFragmentShaderFromString(SHADER_FRAG);

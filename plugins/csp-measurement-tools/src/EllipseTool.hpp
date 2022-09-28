@@ -20,9 +20,9 @@ class EllipseTool : public IVistaOpenGLDraw, public cs::core::tools::Tool {
   /// The ellipse and all handels are drawn with this color.
   cs::utils::Property<glm::vec3> pColor = glm::vec3(0.75, 0.75, 1.0);
 
-  EllipseTool(std::shared_ptr<cs::core::InputManager> const& pInputManager,
-      std::shared_ptr<cs::core::SolarSystem> const&          pSolarSystem,
-      std::shared_ptr<cs::core::Settings> const& settings, std::string const& objectName);
+  EllipseTool(std::shared_ptr<cs::core::InputManager> pInputManager,
+      std::shared_ptr<cs::core::SolarSystem>          pSolarSystem,
+      std::shared_ptr<cs::core::Settings> settings, std::string objectName);
 
   EllipseTool(EllipseTool const& other) = delete;
   EllipseTool(EllipseTool&& other)      = delete;

@@ -80,8 +80,8 @@ void Plugin::init() {
       });
 
   // If a body gets dropped from the solar system remove the label too
-  mRemoveObjectConnection = mAllSettings->mObjects.onRemove().connect([this](auto const& name,
-                                                                          auto const&    object) {
+  mRemoveObjectConnection = mAllSettings->mObjects.onRemove().connect([this](auto const& /*name*/,
+                                                                          auto const& object) {
     mAnchorLabels.erase(std::remove_if(mAnchorLabels.begin(), mAnchorLabels.end(),
                             [object](auto const& label) { return object == label->getObject(); }),
         mAnchorLabels.end());

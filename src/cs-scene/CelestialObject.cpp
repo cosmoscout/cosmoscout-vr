@@ -100,8 +100,8 @@ glm::dvec3 const& CelestialObject::getRadii() const {
   return mRadii;
 }
 
-void CelestialObject::setRadii(glm::dvec3 const& value) {
-  mRadii = value;
+void CelestialObject::setRadii(glm::dvec3 value) {
+  mRadii = std::move(value);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

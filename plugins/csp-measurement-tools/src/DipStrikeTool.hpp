@@ -39,9 +39,9 @@ class DipStrikeTool : public IVistaOpenGLDraw, public cs::core::tools::MultiPoin
   cs::utils::Property<float>       pSize    = 1.5F;
   cs::utils::Property<float>       pOpacity = 0.5F;
 
-  DipStrikeTool(std::shared_ptr<cs::core::InputManager> const& pInputManager,
-      std::shared_ptr<cs::core::SolarSystem> const&            pSolarSystem,
-      std::shared_ptr<cs::core::Settings> const& settings, std::string const& objectName);
+  DipStrikeTool(std::shared_ptr<cs::core::InputManager> pInputManager,
+      std::shared_ptr<cs::core::SolarSystem>            pSolarSystem,
+      std::shared_ptr<cs::core::Settings> settings, std::string objectName);
 
   DipStrikeTool(DipStrikeTool const& other) = delete;
   DipStrikeTool(DipStrikeTool&& other)      = delete;

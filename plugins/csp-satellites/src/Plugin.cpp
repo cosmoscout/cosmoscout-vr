@@ -94,7 +94,7 @@ void Plugin::update() {
 void Plugin::onLoad() {
 
   mSatellites.clear();
-  
+
   // Read settings from JSON.
   mPluginSettings = mAllSettings->mPlugins.at("csp-satellites");
 

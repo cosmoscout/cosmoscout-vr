@@ -49,7 +49,7 @@ class PlanetShader : public TerrainShader {
   void               setObjectName(std::string objectName);
   std::string const& getObjectName() const;
 
-  void setSun(glm::vec3 const& direction, float illuminance);
+  void setSun(glm::vec3 direction, float illuminance);
 
   void bind() override;
   void release() override;

@@ -128,8 +128,8 @@ std::string const& PlanetShader::getObjectName() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void PlanetShader::setSun(glm::vec3 const& direction, float illuminance) {
-  mSunDirection   = direction;
+void PlanetShader::setSun(glm::vec3 direction, float illuminance) {
+  mSunDirection   = std::move(direction);
   mSunIlluminance = illuminance;
 }
 

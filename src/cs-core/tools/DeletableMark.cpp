@@ -23,10 +23,11 @@ namespace cs::core::tools {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-DeletableMark::DeletableMark(std::shared_ptr<InputManager> const& pInputManager,
-    std::shared_ptr<SolarSystem> const& pSolarSystem, std::shared_ptr<Settings> const& settings,
-    std::string const& objectName)
-    : Mark(pInputManager, pSolarSystem, settings, objectName)
+DeletableMark::DeletableMark(std::shared_ptr<InputManager> pInputManager,
+    std::shared_ptr<SolarSystem> pSolarSystem, std::shared_ptr<Settings> settings,
+    std::string objectName)
+    : Mark(std::move(pInputManager), std::move(pSolarSystem), std::move(settings),
+          std::move(objectName))
     , mGuiArea(new cs::gui::WorldSpaceGuiArea(65, 75))
     , mGuiItem(new cs::gui::GuiItem("file://../share/resources/gui/deletable_mark.html")) {
 
