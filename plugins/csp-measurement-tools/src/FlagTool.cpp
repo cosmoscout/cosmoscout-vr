@@ -88,7 +88,7 @@ FlagTool::FlagTool(std::shared_ptr<cs::core::InputManager> pInputManager,
 
   mGuiItem->registerCallback("minimizeMe", "Call this to minimize the flag.",
       std::function([this]() { pMinimized = true; }));
-  mGuiItem->callJavascript("setActivePlanet", objectName);
+  mGuiItem->callJavascript("setActivePlanet", getObjectName());
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
