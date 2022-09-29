@@ -19,23 +19,22 @@ namespace cs::utils {
 template <typename K, typename V>
 class ObservableMap {
  public:
-  /// This signal will be emitted right before an item is added to the map.
+  /// This signal will be emitted right after an item was added to the map.
   Signal<K, V> const& onAdd() const {
     return mOnAdd;
   }
 
-  /// This signal will be emitted right before an item is removed from the map.
+  /// This signal will be emitted right after an item was removed from the map.
   Signal<K, V> const& onRemove() const {
     return mOnRemove;
   };
 
   /// Inserts a new element into the container if there is no element with the key in the container.
   void insert(K key, V value) {
-    auto it = mMap.find(key);
+    auto res = mMap.emplace(std::move(key), std::move(value));
 
-    if (it == mMap.end()) {
-      mOnAdd.emit(key, value);
-      mMap.emplace(std::move(key), std::move(value));
+    if (res.second) {
+      mOnAdd.emit(res.first->first, res.first->second);
     }
   }
 
@@ -52,11 +51,10 @@ class ObservableMap {
 
   /// Removes the specified element from the container.
   void erase(K const& key) {
-    auto it = mMap.find(key);
+    auto item = mMap.extract(key);
 
-    if (it != mMap.end()) {
-      mOnRemove.emit(key, it->second);
-      mMap.erase(it);
+    if (item) {
+      mOnRemove.emit(item.key(), item.value());
     }
   }
 
