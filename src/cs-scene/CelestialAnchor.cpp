@@ -127,11 +127,11 @@ glm::dquat CelestialAnchor::getRelativeRotation(double tTime, CelestialAnchor co
   }
 
   // convert to quaternion
-  double axis[3]; // NOLINT(modernize-avoid-c-arrays)
-  double angle{};
+  std::array<double, 3> axis{};
+  double                angle{};
 
   // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-array-to-pointer-decay, modernize-avoid-c-arrays)
-  raxisa_c(rotMat.data(), axis, &angle);
+  raxisa_c(rotMat.data(), axis.data(), &angle);
 
   return glm::inverse(mRotation) * glm::angleAxis(angle, glm::dvec3(axis[1], axis[2], axis[0])) *
          other.mRotation;
