@@ -31,10 +31,10 @@ class ObservableMap {
 
   /// Inserts a new element into the container if there is no element with the key in the container.
   void insert(K key, V value) {
-    auto res = mMap.emplace(std::move(key), std::move(value));
+    auto [entry, success] = mMap.emplace(std::move(key), std::move(value));
 
-    if (res.second) {
-      mOnAdd.emit(res.first->first, res.first->second);
+    if (success) {
+      mOnAdd.emit(entry->first, entry->second);
     }
   }
 
