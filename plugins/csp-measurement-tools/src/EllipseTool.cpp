@@ -209,10 +209,6 @@ void EllipseTool::calculateVertices() {
   auto object = mSolarSystem->getObject(getObjectName());
   auto radii  = object->getRadii();
   auto center = mCenterHandle.getPosition();
-  auto normal = cs::utils::convert::lngLatToNormal(mCenterHandle.pLngLat.get());
-
-  glm::dvec3 north(0, 1, 0);
-  glm::dvec3 east = glm::normalize(glm::cross(north, normal));
 
   std::vector<glm::vec3> vRelativePositions(mNumSamples);
   for (int i = 0; i < mNumSamples; ++i) {

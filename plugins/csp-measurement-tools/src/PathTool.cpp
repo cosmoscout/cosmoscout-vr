@@ -64,7 +64,7 @@ void main()
 
 PathTool::PathTool(std::shared_ptr<cs::core::InputManager> pInputManager,
     std::shared_ptr<cs::core::SolarSystem>                 pSolarSystem,
-    std::shared_ptr<cs::core::Settings> settings, std::string const& objectName)
+    std::shared_ptr<cs::core::Settings> settings, std::string objectName)
     : MultiPointTool(std::move(pInputManager), std::move(pSolarSystem), std::move(settings),
           std::move(objectName))
     , mGuiArea(std::make_unique<cs::gui::WorldSpaceGuiArea>(800, 475))
