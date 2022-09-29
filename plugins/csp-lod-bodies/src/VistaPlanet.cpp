@@ -27,14 +27,14 @@ namespace csp::lodbodies {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /* explicit */
-VistaPlanet::VistaPlanet(std::shared_ptr<GLResources> const& glResources)
+VistaPlanet::VistaPlanet(std::shared_ptr<GLResources> glResources)
     : mWorldTransform(1.0)
     , mLodVisitor(mParams)
     , mRenderer(mParams)
     , mSrcDEM(nullptr)
     , mTreeMgrDEM(mParams, glResources)
     , mSrcIMG(nullptr)
-    , mTreeMgrIMG(mParams, glResources)
+    , mTreeMgrIMG(mParams, std::move(glResources))
     , mLastFrameClock(GetVistaSystem()->GetFrameClock())
     , mSumFrameClock(0.0)
     , mSumDrawTiles(0)

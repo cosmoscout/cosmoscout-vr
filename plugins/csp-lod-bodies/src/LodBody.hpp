@@ -37,12 +37,11 @@ class LodBody : public cs::scene::CelestialSurface,
                 public cs::scene::IntersectableObject,
                 public IVistaOpenGLDraw {
  public:
-  LodBody(std::shared_ptr<cs::core::Settings> const& settings,
-      std::shared_ptr<cs::core::GraphicsEngine>      graphicsEngine,
-      std::shared_ptr<cs::core::SolarSystem>         solarSystem,
-      std::shared_ptr<Plugin::Settings> const&       pluginSettings,
-      std::shared_ptr<cs::core::GuiManager> const&   pGuiManager,
-      std::shared_ptr<GLResources> const&            glResources);
+  LodBody(std::shared_ptr<cs::core::Settings>   settings,
+      std::shared_ptr<cs::core::GraphicsEngine> graphicsEngine,
+      std::shared_ptr<cs::core::SolarSystem>    solarSystem,
+      std::shared_ptr<Plugin::Settings>         pluginSettings,
+      std::shared_ptr<cs::core::GuiManager> pGuiManager, std::shared_ptr<GLResources> glResources);
 
   LodBody(LodBody const& other) = delete;
   LodBody(LodBody&& other)      = delete;

@@ -23,21 +23,20 @@ namespace csp::lodbodies {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-LodBody::LodBody(std::shared_ptr<cs::core::Settings> const& settings,
-    std::shared_ptr<cs::core::GraphicsEngine>               graphicsEngine,
-    std::shared_ptr<cs::core::SolarSystem>                  solarSystem,
-    std::shared_ptr<Plugin::Settings> const&                pluginSettings,
-    std::shared_ptr<cs::core::GuiManager> const&            pGuiManager,
-    std::shared_ptr<GLResources> const&                     glResources)
-    : mSettings(settings)
+LodBody::LodBody(std::shared_ptr<cs::core::Settings> settings,
+    std::shared_ptr<cs::core::GraphicsEngine>        graphicsEngine,
+    std::shared_ptr<cs::core::SolarSystem>           solarSystem,
+    std::shared_ptr<Plugin::Settings>                pluginSettings,
+    std::shared_ptr<cs::core::GuiManager> pGuiManager, std::shared_ptr<GLResources> glResources)
+    : mSettings(std::move(settings))
     , mGraphicsEngine(std::move(graphicsEngine))
     , mSolarSystem(std::move(solarSystem))
-    , mPluginSettings(pluginSettings)
-    , mGuiManager(pGuiManager)
+    , mPluginSettings(std::move(pluginSettings))
+    , mGuiManager(std::move(pGuiManager))
     , mEclipseShadowReceiver(
           std::make_shared<cs::core::EclipseShadowReceiver>(mSettings, mSolarSystem, false))
-    , mPlanet(glResources)
-    , mShader(settings, pluginSettings, pGuiManager, mEclipseShadowReceiver) {
+    , mPlanet(std::move(glResources))
+    , mShader(mSettings, mPluginSettings, mGuiManager, mEclipseShadowReceiver) {
 
   mGraphicsEngine->registerCaster(&mPlanet);
   mPlanet.setTerrainShader(&mShader);
