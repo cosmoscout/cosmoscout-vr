@@ -300,13 +300,13 @@ void SolarSystem::updateSceneScale() {
 
   for (auto const& [name, object] : mSettings->mObjects) {
 
-    // Skip non-existant objects.
+    // Skip non-existent objects.
     if (!object->getIsInExistence() || !object->getHasValidPosition() ||
         !object->getIsTrackable()) {
       continue;
     }
 
-    // Skip objects with an unkown radius.
+    // Skip objects with an unknown radius.
     auto radii = object->getRadii() * object->getScale();
     if (radii.x <= 0.0 || radii.y <= 0.0 || radii.z <= 0.0) {
       continue;
@@ -380,7 +380,7 @@ void SolarSystem::updateObserverFrame() {
   // The Observer will be locked to the active planet.
   std::shared_ptr<const scene::CelestialObject> activeObject;
 
-  // The active planet is the one with the heighest *weight*.
+  // The active planet is the one with the highest *weight*.
   double dActiveWeight = 0;
 
   for (auto const& [name, object] : mSettings->mObjects) {
@@ -390,7 +390,7 @@ void SolarSystem::updateObserverFrame() {
       continue;
     }
 
-    // Skip objects with an unkown radius.
+    // Skip objects with an unknown radius.
     auto radii = object->getRadii() * object->getScale();
     if (radii.x <= 0.0 || radii.y <= 0.0 || radii.z <= 0.0) {
       continue;
@@ -399,12 +399,12 @@ void SolarSystem::updateObserverFrame() {
     double dDistance =
         glm::length(object->getObserverRelativePosition() * mObserver.getScale()) - radii[0];
 
-    // The weigh depends on the object size and it's distance to the observer.
+    // The weight depends on the object size and its distance to the observer.
     double dWeight = (radii[0] + mSettings->mSceneScale.mMinObjectSize) /
                      std::max(radii[0] + mSettings->mSceneScale.mMinObjectSize,
                          radii[0] + dDistance - mSettings->mSceneScale.mMinObjectSize);
 
-    // The Sun is quite huge. We reduce it's weight a bit so that the observer is more inclined to
+    // The Sun is quite huge. We reduce its weight a bit so that the observer is more inclined to
     // stay at planets.
     if (object == mSun) {
       dWeight *= 0.01;

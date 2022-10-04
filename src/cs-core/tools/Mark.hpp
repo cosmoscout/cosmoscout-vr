@@ -51,7 +51,7 @@ class CS_CORE_EXPORT Mark : public IVistaOpenGLDraw, public Tool {
   cs::utils::Property<double> pScaleDistance = -1.0;
 
   Mark(std::shared_ptr<InputManager> pInputManager, std::shared_ptr<SolarSystem> pSolarSystem,
-      std::shared_ptr<Settings> Settings, std::string const& objectName);
+      std::shared_ptr<Settings> Settings, std::string objectName);
 
   Mark(Mark const& other);
   Mark(Mark&& other) = default;

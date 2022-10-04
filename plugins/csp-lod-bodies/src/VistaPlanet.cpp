@@ -28,14 +28,14 @@ namespace csp::lodbodies {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /* explicit */
-VistaPlanet::VistaPlanet(std::shared_ptr<GLResources> const& glResources)
+VistaPlanet::VistaPlanet(std::shared_ptr<GLResources> glResources)
     : mWorldTransform(1.0)
     , mLodVisitor(mParams)
     , mRenderer(mParams)
     , mSrcDEM(nullptr)
     , mTreeMgrDEM(mParams, glResources)
     , mSrcIMG(nullptr)
-    , mTreeMgrIMG(mParams, glResources)
+    , mTreeMgrIMG(mParams, std::move(glResources))
     , mLastFrameClock(GetVistaSystem()->GetFrameClock())
     , mSumFrameClock(0.0)
     , mSumDrawTiles(0)
@@ -71,7 +71,7 @@ VistaPlanet::~VistaPlanet() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// The funciton that drives all operations that need to be done each frame.
+// The function that drives all operations that need to be done each frame.
 // It simply calls the other functions in this section in order and passes
 // a few shared values between them (e.g. the matrices for the current view).
 void VistaPlanet::draw() {

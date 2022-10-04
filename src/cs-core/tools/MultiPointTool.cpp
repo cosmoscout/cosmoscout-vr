@@ -21,7 +21,7 @@ namespace cs::core::tools {
 MultiPointTool::MultiPointTool(std::shared_ptr<InputManager> pInputManager,
     std::shared_ptr<SolarSystem> pSolarSystem, std::shared_ptr<Settings> settings,
     std::string objectName)
-    : Tool(objectName)
+    : Tool(std::move(objectName))
     , mInputManager(std::move(pInputManager))
     , mSolarSystem(std::move(pSolarSystem))
     , mSettings(std::move(settings)) {
@@ -137,11 +137,11 @@ void MultiPointTool::update() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MultiPointTool::setObjectName(std::string const& name) {
-  Tool::setObjectName(name);
+void MultiPointTool::setObjectName(std::string name) {
+  Tool::setObjectName(std::move(name));
 
-  for (auto point : mPoints) {
-    point->setObjectName(name);
+  for (auto const& point : mPoints) {
+    point->setObjectName(getObjectName());
   }
 }
 

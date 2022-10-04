@@ -124,6 +124,7 @@ Breakpoint* BreakpointTree::getNearestNode(double x, Breakpoint* current) const 
 
   Breakpoint* nearestChild = (x < current->position().mX) ? getNearestNode(x, current->mLeftChild)
                                                           : getNearestNode(x, current->mRightChild);
+
   Breakpoint* nearest = current;
 
   if (nearestChild &&

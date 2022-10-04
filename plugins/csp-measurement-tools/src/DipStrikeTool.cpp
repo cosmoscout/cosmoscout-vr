@@ -90,10 +90,11 @@ void main()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-DipStrikeTool::DipStrikeTool(std::shared_ptr<cs::core::InputManager> const& pInputManager,
-    std::shared_ptr<cs::core::SolarSystem> const&                           pSolarSystem,
-    std::shared_ptr<cs::core::Settings> const& settings, std::string const& objectName)
-    : MultiPointTool(pInputManager, pSolarSystem, settings, objectName)
+DipStrikeTool::DipStrikeTool(std::shared_ptr<cs::core::InputManager> pInputManager,
+    std::shared_ptr<cs::core::SolarSystem>                           pSolarSystem,
+    std::shared_ptr<cs::core::Settings> settings, std::string objectName)
+    : MultiPointTool(std::move(pInputManager), std::move(pSolarSystem), std::move(settings),
+          std::move(objectName))
     , mGuiArea(std::make_unique<cs::gui::WorldSpaceGuiArea>(600, 260))
     , mGuiItem(std::make_unique<cs::gui::GuiItem>(
           "file://{toolZoom}../share/resources/gui/dipstrike.html")) {
@@ -272,23 +273,23 @@ void DipStrikeTool::calculateDipAndStrike() {
     double     h       = object->getSurface() ? object->getSurface()->getHeight(l) : 0.0;
     glm::dvec3 posNorm = cs::utils::convert::toCartesian(l, radii, h);
 
-    glm::dvec3 realtivePosition = posNorm - averagePositionNorm;
+    glm::dvec3 relativePosition = posNorm - averagePositionNorm;
 
-    mSize = std::max(mSize, glm::length(realtivePosition));
+    mSize = std::max(mSize, glm::length(relativePosition));
 
-    mat[0][0] += realtivePosition.x * realtivePosition.x;
-    mat[1][0] += realtivePosition.x * realtivePosition.y;
-    mat[2][0] += realtivePosition.x;
-    mat[0][1] += realtivePosition.x * realtivePosition.y;
-    mat[1][1] += realtivePosition.y * realtivePosition.y;
-    mat[2][1] += realtivePosition.y;
-    mat[0][2] += realtivePosition.x;
-    mat[1][2] += realtivePosition.y;
+    mat[0][0] += relativePosition.x * relativePosition.x;
+    mat[1][0] += relativePosition.x * relativePosition.y;
+    mat[2][0] += relativePosition.x;
+    mat[0][1] += relativePosition.x * relativePosition.y;
+    mat[1][1] += relativePosition.y * relativePosition.y;
+    mat[2][1] += relativePosition.y;
+    mat[0][2] += relativePosition.x;
+    mat[1][2] += relativePosition.y;
     mat[2][2] += 1;
 
-    vec[0] += realtivePosition.x * realtivePosition.z;
-    vec[1] += realtivePosition.y * realtivePosition.z;
-    vec[2] += realtivePosition.z;
+    vec[0] += relativePosition.x * relativePosition.z;
+    vec[1] += relativePosition.y * relativePosition.z;
+    vec[2] += relativePosition.z;
   }
 
   if (mPoints.size() > 2) {

@@ -35,7 +35,7 @@ class CS_CORE_EXPORT Tool {
   cs::utils::Property<bool> pShouldDelete = false;
 
   Tool() = default;
-  Tool(std::string objectName);
+  explicit Tool(std::string objectName);
 
   Tool(Tool const& other)     = default;
   Tool(Tool&& other) noexcept = default;
@@ -47,7 +47,7 @@ class CS_CORE_EXPORT Tool {
 
   virtual void update();
 
-  virtual void       setObjectName(std::string const& name);
+  virtual void       setObjectName(std::string name);
   std::string const& getObjectName() const;
 
  private:

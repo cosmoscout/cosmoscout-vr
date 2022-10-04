@@ -57,7 +57,7 @@ class CS_CORE_EXPORT MultiPointTool : public Tool {
   void update() override;
 
   // Assigns all points to a new celestial object.
-  void setObjectName(std::string const& name) override;
+  void setObjectName(std::string name) override;
 
   /// Use this to access all point positions at once.
   std::vector<glm::dvec2> getPositions() const;

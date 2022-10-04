@@ -58,9 +58,9 @@ void main()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-EllipseTool::EllipseTool(std::shared_ptr<cs::core::InputManager> const& pInputManager,
-    std::shared_ptr<cs::core::SolarSystem> const&                       pSolarSystem,
-    std::shared_ptr<cs::core::Settings> const& settings, std::string const& objectName)
+EllipseTool::EllipseTool(std::shared_ptr<cs::core::InputManager> pInputManager,
+    std::shared_ptr<cs::core::SolarSystem>                       pSolarSystem,
+    std::shared_ptr<cs::core::Settings> settings, std::string objectName)
     : Tool(objectName)
     , mSolarSystem(pSolarSystem)
     , mSettings(settings)
@@ -69,8 +69,8 @@ EllipseTool::EllipseTool(std::shared_ptr<cs::core::InputManager> const& pInputMa
           glm::dvec3(0.0, pSolarSystem->getObserver().getScale(), 0.0)})
     , mHandles({std::make_unique<cs::core::tools::Mark>(
                     pInputManager, pSolarSystem, settings, objectName),
-          std::make_unique<cs::core::tools::Mark>(
-              pInputManager, pSolarSystem, settings, objectName)}) {
+          std::make_unique<cs::core::tools::Mark>(std::move(pInputManager), std::move(pSolarSystem),
+              std::move(settings), std::move(objectName))}) {
 
   mShader.InitVertexShaderFromString(SHADER_VERT);
   mShader.InitFragmentShaderFromString(SHADER_FRAG);
@@ -154,11 +154,11 @@ EllipseTool::~EllipseTool() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void EllipseTool::setObjectName(std::string const& name) {
-  Tool::setObjectName(name);
-  mCenterHandle.setObjectName(name);
-  mHandles.at(0)->setObjectName(name);
-  mHandles.at(1)->setObjectName(name);
+void EllipseTool::setObjectName(std::string name) {
+  Tool::setObjectName(std::move(name));
+  mCenterHandle.setObjectName(getObjectName());
+  mHandles.at(0)->setObjectName(getObjectName());
+  mHandles.at(1)->setObjectName(getObjectName());
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -210,11 +210,6 @@ void EllipseTool::calculateVertices() {
   auto object = mSolarSystem->getObject(getObjectName());
   auto radii  = object->getRadii();
   auto center = mCenterHandle.getPosition();
-  auto normal = cs::utils::convert::lngLatToNormal(mCenterHandle.pLngLat.get());
-
-  glm::dvec3 north(0, 1, 0);
-  glm::dvec3 east = glm::normalize(glm::cross(north, normal));
-  north           = glm::normalize(glm::cross(normal, east));
 
   std::vector<glm::vec3> vRelativePositions(mNumSamples);
   for (int i = 0; i < mNumSamples; ++i) {

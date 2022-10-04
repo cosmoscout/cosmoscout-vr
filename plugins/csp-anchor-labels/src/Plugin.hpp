@@ -18,7 +18,7 @@ namespace csp::anchorlabels {
 class AnchorLabel;
 
 /// This plugin puts labels over anchors in space. It uses the object names as text. If you click on
-/// the label you ar being flown to the anchor. The plugin is configurable via the application
+/// the label you are being flown to the anchor. The plugin is configurable via the application
 /// config file. See README.md for details.
 class Plugin : public cs::core::PluginBase {
  public:

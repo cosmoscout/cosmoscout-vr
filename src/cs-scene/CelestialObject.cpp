@@ -19,7 +19,7 @@ namespace cs::scene {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 CelestialObject::CelestialObject(std::string sCenterName, std::string sFrameName)
-    : CelestialAnchor(sCenterName, sFrameName) {
+    : CelestialAnchor(std::move(sCenterName), std::move(sFrameName)) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -34,7 +34,7 @@ glm::dvec2 CelestialObject::getExistence() const {
 }
 
 void CelestialObject::setExistence(glm::dvec2 value) {
-  mExistence          = value;
+  mExistence          = std::move(value);
   mExistenceAsStrings = std::nullopt;
 }
 
@@ -50,9 +50,9 @@ std::array<std::string, 2> CelestialObject::getExistenceAsStrings() const {
       std::array<std::string, 2>{"1950-01-02 00:00:00.000", "1950-01-02 00:00:00.000"});
 }
 
-void CelestialObject::setExistenceAsStrings(std::array<std::string, 2> const& value) {
+void CelestialObject::setExistenceAsStrings(std::array<std::string, 2> value) {
   mExistence          = std::nullopt;
-  mExistenceAsStrings = value;
+  mExistenceAsStrings = std::move(value);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -101,8 +101,8 @@ glm::dvec3 const& CelestialObject::getRadii() const {
   return mRadii;
 }
 
-void CelestialObject::setRadii(glm::dvec3 const& value) {
-  mRadii = value;
+void CelestialObject::setRadii(glm::dvec3 value) {
+  mRadii = std::move(value);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -147,8 +147,8 @@ void CelestialObject::setIsCollidable(bool value) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CelestialObject::setCenterName(std::string const& sCenterName) {
-  CelestialAnchor::setCenterName(sCenterName);
+void CelestialObject::setCenterName(std::string sCenterName) {
+  CelestialAnchor::setCenterName(std::move(sCenterName));
 
   // We may have to get new radii from SPICE in this case.
   mRadiiFromSPICE = glm::dvec3(-1.0);
@@ -253,8 +253,8 @@ std::shared_ptr<CelestialSurface> const& CelestialObject::getSurface() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CelestialObject::setSurface(std::shared_ptr<CelestialSurface> const& surface) const {
-  mSurface = surface;
+void CelestialObject::setSurface(std::shared_ptr<CelestialSurface> surface) const {
+  mSurface = std::move(surface);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -265,9 +265,8 @@ std::shared_ptr<IntersectableObject> const& CelestialObject::getIntersectableObj
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CelestialObject::setIntersectableObject(
-    std::shared_ptr<IntersectableObject> const& object) const {
-  mIntersectable = object;
+void CelestialObject::setIntersectableObject(std::shared_ptr<IntersectableObject> object) const {
+  mIntersectable = std::move(object);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -41,9 +41,9 @@ class PolygonTool : public IVistaOpenGLDraw, public cs::core::tools::MultiPointT
   /// Displays the generated mesh for area and volume computations.
   cs::utils::Property<bool> pShowMesh = false;
 
-  PolygonTool(std::shared_ptr<cs::core::InputManager> const& pInputManager,
-      std::shared_ptr<cs::core::SolarSystem> const&          pSolarSystem,
-      std::shared_ptr<cs::core::Settings> const& settings, std::string const& objectName);
+  PolygonTool(std::shared_ptr<cs::core::InputManager> pInputManager,
+      std::shared_ptr<cs::core::SolarSystem>          pSolarSystem,
+      std::shared_ptr<cs::core::Settings> settings, std::string objectName);
 
   PolygonTool(PolygonTool const& other) = delete;
   PolygonTool(PolygonTool&& other)      = delete;

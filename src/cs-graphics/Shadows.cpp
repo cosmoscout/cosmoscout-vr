@@ -186,7 +186,7 @@ bool ShadowMap::Do() {
     return true;
   }
 
-  utils::FrameTimings::ScopedTimer timer("Update Shadowmap");
+  utils::FrameTimings::ScopedTimer timer("Update ShadowMap");
 
   if (mFBODirty) {
     cleanUp();

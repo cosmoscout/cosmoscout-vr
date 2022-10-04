@@ -470,7 +470,7 @@ const char* AtmosphereRenderer::cAtmosphereFrag1 = R"(
   float GetOpaqueDepth(vec3 vRayOrigin, vec3 vRayDir) {
     float fDepth = GetDepth();
 
-    // If the fragment is really far away, the inverse reverse infinite projects divides by zero.
+    // If the fragment is really far away, the inverse reverse infinite projection divides by zero.
     // So we add a minimum threshold here.
     fDepth = max(fDepth, 0.0000001);
 

@@ -262,7 +262,7 @@ bool Ring::Do() {
   //
   //      \ /                                o o o
   //    -- O --                          o           o                           o.O
-  //      | \                          o               o
+  //      / \                          o               o
   //                         -------  o                 o  -------
   //                                   o               o
   //                                     o           o

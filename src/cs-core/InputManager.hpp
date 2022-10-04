@@ -106,7 +106,7 @@ class CS_CORE_EXPORT InputManager : public VistaKeyboardSystemControl::IVistaDir
   /// Regardless of the node state above, this property will always be updated. Usually it contains
   /// the intersection between the mouse ray and a planet or moon. This property should be
   /// considered read-only. All CelestialObjects from the settings containing an IntersectableObject
-  /// are test for intersections.
+  /// are tested for intersections.
   utils::Property<Intersection> pHoveredObject;
 
   /// Contains the state of the buttons of your input device. These properties should be considered

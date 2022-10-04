@@ -37,8 +37,8 @@ std::string const& CelestialAnchor::getCenterName() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CelestialAnchor::setCenterName(std::string const& sCenterName) {
-  mCenterName = sCenterName;
+void CelestialAnchor::setCenterName(std::string sCenterName) {
+  mCenterName = std::move(sCenterName);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -49,8 +49,8 @@ std::string const& CelestialAnchor::getFrameName() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CelestialAnchor::setFrameName(std::string const& sFrameName) {
-  mFrameName = sFrameName;
+void CelestialAnchor::setFrameName(std::string sFrameName) {
+  mFrameName = std::move(sFrameName);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -61,8 +61,8 @@ glm::dvec3 const& CelestialAnchor::getPosition() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CelestialAnchor::setPosition(glm::dvec3 const& vPos) {
-  mPosition = vPos;
+void CelestialAnchor::setPosition(glm::dvec3 vPos) {
+  mPosition = std::move(vPos);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -73,8 +73,8 @@ glm::dquat const& CelestialAnchor::getRotation() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CelestialAnchor::setRotation(glm::dquat const& qRot) {
-  mRotation = qRot;
+void CelestialAnchor::setRotation(glm::dquat qRot) {
+  mRotation = std::move(qRot);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -128,11 +128,11 @@ glm::dquat CelestialAnchor::getRelativeRotation(double tTime, CelestialAnchor co
   }
 
   // convert to quaternion
-  double axis[3]; // NOLINT(modernize-avoid-c-arrays)
-  double angle{};
+  std::array<double, 3> axis{};
+  double                angle{};
 
   // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-array-to-pointer-decay, modernize-avoid-c-arrays)
-  raxisa_c(rotMat.data(), axis, &angle);
+  raxisa_c(rotMat.data(), axis.data(), &angle);
 
   return glm::inverse(mRotation) * glm::angleAxis(angle, glm::dvec3(axis[1], axis[2], axis[0])) *
          other.mRotation;

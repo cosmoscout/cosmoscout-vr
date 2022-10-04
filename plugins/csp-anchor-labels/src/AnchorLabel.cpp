@@ -40,7 +40,7 @@ AnchorLabel::AnchorLabel(std::string const&           name,
     std::shared_ptr<cs::core::SolarSystem>            solarSystem,
     std::shared_ptr<cs::core::GuiManager>             guiManager,
     std::shared_ptr<cs::core::InputManager>           inputManager)
-    : mObject(object)
+    : mObject(std::move(object))
     , mPluginSettings(std::move(pluginSettings))
     , mSolarSystem(std::move(solarSystem))
     , mGuiManager(std::move(guiManager))

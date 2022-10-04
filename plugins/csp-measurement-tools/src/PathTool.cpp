@@ -63,10 +63,11 @@ void main()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-PathTool::PathTool(std::shared_ptr<cs::core::InputManager> const& pInputManager,
-    std::shared_ptr<cs::core::SolarSystem> const&                 pSolarSystem,
-    std::shared_ptr<cs::core::Settings> const& settings, std::string const& objectName)
-    : MultiPointTool(pInputManager, pSolarSystem, settings, objectName)
+PathTool::PathTool(std::shared_ptr<cs::core::InputManager> pInputManager,
+    std::shared_ptr<cs::core::SolarSystem>                 pSolarSystem,
+    std::shared_ptr<cs::core::Settings> settings, std::string objectName)
+    : MultiPointTool(std::move(pInputManager), std::move(pSolarSystem), std::move(settings),
+          std::move(objectName))
     , mGuiArea(std::make_unique<cs::gui::WorldSpaceGuiArea>(800, 475))
     , mGuiItem(
           std::make_unique<cs::gui::GuiItem>("file://{toolZoom}../share/resources/gui/path.html")) {
@@ -215,9 +216,9 @@ void PathTool::updateLineVertices() {
     mPosition += mark->getPosition() / static_cast<double>(mPoints.size());
   }
 
-  double h_scale  = mSettings->mGraphics.pHeightScale.get();
-  auto   lastMark = mPoints.begin();
-  auto   currMark = ++mPoints.begin();
+  double heightScale = mSettings->mGraphics.pHeightScale.get();
+  auto   lastMark    = mPoints.begin();
+  auto   currMark    = ++mPoints.begin();
 
   std::stringstream json;
   std::string       jsonSeperator;
@@ -228,12 +229,12 @@ void PathTool::updateLineVertices() {
     // generate X points for each line segment
     for (int vertex_id = 0; vertex_id < mNumSamples; vertex_id++) {
       glm::dvec4 pos = getInterpolatedPosBetweenTwoMarks(
-          **lastMark, **currMark, (vertex_id / static_cast<double>(mNumSamples)), h_scale);
+          **lastMark, **currMark, (vertex_id / static_cast<double>(mNumSamples)), heightScale);
       mSampledPositions.push_back(pos.xyz());
 
       // coordinate normalized by height scale; to count distance correctly
       glm::dvec4 posNorm = pos;
-      if (h_scale != 1) {
+      if (heightScale != 1) {
         posNorm = getInterpolatedPosBetweenTwoMarks(
             **lastMark, **currMark, (vertex_id / static_cast<double>(mNumSamples)), 1);
       }
@@ -244,7 +245,7 @@ void PathTool::updateLineVertices() {
         distance += glm::length(posNorm.xyz() - lastPos);
       }
 
-      json << jsonSeperator << "[" << distance << "," << pos.w / h_scale << "]";
+      json << jsonSeperator << "[" << distance << "," << pos.w / heightScale << "]";
       jsonSeperator = ",";
 
       lastPos = posNorm.xyz();

@@ -26,10 +26,11 @@ namespace csp::measurementtools {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-FlagTool::FlagTool(std::shared_ptr<cs::core::InputManager> const& pInputManager,
-    std::shared_ptr<cs::core::SolarSystem> const&                 pSolarSystem,
-    std::shared_ptr<cs::core::Settings> const& settings, std::string const& objectName)
-    : Mark(pInputManager, pSolarSystem, settings, objectName)
+FlagTool::FlagTool(std::shared_ptr<cs::core::InputManager> pInputManager,
+    std::shared_ptr<cs::core::SolarSystem>                 pSolarSystem,
+    std::shared_ptr<cs::core::Settings> settings, std::string objectName)
+    : Mark(std::move(pInputManager), std::move(pSolarSystem), std::move(settings),
+          std::move(objectName))
     , mGuiArea(std::make_unique<cs::gui::WorldSpaceGuiArea>(600, 400))
     , mGuiItem(std::make_unique<cs::gui::GuiItem>(
           "file://{toolZoom}../share/resources/gui/flag.html", true)) {
@@ -88,7 +89,7 @@ FlagTool::FlagTool(std::shared_ptr<cs::core::InputManager> const& pInputManager,
 
   mGuiItem->registerCallback("minimizeMe", "Call this to minimize the flag.",
       std::function([this]() { pMinimized = true; }));
-  mGuiItem->callJavascript("setActivePlanet", objectName);
+  mGuiItem->callJavascript("setActivePlanet", getObjectName());
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

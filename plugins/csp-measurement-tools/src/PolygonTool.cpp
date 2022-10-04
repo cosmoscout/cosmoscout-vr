@@ -67,10 +67,11 @@ void main()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-PolygonTool::PolygonTool(std::shared_ptr<cs::core::InputManager> const& pInputManager,
-    std::shared_ptr<cs::core::SolarSystem> const&                       pSolarSystem,
-    std::shared_ptr<cs::core::Settings> const& settings, std::string const& objectName)
-    : MultiPointTool(pInputManager, pSolarSystem, settings, objectName)
+PolygonTool::PolygonTool(std::shared_ptr<cs::core::InputManager> pInputManager,
+    std::shared_ptr<cs::core::SolarSystem>                       pSolarSystem,
+    std::shared_ptr<cs::core::Settings> settings, std::string objectName)
+    : MultiPointTool(std::move(pInputManager), std::move(pSolarSystem), std::move(settings),
+          std::move(objectName))
     , mGuiArea(std::make_unique<cs::gui::WorldSpaceGuiArea>(700, 320))
     , mGuiItem(std::make_unique<cs::gui::GuiItem>(
           "file://{toolZoom}../share/resources/gui/polygon.html")) {
@@ -213,11 +214,11 @@ glm::dvec4 PolygonTool::getInterpolatedPosBetweenTwoMarks(
   glm::dvec3 interpolatedPos = p0 + (value * (p1 - p0));
 
   // Calculates final position
-  double     h_scale = mSettings->mGraphics.pHeightScale.get();
-  glm::dvec2 ll      = cs::utils::convert::cartesianToLngLat(interpolatedPos, radii);
-  double     height  = (surface ? surface->getHeight(ll) : 0.0) * h_scale;
-  glm::dvec3 pos     = cs::utils::convert::toCartesian(ll, radii, height);
-  return glm::dvec4(pos, height);
+  double     heightScale = mSettings->mGraphics.pHeightScale.get();
+  glm::dvec2 ll          = cs::utils::convert::cartesianToLngLat(interpolatedPos, radii);
+  double     height      = (surface ? surface->getHeight(ll) : 0.0) * heightScale;
+  glm::dvec3 pos         = cs::utils::convert::toCartesian(ll, radii, height);
+  return {pos, height};
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1080,10 +1081,10 @@ void PolygonTool::updateCalculation() {
   mCornersFine.clear();
   mTriangulation.clear();
 
-  auto       object  = mSolarSystem->getObject(getObjectName());
-  auto       surface = object->getSurface();
-  double     h_scale = mSettings->mGraphics.pHeightScale.get();
-  glm::dvec3 radii   = object->getRadii();
+  auto       object      = mSolarSystem->getObject(getObjectName());
+  auto       surface     = object->getSurface();
+  double     heightScale = mSettings->mGraphics.pHeightScale.get();
+  glm::dvec3 radii       = object->getRadii();
 
   // Corrected average position (works for every height scale)
   glm::dvec3 averagePositionNorm(0.0);
@@ -1282,7 +1283,7 @@ void PolygonTool::updateCalculation() {
           double h2{};
 
           // Calculates mesh coordinates on planet's surface and saves these coordinates for display
-          displayMesh(surface, s, maxDist, east, north, radii, h_scale, h1, h2);
+          displayMesh(surface, s, maxDist, east, north, radii, heightScale, h1, h2);
 
           // If not too many points are addded in checkSleekness and it is not the the last attempt
           // than refines the mesh based on edge length and height differences

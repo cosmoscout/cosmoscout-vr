@@ -34,9 +34,9 @@ class PathTool : public IVistaOpenGLDraw, public cs::core::tools::MultiPointTool
   /// This text is shown on the ui and can be edited by the user.
   cs::utils::Property<std::string> pText = std::string("Path");
 
-  PathTool(std::shared_ptr<cs::core::InputManager> const& pInputManager,
-      std::shared_ptr<cs::core::SolarSystem> const&       pSolarSystem,
-      std::shared_ptr<cs::core::Settings> const& settings, std::string const& objectName);
+  PathTool(std::shared_ptr<cs::core::InputManager> pInputManager,
+      std::shared_ptr<cs::core::SolarSystem>       pSolarSystem,
+      std::shared_ptr<cs::core::Settings> settings, std::string objectName);
 
   PathTool(PathTool const& other) = delete;
   PathTool(PathTool&& other)      = delete;
@@ -86,7 +86,7 @@ class PathTool : public IVistaOpenGLDraw, public cs::core::tools::MultiPointTool
   } mUniforms;
 
   std::vector<glm::dvec3> mSampledPositions;
-  glm::dvec3              mPosition;
+  glm::dvec3              mPosition{};
   size_t                  mIndexCount    = 0;
   bool                    mVerticesDirty = false;
 
