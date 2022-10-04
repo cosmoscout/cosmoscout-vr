@@ -1,3 +1,8 @@
+<!--
+SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+SPDX-License-Identifier: CC0-1.0
+-->
+
 # Texture Credits
 
 | Texture       | Source                                                                                                       | License       | Authors / Citation                                                                                             |
@@ -6,6 +11,7 @@
 | mercury.jpg   | https://www.solarsystemscope.com/textures/                                                                   | CC-BY         |                                                                                                                |
 | venus.jpg     | https://www.solarsystemscope.com/textures/                                                                   | CC-BY         |                                                                                                                |
 | mars.jpg      | https://www.solarsystemscope.com/textures/                                                                   | CC-BY         |                                                                                                                |
+| moon.jpg      | https://www.solarsystemscope.com/textures/                                                                   | CC-BY         |                                                                                                                |
 | jupiter.jpg   | https://www.planetary.org/space-images/merged-cassini-and-juno/                                              | CC-BY         |                                                                                                                |
 | saturn.jpg    | https://www.solarsystemscope.com/textures/                                                                   | CC-BY         |                                                                                                                |
 | uranus.jpg    | https://www.solarsystemscope.com/textures/                                                                   | CC-BY         |                                                                                                                |
