@@ -346,7 +346,7 @@ std::string WebMapTextureLoader::getRequestUrl(
 std::string WebMapTextureLoader::getMimeType(WebMapService const& wms, WebMapLayer const& layer) {
   if (layer.getSettings().mOpaque) {
     if (wms.isFormatSupported("image/jpeg")) {
-      return "image/png";
+      return "image/jpeg";
     }
   }
   // TODO Use other format if png is not supported
