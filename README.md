@@ -14,7 +14,7 @@ It lets you explore, analyze and present huge planetary data sets and large simu
 [![REUSE](https://api.reuse.software/badge/github.com/cosmoscout/cosmoscout-vr)](https://api.reuse.software/info/github.com/cosmoscout/cosmoscout-vr)
 [![Coverage Status](https://coveralls.io/repos/github/cosmoscout/cosmoscout-vr/badge.svg?branch=develop)](https://coveralls.io/github/cosmoscout/cosmoscout-vr?branch=develop)
 [![documentation](https://img.shields.io/badge/Docs-online-34D058.svg)](docs/README.md)
-[![license](https://img.shields.io/badge/License-MIT-purple.svg)](LICENSE)
+[![license](https://img.shields.io/badge/License-MIT-purple.svg)](LICENSE.md)
 [![source loc](https://img.shields.io/badge/LoC-15.7k-green.svg)](cloc.sh)
 [![plugin loc](https://img.shields.io/badge/LoC_Plugins-19.9k-green.svg)](cloc.sh)
 [![comments](https://img.shields.io/badge/Comments-6.4k-yellow.svg)](cloc.sh)
