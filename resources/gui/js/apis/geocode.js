@@ -1,4 +1,9 @@
-/* global IApi, CosmoScout */
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//                               This file is part of CosmoScout VR                               //
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+// SPDX-License-Identifier: MIT
 
 /**
  * The geo-coding API. This does not require any other CosmoScout APIs, so you can use it also in

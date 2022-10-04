@@ -1,3 +1,8 @@
+<!-- 
+SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+SPDX-License-Identifier: MIT
+-->
+
 <p align="center"> 
   <img src ="img/banner-light-shafts.jpg" />
 </p>

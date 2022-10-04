@@ -1,3 +1,10 @@
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//                               This file is part of CosmoScout VR                               //
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+// SPDX-License-Identifier: MIT
+
 // The Hapke BRDF to represent regolith, as shown in 10.1002/2013JE004580 (DOI).
 
 // w: The average single-scattering albedo of a particle of the regolith,

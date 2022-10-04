@@ -1,3 +1,8 @@
+<!-- 
+SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+SPDX-License-Identifier: CC-BY-4.0
+ -->
+
 # Simple bodies for CosmoScout VR
 
 A CosmoSout VR plugin which renders simple spherical celestial bodies. The bodies are drawn as an ellipsoid with an equirectangular texture.

@@ -1,3 +1,8 @@
+<!-- 
+SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+SPDX-License-Identifier: CC-BY-4.0
+ -->
+
 # Recorder for CosmoScout VR
 
 A CosmoScout VR plugin which allows basic capturing of high-quality videos.

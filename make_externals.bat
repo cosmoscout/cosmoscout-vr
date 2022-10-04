@@ -1,10 +1,11 @@
 @echo off
 
 rem ---------------------------------------------------------------------------------------------- #
-rem                              This file is part of CosmoScout VR                                #
-rem     and may be used under the terms of the MIT license. See the LICENSE file for details.      #
-rem                       Copyright: (c) 2019 German Aerospace Center (DLR)                        #
+rem                               This file is part of CosmoScout VR                               #
 rem ---------------------------------------------------------------------------------------------- #
+
+rem SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+rem SPDX-License-Identifier: MIT
 
 rem ---------------------------------------------------------------------------------------------- #
 rem Make sure to run "git submodule update --init" before executing this script!                   #

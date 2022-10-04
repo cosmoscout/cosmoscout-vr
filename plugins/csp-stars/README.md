@@ -1,3 +1,8 @@
+<!-- 
+SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+SPDX-License-Identifier: CC-BY-4.0
+ -->
+
 # Stars for CosmoScout VR
 
 A CosmoSout VR plugin which draws 3D-stars loaded from catalogues. For now, it supports the Tycho, the Tycho2 and the Hipparcos catalogue.

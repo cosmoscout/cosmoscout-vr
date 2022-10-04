@@ -1,5 +1,9 @@
-/* global $,Format,noUiSlider */
-/* eslint-disable max-classes-per-file */
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//                               This file is part of CosmoScout VR                               //
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+// SPDX-License-Identifier: MIT
 
 /**
  * Api Container holding all registered apis.

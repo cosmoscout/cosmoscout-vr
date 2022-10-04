@@ -1,3 +1,8 @@
+<!-- 
+SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+SPDX-License-Identifier: CC-BY-4.0
+ -->
+
 # Frame-Timings for CosmoScout VR
 
 A plugin which uses the built-in timer queries of CosmoScout VR to draw on-screen live frame timing statistics.

@@ -1,3 +1,8 @@
+<!-- 
+SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+SPDX-License-Identifier: CC-BY-4.0
+ -->
+
 # Atmospheres for CosmoScout VR
 
 A CosmoScout VR plugin for drawing atmospheres around celestial bodies. It calculates single Mie- and Rayleigh scattering via raycasting in real-time.

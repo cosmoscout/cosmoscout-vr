@@ -1,3 +1,8 @@
+<!-- 
+SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+SPDX-License-Identifier: CC-BY-4.0
+ -->
+ 
 # Location files for CosmoScout VR
 
 The files in this directory have been retrieved from https://planetarynames.wr.usgs.gov/AdvancedSearch. They are used to perform forward and reverse geocoding in CosmoScout VR. You may add your own files here, the format is quite simple:

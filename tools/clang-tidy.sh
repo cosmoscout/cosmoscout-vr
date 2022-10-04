@@ -1,10 +1,11 @@
 #!/bin/bash
 
 # ------------------------------------------------------------------------------------------------ #
-#                                 This file is part of CosmoScout VR                               #
-#       and may be used under the terms of the MIT license. See the LICENSE file for details.      #
-#                         Copyright: (c) 2019 German Aerospace Center (DLR)                        #
+#                                This file is part of CosmoScout VR                                #
 # ------------------------------------------------------------------------------------------------ #
+
+# SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+# SPDX-License-Identifier: MIT
 
 # For this script to work, CosmoScout has to be built at least once in release mode, as the
 # build/linux-Release directory is required. The directory is assumed to reside next to this script

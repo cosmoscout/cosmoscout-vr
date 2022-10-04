@@ -1,4 +1,11 @@
 ---
+# ------------------------------------------------------------------------------------------------ #
+#                                This file is part of CosmoScout VR                                #
+# ------------------------------------------------------------------------------------------------ #
+
+# SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+# SPDX-License-Identifier: CC0-1.0
+
 name: Bug report
 about: Create a report to help us improve CosmoScout VR
 title: ''

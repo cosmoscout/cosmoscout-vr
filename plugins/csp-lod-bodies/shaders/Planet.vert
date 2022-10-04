@@ -1,5 +1,12 @@
 #version 330
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//                               This file is part of CosmoScout VR                               //
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+// SPDX-License-Identifier: MIT
+
 // ==========================================================================
 // include helper functions/declarations from VistaPlanet
 $VP_TERRAIN_SHADER_UNIFORMS

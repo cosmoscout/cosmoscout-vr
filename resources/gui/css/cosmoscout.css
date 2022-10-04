@@ -1,3 +1,8 @@
+/*
+SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+SPDX-License-Identifier: MIT
+*/
+
 /* The main user interface of CosmoScout VR consists of a three by three grid. The top row is
  * filled with the timeline, the bottom row with the status bar, the central row with the sidebar,
  * an empty cell and the notifications area.
