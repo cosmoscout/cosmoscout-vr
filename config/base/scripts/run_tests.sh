@@ -5,7 +5,7 @@
 # ------------------------------------------------------------------------------------------------ #
 
 # SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
-# SPDX-License-Identifier: MIT
+# SPDX-License-Identifier: CC0-1.0
 
 # Change working directory to the location of this script.
 SCRIPT_DIR="$( cd "$( dirname "$0" )" && pwd )"

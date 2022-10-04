@@ -5,7 +5,7 @@ rem                               This file is part of CosmoScout VR            
 rem ---------------------------------------------------------------------------------------------- #
 
 rem SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
-rem SPDX-License-Identifier: MIT
+rem SPDX-License-Identifier: CC0-1.0
 
 rem Change working directory to the location of this script.
 set SCRIPT_DIR=%~dp0
