@@ -1,6 +1,6 @@
 <!-- 
 SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
-SPDX-License-Identifier: MIT
+SPDX-License-Identifier: CC-BY-4.0
 -->
 
 <p align="center"> 
