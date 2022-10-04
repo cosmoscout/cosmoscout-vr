@@ -43,9 +43,9 @@ class TerrainShader;
 ///
 /// Additionally, VistaPlanet provides the interface to set the data sources that are used to obtain
 /// data (setDEMSource, setIMGSource).
-class VistaPlanet : public IVistaOpenGLDraw, public cs::graphics::ShadowCaster {
+class VistaPlanet : public cs::graphics::ShadowCaster {
  public:
-  explicit VistaPlanet(std::shared_ptr<GLResources> const& glResources);
+  explicit VistaPlanet(std::shared_ptr<GLResources> glResources);
 
   VistaPlanet(VistaPlanet const& other) = delete;
   VistaPlanet(VistaPlanet&& other)      = delete;
@@ -53,16 +53,16 @@ class VistaPlanet : public IVistaOpenGLDraw, public cs::graphics::ShadowCaster {
   VistaPlanet& operator=(VistaPlanet const& other) = delete;
   VistaPlanet& operator=(VistaPlanet&& other) = delete;
 
-  ~VistaPlanet() override;
+  ~VistaPlanet();
 
-  void doShadows() override;
-  bool getWorldTransform(VistaTransformMatrix& matTransform) const override;
-
-  bool Do() override;
-  bool GetBoundingBox(VistaBoundingBox& bb) override;
+  void draw();
+  void drawForShadowMap() override;
 
   void       setWorldTransform(glm::dmat4 const& mat);
   glm::dmat4 getWorldTransform() const;
+
+  void setEnabled(bool enabled);
+  bool getEnabled() const;
 
   /// Sets shader to use for terrain rendering. This class does not take ownership of the passed in
   /// object.
@@ -110,7 +110,6 @@ class VistaPlanet : public IVistaOpenGLDraw, public cs::graphics::ShadowCaster {
   LODVisitor const& getLODVisitor() const;
 
  private:
-  void doFrame();
   void updateStatistics(int frameCount);
   void updateTileBounds();
   void updateTileTrees(int frameCount);
@@ -128,6 +127,7 @@ class VistaPlanet : public IVistaOpenGLDraw, public cs::graphics::ShadowCaster {
   static bool             sGlewInitialized;
 
   glm::dmat4 mWorldTransform;
+  bool       mEnabled = false;
 
   PlanetParameters mParams;
   LODVisitor       mLodVisitor;

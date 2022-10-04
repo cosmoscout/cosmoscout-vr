@@ -8,8 +8,8 @@
 
 #include <utility>
 
-#include "../../cs-scene/CelestialAnchorNode.hpp"
-#include "../../cs-scene/CelestialBody.hpp"
+#include "../../cs-core/SolarSystem.hpp"
+#include "../../cs-scene/CelestialSurface.hpp"
 #include "../../cs-utils/convert.hpp"
 #include "../InputManager.hpp"
 
@@ -19,13 +19,11 @@ namespace cs::core::tools {
 
 MultiPointTool::MultiPointTool(std::shared_ptr<InputManager> pInputManager,
     std::shared_ptr<SolarSystem> pSolarSystem, std::shared_ptr<Settings> settings,
-    std::shared_ptr<TimeControl> pTimeControl, std::string sCenter, std::string sFrame)
-    : mInputManager(std::move(pInputManager))
+    std::string objectName)
+    : Tool(std::move(objectName))
+    , mInputManager(std::move(pInputManager))
     , mSolarSystem(std::move(pSolarSystem))
-    , mSettings(std::move(settings))
-    , mTimeControl(std::move(pTimeControl))
-    , mCenter(std::move(sCenter))
-    , mFrame(std::move(sFrame)) {
+    , mSettings(std::move(settings)) {
 
   // If pAddPointMode is true, a new point will be added on a left mouse button click.
   mLeftButtonConnection = mInputManager->pButtons[0].connect([this](bool pressed) {
@@ -60,22 +58,18 @@ MultiPointTool::~MultiPointTool() {
 
 void MultiPointTool::addPoint(std::optional<glm::dvec2> const& lngLat) {
   // Add the Mark to the list.
-  mPoints.emplace_back(std::make_shared<DeletableMark>(
-      mInputManager, mSolarSystem, mSettings, mTimeControl, mCenter, mFrame));
+  mPoints.emplace_back(
+      std::make_shared<DeletableMark>(mInputManager, mSolarSystem, mSettings, getObjectName()));
 
   // if there is a planet intersection, move the point to the intersection location
   if (lngLat) {
     mPoints.back()->pLngLat = lngLat.value();
   } else {
     auto intersection = mInputManager->pHoveredObject.get();
-    if (intersection.mObject) {
-      auto body = std::dynamic_pointer_cast<cs::scene::CelestialBody>(intersection.mObject);
-
-      if (body) {
-        auto       radii = body->getRadii();
-        glm::dvec2 pos   = cs::utils::convert::cartesianToLngLat(intersection.mPosition, radii);
-        mPoints.back()->pLngLat = pos;
-      }
+    if (intersection.mObject && intersection.mObjectName == getObjectName()) {
+      auto       radii = intersection.mObject->getRadii();
+      glm::dvec2 pos   = cs::utils::convert::cartesianToLngLat(intersection.mPosition, radii);
+      mPoints.back()->pLngLat = pos;
     }
   }
 
@@ -123,47 +117,31 @@ void MultiPointTool::update() {
   if (pAddPointMode.get()) {
     auto intersection = mInputManager->pHoveredObject.get();
     if (intersection.mObject) {
-      auto body = std::dynamic_pointer_cast<cs::scene::CelestialBody>(intersection.mObject);
-
-      if (body) {
-        auto radii = body->getRadii();
-        mPoints.back()->pLngLat =
-            cs::utils::convert::cartesianToLngLat(intersection.mPosition, radii);
-      }
+      auto radii = intersection.mObject->getRadii();
+      mPoints.back()->pLngLat =
+          cs::utils::convert::cartesianToLngLat(intersection.mPosition, radii);
     }
   }
-}
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
+  // This seems to be the first time the tool is moved, so we have to store the distance to the
+  // observer so that we can scale the tool later based on the observer's position.
+  if (pScaleDistance.get() < 0) {
+    auto object = mSolarSystem->getObject(getObjectName());
 
-void MultiPointTool::setCenterName(std::string const& name) {
-  mCenter = name;
-
-  for (auto& p : mPoints) {
-    p->getAnchor()->setCenterName(name);
+    pScaleDistance =
+        mSolarSystem->getObserver().getScale() *
+        glm::length(object->getObserverRelativePosition(mPoints.back()->getPosition()));
   }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::string const& MultiPointTool::getCenterName() const {
-  return mCenter;
-}
+void MultiPointTool::setObjectName(std::string name) {
+  Tool::setObjectName(std::move(name));
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void MultiPointTool::setFrameName(std::string const& name) {
-  mFrame = name;
-
-  for (auto& p : mPoints) {
-    p->getAnchor()->setFrameName(name);
+  for (auto const& point : mPoints) {
+    point->setObjectName(getObjectName());
   }
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-std::string const& MultiPointTool::getFrameName() const {
-  return mFrame;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -6,6 +6,7 @@
 
 #include "Shadows.hpp"
 
+#include "../cs-utils/FrameTimings.hpp"
 #include "logger.hpp"
 
 #include <VistaKernel/GraphicsManager/VistaOpenGLNode.h>
@@ -184,6 +185,8 @@ bool ShadowMap::Do() {
     return true;
   }
 
+  utils::FrameTimings::ScopedTimer timer("Update ShadowMap");
+
   if (mFBODirty) {
     cleanUp();
 
@@ -322,7 +325,7 @@ bool ShadowMap::Do() {
 
     // these matrices are used by the shadow receivers to calculate the
     // lookup position in the shadow maps
-    mShadowMatrices.at(i) = projection * lightMatrix * currMatView.GetInverted();
+    mShadowMatrices.at(i) = projection * lightMatrix;
 
     // save current projection matrix
     glMatrixMode(GL_PROJECTION);
@@ -348,10 +351,8 @@ bool ShadowMap::Do() {
 
     // draw all shadow casters
     for (auto* caster : mShadowCasters) {
-      VistaTransformMatrix mat;
-      caster->getWorldTransform(mat);
-      glLoadMatrixf((lightMatrix * mat).GetData());
-      caster->doShadows();
+      glLoadMatrixf(lightMatrix.GetData());
+      caster->drawForShadowMap();
     }
 
     // restore previous projection matrix

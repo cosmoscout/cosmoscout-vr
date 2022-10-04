@@ -149,12 +149,13 @@ struct ProfileRadarData {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Sharad::Sharad(std::shared_ptr<cs::core::Settings> settings, std::string const& anchorName,
+Sharad::Sharad(std::shared_ptr<cs::core::Settings> settings,
+    std::shared_ptr<cs::core::SolarSystem> solarSystem, std::string objectName,
     std::string const& sTiffFile, std::string const& sTabFile)
     : mSettings(std::move(settings))
-    , mTexture(cs::graphics::TextureLoader::loadFromFile(sTiffFile)) {
-
-  mSettings->initAnchor(*this, anchorName);
+    , mSolarSystem(std::move(solarSystem))
+    , mTexture(cs::graphics::TextureLoader::loadFromFile(sTiffFile))
+    , mObjectName(std::move(objectName)) {
 
   if (mInstanceCount == 0) {
     mDepthBuffer = std::make_unique<VistaTexture>(GL_TEXTURE_RECTANGLE);
@@ -228,14 +229,14 @@ Sharad::Sharad(std::shared_ptr<cs::core::Settings> settings, std::string const& 
                 boost::posix_time::milliseconds(meta[i].Millisecond)));
 
     if (i == 0) {
-      mExistence[0] = tTime;
+      mStartTime = tTime;
     }
 
     glm::vec2 lngLat(
         cs::utils::convert::toRadians(glm::dvec2(meta[i].Longitude, meta[i].Latitude)));
 
     float x    = 1.F * static_cast<float>(i) / (static_cast<float>(mSamples) - 1.F);
-    auto  time = static_cast<float>(tTime - mExistence[0]);
+    auto  time = static_cast<float>(tTime - mStartTime);
 
     vertices[i * 2 + 0].lngLat = lngLat;
     vertices[i * 2 + 0].tc     = glm::vec2(x, 1.F);
@@ -293,17 +294,23 @@ Sharad::~Sharad() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Sharad::update(double tTime, cs::scene::CelestialObserver const& oObs) {
-  cs::scene::CelestialObject::update(tTime, oObs);
+double Sharad::getStartTime() const {
+  return mStartTime;
+}
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Sharad::update(double tTime, double sceneScale) {
   mCurrTime   = tTime;
-  mSceneScale = oObs.getAnchorScale();
+  mSceneScale = sceneScale;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool Sharad::Do() {
-  if (getIsInExistence()) {
+  auto object = mSolarSystem->getObject(mObjectName);
+
+  if (object && object->getIsBodyVisible()) {
     cs::utils::FrameTimings::ScopedTimer timer("Sharad");
 
     mShader.Bind();
@@ -313,7 +320,8 @@ bool Sharad::Do() {
     std::array<GLfloat, 16> glMatP{};
     glGetFloatv(GL_MODELVIEW_MATRIX, glMatMV.data());
     glGetFloatv(GL_PROJECTION_MATRIX, glMatP.data());
-    auto matMV = glm::make_mat4x4(glMatMV.data()) * glm::mat4(getWorldTransform());
+    auto matMV =
+        glm::make_mat4x4(glMatMV.data()) * glm::mat4(object->getObserverRelativeTransform());
     glUniformMatrix4fv(mUniforms.modelViewMatrix, 1, GL_FALSE, glm::value_ptr(matMV));
     glUniformMatrix4fv(mUniforms.projectionMatrix, 1, GL_FALSE, glMatP.data());
 
@@ -322,13 +330,15 @@ bool Sharad::Do() {
     mShader.SetUniform(mUniforms.viewportPosition, static_cast<float>(iViewport.at(0)),
         static_cast<float>(iViewport.at(1)));
 
+    auto radii = object->getRadii();
+
     mShader.SetUniform(mUniforms.sharadTexture, 0);
     mShader.SetUniform(mUniforms.depthBuffer, 1);
     mShader.SetUniform(mUniforms.sceneScale, static_cast<float>(mSceneScale));
     mShader.SetUniform(mUniforms.heightScale, mSettings->mGraphics.pHeightScale.get());
-    mShader.SetUniform(mUniforms.radii, static_cast<float>(mRadii[0]),
-        static_cast<float>(mRadii[1]), static_cast<float>(mRadii[2]));
-    mShader.SetUniform(mUniforms.time, static_cast<float>(mCurrTime - mExistence[0]));
+    mShader.SetUniform(mUniforms.radii, static_cast<float>(radii[0]), static_cast<float>(radii[1]),
+        static_cast<float>(radii[2]));
+    mShader.SetUniform(mUniforms.time, static_cast<float>(mCurrTime - mStartTime));
 
     mTexture->Bind(GL_TEXTURE0);
     mDepthBuffer->Bind(GL_TEXTURE1);

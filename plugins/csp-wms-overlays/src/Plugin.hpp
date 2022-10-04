@@ -86,6 +86,7 @@ class Plugin : public cs::core::PluginBase {
 
  private:
   void onLoad();
+  void onSave();
 
   Settings::Body& getBodySettings(std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay) const;
 
@@ -138,7 +139,7 @@ class Plugin : public cs::core::PluginBase {
   /// Time at which the observer stopped moving.
   std::chrono::time_point<std::chrono::high_resolution_clock> mNoMovementSince;
 
-  int mActiveBodyConnection    = -1;
+  int mActiveObjectConnection  = -1;
   int mObserverSpeedConnection = -1;
   int mOnLoadConnection        = -1;
   int mOnSaveConnection        = -1;

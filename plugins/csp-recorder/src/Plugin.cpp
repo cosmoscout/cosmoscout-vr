@@ -55,8 +55,7 @@ void Plugin::init() {
   logger().info("Loading plugin...");
 
   mOnLoadConnection = mAllSettings->onLoad().connect([this]() { onLoad(); });
-  mOnSaveConnection = mAllSettings->onSave().connect(
-      [this]() { mAllSettings->mPlugins["csp-recorder"] = mPluginSettings; });
+  mOnSaveConnection = mAllSettings->onSave().connect([this]() { onSave(); });
 
   // Add the settings section to the side-bar.
   mGuiManager->addSettingsSectionToSideBarFromHTML(
@@ -205,6 +204,9 @@ def capture(file):
 void Plugin::deInit() {
   logger().info("Unloading plugin...");
 
+  // Save settings as this plugin may get reloaded.
+  onSave();
+
   // Clean up the side-bar.
   mGuiManager->removeSettingsSection("Recorder");
 
@@ -233,6 +235,11 @@ void Plugin::deInit() {
 void Plugin::onLoad() {
   // Read settings from JSON.
   from_json(mAllSettings->mPlugins.at("csp-recorder"), mPluginSettings);
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Plugin::onSave() {
+  mAllSettings->mPlugins["csp-recorder"] = mPluginSettings;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

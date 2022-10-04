@@ -137,11 +137,12 @@ class Plugin : public cs::core::PluginBase {
 
   void init() override;
   void deInit() override;
-
   void update() override;
 
  private:
   void onLoad();
+  void onSave();
+  void unregisterBody(std::string const& name);
 
   Settings::Body& getBodySettings(std::shared_ptr<LodBody> const& body) const;
   void setImageSource(std::shared_ptr<LodBody> const& body, std::string const& name) const;
@@ -152,9 +153,9 @@ class Plugin : public cs::core::PluginBase {
   std::map<std::string, std::shared_ptr<LodBody>> mLodBodies;
   float                                           mNonAutoLod{};
 
-  int mActiveBodyConnection = -1;
-  int mOnLoadConnection     = -1;
-  int mOnSaveConnection     = -1;
+  int mActiveObjectConnection = -1;
+  int mOnLoadConnection       = -1;
+  int mOnSaveConnection       = -1;
 };
 
 } // namespace csp::lodbodies

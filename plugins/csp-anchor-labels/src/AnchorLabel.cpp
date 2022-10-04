@@ -14,8 +14,7 @@
 #include "../../../src/cs-core/TimeControl.hpp"
 #include "../../../src/cs-gui/GuiItem.hpp"
 #include "../../../src/cs-gui/WorldSpaceGuiArea.hpp"
-#include "../../../src/cs-scene/CelestialAnchorNode.hpp"
-#include "../../../src/cs-scene/CelestialBody.hpp"
+#include "../../../src/cs-scene/CelestialObject.hpp"
 #include "../../../src/cs-utils/FrameTimings.hpp"
 
 #include <GL/glew.h>
@@ -34,30 +33,28 @@ namespace csp::anchorlabels {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-AnchorLabel::AnchorLabel(cs::scene::CelestialBody const* const body,
-    std::shared_ptr<Plugin::Settings>                          pluginSettings,
-    std::shared_ptr<cs::core::SolarSystem>                     solarSystem,
-    std::shared_ptr<cs::core::GuiManager>                      guiManager,
-    std::shared_ptr<cs::core::TimeControl>                     timeControl,
-    std::shared_ptr<cs::core::InputManager>                    inputManager)
-    : mBody(body)
+AnchorLabel::AnchorLabel(std::string const&           name,
+    std::shared_ptr<const cs::scene::CelestialObject> object,
+    std::shared_ptr<Plugin::Settings>                 pluginSettings,
+    std::shared_ptr<cs::core::SolarSystem>            solarSystem,
+    std::shared_ptr<cs::core::GuiManager>             guiManager,
+    std::shared_ptr<cs::core::InputManager>           inputManager)
+    : mObject(std::move(object))
     , mPluginSettings(std::move(pluginSettings))
     , mSolarSystem(std::move(solarSystem))
     , mGuiManager(std::move(guiManager))
-    , mTimeControl(std::move(timeControl))
     , mInputManager(std::move(inputManager))
-    , mGuiArea(std::make_unique<cs::gui::WorldSpaceGuiArea>(120, 30)) // NOLINT
+    , mGuiArea(std::make_unique<cs::gui::WorldSpaceGuiArea>(150, 30))
     , mGuiItem(
           std::make_unique<cs::gui::GuiItem>("file://../share/resources/gui/anchor_label.html")) {
   auto* sceneGraph = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
 
-  mAnchor = std::make_shared<cs::scene::CelestialAnchorNode>(sceneGraph->GetRoot(),
-      sceneGraph->GetNodeBridge(), "", mBody->getCenterName(), mBody->getFrameName());
-  mAnchor->setAnchorPosition(mBody->getAnchorPosition());
+  mObjectTransform.reset(sceneGraph->NewTransformNode(sceneGraph->GetRoot()));
 
-  mGuiTransform.reset(sceneGraph->NewTransformNode(mAnchor.get()));
-  mGuiTransform->SetScale(1.0F,
-      static_cast<float>(mGuiArea->getHeight()) / static_cast<float>(mGuiArea->getWidth()), 1.0F);
+  mGuiTransform.reset(sceneGraph->NewTransformNode(mObjectTransform.get()));
+  mGuiTransform->SetScale(1.2F,
+      1.2F * static_cast<float>(mGuiArea->getHeight()) / static_cast<float>(mGuiArea->getWidth()),
+      1.0F);
   mGuiTransform->SetTranslation(
       0.0F, static_cast<float>(mPluginSettings->mLabelOffset.get()), 0.0F);
   mGuiTransform->Rotate(VistaAxisAndAngle(VistaVector3D(0.0, 1.0, 0.0), -glm::pi<float>() / 2.F));
@@ -73,11 +70,11 @@ AnchorLabel::AnchorLabel(cs::scene::CelestialBody const* const body,
 
   mGuiItem->registerCallback(
       "flyToBody", "Makes the observer fly to the planet marked by this anchor label.", [this] {
-        mSolarSystem->flyObserverTo(mBody->getCenterName(), mBody->getFrameName(), 5.0);
-        mGuiManager->showNotification("Travelling", "to " + mBody->getCenterName(), "send");
+        mSolarSystem->flyObserverTo(mObject->getCenterName(), mObject->getFrameName(), 5.0);
+        mGuiManager->showNotification("Travelling", "to " + mObject->getCenterName(), "send");
       });
 
-  mGuiItem->callJavascript("setLabelText", mBody->getCenterName());
+  mGuiItem->callJavascript("setLabelText", name);
 
   mOffsetConnection = mPluginSettings->mLabelOffset.connect([this](double newOffset) {
     mGuiTransform->SetTranslation(0.0F, static_cast<float>(newOffset), 0.0F);
@@ -91,7 +88,7 @@ AnchorLabel::~AnchorLabel() {
 
   mGuiTransform->DisconnectChild(mGuiNode.get());
   auto* sceneGraph = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
-  sceneGraph->GetRoot()->DisconnectChild(mGuiTransform.get());
+  sceneGraph->GetRoot()->DisconnectChild(mObjectTransform.get());
 
   mInputManager->unregisterSelectable(mGuiNode.get());
 
@@ -101,46 +98,37 @@ AnchorLabel::~AnchorLabel() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void AnchorLabel::update() {
-  if (mBody->getIsInExistence()) {
-    double simulationTime(mTimeControl->pSimulationTime.get());
+  mRelativeAnchorPosition = mObject->getObserverRelativePosition();
 
-    cs::scene::CelestialAnchor rawAnchor(mAnchor->getCenterName(), mAnchor->getFrameName());
-    rawAnchor.setAnchorPosition(mAnchor->getAnchorPosition());
+  if (mObject->getIsOrbitVisible()) {
+    double distanceToObserver = distanceToCamera();
 
-    try {
-      mRelativeAnchorPosition =
-          mSolarSystem->getObserver().getRelativePosition(simulationTime, rawAnchor);
+    double const scaleFactor = 0.05;
+    double       scale       = glm::pow(distanceToObserver, mPluginSettings->mDepthScale.get()) *
+                   mPluginSettings->mLabelScale.get() * scaleFactor;
 
-      double distanceToObserver = distanceToCamera();
+    auto       mat    = mObject->getObserverRelativeTransform();
+    glm::dvec3 pos    = mat[3];
+    glm::dvec3 y      = glm::dvec4(0, 1, 0, 0);
+    glm::dvec3 camDir = -glm::normalize(pos);
 
-      double const scaleFactor = 0.05;
-      double       scale       = mSolarSystem->getObserver().getAnchorScale();
-      scale *= glm::pow(distanceToObserver, mPluginSettings->mDepthScale.get()) *
-               mPluginSettings->mLabelScale.get() * scaleFactor;
-      mAnchor->setAnchorScale(scale);
+    glm::dvec3 z = glm::cross(y, camDir);
+    glm::dvec3 x = glm::cross(y, z);
 
-      auto observerTransform =
-          rawAnchor.getRelativeTransform(simulationTime, mSolarSystem->getObserver());
-      glm::dvec3 observerPos = observerTransform[3];
-      glm::dvec3 y           = observerTransform * glm::dvec4(0, 1, 0, 0);
-      glm::dvec3 camDir      = glm::normalize(observerPos);
+    x = glm::normalize(x);
+    y = glm::normalize(y);
+    z = glm::normalize(z);
 
-      glm::dvec3 z = glm::cross(y, camDir);
-      glm::dvec3 x = glm::cross(y, z);
+    auto       rotation = glm::toQuat(glm::dmat3(x, y, z));
+    double     angle    = glm::angle(rotation);
+    glm::dvec3 axis     = glm::axis(rotation);
 
-      x = glm::normalize(x);
-      y = glm::normalize(y);
-      z = glm::normalize(z);
+    mat = glm::dmat4(1.0);
+    mat = glm::translate(mat, pos);
+    mat = glm::rotate(mat, angle, axis);
+    mat = glm::scale(mat, glm::dvec3(scale, scale, scale));
 
-      auto rot = glm::toQuat(glm::dmat3(x, y, z));
-      mAnchor->setAnchorRotation(rot);
-
-      mAnchor->update(simulationTime, mSolarSystem->getObserver());
-
-    } catch (std::exception const& e) {
-      // Getting the relative transformation may fail due to insufficient SPICE data.
-      logger().warn("AnchorLabel::update failed for '{}': {}", mBody->getCenterName(), e.what());
-    }
+    mObjectTransform->SetTransform(glm::value_ptr(mat), true);
   }
 }
 
@@ -174,20 +162,20 @@ void AnchorLabel::disable() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::string const& AnchorLabel::getCenterName() const {
-  return mBody->getCenterName();
+std::shared_ptr<const cs::scene::CelestialObject> const& AnchorLabel::getObject() const {
+  return mObject;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool AnchorLabel::shouldBeHidden() const {
-  return !mBody->getIsInExistence();
+  return !mObject->getIsOrbitVisible();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 double AnchorLabel::bodySize() const {
-  return glm::compMax(mBody->getRadii());
+  return glm::compMax(mObject->getRadii());
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

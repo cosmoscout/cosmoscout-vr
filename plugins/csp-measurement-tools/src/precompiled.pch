@@ -26,4 +26,3 @@
 #include "../../../src/cs-core/TimeControl.hpp"
 #include "../../../src/cs-core/GuiManager.hpp"
 #include "../../../src/cs-core/tools/DeletableMark.hpp"
-#include "../../../src/cs-scene/CelestialAnchorNode.hpp"

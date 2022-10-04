@@ -43,6 +43,8 @@ class Plugin : public cs::core::PluginBase {
   void update() override;
 
  private:
+  void onSave();
+
   void startServer(uint16_t port);
   void quitServer();
 

@@ -9,7 +9,6 @@
 
 #include "../../../src/cs-core/Settings.hpp"
 #include "../../../src/cs-core/SolarSystem.hpp"
-#include "../../../src/cs-scene/CelestialObject.hpp"
 
 #include <VistaKernel/GraphicsManager/VistaOpenGLDraw.h>
 #include <VistaKernel/GraphicsManager/VistaSceneGraph.h>
@@ -24,9 +23,10 @@ class VistaTexture;
 namespace csp::sharad {
 
 /// Renders a single SHARAD image.
-class Sharad : public cs::scene::CelestialObject, public IVistaOpenGLDraw {
+class Sharad : public IVistaOpenGLDraw {
  public:
-  Sharad(std::shared_ptr<cs::core::Settings> settings, std::string const& anchorName,
+  Sharad(std::shared_ptr<cs::core::Settings> settings,
+      std::shared_ptr<cs::core::SolarSystem> solarSystem, std::string objectName,
       std::string const& sTiffFile, std::string const& sTabFile);
 
   Sharad(Sharad const& other) = delete;
@@ -35,9 +35,11 @@ class Sharad : public cs::scene::CelestialObject, public IVistaOpenGLDraw {
   Sharad& operator=(Sharad const& other) = delete;
   Sharad& operator=(Sharad&& other) = delete;
 
-  ~Sharad() override;
+  ~Sharad();
 
-  void update(double tTime, cs::scene::CelestialObserver const& oObs) override;
+  double getStartTime() const;
+
+  void update(double tTime, double sceneScale);
 
   bool Do() override;
   bool GetBoundingBox(VistaBoundingBox& bb) override;
@@ -61,8 +63,12 @@ class Sharad : public cs::scene::CelestialObject, public IVistaOpenGLDraw {
   static std::unique_ptr<VistaOpenGLNode>     mPreCallbackNode;
   static int                                  mInstanceCount;
 
-  std::shared_ptr<cs::core::Settings> mSettings;
-  std::unique_ptr<VistaTexture>       mTexture;
+  std::shared_ptr<cs::core::Settings>    mSettings;
+  std::shared_ptr<cs::core::SolarSystem> mSolarSystem;
+  std::unique_ptr<VistaTexture>          mTexture;
+
+  std::string mObjectName;
+  double      mStartTime;
 
   VistaGLSLShader        mShader;
   VistaVertexArrayObject mVAO;

@@ -6,7 +6,7 @@
 
 #include "Trajectory.hpp"
 
-#include "../../../src/cs-scene/CelestialObserver.hpp"
+#include "../../../src/cs-core/SolarSystem.hpp"
 #include "../../../src/cs-utils/FrameTimings.hpp"
 #include "logger.hpp"
 
@@ -20,10 +20,10 @@ namespace csp::trajectories {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Trajectory::Trajectory(
-    std::shared_ptr<Plugin::Settings> pluginSettings, std::shared_ptr<cs::core::Settings> settings)
+Trajectory::Trajectory(std::shared_ptr<Plugin::Settings> pluginSettings,
+    std::shared_ptr<cs::core::SolarSystem>               solarSystem)
     : mPluginSettings(std::move(pluginSettings))
-    , mSettings(std::move(settings)) {
+    , mSolarSystem(std::move(solarSystem)) {
 
   pLength.connect([this](double val) {
     mPoints.clear();
@@ -53,13 +53,20 @@ Trajectory::~Trajectory() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Trajectory::update(double tTime, cs::scene::CelestialObserver const& oObs) {
-  cs::scene::CelestialObject::update(tTime, oObs);
+void Trajectory::update(double tTime) {
+  if (!mPluginSettings->mEnableTrajectories.get()) {
+    return;
+  }
 
-  double dLengthSeconds = pLength.get() * 24.0 * 60.0 * 60.0;
+  cs::utils::FrameTimings::ScopedTimer timer(
+      "Trajectory of " + mTargetName, cs::utils::FrameTimings::QueryMode::eCPU);
 
-  if (mPluginSettings->mEnableTrajectories.get() && getIsInExistence()) {
-    double dSampleLength = dLengthSeconds / pSamples.get();
+  auto parent = mSolarSystem->getObject(mParentName);
+  auto target = mSolarSystem->getObject(mTargetName);
+
+  if (parent && target && parent->getIsInExistence() && target->getIsOrbitVisible()) {
+    double dLengthSeconds = pLength.get() * 24.0 * 60.0 * 60.0;
+    double dSampleLength  = dLengthSeconds / pSamples.get();
 
     // only recalculate if there is not too much change from frame to frame
     if (std::abs(mLastFrameTime - tTime) <= dLengthSeconds / 10.0) {
@@ -75,6 +82,9 @@ void Trajectory::update(double tTime, cs::scene::CelestialObserver const& oObs) 
         completeRecalculation = true;
       }
 
+      auto startExistence = glm::max(parent->getExistence()[0], target->getExistence()[0]);
+      auto endExistence   = glm::min(parent->getExistence()[1], target->getExistence()[1]);
+
       if (mLastUpdateTime < tTime) {
         if (completeRecalculation) {
           mLastSampleTime = tTime - dLengthSeconds - dSampleLength;
@@ -85,11 +95,9 @@ void Trajectory::update(double tTime, cs::scene::CelestialObserver const& oObs) 
           mLastSampleTime += dSampleLength;
 
           try {
-            double     tSampleTime = glm::clamp(mLastSampleTime, mExistence[0], mExistence[1]);
-            glm::dvec3 pos         = getRelativePosition(tSampleTime, mTarget);
+            double     tSampleTime = glm::clamp(mLastSampleTime, startExistence, endExistence);
+            glm::dvec3 pos         = parent->getRelativePosition(tSampleTime, *target);
             mPoints[mStartIndex]   = glm::dvec4(pos.x, pos.y, pos.z, tSampleTime);
-
-            setRadii(glm::max(glm::dvec3(glm::length(pos)), getRadii()));
 
             mStartIndex = (mStartIndex + 1) % static_cast<int>(pSamples.get());
           } catch (...) {
@@ -107,14 +115,13 @@ void Trajectory::update(double tTime, cs::scene::CelestialObserver const& oObs) 
 
           try {
             double tSampleTime =
-                glm::clamp(mLastSampleTime - dLengthSeconds, mExistence[0], mExistence[1]);
-            glm::dvec3 pos = getRelativePosition(tSampleTime, mTarget);
+                glm::clamp(mLastSampleTime - dLengthSeconds, startExistence, endExistence);
+            glm::dvec3 pos = parent->getRelativePosition(tSampleTime, *target);
             mPoints[(mStartIndex - 1 + pSamples.get()) % pSamples.get()] =
                 glm::dvec4(pos.x, pos.y, pos.z, tSampleTime);
 
             mStartIndex = (mStartIndex - 1 + static_cast<int>(pSamples.get())) %
                           static_cast<int>(pSamples.get());
-            setRadii(glm::max(glm::dvec3(glm::length(pos)), getRadii()));
           } catch (...) {
             // Getting the relative transformation may fail due to insufficient SPICE data.
           }
@@ -124,60 +131,63 @@ void Trajectory::update(double tTime, cs::scene::CelestialObserver const& oObs) 
       mLastUpdateTime = tTime;
 
       if (completeRecalculation) {
-        logger().debug("Recalculating trajectory for {}.", mTargetAnchorName);
+        logger().debug("Recalculating trajectory for {}.", mTargetName);
       }
     }
 
     mLastFrameTime = tTime;
 
-    if (pVisible.get() && !mPoints.empty()) {
+    if (!mPoints.empty()) {
       glm::dvec3 tip = mPoints[mStartIndex];
       try {
-        tip = getRelativePosition(tTime, mTarget);
+        tip = parent->getRelativePosition(tTime, *target);
       } catch (...) {
         // Getting the relative transformation may fail due to insufficient SPICE data.
       }
 
-      mTrajectory.upload(matWorldTransform, tTime, mPoints, tip, mStartIndex);
+      mTrajectory.upload(parent->getObserverRelativeTransform(), tTime, mPoints, tip, mStartIndex);
     }
   }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Trajectory::setTargetAnchorName(std::string const& anchorName) {
+void Trajectory::setTargetName(std::string objectName) {
   mPoints.clear();
-  mTargetAnchorName = anchorName;
-  mSettings->initAnchor(mTarget, anchorName);
-  updateExistence();
+  mTargetName = std::move(objectName);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Trajectory::setParentAnchorName(std::string const& anchorName) {
+void Trajectory::setParentName(std::string objectName) {
   mPoints.clear();
-  mParentAnchorName = anchorName;
-  mSettings->initAnchor(*this, anchorName);
-  updateExistence();
+  mParentName = std::move(objectName);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::string const& Trajectory::getTargetAnchorName() const {
-  return mTargetAnchorName;
+std::string const& Trajectory::getTargetName() const {
+  return mTargetName;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::string const& Trajectory::getParentAnchorName() const {
-  return mParentAnchorName;
+std::string const& Trajectory::getParentName() const {
+  return mParentName;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool Trajectory::Do() {
-  if (mPluginSettings->mEnableTrajectories.get() && pVisible.get() && getIsInExistence()) {
-    cs::utils::FrameTimings::ScopedTimer timer("Trajectories");
+  if (!mPluginSettings->mEnableTrajectories.get()) {
+    return true;
+  }
+
+  auto parent = mSolarSystem->getObject(mParentName);
+  auto target = mSolarSystem->getObject(mTargetName);
+
+  if (parent->getIsInExistence() && target->getIsOrbitVisible()) {
+    cs::utils::FrameTimings::ScopedTimer timer("Trajectory of " + mTargetName);
     mTrajectory.Do();
   }
 
@@ -188,18 +198,6 @@ bool Trajectory::Do() {
 
 bool Trajectory::GetBoundingBox(VistaBoundingBox& /*bb*/) {
   return false;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void Trajectory::updateExistence() {
-  if (!mTargetAnchorName.empty() && !mParentAnchorName.empty()) {
-    auto parentExistence = mSettings->getAnchorExistence(mParentAnchorName);
-    auto targetExistence = mSettings->getAnchorExistence(mTargetAnchorName);
-
-    setExistence(glm::dvec2(std::max(parentExistence[0], targetExistence[0]),
-        std::min(parentExistence[1], targetExistence[1])));
-  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

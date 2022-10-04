@@ -207,7 +207,7 @@ float FovVignette::getNewRadius(
 void FovVignette::updateDynamicRadiusVignette() {
   // get simulation variables
   float velocity = mSolarSystem->pCurrentObserverSpeed.get() /
-                   static_cast<float>(mSolarSystem->getObserver().getAnchorScale());
+                   static_cast<float>(mSolarSystem->getObserver().getScale());
 
   float normalizedVelocity =
       glm::clamp((velocity - mVignetteSettings.mVelocityThresholds.get()[0]) /
@@ -231,7 +231,7 @@ void FovVignette::updateDynamicRadiusVignette() {
 void FovVignette::updateFadeAnimatedVignette() {
   // get simulation variables
   float velocity = mSolarSystem->pCurrentObserverSpeed.get() /
-                   static_cast<float>(mSolarSystem->getObserver().getAnchorScale());
+                   static_cast<float>(mSolarSystem->getObserver().getScale());
 
   double currentTime = getNow();
 

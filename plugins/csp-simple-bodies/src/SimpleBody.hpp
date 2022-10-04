@@ -16,7 +16,8 @@
 
 #include "../../../src/cs-core/EclipseShadowReceiver.hpp"
 #include "../../../src/cs-core/Settings.hpp"
-#include "../../../src/cs-scene/CelestialBody.hpp"
+#include "../../../src/cs-scene/CelestialSurface.hpp"
+#include "../../../src/cs-scene/IntersectableObject.hpp"
 #include "Plugin.hpp"
 
 namespace cs::core {
@@ -27,10 +28,12 @@ namespace csp::simplebodies {
 
 /// This is just a sphere with a texture, attached to the given SPICE frame. The texture should be
 /// in equirectangular projection.
-class SimpleBody : public cs::scene::CelestialBody, public IVistaOpenGLDraw {
+class SimpleBody : public cs::scene::CelestialSurface,
+                   public cs::scene::IntersectableObject,
+                   public IVistaOpenGLDraw {
  public:
   SimpleBody(std::shared_ptr<cs::core::Settings> settings,
-      std::shared_ptr<cs::core::SolarSystem> solarSystem, std::string const& anchorName);
+      std::shared_ptr<cs::core::SolarSystem>     solarSystem);
 
   SimpleBody(SimpleBody const& other) = delete;
   SimpleBody(SimpleBody&& other)      = default;
@@ -43,28 +46,28 @@ class SimpleBody : public cs::scene::CelestialBody, public IVistaOpenGLDraw {
   /// Configures the internal renderer according to the given values.
   void configure(Plugin::Settings::SimpleBody const& settings);
 
-  /// The sun object is used for lighting computation.
-  void setSun(std::shared_ptr<const cs::scene::CelestialObject> const& sun);
+  /// The body is attached to this object.
+  void               setObjectName(std::string objectName);
+  std::string const& getObjectName() const;
 
-  /// Interface implementation of the IntersectableObject, which is a base class of
-  /// CelestialBody.
+  void update();
+
+  /// Interface implementation of the IntersectableObject.
   bool getIntersection(
       glm::dvec3 const& rayOrigin, glm::dvec3 const& rayDir, glm::dvec3& pos) const override;
 
-  /// Interface implementation of CelestialBody.
+  /// Interface implementation of CelestialSurface.
   double getHeight(glm::dvec2 lngLat) const override;
-
-  /// Interface implementation of CelestialAnchor.
-  void update(double time, cs::scene::CelestialObserver const& observer) override;
 
   /// Interface implementation of IVistaOpenGLDraw.
   bool Do() override;
   bool GetBoundingBox(VistaBoundingBox& bb) override;
 
  private:
-  std::shared_ptr<cs::core::Settings>               mSettings;
-  std::shared_ptr<cs::core::SolarSystem>            mSolarSystem;
-  std::shared_ptr<const cs::scene::CelestialObject> mSun;
+  std::shared_ptr<cs::core::Settings>    mSettings;
+  std::shared_ptr<cs::core::SolarSystem> mSolarSystem;
+
+  std::string mObjectName;
 
   std::unique_ptr<VistaOpenGLNode> mGLNode;
 
@@ -77,9 +80,10 @@ class SimpleBody : public cs::scene::CelestialBody, public IVistaOpenGLDraw {
 
   cs::core::EclipseShadowReceiver mEclipseShadowReceiver;
 
-  bool mShaderDirty              = true;
-  int  mEnableLightingConnection = -1;
-  int  mEnableHDRConnection      = -1;
+  bool mShaderDirty = true;
+
+  int mEnableLightingConnection = -1;
+  int mEnableHDRConnection      = -1;
 
   struct {
     uint32_t sunDirection      = 0;

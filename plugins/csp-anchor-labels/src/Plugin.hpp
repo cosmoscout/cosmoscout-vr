@@ -11,14 +11,14 @@
 #include "../../../src/cs-core/Settings.hpp"
 #include "../../../src/cs-utils/Property.hpp"
 #include <memory>
-#include <vector>
+#include <unordered_set>
 
 namespace csp::anchorlabels {
 class AnchorLabel;
 
-/// This plugin puts labels over anchors in space. It uses the anchors center names as text. If
-/// you click on the label you ar being flown to the anchor. The plugin is configurable via the
-/// application config file. See README.md for details.
+/// This plugin puts labels over anchors in space. It uses the object names as text. If you click on
+/// the label you are being flown to the anchor. The plugin is configurable via the application
+/// config file. See README.md for details.
 class Plugin : public cs::core::PluginBase {
  public:
   struct Settings {
@@ -47,6 +47,9 @@ class Plugin : public cs::core::PluginBase {
 
     /// The value describes the labels height over the anchor.
     cs::utils::DefaultProperty<double> mLabelOffset{0.2};
+
+    /// Celestial objects with these names will not have an associated label.
+    std::unordered_set<std::string> mBlacklist;
   };
 
   void init() override;
@@ -55,17 +58,17 @@ class Plugin : public cs::core::PluginBase {
 
  private:
   void onLoad();
+  void onSave();
 
   std::shared_ptr<Settings>                 mPluginSettings = std::make_shared<Settings>();
   std::vector<std::unique_ptr<AnchorLabel>> mAnchorLabels;
 
   bool mNeedsResort = true; ///< When a new label gets added resort the vector
 
-  uint64_t addListenerId{};
-  uint64_t removeListenerId{};
-
-  int mOnLoadConnection = -1;
-  int mOnSaveConnection = -1;
+  int mAddObjectConnection    = -1;
+  int mRemoveObjectConnection = -1;
+  int mOnLoadConnection       = -1;
+  int mOnSaveConnection       = -1;
 };
 } // namespace csp::anchorlabels
 

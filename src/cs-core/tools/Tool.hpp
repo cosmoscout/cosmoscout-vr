@@ -34,6 +34,7 @@ class CS_CORE_EXPORT Tool {
   cs::utils::Property<bool> pShouldDelete = false;
 
   Tool() = default;
+  explicit Tool(std::string objectName);
 
   Tool(Tool const& other)     = default;
   Tool(Tool&& other) noexcept = default;
@@ -43,8 +44,13 @@ class CS_CORE_EXPORT Tool {
 
   virtual ~Tool() = default;
 
-  virtual void update() {
-  }
+  virtual void update();
+
+  virtual void       setObjectName(std::string name);
+  std::string const& getObjectName() const;
+
+ private:
+  std::string mObjectName;
 };
 
 } // namespace cs::core::tools

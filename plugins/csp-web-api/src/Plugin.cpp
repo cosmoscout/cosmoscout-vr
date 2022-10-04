@@ -309,8 +309,7 @@ void Plugin::init() {
   }));
 
   mOnLoadConnection = mAllSettings->onLoad().connect([this]() { mReloadRequired = true; });
-  mOnSaveConnection = mAllSettings->onSave().connect(
-      [this]() { mAllSettings->mPlugins["csp-web-api"] = mPluginSettings; });
+  mOnSaveConnection = mAllSettings->onSave().connect([this]() { onSave(); });
 
   // Restart the server if the port changes.
   mPluginSettings.mPort.connect([this](uint16_t port) { startServer(port); });
@@ -322,6 +321,9 @@ void Plugin::init() {
 
 void Plugin::deInit() {
   logger().info("Unloading plugin...");
+
+  // Save settings as this plugin may get reloaded.
+  onSave();
 
   mAllSettings->onLoad().disconnect(mOnLoadConnection);
   mAllSettings->onSave().disconnect(mOnSaveConnection);
@@ -474,6 +476,12 @@ void Plugin::update() {
   if (mReloadRequired) {
     from_json(mAllSettings->mPlugins.at("csp-web-api"), mPluginSettings);
   }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Plugin::onSave() {
+  mAllSettings->mPlugins["csp-web-api"] = mPluginSettings;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

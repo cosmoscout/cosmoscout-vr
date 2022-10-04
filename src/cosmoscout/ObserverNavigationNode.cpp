@@ -32,6 +32,7 @@ ObserverNavigationNode::ObserverNavigationNode(
     , mLinearSpeed(0.0)
     , mLinearDeceleration(oParams.GetValueOrDefault<double>("linear_deceleration", 0.1))
     , mLastTime(-1.0) {
+
   mLinearSpeed.mDirection = cs::utils::AnimationDirection::eLinear;
 
   // NOLINTNEXTLINE(cppcoreguidelines-owning-memory): deleted in IVdfnNode::~IVdfnNode()
@@ -145,23 +146,8 @@ bool ObserverNavigationNode::DoEvalNode() {
   vTranslation *= dDeltaTime;
   vTranslation += vOffset;
 
-  auto&  oObs     = mSolarSystem->getObserver();
-  double stepSize = glm::length(vTranslation);
-
-  if (stepSize > 0.0) {
-    // Ensure that an SolarSystem::updateSceneScale() is called at least at 100 Hz. If it is called
-    // only once a frame, it can happen that the observer instantly travels to a planet's surface.
-    auto steps = static_cast<int32_t>(std::ceil(dDeltaTime * 100.0));
-
-    for (int32_t i(1); i <= steps; ++i) {
-      oObs.setAnchorPosition(oObs.getAnchorPosition() + oObs.getAnchorRotation() * vTranslation *
-                                                            oObs.getAnchorScale() /
-                                                            static_cast<double>(steps));
-      if (i < steps) {
-        mSolarSystem->updateSceneScale();
-      }
-    }
-  }
+  auto& oObs = mSolarSystem->getObserver();
+  oObs.setPosition(oObs.getPosition() + oObs.getRotation() * vTranslation * oObs.getScale());
 
   auto       qRotation     = mAngularDirection;
   glm::dvec3 vRotationAxis = glm::axis(qRotation);
@@ -169,8 +155,7 @@ bool ObserverNavigationNode::DoEvalNode() {
       glm::angle(qRotation) * dDeltaTime * mMaxAngularSpeed * mAngularSpeed.get(dTtime);
 
   if (dRotationAngle != 0.0) {
-    oObs.setAnchorRotation(
-        oObs.getAnchorRotation() * glm::angleAxis(dRotationAngle, vRotationAxis));
+    oObs.setRotation(oObs.getRotation() * glm::angleAxis(dRotationAngle, vRotationAxis));
   }
 
   return true;

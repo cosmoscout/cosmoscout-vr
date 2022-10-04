@@ -12,8 +12,11 @@
 #include "../../../src/cs-utils/logger.hpp"
 #include "logger.hpp"
 
+#include <VistaKernel/GraphicsManager/VistaOpenGLNode.h>
 #include <VistaKernel/GraphicsManager/VistaSceneGraph.h>
+#include <VistaKernel/GraphicsManager/VistaTransformNode.h>
 #include <VistaKernelOpenSGExt/VistaOpenSGMaterialTools.h>
+#include <glm/gtc/type_ptr.hpp>
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -78,18 +81,13 @@ void Plugin::init() {
   logger().info("Loading plugin...");
 
   mOnLoadConnection = mAllSettings->onLoad().connect([this]() { onLoad(); });
-  mOnSaveConnection = mAllSettings->onSave().connect(
-      [this]() { mAllSettings->mPlugins["csp-stars"] = mPluginSettings; });
+  mOnSaveConnection = mAllSettings->onSave().connect([this]() { onSave(); });
 
   // Create the Stars object based on the settings.
   mStars = std::make_unique<Stars>();
 
   // Add the stars to the scenegraph.
-  mStarsTransform = std::make_shared<cs::scene::CelestialAnchorNode>(
-      mSceneGraph->GetRoot(), mSceneGraph->GetNodeBridge(), "", "Solar System Barycenter", "J2000");
-  mSolarSystem->registerAnchor(mStarsTransform);
-
-  mSceneGraph->GetRoot()->AddChild(mStarsTransform.get());
+  mStarsTransform.reset(mSceneGraph->NewTransformNode(mSceneGraph->GetRoot()));
 
   mStarsNode.reset(mSceneGraph->NewOpenGLNode(mStarsTransform.get(), mStars.get()));
 
@@ -199,7 +197,9 @@ void Plugin::init() {
 void Plugin::deInit() {
   logger().info("Unloading plugin...");
 
-  mSolarSystem->unregisterAnchor(mStarsTransform);
+  // Save settings as this plugin may get reloaded.
+  onSave();
+
   mSceneGraph->GetRoot()->DisconnectChild(mStarsTransform.get());
 
   mAllSettings->mGraphics.pEnableHDR.disconnect(mEnableHDRConnection);
@@ -216,6 +216,7 @@ void Plugin::deInit() {
   mGuiManager->getGui()->unregisterCallback("stars.setDrawMode2");
   mGuiManager->getGui()->unregisterCallback("stars.setDrawMode3");
   mGuiManager->getGui()->unregisterCallback("stars.setDrawMode4");
+  mGuiManager->getGui()->unregisterCallback("stars.setDrawMode5");
   mGuiManager->getGui()->unregisterCallback("stars.setEnabled");
   mGuiManager->getGui()->unregisterCallback("stars.setEnableGrid");
   mGuiManager->getGui()->unregisterCallback("stars.setEnableFigures");
@@ -245,6 +246,10 @@ void Plugin::update() {
       0.3F * fIntensity * (mPluginSettings.mEnableCelestialGrid.get() ? 1.F : 0.F)));
   mStars->setStarFiguresColor(VistaColor(
       0.5F, 1.F, 0.8F, 0.3F * fIntensity * (mPluginSettings.mEnableStarFigures.get() ? 1.F : 0.F)));
+
+  auto mat = mSolarSystem->getObject("Barycenter")->getObserverRelativeTransform();
+
+  mStarsTransform->SetTransform(glm::value_ptr(mat), true);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -281,6 +286,12 @@ void Plugin::onLoad() {
   }
 
   mStars->setCatalogs(catalogs);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Plugin::onSave() {
+  mAllSettings->mPlugins["csp-stars"] = mPluginSettings;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

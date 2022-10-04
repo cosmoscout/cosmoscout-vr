@@ -7,6 +7,7 @@
 #include "Satellite.hpp"
 
 #include <VistaKernel/GraphicsManager/VistaNodeBridge.h>
+#include <VistaKernel/GraphicsManager/VistaTransformNode.h>
 #include <VistaKernel/VistaSystem.h>
 #include <VistaKernelOpenSGExt/VistaOpenSGMaterialTools.h>
 
@@ -23,16 +24,14 @@ namespace csp::satellites {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Satellite::Satellite(Plugin::Settings::Satellite const& config, std::string const& anchorName,
+Satellite::Satellite(Plugin::Settings::Satellite const& config, std::string objectName,
     VistaSceneGraph* sceneGraph, std::shared_ptr<cs::core::Settings> settings,
     std::shared_ptr<cs::core::SolarSystem> solarSystem)
     : mSceneGraph(sceneGraph)
     , mSettings(std::move(settings))
     , mSolarSystem(std::move(solarSystem))
-    , mModel(
-          std::make_unique<cs::graphics::GltfLoader>(config.mModelFile, config.mEnvironmentMap)) {
-
-  mSettings->initAnchor(*this, anchorName);
+    , mModel(std::make_unique<cs::graphics::GltfLoader>(config.mModelFile, config.mEnvironmentMap))
+    , mObjectName(std::move(objectName)) {
 
   mModel->setLightIntensity(15.0);
   mModel->setIBLIntensity(1.5);
@@ -56,47 +55,28 @@ Satellite::~Satellite() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Satellite::setSun(std::shared_ptr<const cs::scene::CelestialObject> const& sun) {
-  mSun = sun;
-}
+void Satellite::update() {
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
+  auto object  = mSolarSystem->getObject(mObjectName);
+  bool visible = object && object->getIsBodyVisible();
 
-bool Satellite::getIntersection(
-    glm::dvec3 const& /*rayPos*/, glm::dvec3 const& /*rayDir*/, glm::dvec3& /*pos*/) const {
-  return false;
-}
+  mAnchor->SetIsEnabled(visible);
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
+  if (visible) {
+    auto const& transform = object->getObserverRelativeTransform();
+    mAnchor->SetTransform(glm::value_ptr(transform), true);
 
-double Satellite::getHeight(glm::dvec2 /*lngLat*/) const {
-  return 0;
-}
+    float sunIlluminance(1.F);
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
+    auto sunDirection = glm::vec3(mSolarSystem->getSunDirection(transform[3]));
 
-void Satellite::update(double tTime, cs::scene::CelestialObserver const& oObs) {
-  cs::scene::CelestialBody::update(tTime, oObs);
+    mModel->setLightDirection(sunDirection.x, sunDirection.y, sunDirection.z);
 
-  mAnchor->SetIsEnabled(getIsInExistence() && pVisible.get());
-
-  if (getIsInExistence() && pVisible.get()) {
-    mAnchor->SetTransform(glm::value_ptr(matWorldTransform), true);
-
-    if (mSun) {
-      float sunIlluminance(1.F);
-      auto  ownTransform = getWorldTransform();
-
-      auto sunDirection = glm::vec3(mSolarSystem->getSunDirection(ownTransform[3]));
-
-      mModel->setLightDirection(sunDirection.x, sunDirection.y, sunDirection.z);
-
-      if (mSettings->mGraphics.pEnableHDR.get()) {
-        mModel->setEnableHDR(true);
-        sunIlluminance = static_cast<float>(mSolarSystem->getSunIlluminance(ownTransform[3]));
-      }
-      mModel->setLightIntensity(sunIlluminance);
+    if (mSettings->mGraphics.pEnableHDR.get()) {
+      mModel->setEnableHDR(true);
+      sunIlluminance = static_cast<float>(mSolarSystem->getSunIlluminance(transform[3]));
     }
+    mModel->setLightIntensity(sunIlluminance);
   }
 }
 

@@ -41,6 +41,7 @@ void from_json(nlohmann::json const& j, Plugin::Settings& o) {
   cs::core::Settings::deserialize(j, "labelScale", o.mLabelScale);
   cs::core::Settings::deserialize(j, "depthScale", o.mDepthScale);
   cs::core::Settings::deserialize(j, "labelOffset", o.mLabelOffset);
+  cs::core::Settings::deserialize(j, "blacklist", o.mBlacklist);
 }
 
 void to_json(nlohmann::json& j, Plugin::Settings const& o) {
@@ -50,6 +51,7 @@ void to_json(nlohmann::json& j, Plugin::Settings const& o) {
   cs::core::Settings::serialize(j, "labelScale", o.mLabelScale);
   cs::core::Settings::serialize(j, "depthScale", o.mDepthScale);
   cs::core::Settings::serialize(j, "labelOffset", o.mLabelOffset);
+  cs::core::Settings::serialize(j, "blacklist", o.mBlacklist);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -59,35 +61,29 @@ void Plugin::init() {
   logger().info("Loading plugin...");
 
   mOnLoadConnection = mAllSettings->onLoad().connect([this]() { onLoad(); });
-  mOnSaveConnection = mAllSettings->onSave().connect(
-      [this]() { mAllSettings->mPlugins["csp-anchor-labels"] = *mPluginSettings; });
+  mOnSaveConnection = mAllSettings->onSave().connect([this]() { onSave(); });
 
   mGuiManager->addSettingsSectionToSideBarFromHTML(
       "Anchor Labels", "location_on", "../share/resources/gui/anchor_labels_settings.html");
 
   mGuiManager->addScriptToGuiFromJS("../share/resources/gui/js/csp-anchor-labels.js");
 
-  // Create labels for all bodies that already exist
-  for (auto const& body : mSolarSystem->getBodies()) {
-    mAnchorLabels.emplace_back(std::make_unique<AnchorLabel>(
-        body.get(), mPluginSettings, mSolarSystem, mGuiManager, mTimeControl, mInputManager));
+  // For all bodies that will be created in the future we also create a label.
+  mAddObjectConnection =
+      mAllSettings->mObjects.onAdd().connect([this](auto const& name, auto const& object) {
+        if (mPluginSettings->mBlacklist.find(name) == mPluginSettings->mBlacklist.end()) {
+          mAnchorLabels.emplace_back(std::make_unique<AnchorLabel>(
+              name, object, mPluginSettings, mSolarSystem, mGuiManager, mInputManager));
 
-    mNeedsResort = true;
-  }
-
-  // For all bodies that will be created in the future we also create a label
-  addListenerId = mSolarSystem->registerAddBodyListener([this](auto const& body) {
-    mAnchorLabels.emplace_back(std::make_unique<AnchorLabel>(
-        body.get(), mPluginSettings, mSolarSystem, mGuiManager, mTimeControl, mInputManager));
-
-    mNeedsResort = true;
-  });
+          mNeedsResort = true;
+        }
+      });
 
   // If a body gets dropped from the solar system remove the label too
-  removeListenerId = mSolarSystem->registerRemoveBodyListener([this](auto const& body) {
-    mAnchorLabels.erase(
-        std::remove_if(mAnchorLabels.begin(), mAnchorLabels.end(),
-            [body](auto const& label) { return body->getCenterName() == label->getCenterName(); }),
+  mRemoveObjectConnection = mAllSettings->mObjects.onRemove().connect([this](auto const& /*name*/,
+                                                                          auto const& object) {
+    mAnchorLabels.erase(std::remove_if(mAnchorLabels.begin(), mAnchorLabels.end(),
+                            [object](auto const& label) { return object == label->getObject(); }),
         mAnchorLabels.end());
   });
 
@@ -168,7 +164,7 @@ void Plugin::update() {
           double distToCameraB    = drawLabel->distanceToCamera();
           double relativeDistance = distToCameraA < distToCameraB ? distToCameraB / distToCameraA
                                                                   : distToCameraA / distToCameraB;
-          if (relativeDistance > 1 + mPluginSettings->mIgnoreOverlapThreshold.get() * 0.1) {
+          if (relativeDistance > 1 + mPluginSettings->mIgnoreOverlapThreshold.get()) {
             continue;
           }
         }
@@ -217,10 +213,13 @@ void Plugin::update() {
 void Plugin::deInit() {
   logger().info("Unloading plugin...");
 
+  // Save settings as this plugin may get reloaded.
+  onSave();
+
   mAnchorLabels.clear();
 
-  mSolarSystem->unregisterAddBodyListener(addListenerId);
-  mSolarSystem->unregisterRemoveBodyListener(removeListenerId);
+  mAllSettings->mObjects.onAdd().disconnect(mAddObjectConnection);
+  mAllSettings->mObjects.onRemove().disconnect(mRemoveObjectConnection);
 
   mGuiManager->removeSettingsSection("Anchor Labels");
 
@@ -242,6 +241,25 @@ void Plugin::deInit() {
 void Plugin::onLoad() {
   // Read settings from JSON.
   from_json(mAllSettings->mPlugins.at("csp-anchor-labels"), *mPluginSettings);
+
+  // Remove all labels first.
+  mAnchorLabels.clear();
+
+  // Then create labels for all bodies that already exist.
+  for (auto const& [name, object] : mAllSettings->mObjects) {
+    if (mPluginSettings->mBlacklist.find(name) == mPluginSettings->mBlacklist.end()) {
+      mAnchorLabels.emplace_back(std::make_unique<AnchorLabel>(
+          name, object, mPluginSettings, mSolarSystem, mGuiManager, mInputManager));
+
+      mNeedsResort = true;
+    }
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Plugin::onSave() {
+  mAllSettings->mPlugins["csp-anchor-labels"] = *mPluginSettings;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

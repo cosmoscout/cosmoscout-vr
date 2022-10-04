@@ -108,12 +108,11 @@ void main() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Ring::Ring(std::shared_ptr<cs::core::Settings> settings,
-    std::shared_ptr<cs::core::SolarSystem> solarSystem, std::string const& anchorName)
-    : mSettings(std::move(settings))
+    std::shared_ptr<cs::core::SolarSystem> solarSystem, std::string objectName)
+    : mObjectName(std::move(objectName))
+    , mSettings(std::move(settings))
     , mSolarSystem(std::move(solarSystem))
-    , mEclipseShadowReceiver(mSettings, mSolarSystem, this, true) {
-
-  mSettings->initAnchor(*this, anchorName);
+    , mEclipseShadowReceiver(mSettings, mSolarSystem, true) {
 
   // The geometry is a grid strip around the center of the SPICE frame.
   std::vector<glm::vec2> vertices(GRID_RESOLUTION * 2);
@@ -170,23 +169,19 @@ void Ring::configure(Plugin::Settings::Ring const& settings) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Ring::setSun(std::shared_ptr<const cs::scene::CelestialObject> const& sun) {
-  mSun = sun;
-}
-////////////////////////////////////////////////////////////////////////////////////////////////////
+void Ring::update() {
+  auto object = mSolarSystem->getObject(mObjectName);
 
-void Ring::update(double time, cs::scene::CelestialObserver const& observer) {
-  CelestialObject::update(time, observer);
-
-  if (getIsInExistence() && pVisible.get()) {
-    mEclipseShadowReceiver.update(time, observer);
+  if (object && object->getIsBodyVisible()) {
+    mEclipseShadowReceiver.update(*object);
   }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool Ring::Do() {
-  if (!getIsInExistence() || !pVisible.get()) {
+  auto object = mSolarSystem->getObject(mObjectName);
+  if (!object || !object->getIsBodyVisible()) {
     return true;
   }
 
@@ -236,8 +231,8 @@ bool Ring::Do() {
   std::array<GLfloat, 16> glMatP{};
   glGetFloatv(GL_MODELVIEW_MATRIX, glMatV.data());
   glGetFloatv(GL_PROJECTION_MATRIX, glMatP.data());
-  auto matM = glm::mat4(getWorldTransform());
-  auto matV = glm::make_mat4x4(glMatV.data());
+  glm::mat4 matM = object->getObserverRelativeTransform();
+  glm::mat4 matV = glm::make_mat4x4(glMatV.data());
 
   // Set uniforms.
   glUniformMatrix4fv(mUniforms.modelMatrix, 1, GL_FALSE, glm::value_ptr(matM));
@@ -253,7 +248,7 @@ bool Ring::Do() {
   // If HDR is enabled, the illuminance has to be calculated based on the scene's scale and the
   // distance to the Sun.
   if (mSettings->mGraphics.pEnableHDR.get()) {
-    sunIlluminance = static_cast<float>(mSolarSystem->getSunIlluminance(getWorldTransform()[3]));
+    sunIlluminance = static_cast<float>(mSolarSystem->getSunIlluminance(matM[3]));
   }
 
   // The following section calculates if the dark side of the ring is visible. Since the ring is a
@@ -265,15 +260,15 @@ bool Ring::Do() {
   // side.
   //
   //      \ /                                o o o
-  //    -- O --                          o           o                            <o>
-  //      | \                          o               o
+  //    -- O --                          o           o                           o.O
+  //      / \                          o               o
   //                         -------  o                 o  -------
   //                                   o               o
   //                                     o           o
   //                                         o o o
 
-  glm::vec3 sunDirection = glm::inverse(getWorldTransform()) *
-                           glm::dvec4(mSolarSystem->getSunDirection(getWorldTransform()[3]), 0.0);
+  glm::vec3 sunDirection =
+      glm::inverse(matM) * glm::dvec4(mSolarSystem->getSunDirection(matM[3]), 0.0);
 
   // The dot product is positive, if the Sun is on the northern side of the ring, otherwise it is
   // negative.

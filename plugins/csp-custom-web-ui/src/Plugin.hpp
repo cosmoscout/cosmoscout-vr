@@ -9,16 +9,14 @@
 
 #include "../../../src/cs-core/PluginBase.hpp"
 
+#include <glm/glm.hpp>
+
 #include <list>
 #include <string>
 #include <vector>
 
 class VistaOpenGLNode;
 class VistaTransformNode;
-
-namespace cs::scene {
-class CelestialAnchorNode;
-} // namespace cs::scene
 
 namespace cs::gui {
 class WorldSpaceGuiArea;
@@ -50,8 +48,7 @@ class Plugin : public cs::core::PluginBase {
     struct SpaceItem {
 
       /// The SPICE center and frame names.
-      std::string mCenter;
-      std::string mFrame;
+      std::string mObject;
 
       /// The position of the item, elevation is relative to the surface height.
       double mLongitude{};
@@ -91,15 +88,18 @@ class Plugin : public cs::core::PluginBase {
 
  private:
   void onLoad();
+  void onSave();
   void unload(Settings const& pluginSettings);
 
   struct SpaceItem {
-    std::unique_ptr<cs::gui::WorldSpaceGuiArea>     mGuiArea;
-    std::unique_ptr<cs::gui::GuiItem>               mGuiItem;
-    std::shared_ptr<cs::scene::CelestialAnchorNode> mAnchor;
-    std::unique_ptr<VistaTransformNode>             mTransform;
-    std::unique_ptr<VistaOpenGLNode>                mGuiNode;
-    double                                          mScale = 1.0;
+    std::unique_ptr<cs::gui::WorldSpaceGuiArea> mGuiArea;
+    std::unique_ptr<cs::gui::GuiItem>           mGuiItem;
+    std::unique_ptr<VistaTransformNode>         mAnchor;
+    std::unique_ptr<VistaTransformNode>         mTransform;
+    std::unique_ptr<VistaOpenGLNode>            mGuiNode;
+    double                                      mScale = 1.0;
+    glm::dvec3                                  mPosition;
+    std::string                                 mObjectName;
   };
 
   Settings mPluginSettings;

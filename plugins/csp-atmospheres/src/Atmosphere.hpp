@@ -18,12 +18,12 @@ class SolarSystem;
 namespace csp::atmospheres {
 
 /// This is a wrapper around a AtmosphereRenderer, adding SPICE based positioning.
-class Atmosphere : public cs::scene::CelestialObject {
+class Atmosphere {
  public:
-  Atmosphere(std::shared_ptr<Plugin::Settings> const& pluginSettings,
-      std::shared_ptr<cs::core::Settings> const&      settings,
-      std::shared_ptr<cs::core::SolarSystem> const& solarSystem, std::string const& anchorName);
-  ~Atmosphere() override;
+  Atmosphere(std::shared_ptr<Plugin::Settings> pluginSettings,
+      std::shared_ptr<cs::core::Settings>      settings,
+      std::shared_ptr<cs::core::SolarSystem> solarSystem, std::string objectName);
+  ~Atmosphere();
 
   Atmosphere(Atmosphere const& other) = delete;
   Atmosphere(Atmosphere&& other)      = delete;
@@ -38,14 +38,16 @@ class Atmosphere : public cs::scene::CelestialObject {
   AtmosphereRenderer&       getRenderer();
   AtmosphereRenderer const& getRenderer() const;
 
-  /// This is called once a frame by the solar system. It updates the atmosphere's position based on
-  /// the SPICE kernels for the center and frame specified at construction time.
-  void update(double time, cs::scene::CelestialObserver const& oObs) override;
+  /// This is called once a frame by the plugin. It updates the EclipseShadowReceiver.
+  void update();
 
  private:
+  std::shared_ptr<Plugin::Settings>                mPluginSettings;
+  std::shared_ptr<cs::core::Settings>              mAllSettings;
+  std::shared_ptr<cs::core::SolarSystem>           mSolarSystem;
+  std::string                                      mObjectName;
   std::shared_ptr<cs::core::EclipseShadowReceiver> mEclipseShadowReceiver;
   AtmosphereRenderer                               mRenderer;
-  std::shared_ptr<Plugin::Settings>                mPluginSettings;
   std::unique_ptr<VistaOpenGLNode>                 mAtmosphereNode;
 };
 

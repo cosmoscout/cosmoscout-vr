@@ -18,7 +18,8 @@ The given values present some good starting values for your customization:
       "ignoreOverlapThreshold": 0.1, // How close labels can get without one being disabled.
       "labelScale": 1.2,             // The size of the labels.
       "depthScale": 1.0,             // Determines how much smaller far away labels are.
-      "labelOffset": 0.2             // How far over the anchor's center the label is placed.
+      "labelOffset": 0.2,            // How far over the anchor's center the label is placed.
+      "blacklist": []                // A list of celestial objects which shall not have a label.
      }
   }
 }

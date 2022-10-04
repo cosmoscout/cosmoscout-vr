@@ -97,8 +97,7 @@ void Plugin::init() {
   logger().info("Loading plugin...");
 
   mOnLoadConnection = mAllSettings->onLoad().connect([this]() { onLoad(); });
-  mOnSaveConnection = mAllSettings->onSave().connect(
-      [this]() { mAllSettings->mPlugins["csp-atmospheres"] = *mPluginSettings; });
+  mOnSaveConnection = mAllSettings->onSave().connect([this]() { onSave(); });
 
   mGuiManager->addSettingsSectionToSideBarFromHTML(
       "Atmospheres", "blur_circular", "../share/resources/gui/atmospheres_settings.html");
@@ -195,11 +194,12 @@ void Plugin::init() {
 void Plugin::deInit() {
   logger().info("Unloading plugin...");
 
-  for (auto const& atmosphere : mAtmospheres) {
-    mSolarSystem->unregisterAnchor(atmosphere.second);
-  }
+  // Save settings as this plugin may get reloaded.
+  onSave();
 
   mGuiManager->removeSettingsSection("Atmospheres");
+
+  mGuiManager->getGui()->callJavascript("CosmoScout.removeApi", "atmosphere");
 
   mGuiManager->getGui()->unregisterCallback("atmosphere.setEnableWater");
   mGuiManager->getGui()->unregisterCallback("atmosphere.setEnableClouds");
@@ -231,15 +231,7 @@ void Plugin::update() {
   mGraphicsEngine->pApproximateSceneBrightness = fIntensity;
 
   for (auto const& atmosphere : mAtmospheres) {
-    double sunIlluminance = 10.0;
-
-    if (mAllSettings->mGraphics.pEnableHDR.get()) {
-      sunIlluminance = mSolarSystem->getSunIlluminance(atmosphere.second->getWorldTransform()[3]);
-    }
-
-    auto sunDirection = mSolarSystem->getSunDirection(atmosphere.second->getWorldTransform()[3]);
-
-    atmosphere.second->getRenderer().setSun(sunDirection, static_cast<float>(sunIlluminance));
+    atmosphere.second->update();
   }
 }
 
@@ -256,13 +248,11 @@ void Plugin::onLoad() {
     auto settings = mPluginSettings->mAtmospheres.find(atmosphere->first);
     if (settings != mPluginSettings->mAtmospheres.end()) {
       // If there are settings for this atmosphere, reconfigure it.
-      mAllSettings->initAnchor(*atmosphere->second, settings->first);
       atmosphere->second->configure(settings->second);
 
       ++atmosphere;
     } else {
       // Else delete it.
-      mSolarSystem->unregisterAnchor(atmosphere->second);
       atmosphere = mAtmospheres.erase(atmosphere);
     }
   }
@@ -278,14 +268,18 @@ void Plugin::onLoad() {
     newAtmosphere->getRenderer().setHDRBuffer(mGraphicsEngine->getHDRBuffer());
     newAtmosphere->configure(settings.second);
 
-    mSolarSystem->registerAnchor(newAtmosphere);
-
     mAtmospheres.emplace(settings.first, newAtmosphere);
   }
 
   mAllSettings->mGraphics.pEnableShadows.touch(mEnableShadowsConnection);
   mAllSettings->mGraphics.pEnableHDR.touch(mEnableHDRConnection);
   mAllSettings->mGraphics.pAmbientBrightness.touch(mAmbientBrightnessConnection);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Plugin::onSave() {
+  mAllSettings->mPlugins["csp-atmospheres"] = *mPluginSettings;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -8,6 +8,7 @@
 
 #include "../../../src/cs-core/GraphicsEngine.hpp"
 #include "../../../src/cs-core/SolarSystem.hpp"
+#include "../../../src/cs-scene/CelestialObject.hpp"
 #include "../../../src/cs-utils/utils.hpp"
 
 #include <VistaKernel/GraphicsManager/VistaGroupNode.h>
@@ -20,17 +21,17 @@ namespace csp::atmospheres {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Atmosphere::Atmosphere(std::shared_ptr<Plugin::Settings> const& pluginSettings,
-    std::shared_ptr<cs::core::Settings> const&                  settings,
-    std::shared_ptr<cs::core::SolarSystem> const& solarSystem, std::string const& anchorName)
-    : mEclipseShadowReceiver(
-          std::make_shared<cs::core::EclipseShadowReceiver>(settings, solarSystem, this, false))
-    , mRenderer(pluginSettings, mEclipseShadowReceiver)
-    , mPluginSettings(pluginSettings) {
+Atmosphere::Atmosphere(std::shared_ptr<Plugin::Settings> pluginSettings,
+    std::shared_ptr<cs::core::Settings>                  settings,
+    std::shared_ptr<cs::core::SolarSystem> solarSystem, std::string objectName)
+    : mPluginSettings(std::move(pluginSettings))
+    , mAllSettings(std::move(settings))
+    , mSolarSystem(std::move(solarSystem))
+    , mObjectName(std::move(objectName))
+    , mEclipseShadowReceiver(
+          std::make_shared<cs::core::EclipseShadowReceiver>(mAllSettings, mSolarSystem, false))
+    , mRenderer(mPluginSettings, mEclipseShadowReceiver) {
 
-  settings->initAnchor(*this, anchorName);
-
-  mRenderer.setRadii(mRadii);
   mRenderer.setDrawSun(false);
   mRenderer.setSecondaryRaySteps(3);
 
@@ -75,12 +76,25 @@ AtmosphereRenderer& Atmosphere::getRenderer() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Atmosphere::update(double time, cs::scene::CelestialObserver const& oObs) {
-  cs::scene::CelestialObject::update(time, oObs);
-  if (mPluginSettings->mEnabled.get() && getIsInExistence() && pVisible.get()) {
+void Atmosphere::update() {
+  auto object = mSolarSystem->getObject(mObjectName);
+
+  if (object && object->getIsBodyVisible() && mPluginSettings->mEnabled.get()) {
+    double sunIlluminance = 10.0;
+
+    if (mAllSettings->mGraphics.pEnableHDR.get()) {
+      sunIlluminance = mSolarSystem->getSunIlluminance(object->getObserverRelativePosition());
+    }
+
+    auto sunDirection = mSolarSystem->getSunDirection(object->getObserverRelativePosition());
+
+    mRenderer.setSun(sunDirection, static_cast<float>(sunIlluminance));
+
+    mRenderer.setRadii(object->getRadii());
+    mRenderer.setWorldTransform(object->getObserverRelativeTransform());
+    mEclipseShadowReceiver->update(*object);
+
     mAtmosphereNode->SetIsEnabled(true);
-    mRenderer.setWorldTransform(matWorldTransform);
-    mEclipseShadowReceiver->update(time, oObs);
   } else {
     mAtmosphereNode->SetIsEnabled(false);
   }

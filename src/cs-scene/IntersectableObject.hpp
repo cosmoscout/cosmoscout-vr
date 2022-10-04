@@ -4,17 +4,19 @@
 //                        Copyright: (c) 2019 German Aerospace Center (DLR)                       //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#ifndef CS_UTILS_INTERSECTABLE_OBJECT_HPP
-#define CS_UTILS_INTERSECTABLE_OBJECT_HPP
+#ifndef CS_SCENE_INTERSECTABLE_OBJECT_HPP
+#define CS_SCENE_INTERSECTABLE_OBJECT_HPP
 
-#include "cs_utils_export.hpp"
+#include "cs_scene_export.hpp"
 
 #include <glm/fwd.hpp>
 
-namespace cs::utils {
+namespace cs::scene {
 
-/// An interface for objects that can be intersected by a ray. One class implementing this interface
-/// is the cs::scene::CelestialObject.
+/// An interface for objects that can be intersected by a ray. A class deriving from
+/// IntersectableObject can be assigned to a CelestialObject. Once each frame, the InputManager will
+/// check all CelestialObjects for if they contain an IntersectableObject. If so, it will be tested
+/// for intersections with the mouse ray.
 class IntersectableObject {
  public:
   /// Calculates the intersection of the implementing object and a ray.
@@ -26,6 +28,6 @@ class IntersectableObject {
       glm::dvec3 const& rayPos, glm::dvec3 const& rayDir, glm::dvec3& pos) const = 0;
 };
 
-} // namespace cs::utils
+} // namespace cs::scene
 
-#endif // CS_UTILS_INTERSECTABLE_OBJECT_HPP
+#endif // CS_SCENE_INTERSECTABLE_OBJECT_HPP

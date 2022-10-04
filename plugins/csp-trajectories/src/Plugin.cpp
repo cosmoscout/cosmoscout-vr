@@ -13,6 +13,7 @@
 
 #include "../../../src/cs-core/GuiManager.hpp"
 #include "../../../src/cs-core/SolarSystem.hpp"
+#include "../../../src/cs-core/TimeControl.hpp"
 #include "../../../src/cs-utils/logger.hpp"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -84,8 +85,7 @@ void Plugin::init() {
   logger().info("Loading plugin...");
 
   mOnLoadConnection = mAllSettings->onLoad().connect([this]() { onLoad(); });
-  mOnSaveConnection = mAllSettings->onSave().connect(
-      [this]() { mAllSettings->mPlugins["csp-trajectories"] = *mPluginSettings; });
+  mOnSaveConnection = mAllSettings->onSave().connect([this]() { onSave(); });
 
   mGuiManager->addSettingsSectionToSideBarFromHTML("Trajectories", "radio_button_unchecked",
       "../share/resources/gui/trajectories-settings.html");
@@ -122,17 +122,8 @@ void Plugin::init() {
 void Plugin::deInit() {
   logger().info("Unloading plugin...");
 
-  for (auto const& flare : mSunFlares) {
-    mSolarSystem->unregisterAnchor(flare.second);
-  }
-
-  for (auto const& trajectory : mTrajectories) {
-    mSolarSystem->unregisterAnchor(trajectory.second);
-  }
-
-  for (auto const& dot : mDeepSpaceDots) {
-    mSolarSystem->unregisterAnchor(dot.second);
-  }
+  // Save settings as this plugin may get reloaded.
+  onSave();
 
   mGuiManager->removeSettingsSection("Trajectories");
 
@@ -148,21 +139,44 @@ void Plugin::deInit() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void Plugin::update() {
+  for (auto const& trajectory : mTrajectories) {
+    trajectory->update(mTimeControl->pSimulationTime.get());
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Plugin::onLoad() {
 
   // Read settings from JSON.
   from_json(mAllSettings->mPlugins.at("csp-trajectories"), *mPluginSettings);
 
+  size_t flareCount      = 0;
+  size_t dotCount        = 0;
+  size_t trajectoryCount = 0;
+
+  for (auto const& settings : mPluginSettings->mTrajectories) {
+    if (settings.second.mDrawFlare.value_or(false)) {
+      ++flareCount;
+    }
+    if (settings.second.mDrawDot.value_or(false)) {
+      ++dotCount;
+    }
+    if (settings.second.mTrail) {
+      ++trajectoryCount;
+    }
+  }
+
   // We just recreate all SunFlares and DeepSpaceDots as they are quite cheap to construct. So
   // delete all existing ones first.
-  for (auto const& flare : mSunFlares) {
-    mSolarSystem->unregisterAnchor(flare.second);
-  }
-  for (auto const& dot : mDeepSpaceDots) {
-    mSolarSystem->unregisterAnchor(dot.second);
-  }
-  mSunFlares.clear();
-  mDeepSpaceDots.clear();
+  mSunFlares.resize(flareCount);
+  mDeepSpaceDots.resize(dotCount);
+  mTrajectories.resize(trajectoryCount);
+
+  size_t flareIndex      = 0;
+  size_t dotIndex        = 0;
+  size_t trajectoryIndex = 0;
 
   // Now we go through all configured trajectories and create all required SunFlares and
   // DeepSpaceDots.
@@ -170,84 +184,55 @@ void Plugin::onLoad() {
 
     // Add the SunFlare.
     if (settings.second.mDrawFlare.value_or(false)) {
-      auto flare = std::make_shared<SunFlare>(mAllSettings, mPluginSettings, settings.first);
-      mSolarSystem->registerAnchor(flare);
+      if (!mSunFlares[flareIndex]) {
+        mSunFlares[flareIndex] =
+            std::make_unique<SunFlare>(mAllSettings, mPluginSettings, mSolarSystem);
+      }
 
-      flare->pColor =
+      mSunFlares[flareIndex]->setObjectName(settings.first);
+      mSunFlares[flareIndex]->pColor =
           VistaColor(settings.second.mColor.r, settings.second.mColor.g, settings.second.mColor.b);
 
-      mSunFlares[settings.first] = flare;
+      ++flareIndex;
     }
 
     // Add the DeepSpaceDot.
     if (settings.second.mDrawDot.value_or(false)) {
-      auto dot = std::make_shared<DeepSpaceDot>(mPluginSettings, mAllSettings, settings.first);
-      mSolarSystem->registerAnchor(dot);
-
-      dot->pColor =
-          VistaColor(settings.second.mColor.r, settings.second.mColor.g, settings.second.mColor.b);
-
-      // do not perform distance culling for DeepSpaceDots
-      dot->pVisible = true;
-
-      mDeepSpaceDots[settings.first] = dot;
-    }
-  }
-
-  // For the trajectories we try to re-use as many as possible as they are quite expensive to
-  // construct. First we try to re-configure existing trajectories. A trajectory is re-used if it
-  // shares the same parent and target anchor name.
-  for (auto trajectory = mTrajectories.begin(); trajectory != mTrajectories.end();) {
-    auto settings = mPluginSettings->mTrajectories.find(trajectory->first);
-
-    // If there are settings for this trajectory, reconfigure it.
-    if (settings != mPluginSettings->mTrajectories.end() && settings->second.mTrail &&
-        settings->second.mTrail->mParent == trajectory->second->getParentAnchorName()) {
-
-      trajectory->second->pSamples = settings->second.mTrail->mSamples;
-      trajectory->second->pLength  = settings->second.mTrail->mLength;
-      trajectory->second->pColor   = settings->second.mColor;
-
-      ++trajectory;
-
-      continue;
-    }
-
-    // Else delete it.
-    mSolarSystem->unregisterAnchor(trajectory->second);
-    trajectory = mTrajectories.erase(trajectory);
-  }
-
-  // Then create all new trajectories.
-  for (auto const& settings : mPluginSettings->mTrajectories) {
-    if (settings.second.mTrail) {
-      if (mTrajectories.find(settings.first) != mTrajectories.end()) {
-        continue;
+      if (!mDeepSpaceDots[dotIndex]) {
+        mDeepSpaceDots[dotIndex] = std::make_unique<DeepSpaceDot>(mPluginSettings, mSolarSystem);
       }
 
+      mDeepSpaceDots[dotIndex]->setObjectName(settings.first);
+      mDeepSpaceDots[dotIndex]->pColor =
+          VistaColor(settings.second.mColor.r, settings.second.mColor.g, settings.second.mColor.b);
+
+      ++dotIndex;
+    }
+
+    // Then create all new trajectories.
+    if (settings.second.mTrail) {
+      if (!mTrajectories[trajectoryIndex]) {
+        mTrajectories[trajectoryIndex] =
+            std::make_unique<Trajectory>(mPluginSettings, mSolarSystem);
+      }
       auto targetAnchor = settings.first;
       auto parentAnchor = settings.second.mTrail->mParent;
 
-      auto trajectory = std::make_shared<Trajectory>(mPluginSettings, mAllSettings);
-      trajectory->setTargetAnchorName(targetAnchor);
-      trajectory->setParentAnchorName(parentAnchor);
-      trajectory->pSamples = settings.second.mTrail->mSamples;
-      trajectory->pLength  = settings.second.mTrail->mLength;
-      trajectory->pColor   = settings.second.mColor;
+      mTrajectories[trajectoryIndex]->setTargetName(targetAnchor);
+      mTrajectories[trajectoryIndex]->setParentName(parentAnchor);
+      mTrajectories[trajectoryIndex]->pSamples = settings.second.mTrail->mSamples;
+      mTrajectories[trajectoryIndex]->pLength  = settings.second.mTrail->mLength;
+      mTrajectories[trajectoryIndex]->pColor   = settings.second.mColor;
 
-      // Change visibility of dots together with trajectory.
-      trajectory->pVisible.connectAndTouch([this, anchorName = settings.first](bool visible) {
-        auto dot = mDeepSpaceDots.find(anchorName);
-        if (dot != mDeepSpaceDots.end()) {
-          dot->second->pVisible = visible;
-        }
-      });
-
-      mSolarSystem->registerAnchor(trajectory);
-
-      mTrajectories.emplace(settings.first, trajectory);
+      ++trajectoryIndex;
     }
   }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Plugin::onSave() {
+  mAllSettings->mPlugins["csp-trajectories"] = *mPluginSettings;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -76,14 +76,16 @@ class Plugin : public cs::core::PluginBase {
 
   void init() override;
   void deInit() override;
+  void update() override;
 
  private:
   void onLoad();
+  void onSave();
 
-  std::shared_ptr<Settings>                          mPluginSettings = std::make_shared<Settings>();
-  std::map<std::string, std::shared_ptr<Trajectory>> mTrajectories;
-  std::map<std::string, std::shared_ptr<DeepSpaceDot>> mDeepSpaceDots;
-  std::map<std::string, std::shared_ptr<SunFlare>>     mSunFlares;
+  std::shared_ptr<Settings>                  mPluginSettings = std::make_shared<Settings>();
+  std::vector<std::unique_ptr<Trajectory>>   mTrajectories;
+  std::vector<std::unique_ptr<DeepSpaceDot>> mDeepSpaceDots;
+  std::vector<std::unique_ptr<SunFlare>>     mSunFlares;
 
   int mOnLoadConnection = -1;
   int mOnSaveConnection = -1;

@@ -16,13 +16,14 @@
 #include <VistaOGLExt/VistaVertexArrayObject.h>
 
 #include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp>
 #include <memory>
 
 namespace cs::scene {
-class CelestialAnchorNode;
+class CelestialObject;
 } // namespace cs::scene
 
-class VistaBufferObject;
+class VistaTransformNode;
 class VistaOpenGLNode;
 class VistaVertexArrayObject;
 
@@ -49,8 +50,7 @@ class CS_CORE_EXPORT Mark : public IVistaOpenGLDraw, public Tool {
   cs::utils::Property<double> pScaleDistance = -1.0;
 
   Mark(std::shared_ptr<InputManager> pInputManager, std::shared_ptr<SolarSystem> pSolarSystem,
-      std::shared_ptr<Settings> Settings, std::shared_ptr<TimeControl> pTimeControl,
-      std::string const& sCenter, std::string const& sFrame);
+      std::shared_ptr<Settings> Settings, std::string objectName);
 
   Mark(Mark const& other);
   Mark(Mark&& other) = default;
@@ -60,8 +60,7 @@ class CS_CORE_EXPORT Mark : public IVistaOpenGLDraw, public Tool {
 
   ~Mark() override;
 
-  std::shared_ptr<cs::scene::CelestialAnchorNode> const& getAnchor() const;
-  std::shared_ptr<cs::scene::CelestialAnchorNode>&       getAnchor();
+  glm::dvec3 const& getPosition() const;
 
   /// Called from Tools class.
   void update() override;
@@ -74,13 +73,14 @@ class CS_CORE_EXPORT Mark : public IVistaOpenGLDraw, public Tool {
   std::shared_ptr<InputManager> mInputManager;
   std::shared_ptr<SolarSystem>  mSolarSystem;
   std::shared_ptr<Settings>     mSettings;
-  std::shared_ptr<TimeControl>  mTimeControl;
 
-  std::shared_ptr<cs::scene::CelestialAnchorNode> mAnchor = nullptr;
-  VistaOpenGLNode*                                mParent = nullptr;
+  std::unique_ptr<VistaTransformNode> mTransform;
+  std::unique_ptr<VistaOpenGLNode>    mParent;
 
  private:
-  void initData(std::string const& sCenter, std::string const& sFrame);
+  void initData();
+
+  glm::dvec3 mPosition;
 
   std::unique_ptr<VistaVertexArrayObject> mVAO;
   std::unique_ptr<VistaBufferObject>      mVBO;

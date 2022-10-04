@@ -22,11 +22,9 @@ namespace cs::core {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 EclipseShadowReceiver::EclipseShadowReceiver(std::shared_ptr<Settings> settings,
-    std::shared_ptr<SolarSystem> solarSystem, scene::CelestialObject const* shadowReceiver,
-    bool allowSelfShadowing)
+    std::shared_ptr<SolarSystem> solarSystem, bool allowSelfShadowing)
     : mSettings(std::move(settings))
     , mSolarSystem(std::move(solarSystem))
-    , mShadowReceiver(shadowReceiver)
     , mAllowSelfShadowing(allowSelfShadowing) {
 }
 
@@ -69,7 +67,7 @@ void EclipseShadowReceiver::init(VistaGLSLShader* shader, uint32_t textureOffset
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void EclipseShadowReceiver::update(double time, scene::CelestialObserver const& observer) {
+void EclipseShadowReceiver::update(scene::CelestialObject const& shadowReceiver) {
 
   // No eclipse computation required if lighting is disabled.
   if (!mSettings->mGraphics.pEnableLighting.get()) {
@@ -77,18 +75,17 @@ void EclipseShadowReceiver::update(double time, scene::CelestialObserver const& 
     return;
   }
 
-  // Acquire a list of allpotentially relevant eclipse shadow maps.
-  mShadowMaps = mSolarSystem->getEclipseShadowMaps(time, *mShadowReceiver, mAllowSelfShadowing);
+  // Acquire a list of all potentially relevant eclipse shadow maps.
+  mShadowMaps = mSolarSystem->getEclipseShadowMaps(shadowReceiver, mAllowSelfShadowing);
 
   // For each shadow-casting body, we store the observer-relative position and the observer-relative
   // radius. For now, all occluders are considered to be spheres.
   for (size_t i(0); i < mShadowMaps.size() && i < MAX_BODIES; ++i) {
-    scene::CelestialAnchor anchor;
-    mSettings->initAnchor(anchor, mShadowMaps[i]->mOccluderAnchor);
-    auto pos = observer.getRelativePosition(time, anchor);
+    auto object = mSolarSystem->getObject(mShadowMaps[i]->mOccluder);
+    auto pos    = object->getObserverRelativePosition();
 
-    mOccluders[i] = glm::vec4(pos,
-        mSettings->getAnchorRadii(mShadowMaps[i]->mOccluderAnchor)[0] / observer.getAnchorScale());
+    mOccluders[i] = glm::vec4(
+        pos, object->getRadii()[0] * object->getScale() / mSolarSystem->getObserver().getScale());
   }
 }
 
@@ -111,9 +108,8 @@ void EclipseShadowReceiver::preRender() const {
     glUniform1iv(mUniforms.shadowMaps, MAX_BODIES, shadowMapBindings.data());
 
     // Also, the Sun's position and radius is required.
-    auto sunPos = mSolarSystem->pSunPosition.get();
-    auto sunRadius =
-        mSolarSystem->getBody("Sun")->getRadii()[0] / mSolarSystem->getObserver().getAnchorScale();
+    auto sunPos    = mSolarSystem->pSunPosition.get();
+    auto sunRadius = mSolarSystem->getSun()->getRadii()[0] / mSolarSystem->getObserver().getScale();
     mShader->SetUniform(mUniforms.sun, static_cast<float>(sunPos.x), static_cast<float>(sunPos.y),
         static_cast<float>(sunPos.z), static_cast<float>(sunRadius));
   }

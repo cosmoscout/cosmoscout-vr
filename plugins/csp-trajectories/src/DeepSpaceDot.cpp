@@ -93,11 +93,9 @@ void main()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 DeepSpaceDot::DeepSpaceDot(std::shared_ptr<Plugin::Settings> pluginSettings,
-    std::shared_ptr<cs::core::Settings> const& settings, std::string const& anchorName)
-    : mPluginSettings(std::move(pluginSettings)) {
-
-  settings->initAnchor(*this, anchorName);
-  setRadii(glm::dvec3(0.0));
+    std::shared_ptr<cs::core::SolarSystem>                   solarSystem)
+    : mPluginSettings(std::move(pluginSettings))
+    , mSolarSystem(std::move(solarSystem)) {
 
   mShader.InitVertexShaderFromString(QUAD_VERT);
   mShader.InitFragmentShaderFromString(QUAD_FRAG);
@@ -124,37 +122,56 @@ DeepSpaceDot::~DeepSpaceDot() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void DeepSpaceDot::setObjectName(std::string objectName) {
+  mObjectName = std::move(objectName);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::string const& DeepSpaceDot::getObjectName() const {
+  return mObjectName;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 bool DeepSpaceDot::Do() {
-  if (mPluginSettings->mEnablePlanetMarks.get() && getIsInExistence() && pVisible.get()) {
-    cs::utils::FrameTimings::ScopedTimer timer("Planet Marks");
-    // get viewport to draw dot with correct aspect ration
-    std::array<GLint, 4> viewport{};
-    glGetIntegerv(GL_VIEWPORT, viewport.data());
-    float fAspect = 1.F * viewport.at(2) / viewport.at(3);
-
-    // get model view and projection matrices
-    std::array<GLfloat, 16> glMatMV{};
-    std::array<GLfloat, 16> glMatP{};
-    glGetFloatv(GL_MODELVIEW_MATRIX, glMatMV.data());
-    glGetFloatv(GL_PROJECTION_MATRIX, glMatP.data());
-    auto matMV = glm::make_mat4x4(glMatMV.data()) * glm::mat4(getWorldTransform());
-
-    glEnable(GL_BLEND);
-    glDepthMask(GL_FALSE);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    // draw simple dot
-    mShader.Bind();
-    glUniformMatrix4fv(mUniforms.modelViewMatrix, 1, GL_FALSE, glm::value_ptr(matMV));
-    glUniformMatrix4fv(mUniforms.projectionMatrix, 1, GL_FALSE, glMatP.data());
-    mShader.SetUniform(mUniforms.color, pColor.get()[0], pColor.get()[1], pColor.get()[2]);
-    mShader.SetUniform(mUniforms.aspect, fAspect);
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-    mShader.Release();
-
-    glDisable(GL_BLEND);
-    glDepthMask(GL_TRUE);
+  if (!mPluginSettings->mEnablePlanetMarks.get()) {
+    return true;
   }
+
+  auto object = mSolarSystem->getObject(mObjectName);
+  if (!object || !object->getIsOrbitVisible()) {
+    return true;
+  }
+
+  cs::utils::FrameTimings::ScopedTimer timer("Dot of " + mObjectName);
+  // get viewport to draw dot with correct aspect ration
+  std::array<GLint, 4> viewport{};
+  glGetIntegerv(GL_VIEWPORT, viewport.data());
+  float fAspect = 1.F * viewport.at(2) / viewport.at(3);
+
+  // get model view and projection matrices
+  std::array<GLfloat, 16> glMatMV{};
+  std::array<GLfloat, 16> glMatP{};
+  glGetFloatv(GL_MODELVIEW_MATRIX, glMatMV.data());
+  glGetFloatv(GL_PROJECTION_MATRIX, glMatP.data());
+  auto matMV = glm::make_mat4x4(glMatMV.data()) * glm::mat4(object->getObserverRelativeTransform());
+
+  glEnable(GL_BLEND);
+  glDepthMask(GL_FALSE);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+  // draw simple dot
+  mShader.Bind();
+  glUniformMatrix4fv(mUniforms.modelViewMatrix, 1, GL_FALSE, glm::value_ptr(matMV));
+  glUniformMatrix4fv(mUniforms.projectionMatrix, 1, GL_FALSE, glMatP.data());
+  mShader.SetUniform(mUniforms.color, pColor.get()[0], pColor.get()[1], pColor.get()[2]);
+  mShader.SetUniform(mUniforms.aspect, fAspect);
+  glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+  mShader.Release();
+
+  glDisable(GL_BLEND);
+  glDepthMask(GL_TRUE);
 
   return true;
 }

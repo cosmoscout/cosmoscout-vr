@@ -53,7 +53,7 @@ const std::string TextureOverlayRenderer::SURFACE_FRAG = R"(
     uniform bool          uUseFirstTexture;
     uniform bool          uUseSecondTexture;
 
-    uniform mat4          uMatInvMVP;
+    uniform dmat4         uMatInvMVP;
 
     uniform dvec2         uLonRange;
     uniform dvec2         uLatRange;
@@ -68,9 +68,9 @@ const std::string TextureOverlayRenderer::SURFACE_FRAG = R"(
     const float PI = 3.14159265359;
 
     // ===========================================================================
-    vec3 GetPosition(float fDepth)
+    dvec3 GetPosition(float fDepth)
     {
-        vec4  posMS = uMatInvMVP * vec4(2.0 * texcoord - 1.0, fDepth*2.0 - 1.0 , 1.0);
+        dvec4  posMS = uMatInvMVP * dvec4(2.0 * texcoord - 1.0, fDepth*2.0 - 1.0 , 1.0);
         return posMS.xyz / posMS.w;
     }
 
@@ -104,10 +104,8 @@ const std::string TextureOverlayRenderer::SURFACE_FRAG = R"(
         {
             discard;
         }else{
-            vec3 worldPos = GetPosition(fDepth);
-            vec2 lnglat   = surfaceToLngLat(worldPos, uRadii);
-
-            FragColor = vec4(worldPos, 1.0);
+            dvec3 worldPos = GetPosition(fDepth);
+            vec2 lnglat    = surfaceToLngLat(vec3(worldPos), uRadii);
 
             if(lnglat.x > uLonRange.x && lnglat.x < uLonRange.y &&
                lnglat.y > uLatRange.x && lnglat.y < uLatRange.y)
@@ -130,18 +128,17 @@ const std::string TextureOverlayRenderer::SURFACE_FRAG = R"(
                 vec3 result = color.rgb;
 
                 #ifdef ENABLE_HDR
-                    result = SRGBtoLINEAR(result);
+                    result = SRGBtoLINEAR(result) * uSunIlluminance / PI;
+                #else
+                    result = result * uSunIlluminance;
                 #endif
-
-                result = result * uSunIlluminance;
 
                 #ifdef ENABLE_LIGHTING
                     //Lighting using a normal calculated from partial derivative
-                    vec3 dx = dFdx( worldPos );
-                    vec3 dy = dFdy( worldPos );
+                    vec3 dx = dFdx(vec3(worldPos));
+                    vec3 dy = dFdy(vec3(worldPos));
 
                     vec3 N = normalize(cross(dx, dy));
-                    //N *= sign(N.z);
                     float NdotL = max(dot(N, uSunDirection), 0.);
 
                     result = mix(result * uAmbientBrightness, result, NdotL);

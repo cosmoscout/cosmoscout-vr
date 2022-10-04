@@ -14,10 +14,6 @@
 #include <glm/glm.hpp>
 #include <vector>
 
-namespace cs::scene {
-class CelestialAnchorNode;
-}
-
 namespace cs::gui {
 class GuiItem;
 class WorldSpaceGuiArea;
@@ -37,11 +33,9 @@ class PathTool : public IVistaOpenGLDraw, public cs::core::tools::MultiPointTool
   /// This text is shown on the ui and can be edited by the user.
   cs::utils::Property<std::string> pText = std::string("Path");
 
-  PathTool(std::shared_ptr<cs::core::InputManager> const& pInputManager,
-      std::shared_ptr<cs::core::SolarSystem> const&       pSolarSystem,
-      std::shared_ptr<cs::core::Settings> const&          settings,
-      std::shared_ptr<cs::core::TimeControl> const& pTimeControl, std::string const& sCenter,
-      std::string const& sFrame);
+  PathTool(std::shared_ptr<cs::core::InputManager> pInputManager,
+      std::shared_ptr<cs::core::SolarSystem>       pSolarSystem,
+      std::shared_ptr<cs::core::Settings> settings, std::string objectName);
 
   PathTool(PathTool const& other) = delete;
   PathTool(PathTool&& other)      = delete;
@@ -50,12 +44,6 @@ class PathTool : public IVistaOpenGLDraw, public cs::core::tools::MultiPointTool
   PathTool& operator=(PathTool&& other) = delete;
 
   ~PathTool() override;
-
-  /// Gets or sets the SPICE center name for all points.
-  void setCenterName(std::string const& name) override;
-
-  /// Gets or sets the SPICE frame name for all points.
-  void setFrameName(std::string const& name) override;
 
   /// Called from Tools class.
   void update() override;
@@ -79,8 +67,7 @@ class PathTool : public IVistaOpenGLDraw, public cs::core::tools::MultiPointTool
   void onPointAdded() override;
   void onPointRemoved(int index) override;
 
-  std::shared_ptr<cs::scene::CelestialAnchorNode> mGuiAnchor;
-
+  std::unique_ptr<VistaTransformNode>         mGuiAnchor;
   std::unique_ptr<VistaTransformNode>         mGuiTransform;
   std::unique_ptr<VistaOpenGLNode>            mGuiOpenGLNode;
   std::unique_ptr<VistaOpenGLNode>            mPathOpenGLNode;
@@ -98,6 +85,7 @@ class PathTool : public IVistaOpenGLDraw, public cs::core::tools::MultiPointTool
   } mUniforms;
 
   std::vector<glm::dvec3> mSampledPositions;
+  glm::dvec3              mPosition{};
   size_t                  mIndexCount    = 0;
   bool                    mVerticesDirty = false;
 

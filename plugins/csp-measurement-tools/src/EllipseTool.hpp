@@ -20,11 +20,9 @@ class EllipseTool : public IVistaOpenGLDraw, public cs::core::tools::Tool {
   /// The ellipse and all handels are drawn with this color.
   cs::utils::Property<glm::vec3> pColor = glm::vec3(0.75, 0.75, 1.0);
 
-  EllipseTool(std::shared_ptr<cs::core::InputManager> const& pInputManager,
-      std::shared_ptr<cs::core::SolarSystem> const&          pSolarSystem,
-      std::shared_ptr<cs::core::Settings> const&             settings,
-      std::shared_ptr<cs::core::TimeControl> const& pTimeControl, std::string const& sCenter,
-      std::string const& sFrame);
+  EllipseTool(std::shared_ptr<cs::core::InputManager> pInputManager,
+      std::shared_ptr<cs::core::SolarSystem>          pSolarSystem,
+      std::shared_ptr<cs::core::Settings> settings, std::string objectName);
 
   EllipseTool(EllipseTool const& other) = delete;
   EllipseTool(EllipseTool&& other)      = delete;
@@ -34,13 +32,8 @@ class EllipseTool : public IVistaOpenGLDraw, public cs::core::tools::Tool {
 
   ~EllipseTool() override;
 
-  /// Gets or sets the SPICE center name for all three handles.
-  void               setCenterName(std::string const& name);
-  std::string const& getCenterName() const;
-
-  /// Gets or sets the SPICE frame name for all three handles.
-  void               setFrameName(std::string const& name);
-  std::string const& getFrameName() const;
+  // Assigns all points to a new celestial object.
+  void setObjectName(std::string name) override;
 
   FlagTool const&              getCenterHandle() const;
   cs::core::tools::Mark const& getFirstHandle() const;
@@ -65,7 +58,7 @@ class EllipseTool : public IVistaOpenGLDraw, public cs::core::tools::Tool {
   std::shared_ptr<cs::core::Settings>    mSettings;
   std::shared_ptr<cs::core::TimeControl> mTimeControl;
 
-  std::shared_ptr<cs::scene::CelestialAnchorNode> mAnchor;
+  std::unique_ptr<VistaTransformNode> mAnchor;
 
   bool mVerticesDirty = false;
   bool mFirstUpdate   = true;

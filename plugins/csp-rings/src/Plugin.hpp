@@ -9,9 +9,8 @@
 
 #include "../../../src/cs-core/PluginBase.hpp"
 
-#include <map>
 #include <string>
-#include <vector>
+#include <unordered_map>
 
 namespace csp::rings {
 
@@ -36,17 +35,19 @@ class Plugin : public cs::core::PluginBase {
       float mOuterRadius{};
     };
 
-    std::map<std::string, Ring> mRings;
+    std::unordered_map<std::string, Ring> mRings;
   };
 
   void init() override;
   void deInit() override;
+  void update() override;
 
  private:
   void onLoad();
+  void onSave();
 
-  Settings                                     mPluginSettings;
-  std::map<std::string, std::shared_ptr<Ring>> mRings;
+  Settings                                               mPluginSettings;
+  std::unordered_map<std::string, std::shared_ptr<Ring>> mRings;
 
   int mOnLoadConnection = -1;
   int mOnSaveConnection = -1;

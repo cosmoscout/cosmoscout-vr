@@ -20,12 +20,12 @@ namespace csp::trajectories {
 
 /// A deep space dot is a simple marker indicating the position of an object, when it is too
 /// small to see.
-class DeepSpaceDot : public cs::scene::CelestialObject, public IVistaOpenGLDraw {
+class DeepSpaceDot : public IVistaOpenGLDraw {
  public:
   cs::utils::Property<VistaColor> pColor = VistaColor(1, 1, 1); ///< The color of the marker.
 
   DeepSpaceDot(std::shared_ptr<Plugin::Settings> pluginSettings,
-      std::shared_ptr<cs::core::Settings> const& settings, std::string const& anchorName);
+      std::shared_ptr<cs::core::SolarSystem>     solarSystem);
 
   DeepSpaceDot(DeepSpaceDot const& other) = delete;
   DeepSpaceDot(DeepSpaceDot&& other)      = default;
@@ -35,12 +35,18 @@ class DeepSpaceDot : public cs::scene::CelestialObject, public IVistaOpenGLDraw 
 
   ~DeepSpaceDot() override;
 
+  /// The dot is attached to this body.
+  void               setObjectName(std::string objectName);
+  std::string const& getObjectName() const;
+
   bool Do() override;
   bool GetBoundingBox(VistaBoundingBox& bb) override;
 
  private:
-  std::shared_ptr<Plugin::Settings> mPluginSettings;
-  VistaGLSLShader                   mShader;
+  std::shared_ptr<Plugin::Settings>      mPluginSettings;
+  std::shared_ptr<cs::core::SolarSystem> mSolarSystem;
+  std::string                            mObjectName;
+  VistaGLSLShader                        mShader;
 
   std::unique_ptr<VistaOpenGLNode> mGLNode;
 

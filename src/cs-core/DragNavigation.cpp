@@ -40,18 +40,6 @@ std::optional<double> IntersectSphere(glm::dvec3 const& origin, glm::dvec3 const
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-glm::dvec3 GetPositionInObserverFrame(cs::scene::CelestialAnchor const& anchor,
-    std::shared_ptr<cs::core::SolarSystem> const&                       pSolarSystem,
-    std::shared_ptr<cs::core::TimeControl> const&                       pTimeControl) {
-  double                     simulationTime(pTimeControl->pSimulationTime.get());
-  cs::scene::CelestialAnchor observerAnchor(
-      pSolarSystem->getObserver().getCenterName(), pSolarSystem->getObserver().getFrameName());
-
-  return observerAnchor.getRelativePosition(simulationTime, anchor);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 } // namespace
 
 namespace cs::core {
@@ -74,8 +62,8 @@ DragNavigation::DragNavigation(std::shared_ptr<cs::core::SolarSystem> pSolarSyst
 
 void DragNavigation::update() {
   // current observer transform of this frame
-  glm::dvec3 observerPos = mSolarSystem->getObserver().getAnchorPosition();
-  glm::dquat observerRot = mSolarSystem->getObserver().getAnchorRotation();
+  glm::dvec3 observerPos = mSolarSystem->getObserver().getPosition();
+  glm::dquat observerRot = mSolarSystem->getObserver().getRotation();
 
   // store observer transform when dragging started
   if (!mInputManager->pButtons[0].get() && !mInputManager->pButtons[1].get()) {
@@ -100,37 +88,41 @@ void DragNavigation::update() {
   // the amount of rotation which is required
   glm::dvec3 rayDir = glm::normalize(
       (startObserverTransform * pickTransform * glm::dvec4(0.0, 0.0, -1.0, 0.0)).xyz());
-  glm::dvec3 rayOrigin = pickTransform[3].xyz() * mSolarSystem->getObserver().getAnchorScale();
+  glm::dvec3 rayOrigin = pickTransform[3].xyz() * mSolarSystem->getObserver().getScale();
   rayOrigin            = (startObserverTransform * glm::vec4(rayOrigin, 1.0)).xyz();
 
   // store observer transform when dragging started
   if (!mInputManager->pButtons[0].get() && !mInputManager->pButtons[1].get()) {
 
-    auto pickedPlanet = std::dynamic_pointer_cast<cs::scene::CelestialBody>(
-        mInputManager->pHoveredObject.get().mObject);
+    auto pickedPlanet = mInputManager->pHoveredObject.get().mObject;
 
     if (pickedPlanet) {
       // observer can be in another spice frame, therefore we need to
       // convert pick position to observer frame
       cs::scene::CelestialAnchor anchor(
           pickedPlanet->getCenterName(), pickedPlanet->getFrameName());
-      anchor.setAnchorPosition(mInputManager->pHoveredObject.get().mPosition);
+      anchor.setPosition(mInputManager->pHoveredObject.get().mPosition);
+
+      cs::scene::CelestialAnchor observerAnchor(
+          mSolarSystem->getObserver().getCenterName(), mSolarSystem->getObserver().getFrameName());
 
       try {
-        mStartIntersection = GetPositionInObserverFrame(anchor, mSolarSystem, mTimeControl);
-        mDraggingPlanet    = true;
+        mStartIntersection =
+            observerAnchor.getRelativePosition(mTimeControl->pSimulationTime.get(), anchor);
+        mDraggingPlanet = true;
       } catch (std::exception const& e) {
         // Getting the position in observer coordinates may fail due to insufficient SPICE data.
         logger().warn("Failed to grab '{}': {}", pickedPlanet->getCenterName(), e.what());
       }
-    }
 
-    float const epsilon = 0.05F;
+    } else {
+      mDraggingPlanet = false;
+    }
 
     // if no planet is currently under the pointer or if we picked too close
     // too the horizon we will 'grab the sky' instead
-    if (!pickedPlanet ||
-        glm::dot(rayDir, glm::normalize(mStartIntersection - rotationCenter)) >= -epsilon) {
+    if (pickedPlanet &&
+        glm::dot(rayDir, glm::normalize(mStartIntersection - rotationCenter)) >= -0.05F) {
       mDraggingPlanet = false;
     }
 
@@ -194,9 +186,9 @@ void DragNavigation::update() {
         double targetAngle = -1.0 * std::acos(dot);
 
         // reduce rotation speed close to planet
-        if (!mDraggingPlanet && !mLocalRotation && mSolarSystem->pActiveBody.get()) {
+        if (!mDraggingPlanet && !mLocalRotation && mSolarSystem->pActiveObject.get()) {
           double fac   = 0.5;
-          auto   radii = mSolarSystem->pActiveBody.get()->getRadii();
+          auto   radii = mSolarSystem->pActiveObject.get()->getRadii();
           if (radii[0] > 0) {
             auto surfacePos = utils::convert::scaleToGeodeticSurface(observerPos, radii);
             auto distance   = observerPos - surfacePos;
@@ -268,18 +260,18 @@ void DragNavigation::update() {
         (glm::translate(rotationCenter) * glm::rotate(mTargetAngle, mCurrentAxis) *
             glm::translate(-rotationCenter) * glm::dvec4(mStartObserverPos, 1.0))
             .xyz();
-    mSolarSystem->getObserver().setAnchorPosition(newObserverPos);
+    mSolarSystem->getObserver().setPosition(newObserverPos);
   }
 
   glm::dquat newObserverRot = glm::angleAxis(mTargetAngle, mCurrentAxis) * mStartObserverRot;
 
-  if (mLocalRotation && mSolarSystem->pActiveBody.get()) {
+  if (mLocalRotation && mSolarSystem->pActiveObject.get()) {
     // perform roll correction if observer is close to planet (10% of
     // radius) and planet normal is already close to up
     // or if the orthogonal on planet normal and up vector is
     // close to the viewers x axis (e.g. if the user is looking down or
     // upwards but the horizon is still straight)
-    auto radii      = mSolarSystem->pActiveBody.get()->getRadii();
+    auto radii      = mSolarSystem->pActiveObject.get()->getRadii();
     auto surfacePos = utils::convert::scaleToGeodeticSurface(observerPos, radii);
     auto distance   = observerPos - surfacePos;
 
@@ -310,7 +302,7 @@ void DragNavigation::update() {
     }
   }
 
-  mSolarSystem->getObserver().setAnchorRotation(newObserverRot);
+  mSolarSystem->getObserver().setRotation(newObserverRot);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

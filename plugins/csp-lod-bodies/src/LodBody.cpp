@@ -23,36 +23,23 @@ namespace csp::lodbodies {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-LodBody::LodBody(std::shared_ptr<cs::core::Settings> const& settings,
-    std::shared_ptr<cs::core::GraphicsEngine>               graphicsEngine,
-    std::shared_ptr<cs::core::SolarSystem>                  solarSystem,
-    std::shared_ptr<Plugin::Settings> const&                pluginSettings,
-    std::shared_ptr<cs::core::GuiManager> const&            pGuiManager,
-    std::shared_ptr<GLResources> const& glResources, std::string const& anchorName)
-    : mSettings(settings)
+LodBody::LodBody(std::shared_ptr<cs::core::Settings> settings,
+    std::shared_ptr<cs::core::GraphicsEngine>        graphicsEngine,
+    std::shared_ptr<cs::core::SolarSystem>           solarSystem,
+    std::shared_ptr<Plugin::Settings>                pluginSettings,
+    std::shared_ptr<cs::core::GuiManager> pGuiManager, std::shared_ptr<GLResources> glResources)
+    : mSettings(std::move(settings))
     , mGraphicsEngine(std::move(graphicsEngine))
     , mSolarSystem(std::move(solarSystem))
-    , mPluginSettings(pluginSettings)
-    , mGuiManager(pGuiManager)
+    , mPluginSettings(std::move(pluginSettings))
+    , mGuiManager(std::move(pGuiManager))
     , mEclipseShadowReceiver(
-          std::make_shared<cs::core::EclipseShadowReceiver>(mSettings, mSolarSystem, this, false))
-    , mPlanet(glResources)
-    , mShader(settings, pluginSettings, pGuiManager, mEclipseShadowReceiver, anchorName) {
+          std::make_shared<cs::core::EclipseShadowReceiver>(mSettings, mSolarSystem, false))
+    , mPlanet(std::move(glResources))
+    , mShader(mSettings, mPluginSettings, mGuiManager, mEclipseShadowReceiver) {
 
-  mSettings->initAnchor(*this, anchorName);
-
-  pVisible.connect([this](bool val) {
-    if (val) {
-      mGraphicsEngine->registerCaster(&mPlanet);
-    } else {
-      mGraphicsEngine->unregisterCaster(&mPlanet);
-    }
-  });
-
+  mGraphicsEngine->registerCaster(&mPlanet);
   mPlanet.setTerrainShader(&mShader);
-
-  // per-planet settings -----------------------------------------------------
-  mPlanet.setRadii(mRadii);
 
   // scene-wide settings -----------------------------------------------------
   mHeightScaleConnection = mSettings->mGraphics.pHeightScale.connectAndTouch(
@@ -92,12 +79,6 @@ LodBody::~LodBody() {
 
 PlanetShader const& LodBody::getShader() const {
   return mShader;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void LodBody::setSun(std::shared_ptr<const cs::scene::CelestialObject> const& sun) {
-  mSun = sun;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -155,33 +136,48 @@ std::shared_ptr<TileSource> const& LodBody::getIMGtileSource() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void LodBody::update(double tTime, cs::scene::CelestialObserver const& oObs) {
-  cs::scene::CelestialObject::update(tTime, oObs);
+void LodBody::setObjectName(std::string objectName) {
+  mShader.setObjectName(objectName);
+  mObjectName = std::move(objectName);
+}
 
-  if (getIsInExistence() && pVisible.get()) {
-    mPlanet.setWorldTransform(getWorldTransform());
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    if (mSun) {
-      double sunIlluminance = mSolarSystem->getSunIlluminance(getWorldTransform()[3]);
+std::string const& LodBody::getObjectName() const {
+  return mObjectName;
+}
 
-      auto sunDirection =
-          glm::normalize(glm::inverse(getWorldTransform()) *
-                         glm::dvec4(mSolarSystem->getSunDirection(getWorldTransform()[3]), 0.0));
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
-      mShader.setSun(sunDirection, static_cast<float>(sunIlluminance));
-    }
+void LodBody::update() {
+  auto parent  = mSolarSystem->getObject(mObjectName);
+  bool visible = parent && parent->getIsBodyVisible();
 
-    mEclipseShadowReceiver->update(tTime, oObs);
+  mPlanet.setEnabled(visible);
+
+  if (visible) {
+
+    auto const& transform = parent->getObserverRelativeTransform();
+
+    mPlanet.setRadii(parent->getRadii());
+    mPlanet.setWorldTransform(parent->getObserverRelativeTransform());
+
+    double sunIlluminance = mSolarSystem->getSunIlluminance(transform[3]);
+
+    auto sunDirection = glm::normalize(
+        glm::inverse(transform) * glm::dvec4(mSolarSystem->getSunDirection(transform[3]), 0.0));
+
+    mShader.setSun(sunDirection, static_cast<float>(sunIlluminance));
+
+    mEclipseShadowReceiver->update(*parent);
   }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool LodBody::Do() {
-  if (getIsInExistence() && pVisible.get()) {
-    cs::utils::FrameTimings::ScopedTimer timer("LoD-Body " + getCenterName());
-    mPlanet.Do();
-  }
+  cs::utils::FrameTimings::ScopedTimer timer("LoD-Body " + mObjectName);
+  mPlanet.draw();
 
   return true;
 }

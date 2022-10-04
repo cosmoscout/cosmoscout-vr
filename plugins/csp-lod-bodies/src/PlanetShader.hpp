@@ -35,8 +35,7 @@ class PlanetShader : public TerrainShader {
   PlanetShader(std::shared_ptr<cs::core::Settings>     settings,
       std::shared_ptr<Plugin::Settings>                pluginSettings,
       std::shared_ptr<cs::core::GuiManager>            pGuiManager,
-      std::shared_ptr<cs::core::EclipseShadowReceiver> eclipseShadowReceiver,
-      std::string                                      anchorName);
+      std::shared_ptr<cs::core::EclipseShadowReceiver> eclipseShadowReceiver);
 
   PlanetShader(PlanetShader const& other) = delete;
   PlanetShader(PlanetShader&& other)      = delete;
@@ -46,7 +45,11 @@ class PlanetShader : public TerrainShader {
 
   ~PlanetShader() override;
 
-  void setSun(glm::vec3 const& direction, float illuminance);
+  /// This is required to get several properties from the plugin settings.
+  void               setObjectName(std::string objectName);
+  std::string const& getObjectName() const;
+
+  void setSun(glm::vec3 direction, float illuminance);
 
   void bind() override;
   void release() override;
@@ -58,7 +61,7 @@ class PlanetShader : public TerrainShader {
   std::shared_ptr<cs::core::GuiManager>            mGuiManager;
   std::shared_ptr<Plugin::Settings>                mPluginSettings;
   std::shared_ptr<cs::core::EclipseShadowReceiver> mEclipseShadowReceiver;
-  std::string                                      mAnchorName;
+  std::string                                      mObjectName;
   glm::vec3                                        mSunDirection             = glm::vec3(0, 1, 0);
   float                                            mSunIlluminance           = 1.F;
   VistaTexture*                                    mFontTexture              = nullptr;

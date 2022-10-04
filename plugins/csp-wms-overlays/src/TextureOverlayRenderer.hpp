@@ -42,14 +42,14 @@ namespace csp::wmsoverlays {
 /// do the lookup in the geo-referenced texture. The value is then overlayed on that pixel position.
 class TextureOverlayRenderer : public IVistaOpenGLDraw {
  public:
-  TextureOverlayRenderer(std::string center, std::shared_ptr<cs::core::SolarSystem> solarSystem,
+  TextureOverlayRenderer(std::string objectName, std::shared_ptr<cs::core::SolarSystem> solarSystem,
       std::shared_ptr<cs::core::TimeControl> timeControl,
       std::shared_ptr<cs::core::Settings>    settings,
       std::shared_ptr<Plugin::Settings>      pluginSettings);
   ~TextureOverlayRenderer() override;
 
   /// Returns the SPICE name of the body to which this renderer is assigned.
-  std::string const& getCenter() const;
+  std::string const& getObjectName() const;
 
   /// Configures the internal renderer according to the given values.
   void configure(Plugin::Settings::Body settings);
@@ -95,7 +95,7 @@ class TextureOverlayRenderer : public IVistaOpenGLDraw {
   std::shared_ptr<cs::core::Settings> mSettings;
   std::shared_ptr<Plugin::Settings>   mPluginSettings;
   Plugin::Settings::Body              mSimpleWMSOverlaySettings;
-  std::string                         mCenterName;
+  std::string                         mObjectName;
 
   std::unique_ptr<VistaOpenGLNode> mGLNode;
 
@@ -154,9 +154,9 @@ class TextureOverlayRenderer : public IVistaOpenGLDraw {
   std::shared_ptr<cs::core::TimeControl> mTimeControl;
 
   /// Lower Corner of the bounding volume for the planet.
-  std::array<float, 3> mMinBounds;
+  glm::vec3 mMinBounds;
   /// Upper Corner of the bounding volume for the planet.
-  std::array<float, 3> mMaxBounds;
+  glm::vec3 mMaxBounds;
 
   bool mShaderDirty        = true;
   int  mLightingConnection = -1;

@@ -22,8 +22,7 @@ The given values are just some examples, feel free to add your own items:
       ],
       "space-items": [
         {
-          "center": "Earth",
-          "icon": "IAU_Earth",
+          "object": "Earth",
           "longitude": 14,
           "latitude": 51,
           "elevation": 100,

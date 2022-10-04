@@ -9,14 +9,17 @@
 #include "../../../src/cs-core/GuiManager.hpp"
 #include "../../../src/cs-core/Settings.hpp"
 #include "../../../src/cs-core/SolarSystem.hpp"
-#include "../../../src/cs-scene/CelestialAnchorNode.hpp"
+#include "../../../src/cs-scene/CelestialSurface.hpp"
 #include "../../../src/cs-utils/convert.hpp"
 #include "../../../src/cs-utils/utils.hpp"
 
 #include <VistaKernel/GraphicsManager/VistaOpenGLNode.h>
 #include <VistaKernel/GraphicsManager/VistaSceneGraph.h>
+#include <VistaKernel/GraphicsManager/VistaTransformNode.h>
 #include <VistaKernel/VistaSystem.h>
 #include <VistaKernelOpenSGExt/VistaOpenSGMaterialTools.h>
+
+#include <glm/gtc/type_ptr.hpp>
 
 namespace csp::measurementtools {
 
@@ -54,20 +57,19 @@ void main()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-EllipseTool::EllipseTool(std::shared_ptr<cs::core::InputManager> const& pInputManager,
-    std::shared_ptr<cs::core::SolarSystem> const&                       pSolarSystem,
-    std::shared_ptr<cs::core::Settings> const&                          settings,
-    std::shared_ptr<cs::core::TimeControl> const& pTimeControl, std::string const& sCenter,
-    std::string const& sFrame)
-    : mSolarSystem(pSolarSystem)
+EllipseTool::EllipseTool(std::shared_ptr<cs::core::InputManager> pInputManager,
+    std::shared_ptr<cs::core::SolarSystem>                       pSolarSystem,
+    std::shared_ptr<cs::core::Settings> settings, std::string objectName)
+    : Tool(objectName)
+    , mSolarSystem(pSolarSystem)
     , mSettings(settings)
-    , mCenterHandle(pInputManager, pSolarSystem, settings, pTimeControl, sCenter, sFrame)
-    , mAxes({glm::dvec3(pSolarSystem->getObserver().getAnchorScale(), 0.0, 0.0),
-          glm::dvec3(0.0, pSolarSystem->getObserver().getAnchorScale(), 0.0)})
+    , mCenterHandle(pInputManager, pSolarSystem, settings, objectName)
+    , mAxes({glm::dvec3(pSolarSystem->getObserver().getScale(), 0.0, 0.0),
+          glm::dvec3(0.0, pSolarSystem->getObserver().getScale(), 0.0)})
     , mHandles({std::make_unique<cs::core::tools::Mark>(
-                    pInputManager, pSolarSystem, settings, pTimeControl, sCenter, sFrame),
-          std::make_unique<cs::core::tools::Mark>(
-              pInputManager, pSolarSystem, settings, pTimeControl, sCenter, sFrame)}) {
+                    pInputManager, pSolarSystem, settings, objectName),
+          std::make_unique<cs::core::tools::Mark>(std::move(pInputManager), std::move(pSolarSystem),
+              std::move(settings), std::move(objectName))}) {
 
   mShader.InitVertexShaderFromString(SHADER_VERT);
   mShader.InitFragmentShaderFromString(SHADER_FRAG);
@@ -85,20 +87,16 @@ EllipseTool::EllipseTool(std::shared_ptr<cs::core::InputManager> const& pInputMa
   mVAO.SpecifyAttributeArrayFloat(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), 0, &mVBO);
 
   auto* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
-
-  mAnchor = std::make_shared<cs::scene::CelestialAnchorNode>(
-      pSG->GetRoot(), pSG->GetNodeBridge(), "", sCenter, sFrame);
-  mSolarSystem->registerAnchor(mAnchor);
-
+  mAnchor.reset(pSG->NewTransformNode(pSG->GetRoot()));
   mOpenGLNode.reset(pSG->NewOpenGLNode(mAnchor.get(), this));
 
   VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
       mOpenGLNode.get(), static_cast<int>(cs::utils::DrawOrder::eOpaqueNonHDR));
 
   mCenterHandle.pLngLat.connect([this](glm::dvec2 const& /*lngLat*/) {
-    auto center = mCenterHandle.getAnchor()->getAnchorPosition();
-    auto body   = mSolarSystem->getBody(mCenterHandle.getAnchor()->getCenterName());
-    auto radii  = body->getRadii();
+    auto center = mCenterHandle.getPosition();
+    auto object = mSolarSystem->getObject(getObjectName());
+    auto radii  = object->getRadii();
 
     if (mFirstUpdate) {
       for (int i(0); i < 2; ++i) {
@@ -109,16 +107,16 @@ EllipseTool::EllipseTool(std::shared_ptr<cs::core::InputManager> const& pInputMa
       mFirstUpdate = false;
     }
 
-    mAxes.at(0) = mHandles.at(0)->getAnchor()->getAnchorPosition() - center;
-    mAxes.at(1) = mHandles.at(1)->getAnchor()->getAnchorPosition() - center;
+    mAxes.at(0) = mHandles.at(0)->getPosition() - center;
+    mAxes.at(1) = mHandles.at(1)->getPosition() - center;
 
     mVerticesDirty = true;
   });
 
   for (int i(0); i < 2; ++i) {
     mHandleConnections.at(i) = mHandles.at(i)->pLngLat.connect([this, i](glm::dvec2 const& /*p*/) {
-      auto center    = mCenterHandle.getAnchor()->getAnchorPosition();
-      mAxes.at(i)    = mHandles.at(i)->getAnchor()->getAnchorPosition() - center;
+      auto center    = mCenterHandle.getPosition();
+      mAxes.at(i)    = mHandles.at(i)->getPosition() - center;
       mVerticesDirty = true;
     });
   }
@@ -146,7 +144,6 @@ EllipseTool::~EllipseTool() {
   // disconnect slots
   mSettings->mGraphics.pHeightScale.disconnect(mScaleConnection);
 
-  mSolarSystem->unregisterAnchor(mAnchor);
   pShouldDelete.disconnect();
   pColor.disconnectAll();
 
@@ -156,32 +153,11 @@ EllipseTool::~EllipseTool() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void EllipseTool::setCenterName(std::string const& name) {
-  mCenterHandle.getAnchor()->setCenterName(name);
-  mHandles.at(0)->getAnchor()->setCenterName(name);
-  mHandles.at(1)->getAnchor()->setCenterName(name);
-  mAnchor->setCenterName(name);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-std::string const& EllipseTool::getCenterName() const {
-  return mAnchor->getCenterName();
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void EllipseTool::setFrameName(std::string const& name) {
-  mCenterHandle.getAnchor()->setFrameName(name);
-  mHandles.at(0)->getAnchor()->setFrameName(name);
-  mHandles.at(1)->getAnchor()->setFrameName(name);
-  mAnchor->setFrameName(name);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-std::string const& EllipseTool::getFrameName() const {
-  return mAnchor->getFrameName();
+void EllipseTool::setObjectName(std::string name) {
+  Tool::setObjectName(std::move(name));
+  mCenterHandle.setObjectName(getObjectName());
+  mHandles.at(0)->setObjectName(getObjectName());
+  mHandles.at(1)->setObjectName(getObjectName());
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -230,16 +206,9 @@ void EllipseTool::setNumSamples(int const& numSamples) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void EllipseTool::calculateVertices() {
-  auto body   = mSolarSystem->getBody(mCenterHandle.getAnchor()->getCenterName());
-  auto radii  = body->getRadii();
-  auto center = mCenterHandle.getAnchor()->getAnchorPosition();
-  auto normal = cs::utils::convert::lngLatToNormal(mCenterHandle.pLngLat.get());
-
-  mAnchor->setAnchorPosition(center);
-
-  glm::dvec3 north(0, 1, 0);
-  glm::dvec3 east = glm::normalize(glm::cross(north, normal));
-  north           = glm::normalize(glm::cross(normal, east));
+  auto object = mSolarSystem->getObject(getObjectName());
+  auto radii  = object->getRadii();
+  auto center = mCenterHandle.getPosition();
 
   std::vector<glm::vec3> vRelativePositions(mNumSamples);
   for (int i = 0; i < mNumSamples; ++i) {
@@ -250,8 +219,7 @@ void EllipseTool::calculateVertices() {
     glm::dvec3 absPosition = center + x * mAxes[0] + y * mAxes[1];
     glm::dvec2 lngLat      = cs::utils::convert::cartesianToLngLat(absPosition, radii);
 
-    double height =
-        mSolarSystem->getBody(mCenterHandle.getAnchor()->getCenterName())->getHeight(lngLat);
+    double height = object->getSurface() ? object->getSurface()->getHeight(lngLat) : 0.0;
     height *= mSettings->mGraphics.pHeightScale.get();
     absPosition = cs::utils::convert::toCartesian(lngLat, radii, height);
 
@@ -274,6 +242,10 @@ void EllipseTool::update() {
     calculateVertices();
     mVerticesDirty = false;
   }
+
+  auto object    = mSolarSystem->getObject(getObjectName());
+  auto transform = object->getObserverRelativeTransform(mCenterHandle.getPosition());
+  mAnchor->SetTransform(glm::value_ptr(transform), true);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

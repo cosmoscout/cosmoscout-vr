@@ -4,12 +4,23 @@
 //                        Copyright: (c) 2019 German Aerospace Center (DLR)                       //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#include "CelestialBody.hpp"
+#include "Tool.hpp"
 
-namespace cs::scene {
+namespace cs::core::tools {
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
+Tool::Tool(std::string objectName)
+    : mObjectName(std::move(objectName)) {
+}
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
+void Tool::update() {
+}
 
-} // namespace cs::scene
+void Tool::setObjectName(std::string name) {
+  mObjectName = std::move(name);
+}
+
+std::string const& Tool::getObjectName() const {
+  return mObjectName;
+}
+
+} // namespace cs::core::tools

@@ -4,22 +4,25 @@
 //                        Copyright: (c) 2019 German Aerospace Center (DLR)                       //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#ifndef CS_SCENE_CELESTIAL_BODY_HPP
-#define CS_SCENE_CELESTIAL_BODY_HPP
+#ifndef CS_SCENE_CELESTIAL_SURFACE_HPP
+#define CS_SCENE_CELESTIAL_SURFACE_HPP
 
-#include "../cs-utils/IntersectableObject.hpp"
-#include "CelestialObject.hpp"
+#include "cs_scene_export.hpp"
+
+#include <glm/fwd.hpp>
+#include <memory>
 
 namespace cs::scene {
 
-/// CelestialBody objects extend the CelestialObject by being intersectable. Every implementation
-/// needs to override the getIntersection() method from utils::IntersectableObject.
-class CS_SCENE_EXPORT CelestialBody : public CelestialObject, public utils::IntersectableObject {
- public:
-  /// If set to false, the SolarSystem will not consider this body for the computation of the active
-  /// body.
-  utils::Property<bool> pTrackable = true;
+class CelestialObject;
+class CelestialObserver;
 
+/// A CelestialSurface can be assigned to a CelestialObject. Classes which are interested in the
+/// altitude of the terrain of a celestial body can check for the existance of a CelestialSurface of
+/// the respective CelestialBody. If one exists, they can call the getHeight() method in order to
+/// retrieve the altitude at a given location.
+class CS_SCENE_EXPORT CelestialSurface {
+ public:
   /// Returns the elevation in meters at a specific point on the surface.
   ///
   /// @param lngLat The coordinates on the surface in the Geographic Coordinate System format.
@@ -28,4 +31,4 @@ class CS_SCENE_EXPORT CelestialBody : public CelestialObject, public utils::Inte
 
 } // namespace cs::scene
 
-#endif // CS_SCENE_CELESTIAL_BODY_HPP
+#endif // CS_SCENE_CELESTIAL_SURFACE_HPP

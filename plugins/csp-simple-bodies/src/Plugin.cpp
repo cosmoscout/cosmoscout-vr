@@ -59,8 +59,7 @@ void Plugin::init() {
   logger().info("Loading plugin...");
 
   mOnLoadConnection = mAllSettings->onLoad().connect([this]() { onLoad(); });
-  mOnSaveConnection = mAllSettings->onSave().connect(
-      [this]() { mAllSettings->mPlugins["csp-simple-bodies"] = mPluginSettings; });
+  mOnSaveConnection = mAllSettings->onSave().connect([this]() { onSave(); });
 
   // Load settings.
   onLoad();
@@ -73,15 +72,25 @@ void Plugin::init() {
 void Plugin::deInit() {
   logger().info("Unloading plugin...");
 
-  for (auto const& simpleBody : mSimpleBodies) {
-    mSolarSystem->unregisterBody(simpleBody.second);
-    mInputManager->unregisterSelectable(simpleBody.second);
+  // Save settings as this plugin may get reloaded.
+  onSave();
+
+  for (auto const& [name, body] : mSimpleBodies) {
+    unregisterBody(name);
   }
 
   mAllSettings->onLoad().disconnect(mOnLoadConnection);
   mAllSettings->onSave().disconnect(mOnSaveConnection);
 
   logger().info("Unloading done.");
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Plugin::update() {
+  for (auto const& body : mSimpleBodies) {
+    body.second->update();
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -95,16 +104,15 @@ void Plugin::onLoad() {
   auto simpleBody = mSimpleBodies.begin();
   while (simpleBody != mSimpleBodies.end()) {
     auto settings = mPluginSettings.mSimpleBodies.find(simpleBody->first);
+    // If there are settings for this simpleBody, reconfigure it.
     if (settings != mPluginSettings.mSimpleBodies.end()) {
-      // If there are settings for this simpleBody, reconfigure it.
-      mAllSettings->initAnchor(*simpleBody->second, settings->first);
+      simpleBody->second->setObjectName(settings->first);
       simpleBody->second->configure(settings->second);
 
       ++simpleBody;
     } else {
       // Else delete it.
-      mSolarSystem->unregisterBody(simpleBody->second);
-      mInputManager->unregisterSelectable(simpleBody->second);
+      unregisterBody(simpleBody->first);
       simpleBody = mSimpleBodies.erase(simpleBody);
     }
   }
@@ -115,15 +123,30 @@ void Plugin::onLoad() {
       continue;
     }
 
-    auto simpleBody = std::make_shared<SimpleBody>(mAllSettings, mSolarSystem, settings.first);
+    auto simpleBody = std::make_shared<SimpleBody>(mAllSettings, mSolarSystem);
+    simpleBody->setObjectName(settings.first);
     simpleBody->configure(settings.second);
-    simpleBody->setSun(mSolarSystem->getSun());
 
-    mSolarSystem->registerBody(simpleBody);
-    mInputManager->registerSelectable(simpleBody);
+    auto object = mSolarSystem->getObject(settings.first);
+    object->setSurface(simpleBody);
+    object->setIntersectableObject(simpleBody);
 
     mSimpleBodies.emplace(settings.first, simpleBody);
   }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Plugin::onSave() {
+  mAllSettings->mPlugins["csp-simple-bodies"] = mPluginSettings;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Plugin::unregisterBody(std::string const& name) {
+  auto object = mSolarSystem->getObject(name);
+  object->setSurface(nullptr);
+  object->setIntersectableObject(nullptr);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

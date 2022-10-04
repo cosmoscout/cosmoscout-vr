@@ -15,7 +15,12 @@ find_package(Threads REQUIRED)
 # build plugin -------------------------------------------------------------------------------------
 
 file(GLOB SOURCE_FILES src/*.cpp)
-file(GLOB TEST_FILES test/*.cpp)
+
+set(TEST_FILES)
+
+if (COSMOSCOUT_UNIT_TESTS)
+  file(GLOB TEST_FILES test/*.cpp)
+endif()
 
 # Resoucre files and header files are only added in order to make them available in your IDE.
 file(GLOB HEADER_FILES src/*.hpp)

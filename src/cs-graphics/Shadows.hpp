@@ -28,11 +28,8 @@ class ShadowMap;
 class CS_GRAPHICS_EXPORT ShadowCaster {
  public:
   /// This will be called when the object has to be rendered into a shadow map the GL_MODELVIEW
-  /// matrix will be loaded according to the world transform provided by getWorldTransform().
-  virtual void doShadows() = 0;
-
-  /// This will be called to retrieve the world transform of the caster.
-  virtual bool getWorldTransform(VistaTransformMatrix& matTransform) const = 0;
+  /// matrix will contain the light's view matrix.
+  virtual void drawForShadowMap() = 0;
 
   /// Called by registerCaster() from the shadow map.
   void       setShadowMap(ShadowMap* pShadowMap);

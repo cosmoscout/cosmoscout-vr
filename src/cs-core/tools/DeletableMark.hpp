@@ -19,10 +19,9 @@ namespace cs::core::tools {
 /// A Mark with a delete symbol above when it is selected.
 class CS_CORE_EXPORT DeletableMark : public Mark {
  public:
-  DeletableMark(std::shared_ptr<InputManager> const& pInputManager,
-      std::shared_ptr<SolarSystem> const& pSolarSystem, std::shared_ptr<Settings> const& settings,
-      std::shared_ptr<TimeControl> const& pTimeControl, std::string const& sCenter,
-      std::string const& sFrame);
+  DeletableMark(std::shared_ptr<InputManager> pInputManager,
+      std::shared_ptr<SolarSystem> pSolarSystem, std::shared_ptr<Settings> settings,
+      std::string objectName);
 
   DeletableMark(DeletableMark const& other) = delete;
   DeletableMark(DeletableMark&& other)      = delete;
