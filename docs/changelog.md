@@ -58,6 +58,7 @@
 
 * Back-face culling of LOD-Bodies does now work properly.
 * Fixed black LOD-Bodies if no image channel is selected initially.
+* The wms-overlays plugin now correctly uses jpeg instead of png, if an opaque layser is selected and jpeg is available.
 
 ## [v1.5.0](https://github.com/cosmoscout/cosmoscout-vr/releases)
 
