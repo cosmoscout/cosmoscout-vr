@@ -30,6 +30,7 @@ SPDX-License-Identifier: CC-BY-4.0
 
 #### Other Changes
 
+* CosmoScout VR now follows the [REUSE Specification](https://reuse.software/spec).
 * CosmoScout VR now uses a reverse infinite projection for 3D rendering. This removes the far clipping plane and increases the depth precision for the entire scene signifcantly.
 * Removed the obsolete "Mix with RGB" option for height or slope coloring of the LOD-Bodies.
 * Lighting is now enabled by default
