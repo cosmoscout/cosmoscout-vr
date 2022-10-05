@@ -59,6 +59,7 @@
 * Back-face culling of LOD-Bodies does now work properly.
 * Fixed black LOD-Bodies if no image channel is selected initially.
 * The `csp-wms-overlays` plugin now correctly uses jpeg instead of png, if an opaque layer is selected and jpeg is available.
+* Fixed a warning which was printed if an GLTF model did not explicitly specify texture filtering parameters.
 
 ## [v1.5.0](https://github.com/cosmoscout/cosmoscout-vr/releases)
 
