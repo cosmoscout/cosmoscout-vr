@@ -31,7 +31,7 @@ Nearly all dependencies are included as [git submodules](externals), please refe
 
 Below is a rough sketch of the possibilities you have with CosmoScout VR.
 While this list is far from complete it provides a good overview of the current feature set.
-You can also read the [**changelog**](docs/changelog.md) to learn what's new in the current version. There is also an [**interesting article in the DLR magazine**](https://dlr.de/dlr/portaldata/1/resources/documents/dlr_magazin_161_EN/DLR-Magazin_161-GB/?page=18) which provides some insight into the ideas behind CosmoScout VR. 
+You can also read the [**changelog**](docs/changelog.md) to learn what's new in the current version. There is also an [**interesting article in the DLR magazine**](https://dlr.de/dlr/portaldata/1/resources/documents/dlr_magazin_161_EN/DLR-Magazin_161-GB/?page=18), and [**several papers**](docs/citation.md) which provide some insight into the ideas behind CosmoScout VR. 
 
 - [X] Solar System Simulation
   - [X] Positioning of celestial bodies and space crafts based on [SPICE](https://naif.jpl.nasa.gov/naif)
