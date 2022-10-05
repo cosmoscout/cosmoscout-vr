@@ -27,7 +27,7 @@ class GuiApi extends IApi {
   /**
    * Registered html parts
    *
-   * @see {registerHtml}
+   * @see {addTemplate}
    * @type {Map<string, DocumentFragment>}
    * @private
    */
@@ -253,7 +253,7 @@ class GuiApi extends IApi {
    *
    * @param url {string}
    */
-  registerCss(url) {
+   addCSS(url) {
     const link = document.createElement('link');
     link.setAttribute('rel', 'stylesheet');
     link.setAttribute('href', url);
@@ -266,7 +266,7 @@ class GuiApi extends IApi {
    *
    * @param url {string}
    */
-  unregisterCss(url) {
+  removeCSS(url) {
     document.querySelectorAll('link').forEach((element) => {
       if (typeof element.href !== 'undefined' && element.href === url) {
         document.head.removeChild(element);
@@ -301,85 +301,61 @@ class GuiApi extends IApi {
   }
 
   /**
-   * Append HTML to the body (default) or element with id containerId.
+   * Append an HTML template to the body (default) or element with id containerId.
    *
    * @param id {string} Id for de-registering
    * @param content {string} Html content
-   * @param containerId {string} ['body'] Container ID to append the HTML to. Defaults to body
-   * element if omitted
    */
-  registerHtml(id, content, containerId = 'body') {
-    let container = document.body;
-    if (containerId !== 'body') {
-      container = document.getElementById(containerId);
-    }
-
-    if (container === null) {
-      console.warn(`Cannot register #${id} into container #${containerId}!`);
-      return;
-    }
+  addTemplate(id, content) {
 
     const item = document.createElement('template');
 
     item.innerHTML = content;
 
-    this._html.set(id, item.content);
-
-    container.appendChild(item.content);
+    this._templates.set(id, item.content);
   }
 
   /**
    * Remove registered html from the body or container with id containerId.
    *
-   * @see {registerHtml}
+   * @see {addTemplate}
    * @param id {string}
-   * @param containerId {string}
    */
-  unregisterHtml(id, containerId = 'body') {
-    let container = document.body;
-    if (containerId !== 'body') {
-      container = document.getElementById(containerId);
-    }
-
-    if (container === null) {
-      console.warn(`Container #${containerId} does not exist!`);
+  removeTemplate(id) {
+    if (!this._templates.has(id)) {
+      console.warn(`No template with '${id}' registered!`);
       return;
     }
 
-    if (!this._html.has(id)) {
-      console.warn(`No Html with #${id} registered!`);
-      return;
-    }
-
-    container.removeChild(this._html.get(id));
-    this._html.delete(id);
+    this._templates.delete(id);
   }
 
   /**
    * Tries to load the template content of 'id-template'.
    * Returns false if no template was found, HTMLElement otherwise.
    *
-   * @param templateId {string} Template element id without '-template' suffix
+   * @param id {string} Template element id without '-template' suffix
    * @return {boolean|HTMLElement}
    */
-  loadTemplateContent(templateId) {
-    const id = `${templateId}-template`;
+  loadTemplateContent(id) {
+    let template = null;
 
-    if (this._templates.has(id)) {
-      return this._templates.get(id).cloneNode(true).firstElementChild;
+    template = this._templates.get(id);
+    
+    if (!template) {
+     template = document.getElementById(id + "-template");
+
+     if (template) {
+       template = template.content;
+     }
     }
 
-    const template = document.getElementById(id);
-
-    if (template === null) {
-      console.warn(`Template '#${id}' not found!`);
+    if (!template) {
+      console.warn(`Template '${id}' not found!`);
       return false;
     }
 
-    const {content} = template;
-    this._templates.set(id, content);
-
-    return content.cloneNode(true).firstElementChild;
+    return template.cloneNode(true).firstElementChild;
   }
 
   /**

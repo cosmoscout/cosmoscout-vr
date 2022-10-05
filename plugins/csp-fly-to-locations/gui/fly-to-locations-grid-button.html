@@ -1,0 +1,21 @@
+<!-- 
+SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+SPDX-License-Identifier: MIT
+-->
+
+<template>
+    <div class="col-3 center flytolocations-bookmarks-grid-body-button p-1">
+        <a class="block btn glass" onclick="CosmoScout.callbacks.bookmark.gotoLocation(%ID%)">
+            <img src="../icons/%ICON%" height="80" width="80">
+            <span class="flytolocations-bookmarks-name">%NAME%</span>
+            <a class="flytolocations-bookmarks-grid-edit-button btn light-glass px-1"
+                onclick="CosmoScout.callbacks.bookmark.edit(%ID%)">
+                <i class="material-icons">edit</i>
+            </a>
+            <a class="flytolocations-bookmarks-grid-delete-button btn light-glass px-1"
+                onclick="CosmoScout.callbacks.bookmark.remove(%ID%)">
+                <i class="material-icons">close</i>
+            </a>
+        </a>
+    </div>
+</template>

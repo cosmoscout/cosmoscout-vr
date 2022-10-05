@@ -137,7 +137,7 @@ Settings skeleton:
 /// Adds a link element to the head with a local file href.
 ///
 /// @param fileName The filename in the css folder
-GuiManager::addCssToGui(std::string const& fileName);
+GuiManager::addCSS(std::string const& fileName);
 ```
 
 ### Registering JavaScript
@@ -145,7 +145,7 @@ GuiManager::addCssToGui(std::string const& fileName);
 /// This can be used to initialize the DOM elements added to the sidebar with the methods above.
 ///
 /// @param jsFile The javascript file that contains the source code.
-GuiManager::addScriptToGuiFromJS(std::string const& jsFile);
+GuiManager::executeJavascriptFile(std::string const& jsFile);
 ```
 
 ## CosmoScout JavaScript API
@@ -248,37 +248,37 @@ Your plugin should call this method upon de-initialization if it added any style
 CosmoScout.unregisterCss('https://example.com/example.css');
 ```
 
-#### `CosmoScout.registerHtml(id, content, containerId = 'body')`
+#### `CosmoScout.addTemplate(id, content, containerId = 'body')`
 Appends HTML to the body (default) or element with id `containerId`.  
-This method gets called by `GuiManager::addHtmlToGui`.
+This method gets called by `GuiManager::addTemplate`.
 
 ```javascript
 const html = '<span>Example Html</span>';
 
 // Append <span> to the body
-CosmoScout.registerHtml('example', html);
+CosmoScout.addTemplate('example', html);
 
 // Append <span> to #container
-CosmoScout.registerHtml('example2', html, 'container')
+CosmoScout.addTemplate('example2', html, 'container')
 ```
 
-#### `CosmoScout.unregisterHtml(id, containerId = 'body')`
+#### `CosmoScout.removeTemplate(id, containerId = 'body')`
 Remove registered html from the body or container with id `containerId`.  
 Your plugin should call this method upon de-initialization if it added any html.
 
 ```javascript
 // Removes element from body
-CosmoScout.unregisterHtml('example');
+CosmoScout.removeTemplate('example');
 
 // Removes element from #container
-CosmoScout.unregisterHtml('example2', 'container');
+CosmoScout.removeTemplate('example2', 'container');
 ```
 
 #### `CosmoScout.loadTemplateContent(templateId)`
 In order to avoid mixing Html and JavaScript CosmoScout makes use of `<template>` elements.  
 Template elements can contain arbitrary html that won't be displayed and parsed by the browser.  
 This allows to add complex html constructs to the GUI without cluttering your JavaScript.  
-`CosmoScout.registerHtml` can be used to add `<templates>` to the gui.  
+`CosmoScout.addTemplate` can be used to add `<templates>` to the gui.  
 
 `templateId` will be suffixed by `-template`.  
 The return value is either `false` if the template could not be loaded or a `HTMLElement`.

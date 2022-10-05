@@ -96,14 +96,14 @@ void Plugin::init() {
   mOnSaveConnection = mAllSettings->onSave().connect([this]() { onSave(); });
 
   // Add resources to gui.
-  mGuiManager->addScriptToGuiFromJS("../share/resources/gui/third-party/js/leaflet.js");
-  mGuiManager->addScriptToGuiFromJS(
+  mGuiManager->executeJavascriptFile("../share/resources/gui/third-party/js/leaflet.js");
+  mGuiManager->executeJavascriptFile(
       "../share/resources/gui/third-party/js/leaflet.markercluster.js");
-  mGuiManager->addCssToGui("third-party/css/leaflet.css");
+  mGuiManager->addCSS("third-party/css/leaflet.css");
 
-  mGuiManager->addCssToGui("css/csp-minimap.css");
-  mGuiManager->addHtmlToGui("minimap-template", "../share/resources/gui/csp-minimap-template.html");
-  mGuiManager->addScriptToGuiFromJS("../share/resources/gui/js/csp-minimap.js");
+  mGuiManager->addCSS("css/csp-minimap.css");
+  mGuiManager->addTemplate("minimap", "../share/resources/gui/csp-minimap-template.html");
+  mGuiManager->executeJavascriptFile("../share/resources/gui/js/csp-minimap.js");
 
   // Register a callback to toggle the minimap.
   std::string callback = "minimap.toggle";
@@ -172,9 +172,8 @@ void Plugin::deInit() {
   mGuiManager->onBookmarkAdded().disconnect(mOnBookmarkAddedConnection);
   mGuiManager->onBookmarkRemoved().disconnect(mOnBookmarkRemovedConnection);
 
-  mGuiManager->getGui()->callJavascript("CosmoScout.gui.unregisterHtml", "minimap-template");
-  mGuiManager->getGui()->callJavascript("CosmoScout.gui.unregisterCss", "css/csp-minimap.css");
-  mGuiManager->getGui()->executeJavascript("document.querySelector('#minimap').remove()");
+  mGuiManager->removeTemplate("minimap");
+  mGuiManager->removeCSS("css/csp-minimap.css");
 
   mGuiManager->removeTimelineButton("Toggle Minimap");
   mGuiManager->getGui()->unregisterCallback("minimap.toggle");

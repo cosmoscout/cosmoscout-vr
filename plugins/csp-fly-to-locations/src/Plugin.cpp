@@ -33,11 +33,13 @@ void Plugin::init() {
 
   logger().info("Loading plugin...");
 
-  mGuiManager->addHtmlToGui(
-      "fly-to-locations", "../share/resources/gui/fly-to-locations-templates.html");
+  mGuiManager->addTemplate(
+      "fly-to-locations-grid-button", "../share/resources/gui/fly-to-locations-grid-button.html");
+  mGuiManager->addTemplate(
+      "fly-to-locations-list-item", "../share/resources/gui/fly-to-locations-list-item.html");
 
-  mGuiManager->addScriptToGuiFromJS("../share/resources/gui/js/csp-fly-to-locations.js");
-  mGuiManager->addCssToGui("css/csp-fly-to-locations.css");
+  mGuiManager->executeJavascriptFile("../share/resources/gui/js/csp-fly-to-locations.js");
+  mGuiManager->addCSS("css/csp-fly-to-locations.css");
 
   mGuiManager->addPluginTabToSideBarFromHTML(
       "Bookmarks", "place", "../share/resources/gui/fly-to-locations-tab.html");
@@ -93,7 +95,9 @@ void Plugin::deInit() {
   mGuiManager->onBookmarkAdded().disconnect(mOnBookmarkAddedConnection);
   mGuiManager->onBookmarkRemoved().disconnect(mOnBookmarkRemovedConnection);
 
-  mGuiManager->getGui()->callJavascript("CosmoScout.gui.unregisterHtml", "fly-to-locations");
+  mGuiManager->removeTemplate("fly-to-locations-grid-button");
+  mGuiManager->removeTemplate("fly-to-locations-list-item");
+
   mGuiManager->getGui()->callJavascript(
       "CosmoScout.gui.unregisterCss", "css/csp-fly-to-locations.css");
 

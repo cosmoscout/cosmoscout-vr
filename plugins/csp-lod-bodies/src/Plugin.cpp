@@ -173,7 +173,7 @@ void Plugin::init() {
       "Body Settings", "landscape", "../share/resources/gui/lod_body_tab.html");
   mGuiManager->addSettingsSectionToSideBarFromHTML(
       "Body Settings", "landscape", "../share/resources/gui/lod_body_settings.html");
-  mGuiManager->addScriptToGuiFromJS("../share/resources/gui/js/csp-lod-bodies.js");
+  mGuiManager->executeJavascriptFile("../share/resources/gui/js/csp-lod-bodies.js");
 
   mGuiManager->getGui()->registerCallback("lodBodies.setEnableTilesFreeze",
       "If set to true, the level of detail and the frustum culling of the planet's tiles will not "
