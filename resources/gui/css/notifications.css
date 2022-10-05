@@ -1,3 +1,8 @@
+/*
+SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+SPDX-License-Identifier: MIT
+*/
+
 #notifications {
   grid-area: notifications;
   position: relative;

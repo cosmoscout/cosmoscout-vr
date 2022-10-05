@@ -1,3 +1,10 @@
+# ------------------------------------------------------------------------------------------------ #
+#                                This file is part of CosmoScout VR                                #
+# ------------------------------------------------------------------------------------------------ #
+
+# SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+# SPDX-License-Identifier: CC0-1.0
+
 [submodule "externals/libtiff"]
 	path = externals/libtiff
 	url = https://github.com/cosmoscout/libtiff.git

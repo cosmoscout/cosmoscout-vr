@@ -1,2 +1,9 @@
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//                               This file is part of CosmoScout VR                               //
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+// SPDX-License-Identifier: MIT
+
 IDI_ICON1 ICON DISCARDABLE "..\\..\\resources\\icons\\icon.ico"
 GLUT_ICON ICON DISCARDABLE "..\\..\\resources\\icons\\icon.ico"

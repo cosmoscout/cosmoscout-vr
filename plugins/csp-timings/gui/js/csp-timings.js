@@ -1,4 +1,9 @@
-/* global IApi, CosmoScout, ColorHash */
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//                               This file is part of CosmoScout VR                               //
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+// SPDX-License-Identifier: MIT
 
 /**
  * This amount of frame data will be stored to slide through.

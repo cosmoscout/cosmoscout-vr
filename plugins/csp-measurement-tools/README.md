@@ -1,3 +1,8 @@
+<!-- 
+SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+SPDX-License-Identifier: CC-BY-4.0
+ -->
+
 # Measurement tools for CosmoScout VR
 
 A CosmoScout VR plugin with several tools for terrain measurements. For example, it supports the measurement of distances, height profiles, volumes or areas.

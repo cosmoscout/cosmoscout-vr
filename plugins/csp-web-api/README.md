@@ -1,3 +1,8 @@
+<!-- 
+SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+SPDX-License-Identifier: CC-BY-4.0
+ -->
+
 # Web API for CosmoScout VR
 
 A CosmoScout VR plugin which provides an HTTP protocol for controlling the application.

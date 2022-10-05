@@ -1,5 +1,9 @@
+<!-- 
+SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+SPDX-License-Identifier: MIT
+-->
+
 <?xml version="1.0" encoding="utf-8"?>
-<!-- $Id: keyboard_standardinput.xml 23950 2011-10-29 17:21:19Z dr165799 $ -->
 <module>
 	<nodespace>
 	</nodespace>

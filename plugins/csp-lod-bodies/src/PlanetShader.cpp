@@ -1,8 +1,9 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //                               This file is part of CosmoScout VR                               //
-//      and may be used under the terms of the MIT license. See the LICENSE file for details.     //
-//                        Copyright: (c) 2019 German Aerospace Center (DLR)                       //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+// SPDX-License-Identifier: MIT
 
 #include "PlanetShader.hpp"
 
@@ -74,7 +75,8 @@ PlanetShader::PlanetShader(std::shared_ptr<cs::core::Settings> settings,
 
   // TODO: color map mangement could be done in a separate class
   if (mColorMaps.empty()) {
-    auto files(cs::utils::filesystem::listFiles("../share/resources/colormaps"));
+    auto files(
+        cs::utils::filesystem::listFiles("../share/resources/colormaps", std::regex(".*\\.json")));
 
     bool first = true;
     for (auto const& file : files) {

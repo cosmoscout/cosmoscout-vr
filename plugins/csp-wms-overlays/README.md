@@ -1,3 +1,8 @@
+<!-- 
+SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+SPDX-License-Identifier: CC-BY-4.0
+ -->
+
 # WMS overlay for CosmoScout VR
 
 A CosmoSout VR plugin which overlays existing planets with time dependent WMS based textures.

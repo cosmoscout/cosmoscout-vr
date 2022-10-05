@@ -1,4 +1,9 @@
-/* eslint no-param-reassign: 0 */
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//                               This file is part of CosmoScout VR                               //
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+// SPDX-License-Identifier: MIT
 
 /**
  * This is a default CosmoScout API. Once initialized, you can access its methods via

@@ -1,3 +1,8 @@
+<!-- 
+SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+SPDX-License-Identifier: CC-BY-4.0
+ -->
+
 # Satellites for CosmoScout VR
 
 A CosmoScout VR plugin which draws GTLF models at positions based on SPICE data. It uses physically based rendering for surface shading.

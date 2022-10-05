@@ -1,4 +1,9 @@
-# Eclipse Shadow Map Generator
+<!-- 
+SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+SPDX-License-Identifier: CC-BY-4.0
+ -->
+ 
+ # Eclipse Shadow Map Generator
 
 This tool can be used to generate the eclipse shadow maps used by CosmoScout VR.
 

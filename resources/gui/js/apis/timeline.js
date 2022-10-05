@@ -1,6 +1,9 @@
-/* global IApi, CosmoScout, vis, CP, $, DateOperations, noUiSlider, Format */
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//                               This file is part of CosmoScout VR                               //
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/* eslint-disable class-methods-use-this, max-len, max-classes-per-file, no-underscore-dangle */
+// SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+// SPDX-License-Identifier: MIT
 
 /**
  * Timeline Api

@@ -1,3 +1,8 @@
+<!-- 
+SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+SPDX-License-Identifier: MIT
+-->
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -5,11 +10,9 @@
   <meta charset="UTF-8">
   <title>CosmoScout VR</title>
 
-  <link rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-  <link rel="stylesheet"
-    href="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@10.0.1/build/styles/default.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@10.0.1/build/styles/default.min.css">
 
 
   <style>
@@ -121,8 +124,8 @@
             <img id="screenshot" style="position: absolute;" src="">
 
           </div>
-          <a class="btn-floating halfway-fab waves-effect waves-light teal"
-            onclick="reloadScreenshot()"><i class="material-icons">refresh</i></a>
+          <a class="btn-floating halfway-fab waves-effect waves-light teal" onclick="reloadScreenshot()"><i
+              class="material-icons">refresh</i></a>
         </div>
         <div class="card-content blue-grey darken-1 white-text">
           <p>This is a screenshot of CosmoScout VR, retrieved with a /capture request.
@@ -143,8 +146,7 @@
               </div>
             </div>
             <div style="align-self:center;margin-left: 5px;">
-              <a type="button" class="waves-effect waves-light btn center-align"
-                onclick="runJS($('#jsCode').val())">
+              <a type="button" class="waves-effect waves-light btn center-align" onclick="runJS($('#jsCode').val())">
                 <i class="material-icons left">play_arrow</i>
                 <span class="hide-on-small-only">Run</span>
               </a>
@@ -184,8 +186,7 @@
           </div>
           <div class="collapsible-body white">
             The /capture endpoint can be used to capture a color or a depth image
-            . Here is an example URL: <a href="/capture?width=1200&height=800&gui=true"
-              target="_blank"><span
+            . Here is an example URL: <a href="/capture?width=1200&height=800&gui=true" target="_blank"><span
                 class="document-location"></span>capture?width=1200&height=800&gui=true</a>. To
             retrieve images with the command line, you could use curl:
 
@@ -341,8 +342,7 @@
               <div class="file-path-wrapper" style="flex-grow: 1;">
                 <input class="file-path validate" type="text">
               </div>
-              <a class="btn waves-effect waves-light white-text" style="margin-left: 5px;"
-                type="button"
+              <a class="btn waves-effect waves-light white-text" style="margin-left: 5px;" type="button"
                 onclick="loadSettings(document.querySelector('#settings-file').files[0])">
                 <i class="material-icons left">play_arrow</i>
               </a>
@@ -385,8 +385,8 @@
               <div class="file-path-wrapper" style="flex-grow: 1;">
                 <input class="file-path validate" type="text">
               </div>
-              <a class="btn waves-effect waves-light white-text" style="margin-left: 5px;"
-                type="button" onclick="loadJS(document.querySelector('#js-file').files[0])">
+              <a class="btn waves-effect waves-light white-text" style="margin-left: 5px;" type="button"
+                onclick="loadJS(document.querySelector('#js-file').files[0])">
                 <i class="material-icons left">play_arrow</i>
               </a>
             </div>
@@ -517,34 +517,29 @@ function runJS(code) {
   <footer class="page-footer blue-grey center-align">
     <div class="footer-copyright blue-grey darken-1">
       <div>
-        © 2020 German Aerospace Center (<a class=" orange-text text-accent-24"
-          href="https://www.dlr.de" target="_blank">DLR</a>)
+        © 2020 German Aerospace Center (<a class=" orange-text text-accent-24" href="https://www.dlr.de"
+          target="_blank">DLR</a>)
       </div>
       <div>
         Made with
-        <a class=" orange-text text-accent-24" href="https://materializecss.com"
-          target="_blank">materializecss</a>,
+        <a class=" orange-text text-accent-24" href="https://materializecss.com" target="_blank">materializecss</a>,
         <a class=" orange-text text-accent-24" href="https://material.io" target="_blank">Material
           Icons</a>,
         <a class=" orange-text text-accent-24" href="https://jquery.com" target="_blank">jQuery</a>,
         and
-        <a class=" orange-text text-accent-24" href="https://highlightjs.org/"
-          target="_blank">highlight.js</a>.
+        <a class=" orange-text text-accent-24" href="https://highlightjs.org/" target="_blank">highlight.js</a>.
       </div>
       <div>
         Visit CosmoScout VR on <a class=" orange-text text-accent-24"
-          href="https://github.com/cosmoscout/cosmoscout-vr/tree/develop"
-          target="_blank">GitHub.com</a>
+          href="https://github.com/cosmoscout/cosmoscout-vr/tree/develop" target="_blank">GitHub.com</a>
       </div>
     </div>
   </footer>
 
   <!-- Third Party-->
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
-  <script
-    src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
-  <script
-    src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@10.0.1/build/highlight.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@10.0.1/build/highlight.min.js"></script>
 
   <script type="text/javascript">
     // Reloads the log every second.

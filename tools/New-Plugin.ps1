@@ -1,8 +1,9 @@
 # ------------------------------------------------------------------------------------------------ #
 #                                This file is part of CosmoScout VR                                #
-#       and may be used under the terms of the MIT license. See the LICENSE file for details.      #
-#                         Copyright: (c) 2019 German Aerospace Center (DLR)                        #
 # ------------------------------------------------------------------------------------------------ #
+
+# SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+# SPDX-License-Identifier: MIT
 
 <#
     .SYNOPSIS
@@ -145,9 +146,10 @@ function New-CMakeLists($directory) {
     $cMakeListsText = @"
 # ------------------------------------------------------------------------------------------------ #
 #                                This file is part of CosmoScout VR                                #
-#       and may be used under the terms of the MIT license. See the LICENSE file for details.      #
-#                         Copyright: (c) 2019 German Aerospace Center (DLR)                        #
 # ------------------------------------------------------------------------------------------------ #
+
+# SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+# SPDX-License-Identifier: MIT
 
 option(CSP_$screamingSnakeCaseName `"Enable compilation of this plugin`" ON)
 
@@ -201,9 +203,10 @@ function New-CppPluginClass($directory) {
     $pluginHeaderText = @"
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //                               This file is part of CosmoScout VR                               //
-//      and may be used under the terms of the MIT license. See the LICENSE file for details.     //
-//                        Copyright: (c) 2019 German Aerospace Center (DLR)                       //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+// SPDX-License-Identifier: MIT
 
 #ifndef CSP_${screamingSnakeCaseName}_PLUGIN_HPP
 #define CSP_${screamingSnakeCaseName}_PLUGIN_HPP
@@ -241,9 +244,10 @@ class Plugin : public cs::core::PluginBase {
     $pluginSourceText = @"
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //                               This file is part of CosmoScout VR                               //
-//      and may be used under the terms of the MIT license. See the LICENSE file for details.     //
-//                        Copyright: (c) 2019 German Aerospace Center (DLR)                       //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+// SPDX-License-Identifier: MIT
 
 #include `"Plugin.hpp`"
 
@@ -346,9 +350,10 @@ function New-CppLogger($directory) {
     $loggerHeaderText = @"
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //                               This file is part of CosmoScout VR                               //
-//      and may be used under the terms of the MIT license. See the LICENSE file for details.     //
-//                        Copyright: (c) 2019 German Aerospace Center (DLR)                       //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+// SPDX-License-Identifier: MIT
 
 #ifndef CSP_${screamingSnakeCaseName}_LOGGER_HPP
 #define CSP_${screamingSnakeCaseName}_LOGGER_HPP
@@ -369,9 +374,10 @@ spdlog::logger& logger();
     $loggerSourceText = @"
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //                               This file is part of CosmoScout VR                               //
-//      and may be used under the terms of the MIT license. See the LICENSE file for details.     //
-//                        Copyright: (c) 2019 German Aerospace Center (DLR)                       //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+// SPDX-License-Identifier: MIT
 
 #include "logger.hpp"
 
@@ -400,7 +406,12 @@ spdlog::logger& logger() {
 
 function New-JSApi($directory) {
     $jsApiText = @"
-/* global IApi, CosmoScout */
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//                               This file is part of CosmoScout VR                               //
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+// SPDX-License-Identifier: MIT
 
 (() => {
   /**

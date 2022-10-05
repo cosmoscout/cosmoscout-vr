@@ -1,8 +1,9 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //                               This file is part of CosmoScout VR                               //
-//      and may be used under the terms of the MIT license. See the LICENSE file for details.     //
-//                        Copyright: (c) 2020 German Aerospace Center (DLR)                       //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+// SPDX-License-Identifier: MIT
 
 #ifndef CSP_WMS_OVERLAYS_WEB_MAP_EXCEPTION_HPP
 #define CSP_WMS_OVERLAYS_WEB_MAP_EXCEPTION_HPP

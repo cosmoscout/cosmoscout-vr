@@ -1,3 +1,8 @@
+<!-- 
+SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+SPDX-License-Identifier: MIT
+-->
+
 <div class="strike">
   <span>Dataset Selection</span>
 </div>
@@ -7,7 +12,7 @@
   </div>
   <div class="col-6 offset-1">
     <select data-callback="wmsOverlays.setServer" data-container="#cosmoscout" data-width="100%"
-            class="simple-value-dropdown" data-dropdown-align-right="true">
+      class="simple-value-dropdown" data-dropdown-align-right="true">
       <!-- Filled by JavaScript Function called from Plugin.cpp -->
     </select>
   </div>
@@ -22,7 +27,7 @@
   </div>
   <div class="col-6">
     <select data-callback="wmsOverlays.setLayer" data-container="#cosmoscout" data-width="100%"
-            class="simple-value-dropdown" data-dropdown-align-right="true" data-live-search="true">
+      class="simple-value-dropdown" data-dropdown-align-right="true" data-live-search="true">
       <!-- Filled by JavaScript Function called from Plugin.cpp -->
     </select>
   </div>
@@ -34,7 +39,7 @@
   </div>
   <div class="col-6 offset-1">
     <select data-callback="wmsOverlays.setStyle" data-container="#cosmoscout" data-width="100%"
-            class="simple-value-dropdown" data-dropdown-align-right="true">
+      class="simple-value-dropdown" data-dropdown-align-right="true">
       <!-- Filled by JavaScript Function called from Plugin.cpp -->
     </select>
   </div>
@@ -55,25 +60,25 @@
 <div class="row mb-1">
   <div class="col-3">
     <button class="btn glass block" data-toggle="tooltip" title="First"
-            onclick="CosmoScout.callbacks.wmsOverlays.goToFirstTime()">
+      onclick="CosmoScout.callbacks.wmsOverlays.goToFirstTime()">
       <i class="material-icons">skip_previous</i>
     </button>
   </div>
   <div class="col-3">
     <button class="btn glass block" data-toggle="tooltip" title="Previous"
-            onclick="CosmoScout.callbacks.wmsOverlays.goToPreviousTime()">
+      onclick="CosmoScout.callbacks.wmsOverlays.goToPreviousTime()">
       <i class="material-icons">navigate_before</i>
     </button>
   </div>
   <div class="col-3">
     <button class="btn glass block" data-toggle="tooltip" title="Next"
-            onclick="CosmoScout.callbacks.wmsOverlays.goToNextTime()">
+      onclick="CosmoScout.callbacks.wmsOverlays.goToNextTime()">
       <i class="material-icons">navigate_next</i>
     </button>
   </div>
   <div class="col-3">
     <button class="btn glass block" data-toggle="tooltip" title="Last"
-            onclick="CosmoScout.callbacks.wmsOverlays.goToLastTime()">
+      onclick="CosmoScout.callbacks.wmsOverlays.goToLastTime()">
       <i class="material-icons">skip_next</i>
     </button>
   </div>
@@ -92,7 +97,7 @@
   </div>
   <div class="col-2">
     <button class="btn glass block" data-toggle="tooltip" title="Go to center"
-            onclick="CosmoScout.callbacks.wmsOverlays.goToDefaultBounds()" disabled>
+      onclick="CosmoScout.callbacks.wmsOverlays.goToDefaultBounds()" disabled>
       <i class="material-icons">place</i>
     </button>
   </div>
@@ -107,7 +112,7 @@
   </div>
   <div class="col-2">
     <button class="btn glass block" data-toggle="tooltip" title="Go to center"
-            onclick="CosmoScout.callbacks.wmsOverlays.goToCurrentBounds()" disabled>
+      onclick="CosmoScout.callbacks.wmsOverlays.goToCurrentBounds()" disabled>
       <i class="material-icons">place</i>
     </button>
   </div>

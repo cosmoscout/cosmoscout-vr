@@ -1,3 +1,8 @@
+<!-- 
+SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+SPDX-License-Identifier: CC-BY-4.0
+ -->
+
 # VR Accessibility for CosmoScout VR
 
 A CosmoScout VR plugin collection of settings to reduce cybersickness symptoms.

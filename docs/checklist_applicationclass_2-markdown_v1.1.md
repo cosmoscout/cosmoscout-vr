@@ -1,4 +1,9 @@
-﻿# Checklist for Application Class 2
+﻿<!--
+SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+SPDX-License-Identifier: CC-BY-4.0
+-->
+
+# Checklist for Application Class 2
 > The checklist is in version 1.1. It refers to the DLR Software Engineering Guidelines [Reference Manual](https://doi.org/10.5281/zenodo.1344612) in version 1.0.0.
 
 <!--

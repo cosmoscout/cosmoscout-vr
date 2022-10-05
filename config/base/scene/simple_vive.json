@@ -866,19 +866,19 @@
           "texture": "../share/resources/textures/uranus.jpg"
         },
         "Miranda": {
-          "texture": "../share/resources/textures/miranda.jpg"
+          "texture": "../share/resources/textures/fallback.png"
         },
         "Ariel": {
-          "texture": "../share/resources/textures/ariel.jpg"
+          "texture": "../share/resources/textures/fallback.png"
         },
         "Umbriel": {
-          "texture": "../share/resources/textures/umbriel.jpg"
+          "texture": "../share/resources/textures/fallback.png"
         },
         "Titania": {
-          "texture": "../share/resources/textures/titania.jpg"
+          "texture": "../share/resources/textures/fallback.png"
         },
         "Oberon": {
-          "texture": "../share/resources/textures/oberon.jpg"
+          "texture": "../share/resources/textures/fallback.png"
         },
         "Neptune": {
           "texture": "../share/resources/textures/neptune.jpg"

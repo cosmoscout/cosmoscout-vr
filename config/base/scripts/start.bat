@@ -2,9 +2,10 @@
 
 rem ---------------------------------------------------------------------------------------------- #
 rem                               This file is part of CosmoScout VR                               #
-rem      and may be used under the terms of the MIT license. See the LICENSE file for details.     #
-rem                         Copyright: (c) 2019 German Aerospace Center (DLR)                      #
 rem ---------------------------------------------------------------------------------------------- #
+
+rem SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+rem SPDX-License-Identifier: CC0-1.0
 
 rem Change working directory to the location of this script.
 set SCRIPT_DIR=%~dp0

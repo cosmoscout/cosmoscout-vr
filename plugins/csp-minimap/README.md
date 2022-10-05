@@ -1,3 +1,8 @@
+<!-- 
+SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+SPDX-License-Identifier: CC-BY-4.0
+ -->
+
 # Minimap for CosmoScout VR
 
 A CosmoScout VR plugin which shows a 2D-Minimap in the user interface.

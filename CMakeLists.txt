@@ -1,8 +1,9 @@
 # ------------------------------------------------------------------------------------------------ #
 #                                This file is part of CosmoScout VR                                #
-#       and may be used under the terms of the MIT license. See the LICENSE file for details.      #
-#                         Copyright: (c) 2019 German Aerospace Center (DLR)                        #
 # ------------------------------------------------------------------------------------------------ #
+
+# SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+# SPDX-License-Identifier: MIT
 
 cmake_minimum_required(VERSION 3.13)
 project(cosmoscout-vr VERSION 1.5.0)
@@ -207,8 +208,13 @@ install(DIRECTORY
 
 # Install license files
 install(FILES
-  ${CMAKE_SOURCE_DIR}/LICENSE-3RD-PARTY.txt 
-  ${CMAKE_SOURCE_DIR}/LICENSE.txt 
+  ${CMAKE_SOURCE_DIR}/LICENSE-3RD-PARTY.txt
+  ${CMAKE_SOURCE_DIR}/LICENSE.md
+  DESTINATION "docs"
+)
+
+install(DIRECTORY
+  ${CMAKE_SOURCE_DIR}/LICENSES
   DESTINATION "docs"
 )
 

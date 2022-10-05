@@ -1,3 +1,8 @@
+<!--
+SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+SPDX-License-Identifier: CC0-1.0
+-->
+
 # Texture Credits
 
 | Texture       | Source                                                                                                       | License       | Authors / Citation                                                                                             |
@@ -6,6 +11,7 @@
 | mercury.jpg   | https://www.solarsystemscope.com/textures/                                                                   | CC-BY         |                                                                                                                |
 | venus.jpg     | https://www.solarsystemscope.com/textures/                                                                   | CC-BY         |                                                                                                                |
 | mars.jpg      | https://www.solarsystemscope.com/textures/                                                                   | CC-BY         |                                                                                                                |
+| moon.jpg      | https://www.solarsystemscope.com/textures/                                                                   | CC-BY         |                                                                                                                |
 | jupiter.jpg   | https://www.planetary.org/space-images/merged-cassini-and-juno/                                              | CC-BY         |                                                                                                                |
 | saturn.jpg    | https://www.solarsystemscope.com/textures/                                                                   | CC-BY         |                                                                                                                |
 | uranus.jpg    | https://www.solarsystemscope.com/textures/                                                                   | CC-BY         |                                                                                                                |
@@ -29,8 +35,3 @@
 | titan.jpg     | https://astrogeology.usgs.gov/search/map/Titan/Cassini/Global-Mosaic/Titan_ISS_P19658_Mosaic_Global_4km      | None          | Cassini ISS Team                                                                                               |
 | triton.jpg    | https://astrogeology.usgs.gov/search/map/Triton/Mosaic/Triton_Voyager2_ClrMosaic_GlobalFill_600m             | Public Domain | Lunar and Planetary Institute                                                                                  |
 | mimas.jpg     | https://www.jpl.nasa.gov/images/pia18437-color-maps-of-mimas-2014                                            | Public Domain |                                                                                                                |
-| miranda.jpg   | https://repository.hou.usra.edu/handle/20.500.11753/1687                                                     | None          | Paul Schenk, USRA Houston Repository                                                                           |
-| ariel.jpg     | https://repository.hou.usra.edu/handle/20.500.11753/1687                                                     | None          | Paul Schenk, USRA Houston Repository                                                                           |
-| umbriel.jpg   | https://repository.hou.usra.edu/handle/20.500.11753/1687                                                     | None          | Paul Schenk, USRA Houston Repository                                                                           |
-| titania.jpg   | https://repository.hou.usra.edu/handle/20.500.11753/1687                                                     | None          | Paul Schenk, USRA Houston Repository                                                                           |
-| oberon.jpg    | https://repository.hou.usra.edu/handle/20.500.11753/1687                                                     | None          | Paul Schenk, USRA Houston Repository                                                                           |

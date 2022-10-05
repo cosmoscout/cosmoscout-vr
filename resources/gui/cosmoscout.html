@@ -1,3 +1,8 @@
+<!-- 
+SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+SPDX-License-Identifier: MIT
+-->
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -57,12 +62,10 @@
       </div>
 
       <div id="time-control" class="item">
-        <a class="btn light-glass btn-main" data-toggle="tooltip" title="Reset simulation time"
-          id="time-reset-button">
+        <a class="btn light-glass btn-main" data-toggle="tooltip" title="Reset simulation time" id="time-reset-button">
           <i class="material-icons">restore</i>
         </a>
-        <a class="btn light-glass" data-toggle="tooltip" title="Toggle calendar"
-          id="calendar-button">
+        <a class="btn light-glass" data-toggle="tooltip" title="Toggle calendar" id="calendar-button">
           <i class="material-icons">date_range</i>
         </a>
         <div id="date-label-container">
@@ -75,8 +78,8 @@
               data-direction="decrease">
               <i class="material-icons">expand_more</i>
             </a>
-            <a class="btn light-glass" id="decrease-month-button" data-change="time"
-              data-type="month" data-direction="decrease">
+            <a class="btn light-glass" id="decrease-month-button" data-change="time" data-type="month"
+              data-direction="decrease">
               <i class="material-icons">expand_more</i>
             </a>
             <a class="btn light-glass" id="decrease-day-button" data-change="time" data-type="day"
@@ -87,12 +90,12 @@
               data-direction="decrease">
               <i class="material-icons">expand_more</i>
             </a>
-            <a class="btn light-glass" id="decrease-minute-button" data-change="time"
-              data-type="minute" data-direction="decrease">
+            <a class="btn light-glass" id="decrease-minute-button" data-change="time" data-type="minute"
+              data-direction="decrease">
               <i class="material-icons">expand_more</i>
             </a>
-            <a class="btn light-glass" id="decrease-second-button" data-change="time"
-              data-type="second" data-direction="decrease">
+            <a class="btn light-glass" id="decrease-second-button" data-change="time" data-type="second"
+              data-direction="decrease">
               <i class="material-icons">expand_more</i>
             </a>
           </span>
@@ -102,8 +105,8 @@
               data-direction="increase">
               <i class="material-icons">expand_less</i>
             </a>
-            <a class="btn light-glass" id="increase-month-button" data-change="time"
-              data-type="month" data-direction="increase">
+            <a class="btn light-glass" id="increase-month-button" data-change="time" data-type="month"
+              data-direction="increase">
               <i class="material-icons">expand_less</i>
             </a>
             <a class="btn light-glass" id="increase-day-button" data-change="time" data-type="day"
@@ -114,19 +117,18 @@
               data-direction="increase">
               <i class="material-icons">expand_less</i>
             </a>
-            <a class="btn light-glass" id="increase-minute-button" data-change="time"
-              data-type="minute" data-direction="increase">
+            <a class="btn light-glass" id="increase-minute-button" data-change="time" data-type="minute"
+              data-direction="increase">
               <i class="material-icons">expand_less</i>
             </a>
-            <a class="btn light-glass" id="increase-second-button" data-change="time"
-              data-type="second" data-direction="increase">
+            <a class="btn light-glass" id="increase-second-button" data-change="time" data-type="second"
+              data-direction="increase">
               <i class="material-icons">expand_less</i>
             </a>
           </span>
         </div>
 
-        <a class="btn light-glass btn-main" data-toggle="tooltip" title="Toggle pause"
-          id="pause-button">
+        <a class="btn light-glass btn-main" data-toggle="tooltip" title="Toggle pause" id="pause-button">
           <i class="material-icons">pause</i>
         </a>
       </div>
@@ -138,23 +140,20 @@
       </div>
 
       <div id="speed-decrease-button-container" class="item">
-        <a class="btn light-glass" data-toggle="tooltip" title='Fast rewind'
-          id="speed-decrease-button">
+        <a class="btn light-glass" data-toggle="tooltip" title='Fast rewind' id="speed-decrease-button">
           <i class="material-icons">fast_rewind</i>
         </a>
       </div>
 
       <div id="speed-increase-button-container" class="item">
-        <a class="btn light-glass" data-toggle="tooltip" title='Fast forward'
-          id="speed-increase-button">
+        <a class="btn light-glass" data-toggle="tooltip" title='Fast forward' id="speed-increase-button">
           <i class="material-icons">fast_forward</i>
         </a>
       </div>
 
       <div id="timeline-search-area" class="item">
         <input type="text" spellcheck="false" placeholder="Try Mars:Gale">
-        <a class="btn light-glass" id="timeline-search-button" data-toggle="tooltip"
-          title="Travel to Location">
+        <a class="btn light-glass" id="timeline-search-button" data-toggle="tooltip" title="Travel to Location">
           <i class="material-icons">search</i>
         </a>
       </div>
@@ -182,19 +181,19 @@
     <div id="sidebar">
       <div class="accordion" id="sidebar-accordion">
         <div class="sidebar-tab">
-          <div class="section-header collapsed tab" id="heading-GeneralSettings"
-            data-toggle="collapse" data-target="#collapse-GeneralSettings" aria-expanded="false"
-            aria-controls="collapse-GeneralSettings" type="button">
+          <div class="section-header collapsed tab" id="heading-GeneralSettings" data-toggle="collapse"
+            data-target="#collapse-GeneralSettings" aria-expanded="false" aria-controls="collapse-GeneralSettings"
+            type="button">
             <span class="header-name">Advanced Settings</span>
             <i class="material-icons">settings</i>
           </div>
-          <div class="section-body collapse" id="collapse-GeneralSettings"
-            aria-labelledby="heading-GeneralSettings" data-parent="#sidebar-accordion">
+          <div class="section-body collapse" id="collapse-GeneralSettings" aria-labelledby="heading-GeneralSettings"
+            data-parent="#sidebar-accordion">
             <div class="accordion" id="settings-accordion">
               <div class="settings-section">
-                <div class="section-header collapsed" id="headingSettings-Graphics"
-                  data-toggle="collapse" data-target="#collapseSettings-Graphics"
-                  aria-expanded="false" aria-controls="collapseSettings-Graphics" type="button">
+                <div class="section-header collapsed" id="headingSettings-Graphics" data-toggle="collapse"
+                  data-target="#collapseSettings-Graphics" aria-expanded="false"
+                  aria-controls="collapseSettings-Graphics" type="button">
                   <i class="material-icons">brightness_medium</i>
                   <span>Graphics</span>
                   <i class="material-icons caret-icon">keyboard_arrow_left</i>
@@ -360,50 +359,44 @@
                     </div>
                     <div class="col-7">
                       <label class="radiolabel">
-                        <input name="eclipse_shadow_mode" type="radio"
-                          data-callback="graphics.setEclipseShadowMode0" />
+                        <input name="eclipse_shadow_mode" type="radio" data-callback="graphics.setEclipseShadowMode0" />
                         <span>None</span>
                       </label>
                     </div>
                     <div class="col-7 offset-5">
                       <label class="radiolabel">
-                        <input name="eclipse_shadow_mode" type="radio"
-                          data-callback="graphics.setEclipseShadowMode1" />
+                        <input name="eclipse_shadow_mode" type="radio" data-callback="graphics.setEclipseShadowMode1" />
                         <span>Debug</span>
                       </label>
                     </div>
                     <div class="col-7 offset-5">
                       <label class="radiolabel">
-                        <input name="eclipse_shadow_mode" type="radio"
-                          data-callback="graphics.setEclipseShadowMode2" />
+                        <input name="eclipse_shadow_mode" type="radio" data-callback="graphics.setEclipseShadowMode2" />
                         <span>Linear</span>
                       </label>
                     </div>
                     <div class="col-7 offset-5">
                       <label class="radiolabel">
-                        <input name="eclipse_shadow_mode" type="radio"
-                          data-callback="graphics.setEclipseShadowMode3" />
+                        <input name="eclipse_shadow_mode" type="radio" data-callback="graphics.setEclipseShadowMode3" />
                         <span>Smoothstep</span>
                       </label>
                     </div>
                     <div class="col-7 offset-5">
                       <label class="radiolabel">
-                        <input name="eclipse_shadow_mode" type="radio"
-                          data-callback="graphics.setEclipseShadowMode4" />
+                        <input name="eclipse_shadow_mode" type="radio" data-callback="graphics.setEclipseShadowMode4" />
                         <span>Circle Intersection</span>
                       </label>
                     </div>
                     <div class="col-7 offset-5">
                       <label class="radiolabel">
-                        <input name="eclipse_shadow_mode" type="radio"
-                          data-callback="graphics.setEclipseShadowMode5" />
+                        <input name="eclipse_shadow_mode" type="radio" data-callback="graphics.setEclipseShadowMode5" />
                         <span>Texture Lookups</span>
                       </label>
                     </div>
                     <div class="col-7 offset-5">
                       <label class="radiolabel">
-                        <input name="eclipse_shadow_mode" type="radio"
-                          data-callback="graphics.setEclipseShadowMode6" checked />
+                        <input name="eclipse_shadow_mode" type="radio" data-callback="graphics.setEclipseShadowMode6"
+                          checked />
                         <span>Fast Texture Lookups</span>
                       </label>
                     </div>
@@ -413,9 +406,9 @@
               </div>
 
               <div class="settings-section">
-                <div class="section-header collapsed" id="headingSettings-Optics"
-                  data-toggle="collapse" data-target="#collapseSettings-Optics"
-                  aria-expanded="false" aria-controls="collapseSettings-Optics" type="button">
+                <div class="section-header collapsed" id="headingSettings-Optics" data-toggle="collapse"
+                  data-target="#collapseSettings-Optics" aria-expanded="false" aria-controls="collapseSettings-Optics"
+                  type="button">
                   <i class="material-icons">camera</i><span>Camera</span><i
                     class="material-icons caret-icon">keyboard_arrow_left</i>
                 </div>
@@ -461,10 +454,8 @@
                       Exposure (EV)
                     </div>
                     <div class="col-1">
-                      <label class="checklabel" data-toggle="tooltip-top"
-                        title='Select exposure automatically'>
-                        <input type="checkbox" data-callback="graphics.setEnableAutoExposure"
-                          checked />
+                      <label class="checklabel" data-toggle="tooltip-top" title='Select exposure automatically'>
+                        <input type="checkbox" data-callback="graphics.setEnableAutoExposure" checked />
                         <i class="material-icons"></i>
                       </label>
                     </div>
@@ -531,15 +522,13 @@
                     </div>
                     <div class="col-7">
                       <label class="radiolabel">
-                        <input name="glare_mode" type="radio" data-callback="graphics.setGlareMode0"
-                          checked />
+                        <input name="glare_mode" type="radio" data-callback="graphics.setGlareMode0" checked />
                         <span>Symmetric Gauss</span>
                       </label>
                     </div>
                     <div class="col-7 offset-5">
                       <label class="radiolabel">
-                        <input name="glare_mode" type="radio"
-                          data-callback="graphics.setGlareMode1" />
+                        <input name="glare_mode" type="radio" data-callback="graphics.setGlareMode1" />
                         <span>Asymmetric Gauss</span>
                       </label>
                     </div>
@@ -548,8 +537,7 @@
                   <div class="row hdr-setting">
                     <div class="col-7 offset-5">
                       <label class="checklabel">
-                        <input type="checkbox" data-callback="graphics.setEnableBicubicGlareFilter"
-                          checked />
+                        <input type="checkbox" data-callback="graphics.setEnableBicubicGlareFilter" checked />
                         <i class="material-icons"></i>
                         <span>Bicubic Glare Filter</span>
                       </label>
@@ -562,22 +550,20 @@
                     </div>
                     <div class="col-7">
                       <label class="radiolabel">
-                        <input name="tonemapping_mode" type="radio"
-                          data-callback="graphics.setToneMappingMode0" />
+                        <input name="tonemapping_mode" type="radio" data-callback="graphics.setToneMappingMode0" />
                         <span>None</span>
                       </label>
                     </div>
                     <div class="col-7 offset-5">
                       <label class="radiolabel">
-                        <input name="tonemapping_mode" type="radio"
-                          data-callback="graphics.setToneMappingMode1" />
+                        <input name="tonemapping_mode" type="radio" data-callback="graphics.setToneMappingMode1" />
                         <span>Gamma Only</span>
                       </label>
                     </div>
                     <div class="col-7 offset-5">
                       <label class="radiolabel">
-                        <input name="tonemapping_mode" type="radio"
-                          data-callback="graphics.setToneMappingMode2" checked />
+                        <input name="tonemapping_mode" type="radio" data-callback="graphics.setToneMappingMode2"
+                          checked />
                         <span>Filmic</span>
                       </label>
                     </div>
@@ -617,8 +603,7 @@
     <div id="calendar" class="draggable-window resizable-window auto-hide-header">
       <div class="window-wrapper">
         <div class="window-header">
-          <span class="window-title"><i
-              class="material-icons">date_range</i><span>Calendar</span></span>
+          <span class="window-title"><i class="material-icons">date_range</i><span>Calendar</span></span>
           <a class="btn light-glass" data-action="lock" data-toggle="tooltip" title="Keep open">
             <i class="material-icons">lock_open</i>
           </a>
@@ -636,8 +621,8 @@
     <div id="bookmark-editor" class="draggable-window resizable-window">
       <div class="window-wrapper">
         <div class="window-header">
-          <div class="window-title"><i class="material-icons">bookmark</i><span
-              id="bookmark-editor-title">Bookmark Editor</span>
+          <div class="window-title"><i class="material-icons">bookmark</i><span id="bookmark-editor-title">Bookmark
+              Editor</span>
           </div>
           <a class="btn light-glass" data-action="close" data-toggle="tooltip" title="Close">
             <i class="material-icons">close</i>
@@ -658,9 +643,8 @@
 
           <div class="row mb-3">
             <div class="col" style="flex-grow: 0;">
-              <a tabindex="0" id="bookmark-editor-icon-select-button" class="btn block glass"
-                data-trigger="focus" data-toggle="popover"
-                data-popover-content="#bookmark-editor-icon-select-popover">
+              <a tabindex="0" id="bookmark-editor-icon-select-button" class="btn block glass" data-trigger="focus"
+                data-toggle="popover" data-popover-content="#bookmark-editor-icon-select-popover">
                 <span>Icon</span>
                 <img class="img-fluid" src="">
               </a>
@@ -684,20 +668,18 @@
             <div class="col">
               <div class="row mb-1">
                 <div class="col-8">
-                  <input type="text" placeholder="Bookmark Name" class="form-control"
-                    id="bookmark-editor-name">
+                  <input type="text" placeholder="Bookmark Name" class="form-control" id="bookmark-editor-name">
                   <div class="invalid-feedback"></div>
                 </div>
                 <div class="col-4">
-                  <input type="text" class="form-control color-input" id="bookmark-editor-color"
-                    style="color: black;" value="">
+                  <input type="text" class="form-control color-input" id="bookmark-editor-color" style="color: black;"
+                    value="">
                 </div>
               </div>
 
               <div class="row">
                 <div class="col-12">
-                  <input type="text" placeholder="Description" class="form-control"
-                    id="bookmark-editor-description">
+                  <input type="text" placeholder="Description" class="form-control" id="bookmark-editor-description">
                   <div class="invalid-feedback"></div>
                 </div>
               </div>
@@ -711,8 +693,7 @@
             </div>
             <div class="col-6">
               <div class="input-group">
-                <input type="text" placeholder="Start Date" class="form-control"
-                  id="bookmark-editor-start-date">
+                <input type="text" placeholder="Start Date" class="form-control" id="bookmark-editor-start-date">
                 <div class="input-group-append">
                   <button class="btn glass fix-rounded-right" type="button" data-toggle="tooltip"
                     title="Use current time"><i class="material-icons">update</i></button>
@@ -722,8 +703,7 @@
             </div>
             <div class="col-6">
               <div class=" input-group">
-                <input type="text" placeholder="End Date" class="form-control"
-                  id="bookmark-editor-end-date">
+                <input type="text" placeholder="End Date" class="form-control" id="bookmark-editor-end-date">
                 <div class="input-group-append">
                   <button class="btn glass fix-rounded-right" type="button" data-toggle="tooltip"
                     title="Use current time"><i class="material-icons">update</i></button>
@@ -741,10 +721,8 @@
             </div>
 
             <div class="col-12 input-group">
-              <input type="text" placeholder="Center" class="form-control"
-                id="bookmark-editor-center">
-              <input type="text" placeholder="Frame" class="form-control"
-                id="bookmark-editor-frame">
+              <input type="text" placeholder="Center" class="form-control" id="bookmark-editor-center">
+              <input type="text" placeholder="Frame" class="form-control" id="bookmark-editor-frame">
               <div class="input-group-append">
                 <button class="btn glass fix-rounded-right" type="button" data-toggle="tooltip"
                   title="Use current Body"><i class="material-icons">place</i></button>
@@ -755,12 +733,9 @@
 
           <div class="row mb-2">
             <div class="col-12 input-group">
-              <input id="bookmark-editor-location-x" type="text" class="form-control"
-                placeholder="LocX">
-              <input id="bookmark-editor-location-y" type="text" class="form-control"
-                placeholder="LocY">
-              <input id="bookmark-editor-location-z" type="text" class="form-control"
-                placeholder="LocZ">
+              <input id="bookmark-editor-location-x" type="text" class="form-control" placeholder="LocX">
+              <input id="bookmark-editor-location-y" type="text" class="form-control" placeholder="LocY">
+              <input id="bookmark-editor-location-z" type="text" class="form-control" placeholder="LocZ">
               <div class="input-group-append">
                 <button class="btn glass fix-rounded-right" type="button" data-toggle="tooltip"
                   title="Use current position"><i class="material-icons">place</i></button>
@@ -771,14 +746,10 @@
 
           <div class="row mb-2">
             <div class="col-12 input-group">
-              <input id="bookmark-editor-rotation-x" type="text" class="form-control"
-                placeholder="RotX">
-              <input id="bookmark-editor-rotation-y" type="text" class="form-control"
-                placeholder="RotY">
-              <input id="bookmark-editor-rotation-z" type="text" class="form-control"
-                placeholder="RotZ">
-              <input id="bookmark-editor-rotation-w" type="text" class="form-control "
-                placeholder="RotW">
+              <input id="bookmark-editor-rotation-x" type="text" class="form-control" placeholder="RotX">
+              <input id="bookmark-editor-rotation-y" type="text" class="form-control" placeholder="RotY">
+              <input id="bookmark-editor-rotation-z" type="text" class="form-control" placeholder="RotZ">
+              <input id="bookmark-editor-rotation-w" type="text" class="form-control " placeholder="RotW">
               <div class="input-group-append">
                 <button class="btn glass fix-rounded-right" type="button" data-toggle="tooltip"
                   title="Use current rotation"><i class="material-icons">place</i></button>
@@ -814,12 +785,10 @@
       <div id="bookmark-tooltip">
         <div id="bookmark-tooltip-header">
           <span id="bookmark-tooltip-name"> Name </span>
-          <a id="bookmark-tooltip-edit" class="btn light-glass" data-toggle="tooltip"
-            title="Edit Bookmark">
+          <a id="bookmark-tooltip-edit" class="btn light-glass" data-toggle="tooltip" title="Edit Bookmark">
             <i class="material-icons">edit</i>
           </a>
-          <a id="bookmark-tooltip-goto-time" class="btn light-glass" data-toggle="tooltip"
-            title="Go to Bookmark time">
+          <a id="bookmark-tooltip-goto-time" class="btn light-glass" data-toggle="tooltip" title="Go to Bookmark time">
             <i class="material-icons">update</i>
           </a>
           <a id="bookmark-tooltip-goto-location" class="btn light-glass" data-toggle="tooltip"
@@ -995,14 +964,13 @@
 
   <template id="sidebar-plugin-tab-template">
     <div class="sidebar-tab">
-      <div class="section-header collapsed tab" id="heading-%ID%" data-toggle="collapse"
-        data-target="#collapse-%ID%" aria-expanded="false" aria-controls="collapse-%ID%"
-        type="button">
+      <div class="section-header collapsed tab" id="heading-%ID%" data-toggle="collapse" data-target="#collapse-%ID%"
+        aria-expanded="false" aria-controls="collapse-%ID%" type="button">
         <span class="header-name font-alegreya">%NAME%</span>
         <i class="material-icons">%ICON%</i>
       </div>
-      <div class="section-body collapse container-fluid" id="collapse-%ID%"
-        aria-labelledby="heading-%ID%" data-parent="#sidebar-accordion">
+      <div class="section-body collapse container-fluid" id="collapse-%ID%" aria-labelledby="heading-%ID%"
+        data-parent="#sidebar-accordion">
         %CONTENT%
       </div>
     </div>
@@ -1010,9 +978,8 @@
 
   <template id="sidebar-settings-section-template">
     <div class="settings-section">
-      <div class="section-header collapsed font-alegreya" id="headingSettings-%ID%"
-        data-toggle="collapse" data-target="#collapseSettings-%ID%" aria-expanded="false"
-        aria-controls="collapseSettings-%ID%" type="button">
+      <div class="section-header collapsed font-alegreya" id="headingSettings-%ID%" data-toggle="collapse"
+        data-target="#collapseSettings-%ID%" aria-expanded="false" aria-controls="collapseSettings-%ID%" type="button">
         <i class="material-icons">%ICON%</i>
         <span>%NAME%</span>
         <i class="material-icons caret-icon">keyboard_arrow_left</i>
