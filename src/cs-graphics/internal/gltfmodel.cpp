@@ -910,8 +910,15 @@ std::shared_ptr<GLuint> createGPUsampler(tinygltf::Sampler const& s) {
     }
   });
   glGenSamplers(1, ptr.get());
-  glSamplerParameteri(*ptr, GL_TEXTURE_MIN_FILTER, s.minFilter);
-  glSamplerParameteri(*ptr, GL_TEXTURE_MAG_FILTER, s.magFilter);
+
+  if (s.minFilter >= 0) {
+    glSamplerParameteri(*ptr, GL_TEXTURE_MIN_FILTER, s.minFilter);
+  }
+
+  if (s.magFilter >= 0) {
+    glSamplerParameteri(*ptr, GL_TEXTURE_MAG_FILTER, s.magFilter);
+  }
+
   glSamplerParameteri(*ptr, GL_TEXTURE_WRAP_S, s.wrapS);
   glSamplerParameteri(*ptr, GL_TEXTURE_WRAP_T, s.wrapT);
   CheckGLErrors("createGPUsampler");
