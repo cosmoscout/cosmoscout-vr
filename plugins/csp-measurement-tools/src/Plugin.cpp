@@ -264,9 +264,6 @@ void Plugin::init() {
   mOnLoadConnection = mAllSettings->onLoad().connect([this]() { onLoad(); });
   mOnSaveConnection = mAllSettings->onSave().connect([this]() { onSave(); });
 
-  mGuiManager->addTemplate(
-      "measurement-tools", "../share/resources/gui/measurement-tool-template.html");
-
   mGuiManager->addPluginTabToSideBarFromHTML(
       "Measurement Tools", "multiline_chart", "../share/resources/gui/measurement-tools-tab.html");
 
@@ -406,9 +403,7 @@ void Plugin::deInit() {
   mGuiManager->removePluginTab("Measurement Tools");
 
   mGuiManager->getGui()->unregisterCallback("measurementTools.setNext");
-  mGuiManager->getGui()->callJavascript("CosmoScout.gui.removeTemplate", "measurement-tools");
-  mGuiManager->getGui()->callJavascript(
-      "CosmoScout.gui.unregisterCss", "css/csp-measurement-tools-sidebar.css");
+  mGuiManager->removeCSS("css/csp-measurement-tools-sidebar.css");
 
   mInputManager->pButtons[0].disconnect(mOnClickConnection);
   mInputManager->sOnDoubleClick.disconnect(mOnDoubleClickConnection);

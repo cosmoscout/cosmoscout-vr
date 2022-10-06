@@ -432,8 +432,7 @@ void Plugin::deInit() {
   mGuiManager->removePluginTab("WMS Overlays");
   mGuiManager->removeSettingsSection("WMS Overlays");
 
-  mGuiManager->getGui()->callJavascript(
-      "CosmoScout.gui.unregisterCss", "css/csp-simple-wms-bodies.css");
+  mGuiManager->removeCSS("css/csp-wms-overlays.css");
 
   mGuiManager->getGui()->unregisterCallback("wmsOverlays.setEnableTimeInterpolation");
   mGuiManager->getGui()->unregisterCallback("wmsOverlays.setEnableAutomaticBoundsUpdate");

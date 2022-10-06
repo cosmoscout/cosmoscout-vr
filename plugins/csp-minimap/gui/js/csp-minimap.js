@@ -105,7 +105,7 @@
 
     init() {
       // Add the minimap window.
-      this._mapDiv = CosmoScout.gui.loadTemplateContent('minimap');
+      this._mapDiv = CosmoScout.gui.loadTemplateContent('minimap-template');
       document.getElementById('cosmoscout').appendChild(this._mapDiv);
 
       // Create the Leaflet map.
@@ -182,6 +182,10 @@
       });
 
       this._resizeObserver.observe(this._mapDiv);
+    }
+
+    deinit() {
+      document.getElementById('cosmoscout').removeChild(this._mapDiv);
     }
 
     // Update minimap based on observer state.

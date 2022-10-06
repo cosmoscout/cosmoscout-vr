@@ -24,7 +24,7 @@
     add(name, icon) {
       const area = document.getElementById('measurement-tools');
 
-      const tool = CosmoScout.gui.loadTemplateContent('measurement-tools');
+      const tool = CosmoScout.gui.loadTemplateContent('measurement-tool-template');
 
       tool.innerHTML = tool.innerHTML.replace(/%CONTENT%/g, name).replace(/%ICON%/g, icon).trim();
 

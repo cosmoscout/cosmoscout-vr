@@ -19,7 +19,7 @@
      * @inheritDoc
      */
     init() {
-      this._infoWindow = CosmoScout.gui.loadTemplateContent("wmsOverlays-infoWindow");
+      this._infoWindow = CosmoScout.gui.loadTemplateContent("wmsOverlays-infoWindow-template");
       document.getElementById("cosmoscout").appendChild(this._infoWindow);
 
       this._layerSelect = document.querySelector(`[data-callback="wmsOverlays.setLayer"]`);

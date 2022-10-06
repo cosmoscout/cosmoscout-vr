@@ -33,11 +33,6 @@ void Plugin::init() {
 
   logger().info("Loading plugin...");
 
-  mGuiManager->addTemplate(
-      "fly-to-locations-grid-button", "../share/resources/gui/fly-to-locations-grid-button.html");
-  mGuiManager->addTemplate(
-      "fly-to-locations-list-item", "../share/resources/gui/fly-to-locations-list-item.html");
-
   mGuiManager->executeJavascriptFile("../share/resources/gui/js/csp-fly-to-locations.js");
   mGuiManager->addCSS("css/csp-fly-to-locations.css");
 
@@ -95,11 +90,7 @@ void Plugin::deInit() {
   mGuiManager->onBookmarkAdded().disconnect(mOnBookmarkAddedConnection);
   mGuiManager->onBookmarkRemoved().disconnect(mOnBookmarkRemovedConnection);
 
-  mGuiManager->removeTemplate("fly-to-locations-grid-button");
-  mGuiManager->removeTemplate("fly-to-locations-list-item");
-
-  mGuiManager->getGui()->callJavascript(
-      "CosmoScout.gui.unregisterCss", "css/csp-fly-to-locations.css");
+  mGuiManager->removeCSS("css/csp-fly-to-locations.css");
 
   mSolarSystem->pActiveObject.disconnect(mActiveBodyConnection);
 

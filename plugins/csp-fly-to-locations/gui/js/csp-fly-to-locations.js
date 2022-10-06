@@ -24,7 +24,7 @@
      * @param bookmarkIcon {string}
      */
     addGridBookmark(bookmarkID, bookmarkName, bookmarkIcon) {
-      let button       = CosmoScout.gui.loadTemplateContent('fly-to-locations-grid-button');
+      let button       = CosmoScout.gui.loadTemplateContent('fly-to-locations-grid-button-template');
       button.innerHTML = button.innerHTML.replace(/%NAME%/g, bookmarkName)
                              .replace(/%ICON%/g, bookmarkIcon)
                              .replace(/%ID%/g, bookmarkID)
@@ -43,7 +43,7 @@
      * @param bookmarkHasTime {boolean}
      */
     addListBookmark(bookmarkID, bookmarkName, bookmarkHasTime) {
-      let listItem = CosmoScout.gui.loadTemplateContent('fly-to-locations-list-item');
+      let listItem = CosmoScout.gui.loadTemplateContent('fly-to-locations-list-item-template');
       listItem.innerHTML =
           listItem.innerHTML.replace(/%NAME%/g, bookmarkName).replace(/%ID%/g, bookmarkID).trim();
       listItem.id = `flytolocations-bookmark-${bookmarkID}`;

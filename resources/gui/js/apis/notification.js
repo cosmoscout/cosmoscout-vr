@@ -92,7 +92,7 @@ class NotificationApi extends IApi {
    * @private
    */
   _makeNotification(title, content, icon = '') {
-    const notification = CosmoScout.gui.loadTemplateContent('notification');
+    const notification = CosmoScout.gui.loadTemplateContent('notification-template');
 
     if (notification === false) {
       throw new Error(

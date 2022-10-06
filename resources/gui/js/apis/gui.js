@@ -25,15 +25,6 @@ class GuiApi extends IApi {
   _templates = new Map();
 
   /**
-   * Registered html parts
-   *
-   * @see {addTemplate}
-   * @type {Map<string, DocumentFragment>}
-   * @private
-   */
-  _html = new Map();
-
-  /**
    * Initialize third party drop downs,
    * add input event listener,
    * initialize tooltips
@@ -343,7 +334,7 @@ class GuiApi extends IApi {
     template = this._templates.get(id);
     
     if (!template) {
-     template = document.getElementById(id + "-template");
+     template = document.getElementById(id);
 
      if (template) {
        template = template.content;

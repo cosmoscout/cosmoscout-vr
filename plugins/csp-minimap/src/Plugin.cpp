@@ -102,7 +102,7 @@ void Plugin::init() {
   mGuiManager->addCSS("third-party/css/leaflet.css");
 
   mGuiManager->addCSS("css/csp-minimap.css");
-  mGuiManager->addTemplate("minimap", "../share/resources/gui/csp-minimap-template.html");
+  mGuiManager->addTemplate("minimap-template", "../share/resources/gui/csp-minimap-template.html");
   mGuiManager->executeJavascriptFile("../share/resources/gui/js/csp-minimap.js");
 
   // Register a callback to toggle the minimap.
@@ -172,8 +172,10 @@ void Plugin::deInit() {
   mGuiManager->onBookmarkAdded().disconnect(mOnBookmarkAddedConnection);
   mGuiManager->onBookmarkRemoved().disconnect(mOnBookmarkRemovedConnection);
 
-  mGuiManager->removeTemplate("minimap");
+  mGuiManager->getGui()->callJavascript("CosmoScout.minimap.deinit");
+  mGuiManager->removeTemplate("minimap-template");
   mGuiManager->removeCSS("css/csp-minimap.css");
+  mGuiManager->removeCSS("third-party/css/leaflet.css");
 
   mGuiManager->removeTimelineButton("Toggle Minimap");
   mGuiManager->getGui()->unregisterCallback("minimap.toggle");
