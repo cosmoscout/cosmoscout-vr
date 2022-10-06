@@ -47,11 +47,12 @@ class InputManager;
 ///    key.
 ///  * When running in a clustered setup, the UI will be displayed across multiple displays.
 ///
-/// There are several GuiItems involved: e.g. the timeline, the status-bar, the side-bar and the
-/// notifications area. There are methods for getting access to these GuiItems - for example, these
-/// can be used to register callbacks which will be executed when a button is pressed in the UI.
-/// Plugins can add content to the sidebar. This is done with the methods addPluginTabToSideBar(),
-/// addSettingsSectionToSideBar() and callJavaScript().
+/// The main UI of CosmoScout VR is one gui::GuiItem. It contains the timeline, the status-bar, the
+/// side-bar and the notifications area. You can access this GuiItem via the getGui() method. This
+/// you can use - for example - to register callbacks which will be executed when a button is
+/// pressed in the UI.
+/// Plugins can add content to the sidebar. This is done with the methods addPluginTabToSideBar()
+/// and addSettingsSectionToSideBar().
 ///
 /// This class should only be instantiated once - this is done by the Application class and this
 /// instance is then passed to all plugins.
