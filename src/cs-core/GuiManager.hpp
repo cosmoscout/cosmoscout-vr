@@ -171,11 +171,12 @@ class CS_CORE_EXPORT GuiManager {
   /// @param jsFile The javascript file that contains the source code.
   void executeJavascriptFile(std::string const& jsFile);
 
-  /// Append HTML to the body.
-  /// The src content will be wrapped in a template element.
+  /// Append an HTML template to the main GUI element.
+  /// The content of the given HTML file can then later be instantiated by the JavaScrip method
+  /// "loadTemplateContent()".
   ///
   /// @param src The html source code
-  void addTemplate(std::string const& id, std::string const& src);
+  void addTemplate(std::string const& id, std::string const& fileName);
   void removeTemplate(std::string const& id);
 
   /// Adds a link element to the head with a local file href.

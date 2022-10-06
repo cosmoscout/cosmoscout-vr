@@ -292,9 +292,10 @@ class GuiApi extends IApi {
   }
 
   /**
-   * Append an HTML template to the body (default) or element with id containerId.
+   * Register an HTML template. The given content can then later be instantiated using the
+   * loadTemplateContent() method.
    *
-   * @param id {string} Id for de-registering
+   * @param id {string} Id for registering
    * @param content {string} Html content
    */
   addTemplate(id, content) {
@@ -307,10 +308,10 @@ class GuiApi extends IApi {
   }
 
   /**
-   * Remove registered html from the body or container with id containerId.
+   * Remove a registered template.
    *
    * @see {addTemplate}
-   * @param id {string}
+   * @param id {string} Id for de-registering
    */
   removeTemplate(id) {
     if (!this._templates.has(id)) {
@@ -322,10 +323,12 @@ class GuiApi extends IApi {
   }
 
   /**
-   * Tries to load the template content of 'id-template'.
+   * Tries to load the template content of the template which was registered before.
+   * If no such template is found, the document is also search for a <template> with the
+   * given id.
    * Returns false if no template was found, HTMLElement otherwise.
    *
-   * @param id {string} Template element id without '-template' suffix
+   * @param id {string} Template element id
    * @return {boolean|HTMLElement}
    */
   loadTemplateContent(id) {

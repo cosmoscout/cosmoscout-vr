@@ -454,8 +454,8 @@ void GuiManager::executeJavascriptFile(std::string const& jsFile) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GuiManager::addTemplate(std::string const& id, std::string const& src) {
-  std::string content = utils::filesystem::loadToString(src);
+void GuiManager::addTemplate(std::string const& id, std::string const& fileName) {
+  std::string content = utils::filesystem::loadToString(fileName);
   mCosmoScoutGui->callJavascript("CosmoScout.gui.addTemplate", id, content);
 }
 
