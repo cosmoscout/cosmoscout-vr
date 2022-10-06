@@ -249,9 +249,8 @@
             bookmarkID, box.x + pos.x + 2, box.y + pos.y - 12);
       });
 
-      L.DomEvent.on(this._bookmarks[bookmarkID], 'mouseout', () => {
-        CosmoScout.callbacks.bookmark.hideTooltip();
-      });
+      L.DomEvent.on(this._bookmarks[bookmarkID], 'mouseout',
+          () => { CosmoScout.callbacks.bookmark.hideTooltip(); });
 
       L.DomEvent.on(this._bookmarks[bookmarkID], 'click', (e) => {
         CosmoScout.callbacks.bookmark.gotoLocation(bookmarkID);

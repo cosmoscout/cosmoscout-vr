@@ -220,9 +220,7 @@ class TimelineApi extends IApi {
     const button     = CosmoScout.gui.loadTemplateContent('button-template');
     button.innerHTML = button.innerHTML.replace('%ICON%', icon).trim();
     button.setAttribute('title', name);
-    button.onclick = () => {
-      CosmoScout.callbacks.find(callback)();
-    };
+    button.onclick = () => { CosmoScout.callbacks.find(callback)(); };
 
     this._buttonContainer.appendChild(button);
 
