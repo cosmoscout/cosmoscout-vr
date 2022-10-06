@@ -214,6 +214,9 @@ Initializes all `[data-toggle="tooltip"]` and `[data-toggle="tooltip-bottom"]` t
 CosmoScout.initTooltips();
 ```
 
+#### `CosmoScout.initInputs`
+This method calls all `init...` methods on the CosmoScout object.
+
 #### `CosmoScout.addCSS(url)`
 Appends a `<link rel="stylesheet">` to the head with `url` as its href content.
 
