@@ -214,42 +214,23 @@ Initializes all `[data-toggle="tooltip"]` and `[data-toggle="tooltip-bottom"]` t
 CosmoScout.initTooltips();
 ```
 
-#### `CosmoScout.initInputs`
-This method calls all `init...` methods on the CosmoScout object.
-
-#### `CosmoScout.registerJavaScript(url, init)`
-Appends a `<script>` element to the body with `url` as its src content. The `init` function gets called on script load.
-
-```javascript
-CosmoScout.registerJavaScript('https://example.com/script.js', () => {
-    console.log('Script ready');
-});
-```
-
-#### `CosmoScout.unregisterJavaScript(url)`
-Removes a registered `<script>` element from the body by its url.
-
-```javascript
-CosmoScout.unregisterJavaScript('https://example.com/script.js');
-``` 
-
-#### `CosmoScout.registerCss(url)`
+#### `CosmoScout.addCSS(url)`
 Appends a `<link rel="stylesheet">` to the head with `url` as its href content.
 
 ```javascript
-CosmoScout.registerCss('https://example.com/example.css');
+CosmoScout.addCSS('https://example.com/example.css');
 ```
 
-#### `CosmoScout.unregisterCss`
+#### `CosmoScout.removeCSS`
 Removes a registered stylesheet by its url.  
 Your plugin should call this method upon de-initialization if it added any stylesheets.
 
 ```javascript
-CosmoScout.unregisterCss('https://example.com/example.css');
+CosmoScout.removeCSS('https://example.com/example.css');
 ```
 
-#### `CosmoScout.addTemplate(id, content, containerId = 'body')`
-Appends HTML to the body (default) or element with id `containerId`.  
+#### `CosmoScout.addTemplate(id, content)`
+Registers a template for later instantiation by `CosmoScout.loadTemplateContent`.
 This method gets called by `GuiManager::addTemplate`.
 
 ```javascript
@@ -257,21 +238,15 @@ const html = '<span>Example Html</span>';
 
 // Append <span> to the body
 CosmoScout.addTemplate('example', html);
-
-// Append <span> to #container
-CosmoScout.addTemplate('example2', html, 'container')
 ```
 
-#### `CosmoScout.removeTemplate(id, containerId = 'body')`
-Remove registered html from the body or container with id `containerId`.  
-Your plugin should call this method upon de-initialization if it added any html.
+#### `CosmoScout.removeTemplate(id)`
+Remove a registered template.
+Your plugin should call this method upon de-initialization if it added any template.
 
 ```javascript
 // Removes element from body
 CosmoScout.removeTemplate('example');
-
-// Removes element from #container
-CosmoScout.removeTemplate('example2', 'container');
 ```
 
 #### `CosmoScout.loadTemplateContent(templateId)`
@@ -280,7 +255,6 @@ Template elements can contain arbitrary html that won't be displayed and parsed 
 This allows to add complex html constructs to the GUI without cluttering your JavaScript.  
 `CosmoScout.addTemplate` can be used to add `<templates>` to the gui.  
 
-`templateId` will be suffixed by `-template`.  
 The return value is either `false` if the template could not be loaded or a `HTMLElement`.
 
 Only the **first** html node of the template will be returned:
@@ -292,24 +266,8 @@ Only the **first** html node of the template will be returned:
 </template>
 ```
 
-```html
-<!-- Everything must be wrapped in one element -->
-<template id="example2-template">
-    <div>
-        <span>Example</span>
-        <p>Example2</p>
-    </div>
-</template>
-```
-
 ```javascript
 // Returns the <span> HTMLElement
-CosmoScout.loadTemplateContent('example');
-
-// Returns the <div> HTMLElement
-CosmoScout.loadTemplateContent('example2');
-
-// Returns false as the method searches for #example-template-template
 CosmoScout.loadTemplateContent('example-template');
 ```
 
