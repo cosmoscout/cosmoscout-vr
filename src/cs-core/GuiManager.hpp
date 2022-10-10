@@ -173,7 +173,7 @@ class CS_CORE_EXPORT GuiManager {
   void executeJavascriptFile(std::string const& jsFile);
 
   /// Append an HTML template to the main GUI element.
-  /// The content of the given HTML file can then later be instantiated by the JavaScrip method
+  /// The content of the given HTML file can then later be instantiated by the JavaScript method
   /// "loadTemplateContent()".
   ///
   /// @param src The html source code
