@@ -5,3 +5,16 @@ SPDX-License-Identifier: MIT
 
 <div id="measurement-tools" class="row">
 </div>
+
+<template id="measurement-tool-template">
+  <div class="col-4 center measurement-tool">
+    <label>
+      <input id="set_tool_%ICON%" type="checkbox" name="measurement-tool" class="radio-button" />
+      <span class="block btn glass">
+        <i class="material-icons">%ICON%</i>
+        <br>
+        <span>%CONTENT%</span>
+      </span>
+    </label>
+  </div>
+</template>

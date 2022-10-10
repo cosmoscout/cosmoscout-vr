@@ -57,9 +57,7 @@ void Plugin::init() {
   mOnLoadConnection = mAllSettings->onLoad().connect([this]() { onLoad(); });
   mOnSaveConnection = mAllSettings->onSave().connect([this]() { onSave(); });
 
-  mGuiManager->addHtmlToGui("sharad", "../share/resources/gui/sharad-template.html");
-
-  mGuiManager->addScriptToGuiFromJS("../share/resources/gui/js/csp-sharad.js");
+  mGuiManager->executeJavascriptFile("../share/resources/gui/js/csp-sharad.js");
 
   mGuiManager->addPluginTabToSideBarFromHTML(
       "SHARAD Profiles", "line_style", "../share/resources/gui/sharad-tab.html");
@@ -149,7 +147,6 @@ void Plugin::deInit() {
 
   mSolarSystem->pActiveObject.disconnect(mActiveObjectConnection);
   mGuiManager->getGui()->unregisterCallback("sharad.setEnabled");
-  mGuiManager->getGui()->callJavascript("CosmoScout.gui.unregisterHtml", "sharad");
 
   mAllSettings->onLoad().disconnect(mOnLoadConnection);
   mAllSettings->onSave().disconnect(mOnSaveConnection);

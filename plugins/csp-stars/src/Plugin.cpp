@@ -108,7 +108,7 @@ void Plugin::init() {
   mGuiManager->addSettingsSectionToSideBarFromHTML(
       "Stars", "star", "../share/resources/gui/stars_settings.html");
 
-  mGuiManager->addScriptToGuiFromJS("../share/resources/gui/js/csp-stars.js");
+  mGuiManager->executeJavascriptFile("../share/resources/gui/js/csp-stars.js");
 
   // Register JavaScript callbacks.
   mGuiManager->getGui()->registerCallback("stars.setEnabled",

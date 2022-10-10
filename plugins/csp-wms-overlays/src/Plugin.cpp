@@ -110,8 +110,8 @@ void Plugin::init() {
       "WMS Overlays", "layers", "../share/resources/gui/wms_overlays_tab.html");
   mGuiManager->addSettingsSectionToSideBarFromHTML(
       "WMS Overlays", "layers", "../share/resources/gui/wms_settings.html");
-  mGuiManager->addScriptToGuiFromJS("../share/resources/gui/js/csp-wms-overlays.js");
-  mGuiManager->addCssToGui("css/csp-wms-overlays.css");
+  mGuiManager->executeJavascriptFile("../share/resources/gui/js/csp-wms-overlays.js");
+  mGuiManager->addCSS("css/csp-wms-overlays.css");
 
   // Recalculate map scale if the texture resolution is changed.
   mPluginSettings->mMaxTextureSize.connect([this](int value) {
@@ -432,8 +432,7 @@ void Plugin::deInit() {
   mGuiManager->removePluginTab("WMS Overlays");
   mGuiManager->removeSettingsSection("WMS Overlays");
 
-  mGuiManager->getGui()->callJavascript(
-      "CosmoScout.gui.unregisterCss", "css/csp-simple-wms-bodies.css");
+  mGuiManager->removeCSS("css/csp-wms-overlays.css");
 
   mGuiManager->getGui()->unregisterCallback("wmsOverlays.setEnableTimeInterpolation");
   mGuiManager->getGui()->unregisterCallback("wmsOverlays.setEnableAutomaticBoundsUpdate");

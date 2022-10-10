@@ -102,7 +102,7 @@ void Plugin::init() {
 
   mGuiManager->addSettingsSectionToSideBarFromHTML(
       "Atmospheres", "blur_circular", "../share/resources/gui/atmospheres_settings.html");
-  mGuiManager->addScriptToGuiFromJS("../share/resources/gui/js/csp-atmospheres.js");
+  mGuiManager->executeJavascriptFile("../share/resources/gui/js/csp-atmospheres.js");
 
   mGuiManager->getGui()->registerCallback("atmosphere.setEnableWater",
       "Enables or disables rendering of a water surface.",
