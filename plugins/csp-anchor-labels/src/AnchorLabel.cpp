@@ -46,7 +46,7 @@ AnchorLabel::AnchorLabel(cs::scene::CelestialBody const* const body,
     , mGuiManager(std::move(guiManager))
     , mTimeControl(std::move(timeControl))
     , mInputManager(std::move(inputManager))
-    , mGuiArea(std::make_unique<cs::gui::WorldSpaceGuiArea>(120, 30)) // NOLINT
+    , mGuiArea(std::make_unique<cs::gui::WorldSpaceGuiArea>(120, 50)) // NOLINT
     , mGuiItem(
           std::make_unique<cs::gui::GuiItem>("file://../share/resources/gui/anchor_label.html")) {
   auto* sceneGraph = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
