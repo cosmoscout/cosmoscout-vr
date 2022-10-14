@@ -288,7 +288,7 @@ void Plugin::init() {
       [this]() { mAllSettings->mPlugins[`"csp-$kebabCaseName`"] = *mPluginSettings; });
 
 $(if ($WithJSApi) {
-    "  mGuiManager->addScriptToGuiFromJS(`"../share/resources/gui/js/csp-$kebabCaseName.js`");"
+    "  mGuiManager->executeJavascriptFile(`"../share/resources/gui/js/csp-$kebabCaseName.js`");"
 })
 $(if ($WithSidebarTab) {
     "  mGuiManager->addPluginTabToSideBarFromHTML(

@@ -105,7 +105,7 @@
 
     init() {
       // Add the minimap window.
-      this._mapDiv = CosmoScout.gui.loadTemplateContent('minimap');
+      this._mapDiv = CosmoScout.gui.loadTemplateContent('minimap-template');
       document.getElementById('cosmoscout').appendChild(this._mapDiv);
 
       // Create the Leaflet map.
@@ -184,6 +184,10 @@
       this._resizeObserver.observe(this._mapDiv);
     }
 
+    deinit() {
+      document.getElementById('cosmoscout').removeChild(this._mapDiv);
+    }
+
     // Update minimap based on observer state.
     update() {
       if (this._mapDiv.classList.contains("visible")) {
@@ -245,9 +249,8 @@
             bookmarkID, box.x + pos.x + 2, box.y + pos.y - 12);
       });
 
-      L.DomEvent.on(this._bookmarks[bookmarkID], 'mouseout', () => {
-        CosmoScout.callbacks.bookmark.hideTooltip();
-      });
+      L.DomEvent.on(this._bookmarks[bookmarkID], 'mouseout',
+          () => { CosmoScout.callbacks.bookmark.hideTooltip(); });
 
       L.DomEvent.on(this._bookmarks[bookmarkID], 'click', (e) => {
         CosmoScout.callbacks.bookmark.gotoLocation(bookmarkID);

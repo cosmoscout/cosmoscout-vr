@@ -19,7 +19,7 @@
      * @inheritDoc
      */
     init() {
-      this._infoWindow = CosmoScout.gui.loadTemplateContent("wmsOverlays-infoWindow");
+      this._infoWindow = CosmoScout.gui.loadTemplateContent("wmsOverlays-infoWindow-template");
       document.getElementById("cosmoscout").appendChild(this._infoWindow);
 
       this._layerSelect = document.querySelector(`[data-callback="wmsOverlays.setLayer"]`);
@@ -118,9 +118,7 @@
         this._infoWindow.classList.remove('visible');
       }
       this._infoIcon.onclick =
-          (enable ? () => {this._infoWindow.classList.toggle('visible')} : () => {
-            return;
-          });
+          (enable ? () => {this._infoWindow.classList.toggle('visible')} : () => { return; });
     }
 
     /**

@@ -447,28 +447,34 @@ void GuiManager::removeSettingsSection(std::string const& name) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GuiManager::addScriptToGui(std::string const& src) {
-  mCosmoScoutGui->executeJavascript(src);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void GuiManager::addScriptToGuiFromJS(std::string const& jsFile) {
+void GuiManager::executeJavascriptFile(std::string const& jsFile) {
   std::string content = utils::filesystem::loadToString(jsFile);
-  addScriptToGui(content);
+  mCosmoScoutGui->executeJavascript(content);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GuiManager::addHtmlToGui(std::string const& id, std::string const& src) {
-  std::string content = utils::filesystem::loadToString(src);
-  mCosmoScoutGui->callJavascript("CosmoScout.gui.registerHtml", id, content);
+void GuiManager::addTemplate(std::string const& id, std::string const& fileName) {
+  std::string content = utils::filesystem::loadToString(fileName);
+  mCosmoScoutGui->callJavascript("CosmoScout.gui.addTemplate", id, content);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void GuiManager::addCssToGui(const std::string& fileName) {
-  mCosmoScoutGui->callJavascript("CosmoScout.gui.registerCss", fileName);
+void GuiManager::removeTemplate(std::string const& id) {
+  mCosmoScoutGui->callJavascript("CosmoScout.gui.removeTemplate", id);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void GuiManager::addCSS(const std::string& fileName) {
+  mCosmoScoutGui->callJavascript("CosmoScout.gui.addCSS", fileName);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void GuiManager::removeCSS(const std::string& fileName) {
+  mCosmoScoutGui->callJavascript("CosmoScout.gui.removeCSS", fileName);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

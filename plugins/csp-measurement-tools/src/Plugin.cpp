@@ -264,14 +264,11 @@ void Plugin::init() {
   mOnLoadConnection = mAllSettings->onLoad().connect([this]() { onLoad(); });
   mOnSaveConnection = mAllSettings->onSave().connect([this]() { onSave(); });
 
-  mGuiManager->addHtmlToGui(
-      "measurement-tools", "../share/resources/gui/measurement-tool-template.html");
-
   mGuiManager->addPluginTabToSideBarFromHTML(
       "Measurement Tools", "multiline_chart", "../share/resources/gui/measurement-tools-tab.html");
 
-  mGuiManager->addScriptToGuiFromJS("../share/resources/gui/js/csp-measurement-tools.js");
-  mGuiManager->addCssToGui("css/csp-measurement-tools-sidebar.css");
+  mGuiManager->executeJavascriptFile("../share/resources/gui/js/csp-measurement-tools.js");
+  mGuiManager->addCSS("css/csp-measurement-tools-sidebar.css");
 
   mGuiManager->getGui()->callJavascript(
       "CosmoScout.measurementTools.add", "Location Flag", "edit_location");
@@ -406,9 +403,7 @@ void Plugin::deInit() {
   mGuiManager->removePluginTab("Measurement Tools");
 
   mGuiManager->getGui()->unregisterCallback("measurementTools.setNext");
-  mGuiManager->getGui()->callJavascript("CosmoScout.gui.unregisterHtml", "measurement-tools");
-  mGuiManager->getGui()->callJavascript(
-      "CosmoScout.gui.unregisterCss", "css/csp-measurement-tools-sidebar.css");
+  mGuiManager->removeCSS("css/csp-measurement-tools-sidebar.css");
 
   mInputManager->pButtons[0].disconnect(mOnClickConnection);
   mInputManager->sOnDoubleClick.disconnect(mOnDoubleClickConnection);

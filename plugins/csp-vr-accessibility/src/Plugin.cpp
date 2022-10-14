@@ -105,7 +105,7 @@ void Plugin::init() {
   // add settings to GUI
   mGuiManager->addSettingsSectionToSideBarFromHTML("VR Accessibility", "accessibility_new",
       "../share/resources/gui/vr_accessibility_settings.html");
-  mGuiManager->addScriptToGuiFromJS("../share/resources/gui/js/csp-vr-accessibility.js");
+  mGuiManager->executeJavascriptFile("../share/resources/gui/js/csp-vr-accessibility.js");
 
   // register callback for grid enable grid checkbox
   mGuiManager->getGui()->registerCallback("floorGrid.setEnabled",

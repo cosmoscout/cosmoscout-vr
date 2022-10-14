@@ -12,7 +12,7 @@ SPDX-License-Identifier: CC-BY-4.0
 
 ## [v1.6.0](https://github.com/cosmoscout/cosmoscout-vr/releases)
 
-**Release Date:** TBD
+**Release Date:** 2022-10-14
 
 #### New Features
 
@@ -59,6 +59,13 @@ SPDX-License-Identifier: CC-BY-4.0
 * `CelestialAnchorNode`s do not exist anymore. Classes which  used to use these, now have to use a `VistaTransformNode` instead and update its transformation once each frame with the observer-relative transformation from the respective  `CelestialObject`.
 * Much per-frame logic used to be executed in overrides of `CelestialObject::update()`. This method does not exist any more; plugins now need to update their objects manually.
 * Some common code has been moved from the measurement tools to the base classes `cs::core::tools::Tool` and `cs::core::tools::Mark`. This simplifies some code in the measurement tools.
+* The interface of the `GuiManager` has been streamlined. Before, HTML templates could be added via `addHtmlToGui()` but had to be removed with an explicit JavaScript call. The same was true for adding and removing stylesheets. Here are all the corresponding changes:
+  * `addScriptToGui()` has been removed. It was never used and is actually identical to `getGui()->executeJavascript()`
+  * `addScriptToGuiFromJS()` has been renamed to `executeJavascriptFile` as this describes more clearly what the method actually does.
+  * `addHtmlToGui()` has been renamed to `addTemplate()`, as this is what the method actually does.
+  * A corresponding `removeTemplate()` has been added.
+  * `addCssToGui()` has been renamed to `addCSS()`.
+  * A corresponding `removeCSS()` has been added.
 
 #### Bug Fixes
 

@@ -24,7 +24,7 @@
     add(name, icon) {
       const area = document.getElementById('measurement-tools');
 
-      const tool = CosmoScout.gui.loadTemplateContent('measurement-tools');
+      const tool = CosmoScout.gui.loadTemplateContent('measurement-tool-template');
 
       tool.innerHTML = tool.innerHTML.replace(/%CONTENT%/g, name).replace(/%ICON%/g, icon).trim();
 
@@ -50,9 +50,8 @@
      */
     // eslint-disable-next-line class-methods-use-this
     deselect() {
-      document.querySelectorAll('#measurement-tools .radio-button').forEach((node) => {
-        node.checked = false;
-      });
+      document.querySelectorAll('#measurement-tools .radio-button')
+          .forEach((node) => { node.checked = false; });
     }
   }
 

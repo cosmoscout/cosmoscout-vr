@@ -47,11 +47,12 @@ class InputManager;
 ///    key.
 ///  * When running in a clustered setup, the UI will be displayed across multiple displays.
 ///
-/// There are several GuiItems involved: e.g. the timeline, the status-bar, the side-bar and the
-/// notifications area. There are methods for getting access to these GuiItems - for example, these
-/// can be used to register callbacks which will be executed when a button is pressed in the UI.
-/// Plugins can add content to the sidebar. This is done with the methods addPluginTabToSideBar(),
-/// addSettingsSectionToSideBar() and addScriptToGui().
+/// The main UI of CosmoScout VR is one gui::GuiItem. It contains the timeline, the status-bar, the
+/// side-bar and the notifications area. You can access this GuiItem via the getGui() method. This
+/// you can use - for example - to register callbacks which will be executed when a button is
+/// pressed in the UI.
+/// Plugins can add content to the sidebar. This is done with the methods addPluginTabToSideBar()
+/// and addSettingsSectionToSideBar().
 ///
 /// This class should only be instantiated once - this is done by the Application class and this
 /// instance is then passed to all plugins.
@@ -167,26 +168,23 @@ class CS_CORE_EXPORT GuiManager {
   void removeSettingsSection(std::string const& name);
 
   /// This can be used to initialize the DOM elements added to the sidebar with the methods above.
-  /// This is identical to getGui()->executeJavascript(src);
-  ///
-  /// @param src The javascript source code.
-  void addScriptToGui(std::string const& src);
-
-  /// This can be used to initialize the DOM elements added to the sidebar with the methods above.
   ///
   /// @param jsFile The javascript file that contains the source code.
-  void addScriptToGuiFromJS(std::string const& jsFile);
+  void executeJavascriptFile(std::string const& jsFile);
 
-  /// Append HTML to the body.
-  /// The src content will be wrapped in a template element.
+  /// Append an HTML template to the main GUI element.
+  /// The content of the given HTML file can then later be instantiated by the JavaScript method
+  /// "loadTemplateContent()".
   ///
   /// @param src The html source code
-  void addHtmlToGui(std::string const& id, std::string const& src);
+  void addTemplate(std::string const& id, std::string const& fileName);
+  void removeTemplate(std::string const& id);
 
   /// Adds a link element to the head with a local file href.
   ///
   /// @param fileName The filename in the css folder
-  void addCssToGui(std::string const& fileName);
+  void addCSS(std::string const& fileName);
+  void removeCSS(std::string const& fileName);
 
   /// Sets a checkbox to the given value. This is only a thin wrapper for
   /// "CosmoScout.gui.setCheckboxValue" but provides compile time type safety.

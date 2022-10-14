@@ -67,7 +67,7 @@ void Plugin::init() {
   mGuiManager->addSettingsSectionToSideBarFromHTML(
       "Anchor Labels", "location_on", "../share/resources/gui/anchor_labels_settings.html");
 
-  mGuiManager->addScriptToGuiFromJS("../share/resources/gui/js/csp-anchor-labels.js");
+  mGuiManager->executeJavascriptFile("../share/resources/gui/js/csp-anchor-labels.js");
 
   // For all bodies that will be created in the future we also create a label.
   mAddObjectConnection =
