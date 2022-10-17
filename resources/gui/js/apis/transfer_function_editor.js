@@ -264,10 +264,10 @@ class TransferFunctionEditor {
     });
 
     // Log scale checkbox listener
-    $(this.element).find("#transferFunctionEditor\\.logScale-" + this.id).on("click", (event) => {    
+    $(this.element).find("#transferFunctionEditor\\.logScale-" + this.id).on("click", (event) => {
       this.options.logScaleEnabled = event.currentTarget.checked;
       CosmoScout.callbacks.transferFunctionEditor.importTransferFunction(
-        $(this.element).find("#transferFunctionEditor\\.importSelect-" + this.id).val(), this.id);      
+          $(this.element).find("#transferFunctionEditor\\.importSelect-" + this.id).val(), this.id);
     });
   }
 
@@ -303,9 +303,9 @@ class TransferFunctionEditor {
 
     // Draw graph
     const graph = g.append("svg")
-        .attr("width", this._width)
-        .attr("height", this._height)
-        .attr("overflow", "hidden");
+                      .attr("width", this._width)
+                      .attr("height", this._height)
+                      .attr("overflow", "hidden");
 
     graph.append("path")
         .datum(this._controlPoints)
@@ -318,14 +318,14 @@ class TransferFunctionEditor {
     const xTicks              = this._xScale.ticks(this.options.numberTicks);
     xTicks[xTicks.length - 1] = this._xScale.domain()[1];
     this._xAxis               = g.append("g")
-      .attr("class", "axis axis--x")
-      .attr("transform", "translate(0," + this._height + ")")
-      .call(d3.axisBottom(this._xScale).tickValues(xTicks));
+                      .attr("class", "axis axis--x")
+                      .attr("transform", "translate(0," + this._height + ")")
+                      .call(d3.axisBottom(this._xScale).tickValues(xTicks));
 
     this._yAxis = g.append("g")
-      .attr("class", "axis axis--y")
-      .attr("transform", "translate(0, 0)")
-      .call(d3.axisLeft(this._yScale).ticks(this.options.numberTicks));
+                      .attr("class", "axis axis--y")
+                      .attr("transform", "translate(0, 0)")
+                      .call(d3.axisLeft(this._yScale).ticks(this.options.numberTicks));
 
     // Mouse interaction handler
     g.append("rect")
@@ -402,14 +402,14 @@ class TransferFunctionEditor {
     const circle = svg.selectAll("circle").data(this._controlPoints);
 
     circle.style("visibility", (d) => {
-        const x = this._xScale(d.x);
-        const y = this._yScale(d.opacity);
-        if (x < 0 || x > this._width || y < 0 || y > this._height) {
-          return "hidden";
-        } else {
-          return "visible";
-        }
-      });
+      const x = this._xScale(d.x);
+      const y = this._yScale(d.opacity);
+      if (x < 0 || x > this._width || y < 0 || y > this._height) {
+        return "hidden";
+      } else {
+        return "visible";
+      }
+    });
 
     circle.enter()
         .append("circle")
@@ -460,8 +460,8 @@ class TransferFunctionEditor {
               return d.color;
             }).attr("stop-opacity", (d) => { return d.opacity; }).attr("offset", (d) => {
       const l = (this._controlPoints[this._controlPoints.length - 1].x - this._controlPoints[0].x);
-          return "" + ((d.x - this._controlPoints[0].x) / l * 100) + "%";
-        });
+      return "" + ((d.x - this._controlPoints[0].x) / l * 100) + "%";
+    });
 
     gradient.exit().remove();
 
@@ -482,12 +482,12 @@ class TransferFunctionEditor {
       const bar =
           this._svg.select("g").select(".histogram-group").selectAll(".bar").data(this._data);
       const barEnter = bar.enter().append("g").attr("class", "bar").attr("transform", (d) => {
-          return "translate(" + this._xScale(d.x0) + "," + this._binScale(d.count) + ")";
-        });
+        return "translate(" + this._xScale(d.x0) + "," + this._binScale(d.count) + ")";
+      });
 
       barEnter.append("rect")
-        .attr("x", 1)
-        .style("opacity", 0.5)
+          .attr("x", 1)
+          .style("opacity", 0.5)
           .attr("width", (d) => { return this._xScale(d.x1) - this._xScale(d.x0); })
           .attr("height", (d) => { return this._height - this._binScale(d.count); });
 
@@ -683,17 +683,20 @@ class TransferFunctionEditor {
           point.a = right.a;
         }
       }
-    });    
+    });
 
     const min_cP = this._controlPoints[0].x;
     const max_cP = this._controlPoints[this._controlPoints.length - 1].x;
-    
-    this._updateControlPoints(points.map((point) => {      
-      var local_value = (max_cP-min_cP) * point.position + min_cP;
+
+    this._updateControlPoints(points.map((point) => {
+      var local_value = (max_cP - min_cP) * point.position + min_cP;
+      var minLog      = isFinite(Math.log(min_cP)) ? Math.log(min_cP) : 0;
+      var maxLog      = isFinite(Math.log(max_cP)) ? Math.log(max_cP) : 0;
       return {
         x: (this.options.logScaleEnabled)
-                ? Math.pow(10,(local_value-min_cP)/(max_cP-min_cP)*(Math.log(max_cP)-Math.log(min_cP))+Math.log(min_cP))
-                : (point.position - min) * (255.0 / (max - min)),
+               ? Math.pow(
+                     10, (local_value - min_cP) / (max_cP - min_cP) * (maxLog - minLog) + minLog)
+               : (point.position - min) * (255.0 / (max - min)),
         opacity: point.a,
         color:
             (typeof point.r !== 'undefined')
@@ -714,9 +717,7 @@ class TransferFunctionEditor {
    */
   setAvailableTransferFunctions(availableFiles) {
     let options = "";
-    availableFiles.forEach((file) => {
-      options += `<option>${file}</option>`;
-    });
+    availableFiles.forEach((file) => { options += `<option>${file}</option>`; });
     const importSelect = $(this.element).find("#transferFunctionEditor\\.importSelect-" + this.id);
     importSelect.html(options);
     importSelect.selectpicker();
@@ -759,7 +760,7 @@ class TransferFunctionEditorApi extends IApi {
           <div class="row">
             <div class="col-7 offset-5">
               <label class="checklabel">
-                <input type="checkbox" id="transferFunctionEditor.logScale-%ID%" />
+                <input type="checkbox" data-initialized="true" id="transferFunctionEditor.logScale-%ID%" />
                 <i class="material-icons"></i>
                 <span>Enable log scale</span>
               </label>
