@@ -9,6 +9,20 @@ SPDX-License-Identifier: CC-BY-4.0
 
 # Changelog of CosmoScout VR
 
+## [v1.7.0](https://github.com/cosmoscout/cosmoscout-vr/releases)
+
+**Release Date:** TBD
+
+#### New Features
+* To allow shared code for plugins, without requiring it to be in the core libraries we introduced a new concept called plugin libraries. They are prefixed `csl` and sit beside the traditional plugins in the `plugins` folder.
+* Add a new powershell script to create plugin libraries: `tools/New-PluginLibrary.ps1` 
+
+#### Other Changes
+
+#### Refactoring
+* The `tools` were moved from `cs-core` to a new plugin library called `csl-tools`. `csp-measurement-tools` are now making use of this new plugin library.
+
+#### Bug Fixes
 
 ## [v1.6.0](https://github.com/cosmoscout/cosmoscout-vr/releases)
 
