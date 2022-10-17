@@ -118,9 +118,7 @@
         this._infoWindow.classList.remove('visible');
       }
       this._infoIcon.onclick =
-          (enable ? () => {this._infoWindow.classList.toggle('visible')} : () => {
-            return;
-          });
+          (enable ? () => {this._infoWindow.classList.toggle('visible')} : () => { return; });
     }
 
     /**
