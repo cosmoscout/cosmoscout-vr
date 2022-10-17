@@ -73,8 +73,7 @@ class PolygonTool : public IVistaOpenGLDraw, public csl::tools::MultiPointTool {
   /// height above the surface
   glm::dvec4 getInterpolatedPosBetweenTwoMarks(
       std::shared_ptr<cs::scene::CelestialSurface> const& surface,
-      csl::tools::DeletableMark const& l0, csl::tools::DeletableMark const& l1,
-      double value);
+      csl::tools::DeletableMark const& l0, csl::tools::DeletableMark const& l1, double value);
 
   /// Finds the intersection point between two sites
   static bool findIntersection(Site const& s1, Site const& s2, Site const& s3, Site const& s4,

@@ -7,15 +7,15 @@
 
 #include "Mark.hpp"
 
-#include "../../../src/cs-scene/CelestialObject.hpp"
-#include "../../../src/cs-scene/CelestialSurface.hpp"
-#include "../../../src/cs-utils/convert.hpp"
-#include "../../../src/cs-utils/utils.hpp"
 #include "../../../src/cs-core/GuiManager.hpp"
 #include "../../../src/cs-core/InputManager.hpp"
 #include "../../../src/cs-core/Settings.hpp"
 #include "../../../src/cs-core/SolarSystem.hpp"
 #include "../../../src/cs-core/TimeControl.hpp"
+#include "../../../src/cs-scene/CelestialObject.hpp"
+#include "../../../src/cs-scene/CelestialSurface.hpp"
+#include "../../../src/cs-utils/convert.hpp"
+#include "../../../src/cs-utils/utils.hpp"
 
 #include "logger.hpp"
 
@@ -69,7 +69,8 @@ void main()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Mark::Mark(std::shared_ptr<cs::core::InputManager> pInputManager, std::shared_ptr<cs::core::SolarSystem> pSolarSystem,
+Mark::Mark(std::shared_ptr<cs::core::InputManager> pInputManager,
+    std::shared_ptr<cs::core::SolarSystem>         pSolarSystem,
     std::shared_ptr<cs::core::Settings> settings, std::string objectName)
     : Tool(std::move(objectName))
     , mInputManager(std::move(pInputManager))

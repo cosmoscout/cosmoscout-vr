@@ -29,7 +29,7 @@ class EllipseTool : public IVistaOpenGLDraw, public csl::tools::Tool {
   EllipseTool(EllipseTool&& other)      = delete;
 
   EllipseTool& operator=(EllipseTool const& other) = delete;
-  EllipseTool& operator=(EllipseTool&& other)      = delete;
+  EllipseTool& operator=(EllipseTool&& other) = delete;
 
   ~EllipseTool() override;
 

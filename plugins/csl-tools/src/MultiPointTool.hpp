@@ -20,7 +20,7 @@ class TimeControl;
 class SolarSystem;
 class InputManager;
 class Settings;
-}
+} // namespace cs::core
 
 namespace csl::tools {
 
@@ -43,8 +43,8 @@ class CSL_TOOLS_EXPORT MultiPointTool : public Tool {
   cs::utils::Property<double> pScaleDistance = -1.0;
 
   MultiPointTool(std::shared_ptr<cs::core::InputManager> pInputManager,
-      std::shared_ptr<cs::core::SolarSystem> pSolarSystem, std::shared_ptr<cs::core::Settings> settings,
-      std::string objectName);
+      std::shared_ptr<cs::core::SolarSystem>             pSolarSystem,
+      std::shared_ptr<cs::core::Settings> settings, std::string objectName);
 
   MultiPointTool(MultiPointTool const& other) = delete;
   MultiPointTool(MultiPointTool&& other)      = delete;

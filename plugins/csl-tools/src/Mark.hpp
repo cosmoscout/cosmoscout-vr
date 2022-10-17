@@ -12,10 +12,10 @@
 
 #include <VistaBase/VistaColor.h>
 #include <VistaKernel/GraphicsManager/VistaOpenGLDraw.h>
+#include <VistaKernel/GraphicsManager/VistaOpenGLNode.h>
 #include <VistaOGLExt/VistaBufferObject.h>
 #include <VistaOGLExt/VistaGLSLShader.h>
 #include <VistaOGLExt/VistaVertexArrayObject.h>
-#include <VistaKernel/GraphicsManager/VistaOpenGLNode.h>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
@@ -33,7 +33,7 @@ class TimeControl;
 class SolarSystem;
 class InputManager;
 class Settings;
-}
+} // namespace cs::core
 
 namespace csl::tools {
 
@@ -51,7 +51,8 @@ class CSL_TOOLS_EXPORT Mark : public IVistaOpenGLDraw, public Tool {
   /// scale the tool based on the current observer distance.
   cs::utils::Property<double> pScaleDistance = -1.0;
 
-  Mark(std::shared_ptr<cs::core::InputManager> pInputManager, std::shared_ptr<cs::core::SolarSystem> pSolarSystem,
+  Mark(std::shared_ptr<cs::core::InputManager> pInputManager,
+      std::shared_ptr<cs::core::SolarSystem>   pSolarSystem,
       std::shared_ptr<cs::core::Settings> Settings, std::string objectName);
 
   Mark(Mark const& other);

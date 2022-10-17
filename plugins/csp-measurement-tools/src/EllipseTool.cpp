@@ -67,10 +67,10 @@ EllipseTool::EllipseTool(std::shared_ptr<cs::core::InputManager> pInputManager,
     , mCenterHandle(pInputManager, pSolarSystem, settings, objectName)
     , mAxes({glm::dvec3(pSolarSystem->getObserver().getScale(), 0.0, 0.0),
           glm::dvec3(0.0, pSolarSystem->getObserver().getScale(), 0.0)})
-    , mHandles({std::make_unique<csl::tools::Mark>(
-                    pInputManager, pSolarSystem, settings, objectName),
-          std::make_unique<csl::tools::Mark>(std::move(pInputManager), std::move(pSolarSystem),
-              std::move(settings), std::move(objectName))}) {
+    , mHandles(
+          {std::make_unique<csl::tools::Mark>(pInputManager, pSolarSystem, settings, objectName),
+              std::make_unique<csl::tools::Mark>(std::move(pInputManager), std::move(pSolarSystem),
+                  std::move(settings), std::move(objectName))}) {
 
   mShader.InitVertexShaderFromString(SHADER_VERT);
   mShader.InitFragmentShaderFromString(SHADER_FRAG);

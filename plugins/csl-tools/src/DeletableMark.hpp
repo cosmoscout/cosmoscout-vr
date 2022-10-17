@@ -21,8 +21,8 @@ namespace csl::tools {
 class CSL_TOOLS_EXPORT DeletableMark : public Mark {
  public:
   DeletableMark(std::shared_ptr<cs::core::InputManager> pInputManager,
-      std::shared_ptr<cs::core::SolarSystem> pSolarSystem, std::shared_ptr<cs::core::Settings> settings,
-      std::string objectName);
+      std::shared_ptr<cs::core::SolarSystem>            pSolarSystem,
+      std::shared_ptr<cs::core::Settings> settings, std::string objectName);
 
   DeletableMark(DeletableMark const& other) = delete;
   DeletableMark(DeletableMark&& other)      = delete;
@@ -35,7 +35,7 @@ class CSL_TOOLS_EXPORT DeletableMark : public Mark {
  private:
   void initData();
 
-  VistaOpenGLNode*                        mGuiNode = nullptr;
+  VistaOpenGLNode*                            mGuiNode = nullptr;
   std::unique_ptr<cs::gui::WorldSpaceGuiArea> mGuiArea;
   std::unique_ptr<cs::gui::GuiItem>           mGuiItem;
 

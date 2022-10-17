@@ -204,8 +204,7 @@ void PolygonTool::setSleekness(uint32_t degree) {
 
 glm::dvec4 PolygonTool::getInterpolatedPosBetweenTwoMarks(
     std::shared_ptr<cs::scene::CelestialSurface> const& surface,
-    csl::tools::DeletableMark const& l0, csl::tools::DeletableMark const& l1,
-    double value) {
+    csl::tools::DeletableMark const& l0, csl::tools::DeletableMark const& l1, double value) {
 
   auto       object = mSolarSystem->getObject(getObjectName());
   glm::dvec3 radii  = object->getRadii();

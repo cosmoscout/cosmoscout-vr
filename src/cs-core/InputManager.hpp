@@ -15,9 +15,9 @@
 #include "Settings.hpp"
 
 #include <VistaKernel/EventManager/VistaEventHandler.h>
+#include <VistaKernel/GraphicsManager/VistaTransformNode.h>
 #include <VistaKernel/InteractionManager/VistaIntentionSelect.h>
 #include <VistaKernel/InteractionManager/VistaKeyboardSystemControl.h>
-#include <VistaKernel/GraphicsManager/VistaTransformNode.h>
 
 #include <glm/glm.hpp>
 #include <memory>
