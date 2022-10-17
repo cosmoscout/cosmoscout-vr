@@ -9,17 +9,17 @@
 
 #include <utility>
 
-#include "../../cs-core/SolarSystem.hpp"
-#include "../../cs-scene/CelestialSurface.hpp"
-#include "../../cs-utils/convert.hpp"
-#include "../InputManager.hpp"
+#include "../../../src/cs-core/SolarSystem.hpp"
+#include "../../../src/cs-scene/CelestialSurface.hpp"
+#include "../../../src/cs-utils/convert.hpp"
+#include "../../../src/cs-core/InputManager.hpp"
 
-namespace cs::core::tools {
+namespace csl::tools {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-MultiPointTool::MultiPointTool(std::shared_ptr<InputManager> pInputManager,
-    std::shared_ptr<SolarSystem> pSolarSystem, std::shared_ptr<Settings> settings,
+MultiPointTool::MultiPointTool(std::shared_ptr<cs::core::InputManager> pInputManager,
+    std::shared_ptr<cs::core::SolarSystem> pSolarSystem, std::shared_ptr<cs::core::Settings> settings,
     std::string objectName)
     : Tool(std::move(objectName))
     , mInputManager(std::move(pInputManager))
@@ -185,4 +185,4 @@ void MultiPointTool::setPositions(std::vector<glm::dvec2> const& positions) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-} // namespace cs::core::tools
+} // namespace csl::tools

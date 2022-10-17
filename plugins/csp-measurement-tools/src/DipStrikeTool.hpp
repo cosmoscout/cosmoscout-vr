@@ -8,7 +8,7 @@
 #ifndef CSP_MEASUREMENT_TOOLS_DIP_STRIKE_HPP
 #define CSP_MEASUREMENT_TOOLS_DIP_STRIKE_HPP
 
-#include "../../../src/cs-core/tools/MultiPointTool.hpp"
+#include "../../csl-tools/src/MultiPointTool.hpp"
 
 #include <VistaKernel/GraphicsManager/VistaOpenGLDraw.h>
 
@@ -33,7 +33,7 @@ namespace csp::measurementtools {
 /// all points.
 /// The dip (steepness) is given in degrees from 0° to 90° and the strike (orientation) is also
 /// given in degrees, where at 0° the peak is in the east and at 90° the peak is in the north.
-class DipStrikeTool : public IVistaOpenGLDraw, public cs::core::tools::MultiPointTool {
+class DipStrikeTool : public IVistaOpenGLDraw, public csl::tools::MultiPointTool {
  public:
   /// This text is shown on the ui and can be edited by the user.
   cs::utils::Property<std::string> pText    = std::string("Dip & Strike");
@@ -64,8 +64,8 @@ class DipStrikeTool : public IVistaOpenGLDraw, public cs::core::tools::MultiPoin
 
   /// Returns the interpolated position in cartesian coordinates the fourth component is height
   /// above the surface.
-  glm::dvec4 getInterpolatedPosBetweenTwoMarks(cs::core::tools::DeletableMark const& pMark1,
-      cs::core::tools::DeletableMark const& pMark2, double value);
+  glm::dvec4 getInterpolatedPosBetweenTwoMarks(csl::tools::DeletableMark const& pMark1,
+      csl::tools::DeletableMark const& pMark2, double value);
 
   /// These are called by the base class MultiPointTool.
   void onPointMoved() override;

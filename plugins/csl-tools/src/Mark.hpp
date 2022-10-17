@@ -5,8 +5,8 @@
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 // SPDX-License-Identifier: MIT
 
-#ifndef CS_CORE_TOOLS_MARK_HPP
-#define CS_CORE_TOOLS_MARK_HPP
+#ifndef CSL_TOOLS_MARK_HPP
+#define CSL_TOOLS_MARK_HPP
 
 #include "Tool.hpp"
 
@@ -15,6 +15,7 @@
 #include <VistaOGLExt/VistaBufferObject.h>
 #include <VistaOGLExt/VistaGLSLShader.h>
 #include <VistaOGLExt/VistaVertexArrayObject.h>
+#include <VistaKernel/GraphicsManager/VistaOpenGLNode.h>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
@@ -25,7 +26,6 @@ class CelestialObject;
 } // namespace cs::scene
 
 class VistaTransformNode;
-class VistaOpenGLNode;
 class VistaVertexArrayObject;
 
 namespace cs::core {
@@ -33,11 +33,12 @@ class TimeControl;
 class SolarSystem;
 class InputManager;
 class Settings;
+}
 
-namespace tools {
+namespace csl::tools {
 
 /// A mark is a single point on the surface. It is selectable and draggable.
-class CS_CORE_EXPORT Mark : public IVistaOpenGLDraw, public Tool {
+class CSL_TOOLS_EXPORT Mark : public IVistaOpenGLDraw, public Tool {
  public:
   /// Observable properties to get updates on state changes.
   cs::utils::Property<glm::dvec2> pLngLat   = glm::dvec2(0.0);
@@ -50,8 +51,8 @@ class CS_CORE_EXPORT Mark : public IVistaOpenGLDraw, public Tool {
   /// scale the tool based on the current observer distance.
   cs::utils::Property<double> pScaleDistance = -1.0;
 
-  Mark(std::shared_ptr<InputManager> pInputManager, std::shared_ptr<SolarSystem> pSolarSystem,
-      std::shared_ptr<Settings> Settings, std::string objectName);
+  Mark(std::shared_ptr<cs::core::InputManager> pInputManager, std::shared_ptr<cs::core::SolarSystem> pSolarSystem,
+      std::shared_ptr<cs::core::Settings> Settings, std::string objectName);
 
   Mark(Mark const& other);
   Mark(Mark&& other) = default;
@@ -71,9 +72,9 @@ class CS_CORE_EXPORT Mark : public IVistaOpenGLDraw, public Tool {
   bool GetBoundingBox(VistaBoundingBox& bb) override;
 
  protected:
-  std::shared_ptr<InputManager> mInputManager;
-  std::shared_ptr<SolarSystem>  mSolarSystem;
-  std::shared_ptr<Settings>     mSettings;
+  std::shared_ptr<cs::core::InputManager> mInputManager;
+  std::shared_ptr<cs::core::SolarSystem>  mSolarSystem;
+  std::shared_ptr<cs::core::Settings>     mSettings;
 
   std::unique_ptr<VistaTransformNode> mTransform;
   std::unique_ptr<VistaOpenGLNode>    mParent;
@@ -101,7 +102,6 @@ class CS_CORE_EXPORT Mark : public IVistaOpenGLDraw, public Tool {
       mButtonsConnection = -1, mHoveredPlanetConnection = -1, mHeightScaleConnection = -1;
 };
 
-} // namespace tools
-} // namespace cs::core
+} // namespace csl::tools
 
-#endif // CS_CORE_TOOLS_MARK_HPP
+#endif // CSL_TOOLS_MARK_HPP

@@ -7,12 +7,12 @@
 
 #include "DeletableMark.hpp"
 
-#include "../../cs-core/GuiManager.hpp"
-#include "../../cs-gui/GuiItem.hpp"
-#include "../../cs-gui/WorldSpaceGuiArea.hpp"
-#include "../../cs-scene/CelestialObject.hpp"
-#include "../InputManager.hpp"
-#include "../SolarSystem.hpp"
+#include "../../../src/cs-core/GuiManager.hpp"
+#include "../../../src/cs-gui/GuiItem.hpp"
+#include "../../../src/cs-gui/WorldSpaceGuiArea.hpp"
+#include "../../../src/cs-scene/CelestialObject.hpp"
+#include "../../../src/cs-core/InputManager.hpp"
+#include "../../../src/cs-core/SolarSystem.hpp"
 
 #include <VistaKernel/GraphicsManager/VistaOpenGLNode.h>
 #include <VistaKernel/GraphicsManager/VistaSceneGraph.h>
@@ -20,12 +20,12 @@
 #include <VistaKernel/VistaSystem.h>
 #include <VistaKernelOpenSGExt/VistaOpenSGMaterialTools.h>
 
-namespace cs::core::tools {
+namespace csl::tools {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-DeletableMark::DeletableMark(std::shared_ptr<InputManager> pInputManager,
-    std::shared_ptr<SolarSystem> pSolarSystem, std::shared_ptr<Settings> settings,
+DeletableMark::DeletableMark(std::shared_ptr<cs::core::InputManager> pInputManager,
+    std::shared_ptr<cs::core::SolarSystem> pSolarSystem, std::shared_ptr<cs::core::Settings> settings,
     std::string objectName)
     : Mark(std::move(pInputManager), std::move(pSolarSystem), std::move(settings),
           std::move(objectName))
@@ -81,4 +81,4 @@ void DeletableMark::initData() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-} // namespace cs::core::tools
+} // namespace csl::tools

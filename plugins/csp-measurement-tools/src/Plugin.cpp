@@ -9,9 +9,11 @@
 
 #include "../../../src/cs-core/GuiManager.hpp"
 #include "../../../src/cs-core/InputManager.hpp"
-#include "../../../src/cs-core/tools/Mark.hpp"
 #include "../../../src/cs-utils/convert.hpp"
 #include "../../../src/cs-utils/logger.hpp"
+
+#include "../../csl-tools/src/Mark.hpp"
+
 #include "logger.hpp"
 
 #include "DipStrikeTool.hpp"

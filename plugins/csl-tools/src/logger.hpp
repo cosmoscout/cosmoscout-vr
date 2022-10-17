@@ -5,23 +5,17 @@
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 // SPDX-License-Identifier: MIT
 
-#include "Tool.hpp"
+#ifndef CSL_TOOLS_LOGGER_HPP
+#define CSL_TOOLS_LOGGER_HPP
 
-namespace cs::core::tools {
+#include <spdlog/spdlog.h>
 
-Tool::Tool(std::string objectName)
-    : mObjectName(std::move(objectName)) {
-}
+namespace csl::tools {
 
-void Tool::update() {
-}
+/// This creates the default singleton logger for "csl-measurement-tools-base" when called for the first time
+/// and returns it. See cs-utils/logger.hpp for more logging details.
+spdlog::logger& logger();
 
-void Tool::setObjectName(std::string name) {
-  mObjectName = std::move(name);
-}
+} // namespace csl::tools
 
-std::string const& Tool::getObjectName() const {
-  return mObjectName;
-}
-
-} // namespace cs::core::tools
+#endif // CSL_TOOLS_LOGGER_HPP

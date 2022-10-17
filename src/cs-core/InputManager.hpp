@@ -17,6 +17,7 @@
 #include <VistaKernel/EventManager/VistaEventHandler.h>
 #include <VistaKernel/InteractionManager/VistaIntentionSelect.h>
 #include <VistaKernel/InteractionManager/VistaKeyboardSystemControl.h>
+#include <VistaKernel/GraphicsManager/VistaTransformNode.h>
 
 #include <glm/glm.hpp>
 #include <memory>
@@ -25,7 +26,6 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 
 class IVistaNode;
-class VistaTransformNode;
 class VistaNodeAdapter;
 class VistaOpenGLNode;
 

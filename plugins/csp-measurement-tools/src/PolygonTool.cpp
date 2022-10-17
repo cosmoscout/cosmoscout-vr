@@ -12,10 +12,12 @@
 #include "../../../src/cs-core/Settings.hpp"
 #include "../../../src/cs-core/SolarSystem.hpp"
 #include "../../../src/cs-core/TimeControl.hpp"
-#include "../../../src/cs-core/tools/DeletableMark.hpp"
 #include "../../../src/cs-scene/CelestialSurface.hpp"
 #include "../../../src/cs-utils/convert.hpp"
 #include "../../../src/cs-utils/utils.hpp"
+
+#include "../../csl-tools/src/DeletableMark.hpp"
+
 #include "logger.hpp"
 
 #include <VistaKernel/GraphicsManager/VistaOpenGLNode.h>
@@ -202,7 +204,7 @@ void PolygonTool::setSleekness(uint32_t degree) {
 
 glm::dvec4 PolygonTool::getInterpolatedPosBetweenTwoMarks(
     std::shared_ptr<cs::scene::CelestialSurface> const& surface,
-    cs::core::tools::DeletableMark const& l0, cs::core::tools::DeletableMark const& l1,
+    csl::tools::DeletableMark const& l0, csl::tools::DeletableMark const& l1,
     double value) {
 
   auto       object = mSolarSystem->getObject(getObjectName());
@@ -993,7 +995,7 @@ void PolygonTool::updateLineVertices() {
   // Fills the vertex buffer with sampled data
   mSampledPositions.clear();
 
-  // Middle point of cs::core::tools::DeletableMarks
+  // Middle point of csl::tools::DeletableMarks
   mPosition = glm::dvec3(0.0);
   for (auto const& mark : mPoints) {
     mPosition += mark->getPosition() / static_cast<double>(mPoints.size());
