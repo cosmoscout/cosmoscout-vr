@@ -253,8 +253,7 @@ class StatusbarApi extends IApi {
               // completion.
               this._suggestionField.insertAdjacentHTML("beforeend", `<span class='${classNames}'
                        onclick='CosmoScout.statusbar._setCompletion(${prefixBegin}, ${prefixEnd}, 
-                                                              ${finalCursorPos}, "${
-                                                                        completion}");'>
+                                                              ${finalCursorPos}, "${completion}");'>
                        ${element}
                 </span>`);
             });
