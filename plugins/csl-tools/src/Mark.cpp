@@ -17,8 +17,6 @@
 #include "../../../src/cs-utils/convert.hpp"
 #include "../../../src/cs-utils/utils.hpp"
 
-#include "logger.hpp"
-
 #include <VistaDataFlowNet/VdfnObjectRegistry.h>
 #include <VistaKernel/GraphicsManager/VistaOpenGLNode.h>
 #include <VistaKernel/GraphicsManager/VistaSceneGraph.h>
@@ -193,8 +191,6 @@ bool Mark::GetBoundingBox(VistaBoundingBox& bb) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Mark::initData() {
-  logger().info("Initializing Mark");
-
   mShader->InitVertexShaderFromString(SHADER_VERT);
   mShader->InitFragmentShaderFromString(SHADER_FRAG);
   mShader->Link();

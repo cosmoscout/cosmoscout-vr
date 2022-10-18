@@ -15,7 +15,6 @@ namespace csl::tools {
 
 spdlog::logger& logger() {
   static auto logger = cs::utils::createLogger("csl-tools");
-  logger->info("{}", reinterpret_cast<size_t>(logger.get()));
   return *logger;
 }
 

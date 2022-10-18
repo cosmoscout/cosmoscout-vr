@@ -12,14 +12,14 @@
     .DESCRIPTION
     This function creates a new CosmoScout VR plugin library with the given name. It will generate
     all relevant files for
-    your Plugin:
+    your plugin library:
     - README.md
     - CMakeLists.txt
     - src/logger.hpp
     - src/logger.cpp
     
     .PARAMETER Name
-    The plugin name. Just write it out in natural language. Don't use CamelCase, KebabCase, 
+    The plugin library name. Just write it out in natural language. Don't use CamelCase, KebabCase, 
     PascalCase or SnakeCase. The script will convert it to the correct case for each occurance.
 
     .EXAMPLE
@@ -95,7 +95,6 @@ file(GLOB HEADER_FILES src/*.hpp)
 add_library(csl-$kebabCaseName SHARED
   `${SOURCE_FILES}
   `${HEADER_FILES}
-  `${RESOURCE_FILES}
 )
 
 target_link_libraries(csl-$kebabCaseName
@@ -106,12 +105,9 @@ target_link_libraries(csl-$kebabCaseName
 # Add this plugin library to a `"plugins`" folder in your IDE.
 set_property(TARGET csl-$kebabCaseName PROPERTY FOLDER `"plugins`")
 
-# We mark all resource files as `"header`" in order to make sure that no one tries to compile them.
-set_source_files_properties(`${RESOURCE_FILES} PROPERTIES HEADER_FILE_ONLY true)
-
 # Make directory structure available in your IDE.
 source_group(TREE `"`${CMAKE_CURRENT_SOURCE_DIR}`" FILES
-  `${SOURCE_FILES} `${HEADER_FILES} `${RESOURCE_FILES}
+  `${SOURCE_FILES} `${HEADER_FILES}
 )
 
 target_include_directories(csl-$kebabCaseName PUBLIC

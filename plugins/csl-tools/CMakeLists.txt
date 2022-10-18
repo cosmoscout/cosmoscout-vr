@@ -33,12 +33,9 @@ target_link_libraries(csl-tools
 # Add this Plugin to a "plugins" folder in your IDE.
 set_property(TARGET csl-tools PROPERTY FOLDER "plugins")
 
-# We mark all resource files as "header" in order to make sure that no one tries to compile them.
-set_source_files_properties(${RESOURCE_FILES} PROPERTIES HEADER_FILE_ONLY true)
-
 # Make directory structure available in your IDE.
 source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES
-  ${SOURCE_FILES} ${HEADER_FILES} ${RESOURCE_FILES}
+  ${SOURCE_FILES} ${HEADER_FILES}
 )
 
 
