@@ -28,6 +28,7 @@ add_library(csp-measurement-tools SHARED
 target_link_libraries(csp-measurement-tools
   PUBLIC
     cs-core
+    csl-tools
 )
 
 if (COSMOSCOUT_USE_PRECOMPILED_HEADERS)

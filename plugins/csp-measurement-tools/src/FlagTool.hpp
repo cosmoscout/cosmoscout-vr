@@ -8,7 +8,7 @@
 #ifndef CSP_MEASUREMENT_TOOLS_FLAG_HPP
 #define CSP_MEASUREMENT_TOOLS_FLAG_HPP
 
-#include "../../../src/cs-core/tools/Mark.hpp"
+#include "../../csl-tools/src/Mark.hpp"
 
 namespace cs::gui {
 class GuiItem;
@@ -22,7 +22,7 @@ namespace csp::measurementtools {
 /// A flag that can be planted and moved on the surface. It displays the current geographic
 /// coordinates and height as well as the current address as precise as possible. You can also
 /// edit the name of the flag.
-class FlagTool : public cs::core::tools::Mark {
+class FlagTool : public csl::tools::Mark {
  public:
   /// This text is shown on the ui and can be edited by the user.
   cs::utils::Property<std::string> pText      = std::string("Flag");

@@ -17,6 +17,7 @@
 # ignore all additional plugin directories in /plugins
 /plugins/*
 !/plugins/CMakeLists.txt
+!/plugins/csl-tools
 !/plugins/csp-anchor-labels
 !/plugins/csp-atmospheres
 !/plugins/csp-custom-web-ui

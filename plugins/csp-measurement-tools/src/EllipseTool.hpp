@@ -16,7 +16,7 @@ namespace csp::measurementtools {
 
 /// The ellipse tool uses three points on the surface to draw an ellipse. A center point and two
 /// points through which the edge has to go through.
-class EllipseTool : public IVistaOpenGLDraw, public cs::core::tools::Tool {
+class EllipseTool : public IVistaOpenGLDraw, public csl::tools::Tool {
  public:
   /// The ellipse and all handels are drawn with this color.
   cs::utils::Property<glm::vec3> pColor = glm::vec3(0.75, 0.75, 1.0);
@@ -36,12 +36,12 @@ class EllipseTool : public IVistaOpenGLDraw, public cs::core::tools::Tool {
   // Assigns all points to a new celestial object.
   void setObjectName(std::string name) override;
 
-  FlagTool const&              getCenterHandle() const;
-  cs::core::tools::Mark const& getFirstHandle() const;
-  cs::core::tools::Mark const& getSecondHandle() const;
-  FlagTool&                    getCenterHandle();
-  cs::core::tools::Mark&       getFirstHandle();
-  cs::core::tools::Mark&       getSecondHandle();
+  FlagTool const&         getCenterHandle() const;
+  csl::tools::Mark const& getFirstHandle() const;
+  csl::tools::Mark const& getSecondHandle() const;
+  FlagTool&               getCenterHandle();
+  csl::tools::Mark&       getFirstHandle();
+  csl::tools::Mark&       getSecondHandle();
 
   /// Called from Tools class.
   void update() override;
@@ -64,10 +64,10 @@ class EllipseTool : public IVistaOpenGLDraw, public cs::core::tools::Tool {
   bool mVerticesDirty = false;
   bool mFirstUpdate   = true;
 
-  FlagTool                                              mCenterHandle;
-  std::array<glm::dvec3, 2>                             mAxes;
-  std::array<std::unique_ptr<cs::core::tools::Mark>, 2> mHandles;
-  std::array<int, 2>                                    mHandleConnections{};
+  FlagTool                                         mCenterHandle;
+  std::array<glm::dvec3, 2>                        mAxes;
+  std::array<std::unique_ptr<csl::tools::Mark>, 2> mHandles;
+  std::array<int, 2>                               mHandleConnections{};
 
   std::unique_ptr<VistaOpenGLNode> mOpenGLNode;
 

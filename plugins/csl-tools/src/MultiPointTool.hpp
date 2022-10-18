@@ -5,8 +5,8 @@
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 // SPDX-License-Identifier: MIT
 
-#ifndef CS_CORE_TOOLS_MULTIPOINT_TOOL_HPP
-#define CS_CORE_TOOLS_MULTIPOINT_TOOL_HPP
+#ifndef CSL_TOOLS_MULTIPOINT_TOOL_HPP
+#define CSL_TOOLS_MULTIPOINT_TOOL_HPP
 
 #include "DeletableMark.hpp"
 #include "Tool.hpp"
@@ -20,12 +20,13 @@ class TimeControl;
 class SolarSystem;
 class InputManager;
 class Settings;
+} // namespace cs::core
 
-namespace tools {
+namespace csl::tools {
 
 /// A base class for tools that need multiple points to work. It provides an interface for adding
 /// points at the current pointer location and checking if a point is selected.
-class CS_CORE_EXPORT MultiPointTool : public Tool {
+class CSL_TOOLS_EXPORT MultiPointTool : public Tool {
  public:
   /// Public properties where external can connect slots to.
   cs::utils::Property<bool> pAddPointMode = false;
@@ -41,9 +42,9 @@ class CS_CORE_EXPORT MultiPointTool : public Tool {
   /// distance.
   cs::utils::Property<double> pScaleDistance = -1.0;
 
-  MultiPointTool(std::shared_ptr<InputManager> pInputManager,
-      std::shared_ptr<SolarSystem> pSolarSystem, std::shared_ptr<Settings> settings,
-      std::string objectName);
+  MultiPointTool(std::shared_ptr<cs::core::InputManager> pInputManager,
+      std::shared_ptr<cs::core::SolarSystem>             pSolarSystem,
+      std::shared_ptr<cs::core::Settings> settings, std::string objectName);
 
   MultiPointTool(MultiPointTool const& other) = delete;
   MultiPointTool(MultiPointTool&& other)      = delete;
@@ -78,9 +79,9 @@ class CS_CORE_EXPORT MultiPointTool : public Tool {
   virtual void onPointAdded()            = 0;
   virtual void onPointRemoved(int index) = 0;
 
-  std::shared_ptr<InputManager> mInputManager;
-  std::shared_ptr<SolarSystem>  mSolarSystem;
-  std::shared_ptr<Settings>     mSettings;
+  std::shared_ptr<cs::core::InputManager> mInputManager;
+  std::shared_ptr<cs::core::SolarSystem>  mSolarSystem;
+  std::shared_ptr<cs::core::Settings>     mSettings;
 
   std::list<std::shared_ptr<DeletableMark>> mPoints;
 
@@ -89,7 +90,6 @@ class CS_CORE_EXPORT MultiPointTool : public Tool {
   int mRightButtonConnection = -1;
 };
 
-} // namespace tools
-} // namespace cs::core
+} // namespace csl::tools
 
-#endif // CS_CORE_TOOLS_MULTIPOINT_TOOL_HPP
+#endif // CSL_TOOLS_MULTIPOINT_TOOL_HPP

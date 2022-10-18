@@ -14,7 +14,6 @@
 #include "InputManager.hpp"
 #include "cs-version.hpp"
 #include "logger.hpp"
-#include "tools/Tool.hpp"
 
 #include <VistaKernel/DisplayManager/GlutWindowImp/VistaGlutWindowingToolkit.h>
 #include <VistaKernel/DisplayManager/VistaDisplayManager.h>

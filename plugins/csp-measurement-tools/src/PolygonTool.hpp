@@ -8,7 +8,7 @@
 #ifndef CSP_MEASUREMENT_TOOLS_POLYGONTOOL_HPP
 #define CSP_MEASUREMENT_TOOLS_POLYGONTOOL_HPP
 
-#include "../../../src/cs-core/tools/MultiPointTool.hpp"
+#include "../../csl-tools/src/MultiPointTool.hpp"
 #include "Plugin.hpp"
 
 #include <VistaKernel/GraphicsManager/VistaOpenGLDraw.h>
@@ -33,7 +33,7 @@ namespace csp::measurementtools {
 
 /// Measures the area and volume of an arbitrary polygon on surface with a Delaunay-mesh. It
 /// displays the bounding box of the selected polygon, which can be copied for cache generator.
-class PolygonTool : public IVistaOpenGLDraw, public cs::core::tools::MultiPointTool {
+class PolygonTool : public IVistaOpenGLDraw, public csl::tools::MultiPointTool {
  public:
   /// This text is shown on the ui and can be edited by the user.
   cs::utils::Property<std::string> pText = std::string("Polygon");
@@ -73,8 +73,7 @@ class PolygonTool : public IVistaOpenGLDraw, public cs::core::tools::MultiPointT
   /// height above the surface
   glm::dvec4 getInterpolatedPosBetweenTwoMarks(
       std::shared_ptr<cs::scene::CelestialSurface> const& surface,
-      cs::core::tools::DeletableMark const& l0, cs::core::tools::DeletableMark const& l1,
-      double value);
+      csl::tools::DeletableMark const& l0, csl::tools::DeletableMark const& l1, double value);
 
   /// Finds the intersection point between two sites
   static bool findIntersection(Site const& s1, Site const& s2, Site const& s3, Site const& s4,

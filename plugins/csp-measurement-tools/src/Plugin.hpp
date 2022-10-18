@@ -14,9 +14,9 @@
 #include <list>
 #include <string>
 
-namespace cs::core::tools {
+namespace csl::tools {
 class Tool;
-} // namespace cs::core::tools
+} // namespace csl::tools
 
 namespace csp::measurementtools {
 

@@ -13,14 +13,22 @@ SPDX-License-Identifier: CC-BY-4.0
 The modularity of CosmoScout allows for easy feature extension through the use of plugins.  
 This documentation aims at understanding the basic plugin architecture and the available apis.
 
+There are two types of plugins. There are normal plugins, which can be configured and add some features for the user to
+look at or interact with and there are plugin libraries, which provide some common classes for multiple plugins.
+
 # Creating a new Plugin
 
-To create a new plugin you can either create all the files by hand, copying from another plugin or we provide a PowerShell 
-script `tools/New-Plugin.ps1` which will create all the relevant folders and files for you.
+To create a new plugin you can either create all the files by hand, copying from another plugin or we provide PowerShell 
+scripts `tools/New-Plugin.ps1` and `tools/New-PluginLibrary.ps1` which will create all the relevant folders and files for you.
 For documentation look inside the script.
 
 If you are on Linux and want to use the script you can find a guide to install PowerShell on Linux 
 [here](https://docs.microsoft.com/en-us/powershell/scripting/install/installing-powershell-core-on-linux).
+
+Plugin libraries are rather simple. They are basically a normal C++-Library, which depends on CosmoScout's core libraries.
+They are prefixed with `csl`, which stand for "CosmoScout Library".
+
+The other plugin type is described in the sections below. It is prefixed with `csp`, which stands for "CosmoScout Plugin".
 
 ## PluginBase
 ...

@@ -7,7 +7,7 @@
 
 #include "Tool.hpp"
 
-namespace cs::core::tools {
+namespace csl::tools {
 
 Tool::Tool(std::string objectName)
     : mObjectName(std::move(objectName)) {
@@ -24,4 +24,4 @@ std::string const& Tool::getObjectName() const {
   return mObjectName;
 }
 
-} // namespace cs::core::tools
+} // namespace csl::tools

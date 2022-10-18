@@ -7,15 +7,15 @@
 
 #include "Mark.hpp"
 
-#include "../../cs-scene/CelestialObject.hpp"
-#include "../../cs-scene/CelestialSurface.hpp"
-#include "../../cs-utils/convert.hpp"
-#include "../../cs-utils/utils.hpp"
-#include "../GuiManager.hpp"
-#include "../InputManager.hpp"
-#include "../Settings.hpp"
-#include "../SolarSystem.hpp"
-#include "../TimeControl.hpp"
+#include "../../../src/cs-core/GuiManager.hpp"
+#include "../../../src/cs-core/InputManager.hpp"
+#include "../../../src/cs-core/Settings.hpp"
+#include "../../../src/cs-core/SolarSystem.hpp"
+#include "../../../src/cs-core/TimeControl.hpp"
+#include "../../../src/cs-scene/CelestialObject.hpp"
+#include "../../../src/cs-scene/CelestialSurface.hpp"
+#include "../../../src/cs-utils/convert.hpp"
+#include "../../../src/cs-utils/utils.hpp"
 
 #include <VistaDataFlowNet/VdfnObjectRegistry.h>
 #include <VistaKernel/GraphicsManager/VistaOpenGLNode.h>
@@ -27,7 +27,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <utility>
 
-namespace cs::core::tools {
+namespace csl::tools {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -67,8 +67,9 @@ void main()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Mark::Mark(std::shared_ptr<InputManager> pInputManager, std::shared_ptr<SolarSystem> pSolarSystem,
-    std::shared_ptr<Settings> settings, std::string objectName)
+Mark::Mark(std::shared_ptr<cs::core::InputManager> pInputManager,
+    std::shared_ptr<cs::core::SolarSystem>         pSolarSystem,
+    std::shared_ptr<cs::core::Settings> settings, std::string objectName)
     : Tool(std::move(objectName))
     , mInputManager(std::move(pInputManager))
     , mSolarSystem(std::move(pSolarSystem))
@@ -287,7 +288,7 @@ void Mark::initData() {
       [this](bool press) { pActive = (press && pHovered.get()); });
 
   mHoveredPlanetConnection =
-      mInputManager->pHoveredObject.connect([this](InputManager::Intersection const& i) {
+      mInputManager->pHoveredObject.connect([this](cs::core::InputManager::Intersection const& i) {
         if (pActive.get() && i.mObject) {
           auto object = mSolarSystem->getObject(getObjectName());
           if (i.mObject == object) {
@@ -321,4 +322,4 @@ void Mark::initData() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-} // namespace cs::core::tools
+} // namespace csl::tools

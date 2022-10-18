@@ -14,10 +14,11 @@
 #include "../../../src/cs-core/Settings.hpp"
 #include "../../../src/cs-core/SolarSystem.hpp"
 #include "../../../src/cs-core/TimeControl.hpp"
-#include "../../../src/cs-core/tools/DeletableMark.hpp"
 #include "../../../src/cs-scene/CelestialSurface.hpp"
 #include "../../../src/cs-utils/convert.hpp"
 #include "../../../src/cs-utils/utils.hpp"
+
+#include "../../csl-tools/src/DeletableMark.hpp"
 
 #include <VistaKernel/GraphicsManager/VistaOpenGLNode.h>
 #include <VistaKernel/GraphicsManager/VistaSceneGraph.h>
@@ -162,8 +163,8 @@ void PathTool::setNumSamples(int const& numSamples) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-glm::dvec4 PathTool::getInterpolatedPosBetweenTwoMarks(cs::core::tools::DeletableMark const& l0,
-    cs::core::tools::DeletableMark const& l1, double value, double const& scale) {
+glm::dvec4 PathTool::getInterpolatedPosBetweenTwoMarks(csl::tools::DeletableMark const& l0,
+    csl::tools::DeletableMark const& l1, double value, double const& scale) {
 
   auto       object = mSolarSystem->getObject(getObjectName());
   glm::dvec3 radii  = object->getRadii();

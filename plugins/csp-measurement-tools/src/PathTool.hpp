@@ -8,7 +8,7 @@
 #ifndef CSP_MEASUREMENT_TOOLS_PATH_HPP
 #define CSP_MEASUREMENT_TOOLS_PATH_HPP
 
-#include "../../../src/cs-core/tools/MultiPointTool.hpp"
+#include "../../csl-tools/src/MultiPointTool.hpp"
 
 #include <VistaKernel/GraphicsManager/VistaOpenGLDraw.h>
 
@@ -29,7 +29,7 @@ class VistaTransformNode;
 namespace csp::measurementtools {
 
 /// The path tool is used to measure the distance and height along a path of lines.
-class PathTool : public IVistaOpenGLDraw, public cs::core::tools::MultiPointTool {
+class PathTool : public IVistaOpenGLDraw, public csl::tools::MultiPointTool {
  public:
   /// This text is shown on the ui and can be edited by the user.
   cs::utils::Property<std::string> pText = std::string("Path");
@@ -60,8 +60,8 @@ class PathTool : public IVistaOpenGLDraw, public cs::core::tools::MultiPointTool
 
   /// Returns the interpolated position in cartesian coordinates. The fourth component is height
   /// above the surface.
-  glm::dvec4 getInterpolatedPosBetweenTwoMarks(cs::core::tools::DeletableMark const& l0,
-      cs::core::tools::DeletableMark const& l1, double value, double const& scale);
+  glm::dvec4 getInterpolatedPosBetweenTwoMarks(csl::tools::DeletableMark const& l0,
+      csl::tools::DeletableMark const& l1, double value, double const& scale);
 
   /// These are called by the base class MultiPointTool.
   void onPointMoved() override;

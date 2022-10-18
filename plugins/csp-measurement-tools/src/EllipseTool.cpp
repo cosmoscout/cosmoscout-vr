@@ -67,10 +67,10 @@ EllipseTool::EllipseTool(std::shared_ptr<cs::core::InputManager> pInputManager,
     , mCenterHandle(pInputManager, pSolarSystem, settings, objectName)
     , mAxes({glm::dvec3(pSolarSystem->getObserver().getScale(), 0.0, 0.0),
           glm::dvec3(0.0, pSolarSystem->getObserver().getScale(), 0.0)})
-    , mHandles({std::make_unique<cs::core::tools::Mark>(
-                    pInputManager, pSolarSystem, settings, objectName),
-          std::make_unique<cs::core::tools::Mark>(std::move(pInputManager), std::move(pSolarSystem),
-              std::move(settings), std::move(objectName))}) {
+    , mHandles(
+          {std::make_unique<csl::tools::Mark>(pInputManager, pSolarSystem, settings, objectName),
+              std::make_unique<csl::tools::Mark>(std::move(pInputManager), std::move(pSolarSystem),
+                  std::move(settings), std::move(objectName))}) {
 
   mShader.InitVertexShaderFromString(SHADER_VERT);
   mShader.InitFragmentShaderFromString(SHADER_FRAG);
@@ -169,13 +169,13 @@ FlagTool const& EllipseTool::getCenterHandle() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-cs::core::tools::Mark const& EllipseTool::getFirstHandle() const {
+csl::tools::Mark const& EllipseTool::getFirstHandle() const {
   return *mHandles.at(0);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-cs::core::tools::Mark const& EllipseTool::getSecondHandle() const {
+csl::tools::Mark const& EllipseTool::getSecondHandle() const {
   return *mHandles.at(1);
 }
 
@@ -187,13 +187,13 @@ FlagTool& EllipseTool::getCenterHandle() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-cs::core::tools::Mark& EllipseTool::getFirstHandle() {
+csl::tools::Mark& EllipseTool::getFirstHandle() {
   return *mHandles.at(0);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-cs::core::tools::Mark& EllipseTool::getSecondHandle() {
+csl::tools::Mark& EllipseTool::getSecondHandle() {
   return *mHandles.at(1);
 }
 
