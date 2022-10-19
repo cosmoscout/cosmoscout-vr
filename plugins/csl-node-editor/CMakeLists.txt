@@ -27,6 +27,8 @@ target_link_libraries(csl-node-editor
   PUBLIC
     cs-core
     cs-utils
+    civetweb::civetweb
+    civetweb::civetwebcpp
 )
 
 # Add this Plugin to a "plugins" folder in your IDE.
