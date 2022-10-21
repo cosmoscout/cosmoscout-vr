@@ -1,0 +1,99 @@
+<!-- 
+SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+SPDX-License-Identifier: MIT
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Node Editor</title>
+
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/rete@1.5.0-rc1/build/rete.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/rete-vue-render-plugin@1.0.0-rc2/build/vue-render-plugin.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/rete-connection-plugin@0.9.0/build/connection-plugin.min.js"></script>
+
+
+  <style>
+    body {
+      width: 100vw;
+      height: 100vh;
+      padding: 0;
+      margin: 0;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="rete"></div>
+
+  <script type="text/javascript">
+    const numSocket = new Rete.Socket('Number value');
+
+    class NumComponent extends Rete.Component {
+      constructor() {
+        super('Number');
+      }
+
+      builder(node) {
+        let out = new Rete.Output('num', 'Number', numSocket);
+
+        node.addOutput(out);
+      }
+
+      worker(node, inputs, outputs) {
+        outputs['num'] = node.data.num;
+      }
+    }
+
+    const container = document.querySelector('#rete');
+    const editor = new Rete.NodeEditor('demo@0.1.0', container);
+
+    editor.use(ConnectionPlugin.default)
+    editor.use(VueRenderPlugin.default)
+
+    const numComponent = new NumComponent();
+    editor.register(numComponent);
+
+    const engine = new Rete.Engine('demo@0.1.0');
+    engine.register(numComponent);
+
+    editor.on('process nodecreated noderemoved connectioncreated connectionremoved', async () => {
+      await engine.abort();
+      await engine.process(editor.toJSON());
+    });
+
+    editor.fromJSON({
+      "id": "demo@0.1.0",
+      "nodes": {
+        "1": {
+          "id": 1,
+          "data": {
+            "num": 2
+          },
+          "inputs": {},
+          "outputs": {
+            "num": {
+              "connections": [{
+                "node": 3,
+                "input": "num1",
+                "data": {}
+              }]
+            }
+          },
+          "position": [80, 200],
+          "name": "Number"
+        }
+      }
+    }
+    );
+
+    editor.view.resize();
+  </script>
+
+</body>
+
+</html>

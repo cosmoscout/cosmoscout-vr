@@ -81,14 +81,7 @@ NodeEditor::NodeEditor(uint16_t port) {
   // Return the landing page when the root document is requested. If not landing page is configured,
   // we just send back a simple message.
   mHandlers.emplace("/", std::make_unique<GetHandler>([this](mg_connection* conn) {
-    // if (mPluginSettings.mPage) {
-    //   mg_send_mime_file(conn, mPluginSettings.mPage.value().c_str(), "text/html");
-    // } else {
-    std::string response = "CosmoScout VR is running. You can modify this page with "
-                           "the 'page' key in the configuration of 'csp-web-api'.";
-    mg_send_http_ok(conn, "text/plain", response.length());
-    mg_write(conn, response.data(), response.length());
-    // }
+    mg_send_mime_file(conn, "../share/resources/gui/csl-node-editor.html", "text/html");
   }));
 
   startServer(port);
