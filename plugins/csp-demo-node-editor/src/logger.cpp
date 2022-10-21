@@ -9,15 +9,15 @@
 
 #include "../../../src/cs-utils/logger.hpp"
 
-namespace csp::webapi {
+namespace csp::demonodeeditor {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 spdlog::logger& logger() {
-  static auto logger = cs::utils::createLogger("csp-web-api");
+  static auto logger = cs::utils::createLogger("csp-demo-node-editor");
   return *logger;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-} // namespace csp::webapi
+} // namespace csp::demonodeeditor

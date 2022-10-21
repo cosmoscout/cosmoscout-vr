@@ -10,12 +10,12 @@
 
 #include <spdlog/spdlog.h>
 
-namespace csp::webapi {
+namespace csp::demonodeeditor {
 
 /// This creates the default singleton logger for "csp-web-api" when called for the first time
 /// and returns it. See cs-utils/logger.hpp for more logging details.
 spdlog::logger& logger();
 
-} // namespace csp::webapi
+} // namespace csp::demonodeeditor
 
 #endif // CSP_WEB_API_LOGGER_HPP
