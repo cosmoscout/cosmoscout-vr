@@ -50,8 +50,7 @@ void Plugin::init() {
   mOnSaveConnection = mAllSettings->onSave().connect([this]() { onSave(); });
 
   // Restart the server if the port changes.
-  mPluginSettings.mPort.connect(
-      [this](uint16_t port) { mNodeEditor = std::make_unique<csl::nodeeditor::NodeEditor>(port); });
+  mPluginSettings.mPort.connect([this](uint16_t port) { setupNodeEditor(port); });
 
   onLoad();
 
@@ -89,6 +88,14 @@ void Plugin::onLoad() {
 
 void Plugin::onSave() {
   mAllSettings->mPlugins["csp-demo-node-editor"] = mPluginSettings;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Plugin::setupNodeEditor(uint16_t port) {
+  std::vector<csl::nodeeditor::Socket> sockets = {
+      {"Number Value", "#ff0000", {}}, {"String Value", "#00ff00", {}}};
+  mNodeEditor = std::make_unique<csl::nodeeditor::NodeEditor>(port, sockets);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

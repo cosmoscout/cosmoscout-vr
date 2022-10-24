@@ -9,6 +9,7 @@
 
 #include "logger.hpp"
 
+#include "../../../src/cs-utils/filesystem.hpp"
 #include "../../../src/cs-utils/utils.hpp"
 
 #include <CivetServer.h>
@@ -77,12 +78,24 @@ namespace csl::nodeeditor {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-NodeEditor::NodeEditor(uint16_t port) {
-  // Return the landing page when the root document is requested. If not landing page is configured,
-  // we just send back a simple message.
+NodeEditor::NodeEditor(uint16_t port, std::vector<Socket> const& sockets)
+    : mHTMLSource(
+          cs::utils::filesystem::loadToString("../share/resources/gui/csl-node-editor.html")) {
+
   mHandlers.emplace("/", std::make_unique<GetHandler>([this](mg_connection* conn) {
-    mg_send_mime_file(conn, "../share/resources/gui/csl-node-editor.html", "text/html");
+    mg_send_http_ok(conn, "text/html", mHTMLSource.length());
+    mg_write(conn, mHTMLSource.data(), mHTMLSource.length());
   }));
+
+  mHandlers.emplace("/css/gui.css", std::make_unique<GetHandler>([this](mg_connection* conn) {
+    mg_send_mime_file(conn, "../share/resources/gui/css/gui.css", "text/css");
+  }));
+
+  mHandlers.emplace(
+      "/third-party/fonts/Ubuntu-R.ttf", std::make_unique<GetHandler>([this](mg_connection* conn) {
+        mg_send_mime_file(
+            conn, "../share/resources/gui/third-party/fonts/Ubuntu-R.ttf", "font/ttf");
+      }));
 
   startServer(port);
 }

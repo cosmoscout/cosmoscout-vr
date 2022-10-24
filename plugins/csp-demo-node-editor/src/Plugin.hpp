@@ -32,6 +32,8 @@ class Plugin : public cs::core::PluginBase {
   void onLoad();
   void onSave();
 
+  void setupNodeEditor(uint16_t port);
+
   Settings                                     mPluginSettings;
   std::unique_ptr<csl::nodeeditor::NodeEditor> mNodeEditor;
 

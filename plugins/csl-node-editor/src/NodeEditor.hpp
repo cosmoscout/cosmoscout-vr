@@ -10,15 +10,22 @@
 
 #include <memory>
 #include <unordered_map>
+#include <vector>
 
 class CivetServer;
 class CivetHandler;
 
 namespace csl::nodeeditor {
 
+struct Socket {
+  std::string              mName;
+  std::string              mColor;
+  std::vector<std::string> mCompatibleTo;
+};
+
 class NodeEditor {
  public:
-  NodeEditor(uint16_t port);
+  NodeEditor(uint16_t port, std::vector<Socket> const& sockets);
   ~NodeEditor();
 
  private:
@@ -27,6 +34,8 @@ class NodeEditor {
 
   std::unique_ptr<CivetServer>                                   mServer;
   std::unordered_map<std::string, std::unique_ptr<CivetHandler>> mHandlers;
+
+  std::string mHTMLSource;
 };
 
 } // namespace csl::nodeeditor
