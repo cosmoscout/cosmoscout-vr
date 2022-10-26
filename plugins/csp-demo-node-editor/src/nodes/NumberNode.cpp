@@ -63,7 +63,7 @@ std::string NumberNode::getSource() {
       }
 
       builder(node) {
-        let output = new Rete.Output('number', "Number", SOCKETS['Number Value']);
+        let output = new Rete.Output('number', "Number", CosmoScout.socketTypes['Number Value']);
         return node.addControl(new %NAME%Control(this.editor, 'number'))
                    .addOutput(output);
       }

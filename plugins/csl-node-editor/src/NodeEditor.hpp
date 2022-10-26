@@ -11,11 +11,11 @@
 #include "NodeFactory.hpp"
 
 #include <memory>
-#include <unordered_map>
 #include <vector>
 
 class CivetServer;
 class CivetHandler;
+class CivetWebSocketHandler;
 
 namespace csl::nodeeditor {
 
@@ -32,8 +32,9 @@ class NodeEditor {
 
   NodeFactory mFactory;
 
-  std::unique_ptr<CivetServer>                                   mServer;
-  std::unordered_map<std::string, std::unique_ptr<CivetHandler>> mHandlers;
+  std::unique_ptr<CivetServer>                                       mServer;
+  std::vector<std::pair<std::string, std::unique_ptr<CivetHandler>>> mHandlers;
+  std::unique_ptr<CivetWebSocketHandler>                             mSocket;
 
   std::string mHTMLSource;
 };

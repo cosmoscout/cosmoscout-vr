@@ -30,13 +30,13 @@ std::string DisplayNode::getSource() {
       }
 
       builder(node) {
-        let input = new Rete.Input('number', "Number", SOCKETS['Number Value']);
+        let input = new Rete.Input('number', "Number", CosmoScout.socketTypes['Number Value']);
         return node.addInput(input);
       }
 
       worker(node, inputs, outputs) {
         let val = inputs['number'].length ? inputs['number'][0] : NaN;
-        console.log(val);
+        CosmoScout.connection.send("process");
       }
     }
   )";

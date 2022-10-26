@@ -31,7 +31,7 @@ std::string TimeNode::getSource() {
       }
 
       builder(node) {
-        let output = new Rete.Output('date', "Date", SOCKETS['Date Value']);
+        let output = new Rete.Output('date', "Date", CosmoScout.socketTypes['Date Value']);
         return node.addOutput(output);
       }
 

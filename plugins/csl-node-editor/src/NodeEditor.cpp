@@ -39,21 +39,29 @@ class GetHandler : public CivetHandler {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// A simple wrapper class which basically allows registering of lambdas as endpoint handlers for
-// our CivetServer. This one handles POST requests.
-class PostHandler : public CivetHandler {
- public:
-  explicit PostHandler(std::function<void(mg_connection*)> handler)
-      : mHandler(std::move(handler)) {
-  }
+class WebSocketHandler : public CivetWebSocketHandler {
 
-  bool handlePost(CivetServer* /*server*/, mg_connection* conn) override {
-    mHandler(conn);
+  bool handleConnection(CivetServer* server, const struct mg_connection* conn) override {
+    csl::nodeeditor::logger().info("WS connected");
     return true;
   }
 
- private:
-  std::function<void(mg_connection*)> mHandler;
+  void handleReadyState(CivetServer* server, struct mg_connection* conn) override {
+    csl::nodeeditor::logger().info("WS ready");
+
+    // mg_websocket_write(conn, MG_WEBSOCKET_OPCODE_TEXT, text, strlen(text));
+  }
+
+  bool handleData(CivetServer* server, struct mg_connection* conn, int bits, char* data,
+      size_t data_len) override {
+    csl::nodeeditor::logger().info("{}", std::string(data, data_len));
+
+    return true;
+  }
+
+  void handleClose(CivetServer* server, const struct mg_connection* conn) override {
+    csl::nodeeditor::logger().info("WS closed");
+  }
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -81,29 +89,30 @@ namespace csl::nodeeditor {
 
 NodeEditor::NodeEditor(uint16_t port, NodeFactory factory)
     : mFactory(std::move(factory))
+    , mSocket(std::make_unique<WebSocketHandler>())
     , mHTMLSource(std::move(createHTMLSource())) {
 
-  mHandlers.emplace("/", std::make_unique<GetHandler>([this](mg_connection* conn) {
-    mg_send_http_ok(conn, "text/html", mHTMLSource.length());
-    mg_write(conn, mHTMLSource.data(), mHTMLSource.length());
-  }));
-
-  mHandlers.emplace("**.css$", std::make_unique<GetHandler>([this](mg_connection* conn) {
+  mHandlers.emplace_back("**.css$", std::make_unique<GetHandler>([this](mg_connection* conn) {
     auto info = mg_get_request_info(conn);
     mg_send_mime_file(
         conn, ("../share/resources/gui/" + std::string(info->request_uri)).c_str(), "text/css");
   }));
 
-  mHandlers.emplace("**.js$", std::make_unique<GetHandler>([this](mg_connection* conn) {
+  mHandlers.emplace_back("**.js$", std::make_unique<GetHandler>([this](mg_connection* conn) {
     auto info = mg_get_request_info(conn);
     mg_send_mime_file(conn, ("../share/resources/gui/" + std::string(info->request_uri)).c_str(),
         "text/javascript");
   }));
 
-  mHandlers.emplace("**.ttf$", std::make_unique<GetHandler>([this](mg_connection* conn) {
+  mHandlers.emplace_back("**.ttf$", std::make_unique<GetHandler>([this](mg_connection* conn) {
     auto info = mg_get_request_info(conn);
     mg_send_mime_file(
         conn, ("../share/resources/gui/" + std::string(info->request_uri)).c_str(), "font/ttf");
+  }));
+
+  mHandlers.emplace_back("/$", std::make_unique<GetHandler>([this](mg_connection* conn) {
+    mg_send_http_ok(conn, "text/html", mHTMLSource.length());
+    mg_write(conn, mHTMLSource.data(), mHTMLSource.length());
   }));
 
   startServer(port);
@@ -126,6 +135,7 @@ void NodeEditor::startServer(uint16_t port) {
     // We start the server with one thread only, as we do not want to process requests in parallel.
     std::vector<std::string> options{"listening_ports", std::to_string(port), "num_threads", "1"};
     mServer = std::make_unique<CivetServer>(options);
+    mServer->addWebSocketHandler("/socket", *mSocket);
 
     for (auto const& handler : mHandlers) {
       mServer->addHandler(handler.first, *handler.second);

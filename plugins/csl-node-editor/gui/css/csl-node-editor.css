@@ -6,6 +6,55 @@ body {
     background-color: #333
 }
 
+#loading-screen {
+    position: absolute;
+    background: rgba(0, 0, 0, 0.5);
+    width: 100vw;
+    height: 100vh;
+}
+
+#loading-screen .wrapper {
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    position: absolute;
+}
+
+#loading-screen p {
+    font-size: 1.5em;
+}
+
+#loading-screen .spinner {
+    display: inline-block;
+    width: 80px;
+    height: 80px;
+}
+
+#loading-screen .spinner:after {
+    content: " ";
+    display: block;
+    width: 64px;
+    height: 64px;
+    margin: 8px;
+    border-radius: 50%;
+    border: 6px solid #fff;
+    border-color: #fff transparent #fff transparent;
+    animation: spinner 1.2s linear infinite;
+}
+
+@keyframes spinner {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+#loading-screen p {}
+
 .background {
     background:
         linear-gradient(-90deg, rgba(255, 255, 255, .02) 3px, transparent 3px),

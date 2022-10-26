@@ -16,7 +16,6 @@ SPDX-License-Identifier: MIT
   <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.11/lodash.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/rete-vue-render-plugin@0.5.1/build/vue-render-plugin.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/rete-connection-plugin@0.9.0/build/connection-plugin.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/rete-comment-plugin@0.3.0/build/comment-plugin.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/rete-context-menu-plugin@0.5.2/build/context-menu-plugin.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/rete-history-plugin@0.1.0/build/history-plugin.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/rete-area-plugin@0.2.1/build/area-plugin.min.js"></script>
@@ -41,6 +40,13 @@ SPDX-License-Identifier: MIT
 
 <body>
 
+  <div id="loading-screen">
+    <div class="wrapper">
+      <div class="spinner"></div>
+      <p>connecting</p>
+    </div>
+  </div>
+
   <div id="rete"></div>
 
   <script type="text/javascript">
@@ -61,42 +67,25 @@ SPDX-License-Identifier: MIT
       document.head.appendChild(css);
     }
 
-    let SOCKETS = [];
+    CosmoScout = {
+      socketTypes: [],
+      connection: null,
+      nodeEditor: null,
+    };
+
+    CosmoScout.connection = new WebSocket('ws://' + window.location.host + '/socket');
+    CosmoScout.connection.addEventListener('error', (error) => {
+      alert('Connection to CosmoScout VR was interupted.');
+      CosmoScout.connection.close();
+    });
+    CosmoScout.connection.addEventListener('open', () => {
+      document.getElementById("loading-screen").classList.add("hidden");
+      console.log("connected!");
+    });
 
     //!SOCKET_SOURCE_CODE
 
     //!NODE_SOURCE_CODE
-
-
-    // class AddComponent extends Rete.Component {
-    //   constructor() {
-    //     super("Add");
-    //   }
-
-    //   builder(node) {
-    //     var inp1 = new Rete.Input('num', "Number", numSocket);
-    //     var inp2 = new Rete.Input('num2', "Number2", numSocket);
-    //     var out = new Rete.Output('num', "Number", numSocket);
-
-    //     inp1.addControl(new NumControl(this.editor, 'num'))
-    //     inp2.addControl(new NumControl(this.editor, 'num2'))
-
-    //     return node
-    //       .addInput(inp1)
-    //       .addInput(inp2)
-    //       .addControl(new NumControl(this.editor, 'preview', true))
-    //       .addOutput(out);
-    //   }
-
-    //   worker(node, inputs, outputs) {
-    //     var n1 = inputs['num'].length ? inputs['num'][0] : node.data.num1;
-    //     var n2 = inputs['num2'].length ? inputs['num2'][0] : node.data.num2;
-    //     var sum = n1 + n2;
-
-    //     this.editor.nodes.find(n => n.id == node.id).controls.get('preview').setValue(sum);
-    //     outputs['num'] = sum;
-    //   }
-    // }
 
     (async () => {
       const container = document.querySelector('#rete');
@@ -104,30 +93,39 @@ SPDX-License-Identifier: MIT
       const background = document.createElement('div');
       background.classList = 'background';
 
-      const editor = new Rete.NodeEditor('node-editor@0.1.0', container);
-      editor.use(ConnectionPlugin.default);
-      editor.use(VueRenderPlugin.default);
-      editor.use(CommentPlugin.default);
-      editor.use(ContextMenuPlugin.default, {
+      CosmoScout.nodeEditor = new Rete.NodeEditor('node-editor@0.1.0', container);
+      CosmoScout.nodeEditor.use(ConnectionPlugin.default);
+      CosmoScout.nodeEditor.use(VueRenderPlugin.default);
+      CosmoScout.nodeEditor.use(ContextMenuPlugin.default, {
+        delay: 0,
         allocate(component) {
           return component.category ? [component.category] : [];
         },
       });
-      editor.use(AreaPlugin, { background });
-      editor.use(HistoryPlugin);
-
-      const engine = new Rete.Engine('node-editor@0.1.0');
+      CosmoScout.nodeEditor.use(AreaPlugin, { background });
+      CosmoScout.nodeEditor.use(HistoryPlugin);
 
       //!REGISTER_COMPONENTS
 
-      editor.on('process nodecreated noderemoved connectioncreated connectionremoved', async () => {
-        await engine.abort();
-        await engine.process(editor.toJSON());
+      CosmoScout.nodeEditor.on('process', () => {
+        CosmoScout.connection.send(JSON.stringify({ event: "process" }));
+      });
+      CosmoScout.nodeEditor.on('nodecreated', (node) => {
+        CosmoScout.connection.send(JSON.stringify({ event: "addNode", node: node }));
+      });
+      CosmoScout.nodeEditor.on('noderemoved', (node) => {
+        CosmoScout.connection.send(JSON.stringify({ event: "removeNode", node: node }));
+      });
+      CosmoScout.nodeEditor.on('connectioncreated', (output, input) => {
+        CosmoScout.connection.send(JSON.stringify({ event: "addConnection", output: output, input: input }));
+      });
+      CosmoScout.nodeEditor.on('connectionremove', (connection) => {
+        CosmoScout.connection.send(JSON.stringify({ event: "removeConnection", connection: connection }));
       });
 
-      editor.view.resize();
-      AreaPlugin.zoomAt(editor);
-      editor.trigger('process');
+      CosmoScout.nodeEditor.view.resize();
+      AreaPlugin.zoomAt(CosmoScout.nodeEditor);
+      CosmoScout.nodeEditor.trigger('process');
     })();
   </script>
 
