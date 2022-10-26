@@ -14,6 +14,7 @@
 
 #include <CivetServer.h>
 #include <functional>
+#include <iostream>
 
 namespace {
 
@@ -78,24 +79,32 @@ namespace csl::nodeeditor {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-NodeEditor::NodeEditor(uint16_t port, std::vector<Socket> const& sockets)
-    : mHTMLSource(
-          cs::utils::filesystem::loadToString("../share/resources/gui/csl-node-editor.html")) {
+NodeEditor::NodeEditor(uint16_t port, NodeFactory factory)
+    : mFactory(std::move(factory))
+    , mHTMLSource(std::move(createHTMLSource())) {
 
   mHandlers.emplace("/", std::make_unique<GetHandler>([this](mg_connection* conn) {
     mg_send_http_ok(conn, "text/html", mHTMLSource.length());
     mg_write(conn, mHTMLSource.data(), mHTMLSource.length());
   }));
 
-  mHandlers.emplace("/css/gui.css", std::make_unique<GetHandler>([this](mg_connection* conn) {
-    mg_send_mime_file(conn, "../share/resources/gui/css/gui.css", "text/css");
+  mHandlers.emplace("**.css$", std::make_unique<GetHandler>([this](mg_connection* conn) {
+    auto info = mg_get_request_info(conn);
+    mg_send_mime_file(
+        conn, ("../share/resources/gui/" + std::string(info->request_uri)).c_str(), "text/css");
   }));
 
-  mHandlers.emplace(
-      "/third-party/fonts/Ubuntu-R.ttf", std::make_unique<GetHandler>([this](mg_connection* conn) {
-        mg_send_mime_file(
-            conn, "../share/resources/gui/third-party/fonts/Ubuntu-R.ttf", "font/ttf");
-      }));
+  mHandlers.emplace("**.js$", std::make_unique<GetHandler>([this](mg_connection* conn) {
+    auto info = mg_get_request_info(conn);
+    mg_send_mime_file(conn, ("../share/resources/gui/" + std::string(info->request_uri)).c_str(),
+        "text/javascript");
+  }));
+
+  mHandlers.emplace("**.ttf$", std::make_unique<GetHandler>([this](mg_connection* conn) {
+    auto info = mg_get_request_info(conn);
+    mg_send_mime_file(
+        conn, ("../share/resources/gui/" + std::string(info->request_uri)).c_str(), "font/ttf");
+  }));
 
   startServer(port);
 }
@@ -133,6 +142,18 @@ void NodeEditor::quitServer() {
       mServer.reset();
     }
   } catch (std::exception const& e) { logger().warn("Failed to quit server: {}!", e.what()); }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::string NodeEditor::createHTMLSource() const {
+  auto html = cs::utils::filesystem::loadToString("../share/resources/gui/csl-node-editor.html");
+
+  cs::utils::replaceString(html, "//!SOCKET_SOURCE_CODE", mFactory.getSocketSource());
+  cs::utils::replaceString(html, "//!NODE_SOURCE_CODE", mFactory.getNodeSource());
+  cs::utils::replaceString(html, "//!REGISTER_COMPONENTS", mFactory.getRegisterSource());
+
+  return html;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

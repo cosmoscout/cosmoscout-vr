@@ -5,8 +5,8 @@
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 // SPDX-License-Identifier: MIT
 
-#ifndef CSP_WEB_API_PLUGIN_HPP
-#define CSP_WEB_API_PLUGIN_HPP
+#ifndef CSP_DEMO_NODE_EDITOR_PLUGIN_HPP
+#define CSP_DEMO_NODE_EDITOR_PLUGIN_HPP
 
 #include "../../../src/cs-core/PluginBase.hpp"
 #include "../../../src/cs-utils/Property.hpp"
@@ -14,8 +14,7 @@
 
 namespace csp::demonodeeditor {
 
-/// This plugin contains a web server which provides some HTTP endpoints which can be used to
-/// remote-control CosmoScout VR.
+///
 class Plugin : public cs::core::PluginBase {
  public:
   struct Settings {
@@ -43,4 +42,4 @@ class Plugin : public cs::core::PluginBase {
 
 } // namespace csp::demonodeeditor
 
-#endif // CSP_WEB_API_PLUGIN_HPP
+#endif // CSP_DEMO_NODE_EDITOR_PLUGIN_HPP

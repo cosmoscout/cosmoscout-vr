@@ -12,7 +12,12 @@
 #include "../../../src/cs-core/SolarSystem.hpp"
 #include "../../../src/cs-utils/logger.hpp"
 #include "../../../src/cs-utils/utils.hpp"
+
 #include "logger.hpp"
+#include "nodes/DisplayNode.hpp"
+#include "nodes/MathNode.hpp"
+#include "nodes/NumberNode.hpp"
+#include "nodes/TimeNode.hpp"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -93,9 +98,17 @@ void Plugin::onSave() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Plugin::setupNodeEditor(uint16_t port) {
-  std::vector<csl::nodeeditor::Socket> sockets = {
-      {"Number Value", "#ff0000", {}}, {"String Value", "#00ff00", {}}};
-  mNodeEditor = std::make_unique<csl::nodeeditor::NodeEditor>(port, sockets);
+
+  csl::nodeeditor::NodeFactory factory;
+  factory.registerSocketType("Number Value", "#ff0000");
+  factory.registerSocketType("Date Value", "#00ff00", {"Number Value"});
+
+  // factory.registerNodeType<MathNode>();
+  factory.registerNodeType<DisplayNode>();
+  factory.registerNodeType<NumberNode>();
+  factory.registerNodeType<TimeNode>(mTimeControl);
+
+  mNodeEditor = std::make_unique<csl::nodeeditor::NodeEditor>(port, factory);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

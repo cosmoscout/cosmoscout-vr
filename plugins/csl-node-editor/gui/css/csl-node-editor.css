@@ -1,0 +1,82 @@
+body {
+    width: 100vw;
+    height: 100vh;
+    padding: 0;
+    margin: 0;
+    background-color: #333
+}
+
+.background {
+    background:
+        linear-gradient(-90deg, rgba(255, 255, 255, .02) 3px, transparent 3px),
+        linear-gradient(rgba(255, 255, 255, .02) 3px, transparent 3px),
+        linear-gradient(-90deg, rgba(255, 255, 255, .03) 3px, transparent 3px),
+        linear-gradient(rgba(255, 255, 255, .03) 3px, transparent 3px);
+    background-size:
+        50px 50px,
+        50px 50px,
+        200px 200px,
+        200px 200px;
+}
+
+.node {
+    background-color: var(--cs-color-background-dark) !important;
+    border-top-right-radius: var(--cs-border-radius-large) !important;
+    border-bottom-right-radius: var(--cs-border-radius-large) !important;
+    border-bottom: 2px solid var(--cs-color-primary) !important;
+    border-top: 2px solid var(--cs-color-primary) !important;
+    border-left: 0px !important;
+    border-right: 0px !important;
+    box-shadow: var(--cs-box-shadow-medium) !important;
+}
+
+.node.selected {
+    box-shadow: var(--cs-box-shadow-large) !important;
+    background-color: #101010aa !important;
+}
+
+.node .title {
+    font-family: 'Ubuntu', sans-serif !important;
+}
+
+.connection .main-path {
+    stroke: #ccf !important;
+    stroke-width: 3px;
+}
+
+.socket {
+    border-color: var(--cs-border-radius-large) !important;
+}
+
+.socket.number-value {
+    background: #b08ab3 !important;
+}
+
+.context-menu {
+    box-shadow: var(--cs-box-shadow-small) !important;
+    background-color: var(--cs-color-background-dark) !important;
+    padding: 0 !important;
+    border-radius: 5px;
+}
+
+.context-menu .search,
+.context-menu .item,
+.item .subitems .subitem {
+    border: none !important;
+    width: auto !important;
+    background: none !important;
+    color: var(--cs-color-text) !important;
+    padding: 10px !important;
+    margin: 10 !important;
+}
+
+.context-menu .item:hover {
+    background-color: var(--cs-color-background-light) !important;
+    color: var(--cs-color-text-highlight) !important;
+}
+
+.context-menu .search input {
+    border: none !important;
+    border-bottom: 2px solid var(--cs-color-primary) !important;
+    border-radius: 0 !important;
+}

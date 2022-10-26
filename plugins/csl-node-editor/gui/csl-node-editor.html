@@ -21,92 +21,22 @@ SPDX-License-Identifier: MIT
   <script src="https://cdn.jsdelivr.net/npm/rete-history-plugin@0.1.0/build/history-plugin.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/rete-area-plugin@0.2.1/build/area-plugin.min.js"></script>
 
+  <script type="text/javascript" src="third-party/js/jquery-2.2.3.min.js"></script>
+  <script type="text/javascript" src="third-party/js/bootstrap.bundle.min.js"></script>
+  <script type="text/javascript" src="third-party/js/bootstrap-datepicker.js"></script>
+  <script type="text/javascript" src="third-party/js/bootstrap-select.min.js"></script>
+
+  <script type="text/javascript" src="third-party/js/d3.min.js"></script>
+  <script type="text/javascript" src="third-party/js/fuzzyset.js"></script>
+  <script type="text/javascript" src="third-party/js/nouislider.min.js"></script>
+
+  <link type="text/css" rel="stylesheet" href="third-party/css/bootstrap.min.css" />
+  <link type="text/css" rel="stylesheet" href="third-party/css/bootstrap-select.min.css" />
+  <link type="text/css" rel="stylesheet" href="third-party/css/nouislider.css">
+
+  <link type="text/css" rel="stylesheet" href="css/calendar.css">
   <link type="text/css" rel="stylesheet" href="css/gui.css">
-
-  <style>
-    body {
-      width: 100vw;
-      height: 100vh;
-      padding: 0;
-      margin: 0;
-      background-color: #333
-    }
-
-    .background {
-      background:
-        linear-gradient(-90deg, rgba(255, 255, 255, .02) 3px, transparent 3px),
-        linear-gradient(rgba(255, 255, 255, .02) 3px, transparent 3px),
-        linear-gradient(-90deg, rgba(255, 255, 255, .03) 3px, transparent 3px),
-        linear-gradient(rgba(255, 255, 255, .03) 3px, transparent 3px);
-      background-size:
-        50px 50px,
-        50px 50px,
-        200px 200px,
-        200px 200px;
-    }
-
-    .node {
-      background-color: var(--cs-color-background-dark) !important;
-      border-top-right-radius: var(--cs-border-radius-large) !important;
-      border-bottom-right-radius: var(--cs-border-radius-large) !important;
-      border-bottom: 2px solid var(--cs-color-primary) !important;
-      border-top: 2px solid var(--cs-color-primary) !important;
-      border-left: 0px !important;
-      border-right: 0px !important;
-      box-shadow: var(--cs-box-shadow-medium) !important;
-    }
-
-    .node.selected {
-      box-shadow: var(--cs-box-shadow-large) !important;
-      background-color: #101010aa !important;
-    }
-
-    .node .title {
-      font-family: 'Ubuntu', sans-serif !important;
-    }
-
-    .connection .main-path {
-      stroke: #ccf !important;
-      stroke-width: 3px;
-    }
-
-    .socket {
-      border-color: var(--cs-border-radius-large) !important;
-    }
-
-    .socket.number-value {
-      background: #b08ab3 !important;
-    }
-
-    .context-menu {
-      box-shadow: var(--cs-box-shadow-small) !important;
-      background-color: var(--cs-color-background-dark) !important;
-      padding: 0 !important;
-      border-radius: 5px;
-    }
-
-    .context-menu .search,
-    .context-menu .item,
-    .item .subitems .subitem {
-      border: none !important;
-      width: auto !important;
-      background: none !important;
-      color: var(--cs-color-text) !important;
-      padding: 10px !important;
-      margin: 10 !important;
-    }
-
-    .context-menu .item:hover {
-      background-color: var(--cs-color-background-light) !important;
-      color: var(--cs-color-text-highlight) !important;
-    }
-
-    .context-menu .search input {
-      border: none !important;
-      border-bottom: 2px solid var(--cs-color-primary) !important;
-      border-radius: 0 !important;
-    }
-  </style>
+  <link type="text/css" rel="stylesheet" href="css/csl-node-editor.css">
 </head>
 
 <body>
@@ -114,161 +44,86 @@ SPDX-License-Identifier: MIT
   <div id="rete"></div>
 
   <script type="text/javascript">
-    var numSocket = new Rete.Socket('Number value');
-
-    class NumControl extends Rete.Control {
-
-      constructor(emitter, key, readonly) {
-        super(key);
-        this.component = {
-          props: ['readonly', 'emitter', 'ikey', 'getData', 'putData'],
-          template: '<input type="number" :readonly="readonly" :value="value" @input="change($event)" @dblclick.stop="" @pointerdown.stop="" @pointermove.stop=""/>',
-          data() {
-            return {
-              value: 0,
-            }
-          },
-          methods: {
-            change(e) {
-              this.value = +e.target.value;
-              this.update();
-            },
-            update() {
-              if (this.ikey)
-                this.putData(this.ikey, this.value)
-              this.emitter.trigger('process');
-            }
-          },
-          mounted() {
-            this.value = this.getData(this.ikey);
-          }
-        };
-        this.props = { emitter, ikey: key, readonly };
-      }
-
-      setValue(val) {
-        this.vueContext.value = val;
-      }
+    function toKebabCase(string) {
+      return string
+        .replace(/([a-z])([A-Z])/g, "$1-$2")
+        .replace(/[\s_]+/g, '-')
+        .toLowerCase();
     }
 
-    class NumComponent extends Rete.Component {
-
-      constructor() {
-        super("Number");
-      }
-
-      builder(node) {
-        var out1 = new Rete.Output('num', "Number", numSocket);
-
-        return node.addControl(new NumControl(this.editor, 'num')).addOutput(out1);
-      }
-
-      worker(node, inputs, outputs) {
-        outputs['num'] = node.data.num;
-      }
+    function addSocketStyle(name, color) {
+      const css = document.createElement("style");
+      css.innerText = `
+        .socket.${toKebabCase(name)} {
+          background: ${color};
+        }
+      `;
+      document.head.appendChild(css);
     }
 
-    class AddComponent extends Rete.Component {
-      constructor() {
-        super("Add");
-      }
+    let SOCKETS = [];
 
-      builder(node) {
-        var inp1 = new Rete.Input('num', "Number", numSocket);
-        var inp2 = new Rete.Input('num2', "Number2", numSocket);
-        var out = new Rete.Output('num', "Number", numSocket);
+    //!SOCKET_SOURCE_CODE
 
-        inp1.addControl(new NumControl(this.editor, 'num'))
-        inp2.addControl(new NumControl(this.editor, 'num2'))
+    //!NODE_SOURCE_CODE
 
-        return node
-          .addInput(inp1)
-          .addInput(inp2)
-          .addControl(new NumControl(this.editor, 'preview', true))
-          .addOutput(out);
-      }
 
-      worker(node, inputs, outputs) {
-        var n1 = inputs['num'].length ? inputs['num'][0] : node.data.num1;
-        var n2 = inputs['num2'].length ? inputs['num2'][0] : node.data.num2;
-        var sum = n1 + n2;
+    // class AddComponent extends Rete.Component {
+    //   constructor() {
+    //     super("Add");
+    //   }
 
-        this.editor.nodes.find(n => n.id == node.id).controls.get('preview').setValue(sum);
-        outputs['num'] = sum;
-      }
-    }
+    //   builder(node) {
+    //     var inp1 = new Rete.Input('num', "Number", numSocket);
+    //     var inp2 = new Rete.Input('num2', "Number2", numSocket);
+    //     var out = new Rete.Output('num', "Number", numSocket);
+
+    //     inp1.addControl(new NumControl(this.editor, 'num'))
+    //     inp2.addControl(new NumControl(this.editor, 'num2'))
+
+    //     return node
+    //       .addInput(inp1)
+    //       .addInput(inp2)
+    //       .addControl(new NumControl(this.editor, 'preview', true))
+    //       .addOutput(out);
+    //   }
+
+    //   worker(node, inputs, outputs) {
+    //     var n1 = inputs['num'].length ? inputs['num'][0] : node.data.num1;
+    //     var n2 = inputs['num2'].length ? inputs['num2'][0] : node.data.num2;
+    //     var sum = n1 + n2;
+
+    //     this.editor.nodes.find(n => n.id == node.id).controls.get('preview').setValue(sum);
+    //     outputs['num'] = sum;
+    //   }
+    // }
 
     (async () => {
       const container = document.querySelector('#rete');
-      const addComponent = new AddComponent();
-      const numComponent = new NumComponent();
-
-      const editor = new Rete.NodeEditor('demo@0.1.0', container);
 
       const background = document.createElement('div');
       background.classList = 'background';
 
+      const editor = new Rete.NodeEditor('node-editor@0.1.0', container);
       editor.use(ConnectionPlugin.default);
       editor.use(VueRenderPlugin.default);
       editor.use(CommentPlugin.default);
-      editor.use(ContextMenuPlugin.default);
+      editor.use(ContextMenuPlugin.default, {
+        allocate(component) {
+          return component.category ? [component.category] : [];
+        },
+      });
       editor.use(AreaPlugin, { background });
       editor.use(HistoryPlugin);
 
-      editor.register(numComponent);
-      editor.register(addComponent);
+      const engine = new Rete.Engine('node-editor@0.1.0');
 
-      const engine = new Rete.Engine('demo@0.1.0');
-      engine.register(numComponent);
-      engine.register(addComponent);
-
-
-      const n1 = await numComponent.createNode({ num: 2 });
-      const n2 = await numComponent.createNode({ num: 0 });
-      const add = await addComponent.createNode();
-
-      n1.position = [80, 200];
-      n2.position = [80, 400];
-      add.position = [500, 240];
-
-
-      editor.addNode(n1);
-      editor.addNode(n2);
-      editor.addNode(add);
-
-      editor.connect(n1.outputs.get('num'), add.inputs.get('num'));
-      editor.connect(n2.outputs.get('num'), add.inputs.get('num2'));
-
+      //!REGISTER_COMPONENTS
 
       editor.on('process nodecreated noderemoved connectioncreated connectionremoved', async () => {
         await engine.abort();
         await engine.process(editor.toJSON());
       });
-
-      // editor.fromJSON({
-      //   "id": "demo@0.1.0",
-      //   "nodes": {
-      //     "1": {
-      //       "id": 1,
-      //       "data": {
-      //         "num": 2
-      //       },
-      //       "inputs": {},
-      //       "outputs": {
-      //         "num": {
-      //           "connections": [{
-      //             "node": 3,
-      //             "input": "num1",
-      //             "data": {}
-      //           }]
-      //         }
-      //       },
-      //       "position": [80, 200],
-      //       "name": "Number"
-      //     }
-      //   }
-      // }
-      // );
 
       editor.view.resize();
       AreaPlugin.zoomAt(editor);

@@ -8,6 +8,8 @@
 #ifndef CSL_NODE_EDITOR_NODE_EDITOR_HPP
 #define CSL_NODE_EDITOR_NODE_EDITOR_HPP
 
+#include "NodeFactory.hpp"
+
 #include <memory>
 #include <unordered_map>
 #include <vector>
@@ -17,20 +19,18 @@ class CivetHandler;
 
 namespace csl::nodeeditor {
 
-struct Socket {
-  std::string              mName;
-  std::string              mColor;
-  std::vector<std::string> mCompatibleTo;
-};
-
 class NodeEditor {
  public:
-  NodeEditor(uint16_t port, std::vector<Socket> const& sockets);
+  NodeEditor(uint16_t port, NodeFactory factory);
   ~NodeEditor();
 
  private:
   void startServer(uint16_t port);
   void quitServer();
+
+  std::string createHTMLSource() const;
+
+  NodeFactory mFactory;
 
   std::unique_ptr<CivetServer>                                   mServer;
   std::unordered_map<std::string, std::unique_ptr<CivetHandler>> mHandlers;
