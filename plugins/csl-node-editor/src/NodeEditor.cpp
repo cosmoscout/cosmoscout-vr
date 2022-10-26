@@ -110,6 +110,10 @@ NodeEditor::NodeEditor(uint16_t port, NodeFactory factory)
         conn, ("../share/resources/gui/" + std::string(info->request_uri)).c_str(), "font/ttf");
   }));
 
+  mHandlers.emplace_back("/favicon.ico$", std::make_unique<GetHandler>([this](mg_connection* conn) {
+    mg_send_mime_file(conn, "../share/resources/icons/icon.ico", "image/ico");
+  }));
+
   mHandlers.emplace_back("/$", std::make_unique<GetHandler>([this](mg_connection* conn) {
     mg_send_http_ok(conn, "text/html", mHTMLSource.length());
     mg_write(conn, mHTMLSource.data(), mHTMLSource.length());
