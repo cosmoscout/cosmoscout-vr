@@ -9,6 +9,7 @@
 #define CSL_NODE_EDITOR_NODE_FACTORY_HPP
 
 #include <functional>
+#include <string>
 #include <unordered_map>
 #include <vector>
 
