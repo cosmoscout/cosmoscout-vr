@@ -106,7 +106,8 @@ body {
     background: #b08ab3 !important;
 }
 
-.context-menu {
+.context-menu,
+.subitems {
     box-shadow: var(--cs-box-shadow-small) !important;
     background-color: var(--cs-color-background-dark) !important;
     padding: 0 !important;
