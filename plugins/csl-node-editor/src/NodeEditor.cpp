@@ -22,6 +22,28 @@ namespace {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+enum class EventType {
+  eCustom,
+  eProcess,
+  eAddNode,
+  eRemoveNode,
+  eAddConnection,
+  eRemoveConnection
+};
+
+// clang-format off
+NLOHMANN_JSON_SERIALIZE_ENUM(EventType, {
+    {EventType::eCustom,           "custom"},
+    {EventType::eProcess,          "process"},
+    {EventType::eAddNode,          "addNode"},
+    {EventType::eRemoveNode,       "removeNode"},
+    {EventType::eAddConnection,    "addConnection"},
+    {EventType::eRemoveConnection, "removeConnection"},
+})
+// clang-format on
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 // A simple wrapper class which basically allows registering of lambdas as endpoint handlers for
 // our CivetServer. This one handles GET requests.
 class GetHandler : public CivetHandler {
@@ -111,6 +133,7 @@ namespace csl::nodeeditor {
 
 NodeEditor::NodeEditor(uint16_t port, NodeFactory factory)
     : mFactory(std::move(factory))
+    , mGraph(std::make_shared<NodeGraph>())
     , mSocket(std::make_unique<WebSocketHandler>())
     , mHTMLSource(std::move(createHTMLSource())) {
 
@@ -152,13 +175,45 @@ NodeEditor::~NodeEditor() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void NodeEditor::update() const {
+void NodeEditor::update() {
   auto socket = dynamic_cast<WebSocketHandler*>(mSocket.get());
 
   auto event = socket->getNextEvent();
 
   while (event) {
-    logger().info(event.value());
+
+    try {
+
+      logger().debug(event.value());
+
+      nlohmann::json json = nlohmann::json::parse(event.value());
+
+      EventType type = json.at("eventType");
+
+      switch (type) {
+      case EventType::eCustom:
+        handleCustomEvent(json.at("data"));
+        break;
+      case EventType::eProcess:
+        handleProcessEvent(json.at("data"));
+        break;
+      case EventType::eAddNode:
+        handleAddNodeEvent(json.at("node"));
+        break;
+      case EventType::eRemoveNode:
+        handleRemoveNodeEvent(json.at("node"));
+        break;
+      case EventType::eAddConnection:
+        handleAddConnectionEvent(json.at("connection"));
+        break;
+      case EventType::eRemoveConnection:
+        handleRemoveConnectionEvent(json.at("connection"));
+        break;
+      }
+
+    } catch (std::exception const& e) {
+      logger().error("Failed to process node editor event '{}': {}", event.value(), e.what());
+    }
 
     event = socket->getNextEvent();
   }
@@ -192,6 +247,61 @@ void NodeEditor::quitServer() {
       mServer.reset();
     }
   } catch (std::exception const& e) { logger().warn("Failed to quit server: {}!", e.what()); }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void NodeEditor::handleCustomEvent(nlohmann::json const& json) {
+  logger().info("custom");
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void NodeEditor::handleProcessEvent(nlohmann::json const& json) {
+  logger().info("process");
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void NodeEditor::handleAddNodeEvent(nlohmann::json const& json) {
+  std::string type = json.at("name");
+  uint32_t    id   = json.at("id");
+
+  auto node = mFactory.createNode(type);
+  node->setGraph(mGraph);
+  node->setID(id);
+
+  mGraph->addNode(id, std::move(node));
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void NodeEditor::handleRemoveNodeEvent(nlohmann::json const& json) {
+  uint32_t id = json.at("id");
+
+  mGraph->removeNode(id);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void NodeEditor::handleAddConnectionEvent(nlohmann::json const& json) {
+  uint32_t    fromID     = json["input"]["connections"][0]["node"];
+  std::string fromSocket = json["input"]["connections"][0]["output"];
+  uint32_t    toID       = json["output"]["connections"][0]["node"];
+  std::string toSocket   = json["output"]["connections"][0]["input"];
+
+  mGraph->addConnection(fromID, fromSocket, toID, toSocket);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void NodeEditor::handleRemoveConnectionEvent(nlohmann::json const& json) {
+  uint32_t    fromID     = json["input"]["connections"][0]["node"];
+  std::string fromSocket = json["input"]["connections"][0]["output"];
+  uint32_t    toID       = json["output"]["connections"][0]["node"];
+  std::string toSocket   = json["output"]["connections"][0]["input"];
+
+  mGraph->removeConnection(fromID, fromSocket, toID, toSocket);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

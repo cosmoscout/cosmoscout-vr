@@ -22,11 +22,15 @@ std::string NumberNode::getName() {
 std::string NumberNode::getSource() {
   std::string source = R"(
      class %NAME%Control extends Rete.Control {
-      constructor(emitter, key, readonly) {
+      constructor(editor) {
+
+        const key = "number";
+
         super(key);
         this.component = {
-          props: ['readonly', 'emitter', 'ikey', 'getData', 'putData'],
-          template: '<input type="number" :readonly="readonly" :value="value" @input="change($event) " @dblclick.stop="" @pointerdown.stop="" @pointermove.stop=""/>',
+          props: ['editor', 'key', 'getData', 'putData'],
+          template: `<input type="number" :value="value" @input="change($event) " 
+                            @dblclick.stop="" @pointerdown.stop="" @pointermove.stop="" />`,
           data() {
             return {
               value: 0,
@@ -38,16 +42,16 @@ std::string NumberNode::getSource() {
               this.update();
             },
             update() {
-              if (this.ikey)
-                this.putData(this.ikey, this.value)
-              this.emitter.trigger('process');
+              this.putData(this.key, this.value);
+              console.log(this.key);
+              this.editor.trigger('process');
             }
           },
           mounted() {
-            this.value = this.getData(this.ikey);
+            this.value = this.getData(this.key);
           }
         };
-        this.props = { emitter, ikey: key, readonly };
+        this.props = { editor, key };
       }
 
       setValue(val) {
@@ -64,12 +68,8 @@ std::string NumberNode::getSource() {
 
       builder(node) {
         let output = new Rete.Output('number', "Number", CosmoScout.socketTypes['Number Value']);
-        return node.addControl(new %NAME%Control(this.editor, 'number'))
+        return node.addControl(new %NAME%Control(this.editor))
                    .addOutput(output);
-      }
-
-      worker(node, inputs, outputs) {
-        outputs['number'] = node.data.number;
       }
     }
   )";

@@ -9,8 +9,10 @@
 #define CSL_NODE_EDITOR_NODE_EDITOR_HPP
 
 #include "NodeFactory.hpp"
+#include "NodeGraph.hpp"
 
 #include <memory>
+#include <nlohmann/json.hpp>
 #include <vector>
 
 class CivetServer;
@@ -24,23 +26,29 @@ class CSL_NODE_EDITOR_EXPORT NodeEditor {
   NodeEditor(uint16_t port, NodeFactory factory);
   ~NodeEditor();
 
-  void update() const;
+  void update();
 
  private:
   void startServer(uint16_t port);
   void quitServer();
 
+  void handleCustomEvent(nlohmann::json const& json);
+  void handleProcessEvent(nlohmann::json const& json);
+  void handleAddNodeEvent(nlohmann::json const& json);
+  void handleRemoveNodeEvent(nlohmann::json const& json);
+  void handleAddConnectionEvent(nlohmann::json const& json);
+  void handleRemoveConnectionEvent(nlohmann::json const& json);
+
   std::string createHTMLSource() const;
 
-  NodeFactory mFactory;
+  NodeFactory                mFactory;
+  std::shared_ptr<NodeGraph> mGraph;
 
   std::unique_ptr<CivetServer>                                       mServer;
   std::vector<std::pair<std::string, std::unique_ptr<CivetHandler>>> mHandlers;
   std::unique_ptr<CivetWebSocketHandler>                             mSocket;
 
   std::string mHTMLSource;
-
-  std::unordered_map<std::string, std::unique_ptr<Node>> mNodes;
 };
 
 } // namespace csl::nodeeditor

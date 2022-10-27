@@ -77,6 +77,8 @@ class CSL_NODE_EDITOR_EXPORT NodeFactory {
   /// @param type The name of the node type (as returned by the static getName() method of the
   ///             registered node type).
   /// @return     A newly created node of the given type name.
+  /// @throws     This may throw a std::runtime_error is the given type has not been registered
+  ///             before.
   std::unique_ptr<Node> createNode(std::string const& type) const;
 
  private:

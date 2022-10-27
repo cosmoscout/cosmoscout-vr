@@ -73,11 +73,12 @@ std::string NodeFactory::getRegisterSource() const {
 std::unique_ptr<Node> NodeFactory::createNode(std::string const& type) const {
   auto func = mNodeCreateFuncs.find(type);
 
-  if (func != mNodeCreateFuncs.end()) {
-    return func->second();
+  if (func == mNodeCreateFuncs.end()) {
+    throw std::runtime_error(
+        "Failed to create node of type '" + type + "': This type has not been registered!");
   }
 
-  return nullptr;
+  return func->second();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
