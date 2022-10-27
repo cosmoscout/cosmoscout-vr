@@ -87,7 +87,7 @@ cmake --build . --target install --parallel "$(nproc)"
 
 # ViSTA expects glew library to be called libGLEW.dll
 case "$COSMOSCOUT_DEBUG_BUILD" in
-  (true) cp $INSTALL_DIR/lib/libGLEWd.dll $INSTALL_DIR/lib/libGLEW.dll;;
+  (true) cp $INSTALL_DIR/lib/libglew32d.dll.a $INSTALL_DIR/lib/libglew32.dll.a;;
 esac
 
 # freeglut -----------------------------------------------------------------------------------------
@@ -243,13 +243,11 @@ echo "Building and installing opensg-1.8 ..."
 echo ""
 
 cmake -E make_directory "$BUILD_DIR/opensg-1.8" && cd "$BUILD_DIR/opensg-1.8"
-# -DOPENSG_USE_PRECOMPILED_HEADERS=$PRECOMPILED_HEADERS -DCMAKE_UNITY_BUILD=$UNITY_BUILD
 cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
-      -DOPENSG_INFINITE_REVERSE_PROJECTION=ON -DCMAKE_EXPORT_COMPILE_COMMANDS=On \
+      -DOPENSG_INFINITE_REVERSE_PROJECTION=ON -DOPENSG_USE_PRECOMPILED_HEADERS=$PRECOMPILED_HEADERS -DCMAKE_UNITY_BUILD=$UNITY_BUILD \
       -DGLUT_INCLUDE_DIR="$INSTALL_DIR/include" -DGLUT_LIBRARY="$INSTALL_DIR/lib/libfreeglut.dll.a" \
       -DOPENSG_BUILD_TESTS=Off -DCMAKE_BUILD_TYPE=$BUILD_TYPE "$EXTERNALS_DIR/opensg-1.8"
-cmake --build . --target install --parallel 1
-#"$(nproc)"
+cmake --build . --target install --parallel "$(nproc)"
 
 # vista --------------------------------------------------------------------------------------------
 
@@ -259,7 +257,7 @@ echo ""
 
 cmake -E make_directory "$BUILD_DIR/vista" && cd "$BUILD_DIR/vista"
 cmake "${CMAKE_FLAGS[@]}" -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" -DCMAKE_UNITY_BUILD=$UNITY_BUILD \
-      -DVISTA_USE_PRECOMPILED_HEADERS=$PRECOMPILED_HEADERS \
+      -DVISTA_USE_PRECOMPILED_HEADERS=$PRECOMPILED_HEADERS -DGLEW_LIBRARIES="$INSTALL_DIR/lib/libglew32.dll.a" \
       -DCMAKE_CXX_FLAGS="-std=c++11" -DVISTADRIVERS_BUILD_3DCSPACENAVIGATOR=On \
       -DVISTADEMO_ENABLED=Off -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DOPENSG_ROOT_DIR="$INSTALL_DIR" \
       "$EXTERNALS_DIR/vista"
@@ -272,13 +270,25 @@ echo "Downloading and installing cspice ..."
 echo ""
 
 cmake -E make_directory "$BUILD_DIR/cspice/extracted" && cd "$BUILD_DIR/cspice"
-wget -nc http://naif.jpl.nasa.gov/pub/naif/toolkit//C/PC_Linux_GCC_64bit/packages/cspice.tar.Z
+wget -nc https://naif.jpl.nasa.gov/pub/naif/toolkit/C/PC_Linux_GCC_64bit/packages/cspice.tar.Z
 
 cd "$BUILD_DIR/cspice/extracted"
-cmake -E tar xzf ../cspice.tar.Z -- cspice/lib/cspice.a cspice/include
+cmake -E tar xzf ../cspice.tar.Z
 
+cd cspice
+
+echo "project(cspice C)" > "CMakeLists.txt"
+echo "cmake_minimum_required(VERSION 2.8)" >> "CMakeLists.txt"
+echo "add_definitions(\"-D_COMPLEX_DEFINED -DMSDOS -DOMIT_BLANK_CC -DKR_headers -DNON_ANSI_STDIO\")" >> "CMakeLists.txt"
+echo "file(GLOB_RECURSE CSPICE_SOURCE src/cspice/*.c)" >> "CMakeLists.txt"
+echo "add_library(cspice SHARED \${CSPICE_SOURCE})" >> "CMakeLists.txt"
+echo "set_target_properties(cspice PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS 1)" >> "CMakeLists.txt"
+
+cmake "${CMAKE_FLAGS[@]}" -DCMAKE_BUILD_TYPE=$BUILD_TYPE .
+cmake --build . --config $BUILD_TYPE --parallel "$(nproc)"
 cmake -E copy_directory "$BUILD_DIR/cspice/extracted/cspice/include" "$INSTALL_DIR/include/cspice"
-cmake -E copy "$BUILD_DIR/cspice/extracted/cspice/lib/cspice.a" "$INSTALL_DIR/lib"
+cmake -E copy "$BUILD_DIR/cspice/extracted/cspice/libcspice.dll" "$INSTALL_DIR/lib"
+cmake -E copy "$BUILD_DIR/cspice/extracted/cspice/libcspice.dll.a" "$INSTALL_DIR/lib"
 
 # cef ----------------------------------------------------------------------------------------------
 
