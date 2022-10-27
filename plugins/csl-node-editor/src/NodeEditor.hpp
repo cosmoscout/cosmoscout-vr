@@ -19,10 +19,12 @@ class CivetWebSocketHandler;
 
 namespace csl::nodeeditor {
 
-class NodeEditor {
+class CSL_NODE_EDITOR_EXPORT NodeEditor {
  public:
   NodeEditor(uint16_t port, NodeFactory factory);
   ~NodeEditor();
+
+  void update() const;
 
  private:
   void startServer(uint16_t port);
@@ -37,6 +39,8 @@ class NodeEditor {
   std::unique_ptr<CivetWebSocketHandler>                             mSocket;
 
   std::string mHTMLSource;
+
+  std::unordered_map<std::string, std::unique_ptr<Node>> mNodes;
 };
 
 } // namespace csl::nodeeditor

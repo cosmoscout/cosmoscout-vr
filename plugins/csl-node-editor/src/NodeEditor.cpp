@@ -15,6 +15,8 @@
 #include <CivetServer.h>
 #include <functional>
 #include <iostream>
+#include <optional>
+#include <queue>
 
 namespace {
 
@@ -41,6 +43,23 @@ class GetHandler : public CivetHandler {
 
 class WebSocketHandler : public CivetWebSocketHandler {
 
+ public:
+  std::optional<std::string> getNextEvent() {
+    std::unique_lock<std::mutex> lock(mEventQueueMutex);
+    if (!mEventQueue.empty()) {
+      auto event = mEventQueue.front();
+      mEventQueue.pop();
+      return event;
+    }
+
+    return std::nullopt;
+  }
+
+  void sendData(std::string const& data) const {
+    // mg_websocket_write(conn, MG_WEBSOCKET_OPCODE_TEXT, text, strlen(text));
+  }
+
+ private:
   bool handleConnection(CivetServer* server, const struct mg_connection* conn) override {
     csl::nodeeditor::logger().info("WS connected");
     return true;
@@ -48,13 +67,13 @@ class WebSocketHandler : public CivetWebSocketHandler {
 
   void handleReadyState(CivetServer* server, struct mg_connection* conn) override {
     csl::nodeeditor::logger().info("WS ready");
-
-    // mg_websocket_write(conn, MG_WEBSOCKET_OPCODE_TEXT, text, strlen(text));
   }
 
   bool handleData(CivetServer* server, struct mg_connection* conn, int bits, char* data,
       size_t data_len) override {
-    csl::nodeeditor::logger().info("{}", std::string(data, data_len));
+
+    std::unique_lock<std::mutex> lock(mEventQueueMutex);
+    mEventQueue.emplace(data, data_len);
 
     return true;
   }
@@ -62,6 +81,9 @@ class WebSocketHandler : public CivetWebSocketHandler {
   void handleClose(CivetServer* server, const struct mg_connection* conn) override {
     csl::nodeeditor::logger().info("WS closed");
   }
+
+  std::queue<std::string> mEventQueue;
+  std::mutex              mEventQueueMutex;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -126,6 +148,20 @@ NodeEditor::NodeEditor(uint16_t port, NodeFactory factory)
 
 NodeEditor::~NodeEditor() {
   quitServer();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void NodeEditor::update() const {
+  auto socket = dynamic_cast<WebSocketHandler*>(mSocket.get());
+
+  auto event = socket->getNextEvent();
+
+  while (event) {
+    logger().info(event.value());
+
+    event = socket->getNextEvent();
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

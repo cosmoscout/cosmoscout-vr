@@ -17,7 +17,7 @@ class TimeControl;
 namespace csp::demonodeeditor {
 
 ///
-class TimeNode {
+class TimeNode : public csl::nodeeditor::Node {
  public:
   static std::string getName();
   static std::string getSource();

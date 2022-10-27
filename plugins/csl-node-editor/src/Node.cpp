@@ -1,0 +1,15 @@
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//                               This file is part of CosmoScout VR                               //
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+// SPDX-License-Identifier: MIT
+
+#include "Node.hpp"
+
+namespace csl::nodeeditor {
+
+void Node::process() {
+}
+
+} // namespace csl::nodeeditor

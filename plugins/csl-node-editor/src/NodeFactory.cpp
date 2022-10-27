@@ -70,4 +70,16 @@ std::string NodeFactory::getRegisterSource() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+std::unique_ptr<Node> NodeFactory::createNode(std::string const& type) const {
+  auto func = mNodeCreateFuncs.find(type);
+
+  if (func != mNodeCreateFuncs.end()) {
+    return func->second();
+  }
+
+  return nullptr;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 } // namespace csl::nodeeditor

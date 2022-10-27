@@ -13,7 +13,7 @@
 namespace csp::demonodeeditor {
 
 ///
-class NumberNode {
+class NumberNode : public csl::nodeeditor::Node {
  public:
   static std::string getName();
   static std::string getSource();

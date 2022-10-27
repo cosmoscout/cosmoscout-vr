@@ -5,22 +5,20 @@
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 // SPDX-License-Identifier: MIT
 
-#ifndef CSP_DEMO_NODE_EDITOR_DISPLAY_NODE_HPP
-#define CSP_DEMO_NODE_EDITOR_DISPLAY_NODE_HPP
+#ifndef CSL_NODE_EDITOR_NODE_HPP
+#define CSL_NODE_EDITOR_NODE_HPP
 
-#include "../../../csl-node-editor/src/NodeEditor.hpp"
+#include "csl_node_editor_export.hpp"
 
-namespace csp::demonodeeditor {
+namespace csl::nodeeditor {
 
-///
-class DisplayNode : public csl::nodeeditor::Node {
+class CSL_NODE_EDITOR_EXPORT Node {
  public:
-  static std::string getName();
-  static std::string getSource();
+  virtual void process();
 
-  static std::unique_ptr<DisplayNode> create();
+ private:
 };
 
-} // namespace csp::demonodeeditor
+} // namespace csl::nodeeditor
 
-#endif // CSP_DEMO_NODE_EDITOR_DISPLAY_NODE_HPP
+#endif // CSL_NODE_EDITOR_NODE_HPP

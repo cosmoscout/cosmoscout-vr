@@ -13,7 +13,7 @@
 namespace csp::demonodeeditor {
 
 ///
-class MathNode {
+class MathNode: public csl::nodeeditor::Node  {
  public:
   enum class Operation { eAdd, eSubtract, eMultiply, eDivide };
 
