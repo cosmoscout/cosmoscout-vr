@@ -11,7 +11,9 @@
 #include "csl_node_editor_export.hpp"
 
 #include <memory>
+#include <optional>
 #include <string>
+#include <vector>
 
 namespace csl::nodeeditor {
 
@@ -20,6 +22,8 @@ class Connection;
 
 class CSL_NODE_EDITOR_EXPORT Node {
  public:
+  Node()          = default;
+  virtual ~Node() = default;
 
   virtual void process(){};
 
@@ -31,8 +35,8 @@ class CSL_NODE_EDITOR_EXPORT Node {
  protected:
   void sendMessage(std::string const& data) const;
 
-  Connection& getInputConnection(std::string const& socket) const;
-  Connection& getOutputConnection(std::string const& socket) const;
+  std::optional<Connection const&> getInputConnection(std::string const& socket) const;
+  std::vector<Connection const&>   getOutputConnections(std::string const& socket) const;
 
  private:
   uint32_t                   mID;

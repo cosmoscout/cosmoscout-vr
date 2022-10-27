@@ -26,32 +26,51 @@ void NodeGraph::removeNode(uint32_t id) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void NodeGraph::addConnection(
-    uint32_t fromID, std::string const& fromSocket, uint32_t toID, std::string const& toSocket) {
+    uint32_t fromNode, std::string fromSocket, uint32_t toNode, std::string toSocket) {
 
-  auto connection = std::make_shared<Connection>();
-
-  mInputConnections[fmt::format("{}:{}", toID, toSocket)]      = connection;
-  mOutputConnections[fmt::format("{}:{}", fromID, fromSocket)] = connection;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-void NodeGraph::removeConnection(
-    uint32_t fromID, std::string const& fromSocket, uint32_t toID, std::string const& toSocket) {
-
-  mInputConnections.erase(fmt::format("{}:{}", toID, toSocket));
-  mOutputConnections.erase(fmt::format("{}:{}", fromID, fromSocket));
+  mConnections.emplace_back(fromNode, std::move(fromSocket), toNode, std::move(toSocket));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Connection& NodeGraph::getOutputConnection(uint32_t fromID, std::string const& fromSocket) const {
-  return *mOutputConnections.at(fmt::format("{}:{}", fromID, fromSocket)).get();
+void NodeGraph::removeConnection(uint32_t fromNode, std::string const& fromSocket, uint32_t toNode,
+    std::string const& toSocket) {
+
+  mConnections.remove_if([&](Connection const& c) {
+    return c.mFromNode == fromNode && c.mFromSocket == fromSocket && c.mToNode == toNode &&
+           c.mToSocket == toSocket;
+  });
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Connection& NodeGraph::getInputConnection(uint32_t toID, std::string const& toSocket) const {
-  return *mInputConnections.at(fmt::format("{}:{}", toID, toSocket)).get();
+std::optional<Connection const&> NodeGraph::getInputConnection(
+    uint32_t toNode, std::string const& toSocket) const {
+
+  auto it = std::find_if(mConnections.begin(), mConnections.end(),
+      [&](Connection const& c) { return c.mToNode == toNode && c.mToSocket == toSocket; });
+
+  if (it == mConnections.end()) {
+    return std::nullopt;
+  }
+
+  return *it;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::vector<Connection const&> NodeGraph::getOutputConnections(
+    uint32_t fromNode, std::string const& fromSocket) const {
+
+  std::vector<Connection const&> result;
+
+  for (auto const& c : mConnections) {
+    if (c.mFromNode == fromNode && c.mFromSocket == fromSocket) {
+      result.push_back(c);
+    }
+  }
+
+  return result;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

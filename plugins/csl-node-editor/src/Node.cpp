@@ -25,14 +25,14 @@ void Node::setGraph(std::shared_ptr<NodeGraph> graph) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Connection& Node::getInputConnection(std::string const& socket) const {
+std::optional<Connection const&> Node::getInputConnection(std::string const& socket) const {
   return mGraph->getInputConnection(mID, socket);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Connection& Node::getOutputConnection(std::string const& socket) const {
-  return mGraph->getOutputConnection(mID, socket);
+std::vector<Connection const&> Node::getOutputConnections(std::string const& socket) const {
+  return mGraph->getOutputConnections(mID, socket);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

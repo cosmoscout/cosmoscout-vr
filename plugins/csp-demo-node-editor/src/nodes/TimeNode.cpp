@@ -7,6 +7,8 @@
 
 #include "TimeNode.hpp"
 
+#include "../logger.hpp"
+
 #include "../../../../src/cs-core/TimeControl.hpp"
 #include "../../../../src/cs-utils/utils.hpp"
 
@@ -49,7 +51,23 @@ std::string TimeNode::getSource() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::unique_ptr<TimeNode> TimeNode::create(std::shared_ptr<cs::core::TimeControl> pTimeControl) {
-  return std::make_unique<TimeNode>();
+  return std::make_unique<TimeNode>(pTimeControl);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+TimeNode::TimeNode(std::shared_ptr<cs::core::TimeControl> pTimeControl)
+    : mTimeControl(std::move(pTimeControl)) {
+
+  mTimeConnection = mTimeControl->pSimulationTime.connect([this](double value) {
+    auto connection = getOutputConnection("date");
+  });
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+TimeNode::~TimeNode() {
+  mTimeControl->pSimulationTime.disconnect(mTimeConnection);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

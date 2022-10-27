@@ -23,6 +23,13 @@ class TimeNode : public csl::nodeeditor::Node {
   static std::string getSource();
 
   static std::unique_ptr<TimeNode> create(std::shared_ptr<cs::core::TimeControl> pTimeControl);
+
+  TimeNode(std::shared_ptr<cs::core::TimeControl> pTimeControl);
+  ~TimeNode() override;
+
+ private:
+  std::shared_ptr<cs::core::TimeControl> mTimeControl;
+  int                                    mTimeConnection = 0;
 };
 
 } // namespace csp::demonodeeditor
