@@ -35,8 +35,8 @@ class CSL_NODE_EDITOR_EXPORT Node {
  protected:
   void sendMessage(std::string const& data) const;
 
-  std::optional<Connection const&> getInputConnection(std::string const& socket) const;
-  std::vector<Connection const&>   getOutputConnections(std::string const& socket) const;
+  Connection const*              getInputConnection(std::string const& socket) const;
+  std::vector<Connection const*> getOutputConnections(std::string const& socket) const;
 
  private:
   uint32_t                   mID;

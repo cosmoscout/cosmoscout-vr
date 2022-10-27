@@ -44,29 +44,29 @@ void NodeGraph::removeConnection(uint32_t fromNode, std::string const& fromSocke
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::optional<Connection const&> NodeGraph::getInputConnection(
+Connection const* NodeGraph::getInputConnection(
     uint32_t toNode, std::string const& toSocket) const {
 
   auto it = std::find_if(mConnections.begin(), mConnections.end(),
       [&](Connection const& c) { return c.mToNode == toNode && c.mToSocket == toSocket; });
 
   if (it == mConnections.end()) {
-    return std::nullopt;
+    return nullptr;
   }
 
-  return *it;
+  return &(*it);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::vector<Connection const&> NodeGraph::getOutputConnections(
+std::vector<Connection const*> NodeGraph::getOutputConnections(
     uint32_t fromNode, std::string const& fromSocket) const {
 
-  std::vector<Connection const&> result;
+  std::vector<Connection const*> result;
 
   for (auto const& c : mConnections) {
     if (c.mFromNode == fromNode && c.mFromSocket == fromSocket) {
-      result.push_back(c);
+      result.push_back(&c);
     }
   }
 

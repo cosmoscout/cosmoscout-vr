@@ -23,6 +23,10 @@ struct CSL_NODE_EDITOR_EXPORT Connection {
       , mToSocket(std::move(toSocket)) {
   }
 
+  template <typename T>
+  void putData(T data) {
+  }
+
   uint32_t    mFromNode;
   std::string mFromSocket;
 

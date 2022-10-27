@@ -33,15 +33,14 @@ class CSL_NODE_EDITOR_EXPORT NodeGraph {
   /// @param toNodeID The ID of the node.
   /// @param toSocket The name of the socket.
   /// @return         A connection (if any).
-  std::optional<Connection const&> getInputConnection(
-      uint32_t toNodeID, std::string const& toSocket) const;
+  Connection const* getInputConnection(uint32_t toNodeID, std::string const& toSocket) const;
 
   /// Gets a list of connections which are connected to a given output socket. There can be multiple
   /// connections *from* a socket.
   /// @param fromNodeID The ID of the node.
   /// @param fromSocket The name of the socket.
   /// @return           A list of connections (this can be empty).
-  std::vector<Connection const&> getOutputConnections(
+  std::vector<Connection const*> getOutputConnections(
       uint32_t fromNodeID, std::string const& fromSocket) const;
 
   // Node editor API -------------------------------------------------------------------------------

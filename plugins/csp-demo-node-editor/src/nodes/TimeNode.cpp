@@ -59,9 +59,8 @@ std::unique_ptr<TimeNode> TimeNode::create(std::shared_ptr<cs::core::TimeControl
 TimeNode::TimeNode(std::shared_ptr<cs::core::TimeControl> pTimeControl)
     : mTimeControl(std::move(pTimeControl)) {
 
-  mTimeConnection = mTimeControl->pSimulationTime.connect([this](double value) {
-    auto connection = getOutputConnection("date");
-  });
+  mTimeConnection = mTimeControl->pSimulationTime.connect(
+      [this](double value) { auto connections = getOutputConnections("date"); });
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
