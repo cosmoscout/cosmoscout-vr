@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
     - name: Checkout Repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
     - name: Checkout Submodules
       run: git submodule update --init
     - name: Create Release
@@ -37,7 +37,7 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
     - name: Checkout Repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
     - name: Checkout Submodules
       run: git submodule update --init
     - name: Download Dependencies
@@ -70,7 +70,7 @@ jobs:
       BOOST_ROOT_1_72_0: C:\hostedtoolcache\windows\Boost\1.72.0\x86_64
     steps:
     - name: Checkout Repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
     - name: Checkout Submodules
       run: git submodule update --init
     - name: Download Boost
