@@ -15,8 +15,6 @@ SPDX-License-Identifier: CC-BY-4.0
 You will need a copy of [CMake](https://cmake.org/) (version 3.13 or greater), [Boost](https://www.boost.org/) (version 1.69 or greater) and a recent C++ compiler (gcc 7, clang 5 or msvc 19).
 For the compilation of the externals [Python](https://www.python.org/) is also required.**
 
-When compiling from source, you can either choose the `master` branch which contains the code of the last stable release or you can switch to the `develop` branch to test the latest features.
-
 ## Linux
 
 Before you start, it may be necessary to install some additional system packages.
@@ -32,12 +30,6 @@ sudo apt-get install git cmake build-essential xorg-dev libboost-all-dev libglu1
 ```shell
 git clone https://github.com/cosmoscout/cosmoscout-vr.git
 cd cosmoscout-vr
-```
-
-The default branch is `develop`, which contains the latest features. If you prefer to use the last stable release, you can switch to the `master` branch.
-
-```shell
-git checkout master
 ```
 
 ### Getting the dependencies
@@ -120,8 +112,6 @@ git clone https://github.com/cosmoscout/cosmoscout-vr.git
 cd cosmoscout-vr
 ```
 
-The default branch is `develop`, which contains the latest features. If you prefer to use the last stable release, you can switch to the `master` branch.
-
 ### Getting the dependencies
 
 Getting a precompiled version of boost suitable for CosmoScout VR which will be found by CMake can be difficult: Older CMake versions fail to find boost versions which are too new; but on the other hand you need a rather new version if you use a very recent version of MSVC (e.g. 14.2, the one shipped with Visual Studio 2019). The "oldest" precompiled boost which you can get on SourceForge for MSVC 14.2 is version 1.70.0.
@@ -134,7 +124,7 @@ MSVC | Visual Studio | File | Link
 14.1 | 2017 | `boost_1_70_0-msvc-14.1-64.exe` | [download](https://sourceforge.net/projects/boost/files/boost-binaries/1.70.0/boost_1_70_0-msvc-14.1-64.exe/download)
 14.0 | 2015 | `boost_1_70_0-msvc-14.0-64.exe` | [download](https://sourceforge.net/projects/boost/files/boost-binaries/1.70.0/boost_1_70_0-msvc-14.0-64.exe/download)
 
-:information_source: _**Tip:** If you want that CosmoScout VR detects your 3DConnexion Space Navigator, you have to [download](https://3dconnexion.com/de/software-developer-program/) and install the 3DConnexion SDK. Then you need to add one line to the `make_externals.bat` but file as [described here](https://github.com/cosmoscout/cosmoscout-vr/blob/develop/make_externals.bat#L313)._
+:information_source: _**Tip:** If you want that CosmoScout VR detects your 3DConnexion Space Navigator, you have to [download](https://3dconnexion.com/de/software-developer-program/) and install the 3DConnexion SDK. Then you need to add one line to the `make_externals.bat` but file as [described here](https://github.com/cosmoscout/cosmoscout-vr/blob/main/make_externals.bat#L313)._
 
 
 Then you have to compile the dependencies.
