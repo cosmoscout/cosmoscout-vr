@@ -112,9 +112,6 @@ SPDX-License-Identifier: MIT
 
       //!REGISTER_COMPONENTS
 
-      CosmoScout.nodeEditor.on('process', (data) => {
-        CosmoScout.connection.send(JSON.stringify({ eventType: "process", data: data }));
-      });
       CosmoScout.nodeEditor.on('nodecreated', (node) => {
         CosmoScout.connection.send(JSON.stringify({ eventType: "addNode", node: node }));
       });

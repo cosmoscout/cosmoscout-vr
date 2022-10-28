@@ -8,7 +8,7 @@
 #ifndef CSP_DEMO_NODE_EDITOR_TIME_NODE_HPP
 #define CSP_DEMO_NODE_EDITOR_TIME_NODE_HPP
 
-#include "../../../csl-node-editor/src/NodeEditor.hpp"
+#include "../../../csl-node-editor/src/Node.hpp"
 
 namespace cs::core {
 class TimeControl;

@@ -23,18 +23,14 @@ struct CSL_NODE_EDITOR_EXPORT Connection {
       , mToSocket(std::move(toSocket)) {
   }
 
-  template <typename T>
-  void putData(T data) {
-  }
-
   uint32_t    mFromNode;
   std::string mFromSocket;
 
   uint32_t    mToNode;
   std::string mToSocket;
 
-  std::any mValue;
-  bool     mDirty = true;
+  mutable std::any mValue;
+  mutable bool     mHasNewData = false;
 };
 
 } // namespace csl::nodeeditor

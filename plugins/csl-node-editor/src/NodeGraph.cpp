@@ -7,9 +7,19 @@
 
 #include "NodeGraph.hpp"
 
+#include "Node.hpp"
 #include "logger.hpp"
 
+#include <unordered_set>
+
 namespace csl::nodeeditor {
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// These need to be declared explicitely as the default versions would be defined inline in the
+// header which makes it impossible to use a forward declartion of Node.
+NodeGraph::NodeGraph()  = default;
+NodeGraph::~NodeGraph() = default;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -71,6 +81,21 @@ std::vector<Connection const*> NodeGraph::getOutputConnections(
   }
 
   return result;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void NodeGraph::process() {
+  std::unordered_set<uint32_t> mDirtyNodes;
+
+  // First collect all nodes which have changed input sockets.
+  for (auto const& c : mConnections) {
+    if (c.mHasNewData) {
+      mDirtyNodes.insert(c.mToNode);
+    }
+  }
+
+  //
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

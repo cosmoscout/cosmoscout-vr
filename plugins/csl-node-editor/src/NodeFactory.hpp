@@ -8,7 +8,7 @@
 #ifndef CSL_NODE_EDITOR_NODE_FACTORY_HPP
 #define CSL_NODE_EDITOR_NODE_FACTORY_HPP
 
-#include "Node.hpp"
+#include "csl_node_editor_export.hpp"
 
 #include <functional>
 #include <memory>
@@ -18,12 +18,19 @@
 
 namespace csl::nodeeditor {
 
+class Node;
+
 /// This class is used to register all socket and node types which should be available in a node
 /// editor instance. The node editor will use an instance of this class to instantiate nodes which
 /// have been registered before. You can have a look at the csp-demo-node-editor plugin for an usage
 /// example.
 class CSL_NODE_EDITOR_EXPORT NodeFactory {
  public:
+  // These need to be declared explicitely as the default versions would be defined inline which
+  // makes it impossible to use a forward declartion of Node.
+  NodeFactory();
+  ~NodeFactory();
+
   /// Registers a new node socket which can be used by nodes of the node editor.
   ///
   /// @param name          The unique name of the socket type. This will be used for the tooltip
@@ -33,10 +40,7 @@ class CSL_NODE_EDITOR_EXPORT NodeFactory {
   ///                      CosmoScout.socketTypes['Socket Name'].
   /// @param color         A string defining the color of the socket. This can be anything which is
   ///                      accepted by CSS. For example 'red', '#f00', or 'rgb(255, 0, 0)'.
-  /// @param compatibleTo  A list of other socket types which allow this socket type to be connected
-  ///                      to (not vice-versa).
-  void registerSocketType(
-      std::string const& name, std::string color, std::vector<std::string> compatibleTo = {});
+  void registerSocketType(std::string name, std::string color);
 
   /// Registers a new node type which can then be used in the node editor.
   ///
@@ -82,13 +86,8 @@ class CSL_NODE_EDITOR_EXPORT NodeFactory {
   std::unique_ptr<Node> createNode(std::string const& type) const;
 
  private:
-  struct SocketInfo {
-    std::string              mColor;
-    std::vector<std::string> mCompatibleTo;
-  };
-
-  // Stores socket information for each unique socket name.
-  std::unordered_map<std::string, SocketInfo> mSockets;
+  // Stores socket color for each unique socket name.
+  std::unordered_map<std::string, std::string> mSockets;
 
   // Functions to retrieve the JavaScript source of each registered node.
   std::vector<std::function<std::string(void)>> mNodeSourceFuncs;

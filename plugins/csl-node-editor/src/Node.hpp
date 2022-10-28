@@ -10,6 +10,8 @@
 
 #include "csl_node_editor_export.hpp"
 
+#include "NodeGraph.hpp"
+
 #include <memory>
 #include <optional>
 #include <string>
@@ -25,18 +27,40 @@ class CSL_NODE_EDITOR_EXPORT Node {
   Node()          = default;
   virtual ~Node() = default;
 
+  /// This will be called whenever the values of one or multiple input sockets have changed.
   virtual void process(){};
 
-  virtual void onMessage(std::string const& data){};
+  // virtual void onMessage(std::string const& data){};
 
   void setID(uint32_t id);
   void setGraph(std::shared_ptr<NodeGraph> graph);
 
  protected:
-  void sendMessage(std::string const& data) const;
+  // void sendMessage(std::string const& data) const;
 
-  Connection const*              getInputConnection(std::string const& socket) const;
-  std::vector<Connection const*> getOutputConnections(std::string const& socket) const;
+  template <typename T>
+  void writeOutput(std::string const& socket, T const& value) {
+    auto connections = mGraph->getOutputConnections(mID, socket);
+
+    for (auto& c : connections) {
+      if (!c->mValue.has_value() || std::any_cast<T>(c->mValue) != value) {
+        c->mHasNewData = true;
+        c->mValue      = value;
+      }
+    }
+  }
+
+  template <typename T>
+  std::optional<T> readInput(std::string const& socket) {
+    auto connection = mGraph->getInputConnection(mID, socket);
+
+    if (connection && connection->mValue.has_value()) {
+      connection->mHasNewData = false;
+      return std::any_cast<T>(connection->mValue);
+    }
+
+    return std::nullopt;
+  }
 
  private:
   uint32_t                   mID;

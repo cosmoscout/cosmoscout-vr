@@ -7,6 +7,7 @@
 
 #include "NodeEditor.hpp"
 
+#include "Node.hpp"
 #include "logger.hpp"
 
 #include "../../../src/cs-utils/filesystem.hpp"
@@ -22,19 +23,11 @@ namespace {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-enum class EventType {
-  eCustom,
-  eProcess,
-  eAddNode,
-  eRemoveNode,
-  eAddConnection,
-  eRemoveConnection
-};
+enum class EventType { eCustom, eAddNode, eRemoveNode, eAddConnection, eRemoveConnection };
 
 // clang-format off
 NLOHMANN_JSON_SERIALIZE_ENUM(EventType, {
     {EventType::eCustom,           "custom"},
-    {EventType::eProcess,          "process"},
     {EventType::eAddNode,          "addNode"},
     {EventType::eRemoveNode,       "removeNode"},
     {EventType::eAddConnection,    "addConnection"},
@@ -194,9 +187,6 @@ void NodeEditor::update() {
       case EventType::eCustom:
         handleCustomEvent(json.at("data"));
         break;
-      case EventType::eProcess:
-        handleProcessEvent(json.at("data"));
-        break;
       case EventType::eAddNode:
         handleAddNodeEvent(json.at("node"));
         break;
@@ -217,6 +207,8 @@ void NodeEditor::update() {
 
     event = socket->getNextEvent();
   }
+
+  mGraph->process();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -253,12 +245,6 @@ void NodeEditor::quitServer() {
 
 void NodeEditor::handleCustomEvent(nlohmann::json const& json) {
   logger().info("custom");
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void NodeEditor::handleProcessEvent(nlohmann::json const& json) {
-  logger().info("process");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

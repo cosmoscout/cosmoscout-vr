@@ -102,7 +102,7 @@ void Plugin::setupNodeEditor(uint16_t port) {
 
   csl::nodeeditor::NodeFactory factory;
   factory.registerSocketType("Number Value", "#ff0000");
-  factory.registerSocketType("Date Value", "#00ff00", {"Number Value"});
+  factory.registerSocketType("Date Value", "#00ff00");
 
   // factory.registerNodeType<MathNode>();
   factory.registerNodeType<DisplayNode>();

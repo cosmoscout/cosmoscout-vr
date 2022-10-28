@@ -7,15 +7,22 @@
 
 #include "NodeFactory.hpp"
 
+#include "Node.hpp"
 #include "logger.hpp"
 
 namespace csl::nodeeditor {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void NodeFactory::registerSocketType(
-    std::string const& name, std::string color, std::vector<std::string> compatibleTo) {
-  mSockets[name] = {std::move(color), std::move(compatibleTo)};
+// These need to be declared explicitely as the default versions would be defined inline in the
+// header which makes it impossible to use a forward declartion of Node.
+NodeFactory::NodeFactory()  = default;
+NodeFactory::~NodeFactory() = default;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void NodeFactory::registerSocketType(std::string name, std::string color) {
+  mSockets.emplace(std::move(name), std::move(color));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -25,17 +32,7 @@ std::string NodeFactory::getSocketSource() const {
 
   for (auto const& s : mSockets) {
     source += fmt::format("CosmoScout.socketTypes['{0}'] = new Rete.Socket('{0}');\n", s.first);
-  }
-
-  for (auto const& s : mSockets) {
-    source += fmt::format("addSocketStyle('{}', '{}');\n", s.first, s.second.mColor);
-  }
-
-  for (auto const& s : mSockets) {
-    for (auto const& o : s.second.mCompatibleTo) {
-      source += fmt::format(
-          "CosmoScout.socketTypes['{}'].combineWith(CosmoScout.socketTypes['{}']);\n", s.first, o);
-    }
+    source += fmt::format("addSocketStyle('{}', '{}');\n", s.first, s.second);
   }
 
   return source;

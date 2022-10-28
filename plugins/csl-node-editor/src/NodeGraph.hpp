@@ -9,24 +9,31 @@
 #define CSL_NODE_EDITOR_NODE_GRAPH_HPP
 
 #include "Connection.hpp"
-#include "Node.hpp"
 
 #include <list>
 #include <memory>
 #include <optional>
 #include <unordered_map>
+#include <vector>
 
 namespace csl::nodeeditor {
+
+class Node;
 
 /// This class keeps track of the nodes and their connections. It is used by the NodeEditor and the
 /// Node base class. When implementing custom nodes, you usually will not have to work with this
 /// class. Use the methods of the Node class instead.
 class CSL_NODE_EDITOR_EXPORT NodeGraph {
  public:
+  // These need to be declared explicitely as the default versions would be defined inline which
+  // makes it impossible to use a forward declartion of Node.
+  NodeGraph();
+  ~NodeGraph();
+
   // Node API --------------------------------------------------------------------------------------
 
-  // The methods below are primarily meant to be used by the Node class. Usually, you should not
-  // have to call them directly.
+  // The methods below are primarily meant to be used by the Node base class. Usually, you should
+  // not have to call them directly.
 
   /// Gets a connection which is connected to a given input socket. There can be at most one
   /// connection *to* a socket.
@@ -34,6 +41,11 @@ class CSL_NODE_EDITOR_EXPORT NodeGraph {
   /// @param toSocket The name of the socket.
   /// @return         A connection (if any).
   Connection const* getInputConnection(uint32_t toNodeID, std::string const& toSocket) const;
+
+  /// Gets all input connections connected to a given node.
+  /// @param toNodeID The ID of the node.
+  /// @return         A list of connections (this can be empty).
+  std::vector<Connection const*> getInputConnections(uint32_t toNodeID) const;
 
   /// Gets a list of connections which are connected to a given output socket. There can be multiple
   /// connections *from* a socket.
@@ -43,10 +55,17 @@ class CSL_NODE_EDITOR_EXPORT NodeGraph {
   std::vector<Connection const*> getOutputConnections(
       uint32_t fromNodeID, std::string const& fromSocket) const;
 
+  /// Gets all output connections connected to a given node.
+  /// @param toNodeID The ID of the node.
+  /// @return         A list of connections (this can be empty).
+  std::vector<Connection const*> getInputConnections(uint32_t toNodeID) const;
+
   // Node editor API -------------------------------------------------------------------------------
 
   // The methods below are primarily meant to be used by the NodeEditor class. Usually, you should
   // not have to call them.
+
+  void process();
 
   void addNode(uint32_t id, std::unique_ptr<Node> node);
 
