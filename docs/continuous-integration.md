@@ -27,7 +27,7 @@ This test will pass if the amount of comments did not decrease.
 ## Builds of CosmoScout VR
 [Github Actions](https://github.com/cosmoscout/cosmoscout-vr/actions) is also used to compile the code of CosmoScout VR and all of its dependencies.
 As this job takes quite some time, it is only executed for the events below:
-  * For each push to `master` or `develop` if the commit message does not contain `[no-ci]`.
+  * For each push to `main` if the commit message does not contain `[no-ci]`.
   * For each push to any branch if commit message contains `[run-ci]`.
   * For pull requests.
 

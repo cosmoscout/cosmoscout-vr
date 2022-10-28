@@ -18,6 +18,7 @@ SPDX-License-Identifier: CC-BY-4.0
 * Add a new powershell script to create plugin libraries: `tools/New-PluginLibrary.ps1` 
 
 #### Other Changes
+* The branching scheme has been simplified. Instead of `master` and `develop`, there is now only a single `main` branch.
 
 #### Refactoring
 * The `tools` were moved from `cs-core` to a new plugin library called `csl-tools`. `csp-measurement-tools` are now making use of this new plugin library.
@@ -123,7 +124,7 @@ SPDX-License-Identifier: CC-BY-4.0
 * The `csp-timings` has been rewritten and allows now for much more fine-grained timing analysis. (See [#230](https://github.com/cosmoscout/cosmoscout-vr/pull/230) and [#240](https://github.com/cosmoscout/cosmoscout-vr/pull/240)).
 * A new star rendering method has been added, which scales the rendered discs based on the star's magnitude. This makes the star figures more easy to spot when HDR rendering is disabled.
 * The billboard rendering method of stars has been improved by using an updated star texture.
-* Documentation on [how-to setup a map server on WSL](https://github.com/cosmoscout/cosmoscout-vr/tree/develop/plugins/csp-lod-bodies) for `csp-lod-bodies` has been written.
+* Documentation on [how-to setup a map server on WSL](https://github.com/cosmoscout/cosmoscout-vr/tree/main/plugins/csp-lod-bodies) for `csp-lod-bodies` has been written.
 * Performance has been slightly improved by removing redundant uniform location queries from the render loop.
 
 #### Bug Fixes
@@ -178,7 +179,7 @@ The settings format has changed slightly in version 1.3.0, see the [Migration Gu
 * JavaScript callbacks can now take **optional arguments** (specified as `std::optional`)
 * **More intuitive signature for multi-handle slider callbacks**. Rather than a value + the ID of the changed handle they now simple get all slider handle values.
 * Updated vis-timeline.js to the latest stable version. This increased timeline rendering performance quite significantly.
-* Documentation on [how-to setup a map server](https://github.com/cosmoscout/cosmoscout-vr/tree/develop/plugins/csp-lod-bodies) for `csp-lod-bodies` has been written.
+* Documentation on [how-to setup a map server](https://github.com/cosmoscout/cosmoscout-vr/tree/main/plugins/csp-lod-bodies) for `csp-lod-bodies` has been written.
 * `csp-lod-bodies` can now show tile bounding boxes for debugging purposes.
 * Styling of UI elements has received a make-over.
 * On Linux, CosmoScout VR's **window has now an icon** and a name. These are required to properly represent the window in the taskbar, the Alt-Tab application switcher and in other places.

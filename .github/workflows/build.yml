@@ -85,8 +85,7 @@ jobs:
     runs-on: ubuntu-20.04
     if: >
       github.event_name == 'pull_request' ||
-      ( contains(github.ref, 'master') && !contains(github.event.head_commit.message, '[no-ci]') ) ||
-      ( contains(github.ref, 'develop') && !contains(github.event.head_commit.message, '[no-ci]') ) ||
+      ( contains(github.ref, 'main') && !contains(github.event.head_commit.message, '[no-ci]') ) ||
       contains(github.event.head_commit.message, '[run-ci]')
     steps:
       - name: Checkout Repository
@@ -150,8 +149,7 @@ jobs:
     runs-on: ubuntu-20.04
     if: >
       github.event_name == 'pull_request' ||
-      ( contains(github.ref, 'master') && !contains(github.event.head_commit.message, '[no-ci]') ) ||
-      ( contains(github.ref, 'develop') && !contains(github.event.head_commit.message, '[no-ci]') ) ||
+      ( contains(github.ref, 'main') && !contains(github.event.head_commit.message, '[no-ci]') ) ||
       contains(github.event.head_commit.message, '[run-ci]')
     env:
       CC: clang-11
@@ -210,8 +208,7 @@ jobs:
     runs-on: windows-2019
     if: >
       github.event_name == 'pull_request' ||
-      ( contains(github.ref, 'master') && !contains(github.event.head_commit.message, '[no-ci]') ) ||
-      ( contains(github.ref, 'develop') && !contains(github.event.head_commit.message, '[no-ci]') ) ||
+      ( contains(github.ref, 'main') && !contains(github.event.head_commit.message, '[no-ci]') ) ||
       contains(github.event.head_commit.message, '[run-ci]')
     env:
       BOOST_ROOT_1_72_0: C:\hostedtoolcache\windows\Boost\1.72.0\x86_64

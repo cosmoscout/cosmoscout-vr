@@ -10,9 +10,9 @@ SPDX-License-Identifier: CC-BY-4.0
 CosmoScout VR is a modular virtual universe developed at the German Aerospace Center (DLR).
 It lets you explore, analyze and present huge planetary data sets and large simulation data in real-time.
 
-[![Build Status](https://github.com/cosmoscout/cosmoscout-vr/workflows/Build/badge.svg?branch=develop)](https://github.com/cosmoscout/cosmoscout-vr/actions)
+[![Build Status](https://github.com/cosmoscout/cosmoscout-vr/workflows/Build/badge.svg?branch=main)](https://github.com/cosmoscout/cosmoscout-vr/actions)
 [![REUSE](https://api.reuse.software/badge/github.com/cosmoscout/cosmoscout-vr)](https://api.reuse.software/info/github.com/cosmoscout/cosmoscout-vr)
-[![Coverage Status](https://coveralls.io/repos/github/cosmoscout/cosmoscout-vr/badge.svg?branch=develop)](https://coveralls.io/github/cosmoscout/cosmoscout-vr?branch=develop)
+[![Coverage Status](https://coveralls.io/repos/github/cosmoscout/cosmoscout-vr/badge.svg?branch=main)](https://coveralls.io/github/cosmoscout/cosmoscout-vr?branch=main)
 [![documentation](https://img.shields.io/badge/Docs-online-34D058.svg)](docs/README.md)
 [![license](https://img.shields.io/badge/License-MIT-purple.svg)](LICENSE.md)
 [![source loc](https://img.shields.io/badge/LoC-15.3k-green.svg)](tools/cloc.sh)
