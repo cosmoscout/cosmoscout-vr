@@ -28,6 +28,7 @@ add_library(csp-wms-overlays SHARED
 target_link_libraries(csp-wms-overlays
   PUBLIC
     cs-core
+    csl-ogc
 )
 
 # Add this Plugin to a "plugins" folder in your IDE.

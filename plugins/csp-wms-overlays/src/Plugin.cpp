@@ -7,8 +7,9 @@
 
 #include "Plugin.hpp"
 #include "TextureOverlayRenderer.hpp"
-#include "WebMapService.hpp"
 #include "logger.hpp"
+
+#include "../../csl-ogc/src/wms/WebMapService.hpp"
 
 #include "../../../src/cs-core/GuiManager.hpp"
 #include "../../../src/cs-core/InputManager.hpp"
@@ -34,31 +35,6 @@ EXPORT_FN void destroy(cs::core::PluginBase* pluginBase) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 namespace csp::wmsoverlays {
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-NLOHMANN_JSON_SERIALIZE_ENUM(
-    WebMapService::CacheMode, {
-                                  {WebMapService::CacheMode::eAlways, "always"},
-                                  {WebMapService::CacheMode::eUpdateSequence, "updateSequence"},
-                                  {WebMapService::CacheMode::eNever, "never"},
-                              })
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void from_json(nlohmann::json const& j, Bounds& o) {
-  std::array<double, 4> bounds{};
-  j.get_to(bounds);
-  o.mMinLon = bounds[0];
-  o.mMaxLon = bounds[1];
-  o.mMinLat = bounds[2];
-  o.mMaxLat = bounds[3];
-}
-
-void to_json(nlohmann::json& j, Bounds const& o) {
-  std::array<double, 4> bounds{o.mMinLon, o.mMaxLon, o.mMinLat, o.mMaxLat};
-  j = bounds;
-}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -151,7 +127,7 @@ void Plugin::init() {
           return;
         }
 
-        WebMapLayer::Settings layerSettings =
+        csl::ogc::WebMapLayer::Settings layerSettings =
             mActiveLayers[mActiveOverlay->getObjectName()]->getSettings();
         goToBounds(layerSettings.mBounds);
       }));
@@ -250,13 +226,13 @@ void Plugin::init() {
         boost::posix_time::ptime time =
             cs::utils::convert::time::toPosix(mTimeControl->pSimulationTime.get());
 
-        std::vector<TimeInterval> intervals =
+        std::vector<csl::ogc::TimeInterval> intervals =
             mActiveLayers[mActiveOverlay->getObjectName()]->getSettings().mTimeIntervals;
 
         // Check if current time is in any interval
-        TimeInterval             result;
+        csl::ogc::TimeInterval   result;
         boost::posix_time::ptime sampleStartTime = time;
-        if (utils::timeInIntervals(sampleStartTime, intervals, result)) {
+        if (csl::ogc::utils::timeInIntervals(sampleStartTime, intervals, result)) {
           if (sampleStartTime != time) {
             // timeInIntervals rounds down the time to the nearest timestep, so the
             // result of that method can be used.
@@ -279,7 +255,8 @@ void Plugin::init() {
           }
           // If the time was not the start time of any interval we can substract the duration to
           // get the previous timestep.
-          sampleStartTime = utils::addDurationToTime(sampleStartTime, result.mSampleDuration, -1);
+          sampleStartTime =
+              csl::ogc::utils::addDurationToTime(sampleStartTime, result.mSampleDuration, -1);
           mTimeControl->setTime(cs::utils::convert::time::toSpice(sampleStartTime));
           return;
         }
@@ -309,13 +286,13 @@ void Plugin::init() {
         boost::posix_time::ptime time =
             cs::utils::convert::time::toPosix(mTimeControl->pSimulationTime.get());
 
-        std::vector<TimeInterval> intervals =
+        std::vector<csl::ogc::TimeInterval> intervals =
             mActiveLayers[mActiveOverlay->getObjectName()]->getSettings().mTimeIntervals;
 
         // Check if current time is in any interval
-        TimeInterval             result;
+        csl::ogc::TimeInterval   result;
         boost::posix_time::ptime sampleStartTime = time;
-        if (utils::timeInIntervals(sampleStartTime, intervals, result)) {
+        if (csl::ogc::utils::timeInIntervals(sampleStartTime, intervals, result)) {
           if (sampleStartTime == result.mEndTime) {
             auto it = std::find(intervals.begin(), intervals.end(), result);
             if (it == intervals.end() - 1) {
@@ -331,7 +308,8 @@ void Plugin::init() {
           }
           // If the time was not the end time of any interval we can add the duration to
           // get the next timestep.
-          sampleStartTime = utils::addDurationToTime(sampleStartTime, result.mSampleDuration);
+          sampleStartTime =
+              csl::ogc::utils::addDurationToTime(sampleStartTime, result.mSampleDuration);
           mTimeControl->setTime(cs::utils::convert::time::toSpice(sampleStartTime));
           return;
         }
@@ -541,8 +519,8 @@ void Plugin::onLoad() {
     for (auto const& wmsUrl : settings.second.mWms) {
       mWmsCreationThreads.at(settings.first).enqueue([this, settings, wmsUrl]() {
         try {
-          WebMapService                wms(wmsUrl, mPluginSettings->mUseCapabilityCache.get(),
-              mPluginSettings->mCapabilityCache.get());
+          csl::ogc::WebMapService      wms(wmsUrl, mPluginSettings->mUseCapabilityCache.get(),
+                   mPluginSettings->mCapabilityCache.get());
           std::unique_lock<std::mutex> lock(mWmsInsertMutex);
           mWms[settings.first].push_back(std::move(wms));
         } catch (std::exception const& e) {
@@ -581,7 +559,7 @@ void Plugin::initOverlay(std::string const& bodyName, Settings::Body& settings) 
 
   overlay->configure(settings);
 
-  overlay->pBounds.connectAndTouch([this, &settings, center = bodyName](Bounds bounds) {
+  overlay->pBounds.connectAndTouch([this, &settings, center = bodyName](csl::ogc::Bounds bounds) {
     settings.mActiveBounds = bounds;
     if (isActiveOverlay(center)) {
       mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.setCurrentBounds",
@@ -607,8 +585,8 @@ void Plugin::setWMSServer(
     std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay, std::string const& name) {
   auto&       settings = getBodySettings(wmsOverlay);
   auto const& server   = std::find_if(mWms.at(wmsOverlay->getObjectName()).begin(),
-      mWms.at(wmsOverlay->getObjectName()).end(),
-      [&name](WebMapService const& wms) { return wms.getTitle() == name; });
+        mWms.at(wmsOverlay->getObjectName()).end(),
+        [&name](csl::ogc::WebMapService const& wms) { return wms.getTitle() == name; });
 
   if (server == mWms.at(wmsOverlay->getObjectName()).end()) {
     if (name != "None") {
@@ -627,8 +605,8 @@ void Plugin::setWMSServer(
     mGuiManager->getGui()->callJavascript("CosmoScout.wmsOverlays.resetLayerSelect");
   }
 
-  bool        noneActive = true;
-  WebMapLayer root       = server->getRootLayer();
+  bool                  noneActive = true;
+  csl::ogc::WebMapLayer root       = server->getRootLayer();
   for (auto const& layer : root.getAllLayers()) {
     if (addLayerToSelect(wmsOverlay, layer, settings.mActiveLayer.get())) {
       noneActive = false;
@@ -661,8 +639,9 @@ void Plugin::resetWMSServer(std::shared_ptr<TextureOverlayRenderer> const& wmsOv
 
 void Plugin::setWMSLayer(
     std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay, std::string const& name) {
-  auto&                      settings = getBodySettings(wmsOverlay);
-  std::optional<WebMapLayer> layer    = mActiveServers[wmsOverlay->getObjectName()]->getLayer(name);
+  auto&                                settings = getBodySettings(wmsOverlay);
+  std::optional<csl::ogc::WebMapLayer> layer =
+      mActiveServers[wmsOverlay->getObjectName()]->getLayer(name);
 
   if (!layer.has_value()) {
     if (name != "None") {
@@ -710,7 +689,7 @@ void Plugin::setWMSLayer(
   }
 
   bool noneActive = true;
-  for (WebMapLayer::Style const& style : layer->getSettings().mStyles) {
+  for (csl::ogc::WebMapLayer::Style const& style : layer->getSettings().mStyles) {
     bool active = style.mName == settings.mActiveStyle.get();
     if (isActiveOverlay(wmsOverlay)) {
       mGuiManager->getGui()->callJavascript("CosmoScout.gui.addDropdownValue",
@@ -755,10 +734,11 @@ void Plugin::resetWMSLayer(std::shared_ptr<TextureOverlayRenderer> const& wmsOve
 
 void Plugin::setWMSStyle(
     std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay, std::string const& name) {
-  auto                  bodySettings  = getBodySettings(wmsOverlay);
-  WebMapLayer::Settings layerSettings = mActiveLayers[wmsOverlay->getObjectName()]->getSettings();
+  auto                            bodySettings = getBodySettings(wmsOverlay);
+  csl::ogc::WebMapLayer::Settings layerSettings =
+      mActiveLayers[wmsOverlay->getObjectName()]->getSettings();
   auto const& style = std::find_if(layerSettings.mStyles.begin(), layerSettings.mStyles.end(),
-      [&name](WebMapLayer::Style const& style) { return style.mName == name; });
+      [&name](csl::ogc::WebMapLayer::Style const& style) { return style.mName == name; });
 
   if (style != layerSettings.mStyles.end()) {
     if (isActiveOverlay(wmsOverlay)) {
@@ -805,7 +785,7 @@ bool Plugin::isActiveOverlay(std::string const& center) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool Plugin::addLayerToSelect(std::shared_ptr<TextureOverlayRenderer> const& wmsOverlay,
-    WebMapLayer const& layer, std::string const& activeLayer, int depth) {
+    csl::ogc::WebMapLayer const& layer, std::string const& activeLayer, int depth) {
   bool active = layer.getName() == activeLayer;
 
   if (isActiveOverlay(wmsOverlay)) {
@@ -828,7 +808,7 @@ bool Plugin::addLayerToSelect(std::shared_ptr<TextureOverlayRenderer> const& wms
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Plugin::goToBounds(Bounds const& bounds) {
+void Plugin::goToBounds(csl::ogc::Bounds const& bounds) {
   double lon      = (bounds.mMinLon + bounds.mMaxLon) / 2.;
   double lat      = (bounds.mMinLat + bounds.mMaxLat) / 2.;
   double lonRange = bounds.mMaxLon - bounds.mMinLon;
@@ -856,7 +836,8 @@ void Plugin::goToBounds(Bounds const& bounds) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Plugin::checkScale(Bounds const& bounds, WebMapLayer const& layer, int maxTextureSize) {
+void Plugin::checkScale(
+    csl::ogc::Bounds const& bounds, csl::ogc::WebMapLayer const& layer, int maxTextureSize) {
   if (!mActiveOverlay) {
     return;
   }
