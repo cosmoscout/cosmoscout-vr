@@ -271,23 +271,23 @@ void NodeEditor::handleRemoveNodeEvent(nlohmann::json const& json) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void NodeEditor::handleAddConnectionEvent(nlohmann::json const& json) {
-  uint32_t    fromID     = json["input"]["connections"][0]["node"];
+  uint32_t    fromNode   = json["input"]["connections"][0]["node"];
   std::string fromSocket = json["input"]["connections"][0]["output"];
-  uint32_t    toID       = json["output"]["connections"][0]["node"];
+  uint32_t    toNode     = json["output"]["connections"][0]["node"];
   std::string toSocket   = json["output"]["connections"][0]["input"];
 
-  mGraph->addConnection(fromID, fromSocket, toID, toSocket);
+  mGraph->addConnection(fromNode, fromSocket, toNode, toSocket);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void NodeEditor::handleRemoveConnectionEvent(nlohmann::json const& json) {
-  uint32_t    fromID     = json["input"]["connections"][0]["node"];
+  uint32_t    fromNode   = json["input"]["connections"][0]["node"];
   std::string fromSocket = json["input"]["connections"][0]["output"];
-  uint32_t    toID       = json["output"]["connections"][0]["node"];
+  uint32_t    toNode     = json["output"]["connections"][0]["node"];
   std::string toSocket   = json["output"]["connections"][0]["input"];
 
-  mGraph->removeConnection(fromID, fromSocket, toID, toSocket);
+  mGraph->removeConnection(fromNode, fromSocket, toNode, toSocket);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

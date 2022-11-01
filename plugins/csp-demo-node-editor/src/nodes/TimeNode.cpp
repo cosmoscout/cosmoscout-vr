@@ -33,7 +33,7 @@ std::string TimeNode::getSource() {
       }
 
       builder(node) {
-        let output = new Rete.Output('date', "Date", CosmoScout.socketTypes['Date Value']);
+        let output = new Rete.Output('number', "Seconds", CosmoScout.socketTypes['Number Value']);
         return node.addOutput(output);
       }
     }
@@ -56,7 +56,7 @@ TimeNode::TimeNode(std::shared_ptr<cs::core::TimeControl> pTimeControl)
     : mTimeControl(std::move(pTimeControl)) {
 
   mTimeConnection = mTimeControl->pSimulationTime.connect(
-      [this](double) { writeOutput("date", mTimeControl->pSimulationTime.get()); });
+      [this](double) { writeOutput("number", mTimeControl->pSimulationTime.get()); });
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -9,6 +9,8 @@
 
 #include "NodeGraph.hpp"
 
+#include <algorithm>
+
 namespace csl::nodeeditor {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -21,6 +23,36 @@ void Node::setID(uint32_t id) {
 
 void Node::setGraph(std::shared_ptr<NodeGraph> graph) {
   mGraph = std::move(graph);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool Node::hasNewInput() const {
+  auto connections = mGraph->getInputConnections(mID);
+  return !connections.empty() &&
+         std::any_of(connections.begin(), connections.end(), [](auto c) { return c->mHasNewData; });
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool Node::hasNewInput(std::string const& socket) const {
+  auto connection = mGraph->getInputConnection(mID, socket);
+  return connection && connection->mHasNewData;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool Node::hasUndefinedOutput() const {
+  auto connections = mGraph->getOutputConnections(mID);
+  return !connections.empty() && std::any_of(connections.begin(), connections.end(),
+                                     [](auto c) { return !c->mData.has_value(); });
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool Node::hasUndefinedOutput(std::string const& socket) const {
+  auto connection = mGraph->getInputConnection(mID, socket);
+  return connection && !connection->mData.has_value();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

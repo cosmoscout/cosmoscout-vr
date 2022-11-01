@@ -37,28 +37,28 @@ class CSL_NODE_EDITOR_EXPORT NodeGraph {
 
   /// Gets a connection which is connected to a given input socket. There can be at most one
   /// connection *to* a socket.
-  /// @param toNodeID The ID of the node.
+  /// @param toNode   The ID of the node.
   /// @param toSocket The name of the socket.
   /// @return         A connection (if any).
-  Connection const* getInputConnection(uint32_t toNodeID, std::string const& toSocket) const;
+  Connection const* getInputConnection(uint32_t toNode, std::string const& toSocket) const;
 
   /// Gets all input connections connected to a given node.
-  /// @param toNodeID The ID of the node.
+  /// @param toNode   The ID of the node.
   /// @return         A list of connections (this can be empty).
-  std::vector<Connection const*> getInputConnections(uint32_t toNodeID) const;
+  std::vector<Connection const*> getInputConnections(uint32_t toNode) const;
 
   /// Gets a list of connections which are connected to a given output socket. There can be multiple
   /// connections *from* a socket.
-  /// @param fromNodeID The ID of the node.
+  /// @param fromNode   The ID of the node.
   /// @param fromSocket The name of the socket.
   /// @return           A list of connections (this can be empty).
   std::vector<Connection const*> getOutputConnections(
-      uint32_t fromNodeID, std::string const& fromSocket) const;
+      uint32_t fromNode, std::string const& fromSocket) const;
 
   /// Gets all output connections connected to a given node.
-  /// @param toNodeID The ID of the node.
+  /// @param fromNode The ID of the node.
   /// @return         A list of connections (this can be empty).
-  std::vector<Connection const*> getInputConnections(uint32_t toNodeID) const;
+  std::vector<Connection const*> getOutputConnections(uint32_t fromNode) const;
 
   // Node editor API -------------------------------------------------------------------------------
 
@@ -78,6 +78,12 @@ class CSL_NODE_EDITOR_EXPORT NodeGraph {
       std::string const& toSocket);
 
  private:
+  // Returns all nodes which are currently connected to an output socket of the given node.
+  std::vector<uint32_t> getOutputNodes(uint32_t node) const;
+
+  // Returns all nodes which are currently connected to an input socket of the given node.
+  std::vector<uint32_t> getInputNodes(uint32_t node) const;
+
   std::unordered_map<uint32_t, std::unique_ptr<Node>> mNodes;
 
   std::list<Connection> mConnections;

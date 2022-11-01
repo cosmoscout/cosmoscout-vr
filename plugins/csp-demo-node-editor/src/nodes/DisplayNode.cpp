@@ -7,6 +7,8 @@
 
 #include "DisplayNode.hpp"
 
+#include "../logger.hpp"
+
 #include "../../../../src/cs-utils/utils.hpp"
 
 namespace csp::demonodeeditor {
@@ -33,11 +35,6 @@ std::string DisplayNode::getSource() {
         let input = new Rete.Input('number', "Number", CosmoScout.socketTypes['Number Value']);
         return node.addInput(input);
       }
-
-      worker(node, inputs, outputs) {
-        let val = inputs['number'].length ? inputs['number'][0] : NaN;
-        CosmoScout.connection.send("process");
-      }
     }
   )";
 
@@ -50,6 +47,16 @@ std::string DisplayNode::getSource() {
 
 std::unique_ptr<DisplayNode> DisplayNode::create() {
   return std::make_unique<DisplayNode>();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void DisplayNode::process() {
+
+  if (hasNewInput()) {
+    // double value = readInput<double>("number", 0.0);
+    // logger().info("got {}", value);
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

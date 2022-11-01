@@ -19,6 +19,8 @@ class DisplayNode : public csl::nodeeditor::Node {
   static std::string getSource();
 
   static std::unique_ptr<DisplayNode> create();
+
+  void process() override;
 };
 
 } // namespace csp::demonodeeditor

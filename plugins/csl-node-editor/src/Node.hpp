@@ -38,28 +38,43 @@ class CSL_NODE_EDITOR_EXPORT Node {
  protected:
   // void sendMessage(std::string const& data) const;
 
+  /// Returns true if any input connection has new data available. This will return true until
+  /// readInput() is called once for the respective input connection.
+  bool hasNewInput() const;
+
+  /// Returns true if the given input connection has new data available. This will return true until
+  /// readInput() is called once for the respective input connection.
+  bool hasNewInput(std::string const& socket) const;
+
+  /// Returns true if there is a (new) output connection which has never been written to.
+  bool hasUndefinedOutput() const;
+
+  /// Returns true if the given output connection has never been written to. This can happen if the
+  /// output socket is freshly connected to another node.
+  bool hasUndefinedOutput(std::string const& socket) const;
+
   template <typename T>
   void writeOutput(std::string const& socket, T const& value) {
     auto connections = mGraph->getOutputConnections(mID, socket);
 
     for (auto& c : connections) {
-      if (!c->mValue.has_value() || std::any_cast<T>(c->mValue) != value) {
+      if (!c->mData.has_value() || std::any_cast<T>(c->mData) != value) {
         c->mHasNewData = true;
-        c->mValue      = value;
+        c->mData       = value;
       }
     }
   }
 
   template <typename T>
-  std::optional<T> readInput(std::string const& socket) {
+  T readInput(std::string const& socket, T defaultValue) {
     auto connection = mGraph->getInputConnection(mID, socket);
 
-    if (connection && connection->mValue.has_value()) {
+    if (connection && connection->mData.has_value()) {
       connection->mHasNewData = false;
-      return std::any_cast<T>(connection->mValue);
+      return std::any_cast<T>(connection->mData);
     }
 
-    return std::nullopt;
+    return std::move(defaultValue);
   }
 
  private:

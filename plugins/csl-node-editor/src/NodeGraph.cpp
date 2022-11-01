@@ -46,10 +46,14 @@ void NodeGraph::addConnection(
 void NodeGraph::removeConnection(uint32_t fromNode, std::string const& fromSocket, uint32_t toNode,
     std::string const& toSocket) {
 
+  logger().warn("{}", mConnections.size());
+  logger().warn("{} {} {} {}", fromNode, fromSocket, toNode, toSocket);
+
   mConnections.remove_if([&](Connection const& c) {
     return c.mFromNode == fromNode && c.mFromSocket == fromSocket && c.mToNode == toNode &&
            c.mToSocket == toSocket;
   });
+  logger().warn("{}", mConnections.size());
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -65,6 +69,21 @@ Connection const* NodeGraph::getInputConnection(
   }
 
   return &(*it);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::vector<Connection const*> NodeGraph::getInputConnections(uint32_t toNode) const {
+
+  std::vector<Connection const*> result;
+
+  for (auto const& c : mConnections) {
+    if (c.mToNode == toNode) {
+      result.push_back(&c);
+    }
+  }
+
+  return result;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -85,17 +104,96 @@ std::vector<Connection const*> NodeGraph::getOutputConnections(
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+std::vector<Connection const*> NodeGraph::getOutputConnections(uint32_t fromNode) const {
+
+  std::vector<Connection const*> result;
+
+  for (auto const& c : mConnections) {
+    if (c.mFromNode == fromNode) {
+      result.push_back(&c);
+    }
+  }
+
+  return result;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void NodeGraph::process() {
-  std::unordered_set<uint32_t> mDirtyNodes;
+  // logger().debug(
+  //     "processing node graph (nodes: {} / connections: {})", mNodes.size(), mConnections.size());
+
+  std::unordered_set<uint32_t> dirtyNodes;
 
   // First collect all nodes which have changed input sockets.
   for (auto const& c : mConnections) {
     if (c.mHasNewData) {
-      mDirtyNodes.insert(c.mToNode);
+      dirtyNodes.insert(c.mToNode);
     }
   }
 
-  //
+  // All dirty nodes will need to be processed. Processing them will most likely result in changed
+  // output values, so we will mark all connectd nodes as being dirty as well. This may result in
+  // too many dirty nodes, however, the nodes can check their input connections during the
+  // processing and abort early if nothing has changed.
+  std::vector<uint32_t> stack(dirtyNodes.begin(), dirtyNodes.end());
+
+  while (!stack.empty()) {
+    auto nodes = getOutputNodes(stack.back());
+    stack.pop_back();
+
+    dirtyNodes.insert(nodes.begin(), nodes.end());
+    stack.insert(stack.end(), nodes.begin(), nodes.end());
+  }
+
+  // logger().debug("  dirty nodes: {}", dirtyNodes.size());
+
+  // Now that we have all nodes which should be processed, we process them one by one. We always
+  // choose a node which does not receive input from a node which is still dirty.
+  while (!dirtyNodes.empty()) {
+    auto it = std::find_if(dirtyNodes.begin(), dirtyNodes.end(), [&](uint32_t node) {
+      for (uint32_t inputNode : getInputNodes(node)) {
+        if (dirtyNodes.find(inputNode) != dirtyNodes.end()) {
+          return false;
+        }
+      }
+      return true;
+    });
+
+    // logger().debug("    processing node {}", *it);
+
+    mNodes.at(*it)->process();
+
+    dirtyNodes.erase(it);
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::vector<uint32_t> NodeGraph::getOutputNodes(uint32_t node) const {
+  std::vector<uint32_t> result;
+
+  for (auto const& c : mConnections) {
+    if (c.mFromNode == node) {
+      result.push_back(c.mToNode);
+    }
+  }
+
+  return result;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::vector<uint32_t> NodeGraph::getInputNodes(uint32_t node) const {
+  std::vector<uint32_t> result;
+
+  for (auto const& c : mConnections) {
+    if (c.mToNode == node) {
+      result.push_back(c.mFromNode);
+    }
+  }
+
+  return result;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
