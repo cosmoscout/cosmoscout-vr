@@ -77,7 +77,6 @@ class CSL_NODE_EDITOR_EXPORT Node {
     return std::move(defaultValue);
   }
 
- private:
   uint32_t                   mID;
   std::shared_ptr<NodeGraph> mGraph;
 };

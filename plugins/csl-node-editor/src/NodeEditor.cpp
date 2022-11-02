@@ -250,8 +250,8 @@ void NodeEditor::handleCustomEvent(nlohmann::json const& json) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void NodeEditor::handleAddNodeEvent(nlohmann::json const& json) {
-  std::string type = json.at("name");
-  uint32_t    id   = json.at("id");
+  std::string type = json["type"];
+  uint32_t    id   = json["id"];
 
   auto node = mFactory.createNode(type);
   node->setGraph(mGraph);
@@ -263,18 +263,16 @@ void NodeEditor::handleAddNodeEvent(nlohmann::json const& json) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void NodeEditor::handleRemoveNodeEvent(nlohmann::json const& json) {
-  uint32_t id = json.at("id");
-
-  mGraph->removeNode(id);
+  mGraph->removeNode(json["id"]);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void NodeEditor::handleAddConnectionEvent(nlohmann::json const& json) {
-  uint32_t    fromNode   = json["input"]["connections"][0]["node"];
-  std::string fromSocket = json["input"]["connections"][0]["output"];
-  uint32_t    toNode     = json["output"]["connections"][0]["node"];
-  std::string toSocket   = json["output"]["connections"][0]["input"];
+  uint32_t    fromNode   = json["fromNode"];
+  std::string fromSocket = json["fromSocket"];
+  uint32_t    toNode     = json["toNode"];
+  std::string toSocket   = json["toSocket"];
 
   mGraph->addConnection(fromNode, fromSocket, toNode, toSocket);
 }
@@ -282,10 +280,10 @@ void NodeEditor::handleAddConnectionEvent(nlohmann::json const& json) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void NodeEditor::handleRemoveConnectionEvent(nlohmann::json const& json) {
-  uint32_t    fromNode   = json["input"]["connections"][0]["node"];
-  std::string fromSocket = json["input"]["connections"][0]["output"];
-  uint32_t    toNode     = json["output"]["connections"][0]["node"];
-  std::string toSocket   = json["output"]["connections"][0]["input"];
+  uint32_t    fromNode   = json["fromNode"];
+  std::string fromSocket = json["fromSocket"];
+  uint32_t    toNode     = json["toNode"];
+  std::string toSocket   = json["toSocket"];
 
   mGraph->removeConnection(fromNode, fromSocket, toNode, toSocket);
 }

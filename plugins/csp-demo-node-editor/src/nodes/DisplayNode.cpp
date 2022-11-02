@@ -54,8 +54,8 @@ std::unique_ptr<DisplayNode> DisplayNode::create() {
 void DisplayNode::process() {
 
   if (hasNewInput()) {
-    // double value = readInput<double>("number", 0.0);
-    // logger().info("got {}", value);
+    double value = readInput<double>("number", 0.0);
+    logger().info("{} got {}", mID, value);
   }
 }
 

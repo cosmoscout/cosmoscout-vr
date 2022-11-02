@@ -107,17 +107,43 @@ SPDX-License-Identifier: MIT
 
       //!REGISTER_COMPONENTS
 
-      CosmoScout.nodeEditor.on('nodecreated', (node) => {
-        CosmoScout.connection.send(JSON.stringify({ eventType: "addNode", node: node }));
+      CosmoScout.nodeEditor.on('nodecreated', node => {
+        CosmoScout.connection.send(JSON.stringify({
+          eventType: "addNode", node: {
+            type: node.name,
+            id: node.id
+          }
+        }));
       });
-      CosmoScout.nodeEditor.on('noderemoved', (node) => {
-        CosmoScout.connection.send(JSON.stringify({ eventType: "removeNode", node: node }));
+
+      CosmoScout.nodeEditor.on('noderemoved', node => {
+        CosmoScout.connection.send(JSON.stringify({
+          eventType: "removeNode", node: {
+            id: node.id
+          }
+        }));
       });
-      CosmoScout.nodeEditor.on('connectioncreated', (connection) => {
-        CosmoScout.connection.send(JSON.stringify({ eventType: "addConnection", connection: connection }));
+
+      CosmoScout.nodeEditor.on('connectioncreated', connection => {
+        CosmoScout.connection.send(JSON.stringify({
+          eventType: "addConnection", connection: {
+            fromNode: connection.output.node.id,
+            fromSocket: connection.output.key,
+            toNode: connection.input.node.id,
+            toSocket: connection.input.key
+          }
+        }));
       });
-      CosmoScout.nodeEditor.on('connectionremove', (connection) => {
-        CosmoScout.connection.send(JSON.stringify({ eventType: "removeConnection", connection: connection }));
+
+      CosmoScout.nodeEditor.on('connectionremoved', connection => {
+        CosmoScout.connection.send(JSON.stringify({
+          eventType: "removeConnection", connection: {
+            fromNode: connection.output.node.id,
+            fromSocket: connection.output.key,
+            toNode: connection.input.node.id,
+            toSocket: connection.input.key
+          }
+        }));
       });
 
       CosmoScout.nodeEditor.view.resize();

@@ -46,14 +46,10 @@ void NodeGraph::addConnection(
 void NodeGraph::removeConnection(uint32_t fromNode, std::string const& fromSocket, uint32_t toNode,
     std::string const& toSocket) {
 
-  logger().warn("{}", mConnections.size());
-  logger().warn("{} {} {} {}", fromNode, fromSocket, toNode, toSocket);
-
   mConnections.remove_if([&](Connection const& c) {
     return c.mFromNode == fromNode && c.mFromSocket == fromSocket && c.mToNode == toNode &&
            c.mToSocket == toSocket;
   });
-  logger().warn("{}", mConnections.size());
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
