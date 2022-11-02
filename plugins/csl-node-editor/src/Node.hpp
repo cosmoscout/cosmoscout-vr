@@ -13,6 +13,7 @@
 #include "NodeGraph.hpp"
 
 #include <memory>
+#include <nlohmann/json.hpp>
 #include <optional>
 #include <string>
 #include <vector>
@@ -20,6 +21,7 @@
 namespace csl::nodeeditor {
 
 class NodeGraph;
+class WebSocket;
 class Connection;
 
 class CSL_NODE_EDITOR_EXPORT Node {
@@ -33,10 +35,8 @@ class CSL_NODE_EDITOR_EXPORT Node {
   // virtual void onMessage(std::string const& data){};
 
   void setID(uint32_t id);
+  void setSocket(std::shared_ptr<WebSocket> socket);
   void setGraph(std::shared_ptr<NodeGraph> graph);
-
- protected:
-  // void sendMessage(std::string const& data) const;
 
   /// Returns true if any input connection has new data available. This will return true until
   /// readInput() is called once for the respective input connection.
@@ -52,6 +52,9 @@ class CSL_NODE_EDITOR_EXPORT Node {
   /// Returns true if the given output connection has never been written to. This can happen if the
   /// output socket is freshly connected to another node.
   bool hasUndefinedOutput(std::string const& socket) const;
+
+ protected:
+  void sendMessage(nlohmann::json const& data) const;
 
   template <typename T>
   void writeOutput(std::string const& socket, T const& value) {
@@ -78,6 +81,7 @@ class CSL_NODE_EDITOR_EXPORT Node {
   }
 
   uint32_t                   mID;
+  std::shared_ptr<WebSocket> mSocket;
   std::shared_ptr<NodeGraph> mGraph;
 };
 

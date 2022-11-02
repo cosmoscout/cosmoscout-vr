@@ -67,7 +67,7 @@ namespace csl::nodeeditor {
 NodeEditor::NodeEditor(uint16_t port, NodeFactory factory)
     : mFactory(std::move(factory))
     , mSocket(std::make_shared<WebSocket>())
-    , mGraph(std::make_shared<NodeGraph>(mSocket))
+    , mGraph(std::make_shared<NodeGraph>())
     , mHTMLSource(std::move(createHTMLSource())) {
 
   mHandlers.emplace_back("**.css$", std::make_unique<GetHandler>([this](mg_connection* conn) {
@@ -191,6 +191,7 @@ void NodeEditor::handleAddNodeEvent(nlohmann::json const& json) {
 
   auto node = mFactory.createNode(type);
   node->setGraph(mGraph);
+  node->setSocket(mSocket);
   node->setID(id);
 
   mGraph->addNode(id, std::move(node));

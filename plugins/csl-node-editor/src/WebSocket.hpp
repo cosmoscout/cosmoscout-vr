@@ -21,7 +21,7 @@ class CSL_NODE_EDITOR_EXPORT WebSocket : public CivetWebSocketHandler {
  public:
   std::optional<std::string> getNextEvent();
 
-  void sendData(std::string const& data) const;
+  void sendMessage(std::string const& data) const;
 
  private:
   bool handleConnection(CivetServer* server, const struct mg_connection* conn) override;
@@ -35,6 +35,8 @@ class CSL_NODE_EDITOR_EXPORT WebSocket : public CivetWebSocketHandler {
 
   std::queue<std::string> mEventQueue;
   std::mutex              mEventQueueMutex;
+
+  mg_connection* mConnection = nullptr;
 };
 
 } // namespace csl::nodeeditor

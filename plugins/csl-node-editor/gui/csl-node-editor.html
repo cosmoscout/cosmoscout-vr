@@ -82,6 +82,12 @@ SPDX-License-Identifier: MIT
       document.getElementById("loading-screen").classList.add("hidden");
       console.log("connected!");
     });
+    CosmoScout.connection.addEventListener('message', (e) => {
+      let data = JSON.parse(e.data);
+      let node = CosmoScout.nodeEditor.nodes.find(node => node.id === data.toNode);
+
+      node.onMessage(data.message);
+    });
 
     //!SOCKET_SOURCE_CODE
 

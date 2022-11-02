@@ -24,27 +24,41 @@ std::string DisplayNode::getName() {
 std::string DisplayNode::getSource() {
   std::string source = R"(
     class %NAME%Control extends Rete.Control {
-
       constructor(key) {
         super(key);
-
         this.component = {
-          template: '<div>Huhu</div>',
+          template: '<div>{{ value }}</div>',
+          data() {
+            return {
+              value: 0,
+            }
+          },
         };
+      }
+
+      setValue(val) {
+        this.vueContext.value = val;
       }
     }
 
     class %NAME%Component extends Rete.Component {
-
       constructor() {
         super("%NAME%");
-
         this.category = "Outputs";
       }
 
       builder(node) {
         let input = new Rete.Input('number', "Number", CosmoScout.socketTypes['Number Value']);
-        return node.addControl(new %NAME%Control('num')).addInput(input);
+        node.addInput(input);
+
+        let control = new %NAME%Control('num');
+        node.addControl(control);
+
+        node.onMessage = (message) => {
+          control.setValue(message.value);
+        };
+
+        return node;
       }
     }
   )";
@@ -66,7 +80,10 @@ void DisplayNode::process() {
 
   if (hasNewInput()) {
     double value = readInput<double>("number", 0.0);
-    logger().info("{} got {}", mID, value);
+
+    nlohmann::json json;
+    json["value"] = value;
+    sendMessage(json);
   }
 }
 

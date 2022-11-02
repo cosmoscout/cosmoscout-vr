@@ -58,8 +58,6 @@ body {
     }
 }
 
-#loading-screen p {}
-
 .background {
     background:
         linear-gradient(-90deg, rgba(255, 255, 255, .02) 3px, transparent 3px),

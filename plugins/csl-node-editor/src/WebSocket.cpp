@@ -28,8 +28,8 @@ std::optional<std::string> WebSocket::getNextEvent() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void WebSocket::sendData(std::string const& data) const {
-  // mg_websocket_write(conn, MG_WEBSOCKET_OPCODE_TEXT, text, strlen(text));
+void WebSocket::sendMessage(std::string const& data) const {
+  mg_websocket_write(mConnection, MG_WEBSOCKET_OPCODE_TEXT, data.c_str(), data.size());
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -43,6 +43,7 @@ bool WebSocket::handleConnection(CivetServer* server, const struct mg_connection
 
 void WebSocket::handleReadyState(CivetServer* server, struct mg_connection* conn) {
   csl::nodeeditor::logger().info("WS ready");
+  mConnection = conn;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
