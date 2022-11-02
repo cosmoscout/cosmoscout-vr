@@ -23,6 +23,17 @@ std::string DisplayNode::getName() {
 
 std::string DisplayNode::getSource() {
   std::string source = R"(
+    class %NAME%Control extends Rete.Control {
+
+      constructor(key) {
+        super(key);
+
+        this.component = {
+          template: '<div>Huhu</div>',
+        };
+      }
+    }
+
     class %NAME%Component extends Rete.Component {
 
       constructor() {
@@ -33,7 +44,7 @@ std::string DisplayNode::getSource() {
 
       builder(node) {
         let input = new Rete.Input('number', "Number", CosmoScout.socketTypes['Number Value']);
-        return node.addInput(input);
+        return node.addControl(new %NAME%Control('num')).addInput(input);
       }
     }
   )";

@@ -9,7 +9,6 @@
 #define CSL_NODE_EDITOR_NODE_EDITOR_HPP
 
 #include "NodeFactory.hpp"
-#include "NodeGraph.hpp"
 
 #include <memory>
 #include <nlohmann/json.hpp>
@@ -20,6 +19,9 @@ class CivetHandler;
 class CivetWebSocketHandler;
 
 namespace csl::nodeeditor {
+
+class NodeGraph;
+class WebSocket;
 
 class CSL_NODE_EDITOR_EXPORT NodeEditor {
  public:
@@ -41,11 +43,11 @@ class CSL_NODE_EDITOR_EXPORT NodeEditor {
   std::string createHTMLSource() const;
 
   NodeFactory                mFactory;
+  std::shared_ptr<WebSocket> mSocket;
   std::shared_ptr<NodeGraph> mGraph;
 
   std::unique_ptr<CivetServer>                                       mServer;
   std::vector<std::pair<std::string, std::unique_ptr<CivetHandler>>> mHandlers;
-  std::unique_ptr<CivetWebSocketHandler>                             mSocket;
 
   std::string mHTMLSource;
 };

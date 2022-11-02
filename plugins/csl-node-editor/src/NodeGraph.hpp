@@ -19,15 +19,14 @@
 namespace csl::nodeeditor {
 
 class Node;
+class WebSocket;
 
 /// This class keeps track of the nodes and their connections. It is used by the NodeEditor and the
 /// Node base class. When implementing custom nodes, you usually will not have to work with this
 /// class. Use the methods of the Node class instead.
 class CSL_NODE_EDITOR_EXPORT NodeGraph {
  public:
-  // These need to be declared explicitely as the default versions would be defined inline which
-  // makes it impossible to use a forward declartion of Node.
-  NodeGraph();
+  NodeGraph(std::shared_ptr<WebSocket> socket);
   ~NodeGraph();
 
   // Node API --------------------------------------------------------------------------------------
@@ -85,8 +84,9 @@ class CSL_NODE_EDITOR_EXPORT NodeGraph {
   std::vector<uint32_t> getInputNodes(uint32_t node) const;
 
   std::unordered_map<uint32_t, std::unique_ptr<Node>> mNodes;
+  std::list<Connection>                               mConnections;
 
-  std::list<Connection> mConnections;
+  std::shared_ptr<WebSocket> mSocket;
 };
 
 } // namespace csl::nodeeditor

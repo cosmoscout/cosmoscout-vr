@@ -8,6 +8,8 @@
 #include "NodeEditor.hpp"
 
 #include "Node.hpp"
+#include "NodeGraph.hpp"
+#include "WebSocket.hpp"
 #include "logger.hpp"
 
 #include "../../../src/cs-utils/filesystem.hpp"
@@ -16,8 +18,6 @@
 #include <CivetServer.h>
 #include <functional>
 #include <iostream>
-#include <optional>
-#include <queue>
 
 namespace {
 
@@ -56,66 +56,6 @@ class GetHandler : public CivetHandler {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class WebSocketHandler : public CivetWebSocketHandler {
-
- public:
-  std::optional<std::string> getNextEvent() {
-    std::unique_lock<std::mutex> lock(mEventQueueMutex);
-    if (!mEventQueue.empty()) {
-      auto event = mEventQueue.front();
-      mEventQueue.pop();
-      return event;
-    }
-
-    return std::nullopt;
-  }
-
-  void sendData(std::string const& data) const {
-    // mg_websocket_write(conn, MG_WEBSOCKET_OPCODE_TEXT, text, strlen(text));
-  }
-
- private:
-  bool handleConnection(CivetServer* server, const struct mg_connection* conn) override {
-    csl::nodeeditor::logger().info("WS connected");
-    return true;
-  }
-
-  void handleReadyState(CivetServer* server, struct mg_connection* conn) override {
-    csl::nodeeditor::logger().info("WS ready");
-  }
-
-  bool handleData(CivetServer* server, struct mg_connection* conn, int bits, char* data,
-      size_t data_len) override {
-
-    std::unique_lock<std::mutex> lock(mEventQueueMutex);
-    mEventQueue.emplace(data, data_len);
-
-    return true;
-  }
-
-  void handleClose(CivetServer* server, const struct mg_connection* conn) override {
-    csl::nodeeditor::logger().info("WS closed");
-  }
-
-  std::queue<std::string> mEventQueue;
-  std::mutex              mEventQueueMutex;
-};
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// A small helper method which returns the value of a parameter from a request URL. If the parameter
-// is not present, a given default value is returned.
-template <typename T>
-T getParam(mg_connection* conn, std::string const& name, T const& defaultValue) {
-  std::string s;
-  if (CivetServer::getParam(conn, name.c_str(), s)) {
-    return cs::utils::fromString<T>(s);
-  }
-  return defaultValue;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 } // namespace
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -126,8 +66,8 @@ namespace csl::nodeeditor {
 
 NodeEditor::NodeEditor(uint16_t port, NodeFactory factory)
     : mFactory(std::move(factory))
-    , mGraph(std::make_shared<NodeGraph>())
-    , mSocket(std::make_unique<WebSocketHandler>())
+    , mSocket(std::make_shared<WebSocket>())
+    , mGraph(std::make_shared<NodeGraph>(mSocket))
     , mHTMLSource(std::move(createHTMLSource())) {
 
   mHandlers.emplace_back("**.css$", std::make_unique<GetHandler>([this](mg_connection* conn) {
@@ -169,15 +109,11 @@ NodeEditor::~NodeEditor() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void NodeEditor::update() {
-  auto socket = dynamic_cast<WebSocketHandler*>(mSocket.get());
-
-  auto event = socket->getNextEvent();
+  auto event = mSocket->getNextEvent();
 
   while (event) {
 
     try {
-
-      logger().debug(event.value());
 
       nlohmann::json json = nlohmann::json::parse(event.value());
 
@@ -205,7 +141,7 @@ void NodeEditor::update() {
       logger().error("Failed to process node editor event '{}': {}", event.value(), e.what());
     }
 
-    event = socket->getNextEvent();
+    event = mSocket->getNextEvent();
   }
 
   mGraph->process();
