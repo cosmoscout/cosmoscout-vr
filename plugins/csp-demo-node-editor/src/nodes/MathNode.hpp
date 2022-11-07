@@ -24,7 +24,7 @@ class MathNode : public csl::nodeeditor::Node {
 
   void process() override;
 
-  void onMessageFromJS(nlohmann::json const& json) override;
+  void onMessageFromJS(nlohmann::json const& data) override;
 
  private:
   Operation mOperation = Operation::eAdd;

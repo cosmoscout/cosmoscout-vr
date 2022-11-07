@@ -32,7 +32,7 @@ class CSL_NODE_EDITOR_EXPORT Node {
   /// This will be called whenever the values of one or multiple input sockets have changed.
   virtual void process(){};
 
-  virtual void onMessageFromJS(nlohmann::json const& json){};
+  virtual void onMessageFromJS(nlohmann::json const& data){};
 
   void setID(uint32_t id);
   void setSocket(std::shared_ptr<WebSocket> socket);

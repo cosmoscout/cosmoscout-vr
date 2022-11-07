@@ -166,8 +166,8 @@ void NodeGraph::process() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void NodeGraph::handleNodeMessage(uint32_t toNode, nlohmann::json const& json) const {
-  mNodes.at(toNode)->onMessageFromJS(json);
+void NodeGraph::handleNodeMessage(uint32_t toNode, nlohmann::json const& data) const {
+  mNodes.at(toNode)->onMessageFromJS(data);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

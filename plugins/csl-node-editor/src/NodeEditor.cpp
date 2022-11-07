@@ -228,8 +228,8 @@ void NodeEditor::handleRemoveConnectionEvent(nlohmann::json const& json) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void NodeEditor::handleNodeMessageEvent(uint32_t toNode, nlohmann::json const& json) {
-  mGraph->handleNodeMessage(toNode, json);
+void NodeEditor::handleNodeMessageEvent(uint32_t toNode, nlohmann::json const& data) {
+  mGraph->handleNodeMessage(toNode, data);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

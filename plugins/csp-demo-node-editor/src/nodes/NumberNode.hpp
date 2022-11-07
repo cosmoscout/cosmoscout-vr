@@ -20,7 +20,7 @@ class NumberNode : public csl::nodeeditor::Node {
 
   static std::unique_ptr<NumberNode> create();
 
-  void onMessageFromJS(nlohmann::json const& json) override;
+  void onMessageFromJS(nlohmann::json const& data) override;
 };
 
 } // namespace csp::demonodeeditor
