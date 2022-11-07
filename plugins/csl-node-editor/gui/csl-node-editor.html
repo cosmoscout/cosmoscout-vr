@@ -70,6 +70,11 @@ SPDX-License-Identifier: MIT
       socketTypes: [],
       connection: null,
       nodeEditor: null,
+      sendMessagetoCPP: (data, toNode) => {
+        CosmoScout.connection.send(JSON.stringify({
+          eventType: "nodeMessage", data: data, toNode: toNode
+        }))
+      }
     };
 
     CosmoScout.connection = new WebSocket('ws://' + window.location.host + '/socket');
@@ -88,8 +93,8 @@ SPDX-License-Identifier: MIT
       let data = JSON.parse(e.data);
       let node = CosmoScout.nodeEditor.nodes.find(node => node.id === data.toNode);
 
-      if (node.onMessage) {
-        node.onMessage(data.message);
+      if (node.onMessageFromCPP) {
+        node.onMessageFromCPP(data.message);
       }
     });
 

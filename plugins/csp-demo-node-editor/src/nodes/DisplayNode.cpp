@@ -40,7 +40,7 @@ std::string DisplayNode::getSource() {
               margin: 10px;
               text-align: right;
               font-size: 1.1em;
-            }            
+            }
           </style>
         `;
       }
@@ -69,7 +69,7 @@ std::string DisplayNode::getSource() {
           console.log(element);
         };
 
-        node.onMessage = (message) => {
+        node.onMessageFromCPP = (message) => {
           control.setValue(message.value);
         };
 
@@ -98,7 +98,7 @@ void DisplayNode::process() {
 
     nlohmann::json json;
     json["value"] = value;
-    sendMessage(json);
+    sendMessageToJS(json);
   }
 }
 

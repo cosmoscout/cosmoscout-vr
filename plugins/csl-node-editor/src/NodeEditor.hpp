@@ -34,11 +34,11 @@ class CSL_NODE_EDITOR_EXPORT NodeEditor {
   void startServer(uint16_t port);
   void quitServer();
 
-  void handleCustomEvent(nlohmann::json const& json);
   void handleAddNodeEvent(nlohmann::json const& json);
   void handleRemoveNodeEvent(nlohmann::json const& json);
   void handleAddConnectionEvent(nlohmann::json const& json);
   void handleRemoveConnectionEvent(nlohmann::json const& json);
+  void handleNodeMessageEvent(uint32_t toNode, nlohmann::json const& json);
 
   std::string createHTMLSource() const;
 

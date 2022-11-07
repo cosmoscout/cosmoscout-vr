@@ -12,6 +12,7 @@
 
 #include <list>
 #include <memory>
+#include <nlohmann/json.hpp>
 #include <optional>
 #include <unordered_map>
 #include <vector>
@@ -76,6 +77,8 @@ class CSL_NODE_EDITOR_EXPORT NodeGraph {
 
   void removeConnection(uint32_t fromNode, std::string const& fromSocket, uint32_t toNode,
       std::string const& toSocket);
+
+  void handleNodeMessage(uint32_t toNode, nlohmann::json const& json) const;
 
  private:
   // Returns all nodes which are currently connected to an output socket of the given node.

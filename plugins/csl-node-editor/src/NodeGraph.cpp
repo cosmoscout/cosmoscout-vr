@@ -166,6 +166,12 @@ void NodeGraph::process() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void NodeGraph::handleNodeMessage(uint32_t toNode, nlohmann::json const& json) const {
+  mNodes.at(toNode)->onMessageFromJS(json);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 std::vector<uint32_t> NodeGraph::getOutputNodes(uint32_t node) const {
   std::vector<uint32_t> result;
 

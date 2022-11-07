@@ -34,7 +34,7 @@ void Node::setGraph(std::shared_ptr<NodeGraph> graph) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Node::sendMessage(nlohmann::json const& message) const {
+void Node::sendMessageToJS(nlohmann::json const& message) const {
   nlohmann::json json = {{"toNode", mID}, {"message", message}};
   mSocket->sendMessage(json.dump());
 }

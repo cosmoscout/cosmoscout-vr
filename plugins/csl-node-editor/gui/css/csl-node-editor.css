@@ -101,6 +101,7 @@ body {
 
 
 .node .title {
+    position: relative;
     font-size: 1.2em;
     padding: 5px 15px;
     width: 100%;
@@ -183,11 +184,6 @@ body {
     stroke: #ccf !important;
     stroke-width: 2px;
     filter: drop-shadow(0px 2px 2px rgba(0, 0, 0, 1.0));
-}
-
-
-.socket.number-value {
-    background: #b08ab3 !important;
 }
 
 .context-menu,

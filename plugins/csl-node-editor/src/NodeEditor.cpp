@@ -23,15 +23,15 @@ namespace {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-enum class EventType { eCustom, eAddNode, eRemoveNode, eAddConnection, eRemoveConnection };
+enum class EventType { eAddNode, eRemoveNode, eAddConnection, eRemoveConnection, eNodeMessage };
 
 // clang-format off
 NLOHMANN_JSON_SERIALIZE_ENUM(EventType, {
-    {EventType::eCustom,           "custom"},
     {EventType::eAddNode,          "addNode"},
     {EventType::eRemoveNode,       "removeNode"},
     {EventType::eAddConnection,    "addConnection"},
     {EventType::eRemoveConnection, "removeConnection"},
+    {EventType::eNodeMessage,      "nodeMessage"},
 })
 // clang-format on
 
@@ -86,14 +86,12 @@ NodeEditor::NodeEditor(uint16_t port, NodeFactory factory)
 
   mHandlers.emplace_back("**.ttf$", std::make_unique<GetHandler>([this](mg_connection* conn) {
     auto info = mg_get_request_info(conn);
-    logger().info(std::string(info->request_uri));
     mg_send_mime_file(
         conn, ("../share/resources/gui/" + std::string(info->request_uri)).c_str(), "font/ttf");
   }));
 
   mHandlers.emplace_back("**.woff2$", std::make_unique<GetHandler>([this](mg_connection* conn) {
     auto info = mg_get_request_info(conn);
-    logger().info(std::string(info->request_uri));
     mg_send_mime_file(
         conn, ("../share/resources/gui/" + std::string(info->request_uri)).c_str(), "font/woff2");
   }));
@@ -130,9 +128,6 @@ void NodeEditor::update() {
       EventType type = json.at("eventType");
 
       switch (type) {
-      case EventType::eCustom:
-        handleCustomEvent(json.at("data"));
-        break;
       case EventType::eAddNode:
         handleAddNodeEvent(json.at("node"));
         break;
@@ -144,6 +139,9 @@ void NodeEditor::update() {
         break;
       case EventType::eRemoveConnection:
         handleRemoveConnectionEvent(json.at("connection"));
+        break;
+      case EventType::eNodeMessage:
+        handleNodeMessageEvent(json.at("toNode"), json.at("data"));
         break;
       }
 
@@ -188,12 +186,6 @@ void NodeEditor::quitServer() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void NodeEditor::handleCustomEvent(nlohmann::json const& json) {
-  logger().info("custom");
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 void NodeEditor::handleAddNodeEvent(nlohmann::json const& json) {
   std::string type = json["type"];
   uint32_t    id   = json["id"];
@@ -232,6 +224,12 @@ void NodeEditor::handleRemoveConnectionEvent(nlohmann::json const& json) {
   std::string toSocket   = json["toSocket"];
 
   mGraph->removeConnection(fromNode, fromSocket, toNode, toSocket);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void NodeEditor::handleNodeMessageEvent(uint32_t toNode, nlohmann::json const& json) {
+  mGraph->handleNodeMessage(toNode, json);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

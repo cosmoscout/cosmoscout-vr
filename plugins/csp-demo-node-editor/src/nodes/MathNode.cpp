@@ -7,6 +7,8 @@
 
 #include "MathNode.hpp"
 
+#include "../logger.hpp"
+
 #include "../../../../src/cs-utils/utils.hpp"
 
 namespace csp::demonodeeditor {
@@ -51,7 +53,7 @@ std::string MathNode::getSource() {
         const el = nodeElement.querySelector("select");
         $(el).selectpicker();
         el.addEventListener('change', (e) => {
-          console.log(e.target.value);
+          CosmoScout.sendMessagetoCPP(parseInt(e.target.value), this.parent.id);
         });
       }
     }
@@ -79,7 +81,7 @@ std::string MathNode::getSource() {
           select.init(nodeElement);
         };
 
-        node.onMessage = (message) => {
+        node.onMessageFromCPP = (message) => {
         };
 
         return node;
@@ -128,6 +130,14 @@ void MathNode::process() {
 
     writeOutput("result", result);
   }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MathNode::onMessageFromJS(nlohmann::json const& json) {
+  uint32_t value = json;
+
+  mOperation = static_cast<Operation>(value);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
