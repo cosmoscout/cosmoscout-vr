@@ -28,10 +28,10 @@ std::string DisplayNode::getSource() {
         super(key);
 
         this.template = `
-          <p class="value">0</p>
+          <p class="display-value">0</p>
 
-          <style scoped>
-            p {
+          <style>
+            p.display-value {
               font-family: 'Ubuntu Mono', monospace;
               border-radius: var(--cs-border-radius-medium);
               background: rgba(255, 255, 255, 0.1);
@@ -46,7 +46,7 @@ std::string DisplayNode::getSource() {
       }
 
       setValue(val) {
-        const el = document.querySelector("#node-" + this.parent.id + " .value");
+        const el = document.querySelector("#node-" + this.parent.id + " .display-value");
         el.innerHTML = val;
       }
     }
@@ -65,8 +65,6 @@ std::string DisplayNode::getSource() {
         node.addControl(control);
 
         node.onInit = (element) => {
-          console.log("init");
-          console.log(element);
         };
 
         node.onMessageFromCPP = (message) => {

@@ -19,6 +19,8 @@ class NumberNode : public csl::nodeeditor::Node {
   static std::string getSource();
 
   static std::unique_ptr<NumberNode> create();
+
+  void onMessageFromJS(nlohmann::json const& json) override;
 };
 
 } // namespace csp::demonodeeditor

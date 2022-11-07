@@ -35,18 +35,13 @@ std::string MathNode::getSource() {
             <option value="3">Divide</option>
           </select>
 
-          <style scoped>
+          <style>
             .dropdown {
               margin: 10px 15px !important;
               width: 150px !important;
             }
           </style>
         `;
-      }
-
-      setValue(val) {
-        const el = document.querySelector("#node-" + this.parent.id + " .value");
-        el.innerHTML = val;
       }
 
       init(nodeElement) {
@@ -74,14 +69,11 @@ std::string MathNode::getSource() {
         let output = new Rete.Output('result', "Result", CosmoScout.socketTypes['Number Value']);
         node.addOutput(output);
 
-        let select = new %NAME%Control('select');
-        node.addControl(select);
+        let control = new %NAME%Control('select');
+        node.addControl(control);
 
         node.onInit = (nodeElement) => {
-          select.init(nodeElement);
-        };
-
-        node.onMessageFromCPP = (message) => {
+          control.init(nodeElement);
         };
 
         return node;
@@ -123,7 +115,6 @@ void MathNode::process() {
     case Operation::eDivide:
       result = first / second;
       break;
-
     default:
       break;
     }

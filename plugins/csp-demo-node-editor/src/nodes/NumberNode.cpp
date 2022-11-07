@@ -21,55 +21,48 @@ std::string NumberNode::getName() {
 
 std::string NumberNode::getSource() {
   std::string source = R"(
-     class %NAME%Control extends Rete.Control {
-      constructor(editor) {
-
-        const key = "number";
-
+    class %NAME%Control extends Rete.Control {
+      constructor(key) {
         super(key);
-        this.component = {
-          props: ['editor', 'key', 'getData', 'putData'],
-          template: `<input type="number" :value="value" @input="change($event) " 
-                            @dblclick.stop="" @pointerdown.stop="" @pointermove.stop="" />`,
-          data() {
-            return {
-              value: 0,
+
+        this.template = `
+          <input class="number-input" type="text" value="0" />
+
+          <style>
+            .number-input {
+              margin: 10px 15px !important;
+              width: 150px !important;
             }
-          },
-          methods: {
-            change(e) {
-              this.value = +e.target.value;
-              this.update();
-            },
-            update() {
-              this.putData(this.key, this.value);
-              console.log(this.key);
-              this.editor.trigger('process');
-            }
-          },
-          mounted() {
-            this.value = this.getData(this.key);
-          }
-        };
-        this.props = { editor, key };
+          </style>
+        `;
       }
 
-      setValue(val) {
-        this.vueContext.value = val;
+      init(nodeElement) {
+        const el = nodeElement.querySelector("input");
+        el.addEventListener('change', (e) => {
+          CosmoScout.sendMessagetoCPP(parseFloat(e.target.value), this.parent.id);
+        });
       }
     }
 
     class %NAME%Component extends Rete.Component {
       constructor() {
         super("%NAME%");
-
         this.category = "Inputs";
       }
 
       builder(node) {
-        let output = new Rete.Output('number', "Number", CosmoScout.socketTypes['Number Value']);
-        return node.addControl(new %NAME%Control(this.editor))
-                   .addOutput(output);
+        let output = new Rete.Output('output', "Output", CosmoScout.socketTypes['Number Value']);
+        node.addOutput(output);
+
+        let control = new %NAME%Control('number');
+        node.addControl(control);
+
+        node.onInit = (nodeElement) => {
+          control.init(nodeElement);
+        };
+
+        return node;
       }
     }
   )";
@@ -83,6 +76,13 @@ std::string NumberNode::getSource() {
 
 std::unique_ptr<NumberNode> NumberNode::create() {
   return std::make_unique<NumberNode>();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void NumberNode::onMessageFromJS(nlohmann::json const& json) {
+  double value = json;
+  writeOutput("output", value);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
