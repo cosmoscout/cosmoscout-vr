@@ -81,7 +81,7 @@ std::unique_ptr<NumberNode> NumberNode::create() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void NumberNode::onMessageFromJS(nlohmann::json const& data) {
-  double value = json;
+  double value = data;
   writeOutput("output", value);
 }
 
