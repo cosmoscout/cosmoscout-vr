@@ -7,6 +7,8 @@
 
 #include "MathNode.hpp"
 
+#include "../../../../src/cs-utils/utils.hpp"
+
 namespace csp::demonodeeditor {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -19,58 +21,73 @@ std::string MathNode::getName() {
 
 std::string MathNode::getSource() {
   std::string source = R"(
-     class NumControl extends Rete.Control {
-
-      constructor(emitter, key, readonly) {
+    class %NAME%Control extends Rete.Control {
+      constructor(key) {
         super(key);
-        this.component = {
-          props: ['readonly', 'emitter', 'ikey', 'getData', 'putData'],
-          template: '<input type="number" :readonly="readonly" :value="value" @input="change($event) " @dblclick.stop="" @pointerdown.stop="" @pointermove.stop=""/>',
-          data() {
-            return {
-              value: 0,
+
+        this.template = `
+          <select>
+            <option value="0">Add</option>
+            <option value="1">Subtract</option>
+            <option value="2">Multiply</option>
+            <option value="3">Divide</option>
+          </select>
+
+          <style scoped>
+            .dropdown {
+              margin: 10px 15px !important;
+              width: 150px !important;
             }
-          },
-          methods: {
-            change(e) {
-              this.value = +e.target.value;
-              this.update();
-            },
-            update() {
-              if (this.ikey)
-                this.putData(this.ikey, this.value)
-              this.emitter.trigger('process');
-            }
-          },
-          mounted() {
-            this.value = this.getData(this.ikey);
-          }
-        };
-        this.props = { emitter, ikey: key, readonly };
+          </style>
+        `;
       }
 
       setValue(val) {
-        this.vueContext.value = val;
+        const el = document.querySelector("#node-" + this.parent.id + " .value");
+        el.innerHTML = val;
+      }
+
+      init(nodeElement) {
+        const el = nodeElement.querySelector("select");
+        $(el).selectpicker();
+        el.addEventListener('change', (e) => {
+          console.log(e.target.value);
+        });
       }
     }
 
-    class NumComponent extends Rete.Component {
-
+    class %NAME%Component extends Rete.Component {
       constructor() {
-        super("Number");
+        super("%NAME%");
+        this.category = "Operations";
       }
 
       builder(node) {
-        var out1 = new Rete.Output('num', "Number", numSocket);
+        let first = new Rete.Input('first', "First", CosmoScout.socketTypes['Number Value']);
+        node.addInput(first);
 
-        return node.addControl(new NumControl(this.editor, 'num')).addOutput(out1);
-      }
+        let second = new Rete.Input('second', "Second", CosmoScout.socketTypes['Number Value']);
+        node.addInput(second);
 
-      worker(node, inputs, outputs) {
-        outputs['num'] = node.data.num;
+        let output = new Rete.Output('result', "Result", CosmoScout.socketTypes['Number Value']);
+        node.addOutput(output);
+
+        let select = new %NAME%Control('select');
+        node.addControl(select);
+
+        node.onInit = (nodeElement) => {
+          select.init(nodeElement);
+        };
+
+        node.onMessage = (message) => {
+        };
+
+        return node;
       }
     }
   )";
+
+  cs::utils::replaceString(source, "%NAME%", getName());
 
   return source;
 }
@@ -79,6 +96,38 @@ std::string MathNode::getSource() {
 
 std::unique_ptr<MathNode> MathNode::create() {
   return std::make_unique<MathNode>();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MathNode::process() {
+
+  if (hasNewInput()) {
+    double first  = readInput<double>("first", 0.0);
+    double second = readInput<double>("second", 0.0);
+
+    double result = 0.0;
+
+    switch (mOperation) {
+    case Operation::eAdd:
+      result = first + second;
+      break;
+    case Operation::eSubtract:
+      result = first - second;
+      break;
+    case Operation::eMultiply:
+      result = first * second;
+      break;
+    case Operation::eDivide:
+      result = first / second;
+      break;
+
+    default:
+      break;
+    }
+
+    writeOutput("result", result);
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

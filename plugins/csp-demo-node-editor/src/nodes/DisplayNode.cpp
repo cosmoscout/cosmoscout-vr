@@ -26,18 +26,28 @@ std::string DisplayNode::getSource() {
     class %NAME%Control extends Rete.Control {
       constructor(key) {
         super(key);
-        this.component = {
-          template: '<div>{{ value }}</div>',
-          data() {
-            return {
-              value: 0,
-            }
-          },
-        };
+
+        this.template = `
+          <p class="value">0</p>
+
+          <style scoped>
+            p {
+              font-family: 'Ubuntu Mono', monospace;
+              border-radius: var(--cs-border-radius-medium);
+              background: rgba(255, 255, 255, 0.1);
+              width: 200px;
+              padding: 5px 15px;
+              margin: 10px;
+              text-align: right;
+              font-size: 1.1em;
+            }            
+          </style>
+        `;
       }
 
       setValue(val) {
-        this.vueContext.value = val;
+        const el = document.querySelector("#node-" + this.parent.id + " .value");
+        el.innerHTML = val;
       }
     }
 
@@ -51,8 +61,13 @@ std::string DisplayNode::getSource() {
         let input = new Rete.Input('number', "Number", CosmoScout.socketTypes['Number Value']);
         node.addInput(input);
 
-        let control = new %NAME%Control('num');
+        let control = new %NAME%Control('display');
         node.addControl(control);
+
+        node.onInit = (element) => {
+          console.log("init");
+          console.log(element);
+        };
 
         node.onMessage = (message) => {
           control.setValue(message.value);

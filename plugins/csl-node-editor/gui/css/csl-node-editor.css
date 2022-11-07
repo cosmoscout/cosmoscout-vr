@@ -8,7 +8,8 @@ body {
     height: 100vh;
     padding: 0;
     margin: 0;
-    background-color: #333
+    background-color: #333;
+    font-size: 0.9em;
 }
 
 #loading-screen {
@@ -72,33 +73,118 @@ body {
 }
 
 .node {
-    background-color: var(--cs-color-background-dark) !important;
-    border-top-right-radius: var(--cs-border-radius-large) !important;
-    border-bottom-right-radius: var(--cs-border-radius-large) !important;
-    border-bottom: 2px solid var(--cs-color-primary) !important;
-    border-top: 2px solid var(--cs-color-primary) !important;
-    border-left: 0px !important;
-    border-right: 0px !important;
-    box-shadow: var(--cs-box-shadow-medium) !important;
+    position: relative;
+    min-width: 150px;
+    background-color: var(--cs-color-background-dark);
+    border-radius: var(--cs-border-radius-medium);
+    border-bottom: 2px solid var(--cs-color-primary);
+    border-top: 2px solid var(--cs-color-primary);
+    border-left: 0px;
+    border-right: 0px;
+    box-shadow: var(--cs-box-shadow-medium);
+    display: grid;
 }
 
-.node.selected {
-    box-shadow: var(--cs-box-shadow-large) !important;
-    background-color: #101010aa !important;
+.node.collapsed {
+    padding-top: 0;
 }
+
+.node.collapsed .title,
+.node.collapsed .outputs,
+.node.collapsed .inputs {
+    grid-column-start: 1;
+    grid-column-end: 1;
+    grid-row-start: 1;
+    grid-row-end: 1;
+    align-self: center;
+}
+
 
 .node .title {
-    font-family: 'Ubuntu', sans-serif !important;
+    font-size: 1.2em;
+    padding: 5px 15px;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }
+
+
+
+.node .title:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.node .title:active {
+    top: 1px;
+}
+
+.node .title .caret-icon {
+    transition: transform 0.2s;
+    float: right;
+}
+
+.node:not(.collapsed) .title .caret-icon {
+    transform: rotate(-90deg);
+}
+
+.node.collapsed .input-title,
+.node.collapsed .output-title {
+    display: none;
+}
+
+.node .inputs,
+.node .outputs {
+    pointer-events: none;
+    padding: 3px 0;
+}
+
+.node .output {
+    text-align: right;
+    padding-left: 30px;
+}
+
+.node .input {
+    padding-right: 30px;
+}
+
+.node .socket {
+    position: relative;
+    display: inline-block;
+    vertical-align: text-bottom;
+    pointer-events: all;
+    width: 15px;
+    height: 15px;
+    border-radius: 100%;
+    border: 1px solid white;
+    cursor: pointer;
+}
+
+.node .output .socket {
+    right: -8px;
+}
+
+.node .input .socket {
+    left: -8px;
+}
+
+.node .socket:hover {
+    border-width: 2px;
+}
+
+
+.node.collapsed .control {
+    display: none;
+}
+
 
 .connection .main-path {
     stroke: #ccf !important;
-    stroke-width: 3px;
+    stroke-width: 2px;
+    filter: drop-shadow(0px 2px 2px rgba(0, 0, 0, 1.0));
 }
 
-.socket {
-    border-color: var(--cs-border-radius-large) !important;
-}
 
 .socket.number-value {
     background: #b08ab3 !important;

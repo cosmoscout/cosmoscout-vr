@@ -21,6 +21,11 @@ class MathNode : public csl::nodeeditor::Node {
   static std::string getSource();
 
   static std::unique_ptr<MathNode> create();
+
+  void process() override;
+
+ private:
+  Operation mOperation = Operation::eAdd;
 };
 
 } // namespace csp::demonodeeditor

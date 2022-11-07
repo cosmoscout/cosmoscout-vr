@@ -70,6 +70,8 @@ NodeEditor::NodeEditor(uint16_t port, NodeFactory factory)
     , mGraph(std::make_shared<NodeGraph>())
     , mHTMLSource(std::move(createHTMLSource())) {
 
+  logger().debug(mHTMLSource);
+
   mHandlers.emplace_back("**.css$", std::make_unique<GetHandler>([this](mg_connection* conn) {
     auto info = mg_get_request_info(conn);
     mg_send_mime_file(
@@ -84,8 +86,16 @@ NodeEditor::NodeEditor(uint16_t port, NodeFactory factory)
 
   mHandlers.emplace_back("**.ttf$", std::make_unique<GetHandler>([this](mg_connection* conn) {
     auto info = mg_get_request_info(conn);
+    logger().info(std::string(info->request_uri));
     mg_send_mime_file(
         conn, ("../share/resources/gui/" + std::string(info->request_uri)).c_str(), "font/ttf");
+  }));
+
+  mHandlers.emplace_back("**.woff2$", std::make_unique<GetHandler>([this](mg_connection* conn) {
+    auto info = mg_get_request_info(conn);
+    logger().info(std::string(info->request_uri));
+    mg_send_mime_file(
+        conn, ("../share/resources/gui/" + std::string(info->request_uri)).c_str(), "font/woff2");
   }));
 
   mHandlers.emplace_back("/favicon.ico$", std::make_unique<GetHandler>([this](mg_connection* conn) {
@@ -155,8 +165,7 @@ void NodeEditor::startServer(uint16_t port) {
   quitServer();
 
   try {
-    // We start the server with one thread only, as we do not want to process requests in parallel.
-    std::vector<std::string> options{"listening_ports", std::to_string(port), "num_threads", "1"};
+    std::vector<std::string> options{"listening_ports", std::to_string(port)};
     mServer = std::make_unique<CivetServer>(options);
     mServer->addWebSocketHandler("/socket", *mSocket);
 

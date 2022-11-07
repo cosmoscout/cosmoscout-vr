@@ -14,7 +14,6 @@ SPDX-License-Identifier: MIT
   <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.6.14/vue.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/alight@0.14.1/alight.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.11/lodash.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/rete-vue-render-plugin@0.5.1/build/vue-render-plugin.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/rete-connection-plugin@0.9.0/build/connection-plugin.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/rete-context-menu-plugin@0.5.2/build/context-menu-plugin.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/rete-history-plugin@0.1.0/build/history-plugin.min.js"></script>
@@ -74,19 +73,24 @@ SPDX-License-Identifier: MIT
     };
 
     CosmoScout.connection = new WebSocket('ws://' + window.location.host + '/socket');
+
     CosmoScout.connection.addEventListener('error', (error) => {
       alert('Connection to CosmoScout VR was interupted.');
       CosmoScout.connection.close();
     });
+
     CosmoScout.connection.addEventListener('open', () => {
       document.getElementById("loading-screen").classList.add("hidden");
       console.log("connected!");
     });
+
     CosmoScout.connection.addEventListener('message', (e) => {
       let data = JSON.parse(e.data);
       let node = CosmoScout.nodeEditor.nodes.find(node => node.id === data.toNode);
 
-      node.onMessage(data.message);
+      if (node.onMessage) {
+        node.onMessage(data.message);
+      }
     });
 
     //!SOCKET_SOURCE_CODE
@@ -101,7 +105,6 @@ SPDX-License-Identifier: MIT
 
       CosmoScout.nodeEditor = new Rete.NodeEditor('node-editor@0.1.0', container);
       CosmoScout.nodeEditor.use(ConnectionPlugin.default);
-      CosmoScout.nodeEditor.use(VueRenderPlugin.default);
       CosmoScout.nodeEditor.use(ContextMenuPlugin.default, {
         delay: 0,
         allocate(component) {
@@ -152,9 +155,101 @@ SPDX-License-Identifier: MIT
         }));
       });
 
+      CosmoScout.nodeEditor.on('rendernode', ({ el, node, component, bindSocket, bindControl }) => {
+
+        el.id = "node-" + node.id;
+        el.className = "node";
+
+        const title = document.createElement('div');
+        title.className = "title";
+        title.innerHTML = `<span>${node.name}</span><i class='material-icons caret-icon'>keyboard_arrow_left</i>`;
+        el.appendChild(title);
+
+        el.addEventListener('dblclick', event => {
+          event.stopPropagation();
+        });
+
+        title.addEventListener("pointerdown", () => {
+          el._wasDragged = false;
+        });
+        title.addEventListener("pointermove", () => {
+          el._wasDragged = true;
+        });
+
+        title.addEventListener("click", () => {
+          if (el._wasDragged) {
+            return;
+          }
+
+          el.classList.toggle("collapsed");
+          CosmoScout.nodeEditor.view.updateConnections({ node: node });
+        });
+
+        const inputs = document.createElement('div');
+        inputs.className = "inputs";
+        el.appendChild(inputs);
+
+        node.inputs.forEach(i => {
+          const input = document.createElement('div');
+          input.className = "input";
+
+          const title = document.createElement('span');
+          title.className = "input-title";
+          title.textContent = i.name;
+
+          const socket = document.createElement('span');
+          socket.className = `socket ${toKebabCase(i.socket.name)}`;
+
+          inputs.appendChild(input);
+          input.appendChild(socket);
+          input.appendChild(title);
+
+          bindSocket(socket, "input", i);
+        });
+
+        const controls = document.createElement('div');
+        controls.className = "controls";
+        el.appendChild(controls);
+
+        node.controls.forEach(c => {
+          const control = document.createElement('div');
+          control.className = "control";
+          control.innerHTML = c.template;
+
+          controls.appendChild(control);
+
+          bindControl(control, c);
+        });
+
+        const outputs = document.createElement('div');
+        outputs.className = "outputs";
+        el.appendChild(outputs);
+
+        node.outputs.forEach(o => {
+          const output = document.createElement('div');
+          output.className = "output";
+
+          const title = document.createElement('span');
+          title.className = "output-title";
+          title.textContent = o.name;
+
+          const socket = document.createElement('span');
+          socket.className = `socket ${toKebabCase(o.socket.name)}`;
+
+          outputs.appendChild(output);
+          output.appendChild(title);
+          output.appendChild(socket);
+
+          bindSocket(socket, "output", o);
+        });
+
+        if (node.onInit) {
+          node.onInit(el);
+        }
+      });
+
       CosmoScout.nodeEditor.view.resize();
       AreaPlugin.zoomAt(CosmoScout.nodeEditor);
-      CosmoScout.nodeEditor.trigger('process');
     })();
   </script>
 

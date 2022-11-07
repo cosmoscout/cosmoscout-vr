@@ -107,6 +107,7 @@ void Plugin::setupNodeEditor(uint16_t port) {
   // factory.registerNodeType<MathNode>();
   factory.registerNodeType<DisplayNode>();
   factory.registerNodeType<NumberNode>();
+  factory.registerNodeType<MathNode>();
   factory.registerNodeType<TimeNode>(mTimeControl);
 
   mNodeEditor = std::make_unique<csl::nodeeditor::NodeEditor>(port, factory);
