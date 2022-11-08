@@ -160,6 +160,10 @@ SPDX-License-Identifier: MIT
         }));
       });
 
+      CosmoScout.nodeEditor.on('connectioncreate', ({ input, output }) => {
+        return input.node.id != output.node.id;
+      });
+
       CosmoScout.nodeEditor.on('rendernode', ({ el, node, component, bindSocket, bindControl }) => {
 
         el.id = "node-" + node.id;
