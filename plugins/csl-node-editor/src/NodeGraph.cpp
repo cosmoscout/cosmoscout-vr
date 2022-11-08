@@ -142,19 +142,28 @@ void NodeGraph::process() {
   // be put into mDirtyNodes automatically. So we can check if mDirtyNodes contains a specific node
   // before calling process() on it. This way, we can ensure that process() is only called for nodes
   // which have changed input values.
-  std::vector<uint32_t> stack(processNodes.begin(), processNodes.end());
 
-  while (!stack.empty()) {
-    auto nodes = getOutputNodes(stack.back());
-    stack.pop_back();
+  // Recursively traverse the graph starting from all dirty nodes and push all visited nodes into
+  // processNodes. We abort after too many iterations - in this case there must be a cycle in the
+  // graph!
+  auto     heap       = processNodes;
+  uint32_t iterations = 0;
+
+  while (!heap.empty()) {
+    auto nodes = getOutputNodes(*heap.begin());
+    heap.erase(heap.begin());
 
     processNodes.insert(nodes.begin(), nodes.end());
-    stack.insert(stack.end(), nodes.begin(), nodes.end());
+    heap.insert(nodes.begin(), nodes.end());
+
+    if (++iterations > mNodes.size() * mNodes.size()) {
+      throw std::runtime_error("Cycle detected!");
+    }
   }
 
-  if (!processNodes.empty()) {
-    logger().debug("dirty: {}, process: {}", mDirtyNodes.size(), processNodes.size());
-  }
+  // if (!processNodes.empty()) {
+  //   logger().debug("dirty: {}, process: {}", mDirtyNodes.size(), processNodes.size());
+  // }
 
   // Now that we have all nodes which should be processed, we process them one by one. We always
   // choose a node which does not receive input from a node which is still pending to be processed.
@@ -173,11 +182,11 @@ void NodeGraph::process() {
       auto node = mNodes.find(*it);
 
       if (node != mNodes.end()) {
-        logger().debug(" processing node {}", *it);
+        // logger().debug(" processing node {}", *it);
         node->second->process();
       }
     } else {
-      logger().debug(" processing of node {} is not required", *it);
+      // logger().debug(" processing of node {} is not required", *it);
     }
 
     processNodes.erase(it);
