@@ -124,15 +124,24 @@ std::vector<Connection const*> NodeGraph::getOutputConnections(uint32_t fromNode
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void NodeGraph::process() {
-  // logger().debug(
-  //     "processing node graph (nodes: {} / connections: {})", mNodes.size(), mConnections.size());
 
+  // A naive implementation of this method would simply pop nodes from mDirtyNodes and process them
+  // until mDirtyNodes is empty. This would work as new nodes are added to mDirtyNodes if a node
+  // produces a new output value during its process() method.
+  // However, this approach would lead to too many calls to process(). In the worst case, the
+  // process() method of a node would be called once for each connected input. To prevent this, we
+  // first collect all nodes which may need to be processed. Then, we process them one by one,
+  // always choosing a node for which all input nodes have already been processed.
+
+  // All dirty nodes will need to be processed.
   auto processNodes = mDirtyNodes;
 
-  // All dirty nodes will need to be processed. Processing them will most likely result in changed
-  // output values, so we will mark all connectd nodes as being dirty as well. This may result in
-  // too many dirty nodes, however, the nodes can check their input connections during the
-  // processing and abort early if nothing has changed.
+  // Processing them will most likely result in changed output values, so we will process all
+  // connected output nodes as well. This could lead to nodes being processed for which the input
+  // actually did not change. However, once a node produces a new output, all connected nodes will
+  // be put into mDirtyNodes automatically. So we can check if mDirtyNodes contains a specific node
+  // before calling process() on it. This way, we can ensure that process() is only called for nodes
+  // which have changed input values.
   std::vector<uint32_t> stack(processNodes.begin(), processNodes.end());
 
   while (!stack.empty()) {
@@ -143,10 +152,12 @@ void NodeGraph::process() {
     stack.insert(stack.end(), nodes.begin(), nodes.end());
   }
 
-  // logger().debug("  dirty nodes: {}", processNodes.size());
+  if (!processNodes.empty()) {
+    logger().debug("dirty: {}, process: {}", mDirtyNodes.size(), processNodes.size());
+  }
 
   // Now that we have all nodes which should be processed, we process them one by one. We always
-  // choose a node which does not receive input from a node which is still dirty.
+  // choose a node which does not receive input from a node which is still pending to be processed.
   while (!processNodes.empty()) {
     auto it = std::find_if(processNodes.begin(), processNodes.end(), [&](uint32_t node) {
       for (uint32_t inputNode : getInputNodes(node)) {
@@ -157,22 +168,22 @@ void NodeGraph::process() {
       return true;
     });
 
-    // logger().debug("    processing node {}", *it);
-
+    // Only call process() on nodes which were marked as being dirty.
     if (mDirtyNodes.find(*it) != mDirtyNodes.end()) {
       auto node = mNodes.find(*it);
 
       if (node != mNodes.end()) {
+        logger().debug(" processing node {}", *it);
         node->second->process();
       }
+    } else {
+      logger().debug(" processing of node {} is not required", *it);
     }
 
     processNodes.erase(it);
   }
 
   mDirtyNodes.clear();
-
-  // logger().debug("  dirty nodes: {}", processNodes.size());
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
