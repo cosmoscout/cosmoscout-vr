@@ -39,14 +39,22 @@ SPDX-License-Identifier: MIT
 
 <body>
 
+  <div id="rete"></div>
+
   <div id="loading-screen">
     <div class="wrapper">
       <div class="spinner"></div>
-      <p>connecting...</p>
+      <h2>connecting...</h2>
     </div>
   </div>
 
-  <div id="rete"></div>
+  <div id="connection-failed" class="hidden">
+    <div class="wrapper">
+      <h2>Failed to connect to CosmoScout VR!</h2>
+      <p class="small">Maybe there is already another connection open?</p>
+      <button type="button" class="btn btn-lg glass" onclick="location.reload()">Retry</button>
+    </div>
+  </div>
 
   <script type="text/javascript">
     function toKebabCase(string) {
@@ -79,24 +87,27 @@ SPDX-License-Identifier: MIT
 
     CosmoScout.connection = new WebSocket('ws://' + window.location.host + '/socket');
 
-    CosmoScout.connection.addEventListener('error', (error) => {
-      alert('Connection to CosmoScout VR was interupted.');
-      CosmoScout.connection.close();
-    });
-
-    CosmoScout.connection.addEventListener('open', () => {
+    CosmoScout.connection.onerror = error => {
       document.getElementById("loading-screen").classList.add("hidden");
-      console.log("connected!");
-    });
+      document.getElementById("connection-failed").classList.remove("hidden");
+    };
 
-    CosmoScout.connection.addEventListener('message', (e) => {
+    CosmoScout.connection.onopen = () => {
+      document.getElementById("loading-screen").classList.add("hidden");
+
+      CosmoScout.connection.onclose = () => {
+        alert('Connection to CosmoScout VR was interupted.');
+      };
+    };
+
+    CosmoScout.connection.onmessage = e => {
       let data = JSON.parse(e.data);
       let node = CosmoScout.nodeEditor.nodes.find(node => node.id === data.toNode);
 
       if (node.onMessageFromCPP) {
         node.onMessageFromCPP(data.message);
       }
-    });
+    };
 
     //!SOCKET_SOURCE_CODE
 

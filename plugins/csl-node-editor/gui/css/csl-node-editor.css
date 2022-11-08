@@ -12,13 +12,16 @@ body {
     font-size: 0.9em;
 }
 
+#connection-failed,
 #loading-screen {
+    top: 0;
     position: absolute;
     background: rgba(0, 0, 0, 0.5);
     width: 100vw;
     height: 100vh;
 }
 
+#connection-failed .wrapper,
 #loading-screen .wrapper {
     top: 50%;
     left: 50%;
@@ -27,6 +30,7 @@ body {
     position: absolute;
 }
 
+#connection-failed p,
 #loading-screen p {
     font-size: 1.5em;
 }

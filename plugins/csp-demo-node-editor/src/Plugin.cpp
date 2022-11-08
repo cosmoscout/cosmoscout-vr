@@ -104,7 +104,6 @@ void Plugin::setupNodeEditor(uint16_t port) {
   factory.registerSocketType("Number Value", "#b08ab3");
   factory.registerSocketType("Date Value", "#00ff00");
 
-  // factory.registerNodeType<MathNode>();
   factory.registerNodeType<DisplayNode>();
   factory.registerNodeType<NumberNode>();
   factory.registerNodeType<MathNode>();

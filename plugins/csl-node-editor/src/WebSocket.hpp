@@ -23,6 +23,8 @@ class CSL_NODE_EDITOR_EXPORT WebSocket : public CivetWebSocketHandler {
 
   void sendMessage(std::string const& data) const;
 
+  bool isConnected() const;
+
  private:
   bool handleConnection(CivetServer* server, const struct mg_connection* conn) override;
 
