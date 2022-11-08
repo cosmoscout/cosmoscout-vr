@@ -30,28 +30,13 @@ class CSL_NODE_EDITOR_EXPORT Node {
   virtual ~Node() = default;
 
   /// This will be called whenever the values of one or multiple input sockets have changed.
-  virtual void process(){};
+  virtual void process() = 0;
 
   virtual void onMessageFromJS(nlohmann::json const& data){};
 
   void setID(uint32_t id);
   void setSocket(std::shared_ptr<WebSocket> socket);
   void setGraph(std::shared_ptr<NodeGraph> graph);
-
-  /// Returns true if any input connection has new data available. This will return true until
-  /// readInput() is called once for the respective input connection.
-  bool hasNewInput() const;
-
-  /// Returns true if the given input connection has new data available. This will return true until
-  /// readInput() is called once for the respective input connection.
-  bool hasNewInput(std::string const& socket) const;
-
-  /// Returns true if there is a (new) output connection which has never been written to.
-  bool hasUndefinedOutput() const;
-
-  /// Returns true if the given output connection has never been written to. This can happen if the
-  /// output socket is freshly connected to another node.
-  bool hasUndefinedOutput(std::string const& socket) const;
 
  protected:
   void sendMessageToJS(nlohmann::json const& data) const;
@@ -62,8 +47,8 @@ class CSL_NODE_EDITOR_EXPORT Node {
 
     for (auto& c : connections) {
       if (!c->mData.has_value() || std::any_cast<T>(c->mData) != value) {
-        c->mHasNewData = true;
-        c->mData       = value;
+        mGraph->queueProcessing(c->mToNode);
+        c->mData = value;
       }
     }
   }
@@ -73,7 +58,6 @@ class CSL_NODE_EDITOR_EXPORT Node {
     auto connection = mGraph->getInputConnection(mID, socket);
 
     if (connection && connection->mData.has_value()) {
-      connection->mHasNewData = false;
       return std::any_cast<T>(connection->mData);
     }
 

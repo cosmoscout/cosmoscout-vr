@@ -90,14 +90,9 @@ std::unique_ptr<DisplayNode> DisplayNode::create() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void DisplayNode::process() {
-
-  if (hasNewInput()) {
-    double value = readInput<double>("number", 0.0);
-
-    nlohmann::json json;
-    json["value"] = value;
-    sendMessageToJS(json);
-  }
+  nlohmann::json json;
+  json["value"] = readInput<double>("number", 0.0);
+  sendMessageToJS(json);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

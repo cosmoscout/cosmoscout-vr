@@ -41,34 +41,4 @@ void Node::sendMessageToJS(nlohmann::json const& message) const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool Node::hasNewInput() const {
-  auto connections = mGraph->getInputConnections(mID);
-  return !connections.empty() &&
-         std::any_of(connections.begin(), connections.end(), [](auto c) { return c->mHasNewData; });
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-bool Node::hasNewInput(std::string const& socket) const {
-  auto connection = mGraph->getInputConnection(mID, socket);
-  return connection && connection->mHasNewData;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-bool Node::hasUndefinedOutput() const {
-  auto connections = mGraph->getOutputConnections(mID);
-  return !connections.empty() && std::any_of(connections.begin(), connections.end(),
-                                     [](auto c) { return !c->mData.has_value(); });
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-bool Node::hasUndefinedOutput(std::string const& socket) const {
-  auto connection = mGraph->getInputConnection(mID, socket);
-  return connection && !connection->mData.has_value();
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 } // namespace csl::nodeeditor

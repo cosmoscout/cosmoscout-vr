@@ -27,6 +27,8 @@ class TimeNode : public csl::nodeeditor::Node {
   TimeNode(std::shared_ptr<cs::core::TimeControl> pTimeControl);
   ~TimeNode() override;
 
+  void process() override;
+
  private:
   std::shared_ptr<cs::core::TimeControl> mTimeControl;
   int                                    mTimeConnection = 0;

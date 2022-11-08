@@ -15,6 +15,7 @@
 #include <nlohmann/json.hpp>
 #include <optional>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 namespace csl::nodeeditor {
@@ -30,6 +31,8 @@ class CSL_NODE_EDITOR_EXPORT NodeGraph {
   // makes it impossible to use a forward declartion of Node.
   NodeGraph();
   ~NodeGraph();
+
+  void queueProcessing(uint32_t node);
 
   // Node API --------------------------------------------------------------------------------------
 
@@ -88,6 +91,8 @@ class CSL_NODE_EDITOR_EXPORT NodeGraph {
   std::vector<uint32_t> getInputNodes(uint32_t node) const;
 
   std::unordered_map<uint32_t, std::unique_ptr<Node>> mNodes;
+
+  std::unordered_set<uint32_t> mDirtyNodes;
 
   std::list<Connection> mConnections;
 };

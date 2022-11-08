@@ -39,9 +39,10 @@ std::string NumberNode::getSource() {
 
       init(nodeElement) {
         const el = nodeElement.querySelector("input");
-        el.addEventListener('change', (e) => {
+        el.addEventListener('input', e => {
           CosmoScout.sendMessagetoCPP(parseFloat(e.target.value), this.parent.id);
         });
+        el.addEventListener('pointermove', e => e.stopPropagation());
       }
     }
 
@@ -80,9 +81,15 @@ std::unique_ptr<NumberNode> NumberNode::create() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void NumberNode::process() {
+  writeOutput("output", mValue);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void NumberNode::onMessageFromJS(nlohmann::json const& data) {
-  double value = data;
-  writeOutput("output", value);
+  mValue = data;
+  process();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

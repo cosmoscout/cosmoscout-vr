@@ -30,7 +30,6 @@ struct CSL_NODE_EDITOR_EXPORT Connection {
   std::string mToSocket;
 
   mutable std::any mData;
-  mutable bool     mHasNewData = false;
 };
 
 } // namespace csl::nodeeditor

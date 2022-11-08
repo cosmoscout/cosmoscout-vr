@@ -152,7 +152,11 @@ void NodeEditor::update() {
     event = mSocket->getNextEvent();
   }
 
-  mGraph->process();
+  try {
+    mGraph->process();
+  } catch (std::exception const& e) {
+    logger().error("Failed to process node graph: {}", e.what());
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

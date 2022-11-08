@@ -55,14 +55,19 @@ std::unique_ptr<TimeNode> TimeNode::create(std::shared_ptr<cs::core::TimeControl
 TimeNode::TimeNode(std::shared_ptr<cs::core::TimeControl> pTimeControl)
     : mTimeControl(std::move(pTimeControl)) {
 
-  mTimeConnection = mTimeControl->pSimulationTime.connect(
-      [this](double) { writeOutput("number", mTimeControl->pSimulationTime.get()); });
+  mTimeConnection = mTimeControl->pSimulationTime.connect([this](double) { process(); });
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 TimeNode::~TimeNode() {
   mTimeControl->pSimulationTime.disconnect(mTimeConnection);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void TimeNode::process() {
+  writeOutput("number", mTimeControl->pSimulationTime.get());
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

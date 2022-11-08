@@ -10,8 +10,6 @@
 #include "Node.hpp"
 #include "logger.hpp"
 
-#include <unordered_set>
-
 namespace csl::nodeeditor {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -20,6 +18,12 @@ namespace csl::nodeeditor {
 // header which makes it impossible to use a forward declartion of Node.
 NodeGraph::NodeGraph()  = default;
 NodeGraph::~NodeGraph() = default;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void NodeGraph::queueProcessing(uint32_t node) {
+  mDirtyNodes.insert(node);
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -38,6 +42,8 @@ void NodeGraph::removeNode(uint32_t id) {
 void NodeGraph::addConnection(
     uint32_t fromNode, std::string fromSocket, uint32_t toNode, std::string toSocket) {
 
+  mDirtyNodes.insert(fromNode);
+
   mConnections.emplace_back(fromNode, std::move(fromSocket), toNode, std::move(toSocket));
 }
 
@@ -45,6 +51,8 @@ void NodeGraph::addConnection(
 
 void NodeGraph::removeConnection(uint32_t fromNode, std::string const& fromSocket, uint32_t toNode,
     std::string const& toSocket) {
+
+  mDirtyNodes.insert(toNode);
 
   mConnections.remove_if([&](Connection const& c) {
     return c.mFromNode == fromNode && c.mFromSocket == fromSocket && c.mToNode == toNode &&
@@ -119,37 +127,30 @@ void NodeGraph::process() {
   // logger().debug(
   //     "processing node graph (nodes: {} / connections: {})", mNodes.size(), mConnections.size());
 
-  std::unordered_set<uint32_t> dirtyNodes;
-
-  // First collect all nodes which have changed input sockets.
-  for (auto const& c : mConnections) {
-    if (c.mHasNewData) {
-      dirtyNodes.insert(c.mToNode);
-    }
-  }
+  auto processNodes = mDirtyNodes;
 
   // All dirty nodes will need to be processed. Processing them will most likely result in changed
   // output values, so we will mark all connectd nodes as being dirty as well. This may result in
   // too many dirty nodes, however, the nodes can check their input connections during the
   // processing and abort early if nothing has changed.
-  std::vector<uint32_t> stack(dirtyNodes.begin(), dirtyNodes.end());
+  std::vector<uint32_t> stack(processNodes.begin(), processNodes.end());
 
   while (!stack.empty()) {
     auto nodes = getOutputNodes(stack.back());
     stack.pop_back();
 
-    dirtyNodes.insert(nodes.begin(), nodes.end());
+    processNodes.insert(nodes.begin(), nodes.end());
     stack.insert(stack.end(), nodes.begin(), nodes.end());
   }
 
-  // logger().debug("  dirty nodes: {}", dirtyNodes.size());
+  // logger().debug("  dirty nodes: {}", processNodes.size());
 
   // Now that we have all nodes which should be processed, we process them one by one. We always
   // choose a node which does not receive input from a node which is still dirty.
-  while (!dirtyNodes.empty()) {
-    auto it = std::find_if(dirtyNodes.begin(), dirtyNodes.end(), [&](uint32_t node) {
+  while (!processNodes.empty()) {
+    auto it = std::find_if(processNodes.begin(), processNodes.end(), [&](uint32_t node) {
       for (uint32_t inputNode : getInputNodes(node)) {
-        if (dirtyNodes.find(inputNode) != dirtyNodes.end()) {
+        if (processNodes.find(inputNode) != processNodes.end()) {
           return false;
         }
       }
@@ -158,10 +159,20 @@ void NodeGraph::process() {
 
     // logger().debug("    processing node {}", *it);
 
-    mNodes.at(*it)->process();
+    if (mDirtyNodes.find(*it) != mDirtyNodes.end()) {
+      auto node = mNodes.find(*it);
 
-    dirtyNodes.erase(it);
+      if (node != mNodes.end()) {
+        node->second->process();
+      }
+    }
+
+    processNodes.erase(it);
   }
+
+  mDirtyNodes.clear();
+
+  // logger().debug("  dirty nodes: {}", processNodes.size());
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

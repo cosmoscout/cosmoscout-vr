@@ -95,38 +95,36 @@ std::unique_ptr<MathNode> MathNode::create() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void MathNode::process() {
+  double first  = readInput<double>("first", 0.0);
+  double second = readInput<double>("second", 0.0);
 
-  if (hasNewInput()) {
-    double first  = readInput<double>("first", 0.0);
-    double second = readInput<double>("second", 0.0);
+  double result = 0.0;
 
-    double result = 0.0;
-
-    switch (mOperation) {
-    case Operation::eAdd:
-      result = first + second;
-      break;
-    case Operation::eSubtract:
-      result = first - second;
-      break;
-    case Operation::eMultiply:
-      result = first * second;
-      break;
-    case Operation::eDivide:
-      result = first / second;
-      break;
-    default:
-      break;
-    }
-
-    writeOutput("result", result);
+  switch (mOperation) {
+  case Operation::eAdd:
+    result = first + second;
+    break;
+  case Operation::eSubtract:
+    result = first - second;
+    break;
+  case Operation::eMultiply:
+    result = first * second;
+    break;
+  case Operation::eDivide:
+    result = first / second;
+    break;
+  default:
+    break;
   }
+
+  writeOutput("result", result);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void MathNode::onMessageFromJS(nlohmann::json const& data) {
   mOperation = data;
+  process();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
