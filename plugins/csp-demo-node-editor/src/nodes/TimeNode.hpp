@@ -19,13 +19,14 @@ namespace csp::demonodeeditor {
 ///
 class TimeNode : public csl::nodeeditor::Node {
  public:
-  static std::string getName();
-  static std::string getSource();
-
+  static const std::string         NAME;
+  static const std::string         SOURCE;
   static std::unique_ptr<TimeNode> create(std::shared_ptr<cs::core::TimeControl> pTimeControl);
 
   TimeNode(std::shared_ptr<cs::core::TimeControl> pTimeControl);
   ~TimeNode() override;
+
+  std::string const& getName() const override;
 
   void process() override;
 

@@ -32,15 +32,30 @@ class CSL_NODE_EDITOR_EXPORT Node {
   /// This will be called whenever the values of one or multiple input sockets have changed.
   virtual void process() = 0;
 
-  virtual void onMessageFromJS(nlohmann::json const& data){};
+  void     setID(uint32_t id);
+  uint32_t getID() const;
 
-  void setID(uint32_t id);
+  void                          setPosition(std::array<int32_t, 2> position);
+  std::array<int32_t, 2> const& getPosition() const;
+
+  void setIsCollapsed(bool collapsed);
+  bool getIsCollapsed() const;
+
   void setSocket(std::shared_ptr<WebSocket> socket);
   void setGraph(std::shared_ptr<NodeGraph> graph);
 
- protected:
-  void sendMessageToJS(nlohmann::json const& data) const;
+  virtual std::string const& getName() const = 0;
 
+  void         sendMessageToJS(nlohmann::json const& message) const;
+  virtual void onMessageFromJS(nlohmann::json const& message){};
+
+  virtual nlohmann::json getData() const {
+    return nlohmann::json::object();
+  };
+
+  virtual void setData(nlohmann::json const& json){};
+
+ protected:
   template <typename T>
   void writeOutput(std::string const& socket, T const& value) {
     auto connections = mGraph->getOutputConnections(mID, socket);
@@ -64,7 +79,9 @@ class CSL_NODE_EDITOR_EXPORT Node {
     return std::move(defaultValue);
   }
 
-  uint32_t                   mID;
+  uint32_t                   mID = 0;
+  std::array<int32_t, 2>     mPosition;
+  bool                       mIsCollapsed = false;
   std::shared_ptr<WebSocket> mSocket;
   std::shared_ptr<NodeGraph> mGraph;
 };

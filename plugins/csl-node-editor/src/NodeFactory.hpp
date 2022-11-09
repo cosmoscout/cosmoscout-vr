@@ -45,16 +45,16 @@ class CSL_NODE_EDITOR_EXPORT NodeFactory {
   /// Registers a new node type which can then be used in the node editor.
   ///
   /// @tparam T       The node type to be registered. This should be derived
-  ///                 from csl::nodeeditor::Node and implement at least these three static methods:
-  ///                  * static std::string getName();
-  ///                  * static std::string getSource();
+  ///                 from csl::nodeeditor::Node and implement at least these three static items:
+  ///                  * static const std::string NAME;
+  ///                  * static const std::string SOURCE;
   ///                  * static std::unique_ptr<T> create(args...);
   /// @param ...args  The given arguments will be passed to the static create method whenever a new
   ///                 node of this type is constructed.
   template <typename T, typename... Args>
   void registerNodeType(Args... args) {
-    mNodeSourceFuncs.push_back([=]() { return T::getSource(); });
-    mNodeCreateFuncs[T::getName()] = [=]() { return T::create(args...); };
+    mNodeSourceFuncs.push_back([=]() { return T::SOURCE; });
+    mNodeCreateFuncs[T::NAME] = [=]() { return T::create(args...); };
   }
 
   // Node Editor API -------------------------------------------------------------------------------
@@ -78,8 +78,7 @@ class CSL_NODE_EDITOR_EXPORT NodeFactory {
   std::string getRegisterSource() const;
 
   /// Create a new Node given the name of the node type.
-  /// @param type The name of the node type (as returned by the static getName() method of the
-  ///             registered node type).
+  /// @param type The name of the node type (the static NAME of the registered node type).
   /// @return     A newly created node of the given type name.
   /// @throws     This may throw a std::runtime_error is the given type has not been registered
   ///             before.

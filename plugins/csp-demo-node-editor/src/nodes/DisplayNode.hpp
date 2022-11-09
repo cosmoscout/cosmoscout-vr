@@ -15,10 +15,11 @@ namespace csp::demonodeeditor {
 ///
 class DisplayNode : public csl::nodeeditor::Node {
  public:
-  static std::string getName();
-  static std::string getSource();
-
+  static const std::string            NAME;
+  static const std::string            SOURCE;
   static std::unique_ptr<DisplayNode> create();
+
+  std::string const& getName() const override;
 
   void process() override;
 };

@@ -17,14 +17,18 @@ class MathNode : public csl::nodeeditor::Node {
  public:
   enum class Operation { eAdd, eSubtract, eMultiply, eDivide };
 
-  static std::string getName();
-  static std::string getSource();
-
+  static const std::string         NAME;
+  static const std::string         SOURCE;
   static std::unique_ptr<MathNode> create();
+
+  std::string const& getName() const override;
 
   void process() override;
 
-  void onMessageFromJS(nlohmann::json const& data) override;
+  void onMessageFromJS(nlohmann::json const& message) override;
+
+  nlohmann::json getData() const override;
+  void           setData(nlohmann::json const& json) override;
 
  private:
   Operation mOperation = Operation::eAdd;

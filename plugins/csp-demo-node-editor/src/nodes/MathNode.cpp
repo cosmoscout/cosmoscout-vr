@@ -15,15 +15,12 @@ namespace csp::demonodeeditor {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::string MathNode::getName() {
-  return "Math";
-}
+const std::string MathNode::NAME = "Math";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::string MathNode::getSource() {
-  std::string source = R"(
-    class %NAME%Control extends Rete.Control {
+const std::string MathNode::SOURCE = R"(
+    class MathControl extends Rete.Control {
       constructor(key) {
         super(key);
 
@@ -44,18 +41,23 @@ std::string MathNode::getSource() {
         `;
       }
 
-      init(nodeElement) {
-        const el = nodeElement.querySelector("select");
+      init(nodeDiv, data) {
+        const el = nodeDiv.querySelector("select");
         $(el).selectpicker();
+
+        if (data.operation) {
+          $(el).selectpicker('val', data.operation);
+        }
+
         el.addEventListener('change', (e) => {
           CosmoScout.sendMessagetoCPP(parseInt(e.target.value), this.parent.id);
         });
       }
     }
 
-    class %NAME%Component extends Rete.Component {
+    class MathComponent extends Rete.Component {
       constructor() {
-        super("%NAME%");
+        super("Math");
         this.category = "Operations";
       }
 
@@ -69,11 +71,11 @@ std::string MathNode::getSource() {
         let output = new Rete.Output('result', "Result", CosmoScout.socketTypes['Number Value']);
         node.addOutput(output);
 
-        let control = new %NAME%Control('select');
+        let control = new MathControl('select');
         node.addControl(control);
 
-        node.onInit = (nodeElement) => {
-          control.init(nodeElement);
+        node.onInit = (nodeDiv) => {
+          control.init(nodeDiv, node.data);
         };
 
         return node;
@@ -81,15 +83,16 @@ std::string MathNode::getSource() {
     }
   )";
 
-  cs::utils::replaceString(source, "%NAME%", getName());
-
-  return source;
-}
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::unique_ptr<MathNode> MathNode::create() {
   return std::make_unique<MathNode>();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::string const& MathNode::getName() const {
+  return NAME;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -122,9 +125,21 @@ void MathNode::process() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MathNode::onMessageFromJS(nlohmann::json const& data) {
-  mOperation = data;
+void MathNode::onMessageFromJS(nlohmann::json const& message) {
+  mOperation = message;
   process();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+nlohmann::json MathNode::getData() const {
+  return {{"operation", mOperation}};
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MathNode::setData(nlohmann::json const& json) {
+  mOperation = json["operation"];
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

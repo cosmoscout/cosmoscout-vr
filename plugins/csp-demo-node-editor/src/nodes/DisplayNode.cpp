@@ -15,15 +15,12 @@ namespace csp::demonodeeditor {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::string DisplayNode::getName() {
-  return "Display";
-}
+const std::string DisplayNode::NAME = "Display";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::string DisplayNode::getSource() {
-  std::string source = R"(
-    class %NAME%Control extends Rete.Control {
+const std::string DisplayNode::SOURCE = R"(
+    class DisplayControl extends Rete.Control {
       constructor(key) {
         super(key);
 
@@ -51,9 +48,9 @@ std::string DisplayNode::getSource() {
       }
     }
 
-    class %NAME%Component extends Rete.Component {
+    class DisplayComponent extends Rete.Component {
       constructor() {
-        super("%NAME%");
+        super("Display");
         this.category = "Outputs";
       }
 
@@ -61,7 +58,7 @@ std::string DisplayNode::getSource() {
         let input = new Rete.Input('number', "Number", CosmoScout.socketTypes['Number Value']);
         node.addInput(input);
 
-        let control = new %NAME%Control('display');
+        let control = new DisplayControl('display');
         node.addControl(control);
 
         node.onInit = (element) => {
@@ -76,15 +73,16 @@ std::string DisplayNode::getSource() {
     }
   )";
 
-  cs::utils::replaceString(source, "%NAME%", getName());
-
-  return source;
-}
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::unique_ptr<DisplayNode> DisplayNode::create() {
   return std::make_unique<DisplayNode>();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::string const& DisplayNode::getName() const {
+  return NAME;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -32,7 +32,32 @@ class CSL_NODE_EDITOR_EXPORT NodeGraph {
   NodeGraph();
   ~NodeGraph();
 
+  void queueProcess();
   void queueProcessing(uint32_t node);
+
+  /// {
+  ///     <node ID>: {
+  ///         "name": <node name>
+  ///         "id": <node ID>
+  ///         "position": [<x>, <y>],
+  ///         "collapsed": <bool>
+  ///         "data": {}
+  ///         "outputs" : {
+  ///             <from socket name> : {
+  ///                 "connections": [
+  ///                     {
+  ///                         "node": <to node ID>,
+  ///                         "input: <to socket name>
+  ///                     },
+  ///                     ...
+  ///                 ]
+  ///             },
+  ///             ...
+  ///         }
+  ///     },
+  ///     ...
+  /// }
+  nlohmann::json toJSON() const;
 
   // Node API --------------------------------------------------------------------------------------
 
@@ -75,13 +100,17 @@ class CSL_NODE_EDITOR_EXPORT NodeGraph {
 
   void removeNode(uint32_t id);
 
+  void setNodePosition(uint32_t id, std::array<int32_t, 2> position) const;
+
+  void setNodeCollapsed(uint32_t id, bool collapsed) const;
+
   void addConnection(
       uint32_t fromNode, std::string fromSocket, uint32_t toNode, std::string toSocket);
 
   void removeConnection(uint32_t fromNode, std::string const& fromSocket, uint32_t toNode,
       std::string const& toSocket);
 
-  void handleNodeMessage(uint32_t toNode, nlohmann::json const& data) const;
+  void handleNodeMessage(uint32_t toNode, nlohmann::json const& message) const;
 
  private:
   // Returns all nodes which are currently connected to an output socket of the given node.

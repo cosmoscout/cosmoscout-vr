@@ -16,18 +16,15 @@ namespace csp::demonodeeditor {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::string TimeNode::getName() {
-  return "Time";
-}
+const std::string TimeNode::NAME = "Time";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::string TimeNode::getSource() {
-  std::string source = R"(
-    class %NAME%Component extends Rete.Component {
+const std::string TimeNode::SOURCE = R"(
+    class TimeComponent extends Rete.Component {
 
       constructor() {
-        super("%NAME%");
+        super("Time");
 
         this.category = "Inputs";
       }
@@ -38,11 +35,6 @@ std::string TimeNode::getSource() {
       }
     }
   )";
-
-  cs::utils::replaceString(source, "%NAME%", getName());
-
-  return source;
-}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -62,6 +54,12 @@ TimeNode::TimeNode(std::shared_ptr<cs::core::TimeControl> pTimeControl)
 
 TimeNode::~TimeNode() {
   mTimeControl->pSimulationTime.disconnect(mTimeConnection);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::string const& TimeNode::getName() const {
+  return NAME;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

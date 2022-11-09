@@ -13,15 +13,12 @@ namespace csp::demonodeeditor {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::string NumberNode::getName() {
-  return "Number";
-}
+const std::string NumberNode::NAME = "Number";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::string NumberNode::getSource() {
-  std::string source = R"(
-    class %NAME%Control extends Rete.Control {
+const std::string NumberNode::SOURCE = R"(
+    class NumberControl extends Rete.Control {
       constructor(key) {
         super(key);
 
@@ -37,8 +34,13 @@ std::string NumberNode::getSource() {
         `;
       }
 
-      init(nodeElement) {
-        const el = nodeElement.querySelector("input");
+      init(nodeDiv, data) {
+        const el = nodeDiv.querySelector("input");
+
+        if (data.value) {
+          el.value = data.value;
+        }
+
         el.addEventListener('input', e => {
           CosmoScout.sendMessagetoCPP(parseFloat(e.target.value), this.parent.id);
         });
@@ -46,9 +48,9 @@ std::string NumberNode::getSource() {
       }
     }
 
-    class %NAME%Component extends Rete.Component {
+    class NumberComponent extends Rete.Component {
       constructor() {
-        super("%NAME%");
+        super("Number");
         this.category = "Inputs";
       }
 
@@ -56,11 +58,11 @@ std::string NumberNode::getSource() {
         let output = new Rete.Output('output', "Output", CosmoScout.socketTypes['Number Value']);
         node.addOutput(output);
 
-        let control = new %NAME%Control('number');
+        let control = new NumberControl('number');
         node.addControl(control);
 
-        node.onInit = (nodeElement) => {
-          control.init(nodeElement);
+        node.onInit = (nodeDiv) => {
+          control.init(nodeDiv, node.data);
         };
 
         return node;
@@ -68,15 +70,16 @@ std::string NumberNode::getSource() {
     }
   )";
 
-  cs::utils::replaceString(source, "%NAME%", getName());
-
-  return source;
-}
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::unique_ptr<NumberNode> NumberNode::create() {
   return std::make_unique<NumberNode>();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::string const& NumberNode::getName() const {
+  return NAME;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -87,9 +90,21 @@ void NumberNode::process() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void NumberNode::onMessageFromJS(nlohmann::json const& data) {
-  mValue = data;
+void NumberNode::onMessageFromJS(nlohmann::json const& message) {
+  mValue = message;
   process();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+nlohmann::json NumberNode::getData() const {
+  return {{"value", mValue}};
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void NumberNode::setData(nlohmann::json const& json) {
+  mValue = json["value"];
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

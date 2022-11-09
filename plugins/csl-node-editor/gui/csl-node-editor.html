@@ -78,10 +78,10 @@ SPDX-License-Identifier: MIT
       socketTypes: [],
       connection: null,
       nodeEditor: null,
-      sendMessagetoCPP: (data, toNode) => {
+      sendMessagetoCPP: (message, toNode) => {
         CosmoScout.connection.send(JSON.stringify({
-          eventType: "nodeMessage", data: data, toNode: toNode
-        }))
+          type: "nodeMessage", data: { message: message, toNode: toNode }
+        }));
       }
     };
 
@@ -93,19 +93,37 @@ SPDX-License-Identifier: MIT
     };
 
     CosmoScout.connection.onopen = () => {
-      document.getElementById("loading-screen").classList.add("hidden");
-
       CosmoScout.connection.onclose = () => {
         alert('Connection to CosmoScout VR was interupted.');
       };
     };
 
     CosmoScout.connection.onmessage = e => {
-      let data = JSON.parse(e.data);
-      let node = CosmoScout.nodeEditor.nodes.find(node => node.id === data.toNode);
+      let event = JSON.parse(e.data);
 
-      if (node.onMessageFromCPP) {
-        node.onMessageFromCPP(data.message);
+      if (event.type === "nodeMessage") {
+        let node = CosmoScout.nodeEditor.nodes.find(node => node.id === event.data.toNode);
+
+        if (node.onMessageFromCPP) {
+          node.onMessageFromCPP(event.data.message);
+        }
+
+      } else if (event.type === "loadGraph") {
+        CosmoScout.nodeEditor.fromJSON({ id: "node-editor@0.1.0", nodes: event.data }).then(() => {
+
+          for (const [id, node] of Object.entries(event.data)) {
+            if (node.collapsed) {
+              document.querySelector("#node-" + id).classList.add("collapsed");
+            }
+          }
+
+          CosmoScout.nodeEditor.nodes.forEach(node => CosmoScout.nodeEditor.view.updateConnections({ node: node }));
+
+          document.getElementById("loading-screen").classList.add("hidden");
+          CosmoScout.connection.send(JSON.stringify({
+            type: "graphLoaded", data: {}
+          }));
+        });
       }
     };
 
@@ -133,25 +151,43 @@ SPDX-License-Identifier: MIT
       //!REGISTER_COMPONENTS
 
       CosmoScout.nodeEditor.on('nodecreated', node => {
+        if (CosmoScout.nodeEditor.silent) {
+          return;
+        }
+
         CosmoScout.connection.send(JSON.stringify({
-          eventType: "addNode", node: {
+          type: "addNode", data: {
             type: node.name,
-            id: node.id
+            id: node.id,
+            position: node.position
           }
         }));
       });
 
       CosmoScout.nodeEditor.on('noderemoved', node => {
         CosmoScout.connection.send(JSON.stringify({
-          eventType: "removeNode", node: {
+          type: "removeNode", data: {
             id: node.id
           }
         }));
       });
 
-      CosmoScout.nodeEditor.on('connectioncreated', connection => {
+      CosmoScout.nodeEditor.on('nodetranslated', ({ node, prev }) => {
         CosmoScout.connection.send(JSON.stringify({
-          eventType: "addConnection", connection: {
+          type: "translateNode", data: {
+            id: node.id,
+            position: node.position
+          }
+        }));
+      });
+
+      CosmoScout.nodeEditor.on('connectioncreated', connection => {
+        if (CosmoScout.nodeEditor.silent) {
+          return;
+        }
+
+        CosmoScout.connection.send(JSON.stringify({
+          type: "addConnection", data: {
             fromNode: connection.output.node.id,
             fromSocket: connection.output.key,
             toNode: connection.input.node.id,
@@ -162,7 +198,7 @@ SPDX-License-Identifier: MIT
 
       CosmoScout.nodeEditor.on('connectionremoved', connection => {
         CosmoScout.connection.send(JSON.stringify({
-          eventType: "removeConnection", connection: {
+          type: "removeConnection", data: {
             fromNode: connection.output.node.id,
             fromSocket: connection.output.key,
             toNode: connection.input.node.id,
@@ -202,6 +238,14 @@ SPDX-License-Identifier: MIT
           }
 
           el.classList.toggle("collapsed");
+
+          CosmoScout.connection.send(JSON.stringify({
+            type: "collapseNode", data: {
+              id: node.id,
+              collapsed: el.classList.contains("collapsed")
+            }
+          }));
+
           CosmoScout.nodeEditor.view.updateConnections({ node: node });
         });
 

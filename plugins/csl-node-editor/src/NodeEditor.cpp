@@ -23,20 +23,6 @@ namespace {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-enum class EventType { eAddNode, eRemoveNode, eAddConnection, eRemoveConnection, eNodeMessage };
-
-// clang-format off
-NLOHMANN_JSON_SERIALIZE_ENUM(EventType, {
-    {EventType::eAddNode,          "addNode"},
-    {EventType::eRemoveNode,       "removeNode"},
-    {EventType::eAddConnection,    "addConnection"},
-    {EventType::eRemoveConnection, "removeConnection"},
-    {EventType::eNodeMessage,      "nodeMessage"},
-})
-// clang-format on
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 // A simple wrapper class which basically allows registering of lambdas as endpoint handlers for
 // our CivetServer. This one handles GET requests.
 class GetHandler : public CivetHandler {
@@ -69,8 +55,6 @@ NodeEditor::NodeEditor(uint16_t port, NodeFactory factory)
     , mSocket(std::make_shared<WebSocket>())
     , mGraph(std::make_shared<NodeGraph>())
     , mHTMLSource(std::move(createHTMLSource())) {
-
-  logger().debug(mHTMLSource);
 
   mHandlers.emplace_back("**.css$", std::make_unique<GetHandler>([this](mg_connection* conn) {
     auto info = mg_get_request_info(conn);
@@ -123,30 +107,45 @@ void NodeEditor::update() {
 
     try {
 
-      nlohmann::json json = nlohmann::json::parse(event.value());
-
-      EventType type = json.at("eventType");
-
-      switch (type) {
-      case EventType::eAddNode:
-        handleAddNodeEvent(json.at("node"));
+      switch (event.value().mType) {
+      case WebSocket::Event::Type::eConnectionEstablished:
+        mSocket->sendEvent({WebSocket::Event::Type::eLoadGraph, mGraph->toJSON()});
+        logger().info("New node editor client connected.");
         break;
-      case EventType::eRemoveNode:
-        handleRemoveNodeEvent(json.at("node"));
+      case WebSocket::Event::Type::eConnectionDropped:
+        logger().info("Node editor client disconnected.");
         break;
-      case EventType::eAddConnection:
-        handleAddConnectionEvent(json.at("connection"));
+      case WebSocket::Event::Type::eGraphLoaded:
+        mGraph->queueProcess();
         break;
-      case EventType::eRemoveConnection:
-        handleRemoveConnectionEvent(json.at("connection"));
+      case WebSocket::Event::Type::eAddNode:
+        handleAddNodeEvent(event.value().mData);
         break;
-      case EventType::eNodeMessage:
-        handleNodeMessageEvent(json.at("toNode"), json.at("data"));
+      case WebSocket::Event::Type::eRemoveNode:
+        handleRemoveNodeEvent(event.value().mData);
+        break;
+      case WebSocket::Event::Type::eTranslateNode:
+        handleTranslateNodeEvent(event.value().mData);
+        break;
+      case WebSocket::Event::Type::eCollapseNode:
+        handleCollapseNodeEvent(event.value().mData);
+        break;
+      case WebSocket::Event::Type::eAddConnection:
+        handleAddConnectionEvent(event.value().mData);
+        break;
+      case WebSocket::Event::Type::eRemoveConnection:
+        handleRemoveConnectionEvent(event.value().mData);
+        break;
+      case WebSocket::Event::Type::eNodeMessage:
+        handleNodeMessageEvent(event.value().mData);
+        break;
+      default:
         break;
       }
 
     } catch (std::exception const& e) {
-      logger().error("Failed to process node editor event '{}': {}", event.value(), e.what());
+      logger().error(
+          "Failed to process node editor event '{}': {}", event.value().mData.dump(), e.what());
     }
 
     event = mSocket->getNextEvent();
@@ -191,13 +190,15 @@ void NodeEditor::quitServer() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void NodeEditor::handleAddNodeEvent(nlohmann::json const& json) {
-  std::string type = json["type"];
-  uint32_t    id   = json["id"];
+  std::string            type     = json["type"];
+  uint32_t               id       = json["id"];
+  std::array<int32_t, 2> position = json["position"];
 
   auto node = mFactory.createNode(type);
+  node->setID(id);
+  node->setPosition(position);
   node->setGraph(mGraph);
   node->setSocket(mSocket);
-  node->setID(id);
 
   mGraph->addNode(id, std::move(node));
 }
@@ -206,6 +207,24 @@ void NodeEditor::handleAddNodeEvent(nlohmann::json const& json) {
 
 void NodeEditor::handleRemoveNodeEvent(nlohmann::json const& json) {
   mGraph->removeNode(json["id"]);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void NodeEditor::handleTranslateNodeEvent(nlohmann::json const& json) {
+  uint32_t               id       = json["id"];
+  std::array<int32_t, 2> position = json["position"];
+
+  mGraph->setNodePosition(id, std::move(position));
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void NodeEditor::handleCollapseNodeEvent(nlohmann::json const& json) {
+  uint32_t id        = json["id"];
+  bool     collapsed = json["collapsed"];
+
+  mGraph->setNodeCollapsed(id, collapsed);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -232,8 +251,10 @@ void NodeEditor::handleRemoveConnectionEvent(nlohmann::json const& json) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void NodeEditor::handleNodeMessageEvent(uint32_t toNode, nlohmann::json const& data) {
-  mGraph->handleNodeMessage(toNode, data);
+void NodeEditor::handleNodeMessageEvent(nlohmann::json const& json) {
+  uint32_t       toNode  = json["toNode"];
+  nlohmann::json message = json["message"];
+  mGraph->handleNodeMessage(toNode, message);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

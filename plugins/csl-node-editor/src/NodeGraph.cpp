@@ -21,8 +21,43 @@ NodeGraph::~NodeGraph() = default;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void NodeGraph::queueProcess() {
+  for (auto const& [id, node] : mNodes) {
+    mDirtyNodes.insert(id);
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void NodeGraph::queueProcessing(uint32_t node) {
   mDirtyNodes.insert(node);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+nlohmann::json NodeGraph::toJSON() const {
+  auto json = nlohmann::json::object();
+
+  for (auto const& [id, node] : mNodes) {
+
+    // clang-format off
+    json[std::to_string(id)] = {
+      {"name",      node->getName()},
+      {"id",        id},
+      {"position",  node->getPosition()},
+      {"collapsed", node->getIsCollapsed()},
+      {"data",      node->getData()},
+      {"outputs",   nlohmann::json::object()}
+    };
+    // clang-format on
+  }
+
+  for (auto const& c : mConnections) {
+    json[std::to_string(c.mFromNode)]["outputs"][c.mFromSocket]["connections"].push_back(
+        {{"node", c.mToNode}, {"input", c.mToSocket}});
+  }
+
+  return json;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -35,6 +70,26 @@ void NodeGraph::addNode(uint32_t id, std::unique_ptr<Node> node) {
 
 void NodeGraph::removeNode(uint32_t id) {
   mNodes.erase(id);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void NodeGraph::setNodePosition(uint32_t id, std::array<int32_t, 2> position) const {
+  auto it = mNodes.find(id);
+
+  if (it != mNodes.end()) {
+    it->second->setPosition(std::move(position));
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void NodeGraph::setNodeCollapsed(uint32_t id, bool collapsed) const {
+  auto it = mNodes.find(id);
+
+  if (it != mNodes.end()) {
+    it->second->setIsCollapsed(collapsed);
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -197,8 +252,8 @@ void NodeGraph::process() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void NodeGraph::handleNodeMessage(uint32_t toNode, nlohmann::json const& data) const {
-  mNodes.at(toNode)->onMessageFromJS(data);
+void NodeGraph::handleNodeMessage(uint32_t toNode, nlohmann::json const& message) const {
+  mNodes.at(toNode)->onMessageFromJS(message);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

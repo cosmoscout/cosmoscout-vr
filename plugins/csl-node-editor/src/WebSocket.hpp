@@ -12,6 +12,7 @@
 
 #include <CivetServer.h>
 #include <mutex>
+#include <nlohmann/json.hpp>
 #include <queue>
 
 namespace csl::nodeeditor {
@@ -19,9 +20,35 @@ namespace csl::nodeeditor {
 class CSL_NODE_EDITOR_EXPORT WebSocket : public CivetWebSocketHandler {
 
  public:
-  std::optional<std::string> getNextEvent();
+  struct Event {
+    enum class Type {
+      // General connection events
+      eConnectionEstablished,
+      eConnectionDropped,
 
-  void sendMessage(std::string const& data) const;
+      // Events sent from C++ -> JavaScript
+      eLoadGraph,
+
+      // Events sent from JavaScript -> C++
+      eGraphLoaded,
+      eAddNode,
+      eRemoveNode,
+      eTranslateNode,
+      eCollapseNode,
+      eAddConnection,
+      eRemoveConnection,
+
+      // Bidirectional events
+      eNodeMessage
+    };
+
+    Type           mType;
+    nlohmann::json mData;
+  };
+
+  std::optional<Event> getNextEvent();
+
+  void sendEvent(Event const& event) const;
 
   bool isConnected() const;
 
@@ -35,8 +62,8 @@ class CSL_NODE_EDITOR_EXPORT WebSocket : public CivetWebSocketHandler {
 
   void handleClose(CivetServer* server, const struct mg_connection* conn) override;
 
-  std::queue<std::string> mEventQueue;
-  std::mutex              mEventQueueMutex;
+  std::queue<Event> mEventQueue;
+  std::mutex        mEventQueueMutex;
 
   mg_connection* mConnection = nullptr;
 };
