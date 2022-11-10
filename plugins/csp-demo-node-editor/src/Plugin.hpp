@@ -20,6 +20,8 @@ class Plugin : public cs::core::PluginBase {
   struct Settings {
     /// The port where the server should listen on. For example 9999.
     cs::utils::Property<uint16_t> mPort;
+
+    std::optional<nlohmann::json> mGraph;
   };
 
   void init() override;

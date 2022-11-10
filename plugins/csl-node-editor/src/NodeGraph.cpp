@@ -36,12 +36,12 @@ void NodeGraph::queueProcessing(uint32_t node) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 nlohmann::json NodeGraph::toJSON() const {
-  auto json = nlohmann::json::object();
+  auto nodes = nlohmann::json::object();
 
   for (auto const& [id, node] : mNodes) {
 
     // clang-format off
-    json[std::to_string(id)] = {
+    nodes[std::to_string(id)] = {
       {"name",      node->getName()},
       {"id",        id},
       {"position",  node->getPosition()},
@@ -53,11 +53,11 @@ nlohmann::json NodeGraph::toJSON() const {
   }
 
   for (auto const& c : mConnections) {
-    json[std::to_string(c.mFromNode)]["outputs"][c.mFromSocket]["connections"].push_back(
+    nodes[std::to_string(c.mFromNode)]["outputs"][c.mFromSocket]["connections"].push_back(
         {{"node", c.mToNode}, {"input", c.mToSocket}});
   }
 
-  return json;
+  return {{"nodes", nodes}};
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

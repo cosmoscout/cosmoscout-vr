@@ -39,10 +39,12 @@ namespace csp::demonodeeditor {
 
 void from_json(nlohmann::json const& j, Plugin::Settings& o) {
   cs::core::Settings::deserialize(j, "port", o.mPort);
+  cs::core::Settings::deserialize(j, "graph", o.mGraph);
 }
 
 void to_json(nlohmann::json& j, Plugin::Settings const& o) {
   cs::core::Settings::serialize(j, "port", o.mPort);
+  cs::core::Settings::serialize(j, "graph", o.mGraph);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -88,11 +90,19 @@ void Plugin::update() {
 
 void Plugin::onLoad() {
   from_json(mAllSettings->mPlugins.at("csp-demo-node-editor"), mPluginSettings);
+
+  if (mPluginSettings.mGraph.has_value()) {
+    try {
+      mNodeEditor->fromJSON(mPluginSettings.mGraph.value());
+    } catch (std::exception const& e) { logger().warn("Failed to load node graph: {}", e.what()); }
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Plugin::onSave() {
+  mPluginSettings.mGraph = mNodeEditor->toJSON();
+
   mAllSettings->mPlugins["csp-demo-node-editor"] = mPluginSettings;
 }
 

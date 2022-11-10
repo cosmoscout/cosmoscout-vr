@@ -160,6 +160,43 @@ void NodeEditor::update() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+nlohmann::json NodeEditor::toJSON() const {
+  return mGraph->toJSON();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void NodeEditor::fromJSON(nlohmann::json const& json) {
+  for (auto& [i, jsonNode] : json["nodes"].items()) {
+
+    std::string            type      = jsonNode["name"];
+    uint32_t               id        = jsonNode["id"];
+    std::array<int32_t, 2> position  = jsonNode["position"];
+    bool                   collapsed = jsonNode["collapsed"];
+
+    auto node = mFactory.createNode(type);
+    node->setID(id);
+    node->setPosition(position);
+    node->setIsCollapsed(collapsed);
+    node->setGraph(mGraph);
+    node->setSocket(mSocket);
+    node->setData(jsonNode["data"]);
+
+    mGraph->addNode(id, std::move(node));
+
+    for (auto& [fromSocket, jsonOutput] : jsonNode["outputs"].items()) {
+      for (auto& connection : jsonOutput["connections"]) {
+        uint32_t    toNode   = connection["node"];
+        std::string toSocket = connection["input"];
+
+        mGraph->addConnection(id, fromSocket, toNode, toSocket);
+      }
+    }
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void NodeEditor::startServer(uint16_t port) {
 
   // First quit the server as it may be running already.

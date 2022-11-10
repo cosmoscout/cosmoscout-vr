@@ -36,26 +36,28 @@ class CSL_NODE_EDITOR_EXPORT NodeGraph {
   void queueProcessing(uint32_t node);
 
   /// {
-  ///     <node ID>: {
-  ///         "name": <node name>
-  ///         "id": <node ID>
-  ///         "position": [<x>, <y>],
-  ///         "collapsed": <bool>
-  ///         "data": {}
-  ///         "outputs" : {
-  ///             <from socket name> : {
-  ///                 "connections": [
-  ///                     {
-  ///                         "node": <to node ID>,
-  ///                         "input: <to socket name>
-  ///                     },
-  ///                     ...
-  ///                 ]
-  ///             },
-  ///             ...
-  ///         }
-  ///     },
-  ///     ...
+  ////    "nodes": {
+  ///         <node ID>: {
+  ///             "name": <node name>
+  ///             "id": <node ID>
+  ///             "position": [<x>, <y>],
+  ///             "collapsed": <bool>
+  ///             "data": {}
+  ///             "outputs" : {
+  ///                 <from socket name> : {
+  ///                     "connections": [
+  ///                         {
+  ///                             "node": <to node ID>,
+  ///                             "input: <to socket name>
+  ///                         },
+  ///                         ...
+  ///                     ]
+  ///                 },
+  ///                 ...
+  ///             }
+  ///         },
+  ///         ...
+  ///     }
   /// }
   nlohmann::json toJSON() const;
 

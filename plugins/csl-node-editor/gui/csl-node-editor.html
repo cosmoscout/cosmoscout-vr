@@ -109,9 +109,9 @@ SPDX-License-Identifier: MIT
         }
 
       } else if (event.type === "loadGraph") {
-        CosmoScout.nodeEditor.fromJSON({ id: "node-editor@0.1.0", nodes: event.data }).then(() => {
+        CosmoScout.nodeEditor.fromJSON({ id: "node-editor@0.1.0", nodes: event.data.nodes }).then(() => {
 
-          for (const [id, node] of Object.entries(event.data)) {
+          for (const [id, node] of Object.entries(event.data.nodes)) {
             if (node.collapsed) {
               document.querySelector("#node-" + id).classList.add("collapsed");
             }
