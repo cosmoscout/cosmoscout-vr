@@ -36,7 +36,7 @@ class CSL_NODE_EDITOR_EXPORT NodeGraph {
   void queueProcessing(uint32_t node);
 
   /// {
-  ////    "nodes": {
+  ///     "nodes": {
   ///         <node ID>: {
   ///             "name": <node name>
   ///             "id": <node ID>

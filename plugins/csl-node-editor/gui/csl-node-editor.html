@@ -117,6 +117,7 @@ SPDX-License-Identifier: MIT
             }
           }
 
+          AreaPlugin.zoomAt(CosmoScout.nodeEditor);
           CosmoScout.nodeEditor.nodes.forEach(node => CosmoScout.nodeEditor.view.updateConnections({ node: node }));
 
           document.getElementById("loading-screen").classList.add("hidden");
