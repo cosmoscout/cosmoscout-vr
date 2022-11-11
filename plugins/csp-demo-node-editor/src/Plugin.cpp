@@ -7,11 +7,9 @@
 
 #include "Plugin.hpp"
 
-#include "../../../src/cs-core/GuiManager.hpp"
 #include "../../../src/cs-core/Settings.hpp"
-#include "../../../src/cs-core/SolarSystem.hpp"
-#include "../../../src/cs-utils/logger.hpp"
-#include "../../../src/cs-utils/utils.hpp"
+// #include "../../../src/cs-utils/logger.hpp"
+// #include "../../../src/cs-utils/utils.hpp"
 
 #include "logger.hpp"
 #include "nodes/DisplayNode.hpp"
@@ -56,7 +54,7 @@ void Plugin::init() {
   mOnLoadConnection = mAllSettings->onLoad().connect([this]() { onLoad(); });
   mOnSaveConnection = mAllSettings->onSave().connect([this]() { onSave(); });
 
-  // Restart the server if the port changes.
+  // Restart the node editor if the port changes.
   mPluginSettings.mPort.connect([this](uint16_t port) { setupNodeEditor(port); });
 
   onLoad();
@@ -75,6 +73,8 @@ void Plugin::deInit() {
   mAllSettings->onLoad().disconnect(mOnLoadConnection);
   mAllSettings->onSave().disconnect(mOnSaveConnection);
 
+  // Explicitly destroy the node editor so that we get any error messages before the "Unloading
+  // done." message is preinted.
   mNodeEditor.reset();
 
   logger().info("Unloading done.");
@@ -91,6 +91,7 @@ void Plugin::update() {
 void Plugin::onLoad() {
   from_json(mAllSettings->mPlugins.at("csp-demo-node-editor"), mPluginSettings);
 
+  // If there is a graph defined in the settings, we give this to the node editor.
   if (mPluginSettings.mGraph.has_value()) {
     try {
       mNodeEditor->fromJSON(mPluginSettings.mGraph.value());
@@ -101,6 +102,8 @@ void Plugin::onLoad() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Plugin::onSave() {
+
+  // Save the current node graph layout.
   mPluginSettings.mGraph = mNodeEditor->toJSON();
 
   mAllSettings->mPlugins["csp-demo-node-editor"] = mPluginSettings;
@@ -110,15 +113,25 @@ void Plugin::onSave() {
 
 void Plugin::setupNodeEditor(uint16_t port) {
 
+  // Creating a node editor requires a node factory. This will be reposnsible for creating nodes
+  // based on their names.
   csl::nodeeditor::NodeFactory factory;
-  factory.registerSocketType("Number Value", "#b08ab3");
-  factory.registerSocketType("Date Value", "#00ff00");
 
+  // First, we register the available socket types. For now, this only requires a unique name and a
+  // color which will be used by the sockets. In this simple example, we only have number sockets.
+  // The name of the socket will be used by the custom nodes when defining their inouts and outputs.
+  factory.registerSocketType("Number Value", "#b08ab3");
+
+  // Now, we register our custom node types. Any parameter given to this method, will later be
+  // passed to the constructor of the node instances. For more information, see the documentation of
+  // NodeFactory::registerNodeType().
   factory.registerNodeType<DisplayNode>();
   factory.registerNodeType<NumberNode>();
   factory.registerNodeType<MathNode>();
   factory.registerNodeType<TimeNode>(mTimeControl);
 
+  // Finally, create the node editor. It will start the server so that we can now open a web browser
+  // and navigate to localhost:<port>.
   mNodeEditor = std::make_unique<csl::nodeeditor::NodeEditor>(port, factory);
 }
 

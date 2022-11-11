@@ -8,7 +8,7 @@
 #include "NodeGraph.hpp"
 
 #include "../Node.hpp"
-#include "logger.hpp"
+#include "../logger.hpp"
 
 namespace csl::nodeeditor {
 

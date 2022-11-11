@@ -7,7 +7,7 @@
 
 #include "WebSocket.hpp"
 
-#include "logger.hpp"
+#include "../logger.hpp"
 
 #include <optional>
 
