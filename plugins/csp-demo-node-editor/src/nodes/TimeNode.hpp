@@ -24,9 +24,9 @@ class TimeNode : public csl::nodeeditor::Node {
  public:
   // static interface ------------------------------------------------------------------------------
 
-  static const std::string         NAME;
-  static const std::string         SOURCE;
-  static std::unique_ptr<TimeNode> create(std::shared_ptr<cs::core::TimeControl> pTimeControl);
+  static const std::string         sName;
+  static std::string               sSource();
+  static std::unique_ptr<TimeNode> sCreate(std::shared_ptr<cs::core::TimeControl> pTimeControl);
 
   // instance interface ----------------------------------------------------------------------------
 
@@ -35,7 +35,7 @@ class TimeNode : public csl::nodeeditor::Node {
   TimeNode(std::shared_ptr<cs::core::TimeControl> pTimeControl);
   ~TimeNode() override;
 
-  /// Each node must override this. It simply returns the static NAME.
+  /// Each node must override this. It simply returns the static sName.
   std::string const& getName() const override;
 
   /// Whenever the simulation time changes, the TimeNode will call this method itself. It simply

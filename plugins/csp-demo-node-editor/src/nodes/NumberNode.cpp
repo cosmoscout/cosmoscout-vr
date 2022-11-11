@@ -13,17 +13,18 @@ namespace csp::demonodeeditor {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const std::string NumberNode::NAME = "Number";
+const std::string NumberNode::sName = "Number";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const std::string NumberNode::SOURCE = R"(
+std::string NumberNode::sSource() {
+  return R"(
     //js
 
     // The NumberNode has a single output socket and a custom widget for entering a number. The
     // custom widget is defined further below.
     // The NumberComponent serves as a kind of factory. Whenever a new node is created, the
-    // builder() method is called.
+    // builder() method is called. It is required that the class is called <NAME>Component.
     class NumberComponent extends Rete.Component {
       constructor() {
          // This name must match the NumberNode::NAME defined above.
@@ -104,17 +105,18 @@ const std::string NumberNode::SOURCE = R"(
     }
     //!js
   )";
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::unique_ptr<NumberNode> NumberNode::create() {
+std::unique_ptr<NumberNode> NumberNode::sCreate() {
   return std::make_unique<NumberNode>();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::string const& NumberNode::getName() const {
-  return NAME;
+  return sName;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

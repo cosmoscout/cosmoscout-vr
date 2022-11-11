@@ -7,17 +7,9 @@
 
 #include "NodeFactory.hpp"
 
-#include "Node.hpp"
 #include "logger.hpp"
 
 namespace csl::nodeeditor {
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// These need to be declared explicitely as the default versions would be defined inline in the
-// header which makes it impossible to use a forward declartion of Node.
-NodeFactory::NodeFactory()  = default;
-NodeFactory::~NodeFactory() = default;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -30,6 +22,8 @@ void NodeFactory::registerSocketType(std::string name, std::string color) {
 std::string NodeFactory::getSocketSource() const {
   std::string source;
 
+  // This JavaScript code registers new rete socket types and adds custom CSS style snippets to the
+  // web page to color the sockets.
   for (auto const& s : mSockets) {
     source += fmt::format("CosmoScout.socketTypes['{0}'] = new Rete.Socket('{0}');\n", s.first);
     source += fmt::format("addSocketStyle('{}', '{}');\n", s.first, s.second);

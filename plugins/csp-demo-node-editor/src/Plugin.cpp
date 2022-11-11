@@ -8,8 +8,6 @@
 #include "Plugin.hpp"
 
 #include "../../../src/cs-core/Settings.hpp"
-// #include "../../../src/cs-utils/logger.hpp"
-// #include "../../../src/cs-utils/utils.hpp"
 
 #include "logger.hpp"
 #include "nodes/DisplayNode.hpp"

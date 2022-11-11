@@ -21,7 +21,6 @@
 namespace csl::nodeeditor {
 
 class WebSocket;
-class Connection;
 
 class CSL_NODE_EDITOR_EXPORT Node {
  public:

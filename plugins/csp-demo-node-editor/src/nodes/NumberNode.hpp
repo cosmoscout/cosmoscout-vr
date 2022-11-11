@@ -21,13 +21,13 @@ class NumberNode : public csl::nodeeditor::Node {
  public:
   // static interface ------------------------------------------------------------------------------
 
-  static const std::string           NAME;
-  static const std::string           SOURCE;
-  static std::unique_ptr<NumberNode> create();
+  static const std::string           sName;
+  static std::string                 sSource();
+  static std::unique_ptr<NumberNode> sCreate();
 
   // instance interface ----------------------------------------------------------------------------
 
-  /// Each node must override this. It simply returns the static NAME.
+  /// Each node must override this. It simply returns the static sName.
   std::string const& getName() const override;
 
   /// Whenever the user changes the number value of the node, the NumberNode will send a message to

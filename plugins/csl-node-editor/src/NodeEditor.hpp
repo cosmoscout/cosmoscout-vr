@@ -30,6 +30,7 @@ class CSL_NODE_EDITOR_EXPORT NodeEditor {
 
   void update();
 
+  /// May throw
   nlohmann::json toJSON() const;
   void           fromJSON(nlohmann::json const& json);
 

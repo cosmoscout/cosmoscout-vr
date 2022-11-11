@@ -19,13 +19,13 @@ class DisplayNode : public csl::nodeeditor::Node {
  public:
   // static interface ------------------------------------------------------------------------------
 
-  static const std::string            NAME;
-  static const std::string            SOURCE;
-  static std::unique_ptr<DisplayNode> create();
+  static const std::string            sName;
+  static std::string                  sSource();
+  static std::unique_ptr<DisplayNode> sCreate();
 
   // instance interface ----------------------------------------------------------------------------
 
-  /// Each node must override this. It simply returns the static NAME.
+  /// Each node must override this. It simply returns the static sName.
   std::string const& getName() const override;
 
   /// This is called by the node editor whenever the displayed value needs to be redrawn. This could

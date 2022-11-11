@@ -15,17 +15,18 @@ namespace csp::demonodeeditor {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const std::string MathNode::NAME = "Math";
+const std::string MathNode::sName = "Math";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const std::string MathNode::SOURCE = R"(
+std::string MathNode::sSource() {
+  return R"(
     //js
 
     // The MathNode has two input sockets, a single output socket, and a custom widget for selecting
     // a math operation. The custom widget is defined further below.
     // The MathComponent serves as a kind of factory. Whenever a new node is created, the
-    // builder() method is called.
+    // builder() method is called. It is required that the class is called <NAME>Component.
     class MathComponent extends Rete.Component {
       constructor() {
          // This name must match the MathNode::NAME defined above.
@@ -114,17 +115,18 @@ const std::string MathNode::SOURCE = R"(
     }
     //!js
   )";
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::unique_ptr<MathNode> MathNode::create() {
+std::unique_ptr<MathNode> MathNode::sCreate() {
   return std::make_unique<MathNode>();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::string const& MathNode::getName() const {
-  return NAME;
+  return sName;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

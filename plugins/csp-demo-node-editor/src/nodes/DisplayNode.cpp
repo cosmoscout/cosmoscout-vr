@@ -15,17 +15,18 @@ namespace csp::demonodeeditor {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const std::string DisplayNode::NAME = "Display";
+const std::string DisplayNode::sName = "Display";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const std::string DisplayNode::SOURCE = R"(
+std::string DisplayNode::sSource() {
+  return R"(
     //js
 
     // The DisplayNode has a single input socket and a custom widget for displaying the current
     // value. The custom widget is defined further below.
     // The DisplayComponent serves as a kind of factory. Whenever a new node is created, the
-    // builder() method is called.
+    // builder() method is called. It is required that the class is called <NAME>Component.
     class DisplayComponent extends Rete.Component {
       constructor() {
         // This name must match the TimeNode::NAME defined above.
@@ -97,17 +98,18 @@ const std::string DisplayNode::SOURCE = R"(
     }
     //!js
   )";
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::unique_ptr<DisplayNode> DisplayNode::create() {
+std::unique_ptr<DisplayNode> DisplayNode::sCreate() {
   return std::make_unique<DisplayNode>();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::string const& DisplayNode::getName() const {
-  return NAME;
+  return sName;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

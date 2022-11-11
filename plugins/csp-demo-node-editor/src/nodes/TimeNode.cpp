@@ -16,11 +16,12 @@ namespace csp::demonodeeditor {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const std::string TimeNode::NAME = "Time";
+const std::string TimeNode::sName = "Time";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const std::string TimeNode::SOURCE = R"(
+std::string TimeNode::sSource() {
+  return R"(
     //js
 
     // The TimeNode is pretty simple as it only has a single output socket. The component serves as
@@ -42,7 +43,7 @@ const std::string TimeNode::SOURCE = R"(
         // unique amongst all sockets. It is also used in the TimeNode::process() to write the
         // output of this node. The second parameter is shown as name on the node. The last
         // parameter references a socket type which has been registered with the node factory
-        // before.
+        // before. It is required that the class is called <NAME>Component.
         let output = new Rete.Output('time', "Seconds", CosmoScout.socketTypes['Number Value']);
         node.addOutput(output)
 
@@ -51,10 +52,11 @@ const std::string TimeNode::SOURCE = R"(
     }
     //!js
   )";
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::unique_ptr<TimeNode> TimeNode::create(std::shared_ptr<cs::core::TimeControl> pTimeControl) {
+std::unique_ptr<TimeNode> TimeNode::sCreate(std::shared_ptr<cs::core::TimeControl> pTimeControl) {
   return std::make_unique<TimeNode>(pTimeControl);
 }
 
@@ -78,7 +80,7 @@ TimeNode::~TimeNode() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::string const& TimeNode::getName() const {
-  return NAME;
+  return sName;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

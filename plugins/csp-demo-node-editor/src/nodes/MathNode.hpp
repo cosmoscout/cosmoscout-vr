@@ -25,13 +25,13 @@ class MathNode : public csl::nodeeditor::Node {
 
   // static interface ------------------------------------------------------------------------------
 
-  static const std::string         NAME;
-  static const std::string         SOURCE;
-  static std::unique_ptr<MathNode> create();
+  static const std::string         sName;
+  static std::string               sSource();
+  static std::unique_ptr<MathNode> sCreate();
 
   // instance interface ----------------------------------------------------------------------------
 
-  /// Each node must override this. It simply returns the static NAME.
+  /// Each node must override this. It simply returns the static sName.
   std::string const& getName() const override;
 
   /// Whenever the user changes the math operation, the MathNodewill send a message to the C++
