@@ -7,8 +7,7 @@
 
 #include "Node.hpp"
 
-#include "NodeGraph.hpp"
-#include "WebSocket.hpp"
+#include "internal/WebSocket.hpp"
 #include "logger.hpp"
 
 #include <algorithm>

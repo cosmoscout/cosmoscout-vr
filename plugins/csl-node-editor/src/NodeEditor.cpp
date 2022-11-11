@@ -8,8 +8,8 @@
 #include "NodeEditor.hpp"
 
 #include "Node.hpp"
-#include "NodeGraph.hpp"
-#include "WebSocket.hpp"
+#include "internal/NodeGraph.hpp"
+#include "internal/WebSocket.hpp"
 #include "logger.hpp"
 
 #include "../../../src/cs-utils/filesystem.hpp"

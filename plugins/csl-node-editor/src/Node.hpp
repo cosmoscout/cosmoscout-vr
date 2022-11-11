@@ -10,7 +10,7 @@
 
 #include "csl_node_editor_export.hpp"
 
-#include "NodeGraph.hpp"
+#include "internal/NodeGraph.hpp"
 
 #include <memory>
 #include <nlohmann/json.hpp>
@@ -20,7 +20,6 @@
 
 namespace csl::nodeeditor {
 
-class NodeGraph;
 class WebSocket;
 class Connection;
 
@@ -38,6 +37,8 @@ class CSL_NODE_EDITOR_EXPORT Node {
   void                          setPosition(std::array<int32_t, 2> position);
   std::array<int32_t, 2> const& getPosition() const;
 
+  /// @brief
+  /// @param collapsed
   void setIsCollapsed(bool collapsed);
   bool getIsCollapsed() const;
 
