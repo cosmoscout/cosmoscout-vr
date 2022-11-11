@@ -7,7 +7,7 @@
 
 #include "Node.hpp"
 
-#include "internal/WebSocket.hpp"
+#include "internal/CommunicationChannel.hpp"
 #include "logger.hpp"
 
 #include <algorithm>
@@ -52,7 +52,7 @@ bool Node::getIsCollapsed() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Node::setSocket(std::shared_ptr<WebSocket> socket) {
+void Node::setSocket(std::shared_ptr<CommunicationChannel> socket) {
   mSocket = std::move(socket);
 }
 
@@ -65,8 +65,8 @@ void Node::setGraph(std::shared_ptr<NodeGraph> graph) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Node::sendMessageToJS(nlohmann::json const& message) const {
-  mSocket->sendEvent(WebSocket::Event{
-      WebSocket::Event::Type::eNodeMessage, {{"toNode", mID}, {"message", message}}});
+  mSocket->sendEvent(CommunicationChannel::Event{
+      CommunicationChannel::Event::Type::eNodeMessage, {{"toNode", mID}, {"message", message}}});
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -5,7 +5,7 @@
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 // SPDX-License-Identifier: MIT
 
-#include "WebSocket.hpp"
+#include "CommunicationChannel.hpp"
 
 #include "../logger.hpp"
 
@@ -16,24 +16,24 @@ namespace csl::nodeeditor {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // clang-format off
-NLOHMANN_JSON_SERIALIZE_ENUM(WebSocket::Event::Type, {
-    {WebSocket::Event::Type::eConnectionEstablished, "connectionEstablished"},
-    {WebSocket::Event::Type::eConnectionDropped,     "connectionDropped"},
-    {WebSocket::Event::Type::eLoadGraph,             "loadGraph"},
-    {WebSocket::Event::Type::eGraphLoaded,           "graphLoaded"},
-    {WebSocket::Event::Type::eAddNode,               "addNode"},
-    {WebSocket::Event::Type::eRemoveNode,            "removeNode"},
-    {WebSocket::Event::Type::eTranslateNode,         "translateNode"},
-    {WebSocket::Event::Type::eCollapseNode,          "collapseNode"},
-    {WebSocket::Event::Type::eAddConnection,         "addConnection"},
-    {WebSocket::Event::Type::eRemoveConnection,      "removeConnection"},
-    {WebSocket::Event::Type::eNodeMessage,           "nodeMessage"},
+NLOHMANN_JSON_SERIALIZE_ENUM(CommunicationChannel::Event::Type, {
+    {CommunicationChannel::Event::Type::eConnectionEstablished, "connectionEstablished"},
+    {CommunicationChannel::Event::Type::eConnectionDropped,     "connectionDropped"},
+    {CommunicationChannel::Event::Type::eLoadGraph,             "loadGraph"},
+    {CommunicationChannel::Event::Type::eGraphLoaded,           "graphLoaded"},
+    {CommunicationChannel::Event::Type::eAddNode,               "addNode"},
+    {CommunicationChannel::Event::Type::eRemoveNode,            "removeNode"},
+    {CommunicationChannel::Event::Type::eTranslateNode,         "translateNode"},
+    {CommunicationChannel::Event::Type::eCollapseNode,          "collapseNode"},
+    {CommunicationChannel::Event::Type::eAddConnection,         "addConnection"},
+    {CommunicationChannel::Event::Type::eRemoveConnection,      "removeConnection"},
+    {CommunicationChannel::Event::Type::eNodeMessage,           "nodeMessage"},
 })
 // clang-format on
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::optional<WebSocket::Event> WebSocket::getNextEvent() {
+std::optional<CommunicationChannel::Event> CommunicationChannel::getNextEvent() {
   std::unique_lock<std::mutex> lock(mEventQueueMutex);
   if (!mEventQueue.empty()) {
     auto event = mEventQueue.front();
@@ -46,7 +46,7 @@ std::optional<WebSocket::Event> WebSocket::getNextEvent() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void WebSocket::sendEvent(WebSocket::Event const& event) const {
+void CommunicationChannel::sendEvent(CommunicationChannel::Event const& event) const {
   if (isConnected()) {
 
     nlohmann::json json   = {{"type", event.mType}, {"data", event.mData}};
@@ -58,19 +58,19 @@ void WebSocket::sendEvent(WebSocket::Event const& event) const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool WebSocket::isConnected() const {
+bool CommunicationChannel::isConnected() const {
   return mConnection != nullptr;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool WebSocket::handleConnection(CivetServer* server, const struct mg_connection* conn) {
+bool CommunicationChannel::handleConnection(CivetServer* server, const struct mg_connection* conn) {
   return !isConnected();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void WebSocket::handleReadyState(CivetServer* server, struct mg_connection* conn) {
+void CommunicationChannel::handleReadyState(CivetServer* server, struct mg_connection* conn) {
   mConnection = conn;
 
   std::unique_lock<std::mutex> lock(mEventQueueMutex);
@@ -79,7 +79,7 @@ void WebSocket::handleReadyState(CivetServer* server, struct mg_connection* conn
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool WebSocket::handleData(
+bool CommunicationChannel::handleData(
     CivetServer* server, struct mg_connection* conn, int bits, char* data, size_t data_len) {
 
   if (data_len <= 4) {
@@ -101,7 +101,7 @@ bool WebSocket::handleData(
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void WebSocket::handleClose(CivetServer* server, const struct mg_connection* conn) {
+void CommunicationChannel::handleClose(CivetServer* server, const struct mg_connection* conn) {
   mConnection = nullptr;
 
   std::unique_lock<std::mutex> lock(mEventQueueMutex);

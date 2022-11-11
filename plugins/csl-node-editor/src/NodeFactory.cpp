@@ -37,6 +37,7 @@ std::string NodeFactory::getSocketSource() const {
 std::string NodeFactory::getNodeSource() const {
   std::string source;
 
+  // This concatenates all JavaScript source code snippets of the registered nodes.
   for (auto const& f : mNodeSourceFuncs) {
     source += f();
   }
@@ -49,6 +50,7 @@ std::string NodeFactory::getNodeSource() const {
 std::string NodeFactory::getRegisterSource() const {
   std::string source;
 
+  // This sets up the required code for registering the rete components.
   for (auto const& f : mNodeCreateFuncs) {
     source += "{\n";
     source += fmt::format("const component = new {}Component();\n", f.first);

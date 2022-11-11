@@ -20,7 +20,7 @@
 
 namespace csl::nodeeditor {
 
-class WebSocket;
+class CommunicationChannel;
 
 class CSL_NODE_EDITOR_EXPORT Node {
  public:
@@ -39,9 +39,10 @@ class CSL_NODE_EDITOR_EXPORT Node {
   /// @brief
   /// @param collapsed
   void setIsCollapsed(bool collapsed);
+
   bool getIsCollapsed() const;
 
-  void setSocket(std::shared_ptr<WebSocket> socket);
+  void setSocket(std::shared_ptr<CommunicationChannel> socket);
   void setGraph(std::shared_ptr<NodeGraph> graph);
 
   virtual std::string const& getName() const = 0;
@@ -56,6 +57,10 @@ class CSL_NODE_EDITOR_EXPORT Node {
   virtual void setData(nlohmann::json const& json){};
 
  protected:
+  ///
+  /// @tparam T
+  /// @param socket
+  /// @param value
   template <typename T>
   void writeOutput(std::string const& socket, T const& value) {
     auto connections = mGraph->getOutputConnections(mID, socket);
@@ -68,6 +73,11 @@ class CSL_NODE_EDITOR_EXPORT Node {
     }
   }
 
+  ///
+  /// @tparam T
+  /// @param socket
+  /// @param defaultValue
+  /// @return
   template <typename T>
   T readInput(std::string const& socket, T defaultValue) {
     auto connection = mGraph->getInputConnection(mID, socket);
@@ -79,11 +89,11 @@ class CSL_NODE_EDITOR_EXPORT Node {
     return std::move(defaultValue);
   }
 
-  uint32_t                   mID = 0;
-  std::array<int32_t, 2>     mPosition;
-  bool                       mIsCollapsed = false;
-  std::shared_ptr<WebSocket> mSocket;
-  std::shared_ptr<NodeGraph> mGraph;
+  uint32_t                              mID = 0;
+  std::array<int32_t, 2>                mPosition;
+  bool                                  mIsCollapsed = false;
+  std::shared_ptr<CommunicationChannel> mSocket;
+  std::shared_ptr<NodeGraph>            mGraph;
 };
 
 } // namespace csl::nodeeditor

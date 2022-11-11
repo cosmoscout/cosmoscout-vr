@@ -5,8 +5,8 @@
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 // SPDX-License-Identifier: MIT
 
-#ifndef CSL_NODE_EDITOR_WEB_SOCKET_HPP
-#define CSL_NODE_EDITOR_WEB_SOCKET_HPP
+#ifndef CSL_NODE_EDITOR_COMMUNICATION_CHANNEL_HPP
+#define CSL_NODE_EDITOR_COMMUNICATION_CHANNEL_HPP
 
 #include "csl_node_editor_export.hpp"
 
@@ -17,7 +17,7 @@
 
 namespace csl::nodeeditor {
 
-class CSL_NODE_EDITOR_EXPORT WebSocket : public CivetWebSocketHandler {
+class CSL_NODE_EDITOR_EXPORT CommunicationChannel : public CivetWebSocketHandler {
 
  public:
   struct Event {
@@ -70,4 +70,4 @@ class CSL_NODE_EDITOR_EXPORT WebSocket : public CivetWebSocketHandler {
 
 } // namespace csl::nodeeditor
 
-#endif // CSL_NODE_EDITOR_WEB_SOCKET_HPP
+#endif // CSL_NODE_EDITOR_COMMUNICATION_CHANNEL_HPP

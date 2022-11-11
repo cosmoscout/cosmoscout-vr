@@ -20,34 +20,74 @@ class CivetWebSocketHandler;
 
 namespace csl::nodeeditor {
 
-class NodeGraph;
-class WebSocket;
+class CommunicationChannel;
 
+/// The node editor creates a web server which serves a web frontend on a given port via HTTP. The
+/// user can access this frontend with a web browser and start creating a node graph. For each
+/// created node or connection, a C++ counterpart is instantiated on the backend. Any data flow
+/// happens on the C++ side, the HTML / JavaScript graph is "just" a visualization of the graph.
+/// Whenever a node in the graph needs to display some data, a message needs to be sent from the C++
+/// backend to the JavaScript frontend. Similarly, whenever the user modifies the graph on the
+/// frontend, a message is sent to the C++ backend.
 class CSL_NODE_EDITOR_EXPORT NodeEditor {
  public:
+  /// This creates a new node editor instance. It will launch the web server in the background.
+  /// @param port     The port on which the node editor serves the web frontend.
+  /// @param factory  Use this to register node and socket types before creating the node editor.
   NodeEditor(uint16_t port, NodeFactory factory);
   ~NodeEditor();
 
+  /// This needs to be called once each frame. If any node produced new data since the last call to
+  /// update, this will trigger a reprocessing of all necessary nodes.
   void update();
 
-  /// May throw
+  /// This serializes the current node graph into a JSON structure which can later be used to
+  /// restore the graph layout. The JSON format follows this structure:
+  ///
+  /// {
+  ///     "nodes": {
+  ///         <node ID>: {
+  ///             "name": <node name>
+  ///             "id": <node ID>
+  ///             "position": [<x>, <y>],
+  ///             "collapsed": <bool>
+  ///             "data": { <a custom data object defined by the node type> }
+  ///             "outputs" : {
+  ///                 <from socket name> : {
+  ///                     "connections": [
+  ///                         {
+  ///                             "node": <to node ID>,
+  ///                             "input: <to socket name>
+  ///                         },
+  ///                         ...
+  ///                     ]
+  ///                 },
+  ///                 ...
+  ///             }
+  ///         },
+  ///         ...
+  ///     }
+  /// }
+  /// @return A JSON representation of the current graph.
   nlohmann::json toJSON() const;
-  void           fromJSON(nlohmann::json const& json);
+
+  /// This will replace the current graph with the graph in the given JSON object. The JSON object
+  /// must follow the structure defined above. The method will throw a std::runtime_error if the
+  /// given JSON object does not match the expected structure. If this happens, the graph may have
+  /// been loaded only partially.
+  void fromJSON(nlohmann::json const& json);
 
  private:
-  void startServer(uint16_t port);
-  void quitServer();
-
+  /// This is called by the constructor to create the HTML source for the web frontend. For this,
+  /// all the source code snippets of the registered node types are concatenated.
   std::string createHTMLSource() const;
 
-  NodeFactory                mFactory;
-  std::shared_ptr<WebSocket> mSocket;
-  std::shared_ptr<NodeGraph> mGraph;
-
+  NodeFactory                                                        mFactory;
+  std::shared_ptr<CommunicationChannel>                              mSocket;
+  std::shared_ptr<NodeGraph>                                         mGraph;
   std::unique_ptr<CivetServer>                                       mServer;
   std::vector<std::pair<std::string, std::unique_ptr<CivetHandler>>> mHandlers;
-
-  std::string mHTMLSource;
+  std::string                                                        mHTMLSource;
 };
 
 } // namespace csl::nodeeditor

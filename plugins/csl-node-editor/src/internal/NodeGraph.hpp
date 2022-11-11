@@ -8,7 +8,7 @@
 #ifndef CSL_NODE_EDITOR_NODE_GRAPH_HPP
 #define CSL_NODE_EDITOR_NODE_GRAPH_HPP
 
-#include "Connection.hpp"
+#include "NodeConnection.hpp"
 
 #include <list>
 #include <memory>
@@ -35,31 +35,10 @@ class CSL_NODE_EDITOR_EXPORT NodeGraph {
   void queueProcess();
   void queueProcessing(uint32_t node);
 
-  /// {
-  ///     "nodes": {
-  ///         <node ID>: {
-  ///             "name": <node name>
-  ///             "id": <node ID>
-  ///             "position": [<x>, <y>],
-  ///             "collapsed": <bool>
-  ///             "data": {}
-  ///             "outputs" : {
-  ///                 <from socket name> : {
-  ///                     "connections": [
-  ///                         {
-  ///                             "node": <to node ID>,
-  ///                             "input: <to socket name>
-  ///                         },
-  ///                         ...
-  ///                     ]
-  ///                 },
-  ///                 ...
-  ///             }
-  ///         },
-  ///         ...
-  ///     }
-  /// }
+  /// See NodeEditor::toJSON()
   nlohmann::json toJSON() const;
+
+  void clear();
 
   // Node API --------------------------------------------------------------------------------------
 
@@ -71,25 +50,25 @@ class CSL_NODE_EDITOR_EXPORT NodeGraph {
   /// @param toNode   The ID of the node.
   /// @param toSocket The name of the socket.
   /// @return         A connection (if any).
-  Connection const* getInputConnection(uint32_t toNode, std::string const& toSocket) const;
+  NodeConnection const* getInputConnection(uint32_t toNode, std::string const& toSocket) const;
 
   /// Gets all input connections connected to a given node.
   /// @param toNode   The ID of the node.
   /// @return         A list of connections (this can be empty).
-  std::vector<Connection const*> getInputConnections(uint32_t toNode) const;
+  std::vector<NodeConnection const*> getInputConnections(uint32_t toNode) const;
 
   /// Gets a list of connections which are connected to a given output socket. There can be multiple
   /// connections *from* a socket.
   /// @param fromNode   The ID of the node.
   /// @param fromSocket The name of the socket.
   /// @return           A list of connections (this can be empty).
-  std::vector<Connection const*> getOutputConnections(
+  std::vector<NodeConnection const*> getOutputConnections(
       uint32_t fromNode, std::string const& fromSocket) const;
 
   /// Gets all output connections connected to a given node.
   /// @param fromNode The ID of the node.
   /// @return         A list of connections (this can be empty).
-  std::vector<Connection const*> getOutputConnections(uint32_t fromNode) const;
+  std::vector<NodeConnection const*> getOutputConnections(uint32_t fromNode) const;
 
   // Node editor API -------------------------------------------------------------------------------
 
@@ -125,7 +104,7 @@ class CSL_NODE_EDITOR_EXPORT NodeGraph {
 
   std::unordered_set<uint32_t> mDirtyNodes;
 
-  std::list<Connection> mConnections;
+  std::list<NodeConnection> mConnections;
 };
 
 } // namespace csl::nodeeditor
