@@ -93,7 +93,7 @@ bool CommunicationChannel::handleData(
     std::unique_lock<std::mutex> lock(mEventQueueMutex);
     mEventQueue.push(event);
   } catch (std::exception const& e) {
-    logger().warn("Failed to parse event: {}", std::string(data, data_len));
+    logger().warn("Failed to parse event '{}': {}", std::string(data, data_len), e.what());
   }
 
   return true;
