@@ -8,8 +8,6 @@
 #ifndef CSL_NODE_EDITOR_COMMUNICATION_CHANNEL_HPP
 #define CSL_NODE_EDITOR_COMMUNICATION_CHANNEL_HPP
 
-#include "csl_node_editor_export.hpp"
-
 #include <CivetServer.h>
 #include <mutex>
 #include <nlohmann/json.hpp>
@@ -22,7 +20,7 @@ namespace csl::nodeeditor {
 /// a web socket. There is a set of predefined event types which make up the whole communication.
 /// This class is instantiated by the node editor. As a user of this library, you should not have to
 /// use this class directly.
-class CSL_NODE_EDITOR_EXPORT CommunicationChannel : public CivetWebSocketHandler {
+class CommunicationChannel : public CivetWebSocketHandler {
 
  public:
   struct Event {

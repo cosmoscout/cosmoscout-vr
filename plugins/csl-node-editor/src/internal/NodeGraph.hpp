@@ -25,7 +25,7 @@ class Node;
 /// This class keeps track of the nodes and their connections. It is used by the NodeEditor and the
 /// Node base class. When implementing custom nodes, you usually will not have to work with this
 /// class directly. Use the methods of the Node class instead.
-class CSL_NODE_EDITOR_EXPORT NodeGraph {
+class NodeGraph {
  public:
   // These need to be declared explicitely as the default versions would be defined inline which
   // makes it impossible to use a forward declartion of Node.

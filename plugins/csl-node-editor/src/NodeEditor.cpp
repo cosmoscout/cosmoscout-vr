@@ -73,7 +73,7 @@ NodeEditor::NodeEditor(uint16_t port, NodeFactory factory)
   }
 
   // We also serve the CosmoScout VR icon as favicon so that web browsers are happy.
-  mHandlers.emplace_back("/favicon.ico$", std::make_unique<GetHandler>([this](mg_connection* conn) {
+  mHandlers.emplace_back("/favicon.ico$", std::make_unique<GetHandler>([](mg_connection* conn) {
     mg_send_mime_file(conn, "../share/resources/icons/icon.ico", "image/ico");
   }));
 
