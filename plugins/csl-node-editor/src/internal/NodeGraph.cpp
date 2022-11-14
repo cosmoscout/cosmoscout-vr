@@ -29,7 +29,7 @@ void NodeGraph::queueProcess() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void NodeGraph::queueProcessing(uint32_t node) {
+void NodeGraph::queueProcess(uint32_t node) {
   mDirtyNodes.insert(node);
 }
 
