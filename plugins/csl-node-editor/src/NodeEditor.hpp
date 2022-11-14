@@ -28,7 +28,11 @@ class CommunicationChannel;
 /// happens on the C++ side, the HTML / JavaScript graph is "just" a visualization of the graph.
 /// Whenever a node in the graph needs to display some data, a message needs to be sent from the C++
 /// backend to the JavaScript frontend. Similarly, whenever the user modifies the graph on the
-/// frontend, a message is sent to the C++ backend.
+/// frontend, a message is sent to the C++ backend. Custom node types have to inherit from the Node
+/// class. This base class provides methods for communicating with the JavaScript counterpart of the
+/// node. Internally, the communication happens via a web socket.
+/// At any given time, there can be only one open connection to a client. If an additional client
+/// connects, an error message will be shown instead of the frontend web page.
 class CSL_NODE_EDITOR_EXPORT NodeEditor {
  public:
   /// This creates a new node editor instance. It will launch the web server in the background.
@@ -38,7 +42,7 @@ class CSL_NODE_EDITOR_EXPORT NodeEditor {
   ~NodeEditor();
 
   /// This needs to be called once each frame. If any node produced new data since the last call to
-  /// update, this will trigger a reprocessing of all necessary nodes.
+  /// update(), this will trigger a reprocessing of all necessary nodes.
   void update();
 
   /// This serializes the current node graph into a JSON structure which can later be used to
@@ -71,23 +75,19 @@ class CSL_NODE_EDITOR_EXPORT NodeEditor {
   /// @return A JSON representation of the current graph.
   nlohmann::json toJSON() const;
 
-  /// This will replace the current graph with the graph in the given JSON object. The JSON object
-  /// must follow the structure defined above. The method will throw a std::runtime_error if the
-  /// given JSON object does not match the expected structure. If this happens, the graph may have
-  /// been loaded only partially.
+  /// This will replace the current graph with the graph in the given JSON object.
+  /// @param json The JSON object must follow the structure defined above.
+  /// @throws     The method will throw a std::runtime_error if the given JSON object does not match
+  ///             the expected structure. If this happens, the graph may have been loaded only
+  ///             partially.
   void fromJSON(nlohmann::json const& json);
 
  private:
-  /// This is called by the constructor to create the HTML source for the web frontend. For this,
-  /// all the source code snippets of the registered node types are concatenated.
-  std::string createHTMLSource() const;
-
   NodeFactory                                                        mFactory;
   std::shared_ptr<CommunicationChannel>                              mSocket;
   std::shared_ptr<NodeGraph>                                         mGraph;
   std::unique_ptr<CivetServer>                                       mServer;
   std::vector<std::pair<std::string, std::unique_ptr<CivetHandler>>> mHandlers;
-  std::string                                                        mHTMLSource;
 };
 
 } // namespace csl::nodeeditor
