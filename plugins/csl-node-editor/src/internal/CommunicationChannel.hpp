@@ -13,6 +13,7 @@
 #include <CivetServer.h>
 #include <mutex>
 #include <nlohmann/json.hpp>
+#include <optional>
 #include <queue>
 
 namespace csl::nodeeditor {
