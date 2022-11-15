@@ -29,8 +29,8 @@ class Node;
 /// class directly. Use the methods of the Node class instead.
 class CSL_NODE_EDITOR_EXPORT NodeGraph {
  public:
-  // These need to be declared explicitely as the default versions would be defined inline which
-  // makes it impossible to use a forward declartion of Node.
+  // These need to be declared explicitly as the default versions would be defined inline which
+  // makes it impossible to use a forward declaration of Node.
   NodeGraph();
   ~NodeGraph();
 
@@ -143,7 +143,9 @@ class CSL_NODE_EDITOR_EXPORT NodeGraph {
   // Returns all nodes which are currently connected to an input socket of the given node.
   std::vector<uint32_t> getInputNodes(uint32_t node) const;
 
-  std::unordered_map<uint32_t, std::unique_ptr<Node>> mNodes;
+  // Actually, this map should store unique pointers to the nodes. However, for some reason MSVC
+  // does not like this...
+  std::unordered_map<uint32_t, std::shared_ptr<Node>> mNodes;
   std::unordered_set<uint32_t>                        mDirtyNodes;
   std::list<NodeConnection>                           mConnections;
 };
