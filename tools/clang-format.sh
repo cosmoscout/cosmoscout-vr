@@ -17,6 +17,6 @@ find "$SRC_DIR/../src" "$SRC_DIR/../plugins" "$SRC_DIR/../resources" "$SRC_DIR/.
         -name '*.cu' -o -name '*.cuh' -o -name '*.js' \) -and ! -path '*third-party*' -exec sh -c '
   for file do
     echo "Formatting $file..."
-    clang-format-11 -i "$file"
+    clang-format -i "$file"
   done
 ' sh {} +
