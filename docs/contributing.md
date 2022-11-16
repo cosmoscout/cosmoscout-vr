@@ -13,17 +13,16 @@ Whenever you encounter a :beetle: **bug** or have :tada: **feature request**,
 report this via [Github issues](https://github.com/cosmoscout/cosmoscout-vr/issues).
 
 We are happy to receive contributions to CosmoScout VR in the form of **pull requests** via Github.
-Feel free to fork the repository, implement your changes and create a merge request to the `develop` branch.
+Feel free to fork the repository, implement your changes and create a merge request to the `main` branch.
 There is a [forking guide](#forking-cosmoscout-vr) available to get you started!
 
 ## Branching Guidelines
 
-The development of CosmoScout VR follows a simplified version of **git-flow**: The `master` branch always contains stable code.
-New features and bug fixes are implemented in `feature/*` branches and are merged to `develop` once they are finished.
-When a new milestone is reached, the content of `develop` will be merged to `master` and a tag is created.
+New features and bug fixes are implemented in `feature/*` branches and are merged to `main` once they are finished.
+When a milestone is reached, a new tag is created.
 
 [Github Actions](https://github.com/cosmoscout/cosmoscout-vr/actions) are used for continuous integration.
-All pull requests and pushes to `master` and `develop` are built automatically.
+All pull requests and pushes to `main` are built automatically.
 If you want to test a specific commit on any other branch, add **`[run-ci]`** to your commit message.
 
 ## Coding Guidelines
@@ -79,13 +78,13 @@ chmod +x .git/hooks/commit-msg
 
 # Forking CosmoScout VR
 
-This is pretty straight-forward. Just click the **Fork** button on the top right of this page. Then clone the forked repository, perform your changes, push to a feature branch and create a pull request to CosmoScout's develop branch.
+This is pretty straight-forward. Just click the **Fork** button on the top right of this page. Then clone the forked repository, perform your changes, push to a feature branch and create a pull request to CosmoScout's `main` branch.
 
 ``` bash
 git clone git@github.com:<your user name>/cosmoscout-vr.git
 cd cosmoscout-vr
 git remote add upstream git@github.com:cosmoscout/cosmoscout-vr.git
-git checkout develop
+git checkout main
 git submodule update --init
 git checkout -b feature/your-new-feature
 
@@ -94,14 +93,14 @@ git checkout -b feature/your-new-feature
 git push origin feature/your-new-feature
 ```
 
-When there were changes in CosmoScout's develop branch, you will need to merge those to your fork before creating a pull request:
+When there were changes in CosmoScout's `main` branch, you will need to merge those to your fork before creating a pull request:
 
 ``` bash
 git fetch upstream
-git merge upstream/develop
+git merge upstream/main
 ```
 
-Then you can create a pull request on GitHub to CosmoScout's develop branch.
+Then you can create a pull request on GitHub to CosmoScout's `main` branch.
 
 ## Creating a new plugin
 

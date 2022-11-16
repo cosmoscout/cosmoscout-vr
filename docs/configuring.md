@@ -215,11 +215,11 @@ Each file has a specific section which is called `SYSTEM` which serves as an ent
 It is incomplete and may be erroneous.
 Please fix anything you find!
 Most of the parameters are parsed by
-[`VistaSystem.cpp`](https://github.com/cosmoscout/vista/tree/develop/VistaCoreLibs/VistaKernel/VistaSystem.cpp),
-[`VistaSystemConfigurators.cpp`](https://github.com/cosmoscout/vista/tree/develop/VistaCoreLibs/VistaKernel/VistaSystemConfigurators.cpp),
-[`VistaNewClusterMaster.cpp`](https://github.com/cosmoscout/vista/tree/develop/VistaCoreLibs/VistaKernel/Cluster/VistaNewClusterMaster.cpp)
+[`VistaSystem.cpp`](https://github.com/cosmoscout/vista/tree/main/VistaCoreLibs/VistaKernel/VistaSystem.cpp),
+[`VistaSystemConfigurators.cpp`](https://github.com/cosmoscout/vista/tree/main/VistaCoreLibs/VistaKernel/VistaSystemConfigurators.cpp),
+[`VistaNewClusterMaster.cpp`](https://github.com/cosmoscout/vista/tree/main/VistaCoreLibs/VistaKernel/Cluster/VistaNewClusterMaster.cpp)
 and
-[`VistaNewClusterSlave.cpp`](https://github.com/cosmoscout/vista/tree/develop/VistaCoreLibs/VistaKernel/Cluster/VistaNewClusterSlave.cpp)._
+[`VistaNewClusterSlave.cpp`](https://github.com/cosmoscout/vista/tree/main/VistaCoreLibs/VistaKernel/Cluster/VistaNewClusterSlave.cpp)._
 
 ### `vista.ini`
 

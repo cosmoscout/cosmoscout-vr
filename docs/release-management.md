@@ -30,11 +30,11 @@ This means, given a version number MAJOR.MINOR.PATCH, we will increment the:
 When a new version of CosmoScout VR is released, the following steps are performed.
 
 ```bash
-git checkout develop
+git checkout main
 git submodule update --init
 ```
 
-First, the [changelog.md](https://github.com/cosmoscout/cosmoscout-vr/blob/develop/docs/changelog.md) has to be updated.
+First, the [changelog.md](https://github.com/cosmoscout/cosmoscout-vr/blob/main/docs/changelog.md) has to be updated.
 Based on the commits since the last release and the completed milestone, a list of changes is compiled.
 When this is done, the file has to be comitted:
 
@@ -43,7 +43,7 @@ git add docs/changelog.md
 git commit -m ":memo: Update changelog.md"
 ```
 
-Then edit the [project(... VERSION ...)](https://github.com/cosmoscout/cosmoscout-vr/blob/develop/CMakeLists.txt#L8) in the main `CMakeLists.txt` file according to the new version number.
+Then edit the [project(... VERSION ...)](https://github.com/cosmoscout/cosmoscout-vr/blob/main/CMakeLists.txt#L8) in the main `CMakeLists.txt` file according to the new version number.
 Afterwards, the change has to be comitted:
 
 ```bash
@@ -51,15 +51,12 @@ git add CMakeLists.txt
 git commit -m ":tada: Bump version number"
 ```
 
-Then we create a new git tag and merge this state to the `master` branch.
+Then we create a new git tag and push this state to the `main` branch.
 
 ```bash
-git push origin develop
+git push origin main
 git tag v<new version number>
-git checkout master
-git merge develop
 git push origin v<new version number>
-git push origin master
 ```
 
 The default downloads for tags on Github do not contain git submodules.
