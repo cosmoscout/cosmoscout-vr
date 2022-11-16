@@ -24,11 +24,11 @@ struct NodeConnection {
       , mToSocket(std::move(toSocket)) {
   }
 
-  const uint32_t    mFromNode;
-  const std::string mFromSocket;
+  uint32_t    mFromNode;
+  std::string mFromSocket;
 
-  const uint32_t    mToNode;
-  const std::string mToSocket;
+  uint32_t    mToNode;
+  std::string mToSocket;
 
   mutable std::any mData;
 };
