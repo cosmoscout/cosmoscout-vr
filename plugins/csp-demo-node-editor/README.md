@@ -6,6 +6,7 @@ SPDX-License-Identifier: CC-BY-4.0
 # Demo Node Editor Plugin for CosmoScout VR
 
 This plugin provides an example use case of the `csl-node-editor` plugin library.
+For more information on this library, [have a look at it](../csl-node-editor/).
 
 
 ## Configuration & Usage
