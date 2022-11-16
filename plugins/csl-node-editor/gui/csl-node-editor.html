@@ -41,7 +41,7 @@ SPDX-License-Identifier: MIT
     </div>
   </div>
 
-
+  <!-- We need quite a lot of dependencies :) -->
   <script type="text/javascript" src="third-party/js/rete.min.js"></script>
   <script type="text/javascript" src="third-party/js/vue.min.js"></script>
   <script type="text/javascript" src="third-party/js/alight.min.js"></script>
@@ -59,6 +59,9 @@ SPDX-License-Identifier: MIT
   <script type="text/javascript" src="third-party/js/nouislider.min.js"></script>
 
   <script type="text/javascript">
+
+    // This is used to convert socket names (which may contain spaces) to something which can be
+    // used as CSS class name.
     function toKebabCase(string) {
       return string
         .replace(/([a-z])([A-Z])/g, "$1-$2")
@@ -66,6 +69,7 @@ SPDX-License-Identifier: MIT
         .toLowerCase();
     }
 
+    // Adds a CSS style for the given socket name.
     function addSocketStyle(name, color) {
       const css = document.createElement("style");
       css.innerText = `
@@ -76,33 +80,52 @@ SPDX-License-Identifier: MIT
       document.head.appendChild(css);
     }
 
+    // This object encapsulates all 'global' objects which are supposed to be accessed by the nodes.
     CosmoScout = {
-      socketTypes: [],
-      connection: null,
+      // This object contains all registered ReteJS socket types.
+      socketTypes: {},
+
+      // This is the websocket which is used for communication with the C++ server. Nodes usually
+      // will not have to use this directly, they can use the CosmoScout.sendMessagetoCPP() instead.
+      communicationChannel: null,
+
+      // This is the main ReteJS node editor instance. Usually, nodes will not need this either, but
+      // it can be useful for listening to events like the translation of nodes.
       nodeEditor: null,
+
+      // Sends a message to the C++ counterpart of the node with the given ID. Usually, a node will
+      // use this inside a handler in a custom control. There, you can access the ID of the node
+      // which the control is part of by accessing `this.parent.id`.
       sendMessagetoCPP: (message, toNode) => {
-        CosmoScout.connection.send(JSON.stringify({
+        CosmoScout.communicationChannel.send(JSON.stringify({
           type: "nodeMessage", data: { message: message, toNode: toNode }
         }));
       }
     };
 
-    CosmoScout.connection = new WebSocket('ws://' + window.location.host + '/socket');
+    // Setup the websocket -------------------------------------------------------------------------
 
-    CosmoScout.connection.onerror = error => {
+    CosmoScout.communicationChannel = new WebSocket('ws://' + window.location.host + '/socket');
+
+    // Hide the loading screen and show the connection-error message if an error occurs.
+    CosmoScout.communicationChannel.onerror = error => {
       document.getElementById("loading-screen").classList.add("hidden");
       document.getElementById("connection-failed").classList.remove("hidden");
     };
 
-    CosmoScout.connection.onopen = () => {
-      CosmoScout.connection.onclose = () => {
+    // Show an alert if the connection was closed after it has been established.
+    CosmoScout.communicationChannel.onopen = () => {
+      CosmoScout.communicationChannel.onclose = () => {
         alert('Connection to CosmoScout VR was interupted.');
       };
     };
 
-    CosmoScout.connection.onmessage = e => {
+    // Handle messages sent from the C++ server.
+    CosmoScout.communicationChannel.onmessage = e => {
       let event = JSON.parse(e.data);
 
+      // There are two types of events which can be sent from the C++ server to the web frontend.
+      // The first are custom node messages. These are simply routed to the target node.
       if (event.type === "nodeMessage") {
         let node = CosmoScout.nodeEditor.nodes.find(node => node.id === event.data.toNode);
 
@@ -110,55 +133,79 @@ SPDX-License-Identifier: MIT
           node.onMessageFromCPP(event.data.message);
         }
 
-      } else if (event.type === "loadGraph") {
+      }
+      // The second type of message is the initial loading of a graph layout.
+      else if (event.type === "loadGraph") {
+
+        // For this event, we first give the node layout to ReteJS.
         CosmoScout.nodeEditor.fromJSON({ id: "node-editor@0.1.0", nodes: event.data.nodes }).then(() => {
 
+          // Once the graph has been loaded, we have to collapse all nodes which should be
+          // collapsed. This is not a standard ReteJS feature, so we have to do this on our own.
           for (const [id, node] of Object.entries(event.data.nodes)) {
             if (node.collapsed) {
               document.querySelector("#node-" + id).classList.add("collapsed");
             }
           }
 
+          // Make sure that all node are shown within the browser window.
           AreaPlugin.zoomAt(CosmoScout.nodeEditor);
-          CosmoScout.nodeEditor.nodes.forEach(node => CosmoScout.nodeEditor.view.updateConnections({ node: node }));
 
+          // Hide the loading screen.
           document.getElementById("loading-screen").classList.add("hidden");
-          CosmoScout.connection.send(JSON.stringify({
+
+          // Finally, we send a notification to the server that loading the graph is done.
+          CosmoScout.communicationChannel.send(JSON.stringify({
             type: "graphLoaded", data: {}
           }));
         });
       }
     };
 
+    // Register the socket types -------------------------------------------------------------------
+
+    // The comment below will be replaced with some code which registers all given socket types.
     //!SOCKET_SOURCE_CODE
 
+    // Register the node types ---------------------------------------------------------------------
+
+    // The comment below will be replaced with the combined source code of all registered nodes.
     //!NODE_SOURCE_CODE
 
+    // Create the node editor ----------------------------------------------------------------------
+
     (async () => {
+
+      // Create the ReteJS node editor.
       const container = document.querySelector('#rete');
-
-      const background = document.createElement('div');
-      background.classList = 'background';
-
       CosmoScout.nodeEditor = new Rete.NodeEditor('node-editor@0.1.0', container);
       CosmoScout.nodeEditor.use(ConnectionPlugin.default);
+      CosmoScout.nodeEditor.use(HistoryPlugin);
       CosmoScout.nodeEditor.use(ContextMenuPlugin.default, {
         delay: 0,
         allocate(component) {
           return component.category ? [component.category] : [];
         },
       });
-      CosmoScout.nodeEditor.use(AreaPlugin, { background });
-      CosmoScout.nodeEditor.use(HistoryPlugin);
 
+      // Add the background grid.
+      const background = document.createElement('div');
+      background.classList = 'background';
+      CosmoScout.nodeEditor.use(AreaPlugin, { background });
+
+      // The comment below will be replaced with some code which registers all custom node types
+      // with the editor.
       //!REGISTER_COMPONENTS
 
+      // Send an event to the server whenever the user created a new node.
       CosmoScout.nodeEditor.on('nodecreated', node => {
+
+        // Do not emit events if we are currently loading a complete graph layout.
         if (CosmoScout.nodeEditor.silent) {
           return;
         }
 
-        CosmoScout.connection.send(JSON.stringify({
+        CosmoScout.communicationChannel.send(JSON.stringify({
           type: "addNode", data: {
             type: node.name,
             id: node.id,
@@ -167,16 +214,18 @@ SPDX-License-Identifier: MIT
         }));
       });
 
+      // Send an event to the server whenever the user removed node.
       CosmoScout.nodeEditor.on('noderemoved', node => {
-        CosmoScout.connection.send(JSON.stringify({
+        CosmoScout.communicationChannel.send(JSON.stringify({
           type: "removeNode", data: {
             id: node.id
           }
         }));
       });
 
+      // Send an event to the server whenever the user moved node.
       CosmoScout.nodeEditor.on('nodetranslated', ({ node, prev }) => {
-        CosmoScout.connection.send(JSON.stringify({
+        CosmoScout.communicationChannel.send(JSON.stringify({
           type: "translateNode", data: {
             id: node.id,
             position: node.position
@@ -184,12 +233,15 @@ SPDX-License-Identifier: MIT
         }));
       });
 
+      // Send an event to the server whenever the user created a new node connection.
       CosmoScout.nodeEditor.on('connectioncreated', connection => {
+
+        // Do not emit events if we are currently loading a complete graph layout.
         if (CosmoScout.nodeEditor.silent) {
           return;
         }
 
-        CosmoScout.connection.send(JSON.stringify({
+        CosmoScout.communicationChannel.send(JSON.stringify({
           type: "addConnection", data: {
             fromNode: connection.output.node.id,
             fromSocket: connection.output.key,
@@ -199,8 +251,9 @@ SPDX-License-Identifier: MIT
         }));
       });
 
+      // Send an event to the server whenever the user removed a node connection.
       CosmoScout.nodeEditor.on('connectionremoved', connection => {
-        CosmoScout.connection.send(JSON.stringify({
+        CosmoScout.communicationChannel.send(JSON.stringify({
           type: "removeConnection", data: {
             fromNode: connection.output.node.id,
             fromSocket: connection.output.key,
@@ -210,24 +263,34 @@ SPDX-License-Identifier: MIT
         }));
       });
 
+      // Prevent creation of connections from an output of a node to an input of the very same node.
       CosmoScout.nodeEditor.on('connectioncreate', ({ input, output }) => {
         return input.node.id != output.node.id;
       });
 
+      // We do not use any of the available node rendering plugins of ReteJS as they require using
+      // very complex UI libraries such as vue or react. For our use case, a simple div layout is
+      // sufficient. Whenever a new node is created, the code below is executed.
       CosmoScout.nodeEditor.on('rendernode', ({ el, node, component, bindSocket, bindControl }) => {
 
         el.id = "node-" + node.id;
         el.className = "node";
+
+        // Render the title ------------------------------------------------------------------------
 
         const title = document.createElement('div');
         title.className = "title";
         title.innerHTML = `<span>${node.name}</span><i class='material-icons caret-icon'>keyboard_arrow_left</i>`;
         el.appendChild(title);
 
+        // Prevent zooming when double-clicking a node.
         el.addEventListener('dblclick', event => {
           event.stopPropagation();
         });
 
+        // Do not interpret pointer-up events as click events after a node was dragged around. Else,
+        // if you drag a node by clicking on its title, it will be collapsed when you stop dragging
+        // the node. 
         title.addEventListener("pointerdown", () => {
           el._wasDragged = false;
         });
@@ -235,6 +298,7 @@ SPDX-License-Identifier: MIT
           el._wasDragged = true;
         });
 
+        // Collapse the nodes when clicking on the title.
         title.addEventListener("click", () => {
           if (el._wasDragged) {
             return;
@@ -242,15 +306,18 @@ SPDX-License-Identifier: MIT
 
           el.classList.toggle("collapsed");
 
-          CosmoScout.connection.send(JSON.stringify({
+          CosmoScout.communicationChannel.send(JSON.stringify({
             type: "collapseNode", data: {
               id: node.id,
               collapsed: el.classList.contains("collapsed")
             }
           }));
 
+          // Make sure that the connections are drawn according to the new socket positions.
           CosmoScout.nodeEditor.view.updateConnections({ node: node });
         });
+
+        // Render the input sockets ----------------------------------------------------------------
 
         const inputs = document.createElement('div');
         inputs.className = "inputs";
@@ -274,6 +341,8 @@ SPDX-License-Identifier: MIT
           bindSocket(socket, "input", i);
         });
 
+        // Render the controls ---------------------------------------------------------------------
+
         const controls = document.createElement('div');
         controls.className = "controls";
         el.appendChild(controls);
@@ -287,6 +356,8 @@ SPDX-License-Identifier: MIT
 
           bindControl(control, c);
         });
+
+        // Render the output sockets ---------------------------------------------------------------
 
         const outputs = document.createElement('div');
         outputs.className = "outputs";
@@ -309,6 +380,8 @@ SPDX-License-Identifier: MIT
 
           bindSocket(socket, "output", o);
         });
+
+        // Call the onInit() method of the new node ------------------------------------------------
 
         if (node.onInit) {
           node.onInit(el);
