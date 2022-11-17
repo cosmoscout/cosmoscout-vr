@@ -36,6 +36,7 @@
 !/plugins/csp-timings
 !/plugins/csp-trajectories
 !/plugins/csp-web-api
+!/plugins/csp-wcs-overlays
 !/plugins/csp-wms-overlays
 
 *.sublime*

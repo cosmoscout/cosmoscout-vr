@@ -1,0 +1,188 @@
+<!--
+SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+SPDX-License-Identifier: MIT
+-->
+
+<div class="strike">
+  <span>Dataset Selection</span>
+</div>
+<div class="row mb-1">
+  <div class="col-5">
+    <label>WCS Server</label>
+  </div>
+  <div class="col-6 offset-1">
+    <select data-callback="wcsOverlays.setServer" data-container="#cosmoscout" data-width="100%"
+            class="simple-value-dropdown" data-dropdown-align-right="true">
+      <!-- Filled by JavaScript Function called from Plugin.cpp -->
+    </select>
+  </div>
+</div>
+
+<div class="row mb-1">
+  <div class="col-5">
+    <label>Image Channel</label>
+  </div>
+  <div class="col-1">
+    <i class="material-icons" style="font-size: 22px; top:-3px;" id="wcsOverlays-infoIcon">info</i>
+  </div>
+  <div class="col-6">
+    <select data-callback="wcsOverlays.setCoverage" data-container="#cosmoscout" data-width="100%"
+            class="simple-value-dropdown" data-dropdown-align-right="true" data-live-search="true">
+      <!-- Filled by JavaScript Function called from Plugin.cpp -->
+    </select>
+  </div>
+</div>
+
+<div class="row mb-1">
+  <div class="col-5">
+    <label>Layer</label>
+  </div>
+  <div class="col-6 offset-1">
+    <select data-callback="wcsOverlays.setLayer" data-container="#cosmoscout" data-width="100%"
+            class="simple-value-dropdown" data-dropdown-align-right="true">
+      <!-- Filled by JavaScript Function called from Plugin.cpp -->
+    </select>
+  </div>
+</div>
+
+<div class="strike">
+  <span>Time</span>
+</div>
+
+<div class="row mb-1">
+  <div class="col-3">
+    <button class="btn glass block" data-toggle="tooltip" title="First"
+            onclick="CosmoScout.callbacks.wcsOverlays.goToFirstTime()">
+      <i class="material-icons">skip_previous</i>
+    </button>
+  </div>
+  <div class="col-3">
+    <button class="btn glass block" data-toggle="tooltip" title="Previous"
+            onclick="CosmoScout.callbacks.wcsOverlays.goToPreviousTime()">
+      <i class="material-icons">navigate_before</i>
+    </button>
+  </div>
+  <div class="col-3">
+    <button class="btn glass block" data-toggle="tooltip" title="Next"
+            onclick="CosmoScout.callbacks.wcsOverlays.goToNextTime()">
+      <i class="material-icons">navigate_next</i>
+    </button>
+  </div>
+  <div class="col-3">
+    <button class="btn glass block" data-toggle="tooltip" title="Last"
+            onclick="CosmoScout.callbacks.wcsOverlays.goToLastTime()">
+      <i class="material-icons">skip_next</i>
+    </button>
+  </div>
+
+  <div class="col-12 mt-2" id="wcsOverlays-time-info-container">
+    <div class="row">
+      <div class="col-6 pl-3 text-left"><span id="wcsOverlays-start-time"></span></div>
+      <div class="col-6 pr-3 text-right"><span id="wcsOverlays-end-time"></span></div>
+    </div>
+  </div>
+</div>
+
+<div class="strike">
+  <span>Geographical bounds</span>
+</div>
+
+<div class="row mb-1">
+  <div class="col-5">
+    <label>Default</label>
+  </div>
+  <div class="col-5">
+    <label id="wcsOverlays-defaultBounds">None</label>
+  </div>
+  <div class="col-2">
+    <button class="btn glass block" data-toggle="tooltip" title="Go to center"
+            onclick="CosmoScout.callbacks.wcsOverlays.goToDefaultBounds()" disabled>
+      <i class="material-icons">place</i>
+    </button>
+  </div>
+</div>
+
+<div class="row mb-1">
+  <div class="col-5">
+    <label>Current</label>
+  </div>
+  <div class="col-5">
+    <label id="wcsOverlays-currentBounds">None</label>
+  </div>
+  <div class="col-2">
+    <button class="btn glass block" data-toggle="tooltip" title="Go to center"
+            onclick="CosmoScout.callbacks.wcsOverlays.goToCurrentBounds()" disabled>
+      <i class="material-icons">place</i>
+    </button>
+  </div>
+</div>
+
+<div class="row mb-1">
+  <div class="col-6">
+    <button class="btn glass block" onclick="CosmoScout.callbacks.wcsOverlays.resetBounds()">
+      Reset to default
+    </button>
+  </div>
+  <div class="col-6">
+    <button class="btn glass block" onclick="CosmoScout.callbacks.wcsOverlays.updateBounds()">
+      Fit to screen
+    </button>
+  </div>
+</div>
+
+<div class="strike">
+  <span>Transfer Function</span>
+</div>
+<div class="row mb-1">
+  <div class="col-12" id="wcsOverlays-transfer-function"></div>
+</div>
+
+<template id="wcsOverlays-infoWindow-template">
+  <div id="wcsOverlays-infoWindow" class="draggable-window resizable-window">
+    <div class="window-wrapper">
+      <div class="window-header">
+        <span class="window-title">
+          <i class="material-icons">layers</i>
+          <span id="wcsOverlays-infoWindow-title"></span>
+        </span>
+        <a class="btn light-glass" data-action="close" data-toggle="tooltip" title="Close">
+          <i class="material-icons">close</i>
+        </a>
+      </div>
+      <div class="window-content container-fluid">
+        <div class="row">
+          <div class="col-2">
+            <label><b>Abstract:</b></label>
+          </div>
+          <div class="col-10">
+            <p id="wcsOverlays-infoWindow-abstract"></p>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-2">
+            <label><b>Attribution:</b></label>
+          </div>
+          <div class="col-10">
+            <p id="wcsOverlays-infoWindow-attribution"></p>
+          </div>
+        </div>
+        <div class="row" id="wcsOverlays-infoWindow-time-container">
+          <div class="col-2">
+            <label><b>Time Interval:</b></label>
+          </div>
+          <div class="col-10">
+            <p id="wcsOverlays-infoWindow-time"></p>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-2">
+            <label><b>Keywords:</b></label>
+          </div>
+          <div class="col-10">
+            <p id="wcsOverlays-infoWindow-keywords"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
