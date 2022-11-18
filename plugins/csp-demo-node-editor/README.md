@@ -19,7 +19,7 @@ This plugin can be enabled with the following line in your `settings.json`:
   "plugins": {
     ...
     "csp-demo-node-editor": {
-        "port": 9999
+      "port": 9999
     }
   }
 }

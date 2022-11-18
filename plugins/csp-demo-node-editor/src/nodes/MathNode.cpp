@@ -7,10 +7,7 @@
 
 #include "MathNode.hpp"
 
-#include "../logger.hpp"
-
 #include "../../../../src/cs-utils/filesystem.hpp"
-#include "../../../../src/cs-utils/utils.hpp"
 
 namespace csp::demonodeeditor {
 
@@ -72,7 +69,7 @@ void MathNode::process() {
 
 void MathNode::onMessageFromJS(nlohmann::json const& message) {
 
-  // The CosmoScout.sendMessagetoCPP() method sends the currently selected math operation.
+  // The CosmoScout.sendMessageToCPP() method sends the currently selected math operation.
   mOperation = message;
 
   // Whenever the operation changes, we write the new output by calling the process() method.

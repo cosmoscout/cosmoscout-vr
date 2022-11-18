@@ -33,7 +33,7 @@ class Plugin : public cs::core::PluginBase {
 
   /// The plugin uses the standard plugin life cycle. On init, the settings are loaded and the node
   /// editor is set up. On update, the node editor is processed and any changed values are
-  /// propagated through the graph. Finally, on deinit, the current graph layout is saved and the
+  /// propagated through the graph. Finally, on deInit, the current graph layout is saved and the
   /// node editor is destroyed.
   void init() override;
   void deInit() override;

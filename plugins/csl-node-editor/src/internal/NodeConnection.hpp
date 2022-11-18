@@ -15,7 +15,7 @@ namespace csl::nodeeditor {
 
 /// A NodeConnection is the C++ counterpart of the wiggly line connecting an output socket to an
 /// input socket of two nodes. It is used for transmitting data from one node to the other by means
-/// of an std::any.
+/// of a std::any.
 struct NodeConnection {
   NodeConnection(uint32_t fromNode, std::string fromSocket, uint32_t toNode, std::string toSocket)
       : mFromNode(fromNode)

@@ -33,11 +33,11 @@ class NumberNode : public csl::nodeeditor::Node {
   /// Whenever the user changes the number value of the node, the NumberNode will send a message to
   /// the C++ instance of the node via onMessageFromJS, which in turn will call the process()
   /// method. This simply updates the value of the 'value' output. This method may also get called
-  /// occasionally by the node editor, for example if a new web client was connected hance needs
+  /// occasionally by the node editor, for example if a new web client was connected hence needs
   /// updated values for all nodes.
   void process() override;
 
-  /// This will be called whenever the CosmoScout.sendMessagetoCPP() is called by the JavaScript
+  /// This will be called whenever the CosmoScout.sendMessageToCPP() is called by the JavaScript
   /// client part of this node.
   /// @param message  A JSON object as sent by the JavaScript node. In this case, it is actually
   ///                 just the currently selected value.

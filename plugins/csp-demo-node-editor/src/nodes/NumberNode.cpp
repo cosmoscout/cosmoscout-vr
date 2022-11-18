@@ -8,7 +8,6 @@
 #include "NumberNode.hpp"
 
 #include "../../../../src/cs-utils/filesystem.hpp"
-#include "../../../../src/cs-utils/utils.hpp"
 
 namespace csp::demonodeeditor {
 
@@ -45,7 +44,7 @@ void NumberNode::process() {
 
 void NumberNode::onMessageFromJS(nlohmann::json const& message) {
 
-  // The CosmoScout.sendMessagetoCPP() method sends the current value.
+  // The CosmoScout.sendMessageToCPP() method sends the current value.
   mValue = message;
 
   // Whenever the value, we write it to the output socket by calling the process() method.

@@ -7,10 +7,7 @@
 
 #include "DisplayNode.hpp"
 
-#include "../logger.hpp"
-
 #include "../../../../src/cs-utils/filesystem.hpp"
-#include "../../../../src/cs-utils/utils.hpp"
 
 namespace csp::demonodeeditor {
 

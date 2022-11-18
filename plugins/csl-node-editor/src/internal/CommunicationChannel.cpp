@@ -64,13 +64,14 @@ bool CommunicationChannel::isConnected() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool CommunicationChannel::handleConnection(CivetServer* server, const struct mg_connection* conn) {
+bool CommunicationChannel::handleConnection(
+    CivetServer* /*server*/, const struct mg_connection* /*conn*/) {
   return !isConnected();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CommunicationChannel::handleReadyState(CivetServer* server, struct mg_connection* conn) {
+void CommunicationChannel::handleReadyState(CivetServer* /*server*/, struct mg_connection* conn) {
   mConnection = conn;
 
   std::unique_lock<std::mutex> lock(mEventQueueMutex);
@@ -79,8 +80,8 @@ void CommunicationChannel::handleReadyState(CivetServer* server, struct mg_conne
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool CommunicationChannel::handleData(
-    CivetServer* server, struct mg_connection* conn, int bits, char* data, size_t data_len) {
+bool CommunicationChannel::handleData(CivetServer* /*server*/, struct mg_connection* /*conn*/,
+    int /*bits*/, char* data, size_t data_len) {
 
   if (data_len <= 4) {
     return true;
@@ -101,7 +102,8 @@ bool CommunicationChannel::handleData(
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CommunicationChannel::handleClose(CivetServer* server, const struct mg_connection* conn) {
+void CommunicationChannel::handleClose(
+    CivetServer* /*server*/, const struct mg_connection* /*conn*/) {
   mConnection = nullptr;
 
   std::unique_lock<std::mutex> lock(mEventQueueMutex);

@@ -10,7 +10,7 @@
 class TimeComponent extends Rete.Component {
 
   constructor() {
-    // This name must match the TimeNode::NAME defined above.
+    // This name must match the TimeNode::sName defined in TimeNode.cpp.
     super("Time");
 
     // This specifies the submenu from which this node can be created in the node editor.

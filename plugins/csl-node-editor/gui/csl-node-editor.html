@@ -86,7 +86,7 @@ SPDX-License-Identifier: MIT
       socketTypes: {},
 
       // This is the websocket which is used for communication with the C++ server. Nodes usually
-      // will not have to use this directly, they can use the CosmoScout.sendMessagetoCPP() instead.
+      // will not have to use this directly, they can use the CosmoScout.sendMessageToCPP() instead.
       communicationChannel: null,
 
       // This is the main ReteJS node editor instance. Usually, nodes will not need this either, but
@@ -96,7 +96,7 @@ SPDX-License-Identifier: MIT
       // Sends a message to the C++ counterpart of the node with the given ID. Usually, a node will
       // use this inside a handler in a custom control. There, you can access the ID of the node
       // which the control is part of by accessing `this.parent.id`.
-      sendMessagetoCPP: (message, toNode) => {
+      sendMessageToCPP: (message, toNode) => {
         CosmoScout.communicationChannel.send(JSON.stringify({
           type: "nodeMessage", data: { message: message, toNode: toNode }
         }));
@@ -116,7 +116,7 @@ SPDX-License-Identifier: MIT
     // Show an alert if the connection was closed after it has been established.
     CosmoScout.communicationChannel.onopen = () => {
       CosmoScout.communicationChannel.onclose = () => {
-        alert('Connection to CosmoScout VR was interupted.');
+        alert('Connection to CosmoScout VR was interrupted.');
       };
     };
 
@@ -265,7 +265,7 @@ SPDX-License-Identifier: MIT
 
       // Prevent creation of connections from an output of a node to an input of the very same node.
       CosmoScout.nodeEditor.on('connectioncreate', ({ input, output }) => {
-        return input.node.id != output.node.id;
+        return input.node.id !== output.node.id;
       });
 
       // We do not use any of the available node rendering plugins of ReteJS as they require using

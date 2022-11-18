@@ -34,14 +34,14 @@ class MathNode : public csl::nodeeditor::Node {
   /// Each node must override this. It simply returns the static sName.
   std::string const& getName() const override;
 
-  /// Whenever the user changes the math operation, the MathNodewill send a message to the C++
+  /// Whenever the user changes the math operation, the MathNode will send a message to the C++
   /// instance of the node via onMessageFromJS, which in turn will call the process() method. This
   /// will read the input socket values and compute and write the output socket value accordingly.
   /// This method may also get called occasionally by the node editor, for example if a new web
-  /// client was connected hance needs updated values for all nodes.
+  /// client was connected hence needs updated values for all nodes.
   void process() override;
 
-  /// This will be called whenever the CosmoScout.sendMessagetoCPP() is called by the JavaScript
+  /// This will be called whenever the CosmoScout.sendMessageToCPP() is called by the JavaScript
   /// client part of this node.
   /// @param message  A JSON object as sent by the JavaScript node. In this case, it is actually
   ///                 just the currently selected math operation.
@@ -52,8 +52,7 @@ class MathNode : public csl::nodeeditor::Node {
   nlohmann::json getData() const override;
 
   /// This is called whenever the node needs to be deserialized. The given JSON object should
-  /// contain a number corresponding to a math operation under the key "operation". the current
-  /// value.
+  /// contain a number corresponding to a math operation under the key "operation".
   void setData(nlohmann::json const& json) override;
 
  private:

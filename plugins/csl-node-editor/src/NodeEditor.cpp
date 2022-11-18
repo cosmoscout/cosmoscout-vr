@@ -17,7 +17,6 @@
 
 #include <CivetServer.h>
 #include <functional>
-#include <iostream>
 
 namespace {
 
@@ -255,8 +254,8 @@ void NodeEditor::fromJSON(nlohmann::json const& json) {
 
     mGraph->addNode(id, std::move(node));
 
-    for (auto& [fromSocket, jsonOutput] : jsonNode["outputs"].items()) {
-      for (auto& connection : jsonOutput["connections"]) {
+    for (auto const& [fromSocket, jsonOutput] : jsonNode["outputs"].items()) {
+      for (auto const& connection : jsonOutput["connections"]) {
         uint32_t    toNode   = connection["node"];
         std::string toSocket = connection["input"];
 

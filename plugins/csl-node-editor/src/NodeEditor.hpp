@@ -49,28 +49,28 @@ class CSL_NODE_EDITOR_EXPORT NodeEditor {
   /// restore the graph layout. The JSON format follows this structure:
   ///
   /// {
-  ///     "nodes": {
-  ///         <node ID>: {
-  ///             "name": <node name>
-  ///             "id": <node ID>
-  ///             "position": [<x>, <y>],
-  ///             "collapsed": <bool>
-  ///             "data": { <a custom data object defined by the node type> }
-  ///             "outputs" : {
-  ///                 <from socket name> : {
-  ///                     "connections": [
-  ///                         {
-  ///                             "node": <to node ID>,
-  ///                             "input: <to socket name>
-  ///                         },
-  ///                         ...
-  ///                     ]
-  ///                 },
-  ///                 ...
-  ///             }
+  ///   "nodes": {
+  ///     <node ID>: {
+  ///       "name": <node name>,
+  ///       "id": <node ID>,
+  ///       "position": [<x>, <y>],
+  ///       "collapsed": <bool>,
+  ///       "data": { <a custom data object defined by the node type> }
+  ///       "outputs" : {
+  ///         <from socket name> : {
+  ///           "connections": [
+  ///             {
+  ///               "node": <to node ID>,
+  ///               "input: <to socket name>
+  ///             },
+  ///             ...
+  ///           ]
   ///         },
   ///         ...
-  ///     }
+  ///       }
+  ///     },
+  ///     ...
+  ///   }
   /// }
   /// @return A JSON representation of the current graph.
   nlohmann::json toJSON() const;

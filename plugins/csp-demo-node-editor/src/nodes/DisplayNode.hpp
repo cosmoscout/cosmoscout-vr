@@ -13,8 +13,8 @@
 namespace csp::demonodeeditor {
 
 /// This node simply displays the value which is given to its input socket. As the data is passed
-/// only between the C++ nodes of node editor server, this requires sending the current input value
-/// to the JavaScript node of the node editor client whenever the process() method is called.
+/// only between the C++ nodes of the node editor server, this requires sending the current input 
+/// value to the JavaScript node of the node editor client whenever the process() method is called.
 class DisplayNode : public csl::nodeeditor::Node {
  public:
   // static interface ------------------------------------------------------------------------------

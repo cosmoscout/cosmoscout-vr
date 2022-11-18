@@ -46,7 +46,7 @@ class CSL_NODE_EDITOR_EXPORT Node {
 
   /// Called whenever the JavaScript counterpart of this node has sent a message via the global
   /// sendMessageToCPP() method:
-  ///   CosmoScout.sendMessagetoCPP(message, this.parent.id);
+  ///   CosmoScout.sendMessageToCPP(message, this.parent.id);
   /// @param message A custom JSON object.
   virtual void onMessageFromJS(nlohmann::json const& message){};
 
@@ -108,7 +108,7 @@ class CSL_NODE_EDITOR_EXPORT Node {
   /// changed.
   /// @tparam T      The data type to write. You have to be extremely careful to always read and
   ///                write data in the same format to a given socket type. For instance, do not mix
-  ///                floats and doubles! Else you will receive a bad_ay_cast. It is a good practice
+  ///                floats and doubles! Else you will receive a bad_any_cast. It is a good practice
   ///                to explicitly state the template parameter.
   /// @param socket  The name of the socket to write to.
   /// @param value   The value to write. It will be compared to any previously written value and
@@ -128,7 +128,7 @@ class CSL_NODE_EDITOR_EXPORT Node {
   /// Call this to read the value of an input socket.
   /// @tparam T            The data type to read. You have to be extremely careful to always read
   ///                      and write data in the same format to a given socket type. For instance,
-  ///                      do not mix floats and doubles! Else you will receive a bad_ay_cast.
+  ///                      do not mix floats and doubles! Else you will receive a bad_any_cast.
   /// @param socket        The name of the socket to read from.
   /// @param defaultValue  If there is no input connection, this value will be returned.
   template <typename T>
@@ -144,7 +144,7 @@ class CSL_NODE_EDITOR_EXPORT Node {
 
  private:
   uint32_t                              mID = 0;
-  std::array<int32_t, 2>                mPosition;
+  std::array<int32_t, 2>                mPosition{};
   bool                                  mIsCollapsed = false;
   std::shared_ptr<CommunicationChannel> mSocket;
   std::shared_ptr<NodeGraph>            mGraph;

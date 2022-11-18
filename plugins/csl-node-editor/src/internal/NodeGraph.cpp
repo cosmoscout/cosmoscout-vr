@@ -8,14 +8,13 @@
 #include "NodeGraph.hpp"
 
 #include "../Node.hpp"
-#include "../logger.hpp"
 
 namespace csl::nodeeditor {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// These need to be declared explicitely as the default versions would be defined inline in the
-// header which makes it impossible to use a forward declartion of Node.
+// These need to be declared explicitly as the default versions would be defined inline in the
+// header which makes it impossible to use a forward declaration of Node.
 NodeGraph::NodeGraph()  = default;
 NodeGraph::~NodeGraph() = default;
 
@@ -223,11 +222,6 @@ void NodeGraph::process() {
       throw std::runtime_error("Cycle detected!");
     }
   }
-
-  // if (!processNodes.empty()) {
-  //   logger().debug("dirty: {}, process: {}", mDirtyNodes.size(), processNodes.size());
-  // }
-
   // Now that we have all nodes which should be processed, we process them one by one. We always
   // choose a node which does not receive input from a node which is still pending to be processed.
   while (!processNodes.empty()) {
@@ -245,11 +239,8 @@ void NodeGraph::process() {
       auto node = mNodes.find(*it);
 
       if (node != mNodes.end()) {
-        // logger().debug(" processing node {}", *it);
         node->second->process();
       }
-    } else {
-      // logger().debug(" processing of node {} is not required", *it);
     }
 
     processNodes.erase(it);

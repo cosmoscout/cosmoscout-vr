@@ -8,7 +8,6 @@
 #include "Node.hpp"
 
 #include "internal/CommunicationChannel.hpp"
-#include "logger.hpp"
 
 #include <algorithm>
 

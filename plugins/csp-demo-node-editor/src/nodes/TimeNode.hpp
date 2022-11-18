@@ -31,8 +31,8 @@ class TimeNode : public csl::nodeeditor::Node {
   // instance interface ----------------------------------------------------------------------------
 
   /// New instances of this node are created by the node factory.
-  /// @param pTimeControl  This is used to get the current simulation time of CosmoScout VR.
-  TimeNode(std::shared_ptr<cs::core::TimeControl> pTimeControl);
+  /// @param timeControl This is used to get the current simulation time of CosmoScout VR.
+  explicit TimeNode(std::shared_ptr<cs::core::TimeControl> timeControl);
   ~TimeNode() override;
 
   /// Each node must override this. It simply returns the static sName.
@@ -40,7 +40,7 @@ class TimeNode : public csl::nodeeditor::Node {
 
   /// Whenever the simulation time changes, the TimeNode will call this method itself. It simply
   /// updates the value of the 'time' output. This method may also get called occasionally by the
-  /// node editor, for example if a new web client was connected hance needs updated values for all
+  /// node editor, for example if a new web client was connected hence needs updated values for all
   /// nodes.
   void process() override;
 

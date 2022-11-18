@@ -11,7 +11,7 @@
 // builder() method is called. It is required that the class is called <NAME>Component.
 class NumberComponent extends Rete.Component {
   constructor() {
-    // This name must match the NumberNode::NAME defined above.
+    // This name must match the NumberNode::sName defined in NumberNode.cpp.
     super("Number");
 
     // This specifies the submenu from which this node can be created in the node editor.

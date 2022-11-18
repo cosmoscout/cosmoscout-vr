@@ -11,7 +11,7 @@
 // builder() method is called. It is required that the class is called <NAME>Component.
 class MathComponent extends Rete.Component {
   constructor() {
-    // This name must match the MathNode::NAME defined above.
+    // This name must match the MathNode::sName defined in MathNode.cpp.
     super("Math");
 
     // This specifies the submenu from which this node can be created in the node editor.

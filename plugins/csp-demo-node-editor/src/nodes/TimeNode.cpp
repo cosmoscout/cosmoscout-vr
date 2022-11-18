@@ -7,11 +7,8 @@
 
 #include "TimeNode.hpp"
 
-#include "../logger.hpp"
-
 #include "../../../../src/cs-core/TimeControl.hpp"
 #include "../../../../src/cs-utils/filesystem.hpp"
-#include "../../../../src/cs-utils/utils.hpp"
 
 namespace csp::demonodeeditor {
 
@@ -34,8 +31,8 @@ std::unique_ptr<TimeNode> TimeNode::sCreate(std::shared_ptr<cs::core::TimeContro
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-TimeNode::TimeNode(std::shared_ptr<cs::core::TimeControl> pTimeControl)
-    : mTimeControl(std::move(pTimeControl)) {
+TimeNode::TimeNode(std::shared_ptr<cs::core::TimeControl> timeControl)
+    : mTimeControl(std::move(timeControl)) {
 
   // Whenever the simulation time changes, we write it to the output by calling the process()
   // method. Writing the output will not trigger a graph reprocessing right away, it will only queue

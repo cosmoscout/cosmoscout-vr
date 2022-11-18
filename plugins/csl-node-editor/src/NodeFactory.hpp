@@ -25,7 +25,7 @@ class CSL_NODE_EDITOR_EXPORT NodeFactory {
   // As a user of this library, you will usually only have to call the two methods below.
 
   /// Registers a new node socket which can be used by nodes of the node editor.
-  /// @param name     The unique name of the socket type. This is used to retrieve a references to
+  /// @param name     The unique name of the socket type. This is used to retrieve references to
   ///                 this socket type in the JavaScript part of your nodes. You can access the
   ///                 socket in JavaScript using this: CosmoScout.socketTypes['Socket Name'].
   /// @param color    A string defining the color of the socket. This can be anything which is

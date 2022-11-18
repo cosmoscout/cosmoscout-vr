@@ -72,7 +72,7 @@ void Plugin::deInit() {
   mAllSettings->onSave().disconnect(mOnSaveConnection);
 
   // Explicitly destroy the node editor so that we get any error messages before the "Unloading
-  // done." message is preinted.
+  // done." message is printed.
   mNodeEditor.reset();
 
   logger().info("Unloading done.");
@@ -111,13 +111,13 @@ void Plugin::onSave() {
 
 void Plugin::setupNodeEditor(uint16_t port) {
 
-  // Creating a node editor requires a node factory. This will be reposnsible for creating nodes
+  // Creating a node editor requires a node factory. This will be responsible for creating nodes
   // based on their names.
   csl::nodeeditor::NodeFactory factory;
 
   // First, we register the available socket types. For now, this only requires a unique name and a
   // color which will be used by the sockets. In this simple example, we only have number sockets.
-  // The name of the socket will be used by the custom nodes when defining their inouts and outputs.
+  // The name of the socket will be used by the custom nodes when defining their inputs and outputs.
   factory.registerSocketType("Number Value", "#b08ab3");
 
   // Now, we register our custom node types. Any parameter given to this method, will later be

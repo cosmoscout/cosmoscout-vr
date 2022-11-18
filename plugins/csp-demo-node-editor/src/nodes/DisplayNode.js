@@ -11,7 +11,7 @@
 // builder() method is called. It is required that the class is called <NAME>Component.
 class DisplayComponent extends Rete.Component {
   constructor() {
-    // This name must match the TimeNode::NAME defined above.
+    // This name must match the DisplayNode::sName defined in DisplayNode.cpp.
     super("Display");
 
     // This specifies the submenu from which this node can be created in the node editor.
