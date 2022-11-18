@@ -212,7 +212,6 @@ body {
     background: none !important;
     color: var(--cs-color-text) !important;
     padding: 10px !important;
-    margin: 10 !important;
 }
 
 .context-menu .item:hover {

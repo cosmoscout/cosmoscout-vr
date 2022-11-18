@@ -133,7 +133,7 @@ class CSL_NODE_EDITOR_EXPORT Node {
   /// @param defaultValue  If there is no input connection, this value will be returned.
   template <typename T>
   T readInput(std::string const& socket, T defaultValue) {
-    auto connection = mGraph->getInputConnection(mID, socket);
+    auto const* connection = mGraph->getInputConnection(mID, socket);
 
     if (connection && connection->mData.has_value()) {
       return std::any_cast<T>(connection->mData);

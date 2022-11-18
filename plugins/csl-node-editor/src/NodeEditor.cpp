@@ -65,7 +65,7 @@ NodeEditor::NodeEditor(uint16_t port, NodeFactory factory)
 
   for (auto const& h : resourceHandlers) {
     mHandlers.emplace_back(h[0], std::make_unique<GetHandler>([=](mg_connection* conn) {
-      auto info = mg_get_request_info(conn);
+      auto const* info = mg_get_request_info(conn);
       mg_send_mime_file(
           conn, ("../share/resources/gui/" + std::string(info->request_uri)).c_str(), h[1].c_str());
     }));

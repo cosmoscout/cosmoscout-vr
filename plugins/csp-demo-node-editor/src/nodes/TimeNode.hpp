@@ -26,7 +26,7 @@ class TimeNode : public csl::nodeeditor::Node {
 
   static const std::string         sName;
   static std::string               sSource();
-  static std::unique_ptr<TimeNode> sCreate(std::shared_ptr<cs::core::TimeControl> pTimeControl);
+  static std::unique_ptr<TimeNode> sCreate(std::shared_ptr<cs::core::TimeControl> timeControl);
 
   // instance interface ----------------------------------------------------------------------------
 

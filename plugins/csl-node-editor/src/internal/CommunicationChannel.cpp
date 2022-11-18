@@ -83,6 +83,9 @@ void CommunicationChannel::handleReadyState(CivetServer* /*server*/, struct mg_c
 bool CommunicationChannel::handleData(CivetServer* /*server*/, struct mg_connection* /*conn*/,
     int /*bits*/, char* data, size_t data_len) {
 
+  // If a client disconnects, this method gets called for some reason with a very small data packet.
+  // As our data packages are always much larger (the event type name is already longer) we can
+  // ignore these packages.
   if (data_len <= 4) {
     return true;
   }
