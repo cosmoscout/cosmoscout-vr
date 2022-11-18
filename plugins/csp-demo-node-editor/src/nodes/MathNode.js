@@ -89,6 +89,6 @@ class MathControl extends Rete.Control {
 
     // Send an update to the node editor server whenever the user selects a new operation.
     el.addEventListener('change',
-        (e) => { CosmoScout.sendMessagetoCPP(parseInt(e.target.value), this.parent.id); });
+        (e) => { CosmoScout.sendMessageToCPP(parseInt(e.target.value), this.parent.id); });
   }
 }

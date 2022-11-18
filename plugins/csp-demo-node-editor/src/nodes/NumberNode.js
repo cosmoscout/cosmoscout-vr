@@ -77,7 +77,7 @@ class NumberControl extends Rete.Control {
 
     // Send an update to the node editor server whenever the user enters a new value.
     el.addEventListener(
-        'input', e => { CosmoScout.sendMessagetoCPP(parseFloat(e.target.value), this.parent.id); });
+        'input', e => { CosmoScout.sendMessageToCPP(parseFloat(e.target.value), this.parent.id); });
 
     // Stop propagation of pointer move events. Else we would drag the node if we tried to
     // select some text in the input field.
