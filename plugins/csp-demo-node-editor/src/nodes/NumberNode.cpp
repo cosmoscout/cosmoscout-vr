@@ -44,7 +44,7 @@ void NumberNode::process() {
 
 void NumberNode::onMessageFromJS(nlohmann::json const& message) {
 
-  // The message sent via CosmoScout.sendMessageToCPP() onlty contains the selected number.
+  // The message sent via CosmoScout.sendMessageToCPP() contains the selected number.
   mValue = message;
 
   // Whenever the user entered a number, we write it to the output socket by calling the process()
