@@ -44,12 +44,13 @@ void NumberNode::process() {
 
 void NumberNode::onMessageFromJS(nlohmann::json const& message) {
 
-  // The CosmoScout.sendMessageToCPP() method sends the current value.
+  // The message sent via CosmoScout.sendMessageToCPP() onlty contains the selected number.
   mValue = message;
 
-  // Whenever the value, we write it to the output socket by calling the process() method.
-  // Writing the output will not trigger a graph reprocessing right away, it will only queue
-  // up the connected nodes for being processed in the next update step.
+  // Whenever the user entered a number, we write it to the output socket by calling the process()
+  // method. Writing the output will not trigger a graph reprocessing right away, it will only queue
+  // up the connected nodes for being processed in the next update step (and only if the value
+  // actually changed).
   process();
 }
 
