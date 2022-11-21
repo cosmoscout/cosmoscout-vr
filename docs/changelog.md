@@ -15,7 +15,9 @@ SPDX-License-Identifier: CC-BY-4.0
 
 #### New Features
 * To allow shared code for plugins, without requiring it to be in the core libraries we introduced a new concept called plugin libraries. They are prefixed `csl` and sit beside the traditional plugins in the `plugins` folder.
-* Add a new powershell script to create plugin libraries: `tools/New-PluginLibrary.ps1` 
+* A new powershell script to create plugin libraries has been added: `tools/New-PluginLibrary.ps1`.
+* **New Plugin Library: `csl-node-editor`.** With this library, plugins can provide an interface to create complex data flow graph. The node editor interface is made available via a web server. Hence the node graph can be modified either within CosmoScout VR or on an external device.
+* **New Plugin: `csp-demo-node-editor`.**  An example on how to use the `csl-node-editor` plugin library for creating data flow graphs within CosmoScout VR.
 
 #### Other Changes
 * The branching scheme has been simplified. Instead of `master` and `develop`, there is now only a single `main` branch.
