@@ -24,6 +24,7 @@
 #include <VistaKernel/VistaFrameLoop.h>
 #include <VistaKernel/VistaSystem.h>
 #include <curlpp/cURLpp.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <sstream>
 #include <tiffio.h>
 #include <tiffio.hxx>
@@ -423,6 +424,21 @@ void Plugin::update() {
             0, 0, mCaptureWidth, mCaptureHeight, GL_DEPTH_COMPONENT, GL_FLOAT, &capture[0]);
 
         if (mCaptureFormat == "tiff") {
+
+          // If a tiff image is requested, we convert the depth buffer to meters.
+          std::array<GLfloat, 16> glMatP{};
+          glGetFloatv(GL_PROJECTION_MATRIX, glMatP.data());
+          auto      matInvP = glm::inverse(glm::make_mat4x4(glMatP.data()));
+          glm::vec2 pixel(1.f / mCaptureWidth, 1.f / mCaptureHeight);
+
+          for (size_t i(0); i < capture.size(); ++i) {
+            auto coords = glm::vec2(i % mCaptureWidth, i / mCaptureWidth) * pixel + 0.5f * pixel;
+            auto pos    = matInvP * glm::vec4(2.f * coords - 1.f, 2.f * capture[i] - 1.f, 1.f);
+
+            float dist = glm::length(pos.xyz() / pos.w) * mSolarSystem->getObserver().getScale();
+            capture[i] = std::isinf(dist) ? std::numeric_limits<float>::max() : dist;
+          }
+
           // Now write the tiff image.
           tiffWriteToVector(mCapture, capture, mCaptureWidth, mCaptureHeight, 1, 32);
 
