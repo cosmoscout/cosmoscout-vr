@@ -93,7 +93,7 @@ jobs:
       - name: Checkout Submodules
         run: git submodule update --init
       - name: Cache Object Files
-        uses: mikehardy/buildcache-action@v1
+        uses: mikehardy/buildcache-action@v2.1.0
         with:
           cache_key: gcc
       - name: Download Dependencies
@@ -153,7 +153,7 @@ jobs:
       - name: Checkout Submodules
         run: git submodule update --init
       - name: Cache Object Files
-        uses: mikehardy/buildcache-action@v1
+        uses: mikehardy/buildcache-action@v2.1.0
         with:
           cache_key: clang
       - name: Download Dependencies
@@ -205,7 +205,7 @@ jobs:
       - name: Checkout Submodules
         run: git submodule update --init
       - name: Cache Object Files
-        uses: mikehardy/buildcache-action@v1
+        uses: mikehardy/buildcache-action@v2.1.0
         with:
           cache_key: msvc
       - name: Download Boost
