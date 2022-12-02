@@ -198,6 +198,7 @@ jobs:
       contains(github.event.head_commit.message, '[run-ci]')
     env:
       BOOST_ROOT_1_72_0: C:\hostedtoolcache\windows\Boost\1.72.0\x86_64
+      BUILDCACHE_IMPERSONATE: cl.exe
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
@@ -217,6 +218,9 @@ jobs:
           Push-Location -Path "$env:TEMP\boost"
           Invoke-Expression .\setup.ps1
       - name: Build Externals
+        env: #Thanks to buildcache, it build actually faster without these options.
+          COSMOSCOUT_USE_PCH: false
+          COSMOSCOUT_USE_UNITY_BUILD: false
         shell: cmd
         run: >
           make_externals.bat -G "Visual Studio 16 2019" -A x64
