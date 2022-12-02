@@ -87,6 +87,9 @@ jobs:
       github.event_name == 'pull_request' ||
       ( contains(github.ref, 'main') && !contains(github.event.head_commit.message, '[no-ci]') ) ||
       contains(github.event.head_commit.message, '[run-ci]')
+    env:
+      COSMOSCOUT_USE_PCH: true
+      COSMOSCOUT_USE_UNITY_BUILD: true
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
@@ -102,16 +105,10 @@ jobs:
           sudo apt-get install libgl1-mesa-dev libglu1-mesa-dev libx11-dev
           sudo apt-get install libxi-dev libgconf-2-4 libboost-all-dev lcov xvfb
       - name: Build Externals
-        env: # Thanks to buildcache, it build actually faster without these options.
-          COSMOSCOUT_USE_PCH: false
-          COSMOSCOUT_USE_UNITY_BUILD: false
         run: >
           ./make_externals.sh -G "Unix Makefiles"
           -DCMAKE_CXX_COMPILER_LAUNCHER=buildcache -DCMAKE_C_COMPILER_LAUNCHER=buildcache
       - name: Build CosmoScout VR
-        env: # We reenable these options to test them, since they are not tested regularly by developers.
-          COSMOSCOUT_USE_PCH: true
-          COSMOSCOUT_USE_UNITY_BUILD: true
         run: >
           ./make.sh -G "Unix Makefiles"
           -DCMAKE_CXX_COMPILER_LAUNCHER=buildcache -DCMAKE_C_COMPILER_LAUNCHER=buildcache
@@ -147,6 +144,8 @@ jobs:
     env:
       CC: clang-11
       CXX: clang++-11
+      COSMOSCOUT_USE_PCH: true
+      COSMOSCOUT_USE_UNITY_BUILD: true
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
@@ -162,16 +161,10 @@ jobs:
           sudo apt-get install libgl1-mesa-dev libglu1-mesa-dev libx11-dev
           sudo apt-get install libxi-dev libgconf-2-4 libboost-all-dev
       - name: Build Externals
-        env: #Thanks to buildcache, it build actually faster without these options.
-          COSMOSCOUT_USE_PCH: false
-          COSMOSCOUT_USE_UNITY_BUILD: false
         run: >
           ./make_externals.sh -G "Unix Makefiles"
           -DCMAKE_CXX_COMPILER_LAUNCHER=buildcache -DCMAKE_C_COMPILER_LAUNCHER=buildcache
       - name: Build CosmoScout VR
-        env: # We reenable these options to test them, since they are not tested regularly by developers.
-          COSMOSCOUT_USE_PCH: true
-          COSMOSCOUT_USE_UNITY_BUILD: true
         run: >
           ./make.sh -G "Unix Makefiles"
           -DCMAKE_CXX_COMPILER_LAUNCHER=buildcache -DCMAKE_C_COMPILER_LAUNCHER=buildcache
@@ -199,6 +192,8 @@ jobs:
     env:
       BOOST_ROOT_1_72_0: C:\hostedtoolcache\windows\Boost\1.72.0\x86_64
       BUILDCACHE_IMPERSONATE: cl.exe
+      COSMOSCOUT_USE_PCH: true
+      COSMOSCOUT_USE_UNITY_BUILD: true
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
@@ -218,18 +213,15 @@ jobs:
           Push-Location -Path "$env:TEMP\boost"
           Invoke-Expression .\setup.ps1
       - name: Build Externals
-        env: #Thanks to buildcache, it build actually faster without these options.
-          COSMOSCOUT_USE_PCH: false
-          COSMOSCOUT_USE_UNITY_BUILD: false
         shell: cmd
         run: >
           make_externals.bat -G "Visual Studio 16 2019" -A x64
-          -DCMAKE_VS_GLOBALS="CLToolExe=buildcache.exe;TrackFileAccess=false"
+          -DCMAKE_VS_GLOBALS="CLToolExe=buildcache;TrackFileAccess=false"
       - name: Build CosmoScout VR
         shell: cmd
         run: >
           make.bat -G "Visual Studio 16 2019" -A x64
-          -DCMAKE_VS_GLOBALS="CLToolExe=buildcache.exe;TrackFileAccess=false"
+          -DCMAKE_VS_GLOBALS="CLToolExe=buildcache;TrackFileAccess=false"
           -DCOSMOSCOUT_UNIT_TESTS=On -DBOOST_ROOT=%BOOST_ROOT_1_72_0%
       - name: Run Tests
         shell: cmd
