@@ -11,8 +11,7 @@ find_path(GLUT_INCLUDE_DIR GL/freeglut.h
 
 # Locate library.
 find_library(GLUT_LIBRARY NAMES glut freeglut freeglutd
-    HINTS ${GLUT_ROOT_DIR}/lib ${GLUT_ROOT_DIR}/lib64
-    NO_DEFAULT_PATH)
+    HINTS ${GLUT_ROOT_DIR}/lib ${GLUT_ROOT_DIR}/lib64)
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(GLUT DEFAULT_MSG GLUT_INCLUDE_DIR GLUT_LIBRARY)
