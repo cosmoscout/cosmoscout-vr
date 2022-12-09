@@ -202,7 +202,7 @@ jobs:
         uses: mikehardy/buildcache-action@v2.1.0
         with:
           cache_key: msvc
-      - name: Download Boost
+      - name: Download Dependencies
         run: |
           # From https://github.com/actions/virtual-environments/issues/2667
           $url = "https://github.com/actions/boost-versions/releases/download/1.72.0-20200608.4/boost-1.72.0-win32-msvc14.2-x86_64.tar.gz"
@@ -211,6 +211,7 @@ jobs:
           7z.exe x "$env:TEMP\boostArchive" -o"$env:TEMP\boost" -y | Out-Null
           Push-Location -Path "$env:TEMP\boost"
           Invoke-Expression .\setup.ps1
+          choco install ninja
       - name: Build Externals
         shell: cmd
         run: >
