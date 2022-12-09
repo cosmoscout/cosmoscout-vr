@@ -193,6 +193,7 @@ jobs:
       contains(github.event.head_commit.message, '[run-ci]')
     env:
       BOOST_ROOT_1_72_0: C:\hostedtoolcache\windows\Boost\1.72.0\x86_64
+      SCCACHE_DIR: ..\cache
       COSMOSCOUT_USE_PCH: true
       COSMOSCOUT_USE_UNITY_BUILD: true
     steps:
