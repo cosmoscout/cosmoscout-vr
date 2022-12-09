@@ -202,6 +202,8 @@ jobs:
         uses: mikehardy/buildcache-action@v2.1.0
         with:
           cache_key: msvc
+      - name: Setup CMD
+        uses: ilammy/msvc-dev-cmd@v1
       - name: Download Dependencies
         run: |
           # From https://github.com/actions/virtual-environments/issues/2667
