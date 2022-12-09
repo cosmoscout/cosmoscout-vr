@@ -191,7 +191,6 @@ jobs:
       contains(github.event.head_commit.message, '[run-ci]')
     env:
       BOOST_ROOT_1_72_0: C:\hostedtoolcache\windows\Boost\1.72.0\x86_64
-      BUILDCACHE_DIR: ..\cache
       COSMOSCOUT_USE_PCH: true
       COSMOSCOUT_USE_UNITY_BUILD: true
     steps:
@@ -215,12 +214,12 @@ jobs:
       - name: Build Externals
         shell: cmd
         run: >
-          make_externals.bat -G "Visual Studio 16 2019" -A x64
+          make_externals.bat -GNinja -DCMAKE_C_COMPILER=cl.exe -DCMAKE_CXX_COMPILER=cl.exe
           -DCMAKE_CXX_COMPILER_LAUNCHER=buildcache -DCMAKE_C_COMPILER_LAUNCHER=buildcache
       - name: Build CosmoScout VR
         shell: cmd
         run: >
-          make.bat -G "Visual Studio 16 2019" -A x64
+          make.bat -GNinja -DCMAKE_C_COMPILER=cl.exe -DCMAKE_CXX_COMPILER=cl.exe
           -DCMAKE_CXX_COMPILER_LAUNCHER=buildcache -DCMAKE_C_COMPILER_LAUNCHER=buildcache
           -DCOSMOSCOUT_UNIT_TESTS=On -DBOOST_ROOT=%BOOST_ROOT_1_72_0%
       - name: Run Tests
