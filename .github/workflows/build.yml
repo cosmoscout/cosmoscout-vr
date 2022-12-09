@@ -89,7 +89,7 @@ jobs:
       contains(github.event.head_commit.message, '[run-ci]')
     env:
       COSMOSCOUT_USE_PCH: false
-      COSMOSCOUT_USE_UNITY_BUILD: true
+      COSMOSCOUT_USE_UNITY_BUILD: false
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
@@ -145,7 +145,7 @@ jobs:
       CC: clang-11
       CXX: clang++-11
       COSMOSCOUT_USE_PCH: false
-      COSMOSCOUT_USE_UNITY_BUILD: true
+      COSMOSCOUT_USE_UNITY_BUILD: false
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
@@ -192,7 +192,7 @@ jobs:
     env:
       BOOST_ROOT_1_72_0: C:\hostedtoolcache\windows\Boost\1.72.0\x86_64
       COSMOSCOUT_USE_PCH: false
-      COSMOSCOUT_USE_UNITY_BUILD: true
+      COSMOSCOUT_USE_UNITY_BUILD: false
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
