@@ -99,7 +99,6 @@ jobs:
         uses: hendrikmuhs/ccache-action@v1.2.5
         with:
           key: gcc
-          variant: sccache
       - name: Download Dependencies
         run: |
           sudo apt-get update -q
@@ -108,11 +107,11 @@ jobs:
       - name: Build Externals
         run: >
           ./make_externals.sh -G "Unix Makefiles"
-          -DCMAKE_CXX_COMPILER_LAUNCHER=sccache -DCMAKE_C_COMPILER_LAUNCHER=sccache
+          -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
       - name: Build CosmoScout VR
         run: >
           ./make.sh -G "Unix Makefiles"
-          -DCMAKE_CXX_COMPILER_LAUNCHER=sccache -DCMAKE_C_COMPILER_LAUNCHER=sccache
+          -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
           -DCOSMOSCOUT_COVERAGE_INFO=On -DCOSMOSCOUT_UNIT_TESTS=On
       - name: Run Tests
         run: |
@@ -156,7 +155,6 @@ jobs:
         uses: hendrikmuhs/ccache-action@v1.2.5
         with:
           key: clang
-          variant: sccache
       - name: Download Dependencies
         run: |
           sudo apt-get update -q
@@ -165,11 +163,11 @@ jobs:
       - name: Build Externals
         run: >
           ./make_externals.sh -G "Unix Makefiles"
-          -DCMAKE_CXX_COMPILER_LAUNCHER=sccache -DCMAKE_C_COMPILER_LAUNCHER=sccache
+          -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
       - name: Build CosmoScout VR
         run: >
           ./make.sh -G "Unix Makefiles"
-          -DCMAKE_CXX_COMPILER_LAUNCHER=sccache -DCMAKE_C_COMPILER_LAUNCHER=sccache
+          -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
           -DCOSMOSCOUT_UNIT_TESTS=On
       - name: Run Tests
         run: |
@@ -205,7 +203,6 @@ jobs:
         uses: hendrikmuhs/ccache-action@v1.2.5
         with:
           key: msvc
-          variant: sccache
       - name: Download Boost
         run: |
           # From https://github.com/actions/virtual-environments/issues/2667
@@ -219,12 +216,12 @@ jobs:
         shell: cmd
         run: >
           make_externals.bat -G "Visual Studio 16 2019" -A x64
-          -DCMAKE_CXX_COMPILER_LAUNCHER=sccache -DCMAKE_C_COMPILER_LAUNCHER=sccache
+          -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
       - name: Build CosmoScout VR
         shell: cmd
         run: >
           make.bat -G "Visual Studio 16 2019" -A x64
-          -DCMAKE_CXX_COMPILER_LAUNCHER=sccache -DCMAKE_C_COMPILER_LAUNCHER=sccache
+          -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
           -DCOSMOSCOUT_UNIT_TESTS=On -DBOOST_ROOT=%BOOST_ROOT_1_72_0%
       - name: Run Tests
         shell: cmd
