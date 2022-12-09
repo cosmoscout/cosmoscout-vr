@@ -205,7 +205,9 @@ jobs:
         with:
           key: msvc
           variant: sccache
-       - name: Download Dependencies
+      - name: Setup CMD
+        uses: ilammy/msvc-dev-cmd@v1
+      - name: Download Dependencies
         run: |
           # From https://github.com/actions/virtual-environments/issues/2667
           $url = "https://github.com/actions/boost-versions/releases/download/1.72.0-20200608.4/boost-1.72.0-win32-msvc14.2-x86_64.tar.gz"
