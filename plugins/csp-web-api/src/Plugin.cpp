@@ -421,7 +421,7 @@ void Plugin::update() {
         // Capture the depth component.
         std::vector<float> capture(mCaptureWidth * mCaptureHeight);
         glReadPixels(
-            0, 0, mCaptureWidth, mCaptureHeight, GL_DEPTH_COMPONENT, GL_FLOAT, &capture[0]);
+            0, 0, mCaptureWidth, mCaptureHeight, GL_DEPTH_COMPONENT, GL_FLOAT, capture.data());
 
         if (mCaptureFormat == "tiff") {
 
@@ -429,13 +429,14 @@ void Plugin::update() {
           std::array<GLfloat, 16> glMatP{};
           glGetFloatv(GL_PROJECTION_MATRIX, glMatP.data());
           auto      matInvP = glm::inverse(glm::make_mat4x4(glMatP.data()));
-          glm::vec2 pixel(1.f / mCaptureWidth, 1.f / mCaptureHeight);
+          glm::vec2 pixel(1.F / mCaptureWidth, 1.F / mCaptureHeight);
 
           for (size_t i(0); i < capture.size(); ++i) {
-            auto coords = glm::vec2(i % mCaptureWidth, i / mCaptureWidth) * pixel + 0.5f * pixel;
-            auto pos    = matInvP * glm::vec4(2.f * coords - 1.f, 2.f * capture[i] - 1.f, 1.f);
+            auto coords = glm::vec2(i % mCaptureWidth, i / mCaptureWidth) * pixel + 0.5F * pixel;
+            auto pos    = matInvP * glm::vec4(2.F * coords - 1.F, 2.F * capture[i] - 1.F, 1.F);
 
-            float dist = glm::length(pos.xyz() / pos.w) * mSolarSystem->getObserver().getScale();
+            float dist = static_cast<float>(
+                (glm::length(pos.xyz() / pos.w) * mSolarSystem->getObserver().getScale()));
             capture[i] = std::isinf(dist) ? std::numeric_limits<float>::max() : dist;
           }
 
