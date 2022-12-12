@@ -96,9 +96,9 @@ jobs:
       - name: Checkout Submodules
         run: git submodule update --init
       - name: Cache Object Files
-        uses: mikehardy/buildcache-action@v2.1.0
+        uses: hendrikmuhs/ccache-action@v1.2.5
         with:
-          cache_key: gcc
+          key: gcc
       - name: Download Dependencies
         run: |
           sudo apt-get update -q
@@ -107,11 +107,11 @@ jobs:
       - name: Build Externals
         run: >
           ./make_externals.sh -G "Unix Makefiles"
-          -DCMAKE_CXX_COMPILER_LAUNCHER=buildcache -DCMAKE_C_COMPILER_LAUNCHER=buildcache
+          -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
       - name: Build CosmoScout VR
         run: >
           ./make.sh -G "Unix Makefiles"
-          -DCMAKE_CXX_COMPILER_LAUNCHER=buildcache -DCMAKE_C_COMPILER_LAUNCHER=buildcache
+          -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
           -DCOSMOSCOUT_COVERAGE_INFO=On -DCOSMOSCOUT_UNIT_TESTS=On
       - name: Run Tests
         run: |
@@ -152,9 +152,9 @@ jobs:
       - name: Checkout Submodules
         run: git submodule update --init
       - name: Cache Object Files
-        uses: mikehardy/buildcache-action@v2.1.0
+        uses: hendrikmuhs/ccache-action@v1.2.5
         with:
-          cache_key: clang
+          key: clang
       - name: Download Dependencies
         run: |
           sudo apt-get update -q
@@ -163,11 +163,11 @@ jobs:
       - name: Build Externals
         run: >
           ./make_externals.sh -G "Unix Makefiles"
-          -DCMAKE_CXX_COMPILER_LAUNCHER=buildcache -DCMAKE_C_COMPILER_LAUNCHER=buildcache
+          -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
       - name: Build CosmoScout VR
         run: >
           ./make.sh -G "Unix Makefiles"
-          -DCMAKE_CXX_COMPILER_LAUNCHER=buildcache -DCMAKE_C_COMPILER_LAUNCHER=buildcache
+          -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
           -DCOSMOSCOUT_UNIT_TESTS=On
       - name: Run Tests
         run: |
@@ -191,17 +191,17 @@ jobs:
       contains(github.event.head_commit.message, '[run-ci]')
     env:
       BOOST_ROOT_1_72_0: C:\hostedtoolcache\windows\Boost\1.72.0\x86_64
-      COSMOSCOUT_USE_PCH: false
-      COSMOSCOUT_USE_UNITY_BUILD: false
+      COSMOSCOUT_USE_PCH: true
+      COSMOSCOUT_USE_UNITY_BUILD: true
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
       - name: Checkout Submodules
         run: git submodule update --init
       - name: Cache Object Files
-        uses: mikehardy/buildcache-action@v2.1.0
+        uses: hendrikmuhs/ccache-action@v1.2.5
         with:
-          cache_key: msvc
+          key: msvc
       - name: Setup CMD
         uses: ilammy/msvc-dev-cmd@v1
       - name: Download Dependencies
@@ -218,12 +218,12 @@ jobs:
         shell: cmd
         run: >
           make_externals.bat -GNinja -DCMAKE_C_COMPILER=cl.exe -DCMAKE_CXX_COMPILER=cl.exe
-          -DCMAKE_CXX_COMPILER_LAUNCHER=buildcache -DCMAKE_C_COMPILER_LAUNCHER=buildcache
+          -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
       - name: Build CosmoScout VR
         shell: cmd
         run: >
           make.bat -GNinja -DCMAKE_C_COMPILER=cl.exe -DCMAKE_CXX_COMPILER=cl.exe
-          -DCMAKE_CXX_COMPILER_LAUNCHER=buildcache -DCMAKE_C_COMPILER_LAUNCHER=buildcache
+          -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
           -DCOSMOSCOUT_UNIT_TESTS=On -DBOOST_ROOT=%BOOST_ROOT_1_72_0%
       - name: Run Tests
         shell: cmd
