@@ -11,7 +11,7 @@ SPDX-License-Identifier: CC-BY-4.0
 
 ## [v1.7.0](https://github.com/cosmoscout/cosmoscout-vr/releases)
 
-**Release Date:** TBD
+**Release Date:** 2022-12-13
 
 #### New Features
 
