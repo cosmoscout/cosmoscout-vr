@@ -5,8 +5,8 @@
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 // SPDX-License-Identifier: MIT
 
-#ifndef CSP_ADVANCED_ATMOSPHERE_HPP
-#define CSP_ADVANCED_ATMOSPHERE_HPP
+#ifndef CSP_ATMOSPHERES_ATMOSPHERE_HPP
+#define CSP_ATMOSPHERES_ATMOSPHERE_HPP
 
 #include "../../../src/cs-scene/CelestialObject.hpp"
 #include "AtmosphereRenderer.hpp"
@@ -16,7 +16,7 @@ namespace cs::core {
 class SolarSystem;
 }
 
-namespace csp::advanced_atmospheres {
+namespace csp::atmospheres {
 
 /// This is a wrapper around a AtmosphereRenderer, adding SPICE based positioning.
 class Atmosphere {
@@ -52,6 +52,6 @@ class Atmosphere {
   std::unique_ptr<VistaOpenGLNode>                 mAtmosphereNode;
 };
 
-} // namespace csp::advanced_atmospheres
+} // namespace csp::atmospheres
 
-#endif // CSP_ADVANCED_ATMOSPHERE_HPP
+#endif // CSP_ATMOSPHERES_ATMOSPHERE_HPP

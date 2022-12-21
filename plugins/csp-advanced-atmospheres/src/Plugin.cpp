@@ -14,12 +14,10 @@
 #include "../../../src/cs-utils/logger.hpp"
 #include "logger.hpp"
 
-#include "bruneton/Model.hpp"
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 EXPORT_FN cs::core::PluginBase* create() {
-  return new csp::advanced_atmospheres::Plugin;
+  return new csp::atmospheres::Plugin;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -30,14 +28,55 @@ EXPORT_FN void destroy(cs::core::PluginBase* pluginBase) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace csp::advanced_atmospheres {
+namespace csp::atmospheres {
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void from_json(nlohmann::json const& j, Plugin::Settings::Atmosphere::Model& o) {
+  auto s = j.get<std::string>();
+  if (s == "CosmoScoutVR") {
+    o = Plugin::Settings::Atmosphere::Model::eCosmoScoutVR;
+  } else if (s == "Bruneton") {
+    o = Plugin::Settings::Atmosphere::Model::eBruneton;
+  } else {
+    throw std::runtime_error(
+        "Failed to parse Atmosphere::Model! Only 'CosmoScoutVR' or 'Bruneton' are allowed.");
+  }
+}
+
+void to_json(nlohmann::json& j, Plugin::Settings::Atmosphere::Model o) {
+  switch (o) {
+  case Plugin::Settings::Atmosphere::Model::eCosmoScoutVR:
+    j = "CosmoScoutVR";
+    break;
+  case Plugin::Settings::Atmosphere::Model::eBruneton:
+    j = "Bruneton";
+    break;
+  }
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void from_json(nlohmann::json const& j, Plugin::Settings::Atmosphere& o) {
+  cs::core::Settings::deserialize(j, "model", o.mModel);
+  cs::core::Settings::deserialize(j, "modelSettings", o.mModelSettings);
+  cs::core::Settings::deserialize(j, "enableWater", o.mEnableWater);
+  cs::core::Settings::deserialize(j, "waterLevel", o.mWaterLevel);
+  cs::core::Settings::deserialize(j, "enableClouds", o.mEnableClouds);
+  cs::core::Settings::deserialize(j, "cloudTexture", o.mCloudTexture);
+  cs::core::Settings::deserialize(j, "cloudAltitude", o.mCloudAltitude);
+  cs::core::Settings::deserialize(j, "enableLightShafts", o.mEnableLightShafts);
 }
 
 void to_json(nlohmann::json& j, Plugin::Settings::Atmosphere const& o) {
+  cs::core::Settings::serialize(j, "model", o.mModel);
+  cs::core::Settings::serialize(j, "modelSettings", o.mModelSettings);
+  cs::core::Settings::serialize(j, "enableWater", o.mEnableWater);
+  cs::core::Settings::serialize(j, "waterLevel", o.mWaterLevel);
+  cs::core::Settings::serialize(j, "enableClouds", o.mEnableClouds);
+  cs::core::Settings::serialize(j, "cloudTexture", o.mCloudTexture);
+  cs::core::Settings::serialize(j, "cloudAltitude", o.mCloudAltitude);
+  cs::core::Settings::serialize(j, "enableLightShafts", o.mEnableLightShafts);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -146,4 +185,4 @@ void Plugin::onSave() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-} // namespace csp::advanced_atmospheres
+} // namespace csp::atmospheres

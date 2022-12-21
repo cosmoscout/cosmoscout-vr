@@ -45,7 +45,7 @@ of the following C++ code.
 
 #include "constants.hpp"
 
-#include "../../../src/cs-utils/filesystem.hpp"
+#include "../../../../src/cs-utils/filesystem.hpp"
 
 #include <cassert>
 #include <cmath>
@@ -69,7 +69,7 @@ implementation of the <code>Model</code> class, using the above tools.</li>
 and we render a full quad in this FBO. For this we need a basic vertex shader:
 */
 
-namespace csp::advanced_atmospheres::bruneton {
+namespace csp::atmospheres::models::bruneton::internal {
 
 namespace {
 
@@ -645,10 +645,10 @@ Model::Model(const std::vector<double>& wavelengths, const std::vector<double>& 
   // A lambda that creates a GLSL header containing our atmosphere computation
   // functions, specialized for the given atmosphere parameters and for the 3
   // wavelengths in 'lambdas'.
-  auto definitions_glsl =
-      cs::utils::filesystem::loadToString("../share/resources/shaders/bruneton/definitions.glsl");
-  auto functions_glsl =
-      cs::utils::filesystem::loadToString("../share/resources/shaders/bruneton/functions.glsl");
+  auto definitions_glsl = cs::utils::filesystem::loadToString(
+      "../share/resources/shaders/csp-atmospheres/models/bruneton/definitions.glsl");
+  auto functions_glsl = cs::utils::filesystem::loadToString(
+      "../share/resources/shaders/csp-atmospheres/models/bruneton/functions.glsl");
   glsl_header_factory_ = [=](const vec3& lambdas) {
     return "#version 330\n"
            "#define IN(x) const in x\n"
@@ -1101,4 +1101,4 @@ void Model::Precompute(GLuint fbo, GLuint delta_irradiance_texture,
   glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, 0, 0);
 }
 
-} // namespace csp::advanced_atmospheres::bruneton
+} // namespace csp::atmospheres::models::bruneton::internal

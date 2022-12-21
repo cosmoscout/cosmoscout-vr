@@ -5,12 +5,12 @@
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 // SPDX-License-Identifier: MIT
 
-#ifndef CSP_ADVANCED_ATMOSPHERE_RENDERER_HPP
-#define CSP_ADVANCED_ATMOSPHERE_RENDERER_HPP
+#ifndef CSP_ATMOSPHERES_ATMOSPHERE_RENDERER_HPP
+#define CSP_ATMOSPHERES_ATMOSPHERE_RENDERER_HPP
 
 #include "../../../src/cs-scene/CelestialObject.hpp"
+#include "ModelBase.hpp"
 #include "Plugin.hpp"
-#include "bruneton/Model.hpp"
 
 #include <VistaBase/VistaVectorMath.h>
 #include <VistaKernel/DisplayManager/VistaViewport.h>
@@ -33,7 +33,7 @@ class ShadowMap;
 class HDRBuffer;
 } // namespace cs::graphics
 
-namespace csp::advanced_atmospheres {
+namespace csp::atmospheres {
 
 /// This class draws a configurable atmosphere. Just put an OpenGLNode into your SceneGraph at the
 /// very same position as your planet. Set its scale to the same size as your planet.
@@ -42,17 +42,13 @@ class AtmosphereRenderer : public IVistaOpenGLDraw {
   explicit AtmosphereRenderer(std::shared_ptr<Plugin::Settings> settings,
       std::shared_ptr<cs::core::EclipseShadowReceiver>          eclipseShadowReceiver);
 
+  void configure(Plugin::Settings::Atmosphere const& settings, glm::dvec3 const& radii);
+
   /// Updates the current sun position and brightness.
   void setSun(glm::vec3 const& direction, float illuminance);
 
-  /// Set the planet's radii.
-  void setRadii(glm::dvec3 const& radii);
-
   /// Set the transformation used to draw the atmosphere.
   void setWorldTransform(glm::dmat4 const& transform);
-
-  /// When set, the shader will draw this texture at the given altitude.
-  void setClouds(std::string const& textureFile, float height);
 
   /// When set, the shader will make lookups in order to generate light shafts.
   void setShadowMap(std::shared_ptr<cs::graphics::ShadowMap> const& pShadowMap);
@@ -67,12 +63,13 @@ class AtmosphereRenderer : public IVistaOpenGLDraw {
   void updateShader();
 
   std::shared_ptr<Plugin::Settings> mPluginSettings;
-  std::unique_ptr<VistaTexture>     mCloudTexture;
-  std::string                       mCloudTextureFile;
-  float                             mCloudHeight    = 0.001F;
-  bool                              mUseClouds      = false;
-  glm::dvec3                        mRadii          = glm::dvec3(1.0, 1.0, 1.0);
-  glm::dmat4                        mWorldTransform = glm::dmat4(1.0);
+  // std::unique_ptr<VistaTexture>     mCloudTexture;
+  // std::string                       mCloudTextureFile;
+  // float                             mCloudHeight    = 0.001F;
+  // bool                              mUseClouds      = false;
+
+  glm::dvec3 mRadii          = glm::dvec3(1.0, 1.0, 1.0);
+  glm::dmat4 mWorldTransform = glm::dmat4(1.0);
 
   std::shared_ptr<cs::graphics::ShadowMap>         mShadowMap;
   std::shared_ptr<cs::graphics::HDRBuffer>         mHDRBuffer;
@@ -113,9 +110,9 @@ class AtmosphereRenderer : public IVistaOpenGLDraw {
     uint32_t modelMatrix                      = 0;
   } mUniforms;
 
-  std::unique_ptr<bruneton::Model> mModel;
+  std::unique_ptr<ModelBase> mModel;
 };
 
-} // namespace csp::advanced_atmospheres
+} // namespace csp::atmospheres
 
-#endif // CSP_ADVANCED_ATMOSPHERE_RENDERER_HPP
+#endif // CSP_ATMOSPHERES_ATMOSPHERE_RENDERER_HPP

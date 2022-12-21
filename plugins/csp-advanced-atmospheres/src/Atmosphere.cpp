@@ -20,7 +20,7 @@
 #include <VistaKernel/VistaSystem.h>
 #include <VistaKernelOpenSGExt/VistaOpenSGMaterialTools.h>
 
-namespace csp::advanced_atmospheres {
+namespace csp::atmospheres {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -52,6 +52,10 @@ Atmosphere::~Atmosphere() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Atmosphere::configure(Plugin::Settings::Atmosphere const& settings) {
+  auto object = mSolarSystem->getObject(mObjectName);
+  if (object) {
+    mRenderer.configure(settings, object->getRadii());
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -74,7 +78,6 @@ void Atmosphere::update() {
 
     auto sunDirection = mSolarSystem->getSunDirection(object->getObserverRelativePosition());
     mRenderer.setSun(sunDirection, static_cast<float>(sunIlluminance));
-    mRenderer.setRadii(object->getRadii());
     mRenderer.setWorldTransform(object->getObserverRelativeTransform());
     mEclipseShadowReceiver->update(*object);
 
@@ -86,4 +89,4 @@ void Atmosphere::update() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-} // namespace csp::advanced_atmospheres
+} // namespace csp::atmospheres

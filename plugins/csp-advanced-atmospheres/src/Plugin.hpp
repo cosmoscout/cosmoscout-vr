@@ -5,8 +5,8 @@
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 // SPDX-License-Identifier: MIT
 
-#ifndef CSP_ADVANCED_ATMOSPHERE_PLUGIN_HPP
-#define CSP_ADVANCED_ATMOSPHERE_PLUGIN_HPP
+#ifndef CSP_ATMOSPHERES_PLUGIN_HPP
+#define CSP_ATMOSPHERES_PLUGIN_HPP
 
 #include "../../../src/cs-core/PluginBase.hpp"
 #include "../../../src/cs-core/Settings.hpp"
@@ -14,7 +14,7 @@
 
 class VistaOpenGLNode;
 
-namespace csp::advanced_atmospheres {
+namespace csp::atmospheres {
 
 class Atmosphere;
 
@@ -24,11 +24,22 @@ class Atmosphere;
 class Plugin : public cs::core::PluginBase {
  public:
   struct Settings {
-    struct Atmosphere {};
+    struct Atmosphere {
+      enum class Model { eCosmoScoutVR, eBruneton };
 
+      cs::utils::DefaultProperty<Model> mModel{Model::eCosmoScoutVR};
+      nlohmann::json                    mModelSettings;
+
+      cs::utils::DefaultProperty<bool>  mEnableWater{false};
+      cs::utils::DefaultProperty<float> mWaterLevel{0.F}; ///< In meters.
+      cs::utils::DefaultProperty<bool>  mEnableClouds{true};
+      std::optional<std::string>        mCloudTexture;          ///< Path to the cloud texture.
+      cs::utils::DefaultProperty<float> mCloudAltitude{3000.F}; ///< In meters.
+      cs::utils::DefaultProperty<bool>  mEnableLightShafts{false};
+    };
+
+    cs::utils::DefaultProperty<bool>            mEnabled{true};
     std::unordered_map<std::string, Atmosphere> mAtmospheres;
-
-    cs::utils::DefaultProperty<bool> mEnabled{true};
   };
 
   void init() override;
@@ -48,6 +59,6 @@ class Plugin : public cs::core::PluginBase {
   int mOnSaveConnection    = -1;
 };
 
-} // namespace csp::advanced_atmospheres
+} // namespace csp::atmospheres
 
-#endif // CSP_ADVANCED_ATMOSPHERE_PLUGIN_HPP
+#endif // CSP_ATMOSPHERES_PLUGIN_HPP

@@ -9,15 +9,15 @@
 
 #include "../../../src/cs-utils/logger.hpp"
 
-namespace csp::advanced_atmospheres {
+namespace csp::atmospheres {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 spdlog::logger& logger() {
-  static auto logger = cs::utils::createLogger("csp-advanced-atmospheres");
+  static auto logger = cs::utils::createLogger("csp-atmospheres");
   return *logger;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-} // namespace csp::advanced_atmospheres
+} // namespace csp::atmospheres

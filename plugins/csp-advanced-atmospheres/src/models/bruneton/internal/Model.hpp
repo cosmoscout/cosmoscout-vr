@@ -155,7 +155,7 @@ parameter):
 #include <string>
 #include <vector>
 
-namespace csp::advanced_atmospheres::bruneton {
+namespace csp::atmospheres::models::bruneton::internal {
 
 // An atmosphere layer of width 'width' (in m), and whose density is defined as
 //   'exp_term' * exp('exp_scale' * h) + 'linear_term' * h + 'constant_term',
@@ -332,6 +332,6 @@ class Model {
   GLuint                                  full_screen_quad_vbo_;
 };
 
-} // namespace csp::advanced_atmospheres::bruneton
+} // namespace csp::atmospheres::models::bruneton::internal
 
 #endif // ATMOSPHERE_MODEL_H_

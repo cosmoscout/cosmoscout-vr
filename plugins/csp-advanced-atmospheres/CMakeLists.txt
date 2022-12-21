@@ -13,7 +13,7 @@ endif()
 
 # build plugin -------------------------------------------------------------------------------------
 
-file(GLOB SOURCE_FILES src/*.cpp src/*/*.cpp)
+file(GLOB SOURCE_FILES src/*.cpp src/*/*.cpp src/*/*/*.cpp src/*/*/*/*.cpp)
 
 # Resoucre files and header files are only added in order to make them available in your IDE.
 file(GLOB HEADER_FILES src/*.hpp)

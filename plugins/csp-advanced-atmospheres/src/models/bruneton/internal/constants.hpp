@@ -42,7 +42,7 @@ sRGB luminance values).
 #ifndef ATMOSPHERE_CONSTANTS_H_
 #define ATMOSPHERE_CONSTANTS_H_
 
-namespace csp::advanced_atmospheres::bruneton {
+namespace csp::atmospheres::models::bruneton::internal {
 
 constexpr int TRANSMITTANCE_TEXTURE_WIDTH  = 256;
 constexpr int TRANSMITTANCE_TEXTURE_HEIGHT = 64;
@@ -453,6 +453,6 @@ constexpr double CIE_2_DEG_COLOR_MATCHING_FUNCTIONS[380] = {
 constexpr double XYZ_TO_SRGB[9] = {
     +3.2406, -1.5372, -0.4986, -0.9689, +1.8758, +0.0415, +0.0557, -0.2040, +1.0570};
 
-} // namespace csp::advanced_atmospheres::bruneton
+} // namespace csp::atmospheres::models::bruneton::internal
 
 #endif // ATMOSPHERE_CONSTANTS_H_
