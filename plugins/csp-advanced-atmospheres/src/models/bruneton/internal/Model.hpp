@@ -1,3 +1,5 @@
+// Only added namespace and different glew include
+
 /**
  * Copyright (c) 2017 Eric Bruneton
  * All rights reserved.

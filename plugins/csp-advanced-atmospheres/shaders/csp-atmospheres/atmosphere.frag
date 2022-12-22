@@ -255,8 +255,7 @@ void main() {
     vec3 inScatter =
         GetSkyLuminanceToPoint(vsIn.vRayOrigin, p, shadowLength, uSunDir, transmittance);
 
-    vec3 tmp            = GetSunAndSkyIlluminance(p, normalize(p), uSunDir, skyIlluminance);
-    vec3 sunIlluminance = GetSunAndSkyIlluminance(p, uSunDir, uSunDir, tmp);
+    vec3 sunIlluminance = GetSunAndSkyIlluminance(p, normalize(p), uSunDir, skyIlluminance);
 
     oColor =
         transmittance * oColor * (sunIlluminance + skyIlluminance) / uSunIlluminance + inScatter;

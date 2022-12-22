@@ -1,3 +1,5 @@
+// Changes in GetSunAndSkyIrradiance
+
 /**
  * Copyright (c) 2017 Eric Bruneton
  * All rights reserved.
@@ -1756,6 +1758,7 @@ IrradianceSpectrum GetSunAndSkyIrradiance(IN(AtmosphereParameters) atmosphere,
   Length r    = length(point);
   Number mu_s = dot(point, sun_direction) / r;
 
+  /*
   // Indirect irradiance (approximated if the surface is not horizontal).
   sky_irradiance =
       GetIrradiance(atmosphere, irradiance_texture, r, mu_s) * (1.0 + dot(normal, point) / r) * 0.5;
@@ -1764,4 +1767,12 @@ IrradianceSpectrum GetSunAndSkyIrradiance(IN(AtmosphereParameters) atmosphere,
   return atmosphere.solar_irradiance *
          GetTransmittanceToSun(atmosphere, transmittance_texture, r, mu_s) *
          max(dot(normal, sun_direction), 0.0);
+         */
+
+  // Indirect irradiance (approximated if the surface is not horizontal).
+  sky_irradiance = GetIrradiance(atmosphere, irradiance_texture, r, mu_s);
+
+  // Direct irradiance.
+  return atmosphere.solar_irradiance *
+         GetTransmittanceToSun(atmosphere, transmittance_texture, r, mu_s);
 }

@@ -1,3 +1,5 @@
+// Only changed loading of shader source files
+
 /**
  * Copyright (c) 2017 Eric Bruneton
  * All rights reserved.
