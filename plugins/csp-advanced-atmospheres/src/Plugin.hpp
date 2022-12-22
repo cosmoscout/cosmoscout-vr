@@ -31,15 +31,18 @@ class Plugin : public cs::core::PluginBase {
       cs::utils::DefaultProperty<Model> mModel{Model::eCosmoScoutVR};
       nlohmann::json                    mModelSettings;
 
+      cs::utils::DefaultProperty<bool>  mEnable{true};
       cs::utils::DefaultProperty<bool>  mEnableWater{false};
       cs::utils::DefaultProperty<float> mWaterLevel{0.F}; ///< In meters.
       cs::utils::DefaultProperty<bool>  mEnableClouds{true};
       std::optional<std::string>        mCloudTexture;          ///< Path to the cloud texture.
       cs::utils::DefaultProperty<float> mCloudAltitude{3000.F}; ///< In meters.
       cs::utils::DefaultProperty<bool>  mEnableLightShafts{false};
+
+      bool operator==(Atmosphere const& other) const;
+      bool operator!=(Atmosphere const& other) const;
     };
 
-    cs::utils::DefaultProperty<bool>            mEnabled{true};
     std::unordered_map<std::string, Atmosphere> mAtmospheres;
   };
 
@@ -54,10 +57,13 @@ class Plugin : public cs::core::PluginBase {
 
   std::shared_ptr<Settings> mPluginSettings = std::make_shared<Settings>();
   std::unordered_map<std::string, std::shared_ptr<Atmosphere>> mAtmospheres;
+  std::string                                                  mActiveAtmosphere;
 
-  int mEnableHDRConnection = -1;
-  int mOnLoadConnection    = -1;
-  int mOnSaveConnection    = -1;
+  int mActiveObjectConnection  = -1;
+  int mEnableShadowsConnection = -1;
+  int mEnableHDRConnection     = -1;
+  int mOnLoadConnection        = -1;
+  int mOnSaveConnection        = -1;
 };
 
 } // namespace csp::atmospheres

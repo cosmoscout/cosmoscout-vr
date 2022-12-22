@@ -103,9 +103,9 @@ void AtmosphereRenderer::configure(
     mShaderDirty = true;
   }
 
-  if (mAtmosphereHeight != settings.mHeight) {
-    mAtmosphereHeight = settings.mHeight;
-    mShaderDirty      = true;
+  if (mSettings != settings) {
+    mSettings    = settings;
+    mShaderDirty = true;
   }
 
   //     if (mCloudTextureFile != textureFile) {
@@ -154,6 +154,12 @@ void AtmosphereRenderer::setHDRBuffer(std::shared_ptr<cs::graphics::HDRBuffer> c
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+Plugin::Settings::Atmosphere const& AtmosphereRenderer::getSettings() const {
+  return mSettings;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void AtmosphereRenderer::updateShader() {
   mAtmoShader = VistaGLSLShader();
 
@@ -164,7 +170,7 @@ void AtmosphereRenderer::updateShader() {
 
   cs::utils::replaceString(sFrag, "PLANET_RADIUS", std::to_string(mRadii[0]));
   cs::utils::replaceString(
-      sFrag, "ATMOSPHERE_RADIUS", std::to_string(mRadii[0] + mAtmosphereHeight));
+      sFrag, "ATMOSPHERE_RADIUS", std::to_string(mRadii[0] + mSettings.mHeight));
   cs::utils::replaceString(sFrag, "USE_SHADOWMAP", std::to_string(mShadowMap != nullptr));
   // cs::utils::replaceString(sFrag, "USE_CLOUDMAP", std::to_string(mUseClouds && mCloudTexture));
   cs::utils::replaceString(sFrag, "ENABLE_HDR", std::to_string(mHDRBuffer != nullptr));
