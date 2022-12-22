@@ -20,7 +20,7 @@ class ModelBase {
  public:
   virtual ~ModelBase() = default;
 
-  virtual bool init(nlohmann::json modelSettings, double planetRadius) = 0;
+  virtual bool init(nlohmann::json modelSettings, double planetRadius, double atmosphereRadius) = 0;
 
   virtual GLuint getShader() const = 0;
 

@@ -52,11 +52,6 @@ layout(location = 0) out vec3 oColor;
 
 ECLIPSE_SHADER_SNIPPET
 
-// constants
-const float PI                = 3.14159265359;
-const float PLANET_RADIUS     = 6360000.0;
-const float ATMOSPHERE_RADIUS = 6420000.0;
-
 // compute intersections with the atmosphere
 // two T parameters are returned -- if no intersection is found, the first will
 // larger than the second
@@ -225,11 +220,6 @@ bool GetViewRay(vec2 vIntersections, float fOpaqueDepth, out vec2 vStartEnd) {
   return true;
 }
 
-uniform sampler2D transmittance_texture;
-uniform sampler3D scattering_texture;
-uniform sampler3D single_mie_scattering_texture;
-uniform sampler2D irradiance_texture;
-
 void main() {
   vec3 vRayDir = normalize(vsIn.vRayDir);
 
@@ -264,10 +254,12 @@ void main() {
     vec3 p = vsIn.vRayOrigin + vRayDir * fOpaqueDepth;
     vec3 inScatter =
         GetSkyLuminanceToPoint(vsIn.vRayOrigin, p, shadowLength, uSunDir, transmittance);
-    vec3 sunIlluminance = GetSunAndSkyIlluminance(p, uSunDir, uSunDir, skyIlluminance);
+
+    vec3 tmp            = GetSunAndSkyIlluminance(p, normalize(p), uSunDir, skyIlluminance);
+    vec3 sunIlluminance = GetSunAndSkyIlluminance(p, uSunDir, uSunDir, tmp);
 
     oColor =
-        transmittance * oColor * (skyIlluminance + sunIlluminance) / uSunIlluminance + inScatter;
+        transmittance * oColor * (sunIlluminance + skyIlluminance) / uSunIlluminance + inScatter;
   } else {
     vec3 transmittance;
     vec3 inScatter =
@@ -275,6 +267,4 @@ void main() {
 
     oColor = transmittance * oColor + inScatter;
   }
-
-  // oColor = texture(irradiance_texture, vsIn.vTexcoords).rgb;
 }

@@ -14,7 +14,6 @@ namespace csp::atmospheres::models::cosmoscout {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void from_json(nlohmann::json const& j, Model::Settings& o) {
-  cs::core::Settings::deserialize(j, "radius", o.mRadius);
   cs::core::Settings::deserialize(j, "mieHeight", o.mMieHeight);
   cs::core::Settings::deserialize(j, "mieScattering", o.mMieScattering);
   cs::core::Settings::deserialize(j, "mieAnisotropy", o.mMieAnisotropy);
@@ -26,7 +25,6 @@ void from_json(nlohmann::json const& j, Model::Settings& o) {
 }
 
 void to_json(nlohmann::json& j, Model::Settings const& o) {
-  cs::core::Settings::serialize(j, "radius", o.mRadius);
   cs::core::Settings::serialize(j, "mieHeight", o.mMieHeight);
   cs::core::Settings::serialize(j, "mieScattering", o.mMieScattering);
   cs::core::Settings::serialize(j, "mieAnisotropy", o.mMieAnisotropy);
@@ -39,21 +37,23 @@ void to_json(nlohmann::json& j, Model::Settings const& o) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool Model::init(nlohmann::json modelSettings, double planetRadius) {
-  if (mPreviousSettings == modelSettings && mPlanetRadius == planetRadius) {
+bool Model::init(nlohmann::json modelSettings, double planetRadius, double atmosphereRadius) {
+  if (mPreviousSettings == modelSettings && mPlanetRadius == planetRadius &&
+      mAtmosphereRadius == atmosphereRadius) {
     return false;
   }
 
   mPreviousSettings = std::move(modelSettings);
   mSettings         = mPreviousSettings;
   mPlanetRadius     = planetRadius;
+  mAtmosphereRadius = atmosphereRadius;
 
   mShader.Destroy();
 
   auto sFrag = cs::utils::filesystem::loadToString(
       "../share/resources/shaders/csp-atmospheres/models/cosmoscout/model.glsl");
 
-  cs::utils::replaceString(sFrag, "ATMO_RADIUS", cs::utils::toString(mSettings.mRadius));
+  cs::utils::replaceString(sFrag, "ATMO_RADIUS", cs::utils::toString(mAtmosphereRadius));
   cs::utils::replaceString(sFrag, "PLANET_RADIUS", cs::utils::toString(mPlanetRadius));
   cs::utils::replaceString(
       sFrag, "ANISOTROPY_R", cs::utils::toString(mSettings.mRayleighAnisotropy));

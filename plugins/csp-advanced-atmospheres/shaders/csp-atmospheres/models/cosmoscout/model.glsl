@@ -141,10 +141,19 @@ vec3 _getInscatter(
 vec3 GetSkyLuminance(
     vec3 camera, vec3 viewRay, float shadowLength, vec3 sunDirection, out vec3 transmittance) {
 
-  float fTEnd     = _intersectAtmosphere(camera, viewRay).y;
-  vec3  inscatter = _getInscatter(camera, viewRay, 0.0, fTEnd, false, sunDirection);
+  vec2 intersections = _intersectAtmosphere(camera, viewRay);
 
-  vec2 vOpticalDepth = _getOpticalDepth(camera, viewRay, 0.0, fTEnd);
+  if (intersections.x > intersections.y || intersections.y < 0) {
+    transmittance = vec3(1.0);
+    return vec3(0.0);
+  }
+
+  intersections.x = max(intersections.x, 0.0);
+
+  vec3 inscatter =
+      _getInscatter(camera, viewRay, intersections.x, intersections.y, false, sunDirection);
+
+  vec2 vOpticalDepth = _getOpticalDepth(camera, viewRay, intersections.x, intersections.y);
   transmittance      = _getExtinction(vOpticalDepth);
 
   return inscatter * uSunIlluminance;
@@ -156,11 +165,23 @@ vec3 GetSkyLuminanceToPoint(
     vec3 camera, vec3 p, float shadowLength, vec3 sunDirection, out vec3 transmittance) {
 
   vec3  viewRay = p - camera;
-  float fTEnd   = length(viewRay);
+  float dist    = length(viewRay);
+  viewRay /= dist;
 
-  vec3 inscatter = _getInscatter(camera, viewRay / fTEnd, 0.0, fTEnd, true, sunDirection);
+  vec2 intersections = _intersectAtmosphere(camera, viewRay);
 
-  vec2 vOpticalDepth = _getOpticalDepth(camera, viewRay / fTEnd, 0.0, fTEnd);
+  if (intersections.x > intersections.y || intersections.y < 0) {
+    transmittance = vec3(1.0);
+    return vec3(0.0);
+  }
+
+  intersections.x = max(intersections.x, 0.0);
+  intersections.y = min(intersections.y, dist);
+
+  vec3 inscatter =
+      _getInscatter(camera, viewRay, intersections.x, intersections.y, true, sunDirection);
+
+  vec2 vOpticalDepth = _getOpticalDepth(camera, viewRay, intersections.x, intersections.y);
   transmittance      = _getExtinction(vOpticalDepth);
 
   return inscatter * uSunIlluminance;
@@ -169,6 +190,12 @@ vec3 GetSkyLuminanceToPoint(
 // Returns the sun and sky illuminance received on a surface patch located at 'p' and whose normal
 // vector is 'normal'.
 vec3 GetSunAndSkyIlluminance(vec3 p, vec3 normal, vec3 sunDirection, out vec3 skyIlluminance) {
-  skyIlluminance = vec3(0.0);
-  return vec3(uSunIlluminance);
+  vec3 transmittance;
+  skyIlluminance = GetSkyLuminance(p, normal, 0.0, sunDirection, transmittance);
+
+  float fTEnd         = _intersectAtmosphere(p, sunDirection).y;
+  vec2  vOpticalDepth = _getOpticalDepth(p, sunDirection, 0.0, fTEnd);
+  transmittance       = _getExtinction(vOpticalDepth);
+
+  return transmittance * uSunIlluminance;
 }

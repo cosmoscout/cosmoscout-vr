@@ -18,7 +18,6 @@ namespace csp::atmospheres::models::cosmoscout {
 class Model : public ModelBase {
  public:
   struct Settings {
-    float     mRadius{};    ///< In meters.
     float     mMieHeight{}; ///< In meters.
     glm::vec3 mMieScattering{};
     float     mMieAnisotropy{};
@@ -30,7 +29,7 @@ class Model : public ModelBase {
     cs::utils::DefaultProperty<int> mSecondaryRaySteps{3};
   };
 
-  bool init(nlohmann::json modelSettings, double planetRadius) override;
+  bool init(nlohmann::json modelSettings, double planetRadius, double atmosphereRadius) override;
 
   GLuint getShader() const override;
   GLuint setUniforms(GLuint program, GLuint startTextureUnit) const override;
@@ -40,6 +39,7 @@ class Model : public ModelBase {
   nlohmann::json  mPreviousSettings;
   VistaGLSLShader mShader;
   double          mPlanetRadius;
+  double          mAtmosphereRadius;
 };
 
 } // namespace csp::atmospheres::models::cosmoscout

@@ -58,6 +58,7 @@ void to_json(nlohmann::json& j, Plugin::Settings::Atmosphere::Model o) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void from_json(nlohmann::json const& j, Plugin::Settings::Atmosphere& o) {
+  cs::core::Settings::deserialize(j, "height", o.mHeight);
   cs::core::Settings::deserialize(j, "model", o.mModel);
   cs::core::Settings::deserialize(j, "modelSettings", o.mModelSettings);
   cs::core::Settings::deserialize(j, "enableWater", o.mEnableWater);
@@ -69,6 +70,7 @@ void from_json(nlohmann::json const& j, Plugin::Settings::Atmosphere& o) {
 }
 
 void to_json(nlohmann::json& j, Plugin::Settings::Atmosphere const& o) {
+  cs::core::Settings::serialize(j, "height", o.mHeight);
   cs::core::Settings::serialize(j, "model", o.mModel);
   cs::core::Settings::serialize(j, "modelSettings", o.mModelSettings);
   cs::core::Settings::serialize(j, "enableWater", o.mEnableWater);

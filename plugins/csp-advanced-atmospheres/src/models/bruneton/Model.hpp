@@ -17,7 +17,7 @@ class Model : public ModelBase {
  public:
   struct Settings {};
 
-  bool init(nlohmann::json modelSettings, double planetRadius) override;
+  bool init(nlohmann::json modelSettings, double planetRadius, double atmosphereRadius) override;
 
   GLuint getShader() const override;
   GLuint setUniforms(GLuint program, GLuint startTextureUnit) const override;
@@ -26,6 +26,7 @@ class Model : public ModelBase {
   Settings                         mSettings;
   nlohmann::json                   mPreviousSettings;
   double                           mPlanetRadius;
+  double                           mAtmosphereRadius;
   std::unique_ptr<internal::Model> mModel;
 };
 

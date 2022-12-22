@@ -68,8 +68,9 @@ class AtmosphereRenderer : public IVistaOpenGLDraw {
   // float                             mCloudHeight    = 0.001F;
   // bool                              mUseClouds      = false;
 
-  glm::dvec3 mRadii          = glm::dvec3(1.0, 1.0, 1.0);
-  glm::dmat4 mWorldTransform = glm::dmat4(1.0);
+  glm::dvec3 mRadii            = glm::dvec3(1.0, 1.0, 1.0);
+  glm::dmat4 mWorldTransform   = glm::dmat4(1.0);
+  double     mAtmosphereHeight = 0.0;
 
   std::shared_ptr<cs::graphics::ShadowMap>         mShadowMap;
   std::shared_ptr<cs::graphics::HDRBuffer>         mHDRBuffer;

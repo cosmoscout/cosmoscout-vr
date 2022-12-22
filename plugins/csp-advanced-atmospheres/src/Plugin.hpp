@@ -27,6 +27,7 @@ class Plugin : public cs::core::PluginBase {
     struct Atmosphere {
       enum class Model { eCosmoScoutVR, eBruneton };
 
+      double                            mHeight; ///< In meters.
       cs::utils::DefaultProperty<Model> mModel{Model::eCosmoScoutVR};
       nlohmann::json                    mModelSettings;
 

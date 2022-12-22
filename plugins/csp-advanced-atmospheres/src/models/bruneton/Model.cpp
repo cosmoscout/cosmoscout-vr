@@ -40,15 +40,17 @@ void to_json(nlohmann::json& j, Model::Settings const& o) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool Model::init(nlohmann::json modelSettings, double planetRadius) {
+bool Model::init(nlohmann::json modelSettings, double planetRadius, double atmosphereRadius) {
 
-  if (mPreviousSettings == modelSettings && mPlanetRadius == planetRadius) {
+  if (mPreviousSettings == modelSettings && mPlanetRadius == planetRadius &&
+      mAtmosphereRadius == atmosphereRadius) {
     return false;
   }
 
   mPreviousSettings = std::move(modelSettings);
   mSettings         = mPreviousSettings;
   mPlanetRadius     = planetRadius;
+  mAtmosphereRadius = atmosphereRadius;
 
   constexpr double kSunAngularRadius = 0.00935 / 2.0;
 
@@ -86,8 +88,6 @@ bool Model::init(nlohmann::json modelSettings, double planetRadius) {
   // 300 Dobson units of ozone - for this we divide 300 DU by the integral of
   // the ozone density profile defined below, which is equal to 15km).
   constexpr double kMaxOzoneNumberDensity     = 300.0 * kDobsonUnit / 15000.0;
-  constexpr double kBottomRadius              = 6371000.0;
-  constexpr double kTopRadius                 = 6520000.0;
   constexpr double kRayleigh                  = 1.24062e-6;
   constexpr double kRayleighScaleHeight       = 8000.0;
   constexpr double kMieScaleHeight            = 1200.0;
@@ -130,8 +130,8 @@ bool Model::init(nlohmann::json modelSettings, double planetRadius) {
     ground_albedo.push_back(kGroundAlbedo);
   }
 
-  mModel.reset(new internal::Model(wavelengths, solar_irradiance, kSunAngularRadius, kBottomRadius,
-      kTopRadius, {rayleigh_layer}, rayleigh_scattering, {mie_layer}, mie_scattering,
+  mModel.reset(new internal::Model(wavelengths, solar_irradiance, kSunAngularRadius, mPlanetRadius,
+      mAtmosphereRadius, {rayleigh_layer}, rayleigh_scattering, {mie_layer}, mie_scattering,
       mie_extinction, kMiePhaseFunctionG, ozone_density, absorption_extinction, ground_albedo,
       max_sun_zenith_angle, 1.0, use_luminance_ == PRECOMPUTED ? 15 : 3, use_combined_textures_,
       use_half_precision_));
