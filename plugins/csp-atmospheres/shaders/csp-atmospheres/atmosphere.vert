@@ -1,8 +1,5 @@
 #version 330
 
-// inputs
-layout(location = 0) in vec2 vPosition;
-
 // uniforms
 uniform mat4 uMatInvMV;
 uniform mat4 uMatInvP;
@@ -25,7 +22,8 @@ void main() {
   vsOut.vRayOrigin = uMatInvMV[3].xyz;
 
   // get ray direction model space
-  vsOut.vRayDir = (testInvMVP * vec4(vPosition, 0, 1)).xyz;
+  vec2 vPosition = vec2(gl_VertexID & 2, (gl_VertexID << 1) & 2) * 2.0 - 1.0;
+  vsOut.vRayDir  = (testInvMVP * vec4(vPosition, 0, 1)).xyz;
 
   // for lookups in the depth and color buffers
   vsOut.vTexcoords = vPosition * 0.5 + 0.5;

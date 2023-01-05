@@ -7,37 +7,42 @@
 
 #include "Atmosphere.hpp"
 
+#include "ModelBase.hpp"
 #include "logger.hpp"
 #include "models/bruneton/Model.hpp"
 #include "models/cosmoscout/Model.hpp"
 
-#include "../../../src/cs-core/EclipseShadowReceiver.hpp"
 #include "../../../src/cs-core/GraphicsEngine.hpp"
 #include "../../../src/cs-core/SolarSystem.hpp"
-#include "../../../src/cs-graphics/Shadows.hpp"
-#include "../../../src/cs-graphics/TextureLoader.hpp"
-#include "../../../src/cs-scene/CelestialObject.hpp"
 #include "../../../src/cs-utils/FrameTimings.hpp"
 #include "../../../src/cs-utils/filesystem.hpp"
-#include "../../../src/cs-utils/utils.hpp"
+// #include "../../../src/cs-core/EclipseShadowReceiver.hpp"
+// #include "../../../src/cs-graphics/Shadows.hpp"
+// #include "../../../src/cs-graphics/TextureLoader.hpp"
+// #include "../../../src/cs-utils/utils.hpp"
+// #include "../../../src/cs-scene/CelestialObject.hpp"
 
 #include <VistaKernel/DisplayManager/VistaDisplayManager.h>
-#include <VistaKernel/DisplayManager/VistaViewport.h>
-#include <VistaKernel/GraphicsManager/VistaGeometryFactory.h>
 #include <VistaKernel/GraphicsManager/VistaGroupNode.h>
 #include <VistaKernel/GraphicsManager/VistaOpenGLNode.h>
 #include <VistaKernel/GraphicsManager/VistaSceneGraph.h>
 #include <VistaKernel/VistaSystem.h>
 #include <VistaKernelOpenSGExt/VistaOpenSGMaterialTools.h>
-#include <VistaMath/VistaBoundingBox.h>
-#include <VistaOGLExt/Rendering/VistaGeometryData.h>
-#include <VistaOGLExt/Rendering/VistaGeometryRenderingCore.h>
-#include <VistaOGLExt/VistaOGLUtils.h>
 #include <VistaOGLExt/VistaTexture.h>
-#include <VistaTools/tinyXML/tinyxml.h>
+// #include <VistaBase/VistaVectorMath.h>
+// #include <VistaKernel/DisplayManager/VistaViewport.h>
+// #include <VistaKernel/GraphicsManager/VistaGeometryFactory.h>
+// #include <VistaMath/VistaBoundingBox.h>
+// #include <VistaOGLExt/Rendering/VistaGeometryData.h>
+// #include <VistaOGLExt/Rendering/VistaGeometryRenderingCore.h>
+// #include <VistaOGLExt/VistaOGLUtils.h>
+// #include <VistaTools/tinyXML/tinyxml.h>
 
 #include <glm/gtc/type_ptr.hpp>
-#include <utility>
+// #include <glm/glm.hpp>
+// #include <memory>
+// #include <unordered_map>
+// #include <utility>
 
 namespace csp::atmospheres {
 
@@ -81,17 +86,6 @@ Atmosphere::Atmosphere(std::shared_ptr<Plugin::Settings> pluginSettings,
   mAtmosphereNode->SetIsEnabled(false);
   VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
       mAtmosphereNode.get(), static_cast<int>(cs::utils::DrawOrder::eAtmospheres));
-
-  // create quad -------------------------------------------------------------
-  std::array<float, 8> const data{-1, 1, 1, 1, -1, -1, 1, -1};
-
-  mQuadVBO.Bind(GL_ARRAY_BUFFER);
-  mQuadVBO.BufferData(data.size() * sizeof(float), data.data(), GL_STATIC_DRAW);
-  mQuadVBO.Release();
-
-  // positions
-  mQuadVAO.EnableAttributeArray(0);
-  mQuadVAO.SpecifyAttributeArrayFloat(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0, &mQuadVBO);
 
   // create textures ---------------------------------------------------------
   for (auto const& viewport : GetVistaSystem()->GetDisplayManager()->GetViewports()) {
@@ -232,9 +226,7 @@ void Atmosphere::updateShader() {
   mUniforms.modelMatrix                      = mAtmoShader.GetUniformLocation("uMatM");
 
   // We bind the eclipse shadow map to texture unit 4.
-  if (mEclipseShadowReceiver) {
-    mEclipseShadowReceiver->init(&mAtmoShader, 4);
-  }
+  mEclipseShadowReceiver->init(&mAtmoShader, 4);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -264,7 +256,7 @@ void Atmosphere::update() {
 bool Atmosphere::Do() {
   cs::utils::FrameTimings::ScopedTimer timer("Render Atmosphere");
 
-  if (mShaderDirty || (mEclipseShadowReceiver && mEclipseShadowReceiver->needsRecompilation())) {
+  if (mShaderDirty || mEclipseShadowReceiver->needsRecompilation()) {
     updateShader();
     mShaderDirty = false;
   }
@@ -363,23 +355,17 @@ bool Atmosphere::Do() {
   glUniformMatrix4fv(mUniforms.modelMatrix, 1, GL_FALSE, glm::value_ptr(matM));
 
   // Initialize eclipse shadow-related uniforms and textures.
-  if (mEclipseShadowReceiver) {
-    mEclipseShadowReceiver->preRender();
-  }
+  mEclipseShadowReceiver->preRender();
 
   mModel->setUniforms(mAtmoShader.GetProgram(), 5);
 
   // draw --------------------------------------------------------------------
-  mQuadVAO.Bind();
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-  mQuadVAO.Release();
 
   // clean up ----------------------------------------------------------------
 
   // Reset eclipse shadow-related texture units.
-  if (mEclipseShadowReceiver) {
-    mEclipseShadowReceiver->postRender();
-  }
+  mEclipseShadowReceiver->postRender();
 
   if (mHDRBuffer) {
     mHDRBuffer->getDepthAttachment()->Unbind(GL_TEXTURE0);

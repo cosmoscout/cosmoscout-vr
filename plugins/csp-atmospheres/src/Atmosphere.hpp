@@ -8,21 +8,10 @@
 #ifndef CSP_ATMOSPHERES_ATMOSPHERE_HPP
 #define CSP_ATMOSPHERES_ATMOSPHERE_HPP
 
-#include "../../../src/cs-scene/CelestialObject.hpp"
-#include "ModelBase.hpp"
 #include "Plugin.hpp"
 
-#include <VistaBase/VistaVectorMath.h>
-#include <VistaKernel/DisplayManager/VistaViewport.h>
 #include <VistaKernel/GraphicsManager/VistaOpenGLDraw.h>
-#include <VistaOGLExt/VistaBufferObject.h>
 #include <VistaOGLExt/VistaGLSLShader.h>
-#include <VistaOGLExt/VistaTexture.h>
-#include <VistaOGLExt/VistaVertexArrayObject.h>
-
-#include <glm/glm.hpp>
-#include <memory>
-#include <unordered_map>
 
 namespace cs::core {
 class SolarSystem;
@@ -36,6 +25,8 @@ class HDRBuffer;
 } // namespace cs::graphics
 
 namespace csp::atmospheres {
+
+class ModelBase;
 
 /// This class draws a configurable atmosphere. Just put an OpenGLNode into your SceneGraph at the
 /// very same position as your planet. Set its scale to the same size as your planet.
@@ -81,9 +72,7 @@ class Atmosphere : public IVistaOpenGLDraw {
   std::shared_ptr<cs::graphics::HDRBuffer>         mHDRBuffer;
   std::shared_ptr<cs::core::EclipseShadowReceiver> mEclipseShadowReceiver;
 
-  VistaGLSLShader        mAtmoShader;
-  VistaVertexArrayObject mQuadVAO;
-  VistaBufferObject      mQuadVBO;
+  VistaGLSLShader mAtmoShader;
 
   struct GBufferData {
     std::unique_ptr<VistaTexture> mDepthBuffer;
