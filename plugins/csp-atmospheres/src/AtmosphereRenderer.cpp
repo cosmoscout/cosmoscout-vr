@@ -7,9 +7,9 @@
 
 #include "Atmosphere.hpp"
 
-#ifdef _WIN32
-#include <Windows.h>
-#endif
+#include "logger.hpp"
+#include "models/bruneton/Model.hpp"
+#include "models/cosmoscout/Model.hpp"
 
 #include "../../../src/cs-core/EclipseShadowReceiver.hpp"
 #include "../../../src/cs-core/GraphicsEngine.hpp"
@@ -17,6 +17,7 @@
 #include "../../../src/cs-graphics/Shadows.hpp"
 #include "../../../src/cs-graphics/TextureLoader.hpp"
 #include "../../../src/cs-utils/FrameTimings.hpp"
+#include "../../../src/cs-utils/filesystem.hpp"
 #include "../../../src/cs-utils/utils.hpp"
 
 #include <VistaKernel/DisplayManager/VistaDisplayManager.h>
@@ -41,57 +42,96 @@ AtmosphereRenderer::AtmosphereRenderer(std::shared_ptr<Plugin::Settings> setting
     : mPluginSettings(std::move(settings))
     , mEclipseShadowReceiver(std::move(eclipseShadowReceiver)) {
 
-  initData();
+  // create quad -------------------------------------------------------------
+  std::array<float, 8> const data{-1, 1, 1, 1, -1, -1, 1, -1};
 
-  // scene-wide settings -----------------------------------------------------
-  mPluginSettings->mQuality.connectAndTouch([this](int val) { setPrimaryRaySteps(val); });
+  mQuadVBO.Bind(GL_ARRAY_BUFFER);
+  mQuadVBO.BufferData(data.size() * sizeof(float), data.data(), GL_STATIC_DRAW);
+  mQuadVBO.Release();
 
-  mPluginSettings->mEnableWater.connectAndTouch([this](bool val) { setDrawWater(val); });
+  // positions
+  mQuadVAO.EnableAttributeArray(0);
+  mQuadVAO.SpecifyAttributeArrayFloat(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0, &mQuadVBO);
 
-  mPluginSettings->mEnableClouds.connectAndTouch([this](bool val) {
-    if (mUseClouds != val) {
-      mShaderDirty = true;
-      mUseClouds   = val;
+  // create textures ---------------------------------------------------------
+  for (auto const& viewport : GetVistaSystem()->GetDisplayManager()->GetViewports()) {
+    GBufferData bufferData;
+
+    bufferData.mDepthBuffer = std::make_unique<VistaTexture>(GL_TEXTURE_2D);
+    bufferData.mDepthBuffer->Bind();
+    bufferData.mDepthBuffer->SetWrapS(GL_CLAMP);
+    bufferData.mDepthBuffer->SetWrapT(GL_CLAMP);
+    bufferData.mDepthBuffer->SetMinFilter(GL_NEAREST);
+    bufferData.mDepthBuffer->SetMagFilter(GL_NEAREST);
+    bufferData.mDepthBuffer->Unbind();
+
+    bufferData.mColorBuffer = std::make_unique<VistaTexture>(GL_TEXTURE_2D);
+    bufferData.mColorBuffer->Bind();
+    bufferData.mColorBuffer->SetWrapS(GL_CLAMP);
+    bufferData.mColorBuffer->SetWrapT(GL_CLAMP);
+    bufferData.mColorBuffer->SetMinFilter(GL_NEAREST);
+    bufferData.mColorBuffer->SetMagFilter(GL_NEAREST);
+    bufferData.mColorBuffer->Unbind();
+
+    mGBufferData.emplace(viewport.second, std::move(bufferData));
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void AtmosphereRenderer::configure(
+    Plugin::Settings::Atmosphere const& settings, glm::dvec3 const& radii) {
+
+  // TODO: Recreate model if type changed.
+  if (!mModel) {
+    switch (settings.mModel.get()) {
+    case Plugin::Settings::Atmosphere::Model::eCosmoScoutVR:
+      mModel = std::make_unique<models::cosmoscout::Model>();
+      break;
+    case Plugin::Settings::Atmosphere::Model::eBruneton:
+      mModel = std::make_unique<models::bruneton::Model>();
+      break;
     }
-  });
+  }
 
-  mPluginSettings->mWaterLevel.connectAndTouch([this](float val) { setWaterLevel(val / 1000); });
+  if (mModel->init(settings.mModelSettings, radii[0], radii[0] + settings.mHeight)) {
+    mShaderDirty = true;
+  }
+
+  if (mRadii != radii) {
+    mRadii       = radii;
+    mShaderDirty = true;
+  }
+
+  if (mSettings != settings) {
+    mSettings    = settings;
+    mShaderDirty = true;
+  }
+
+  //     if (mCloudTextureFile != textureFile) {
+  //   mCloudTextureFile = textureFile;
+  //   mCloudTexture.reset();
+  //   if (!textureFile.empty()) {
+  //     mCloudTexture = cs::graphics::TextureLoader::loadFromFile(textureFile);
+  //   }
+  //   mShaderDirty = true;
+  //   mUseClouds   = mCloudTexture != nullptr;
+  // }
+
+  // mCloudHeight = height;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void AtmosphereRenderer::setSun(glm::vec3 const& direction, float illuminance) {
-  mSunIntensity = illuminance;
-  mSunDirection = direction;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void AtmosphereRenderer::setRadii(glm::dvec3 const& radii) {
-  mRadii = radii;
+  mSunIlluminance = illuminance;
+  mSunDirection   = direction;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void AtmosphereRenderer::setWorldTransform(glm::dmat4 const& transform) {
   mWorldTransform = transform;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void AtmosphereRenderer::setClouds(std::string const& textureFile, float height) {
-
-  if (mCloudTextureFile != textureFile) {
-    mCloudTextureFile = textureFile;
-    mCloudTexture.reset();
-    if (!textureFile.empty()) {
-      mCloudTexture = cs::graphics::TextureLoader::loadFromFile(textureFile);
-    }
-    mShaderDirty = true;
-    mUseClouds   = mCloudTexture != nullptr;
-  }
-
-  mCloudHeight = height;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -114,190 +154,8 @@ void AtmosphereRenderer::setHDRBuffer(std::shared_ptr<cs::graphics::HDRBuffer> c
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-float AtmosphereRenderer::getApproximateSceneBrightness() const {
-  return mApproximateBrightness;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-int AtmosphereRenderer::getPrimaryRaySteps() const {
-  return mPrimaryRaySteps;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void AtmosphereRenderer::setPrimaryRaySteps(int iValue) {
-  mPrimaryRaySteps = iValue;
-  mShaderDirty     = true;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-int AtmosphereRenderer::getSecondaryRaySteps() const {
-  return mSecondaryRaySteps;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void AtmosphereRenderer::setSecondaryRaySteps(int iValue) {
-  mSecondaryRaySteps = iValue;
-  mShaderDirty       = true;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-float AtmosphereRenderer::getAtmosphereHeight() const {
-  return mAtmosphereHeight;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void AtmosphereRenderer::setAtmosphereHeight(float dValue) {
-  mAtmosphereHeight = dValue;
-  mShaderDirty      = true;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-float AtmosphereRenderer::getMieHeight() const {
-  return mMieHeight;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void AtmosphereRenderer::setMieHeight(float dValue) {
-  mMieHeight   = dValue;
-  mShaderDirty = true;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-glm::vec3 AtmosphereRenderer::getMieScattering() const {
-  return mMieScattering;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void AtmosphereRenderer::setMieScattering(const glm::vec3& vValue) {
-  mMieScattering = vValue;
-  mShaderDirty   = true;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-float AtmosphereRenderer::getMieAnisotropy() const {
-  return mMieAnisotropy;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void AtmosphereRenderer::setMieAnisotropy(float dValue) {
-  mMieAnisotropy = dValue;
-  mShaderDirty   = true;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-float AtmosphereRenderer::getRayleighHeight() const {
-  return mRayleighHeight;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void AtmosphereRenderer::setRayleighHeight(float dValue) {
-  mRayleighHeight = dValue;
-  mShaderDirty    = true;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-glm::vec3 AtmosphereRenderer::getRayleighScattering() const {
-  return mRayleighScattering;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void AtmosphereRenderer::setRayleighScattering(const glm::vec3& vValue) {
-  mRayleighScattering = vValue;
-  mShaderDirty        = true;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-float AtmosphereRenderer::getRayleighAnisotropy() const {
-  return mRayleighAnisotropy;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void AtmosphereRenderer::setRayleighAnisotropy(float dValue) {
-  mRayleighAnisotropy = dValue;
-  mShaderDirty        = true;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-bool AtmosphereRenderer::getDrawSun() const {
-  return mDrawSun;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void AtmosphereRenderer::setDrawSun(bool bEnable) {
-  mDrawSun     = bEnable;
-  mShaderDirty = true;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-bool AtmosphereRenderer::getDrawWater() const {
-  return mDrawWater;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void AtmosphereRenderer::setDrawWater(bool bEnable) {
-  mDrawWater   = bEnable;
-  mShaderDirty = true;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-float AtmosphereRenderer::getWaterLevel() const {
-  return mWaterLevel;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void AtmosphereRenderer::setWaterLevel(float fValue) {
-  mWaterLevel = fValue;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-float AtmosphereRenderer::getAmbientBrightness() const {
-  return mAmbientBrightness;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void AtmosphereRenderer::setAmbientBrightness(float fValue) {
-  mAmbientBrightness = fValue;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-bool AtmosphereRenderer::getUseToneMapping() const {
-  return mUseToneMapping;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void AtmosphereRenderer::setUseToneMapping(bool bEnable, float fExposure, float fGamma) {
-  mUseToneMapping = bEnable;
-  mExposure       = fExposure;
-  mGamma          = fGamma;
-  mShaderDirty    = true;
+Plugin::Settings::Atmosphere const& AtmosphereRenderer::getSettings() const {
+  return mSettings;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -305,31 +163,16 @@ void AtmosphereRenderer::setUseToneMapping(bool bEnable, float fExposure, float 
 void AtmosphereRenderer::updateShader() {
   mAtmoShader = VistaGLSLShader();
 
-  std::string sVert(cAtmosphereVert);
-  std::string sFrag(cAtmosphereFrag0);
-  sFrag.append(cAtmosphereFrag1);
+  auto sVert = cs::utils::filesystem::loadToString(
+      "../share/resources/shaders/csp-atmospheres/atmosphere.vert");
+  auto sFrag = cs::utils::filesystem::loadToString(
+      "../share/resources/shaders/csp-atmospheres/atmosphere.frag");
 
-  cs::utils::replaceString(sFrag, "HEIGHT_ATMO", cs::utils::toString(mAtmosphereHeight));
-  cs::utils::replaceString(sFrag, "ANISOTROPY_R", cs::utils::toString(mRayleighAnisotropy));
-  cs::utils::replaceString(sFrag, "ANISOTROPY_M", cs::utils::toString(mMieAnisotropy));
-  cs::utils::replaceString(sFrag, "HEIGHT_R", cs::utils::toString(mRayleighHeight));
-  cs::utils::replaceString(sFrag, "HEIGHT_M", cs::utils::toString(mMieHeight));
-  cs::utils::replaceString(sFrag, "BETA_R_0", cs::utils::toString(mRayleighScattering[0]));
-  cs::utils::replaceString(sFrag, "BETA_R_1", cs::utils::toString(mRayleighScattering[1]));
-  cs::utils::replaceString(sFrag, "BETA_R_2", cs::utils::toString(mRayleighScattering[2]));
-  cs::utils::replaceString(sFrag, "BETA_M_0", cs::utils::toString(mMieScattering[0]));
-  cs::utils::replaceString(sFrag, "BETA_M_1", cs::utils::toString(mMieScattering[1]));
-  cs::utils::replaceString(sFrag, "BETA_M_2", cs::utils::toString(mMieScattering[2]));
-  cs::utils::replaceString(sFrag, "PRIMARY_RAY_STEPS", cs::utils::toString(mPrimaryRaySteps));
-  cs::utils::replaceString(sFrag, "SECONDARY_RAY_STEPS", cs::utils::toString(mSecondaryRaySteps));
-  cs::utils::replaceString(sFrag, "ENABLE_TONEMAPPING", std::to_string(mUseToneMapping));
-  cs::utils::replaceString(sFrag, "EXPOSURE", cs::utils::toString(mExposure));
-  cs::utils::replaceString(sFrag, "GAMMA", cs::utils::toString(mGamma));
-  cs::utils::replaceString(sFrag, "HEIGHT_ATMO", cs::utils::toString(mAtmosphereHeight));
-  cs::utils::replaceString(sFrag, "DRAW_SUN", std::to_string(mDrawSun));
-  cs::utils::replaceString(sFrag, "DRAW_WATER", std::to_string(mDrawWater));
+  cs::utils::replaceString(sFrag, "PLANET_RADIUS", std::to_string(mRadii[0]));
+  cs::utils::replaceString(
+      sFrag, "ATMOSPHERE_RADIUS", std::to_string(mRadii[0] + mSettings.mHeight));
   cs::utils::replaceString(sFrag, "USE_SHADOWMAP", std::to_string(mShadowMap != nullptr));
-  cs::utils::replaceString(sFrag, "USE_CLOUDMAP", std::to_string(mUseClouds && mCloudTexture));
+  // cs::utils::replaceString(sFrag, "USE_CLOUDMAP", std::to_string(mUseClouds && mCloudTexture));
   cs::utils::replaceString(sFrag, "ENABLE_HDR", std::to_string(mHDRBuffer != nullptr));
   cs::utils::replaceString(sFrag, "HDR_SAMPLES",
       mHDRBuffer == nullptr ? "0" : std::to_string(mHDRBuffer->getMultiSamples()));
@@ -347,17 +190,17 @@ void AtmosphereRenderer::updateShader() {
   mAtmoShader.InitVertexShaderFromString(sVert);
   mAtmoShader.InitFragmentShaderFromString(sFrag);
 
+  glAttachShader(mAtmoShader.GetProgram(), mModel->getShader());
+
   mAtmoShader.Link();
 
-  mUniforms.sunIntensity      = mAtmoShader.GetUniformLocation("uSunIntensity");
-  mUniforms.sunDir            = mAtmoShader.GetUniformLocation("uSunDir");
-  mUniforms.waterLevel        = mAtmoShader.GetUniformLocation("uWaterLevel");
-  mUniforms.ambientBrightness = mAtmoShader.GetUniformLocation("uAmbientBrightness");
-  mUniforms.depthBuffer       = mAtmoShader.GetUniformLocation("uDepthBuffer");
-  mUniforms.colorBuffer       = mAtmoShader.GetUniformLocation("uColorBuffer");
-  mUniforms.cloudTexture      = mAtmoShader.GetUniformLocation("uCloudTexture");
-  mUniforms.cloudAltitude     = mAtmoShader.GetUniformLocation("uCloudAltitude");
-  mUniforms.shadowCascades    = mAtmoShader.GetUniformLocation("uShadowCascades");
+  mUniforms.sunDir         = mAtmoShader.GetUniformLocation("uSunDir");
+  mUniforms.depthBuffer    = mAtmoShader.GetUniformLocation("uDepthBuffer");
+  mUniforms.colorBuffer    = mAtmoShader.GetUniformLocation("uColorBuffer");
+  mUniforms.cloudTexture   = mAtmoShader.GetUniformLocation("uCloudTexture");
+  mUniforms.cloudAltitude  = mAtmoShader.GetUniformLocation("uCloudAltitude");
+  mUniforms.shadowCascades = mAtmoShader.GetUniformLocation("uShadowCascades");
+  mUniforms.sunIlluminance = mAtmoShader.GetUniformLocation("uSunIlluminance");
 
   for (size_t i = 0; i < 5; ++i) {
     mUniforms.shadowMaps.at(i) = glGetUniformLocation(
@@ -413,10 +256,10 @@ bool AtmosphereRenderer::Do() {
   }
 
   // get matrices and related values -----------------------------------------
-  glm::mat4 matM(glm::mat4(mWorldTransform) *
-                 glm::mat4(static_cast<float>(mRadii[0] / (1.0 - mAtmosphereHeight)), 0, 0, 0, 0,
-                     static_cast<float>(mRadii[1] / (1.0 - mAtmosphereHeight)), 0, 0, 0, 0,
-                     static_cast<float>(mRadii[2] / (1.0 - mAtmosphereHeight)), 0, 0, 0, 0, 1));
+  glm::mat4 matM(
+      glm::mat4(mWorldTransform) * glm::mat4(static_cast<float>(mRadii[0] / mRadii[0]), 0, 0, 0, 0,
+                                       static_cast<float>(mRadii[1] / mRadii[0]), 0, 0, 0, 0,
+                                       static_cast<float>(mRadii[2] / mRadii[0]), 0, 0, 0, 0, 1));
 
   std::array<GLfloat, 16> glMatMV{};
   glGetFloatv(GL_MODELVIEW_MATRIX, glMatMV.data());
@@ -435,10 +278,8 @@ bool AtmosphereRenderer::Do() {
   // set uniforms ------------------------------------------------------------
   mAtmoShader.Bind();
 
-  mAtmoShader.SetUniform(mUniforms.sunIntensity, mSunIntensity);
+  mAtmoShader.SetUniform(mUniforms.sunIlluminance, mSunIlluminance);
   mAtmoShader.SetUniform(mUniforms.sunDir, sunDir[0], sunDir[1], sunDir[2]);
-  mAtmoShader.SetUniform(mUniforms.waterLevel, mWaterLevel);
-  mAtmoShader.SetUniform(mUniforms.ambientBrightness, mAmbientBrightness);
 
   if (mHDRBuffer) {
     mHDRBuffer->doPingPong();
@@ -455,11 +296,11 @@ bool AtmosphereRenderer::Do() {
   mAtmoShader.SetUniform(mUniforms.depthBuffer, 0);
   mAtmoShader.SetUniform(mUniforms.colorBuffer, 1);
 
-  if (mUseClouds && mCloudTexture) {
-    mCloudTexture->Bind(GL_TEXTURE3);
-    mAtmoShader.SetUniform(mUniforms.cloudTexture, 3);
-    mAtmoShader.SetUniform(mUniforms.cloudAltitude, mCloudHeight);
-  }
+  // if (mUseClouds && mCloudTexture) {
+  //   mCloudTexture->Bind(GL_TEXTURE3);
+  //   mAtmoShader.SetUniform(mUniforms.cloudTexture, 3);
+  //   mAtmoShader.SetUniform(mUniforms.cloudAltitude, mCloudHeight);
+  // }
 
   if (mShadowMap) {
     int texUnitShadow = 8;
@@ -488,6 +329,8 @@ bool AtmosphereRenderer::Do() {
     mEclipseShadowReceiver->preRender();
   }
 
+  mModel->setUniforms(mAtmoShader.GetProgram(), 5);
+
   // draw --------------------------------------------------------------------
   mQuadVAO.Bind();
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -510,9 +353,9 @@ bool AtmosphereRenderer::Do() {
     data.mColorBuffer->Unbind(GL_TEXTURE1);
   }
 
-  if (mUseClouds && mCloudTexture) {
-    mCloudTexture->Unbind(GL_TEXTURE3);
-  }
+  // if (mUseClouds && mCloudTexture) {
+  //   mCloudTexture->Unbind(GL_TEXTURE3);
+  // }
 
   mAtmoShader.Release();
 
@@ -520,38 +363,13 @@ bool AtmosphereRenderer::Do() {
 
   glPopAttrib();
 
-  // update brightness value -------------------------------------------------
-  // This is a crude approximation of the overall scene brightness due to
-  // atmospheric scattering, camera position and the sun's position.
-  // It may be used for fake HDR effects such as dimming stars.
-
-  // some required positions and directions
-  glm::vec4 temp            = matInvMVP * glm::vec4(0, 0, 0, 1);
-  glm::vec3 vCamera         = glm::vec3(temp) / temp[3];
-  glm::vec3 vPlanet         = glm::vec3(0, 0, 0);
-  glm::vec3 vCameraToPlanet = glm::normalize(vCamera - vPlanet);
-
-  // [planet surface ... 5x atmosphere boundary] -> [0 ... 1]
-  float fHeightInAtmosphere = std::min(1.0F,
-      std::max(0.0F, (glm::length(vCamera) - (1.F - mAtmosphereHeight)) / (mAtmosphereHeight * 5)));
-
-  // [noon ... midnight] -> [1 ... -1]
-  float fDaySide = glm::dot(vCameraToPlanet, sunDir);
-
-  // limit brightness when on night side (also in dusk an dawn time)
-  float const exponent       = 50.F;
-  float fBrightnessOnSurface = std::pow(std::min(1.F, std::max(0.F, fDaySide + 1.F)), exponent);
-
-  // reduce brightness in outer space
-  mApproximateBrightness = (1.F - fHeightInAtmosphere) * fBrightnessOnSurface;
-
   return true;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool AtmosphereRenderer::GetBoundingBox(VistaBoundingBox& bb) {
-  auto const extend = static_cast<float>(1.0 / (1.0 - mAtmosphereHeight));
+  float extend = 6420000.F;
 
   // Boundingbox is computed by translation an edge points
   std::array<float, 3> const fMin = {-extend, -extend, -extend};
@@ -560,44 +378,6 @@ bool AtmosphereRenderer::GetBoundingBox(VistaBoundingBox& bb) {
   bb.SetBounds(fMin.data(), fMax.data());
 
   return true;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void AtmosphereRenderer::initData() {
-  // create quad -------------------------------------------------------------
-  std::array<float, 8> const data{-1, 1, 1, 1, -1, -1, 1, -1};
-
-  mQuadVBO.Bind(GL_ARRAY_BUFFER);
-  mQuadVBO.BufferData(data.size() * sizeof(float), data.data(), GL_STATIC_DRAW);
-  mQuadVBO.Release();
-
-  // positions
-  mQuadVAO.EnableAttributeArray(0);
-  mQuadVAO.SpecifyAttributeArrayFloat(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0, &mQuadVBO);
-
-  // create textures ---------------------------------------------------------
-  for (auto const& viewport : GetVistaSystem()->GetDisplayManager()->GetViewports()) {
-    GBufferData bufferData;
-
-    bufferData.mDepthBuffer = std::make_unique<VistaTexture>(GL_TEXTURE_2D);
-    bufferData.mDepthBuffer->Bind();
-    bufferData.mDepthBuffer->SetWrapS(GL_CLAMP);
-    bufferData.mDepthBuffer->SetWrapT(GL_CLAMP);
-    bufferData.mDepthBuffer->SetMinFilter(GL_NEAREST);
-    bufferData.mDepthBuffer->SetMagFilter(GL_NEAREST);
-    bufferData.mDepthBuffer->Unbind();
-
-    bufferData.mColorBuffer = std::make_unique<VistaTexture>(GL_TEXTURE_2D);
-    bufferData.mColorBuffer->Bind();
-    bufferData.mColorBuffer->SetWrapS(GL_CLAMP);
-    bufferData.mColorBuffer->SetWrapT(GL_CLAMP);
-    bufferData.mColorBuffer->SetMinFilter(GL_NEAREST);
-    bufferData.mColorBuffer->SetMagFilter(GL_NEAREST);
-    bufferData.mColorBuffer->Unbind();
-
-    mGBufferData.emplace(viewport.second, std::move(bufferData));
-  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

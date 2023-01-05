@@ -737,34 +737,44 @@
     "csp-atmospheres": {
       "atmospheres": {
         "Mars": {
-          "atmosphereHeight": 0.03,
-          "mieAnisotropy": 0.76,
-          "mieHeight": 0.00144509,
-          "mieScatteringB": 52.66,
-          "mieScatteringG": 52.66,
-          "mieScatteringR": 52.66,
-          "rayleighAnisotropy": 0,
-          "rayleighHeight": 0.00317919,
-          "rayleighScatteringB": 19.89,
-          "rayleighScatteringG": 46.71,
-          "rayleighScatteringR": 69.2,
-          "sunIntensity": 12
+          "height": 100000,
+          "model": "CosmoScoutVR",
+          "modelSettings": {
+            "mieAnisotropy": 0.76,
+            "mieHeight": 1200,
+            "mieScattering": [
+              4.0e-5,
+              4.0e-5,
+              4.0e-5
+            ],
+            "rayleighAnisotropy": 0,
+            "rayleighHeight": 11000,
+            "rayleighScattering": [
+              19.981e-6,
+              13.57e-6,
+              5.75e-6
+            ]
+          }
         },
         "Earth": {
-          "atmosphereHeight": 0.015,
-          "mieAnisotropy": 0.76,
-          "mieHeight": 0.000188679,
-          "mieScatteringB": 133.56,
-          "mieScatteringG": 133.56,
-          "mieScatteringR": 133.56,
-          "rayleighAnisotropy": 0,
-          "rayleighHeight": 0.001257862,
-          "rayleighScatteringB": 210.516,
-          "rayleighScatteringG": 85.86,
-          "rayleighScatteringR": 36.89,
-          "sunIntensity": 15,
-          "cloudHeight": 0.001,
-          "cloudTexture": "../share/resources/textures/earth-clouds.jpg"
+          "height": 80000,
+          "model": "CosmoScoutVR",
+          "modelSettings": {
+            "mieAnisotropy": 0.76,
+            "mieHeight": 1200,
+            "mieScattering": [
+              4.0e-5,
+              4.0e-5,
+              4.0e-5
+            ],
+            "rayleighAnisotropy": 0,
+            "rayleighHeight": 8000,
+            "rayleighScattering": [
+              5.1768e-6,
+              12.2588e-6,
+              30.5964e-6
+            ]
+          }
         }
       }
     },

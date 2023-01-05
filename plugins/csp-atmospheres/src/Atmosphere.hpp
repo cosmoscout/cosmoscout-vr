@@ -5,8 +5,8 @@
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 // SPDX-License-Identifier: MIT
 
-#ifndef CSP_ATMOSPHERE_HPP
-#define CSP_ATMOSPHERE_HPP
+#ifndef CSP_ATMOSPHERES_ATMOSPHERE_HPP
+#define CSP_ATMOSPHERES_ATMOSPHERE_HPP
 
 #include "../../../src/cs-scene/CelestialObject.hpp"
 #include "AtmosphereRenderer.hpp"
@@ -54,4 +54,4 @@ class Atmosphere {
 
 } // namespace csp::atmospheres
 
-#endif // CSP_ATMOSPHERE_HPP
+#endif // CSP_ATMOSPHERES_ATMOSPHERE_HPP

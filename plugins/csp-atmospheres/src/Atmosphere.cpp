@@ -7,6 +7,8 @@
 
 #include "Atmosphere.hpp"
 
+#include "logger.hpp"
+
 #include "../../../src/cs-core/GraphicsEngine.hpp"
 #include "../../../src/cs-core/SolarSystem.hpp"
 #include "../../../src/cs-scene/CelestialObject.hpp"
@@ -33,9 +35,6 @@ Atmosphere::Atmosphere(std::shared_ptr<Plugin::Settings> pluginSettings,
           std::make_shared<cs::core::EclipseShadowReceiver>(mAllSettings, mSolarSystem, false))
     , mRenderer(mPluginSettings, mEclipseShadowReceiver) {
 
-  mRenderer.setDrawSun(false);
-  mRenderer.setSecondaryRaySteps(3);
-
   VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
   mAtmosphereNode.reset(pSG->NewOpenGLNode(pSG->GetRoot(), &mRenderer));
   mAtmosphereNode->SetIsEnabled(false);
@@ -53,20 +52,10 @@ Atmosphere::~Atmosphere() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Atmosphere::configure(Plugin::Settings::Atmosphere const& settings) {
-  if (settings.mCloudTexture) {
-    mRenderer.setClouds(*settings.mCloudTexture, settings.mCloudHeight.value_or(0.001F));
-  } else {
-    mRenderer.setClouds("", 0.0F);
+  auto object = mSolarSystem->getObject(mObjectName);
+  if (object) {
+    mRenderer.configure(settings, object->getRadii());
   }
-  mRenderer.setAtmosphereHeight(settings.mAtmosphereHeight);
-  mRenderer.setMieHeight(settings.mMieHeight);
-  mRenderer.setMieScattering(
-      glm::vec3(settings.mMieScatteringR, settings.mMieScatteringG, settings.mMieScatteringB));
-  mRenderer.setMieAnisotropy(settings.mMieAnisotropy);
-  mRenderer.setRayleighHeight(settings.mRayleighHeight);
-  mRenderer.setRayleighScattering(glm::vec3(
-      settings.mRayleighScatteringR, settings.mRayleighScatteringG, settings.mRayleighScatteringB));
-  mRenderer.setRayleighAnisotropy(settings.mRayleighAnisotropy);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -80,7 +69,7 @@ AtmosphereRenderer& Atmosphere::getRenderer() {
 void Atmosphere::update() {
   auto object = mSolarSystem->getObject(mObjectName);
 
-  if (object && object->getIsBodyVisible() && mPluginSettings->mEnabled.get()) {
+  if (object && object->getIsBodyVisible() && mRenderer.getSettings().mEnable.get()) {
     double sunIlluminance = 10.0;
 
     if (mAllSettings->mGraphics.pEnableHDR.get()) {
@@ -88,10 +77,7 @@ void Atmosphere::update() {
     }
 
     auto sunDirection = mSolarSystem->getSunDirection(object->getObserverRelativePosition());
-
     mRenderer.setSun(sunDirection, static_cast<float>(sunIlluminance));
-
-    mRenderer.setRadii(object->getRadii());
     mRenderer.setWorldTransform(object->getObserverRelativeTransform());
     mEclipseShadowReceiver->update(*object);
 

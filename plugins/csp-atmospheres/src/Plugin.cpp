@@ -6,18 +6,13 @@
 // SPDX-License-Identifier: MIT
 
 #include "Plugin.hpp"
+#include "Atmosphere.hpp"
 
 #include "../../../src/cs-core/GraphicsEngine.hpp"
 #include "../../../src/cs-core/GuiManager.hpp"
 #include "../../../src/cs-core/SolarSystem.hpp"
 #include "../../../src/cs-utils/logger.hpp"
-#include "Atmosphere.hpp"
-#include "AtmosphereRenderer.hpp"
 #include "logger.hpp"
-
-#include <VistaKernel/GraphicsManager/VistaOpenGLNode.h>
-#include <VistaKernel/GraphicsManager/VistaSceneGraph.h>
-#include <VistaKernel/GraphicsManager/VistaTransformNode.h>
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -37,58 +32,79 @@ namespace csp::atmospheres {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void from_json(nlohmann::json const& j, Plugin::Settings::Atmosphere::Model& o) {
+  auto s = j.get<std::string>();
+  if (s == "CosmoScoutVR") {
+    o = Plugin::Settings::Atmosphere::Model::eCosmoScoutVR;
+  } else if (s == "Bruneton") {
+    o = Plugin::Settings::Atmosphere::Model::eBruneton;
+  } else {
+    throw std::runtime_error(
+        "Failed to parse Atmosphere::Model! Only 'CosmoScoutVR' or 'Bruneton' are allowed.");
+  }
+}
+
+void to_json(nlohmann::json& j, Plugin::Settings::Atmosphere::Model o) {
+  switch (o) {
+  case Plugin::Settings::Atmosphere::Model::eCosmoScoutVR:
+    j = "CosmoScoutVR";
+    break;
+  case Plugin::Settings::Atmosphere::Model::eBruneton:
+    j = "Bruneton";
+    break;
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void from_json(nlohmann::json const& j, Plugin::Settings::Atmosphere& o) {
-  cs::core::Settings::deserialize(j, "atmosphereHeight", o.mAtmosphereHeight);
-  cs::core::Settings::deserialize(j, "mieHeight", o.mMieHeight);
-  cs::core::Settings::deserialize(j, "mieScatteringR", o.mMieScatteringR);
-  cs::core::Settings::deserialize(j, "mieScatteringG", o.mMieScatteringG);
-  cs::core::Settings::deserialize(j, "mieScatteringB", o.mMieScatteringB);
-  cs::core::Settings::deserialize(j, "mieAnisotropy", o.mMieAnisotropy);
-  cs::core::Settings::deserialize(j, "rayleighHeight", o.mRayleighHeight);
-  cs::core::Settings::deserialize(j, "rayleighScatteringR", o.mRayleighScatteringR);
-  cs::core::Settings::deserialize(j, "rayleighScatteringG", o.mRayleighScatteringG);
-  cs::core::Settings::deserialize(j, "rayleighScatteringB", o.mRayleighScatteringB);
-  cs::core::Settings::deserialize(j, "rayleighAnisotropy", o.mRayleighAnisotropy);
+  cs::core::Settings::deserialize(j, "enable", o.mEnable);
+  cs::core::Settings::deserialize(j, "height", o.mHeight);
+  cs::core::Settings::deserialize(j, "model", o.mModel);
+  cs::core::Settings::deserialize(j, "modelSettings", o.mModelSettings);
+  cs::core::Settings::deserialize(j, "enableWater", o.mEnableWater);
+  cs::core::Settings::deserialize(j, "waterLevel", o.mWaterLevel);
+  cs::core::Settings::deserialize(j, "enableClouds", o.mEnableClouds);
   cs::core::Settings::deserialize(j, "cloudTexture", o.mCloudTexture);
-  cs::core::Settings::deserialize(j, "cloudHeight", o.mCloudHeight);
+  cs::core::Settings::deserialize(j, "cloudAltitude", o.mCloudAltitude);
+  cs::core::Settings::deserialize(j, "enableLightShafts", o.mEnableLightShafts);
 }
 
 void to_json(nlohmann::json& j, Plugin::Settings::Atmosphere const& o) {
-  cs::core::Settings::serialize(j, "atmosphereHeight", o.mAtmosphereHeight);
-  cs::core::Settings::serialize(j, "mieHeight", o.mMieHeight);
-  cs::core::Settings::serialize(j, "mieScatteringR", o.mMieScatteringR);
-  cs::core::Settings::serialize(j, "mieScatteringG", o.mMieScatteringG);
-  cs::core::Settings::serialize(j, "mieScatteringB", o.mMieScatteringB);
-  cs::core::Settings::serialize(j, "mieAnisotropy", o.mMieAnisotropy);
-  cs::core::Settings::serialize(j, "rayleighHeight", o.mRayleighHeight);
-  cs::core::Settings::serialize(j, "rayleighScatteringR", o.mRayleighScatteringR);
-  cs::core::Settings::serialize(j, "rayleighScatteringG", o.mRayleighScatteringG);
-  cs::core::Settings::serialize(j, "rayleighScatteringB", o.mRayleighScatteringB);
-  cs::core::Settings::serialize(j, "rayleighAnisotropy", o.mRayleighAnisotropy);
+  cs::core::Settings::serialize(j, "enable", o.mEnable);
+  cs::core::Settings::serialize(j, "height", o.mHeight);
+  cs::core::Settings::serialize(j, "model", o.mModel);
+  cs::core::Settings::serialize(j, "modelSettings", o.mModelSettings);
+  cs::core::Settings::serialize(j, "enableWater", o.mEnableWater);
+  cs::core::Settings::serialize(j, "waterLevel", o.mWaterLevel);
+  cs::core::Settings::serialize(j, "enableClouds", o.mEnableClouds);
   cs::core::Settings::serialize(j, "cloudTexture", o.mCloudTexture);
-  cs::core::Settings::serialize(j, "cloudHeight", o.mCloudHeight);
+  cs::core::Settings::serialize(j, "cloudAltitude", o.mCloudAltitude);
+  cs::core::Settings::serialize(j, "enableLightShafts", o.mEnableLightShafts);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void from_json(nlohmann::json const& j, Plugin::Settings& o) {
   cs::core::Settings::deserialize(j, "atmospheres", o.mAtmospheres);
-  cs::core::Settings::deserialize(j, "enabled", o.mEnabled);
-  cs::core::Settings::deserialize(j, "quality", o.mQuality);
-  cs::core::Settings::deserialize(j, "waterLevel", o.mWaterLevel);
-  cs::core::Settings::deserialize(j, "enableClouds", o.mEnableClouds);
-  cs::core::Settings::deserialize(j, "enableLightShafts", o.mEnableLightShafts);
-  cs::core::Settings::deserialize(j, "enableWater", o.mEnableWater);
 }
 
 void to_json(nlohmann::json& j, Plugin::Settings const& o) {
   cs::core::Settings::serialize(j, "atmospheres", o.mAtmospheres);
-  cs::core::Settings::serialize(j, "enabled", o.mEnabled);
-  cs::core::Settings::serialize(j, "quality", o.mQuality);
-  cs::core::Settings::serialize(j, "waterLevel", o.mWaterLevel);
-  cs::core::Settings::serialize(j, "enableClouds", o.mEnableClouds);
-  cs::core::Settings::serialize(j, "enableLightShafts", o.mEnableLightShafts);
-  cs::core::Settings::serialize(j, "enableWater", o.mEnableWater);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool Plugin::Settings::Atmosphere::operator==(Plugin::Settings::Atmosphere const& other) const {
+  return mHeight == other.mHeight && mModel == other.mModel &&
+         mModelSettings == other.mModelSettings && mEnable == other.mEnable &&
+         mEnableWater == other.mEnableWater && mWaterLevel == other.mWaterLevel &&
+         mEnableClouds == other.mEnableClouds && mCloudTexture == other.mCloudTexture &&
+         mCloudAltitude == other.mCloudAltitude && mEnableLightShafts == other.mEnableLightShafts;
+}
+
+bool Plugin::Settings::Atmosphere::operator!=(Plugin::Settings::Atmosphere const& other) const {
+  return !(*this == other);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -104,82 +120,103 @@ void Plugin::init() {
       "Atmospheres", "blur_circular", "../share/resources/gui/atmospheres_settings.html");
   mGuiManager->executeJavascriptFile("../share/resources/gui/js/csp-atmospheres.js");
 
+  mActiveObjectConnection = mSolarSystem->pActiveObject.connect(
+      [this](std::shared_ptr<const cs::scene::CelestialObject> const& body) {
+        mActiveAtmosphere = "";
+        for (auto const& atmosphere : mAtmospheres) {
+          if (body == mSolarSystem->getObject(atmosphere.first)) {
+            mActiveAtmosphere = atmosphere.first;
+
+            auto settings = mPluginSettings->mAtmospheres.at(atmosphere.first);
+            mGuiManager->setCheckboxValue("atmosphere.setEnable", settings.mEnable.get());
+            mGuiManager->setCheckboxValue("atmosphere.setEnableWater", settings.mEnableWater.get());
+            mGuiManager->setCheckboxValue(
+                "atmosphere.setEnableClouds", settings.mEnableClouds.get());
+            mGuiManager->setCheckboxValue(
+                "atmosphere.atmosphere.setEnableLightShafts", settings.mEnableLightShafts.get());
+            mGuiManager->setSliderValue(
+                "atmosphere.setCloudAltitude", settings.mCloudAltitude.get());
+            mGuiManager->setSliderValue("atmosphere.setWaterLevel", settings.mWaterLevel.get());
+          }
+        }
+
+        mGuiManager->getGui()->callJavascript(
+            "CosmoScout.sidebar.setTabEnabled", "Atmospheres", mActiveAtmosphere != "");
+      });
+
   mGuiManager->getGui()->registerCallback("atmosphere.setEnableWater",
-      "Enables or disables rendering of a water surface.",
-      std::function([this](bool enable) { mPluginSettings->mEnableWater = enable; }));
-  mPluginSettings->mEnableWater.connectAndTouch(
-      [this](bool enable) { mGuiManager->setCheckboxValue("atmosphere.setEnableWater", enable); });
+      "Enables or disables rendering of a water surface.", std::function([this](bool enable) {
+        if (mActiveAtmosphere != "") {
+          auto& settings        = mPluginSettings->mAtmospheres.at(mActiveAtmosphere);
+          settings.mEnableWater = enable;
+          mAtmospheres.at(mActiveAtmosphere)->configure(settings);
+        }
+      }));
 
   mGuiManager->getGui()->registerCallback("atmosphere.setEnableClouds",
-      "Enables or disables rendering of a cloud layer.",
-      std::function([this](bool enable) { mPluginSettings->mEnableClouds = enable; }));
-  mPluginSettings->mEnableClouds.connectAndTouch(
-      [this](bool enable) { mGuiManager->setCheckboxValue("atmosphere.setEnableClouds", enable); });
+      "Enables or disables rendering of a cloud layer.", std::function([this](bool enable) {
+        if (mActiveAtmosphere != "") {
+          auto& settings         = mPluginSettings->mAtmospheres.at(mActiveAtmosphere);
+          settings.mEnableClouds = enable;
+          mAtmospheres.at(mActiveAtmosphere)->configure(settings);
+        }
+      }));
 
   mGuiManager->getGui()->registerCallback("atmosphere.setEnable",
-      "Enables or disables rendering of atmospheres.",
-      std::function([this](bool enable) { mPluginSettings->mEnabled = enable; }));
-  mPluginSettings->mEnabled.connectAndTouch(
-      [this](bool enable) { mGuiManager->setCheckboxValue("atmosphere.setEnable", enable); });
+      "Enables or disables rendering of atmospheres.", std::function([this](bool enable) {
+        if (mActiveAtmosphere != "") {
+          auto& settings   = mPluginSettings->mAtmospheres.at(mActiveAtmosphere);
+          settings.mEnable = enable;
+          mAtmospheres.at(mActiveAtmosphere)->configure(settings);
+        }
+      }));
 
   mGuiManager->getGui()->registerCallback("atmosphere.setEnableLightShafts",
       "If shadows are enabled, this enables or disables rendering of light shafts in the "
       "atmosphere.",
-      std::function([this](bool enable) { mPluginSettings->mEnableLightShafts = enable; }));
-  mPluginSettings->mEnableLightShafts.connectAndTouch([this](bool enable) {
-    mGuiManager->setCheckboxValue("atmosphere.setEnableLightShafts", enable);
-  });
+      std::function([this](bool enable) {
+        if (mActiveAtmosphere != "") {
+          auto& settings              = mPluginSettings->mAtmospheres.at(mActiveAtmosphere);
+          settings.mEnableLightShafts = enable;
+          mAtmospheres.at(mActiveAtmosphere)->configure(settings);
+        }
+      }));
 
-  mGuiManager->getGui()->registerCallback("atmosphere.setQuality",
-      "Higher values create a more realistic atmosphere.",
-      std::function([this](double value) { mPluginSettings->mQuality = static_cast<int>(value); }));
-  mPluginSettings->mQuality.connectAndTouch(
-      [this](int value) { mGuiManager->setSliderValue("atmosphere.setQuality", value); });
+  mGuiManager->getGui()->registerCallback("atmosphere.setCloudAltitude",
+      "Higher values create a more realistic atmosphere.", std::function([this](double value) {
+        if (mActiveAtmosphere != "") {
+          auto& settings          = mPluginSettings->mAtmospheres.at(mActiveAtmosphere);
+          settings.mCloudAltitude = static_cast<float>(value);
+          mAtmospheres.at(mActiveAtmosphere)->configure(settings);
+        }
+      }));
 
   mGuiManager->getGui()->registerCallback("atmosphere.setWaterLevel",
       "Sets the height of the water surface relative to the planet's radius.",
-      std::function(
-          [this](double value) { mPluginSettings->mWaterLevel = static_cast<float>(value); }));
-  mPluginSettings->mWaterLevel.connectAndTouch(
-      [this](float value) { mGuiManager->setSliderValue("atmosphere.setWaterLevel", value); });
+      std::function([this](double value) {
+        if (mActiveAtmosphere != "") {
+          auto& settings       = mPluginSettings->mAtmospheres.at(mActiveAtmosphere);
+          settings.mWaterLevel = static_cast<float>(value);
+          mAtmospheres.at(mActiveAtmosphere)->configure(settings);
+        }
+      }));
 
-  mEnableShadowsConnection = mAllSettings->mGraphics.pEnableShadows.connect([this](bool value) {
-    for (auto const& atmosphere : mAtmospheres) {
-      if (value && mPluginSettings->mEnableLightShafts.get()) {
-        atmosphere.second->getRenderer().setShadowMap(mGraphicsEngine->getShadowMap());
-      } else {
-        atmosphere.second->getRenderer().setShadowMap(nullptr);
-      }
-    }
-  });
+  // mEnableShadowsConnection = mAllSettings->mGraphics.pEnableShadows.connect([this](bool value) {
+  //   for (auto const& atmosphere : mAtmospheres) {
+  //     if (value && mPluginSettings->mEnableLightShafts.get()) {
+  //       atmosphere.second->getRenderer().setShadowMap(mGraphicsEngine->getShadowMap());
+  //     } else {
+  //       atmosphere.second->getRenderer().setShadowMap(nullptr);
+  //     }
+  //   }
+  // });
 
   mEnableHDRConnection = mAllSettings->mGraphics.pEnableHDR.connect([this](bool val) {
     for (auto const& atmosphere : mAtmospheres) {
-      float const exposure = 0.6F;
-      float const gamma    = 2.2F;
-      atmosphere.second->getRenderer().setUseToneMapping(!val, exposure, gamma);
       if (val) {
         atmosphere.second->getRenderer().setHDRBuffer(mGraphicsEngine->getHDRBuffer());
       } else {
         atmosphere.second->getRenderer().setHDRBuffer(nullptr);
-      }
-    }
-  });
-
-  mAmbientBrightnessConnection =
-      mAllSettings->mGraphics.pAmbientBrightness.connect([this](float val) {
-        for (auto const& atmosphere : mAtmospheres) {
-          float const ambientBrightnessModifier = 0.4F;
-          atmosphere.second->getRenderer().setAmbientBrightness(val * ambientBrightnessModifier);
-        }
-      });
-
-  mPluginSettings->mEnableLightShafts.connect([this](bool value) {
-    for (auto const& atmosphere : mAtmospheres) {
-      if (mAllSettings->mGraphics.pEnableShadows.get() && value) {
-        atmosphere.second->getRenderer().setShadowMap(mGraphicsEngine->getShadowMap());
-      } else {
-        atmosphere.second->getRenderer().setShadowMap(nullptr);
       }
     }
   });
@@ -202,16 +239,16 @@ void Plugin::deInit() {
 
   mGuiManager->getGui()->callJavascript("CosmoScout.removeApi", "atmosphere");
 
+  mGuiManager->getGui()->unregisterCallback("atmosphere.setEnable");
   mGuiManager->getGui()->unregisterCallback("atmosphere.setEnableWater");
   mGuiManager->getGui()->unregisterCallback("atmosphere.setEnableClouds");
-  mGuiManager->getGui()->unregisterCallback("atmosphere.setEnable");
   mGuiManager->getGui()->unregisterCallback("atmosphere.setEnableLightShafts");
-  mGuiManager->getGui()->unregisterCallback("atmosphere.setQuality");
+  mGuiManager->getGui()->unregisterCallback("atmosphere.setCloudAltitude");
   mGuiManager->getGui()->unregisterCallback("atmosphere.setWaterLevel");
 
+  mSolarSystem->pActiveObject.disconnect(mActiveObjectConnection);
   mAllSettings->mGraphics.pEnableShadows.disconnect(mEnableShadowsConnection);
   mAllSettings->mGraphics.pEnableHDR.disconnect(mEnableHDRConnection);
-  mAllSettings->mGraphics.pAmbientBrightness.disconnect(mAmbientBrightnessConnection);
   mAllSettings->onLoad().disconnect(mOnLoadConnection);
   mAllSettings->onSave().disconnect(mOnSaveConnection);
 
@@ -221,16 +258,6 @@ void Plugin::deInit() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Plugin::update() {
-  float fIntensity = 1.F;
-  for (auto const& atmosphere : mAtmospheres) {
-    if (mPluginSettings->mEnabled.get()) {
-      float brightness = atmosphere.second->getRenderer().getApproximateSceneBrightness();
-      fIntensity *= (1.F - brightness);
-    }
-  }
-
-  mGraphicsEngine->pApproximateSceneBrightness = fIntensity;
-
   for (auto const& atmosphere : mAtmospheres) {
     atmosphere.second->update();
   }
@@ -266,15 +293,12 @@ void Plugin::onLoad() {
 
     auto newAtmosphere =
         std::make_shared<Atmosphere>(mPluginSettings, mAllSettings, mSolarSystem, settings.first);
-    newAtmosphere->getRenderer().setHDRBuffer(mGraphicsEngine->getHDRBuffer());
     newAtmosphere->configure(settings.second);
 
     mAtmospheres.emplace(settings.first, newAtmosphere);
   }
 
-  mAllSettings->mGraphics.pEnableShadows.touch(mEnableShadowsConnection);
   mAllSettings->mGraphics.pEnableHDR.touch(mEnableHDRConnection);
-  mAllSettings->mGraphics.pAmbientBrightness.touch(mAmbientBrightnessConnection);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

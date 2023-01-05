@@ -5,8 +5,8 @@
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 // SPDX-License-Identifier: MIT
 
-#ifndef CSP_ATMOSPHERE_PLUGIN_HPP
-#define CSP_ATMOSPHERE_PLUGIN_HPP
+#ifndef CSP_ATMOSPHERES_PLUGIN_HPP
+#define CSP_ATMOSPHERES_PLUGIN_HPP
 
 #include "../../../src/cs-core/PluginBase.hpp"
 #include "../../../src/cs-core/Settings.hpp"
@@ -25,29 +25,25 @@ class Plugin : public cs::core::PluginBase {
  public:
   struct Settings {
     struct Atmosphere {
-      float                      mAtmosphereHeight{}; ///< Relative to the planets radius.
-      float                      mMieHeight{};
-      float                      mMieScatteringR{};
-      float                      mMieScatteringG{};
-      float                      mMieScatteringB{};
-      float                      mMieAnisotropy{};
-      float                      mRayleighHeight{};
-      float                      mRayleighScatteringR{};
-      float                      mRayleighScatteringG{};
-      float                      mRayleighScatteringB{};
-      float                      mRayleighAnisotropy{};
-      std::optional<std::string> mCloudTexture; ///< Path to the cloud texture.
-      std::optional<float>       mCloudHeight;  ///< Relative to the planets radius.
+      enum class Model { eCosmoScoutVR, eBruneton };
+
+      double                            mHeight; ///< In meters.
+      cs::utils::DefaultProperty<Model> mModel{Model::eCosmoScoutVR};
+      nlohmann::json                    mModelSettings;
+
+      cs::utils::DefaultProperty<bool>  mEnable{true};
+      cs::utils::DefaultProperty<bool>  mEnableWater{false};
+      cs::utils::DefaultProperty<float> mWaterLevel{0.F}; ///< In meters.
+      cs::utils::DefaultProperty<bool>  mEnableClouds{true};
+      std::optional<std::string>        mCloudTexture;          ///< Path to the cloud texture.
+      cs::utils::DefaultProperty<float> mCloudAltitude{3000.F}; ///< In meters.
+      cs::utils::DefaultProperty<bool>  mEnableLightShafts{false};
+
+      bool operator==(Atmosphere const& other) const;
+      bool operator!=(Atmosphere const& other) const;
     };
 
     std::unordered_map<std::string, Atmosphere> mAtmospheres;
-
-    cs::utils::DefaultProperty<bool>  mEnabled{true};
-    cs::utils::DefaultProperty<int>   mQuality{7};
-    cs::utils::DefaultProperty<float> mWaterLevel{0.F};
-    cs::utils::DefaultProperty<bool>  mEnableClouds{true};
-    cs::utils::DefaultProperty<bool>  mEnableLightShafts{false};
-    cs::utils::DefaultProperty<bool>  mEnableWater{false};
   };
 
   void init() override;
@@ -61,14 +57,15 @@ class Plugin : public cs::core::PluginBase {
 
   std::shared_ptr<Settings> mPluginSettings = std::make_shared<Settings>();
   std::unordered_map<std::string, std::shared_ptr<Atmosphere>> mAtmospheres;
+  std::string                                                  mActiveAtmosphere;
 
-  int mEnableShadowsConnection     = -1;
-  int mEnableHDRConnection         = -1;
-  int mAmbientBrightnessConnection = -1;
-  int mOnLoadConnection            = -1;
-  int mOnSaveConnection            = -1;
+  int mActiveObjectConnection  = -1;
+  int mEnableShadowsConnection = -1;
+  int mEnableHDRConnection     = -1;
+  int mOnLoadConnection        = -1;
+  int mOnSaveConnection        = -1;
 };
 
 } // namespace csp::atmospheres
 
-#endif // CSP_ATMOSPHERE_PLUGIN_HPP
+#endif // CSP_ATMOSPHERES_PLUGIN_HPP
