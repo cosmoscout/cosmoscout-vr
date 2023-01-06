@@ -19,8 +19,8 @@
      * @inheritDoc
      */
     init() {
-      CosmoScout.gui.initSlider("atmosphere.setCloudAltitude", 0, 10000, 10, [2000]);
-      CosmoScout.gui.initSlider("atmosphere.setWaterLevel", -10000, 10000, 10, [0]);
+      CosmoScout.gui.initSlider("atmosphere.setCloudAltitude", 0, 10000, 100, [2000]);
+      CosmoScout.gui.initSlider("atmosphere.setWaterLevel", -5000, 5000, 20, [0]);
     }
   }
 

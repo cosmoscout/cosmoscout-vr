@@ -34,8 +34,8 @@ uniform sampler2D uDepthBuffer;
 
 uniform vec3  uSunDir;
 uniform float uSunIlluminance;
-uniform mat4 uMatInvMVP;
-// uniform mat4 uMatInvMV;
+uniform mat4  uMatInvMVP;
+uniform float uWaterLevel;
 // uniform mat4 uMatInvP;
 // uniform mat4 uMatMV;
 // uniform mat4 uMatM;
@@ -45,9 +45,9 @@ uniform mat4 uMatInvMVP;
 const float PI = 3.141592653589793;
 
 // shadow stuff
-uniform sampler2DShadow uShadowMaps[5];
-uniform mat4 uShadowProjectionViewMatrices[5];
-uniform int  uShadowCascades;
+// uniform sampler2DShadow uShadowMaps[5];
+// uniform mat4 uShadowProjectionViewMatrices[5];
+// uniform int  uShadowCascades;
 
 // outputs
 layout(location = 0) out vec3 oColor;
@@ -76,6 +76,10 @@ vec2 intersectAtmosphere(vec3 rayOrigin, vec3 rayDir) {
 
 vec2 intersectPlanetsphere(vec3 rayOrigin, vec3 rayDir) {
   return intersectSphere(rayOrigin, rayDir, PLANET_RADIUS);
+}
+
+vec2 intersectOceansphere(vec3 rayOrigin, vec3 rayDir) {
+  return intersectSphere(rayOrigin, rayDir, uWaterLevel + PLANET_RADIUS);
 }
 
 // // for a given cascade and view space position, returns the lookup coordinates
@@ -149,7 +153,7 @@ float getDepth() {
 
 // returns the model space distance to the surface of the depth buffer at the
 // current pixel, or -1 if there is nothing in the depth buffer
-float getOpaqueDepth(vec3 rayOrigin, vec3 rayDir) {
+float getSurfaceDistance(vec3 rayOrigin, vec3 rayDir) {
   float depth = getDepth();
 
   if (depth == 0.0) {
@@ -185,7 +189,7 @@ float getOpaqueDepth(vec3 rayOrigin, vec3 rayDir) {
 
 // Returns the background color at the current pixel. If multisampling is used, we take the average
 // color.
-vec3 getLandColor() {
+vec3 getBackgroundColor() {
 #if HDR_SAMPLES > 0
   vec3 color = vec3(0.0);
   for (int i = 0; i < HDR_SAMPLES; ++i) {
@@ -196,6 +200,21 @@ vec3 getLandColor() {
   return texture(uColorBuffer, vsIn.vTexcoords).rgb;
 #endif
 }
+
+// returns a hard-coded color scale for a given ocean depth.
+// Could be configurable in future.
+vec4 getWaterShade(float d) {
+  const float steps[5]  = float[](0.0, 50.0, 100.0, 500.0, 2000.0);
+  const vec4  colors[5] = vec4[](vec4(1, 1, 1, 0.0), vec4(0.2, 0.8, 0.9, 0.0),
+      vec4(0.2, 0.3, 0.4, 0.4), vec4(0.1, 0.2, 0.3, 0.8), vec4(0.03, 0.05, 0.1, 0.95));
+  for (int i = 0; i < 4; ++i) {
+    if (d <= steps[i + 1])
+      return mix(colors[i], colors[i + 1], vec4(d - steps[i]) / (steps[i + 1] - steps[i]));
+  }
+  return colors[4];
+}
+
+// -------------------------------------------------------------------------------------------------
 
 // http://filmicworlds.com/blog/filmic-tonemapping-operators/
 float A = 0.15;
@@ -232,33 +251,58 @@ vec3 sRGBtoLinear(vec3 c) {
   return mix(c / vec3(12.92), pow((c + vec3(0.055)) / vec3(1.055), vec3(2.4)), bLess);
 }
 
+// -------------------------------------------------------------------------------------------------
+
 void main() {
   vec3 rayDir = normalize(vsIn.vRayDir);
 
-  oColor = getLandColor();
+  oColor = getBackgroundColor();
 
-  vec2 intersections = intersectAtmosphere(vsIn.vRayOrigin, rayDir);
+  vec2 atmosphereIntersections = intersectAtmosphere(vsIn.vRayOrigin, rayDir);
 
-  // ray does not actually hit the atmosphere or ray does not actually hit the atmosphere; exit is
-  // behind camera
-  if (intersections.x > intersections.y || intersections.y < 0) {
+  // ray does not actually hit the atmosphere or exit is behind camera
+  if (atmosphereIntersections.x > atmosphereIntersections.y || atmosphereIntersections.y < 0) {
     return;
   }
 
-  float opaqueDepth = getOpaqueDepth(vsIn.vRayOrigin, rayDir);
+  float surfaceDistance = getSurfaceDistance(vsIn.vRayOrigin, rayDir);
 
   // something is in front of the atmosphere
-  if (opaqueDepth > 0.0 && opaqueDepth < intersections.x) {
+  if (surfaceDistance > 0.0 && surfaceDistance < atmosphereIntersections.x) {
     return;
   }
 
-  bool hitsSurface = opaqueDepth > 0.0 && opaqueDepth < intersections.y;
+  bool hitsSurface = surfaceDistance > 0.0 && surfaceDistance < atmosphereIntersections.y;
+
+#if ENABLE_WATER
+  vec2 waterIntersections = intersectOceansphere(vsIn.vRayOrigin, rayDir);
+
+  bool hitsOcean = waterIntersections.y > 0.0 && waterIntersections.x < waterIntersections.y;
+
+  if (hitsOcean && (surfaceDistance < 0.0 || surfaceDistance > waterIntersections.x)) {
+    if (surfaceDistance > 0.0) {
+      waterIntersections.y = min(waterIntersections.y, surfaceDistance);
+    }
+    vec3  surface  = vsIn.vRayOrigin + rayDir * waterIntersections.x;
+    vec3  normal   = normalize(surface);
+    float specular = pow(max(dot(rayDir, reflect(uSunDir, normal)), 0.0), 10) * 0.2;
+    specular += pow(max(dot(rayDir, reflect(uSunDir, normal)), 0.0), 50) * 0.2;
+#if ENABLE_HDR
+    specular *= uSunIlluminance / PI;
+#endif
+    float depth     = waterIntersections.y - waterIntersections.x;
+    vec4  water     = getWaterShade(depth);
+    oColor          = mix(oColor, water.rgb, water.a) + water.a * specular;
+    surfaceDistance = waterIntersections.x;
+    hitsSurface     = true;
+  }
+#endif
 
   float shadowLength = 0.0;
 
   if (hitsSurface) {
     vec3 skyIlluminance, transmittance;
-    vec3 p = vsIn.vRayOrigin + rayDir * opaqueDepth;
+    vec3 p = vsIn.vRayOrigin + rayDir * surfaceDistance;
     vec3 inScatter =
         GetSkyLuminanceToPoint(vsIn.vRayOrigin, p, shadowLength, uSunDir, transmittance);
 

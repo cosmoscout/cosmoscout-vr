@@ -57,8 +57,8 @@ Atmosphere::Atmosphere(std::shared_ptr<Plugin::Settings> pluginSettings,
     , mSolarSystem(std::move(solarSystem))
     , mGraphicsEngine(std::move(graphicsEngine))
     , mObjectName(std::move(objectName)) {
-    // , mEclipseShadowReceiver(
-    //       std::make_shared<cs::core::EclipseShadowReceiver>(mAllSettings, mSolarSystem, false)) {
+  // , mEclipseShadowReceiver(
+  //       std::make_shared<cs::core::EclipseShadowReceiver>(mAllSettings, mSolarSystem, false)) {
 
   // mEnableShadowsConnection = mAllSettings->mGraphics.pEnableShadows.connectAndTouch([this](bool
   // value) {
@@ -150,9 +150,10 @@ void Atmosphere::configure(Plugin::Settings::Atmosphere const& settings) {
     }
 
     if (mSettings != settings) {
-      mSettings    = settings;
       mShaderDirty = true;
     }
+
+    mSettings = settings;
 
     //     if (mCloudTextureFile != textureFile) {
     //   mCloudTextureFile = textureFile;
@@ -173,6 +174,8 @@ void Atmosphere::configure(Plugin::Settings::Atmosphere const& settings) {
 void Atmosphere::updateShader() {
   mAtmoShader = VistaGLSLShader();
 
+  std::cout << mSettings.mWaterLevel.get() << std::endl;
+
   auto sVert = cs::utils::filesystem::loadToString(
       "../share/resources/shaders/csp-atmospheres/atmosphere.vert");
   auto sFrag = cs::utils::filesystem::loadToString(
@@ -183,6 +186,7 @@ void Atmosphere::updateShader() {
       sFrag, "ATMOSPHERE_RADIUS", std::to_string(mRadii[0] + mSettings.mHeight));
   // cs::utils::replaceString(sFrag, "USE_SHADOWMAP", std::to_string(mShadowMap != nullptr));
   // cs::utils::replaceString(sFrag, "USE_CLOUDMAP", std::to_string(mUseClouds && mCloudTexture));
+  cs::utils::replaceString(sFrag, "ENABLE_WATER", std::to_string(mSettings.mEnableWater.get()));
   cs::utils::replaceString(sFrag, "ENABLE_HDR", std::to_string(mHDRBuffer != nullptr));
   cs::utils::replaceString(sFrag, "HDR_SAMPLES",
       mHDRBuffer == nullptr ? "0" : std::to_string(mHDRBuffer->getMultiSamples()));
@@ -208,6 +212,7 @@ void Atmosphere::updateShader() {
   mUniforms.sunIlluminance = mAtmoShader.GetUniformLocation("uSunIlluminance");
   mUniforms.depthBuffer    = mAtmoShader.GetUniformLocation("uDepthBuffer");
   mUniforms.colorBuffer    = mAtmoShader.GetUniformLocation("uColorBuffer");
+  mUniforms.waterLevel     = mAtmoShader.GetUniformLocation("uWaterLevel");
   // mUniforms.cloudTexture   = mAtmoShader.GetUniformLocation("uCloudTexture");
   // mUniforms.cloudAltitude  = mAtmoShader.GetUniformLocation("uCloudAltitude");
   // mUniforms.shadowCascades = mAtmoShader.GetUniformLocation("uShadowCascades");
@@ -321,6 +326,10 @@ bool Atmosphere::Do() {
   mAtmoShader.SetUniform(mUniforms.depthBuffer, 0);
   mAtmoShader.SetUniform(mUniforms.colorBuffer, 1);
 
+  if (mSettings.mEnableWater.get()) {
+    mAtmoShader.SetUniform(mUniforms.waterLevel,
+        mSettings.mWaterLevel.get() * mAllSettings->mGraphics.pHeightScale.get());
+  }
   // if (mUseClouds && mCloudTexture) {
   //   mCloudTexture->Bind(GL_TEXTURE3);
   //   mAtmoShader.SetUniform(mUniforms.cloudTexture, 3);

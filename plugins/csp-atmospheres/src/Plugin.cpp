@@ -61,8 +61,8 @@ void from_json(nlohmann::json const& j, Plugin::Settings::Atmosphere& o) {
   cs::core::Settings::deserialize(j, "height", o.mHeight);
   cs::core::Settings::deserialize(j, "model", o.mModel);
   cs::core::Settings::deserialize(j, "modelSettings", o.mModelSettings);
-  // cs::core::Settings::deserialize(j, "enableWater", o.mEnableWater);
-  // cs::core::Settings::deserialize(j, "waterLevel", o.mWaterLevel);
+  cs::core::Settings::deserialize(j, "enableWater", o.mEnableWater);
+  cs::core::Settings::deserialize(j, "waterLevel", o.mWaterLevel);
   // cs::core::Settings::deserialize(j, "enableClouds", o.mEnableClouds);
   // cs::core::Settings::deserialize(j, "cloudTexture", o.mCloudTexture);
   // cs::core::Settings::deserialize(j, "cloudAltitude", o.mCloudAltitude);
@@ -72,8 +72,8 @@ void to_json(nlohmann::json& j, Plugin::Settings::Atmosphere const& o) {
   cs::core::Settings::serialize(j, "height", o.mHeight);
   cs::core::Settings::serialize(j, "model", o.mModel);
   cs::core::Settings::serialize(j, "modelSettings", o.mModelSettings);
-  // cs::core::Settings::serialize(j, "enableWater", o.mEnableWater);
-  // cs::core::Settings::serialize(j, "waterLevel", o.mWaterLevel);
+  cs::core::Settings::serialize(j, "enableWater", o.mEnableWater);
+  cs::core::Settings::serialize(j, "waterLevel", o.mWaterLevel);
   // cs::core::Settings::serialize(j, "enableClouds", o.mEnableClouds);
   // cs::core::Settings::serialize(j, "cloudTexture", o.mCloudTexture);
   // cs::core::Settings::serialize(j, "cloudAltitude", o.mCloudAltitude);
@@ -99,10 +99,9 @@ void to_json(nlohmann::json& j, Plugin::Settings const& o) {
 
 bool Plugin::Settings::Atmosphere::operator==(Plugin::Settings::Atmosphere const& other) const {
   return mHeight == other.mHeight && mModel == other.mModel &&
-         mModelSettings == other.mModelSettings;
-        //   && mEnableWater == other.mEnableWater &&
-        //  mWaterLevel == other.mWaterLevel && mEnableClouds == other.mEnableClouds &&
-        //  mCloudTexture == other.mCloudTexture && mCloudAltitude == other.mCloudAltitude;
+         mModelSettings == other.mModelSettings && mEnableWater == other.mEnableWater;
+  //   && mEnableClouds == other.mEnableClouds &&
+  //  mCloudTexture == other.mCloudTexture && mCloudAltitude == other.mCloudAltitude;
 }
 
 bool Plugin::Settings::Atmosphere::operator!=(Plugin::Settings::Atmosphere const& other) const {
@@ -129,13 +128,13 @@ void Plugin::init() {
           if (body == mSolarSystem->getObject(atmosphere.first)) {
             mActiveAtmosphere = atmosphere.first;
 
-            // auto settings = mPluginSettings->mAtmospheres.at(atmosphere.first);
-            // mGuiManager->setCheckboxValue("atmosphere.setEnableWater", settings.mEnableWater.get());
+            auto settings = mPluginSettings->mAtmospheres.at(atmosphere.first);
+            mGuiManager->setCheckboxValue("atmosphere.setEnableWater", settings.mEnableWater.get());
+            mGuiManager->setSliderValue("atmosphere.setWaterLevel", settings.mWaterLevel.get());
             // mGuiManager->setCheckboxValue(
             //     "atmosphere.setEnableClouds", settings.mEnableClouds.get());
             // mGuiManager->setSliderValue(
             //     "atmosphere.setCloudAltitude", settings.mCloudAltitude.get());
-            // mGuiManager->setSliderValue("atmosphere.setWaterLevel", settings.mWaterLevel.get());
           }
         }
 
@@ -143,14 +142,23 @@ void Plugin::init() {
         //     "CosmoScout.sidebar.setTabEnabled", "Atmospheres", mActiveAtmosphere != "");
       });
 
-  // mGuiManager->getGui()->registerCallback("atmosphere.setEnableWater",
-  //     "Enables or disables rendering of a water surface.", std::function([this](bool enable) {
-  //       if (mActiveAtmosphere != "") {
-  //         auto& settings        = mPluginSettings->mAtmospheres.at(mActiveAtmosphere);
-  //         settings.mEnableWater = enable;
-  //         mAtmospheres.at(mActiveAtmosphere)->configure(settings);
-  //       }
-  //     }));
+  mGuiManager->getGui()->registerCallback("atmosphere.setEnableWater",
+      "Enables or disables rendering of a water surface.", std::function([this](bool enable) {
+        if (mActiveAtmosphere != "") {
+          auto& settings        = mPluginSettings->mAtmospheres.at(mActiveAtmosphere);
+          settings.mEnableWater = enable;
+          mAtmospheres.at(mActiveAtmosphere)->configure(settings);
+        }
+      }));
+
+  mGuiManager->getGui()->registerCallback("atmosphere.setWaterLevel",
+      "Sets the height of the water surface in meters.", std::function([this](double value) {
+        if (mActiveAtmosphere != "") {
+          auto& settings       = mPluginSettings->mAtmospheres.at(mActiveAtmosphere);
+          settings.mWaterLevel = static_cast<float>(value);
+          mAtmospheres.at(mActiveAtmosphere)->configure(settings);
+        }
+      }));
 
   // mGuiManager->getGui()->registerCallback("atmosphere.setEnableClouds",
   //     "Enables or disables rendering of a cloud layer.", std::function([this](bool enable) {
@@ -166,16 +174,6 @@ void Plugin::init() {
   //       if (mActiveAtmosphere != "") {
   //         auto& settings          = mPluginSettings->mAtmospheres.at(mActiveAtmosphere);
   //         settings.mCloudAltitude = static_cast<float>(value);
-  //         mAtmospheres.at(mActiveAtmosphere)->configure(settings);
-  //       }
-  //     }));
-
-  // mGuiManager->getGui()->registerCallback("atmosphere.setWaterLevel",
-  //     "Sets the height of the water surface relative to the planet's radius.",
-  //     std::function([this](double value) {
-  //       if (mActiveAtmosphere != "") {
-  //         auto& settings       = mPluginSettings->mAtmospheres.at(mActiveAtmosphere);
-  //         settings.mWaterLevel = static_cast<float>(value);
   //         mAtmospheres.at(mActiveAtmosphere)->configure(settings);
   //       }
   //     }));
@@ -212,10 +210,10 @@ void Plugin::deInit() {
   mGuiManager->getGui()->callJavascript("CosmoScout.removeApi", "atmosphere");
 
   mGuiManager->getGui()->unregisterCallback("atmosphere.setEnable");
-  // mGuiManager->getGui()->unregisterCallback("atmosphere.setEnableWater");
+  mGuiManager->getGui()->unregisterCallback("atmosphere.setEnableWater");
+  mGuiManager->getGui()->unregisterCallback("atmosphere.setWaterLevel");
   // mGuiManager->getGui()->unregisterCallback("atmosphere.setEnableClouds");
   // mGuiManager->getGui()->unregisterCallback("atmosphere.setCloudAltitude");
-  // mGuiManager->getGui()->unregisterCallback("atmosphere.setWaterLevel");
   // mGuiManager->getGui()->unregisterCallback("atmosphere.setEnableIndirectLighting");
   // mGuiManager->getGui()->unregisterCallback("atmosphere.setEnableLightShafts");
 

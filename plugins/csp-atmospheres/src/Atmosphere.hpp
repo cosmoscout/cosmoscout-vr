@@ -89,6 +89,7 @@ class Atmosphere : public IVistaOpenGLDraw {
     uint32_t sunIlluminance = 0;
     uint32_t depthBuffer    = 0;
     uint32_t colorBuffer    = 0;
+    uint32_t waterLevel     = 0;
     // uint32_t cloudTexture   = 0;
     // uint32_t cloudAltitude  = 0;
     // uint32_t shadowCascades = 0;
