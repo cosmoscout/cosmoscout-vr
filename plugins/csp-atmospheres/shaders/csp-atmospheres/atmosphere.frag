@@ -148,36 +148,37 @@ float getDepth() {
 }
 
 // returns the model space distance to the surface of the depth buffer at the
-// current pixel, or 100 if there is nothing in the depth buffer
+// current pixel, or -1 if there is nothing in the depth buffer
 float getOpaqueDepth(vec3 rayOrigin, vec3 rayDir) {
   float depth = getDepth();
 
-  // If the fragment is really far away, the inverse reverse infinite projection divides by zero.
-  // So we add a minimum threshold here.
-  depth = max(depth, 0.0000001);
+  if (depth == 0.0) {
+    return -1.0;
+  }
 
   vec4  position = uMatInvMVP * vec4(2.0 * vsIn.vTexcoords - 1, 2 * depth - 1, 1);
   float depthMS  = length(rayOrigin - position.xyz / position.w);
 
-  // // If the depth of the next opaque object is verz close to the far end of our depth buffer, we
-  // // will get jittering artifacts. That's the case if we are next to a satellite or on a moon and
-  // // look towards a planet with an atmosphere. In this case, start and end of the ray through the
-  // // atmosphere basically map to the same depth. Therefore, if the depth is really far away
-  // (close
-  // // to zero) we compute the intersection with the planet analytically and blend to this value
-  // // instead. This means, if you are close to a satellite, mountains of the planet below cannot
-  // // poke through the atmosphere anymore.
-  // const float START_DEPTH_FADE = 0.001;
-  // const float END_DEPTH_FADE   = 0.00001;
+  // If the depth of the next opaque object is verz close to the far end of our depth buffer, we
+  // will get jittering artifacts. That's the case if we are next to a satellite or on a moon and
+  // look towards a planet with an atmosphere. In this case, start and end of the ray through the
+  // atmosphere basically map to the same depth. Therefore, if the depth is really far away (close
+  // to zero) we compute the intersection with the planet analytically and blend to this value
+  // instead. This means, if you are close to a satellite, mountains of the planet below cannot
+  // poke through the atmosphere anymore.
+  const float START_DEPTH_FADE = 0.001;
+  const float END_DEPTH_FADE   = 0.00001;
 
-  // // We are only using the depth approximation if depth is smaller than START_DEPTH_FADE and if
-  // // the observer is outside of the atmosphere.
-  // if (depth < START_DEPTH_FADE && length(rayOrigin) > 1.0) {
-  //   vec2  planetIntersections = intersectPlanetsphere(rayOrigin, rayDir);
-  //   float simpleDepth         = planetIntersections.y > 0.0 ? planetIntersections.x : 100.0;
-  //   return mix(simpleDepth, depthMS,
-  //       clamp((depth - END_DEPTH_FADE) / (START_DEPTH_FADE - END_DEPTH_FADE), 0.0, 1.0));
-  // }
+  // We are only using the depth approximation if depth is smaller than START_DEPTH_FADE and if
+  // the observer is outside of the atmosphere.
+  if (depth < START_DEPTH_FADE && length(rayOrigin) > ATMOSPHERE_RADIUS) {
+    vec2  planetIntersections     = intersectPlanetsphere(rayOrigin, rayDir);
+    vec2  atmosphereIntersections = intersectAtmosphere(rayOrigin, rayDir);
+    float simpleDepthMS =
+        planetIntersections.y > 0.0 ? planetIntersections.x : atmosphereIntersections.y;
+    return mix(simpleDepthMS, depthMS,
+        clamp((depth - END_DEPTH_FADE) / (START_DEPTH_FADE - END_DEPTH_FADE), 0.0, 1.0));
+  }
 
   return depthMS;
 }
@@ -194,32 +195,6 @@ vec3 getLandColor() {
 #else
   return texture(uColorBuffer, vsIn.vTexcoords).rgb;
 #endif
-}
-
-// crops the intersections to the view ray
-bool getViewRay(vec2 intersections, float opaqueDepth, out vec2 startEnd) {
-  if (intersections.x > intersections.y) {
-    // ray does not actually hit the atmosphere
-    return false;
-  }
-
-  if (intersections.y < 0) {
-    // ray does not actually hit the atmosphere; exit is behind camera
-    return false;
-  }
-
-  if (intersections.x > opaqueDepth) {
-    // something is in front of the atmosphere
-    return false;
-  }
-
-  // if camera is inside of atmosphere, advance ray start to camera
-  startEnd.x = max(0, intersections.x);
-
-  // if something blocks the ray's path, move its end to the object
-  startEnd.y = min(opaqueDepth, intersections.y);
-
-  return true;
 }
 
 // http://filmicworlds.com/blog/filmic-tonemapping-operators/
@@ -260,29 +235,24 @@ vec3 sRGBtoLinear(vec3 c) {
 void main() {
   vec3 rayDir = normalize(vsIn.vRayDir);
 
-  // sample depth from the depth buffer
-  float opaqueDepth = getOpaqueDepth(vsIn.vRayOrigin, rayDir);
-
-  // get the color of the planet, can be land or ocean
-  // if it is ocean, opaqueDepth will be increased towards the ocean surface
   oColor = getLandColor();
 
-  // intersections.x and intersections.y are the distances from the ray
-  // origin to the intersections of the line defined by the ray direction
-  // and the ray origin with the atmosphere boundary (intersections.x may
-  // be negative if it is behind the origin).
   vec2 intersections = intersectAtmosphere(vsIn.vRayOrigin, rayDir);
 
-  // vT.x and vT.y are the distances to the actual start and end point of the
-  // intersection of the ray with the atmosphere. vT.x will be zero if the
-  // origin is inside the atmosphere; vT.y will be smaller than
-  // intersections.y if there is an occluder in th atmosphere. Overall the
-  // following unequality will hold:
-  // intersections.x <= vT.x < vT.y <= intersections.y
-  // This function may discard this fragment if no valid ray was generated.
-  vec2 startEnd;
-  bool hitsAtmosphere = getViewRay(intersections, opaqueDepth, startEnd);
-  bool hitsSurface    = (opaqueDepth == startEnd.y);
+  // ray does not actually hit the atmosphere or ray does not actually hit the atmosphere; exit is
+  // behind camera
+  if (intersections.x > intersections.y || intersections.y < 0) {
+    return;
+  }
+
+  float opaqueDepth = getOpaqueDepth(vsIn.vRayOrigin, rayDir);
+
+  // something is in front of the atmosphere
+  if (opaqueDepth > 0.0 && opaqueDepth < intersections.x) {
+    return;
+  }
+
+  bool hitsSurface = opaqueDepth > 0.0 && opaqueDepth < intersections.y;
 
   float shadowLength = 0.0;
 
@@ -302,7 +272,7 @@ void main() {
                               ((sunIlluminance + skyIlluminance) / uSunIlluminance) +
                           tonemap(inScatter / uSunIlluminance));
 #endif
-  } else if (hitsAtmosphere) {
+  } else {
     vec3 transmittance;
     vec3 inScatter = GetSkyLuminance(vsIn.vRayOrigin, rayDir, shadowLength, uSunDir, transmittance);
 
