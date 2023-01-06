@@ -158,13 +158,11 @@ void main()
 
     #ifdef ENABLE_HDR
       oColor = SRGBtoLINEAR(oColor) * uSunIlluminance / PI;
-    #else
-      oColor = oColor * uSunIlluminance;
     #endif
 
     #ifdef ENABLE_LIGHTING
       float light = orenNayar(normalize(vNormal), normalize(vSunDirection), -normalize(vPosition));
-      oColor = mix(oColor * uAmbientBrightness, oColor * getEclipseShadow(vPosition), light);
+      oColor *= mix(vec3(uAmbientBrightness), getEclipseShadow(vPosition), light);
     #endif
 }
 )";
