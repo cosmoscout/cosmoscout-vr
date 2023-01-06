@@ -42,6 +42,8 @@ uniform vec3  uSunDir;
 uniform float uCloudAltitude;
 uniform float uSunIlluminance;
 
+const float PI = 3.141592653589793;
+
 // shadow stuff
 uniform sampler2DShadow uShadowMaps[5];
 uniform mat4 uShadowProjectionViewMatrices[5];
@@ -220,6 +222,41 @@ bool GetViewRay(vec2 vIntersections, float fOpaqueDepth, out vec2 vStartEnd) {
   return true;
 }
 
+// http://filmicworlds.com/blog/filmic-tonemapping-operators/
+float A = 0.15;
+float B = 0.50;
+float C = 0.10;
+float D = 0.20;
+float E = 0.02;
+float F = 0.30;
+float W = 11.2;
+
+vec3 uncharted2Tonemap(vec3 x) {
+  return ((x * (A * x + C * B) + D * E) / (x * (A * x + B) + D * F)) - E / F;
+}
+
+float linear_to_srgb(float c) {
+  if (c <= 0.0031308)
+    return 12.92 * c;
+  else
+    return 1.055 * pow(c, 1.0 / 2.4) - 0.055;
+}
+
+vec3 linear_to_srgb(vec3 c) {
+  return vec3(linear_to_srgb(c.r), linear_to_srgb(c.g), linear_to_srgb(c.b));
+}
+
+vec3 SRGBtoLINEAR(vec3 srgbIn) {
+  vec3 bLess = step(vec3(0.04045), srgbIn);
+  return mix(srgbIn / vec3(12.92), pow((srgbIn + vec3(0.055)) / vec3(1.055), vec3(2.4)), bLess);
+}
+
+vec3 tonemap(vec3 x) {
+  x               = uncharted2Tonemap(20.0 * x / uSunIlluminance);
+  vec3 whiteScale = vec3(1.0) / uncharted2Tonemap(vec3(W));
+  return x * whiteScale;
+}
+
 void main() {
   vec3 vRayDir = normalize(vsIn.vRayDir);
 
@@ -257,13 +294,22 @@ void main() {
 
     vec3 sunIlluminance = GetSunAndSkyIlluminance(p, normalize(p), uSunDir, skyIlluminance);
 
+#if ENABLE_HDR
     oColor =
-        transmittance * oColor * (sunIlluminance + skyIlluminance) / uSunIlluminance + inScatter;
+        transmittance * oColor / uSunIlluminance * (sunIlluminance + skyIlluminance) + inScatter;
+#else
+    oColor = linear_to_srgb(tonemap(
+        transmittance * SRGBtoLINEAR(oColor) * (sunIlluminance + skyIlluminance) + inScatter));
+#endif
   } else {
     vec3 transmittance;
     vec3 inScatter =
         GetSkyLuminance(vsIn.vRayOrigin, vRayDir, shadowLength, uSunDir, transmittance);
 
+#if ENABLE_HDR
     oColor = transmittance * oColor + inScatter;
+#else
+    oColor = linear_to_srgb(tonemap(transmittance * SRGBtoLINEAR(oColor) + inScatter));
+#endif
   }
 }

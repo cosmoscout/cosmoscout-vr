@@ -235,12 +235,7 @@ void Atmosphere::update() {
   auto object = mSolarSystem->getObject(mObjectName);
 
   if (object && object->getIsBodyVisible() && mPluginSettings->mEnable.get()) {
-    mSunIlluminance = 10.0;
-
-    if (mAllSettings->mGraphics.pEnableHDR.get()) {
-      mSunIlluminance = mSolarSystem->getSunIlluminance(object->getObserverRelativePosition());
-    }
-
+    mSunIlluminance = mSolarSystem->getSunIlluminance(object->getObserverRelativePosition());
     mSunDirection   = mSolarSystem->getSunDirection(object->getObserverRelativePosition());
     mWorldTransform = object->getObserverRelativeTransform();
     mEclipseShadowReceiver->update(*object);
