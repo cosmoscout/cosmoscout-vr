@@ -57,84 +57,84 @@ layout(location = 0) out vec3 oColor;
 // compute intersections with the atmosphere
 // two T parameters are returned -- if no intersection is found, the first will
 // larger than the second
-vec2 IntersectSphere(vec3 vRayOrigin, vec3 vRayDir, float fRadius) {
-  float b    = dot(vRayOrigin, vRayDir);
-  float c    = dot(vRayOrigin, vRayOrigin) - fRadius * fRadius;
-  float fDet = b * b - c;
+vec2 intersectSphere(vec3 rayOrigin, vec3 rayDir, float radius) {
+  float b   = dot(rayOrigin, rayDir);
+  float c   = dot(rayOrigin, rayOrigin) - radius * radius;
+  float det = b * b - c;
 
-  if (fDet < 0.0) {
+  if (det < 0.0) {
     return vec2(1, -1);
   }
 
-  fDet = sqrt(fDet);
-  return vec2(-b - fDet, -b + fDet);
+  det = sqrt(det);
+  return vec2(-b - det, -b + det);
 }
 
-vec2 IntersectAtmosphere(vec3 vRayOrigin, vec3 vRayDir) {
-  return IntersectSphere(vRayOrigin, vRayDir, ATMOSPHERE_RADIUS);
+vec2 intersectAtmosphere(vec3 rayOrigin, vec3 rayDir) {
+  return intersectSphere(rayOrigin, rayDir, ATMOSPHERE_RADIUS);
 }
 
-vec2 IntersectPlanetsphere(vec3 vRayOrigin, vec3 vRayDir) {
-  return IntersectSphere(vRayOrigin, vRayDir, PLANET_RADIUS);
+vec2 intersectPlanetsphere(vec3 rayOrigin, vec3 rayDir) {
+  return intersectSphere(rayOrigin, rayDir, PLANET_RADIUS);
 }
 
-// for a given cascade and view space position, returns the lookup coordinates
-// for the corresponding shadow map
-vec3 GetShadowMapCoords(int cascade, vec3 position) {
-  vec4 smap_coords = uShadowProjectionViewMatrices[cascade] * vec4(position, 1.0);
-  return (smap_coords.xyz / smap_coords.w) * 0.5 + 0.5;
-}
+// // for a given cascade and view space position, returns the lookup coordinates
+// // for the corresponding shadow map
+// vec3 GetShadowMapCoords(int cascade, vec3 position) {
+//   vec4 smap_coords = uShadowProjectionViewMatrices[cascade] * vec4(position, 1.0);
+//   return (smap_coords.xyz / smap_coords.w) * 0.5 + 0.5;
+// }
 
-// returns the best cascade containing the given view space position
-int GetCascade(vec3 position) {
-  for (int i = 0; i < uShadowCascades; ++i) {
-    vec3 coords = GetShadowMapCoords(i, position);
+// // returns the best cascade containing the given view space position
+// int GetCascade(vec3 position) {
+//   for (int i = 0; i < uShadowCascades; ++i) {
+//     vec3 coords = GetShadowMapCoords(i, position);
 
-    if (coords.x > 0 && coords.x < 1 && coords.y > 0 && coords.y < 1 && coords.z > 0 &&
-        coords.z < 1) {
-      return i;
-    }
-  }
+//     if (coords.x > 0 && coords.x < 1 && coords.y > 0 && coords.y < 1 && coords.z > 0 &&
+//         coords.z < 1) {
+//       return i;
+//     }
+//   }
 
-  return -1;
-}
+//   return -1;
+// }
 
-// returns the amount of shadowing going on at the given view space position
-float GetShadow(vec3 position) {
-  int cascade = GetCascade(position);
+// // returns the amount of shadowing going on at the given view space position
+// float GetShadow(vec3 position) {
+//   int cascade = GetCascade(position);
 
-  if (cascade < 0) {
-    return 1.0;
-  }
+//   if (cascade < 0) {
+//     return 1.0;
+//   }
 
-  vec3 coords = GetShadowMapCoords(cascade, position);
+//   vec3 coords = GetShadowMapCoords(cascade, position);
 
-  float shadow = 0;
-  float size   = 0.005;
+//   float shadow = 0;
+//   float size   = 0.005;
 
-  for (int x = -1; x <= 1; x++) {
-    for (int y = -1; y <= 1; y++) {
-      vec2 off = vec2(x, y) * size;
+//   for (int x = -1; x <= 1; x++) {
+//     for (int y = -1; y <= 1; y++) {
+//       vec2 off = vec2(x, y) * size;
 
-      // Dynamic array lookups are not supported in OpenGL 3.3
-      if (cascade == 0)
-        shadow += texture(uShadowMaps[0], coords - vec3(off, 0.00002));
-      else if (cascade == 1)
-        shadow += texture(uShadowMaps[1], coords - vec3(off, 0.00002));
-      else if (cascade == 2)
-        shadow += texture(uShadowMaps[2], coords - vec3(off, 0.00002));
-      else if (cascade == 3)
-        shadow += texture(uShadowMaps[3], coords - vec3(off, 0.00002));
-      else
-        shadow += texture(uShadowMaps[4], coords - vec3(off, 0.00002));
-    }
-  }
+//       // Dynamic array lookups are not supported in OpenGL 3.3
+//       if (cascade == 0)
+//         shadow += texture(uShadowMaps[0], coords - vec3(off, 0.00002));
+//       else if (cascade == 1)
+//         shadow += texture(uShadowMaps[1], coords - vec3(off, 0.00002));
+//       else if (cascade == 2)
+//         shadow += texture(uShadowMaps[2], coords - vec3(off, 0.00002));
+//       else if (cascade == 3)
+//         shadow += texture(uShadowMaps[3], coords - vec3(off, 0.00002));
+//       else
+//         shadow += texture(uShadowMaps[4], coords - vec3(off, 0.00002));
+//     }
+//   }
 
-  return shadow / 9.0;
-}
+//   return shadow / 9.0;
+// }
 
 // Returns the depth at the current pixel. If multisampling is used, we take the minimum depth.
-float GetDepth() {
+float getDepth() {
 #if HDR_SAMPLES > 0
   float depth = 1.0;
   for (int i = 0; i < HDR_SAMPLES; ++i) {
@@ -149,15 +149,15 @@ float GetDepth() {
 
 // returns the model space distance to the surface of the depth buffer at the
 // current pixel, or 100 if there is nothing in the depth buffer
-float GetOpaqueDepth(vec3 vRayOrigin, vec3 vRayDir) {
-  float fDepth = GetDepth();
+float getOpaqueDepth(vec3 rayOrigin, vec3 rayDir) {
+  float depth = getDepth();
 
   // If the fragment is really far away, the inverse reverse infinite projection divides by zero.
   // So we add a minimum threshold here.
-  fDepth = max(fDepth, 0.0000001);
+  depth = max(depth, 0.0000001);
 
-  vec4  vPos    = uMatInvMVP * vec4(2.0 * vsIn.vTexcoords - 1, 2 * fDepth - 1, 1);
-  float msDepth = length(vRayOrigin - vPos.xyz / vPos.w);
+  vec4  position = uMatInvMVP * vec4(2.0 * vsIn.vTexcoords - 1, 2 * depth - 1, 1);
+  float depthMS  = length(rayOrigin - position.xyz / position.w);
 
   // // If the depth of the next opaque object is verz close to the far end of our depth buffer, we
   // // will get jittering artifacts. That's the case if we are next to a satellite or on a moon and
@@ -170,21 +170,21 @@ float GetOpaqueDepth(vec3 vRayOrigin, vec3 vRayDir) {
   // const float START_DEPTH_FADE = 0.001;
   // const float END_DEPTH_FADE   = 0.00001;
 
-  // // We are only using the depth approximation if fDepth is smaller than START_DEPTH_FADE and if
+  // // We are only using the depth approximation if depth is smaller than START_DEPTH_FADE and if
   // // the observer is outside of the atmosphere.
-  // if (fDepth < START_DEPTH_FADE && length(vRayOrigin) > 1.0) {
-  //   vec2  planetIntersections = IntersectPlanetsphere(vRayOrigin, vRayDir);
+  // if (depth < START_DEPTH_FADE && length(rayOrigin) > 1.0) {
+  //   vec2  planetIntersections = intersectPlanetsphere(rayOrigin, rayDir);
   //   float simpleDepth         = planetIntersections.y > 0.0 ? planetIntersections.x : 100.0;
-  //   return mix(simpleDepth, msDepth,
-  //       clamp((fDepth - END_DEPTH_FADE) / (START_DEPTH_FADE - END_DEPTH_FADE), 0.0, 1.0));
+  //   return mix(simpleDepth, depthMS,
+  //       clamp((depth - END_DEPTH_FADE) / (START_DEPTH_FADE - END_DEPTH_FADE), 0.0, 1.0));
   // }
 
-  return msDepth;
+  return depthMS;
 }
 
 // Returns the background color at the current pixel. If multisampling is used, we take the average
 // color.
-vec3 GetLandColor() {
+vec3 getLandColor() {
 #if HDR_SAMPLES > 0
   vec3 color = vec3(0.0);
   for (int i = 0; i < HDR_SAMPLES; ++i) {
@@ -197,27 +197,27 @@ vec3 GetLandColor() {
 }
 
 // crops the intersections to the view ray
-bool GetViewRay(vec2 vIntersections, float fOpaqueDepth, out vec2 vStartEnd) {
-  if (vIntersections.x > vIntersections.y) {
+bool getViewRay(vec2 intersections, float opaqueDepth, out vec2 startEnd) {
+  if (intersections.x > intersections.y) {
     // ray does not actually hit the atmosphere
     return false;
   }
 
-  if (vIntersections.y < 0) {
+  if (intersections.y < 0) {
     // ray does not actually hit the atmosphere; exit is behind camera
     return false;
   }
 
-  if (vIntersections.x > fOpaqueDepth) {
+  if (intersections.x > opaqueDepth) {
     // something is in front of the atmosphere
     return false;
   }
 
   // if camera is inside of atmosphere, advance ray start to camera
-  vStartEnd.x = max(0, vIntersections.x);
+  startEnd.x = max(0, intersections.x);
 
   // if something blocks the ray's path, move its end to the object
-  vStartEnd.y = min(fOpaqueDepth, vIntersections.y);
+  startEnd.y = min(opaqueDepth, intersections.y);
 
   return true;
 }
@@ -231,64 +231,64 @@ float E = 0.02;
 float F = 0.30;
 float W = 11.2;
 
-vec3 uncharted2Tonemap(vec3 x) {
-  return ((x * (A * x + C * B) + D * E) / (x * (A * x + B) + D * F)) - E / F;
+vec3 uncharted2Tonemap(vec3 c) {
+  return ((c * (A * c + C * B) + D * E) / (c * (A * c + B) + D * F)) - E / F;
 }
 
-float linear_to_srgb(float c) {
+vec3 tonemap(vec3 c) {
+  c               = uncharted2Tonemap(10.0 * c);
+  vec3 whiteScale = vec3(1.0) / uncharted2Tonemap(vec3(W));
+  return c * whiteScale;
+}
+
+float linearToSRGB(float c) {
   if (c <= 0.0031308)
     return 12.92 * c;
   else
     return 1.055 * pow(c, 1.0 / 2.4) - 0.055;
 }
 
-vec3 linear_to_srgb(vec3 c) {
-  return vec3(linear_to_srgb(c.r), linear_to_srgb(c.g), linear_to_srgb(c.b));
+vec3 linearToSRGB(vec3 c) {
+  return vec3(linearToSRGB(c.r), linearToSRGB(c.g), linearToSRGB(c.b));
 }
 
-vec3 SRGBtoLINEAR(vec3 srgbIn) {
-  vec3 bLess = step(vec3(0.04045), srgbIn);
-  return mix(srgbIn / vec3(12.92), pow((srgbIn + vec3(0.055)) / vec3(1.055), vec3(2.4)), bLess);
-}
-
-vec3 tonemap(vec3 x) {
-  x               = uncharted2Tonemap(10.0 * x);
-  vec3 whiteScale = vec3(1.0) / uncharted2Tonemap(vec3(W));
-  return x * whiteScale;
+vec3 sRGBtoLinear(vec3 c) {
+  vec3 bLess = step(vec3(0.04045), c);
+  return mix(c / vec3(12.92), pow((c + vec3(0.055)) / vec3(1.055), vec3(2.4)), bLess);
 }
 
 void main() {
-  vec3 vRayDir = normalize(vsIn.vRayDir);
+  vec3 rayDir = normalize(vsIn.vRayDir);
 
   // sample depth from the depth buffer
-  float fOpaqueDepth = GetOpaqueDepth(vsIn.vRayOrigin, vRayDir);
+  float opaqueDepth = getOpaqueDepth(vsIn.vRayOrigin, rayDir);
 
   // get the color of the planet, can be land or ocean
-  // if it is ocean, fOpaqueDepth will be increased towards the ocean surface
-  oColor = GetLandColor();
+  // if it is ocean, opaqueDepth will be increased towards the ocean surface
+  oColor = getLandColor();
 
-  // vIntersections.x and vIntersections.y are the distances from the ray
+  // intersections.x and intersections.y are the distances from the ray
   // origin to the intersections of the line defined by the ray direction
-  // and the ray origin with the atmosphere boundary (vIntersections.x may
+  // and the ray origin with the atmosphere boundary (intersections.x may
   // be negative if it is behind the origin).
-  vec2 vIntersections = IntersectAtmosphere(vsIn.vRayOrigin, vRayDir);
+  vec2 intersections = intersectAtmosphere(vsIn.vRayOrigin, rayDir);
 
   // vT.x and vT.y are the distances to the actual start and end point of the
   // intersection of the ray with the atmosphere. vT.x will be zero if the
   // origin is inside the atmosphere; vT.y will be smaller than
-  // vIntersections.y if there is an occluder in th atmosphere. Overall the
+  // intersections.y if there is an occluder in th atmosphere. Overall the
   // following unequality will hold:
-  // vIntersections.x <= vT.x < vT.y <= vIntersections.y
+  // intersections.x <= vT.x < vT.y <= intersections.y
   // This function may discard this fragment if no valid ray was generated.
-  vec2 vStartEnd;
-  bool bHitsAtmosphere = GetViewRay(vIntersections, fOpaqueDepth, vStartEnd);
-  bool bHitsSurface    = (fOpaqueDepth == vStartEnd.y);
+  vec2 startEnd;
+  bool hitsAtmosphere = getViewRay(intersections, opaqueDepth, startEnd);
+  bool hitsSurface    = (opaqueDepth == startEnd.y);
 
   float shadowLength = 0.0;
 
-  if (bHitsSurface) {
+  if (hitsSurface) {
     vec3 skyIlluminance, transmittance;
-    vec3 p = vsIn.vRayOrigin + vRayDir * fOpaqueDepth;
+    vec3 p = vsIn.vRayOrigin + rayDir * opaqueDepth;
     vec3 inScatter =
         GetSkyLuminanceToPoint(vsIn.vRayOrigin, p, shadowLength, uSunDir, transmittance);
 
@@ -298,20 +298,19 @@ void main() {
     oColor =
         transmittance * oColor / uSunIlluminance * (sunIlluminance + skyIlluminance) + inScatter;
 #else
-    oColor = linear_to_srgb(transmittance * SRGBtoLINEAR(oColor) *
-                                ((sunIlluminance + skyIlluminance) / uSunIlluminance) +
-                            tonemap(inScatter / uSunIlluminance));
+    oColor = linearToSRGB(transmittance * sRGBtoLinear(oColor) *
+                              ((sunIlluminance + skyIlluminance) / uSunIlluminance) +
+                          tonemap(inScatter / uSunIlluminance));
 #endif
-  } else if (bHitsAtmosphere) {
+  } else if (hitsAtmosphere) {
     vec3 transmittance;
-    vec3 inScatter =
-        GetSkyLuminance(vsIn.vRayOrigin, vRayDir, shadowLength, uSunDir, transmittance);
+    vec3 inScatter = GetSkyLuminance(vsIn.vRayOrigin, rayDir, shadowLength, uSunDir, transmittance);
 
 #if ENABLE_HDR
     oColor = transmittance * oColor + inScatter;
 #else
     oColor =
-        linear_to_srgb(transmittance * SRGBtoLINEAR(oColor) + tonemap(inScatter / uSunIlluminance));
+        linearToSRGB(transmittance * sRGBtoLinear(oColor) + tonemap(inScatter / uSunIlluminance));
 #endif
   }
 }
