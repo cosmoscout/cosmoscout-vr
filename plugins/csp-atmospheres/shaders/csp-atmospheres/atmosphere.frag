@@ -32,15 +32,15 @@ uniform sampler2D uColorBuffer;
 uniform sampler2D uDepthBuffer;
 #endif
 
-uniform sampler2D uCloudTexture;
-uniform mat4 uMatInvMVP;
-uniform mat4 uMatInvMV;
-uniform mat4 uMatInvP;
-uniform mat4 uMatMV;
-uniform mat4 uMatM;
 uniform vec3  uSunDir;
-uniform float uCloudAltitude;
 uniform float uSunIlluminance;
+uniform mat4 uMatInvMVP;
+// uniform mat4 uMatInvMV;
+// uniform mat4 uMatInvP;
+// uniform mat4 uMatMV;
+// uniform mat4 uMatM;
+uniform sampler2D uCloudTexture;
+uniform float uCloudAltitude;
 
 const float PI = 3.141592653589793;
 
@@ -52,7 +52,7 @@ uniform int  uShadowCascades;
 // outputs
 layout(location = 0) out vec3 oColor;
 
-ECLIPSE_SHADER_SNIPPET
+// ECLIPSE_SHADER_SNIPPET
 
 // compute intersections with the atmosphere
 // two T parameters are returned -- if no intersection is found, the first will

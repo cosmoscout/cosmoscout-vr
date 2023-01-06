@@ -30,12 +30,12 @@ class Plugin : public cs::core::PluginBase {
       cs::utils::DefaultProperty<Model> mModel{Model::eCosmoScoutVR};
       nlohmann::json                    mModelSettings;
 
-      double                            mHeight; ///< In meters.
-      cs::utils::DefaultProperty<bool>  mEnableWater{false};
-      cs::utils::DefaultProperty<float> mWaterLevel{0.F}; ///< In meters.
-      cs::utils::DefaultProperty<bool>  mEnableClouds{true};
-      std::optional<std::string>        mCloudTexture;          ///< Path to the cloud texture.
-      cs::utils::DefaultProperty<float> mCloudAltitude{3000.F}; ///< In meters.
+      double mHeight; ///< In meters.
+      // cs::utils::DefaultProperty<bool>  mEnableWater{false};
+      // cs::utils::DefaultProperty<float> mWaterLevel{0.F}; ///< In meters.
+      // cs::utils::DefaultProperty<bool>  mEnableClouds{true};
+      // std::optional<std::string>        mCloudTexture;          ///< Path to the cloud texture.
+      // cs::utils::DefaultProperty<float> mCloudAltitude{3000.F}; ///< In meters.
 
       bool operator==(Atmosphere const& other) const;
       bool operator!=(Atmosphere const& other) const;
@@ -44,8 +44,8 @@ class Plugin : public cs::core::PluginBase {
     std::unordered_map<std::string, Atmosphere> mAtmospheres;
 
     cs::utils::DefaultProperty<bool> mEnable{true};
-    cs::utils::DefaultProperty<bool> mEnableLightShafts{false};
-    cs::utils::DefaultProperty<bool> mEnableIndirectLighting{false};
+    // cs::utils::DefaultProperty<bool> mEnableLightShafts{false};
+    // cs::utils::DefaultProperty<bool> mEnableIndirectLighting{false};
   };
 
   void init() override;

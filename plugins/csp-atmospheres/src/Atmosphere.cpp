@@ -56,9 +56,9 @@ Atmosphere::Atmosphere(std::shared_ptr<Plugin::Settings> pluginSettings,
     , mAllSettings(std::move(allSettings))
     , mSolarSystem(std::move(solarSystem))
     , mGraphicsEngine(std::move(graphicsEngine))
-    , mObjectName(std::move(objectName))
-    , mEclipseShadowReceiver(
-          std::make_shared<cs::core::EclipseShadowReceiver>(mAllSettings, mSolarSystem, false)) {
+    , mObjectName(std::move(objectName)) {
+    // , mEclipseShadowReceiver(
+    //       std::make_shared<cs::core::EclipseShadowReceiver>(mAllSettings, mSolarSystem, false)) {
 
   // mEnableShadowsConnection = mAllSettings->mGraphics.pEnableShadows.connectAndTouch([this](bool
   // value) {
@@ -181,7 +181,7 @@ void Atmosphere::updateShader() {
   cs::utils::replaceString(sFrag, "PLANET_RADIUS", std::to_string(mRadii[0]));
   cs::utils::replaceString(
       sFrag, "ATMOSPHERE_RADIUS", std::to_string(mRadii[0] + mSettings.mHeight));
-  cs::utils::replaceString(sFrag, "USE_SHADOWMAP", std::to_string(mShadowMap != nullptr));
+  // cs::utils::replaceString(sFrag, "USE_SHADOWMAP", std::to_string(mShadowMap != nullptr));
   // cs::utils::replaceString(sFrag, "USE_CLOUDMAP", std::to_string(mUseClouds && mCloudTexture));
   cs::utils::replaceString(sFrag, "ENABLE_HDR", std::to_string(mHDRBuffer != nullptr));
   cs::utils::replaceString(sFrag, "HDR_SAMPLES",
@@ -189,13 +189,13 @@ void Atmosphere::updateShader() {
 
   // If the atmosphere should receive eclipse shadows, we need to inject the corresponding shader
   // source code snippet. If no eclipse shadow receiver was given, we just add a dummy method.
-  if (mEclipseShadowReceiver) {
-    cs::utils::replaceString(
-        sFrag, "ECLIPSE_SHADER_SNIPPET", mEclipseShadowReceiver->getShaderSnippet());
-  } else {
-    cs::utils::replaceString(sFrag, "ECLIPSE_SHADER_SNIPPET",
-        "vec3 getEclipseShadow(vec3 position) { return vec3(1); }");
-  }
+  // if (mEclipseShadowReceiver) {
+  //   cs::utils::replaceString(
+  //       sFrag, "ECLIPSE_SHADER_SNIPPET", mEclipseShadowReceiver->getShaderSnippet());
+  // } else {
+  //   cs::utils::replaceString(sFrag, "ECLIPSE_SHADER_SNIPPET",
+  //       "vec3 getEclipseShadow(vec3 position) { return vec3(1); }");
+  // }
 
   mAtmoShader.InitVertexShaderFromString(sVert);
   mAtmoShader.InitFragmentShaderFromString(sFrag);
@@ -205,28 +205,28 @@ void Atmosphere::updateShader() {
   mAtmoShader.Link();
 
   mUniforms.sunDir         = mAtmoShader.GetUniformLocation("uSunDir");
+  mUniforms.sunIlluminance = mAtmoShader.GetUniformLocation("uSunIlluminance");
   mUniforms.depthBuffer    = mAtmoShader.GetUniformLocation("uDepthBuffer");
   mUniforms.colorBuffer    = mAtmoShader.GetUniformLocation("uColorBuffer");
-  mUniforms.cloudTexture   = mAtmoShader.GetUniformLocation("uCloudTexture");
-  mUniforms.cloudAltitude  = mAtmoShader.GetUniformLocation("uCloudAltitude");
-  mUniforms.shadowCascades = mAtmoShader.GetUniformLocation("uShadowCascades");
-  mUniforms.sunIlluminance = mAtmoShader.GetUniformLocation("uSunIlluminance");
+  // mUniforms.cloudTexture   = mAtmoShader.GetUniformLocation("uCloudTexture");
+  // mUniforms.cloudAltitude  = mAtmoShader.GetUniformLocation("uCloudAltitude");
+  // mUniforms.shadowCascades = mAtmoShader.GetUniformLocation("uShadowCascades");
 
-  for (size_t i = 0; i < 5; ++i) {
-    mUniforms.shadowMaps.at(i) = glGetUniformLocation(
-        mAtmoShader.GetProgram(), ("uShadowMaps[" + std::to_string(i) + "]").c_str());
-    mUniforms.shadowProjectionMatrices.at(i) = glGetUniformLocation(mAtmoShader.GetProgram(),
-        ("uShadowProjectionViewMatrices[" + std::to_string(i) + "]").c_str());
-  }
+  // for (size_t i = 0; i < 5; ++i) {
+  //   mUniforms.shadowMaps.at(i) = glGetUniformLocation(
+  //       mAtmoShader.GetProgram(), ("uShadowMaps[" + std::to_string(i) + "]").c_str());
+  //   mUniforms.shadowProjectionMatrices.at(i) = glGetUniformLocation(mAtmoShader.GetProgram(),
+  //       ("uShadowProjectionViewMatrices[" + std::to_string(i) + "]").c_str());
+  // }
 
   mUniforms.inverseModelViewMatrix           = mAtmoShader.GetUniformLocation("uMatInvMV");
   mUniforms.inverseModelViewProjectionMatrix = mAtmoShader.GetUniformLocation("uMatInvMVP");
   mUniforms.inverseProjectionMatrix          = mAtmoShader.GetUniformLocation("uMatInvP");
-  mUniforms.modelViewMatrix                  = mAtmoShader.GetUniformLocation("uMatMV");
-  mUniforms.modelMatrix                      = mAtmoShader.GetUniformLocation("uMatM");
+  // mUniforms.modelViewMatrix                  = mAtmoShader.GetUniformLocation("uMatMV");
+  // mUniforms.modelMatrix                      = mAtmoShader.GetUniformLocation("uMatM");
 
   // We bind the eclipse shadow map to texture unit 4.
-  mEclipseShadowReceiver->init(&mAtmoShader, 4);
+  // mEclipseShadowReceiver->init(&mAtmoShader, 4);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -238,7 +238,7 @@ void Atmosphere::update() {
     mSunIlluminance = mSolarSystem->getSunIlluminance(object->getObserverRelativePosition());
     mSunDirection   = mSolarSystem->getSunDirection(object->getObserverRelativePosition());
     mWorldTransform = object->getObserverRelativeTransform();
-    mEclipseShadowReceiver->update(*object);
+    // mEclipseShadowReceiver->update(*object);
 
     mAtmosphereNode->SetIsEnabled(true);
   } else {
@@ -251,7 +251,7 @@ void Atmosphere::update() {
 bool Atmosphere::Do() {
   cs::utils::FrameTimings::ScopedTimer timer("Render Atmosphere");
 
-  if (mShaderDirty || mEclipseShadowReceiver->needsRecompilation()) {
+  if (mShaderDirty /*|| mEclipseShadowReceiver->needsRecompilation()*/) {
     updateShader();
     mShaderDirty = false;
   }
@@ -327,30 +327,29 @@ bool Atmosphere::Do() {
   //   mAtmoShader.SetUniform(mUniforms.cloudAltitude, mCloudHeight);
   // }
 
-  if (mShadowMap) {
-    int texUnitShadow = 8;
-    mAtmoShader.SetUniform(
-        mUniforms.shadowCascades, static_cast<int>(mShadowMap->getMaps().size()));
-    for (size_t i = 0; i < mShadowMap->getMaps().size(); ++i) {
-      mShadowMap->getMaps()[i]->Bind(
-          static_cast<GLenum>(GL_TEXTURE0) + texUnitShadow + static_cast<int>(i));
-      glUniform1i(mUniforms.shadowMaps.at(i), texUnitShadow + static_cast<int>(i));
+  // if (mShadowMap) {
+  //   int texUnitShadow = 8;
+  //   mAtmoShader.SetUniform(
+  //       mUniforms.shadowCascades, static_cast<int>(mShadowMap->getMaps().size()));
+  //   for (size_t i = 0; i < mShadowMap->getMaps().size(); ++i) {
+  //     mShadowMap->getMaps()[i]->Bind(
+  //         static_cast<GLenum>(GL_TEXTURE0) + texUnitShadow + static_cast<int>(i));
+  //     glUniform1i(mUniforms.shadowMaps.at(i), texUnitShadow + static_cast<int>(i));
 
-      auto mat = mShadowMap->getShadowMatrices()[i];
-      glUniformMatrix4fv(mUniforms.shadowProjectionMatrices.at(i), 1, GL_FALSE, mat.GetData());
-    }
-  }
+  //     auto mat = mShadowMap->getShadowMatrices()[i];
+  //     glUniformMatrix4fv(mUniforms.shadowProjectionMatrices.at(i), 1, GL_FALSE, mat.GetData());
+  //   }
+  // }
 
-  // Why is there no set uniform for matrices???
   glUniformMatrix4fv(mUniforms.inverseModelViewMatrix, 1, GL_FALSE, glm::value_ptr(matInvMV));
   glUniformMatrix4fv(
       mUniforms.inverseModelViewProjectionMatrix, 1, GL_FALSE, glm::value_ptr(matInvMVP));
   glUniformMatrix4fv(mUniforms.inverseProjectionMatrix, 1, GL_FALSE, glm::value_ptr(matInvP));
-  glUniformMatrix4fv(mUniforms.modelViewMatrix, 1, GL_FALSE, glm::value_ptr(matMV));
-  glUniformMatrix4fv(mUniforms.modelMatrix, 1, GL_FALSE, glm::value_ptr(matM));
+  // glUniformMatrix4fv(mUniforms.modelViewMatrix, 1, GL_FALSE, glm::value_ptr(matMV));
+  // glUniformMatrix4fv(mUniforms.modelMatrix, 1, GL_FALSE, glm::value_ptr(matM));
 
   // Initialize eclipse shadow-related uniforms and textures.
-  mEclipseShadowReceiver->preRender();
+  // mEclipseShadowReceiver->preRender();
 
   mModel->setUniforms(mAtmoShader.GetProgram(), 5);
 
@@ -360,7 +359,7 @@ bool Atmosphere::Do() {
   // clean up ----------------------------------------------------------------
 
   // Reset eclipse shadow-related texture units.
-  mEclipseShadowReceiver->postRender();
+  // mEclipseShadowReceiver->postRender();
 
   if (mHDRBuffer) {
     mHDRBuffer->getDepthAttachment()->Unbind(GL_TEXTURE0);

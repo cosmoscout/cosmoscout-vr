@@ -55,6 +55,9 @@ class Atmosphere : public IVistaOpenGLDraw {
   std::shared_ptr<cs::core::GraphicsEngine> mGraphicsEngine;
   std::string                               mObjectName;
   std::unique_ptr<VistaOpenGLNode>          mAtmosphereNode;
+  // std::shared_ptr<cs::graphics::ShadowMap> mShadowMap;
+  std::shared_ptr<cs::graphics::HDRBuffer> mHDRBuffer;
+  // std::shared_ptr<cs::core::EclipseShadowReceiver> mEclipseShadowReceiver;
 
   // std::unique_ptr<VistaTexture>     mCloudTexture;
   // std::string                       mCloudTextureFile;
@@ -67,10 +70,6 @@ class Atmosphere : public IVistaOpenGLDraw {
 
   int mEnableShadowsConnection = -1;
   int mEnableHDRConnection     = -1;
-
-  std::shared_ptr<cs::graphics::ShadowMap>         mShadowMap;
-  std::shared_ptr<cs::graphics::HDRBuffer>         mHDRBuffer;
-  std::shared_ptr<cs::core::EclipseShadowReceiver> mEclipseShadowReceiver;
 
   VistaGLSLShader mAtmoShader;
 
@@ -86,23 +85,22 @@ class Atmosphere : public IVistaOpenGLDraw {
   glm::vec3 mSunDirection   = glm::vec3(1, 0, 0);
 
   struct {
-    uint32_t sunIntensity   = 0;
     uint32_t sunDir         = 0;
+    uint32_t sunIlluminance = 0;
     uint32_t depthBuffer    = 0;
     uint32_t colorBuffer    = 0;
-    uint32_t cloudTexture   = 0;
-    uint32_t cloudAltitude  = 0;
-    uint32_t shadowCascades = 0;
-    uint32_t sunIlluminance = 0;
+    // uint32_t cloudTexture   = 0;
+    // uint32_t cloudAltitude  = 0;
+    // uint32_t shadowCascades = 0;
 
-    std::array<uint32_t, 5> shadowMaps{};
-    std::array<uint32_t, 5> shadowProjectionMatrices{};
+    // std::array<uint32_t, 5> shadowMaps{};
+    // std::array<uint32_t, 5> shadowProjectionMatrices{};
 
     uint32_t inverseModelViewMatrix           = 0;
     uint32_t inverseModelViewProjectionMatrix = 0;
     uint32_t inverseProjectionMatrix          = 0;
-    uint32_t modelViewMatrix                  = 0;
-    uint32_t modelMatrix                      = 0;
+    // uint32_t modelViewMatrix                  = 0;
+    // uint32_t modelMatrix                      = 0;
   } mUniforms;
 
   std::unique_ptr<ModelBase> mModel;
