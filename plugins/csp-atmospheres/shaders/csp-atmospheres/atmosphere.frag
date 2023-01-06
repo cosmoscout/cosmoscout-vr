@@ -252,7 +252,7 @@ vec3 SRGBtoLINEAR(vec3 srgbIn) {
 }
 
 vec3 tonemap(vec3 x) {
-  x               = uncharted2Tonemap(20.0 * x / uSunIlluminance);
+  x               = uncharted2Tonemap(30.0 * x);
   vec3 whiteScale = vec3(1.0) / uncharted2Tonemap(vec3(W));
   return x * whiteScale;
 }
@@ -298,10 +298,11 @@ void main() {
     oColor =
         transmittance * oColor / uSunIlluminance * (sunIlluminance + skyIlluminance) + inScatter;
 #else
-    oColor = linear_to_srgb(tonemap(
-        transmittance * SRGBtoLINEAR(oColor) * (sunIlluminance + skyIlluminance) + inScatter));
+    oColor = linear_to_srgb(transmittance * SRGBtoLINEAR(oColor) *
+                                ((sunIlluminance + skyIlluminance) / uSunIlluminance) +
+                            tonemap(inScatter / uSunIlluminance));
 #endif
-  } else {
+  } else if (bHitsAtmosphere) {
     vec3 transmittance;
     vec3 inScatter =
         GetSkyLuminance(vsIn.vRayOrigin, vRayDir, shadowLength, uSunDir, transmittance);
@@ -309,7 +310,8 @@ void main() {
 #if ENABLE_HDR
     oColor = transmittance * oColor + inScatter;
 #else
-    oColor = linear_to_srgb(tonemap(transmittance * SRGBtoLINEAR(oColor) + inScatter));
+    oColor =
+        linear_to_srgb(transmittance * SRGBtoLINEAR(oColor) + tonemap(inScatter / uSunIlluminance));
 #endif
   }
 }
