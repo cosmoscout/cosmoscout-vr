@@ -39,8 +39,8 @@ uniform mat4 uMatInvMVP;
 // uniform mat4 uMatInvP;
 // uniform mat4 uMatMV;
 // uniform mat4 uMatM;
-uniform sampler2D uCloudTexture;
-uniform float uCloudAltitude;
+// uniform sampler2D uCloudTexture;
+// uniform float     uCloudAltitude;
 
 const float PI = 3.141592653589793;
 
@@ -252,7 +252,7 @@ vec3 SRGBtoLINEAR(vec3 srgbIn) {
 }
 
 vec3 tonemap(vec3 x) {
-  x               = uncharted2Tonemap(30.0 * x);
+  x               = uncharted2Tonemap(10.0 * x);
   vec3 whiteScale = vec3(1.0) / uncharted2Tonemap(vec3(W));
   return x * whiteScale;
 }
