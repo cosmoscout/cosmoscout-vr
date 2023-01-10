@@ -33,9 +33,9 @@ class Plugin : public cs::core::PluginBase {
       double                            mHeight; ///< In meters.
       cs::utils::DefaultProperty<bool>  mEnableWater{false};
       cs::utils::DefaultProperty<float> mWaterLevel{0.F}; ///< In meters.
-      // cs::utils::DefaultProperty<bool>  mEnableClouds{true};
-      // std::optional<std::string>        mCloudTexture;          ///< Path to the cloud texture.
-      // cs::utils::DefaultProperty<float> mCloudAltitude{3000.F}; ///< In meters.
+      cs::utils::DefaultProperty<bool>  mEnableClouds{true};
+      std::optional<std::string>        mCloudTexture;          ///< Path to the cloud texture.
+      cs::utils::DefaultProperty<float> mCloudAltitude{3000.F}; ///< In meters.
 
       bool operator==(Atmosphere const& other) const;
       bool operator!=(Atmosphere const& other) const;

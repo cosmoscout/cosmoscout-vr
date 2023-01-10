@@ -14,11 +14,11 @@
 
 #include "../../../src/cs-core/GraphicsEngine.hpp"
 #include "../../../src/cs-core/SolarSystem.hpp"
+#include "../../../src/cs-graphics/TextureLoader.hpp"
 #include "../../../src/cs-utils/FrameTimings.hpp"
 #include "../../../src/cs-utils/filesystem.hpp"
 // #include "../../../src/cs-core/EclipseShadowReceiver.hpp"
 // #include "../../../src/cs-graphics/Shadows.hpp"
-// #include "../../../src/cs-graphics/TextureLoader.hpp"
 // #include "../../../src/cs-utils/utils.hpp"
 // #include "../../../src/cs-scene/CelestialObject.hpp"
 
@@ -153,19 +153,15 @@ void Atmosphere::configure(Plugin::Settings::Atmosphere const& settings) {
       mShaderDirty = true;
     }
 
+    if (mSettings.mCloudTexture != settings.mCloudTexture) {
+      if (settings.mCloudTexture.has_value() && !settings.mCloudTexture.value().empty()) {
+        mCloudTexture = cs::graphics::TextureLoader::loadFromFile(settings.mCloudTexture.value());
+      } else {
+        mCloudTexture.reset();
+      }
+    }
+
     mSettings = settings;
-
-    //     if (mCloudTextureFile != textureFile) {
-    //   mCloudTextureFile = textureFile;
-    //   mCloudTexture.reset();
-    //   if (!textureFile.empty()) {
-    //     mCloudTexture = cs::graphics::TextureLoader::loadFromFile(textureFile);
-    //   }
-    //   mShaderDirty = true;
-    //   mUseClouds   = mCloudTexture != nullptr;
-    // }
-
-    // mCloudHeight = height;
   }
 }
 
@@ -185,7 +181,8 @@ void Atmosphere::updateShader() {
   cs::utils::replaceString(
       sFrag, "ATMOSPHERE_RADIUS", std::to_string(mRadii[0] + mSettings.mHeight));
   // cs::utils::replaceString(sFrag, "USE_SHADOWMAP", std::to_string(mShadowMap != nullptr));
-  // cs::utils::replaceString(sFrag, "USE_CLOUDMAP", std::to_string(mUseClouds && mCloudTexture));
+  cs::utils::replaceString(
+      sFrag, "ENABLE_CLOUDS", std::to_string(mSettings.mEnableClouds.get() && mCloudTexture));
   cs::utils::replaceString(sFrag, "ENABLE_WATER", std::to_string(mSettings.mEnableWater.get()));
   cs::utils::replaceString(sFrag, "ENABLE_HDR", std::to_string(mHDRBuffer != nullptr));
   cs::utils::replaceString(sFrag, "HDR_SAMPLES",
@@ -213,8 +210,8 @@ void Atmosphere::updateShader() {
   mUniforms.depthBuffer    = mAtmoShader.GetUniformLocation("uDepthBuffer");
   mUniforms.colorBuffer    = mAtmoShader.GetUniformLocation("uColorBuffer");
   mUniforms.waterLevel     = mAtmoShader.GetUniformLocation("uWaterLevel");
-  // mUniforms.cloudTexture   = mAtmoShader.GetUniformLocation("uCloudTexture");
-  // mUniforms.cloudAltitude  = mAtmoShader.GetUniformLocation("uCloudAltitude");
+  mUniforms.cloudTexture   = mAtmoShader.GetUniformLocation("uCloudTexture");
+  mUniforms.cloudAltitude  = mAtmoShader.GetUniformLocation("uCloudAltitude");
   // mUniforms.shadowCascades = mAtmoShader.GetUniformLocation("uShadowCascades");
 
   // for (size_t i = 0; i < 5; ++i) {
@@ -330,11 +327,12 @@ bool Atmosphere::Do() {
     mAtmoShader.SetUniform(mUniforms.waterLevel,
         mSettings.mWaterLevel.get() * mAllSettings->mGraphics.pHeightScale.get());
   }
-  // if (mUseClouds && mCloudTexture) {
-  //   mCloudTexture->Bind(GL_TEXTURE3);
-  //   mAtmoShader.SetUniform(mUniforms.cloudTexture, 3);
-  //   mAtmoShader.SetUniform(mUniforms.cloudAltitude, mCloudHeight);
-  // }
+
+  if (mSettings.mEnableClouds.get() && mCloudTexture) {
+    mCloudTexture->Bind(GL_TEXTURE3);
+    mAtmoShader.SetUniform(mUniforms.cloudTexture, 3);
+    mAtmoShader.SetUniform(mUniforms.cloudAltitude, mSettings.mCloudAltitude.get());
+  }
 
   // if (mShadowMap) {
   //   int texUnitShadow = 8;
@@ -380,9 +378,9 @@ bool Atmosphere::Do() {
     data.mColorBuffer->Unbind(GL_TEXTURE1);
   }
 
-  // if (mUseClouds && mCloudTexture) {
-  //   mCloudTexture->Unbind(GL_TEXTURE3);
-  // }
+  if (mSettings.mEnableClouds.get() && mCloudTexture) {
+    mCloudTexture->Unbind(GL_TEXTURE3);
+  }
 
   mAtmoShader.Release();
 

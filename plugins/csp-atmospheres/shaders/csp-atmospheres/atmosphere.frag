@@ -39,8 +39,8 @@ uniform float uWaterLevel;
 // uniform mat4 uMatInvP;
 // uniform mat4 uMatMV;
 // uniform mat4 uMatM;
-// uniform sampler2D uCloudTexture;
-// uniform float     uCloudAltitude;
+uniform sampler2D uCloudTexture;
+uniform float     uCloudAltitude;
 
 const float PI = 3.141592653589793;
 
@@ -53,6 +53,48 @@ const float PI = 3.141592653589793;
 layout(location = 0) out vec3 oColor;
 
 // ECLIPSE_SHADER_SNIPPET
+
+// -------------------------------------------------------------------------------------------------
+
+// http://filmicworlds.com/blog/filmic-tonemapping-operators/
+float A = 0.15;
+float B = 0.50;
+float C = 0.10;
+float D = 0.20;
+float E = 0.02;
+float F = 0.30;
+float W = 11.2;
+
+vec3 uncharted2Tonemap(vec3 c) {
+  return ((c * (A * c + C * B) + D * E) / (c * (A * c + B) + D * F)) - E / F;
+}
+
+vec3 tonemap(vec3 c) {
+  c               = uncharted2Tonemap(10.0 * c);
+  vec3 whiteScale = vec3(1.0) / uncharted2Tonemap(vec3(W));
+  return c * whiteScale;
+}
+
+float linearToSRGB(float c) {
+  if (c <= 0.0031308)
+    return 12.92 * c;
+  else
+    return 1.055 * pow(c, 1.0 / 2.4) - 0.055;
+}
+
+vec3 linearToSRGB(vec3 c) {
+  return vec3(linearToSRGB(c.r), linearToSRGB(c.g), linearToSRGB(c.b));
+}
+
+vec3 sRGBtoLinear(vec3 c) {
+  vec3 bLess = step(vec3(0.04045), c);
+  return mix(c / vec3(12.92), pow((c + vec3(0.055)) / vec3(1.055), vec3(2.4)), bLess);
+}
+
+float sRGBtoLinear(float c) {
+  float bLess = step(0.04045, c);
+  return mix(c / 12.92, pow((c + 0.055) / 1.055, 2.4), bLess);
+}
 
 // compute intersections with the atmosphere
 // two T parameters are returned -- if no intersection is found, the first will
@@ -152,13 +194,13 @@ float getDepth() {
 }
 
 // returns the model space distance to the surface of the depth buffer at the
-// current pixel, or -1 if there is nothing in the depth buffer
+// current pixel
 float getSurfaceDistance(vec3 rayOrigin, vec3 rayDir) {
   float depth = getDepth();
 
-  if (depth == 0.0) {
-    return -1.0;
-  }
+  // If the fragment is really far away, the inverse reverse infinite projection divides by zero.
+  // So we add a minimum threshold here.
+  depth = max(depth, 0.0000001);
 
   vec4  position = uMatInvMVP * vec4(2.0 * vsIn.vTexcoords - 1, 2 * depth - 1, 1);
   float depthMS  = length(rayOrigin - position.xyz / position.w);
@@ -201,6 +243,8 @@ vec3 getBackgroundColor() {
 #endif
 }
 
+// -------------------------------------------------------------------------------------------------
+
 // returns a hard-coded color scale for a given ocean depth.
 // Could be configurable in future.
 vec4 getWaterShade(float d) {
@@ -216,39 +260,119 @@ vec4 getWaterShade(float d) {
 
 // -------------------------------------------------------------------------------------------------
 
-// http://filmicworlds.com/blog/filmic-tonemapping-operators/
-float A = 0.15;
-float B = 0.50;
-float C = 0.10;
-float D = 0.20;
-float E = 0.02;
-float F = 0.30;
-float W = 11.2;
+vec2 getLngLat(vec3 position) {
+  vec2 result;
 
-vec3 uncharted2Tonemap(vec3 c) {
-  return ((c * (A * c + C * B) + D * E) / (c * (A * c + B) + D * F)) - E / F;
+  if (position.z != 0.0) {
+    result.x = atan(position.x / position.z);
+
+    if (position.z < 0 && position.x < 0) {
+      result.x -= PI;
+    }
+
+    if (position.z < 0 && position.x >= 0) {
+      result.x += PI;
+    }
+
+  } else if (position.x == 0) {
+    result.x = 0.0;
+  } else if (position.x < 0) {
+    result.x = -PI * 0.5;
+  } else {
+    result.x = PI * 0.5;
+  }
+
+  // geocentric latitude of the input point
+  result.y = asin(position.y / length(position));
+  return result;
 }
 
-vec3 tonemap(vec3 c) {
-  c               = uncharted2Tonemap(10.0 * c);
-  vec3 whiteScale = vec3(1.0) / uncharted2Tonemap(vec3(W));
-  return c * whiteScale;
+float getCloudDensity(vec3 rayOrigin, vec3 rayDir, float tIntersection) {
+  vec3 position  = rayOrigin + rayDir * tIntersection;
+  vec2 lngLat    = getLngLat(position);
+  vec2 texCoords = vec2(lngLat.x / (2 * PI) + 0.5, 1.0 - lngLat.y / PI + 0.5);
+#if ENABLE_HDR
+  return sRGBtoLinear(texture(uCloudTexture, texCoords).r);
+#else
+  return texture(uCloudTexture, texCoords).r;
+#endif
 }
 
-float linearToSRGB(float c) {
-  if (c <= 0.0031308)
-    return 12.92 * c;
-  else
-    return 1.055 * pow(c, 1.0 / 2.4) - 0.055;
+// vec4 sampleCloudColor(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, float tIntersection) {
+//   vec3  point       = rayOrigin + rayDir * tIntersection;
+//   vec2  sunStartEnd = IntersectAtmosphere(point, sunDir);
+//   vec3  extinction  = GetExtinction(GetOpticalDepth(point, sunDir, 0, sunStartEnd.y) +
+//                                   GetOpticalDepth(rayOrigin, rayDir, 0, tIntersection));
+//   float density     = getCloudDensity(point);
+//   vec3  positionWS  = (uMatM * vec4(point, 1.0)).xyz;
+//   return vec4(extinction * density * uSunIntensity * getEclipseShadow(positionWS), density);
+// }
+
+vec4 getCloudColor(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, float surfaceDistance) {
+  float density   = 0.0;
+  float thickness = uCloudAltitude * 0.2;
+  float fadeWidth = thickness * 2.0;
+  float height    = PLANET_RADIUS + uCloudAltitude;
+  int   samples   = 10;
+
+  vec2 intersections = intersectSphere(rayOrigin, rayDir, height);
+
+  // If we do not intersect the cloud sphere...
+  if (intersections.y < 0 || intersections.x > intersections.y) {
+    return vec4(0.0);
+  }
+
+  vec3 p = rayOrigin + rayDir * (intersections.x < 0 ? intersections.y : intersections.x);
+  vec3 skyIlluminance, transmittance;
+  vec3 inScatter      = GetSkyLuminanceToPoint(rayOrigin, p, 0.0, uSunDir, transmittance);
+  vec3 sunIlluminance = GetSunAndSkyIlluminance(p, normalize(p), uSunDir, skyIlluminance);
+
+  for (int i = 0; i < samples; ++i) {
+    float altitude      = height - i * thickness / samples;
+    vec2  intersections = intersectSphere(rayOrigin, rayDir, altitude);
+    float fac           = 1.0;
+
+    // reduce cloud opacity when end point is very close to planet surface
+    fac *= clamp(abs(surfaceDistance - intersections.x) / fadeWidth, 0, 1);
+    fac *= clamp(abs(surfaceDistance - intersections.y) / fadeWidth, 0, 1);
+
+    // reduce cloud opacity when start point is very close to cloud surface
+    fac *= clamp(abs(intersections.x) / thickness, 0, 1);
+    fac *= clamp(abs(intersections.y) / thickness, 0, 1);
+
+    // If we intersect the cloud sphere...
+    if (intersections.y > 0 && intersections.x < intersections.y) {
+
+      // Check whether the cloud sphere is intersected from above...
+      if (intersections.x > 0 && intersections.x < surfaceDistance) {
+        // hits from above
+        density += getCloudDensity(rayOrigin, rayDir, intersections.x) * fac;
+      } else if (intersections.y < surfaceDistance) {
+        // ... or from from below
+        density += getCloudDensity(rayOrigin, rayDir, intersections.y) * fac;
+      }
+    }
+  }
+
+  return vec4(
+      transmittance * (sunIlluminance + skyIlluminance) / PI + inScatter, density / samples);
 }
 
-vec3 linearToSRGB(vec3 c) {
-  return vec3(linearToSRGB(c.r), linearToSRGB(c.g), linearToSRGB(c.b));
-}
+float getCloudShadow(vec3 rayOrigin, vec3 rayDir) {
+  float altitude      = PLANET_RADIUS + uCloudAltitude;
+  vec2  intersections = intersectSphere(rayOrigin, rayDir, altitude);
+  float thickness     = uCloudAltitude * 0.2;
+  float fadeWidth     = thickness * 2.0;
+  float fac           = 1.0;
 
-vec3 sRGBtoLinear(vec3 c) {
-  vec3 bLess = step(vec3(0.04045), c);
-  return mix(c / vec3(12.92), pow((c + vec3(0.055)) / vec3(1.055), vec3(2.4)), bLess);
+  // reduce cloud opacity when end point is very close to planet surface
+  // fac *= clamp(abs(intersections.x) / fadeWidth, 0, 1);
+
+  if (intersections.y > 0 && intersections.x < intersections.y) {
+    return 1.0 - getCloudDensity(rayOrigin, rayDir, intersections.y) * fac;
+  }
+
+  return 1.0;
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -268,11 +392,11 @@ void main() {
   float surfaceDistance = getSurfaceDistance(vsIn.vRayOrigin, rayDir);
 
   // something is in front of the atmosphere
-  if (surfaceDistance > 0.0 && surfaceDistance < atmosphereIntersections.x) {
+  if (surfaceDistance < atmosphereIntersections.x) {
     return;
   }
 
-  bool hitsSurface = surfaceDistance > 0.0 && surfaceDistance < atmosphereIntersections.y;
+  bool hitsSurface = surfaceDistance < atmosphereIntersections.y;
 
 #if ENABLE_WATER
   vec2 waterIntersections = intersectOceansphere(vsIn.vRayOrigin, rayDir);
@@ -308,13 +432,20 @@ void main() {
 
     vec3 sunIlluminance = GetSunAndSkyIlluminance(p, normalize(p), uSunDir, skyIlluminance);
 
+#if ENABLE_CLOUDS
+    float cloudShadow = getCloudShadow(p, uSunDir);
+#else
+    float cloudShadow = 1.0;
+#endif
+
 #if ENABLE_HDR
     oColor =
-        transmittance * oColor / uSunIlluminance * (sunIlluminance + skyIlluminance) + inScatter;
+        transmittance * cloudShadow * oColor / uSunIlluminance * (sunIlluminance + skyIlluminance) +
+        inScatter;
 #else
-    oColor = linearToSRGB(transmittance * sRGBtoLinear(oColor) *
-                              ((sunIlluminance + skyIlluminance) / uSunIlluminance) +
-                          tonemap(inScatter / uSunIlluminance));
+    oColor            = transmittance * cloudShadow * sRGBtoLinear(oColor) *
+                 ((sunIlluminance + skyIlluminance) / uSunIlluminance) +
+             tonemap(inScatter / uSunIlluminance);
 #endif
   } else {
     vec3 transmittance;
@@ -323,8 +454,20 @@ void main() {
 #if ENABLE_HDR
     oColor = transmittance * oColor + inScatter;
 #else
-    oColor =
-        linearToSRGB(transmittance * sRGBtoLinear(oColor) + tonemap(inScatter / uSunIlluminance));
+    oColor = transmittance * sRGBtoLinear(oColor) + tonemap(inScatter / uSunIlluminance);
 #endif
   }
+
+#if ENABLE_CLOUDS
+
+  vec4 cloudColor = getCloudColor(vsIn.vRayOrigin, rayDir, uSunDir, surfaceDistance);
+#if !ENABLE_HDR
+  cloudColor.rgb = tonemap(cloudColor.rgb / uSunIlluminance);
+#endif
+  oColor = mix(oColor, cloudColor.rgb, cloudColor.a);
+#endif
+
+#if !ENABLE_HDR
+  oColor = linearToSRGB(oColor);
+#endif
 }

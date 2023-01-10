@@ -63,9 +63,9 @@ void from_json(nlohmann::json const& j, Plugin::Settings::Atmosphere& o) {
   cs::core::Settings::deserialize(j, "modelSettings", o.mModelSettings);
   cs::core::Settings::deserialize(j, "enableWater", o.mEnableWater);
   cs::core::Settings::deserialize(j, "waterLevel", o.mWaterLevel);
-  // cs::core::Settings::deserialize(j, "enableClouds", o.mEnableClouds);
-  // cs::core::Settings::deserialize(j, "cloudTexture", o.mCloudTexture);
-  // cs::core::Settings::deserialize(j, "cloudAltitude", o.mCloudAltitude);
+  cs::core::Settings::deserialize(j, "enableClouds", o.mEnableClouds);
+  cs::core::Settings::deserialize(j, "cloudTexture", o.mCloudTexture);
+  cs::core::Settings::deserialize(j, "cloudAltitude", o.mCloudAltitude);
 }
 
 void to_json(nlohmann::json& j, Plugin::Settings::Atmosphere const& o) {
@@ -74,9 +74,9 @@ void to_json(nlohmann::json& j, Plugin::Settings::Atmosphere const& o) {
   cs::core::Settings::serialize(j, "modelSettings", o.mModelSettings);
   cs::core::Settings::serialize(j, "enableWater", o.mEnableWater);
   cs::core::Settings::serialize(j, "waterLevel", o.mWaterLevel);
-  // cs::core::Settings::serialize(j, "enableClouds", o.mEnableClouds);
-  // cs::core::Settings::serialize(j, "cloudTexture", o.mCloudTexture);
-  // cs::core::Settings::serialize(j, "cloudAltitude", o.mCloudAltitude);
+  cs::core::Settings::serialize(j, "enableClouds", o.mEnableClouds);
+  cs::core::Settings::serialize(j, "cloudTexture", o.mCloudTexture);
+  cs::core::Settings::serialize(j, "cloudAltitude", o.mCloudAltitude);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -99,9 +99,8 @@ void to_json(nlohmann::json& j, Plugin::Settings const& o) {
 
 bool Plugin::Settings::Atmosphere::operator==(Plugin::Settings::Atmosphere const& other) const {
   return mHeight == other.mHeight && mModel == other.mModel &&
-         mModelSettings == other.mModelSettings && mEnableWater == other.mEnableWater;
-  //   && mEnableClouds == other.mEnableClouds &&
-  //  mCloudTexture == other.mCloudTexture && mCloudAltitude == other.mCloudAltitude;
+         mModelSettings == other.mModelSettings && mEnableWater == other.mEnableWater &&
+         mEnableClouds == other.mEnableClouds && mCloudTexture == other.mCloudTexture;
 }
 
 bool Plugin::Settings::Atmosphere::operator!=(Plugin::Settings::Atmosphere const& other) const {
@@ -131,15 +130,12 @@ void Plugin::init() {
             auto settings = mPluginSettings->mAtmospheres.at(atmosphere.first);
             mGuiManager->setCheckboxValue("atmosphere.setEnableWater", settings.mEnableWater.get());
             mGuiManager->setSliderValue("atmosphere.setWaterLevel", settings.mWaterLevel.get());
-            // mGuiManager->setCheckboxValue(
-            //     "atmosphere.setEnableClouds", settings.mEnableClouds.get());
-            // mGuiManager->setSliderValue(
-            //     "atmosphere.setCloudAltitude", settings.mCloudAltitude.get());
+            mGuiManager->setCheckboxValue(
+                "atmosphere.setEnableClouds", settings.mEnableClouds.get());
+            mGuiManager->setSliderValue(
+                "atmosphere.setCloudAltitude", settings.mCloudAltitude.get());
           }
         }
-
-        // mGuiManager->getGui()->callJavascript(
-        //     "CosmoScout.sidebar.setTabEnabled", "Atmospheres", mActiveAtmosphere != "");
       });
 
   mGuiManager->getGui()->registerCallback("atmosphere.setEnableWater",
@@ -160,23 +156,23 @@ void Plugin::init() {
         }
       }));
 
-  // mGuiManager->getGui()->registerCallback("atmosphere.setEnableClouds",
-  //     "Enables or disables rendering of a cloud layer.", std::function([this](bool enable) {
-  //       if (mActiveAtmosphere != "") {
-  //         auto& settings         = mPluginSettings->mAtmospheres.at(mActiveAtmosphere);
-  //         settings.mEnableClouds = enable;
-  //         mAtmospheres.at(mActiveAtmosphere)->configure(settings);
-  //       }
-  //     }));
+  mGuiManager->getGui()->registerCallback("atmosphere.setEnableClouds",
+      "Enables or disables rendering of a cloud layer.", std::function([this](bool enable) {
+        if (mActiveAtmosphere != "") {
+          auto& settings         = mPluginSettings->mAtmospheres.at(mActiveAtmosphere);
+          settings.mEnableClouds = enable;
+          mAtmospheres.at(mActiveAtmosphere)->configure(settings);
+        }
+      }));
 
-  // mGuiManager->getGui()->registerCallback("atmosphere.setCloudAltitude",
-  //     "Higher values create a more realistic atmosphere.", std::function([this](double value) {
-  //       if (mActiveAtmosphere != "") {
-  //         auto& settings          = mPluginSettings->mAtmospheres.at(mActiveAtmosphere);
-  //         settings.mCloudAltitude = static_cast<float>(value);
-  //         mAtmospheres.at(mActiveAtmosphere)->configure(settings);
-  //       }
-  //     }));
+  mGuiManager->getGui()->registerCallback("atmosphere.setCloudAltitude",
+      "Higher values create a more realistic atmosphere.", std::function([this](double value) {
+        if (mActiveAtmosphere != "") {
+          auto& settings          = mPluginSettings->mAtmospheres.at(mActiveAtmosphere);
+          settings.mCloudAltitude = static_cast<float>(value);
+          mAtmospheres.at(mActiveAtmosphere)->configure(settings);
+        }
+      }));
 
   mGuiManager->getGui()->registerCallback("atmosphere.setEnable",
       "Enables or disables rendering of atmospheres.",
@@ -212,8 +208,8 @@ void Plugin::deInit() {
   mGuiManager->getGui()->unregisterCallback("atmosphere.setEnable");
   mGuiManager->getGui()->unregisterCallback("atmosphere.setEnableWater");
   mGuiManager->getGui()->unregisterCallback("atmosphere.setWaterLevel");
-  // mGuiManager->getGui()->unregisterCallback("atmosphere.setEnableClouds");
-  // mGuiManager->getGui()->unregisterCallback("atmosphere.setCloudAltitude");
+  mGuiManager->getGui()->unregisterCallback("atmosphere.setEnableClouds");
+  mGuiManager->getGui()->unregisterCallback("atmosphere.setCloudAltitude");
   // mGuiManager->getGui()->unregisterCallback("atmosphere.setEnableIndirectLighting");
   // mGuiManager->getGui()->unregisterCallback("atmosphere.setEnableLightShafts");
 
