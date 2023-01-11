@@ -17,10 +17,6 @@
 #include "../../../src/cs-graphics/TextureLoader.hpp"
 #include "../../../src/cs-utils/FrameTimings.hpp"
 #include "../../../src/cs-utils/filesystem.hpp"
-// #include "../../../src/cs-core/EclipseShadowReceiver.hpp"
-// #include "../../../src/cs-graphics/Shadows.hpp"
-// #include "../../../src/cs-utils/utils.hpp"
-// #include "../../../src/cs-scene/CelestialObject.hpp"
 
 #include <VistaKernel/DisplayManager/VistaDisplayManager.h>
 #include <VistaKernel/GraphicsManager/VistaGroupNode.h>
@@ -29,20 +25,8 @@
 #include <VistaKernel/VistaSystem.h>
 #include <VistaKernelOpenSGExt/VistaOpenSGMaterialTools.h>
 #include <VistaOGLExt/VistaTexture.h>
-// #include <VistaBase/VistaVectorMath.h>
-// #include <VistaKernel/DisplayManager/VistaViewport.h>
-// #include <VistaKernel/GraphicsManager/VistaGeometryFactory.h>
-// #include <VistaMath/VistaBoundingBox.h>
-// #include <VistaOGLExt/Rendering/VistaGeometryData.h>
-// #include <VistaOGLExt/Rendering/VistaGeometryRenderingCore.h>
-// #include <VistaOGLExt/VistaOGLUtils.h>
-// #include <VistaTools/tinyXML/tinyxml.h>
 
 #include <glm/gtc/type_ptr.hpp>
-// #include <glm/glm.hpp>
-// #include <memory>
-// #include <unordered_map>
-// #include <utility>
 
 namespace csp::atmospheres {
 
@@ -59,17 +43,6 @@ Atmosphere::Atmosphere(std::shared_ptr<Plugin::Settings> pluginSettings,
     , mObjectName(std::move(objectName))
     , mEclipseShadowReceiver(
           std::make_shared<cs::core::EclipseShadowReceiver>(mAllSettings, mSolarSystem, false)) {
-
-  // mEnableShadowsConnection = mAllSettings->mGraphics.pEnableShadows.connectAndTouch([this](bool
-  // value) {
-  //   for (auto const& atmosphere : mAtmospheres) {
-  //     if (value && mPluginSettings->mEnableLightShafts.get()) {
-  //       atmosphere.second->getRenderer().setShadowMap(mGraphicsEngine->getShadowMap());
-  //     } else {
-  //       atmosphere.second->getRenderer().setShadowMap(nullptr);
-  //     }
-  //   }
-  // });
 
   mEnableHDRConnection = mAllSettings->mGraphics.pEnableHDR.connectAndTouch([this](bool val) {
     if (val && !mHDRBuffer) {
@@ -117,7 +90,6 @@ Atmosphere::~Atmosphere() {
   VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
   pSG->GetRoot()->DisconnectChild(mAtmosphereNode.get());
 
-  mAllSettings->mGraphics.pEnableShadows.disconnect(mEnableShadowsConnection);
   mAllSettings->mGraphics.pEnableHDR.disconnect(mEnableHDRConnection);
 }
 
@@ -197,27 +169,17 @@ void Atmosphere::updateShader() {
 
   mAtmoShader.Link();
 
-  mUniforms.sunDir         = mAtmoShader.GetUniformLocation("uSunDir");
-  mUniforms.sunIlluminance = mAtmoShader.GetUniformLocation("uSunIlluminance");
-  mUniforms.depthBuffer    = mAtmoShader.GetUniformLocation("uDepthBuffer");
-  mUniforms.colorBuffer    = mAtmoShader.GetUniformLocation("uColorBuffer");
-  mUniforms.waterLevel     = mAtmoShader.GetUniformLocation("uWaterLevel");
-  mUniforms.cloudTexture   = mAtmoShader.GetUniformLocation("uCloudTexture");
-  mUniforms.cloudAltitude  = mAtmoShader.GetUniformLocation("uCloudAltitude");
-  // mUniforms.shadowCascades = mAtmoShader.GetUniformLocation("uShadowCascades");
-
-  // for (size_t i = 0; i < 5; ++i) {
-  //   mUniforms.shadowMaps.at(i) = glGetUniformLocation(
-  //       mAtmoShader.GetProgram(), ("uShadowMaps[" + std::to_string(i) + "]").c_str());
-  //   mUniforms.shadowProjectionMatrices.at(i) = glGetUniformLocation(mAtmoShader.GetProgram(),
-  //       ("uShadowProjectionViewMatrices[" + std::to_string(i) + "]").c_str());
-  // }
-
+  mUniforms.sunDir                           = mAtmoShader.GetUniformLocation("uSunDir");
+  mUniforms.sunIlluminance                   = mAtmoShader.GetUniformLocation("uSunIlluminance");
+  mUniforms.depthBuffer                      = mAtmoShader.GetUniformLocation("uDepthBuffer");
+  mUniforms.colorBuffer                      = mAtmoShader.GetUniformLocation("uColorBuffer");
+  mUniforms.waterLevel                       = mAtmoShader.GetUniformLocation("uWaterLevel");
+  mUniforms.cloudTexture                     = mAtmoShader.GetUniformLocation("uCloudTexture");
+  mUniforms.cloudAltitude                    = mAtmoShader.GetUniformLocation("uCloudAltitude");
   mUniforms.inverseModelViewMatrix           = mAtmoShader.GetUniformLocation("uMatInvMV");
   mUniforms.inverseModelViewProjectionMatrix = mAtmoShader.GetUniformLocation("uMatInvMVP");
   mUniforms.inverseProjectionMatrix          = mAtmoShader.GetUniformLocation("uMatInvP");
   mUniforms.modelMatrix                      = mAtmoShader.GetUniformLocation("uMatM");
-  // mUniforms.modelViewMatrix                  = mAtmoShader.GetUniformLocation("uMatMV");
 
   // We bind the eclipse shadow map to texture unit 4.
   mEclipseShadowReceiver->init(&mAtmoShader, 4);
@@ -326,26 +288,11 @@ bool Atmosphere::Do() {
     mAtmoShader.SetUniform(mUniforms.cloudAltitude, mSettings.mCloudAltitude.get());
   }
 
-  // if (mShadowMap) {
-  //   int texUnitShadow = 8;
-  //   mAtmoShader.SetUniform(
-  //       mUniforms.shadowCascades, static_cast<int>(mShadowMap->getMaps().size()));
-  //   for (size_t i = 0; i < mShadowMap->getMaps().size(); ++i) {
-  //     mShadowMap->getMaps()[i]->Bind(
-  //         static_cast<GLenum>(GL_TEXTURE0) + texUnitShadow + static_cast<int>(i));
-  //     glUniform1i(mUniforms.shadowMaps.at(i), texUnitShadow + static_cast<int>(i));
-
-  //     auto mat = mShadowMap->getShadowMatrices()[i];
-  //     glUniformMatrix4fv(mUniforms.shadowProjectionMatrices.at(i), 1, GL_FALSE, mat.GetData());
-  //   }
-  // }
-
   glUniformMatrix4fv(mUniforms.inverseModelViewMatrix, 1, GL_FALSE, glm::value_ptr(matInvMV));
   glUniformMatrix4fv(
       mUniforms.inverseModelViewProjectionMatrix, 1, GL_FALSE, glm::value_ptr(matInvMVP));
   glUniformMatrix4fv(mUniforms.inverseProjectionMatrix, 1, GL_FALSE, glm::value_ptr(matInvP));
   glUniformMatrix4fv(mUniforms.modelMatrix, 1, GL_FALSE, glm::value_ptr(matM));
-  // glUniformMatrix4fv(mUniforms.modelViewMatrix, 1, GL_FALSE, glm::value_ptr(matMV));
 
   // Initialize eclipse shadow-related uniforms and textures.
   mEclipseShadowReceiver->preRender();
