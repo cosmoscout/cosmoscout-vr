@@ -84,15 +84,11 @@ void to_json(nlohmann::json& j, Plugin::Settings::Atmosphere const& o) {
 void from_json(nlohmann::json const& j, Plugin::Settings& o) {
   cs::core::Settings::deserialize(j, "atmospheres", o.mAtmospheres);
   cs::core::Settings::deserialize(j, "enable", o.mEnable);
-  // cs::core::Settings::deserialize(j, "enableLightShafts", o.mEnableLightShafts);
-  // cs::core::Settings::deserialize(j, "enableIndirectLighting", o.mEnableIndirectLighting);
 }
 
 void to_json(nlohmann::json& j, Plugin::Settings const& o) {
   cs::core::Settings::serialize(j, "atmospheres", o.mAtmospheres);
   cs::core::Settings::serialize(j, "enable", o.mEnable);
-  // cs::core::Settings::serialize(j, "enableLightShafts", o.mEnableLightShafts);
-  // cs::core::Settings::serialize(j, "enableIndirectLighting", o.mEnableIndirectLighting);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -178,15 +174,6 @@ void Plugin::init() {
       "Enables or disables rendering of atmospheres.",
       std::function([this](bool enable) { mPluginSettings->mEnable = enable; }));
 
-  // mGuiManager->getGui()->registerCallback("atmosphere.setEnableIndirectLighting",
-  //     "This adds some sky-based ambient lighting to the surface below the atmosphere.",
-  //     std::function([this](bool enable) { mPluginSettings->mEnableIndirectLighting = enable; }));
-
-  // mGuiManager->getGui()->registerCallback("atmosphere.setEnableLightShafts",
-  //     "If shadows are enabled, this enables or disables rendering of light shafts in the "
-  //     "atmosphere.",
-  //     std::function([this](bool enable) { mPluginSettings->mEnableLightShafts = enable; }));
-
   // Load settings.
   onLoad();
 
@@ -210,8 +197,6 @@ void Plugin::deInit() {
   mGuiManager->getGui()->unregisterCallback("atmosphere.setWaterLevel");
   mGuiManager->getGui()->unregisterCallback("atmosphere.setEnableClouds");
   mGuiManager->getGui()->unregisterCallback("atmosphere.setCloudAltitude");
-  // mGuiManager->getGui()->unregisterCallback("atmosphere.setEnableIndirectLighting");
-  // mGuiManager->getGui()->unregisterCallback("atmosphere.setEnableLightShafts");
 
   mSolarSystem->pActiveObject.disconnect(mActiveObjectConnection);
   mAllSettings->onLoad().disconnect(mOnLoadConnection);

@@ -44,8 +44,6 @@ class Plugin : public cs::core::PluginBase {
     std::unordered_map<std::string, Atmosphere> mAtmospheres;
 
     cs::utils::DefaultProperty<bool> mEnable{true};
-    // cs::utils::DefaultProperty<bool> mEnableLightShafts{false};
-    // cs::utils::DefaultProperty<bool> mEnableIndirectLighting{false};
   };
 
   void init() override;

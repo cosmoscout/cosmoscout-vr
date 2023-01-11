@@ -142,8 +142,6 @@ void Atmosphere::configure(Plugin::Settings::Atmosphere const& settings) {
 void Atmosphere::updateShader() {
   mAtmoShader = VistaGLSLShader();
 
-  std::cout << mSettings.mWaterLevel.get() << std::endl;
-
   auto sVert = cs::utils::filesystem::loadToString(
       "../share/resources/shaders/csp-atmospheres/atmosphere.vert");
   auto sFrag = cs::utils::filesystem::loadToString(

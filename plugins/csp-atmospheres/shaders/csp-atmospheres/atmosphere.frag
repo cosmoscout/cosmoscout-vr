@@ -426,7 +426,8 @@ void main() {
         GetSkyLuminanceToPoint(vsIn.vRayOrigin, p, shadowLength, uSunDir, transmittance);
     eclipseShadow = getEclipseShadow((uMatM * vec4(p, 1.0)).xyz);
 
-    vec3 sunIlluminance = GetSunAndSkyIlluminance(p, normalize(p), uSunDir, skyIlluminance);
+    vec3 illuminance = GetSunAndSkyIlluminance(p, normalize(p), uSunDir, skyIlluminance);
+    illuminance += skyIlluminance;
 
 #if ENABLE_CLOUDS
     float cloudShadow = getCloudShadow(p, uSunDir);
@@ -435,12 +436,10 @@ void main() {
 #endif
 
 #if ENABLE_HDR
-    oColor =
-        transmittance * cloudShadow * oColor / uSunIlluminance * (sunIlluminance + skyIlluminance) +
-        inScatter * eclipseShadow;
+    oColor = transmittance * cloudShadow * oColor / uSunIlluminance * illuminance +
+             inScatter * eclipseShadow;
 #else
-    oColor            = transmittance * cloudShadow * sRGBtoLinear(oColor) *
-                 ((sunIlluminance + skyIlluminance) / uSunIlluminance) +
+    oColor = transmittance * cloudShadow * sRGBtoLinear(oColor) * illuminance / uSunIlluminance +
              tonemap(eclipseShadow * inScatter / uSunIlluminance);
 #endif
   } else {

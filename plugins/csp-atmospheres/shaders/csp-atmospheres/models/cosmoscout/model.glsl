@@ -190,12 +190,11 @@ vec3 GetSkyLuminanceToPoint(
 // Returns the sun and sky illuminance received on a surface patch located at 'p' and whose normal
 // vector is 'normal'.
 vec3 GetSunAndSkyIlluminance(vec3 p, vec3 normal, vec3 sunDirection, out vec3 skyIlluminance) {
-  vec3 transmittance;
-  skyIlluminance = GetSkyLuminance(p, normal, 0.0, sunDirection, transmittance);
+  skyIlluminance = vec3(0.0);
 
-  float tEnd         = _intersectAtmosphere(p, sunDirection).y;
-  vec2  opticalDepth = _getOpticalDepth(p, sunDirection, 0.0, tEnd);
-  transmittance      = _getExtinction(opticalDepth);
+  float tEnd          = _intersectAtmosphere(p, sunDirection).y;
+  vec2  opticalDepth  = _getOpticalDepth(p, sunDirection, 0.0, tEnd);
+  vec3  transmittance = _getExtinction(opticalDepth);
 
   return transmittance * uSunIlluminance;
 }
