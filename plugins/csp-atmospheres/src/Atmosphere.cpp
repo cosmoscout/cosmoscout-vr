@@ -196,6 +196,30 @@ void Atmosphere::update() {
     mWorldTransform = object->getObserverRelativeTransform();
     mEclipseShadowReceiver->update(*object);
 
+    // update brightness value -------------------------------------------------
+    // This is a crude approximation of the overall scene brightness due to
+    // atmospheric scattering, camera position and the sun's position.
+    // It may be used for fake HDR effects such as dimming stars.
+
+    // some required positions and directions
+    glm::dvec3 planet = object->getObserverRelativePosition() *
+                        object->getRelativeScale(mSolarSystem->getObserver());
+    double     dist     = glm::length(planet);
+    glm::dvec3 toPlanet = planet / dist;
+
+    // [planet surface ... 5x atmosphere boundary] -> [0 ... 1]
+    double heightInAtmosphere =
+        std::min(1.0, std::max(0.0, (dist - object->getRadii()[0]) / (mSettings.mHeight * 5.0)));
+
+    // [noon ... midnight] -> [1 ... -1]
+    double daySide = glm::dot(-toPlanet, glm::dvec3(mSunDirection));
+
+    // limit brightness when on night side (also in dusk an dawn time)
+    daySide = std::pow(std::min(1.0, std::max(0.0, daySide + 1.0)), 50.0);
+
+    // reduce brightness in outer space
+    mGraphicsEngine->pApproximateSceneBrightness = (1.0 - heightInAtmosphere) * daySide;
+
     mAtmosphereNode->SetIsEnabled(true);
   } else {
     mAtmosphereNode->SetIsEnabled(false);

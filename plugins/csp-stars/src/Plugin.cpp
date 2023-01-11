@@ -235,7 +235,7 @@ void Plugin::update() {
   // Update the stars brightness based on the scene's pApproximateSceneBrightness. This is to fade
   // out the stars when we are close to a Planet. If HDR rendering is enabled, we will not change
   // the star's brightness.
-  float fIntensity = mGraphicsEngine->pApproximateSceneBrightness.get();
+  float fIntensity = 1.F - mGraphicsEngine->pApproximateSceneBrightness.get();
 
   if (mAllSettings->mGraphics.pEnableHDR.get()) {
     fIntensity = 1.F;
