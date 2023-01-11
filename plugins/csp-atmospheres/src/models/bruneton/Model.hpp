@@ -8,6 +8,7 @@
 #ifndef CSP_ATMOSPHERES_MODELS_BRUNETON_MODEL_HPP
 #define CSP_ATMOSPHERES_MODELS_BRUNETON_MODEL_HPP
 
+#include "../../../../src/cs-core/Settings.hpp"
 #include "../../ModelBase.hpp"
 #include "internal/Model.hpp"
 
@@ -15,7 +16,19 @@ namespace csp::atmospheres::models::bruneton {
 
 class Model : public ModelBase {
  public:
-  struct Settings {};
+  struct Settings {
+    double mSunAngularRadius{};
+    double mRayleigh{};
+    double mRayleighScaleHeight{}; ///< In meters.
+    double mMieScaleHeight{};      ///< In meters.
+    double mMieAngstromAlpha{};
+    double mMieAngstromBeta{};
+    double mMieSingleScatteringAlbedo{};
+    double mMiePhaseFunctionG{};
+
+    cs::utils::DefaultProperty<double> mGroundAlbedo{0.1};
+    cs::utils::DefaultProperty<bool>   mUseOzone{false};
+  };
 
   bool init(nlohmann::json modelSettings, double planetRadius, double atmosphereRadius) override;
 
