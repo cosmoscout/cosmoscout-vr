@@ -49,16 +49,16 @@ class Atmosphere : public IVistaOpenGLDraw {
  private:
   void updateShader();
 
-  std::shared_ptr<Plugin::Settings>         mPluginSettings;
-  std::shared_ptr<cs::core::Settings>       mAllSettings;
-  std::shared_ptr<cs::core::SolarSystem>    mSolarSystem;
-  std::shared_ptr<cs::core::GraphicsEngine> mGraphicsEngine;
-  std::string                               mObjectName;
-  std::unique_ptr<VistaOpenGLNode>          mAtmosphereNode;
+  std::shared_ptr<Plugin::Settings>                mPluginSettings;
+  std::shared_ptr<cs::core::Settings>              mAllSettings;
+  std::shared_ptr<cs::core::SolarSystem>           mSolarSystem;
+  std::shared_ptr<cs::core::GraphicsEngine>        mGraphicsEngine;
+  std::string                                      mObjectName;
+  std::unique_ptr<VistaOpenGLNode>                 mAtmosphereNode;
+  std::shared_ptr<cs::graphics::HDRBuffer>         mHDRBuffer;
+  std::shared_ptr<cs::core::EclipseShadowReceiver> mEclipseShadowReceiver;
+  std::unique_ptr<VistaTexture>                    mCloudTexture;
   // std::shared_ptr<cs::graphics::ShadowMap> mShadowMap;
-  std::shared_ptr<cs::graphics::HDRBuffer> mHDRBuffer;
-  // std::shared_ptr<cs::core::EclipseShadowReceiver> mEclipseShadowReceiver;
-  std::unique_ptr<VistaTexture> mCloudTexture;
 
   glm::dvec3                   mRadii          = glm::dvec3(1.0, 1.0, 1.0);
   glm::dmat4                   mWorldTransform = glm::dmat4(1.0);
@@ -96,8 +96,8 @@ class Atmosphere : public IVistaOpenGLDraw {
     uint32_t inverseModelViewMatrix           = 0;
     uint32_t inverseModelViewProjectionMatrix = 0;
     uint32_t inverseProjectionMatrix          = 0;
+    uint32_t modelMatrix                      = 0;
     // uint32_t modelViewMatrix                  = 0;
-    // uint32_t modelMatrix                      = 0;
   } mUniforms;
 
   std::unique_ptr<ModelBase> mModel;

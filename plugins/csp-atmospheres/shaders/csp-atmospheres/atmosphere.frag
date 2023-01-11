@@ -34,11 +34,11 @@ uniform sampler2D uDepthBuffer;
 
 uniform vec3  uSunDir;
 uniform float uSunIlluminance;
+uniform mat4 uMatM;
 uniform mat4  uMatInvMVP;
 uniform float uWaterLevel;
 // uniform mat4 uMatInvP;
 // uniform mat4 uMatMV;
-// uniform mat4 uMatM;
 uniform sampler2D uCloudTexture;
 uniform float     uCloudAltitude;
 
@@ -298,16 +298,6 @@ float getCloudDensity(vec3 rayOrigin, vec3 rayDir, float tIntersection) {
 #endif
 }
 
-// vec4 sampleCloudColor(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, float tIntersection) {
-//   vec3  point       = rayOrigin + rayDir * tIntersection;
-//   vec2  sunStartEnd = IntersectAtmosphere(point, sunDir);
-//   vec3  extinction  = GetExtinction(GetOpticalDepth(point, sunDir, 0, sunStartEnd.y) +
-//                                   GetOpticalDepth(rayOrigin, rayDir, 0, tIntersection));
-//   float density     = getCloudDensity(point);
-//   vec3  positionWS  = (uMatM * vec4(point, 1.0)).xyz;
-//   return vec4(extinction * density * uSunIntensity * getEclipseShadow(positionWS), density);
-// }
-
 vec4 getCloudColor(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, float surfaceDistance) {
   float density   = 0.0;
   float thickness = uCloudAltitude * 0.2;
@@ -398,6 +388,8 @@ void main() {
 
   bool hitsSurface = surfaceDistance < atmosphereIntersections.y;
 
+  vec3 eclipseShadow;
+
 #if ENABLE_WATER
   vec2 waterIntersections = intersectOceansphere(vsIn.vRayOrigin, rayDir);
 
@@ -407,8 +399,11 @@ void main() {
     if (surfaceDistance > 0.0) {
       waterIntersections.y = min(waterIntersections.y, surfaceDistance);
     }
-    vec3  surface  = vsIn.vRayOrigin + rayDir * waterIntersections.x;
-    vec3  normal   = normalize(surface);
+
+    vec3 p        = vsIn.vRayOrigin + rayDir * waterIntersections.x;
+    eclipseShadow = getEclipseShadow((uMatM * vec4(p, 1.0)).xyz);
+
+    vec3  normal   = normalize(p);
     float specular = pow(max(dot(rayDir, reflect(uSunDir, normal)), 0.0), 10) * 0.2;
     specular += pow(max(dot(rayDir, reflect(uSunDir, normal)), 0.0), 50) * 0.2;
 #if ENABLE_HDR
@@ -416,7 +411,7 @@ void main() {
 #endif
     float depth     = waterIntersections.y - waterIntersections.x;
     vec4  water     = getWaterShade(depth);
-    oColor          = mix(oColor, water.rgb, water.a) + water.a * specular;
+    oColor          = mix(oColor, water.rgb, water.a) + water.a * specular * eclipseShadow;
     surfaceDistance = waterIntersections.x;
     hitsSurface     = true;
   }
@@ -429,6 +424,7 @@ void main() {
     vec3 p = vsIn.vRayOrigin + rayDir * surfaceDistance;
     vec3 inScatter =
         GetSkyLuminanceToPoint(vsIn.vRayOrigin, p, shadowLength, uSunDir, transmittance);
+    eclipseShadow = getEclipseShadow((uMatM * vec4(p, 1.0)).xyz);
 
     vec3 sunIlluminance = GetSunAndSkyIlluminance(p, normalize(p), uSunDir, skyIlluminance);
 
@@ -441,29 +437,37 @@ void main() {
 #if ENABLE_HDR
     oColor =
         transmittance * cloudShadow * oColor / uSunIlluminance * (sunIlluminance + skyIlluminance) +
-        inScatter;
+        inScatter * eclipseShadow;
 #else
     oColor            = transmittance * cloudShadow * sRGBtoLinear(oColor) *
                  ((sunIlluminance + skyIlluminance) / uSunIlluminance) +
-             tonemap(inScatter / uSunIlluminance);
+             tonemap(eclipseShadow * inScatter / uSunIlluminance);
 #endif
   } else {
     vec3 transmittance;
     vec3 inScatter = GetSkyLuminance(vsIn.vRayOrigin, rayDir, shadowLength, uSunDir, transmittance);
 
+    vec3 p =
+        vsIn.vRayOrigin + rayDir * (atmosphereIntersections.x > 0.0 ? atmosphereIntersections.x
+                                                                    : atmosphereIntersections.y);
+    eclipseShadow = getEclipseShadow((uMatM * vec4(p, 1.0)).xyz);
+
 #if ENABLE_HDR
-    oColor = transmittance * oColor + inScatter;
+    oColor = transmittance * oColor + inScatter * eclipseShadow;
 #else
-    oColor = transmittance * sRGBtoLinear(oColor) + tonemap(inScatter / uSunIlluminance);
+    oColor =
+        transmittance * sRGBtoLinear(oColor) + tonemap(inScatter * eclipseShadow / uSunIlluminance);
 #endif
   }
 
 #if ENABLE_CLOUDS
-
   vec4 cloudColor = getCloudColor(vsIn.vRayOrigin, rayDir, uSunDir, surfaceDistance);
+  cloudColor.rgb *= eclipseShadow;
+
 #if !ENABLE_HDR
   cloudColor.rgb = tonemap(cloudColor.rgb / uSunIlluminance);
 #endif
+
   oColor = mix(oColor, cloudColor.rgb, cloudColor.a);
 #endif
 
