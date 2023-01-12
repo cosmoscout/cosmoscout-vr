@@ -31,7 +31,7 @@ namespace cs::core {
 class CS_CORE_EXPORT GraphicsEngine {
 
  public:
-  utils::Property<float> pApproximateSceneBrightness = 1.F;
+  utils::Property<float> pApproximateSceneBrightness = 0.F;
   utils::Property<float> pAverageLuminance           = 1.F;
   utils::Property<float> pMaximumLuminance           = 1.F;
 
