@@ -418,7 +418,7 @@ class CS_CORE_EXPORT Settings {
 
     /// The range from which to choose values for the auto exposure. Measured in exposure values
     /// (EV).
-    utils::DefaultProperty<glm::vec2> pAutoExposureRange{glm::vec2(-14.F, 9.F)};
+    utils::DefaultProperty<glm::vec2> pAutoExposureRange{glm::vec2(-12.F, 9.F)};
 
     /// An additional exposure control which is applied after auto exposure. Has no effect if HDR
     /// rendering is disabled. Measured in exposure values (EV).
@@ -439,7 +439,7 @@ class CS_CORE_EXPORT Settings {
 
     /// The amount of artifical glare. Has no effect if HDR rendering is disabled. This should be in
     /// the range 0-1. A value of zero disables the glare.
-    utils::DefaultProperty<float> pGlareIntensity{0.1F};
+    utils::DefaultProperty<float> pGlareIntensity{0.2F};
 
     /// Higher values produce a smoother glare.
     utils::DefaultProperty<uint32_t> pGlareQuality{0};
