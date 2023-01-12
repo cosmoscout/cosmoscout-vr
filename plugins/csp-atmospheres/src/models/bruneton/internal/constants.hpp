@@ -44,18 +44,27 @@ sRGB luminance values).
 
 namespace csp::atmospheres::models::bruneton::internal {
 
+// Low impact on preprocssing time, resolution seems suitable for CosmoScout VR.
 constexpr int TRANSMITTANCE_TEXTURE_WIDTH  = 256;
 constexpr int TRANSMITTANCE_TEXTURE_HEIGHT = 64;
 
-constexpr int SCATTERING_TEXTURE_R_SIZE    = 32;
-constexpr int SCATTERING_TEXTURE_MU_SIZE   = 128;
-constexpr int SCATTERING_TEXTURE_MU_S_SIZE = 32;
-constexpr int SCATTERING_TEXTURE_NU_SIZE   = 8;
+// 32 Affects banding towards horizon during dusk / dawn
+constexpr int SCATTERING_TEXTURE_R_SIZE = 16;
+
+// 128 Affects banding towards horizon during dusk / dawn
+constexpr int SCATTERING_TEXTURE_MU_SIZE = 64;
+
+// 32 Affects banding in the day-night transition when seen from space
+constexpr int SCATTERING_TEXTURE_MU_S_SIZE = 64;
+
+// 8 Affects blockiness in the sky during dusk and dawn
+constexpr int SCATTERING_TEXTURE_NU_SIZE = 16;
 
 constexpr int SCATTERING_TEXTURE_WIDTH  = SCATTERING_TEXTURE_NU_SIZE * SCATTERING_TEXTURE_MU_S_SIZE;
 constexpr int SCATTERING_TEXTURE_HEIGHT = SCATTERING_TEXTURE_MU_SIZE;
 constexpr int SCATTERING_TEXTURE_DEPTH  = SCATTERING_TEXTURE_R_SIZE;
 
+// Low impact on preprocssing time, resolution seems suitable for CosmoScout VR.
 constexpr int IRRADIANCE_TEXTURE_WIDTH  = 64;
 constexpr int IRRADIANCE_TEXTURE_HEIGHT = 16;
 
