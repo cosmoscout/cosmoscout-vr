@@ -280,7 +280,7 @@ static const char* sFragmentShader = R"(
       }
 
       // To make sure that we do not add energy, we divide by the total weight.
-      color = mix(color, glare/totalWeight, uGlareIntensity);
+      color = mix(color, glare/totalWeight, pow(uGlareIntensity, 2.0));
     }
 
     // Filmic
