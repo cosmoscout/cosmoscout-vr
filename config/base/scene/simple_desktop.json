@@ -280,6 +280,7 @@
   ],
   "spiceKernel": "../share/config/spice/simple.txt",
   "graphics": {
+    "enableHDR": true,
     "eclipseShadowMaps": {
       "Earth": {},
       "Moon": {},
