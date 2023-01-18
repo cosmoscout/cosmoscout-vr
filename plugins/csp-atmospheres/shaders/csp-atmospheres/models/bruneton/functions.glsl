@@ -1,61 +1,22 @@
-// Changes in GetSunAndSkyIrradiance
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//                               This file is part of CosmoScout VR                               //
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/**
- * Copyright (c) 2017 Eric Bruneton
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the copyright holders nor the names of its
- *    contributors may be used to endorse or promote products derived from
- *    this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
- * THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Precomputed Atmospheric Scattering
- * Copyright (c) 2008 INRIA
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the copyright holders nor the names of its
- *    contributors may be used to endorse or promote products derived from
- *    this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
- * THE POSSIBILITY OF SUCH DAMAGE.
- */
+// SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+// SPDX-FileCopyrightText: 2017 Eric Bruneton
+// SPDX-FileCopyrightText: 2008 INRIA
+// SPDX-License-Identifier: BSD-3-Clause
+
+// This file has been directly copied from here:
+// https://github.com/ebruneton/precomputed_atmospheric_scattering/blob/master/atmosphere/functions.glsl
+// The documentation below can also be read online at:
+// https://ebruneton.github.io/precomputed_atmospheric_scattering/atmosphere/functions.glsl.html
+
+// The only difference with respect to the original implementation is the removal of the "normal"
+// parameter from GetSunAndSkyIrradiance() at the very end of the file. In the original
+// implementation, the method used to premultiply the irradiance with the dot product between light
+// direction and surface normal. As this factor is already included in the BRDFs used in CosmoCout
+// VR, we have removed this.
 
 /*<h2>atmosphere/functions.glsl</h2>
 
@@ -1753,21 +1714,9 @@ The function below returns the direct and indirect irradiances separately:
 
 IrradianceSpectrum GetSunAndSkyIrradiance(IN(AtmosphereParameters) atmosphere,
     IN(TransmittanceTexture) transmittance_texture, IN(IrradianceTexture) irradiance_texture,
-    IN(Position) point, IN(Direction) normal, IN(Direction) sun_direction,
-    OUT(IrradianceSpectrum) sky_irradiance) {
+    IN(Position) point, IN(Direction) sun_direction, OUT(IrradianceSpectrum) sky_irradiance) {
   Length r    = length(point);
   Number mu_s = dot(point, sun_direction) / r;
-
-  /*
-  // Indirect irradiance (approximated if the surface is not horizontal).
-  sky_irradiance =
-      GetIrradiance(atmosphere, irradiance_texture, r, mu_s) * (1.0 + dot(normal, point) / r) * 0.5;
-
-  // Direct irradiance.
-  return atmosphere.solar_irradiance *
-         GetTransmittanceToSun(atmosphere, transmittance_texture, r, mu_s) *
-         max(dot(normal, sun_direction), 0.0);
-         */
 
   // Indirect irradiance (approximated if the surface is not horizontal).
   sky_irradiance = GetIrradiance(atmosphere, irradiance_texture, r, mu_s);

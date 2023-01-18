@@ -1,33 +1,21 @@
-// Only added namespace and different glew include
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//                               This file is part of CosmoScout VR                               //
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/**
- * Copyright (c) 2017 Eric Bruneton
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the copyright holders nor the names of its
- *    contributors may be used to endorse or promote products derived from
- *    this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
- * THE POSSIBILITY OF SUCH DAMAGE.
- */
+// SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+// SPDX-FileCopyrightText: 2017 Eric Bruneton
+// SPDX-License-Identifier: BSD-3-Clause
+
+// This file has been directly copied from here:
+// https://github.com/ebruneton/precomputed_atmospheric_scattering/blob/master/atmosphere/model.h
+// The documentation below can also be read online at:
+// https://ebruneton.github.io/precomputed_atmospheric_scattering/atmosphere/model.h.html
+// Changes to this file are mostly related to formatting. The only other change with respect to the
+// original code is the removal of the "normal" parameter from the documentation of the
+// GetSunAndSkyIrradiance() and GetSunAndSkyIlluminance() methods. In the original implementation,
+// these methods used to premultiply the irradiance with the dot product between light direction and
+// surface normal. As this factor is already included in the BRDFs used in CosmoCout VR, we have
+// removed this and adapted the documentation here accordingly
 
 /*<h2>atmosphere/model.h</h2>
 
@@ -65,10 +53,8 @@ vec3 GetSkyRadiance(vec3 camera, vec3 view_ray, double shadow_length,
 vec3 GetSkyRadianceToPoint(vec3 camera, vec3 p, double shadow_length,
     vec3 sun_direction, out vec3 transmittance);
 
-// Returns the sun and sky irradiance received on a surface patch located at 'p'
-// and whose normal vector is 'normal'.
-vec3 GetSunAndSkyIrradiance(vec3 p, vec3 normal, vec3 sun_direction,
-    out vec3 sky_irradiance);
+// Returns the sun and sky irradiance received on a surface patch located at 'p'.
+vec3 GetSunAndSkyIrradiance(vec3 p, vec3 sun_direction, out vec3 sky_irradiance);
 
 // Returns the luminance of the Sun, outside the atmosphere.
 vec3 GetSolarLuminance();
@@ -84,10 +70,8 @@ vec3 GetSkyLuminance(vec3 camera, vec3 view_ray, double shadow_length,
 vec3 GetSkyLuminanceToPoint(vec3 camera, vec3 p, double shadow_length,
     vec3 sun_direction, out vec3 transmittance);
 
-// Returns the sun and sky illuminance received on a surface patch located at
-// 'p' and whose normal vector is 'normal'.
-vec3 GetSunAndSkyIlluminance(vec3 p, vec3 normal, vec3 sun_direction,
-    out vec3 sky_illuminance);
+// Returns the sun and sky illuminance received on a surface patch located at 'p'.
+vec3 GetSunAndSkyIlluminance(vec3 p, vec3 sun_direction, out vec3 sky_illuminance);
 </pre>
 
 <p>where

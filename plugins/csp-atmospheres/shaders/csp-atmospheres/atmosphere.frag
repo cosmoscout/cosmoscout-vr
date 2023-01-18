@@ -1,3 +1,10 @@
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//                               This file is part of CosmoScout VR                               //
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+// SPDX-License-Identifier: MIT
+
 #version 330
 
 // inputs
@@ -20,8 +27,8 @@ vec3 GetSkyLuminanceToPoint(
     vec3 camera, vec3 p, float shadow_length, vec3 sun_direction, out vec3 transmittance);
 
 // Returns the sun and sky illuminance received on a surface patch located at
-// 'p' and whose normal vector is 'normal'.
-vec3 GetSunAndSkyIlluminance(vec3 p, vec3 normal, vec3 sun_direction, out vec3 sky_illuminance);
+// 'p'.
+vec3 GetSunAndSkyIlluminance(vec3 p, vec3 sun_direction, out vec3 sky_illuminance);
 
 // uniforms
 #if HDR_SAMPLES > 0
@@ -315,7 +322,7 @@ vec4 getCloudColor(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, float surfaceDistan
   vec3 p = rayOrigin + rayDir * (intersections.x < 0 ? intersections.y : intersections.x);
   vec3 skyIlluminance, transmittance;
   vec3 inScatter      = GetSkyLuminanceToPoint(rayOrigin, p, 0.0, uSunDir, transmittance);
-  vec3 sunIlluminance = GetSunAndSkyIlluminance(p, normalize(p), uSunDir, skyIlluminance);
+  vec3 sunIlluminance = GetSunAndSkyIlluminance(p, uSunDir, skyIlluminance);
 
   for (int i = 0; i < samples; ++i) {
     float altitude      = height - i * thickness / samples;
@@ -426,7 +433,7 @@ void main() {
         GetSkyLuminanceToPoint(vsIn.vRayOrigin, p, shadowLength, uSunDir, transmittance);
     eclipseShadow = getEclipseShadow((uMatM * vec4(p, 1.0)).xyz);
 
-    vec3 illuminance = GetSunAndSkyIlluminance(p, normalize(p), uSunDir, skyIlluminance);
+    vec3 illuminance = GetSunAndSkyIlluminance(p, uSunDir, skyIlluminance);
     illuminance += skyIlluminance;
 
 #if ENABLE_CLOUDS

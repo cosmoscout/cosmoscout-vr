@@ -1,3 +1,10 @@
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//                               This file is part of CosmoScout VR                               //
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+// SPDX-License-Identifier: MIT
+
 #version 330
 
 // constants
@@ -187,9 +194,8 @@ vec3 GetSkyLuminanceToPoint(
   return inscatter * uSunIlluminance;
 }
 
-// Returns the sun and sky illuminance received on a surface patch located at 'p' and whose normal
-// vector is 'normal'.
-vec3 GetSunAndSkyIlluminance(vec3 p, vec3 normal, vec3 sunDirection, out vec3 skyIlluminance) {
+// Returns the sun and sky illuminance received on a surface patch located at 'p'.
+vec3 GetSunAndSkyIlluminance(vec3 p, vec3 sunDirection, out vec3 skyIlluminance) {
   skyIlluminance = vec3(0.0);
 
   float tEnd          = _intersectAtmosphere(p, sunDirection).y;

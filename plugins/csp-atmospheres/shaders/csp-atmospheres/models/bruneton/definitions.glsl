@@ -1,31 +1,15 @@
-/**
- * Copyright (c) 2017 Eric Bruneton
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the copyright holders nor the names of its
- *    contributors may be used to endorse or promote products derived from
- *    this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
- * THE POSSIBILITY OF SUCH DAMAGE.
- */
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//                               This file is part of CosmoScout VR                               //
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// SPDX-FileCopyrightText: 2017 Eric Bruneton
+// SPDX-License-Identifier: BSD-3-Clause
+
+// This file has been directly copied from here:
+// https://github.com/ebruneton/precomputed_atmospheric_scattering/blob/master/atmosphere/definitions.glsl
+// The only differences should be related to formatting. The documentation below can also be read
+// online at:
+// https://ebruneton.github.io/precomputed_atmospheric_scattering/atmosphere/definitions.glsl.html
 
 /*<h2>atmosphere/definitions.glsl</h2>
 
@@ -140,12 +124,12 @@ meter (m), nanometer (nm), radian (rad), steradian (sr), watt (watt) and lumen
 (lm):
 */
 
-const Length m = 1.0;
-const Wavelength nm = 1.0;
-const Angle rad = 1.0;
-const SolidAngle sr = 1.0;
-const Power watt = 1.0;
-const LuminousPower lm = 1.0;
+const Length        m    = 1.0;
+const Wavelength    nm   = 1.0;
+const Angle         rad  = 1.0;
+const SolidAngle    sr   = 1.0;
+const Power         watt = 1.0;
+const LuminousPower lm   = 1.0;
 
 /*
 <p>From which we can derive the units for some derived physical quantities,
@@ -154,22 +138,20 @@ as well as some derived units (kilometer km, kilocandela kcd, degree deg):
 
 const float PI = 3.14159265358979323846;
 
-const Length km = 1000.0 * m;
-const Area m2 = m * m;
-const Volume m3 = m * m * m;
-const Angle pi = PI * rad;
-const Angle deg = pi / 180.0;
-const Irradiance watt_per_square_meter = watt / m2;
-const Radiance watt_per_square_meter_per_sr = watt / (m2 * sr);
-const SpectralIrradiance watt_per_square_meter_per_nm = watt / (m2 * nm);
-const SpectralRadiance watt_per_square_meter_per_sr_per_nm =
-    watt / (m2 * sr * nm);
-const SpectralRadianceDensity watt_per_cubic_meter_per_sr_per_nm =
-    watt / (m3 * sr * nm);
-const LuminousIntensity cd = lm / sr;
-const LuminousIntensity kcd = 1000.0 * cd;
-const Luminance cd_per_square_meter = cd / m2;
-const Luminance kcd_per_square_meter = kcd / m2;
+const Length                  km                                  = 1000.0 * m;
+const Area                    m2                                  = m * m;
+const Volume                  m3                                  = m * m * m;
+const Angle                   pi                                  = PI * rad;
+const Angle                   deg                                 = pi / 180.0;
+const Irradiance              watt_per_square_meter               = watt / m2;
+const Radiance                watt_per_square_meter_per_sr        = watt / (m2 * sr);
+const SpectralIrradiance      watt_per_square_meter_per_nm        = watt / (m2 * nm);
+const SpectralRadiance        watt_per_square_meter_per_sr_per_nm = watt / (m2 * sr * nm);
+const SpectralRadianceDensity watt_per_cubic_meter_per_sr_per_nm  = watt / (m3 * sr * nm);
+const LuminousIntensity       cd                                  = lm / sr;
+const LuminousIntensity       kcd                                 = 1000.0 * cd;
+const Luminance               cd_per_square_meter                 = cd / m2;
+const Luminance               kcd_per_square_meter                = kcd / m2;
 
 /*
 <h3>Atmosphere parameters</h3>
@@ -183,11 +165,11 @@ parameters that depend on the altitude:
 //   'exp_term' * exp('exp_scale' * h) + 'linear_term' * h + 'constant_term',
 // clamped to [0,1], and where h is the altitude.
 struct DensityProfileLayer {
-  Length width;
-  Number exp_term;
+  Length        width;
+  Number        exp_term;
   InverseLength exp_scale;
   InverseLength linear_term;
-  Number constant_term;
+  Number        constant_term;
 };
 
 // An atmosphere density profile made of several layers on top of each other
