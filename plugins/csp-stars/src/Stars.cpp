@@ -214,6 +214,18 @@ float Stars::getMaxMagnitude() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void Stars::setApproximateSceneBrigthness(float value) {
+  mApproximateSceneBrightness = value;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+float Stars::getApproximateSceneBrigthness() const {
+  return mApproximateSceneBrightness;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Stars::setLuminanceMultiplicator(float value) {
   mLuminanceMultiplicator = value;
 }
@@ -290,8 +302,12 @@ void Stars::setStarFiguresTexture(std::string const& filename) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool Stars::Do() {
-  cs::utils::FrameTimings::ScopedTimer timer("Render Stars");
+  if(mLuminanceMultiplicator < 0.001 || mApproximateSceneBrightness < 0.001) //Start are not visible with a low luminance multiplicator
+  {
+    return true;
+  }
 
+  cs::utils::FrameTimings::ScopedTimer timer("Render Stars");
   // save current state of the OpenGL state machine
   glPushAttrib(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_ENABLE_BIT);
   glDepthMask(GL_FALSE);
@@ -436,10 +452,15 @@ bool Stars::Do() {
 
   mStarTexture->Bind(GL_TEXTURE0);
   mStarShader.SetUniform(mUniforms.starTexture, 0);
+
   mStarShader.SetUniform(mUniforms.starMinMagnitude, mMinMagnitude);
   mStarShader.SetUniform(mUniforms.starMaxMagnitude, mMaxMagnitude);
   mStarShader.SetUniform(mUniforms.starSolidAngle, mSolidAngle);
-  mStarShader.SetUniform(mUniforms.starLuminanceMul, mLuminanceMultiplicator);
+  if (mEnableHDR) {
+    mStarShader.SetUniform(mUniforms.starLuminanceMul, mLuminanceMultiplicator * 1.0F);
+  } else {
+    mStarShader.SetUniform(mUniforms.starLuminanceMul, mLuminanceMultiplicator * mApproximateSceneBrightness);
+  }
 
   VistaTransformMatrix matInverseMV(matModelView.GetInverted());
   VistaTransformMatrix matInverseP(matProjection.GetInverted());

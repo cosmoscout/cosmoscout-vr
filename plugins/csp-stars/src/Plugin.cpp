@@ -236,13 +236,14 @@ void Plugin::update() {
   // out the stars when we are close to a Planet. If HDR rendering is enabled, we will not change
   // the star's brightness.
   float fIntensity = mGraphicsEngine->pApproximateSceneBrightness.get();
-
+  mStars->setApproximateSceneBrigthness(mGraphicsEngine->pApproximateSceneBrightness.get());
+  
   if (mAllSettings->mGraphics.pEnableHDR.get()) {
     fIntensity = 1.F;
   }
-
+  
   mStars->setLuminanceMultiplicator(
-      fIntensity * std::exp(mPluginSettings.mLuminanceMultiplicator.get()));
+      std::exp(mPluginSettings.mLuminanceMultiplicator.get()));
   mStars->setCelestialGridColor(VistaColor(0.5F, 0.8F, 1.F,
       0.3F * fIntensity * (mPluginSettings.mEnableCelestialGrid.get() ? 1.F : 0.F)));
   mStars->setStarFiguresColor(VistaColor(
