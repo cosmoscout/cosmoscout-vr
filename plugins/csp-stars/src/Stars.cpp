@@ -30,6 +30,7 @@
 
 #include <array>
 #include <fstream>
+#include <glm/glm.hpp>
 
 namespace csp::stars {
 
@@ -709,7 +710,7 @@ bool Stars::readStarCache(const std::string& sCacheFile) {
 
 void Stars::buildStarVAO() {
   int                c(0);
-  const int          iElementCount(7);
+  const int          iElementCount(8);
   std::vector<float> data(iElementCount * mStars.size());
 
   for (auto it = mStars.begin(); it != mStars.end(); ++it, c += iElementCount) {
@@ -729,13 +730,19 @@ void Stars::buildStarVAO() {
       fDist = 1000.F / it->mParallax;
     }
 
-    data[c]     = it->mDeclination;
-    data[c + 1] = it->mAscension;
-    data[c + 2] = fDist;
-    data[c + 3] = color.GetRed();
-    data[c + 4] = color.GetGreen();
-    data[c + 5] = color.GetBlue();
-    data[c + 6] = it->mVMagnitude - 5.F * std::log10(fDist / 10.F);
+     glm::vec3 starPos = glm::vec3(
+        glm::cos(it->mDeclination) *  glm::cos(it->mAscension) * fDist,
+        glm::sin(it->mDeclination) * fDist,
+        glm::cos(it->mDeclination) *  glm::sin(it->mAscension) * fDist);
+
+    data[c]     = starPos[0];
+    data[c + 1] = starPos[1];
+    data[c + 2] = starPos[2];
+    data[c + 3] = fDist;
+    data[c + 4] = color.GetRed();
+    data[c + 5] = color.GetGreen();
+    data[c + 6] = color.GetBlue();
+    data[c + 7] = it->mVMagnitude - 5.F * std::log10(fDist / 10.F);
   }
 
   mStarVBO.Bind(GL_ARRAY_BUFFER);
@@ -745,22 +752,22 @@ void Stars::buildStarVAO() {
   // star positions
   mStarVAO.EnableAttributeArray(0);
   mStarVAO.SpecifyAttributeArrayFloat(
-      0, 2, GL_FLOAT, GL_FALSE, iElementCount * sizeof(float), 0, &mStarVBO);
+      0, 3, GL_FLOAT, GL_FALSE, iElementCount * sizeof(float), 0, &mStarVBO);
 
   // star distances
   mStarVAO.EnableAttributeArray(1);
   mStarVAO.SpecifyAttributeArrayFloat(
-      1, 1, GL_FLOAT, GL_FALSE, iElementCount * sizeof(float), 2 * sizeof(float), &mStarVBO);
+      1, 1, GL_FLOAT, GL_FALSE, iElementCount * sizeof(float), 3 * sizeof(float), &mStarVBO);
 
   // color
   mStarVAO.EnableAttributeArray(2);
   mStarVAO.SpecifyAttributeArrayFloat(
-      2, 3, GL_FLOAT, GL_FALSE, iElementCount * sizeof(float), 3 * sizeof(float), &mStarVBO);
+      2, 3, GL_FLOAT, GL_FALSE, iElementCount * sizeof(float), 4 * sizeof(float), &mStarVBO);
 
   // magnitude
   mStarVAO.EnableAttributeArray(3);
   mStarVAO.SpecifyAttributeArrayFloat(
-      3, 1, GL_FLOAT, GL_FALSE, iElementCount * sizeof(float), 6 * sizeof(float), &mStarVBO);
+      3, 1, GL_FLOAT, GL_FALSE, iElementCount * sizeof(float), 7 * sizeof(float), &mStarVBO);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
