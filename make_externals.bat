@@ -386,12 +386,13 @@ echo.
 echo Downloading, building and installing cef (this may take some time) ...
 echo.
 
-set CEF_DIR=cef_binary_88.1.6+g4fe33a1+chromium-88.0.4324.96_windows64_minimal
+@REM WARNING: newer version of CEF require cmake > 3.19 (DLR provides 3.18.1)
+set CEF_DIR=cef_binary_109.1.16+g454cbc2+chromium-109.0.5414.87_windows64_minimal
 
 cmake -E make_directory "%BUILD_DIR%/cef/extracted" && cd "%BUILD_DIR%/cef"
 
 IF NOT EXIST cef.tar (
-  curl.exe https://cef-builds.spotifycdn.com/cef_binary_88.1.6%%2Bg4fe33a1%%2Bchromium-88.0.4324.96_windows64_minimal.tar.bz2 --output cef.tar.bz2
+  curl.exe https://cef-builds.spotifycdn.com/cef_binary_109.1.16%%2Bg454cbc2%%2Bchromium-109.0.5414.87_windows64_minimal.tar.bz2 --output cef.tar.bz2  
   cd "%BUILD_DIR%/cef/extracted"
   "%BUILD_DIR%/cef/bzip2/bin/bunzip2.exe" -v ../cef.tar.bz2
 ) else (
