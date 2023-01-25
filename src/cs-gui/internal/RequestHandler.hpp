@@ -21,7 +21,7 @@ class RequestHandler : public CefRequestHandler {
   /// Implements to ignore certificate errors.
   bool OnCertificateError(CefRefPtr<CefBrowser> browser, cef_errorcode_t cert_error,
       CefString const& request_url, CefRefPtr<CefSSLInfo> ssl_info,
-      CefRefPtr<CefRequestCallback> callback) override;
+      CefRefPtr<CefCallback> callback) override;
 
   CefRefPtr<CefResourceRequestHandler> GetResourceRequestHandler(CefRefPtr<CefBrowser> /*browser*/,
       CefRefPtr<CefFrame> /*frame*/, CefRefPtr<CefRequest> /*request*/, bool /*is_navigation*/,
