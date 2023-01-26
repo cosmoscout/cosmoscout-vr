@@ -133,11 +133,10 @@ void main() {
         scale *= 10.0;
     #endif
 
-    vec3 pos = vec3(0);
     for(int j=0; j!=2; ++j) {
         for(int i=0; i!=2; ++i) {
             iTexcoords = vec2(xo[i], yo[j])*2;
-            pos = gl_in[0].gl_Position.xyz + (xo[i] * x + yo[j] * y) * scale;
+            vec3 pos = gl_in[0].gl_Position.xyz + (xo[i] * x + yo[j] * y) * scale;
 
             gl_Position = uMatP * vec4(pos, 1);
 
