@@ -77,8 +77,8 @@ bool SetupGLNode::Do() {
   glEnable(GL_CULL_FACE);
   glCullFace(GL_BACK);
 
-  //Attach the debug callback to print the messages
-  glDebugMessageCallback(MessageCallback, (void*) mSettings.get()); 
+  // Attach the debug callback to print the messages
+  glDebugMessageCallback(MessageCallback, static_cast<void*>(mSettings.get()));
 
   return true;
 }
