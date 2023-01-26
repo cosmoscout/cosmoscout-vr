@@ -11,7 +11,7 @@
 #include "../../../src/cs-core/GuiManager.hpp"
 #include "../../../src/cs-core/SolarSystem.hpp"
 #include "../../../src/cs-gui/GuiItem.hpp"
-#include "../../../src/cs-utils/FrameTimings.hpp"
+#include "../../../src/cs-utils/FrameStats.hpp"
 #include "utils.hpp"
 
 #include <VistaKernel/GraphicsManager/VistaGroupNode.h>
@@ -177,8 +177,11 @@ void LodBody::update() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool LodBody::Do() {
-  auto                               timerName = "LoD-Body " + mObjectName;
-  cs::utils::FrameStats::ScopedTimer timer(timerName);
+  auto                                           timerName = "LoD-Body " + mObjectName;
+  cs::utils::FrameStats::ScopedTimer             timer(timerName);
+  cs::utils::FrameStats::ScopedSamplesCounter    samplesCounter(timerName);
+  cs::utils::FrameStats::ScopedPrimitivesCounter primitivesCounter(timerName);
+
   mPlanet.draw();
 
   return true;
