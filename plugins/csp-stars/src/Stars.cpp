@@ -710,7 +710,7 @@ bool Stars::readStarCache(const std::string& sCacheFile) {
 
 void Stars::buildStarVAO() {
   int                c(0);
-  const int          iElementCount(8);
+  const int          iElementCount(7);
   std::vector<float> data(iElementCount * mStars.size());
 
   for (auto it = mStars.begin(); it != mStars.end(); ++it, c += iElementCount) {
@@ -737,11 +737,10 @@ void Stars::buildStarVAO() {
     data[c]     = starPos[0];
     data[c + 1] = starPos[1];
     data[c + 2] = starPos[2];
-    data[c + 3] = fDist;
-    data[c + 4] = color.GetRed();
-    data[c + 5] = color.GetGreen();
-    data[c + 6] = color.GetBlue();
-    data[c + 7] = it->mVMagnitude - 5.F * std::log10(fDist / 10.F);
+    data[c + 3] = color.GetRed();
+    data[c + 4] = color.GetGreen();
+    data[c + 5] = color.GetBlue();
+    data[c + 6] = it->mVMagnitude - 5.F * std::log10(fDist / 10.F);
   }
 
   mStarVBO.Bind(GL_ARRAY_BUFFER);
@@ -753,20 +752,15 @@ void Stars::buildStarVAO() {
   mStarVAO.SpecifyAttributeArrayFloat(
       0, 3, GL_FLOAT, GL_FALSE, iElementCount * sizeof(float), 0, &mStarVBO);
 
-  // star distances
+  // color
   mStarVAO.EnableAttributeArray(1);
   mStarVAO.SpecifyAttributeArrayFloat(
-      1, 1, GL_FLOAT, GL_FALSE, iElementCount * sizeof(float), 3 * sizeof(float), &mStarVBO);
-
-  // color
-  mStarVAO.EnableAttributeArray(2);
-  mStarVAO.SpecifyAttributeArrayFloat(
-      2, 3, GL_FLOAT, GL_FALSE, iElementCount * sizeof(float), 4 * sizeof(float), &mStarVBO);
+      1, 3, GL_FLOAT, GL_FALSE, iElementCount * sizeof(float), 3 * sizeof(float), &mStarVBO);
 
   // magnitude
-  mStarVAO.EnableAttributeArray(3);
+  mStarVAO.EnableAttributeArray(2);
   mStarVAO.SpecifyAttributeArrayFloat(
-      3, 1, GL_FLOAT, GL_FALSE, iElementCount * sizeof(float), 7 * sizeof(float), &mStarVBO);
+      2, 1, GL_FLOAT, GL_FALSE, iElementCount * sizeof(float), 6 * sizeof(float), &mStarVBO);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -51,9 +51,8 @@ vec3 Uncharted2Tonemap(vec3 x) {
 const char* Stars::cStarsVert = R"(
 // inputs
 layout(location = 0) in vec3  inPos;
-layout(location = 1) in float inDist;
-layout(location = 2) in vec3  inColor;
-layout(location = 3) in float inAbsMagnitude;
+layout(location = 1) in vec3  inColor;
+layout(location = 2) in float inAbsMagnitude;
                                                                             
 // uniforms
 uniform mat4 uMatMV;
@@ -220,10 +219,9 @@ void main() {
 const char* Stars::cStarsVertOnePixel = R"(
 
 // inputs
-layout(location = 0) in vec2  inDir;
-layout(location = 1) in float inDist;
-layout(location = 2) in vec3  inColor;
-layout(location = 3) in float inAbsMagnitude;
+layout(location = 0) in vec3  inPos;
+layout(location = 1) in vec3  inColor;
+layout(location = 2) in float inAbsMagnitude;
                                                                             
 // uniforms
 uniform mat4 uMatMV;
@@ -236,19 +234,14 @@ out vec4  vScreenSpacePos;
 out float vMagnitude;
 
 void main() {
-    vec3 starPos = vec3(
-        cos(inDir.x) * cos(inDir.y) * inDist,
-        sin(inDir.x) * inDist,
-        cos(inDir.x) * sin(inDir.y) * inDist);
-
     const float parsecToMeter = 3.08567758e16;
     vec3 observerPos = (uInvMV * vec4(0, 0, 0, 1) / parsecToMeter).xyz;
 
-    vMagnitude = getApparentMagnitude(inAbsMagnitude, length(starPos-observerPos));
+    vMagnitude = getApparentMagnitude(inAbsMagnitude, length(inPos-observerPos));
     
     vColor = SRGBtoLINEAR(inColor);
 
-    vScreenSpacePos = uMatP * uMatMV * vec4(starPos*parsecToMeter, 1);
+    vScreenSpacePos = uMatP * uMatMV * vec4(inPos*parsecToMeter, 1);
     vScreenSpacePos /= vScreenSpacePos.w;
 
     gl_Position = vScreenSpacePos;
