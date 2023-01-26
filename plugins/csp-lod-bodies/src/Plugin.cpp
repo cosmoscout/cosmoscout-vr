@@ -13,6 +13,7 @@
 #include "../../../src/cs-core/GuiManager.hpp"
 #include "../../../src/cs-core/InputManager.hpp"
 #include "../../../src/cs-core/SolarSystem.hpp"
+#include "../../../src/cs-utils/FrameStats.hpp"
 #include "../../../src/cs-utils/convert.hpp"
 #include "../../../src/cs-utils/logger.hpp"
 
@@ -469,14 +470,14 @@ void Plugin::update() {
     double minTime      = 13.5;
     double maxTime      = 14.5;
 
-    if (cs::utils::FrameTimings::get().pFrameTime.get() > maxTime) {
+    if (cs::utils::FrameStats::get().pFrameTime.get() > maxTime) {
       mPluginSettings->mLODFactor = static_cast<float>(std::max(minLODFactor,
           mPluginSettings->mLODFactor.get() -
-              std::min(1.0, 0.1 * (cs::utils::FrameTimings::get().pFrameTime.get() - maxTime))));
-    } else if (cs::utils::FrameTimings::get().pFrameTime.get() < minTime) {
+              std::min(1.0, 0.1 * (cs::utils::FrameStats::get().pFrameTime.get() - maxTime))));
+    } else if (cs::utils::FrameStats::get().pFrameTime.get() < minTime) {
       mPluginSettings->mLODFactor = static_cast<float>(std::min(maxLODFactor,
           mPluginSettings->mLODFactor.get() +
-              std::min(1.0, 0.02 * (minTime - cs::utils::FrameTimings::get().pFrameTime.get()))));
+              std::min(1.0, 0.02 * (minTime - cs::utils::FrameStats::get().pFrameTime.get()))));
     }
   }
 

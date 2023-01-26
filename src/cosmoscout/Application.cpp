@@ -18,6 +18,7 @@
 #include "../cs-graphics/MouseRay.hpp"
 #include "../cs-scene/CelestialSurface.hpp"
 #include "../cs-utils/Downloader.hpp"
+#include "../cs-utils/FrameStats.hpp"
 #include "../cs-utils/convert.hpp"
 #include "../cs-utils/filesystem.hpp"
 #include "../cs-utils/logger.hpp"
@@ -227,21 +228,21 @@ void Application::Quit() {
 
 void Application::FrameUpdate() {
 
-  // The FrameTimings are used to measure the time individual parts of the frame loop require.
-  cs::utils::FrameTimings::get().startFrame();
+  // The FrameStats are used to measure the time individual parts of the frame loop require.
+  cs::utils::FrameStats::get().startFrame();
 
   // Increase the frame count once every frame.
   ++m_iFrameCount;
 
   // At the beginning of each frame, the slaves (if any) are synchronized with the master.
   {
-    cs::utils::FrameTimings::ScopedTimer timer("ClusterMode StartFrame");
+    cs::utils::FrameStats::ScopedTimer timer("ClusterMode StartFrame");
     m_pClusterMode->StartFrame();
   }
 
   // Emit vista events.
   if (m_pClusterMode->GetIsLeader()) {
-    cs::utils::FrameTimings::ScopedTimer timer("Emit VistaSystemEvents");
+    cs::utils::FrameStats::ScopedTimer timer("Emit VistaSystemEvents");
     EmitSystemEvent(VistaSystemEvent::VSE_POSTGRAPHICS);
     EmitSystemEvent(VistaSystemEvent::VSE_PREAPPLICATIONLOOP);
     EmitSystemEvent(VistaSystemEvent::VSE_UPDATE_INTERACTION);
@@ -254,17 +255,17 @@ void Application::FrameUpdate() {
   // update vista classes --------------------------------------------------------------------------
 
   {
-    cs::utils::FrameTimings::ScopedTimer timer("ClusterMode ProcessFrame");
+    cs::utils::FrameStats::ScopedTimer timer("ClusterMode ProcessFrame");
     m_pClusterMode->ProcessFrame();
   }
 
   {
-    cs::utils::FrameTimings::ScopedTimer timer("ClusterMode EndFrame");
+    cs::utils::FrameStats::ScopedTimer timer("ClusterMode EndFrame");
     m_pClusterMode->EndFrame();
   }
 
   {
-    cs::utils::FrameTimings::ScopedTimer timer("AvgLoopTime RecordTime");
+    cs::utils::FrameStats::ScopedTimer timer("AvgLoopTime RecordTime");
     m_pAvgLoopTime->RecordTime();
   }
 
@@ -444,22 +445,22 @@ void Application::FrameUpdate() {
 
     // Update the InputManager.
     {
-      cs::utils::FrameTimings::ScopedTimer timer(
-          "Update InputManager", cs::utils::FrameTimings::QueryMode::eCPU);
+      cs::utils::FrameStats::ScopedTimer timer(
+          "Update InputManager", cs::utils::FrameStats::TimerMode::eCPU);
       mInputManager->update();
     }
 
     // Update the TimeControl.
     {
-      cs::utils::FrameTimings::ScopedTimer timer(
-          "Update TimeControl", cs::utils::FrameTimings::QueryMode::eCPU);
+      cs::utils::FrameStats::ScopedTimer timer(
+          "Update TimeControl", cs::utils::FrameStats::TimerMode::eCPU);
       mTimeControl->update();
     }
 
     // Update the navigation, SolarSystem and scene scale.
     {
-      cs::utils::FrameTimings::ScopedTimer timer(
-          "Update SolarSystem", cs::utils::FrameTimings::QueryMode::eCPU);
+      cs::utils::FrameStats::ScopedTimer timer(
+          "Update SolarSystem", cs::utils::FrameStats::TimerMode::eCPU);
 
       // It may be that our observer is in a SPICE frame we do not have data for. If this is the
       // case, this call will bring it back to Solar System Barycenter / J2000 which should be
@@ -500,8 +501,8 @@ void Application::FrameUpdate() {
 
     // Update the individual plugins.
     for (auto const& plugin : mPlugins) {
-      cs::utils::FrameTimings::ScopedTimer timer(
-          "Update " + plugin.first, cs::utils::FrameTimings::QueryMode::eBoth);
+      cs::utils::FrameStats::ScopedTimer timer(
+          "Update " + plugin.first, cs::utils::FrameStats::TimerMode::eBoth);
 
       try {
         plugin.second.mPlugin->update();
@@ -512,8 +513,8 @@ void Application::FrameUpdate() {
 
     // Synchronize the observer position and simulation time across the network.
     {
-      cs::utils::FrameTimings::ScopedTimer timer(
-          "Scene Sync", cs::utils::FrameTimings::QueryMode::eCPU);
+      cs::utils::FrameStats::ScopedTimer timer(
+          "Scene Sync", cs::utils::FrameStats::TimerMode::eCPU);
 
       struct SyncMessage {
         glm::dvec3 mPosition;
@@ -552,14 +553,14 @@ void Application::FrameUpdate() {
 
     // Update the GraphicsEngine.
     {
-      cs::utils::FrameTimings::ScopedTimer timer("Update Graphics Engine");
+      cs::utils::FrameStats::ScopedTimer timer("Update Graphics Engine");
       mGraphicsEngine->update(glm::normalize(mSolarSystem->pSunPosition.get()));
     }
   }
 
   // Update the user interface.
   {
-    cs::utils::FrameTimings::ScopedTimer timer("Update User Interface");
+    cs::utils::FrameStats::ScopedTimer timer("Update User Interface");
 
     // Call update on all APIs
     if (mLoadedAllPlugins) {
@@ -623,26 +624,26 @@ void Application::FrameUpdate() {
   // update vista classes --------------------------------------------------------------------------
 
   {
-    cs::utils::FrameTimings::ScopedTimer timer("Rendering");
+    cs::utils::FrameStats::ScopedTimer timer("Rendering");
     m_pDisplayManager->DrawFrame();
   }
 
   {
-    cs::utils::FrameTimings::ScopedTimer timer("ClusterMode SwapSync");
+    cs::utils::FrameStats::ScopedTimer timer("ClusterMode SwapSync");
     m_pClusterMode->SwapSync();
   }
 
   // Measure frame time until here. If we moved this farther down, we would also measure the
   // vertical synchronization delay, which would result in wrong timings.
-  cs::utils::FrameTimings::get().endFrame();
+  cs::utils::FrameStats::get().endFrame();
 
   {
-    cs::utils::FrameTimings::ScopedTimer timer("Display Frame");
+    cs::utils::FrameStats::ScopedTimer timer("Display Frame");
     m_pDisplayManager->DisplayFrame();
   }
 
   {
-    cs::utils::FrameTimings::ScopedTimer timer("FrameRate RecordTime");
+    cs::utils::FrameStats::ScopedTimer timer("FrameRate RecordTime");
     m_pFrameRate->RecordTime();
   }
 }

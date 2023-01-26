@@ -177,7 +177,8 @@ void LodBody::update() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool LodBody::Do() {
-  cs::utils::FrameTimings::ScopedTimer timer("LoD-Body " + mObjectName);
+  auto                               timerName = "LoD-Body " + mObjectName;
+  cs::utils::FrameStats::ScopedTimer timer(timerName);
   mPlanet.draw();
 
   return true;

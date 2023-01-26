@@ -10,7 +10,7 @@
 #include "../../../src/cs-core/SolarSystem.hpp"
 #include "../../../src/cs-graphics/TextureLoader.hpp"
 #include "../../../src/cs-scene/CelestialObserver.hpp"
-#include "../../../src/cs-utils/FrameTimings.hpp"
+#include "../../../src/cs-utils/FrameStats.hpp"
 #include "../../../src/cs-utils/convert.hpp"
 #include "../../../src/cs-utils/utils.hpp"
 #include "logger.hpp"
@@ -312,7 +312,7 @@ bool Sharad::Do() {
   auto object = mSolarSystem->getObject(mObjectName);
 
   if (object && object->getIsBodyVisible()) {
-    cs::utils::FrameTimings::ScopedTimer timer("Sharad");
+    cs::utils::FrameStats::ScopedTimer timer("Sharad");
 
     mShader.Bind();
 

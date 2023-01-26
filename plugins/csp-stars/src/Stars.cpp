@@ -10,7 +10,7 @@
 #include "logger.hpp"
 
 #include "../../../src/cs-graphics/TextureLoader.hpp"
-#include "../../../src/cs-utils/FrameTimings.hpp"
+#include "../../../src/cs-utils/FrameStats.hpp"
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -290,7 +290,9 @@ void Stars::setStarFiguresTexture(std::string const& filename) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool Stars::Do() {
-  cs::utils::FrameTimings::ScopedTimer timer("Render Stars");
+  cs::utils::FrameStats::ScopedTimer             timer("Render Stars");
+  cs::utils::FrameStats::ScopedSamplesCounter    samplesCounter("Render Stars");
+  cs::utils::FrameStats::ScopedPrimitivesCounter primitivesCounter("Render Stars");
 
   // save current state of the OpenGL state machine
   glPushAttrib(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_ENABLE_BIT);

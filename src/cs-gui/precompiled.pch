@@ -19,7 +19,7 @@
 #include <VistaKernel/GraphicsManager/VistaOpenGLDraw.h>>
 #include <VistaOGLExt/VistaGLSLShader.h>
 
-#include "../cs-utils/FrameTimings.hpp"
+#include "../cs-utils/FrameStats.hpp"
 
 #include "logger.hpp"
 #include "types.hpp"
