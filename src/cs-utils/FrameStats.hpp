@@ -28,8 +28,8 @@ class QueryPool;
 /// and multiple smaller subranges for smaller parts. To measure the time spent on the CPU or the
 /// GPU by a specific block of code, simply create a FrameStats::ScopedTimer. This will start a
 /// measuring range in its constructor and and end the range in its destructor.
-/// The ScopedCounter does not support nesting, so you have to ensure that you do not start to
-/// ScopedCounters at the same time.
+/// The ScopedSamplesCounter and the ScopedPrimitivesCounter do not support nesting, so you have to
+/// ensure that you do not start two of them at the same time.
 class CS_UTILS_EXPORT FrameStats {
  public:
   /// Defines which timings should be measured.
@@ -67,16 +67,16 @@ class CS_UTILS_EXPORT FrameStats {
   };
 
   /// This struct contains information on one specific counting range. It is used internally by the
-  /// FrameStats singleton and can be accessed via its getCounterQueryResults() method.
+  /// FrameStats singleton and is returned by the getSamplesQueryResults and
+  /// mgetPrimitivesQueryResults methods.
   struct CounterQueryResult {
     std::string mName;
     int64_t     mCount{};
     std::size_t mQueryIndex{};
   };
 
-  /// A ScopedCounter is responsible for counting generated fragments and primitives during its
-  /// entire existence. The counter will start measuring upon creation and stop measuring on
-  /// deletion.
+  /// A ScopedTimer is responsible for measuring CPU and GPU times during its entire existence. The
+  /// timer will start measuring upon creation and stop measuring on deletion.
   class CS_UTILS_EXPORT ScopedTimer {
    public:
     /// @param name The name of the counter.
@@ -95,6 +95,8 @@ class CS_UTILS_EXPORT FrameStats {
     int32_t mID;
   };
 
+  /// A ScopedSamplesCounter is responsible for counting generated fragments during its entire
+  /// existence. The counter will start measuring upon creation and stop measuring on deletion.
   class CS_UTILS_EXPORT ScopedSamplesCounter {
    public:
     /// @param name The name of the counter.
@@ -112,6 +114,8 @@ class CS_UTILS_EXPORT FrameStats {
     int32_t mID;
   };
 
+  /// A ScopedPrimitivesCounter is responsible for counting generated primitives during its entire
+  /// existence. The counter will start measuring upon creation and stop measuring on deletion.
   class CS_UTILS_EXPORT ScopedPrimitivesCounter {
    public:
     /// @param name The name of the counter.
@@ -157,25 +161,25 @@ class CS_UTILS_EXPORT FrameStats {
   void endFrame();
 
   /// Starts a timer / counter with the given name and mode. You can use this interface, however the
-  /// ScopedTimer and ScopedCounter are often more easy to use. The returned ID will be >= 0 if the
-  /// timing range was actually started and -1 if pEnableMeasurements is set to false or a counter
-  /// of the given type is already active (counter ranges cannot be nested).
+  /// ScopedTimer, ScopedSamplesCounter, and ScopedPrimitivesCounter are often more easy to use. The
+  /// returned ID will be >= 0 if the timing range was actually started and -1 if
+  /// pEnableMeasurements is set to false.
   int32_t startTimerQuery(std::string name, TimerMode mode = TimerMode::eBoth);
   int32_t startSamplesQuery(std::string name);
   int32_t startPrimitivesQuery(std::string name);
 
-  /// Stops the timing range with the given ID. You can use this interface, however the ScopedTimer
-  /// is often more easy to use.
+  /// Stops the query with the given ID. You can use this interface, however the ScopedTimer,
+  /// ScopedSamplesCounter, and ScopedPrimitivesCounter are often more easy to use.
   void endTimerQuery(int32_t id);
   void endSamplesQuery(int32_t id);
   void endPrimitivesQuery(int32_t id);
 
-  /// This will retrieve the recorded ranges from the last-but-one frame. This is to prevent any
+  /// This will retrieve the recorded results from the last-but-one frame. This is to prevent any
   /// synchronization between CPU and GPU: In one frame timings are recorded and queries are
   /// dispatched, then we wait one full frame until we attempt to read the query results. Then, in
   /// the third frame the results are available via this method.
   /// This will always contain at least one range for the entire frame. If pEnableMeasurements is
-  /// set to true, it will contain all timing ranges created by all ScopedTimers. It may contain
+  /// set to true, it will contain all timing results created by all ScopedTimers. It may contain
   /// incomplete data for the frames in which pEnableMeasurements was toggled.
   std::vector<TimerQueryResult> const&   getTimerQueryResults();
   std::vector<CounterQueryResult> const& getSamplesQueryResults();
@@ -213,23 +217,23 @@ class CS_UTILS_EXPORT QueryPool {
   /// Clears all recorded timing ranges.
   void reset();
 
-  /// Starts a new timing range. The returned integer will always be >= 0 and can be used to end the
+  /// Starts a new query. The returned integer will always be >= 0 and can be used to end the
   /// range with the method below.
   int32_t startTimerQuery(std::string name, FrameStats::TimerMode mode);
   int32_t startSamplesQuery(std::string name);
   int32_t startPrimitivesQuery(std::string name);
 
-  /// Ends a previously started timing range. This will do nothing if the given id is invalid.
+  /// Ends a previously started query. This will do nothing if the given id is invalid.
   void endTimerQuery(int32_t id);
   void endSamplesQuery(int32_t id);
   void endPrimitivesQuery(int32_t id);
 
-  /// Fetches timestamps from GPU. This needs to be called before getRanges() and blocks until all
+  /// Fetches timestamps from GPU. This needs to be called before get*Results() and blocks until all
   /// queries are done.
   void fetchQueries();
 
-  /// Returns the currently recorded ranges since the last call to reset(). It will not contain
-  /// valid GPU timings until fetchQueries() was called.
+  /// Returns the currently recorded queries since the last call to reset(). You should call
+  /// fetchQueries() before trying to access these.
   std::vector<FrameStats::TimerQueryResult> const&   getTimerQueryResults() const;
   std::vector<FrameStats::CounterQueryResult> const& getSamplesQueryResults() const;
   std::vector<FrameStats::CounterQueryResult> const& getPrimitivesQueryResults() const;
