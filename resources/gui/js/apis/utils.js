@@ -88,22 +88,22 @@ class UtilsApi extends IApi {
     const abs = Math.abs(number);
 
     if (abs >= 10000) {
-      return Number(number.toPrecision(2)).toExponential().toString();
-    }
-    if (abs >= 1000) {
-      return number.toPrecision(4);
-    }
-    if (abs >= 1) {
-      return number.toPrecision(3);
-    }
-    if (abs >= 0.1) {
       return number.toPrecision(2);
+    }
+    if (abs >= 100) {
+      return Number(number.toFixed(0)).toString();
+    }
+    if (abs >= 10) {
+      return Number(number.toFixed(1)).toString();
+    }
+    if (abs >= 0.01) {
+      return Number(number.toFixed(2)).toString();
     }
     if (abs === 0) {
       return '0';
     }
 
-    return Number(number.toPrecision(2)).toExponential().toString();
+    return number.toPrecision(2);
   }
 
   /**
