@@ -565,7 +565,11 @@ void TileRenderer::renderTile(RenderDataDEM* rdDEM, RenderDataImg* rdIMG, Unifor
       glm::value_ptr(normalsWorldSpace[0]));
 
   // draw tile
-  glDrawElements(GL_TRIANGLES, idxCount, GL_UNSIGNED_INT, nullptr);
+  //glDrawElements(GL_TRIANGLES, idxCount, GL_UNSIGNED_INT, nullptr);
+
+  glPatchParameteri(GL_PATCH_VERTICES, 3);
+
+  glDrawElements(GL_PATCHES, idxCount, GL_UNSIGNED_INT, nullptr);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -637,6 +641,7 @@ void TileRenderer::renderBounds(
             glm::value_ptr(controlPointsViewSpace[0]));
 
         glDrawElements(GL_LINES, 24, GL_UNSIGNED_INT, nullptr);
+
       }
     }
   };

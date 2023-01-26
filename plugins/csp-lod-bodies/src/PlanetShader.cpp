@@ -140,6 +140,8 @@ void PlanetShader::setSun(glm::vec3 direction, float illuminance) {
 void PlanetShader::compile() {
   VistaShaderRegistry& reg = VistaShaderRegistry::GetInstance();
   mVertexSource            = reg.RetrieveShader("Planet.vert");
+  mTessContSource          = reg.RetrieveShader("Planet.tesc");
+  mTessEvalSource          = reg.RetrieveShader("Planet.tese");
   mFragmentSource          = reg.RetrieveShader("Planet.frag");
 
   cs::utils::replaceString(

@@ -39,6 +39,8 @@ class TerrainShader {
 
   bool            mShaderDirty = true;
   std::string     mVertexSource;
+  std::string     mTessContSource;
+  std::string     mTessEvalSource;
   std::string     mFragmentSource;
   VistaGLSLShader mShader;
 };

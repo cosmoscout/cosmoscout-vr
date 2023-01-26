@@ -1,4 +1,4 @@
-#version 330
+#version 430
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //                               This file is part of CosmoScout VR                               //
@@ -32,7 +32,7 @@ $VP_TERRAIN_SHADER_FUNCTIONS
 // inputs
 // ==========================================================================
 
-in VS_OUT {
+in TE_OUT {
   vec2  texcoords;
   vec3  normal;
   vec3  position;
