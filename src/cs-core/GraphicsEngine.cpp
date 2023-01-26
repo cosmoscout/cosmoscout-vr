@@ -124,7 +124,7 @@ GraphicsEngine::GraphicsEngine(std::shared_ptr<core::Settings> settings)
   VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
       clearGLNode, static_cast<int>(utils::DrawOrder::eClearHDRBuffer));
 
-  mSetupGLNode      = std::make_shared<graphics::SetupGLNode>();
+  mSetupGLNode      = std::make_shared<graphics::SetupGLNode>(mSettings);
   auto* setupGLNode = pSG->NewOpenGLNode(pSG->GetRoot(), mSetupGLNode.get());
   VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
       setupGLNode, static_cast<int>(utils::DrawOrder::eSetupOpenGL));

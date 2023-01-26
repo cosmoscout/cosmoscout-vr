@@ -359,6 +359,7 @@ void from_json(nlohmann::json const& j, Settings& o) {
   Settings::deserialize(j, "logLevelFile", o.pLogLevelFile);
   Settings::deserialize(j, "logLevelConsole", o.pLogLevelConsole);
   Settings::deserialize(j, "logLevelScreen", o.pLogLevelScreen);
+  Settings::deserialize(j, "logLevelGL", o.pLogLevelGL);
   Settings::deserialize(j, "objects", o.mObjects);
   Settings::deserialize(j, "plugins", o.mPlugins);
   Settings::deserialize(j, "minDate", o.pMinDate);
@@ -383,6 +384,7 @@ void to_json(nlohmann::json& j, Settings const& o) {
   Settings::serialize(j, "logLevelFile", o.pLogLevelFile);
   Settings::serialize(j, "logLevelConsole", o.pLogLevelConsole);
   Settings::serialize(j, "logLevelScreen", o.pLogLevelScreen);
+  Settings::serialize(j, "logLevelGL", o.pLogLevelGL);
   Settings::serialize(j, "objects", o.mObjects);
   Settings::serialize(j, "plugins", o.mPlugins);
   Settings::serialize(j, "minDate", o.pMinDate);
