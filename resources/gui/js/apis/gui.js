@@ -440,7 +440,7 @@ class GuiApi extends IApi {
       range: range,
       format: {
         to(value) {
-          return CosmoScout.utils.beautifyNumber(value);
+          return CosmoScout.utils.formatNumber(value);
         },
         from(value) {
           return Number(parseFloat(value));
@@ -466,7 +466,7 @@ class GuiApi extends IApi {
       range: {min: min, max: max},
       format: {
         to(value) {
-          return CosmoScout.utils.beautifyNumber(value);
+          return CosmoScout.utils.formatNumber(value);
         },
         from(value) {
           return Number(parseFloat(value));
