@@ -119,6 +119,7 @@ void to_json(nlohmann::json& j, Plugin::Settings::BRDF const& o) {
 void from_json(nlohmann::json const& j, Plugin::Settings& o) {
   cs::core::Settings::deserialize(j, "terrainProjectionType", o.mTerrainProjectionType);
   cs::core::Settings::deserialize(j, "lodFactor", o.mLODFactor);
+  cs::core::Settings::deserialize(j, "tessLevel", o.mTessLevel);
   cs::core::Settings::deserialize(j, "autoLod", o.mAutoLOD);
   cs::core::Settings::deserialize(j, "textureGamma", o.mTextureGamma);
   cs::core::Settings::deserialize(j, "enableHeightlines", o.mEnableHeightlines);
@@ -141,6 +142,7 @@ void from_json(nlohmann::json const& j, Plugin::Settings& o) {
 void to_json(nlohmann::json& j, Plugin::Settings const& o) {
   cs::core::Settings::serialize(j, "terrainProjectionType", o.mTerrainProjectionType);
   cs::core::Settings::serialize(j, "lodFactor", o.mLODFactor);
+  cs::core::Settings::serialize(j, "tessLevel", o.mTessLevel);
   cs::core::Settings::serialize(j, "autoLod", o.mAutoLOD);
   cs::core::Settings::serialize(j, "textureGamma", o.mTextureGamma);
   cs::core::Settings::serialize(j, "enableHeightlines", o.mEnableHeightlines);
@@ -217,13 +219,6 @@ void Plugin::init() {
     mGuiManager->setCheckboxValue("lodBodies.setEnableLatLongGrid", enable);
   });
 
-  mGuiManager->getGui()->registerCallback("lodBodies.setTerrainLod",
-      "Specifies the amount of detail of the planet's surface. Should be in the range 1-100.",
-      std::function(
-          [this](double value) { mPluginSettings->mLODFactor = static_cast<float>(value); }));
-  mPluginSettings->mLODFactor.connectAndTouch(
-      [this](float value) { mGuiManager->setSliderValue("lodBodies.setTerrainLod", value); });
-
   mGuiManager->getGui()->registerCallback("lodBodies.setEnableAutoTerrainLod",
       "If set to true, the level-of-detail will be chosen automatically based on the current "
       "rendering performance.",
@@ -231,6 +226,20 @@ void Plugin::init() {
   mPluginSettings->mAutoLOD.connectAndTouch([this](bool enable) {
     mGuiManager->setCheckboxValue("lodBodies.setEnableAutoTerrainLod", enable);
   });
+
+  mGuiManager->getGui()->registerCallback("lodBodies.setTerrainLod",
+      "Specifies the amount of detail of the planet's surface. Should be in the range 1-100.",
+      std::function(
+          [this](double value) { mPluginSettings->mLODFactor = static_cast<float>(value); }));
+  mPluginSettings->mLODFactor.connectAndTouch(
+      [this](float value) { mGuiManager->setSliderValue("lodBodies.setTerrainLod", value); });
+
+  mGuiManager->getGui()->registerCallback("lodBodies.setTesselationFactor",
+      "Set the Tesselation Factor to a specific Value. 1 for no tesselation.",
+      std::function(
+          [this](double value) { mPluginSettings->mTessLevel = static_cast<float>(value); }));
+  mPluginSettings->mTessLevel.connectAndTouch(
+      [this](float value) { mGuiManager->setSliderValue("lodBodies.setTesselationFactor", value); });
 
   mGuiManager->getGui()->registerCallback("lodBodies.setTextureGamma",
       "A multiplier for the brightness of the image channel.", std::function([this](double value) {
@@ -443,6 +452,7 @@ void Plugin::deInit() {
   mGuiManager->getGui()->unregisterCallback("lodBodies.setEnableHeightlines");
   mGuiManager->getGui()->unregisterCallback("lodBodies.setEnableLatLongGrid");
   mGuiManager->getGui()->unregisterCallback("lodBodies.setTerrainLod");
+  mGuiManager->getGui()->unregisterCallback("lodBodies.setTesselationFactor");
   mGuiManager->getGui()->unregisterCallback("lodBodies.setEnableAutoTerrainLod");
   mGuiManager->getGui()->unregisterCallback("lodBodies.setTextureGamma");
   mGuiManager->getGui()->unregisterCallback("lodBodies.setHeightRange");

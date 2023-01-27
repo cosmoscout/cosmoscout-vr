@@ -71,6 +71,8 @@ PlanetShader::PlanetShader(std::shared_ptr<cs::core::Settings> settings,
         [this](bool /*ignored*/) { mShaderDirty = true; });
     mPluginSettings->mEnableLatLongGrid.connect(
         [this](bool /*ignored*/) { mShaderDirty = true; });
+    mPluginSettings->mTessLevel.connect(
+        [this](float /*ignored*/) { mShaderDirty = true; });
   // clang-format on
 
   // TODO: color map mangement could be done in a separate class
@@ -99,6 +101,11 @@ PlanetShader::PlanetShader(std::shared_ptr<cs::core::Settings> settings,
     mGuiManager->getGui()->registerCallback("lodBodies.setColormap",
         "Make the planet shader use the colormap with the given name.",
         std::function([this](std::string&& name) { mPluginSettings->mTerrainColorMap = name; }));
+
+    // Wito: Callback without UI ?
+    /*mGuiManager->getGui()->registerCallback("lodBodies.setTesselationFactor",
+        "Set the Tesselation Factor to a specific Value. 1 for no tesselation.",
+        std::function([this](double value) { mPluginSettings->mTessLevel = static_cast<float>(value); }));*/
   }
 }
 
@@ -113,6 +120,7 @@ PlanetShader::~PlanetShader() {
   mSettings->mGraphics.pEnableHDR.disconnect(mEnableHDRConnection);
 
   mGuiManager->getGui()->unregisterCallback("lodBodies.setColormap");
+  //mGuiManager->getGui()->unregisterCallback("lodBodies.setTesselationFactor");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -138,6 +146,8 @@ void PlanetShader::setSun(glm::vec3 direction, float illuminance) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void PlanetShader::compile() {
+
+  // Add Shader Stages: Vertex, Tess Control, Tess Evaluation and Fragment
   VistaShaderRegistry& reg = VistaShaderRegistry::GetInstance();
   mVertexSource            = reg.RetrieveShader("Planet.vert");
   mTessContSource          = reg.RetrieveShader("Planet.tesc");
@@ -217,7 +227,11 @@ void PlanetShader::bind() {
   TerrainShader::bind();
 
   GLint loc = -1;
-  loc       = mShader.GetUniformLocation("heightTex");
+
+  loc = mShader.GetUniformLocation("tesselationLevel");
+  mShader.SetUniform(loc, mPluginSettings->mTessLevel.get());
+
+  loc = mShader.GetUniformLocation("heightTex");
   mShader.SetUniform(loc, TEX_UNIT_LUT);
 
   loc = mShader.GetUniformLocation("fontTex");

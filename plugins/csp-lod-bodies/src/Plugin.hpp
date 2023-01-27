@@ -40,11 +40,16 @@ class Plugin : public cs::core::PluginBase {
         TerrainProjectionType::eHybrid};
 
     /// Specifies the amount of detail of the planet's surface. Should be in the range 1-100.
+    /// rendering performance.
     cs::utils::DefaultProperty<float> mLODFactor{15.F};
 
     /// If set to true, the level-of-detail will be chosen automatically based on the current
     /// rendering performance.
     cs::utils::DefaultProperty<bool> mAutoLOD{true};
+
+    /// Specifies the amount of additional tesselation per triangle. Performed in Shader.
+    /// rendering performance.
+    cs::utils::DefaultProperty<float> mTessLevel{1.F};
 
     /// A multiplier for the brightness of the image channel.
     cs::utils::DefaultProperty<float> mTextureGamma{1.F};

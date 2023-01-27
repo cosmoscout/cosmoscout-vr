@@ -58,6 +58,8 @@ void TerrainShader::compile() {
   mShader = VistaGLSLShader();
   mShader.InitVertexShaderFromString(mVertexSource);
   mShader.InitFragmentShaderFromString(mFragmentSource);
+  mShader.InitShaderFromString(GL_TESS_CONTROL_SHADER, mTessContSource);
+  mShader.InitShaderFromString(GL_TESS_EVALUATION_SHADER, mTessEvalSource);
   mShader.Link();
 }
 

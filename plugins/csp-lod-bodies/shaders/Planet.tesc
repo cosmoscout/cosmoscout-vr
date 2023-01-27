@@ -11,7 +11,7 @@
 
 layout(vertices = 3) out;
 
-uniform int Tesselation_Level = 1;
+uniform float tesselationLevel = 1.0;
 
 // inputs
 // ==========================================================================
@@ -51,11 +51,11 @@ void main()
     // Outer are the three edges
     // Inner is one value only
 
-    gl_TessLevelInner[0] = Tesselation_Level;
+    gl_TessLevelInner[0] = tesselationLevel * 1.0;
 
-    gl_TessLevelOuter[0] = Tesselation_Level;
-    gl_TessLevelOuter[1] = Tesselation_Level;
-    gl_TessLevelOuter[2] = Tesselation_Level;
+    gl_TessLevelOuter[0] = tesselationLevel * 1.0;
+    gl_TessLevelOuter[1] = tesselationLevel * 1.0;
+    gl_TessLevelOuter[2] = tesselationLevel * 1.0;
 
     // Pass Through Data
     tc_out[gl_InvocationID].texcoords      = tc_in[gl_InvocationID].texcoords;
@@ -67,5 +67,5 @@ void main()
     tc_out[gl_InvocationID].vertexPosition = tc_in[gl_InvocationID].vertexPosition;
     tc_out[gl_InvocationID].sunDir         = tc_in[gl_InvocationID].sunDir;
 
-    gl_out[gl_InvocationID].gl_Position    = tc_in[gl_InvocationID].gl_Position;
+    gl_out[gl_InvocationID].gl_Position    = gl_in[gl_InvocationID].gl_Position;
 }

@@ -101,13 +101,22 @@ void main()
     sd += gl_TessCoord.z * te_in[2].sunDir;
 
     te_out.texcoords      = tc;
-    te_out.normal         = n;
+    te_out.normal         = normalize(n);
     te_out.position       = p0;
     te_out.planetCenter   = pc;
     te_out.lngLat         = ll;
     te_out.height         = h;
     te_out.vertexPosition = vp;
     te_out.sunDir         = sd;
+
+    // te_out.texcoords      = te_in[0].texcoords;
+    // te_out.normal         = te_in[0].normal;
+    // te_out.position       = te_in[0].position;
+    // te_out.planetCenter   = te_in[0].planetCenter;
+    // te_out.lngLat         = te_in[0].lngLat;
+    // te_out.height         = te_in[0].height;
+    // te_out.vertexPosition = te_in[0].vertexPosition;
+    // te_out.sunDir         = te_in[0].sunDir;
 
     // final position
     gl_Position = p1;
