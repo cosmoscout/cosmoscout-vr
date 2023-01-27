@@ -709,14 +709,11 @@ bool Stars::readStarCache(const std::string& sCacheFile) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Stars::buildStarVAO() {
-  int                p(0);
-  int                m(0);
+  int                c(0);
   const int          iElementCount(7);
-  std::vector<float> dataPos(mStars.size() * 3);
-  std::vector<float> dataColor(mStars.size() * 3);
-  std::vector<float> dataMag(mStars.size());
+  std::vector<float> data(iElementCount * mStars.size());
 
-  for (auto it = mStars.begin(); it != mStars.end(); ++it, p+=3, ++m) {
+  for (auto it = mStars.begin(); it != mStars.end(); ++it, c += iElementCount) {
     // use B and V magnitude to retrieve the according color
     const float minIdx(-0.4F);
     const float maxIdx(2.0F);
@@ -737,43 +734,33 @@ void Stars::buildStarVAO() {
         glm::sin(it->mDeclination) * fDist,
         glm::cos(it->mDeclination) * glm::sin(it->mAscension) * fDist);
 
-    dataPos[p]     = starPos[0];
-    dataPos[p + 1] = starPos[1];
-    dataPos[p + 2] = starPos[2];
-
-    dataColor[p]     = color.GetRed();
-    dataColor[p + 1] = color.GetGreen();
-    dataColor[p + 2] = color.GetBlue();
-
-    dataMag[m] = it->mVMagnitude - 5.F * std::log10(fDist / 10.F);
+    data[c]     = starPos[0];
+    data[c + 1] = starPos[1];
+    data[c + 2] = starPos[2];
+    data[c + 3] = color.GetRed();
+    data[c + 4] = color.GetGreen();
+    data[c + 5] = color.GetBlue();
+    data[c + 6] = it->mVMagnitude - 5.F * std::log10(fDist / 10.F);
   }
 
-  // star position VBO
-  mStarVBOPos.Bind(GL_ARRAY_BUFFER);
-  mStarVBOPos.BufferData(mStars.size() * 3, dataPos.data(), GL_STATIC_DRAW);
-  mStarVBOPos.Release();
+  mStarVBO.Bind(GL_ARRAY_BUFFER);
+  mStarVBO.BufferData(iElementCount * mStars.size() * sizeof(float), data.data(), GL_STATIC_DRAW);
+  mStarVBO.Release();
 
+  // star positions
   mStarVAO.EnableAttributeArray(0);
   mStarVAO.SpecifyAttributeArrayFloat(
-      0, 3, GL_FLOAT, GL_FALSE, 0, 0, &mStarVBOPos);
+      0, 3, GL_FLOAT, GL_FALSE, iElementCount * sizeof(float), 0, &mStarVBO);
 
-  // color VBO
-  mStarVBOColor.Bind(GL_ARRAY_BUFFER);
-  mStarVBOColor.BufferData(mStars.size() * 3, dataColor.data(), GL_STATIC_DRAW);
-  mStarVBOColor.Release();
-
+  // color
   mStarVAO.EnableAttributeArray(1);
   mStarVAO.SpecifyAttributeArrayFloat(
-      1, 3, GL_FLOAT, GL_FALSE, 0, 0, &mStarVBOColor);
+      1, 3, GL_FLOAT, GL_FALSE, iElementCount * sizeof(float), 3 * sizeof(float), &mStarVBO);
 
-  // magnitude VBO
-  mStarVBOMag.Bind(GL_ARRAY_BUFFER);
-  mStarVBOMag.BufferData(mStars.size(), dataMag.data(), GL_STATIC_DRAW);
-  mStarVBOMag.Release();
-
+  // magnitude
   mStarVAO.EnableAttributeArray(2);
   mStarVAO.SpecifyAttributeArrayFloat(
-      2, 1, GL_FLOAT, GL_FALSE, 0, 0, &mStarVBOMag);
+      2, 1, GL_FLOAT, GL_FALSE, iElementCount * sizeof(float), 6 * sizeof(float), &mStarVBO);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
