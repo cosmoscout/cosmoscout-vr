@@ -3,6 +3,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+// SPDX-FileCopyrightText: 2017 Eric Bruneton
 // SPDX-License-Identifier: MIT
 
 #include "Model.hpp"
@@ -12,6 +13,10 @@
 namespace csp::atmospheres::models::bruneton {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// The parameterization and comments below are based on the demo application by Eric Bruneton. The
+// original source code can be found here:
+// https://github.com/ebruneton/precomputed_atmospheric_scattering/blob/master/atmosphere/demo/demo.cc
 
 enum Luminance {
   // Render the spectral radiance at kLambdaR, kLambdaG, kLambdaB.
@@ -92,6 +97,7 @@ void to_json(nlohmann::json& j, Model::Settings const& o) {
 
 bool Model::init(nlohmann::json modelSettings, double planetRadius, double atmosphereRadius) {
 
+  // If nothing changed, we can omit re-creating the model.
   if (mPreviousSettings == modelSettings && mPlanetRadius == planetRadius &&
       mAtmosphereRadius == atmosphereRadius) {
     return false;

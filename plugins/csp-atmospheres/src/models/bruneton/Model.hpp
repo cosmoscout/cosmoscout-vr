@@ -33,6 +33,8 @@ class Model : public ModelBase {
   bool init(nlohmann::json modelSettings, double planetRadius, double atmosphereRadius) override;
 
   GLuint getShader() const override;
+
+  /// This model sets three texture uniforms. So it will return startTextureUnit + 3.
   GLuint setUniforms(GLuint program, GLuint startTextureUnit) const override;
 
  private:
