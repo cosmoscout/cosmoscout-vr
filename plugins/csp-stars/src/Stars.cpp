@@ -306,10 +306,10 @@ bool Stars::Do() {
 
   // Add a lower bound to the scene brightness value so that we can show the stars with the
   // mLuminanceMultiplicator even if we are in full daylight.
-  float sceneBrightness = mApproximateSceneBrightness + 0.001;
+  float sceneBrightness = mApproximateSceneBrightness + 0.001F;
 
   // Start are not visible with a low luminance multiplicator
-  if (mLuminanceMultiplicator * sceneBrightness < 0.005) {
+  if (mLuminanceMultiplicator * sceneBrightness < 0.005F) {
     return true;
   }
 
