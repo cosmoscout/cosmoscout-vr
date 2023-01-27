@@ -157,9 +157,7 @@ class Stars : public IVistaOpenGLDraw {
   VistaColor             mBackgroundColor1;
   VistaColor             mBackgroundColor2;
   VistaVertexArrayObject mStarVAO;
-  VistaBufferObject      mStarVBOPos;
-  VistaBufferObject      mStarVBOColor;
-  VistaBufferObject      mStarVBOMag;
+  VistaBufferObject      mStarVBO;
   VistaVertexArrayObject mBackgroundVAO;
   VistaBufferObject      mBackgroundVBO;
 
