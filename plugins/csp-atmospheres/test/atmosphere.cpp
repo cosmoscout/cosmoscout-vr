@@ -84,9 +84,9 @@ TEST_CASE("[graphical] csp::atmospheres::Atmosphere") {
   }
 
   // Create the atmosphere.
-  auto settings           = std::make_shared<Plugin::Settings>();
-  settings->mEnableClouds = false;
-  AtmosphereRenderer atmosphere(settings, nullptr);
+  auto pluginSettings           = std::make_shared<Plugin::Settings>();
+  pluginSettings->mEnableClouds = false;
+  AtmosphereRenderer atmosphere(pluginSettings, nullptr);
 
   atmosphere.setSun(glm::vec3(1, 0, 0), 15.0);
   atmosphere.setAtmosphereHeight(70.0 / 3460.0);
