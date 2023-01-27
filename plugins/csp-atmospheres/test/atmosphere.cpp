@@ -6,6 +6,7 @@
 // SPDX-License-Identifier: MIT
 
 #include "../../../src/cs-core/GraphicsEngine.hpp"
+#include "../../../src/cs-core/Settings.hpp"
 #include "../../../src/cs-graphics/SetupGLNode.hpp"
 #include "../../../src/cs-utils/TestImageCompare.hpp"
 #include "../../../src/cs-utils/doctest.hpp"
@@ -45,7 +46,8 @@ TEST_CASE("[graphical] csp::atmospheres::Atmosphere") {
   VistaGeometryFactory oGeometryFactory(pSG);
 
   // Make sure that everything is set up to use the reverse infinite projection.
-  auto* setupGLNode = pSG->NewOpenGLNode(pSG->GetRoot(), new cs::graphics::SetupGLNode());
+  auto  settings    = std::make_shared<cs::core::Settings>();
+  auto* setupGLNode = pSG->NewOpenGLNode(pSG->GetRoot(), new cs::graphics::SetupGLNode(settings));
   VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
       setupGLNode, static_cast<int>(cs::utils::DrawOrder::eSetupOpenGL));
 
