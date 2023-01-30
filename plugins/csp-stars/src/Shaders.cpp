@@ -66,10 +66,10 @@ void main() {
     const float parsecToMeter = 3.08567758e16;
     vec3 observerPos = (uInvMV * vec4(0, 0, 0, 1) / parsecToMeter).xyz;
 
-    vMagnitude = getApparentMagnitude(inAbsMagnitude, length(inPos-observerPos));
+    vMagnitude = getApparentMagnitude(inAbsMagnitude, length(inPos - observerPos));
     vColor = inColor;
 
-    gl_Position = uMatMV * vec4(inPos*parsecToMeter, 1);
+    gl_Position = uMatMV * vec4(inPos * parsecToMeter, 1);
 }
 
 )";
@@ -236,11 +236,11 @@ void main() {
     const float parsecToMeter = 3.08567758e16;
     vec3 observerPos = (uInvMV * vec4(0, 0, 0, 1) / parsecToMeter).xyz;
 
-    vMagnitude = getApparentMagnitude(inAbsMagnitude, length(inPos-observerPos));
+    vMagnitude = getApparentMagnitude(inAbsMagnitude, length(inPos - observerPos));
     
     vColor = SRGBtoLINEAR(inColor);
 
-    vScreenSpacePos = uMatP * uMatMV * vec4(inPos*parsecToMeter, 1);
+    vScreenSpacePos = uMatP * uMatMV * vec4(inPos * parsecToMeter, 1);
     vScreenSpacePos /= vScreenSpacePos.w;
 
     gl_Position = vScreenSpacePos;
