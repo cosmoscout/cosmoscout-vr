@@ -253,7 +253,8 @@ class StatusbarApi extends IApi {
               // completion.
               this._suggestionField.insertAdjacentHTML("beforeend", `<span class='${classNames}'
                        onclick='CosmoScout.statusbar._setCompletion(${prefixBegin}, ${prefixEnd}, 
-                                                              ${finalCursorPos}, "${completion}");'>
+                                                              ${finalCursorPos}, "${
+                                                                        completion}");'>
                        ${element}
                 </span>`);
             });
@@ -277,8 +278,9 @@ class StatusbarApi extends IApi {
     let pos = CosmoScout.state.pointerPosition;
 
     if (pos !== undefined) {
-      const newText =`${CosmoScout.utils.formatLongitude(pos[0]) + CosmoScout.utils.formatLatitude(pos[1])}(${
-          CosmoScout.utils.formatHeight(pos[2])})`;
+      const newText =
+          `${CosmoScout.utils.formatLongitude(pos[0]) + CosmoScout.utils.formatLatitude(pos[1])}(${
+              CosmoScout.utils.formatHeight(pos[2])})`;
       if (this._pointerContainer.innerHTML !== newText) {
         this._pointerContainer.innerHTML = newText;
       }
@@ -291,8 +293,9 @@ class StatusbarApi extends IApi {
 
     pos = CosmoScout.state.observerLngLatHeight;
     if (pos !== undefined) {
-      const newText =`${CosmoScout.utils.formatLongitude(pos[0]) + CosmoScout.utils.formatLatitude(pos[1])}(${
-          CosmoScout.utils.formatHeight(pos[2])})`;
+      const newText =
+          `${CosmoScout.utils.formatLongitude(pos[0]) + CosmoScout.utils.formatLatitude(pos[1])}(${
+              CosmoScout.utils.formatHeight(pos[2])})`;
       if (this._userContainer.innerHTML !== newText) {
         this._userContainer.innerHTML = newText;
       }
