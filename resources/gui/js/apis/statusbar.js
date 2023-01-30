@@ -297,8 +297,9 @@ class StatusbarApi extends IApi {
         this._userContainer.innerHTML = newText;
       }
     } else {
-      if (this._userContainer.innerHTML !== ' - ') {
-        this._userContainer.innerHTML = ' - ';
+      const newText = ' - ';
+      if (this._userContainer.innerHTML !== newText) {
+        this._userContainer.innerHTML = newText;
       }
     }
 
