@@ -39,13 +39,12 @@ GLint const  texUnitIMG     = 1;
 
 GLint const texUnitShadow = 2;
 
-GLsizeiptr const SizeX = TileBase::SizeX; // NOLINT(cppcoreguidelines-interfaces-global-init)
-GLsizeiptr const SizeY = TileBase::SizeY; // NOLINT(cppcoreguidelines-interfaces-global-init)
+GLsizeiptr const Size = TileBase::Size; // NOLINT(cppcoreguidelines-interfaces-global-init)
 // number of vertices that make up a patch
-GLsizeiptr const NumVertices = SizeX * SizeY;
+GLsizeiptr const NumVertices = Size * Size;
 // number of indices: (number of quads) * (2 triangles per quad)
 //                                      * (3 indices per triangle)
-GLsizeiptr const NumIndices = (SizeX - 1) * (SizeY - 1) * 6;
+GLsizeiptr const NumIndices = (Size - 1) * (Size - 1) * 6;
 
 const char* BoundsVertexShaderName("VistaPlanetTileBounds.vert");
 const char* BoundsFragmentShaderName("VistaPlanetTileBounds.frag");
@@ -80,7 +79,7 @@ const char* BoundsFragmentShaderName("VistaPlanetTileBounds.frag");
 // so on.
 int buildTileIndices(GLuint* buffer, int idx, int level, int baseX, int baseY) {
   // number of quads along one side at this level
-  int const numQuads = static_cast<int32_t>(SizeX - 1) / (int32_t(1) << level);
+  int const numQuads = static_cast<int32_t>(Size - 1) / (int32_t(1) << level);
 
   if (numQuads == 1) {
     // lowest level, split single quad into triangles alternating
@@ -92,10 +91,10 @@ int buildTileIndices(GLuint* buffer, int idx, int level, int baseX, int baseY) {
     // y0  -----        y0  -----       bottom row
     //    x0   x1          x0   x1
 
-    GLuint const x0y0 = baseY * SizeX + baseX;
-    GLuint const x1y0 = baseY * SizeX + baseX + 1;
-    GLuint const x0y1 = (baseY + 1) * SizeX + baseX;
-    GLuint const x1y1 = (baseY + 1) * SizeX + baseX + 1;
+    GLuint const x0y0 = baseY * Size + baseX;
+    GLuint const x1y0 = baseY * Size + baseX + 1;
+    GLuint const x0y1 = (baseY + 1) * Size + baseX;
+    GLuint const x1y1 = (baseY + 1) * Size + baseX + 1;
 
     if ((baseX + baseY) % 2 == 0) {
       buffer[idx++] = x0y0; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
@@ -150,15 +149,15 @@ void calcOffsetScale(TileId const& idDEM, TileId const& idIMG, glm::ivec3& imgOS
     // 4^(level difference) == 2^(2 * level difference)
     idxCount = NumIndices / (int64_t(1) << (2 * deltaLvl));
 
-    imgOS = glm::ivec3(0, 0, (SizeX - 1) / (int64_t(1) << deltaLvl));
-    demOS = glm::ivec3(0, 0, (SizeX - 1) / (int64_t(1) << deltaLvl));
+    imgOS = glm::ivec3(0, 0, (Size - 1) / (int64_t(1) << deltaLvl));
+    demOS = glm::ivec3(0, 0, (Size - 1) / (int64_t(1) << deltaLvl));
 
     for (int i = deltaLvl; i > 0; --i) {
       if (idx & 0x01) {
-        demOS.x += (SizeX - 1) / (int64_t(1) << i);
+        demOS.x += (Size - 1) / (int64_t(1) << i);
       }
       if (idx & 0x02) {
-        demOS.y += (SizeY - 1) / (int64_t(1) << i);
+        demOS.y += (Size - 1) / (int64_t(1) << i);
       }
 
       idx >>= 2;
@@ -168,16 +167,16 @@ void calcOffsetScale(TileId const& idDEM, TileId const& idIMG, glm::ivec3& imgOS
     glm::int64 idx      = idDEM.patchIdx();
     int        deltaLvl = idDEM.level() - idIMG.level();
 
-    imgOS    = glm::ivec3(0, 0, (SizeX - 1) * (int64_t(1) << deltaLvl));
-    demOS    = glm::ivec3(0, 0, SizeX - 1);
+    imgOS    = glm::ivec3(0, 0, (Size - 1) * (int64_t(1) << deltaLvl));
+    demOS    = glm::ivec3(0, 0, Size - 1);
     idxCount = NumIndices;
 
     for (int i = 0; i < deltaLvl; ++i) {
       if (idx & 0x01) {
-        imgOS.x += (SizeX - 1) * (int64_t(1) << i);
+        imgOS.x += (Size - 1) * (int64_t(1) << i);
       }
       if (idx & 0x02) {
-        imgOS.y += (SizeY - 1) * (int64_t(1) << i);
+        imgOS.y += (Size - 1) * (int64_t(1) << i);
       }
 
       idx >>= 2;
@@ -221,7 +220,7 @@ glm::ivec4 calcEdgeOffset(RenderDataDEM* rdDEM) {
 
     for (int i = deltaLvl; i > 0; --i) {
       if (idx & 0x02) {
-        result[0] += (SizeY - 1) / (int64_t(1) << i);
+        result[0] += (Size - 1) / (int64_t(1) << i);
       }
 
       idx >>= 2;
@@ -240,7 +239,7 @@ glm::ivec4 calcEdgeOffset(RenderDataDEM* rdDEM) {
 
     for (int i = deltaLvl; i > 0; --i) {
       if (idx & 0x01) {
-        result[1] += (SizeX - 1) / (int64_t(1) << i);
+        result[1] += (Size - 1) / (int64_t(1) << i);
       }
 
       idx >>= 2;
@@ -259,7 +258,7 @@ glm::ivec4 calcEdgeOffset(RenderDataDEM* rdDEM) {
 
     for (int i = deltaLvl; i > 0; --i) {
       if (idx & 0x02) {
-        result[2] += (SizeY - 1) / (int64_t(1) << i);
+        result[2] += (Size - 1) / (int64_t(1) << i);
       }
 
       idx >>= 2;
@@ -278,7 +277,7 @@ glm::ivec4 calcEdgeOffset(RenderDataDEM* rdDEM) {
 
     for (int i = deltaLvl; i > 0; --i) {
       if (idx & 0x01) {
-        result[3] += (SizeX - 1) / (int64_t(1) << i);
+        result[3] += (Size - 1) / (int64_t(1) << i);
       }
 
       idx >>= 2;
@@ -702,8 +701,8 @@ std::unique_ptr<VistaBufferObject> TileRenderer::makeVBOTerrain() {
 
   GLuint idx    = 0;
   auto*  buffer = static_cast<GLushort*>(result->MapBuffer(GL_WRITE_ONLY));
-  for (int y = 0; y < SizeY; ++y) {
-    for (int x = 0; x < SizeX; ++x) {
+  for (int y = 0; y < Size; ++y) {
+    for (int x = 0; x < Size; ++x) {
       // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
       buffer[idx++] = static_cast<GLushort>(x);
 

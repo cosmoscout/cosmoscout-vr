@@ -53,18 +53,18 @@ MinMaxPyramid::MinMaxPyramid(Tile<float>* tile)
   mMaxPyramid[5] = std::vector<float>(4 * 4, -std::numeric_limits<float>::max());
   mMaxPyramid[6] = std::vector<float>(2 * 2, -std::numeric_limits<float>::max());
 
-  int HalfSizeX = static_cast<int32_t>((TileBase::SizeX - 1) * 0.5); // 128
-  int x2        = 0;                                                 // 0..128
-  int y2        = 0;                                                 // 0..128
+  int HalfSizeX = static_cast<int32_t>((TileBase::Size - 1) * 0.5); // 128
+  int x2        = 0;                                                // 0..128
+  int y2        = 0;                                                // 0..128
 
-  for (int y = 0; y < TileBase::SizeY; ++y) {
+  for (int y = 0; y < TileBase::Size; ++y) {
     x2 = 0;
-    for (int x = 0; x < TileBase::SizeX; ++x) {
-      float const v = tile->data()[y * TileBase::SizeX + x];
+    for (int x = 0; x < TileBase::Size; ++x) {
+      float const v = tile->data()[y * TileBase::Size + x];
 
       mMinValue = std::min(mMinValue, v);
       mMaxValue = std::max(mMaxValue, v);
-      mAvgValue += v / (TileBase::SizeY * TileBase::SizeY);
+      mAvgValue += v / (TileBase::Size * TileBase::Size);
 
       // Construct first 128x128 MinMaxPyramid layer by sampling 256x256 values
       x2                                  = std::min(x2, 127);
@@ -87,16 +87,16 @@ MinMaxPyramid::MinMaxPyramid(Tile<float>* tile)
   // Build remaining MinMaxPyramid layers 64x62-2x2
   for (int i(1); i < 7; ++i) {
     y2 = 0;
-    for (int y = 0; y < (TileBase::SizeY - 1) * std::pow(0.5, i); ++y) {
+    for (int y = 0; y < (TileBase::Size - 1) * std::pow(0.5, i); ++y) {
       x2 = 0;
-      for (int x = 0; x < (TileBase::SizeX - 1) * std::pow(0.5, i); ++x) {
+      for (int x = 0; x < (TileBase::Size - 1) * std::pow(0.5, i); ++x) {
         mMinPyramid[i][static_cast<uint64_t>(y2 * HalfSizeX * std::pow(0.5, i) + x2)] = std::min(
             mMinPyramid[i - 1]
-                       [static_cast<uint64_t>(y * (TileBase::SizeX - 1) * std::pow(0.5, i) + x)],
+                       [static_cast<uint64_t>(y * (TileBase::Size - 1) * std::pow(0.5, i) + x)],
             mMinPyramid[i][static_cast<uint64_t>(y2 * HalfSizeX * std::pow(0.5, i) + x2)]);
         mMaxPyramid[i][static_cast<uint64_t>(y2 * HalfSizeX * std::pow(0.5, i) + x2)] = std::max(
             mMaxPyramid[i - 1]
-                       [static_cast<uint64_t>(y * (TileBase::SizeX - 1) * std::pow(0.5, i) + x)],
+                       [static_cast<uint64_t>(y * (TileBase::Size - 1) * std::pow(0.5, i) + x)],
             mMaxPyramid[i][static_cast<uint64_t>(y2 * HalfSizeX * std::pow(0.5, i) + x2)]);
         if (x % 2 == 1) {
           x2 += 1;

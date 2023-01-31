@@ -194,8 +194,8 @@ void TileTextureArray::allocateTexture(TileDataType dataType) {
   glGenTextures(1, &mTexId);
 
   GLsizei const level  = 0;
-  GLsizei const width  = TileBase::SizeX;
-  GLsizei const height = TileBase::SizeY;
+  GLsizei const width  = TileBase::Size;
+  GLsizei const height = TileBase::Size;
   GLsizei const depth  = mNumLayers;
   GLint const   border = 0;
 
@@ -252,8 +252,8 @@ void TileTextureArray::allocateLayer(RenderData* rdata) {
   GLint const   level   = 0;
   GLint const   xoffset = 0;
   GLint const   yoffset = 0;
-  GLsizei const width   = TileBase::SizeX;
-  GLsizei const height  = TileBase::SizeY;
+  GLsizei const width   = TileBase::Size;
+  GLsizei const height  = TileBase::Size;
   GLsizei const depth   = 1;
   GLvoid const* data    = tile->getDataPtr();
 
