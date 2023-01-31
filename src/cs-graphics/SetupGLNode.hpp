@@ -8,23 +8,20 @@
 #ifndef CS_GRAPHICS_SETUP_GL_NODE_HPP
 #define CS_GRAPHICS_SETUP_GL_NODE_HPP
 
-#include "../cs-core/Settings.hpp"
 #include "cs_graphics_export.hpp"
 
 #include <VistaKernel/GraphicsManager/VistaOpenGLDraw.h>
 
 namespace cs::graphics {
 
+/// The GraphicsEngine will put one instance of this class into the scenegraph. There, it is
+/// responsible to initialize the GL state to the defaults required by CosmoScout VR. This includes:
+/// - Setting depth func to GL_GEQUAL (required for the reverse infinite projection)
+/// - Enabling back-face culling
 class CS_GRAPHICS_EXPORT SetupGLNode : public IVistaOpenGLDraw {
  public:
-  /// The class needs access to the settings in order to read the log level
-  SetupGLNode(std::shared_ptr<cs::core::Settings> settings);
-
   bool Do() override;
   bool GetBoundingBox(VistaBoundingBox& oBoundingBox) override;
-
- private:
-  std::shared_ptr<cs::core::Settings> mSettings;
 };
 
 } // namespace cs::graphics
