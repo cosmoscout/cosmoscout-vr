@@ -47,8 +47,6 @@ PlanetShader::PlanetShader(std::shared_ptr<cs::core::Settings> settings,
     , mFontTexture(VistaOGLUtils::LoadTextureFromTga("../share/resources/textures/font.tga")) {
 
   // clang-format off
-    pTextureIsRGB.connect(
-        [this](bool /*ignored*/) { mShaderDirty = true; });
     pEnableTexture.connect(
         [this](bool /*ignored*/) { mShaderDirty = true; });
     mPluginSettings->mEnableHeightlines.connect(
@@ -142,8 +140,6 @@ void PlanetShader::compile() {
   mVertexSource            = reg.RetrieveShader("Planet.vert");
   mFragmentSource          = reg.RetrieveShader("Planet.frag");
 
-  cs::utils::replaceString(
-      mFragmentSource, "$TEXTURE_IS_RGB", cs::utils::toString(pTextureIsRGB.get()));
   cs::utils::replaceString(mFragmentSource, "$SHOW_HEIGHT_LINES",
       cs::utils::toString(mPluginSettings->mEnableHeightlines.get()));
   cs::utils::replaceString(

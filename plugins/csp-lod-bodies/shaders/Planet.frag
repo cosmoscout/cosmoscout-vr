@@ -15,7 +15,7 @@ uniform float slopeMin;
 uniform float slopeMax;
 uniform float ambientBrightness;
 uniform float texGamma;
-uniform vec4  uSunDirIlluminance;
+uniform vec4 uSunDirIlluminance;
 
 uniform sampler1D heightTex;
 uniform sampler2D fontTex;
@@ -86,10 +86,7 @@ void main() {
 #endif
 
 #if $SHOW_TEXTURE
-#if $TEXTURE_IS_RGB
   fragColor.rgb = texture(VP_texIMG, vec3(fsIn.texcoords, VP_layerIMG)).rgb;
-#else
-  fragColor.rgb = texture(VP_texIMG, vec3(fsIn.texcoords, VP_layerIMG)).rrr;
 #endif
 
 #if $ENABLE_HDR
