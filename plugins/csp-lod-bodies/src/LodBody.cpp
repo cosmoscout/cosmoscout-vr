@@ -111,7 +111,7 @@ void LodBody::setIMGtileSource(std::shared_ptr<TileSource> source) {
     if (!source->isSame(mIMGtileSource.get())) {
       mPlanet.setIMGSource(source.get());
       mShader.pEnableTexture = true;
-      mShader.pTextureIsRGB  = (source->getDataType() == TileDataType::eU8Vec3);
+      mShader.pTextureIsRGB  = (source->getDataType() == TileDataType::eColor);
       mIMGtileSource         = std::move(source);
     }
   } else {

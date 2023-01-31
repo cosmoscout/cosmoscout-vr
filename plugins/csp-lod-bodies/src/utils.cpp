@@ -148,7 +148,7 @@ double getHeight(
   double hP2{};
   double hPP{};
 
-  if (child->getTileDataType() == TileDataType::eFloat32) {
+  if (child->getTileDataType() == TileDataType::eElevation) {
     const auto* ptr = child->getTile()->getTypedPtr<float>();
     h   = ptr[vB + sizeY * uB];           // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
     hP1 = ptr[vB + sizeY * (uB + 1)];     // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
@@ -346,7 +346,7 @@ bool intersectPlanet(
         }
 
         // Access height data
-        if (parent->getTileDataType() == TileDataType::eFloat32) {
+        if (parent->getTileDataType() == TileDataType::eElevation) {
           const auto* ptr = parent->getTile()->getTypedPtr<float>();
           // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
           height = ptr[vB + sizeY * uB];

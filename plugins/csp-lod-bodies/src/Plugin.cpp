@@ -34,31 +34,6 @@ namespace csp::lodbodies {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void from_json(nlohmann::json const& j, TileDataType& o) {
-  auto s = j.get<std::string>();
-  if (s == "Float32") {
-    o = TileDataType::eFloat32;
-  } else if (s == "U8Vec3") {
-    o = TileDataType::eU8Vec3;
-  } else {
-    throw std::runtime_error(
-        "Failed to parse TileDataType! Only 'Float32', 'UInt8' or 'U8Vec3' are allowed.");
-  }
-}
-
-void to_json(nlohmann::json& j, TileDataType o) {
-  switch (o) {
-  case TileDataType::eFloat32:
-    j = "Float32";
-    break;
-  case TileDataType::eU8Vec3:
-    j = "U8Vec3";
-    break;
-  }
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 void from_json(nlohmann::json const& j, Plugin::Settings::Dataset& o) {
   cs::core::Settings::deserialize(j, "copyright", o.mCopyright);
   cs::core::Settings::deserialize(j, "layers", o.mLayers);
@@ -592,7 +567,7 @@ void Plugin::setImageSource(std::shared_ptr<LodBody> const& body, std::string co
     source->setMaxLevel(dataset->second.mMaxLevel);
     source->setLayers(dataset->second.mLayers);
     source->setUrl(dataset->second.mURL);
-    source->setDataType(TileDataType::eU8Vec3);
+    source->setDataType(TileDataType::eColor);
 
     body->setIMGtileSource(source);
 
@@ -622,7 +597,7 @@ void Plugin::setElevationSource(
   source->setMaxLevel(dataset->second.mMaxLevel);
   source->setLayers(dataset->second.mLayers);
   source->setUrl(dataset->second.mURL);
-  source->setDataType(TileDataType::eFloat32);
+  source->setDataType(TileDataType::eElevation);
 
   body->setDEMtileSource(source);
 

@@ -598,7 +598,7 @@ bool LODVisitor::testVisible(TileId const& tileId, TreeManagerBase* treeMgrDEM) 
 
     // Get MinMaxPyramid of last known DEM tile
     auto* tileBaseDEM = state.mLastDEM->getTile();
-    if (tileBaseDEM->getDataType() == TileDataType::eFloat32) {
+    if (tileBaseDEM->getDataType() == TileDataType::eElevation) {
       auto* tileDEM = dynamic_cast<Tile<float>*>(tileBaseDEM);
       if (auto* pyr = tileDEM->getMinMaxPyramid()) {
 

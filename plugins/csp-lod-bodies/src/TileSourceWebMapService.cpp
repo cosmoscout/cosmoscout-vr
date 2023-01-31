@@ -62,7 +62,7 @@ bool loadImpl(
   }
 
   // Now the cache file is available, try to load it with libtiff if it's elevation data.
-  if (tile->getDataType() == TileDataType::eFloat32) {
+  if (tile->getDataType() == TileDataType::eElevation) {
     TIFFSetWarningHandler(nullptr);
     auto* data = TIFFOpen(cacheFile->c_str(), "r");
     if (!data) {
@@ -107,7 +107,7 @@ bool loadImpl(
     int width{};
     int height{};
     int bpp{};
-    int channels = tile->getDataType() == TileDataType::eU8Vec3 ? 3 : 1;
+    int channels = tile->getDataType() == TileDataType::eColor ? 3 : 1;
 
     auto* data =
         reinterpret_cast<T*>(stbi_load(cacheFile->c_str(), &width, &height, &bpp, channels));
@@ -238,7 +238,7 @@ TileNode* loadImpl(TileSourceWebMapService* source, uint32_t level, glm::int64 p
         tile->data().data() + (256 - i) * 257);
   }
 
-  if (tile->getDataType() == TileDataType::eFloat32) {
+  if (tile->getDataType() == TileDataType::eElevation) {
     // Creating a MinMaxPyramid alongside the sampling beginning with a resolution of
     // 128x128
     // The MinMaxPyramid is later needed to deduce height information from this
@@ -267,10 +267,10 @@ TileSourceWebMapService::TileSourceWebMapService()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /* virtual */ TileNode* TileSourceWebMapService::loadTile(int level, glm::int64 patchIdx) {
-  if (mFormat == TileDataType::eFloat32) {
+  if (mFormat == TileDataType::eElevation) {
     return loadImpl<float>(this, level, patchIdx);
   }
-  if (mFormat == TileDataType::eU8Vec3) {
+  if (mFormat == TileDataType::eColor) {
     return loadImpl<glm::u8vec3>(this, level, patchIdx);
   }
 
@@ -311,7 +311,7 @@ std::optional<std::string> TileSourceWebMapService::loadData(int level, int x, i
   std::string format;
   std::string type;
 
-  if (mFormat == TileDataType::eFloat32) {
+  if (mFormat == TileDataType::eElevation) {
     format = "tiffGray";
     type   = "tiff";
   } else {

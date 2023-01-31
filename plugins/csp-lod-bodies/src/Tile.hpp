@@ -56,12 +56,12 @@ struct DataTypeTrait;
 
 template <>
 struct DataTypeTrait<float> {
-  static TileDataType const value = TileDataType::eFloat32;
+  static TileDataType const value = TileDataType::eElevation;
 };
 
 template <>
 struct DataTypeTrait<glm::u8vec3> {
-  static TileDataType const value = TileDataType::eU8Vec3;
+  static TileDataType const value = TileDataType::eColor;
 };
 } // namespace detail
 

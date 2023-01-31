@@ -86,10 +86,10 @@ class TileTextureArray {
 class GLResources {
  public:
   GLResources(int maxLayersFloat32, int maxLayersU8Vec3) {
-    mextureArrays[static_cast<int>(TileDataType::eFloat32)] =
-        std::make_unique<TileTextureArray>(TileDataType::eFloat32, maxLayersFloat32);
-    mextureArrays[static_cast<int>(TileDataType::eU8Vec3)] =
-        std::make_unique<TileTextureArray>(TileDataType::eU8Vec3, maxLayersU8Vec3);
+    mextureArrays[static_cast<int>(TileDataType::eElevation)] =
+        std::make_unique<TileTextureArray>(TileDataType::eElevation, maxLayersFloat32);
+    mextureArrays[static_cast<int>(TileDataType::eColor)] =
+        std::make_unique<TileTextureArray>(TileDataType::eColor, maxLayersU8Vec3);
   }
 
   TileTextureArray& operator[](TileDataType type) {

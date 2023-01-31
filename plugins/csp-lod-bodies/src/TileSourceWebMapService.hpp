@@ -78,7 +78,7 @@ class TileSourceWebMapService : public TileSource {
   std::string           mUrl;
   std::string           mCache = "cache/img";
   std::string           mLayers;
-  TileDataType          mFormat   = TileDataType::eU8Vec3;
+  TileDataType          mFormat   = TileDataType::eColor;
   uint32_t              mMaxLevel = 10;
 };
 } // namespace csp::lodbodies
