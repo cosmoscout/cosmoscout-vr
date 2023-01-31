@@ -30,6 +30,7 @@
 
 #include <array>
 #include <fstream>
+#include <glm/glm.hpp>
 
 namespace csp::stars {
 
@@ -214,6 +215,18 @@ float Stars::getMaxMagnitude() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void Stars::setApproximateSceneBrigthness(float value) {
+  mApproximateSceneBrightness = value;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+float Stars::getApproximateSceneBrigthness() const {
+  return mApproximateSceneBrightness;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Stars::setLuminanceMultiplicator(float value) {
   mLuminanceMultiplicator = value;
 }
@@ -290,6 +303,15 @@ void Stars::setStarFiguresTexture(std::string const& filename) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool Stars::Do() {
+  // Add a lower bound to the scene brightness value so that we can show the stars with the
+  // mLuminanceMultiplicator even if we are in full daylight.
+  float sceneBrightness = mApproximateSceneBrightness + 0.001F;
+
+  // Start are not visible with a low luminance multiplicator
+  if (mLuminanceMultiplicator * sceneBrightness < 0.005F) {
+    return true;
+  }
+
   cs::utils::FrameStats::ScopedTimer             timer("Render Stars");
   cs::utils::FrameStats::ScopedSamplesCounter    samplesCounter("Render Stars");
   cs::utils::FrameStats::ScopedPrimitivesCounter primitivesCounter("Render Stars");
@@ -374,11 +396,8 @@ bool Stars::Do() {
     mBackgroundShader.Bind();
     mBackgroundShader.SetUniform(mUniforms.bgTexture, 0);
 
-    float backgroundIntensity = 1.0F;
-
-    if (mEnableHDR) {
-      backgroundIntensity = 0.001F * mLuminanceMultiplicator;
-    }
+    float fadeOut =
+        mEnableHDR ? 0.001F * mLuminanceMultiplicator : mLuminanceMultiplicator * sceneBrightness;
 
     VistaTransformMatrix matMVNoTranslation = matModelView;
 
@@ -396,7 +415,7 @@ bool Stars::Do() {
 
     if (mCelestialGridTexture && mBackgroundColor1[3] != 0.F) {
       mBackgroundShader.SetUniform(mUniforms.bgColor, mBackgroundColor1[0], mBackgroundColor1[1],
-          mBackgroundColor1[2], mBackgroundColor1[3] * backgroundIntensity);
+          mBackgroundColor1[2], mBackgroundColor1[3] * fadeOut);
       mCelestialGridTexture->Bind(GL_TEXTURE0);
       glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
       mCelestialGridTexture->Unbind(GL_TEXTURE0);
@@ -404,7 +423,7 @@ bool Stars::Do() {
 
     if (mStarFiguresTexture && mBackgroundColor2[3] != 0.F) {
       mBackgroundShader.SetUniform(mUniforms.bgColor, mBackgroundColor2[0], mBackgroundColor2[1],
-          mBackgroundColor2[2], mBackgroundColor2[3] * backgroundIntensity);
+          mBackgroundColor2[2], mBackgroundColor2[3] * fadeOut);
       mStarFiguresTexture->Bind(GL_TEXTURE0);
       glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
       mStarFiguresTexture->Unbind(GL_TEXTURE0);
@@ -438,10 +457,13 @@ bool Stars::Do() {
 
   mStarTexture->Bind(GL_TEXTURE0);
   mStarShader.SetUniform(mUniforms.starTexture, 0);
+
   mStarShader.SetUniform(mUniforms.starMinMagnitude, mMinMagnitude);
   mStarShader.SetUniform(mUniforms.starMaxMagnitude, mMaxMagnitude);
   mStarShader.SetUniform(mUniforms.starSolidAngle, mSolidAngle);
-  mStarShader.SetUniform(mUniforms.starLuminanceMul, mLuminanceMultiplicator);
+
+  float fadeOut = mEnableHDR ? 1.F : sceneBrightness;
+  mStarShader.SetUniform(mUniforms.starLuminanceMul, mLuminanceMultiplicator * fadeOut);
 
   VistaTransformMatrix matInverseMV(matModelView.GetInverted());
   VistaTransformMatrix matInverseP(matProjection.GetInverted());
@@ -710,9 +732,13 @@ void Stars::buildStarVAO() {
       fDist = 1000.F / it->mParallax;
     }
 
-    data[c]     = it->mDeclination;
-    data[c + 1] = it->mAscension;
-    data[c + 2] = fDist;
+    glm::vec3 starPos = glm::vec3(glm::cos(it->mDeclination) * glm::cos(it->mAscension) * fDist,
+        glm::sin(it->mDeclination) * fDist,
+        glm::cos(it->mDeclination) * glm::sin(it->mAscension) * fDist);
+
+    data[c]     = starPos[0];
+    data[c + 1] = starPos[1];
+    data[c + 2] = starPos[2];
     data[c + 3] = color.GetRed();
     data[c + 4] = color.GetGreen();
     data[c + 5] = color.GetBlue();
@@ -726,22 +752,17 @@ void Stars::buildStarVAO() {
   // star positions
   mStarVAO.EnableAttributeArray(0);
   mStarVAO.SpecifyAttributeArrayFloat(
-      0, 2, GL_FLOAT, GL_FALSE, iElementCount * sizeof(float), 0, &mStarVBO);
-
-  // star distances
-  mStarVAO.EnableAttributeArray(1);
-  mStarVAO.SpecifyAttributeArrayFloat(
-      1, 1, GL_FLOAT, GL_FALSE, iElementCount * sizeof(float), 2 * sizeof(float), &mStarVBO);
+      0, 3, GL_FLOAT, GL_FALSE, iElementCount * sizeof(float), 0, &mStarVBO);
 
   // color
-  mStarVAO.EnableAttributeArray(2);
+  mStarVAO.EnableAttributeArray(1);
   mStarVAO.SpecifyAttributeArrayFloat(
-      2, 3, GL_FLOAT, GL_FALSE, iElementCount * sizeof(float), 3 * sizeof(float), &mStarVBO);
+      1, 3, GL_FLOAT, GL_FALSE, iElementCount * sizeof(float), 3 * sizeof(float), &mStarVBO);
 
   // magnitude
-  mStarVAO.EnableAttributeArray(3);
+  mStarVAO.EnableAttributeArray(2);
   mStarVAO.SpecifyAttributeArrayFloat(
-      3, 1, GL_FLOAT, GL_FALSE, iElementCount * sizeof(float), 6 * sizeof(float), &mStarVBO);
+      2, 1, GL_FLOAT, GL_FALSE, iElementCount * sizeof(float), 6 * sizeof(float), &mStarVBO);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

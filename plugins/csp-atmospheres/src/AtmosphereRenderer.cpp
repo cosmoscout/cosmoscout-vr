@@ -532,9 +532,10 @@ bool AtmosphereRenderer::Do() {
   glm::vec3 vPlanet         = glm::vec3(0, 0, 0);
   glm::vec3 vCameraToPlanet = glm::normalize(vCamera - vPlanet);
 
-  // [planet surface ... 5x atmosphere boundary] -> [0 ... 1]
+  // Altitude in [0.2x atmosphere boundary ... 5x atmosphere boundary] -> [0 ... 1]
   float fHeightInAtmosphere = std::min(1.0F,
-      std::max(0.0F, (glm::length(vCamera) - (1.F - mAtmosphereHeight)) / (mAtmosphereHeight * 5)));
+      std::max(0.0F, (glm::length(vCamera) - (1.F - mAtmosphereHeight) - 0.2F * mAtmosphereHeight) /
+                         (mAtmosphereHeight * 5.F)));
 
   // [noon ... midnight] -> [1 ... -1]
   float fDaySide = glm::dot(vCameraToPlanet, sunDir);

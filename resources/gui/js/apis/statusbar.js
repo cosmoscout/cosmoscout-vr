@@ -275,25 +275,41 @@ class StatusbarApi extends IApi {
    */
   update() {
     let pos = CosmoScout.state.pointerPosition;
+
     if (pos !== undefined) {
-      this._pointerContainer.innerText =
+      const newText =
           `${CosmoScout.utils.formatLongitude(pos[0]) + CosmoScout.utils.formatLatitude(pos[1])}(${
               CosmoScout.utils.formatHeight(pos[2])})`;
+      if (this._pointerContainer.innerHTML !== newText) {
+        this._pointerContainer.innerHTML = newText;
+      }
     } else {
-      this._pointerContainer.innerText = ' - ';
+      const newText = ' - ';
+      if (this._pointerContainer.innerHTML !== newText) {
+        this._pointerContainer.innerHTML = newText;
+      }
     }
 
     pos = CosmoScout.state.observerLngLatHeight;
     if (pos !== undefined) {
-      this._userContainer.innerText =
+      const newText =
           `${CosmoScout.utils.formatLongitude(pos[0]) + CosmoScout.utils.formatLatitude(pos[1])}(${
               CosmoScout.utils.formatHeight(pos[2])})`;
+      if (this._userContainer.innerHTML !== newText) {
+        this._userContainer.innerHTML = newText;
+      }
     } else {
-      this._userContainer.innerText = ' - ';
+      const newText = ' - ';
+      if (this._userContainer.innerHTML !== newText) {
+        this._userContainer.innerHTML = newText;
+      }
     }
 
     if (CosmoScout.state.observerSpeed !== undefined) {
-      this._speedContainer.innerText = CosmoScout.utils.formatSpeed(CosmoScout.state.observerSpeed);
+      const newText = CosmoScout.utils.formatSpeed(CosmoScout.state.observerSpeed);
+      if (this._speedContainer.innerHTML !== newText) {
+        this._speedContainer.innerHTML = newText;
+      }
     }
   }
 
