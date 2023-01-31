@@ -267,7 +267,11 @@ class TimelineApi extends IApi {
       this._updateOverviewLens();
 
       let dateText = this._centerTime.toISOString().replace('T', ' ').slice(0, 19);
-      document.getElementById('date-label').innerText = dateText;
+
+      const dateLabel = document.getElementById('date-label');
+      if (dateLabel.innerText !== dateText) {
+        dateLabel.innerText = dateText;
+      }
     }
   }
 
