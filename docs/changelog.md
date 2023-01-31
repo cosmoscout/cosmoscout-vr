@@ -9,6 +9,20 @@ SPDX-License-Identifier: CC-BY-4.0
 
 # Changelog of CosmoScout VR
 
+## [v1.8.0](https://github.com/cosmoscout/cosmoscout-vr/releases)
+
+**Release Date:** TBD
+
+#### New Features
+
+#### Other Changes
+
+#### Refactoring
+
+#### Bug Fixes
+
+* The user interface now avoids rerenders of components that did not change. This lead to the whole UI rerendering most of the time. 
+
 ## [v1.7.0](https://github.com/cosmoscout/cosmoscout-vr/releases)
 
 **Release Date:** 2022-12-13
