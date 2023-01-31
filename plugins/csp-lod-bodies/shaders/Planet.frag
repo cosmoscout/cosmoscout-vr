@@ -87,7 +87,6 @@ void main() {
 
 #if $SHOW_TEXTURE
   fragColor.rgb = texture(VP_texIMG, vec3(fsIn.texcoords, VP_layerIMG)).rgb;
-#endif
 
 #if $ENABLE_HDR
   fragColor.rgb = SRGBtoLINEAR(fragColor.rgb);
