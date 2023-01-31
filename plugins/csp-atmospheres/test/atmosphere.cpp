@@ -6,7 +6,6 @@
 // SPDX-License-Identifier: MIT
 
 #include "../../../src/cs-core/GraphicsEngine.hpp"
-#include "../../../src/cs-core/Settings.hpp"
 #include "../../../src/cs-graphics/SetupGLNode.hpp"
 #include "../../../src/cs-utils/TestImageCompare.hpp"
 #include "../../../src/cs-utils/doctest.hpp"
@@ -46,8 +45,7 @@ TEST_CASE("[graphical] csp::atmospheres::Atmosphere") {
   VistaGeometryFactory oGeometryFactory(pSG);
 
   // Make sure that everything is set up to use the reverse infinite projection.
-  auto  settings    = std::make_shared<cs::core::Settings>();
-  auto* setupGLNode = pSG->NewOpenGLNode(pSG->GetRoot(), new cs::graphics::SetupGLNode(settings));
+  auto* setupGLNode = pSG->NewOpenGLNode(pSG->GetRoot(), new cs::graphics::SetupGLNode());
   VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
       setupGLNode, static_cast<int>(cs::utils::DrawOrder::eSetupOpenGL));
 
@@ -84,9 +82,9 @@ TEST_CASE("[graphical] csp::atmospheres::Atmosphere") {
   }
 
   // Create the atmosphere.
-  auto pluginSettings           = std::make_shared<Plugin::Settings>();
-  pluginSettings->mEnableClouds = false;
-  AtmosphereRenderer atmosphere(pluginSettings, nullptr);
+  auto settings           = std::make_shared<Plugin::Settings>();
+  settings->mEnableClouds = false;
+  AtmosphereRenderer atmosphere(settings, nullptr);
 
   atmosphere.setSun(glm::vec3(1, 0, 0), 15.0);
   atmosphere.setAtmosphereHeight(70.0 / 3460.0);
