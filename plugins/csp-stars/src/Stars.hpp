@@ -88,6 +88,9 @@ class Stars : public IVistaOpenGLDraw {
   void  setMaxMagnitude(float value);
   float getMaxMagnitude() const;
 
+  void  setApproximateSceneBrigthness(float value);
+  float getApproximateSceneBrigthness() const;
+
   void  setLuminanceMultiplicator(float value);
   float getLuminanceMultiplicator() const;
 
@@ -163,12 +166,13 @@ class Stars : public IVistaOpenGLDraw {
 
   DrawMode mDrawMode = DrawMode::eScaledDisc;
 
-  bool  mShaderDirty            = true;
-  bool  mEnableHDR              = true;
-  float mSolidAngle             = 0.000005F;
-  float mMinMagnitude           = -5.F;
-  float mMaxMagnitude           = 15.F;
-  float mLuminanceMultiplicator = 1.F;
+  bool  mShaderDirty                = true;
+  bool  mEnableHDR                  = true;
+  float mSolidAngle                 = 0.000005F;
+  float mMinMagnitude               = -5.F;
+  float mMaxMagnitude               = 15.F;
+  float mLuminanceMultiplicator     = 1.F;
+  float mApproximateSceneBrightness = 1.F;
 
   struct {
     uint32_t bgInverseMVMatrix  = 0;
