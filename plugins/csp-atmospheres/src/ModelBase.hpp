@@ -20,10 +20,15 @@ class ModelBase {
  public:
   virtual ~ModelBase() = default;
 
+  /// Whenever the model parameters are changed, this method will be called. It should return true
+  /// if the shader needed to be recompiled.
   virtual bool init(nlohmann::json modelSettings, double planetRadius, double atmosphereRadius) = 0;
 
+  /// Returns a fragment shader which you can link to your shader program. See the ModelBase class
+  /// for more details. You have to call init() for accessing the shader.
   virtual GLuint getShader() const = 0;
 
+  /// This model sets no texture uniforms. So it will simply return startTextureUnit.
   virtual GLuint setUniforms(GLuint program, GLuint startTextureUnit) const = 0;
 };
 

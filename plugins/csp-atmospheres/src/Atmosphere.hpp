@@ -20,7 +20,6 @@ class EclipseShadowReceiver;
 } // namespace cs::core
 
 namespace cs::graphics {
-class ShadowMap;
 class HDRBuffer;
 } // namespace cs::graphics
 

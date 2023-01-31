@@ -14,8 +14,15 @@
 
 namespace csp::atmospheres::models::bruneton {
 
+/// This atmospheric model uses an implementation of multi-scattering by Eric Bruneton. More
+/// information can be found in the repo
+/// https://github.com/ebruneton/precomputed_atmospheric_scattering as well as in the paper
+/// "Precomputed Atmospheric Scattering" (https://hal.inria.fr/inria-00288758/en).
 class Model : public ModelBase {
  public:
+  /// Some of the model parameters can be configured via the settings. An example parametrization is
+  /// given in README.md, more details can be found in the paper "Precomputed Atmospheric
+  /// Scattering" by Eric Bruneton.
   struct Settings {
     double mSunAngularRadius{};
     double mRayleigh{};
@@ -30,8 +37,13 @@ class Model : public ModelBase {
     cs::utils::DefaultProperty<bool>   mUseOzone{false};
   };
 
+  /// Whenever the model parameters are changed, this method needs to be called. It will return true
+  /// if the shader needed to be recompiled. If that's the case, you can retrieve the new shader
+  /// with the getShader() method below.
   bool init(nlohmann::json modelSettings, double planetRadius, double atmosphereRadius) override;
 
+  /// Returns a fragment shader which you can link to your shader program. See the ModelBase class
+  /// for more details. You have to call init() for accessing the shader.
   GLuint getShader() const override;
 
   /// This model sets three texture uniforms. So it will return startTextureUnit + 3.
