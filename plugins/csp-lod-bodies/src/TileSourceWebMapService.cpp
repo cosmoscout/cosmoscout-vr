@@ -270,9 +270,6 @@ TileSourceWebMapService::TileSourceWebMapService()
   if (mFormat == TileDataType::eFloat32) {
     return loadImpl<float>(this, level, patchIdx);
   }
-  if (mFormat == TileDataType::eUInt8) {
-    return loadImpl<glm::uint8>(this, level, patchIdx);
-  }
   if (mFormat == TileDataType::eU8Vec3) {
     return loadImpl<glm::u8vec3>(this, level, patchIdx);
   }
@@ -317,11 +314,8 @@ std::optional<std::string> TileSourceWebMapService::loadData(int level, int x, i
   if (mFormat == TileDataType::eFloat32) {
     format = "tiffGray";
     type   = "tiff";
-  } else if (mFormat == TileDataType::eU8Vec3) {
-    format = "pngRGB";
-    type   = "png";
   } else {
-    format = "pngGray";
+    format = "pngRGB";
     type   = "png";
   }
 

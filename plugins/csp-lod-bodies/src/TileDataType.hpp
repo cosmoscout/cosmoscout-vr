@@ -14,12 +14,11 @@ namespace csp::lodbodies {
 
 /// Contains an enumeration of data types that can be stored in a Tile.
 enum class TileDataType {
-  // scalar types
+  // Elevation data
   eFloat32 = 0,
-  eUInt8   = 1,
 
-  // vector types
-  eU8Vec3 = 2
+  // Image data
+  eU8Vec3 = 1
 };
 
 std::ostream& operator<<(std::ostream& os, TileDataType tdt);

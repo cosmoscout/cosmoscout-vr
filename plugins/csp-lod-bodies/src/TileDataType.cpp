@@ -22,10 +22,6 @@ std::ostream& operator<<(std::ostream& os, TileDataType tdt) {
     os << "Float32";
     break;
 
-  case TileDataType::eUInt8:
-    os << "UInt8";
-    break;
-
   case TileDataType::eU8Vec3:
     os << "U8Vec3";
     break;
@@ -45,8 +41,6 @@ std::istream& operator>>(std::istream& is, TileDataType& tdt) {
 
   if (s == "Float32") {
     tdt = TileDataType::eFloat32;
-  } else if (s == "UInt8") {
-    tdt = TileDataType::eUInt8;
   } else if (s == "U8Vec3") {
     tdt = TileDataType::eU8Vec3;
   }

@@ -38,8 +38,6 @@ void from_json(nlohmann::json const& j, TileDataType& o) {
   auto s = j.get<std::string>();
   if (s == "Float32") {
     o = TileDataType::eFloat32;
-  } else if (s == "UInt8") {
-    o = TileDataType::eUInt8;
   } else if (s == "U8Vec3") {
     o = TileDataType::eU8Vec3;
   } else {
@@ -53,9 +51,6 @@ void to_json(nlohmann::json& j, TileDataType o) {
   case TileDataType::eFloat32:
     j = "Float32";
     break;
-  case TileDataType::eUInt8:
-    j = "UInt8";
-    break;
   case TileDataType::eU8Vec3:
     j = "U8Vec3";
     break;
@@ -65,7 +60,6 @@ void to_json(nlohmann::json& j, TileDataType o) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void from_json(nlohmann::json const& j, Plugin::Settings::Dataset& o) {
-  cs::core::Settings::deserialize(j, "format", o.mFormat);
   cs::core::Settings::deserialize(j, "copyright", o.mCopyright);
   cs::core::Settings::deserialize(j, "layers", o.mLayers);
   cs::core::Settings::deserialize(j, "maxLevel", o.mMaxLevel);
@@ -73,7 +67,6 @@ void from_json(nlohmann::json const& j, Plugin::Settings::Dataset& o) {
 }
 
 void to_json(nlohmann::json& j, Plugin::Settings::Dataset const& o) {
-  cs::core::Settings::serialize(j, "format", o.mFormat);
   cs::core::Settings::serialize(j, "copyright", o.mCopyright);
   cs::core::Settings::serialize(j, "layers", o.mLayers);
   cs::core::Settings::serialize(j, "maxLevel", o.mMaxLevel);
@@ -132,7 +125,6 @@ void from_json(nlohmann::json const& j, Plugin::Settings& o) {
   cs::core::Settings::deserialize(j, "enableTilesDebug", o.mEnableTilesDebug);
   cs::core::Settings::deserialize(j, "enableTilesFreeze", o.mEnableTilesFreeze);
   cs::core::Settings::deserialize(j, "maxGPUTilesColor", o.mMaxGPUTilesColor);
-  cs::core::Settings::deserialize(j, "maxGPUTilesGray", o.mMaxGPUTilesGray);
   cs::core::Settings::deserialize(j, "maxGPUTilesDEM", o.mMaxGPUTilesDEM);
   cs::core::Settings::deserialize(j, "mapCache", o.mMapCache);
   cs::core::Settings::deserialize(j, "bodies", o.mBodies);
@@ -154,7 +146,6 @@ void to_json(nlohmann::json& j, Plugin::Settings const& o) {
   cs::core::Settings::serialize(j, "enableTilesDebug", o.mEnableTilesDebug);
   cs::core::Settings::serialize(j, "enableTilesFreeze", o.mEnableTilesFreeze);
   cs::core::Settings::serialize(j, "maxGPUTilesColor", o.mMaxGPUTilesColor);
-  cs::core::Settings::serialize(j, "maxGPUTilesGray", o.mMaxGPUTilesGray);
   cs::core::Settings::serialize(j, "maxGPUTilesDEM", o.mMaxGPUTilesDEM);
   cs::core::Settings::serialize(j, "mapCache", o.mMapCache);
   cs::core::Settings::serialize(j, "bodies", o.mBodies);
@@ -494,17 +485,11 @@ void Plugin::onLoad() {
 
   // For now, we cannot re-create the GLResources.
   if (!mGLResources) {
-    mGLResources =
-        std::make_shared<csp::lodbodies::GLResources>(mPluginSettings->mMaxGPUTilesDEM.get(),
-            mPluginSettings->mMaxGPUTilesGray.get(), mPluginSettings->mMaxGPUTilesColor.get());
+    mGLResources = std::make_shared<csp::lodbodies::GLResources>(
+        mPluginSettings->mMaxGPUTilesDEM.get(), mPluginSettings->mMaxGPUTilesColor.get());
 
     mPluginSettings->mMaxGPUTilesColor.connect([](uint32_t /*val*/) {
       logger().warn("Changing the maximum number of allocated color tiles at run-time is not "
-                    "supported. Please restart CosmoScout VR!");
-    });
-
-    mPluginSettings->mMaxGPUTilesGray.connect([](uint32_t /*val*/) {
-      logger().warn("Changing the maximum number of allocated gray-scale tiles at run-time is not "
                     "supported. Please restart CosmoScout VR!");
     });
 
@@ -607,7 +592,7 @@ void Plugin::setImageSource(std::shared_ptr<LodBody> const& body, std::string co
     source->setMaxLevel(dataset->second.mMaxLevel);
     source->setLayers(dataset->second.mLayers);
     source->setUrl(dataset->second.mURL);
-    source->setDataType(dataset->second.mFormat);
+    source->setDataType(TileDataType::eU8Vec3);
 
     body->setIMGtileSource(source);
 
@@ -637,7 +622,7 @@ void Plugin::setElevationSource(
   source->setMaxLevel(dataset->second.mMaxLevel);
   source->setLayers(dataset->second.mLayers);
   source->setUrl(dataset->second.mURL);
-  source->setDataType(dataset->second.mFormat);
+  source->setDataType(TileDataType::eFloat32);
 
   body->setDEMtileSource(source);
 

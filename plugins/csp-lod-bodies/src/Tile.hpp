@@ -60,11 +60,6 @@ struct DataTypeTrait<float> {
 };
 
 template <>
-struct DataTypeTrait<glm::uint8> {
-  static TileDataType const value = TileDataType::eUInt8;
-};
-
-template <>
 struct DataTypeTrait<glm::u8vec3> {
   static TileDataType const value = TileDataType::eU8Vec3;
 };

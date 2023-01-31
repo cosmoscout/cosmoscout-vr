@@ -28,10 +28,6 @@ GLenum getInternalFormat(TileDataType dataType) {
     result = GL_R32F;
     break;
 
-  case TileDataType::eUInt8:
-    result = GL_R8;
-    break;
-
   case TileDataType::eU8Vec3:
     result = GL_RGB8;
     break;
@@ -45,7 +41,6 @@ GLenum getInternalFormat(TileDataType dataType) {
 GLenum getFormat(TileDataType dataType) {
   switch (dataType) {
   case TileDataType::eFloat32:
-  case TileDataType::eUInt8:
     return GL_RED;
   case TileDataType::eU8Vec3:
     return GL_RGB;
@@ -61,7 +56,6 @@ GLenum getType(TileDataType dataType) {
   case TileDataType::eFloat32:
     return GL_FLOAT;
 
-  case TileDataType::eUInt8:
   case TileDataType::eU8Vec3:
     return GL_UNSIGNED_BYTE;
   }

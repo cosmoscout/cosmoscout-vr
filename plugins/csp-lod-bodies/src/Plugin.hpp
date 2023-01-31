@@ -87,9 +87,6 @@ class Plugin : public cs::core::PluginBase {
     /// The maximum allowed colored tiles.
     cs::utils::DefaultProperty<uint32_t> mMaxGPUTilesColor{512};
 
-    /// The maximum allowed gray tiles.
-    cs::utils::DefaultProperty<uint32_t> mMaxGPUTilesGray{512};
-
     /// The maximum allowed elevation tiles.
     cs::utils::DefaultProperty<uint32_t> mMaxGPUTilesDEM{512};
 
@@ -112,7 +109,6 @@ class Plugin : public cs::core::PluginBase {
     /// A single data set containing either elevation or image data.
     struct Dataset {
       std::string  mURL;        ///< The URL of the mapserver including the "SERVICE=wms" parameter.
-      TileDataType mFormat;     ///< In the config either "Float32", "UInt8" or "U8Vec3".
       std::string  mCopyright;  ///< The copyright holder of the data set (also shown in the UI).
       std::string  mLayers;     ///< A comma,seperated list of WMS layers.
       uint32_t     mMaxLevel{}; ///< The maximum quadtree depth to load.
