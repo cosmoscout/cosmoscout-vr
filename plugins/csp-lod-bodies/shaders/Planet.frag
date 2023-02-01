@@ -175,26 +175,13 @@ void main() {
   debugColor.rgb   = mix(debugColor.rgb, vec3(1), brightness);
 
   // create border pixel row color
-  vec2 demPosition = fsIn.vertexPosition + VP_offsetScale.xy;
-  vec2 imgPosition =
-      (fsIn.vertexPosition + VP_offsetScale.xy) / VP_offsetScale.z * VP_resolution;
   float edgeWidth = 0.5;
 
   // make border between image patches gray
-  if (imgPosition.x < edgeWidth || imgPosition.y < edgeWidth ||
-      imgPosition.x > VP_resolution - edgeWidth || imgPosition.y > VP_resolution - edgeWidth) {
-    debugColor = vec4(0.0, 0.0, 0.0, 0.5);
-  }
-
-  // make border between dem patches colorful, based on the adjacent levels
-  if (demPosition.x < edgeWidth) {
-      debugColor = vec4(0.0, 0.0, 0.0, 1.0);
-  } else if (demPosition.y < edgeWidth) {
-      debugColor = vec4(0.0, 0.0, 0.0, 1.0);
-  } else if (demPosition.x > VP_resolution - edgeWidth) {
-      debugColor = vec4(0.0, 0.0, 0.0, 1.0);
-  } else if (demPosition.y > VP_resolution - edgeWidth) {
-      debugColor = vec4(0.0, 0.0, 0.0, 1.0);
+  if (fsIn.vertexPosition.x < edgeWidth || fsIn.vertexPosition.y < edgeWidth ||
+      fsIn.vertexPosition.x > VP_resolution - 1.0 - edgeWidth || 
+      fsIn.vertexPosition.y > VP_resolution - 1.0 - edgeWidth) {
+    debugColor = vec4(1.0, 0.0, 0.0, 0.5);
   }
 
   fragColor.rgb = mix(fragColor.rgb, debugColor.rgb, debugColor.a);
