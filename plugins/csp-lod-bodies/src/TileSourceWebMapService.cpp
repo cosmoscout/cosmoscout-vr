@@ -336,11 +336,13 @@ std::optional<std::string> TileSourceWebMapService::loadData(int level, int x, i
   cacheFile << cacheDir.str() << "/" << y << "." << type;
   std::stringstream url;
 
-  double size = 1.0 / (1 << level);
+  double size      = 1.0 / (1 << level);
+  double halfPixel = size / mResolution * 0.5;
 
   url.precision(std::numeric_limits<double>::max_digits10);
   url << mUrl << "&version=1.1.0&request=GetMap&tiled=true&layers=" << mLayers
-      << "&bbox=" << x * size << "," << y * size << "," << x * size + size << "," << y * size + size
+      << "&bbox=" << x * size - halfPixel << "," << y * size - halfPixel << ","
+      << x * size + size + halfPixel << "," << y * size + size + halfPixel
       << "&width=" << mResolution << "&height=" << mResolution
       << "&srs=EPSG:900914&format=" << format;
 

@@ -19,13 +19,13 @@ vec2 VP_getXY(ivec2 iPosition)
     // First convert vtxPos to a relative position ([0,1]^2) within the patch.
     // Then apply VP_offsetScale to obtain relative position within the
     // base patch.
-    return (vec2(iPosition + VP_offsetScale.xy) / VP_resolution + VP_offsetScale.xy) / 
+    return (vec2(iPosition) / (VP_resolution - 1) + VP_offsetScale.xy) / 
             VP_offsetScale.z;
 }
 
 vec2 VP_getTexCoord(vec2 iPosition)
 {
-    return iPosition / VP_resolution;
+    return iPosition / (VP_resolution - 1);
 }
 
 float VP_getVertexHeight(ivec2 iPosition)
