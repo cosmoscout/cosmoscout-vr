@@ -16,6 +16,7 @@
 
 #include "../../../src/cs-graphics/Shadows.hpp"
 #include "../../../src/cs-utils/convert.hpp"
+#include "../../../src/cs-utils/filesystem.hpp"
 
 #include <VistaBase/VistaStreamUtils.h>
 #include <VistaKernel/DisplayManager/VistaDisplayManager.h>
@@ -41,9 +42,6 @@ GLenum const texUnitNameIMG = GL_TEXTURE1;
 GLint const  texUnitIMG     = 1;
 
 GLint const texUnitShadow = 2;
-
-const char* BoundsVertexShaderName("VistaPlanetTileBounds.vert");
-const char* BoundsFragmentShaderName("VistaPlanetTileBounds.frag");
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -537,12 +535,11 @@ std::unique_ptr<VistaVertexArrayObject> TileRenderer::makeVAOBounds(
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::unique_ptr<VistaGLSLShader> TileRenderer::makeProgBounds() {
-  VistaShaderRegistry& reg = VistaShaderRegistry::GetInstance();
-
   auto result = std::make_unique<VistaGLSLShader>();
-  result->InitVertexShaderFromString(reg.RetrieveShader(BoundsVertexShaderName));
-  result->InitFragmentShaderFromString(reg.RetrieveShader(BoundsFragmentShaderName));
-
+  result->InitVertexShaderFromString(cs::utils::filesystem::loadToString(
+      "../share/resources/shaders/VistaPlanetTileBounds.vert"));
+  result->InitFragmentShaderFromString(cs::utils::filesystem::loadToString(
+      "../share/resources/shaders/VistaPlanetTileBounds.frag"));
   result->Link();
 
   return result;

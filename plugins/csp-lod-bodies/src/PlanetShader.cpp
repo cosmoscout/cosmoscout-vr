@@ -136,9 +136,8 @@ void PlanetShader::setSun(glm::vec3 direction, float illuminance) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void PlanetShader::compile() {
-  VistaShaderRegistry& reg = VistaShaderRegistry::GetInstance();
-  mVertexSource            = reg.RetrieveShader("Planet.vert");
-  mFragmentSource          = reg.RetrieveShader("Planet.frag");
+  mVertexSource   = cs::utils::filesystem::loadToString("../share/resources/shaders/Planet.vert");
+  mFragmentSource = cs::utils::filesystem::loadToString("../share/resources/shaders/Planet.frag");
 
   cs::utils::replaceString(mFragmentSource, "$SHOW_HEIGHT_LINES",
       cs::utils::toString(mPluginSettings->mEnableHeightlines.get()));
