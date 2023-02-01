@@ -102,8 +102,6 @@ class LODVisitor : public TileVisitor<LODVisitor> {
 
     RenderDataDEM* mRdDEM{};
     RenderDataImg* mRdIMG{};
-
-    int mMaxLevel{};
   };
 
   bool preTraverse() override;

@@ -290,7 +290,6 @@ bool LODVisitor::preVisitRoot(TileId const& tileId) {
   // higher resolution image data than DEM data).
   state.mLastDEM  = nullptr;
   state.mLastIMG  = nullptr;
-  state.mMaxLevel = 0;
 
   // fetch RenderDataDEM for visited node and mark as used in this frame
   if (mTreeMgrDEM && state.mNodeDEM) {
@@ -331,7 +330,6 @@ bool LODVisitor::preVisit(TileId const& tileId) {
   // so far can all be refined
   state.mLastDEM  = stateP.mLastDEM;
   state.mLastIMG  = stateP.mLastIMG;
-  state.mMaxLevel = stateP.mMaxLevel;
 
   // fetch RenderDataDEM for visited node and mark as used in this frame
   if (mTreeMgrDEM && !state.mLastDEM && state.mNodeDEM) {
@@ -423,8 +421,7 @@ bool LODVisitor::handleRefine(TileId const& /*tileId*/) {
       addLoadChildrenIMG(nodeIMG);
     }
 
-    if (childrenDemAvailable || childrenImgAvailable) {
-      // at least one tree (DEM or IMG) can be refined, visit children
+    if (childrenDemAvailable && childrenImgAvailable) {
       result = true;
     } else {
       // can not refine, draw this level
@@ -557,11 +554,6 @@ bool LODVisitor::testNeedRefine(TileId const& tileId) {
     if (mParams->mMinLevel > tileId.level()) {
       result = true;
     }
-
-    // estimate how many more levels are necessary to achieve desired
-    // lod factor - used for the case below (no DEM node for level)
-    double const deltaLvl = std::max(0.0, std::ceil(std::log(ratio) / std::log(4.0)));
-    state.mMaxLevel       = static_cast<int>(tileId.level() + deltaLvl);
   }
 
   return result;
