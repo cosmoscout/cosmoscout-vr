@@ -97,29 +97,39 @@ double LodBody::getHeight(glm::dvec2 lngLat) const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void LodBody::setDEMtileSource(std::shared_ptr<TileSource> source) {
+void LodBody::setDEMtileSource(std::shared_ptr<TileSource> source, uint32_t maxLevel) {
   if (!source->isSame(mDEMtileSource.get())) {
     mPlanet.setDEMSource(source.get());
     mDEMtileSource = std::move(source);
   }
+
+  mMaxLevelDEM = maxLevel;
+
+  mPlanet.setMaxLevel(std::max(mMaxLevelIMG, mMaxLevelDEM));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void LodBody::setIMGtileSource(std::shared_ptr<TileSource> source) {
+void LodBody::setIMGtileSource(std::shared_ptr<TileSource> source, uint32_t maxLevel) {
   if (source) {
     if (!source->isSame(mIMGtileSource.get())) {
       mPlanet.setIMGSource(source.get());
       mShader.pEnableTexture = true;
       mIMGtileSource         = std::move(source);
     }
+
+    mMaxLevelIMG = maxLevel;
   } else {
     mShader.pEnableTexture = false;
     if (mIMGtileSource) {
       mPlanet.setIMGSource(nullptr);
       mIMGtileSource = nullptr;
     }
+
+    mMaxLevelIMG = 0;
   }
+
+  mPlanet.setMaxLevel(std::max(mMaxLevelIMG, mMaxLevelDEM));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

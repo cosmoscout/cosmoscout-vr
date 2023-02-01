@@ -102,6 +102,9 @@ class VistaPlanet : public cs::graphics::ShadowCaster {
   void setMinLevel(int minLevel);
   int  getMinLevel() const;
 
+  void setMaxLevel(int maxLevel);
+  int  getMaxLevel() const;
+
   /// Returns the TileRenderer instance used to render this VistaPlanet.
   TileRenderer&       getTileRenderer();
   TileRenderer const& getTileRenderer() const;

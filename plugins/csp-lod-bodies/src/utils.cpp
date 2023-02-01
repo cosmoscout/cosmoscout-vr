@@ -61,7 +61,7 @@ double getHeight(
   int childIndex = -1;
 
   // Go down tree only if not coarse precision
-  while (child && !isLeaf(*child) && int(precision) > 1) {
+  while (child && int(precision) > 1) {
     parent = child;
 
     relative2 = relative1;

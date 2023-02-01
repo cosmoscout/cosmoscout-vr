@@ -44,9 +44,6 @@ class TileSourceWebMapService : public TileSource {
 
   uint32_t getResolution() const;
 
-  void     setMaxLevel(uint32_t maxLevel);
-  uint32_t getMaxLevel() const;
-
   void               setCacheDirectory(std::string const& cacheDirectory);
   std::string const& getCacheDirectory() const;
 

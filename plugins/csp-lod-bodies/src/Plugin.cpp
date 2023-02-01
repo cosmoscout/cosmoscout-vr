@@ -553,7 +553,7 @@ void Plugin::setImageSource(std::shared_ptr<LodBody> const& body, std::string co
   auto& settings = getBodySettings(body);
 
   if (name == "None") {
-    body->setIMGtileSource(nullptr);
+    body->setIMGtileSource(nullptr, 0);
     mGuiManager->getGui()->callJavascript("CosmoScout.lodBodies.setMapDataCopyright", "");
     settings.mActiveImgDataset = "None";
   } else {
@@ -569,12 +569,11 @@ void Plugin::setImageSource(std::shared_ptr<LodBody> const& body, std::string co
 
     auto source = std::make_shared<TileSourceWebMapService>(mPluginSettings->mTileResolutionIMG.get());
     source->setCacheDirectory(mPluginSettings->mMapCache.get());
-    source->setMaxLevel(dataset->second.mMaxLevel);
     source->setLayers(dataset->second.mLayers);
     source->setUrl(dataset->second.mURL);
     source->setDataType(TileDataType::eColor);
 
-    body->setIMGtileSource(source);
+    body->setIMGtileSource(source, dataset->second.mMaxLevel);
 
     mGuiManager->getGui()->callJavascript(
         "CosmoScout.lodBodies.setMapDataCopyright", dataset->second.mCopyright);
@@ -599,12 +598,11 @@ void Plugin::setElevationSource(
 
   auto source = std::make_shared<TileSourceWebMapService>(mPluginSettings->mTileResolutionDEM.get());
   source->setCacheDirectory(mPluginSettings->mMapCache.get());
-  source->setMaxLevel(dataset->second.mMaxLevel);
   source->setLayers(dataset->second.mLayers);
   source->setUrl(dataset->second.mURL);
   source->setDataType(TileDataType::eElevation);
 
-  body->setDEMtileSource(source);
+  body->setDEMtileSource(source, dataset->second.mMaxLevel);
 
   mGuiManager->getGui()->callJavascript(
       "CosmoScout.lodBodies.setElevationDataCopyright", dataset->second.mCopyright);

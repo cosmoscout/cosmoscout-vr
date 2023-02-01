@@ -449,7 +449,7 @@ bool LODVisitor::handleRefine(TileId const& /*tileId*/) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void LODVisitor::addLoadChildrenDEM(TileNode* node) {
-  if (node && !isLeaf(*node)) {
+  if (node && node->getLevel() < mParams->mMaxLevel) {
     TileId const& tileId = node->getTileId();
 
     for (int i = 0; i < 4; ++i) {
@@ -468,7 +468,7 @@ void LODVisitor::addLoadChildrenDEM(TileNode* node) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void LODVisitor::addLoadChildrenIMG(TileNode* node) {
-  if (node && !isLeaf(*node)) {
+  if (node && node->getLevel() < mParams->mMaxLevel) {
     TileId const& tileId = node->getTileId();
 
     for (int i = 0; i < 4; ++i) {

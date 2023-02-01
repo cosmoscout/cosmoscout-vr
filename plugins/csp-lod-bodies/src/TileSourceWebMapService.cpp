@@ -173,7 +173,6 @@ TileNode* loadImpl(TileSourceWebMapService* source, uint32_t level, glm::int64 p
   auto* node = new TileNode(); // NOLINT(cppcoreguidelines-owning-memory): TODO this is bad!
 
   node->setTile(std::make_unique<Tile<T>>(level, patchIdx, source->getResolution()));
-  node->setChildMaxLevel(std::min(level + 1, source->getMaxLevel()));
 
   int  x{};
   int  y{};
@@ -442,16 +441,6 @@ uint32_t TileSourceWebMapService::getResolution() const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void TileSourceWebMapService::setMaxLevel(uint32_t maxLevel) {
-  mMaxLevel = maxLevel;
-}
-
-uint32_t TileSourceWebMapService::getMaxLevel() const {
-  return mMaxLevel;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 void TileSourceWebMapService::setCacheDirectory(std::string const& cacheDirectory) {
   mCache = cacheDirectory;
 }
@@ -496,7 +485,7 @@ bool TileSourceWebMapService::isSame(TileSource const* other) const {
   auto const* casted = dynamic_cast<TileSourceWebMapService const*>(other);
 
   return casted != nullptr && mUrl == casted->mUrl && mCache == casted->mCache &&
-         mLayers == casted->mLayers && mFormat == casted->mFormat && mMaxLevel == casted->mMaxLevel;
+         mLayers == casted->mLayers && mFormat == casted->mFormat;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

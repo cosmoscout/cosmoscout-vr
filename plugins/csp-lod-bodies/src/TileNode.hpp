@@ -18,8 +18,8 @@ class TileNode {
 
  public:
   explicit TileNode();
-  explicit TileNode(TileBase* tile, int childMaxLevel = -1);
-  explicit TileNode(std::unique_ptr<TileBase>&& tile, int childMaxLevel = -1);
+  explicit TileNode(TileBase* tile);
+  explicit TileNode(std::unique_ptr<TileBase>&& tile);
 
   virtual ~TileNode() = default;
 
@@ -58,12 +58,6 @@ class TileNode {
   /// destroyed and replaced.
   void setChild(int childIdx, TileNode* child);
 
-  /// Returns largest level of any child.
-  int getChildMaxLevel() const;
-
-  /// Sets largest level of any child.
-  void setChildMaxLevel(int maxLevel);
-
   TileNode* getParent() const;
 
  private:
@@ -72,18 +66,7 @@ class TileNode {
   std::unique_ptr<TileBase>                mTile;
   TileNode*                                mParent{nullptr};
   std::array<std::unique_ptr<TileNode>, 4> mChildren;
-  int                                      mChildMaxLevel{0};
 };
-
-/// Returns if the node is a leaf, i.e. if it can not be further refined.
-///
-/// This is the case when @code{.cpp} node.getLevel() == node.getChildMaxLevel() @endcode
-bool isLeaf(TileNode const& node);
-
-/// Returns if the node is an inner node, i.e. not a leaf node.
-///
-/// This is the case when @code{.cpp} node.getLevel() < node.getChildMaxLevel() @endcode
-bool isInner(TileNode const& node);
 
 /// Returns if the @a node is refined, i.e. if its children are loaded.
 bool isRefined(TileNode const& node);
