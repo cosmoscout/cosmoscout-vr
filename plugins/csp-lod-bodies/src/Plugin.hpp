@@ -91,7 +91,7 @@ class Plugin : public cs::core::PluginBase {
     cs::utils::DefaultProperty<uint32_t> mMaxGPUTilesDEM{512};
 
     /// The vertex grid resolution used for terrain tiles.
-    cs::utils::DefaultProperty<uint32_t> mTileResolutionDEM{64};
+    cs::utils::DefaultProperty<uint32_t> mTileResolutionDEM{128};
 
     /// The image channel resolution used for the tile textures.
     cs::utils::DefaultProperty<uint32_t> mTileResolutionIMG{256};
