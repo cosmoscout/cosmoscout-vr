@@ -22,9 +22,6 @@ namespace csp::lodbodies {
 /// one.
 class TileBase {
  public:
-  /// Number of samples stored in this tiles (i.e. including border samples), x direction.
-  static int const Size = 256 + 1;
-
   virtual ~TileBase() = default;
 
   TileBase(TileBase const& other) = delete;
@@ -49,6 +46,8 @@ class TileBase {
   TileId const& getTileId() const;
   void          setTileId(TileId const& tileId);
 
+  uint32_t getResolution() const;
+
   /// The level of subdivision of the tile.
   int  getLevel() const;
   void setLevel(int level);
@@ -60,12 +59,13 @@ class TileBase {
   void           setMinMaxPyramid(std::unique_ptr<MinMaxPyramid> pyramid);
 
  protected:
-  explicit TileBase(int level, glm::int64 patchIdx);
+  explicit TileBase(int level, glm::int64 patchIdx, uint32_t resolution);
 
   TileId mTileId;
 
  private:
   std::unique_ptr<MinMaxPyramid> mMinMaxPyramid;
+  uint32_t                       mResolution;
 };
 
 template <typename T>

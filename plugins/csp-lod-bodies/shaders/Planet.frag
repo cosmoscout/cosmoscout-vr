@@ -170,55 +170,31 @@ void main() {
   const float maxLevel   = 15;
   const float brightness = 0.5;
 
-  float level      = clamp(log2(float(VP_tileOffsetScale.z)), minLevel, maxLevel);
+  float level      = clamp(log2(float(VP_offsetScale.z)), minLevel, maxLevel);
   vec4  debugColor = vec4(heat((level - minLevel) / (maxLevel - minLevel)), 0.5);
   debugColor.rgb   = mix(debugColor.rgb, vec3(1), brightness);
 
   // create border pixel row color
-  vec2 demPosition = fsIn.vertexPosition + VP_demOffsetScale.xy;
+  vec2 demPosition = fsIn.vertexPosition + VP_offsetScale.xy;
   vec2 imgPosition =
-      (fsIn.vertexPosition + VP_imgOffsetScale.xy) / VP_imgOffsetScale.z * VP_MAXVERTEX;
+      (fsIn.vertexPosition + VP_offsetScale.xy) / VP_offsetScale.z * VP_resolution;
   float edgeWidth = 0.5;
 
   // make border between image patches gray
   if (imgPosition.x < edgeWidth || imgPosition.y < edgeWidth ||
-      imgPosition.x > VP_MAXVERTEX - edgeWidth || imgPosition.y > VP_MAXVERTEX - edgeWidth) {
+      imgPosition.x > VP_resolution - edgeWidth || imgPosition.y > VP_resolution - edgeWidth) {
     debugColor = vec4(0.0, 0.0, 0.0, 0.5);
   }
 
-  const vec3 neighbourHigher = vec3(0, 0.3, 0);
-  const vec3 neighbourLower  = vec3(0.3, 0, 0);
-  const vec3 neighbourSame   = vec3(0);
-
   // make border between dem patches colorful, based on the adjacent levels
   if (demPosition.x < edgeWidth) {
-    if (VP_edgeDelta.z < 0)
-      debugColor = vec4(neighbourHigher, 1.0);
-    else if (VP_edgeDelta.z > 0)
-      debugColor = vec4(neighbourLower, 1.0);
-    else
-      debugColor = vec4(neighbourSame, 1.0);
+      debugColor = vec4(0.0, 0.0, 0.0, 1.0);
   } else if (demPosition.y < edgeWidth) {
-    if (VP_edgeDelta.w < 0)
-      debugColor = vec4(neighbourHigher, 1.0);
-    else if (VP_edgeDelta.w > 0)
-      debugColor = vec4(neighbourLower, 1.0);
-    else
-      debugColor = vec4(neighbourSame, 1.0);
-  } else if (demPosition.x > VP_MAXVERTEX - edgeWidth) {
-    if (VP_edgeDelta.x < 0)
-      debugColor = vec4(neighbourHigher, 1.0);
-    else if (VP_edgeDelta.x > 0)
-      debugColor = vec4(neighbourLower, 1.0);
-    else
-      debugColor = vec4(neighbourSame, 1.0);
-  } else if (demPosition.y > VP_MAXVERTEX - edgeWidth) {
-    if (VP_edgeDelta.y < 0)
-      debugColor = vec4(neighbourHigher, 1.0);
-    else if (VP_edgeDelta.y > 0)
-      debugColor = vec4(neighbourLower, 1.0);
-    else
-      debugColor = vec4(neighbourSame, 1.0);
+      debugColor = vec4(0.0, 0.0, 0.0, 1.0);
+  } else if (demPosition.x > VP_resolution - edgeWidth) {
+      debugColor = vec4(0.0, 0.0, 0.0, 1.0);
+  } else if (demPosition.y > VP_resolution - edgeWidth) {
+      debugColor = vec4(0.0, 0.0, 0.0, 1.0);
   }
 
   fragColor.rgb = mix(fragColor.rgb, debugColor.rgb, debugColor.a);

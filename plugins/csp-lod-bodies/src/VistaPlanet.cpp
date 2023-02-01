@@ -28,10 +28,10 @@ namespace csp::lodbodies {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /* explicit */
-VistaPlanet::VistaPlanet(std::shared_ptr<GLResources> glResources)
+VistaPlanet::VistaPlanet(std::shared_ptr<GLResources> glResources, uint32_t tileResolution)
     : mWorldTransform(1.0)
     , mLodVisitor(mParams)
-    , mRenderer(mParams)
+    , mRenderer(mParams, tileResolution)
     , mSrcDEM(nullptr)
     , mTreeMgrDEM(mParams, glResources)
     , mSrcIMG(nullptr)

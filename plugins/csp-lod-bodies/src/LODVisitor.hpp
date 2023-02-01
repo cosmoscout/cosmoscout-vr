@@ -107,7 +107,6 @@ class LODVisitor : public TileVisitor<LODVisitor> {
   };
 
   bool preTraverse() override;
-  void postTraverse() override;
 
   bool preVisitRoot(TileId const& tileId) override;
   void postVisitRoot(TileId const& tileId) override;

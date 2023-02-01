@@ -12,92 +12,78 @@ namespace csp::lodbodies {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-MinMaxPyramid::MinMaxPyramid()
-    : mMinPyramid(7, std::vector<float>())
-    , mMaxPyramid(7, std::vector<float>()) {
-  mMinPyramid[0] = std::vector<float>(128 * 128, std::numeric_limits<float>::max());
-  mMinPyramid[1] = std::vector<float>(64 * 64, std::numeric_limits<float>::max());
-  mMinPyramid[2] = std::vector<float>(32 * 32, std::numeric_limits<float>::max());
-  mMinPyramid[3] = std::vector<float>(16 * 16, std::numeric_limits<float>::max());
-  mMinPyramid[4] = std::vector<float>(8 * 8, std::numeric_limits<float>::max());
-  mMinPyramid[5] = std::vector<float>(4 * 4, std::numeric_limits<float>::max());
-  mMinPyramid[6] = std::vector<float>(2 * 2, std::numeric_limits<float>::max());
-
-  mMaxPyramid[0] = std::vector<float>(128 * 128, -std::numeric_limits<float>::max());
-  mMaxPyramid[1] = std::vector<float>(64 * 64, -std::numeric_limits<float>::max());
-  mMaxPyramid[2] = std::vector<float>(32 * 32, -std::numeric_limits<float>::max());
-  mMaxPyramid[3] = std::vector<float>(16 * 16, -std::numeric_limits<float>::max());
-  mMaxPyramid[4] = std::vector<float>(8 * 8, -std::numeric_limits<float>::max());
-  mMaxPyramid[5] = std::vector<float>(4 * 4, -std::numeric_limits<float>::max());
-  mMaxPyramid[6] = std::vector<float>(2 * 2, -std::numeric_limits<float>::max());
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 MinMaxPyramid::MinMaxPyramid(Tile<float>* tile)
-    : mMinPyramid(7, std::vector<float>())
-    , mMaxPyramid(7, std::vector<float>()) {
-  mMinPyramid[0] = std::vector<float>(128 * 128, std::numeric_limits<float>::max());
-  mMinPyramid[1] = std::vector<float>(64 * 64, std::numeric_limits<float>::max());
-  mMinPyramid[2] = std::vector<float>(32 * 32, std::numeric_limits<float>::max());
-  mMinPyramid[3] = std::vector<float>(16 * 16, std::numeric_limits<float>::max());
-  mMinPyramid[4] = std::vector<float>(8 * 8, std::numeric_limits<float>::max());
-  mMinPyramid[5] = std::vector<float>(4 * 4, std::numeric_limits<float>::max());
-  mMinPyramid[6] = std::vector<float>(2 * 2, std::numeric_limits<float>::max());
+    : mTileResolution(tile->getResolution())
+    , mLevels(std::log2(mTileResolution) - 1)
+    , mMinPyramid(mLevels)
+    , mMaxPyramid(mLevels) {
 
-  mMaxPyramid[0] = std::vector<float>(128 * 128, -std::numeric_limits<float>::max());
-  mMaxPyramid[1] = std::vector<float>(64 * 64, -std::numeric_limits<float>::max());
-  mMaxPyramid[2] = std::vector<float>(32 * 32, -std::numeric_limits<float>::max());
-  mMaxPyramid[3] = std::vector<float>(16 * 16, -std::numeric_limits<float>::max());
-  mMaxPyramid[4] = std::vector<float>(8 * 8, -std::numeric_limits<float>::max());
-  mMaxPyramid[5] = std::vector<float>(4 * 4, -std::numeric_limits<float>::max());
-  mMaxPyramid[6] = std::vector<float>(2 * 2, -std::numeric_limits<float>::max());
+  for (uint32_t i(0); i < mLevels; ++i) {
+    uint32_t resolution = mTileResolution / (1 << (i + 1));
+    mMinPyramid[i] = std::vector<float>(resolution * resolution, std::numeric_limits<float>::max());
+    mMaxPyramid[i] =
+        std::vector<float>(resolution * resolution, std::numeric_limits<float>::lowest());
+  }
 
-  int HalfSizeX = static_cast<int32_t>((TileBase::Size - 1) * 0.5); // 128
-  int x2        = 0;                                                // 0..128
-  int y2        = 0;                                                // 0..128
+  // mMinPyramid[0] = std::vector<float>(128 * 128, std::numeric_limits<float>::max());
+  // mMinPyramid[1] = std::vector<float>(64 * 64, std::numeric_limits<float>::max());
+  // mMinPyramid[2] = std::vector<float>(32 * 32, std::numeric_limits<float>::max());
+  // mMinPyramid[3] = std::vector<float>(16 * 16, std::numeric_limits<float>::max());
+  // mMinPyramid[4] = std::vector<float>(8 * 8, std::numeric_limits<float>::max());
+  // mMinPyramid[5] = std::vector<float>(4 * 4, std::numeric_limits<float>::max());
+  // mMinPyramid[6] = std::vector<float>(2 * 2, std::numeric_limits<float>::max());
 
-  for (int y = 0; y < TileBase::Size; ++y) {
+  // mMaxPyramid[0] = std::vector<float>(128 * 128, -std::numeric_limits<float>::max());
+  // mMaxPyramid[1] = std::vector<float>(64 * 64, -std::numeric_limits<float>::max());
+  // mMaxPyramid[2] = std::vector<float>(32 * 32, -std::numeric_limits<float>::max());
+  // mMaxPyramid[3] = std::vector<float>(16 * 16, -std::numeric_limits<float>::max());
+  // mMaxPyramid[4] = std::vector<float>(8 * 8, -std::numeric_limits<float>::max());
+  // mMaxPyramid[5] = std::vector<float>(4 * 4, -std::numeric_limits<float>::max());
+  // mMaxPyramid[6] = std::vector<float>(2 * 2, -std::numeric_limits<float>::max());
+
+  // Construct first MinMaxPyramid layer by sampling 2x2 values
+  uint32_t halfSize = static_cast<uint32_t>((mTileResolution - 1) / 2);
+  uint32_t x2       = 0;
+  uint32_t y2       = 0;
+
+  for (uint32_t y = 0; y < mTileResolution; ++y) {
     x2 = 0;
-    for (int x = 0; x < TileBase::Size; ++x) {
-      float const v = tile->data()[y * TileBase::Size + x];
+    for (uint32_t x = 0; x < mTileResolution; ++x) {
+      float const v = tile->data()[y * mTileResolution + x];
 
       mMinValue = std::min(mMinValue, v);
       mMaxValue = std::max(mMaxValue, v);
-      mAvgValue += v / (TileBase::Size * TileBase::Size);
+      mAvgValue += v / (mTileResolution * mTileResolution);
 
-      // Construct first 128x128 MinMaxPyramid layer by sampling 256x256 values
-      x2                                  = std::min(x2, 127);
-      y2                                  = std::min(y2, 127);
-      mMinPyramid[0][y2 * HalfSizeX + x2] = std::min(mMinPyramid[0][y2 * HalfSizeX + x2], v);
-      mMaxPyramid[0][y2 * HalfSizeX + x2] = std::max(mMaxPyramid[0][y2 * HalfSizeX + x2], v);
+      x2                                 = std::min(x2, halfSize - 1);
+      y2                                 = std::min(y2, halfSize - 1);
+      mMinPyramid[0][y2 * halfSize + x2] = std::min(mMinPyramid[0][y2 * halfSize + x2], v);
+      mMaxPyramid[0][y2 * halfSize + x2] = std::max(mMaxPyramid[0][y2 * halfSize + x2], v);
 
-      // 256 -> 128
       if (x % 2 == 1) {
         x2 += 1;
       }
     }
 
-    // 256 -> 128
     if (y % 2 == 1) {
       y2 += 1;
     }
   }
 
-  // Build remaining MinMaxPyramid layers 64x62-2x2
-  for (int i(1); i < 7; ++i) {
+  // Build remaining MinMaxPyramid layers
+  for (uint32_t i(1); i < mLevels; ++i) {
     y2 = 0;
-    for (int y = 0; y < (TileBase::Size - 1) * std::pow(0.5, i); ++y) {
+    for (uint32_t y = 0; y < (mTileResolution - 1) * std::pow(0.5, i); ++y) {
       x2 = 0;
-      for (int x = 0; x < (TileBase::Size - 1) * std::pow(0.5, i); ++x) {
-        mMinPyramid[i][static_cast<uint64_t>(y2 * HalfSizeX * std::pow(0.5, i) + x2)] = std::min(
+      for (uint32_t x = 0; x < (mTileResolution - 1) * std::pow(0.5, i); ++x) {
+        mMinPyramid[i][static_cast<uint64_t>(y2 * halfSize * std::pow(0.5, i) + x2)] = std::min(
             mMinPyramid[i - 1]
-                       [static_cast<uint64_t>(y * (TileBase::Size - 1) * std::pow(0.5, i) + x)],
-            mMinPyramid[i][static_cast<uint64_t>(y2 * HalfSizeX * std::pow(0.5, i) + x2)]);
-        mMaxPyramid[i][static_cast<uint64_t>(y2 * HalfSizeX * std::pow(0.5, i) + x2)] = std::max(
+                       [static_cast<uint64_t>(y * (mTileResolution - 1) * std::pow(0.5, i) + x)],
+            mMinPyramid[i][static_cast<uint64_t>(y2 * halfSize * std::pow(0.5, i) + x2)]);
+        mMaxPyramid[i][static_cast<uint64_t>(y2 * halfSize * std::pow(0.5, i) + x2)] = std::max(
             mMaxPyramid[i - 1]
-                       [static_cast<uint64_t>(y * (TileBase::Size - 1) * std::pow(0.5, i) + x)],
-            mMaxPyramid[i][static_cast<uint64_t>(y2 * HalfSizeX * std::pow(0.5, i) + x2)]);
+                       [static_cast<uint64_t>(y * (mTileResolution - 1) * std::pow(0.5, i) + x)],
+            mMaxPyramid[i][static_cast<uint64_t>(y2 * halfSize * std::pow(0.5, i) + x2)]);
         if (x % 2 == 1) {
           x2 += 1;
         }
@@ -111,17 +97,6 @@ MinMaxPyramid::MinMaxPyramid(Tile<float>* tile)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-MinMaxPyramid::~MinMaxPyramid() {
-  for (int layer(0); layer < 7; ++layer) {
-    mMinPyramid[layer].clear();
-    mMaxPyramid[layer].clear();
-  }
-
-  mMinPyramid.clear();
-  mMaxPyramid.clear();
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::vector<std::vector<float>>& MinMaxPyramid::getMinPyramid() {
   return mMinPyramid;

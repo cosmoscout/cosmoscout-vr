@@ -36,7 +36,7 @@ LodBody::LodBody(std::shared_ptr<cs::core::Settings> settings,
     , mGuiManager(std::move(pGuiManager))
     , mEclipseShadowReceiver(
           std::make_shared<cs::core::EclipseShadowReceiver>(mSettings, mSolarSystem, false))
-    , mPlanet(std::move(glResources))
+    , mPlanet(std::move(glResources), mPluginSettings->mTileResolutionDEM.get())
     , mShader(mSettings, mPluginSettings, mGuiManager, mEclipseShadowReceiver) {
 
   mGraphicsEngine->registerCaster(&mPlanet);

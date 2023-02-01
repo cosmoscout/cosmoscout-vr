@@ -48,7 +48,7 @@ void main(void)
         #endif
         vsOut.sunDir         = (VP_matModel * vec4(uSunDirIlluminance.xyz, 0)).xyz;
         vsOut.planetCenter   = (VP_matModel * vec4(0,0,0,1)).xyz;
-        vsOut.texcoords      = VP_getTexCoordIMG(VP_iPosition);
+        vsOut.texcoords      = VP_getTexCoord(VP_iPosition);
         vsOut.height         = VP_getVertexHeight(VP_iPosition);
         vsOut.lngLat         = VP_convertXY2lnglat(VP_getXY(VP_iPosition));
         vsOut.vertexPosition = VP_iPosition;

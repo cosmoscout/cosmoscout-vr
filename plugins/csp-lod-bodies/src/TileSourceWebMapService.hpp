@@ -21,7 +21,7 @@ namespace csp::lodbodies {
 /// The data of the tiles is fetched via a web map service.
 class TileSourceWebMapService : public TileSource {
  public:
-  TileSourceWebMapService();
+  TileSourceWebMapService(uint32_t resolution);
 
   TileSourceWebMapService(TileSourceWebMapService const& other) = delete;
   TileSourceWebMapService(TileSourceWebMapService&& other)      = delete;
@@ -41,6 +41,8 @@ class TileSourceWebMapService : public TileSource {
 
   void loadTileAsync(int level, glm::int64 patchIdx, OnLoadCallback cb) override;
   int  getPendingRequests() override;
+
+  uint32_t getResolution() const;
 
   void     setMaxLevel(uint32_t maxLevel);
   uint32_t getMaxLevel() const;
@@ -80,6 +82,7 @@ class TileSourceWebMapService : public TileSource {
   std::string           mLayers;
   TileDataType          mFormat   = TileDataType::eColor;
   uint32_t              mMaxLevel = 10;
+  uint32_t              mResolution;
 };
 } // namespace csp::lodbodies
 

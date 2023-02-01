@@ -32,8 +32,7 @@ class TreeManagerBase;
 /// Renders tiles with elevation (DEM) and optionally image (IMG) data.
 class TileRenderer {
  public:
-  explicit TileRenderer(PlanetParameters const& params, TreeManagerBase* treeMgrDEM = nullptr,
-      TreeManagerBase* treeMgrIMG = nullptr);
+  explicit TileRenderer(PlanetParameters const& params, uint32_t tileResolution);
   virtual ~TileRenderer() = default;
 
   TileRenderer(TileRenderer const& other) = delete;
@@ -50,22 +49,6 @@ class TileRenderer {
 
   /// Set the shader for rendering terrain tiles. Initially (or when shader is nullptr) a
   /// default shader is used. The shader must declare certain inputs and uniforms detailed below.
-  ///
-  /// @code
-  /// | Kind    | Type           | Name                 | Description |
-  /// |---------|----------------|----------------------|-------------|
-  /// | uniform | vec3           | VP_PatchOffsetScale  |             |
-  /// | uniform | vec3           | VP_IMG_TCOffsetScale |             |
-  /// | uniform | ivec4          | VP_EdgeDelta         |             |
-  /// | uniform | ivec2          | VP_f1f2              |             |
-  /// | uniform | int            | VP_LayerDEM          |             |
-  /// | uniform | int            | VP_LayerIMG          |             |
-  /// | uniform | vec3           | VP_Radii             |             |
-  /// | uniform | float          | VP_HeightScale       |             |
-  /// | uniform | sampler2DArray | VP_TexDEM            |             |
-  /// | uniform | sampler2DArray | VP_TexIMG            |             |
-  /// | in      | ivec2          | vtxPosition          |             |
-  /// @endcode
   void setTerrainShader(TerrainShader* shader);
 
   /// Returns the currently set shader for rendering terrain tiles.
@@ -99,12 +82,7 @@ class TileRenderer {
  private:
   struct UniformLocs {
     GLint demAverageHeight;
-    GLint tileOffsetScale;
-    GLint demOffsetScale;
-    GLint imgOffsetScale;
-    GLint edgeDelta;
-    GLint edgeLayerDEM;
-    GLint edgeOffset;
+    GLint offsetScale;
     GLint f1f2;
     GLint layerDEM;
     GLint layerIMG;
@@ -155,6 +133,8 @@ class TileRenderer {
   bool mEnableDrawBounds;
   bool mEnableWireframe;
   bool mEnableFaceCulling;
+
+  uint32_t mTileResolution;
 };
 
 } // namespace csp::lodbodies

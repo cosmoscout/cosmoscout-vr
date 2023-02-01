@@ -46,7 +46,7 @@ class TerrainShader;
 /// data (setDEMSource, setIMGSource).
 class VistaPlanet : public cs::graphics::ShadowCaster {
  public:
-  explicit VistaPlanet(std::shared_ptr<GLResources> glResources);
+  explicit VistaPlanet(std::shared_ptr<GLResources> glResources, uint32_t tileResolution);
 
   VistaPlanet(VistaPlanet const& other) = delete;
   VistaPlanet(VistaPlanet&& other)      = delete;

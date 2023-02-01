@@ -16,10 +16,9 @@ namespace csp::lodbodies {
 template <typename T>
 class Tile : public TileBase {
  public:
-  using Storage    = std::array<T, TileBase::Size * TileBase::Size>;
   using value_type = T;
 
-  explicit Tile(int level, glm::int64 patchIdx);
+  explicit Tile(int level, glm::int64 patchIdx, uint32_t resolution);
 
   Tile(Tile const& other) = delete;
   Tile(Tile&& other)      = delete;
@@ -37,11 +36,11 @@ class Tile : public TileBase {
 
   void const* getDataPtr() const override;
 
-  Storage const& data() const;
-  Storage&       data();
+  std::vector<T> const& data() const;
+  std::vector<T>&       data();
 
  private:
-  Storage mData;
+  std::vector<T> mData;
 };
 
 namespace detail {
@@ -66,9 +65,9 @@ struct DataTypeTrait<glm::u8vec3> {
 } // namespace detail
 
 template <typename T>
-Tile<T>::Tile(int level, glm::int64 patchIdx)
-    : TileBase(level, patchIdx)
-    , mData() {
+Tile<T>::Tile(int level, glm::int64 patchIdx, uint32_t resolution)
+    : TileBase(level, patchIdx, resolution)
+    , mData(resolution * resolution) {
 }
 
 template <typename T>
@@ -100,12 +99,12 @@ void const* Tile<T>::getDataPtr() const {
 }
 
 template <typename T>
-typename Tile<T>::Storage const& Tile<T>::data() const {
+typename std::vector<T> const& Tile<T>::data() const {
   return mData;
 }
 
 template <typename T>
-typename Tile<T>::Storage& Tile<T>::data() {
+typename std::vector<T>& Tile<T>::data() {
   return mData;
 }
 

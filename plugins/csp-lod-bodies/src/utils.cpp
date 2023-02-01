@@ -112,11 +112,11 @@ double getHeight(
   }
 
   // Check if Child Exists
-  if (child == nullptr) {
+  if (child == nullptr || child->getTileDataType() != TileDataType::eElevation) {
     return 0.0;
   }
 
-  int size = TileBase::Size;
+  uint32_t size = child->getTile()->getResolution();
 
   // Figure out flip
   std::swap(relative1.x, relative1.y);
@@ -147,19 +147,11 @@ double getHeight(
   double hP2{};
   double hPP{};
 
-  if (child->getTileDataType() == TileDataType::eElevation) {
-    const auto* ptr = child->getTile()->getTypedPtr<float>();
-    h   = ptr[vB + size * uB];           // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-    hP1 = ptr[vB + size * (uB + 1)];     // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-    hP2 = ptr[vB + 1 + size * uB];       // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-    hPP = ptr[vB + 1 + size * (uB + 1)]; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-  } else {
-    const auto* ptr = child->getTile()->getTypedPtr<unsigned char>();
-    h   = ptr[vB + size * uB];           // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-    hP1 = ptr[vB + size * (uB + 1)];     // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-    hP2 = ptr[vB + 1 + size * uB];       // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-    hPP = ptr[vB + 1 + size * (uB + 1)]; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-  }
+  const auto* ptr = child->getTile()->getTypedPtr<float>();
+  h               = ptr[vB + size * uB]; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+  hP1 = ptr[vB + size * (uB + 1)];       // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+  hP2 = ptr[vB + 1 + size * uB];         // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+  hPP = ptr[vB + 1 + size * (uB + 1)];   // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 
   double interpol1 = (1.0 - uP) * h + uP * hP1;
   double interpol2 = (1.0 - uP) * hP2 + uP * hPP;
@@ -205,9 +197,6 @@ bool intersectPlanet(
 
   // Initialize Result to Zero
   pos = glm::dvec3(0);
-
-  // Tile sizes
-  int size = TileBase::Size;
 
   // Planet transform -> Inverse -> so we are in planet space
   glm::dmat4 planet_transform = planet->getWorldTransform();
@@ -296,7 +285,10 @@ bool intersectPlanet(
       auto*     rdDEM  = planet->getTileRenderer().getTreeManagerDEM()->find<RenderDataDEM>(tileId);
       auto      tile_bounds = rdDEM->getBounds();
 
-      auto max_tile_samplings = sqrt((255.0 * 255.0) + (255.0 * 255.0));
+      // Tile sizes
+      int size = tile->getResolution();
+
+      auto max_tile_samplings = sqrt((size * size) + (size * size));
       auto max_bbox_samplings = sqrt(
           (max_tile_samplings * max_tile_samplings) + (max_tile_samplings * max_tile_samplings));
 

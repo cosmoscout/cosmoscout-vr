@@ -90,6 +90,12 @@ class Plugin : public cs::core::PluginBase {
     /// The maximum allowed elevation tiles.
     cs::utils::DefaultProperty<uint32_t> mMaxGPUTilesDEM{512};
 
+    /// The vertex grid resolution used for terrain tiles.
+    cs::utils::DefaultProperty<uint32_t> mTileResolutionDEM{64};
+
+    /// The image channel resolution used for the tile textures.
+    cs::utils::DefaultProperty<uint32_t> mTileResolutionIMG{256};
+
     /// Path to the map cache folder, can be absolute or relative to the cosmoscout executable.
     cs::utils::DefaultProperty<std::string> mMapCache{"map-cache"};
 

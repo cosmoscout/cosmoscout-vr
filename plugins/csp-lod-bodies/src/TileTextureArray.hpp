@@ -31,7 +31,7 @@ class TreeManagerBase;
 /// dramatically while only low resolution tiles are on the GPU.
 class TileTextureArray {
  public:
-  explicit TileTextureArray(TileDataType dataType, int maxLayerCount);
+  explicit TileTextureArray(TileDataType dataType, int maxLayerCount, uint32_t resolution);
 
   TileTextureArray(TileTextureArray const& other) = delete;
   TileTextureArray(TileTextureArray&& other)      = delete;
@@ -75,6 +75,7 @@ class TileTextureArray {
   GLenum       mFormat;
   GLenum       mType;
   TileDataType mDataType;
+  uint32_t     mResolution;
 
   const GLint        mNumLayers;
   std::vector<GLint> mFreeLayers;
@@ -85,19 +86,20 @@ class TileTextureArray {
 /// DocTODO
 class GLResources {
  public:
-  GLResources(int maxElevationLayers, int maxColorLayers) {
-    mextureArrays[static_cast<int>(TileDataType::eElevation)] =
-        std::make_unique<TileTextureArray>(TileDataType::eElevation, maxElevationLayers);
-    mextureArrays[static_cast<int>(TileDataType::eColor)] =
-        std::make_unique<TileTextureArray>(TileDataType::eColor, maxColorLayers);
+  GLResources(int maxElevationLayers, int maxColorLayers, uint32_t elevationResolution,
+      uint32_t colorResolution) {
+    mTextureArrays[static_cast<int>(TileDataType::eElevation)] = std::make_unique<TileTextureArray>(
+        TileDataType::eElevation, maxElevationLayers, elevationResolution);
+    mTextureArrays[static_cast<int>(TileDataType::eColor)] =
+        std::make_unique<TileTextureArray>(TileDataType::eColor, maxColorLayers, colorResolution);
   }
 
   TileTextureArray& operator[](TileDataType type) {
-    return *mextureArrays.at(static_cast<int>(type));
+    return *mTextureArrays.at(static_cast<int>(type));
   }
 
  private:
-  std::array<std::unique_ptr<TileTextureArray>, 2> mextureArrays;
+  std::array<std::unique_ptr<TileTextureArray>, 2> mTextureArrays;
 };
 } // namespace csp::lodbodies
 

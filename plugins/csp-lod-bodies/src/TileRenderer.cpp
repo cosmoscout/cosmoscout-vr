@@ -31,6 +31,9 @@ namespace csp::lodbodies {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 namespace {
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 GLenum const texUnitNameDEM = GL_TEXTURE0;
 GLint const  texUnitDEM     = 0;
 
@@ -39,253 +42,8 @@ GLint const  texUnitIMG     = 1;
 
 GLint const texUnitShadow = 2;
 
-GLsizeiptr const Size = TileBase::Size; // NOLINT(cppcoreguidelines-interfaces-global-init)
-// number of vertices that make up a patch
-GLsizeiptr const NumVertices = Size * Size;
-// number of indices: (number of quads) * (2 triangles per quad)
-//                                      * (3 indices per triangle)
-GLsizeiptr const NumIndices = (Size - 1) * (Size - 1) * 6;
-
 const char* BoundsVertexShaderName("VistaPlanetTileBounds.vert");
 const char* BoundsFragmentShaderName("VistaPlanetTileBounds.frag");
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// Recursively constructs the index buffer in such a way that consecutive
-// (sub-)parts of the index buffer can be used to draw sub quadrants of
-// the patch.
-
-// Starts to write indices at @a buffer + @a idx and returns the offset
-// for the next set of indices. The @a level, @a baseX, and @a baseY
-// arguments specify which sub quadrant indices are being generated for.
-
-// The indices for the sub quadrants are generated in the order:
-// South, East, West, North. At the lowest level the quads at the south
-// tip are numbered as in the following diagram:
-
-//           \  11 / \    / \  7  /
-//             \ /     \/     \ /
-//       \  10 / \  9  /\  6  / \  5  /
-//         \ /     \ /    \ /     \ /
-//           \  8  / \  3 / \  4  /
-//             \ /     \/     \ /
-//               \  2  /\  1  /
-//                 \ /    \ /
-//                   \  0 /
-//                     \/
-
-// Numbering starts with the four quads directly at the south tip, then
-// then four to the east of those, followed by the ones to the west and
-// so on.
-int buildTileIndices(GLuint* buffer, int idx, int level, int baseX, int baseY) {
-  // number of quads along one side at this level
-  int const numQuads = static_cast<int32_t>(Size - 1) / (int32_t(1) << level);
-
-  if (numQuads == 1) {
-    // lowest level, split single quad into triangles alternating
-    // between the two patterns:
-    // y1  -----        y1  -----       top row
-    //     |\  |            |  /|
-    //     | \ |            | / |
-    //     |  \|            |/  |
-    // y0  -----        y0  -----       bottom row
-    //    x0   x1          x0   x1
-
-    GLuint const x0y0 = baseY * Size + baseX;
-    GLuint const x1y0 = baseY * Size + baseX + 1;
-    GLuint const x0y1 = (baseY + 1) * Size + baseX;
-    GLuint const x1y1 = (baseY + 1) * Size + baseX + 1;
-
-    if ((baseX + baseY) % 2 == 0) {
-      buffer[idx++] = x0y0; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-      buffer[idx++] = x1y0; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-      buffer[idx++] = x0y1; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-
-      buffer[idx++] = x0y1; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-      buffer[idx++] = x1y0; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-      buffer[idx++] = x1y1; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-    } else {
-      buffer[idx++] = x0y1; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-      buffer[idx++] = x0y0; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-      buffer[idx++] = x1y1; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-
-      buffer[idx++] = x1y1; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-      buffer[idx++] = x0y0; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-      buffer[idx++] = x1y0; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-    }
-  } else {
-    // next level "patches" are offset by half the number of quads on
-    // this level
-    int const nextLevel  = level + 1;
-    int const baseOffset = numQuads / 2;
-
-    idx = buildTileIndices(buffer, idx, nextLevel, baseX, baseY);
-    idx = buildTileIndices(buffer, idx, nextLevel, baseX + baseOffset, baseY);
-    idx = buildTileIndices(buffer, idx, nextLevel, baseX, baseY + baseOffset);
-    idx = buildTileIndices(buffer, idx, nextLevel, baseX + baseOffset, baseY + baseOffset);
-  }
-
-  return idx;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// Calculate offset and scale factor for IMG data texture coordinates
-// @a tcIMG and an offset (@a idxOffset) and size (@a idxCount) of the
-// index buffer to use when rendering a tile with different resolution
-// for DEM and IMG data.
-void calcOffsetScale(TileId const& idDEM, TileId const& idIMG, glm::ivec3& imgOS, glm::ivec3& demOS,
-    GLuint& idxCount) {
-  if (idDEM.level() < idIMG.level()) {
-    // image resolution is higher
-    glm::int64 idx      = idIMG.patchIdx();
-    int        deltaLvl = idIMG.level() - idDEM.level();
-
-    // clamp deltaLvl to [0, 7] to avoid out of bounds access to
-    // IndexOffsets{X,Y} arrays
-    deltaLvl = std::min(7, deltaLvl);
-
-    // number of indices is number of indices for full patch divided by
-    // 4^(level difference) == 2^(2 * level difference)
-    idxCount = NumIndices / (int64_t(1) << (2 * deltaLvl));
-
-    imgOS = glm::ivec3(0, 0, (Size - 1) / (int64_t(1) << deltaLvl));
-    demOS = glm::ivec3(0, 0, (Size - 1) / (int64_t(1) << deltaLvl));
-
-    for (int i = deltaLvl; i > 0; --i) {
-      if (idx & 0x01) {
-        demOS.x += (Size - 1) / (int64_t(1) << i);
-      }
-      if (idx & 0x02) {
-        demOS.y += (Size - 1) / (int64_t(1) << i);
-      }
-
-      idx >>= 2;
-    }
-  } else {
-    // dtm resolution is higher or equal
-    glm::int64 idx      = idDEM.patchIdx();
-    int        deltaLvl = idDEM.level() - idIMG.level();
-
-    imgOS    = glm::ivec3(0, 0, (Size - 1) * (int64_t(1) << deltaLvl));
-    demOS    = glm::ivec3(0, 0, Size - 1);
-    idxCount = NumIndices;
-
-    for (int i = 0; i < deltaLvl; ++i) {
-      if (idx & 0x01) {
-        imgOS.x += (Size - 1) * (int64_t(1) << i);
-      }
-      if (idx & 0x02) {
-        imgOS.y += (Size - 1) * (int64_t(1) << i);
-      }
-
-      idx >>= 2;
-    }
-  }
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// Returns the vector to upload as "VP_EdgeDelta" uniform. It stores
-// the differences in resolution levels across the edges of the tile
-// in order NE, NW, SW, SE.
-glm::ivec4 calcEdgeDelta(RenderDataDEM* rdDEM) {
-  return glm::ivec4(rdDEM->getEdgeDelta(0), rdDEM->getEdgeDelta(1), rdDEM->getEdgeDelta(2),
-      rdDEM->getEdgeDelta(3));
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-glm::ivec4 calcEdgeLayerDEM(RenderDataDEM* rdDEM) {
-  return glm::ivec4(rdDEM->getEdgeRData(0) ? rdDEM->getEdgeRData(0)->getTexLayer() : 0,
-      rdDEM->getEdgeRData(1) ? rdDEM->getEdgeRData(1)->getTexLayer() : 0,
-      rdDEM->getEdgeRData(2) ? rdDEM->getEdgeRData(2)->getTexLayer() : 0,
-      rdDEM->getEdgeRData(3) ? rdDEM->getEdgeRData(3)->getTexLayer() : 0);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-glm::ivec4 calcEdgeOffset(RenderDataDEM* rdDEM) {
-  glm::ivec4 result(0, 0, 0, 0);
-
-  if (rdDEM->getEdgeDelta(0) < 0) {
-    RenderDataDEM* rdNE = rdDEM->getEdgeRData(0);
-    assert(rdNE != nullptr);
-
-    TileId const& idDEM = rdDEM->getTileId();
-    TileId const& idNE  = rdNE->getTileId();
-
-    glm::int64 idx      = idDEM.patchIdx();
-    int        deltaLvl = idDEM.level() - idNE.level();
-
-    for (int i = deltaLvl; i > 0; --i) {
-      if (idx & 0x02) {
-        result[0] += (Size - 1) / (int64_t(1) << i);
-      }
-
-      idx >>= 2;
-    }
-  }
-
-  if (rdDEM->getEdgeDelta(1) < 0) {
-    RenderDataDEM* rdNW = rdDEM->getEdgeRData(1);
-    assert(rdNW != nullptr);
-
-    TileId const& idDEM = rdDEM->getTileId();
-    TileId const& idNW  = rdNW->getTileId();
-
-    glm::int64 idx      = idDEM.patchIdx();
-    int        deltaLvl = idDEM.level() - idNW.level();
-
-    for (int i = deltaLvl; i > 0; --i) {
-      if (idx & 0x01) {
-        result[1] += (Size - 1) / (int64_t(1) << i);
-      }
-
-      idx >>= 2;
-    }
-  }
-
-  if (rdDEM->getEdgeDelta(2) < 0) {
-    RenderDataDEM* rdSW = rdDEM->getEdgeRData(2);
-    assert(rdSW != nullptr);
-
-    TileId const& idDEM = rdDEM->getTileId();
-    TileId const& idSW  = rdSW->getTileId();
-
-    glm::int64 idx      = idDEM.patchIdx();
-    int        deltaLvl = idDEM.level() - idSW.level();
-
-    for (int i = deltaLvl; i > 0; --i) {
-      if (idx & 0x02) {
-        result[2] += (Size - 1) / (int64_t(1) << i);
-      }
-
-      idx >>= 2;
-    }
-  }
-
-  if (rdDEM->getEdgeDelta(3) < 0) {
-    RenderDataDEM* rdSE = rdDEM->getEdgeRData(3);
-    assert(rdSE != nullptr);
-
-    TileId const& idDEM = rdDEM->getTileId();
-    TileId const& idSE  = rdSE->getTileId();
-
-    glm::int64 idx      = idDEM.patchIdx();
-    int        deltaLvl = idDEM.level() - idSE.level();
-
-    for (int i = deltaLvl; i > 0; --i) {
-      if (idx & 0x01) {
-        result[3] += (Size - 1) / (int64_t(1) << i);
-      }
-
-      idx >>= 2;
-    }
-  }
-
-  return result;
-}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -304,11 +62,10 @@ std::unique_ptr<VistaGLSLShader>        TileRenderer::mProgBounds;
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /* explicit */
-TileRenderer::TileRenderer(
-    PlanetParameters const& params, TreeManagerBase* treeMgrDEM, TreeManagerBase* treeMgrIMG)
+TileRenderer::TileRenderer(PlanetParameters const& params, uint32_t tileResolution)
     : mParams(&params)
-    , mTreeMgrDEM(treeMgrDEM)
-    , mTreeMgrIMG(treeMgrIMG)
+    , mTreeMgrDEM(nullptr)
+    , mTreeMgrIMG(nullptr)
     , mMatM()
     , mMatV()
     , mMatP()
@@ -317,7 +74,8 @@ TileRenderer::TileRenderer(
     , mEnableDrawTiles(true)
     , mEnableDrawBounds(false)
     , mEnableWireframe(false)
-    , mEnableFaceCulling(true) {
+    , mEnableFaceCulling(true)
+    , mTileResolution(tileResolution) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -373,8 +131,6 @@ void TileRenderer::preRenderTiles(cs::graphics::ShadowMap* shadowMap) {
     glDisable(GL_CULL_FACE);
   }
 
-  glFrontFace(GL_CCW);
-
   // bind textures with tile data
   if (glDEM) {
     glActiveTexture(texUnitNameDEM);
@@ -408,6 +164,8 @@ void TileRenderer::preRenderTiles(cs::graphics::ShadowMap* shadowMap) {
   shader.SetUniform(loc, texUnitIMG);
   loc = shader.GetUniformLocation("VP_shadowMapMode");
   shader.SetUniform(loc, shadowMap == nullptr);
+  loc = shader.GetUniformLocation("VP_resolution");
+  shader.SetUniform(loc, static_cast<int>(mTileResolution));
 
   if (shadowMap) {
     shader.SetUniform(shader.GetUniformLocation("VP_shadowBias"), shadowMap->getBias());
@@ -438,12 +196,7 @@ void TileRenderer::renderTiles(
   // query uniform locations once and store in locs
   UniformLocs locs{};
   locs.demAverageHeight = shader.GetUniformLocation("VP_demAverageHeight");
-  locs.tileOffsetScale  = shader.GetUniformLocation("VP_tileOffsetScale");
-  locs.demOffsetScale   = shader.GetUniformLocation("VP_demOffsetScale");
-  locs.imgOffsetScale   = shader.GetUniformLocation("VP_imgOffsetScale");
-  locs.edgeDelta        = shader.GetUniformLocation("VP_edgeDelta");
-  locs.edgeLayerDEM     = shader.GetUniformLocation("VP_edgeLayerDEM");
-  locs.edgeOffset       = shader.GetUniformLocation("VP_edgeOffset");
+  locs.offsetScale      = shader.GetUniformLocation("VP_offsetScale");
   locs.f1f2             = shader.GetUniformLocation("VP_f1f2");
   locs.layerDEM         = shader.GetUniformLocation("VP_layerDEM");
   locs.layerIMG         = shader.GetUniformLocation("VP_layerIMG");
@@ -490,8 +243,6 @@ void TileRenderer::renderTiles(
   // appear multiple times in renderDEM/renderIMG.
   for (auto* it : renderDEM) {
     auto* rdDEM = dynamic_cast<RenderDataDEM*>(it);
-    rdDEM->resetEdgeDeltas();
-    rdDEM->resetEdgeRData();
     rdDEM->clearFlags();
   }
 }
@@ -501,44 +252,22 @@ void TileRenderer::renderTiles(
 void TileRenderer::renderTile(RenderDataDEM* rdDEM, RenderDataImg* rdIMG, UniformLocs const& locs) {
   VistaGLSLShader& shader   = mProgTerrain->mShader;
   TileId const&    idDEM    = rdDEM->getTileId();
-  GLuint           idxCount = NumIndices;
+  GLuint           idxCount = (mTileResolution - 1) * (2 + 2 * mTileResolution);
 
   std::array<glm::dvec2, 4> cornersLngLat{};
 
-  glm::ivec3 demOS(0, 0, 256);
-  glm::ivec3 imgOS(0, 0, 256);
-
-  if (!rdIMG || rdDEM->getLevel() == rdIMG->getLevel()) {
-    // no image data or same resolution
-    cornersLngLat = HEALPix::getCornersLngLat(idDEM);
-  } else if (rdDEM->getLevel() < rdIMG->getLevel()) {
-    // image resolution is higher
-    calcOffsetScale(idDEM, rdIMG->getTileId(), imgOS, demOS, idxCount);
-    cornersLngLat = HEALPix::getCornersLngLat(rdIMG->getTileId());
-  } else {
-    //  elevation resolution is higher
-    calcOffsetScale(idDEM, rdIMG->getTileId(), imgOS, demOS, idxCount);
-    cornersLngLat = HEALPix::getCornersLngLat(idDEM);
-  }
+  cornersLngLat = HEALPix::getCornersLngLat(idDEM);
 
   auto  baseXY        = HEALPix::getBaseXY(idDEM);
   auto  tileOS        = glm::ivec3(baseXY.y, baseXY.z, HEALPix::getNSide(idDEM));
-  auto  edgeDelta     = calcEdgeDelta(rdDEM);
-  auto  edgeLayerDEM  = calcEdgeLayerDEM(rdDEM);
-  auto  edgeOffset    = calcEdgeOffset(rdDEM);
   auto  patchF1F2     = glm::ivec2(HEALPix::getF1(idDEM), HEALPix::getF2(idDEM));
   float averageHeight = rdDEM->getNode()->getTile()->getMinMaxPyramid()->getAverage();
 
   // update uniforms
   shader.SetUniform(locs.demAverageHeight, averageHeight);
-  shader.SetUniform(locs.tileOffsetScale, 3, 1, glm::value_ptr(tileOS));
-  shader.SetUniform(locs.demOffsetScale, 3, 1, glm::value_ptr(demOS));
-  shader.SetUniform(locs.imgOffsetScale, 3, 1, glm::value_ptr(imgOS));
+  shader.SetUniform(locs.offsetScale, 3, 1, glm::value_ptr(tileOS));
   shader.SetUniform(locs.layerIMG, rdIMG ? rdIMG->getTexLayer() : 0);
   shader.SetUniform(locs.layerDEM, rdDEM->getTexLayer());
-  shader.SetUniform(locs.edgeDelta, 4, 1, glm::value_ptr(edgeDelta));
-  shader.SetUniform(locs.edgeLayerDEM, 4, 1, glm::value_ptr(edgeLayerDEM));
-  shader.SetUniform(locs.edgeOffset, 4, 1, glm::value_ptr(edgeOffset));
   shader.SetUniform(locs.f1f2, 2, 1, glm::value_ptr(patchF1F2));
 
   // order of components: N, W, S, E
@@ -564,7 +293,7 @@ void TileRenderer::renderTile(RenderDataDEM* rdDEM, RenderDataImg* rdIMG, Unifor
       glm::value_ptr(normalsWorldSpace[0]));
 
   // draw tile
-  glDrawElements(GL_TRIANGLES, idxCount, GL_UNSIGNED_INT, nullptr);
+  glDrawElements(GL_TRIANGLE_STRIP, idxCount, GL_UNSIGNED_INT, nullptr);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -656,16 +385,45 @@ void TileRenderer::postRenderBounds() {
 
 void TileRenderer::init() const {
   if (mEnableDrawTiles) {
-    if (!mVboTerrain) {
-      mVboTerrain = makeVBOTerrain();
-    }
-    if (!mIboTerrain) {
-      mIboTerrain = makeIBOTerrain();
+    std::vector<uint16_t> vertices(mTileResolution * mTileResolution * 2);
+    std::vector<uint32_t> indices((mTileResolution - 1) * (2 + 2 * mTileResolution));
+
+    for (uint32_t x = 0; x < mTileResolution; ++x) {
+      for (uint32_t y = 0; y < mTileResolution; ++y) {
+        vertices[(x * mTileResolution + y) * 2 + 0] = x;
+        vertices[(x * mTileResolution + y) * 2 + 1] = y;
+      }
     }
 
-    if (!mVaoTerrain) {
-      mVaoTerrain = makeVAOTerrain(mVboTerrain.get(), mIboTerrain.get());
+    uint32_t index = 0;
+
+    for (uint32_t x = 0; x < mTileResolution - 1; ++x) {
+      indices[index++] = x * mTileResolution;
+      for (uint32_t y = 0; y < mTileResolution; ++y) {
+        indices[index++] = x * mTileResolution + y;
+        indices[index++] = (x + 1) * mTileResolution + y;
+      }
+      indices[index] = indices[index - 1];
+      ++index;
     }
+
+    mVaoTerrain = std::make_unique<VistaVertexArrayObject>();
+    mVaoTerrain->Bind();
+
+    mVboTerrain = std::make_unique<VistaBufferObject>();
+    mVboTerrain->Bind(GL_ARRAY_BUFFER);
+    mVboTerrain->BufferData(vertices.size() * sizeof(uint16_t), vertices.data(), GL_STATIC_DRAW);
+
+    mIboTerrain = std::make_unique<VistaBufferObject>();
+    mIboTerrain->Bind(GL_ELEMENT_ARRAY_BUFFER);
+    mIboTerrain->BufferData(indices.size() * sizeof(uint32_t), indices.data(), GL_STATIC_DRAW);
+
+    mVaoTerrain->EnableAttributeArray(0);
+    mVaoTerrain->SpecifyAttributeArrayInteger(0, 2, GL_UNSIGNED_SHORT, 0, 0, mVboTerrain.get());
+
+    mVaoTerrain->Release();
+    mIboTerrain->Release();
+    mVboTerrain->Release();
   }
 
   if (mEnableDrawBounds) {
@@ -684,72 +442,6 @@ void TileRenderer::init() const {
       mProgBounds = makeProgBounds();
     }
   }
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// Construct the vertex buffer used to render a single tile.
-// Contains the index in (x,y) direction of the vertex, it is converted to
-// the corresponding relative position inside the patch - as well as texture
-// coordinates.
-std::unique_ptr<VistaBufferObject> TileRenderer::makeVBOTerrain() {
-  auto             result = std::make_unique<VistaBufferObject>();
-  GLsizeiptr const size   = NumVertices * sizeof(GLushort) * 2;
-
-  result->BindAsVertexDataBuffer();
-  result->BufferData(size, nullptr, GL_STATIC_DRAW);
-
-  GLuint idx    = 0;
-  auto*  buffer = static_cast<GLushort*>(result->MapBuffer(GL_WRITE_ONLY));
-  for (int y = 0; y < Size; ++y) {
-    for (int x = 0; x < Size; ++x) {
-      // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-      buffer[idx++] = static_cast<GLushort>(x);
-
-      // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-      buffer[idx++] = static_cast<GLushort>(y);
-    }
-  }
-  result->UnmapBuffer();
-  result->Release();
-
-  return result;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-std::unique_ptr<VistaBufferObject> TileRenderer::makeIBOTerrain() {
-  auto             result = std::make_unique<VistaBufferObject>();
-  GLsizeiptr const size   = NumIndices * sizeof(GLuint);
-
-  result->BindAsIndexBuffer();
-  result->BufferData(size, nullptr, GL_STATIC_DRAW);
-
-  int   idx    = 0;
-  auto* buffer = static_cast<GLuint*>(result->MapBuffer(GL_WRITE_ONLY));
-
-  // tile
-  idx = buildTileIndices(buffer, idx, 0, 0, 0);
-
-  result->UnmapBuffer();
-  result->Release();
-
-  assert(idx == NumIndices);
-
-  return result;
-}
-
-// Sets up the VertexArrayObject for rendering a Tile
-std::unique_ptr<VistaVertexArrayObject> TileRenderer::makeVAOTerrain(
-    VistaBufferObject* vbo, VistaBufferObject* ibo) {
-  auto result = std::make_unique<VistaVertexArrayObject>();
-  result->Bind();
-  result->EnableAttributeArray(0);
-  result->SpecifyAttributeArrayInteger(0, 2, GL_UNSIGNED_SHORT, 0, 0, vbo);
-  result->SpecifyIndexBufferObject(ibo, GL_UNSIGNED_INT);
-  result->Release();
-
-  return result;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

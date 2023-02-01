@@ -101,6 +101,8 @@ void from_json(nlohmann::json const& j, Plugin::Settings& o) {
   cs::core::Settings::deserialize(j, "enableTilesFreeze", o.mEnableTilesFreeze);
   cs::core::Settings::deserialize(j, "maxGPUTilesColor", o.mMaxGPUTilesColor);
   cs::core::Settings::deserialize(j, "maxGPUTilesDEM", o.mMaxGPUTilesDEM);
+  cs::core::Settings::deserialize(j, "tileResolutionDEM", o.mTileResolutionDEM);
+  cs::core::Settings::deserialize(j, "tileResolutionIMG", o.mTileResolutionIMG);
   cs::core::Settings::deserialize(j, "mapCache", o.mMapCache);
   cs::core::Settings::deserialize(j, "bodies", o.mBodies);
 }
@@ -122,6 +124,8 @@ void to_json(nlohmann::json& j, Plugin::Settings const& o) {
   cs::core::Settings::serialize(j, "enableTilesFreeze", o.mEnableTilesFreeze);
   cs::core::Settings::serialize(j, "maxGPUTilesColor", o.mMaxGPUTilesColor);
   cs::core::Settings::serialize(j, "maxGPUTilesDEM", o.mMaxGPUTilesDEM);
+  cs::core::Settings::serialize(j, "tileResolutionDEM", o.mTileResolutionDEM);
+  cs::core::Settings::serialize(j, "tileResolutionIMG", o.mTileResolutionIMG);
   cs::core::Settings::serialize(j, "mapCache", o.mMapCache);
   cs::core::Settings::serialize(j, "bodies", o.mBodies);
 }
@@ -461,7 +465,8 @@ void Plugin::onLoad() {
   // For now, we cannot re-create the GLResources.
   if (!mGLResources) {
     mGLResources = std::make_shared<csp::lodbodies::GLResources>(
-        mPluginSettings->mMaxGPUTilesDEM.get(), mPluginSettings->mMaxGPUTilesColor.get());
+        mPluginSettings->mMaxGPUTilesDEM.get(), mPluginSettings->mMaxGPUTilesColor.get(),
+        mPluginSettings->mTileResolutionDEM.get(), mPluginSettings->mTileResolutionIMG.get());
 
     mPluginSettings->mMaxGPUTilesColor.connect([](uint32_t /*val*/) {
       logger().warn("Changing the maximum number of allocated color tiles at run-time is not "
@@ -562,7 +567,7 @@ void Plugin::setImageSource(std::shared_ptr<LodBody> const& body, std::string co
 
     settings.mActiveImgDataset = dataset->first;
 
-    auto source = std::make_shared<TileSourceWebMapService>();
+    auto source = std::make_shared<TileSourceWebMapService>(mPluginSettings->mTileResolutionIMG.get());
     source->setCacheDirectory(mPluginSettings->mMapCache.get());
     source->setMaxLevel(dataset->second.mMaxLevel);
     source->setLayers(dataset->second.mLayers);
@@ -592,7 +597,7 @@ void Plugin::setElevationSource(
 
   settings.mActiveDemDataset = dataset->first;
 
-  auto source = std::make_shared<TileSourceWebMapService>();
+  auto source = std::make_shared<TileSourceWebMapService>(mPluginSettings->mTileResolutionDEM.get());
   source->setCacheDirectory(mPluginSettings->mMapCache.get());
   source->setMaxLevel(dataset->second.mMaxLevel);
   source->setLayers(dataset->second.mLayers);
