@@ -118,10 +118,10 @@ class UtilsApi extends IApi {
     value     = Number(value);
 
     if (abs < 1e-9) {
-      return this.formatNumber(value * 1e9) + "μ";
+      return this.formatNumber(value * 1e9) + "n";
     }
     if (abs < 1e-6) {
-      return this.formatNumber(value * 1e6) + "n";
+      return this.formatNumber(value * 1e6) + "μ";
     }
     if (abs < 1e-3) {
       return this.formatNumber(value * 1e3) + "m";

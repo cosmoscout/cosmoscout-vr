@@ -118,7 +118,7 @@ class TimingsApi extends IApi {
     const samplesContainer    = document.querySelector("#samples-graph")
     const primitivesContainer = document.querySelector("#primitives-graph")
     const gridContainer       = document.querySelector("#grid")
-    const fpsContainer        = document.getElementById('fps-counter');
+    const fpsContainer        = document.querySelector('#fps-counter');
 
     // First clear the containers completely.
     CosmoScout.gui.clearHtml(gpuContainer);
