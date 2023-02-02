@@ -14,7 +14,7 @@ namespace csp::lodbodies {
 
 MinMaxPyramid::MinMaxPyramid(Tile<float>* tile)
     : mTileResolution(tile->getResolution())
-    , mLevels(std::log2(mTileResolution) - 1)
+    , mLevels(static_cast<uint32_t>(std::log2(mTileResolution)) - 1)
     , mMinPyramid(mLevels)
     , mMaxPyramid(mLevels) {
 
