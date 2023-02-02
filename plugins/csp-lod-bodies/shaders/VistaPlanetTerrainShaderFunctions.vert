@@ -12,6 +12,11 @@ float VP_getJR(vec2 posXY)
     return VP_f1f2.x - posXY.x - posXY.y;
 }
 
+vec2 VP_getTexCoord(vec2 iPosition)
+{
+    return clamp((iPosition - vec2(1.0)) / (VP_resolution - 1), vec2(0.0), vec2(1.0));
+}
+
 //  Calculates the position (in [0,1]^2) relative to the base patch from
 //  integer vertex coordinates @a vtxPos (in [0,256]^2).
 vec2 VP_getXY(ivec2 iPosition)
@@ -19,19 +24,19 @@ vec2 VP_getXY(ivec2 iPosition)
     // First convert vtxPos to a relative position ([0,1]^2) within the patch.
     // Then apply VP_offsetScale to obtain relative position within the
     // base patch.
-    return (vec2(iPosition) / (VP_resolution - 1) + VP_offsetScale.xy) / 
-            VP_offsetScale.z;
-}
-
-vec2 VP_getTexCoord(vec2 iPosition)
-{
-    return iPosition / (VP_resolution - 1);
+    return (VP_getTexCoord(iPosition) + VP_offsetScale.xy) / VP_offsetScale.z;
 }
 
 float VP_getVertexHeight(ivec2 iPosition)
 {
     vec2 tc = VP_getTexCoord(iPosition);
-    return texture(VP_texDEM, vec3(tc, VP_layerDEM)).x;
+    float height = texture(VP_texDEM, vec3(tc, VP_dataLayers.x)).x;
+
+    if (any(equal(iPosition, ivec2(0.0))) || any(equal(iPosition, ivec2(VP_resolution + 1)))) {
+        height -= VP_heightInfo.y;
+    }
+
+    return height;
 }
 
 // Converts point posXY (in [0, 1]^2), which are relative coordinates inside a
@@ -115,9 +120,9 @@ vec3 VP_getVertexPositionInterpolated(ivec2 iPosition)
     vec3 normal   = mix(normalSW, normalNE, alpha.x);
 
     // calculate height above surface
-    // VP_demAverageHeight is substracted in order to increase the accuracy on high mountains and in deep valleys
+    // average height is substracted in order to increase the accuracy on high mountains and in deep valleys
     float height = length(VP_matModel[0]) * VP_heightScale 
-                   * (VP_getVertexHeight(iPosition) - VP_demAverageHeight);
+                   * (VP_getVertexHeight(iPosition) - VP_heightInfo.x);
 
     // calculate final position
     vec3 result = height * normalize(normal);

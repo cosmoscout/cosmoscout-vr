@@ -193,11 +193,10 @@ void TileRenderer::renderTiles(
 
   // query uniform locations once and store in locs
   UniformLocs locs{};
-  locs.demAverageHeight = shader.GetUniformLocation("VP_demAverageHeight");
+  locs.heightInfo = shader.GetUniformLocation("VP_heightInfo");
   locs.offsetScale      = shader.GetUniformLocation("VP_offsetScale");
   locs.f1f2             = shader.GetUniformLocation("VP_f1f2");
-  locs.layerDEM         = shader.GetUniformLocation("VP_layerDEM");
-  locs.layerIMG         = shader.GetUniformLocation("VP_layerIMG");
+  locs.dataLayers         = shader.GetUniformLocation("VP_dataLayers");
 
   int missingDEM = 0;
   int missingIMG = 0;
@@ -250,7 +249,9 @@ void TileRenderer::renderTiles(
 void TileRenderer::renderTile(RenderDataDEM* rdDEM, RenderDataImg* rdIMG, UniformLocs const& locs) {
   VistaGLSLShader& shader   = mProgTerrain->mShader;
   TileId const&    idDEM    = rdDEM->getTileId();
-  GLuint           idxCount = (mTileResolution - 1) * (2 + 2 * mTileResolution);
+
+  uint32_t gridResolution = mTileResolution + 2;
+  uint32_t idxCount = (gridResolution - 1) * (2 + 2 * gridResolution);
 
   std::array<glm::dvec2, 4> cornersLngLat{};
 
@@ -260,13 +261,14 @@ void TileRenderer::renderTile(RenderDataDEM* rdDEM, RenderDataImg* rdIMG, Unifor
   auto  tileOS        = glm::ivec3(baseXY.y, baseXY.z, HEALPix::getNSide(idDEM));
   auto  patchF1F2     = glm::ivec2(HEALPix::getF1(idDEM), HEALPix::getF2(idDEM));
   float averageHeight = rdDEM->getNode()->getTile()->getMinMaxPyramid()->getAverage();
+  float minHeight = rdDEM->getNode()->getTile()->getMinMaxPyramid()->getMin();
+  float maxHeight = rdDEM->getNode()->getTile()->getMinMaxPyramid()->getMax();
 
   // update uniforms
-  shader.SetUniform(locs.demAverageHeight, averageHeight);
+  shader.SetUniform(locs.heightInfo, averageHeight, maxHeight-minHeight);
   shader.SetUniform(locs.offsetScale, 3, 1, glm::value_ptr(tileOS));
-  shader.SetUniform(locs.layerIMG, rdIMG ? rdIMG->getTexLayer() : 0);
-  shader.SetUniform(locs.layerDEM, rdDEM->getTexLayer());
   shader.SetUniform(locs.f1f2, 2, 1, glm::value_ptr(patchF1F2));
+  glUniform2i(locs.dataLayers, rdDEM->getTexLayer(), rdIMG ? rdIMG->getTexLayer() : 0);
 
   // order of components: N, W, S, E
   std::array<glm::dvec3, 4> corners{};
@@ -383,23 +385,25 @@ void TileRenderer::postRenderBounds() {
 
 void TileRenderer::init() const {
   if (mEnableDrawTiles) {
-    std::vector<uint16_t> vertices(mTileResolution * mTileResolution * 2);
-    std::vector<uint32_t> indices((mTileResolution - 1) * (2 + 2 * mTileResolution));
+    uint32_t gridResolution = mTileResolution + 2;
 
-    for (uint32_t x = 0; x < mTileResolution; ++x) {
-      for (uint32_t y = 0; y < mTileResolution; ++y) {
-        vertices[(x * mTileResolution + y) * 2 + 0] = x;
-        vertices[(x * mTileResolution + y) * 2 + 1] = y;
+    std::vector<uint16_t> vertices(gridResolution * gridResolution * 2);
+    std::vector<uint32_t> indices((gridResolution - 1) * (2 + 2 * gridResolution));
+
+    for (uint32_t x = 0; x < gridResolution; ++x) {
+      for (uint32_t y = 0; y < gridResolution; ++y) {
+        vertices[(x * gridResolution + y) * 2 + 0] = x;
+        vertices[(x * gridResolution + y) * 2 + 1] = y;
       }
     }
 
     uint32_t index = 0;
 
-    for (uint32_t x = 0; x < mTileResolution - 1; ++x) {
-      indices[index++] = x * mTileResolution;
-      for (uint32_t y = 0; y < mTileResolution; ++y) {
-        indices[index++] = x * mTileResolution + y;
-        indices[index++] = (x + 1) * mTileResolution + y;
+    for (uint32_t x = 0; x < gridResolution - 1; ++x) {
+      indices[index++] = x * gridResolution;
+      for (uint32_t y = 0; y < gridResolution; ++y) {
+        indices[index++] = x * gridResolution + y;
+        indices[index++] = (x + 1) * gridResolution + y;
       }
       indices[index] = indices[index - 1];
       ++index;

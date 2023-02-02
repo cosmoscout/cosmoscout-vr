@@ -86,7 +86,7 @@ void main() {
 #endif
 
 #if $SHOW_TEXTURE
-  fragColor.rgb = texture(VP_texIMG, vec3(fsIn.texcoords, VP_layerIMG)).rgb;
+  fragColor.rgb = texture(VP_texIMG, vec3(fsIn.texcoords, VP_dataLayers.y)).rgb;
 
 #if $ENABLE_HDR
   fragColor.rgb = SRGBtoLINEAR(fragColor.rgb);
@@ -175,12 +175,12 @@ void main() {
   debugColor.rgb   = mix(debugColor.rgb, vec3(1), brightness);
 
   // create border pixel row color
-  float edgeWidth = 0.5;
+  float edgeWidth = 1.5;
 
   // make border between image patches gray
   if (fsIn.vertexPosition.x < edgeWidth || fsIn.vertexPosition.y < edgeWidth ||
-      fsIn.vertexPosition.x > VP_resolution - 1.0 - edgeWidth || 
-      fsIn.vertexPosition.y > VP_resolution - 1.0 - edgeWidth) {
+      fsIn.vertexPosition.x > VP_resolution + 1.0 - edgeWidth || 
+      fsIn.vertexPosition.y > VP_resolution + 1.0 - edgeWidth) {
     debugColor = vec4(1.0, 0.0, 0.0, 0.5);
   }
 

@@ -27,7 +27,9 @@ uniform sampler2DArray VP_texIMG;
 
 // uniforms - current tile -----------------------------------------------------
 
-uniform float VP_demAverageHeight;
+// THe first component contains the average height value of the tile.
+// The second component contains the maximum height difference in the tile.
+uniform vec2 VP_heightInfo;
 
 // offset (xy) and total number of patches (z) (relative to base patch)
 uniform ivec3 VP_offsetScale;
@@ -35,11 +37,9 @@ uniform ivec3 VP_offsetScale;
 // patch coordinate parameters f1, f2 (indirectly specifies base patch)
 uniform ivec2 VP_f1f2;
 
-// layer of VP_texDEM the current patch's elevation data is stored in
-uniform int VP_layerDEM;
-
-// layer of VP_texIMG the current patch's image data is stored in
-uniform int VP_layerIMG;
+// Layers of VP_texDEM and VP_texIMG where the current patch's elevation (.x) and image
+// data (.y) are stored.
+uniform ivec2 VP_dataLayers;
 
 uniform vec3 VP_corners[4];
 uniform vec3 VP_normals[4];

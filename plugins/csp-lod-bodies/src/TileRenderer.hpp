@@ -81,11 +81,10 @@ class TileRenderer {
 
  private:
   struct UniformLocs {
-    GLint demAverageHeight;
+    GLint heightInfo;
     GLint offsetScale;
     GLint f1f2;
-    GLint layerDEM;
-    GLint layerIMG;
+    GLint dataLayers;
   };
 
   void preRenderTiles(cs::graphics::ShadowMap* shadowMap);
