@@ -11,6 +11,10 @@
 namespace csp::lodbodies {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+// DISCLAIMER: The MinMaxPyramid was ported from a version of CosmoScout VR which used a fixed    //
+// tile resolution of 257x257. There is no guarantee that it still works 100%. This should be#    //
+// tested before using it agin :)                                                                 //
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 MinMaxPyramid::MinMaxPyramid(Tile<float>* tile)
     : mTileResolution(tile->getResolution())
@@ -24,22 +28,6 @@ MinMaxPyramid::MinMaxPyramid(Tile<float>* tile)
     mMaxPyramid[i] =
         std::vector<float>(resolution * resolution, std::numeric_limits<float>::lowest());
   }
-
-  // mMinPyramid[0] = std::vector<float>(128 * 128, std::numeric_limits<float>::max());
-  // mMinPyramid[1] = std::vector<float>(64 * 64, std::numeric_limits<float>::max());
-  // mMinPyramid[2] = std::vector<float>(32 * 32, std::numeric_limits<float>::max());
-  // mMinPyramid[3] = std::vector<float>(16 * 16, std::numeric_limits<float>::max());
-  // mMinPyramid[4] = std::vector<float>(8 * 8, std::numeric_limits<float>::max());
-  // mMinPyramid[5] = std::vector<float>(4 * 4, std::numeric_limits<float>::max());
-  // mMinPyramid[6] = std::vector<float>(2 * 2, std::numeric_limits<float>::max());
-
-  // mMaxPyramid[0] = std::vector<float>(128 * 128, -std::numeric_limits<float>::max());
-  // mMaxPyramid[1] = std::vector<float>(64 * 64, -std::numeric_limits<float>::max());
-  // mMaxPyramid[2] = std::vector<float>(32 * 32, -std::numeric_limits<float>::max());
-  // mMaxPyramid[3] = std::vector<float>(16 * 16, -std::numeric_limits<float>::max());
-  // mMaxPyramid[4] = std::vector<float>(8 * 8, -std::numeric_limits<float>::max());
-  // mMaxPyramid[5] = std::vector<float>(4 * 4, -std::numeric_limits<float>::max());
-  // mMaxPyramid[6] = std::vector<float>(2 * 2, -std::numeric_limits<float>::max());
 
   // Construct first MinMaxPyramid layer by sampling 2x2 values
   uint32_t halfSize = static_cast<uint32_t>((mTileResolution - 1) / 2);

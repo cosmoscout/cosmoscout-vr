@@ -12,6 +12,9 @@ float VP_getJR(vec2 posXY)
     return VP_f1f2.x - posXY.x - posXY.y;
 }
 
+// Returns the texture coordinates inside the tile in [0..1]. The coordinates are clamped to the
+// skirt. This means, the coordinates range from [0..1] on top of the tile, the additional skirt
+// vertices have the same coordinates as the vertices at the tile boundary.
 vec2 VP_getTexCoord(vec2 iPosition)
 {
     return clamp((iPosition - vec2(1.0)) / (VP_resolution - 1), vec2(0.0), vec2(1.0));
@@ -27,11 +30,16 @@ vec2 VP_getXY(ivec2 iPosition)
     return (VP_getTexCoord(iPosition) + VP_offsetScale.xy) / VP_offsetScale.z;
 }
 
+// Returns the height in meters of the vertex at the given position inside the current tile. The
+// outer-most ring of vertices create the skirt around the tile and are therefore moved down. The
+// distance which they are moved, depends on the topography of the tile: Flat tiles have a smaller
+// skirt than mountainous tiles.
 float VP_getVertexHeight(ivec2 iPosition)
 {
     vec2 tc = VP_getTexCoord(iPosition);
     float height = texture(VP_texDEM, vec3(tc, VP_dataLayers.x)).x;
 
+    // Move skirt vertices down by half the maximum elevation difference inside the tile.
     if (any(equal(iPosition, ivec2(0.0))) || any(equal(iPosition, ivec2(VP_resolution + 1)))) {
         height -= VP_heightInfo.y * 0.5;
     }
@@ -202,7 +210,8 @@ vec3 VP_getVertexNormalLow(vec3 centerPos, ivec2 iPosition, int mode)
     // Make sure to handle bottom skirt vertices the same as top skirt vertices.
     iPosition = clamp(iPosition, ivec2(1), ivec2(VP_resolution));
 
-    // neighbour vertices (px: x direction, py: y direction)
+    // Sample neighbour vertices. If we are close to a border, we sample in the other direction
+    // instead. At iPosition.x == 0 is the bottom skirt vertex.
     ivec2 px = ivec2(iPosition.x == 1 ? 2 : iPosition.x - 1, iPosition.y);
     ivec2 py = ivec2(iPosition.x, iPosition.y == 1 ? 2 : iPosition.y - 1);
 
@@ -214,6 +223,8 @@ vec3 VP_getVertexNormalLow(vec3 centerPos, ivec2 iPosition, int mode)
     vec3 dx = p_px - centerPos;
     vec3 dy = p_py - centerPos;
 
+    // If we sampled close to either of the sides, we flipped the lookup and hence have to flip the
+    // normal as well.
     if (iPosition.x == 1 ^^ iPosition.y == 1) {
         dx = -dx;
     }

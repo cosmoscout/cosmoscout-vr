@@ -46,6 +46,7 @@ class TileBase {
   TileId const& getTileId() const;
   void          setTileId(TileId const& tileId);
 
+  /// Returns the resolution given to the tile at construction time.
   uint32_t getResolution() const;
 
   /// The level of subdivision of the tile.

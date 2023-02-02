@@ -105,6 +105,7 @@ void LodBody::setDEMtileSource(std::shared_ptr<TileSource> source, uint32_t maxL
 
   mMaxLevelDEM = maxLevel;
 
+  // Use the maximum level of both tile sources for our planet.
   mPlanet.setMaxLevel(std::max(mMaxLevelIMG, mMaxLevelDEM));
 }
 
@@ -129,6 +130,7 @@ void LodBody::setIMGtileSource(std::shared_ptr<TileSource> source, uint32_t maxL
     mMaxLevelIMG = 0;
   }
 
+  // Use the maximum level of both tile sources for our planet.
   mPlanet.setMaxLevel(std::max(mMaxLevelIMG, mMaxLevelDEM));
 }
 

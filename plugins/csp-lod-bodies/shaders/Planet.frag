@@ -15,7 +15,7 @@ uniform float slopeMin;
 uniform float slopeMax;
 uniform float ambientBrightness;
 uniform float texGamma;
-uniform vec4 uSunDirIlluminance;
+uniform vec4  uSunDirIlluminance;
 
 uniform sampler1D heightTex;
 uniform sampler2D fontTex;
@@ -174,10 +174,10 @@ void main() {
   vec4  debugColor = vec4(heat((level - minLevel) / (maxLevel - minLevel)), 0.5);
   debugColor.rgb   = mix(debugColor.rgb, vec3(1), brightness);
 
-  // create border pixel row color
+  // Create a red border around each tile. As the outer-most vertex is the bottom of the skirt, we
+  // have to make the border 1.5 pixels wide to be visible on the top of the tile.
   float edgeWidth = 1.5;
 
-  // make border between image patches gray
   if (fsIn.vertexPosition.x < edgeWidth || fsIn.vertexPosition.y < edgeWidth ||
       fsIn.vertexPosition.x > VP_resolution + 1.0 - edgeWidth || 
       fsIn.vertexPosition.y > VP_resolution + 1.0 - edgeWidth) {
