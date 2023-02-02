@@ -33,7 +33,7 @@ float VP_getVertexHeight(ivec2 iPosition)
     float height = texture(VP_texDEM, vec3(tc, VP_dataLayers.x)).x;
 
     if (any(equal(iPosition, ivec2(0.0))) || any(equal(iPosition, ivec2(VP_resolution + 1)))) {
-        height -= VP_heightInfo.y;
+        height -= VP_heightInfo.y * 0.5;
     }
 
     return height;
@@ -171,11 +171,14 @@ vec3 VP_getVertexPosition(ivec2 iPosition, int mode)
 // VP_texDEM.
 vec3 VP_getVertexNormal(ivec2 iPosition, int mode)
 {
+    // Make sure to handle bottom skirt vertices the same as top skirt vertices.
+    iPosition = clamp(iPosition, ivec2(1), ivec2(VP_resolution));
+
     // neighbour vertices (p: positive direction, n: negative direction)
-    ivec2 pp = ivec2(iPosition.x + 1, iPosition.y);
-    ivec2 nn = ivec2(iPosition.x - 1, iPosition.y);
-    ivec2 np = ivec2(iPosition.x, iPosition.y + 1);
-    ivec2 pn = ivec2(iPosition.x, iPosition.y - 1);
+    ivec2 pp = ivec2(min(iPosition.x + 1, VP_resolution), iPosition.y);
+    ivec2 nn = ivec2(max(iPosition.x - 1, 1), iPosition.y);
+    ivec2 np = ivec2(iPosition.x, min(iPosition.y + 1, VP_resolution));
+    ivec2 pn = ivec2(iPosition.x, max(iPosition.y - 1, 1));
 
     // euclidian position of neighbour vertices
     vec3 p_pp = VP_getVertexPosition(pp, mode);
@@ -196,9 +199,12 @@ vec3 VP_getVertexNormal(ivec2 iPosition, int mode)
 // VP_texDEM.
 vec3 VP_getVertexNormalLow(vec3 centerPos, ivec2 iPosition, int mode)
 {
+    // Make sure to handle bottom skirt vertices the same as top skirt vertices.
+    iPosition = clamp(iPosition, ivec2(1), ivec2(VP_resolution));
+
     // neighbour vertices (px: x direction, py: y direction)
-    ivec2 px = ivec2(iPosition.x + 1, iPosition.y);
-    ivec2 py = ivec2(iPosition.x, iPosition.y + 1);
+    ivec2 px = ivec2(iPosition.x == 1 ? 2 : iPosition.x - 1, iPosition.y);
+    ivec2 py = ivec2(iPosition.x, iPosition.y == 1 ? 2 : iPosition.y - 1);
 
     // euclidian position of neighbour vertices
     vec3 p_px = VP_getVertexPosition(px, mode);
@@ -207,6 +213,10 @@ vec3 VP_getVertexNormalLow(vec3 centerPos, ivec2 iPosition, int mode)
     // central differences as approximation for surface tangents
     vec3 dx = p_px - centerPos;
     vec3 dy = p_py - centerPos;
+
+    if (iPosition.x == 1 ^^ iPosition.y == 1) {
+        dx = -dx;
+    }
 
     // cross product of tangents -> normal
     return normalize(cross(dx, dy));
