@@ -304,31 +304,40 @@ std::optional<std::string> TileSourceWebMapService::loadData(
 
   double size = 1.0 / (1 << level);
 
-  // SW, SE, NE, NW
+  // Pixel centers should be aligned with the vertices of the tiles. Hence, border pixels need to be
+  // included in both of two adjacent tiles. For this, we increase the request area by half a pixel
+  // in all directions. While this works for most cases, there are some issues at the northern and
+  // southern edges of the base patches: If we try to increase the request area there, we enter an
+  // area which is undefined in the HEALPix projection. This leads to reprojection artifacts. To
+  // avoid this, we do not increase the request area at those boundaries. In fact, we even shrink
+  // the area slightly, as there are still occasional artifacts if we try to request exactly the
+  // boundary. The order of request-area-bounds-offsets is as follows: we SW, SE, NE, NW
   glm::dvec4 offsets(size / mResolution * 0.5);
 
   glm::i64vec3 baseXY = HEALPix::getBaseXY(TileId(level, patchIdx));
   glm::int64   nSide  = HEALPix::getNSide(TileId(level, patchIdx));
 
-  // northern hemisphere
+  // Northern hemisphere.
   if (baseXY.x < 4) {
-    // at north east boundary of base patch
+    // We are at the north east boundary of a base patch.
     if (baseXY.y == nSide - 1) {
       offsets[2] *= -1.0;
     }
 
-    // at north west boundary of base patch
+    // We are at the north west boundary of a base patch.
     if (baseXY.z == nSide - 1) {
       offsets[3] *= -1.0;
     }
 
-  } else if (baseXY.x >= 8) {
-    // at south west boundary of base patch
+  }
+  // Southern hemisphere.
+  else if (baseXY.x >= 8) {
+    // We are at the south west boundary of a base patch.
     if (baseXY.y == 0) {
       offsets[0] *= -1.0;
     }
 
-    // at south east boundary of base patch
+    // We are at the south east boundary of a base patch.
     if (baseXY.z == 0) {
       offsets[1] *= -1.0;
     }

@@ -36,6 +36,7 @@ vec2 VP_getXY(ivec2 iPosition)
 // skirt than mountainous tiles.
 float VP_getVertexHeight(ivec2 iPosition)
 {
+    // Make sure to sample at the pixel centers.
     float pixelSize = 1.0 / VP_getResolutionDEM();
     vec2 texcoords = VP_getTileCoords(iPosition) * (1.0 - pixelSize) + 0.5 * pixelSize;
     float height = texture(VP_texDEM, vec3(texcoords, VP_dataLayers.x)).x;

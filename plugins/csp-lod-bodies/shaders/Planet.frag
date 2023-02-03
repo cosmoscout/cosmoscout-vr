@@ -86,6 +86,7 @@ void main() {
 #endif
 
 #if $SHOW_TEXTURE
+  // Make sure to sample at the pixel centers.
   float pixelSize = 1.0 / VP_getResolutionIMG();
   vec2 texcoords = fsIn.tileCoords * (1.0 - pixelSize) + 0.5 * pixelSize;
   fragColor.rgb = texture(VP_texIMG, vec3(texcoords, VP_dataLayers.y)).rgb;

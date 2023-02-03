@@ -383,6 +383,9 @@ void TileRenderer::postRenderBounds() {
 
 void TileRenderer::init() const {
   if (mEnableDrawTiles) {
+
+    // The vertex buffer contains a grid of vertices with an additional vertex in all directions for
+    // the skirt around each patch.
     uint32_t gridResolution = mTileResolution + 2;
 
     std::vector<uint16_t> vertices(gridResolution * gridResolution * 2);
