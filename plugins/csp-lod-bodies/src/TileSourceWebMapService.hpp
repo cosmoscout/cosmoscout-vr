@@ -68,7 +68,7 @@ class TileSourceWebMapService : public TileSource {
   // that a tile cannot be downloaded (e.g. if the server is offline) - in this case no error is
   // thrown but std::nullopt is returned. In several other cases (e.g. cache directory is not
   // writable) a std::runtime_error is thrown.
-  std::optional<std::string> loadData(int level, int x, int y);
+  std::optional<std::string> loadData(glm::int64 patchIdx, int level, int x, int y);
 
  private:
   static std::mutex mTileSystemMutex;
@@ -78,7 +78,6 @@ class TileSourceWebMapService : public TileSource {
   std::string           mCache = "cache/img";
   std::string           mLayers;
   TileDataType          mFormat   = TileDataType::eColor;
-  uint32_t              mMaxLevel = 10;
   uint32_t              mResolution;
 };
 } // namespace csp::lodbodies

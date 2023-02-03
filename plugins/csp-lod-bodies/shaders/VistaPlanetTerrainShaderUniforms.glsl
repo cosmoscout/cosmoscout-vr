@@ -9,7 +9,6 @@
 const float VP_PI = 3.1415926535897932384626433832795;
 
 // uniforms - global for a planet ----------------------------------------------
-uniform int   VP_resolution;
 uniform mat4  VP_matProjection;
 uniform mat4  VP_matModel;
 uniform mat4  VP_matView;
@@ -50,3 +49,12 @@ uniform sampler2DShadow VP_shadowMaps[5];
 uniform mat4            VP_shadowProjectionViewMatrices[5];
 uniform float           VP_shadowBias = 0.0001;
 uniform int             VP_shadowCascades;
+
+
+int VP_getResolutionIMG() {
+    return textureSize(VP_texIMG, 0).x;
+}
+
+int VP_getResolutionDEM() {
+    return textureSize(VP_texDEM, 0).x;
+}

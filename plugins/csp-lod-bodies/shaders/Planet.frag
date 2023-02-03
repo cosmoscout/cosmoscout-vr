@@ -86,7 +86,9 @@ void main() {
 #endif
 
 #if $SHOW_TEXTURE
-  fragColor.rgb = texture(VP_texIMG, vec3(fsIn.texcoords, VP_dataLayers.y)).rgb;
+  float pixelSize = 1.0 / VP_getResolutionIMG();
+  vec2 texcoords = fsIn.texcoords * (1.0 - pixelSize) + 0.5 * pixelSize;
+  fragColor.rgb = texture(VP_texIMG, vec3(texcoords, VP_dataLayers.y)).rgb;
 
 #if $ENABLE_HDR
   fragColor.rgb = SRGBtoLINEAR(fragColor.rgb);
@@ -179,8 +181,8 @@ void main() {
   float edgeWidth = 1.5;
 
   if (fsIn.vertexPosition.x < edgeWidth || fsIn.vertexPosition.y < edgeWidth ||
-      fsIn.vertexPosition.x > VP_resolution + 1.0 - edgeWidth || 
-      fsIn.vertexPosition.y > VP_resolution + 1.0 - edgeWidth) {
+      fsIn.vertexPosition.x > VP_getResolutionDEM() + 1.0 - edgeWidth || 
+      fsIn.vertexPosition.y > VP_getResolutionDEM() + 1.0 - edgeWidth) {
     debugColor = vec4(1.0, 0.0, 0.0, 0.5);
   }
 

@@ -17,7 +17,7 @@ float VP_getJR(vec2 posXY)
 // vertices have the same coordinates as the vertices at the tile boundary.
 vec2 VP_getTexCoord(vec2 iPosition)
 {
-    return clamp((iPosition - vec2(1.0)) / (VP_resolution - 1), vec2(0.0), vec2(1.0));
+    return clamp((iPosition - vec2(1.0)) / (VP_getResolutionDEM() - 1), vec2(0.0), vec2(1.0));
 }
 
 //  Calculates the position (in [0,1]^2) relative to the base patch from
@@ -36,11 +36,12 @@ vec2 VP_getXY(ivec2 iPosition)
 // skirt than mountainous tiles.
 float VP_getVertexHeight(ivec2 iPosition)
 {
-    vec2 tc = VP_getTexCoord(iPosition);
-    float height = texture(VP_texDEM, vec3(tc, VP_dataLayers.x)).x;
+    float pixelSize = 1.0 / VP_getResolutionDEM();
+    vec2 texcoords = VP_getTexCoord(iPosition) * (1.0 - pixelSize) + 0.5 * pixelSize;
+    float height = texture(VP_texDEM, vec3(texcoords, VP_dataLayers.x)).x;
 
     // Move skirt vertices down by half the maximum elevation difference inside the tile.
-    if (any(equal(iPosition, ivec2(0.0))) || any(equal(iPosition, ivec2(VP_resolution + 1)))) {
+    if (any(equal(iPosition, ivec2(0.0))) || any(equal(iPosition, ivec2(VP_getResolutionDEM() + 1)))) {
         height -= VP_heightInfo.y * 0.5;
     }
 
@@ -179,13 +180,15 @@ vec3 VP_getVertexPosition(ivec2 iPosition, int mode)
 // VP_texDEM.
 vec3 VP_getVertexNormal(ivec2 iPosition, int mode)
 {
+    int resolution = VP_getResolutionDEM();
+
     // Make sure to handle bottom skirt vertices the same as top skirt vertices.
-    iPosition = clamp(iPosition, ivec2(1), ivec2(VP_resolution));
+    iPosition = clamp(iPosition, ivec2(1), ivec2(resolution));
 
     // neighbour vertices (p: positive direction, n: negative direction)
-    ivec2 pp = ivec2(min(iPosition.x + 1, VP_resolution), iPosition.y);
+    ivec2 pp = ivec2(min(iPosition.x + 1, resolution), iPosition.y);
     ivec2 nn = ivec2(max(iPosition.x - 1, 1), iPosition.y);
-    ivec2 np = ivec2(iPosition.x, min(iPosition.y + 1, VP_resolution));
+    ivec2 np = ivec2(iPosition.x, min(iPosition.y + 1, resolution));
     ivec2 pn = ivec2(iPosition.x, max(iPosition.y - 1, 1));
 
     // euclidian position of neighbour vertices
@@ -208,7 +211,7 @@ vec3 VP_getVertexNormal(ivec2 iPosition, int mode)
 vec3 VP_getVertexNormalLow(vec3 centerPos, ivec2 iPosition, int mode)
 {
     // Make sure to handle bottom skirt vertices the same as top skirt vertices.
-    iPosition = clamp(iPosition, ivec2(1), ivec2(VP_resolution));
+    iPosition = clamp(iPosition, ivec2(1), ivec2(VP_getResolutionDEM()));
 
     // Sample neighbour vertices. If we are close to a border, we sample in the other direction
     // instead. At iPosition.x == 0 is the bottom skirt vertex.

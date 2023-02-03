@@ -49,7 +49,7 @@ bool loadImpl(
   // First we download the tile data to a local cache file. This will return quickly if the file is
   // already downloaded but will take some time if it needs to be fetched from the server.
   try {
-    cacheFile = source->loadData(level, x, y);
+    cacheFile = source->loadData(node->getPatchIdx(), level, x, y);
   } catch (std::exception const& e) {
     // This is not critical, the planet will just not refine any further.
     logger().debug("Tile loading failed: {}", e.what());
@@ -199,42 +199,8 @@ TileNode* loadImpl(TileSourceWebMapService* source, uint32_t level, glm::int64 p
     }
   }
 
-  // TODO: the NE and NW edges of all tiles should contain the values of the
-  // respective neighbours (for tile stiching). This is done by increasing the
-  // bounding box of the request by one pixel - this works more or less in the
-  // general case, but it doesn't when we are at a base patch border of the
-  // northern hemisphere. In this case we will get empty pixels! Therefore we
-  // fill the last column and row by copying.
-  // The proper solution would load the real neighbouring tiles and copy the
-  // pixel values!
-
-  auto         tile       = static_cast<Tile<T>*>(node->getTile());
-  glm::i64vec3 baseXY     = HEALPix::getBaseXY(TileId(level, patchIdx));
-  glm::int64   nSide      = HEALPix::getNSide(TileId(level, patchIdx));
-  uint32_t     resolution = tile->getResolution();
-
-  // northern hemisphere
-  if (baseXY.x < 4) {
-    // at north west boundary of base patch
-    if (baseXY.z == nSide - 1) {
-      // copy second pixel row to first
-      for (uint32_t i = 0; i < resolution; i++) {
-        tile->data()[i + resolution] = tile->data()[i + resolution * 2];
-        tile->data()[i]              = tile->data()[i + resolution * 2];
-      }
-    }
-
-    // at north east boundary of base patch
-    if (baseXY.y == nSide - 1) {
-      // copy last pixel column to last but one
-      for (uint32_t i = 0; i < resolution; i++) {
-        tile->data()[i * resolution + resolution - 2] =
-            tile->data()[i * resolution + resolution - 3];
-        tile->data()[i * resolution + resolution - 1] =
-            tile->data()[i * resolution + resolution - 3];
-      }
-    }
-  }
+  auto     tile       = static_cast<Tile<T>*>(node->getTile());
+  uint32_t resolution = tile->getResolution();
 
   // flip y --- that shouldn't be requiered, but somehow is how it was
   // implemented in the original databases
@@ -315,7 +281,8 @@ bool TileSourceWebMapService::getXY(int level, glm::int64 patchIdx, int& x, int&
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::optional<std::string> TileSourceWebMapService::loadData(int level, int x, int y) {
+std::optional<std::string> TileSourceWebMapService::loadData(
+    glm::int64 patchIdx, int level, int x, int y) {
 
   std::string format;
   std::string type;
@@ -337,9 +304,40 @@ std::optional<std::string> TileSourceWebMapService::loadData(int level, int x, i
 
   double size = 1.0 / (1 << level);
 
+  // SW, SE, NE, NW
+  glm::dvec4 offsets(size / mResolution * 0.5);
+
+  glm::i64vec3 baseXY = HEALPix::getBaseXY(TileId(level, patchIdx));
+  glm::int64   nSide  = HEALPix::getNSide(TileId(level, patchIdx));
+
+  // northern hemisphere
+  if (baseXY.x < 4) {
+    // at north east boundary of base patch
+    if (baseXY.y == nSide - 1) {
+      offsets[2] *= -1.0;
+    }
+
+    // at north west boundary of base patch
+    if (baseXY.z == nSide - 1) {
+      offsets[3] *= -1.0;
+    }
+
+  } else if (baseXY.x >= 8) {
+    // at south west boundary of base patch
+    if (baseXY.y == 0) {
+      offsets[0] *= -1.0;
+    }
+
+    // at south east boundary of base patch
+    if (baseXY.z == 0) {
+      offsets[1] *= -1.0;
+    }
+  }
+
   url.precision(std::numeric_limits<double>::max_digits10);
   url << mUrl << "&version=1.1.0&request=GetMap&tiled=true&layers=" << mLayers
-      << "&bbox=" << x * size << "," << y * size << "," << x * size + size << "," << y * size + size
+      << "&bbox=" << x * size - offsets.x << "," << y * size - offsets.y << ","
+      << x * size + size + offsets.z << "," << y * size + size + offsets.w
       << "&width=" << mResolution << "&height=" << mResolution
       << "&srs=EPSG:900914&format=" << format;
 

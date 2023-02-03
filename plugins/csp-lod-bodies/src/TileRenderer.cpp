@@ -162,8 +162,6 @@ void TileRenderer::preRenderTiles(cs::graphics::ShadowMap* shadowMap) {
   shader.SetUniform(loc, texUnitIMG);
   loc = shader.GetUniformLocation("VP_shadowMapMode");
   shader.SetUniform(loc, shadowMap == nullptr);
-  loc = shader.GetUniformLocation("VP_resolution");
-  shader.SetUniform(loc, static_cast<int>(mTileResolution));
 
   if (shadowMap) {
     shader.SetUniform(shader.GetUniformLocation("VP_shadowBias"), shadowMap->getBias());
