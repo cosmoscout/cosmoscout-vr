@@ -19,16 +19,14 @@ TileNode::TileNode()
 
 TileNode::TileNode(TileBase* tile)
     : mTile(tile)
-    , mParent(nullptr){
-
+    , mParent(nullptr) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 TileNode::TileNode(std::unique_ptr<TileBase>&& tile)
     : mTile(std::move(tile))
-    , mParent(nullptr){
-
+    , mParent(nullptr) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

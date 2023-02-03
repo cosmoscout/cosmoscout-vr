@@ -114,10 +114,10 @@ class Plugin : public cs::core::PluginBase {
 
     /// A single data set containing either elevation or image data.
     struct Dataset {
-      std::string  mURL;        ///< The URL of the mapserver including the "SERVICE=wms" parameter.
-      std::string  mCopyright;  ///< The copyright holder of the data set (also shown in the UI).
-      std::string  mLayers;     ///< A comma,seperated list of WMS layers.
-      uint32_t     mMaxLevel{}; ///< The maximum quadtree depth to load.
+      std::string mURL;        ///< The URL of the mapserver including the "SERVICE=wms" parameter.
+      std::string mCopyright;  ///< The copyright holder of the data set (also shown in the UI).
+      std::string mLayers;     ///< A comma,seperated list of WMS layers.
+      uint32_t    mMaxLevel{}; ///< The maximum quadtree depth to load.
     };
 
     /// The startup settings for a planet.

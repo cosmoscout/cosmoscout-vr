@@ -567,7 +567,8 @@ void Plugin::setImageSource(std::shared_ptr<LodBody> const& body, std::string co
 
     settings.mActiveImgDataset = dataset->first;
 
-    auto source = std::make_shared<TileSourceWebMapService>(mPluginSettings->mTileResolutionIMG.get());
+    auto source =
+        std::make_shared<TileSourceWebMapService>(mPluginSettings->mTileResolutionIMG.get());
     source->setCacheDirectory(mPluginSettings->mMapCache.get());
     source->setLayers(dataset->second.mLayers);
     source->setUrl(dataset->second.mURL);
@@ -596,7 +597,8 @@ void Plugin::setElevationSource(
 
   settings.mActiveDemDataset = dataset->first;
 
-  auto source = std::make_shared<TileSourceWebMapService>(mPluginSettings->mTileResolutionDEM.get());
+  auto source =
+      std::make_shared<TileSourceWebMapService>(mPluginSettings->mTileResolutionDEM.get());
   source->setCacheDirectory(mPluginSettings->mMapCache.get());
   source->setLayers(dataset->second.mLayers);
   source->setUrl(dataset->second.mURL);

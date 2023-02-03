@@ -288,8 +288,8 @@ bool LODVisitor::preVisitRoot(TileId const& tileId) {
 
   // track highest resolution nodes in this sub tree (in case there is
   // higher resolution image data than DEM data).
-  state.mLastDEM  = nullptr;
-  state.mLastIMG  = nullptr;
+  state.mLastDEM = nullptr;
+  state.mLastIMG = nullptr;
 
   // fetch RenderDataDEM for visited node and mark as used in this frame
   if (mTreeMgrDEM && state.mNodeDEM) {
@@ -328,8 +328,8 @@ bool LODVisitor::preVisit(TileId const& tileId) {
   // track highest resolution nodes that can not be refined further (e.g.
   // because not all 4 children are loaded) - these are NULL if parent nodes
   // so far can all be refined
-  state.mLastDEM  = stateP.mLastDEM;
-  state.mLastIMG  = stateP.mLastIMG;
+  state.mLastDEM = stateP.mLastDEM;
+  state.mLastIMG = stateP.mLastIMG;
 
   // fetch RenderDataDEM for visited node and mark as used in this frame
   if (mTreeMgrDEM && !state.mLastDEM && state.mNodeDEM) {
@@ -490,17 +490,17 @@ bool LODVisitor::testVisible(TileId const& tileId, TreeManagerBase* treeMgrDEM) 
   bool      result = false;
   LODState& state  = getLODState();
 
-    BoundingBox<double> const& tb = state.mRdDEM->getBounds();
+  BoundingBox<double> const& tb = state.mRdDEM->getBounds();
 
-    result = testInFrustum(mCullData.mFrustumMS, tb);
+  result = testInFrustum(mCullData.mFrustumMS, tb);
 
-    if (result) {
-      result = testFrontFacing(mCullData.mCamPos, mParams, tb, treeMgrDEM);
-    }
+  if (result) {
+    result = testFrontFacing(mCullData.mCamPos, mParams, tb, treeMgrDEM);
+  }
 
-    if (state.mRdIMG && state.mRdIMG->hasBounds()) {
-      state.mRdIMG->removeBounds();
-    }
+  if (state.mRdIMG && state.mRdIMG->hasBounds()) {
+    state.mRdIMG->removeBounds();
+  }
 
   return result;
 }

@@ -37,7 +37,7 @@ class RenderDataDEM : public RenderData {
   void       clearFlags();
 
  private:
-  glm::uint8                    mFlags{0};
+  glm::uint8 mFlags{0};
 };
 
 RenderDataDEM::Flags operator&(RenderDataDEM::Flags lhs, RenderDataDEM::Flags rhs);

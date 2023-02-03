@@ -191,10 +191,10 @@ void TileRenderer::renderTiles(
 
   // query uniform locations once and store in locs
   UniformLocs locs{};
-  locs.heightInfo = shader.GetUniformLocation("VP_heightInfo");
-  locs.offsetScale      = shader.GetUniformLocation("VP_offsetScale");
-  locs.f1f2             = shader.GetUniformLocation("VP_f1f2");
-  locs.dataLayers         = shader.GetUniformLocation("VP_dataLayers");
+  locs.heightInfo  = shader.GetUniformLocation("VP_heightInfo");
+  locs.offsetScale = shader.GetUniformLocation("VP_offsetScale");
+  locs.f1f2        = shader.GetUniformLocation("VP_f1f2");
+  locs.dataLayers  = shader.GetUniformLocation("VP_dataLayers");
 
   int missingDEM = 0;
   int missingIMG = 0;
@@ -245,11 +245,11 @@ void TileRenderer::renderTiles(
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void TileRenderer::renderTile(RenderDataDEM* rdDEM, RenderDataImg* rdIMG, UniformLocs const& locs) {
-  VistaGLSLShader& shader   = mProgTerrain->mShader;
-  TileId const&    idDEM    = rdDEM->getTileId();
+  VistaGLSLShader& shader = mProgTerrain->mShader;
+  TileId const&    idDEM  = rdDEM->getTileId();
 
   uint32_t gridResolution = mTileResolution + 2;
-  uint32_t idxCount = (gridResolution - 1) * (2 + 2 * gridResolution);
+  uint32_t idxCount       = (gridResolution - 1) * (2 + 2 * gridResolution);
 
   std::array<glm::dvec2, 4> cornersLngLat{};
 
@@ -259,11 +259,11 @@ void TileRenderer::renderTile(RenderDataDEM* rdDEM, RenderDataImg* rdIMG, Unifor
   auto  tileOS        = glm::ivec3(baseXY.y, baseXY.z, HEALPix::getNSide(idDEM));
   auto  patchF1F2     = glm::ivec2(HEALPix::getF1(idDEM), HEALPix::getF2(idDEM));
   float averageHeight = rdDEM->getNode()->getTile()->getMinMaxPyramid()->getAverage();
-  float minHeight = rdDEM->getNode()->getTile()->getMinMaxPyramid()->getMin();
-  float maxHeight = rdDEM->getNode()->getTile()->getMinMaxPyramid()->getMax();
+  float minHeight     = rdDEM->getNode()->getTile()->getMinMaxPyramid()->getMin();
+  float maxHeight     = rdDEM->getNode()->getTile()->getMinMaxPyramid()->getMax();
 
   // update uniforms
-  shader.SetUniform(locs.heightInfo, averageHeight, maxHeight-minHeight);
+  shader.SetUniform(locs.heightInfo, averageHeight, maxHeight - minHeight);
   shader.SetUniform(locs.offsetScale, 3, 1, glm::value_ptr(tileOS));
   shader.SetUniform(locs.f1f2, 2, 1, glm::value_ptr(patchF1F2));
   glUniform2i(locs.dataLayers, rdDEM->getTexLayer(), rdIMG ? rdIMG->getTexLayer() : 0);
@@ -541,10 +541,10 @@ std::unique_ptr<VistaVertexArrayObject> TileRenderer::makeVAOBounds(
 
 std::unique_ptr<VistaGLSLShader> TileRenderer::makeProgBounds() {
   auto result = std::make_unique<VistaGLSLShader>();
-  result->InitVertexShaderFromString(cs::utils::filesystem::loadToString(
-      "../share/resources/shaders/VistaPlanetTileBounds.vert"));
-  result->InitFragmentShaderFromString(cs::utils::filesystem::loadToString(
-      "../share/resources/shaders/VistaPlanetTileBounds.frag"));
+  result->InitVertexShaderFromString(
+      cs::utils::filesystem::loadToString("../share/resources/shaders/VistaPlanetTileBounds.vert"));
+  result->InitFragmentShaderFromString(
+      cs::utils::filesystem::loadToString("../share/resources/shaders/VistaPlanetTileBounds.frag"));
   result->Link();
 
   return result;

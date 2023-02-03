@@ -85,7 +85,6 @@ MinMaxPyramid::MinMaxPyramid(Tile<float>* tile)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
 std::vector<std::vector<float>>& MinMaxPyramid::getMinPyramid() {
   return mMinPyramid;
 }
