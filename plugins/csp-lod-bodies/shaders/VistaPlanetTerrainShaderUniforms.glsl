@@ -26,7 +26,7 @@ uniform sampler2DArray VP_texIMG;
 
 // uniforms - current tile -----------------------------------------------------
 
-// THe first component contains the average height value of the tile.
+// The first component contains the average height value of the tile.
 // The second component contains the maximum height difference in the tile.
 uniform vec2 VP_heightInfo;
 
@@ -50,11 +50,12 @@ uniform mat4            VP_shadowProjectionViewMatrices[5];
 uniform float           VP_shadowBias = 0.0001;
 uniform int             VP_shadowCascades;
 
-
+// Returns the resolution of the square-shaped image tiles.
 int VP_getResolutionIMG() {
     return textureSize(VP_texIMG, 0).x;
 }
 
+// Returns the resolution of the square-shaped elevation tiles.
 int VP_getResolutionDEM() {
     return textureSize(VP_texDEM, 0).x;
 }
