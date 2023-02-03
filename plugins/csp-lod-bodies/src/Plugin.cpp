@@ -434,8 +434,8 @@ void Plugin::deInit() {
 void Plugin::update() {
   if (mPluginSettings->mAutoLOD.get()) {
 
-    double minLODFactor = 15.0;
-    double maxLODFactor = 50.0;
+    double minLODFactor = 1.0;
+    double maxLODFactor = 40.0;
     double minTime      = 13.5;
     double maxTime      = 14.5;
 
