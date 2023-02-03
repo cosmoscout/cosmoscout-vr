@@ -97,9 +97,6 @@ class LODVisitor : public TileVisitor<LODVisitor> {
   /// State tracked during traversal of the tile quad trees.
   class LODState : public TileVisitor<LODVisitor>::StateBase {
    public:
-    TileNode* mLastDEM{};
-    TileNode* mLastIMG{};
-
     RenderDataDEM* mRdDEM{};
     RenderDataImg* mRdIMG{};
   };
@@ -110,7 +107,6 @@ class LODVisitor : public TileVisitor<LODVisitor> {
   void postVisitRoot(TileId const& tileId) override;
 
   bool preVisit(TileId const& tileId) override;
-  void postVisit(TileId const& tileId) override;
 
   void             pushState() override;
   void             popState() override;
