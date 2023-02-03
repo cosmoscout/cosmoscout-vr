@@ -20,7 +20,7 @@ uniform vec4 uSunDirIlluminance;
 
 out VS_OUT
 {
-    vec2  texcoords;
+    vec2  tileCoords;
     vec3  normal;
     vec3  position;
     vec3  planetCenter;
@@ -48,7 +48,7 @@ void main(void)
         #endif
         vsOut.sunDir         = (VP_matModel * vec4(uSunDirIlluminance.xyz, 0)).xyz;
         vsOut.planetCenter   = (VP_matModel * vec4(0,0,0,1)).xyz;
-        vsOut.texcoords      = VP_getTexCoord(VP_iPosition);
+        vsOut.tileCoords     = VP_getTileCoords(VP_iPosition);
         vsOut.height         = VP_getVertexHeight(VP_iPosition);
         vsOut.lngLat         = VP_convertXY2lnglat(VP_getXY(VP_iPosition));
         vsOut.vertexPosition = VP_iPosition;

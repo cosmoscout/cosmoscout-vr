@@ -12,10 +12,10 @@ float VP_getJR(vec2 posXY)
     return VP_f1f2.x - posXY.x - posXY.y;
 }
 
-// Returns the texture coordinates inside the tile in [0..1]. The coordinates are clamped to the
-// skirt. This means, the coordinates range from [0..1] on top of the tile, the additional skirt
-// vertices have the same coordinates as the vertices at the tile boundary.
-vec2 VP_getTexCoord(vec2 iPosition)
+// Returns coordinates inside the tile in [0..1]. The coordinates are clamped to the skirt. This
+// means, the coordinates range from [0..1] on top of the tile, the additional skirt vertices have
+// the same coordinates as the vertices at the tile boundary.
+vec2 VP_getTileCoords(vec2 iPosition)
 {
     return clamp((iPosition - vec2(1.0)) / (VP_getResolutionDEM() - 1), vec2(0.0), vec2(1.0));
 }
@@ -27,7 +27,7 @@ vec2 VP_getXY(ivec2 iPosition)
     // First convert vtxPos to a relative position ([0,1]^2) within the patch.
     // Then apply VP_offsetScale to obtain relative position within the
     // base patch.
-    return (VP_getTexCoord(iPosition) + VP_offsetScale.xy) / VP_offsetScale.z;
+    return (VP_getTileCoords(iPosition) + VP_offsetScale.xy) / VP_offsetScale.z;
 }
 
 // Returns the height in meters of the vertex at the given position inside the current tile. The
@@ -37,7 +37,7 @@ vec2 VP_getXY(ivec2 iPosition)
 float VP_getVertexHeight(ivec2 iPosition)
 {
     float pixelSize = 1.0 / VP_getResolutionDEM();
-    vec2 texcoords = VP_getTexCoord(iPosition) * (1.0 - pixelSize) + 0.5 * pixelSize;
+    vec2 texcoords = VP_getTileCoords(iPosition) * (1.0 - pixelSize) + 0.5 * pixelSize;
     float height = texture(VP_texDEM, vec3(texcoords, VP_dataLayers.x)).x;
 
     // Move skirt vertices down by half the maximum elevation difference inside the tile.
@@ -121,7 +121,7 @@ vec3 VP_getVertexPositionInterpolated(ivec2 iPosition)
     //     W   E     1   3    0,1   1,0           
     //       S         2         0,0           
     //  
-    vec2 alpha = VP_getTexCoord(iPosition);
+    vec2 alpha = VP_getTileCoords(iPosition);
 
     // calculate normal direction by slerping
     vec3 normalSW = mix(VP_normals[2], VP_normals[1], alpha.y);

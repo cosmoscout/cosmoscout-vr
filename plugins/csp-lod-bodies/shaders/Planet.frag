@@ -33,7 +33,7 @@ $VP_TERRAIN_SHADER_FUNCTIONS
 // ==========================================================================
 
 in VS_OUT {
-  vec2  texcoords;
+  vec2  tileCoords;
   vec3  normal;
   vec3  position;
   vec3  planetCenter;
@@ -87,7 +87,7 @@ void main() {
 
 #if $SHOW_TEXTURE
   float pixelSize = 1.0 / VP_getResolutionIMG();
-  vec2 texcoords = fsIn.texcoords * (1.0 - pixelSize) + 0.5 * pixelSize;
+  vec2 texcoords = fsIn.tileCoords * (1.0 - pixelSize) + 0.5 * pixelSize;
   fragColor.rgb = texture(VP_texIMG, vec3(texcoords, VP_dataLayers.y)).rgb;
 
 #if $ENABLE_HDR
