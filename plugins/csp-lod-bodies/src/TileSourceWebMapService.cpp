@@ -295,6 +295,7 @@ std::optional<std::string> TileSourceWebMapService::loadData(
     type   = "png";
   }
 
+  // We encode the layers and the tile resolution in the cache file path.
   std::stringstream cacheDir;
   cacheDir << mCache << "/" << mLayers << "x" << mResolution << "/" << level << "/" << x;
 

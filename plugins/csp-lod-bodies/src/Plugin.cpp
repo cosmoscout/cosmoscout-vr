@@ -448,8 +448,11 @@ void Plugin::update() {
 
     double minLODFactor = mPluginSettings->mAutoLODRange.get().x;
     double maxLODFactor = mPluginSettings->mAutoLODRange.get().y;
-    double minTime      = 13.5;
-    double maxTime      = 14.5;
+
+    // These numbers shall ensure that the frame rate stays above 60 Hz (16.6ms). Somehow we should
+    // try to retrieve the actual refresh rate of thew display in the future.
+    double minTime = 13.5;
+    double maxTime = 14.5;
 
     if (cs::utils::FrameTimings::get().pFrameTime.get() > maxTime) {
       mPluginSettings->mLODFactor = static_cast<float>(std::max(minLODFactor,

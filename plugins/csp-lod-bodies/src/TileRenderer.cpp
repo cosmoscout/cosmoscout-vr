@@ -248,12 +248,10 @@ void TileRenderer::renderTile(RenderDataDEM* rdDEM, RenderDataImg* rdIMG, Unifor
   VistaGLSLShader& shader = mProgTerrain->mShader;
   TileId const&    idDEM  = rdDEM->getTileId();
 
+  // There is one additional skirt vertex in each direction. Hence we are actually drawing a grid
+  // which is a bit larger than the actual tile resolution.
   uint32_t gridResolution = mTileResolution + 2;
   uint32_t idxCount       = (gridResolution - 1) * (2 + 2 * gridResolution);
-
-  std::array<glm::dvec2, 4> cornersLngLat{};
-
-  cornersLngLat = HEALPix::getCornersLngLat(idDEM);
 
   auto  baseXY        = HEALPix::getBaseXY(idDEM);
   auto  tileOS        = glm::ivec3(baseXY.y, baseXY.z, HEALPix::getNSide(idDEM));
@@ -269,6 +267,7 @@ void TileRenderer::renderTile(RenderDataDEM* rdDEM, RenderDataImg* rdIMG, Unifor
   glUniform2i(locs.dataLayers, rdDEM->getTexLayer(), rdIMG ? rdIMG->getTexLayer() : 0);
 
   // order of components: N, W, S, E
+  std::array<glm::dvec2, 4> cornersLngLat = HEALPix::getCornersLngLat(idDEM);
   std::array<glm::dvec3, 4> corners{};
   std::array<glm::dvec3, 4> normals{};
   std::array<glm::fvec3, 4> cornersWorldSpace{};
@@ -276,6 +275,7 @@ void TileRenderer::renderTile(RenderDataDEM* rdDEM, RenderDataImg* rdIMG, Unifor
 
   glm::dmat4 matNormal = glm::transpose(glm::inverse(mMatM));
 
+  // Convert tile corners to camera-relative coordinates in double precision.
   for (int i(0); i < 4; ++i) {
     corners.at(i)           = cs::utils::convert::toCartesian(cornersLngLat.at(i), mParams->mRadii,
         averageHeight * static_cast<float>(mParams->mHeightScale));

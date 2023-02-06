@@ -96,12 +96,16 @@ class VistaPlanet : public cs::graphics::ShadowCaster {
   void   setHeightScale(float scale);
   double getHeightScale() const;
 
+  /// This will affect the average size of the rendered tiles when projected onto the screen. A
+  /// higher lodFactor will reduce in smaller tiles and hence in a higher data density.
   void   setLODFactor(float lodFactor);
   double getLODFactor() const;
 
+  /// The tile quadtrees will always be refined at least up to this level.
   void setMinLevel(int minLevel);
   int  getMinLevel() const;
 
+  /// The tile quadtrees will be refined at most up to this level.
   void setMaxLevel(int maxLevel);
   int  getMaxLevel() const;
 

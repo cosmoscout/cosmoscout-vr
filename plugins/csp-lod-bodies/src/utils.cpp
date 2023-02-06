@@ -130,18 +130,6 @@ double getHeight(
   double uP = u - uB;
   double vP = v - vB;
 
-  // if (uB >= size - 1)
-  // {
-  //     uB = size - 2;
-  //     uP = 1;
-  // }
-
-  // if (vB >= size - 1)
-  // {
-  //     vB = size - 2;
-  //     vP = 1;
-  // }
-
   double h{};
   double hP1{};
   double hP2{};
