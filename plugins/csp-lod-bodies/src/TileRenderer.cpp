@@ -69,11 +69,60 @@ TileRenderer::TileRenderer(PlanetParameters const& params, uint32_t tileResoluti
     , mMatP()
     , mProgTerrain(nullptr)
     , mFrameCount(0)
-    , mEnableDrawTiles(true)
     , mEnableDrawBounds(false)
     , mEnableWireframe(false)
     , mEnableFaceCulling(true)
     , mTileResolution(tileResolution) {
+
+  // The vertex buffer contains a grid of vertices with an additional vertex in all directions for
+  // the skirt around each patch.
+  uint32_t gridResolution = mTileResolution + 2;
+
+  std::vector<uint16_t> vertices(gridResolution * gridResolution * 2);
+  std::vector<uint32_t> indices((gridResolution - 1) * (2 + 2 * gridResolution));
+
+  for (uint32_t x = 0; x < gridResolution; ++x) {
+    for (uint32_t y = 0; y < gridResolution; ++y) {
+      vertices[(x * gridResolution + y) * 2 + 0] = x;
+      vertices[(x * gridResolution + y) * 2 + 1] = y;
+    }
+  }
+
+  uint32_t index = 0;
+
+  for (uint32_t x = 0; x < gridResolution - 1; ++x) {
+    indices[index++] = x * gridResolution;
+    for (uint32_t y = 0; y < gridResolution; ++y) {
+      indices[index++] = x * gridResolution + y;
+      indices[index++] = (x + 1) * gridResolution + y;
+    }
+    indices[index] = indices[index - 1];
+    ++index;
+  }
+
+  mVaoTerrain = std::make_unique<VistaVertexArrayObject>();
+  mVaoTerrain->Bind();
+
+  mVboTerrain = std::make_unique<VistaBufferObject>();
+  mVboTerrain->Bind(GL_ARRAY_BUFFER);
+  mVboTerrain->BufferData(vertices.size() * sizeof(uint16_t), vertices.data(), GL_STATIC_DRAW);
+
+  mIboTerrain = std::make_unique<VistaBufferObject>();
+  mIboTerrain->Bind(GL_ELEMENT_ARRAY_BUFFER);
+  mIboTerrain->BufferData(indices.size() * sizeof(uint32_t), indices.data(), GL_STATIC_DRAW);
+
+  mVaoTerrain->EnableAttributeArray(0);
+  mVaoTerrain->SpecifyAttributeArrayInteger(0, 2, GL_UNSIGNED_SHORT, 0, 0, mVboTerrain.get());
+
+  mVaoTerrain->Release();
+  mIboTerrain->Release();
+  mVboTerrain->Release();
+
+  // Now create the VBO, VAO, IBO, and shader for the bounds rendering.
+  mVboBounds  = makeVBOBounds();
+  mIboBounds  = makeIBOBounds();
+  mVaoBounds  = makeVAOBounds(mVboBounds.get(), mIboBounds.get());
+  mProgBounds = makeProgBounds();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -92,9 +141,8 @@ TerrainShader* TileRenderer::getTerrainShader() const {
 
 void TileRenderer::render(std::vector<RenderData*> const& reqDEM,
     std::vector<RenderData*> const& reqIMG, cs::graphics::ShadowMap* shadowMap) {
-  init();
 
-  if (mEnableDrawTiles && !reqDEM.empty()) {
+  if (!reqDEM.empty()) {
     preRenderTiles(shadowMap);
     renderTiles(reqDEM, reqIMG);
     postRenderTiles(shadowMap);
@@ -381,74 +429,6 @@ void TileRenderer::postRenderBounds() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void TileRenderer::init() const {
-  if (mEnableDrawTiles) {
-
-    // The vertex buffer contains a grid of vertices with an additional vertex in all directions for
-    // the skirt around each patch.
-    uint32_t gridResolution = mTileResolution + 2;
-
-    std::vector<uint16_t> vertices(gridResolution * gridResolution * 2);
-    std::vector<uint32_t> indices((gridResolution - 1) * (2 + 2 * gridResolution));
-
-    for (uint32_t x = 0; x < gridResolution; ++x) {
-      for (uint32_t y = 0; y < gridResolution; ++y) {
-        vertices[(x * gridResolution + y) * 2 + 0] = x;
-        vertices[(x * gridResolution + y) * 2 + 1] = y;
-      }
-    }
-
-    uint32_t index = 0;
-
-    for (uint32_t x = 0; x < gridResolution - 1; ++x) {
-      indices[index++] = x * gridResolution;
-      for (uint32_t y = 0; y < gridResolution; ++y) {
-        indices[index++] = x * gridResolution + y;
-        indices[index++] = (x + 1) * gridResolution + y;
-      }
-      indices[index] = indices[index - 1];
-      ++index;
-    }
-
-    mVaoTerrain = std::make_unique<VistaVertexArrayObject>();
-    mVaoTerrain->Bind();
-
-    mVboTerrain = std::make_unique<VistaBufferObject>();
-    mVboTerrain->Bind(GL_ARRAY_BUFFER);
-    mVboTerrain->BufferData(vertices.size() * sizeof(uint16_t), vertices.data(), GL_STATIC_DRAW);
-
-    mIboTerrain = std::make_unique<VistaBufferObject>();
-    mIboTerrain->Bind(GL_ELEMENT_ARRAY_BUFFER);
-    mIboTerrain->BufferData(indices.size() * sizeof(uint32_t), indices.data(), GL_STATIC_DRAW);
-
-    mVaoTerrain->EnableAttributeArray(0);
-    mVaoTerrain->SpecifyAttributeArrayInteger(0, 2, GL_UNSIGNED_SHORT, 0, 0, mVboTerrain.get());
-
-    mVaoTerrain->Release();
-    mIboTerrain->Release();
-    mVboTerrain->Release();
-  }
-
-  if (mEnableDrawBounds) {
-    if (!mVboBounds) {
-      mVboBounds = makeVBOBounds();
-    }
-
-    if (!mIboBounds) {
-      mIboBounds = makeIBOBounds();
-    }
-
-    if (!mVaoBounds) {
-      mVaoBounds = makeVAOBounds(mVboBounds.get(), mIboBounds.get());
-    }
-    if (!mProgBounds) {
-      mProgBounds = makeProgBounds();
-    }
-  }
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 std::unique_ptr<VistaBufferObject> TileRenderer::makeVBOBounds() {
   auto             result = std::make_unique<VistaBufferObject>();
   GLsizeiptr const size   = 8 * sizeof(GLubyte);
@@ -596,18 +576,6 @@ void TileRenderer::setView(glm::mat4 const& m) {
 
 void TileRenderer::setProjection(glm::mat4 const& m) {
   mMatP = m;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void TileRenderer::setDrawTiles(bool enable) {
-  mEnableDrawTiles = enable;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-bool TileRenderer::getDrawTiles() const {
-  return mEnableDrawTiles;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

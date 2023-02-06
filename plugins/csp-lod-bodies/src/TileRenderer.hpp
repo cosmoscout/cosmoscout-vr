@@ -63,10 +63,6 @@ class TileRenderer {
   void render(std::vector<RenderData*> const& reqDEM, std::vector<RenderData*> const& reqIMG,
       cs::graphics::ShadowMap* shadowMap);
 
-  /// Enable or disable drawing of tiles.
-  void setDrawTiles(bool enable);
-  bool getDrawTiles() const;
-
   /// Enable or disable drawing of tile bounding boxes.
   void setDrawBounds(bool enable);
   bool getDrawBounds() const;
@@ -97,7 +93,6 @@ class TileRenderer {
   void renderBounds(std::vector<RenderData*> const& reqDEM, std::vector<RenderData*> const& reqIMG);
   static void postRenderBounds();
 
-  void                                           init() const;
   static std::unique_ptr<VistaBufferObject>      makeVBOTerrain();
   static std::unique_ptr<VistaBufferObject>      makeIBOTerrain();
   static std::unique_ptr<VistaVertexArrayObject> makeVAOTerrain(
@@ -128,7 +123,6 @@ class TileRenderer {
   static std::unique_ptr<VistaGLSLShader>        mProgBounds;
 
   int  mFrameCount;
-  bool mEnableDrawTiles;
   bool mEnableDrawBounds;
   bool mEnableWireframe;
   bool mEnableFaceCulling;
