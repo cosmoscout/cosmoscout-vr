@@ -15,6 +15,8 @@ SPDX-License-Identifier: CC-BY-4.0
 
 #### New Features
 
+* The `csp-timings` plugin now also shows the number of generated samples and primitives in the user interface.
+
 #### Other Changes
 
 * In order to improve the rendering performance, the stars of `csp-stars` are not drawn anymore if the observer is on the day-side of a planet with an atmosphere.

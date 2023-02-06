@@ -7,7 +7,7 @@
 
 #include "GlareMipMap.hpp"
 
-#include "../cs-utils/FrameTimings.hpp"
+#include "../cs-utils/FrameStats.hpp"
 #include "logger.hpp"
 
 #include <algorithm>
@@ -306,7 +306,7 @@ GlareMipMap::~GlareMipMap() {
 void GlareMipMap::update(
     VistaTexture* hdrBufferComposite, HDRBuffer::GlareMode glareMode, uint32_t glareQuality) {
 
-  utils::FrameTimings::ScopedTimer timer("Compute Glare");
+  utils::FrameStats::ScopedTimer timer("Compute Glare");
 
   if (mComputeProgram == 0 || glareMode != mLastGlareMode || glareQuality != mLastGlareQuality) {
 

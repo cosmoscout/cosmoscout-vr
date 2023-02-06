@@ -9,7 +9,7 @@
 
 #include "../../../src/cs-core/Settings.hpp"
 #include "../../../src/cs-core/SolarSystem.hpp"
-#include "../../../src/cs-utils/FrameTimings.hpp"
+#include "../../../src/cs-utils/FrameStats.hpp"
 #include "../../../src/cs-utils/utils.hpp"
 
 #include <VistaKernel/GraphicsManager/VistaGraphicsManager.h>
@@ -156,7 +156,7 @@ bool SunFlare::Do() {
     return true;
   }
 
-  cs::utils::FrameTimings::ScopedTimer timer("SunFlare");
+  cs::utils::FrameStats::ScopedTimer timer("SunFlare");
   // get viewport to draw dot with correct aspect ration
   std::array<GLint, 4> viewport{};
   glGetIntegerv(GL_VIEWPORT, viewport.data());

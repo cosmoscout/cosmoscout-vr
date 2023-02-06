@@ -7,7 +7,7 @@
 
 #include "Shadows.hpp"
 
-#include "../cs-utils/FrameTimings.hpp"
+#include "../cs-utils/FrameStats.hpp"
 #include "logger.hpp"
 
 #include <VistaKernel/GraphicsManager/VistaOpenGLNode.h>
@@ -186,7 +186,7 @@ bool ShadowMap::Do() {
     return true;
   }
 
-  utils::FrameTimings::ScopedTimer timer("Update ShadowMap");
+  utils::FrameStats::ScopedTimer timer("Update ShadowMap");
 
   if (mFBODirty) {
     cleanUp();
