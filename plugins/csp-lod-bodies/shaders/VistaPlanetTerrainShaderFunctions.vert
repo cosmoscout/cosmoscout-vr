@@ -85,6 +85,7 @@ vec2 VP_convertXY2lnglat(vec2 posXY)
     return result;
 }
 
+// Returns the geodetic normal vector with unit length at geodetic coordinates (lng, lat) lnglat.
 vec3 VP_toNormal(vec2 lnglat) {
   return vec3(cos(lnglat.y) * sin(lnglat.x), 
               sin(lnglat.y),
@@ -101,6 +102,10 @@ vec3 VP_toCartesian(vec2 lnglat, vec3 radii)
   return (radii2 * normal) / sqrt(dot(radii2, normal2));
 }
 
+// This computes the cartesian coordinates for the given patch-relative vertix position using the
+// HEALPix projection. This works well if the celestial body is rather small or if the view is far
+// from the surface. If the viewer is close to the surface of a large body, precision issues will
+// arise.
 vec3 VP_getVertexPositionHEALPix(ivec2 iPosition)
 {
     vec2  posXY  = VP_getXY(iPosition);
@@ -114,6 +119,10 @@ vec3 VP_getVertexPositionHEALPix(ivec2 iPosition)
     return (VP_matModel * vec4(posXYZ, 1)).xyz;
 }
 
+// This computes the cartesian coordinates for the given patch-relative vertix position using linear
+// interpolation of the CPU-based cartesian coordinates given in VP_corners. This results in a
+// piece-wise linear celestial body. However, if the observer is close to the surface of a large
+// body, the approximation error is very small and there are no precision issues.
 vec3 VP_getVertexPositionInterpolated(ivec2 iPosition)
 {
     //   direction   index      alpha
@@ -129,8 +138,8 @@ vec3 VP_getVertexPositionInterpolated(ivec2 iPosition)
     vec3 normalNE = mix(VP_normals[3], VP_normals[0], alpha.y);
     vec3 normal   = mix(normalSW, normalNE, alpha.x);
 
-    // calculate height above surface
-    // average height is substracted in order to increase the accuracy on high mountains and in deep valleys
+    // Calculate height above surface average height is substracted in order to increase the
+    // accuracy on high mountains and in deep valleys.
     float height = length(VP_matModel[0]) * VP_heightScale 
                    * (VP_getVertexHeight(iPosition) - VP_heightInfo.x);
 
@@ -186,7 +195,8 @@ vec3 VP_getVertexNormal(ivec2 iPosition, int mode)
     // Make sure to handle bottom skirt vertices the same as top skirt vertices.
     iPosition = clamp(iPosition, ivec2(1), ivec2(resolution));
 
-    // neighbour vertices (p: positive direction, n: negative direction)
+    // Neighbour vertices (p: positive direction, n: negative direction). We clamp the positions to
+    // the upper border of the tiles in order to not sample at the bottom of the skirt.
     ivec2 pp = ivec2(min(iPosition.x + 1, resolution), iPosition.y);
     ivec2 nn = ivec2(max(iPosition.x - 1, 1), iPosition.y);
     ivec2 np = ivec2(iPosition.x, min(iPosition.y + 1, resolution));
