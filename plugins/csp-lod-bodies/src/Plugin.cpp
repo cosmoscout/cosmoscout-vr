@@ -492,6 +492,16 @@ void Plugin::onLoad() {
       logger().warn("Changing the maximum number of allocated elevation tiles at run-time is not "
                     "supported. Please restart CosmoScout VR!");
     });
+
+    mPluginSettings->mTileResolutionDEM.connect([](uint32_t /*val*/) {
+      logger().warn("Changing the tile resolution at run-time is not supported. Please restart "
+                    "CosmoScout VR!");
+    });
+
+    mPluginSettings->mTileResolutionIMG.connect([](uint32_t /*val*/) {
+      logger().warn("Changing the tile resolution at run-time is not supported. Please restart "
+                    "CosmoScout VR!");
+    });
   }
 
   // First try to re-configure existing lodBodies. We assume that they are similar if they have
