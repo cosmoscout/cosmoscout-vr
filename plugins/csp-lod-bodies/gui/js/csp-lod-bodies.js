@@ -21,7 +21,8 @@
     init() {
       CosmoScout.gui.initSlider('lodBodies.setHeightRange', -12.0, 21.0, 0.1, [-8, 12]);
       CosmoScout.gui.initSlider('lodBodies.setSlopeRange', 0.0, 90.0, 1.0, [0, 45]);
-      CosmoScout.gui.initSlider('lodBodies.setTerrainLod', 1.0, 40.0, 0.1, [15]);
+      CosmoScout.gui.initSlider('lodBodies.setTerrainLod', 1.0, 75.0, 0.1, [15]);
+      CosmoScout.gui.initSlider('lodBodies.setAutoLoDRange', 1.0, 75.0, 0.1, [10, 40]);
       CosmoScout.gui.initSlider('lodBodies.setTextureGamma', 0.1, 3.0, 0.01, [1.0]);
 
       const terrainLod = document.querySelector('[data-callback="lodBodies.setTerrainLod"]');

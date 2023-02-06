@@ -46,6 +46,9 @@ class Plugin : public cs::core::PluginBase {
     /// rendering performance.
     cs::utils::DefaultProperty<bool> mAutoLOD{true};
 
+    /// If the level-of-detail is chosen automatically, it will be in this range.
+    cs::utils::DefaultProperty<glm::vec2> mAutoLODRange{glm::vec2(10.F, 40.F)};
+
     /// A multiplier for the brightness of the image channel.
     cs::utils::DefaultProperty<float> mTextureGamma{1.F};
 
@@ -94,7 +97,7 @@ class Plugin : public cs::core::PluginBase {
     cs::utils::DefaultProperty<uint32_t> mTileResolutionDEM{128};
 
     /// The image channel resolution used for the tile textures.
-    cs::utils::DefaultProperty<uint32_t> mTileResolutionIMG{256};
+    cs::utils::DefaultProperty<uint32_t> mTileResolutionIMG{512};
 
     /// Path to the map cache folder, can be absolute or relative to the cosmoscout executable.
     cs::utils::DefaultProperty<std::string> mMapCache{"map-cache"};

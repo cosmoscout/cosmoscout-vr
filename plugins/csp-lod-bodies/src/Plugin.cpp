@@ -88,6 +88,7 @@ void from_json(nlohmann::json const& j, Plugin::Settings& o) {
   cs::core::Settings::deserialize(j, "terrainProjectionType", o.mTerrainProjectionType);
   cs::core::Settings::deserialize(j, "lodFactor", o.mLODFactor);
   cs::core::Settings::deserialize(j, "autoLod", o.mAutoLOD);
+  cs::core::Settings::deserialize(j, "autoLodRange", o.mAutoLODRange);
   cs::core::Settings::deserialize(j, "textureGamma", o.mTextureGamma);
   cs::core::Settings::deserialize(j, "enableHeightlines", o.mEnableHeightlines);
   cs::core::Settings::deserialize(j, "enableLatLongGrid", o.mEnableLatLongGrid);
@@ -111,6 +112,7 @@ void to_json(nlohmann::json& j, Plugin::Settings const& o) {
   cs::core::Settings::serialize(j, "terrainProjectionType", o.mTerrainProjectionType);
   cs::core::Settings::serialize(j, "lodFactor", o.mLODFactor);
   cs::core::Settings::serialize(j, "autoLod", o.mAutoLOD);
+  cs::core::Settings::serialize(j, "autoLodRange", o.mAutoLODRange);
   cs::core::Settings::serialize(j, "textureGamma", o.mTextureGamma);
   cs::core::Settings::serialize(j, "enableHeightlines", o.mEnableHeightlines);
   cs::core::Settings::serialize(j, "enableLatLongGrid", o.mEnableLatLongGrid);
@@ -200,6 +202,16 @@ void Plugin::init() {
       std::function([this](bool enable) { mPluginSettings->mAutoLOD = enable; }));
   mPluginSettings->mAutoLOD.connectAndTouch([this](bool enable) {
     mGuiManager->setCheckboxValue("lodBodies.setEnableAutoTerrainLod", enable);
+  });
+
+  // Adjusts the exposure range for auto exposure.
+  mGuiManager->getGui()->registerCallback("lodBodies.setAutoLoDRange",
+      "Sets the minimum and maximum LoD value for auto-level-of-detail.",
+      std::function([this](double val1, double val2) {
+        mPluginSettings->mAutoLODRange = glm::vec2(val1, val2);
+      }));
+  mPluginSettings->mAutoLODRange.connectAndTouch([this](glm::vec2 const& val) {
+    mGuiManager->setSliderValue("lodBodies.setAutoLoDRange", val);
   });
 
   mGuiManager->getGui()->registerCallback("lodBodies.setTextureGamma",
@@ -434,8 +446,8 @@ void Plugin::deInit() {
 void Plugin::update() {
   if (mPluginSettings->mAutoLOD.get()) {
 
-    double minLODFactor = 1.0;
-    double maxLODFactor = 40.0;
+    double minLODFactor = mPluginSettings->mAutoLODRange.get().x;
+    double maxLODFactor = mPluginSettings->mAutoLODRange.get().y;
     double minTime      = 13.5;
     double maxTime      = 14.5;
 
