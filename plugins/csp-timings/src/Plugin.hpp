@@ -10,7 +10,7 @@
 
 #include "../../../src/cs-core/PluginBase.hpp"
 #include "../../../src/cs-gui/GuiItem.hpp"
-#include "../../../src/cs-utils/FrameTimings.hpp"
+#include "../../../src/cs-utils/FrameStats.hpp"
 
 #include <fstream>
 #include <list>
@@ -26,8 +26,8 @@ class Plugin : public cs::core::PluginBase {
   void update() override;
 
  private:
-  struct Range {
-    Range(std::string name, uint32_t start, uint32_t end)
+  struct TimerRange {
+    TimerRange(std::string name, uint32_t start, uint32_t end)
         : mName(std::move(name))
         , mStart(start)
         , mEnd(end) {
@@ -50,9 +50,11 @@ class Plugin : public cs::core::PluginBase {
   /// outer-most vector is per recorded frame, the middle per range nesting level and the inner-most
   /// contains all ranges for the specific level.
   /// Frame Indices | Nesting Levels | Ranges
-  std::vector<std::vector<std::vector<Range>>> mRecordedGPURanges;
-  std::vector<std::vector<std::vector<Range>>> mRecordedCPURanges;
-  std::vector<int64_t>                         mTimestamps;
+  std::vector<std::vector<std::vector<TimerRange>>> mRecordedGPURanges;
+  std::vector<std::vector<std::vector<TimerRange>>> mRecordedCPURanges;
+
+  /// Sample queries do not support nesting.
+  std::vector<int64_t> mTimestamps;
 
   int mFrameTimingConnection;
 };

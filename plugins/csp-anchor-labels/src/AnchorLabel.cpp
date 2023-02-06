@@ -16,7 +16,6 @@
 #include "../../../src/cs-gui/GuiItem.hpp"
 #include "../../../src/cs-gui/WorldSpaceGuiArea.hpp"
 #include "../../../src/cs-scene/CelestialObject.hpp"
-#include "../../../src/cs-utils/FrameTimings.hpp"
 
 #include <GL/glew.h>
 #include <VistaKernel/GraphicsManager/VistaGraphicsManager.h>

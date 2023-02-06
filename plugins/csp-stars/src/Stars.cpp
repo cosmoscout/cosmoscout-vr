@@ -10,7 +10,7 @@
 #include "logger.hpp"
 
 #include "../../../src/cs-graphics/TextureLoader.hpp"
-#include "../../../src/cs-utils/FrameTimings.hpp"
+#include "../../../src/cs-utils/FrameStats.hpp"
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -303,7 +303,6 @@ void Stars::setStarFiguresTexture(std::string const& filename) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool Stars::Do() {
-
   // Add a lower bound to the scene brightness value so that we can show the stars with the
   // mLuminanceMultiplicator even if we are in full daylight.
   float sceneBrightness = mApproximateSceneBrightness + 0.001F;
@@ -313,7 +312,10 @@ bool Stars::Do() {
     return true;
   }
 
-  cs::utils::FrameTimings::ScopedTimer timer("Render Stars");
+  cs::utils::FrameStats::ScopedTimer             timer("Render Stars");
+  cs::utils::FrameStats::ScopedSamplesCounter    samplesCounter("Render Stars");
+  cs::utils::FrameStats::ScopedPrimitivesCounter primitivesCounter("Render Stars");
+
   // save current state of the OpenGL state machine
   glPushAttrib(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_ENABLE_BIT);
   glDepthMask(GL_FALSE);

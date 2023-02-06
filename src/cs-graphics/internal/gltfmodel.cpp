@@ -10,6 +10,7 @@
 
 #include <GL/glew.h>
 
+#include "../../cs-utils/FrameStats.hpp"
 #include "../logger.hpp"
 #include "pbr_fragment_shader.hpp"
 #include "pbr_vertex_shader.hpp"
@@ -1301,6 +1302,10 @@ VistaGltfNode::~VistaGltfNode() = default;
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool VistaGltfNode::Do() {
+  cs::utils::FrameStats::ScopedTimer             timer("VistaGltfNode");
+  cs::utils::FrameStats::ScopedSamplesCounter    samplesCounter("VistaGltfNode");
+  cs::utils::FrameStats::ScopedPrimitivesCounter primitivesCounter("VistaGltfNode");
+
   auto const* renderInfo = GetVistaSystem()->GetDisplayManager()->GetCurrentRenderInfo();
 
   std::array<GLfloat, 16> glMat{};

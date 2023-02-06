@@ -24,8 +24,10 @@ class TimingsApi extends IApi {
    * set contains an array for each nesting level of the timing ranges. Each timing range is an
    * array of three elements: [<name>, <frame-relative-start>, <frame-relative-end>].
    */
-  _gpuData = [];
-  _cpuData = [];
+  _gpuTimeData   = [];
+  _cpuTimeData   = [];
+  _sampleData    = [];
+  _primitiveData = [];
 
   /**
    * The index of the currently shown frame data. Should be in the range [0 ... maxStoredFrames-1]
@@ -47,7 +49,7 @@ class TimingsApi extends IApi {
           if (value === 0) {
             return "Latest"
           }
-          return "- " + CosmoScout.utils.beautifyNumber(value);
+          return "- " + CosmoScout.utils.formatNumber(value);
         },
         from(value) {
           if (value === "Latest") {
@@ -76,20 +78,30 @@ class TimingsApi extends IApi {
    * of these should contain an array of timing ranges. Each timing range is an array of three
    * elements: [<name>, <frame-relative-start>, <frame-relative-end>].
    */
-  setData(gpuData, cpuData) {
+  setData(gpuData, cpuData, sampleCounts, primitiveCounts) {
     const container = document.getElementById('timings');
 
     // Only update the graph if it's not hovered.
     if (!container.matches(':hover')) {
-      this._gpuData.unshift(JSON.parse(gpuData));
-      this._cpuData.unshift(JSON.parse(cpuData));
+      this._gpuTimeData.unshift(JSON.parse(gpuData));
+      this._cpuTimeData.unshift(JSON.parse(cpuData));
+      this._sampleData.unshift(JSON.parse(sampleCounts));
+      this._primitiveData.unshift(JSON.parse(primitiveCounts));
 
-      if (this._gpuData.length > maxStoredFrames) {
-        this._gpuData.pop();
+      if (this._gpuTimeData.length > maxStoredFrames) {
+        this._gpuTimeData.pop();
       }
 
-      if (this._cpuData.length > maxStoredFrames) {
-        this._cpuData.pop();
+      if (this._cpuTimeData.length > maxStoredFrames) {
+        this._cpuTimeData.pop();
+      }
+
+      if (this._sampleData.length > maxStoredFrames) {
+        this._sampleData.pop();
+      }
+
+      if (this._primitiveData.length > maxStoredFrames) {
+        this._primitiveData.pop();
       }
 
       this._redraw();
@@ -101,22 +113,28 @@ class TimingsApi extends IApi {
    */
   _redraw() {
     // Get the containers to draw to.
-    const gpuContainer  = document.querySelector("#gpu-ranges")
-    const cpuContainer  = document.querySelector("#cpu-ranges")
-    const gridContainer = document.querySelector("#grid")
-    const fpsContainer  = document.getElementById('fps-counter');
+    const gpuContainer        = document.querySelector("#gpu-graph")
+    const cpuContainer        = document.querySelector("#cpu-graph")
+    const samplesContainer    = document.querySelector("#samples-graph")
+    const primitivesContainer = document.querySelector("#primitives-graph")
+    const gridContainer       = document.querySelector("#grid")
+    const fpsContainer        = document.querySelector('#fps-counter');
 
     // First clear the containers completely.
     CosmoScout.gui.clearHtml(gpuContainer);
     CosmoScout.gui.clearHtml(cpuContainer);
+    CosmoScout.gui.clearHtml(samplesContainer);
+    CosmoScout.gui.clearHtml(primitivesContainer);
     CosmoScout.gui.clearHtml(gridContainer);
 
-    if (this._frameIndex < this._gpuData.length && this._frameIndex < this._cpuData.length) {
-      let gpuData = this._gpuData[this._frameIndex];
-      let cpuData = this._cpuData[this._frameIndex];
+    if (this._frameIndex < this._gpuTimeData.length &&
+        this._frameIndex < this._cpuTimeData.length && this._frameIndex < this._sampleData.length) {
+
+      let gpuData = this._gpuTimeData[this._frameIndex];
+      let cpuData = this._cpuTimeData[this._frameIndex];
 
       // Retrieve the end time values of the last root-level timing ranges. The maximum of these
-      // determines the maximum x-value of the graph.
+      // determines the maximum x-value of the time graphs.
       let maxGPUTime = gpuData[0][gpuData[0].length - 1][2];
       let maxCPUTime = cpuData[0][cpuData[0].length - 1][2];
       let maxTime    = Math.max(maxGPUTime, maxCPUTime) * 0.001;
@@ -127,9 +145,25 @@ class TimingsApi extends IApi {
       // First we update the background grid.
       this._drawGrid(gridContainer, maxTime);
 
-      // Then we draw the two graphs.
-      this._drawRanges(gpuContainer, gpuData, maxTime);
-      this._drawRanges(cpuContainer, cpuData, maxTime);
+      // Then we draw the two timing graphs.
+      this._drawTimeBars(gpuContainer, gpuData, maxTime);
+      this._drawTimeBars(cpuContainer, cpuData, maxTime);
+
+      let sampleData = this._sampleData[this._frameIndex];
+      sampleData.sort((a, b) => b[1] - a[1]);
+      sampleData.length = Math.min(sampleData.length, 5);
+
+      if (sampleData.length > 0) {
+        this._drawCounterBars(samplesContainer, sampleData, sampleData[0][1]);
+      }
+
+      let primitiveData = this._primitiveData[this._frameIndex];
+      primitiveData.sort((a, b) => b[1] - a[1]);
+      primitiveData.length = Math.min(primitiveData.length, 5);
+
+      if (primitiveData.length > 0) {
+        this._drawCounterBars(primitivesContainer, primitiveData, primitiveData[0][1]);
+      }
 
     } else {
       fpsContainer.innerHTML = "There is no data available for this frame.";
@@ -137,13 +171,13 @@ class TimingsApi extends IApi {
   }
 
   /**
-   * Draw the ranges of each level as small containers with a relative with and position.
+   * Draw the bars of each timing level as small containers with a relative with and position.
    *
-   * @param {div}    container The container into which the range bars are drawn.
+   * @param {div}    container The container into which the bars are drawn.
    * @param {array}  data      The parsed JSON string passed to setData().
    * @param {number} maxTime   The maximum x-value of the graph.
    */
-  _drawRanges(container, data, maxTime) {
+  _drawTimeBars(container, data, maxTime) {
 
     // This string will contain all the HTML of the graph.
     let html = "";
@@ -152,7 +186,7 @@ class TimingsApi extends IApi {
     for (let i = 0; i < data.length; i++) {
       const level = data[i];
 
-      // If there are ranges for this level...
+      // If there are bars for this level...
       if (level) {
 
         html += "<div class='level'>";
@@ -160,16 +194,48 @@ class TimingsApi extends IApi {
         // ... add one container for each.
         for (let j = 0; j < level.length; j++) {
           let name     = level[j][0];
-          let duration = (level[j][2] - level[j][1]) * 0.001;
+          let duration = CosmoScout.utils.formatNumber((level[j][2] - level[j][1]) * 0.001);
           let start    = (level[j][1] * 0.001) / maxTime * 100;
           let end      = (level[j][2] * 0.001) / maxTime * 100;
 
-          html += `<div class="range" data-tooltip="${name} (${
-              duration.toFixed(
-                  2)} ms)" style="--tooltip-offset:${(start + end) / 2}%; left: ${start}%; width: ${
-              end - start}%; background-color: ${this._colorHash.hex(name)}"></div>`;
+          html +=
+              `<div class="bar" data-tooltip="${name} (${duration} ms)" style="--tooltip-offset:${
+                  (start + end) / 2}%; left: ${start}%; width: ${end - start}%; background-color: ${
+                  this._colorHash.hex(name)}"></div>`;
         }
         html += "</div>";
+      }
+    }
+
+    // Add the HTML to the document.
+    const content     = document.createElement('template');
+    content.innerHTML = html;
+    container.appendChild(content.content);
+  }
+
+  /**
+   * Draw the bars of counter query results as small containers with a relative with and position.
+   *
+   * @param {div}    container The container into which the bars are drawn.
+   * @param {array}  data      The parsed JSON string passed to setData().
+   * @param {number} maxCount  The maximum x-value of the graph.
+   */
+  _drawCounterBars(container, data, maxCount) {
+
+    // This string will contain all the HTML of the graph.
+    let html = "";
+
+    // ... add one container for each.
+    for (let i = 0; i < data.length; i++) {
+      let name  = data[i][0];
+      let count = data[i][1];
+      let width = count / maxCount * 100;
+
+      if (width > 0.1) {
+        html += `<div class='level'><div class="bar" data-tooltip="${name} (${
+            CosmoScout.utils.formatSuffixed(count)})" style="--tooltip-offset:${
+            (width) /
+            2}%; width: ${width}%; background-color: ${this._colorHash.hex(name)}"></div></div>`;
       }
     }
 

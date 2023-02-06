@@ -16,7 +16,7 @@
 #include "../../../src/cs-core/SolarSystem.hpp"
 #include "../../../src/cs-graphics/Shadows.hpp"
 #include "../../../src/cs-graphics/TextureLoader.hpp"
-#include "../../../src/cs-utils/FrameTimings.hpp"
+#include "../../../src/cs-utils/FrameStats.hpp"
 #include "../../../src/cs-utils/utils.hpp"
 
 #include <VistaKernel/DisplayManager/VistaDisplayManager.h>
@@ -381,7 +381,8 @@ void AtmosphereRenderer::updateShader() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool AtmosphereRenderer::Do() {
-  cs::utils::FrameTimings::ScopedTimer timer("Render Atmosphere");
+  cs::utils::FrameStats::ScopedTimer          timer("Render Atmosphere");
+  cs::utils::FrameStats::ScopedSamplesCounter samplesCounter("Render Atmosphere");
 
   if (mShaderDirty || (mEclipseShadowReceiver && mEclipseShadowReceiver->needsRecompilation())) {
     updateShader();

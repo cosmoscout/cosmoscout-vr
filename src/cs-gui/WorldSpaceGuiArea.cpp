@@ -7,7 +7,7 @@
 
 #include "WorldSpaceGuiArea.hpp"
 
-#include "../cs-utils/FrameTimings.hpp"
+#include "../cs-utils/FrameStats.hpp"
 #include "GuiItem.hpp"
 
 #include <VistaKernel/DisplayManager/VistaDisplayManager.h>
@@ -158,7 +158,7 @@ bool WorldSpaceGuiArea::calculateMousePosition(
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool WorldSpaceGuiArea::Do() {
-  utils::FrameTimings::ScopedTimer timer("User Interface");
+  utils::FrameStats::ScopedTimer timer("User Interface");
   if (mShaderDirty) {
     mShader = VistaGLSLShader();
 

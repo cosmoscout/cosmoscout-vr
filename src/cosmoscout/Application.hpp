@@ -40,7 +40,6 @@ class MouseRay;
 } // namespace cs::graphics
 
 namespace cs::utils {
-class FrameTimings;
 class Downloader;
 } // namespace cs::utils
 
@@ -49,7 +48,7 @@ class Downloader;
 ///   1. Application::Application().
 ///      - This only initializes the curl library.
 ///   2. Application::Init()
-///      - Creates InputManager, FrameTimings, GraphicsEngine, GuiManager, TimeControl and
+///      - Creates InputManager, FrameStats, GraphicsEngine, GuiManager, TimeControl and
 ///        SolarSystem
 ///      - Application::connectSlots()
 ///      - Application::registerGuiCallbacks()

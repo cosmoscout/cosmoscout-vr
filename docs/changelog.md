@@ -15,6 +15,7 @@ SPDX-License-Identifier: CC-BY-4.0
 
 #### New Features
 
+* The `csp-timings` plugin now also shows the number of generated samples and primitives in the user interface.
 
 #### Other Changes
 

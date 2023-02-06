@@ -132,11 +132,11 @@ class SidebarApi extends IApi {
   }
 
   setAverageSceneLuminance(value) {
-    $("#average-scene-luminance").text(CosmoScout.utils.beautifyNumber(parseFloat(value)));
+    $("#average-scene-luminance").text(CosmoScout.utils.formatNumber(parseFloat(value)));
   }
 
   setMaximumSceneLuminance(value) {
-    $("#maximum-scene-luminance").text(CosmoScout.utils.beautifyNumber(parseFloat(value)));
+    $("#maximum-scene-luminance").text(CosmoScout.utils.formatNumber(parseFloat(value)));
   }
 
   /**
