@@ -15,12 +15,17 @@ SPDX-License-Identifier: CC-BY-4.0
 
 #### New Features
 
-
 #### Other Changes
 
 * In order to improve the rendering performance, the stars of `csp-stars` are not drawn anymore if the observer is on the day-side of a planet with an atmosphere.
 
 #### Refactoring
+
+* The `csp-lod-bodies` plugin has received some major refactoring. Here are the main changes:
+  * The terrain tiles are not stitched together anymore, instead, skirt polygons are drawn around the tiles to hide any seams.
+  * The resolution of the tile's elevation and image data are now configurable (via the new `tileResolutionDEM` and `tileResolutionIMG` settings keys).
+  * It is not required anymore to set the `format` of the terrain data sources anymore.
+  * There's a new `autoLodRange` option for setting the LoD-Factor range which is used if auto-lod is enabled.
 
 #### Bug Fixes
 
