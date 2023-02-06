@@ -16,8 +16,9 @@ This plugin can be enabled with the following configuration in your `settings.js
     ...
     "csp-lod-bodies": {
       "maxGPUTilesColor": <int>,     // The maximum allowed colored tiles.
-      "maxGPUTilesGray": <int>,      // The maximum allowed gray tiles.
       "maxGPUTilesDEM": <int>,       // The maximum allowed elevation tiles.
+      "tileResolutionDEM": <int>,    // The vertex grid resolution of the tiles.
+      "tileResolutionIMG": <int>,    // The pixel resolution which is used for the image data.
       "mapCache": <string>,          // The path to map cache folder>.
       "bodies": {
         <anchor name>: {
@@ -321,8 +322,9 @@ You will have to adjust the mapserver links according to the location of your `m
 ...
 "csp-lod-bodies": {
   "maxGPUTilesColor": 1024,
-  "maxGPUTilesGray": 1024,
   "maxGPUTilesDEM": 1024,
+  "tileResolutionDEM": 128,
+  "tileResolutionIMG": 256,
   "mapCache": "/tmp/map-cache/",
   "bodies": {
     "Earth": {
