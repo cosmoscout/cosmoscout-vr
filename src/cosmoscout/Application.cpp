@@ -37,6 +37,7 @@
 #include <VistaKernel/VistaSystem.h>
 #include <VistaOGLExt/VistaShaderRegistry.h>
 #include <curlpp/cURLpp.hpp>
+#include <fstream>
 #include <memory>
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
