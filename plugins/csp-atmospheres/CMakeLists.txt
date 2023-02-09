@@ -44,5 +44,6 @@ source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES
 # install plugin -----------------------------------------------------------------------------------
 
 install(TARGETS   csp-atmospheres  DESTINATION "share/plugins")
+install(DIRECTORY "textures"       DESTINATION "share/resources")
 install(DIRECTORY "shaders"        DESTINATION "share/resources")
 install(DIRECTORY "gui"            DESTINATION "share/resources")
