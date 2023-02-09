@@ -3,14 +3,19 @@ SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
 SPDX-License-Identifier: CC-BY-4.0
  -->
 
-# Custom Web UI for CosmoScout VR
+ <p align="center"> 
+  <img src ="../../docs/img/banner-sunset.jpg" />
+</p>
 
-A CosmoScout VR plugin which allows adding custom HTML-based UI elements as sidebar-tabs, as floating windows or into free space.
+# Configurable Atmospheres for CosmoScout VR
+
+This is a CosmoScout VR plugin which draws atmospheres around celestial bodies.
+It is designed so that multiple atmospheric models can be implemented and configured through the scene settings.
+For now, it supports a simple "CosmoScoutVR" model which performs raytracing in the fragment shader without any preprocessing as well as the "Bruneton" model which is based on the [excellent work](https://github.com/ebruneton/precomputed_atmospheric_scattering) by Eric Bruneton.
 
 ## Configuration
 
 This plugin can be enabled with the following configuration in your `settings.json`.
-The given values are just some examples, feel free to add your own items:
 
 ```javascript
 {
@@ -25,7 +30,8 @@ The given values are just some examples, feel free to add your own items:
 }
 ```
 
-### CosmoScout VR Model
+Then, you will have to add configuration objects to the `atmospheres` object.
+Here is an example for Earth's atmosphere using the "CosmoScoutVR" model.
 
 ```javascript
 "Earth": {
@@ -51,6 +57,9 @@ The given values are just some examples, feel free to add your own items:
 }
 ```
 
+The same model can also be used for Mars.
+This is not physically based but provides pretty plausible results.
+
 ```javascript
 "Mars": {
   "height": 100000,
@@ -74,7 +83,8 @@ The given values are just some examples, feel free to add your own items:
 }
 ```
 
-### Bruneton Model
+The "Bruneton" model is designed for Earth only.
+Here is an exemplary parametrization which is based on the [demo code by Eric Bruneton](https://github.com/ebruneton/precomputed_atmospheric_scattering/blob/master/atmosphere/demo/demo.cc#L188).
 
 ```javascript
 "Earth": {
@@ -95,3 +105,7 @@ The given values are just some examples, feel free to add your own items:
   }
 }
 ```
+
+## Creating new Atmospheric Models
+
+For learning how to create new models, please refer to the comments in [`ModelBase.hpp`](src/ModelBase.hpp).
