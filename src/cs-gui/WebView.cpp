@@ -23,7 +23,7 @@ class DevToolsClient : public CefClient {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-WebView::WebView(const std::string& url, int width, int height, bool allowLocalFileAccess)
+WebView::WebView(const std::string& url, int width, int height)
     : mClient(new detail::WebViewClient()) {
   WebView::resize(width, height);
 

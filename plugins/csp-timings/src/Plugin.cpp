@@ -42,8 +42,8 @@ void Plugin::init() {
   // documentation of cs::gui::WebView::setZoomLevel in great detail. This also means that all other
   // WebViews with an URL starting with "file://{mainUIZoom}../" will be automatically affected by
   // the pMainUIScale factor.
-  mGuiItem = std::make_unique<cs::gui::GuiItem>(
-      "file://{mainUIZoom}../share/resources/gui/timings.html", false);
+  mGuiItem =
+      std::make_unique<cs::gui::GuiItem>("file://{mainUIZoom}../share/resources/gui/timings.html");
 
   // Configure the positioning and attributes of the statistics GUI item.
   mGuiItem->setSizeX(500);
