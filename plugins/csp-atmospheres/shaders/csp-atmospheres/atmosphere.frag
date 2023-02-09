@@ -44,17 +44,10 @@ uniform float uSunIlluminance;
 uniform mat4 uMatM;
 uniform mat4  uMatInvMVP;
 uniform float uWaterLevel;
-// uniform mat4 uMatInvP;
-// uniform mat4 uMatMV;
 uniform sampler2D uCloudTexture;
 uniform float     uCloudAltitude;
 
 const float PI = 3.141592653589793;
-
-// shadow stuff
-// uniform sampler2DShadow uShadowMaps[5];
-// uniform mat4 uShadowProjectionViewMatrices[5];
-// uniform int  uShadowCascades;
 
 // outputs
 layout(location = 0) out vec3 oColor;
@@ -130,61 +123,6 @@ vec2 intersectPlanetsphere(vec3 rayOrigin, vec3 rayDir) {
 vec2 intersectOceansphere(vec3 rayOrigin, vec3 rayDir) {
   return intersectSphere(rayOrigin, rayDir, uWaterLevel + PLANET_RADIUS);
 }
-
-// // for a given cascade and view space position, returns the lookup coordinates
-// // for the corresponding shadow map
-// vec3 GetShadowMapCoords(int cascade, vec3 position) {
-//   vec4 smap_coords = uShadowProjectionViewMatrices[cascade] * vec4(position, 1.0);
-//   return (smap_coords.xyz / smap_coords.w) * 0.5 + 0.5;
-// }
-
-// // returns the best cascade containing the given view space position
-// int GetCascade(vec3 position) {
-//   for (int i = 0; i < uShadowCascades; ++i) {
-//     vec3 coords = GetShadowMapCoords(i, position);
-
-//     if (coords.x > 0 && coords.x < 1 && coords.y > 0 && coords.y < 1 && coords.z > 0 &&
-//         coords.z < 1) {
-//       return i;
-//     }
-//   }
-
-//   return -1;
-// }
-
-// // returns the amount of shadowing going on at the given view space position
-// float GetShadow(vec3 position) {
-//   int cascade = GetCascade(position);
-
-//   if (cascade < 0) {
-//     return 1.0;
-//   }
-
-//   vec3 coords = GetShadowMapCoords(cascade, position);
-
-//   float shadow = 0;
-//   float size   = 0.005;
-
-//   for (int x = -1; x <= 1; x++) {
-//     for (int y = -1; y <= 1; y++) {
-//       vec2 off = vec2(x, y) * size;
-
-//       // Dynamic array lookups are not supported in OpenGL 3.3
-//       if (cascade == 0)
-//         shadow += texture(uShadowMaps[0], coords - vec3(off, 0.00002));
-//       else if (cascade == 1)
-//         shadow += texture(uShadowMaps[1], coords - vec3(off, 0.00002));
-//       else if (cascade == 2)
-//         shadow += texture(uShadowMaps[2], coords - vec3(off, 0.00002));
-//       else if (cascade == 3)
-//         shadow += texture(uShadowMaps[3], coords - vec3(off, 0.00002));
-//       else
-//         shadow += texture(uShadowMaps[4], coords - vec3(off, 0.00002));
-//     }
-//   }
-
-//   return shadow / 9.0;
-// }
 
 // Returns the depth at the current pixel. If multisampling is used, we take the minimum depth.
 float getDepth() {

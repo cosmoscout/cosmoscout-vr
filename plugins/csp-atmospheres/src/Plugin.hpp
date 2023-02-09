@@ -18,18 +18,29 @@ namespace csp::atmospheres {
 
 class Atmosphere;
 
-/// This plugin adds atmospheres to planets and moons. It uses mie and rayleigh scattering for
-/// rendering atmospheric effects. It is configurable via the application config file. See README.md
-/// for details.
+/// This plugin adds atmospheres to planets and moons. It supports multiple atmospheric models.
 class Plugin : public cs::core::PluginBase {
  public:
   struct Settings {
     struct Atmosphere {
+
+      /// For now, two different atmospheric models are supported:
+      /// - CosmoScoutVR: A simple fragment-shader raytracer which supports single-scattering and
+      ///   can be configured to match various atmospheres, such as Earth's or the one of Mars.
+      /// - Bruneton: This is based on the paper "Precomputed Atmospheric Scattering" by Eric
+      ///   Bruneton. It is primarily desinged for Earth, simulates multi-scattering and provides in
+      ///   general a better performance than the CosmoScoutVR model. However, under specific
+      ///   circumstances it may exhibit more artifacts due to limited floating point precision in
+      ///   the precomputed textures.
       enum class Model { eCosmoScoutVR, eBruneton };
 
+      /// This defines which model should be used by the atmosphere.
       cs::utils::DefaultProperty<Model> mModel{Model::eCosmoScoutVR};
-      nlohmann::json                    mModelSettings;
 
+      /// This contains model-specific parameters. The format is defined by the respective model.
+      nlohmann::json mModelSettings;
+
+      /// These parameters are model-agnostic.
       double                            mHeight; ///< In meters.
       cs::utils::DefaultProperty<bool>  mEnableWater{false};
       cs::utils::DefaultProperty<float> mWaterLevel{0.F}; ///< In meters.
@@ -46,9 +57,11 @@ class Plugin : public cs::core::PluginBase {
     cs::utils::DefaultProperty<bool> mEnable{true};
   };
 
+  /// The plugin uses the standard plugin life cycle. On init, the settings are loaded and the
+  /// atmospheres are created. On update, the atmospheres are updated. Finally, on deInit, the
+  /// current settings are saved and the atmospheres are destroyed.
   void init() override;
   void deInit() override;
-
   void update() override;
 
  private:

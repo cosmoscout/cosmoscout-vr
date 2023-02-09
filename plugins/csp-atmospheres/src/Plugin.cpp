@@ -116,6 +116,9 @@ void Plugin::init() {
       "Atmospheres", "blur_circular", "../share/resources/gui/atmospheres_settings.html");
   mGuiManager->executeJavascriptFile("../share/resources/gui/js/csp-atmospheres.js");
 
+  // Most settings of the sidebar are stored per-atmosphere. If the observer moves from one planet
+  // to another, all sliders and checkboxes need to be updated to display the values of the newly
+  // active body.
   mActiveObjectConnection = mSolarSystem->pActiveObject.connect(
       [this](std::shared_ptr<const cs::scene::CelestialObject> const& body) {
         mActiveAtmosphere = "";
@@ -237,6 +240,8 @@ void Plugin::onLoad() {
 
   // Then add new atmospheres.
   for (auto const& settings : mPluginSettings->mAtmospheres) {
+
+    // We already have created that atmosphere.
     if (mAtmospheres.find(settings.first) != mAtmospheres.end()) {
       continue;
     }
