@@ -41,7 +41,6 @@ WebView::WebView(const std::string& url, int width, int height, bool allowLocalF
 
   int const targetFrameRate             = 60;
   browserSettings.windowless_frame_rate = targetFrameRate;
-  // browserSettings.web_security          = allowLocalFileAccess ? STATE_DISABLED : STATE_ENABLED;
 
   mBrowser =
       CefBrowserHost::CreateBrowserSync(info, mClient, url, browserSettings, nullptr, nullptr);
