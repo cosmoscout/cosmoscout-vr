@@ -145,8 +145,7 @@ vec3 _getInscatter(
 
 // Returns the sky luminance along the segment from 'camera' to the nearest atmosphere boundary in
 // direction 'viewRay', as well as the transmittance along this segment.
-vec3 GetSkyLuminance(
-    vec3 camera, vec3 viewRay, float shadowLength, vec3 sunDirection, out vec3 transmittance) {
+vec3 GetSkyLuminance(vec3 camera, vec3 viewRay, vec3 sunDirection, out vec3 transmittance) {
 
   vec2 intersections = _intersectAtmosphere(camera, viewRay);
 
@@ -168,8 +167,7 @@ vec3 GetSkyLuminance(
 
 // Returns the sky luminance along the segment from 'camera' to 'p', as well as the transmittance
 // along this segment.
-vec3 GetSkyLuminanceToPoint(
-    vec3 camera, vec3 p, float shadowLength, vec3 sunDirection, out vec3 transmittance) {
+vec3 GetSkyLuminanceToPoint(vec3 camera, vec3 p, vec3 sunDirection, out vec3 transmittance) {
 
   vec3  viewRay = p - camera;
   float dist    = length(viewRay);

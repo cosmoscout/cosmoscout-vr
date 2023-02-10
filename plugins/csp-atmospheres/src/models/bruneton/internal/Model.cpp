@@ -16,6 +16,8 @@
 // premultiply the irradiance with the dot product between light direction and surface normal. As
 // this factor is already included in the BRDFs used in CosmoCout VR, we have removed this. Also,
 // the GLSL files are now loaded via cs::utils::filesystem::loadToString().
+// Also, the shadow_length parameter has been removed from the public API as this is currently
+// not supported by CosmoScout VR.
 
 /*<h2>atmosphere/model.cc</h2>
 
@@ -216,18 +218,18 @@ const char kAtmosphereShader[] = R"(
           (PI * ATMOSPHERE.sun_angular_radius * ATMOSPHERE.sun_angular_radius);
     }
     RadianceSpectrum GetSkyRadiance(
-        Position camera, Direction view_ray, Length shadow_length,
+        Position camera, Direction view_ray,
         Direction sun_direction, out DimensionlessSpectrum transmittance) {
       return GetSkyRadiance(ATMOSPHERE, transmittance_texture,
           scattering_texture, single_mie_scattering_texture,
-          camera, view_ray, shadow_length, sun_direction, transmittance);
+          camera, view_ray, 0.0, sun_direction, transmittance);
     }
     RadianceSpectrum GetSkyRadianceToPoint(
-        Position camera, Position point, Length shadow_length,
+        Position camera, Position point,
         Direction sun_direction, out DimensionlessSpectrum transmittance) {
       return GetSkyRadianceToPoint(ATMOSPHERE, transmittance_texture,
           scattering_texture, single_mie_scattering_texture,
-          camera, point, shadow_length, sun_direction, transmittance);
+          camera, point, 0.0, sun_direction, transmittance);
     }
     IrradianceSpectrum GetSunAndSkyIrradiance(
        Position p, Direction sun_direction,
@@ -242,19 +244,19 @@ const char kAtmosphereShader[] = R"(
           SUN_SPECTRAL_RADIANCE_TO_LUMINANCE;
     }
     Luminance3 GetSkyLuminance(
-        Position camera, Direction view_ray, Length shadow_length,
+        Position camera, Direction view_ray,
         Direction sun_direction, out DimensionlessSpectrum transmittance) {
       return GetSkyRadiance(ATMOSPHERE, transmittance_texture,
           scattering_texture, single_mie_scattering_texture,
-          camera, view_ray, shadow_length, sun_direction, transmittance) *
+          camera, view_ray, 0.0, sun_direction, transmittance) *
           SKY_SPECTRAL_RADIANCE_TO_LUMINANCE;
     }
     Luminance3 GetSkyLuminanceToPoint(
-        Position camera, Position point, Length shadow_length,
+        Position camera, Position point,
         Direction sun_direction, out DimensionlessSpectrum transmittance) {
       return GetSkyRadianceToPoint(ATMOSPHERE, transmittance_texture,
           scattering_texture, single_mie_scattering_texture,
-          camera, point, shadow_length, sun_direction, transmittance) *
+          camera, point, 0.0, sun_direction, transmittance) *
           SKY_SPECTRAL_RADIANCE_TO_LUMINANCE;
     }
     Illuminance3 GetSunAndSkyIlluminance(

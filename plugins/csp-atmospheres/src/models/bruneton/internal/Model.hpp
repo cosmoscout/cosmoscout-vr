@@ -15,7 +15,9 @@
 // GetSunAndSkyIrradiance() and GetSunAndSkyIlluminance() methods. In the original implementation,
 // these methods used to premultiply the irradiance with the dot product between light direction and
 // surface normal. As this factor is already included in the BRDFs used in CosmoCout VR, we have
-// removed this and adapted the documentation here accordingly
+// removed this and adapted the documentation here accordingly.
+// Similarily, the shadow_length parameter has been removed from the public API as this is currently
+// not supported by CosmoScout VR.
 
 /*<h2>atmosphere/model.h</h2>
 
@@ -45,12 +47,12 @@ vec3 GetSolarRadiance();
 // Returns the sky radiance along the segment from 'camera' to the nearest
 // atmosphere boundary in direction 'view_ray', as well as the transmittance
 // along this segment.
-vec3 GetSkyRadiance(vec3 camera, vec3 view_ray, double shadow_length,
+vec3 GetSkyRadiance(vec3 camera, vec3 view_ray,
     vec3 sun_direction, out vec3 transmittance);
 
 // Returns the sky radiance along the segment from 'camera' to 'p', as well as
 // the transmittance along this segment.
-vec3 GetSkyRadianceToPoint(vec3 camera, vec3 p, double shadow_length,
+vec3 GetSkyRadianceToPoint(vec3 camera, vec3 p,
     vec3 sun_direction, out vec3 transmittance);
 
 // Returns the sun and sky irradiance received on a surface patch located at 'p'.
@@ -62,12 +64,12 @@ vec3 GetSolarLuminance();
 // Returns the sky luminance along the segment from 'camera' to the nearest
 // atmosphere boundary in direction 'view_ray', as well as the transmittance
 // along this segment.
-vec3 GetSkyLuminance(vec3 camera, vec3 view_ray, double shadow_length,
+vec3 GetSkyLuminance(vec3 camera, vec3 view_ray,
     vec3 sun_direction, out vec3 transmittance);
 
 // Returns the sky luminance along the segment from 'camera' to 'p', as well as
 // the transmittance along this segment.
-vec3 GetSkyLuminanceToPoint(vec3 camera, vec3 p, double shadow_length,
+vec3 GetSkyLuminanceToPoint(vec3 camera, vec3 p,
     vec3 sun_direction, out vec3 transmittance);
 
 // Returns the sun and sky illuminance received on a surface patch located at 'p'.

@@ -18,13 +18,11 @@ vsIn;
 // Returns the sky luminance along the segment from 'camera' to the nearest
 // atmosphere boundary in direction 'view_ray', as well as the transmittance
 // along this segment.
-vec3 GetSkyLuminance(
-    vec3 camera, vec3 view_ray, float shadow_length, vec3 sun_direction, out vec3 transmittance);
+vec3 GetSkyLuminance(vec3 camera, vec3 view_ray, vec3 sun_direction, out vec3 transmittance);
 
 // Returns the sky luminance along the segment from 'camera' to 'p', as well as
 // the transmittance along this segment.
-vec3 GetSkyLuminanceToPoint(
-    vec3 camera, vec3 p, float shadow_length, vec3 sun_direction, out vec3 transmittance);
+vec3 GetSkyLuminanceToPoint(vec3 camera, vec3 p, vec3 sun_direction, out vec3 transmittance);
 
 // Returns the sun and sky illuminance received on a surface patch located at
 // 'p'.
@@ -259,7 +257,7 @@ vec4 getCloudColor(vec3 rayOrigin, vec3 rayDir, vec3 sunDir, float surfaceDistan
 
   vec3 p = rayOrigin + rayDir * (intersections.x < 0 ? intersections.y : intersections.x);
   vec3 skyIlluminance, transmittance;
-  vec3 inScatter      = GetSkyLuminanceToPoint(rayOrigin, p, 0.0, uSunDir, transmittance);
+  vec3 inScatter      = GetSkyLuminanceToPoint(rayOrigin, p, uSunDir, transmittance);
   vec3 sunIlluminance = GetSunAndSkyIlluminance(p, uSunDir, skyIlluminance);
 
   for (int i = 0; i < samples; ++i) {
@@ -362,14 +360,11 @@ void main() {
   }
 #endif
 
-  float shadowLength = 0.0;
-
   if (hitsSurface) {
     vec3 skyIlluminance, transmittance;
-    vec3 p = vsIn.vRayOrigin + rayDir * surfaceDistance;
-    vec3 inScatter =
-        GetSkyLuminanceToPoint(vsIn.vRayOrigin, p, shadowLength, uSunDir, transmittance);
-    eclipseShadow = getEclipseShadow((uMatM * vec4(p, 1.0)).xyz);
+    vec3 p         = vsIn.vRayOrigin + rayDir * surfaceDistance;
+    vec3 inScatter = GetSkyLuminanceToPoint(vsIn.vRayOrigin, p, uSunDir, transmittance);
+    eclipseShadow  = getEclipseShadow((uMatM * vec4(p, 1.0)).xyz);
 
     vec3 illuminance = GetSunAndSkyIlluminance(p, uSunDir, skyIlluminance);
     illuminance += skyIlluminance;
@@ -389,7 +384,7 @@ void main() {
 #endif
   } else {
     vec3 transmittance;
-    vec3 inScatter = GetSkyLuminance(vsIn.vRayOrigin, rayDir, shadowLength, uSunDir, transmittance);
+    vec3 inScatter = GetSkyLuminance(vsIn.vRayOrigin, rayDir, uSunDir, transmittance);
 
     vec3 p =
         vsIn.vRayOrigin + rayDir * (atmosphereIntersections.x > 0.0 ? atmosphereIntersections.x
