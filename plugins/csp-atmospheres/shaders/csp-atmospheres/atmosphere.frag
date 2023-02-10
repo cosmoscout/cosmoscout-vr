@@ -16,17 +16,17 @@ in VaryingStruct {
 vsIn;
 
 // Returns the sky luminance along the segment from 'camera' to the nearest
-// atmosphere boundary in direction 'view_ray', as well as the transmittance
+// atmosphere boundary in direction 'viewRay', as well as the transmittance
 // along this segment.
-vec3 GetSkyLuminance(vec3 camera, vec3 view_ray, vec3 sun_direction, out vec3 transmittance);
+vec3 GetSkyLuminance(vec3 camera, vec3 viewRay, vec3 sunDirection, out vec3 transmittance);
 
 // Returns the sky luminance along the segment from 'camera' to 'p', as well as
 // the transmittance along this segment.
-vec3 GetSkyLuminanceToPoint(vec3 camera, vec3 p, vec3 sun_direction, out vec3 transmittance);
+vec3 GetSkyLuminanceToPoint(vec3 camera, vec3 p, vec3 sunDirection, out vec3 transmittance);
 
 // Returns the sun and sky illuminance received on a surface patch located at
 // 'p'.
-vec3 GetSunAndSkyIlluminance(vec3 p, vec3 sun_direction, out vec3 sky_illuminance);
+vec3 GetSunAndSkyIlluminance(vec3 p, vec3 sunDirection, out vec3 skyIlluminance);
 
 // uniforms
 #if HDR_SAMPLES > 0

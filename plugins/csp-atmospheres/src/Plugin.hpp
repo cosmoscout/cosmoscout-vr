@@ -28,7 +28,7 @@ class Plugin : public cs::core::PluginBase {
       /// - CosmoScoutVR: A simple fragment-shader raytracer which supports single-scattering and
       ///   can be configured to match various atmospheres, such as Earth's or the one of Mars.
       /// - Bruneton: This is based on the paper "Precomputed Atmospheric Scattering" by Eric
-      ///   Bruneton. It is primarily desinged for Earth, simulates multi-scattering and provides in
+      ///   Bruneton. It is primarily designed for Earth, simulates multi-scattering and provides in
       ///   general a better performance than the CosmoScoutVR model. However, under specific
       ///   circumstances it may exhibit more artifacts due to limited floating point precision in
       ///   the precomputed textures.
