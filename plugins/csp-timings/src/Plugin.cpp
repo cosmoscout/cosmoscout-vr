@@ -47,7 +47,7 @@ void Plugin::init() {
 
   // Configure the positioning and attributes of the statistics GUI item.
   mGuiItem->setSizeX(500);
-  mGuiItem->setSizeY(300);
+  mGuiItem->setSizeY(500);
   mGuiItem->setOffsetX(-250);
   mGuiItem->setOffsetY(0);
   mGuiItem->setRelPositionY(0.5F);
@@ -68,9 +68,9 @@ void Plugin::init() {
   mGuiManager->getGui()->registerCallback("timings.setEnableTimerQueries",
       "Enables or disables execution of timer queries for each frame.",
       std::function([this](bool enable) {
-        cs::utils::FrameTimings::get().pEnableMeasurements = enable;
+        cs::utils::FrameStats::get().pEnableMeasurements = enable;
 
-        // If cs::utils::FrameTimings::get().pEnableMeasurements are disabled, we make the two
+        // If cs::utils::FrameStats::get().pEnableMeasurements are disabled, we make the two
         // checkboxes of this plugin unresponsive.
         if (enable) {
           mGuiManager->getGui()->executeJavascript(
@@ -83,9 +83,9 @@ void Plugin::init() {
         }
       }));
 
-  // Use the current state of cs::utils::FrameTimings::get().pEnableMeasurements for our checkbox.
+  // Use the current state of cs::utils::FrameStats::get().pEnableMeasurements for our checkbox.
   mFrameTimingConnection =
-      cs::utils::FrameTimings::get().pEnableMeasurements.connectAndTouch([this](bool enable) {
+      cs::utils::FrameStats::get().pEnableMeasurements.connectAndTouch([this](bool enable) {
         mGuiManager->setCheckboxValue("timings.setEnableTimerQueries", enable);
       });
 
@@ -121,49 +121,52 @@ void Plugin::update() {
 
   // Enable or disable the statistics GUI item if necessary.
   mGuiItem->setIsEnabled(
-      mEnableStatistics && cs::utils::FrameTimings::get().pEnableMeasurements.get());
+      mEnableStatistics && cs::utils::FrameStats::get().pEnableMeasurements.get());
 
   // If frame timings are enabled, we may have to record them or update the on-screen statistics.
-  if (cs::utils::FrameTimings::get().pEnableMeasurements.get() &&
+  if (cs::utils::FrameStats::get().pEnableMeasurements.get() &&
       (mEnableRecording || mEnableStatistics)) {
 
     // Only record ranges longer than 10 µs.
-    const uint32_t minTimeNanos    = 10000;
-    auto const&    ranges          = cs::utils::FrameTimings::get().getRanges();
-    uint32_t       maxNestingLevel = 0;
+    const uint32_t minTimeNanos      = 10000;
+    auto const&    timerQueryResults = cs::utils::FrameStats::get().getTimerQueryResults();
+    uint32_t       maxNestingLevel   = 0;
 
     // Compute the maximum nesting level amongst all recorded ranges.
-    for (auto const& range : ranges) {
-      maxNestingLevel = std::max(maxNestingLevel, range.mNestingLevel);
+    for (auto const& timerQueryResult : timerQueryResults) {
+      maxNestingLevel = std::max(maxNestingLevel, timerQueryResult.mNestingLevel);
     }
 
-    // The outer vector contains all ranges for a specific nesting level.
-    std::vector<std::vector<Range>> cpuRanges(maxNestingLevel + 1);
-    std::vector<std::vector<Range>> gpuRanges(maxNestingLevel + 1);
+    // The outer vector contains all timing ranges for a specific nesting level.
+    std::vector<std::vector<TimerRange>> cpuRanges(maxNestingLevel + 1);
+    std::vector<std::vector<TimerRange>> gpuRanges(maxNestingLevel + 1);
 
     // Compute frame-relative timestamps in microseconds.
-    if (!ranges.empty()) {
-      auto gpuFrameStart = ranges[0].mGPUStart;
-      auto cpuFrameStart = ranges[0].mCPUStart;
+    if (!timerQueryResults.empty()) {
+      auto gpuFrameStart = timerQueryResults[0].mGPUStart;
+      auto cpuFrameStart = timerQueryResults[0].mCPUStart;
 
-      for (auto const& range : ranges) {
-        if (range.mGPUEnd - range.mGPUStart >= minTimeNanos) {
-          gpuRanges[range.mNestingLevel].emplace_back(range.mName,
-              static_cast<uint32_t>(range.mGPUStart - gpuFrameStart) / 1000,
-              static_cast<uint32_t>(range.mGPUEnd - gpuFrameStart) / 1000);
+      for (auto const& timerQueryResult : timerQueryResults) {
+        if (timerQueryResult.mGPUEnd - timerQueryResult.mGPUStart >= minTimeNanos) {
+          gpuRanges[timerQueryResult.mNestingLevel].emplace_back(timerQueryResult.mName,
+              static_cast<uint32_t>(timerQueryResult.mGPUStart - gpuFrameStart) / 1000,
+              static_cast<uint32_t>(timerQueryResult.mGPUEnd - gpuFrameStart) / 1000);
         }
 
-        if (range.mCPUEnd - range.mCPUStart >= minTimeNanos) {
-          cpuRanges[range.mNestingLevel].emplace_back(range.mName,
-              static_cast<uint32_t>(range.mCPUStart - cpuFrameStart) / 1000,
-              static_cast<uint32_t>(range.mCPUEnd - cpuFrameStart) / 1000);
+        if (timerQueryResult.mCPUEnd - timerQueryResult.mCPUStart >= minTimeNanos) {
+          cpuRanges[timerQueryResult.mNestingLevel].emplace_back(timerQueryResult.mName,
+              static_cast<uint32_t>(timerQueryResult.mCPUStart - cpuFrameStart) / 1000,
+              static_cast<uint32_t>(timerQueryResult.mCPUEnd - cpuFrameStart) / 1000);
         }
       }
     }
 
+    auto const& samplesQueryResults    = cs::utils::FrameStats::get().getSamplesQueryResults();
+    auto const& primitivesQueryResults = cs::utils::FrameStats::get().getPrimitivesQueryResults();
+
     // Send the timing information to the statistics GUI item.
     if (mEnableStatistics) {
-      auto toJSON = [](std::vector<std::vector<Range>> const& ranges) {
+      auto rangeToJSON = [](std::vector<std::vector<TimerRange>> const& ranges) {
         nlohmann::json json;
 
         for (auto const& level : ranges) {
@@ -181,7 +184,19 @@ void Plugin::update() {
         return json.dump();
       };
 
-      mGuiItem->callJavascript("CosmoScout.timings.setData", toJSON(gpuRanges), toJSON(cpuRanges));
+      auto countToJSON = [](std::vector<cs::utils::FrameStats::CounterQueryResult> const& counts) {
+        nlohmann::json json;
+
+        for (auto const& count : counts) {
+          json.push_back({count.mName, count.mCount});
+        }
+
+        return json.dump();
+      };
+
+      mGuiItem->callJavascript("CosmoScout.timings.setData", rangeToJSON(gpuRanges),
+          rangeToJSON(cpuRanges), countToJSON(samplesQueryResults),
+          countToJSON(primitivesQueryResults));
     }
 
     // Store the frame timing if we are in recording-mode.
@@ -209,8 +224,8 @@ void Plugin::update() {
 
     // This stores a CSV file for each nesting level in the directory created above. The prefix will
     // be prepended to the CSV file name.
-    auto saveRecording = [&directory, this](std::string const&                   prefix,
-                             std::vector<std::vector<std::vector<Range>>> const& recording) {
+    auto saveRecording = [&directory, this](std::string const&                        prefix,
+                             std::vector<std::vector<std::vector<TimerRange>>> const& recording) {
       // Retrieve the maximum nesting level amongst all recorded frames. We need this to decide how
       // many files to create. The nesting level may actually change during a recording if for
       // example new objects come into view.
@@ -293,7 +308,7 @@ void Plugin::deInit() {
   mGuiManager->getLocalGuiArea().removeItem(mGuiItem.get());
 
   // Disconnect any signals.
-  cs::utils::FrameTimings::get().pEnableMeasurements.disconnect(mFrameTimingConnection);
+  cs::utils::FrameStats::get().pEnableMeasurements.disconnect(mFrameTimingConnection);
 
   logger().info("Unloading done.");
 }

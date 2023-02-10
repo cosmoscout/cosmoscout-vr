@@ -15,7 +15,7 @@
 #include "../../../src/cs-core/GraphicsEngine.hpp"
 #include "../../../src/cs-core/SolarSystem.hpp"
 #include "../../../src/cs-graphics/TextureLoader.hpp"
-#include "../../../src/cs-utils/FrameTimings.hpp"
+#include "../../../src/cs-utils/FrameStats.hpp"
 #include "../../../src/cs-utils/filesystem.hpp"
 
 #include <VistaKernel/DisplayManager/VistaDisplayManager.h>
@@ -205,9 +205,10 @@ void Atmosphere::update() {
     double     dist     = glm::length(planet);
     glm::dvec3 toPlanet = planet / dist;
 
-    // [planet surface ... 5x atmosphere boundary] -> [0 ... 1]
+    // Altitude in [0.2x atmosphere boundary ... 5x atmosphere boundary] -> [0 ... 1]
     double heightInAtmosphere =
-        std::min(1.0, std::max(0.0, (dist - object->getRadii()[0]) / (mSettings.mHeight * 5.0)));
+        std::min(1.0, std::max(0.0, (dist - object->getRadii()[0] - mSettings.mHeight * 0.2) /
+                                        (mSettings.mHeight * 5.0)));
 
     // [noon ... midnight] -> [1 ... -1]
     double daySide = glm::dot(-toPlanet, glm::dvec3(mSunDirection));
@@ -227,7 +228,8 @@ void Atmosphere::update() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool Atmosphere::Do() {
-  cs::utils::FrameTimings::ScopedTimer timer("Render Atmosphere");
+  cs::utils::FrameStats::ScopedTimer          timer("Atmosphere of " + mObjectName);
+  cs::utils::FrameStats::ScopedSamplesCounter samplesCounter("Atmosphere of " + mObjectName);
 
   if (mShaderDirty || mEclipseShadowReceiver->needsRecompilation()) {
     updateShader();

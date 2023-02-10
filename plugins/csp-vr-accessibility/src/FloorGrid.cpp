@@ -9,7 +9,7 @@
 
 #include "../../../src/cs-core/SolarSystem.hpp"
 #include "../../../src/cs-graphics/TextureLoader.hpp"
-#include "../../../src/cs-utils/FrameTimings.hpp"
+#include "../../../src/cs-utils/FrameStats.hpp"
 #include "logger.hpp"
 
 #include <VistaKernel/DisplayManager/VistaDisplayManager.h>
@@ -164,7 +164,7 @@ bool FloorGrid::Do() {
     return true;
   }
 
-  cs::utils::FrameTimings::ScopedTimer timer("VRAccessibility-FloorGrid");
+  cs::utils::FrameStats::ScopedTimer timer("VRAccessibility-FloorGrid");
 
   mShader.Bind();
 

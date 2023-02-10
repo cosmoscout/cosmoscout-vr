@@ -9,6 +9,25 @@ SPDX-License-Identifier: CC-BY-4.0
 
 # Changelog of CosmoScout VR
 
+## [v1.8.0](https://github.com/cosmoscout/cosmoscout-vr/releases)
+
+**Release Date:** TBD
+
+#### New Features
+
+* The `csp-timings` plugin now also shows the number of generated samples and primitives in the user interface.
+
+#### Other Changes
+
+* In order to improve the rendering performance, the stars of `csp-stars` are not drawn anymore if the observer is on the day-side of a planet with an atmosphere.
+
+#### Refactoring
+
+#### Bug Fixes
+
+* The user interface now avoids rerenders of components that did not change. This lead to the whole UI rerendering most of the time. 
+
+
 ## [v1.7.0](https://github.com/cosmoscout/cosmoscout-vr/releases)
 
 **Release Date:** 2022-12-13

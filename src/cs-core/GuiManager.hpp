@@ -17,8 +17,6 @@
 #include "../cs-gui/types.hpp"
 #include "Settings.hpp"
 
-#include "../cs-utils/FrameTimings.hpp"
-
 #include <glm/glm.hpp>
 #include <memory>
 #include <optional>

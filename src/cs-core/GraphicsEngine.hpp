@@ -59,9 +59,6 @@ class CS_CORE_EXPORT GraphicsEngine {
   /// SolarSystem to get all relevant eclipse shadow maps for a given position in space.
   std::vector<std::shared_ptr<graphics::EclipseShadowMap>> const& getEclipseShadowMaps() const;
 
-  static void enableGLDebug(bool onlyErrors = true);
-  static void disableGLDebug();
-
  private:
   void calculateCascades();
 

@@ -85,21 +85,67 @@ class UtilsApi extends IApi {
    * @return {string}
    */
   formatNumber(number) {
-    number = Number(number);
+    const abs = Math.abs(number);
 
-    // Set very small numbers to 0
-    if (number < Number.EPSILON && number > -Number.EPSILON) {
-      number = 0;
+    if (abs >= 10000) {
+      return number.toPrecision(2);
+    }
+    if (abs >= 100) {
+      return Number(number.toFixed(0)).toString();
+    }
+    if (abs >= 10) {
+      return Number(number.toFixed(1)).toString();
+    }
+    if (abs >= 0.01) {
+      return Number(number.toFixed(2)).toString();
+    }
+    if (abs === 0) {
+      return '0';
     }
 
-    if (Math.abs(number) < 10) {
-      return number.toFixed(2);
+    return number.toPrecision(2);
+  }
+
+  /**
+   * Returns a formatted number string with a suffix.
+   *
+   * @param value {number|string}
+   * @return {string}
+   */
+  formatSuffixed(value) {
+
+    const abs = Math.abs(value);
+    value     = Number(value);
+
+    if (abs < 1e-9) {
+      return this.formatNumber(value * 1e9) + "n";
     }
-    if (Math.abs(number) < 100) {
-      return number.toFixed(1);
+    if (abs < 1e-6) {
+      return this.formatNumber(value * 1e6) + "μ";
+    }
+    if (abs < 1e-3) {
+      return this.formatNumber(value * 1e3) + "m";
+    }
+    if (abs < 1e3) {
+      return this.formatNumber(value);
+    }
+    if (abs < 1e6) {
+      return this.formatNumber(value * 1e-3) + "k";
+    }
+    if (abs < 1e9) {
+      return this.formatNumber(value * 1e-6) + "M";
+    }
+    if (abs < 1e12) {
+      return this.formatNumber(value * 1e-9) + "G";
+    }
+    if (abs < 1e15) {
+      return this.formatNumber(value * 1e-12) + "T";
+    }
+    if (abs < 1e18) {
+      return this.formatNumber(value * 1e-15) + "P";
     }
 
-    return number.toFixed(0);
+    return this.formatNumber(value);
   }
 
   /**
@@ -220,30 +266,5 @@ class UtilsApi extends IApi {
     }
 
     return `${(lon).toFixed(2)}° E `;
-  }
-
-  /**
-   * @param number {number}
-   * @return {string|number}
-   */
-  beautifyNumber(number) {
-    const abs = Math.abs(number);
-    let value;
-
-    if (abs >= 10000) {
-      value = Number(number.toPrecision(2)).toExponential();
-    } else if (abs >= 1000) {
-      value = Number(number.toPrecision(4));
-    } else if (abs >= 1) {
-      value = Number(number.toPrecision(3));
-    } else if (abs >= 0.1) {
-      value = Number(number.toPrecision(2));
-    } else if (abs === 0) {
-      value = '0';
-    } else {
-      value = Number(number.toPrecision(2)).toExponential();
-    }
-
-    return value.toString();
   }
 }

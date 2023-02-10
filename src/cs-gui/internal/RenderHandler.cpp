@@ -6,11 +6,11 @@
 // SPDX-License-Identifier: MIT
 
 #include "RenderHandler.hpp"
-#include "../../cs-utils/FrameTimings.hpp"
 #include "../logger.hpp"
 
 #include <GL/glew.h>
 #include <deque>
+#include <iostream>
 #include <thread>
 
 namespace cs::gui::detail {

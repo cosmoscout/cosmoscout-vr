@@ -7,7 +7,7 @@
 
 #include "ScreenSpaceGuiArea.hpp"
 
-#include "../cs-utils/FrameTimings.hpp"
+#include "../cs-utils/FrameStats.hpp"
 #include "GuiItem.hpp"
 
 #include <VistaMath/VistaBoundingBox.h>
@@ -92,7 +92,7 @@ int ScreenSpaceGuiArea::getHeight() const {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool ScreenSpaceGuiArea::Do() {
-  utils::FrameTimings::ScopedTimer timer("User Interface");
+  utils::FrameStats::ScopedTimer timer("User Interface");
   if (mShaderDirty) {
     mShader = VistaGLSLShader();
 

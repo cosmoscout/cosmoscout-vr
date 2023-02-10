@@ -10,7 +10,7 @@
 #include "../../../src/cs-core/Settings.hpp"
 #include "../../../src/cs-core/SolarSystem.hpp"
 #include "../../../src/cs-graphics/TextureLoader.hpp"
-#include "../../../src/cs-utils/FrameTimings.hpp"
+#include "../../../src/cs-utils/FrameStats.hpp"
 #include "../../../src/cs-utils/utils.hpp"
 
 #include <VistaKernel/GraphicsManager/VistaSceneGraph.h>
@@ -314,8 +314,8 @@ void SimpleBody::update() {
   auto parent = mSolarSystem->getObject(mObjectName);
 
   if (parent && parent->getIsBodyVisible()) {
-    cs::utils::FrameTimings::ScopedTimer timer(
-        "Update " + parent->getCenterName(), cs::utils::FrameTimings::QueryMode::eCPU);
+    cs::utils::FrameStats::ScopedTimer timer(
+        "Update " + parent->getCenterName(), cs::utils::FrameStats::TimerMode::eCPU);
     mEclipseShadowReceiver.update(*parent);
   }
 }
@@ -329,7 +329,7 @@ bool SimpleBody::Do() {
     return true;
   }
 
-  cs::utils::FrameTimings::ScopedTimer timer("Draw " + parent->getCenterName());
+  cs::utils::FrameStats::ScopedTimer timer("Draw " + parent->getCenterName());
 
   if (mShaderDirty || mEclipseShadowReceiver.needsRecompilation()) {
     mShader = VistaGLSLShader();

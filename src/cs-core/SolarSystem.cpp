@@ -11,7 +11,7 @@
 
 #include "../cs-graphics/EclipseShadowMap.hpp"
 #include "../cs-scene/CelestialSurface.hpp"
-#include "../cs-utils/FrameTimings.hpp"
+#include "../cs-utils/FrameStats.hpp"
 #include "../cs-utils/convert.hpp"
 #include "../cs-utils/utils.hpp"
 #include "GraphicsEngine.hpp"
@@ -230,9 +230,9 @@ void SolarSystem::update() {
 
   // First, update all celestial object positions.
   for (auto const& [name, object] : mSettings->mObjects) {
-    utils::FrameTimings::ScopedTimer timer(
+    utils::FrameStats::ScopedTimer timer(
         "Update " + object->getCenterName() + " / " + object->getFrameName(),
-        utils::FrameTimings::QueryMode::eCPU);
+        utils::FrameStats::TimerMode::eCPU);
     object->update(simulationTime, mObserver);
   }
 
