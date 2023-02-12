@@ -210,6 +210,8 @@ void PlanetShader::compile() {
       cs::utils::toString(mSettings->mGraphics.pLightingQuality.get()));
   cs::utils::replaceString(mVertexSource, "$TERRAIN_PROJECTION_TYPE",
       cs::utils::toString(static_cast<int>(mPluginSettings->mTerrainProjectionType.get())));
+  cs::utils::replaceString(mTessEvalSource, "$TERRAIN_PROJECTION_TYPE",
+      cs::utils::toString(static_cast<int>(mPluginSettings->mTerrainProjectionType.get())));
 
   TerrainShader::compile();
 

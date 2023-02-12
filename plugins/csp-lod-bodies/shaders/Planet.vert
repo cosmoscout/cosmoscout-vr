@@ -36,7 +36,8 @@ out VS_OUT
 void main(void)
 {
     // all in view space
-    vsOut.position = VP_getVertexPosition(VP_iPosition, $TERRAIN_PROJECTION_TYPE);
+    // vsOut.position = VP_getVertexPosition(VP_iPosition, $TERRAIN_PROJECTION_TYPE);
+    vsOut.position = vec3(VP_iPosition.x, VP_iPosition.y, 0.0);
     gl_Position    = VP_matProjection * VP_matView * vec4(vsOut.position, 1);
 
     if (!VP_shadowMapMode)

@@ -11,6 +11,10 @@
 
 layout(triangles) in;
 
+// include helper functions/declarations from VistaPlanet
+$VP_TERRAIN_SHADER_UNIFORMS
+$VP_TERRAIN_SHADER_FUNCTIONS
+
 // inputs
 // ==========================================================================
 in TC_OUT
@@ -119,5 +123,8 @@ void main()
     // te_out.sunDir         = te_in[0].sunDir;
 
     // final position
-    gl_Position = p1;
+    // gl_Position = p1;
+
+    vec3 tempPos = VP_getVertexPosition(p0.xy, $TERRAIN_PROJECTION_TYPE);
+    gl_Position = VP_matProjection * VP_matView * vec4(tempPos, 1);
 }

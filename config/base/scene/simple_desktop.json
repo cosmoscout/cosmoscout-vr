@@ -780,9 +780,6 @@
         "Venus": {
           "texture": "../share/resources/textures/venus.jpg"
         },
-        "Earth": {
-          "texture": "../share/resources/textures/earth.jpg"
-        },
         "Moon": {
           "texture": "../share/resources/textures/moon.jpg"
         },
@@ -879,6 +876,89 @@
         "Charon": {
           "texture": "../share/resources/textures/charon.jpg",
           "primeMeridianInCenter": false
+        }
+      }
+    },
+    "csp-lod-bodies": {
+      "autoLod": false,
+      "bodies": {
+        "Earth": {
+          "activeDemDataset": "Blue Marble",
+          "activeImgDataset": "None",
+          "demDatasets": {
+            "Blue Marble": {
+              "copyright": "NASA",
+              "format": "Float32",
+              "layers": "earth.bluemarble.dem",
+              "maxLevel": 6,
+              "url": "http://129.247.34.87/mapserv?service=wms"
+            },
+            "CleanTOPO": {
+              "copyright": "Tom Patterson, US National Park Service",
+              "format": "Float32",
+              "layers": "earth.cleantopo.dem",
+              "maxLevel": 6,
+              "url": "http://129.247.34.87/mapserv?service=wms"
+            },
+            "ETOPO1": {
+              "copyright": "NOAA",
+              "format": "Float32",
+              "layers": "earth.etopo1.dem",
+              "maxLevel": 6,
+              "url": "http://129.247.34.87/mapserv?service=wms"
+            },
+            "Helgoland + SRTM30": {
+              "copyright": "DLR, NASA",
+              "format": "Float32",
+              "layers": "earth.srtm30.dem,earth.os.helgoland.dem",
+              "maxLevel": 17,
+              "url": "http://129.247.34.87/mapserv?service=wms"
+            },
+            "SRTM30": {
+              "copyright": "NASA",
+              "format": "Float32",
+              "layers": "earth.srtm30.dem",
+              "maxLevel": 12,
+              "url": "http://129.247.34.87/mapserv?service=wms"
+            },
+            "Sachsen Anhalt + SRTM30": {
+              "copyright": "GeoBasis-DE / LVermGeo-LSA, NASA",
+              "format": "Float32",
+              "layers": "earth.srtm30.dem,earth.sachsen-anhalt.cochstedt.bdom20.dem,earth.sachsen-anhalt.brocken.bdom20.dem,earth.sachsen-anhalt.thale.bdom20.dem,earth.sachsen-anhalt.klusfelsen.bdom20.dem,earth.sachsen-anhalt.regenstein.bdom20.dem",
+              "maxLevel": 16,
+              "url": "http://129.247.34.87/mapserv?service=wms"
+            }
+          },
+          "imgDatasets": {
+            "Blue Marble": {
+              "copyright": "NASA",
+              "format": "U8Vec3",
+              "layers": "earth.bluemarble.rgb",
+              "maxLevel": 7,
+              "url": "http://129.247.34.87/mapserv?service=wms"
+            },
+            "Helgoland + Blue Marble": {
+              "copyright": "DLR, NASA",
+              "format": "U8Vec3",
+              "layers": "earth.bluemarble.rgb,earth.os.helgoland.rgb",
+              "maxLevel": 18,
+              "url": "http://129.247.34.87/mapserv?service=wms"
+            },
+            "Landsat": {
+              "copyright": "NASA",
+              "format": "U8Vec3",
+              "layers": "earth.landsat8.rgb",
+              "maxLevel": 14,
+              "url": "http://129.247.34.87/mapserv?service=wms"
+            },
+            "Sachsen Anhalt + Blue Marble": {
+              "copyright": "GeoBasis-DE / LVermGeo-LSA, NASA",
+              "format": "U8Vec3",
+              "layers": "earth.bluemarble.rgb,earth.sachsen-anhalt.dop20.rgb",
+              "maxLevel": 16,
+              "url": "http://129.247.34.87/mapserv?service=wms"
+            }
+          }
         }
       }
     },
