@@ -42,6 +42,8 @@ namespace csp::atmospheres {
 /// outside the model.
 class ModelBase {
  public:
+  virtual ~ModelBase() = default;
+
   /// Whenever the model parameters are changed (e.g. when the settings of CosmoScout VR got
   /// reloaded), this method will be called. The modelSettings parameter contains everything which
   /// the user passed to the corresponding "modelSettings" object in the settings.

@@ -77,9 +77,9 @@ class Atmosphere : public IVistaOpenGLDraw {
 
   std::unordered_map<VistaViewport*, GBufferData> mGBufferData;
 
-  bool      mShaderDirty    = true;
-  float     mSunIlluminance = 1.F;
-  glm::vec3 mSunDirection   = glm::vec3(1, 0, 0);
+  bool       mShaderDirty    = true;
+  double     mSunIlluminance = 1.0;
+  glm::dvec3 mSunDirection   = glm::dvec3(1.0, 0.0, 0.0);
 
   struct {
     uint32_t sunDir                           = 0;

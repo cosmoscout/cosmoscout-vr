@@ -296,7 +296,7 @@ bool Atmosphere::Do() {
   // set uniforms ------------------------------------------------------------
   mAtmoShader.Bind();
 
-  mAtmoShader.SetUniform(mUniforms.sunIlluminance, mSunIlluminance);
+  mAtmoShader.SetUniform(mUniforms.sunIlluminance, static_cast<float>(mSunIlluminance));
   mAtmoShader.SetUniform(mUniforms.sunDir, sunDir[0], sunDir[1], sunDir[2]);
 
   if (mHDRBuffer) {
