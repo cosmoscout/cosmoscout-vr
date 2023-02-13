@@ -47,9 +47,6 @@ class Plugin : public cs::core::PluginBase {
       cs::utils::DefaultProperty<bool>  mEnableClouds{true};
       std::optional<std::string>        mCloudTexture;          ///< Path to the cloud texture.
       cs::utils::DefaultProperty<float> mCloudAltitude{3000.F}; ///< In meters.
-
-      bool operator==(Atmosphere const& other) const;
-      bool operator!=(Atmosphere const& other) const;
     };
 
     std::unordered_map<std::string, Atmosphere> mAtmospheres;

@@ -27,8 +27,8 @@ namespace csp::atmospheres {
 
 class ModelBase;
 
-/// This class draws a configurable atmosphere. Just put an OpenGLNode into your SceneGraph at the
-/// very same position as your planet. Set its scale to the same size as your planet.
+/// This class draws a configurable atmosphere. It will be attached to the celestial object
+/// identified by the objectName given to the constructor.
 class Atmosphere : public IVistaOpenGLDraw {
  public:
   explicit Atmosphere(std::shared_ptr<Plugin::Settings> pluginSettings,
@@ -38,8 +38,12 @@ class Atmosphere : public IVistaOpenGLDraw {
 
   ~Atmosphere();
 
+  /// Reconfigures the atmosphere and the atmospheric model according to the given settings.
   void configure(Plugin::Settings::Atmosphere const& settings);
 
+  /// If the body this is attached to is visible, this will update the transformation of the
+  /// atmosphere according to the current observer position. It will also update the
+  /// pApproximateSceneBrightness property of the graphics engine in this case.
   void update();
 
   bool Do() override;

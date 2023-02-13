@@ -7,6 +7,8 @@
 
 #include "Model.hpp"
 
+#include "../../logger.hpp"
+
 #include "../../../src/cs-utils/filesystem.hpp"
 
 namespace csp::atmospheres::models::cosmoscout {
@@ -37,39 +39,39 @@ void to_json(nlohmann::json& j, Model::Settings const& o) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool Model::init(nlohmann::json modelSettings, double planetRadius, double atmosphereRadius) {
-  if (mPreviousSettings == modelSettings && mPlanetRadius == planetRadius &&
-      mAtmosphereRadius == atmosphereRadius) {
-    return false;
-  }
+bool Model::init(
+    nlohmann::json const& modelSettings, double planetRadius, double atmosphereRadius) {
 
-  mPreviousSettings = std::move(modelSettings);
-  mSettings         = mPreviousSettings;
-  mPlanetRadius     = planetRadius;
-  mAtmosphereRadius = atmosphereRadius;
+  Settings settings;
+
+  try {
+    settings = modelSettings;
+  } catch (std::exception const& e) {
+    logger().error("Failed to parse atmosphere parameters: {}", e.what());
+  }
 
   mShader.Destroy();
 
   auto sFrag = cs::utils::filesystem::loadToString(
       "../share/resources/shaders/csp-atmospheres/models/cosmoscout/model.glsl");
 
-  cs::utils::replaceString(sFrag, "ATMO_RADIUS", cs::utils::toString(mAtmosphereRadius));
-  cs::utils::replaceString(sFrag, "PLANET_RADIUS", cs::utils::toString(mPlanetRadius));
+  cs::utils::replaceString(sFrag, "ATMO_RADIUS", cs::utils::toString(atmosphereRadius));
+  cs::utils::replaceString(sFrag, "PLANET_RADIUS", cs::utils::toString(planetRadius));
   cs::utils::replaceString(
-      sFrag, "ANISOTROPY_R", cs::utils::toString(mSettings.mRayleighAnisotropy));
-  cs::utils::replaceString(sFrag, "ANISOTROPY_M", cs::utils::toString(mSettings.mMieAnisotropy));
-  cs::utils::replaceString(sFrag, "HEIGHT_R", cs::utils::toString(mSettings.mRayleighHeight));
-  cs::utils::replaceString(sFrag, "HEIGHT_M", cs::utils::toString(mSettings.mMieHeight));
+      sFrag, "ANISOTROPY_R", cs::utils::toString(settings.mRayleighAnisotropy));
+  cs::utils::replaceString(sFrag, "ANISOTROPY_M", cs::utils::toString(settings.mMieAnisotropy));
+  cs::utils::replaceString(sFrag, "HEIGHT_R", cs::utils::toString(settings.mRayleighHeight));
+  cs::utils::replaceString(sFrag, "HEIGHT_M", cs::utils::toString(settings.mMieHeight));
   cs::utils::replaceString(sFrag, "BETA_R",
-      fmt::format("vec3({}, {}, {})", mSettings.mRayleighScattering[0],
-          mSettings.mRayleighScattering[1], mSettings.mRayleighScattering[2]));
+      fmt::format("vec3({}, {}, {})", settings.mRayleighScattering[0],
+          settings.mRayleighScattering[1], settings.mRayleighScattering[2]));
   cs::utils::replaceString(sFrag, "BETA_M",
-      fmt::format("vec3({}, {}, {})", mSettings.mMieScattering[0], mSettings.mMieScattering[1],
-          mSettings.mMieScattering[2]));
+      fmt::format("vec3({}, {}, {})", settings.mMieScattering[0], settings.mMieScattering[1],
+          settings.mMieScattering[2]));
   cs::utils::replaceString(
-      sFrag, "PRIMARY_RAY_STEPS", cs::utils::toString(mSettings.mPrimaryRaySteps));
+      sFrag, "PRIMARY_RAY_STEPS", cs::utils::toString(settings.mPrimaryRaySteps));
   cs::utils::replaceString(
-      sFrag, "SECONDARY_RAY_STEPS", cs::utils::toString(mSettings.mSecondaryRaySteps));
+      sFrag, "SECONDARY_RAY_STEPS", cs::utils::toString(settings.mSecondaryRaySteps));
 
   mShader.InitFragmentShaderFromString(sFrag);
 

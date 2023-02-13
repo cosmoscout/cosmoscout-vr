@@ -8,6 +8,8 @@
 
 #include "Model.hpp"
 
+#include "../../logger.hpp"
+
 #include <glm/gtc/constants.hpp>
 
 namespace csp::atmospheres::models::bruneton {
@@ -95,18 +97,16 @@ void to_json(nlohmann::json& j, Model::Settings const& o) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool Model::init(nlohmann::json modelSettings, double planetRadius, double atmosphereRadius) {
+bool Model::init(
+    nlohmann::json const& modelSettings, double planetRadius, double atmosphereRadius) {
 
-  // If nothing changed, we can omit re-creating the model.
-  if (mPreviousSettings == modelSettings && mPlanetRadius == planetRadius &&
-      mAtmosphereRadius == atmosphereRadius) {
-    return false;
+  Settings settings;
+
+  try {
+    settings = modelSettings;
+  } catch (std::exception const& e) {
+    logger().error("Failed to parse atmosphere parameters: {}", e.what());
   }
-
-  mPreviousSettings = std::move(modelSettings);
-  mSettings         = mPreviousSettings;
-  mPlanetRadius     = planetRadius;
-  mAtmosphereRadius = atmosphereRadius;
 
   // Maximum number density of ozone molecules, in m^-3 (computed so at to get
   // 300 Dobson units of ozone - for this we divide 300 DU by the integral of
@@ -115,8 +115,8 @@ bool Model::init(nlohmann::json modelSettings, double planetRadius, double atmos
   double maxSunZenithAngle     = (HALF_PRECISION ? 102.0 : 120.0) / 180.0 * glm::pi<double>();
 
   internal::DensityProfileLayer rayleighLayer(
-      0.0, 1.0, -1.0 / mSettings.mRayleighScaleHeight, 0.0, 0.0);
-  internal::DensityProfileLayer mieLayer(0.0, 1.0, -1.0 / mSettings.mMieScaleHeight, 0.0, 0.0);
+      0.0, 1.0, -1.0 / settings.mRayleighScaleHeight, 0.0, 0.0);
+  internal::DensityProfileLayer mieLayer(0.0, 1.0, -1.0 / settings.mMieScaleHeight, 0.0, 0.0);
 
   // Density profile increasing linearly from 0 to 1 between 10 and 25km, and
   // decreasing linearly from 1 to 0 between 25 and 40km. This is an approximate
@@ -137,25 +137,25 @@ bool Model::init(nlohmann::json modelSettings, double planetRadius, double atmos
 
   for (int l = LAMBDA_MIN; l <= LAMBDA_MAX; l += 10) {
     double lambda = static_cast<double>(l) * 1e-3; // micro-meters
-    double mie    = mSettings.mMieAngstromBeta / mSettings.mMieScaleHeight *
-                 pow(lambda, -mSettings.mMieAngstromAlpha);
+    double mie    = settings.mMieAngstromBeta / settings.mMieScaleHeight *
+                 pow(lambda, -settings.mMieAngstromAlpha);
     wavelengths.push_back(l);
     solarIrradiance.push_back(SOLAR_IRRADIANCE[(l - LAMBDA_MIN) / 10]);
-    rayleighScattering.push_back(mSettings.mRayleigh * pow(lambda, -4));
-    mieScattering.push_back(mie * mSettings.mMieSingleScatteringAlbedo);
+    rayleighScattering.push_back(settings.mRayleigh * pow(lambda, -4));
+    mieScattering.push_back(mie * settings.mMieSingleScatteringAlbedo);
     mieExtinction.push_back(mie);
     absorptionExtinction.push_back(
-        mSettings.mUseOzone.get()
+        settings.mUseOzone.get()
             ? maxOzoneNumberDensity * OZONE_CROSS_SECTION[(l - LAMBDA_MIN) / 10]
             : 0.0);
-    groundAlbedo.push_back(mSettings.mGroundAlbedo.get());
+    groundAlbedo.push_back(settings.mGroundAlbedo.get());
   }
 
-  mModel.reset(new internal::Model(wavelengths, solarIrradiance, mSettings.mSunAngularRadius,
-      mPlanetRadius, mAtmosphereRadius, {rayleighLayer}, rayleighScattering, {mieLayer},
-      mieScattering, mieExtinction, mSettings.mMiePhaseFunctionG, ozoneDensity,
-      absorptionExtinction, groundAlbedo, maxSunZenithAngle, 1.0,
-      LUMINANCE_MODE == PRECOMPUTED ? 15 : 3, COMBINED_TEXTURES, HALF_PRECISION));
+  mModel.reset(new internal::Model(wavelengths, solarIrradiance, settings.mSunAngularRadius,
+      planetRadius, atmosphereRadius, {rayleighLayer}, rayleighScattering, {mieLayer},
+      mieScattering, mieExtinction, settings.mMiePhaseFunctionG, ozoneDensity, absorptionExtinction,
+      groundAlbedo, maxSunZenithAngle, 1.0, LUMINANCE_MODE == PRECOMPUTED ? 15 : 3,
+      COMBINED_TEXTURES, HALF_PRECISION));
 
   glDisable(GL_CULL_FACE);
   mModel->Init();

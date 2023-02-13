@@ -22,16 +22,17 @@ class Model : public ModelBase {
  public:
   /// Some of the model parameters can be configured via the settings. An example parametrization is
   /// given in README.md, more details can be found in the paper "Precomputed Atmospheric
-  /// Scattering" by Eric Bruneton.
+  /// Scattering" by Eric Bruneton. The default values below are used if parsing the settings
+  /// failed.
   struct Settings {
-    double mSunAngularRadius{};
-    double mRayleigh{};
-    double mRayleighScaleHeight{}; ///< In meters.
-    double mMieScaleHeight{};      ///< In meters.
-    double mMieAngstromAlpha{};
-    double mMieAngstromBeta{};
-    double mMieSingleScatteringAlbedo{};
-    double mMiePhaseFunctionG{};
+    double mSunAngularRadius          = 0.004675;
+    double mRayleigh                  = 1.24062e-6;
+    double mRayleighScaleHeight       = 8000.0; ///< In meters.
+    double mMieScaleHeight            = 1200.0; ///< In meters.
+    double mMieAngstromAlpha          = 0.0;
+    double mMieAngstromBeta           = 5.328e-3;
+    double mMieSingleScatteringAlbedo = 0.9;
+    double mMiePhaseFunctionG         = 0.8;
 
     cs::utils::DefaultProperty<double> mGroundAlbedo{0.1};
     cs::utils::DefaultProperty<bool>   mUseOzone{false};
@@ -40,7 +41,8 @@ class Model : public ModelBase {
   /// Whenever the model parameters are changed, this method needs to be called. It will return true
   /// if the shader needed to be recompiled. If that's the case, you can retrieve the new shader
   /// with the getShader() method below.
-  bool init(nlohmann::json modelSettings, double planetRadius, double atmosphereRadius) override;
+  bool init(
+      nlohmann::json const& modelSettings, double planetRadius, double atmosphereRadius) override;
 
   /// Returns a fragment shader which you can link to your shader program. See the ModelBase class
   /// for more details. You have to call init() for accessing the shader.
@@ -50,10 +52,6 @@ class Model : public ModelBase {
   GLuint setUniforms(GLuint program, GLuint startTextureUnit) const override;
 
  private:
-  Settings                         mSettings;
-  nlohmann::json                   mPreviousSettings;
-  double                           mPlanetRadius;
-  double                           mAtmosphereRadius;
   std::unique_ptr<internal::Model> mModel;
 };
 

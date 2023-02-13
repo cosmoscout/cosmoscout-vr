@@ -44,6 +44,7 @@ Atmosphere::Atmosphere(std::shared_ptr<Plugin::Settings> pluginSettings,
     , mEclipseShadowReceiver(
           std::make_shared<cs::core::EclipseShadowReceiver>(mAllSettings, mSolarSystem, false)) {
 
+  // Recompile the shader if HDR mode was toggled.
   mEnableHDRConnection = mAllSettings->mGraphics.pEnableHDR.connectAndTouch([this](bool val) {
     if (val && !mHDRBuffer) {
       mHDRBuffer   = mGraphicsEngine->getHDRBuffer();
@@ -54,13 +55,15 @@ Atmosphere::Atmosphere(std::shared_ptr<Plugin::Settings> pluginSettings,
     }
   });
 
+  // Attach this to the scene graph root.
   VistaSceneGraph* pSG = GetVistaSystem()->GetGraphicsManager()->GetSceneGraph();
   mAtmosphereNode.reset(pSG->NewOpenGLNode(pSG->GetRoot(), this));
   mAtmosphereNode->SetIsEnabled(false);
   VistaOpenSGMaterialTools::SetSortKeyOnSubtree(
       mAtmosphereNode.get(), static_cast<int>(cs::utils::DrawOrder::eAtmospheres));
 
-  // create textures ---------------------------------------------------------
+  // Create depth and color buffer textures for each viewport. We need these to read the current
+  // values from the framebuffer.
   for (auto const& viewport : GetVistaSystem()->GetDisplayManager()->GetViewports()) {
     GBufferData bufferData;
 
@@ -100,8 +103,8 @@ void Atmosphere::configure(Plugin::Settings::Atmosphere const& settings) {
   if (object) {
     auto radii = object->getRadii();
 
-    // TODO: Recreate model if type changed.
-    if (!mModel) {
+    // Recreate the model if required.
+    if (!mModel || settings.mModel != mSettings.mModel) {
       switch (settings.mModel.get()) {
       case Plugin::Settings::Atmosphere::Model::eCosmoScoutVR:
         mModel = std::make_unique<models::cosmoscout::Model>();
@@ -112,25 +115,34 @@ void Atmosphere::configure(Plugin::Settings::Atmosphere const& settings) {
       }
     }
 
-    if (mModel->init(settings.mModelSettings, radii[0], radii[0] + settings.mHeight)) {
-      mShaderDirty = true;
+    // Reconfigure the model if any related parameter changed.
+    if (mRadii != radii || settings.mHeight != mSettings.mHeight ||
+        settings.mModelSettings != mSettings.mModelSettings) {
+
+      if (mModel->init(settings.mModelSettings, radii[0], radii[0] + settings.mHeight)) {
+        mShaderDirty = true;
+      }
     }
 
-    if (mRadii != radii) {
-      mRadii       = radii;
-      mShaderDirty = true;
-    }
-
-    if (mSettings != settings) {
-      mShaderDirty = true;
-    }
-
+    // Reload the cloud texture if required.
     if (mSettings.mCloudTexture != settings.mCloudTexture) {
       if (settings.mCloudTexture.has_value() && !settings.mCloudTexture.value().empty()) {
         mCloudTexture = cs::graphics::TextureLoader::loadFromFile(settings.mCloudTexture.value());
       } else {
         mCloudTexture.reset();
       }
+      mShaderDirty = true;
+    }
+
+    // Recreate the shader if required.
+    if (mRadii != radii) {
+      mRadii       = radii;
+      mShaderDirty = true;
+    }
+
+    if (mSettings.mHeight != settings.mHeight && mSettings.mEnableWater != settings.mEnableWater &&
+        mSettings.mEnableClouds != settings.mEnableClouds) {
+      mShaderDirty = true;
     }
 
     mSettings = settings;
@@ -150,7 +162,6 @@ void Atmosphere::updateShader() {
   cs::utils::replaceString(sFrag, "PLANET_RADIUS", std::to_string(mRadii[0]));
   cs::utils::replaceString(
       sFrag, "ATMOSPHERE_RADIUS", std::to_string(mRadii[0] + mSettings.mHeight));
-  // cs::utils::replaceString(sFrag, "USE_SHADOWMAP", std::to_string(mShadowMap != nullptr));
   cs::utils::replaceString(
       sFrag, "ENABLE_CLOUDS", std::to_string(mSettings.mEnableClouds.get() && mCloudTexture));
   cs::utils::replaceString(sFrag, "ENABLE_WATER", std::to_string(mSettings.mEnableWater.get()));
@@ -163,6 +174,7 @@ void Atmosphere::updateShader() {
   mAtmoShader.InitVertexShaderFromString(sVert);
   mAtmoShader.InitFragmentShaderFromString(sFrag);
 
+  // Add the fragment shader from the atmospheric model.
   glAttachShader(mAtmoShader.GetProgram(), mModel->getShader());
 
   mAtmoShader.Link();
@@ -179,8 +191,9 @@ void Atmosphere::updateShader() {
   mUniforms.inverseProjectionMatrix          = mAtmoShader.GetUniformLocation("uMatInvP");
   mUniforms.modelMatrix                      = mAtmoShader.GetUniformLocation("uMatM");
 
-  // We bind the eclipse shadow map to texture unit 4.
-  mEclipseShadowReceiver->init(&mAtmoShader, 4);
+  // We bind the eclipse shadow map to texture unit 3. The color and depth buffer are bound to 0 and
+  // 1, 2 is used for the cloud map.
+  mEclipseShadowReceiver->init(&mAtmoShader, 3);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -307,8 +320,8 @@ bool Atmosphere::Do() {
   }
 
   if (mSettings.mEnableClouds.get() && mCloudTexture) {
-    mCloudTexture->Bind(GL_TEXTURE3);
-    mAtmoShader.SetUniform(mUniforms.cloudTexture, 3);
+    mCloudTexture->Bind(GL_TEXTURE2);
+    mAtmoShader.SetUniform(mUniforms.cloudTexture, 2);
     mAtmoShader.SetUniform(mUniforms.cloudAltitude, mSettings.mCloudAltitude.get());
   }
 
@@ -321,7 +334,7 @@ bool Atmosphere::Do() {
   // Initialize eclipse shadow-related uniforms and textures.
   mEclipseShadowReceiver->preRender();
 
-  mModel->setUniforms(mAtmoShader.GetProgram(), 5);
+  mModel->setUniforms(mAtmoShader.GetProgram(), 4);
 
   // draw --------------------------------------------------------------------
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);

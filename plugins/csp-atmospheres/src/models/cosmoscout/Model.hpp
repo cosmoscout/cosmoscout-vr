@@ -20,14 +20,14 @@ namespace csp::atmospheres::models::cosmoscout {
 class Model : public ModelBase {
  public:
   /// The model parameters can be configured via the settings. An example parametrization is
-  /// given in README.md.
+  /// given in README.md. The default values below are used if parsing the settings failed.
   struct Settings {
-    float     mMieHeight{}; ///< In meters.
-    glm::vec3 mMieScattering{};
-    float     mMieAnisotropy{};
-    float     mRayleighHeight{}; ///< In meters.
-    glm::vec3 mRayleighScattering{};
-    float     mRayleighAnisotropy{};
+    float     mMieHeight          = 1200.0; ///< In meters.
+    glm::vec3 mMieScattering      = glm::vec3(4.0e-5);
+    float     mMieAnisotropy      = 0.76;
+    float     mRayleighHeight     = 8000.0; ///< In meters.
+    glm::vec3 mRayleighScattering = glm::vec3(5.1768e-6, 12.2588e-6, 30.5964e-6);
+    float     mRayleighAnisotropy = 0.0;
 
     /// Increasing those will improve the quality at the cost of a higher performance impact.
     cs::utils::DefaultProperty<int> mPrimaryRaySteps{7};
@@ -37,7 +37,8 @@ class Model : public ModelBase {
   /// Whenever the model parameters are changed, this method needs to be called. It will return true
   /// if the shader needed to be recompiled. If that's the case, you can retrieve the new shader
   /// with the getShader() method below.
-  bool init(nlohmann::json modelSettings, double planetRadius, double atmosphereRadius) override;
+  bool init(
+      nlohmann::json const& modelSettings, double planetRadius, double atmosphereRadius) override;
 
   /// Returns a fragment shader which you can link to your shader program. See the ModelBase class
   /// for more details. You have to call init() for accessing the shader.
@@ -47,11 +48,7 @@ class Model : public ModelBase {
   GLuint setUniforms(GLuint program, GLuint startTextureUnit) const override;
 
  private:
-  Settings        mSettings;
-  nlohmann::json  mPreviousSettings;
   VistaGLSLShader mShader;
-  double          mPlanetRadius;
-  double          mAtmosphereRadius;
 };
 
 } // namespace csp::atmospheres::models::cosmoscout

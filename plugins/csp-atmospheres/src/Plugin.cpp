@@ -93,18 +93,6 @@ void to_json(nlohmann::json& j, Plugin::Settings const& o) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool Plugin::Settings::Atmosphere::operator==(Plugin::Settings::Atmosphere const& other) const {
-  return mHeight == other.mHeight && mModel == other.mModel &&
-         mModelSettings == other.mModelSettings && mEnableWater == other.mEnableWater &&
-         mEnableClouds == other.mEnableClouds && mCloudTexture == other.mCloudTexture;
-}
-
-bool Plugin::Settings::Atmosphere::operator!=(Plugin::Settings::Atmosphere const& other) const {
-  return !(*this == other);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 void Plugin::init() {
 
   logger().info("Loading plugin...");
