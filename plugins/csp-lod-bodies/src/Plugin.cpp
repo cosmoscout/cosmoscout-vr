@@ -90,6 +90,7 @@ void from_json(nlohmann::json const& j, Plugin::Settings& o) {
   cs::core::Settings::deserialize(j, "lodFactor", o.mLODFactor);
   cs::core::Settings::deserialize(j, "autoLod", o.mAutoLOD);
   cs::core::Settings::deserialize(j, "autoLodRange", o.mAutoLODRange);
+  cs::core::Settings::deserialize(j, "autoLodFrameTimeRange", o.mAutoLODFrameTimeRange);
   cs::core::Settings::deserialize(j, "textureGamma", o.mTextureGamma);
   cs::core::Settings::deserialize(j, "enableHeightlines", o.mEnableHeightlines);
   cs::core::Settings::deserialize(j, "enableLatLongGrid", o.mEnableLatLongGrid);
@@ -114,6 +115,7 @@ void to_json(nlohmann::json& j, Plugin::Settings const& o) {
   cs::core::Settings::serialize(j, "lodFactor", o.mLODFactor);
   cs::core::Settings::serialize(j, "autoLod", o.mAutoLOD);
   cs::core::Settings::serialize(j, "autoLodRange", o.mAutoLODRange);
+  cs::core::Settings::serialize(j, "autoLodFrameTimeRange", o.mAutoLODFrameTimeRange);
   cs::core::Settings::serialize(j, "textureGamma", o.mTextureGamma);
   cs::core::Settings::serialize(j, "enableHeightlines", o.mEnableHeightlines);
   cs::core::Settings::serialize(j, "enableLatLongGrid", o.mEnableLatLongGrid);
@@ -450,9 +452,9 @@ void Plugin::update() {
     double maxLODFactor = mPluginSettings->mAutoLODRange.get().y;
 
     // These numbers shall ensure that the frame rate stays above 60 Hz (16.6ms). Somehow we should
-    // try to retrieve the actual refresh rate of thew display in the future.
-    double minTime = 13.5;
-    double maxTime = 14.5;
+    // try to retrieve the actual refresh rate of the display in the future.
+    double minTime = mPluginSettings->mAutoLODFrameTimeRange.get().x;
+    double maxTime = mPluginSettings->mAutoLODFrameTimeRange.get().y;
 
     if (cs::utils::FrameStats::get().pFrameTime.get() > maxTime) {
       mPluginSettings->mLODFactor = static_cast<float>(std::max(minLODFactor,
