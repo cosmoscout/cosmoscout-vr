@@ -180,10 +180,11 @@ void main() {
   // Create a red border around each tile. As the outer-most vertex is the bottom of the skirt, we
   // have to make the border 1.5 pixels wide to be visible on the top of the tile.
   float edgeWidth = 1.5;
+  int   maxVertex = VP_getResolutionDEM() + 1;
 
   if (fsIn.vertexPosition.x < edgeWidth || fsIn.vertexPosition.y < edgeWidth ||
-      fsIn.vertexPosition.x > VP_getResolutionDEM() + 1.0 - edgeWidth || 
-      fsIn.vertexPosition.y > VP_getResolutionDEM() + 1.0 - edgeWidth) {
+      fsIn.vertexPosition.x > maxVertex - edgeWidth || 
+      fsIn.vertexPosition.y > maxVertex - edgeWidth) {
     debugColor = vec4(1.0, 0.0, 0.0, 0.5);
   }
 
