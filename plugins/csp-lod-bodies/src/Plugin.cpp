@@ -420,6 +420,7 @@ void Plugin::deInit() {
 
   mGuiManager->getGui()->callJavascript("CosmoScout.removeApi", "lodBodies");
 
+  mGuiManager->getGui()->unregisterCallback("lodBodies.setAutoLoDRange");
   mGuiManager->getGui()->unregisterCallback("lodBodies.setEnableTilesFreeze");
   mGuiManager->getGui()->unregisterCallback("lodBodies.setEnableTilesDebug");
   mGuiManager->getGui()->unregisterCallback("lodBodies.setEnableWireframe");
