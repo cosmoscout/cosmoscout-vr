@@ -72,29 +72,27 @@ TileRenderer::TileRenderer(PlanetParameters const& params, uint32_t tileResoluti
     , mEnableDrawBounds(false)
     , mEnableWireframe(false)
     , mEnableFaceCulling(true)
-    , mTileResolution(tileResolution) {
+    , mTileResolution(tileResolution)
+    , mGridResolution(mTileResolution + 2)
+    , mIndexCount((mGridResolution - 1) * (2 + 2 * mGridResolution)) {
 
-  // The vertex buffer contains a grid of vertices with an additional vertex in all directions for
-  // the skirt around each patch.
-  uint32_t gridResolution = mTileResolution + 2;
+  std::vector<uint16_t> vertices(mGridResolution * mGridResolution * 2);
+  std::vector<uint32_t> indices(mIndexCount);
 
-  std::vector<uint16_t> vertices(gridResolution * gridResolution * 2);
-  std::vector<uint32_t> indices((gridResolution - 1) * (2 + 2 * gridResolution));
-
-  for (uint32_t x = 0; x < gridResolution; ++x) {
-    for (uint32_t y = 0; y < gridResolution; ++y) {
-      vertices[(x * gridResolution + y) * 2 + 0] = x;
-      vertices[(x * gridResolution + y) * 2 + 1] = y;
+  for (uint32_t x = 0; x < mGridResolution; ++x) {
+    for (uint32_t y = 0; y < mGridResolution; ++y) {
+      vertices[(x * mGridResolution + y) * 2 + 0] = x;
+      vertices[(x * mGridResolution + y) * 2 + 1] = y;
     }
   }
 
   uint32_t index = 0;
 
-  for (uint32_t x = 0; x < gridResolution - 1; ++x) {
-    indices[index++] = x * gridResolution;
-    for (uint32_t y = 0; y < gridResolution; ++y) {
-      indices[index++] = x * gridResolution + y;
-      indices[index++] = (x + 1) * gridResolution + y;
+  for (uint32_t x = 0; x < mGridResolution - 1; ++x) {
+    indices[index++] = x * mGridResolution;
+    for (uint32_t y = 0; y < mGridResolution; ++y) {
+      indices[index++] = x * mGridResolution + y;
+      indices[index++] = (x + 1) * mGridResolution + y;
     }
     indices[index] = indices[index - 1];
     ++index;
@@ -296,11 +294,6 @@ void TileRenderer::renderTile(RenderDataDEM* rdDEM, RenderDataImg* rdIMG, Unifor
   VistaGLSLShader& shader = mProgTerrain->mShader;
   TileId const&    idDEM  = rdDEM->getTileId();
 
-  // There is one additional skirt vertex in each direction. Hence we are actually drawing a grid
-  // which is a bit larger than the actual tile resolution.
-  uint32_t gridResolution = mTileResolution + 2;
-  uint32_t idxCount       = (gridResolution - 1) * (2 + 2 * gridResolution);
-
   auto  baseXY        = HEALPix::getBaseXY(idDEM);
   auto  tileOS        = glm::ivec3(baseXY.y, baseXY.z, HEALPix::getNSide(idDEM));
   auto  patchF1F2     = glm::ivec2(HEALPix::getF1(idDEM), HEALPix::getF2(idDEM));
@@ -339,7 +332,7 @@ void TileRenderer::renderTile(RenderDataDEM* rdDEM, RenderDataImg* rdIMG, Unifor
       glm::value_ptr(normalsWorldSpace[0]));
 
   // draw tile
-  glDrawElements(GL_TRIANGLE_STRIP, idxCount, GL_UNSIGNED_INT, nullptr);
+  glDrawElements(GL_TRIANGLE_STRIP, mIndexCount, GL_UNSIGNED_INT, nullptr);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

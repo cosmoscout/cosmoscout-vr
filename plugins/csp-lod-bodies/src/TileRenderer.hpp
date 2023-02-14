@@ -127,7 +127,14 @@ class TileRenderer {
   bool mEnableWireframe;
   bool mEnableFaceCulling;
 
-  uint32_t mTileResolution;
+  // The mTileResolution describes the number of vertices which are used in x and y direction for
+  // rendering the elevation data. The mGridResolution is the actual amount of vertices in x and y
+  // direction which is drawn, which also includes the additional vertices required for the skirt
+  // around the tile. mIndexCount contains the number of entries required in the index buffer to
+  // draw this grid.
+  const uint32_t mTileResolution;
+  const uint32_t mGridResolution;
+  const uint32_t mIndexCount;
 };
 
 } // namespace csp::lodbodies
