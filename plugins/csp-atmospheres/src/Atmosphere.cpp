@@ -230,7 +230,8 @@ void Atmosphere::update() {
     daySide = std::pow(std::min(1.0, std::max(0.0, daySide + 1.0)), 50.0);
 
     // reduce brightness in outer space
-    mGraphicsEngine->pApproximateSceneBrightness = (1.0 - heightInAtmosphere) * daySide;
+    mGraphicsEngine->pApproximateSceneBrightness =
+        static_cast<float>((1.0 - heightInAtmosphere) * daySide);
 
     mAtmosphereNode->SetIsEnabled(true);
   } else {
