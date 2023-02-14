@@ -140,7 +140,7 @@ void Atmosphere::configure(Plugin::Settings::Atmosphere const& settings) {
       mShaderDirty = true;
     }
 
-    if (mSettings.mHeight != settings.mHeight && mSettings.mEnableWater != settings.mEnableWater &&
+    if (mSettings.mHeight != settings.mHeight || mSettings.mEnableWater != settings.mEnableWater ||
         mSettings.mEnableClouds != settings.mEnableClouds) {
       mShaderDirty = true;
     }

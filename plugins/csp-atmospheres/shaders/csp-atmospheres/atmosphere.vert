@@ -13,25 +13,25 @@ uniform mat4 uMatInvP;
 
 // outputs
 out VaryingStruct {
-  vec3 vRayDir;
-  vec3 vRayOrigin;
-  vec2 vTexcoords;
+  vec3 rayDir;
+  vec3 rayOrigin;
+  vec2 texcoords;
 }
 vsOut;
 
 void main() {
-  // get camera position in model space
-  vsOut.vRayOrigin = uMatInvMV[3].xyz;
+  // Get observer position.
+  vsOut.rayOrigin = uMatInvMV[3].xyz;
 
-  // get ray direction model space
+  // Get direction of the vertex / fragment.
   mat4 matInvMV = uMatInvMV;
   matInvMV[3]   = vec4(0, 0, 0, 1);
   vec2 position = vec2(gl_VertexID & 2, (gl_VertexID << 1) & 2) * 2.0 - 1.0;
-  vsOut.vRayDir = (matInvMV * uMatInvP * vec4(position, 0, 1)).xyz;
+  vsOut.rayDir  = (matInvMV * uMatInvP * vec4(position, 0, 1)).xyz;
 
-  // for lookups in the depth and color buffers
-  vsOut.vTexcoords = position * 0.5 + 0.5;
+  // For lookups in the depth and color buffers.
+  vsOut.texcoords = position * 0.5 + 0.5;
 
-  // no tranformation here since we draw a full screen quad
+  // No tranformation here since we draw a full screen quad.
   gl_Position = vec4(position, 0, 1);
 }
