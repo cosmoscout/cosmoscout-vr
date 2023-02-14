@@ -22,12 +22,12 @@ class Model : public ModelBase {
   /// The model parameters can be configured via the settings. An example parametrization is
   /// given in README.md. The default values below are used if parsing the settings failed.
   struct Settings {
-    float     mMieHeight          = 1200.0; ///< In meters.
-    glm::vec3 mMieScattering      = glm::vec3(4.0e-5);
-    float     mMieAnisotropy      = 0.76;
-    float     mRayleighHeight     = 8000.0; ///< In meters.
-    glm::vec3 mRayleighScattering = glm::vec3(5.1768e-6, 12.2588e-6, 30.5964e-6);
-    float     mRayleighAnisotropy = 0.0;
+    float     mMieHeight          = 1200.F; ///< In meters.
+    glm::vec3 mMieScattering      = glm::vec3(4.0e-5F);
+    float     mMieAnisotropy      = 0.76F;
+    float     mRayleighHeight     = 8000.F; ///< In meters.
+    glm::vec3 mRayleighScattering = glm::vec3(5.1768e-6F, 12.2588e-6F, 30.5964e-6F);
+    float     mRayleighAnisotropy = 0.F;
 
     /// Increasing those will improve the quality at the cost of a higher performance impact.
     cs::utils::DefaultProperty<int> mPrimaryRaySteps{7};
