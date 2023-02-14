@@ -68,7 +68,7 @@ class TileSourceWebMapService : public TileSource {
   // that a tile cannot be downloaded (e.g. if the server is offline) - in this case no error is
   // thrown but std::nullopt is returned. In several other cases (e.g. cache directory is not
   // writable) a std::runtime_error is thrown.
-  std::optional<std::string> loadData(glm::int64 patchIdx, int level, int x, int y);
+  std::optional<std::string> loadData(int64_t patchIdx, int level, int x, int y);
 
  private:
   static std::mutex mTileSystemMutex;

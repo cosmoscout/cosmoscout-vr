@@ -282,7 +282,7 @@ bool TileSourceWebMapService::getXY(int level, glm::int64 patchIdx, int& x, int&
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::optional<std::string> TileSourceWebMapService::loadData(
-    glm::int64 patchIdx, int level, int x, int y) {
+    int64_t patchIdx, int level, int x, int y) {
 
   std::string format;
   std::string type;

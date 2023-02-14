@@ -12,7 +12,7 @@ namespace csp::lodbodies {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // DISCLAIMER: The MinMaxPyramid was ported from a version of CosmoScout VR which used a fixed    //
-// tile resolution of 257x257. There is no guarantee that it still works 100%. This should be#    //
+// tile resolution of 257x257. There is no guarantee that it still works 100%. This should be     //
 // tested before using it agin :)                                                                 //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
