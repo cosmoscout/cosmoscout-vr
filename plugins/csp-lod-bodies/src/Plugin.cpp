@@ -205,7 +205,6 @@ void Plugin::init() {
     mGuiManager->setCheckboxValue("lodBodies.setEnableAutoTerrainLod", enable);
   });
 
-  // Adjusts the exposure range for auto exposure.
   mGuiManager->getGui()->registerCallback("lodBodies.setAutoLoDRange",
       "Sets the minimum and maximum LoD value for auto-level-of-detail.",
       std::function([this](double val1, double val2) {
