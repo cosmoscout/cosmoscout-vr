@@ -10,7 +10,7 @@
 #include "../../../src/cs-core/Settings.hpp"
 #include "../../../src/cs-core/SolarSystem.hpp"
 #include "../../../src/cs-graphics/TextureLoader.hpp"
-#include "../../../src/cs-utils/FrameTimings.hpp"
+#include "../../../src/cs-utils/FrameStats.hpp"
 #include "../../../src/cs-utils/utils.hpp"
 
 #include <VistaKernel/GraphicsManager/VistaGraphicsManager.h>
@@ -186,7 +186,7 @@ bool Ring::Do() {
     return true;
   }
 
-  cs::utils::FrameTimings::ScopedTimer timer("Rings");
+  cs::utils::FrameStats::ScopedTimer timer("Rings");
 
   // (Re-)Create ring shader if necessary.
   if (mShaderDirty || mEclipseShadowReceiver.needsRecompilation()) {

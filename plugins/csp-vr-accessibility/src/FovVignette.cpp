@@ -9,7 +9,7 @@
 
 #include "../../../src/cs-core/SolarSystem.hpp"
 #include "../../../src/cs-graphics/TextureLoader.hpp"
-#include "../../../src/cs-utils/FrameTimings.hpp"
+#include "../../../src/cs-utils/FrameStats.hpp"
 #include "../../../src/cs-utils/convert.hpp"
 #include "logger.hpp"
 
@@ -118,7 +118,7 @@ bool FovVignette::Do() {
     return true;
   }
 
-  cs::utils::FrameTimings::ScopedTimer timer("VRAccessibility-FovVignette");
+  cs::utils::FrameStats::ScopedTimer timer("VRAccessibility-FovVignette");
 
   std::array<GLint, 4> viewport{};
   glGetIntegerv(GL_VIEWPORT, viewport.data());

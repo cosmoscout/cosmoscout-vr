@@ -65,7 +65,7 @@
         snap: true,
         format: {
           to(value) {
-            return CosmoScout.utils.beautifyNumber(value);
+            return CosmoScout.utils.formatNumber(value);
           },
           from(value) {
             return Number(parseFloat(value));

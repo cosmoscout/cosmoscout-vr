@@ -16,8 +16,8 @@ It lets you explore, analyze and present huge planetary data sets and large simu
 [![documentation](https://img.shields.io/badge/Docs-online-34D058.svg)](docs/README.md)
 [![license](https://img.shields.io/badge/License-MIT-purple.svg)](LICENSE.md)
 [![source loc](https://img.shields.io/badge/LoC-15.3k-green.svg)](tools/cloc.sh)
-[![plugin loc](https://img.shields.io/badge/LoC_Plugins-21.6k-green.svg)](tools/cloc.sh)
-[![comments](https://img.shields.io/badge/Comments-6.8k-yellow.svg)](tools/cloc.sh)
+[![plugin loc](https://img.shields.io/badge/LoC_Plugins-22.7k-green.svg)](tools/cloc.sh)
+[![comments](https://img.shields.io/badge/Comments-7.4k-yellow.svg)](tools/cloc.sh)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3381953.svg)](https://doi.org/10.5281/zenodo.3381953)
 
 The software can be build on Linux (gcc or clang) and Windows (msvc).
@@ -98,6 +98,7 @@ Official Plugins | Description | Screenshot
 [csp-anchor-labels](plugins/csp-anchor-labels) | Draws a click-able label at each celestial anchor. When activated, the user automatically travels to the selected body. The size and overlapping-behavior of the labels can be adjusted. | ![screenshot](docs/img/csp-anchor-labels.jpg)
 [csp-atmospheres](plugins/csp-atmospheres) | Draws atmospheres around celestial bodies. It calculates single Mie- and Rayleigh scattering via raycasting in real-time. | ![screenshot](docs/img/csp-atmospheres.jpg)
 [csp-custom-web-ui](plugins/csp-custom-web-ui) | Allows adding custom HTML-based user interface elements as sidebar-tabs, as floating windows or into free space. | ![screenshot](docs/img/csp-custom-web-ui.jpg)
+[csp-demo-node-editor](plugins/csp-demo-node-editor) | An example on how to use the `csl-node-editor` plugin library for creating data flow graphs within CosmoScout VR. | ![screenshot](docs/img/csp-demo-node-editor.jpg)
 [csp-fly-to-locations](plugins/csp-fly-to-locations) | Adds several quick travel targets to the sidebar. It supports shortcuts to celestial bodies and to specific geographic locations on those bodies. | ![screenshot](docs/img/csp-fly-to-locations.jpg)
 [csp-lod-bodies](plugins/csp-lod-bodies) | Draws level-of-detail planets and moons. This plugin supports the visualization of entire planets in a 1:1 scale. The data is streamed via Web-Map-Services (WMS) over the internet. A dedicated MapServer is required to use this plugin. | ![screenshot](docs/img/csp-lod-bodies.jpg)
 [csp-measurement-tools](plugins/csp-measurement-tools) | Provides several tools for terrain measurements. Like measurement of distances, height profiles, volumes or areas. | ![screenshot](docs/img/csp-measurement-tools.jpg)

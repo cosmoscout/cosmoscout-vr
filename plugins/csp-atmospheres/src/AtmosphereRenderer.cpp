@@ -16,7 +16,7 @@
 #include "../../../src/cs-core/SolarSystem.hpp"
 #include "../../../src/cs-graphics/Shadows.hpp"
 #include "../../../src/cs-graphics/TextureLoader.hpp"
-#include "../../../src/cs-utils/FrameTimings.hpp"
+#include "../../../src/cs-utils/FrameStats.hpp"
 #include "../../../src/cs-utils/utils.hpp"
 
 #include <VistaKernel/DisplayManager/VistaDisplayManager.h>
@@ -381,7 +381,8 @@ void AtmosphereRenderer::updateShader() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool AtmosphereRenderer::Do() {
-  cs::utils::FrameTimings::ScopedTimer timer("Render Atmosphere");
+  cs::utils::FrameStats::ScopedTimer          timer("Render Atmosphere");
+  cs::utils::FrameStats::ScopedSamplesCounter samplesCounter("Render Atmosphere");
 
   if (mShaderDirty || (mEclipseShadowReceiver && mEclipseShadowReceiver->needsRecompilation())) {
     updateShader();
@@ -531,9 +532,10 @@ bool AtmosphereRenderer::Do() {
   glm::vec3 vPlanet         = glm::vec3(0, 0, 0);
   glm::vec3 vCameraToPlanet = glm::normalize(vCamera - vPlanet);
 
-  // [planet surface ... 5x atmosphere boundary] -> [0 ... 1]
+  // Altitude in [0.2x atmosphere boundary ... 5x atmosphere boundary] -> [0 ... 1]
   float fHeightInAtmosphere = std::min(1.0F,
-      std::max(0.0F, (glm::length(vCamera) - (1.F - mAtmosphereHeight)) / (mAtmosphereHeight * 5)));
+      std::max(0.0F, (glm::length(vCamera) - (1.F - mAtmosphereHeight) - 0.2F * mAtmosphereHeight) /
+                         (mAtmosphereHeight * 5.F)));
 
   // [noon ... midnight] -> [1 ... -1]
   float fDaySide = glm::dot(vCameraToPlanet, sunDir);

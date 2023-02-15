@@ -15,7 +15,6 @@
 #include "../../../src/cs-core/TimeControl.hpp"
 #include "../../../src/cs-graphics/TextureLoader.hpp"
 #include "../../../src/cs-scene/IntersectableObject.hpp"
-#include "../../../src/cs-utils/FrameTimings.hpp"
 #include "../../../src/cs-utils/utils.hpp"
 
 // VISTA includes

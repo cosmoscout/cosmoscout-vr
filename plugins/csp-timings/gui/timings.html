@@ -25,62 +25,59 @@ SPDX-License-Identifier: MIT
       <div id="frame-slider"></div>
     </div>
 
-    <div id="graph">
+    <div class="graph">
 
-      <div id="ranges">
+      <div id="gpu-graph" class="subgraph">
 
-        <div id="gpu-ranges">
-
-          <!-- This container is filled with JavaScript with something similar to the elements below.
-               If you want to tweak the appearance of the range bars, you can uncomment these lines
+        <!-- This container is filled with JavaScript with something similar to the elements below.
+               If you want to tweak the appearance of the subgraph, you can uncomment these lines
                and view this file in Chrome. -->
 
-          <!-- <div class="level">
-            <div class="range" data-tooltip="Foo (3 ms)" style="left: 4%; width: 20%; background-color: rgb(170, 138, 51);">
-            </div>
-            <div class="range" data-tooltip="Foo (3 ms)" style="left: 28%; width: 10%; background-color: rgb(170, 51, 154);">
-            </div>
+        <!-- <div class="level">
+          <div class="bar" data-tooltip="Foo (3 ms)" style="left: 4%; width: 20%; background-color: rgb(170, 138, 51);">
           </div>
-          <div class="level">
-            <div class="range" data-tooltip="Foo (3 ms)" style="left: 0%; width: 100%; background-color: rgb(89, 170, 51);">
-            </div>
+          <div class="bar" data-tooltip="Foo (3 ms)"
+            style="left: 28%; width: 10%; background-color: rgb(170, 51, 154);">
           </div>
-          <div class="level">
-            <div class="range" data-tooltip="Foo (3 ms)" style="left: 10%; width: 40%; background-color: #3a8;"></div>
-          </div> -->
-
         </div>
+        <div class="level">
+          <div class="bar" data-tooltip="Foo (3 ms)" style="left: 0%; width: 100%; background-color: rgb(89, 170, 51);">
+          </div>
+        </div>
+        <div class="level">
+          <div class="bar" data-tooltip="Foo (3 ms)" style="left: 10%; width: 40%; background-color: #3a8;"></div>
+        </div> -->
 
-        <div id="cpu-ranges">
+      </div>
 
-          <!-- This container is filled with JavaScript with something similar to the elements below.
-               If you want to tweak the appearance of the range bars, you can uncomment these lines
+      <div id="cpu-graph" class="subgraph">
+
+        <!-- This container is filled with JavaScript with something similar to the elements below.
+               If you want to tweak the appearance of the bar subgraph, you can uncomment these lines
                and view this file in Chrome. -->
 
-          <!-- <div class="level">
-            <div class="range" data-tooltip="Foo (3 ms)"
-              style="--tooltip-offset:4%; left: 4%; width: 20%; background-color: rgb(170, 138, 51);">
-            </div>
-            <div class="range" data-tooltip="Foo (3 ms)"
-              style="--tooltip-offset:28%; left: 28%; width: 10%; background-color: rgb(170, 51, 154);">
-            </div>
+        <!-- <div class="level">
+          <div class="bar" data-tooltip="Foo (3 ms)"
+            style="--tooltip-offset:4%; left: 4%; width: 20%; background-color: rgb(170, 138, 51);">
           </div>
-          <div class="level">
-            <div class="range" data-tooltip="Foo (3 ms)"
-              style="--tooltip-offset:0%; left: 0%; width: 50%; background-color: rgb(89, 170, 51);">
-            </div>
-            <div class="range" data-tooltip="Foo (3 ms)"
-              style="--tooltip-offset:52%; left: 52%; width: 1%; background-color: rgb(74, 181, 207);">
-            </div>
+          <div class="bar" data-tooltip="Foo (3 ms)"
+            style="--tooltip-offset:28%; left: 28%; width: 10%; background-color: rgb(170, 51, 154);">
           </div>
-          <div class="level">
-            <div class="range" data-tooltip="Foo (3 ms)"
-              style="--tooltip-offset:0%; left: 0%; width: 2%; background-color: #3a8;"></div>
-            <div class="range" data-tooltip="Foo (3 ms)"
-              style="--tooltip-offset:98%; left: 98%; width: 2%; background-color: #3a8;"></div>
-          </div> -->
-
         </div>
+        <div class="level">
+          <div class="bar" data-tooltip="Foo (3 ms)"
+            style="--tooltip-offset:0%; left: 0%; width: 50%; background-color: rgb(89, 170, 51);">
+          </div>
+          <div class="bar" data-tooltip="Foo (3 ms)"
+            style="--tooltip-offset:52%; left: 52%; width: 1%; background-color: rgb(74, 181, 207);">
+          </div>
+        </div>
+        <div class="level">
+          <div class="bar" data-tooltip="Foo (3 ms)"
+            style="--tooltip-offset:0%; left: 0%; width: 2%; background-color: #3a8;"></div>
+          <div class="bar" data-tooltip="Foo (3 ms)"
+            style="--tooltip-offset:98%; left: 98%; width: 2%; background-color: #3a8;"></div>
+        </div> -->
 
       </div>
 
@@ -111,6 +108,60 @@ SPDX-License-Identifier: MIT
         <div class="tick minor"></div>
         <div class="tick minor"></div>
         <div class="tick major" style="margin-right: 7%;"><span>20 ms</span></div> -->
+      </div>
+
+    </div>
+
+    <div class="graph">
+
+      <div id="samples-graph" class="subgraph">
+
+        <!-- This container is filled with JavaScript with something similar to the elements below.
+           If you want to tweak the appearance of the subgraph, you can uncomment these lines
+           and view this file in Chrome. -->
+
+        <!-- <div class="level">
+          <div class="bar" data-tooltip="Foo (100 k)" style="width: 100%; background-color: rgb(170, 138, 51);">
+          </div>
+        </div>
+        <div class="level">
+          <div class="bar" data-tooltip="Foo (70 k)" style="width: 70%; background-color: rgb(170, 51, 154);">
+          </div>
+        </div>
+        <div class="level">
+          <div class="bar" data-tooltip="Foo (20 k)" style="width: 20%; background-color: rgb(51, 93, 170);">
+          </div>
+        </div>
+        <div class="level">
+          <div class="bar" data-tooltip="Foo (10 k)" style="width: 10%; background-color: rgb(134, 170, 51);">
+          </div>
+        </div> -->
+
+      </div>
+
+      <div id="primitives-graph" class="subgraph">
+
+        <!-- This container is filled with JavaScript with something similar to the elements below.
+           If you want to tweak the appearance of the subgraph, you can uncomment these lines
+           and view this file in Chrome. -->
+
+        <!-- <div class="level">
+          <div class="bar" data-tooltip="Foo (100 k)" style="width: 100%; background-color: rgb(170, 138, 51);">
+          </div>
+        </div>
+        <div class="level">
+          <div class="bar" data-tooltip="Foo (70 k)" style="width: 70%; background-color: rgb(170, 51, 154);">
+          </div>
+        </div>
+        <div class="level">
+          <div class="bar" data-tooltip="Foo (20 k)" style="width: 20%; background-color: rgb(51, 93, 170);">
+          </div>
+        </div>
+        <div class="level">
+          <div class="bar" data-tooltip="Foo (10 k)" style="width: 10%; background-color: rgb(134, 170, 51);">
+          </div>
+        </div> -->
+
       </div>
 
     </div>

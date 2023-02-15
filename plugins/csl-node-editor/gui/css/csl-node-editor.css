@@ -1,0 +1,226 @@
+/*
+SPDX-FileCopyrightText: German Aerospace Center (DLR) <cosmoscout@dlr.de>
+SPDX-License-Identifier: MIT
+*/
+
+body {
+    width: 100vw;
+    height: 100vh;
+    padding: 0;
+    margin: 0;
+    background-color: #333;
+    font-size: 0.9em;
+}
+
+/* Connection-failed message and loading screen ------------------------------------------------- */
+
+#connection-failed,
+#loading-screen {
+    top: 0;
+    position: absolute;
+    background: rgba(0, 0, 0, 0.5);
+    width: 100vw;
+    height: 100vh;
+}
+
+#connection-failed .wrapper,
+#loading-screen .wrapper {
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    position: absolute;
+}
+
+#connection-failed p,
+#loading-screen p {
+    font-size: 1.5em;
+}
+
+#loading-screen .spinner {
+    display: inline-block;
+    width: 80px;
+    height: 80px;
+}
+
+#loading-screen .spinner:after {
+    content: " ";
+    display: block;
+    width: 64px;
+    height: 64px;
+    margin: 8px;
+    border-radius: 50%;
+    border: 6px solid;
+    border-color: #fff transparent #fff transparent;
+    animation: spinner 1.2s linear infinite;
+}
+
+@keyframes spinner {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Background grid ------------------------------------------------------------------------------ */
+
+.background {
+    background:
+        linear-gradient(-90deg, rgba(255, 255, 255, .02) 3px, transparent 3px),
+        linear-gradient(rgba(255, 255, 255, .02) 3px, transparent 3px),
+        linear-gradient(-90deg, rgba(255, 255, 255, .03) 3px, transparent 3px),
+        linear-gradient(rgba(255, 255, 255, .03) 3px, transparent 3px);
+    background-size:
+        50px 50px,
+        50px 50px,
+        200px 200px,
+        200px 200px;
+}
+
+/* Nodes ---------------------------------------------------------------------------------------- */
+
+.node {
+    position: relative;
+    min-width: 150px;
+    background-color: var(--cs-color-background-dark);
+    border-radius: var(--cs-border-radius-medium);
+    border-bottom: 2px solid var(--cs-color-primary);
+    border-top: 2px solid var(--cs-color-primary);
+    border-left: 0px;
+    border-right: 0px;
+    box-shadow: var(--cs-box-shadow-medium);
+    display: grid;
+}
+
+.node.collapsed {
+    padding-top: 0;
+}
+
+.node.collapsed .title,
+.node.collapsed .outputs,
+.node.collapsed .inputs {
+    grid-column-start: 1;
+    grid-column-end: 1;
+    grid-row-start: 1;
+    grid-row-end: 1;
+    align-self: center;
+}
+
+.node .title {
+    position: relative;
+    font-size: 1.2em;
+    padding: 5px 15px;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.node .title:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.node .title:active {
+    top: 1px;
+}
+
+.node .title .caret-icon {
+    transition: transform 0.2s;
+    float: right;
+}
+
+.node:not(.collapsed) .title .caret-icon {
+    transform: rotate(-90deg);
+}
+
+.node.collapsed .input-title,
+.node.collapsed .output-title {
+    display: none;
+}
+
+.node .inputs,
+.node .outputs {
+    pointer-events: none;
+    padding: 3px 0;
+}
+
+.node .output {
+    text-align: right;
+    padding-left: 30px;
+}
+
+.node .input {
+    padding-right: 30px;
+}
+
+.node .socket {
+    position: relative;
+    display: inline-block;
+    vertical-align: text-bottom;
+    pointer-events: all;
+    width: 15px;
+    height: 15px;
+    border-radius: 100%;
+    border: 1px solid white;
+    cursor: pointer;
+}
+
+.node .output .socket {
+    right: -8px;
+}
+
+.node .input .socket {
+    left: -8px;
+}
+
+.node .socket:hover {
+    border-width: 2px;
+}
+
+
+.node.collapsed .control {
+    display: none;
+}
+
+/* Connections ---------------------------------------------------------------------------------- */
+
+.connection .main-path {
+    stroke: #ccf !important;
+    stroke-width: 2px;
+    filter: drop-shadow(0px 2px 2px rgba(0, 0, 0, 1.0));
+}
+
+/* Context menu --------------------------------------------------------------------------------- */
+
+.context-menu,
+.subitems {
+    box-shadow: var(--cs-box-shadow-small) !important;
+    background-color: var(--cs-color-background-dark) !important;
+    padding: 0 !important;
+    border-radius: 5px;
+}
+
+.context-menu .search,
+.context-menu .item,
+.item .subitems .subitem {
+    border: none !important;
+    width: auto !important;
+    background: none !important;
+    color: var(--cs-color-text) !important;
+    padding: 10px !important;
+}
+
+.context-menu .item:hover {
+    background-color: var(--cs-color-background-light) !important;
+    color: var(--cs-color-text-highlight) !important;
+}
+
+.context-menu .search input {
+    border: none !important;
+    border-bottom: 2px solid var(--cs-color-primary) !important;
+    border-radius: 0 !important;
+}

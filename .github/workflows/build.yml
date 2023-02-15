@@ -87,36 +87,28 @@ jobs:
       github.event_name == 'pull_request' ||
       ( contains(github.ref, 'main') && !contains(github.event.head_commit.message, '[no-ci]') ) ||
       contains(github.event.head_commit.message, '[run-ci]')
+    env:
+      COSMOSCOUT_USE_PCH: false
+      COSMOSCOUT_USE_UNITY_BUILD: false
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
       - name: Checkout Submodules
         run: git submodule update --init
       - name: Cache Object Files
-        uses: actions/cache@v1.1.0
+        uses: hendrikmuhs/ccache-action@v1.2.5
         with:
-          path: ~/.ccache
-          key: gcc-${{ github.sha }}
-          restore-keys: gcc-
+          key: gcc
       - name: Download Dependencies
         run: |
           sudo apt-get update -q
           sudo apt-get install libgl1-mesa-dev libglu1-mesa-dev libx11-dev
-          sudo apt-get install libxi-dev libgconf-2-4 ccache lcov xvfb
-          sudo apt-get install libboost-all-dev
-          ccache --max-size 1G
-          ccache -z
+          sudo apt-get install libxi-dev libgconf-2-4 libboost-all-dev lcov xvfb
       - name: Build Externals
-        env: # Thanks to ccache, it build actually faster without these options.
-          COSMOSCOUT_USE_PCH: false
-          COSMOSCOUT_USE_UNITY_BUILD: false
         run: >
           ./make_externals.sh -G "Unix Makefiles"
           -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
       - name: Build CosmoScout VR
-        env: # We reenable these options to test them, since they are not tested regularly by developers.
-          COSMOSCOUT_USE_PCH: true
-          COSMOSCOUT_USE_UNITY_BUILD: true
         run: >
           ./make.sh -G "Unix Makefiles"
           -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
@@ -141,8 +133,6 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path-to-lcov: ./build/linux-Release/coverage.info
-      - name: Print ccache Statistics
-        run: ccache -s
 
   build_linux_clang:
     name: Linux Clang 11.0
@@ -154,36 +144,27 @@ jobs:
     env:
       CC: clang-11
       CXX: clang++-11
+      COSMOSCOUT_USE_PCH: false
+      COSMOSCOUT_USE_UNITY_BUILD: false
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
       - name: Checkout Submodules
         run: git submodule update --init
       - name: Cache Object Files
-        uses: actions/cache@v1.1.0
+        uses: hendrikmuhs/ccache-action@v1.2.5
         with:
-          path: ~/.ccache
-          key: clang-${{ github.sha }}
-          restore-keys: clang-
+          key: clang
       - name: Download Dependencies
         run: |
           sudo apt-get update -q
           sudo apt-get install libgl1-mesa-dev libglu1-mesa-dev libx11-dev
-          sudo apt-get install libxi-dev libgconf-2-4 ccache
-          sudo apt-get install libboost-all-dev
-          ccache --max-size 1G
-          ccache -z
+          sudo apt-get install libxi-dev libgconf-2-4 libboost-all-dev
       - name: Build Externals
-        env: #Thanks to ccache, it build actually faster without these options.
-          COSMOSCOUT_USE_PCH: false
-          COSMOSCOUT_USE_UNITY_BUILD: false
         run: >
           ./make_externals.sh -G "Unix Makefiles"
           -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
       - name: Build CosmoScout VR
-        env: # We reenable these options to test them, since they are not tested regularly by developers.
-          COSMOSCOUT_USE_PCH: true
-          COSMOSCOUT_USE_UNITY_BUILD: true
         run: >
           ./make.sh -G "Unix Makefiles"
           -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
@@ -200,8 +181,6 @@ jobs:
         with:
           name: graphical-test-results-clang
           path: install/linux-Release/bin/test
-      - name: Print ccache Statistics
-        run: ccache -s
 
   build_windows:
     name: Windows MSVC 19.25
@@ -212,12 +191,20 @@ jobs:
       contains(github.event.head_commit.message, '[run-ci]')
     env:
       BOOST_ROOT_1_72_0: C:\hostedtoolcache\windows\Boost\1.72.0\x86_64
+      COSMOSCOUT_USE_PCH: true
+      COSMOSCOUT_USE_UNITY_BUILD: true
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
       - name: Checkout Submodules
         run: git submodule update --init
-      - name: Download Boost
+      - name: Cache Object Files
+        uses: hendrikmuhs/ccache-action@v1.2.5
+        with:
+          key: msvc
+      - name: Setup CMD
+        uses: ilammy/msvc-dev-cmd@v1
+      - name: Download Dependencies
         run: |
           # From https://github.com/actions/virtual-environments/issues/2667
           $url = "https://github.com/actions/boost-versions/releases/download/1.72.0-20200608.4/boost-1.72.0-win32-msvc14.2-x86_64.tar.gz"
@@ -226,14 +213,17 @@ jobs:
           7z.exe x "$env:TEMP\boostArchive" -o"$env:TEMP\boost" -y | Out-Null
           Push-Location -Path "$env:TEMP\boost"
           Invoke-Expression .\setup.ps1
+          choco install ninja
       - name: Build Externals
         shell: cmd
-        run: |
-          make_externals.bat -G "Visual Studio 16 2019" -A x64
+        run: >
+          make_externals.bat -GNinja -DCMAKE_C_COMPILER=cl.exe -DCMAKE_CXX_COMPILER=cl.exe
+          -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
       - name: Build CosmoScout VR
         shell: cmd
         run: >
-          make.bat -G "Visual Studio 16 2019" -A x64
+          make.bat -GNinja -DCMAKE_C_COMPILER=cl.exe -DCMAKE_CXX_COMPILER=cl.exe
+          -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
           -DCOSMOSCOUT_UNIT_TESTS=On -DBOOST_ROOT=%BOOST_ROOT_1_72_0%
       - name: Run Tests
         shell: cmd

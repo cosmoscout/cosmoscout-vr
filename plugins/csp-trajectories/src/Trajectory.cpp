@@ -8,7 +8,7 @@
 #include "Trajectory.hpp"
 
 #include "../../../src/cs-core/SolarSystem.hpp"
-#include "../../../src/cs-utils/FrameTimings.hpp"
+#include "../../../src/cs-utils/FrameStats.hpp"
 #include "logger.hpp"
 
 #include <VistaKernel/GraphicsManager/VistaGraphicsManager.h>
@@ -59,8 +59,8 @@ void Trajectory::update(double tTime) {
     return;
   }
 
-  cs::utils::FrameTimings::ScopedTimer timer(
-      "Trajectory of " + mTargetName, cs::utils::FrameTimings::QueryMode::eCPU);
+  cs::utils::FrameStats::ScopedTimer timer(
+      "Trajectory of " + mTargetName, cs::utils::FrameStats::TimerMode::eCPU);
 
   auto parent = mSolarSystem->getObject(mParentName);
   auto target = mSolarSystem->getObject(mTargetName);
@@ -188,7 +188,7 @@ bool Trajectory::Do() {
   auto target = mSolarSystem->getObject(mTargetName);
 
   if (parent->getIsInExistence() && target->getIsOrbitVisible()) {
-    cs::utils::FrameTimings::ScopedTimer timer("Trajectory of " + mTargetName);
+    cs::utils::FrameStats::ScopedTimer timer("Trajectory of " + mTargetName);
     mTrajectory.Do();
   }
 
