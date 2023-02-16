@@ -85,6 +85,7 @@ void Plugin::init() {
       "WCS Overlays", "category", "../share/resources/gui/wcs_overlays_tab.html");
   mGuiManager->addSettingsSectionToSideBarFromHTML(
       "WCS Overlays", "category", "../share/resources/gui/wcs_settings.html");
+  mGuiManager->addTemplate("wcsOverlays-infoWindow-template", "../share/resources/gui/wcs_info_window_template.html");
   mGuiManager->executeJavascriptFile("../share/resources/gui/js/csp-wcs-overlays.js");
   mGuiManager->addCSS("css/csp-wcs-overlays.css");
 
@@ -255,7 +256,7 @@ void Plugin::onLoad() {
   }
 
   // Then add new WCS overlays.
-  for (auto& settings : mPluginSettings->mBodies) {
+  for (const auto& settings : mPluginSettings->mBodies) {
     if (mWCSOverlays.find(settings.first) != mWCSOverlays.end()) {
       continue;
     }
