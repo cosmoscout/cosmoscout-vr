@@ -19,12 +19,11 @@ namespace csl::ogc {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 WebServiceBase::WebServiceBase(std::string url, CacheMode cacheMode, std::string cacheDir,
-    std::string title, std::string serviceType, std::string supportedVersion, TagNames tagNames)
+    std::string serviceType, std::string supportedVersion, TagNames tagNames)
     : mUrl(std::move(url))
     , mCacheMode(cacheMode)
     , mCacheDir(std::move(cacheDir))
     , mCacheFileName(std::regex_replace(mUrl, std::regex("[/:*]"), "_") + ".xml")
-    , mTitle(std::move(title))
     , mServiceType(std::move(serviceType))
     , mSupportedVersion(std::move(supportedVersion))
     , mTagNames(std::move(tagNames)) {
@@ -40,6 +39,12 @@ std::string const& WebServiceBase::getUrl() const noexcept {
 
 std::string const& WebServiceBase::getTitle() const noexcept {
   return mTitle;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void WebServiceBase::setTitle(std::string title) noexcept {
+  mTitle = std::move(title);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -250,12 +255,8 @@ WebServiceBase::checkUpdateSequence(VistaXML::TiXmlDocument cacheDoc) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::stringstream WebServiceBase::getGetCapabilitiesUrl() const noexcept {
-  std::stringstream urlStream;
-  urlStream << mUrl;
-  urlStream << "?SERVICE=" << mServiceType;
-  urlStream << "&VERSION=" << mSupportedVersion;
-  urlStream << "&REQUEST=GetCapabilities";
-  return urlStream;
+  return std::stringstream{fmt::format(
+      "{}?SERVICE={}&VERSION={}&REQUEST=GetCapabilities", mUrl, mServiceType, mSupportedVersion)};
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

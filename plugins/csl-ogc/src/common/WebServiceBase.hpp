@@ -39,7 +39,7 @@ class CSL_OGC_EXPORT WebServiceBase {
   /// cacheMode can be used to control the caching behavior for the capability document.
   /// If caching is activated, cacheDir should be the path to a directory which can be
   /// used for caching.
-  WebServiceBase(std::string url, CacheMode cacheMode, std::string cacheDir, std::string title,
+  WebServiceBase(std::string url, CacheMode cacheMode, std::string cacheDir,
       std::string serviceType, std::string supportedVersion, TagNames tagNames);
 
   /// Gets the base URL of the service
@@ -59,6 +59,8 @@ class CSL_OGC_EXPORT WebServiceBase {
   virtual std::unique_ptr<OGCExceptionReport> createExceptionReport(
       VistaXML::TiXmlDocument const& doc) const = 0;
 
+  void setTitle(std::string title) noexcept;
+
  private:
   /// Tries to load cached capabilities for this web service.
   std::optional<VistaXML::TiXmlDocument> getCapabilitiesFromCache();
@@ -75,15 +77,15 @@ class CSL_OGC_EXPORT WebServiceBase {
   std::optional<std::tuple<VistaXML::TiXmlDocument, std::optional<std::string>>>
   checkUpdateSequence(VistaXML::TiXmlDocument cacheDoc);
 
-  const std::string mUrl;
-  const std::string mCacheDir;
-  const std::string mCacheFileName;
-  const CacheMode   mCacheMode;
+  const std::string mUrl{};
+  const std::string mCacheDir{};
+  const std::string mCacheFileName{};
+  const CacheMode   mCacheMode{};
 
-  const std::string mTitle;
+  std::string mTitle{};
 
-  const std::string mServiceType;
-  const std::string mSupportedVersion;
+  const std::string mServiceType{};
+  const std::string mSupportedVersion{};
 
   const TagNames mTagNames;
 

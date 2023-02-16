@@ -128,6 +128,7 @@ class Plugin : public cs::core::PluginBase {
   std::map<std::string, std::vector<csl::ogc::WebMapService>>    mWms;
 
   std::shared_ptr<TextureOverlayRenderer> mActiveOverlay;
+
   /// The currently active WebMapService for each center name.
   std::map<std::string, std::optional<csl::ogc::WebMapService>> mActiveServers;
   /// The currently active WebMapLayer for each center name.

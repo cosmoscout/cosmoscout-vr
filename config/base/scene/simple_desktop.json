@@ -715,7 +715,7 @@
   },
   "plugins": {
     "csp-timings": {},
-    "csp-stars": {
+    "#csp-stars": {
       "celestialGridTexture": "../share/resources/textures/celestial_grid.png",
       "starFiguresTexture": "../share/resources/textures/constellation_figures.png",
       "celestialGridColor": [
@@ -1376,6 +1376,32 @@
           }
         }
       }
+    },
+    "csp-wms-overlays": {
+      "maxTextureSize": 1024,
+      "preFetch": 1,
+      "bodies": {
+        "Earth": {
+          "wms": [
+            "https://maps.dwd.de/geoserver/dwd/wms",
+            "https://geotest.eoc.dlr.de/eoc/atmosphere/wms"
+          ]
+        }
+      }
+    },
+    "csp-wcs-overlays": {
+      "maxTextureSize": 1024,
+      "preFetch": 1,
+      "bodies": {
+        "Earth": {
+          "wcs": [
+            "https://geotest.eoc.dlr.de/eoc/atmosphere/wcs"
+          ]
+        }
+      }
+    },
+    "csp-demo-node-editor": {
+      "port": 9999
     },
     "csp-vr-accessibility": {
       "grid": {
