@@ -30,7 +30,6 @@ namespace csp::lodbodies {
 /// The shader for rendering a planet.
 class PlanetShader : public TerrainShader {
  public:
-  cs::utils::Property<bool> pTextureIsRGB  = true;
   cs::utils::Property<bool> pEnableTexture = true; ///< If false the image data will not be drawn.
 
   PlanetShader(std::shared_ptr<cs::core::Settings>     settings,

@@ -24,15 +24,11 @@ GLenum getInternalFormat(TileDataType dataType) {
   GLenum result = GL_NONE;
 
   switch (dataType) {
-  case TileDataType::eFloat32:
+  case TileDataType::eElevation:
     result = GL_R32F;
     break;
 
-  case TileDataType::eUInt8:
-    result = GL_R8;
-    break;
-
-  case TileDataType::eU8Vec3:
+  case TileDataType::eColor:
     result = GL_RGB8;
     break;
   }
@@ -44,10 +40,9 @@ GLenum getInternalFormat(TileDataType dataType) {
 
 GLenum getFormat(TileDataType dataType) {
   switch (dataType) {
-  case TileDataType::eFloat32:
-  case TileDataType::eUInt8:
+  case TileDataType::eElevation:
     return GL_RED;
-  case TileDataType::eU8Vec3:
+  case TileDataType::eColor:
     return GL_RGB;
   }
 
@@ -58,11 +53,10 @@ GLenum getFormat(TileDataType dataType) {
 
 GLenum getType(TileDataType dataType) {
   switch (dataType) {
-  case TileDataType::eFloat32:
+  case TileDataType::eElevation:
     return GL_FLOAT;
 
-  case TileDataType::eUInt8:
-  case TileDataType::eU8Vec3:
+  case TileDataType::eColor:
     return GL_UNSIGNED_BYTE;
   }
 
@@ -76,12 +70,13 @@ GLenum getType(TileDataType dataType) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /* explicit */
-TileTextureArray::TileTextureArray(TileDataType dataType, int maxLayerCount)
+TileTextureArray::TileTextureArray(TileDataType dataType, int maxLayerCount, uint32_t resolution)
     : mTexId(0U)
     , mIformat()
     , mFormat()
     , mType()
     , mDataType(dataType)
+    , mResolution(resolution)
     , mNumLayers(maxLayerCount) {
 }
 
@@ -200,8 +195,6 @@ void TileTextureArray::allocateTexture(TileDataType dataType) {
   glGenTextures(1, &mTexId);
 
   GLsizei const level  = 0;
-  GLsizei const width  = TileBase::SizeX;
-  GLsizei const height = TileBase::SizeY;
   GLsizei const depth  = mNumLayers;
   GLint const   border = 0;
 
@@ -210,8 +203,8 @@ void TileTextureArray::allocateTexture(TileDataType dataType) {
   mType    = getType(dataType);
 
   glBindTexture(GL_TEXTURE_2D_ARRAY, mTexId);
-  glTexImage3D(
-      GL_TEXTURE_2D_ARRAY, level, mIformat, width, height, depth, border, mFormat, mType, nullptr);
+  glTexImage3D(GL_TEXTURE_2D_ARRAY, level, mIformat, mResolution, mResolution, depth, border,
+      mFormat, mType, nullptr);
 
   // set filter and wrapping parameters
   glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -258,13 +251,11 @@ void TileTextureArray::allocateLayer(RenderData* rdata) {
   GLint const   level   = 0;
   GLint const   xoffset = 0;
   GLint const   yoffset = 0;
-  GLsizei const width   = TileBase::SizeX;
-  GLsizei const height  = TileBase::SizeY;
   GLsizei const depth   = 1;
   GLvoid const* data    = tile->getDataPtr();
 
-  glTexSubImage3D(GL_TEXTURE_2D_ARRAY, level, xoffset, yoffset, layer, width, height, depth,
-      mFormat, mType, data);
+  glTexSubImage3D(GL_TEXTURE_2D_ARRAY, level, xoffset, yoffset, layer, mResolution, mResolution,
+      depth, mFormat, mType, data);
 
   rdata->setTexLayer(layer);
 }
