@@ -36,10 +36,10 @@ class TileRenderer {
   virtual ~TileRenderer() = default;
 
   TileRenderer(TileRenderer const& other) = delete;
-  TileRenderer(TileRenderer&& other)      = default;
+  TileRenderer(TileRenderer&& other)      = delete;
 
   TileRenderer& operator=(TileRenderer const& other) = delete;
-  TileRenderer& operator=(TileRenderer&& other) = default;
+  TileRenderer& operator=(TileRenderer&& other) = delete;
 
   TreeManagerBase* getTreeManagerDEM() const;
   void             setTreeManagerDEM(TreeManagerBase* treeMgr);
