@@ -99,12 +99,12 @@ void const* Tile<T>::getDataPtr() const {
 }
 
 template <typename T>
-typename std::vector<T> const& Tile<T>::data() const {
+std::vector<T> const& Tile<T>::data() const {
   return mData;
 }
 
 template <typename T>
-typename std::vector<T>& Tile<T>::data() {
+std::vector<T>& Tile<T>::data() {
   return mData;
 }
 
