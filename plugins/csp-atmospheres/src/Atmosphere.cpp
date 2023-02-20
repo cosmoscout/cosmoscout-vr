@@ -371,7 +371,7 @@ bool Atmosphere::Do() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool Atmosphere::GetBoundingBox(VistaBoundingBox& bb) {
-  float extend = mRadii[0];
+  float extend = static_cast<float>(std::max(std::max(mRadii[0], mRadii[1]), mRadii[2]));
 
   // Boundingbox is computed by translation an edge points
   std::array<float, 3> const fMin = {-extend, -extend, -extend};
